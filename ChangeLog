@@ -1,5 +1,27 @@
 2013-05-01  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-626
+
+	* src/matpack*.h (*::get):
+
+	Add a non-asserting element accessor to Vector, Matrix and Tensor*
+	View classes. Should only in places were maximum speed is of the essence.
+
+	* src/interpolation.{h,cc}:
+
+	Cache the begin() and end() iterators in loops. Use the matpack get
+	function inside the loops.
+
+	Speeds up interpolation, especially the GasAbsLookup::Extract function.
+	For example, arts.ctlfile.slow.amsub runs 30% faster.
+
+	* src/m_rte.cc (yCalc), src/rte.cc (iyb_calc):
+
+	Tweak OpenMP loop condition for cases where the number of frequencies
+	is smaller than nmblock and nza.
+
+2013-05-01  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-625
 
 	* src/absorption.cc (xsec_species):

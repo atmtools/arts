@@ -379,6 +379,13 @@ public:
         CHECK(p);
         CHECK(r);
         CHECK(c);
+        return get(v, s, b, p, r, c);
+      }
+
+  /** Get element implementation without assertions. */
+  Numeric get( Index        v, Index        s, Index        b,
+               Index        p, Index        r, Index        c) const
+      {
         return                *(mdata +
                                 OFFSET(v) + OFFSET(s) + OFFSET(b) +
                                 OFFSET(p) + OFFSET(r) + OFFSET(c)    );
@@ -651,6 +658,10 @@ public:
                        Index        p, Index        r, Index        c) const
       { return ConstTensor6View::operator()(v,s,b,p,r,c);  }
 
+  /** Get element implementation without assertions. */
+  Numeric get( Index        v, Index        s, Index        b,
+               Index        p, Index        r, Index        c) const
+      { return ConstTensor6View::get(v,s,b,p,r,c);  }
 
   // Non-const index operators:
 
@@ -865,11 +876,17 @@ public:
         CHECK(p);
         CHECK(r);
         CHECK(c);
+        return get(v, s, b, p, r, c);
+      }
+
+  /** Get element implementation without assertions. */
+  Numeric& get( Index        v, Index        s, Index        b,
+                Index        p, Index        r, Index        c)
+    {
         return                *(mdata +
                                 OFFSET(v) + OFFSET(s) + OFFSET(b) +
                                 OFFSET(p) + OFFSET(r) + OFFSET(c)    );
-      }
-
+    }
 
   // Functions returning const iterators:
   ConstIterator6D begin() const;

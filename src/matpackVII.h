@@ -705,6 +705,14 @@ public:
         CHECK(p);
         CHECK(r);
         CHECK(c);
+        return get(l, v, s, b, p, r, c);
+      }
+
+  /** Get element implementation without assertions. */
+  Numeric get( Index        l,
+               Index        v, Index        s, Index        b,
+               Index        p, Index        r, Index        c) const
+      {
         return                *(mdata + OFFSET(l) +
                                 OFFSET(v) + OFFSET(s) + OFFSET(b) +
                                 OFFSET(p) + OFFSET(r) + OFFSET(c)    );
@@ -1302,6 +1310,12 @@ public:
                        Index        p, Index        r, Index        c) const
       { return ConstTensor7View::operator()(l,v,s,b,p,r,c); }
 
+  /** Get element implementation without assertions. */
+  Numeric get( Index        l,
+                       Index        v, Index        s, Index        b,
+                       Index        p, Index        r, Index        c) const
+      { return ConstTensor7View::get(l,v,s,b,p,r,c); }
+
 
   // Non-const index operators:
 
@@ -1839,6 +1853,14 @@ public:
         CHECK(p);
         CHECK(r);
         CHECK(c);
+        return get(l, v, s, b, p, r, c);
+      }
+
+  /** Get element implementation without assertions. */
+  Numeric& get( Index        l,
+                Index        v, Index        s, Index        b,
+                Index        p, Index        r, Index        c)
+      {
         return                *(mdata + OFFSET(l) +
                                 OFFSET(v) + OFFSET(s) + OFFSET(b) +
                                 OFFSET(p) + OFFSET(r) + OFFSET(c)    );

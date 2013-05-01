@@ -304,6 +304,12 @@ public:
     { // Check if index is valid:
       assert( 0<=n );
       assert( n<mrange.mextent );
+      return get(n);
+    }
+
+  /** Get element implementation without assertions. */
+  Numeric get(Index n) const
+    {
       return *( mdata +
                 mrange.mstart +
                 n*mrange.mstride );
@@ -377,6 +383,10 @@ public:
   Numeric operator[](Index n) const
     { return ConstVectorView::operator[](n); }
 
+  /** Get element implementation without assertions. */
+  Numeric get(Index n) const
+    { return ConstVectorView::get(n); }
+
   ConstVectorView operator[](const Range& r) const;
 
   /** Plain Index operator. */
@@ -384,6 +394,12 @@ public:
     { // Check if index is valid:
       assert( 0<=n );
       assert( n<mrange.mextent );
+      return get(n);
+    }
+
+  /** Get element implementation without assertions. */
+  Numeric& get(Index n)
+    {
       return *( mdata +
                 mrange.mstart +
                 n*mrange.mstride );
@@ -594,6 +610,12 @@ public:
       assert( r<mrr.mextent );
       assert( c<mcr.mextent );
 
+      return get(r, c);
+    }
+
+  /** Get element implementation without assertions. */
+  Numeric get(Index r, Index c) const
+    {
       return *( mdata +
                 mrr.mstart +
                 r*mrr.mstride +
@@ -664,6 +686,10 @@ public:
   Numeric operator()(Index r, Index c) const
     { return ConstMatrixView::operator()(r,c); }
 
+  /** Get element implementation without assertions. */
+  Numeric get(Index r, Index c) const
+    { return ConstMatrixView::get(r,c); }
+
   ConstMatrixView operator()(const Range& r, const Range& c) const;
   ConstVectorView operator()(const Range& r, Index c) const;
   ConstVectorView operator()(Index r, const Range& c) const;
@@ -676,6 +702,12 @@ public:
       assert( r<mrr.mextent );
       assert( c<mcr.mextent );
 
+      return get(r, c);
+    }
+
+  /** Get element implementation without assertions. */
+  Numeric& get(Index r, Index c)
+    {
       return *( mdata +
                 mrr.mstart +
                 r*mrr.mstride +

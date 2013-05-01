@@ -1933,7 +1933,8 @@ void iyb_calc(
   if (nza)
 #pragma omp parallel for                     \
   if (!arts_omp_in_parallel()                \
-      && nza >= arts_omp_get_max_threads())  \
+      && (nza >= arts_omp_get_max_threads()  \
+          || nf <= nza))                     \
   firstprivate(l_ws, l_iy_main_agenda)
   for( Index iza=0; iza<nza; iza++ )
     {

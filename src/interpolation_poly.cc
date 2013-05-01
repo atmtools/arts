@@ -407,7 +407,12 @@ void gridpos_poly_cyclic_longitudinal(ArrayOfGridPosPoly& gp,
 */
 //#define LOOPW(x) for ( const Numeric* x=&t##x.fd[1]; x>=&t##x.fd[0]; --x )
 //#define LOOPW(x) for ( Index x=0; x<t##x.w.nelem(); ++x )
-#define LOOPW(x) for ( ConstIterator1D x=t##x.w.begin(); x!=t##x.w.end(); ++x )
+//#define LOOPW(x) for ( ConstIterator1D x=t##x.w.begin(); x!=t##x.w.end(); ++x )
+#define LOOPW(x) for ( ConstIterator1D x = t##x##begin; x!=t##x##end; ++x)
+
+//! Macro for caching begin and end iterators for interpolation weight loops.
+#define CACHEW(x) const ConstIterator1D& t##x##begin = t##x.w.begin(); \
+                  const ConstIterator1D& t##x##end = t##x.w.end();
 
 //! Macro for interpolation index loops.
 /*!
@@ -475,9 +480,10 @@ void interpweights( VectorView itw,
 
   Index iti = 0;
 
+  CACHEW(c)
   LOOPW(c)
     {
-      itw[iti] = *c;
+      itw.get(iti) = *c;
       ++iti;
     }
 }
@@ -506,10 +512,12 @@ void interpweights( VectorView itw,
                  tc.w.nelem())); 
   Index iti = 0;
 
+  CACHEW(r)
+  CACHEW(c)
   LOOPW(r)
   LOOPW(c)
     {
-      itw[iti] = (*r) * (*c);
+      itw.get(iti) = (*r) * (*c);
       ++iti;
     }
 }
@@ -542,11 +550,14 @@ void interpweights( VectorView itw,
                                
   Index iti = 0;
 
+  CACHEW(p)
+  CACHEW(r)
+  CACHEW(c)
   LOOPW(p)
   LOOPW(r)
   LOOPW(c)
     {
-      itw[iti] = (*p) * (*r) * (*c);
+      itw.get(iti) = (*p) * (*r) * (*c);
       ++iti;
     }
 }
@@ -582,12 +593,16 @@ void interpweights( VectorView itw,
                                 
   Index iti = 0;
 
+  CACHEW(b)
+  CACHEW(p)
+  CACHEW(r)
+  CACHEW(c)
   LOOPW(b)
   LOOPW(p)
   LOOPW(r)
   LOOPW(c)
     {
-      itw[iti] = (*b) * (*p) * (*r) * (*c);
+      itw.get(iti) = (*b) * (*p) * (*r) * (*c);
       ++iti;
     }
 }
@@ -626,13 +641,18 @@ void interpweights( VectorView itw,
                                 
   Index iti = 0;
 
+  CACHEW(s)
+  CACHEW(b)
+  CACHEW(p)
+  CACHEW(r)
+  CACHEW(c)
   LOOPW(s)
   LOOPW(b)
   LOOPW(p)
   LOOPW(r)
   LOOPW(c)
     {
-      itw[iti] = (*s) * (*b) * (*p) * (*r) * (*c);
+      itw.get(iti) = (*s) * (*b) * (*p) * (*r) * (*c);
       ++iti;
     }
 }
@@ -674,6 +694,12 @@ void interpweights( VectorView itw,
                                 
   Index iti = 0;
 
+  CACHEW(v)
+  CACHEW(s)
+  CACHEW(b)
+  CACHEW(p)
+  CACHEW(r)
+  CACHEW(c)
   LOOPW(v)
   LOOPW(s)
   LOOPW(b)
@@ -681,7 +707,7 @@ void interpweights( VectorView itw,
   LOOPW(r)
   LOOPW(c)
     {
-      itw[iti] = (*v) * (*s) * (*b) * (*p) * (*r) * (*c);
+      itw.get(iti) = (*v) * (*s) * (*b) * (*p) * (*r) * (*c);
       ++iti;
     }
 }
@@ -720,7 +746,7 @@ Numeric interp( ConstVectorView itw,
   Index iti = 0;
   LOOPIDX(c)
     {
-      tia += a[*c] * itw[iti];
+      tia += a.get(*c) * itw.get(iti);
       ++iti;
     }
 
@@ -766,8 +792,8 @@ Numeric interp( ConstVectorView  itw,
   LOOPIDX(r)
     LOOPIDX(c)
       {
-        tia += a(*r,
-                 *c) * itw[iti];
+        tia += a.get(*r,
+                     *c) * itw.get(iti);
         ++iti;
       }
 
@@ -817,9 +843,9 @@ Numeric interp( ConstVectorView  itw,
   LOOPIDX(r)
   LOOPIDX(c)
         {
-          tia += a(*p,
-                   *r,
-                   *c) * itw[iti];
+          tia += a.get(*p,
+                       *r,
+                       *c) * itw.get(iti);
           ++iti;
         }
 
@@ -873,10 +899,10 @@ Numeric interp( ConstVectorView  itw,
   LOOPIDX(r)
   LOOPIDX(c)
           {
-            tia += a(*b,
-                     *p,
-                     *r,
-                     *c) * itw[iti];
+            tia += a.get(*b,
+                         *p,
+                         *r,
+                         *c) * itw.get(iti);
             ++iti;
           }
 
@@ -934,11 +960,11 @@ Numeric interp( ConstVectorView  itw,
   LOOPIDX(r)
   LOOPIDX(c)
             {
-              tia += a(*s,
-                       *b,
-                       *p,
-                       *r,
-                       *c) * itw[iti];
+              tia += a.get(*s,
+                           *b,
+                           *p,
+                           *r,
+                           *c) * itw.get(iti);
               ++iti;
             }
 
@@ -1000,12 +1026,12 @@ Numeric interp( ConstVectorView  itw,
   LOOPIDX(r)
   LOOPIDX(c)
               {
-                tia += a(*v,
-                         *s,
-                         *b,
-                         *p,
-                         *r,
-                         *c) * itw[iti];
+                tia += a.get(*v,
+                             *s,
+                             *b,
+                             *p,
+                             *r,
+                             *c) * itw.get(iti);
                 ++iti;
               }
 
@@ -1078,9 +1104,10 @@ void interpweights( MatrixView itw,
       // to the for loop above. Note: NO SEMICOLON AFTER THE LOOPW
       // COMMAND! 
 
+      CACHEW(c)
       LOOPW(c)
         {
-          itw(i,iti) = *c;
+          itw.get(i,iti) = *c;
           ++iti;
         }
     }
@@ -1135,10 +1162,12 @@ void interpweights( MatrixView itw,
 
       Index iti = 0;
 
+      CACHEW(r)
+      CACHEW(c)
       LOOPW(r)
       LOOPW(c)
           {
-            itw(i,iti) = (*r) * (*c);
+            itw.get(i,iti) = (*r) * (*c);
             ++iti;
           }
     }
@@ -1190,11 +1219,14 @@ void interpweights( MatrixView itw,
       const GridPosPoly& tc = cgp[i];
 
       Index iti = 0;
+      CACHEW(p)
+      CACHEW(r)
+      CACHEW(c)
       LOOPW(p)
       LOOPW(r)
       LOOPW(c)
         {
-          itw(i,iti) = (*p) * (*r) * (*c);
+          itw.get(i,iti) = (*p) * (*r) * (*c);
           ++iti;
         }
     }
@@ -1251,12 +1283,16 @@ void interpweights( MatrixView itw,
       const GridPosPoly& tc = cgp[i];
 
       Index iti = 0;
+      CACHEW(b)
+      CACHEW(p)
+      CACHEW(r)
+      CACHEW(c)
       LOOPW(b)
       LOOPW(p)
       LOOPW(r)
       LOOPW(c)
         {
-          itw(i,iti) = (*b) * (*p) * (*r) * (*c);
+          itw.get(i,iti) = (*b) * (*p) * (*r) * (*c);
           ++iti;
         }
     }
@@ -1318,13 +1354,18 @@ void interpweights( MatrixView itw,
       const GridPosPoly& tc = cgp[i];
 
       Index iti = 0;
+      CACHEW(s)
+      CACHEW(b)
+      CACHEW(p)
+      CACHEW(r)
+      CACHEW(c)
       LOOPW(s)
       LOOPW(b)
       LOOPW(p)
       LOOPW(r)
       LOOPW(c)
         {
-          itw(i,iti) = (*s) * (*b) * (*p) * (*r) * (*c);
+          itw.get(i,iti) = (*s) * (*b) * (*p) * (*r) * (*c);
           ++iti;
         }
     }
@@ -1391,6 +1432,12 @@ void interpweights( MatrixView itw,
       const GridPosPoly& tc = cgp[i];
 
       Index iti = 0;
+      CACHEW(v)
+      CACHEW(s)
+      CACHEW(b)
+      CACHEW(p)
+      CACHEW(r)
+      CACHEW(c)
       LOOPW(v)
       LOOPW(s)
       LOOPW(b)
@@ -1398,7 +1445,7 @@ void interpweights( MatrixView itw,
       LOOPW(r)
       LOOPW(c)
         {
-          itw(i,iti) = (*v) * (*s) * (*b) * (*p) * (*r) * (*c);
+          itw.get(i,iti) = (*v) * (*s) * (*b) * (*p) * (*r) * (*c);
           ++iti;
         }
     }
@@ -1452,7 +1499,7 @@ void interp( VectorView            ia,
       Index iti = 0;
       LOOPIDX(c)
         {
-          tia += a[*c] * itw(i,iti);
+          tia += a.get(*c) * itw.get(i,iti);
           ++iti;
         }
     }
@@ -1516,8 +1563,8 @@ void interp( VectorView            ia,
       LOOPIDX(r)
         LOOPIDX(c)
           {
-            tia += a(*r,
-                     *c) * itw(i,iti);
+            tia += a.get(*r,
+                         *c) * itw.get(i,iti);
             ++iti;
           }
     }
@@ -1587,9 +1634,9 @@ void interp( VectorView            ia,
       LOOPIDX(r)
       LOOPIDX(c)
             {
-              tia += a(*p,
-                       *r,
-                       *c) * itw(i,iti);
+              tia += a.get(*p,
+                           *r,
+                           *c) * itw.get(i,iti);
               ++iti;
             }
     }
@@ -1665,10 +1712,10 @@ void interp( VectorView            ia,
       LOOPIDX(r)
       LOOPIDX(c)
               {
-                tia += a(*b,
-                         *p,
-                         *r,
-                         *c) * itw(i,iti);
+                tia += a.get(*b,
+                             *p,
+                             *r,
+                             *c) * itw.get(i,iti);
                 ++iti;
               }
     }
@@ -1750,11 +1797,11 @@ void interp( VectorView            ia,
       LOOPIDX(r)
       LOOPIDX(c)
                 {
-                  tia += a(*s,
-                           *b,
-                           *p,
-                           *r,
-                           *c) * itw(i,iti);
+                  tia += a.get(*s,
+                               *b,
+                               *p,
+                               *r,
+                               *c) * itw.get(i,iti);
                   ++iti;
                 }
     }
@@ -1842,12 +1889,12 @@ void interp( VectorView            ia,
       LOOPIDX(r)
       LOOPIDX(c)
                   {
-                    tia += a(*v,
-                             *s,
-                             *b,
-                             *p,
-                             *r,
-                             *c) * itw(i,iti);
+                    tia += a.get(*v,
+                                 *s,
+                                 *b,
+                                 *p,
+                                 *r,
+                                 *c) * itw.get(i,iti);
                     ++iti;
                   }
     }
@@ -1910,10 +1957,12 @@ void interpweights( Tensor3View itw,
 
           Index iti = 0;
 
+          CACHEW(r)
+          CACHEW(c)
           LOOPW(r)
             LOOPW(c)
             {
-              itw(ir,ic,iti) = (*r) * (*c);
+              itw.get(ir,ic,iti) = (*r) * (*c);
               ++iti;
             }
         }
@@ -1970,11 +2019,14 @@ void interpweights( Tensor4View itw,
 
               Index iti = 0;
 
+              CACHEW(p)
+              CACHEW(r)
+              CACHEW(c)
               LOOPW(p)
                 LOOPW(r)
                 LOOPW(c)
                 {
-                  itw(ip,ir,ic,iti) =
+                  itw.get(ip,ir,ic,iti) =
                     (*p) * (*r) * (*c);
                   ++iti;
                 }
@@ -2040,12 +2092,16 @@ void interpweights( Tensor5View itw,
 
                   Index iti = 0;
 
+                  CACHEW(b)
+                  CACHEW(p)
+                  CACHEW(r)
+                  CACHEW(c)
                   LOOPW(b)
                     LOOPW(p)
                     LOOPW(r)
                     LOOPW(c)
                     {
-                      itw(ib,ip,ir,ic,iti) =
+                      itw.get(ib,ip,ir,ic,iti) =
                         (*b) * (*p) * (*r) * (*c);
                       ++iti;
                     }
@@ -2119,13 +2175,18 @@ void interpweights( Tensor6View itw,
 
                       Index iti = 0;
 
+                      CACHEW(s)
+                      CACHEW(b)
+                      CACHEW(p)
+                      CACHEW(r)
+                      CACHEW(c)
                       LOOPW(s)
                         LOOPW(b)
                         LOOPW(p)
                         LOOPW(r)
                         LOOPW(c)
                         {
-                          itw(is,ib,ip,ir,ic,iti) =
+                          itw.get(is,ib,ip,ir,ic,iti) =
                             (*s) * (*b) * (*p) * (*r) * (*c);
                           ++iti;
                         }
@@ -2207,6 +2268,12 @@ void interpweights( Tensor7View itw,
 
                           Index iti = 0;
 
+                          CACHEW(v)
+                          CACHEW(s)
+                          CACHEW(b)
+                          CACHEW(p)
+                          CACHEW(r)
+                          CACHEW(c)
                           LOOPW(v)
                             LOOPW(s)
                             LOOPW(b)
@@ -2214,7 +2281,7 @@ void interpweights( Tensor7View itw,
                             LOOPW(r)
                             LOOPW(c)
                             {
-                              itw(iv,is,ib,ip,ir,ic,iti) =
+                              itw.get(iv,is,ib,ip,ir,ic,iti) =
                                 (*v) * (*s) * (*b) * (*p) * (*r) * (*c);
                               ++iti;
                             }
@@ -2288,8 +2355,8 @@ void interp( MatrixView            ia,
           LOOPIDX(r)
           LOOPIDX(c)
             {
-              tia += a(*r,
-                       *c) * itw(ir,ic,iti);
+              tia += a.get(*r,
+                           *c) * itw.get(ir,ic,iti);
               ++iti;
             }
         }
@@ -2366,10 +2433,10 @@ void interp( Tensor3View           ia,
               LOOPIDX(r)
               LOOPIDX(c)
                     {
-                      tia += a(*p,
-                               *r,
-                               *c) * itw(ip,ir,ic,
-                                               iti);
+                      tia += a.get(*p,
+                                   *r,
+                                   *c) * itw.get(ip,ir,ic,
+                                                 iti);
                       ++iti;
                     }
             }
@@ -2455,11 +2522,11 @@ void interp( Tensor4View           ia,
                   LOOPIDX(r)
                   LOOPIDX(c)
                           {
-                            tia += a(*b,
-                                     *p,
-                                     *r,
-                                     *c) * itw(ib,ip,ir,ic,
-                                                     iti);
+                            tia += a.get(*b,
+                                         *p,
+                                         *r,
+                                         *c) * itw.get(ib,ip,ir,ic,
+                                                       iti);
                             ++iti;
                           }
                 }
@@ -2554,12 +2621,12 @@ void interp( Tensor5View           ia,
                       LOOPIDX(r)
                       LOOPIDX(c)
                                 {
-                                  tia += a(*s,
-                                           *b,
-                                           *p,
-                                           *r,
-                                           *c) * itw(is,ib,ip,ir,ic,
-                                                           iti);
+                                  tia += a.get(*s,
+                                               *b,
+                                               *p,
+                                               *r,
+                                               *c) * itw.get(is,ib,ip,ir,ic,
+                                                             iti);
                                   ++iti;
                                 }
                     }
@@ -2663,13 +2730,13 @@ void interp( Tensor6View           ia,
                           LOOPIDX(r)
                           LOOPIDX(c)
                                       {
-                                        tia += a(*v,
-                                                 *s,
-                                                 *b,
-                                                 *p,
-                                                 *r,
-                                                 *c) * itw(iv,is,ib,ip,ir,ic,
-                                                                 iti);
+                                        tia += a.get(*v,
+                                                     *s,
+                                                     *b,
+                                                     *p,
+                                                     *r,
+                                                     *c) * itw.get(iv,is,ib,ip,ir,ic,
+                                                                   iti);
                                         ++iti;
                                       }
                         }

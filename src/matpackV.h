@@ -209,6 +209,12 @@ public:
       assert( r < mrr.mextent );
       assert( c < mcr.mextent );
 
+      return get(s, b, p, r, c);
+    }
+
+  /** Get element implementation without assertions. */
+  Numeric get(Index s, Index b, Index p, Index r, Index c) const
+    {
       return *( mdata +
                 msr.mstart + s * msr.mstride +
                 mbr.mstart + b * mbr.mstride +
@@ -312,6 +318,10 @@ public:
   Numeric operator()(Index s, Index b, Index p, Index r, Index c) const
     { return ConstTensor5View::operator()(s,b,p,r,c); }
 
+  /** Get element implementation without assertions. */
+  Numeric get(Index s, Index b, Index p, Index r, Index c) const
+    { return ConstTensor5View::get(s,b,p,r,c); }
+
   // Non-const index operators:
 
   Tensor5View operator()( const Range& s, const Range& b, const Range& p, const Range& r, const Range& c );
@@ -364,6 +374,12 @@ public:
       assert( r < mrr.mextent );
       assert( c < mcr.mextent );
 
+      return get(s, b, p, r, c);
+    }
+
+  /** Get element implementation without assertions. */
+  Numeric& get(Index s, Index b, Index p, Index r, Index c)
+    {
       return *( mdata +
                 msr.mstart + s * msr.mstride +
                 mbr.mstart + b * mbr.mstride +

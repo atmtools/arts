@@ -178,6 +178,12 @@ public:
       assert( r < mrr.mextent );
       assert( c < mcr.mextent );
 
+      return get(b, p, r, c);
+    }
+
+  /** Get element implementation without assertions. */
+  Numeric get(Index b, Index p, Index r, Index c) const
+    {
       return *( mdata +
                 mbr.mstart + b * mbr.mstride +
                 mpr.mstart + p * mpr.mstride +
@@ -262,6 +268,10 @@ public:
   Numeric operator()(Index b, Index p, Index r, Index c) const
     { return ConstTensor4View::operator()(b,p,r,c); }
 
+  /** Get element implementation without assertions. */
+  Numeric get(Index b, Index p, Index r, Index c) const
+    { return ConstTensor4View::get(b,p,r,c); }
+
   // Non-const index operators:
 
   Tensor4View operator()( const Range& b, const Range& p, const Range& r, const Range& c );
@@ -295,6 +305,12 @@ public:
       assert( r < mrr.mextent );
       assert( c < mcr.mextent );
 
+      return get(b, p, r, c);
+    }
+
+  /** Get element implementation without assertions. */
+  Numeric& get(Index b, Index p, Index r, Index c)
+    {
       return *( mdata +
                 mbr.mstart + b * mbr.mstride +
                 mpr.mstart + p * mpr.mstride +

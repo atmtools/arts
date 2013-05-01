@@ -1340,7 +1340,8 @@ void yCalc(
   if (nmblock)
 #pragma omp parallel for                         \
   if (!arts_omp_in_parallel()                    \
-      && nmblock >= arts_omp_get_max_threads())  \
+      && (nmblock >= arts_omp_get_max_threads()  \
+          || (nf <= nmblock && nmblock >= nza))) \
   firstprivate(l_ws, l_jacobian_agenda, l_iy_main_agenda)
   for( Index mblock_index=0; mblock_index<nmblock; mblock_index++ )
     {

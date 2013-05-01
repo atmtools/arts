@@ -169,6 +169,12 @@ public:
       assert( r<mrr.mextent );
       assert( c<mcr.mextent );
 
+      return get(p, r, c);
+    }
+
+  /** Get element implementation without assertions. */
+  Numeric get(Index p, Index r, Index c) const
+    {
       return *( mdata +
                 mpr.mstart + p*mpr.mstride +
                 mrr.mstart + r*mrr.mstride +
@@ -242,6 +248,10 @@ public:
   Numeric operator()(Index p, Index r, Index c) const
     { return ConstTensor3View::operator()(p,r,c); }
 
+  /** Get element implementation without assertions. */
+  Numeric get(Index p, Index r, Index c) const
+    { return ConstTensor3View::get(p,r,c); }
+
   // Non-const index operators:
 
   Tensor3View operator()( const Range& p, const Range& r, const Range& c );
@@ -265,6 +275,12 @@ public:
       assert( r<mrr.mextent );
       assert( c<mcr.mextent );
 
+      return get(p, r, c);
+    }
+
+  /** Get element implementation without assertions. */
+  Numeric& get(Index p, Index r, Index c)
+    {
       return *( mdata +
                 mpr.mstart + p*mpr.mstride +
                 mrr.mstart + r*mrr.mstride +
