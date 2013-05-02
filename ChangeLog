@@ -1,3 +1,11 @@
+2013-05-02  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-627
+
+	* src/rte.cc (get_ppath_f): Added more comments to the function.
+	To hopefully in the future avoid confusion about the signs to
+	apply for the terms. For a moment I got lost here ...
+
 2013-05-01  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-626

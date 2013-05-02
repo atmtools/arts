@@ -1596,21 +1596,26 @@ void get_ppath_f(
   //
   for( Index ip=0; ip<np; ip++ )
     {
+      // Start by adding rte_alonglos_v (most likely sensor effects)
       Numeric v_doppler = rte_alonglos_v;
 
+      // Include wind
       if( ppath_wind(1,ip) != 0  ||  ppath_wind(0,ip) != 0  ||  
                                      ppath_wind(2,ip) != 0  )
         {
+          // The dot product below is valid for the photon direction. Winds
+          // along this direction gives a positive contribution.
           v_doppler += dotprod_with_los( ppath.los(ip,joker), ppath_wind(0,ip),
                           ppath_wind(1,ip), ppath_wind(2,ip), atmosphere_dim );
         }
 
+      // Determine frequency grid
       if( v_doppler == 0 )
-        {
-          ppath_f(joker,ip) = f_grid;
-        }
+        { ppath_f(joker,ip) = f_grid; }
       else
         { 
+          // Positive v_doppler means that sensor measures lower rest
+          // frequencies
           const Numeric a = 1 - v_doppler / SPEED_OF_LIGHT;
           for( Index iv=0; iv<nf; iv++ )
             { ppath_f(iv,ip) = a * f_grid[iv]; }
