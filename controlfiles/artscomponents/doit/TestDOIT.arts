@@ -86,7 +86,7 @@ MatrixSetConstant( z_surface, 1, 1, 500 )
 # Properties of surface:
 # - specular reflecting water surface
 # - skin temperature interpolated from t_surface field
-Copy( surface_rtprop_agenda, surface_rtprop_agenda__Specular_NoPol_Water_SurfTFromt_field )
+Copy( surface_rtprop_agenda, surface_rtprop_agenda__Specular_Pol_Water_SurfTFromt_field )
 
 
 # Definition of sensor position and LOS
