@@ -26,10 +26,18 @@
 #define quantum_h
 
 #include <map>
-#include "arts.h"
+#include <iostream>
+#include "matpack.h"
 #include "rational.h"
 
+
 //! Enum for Quantum Numbers used for indexing
+/*
+ If you add anything here, remember to also adapt
+ operator<<(ostream&, const QuantumNumbers&) and
+ operator>>(istream&, QuantumNumbers&)
+ to handle the added numbers.
+ */
 typedef enum {
     QN_J,           // Total
     QN_N,           // Total-Spin
@@ -39,18 +47,14 @@ typedef enum {
     QN_v2,          // Vibrational mode 2
     QN_v3,          // Vibrational mode 3
     QN_FINAL_ENTRY  // We need this to determine the number of elements in this enum
-} QuantumNames;
+} QuantumIds;
 
 
 //! Container class for Quantum Numbers
 class QuantumNumbers
 {
 public:
-    typedef map<Index, Rational> QuantumContainer;
-
-    QuantumNumbers()
-    {
-    }
+    typedef std::map<Index, Rational> QuantumContainer;
 
     //! Return copy of quantum number
     Rational operator[](const Index qn) const
@@ -86,10 +90,6 @@ private:
 class QuantumNumberRecord
 {
 public:
-    QuantumNumberRecord()
-    {
-    }
-
     //! Set lower quantum number
     void SetLower(const Index i, const Rational r) { mqn_lower.Set(i, r); }
 
@@ -115,14 +115,17 @@ public:
     const QuantumNumbers& Upper() const { return mqn_upper; }
 
 private:
+    //! Upper state quantum numbers
     QuantumNumbers mqn_upper;
+    //! Lower state quantum numbers
     QuantumNumbers mqn_lower;
 };
 
 
-ostream& operator<<(ostream& os, const QuantumNumbers& qn);
+std::istream& operator>>(std::istream& is, QuantumNumbers& qn);
+std::ostream& operator<<(std::ostream& os, const QuantumNumbers& qn);
 
-ostream& operator<<(ostream& os, const QuantumNumberRecord& qr);
+std::ostream& operator<<(std::ostream& os, const QuantumNumberRecord& qr);
 
 #endif
 

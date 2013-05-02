@@ -1,3 +1,37 @@
+2013-04-29  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-630
+
+	* src/quantum.{h,cc}:
+
+	Don't include arts.h, just matpack.h.
+
+	Remove empty default constructors.
+
+	(QuantumNumbers): Implement input operator. Update output operator.
+
+	* src/xml_io_compound_types.cc, src/xml_io_instantiation.h,
+	src/xml_io_types.h:
+
+	Implement xml io routines for QuantumNumberRecord and QuantumNumbers.
+
+	* src/rational.h: Use element initialization list in constructors.
+
+	Remove copy assignment operator. The implicit one will do just fine.
+
+	Remove assignment operator for int.
+
+	* src/linemixingrecord.{cc,h}: Add stub for line mixing data class.
+
+	* src/CMakeLists.txt: Add linemixingrecord.cc to artscore.
+
+	* src/test_quantum.cc: Updated.
+
+	* src/doit.cc (cloud_RT_no_background):
+
+	Get rid of the pointers for swapping around the two propmat_clearsky
+	instances. Use the new swap() function instead. More readable code.
+
 2013-05-02  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-629

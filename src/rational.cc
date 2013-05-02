@@ -24,8 +24,10 @@ USA. */
 **/
 
 #include "rational.h"
-#include "exceptions.h"
+
+#include <stdexcept>
 #include "mystring.h"
+
 
 void Rational::Simplify()
 {

@@ -36,9 +36,9 @@ class Rational
 public:
     
     // Defining an object
-    Rational(){mnom=0;mdenom=1;}
-    Rational(const Index& n1){mnom=n1;mdenom=1;}
-    Rational(const Index& n1, const Index& n2){mnom=n1;mdenom=n2;Simplify();}
+    Rational() : mnom(0), mdenom(1) {}
+    Rational(const Index& n1) : mnom(n1), mdenom(1) {}
+    Rational(const Index& n1, const Index& n2) : mnom(n1), mdenom(n2) {Simplify();}
     
     // Reading values of object
     Index Nom() const {return mnom;}
@@ -55,10 +55,8 @@ public:
     void Simplify();
     
     // Assigning values to object.
-    void operator=(const Rational& a){mnom = a.Nom();mdenom = a.Denom();Simplify();}
     void operator=(const Index& a){mnom = a;mdenom = 1;}
-    void operator=(const int& a){mnom = a;mdenom = 1;}
-    
+
     // Iterative operators
     Rational  operator++(int){mnom += mdenom; return *this;}
     Rational  operator--(int){mnom -= mdenom; return *this;}

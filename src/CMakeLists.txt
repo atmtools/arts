@@ -164,6 +164,7 @@ add_library (artscore STATIC
   jacobian.cc
   legendre.cc
   lin_alg.cc
+  linemixingrecord.cc
   linerecord.cc
   lineshapes.cc
   m_abs.cc

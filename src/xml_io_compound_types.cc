@@ -910,6 +910,171 @@ void xml_write_to_stream(ostream& os_xml,
 }
 
 
+//=== QuantumNumberRecord =========================================
+
+//! Reads QuantumNumberRecord from XML input stream
+/*!
+  \param is_xml  XML Input stream
+  \param qnr      QuantumNumberRecord return value
+  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
+*/
+void xml_read_from_stream(istream& is_xml,
+                          QuantumNumberRecord& qnr,
+                          bifstream* pbifs _U_,
+                          const Verbosity& verbosity)
+{
+    ArtsXMLTag tag(verbosity);
+
+    tag.read_from_stream(is_xml);
+    tag.check_name("QuantumNumberRecord");
+
+    try
+    {
+        tag.read_from_stream(is_xml);
+        tag.check_name("Upper");
+        xml_read_from_stream(is_xml, qnr.Upper(), pbifs, verbosity);
+        tag.read_from_stream(is_xml);
+        tag.check_name("/Upper");
+    }
+    catch (runtime_error e)
+    {
+        ostringstream os;
+        os << "Error in upper quantum numbers while reading QuantumNumberRecord: "
+        << "\n" << e.what();
+        throw runtime_error(os.str());
+    }
+
+    try
+    {
+        tag.read_from_stream(is_xml);
+        tag.check_name("Lower");
+        xml_read_from_stream(is_xml, qnr.Lower(), pbifs, verbosity);
+        tag.read_from_stream(is_xml);
+        tag.check_name("/Lower");
+    }
+    catch (runtime_error e)
+    {
+        ostringstream os;
+        os << "Error in lower quantum numbers while reading QuantumNumberRecord: "
+        << "\n" << e.what();
+        throw runtime_error(os.str());
+    }
+
+    tag.read_from_stream(is_xml);
+    tag.check_name("/QuantumNumberRecord");
+}
+
+
+//! Writes QuantumNumberRecord to XML output stream
+/*!
+  \param os_xml  XML Output stream
+  \param qnr      QuantumNumberRecord
+  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
+  \param name    Optional name attribute
+*/
+void xml_write_to_stream(ostream& os_xml,
+                         const QuantumNumberRecord& qnr,
+                         bofstream* pbofs _U_,
+                         const String& name, const Verbosity& verbosity)
+{
+    ArtsXMLTag open_tag(verbosity);
+    ArtsXMLTag close_tag(verbosity);
+
+    open_tag.set_name("QuantumNumberRecord");
+    if (name.length())
+        open_tag.add_attribute("name", name);
+    open_tag.write_to_stream(os_xml);
+
+    os_xml << '\n';
+    open_tag.set_name("Upper");
+    open_tag.write_to_stream(os_xml);
+    xml_write_to_stream(os_xml, qnr.Upper(), pbofs, "", verbosity);
+    close_tag.set_name("/Upper");
+    close_tag.write_to_stream(os_xml);
+    os_xml << '\n';
+
+    open_tag.set_name("Lower");
+    open_tag.write_to_stream(os_xml);
+    xml_write_to_stream(os_xml, qnr.Lower(), pbofs, "", verbosity);
+    close_tag.set_name("/Lower");
+    close_tag.write_to_stream(os_xml);
+    os_xml << '\n';
+
+    close_tag.set_name("/QuantumNumberRecord");
+    close_tag.write_to_stream(os_xml);
+    os_xml << '\n';
+}
+
+
+//=== QuantumNumbers =========================================
+
+//! Reads QuantumNumbers from XML input stream
+/*!
+  \param is_xml  XML Input stream
+  \param qn      QuantumNumbers return value
+  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
+*/
+void xml_read_from_stream(istream& is_xml,
+                          QuantumNumbers& qn,
+                          bifstream* pbifs _U_,
+                          const Verbosity& verbosity)
+{
+    ArtsXMLTag tag(verbosity);
+    Index nelem;
+
+    tag.read_from_stream(is_xml);
+    tag.check_name("QuantumNumbers");
+
+    tag.get_attribute_value("nelem", nelem);
+
+    Index n;
+    try
+    {
+        for (n = 0; n < nelem; n++)
+            is_xml >> qn;
+    }
+    catch (runtime_error e)
+    {
+        ostringstream os;
+        os << "Error reading QuantumNumbers: "
+        << "\n Element: " << n
+        << "\n" << e.what();
+        throw runtime_error(os.str());
+    }
+
+    tag.read_from_stream(is_xml);
+    tag.check_name("/QuantumNumbers");
+}
+
+
+//! Writes QuantumNumbers to XML output stream
+/*!
+  \param os_xml  XML Output stream
+  \param qn      QuantumNumbers
+  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
+  \param name    Optional name attribute
+*/
+void xml_write_to_stream(ostream& os_xml,
+                         const QuantumNumbers& qn,
+                         bofstream* pbofs _U_,
+                         const String& name, const Verbosity& verbosity)
+{
+    ArtsXMLTag open_tag(verbosity);
+    ArtsXMLTag close_tag(verbosity);
+
+    open_tag.set_name("QuantumNumbers");
+    if (name.length())
+        open_tag.add_attribute("name", name);
+    open_tag.add_attribute("nelem", qn.GetNumbers().size());
+    open_tag.write_to_stream(os_xml);
+
+    os_xml << " " << qn << " ";
+
+    close_tag.set_name("/QuantumNumbers");
+    close_tag.write_to_stream(os_xml);
+}
+
+
 //=== RetrievalQuantity =========================================
 
 //! Reads RetrievalQuantity from XML input stream

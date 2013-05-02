@@ -1050,16 +1050,8 @@ void cloud_RT_no_background(Workspace& ws,
   Vector rtp_vmr_local(N_species,0.); 
 
   // Two propmat_clearsky to average between
-  Tensor4 propmat_clearsky_local1;
-  Tensor4 propmat_clearsky_local2;
-
-  // Pointers to the propmat_clearsky of the previous and the current point.
-  // When moving along the ppath points, the pointers are used to move
-  // the current to the previos propmat_clearsky without the need to
-  // copy a whole Tensor4.
-  Tensor4* cur_propmat_clearsky = &propmat_clearsky_local1;
-  Tensor4* prev_propmat_clearsky = &propmat_clearsky_local2;
-  Tensor4* tmp_propmat_clearsky;
+  Tensor4 cur_propmat_clearsky;
+  Tensor4 prev_propmat_clearsky;
 
   Tensor3 ext_mat_local;
   Matrix abs_vec_local;  
@@ -1069,11 +1061,9 @@ void cloud_RT_no_background(Workspace& ws,
 
   for( Index k = ppath_step.np-1; k >= 0; k--)
     {
-      // Switch propmat_clearsky pointers around so
-      // that prev_... now points to the cur_... from previous iteration
-      tmp_propmat_clearsky = prev_propmat_clearsky;
-      prev_propmat_clearsky = cur_propmat_clearsky;
-      cur_propmat_clearsky = tmp_propmat_clearsky;
+      // Save propmat_clearsky from previous level by
+      // swapping it with current level
+      swap(cur_propmat_clearsky, prev_propmat_clearsky);
 
       //
       // Calculate scalar gas absorption
@@ -1081,7 +1071,7 @@ void cloud_RT_no_background(Workspace& ws,
       const Vector rtp_mag_dummy(3,0);
       const Vector ppath_los_dummy;
       
-      propmat_clearsky_agendaExecute( ws, *cur_propmat_clearsky,
+      propmat_clearsky_agendaExecute( ws, cur_propmat_clearsky,
                                     f_grid[Range(f_index, 1)],
                                     rtp_mag_dummy, ppath_los_dummy,
                                     p_int[k], 
@@ -1095,11 +1085,11 @@ void cloud_RT_no_background(Workspace& ws,
           continue;
     
       // Average prev_propmat_clearsky with cur_propmat_clearsky
-      *prev_propmat_clearsky += *cur_propmat_clearsky;
-      *prev_propmat_clearsky *= 0.5;
+      prev_propmat_clearsky += cur_propmat_clearsky;
+      prev_propmat_clearsky *= 0.5;
         
       opt_prop_sum_propmat_clearsky(ext_mat_local, abs_vec_local,
-                                       *prev_propmat_clearsky);
+                                    prev_propmat_clearsky);
         
       //
       // Add average particle extinction to ext_mat. 

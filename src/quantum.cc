@@ -24,6 +24,9 @@
 
 #include "quantum.h"
 
+#include <stdexcept>
+#include "mystring.h"
+
 
 bool QuantumNumbers::Compare(const QuantumNumbers& qn) const
 {
@@ -54,22 +57,60 @@ bool QuantumNumbers::Compare(const QuantumNumbers& qn) const
     return match;
 }
 
-ostream& operator<<(ostream& os, const QuantumNumbers& qn)
+std::istream& operator>>(std::istream& is, QuantumNumbers& qn)
 {
-    os << "J: " << qn[QN_J] << " "
-       << "N: " << qn[QN_N] << " "
-       << "S: " << qn[QN_S] << " "
-       << "F: " << qn[QN_F] << " "
-       << "v1: " << qn[QN_v1] << " "
-       << "v2: " << qn[QN_v2] << " "
-       << "v3: " << qn[QN_v3] << endl;
+    String name;
+    Rational r;
+
+    is >> name >> r;
+
+    // Define a helper macro to save some typing.
+#define INPUT_QUANTUM(ID) \
+    if (name == #ID) qn.Set(QN_ ## ID, r)
+
+    INPUT_QUANTUM(J);
+    else INPUT_QUANTUM(N);
+    else INPUT_QUANTUM(S);
+    else INPUT_QUANTUM(F);
+    else INPUT_QUANTUM(v1);
+    else INPUT_QUANTUM(v2);
+    else INPUT_QUANTUM(v3);
+    else
+    {
+        std::ostringstream os;
+        os << "Unknown quantum number: " << name << " (" << r << ").";
+        throw std::runtime_error(os.str());
+    }
+
+#undef INPUT_QUANTUM
+
+    return is;
+}
+
+std::ostream& operator<<(std::ostream& os, const QuantumNumbers& qn)
+{
+    bool first = true;
+    // Define a helper macro to save some typing.
+#define OUTPUT_QUANTUM(ID) \
+    if (!qn[QN_ ## ID].isUndefined()) \
+      { if (!first) os << " "; first = false; os << #ID << " " << qn[QN_ ## ID]; }
+
+    OUTPUT_QUANTUM(J);
+    OUTPUT_QUANTUM(N);
+    OUTPUT_QUANTUM(S);
+    OUTPUT_QUANTUM(F);
+    OUTPUT_QUANTUM(v1);
+    OUTPUT_QUANTUM(v2);
+    OUTPUT_QUANTUM(v3);
+
+#undef OUTPUT_QUANTUM
 
     return os;
 }
 
-ostream& operator<<(ostream& os, const QuantumNumberRecord& qr)
+std::ostream& operator<<(std::ostream& os, const QuantumNumberRecord& qr)
 {
-    os << "Upper: " << qr.Upper();
+    os << "Upper: " << qr.Upper() << " ";
     os << "Lower: " << qr.Lower();
 
     return os;
