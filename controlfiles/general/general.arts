@@ -29,11 +29,18 @@ Arts2 {
 #
 verbosityInit
 
+
 #
 # No particle/scattering species (yet)
 #
 ParticleSpeciesSet( part_species, [] )
 MatrixSet( particle_masses, [] )
+
+
+#
+# Some methods can use simplified scatteirng data, but deactivated as default
+#
+FlagOff( use_mean_scat_data )
 
 
 #

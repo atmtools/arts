@@ -2967,8 +2967,7 @@ void define_md_data_raw()
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "cloudbox_on", "cloudbox_limits", "iy_cloudbox_agenda", 
-             "pnd_field", "use_mean_scat_data", "scat_data_raw", 
-             "particle_masses"
+             "pnd_field", "scat_data_raw", "particle_masses"
            ),
         GOUT(),
         GOUT_TYPE(),

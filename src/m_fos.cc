@@ -231,7 +231,6 @@ void fos(
     }
   //===========================================================================
 
-
   // Get atmospheric and RT quantities for each ppath point/step
   //
   Vector       ppath_p, ppath_t;
@@ -521,7 +520,7 @@ void fos(
                         Matrix itw( nin, fos_za_interporder+1 );
                         interpweights( itw, gp );
                         //
-                        for( Index iv=0; iv<nfs; iv++ ) 
+                        for( Index iv=0; iv<nf; iv++ ) 
                           { 
                             for( Index is1=0; is1<stokes_dim; is1++ ) 
                               { 
@@ -554,6 +553,7 @@ void fos(
                               P(ii,iv,joker,joker) = P1;
                             }
                         }
+
 
                       // Scattering source term
                       ssource0 = 0.0;

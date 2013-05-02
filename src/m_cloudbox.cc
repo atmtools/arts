@@ -79,7 +79,6 @@ void cloudboxOff (
          ArrayOfIndex&                cloudbox_limits,
          Agenda&                      iy_cloudbox_agenda,
          Tensor4&                     pnd_field,
-         Index&                       use_mean_scat_data,
          ArrayOfSingleScatteringData& scat_data_raw,
          Matrix&                      particle_masses,
    const Verbosity&)
@@ -89,7 +88,6 @@ void cloudboxOff (
   iy_cloudbox_agenda = Agenda();
   iy_cloudbox_agenda.set_name ( "iy_cloudbox_agenda" );
   pnd_field.resize(0,0,0,0);
-  use_mean_scat_data = -999;
   scat_data_raw.resize(0);
   particle_masses.resize(0,0);
 }

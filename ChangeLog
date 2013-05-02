@@ -1,3 +1,21 @@
+2013-05-02  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-631
+
+	* src/m_fos.cc (fos): Shit, by copy and paste one for-loop became
+	wrong (used nfs instead of nf). Caused a bug with
+	use_mean_scat_data set to true (a case I had not tested).
+
+	* src/rte.cc (get_ppath_ext): Extended header test, to be clearer
+	around use_mean_scat_data.
+
+	* controlfiles/general/general.arts: use_mean_scat_data now set
+	here, to 0.
+
+	* src/m_cloudbox.cc (cloudboxOff): Now NOT setting
+	use_mean_scat_data. As not a standard variable, and not checked by
+	cloudbox_checkedCalc.
+
 2013-04-29  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-630
