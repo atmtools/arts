@@ -614,6 +614,9 @@ void GasAbsLookup::Extract( Matrix&         sga,
   // Number of nonlinear species perturbations:
   const Index n_nls_pert = nls_pert.nelem();
 
+  // Number of frequencies in new_f_grid, the frequency grid for which we
+  // want to extract.
+  const Index n_new_f_grid = new_f_grid.nelem();
 
   // 2. First some checks on the lookup table itself:
 
@@ -749,7 +752,7 @@ void GasAbsLookup::Extract( Matrix&         sga,
   // to the predefined ones that come with the lookup table.)
   if (f_interp_order==0)
     {
-      if (new_f_grid.nelem()==n_f_grid) {
+      if (n_new_f_grid==n_f_grid) {
           
           // Use the default fgp that is stored in the lookup table itself
           // (which effectively means no frequency interpolation)
@@ -766,16 +769,16 @@ void GasAbsLookup::Extract( Matrix&         sga,
               throw runtime_error( os.str() );
             }
           
-          if (f_grid[f_grid.nelem()-1]!=new_f_grid[new_f_grid.nelem()-1])
+          if (f_grid[n_f_grid-1]!=new_f_grid[n_new_f_grid-1])
             {
               ostringstream os;
               os << "Last frequency in f_grid inconsistent with lookup table.\n"
-              << "f_grid[f_grid.nelem()-1]              = " << f_grid[f_grid.nelem()-1] << "\n"
-              << "new_f_grid[new_f_grid.nelem()-1] = " << new_f_grid[new_f_grid.nelem()-1] << ".";
+              << "f_grid[n_f_grid-1]              = " << f_grid[n_f_grid-1] << "\n"
+              << "new_f_grid[n_new_f_grid-1] = " << new_f_grid[n_new_f_grid-1] << ".";
               throw runtime_error( os.str() );
             }
       }
-      else if (new_f_grid.nelem()==1) {
+      else if (n_new_f_grid==1) {
           fgp = &fgp_local;
           fgp_local.resize(1);
           gridpos_poly( fgp_local, f_grid, new_f_grid, 0 );
@@ -800,7 +803,7 @@ void GasAbsLookup::Extract( Matrix&         sga,
     {
       // We do have real frequency interpolation (f_interp_order!=0).
       fgp = &fgp_local;
-      fgp_local.resize(new_f_grid.nelem());
+      fgp_local.resize(n_new_f_grid);
       gridpos_poly( fgp_local, f_grid, new_f_grid, f_interp_order);
     }
     
@@ -846,7 +849,6 @@ void GasAbsLookup::Extract( Matrix&         sga,
       throw runtime_error( os.str() );
     }
   }
-  
 
   // For sure, we need to store the pressure grid position. 
   // We do the interpolation in log(p). Test have shown that this
@@ -867,34 +869,36 @@ void GasAbsLookup::Extract( Matrix&         sga,
   // Define also other grid positions and interpolation weights here, so that
   // we do not have to allocate them over and over in the loops below.
 
-  // Define the GridPosPoly that corresponds to "no interpolation at all".
-  // Warning: Don't use this for arrays of GridPos!
-  GridPosPoly gp_trivial;
-  gp_trivial.idx.resize(1);
-  gp_trivial.w.resize(1);
-  gp_trivial.idx[0] = 0;
-  gp_trivial.w[0]   = 1;
+  // Define the ArrayOfGridPosPoly that corresponds to "no interpolation at all".
+  ArrayOfGridPosPoly gp_trivial(1);
+  gp_trivial[0].idx.resize(1);
+  gp_trivial[0].w.resize(1);
+  gp_trivial[0].idx[0] = 0;
+  gp_trivial[0].w[0]   = 1;
     
-  // Temperature grid positions. For the !do_T case we simply take the single
-  // temperature that is there, so we initialize tgp accordingly.
-  ArrayOfGridPosPoly tgp(1);       // only a scalar
-  tgp[0] = gp_trivial;
+  // Temperature grid positions. 
+  ArrayOfGridPosPoly tgp_withT(1);       // Only a scalar.
+  ArrayOfGridPosPoly *tgp;       // Pointer to either tgp_withT or gp_trivial.
     
   // Set this_t_interp_order, depending on whether we do T interpolation or not.
   Index this_t_interp_order; // Local T interpolation order
   if (do_T)
     {
       this_t_interp_order = t_interp_order;
+      tgp = &tgp_withT;
     }
   else
     {
+      // For the !do_T case we simply take the single
+      // temperature that is there, so we point tgp accordingly.
       this_t_interp_order = 0;
+      tgp = &gp_trivial;
     }
     
     
   // H2O(VMR) grid positions. vgp is what will be used in the interpolation.
-  // Depending on species, it is either set to gp_trivial, or to vgp_h2o.
-  ArrayOfGridPosPoly vgp(1);           // only a scalar
+  // Depending on species, it is either pointed to gp_trivial, or to vgp_h2o.
+  ArrayOfGridPosPoly *vgp;           
   ArrayOfGridPosPoly vgp_h2o(1);       // only a scalar
 
 
@@ -918,10 +922,12 @@ void GasAbsLookup::Extract( Matrix&         sga,
 
   Tensor5 xsec_pre_interpolated;
   xsec_pre_interpolated.resize(p_interp_order+1, n_species,
-                               1, 1, new_f_grid.nelem() );
+                               1, 1, n_new_f_grid );
     
-  // Define variable for interpolation weights outside the loop.
-  Tensor4 itw;
+  // Define variables for interpolation weights outside the loops.
+  // We will make itw point to either the weights with H2O interpolation, or
+  // the ones without.
+  Tensor4 itw_withH2O, itw_noH2O, *itw;
 
   for ( Index pi=0; pi<p_interp_order+1; ++pi )
     {
@@ -1005,7 +1011,7 @@ void GasAbsLookup::Extract( Matrix&         sga,
             }
           }
 
-        gridpos_poly( tgp, t_pert, T_offset, t_interp_order, extpolfac );
+          gridpos_poly( tgp_withT, t_pert, T_offset, t_interp_order, extpolfac );
         }
 
       // Determine the H2O VMR grid position. We need to do this only
@@ -1069,6 +1075,28 @@ void GasAbsLookup::Extract( Matrix&         sga,
           gridpos_poly( vgp_h2o, nls_pert, VMR_frac, h2o_interp_order, extpolfac );
         }
 
+      
+      // Precalculate interpolation weights.
+      if (n_nls<n_species) {
+          // Precalculate weights without H2O interpolation if there are less
+          // nonlinear species than total species. (So at least one species
+          // without H2O interpolation.)
+          itw_noH2O.resize(1, 1, n_new_f_grid,
+                           (this_t_interp_order+1)*
+                           (1)*                             // H2O dimension
+                           (f_interp_order+1));
+          interpweights(itw_noH2O, *tgp, gp_trivial, *fgp);
+      }
+      if (n_nls>0) {
+          // Precalculate weights with H2O interpolation if there is at least
+          // one nonlinear species.
+          itw_withH2O.resize(1, 1, n_new_f_grid,
+                           (this_t_interp_order+1)*
+                           (h2o_interp_order+1)*                          
+                           (f_interp_order+1));
+          interpweights(itw_withH2O, *tgp, vgp_h2o, *fgp);
+      }
+      
       // 7. Loop species:
       Index fpi=0;
       for ( Index si=0; si<n_species; ++si )
@@ -1106,19 +1134,15 @@ void GasAbsLookup::Extract( Matrix&         sga,
 
           // Set h2o related interpolation parameters:
           Index this_h2o_extent;            // Range of H2O interpolation
-          Index this_h2o_interp_order; // H2O interpolation order
-          if (do_VMR)
-            {
-              vgp                   = vgp_h2o;
-              this_h2o_extent       = n_nls_pert;
-              this_h2o_interp_order = h2o_interp_order;
-            }
-          else
-            {
-              vgp                   = gp_trivial;
-              this_h2o_extent       = 1;
-              this_h2o_interp_order = 0;
-            }
+          if (do_VMR) {
+              vgp             = &vgp_h2o;
+              this_h2o_extent = n_nls_pert;
+              itw             = &itw_withH2O;
+          } else {
+              vgp             = &gp_trivial;
+              this_h2o_extent = 1;
+              itw             = &itw_noH2O;
+          }
           
           // Get the right view on xsec.
           ConstTensor3View this_xsec
@@ -1127,20 +1151,11 @@ void GasAbsLookup::Extract( Matrix&         sga,
                  Range(joker),          // Frequency range
                  this_p_grid_index );   // Pressure index
           
-          
-          // Calculate interpolation weights.
-          itw.resize(1, 1, new_f_grid.nelem(),
-                     (this_t_interp_order+1)*
-                     (this_h2o_interp_order+1)*
-                     (f_interp_order+1));
-          interpweights(itw, tgp, vgp, *fgp);
-          
           // Do interpolation.
           interp(res,                          // result
-                 itw,                          // weights
+                 *itw,                         // weights
                  this_xsec,                    // input
-                 tgp, vgp, *fgp);              // grid positions
-          
+                 *tgp, *vgp, *fgp);              // grid positions
           
           // Increase fpi. fpi marks the position of the first profile
           // of the current species in xsec. This is needed to find
@@ -1164,7 +1179,7 @@ void GasAbsLookup::Extract( Matrix&         sga,
   // (But for a matrix in frequency and species.) Doing a loop over
   // frequency and species with an interp call inside would be
   // unefficient, so we do this by hand here.
-  sga.resize(n_species, new_f_grid.nelem());
+  sga.resize(n_species, n_new_f_grid);
   sga = 0;
   for ( Index pi=0; pi<p_interp_order+1; ++pi )
     {
