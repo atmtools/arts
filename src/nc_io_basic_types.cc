@@ -261,16 +261,6 @@ void nca_write_to_file(const int ncid, const Vector& v, const Verbosity&)
     throw runtime_error("NetCDF support not yet implemented for this type!"); \
   }
 
-//=== Basic Types ==========================================================
-
-TMPL_NC_READ_WRITE_FILE_DUMMY(Index)
-TMPL_NC_READ_WRITE_FILE_DUMMY(Numeric)
-TMPL_NC_READ_WRITE_FILE_DUMMY(Sparse)
-TMPL_NC_READ_WRITE_FILE_DUMMY(String)
-TMPL_NC_READ_WRITE_FILE_DUMMY(Tensor6)
-TMPL_NC_READ_WRITE_FILE_DUMMY(Tensor7)
-TMPL_NC_READ_WRITE_FILE_DUMMY(Timer)
-
 //==========================================================================
 
 // Undefine the macro to avoid it being used anywhere else

@@ -562,6 +562,7 @@ public:
   Vector(Numeric start, Index extent, Numeric stride);
   Vector(const ConstVectorView& v);
   Vector(const Vector& v);
+  Vector(const std::vector<Numeric>&);
 
   // Assignment operators:
   Vector& operator=(Vector v);

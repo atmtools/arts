@@ -171,23 +171,7 @@ void nca_write_to_file(const int ncid, const GasAbsLookup& gal, const Verbosity&
     throw runtime_error("NetCDF support not yet implemented for this type!"); \
   }
 
-//=== Compound Types =======================================================
-
 TMPL_NC_READ_WRITE_FILE_DUMMY(Agenda)
-TMPL_NC_READ_WRITE_FILE_DUMMY(GriddedField1)
-TMPL_NC_READ_WRITE_FILE_DUMMY(GriddedField2)
-TMPL_NC_READ_WRITE_FILE_DUMMY(GriddedField3)
-TMPL_NC_READ_WRITE_FILE_DUMMY(GriddedField4)
-TMPL_NC_READ_WRITE_FILE_DUMMY(GridPos)
-TMPL_NC_READ_WRITE_FILE_DUMMY(IsotopologueRecord)
-TMPL_NC_READ_WRITE_FILE_DUMMY(MCAntenna)
-TMPL_NC_READ_WRITE_FILE_DUMMY(Ppath)
-TMPL_NC_READ_WRITE_FILE_DUMMY(RetrievalQuantity)
-TMPL_NC_READ_WRITE_FILE_DUMMY(SLIData2)
-TMPL_NC_READ_WRITE_FILE_DUMMY(SingleScatteringData)
-TMPL_NC_READ_WRITE_FILE_DUMMY(SpeciesAuxData)
-TMPL_NC_READ_WRITE_FILE_DUMMY(SpeciesRecord)
-TMPL_NC_READ_WRITE_FILE_DUMMY(SpeciesTag)
 
 //==========================================================================
 

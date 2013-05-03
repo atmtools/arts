@@ -215,42 +215,6 @@ void nca_write_to_file(const int ncid, const ArrayOfVector& aov, const Verbosity
     throw runtime_error("NetCDF support not yet implemented for this type!"); \
   }
 
-//=== Array Types ==========================================================
-
-TMPL_NC_READ_WRITE_FILE_DUMMY(Array<IsotopologueRecord> )
-TMPL_NC_READ_WRITE_FILE_DUMMY(Array<SpeciesRecord> )
-TMPL_NC_READ_WRITE_FILE_DUMMY(ArrayOfArrayOfArrayOfArrayOfGridPos)
-TMPL_NC_READ_WRITE_FILE_DUMMY(ArrayOfArrayOfGriddedField1)
-TMPL_NC_READ_WRITE_FILE_DUMMY(ArrayOfArrayOfGriddedField3)
-TMPL_NC_READ_WRITE_FILE_DUMMY(ArrayOfArrayOfGridPos)
-TMPL_NC_READ_WRITE_FILE_DUMMY(ArrayOfArrayOfArrayOfGridPos)
-TMPL_NC_READ_WRITE_FILE_DUMMY(ArrayOfArrayOfIndex)
-TMPL_NC_READ_WRITE_FILE_DUMMY(ArrayOfArrayOfLineRecord)
-TMPL_NC_READ_WRITE_FILE_DUMMY(ArrayOfArrayOfMatrix)
-TMPL_NC_READ_WRITE_FILE_DUMMY(ArrayOfArrayOfSpeciesTag)
-TMPL_NC_READ_WRITE_FILE_DUMMY(ArrayOfArrayOfTensor3)
-TMPL_NC_READ_WRITE_FILE_DUMMY(ArrayOfArrayOfTensor6)
-TMPL_NC_READ_WRITE_FILE_DUMMY(ArrayOfArrayOfVector)
-TMPL_NC_READ_WRITE_FILE_DUMMY(ArrayOfCIARecord)
-TMPL_NC_READ_WRITE_FILE_DUMMY(ArrayOfGriddedField1)
-TMPL_NC_READ_WRITE_FILE_DUMMY(ArrayOfGriddedField2)
-TMPL_NC_READ_WRITE_FILE_DUMMY(ArrayOfGriddedField3)
-TMPL_NC_READ_WRITE_FILE_DUMMY(ArrayOfGriddedField4)
-TMPL_NC_READ_WRITE_FILE_DUMMY(ArrayOfGridPos)
-TMPL_NC_READ_WRITE_FILE_DUMMY(ArrayOfIndex)
-TMPL_NC_READ_WRITE_FILE_DUMMY(ArrayOfLineRecord)
-TMPL_NC_READ_WRITE_FILE_DUMMY(ArrayOfLineshapeSpec)
-TMPL_NC_READ_WRITE_FILE_DUMMY(ArrayOfPpath)
-TMPL_NC_READ_WRITE_FILE_DUMMY(ArrayOfRetrievalQuantity)
-TMPL_NC_READ_WRITE_FILE_DUMMY(ArrayOfSingleScatteringData)
-TMPL_NC_READ_WRITE_FILE_DUMMY(ArrayOfSpeciesTag)
-TMPL_NC_READ_WRITE_FILE_DUMMY(ArrayOfString)
-TMPL_NC_READ_WRITE_FILE_DUMMY(ArrayOfSparse)
-TMPL_NC_READ_WRITE_FILE_DUMMY(ArrayOfTensor3)
-TMPL_NC_READ_WRITE_FILE_DUMMY(ArrayOfTensor4)
-TMPL_NC_READ_WRITE_FILE_DUMMY(ArrayOfTensor6)
-TMPL_NC_READ_WRITE_FILE_DUMMY(ArrayOfTensor7)
-
 //==========================================================================
 
 // Undefine the macro to avoid it being used anywhere else

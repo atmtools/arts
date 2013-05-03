@@ -705,6 +705,19 @@ Vector::Vector(const Vector& v) :
   copy(v.begin(),v.end(),begin());
 }
 
+/** Converting constructor from std::vector<Numeric>. */
+Vector::Vector(const std::vector<Numeric>& v) :
+  VectorView( new Numeric[v.size()],
+              Range(0,v.size()))
+{
+    std::vector<Numeric>::const_iterator vec_it_end = v.end();
+    Iterator1D this_it = this->begin();
+    for (std::vector<Numeric>::const_iterator vec_it = v.begin();
+         vec_it != vec_it_end;
+         ++vec_it, ++this_it)
+        *this_it = *vec_it;
+}
+
 //! Assignment from another Vector.
 /*! 
   While dimensions of VectorViews can not be adjusted, dimensions of
