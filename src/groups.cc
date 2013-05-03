@@ -142,6 +142,7 @@ void define_wsv_group_names()
   wsv_group_names.push_back("ArrayOfArrayOfGriddedField1");
   wsv_group_names.push_back("ArrayOfArrayOfGriddedField2");
   wsv_group_names.push_back("ArrayOfArrayOfGriddedField3");
+  wsv_group_names.push_back("ArrayOfArrayOfLineMixingRecord");
   wsv_group_names.push_back("ArrayOfRetrievalQuantity");
   wsv_group_names.push_back("MCAntenna");
   wsv_group_names.push_back("SpeciesAuxData");

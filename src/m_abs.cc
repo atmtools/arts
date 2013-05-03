@@ -1572,7 +1572,7 @@ void abs_xsec_per_speciesAddLines(// WS Output:
                                   const ArrayOfArrayOfLineRecord&  abs_lines_per_species,
                                   const ArrayOfLineshapeSpec&      abs_lineshape,
                                   const SpeciesAuxData&            isotopologue_ratios,
-                                  const ArrayOfArrayOfVector&      line_mixing_data,
+                                  const ArrayOfArrayOfLineMixingRecord& line_mixing_data,
                                   const ArrayOfArrayOfIndex&       line_mixing_data_lut,
                                   const Verbosity&                 verbosity)
 {

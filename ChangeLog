@@ -1,5 +1,48 @@
 2013-05-02  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-633
+
+	* src/groups.cc: Add ArrayOfArrayOfLineMixingRecord.
+
+	* src/workspace.cc:
+
+	Change type of line_mixing_data to ArrayOfArrayOfLineMixingRecord.
+
+	* src/linemixingrecord.{cc,h} (LineMixingRecord): Implement class.
+
+	* src/absorption.{h,cc} (xsec_species_line_mixing_wrapper,
+	xsec_species_line_mixing_2nd_order),
+	src/m_abs.cc (abs_xsec_per_speciesAddLines),
+	m_linemixing.cc (line_mixing_dataInit, line_mixing_dataRead),
+	src/m_zeeman.cc (propmat_clearskyAddZeeman):
+
+	Adapt for type change of line_mixing_data from ArrayOfArrayOfVector to
+	ArrayOfArrayOfLineMixingRecord.
+
+	* src/m_linemixing.cc (line_mixing_dataRead):
+
+	Read the species tag from the line mixing data file. Improved parsing
+	of data values.
+
+	* src/absorption.{h,cc} xsec_species_line_mixing_2nd_order):
+
+	Change local variables data and lut to reference type to avoid
+	unnecessary copying of arrays.
+
+	* src/make_auto_md_h.cc, make_auto_workspace_h.cc:
+
+	Include linemixingrecord.h in generated code.
+
+	* src/xml_io_compound_types.cc, src/xml_io_array_types.cc,
+	src/xml_io_instantiation.h, src/xml_io_types.h:
+
+	Add IO routines for LineMixingRecord, ArrayOfLineMixingRecord and
+	ArrayOfArrayOfLineMixingRecord.
+
+	* src/test_quantum.cc: Updated.
+
+2013-05-02  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-632
 
 	* src/nc_io_array_types.cc, src/nc_io_compound_types.cc,

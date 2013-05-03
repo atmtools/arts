@@ -37,6 +37,7 @@
 #include "messages.h"
 #include "abs_species_tags.h"
 #include "linerecord.h"
+#include "linemixingrecord.h"
 
 
 /** The type that is used to store pointers to lineshape
@@ -497,7 +498,7 @@ void xsec_species(MatrixView               xsec_attenuation,
 
 void xsec_species_line_mixing_wrapper(  MatrixView               xsec_attenuation,
                                         MatrixView               xsec_phase,
-                                        const ArrayOfArrayOfVector& line_mixing_data,
+                                        const ArrayOfArrayOfLineMixingRecord& line_mixing_data,
                                         const ArrayOfArrayOfIndex& line_mixing_data_lut,
                                         ConstVectorView          f_grid,
                                         ConstVectorView          abs_p,
@@ -515,7 +516,7 @@ void xsec_species_line_mixing_wrapper(  MatrixView               xsec_attenuatio
 
 void xsec_species_line_mixing_2nd_order(    MatrixView               xsec_attenuation,
                                             MatrixView               xsec_phase,
-                                            const ArrayOfArrayOfVector& line_mixing_data,
+                                            const ArrayOfArrayOfLineMixingRecord& line_mixing_data,
                                             const ArrayOfArrayOfIndex& line_mixing_data_lut,
                                             ConstVectorView          f_grid,
                                             ConstVectorView          abs_p,

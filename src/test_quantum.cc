@@ -76,12 +76,7 @@ main (int /*argc*/, char * /*argv*/ [])
         SpeciesTag stag("O2-66");
         QuantumNumberRecord qnr;
         qnr.SetUpper(QN_J, Rational(1, 1));
-        qnr.SetUpper(QN_S, Rational(1, 1));
-        qnr.SetUpper(QN_v1, Rational(1, 1));
-        qnr.SetUpper(QN_v2, Rational(1, 1));
         qnr.SetLower(QN_J, Rational(1, 1));
-        qnr.SetLower(QN_N, Rational(1, 1));
-        qnr.SetLower(QN_v3, Rational(1, 1));
 
         cout << "qnr:  " << qnr << endl;
 

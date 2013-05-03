@@ -2019,9 +2019,10 @@ void Workspace::define_wsv_data()
         "Line mixing data.\n"
         "Dimensions: First dimension has same size as *abs_species*.\n"
         "            Second dimension corresponds to entries of line mixing data.\n"
-        "            The vectors contain the line mixing data."
+        "            The LineMixingRecords contain the species index,\n"
+        "            the isotopologue index, the QuantumNumberRecord and the line mixing data.\n"
        ),
-       GROUP( "ArrayOfArrayOfVector" )));
+       GROUP( "ArrayOfArrayOfLineMixingRecord" )));
 
   wsv_data.push_back
     (WsvRecord

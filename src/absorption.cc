@@ -1513,7 +1513,7 @@ ostream& operator<< (ostream &os, const LineshapeSpec& lsspec)
  */
 void xsec_species_line_mixing_wrapper(  MatrixView               xsec_attenuation,
                                         MatrixView               xsec_phase,
-                                        const ArrayOfArrayOfVector& line_mixing_data,
+                                        const ArrayOfArrayOfLineMixingRecord& line_mixing_data,
                                         const ArrayOfArrayOfIndex& line_mixing_data_lut,
                                         ConstVectorView          f_grid,
                                         ConstVectorView          abs_p,
@@ -1581,7 +1581,7 @@ void xsec_species_line_mixing_wrapper(  MatrixView               xsec_attenuatio
  */
 void xsec_species_line_mixing_2nd_order(MatrixView               xsec_attenuation,
                                         MatrixView               xsec_phase,
-                                        const ArrayOfArrayOfVector& line_mixing_data,
+                                        const ArrayOfArrayOfLineMixingRecord& line_mixing_data,
                                         const ArrayOfArrayOfIndex& line_mixing_data_lut,
                                         ConstVectorView          f_grid,
                                         ConstVectorView          abs_p,
@@ -1607,8 +1607,8 @@ void xsec_species_line_mixing_2nd_order(MatrixView               xsec_attenuatio
         "second order line mixing.\n\n";
         throw runtime_error(os.str());
     }
-    const ArrayOfVector data = line_mixing_data[this_species];
-    const ArrayOfIndex  lut  = line_mixing_data_lut[this_species];
+    const ArrayOfLineMixingRecord& data = line_mixing_data[this_species];
+    const ArrayOfIndex&  lut  = line_mixing_data_lut[this_species];
     
     // Helper variables
     Matrix attenuation = xsec_attenuation, phase = xsec_phase;
@@ -1632,7 +1632,7 @@ void xsec_species_line_mixing_2nd_order(MatrixView               xsec_attenuatio
         
         if(lut[ii]!=-1)
         {
-            const Vector& dat = data[lut[ii]];
+            const Vector& dat = data[lut[ii]].Data();
             // First order line mixing coefficient scales with pressure
             a[0] =              p //Is this really the right forefactor for 1/bar
             * ( ( dat[0] + dat[1] * ( dat[6]/T-1. ) ) 
