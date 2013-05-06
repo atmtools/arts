@@ -1,3 +1,10 @@
+2013-05-06  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-634
+
+	* doc/uguide/Figs/rte/ycalc_flow.odg: abs_mat_per_species_agenda
+	changed to propmat_clearsky_agenda.
+
 2013-05-02  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-633
