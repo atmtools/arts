@@ -57,7 +57,7 @@ public:
     typedef std::map<Index, Rational> QuantumContainer;
 
     //! Return copy of quantum number
-    Rational operator[](const Index qn) const
+    const Rational operator[](const Index qn) const
     {
         QuantumContainer::const_iterator it = mqnumbers.find(qn);
         if (it != mqnumbers.end())

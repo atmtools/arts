@@ -38,6 +38,7 @@ public:
     // Defining an object
     Rational() : mnom(0), mdenom(1) {}
     Rational(const Index& n1) : mnom(n1), mdenom(1) {}
+    Rational(const int& n1) : mnom((Index)n1), mdenom(1) {}
     Rational(const Index& n1, const Index& n2) : mnom(n1), mdenom(n2) {Simplify();}
     
     // Reading values of object
@@ -47,89 +48,24 @@ public:
     bool isUndefined() const { return (mnom == 0 && mdenom == 0); }
 
     // Converting object
-    operator Index() const{Rational b(*this); b.Simplify();assert(b.Denom()==1);return b.Nom();}
-    operator Numeric() const{return (Numeric)mnom/(Numeric)mdenom;}
-    operator bool() const{return mnom==0?false:true;}
-    
+    Index toIndex() const;
+    Numeric toNumeric() const { return (Numeric)mnom/(Numeric)mdenom; }
+
     // Useful. Keep this around and/or improve.
     void Simplify();
     
-    // Assigning values to object.
-    void operator=(const Index& a){mnom = a;mdenom = 1;}
+    // Assignment operators
+    Rational& operator+=(const Rational& a) {mnom = mnom*a.Denom() + a.Nom()*mdenom;mdenom *= a.Denom();Simplify(); return *this;}
+    Rational& operator-=(const Rational& a) {mnom = mnom*a.Denom() - a.Nom()*mdenom;mdenom *= a.Denom();Simplify(); return *this;}
+    Rational& operator/=(const Rational& a) {mnom*=a.Denom();mdenom*=a.Nom();Simplify(); return *this;}
+    Rational& operator*=(const Rational& a) {mnom*=a.Nom();mdenom*=a.Denom();Simplify(); return *this;}
 
     // Iterative operators
-    Rational  operator++(int){mnom += mdenom; return *this;}
-    Rational  operator--(int){mnom -= mdenom; return *this;}
-    Rational& operator++()   {mnom += mdenom; return *this;}
-    Rational& operator--()   {mnom -= mdenom; return *this;}
+    Rational  operator++(int) {mnom += mdenom; return *this;}
+    Rational  operator--(int) {mnom -= mdenom; return *this;}
+    Rational& operator++()    {mnom += mdenom; return *this;}
+    Rational& operator--()    {mnom -= mdenom; return *this;}
     
-    // Changing of signs
-    Rational operator-() const{return Rational(-mnom,mdenom);}
-    Rational operator+() const{return *this;}
-    
-    // Changing the object via Index
-    Rational operator+=(const Index& a){mnom+=a*mdenom;Simplify(); return *this;}
-    Rational operator-=(const Index& a){mnom-=a*mdenom;Simplify(); return *this;}
-    Rational operator*=(const Index& a){mnom*=a;Simplify(); return *this;}
-    Rational operator/=(const Index& a){mdenom*=a;Simplify(); return *this;}
-    
-    // Changing the object via other Rational
-    Rational operator+=(const Rational& a){mnom = mnom*a.Denom() + a.Nom()*mdenom;mdenom *= a.Denom();Simplify(); return *this;}
-    Rational operator-=(const Rational& a){mnom = mnom*a.Denom() - a.Nom()*mdenom;mdenom *= a.Denom();Simplify(); return *this;}
-    Rational operator/=(const Rational& a){mnom*=a.Denom();mdenom*=a.Nom();Simplify(); return *this;}
-    Rational operator*=(const Rational& a){mnom*=a.Nom();mdenom*=a.Denom();Simplify(); return *this;}
-    
-    // Changing the object via int
-    Rational operator+=(const int& a){mnom+=a*mdenom;Simplify(); return *this;}
-    Rational operator-=(const int& a){mnom-=a*mdenom;Simplify(); return *this;}
-    Rational operator*=(const int& a){mnom*=a;Simplify(); return *this;}
-    Rational operator/=(const int& a){mdenom*=a;Simplify(); return *this;}
-    
-    // Arithmetic operations involving Index
-    Rational operator+(const Index& a) const{return Rational(mnom+a*mdenom,mdenom);}
-    Rational operator-(const Index& a) const{return Rational(mnom-a*mdenom,mdenom);}
-    Rational operator*(const Index& a) const{return Rational(mnom*a,mdenom);}
-    Rational operator/(const Index& a) const{return Rational(mnom,mdenom*a);}
-    Rational operator%(const Index& a) const{return Rational(mnom%(a*mdenom),mdenom);}
-    
-    // Arithmetic operations involving int
-    Rational operator+(const int& a) const{return Rational(mnom+a*mdenom,mdenom);}
-    Rational operator-(const int& a) const{return Rational(mnom-a*mdenom,mdenom);}
-    Rational operator*(const int& a) const{return Rational(mnom*a,mdenom);}
-    Rational operator/(const int& a) const{return Rational(mnom,mdenom*a);}
-    Rational operator%(const int& a) const{return Rational(mnom%(a*mdenom),mdenom);}
-    
-    // Arithmetic operations involving other Rational
-    Rational operator+(const Rational& a) const{return Rational(mnom*a.Denom() + a.Nom()*mdenom,mdenom * a.Denom());}
-    Rational operator-(const Rational& a) const{return Rational(mnom*a.Denom() - a.Nom()*mdenom,mdenom * a.Denom());}
-    Rational operator/(const Rational& a) const{return Rational(mnom*a.Denom(),mdenom * a.Nom());}
-    Rational operator*(const Rational& a) const{return Rational(mnom*a.Nom(),mdenom * a.Denom());}
-    Rational operator%(const Rational& a) const{return Rational((mnom*a.Denom())%(mdenom*a.Nom()),mdenom*a.Denom());}
-
-    // Boolean operations involving Index
-    bool  operator<(const Index& a) const{return mnom<a*mdenom;}
-    bool  operator>(const Index& a) const{return mnom>a*mdenom;}
-    bool operator<=(const Index& a) const{return mnom<=a*mdenom;}
-    bool operator>=(const Index& a) const{return mnom>=a*mdenom;}
-    bool operator==(const Index& a) const{Rational b(*this); b.Simplify(); return b.Denom()!=1?false:b.Nom()==a;}
-    bool operator!=(const Index& a) const{Rational b(*this); b.Simplify(); return b.Denom()!=1?false:b.Nom()!=a;}
-    
-    // Boolean operations involving int
-    bool operator<(const int& a)  const{return mnom<a*mdenom;}
-    bool operator>(const int& a)  const{return mnom>a*mdenom;}
-    bool operator<=(const int& a) const{return mnom<=a*mdenom;}
-    bool operator>=(const int& a) const{return mnom>=a*mdenom;}
-    bool operator==(const int& a) const{Rational b(*this); b.Simplify(); return b.Denom()!=1?false:b.Nom()==a;}
-    bool operator!=(const int& a) const{Rational b(*this); b.Simplify(); return b.Denom()!=1?false:b.Nom()!=a;}
-    
-    // Boolean operations involving other Rational
-    bool operator<(const Rational& a)  const{return mdenom!=0 && a.Denom()!=0 && mnom*a.Denom()<mdenom*a.Nom();}
-    bool operator>(const Rational& a)  const{return mdenom!=0 && a.Denom()!=0 && mnom*a.Denom()>mdenom*a.Nom();}
-    bool operator<=(const Rational& a) const{return mdenom!=0 && a.Denom()!=0 && mnom*a.Denom()<=mdenom*a.Nom();}
-    bool operator>=(const Rational& a) const{return mdenom!=0 && a.Denom()!=0 && mnom*a.Denom()>=mdenom*a.Nom();}
-    bool operator==(const Rational& a) const{return mdenom!=0 && a.Denom()!=0 && mnom*a.Denom()==mdenom*a.Nom();}
-    bool operator!=(const Rational& a) const{return mdenom==0 || a.Denom()==0 || mnom*a.Denom()!=mdenom*a.Nom();}
-
 private:
     // Rational is supposed to be used rationally ( mnom / mdenom )
     Index mnom;
@@ -137,6 +73,25 @@ private:
 };
 
 #define RATIONAL_UNDEFINED Rational(0, 0)
+
+// Arithmetic operations
+inline Rational operator-(const Rational& a) {return Rational(-a.Nom(), a.Denom());}
+inline Rational operator+(const Rational& a) {return a;}
+inline Rational operator+(const Rational& a, const Rational& b) {return Rational(a.Nom()*b.Denom() + b.Nom()*a.Denom(),a.Denom() * b.Denom());}
+inline Rational operator-(const Rational& a, const Rational& b) {return Rational(a.Nom()*b.Denom() - b.Nom()*a.Denom(),a.Denom() * b.Denom());}
+inline Rational operator/(const Rational& a, const Rational& b) {return Rational(a.Nom()*b.Denom(),a.Denom() * b.Nom());}
+inline Rational operator*(const Rational& a, const Rational& b) {return Rational(a.Nom()*b.Nom(),a.Denom() * b.Denom());}
+inline Rational operator%(const Rational& a, const Rational& b) {return Rational((a.Nom()*b.Denom())%(a.Denom()*b.Nom()),a.Denom()*b.Denom());}
+
+// Boolean operations
+inline bool operator==(const Rational& a, const Rational& b) {return a.Denom()!=0 && b.Denom()!=0 && a.Nom()*b.Denom()==a.Denom()*b.Nom();}
+inline bool operator!=(const Rational& a, const Rational& b) {return !operator==(a, b);}
+inline bool operator<(const Rational& a, const Rational& b)  {return a.Denom()!=0 && b.Denom()!=0 && a.Nom()*b.Denom()<a.Denom()*b.Nom();}
+inline bool operator>(const Rational& a, const Rational& b)  {return operator<(b, a);}
+inline bool operator<=(const Rational& a, const Rational& b) {return !operator>(a, b);}
+inline bool operator>=(const Rational& a, const Rational& b) {return !operator<(a, b);}
+
+inline Numeric fac(const Rational& r) { return (::fac(r.toIndex())); }
 
 std::ostream& operator<<(std::ostream& os, const Rational& a);
 

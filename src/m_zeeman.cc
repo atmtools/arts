@@ -523,7 +523,7 @@ Numeric RelativeStrengthLandauAndLifshitz(Rational, Rational m, Rational j, Inde
  */
 Numeric RelativeStrengthSMMBerdyugina(Rational, Rational m, Rational j, Index dj, Index dm)
 {
-    const Numeric J = (Numeric)(j-dj), M = (Numeric)(m);
+    const Numeric J = (j-dj).toNumeric(), M = (m).toNumeric();
     
     Numeric ret_val;
     
@@ -606,7 +606,7 @@ Numeric RelativeStrengthSMMBerdyugina(Rational, Rational m, Rational j, Index dj
 Numeric RelativeStrengthLenoir(Rational n, Rational m, Rational , Index DJ, Index DM)
 {
     
-    Numeric N = (Numeric)n, M = (Numeric)m, relstr;
+    Numeric N = n.toNumeric(), M = m.toNumeric(), relstr;
     
     switch ( DJ )
     {//* Switch over DJ, if DJ != 1 or -1, DJ is wrong in Lenoir.
@@ -672,7 +672,7 @@ Numeric FrequencyChangeLenoir(Rational n, Rational m, Rational, Numeric, Index D
     The following switch case is from table 2 of Lenoir, 1968.
     */
 
-    const Numeric N = (Numeric)n, M = (Numeric)m;
+    const Numeric N = n.toNumeric(), M = m.toNumeric();
     Numeric fcc;
     const Numeric KH = 2.8026 * 1000000 * H_mag * 10000; // KH from Lenoir 1968. Factors are for conversion from Lenoir's' to SI units.
 
@@ -738,11 +738,11 @@ Numeric FrequencyChangeLenoir(Rational n, Rational m, Rational, Numeric, Index D
  */
 Numeric FrequencyChangeDirect(Rational n, Rational m, Rational j, Numeric S, Index DJ, Index DM, Index DN, Numeric H_mag, Numeric)
 {
-    const Numeric       N_up = (Numeric)n;
+    const Numeric       N_up = n.toNumeric();
     const Numeric       N_lo = N_up - (Numeric)DN;
-    const Numeric       M_lo = (Numeric)m;
+    const Numeric       M_lo = m.toNumeric();
     const Numeric       M_up = M_lo + (Numeric)DM; // This will probably confuse people even though it is correct. Should fix so outer loop is over M_up.
-    const Numeric       J_up = (Numeric)j;
+    const Numeric       J_up = j.toNumeric();
     const Numeric       J_lo = J_up - (Numeric)DJ;
     
     Numeric fcc;
@@ -779,11 +779,11 @@ Numeric FrequencyChangeDirect(Rational n, Rational m, Rational j, Numeric S, Ind
  */
 Numeric FrequencyChangeDirectWithGS(Rational n, Rational m, Rational j, Numeric S, Index DJ, Index DM, Index DN, Numeric H_mag, Numeric GS)
 {
-    const Numeric       N_up = (Numeric)n;
+    const Numeric       N_up = n.toNumeric();
     const Numeric       N_lo = N_up - (Numeric)DN;
-    const Numeric       M_lo = (Numeric)m;
+    const Numeric       M_lo = m.toNumeric();
     const Numeric       M_up = M_lo + (Numeric)DM; // This will probably confuse people even though it is correct. Should fix so outer loop is over M_up.
-    const Numeric       J_up = (Numeric)j;
+    const Numeric       J_up = j.toNumeric();
     const Numeric       J_lo = J_up - (Numeric)DJ;
     
     Numeric fcc;
@@ -985,8 +985,8 @@ void propmat_clearskyAddZeeman(Tensor4& propmat_clearsky,
                 const Numeric GS  = isotopologue_quantum.getParam(temp_LR.Species(), temp_LR.Isotopologue(), 0);
 //                const Index DJ    = J - temp_LR.Upper_J();
 //                const Index DN    = N - temp_LR.Upper_N();
-                const Index DJ    = J - temp_LR.QuantumNumbers().Upper(QN_J);
-                const Index DN    = N - temp_LR.QuantumNumbers().Upper(QN_N);
+                const Index DJ    = (J - temp_LR.QuantumNumbers().Upper(QN_J)).toIndex();
+                const Index DN    = (N - temp_LR.QuantumNumbers().Upper(QN_N)).toIndex();
                 Numeric RS_sum    = 0; //Sum relative strength (which ought be close to one by the end)
                 // Only look at lines which have no change in the main rotational number
                 // cout << "RSpi=[];RSsp=[];RSsm=[];DFpi=[];DFsm=[];DFsp=[];\n";

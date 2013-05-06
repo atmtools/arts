@@ -388,8 +388,6 @@ void gridpos_poly_cyclic_longitudinal(ArrayOfGridPosPoly& gp,
 
 
 
-// FIXME: Below here is copied code from interpolation.cc that must be adapted.
-
 //! Macro for interpolation weight loops.
 /*!
   We use the macro LOOPW to make the notation for the nested for
@@ -405,14 +403,11 @@ void gridpos_poly_cyclic_longitudinal(ArrayOfGridPosPoly& gp,
   for ( ConstIterator1D x=tx.w.begin(); x!=tx.w.end(); ++x )
 
 */
-//#define LOOPW(x) for ( const Numeric* x=&t##x.fd[1]; x>=&t##x.fd[0]; --x )
-//#define LOOPW(x) for ( Index x=0; x<t##x.w.nelem(); ++x )
-//#define LOOPW(x) for ( ConstIterator1D x=t##x.w.begin(); x!=t##x.w.end(); ++x )
 #define LOOPW(x) for ( ConstIterator1D x = t##x##begin; x!=t##x##end; ++x)
 
 //! Macro for caching begin and end iterators for interpolation weight loops.
-#define CACHEW(x) const ConstIterator1D& t##x##begin = t##x.w.begin(); \
-                  const ConstIterator1D& t##x##end = t##x.w.end();
+#define CACHEW(x) const ConstIterator1D t##x##begin = t##x.w.begin(); \
+                  const ConstIterator1D t##x##end = t##x.w.end();
 
 //! Macro for interpolation index loops.
 /*!
@@ -420,7 +415,11 @@ void gridpos_poly_cyclic_longitudinal(ArrayOfGridPosPoly& gp,
   is an ArrayOfIndex, not a Vector, we have to use a different type of
   iterator.
 */
-#define LOOPIDX(x) for (ArrayOfIndex::const_iterator x=t##x.idx.begin(); x!=t##x.idx.end(); ++x)
+#define LOOPIDX(x) for (ArrayOfIndex::const_iterator x=t##x##begin; x!=t##x##end; ++x)
+
+//! Macro for caching begin and end iterators for interpolation index loops.
+#define CACHEIDX(x) const ArrayOfIndex::const_iterator t##x##begin = t##x.idx.begin(); \
+                    const ArrayOfIndex::const_iterator t##x##end = t##x.idx.end();
 
 
 //! Output operator for GridPosPoly.
@@ -744,6 +743,7 @@ Numeric interp( ConstVectorView itw,
   Numeric tia = 0;
 
   Index iti = 0;
+  CACHEIDX(c)
   LOOPIDX(c)
     {
       tia += a.get(*c) * itw.get(iti);
@@ -789,6 +789,8 @@ Numeric interp( ConstVectorView  itw,
   Numeric tia = 0;
 
   Index iti = 0;
+  CACHEIDX(r)
+  CACHEIDX(c)
   LOOPIDX(r)
     LOOPIDX(c)
       {
@@ -839,6 +841,9 @@ Numeric interp( ConstVectorView  itw,
   Numeric tia = 0;
 
   Index iti = 0;
+  CACHEIDX(p)
+  CACHEIDX(r)
+  CACHEIDX(c)
   LOOPIDX(p)
   LOOPIDX(r)
   LOOPIDX(c)
@@ -894,6 +899,10 @@ Numeric interp( ConstVectorView  itw,
   Numeric tia = 0;
 
   Index iti = 0;
+  CACHEIDX(b)
+  CACHEIDX(p)
+  CACHEIDX(r)
+  CACHEIDX(c)
   LOOPIDX(b)
   LOOPIDX(p)
   LOOPIDX(r)
@@ -954,6 +963,11 @@ Numeric interp( ConstVectorView  itw,
   Numeric tia = 0;
 
   Index iti = 0;
+  CACHEIDX(s)
+  CACHEIDX(b)
+  CACHEIDX(p)
+  CACHEIDX(r)
+  CACHEIDX(c)
   LOOPIDX(s)
   LOOPIDX(b)
   LOOPIDX(p)
@@ -1019,6 +1033,12 @@ Numeric interp( ConstVectorView  itw,
   Numeric tia = 0;
 
   Index iti = 0;
+  CACHEIDX(v)
+  CACHEIDX(s)
+  CACHEIDX(b)
+  CACHEIDX(p)
+  CACHEIDX(r)
+  CACHEIDX(c)
   LOOPIDX(v)
   LOOPIDX(s)
   LOOPIDX(b)
@@ -1497,6 +1517,7 @@ void interp( VectorView            ia,
       tia = 0;
 
       Index iti = 0;
+      CACHEIDX(c)
       LOOPIDX(c)
         {
           tia += a.get(*c) * itw.get(i,iti);
@@ -1560,6 +1581,8 @@ void interp( VectorView            ia,
       tia = 0;
 
       Index iti = 0;
+      CACHEIDX(r)
+      CACHEIDX(c)
       LOOPIDX(r)
         LOOPIDX(c)
           {
@@ -1630,6 +1653,9 @@ void interp( VectorView            ia,
       tia = 0;
 
       Index iti = 0;
+      CACHEIDX(p)
+      CACHEIDX(r)
+      CACHEIDX(c)
       LOOPIDX(p)
       LOOPIDX(r)
       LOOPIDX(c)
@@ -1707,6 +1733,10 @@ void interp( VectorView            ia,
       tia = 0;
 
       Index iti = 0;
+      CACHEIDX(b)
+      CACHEIDX(p)
+      CACHEIDX(r)
+      CACHEIDX(c)
       LOOPIDX(b)
       LOOPIDX(p)
       LOOPIDX(r)
@@ -1791,6 +1821,11 @@ void interp( VectorView            ia,
       tia = 0;
 
       Index iti = 0;
+      CACHEIDX(s)
+      CACHEIDX(b)
+      CACHEIDX(p)
+      CACHEIDX(r)
+      CACHEIDX(c)
       LOOPIDX(s)
       LOOPIDX(b)
       LOOPIDX(p)
@@ -1882,6 +1917,12 @@ void interp( VectorView            ia,
       tia = 0;
 
       Index iti = 0;
+      CACHEIDX(v)
+      CACHEIDX(s)
+      CACHEIDX(b)
+      CACHEIDX(p)
+      CACHEIDX(r)
+      CACHEIDX(c)
       LOOPIDX(v)
       LOOPIDX(s)
       LOOPIDX(b)
@@ -1942,11 +1983,13 @@ void interpweights( Tensor3View itw,
     {
       // Current grid position:
       const GridPosPoly& tr = rgp[ir];
+      CACHEW(r)
 
       for ( Index ic=0; ic<nc; ++ic )
         {
           // Current grid position:
           const GridPosPoly& tc = cgp[ic];
+          CACHEW(c)
 
           // Interpolation weights are stored in this order (l=lower
           // u=upper, r=row, c=column):
@@ -1957,8 +2000,6 @@ void interpweights( Tensor3View itw,
 
           Index iti = 0;
 
-          CACHEW(r)
-          CACHEW(c)
           LOOPW(r)
             LOOPW(c)
             {
@@ -2010,18 +2051,18 @@ void interpweights( Tensor4View itw,
   for ( Index ip=0; ip<np; ++ip )
     {
       const GridPosPoly& tp = pgp[ip];
+      CACHEW(p)
       for ( Index ir=0; ir<nr; ++ir )
         {
           const GridPosPoly& tr = rgp[ir];
+          CACHEW(r)
           for ( Index ic=0; ic<nc; ++ic )
             {
               const GridPosPoly& tc = cgp[ic];
+              CACHEW(c)
 
               Index iti = 0;
 
-              CACHEW(p)
-              CACHEW(r)
-              CACHEW(c)
               LOOPW(p)
                 LOOPW(r)
                 LOOPW(c)
@@ -2080,22 +2121,22 @@ void interpweights( Tensor5View itw,
   for ( Index ib=0; ib<nb; ++ib )
     {
       const GridPosPoly& tb = bgp[ib];
+      CACHEW(b)
       for ( Index ip=0; ip<np; ++ip )
         {
           const GridPosPoly& tp = pgp[ip];
+          CACHEW(p)
           for ( Index ir=0; ir<nr; ++ir )
             {
               const GridPosPoly& tr = rgp[ir];
+              CACHEW(r)
               for ( Index ic=0; ic<nc; ++ic )
                 {
                   const GridPosPoly& tc = cgp[ic];
+                  CACHEW(c)
 
                   Index iti = 0;
 
-                  CACHEW(b)
-                  CACHEW(p)
-                  CACHEW(r)
-                  CACHEW(c)
                   LOOPW(b)
                     LOOPW(p)
                     LOOPW(r)
@@ -2160,26 +2201,26 @@ void interpweights( Tensor6View itw,
   for ( Index is=0; is<ns; ++is )
     {
       const GridPosPoly& ts = sgp[is];
+      CACHEW(s)
       for ( Index ib=0; ib<nb; ++ib )
         {
           const GridPosPoly& tb = bgp[ib];
+          CACHEW(b)
           for ( Index ip=0; ip<np; ++ip )
             {
               const GridPosPoly& tp = pgp[ip];
+              CACHEW(p)
               for ( Index ir=0; ir<nr; ++ir )
                 {
                   const GridPosPoly& tr = rgp[ir];
+                  CACHEW(r)
                   for ( Index ic=0; ic<nc; ++ic )
                     {
                       const GridPosPoly& tc = cgp[ic];
+                      CACHEW(c)
 
                       Index iti = 0;
 
-                      CACHEW(s)
-                      CACHEW(b)
-                      CACHEW(p)
-                      CACHEW(r)
-                      CACHEW(c)
                       LOOPW(s)
                         LOOPW(b)
                         LOOPW(p)
@@ -2250,30 +2291,30 @@ void interpweights( Tensor7View itw,
   for ( Index iv=0; iv<nv; ++iv )
     {
       const GridPosPoly& tv = vgp[iv];
+      CACHEW(v)
       for ( Index is=0; is<ns; ++is )
         {
           const GridPosPoly& ts = sgp[is];
+          CACHEW(s)
           for ( Index ib=0; ib<nb; ++ib )
             {
               const GridPosPoly& tb = bgp[ib];
+              CACHEW(b)
               for ( Index ip=0; ip<np; ++ip )
                 {
                   const GridPosPoly& tp = pgp[ip];
+                  CACHEW(p)
                   for ( Index ir=0; ir<nr; ++ir )
                     {
                       const GridPosPoly& tr = rgp[ir];
+                      CACHEW(r)
                       for ( Index ic=0; ic<nc; ++ic )
                         {
                           const GridPosPoly& tc = cgp[ic];
+                          CACHEW(c)
 
                           Index iti = 0;
 
-                          CACHEW(v)
-                          CACHEW(s)
-                          CACHEW(b)
-                          CACHEW(p)
-                          CACHEW(r)
-                          CACHEW(c)
                           LOOPW(v)
                             LOOPW(s)
                             LOOPW(b)
@@ -2340,11 +2381,13 @@ void interp( MatrixView            ia,
     {
       // Current grid position:
       const GridPosPoly& tr = rgp[ir];
+      CACHEIDX(r)
 
       for ( Index ic=0; ic<nc; ++ic )
         {
           // Current grid position:
           const GridPosPoly& tc = cgp[ic];
+          CACHEIDX(c)
 
           // Get handle to current element of output tensor and initialize
           // it to zero:
@@ -2415,13 +2458,16 @@ void interp( Tensor3View           ia,
   for ( Index ip=0; ip<np; ++ip )
     {
       const GridPosPoly& tp = pgp[ip];
+      CACHEIDX(p);
       for ( Index ir=0; ir<nr; ++ir )
         {
           const GridPosPoly& tr = rgp[ir];
+          CACHEIDX(r);
           for ( Index ic=0; ic<nc; ++ic )
             {
               // Current grid position:
               const GridPosPoly& tc = cgp[ic];
+              CACHEIDX(c);
 
               // Get handle to current element of output tensor and
               // initialize it to zero:
@@ -2500,16 +2546,20 @@ void interp( Tensor4View           ia,
   for ( Index ib=0; ib<nb; ++ib )
     {
       const GridPosPoly& tb = bgp[ib];
+      CACHEIDX(b);
       for ( Index ip=0; ip<np; ++ip )
         {
           const GridPosPoly& tp = pgp[ip];
+          CACHEIDX(p);
           for ( Index ir=0; ir<nr; ++ir )
             {
               const GridPosPoly& tr = rgp[ir];
+              CACHEIDX(r);
               for ( Index ic=0; ic<nc; ++ic )
                 {
                   // Current grid position:
                   const GridPosPoly& tc = cgp[ic];
+                  CACHEIDX(c);
 
                   // Get handle to current element of output tensor and
                   // initialize it to zero:
@@ -2595,19 +2645,24 @@ void interp( Tensor5View           ia,
   for ( Index is=0; is<ns; ++is )
     {
       const GridPosPoly& ts = sgp[is];
+      CACHEIDX(s);
       for ( Index ib=0; ib<nb; ++ib )
         {
           const GridPosPoly& tb = bgp[ib];
+          CACHEIDX(b);
           for ( Index ip=0; ip<np; ++ip )
             {
               const GridPosPoly& tp = pgp[ip];
+              CACHEIDX(p);
               for ( Index ir=0; ir<nr; ++ir )
                 {
                   const GridPosPoly& tr = rgp[ir];
+                  CACHEIDX(r);
                   for ( Index ic=0; ic<nc; ++ic )
                     {
                       // Current grid position:
                       const GridPosPoly& tc = cgp[ic];
+                      CACHEIDX(c);
 
                       // Get handle to current element of output tensor and
                       // initialize it to zero:
@@ -2700,22 +2755,28 @@ void interp( Tensor6View           ia,
   for ( Index iv=0; iv<nv; ++iv )
     {
       const GridPosPoly& tv = vgp[iv];
+      CACHEIDX(v);
       for ( Index is=0; is<ns; ++is )
         {
           const GridPosPoly& ts = sgp[is];
+          CACHEIDX(s);
           for ( Index ib=0; ib<nb; ++ib )
             {
               const GridPosPoly& tb = bgp[ib];
+              CACHEIDX(b);
               for ( Index ip=0; ip<np; ++ip )
                 {
                   const GridPosPoly& tp = pgp[ip];
+                  CACHEIDX(p);
                   for ( Index ir=0; ir<nr; ++ir )
                     {
                       const GridPosPoly& tr = rgp[ir];
+                      CACHEIDX(r);
                       for ( Index ic=0; ic<nc; ++ic )
                         {
                           // Current grid position:
                           const GridPosPoly& tc = cgp[ic];
+                          CACHEIDX(c);
 
                           // Get handle to current element of output tensor and
                           // initialize it to zero:

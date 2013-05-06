@@ -27,6 +27,7 @@
 #include "math_funcs.h"
 #include "describe.h"
 #include "matpackII.h"
+#include "rational.h"
 
 using std::cout;
 using std::endl;
@@ -823,6 +824,18 @@ void test42()
     cout << "New x: " << x << endl;
 }
 
+
+void test43()
+{
+    Rational r(3,2);
+    Rational r2;
+    r2 = 1;
+    cout << r2+r << endl;
+    cout << 1+r << endl;
+    cout << r+1 << endl;
+}
+
+
 int main()
 {
 //   test1();
@@ -867,7 +880,8 @@ int main()
 //  test39();
 //  test40();
 //  test41();
-    test42();
+//    test42();
+    test43();
 
   return 0;
 }

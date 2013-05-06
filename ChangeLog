@@ -1,3 +1,57 @@
+2013-05-06  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-635
+
+	* src/rational.{h,cc}:
+
+	(Rational::Rational(int)): Add conversion ctor for int.
+
+	(bool()): Removed. Conversion operators are evil for all the pitfalls
+	they bring along, so let's get rid of them.
+
+	(Numeric()): Renamed to toNumeric();
+
+	(Index()): Renamed to toIndex(). Change the assert to a runtime error.
+	Otherwise invalid conversions from Rational to Index will go unnoticed
+	in non-debug mode. E.g. 3/2 would be silently converted to 3.
+	Simplify code by not calling Simplify() (on a copy of the object).
+	Rational objects are always immediately simplified when they're
+	modified or initialized, no need to do it here again.
+	Move implementation to cc file. 
+
+	Get rid of arithmetic and boolean operators where second
+	argument is not a Rational. They were only implemented in one direction,
+	e.g. Rational + Index worked but not Index + Rational.
+	Instead of implementing a dozen more operators, let's get rid of them
+	altogether.
+
+	Sometimes less is more: By removing the conversion operators, all the
+	operations work in both directions (Index+Rational and Rational+Index).
+	Because now, the compiler has no other choice than converting the other
+	argument into a Rational. Exactly what we want!
+
+	Moved all operators that don't modify the object outside the class.
+
+	Only implement full logic for operator== and operator<. Implement all
+	other boolean operators by calling those two.
+
+	(assignment operators): Should always return a reference to the object
+	itself. Assignment operator with Index no longer needed. Uses converting
+	ctor implicitly.
+
+	* src/m_zeeman.cc: Use Rational::toNumeric.
+
+	* src/quantum.h (QuantumNumbers::operator[]): Change return type to const.
+
+	* src/interpolation_poly.cc:
+
+	Do same caching for LOOPIDX as for LOOPW.
+
+	Move the CACHE* statements from the innermost loop to the outer loops
+	right after the corresponding variables definition.
+
+	* src/test_matpack.cc: Add test43 for Rational.
+
 2013-05-06  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-634

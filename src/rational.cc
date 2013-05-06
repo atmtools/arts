@@ -29,6 +29,18 @@ USA. */
 #include "mystring.h"
 
 
+Index Rational::toIndex() const
+{
+    if (mdenom != 1)
+    {
+        std::ostringstream os;
+        os << "Cannot convert Rational " << *this << " to Index.";
+        throw std::runtime_error(os.str());
+    }
+    return mnom;
+}
+
+
 void Rational::Simplify()
 {
     Index ii = mdenom;
@@ -94,5 +106,5 @@ std::istream& operator>>(std::istream& is, Rational& a)
 
 Rational abs(const Rational& a)
 {
-    return a<0?-a:a;
+    return a<Rational(0)?-a:a;
 }
