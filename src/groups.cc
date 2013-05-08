@@ -117,6 +117,7 @@ void define_wsv_group_names()
   wsv_group_names.push_back("ArrayOfTensor6");
   wsv_group_names.push_back("ArrayOfTensor7");
   wsv_group_names.push_back("ArrayOfArrayOfTensor6");
+  wsv_group_names.push_back("ArrayOfLineMixingRecord");
   wsv_group_names.push_back("ArrayOfLineRecord");
   wsv_group_names.push_back("ArrayOfArrayOfLineRecord");
   wsv_group_names.push_back("ArrayOfLineshapeSpec");

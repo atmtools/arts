@@ -6428,13 +6428,18 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "line_mixing_dataRead" ),
+      ( NAME( "line_mixing_dataMatch" ),
         DESCRIPTION
         (
-         "Read line mixing data and match it to *abs_lines_per_species*.\n"
+         "Matches line mixing records to a species in *abs_lines_per_species*.\n"
          "*line_mixing_dataInit* must be called before this method.\n"
          "\n"
-         "The data is connected to the lines of the given species tag.\n"
+         "  ArrayOfLineMixingRecordCreate(lm_o2)\n"
+         "  ReadXML(lm_o2, \"o2_v1_0_band_40-120_GHz.xml\")\n"
+         "  line_mixing_dataInit\n"
+         "  line_mixing_dataMatch(species_tag=\"O2-66-LM_2NDORDER\",\n"
+         "                        line_mixing_records=lm_o2)\n"
+
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT( "line_mixing_data", "line_mixing_data_lut" ),
@@ -6443,10 +6448,39 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "line_mixing_data", "line_mixing_data_lut",
             "abs_lines_per_species", "abs_species" ),
-        GIN(         "species_tag", "filename" ),
-        GIN_TYPE(    "String",      "String" ),
+        GIN(         "species_tag", "line_mixing_records" ),
+        GIN_TYPE(    "String",      "ArrayOfLineMixingRecord" ),
         GIN_DEFAULT( NODEF,         NODEF ),
-        GIN_DESC(    "Species tag", "Line mixing data file.")
+        GIN_DESC(    "Species tag", "Unmatched line mixing data.")
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "ArrayOfLineMixingRecordReadAscii" ),
+        DESCRIPTION
+        (
+         "Read line mixing data from an ASCII file.\n"
+         "\n"
+         "This is merely a convenience function to convert data from Richard's\n"
+         "ASCII format into XML. For example:\n"
+         "  ArrayOfLineMixingRecordCreate(lm_convert)\n"
+         "  ArrayOfLineMixingRecordReadAscii(lm_convert, \"o2_v1_0_band_40-120_GHz\")\n"
+         "  WriteXML(\"zascii\", lm_convert, \"o2_v1_0_band_40-120_GHz.xml\")\n"
+         "\n"
+         "After reading the data it must be matched to *abs_lines_per_species*.\n"
+         "See *line_mixing_dataMatch*.\n"
+         // FIXME: Format Documentation goes here
+         ),
+        AUTHORS( "Oliver Lemke" ),
+        OUT(),
+        GOUT( "line_mixing_records" ),
+        GOUT_TYPE( "ArrayOfLineMixingRecord"),
+        GOUT_DESC( "Unmatched line mixing data." ),
+        IN(),
+        GIN(         "filename" ),
+        GIN_TYPE(    "String" ),
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC(    "Line mixing data file.")
         ));
 
   md_data_raw.push_back

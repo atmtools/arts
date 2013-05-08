@@ -825,7 +825,7 @@ void abs_lines_per_speciesCreateFromLines(// WS Output:
               out2 << "  Your tags include other lines of species "
                    << this_line.SpeciesData().Name()
                    << ",\n"
-                   << "why do you not include line "
+                   << "  Why do you not include line "
                    << i
                    << " (at "
                    << this_line.F()

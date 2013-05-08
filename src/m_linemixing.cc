@@ -36,15 +36,15 @@ void line_mixing_dataInit(// WS Output:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void line_mixing_dataRead(// WS Output:
-                          ArrayOfArrayOfLineMixingRecord& line_mixing_data,
-                          ArrayOfArrayOfIndex& line_mixing_data_lut,
-                          // WS Input:
-                          const ArrayOfArrayOfLineRecord& abs_lines_per_species,
-                          const ArrayOfArrayOfSpeciesTag& abs_species,
-                          const String& species_tag,
-                          const String& filename,
-                          const Verbosity& verbosity)
+void line_mixing_dataMatch(// WS Output:
+                           ArrayOfArrayOfLineMixingRecord& line_mixing_data,
+                           ArrayOfArrayOfIndex& line_mixing_data_lut,
+                           // WS Input:
+                           const ArrayOfArrayOfLineRecord& abs_lines_per_species,
+                           const ArrayOfArrayOfSpeciesTag& abs_species,
+                           const String& species_tag,
+                           const ArrayOfLineMixingRecord& line_mixing_records,
+                           const Verbosity& verbosity)
 {
     CREATE_OUT2;
     CREATE_OUT3;
@@ -73,70 +73,7 @@ void line_mixing_dataRead(// WS Output:
         throw runtime_error(os.str());
     }
 
-    ifstream ifs;
-    open_input_file(ifs, filename);
-
-    line_mixing_data[species_index].resize(0);
-
-    // Read the line mixing file
-    Index linenr = 0;
-    String line;
-    istringstream is;
-    while (!ifs.eof())
-    {
-        getline(ifs, line);
-        linenr++;
-
-        line.trim();
-        // Skip empty lines and comments
-        if (!line.nelem()
-            || (line.nelem() && line[0] == '#'))
-            continue;
-
-        is.clear();
-        is.str(line);
-        try {
-            String species_string;
-            SpeciesTag line_species;
-            
-            is >> species_string;
-            line_species = SpeciesTag(species_string);
-
-            LineMixingRecord lmr(line_species.Species(), line_species.Isotopologue());
-
-            Rational r;
-            is >> r; lmr.Quantum().SetLower(QN_v1, r);
-                     lmr.Quantum().SetUpper(QN_v1, r);
-            is >> r; lmr.Quantum().SetUpper(QN_N,  r);
-            is >> r; lmr.Quantum().SetLower(QN_N,  r);
-            is >> r; lmr.Quantum().SetUpper(QN_J,  r);
-            is >> r; lmr.Quantum().SetLower(QN_J,  r);
-
-            vector<Numeric> temp_mixing_data;
-            String s;
-            char *c;
-            while (is)
-            {
-                is >> s;
-                s.trim();
-                if (s.nelem())
-                {
-                    temp_mixing_data.push_back(strtod(s.c_str(), &c));
-                    if (c != s.c_str() + s.nelem())
-                        throw runtime_error(line);
-                }
-            }
-
-            lmr.Data() = temp_mixing_data;
-            line_mixing_data[species_index].push_back(lmr);
-        } catch (runtime_error e) {
-            ostringstream os;
-
-            os << "Error parsing line mixing file in line " << linenr << endl;
-            os << e.what();
-            throw runtime_error(os.str());
-        }
-    }
+    line_mixing_data[species_index] = line_mixing_records;
 
     ArrayOfIndex matches;
     line_mixing_data_lut[species_index].resize(abs_lines_per_species[species_index].nelem());
@@ -180,6 +117,82 @@ void line_mixing_dataRead(// WS Output:
     out2 << "  Matched " << nmatches << " lines out of " << line_mixing_data[species_index].nelem()
          << "\n";
     out2 << "  abs_lines_per_species contains " << abs_lines_per_species[species_index].nelem()
-         << " lines.\n";
+         << " lines for " << species_tag << ".\n";
 }
 
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void ArrayOfLineMixingRecordReadAscii(// Generic Output:
+                                      ArrayOfLineMixingRecord& line_mixing_records,
+                                      // Generic Input:
+                                      const String& filename,
+                                      const Verbosity& verbosity)
+{
+    ifstream ifs;
+    open_input_file(ifs, filename);
+
+    line_mixing_records.resize(0);
+
+    // Read the line mixing file
+    Index linenr = 0;
+    String line;
+    istringstream is;
+    while (!ifs.eof())
+    {
+        getline(ifs, line);
+        linenr++;
+
+        line.trim();
+        // Skip empty lines and comments
+        if (!line.nelem()
+            || (line.nelem() && line[0] == '#'))
+            continue;
+
+        is.clear();
+        is.str(line);
+        try {
+            String species_string;
+            SpeciesTag line_species;
+
+            is >> species_string;
+            line_species = SpeciesTag(species_string);
+
+            LineMixingRecord lmr(line_species.Species(), line_species.Isotopologue());
+
+            Rational r;
+            is >> r; lmr.Quantum().SetLower(QN_v1, r);
+            lmr.Quantum().SetUpper(QN_v1, r);
+            is >> r; lmr.Quantum().SetUpper(QN_N,  r);
+            is >> r; lmr.Quantum().SetLower(QN_N,  r);
+            is >> r; lmr.Quantum().SetUpper(QN_J,  r);
+            is >> r; lmr.Quantum().SetLower(QN_J,  r);
+
+            vector<Numeric> temp_mixing_data;
+            String s;
+            char *c;
+            while (is)
+            {
+                is >> s;
+                s.trim();
+                if (s.nelem())
+                {
+                    temp_mixing_data.push_back(strtod(s.c_str(), &c));
+                    if (c != s.c_str() + s.nelem())
+                        throw runtime_error(line);
+                }
+            }
+
+            lmr.Data() = temp_mixing_data;
+            line_mixing_records.push_back(lmr);
+        } catch (runtime_error e) {
+            ostringstream os;
+
+            os << "Error parsing line mixing file in line " << linenr << endl;
+            os << e.what();
+            throw runtime_error(os.str());
+        }
+    }
+
+    CREATE_OUT2;
+    out2 << "  Read " << line_mixing_records.nelem() << " lines from " << filename << ".\n";
+}

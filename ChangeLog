@@ -1,3 +1,18 @@
+2013-05-08  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-636
+
+	* src/groups.cc: Add ArrayOfLineMixingRecord.
+
+	* src/m_linemixing.cc, src/methods.cc:
+
+	Split the reading of line mixing data from the matching process.
+
+	See builtin docs of ArrayOfLineMixingRecordReadAscii and
+	line_mixing_dataMatch.
+
+	* src/m_abs.cc (abs_lines_per_speciesCreateFromLines): Cosmetics.
+
 2013-05-06  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-635
