@@ -1,3 +1,16 @@
+2013-05-08  Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-1-637
+
+	* src/lineshapes.cc: Confirmation on which order Faddeeva's frequency grid
+	should be arranged. It is the opposite of how Jefferies etal wrote it down.
+	Changed the function Accordingly
+	
+	* src/m_zeeman.cc: Made this compatible with line-mixing. Differences of 1 K
+	in the Bern test simulations followed.
+	
+	* src/absorption.cc: Better comments now.
+	
 2013-05-08  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-636

@@ -104,7 +104,7 @@ void lineshape_lorentz(Vector&         ls_attenuation,
   for ( Index i=0; i<nf; ++i )
     {
       ls_attenuation[i] =  fac / ( (f_grid[i]-f0) * (f_grid[i]-f0) + gamma2 );
-      ls_phase[i] =  fac/gamma / ( (f_grid[i]-f0) * (f_grid[i]-f0) + gamma2 ) * (f_grid[i]-f0);
+      ls_phase[i] = ( (f_grid[i]-f0) * (f_grid[i]-f0) + gamma2 ) * (f_grid[i]-f0) / PI ;
     }
 }
 
@@ -1713,7 +1713,7 @@ void faddeeva_algorithm_916(    Vector&         ls_attenuation,
     const Numeric sqrt_invPI =  sqrt(1/PI);
     
     // constant normalization factor for voigt
-    Numeric fac = 1.0 / sigma * sqrt_invPI;
+    Numeric fac = sqrt_invPI / sigma;
     
     // Ratio of the Lorentz halfwidth to the Doppler halfwidth
     Numeric YNUMERIC = gamma / (sigma);
@@ -1721,7 +1721,7 @@ void faddeeva_algorithm_916(    Vector&         ls_attenuation,
     // frequency in units of Doppler
     for (Index ii=0; ii<nf; ii++)
     {
-        xvector[ii] = (f0 - f_grid[ii]) / sigma;
+        xvector[ii] = (f_grid[ii] - f0) / sigma;
     }
     
     for (Index ii=0; ii<nf; ii++)

@@ -20,7 +20,6 @@ USA. */
 #include <stdexcept>
 #include <string>
 #include "auto_md.h"
-#include "arts.h"
 #include "ppath.h"
 #include "messages.h"
 #include "math_funcs.h"
@@ -806,6 +805,9 @@ Numeric FrequencyChangeDirectWithGS(Rational n, Rational m, Rational j, Numeric 
 void Part_Return_Zeeman(  Tensor3View part_abs_mat, const ArrayOfArrayOfSpeciesTag& abs_species, const ArrayOfLineshapeSpec& abs_lineshape, 
                           const ArrayOfLineRecord& lr, const SpeciesAuxData& isotopologue_ratios, const Matrix& abs_vmrs, const Vector& abs_p,
                           const Vector& abs_t, const Vector& f_grid, const Numeric& theta, const Numeric& eta, const Index& DM, const Index& this_species,
+                          const ArrayOfArrayOfLineMixingRecord& line_mixing_data,
+                          const ArrayOfArrayOfIndex& line_mixing_data_lut,
+                          const ArrayOfIndex& temp_species_lut,
                           const Verbosity& verbosity )
 {
     assert( part_abs_mat.npages() == f_grid.nelem() && part_abs_mat.ncols() == 4 && part_abs_mat.nrows() == 4 );
@@ -813,13 +815,17 @@ void Part_Return_Zeeman(  Tensor3View part_abs_mat, const ArrayOfArrayOfSpeciesT
     Matrix A(f_grid.nelem(), 1, 0.);
     Matrix B(f_grid.nelem(), 1, 0.);
     
+    ArrayOfArrayOfIndex temp_lut = line_mixing_data_lut;
+    temp_lut[this_species] = temp_species_lut;
+    
     for ( Index i=0; i<abs_species[this_species].nelem(); ++i )
     {
         Matrix attenuation(f_grid.nelem(), 1, 0.), phase(f_grid.nelem(), 1, 0.);;
         
-        xsec_species( attenuation, phase, f_grid, abs_p, abs_t, abs_vmrs, abs_species, this_species, lr,
-                    abs_lineshape[i].Ind_ls(), abs_lineshape[i].Ind_lsn(), abs_lineshape[i].Cutoff(),
-                    isotopologue_ratios, verbosity ); // Now in cross section
+        xsec_species_line_mixing_wrapper( attenuation, phase, line_mixing_data, temp_lut,
+                                          f_grid, abs_p, abs_t, abs_vmrs, abs_species, this_species, lr,
+                                          abs_lineshape[i].Ind_ls(), abs_lineshape[i].Ind_lsn(), abs_lineshape[i].Cutoff(),
+                                          isotopologue_ratios, verbosity ); // Now in cross section
         
         attenuation *= abs_vmrs(this_species, 0) * number_density( abs_p[0],abs_t[0]); // Now in absorption coef.
         phase *= abs_vmrs(this_species, 0) * number_density( abs_p[0],abs_t[0]); // Now in absorption coef.
@@ -833,7 +839,7 @@ void Part_Return_Zeeman(  Tensor3View part_abs_mat, const ArrayOfArrayOfSpeciesT
     K_MATRIX_PHASE(K_b, theta*DEG2RAD, eta*DEG2RAD, DM);
     
     Tensor3 temp_part_abs_mat=part_abs_mat;
-    mult(part_abs_mat,A(joker,0), K_a);
+    mult(part_abs_mat,A(joker,0), K_a);// Resets part_abs_mat
     mult(temp_part_abs_mat,B(joker,0), K_b);
     
     part_abs_mat+=temp_part_abs_mat;
@@ -855,8 +861,8 @@ void propmat_clearskyAddZeeman(Tensor4& propmat_clearsky,
                                const Vector& rtp_mag,
                                const Vector& ppath_los,
                                const Index& atmosphere_dim,
-                               const ArrayOfArrayOfLineMixingRecord& line_mixing_data _U_,
-                               const ArrayOfArrayOfIndex& line_mixing_data_lut _U_,
+                               const ArrayOfArrayOfLineMixingRecord& line_mixing_data,
+                               const ArrayOfArrayOfIndex& line_mixing_data_lut,
                                const Index& manual_zeeman_angles_on,
                                const Numeric& manual_zeeman_theta,
                                const Numeric& manual_zeeman_eta,
@@ -968,7 +974,8 @@ void propmat_clearskyAddZeeman(Tensor4& propmat_clearsky,
         {
             // Reinitialize every loop to empty the set.
             ArrayOfLineRecord temp_abs_lines_sm, temp_abs_lines_sp, //sigma minus, sigma plus
-                              temp_abs_lines_pi, temp_abs_lines_dt; // pi, default
+                              temp_abs_lines_pi; // pi
+            ArrayOfIndex temp_lut_sm, temp_lut_sp, temp_lut_pi;
 
             // If the species isn't Zeeman, look at the next species
             if(!is_zeeman(abs_species[II])) continue;
@@ -988,66 +995,40 @@ void propmat_clearskyAddZeeman(Tensor4& propmat_clearsky,
                 const Index DJ    = (J - temp_LR.QuantumNumbers().Upper(QN_J)).toIndex();
                 const Index DN    = (N - temp_LR.QuantumNumbers().Upper(QN_N)).toIndex();
                 Numeric RS_sum    = 0; //Sum relative strength (which ought be close to one by the end)
+                Index number_M_sm=0, number_M_sp=0, number_M_pi=0;
                 // Only look at lines which have no change in the main rotational number
                 // cout << "RSpi=[];RSsp=[];RSsm=[];DFpi=[];DFsm=[];DFsp=[];\n";
                 
                 if (!J.isUndefined() != 0 && !N.isUndefined() != 0 && S>0 ) // This means the lines are considered erroneous.
                 {
-                    if ( true )
+
+                    for ( Rational M = -J+DJ; M<=J-DJ; M++ )
                     {
-                        for ( Rational M = -J+DJ; M<=J-DJ; M++ )
-                        {
-                            /*
-                                Note that:
-                                    sp := sigma plus,  which means DM =  1
-                                    sm := sigma minus, which means DM = -1
-                                    pi := planar,      which means DM =  0
-                            */
-                            if ( DJ ==  1 )
-                            { // Then all DM transitions possible for all M
-                                DF =  FREQUENCY_CHANGE(N, M, J, S, DJ, -1, DN, H_mag, GS);
-                                RS = RELATIVE_STRENGTH(N, M, J, DJ, -1);
-                                RS_sum += RS;
-                                temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
-                                temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
-                                temp_abs_lines_sm.push_back(temp_LR);
-                                // cout << "RSsm=[RSsm " << RS << "];DFsm=[DFsm " << DF << "];\n";
-                                
-                                DF =  FREQUENCY_CHANGE(N, M, J, S, DJ,  0, DN, H_mag, GS);
-                                RS = RELATIVE_STRENGTH(N, M, J, DJ,  0);
-                                RS_sum += RS;
-                                temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
-                                temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
-                                temp_abs_lines_pi.push_back(temp_LR);
-                                // cout << "RSpi=[RSpi " << RS << "];DFpi=[DFpi " << DF << "];\n";
-                                
-                                DF =  FREQUENCY_CHANGE(N, M, J, S, DJ, +1, DN, H_mag, GS);
-                                RS = RELATIVE_STRENGTH(N, M, J, DJ, +1);
-                                RS_sum += RS;
-                                temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
-                                temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
-                                temp_abs_lines_sp.push_back(temp_LR);
-                                // cout << "RSsp=[RSsp " << RS << "];DFsp=[DFsp " << DF << "];\n";
-                            }
-                            else if ( DJ ==  0 )
-                            { // Then all DM transitions possible for all M
+                        /*
+                            Note that:
+                                sp := sigma plus,  which means DM =  1
+                                sm := sigma minus, which means DM = -1
+                                pi := planar,      which means DM =  0
+                        */
+                        if ( DJ ==  1 )
+                        { // Then all DM transitions possible for all M
                             DF =  FREQUENCY_CHANGE(N, M, J, S, DJ, -1, DN, H_mag, GS);
                             RS = RELATIVE_STRENGTH(N, M, J, DJ, -1);
                             RS_sum += RS;
                             temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                             temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                             temp_abs_lines_sm.push_back(temp_LR);
+                            number_M_sm++;
                             // cout << "RSsm=[RSsm " << RS << "];DFsm=[DFsm " << DF << "];\n";
-                            if( ! (M == 0) )
-                            {
-                                DF =  FREQUENCY_CHANGE(N, M, J, S, DJ,  0, DN, H_mag, GS);
-                                RS = RELATIVE_STRENGTH(N, M, J, DJ,  0);
-                                RS_sum += RS;
-                                temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
-                                temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
-                                temp_abs_lines_pi.push_back(temp_LR);
-                                // cout << "RSpi=[RSpi " << RS << "];DFpi=[DFpi " << DF << "];\n";
-                            }
+                            
+                            DF =  FREQUENCY_CHANGE(N, M, J, S, DJ,  0, DN, H_mag, GS);
+                            RS = RELATIVE_STRENGTH(N, M, J, DJ,  0);
+                            RS_sum += RS;
+                            temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
+                            temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
+                            temp_abs_lines_pi.push_back(temp_LR);
+                            number_M_pi++;
+                            // cout << "RSpi=[RSpi " << RS << "];DFpi=[DFpi " << DF << "];\n";
                             
                             DF =  FREQUENCY_CHANGE(N, M, J, S, DJ, +1, DN, H_mag, GS);
                             RS = RELATIVE_STRENGTH(N, M, J, DJ, +1);
@@ -1055,130 +1036,179 @@ void propmat_clearskyAddZeeman(Tensor4& propmat_clearsky,
                             temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                             temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                             temp_abs_lines_sp.push_back(temp_LR);
+                            number_M_sp++;
                             // cout << "RSsp=[RSsp " << RS << "];DFsp=[DFsp " << DF << "];\n";
+                        }
+                        else if ( DJ ==  0 )
+                        { // Then all DM transitions possible for all M
+                        DF =  FREQUENCY_CHANGE(N, M, J, S, DJ, -1, DN, H_mag, GS);
+                        RS = RELATIVE_STRENGTH(N, M, J, DJ, -1);
+                        RS_sum += RS;
+                        temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
+                        temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
+                        temp_abs_lines_sm.push_back(temp_LR);
+                        number_M_sm++;
+                        // cout << "RSsm=[RSsm " << RS << "];DFsm=[DFsm " << DF << "];\n";
+                        if( ! (M == 0) )
+                        {
+                            DF =  FREQUENCY_CHANGE(N, M, J, S, DJ,  0, DN, H_mag, GS);
+                            RS = RELATIVE_STRENGTH(N, M, J, DJ,  0);
+                            RS_sum += RS;
+                            temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
+                            temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
+                            temp_abs_lines_pi.push_back(temp_LR);
+                            number_M_pi++;
+                            // cout << "RSpi=[RSpi " << RS << "];DFpi=[DFpi " << DF << "];\n";
+                        }
+                        
+                        DF =  FREQUENCY_CHANGE(N, M, J, S, DJ, +1, DN, H_mag, GS);
+                        RS = RELATIVE_STRENGTH(N, M, J, DJ, +1);
+                        RS_sum += RS;
+                        temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
+                        temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
+                        temp_abs_lines_sp.push_back(temp_LR);
+                        number_M_sp++;
+                        // cout << "RSsp=[RSsp " << RS << "];DFsp=[DFsp " << DF << "];\n";
+                        }
+                        else if ( DJ == -1 )
+                        { // Then certain M results in blocked DM transitions
+                            if ( M == -J + DJ && M!=0 )
+                            { // Lower limit M only allows DM = 1
+                                DF =  FREQUENCY_CHANGE(N, M, J, S, DJ, +1, DN, H_mag, GS);
+                                RS = RELATIVE_STRENGTH(N, M, J, DJ, +1);
+                                RS_sum += RS;
+                                temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
+                                temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
+                                temp_abs_lines_sp.push_back(temp_LR);
+                                number_M_sp++;
+                                // cout << "RSsp=[RSsp " << RS << "];DFsp=[DFsp " << DF << "];\n";
+                                
                             }
-                            else if ( DJ == -1 )
-                            { // Then certain M results in blocked DM transitions
-                                if ( M == -J + DJ && M!=0 )
-                                { // Lower limit M only allows DM = 1
-                                    DF =  FREQUENCY_CHANGE(N, M, J, S, DJ, +1, DN, H_mag, GS);
-                                    RS = RELATIVE_STRENGTH(N, M, J, DJ, +1);
-                                    RS_sum += RS;
-                                    temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
-                                    temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
-                                    temp_abs_lines_sp.push_back(temp_LR);
-                                    // cout << "RSsp=[RSsp " << RS << "];DFsp=[DFsp " << DF << "];\n";
-                                    
-                                }
-                                else if ( M == -J + DJ + 1 && M!=0 )
-                                { // Next to lower limit M can only allow DM = 1, 0
-                                    DF =  FREQUENCY_CHANGE(N, M, J, S, DJ, +1, DN, H_mag, GS);
-                                    RS = RELATIVE_STRENGTH(N, M, J, DJ, +1);
-                                    RS_sum += RS;
-                                    temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
-                                    temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
-                                    temp_abs_lines_sp.push_back(temp_LR);
-                                    // cout << "RSsp=[RSsp " << RS << "];DFsp=[DFsp " << DF << "];\n";
+                            else if ( M == -J + DJ + 1 && M!=0 )
+                            { // Next to lower limit M can only allow DM = 1, 0
+                                DF =  FREQUENCY_CHANGE(N, M, J, S, DJ, +1, DN, H_mag, GS);
+                                RS = RELATIVE_STRENGTH(N, M, J, DJ, +1);
+                                RS_sum += RS;
+                                temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
+                                temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
+                                temp_abs_lines_sp.push_back(temp_LR);
+                                number_M_sp++;
+                                // cout << "RSsp=[RSsp " << RS << "];DFsp=[DFsp " << DF << "];\n";
 
-                                    DF =  FREQUENCY_CHANGE(N, M, J, S, DJ,  0, DN, H_mag, GS);
-                                    RS = RELATIVE_STRENGTH(N, M, J, DJ,  0);
-                                    RS_sum += RS;
-                                    temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
-                                    temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
-                                    temp_abs_lines_pi.push_back(temp_LR);
-                                    // cout << "RSpi=[RSpi " << RS << "];DFpi=[DFpi " << DF << "];\n";
-                                }
-                                else if ( M ==  J - DJ - 1 && M!=0 )
-                                { // Next to upper limit M can only allow DM = 0, -1
-                                    DF =  FREQUENCY_CHANGE(N, M, J, S, DJ,  0, DN, H_mag, GS);
-                                    RS = RELATIVE_STRENGTH(N, M, J, DJ,  0);
-                                    RS_sum += RS;
-                                    temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
-                                    temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
-                                    temp_abs_lines_pi.push_back(temp_LR);
-                                    // cout << "RSpi=[RSpi " << RS << "];DFpi=[DFpi " << DF << "];\n";
+                                DF =  FREQUENCY_CHANGE(N, M, J, S, DJ,  0, DN, H_mag, GS);
+                                RS = RELATIVE_STRENGTH(N, M, J, DJ,  0);
+                                RS_sum += RS;
+                                temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
+                                temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
+                                temp_abs_lines_pi.push_back(temp_LR);
+                                number_M_pi++;
+                                // cout << "RSpi=[RSpi " << RS << "];DFpi=[DFpi " << DF << "];\n";
+                            }
+                            else if ( M ==  J - DJ - 1 && M!=0 )
+                            { // Next to upper limit M can only allow DM = 0, -1
+                                DF =  FREQUENCY_CHANGE(N, M, J, S, DJ,  0, DN, H_mag, GS);
+                                RS = RELATIVE_STRENGTH(N, M, J, DJ,  0);
+                                RS_sum += RS;
+                                temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
+                                temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
+                                temp_abs_lines_pi.push_back(temp_LR);
+                                number_M_pi++;
+                                // cout << "RSpi=[RSpi " << RS << "];DFpi=[DFpi " << DF << "];\n";
 
-                                    DF =  FREQUENCY_CHANGE(N, M, J, S, DJ, -1, DN, H_mag, GS);
-                                    RS = RELATIVE_STRENGTH(N, M, J, DJ, -1);
-                                    RS_sum += RS;
-                                    temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
-                                    temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
-                                    temp_abs_lines_sm.push_back(temp_LR);
-                                    // cout << "RSsm=[RSsm " << RS << "];DFsm=[DFsm " << DF << "];\n";
-                                }
-                                else if ( M == J - DJ && M!=0 )
-                                { // Upper limit M only allow DM = -1
-                                    DF =  FREQUENCY_CHANGE(N, M, J, S, DJ, -1, DN, H_mag, GS);
-                                    RS = RELATIVE_STRENGTH(N, M, J, DJ, -1);
-                                    RS_sum += RS;
-                                    temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
-                                    temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
-                                    temp_abs_lines_sm.push_back(temp_LR);
-                                    // cout << "RSsm=[RSsm " << RS << "];DFsm=[DFsm " << DF << "];\n";
-                                }
-                                else if( (-J + DJ + 1) ==  (J - DJ - 1) && M == 0)
-                                { // Special case for N=1, J=0, M=0. Only allows DM = 0
-                                    DF =  FREQUENCY_CHANGE(N, M, J, S, DJ,  0, DN, H_mag, GS);
-                                    RS = RELATIVE_STRENGTH(N, M, J, DJ,  0);
-                                    RS_sum += RS;
-                                    temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
-                                    temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
-                                    temp_abs_lines_pi.push_back(temp_LR);
-                                    // cout << "RSpi=[RSpi " << RS << "];DFpi=[DFpi " << DF << "];\n";
-                                }
-                                else
-                                { // All DM transitions are possible for these M(s)
-                                    DF =  FREQUENCY_CHANGE(N, M, J, S, DJ, +1, DN, H_mag, GS);
-                                    RS = RELATIVE_STRENGTH(N, M, J, DJ, +1);
-                                    RS_sum += RS;
-                                    temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
-                                    temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
-                                    temp_abs_lines_sp.push_back(temp_LR);
-                                    // cout << "RSsp=[RSsp " << RS << "];DFsp=[DFsp " << DF << "];\n";
-
-                                    DF =  FREQUENCY_CHANGE(N, M, J, S, DJ,  0, DN, H_mag, GS);
-                                    RS = RELATIVE_STRENGTH(N, M, J, DJ,  0);
-                                    RS_sum += RS;
-                                    temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
-                                    temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
-                                    temp_abs_lines_pi.push_back(temp_LR);
-                                    // cout << "RSpi=[RSpi " << RS << "];DFpi=[DFpi " << DF << "];\n";
-
-                                    DF =  FREQUENCY_CHANGE(N, M, J, S, DJ, -1, DN, H_mag, GS);
-                                    RS = RELATIVE_STRENGTH(N, M, J, DJ, -1);
-                                    RS_sum += RS;
-                                    temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
-                                    temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
-                                    temp_abs_lines_sm.push_back(temp_LR);
-                                    // cout << "RSsm=[RSsm " << RS << "];DFsm=[DFsm " << DF << "];\n";
-                                }
+                                DF =  FREQUENCY_CHANGE(N, M, J, S, DJ, -1, DN, H_mag, GS);
+                                RS = RELATIVE_STRENGTH(N, M, J, DJ, -1);
+                                RS_sum += RS;
+                                temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
+                                temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
+                                temp_abs_lines_sm.push_back(temp_LR);
+                                number_M_sm++;
+                                // cout << "RSsm=[RSsm " << RS << "];DFsm=[DFsm " << DF << "];\n";
+                            }
+                            else if ( M == J - DJ && M!=0 )
+                            { // Upper limit M only allow DM = -1
+                                DF =  FREQUENCY_CHANGE(N, M, J, S, DJ, -1, DN, H_mag, GS);
+                                RS = RELATIVE_STRENGTH(N, M, J, DJ, -1);
+                                RS_sum += RS;
+                                temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
+                                temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
+                                temp_abs_lines_sm.push_back(temp_LR);
+                                number_M_sm++;
+                                // cout << "RSsm=[RSsm " << RS << "];DFsm=[DFsm " << DF << "];\n";
+                            }
+                            else if( (-J + DJ + 1) ==  (J - DJ - 1) && M == 0)
+                            { // Special case for N=1, J=0, M=0. Only allows DM = 0
+                                DF =  FREQUENCY_CHANGE(N, M, J, S, DJ,  0, DN, H_mag, GS);
+                                RS = RELATIVE_STRENGTH(N, M, J, DJ,  0);
+                                RS_sum += RS;
+                                temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
+                                temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
+                                temp_abs_lines_pi.push_back(temp_LR);
+                                number_M_pi++;
+                                // cout << "RSpi=[RSpi " << RS << "];DFpi=[DFpi " << DF << "];\n";
                             }
                             else
-                            { // The tests above failed and catastrophe follows
-                                throw runtime_error("If this happens, something is horribly wrong... did some of the tests above fail?");
+                            { // All DM transitions are possible for these M(s)
+                                DF =  FREQUENCY_CHANGE(N, M, J, S, DJ, +1, DN, H_mag, GS);
+                                RS = RELATIVE_STRENGTH(N, M, J, DJ, +1);
+                                RS_sum += RS;
+                                temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
+                                temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
+                                temp_abs_lines_sp.push_back(temp_LR);
+                                number_M_sp++;
+                                // cout << "RSsp=[RSsp " << RS << "];DFsp=[DFsp " << DF << "];\n";
+
+                                DF =  FREQUENCY_CHANGE(N, M, J, S, DJ,  0, DN, H_mag, GS);
+                                RS = RELATIVE_STRENGTH(N, M, J, DJ,  0);
+                                RS_sum += RS;
+                                temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
+                                temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
+                                temp_abs_lines_pi.push_back(temp_LR);
+                                number_M_pi++;
+                                // cout << "RSpi=[RSpi " << RS << "];DFpi=[DFpi " << DF << "];\n";
+
+                                DF =  FREQUENCY_CHANGE(N, M, J, S, DJ, -1, DN, H_mag, GS);
+                                RS = RELATIVE_STRENGTH(N, M, J, DJ, -1);
+                                RS_sum += RS;
+                                temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
+                                temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
+                                temp_abs_lines_sm.push_back(temp_LR);
+                                number_M_sm++;
+                                // cout << "RSsm=[RSsm " << RS << "];DFsm=[DFsm " << DF << "];\n";
                             }
                         }
-                        if (abs(RS_sum-1.)>margin) //Reasonable confidence?
-                        {
-                            ostringstream os;
-                            os << "The sum of relative strengths is not close to one. This is severly problematic and"
-                            " you should look into why this happens.\nIt is currently " << RS_sum << " with DJ: "<<DJ<<", DN: "<<DN<<"\n";
-                            throw runtime_error(os.str());
+                        else
+                        { // The tests above failed and catastrophe follows
+                            throw runtime_error("If this happens, something is horribly wrong... did some of the tests above fail?");
                         }
                     }
-                    else
-                        temp_abs_lines_dt.push_back(temp_LR);
+                    
+                    if (abs(RS_sum-1.)>margin) //Reasonable confidence?
+                    {
+                        ostringstream os;
+                        os << "The sum of relative strengths is not close to one. This is severly problematic and "
+                        "you should look into why this happens.\nIt is currently " << RS_sum << " with DJ: "<<DJ<<", DN: "<<DN<<" for line: "<<
+                        abs_lines_per_species[II][ii] <<"\n";
+                        throw runtime_error(os.str());
+                    }
+                    
+                    if(abs_species[II][0].LineMixingType() != SpeciesTag::LINE_MIXING_TYPE_NONE)
+                    {
+                        for(Index n=0;n<number_M_sm;n++)
+                            temp_lut_sm.push_back(line_mixing_data_lut[II][ii]);
+                        for(Index n=0;n<number_M_pi;n++)
+                            temp_lut_pi.push_back(line_mixing_data_lut[II][ii]);
+                        for(Index n=0;n<number_M_sp;n++)
+                            temp_lut_sp.push_back(line_mixing_data_lut[II][ii]);
+                    }
+                    
                 }
                 else
-                    temp_abs_lines_dt.push_back(temp_LR);
+                {
+                    ostringstream os;
+                    os << "There are undefined quantum numbers in the line: " << abs_lines_per_species[II][ii] << "\n";
+                    throw runtime_error(os.str());
+                }
                
-            }
-
-            { // Sort ArrayOfLineRecord(s) by frequency [low → high].
-                sort(temp_abs_lines_pi.begin(), temp_abs_lines_pi.end(), sortF);
-                sort(temp_abs_lines_sp.begin(), temp_abs_lines_sp.end(), sortF);
-                sort(temp_abs_lines_sm.begin(), temp_abs_lines_sm.end(), sortF);
-                sort(temp_abs_lines_dt.begin(), temp_abs_lines_dt.end(), sortF);
             }
             
             Tensor3 part_abs_mat(f_grid.nelem(), 4, 4);
@@ -1187,29 +1217,41 @@ void propmat_clearskyAddZeeman(Tensor4& propmat_clearsky,
             Part_Return_Zeeman( part_abs_mat, abs_species, abs_lineshape,
                               temp_abs_lines_pi, isotopologue_ratios,
                               abs_vmrs, abs_p, abs_t, f_grid,
-                              theta, eta, 0, II, verbosity );
+                              theta, eta, 0, II, 
+                                line_mixing_data,
+                                line_mixing_data_lut,
+                                temp_lut_pi,
+                                verbosity );
             propmat_clearsky(II, joker, joker, joker) += part_abs_mat;
         
             // Add Sigma minus contribution to final propmat_clearsky
             Part_Return_Zeeman( part_abs_mat, abs_species, abs_lineshape,
                               temp_abs_lines_sm, isotopologue_ratios,
                               abs_vmrs, abs_p, abs_t, f_grid,
-                              theta, eta, -1, II, verbosity );
+                              theta, eta, -1, II,
+                                line_mixing_data,
+                                line_mixing_data_lut,
+                                temp_lut_sm,
+                                verbosity );
             propmat_clearsky(II, joker, joker, joker) += part_abs_mat;
             
             // Add Sigma plus contribution to final propmat_clearsky
             Part_Return_Zeeman( part_abs_mat, abs_species, abs_lineshape,
                                 temp_abs_lines_sp, isotopologue_ratios,
                                 abs_vmrs, abs_p, abs_t, f_grid,
-                                theta, eta, 1, II, verbosity );
+                                theta, eta, 1, II, 
+                                line_mixing_data,
+                                line_mixing_data_lut,
+                                temp_lut_sp,
+                                verbosity );
             propmat_clearsky(II, joker, joker, joker) += part_abs_mat;
             
-            // Add Default contribution to final propmat_clearsky
-            Part_Return_Zeeman( part_abs_mat, abs_species, abs_lineshape,
-                              temp_abs_lines_dt, isotopologue_ratios,
-                              abs_vmrs, abs_p, abs_t, f_grid,
-                              theta, eta, 1023, II, verbosity );
-            propmat_clearsky(II, joker, joker, joker) += part_abs_mat;
+//             // Add Default contribution to final propmat_clearsky
+//             Part_Return_Zeeman( part_abs_mat, abs_species, abs_lineshape,
+//                               temp_abs_lines_dt, isotopologue_ratios,
+//                               abs_vmrs, abs_p, abs_t, f_grid,
+//                               theta, eta, 1023, II, verbosity );
+//             propmat_clearsky(II, joker, joker, joker) += part_abs_mat;
         }
     }
     else // if the magnetic field is ignored
@@ -1220,10 +1262,14 @@ void propmat_clearskyAddZeeman(Tensor4& propmat_clearsky,
             if(!is_zeeman(abs_species[II])) continue;
             
             Tensor3 part_abs_mat(f_grid.nelem(), 4, 4);
-            Part_Return_Zeeman(   part_abs_mat, abs_species, abs_lineshape,
+            Part_Return_Zeeman(  part_abs_mat, abs_species, abs_lineshape,
                                 abs_lines_per_species[II], isotopologue_ratios,
                                 abs_vmrs, abs_p, abs_t, f_grid,
-                                0,0,1023, II, verbosity );
+                                0,0,1023, II, 
+                                line_mixing_data,
+                                line_mixing_data_lut,
+                                line_mixing_data_lut[II],
+                                verbosity );
             propmat_clearsky(II, joker, joker, joker) += part_abs_mat;
         }
     }

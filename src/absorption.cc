@@ -1596,8 +1596,7 @@ void xsec_species_line_mixing_2nd_order(MatrixView               xsec_attenuatio
                                         const SpeciesAuxData&    isotopologue_ratios,
                                         const Verbosity&         verbosity )
 {
-    
-    // FIXME: A test for lineshape allowing both attenuation and phase.;
+    // Must have the phase
     using global_data::lineshape_data;
     if (! lineshape_data[ind_ls].Phase())
     {
@@ -1633,15 +1632,18 @@ void xsec_species_line_mixing_2nd_order(MatrixView               xsec_attenuatio
         if(lut[ii]!=-1)
         {
             const Vector& dat = data[lut[ii]].Data();
-            // First order line mixing coefficient scales with pressure
-            a[0] =              p //Is this really the right forefactor for 1/bar
+            // First order phase correction
+            a[0] =              p 
             * ( ( dat[0] + dat[1] * ( dat[6]/T-1. ) ) 
             * pow( dat[6]/T, dat[7] ) );
-            // Second order line mixing coefficient scales with pressure squared
-            a[1] =      p * p //Is this really the right forefactor for 1/bar2
+            
+            // Second order attenuation correction
+            a[1] =      p * p 
             * ( ( dat[2] + dat[3] * ( dat[6]/T-1. ) ) 
-            * pow( dat[6]/T, dat[8] ) );           
-            ll[0].setF( p * p //Is this really the right forefactor for GHz/bar2
+            * pow( dat[6]/T, dat[8] ) );
+            
+            // Second order line-center correction
+            ll[0].setF( p * p 
             * ( ( dat[4] +  dat[5] * ( dat[6]/T-1. ) ) 
             * pow( dat[6]/T, dat[9] ) ) + ll[0].F());
         }
@@ -1656,10 +1658,10 @@ void xsec_species_line_mixing_2nd_order(MatrixView               xsec_attenuatio
         // Do the actual line mixing and add this to xsec_attenuation.
         xsec_phase += phase;
         phase *= a[0];
-        xsec_attenuation += phase;
-        xsec_attenuation += attenuation;
+        xsec_attenuation += phase;       // First order phase correction
+        xsec_attenuation += attenuation; // Zeroth order attenuation
         attenuation *= a[1];
-        xsec_attenuation += attenuation;
+        xsec_attenuation += attenuation; // Second order attenuation correction
         
     }
 }
