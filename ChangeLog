@@ -1,3 +1,11 @@
+2013-05-13  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-638
+
+	* controlfiles/artscomponents/arts-xml-data/TestSurf_Mars.arts:
+
+	Include planet_mars.arts instead of planet_venus.arts.
+
 2013-05-08  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-1-637

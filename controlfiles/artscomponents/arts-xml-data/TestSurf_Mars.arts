@@ -38,7 +38,7 @@ Arts2 {
 INCLUDE "general/general.arts"
 INCLUDE "general/continua.arts"
 INCLUDE "general/agendas.arts"
-INCLUDE "general/planet_venus.arts"
+INCLUDE "general/planet_mars.arts"
 
 # Agenda for scalar gas absorption calculation
 Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
