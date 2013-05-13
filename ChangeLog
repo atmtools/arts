@@ -1,3 +1,11 @@
+2013-05-13  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-639
+
+	* src/m_physics.cc (complex_nWaterLiebe93): Updated comment.
+	Changed 146.4 to 146, to be consistent with paper, and
+	eps_water_liebe93 in atmlab.
+
 2013-05-13  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-638

@@ -99,13 +99,12 @@ void complex_nWaterLiebe93(Matrix&         complex_n,
 
   complex_n.resize( nf, 2 );
 
-  // Values from epswater93.m (by C. Mätzler), part of Atmlab.
-  // The constant e2 is here set to 3.52, which according to Mätzler 
-  // corresponds to Liebe 1993.
+  // Implementation following epswater93.m (by C. Mätzler), part of Atmlab,
+  // but numeric values strictly following the paper version (146, not 146.4)
   const Numeric   theta = 1 - 300 / t;
   const Numeric   e0    = 77.66 - 103.3 * theta;
   const Numeric   e1    = 0.0671 * e0;
-  const Numeric   f1    = 20.2 + 146.4 * theta + 316 * theta * theta;
+  const Numeric   f1    = 20.2 + 146 * theta + 316 * theta * theta;
   const Numeric   e2    = 3.52;  
   const Numeric   f2    = 39.8 * f1;
 
