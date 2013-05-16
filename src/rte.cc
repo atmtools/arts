@@ -939,6 +939,81 @@ void ext2trans(
     }
 }
 
+void ext2transNEW(
+         MatrixView trans_mat,
+   ConstMatrixView  ext_mat,
+   const Numeric&   lstep )
+{
+  const Index stokes_dim = ext_mat.ncols();
+
+  assert( ext_mat.nrows()==stokes_dim );
+  assert( trans_mat.nrows()==stokes_dim && trans_mat.ncols()==stokes_dim );
+
+  assert( ext_mat(0,0) >= 0 );
+  assert( lstep >= 0 );
+
+  // Any changes here should also be implemented in rte_step_doit.
+
+  //--- Scalar case: ---------------------------------------------------------
+  if( stokes_dim == 1 )
+    {
+      trans_mat(0,0) = exp( -ext_mat(0,0) * lstep );
+    }
+
+  else
+    {
+      assert( ext_mat(1,1) == ext_mat(0,0) );
+      assert( ext_mat(1,0) == ext_mat(0,1) );
+
+      // Special expression for stokes_dim 2:
+      if( stokes_dim == 2 )
+        {
+          if( ext_mat(1,0) == 0 )
+            {
+              trans_mat(0,0) = exp( -ext_mat(0,0) * lstep );
+              trans_mat(1,1) = trans_mat(0,0);
+              trans_mat(1,0) = 0;
+              trans_mat(0,1) = 0;
+            }
+          else
+            {
+              const Numeric k = exp( -ext_mat(0,0) * lstep );
+              const Numeric c = k * cosh( -ext_mat(0,0) * lstep );
+              const Numeric s = k * sinh( -ext_mat(0,0) * lstep );
+              trans_mat(0,0) = c;
+              trans_mat(1,1) = c;
+              trans_mat(1,0) = s;
+              trans_mat(0,1) = s;
+            }
+        }
+
+      //- Unpolarised
+      else if( is_diagonal(ext_mat) )
+        {
+          const Numeric tv = exp( -ext_mat(0,0) * lstep );
+
+          trans_mat = 0;
+
+          for( Index i=0; i<stokes_dim; i++ )
+            {
+              trans_mat(i,i)  = tv;
+            }
+        }
+
+      //- General case
+      else
+        {
+          assert( !is_singular( ext_mat ) );
+          Matrix ext_mat_ds = ext_mat;
+          ext_mat_ds *= -lstep; 
+          
+          Index q = 10;  // index for the precision of the matrix exp function
+
+          matrix_exp( trans_mat, ext_mat_ds, q );
+        }
+    }
+}
+
 
 
 

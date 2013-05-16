@@ -1,3 +1,14 @@
+2013-05-16  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-640
+
+	* src/rte.cc (ext2transNEW): New version of the function below,
+	with the aim of introdocing special expressions, as well as more
+	asserts. Not yet used.
+
+	(ext2trans): Discovered that the function is not used as planned.
+	matrix_exp called instead. Work to do ...
+
 2013-05-13  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-639
