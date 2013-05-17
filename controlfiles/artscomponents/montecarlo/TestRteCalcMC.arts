@@ -146,14 +146,14 @@ VectorCreate( y_0 )
 Select( y_0, y, [ 0 ] )
 
 VectorCreate( y_ref )
-VectorSetConstant( y_ref, 1, 199.4 )
+VectorSetConstant( y_ref, 1, 198.7 )
 
 Print( y_0, 0 )
 Print( y_ref, 0 )
 Print( y_error_0, 0 )
 
 Compare( y_0, y_ref, y_error_0,
-         "Total radiance should be close to 199.4 K" )
+         "Total radiance should be close to 198.7" )
 
 }
 

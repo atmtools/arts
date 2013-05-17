@@ -388,50 +388,6 @@ bool is_anyptype30(const ArrayOfSingleScatteringData& scat_data_mono)
 
 
 
-//! matrix_exp_p30
-/*!
-When we have p30 particles, and therefore the extinction matrix has a 
-block diagonal form with 3 independent elements, the matrix expontential
-can be calculated very quickly and exactly using this function.
-
-\param M output matrix
-\param A input matrix (must be of the form described above)
-
-\author Cory Davis
-\date 2005-3-2
-*/
-void matrix_exp_p30(MatrixView M,
-                    ConstMatrixView A)
-{
-  Index m=A.nrows();
-  assert( A.ncols()==m );
-  M=0;
-  Numeric a=A(0,0);
-  Numeric b=A(0,1);
-  M(0,0)=cosh(b);
-  //M(1,1)=cosh(b);
-  M(1,1)=M(0,0);
-  M(0,1)=sinh(b);
-  //M(1,0)=sinh(b);
-  M(1,0)=M(0,1);
-  if ( m>2 )
-    {
-      Numeric c=A(2,3);
-      M(2,2)=cos(c);
-      if ( m > 3 )
-        {
-          M(2,3)=sin(c);
-          //M(3,2)=-sin(c);
-          M(3,2)=-M(2,3);
-          M(3,3)=M(2,2);
-          //M(3,3)=cos(c); // Added by GH 2011-06-15 as per e-mail 2011-06-13
-        }
-    }
-  M*=exp(a);    
-}
-
-
-
 //! mcPathTraceGeneral
 /*!
     Performs the tasks of pathlength sampling.
@@ -488,7 +444,7 @@ void mcPathTraceGeneral(
   ArrayOfMatrix ext_matArray(2);
   ArrayOfVector abs_vecArray(2);
   ArrayOfVector pnd_vecArray(2);
-  Matrix        opt_depth_mat(stokes_dim,stokes_dim);
+  Matrix        ext_mat(stokes_dim,stokes_dim);
   Matrix        incT(stokes_dim,stokes_dim,0.0);
   Vector        tArray(2);
   Vector        f_grid(1,f_mono);     // Vector version of f_mono
@@ -621,26 +577,11 @@ void mcPathTraceGeneral(
       abs_vecArray[1] = abs_vec_mono;
       tArray[1]       = temperature;
       pnd_vecArray[1] = pnd_vec;
-      opt_depth_mat   = ext_matArray[1];
-      opt_depth_mat  += ext_matArray[0];
-      opt_depth_mat  *= -dl/2;
-      incT            = 0;
-
-      if( opt_depth_mat(0,0) < -4 )
-        {
-          out0 << "WARNING: A MC path step of high optical depth ("
-               << abs(opt_depth_mat(0,0)) << ")!\n";
-        }
-
-      if( stokes_dim == 1 )
-        { incT(0,0) = exp( opt_depth_mat(0,0) ); }
-      else if( is_diagonal( opt_depth_mat ) )
-        {
-          for ( Index j=0;j<stokes_dim;j++)
-            { incT(j,j) = exp( opt_depth_mat(j,j) ); }
-        }
-      else
-        { matrix_exp_p30( incT, opt_depth_mat ); }
+      ext_mat         = ext_matArray[1];
+      ext_mat        += ext_matArray[0];  // Factor 2 fixed by using dl/2
+      //
+      ext2trans( incT, ext_mat, dl/2 );
+      //
       mult( evol_op, evol_opArray[0], incT );
       evol_opArray[1] = evol_op;
      
@@ -676,7 +617,8 @@ void mcPathTraceGeneral(
       //   log(incT(0,0)) = log(exp(opt_depth_mat(0, 0))) = opt_depth_mat(0, 0)
       //   Avoid loss of precision, use opt_depth_mat directly
       //k=-log(incT(0,0))/cum_l_step[np-1];//K=K11 only for diagonal ext_mat
-      k  = -opt_depth_mat(0,0) / dl;
+      // PE 2013-05-17, Now the above comes directly from ext_mat:
+      k  = ext_mat(0,0) / 2;   // Factor 2 as sum of end point values
       ds = log( evol_opArray[0](0,0) / r ) / k;
       g  = k*r;
       Vector x(2,0.0);
@@ -689,18 +631,11 @@ void mcPathTraceGeneral(
       assert( gp[0].idx == 0 );
       interpweights( itw, gp[0] );
       interp( ext_mat_mono, itw, ext_matArray, gp[0] );
-      opt_depth_mat  = ext_mat_mono;
-      opt_depth_mat += ext_matArray[gp[0].idx];
-      opt_depth_mat *= -ds/2;
-      if( stokes_dim == 1 )
-        { incT(0,0) = exp( opt_depth_mat(0,0) ); }
-      else if( is_diagonal( opt_depth_mat) )
-        {
-          for ( Index i=0;i<stokes_dim;i++)
-            { incT(i,i) = exp( opt_depth_mat(i,i) ); }
-        }
-      else
-        { matrix_exp_p30( incT, opt_depth_mat ); }
+      ext_mat  = ext_mat_mono;
+      ext_mat += ext_matArray[gp[0].idx];
+      //
+      ext2trans( incT, ext_mat, ds/2 );
+      //
       mult( evol_op, evol_opArray[gp[0].idx], incT );
       interp( abs_vec_mono, itw, abs_vecArray,gp[0] );
       temperature = interp( itw, tArray, gp[0] );

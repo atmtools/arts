@@ -63,10 +63,6 @@
 #include "geodetic.h"
 #include "workspace_ng.h"
 
-// Included for Test, can later be removed
-#include "rte.h"
-#include "montecarlo.h"
-
 
 
 extern const Numeric SPEED_OF_LIGHT;
@@ -410,6 +406,7 @@ void Test(const Verbosity& verbosity)
   // This function can be used to test stuff.
   // Feel free to change and test things
 
+  /*
   const Numeric I = 1e-3;
   const Numeric Q = 2e-4;
   const Numeric U = 0;
@@ -454,7 +451,7 @@ void Test(const Verbosity& verbosity)
 
   cout << trans1 << endl << endl;
   cout << trans2 << endl;
-
+  */
   Exit( verbosity );
 }
 

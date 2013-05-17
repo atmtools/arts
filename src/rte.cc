@@ -873,65 +873,18 @@ void emission_rtstep(
     conditions to improve the speed. There are three cases: <br>
        1. Scalar absorption. <br>
        2. The matrix ext_mat_av is diagonal. <br>
-       3. The total general case.
+       3. Special expression for "p30 case". <br>
+       4. The total general case.
+
+    trans_mat must be sized before calling the function.
 
     \param   trans_mat          Input/Output: Transmission matrix of slab.
     \param   ext_mat            Input: Averaged extinction matrix.
     \param   lstep              Input: The length of the RTE step.
 
-    \author Claudia Emde and Patrick Eriksson, 
-    \date   2010-10-15
+    \author Patrick Eriksson (based on earlier version started by Claudia)
+    \date   2013-05-17 
 */
-void ext2transOld(
-         MatrixView trans_mat,
-   ConstMatrixView  ext_mat_av,
-   const Numeric&   lstep )
-{
-  //Stokes dimension:
-  Index stokes_dim = ext_mat_av.nrows();
-
-  //Check inputs:
-  assert( is_size(trans_mat, stokes_dim, stokes_dim) );
-  assert( is_size(ext_mat_av, stokes_dim, stokes_dim) );
-  assert( lstep >= 0 );
-  assert( !is_singular( ext_mat_av ) );
-
-  // Any changes here should also be implemented in rte_step_doit.
-
-  //--- Scalar case: ---------------------------------------------------------
-  if( stokes_dim == 1 )
-    {
-      trans_mat(0,0) = exp(-ext_mat_av(0,0) * lstep);
-    }
-
-
-  //--- Vector case: ---------------------------------------------------------
-
-  //- Unpolarised
-  else if( is_diagonal(ext_mat_av) )
-    {
-      const Numeric tv = exp(-ext_mat_av(0,0) * lstep);
-
-      trans_mat = 0;
-
-      for( Index i=0; i<stokes_dim; i++ )
-        {
-          trans_mat(i,i)  = tv;
-        }
-    }
-
-  //- General case
-  else
-    {
-      Matrix ext_mat_ds = ext_mat_av;
-      ext_mat_ds *= -lstep; 
-
-      Index q = 10;  // index for the precision of the matrix exp function
-
-      matrix_exp( trans_mat, ext_mat_ds, q );
-    }
-}
-
 void ext2trans(
          MatrixView   trans_mat,
    ConstMatrixView    ext_mat,
@@ -944,7 +897,7 @@ void ext2trans(
 
   assert( ext_mat(0,0) >= 0 );
   assert( !is_singular( ext_mat ) );
-  assert( lstep > 0 );
+  assert( lstep >= 0 );
 
 
   //--- Scalar case ----------------------------------------------------------

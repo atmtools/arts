@@ -95,9 +95,6 @@ void findZ11max (Vector& Z11maxvector,
 bool is_anyptype30 (const ArrayOfSingleScatteringData& scat_data_mono);
 
 
-void matrix_exp_p30 (MatrixView M,
-                     ConstMatrixView A);
-
 void mcPathTraceGeneral (Workspace&            ws,
                          MatrixView            evol_op,
                          Vector&               abs_vec_mono,

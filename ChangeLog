@@ -1,5 +1,37 @@
 2013-05-17  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-1-641
+
+	* Work on MC, to finish changes to just use ext2trans.
+
+	Used a calculation with 200e3 photons to check that result not
+	changed. (ext2trans and matrix_exp_p30 also compared directly).
+	The change made MC 1-2% slower, but MC can now handle any ext_mat
+	(at least for this step, before p30 or simpler was assumed) and
+	now ext_mat is asserted carefully.
+
+	* controlfiles/artscomponents/montecarlo/TestMonteCarloGeneral.arts:
+	Uptaed references values to 198.7 and 7.9 K, assuming that this
+	file should give same result as the one below.
+
+	* controlfiles/artscomponents/montecarlo/TestRteCalcMC.arts:
+	Updated reference value to 198.7, which was the combined result of
+	two 200k photon runs, see above.
+
+	* src/m_general.cc (Test): Commenetd out present test code (as
+	using matrix_exp_p30.
+
+	* src/montecarlo.cc (matrix_exp_p30): Moved to mc_NotUsed.cc.
+
+	* src/montecarlo.cc (mcPathTraceGeneral): Switched to use
+	ext2trans, that required some internal changes (opp_depth_mat ->
+	ext_mat).
+
+	* src/rte.cc (ext2trans): Synced header with content. Removed old
+	version of the function.
+
+2013-05-17  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-1-640
 
 	* Started to clean up conversion of extinction to transmission.
