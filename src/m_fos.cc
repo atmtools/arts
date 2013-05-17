@@ -419,16 +419,16 @@ void fos(
                                         clear2cloudbox[ip+1]), stokes_dim ); } 
 
                       // Transmission of step
-                      Matrix ntau(stokes_dim,stokes_dim);  // -1*tau
+                      Matrix ext_mat(stokes_dim,stokes_dim);  
                       for( Index is1=0; is1<stokes_dim; is1++ ) {
                         for( Index is2=0; is2<stokes_dim; is2++ ) {
-                          ntau(is1,is2) = -0.5 * ppath.lstep[ip] * ( 
+                          ext_mat(is1,is2) = 0.5 * ( 
                                      ppath_abs(joker,iv,is1,is2,ip).sum() +
                                      ppath_abs(joker,iv,is1,is2,ip+1).sum() +
                                      pabs_mat(is1,is2) );
                         } }
-                      // (the function below checks if ntau ir diagonal or not)
-                      matrix_exp( t(iv,joker,joker), ntau, 10 );
+                      //
+                      ext2trans( t(iv,joker,joker), ext_mat, ppath.lstep[ip] );
                     }
                                 
                   // Perform RT
@@ -623,14 +623,9 @@ void fos(
 
                       // Perform RT
                       //
-                      // The DOIT function is used, but this is a bit
-                      // inefficient as the function recalculates the
-                      // transmission matrix that is already known
-                      // (trans_partila)
-                      //
-                      Matrix tr_dummy(ns,ns);
-                      rte_step_doit( iy(iv,joker), tr_dummy, ext_mat, abs_vec,
-                                     sbar, ppath.lstep[ip], bbar[iv] );
+                      Matrix trans_mat = trans_partial(iv,joker,joker,ip);
+                      rte_step_doit( iy(iv,joker), trans_mat, ext_mat, abs_vec,
+                                     sbar, ppath.lstep[ip], bbar[iv], true );
                     }
                 }
             }

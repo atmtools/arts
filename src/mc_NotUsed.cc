@@ -1297,3 +1297,102 @@ void iwp_cloud_opt_pathCalc(Workspace& ws,
 }
 
 
+
+//! interpTarray
+
+/*!
+   Interpolates several arrays calculated by TarrayCalc to give values at a 
+   given pathlength
+
+   \param[out]  T             transmittance matrix ( I may have made this term up ).
+   \param[out]  K_abs         absorption coefficient vector
+   \param[out]  temperature   temperature
+   \param[out]  K             extinction matrix at interpolation point
+   \param[out]  rte_pos       position at pathlength along ppath
+   \param[out]  rte_los       LOS at pathlength along ppath
+   \param[in]   pnd_vec       pnd vector
+   \param[in]   TArray        array of transmittance matrices
+   \param[in]   ext_matArray  array of extinction matrices
+   \param[in]   abs_vecArray  array of absorption coefficients
+   \param[in]   t_ppath       array of temperatures
+   \param[in]   pnd_ppath     array of pressures
+   \param[in]   cum_l_step    vector of cumulative pathlengths
+   \param[in]   pathlength    pathlength at which to calculate above values
+   \param[in]   stokes_dim    length of Stokes vector
+   \param[in]   ppath         the Ppath
+
+
+   \author Cory Davis
+   \date   2003-06-19
+*/
+
+
+//interpolates TArray and PPath to give T and rte_pos(los) at a given pathlength
+void interpTArray(Matrix& T,
+                  Vector& K_abs,
+                  Numeric& temperature,
+                  MatrixView& K,
+                  Vector& rte_pos,
+                  Vector& rte_los,
+                  VectorView& pnd_vec,
+                  const ArrayOfMatrix& TArray,
+                  const ArrayOfMatrix& ext_matArray,
+                  const ArrayOfVector& abs_vecArray,
+                  const Vector& t_ppath,
+                  const Matrix& pnd_ppath,
+                  const Vector& cum_l_step,
+                  const Numeric& pathlength,
+                  const Index& stokes_dim,
+                  const Ppath& ppath
+                  )
+{
+  //Internal Declarations
+  Matrix incT(stokes_dim,stokes_dim,0.0);
+  Matrix opt_depth_mat(stokes_dim,stokes_dim);
+  Vector itw(2);
+  Numeric delta_s;
+  Index N_pt=pnd_vec.nelem();
+  ArrayOfGridPos gp(1);
+                  
+  //interpolate transmittance matrix
+  gridpos(gp, cum_l_step, pathlength);
+  interpweights(itw,gp[0]);
+  interp(K, itw,ext_matArray,gp[0]);
+  delta_s = pathlength - cum_l_step[gp[0].idx];
+  opt_depth_mat = K;
+  opt_depth_mat+=ext_matArray[gp[0].idx];
+  opt_depth_mat*=-delta_s/2;
+  if ( stokes_dim == 1 )
+    {
+      incT(0,0)=exp(opt_depth_mat(0,0));
+    }
+  else if ( is_diagonal( opt_depth_mat))
+    {
+      for ( Index i=0;i<stokes_dim;i++)
+        {
+          incT(i,i)=exp(opt_depth_mat(i,i));
+        }
+    }
+  else
+    {
+      //matrix_exp(incT,opt_depth_mat,10);
+      matrix_exp_p30(incT,opt_depth_mat);
+    }
+  mult(T,TArray[gp[0].idx],incT);
+  
+  interp(K_abs, itw, abs_vecArray,gp[0]);
+ 
+  temperature=interp(itw,t_ppath,gp[0]);
+
+  for (Index i=0;i<N_pt;i++)
+    {
+      pnd_vec[i]=interp(itw,pnd_ppath(i,Range(joker)),gp[0]);
+    }
+
+  for (Index i=0; i<2; i++)
+    {
+      rte_pos[i] = interp(itw,ppath.pos(Range(joker),i),gp[0]);
+      rte_los[i] = interp(itw,ppath.los(Range(joker),i),gp[0]);
+    }
+  rte_pos[2] = interp(itw,ppath.pos(Range(joker),2),gp[0]);
+}

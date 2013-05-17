@@ -63,6 +63,11 @@
 #include "geodetic.h"
 #include "workspace_ng.h"
 
+// Included for Test, can later be removed
+#include "rte.h"
+#include "montecarlo.h"
+
+
 
 extern const Numeric SPEED_OF_LIGHT;
 
@@ -404,6 +409,51 @@ void Test(const Verbosity& verbosity)
 {
   // This function can be used to test stuff.
   // Feel free to change and test things
+
+  const Numeric I = 1e-3;
+  const Numeric Q = 2e-4;
+  const Numeric U = 0;
+  const Numeric V = 0;
+  const Numeric RU = 0;
+  const Numeric RV = 0;
+  const Numeric RQ = 0;
+
+  const Numeric lstep = 20e3;
+
+  Matrix ext(4,4), trans1(4,4), trans2(4,4), ntau;
+
+
+  ext(0,0) = I;
+  ext(1,1) = I;
+  ext(2,2) = I;
+  ext(3,3) = I;
+
+  ext(1,0) = Q;
+  ext(0,1) = Q;
+
+  ext(2,0) = U;
+  ext(0,2) = U;
+
+  ext(3,0) = V;
+  ext(0,3) = V;
+
+  ext(3,1) = RU;
+  ext(1,3) = -RU;
+
+  ext(2,1) = -RV;
+  ext(1,2) = RV;
+
+  ext(2,3) = RQ;
+  ext(3,2) = -RQ;
+
+  ntau = ext;
+  ntau *= -lstep;
+
+  matrix_exp_p30( trans1, ntau );
+  ext2trans( trans2, ext, lstep );
+
+  cout << trans1 << endl << endl;
+  cout << trans2 << endl;
 
   Exit( verbosity );
 }

@@ -409,9 +409,11 @@ void matrix_exp_p30(MatrixView M,
   Numeric a=A(0,0);
   Numeric b=A(0,1);
   M(0,0)=cosh(b);
-  M(1,1)=cosh(b);
+  //M(1,1)=cosh(b);
+  M(1,1)=M(0,0);
   M(0,1)=sinh(b);
-  M(1,0)=sinh(b);
+  //M(1,0)=sinh(b);
+  M(1,0)=M(0,1);
   if ( m>2 )
     {
       Numeric c=A(2,3);
@@ -419,8 +421,10 @@ void matrix_exp_p30(MatrixView M,
       if ( m > 3 )
         {
           M(2,3)=sin(c);
-          M(3,2)=-sin(c);
-          M(3,3)=cos(c); // Added by GH 2011-06-15 as per e-mail 2011-06-13
+          //M(3,2)=-sin(c);
+          M(3,2)=-M(2,3);
+          M(3,3)=M(2,2);
+          //M(3,3)=cos(c); // Added by GH 2011-06-15 as per e-mail 2011-06-13
         }
     }
   M*=exp(a);    

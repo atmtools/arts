@@ -49,7 +49,8 @@ void rte_step_doit(//Output and Input:
               ConstVectorView abs_vec_av,
               ConstVectorView sca_vec_av,
               const Numeric& lstep,
-              const Numeric& rtp_planck_value );
+              const Numeric& rtp_planck_value,
+              const bool& trans_is_precalc=false );
 
 
 void cloud_fieldsCalc(Workspace& ws,

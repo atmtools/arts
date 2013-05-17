@@ -1,3 +1,45 @@
+2013-05-17  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-640
+
+	* Started to clean up conversion of extinction to transmission.
+	Beside for MC, this is now only done by ext2trans. One step
+	forward is that ext2trans checks all expected symmetries of
+	ext_mat.
+
+	Also tried to make it faster by using special expressions for
+	"p30". In matlab the special expressions are one order of
+	magnitude faster than Pade, but the overall improvement in ARTS is
+	only marginal. Hence, ARTS' Pade-approximation is very fast, or
+	the matrix exponential is not a calculation bootleneck.
+
+	* src/lin_alg.cc (matrix_exp): Only Pade-approximation is now
+	done. Special treatment of diagonal matrices removed, now checked
+	before calling the function.
+
+	* src/montecarlo.cc (matrix_exp_p30): Several terms calculated
+	twice, now instead copied.
+
+	* src/mc_interp.cc (interpTArray): Moved to mc_NotUsed.cc.
+
+	* src/m_fos.cc (fos): Now using ext_mat, instead of matrix_exp.
+	And also using the flag introduced below.
+
+	* src/doit.cc (rte_step_doit): Now takes a flag telling if
+	trans_mat is already calculated. Now using ext_mat, instead of
+	matrix_exp.
+
+	* src/rte.cc: Removed declaration of unused constants.
+
+	(get_ppath_trans, get_ppath_trans2): Now using ext_mat, instead of
+	matrix_exp.
+
+	(ext2trans): Rewritten and extended. Expected symmetry of ext_mat
+	now fully checked. Matrix exponential calculated in three
+	different ways depending on structure of ext_mat. The three cases
+	are diagonal, "p30" and general. For p30 special expressions are
+	used, following matrix_exp_p30 and double-checked with a text book.
+
 2013-05-16  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-640

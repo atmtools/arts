@@ -176,16 +176,16 @@ void lubacksub(VectorView x,
 
 
 
-//! Exponential of a Matrix
+//! General exponential of a Matrix
 /*! 
-  The case of diagonal matrix is treated seperately, taking the exponential of
-  the diagonal elements one-by-one.
 
-  In the general case, the exponential of a matrix is computed using the 
-  Pade-Approximation. The method is decribed in:
-  Golub, G. H. and C. F. Van Loan, Matrix Computation, p. 384, 
-  Johns Hopkins University Press, 1983.
+  The exponential of a matrix is computed using the Pade-Approximation. The
+  method is decribed in: Golub, G. H. and C. F. Van Loan, Matrix Computation,
+  p. 384, Johns Hopkins University Press, 1983.
   
+  The Pade-approximation is applied on all cases. If a faster option can be
+  applied has to be checked before calling the function.
+
   \param F Output: The matrix exponential of A (Has to be initialized before
   calling the function.
   \param A Input: arbitrary square matrix
@@ -202,75 +202,65 @@ void matrix_exp(
   assert( is_size(A,n,n) );
   assert( is_size(F,n,n) );
 
-  if( is_diagonal(A) )
+  Numeric A_norm_inf, c;
+  Numeric j;
+  Matrix D(n,n), N(n,n), X(n,n), cX(n,n,0.0), B(n,n,0.0);
+  Vector N_col_vec(n,0.), F_col_vec(n,0.);
+
+  A_norm_inf = norm_inf(A);
+
+  // This formular is derived in the book by Golub and Van Loan.
+  j = 1 +  floor(1./log(2.)*log(A_norm_inf));
+  
+  if(j<0) j=0.;
+  Index j_index = (Index)(j);
+
+  // Scale matrix
+  F = A;
+  F /= pow(2,j);
+ 
+  /* The higher q the more accurate is the computation, 
+     see user guide for accuracy */
+  //  Index q = 8;
+  Numeric q_n = (Numeric)(q);
+  id_mat(D);
+  id_mat(N);
+  id_mat(X);
+  c = 1.;
+
+  for(Index k=0; k<q; k++)
     {
-      F = 0.;
-      for(Index ii = 0; ii < n; ii++)
-        { F(ii, ii) = exp(A(ii, ii)); }
+      Numeric k_n = (Numeric)(k+1);
+      c *= (q_n-k_n+1)/((2*q_n-k_n+1)*k_n);
+      mult(B,F,X);              // X = F * X
+      X = B;
+      cX = X;                   
+      cX *= c;                  // cX = X*c
+      N += cX;                  // N = N + X*c
+      cX *= pow(-1,k_n);        // cX = (-1)^k*c*X
+      D += cX;                  // D = D + (-1)^k*c*X
     }
 
-  else
+  /*Solve the equation system DF=N for F using LU decomposition,
+   use the backsubstitution routine for columns of N*/ 
+
+   /* Now use X  for the LU decomposition matrix of D.*/
+  ArrayOfIndex indx(n);
+
+  ludcmp(X, indx, D);
+
+  for(Index i=0; i<n; i++)
     {
-      Numeric A_norm_inf, c;
-      Numeric j;
-      Matrix D(n,n), N(n,n), X(n,n), cX(n,n,0.0), B(n,n,0.0);
-      Vector N_col_vec(n,0.), F_col_vec(n,0.);
-
-      A_norm_inf = norm_inf(A);
-
-      // This formular is derived in the book by Golub and Van Loan.
-      j = 1 +  floor(1./log(2.)*log(A_norm_inf));
+      N_col_vec = N(joker,i);  // extract column vectors of N
+      lubacksub(F_col_vec, X, N_col_vec, indx);
+      F(joker,i) = F_col_vec;  // construct F matrix  from column vectors 
+    }
   
-      if(j<0) j=0.;
-      Index j_index = (Index)(j);
-
-      // Scale matrix
-      F = A;
-      F /= pow(2,j);
- 
-      /* The higher q the more accurate is the computation, 
-         see user guide for accuracy */
-      //  Index q = 8;
-      Numeric q_n = (Numeric)(q);
-      id_mat(D);
-      id_mat(N);
-      id_mat(X);
-      c = 1.;
-
-      for(Index k=0; k<q; k++)
-        {
-          Numeric k_n = (Numeric)(k+1);
-          c *= (q_n-k_n+1)/((2*q_n-k_n+1)*k_n);
-          mult(B,F,X);              // X = F * X
-          X = B;
-          cX = X;                   
-          cX *= c;                  // cX = X*c
-          N += cX;                  // N = N + X*c
-          cX *= pow(-1,k_n);        // cX = (-1)^k*c*X
-          D += cX;                  // D = D + (-1)^k*c*X
-        }
-
-      /*Solve the equation system DF=N for F using LU decomposition,
-       use the backsubstitution routine for columns of N*/ 
-
-       /* Now use X  for the LU decomposition matrix of D.*/
-      ArrayOfIndex indx(n);
-
-      ludcmp(X, indx, D);
-
-      for(Index i=0; i<n; i++)
-        {
-          N_col_vec = N(joker,i);  // extract column vectors of N
-          lubacksub(F_col_vec, X, N_col_vec, indx);
-          F(joker,i) = F_col_vec;  // construct F matrix  from column vectors 
-        }
-  
-      /* The square of F gives the result. */
-        for(Index k=0; k<j_index; k++)
-        {
-          mult(B,F,F);              // F = F^2
-          F = B;
-        }
+  /* The square of F gives the result. */
+  for(Index k=0; k<j_index; k++)
+    {
+      mult(B,F,F);              // F = F^2
+      F = B;
     }
 }
 

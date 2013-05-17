@@ -113,7 +113,8 @@ void rte_step_doit(//Output and Input:
               ConstVectorView abs_vec_av,
               ConstVectorView sca_vec_av,
               const Numeric& lstep,
-              const Numeric& rtp_planck_value )
+              const Numeric& rtp_planck_value,
+              const bool& trans_is_precalc )
 {
   //Stokes dimension:
   Index stokes_dim = stokes_vec.nelem();
@@ -140,11 +141,13 @@ void rte_step_doit(//Output and Input:
     if (sca_vec_av[i] != 0)
       unpol_sca_vec = false;
 
+  // Calculate transmission by general function, if not precalculated
+  if( !trans_is_precalc )
+    { ext2trans( trans_mat, ext_mat_av, lstep ); }
 
   //--- Scalar case: ---------------------------------------------------------
   if( stokes_dim == 1 )
     {
-      trans_mat(0,0) = exp(-ext_mat_av(0,0) * lstep);
       stokes_vec[0]  = stokes_vec[0] * trans_mat(0,0) +
         ( abs_vec_av[0] * rtp_planck_value + sca_vec_av[0] ) / 
         ext_mat_av(0,0) * (1 - trans_mat(0,0) );
@@ -160,9 +163,6 @@ void rte_step_doit(//Output and Input:
   //- Unpolarised
   else if( is_diagonal(ext_mat_av) && unpol_abs_vec && unpol_sca_vec )
     {
-      trans_mat      = 0;
-      trans_mat(0,0) = exp(-ext_mat_av(0,0) * lstep);
-
       // Stokes dim 1
       stokes_vec[0] = stokes_vec[0] * trans_mat(0,0) +
                       ( abs_vec_av[0] * rtp_planck_value + sca_vec_av[0] ) /
@@ -171,7 +171,6 @@ void rte_step_doit(//Output and Input:
       // Stokes dims > 1
       for( Index i=1; i<stokes_dim; i++ )
         {
-          trans_mat(i,i) = trans_mat(0,0);
           stokes_vec[i]  = stokes_vec[i] * trans_mat(i,i) + sca_vec_av[i] / 
                            ext_mat_av(i,i)  * (1 - trans_mat(i,i));
         }
@@ -204,9 +203,6 @@ void rte_step_doit(//Output and Input:
       Matrix ext_mat_ds(stokes_dim, stokes_dim);
       ext_mat_ds = ext_mat_av;
       ext_mat_ds *= -lstep; // ext_mat_ds = -ext_mat*ds
-
-      Index q = 10;  // index for the precision of the matrix exp function
-      matrix_exp( trans_mat, ext_mat_ds, q);
 
       Vector term1(stokes_dim);
       Vector term2(stokes_dim);

@@ -83,6 +83,7 @@ void interp(VectorView tia,
             const ArrayOfVector& a,    
             const GridPos&  tc );
 
+
 void interp_scat_angle_temperature(//Output:
                                    VectorView pha_mat_int,
                                    Numeric& theta_rad,
@@ -94,24 +95,5 @@ void interp_scat_angle_temperature(//Output:
                                    const Numeric& aa_inc,
                                    const Numeric& rtp_temperature
                                    );
-
-void interpTArray(Matrix& T,
-                  Vector& Kabs,
-                  Numeric& temperature,
-                  MatrixView&  K,
-                  Vector& rte_pos,//maybe these should be VectorViews?
-                  Vector& rte_los,
-                  VectorView& pnd_vec,
-                  const ArrayOfMatrix& TArray,
-                  const ArrayOfMatrix& ext_matArray,
-                  const ArrayOfVector& abs_vecArray,
-                  const Vector& t_ppath,
-                  const Matrix& pnd_ppath,
-                  const Vector& cum_l_step,
-                  const Numeric& pathlength,
-                  const Index& stokes_dim,
-                  const Ppath& ppath
-                 );
-
 
 #endif  // mc_interp_h

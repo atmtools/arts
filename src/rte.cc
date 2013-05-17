@@ -51,15 +51,8 @@
 #include "special_interp.h"
 #include "lin_alg.h"
 
-extern const Numeric BOLTZMAN_CONST;
-extern const Numeric PLANCK_CONST;
 extern const Numeric SPEED_OF_LIGHT;
-extern const Numeric PI;
-extern const Numeric DEG2RAD;
-extern const Numeric RAD2DEG;
-extern const Numeric ELECTRON_CHARGE;
-extern const Numeric ELECTRON_MASS;
-extern const Numeric VACUUM_PERMITTIVITY;
+
 
 
 /*===========================================================================
@@ -889,7 +882,7 @@ void emission_rtstep(
     \author Claudia Emde and Patrick Eriksson, 
     \date   2010-10-15
 */
-void ext2trans(
+void ext2transOld(
          MatrixView trans_mat,
    ConstMatrixView  ext_mat_av,
    const Numeric&   lstep )
@@ -939,10 +932,10 @@ void ext2trans(
     }
 }
 
-void ext2transNEW(
-         MatrixView trans_mat,
-   ConstMatrixView  ext_mat,
-   const Numeric&   lstep )
+void ext2trans(
+         MatrixView   trans_mat,
+   ConstMatrixView    ext_mat,
+   const Numeric&     lstep )
 {
   const Index stokes_dim = ext_mat.ncols();
 
@@ -950,65 +943,92 @@ void ext2transNEW(
   assert( trans_mat.nrows()==stokes_dim && trans_mat.ncols()==stokes_dim );
 
   assert( ext_mat(0,0) >= 0 );
-  assert( lstep >= 0 );
+  assert( !is_singular( ext_mat ) );
+  assert( lstep > 0 );
 
-  // Any changes here should also be implemented in rte_step_doit.
 
-  //--- Scalar case: ---------------------------------------------------------
+  //--- Scalar case ----------------------------------------------------------
   if( stokes_dim == 1 )
-    {
-      trans_mat(0,0) = exp( -ext_mat(0,0) * lstep );
-    }
+    { trans_mat(0,0) = exp( -ext_mat(0,0) * lstep ); }
 
+  //--- Vector RT ------------------------------------------------------------
   else
     {
+      // Check symmetries and analyse structure of exp_mat:
       assert( ext_mat(1,1) == ext_mat(0,0) );
       assert( ext_mat(1,0) == ext_mat(0,1) );
 
-      // Special expression for stokes_dim 2:
-      if( stokes_dim == 2 )
-        {
-          if( ext_mat(1,0) == 0 )
+      bool isp30  = true;
+      bool isdiag = ext_mat(1,0) == 0;
+      
+      if( stokes_dim >= 3 )
+        {     
+          assert( ext_mat(2,2) == ext_mat(0,0) );
+          assert( ext_mat(2,1) == -ext_mat(1,2) );
+          assert( ext_mat(2,0) == ext_mat(0,2) );
+
+          isp30  = ext_mat(2,0) == 0  &&  ext_mat(2,1) == 0;
+          isdiag = isdiag  && isp30;
+
+          if( stokes_dim > 3 )
             {
-              trans_mat(0,0) = exp( -ext_mat(0,0) * lstep );
-              trans_mat(1,1) = trans_mat(0,0);
-              trans_mat(1,0) = 0;
-              trans_mat(0,1) = 0;
-            }
-          else
-            {
-              const Numeric k = exp( -ext_mat(0,0) * lstep );
-              const Numeric c = k * cosh( -ext_mat(0,0) * lstep );
-              const Numeric s = k * sinh( -ext_mat(0,0) * lstep );
-              trans_mat(0,0) = c;
-              trans_mat(1,1) = c;
-              trans_mat(1,0) = s;
-              trans_mat(0,1) = s;
+              assert( ext_mat(3,3) == ext_mat(0,0) );
+              assert( ext_mat(3,2) == -ext_mat(2,3) );
+              assert( ext_mat(3,1) == -ext_mat(1,3) );
+              assert( ext_mat(3,0) == -ext_mat(0,3) );
+
+              isp30  = isp30  &&  ext_mat(3,0) == 0  &&  ext_mat(3,1) == 0;
+              isdiag = isdiag  && isp30  &&  ext_mat(3,2) == 0;
             }
         }
 
-      //- Unpolarised
-      else if( is_diagonal(ext_mat) )
-        {
-          const Numeric tv = exp( -ext_mat(0,0) * lstep );
 
+      // Calculation options:
+      if( isdiag )
+        {
           trans_mat = 0;
-
-          for( Index i=0; i<stokes_dim; i++ )
+          trans_mat(0,0) = exp( -ext_mat(0,0) * lstep );
+          for( Index i=1; i<stokes_dim; i++ )
+            { trans_mat(i,i) = trans_mat(0,0); }
+        }
+      
+      else if( isp30 )
+        {
+          // Expressions below are found in "Polarization in Spectral Lines" by
+          // Landi Degl'Innocenti and Landolfi (2004).
+          const Numeric tI = exp( -ext_mat(0,0) * lstep );
+          const Numeric HQ = ext_mat(0,1) * lstep;
+          trans_mat(0,0) = tI * cosh( HQ );
+          trans_mat(1,1) = trans_mat(0,0);
+          trans_mat(1,0) = -tI * sinh( HQ );
+          trans_mat(0,1) = trans_mat(1,0);
+          if( stokes_dim >= 3 )
             {
-              trans_mat(i,i)  = tv;
+              trans_mat(2,0) = 0;
+              trans_mat(2,1) = 0;
+              trans_mat(0,2) = 0;
+              trans_mat(1,2) = 0;
+              const Numeric RQ = ext_mat(2,3) * lstep;
+              trans_mat(2,2) = tI * cos( RQ );
+              if( stokes_dim > 3 )
+                {
+                  trans_mat(3,0) = 0;
+                  trans_mat(3,1) = 0;
+                  trans_mat(0,3) = 0;
+                  trans_mat(1,3) = 0;
+                  trans_mat(3,3) = trans_mat(2,2);
+                  trans_mat(3,2) = tI * sin( RQ );
+                  trans_mat(2,3) = -trans_mat(3,2); 
+                }
             }
         }
-
-      //- General case
       else
         {
-          assert( !is_singular( ext_mat ) );
           Matrix ext_mat_ds = ext_mat;
           ext_mat_ds *= -lstep; 
-          
+          //         
           Index q = 10;  // index for the precision of the matrix exp function
-
+          //
           matrix_exp( trans_mat, ext_mat_ds, q );
         }
     }
@@ -1787,17 +1807,17 @@ void get_ppath_trans(
           for( Index iv=0; iv<nf; iv++ )
             {
               // Transmission due to absorption
-              Matrix ntau(stokes_dim,stokes_dim);  // -1*tau
+              Matrix ext_mat(stokes_dim,stokes_dim);
               for( Index is1=0; is1<stokes_dim; is1++ ) {
                 for( Index is2=0; is2<stokes_dim; is2++ ) {
                   abssum_this(iv,is1,is2) = 
                                           ppath_abs(joker,iv,is1,is2,ip).sum();
-                  ntau(is1,is2) = -0.5 * ppath.lstep[ip-1] *
-                          ( abssum_old(iv,is1,is2) + abssum_this(iv,is1,is2) );
+                  ext_mat(is1,is2) = 0.5 * ( abssum_old(iv,is1,is2) + 
+                                             abssum_this(iv,is1,is2) );
                 } }
-              scalar_tau[iv] -= ntau(0,0); 
-              // (the function below checks if ntau ir diagonal or not)
-              matrix_exp( trans_partial(iv,joker,joker,ip-1), ntau, 10 );
+              scalar_tau[iv] += ppath.lstep[ip-1] * ext_mat(0,0); 
+              ext2trans( trans_partial(iv,joker,joker,ip-1), ext_mat,
+                                                             ppath.lstep[ip-1] ); 
               
               // Cumulative transmission
               // (note that multiplication below depends on ppath loop order)
@@ -1893,7 +1913,7 @@ void get_ppath_trans2(
           for( Index iv=0; iv<nf; iv++ ) 
             {
               // Transmission due to absorption and scattering
-              Matrix ntau(stokes_dim,stokes_dim);  // -1*tau
+              Matrix ext_mat(stokes_dim,stokes_dim);  // -1*tau
               for( Index is1=0; is1<stokes_dim; is1++ ) {
                 for( Index is2=0; is2<stokes_dim; is2++ ) {
                   extsum_this(iv,is1,is2) = 
@@ -1901,12 +1921,12 @@ void get_ppath_trans2(
                   if( ic >= 0 )
                     { extsum_this(iv,is1,is2) += pnd_ext_mat(iv,is1,is2,ic); }
 
-                  ntau(is1,is2) = -0.5 * ppath.lstep[ip-1] *
-                          ( extsum_old(iv,is1,is2) + extsum_this(iv,is1,is2) );
+                  ext_mat(is1,is2) = 0.5 * ( extsum_old(iv,is1,is2) + 
+                                             extsum_this(iv,is1,is2) );
                 } }
-              scalar_tau[iv] -= ntau(0,0); 
-              // (the function below checks if ntau ir diagonal or not)
-              matrix_exp( trans_partial(iv,joker,joker,ip-1), ntau, 10 );
+              scalar_tau[iv] += ppath.lstep[ip-1] * ext_mat(0,0); 
+              ext2trans( trans_partial(iv,joker,joker,ip-1), ext_mat,
+                                                             ppath.lstep[ip-1] );
 
               // Note that multiplication below depends on ppath loop order
               mult( trans_cumulat(iv,joker,joker,ip), 
