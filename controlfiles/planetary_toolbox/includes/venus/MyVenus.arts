@@ -1,0 +1,141 @@
+#####
+#
+# This is a template file for deriving user-selected Jupiter (atmospheric) data
+# from the arts-xml-data package and bringing it to p/lat/lon_grids.
+#
+#####
+
+Arts2 {
+INCLUDE "general/general.arts"
+
+IndexCreate( atmo )
+ArrayOfIndexCreate( basespecies )
+ArrayOfIndexCreate( h2ospecies )
+ArrayOfIndexCreate( hdospecies )
+ArrayOfIndexCreate( Necase )
+ArrayOfIndexCreate( NSwind )
+ArrayOfIndexCreate( EWwind )
+IndexCreate( zeropad )
+IndexCreate( vmr_zeropad )
+IndexCreate( interp_order )
+
+INCLUDE "atmo_venus.arts"
+INCLUDE "../common/createvars.arts"
+
+IndexSet( zeropad, 1 )
+IndexSet( vmr_zeropad, 1 )
+IndexSet( interp_order, 1 )
+
+
+#===========================================
+
+VectorNLogSpace( p_grid, 51, 5e5, 5e-2 )
+VectorNLinSpace( lat_grid, 11, 45, 55 )
+VectorNLinSpace( lon_grid, 11, 5, 15 )
+AtmosphereSet3D
+AtmosphereSet1D
+
+#===========================================
+
+
+# Select the atmospheric scenario to be used
+# ---
+# (0) night               (from SpicaV)
+# (1) night, cold         (from SpicaV)
+# (2) night               (from VIRA)
+# (3) day                 (from VIRA)
+# (4) day, high latitudes (from VIRA)
+IndexSet( atmo, 2 )
+
+#===========================================
+
+
+# Select the trace gases (and possible sub-scenarios) to be used
+# ---
+# basic species (basic == there's only one version here. no sub-options/further
+# specifications required): Select all species you like to take into account.
+### CO, CO2, H2SO4, HCl, HF, N2, O, O3, OCS, SO2
+#    0,   1,     2,   3,  4,  5, 6,  7,   8,   9
+ArrayOfIndexSet( basespecies, [0, 1, 5, 7, 9] )
+
+
+# Select species with sub-scenarios
+# ---
+# you SHOULD only set UP TO ONE for each species (else the species will be
+# included several times, which makes sense only for particular cases).
+# EMPTY selection de-selects the whole species.
+
+### H2O: low, medium, high
+#         0 ,   1   ,  2
+ArrayOfIndexSet( h2ospecies, [1] )
+
+# HDO: ONLY make a (non-empty) selection here, if you want to take HDO into
+# account with a SPECIFIC profile. If not selected here, HDO is routinely
+# covered by the H2O (general) species above with the profile being the H2O
+# profile scaled by isotopologue abundance.
+# low/medium/high profiles are related to the low/medium/high profiles of H2O,
+# hence are suggested to be used consistently with the H2O profile (i.e., we
+# discourage use of, e.g. H2O-low with HDO-medium or -high, and so on). The
+# uncorrected profile originates from independent measurements of HDO. (for
+# details see TN2 p.21)
+### low, medium, high, original (uncorrected)
+#    0 ,   1,     2  ,    3
+ArrayOfIndexSet( hdospecies, [3] )
+
+# Electron density: depending on solar zenith angle. Note that SZA<90 are only
+# available for day data, SZA>90 for night data (non-matching selection will
+# lead to a runtime error).
+#        day       day       day       day       day      night       night
+### SZA0-30, SZA30-50, SZA50-70, SZA70-80, SZA80-90, SZA90-100, SZA100-120
+#          0,        1,        2,        3,        4,         5,          6
+ArrayOfIndexSet( Necase, [5] )
+
+
+INCLUDE "getatmo_venus.arts"
+# uncomment one of the following, depending on the desired atmospheric dimensionality
+INCLUDE "../common/makeatmo1D.arts"
+#INCLUDE "../common/makeatmo3D.arts"
+
+#===========================================
+
+
+# Process further (non-abs_species) variables: wind
+# ---
+# Wind: Note, only North-South and East-West winds available. Those are ONLY
+# applied for 3D (N-S for 2D also) cases! You shall ONLY select ONE element per
+# wind component (else the latter will overwrite the earlier).
+
+### N-S wind: standard
+#                0
+ArrayOfIndexSet( NSwind, [0] )
+
+### E-W wind: weak, medium, strong
+#              0  ,    1  ,   2
+ArrayOfIndexSet( EWwind, [1] )
+
+INCLUDE "getwind_venus.arts"
+
+# if you WANT N-S winds (NSwind NOT to be empty then!!), UNcomment this (but
+# only ONE of the two includes! depending on the desired atmospheric
+# dimensionality) 
+Copy( rawfield, wind_v_raw )
+# uncomment only ONE of the following two!
+INCLUDE "../common/makefield1D.arts"
+#INCLUDE "../common/makefield3D.arts"
+Copy( wind_v_field, finalfield )
+
+# if you WANT E-W winds (EWwind NOT to be empty then!!), UNcomment this (but
+# only ONE of the two includes! depending on the desired atmospheric
+# dimensionality) 
+Copy( rawfield, wind_u_raw )
+# uncomment only ONE of the following two!
+INCLUDE "../common/makefield1D.arts"
+#INCLUDE "../common/makefield3D.arts"
+Copy( wind_u_field, finalfield )
+
+
+#===========================================
+
+
+}
+ 

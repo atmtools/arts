@@ -1,0 +1,73 @@
+#####
+#
+# This file does the actual work of selecting and reading in Venus atmospheric
+# wind data as specified by the user in the MyVenus.arts template.
+#
+# This file expects the following input parameters:
+#   atmo           (Index)           The atmospheric scenario.
+#   windcase       (ArrayOfIndex)    Wind setup selected (off/Galileo/thermal).
+#
+# It provides following output:
+#   wind_v_raw     (GriddedField3)   raw version of wind_v_field 
+#   wind_u_raw     (GriddedField3)   raw version of wind_u_field
+#
+# Unless further variables or options for existing variables are introduced,
+# there is NO need to MODOFY this file.
+#
+#####
+
+Arts2 {
+
+#StringSet( tmpformat, "ascii" )
+StringSet( tmpformat, "binary" )
+
+StringSet( Btmp, "tmp1.xml" )
+
+Touch( gf3tmp )  #this in case gf3tmp hasn't beenused before
+Delete( gf3tmp ) #this to throw away possible data in gf3tmp (if it was used before)
+Touch( gf3tmp )  #this to initialize it again after deleting
+# this to have a properly formated file to read after the forloops
+WriteXML( output_file_format=tmpformat, in=gf3tmp, filename=Btmp )
+
+AgendaCreate( windloop_agenda )
+AgendaSet( windloop_agenda ){
+  Extract( strtmp, casearray, forloop_index )
+  Append( specfilename, strtmp )
+#  Print( specfilename, 0 )
+  ReadXML( gf3tmp, specfilename )
+  WriteXML( output_file_format=tmpformat, in=gf3tmp, filename=Btmp )
+}
+
+# Read the atmospheric setup
+# ---
+# create the casename string down to the common filename part in the
+# scenario folder. wind is from mean in any case.
+Copy( atmostr, atmobase )
+Extract( subatmo, atmoarray, atmo )
+Append( atmostr, subatmo )
+StringSet( strtmp, "/" )
+Append( atmostr, strtmp )
+Append( atmostr, subatmo )
+StringSet( strtmp, "." )
+Append( atmostr, strtmp )
+
+# (1) N-S Winds
+Copy( specfilename, atmostr )
+Select( casearray, NSwindarray, NSwind )
+nelemGet( ncases, casearray )
+IndexStepDown( ncases, ncases )
+Copy( forloop_agenda, windloop_agenda )
+ForLoop( forloop_agenda, 0, ncases, 1 )
+ReadXML( out=wind_u_raw, filename=Btmp )
+
+# (2) E-W Winds
+Copy( specfilename, atmostr )
+Select( casearray, EWwindarray, EWwind )
+nelemGet( ncases, casearray )
+IndexStepDown( ncases, ncases )
+Copy( forloop_agenda, windloop_agenda )
+ForLoop( forloop_agenda, 0, ncases, 1 )
+ReadXML( out=wind_v_raw, filename=Btmp )
+
+}
+ 

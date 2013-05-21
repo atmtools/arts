@@ -1,0 +1,13 @@
+#####
+#
+# This prepares field data (e.g., wind_w/v/u_field) on the calculation grids
+# (p_grid, lat_grid, lon_grid) for 1D output from 1D raw input.
+#
+#####
+
+Arts2 {
+
+GriddedFieldPRegrid( rawfield, p_grid, rawfield, interp_order, zeropad )
+FieldFromGriddedField( finalfield, p_grid, lat_grid, lon_grid, rawfield )
+
+}

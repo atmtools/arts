@@ -1,0 +1,43 @@
+#####
+#
+# The only task of this file is to create variables that are used by:
+#   getatmo_PLANET.arts
+#   getwind_PLANET.arts
+#   getmagfield_PLANET.arts
+#   common/makefield1D.arts
+#   common/makefield3D.arts
+#
+# It is supposed to be included ONCE (and only once), before the above named
+# include files are used.
+#
+#####
+
+Arts2 {
+
+StringCreate( tmpformat )
+StringCreate( atmostr )
+StringCreate( subatmo )
+StringCreate( specfilename )
+ArrayOfStringCreate( speciesname )
+ArrayOfIndexCreate( case )
+ArrayOfStringCreate( casearray )
+IndexCreate( ncases )
+StringCreate( strtmp )
+StringCreate( Btmp )
+StringCreate( abstmp )
+StringCreate( vmrtmp )
+IndexCreate( itmp )
+GriddedField3Create( gf3tmp )
+ArrayOfGriddedField3Create( aogf3tmp )
+
+GriddedField3Create( wind_u_raw )
+GriddedField3Create( wind_v_raw )
+GriddedField3Create( wind_w_raw )
+GriddedField3Create( mag_u_raw )
+GriddedField3Create( mag_v_raw )
+GriddedField3Create( mag_w_raw )
+
+GriddedField3Create( rawfield )
+Tensor3Create( finalfield )
+}
+ 

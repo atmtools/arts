@@ -1,0 +1,14 @@
+#####
+#
+# This prepares the basic atmosphere (z_field, t_field, vmr_field) on the
+# calculation grids (p_grid, lat_grid, lon_grid) for 1D output from 1D raw
+# input.
+#
+#####
+
+Arts2 {
+
+# this brings z_, t_, and vmr_field to p/lat/lon_grid
+AtmFieldsCalc( interp_order=interp_order, vmr_zeropadding=vmr_zeropad )
+
+}

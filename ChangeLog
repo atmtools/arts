@@ -1,3 +1,17 @@
+2013-05-21  Jana Mendrok <jana.mendrok@ltu.se>
+
+	* arts-2-1-644
+
+	* controlfiles/planetary_toolbox/includes/[common,jupiter,venus]/*.arts:
+	Added a couple of controlfiles (of includes nature) for getting
+	atmospheric setups (selecting scenario and species/parameters to
+	include, reading in, and bringing to calculation grids).
+	My{planet}.arts	is the respective main file for each planet. It's
+	supposed to be used as template - i.e., for usage, make a copy of it
+	and modify according to	your wishes.
+	It's work in progress, some things not in satisfying state yet (too
+	much room for bugs/breaking the file), evaluating better options.
+
 2013-05-21  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-1-643

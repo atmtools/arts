@@ -1,0 +1,75 @@
+#####
+#
+# This file does the actual work of selecting and reading in Jovian atmospheric
+# data as specified by the user in the MyJupiter.arts template.
+#
+# This file expects the following input parameters:
+#   atmo           (Index)           The atmospheric scenario.
+#   Bcase          (ArrayOfIndex)    Magnetic field setup selected (off/Khurana).
+#
+# It provides following output:
+#   mag_u/v/w_raw      raw versions of mag_u/v/w_field (GriddedField3)
+#
+# Unless further variables or options for existing variables are introduced,
+# there is NO need to MODOFY this file.
+#
+#####
+
+Arts2 {
+
+#StringSet( tmpformat, "ascii" )
+StringSet( tmpformat, "binary" )
+
+
+StringSet( Btmp, "tmp1.xml" )
+
+Touch( aogf3tmp )  #this in case aogf3tmp hasn't beenused before
+Delete( aogf3tmp ) #this to throw away possible data in aogf3tmp (if it was used before)
+Touch( gf3tmp )  #this in case gf3tmp hasn't beenused before
+Delete( gf3tmp ) #this to throw away possible data in gf3tmp (if it was used before)
+Touch( gf3tmp )  #this to initialize it again after deleting
+Append( aogf3tmp, gf3tmp )
+Append( aogf3tmp, gf3tmp )
+Append( aogf3tmp, gf3tmp )
+# this to have a properly formated file to read after the forloops
+WriteXML( output_file_format=tmpformat, in=aogf3tmp, filename=Btmp )
+
+AgendaCreate( Bcomploop_agenda )
+AgendaSet( Bcomploop_agenda ){
+  ReadXML( out=aogf3tmp, filename=Btmp )
+  Extract( strtmp, Bcomparray, forloop_index )
+  Append( specfilename, strtmp )
+#  Print( specfilename, 0 )
+  ReadXML( gf3tmp, specfilename )
+  Append( aogf3tmp, gf3tmp )
+  WriteXML( output_file_format=tmpformat, in=aogf3tmp, filename=Btmp )
+}
+
+AgendaCreate( Bloop_agenda )
+AgendaSet( Bloop_agenda ){
+  Touch( aogf3tmp )
+  WriteXML( output_file_format=tmpformat, in=aogf3tmp, filename=Btmp )
+  Extract( specfilename, casearray, forloop_index )
+  nelemGet( ncases, Bcomparray )
+  IndexStepDown( ncases, ncases )
+  Copy( forloop_agenda, Bcomploop_agenda )
+  ForLoop( forloop_agenda, 0, ncases, 1 )
+}
+
+
+# Read the atmospheric setup
+# ---
+
+# (10) Winds
+Select( casearray, Barray, Bcase )
+nelemGet( ncases, casearray )
+IndexStepDown( ncases, ncases )
+Copy( forloop_agenda, Bloop_agenda )
+ForLoop( forloop_agenda, 0, ncases, 1 )
+ReadXML( out=aogf3tmp, filename=Btmp )
+Extract( mag_w_raw, aogf3tmp, 0 )
+Extract( mag_v_raw, aogf3tmp, 1 )
+Extract( mag_u_raw, aogf3tmp, 2 )
+
+}
+ 

@@ -1,0 +1,51 @@
+#####
+#
+# Here, basic settings describing the structure of Jupiter atmospheric data are
+# done. Entries are supposed to be consistent with the descriptions given to the
+# user in the MyJupiter.arts template.
+#
+# DO NOT MODIFY (unless new database entries need to be accomodated and you
+# know, what you're doing)!
+#
+#####
+
+Arts2 {
+
+StringCreate( atmobase )
+ArrayOfStringCreate( atmoarray )
+ArrayOfStringCreate( basespeciesarray )
+ArrayOfStringCreate( basespeciesnamesarray )
+ArrayOfStringCreate( H2Oarray )
+ArrayOfStringCreate( NH3array )
+ArrayOfStringCreate( CH4array )
+ArrayOfStringCreate( H2array )
+ArrayOfStringCreate( CH4namesarray )
+ArrayOfStringCreate( H2namesarray )
+ArrayOfStringCreate( Nearray )
+ArrayOfStringCreate( windarray )
+ArrayOfStringCreate( Barray )
+ArrayOfStringCreate( Bcomparray )
+
+StringSet( atmobase, "planets/Jupiter/MPS/" )
+ArrayOfStringSet( atmoarray, ["Jupiter.mean","Jupiter.oval"] )
+ArrayOfStringSet( basespeciesarray,
+                  ["C2H2", "C2H4", "C2H6", "C3H8", "CO", "CO2",
+                   "H2S", "HCN", "He", "PH3"] )
+ArrayOfStringSet( basespeciesnamesarray,
+                  ["C2H2.xml.gz", "C2H4.xml.gz", "C2H6.xml.gz", "C3H8.xml.gz",
+                   "CO.xml.gz", "CO2.xml.gz",
+                   "H2S.xml.gz", "HCN_upperlim.xml.gz", "He.xml.gz",
+                   "PH3.xml.gz"] )
+ArrayOfStringSet( H2Oarray, ["H2O_low.xml.gz","H2O_high.xml.gz"] )
+ArrayOfStringSet( NH3array, ["NH3_low.xml.gz","NH3_high.xml.gz"] )
+ArrayOfStringSet( CH4array, ["CH4-212","CH4"] )
+ArrayOfStringSet( CH4namesarray, ["CH4-212.xml","CH4.xml.gz"] )
+ArrayOfStringSet( H2array, ["H2-12","H2"] )
+ArrayOfStringSet( H2namesarray, ["H2-12.xml","H2.xml.gz"] )
+ArrayOfStringSet( Nearray, ["Ne.low.xml.gz","Ne.med.xml.gz","Ne.high.xml.gz"] )
+ArrayOfStringSet( windarray, ["wind_u.xml.gz","wind_u.into-thermal.xml.gz"] )
+ArrayOfStringSet( Barray, ["planets/Jupiter/Khurana/Khurana."] )
+ArrayOfStringSet( Bcomparray, ["B_w.xml.gz","B_v.xml.gz","B_u.xml.gz"] )
+
+}
+ 
