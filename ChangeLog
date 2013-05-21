@@ -1,3 +1,26 @@
+2013-05-21  Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-1-643
+	
+	* src/partition_function_data.cc: Defines partition function type in the
+	defaults to allow for other types of partition functions.
+	
+	* src/absorption.h: Changed mqcoeff to a Vector and added some more 
+	variables. These are: mqcoefftype which is defined from the public enum and
+	influences what type of partition function will be used in the switch added
+	to (alculatePartitionFctRatio) to change between the previous standard way
+	of only allowing coefficients in the now called 
+	(CalculatePartitionFctAtTempFromCoeff) to also allowing gridded funtions 
+	that can be interpolated in (CalculatePartitionFctAtTempFromData). To use
+	the new FromData function it is necessary to specify the grid, the data and
+	the interpolation order in present design, together with the partition 
+	function type.
+	
+	* src/absorption.cc: Here (CalculatePartitionFctAtTempFromData) is defined.
+	
+	* src/methods.cc: Added format documentation to 
+	(ArrayOfLineMixingRecordReadAscii).
+
 2013-05-20  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-642

@@ -41,6 +41,7 @@
 #include "math_funcs.h"
 #include "messages.h"
 #include "logic.h"
+#include "interpolation_poly.h"
 
 #include "global_data.h"
 
@@ -52,16 +53,16 @@ std::map<String, Index> SpeciesMap;
 // member fct of isotopologuerecord, calculates the partition fct at the
 // given temperature  from the partition fct coefficients (3rd order
 // polynomial in temperature)
-Numeric IsotopologueRecord::CalculatePartitionFctAtTemp( Numeric
+Numeric IsotopologueRecord::CalculatePartitionFctAtTempFromCoeff( Numeric
                                                     temperature ) const
 {
   Numeric result = 0.;
   Numeric exponent = 1.;
 
-  ArrayOfNumeric::const_iterator it;
+  Vector::const_iterator it;
 
 //      cout << "T: " << temperature << "\n";
-  for (it=mqcoeff.begin(); it != mqcoeff.end(); it++)
+  for (it=mqcoeff.begin(); it != mqcoeff.end(); ++it)
     {
       result += *it * exponent;
       exponent *= temperature;
@@ -70,6 +71,21 @@ Numeric IsotopologueRecord::CalculatePartitionFctAtTemp( Numeric
     }
   return result;
 }
+
+
+// member fct of isotopologuerecord, calculates the partition fct at the
+// given temperature  from the partition fct coefficients (3rd order
+// polynomial in temperature)
+Numeric IsotopologueRecord::CalculatePartitionFctAtTempFromData( Numeric
+temperature ) const
+{
+    GridPosPoly gp;
+    gridpos_poly( gp, mqcoeffgrid, temperature, mqcoeffinterporder);
+    Vector itw;
+    interpweights(itw, gp );
+    return interp(  itw, mqcoeff, gp );
+}
+
 
 void SpeciesAuxData::initParams(Index nparams)
 {

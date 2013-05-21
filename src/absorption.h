@@ -198,7 +198,9 @@ public:
                     mmytrantag(-1),
                     mhitrantag(-1),
                     mjpltags(),
-                    mqcoeff()
+                    mqcoeff(),
+                    mqcoefftype(),
+                    mqcoeffgrid()
   { /* Nothing left to do here. */ }
 
   /** Copy constructor. We need this, since operator= does not work
@@ -210,7 +212,10 @@ public:
     mmytrantag(x.mmytrantag),
     mhitrantag(x.mhitrantag),
     mjpltags(x.mjpltags),
-    mqcoeff()
+    mqcoeff(),
+    mqcoefftype(),
+    mqcoeffgrid(),
+    mqcoeffinterporder()
   { /* Nothing left to do here. */ }
 
   /** Constructor that sets the values. */
@@ -226,7 +231,10 @@ public:
     mmytrantag(mytrantag),
     mhitrantag(hitrantag),
     mjpltags(jpltags),
-    mqcoeff()
+    mqcoeff(),
+    mqcoefftype(PF_NOTHING),
+    mqcoeffgrid(),
+    mqcoeffinterporder()
   {
     // With Matpack, initialization of mjpltags from jpltags should now work correctly.
 
@@ -264,9 +272,10 @@ public:
    */
   bool isContinuum() const { return mname.length() && !isdigit(mname[0]); }
 
-  void SetPartitionFctCoeff( const ArrayOfNumeric& qcoeff )
+  void SetPartitionFctCoeff( const ArrayOfNumeric& qcoeff, const Index& qcoefftype )
   {
     mqcoeff = qcoeff;
+    mqcoefftype = qcoefftype;
   }
 
   //! Calculate partition function ratio.
@@ -285,11 +294,27 @@ public:
   Numeric CalculatePartitionFctRatio( Numeric reference_temperature,
                                       Numeric actual_temperature ) const
   {
-    Numeric qcoeff_at_t_ref =
-      CalculatePartitionFctAtTemp( reference_temperature );
-    Numeric qtemp =
-      CalculatePartitionFctAtTemp( actual_temperature    );
-
+      
+      Numeric qcoeff_at_t_ref, qtemp;
+      
+      switch(mqcoefftype)
+        {
+          case PF_FROMCOEFF:
+            qcoeff_at_t_ref =
+            CalculatePartitionFctAtTempFromCoeff( reference_temperature );
+            qtemp =
+            CalculatePartitionFctAtTempFromCoeff( actual_temperature    );
+            break;
+          case PF_FROMTEMP:
+              qcoeff_at_t_ref =
+              CalculatePartitionFctAtTempFromData( actual_temperature    );
+              qtemp =
+              CalculatePartitionFctAtTempFromData( actual_temperature    );
+              break;
+          default:
+              throw runtime_error("The partition functions are incorrect.\n");
+              break;
+        }
 /*        cout << "ref_t: " << reference_temperature << ", act_t:" <<
           actual_temperature << "\n";
         cout << "ref_q: " << qcoeff_at_t_ref << ", act_q:" <<
@@ -307,12 +332,20 @@ public:
             throw runtime_error(os.str());
           }
   }
+  
+  
+  enum {
+      PF_FROMCOEFF,   // Partition function will be from coefficients
+      PF_FROMTEMP,    // Partition function will be from temperature field
+      PF_NOTHING      // This will be the designated starter value
+  };
 
 private:
 
   // calculate the partition fct at a certain temperature
   // this is only the prototyping
-  Numeric CalculatePartitionFctAtTemp( Numeric temperature ) const;
+  Numeric CalculatePartitionFctAtTempFromCoeff( Numeric temperature ) const;
+  Numeric CalculatePartitionFctAtTempFromData( Numeric temperature ) const;
 
   String mname;
   Numeric mabundance;
@@ -320,7 +353,10 @@ private:
   Index mmytrantag;
   Index mhitrantag;
   ArrayOfIndex mjpltags;
-  ArrayOfNumeric mqcoeff;
+  Vector mqcoeff;
+  Index mqcoefftype;
+  Vector mqcoeffgrid;
+  Index mqcoeffinterporder;
 };
 
 

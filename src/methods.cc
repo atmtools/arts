@@ -6469,7 +6469,19 @@ void define_md_data_raw()
          "\n"
          "After reading the data it must be matched to *abs_lines_per_species*.\n"
          "See *line_mixing_dataMatch*.\n"
-         // FIXME: Format Documentation goes here
+         "\n"
+         "Format Documentation:\n"
+         "Quantum numbers: v1, Upper N, Lower N, Upper J, Lower J,\n"
+         "First Order Zeroth Phase Correction,\n"
+         "First Order First Phase Correction,\n"
+         "Second Order Zeroth Absorption Correction,\n"
+         "Second Order First Absorption Correction,\n"
+         "Second Order Zeroth Line-Center Correction,\n"
+         "Second Order First Line-Center Correction,\n"
+         "Standard Temperature For Corrections,\n"
+         "First Order Phase Temperature Correction Exponential Term,\n"
+         "Second Order Absorption Temperature Correction Exponential Term, and \n"
+         "Second Order Line-Center Temperature Correction Exponential Term.\n"
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
