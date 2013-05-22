@@ -7055,7 +7055,7 @@ void define_md_data_raw()
         DESCRIPTION
         (
          "Retrieve nelem from given variable and store the value in the\n"
-         "workspace variable *nelem*\n"
+         "variable *nelem*.\n"
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT( "nelem" ),

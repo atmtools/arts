@@ -2213,7 +2213,7 @@ void abs_mat_fieldCalc( Workspace& ws,
 
                 // Execute agenda to calculate local absorption.
                 // Agenda input:  f_index, a_pressure, a_temperature, a_vmr_list
-                // Agenda output: asg
+                // Agenda output: abs
                 propmat_clearsky_agendaExecute(l_ws,
                                                   abs,
                                                   this_f_grid,
@@ -2222,7 +2222,7 @@ void abs_mat_fieldCalc( Workspace& ws,
                                                   a_temperature, a_vmr_list,
                                                   l_abs_agenda);
 
-                // Verify, that the number of species in asg is
+                // Verify, that the number of species in abs is
                 // constistent with vmr_field:
                 if ( n_species != abs.nbooks() )
                   {
@@ -2234,7 +2234,7 @@ void abs_mat_fieldCalc( Workspace& ws,
                     throw runtime_error( os.str() );
                   }
 
-                // Verify, that the number of frequencies in asg is
+                // Verify, that the number of frequencies in abs is
                 // constistent with f_extent:
                 if ( n_frequencies != abs.npages() )
                   {
@@ -2247,10 +2247,10 @@ void abs_mat_fieldCalc( Workspace& ws,
                   }
 
                 // Store the result in output field.
-                // We have to transpose asg, because the dimensions of the
+                // We have to transpose abs, because the dimensions of the
                 // two variables are:
-                // asg_field: [ abs_species, f_grid, p_grid, lat_grid, lon_grid]
-                // asg:       [ f_grid, abs_species ]
+                // abs_field: [ abs_species, f_grid, p_grid, lat_grid, lon_grid]
+                // abs:       [ f_grid, abs_species ]
                 abs_field( joker,
                             joker,
                             joker,

@@ -1,3 +1,14 @@
+2013-05-22  Jana Mendrok <jana.mendrok@ltu.se>
+
+	* arts-2-1-645
+
+	* src/m_atmosphere.cc (GriddedFieldLatLonRegrid):
+	Bugfix. Added check for new lat/lon_grids not empty in the beginning,
+	before any of them is tried to be used.
+
+	* src/m_abs_lookup.cc (abs_mat_fieldCalc), methods.cc,workspace.cc:
+	Minor updates of variable namings and variable descriptions.
+
 2013-05-21  Jana Mendrok <jana.mendrok@ltu.se>
 
 	* arts-2-1-644

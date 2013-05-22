@@ -796,6 +796,9 @@ void GriddedFieldLatLonRegrid(// WS Generic Output:
                               const Index& interp_order,
                               const Verbosity& verbosity)
 {
+    if (!lat_true.nelem()) throw runtime_error("The new latitude grid is not allowed to be empty.");
+    if (!lon_true.nelem()) throw runtime_error("The new longitude grid is not allowed to be empty.");
+
     const GriddedField2* gfraw_in_pnt;
     GriddedField2 gfraw_in_copy;
 
@@ -868,6 +871,9 @@ void GriddedFieldLatLonRegrid(// WS Generic Output:
                               const Index& interp_order,
                               const Verbosity& verbosity)
 {
+    if (!lat_true.nelem()) throw runtime_error("The new latitude grid is not allowed to be empty.");
+    if (!lon_true.nelem()) throw runtime_error("The new longitude grid is not allowed to be empty.");
+
     const GriddedField3* gfraw_in_pnt;
     GriddedField3 gfraw_in_copy;
 
@@ -948,6 +954,9 @@ void GriddedFieldLatLonRegrid(// WS Generic Output:
                               const Index& interp_order,
                               const Verbosity& verbosity)
 {
+    if (!lat_true.nelem()) throw runtime_error("The new latitude grid is not allowed to be empty.");
+    if (!lon_true.nelem()) throw runtime_error("The new longitude grid is not allowed to be empty.");
+
     const GriddedField4* gfraw_in_pnt;
     GriddedField4 gfraw_in_copy;
 

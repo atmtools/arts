@@ -2488,7 +2488,7 @@ void Workspace::define_wsv_data()
     ( NAME( "nelem" ),
       DESCRIPTION
       (
-        "This variable is used by the VectorSet workspace method.\n"
+        "Number of elements of a Vector or Array.\n"
        ),
       GROUP( "Index" )));
 
@@ -2497,8 +2497,7 @@ void Workspace::define_wsv_data()
     ( NAME( "ncols" ),
       DESCRIPTION
       (
-        "This variable is used by the MatrixSet, Tensor3Set, etc. \n"
-        "workspace methods.\n"
+        "Number of columns (elements in lowest dimension) of a Matrix or Tensor.\n"
        ),
       GROUP( "Index" )));
 
@@ -2507,7 +2506,7 @@ void Workspace::define_wsv_data()
     ( NAME( "nrows" ),
       DESCRIPTION
       (
-        "See *ncols*.\n"
+        "Number of rows (elements in 2nd lowest dimension) of a Matrix or Tensor.\n"
        ),
       GROUP( "Index" )));
 
@@ -2516,7 +2515,7 @@ void Workspace::define_wsv_data()
     ( NAME( "npages" ),
       DESCRIPTION
       (
-        "See *ncols*.\n"
+        "Number of elements in 3rd lowest dimension of a Tensor.\n"
        ),
       GROUP( "Index" )));
 
@@ -2525,7 +2524,7 @@ void Workspace::define_wsv_data()
     ( NAME( "nbooks" ),
       DESCRIPTION
       (
-        "See *ncols*.\n"
+        "Number of elements in 4th lowest dimension of a Tensor.\n"
        ),
       GROUP( "Index" )));
 
@@ -2534,7 +2533,7 @@ void Workspace::define_wsv_data()
     ( NAME( "nshelves" ),
       DESCRIPTION
       (
-        "See *ncols*.\n"
+        "Number of elements in 5th lowest dimension of a Tensor.\n"
        ),
       GROUP( "Index" )));
 
@@ -2543,7 +2542,7 @@ void Workspace::define_wsv_data()
     ( NAME( "nvitrines" ),
       DESCRIPTION
       (
-        "See *ncols*.\n"
+        "Number of elements in 6th lowest dimension of a Tensor.\n"
        ),
       GROUP( "Index" )));
 
@@ -2552,7 +2551,7 @@ void Workspace::define_wsv_data()
     ( NAME( "nlibraries" ),
       DESCRIPTION
       (
-        "See *ncols*.\n"
+        "Number of elements in 7th lowest dimension of a Tensor.\n"
        ),
       GROUP( "Index" )));
 
