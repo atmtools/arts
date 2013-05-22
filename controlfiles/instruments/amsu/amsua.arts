@@ -49,13 +49,13 @@ abs_speciesSet( species=[ "H2O-PWR98",
                           "N2-SelfContStandardType" ] )
 
 # Read HITRAN catalog (needed for O3):
-#abs_linesReadFromHitran2004( abs_lines,
-#                             "/storage1/pool/lookup2/hitran2004/HITRAN04.par",
-#                             80e9,
-#                             200e9 )
-#WriteXML( "ascii", abs_lines, "amsub.hitran04_lines.xml" )
+#abs_linesReadFromHitran( abs_lines,
+#                            "/storage3/data/catalogue/hitran/hitran2008/HITRAN2008/HITRAN08.par",
+#                            17e9,
+#                            120e9 )
+#WriteXML( "ascii", abs_lines, amsua.hitran08_lines.xml"" )
 
-ReadXML( abs_lines, "amsub.hitran04_lines.xml" )
+ReadXML( abs_lines, "amsua.hitran08_lines.xml" )
 abs_lines_per_speciesCreateFromLines
 
 # WARNING: If you redefine abs_species, and want to do a line-by-line
@@ -77,37 +77,25 @@ MatrixSetConstant( sensor_pos, nrows, ncols, 850e3 )
 # Sensor response setup
 # ---
 #Nominal frequencies 
-#MatrixSet( sensor_description_amsu
-#           # center freq[Hz],offset1[Hz], BW[Hz], Verbosity
-#           
-#           [    23.8e9,         0.0e6,   0.0e6,     270e6 ,  0; #1
-#                31.4e9,         0.0e6,   0.0e6,     180e6 ,  0; #2
-#                50.3e9,         0.0e6,   0.0e6,     180e6 ,  0; #3
-#                52.8e9,         0.0e6,   0.0e6,     400e6 ,  0; #4
-#                53.596115e6,  115.0e6,   0.0e6,     170e6 ,  0; #5
-#                54.400e9,       0.0e6,   0.0e6,     400e6 ,  0; #6
-#                54.940e9,       0.0e6,   0.0e6,     400e6 ,  0; #7
-#                55.50e9,        0.0e6,   0.0e6,     330e6 ,  0; #8
-#                57.290344e9,    0.0e6,   0.0e6,     330e6 ,  0; #9
-#                57.290344e9,  217.0e6,   0.0e6,      78e6 ,  0; #10
-#                57.290344e9,  322.2e6,   48.0e6,     36e6 ,  0; #11
-#                57.290344e9,  322.2e6,   22.0e6,     16e6 ,  0; #12
-#                57.290344e9,  322.2e6,   10.0e6,      8e6 ,  0; #13
-#                57.290344e9,  322.2e6,    4.5e6,      3e6 ,  0; #14
-#      	        89.0e9,         0.0e9,    0.0e6,     2000e6 , 0] ) # 15
-#
-# ---
-# Until we have a good AMSU-A test case use the AMSU-B  test
-# ---
 MatrixSet( sensor_description_amsu,
-           [  89.00e9, 0.90e9, 1000e6, 0,  100e6;   # original part of the AMSU-B sensor
-            #  88.10e9, 0.00e9, 1000e6, 0,  0;   # part one of the single band 
-            #  89.90e9, 0.00e9, 1000e6, 0,  0;   # part two of a single band 
-           #  89.00e9, 0.90e9,  500e6, 250e6,100e6; # Four band example
-      	     150.00e9, 0.90e9, 1000e6,  0,  100e6;
-      	     183.31e9, 1.00e9,  500e6,  0,  100e6;
-      	     183.31e9, 3.00e9, 1000e6,  0,  100e6;
-      	     183.31e9, 7.00e9, 2000e6,  0,  100e6])
+           #   centerFreq,      offset1, offset2,   BW   ,  Fgrid  ; ChanNr 
+		   #   all frequencies are in Hz 
+           [    23.8e9,         0.0e6,   0.0e6,     270e6 ,  13e6; #1
+                31.4e9,         0.0e6,   0.0e6,     180e6 ,   9e6; #2
+                50.3e9,         0.0e6,   0.0e6,     180e6 ,   9e6; #3
+                52.8e9,         0.0e6,   0.0e6,     400e6 ,   20e6; #4
+                53.596115e9,  115.0e6,   0.0e6,     170e6 ,   8e6; #5
+                54.400e9,       0.0e6,   0.0e6,     400e6 ,   20e6; #6
+                54.940e9,       0.0e6,   0.0e6,     400e6 ,   20e6; #7
+                55.50e9,        0.0e6,   0.0e6,     330e6 ,   15e6; #8
+                57.290344e9,    0.0e6,   0.0e6,     330e6 ,   15e6; #9
+                57.290344e9,  217.0e6,   0.0e6,      78e6 ,    4e6; #10
+                57.290344e9,  322.2e6,   48.0e6,     36e6 ,  1.5e6; #11
+                57.290344e9,  322.2e6,   22.0e6,     16e6 ,  0.8e6; #12
+                57.290344e9,  322.2e6,   10.0e6,      8e6 ,  0.4e6; #13
+                57.290344e9,  322.2e6,    4.5e6,      3e6 ,  0.1e6; #14
+      	        89.0e9,         0.0e9,    0.0e6,     2000e6 ,100e6 # 15
+      	     ] )
 
 sensor_responseGenericAMSU
 }

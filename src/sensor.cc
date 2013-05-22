@@ -1180,55 +1180,91 @@ void find_effective_channel_boundaries(// Output:
   out2 << "  Original channel characteristics:\n"
        << "  min         nominal      max (all in Hz):\n";
 
+  // count the number of passbands as defined by segments of filtershapes, backend_channel_response.data = [0,>0,>0,0]
+  // Borders between passbands are identified as [...0,0...]
+
   // Get a list of original channel boundaries:
-  Vector fmin_orig(n_chan);
-  Vector fmax_orig(n_chan);  
-  for (Index i=0; i<n_chan; ++i)
+  Index numPB = 0;
+  for(Index idx=0;idx<n_chan;++idx)
+  {
+    const Vector& backend_filter = backend_channel_response[idx].data;
+    for(Index idy =1;idy < backend_filter.nelem();++idy)
     {
-      // Some handy shortcuts:
-      const Vector& backend_f_grid   = backend_channel_response[i].get_numeric_grid(0);
-//      const Vector& backend_response = backend_channel_response[i];
-      const Index   nf               = backend_f_grid.nelem();
-
-
-      // We have to find the first and last frequency where the
-      // response is actually different from 0. (No point in making
-      // calculations for frequencies where the response is 0.)
-//       Index j=0;
-//       while (backend_response[j] <= 0) ++j;
-//       Numeric bf_min = backend_f_grid[j];
-
-//       j=nf-1;
-//       while (backend_response[j] <= 0) --j;
-//       Numeric bf_max = backend_f_grid[j];
-      //
-      // No, aparently the sensor part want values also where the
-      // response is zero. So we simply take the grid boundaries here.
-      Numeric bf_min = backend_f_grid[0];
-      Numeric bf_max = backend_f_grid[nf-1];
-
-
-      // We need to add a bit of extra margin at both sides,
-      // otherwise there is a numerical problem in the sensor WSMs.
-      //
-      // PE 081003: The accuracy for me (double on 64 bit machine) appears to
-      // be about 3 Hz. Select 1 MHz to have a clear margin. Hopefully OK
-      // for other machines.
-      //
-      // SAB 2010-04-14: The approach with a constant delta does not seem to work 
-      // well in practice. What I do now is that I add a delta corresponding to a 
-      // fraction of the grid spacing. But that is done outside of this function. 
-      // So we set delta = 0 here.
-      //
-      // SAB 2010-05-03: Now we pass delta as a parameter (with a default value of 0).
-
-      fmin_orig[i] = f_backend[i] + bf_min - delta;
-      fmax_orig[i] = f_backend[i] + bf_max + delta;
-
-      out2 << "  " << fmin_orig[i] 
-           << "  " << f_backend[i] 
-           << "  " << fmax_orig[i] << "\n";
+      if((backend_filter[idy] ==0)&& (backend_filter[idy-1]==0))
+      {
+          numPB ++; // Two consecutive zeros gives the border between two passbands
+      }
     }
+    numPB ++; 
+  }
+  cout <<" total number of passbands "<<numPB<<endl;
+
+  Vector fmin_pb(numPB);
+  Vector fmax_pb(numPB);
+  Index pbIdx = 0;
+
+  for(Index idx=0;idx<n_chan;++idx) 
+  {
+    // Some handy shortcuts:
+    //
+    // We have to find the first and last frequency where the
+    // response is actually different from 0. (No point in making
+    // calculations for frequencies where the response is 0.)
+    //       Index j=0;
+    //       while (backend_response[j] <= 0) ++j;
+    //       Numeric bf_min = backend_f_grid[j];
+
+    //       j=nf-1;
+    //       while (backend_response[j] <= 0) --j;
+    //       Numeric bf_max = backend_f_grid[j];
+    //
+    // No, aparently the sensor part want values also where the
+    // response is zero. So we simply take the grid boundaries here.
+    //
+    // We need to add a bit of extra margin at both sides,
+    // otherwise there is a numerical problem in the sensor WSMs.
+    //
+    // PE 081003: The accuracy for me (double on 64 bit machine) appears to
+    // be about 3 Hz. Select 1 MHz to have a clear margin. Hopefully OK
+    // for other machines.
+    //
+    // SAB 2010-04-14: The approach with a constant delta does not seem to work 
+    // well in practice. What I do now is that I add a delta corresponding to a 
+    // fraction of the grid spacing. But that is done outside of this function. 
+    // So we set delta = 0 here.
+    //
+    // SAB 2010-05-03: Now we pass delta as a parameter (with a default value of 0).
+    //
+    // Isoz 2013-05-21: Added methods to ignore areas between passbands
+    //
+    const Vector& backend_f_grid   = backend_channel_response[idx].get_numeric_grid(0);
+    const Vector& backend_filter = backend_channel_response[idx].data;
+    if(backend_filter.nelem()>=4)// Is the passband frequency response given explicitly ? e.g. [0,>0,>0,0]
+    {
+      for(Index idy =1;idy < backend_filter.nelem();++idy)
+      {
+        if((backend_filter[idy] >0) && (backend_filter[idy-1]==0))
+        {
+          fmin_pb[pbIdx]= f_backend[idx] + backend_f_grid[idy-1]-delta;
+        }
+        if((backend_filter[idy] ==0) && (backend_filter[idy-1]>0))
+        {
+          fmax_pb[pbIdx]= f_backend[idx] + backend_f_grid[idy]+delta;
+          pbIdx++;
+        }
+      }
+    } 
+    else // Or are the passbands given implicitly - such as the default for AMSUA and MHS
+    {
+      fmin_pb[pbIdx]= f_backend[idx] + backend_f_grid[0]-delta ; //delta;
+      fmax_pb[pbIdx]= f_backend[idx] + backend_f_grid[backend_f_grid.nelem()-1]+delta; ///delta;
+    }
+    out2 << "  " << fmin_pb[idx] 
+         << "  " << f_backend[idx] 
+         << "  " << fmax_pb[idx] 
+         << "\n";
+    pbIdx++;
+  }
 
   // The problem is that channels may be overlapping. In that case, we
   // want to create a frequency grid that covers their entire range,
@@ -1244,17 +1280,17 @@ void find_effective_channel_boundaries(// Output:
   // some HIRS channels.) We sort by the minimum frequency here, not
   // by f_backend. This is necessary for function
   // test_and_merge_two_channels to work correctly. 
-  ArrayOfIndex isorted;  
-  get_sorted_indexes (isorted, fmin_orig);
+  ArrayOfIndex isorted;
+  get_sorted_indexes(isorted,fmin_pb);
 
-  fmin.resize(n_chan);
-  fmax.resize(n_chan);
-  for (Index i=0; i<n_chan; ++i)
-    {
-      fmin[i] = fmin_orig[isorted[i]];
-      fmax[i] = fmax_orig[isorted[i]];
-    }
-
+  fmin.resize(numPB);
+  fmax.resize(numPB);
+  out2 <<" resize numPb "<<numPB<<"\n";
+  for(Index idx = 0;idx<numPB;++idx)
+  {
+    fmin[idx] = fmin_pb[isorted[idx]];
+    fmax[idx] = fmax_pb[isorted[idx]];
+  }
   // We will be testing pairs of channels, and combine them if
   // possible. We have to test always only against the direct
   // neighbour. If that has no overlap, higher channels can not have

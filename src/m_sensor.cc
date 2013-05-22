@@ -470,7 +470,7 @@ void f_gridFromSensorAMSUgeneric(// WS Output:
     const ArrayOfGriddedField1& backend_channel_response_multi,
     // Control Parameters:
     const Numeric& spacing,
- //   const Vector& verbosityVect,
+    const Vector& verbosityVect,
     const Verbosity& verbosity)
 {
   CREATE_OUT2;
@@ -501,10 +501,14 @@ void f_gridFromSensorAMSUgeneric(// WS Output:
   // which will identify channel boundaries, taking care of overlaping channels.
 
 
-  // A "flat" vector of nominal band frequencies (two for each AMSU channel):
+  // A "flat" vector of nominal band frequencies (one for each AMSU channel):
   Vector f_backend_flat(numChan);
-  // A "flat" list of channel response functions (two for each AMSU channel)
+  // A "flat" list of channel response functions (one for each AMSU channel)
   ArrayOfGriddedField1 backend_channel_response_nonflat(numChan);
+  // Three vectors to keep track of the gridspacing 
+  Vector fmin_vect(numChan);
+  Vector fmax_vect(numChan);
+
 
   // Counts position inside the flat arrays during construction:
   Index j=0;
@@ -517,17 +521,22 @@ void f_gridFromSensorAMSUgeneric(// WS Output:
     // Signal passband :
     f_backend_flat[j] = this_f_backend;
     backend_channel_response_nonflat[j] = this_grid;
+
+    // vectors for the spacing
+    fmin_vect[i] = this_f_backend-this_grid.get_numeric_grid(0)[0]-spacing;
+    fmax_vect[i] = this_f_backend+this_grid.get_numeric_grid(0)[this_grid.get_numeric_grid(0).nelem()-1]+spacing;
     j++;
   }
 
   // We build up a total list of absolute frequency ranges for all passbands 
   // Code reused from the function "f_gridFromSensorAMSU"
-  Vector fmin(numChan), fmax(numChan);
+  Vector fmin,fmax;  // - these variables will be resized, therefore len(1) is enough for now.,
 
   // We have to add some additional margin at the band edges, 
   // otherwise the instrument functions are not happy. Define 
   // this in terms of the grid spacing:
-  Numeric delta = 1*spacing;
+  // make this static
+  const Numeric delta = spacing;
 
   // Call subfunction to do the actual work of merging overlapping 
   // channels and identifying channel boundaries:
@@ -543,11 +552,49 @@ void f_gridFromSensorAMSUgeneric(// WS Output:
 
   for (Index i=0; i<fmin.nelem(); ++i)
   {
-    // Band width:
+    // Bandwidth:
     const Numeric bw = fmax[i] - fmin[i];
+    Numeric npf  = ceil(bw/spacing); // Set a default value
 
     // How many grid intervals do I need?
-    const Numeric npf = ceil(bw/spacing);
+    Index verbIdx = 0;
+    if(verbosityVect.nelem()>0)
+    { 
+      // find the grid needed for the particular part of passband
+      for(Index ii =0;ii<verbosityVect.nelem();++ii)
+      {
+        if((fmin_vect[ii]>=fmin[i]) && (fmax_vect[ii]<=fmax[i]))
+        {
+          if(verbIdx ==0)
+          {
+            verbIdx = ii;
+          } 
+          else 
+          {
+            if(verbosityVect[ii]<verbosityVect[verbIdx])
+            {
+              verbIdx = ii;
+            }
+          }
+        }
+        if(spacing > verbosityVect[verbIdx])
+        {
+          npf = ceil(bw/verbosityVect[verbIdx]); // is the default value to coarse?
+        }
+        else 
+        {
+          npf  = ceil(bw/spacing); // Default value
+        }
+      }
+    out2
+      <<" Fmin Idx "
+      <<i 
+      <<" npf "
+      <<npf 
+      << "\n";
+
+    }
+
 
     // How many grid points to store? - Number of grid intervals
     // plus 1.
@@ -2181,21 +2228,25 @@ void sensor_responseGenericAMSU(// WS Output:
   ConstVectorView lo_multi = sensor_description_amsu(Range(joker),0);
   ConstMatrixView offset   = sensor_description_amsu(Range(joker),Range(1,m-2)); // Remember to ignore column 2..
   ConstVectorView verbosityVectIn = sensor_description_amsu(Range(joker),m-1);
-  ConstVectorView width    = sensor_description_amsu(Range(joker),2);
+  ConstVectorView width    = sensor_description_amsu(Range(joker),m-2);
 
 
 
   //is there any undefined verbosity values in the vector?
   //Set the verbosity to one third of the bandwidth to make sure that the passband flanks does't overlap
-  Numeric minRatioVerbosityVsFdiff = 100;  // To be used when to passbands are closer then one verbosity value 
+  const Numeric minRatioVerbosityVsFdiff = 10;  // To be used when to passbands are closer then one verbosity value  
   Vector verbosityVect(n);
-  cout << "verbosityVectIn  "<<verbosityVectIn <<endl;
-  for(Index i = 0;i<(n);++i){
-    verbosityVect[i] = verbosityVectIn[i];
-    if((verbosityVectIn[i] ==0) || (verbosityVectIn[i]> width[i]))
+
+  for(Index idx = 0;idx<n;++idx)
+  {
+    if((verbosityVectIn[idx] ==0) || (verbosityVectIn[idx]> width[idx]))
     {
-      verbosityVect[i] = ((Numeric)width[i])/3;
+      verbosityVect[idx] = ((Numeric)width[idx])/3;
     }
+    else 
+    {
+      verbosityVect[idx] = verbosityVectIn[idx];
+    }	
   }
 
   // Create a vector to store the number of passbands (PB) for each channel 
@@ -2206,7 +2257,7 @@ void sensor_responseGenericAMSU(// WS Output:
     numPB[i] = 0 ; // make sure that it is zero
     for(Index j=0;j<(m-2);++j)
     {
-      if(j!=1)
+      if(j!=2)
       {
         if (offset(i,j)>0)
         {
@@ -2219,11 +2270,10 @@ void sensor_responseGenericAMSU(// WS Output:
     if(numPB[i]>4)
     {
       ostringstream os;
-      os << "This function does not yet support more than 4 passbands per channel"
+      os << "This function does currently not support more than 4 passbands per channel"
         << numPB[i]<< ".";
       throw runtime_error( os.str() );
     }
-
   }  
 
   // Find the center frequencies for all sub-channels
@@ -2243,12 +2293,13 @@ void sensor_responseGenericAMSU(// WS Output:
     b_resp.resize(4*(Index)numPB[i]);
     Vector f_range(4*(Index)numPB[i]);
     Numeric pbOffset = 0;
+    const Numeric slope = 10; 
     for(Index pbOffsetIdx = 0;pbOffsetIdx<numPB[i];++pbOffsetIdx)
     { // Filter response 
-      f_range[pbOffsetIdx*4+0] = -0.5*width[i]-0.01*verbosityVect[i];
-      f_range[pbOffsetIdx*4+1] = -0.5*width[i]+0.01*verbosityVect[i];
-      f_range[pbOffsetIdx*4+2] = +0.5*width[i]-0.01*verbosityVect[i];
-      f_range[pbOffsetIdx*4+3] = +0.5*width[i]+0.01*verbosityVect[i];
+      f_range[pbOffsetIdx*4+0] = -0.5*width[i]-slope;
+      f_range[pbOffsetIdx*4+1] = -0.5*width[i]+slope;
+      f_range[pbOffsetIdx*4+2] = +0.5*width[i]-slope;
+      f_range[pbOffsetIdx*4+3] = +0.5*width[i]+slope;
       b_resp.data[pbOffsetIdx*4+0] = 0;
       b_resp.data[pbOffsetIdx*4+1] = 1;
       b_resp.data[pbOffsetIdx*4+2] = 1;
@@ -2358,8 +2409,8 @@ void sensor_responseGenericAMSU(// WS Output:
       // in
       f_backend_multi, 
       backend_channel_response_multi, 
-      spacing,
-  //    verbosityVect,
+	  spacing,
+      verbosityVect,
       verbosity);
 
   // do some final work...

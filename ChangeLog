@@ -1,3 +1,22 @@
+2013-05-22 Oscar Isoz <oscar.isoz@ltu.se>
+
+	* arts-2-1-646 
+
+	* src/sensor.cc (find_effective_channel_boundaries):
+	Modified the code so that it can ignore frequencies where the filter
+	response explicitly  is set to zero, particularly useful for the  AMSU-A
+	channels. 
+
+	* src/m_sensor.cc (f_gridFromSensorAMSUgeneric):
+	Added support to have set a separate frequency grid spacing for each channel
+
+	* src/m_sensor.cc (sensor_responseGenericAMSU):
+	Minor bugfixes, main change was to make the slopes of edges of the
+	backend_channel_response f_grid edges constant.
+
+	* controlfiles/CMakeLists.txt, instruments/amsu/TestAMSUA.arts : 
+	Added AMSU-A test case, not run by default yet
+
 2013-05-22  Jana Mendrok <jana.mendrok@ltu.se>
 
 	* arts-2-1-645

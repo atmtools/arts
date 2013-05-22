@@ -92,6 +92,8 @@ arts_test_run_ctlfile(slow.odinsmr.1D instruments/odinsmr/TestOdinSMR_1D.arts)
 arts_test_run_ctlfile(fast.amsub instruments/amsu/TestAMSUB_fast.arts)
 arts_test_run_ctlfile(slow.amsub instruments/amsu/TestAMSUB.arts)
 
+arts_test_run_ctlfile(nocheck.amsua instruments/amsu/TestAMSUA.arts)
+
 arts_test_run_ctlfile(fast.mhs instruments/mhs/TestMHS_fast.arts)
 arts_test_run_ctlfile(slow.mhs instruments/mhs/TestMHS.arts)
 

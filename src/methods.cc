@@ -4316,10 +4316,10 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "f_backend","backend_channel_response" ),
-        GIN( "spacing"),
-        GIN_TYPE(    "Numeric"),
-        GIN_DEFAULT( ".1e9" ),
-        GIN_DESC( "Desired grid spacing in Hz.")
+        GIN( "spacing","verbosityVect"),
+        GIN_TYPE(    "Numeric","Vector"),
+        GIN_DEFAULT( ".1e9","[]"),
+        GIN_DESC( "Desired grid spacing in Hz.","Bandwidth adjusted spacing")
         ));
 
   md_data_raw.push_back     
