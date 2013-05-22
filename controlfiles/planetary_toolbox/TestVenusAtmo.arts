@@ -1,12 +1,11 @@
 #####
 #
-# This is a template file for deriving user-selected Jupiter (atmospheric) data
+# This is a template file for deriving user-selected Venus (atmospheric) data
 # from the arts-xml-data package and bringing it to p/lat/lon_grids.
 #
 #####
 
 Arts2 {
-INCLUDE "general/general.arts"
 
 IndexCreate( atmo )
 ArrayOfIndexCreate( basespecies )
@@ -19,8 +18,8 @@ IndexCreate( zeropad )
 IndexCreate( vmr_zeropad )
 IndexCreate( interp_order )
 
-INCLUDE "atmo_venus.arts"
-INCLUDE "../common/createvars.arts"
+INCLUDE "planetary_toolbox/includes/venus/atmo_venus.arts"
+INCLUDE "planetary_toolbox/includes/common/createvars.arts"
 
 IndexSet( zeropad, 1 )
 IndexSet( vmr_zeropad, 1 )
@@ -29,7 +28,7 @@ IndexSet( interp_order, 1 )
 
 #===========================================
 
-VectorNLogSpace( p_grid, 51, 5e5, 5e-2 )
+VectorNLogSpace( p_grid, 51, 9e6, 9e-12 )
 VectorNLinSpace( lat_grid, 11, 45, 55 )
 VectorNLinSpace( lon_grid, 11, 5, 15 )
 AtmosphereSet3D
@@ -85,16 +84,16 @@ ArrayOfIndexSet( hdospecies, [3] )
 # Electron density: depending on solar zenith angle. Note that SZA<90 are only
 # available for day data, SZA>90 for night data (non-matching selection will
 # lead to a runtime error).
-#        day       day       day       day       day      night       night
+#       day       day       day       day       day      night       night
 ### SZA0-30, SZA30-50, SZA50-70, SZA70-80, SZA80-90, SZA90-100, SZA100-120
-#          0,        1,        2,        3,        4,         5,          6
+#         0,        1,        2,        3,        4,         5,          6
 ArrayOfIndexSet( Necase, [5] )
 
 
-INCLUDE "getatmo_venus.arts"
+INCLUDE "planetary_toolbox/includes/venus/getatmo_venus.arts"
 # uncomment one of the following, depending on the desired atmospheric dimensionality
-INCLUDE "../common/makeatmo1D.arts"
-#INCLUDE "../common/makeatmo3D.arts"
+INCLUDE "planetary_toolbox/includes/common/makeatmo1D.arts"
+#INCLUDE "planetary_toolbox/includes/common/makeatmo3D.arts"
 
 #===========================================
 
@@ -113,15 +112,15 @@ ArrayOfIndexSet( NSwind, [0] )
 #              0  ,    1  ,   2
 ArrayOfIndexSet( EWwind, [1] )
 
-INCLUDE "getwind_venus.arts"
+INCLUDE "planetary_toolbox/includes/venus/getwind_venus.arts"
 
 # if you WANT N-S winds (NSwind NOT to be empty then!!), UNcomment this (but
 # only ONE of the two includes! depending on the desired atmospheric
 # dimensionality) 
 Copy( rawfield, wind_v_raw )
 # uncomment only ONE of the following two!
-INCLUDE "../common/makefield1D.arts"
-#INCLUDE "../common/makefield3D.arts"
+INCLUDE "planetary_toolbox/includes/common/makefield1D.arts"
+#INCLUDE "planetary_toolbox/includes/common/makefield3D.arts"
 Copy( wind_v_field, finalfield )
 
 # if you WANT E-W winds (EWwind NOT to be empty then!!), UNcomment this (but
@@ -129,8 +128,8 @@ Copy( wind_v_field, finalfield )
 # dimensionality) 
 Copy( rawfield, wind_u_raw )
 # uncomment only ONE of the following two!
-INCLUDE "../common/makefield1D.arts"
-#INCLUDE "../common/makefield3D.arts"
+INCLUDE "planetary_toolbox/includes/common/makefield1D.arts"
+#INCLUDE "planetary_toolbox/includes/common/makefield3D.arts"
 Copy( wind_u_field, finalfield )
 
 

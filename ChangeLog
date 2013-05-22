@@ -1,3 +1,22 @@
+2013-05-22  Jana Mendrok <jana.mendrok@ltu.se>
+
+	* arts-2-1-647
+
+	* controlfiles/planetary_toolbox/includes/mars/*.arts:
+	Added include files for getting Mars atmospheric setups (selecting
+	scenario and species/parameters to include, reading in, and bringing
+	to calculation grids).
+
+	* controlfiles/planetary_toolbox/Test{planet}Atmo.arts:
+	Moved the previous My{planet}.arts from their respective directories to
+	here as these are the templates for the actual main controlfiles (we
+	don't want to hide them too far down). Made all includes absolute (allow
+	to use or include this file from anywhere).
+
+	* controlfiles/planetary_toolbox/includes/venus/[getatmo_venus,getwind].arts,
+	controlfiles/planetary_toolbox/includes/common/createvars.arts:
+	Minor docu- and bug-fixes.
+
 2013-05-22 Oscar Isoz <oscar.isoz@ltu.se>
 
 	* arts-2-1-646 

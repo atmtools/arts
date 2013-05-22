@@ -5,7 +5,8 @@
 #
 # This file expects the following input parameters:
 #   atmo           (Index)           The atmospheric scenario.
-#   windcase       (ArrayOfIndex)    Wind setup selected (off/Galileo/thermal).
+#   NSwind         (ArrayOfIndex)    N-S wind setup selected.
+#   EWwind         (ArrayOfIndex)    E-W wind setup selected.
 #
 # It provides following output:
 #   wind_v_raw     (GriddedField3)   raw version of wind_v_field 
@@ -58,7 +59,7 @@ nelemGet( ncases, casearray )
 IndexStepDown( ncases, ncases )
 Copy( forloop_agenda, windloop_agenda )
 ForLoop( forloop_agenda, 0, ncases, 1 )
-ReadXML( out=wind_u_raw, filename=Btmp )
+ReadXML( out=wind_v_raw, filename=Btmp )
 
 # (2) E-W Winds
 Copy( specfilename, atmostr )
@@ -67,7 +68,7 @@ nelemGet( ncases, casearray )
 IndexStepDown( ncases, ncases )
 Copy( forloop_agenda, windloop_agenda )
 ForLoop( forloop_agenda, 0, ncases, 1 )
-ReadXML( out=wind_v_raw, filename=Btmp )
+ReadXML( out=wind_u_raw, filename=Btmp )
 
 }
  

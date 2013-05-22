@@ -1,0 +1,121 @@
+#####
+#
+# This file does the actual work of selecting and reading in Martian atmospheric
+# wind data as specified by the user in the MyMars.arts template.
+#
+# This file expects the following input parameters:
+#   Ls             (Index)           The season of the atmospheric scenario.
+#   daytime        (Index)           The daytime of the atmospheric scenario.
+#   dust           (Index)           The dust loading of the atmospheric scenario.
+#   solar          (Index)           The solar activity level of the atmospheric
+#                                     scenario.
+#   NSwind         (ArrayOfIndex)    N-S wind setup selected.
+#   EWwind         (ArrayOfIndex)    E-W wind setup selected.
+#
+# It provides following output:
+#   wind_u_raw     (GriddedField3)   raw version of wind_u_field
+#   wind_v_raw     (GriddedField3)   raw version of wind_v_field 
+#   wind_w_raw     (GriddedField3)   raw version of wind_w_field
+#
+# Unless further variables or options for existing variables are introduced,
+# there is NO need to MODOFY this file.
+#
+#####
+
+Arts2 {
+
+#StringSet( tmpformat, "ascii" )
+StringSet( tmpformat, "binary" )
+
+StringSet( Btmp, "tmp1.xml" )
+
+Touch( gf3tmp )  #this in case gf3tmp hasn't beenused before
+Delete( gf3tmp ) #this to throw away possible data in gf3tmp (if it was used before)
+Touch( gf3tmp )  #this to initialize it again after deleting
+# this to have a properly formated file to read after the forloops
+WriteXML( output_file_format=tmpformat, in=gf3tmp, filename=Btmp )
+
+AgendaCreate( windloop_agenda )
+AgendaSet( windloop_agenda ){
+  Extract( strtmp, casearray, forloop_index )
+  Append( specfilename, strtmp )
+#  Print( specfilename, 0 )
+  ReadXML( gf3tmp, specfilename )
+  WriteXML( output_file_format=tmpformat, in=gf3tmp, filename=Btmp )
+}
+
+
+# Read the atmospheric setup
+# ---
+# first, create the casename string down to the common filename part in the
+# scenario folder. For Mars that takes a little more than for the other
+# planets... data is located in
+# Mars.Ls.daytime.dust/
+#   Mars.Ls.daytime.dust.solar/
+#     Mars.Ls.daytime.dust.solar.variable.xml
+Copy( superatmo, atmobase )
+# construct upper level path name (Mars.Ls.daytime.dust)
+StringSet( atmostr, "Mars" )
+StringSet( strtmp, "." )
+Append( atmostr, strtmp )
+Extract( subatmo, Lsarray, Ls )
+Append( atmostr, subatmo )
+Append( atmostr, strtmp )
+Extract( subatmo, daytimearray, daytime )
+Append( atmostr, subatmo )
+Append( atmostr, strtmp )
+Extract( subatmo, dustarray, dust )
+Append( atmostr, subatmo )
+# append upper level path name (Mars.Ls.daytime.dust) to base path
+Append( superatmo, atmostr )
+StringSet( strtmp, "/" )
+Append( superatmo, strtmp )
+# go on to construct lower level path name (Mars.Ls.daytime.dust.solar)
+StringSet( strtmp, "." )
+Append( atmostr, strtmp )
+Extract( subatmo, solararray, solar )
+Append( atmostr, subatmo )
+# append lower level path name (Mars.Ls.daytime.dust.solar) to base/upper-level
+# path
+Append( superatmo, atmostr )
+StringSet( strtmp, "/" )
+Append( superatmo, strtmp )
+# append base file name (Mars.Ls.daytime.dust.solar.) to path construction
+Append( superatmo, atmostr )
+StringSet( strtmp, "." )
+Append( superatmo, strtmp )
+# eventually, copy full path-basefilename combi to atmostr, to be consistent
+# with setups for the other planets, where we used atmostr for the atmo scenario
+# file location
+Copy( atmostr, superatmo )
+
+
+# (1) Vertical Wind
+Copy( specfilename, atmostr )
+Select( casearray, NSwindarray, NSwind )
+nelemGet( ncases, casearray )
+IndexStepDown( ncases, ncases )
+Copy( forloop_agenda, windloop_agenda )
+ForLoop( forloop_agenda, 0, ncases, 1 )
+ReadXML( out=wind_w_raw, filename=Btmp )
+
+# (2) N-S Wind
+Copy( specfilename, atmostr )
+Select( casearray, NSwindarray, NSwind )
+nelemGet( ncases, casearray )
+IndexStepDown( ncases, ncases )
+Copy( forloop_agenda, windloop_agenda )
+ForLoop( forloop_agenda, 0, ncases, 1 )
+ReadXML( out=wind_v_raw, filename=Btmp )
+
+# (3) E-W Wind
+Copy( specfilename, atmostr )
+Select( casearray, EWwindarray, EWwind )
+nelemGet( ncases, casearray )
+IndexStepDown( ncases, ncases )
+Copy( forloop_agenda, windloop_agenda )
+ForLoop( forloop_agenda, 0, ncases, 1 )
+ReadXML( out=wind_u_raw, filename=Btmp )
+
+}
+ 

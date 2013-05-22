@@ -1,14 +1,18 @@
 #####
 #
-# This file does the actual work of selecting and reading in Venus atmospheric
-# data as specified by the user in the MyVenus.arts template.
+# This file does the actual work of selecting and reading in Martian atmospheric
+# data as specified by the user in the MyMars.arts template.
 #
 # This file expects the following input parameters:
-#   atmo           (Index)           The atmospheric scenario.
+#   Ls             (Index)           The season of the atmospheric scenario.
+#   daytime        (Index)           The daytime of the atmospheric scenario.
+#   dust           (Index)           The dust loading of the atmospheric scenario.
+#   solar          (Index)           The solar activity level of the atmospheric
+#                                     scenario.
 #   basespecies    (ArrayOfIndex)    The abs_species to use (includes only such
 #                                     with on/off options only).
 #   h2ospecies     (ArrayOfIndex)    H2O setup selected (off/low/medium/high).
-#   hdospecies     (ArrayOfIndex)    HDO setup selected
+#   ndospecies     (ArrayOfIndex)    HDO setup selected
 #                                     (off/low/medium/high/uncorrected).
 #   Necase         (ArrayOfIndex)    Electron density setup selected
 #                                     (off/different sza-dependencies).
@@ -61,15 +65,47 @@ AgendaSet( speciesloop_agenda ){
 # Read the atmospheric setup
 # ---
 # first, create the casename string down to the common filename part in the
-# scenario folder.
-Copy( atmostr, atmobase )
-Extract( subatmo, atmoarray, atmo )
-Append( atmostr, subatmo )
-StringSet( strtmp, "/" )
-Append( atmostr, strtmp )
-Append( atmostr, subatmo )
+# scenario folder. For Mars that takes a little more than for the other
+# planets... data is located in
+# Mars.Ls.daytime.dust/
+#   Mars.Ls.daytime.dust.solar/
+#     Mars.Ls.daytime.dust.solar.variable.xml
+Copy( superatmo, atmobase )
+# construct upper level path name (Mars.Ls.daytime.dust)
+StringSet( atmostr, "Mars" )
 StringSet( strtmp, "." )
 Append( atmostr, strtmp )
+Extract( subatmo, Lsarray, Ls )
+Append( atmostr, subatmo )
+Append( atmostr, strtmp )
+Extract( subatmo, daytimearray, daytime )
+Append( atmostr, subatmo )
+Append( atmostr, strtmp )
+Extract( subatmo, dustarray, dust )
+Append( atmostr, subatmo )
+# append upper level path name (Mars.Ls.daytime.dust) to base path
+Append( superatmo, atmostr )
+StringSet( strtmp, "/" )
+Append( superatmo, strtmp )
+# go on to construct lower level path name (Mars.Ls.daytime.dust.solar)
+StringSet( strtmp, "." )
+Append( atmostr, strtmp )
+Extract( subatmo, solararray, solar )
+Append( atmostr, subatmo )
+# append lower level path name (Mars.Ls.daytime.dust.solar) to base/upper-level
+# path
+Append( superatmo, atmostr )
+StringSet( strtmp, "/" )
+Append( superatmo, strtmp )
+# append base file name (Mars.Ls.daytime.dust.solar.) to path construction
+Append( superatmo, atmostr )
+StringSet( strtmp, "." )
+Append( superatmo, strtmp )
+# eventually, copy full path-basefilename combi to atmostr, to be consistent
+# with setups for the other planets, where we used atmostr for the atmo scenario
+# file location
+Copy( atmostr, superatmo )
+
 
 # second, we construct the name for the specific data files one-by-one and read
 # into corresponding variable
@@ -111,22 +147,25 @@ IndexStepDown( ncases, ncases )
 Copy( forloop_agenda, speciesloop_agenda )
 ForLoop( forloop_agenda, 0, ncases, 1 )
 
-# (5) HDO (this before H2O, else it does not have any effect)
+# (5) CH4
 Copy( specfilename, atmostr )
-ArrayOfStringSet( speciesname, ["H2O-162"] )
-Select( casearray, HDOarray, hdospecies )
+ArrayOfStringSet( speciesname, ["CH4"] )
+Select( casearray, CH4array, ch4species )
 nelemGet( ncases, casearray )
 IndexStepDown( ncases, ncases )
 Copy( forloop_agenda, subspeciesloop_agenda )
 ForLoop( forloop_agenda, 0, ncases, 1 )
+ReadXML( out=abs_species, filename=abstmp )
 
 # (6) H2O
 Copy( specfilename, atmostr )
-ArrayOfStringSet( speciesname, ["H2O"] )
-Select( casearray, H2Oarray, h2ospecies )
+Select( speciesname, H2Oarray, h2ospecies )
+abs_speciesAdd( species=speciesname )
+WriteXML( output_file_format=tmpformat, in=abs_species, filename=abstmp )
+Select( casearray, H2Onamesarray, h2ospecies )
 nelemGet( ncases, casearray )
 IndexStepDown( ncases, ncases )
-Copy( forloop_agenda, subspeciesloop_agenda )
+Copy( forloop_agenda, speciesloop_agenda )
 ForLoop( forloop_agenda, 0, ncases, 1 )
 
 

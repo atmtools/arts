@@ -16,6 +16,7 @@ Arts2 {
 
 StringCreate( tmpformat )
 StringCreate( atmostr )
+StringCreate( superatmo )
 StringCreate( subatmo )
 StringCreate( specfilename )
 ArrayOfStringCreate( speciesname )

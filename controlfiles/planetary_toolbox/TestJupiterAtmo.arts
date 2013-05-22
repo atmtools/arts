@@ -1,12 +1,11 @@
 #####
 #
-# This is a template file for deriving user-selected Jupiter (atmospheric) data
+# This is a template file for deriving user-selected Jovian (atmospheric) data
 # from the arts-xml-data package and bringing it to p/lat/lon_grids.
 #
 #####
 
 Arts2 {
-INCLUDE "general/general.arts"
 
 IndexCreate( atmo )
 ArrayOfIndexCreate( basespecies )
@@ -21,8 +20,8 @@ IndexCreate( zeropad )
 IndexCreate( vmr_zeropad )
 IndexCreate( interp_order )
 
-INCLUDE "atmo_jupiter.arts"
-INCLUDE "../common/createvars.arts"
+INCLUDE "planetary_toolbox/includes/jupiter/atmo_jupiter.arts"
+INCLUDE "planetary_toolbox/includes/common/createvars.arts"
 
 IndexSet( zeropad, 1 )
 IndexSet( vmr_zeropad, 1 )
@@ -87,20 +86,20 @@ ArrayOfIndexSet( Necase, [] )
 # selects all (remaining, i.e., not yet selected) abs lines of the species. That
 # is, general species (i.e., highest index) shall be LAST in selection.
 
-### CH4: 212, all (remaining)
-#          0,   1
+### CH4: CDH3 (212), all (remaining)
+#           0      ,   1
 ArrayOfIndexSet( ch4species, [] )
 
-### H2: 12, all (remaining)
-#        0,   1
+### H2: HD (12), all (remaining)
+#        0     ,   1
 ArrayOfIndexSet( h2species, [1] )
 
 
-INCLUDE "getatmo_jupiter.arts"
+INCLUDE "planetary_toolbox/includes/jupiter/getatmo_jupiter.arts"
 # uncomment one of the following, depending on the desired atmospheric
 # dimensionality
-INCLUDE "../common/makeatmo1D.arts"
-#INCLUDE "../common/makeatmo3D.arts"
+INCLUDE "planetary_toolbox/includes/common/makeatmo1D.arts"
+#INCLUDE "planetary_toolbox/includes/common/makeatmo3D.arts"
 
 #===========================================
 
@@ -117,11 +116,11 @@ ArrayOfIndexSet( windcase, [1] )
 
 # if you WANT winds (windcase NOT to be empty then!!), UNcomment this (but only
 # ONE of the two includes! depending on the desired atmospheric dimensionality) 
-#INCLUDE "getwind_jupiter.arts"
+#INCLUDE "planetary_toolbox/includes/jupiter/getwind_jupiter.arts"
 #Copy( rawfield, wind_u_raw )
 # uncomment only ONE of the following two!
-#INCLUDE "../common/makefield1D.arts"
-#INCLUDE "../common/makefield3D.arts"
+#INCLUDE "planetary_toolbox/includes/common/makefield1D.arts"
+#INCLUDE "planetary_toolbox/includes/common/makefield3D.arts"
 #Copy( wind_u_field, finalfield )
 
 #===========================================
@@ -138,8 +137,8 @@ ArrayOfIndexSet( windcase, [1] )
 ArrayOfIndexSet( Bcase, [0] )
 
 # uncomment this if you want magfields (and make sure, Bcase is NOT empty!)
-#INCLUDE "getmagfield_jupiter.arts"
-#INCLUDE "../common/makemagfield.arts"
+#INCLUDE "planetary_toolbox/includes/jupiter/getmagfield_jupiter.arts"
+#INCLUDE "planetary_toolbox/includes/common/makemagfield.arts"
 
 #===========================================
 
