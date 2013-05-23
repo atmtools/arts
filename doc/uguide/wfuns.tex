@@ -1,4 +1,4 @@
-\chapter{Weighting functions: clear-sky conditions}
+\chapter{Clear-sky Jacobians}
  \label{sec:wfuns}
 
  \starthistory
@@ -8,11 +8,10 @@
 \graphicspath{{Figs/wfuns/}}
 
 
-Inversions of both OEM and Tikhonov type require that the ``weighting
-functions'' can be provided by the forward model \citep[see
-e.g.][]{eriksson:analy:00}. A retrieval characterisation following
-\citet{rodgers:90,rodgers:00} raises the same demand. A weighting function is
-defined as
+Inversions of both OEM and Tikhonov type require that the Jacobian can be
+provided by the forward model \citep[see e.g.][]{eriksson:analy:00}. A
+retrieval characterisation following \citet{rodgers:90,rodgers:00} raises the
+same demand. A column of the Jacobian, \aWfnMtr{\SttVct}, is defined as
 \begin{equation}
   \frac{\partial\MsrVct}{\partial\aSttElm{p}}
   \label{eq:wfuns:ki}
@@ -21,36 +20,34 @@ where \MsrVct\ is the vector of measurement data and \aSttElm{p}\ is one forward
 model (scalar) variable. See further Section~\ref{T-sec:formalism:wfuns} of
 \theory. The nomenclature of that section is also used here.
 
-A weighting function forms a column of the complete weighting function matrix,
-\aWfnMtr{\SttVct}. The usage of the name weighting function is maybe restricted
-just to atmospheric sounding and the Jacobian is a more commonly encountered
-name for \aWfnMtr{\SttVct}, in the general scientific literature. In the
-documentation of ARTS you find both terms. Also the term ``the Jacobians'' is
-used, which shall be interpreted as ``the weighting functions''. These names
+The quantity in Eq.~\ref{eq:wfuns:ki} is in the atmospheric sounding
+community frequently denoted as a ``weighting function'', and accordingly
+\aWfnMtr{\SttVct} is called the weighting function matrix. In the documentation
+of ARTS both terms (Jacobian and weighting functions) are used. These names
 refer normally to \aWfnMtr{\SttVct}, the partial derivatives with respect to
 the variables to be retrieved, forming the state vector \SttVct. However, in
 the context of retrieval characterisation, the same matrix for the remaining
 model parameters is of equally high interest, denoted as \aWfnMtr{\FrwMdlVct}.
 In the same manner, the terms inversion and retrieval are used interchangeably.
-``Weighting function'' is below shortened as WF.
 
 The main task of the user is to select which quantities that shall be
 retrieved, and to define the associated retrieval grids. These aspects must be
 considered for successful inversions, but are out of scope for this document.
 Beside for the most simple retrievals, it is further important to understand
-how the different WFs are calculated. A practical point is the calculation
-speed, primarily determined if perturbations or analytical expressions are used
-(Sec.~\ref{sec:wfuns:intro}). The derivation of the WFs involves some
-approximations due to theoretical and practical considerations. Such
-approximations can be accepted, if of low or moderate size, but will result in
-a slower convergence (the inversion will require more iterations). Due to these
-later aspects, and to meet the needs of more experienced users, this section is
-relatively detailed and contains a (high?) number of equations.
+how the Jacobian is calculated. A practical point is the calculation speed,
+primarily determined if perturbations or analytical expressions are used
+(Sec.~\ref{sec:wfuns:intro}). The derivation of the different Jacobians
+involves some approximations due to theoretical and practical considerations.
+Such approximations can be accepted, if of low or moderate size, but will
+result in a slower convergence (the inversion will require more iterations).
+Due to these later aspects, and to meet the needs of more experienced users,
+this section is relatively detailed and contains a (high?) number of equations.
 
-This section is restricted to WFs for clear-sky conditions, i.e.\ to be applied
-outside the cloudbox. As the basic radiative transfer expressions, the complete
-Stokes vector is considered, to correctly handle polarisation signatures
-created by the surface. So far none of the scattering methods provide WFs.
+This section is restricted to Jacobianss for clear-sky conditions, i.e.\ to be
+applied outside the cloudbox. As the basic radiative transfer expressions, the
+complete Stokes vector is considered, to correctly handle polarisation
+signatures created by the surface. So far none of the scattering methods
+provide Jacobians.
 
 Sections \ref{sec:wfuns:intro}\,-\,\ref{sec:wfuns:basis} contain information
 of general character, while the available quantities are discussed in the
@@ -62,7 +59,7 @@ remaining sections (Section~\ref{sec:wfuns:absspecies} and forward).
 %==============================================================================
 \label{sec:wfuns:intro}
 %
-There are two main approaches for calculating the WFs, by analytical
+There are two main approaches for calculating Jacobians, by analytical
 expressions and by perturbations. We start with the conceptually simplest one,
 but also the more inefficient approach.
 
@@ -72,9 +69,9 @@ but also the more inefficient approach.
 %==============================================================================
 \label{sec:wfuns:pert}
 %
-The most straightforward method to determine a WF is by perturbing the model
-parameter of concern. For example, the WF for the state variable $p$ can always
-be calculated as
+The most straightforward method to determine the Jacobian is by perturbing the
+model parameter of concern. For example, the Jacobian corresponding to state
+variable $p$ can always be calculated as
 \begin{equation}
   \aWfnMtr{\SttVct}^p = \frac{\FrwMdl(\SttVct+\Delta\SttElm\VctStl{e}^p,
                       \FrwMdlVct)-\FrwMdl(\SttVct,\FrwMdlVct)} {\Delta\SttElm}
@@ -98,11 +95,11 @@ short-cuts are discussed separately for each retrieval quantity.
 \label{sec:wfuns:anal}
 %
 For most atmospheric variables, such as species abundance, it is possible to
-derive an analytical expression for the WFs. This is advantageous because they
-result in faster and more accurate calculations. Such expressions are derived
-below. Some of the terms involved are calculated as a perturbation. This is
-partly a consequence of the flexibility of ARTS. The high-level radiative
-transfer methods (e.g.\ \builtindoc{iyEmissionStandard}) do not know
+derive an analytical expression for the Jacobians. This is advantageous because
+they result in faster and more accurate calculations. Such expressions are
+derived below. Some of the terms involved are calculated as a perturbation.
+This is partly a consequence of the flexibility of ARTS. The high-level
+radiative transfer methods (e.g.\ \builtindoc{iyEmissionStandard}) do not know
 how the low-level methods are defining all quantities, and a fixed analytical
 expression can not be used (see e.g.\ Sec.~\ref{sec:wfuns:atmtemp}). So, in
 practise, the calculations are ``semi-analytical''.
@@ -121,7 +118,7 @@ Eq.~\ref{eq:fm_defs:measseq}).
 %==============================================================================
 \label{sec:wfuns:wsm}
 %
-As a workspace variable, the WF matrix is denoted as \wsvindex{jacobian}.
+As a workspace variable, the Jacobian is denoted as \wsvindex{jacobian}.
 Auxiliary information is provided by \wsvindex{jacobian\_quantities} and
 \wsvindex{jacobian\_indices}. The actual calculations are made as part of
 \builtindoc{yCalc}. 
@@ -134,8 +131,8 @@ is \builtindoc{jacobianAddTemperature}. It does not matter in which order these
 ``add methods'' are called.
 
 The definition of retrieval quantities is finalised by calling
-\wsmindex{jacobianClose}. To disable the calculation of WFs, skip all above,
-and just use \wsmindex{jacobianOff}. The methods named jacobianCalc{\it
+\wsmindex{jacobianClose}. To disable the calculation of the Jacobian, skip all
+above, and just use \wsmindex{jacobianOff}. The methods named jacobianCalc{\it
   Something} shall never be used directly. Neither needs the user to consider
 \wsaindex{jacobian\_agenda}.
 
@@ -163,10 +160,10 @@ consistently through the forward model . This mapping is given by the basis
 functions\index{basis function}. Similar arguments and nomenclature are found
 in \citet{read:thecl:06}.
 
-The basis functions are discussed explicitly in few places in this user
-guide, but it shall be noted that all interpolations imply an underlying set
-of basis functions. On the other hand, an understanding of both the derivation
-and the obtained WFs require direct consideration of the basis functions. ARTS
+The basis functions are discussed explicitly in few places in this user guide,
+but it shall be noted that all interpolations imply an underlying set of basis
+functions. On the other hand, an understanding of both the derivation and the
+obtained Jacobians require direct consideration of the basis functions. ARTS
 operates with two types of basis functions.
 
 
@@ -254,10 +251,11 @@ Element $j$ of $\VctStl{z}_i$ is
 
 \subsection{Common practicalities}
 %
-To obtain WFs for absorption species, use \wsmindex{jacobianAddAbsSpecies}. The
-method handles one species at the time. The calculations can either be done in
-in ``analytical'' or ``perturbation'' manner.
-For gases, the WFs can be provided for several units of the gas abundance:
+To obtain the Jacobian for absorption species, use
+\wsmindex{jacobianAddAbsSpecies}. The method handles one species at the time.
+The calculations can either be done in in ``analytical'' or ``perturbation''
+manner. For gases, weighting functions (WFs) can be provided for several units
+of the gas abundance:
 \begin{description}
 \item[vmr] Volume mixing ratio (a value between 0 and 1). The WF divided by
   $10^6$ corresponds to that 1 ppm of the gas is added to the atmospheric
@@ -290,8 +288,15 @@ shall given following the unit selected. The same value is applied for all WFs
 
 \subsection{Analytical expressions}
 %
+The expressions are first derived assuming that the propagation matrix is
+diagonal (unpolarised absorption, scattering generally neglected in this
+chapter), to make the derivation as clear as possible. In the following
+section, the calculations are repeated for the general case.
+
+\subsubsection{Unpolarised absorption}
+%
 The final radiance obtained through Eq.~\ref{eq:fm_defs:rte_step} can be
-expressed as
+expressed as (\StoI\ defined in Eq.~\ref{eq:fm_defs:stokevec})
 \begin{equation}
   \label{eq:I4J}
   \StoI = \StoI'+ e^{-\Oth'}\!\left[ \bar{\Planck}_i(1-e^{-\aOth{i}}) + 
@@ -382,11 +387,30 @@ This later form is used for Stokes element 2 to 4 in
 \wsmindex{iyEmissionStandard} and for all components in
 \wsmindex{iyTransmissionStandard}.
 
-In practise, all Stokes components are treated in parallel, to simply
-incorporate surface scattering (and in the future possibly also cloud
-scattering). Transmission $e^{-\Oth'}$ must then be expressed as a matrix,
-$\TrnMat'$. For scattered down-welling radiation ($\StoVec^d_i$) the
-effective transmission matrix is
+
+\subsubsection{General case}
+%
+If the propagation matrix (\ExtMat) is has non-zero values outside the diagonal
+(but scattering is still zero), the Stokes elements can not be treated
+separately, and matrix-vector notation is required. The vector radiative
+transfer correspondance to Eq.~\ref{eq:I4J} is
+(cf.~Eq.~\ref{eq:fm_defs:vrte_step})
+\begin{equation}
+  \label{eq:s4J}
+  \StoVec = \StoVec' + \TrnMat' \left[ (\IdnMtr-\aTrnMat{i})\bar{\EmsVec}_i +
+      \aTrnMat{i} \aStoVec{i} \right],
+\end{equation}
+where $\StoVec'$ corresponds to $\StoI'$, $\TrnMat'$ is the Mueller
+transmission matrix matching $\Oth'$ and \aTrnMat{i} is defined in
+Eq.~\ref{eq:rte:transmat}.
+
+\dots (Work in progress)
+
+
+\subsubsection{Including the surface}
+%
+For scattered down-welling radiation the effective transmission
+matrix is
 \begin{equation}
   \TrnMat' = \aTrnMat{2}\MtrStl{R}_i\aTrnMat{1},
 \end{equation}
@@ -513,10 +537,13 @@ derivative of the Planck function, but if the Rayleigh-Jeans approximation is
 for some reason selected ($\Planck=\Tmp$) the term is just 1.
 
 For higher Stokes components, or if emission is ignored:
-\begin{eqnarray}
-   \frac{\PartD \StoI}{\PartD \bar{\Planck}_i} &=& 0 \quad \mathrm{and} \\
-   \frac{\PartD \StoI}{\PartD \aOth{i}}  &=& -e^{-\Oth'}\!\aStoI{i}e^{-\aOth{i}}.
-\end{eqnarray}
+\begin{equation}
+   \frac{\PartD \StoI}{\PartD \bar{\Planck}_i} = 0  
+\end{equation}
+and
+\begin{equation}
+  \frac{\PartD \StoI}{\PartD \aOth{i}}  = -e^{-\Oth'}\!\aStoI{i}e^{-\aOth{i}}.
+\end{equation}
 
 
 
@@ -558,7 +585,7 @@ is matched to the pressure of the observation point.
 
 The term ``sensor pointing'' refers to deviations between nominal and
 actual viewing direction of the sensor. So far, only deviations in zenith angle
-can be considered. The workspace method to initiate such WFs is
+can be considered. The workspace method to initiate such Jacobians is
 \wsmindex{jacobianAddPointingZa}.
 
 The pointing deviation is treated as a time varying variable, then having a
@@ -570,20 +597,20 @@ polynomial order -1 signifies here that the pointing off-set is so highly
 varying that an off-set must be assigned to each spectrum
 (sometime called ``pointing jitter'').
 
-The WFs can be calculated in two manners:
+The Jacobian can be calculated in two manners:
 \begin{description}
 \item[recalc] If this option is selected, radiative transfer calculations are
   performed for a shift of \builtindoc{sensor\_los} (perturbation size selected
   by \verb|dza|). Only a ``one-sided'' perturbation is applied.
-\item[interp] The WFs are derived from existing data, by an interpolation of
-  existing data. This achieved by interpolating pencil beam data to a shifted
-  zenith angle grid. This will involve some extrapolation of the data, and this
-  aspect should be considered when selecting \builtindoc{mblock\_za\_grid}. The
-  average of a positive and negative shift. The shift to apply (\verb|dza|)
-  should be smaller than the minimum spacing of \builtindoc{mblock\_za\_grid}
-  for accurate results. As interpolation is a relative fast operation and a
-  ``double-sided'' disturbance is used, this option should in general be
-  preferred.
+\item[interp] The Jacobian is derived from existing data, by an interpolation
+  of existing data. This achieved by interpolating pencil beam data to a
+  shifted zenith angle grid. This will involve some extrapolation of the data,
+  and this aspect should be considered when selecting
+  \builtindoc{mblock\_za\_grid}. The average of a positive and negative shift.
+  The shift to apply (\verb|dza|) should be smaller than the minimum spacing of
+  \builtindoc{mblock\_za\_grid} for accurate results. As interpolation is a
+  relative fast operation and a ``double-sided'' disturbance is used, this
+  option should in general be preferred.
 \end{description}
 
 
@@ -593,13 +620,13 @@ The WFs can be calculated in two manners:
 %==============================================================================
 \label{sec:wfuns:sensorfreq}
 
-This class of WFs treats deviations between nominal and actually recorded
+This class of Jacoians treats deviations between nominal and actually recorded
 frequencies. Such differences can originate in several ways, but the exact
 origin can normally be ignored and the effect can be modelled as the backend
 (spectrometer, filter bank \dots) channels are shifted from their nominal
-position. The workspace methods to define such WFs are
+position. The workspace methods to define such Jacobians are
 \wsmindex{jacobianAddFreqShift} and \wsmindex{jacobianAddFreqStretch}. These
-WFs can so far only be determined by applying an interpolation of existing
+Jacobians can so far only be determined by applying an interpolation of existing
 monochromatic data, then shifted \verb|df| from the nominal
 values.
 
@@ -641,13 +668,14 @@ giving a single spectrum, the measured spectrum \MsrVct\ is modelled as
 where $\MsrVct'$ is the ``baseline free'' spectrum, and \aSttElm{i}\ and
 $\VctStl{z}_i$ are introduced in Section~\ref{sec:wfuns:basis2}.
 
-WFs for such baseline models are obtained by \wsmindex{jacobianAddPolyfit}. For
-single spectra measurements, the only consideration is the polynomial order to
-use. For measurements where several spectra are appended to form the measurement
-vector, the default option is that baseline can vary between all spectra. In
-some cases, it could be assumed that the baseline is common between data for
-different polarisations, viewing directions or measurement blocks, and flags
-can be set to mimic such assumptions.
+The Jacobian for such baseline models are obtained by
+\wsmindex{jacobianAddPolyfit}. For single spectra measurements, the only
+consideration is the polynomial order to use. For measurements where several
+spectra are appended to form the measurement vector, the default option is that
+baseline can vary between all spectra. In some cases, it could be assumed that
+the baseline is common between data for different polarisations, viewing
+directions or measurement blocks, and flags can be set to mimic such
+assumptions.
 
 For a given set of retrieved \aSttElm{i}, the simplest way to determine the
 estimated baseline is to perform a muliplication between the relevant parts of

@@ -291,7 +291,8 @@ propagation path effectively starts at the surface.
 
 
 
-\section{Basic radiative transfer variables and expressions}
+\section{Basic radiative transfer variables and 
+       expressions}
 %---
 \label{sec:fm_defs:rte}
 
@@ -311,7 +312,7 @@ Section~\ref{sec:rteq}.
 
 Let's start with the simpler case of non-polarised absorption (that is, the
 absorption is independent of polarisation state). For unpolarised absorption the
-matrix \\aAbsMat{a}\ is diagonal, with all diagonal elements equal, and only the
+matrix \aAbsMat{a}\ is diagonal, with all diagonal elements equal, and only the
 first of the elements of \aAbsVec{a})\ is non-zero.
 
 The radiative transfer equation above can be solved in many ways, and with
@@ -321,11 +322,12 @@ first Stokes element the following expression is applied (compare \theory,
 Equation~\ref{T-eq:rtetheory:layer})
 \begin{equation}
   \label{eq:fm_defs:rte_step}
-  \aStoI{i+1} = \aStoI{i}ie^{-\aOth{i}} + \bar{\Planck}_i(1-e^{-\aOth{i}}),
+  \aStoI{i+1} = \aStoI{i}e^{-\aOth{i}} + \bar{\Planck}_i(1-e^{-\aOth{i}}),
 \end{equation}
 with
 \begin{eqnarray}
   \bar{\Planck}_i &=& (\Planck(\aTmp{i})+\Planck(\aTmp{i+1}))/2, \\
+  \label{eq:bbarstep}
   \aOth{i} &=& \Delta\aPpathLng{i}(\aAbsCoef{i}+\aAbsCoef{i+1})/2,  
   \label{eq:taustep}
 \end{eqnarray}
@@ -352,9 +354,9 @@ An alternative way to perform the calculations for the first Stokes element
 would be
 \begin{equation}
   \label{eq:fm_defs:rte_alt}
-  \StoI = \sum_i \aTrnMat{i+1} \bar{\Planck}_i(1-e^{-\aOth{i}}),
+  \StoI = \sum_i \aTrn{i+1} \bar{\Planck}_i(1-e^{-\aOth{i}}),
 \end{equation}
-where \StoI\ is the final intensity and \aTrnMat{i}\ is the transmission
+where \StoI\ is the final intensity and \aTrn{i}\ is the transmission
 between the sensor and point $i$. This calculation approach is not used as it
 fits poorer with the calculation of weighting functions (\aStoI{i} must be
 known, Section~\ref{sec:wfuns}). However, the calculation of weighting
@@ -370,22 +372,23 @@ for the different Stokes components can here not be separated, and
 matrix-vector notation is required: 
 \begin{equation}
   \label{eq:fm_defs:vrte_step}
-  \aStoVec{i+1} = e^{-\Delta\aPpathLng{i}\bar{\ExtMat}} \aStoVec{i} + 
-                  (\IdnMtr-e^{-\bar{\ExtMat}\Delta\aPpathLng{i}})\bar{\EmsVec},
+  \aStoVec{i+1} = e^{-\Delta\aPpathLng{i}\bar{\ExtMat}_i} \aStoVec{i} + 
+                  (\IdnMtr-e^{-\Delta\aPpathLng{i}\bar{\ExtMat}_i})\bar{\EmsVec}_i,
 \end{equation}
-where \IdnMtr\ is the identity matrix. The extinction matrices and \VctStl{b}
+where \IdnMtr\ is the identity matrix. The \ExtMat\ and \EmsVec\
 at point $i$ and $i+1$ are averaged (element-wise) to give $\bar{\ExtMat}$ and
-$\bar{\EmsVec}$, respectively, in line with Equation~\ref{eq:taustep}. The
+$\bar{\EmsVec}$, respectively, in line with Equation~\ref{eq:bbarstep}. The
 calculation of the transmission matrix,
 \begin{equation}
-  \TrnMat = e^{-\Delta\aPpathLng{i}\bar{\ExtMat}},
+  \aTrnMat{i} = e^{-\Delta\aPpathLng{i}\bar{\ExtMat}_i},
   \label{eq:rte:transmat}
 \end{equation}
-involves a matrix exponential, that is calculated by the Pad\'e approximations,
-as described in \developer, Section \ref{D-sec:lin_alg:mat_exp}. Only the first
-element of $\bar{\EmsVec}$ is non-zero, and only the first column of the matrix
-corresponding to the term $(\IdnMtr-e^{-\Delta\aPpathLng{i}\bar{\ExtMat}})$ is
-of interest.
+involves a matrix exponential. This calculation step is handled for simpler
+cases with analytical expressions, while for more complex cases the Pad\'e
+approximation (\developer, Section \ref{D-sec:lin_alg:mat_exp}) is applied.
+Only the first element of $\bar{\EmsVec}$ is non-zero, and only the first
+column of the matrix corresponding to the term
+$(\IdnMtr-e^{-\Delta\aPpathLng{i}\bar{\ExtMat}_i})$ is of interest.
 
 
 
