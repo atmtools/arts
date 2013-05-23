@@ -28,6 +28,7 @@
 #include "describe.h"
 #include "matpackII.h"
 #include "rational.h"
+#include "logic.h"
 
 using std::cout;
 using std::endl;
@@ -836,6 +837,49 @@ void test43()
 }
 
 
+void test44()
+{
+#define docheck(fn, val, expect) \
+  cout << #fn << "(" << val << ") = " << fn(x) << " (expected " << #expect << ")" << std::endl;
+
+    Vector x = MakeVector(1, 2, 3);
+    docheck(is_increasing, x, 1)
+    docheck(is_decreasing, x, 0)
+    docheck(is_sorted, x, 1)
+
+    x = MakeVector(3, 2, 1);
+    docheck(is_increasing, x, 0)
+    docheck(is_decreasing, x, 1)
+    docheck(is_sorted, x, 0)
+
+    x = MakeVector(1, 2, 2);
+    docheck(is_increasing, x, 0)
+    docheck(is_decreasing, x, 0)
+    docheck(is_sorted, x, 1)
+
+    x = MakeVector(2, 2, 1);
+    docheck(is_increasing, x, 0)
+    docheck(is_decreasing, x, 0)
+    docheck(is_sorted, x, 0)
+
+    x = MakeVector(1, NAN, 2);
+    docheck(is_increasing, x, 0)
+    docheck(is_decreasing, x, 0)
+    docheck(is_sorted, x, 0)
+
+    x = MakeVector(2, NAN, 1);
+    docheck(is_increasing, x, 0)
+    docheck(is_decreasing, x, 0)
+    docheck(is_sorted, x, 0)
+
+    x = MakeVector(NAN, NAN, NAN);
+    docheck(is_increasing, x, 0)
+    docheck(is_decreasing, x, 0)
+    docheck(is_sorted, x, 0)
+    
+#undef docheck
+}
+
 int main()
 {
 //   test1();
@@ -881,7 +925,8 @@ int main()
 //  test40();
 //  test41();
 //    test42();
-    test43();
+//    test43();
+    test44();
 
   return 0;
 }

@@ -256,7 +256,7 @@ bool is_sorted( ConstVectorView   x )
     {
       for( Index i=1; i<x.nelem(); i++ )
         {
-          if( x[i] < x[i-1] )
+          if( !(x[i] >= x[i-1]) )
             return false;
         }
     }
@@ -278,7 +278,7 @@ bool is_increasing( ConstVectorView   x )
     {
       for( Index i=1; i<x.nelem(); i++ )
         {
-          if( x[i] <= x[i-1] )
+          if( !(x[i] > x[i-1]) )
             return false;
         }
     }
@@ -327,7 +327,7 @@ bool is_decreasing( ConstVectorView   x )
     {
       for( Index i=1; i<x.nelem(); i++ )
         {
-          if( x[i] >= x[i-1] )
+          if( !(x[i] < x[i-1]) )
             return false;
         }
     }

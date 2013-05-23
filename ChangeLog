@@ -1,3 +1,24 @@
+2013-05-23  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-650
+
+	* src/logic.cc:
+
+	(is_increasing): Adapt the if statement so that the functions correctly
+	return false if the Vector contains NaN values:
+
+	if( x[i] <= x[i-1] ) return false;
+	->
+	if( !(x[i] > x[i-1]) ) return false;
+
+	Although logically the same for floating point numbers, the second
+	implementation behaves correctly for NaN values because any comparison
+	with NaN returns false.
+
+	(is_decreasing, is_sorted): Same.
+
+	* src/test_matpack.cc: Add test44 to check above changes.
+
 2013-05-23  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-649
