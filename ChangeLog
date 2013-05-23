@@ -1,3 +1,25 @@
+2013-05-23  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-648
+
+	* doc/uguide/rte_basics.tex:
+	* doc/uguide/rte.tex: Replaced a few B with \Planck.
+
+	* doc/uguide/wfuns.tex: Included a high number of "symbold_defs".
+
+	* doc/uguide/CMakeLists.txt: Added symbol_defs.tex dependencies.
+
+	* doc/uguide/symbol_defs.tex: Removed some odd, and not used,
+	definitions. Fixed some comment typos.
+
+	Bold i was used both for Stokes vector and total
+	vector of pencil beam monochormatic data, so to avoid this clash
+	redefined as follows
+  	  \PpathLng: s changed to l
+	  \StoVec: i changed to s
+
+	Added: \SttElm with friends and \Trn with friend.
+
 2013-05-22  Jana Mendrok <jana.mendrok@ltu.se>
 
 	* arts-2-1-647

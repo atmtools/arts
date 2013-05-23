@@ -14,12 +14,12 @@ e.g.][]{eriksson:analy:00}. A retrieval characterisation following
 \citet{rodgers:90,rodgers:00} raises the same demand. A weighting function is
 defined as
 \begin{equation}
-  \frac{\partial \MsrVct}{\partial x_p}
+  \frac{\partial\MsrVct}{\partial\aSttElm{p}}
   \label{eq:wfuns:ki}
 \end{equation}
-where \MsrVct\ is the vector of measurement data and $x_p$ is one forward model
-(scalar) variable. See further Section~\ref{T-sec:formalism:wfuns} of \theory.
-The nomenclature of that section is also used here.
+where \MsrVct\ is the vector of measurement data and \aSttElm{p}\ is one forward
+model (scalar) variable. See further Section~\ref{T-sec:formalism:wfuns} of
+\theory. The nomenclature of that section is also used here.
 
 A weighting function forms a column of the complete weighting function matrix,
 \aWfnMtr{\SttVct}. The usage of the name weighting function is maybe restricted
@@ -76,13 +76,13 @@ The most straightforward method to determine a WF is by perturbing the model
 parameter of concern. For example, the WF for the state variable $p$ can always
 be calculated as
 \begin{equation}
-  \aWfnMtr{\SttVct}^p = \frac{\FrwMdl(\SttVct+\Delta x\VctStl{e}^p,\FrwMdlVct)-
-                              \FrwMdl(\SttVct,\FrwMdlVct)}{\Delta x}
+  \aWfnMtr{\SttVct}^p = \frac{\FrwMdl(\SttVct+\Delta\SttElm\VctStl{e}^p,
+                      \FrwMdlVct)-\FrwMdl(\SttVct,\FrwMdlVct)} {\Delta\SttElm}
  \label{eq:wfuns:perturb}
 \end{equation}
 where $(\SttVct,\FrwMdlVct)$ is the linearization state, $\VctStl{e}^p$ is a
 vector of zeros except for the $p$:th component that is unity, and
-$\Delta x$ is a small disturbance (but sufficiently large to avoid
+$\Delta\SttElm$ is a small disturbance (but sufficiently large to avoid
 numerical instabilities).
 
 However, it is normally not needed to make a recalculation using the total
@@ -221,11 +221,13 @@ For these basis functions, the explanatory variable (time in the example above)
 is normalised to cover the range [-1,1], here denoted as $z$, and the
 continuous representation ($f$) of the variable of concern can be written as
 \begin{equation}
-  f(z) = x_0 + x_1(z-b_1) + x_2(z^2-b_2) + x_3(z^3-b_3) + x_4(z^3-b_4) + \dots  
+  f(z) = \aSttElm{0} + \aSttElm{1}(z-b_1) + \aSttElm{2}(z^2-b_2) + 
+                     \aSttElm{3}(z^3-b_3) + \aSttElm{4}(z^3-b_4) + \dots  
 \end{equation}
-where $x_0, x_1, \dots$ are the coefficients to be retrieved (elements of
-\SttVct). The interpretation of a retrieval is simplified if the average of $f$
-equals $x_0$, and the scalars $b_1, b_2, \dots$ are selected, schematically, as
+where $\aSttElm{0}, \aSttElm{1}, \dots$ are the coefficients to be retrieved
+(elements of \SttVct). The interpretation of a retrieval is simplified if the
+average of $f$ equals \aSttElm{p0}, and the scalars $b_1, b_2, \dots$ are
+selected, schematically, as
 \begin{equation}
   0 = \int_{-1}^1 \!\left(z^n-b_n\right) \, \DiffD z, \quad n>0.
 \end{equation}
@@ -280,10 +282,10 @@ calculations there are no other selections to be made.
 
 \subsection{Perturbation calculations}
 %
-For pure numerical calculations, also the size of the perturbation must
-be specified ($\Delta x$ in Eq.~\ref{eq:wfuns:perturb}). The perturbation shall
-given following the unit selected. The same value is applied for all WFs (which
-can cause practical problems \dots).
+For pure numerical calculations, also the size of the perturbation must be
+specified ($\Delta\SttElm$ in Eq.~\ref{eq:wfuns:perturb}). The perturbation
+shall given following the unit selected. The same value is applied for all WFs
+(which can cause practical problems \dots).
 
 
 \subsection{Analytical expressions}
@@ -292,77 +294,89 @@ The final radiance obtained through Eq.~\ref{eq:fm_defs:rte_step} can be
 expressed as
 \begin{equation}
   \label{eq:I4J}
-  I = I'+ e^{-\Oth'}\!\left[ \bar{B}_i(1-e^{-\aOth{i}})+I_ie^{-\aOth{i}}\right]
+  \StoI = \StoI'+ e^{-\Oth'}\!\left[ \bar{\Planck}_i(1-e^{-\aOth{i}}) + 
+                                         \aStoI{i}e^{-\aOth{i}} \right]
 \end{equation}
 where $\Oth'$ is the optical thickness between the sensor and point $i+1$
-and $I'$ is all emission generated along the same distance.
+and $\StoI'$ is all emission generated along the same distance.
 
-Let $x$ be one element of $\SttVct$, representing the amount of
+Let \SttElm\ be one element of $\SttVct$, representing the amount of
 some gas at some point in the atmosphere. The contribution to the weighting
-function for $x$, originating from the radiative transfer step covered by
+function for \SttElm, originating from the radiative transfer step covered by
 Eq.~\ref{eq:I4J}, is calculated by applying the chain rule:
 \begin{equation}
   \label{eq:chainrule}
-  \frac{\PartD \MsrVct}{\PartD x} =  
-  \frac{\PartD \MsrVct}{\PartD \MpiVct}
-  \frac{\PartD \MpiVct}{\PartD I} \frac{\PartD I}{\PartD \aOth{i}}
-  \left[\frac{\PartD \aOth{i}}{\PartD k_i}\frac{\PartD k_i}{\PartD x_i} 
-        \frac{\PartD x_i}{\PartD x} +
-        \frac{\PartD \aOth{i}}{\PartD k_{i+1}}\frac{\PartD k_{i+1}}{\PartD x_{i+1}}
-        \frac{\PartD x_{i+1}}{\PartD x} \right],
+  \frac{\PartD\MsrVct}{\PartD\SttElm} =  
+  \frac{\PartD\MsrVct}{\PartD\MpiVct}
+  \frac{\PartD\MpiVct}{\PartD\StoI} \frac{\PartD\StoI}{\PartD\aOth{i}}
+  \left[ \frac{\PartD\aOth{i}}{\PartD\aAbsCoef{i}}
+         \frac{\PartD\aAbsCoef{i}}{\PartD\aSttElm{i}} 
+         \frac{\PartD\aSttElm{i}}{\PartD\SttElm} +
+         \frac{\PartD\aOth{i}}{\PartD\aAbsCoef{i+1}}
+         \frac{\PartD\aAbsCoef{i+1}}{\PartD\aSttElm{i+1}}
+         \frac{\PartD\aSttElm{i+1}}{\PartD\SttElm} 
+  \right],
 \end{equation}
-where $x_i$ and $x_{i+1}$ is the amount of the gas at point $i$ and $i+1$,
-respectively. Some of these terms can be expressed explicitly:
+where \aSttElm{i}\ and \aSttElm{i+1}\ is the amount of the gas at point $i$ and
+$i+1$, respectively. Some of these terms can be expressed explicitly:
 \begin{eqnarray}
-  \frac{\PartD \MsrVct}{\PartD \MpiVct} &=& \SnsMtr,
-               \qquad \mathrm{(cf.\ Eq.\ \ref{eq:wfuns:Hi})} \\
-  \frac{\PartD I}{\PartD \aOth{i}} 
-      &=& e^{-\Oth'}\!\left( \bar{B}_i-I_i\right)e^{-\aOth{i}}, \\
-  \frac{\PartD \aOth{i}}{\PartD k_i}=\frac{\PartD \aOth{i}}{\PartD k_{i+1}} 
-      &=& \Delta s_i/2, \qquad \mathrm{(cf.\ Eq.\ \ref{eq:taustep})} \\
-  \frac{\PartD k_i}{\PartD x_i}
+  \frac{\PartD \MsrVct}{\PartD\MpiVct} 
+      &=& \SnsMtr, \qquad \mathrm{(cf.\ Eq.\ \ref{eq:wfuns:Hi})} \\
+  \frac{\PartD\StoI}{\PartD\aOth{i}} 
+      &=& e^{-\Oth'}\!\left(\bar{\Planck}_i-\aStoI{i}\right)e^{-\aOth{i}}, \\
+  \frac{\PartD\aOth{i}}{\PartD\aAbsCoef{i}}=
+  \frac{\PartD\aOth{i}}{\PartD\aAbsCoef{i+1}} 
+      &=& \Delta\aPpathLng{i}/2, \qquad \mathrm{(cf.\ Eq.\ \ref{eq:taustep})}\\
+  \frac{\PartD\aAbsCoef{i}}{\PartD\aSttElm{i}}
       &=& \sigma_i, 
 \end{eqnarray}
 where $\sigma_i$ is the absorption cross-section for the species (at point $i$
-and in a unit matching the unit of $x$). The term $\PartD \MpiVct/\PartD I$
-gives the position in \MpiVct\ where the $I$ of concern is stored. For clarity
-and efficiency reasons, the following nomenclature is used in the source code:
+and in a unit matching the unit of \SttElm). The term $\PartD\MpiVct
+/ \PartD\StoI$ gives the position in \MpiVct\ where the \StoI\ of concern is
+stored, and is
+\begin{equation}
+  \frac{\PartD\MpiVct}{\PartD\StoI} = 0\ \mathrm{or}\ 1.
+\end{equation}
+For clarity and efficiency reasons, the following nomenclature is used in the
+source code:
 \begin{eqnarray}
-  X &=& \frac{\Delta s_i}{2} e^{-\Oth'} e^{-\aOth{i}}, \\
-  Y &=& \frac{\PartD I}{\PartD \aOth{i}}\frac{\PartD \aOth{i}}{\PartD k_i}
-    \qquad \left( = X(\bar{B}_i-I_i) \right).
+  X &=& \frac{\Delta\aPpathLng{i}}{2} e^{-\Oth'} e^{-\aOth{i}}, \\
+  Y &=& \frac{\PartD\StoI}{\PartD\aOth{i}}
+        \frac{\PartD\aOth{i}}{\PartD\aAbsCoef{i}}
+    \qquad \left( = X(\bar{\Planck}_i-\aStoI{i}) \right).
 \end{eqnarray}
-The term $\PartD x_i/\PartD x$ appears due to the fact that $x_i$ and $x$ are
-placed at different positions, and the representation of the atmospheric fields
-must be considered here. In practise, the term is calculated as the value of
-the basis function for $x$ at the location of $x_i$ (further discussed in
-\citet{buehler:artst:05}). This is a slight approximation with respect to the
-goal of fully incorporating the piece-wise linear representation in the
-weighting functions \citep{buehler:artst:05}. A low value of $\Delta s_i$
-decreases the degree of approximation.
+The term $\PartD \aSttElm{i}/\PartD \SttElm$ appears due to the fact that
+\aSttElm{i}\ and \SttElm\ are placed at different positions, and the
+representation of the atmospheric fields must be considered here. In practise,
+the term is calculated as the value of the basis function for \SttElm\ at the
+location of \aSttElm{i}\ (further discussed in \citet{buehler:artst:05}). This
+is a slight approximation with respect to the goal of fully incorporating the
+piece-wise linear representation in the weighting functions
+\citep{buehler:artst:05}. A low value of $\Delta\aPpathLng{i}$ decreases the
+degree of approximation.
 
-It can be noted that $\PartD x_i/\PartD x$ is normally non-zero for more than
-one element of \SttVct. The exception is if the positions of $x_i$ and $x$ are
-identical. Reversely, the weighting function for element $x$ can have
-contributions from several propagation path points ($x_i$), as well as from
-several radiance spectra.
-The expressions above are implemented in \wsmindex{iyEmissionStandard}.
+It can be noted that $\PartD\aSttElm{i} / \PartD\SttElm$ is normally non-zero
+for more than one element of \SttVct. The exception is if the positions of
+\aSttElm{i}\ and \SttElm\ are identical. Reversely, the weighting function for
+element \SttElm\ can have contributions from several propagation path points
+(\aSttElm{i}), as well as from several radiance spectra. The expressions above
+are implemented in \wsmindex{iyEmissionStandard}.
 
 For higher Stokes components, or if emission is ignored, Eq.~\ref{eq:I4J} is
 simplified to
 \begin{equation}
   \label{eq:Q4J}
-  I = e^{-\Oth'}\!I_ie^{-\aOth{i}}.
+  \StoI = e^{-\Oth'}\!\aStoI{i}e^{-\aOth{i}}.
 \end{equation}
 This affects only one of the chain rule terms:
 \begin{equation}
-  \frac{\PartD I}{\PartD \aOth{i}} 
-      = -e^{-\Oth'}\!I_i e^{-\aOth{i}},
+  \frac{\PartD\StoI}{\PartD\aOth{i}} 
+      = -e^{-\Oth'}\!\aStoI{i}e^{-\aOth{i}},
 \end{equation}
 giving
 \begin{equation}
-  \frac{\PartD I}{\PartD \aOth{i}}\frac{\PartD \aOth{i}}{\PartD k_i} =
-  -X I_i.
+  \frac{\PartD\StoI}{\PartD\aOth{i}}\frac{\PartD\aOth{i}}{\PartD\aAbsCoef{i}} =
+  -X \aStoI{i}.
 \end{equation}
 This later form is used for Stokes element 2 to 4 in
 \wsmindex{iyEmissionStandard} and for all components in
@@ -371,14 +385,14 @@ This later form is used for Stokes element 2 to 4 in
 In practise, all Stokes components are treated in parallel, to simply
 incorporate surface scattering (and in the future possibly also cloud
 scattering). Transmission $e^{-\Oth'}$ must then be expressed as a matrix,
-$\MtrStl{T}'$. For scattered down-welling radiation ($\StoVec^d_i$) the
+$\TrnMat'$. For scattered down-welling radiation ($\StoVec^d_i$) the
 effective transmission matrix is
 \begin{equation}
-  \MtrStl{T}' = \MtrStl{T}_2\MtrStl{R}_i\MtrStl{T}_1,
+  \TrnMat' = \aTrnMat{2}\MtrStl{R}_i\aTrnMat{1},
 \end{equation}
-where $\MtrStl{T}_2$ is the transmission between the surface and the sensor,
+where \aTrnMat{2}\ is the transmission between the surface and the sensor,
 $\MtrStl{R}_i$ is defined in Eq.~\ref{eq:fm_defs:surfacerefl} and
-$\MtrStl{T}_1$ is the transmission between the point $i+1$ and the surface.
+\aTrnMat{1}\ is the transmission between the point $i+1$ and the surface.
 
 
 \subsubsection{Limitations}
@@ -431,71 +445,77 @@ As for gases, only local effects are considered by the analytical expressions.
 A changed temperature is not just affecting the absorption, but also the Planck
 function:
 \begin{equation}
-  \frac{\PartD \MsrVct}{\PartD T} =  
-  \frac{\PartD \MsrVct}{\PartD \MpiVct} \frac{\PartD \MpiVct}{\PartD I} 
+  \frac{\PartD \MsrVct}{\PartD \Tmp} =  
+  \frac{\PartD \MsrVct}{\PartD \MpiVct} \frac{\PartD \MpiVct}{\PartD \StoI} 
   \left[
-  \frac{\PartD I}{\PartD \aOth{i}}\frac{\PartD \aOth{i}}{\PartD T} + 
-  \frac{\PartD I}{\PartD \bar{B}_i}\frac{\PartD \bar{B}_i}{\PartD T}
-  \right].
+  \frac{\PartD \StoI}{\PartD \aOth{i}}\frac{\PartD \aOth{i}}{\PartD \Tmp} + 
+  \frac{\PartD \StoI}{\PartD \bar{\Planck}_i}
+  \frac{\PartD \bar{\Planck}_i}{\PartD \Tmp} \right].
  \label{eq:wfuns:t1}
 \end{equation}
-The partial derivative of $\aOth{i}$ must
-now also consider the term $\Delta s_i$ due to the possible constrain of
-hydrostatic equilibrium:
+The partial derivative of $\aOth{i}$ must now also consider the term $\Delta
+\aPpathLng{i}$ due to the possible constrain of hydrostatic equilibrium:
 \begin{eqnarray}
-  \frac{\PartD \aOth{i}}{\PartD T} &=&
-  \frac{\PartD \aOth{i}}{\PartD k_i}\frac{\PartD k_i}{\PartD T_i} 
-  \frac{\PartD T_i}{\PartD T} +
-  \frac{\PartD \aOth{i}}{\PartD k_{i+1}}\frac{\PartD k_{i+1}}{\PartD T_{i+1}}
-  \frac{\PartD T_{i+1}}{\PartD T} + \nonumber \\ &&
-  \quad + \frac{\PartD \aOth{i}}{\PartD \Delta s_i}
+  \frac{\PartD \aOth{i}}{\PartD \Tmp} &=&
+  \frac{\PartD \aOth{i}}{\PartD \aAbsCoef{i}}
+  \frac{\PartD \aAbsCoef{i}}{\PartD \aTmp{i}} 
+  \frac{\PartD \aTmp{i}}{\PartD \Tmp} +
+  \frac{\PartD \aOth{i}}{\PartD \aAbsCoef{i+1}}
+  \frac{\PartD \aAbsCoef{i+1}}{\PartD \aTmp{i+1}}
+  \frac{\PartD \aTmp{i+1}}{\PartD \Tmp} + \nonumber \\ &&
+  \quad + \frac{\PartD \aOth{i}}{\PartD \Delta \aPpathLng{i}}
   \left[
-    \frac{\PartD \Delta s_i}{\PartD T_i} \frac{\PartD T_i}{\PartD T} +
-    \frac{\PartD \Delta s_i}{\PartD T_{i+1}} \frac{\PartD T_{i+1}}{\PartD T}
+    \frac{\PartD \Delta \aPpathLng{i}}{\PartD \aTmp{i}} \frac{\PartD T_i}{\PartD \Tmp} +
+    \frac{\PartD \Delta \aPpathLng{i}}{\PartD \aTmp{i+1}} \frac{\PartD T_{i+1}}{\PartD \Tmp}
   \right].
 \end{eqnarray}
 Several of these terms are already derived in
-Section~\ref{sec:wfuns:absspecies} (where $\PartD T_i/\PartD T$ and $\PartD
-x_i/\PartD x$ are identical terms). The temperature derivative of the
-absorption ($\PartD k_i/\PartD T_i$) must be calculated numerically. This
-derivative depends on if gas species concentrations are given as volume mixing
-ratio (VMR) or number density. As ARTS uses VMR, the term above will be
-calculated with the constrain of fixed VMR. A consequence of this is that it is
-not possible to mix retrieval of temperature and number densities.
+Section~\ref{sec:wfuns:absspecies} (where $\PartD\aTmp{i}/\PartD\Tmp$ and
+$\PartD \aSttElm{i}/\PartD \SttElm$ are identical terms). The temperature
+derivative of the absorption ($\PartD\aAbsCoef{i}/\PartD\aTmp{i}$) must be
+calculated numerically. This derivative depends on if gas species
+concentrations are given as volume mixing ratio (VMR) or number density. As
+ARTS uses VMR, the term above will be calculated with the constrain of fixed
+VMR. A consequence of this is that it is not possible to mix retrieval of
+temperature and number densities.
 
 Eq.~\ref{eq:taustep} gives
 \begin{equation}
-  \frac{\PartD \aOth{i}}{\PartD \Delta s_i} = \frac{k_i+k_{i+1}}{2}. 
+  \frac{\PartD \aOth{i}}{\PartD \Delta \aPpathLng{i}} = 
+  \frac{\aAbsCoef{i}+\aAbsCoef{i+1}}{2}. 
 \end{equation}
-The path length ($\Delta s_i$), for a given pressure, is linearly proportional
-to the temperature, and if $\bar{T}$ is the average temperature along the path
-step:
+The path length ($\Delta \aPpathLng{i}$), for a given pressure, is linearly
+proportional to the temperature, and if $\bar{\Tmp}$ is the average temperature
+along the path step:
 \begin{equation}
-  \frac{\PartD \Delta s_i}{\PartD \bar{T}} =   \frac{\Delta s_i}{\bar{T}} 
+  \frac{\PartD \Delta \aPpathLng{i}}{\PartD \bar{\Tmp}} =   
+                                    \frac{\Delta \aPpathLng{i}}{\bar{\Tmp}} 
 \end{equation}
-Following the other variables, we set $\bar{T}=(T_i+T_{i+1})/2$, and
+Following the other variables, we set $\bar{\Tmp}=(\aTmp{i}+\aTmp{i+1})/2$, and
 \begin{equation}
-  \frac{\PartD \Delta s_i}{\PartD T_i} = \frac{\Delta s_i}{2T_i}.
+  \frac{\PartD \Delta \aPpathLng{i}}{\PartD \aTmp{i}} = 
+                                    \frac{\Delta \aPpathLng{i}}{2\aTmp{i}}.
 \end{equation}
-Going back to Equation~\ref{eq:wfuns:t1}, the terms involving $\bar{B}_i$ are
+Going back to Equation~\ref{eq:wfuns:t1}, the terms involving $\bar{\Planck}_i$
+are
 \begin{eqnarray}
-   \frac{\PartD I}{\PartD \bar{B}_i} &=&
+   \frac{\PartD \StoI}{\PartD \bar{\Planck}_i} &=&
    e^{-\Oth'}\!\left(1-e^{-\aOth{i}}\right), \\
-   \frac{\PartD \bar{B}_i}{\PartD T} &=& \frac{1}{2}\left[
-    \frac{\PartD B}{\PartD T_i} \frac{\PartD T_i}{\PartD T} +
-    \frac{\PartD B}{\PartD T_{i+1}} \frac{\PartD T_{i+1}}{\PartD T}
+   \frac{\PartD \bar{\Planck}_i}{\PartD \Tmp} &=& \frac{1}{2}\left[
+    \frac{\PartD\Planck}{\PartD\aTmp{i}} \frac{\PartD\aTmp{i}}{\PartD\Tmp} +
+    \frac{\PartD\Planck}{\PartD\aTmp{i+1}} \frac{\PartD\aTmp{i+1}}{\PartD\Tmp}
   \right].
 \end{eqnarray}
-The term $\PartD B(T)/\PartD T_i$ can be expressed analytically
-\citep{eriksson:studi:02}, but as $B$ is provided by an agenda this term must
-anyhow be determined in a pure numerical manner; it is likely the derivative of
-the Planck function, but if the Rayleigh-Jeans approximation is for some reason
-selected ($B=T$) the term is just 1.
+The term $\PartD\Planck(T)/\PartD\aTmp{i}$ can be expressed analytically
+\citep{eriksson:studi:02}, but as \Planck\ is provided by an agenda this term
+must anyhow be determined in a pure numerical manner; it is likely the
+derivative of the Planck function, but if the Rayleigh-Jeans approximation is
+for some reason selected ($\Planck=\Tmp$) the term is just 1.
 
 For higher Stokes components, or if emission is ignored:
 \begin{eqnarray}
-   \frac{\PartD I}{\PartD \bar{B}_i} &=& 0 \quad \mathrm{and} \\
-   \frac{\PartD I}{\PartD \aOth{i}}  &=& -e^{-\Oth'}\!I_i e^{-\aOth{i}}.
+   \frac{\PartD \StoI}{\PartD \bar{\Planck}_i} &=& 0 \quad \mathrm{and} \\
+   \frac{\PartD \StoI}{\PartD \aOth{i}}  &=& -e^{-\Oth'}\!\aStoI{i}e^{-\aOth{i}}.
 \end{eqnarray}
 
 
@@ -506,10 +526,10 @@ A changed temperature has non-local effects, originating from refraction and
 hydrostatic equilibrium. The expressions above ignore totally refraction
 effects. 
 
-If \verb|hse| is set to ``off'', the term $\PartD \Delta s_i/\PartD T_i$ is set
-to zero. That is, the path length through the layer is not affected by a
-temperature change. With \verb|hse| set to ``on'', the complete expressions
-above are used. 
+If \verb|hse| is set to ``off'', the term $\PartD \Delta \aPpathLng{i}/\PartD
+\aTmp{i}$ is set to zero. That is, the path length through the layer is not
+affected by a temperature change. With \verb|hse| set to ``on'', the complete
+expressions above are used.
 
 If this treatment of hydrostatic equilibrium is sufficient or not depends on
 the observation geometry. It is not sufficient for e.g.\ limb sounding, where
@@ -616,9 +636,9 @@ baseline as a polynomial, of a specified order. That is, assuming a measurement
 giving a single spectrum, the measured spectrum \MsrVct\ is modelled as
 \begin{equation}
   \label{eq:polyfit}
-  \MsrVct = \MsrVct' + \sum_{i=0}^n x_i\VctStl{z}_i,
+  \MsrVct = \MsrVct' + \sum_{i=0}^n \aSttElm{i}\VctStl{z}_i,
 \end{equation}
-where $\MsrVct'$ is the ``baseline free'' spectrum, and $x_i$ and
+where $\MsrVct'$ is the ``baseline free'' spectrum, and \aSttElm{i}\ and
 $\VctStl{z}_i$ are introduced in Section~\ref{sec:wfuns:basis2}.
 
 WFs for such baseline models are obtained by \wsmindex{jacobianAddPolyfit}. For
@@ -629,14 +649,14 @@ some cases, it could be assumed that the baseline is common between data for
 different polarisations, viewing directions or measurement blocks, and flags
 can be set to mimic such assumptions.
 
-For a given set of retrieved $x_i$, the simplest way to determine the estimated
-baseline is to perform a muliplication between the relevant parts of the
-Jacobian and the state vector:
+For a given set of retrieved \aSttElm{i}, the simplest way to determine the
+estimated baseline is to perform a muliplication between the relevant parts of
+the Jacobian and the state vector:
 \begin{equation}
   \aWfnMtr{p}\aSttVct{p},
   \label{eq:bline:recreate}
 \end{equation}
-where $p$ indicates the $n+1$ columns/elements corresponding to $x_i$.
+where $p$ indicates the $n+1$ columns/elements corresponding to \aSttElm{i}.
 
 
 \section{Sinusoidal baseline fit}

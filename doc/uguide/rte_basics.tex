@@ -235,7 +235,7 @@ Equation~\ref{eq:VRTE0} can be simplified to
   \frac{\DiffD\StoVec(\Frq,\PPos,\PDir)}{\DiffD \PpathLng} =
   \aAbsMat{a}(\Frq,\PPos,\PDir)\left[ \EmsVec(\Frq,\PPos,\PDir)- 
   \StoVec(\Frq,\PPos,\PDir)\right] \quad 
-  \left( = -\aAbsMat{a}\StoVec + B\aAbsVec{a}\right).
+  \left( = -\aAbsMat{a}\StoVec + \Planck\aAbsVec{a}\right).
 \end{equation}
 Cases where Equation~\ref{eq:VRTE1} is valid, are in ARTS denoted as clear-sky
 radiative transfer (implying LTE if nothing else is stated). The discussion of
@@ -251,7 +251,7 @@ Equation~\ref{eq:VRTE1} is
   \label{eq:VRTE2}
   \frac {\DiffD\StoVec(\Frq,\PPos,\PDir)}{\DiffD \PpathLng} &=&
     -\ExtMat(\Frq,\PPos,\PDir) \StoVec(\Frq,\PPos,\PDir) +
-     B\aAbsVec{a}(\Frq,\PPos,\PDir) + \\ \nonumber
+     \Planck\aAbsVec{a}(\Frq,\PPos,\PDir) + \\ \nonumber
     &&+ \int_{4\pi} \PhaMat(\Frq,\PPos,\PDir,\PDir')
     \StoVec(\Frq,\PPos,\PDir')\,\DiffD\PDir' ,
 \end{eqnarray}

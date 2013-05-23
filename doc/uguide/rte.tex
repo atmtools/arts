@@ -301,7 +301,7 @@ measurements. Local thermodynamic equilibrium (LTE) is throughout assumed.
 The equation to solve is Equation~\ref{eq:VRTE1}:
 \begin{equation}
   \frac{\DiffD\StoVec}{\DiffD \PpathLng} = \aAbsMat{a}\left[ \EmsVec- \StoVec
-  \right] = -\aAbsMat{a}\StoVec + B\aAbsVec{a},\nonumber
+  \right] = -\aAbsMat{a}\StoVec + \Planck\aAbsVec{a},\nonumber
 \end{equation}
 where the involved quantities are defined and discussed in
 Section~\ref{sec:rteq}.
@@ -332,10 +332,10 @@ with
 where \aStoI{i}, \aTmp{i}\ and \aAbsCoef{i}\ are the radiance, temperature and
 absorption coefficient, respectively, at point $i$ of the propagation path, and
 $\Delta\aPpathLng{i}$ is the distance along the path between point $i$ and
-$i+1$. That is, $\bar{B}_i$ is an average of the Planck function at the path
-step end points, and the absorption is assumed to vary linearly between the two
-points. The start value of \StoI\ is governed by the radiative background
-(Section \ref{sec:fm_defs:rad_bkgr}).
+$i+1$. That is, $\bar{\Planck}_i$ is an average of the Planck function at the
+path step end points, and the absorption is assumed to vary linearly between
+the two points. The start value of \StoI\ is governed by the radiative
+background (Section \ref{sec:fm_defs:rad_bkgr}).
 
 A consequence of unpolarised absorption is that also the emission is
 unpolarised, and the emission term vanishes for higher Stokes elements.

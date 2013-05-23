@@ -1,3 +1,4 @@
+
 % This file defines the general math macros.
 % Mathematical symbols used only once, or for a particular purpose, 
 % should not be included here. Note that the scalar quantities exist 
@@ -53,6 +54,7 @@
 % symbol       Smb
 % temperature  Tmp
 % transfer     Trf
+% transmission Trn
 % transpose    Trp
 % wavelength   Wvl
 % vector       Vct
@@ -173,18 +175,16 @@
 
 % State vector 
 \newcommand{\SttVct}           {\VctStl{x}}  
+\newcommand{\aSttVct}[1]       {\SttVct\ensuremath{_{#1}}}
+\newcommand{\aSttVctTrp}[1]    {\SttVct\ensuremath{_{#1}\Trp}}
+\newcommand{\SttElm}           {\ensuremath{x}}  
+\newcommand{\aSttElm}[1]       {\SttElm\ensuremath{_{#1}}}
 
 % A priori state vector 
 \newcommand{\AprSttVct}        {\SttVct\AprSmb}
 
 % Retrieved state vector
 \newcommand{\RtrVct}           {\ensuremath{\hat{\SttVct}}}
-
-% A state vector with subscript
-\newcommand{\aSttVct}[1]       {\SttVct\ensuremath{_{#1}}}
-
-% A state vector with subscript and transpose
-\newcommand{\aSttVctTrp}[1]    {\SttVct\ensuremath{_{#1}\Trp}}
 
 % Forward model parameter vector
 \newcommand{\FrwMdlVct}        {\VctStl{b}}  
@@ -194,8 +194,6 @@
 
 % A forward model parameters vector with subscript
 \newcommand{\aFrwMdlVct}[1]    {\FrwMdlVct\ensuremath{_{#1}}}
-
-% A forward model parameters vector with subscript and transpose
 \newcommand{\aFrwMdlVctTrp}[1] {\FrwMdlVct\ensuremath{_{#1}\Trp}}
 
 % Inverse model parameters
@@ -203,11 +201,7 @@
 
 % Weighting function matrix
 \newcommand{\WfnMtr}           {\MtrStl{K}}
-
-% A weighting function matrix with a subscript
 \newcommand{\aWfnMtr}[1]       {\WfnMtr\ensuremath{_{#1}}}
-
-% A weighting function matrix with a subscript and transpose
 \newcommand{\aWfnMtrTrp}[1]    {\WfnMtr\ensuremath{_{#1}\Trp}}
 
 % Contribution function matrix
@@ -215,36 +209,17 @@
 
 % Averaging kernel matrix
 \newcommand{\AvrKrnMtr}        {\MtrStl{A}}  
-
-% A averaging kernel matrix with subscript
 \newcommand{\aAvrKrnMtr}[1]    {\AvrKrnMtr\ensuremath{_{#1}}}
 
 % Sensor (and data reduction) matrix
 \newcommand{\SnsMtr}           {\MtrStl{H}} 
-
-% Sensor (and data reduction) matrix with subscript.
 \newcommand{\aSnsMtr}[1]       {\SnsMtr\ensuremath{_{#1}}} 
 
 % Transformation between vector spaces
 \newcommand{\VctTrfMtr}        {\MtrStl{B}}  
 
-% Population matrix
-\newcommand{\PplMtr}           {\MtrStl{\Sigma}}
-
-% A population matrix with a subscript
-\newcommand{\aPplMtr}[1]       {\PplMtr\ensuremath{_{#1}}}
-
-% A population matrix with a subscript and invererse
-\newcommand{\aPplMtrTrp}[1]    {\PplMtr\ensuremath{_{#1}\Inv}}
-
 % Covariance matrix
 \newcommand{\CvrMtr}           {\MtrStl{S}}
-
-% A covariance matrix with a subscript
-\newcommand{\aCvrMtr}[1]       {\CvrMtr\ensuremath{_{#1}}}
-
-% A covariance matrix with a subscript and invererse
-\newcommand{\aCvrMtrTrp}[1]    {\CvrMtr\ensuremath{_{#1}\Inv}}
 
 
 % --- Special functions ------------------------------------------------------
@@ -278,8 +253,8 @@
 \newcommand{\aLat}[1]    {\ensuremath{\alpha_{#1}}}  
 
 % Length along the propagation path
-\newcommand{\PpathLng}        {\ensuremath{s}}  
-\newcommand{\aPpathLng}[1]    {\ensuremath{s_{#1}}}  
+\newcommand{\PpathLng}        {\ensuremath{l}}  
+\newcommand{\aPpathLng}[1]    {\ensuremath{l_{#1}}}  
 
 % Longitude
 \newcommand{\Lon}        {\ensuremath{\beta}}  
@@ -289,9 +264,15 @@
 \newcommand{\Mpi}        {\ensuremath{I}}  
 \newcommand{\aMpi}[1]    {\ensuremath{I_{#1}}}  
 
-% Pressure altitude
+% Optical depth
 \newcommand{\Oth}        {\ensuremath{\tau}}  
 \newcommand{\aOth}[1]    {\ensuremath{\tau_{#1}}}  
+
+% Transmission
+\newcommand{\Trn}        {\ensuremath{t}}  
+\newcommand{\aTrn}[1]    {\ensuremath{t_{#1}}}  
+\newcommand{\TrnMat}     {\MtrStl{T}}
+\newcommand{\aTrnMat}[1] {\ensuremath{\MtrStl{T}_{#1}}}  
 
 % Pressure
 \newcommand{\Prs}        {\ensuremath{P}}  
@@ -333,8 +314,8 @@
 % --- Radiative transfer quantities -------------------
 
 % Stokes vector
-\newcommand{\StoVec}    {\ensuremath{{\bf i}}}
-\newcommand{\aStoVec}[1]{\ensuremath{{\bf i}_{#1}}}
+\newcommand{\StoVec}    {\ensuremath{{\bf s}}}
+\newcommand{\aStoVec}[1]{\ensuremath{{\bf s}_{#1}}}
 \newcommand{\StoI}      {\ensuremath{I}}
 \newcommand{\aStoI}[1]  {\ensuremath{I_{#1}}}
 \newcommand{\StoQ}      {\ensuremath{Q}}
@@ -367,10 +348,6 @@
 % Source vector
 \newcommand{\SrcVec}    {\ensuremath{{\bf j}}}
 \newcommand{\aSrcVec}[1]{\ensuremath{{\bf j}_{#1}}}     
-
-% Transmission Mueller matrix
-\newcommand{\TrnMat}    {\ensuremath{{\bf T}}}
-\newcommand{\aTrnMat}[1]{\ensuremath{{\bf T}_{#1}}}
 
 % Phase matrix
 \newcommand{\PhaMat}    {\ensuremath{{\bf Z}}}
@@ -486,8 +463,3 @@
 \def \ldashdot   {\mbox{--~$\cdot$~--}}
 \def \ldotted    {\mbox{$\cdot~\cdot~\cdot$}}
 
-
-%%% Local Variables: 
-%%% mode: plain-tex
-%%% TeX-master: "uguide"
-%%% End: 
