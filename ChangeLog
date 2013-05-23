@@ -1,5 +1,12 @@
 2013-05-23  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-1-649
+
+	* src/check_input.cc (chk_atm_field): Error now thrown if field
+	contains NaNs. Implemented for both versions of the function.
+
+2013-05-23  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-1-648
 
 	* doc/uguide/rte_basics.tex:

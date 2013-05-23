@@ -1393,6 +1393,22 @@ void chk_atm_field(
       throw runtime_error( os.str() );
     }
 
+  // NaNs are not allowed
+  for( Index ip=0; ip<npages; ip++ )
+    { for( Index ir=0; ir<nrows; ir++ )
+        { for( Index ic=0; ic<ncols; ic++ )
+            {
+              if( isnan( x(ip,ir,ic) ) )
+                {
+                  ostringstream os;
+                  os << "The variable *" << x_name <<  "* contains one or "
+                     << "several NaNs. This is not allowed!";
+                  throw runtime_error( os.str() );
+                }
+            }
+        }
+    }
+
   // Special 3D checks:
   if( dim == 3  )
     {
@@ -1519,7 +1535,6 @@ void chk_atm_field(
         { return; }
     }
 
-
   Index npages=p_grid.nelem(), nrows=1, ncols=1;
   if( dim > 1 )
     nrows = lat_grid.nelem();
@@ -1539,6 +1554,25 @@ void chk_atm_field(
          << x.nrows() << " x " << x.ncols() << ".";
       throw runtime_error( os.str() );
     }
+
+  // NaNs are not allowed
+  for( Index ib=0; ib<nbooks; ib++ )
+    { for( Index ip=0; ip<npages; ip++ )
+      { for( Index ir=0; ir<nrows; ir++ )
+          { for( Index ic=0; ic<ncols; ic++ )
+              {
+                if( isnan( x(ib,ip,ir,ic) ) )
+                  {
+                    ostringstream os;
+                    os << "The variable *" << x_name <<  "* contains one or "
+                       << "several NaNs. This is not allowed!";
+                    throw runtime_error( os.str() );
+                  }
+              }
+          }
+      }
+    }
+
   // Special 3D checks:
   if( dim == 3  )
     {
