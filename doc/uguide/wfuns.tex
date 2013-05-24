@@ -302,18 +302,19 @@ expressed as (\StoI\ defined in Eq.~\ref{eq:fm_defs:stokevec})
   \StoI = \StoI'+ e^{-\Oth'}\!\left[ \bar{\Planck}_i(1-e^{-\aOth{i}}) + 
                                          \aStoI{i}e^{-\aOth{i}} \right]
 \end{equation}
-where $\Oth'$ is the optical thickness between the sensor and point $i+1$
-and $\StoI'$ is all emission generated along the same distance.
+where $\Oth'$ is the optical thickness between the sensor and point $i+1$ and
+$\StoI'$ is all emission generated along the same distance.
 
 Let \SttElm\ be one element of $\SttVct$, representing the amount of
 some gas at some point in the atmosphere. The contribution to the weighting
 function for \SttElm, originating from the radiative transfer step covered by
 Eq.~\ref{eq:I4J}, is calculated by applying the chain rule:
 \begin{equation}
-  \label{eq:chainrule}
+  \label{eq:chainrule1}
   \frac{\PartD\MsrVct}{\PartD\SttElm} =  
   \frac{\PartD\MsrVct}{\PartD\MpiVct}
-  \frac{\PartD\MpiVct}{\PartD\StoI} \frac{\PartD\StoI}{\PartD\aOth{i}}
+  \frac{\PartD\MpiVct}{\PartD\StoI} 
+  \frac{\PartD\StoI}{\PartD\aOth{i}}
   \left[ \frac{\PartD\aOth{i}}{\PartD\aAbsCoef{i}}
          \frac{\PartD\aAbsCoef{i}}{\PartD\aSttElm{i}} 
          \frac{\PartD\aSttElm{i}}{\PartD\SttElm} +
@@ -322,8 +323,20 @@ Eq.~\ref{eq:I4J}, is calculated by applying the chain rule:
          \frac{\PartD\aSttElm{i+1}}{\PartD\SttElm} 
   \right],
 \end{equation}
-where \aSttElm{i}\ and \aSttElm{i+1}\ is the amount of the gas at point $i$ and
-$i+1$, respectively. Some of these terms can be expressed explicitly:
+where \aSttElm{i}\ and \aSttElm{i+1}\ is the amount of the gas at propagtion
+path point $i$ and $i+1$, respectively. The quantities \aSttElm{i}\ and
+\aSttElm{i+1}\ enter the calculations by the optical thickness of the step
+(\aOth{i}), defined in Eq.~\ref{eq:taustep}. The absorption coefficient,
+\aAbsCoef{i}, is here written as
+\begin{equation}
+  \label{eq:wfuns:crossec1}
+  \aAbsCoef{i} = \aSttElm{i}\sigma_i + \aAbsCoef{i}^o,
+\end{equation}
+where $\sigma_i$ is the absorption cross-section for the species (at point $i$
+and in a unit matching the unit of \SttElm), and $\aAbsCoef{i}^o$ covers the
+summed absorption of all other atmospheric constituents.
+
+Some of the terms of Eq.~\ref{eq:chainrule1} can be expressed explicitly:
 \begin{eqnarray}
   \frac{\PartD \MsrVct}{\PartD\MpiVct} 
       &=& \SnsMtr, \qquad \mathrm{(cf.\ Eq.\ \ref{eq:wfuns:Hi})} \\
@@ -331,14 +344,13 @@ $i+1$, respectively. Some of these terms can be expressed explicitly:
       &=& e^{-\Oth'}\!\left(\bar{\Planck}_i-\aStoI{i}\right)e^{-\aOth{i}}, \\
   \frac{\PartD\aOth{i}}{\PartD\aAbsCoef{i}}=
   \frac{\PartD\aOth{i}}{\PartD\aAbsCoef{i+1}} 
-      &=& \Delta\aPpathLng{i}/2, \qquad \mathrm{(cf.\ Eq.\ \ref{eq:taustep})}\\
+      &=& \Delta\aPpathLng{i}/2\\
   \frac{\PartD\aAbsCoef{i}}{\PartD\aSttElm{i}}
-      &=& \sigma_i, 
+      &=& \sigma_i.
 \end{eqnarray}
-where $\sigma_i$ is the absorption cross-section for the species (at point $i$
-and in a unit matching the unit of \SttElm). The term $\PartD\MpiVct
-/ \PartD\StoI$ gives the position in \MpiVct\ where the \StoI\ of concern is
-stored, and is
+The term $\PartD\MpiVct
+/ \PartD\StoI$ is of bookkeeping character, it represents the position in
+\MpiVct\ where the \StoI\ of concern is stored, and is
 \begin{equation}
   \frac{\PartD\MpiVct}{\PartD\StoI} = 0\ \mathrm{or}\ 1.
 \end{equation}
@@ -393,7 +405,7 @@ This later form is used for Stokes element 2 to 4 in
 If the propagation matrix (\ExtMat) is has non-zero values outside the diagonal
 (but scattering is still zero), the Stokes elements can not be treated
 separately, and matrix-vector notation is required. The vector radiative
-transfer correspondance to Eq.~\ref{eq:I4J} is
+transfer correspondence to Eq.~\ref{eq:I4J} is
 (cf.~Eq.~\ref{eq:fm_defs:vrte_step})
 \begin{equation}
   \label{eq:s4J}
@@ -402,10 +414,53 @@ transfer correspondance to Eq.~\ref{eq:I4J} is
 \end{equation}
 where $\StoVec'$ corresponds to $\StoI'$, $\TrnMat'$ is the Mueller
 transmission matrix matching $\Oth'$ and \aTrnMat{i} is defined in
-Eq.~\ref{eq:rte:transmat}.
+Eq.~\ref{eq:rte:transmat}. The relationship between \aSttElm{i}\ and
+\aSttElm{i+1}\ and the propagation matrix of the path step is
+\begin{equation}
+  \bar{\ExtMat}_i = \frac{\aSttElm{i}\MtrStl{C}_i+
+                      \aSttElm{i+1}\MtrStl{C}_{i+1}}{2} + \bar{\ExtMat}_i^o,
+\end{equation}
+where \MtrStl{C}\ can be seen as a matrix absorption cross-section
+(corresponding to $\sigma$ in Eq.~\ref{eq:wfuns:crossec1}) and
+$\bar{\ExtMat}_i^o$ is the propagation matrix summed for all other atmospheric
+constituents. 
+The chain rule is here written as
+\begin{equation}
+  \label{eq:chainrule2}
+  \frac{\PartD\MsrVct}{\PartD\SttElm} =  
+  \frac{\PartD\MsrVct}{\PartD\MpiVct}
+  \frac{\PartD\MpiVct}{\PartD\StoVec} 
+  \left[ \frac{\PartD\StoVec}{\PartD\aSttElm{i}}
+         \frac{\PartD\aSttElm{i}}{\PartD\SttElm} +
+         \frac{\PartD\StoVec}{\PartD\aSttElm{i+1}}
+         \frac{\PartD\aSttElm{i+1}}{\PartD\SttElm} 
+  \right].
+\end{equation}
+The terms $\PartD\MsrVct/\PartD\MpiVct$, $\PartD\aSttElm{i}/\PartD\SttElm$
+and $\PartD\aSttElm{i+1}/\PartD\SttElm$ are treated above. The next term,
+$\PartD\MpiVct/\PartD\StoVec$, is formally a matrix, but represents just
+bookeeping information as for $\PartD\MpiVct/\PartD\StoI$ above. 
+A first step to determine the third term:
+\begin{equation}
+  \frac{\PartD\StoVec}{\PartD\aSttElm{i}} = 
+  \frac{\PartD\aTrnMat{i}}{\PartD\aSttElm{i}}
+   \left[ \aStoVec{i}-\bar{\EmsVec}_i\right],
+\end{equation}
+where
+\begin{equation}
+  \frac{\PartD\aTrnMat{i}}{\PartD\aSttElm{i}} = 
+  \frac{\PartD}{\PartD\aSttElm{i}} 
+  e^{-\Delta\aPpathLng{i}\left(\frac{\aSttElm{i}\MtrStl{C}_i+
+                      \aSttElm{i+1}\MtrStl{C}_{i+1}}{2} + \bar{\ExtMat}_i^o  
+  \right)}.
+\end{equation}
+The solution of the matrix exponential derivative can not be expressed
+generally in an analytical manner, but some cases can be handled. If two
+matrices \MtrStl{A}\ and \MtrStl{B}\ are commutative, ie. 
+$\MtrStl{A}\MtrStl{B}=\MtrStl{B}\MtrStl{A}$, then the following is valid
+\citep{Dattorro2011}\footnote{Availible at \url{https://ccrma.stanford.edu/~dattorro/mybook.html}.}
 
-\dots (Work in progress)
-
+\dots
 
 \subsubsection{Including the surface}
 %

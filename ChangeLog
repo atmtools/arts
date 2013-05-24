@@ -1,3 +1,12 @@
+2013-05-24  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-652
+
+	* doc/uguide/references.bib: Added Dattorro2011.
+
+	* doc/uguide/wfuns.tex (subsubsection{General case}): Further
+	work. Had to change strategy somehwat.
+
 2013-05-23  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-651
