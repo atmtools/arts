@@ -505,29 +505,37 @@ void f_gridFromSensorAMSUgeneric(// WS Output:
   Vector f_backend_flat(numChan);
   // A "flat" list of channel response functions (one for each AMSU channel)
   ArrayOfGriddedField1 backend_channel_response_nonflat(numChan);
-  // Three vectors to keep track of the gridspacing 
-  Vector fmin_vect(numChan);
-  Vector fmax_vect(numChan);
+
+  // Save the correct verbosity value to each passband 
+  Vector FminVerbosityVect(numFpoints);
+  Vector FmaxVerbosityVect(numFpoints);
+  Vector VerbosityValVect(numFpoints);
+  Index VerbVectIdx =0; 
 
 
-  // Counts position inside the flat arrays during construction:
-  Index j=0;
-
-  for (Index i=0; i<f_backend_multi.nelem(); ++i)
-  {     
-
-    const GriddedField1& this_grid = backend_channel_response_multi[i];
+  for(Index i =0;i<f_backend_multi.nelem();++i)
+      {
+     const GriddedField1& this_grid = backend_channel_response_multi[i];
     const Numeric this_f_backend = f_backend_multi[i];
     // Signal passband :
-    f_backend_flat[j] = this_f_backend;
-    backend_channel_response_nonflat[j] = this_grid;
+    f_backend_flat[i] = this_f_backend;
+    backend_channel_response_nonflat[i] = this_grid;
 
-    // vectors for the spacing
-    fmin_vect[i] = this_f_backend-this_grid.get_numeric_grid(0)[0]-spacing;
-    fmax_vect[i] = this_f_backend+this_grid.get_numeric_grid(0)[this_grid.get_numeric_grid(0).nelem()-1]+spacing;
-    j++;
-  }
-
+        for(Index idy=1; idy < backend_channel_response_multi[i].get_grid_size(0);++idy)
+        {
+          if((backend_channel_response_multi[i].data[idy-1]==0) && (backend_channel_response_multi[i].data[idy]>0))
+          {
+            FminVerbosityVect[VerbVectIdx] = f_backend_multi[i]+backend_channel_response_multi[i].get_numeric_grid(0)[idy];
+            VerbosityValVect[VerbVectIdx] = verbosityVect[i];
+          }
+          if((backend_channel_response_multi[i].data[idy-1]>0) && (backend_channel_response_multi[i].data[idy]==0))
+          {
+            FmaxVerbosityVect[VerbVectIdx] = f_backend_multi[i]+backend_channel_response_multi[i].get_numeric_grid(0)[idy];
+            VerbVectIdx ++;
+          }
+        }
+      }
+  
   // We build up a total list of absolute frequency ranges for all passbands 
   // Code reused from the function "f_gridFromSensorAMSU"
   Vector fmin,fmax;  // - these variables will be resized, therefore len(1) is enough for now.,
@@ -535,8 +543,9 @@ void f_gridFromSensorAMSUgeneric(// WS Output:
   // We have to add some additional margin at the band edges, 
   // otherwise the instrument functions are not happy. Define 
   // this in terms of the grid spacing:
-  // make this static
-  const Numeric delta = spacing;
+  // Isoz 26-05-13
+  // Make this value static
+  const Numeric delta = 10;
 
   // Call subfunction to do the actual work of merging overlapping 
   // channels and identifying channel boundaries:
@@ -561,9 +570,9 @@ void f_gridFromSensorAMSUgeneric(// WS Output:
     if(verbosityVect.nelem()>0)
     { 
       // find the grid needed for the particular part of passband
-      for(Index ii =0;ii<verbosityVect.nelem();++ii)
+      for(Index ii =0;ii<VerbVectIdx;++ii)
       {
-        if((fmin_vect[ii]>=fmin[i]) && (fmax_vect[ii]<=fmax[i]))
+        if((FminVerbosityVect[ii]>=fmin[i]) &&(FmaxVerbosityVect[ii]<=fmax[i]))        
         {
           if(verbIdx ==0)
           {
@@ -571,28 +580,21 @@ void f_gridFromSensorAMSUgeneric(// WS Output:
           } 
           else 
           {
-            if(verbosityVect[ii]<verbosityVect[verbIdx])
+            if(VerbosityValVect[ii]<VerbosityValVect[verbIdx])
             {
               verbIdx = ii;
             }
           }
         }
-        if(spacing > verbosityVect[verbIdx])
-        {
-          npf = ceil(bw/verbosityVect[verbIdx]); // is the default value to coarse?
-        }
-        else 
-        {
-          npf  = ceil(bw/spacing); // Default value
-        }
       }
-    out2
-      <<" Fmin Idx "
-      <<i 
-      <<" npf "
-      <<npf 
-      << "\n";
-
+      if(spacing > VerbosityValVect[verbIdx])
+      {
+        npf = ceil(bw/VerbosityValVect[verbIdx]); // is the default value to coarse?
+      }
+      else 
+      {
+        npf  = ceil(bw/spacing); // Default value
+      }
     }
 
 
@@ -2293,13 +2295,14 @@ void sensor_responseGenericAMSU(// WS Output:
     b_resp.resize(4*(Index)numPB[i]);
     Vector f_range(4*(Index)numPB[i]);
     Numeric pbOffset = 0;
-    const Numeric slope = 10; 
+    const Numeric slope =15; 
+    // To avoid overlapping passbands in the AMSU-A sensor, reduce the passbands of each channel by a few Hz
     for(Index pbOffsetIdx = 0;pbOffsetIdx<numPB[i];++pbOffsetIdx)
     { // Filter response 
-      f_range[pbOffsetIdx*4+0] = -0.5*width[i]-slope;
-      f_range[pbOffsetIdx*4+1] = -0.5*width[i]+slope;
-      f_range[pbOffsetIdx*4+2] = +0.5*width[i]-slope;
-      f_range[pbOffsetIdx*4+3] = +0.5*width[i]+slope;
+      f_range[pbOffsetIdx*4+0] = -0.5*width[i]+1*slope;
+      f_range[pbOffsetIdx*4+1] = -0.5*width[i]+2*slope;
+      f_range[pbOffsetIdx*4+2] = +0.5*width[i]-2*slope;
+      f_range[pbOffsetIdx*4+3] = +0.5*width[i]-1*slope;
       b_resp.data[pbOffsetIdx*4+0] = 0;
       b_resp.data[pbOffsetIdx*4+1] = 1;
       b_resp.data[pbOffsetIdx*4+2] = 1;
@@ -2321,19 +2324,19 @@ void sensor_responseGenericAMSU(// WS Output:
       {
         if(pbOffsetIdx==0)
         {
-          pbOffset = -offset(i,0)-offset(i,2); 
+          pbOffset = -offset(i,0)-offset(i,1); 
         }
         if(pbOffsetIdx==1)
         {
-          pbOffset = -offset(i,0)+offset(i,2); 
+          pbOffset = -offset(i,0)+offset(i,1); 
         }
         if(pbOffsetIdx==2)
         {
-          pbOffset = +offset(i,0)-offset(i,2); 
+          pbOffset = +offset(i,0)-offset(i,1); 
         }
         if(pbOffsetIdx==3)
         {
-          pbOffset = +offset(i,0)+offset(i,2); 
+          pbOffset = +offset(i,0)+offset(i,1); 
         }
       }
       for(Index iii=0;iii<4;++iii)
@@ -2392,10 +2395,10 @@ void sensor_responseGenericAMSU(// WS Output:
       r.data[1]=1/numPB[i];
       r.data[2]=1/numPB[i];
       r.data[3]=1/numPB[i];
-      f[0] = -offset(i,0)-offset(i,2);
-      f[1] = -offset(i,0)+offset(i,2);
-      f[2] = +offset(i,0)-offset(i,2);
-      f[3] = +offset(i,0)+offset(i,2);
+      f[0] = -offset(i,0)-offset(i,1);
+      f[1] = -offset(i,0)+offset(i,1);
+      f[2] = +offset(i,0)-offset(i,1);
+      f[3] = +offset(i,0)+offset(i,1);
 
     }
     r.set_grid_name(0, "Frequency");

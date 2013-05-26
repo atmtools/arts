@@ -1258,12 +1258,12 @@ void find_effective_channel_boundaries(// Output:
     {
       fmin_pb[pbIdx]= f_backend[idx] + backend_f_grid[0]-delta ; //delta;
       fmax_pb[pbIdx]= f_backend[idx] + backend_f_grid[backend_f_grid.nelem()-1]+delta; ///delta;
+      pbIdx++;
     }
-    out2 << "  " << fmin_pb[idx] 
-         << "  " << f_backend[idx] 
-         << "  " << fmax_pb[idx] 
+    out2 << "  " << "fmin_pb "<< fmin_pb[idx] 
+         << "  " << "f_backend" <<f_backend[idx] 
+         << "  " << "fmax_pb "<<fmax_pb[idx] 
          << "\n";
-    pbIdx++;
   }
 
   // The problem is that channels may be overlapping. In that case, we
