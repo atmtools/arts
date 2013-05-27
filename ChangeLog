@@ -1,4 +1,13 @@
+2013-05-27  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-654
+
+	* doc/uguide/wfuns.tex (subsubsection{General case}): Finished a
+	first version of this sub-section, dealing with absorption WFs
+	with polarised absorption.
+
 2013-05-26 Oscar Isoz <oscar.isoz@ltu.se>
+
 	* arts-2-1-653
 
 	* src/sensor.cc (find_effective_channel_boundaries):
@@ -7,15 +16,15 @@
 	* src/m_sensor.cc (f_gridFromSensorAMSUgeneric):
 	Fixed an issue with how the passband frequency grid is calculated
 
-	* src/m_sensor.cc (sensor_responseGenericAMSU):
-	Found (and fixed) a discrepancy in how the properties of the AMSU-A sensor is saved
-	in amsua.arts vs how it is used in this function. 
+	* src/m_sensor.cc (sensor_responseGenericAMSU): Found (and fixed)
+	a discrepancy in how the properties of the AMSU-A sensor is saved
+	in amsua.arts vs how it is used in this function.
 
-	Introduced a slight reduction in the effective bandwidth of the channels by
-	60 Hz in order to avoid for them to merged by f_gridFromSensorAMSUgeneric
-	(this was donet to save computational time and make more room for optimisations of
-	the frequency grid)
-
+	Introduced a slight reduction in the effective bandwidth of the
+	channels by 60 Hz in order to avoid for them to merged by
+	f_gridFromSensorAMSUgeneric
+	(this was donet to save computational time and make more room for
+	optimisations of the frequency grid)
 
 2013-05-24  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 

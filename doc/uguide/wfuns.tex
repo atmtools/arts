@@ -35,7 +35,7 @@ retrieved, and to define the associated retrieval grids. These aspects must be
 considered for successful inversions, but are out of scope for this document.
 Beside for the most simple retrievals, it is further important to understand
 how the Jacobian is calculated. A practical point is the calculation speed,
-primarily determined if perturbations or analytical expressions are used
+primarily determined if perturbations or analytic expressions are used
 (Sec.~\ref{sec:wfuns:intro}). The derivation of the different Jacobians
 involves some approximations due to theoretical and practical considerations.
 Such approximations can be accepted, if of low or moderate size, but will
@@ -43,7 +43,7 @@ result in a slower convergence (the inversion will require more iterations).
 Due to these later aspects, and to meet the needs of more experienced users,
 this section is relatively detailed and contains a (high?) number of equations.
 
-This section is restricted to Jacobianss for clear-sky conditions, i.e.\ to be
+This section is restricted to Jacobians for clear-sky conditions, i.e.\ to be
 applied outside the cloudbox. As the basic radiative transfer expressions, the
 complete Stokes vector is considered, to correctly handle polarisation
 signatures created by the surface. So far none of the scattering methods
@@ -59,7 +59,7 @@ remaining sections (Section~\ref{sec:wfuns:absspecies} and forward).
 %==============================================================================
 \label{sec:wfuns:intro}
 %
-There are two main approaches for calculating Jacobians, by analytical
+There are two main approaches for calculating Jacobians, by analytic
 expressions and by perturbations. We start with the conceptually simplest one,
 but also the more inefficient approach.
 
@@ -90,21 +90,21 @@ interpolation of existing data (such as for a perturbed zenith angle). Such
 short-cuts are discussed separately for each retrieval quantity.
 
 
-\subsection{Analytical expressions}
+\subsection{Analytic expressions}
 %==============================================================================
 \label{sec:wfuns:anal}
 %
 For most atmospheric variables, such as species abundance, it is possible to
-derive an analytical expression for the Jacobians. This is advantageous because
+derive an analytic expression for the Jacobians. This is advantageous because
 they result in faster and more accurate calculations. Such expressions are
 derived below. Some of the terms involved are calculated as a perturbation.
 This is partly a consequence of the flexibility of ARTS. The high-level
 radiative transfer methods (e.g.\ \builtindoc{iyEmissionStandard}) do not know
-how the low-level methods are defining all quantities, and a fixed analytical
+how the low-level methods are defining all quantities, and a fixed analytic
 expression can not be used (see e.g.\ Sec.~\ref{sec:wfuns:atmtemp}). So, in
-practise, the calculations are ``semi-analytical''.
+practise, the calculations are ``semi-analytic''.
 
-To understand the analytical expressions, it is important to remember that ARTS
+To understand the analytic expressions, it is important to remember that ARTS
 covers the sensor by a response matrix:
 \begin{equation}
   \MsrVct = \SnsMtr\MpiVct.
@@ -137,7 +137,7 @@ above, and just use \wsmindex{jacobianOff}. The methods named jacobianCalc{\it
 \wsaindex{jacobian\_agenda}.
 
 The input to the ``add methods'' differs. In some cases you can select between
-the analytical and perturbation options. For all perturbation calculations you
+the analytic and perturbation options. For all perturbation calculations you
 must specify the size of the perturbation. For atmospheric gases you can use
 different units. For atmospheric fields, and some other quantities, you must
 define the retrieval grid(s) to use.
@@ -274,7 +274,7 @@ of the WFs provided by ARTS is likely needed, to make the WFs valid with
 respect to the (original) reference state. For the assumption made inside ARTS,
 the WFs for ``rel'' and ``logrel'' are identical.
 
-A second main consideration is to select the retrieval grids. For analytical
+A second main consideration is to select the retrieval grids. For analytic
 calculations there are no other selections to be made. 
 
 
@@ -286,7 +286,7 @@ shall given following the unit selected. The same value is applied for all WFs
 (which can cause practical problems \dots).
 
 
-\subsection{Analytical expressions}
+\subsection{Analytic expressions}
 %
 The expressions are first derived assuming that the propagation matrix is
 diagonal (unpolarised absorption, scattering generally neglected in this
@@ -323,7 +323,7 @@ Eq.~\ref{eq:I4J}, is calculated by applying the chain rule:
          \frac{\PartD\aSttElm{i+1}}{\PartD\SttElm} 
   \right],
 \end{equation}
-where \aSttElm{i}\ and \aSttElm{i+1}\ is the amount of the gas at propagtion
+where \aSttElm{i}\ and \aSttElm{i+1}\ is the amount of the gas at propagation
 path point $i$ and $i+1$, respectively. The quantities \aSttElm{i}\ and
 \aSttElm{i+1}\ enter the calculations by the optical thickness of the step
 (\aOth{i}), defined in Eq.~\ref{eq:taustep}. The absorption coefficient,
@@ -402,7 +402,7 @@ This later form is used for Stokes element 2 to 4 in
 
 \subsubsection{General case}
 %
-If the propagation matrix (\ExtMat) is has non-zero values outside the diagonal
+If the propagation matrix (\ExtMat) has non-zero values outside the diagonal
 (but scattering is still zero), the Stokes elements can not be treated
 separately, and matrix-vector notation is required. The vector radiative
 transfer correspondence to Eq.~\ref{eq:I4J} is
@@ -439,10 +439,10 @@ The chain rule is here written as
 The terms $\PartD\MsrVct/\PartD\MpiVct$, $\PartD\aSttElm{i}/\PartD\SttElm$
 and $\PartD\aSttElm{i+1}/\PartD\SttElm$ are treated above. The next term,
 $\PartD\MpiVct/\PartD\StoVec$, is formally a matrix, but represents just
-bookeeping information as for $\PartD\MpiVct/\PartD\StoI$ above. 
+bookkeeping information as for $\PartD\MpiVct/\PartD\StoI$ above. 
 A first step to determine the third term:
 \begin{equation}
-  \frac{\PartD\StoVec}{\PartD\aSttElm{i}} = 
+  \frac{\PartD\StoVec}{\PartD\aSttElm{i}} = \TrnMat'
   \frac{\PartD\aTrnMat{i}}{\PartD\aSttElm{i}}
    \left[ \aStoVec{i}-\bar{\EmsVec}_i\right],
 \end{equation}
@@ -451,16 +451,78 @@ where
   \frac{\PartD\aTrnMat{i}}{\PartD\aSttElm{i}} = 
   \frac{\PartD}{\PartD\aSttElm{i}} 
   e^{-\Delta\aPpathLng{i}\left(\frac{\aSttElm{i}\MtrStl{C}_i+
-                      \aSttElm{i+1}\MtrStl{C}_{i+1}}{2} + \bar{\ExtMat}_i^o  
-  \right)}.
+            \aSttElm{i+1}\MtrStl{C}_{i+1}}{2} + \bar{\ExtMat}_i^o \right)}.
 \end{equation}
-The solution of the matrix exponential derivative can not be expressed
-generally in an analytical manner, but some cases can be handled. If two
-matrices \MtrStl{A}\ and \MtrStl{B}\ are commutative, ie. 
+The solution of this matrix exponential derivative can not be expressed
+analytically in a general  manner, but some cases can be handled. If two
+matrices \MtrStl{A}\ and \MtrStl{B}\ are commutative, ie.
 $\MtrStl{A}\MtrStl{B}=\MtrStl{B}\MtrStl{A}$, then the following is valid
-\citep{Dattorro2011}\footnote{Availible at \url{https://ccrma.stanford.edu/~dattorro/mybook.html}.}
+\citep{Dattorro2011}\footnote{Available at
+  \url{https://ccrma.stanford.edu/~dattorro/mybook.html}.}
+\begin{equation}
+  \label{eq:expmder}
+  \frac{\DiffD}{\DiffD t} e^{t\MtrStl{A}+\MtrStl{B}} = 
+       \MtrStl{A}e^{t\MtrStl{A}+\MtrStl{B}}.
+\end{equation}
+On the condition that Eq.~\ref{eq:expmder} is valid, we have that
+\begin{eqnarray}
+  \label{eq:wfuns:vec:dsdxi}
+  \frac{\PartD\StoVec}{\PartD\aSttElm{i}} &=&  
+  \frac{-\Delta\aPpathLng{i}}{2} \TrnMat' \MtrStl{C}_i
+  e^{-\Delta\aPpathLng{i}\left(\frac{\aSttElm{i}\MtrStl{C}_i+
+            \aSttElm{i+1}\MtrStl{C}_{i+1}}{2} + \bar{\ExtMat}_i^o \right)}
+   \left[ \aStoVec{i}-\bar{\EmsVec}_i\right], \\
+  \frac{\PartD\StoVec}{\PartD\aSttElm{i}} &=&  
+  \frac{-\Delta\aPpathLng{i}}{2} \TrnMat' \MtrStl{C}_{i+1}
+  e^{-\Delta\aPpathLng{i}\left(\frac{\aSttElm{i}\MtrStl{C}_i+
+            \aSttElm{i+1}\MtrStl{C}_{i+1}}{2} + \bar{\ExtMat}_i^o \right)}
+   \left[ \aStoVec{i}-\bar{\EmsVec}_i\right]. \nonumber
+\end{eqnarray}
+The question is when Eq.~\ref{eq:wfuns:vec:dsdxi} can be applied? We have three
+main cases:
+\begin{itemize}
+\item The equation is valid as long as the species to be retrieved has
+  unpolarised absorption. This as $\MtrStl{C}_i$ and $\MtrStl{C}_{i+1}$ can
+  then be written as $\sigma_i\IdnMtr$, and
+  $(\aSttElm{i}\MtrStl{C}_i+\aSttElm{i+1}\MtrStl{C}_{i+1})/2$ is commutative
+  with any $\bar{\ExtMat}_i^o$.
+\item It is unlikely that all three matrices involved ($\bar{\ExtMat}_i^o$ and
+  the two \MtrStl{C}-matrices) have off-diagonal elements on the same time. The
+  main causes to polarised absorption are free electrons, Zeeman splitting and
+  particles, and these mechanisms are mainly found in the ionosphere,
+  mesosphere and troposphere, respectively.
+\item The remaining case is when $\bar{\ExtMat}_i^o$ is diagonal but the
+  species to be retrieved has polarised absorption. The likely situation is
+  that both $\MtrStl{C}_i$ and $\MtrStl{C}_{i+1}$ are non-diagonal on the same
+  time, and the condition of Eq.~\ref{eq:expmder} is not fulfilled. However, as
+  argued below, Eq.~\ref{eq:wfuns:vec:dsdxi} should still be approximately
+  valid, and this is used as ``working hypothesis'' in ARTS.
+\end{itemize}
+An alternative way to express the propagation matrix is
+\begin{displaymath}
+  \bar{\ExtMat}_i = \frac{\aSttElm{i}+\aSttElm{i+1}}{2}\bar{\MtrStl{C}}_i + 
+   \bar{\ExtMat}_i^o,   
+\end{displaymath}
+with
+\begin{displaymath}
+  \bar{\MtrStl{C}}_i = \frac{\MtrStl{C}_i+\MtrStl{C}_{i+1}}{2}.   
+\end{displaymath}
+With this formulation even the third case above would be handled, as we now
+only have two matrices to consider (and $\bar{\MtrStl{C}}_i$ is commutative
+with a diagonal $\bar{\ExtMat}_i^o$) . We would then have (for \aSttElm{i})
+\begin{displaymath}
+  \frac{\PartD\StoVec}{\PartD\aSttElm{i}} =  
+  \frac{-\Delta\aPpathLng{i}}{2} \TrnMat' \bar{\MtrStl{C}}_i
+  e^{-\Delta\aPpathLng{i}\left(\frac{\aSttElm{i}\MtrStl{C}_i+
+            \aSttElm{i+1}\MtrStl{C}_{i+1}}{2} + \bar{\ExtMat}_i^o \right)}
+   \left[ \aStoVec{i}-\bar{\EmsVec}_i\right]. \nonumber    
+\end{displaymath}
+As $\MtrStl{C}_i$ and $\MtrStl{C}_{i+1}$ are (very) similar matrices (and then
+also close to $\bar{\MtrStl{C}}_i)$, the practical difference between this
+equation and Eq.~\ref{eq:wfuns:vec:dsdxi} should be small. Or reversely,
+Eq.~\ref{eq:wfuns:vec:dsdxi} should be approximately correct as $\MtrStl{C}_i$
+and $\MtrStl{C}_{i+1}$ are close to identical matrices.
 
-\dots
 
 \subsubsection{Including the surface}
 %
@@ -476,7 +538,7 @@ $\MtrStl{R}_i$ is defined in Eq.~\ref{eq:fm_defs:surfacerefl} and
 
 \subsubsection{Limitations}
 %
-A constraint for the analytical expressions above is that the effect of the
+A constraint for the analytic expressions above is that the effect of the
 variable must only be local. Main examples on non-local effects should occur
 through hydrostatic equilibrium applies and refraction. Significant impact of a
 gas through these mechanisms should only be found for water vapour in the
@@ -500,7 +562,7 @@ A special consideration for temperature is hydrostatic equilibrium. If effects
 origination through hydrostatic equilibrium shall be included in the WFs, or
 not, is selected by an argument denoted as \verb|hse|. A full account of
 hydrostatic equilibrium is possible for perturbation calculations, while the
-analytical approach only treats the local effect (see further below).
+analytic approach only treats the local effect (see further below).
 
 
 \subsection{Perturbation calculations}
@@ -518,9 +580,9 @@ active choice regarding hydrostatic equilibrium, while others effects are
 included automatically.
 
 
-\subsection{Analytical expressions}
+\subsection{Analytic expressions}
 %
-As for gases, only local effects are considered by the analytical expressions.
+As for gases, only local effects are considered by the analytic expressions.
 A changed temperature is not just affecting the absorption, but also the Planck
 function:
 \begin{equation}
@@ -623,7 +685,7 @@ viewing angles to a propagation path through the atmosphere. If the sensor's
 viewing direction instead would have been specified as a tangent pressure, there
 would not be such a coupling. However, this effect vanishes for ground-based
 observations at zenith and satellite measurements at nadir, giving a full
-account of hydrostatic equilibrium even with the analytical expressions. In
+account of hydrostatic equilibrium even with the analytic expressions. In
 practise it should be possible to apply the expressions outside zenith and
 nadir, as long as the observations are of ``up'' or ``down-ward'' type. The
 same applies to measurements from inside the atmosphere, (e.g.\ aircraft ones),
@@ -675,7 +737,7 @@ The Jacobian can be calculated in two manners:
 %==============================================================================
 \label{sec:wfuns:sensorfreq}
 
-This class of Jacoians treats deviations between nominal and actually recorded
+This class of Jacobians treats deviations between nominal and actually recorded
 frequencies. Such differences can originate in several ways, but the exact
 origin can normally be ignored and the effect can be modelled as the backend
 (spectrometer, filter bank \dots) channels are shifted from their nominal
@@ -733,7 +795,7 @@ directions or measurement blocks, and flags can be set to mimic such
 assumptions.
 
 For a given set of retrieved \aSttElm{i}, the simplest way to determine the
-estimated baseline is to perform a muliplication between the relevant parts of
+estimated baseline is to perform a multiplication between the relevant parts of
 the Jacobian and the state vector:
 \begin{equation}
   \aWfnMtr{p}\aSttVct{p},
