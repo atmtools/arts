@@ -1,3 +1,11 @@
+2013-05-29 Oscar Isoz <oscar.isoz@ltu.se>
+  * arts-2-1-656 
+
+	*src/rte.cc (ext2trans) :
+	Fixed a sign error in the assertion between ext_mat(3,0) and ext_mat(0,3)
+	(removed the '-' sign)
+
+
 2013-05-29  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-655
