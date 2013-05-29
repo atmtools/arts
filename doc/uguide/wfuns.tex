@@ -13,7 +13,7 @@ provided by the forward model \citep[see e.g.][]{eriksson:analy:00}. A
 retrieval characterisation following \citet{rodgers:90,rodgers:00} raises the
 same demand. A column of the Jacobian, \aWfnMtr{\SttVct}, is defined as
 \begin{equation}
-  \frac{\partial\MsrVct}{\partial\aSttElm{p}}
+  \frac{\partial\MsrVct}{\partial\aSttElm{p}},
   \label{eq:wfuns:ki}
 \end{equation}
 where \MsrVct\ is the vector of measurement data and \aSttElm{p}\ is one forward
@@ -35,7 +35,7 @@ retrieved, and to define the associated retrieval grids. These aspects must be
 considered for successful inversions, but are out of scope for this document.
 Beside for the most simple retrievals, it is further important to understand
 how the Jacobian is calculated. A practical point is the calculation speed,
-primarily determined if perturbations or analytic expressions are used
+primarily determined if perturbations or analytical expressions are used
 (Sec.~\ref{sec:wfuns:intro}). The derivation of the different Jacobians
 involves some approximations due to theoretical and practical considerations.
 Such approximations can be accepted, if of low or moderate size, but will
@@ -44,14 +44,10 @@ Due to these later aspects, and to meet the needs of more experienced users,
 this section is relatively detailed and contains a (high?) number of equations.
 
 This section is restricted to Jacobians for clear-sky conditions, i.e.\ to be
-applied outside the cloudbox. As the basic radiative transfer expressions, the
-complete Stokes vector is considered, to correctly handle polarisation
-signatures created by the surface. So far none of the scattering methods
-provide Jacobians.
-
-Sections \ref{sec:wfuns:intro}\,-\,\ref{sec:wfuns:basis} contain information
-of general character, while the available quantities are discussed in the
-remaining sections (Section~\ref{sec:wfuns:absspecies} and forward).
+applied outside the cloudbox. So far none of the scattering methods provide
+Jacobians. Sections \ref{sec:wfuns:intro}\,-\,\ref{sec:wfuns:basis} contain
+information of general character, while the available quantities are discussed
+in the remaining sections (Section~\ref{sec:wfuns:absspecies} and forward).
 
 
 
@@ -59,7 +55,7 @@ remaining sections (Section~\ref{sec:wfuns:absspecies} and forward).
 %==============================================================================
 \label{sec:wfuns:intro}
 %
-There are two main approaches for calculating Jacobians, by analytic
+There are two main approaches for calculating Jacobians, by analytical
 expressions and by perturbations. We start with the conceptually simplest one,
 but also the more inefficient approach.
 
@@ -90,21 +86,21 @@ interpolation of existing data (such as for a perturbed zenith angle). Such
 short-cuts are discussed separately for each retrieval quantity.
 
 
-\subsection{Analytic expressions}
+\subsection{Analytical expressions}
 %==============================================================================
 \label{sec:wfuns:anal}
 %
 For most atmospheric variables, such as species abundance, it is possible to
-derive an analytic expression for the Jacobians. This is advantageous because
+derive an analytical expression for the Jacobians. This is advantageous because
 they result in faster and more accurate calculations. Such expressions are
 derived below. Some of the terms involved are calculated as a perturbation.
 This is partly a consequence of the flexibility of ARTS. The high-level
 radiative transfer methods (e.g.\ \builtindoc{iyEmissionStandard}) do not know
-how the low-level methods are defining all quantities, and a fixed analytic
+how the low-level methods are defining all quantities, and a fixed analytical
 expression can not be used (see e.g.\ Sec.~\ref{sec:wfuns:atmtemp}). So, in
-practise, the calculations are ``semi-analytic''. 
+practise, the calculations are ``semi-analytical''. 
 
-The analytic calculations are introduced in Sec.~\ref{sec:wfuns:atmvars}. To
+The analytical calculations are introduced in Sec.~\ref{sec:wfuns:atmvars}. To
 understand the expressions, it is important to remember that ARTS
 covers the sensor by a response matrix:
 \begin{equation}
@@ -119,10 +115,10 @@ Eq.~\ref{eq:fm_defs:measseq}).
 %==============================================================================
 \label{sec:wfuns:wsm}
 %
-As a workspace variable, the Jacobian is denoted as \wsvindex{jacobian}.
-Auxiliary information is provided by \wsvindex{jacobian\_quantities} and
-\wsvindex{jacobian\_indices}. The actual calculations are made as part of
-\builtindoc{yCalc}. 
+As a workspace variable, the complete Jacobian is denoted as
+\wsvindex{jacobian}. Auxiliary information is provided by
+\wsvindex{jacobian\_quantities} and \wsvindex{jacobian\_indices}. The actual
+calculations are made as part of \builtindoc{yCalc}.
 
 The retrieval quantities are defined separately, before calling
 \builtindoc{yCalc}. This process is started by calling \wsmindex{jacobianInit}.
@@ -138,7 +134,7 @@ above, and just use \wsmindex{jacobianOff}. The methods named jacobianCalc{\it
 \wsaindex{jacobian\_agenda}.
 
 The input to the ``add methods'' differs. In some cases you can select between
-the analytic and perturbation options. For all perturbation calculations you
+the analytical and perturbation options. For all perturbation calculations you
 must specify the size of the perturbation. For atmospheric gases you can use
 different units. For atmospheric fields, and some other quantities, you must
 define the retrieval grid(s) to use.
@@ -199,7 +195,6 @@ have a constant value of 1 outside. In terms of interpolation, this matches to
 allow extrapolation, the applying a ``nearest'' interpolation for positions
 outside the covered range (the end values are valid all the way to
 $\pm$infinity).
-
 The basis functions are defined likewise for higher dimensions, but the
 tenth functions are then 2D or 3D ``tenths''.
 
@@ -334,9 +329,10 @@ Using these last expressions, and further applying the chain rule, we get
 \end{eqnarray}
 where \aSttElm{i}\ and \aSttElm{i+1}\ is the quantity of concern at path point
 $i$ and $i+1$, respectively. The terms $\PartD\aTrn{i}/\PartD\aSttElm{i}$,
-$\PartD\bar{\Planck}_i/\PartD\aSttElm{i}$ and the correspong ones for
+$\PartD\bar{\Planck}_i/\PartD\aSttElm{i}$ and the corresponding ones for
 \aSttElm{i+1}\ differ between the retrieval quantities, and are discussed in
-the sections below. The remaining terms are discussed from left to right.
+the sections below.
+
 The term $\PartD\aSttElm{i}/\PartD\SttElm$ appears due to the fact that
 \aSttElm{i}\ and \SttElm\ are placed at different positions, and the
 representation of the atmospheric fields must be considered here. Exactly the
@@ -360,7 +356,7 @@ For higher Stokes components, or if emission is ignored, Eq.~\ref{eq:I4J} is
 simplified to
 \begin{equation}
   \label{eq:Q4J}
-  \StoQ = \Trn'\aStoQ{i}\aTrn{i},
+  \StoQ = \Trn'\aTrn{i}\aStoQ{i},
 \end{equation}
 and the chain rule expression is correspondingly shorter:
 \begin{equation}
@@ -394,8 +390,8 @@ transfer correspondence to Eq.~\ref{eq:I4J} is
 (cf.~Eq.~\ref{eq:fm_defs:vrte_step})
 \begin{equation}
   \label{eq:s4J}
-  \StoVec = \StoVec' + \TrnMat' \left[ (\IdnMtr-\aTrnMat{i})\bar{\EmsVec}_i +
-      \aTrnMat{i} \aStoVec{i} \right],
+  \StoVec = \StoVec' + \TrnMat' \left[ \aTrnMat{i} \aStoVec{i} +
+         (\IdnMtr-\aTrnMat{i})\bar{\EmsVec}_i \right],
 \end{equation}
 where $\StoVec'$ corresponds to $\StoI'$, $\TrnMat'$ is the Mueller
 transmission matrix matching $\Trn'$ and \aTrnMat{i} is defined in
@@ -413,7 +409,7 @@ Eq.~\ref{eq:rte:transmat}. A first step of the chain rule expansion is
 The terms $\PartD\MsrVct/\PartD\MpiVct$, $\PartD\aSttElm{i}/\PartD\SttElm$
 and $\PartD\aSttElm{i+1}/\PartD\SttElm$ are treated above. The next term,
 $\PartD\MpiVct/\PartD\StoVec$, is formally a matrix, but represents just
-bookkeeping information as for $\PartD\MpiVct/\PartD\StoI$ above. Using
+bookkeeping information, as $\PartD\MpiVct/\PartD\StoI$ above. Using
 relationships discussed below, we can expand the third term further:
 \begin{equation}
   \frac{\PartD\StoVec}{\PartD\aSttElm{i}} = \TrnMat'
@@ -499,7 +495,7 @@ $\MtrStl{R}_i$ is defined in Eq.~\ref{eq:fm_defs:surfacerefl} and
 \subsection{Limitations}
 \label{sec:wfuns:atmvars:limit}
 %
-A constraint for the analytic expressions above is that the effect of the
+A constraint for the analytical expressions above is that the effect of the
 variable must only be local. Main examples on non-local effects should occur
 through hydrostatic equilibrium and refraction. Significant impact of a gas
 through these mechanisms should only be found for water vapour in the lower
@@ -539,7 +535,7 @@ of the WFs provided by ARTS is likely needed, to make the WFs valid with
 respect to the (original) reference state. For the assumption made inside ARTS,
 the WFs for ``rel'' and ``logrel'' are identical.
 
-A second main consideration is to select the retrieval grids. For analytic
+A second main consideration is to select the retrieval grids. For analytical
 calculations there are no other selections to be made. 
 
 
@@ -551,7 +547,7 @@ shall given following the unit selected. The same value is applied for all WFs
 (which can cause practical problems \dots).
 
 
-\subsection{Analytic expressions}
+\subsection{Analytical expressions}
 %
 
 \subsubsection{Unpolarised absorption}
@@ -600,7 +596,7 @@ source code:
   Y &=& \frac{\PartD\StoI}{\PartD\aTrn{i}}
         \frac{\PartD\aTrn{i}}{\PartD\aOth{i}}
         \frac{\PartD\aOth{i}}{\PartD\aAbsCoef{i}}
-    \qquad \left( = X(\bar{\Planck}_i-\aStoI{i}) \right).
+    \qquad \left( = -X(\aStoI{i}-\bar{\Planck}_i) \right).
 \end{eqnarray}
 The expressions above are implemented in \wsmindex{iyEmissionStandard}.
 
@@ -706,15 +702,15 @@ Calculation of wind weighting functions are triggered by
 \wsmindex{jacobianAddWind}. Each wind component (see Sec.~\ref{sec:winds:defs})
 is treated as an individual retrieval variable. That is, if you want to
 retrieve all three wind components, \builtindoc{jacobianAddWind} must be called
-three times. Only analytically inclinded calculation approach is at hand for
-winds.
+three times. Only the analytically inclinded calculation approach is at hand
+for winds.
 
-Theortetically, the Doppler shift induced by winds affect the emission source
+Theortetically, the Doppler shift induced by winds affects the emission source
 term ($\bar{\Planck}_i$, in the scalar case), but this impact is extremly small
 and the related terms are ignored. This gives a case basically identical to the
 one above for absorption species. The difference is that the terms
 $\PartD\aAbsCoef{i}/\PartD\aSttElm{i}$ and
-$\PartD\aAbsCoef{i}/\PartD\aSttElm{i+1}$ are estimated in a pure numerical
+$\PartD\aAbsCoef{i+1}/\PartD\aSttElm{i+1}$ are estimated in a pure numerical
 manner, by recalculating the absorption coefficient with the wind perturbed
 slightly.
 
@@ -736,7 +732,7 @@ A special consideration for temperature is hydrostatic equilibrium. If effects
 originating in hydrostatic equilibrium shall be included in the WFs, or
 not, is selected by an argument denoted as \verb|hse|. A full account of
 hydrostatic equilibrium is possible for perturbation calculations, while the
-analytic approach only treats the local effect (see further below).
+analytical approach only treats the local effect (see further below).
 
 
 \subsection{Perturbation calculations}
@@ -753,11 +749,11 @@ active choice regarding hydrostatic equilibrium, while others effects are
 included automatically.
 
 
-\subsection{Analytic expressions}
+\subsection{Analytical expressions}
 %
 \subsubsection{Unpolarised absorption}
 %
-Compared to atmospheric species, the expressions for become here substantially
+Compared to atmospheric species, the expressions become here substantially
 longer as temperature also affects the propogation path length ($\Delta
 \aPpathLng{i}$) and the emission source term ($\bar{\Planck}_i$). Accordingly,
 all terms of Eq.~\ref{eq:chainrule1} are relevant and the derivative of the
@@ -803,16 +799,16 @@ In summary (assuming \verb|hse| set to ``on''):
       \frac{\aAbsCoef{i}+\aAbsCoef{i+1}}{2\aTmp{i}}
     \right].  
 \end{equation}
-Going back to Eq.~\ref{eq:chainrule1q}, the term
-$\PartD\Planck(T)/\PartD\aSttElm{i}$ can be expressed analytically
-\citep{eriksson:studi:02}, but as \Planck\ is provided by an agenda this term
-must anyhow be determined in a pure numerical manner; it is likely the
-derivative of the Planck function, but if the Rayleigh-Jeans approximation is
-for some reason selected ($\Planck=\Tmp$) the term is just 1.
+Going back to Eq.~\ref{eq:chainrule1q}, the derivative of the Planck function
+($\PartD\Planck/\PartD\Tmp$) can be expressed analytically
+\citep{eriksson:studi:02}, but as \Planck\ is provided by an agenda related
+terms must anyhow be determined in a pure numerical manner. For example, if the
+Rayleigh-Jeans approximation is for some reason applied ($\Planck=\Tmp$) the
+term is just 1.
 
 Th terms involving $\aSttElm{i+1}$ are identical. Expressions for higher Stokes
-components, or if emission is ignored, are obtained by $\bar{\Planck}_i$ and
-all related derivatives to zero.
+components, or if emission is ignored, are obtained by setting
+$\bar{\Planck}_i$ and all related derivatives to zero.
 
 
 \subsubsection{General case}
@@ -827,27 +823,23 @@ A changed temperature has non-local effects, originating from refraction and
 hydrostatic equilibrium. The expressions above ignore totally refraction
 effects. 
 
-If \verb|hse| is set to ``off'', the term $\PartD \Delta \aPpathLng{i}/\PartD
-\aTmp{i}$ is set to zero. That is, the path length through the layer is not
-affected by a temperature change. With \verb|hse| set to ``on'', the complete
-expressions above are used.
+As  mentioned,  if \verb|hse|  is  set  to  ``off'',  the term  $\PartD  \Delta
+\aPpathLng{i}/\PartD\aSttElm{i}$  is set  to  zero. That  is,  the path  length
+through the layer is not affected  by a temperature change. With \verb|hse| set
+to ``on'', the complete expressions above are used.
 
 If this treatment of hydrostatic equilibrium is sufficient or not depends on
-the observation geometry. It is not sufficient for e.g.\ limb sounding, where
-changes even at altitudes below the tangent point will have an influence as the
-geometrical altitudes of all higher layers is changed through hydrostatic
-equilibrium. This coupling between temperature changes at altitudes below the
-tangent point originates from the geometrical calculations, mapping the sensor
-viewing angles to a propagation path through the atmosphere. If the sensor's
-viewing direction instead would have been specified as a tangent pressure, there
-would not be such a coupling. However, this effect vanishes for ground-based
-observations at zenith and satellite measurements at nadir, giving a full
-account of hydrostatic equilibrium even with the analytic expressions. In
-practise it should be possible to apply the expressions outside zenith and
+the observation geometry. It should be insufficient for limb sounding,
+where changes even at altitudes below the tangent point can have an influence
+as the geometrical altitudes of all higher layers is changed through
+hydrostatic equilibrium.  However, this effect vanishes for
+ground-based observations at zenith and satellite measurements at nadir, giving
+a full account of hydrostatic equilibrium even with the analytical expressions.
+In practise it should be possible to apply the expressions outside zenith and
 nadir, as long as the observations are of ``up'' or ``down-ward'' type. The
 same applies to measurements from inside the atmosphere, (e.g.\ aircraft ones),
-if the reference pressure for hydrostatic equilibrium (\builtindoc{p\_hse})
-is matched to the pressure of the observation point.
+if the reference pressure for hydrostatic equilibrium (\builtindoc{p\_hse}) is
+matched to the pressure of the observation point.
 
 
 
@@ -880,11 +872,11 @@ The Jacobian can be calculated in two manners:
   of existing data. This achieved by interpolating pencil beam data to a
   shifted zenith angle grid. This will involve some extrapolation of the data,
   and this aspect should be considered when selecting
-  \builtindoc{mblock\_za\_grid}. The average of a positive and negative shift.
-  The shift to apply (\verb|dza|) should be smaller than the minimum spacing of
-  \builtindoc{mblock\_za\_grid} for accurate results. As interpolation is a
-  relative fast operation and a ``double-sided'' disturbance is used, this
-  option should in general be preferred.
+  \builtindoc{mblock\_za\_grid}. The average of a positive and negative shift
+  is determined. The shift to apply (\verb|dza|) should be smaller than the
+  minimum spacing of \builtindoc{mblock\_za\_grid} for accurate results. As
+  interpolation is a relative fast operation and a ``double-sided'' disturbance
+  is used, this option should in general be preferred.
 \end{description}
 
 
@@ -904,17 +896,17 @@ Jacobians can so far only be determined by applying an interpolation of existing
 monochromatic data, then shifted \verb|df| from the nominal
 values.
 
-The methods treats either the ``shift'' or ``stretch'' effects. This follows
+The methods treat either the ``shift'' or ``stretch'' effects. This follows
 standard nomenclature. A ``shift'' is an off-set that is of the same size for
 all backend channels. That is, if only a shift is assumed, the nominal
-distances between the channels are assumed to be valid. The shift term is
-always included. The ``stretch'' term considers the distance between the
-channels. For a backend with all channels equally spaced, a stretch signifies
-that the spacing deviates from the nominal value (but all channels still
-equally spaced). More generally, a stretch means that the deviation from the
-nominal channel position increases linearly from the middle point of the
-backend. In terms of the basis functions Section~\ref{sec:wfuns:basis2}, shift
-and stretch correspond to polynomial order 0 and 1.
+distances between the channels are assumed to be valid. The ``stretch'' term
+considers the distance between the channels. For a backend with all channels
+equally spaced, a stretch signifies that the spacing deviates from the nominal
+value (but all channels still equally spaced). More generally, a stretch means
+that the deviation from the nominal channel position increases linearly from
+the middle point of the backend. In terms of the basis functions
+Section~\ref{sec:wfuns:basis2}, shift and stretch correspond to polynomial
+order 0 and 1.
 
 Both frequency shift and stretch can be assumed to be time varying, where
 exactly the same polynomial approach as for pointing is applied. This
