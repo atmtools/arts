@@ -102,9 +102,10 @@ This is partly a consequence of the flexibility of ARTS. The high-level
 radiative transfer methods (e.g.\ \builtindoc{iyEmissionStandard}) do not know
 how the low-level methods are defining all quantities, and a fixed analytic
 expression can not be used (see e.g.\ Sec.~\ref{sec:wfuns:atmtemp}). So, in
-practise, the calculations are ``semi-analytic''.
+practise, the calculations are ``semi-analytic''. 
 
-To understand the analytic expressions, it is important to remember that ARTS
+The analytic calculations are introduced in Sec.~\ref{sec:wfuns:atmvars}. To
+understand the expressions, it is important to remember that ARTS
 covers the sensor by a response matrix:
 \begin{equation}
   \MsrVct = \SnsMtr\MpiVct.
@@ -240,6 +241,258 @@ Element $j$ of $\VctStl{z}_i$ is
 \begin{equation}
   \VctStl{z}_i(j) = z(j)^i - b_i.
 \end{equation}
+
+
+
+
+\section{Atmospheric variables, common expressions}
+%==============================================================================
+\label{sec:wfuns:atmvars}
+%
+The analytically-oriented calculation procedure to obtain the Jacobian for
+atmospheric quantities is here outlined. The expressions are based on the
+chain rule, and can be applied for absorption constituents, atmospheric
+temperatures and winds. It is important to notice that only local effects are
+considered, and the expressions have limitations, as discussed below
+(Sec.~\ref{sec:wfuns:atmvars:limit}).
+
+The expressions are first derived assuming that the propagation matrix is
+diagonal (unpolarised absorption, scattering generally neglected in this
+chapter), to make the derivation as clear as possible. In the subsequent
+section, the calculations are repeated for the general case.
+
+
+\subsection{Unpolarised absorption}
+%
+The final radiance obtained through Eq.~\ref{eq:fm_defs:rte_step} can be
+expressed as (\StoI\ defined in Eq.~\ref{eq:fm_defs:stokevec})
+\begin{equation}
+  \label{eq:I4J}
+  \StoI = \StoI'+ e^{-\Oth'}\!\left[ \bar{\Planck}_i(1-e^{-\aOth{i}}) + 
+                                         \aStoI{i}e^{-\aOth{i}} \right]
+\end{equation}
+where $\Oth'$ is the optical thickness between the sensor and point $i+1$ and
+$\StoI'$ is all emission generated along the same distance.
+
+Let \SttElm\ be the element of $\SttVct$ for which we want to obtain the
+weighting function. The contribution to the weighting function,
+originating from the radiative transfer step covered by Eq.~\ref{eq:I4J}, is
+calculated by applying the chain rule:
+\begin{equation}
+  \frac{\PartD\MsrVct}{\PartD\SttElm} =  
+  \frac{\PartD\MsrVct}{\PartD\MpiVct}
+  \frac{\PartD\MpiVct}{\PartD\StoI} 
+  \left[
+  \frac{\PartD\StoI}{\PartD\aOth{i}}\frac{\PartD\aOth{i}}{\PartD\SttElm} + 
+  \frac{\PartD\StoI}{\PartD\bar{\Planck}_i}
+  \frac{\PartD\bar{\Planck}_i}{\PartD\SttElm} \right],
+\end{equation}
+that can be extended to
+\begin{eqnarray}
+  \frac{\PartD\MsrVct}{\PartD\SttElm} =  
+  \frac{\PartD\MsrVct}{\PartD\MpiVct}
+  \frac{\PartD\MpiVct}{\PartD\StoI} 
+  \!\!\!\!&\Bigg[&\!\!\!\!
+    \frac{\PartD\StoI}{\PartD\aOth{i}}
+      \left(
+        \frac{\PartD\aOth{i}}{\PartD\aSttElm{i}}
+        \frac{\PartD\aSttElm{i}}{\PartD\SttElm} + 
+        \frac{\PartD\aOth{i}}{\PartD\aSttElm{i+1}}  
+        \frac{\PartD\aSttElm{i+1}}{\PartD\SttElm} 
+      \right) + \nonumber\\ && \!\!\!\!
+    \frac{\PartD\StoI}{\PartD\bar{\Planck}_i}
+      \left(
+        \frac{\PartD\bar{\Planck}_i}{\PartD\aSttElm{i}}
+        \frac{\PartD\aSttElm{i}}{\PartD\SttElm} + 
+        \frac{\PartD\bar{\Planck}_i}{\PartD\aSttElm{i+1}}  
+        \frac{\PartD\aSttElm{i+1}}{\PartD\SttElm}
+     \right)
+  \Bigg],  
+  \label{eq:chainrule1}
+\end{eqnarray}
+where \aSttElm{i}\ and \aSttElm{i+1}\ is the quantity of concern at path point
+$i$ and $i+1$, respectively. The terms $\PartD\aOth{i}/\PartD\aSttElm{i}$,
+$\PartD\bar{\Planck}_i/\PartD\aSttElm{i}$ and the correspong ones for
+\aSttElm{i+1}\ differ between the retrieval quantities, and are discussed in
+the sections below. The remaining terms are discussed from left to right.
+The first term is obtained from Eq.~\ref{eq:wfuns:Hi} (derivatives involving
+matrices and vectors are commented below):
+\begin{equation}
+  \frac{\PartD\MsrVct}{\PartD\MpiVct} = \SnsMtr.
+\end{equation}
+The term $\PartD\MpiVct / \PartD\StoI$ is a vector, and is of bookkeeping
+character. It represents the position in \MpiVct\ where the \StoI\ of concern
+is stored, and the elements are either 0 or 1.
+The next two terms are derived from Eq.~\ref{eq:I4J}:
+\begin{eqnarray}
+  \frac{\PartD\StoI}{\PartD\aOth{i}} 
+      &=& e^{-\Oth'}\!\left(\bar{\Planck}_i-\aStoI{i}\right)e^{-\aOth{i}}, \\
+   \frac{\PartD \StoI}{\PartD \bar{\Planck}_i} &=&
+   e^{-\Oth'}\!\left(1-e^{-\aOth{i}}\right).
+\end{eqnarray}
+The term $\PartD\aSttElm{i}/\PartD\SttElm$ appears due to the fact that
+\aSttElm{i}\ and \SttElm\ are placed at different positions, and the
+representation of the atmospheric fields must be considered here. Exactly the
+same is valid for $\PartD\aSttElm{i+1}/\PartD\SttElm$ and only
+$\PartD\aSttElm{i}/\PartD\SttElm$ is discussed below.
+
+In practise, the term is calculated as the value of the basis function for
+\SttElm\ at the location of \aSttElm{i}\ (further discussed in
+\citet{buehler:artst:05}). This is a slight approximation with respect to the
+goal of fully incorporating the piece-wise linear representation in the
+weighting functions \citep{buehler:artst:05}. A low value of
+$\Delta\aPpathLng{i}$ decreases the degree of approximation.
+
+It can be noted that $\PartD\aSttElm{i} / \PartD\SttElm$ is normally non-zero
+for more than one element of \SttVct. The exception is if the positions of
+\aSttElm{i}\ and \SttElm\ are identical. Reversely, the weighting function for
+element \SttElm\ can have contributions from several propagation path points
+(\aSttElm{i}), as well as from several radiance spectra. 
+
+For higher Stokes components, or if emission is ignored, Eq.~\ref{eq:I4J} is
+simplified to
+\begin{equation}
+  \label{eq:Q4J}
+  \StoQ = e^{-\Oth'}\!\aStoQ{i}e^{-\aOth{i}},
+\end{equation}
+and the chain rule expression is correspondingly shorter:
+\begin{equation}
+  \frac{\PartD\MsrVct}{\PartD\SttElm} =  
+  \frac{\PartD\MsrVct}{\PartD\MpiVct}
+  \frac{\PartD\MpiVct}{\PartD\StoQ} 
+  \frac{\PartD\StoQ}{\PartD\aOth{i}}
+  \left[
+    \frac{\PartD\aOth{i}}{\PartD\aSttElm{i}}
+    \frac{\PartD\aSttElm{i}}{\PartD\SttElm} + 
+    \frac{\PartD\aOth{i}}{\PartD\aSttElm{i+1}}  
+    \frac{\PartD\aSttElm{i+1}}{\PartD\SttElm} 
+  \right].
+\end{equation}
+The term $\PartD\MpiVct/\PartD\StoQ$ is defined like
+$\PartD\MpiVct/\PartD\StoI$ and the only really new term is:
+\begin{equation}
+  \frac{\PartD\StoQ}{\PartD\aOth{i}} 
+      = -e^{-\Oth'}\!\aStoQ{i}e^{-\aOth{i}}.
+\end{equation}
+
+
+\subsection{Polarised absorption}
+%
+If the propagation matrix (\ExtMat) has non-zero values outside the diagonal
+(but scattering is still zero), the Stokes elements can not be treated
+separately, and matrix-vector notation is required. The vector radiative
+transfer correspondence to Eq.~\ref{eq:I4J} is
+(cf.~Eq.~\ref{eq:fm_defs:vrte_step})
+\begin{equation}
+  \label{eq:s4J}
+  \StoVec = \StoVec' + \TrnMat' \left[ (\IdnMtr-\aTrnMat{i})\bar{\EmsVec}_i +
+      \aTrnMat{i} \aStoVec{i} \right],
+\end{equation}
+where $\StoVec'$ corresponds to $\StoI'$, $\TrnMat'$ is the Mueller
+transmission matrix matching $\Oth'$ and \aTrnMat{i} is defined in
+Eq.~\ref{eq:rte:transmat}. A first step of the chain rule expansion is
+\begin{equation}
+  \label{eq:chainrule2}
+  \frac{\PartD\MsrVct}{\PartD\SttElm} =  
+  \frac{\PartD\MsrVct}{\PartD\MpiVct}
+  \frac{\PartD\MpiVct}{\PartD\StoVec} 
+  \left[ \frac{\PartD\StoVec}{\PartD\aSttElm{i}}
+         \frac{\PartD\aSttElm{i}}{\PartD\SttElm} +
+         \frac{\PartD\StoVec}{\PartD\aSttElm{i+1}}
+         \frac{\PartD\aSttElm{i+1}}{\PartD\SttElm} 
+  \right].
+\end{equation}
+The terms $\PartD\MsrVct/\PartD\MpiVct$, $\PartD\aSttElm{i}/\PartD\SttElm$
+and $\PartD\aSttElm{i+1}/\PartD\SttElm$ are treated above. The next term,
+$\PartD\MpiVct/\PartD\StoVec$, is formally a matrix, but represents just
+bookkeeping information as for $\PartD\MpiVct/\PartD\StoI$ above. Using
+relationships discussed below, we can expand the third term further:
+\begin{equation}
+  \frac{\PartD\StoVec}{\PartD\aSttElm{i}} = \TrnMat'
+  \left[
+    \frac{\PartD\aTrnMat{i}}{\PartD\aSttElm{i}}
+      \left( \aStoVec{i}-\bar{\EmsVec}_i \right) +
+    \left( \IdnMtr-\aTrnMat{i} \right) 
+      \frac{\PartD\bar{\EmsVec}_i}{\PartD\aSttElm{i}}
+  \right].
+\end{equation}
+The term $\PartD\StoVec/\PartD\aSttElm{i+1}$ follows the same pattern, and in
+total we get (using the fact that $\PartD\aSttElm{i}/\PartD\SttElm$ and
+$\PartD\aSttElm{i+1}/\PartD\SttElm$ are scalar quantities)
+\begin{eqnarray}
+  \frac{\PartD\MsrVct}{\PartD\SttElm} =  
+  \frac{\PartD\MsrVct}{\PartD\MpiVct}
+  \frac{\PartD\MpiVct}{\PartD\StoVec} \TrnMat'
+  \!\!\!\!&\Bigg[&\!\!\!\!
+    \left( 
+      \frac{\PartD\aTrnMat{i}}{\PartD\aSttElm{i}}
+      \frac{\PartD\aSttElm{i}}{\PartD\SttElm} +
+      \frac{\PartD\aTrnMat{i}}{\PartD\aSttElm{i+1}}
+      \frac{\PartD\aSttElm{i+1}}{\PartD\SttElm}
+    \right)
+    \left( \aStoVec{i}-\bar{\EmsVec}_i \right) + \nonumber\\ && \!\!\!
+    \left( \IdnMtr-\aTrnMat{i} \right) 
+    \left(
+      \frac{\PartD\bar{\EmsVec}_i}{\PartD\aSttElm{i}} 
+      \frac{\PartD\aSttElm{i}}{\PartD\SttElm} +
+      \frac{\PartD\bar{\EmsVec}_i}{\PartD\aSttElm{i+1}} 
+      \frac{\PartD\aSttElm{i+1}}{\PartD\SttElm}
+    \right)
+  \Bigg].
+\end{eqnarray}
+The fact that $\PartD\MpiVct/\PartD\StoVec$ is a matrix exemplifies that
+derivatives involving vectors and matrices must be handled with some care, the
+standard calculation rules do not always apply. The basic relationships used
+here are\footnote{See e.g.\ \url{en.wikipedia.org/wiki/Matrix_calculus}.}
+\begin{eqnarray}
+  \frac{\PartD\VctStl{a}}{\PartD\VctStl{a}} &=& 
+    \IdnMtr \\
+  \frac{\PartD(\MtrStl{A}\VctStl{b})}{\PartD\VctStl{a}} &=& 
+    \MtrStl{A}\frac{\PartD\VctStl{b}}{\PartD\VctStl{a}} \\
+  \frac{\PartD(\VctStl{b}+\VctStl{c})}{\PartD\VctStl{a}} &=& 
+    \frac{\PartD\VctStl{b}}{\PartD\VctStl{a}}+
+    \frac{\PartD\VctStl{c}}{\PartD\VctStl{a}}
+\end{eqnarray}
+where \VctStl{a}, \VctStl{b}\ and \VctStl{c}\ are vectors, and \MtrStl{A}\ a
+matrix.
+
+Matrix exponential derivatives can not be expressed analytically in a general
+manner, but some cases can be handled. If two matrices \MtrStl{A}\ and
+\MtrStl{B}\ are commutative, ie. $\MtrStl{A}\MtrStl{B}=\MtrStl{B}\MtrStl{A}$,
+then the following is valid \citep{Dattorro2011}\footnote{Available at
+  \url{https://ccrma.stanford.edu/~dattorro/mybook.html}.}
+\begin{equation}
+  \label{eq:expmder}
+  \frac{\PartD}{\PartD t} e^{t\MtrStl{A}+\MtrStl{B}} = 
+       \MtrStl{A}e^{t\MtrStl{A}+\MtrStl{B}},
+\end{equation}
+where $t$ is a scalar varaible.
+The cases where \MtrStl{A}\ and \MtrStl{B}\ are commutative includes the
+situation where one of them is a scalar matrix (can be written as $a\IdnMtr$,
+diagonal with all non-zero elements equal).
+
+
+
+\subsection{Including the surface}
+%
+For scattered down-welling radiation the effective transmission matrix is
+\begin{equation}
+  \TrnMat' = \aTrnMat{2}\MtrStl{R}_i\aTrnMat{1},
+\end{equation}
+where \aTrnMat{2}\ is the transmission between the surface and the sensor,
+$\MtrStl{R}_i$ is defined in Eq.~\ref{eq:fm_defs:surfacerefl} and
+\aTrnMat{1}\ is the transmission between the point $i+1$ and the surface.
+
+
+\subsection{Limitations}
+\label{sec:wfuns:atmvars:limit}
+%
+A constraint for the analytic expressions above is that the effect of the
+variable must only be local. Main examples on non-local effects should occur
+through hydrostatic equilibrium and refraction. Significant impact of a gas
+through these mechanisms should only be found for water vapour in the lower
+troposphere, but is a general concern for temperature as discussed in
+Sec.~\ref{sec:wfuns:atmtemp}.
 
 
 
@@ -461,7 +714,7 @@ $\MtrStl{A}\MtrStl{B}=\MtrStl{B}\MtrStl{A}$, then the following is valid
   \url{https://ccrma.stanford.edu/~dattorro/mybook.html}.}
 \begin{equation}
   \label{eq:expmder}
-  \frac{\DiffD}{\DiffD t} e^{t\MtrStl{A}+\MtrStl{B}} = 
+  \frac{\PartD}{\PartD t} e^{t\MtrStl{A}+\MtrStl{B}} = 
        \MtrStl{A}e^{t\MtrStl{A}+\MtrStl{B}}.
 \end{equation}
 On the condition that Eq.~\ref{eq:expmder} is valid, we have that
@@ -524,25 +777,6 @@ Eq.~\ref{eq:wfuns:vec:dsdxi} should be approximately correct as $\MtrStl{C}_i$
 and $\MtrStl{C}_{i+1}$ are close to identical matrices.
 
 
-\subsubsection{Including the surface}
-%
-For scattered down-welling radiation the effective transmission
-matrix is
-\begin{equation}
-  \TrnMat' = \aTrnMat{2}\MtrStl{R}_i\aTrnMat{1},
-\end{equation}
-where \aTrnMat{2}\ is the transmission between the surface and the sensor,
-$\MtrStl{R}_i$ is defined in Eq.~\ref{eq:fm_defs:surfacerefl} and
-\aTrnMat{1}\ is the transmission between the point $i+1$ and the surface.
-
-
-\subsubsection{Limitations}
-%
-A constraint for the analytic expressions above is that the effect of the
-variable must only be local. Main examples on non-local effects should occur
-through hydrostatic equilibrium applies and refraction. Significant impact of a
-gas through these mechanisms should only be found for water vapour in the
-lower troposphere.
 
 
 
