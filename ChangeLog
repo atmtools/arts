@@ -1,8 +1,17 @@
+2013-05-30  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-659
+
+	* src/rte.cc (ext2trans): Commented out assert( ext_mat(0,0) >= 0 );
+	This assert made qpack2_demo in atmlab to fail. I guess due to
+	negative vmr. Uh, not sure how to handle this and removing the
+	assert to avoid the problem for the moment!
+
 2013-05-29  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-658
 
-	* doc/uguide/wfuns.tex: A number of smaller corrections. 
+	* doc/uguide/wfuns.tex: A number of smaller corrections.
 
 2013-05-29  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 

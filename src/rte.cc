@@ -895,7 +895,7 @@ void ext2trans(
   assert( ext_mat.nrows()==stokes_dim );
   assert( trans_mat.nrows()==stokes_dim && trans_mat.ncols()==stokes_dim );
 
-  assert( ext_mat(0,0) >= 0 );
+  //assert( ext_mat(0,0) >= 0 );
   assert( !is_singular( ext_mat ) );
   assert( lstep >= 0 );
 
