@@ -2639,6 +2639,11 @@ void define_md_data_raw()
          "    with the atmospheric grids.\n"
          " 6. There is no gap between *z_surface* and *z_field*.\n"
          " 7. That abs_f_interp_order is not zero if any wind is nonzero.\n"
+         " 8. All values in *t_field* are > 0.\n"
+         "\n"
+         "Default is that values in *vmr_field* are demaned to be >= 0\n"
+         "(ie. zero allowed, in contrast to for *t_field*), but this\n"
+         "check can be removed by the *negative_vmr_ok* argument.\n"
          "\n"
          "If any test fails, there is an error. Otherwise, *basics_checked*\n"
          "is set to 1.\n"
@@ -2655,10 +2660,10 @@ void define_md_data_raw()
             "wind_w_field", "mag_u_field", "mag_v_field", "mag_w_field",
             "refellipsoid", "z_surface", 
             "stokes_dim", "f_grid", "abs_f_interp_order" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
+        GIN( "negative_vmr_ok" ),
+        GIN_TYPE( "Index" ),
+        GIN_DEFAULT( "0" ),
+        GIN_DESC("Boolean for demanding vmr_field > 0 or not.")
         ));
 
   md_data_raw.push_back

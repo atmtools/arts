@@ -1258,6 +1258,7 @@ void basics_checkedCalc(
                         const Index&     stokes_dim,
                         const Vector&    f_grid,
                         const Index&     abs_f_interp_order,
+                        const Index&     negative_vmr_ok,
                         const Verbosity&)
 {
   // Consistency between dim, grids and atmospheric fields/surfaces
@@ -1283,6 +1284,10 @@ void basics_checkedCalc(
   if( atmosphere_dim == 1  &&  refellipsoid[1] != 0 )
     throw runtime_error( "For 1D, the second element of *refellipsoid* (the "
                          "eccentricity) must be 0." );
+
+  // More for vmr_field.
+  if( !negative_vmr_ok && min(vmr_field) < 0 )
+    throw runtime_error( "All values in *vmr_field* must be >= 0." );
 
   // More for t_field.
   if( min(t_field) <= 0 )
@@ -1426,10 +1431,8 @@ void basics_checkedCalc(
   if ( f_grid.nelem() == 0 )
     { throw runtime_error ( "The frequency grid is empty." ); }
   chk_if_increasing ( "f_grid", f_grid );
-
-  if (min(f_grid) <= 0) {
-    throw runtime_error("All frequencies in *f_grid* must be > 0.");
-  }
+  if( f_grid[0] <= 0) 
+    { throw runtime_error( "All frequencies in *f_grid* must be > 0." ); }
 
   // If here, all OK
   basics_checked = 1;

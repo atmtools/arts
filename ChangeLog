@@ -1,3 +1,20 @@
+2013-05-31  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-660
+
+	* src/rte.cc (ext2trans): Added comment explaining why
+	  assert( ext_mat(0,0) >= 0 );
+	is removed.
+
+	* src/m_atmosphere.cc (basics_checkedCalc): Added argument
+	negative_vmr_ok. If false, vmr_field now demanded to be >= 0. This
+	is set to be default.
+
+	Note the difference for t and vmr: t>0 while vmr>=0
+
+	Made also search for negative f_grid more efficient. Just needed
+	to check for element when the vector is known to be increasing.
+
 2013-05-30  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-659

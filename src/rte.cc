@@ -895,7 +895,11 @@ void ext2trans(
   assert( ext_mat.nrows()==stokes_dim );
   assert( trans_mat.nrows()==stokes_dim && trans_mat.ncols()==stokes_dim );
 
-  //assert( ext_mat(0,0) >= 0 );
+  // Theoretically ext_mat(0,0) >= 0, but to demand this can cause problems for
+  // iterative retrievals, and the assert is skipped. Negative should be a
+  // result of negative vmr, and this issue is checked in basics_checkedCalc.
+  //assert( ext_mat(0,0) >= 0 );     
+
   assert( !is_singular( ext_mat ) );
   assert( lstep >= 0 );
 
