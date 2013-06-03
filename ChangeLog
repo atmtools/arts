@@ -1,3 +1,14 @@
+2013-06-03  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-661
+
+	* src/m_sensor.cc (sensor_responseMixer): Check of symmetry of
+	response grid allowed a margin on 1kHz, but that cause problems in
+	the core functions. Now no margin allowed. Safest, and simplest
+	for the implementation. This opens for potential practical
+	problems due rounding errors in files etc., but hopefully possible
+	to handle ...
+
 2013-05-31  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-660

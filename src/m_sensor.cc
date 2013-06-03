@@ -1750,7 +1750,7 @@ void sensor_responseMixer(// WS Output:
          << "increasing.\n"; 
       error_found = true;
     }
-  if( fabs(last(sbresponse_f_grid)+sbresponse_f_grid[0]) > 1e3 )
+  if( fabs(last(sbresponse_f_grid)+sbresponse_f_grid[0]) > 0 )
     {
       os << "The end points of the *sideband_response* frequency grid must be\n"
          << "symmetrically placed around 0. That is, the grid shall cover a\n"
