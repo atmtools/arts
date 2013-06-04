@@ -1,3 +1,14 @@
+2013-06-04  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-662
+
+	* doc/uguide/wfuns.tex: A complete rewrite of the analytical
+	expressions. Now common terms are really discussed first, and
+	separately. And the complete calculation procedure is represented
+	mathematically. Hopefully more easy to understand what is
+	actually done, and the difference between unpolarised and
+	polarised more clearly separated.
+
 2013-06-03  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-661

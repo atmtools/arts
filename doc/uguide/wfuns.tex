@@ -99,16 +99,7 @@ radiative transfer methods (e.g.\ \builtindoc{iyEmissionStandard}) do not know
 how the low-level methods are defining all quantities, and a fixed analytical
 expression can not be used (see e.g.\ Sec.~\ref{sec:wfuns:atmtemp}). So, in
 practise, the calculations are ``semi-analytical''. 
-
-The analytical calculations are introduced in Sec.~\ref{sec:wfuns:atmvars}. To
-understand the expressions, it is important to remember that ARTS
-covers the sensor by a response matrix:
-\begin{equation}
-  \MsrVct = \SnsMtr\MpiVct.
-  \label{eq:wfuns:Hi}
-\end{equation}
-This equation covers a single measurement block (cf.\
-Eq.~\ref{eq:fm_defs:measseq}).
+The analytical calculations are introduced in Sec.~\ref{sec:wfuns:atmvars}. 
 
 
 \subsection{Workspace variables and methods}
@@ -248,210 +239,17 @@ The analytically-oriented calculation procedure to obtain the Jacobian for
 atmospheric quantities is here outlined. The expressions are based on the
 chain rule, and can be applied for absorption constituents, atmospheric
 temperatures and winds. It is important to notice that only local effects are
-considered, and the expressions have limitations, as discussed below
-(Sec.~\ref{sec:wfuns:atmvars:limit}).
-
-The expressions are first derived assuming that the propagation matrix is
-diagonal (unpolarised absorption, scattering generally neglected in this
-chapter), to make the derivation as clear as possible. In the subsequent
-section, the calculations are repeated for the general case.
+considered, and the expressions have limitations, as discussed below in
+Sec.~\ref{sec:wfuns:atmvars:limit}.
 
 
-\subsection{Unpolarised absorption}
-\label{sec:wfuns:atmvars:unpol}
+\subsection{Matrix derivatives}
+\label{sec:wfuns:atmvars:matder}
 %
-The final radiance obtained through Eq.~\ref{eq:fm_defs:rte_step} can be
-expressed as (\StoI\ defined in Eq.~\ref{eq:fm_defs:stokevec})
-\begin{equation}
-  \label{eq:I4J}
-  \StoI = \StoI'+ \Trn'\!\left[ \aTrn{i}\aStoI{i} +
-                                (1-\aTrn{i})\bar{\Planck}_i \right]
-\end{equation}
-where $\StoI'$ is all emission generated between the sensor and point $i+1$,
-$\Trn'$ is the transmission for the same part of the propagation path, and
-(\aOth{i}÷ defined in Eq.~\ref{eq:taustep})
-\begin{equation}
-  \aTrn{i} = e^{-\aOth{i}},
-\end{equation}
-ie.\ the transmission of the path step considered.
-
-Let \SttElm\ be the element of $\SttVct$ for which we want to obtain the
-weighting function. The contribution to the weighting function,
-originating from the radiative transfer step covered by Eq.~\ref{eq:I4J}, is
-calculated by applying the chain rule:
-\begin{equation}
-  \frac{\PartD\MsrVct}{\PartD\SttElm} =  
-  \frac{\PartD\MsrVct}{\PartD\MpiVct}
-  \frac{\PartD\MpiVct}{\PartD\StoI} 
-  \left[
-  \frac{\PartD\StoI}{\PartD\aTrn{i}}\frac{\PartD\aTrn{i}}{\PartD\SttElm} + 
-  \frac{\PartD\StoI}{\PartD\bar{\Planck}_i}
-  \frac{\PartD\bar{\Planck}_i}{\PartD\SttElm} \right].
-\end{equation}
-The first term on the left side is obtained from Eq.~\ref{eq:wfuns:Hi}
-(derivatives involving matrices and vectors are commented in
-Sec.~\ref{sec:wfuns:atmvars:pol}):
-\begin{equation}
-  \frac{\PartD\MsrVct}{\PartD\MpiVct} = \SnsMtr.
-\end{equation}
-The term $\PartD\MpiVct / \PartD\StoI$ is a vector, and is of bookkeeping
-character. It represents the position in \MpiVct\ where the \StoI\ of concern
-is stored, and the elements are either 0 or 1.
-The two derivatives of $\StoI$ are derived from Eq.~\ref{eq:I4J}:
-\begin{eqnarray}
-  \frac{\PartD\StoI}{\PartD\aTrn{i}} 
-      &=& \Trn'\left(\aStoI{i}-\bar{\Planck}_i\right), \\
-   \frac{\PartD \StoI}{\PartD \bar{\Planck}_i} &=&
-   \Trn'\left(1-\aTrn{i}\right).
-\end{eqnarray}
-Using these last expressions, and further applying the chain rule, we get
-\begin{eqnarray}
-  \frac{\PartD\MsrVct}{\PartD\SttElm} =  
-  \frac{\PartD\MsrVct}{\PartD\MpiVct}
-  \frac{\PartD\MpiVct}{\PartD\StoI} \Trn'
-  \!\!\!\!&\Bigg[&\!\!\!\!
-      \left(\aStoI{i}-\bar{\Planck}_i\right)
-      \left(
-        \frac{\PartD\aTrn{i}}{\PartD\aSttElm{i}}
-        \frac{\PartD\aSttElm{i}}{\PartD\SttElm} + 
-        \frac{\PartD\aTrn{i}}{\PartD\aSttElm{i+1}}  
-        \frac{\PartD\aSttElm{i+1}}{\PartD\SttElm} 
-      \right) + \nonumber\\ && \!\!\!\!
-      \left(1-\aTrn{i}\right)
-      \left(
-        \frac{\PartD\bar{\Planck}_i}{\PartD\aSttElm{i}}
-        \frac{\PartD\aSttElm{i}}{\PartD\SttElm} + 
-        \frac{\PartD\bar{\Planck}_i}{\PartD\aSttElm{i+1}}  
-        \frac{\PartD\aSttElm{i+1}}{\PartD\SttElm}
-     \right)
-  \Bigg],  
-  \label{eq:chainrule1}
-\end{eqnarray}
-where \aSttElm{i}\ and \aSttElm{i+1}\ is the quantity of concern at path point
-$i$ and $i+1$, respectively. The terms $\PartD\aTrn{i}/\PartD\aSttElm{i}$,
-$\PartD\bar{\Planck}_i/\PartD\aSttElm{i}$ and the corresponding ones for
-\aSttElm{i+1}\ differ between the retrieval quantities, and are discussed in
-the sections below.
-
-The term $\PartD\aSttElm{i}/\PartD\SttElm$ appears due to the fact that
-\aSttElm{i}\ and \SttElm\ are placed at different positions, and the
-representation of the atmospheric fields must be considered here. Exactly the
-same is valid for $\PartD\aSttElm{i+1}/\PartD\SttElm$ and only
-$\PartD\aSttElm{i}/\PartD\SttElm$ is discussed below.
-
-In practise, the term is calculated as the value of the basis function for
-\SttElm\ at the location of \aSttElm{i}\ (further discussed in
-\citet{buehler:artst:05}). This is a slight approximation with respect to the
-goal of fully incorporating the piece-wise linear representation in the
-weighting functions \citep{buehler:artst:05}. A low value of
-$\Delta\aPpathLng{i}$ decreases the degree of approximation.
-
-It can be noted that $\PartD\aSttElm{i} / \PartD\SttElm$ is normally non-zero
-for more than one element of \SttVct. The exception is if the positions of
-\aSttElm{i}\ and \SttElm\ are identical. Reversely, the weighting function for
-element \SttElm\ can have contributions from several propagation path points
-(\aSttElm{i}), as well as from several radiance spectra. 
-
-For higher Stokes components, or if emission is ignored, Eq.~\ref{eq:I4J} is
-simplified to
-\begin{equation}
-  \label{eq:Q4J}
-  \StoQ = \Trn'\aTrn{i}\aStoQ{i},
-\end{equation}
-and the chain rule expression is correspondingly shorter:
-\begin{equation}
-  \frac{\PartD\MsrVct}{\PartD\SttElm} =  
-  \frac{\PartD\MsrVct}{\PartD\MpiVct}
-  \frac{\PartD\MpiVct}{\PartD\StoQ} 
-  \frac{\PartD\StoQ}{\PartD\aTrn{i}}
-  \left[
-    \frac{\PartD\aTrn{i}}{\PartD\aSttElm{i}}
-    \frac{\PartD\aSttElm{i}}{\PartD\SttElm} + 
-    \frac{\PartD\aTrn{i}}{\PartD\aSttElm{i+1}}  
-    \frac{\PartD\aSttElm{i+1}}{\PartD\SttElm} 
-  \right].
-  \label{eq:chainrule1q}
-\end{equation}
-The term $\PartD\MpiVct/\PartD\StoQ$ is defined like
-$\PartD\MpiVct/\PartD\StoI$ and the only really new term is:
-\begin{equation}
-  \frac{\PartD\StoQ}{\PartD\aTrn{i}} 
-      = \Trn'\aStoQ{i}.
-\end{equation}
-
-
-\subsection{Polarised absorption}
-\label{sec:wfuns:atmvars:pol}
-%
-If the propagation matrix (\ExtMat) has non-zero values outside the diagonal
-(but scattering is still zero), the Stokes elements can not be treated
-separately, and matrix-vector notation is required. The vector radiative
-transfer correspondence to Eq.~\ref{eq:I4J} is
-(cf.~Eq.~\ref{eq:fm_defs:vrte_step})
-\begin{equation}
-  \label{eq:s4J}
-  \StoVec = \StoVec' + \TrnMat' \left[ \aTrnMat{i} \aStoVec{i} +
-         (\IdnMtr-\aTrnMat{i})\bar{\EmsVec}_i \right],
-\end{equation}
-where $\StoVec'$ corresponds to $\StoI'$, $\TrnMat'$ is the Mueller
-transmission matrix matching $\Trn'$ and \aTrnMat{i} is defined in
-Eq.~\ref{eq:rte:transmat}. A first step of the chain rule expansion is
-\begin{equation}
-  \frac{\PartD\MsrVct}{\PartD\SttElm} =  
-  \frac{\PartD\MsrVct}{\PartD\MpiVct}
-  \frac{\PartD\MpiVct}{\PartD\StoVec} 
-  \left[ \frac{\PartD\StoVec}{\PartD\aSttElm{i}}
-         \frac{\PartD\aSttElm{i}}{\PartD\SttElm} +
-         \frac{\PartD\StoVec}{\PartD\aSttElm{i+1}}
-         \frac{\PartD\aSttElm{i+1}}{\PartD\SttElm} 
-  \right].
-\end{equation}
-The terms $\PartD\MsrVct/\PartD\MpiVct$, $\PartD\aSttElm{i}/\PartD\SttElm$
-and $\PartD\aSttElm{i+1}/\PartD\SttElm$ are treated above. The next term,
-$\PartD\MpiVct/\PartD\StoVec$, is formally a matrix, but represents just
-bookkeeping information, as $\PartD\MpiVct/\PartD\StoI$ above. Using
-relationships discussed below, we can expand the third term further:
-\begin{equation}
-  \frac{\PartD\StoVec}{\PartD\aSttElm{i}} = \TrnMat'
-  \left[
-    \frac{\PartD\aTrnMat{i}}{\PartD\aSttElm{i}}
-      \left( \aStoVec{i}-\bar{\EmsVec}_i \right) +
-    \left( \IdnMtr-\aTrnMat{i} \right) 
-      \frac{\PartD\bar{\EmsVec}_i}{\PartD\aSttElm{i}}
-  \right].
-\end{equation}
-The term $\PartD\StoVec/\PartD\aSttElm{i+1}$ follows the same pattern, and in
-total we get (using the fact that $\PartD\aSttElm{i}/\PartD\SttElm$ and
-$\PartD\aSttElm{i+1}/\PartD\SttElm$ are scalar quantities)
-\begin{eqnarray}
-  \frac{\PartD\MsrVct}{\PartD\SttElm} =  
-  \frac{\PartD\MsrVct}{\PartD\MpiVct}
-  \frac{\PartD\MpiVct}{\PartD\StoVec} \TrnMat'
-  \!\!\!\!&\Bigg[&\!\!\!\!
-    \left( 
-      \frac{\PartD\aTrnMat{i}}{\PartD\aSttElm{i}}
-      \frac{\PartD\aSttElm{i}}{\PartD\SttElm} +
-      \frac{\PartD\aTrnMat{i}}{\PartD\aSttElm{i+1}}
-      \frac{\PartD\aSttElm{i+1}}{\PartD\SttElm}
-    \right)
-    \left( \aStoVec{i}-\bar{\EmsVec}_i \right) + \nonumber\\ && \!\!\!
-    \left( \IdnMtr-\aTrnMat{i} \right) 
-    \left(
-      \frac{\PartD\bar{\EmsVec}_i}{\PartD\aSttElm{i}} 
-      \frac{\PartD\aSttElm{i}}{\PartD\SttElm} +
-      \frac{\PartD\bar{\EmsVec}_i}{\PartD\aSttElm{i+1}} 
-      \frac{\PartD\aSttElm{i+1}}{\PartD\SttElm}
-    \right)
-  \Bigg].
-  \label{eq:chainrule2}
-\end{eqnarray}
-This equation is consistent with its scalar correspondance
-(Eq.~\ref{eq:chainrule1}).
-
-The fact that $\PartD\MpiVct/\PartD\StoVec$ is a matrix exemplifies that
-derivatives involving vectors and matrices must be handled with some care, the
-standard calculation rules do not always apply. The basic relationships used
-here are\footnote{See e.g.\ \url{en.wikipedia.org/wiki/Matrix_calculus}.}
+Some of the expressions of this section treat derivatives involving vectors
+and matrices. Such derivatives must be handled with some care, the standard
+calculation rules do not always apply. The basic relationships used here
+are\footnote{See e.g.\ \url{en.wikipedia.org/wiki/Matrix_calculus}.}
 \begin{eqnarray}
   \frac{\PartD\VctStl{a}}{\PartD\VctStl{a}} &=& 
     \IdnMtr, \\
@@ -461,12 +259,12 @@ here are\footnote{See e.g.\ \url{en.wikipedia.org/wiki/Matrix_calculus}.}
     \frac{\PartD\VctStl{b}}{\PartD\VctStl{a}}+
     \frac{\PartD\VctStl{c}}{\PartD\VctStl{a}},
 \end{eqnarray}
-where \VctStl{a}, \VctStl{b}\ and \VctStl{c}\ are vectors, and \MtrStl{A}\ a
+where \VctStl{a}, \VctStl{b}\ and \VctStl{c}\ are vectors, and \MtrStl{A}\ is a
 matrix.
 
 Matrix exponential derivatives can not be expressed analytically in a general
 manner, but some cases can be handled. If two matrices \MtrStl{A}\ and
-\MtrStl{B}\ are commutative, ie. $\MtrStl{A}\MtrStl{B}=\MtrStl{B}\MtrStl{A}$,
+\MtrStl{B}\ are commutative, i.e. $\MtrStl{A}\MtrStl{B}=\MtrStl{B}\MtrStl{A}$,
 then the following is valid \citep{Dattorro2011}\footnote{Available at
   \url{https://ccrma.stanford.edu/~dattorro/mybook.html}.}
 \begin{equation}
@@ -474,11 +272,138 @@ then the following is valid \citep{Dattorro2011}\footnote{Available at
   \frac{\PartD}{\PartD t} e^{t\MtrStl{A}+\MtrStl{B}} = 
        \MtrStl{A}e^{t\MtrStl{A}+\MtrStl{B}},
 \end{equation}
-where $t$ is a scalar varaible.
+where $t$ is a scalar variable.
 The cases where \MtrStl{A}\ and \MtrStl{B}\ are commutative includes the
 situation where one of them is a scalar matrix (can be written as $a\IdnMtr$,
-ie.\ diagonal with all non-zero elements equal).
+i.e.\ diagonal with all non-zero elements equal).
 
+
+
+
+\subsection{Separation of terms}
+\label{sec:wfuns:atmvars:sepe}
+%
+The overall task is to calculate (Eq.~\ref{eq:wfuns:ki} with subscript $p$ left
+out)
+\begin{displaymath}
+  \frac{\PartD\MsrVct}{\PartD\SttElm}  
+\end{displaymath}
+where \SttElm\ is the element of $\SttVct$ for which we want to obtain the
+weighting function. This is a column of the complete weighting function matrix.
+
+A first step is to identify how sensor characteristics can be incorporated? To
+make nomenclature simpler, we assume here that the simulations cover only a
+single measurement block and we have (cf.\ Eq.~\ref{eq:fm_defs:measseq})
+\begin{equation}
+  \MsrVct = \SnsMtr\aMpiVct{b}.
+  \label{eq:wfuns:Hi}
+\end{equation}
+We can then apply the chain-rule for a first time to obtain 
+\begin{equation}
+  \frac{\PartD\MsrVct}{\PartD\SttElm} = 
+  \frac{\PartD\MsrVct}{\PartD\aMpiVct{b}} 
+  \frac{\PartD\aMpiVct{b}}{\PartD\SttElm} = 
+  \SnsMtr \frac{\PartD\aMpiVct{b}}{\PartD\SttElm} = \SnsMtr\VctStl{k}_\MpiVct.
+  \label{eq:wfuns:Hk}
+\end{equation}
+Hence, sensor characteristics can be handled by calculating the weighting
+function column matching all monochromatic pencil beam calculation of the
+measurement block ($\VctStl{k}_\MpiVct$) and perform a multiplication with
+\SnsMtr, a parallel procedure compared to how \aMpiVct{b}\ is compiled to obtain
+\MsrVct. The calculation procedure expands simply to allow that the complete
+weighting function matrix (for quantities covered by the analytical calculation
+procedure) is calculated as
+\begin{equation}
+  \frac{\PartD\MsrVct}{\PartD\SttVct} = \SnsMtr\aWfnMtr{\MpiVct},
+  \label{eq:wfuns:HK}
+\end{equation}
+where $\aWfnMtr{\MpiVct} = \PartD\aMpiVct{b}/\PartD\SttVct$. One column of this
+matrix is $\VctStl{k}_\MpiVct$.
+
+The vector \aMpiVct{b}\ consists of a number of Stokes vectors appended,
+$\aMpiVct{b}=[\aStoVec{1}^T, \aStoVec{2}^T,\dots,\aStoVec{n}^T]^T$, and the
+calculation of $\VctStl{k}_\MpiVct$ can schematically be written as
+\begin{equation}
+  \VctStl{k}_\MpiVct = \sum_{j=1}^n \frac{\PartD\aMpiVct{b}}{\PartD\aStoVec{j}}
+    \frac{\PartD\aStoVec{j}}{\PartD\SttElm}
+  \label{eq:wfuns:kisum}
+\end{equation}
+The terms $\PartD\MpiVct/\PartD\aStoVec{j}$ are formally matrices. However,
+these matrices are not calculated explicitly as they only contain information
+on where \aStoVec{i}\ is stored inside \MpiVct. That is, these matrices are of
+bookkeeping character, consisting only of zeros and ones. In practice, results
+matching $\PartD\aStoVec{j}/\PartD\SttElm$ are simply inserted in
+$\VctStl{k}_\MpiVct$, mimicking how is \aStoVec{i}\ put into \MpiVct.
+
+Accordingly, the core task is to calculate $\PartD\aStoVec{j}/\PartD\SttElm$,
+where for simplicity the subscript $j$ is dropped below. This calculation is
+expanded as
+\begin{equation}
+  \frac{\PartD\StoVec}{\PartD\SttElm} = \sum_{i=1}^n
+    \frac{\PartD\StoVec}{\PartD\aSttElm{i}}
+    \frac{\PartD\aSttElm{i}}{\PartD\SttElm},
+\end{equation}
+where \aSttElm{i}\ is the value of the quantity of concern, at each point of
+the propagation path. That is, $i$ indexes the path points. The actual
+radiative transfer enters by the terms $\PartD\StoVec/\PartD\aSttElm{i}$, and
+they are discussed separately below.
+
+The term $\PartD\aSttElm{i}/\PartD\SttElm$ appears due to the fact that
+\aSttElm{i}\ and \SttElm\ are placed at different positions, and the
+representation of the atmospheric fields must be considered here. In practise,
+the term is calculated as the value of the basis function for \SttElm\ at the
+location of \aSttElm{i}\ (further discussed in \citet{buehler:artst:05}). This
+is a slight approximation with respect to the goal of fully incorporating the
+piece-wise linear representation in the weighting functions
+\citep{buehler:artst:05}. A low value of $\Delta\aPpathLng{i}$ decreases the
+degree of approximation.
+
+It can be noted that $\PartD\aSttElm{i} / \PartD\SttElm$ is normally non-zero
+for more than one element of \SttVct. The exception is if the positions of
+\aSttElm{i}\ and \SttElm\ are identical. Reversely, the weighting function for
+element \SttElm\ can have contributions from several propagation path points
+(\aSttElm{i}), as well as from several radiance spectra. Accordingly, the
+practical calculations are done by first determine all
+$\PartD\StoVec/\PartD\aSttElm{i}$, of the given propagation path. These data
+are then used to determine $\PartD\StoVec/\PartD\SttVct$, for the retrieval
+quantity of concern. That is, each $\PartD\StoVec/\PartD\aSttElm{i}$ is
+combined with $\PartD\aSttElm{i}/\PartD\SttElm$ for all elements of \SttVct.
+Most of these combinations yield a zero result. The terms
+$\PartD\aSttElm{i}/\PartD\SttElm$ are determined with help of ARTS' internal
+interpolation grid position routines.
+
+
+
+\subsection{$\PartD\StoVec/\PartD\aSttElm{i}$, general 
+case}
+\label{sec:wfuns:atmvars:gene}
+%
+The term $\PartD\StoVec/\PartD\aSttElm{i}$ is here outlined for the general case
+of vector radiative transfer. In this case, the Stokes elements can not be
+treated separately, and matrix-vector notation is required. The final Stokes
+vector obtained through Eq.~\ref{eq:fm_defs:vrte_step} can be expressed as
+\begin{equation}
+  \label{eq:s4J}
+  \StoVec = \StoVec' + \TrnMat' \left[ \aTrnMat{i} \aStoVec{i} +
+         (\IdnMtr-\aTrnMat{i})\bar{\EmsVec}_i \right],
+\end{equation}
+where $\StoVec'$ is the Stokes vector for all emission generated between the
+sensor and point $i+1$, $\TrnMat'$ is the transmission Mueller matrix for the
+same part of the propagation path and \aTrnMat{i} is defined in
+Eq.~\ref{eq:rte:transmat}. This gives
+\begin{equation}
+  \frac{\PartD\StoVec}{\PartD\aSttElm{i}} = \TrnMat'
+  \left[
+    \frac{\PartD\aTrnMat{i}}{\PartD\aSttElm{i}}
+      \left( \aStoVec{i}-\bar{\EmsVec}_i \right) +
+    \left( \IdnMtr-\aTrnMat{i} \right) 
+      \frac{\PartD\bar{\EmsVec}_i}{\PartD\aSttElm{i}}
+  \right].
+  \label{eq:wfuns:dsdxi1}
+\end{equation}
+The terms $\PartD\aTrnMat{i}/\PartD\aSttElm{i}$ and
+$\PartD\bar{\EmsVec}_i/\PartD\aSttElm{i}$ are both calculated in a pure
+numerical manner, for different reasons discussed below.
 
 
 \subsection{Including the surface}
@@ -486,10 +411,75 @@ ie.\ diagonal with all non-zero elements equal).
 For scattered down-welling radiation the effective transmission matrix is
 \begin{equation}
   \TrnMat' = \aTrnMat{2}\MtrStl{R}_i\aTrnMat{1},
+  \label{eq:wfuns:surface}
 \end{equation}
 where \aTrnMat{2}\ is the transmission between the surface and the sensor,
 $\MtrStl{R}_i$ is defined in Eq.~\ref{eq:fm_defs:surfacerefl} and
 \aTrnMat{1}\ is the transmission between the point $i+1$ and the surface.
+
+
+
+\subsection{$\PartD\StoVec/\PartD\aSttElm{i}$, locally unpolarised absorption}
+\label{sec:wfuns:atmvars:unpol}
+%
+Eq.~\ref{eq:wfuns:dsdxi1} can be simplified for some conditions. A first case
+is scalar radiative transfer, i.e. only the first element of the Stokes vector
+is considered and all terms of Eq.~\ref{eq:wfuns:dsdxi1} are scalar quantities.
+For all other cases, in principle vector radiative transfer must be performed,
+as $\TrnMat'$ can always have off-diagonal elements. Even if atmospheric
+absorption is totally unpolarised, $\TrnMat'$ can be non-diagonal due to the
+surface (Eq.~\ref{eq:wfuns:surface}). However, if the absorption locally lacks
+polarisation, the calculations can be handled by analytical expressions in a
+higher degree.
+
+To focus on the analytical expressions dealing with local radiative transfer
+effects, let us write Eq.~\ref{eq:s4J} as
+\begin{equation}
+  \StoVec = \StoVec' + \TrnMat'\aStoVec{s}.
+\end{equation}
+In the nomenclature of Eq.~\ref{eq:fm_defs:vrte_step},
+$\aStoVec{s}=\aStoVec{i+1}$ (but would be confusing to here use \aStoVec{i+1}).
+Hence
+\begin{displaymath}
+  \frac{\PartD\StoVec}{\PartD\aSttElm{i}} = \TrnMat'
+    \frac{\PartD\aStoVec{s}}{\PartD\aSttElm{i}}.
+\end{displaymath}
+The first element of \aStoVec{s}, \StoI, can be written as (cf.\
+Eq.~\ref{eq:fm_defs:rte_step})
+\begin{equation}
+  \label{eq:I4J}
+  \StoI = e^{-\aOth{i}}\aStoI{i} + (1-e^{-\aOth{i}})\bar{\Planck}_i.
+\end{equation}
+By again using the chain rule, the derivative of \StoI\ with respect to
+\aSttElm{i}\ can be written as
+\begin{equation}
+  \frac{\PartD\StoI}{\PartD\aSttElm{i}} =
+  \frac{\PartD\StoI}{\PartD\aOth{i}}\frac{\PartD\aOth{i}}{\PartD\aSttElm{i}} + 
+  \frac{\PartD\StoI}{\PartD\bar{\Planck}_i}
+  \frac{\PartD\bar{\Planck}_i}{\PartD\aSttElm{i}} = 
+   e^{-\aOth{i}}\frac{\PartD\aOth{i}}{\PartD\aSttElm{i}}
+      (\bar{\Planck}_i-\aStoI{i}) +
+  (1-e^{-\aOth{i}})\frac{\PartD\bar{\Planck}_i}{\PartD\aSttElm{i}}.
+  \label{eq:wfuns:dsdxi2}
+\end{equation}
+The two remaining derivatives $\PartD\aOth{i}/\PartD\aSttElm{i}$ and
+$\PartD\bar{\Planck}_i/\PartD\aSttElm{i}$
+depend on the quantity considered, and are discussed further below.
+
+For higher Stokes components of \aStoVec{s}, or in general if emission is
+totally ignored, Eq.~\ref{eq:I4J} is simplified to (here exemplified for the
+second Stokes element, \StoQ)
+\begin{equation}
+  \label{eq:Q4J}
+  \StoQ = e^{-\aOth{i}}\aStoQ{i},
+\end{equation}
+and the chain rule expression is correspondingly shorter:
+\begin{equation}
+  \frac{\PartD\StoQ}{\PartD\aSttElm{i}} =
+   -e^{-\aOth{i}}
+   \frac{\PartD\aOth{i}}{\PartD\aSttElm{i}}\aStoQ{i}.
+  \label{eq:wfuns:dsdxi2}
+\end{equation}
 
 
 \subsection{Limitations}
@@ -549,24 +539,19 @@ shall given following the unit selected. The same value is applied for all WFs
 
 \subsection{Analytical expressions}
 %
+If not made clear above, the only term that differs between the Jacobian
+quantities is $\PartD\StoVec/\PartD\aSttElm{i}$.
 
 \subsubsection{Unpolarised absorption}
 %
-The terms $\PartD\bar{\Planck}_i/\PartD\aSttElm{i}$ and
-$\PartD\bar{\Planck}_i/\PartD\aSttElm{i+1}$ of Eq.~\ref{eq:chainrule1} are both
-zero and the chain rule expression reduces to
-\begin{displaymath}
-  \frac{\PartD\MsrVct}{\PartD\SttElm} =  
-  \frac{\PartD\MsrVct}{\PartD\MpiVct}
-  \frac{\PartD\MpiVct}{\PartD\StoI} \Trn' \left[
-      \left(\aStoI{i}-\bar{\Planck}_i\right)
-      \left(
-        \frac{\PartD\aTrn{i}}{\PartD\aSttElm{i}}
-        \frac{\PartD\aSttElm{i}}{\PartD\SttElm} + 
-        \frac{\PartD\aTrn{i}}{\PartD\aSttElm{i+1}}  
-        \frac{\PartD\aSttElm{i+1}}{\PartD\SttElm} 
-      \right) \right].
-\end{displaymath}
+
+The term $\PartD\bar{\Planck}_i/\PartD\aSttElm{i}$ of Eq.~\ref{eq:wfuns:dsdxi2}
+is zero and the chain rule expression reduces to
+\begin{equation}
+  \frac{\PartD\StoVec}{\PartD\aSttElm{i}} =
+   e^{-\aOth{i}}\frac{\PartD\aOth{i}}{\PartD\aSttElm{i}}
+      (\bar{\Planck}_i-\aStoI{i})  
+\end{equation}
 The absorption coefficient at point $i$, \aAbsCoef{i}, is here written as
 \begin{equation}
   \label{eq:wfuns:crossec1}
@@ -574,43 +559,38 @@ The absorption coefficient at point $i$, \aAbsCoef{i}, is here written as
 \end{equation}
 where $\sigma_i$ is the absorption cross-section for the species (at point $i$
 and in a unit matching the unit of \SttElm), and $\aAbsCoef{i}^o$ covers the
-summed absorption of all other atmospheric constituents. The derivative of
-$\aTrn{i}$ with respect to \aSttElm{i}\ and \aSttElm{i+1}\ can then be written
-as
-\begin{eqnarray}
-  \frac{\PartD\aTrn{i}}{\PartD\aSttElm{i}} &=&
-    \frac{\PartD\aTrn{i}}{\PartD\aOth{i}}
-    \frac{\PartD\aOth{i}}{\PartD\aAbsCoef{i}}
-    \frac{\PartD\aAbsCoef{i}}{\PartD\aSttElm{i}} = 
-    -\aTrn{i}\frac{\Delta\aPpathLng{i}}{2}\sigma_i, \\
-  \frac{\PartD\aTrn{i}}{\PartD\aSttElm{i+1}} &=& 
-    \frac{\PartD\aTrn{i}}{\PartD\aOth{i}}
-    \frac{\PartD\aOth{i}}{\PartD\aAbsCoef{i}}
-    \frac{\PartD\aAbsCoef{i}}{\PartD\aSttElm{i+1}} = 
-    -\aTrn{i}\frac{\Delta\aPpathLng{i}}{2}\sigma_{i+i}.
-\end{eqnarray}
-For clarity and efficiency reasons, the following nomenclature is used in the
-source code:
-\begin{eqnarray}
-  X &=& \Trn' \aTrn{i}\frac{\Delta\aPpathLng{i}}{2}, \\
-  Y &=& \frac{\PartD\StoI}{\PartD\aTrn{i}}
-        \frac{\PartD\aTrn{i}}{\PartD\aOth{i}}
-        \frac{\PartD\aOth{i}}{\PartD\aAbsCoef{i}}
-    \qquad \left( = -X(\aStoI{i}-\bar{\Planck}_i) \right).
-\end{eqnarray}
-The expressions above are implemented in \wsmindex{iyEmissionStandard}.
-
-For higher Stokes elements, Eq.~\ref{eq:chainrule1q} is followed. Calculation
-time can be saved by reusing the $X$-term derived for the first Stokes element:
+summed absorption of all other atmospheric constituents. Considering
+Eq.~\ref{eq:taustep}, the derivative of \aOth{i}\ with respect to \aSttElm{i}\
+is then 
 \begin{equation}
-  \frac{\PartD\StoQ}{\PartD\aTrn{i}}
-  \frac{\PartD\aTrn{i}}{\PartD\aOth{i}}
-  \frac{\PartD\aOth{i}}{\PartD\aAbsCoef{i}}
-    = -X \aStoI{i}.
+  \frac{\PartD\aOth{i}}{\PartD\aSttElm{i}} = 
+  \frac{\PartD\aOth{i}}{\PartD\aAbsCoef{i}} 
+  \frac{\PartD\aAbsCoef{i}}{\PartD\aSttElm{i}} = 
+    \frac{\Delta\aPpathLng{i}}{2}\sigma_i.
 \end{equation}
-This expression is used for Stokes element 2 to 4 in
-\wsmindex{iyEmissionStandard} and for all components in
-\wsmindex{iyTransmissionStandard}.
+
+%For clarity and efficiency reasons, the following nomenclature is used in the
+%source code:
+%\begin{eqnarray}
+%  X &=& \Trn' \aTrn{i}\frac{\Delta\aPpathLng{i}}{2}, \\
+%  Y &=& \frac{\PartD\StoI}{\PartD\aTrn{i}}
+%        \frac{\PartD\aTrn{i}}{\PartD\aOth{i}}
+%       \frac{\PartD\aOth{i}}{\PartD\aAbsCoef{i}}
+%    \qquad \left( = -X(\aStoI{i}-\bar{\Planck}_i) \right).
+%\end{eqnarray}
+%The expressions above are implemented in \wsmindex{iyEmissionStandard}.
+%
+%For higher Stokes elements, Eq.~\ref{eq:chainrule1q} is followed. Calculation
+%time can be saved by reusing the $X$-term derived for the first Stokes element:
+%\begin{equation}
+%  \frac{\PartD\StoQ}{\PartD\aTrn{i}}
+% \frac{\PartD\aTrn{i}}{\PartD\aOth{i}}
+%  \frac{\PartD\aOth{i}}{\PartD\aAbsCoef{i}}
+%    = -X \aStoI{i}.
+%\end{equation}
+%This expression is used for Stokes element 2 to 4 in
+%\wsmindex{iyEmissionStandard} and for all components in
+%\wsmindex{iyTransmissionStandard}.
 
 
 \subsubsection{General case}
@@ -702,17 +682,15 @@ Calculation of wind weighting functions are triggered by
 \wsmindex{jacobianAddWind}. Each wind component (see Sec.~\ref{sec:winds:defs})
 is treated as an individual retrieval variable. That is, if you want to
 retrieve all three wind components, \builtindoc{jacobianAddWind} must be called
-three times. Only the analytically inclinded calculation approach is at hand
+three times. Only the analytically inclined calculation approach is at hand
 for winds.
 
-Theortetically, the Doppler shift induced by winds affects the emission source
-term ($\bar{\Planck}_i$, in the scalar case), but this impact is extremly small
+Theoretically, the Doppler shift induced by winds affects the emission source
+term ($\bar{\Planck}_i$, in the scalar case), but this impact is extremely small
 and the related terms are ignored. This gives a case basically identical to the
-one above for absorption species. The difference is that the terms
-$\PartD\aAbsCoef{i}/\PartD\aSttElm{i}$ and
-$\PartD\aAbsCoef{i+1}/\PartD\aSttElm{i+1}$ are estimated in a pure numerical
-manner, by recalculating the absorption coefficient with the wind perturbed
-slightly.
+one above for absorption species. The only difference is that the term
+$\PartD\aAbsCoef{i}/\PartD\aSttElm{i}$ is obtained in a pure numerical manner,
+by recalculating the absorption coefficient with the wind perturbed slightly.
 
 
 
@@ -753,23 +731,23 @@ included automatically.
 %
 \subsubsection{Unpolarised absorption}
 %
-Compared to atmospheric species, the expressions become here substantially
-longer as temperature also affects the propogation path length ($\Delta
-\aPpathLng{i}$) and the emission source term ($\bar{\Planck}_i$). Accordingly,
-all terms of Eq.~\ref{eq:chainrule1} are relevant and the derivative of the
-transmission must now be expaned as
+Compared to atmospheric species, the expressions become here more complex as
+temperature also affects the propagation path length ($\Delta \aPpathLng{i}$)
+and the emission source term ($\bar{\Planck}_i$). Accordingly, all terms of
+Eq.~\ref{eq:wfuns:dsdxi2} are relevant, and the expansion of
+$\PartD\aOth{i}/\PartD\aSttElm{i}$ generates additional terms
 \begin{equation}
-  \frac{\PartD\aTrn{i}}{\PartD\aSttElm{i}} =
-    \frac{\PartD\aTrn{i}}{\PartD\aOth{i}}
-    \left[
+  \frac{\PartD\StoI}{\PartD\aSttElm{i}} =
+   e^{-\aOth{i}}\left[
       \frac{\PartD\aOth{i}}{\PartD\aAbsCoef{i}}
       \frac{\PartD\aAbsCoef{i}}{\PartD\aSttElm{i}} + 
       \frac{\PartD\aOth{i}}{\PartD\Delta\aPpathLng{i}}
      \frac{\PartD\Delta\aPpathLng{i}}{\PartD\aSttElm{i}}
-    \right].
+  \right](\bar{\Planck}_i-\aStoI{i})+
+  (1-e^{-\aOth{i}})\frac{\PartD\bar{\Planck}_i}{\PartD\aSttElm{i}}.  
 \end{equation}
-Terms part of expressions found above are not discussed seperately here. The
-last term, $\PartD\Delta\aPpathLng{i}/\PartD\aSttElm{i}$, originates in the
+Terms part of expressions found above are not discussed separately here. The
+term, $\PartD\Delta\aPpathLng{i}/\PartD\aSttElm{i}$, originates in the
 constrain of hydrostatic equilibrium, and is set to zero when \verb|hse| 
 is set to ``off''. Otherwise it is set as derived below.
 The term $\PartD\aAbsCoef{i}/\PartD\aSttElm{i}$ is calculated in a pure
@@ -787,28 +765,27 @@ along the path step:
 \end{equation}
 Following the other variables, we set $\bar{\Tmp}=(\aTmp{i}+\aTmp{i+1})/2$, and
 \begin{equation}
-  \frac{\PartD \Delta \aPpathLng{i}}{\PartD \PartD\aSttElm{i}} = 
+  \frac{\PartD \Delta \aPpathLng{i}}{\PartD\aSttElm{i}} = 
                                     \frac{\Delta \aPpathLng{i}}{2\aTmp{i}}.
 \end{equation}
 In summary (assuming \verb|hse| set to ``on''):
 \begin{equation}
-  \frac{\PartD\aTrn{i}}{\PartD\aSttElm{i}} = -\aTrn{i}
-    \frac{\Delta \aPpathLng{i}}{2}
-    \left[
+  \frac{\PartD\StoI}{\PartD\aSttElm{i}} =
+   e^{-\aOth{i}}\frac{\Delta \aPpathLng{i}}{2}\left[
       \frac{\PartD\aAbsCoef{i}}{\PartD\aSttElm{i}} + 
-      \frac{\aAbsCoef{i}+\aAbsCoef{i+1}}{2\aTmp{i}}
-    \right].  
+  \frac{\aAbsCoef{i}+\aAbsCoef{i+1}}{2\aTmp{i}}
+  \right](\bar{\Planck}_i-\aStoI{i})+
+  (1-e^{-\aOth{i}})\frac{\PartD\bar{\Planck}_i}{\PartD\aSttElm{i}}.  
 \end{equation}
-Going back to Eq.~\ref{eq:chainrule1q}, the derivative of the Planck function
-($\PartD\Planck/\PartD\Tmp$) can be expressed analytically
-\citep{eriksson:studi:02}, but as \Planck\ is provided by an agenda related
-terms must anyhow be determined in a pure numerical manner. For example, if the
-Rayleigh-Jeans approximation is for some reason applied ($\Planck=\Tmp$) the
-term is just 1.
+The derivative of the Planck function ($\PartD\Planck/\PartD\aSttElm{i}$) can
+be expressed analytically \citep{eriksson:studi:02}, but as \Planck\ is
+provided by an agenda related terms must anyhow be determined in a pure
+numerical manner. For example, if the Rayleigh-Jeans approximation is for some
+reason applied ($\Planck=\Tmp$) the term is just 1.
 
-Th terms involving $\aSttElm{i+1}$ are identical. Expressions for higher Stokes
-components, or if emission is ignored, are obtained by setting
-$\bar{\Planck}_i$ and all related derivatives to zero.
+The expression for higher Stokes elements, or if emission is totally ignored,
+is obtained by setting $\bar{\Planck}_i$
+(and $\PartD\bar{\Planck}_i/\PartD\aSttElm{i}$) to zero.
 
 
 \subsubsection{General case}
@@ -996,4 +973,6 @@ Equation~\ref{eq:sinefit} is used to define the weighting functions as this
 gives a linear retrieval problem, in contrast to if Equation~\ref{eq:sinefit2}
 would be used, that would require an iterative process to determine $A_i$
 and $\phi_i$.
+
+
 
