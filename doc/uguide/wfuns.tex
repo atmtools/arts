@@ -254,7 +254,8 @@ are\footnote{See e.g.\ \url{en.wikipedia.org/wiki/Matrix_calculus}.}
   \frac{\PartD\VctStl{a}}{\PartD\VctStl{a}} &=& 
     \IdnMtr, \\
   \frac{\PartD(\MtrStl{A}\VctStl{b})}{\PartD\VctStl{a}} &=& 
-    \MtrStl{A}\frac{\PartD\VctStl{b}}{\PartD\VctStl{a}}, \\
+    \MtrStl{A}\frac{\PartD\VctStl{b}}{\PartD\VctStl{a}}, \quad\quad
+    \mathrm{when}\ \MtrStl{A}\ \mathrm{independent\ of}\ \VctStl{a},\\
   \frac{\PartD(\VctStl{b}+\VctStl{c})}{\PartD\VctStl{a}} &=& 
     \frac{\PartD\VctStl{b}}{\PartD\VctStl{a}}+
     \frac{\PartD\VctStl{c}}{\PartD\VctStl{a}},
@@ -292,7 +293,7 @@ where \SttElm\ is the element of $\SttVct$ for which we want to obtain the
 weighting function. This is a column of the complete weighting function matrix.
 
 A first step is to identify how sensor characteristics can be incorporated? To
-make nomenclature simpler, we assume here that the simulations cover only a
+make the nomenclature simpler, we assume here that the simulations cover only a
 single measurement block and we have (cf.\ Eq.~\ref{eq:fm_defs:measseq})
 \begin{equation}
   \MsrVct = \SnsMtr\aMpiVct{b}.
@@ -310,7 +311,7 @@ Hence, sensor characteristics can be handled by calculating the weighting
 function column matching all monochromatic pencil beam calculation of the
 measurement block ($\VctStl{k}_\MpiVct$) and perform a multiplication with
 \SnsMtr, a parallel procedure compared to how \aMpiVct{b}\ is compiled to obtain
-\MsrVct. The calculation procedure expands simply to allow that the complete
+\MsrVct. The calculation procedure expands to allow that the complete
 weighting function matrix (for quantities covered by the analytical calculation
 procedure) is calculated as
 \begin{equation}
@@ -332,8 +333,8 @@ The terms $\PartD\MpiVct/\PartD\aStoVec{j}$ are formally matrices. However,
 these matrices are not calculated explicitly as they only contain information
 on where \aStoVec{i}\ is stored inside \MpiVct. That is, these matrices are of
 bookkeeping character, consisting only of zeros and ones. In practice, results
-matching $\PartD\aStoVec{j}/\PartD\SttElm$ are simply inserted in
-$\VctStl{k}_\MpiVct$, mimicking how is \aStoVec{i}\ put into \MpiVct.
+matching $\PartD\aStoVec{j}/\PartD\SttElm$ are simply inserted in correct place
+of $\VctStl{k}_\MpiVct$, mimicking how is \aStoVec{i}\ put into \MpiVct.
 
 Accordingly, the core task is to calculate $\PartD\aStoVec{j}/\PartD\SttElm$,
 where for simplicity the subscript $j$ is dropped below. This calculation is
@@ -390,7 +391,8 @@ vector obtained through Eq.~\ref{eq:fm_defs:vrte_step} can be expressed as
 where $\StoVec'$ is the Stokes vector for all emission generated between the
 sensor and point $i+1$, $\TrnMat'$ is the transmission Mueller matrix for the
 same part of the propagation path and \aTrnMat{i} is defined in
-Eq.~\ref{eq:rte:transmat}. This gives
+Eq.~\ref{eq:rte:transmat}. The quantities $\StoVec'$, $\TrnMat'$ and
+\aStoVec{i}\ are not function of \aSttElm{i}. This gives
 \begin{equation}
   \frac{\PartD\StoVec}{\PartD\aSttElm{i}} = \TrnMat'
   \left[
@@ -478,7 +480,7 @@ and the chain rule expression is correspondingly shorter:
   \frac{\PartD\StoQ}{\PartD\aSttElm{i}} =
    -e^{-\aOth{i}}
    \frac{\PartD\aOth{i}}{\PartD\aSttElm{i}}\aStoQ{i}.
-  \label{eq:wfuns:dsdxi2}
+  \label{eq:wfuns:dsdxi3}
 \end{equation}
 
 
@@ -548,7 +550,7 @@ quantities is $\PartD\StoVec/\PartD\aSttElm{i}$.
 The term $\PartD\bar{\Planck}_i/\PartD\aSttElm{i}$ of Eq.~\ref{eq:wfuns:dsdxi2}
 is zero and the chain rule expression reduces to
 \begin{equation}
-  \frac{\PartD\StoVec}{\PartD\aSttElm{i}} =
+  \frac{\PartD\StoI}{\PartD\aSttElm{i}} =
    e^{-\aOth{i}}\frac{\PartD\aOth{i}}{\PartD\aSttElm{i}}
       (\bar{\Planck}_i-\aStoI{i})  
 \end{equation}
@@ -595,82 +597,72 @@ is then
 
 \subsubsection{General case}
 %
-\dots
+So far, the term $\PartD\aTrnMat{i}/\PartD\aSttElm{i}$ is only estimated by
+performing a small perturbation. However, there exists a potentail to use an
+analytical expression, as discussed below, but this is left for future
+consideration.
 
-% The relationship between \aSttElm{i}\ and
-% \aSttElm{i+1}\ and the propagation matrix of the path step is
-% \begin{equation}
-%   \bar{\ExtMat}_i = \frac{\aSttElm{i}\MtrStl{C}_i+
-%                       \aSttElm{i+1}\MtrStl{C}_{i+1}}{2} + \bar{\ExtMat}_i^o,
-% \end{equation}
-% where \MtrStl{C}\ can be seen as a matrix absorption cross-section
-% (corresponding to $\sigma$ in Eq.~\ref{eq:wfuns:crossec1}) and
-% $\bar{\ExtMat}_i^o$ is the propagation matrix summed for all other atmospheric
-% constituents. 
-% \begin{equation}
-%   \frac{\PartD\aTrnMat{i}}{\PartD\aSttElm{i}} = 
-%   \frac{\PartD}{\PartD\aSttElm{i}} 
-%   e^{-\Delta\aPpathLng{i}\left(\frac{\aSttElm{i}\MtrStl{C}_i+
-%             \aSttElm{i+1}\MtrStl{C}_{i+1}}{2} + \bar{\ExtMat}_i^o \right)}.
-% \end{equation}
-% On the condition that Eq.~\ref{eq:expmder} is valid, we have that
-% \begin{eqnarray}
-%   \label{eq:wfuns:vec:dsdxi}
-%   \frac{\PartD\StoVec}{\PartD\aSttElm{i}} &=&  
-%   \frac{-\Delta\aPpathLng{i}}{2} \TrnMat' \MtrStl{C}_i
-%   e^{-\Delta\aPpathLng{i}\left(\frac{\aSttElm{i}\MtrStl{C}_i+
-%             \aSttElm{i+1}\MtrStl{C}_{i+1}}{2} + \bar{\ExtMat}_i^o \right)}
-%    \left[ \aStoVec{i}-\bar{\EmsVec}_i\right], \\
-%   \frac{\PartD\StoVec}{\PartD\aSttElm{i}} &=&  
-%   \frac{-\Delta\aPpathLng{i}}{2} \TrnMat' \MtrStl{C}_{i+1}
-%   e^{-\Delta\aPpathLng{i}\left(\frac{\aSttElm{i}\MtrStl{C}_i+
-%             \aSttElm{i+1}\MtrStl{C}_{i+1}}{2} + \bar{\ExtMat}_i^o \right)}
-%    \left[ \aStoVec{i}-\bar{\EmsVec}_i\right]. \nonumber
-% \end{eqnarray}
-% The question is when Eq.~\ref{eq:wfuns:vec:dsdxi} can be applied? We have three
-% main cases:
-% \begin{itemize}
-% \item The equation is valid as long as the species to be retrieved has
-%   unpolarised absorption. This as $\MtrStl{C}_i$ and $\MtrStl{C}_{i+1}$ can
-%   then be written as $\sigma_i\IdnMtr$, and
-%   $(\aSttElm{i}\MtrStl{C}_i+\aSttElm{i+1}\MtrStl{C}_{i+1})/2$ is commutative
-%   with any $\bar{\ExtMat}_i^o$.
-% \item It is unlikely that all three matrices involved ($\bar{\ExtMat}_i^o$ and
-%   the two \MtrStl{C}-matrices) have off-diagonal elements on the same time. The
-%   main causes to polarised absorption are free electrons, Zeeman splitting and
-%   particles, and these mechanisms are mainly found in the ionosphere,
-%   mesosphere and troposphere, respectively.
-% \item The remaining case is when $\bar{\ExtMat}_i^o$ is diagonal but the
-%   species to be retrieved has polarised absorption. The likely situation is
-%   that both $\MtrStl{C}_i$ and $\MtrStl{C}_{i+1}$ are non-diagonal on the same
-%   time, and the condition of Eq.~\ref{eq:expmder} is not fulfilled. However, as
-%   argued below, Eq.~\ref{eq:wfuns:vec:dsdxi} should still be approximately
-%   valid, and this is used as ``working hypothesis'' in ARTS.
-% \end{itemize}
-% An alternative way to express the propagation matrix is
-% \begin{displaymath}
-%   \bar{\ExtMat}_i = \frac{\aSttElm{i}+\aSttElm{i+1}}{2}\bar{\MtrStl{C}}_i + 
-%    \bar{\ExtMat}_i^o,   
-% \end{displaymath}
-% with
-% \begin{displaymath}
-%   \bar{\MtrStl{C}}_i = \frac{\MtrStl{C}_i+\MtrStl{C}_{i+1}}{2}.   
-% \end{displaymath}
-% With this formulation even the third case above would be handled, as we now
-% only have two matrices to consider (and $\bar{\MtrStl{C}}_i$ is commutative
-% with a diagonal $\bar{\ExtMat}_i^o$) . We would then have (for \aSttElm{i})
-% \begin{displaymath}
-%   \frac{\PartD\StoVec}{\PartD\aSttElm{i}} =  
-%   \frac{-\Delta\aPpathLng{i}}{2} \TrnMat' \bar{\MtrStl{C}}_i
-%   e^{-\Delta\aPpathLng{i}\left(\frac{\aSttElm{i}\MtrStl{C}_i+
-%             \aSttElm{i+1}\MtrStl{C}_{i+1}}{2} + \bar{\ExtMat}_i^o \right)}
-%    \left[ \aStoVec{i}-\bar{\EmsVec}_i\right]. \nonumber    
-% \end{displaymath}
-% As $\MtrStl{C}_i$ and $\MtrStl{C}_{i+1}$ are (very) similar matrices (and then
-% also close to $\bar{\MtrStl{C}}_i)$, the practical difference between this
-% equation and Eq.~\ref{eq:wfuns:vec:dsdxi} should be small. Or reversely,
-% Eq.~\ref{eq:wfuns:vec:dsdxi} should be approximately correct as $\MtrStl{C}_i$
-% and $\MtrStl{C}_{i+1}$ are close to identical matrices.
+The relationship between \aSttElm{i}\ and the propagation matrix of the path
+step can be written as
+\begin{equation}
+  \bar{\ExtMat}_i = \frac{\aSttElm{i}\MtrStl{C}_i+
+                      \aSttElm{i+1}\MtrStl{C}_{i+1}}{2} + \bar{\ExtMat}_i^o,
+\end{equation}
+where \MtrStl{C}\ can be seen as a matrix absorption cross-section
+(corresponding to $\sigma$ in Eq.~\ref{eq:wfuns:crossec1}) and
+$\bar{\ExtMat}_i^o$ is the propagation matrix summed for all other atmospheric
+constituents. 
+On the condition that Eq.~\ref{eq:expmder} is valid, we have that
+\begin{equation}
+  \frac{\PartD\aTrnMat{i}}{\PartD\aSttElm{i}} = 
+  \frac{\PartD}{\PartD\aSttElm{i}} 
+  e^{-\Delta\aPpathLng{i}\left(\frac{\aSttElm{i}\MtrStl{C}_i+
+            \aSttElm{i+1}\MtrStl{C}_{i+1}}{2} + \bar{\ExtMat}_i^o \right)} =
+  \frac{-\Delta\aPpathLng{i}}{2} \MtrStl{C}_i\aTrnMat{i}.
+  \label{eq:wfuns:vec:dsdxi}
+\end{equation}
+The question is when Eq.~\ref{eq:wfuns:vec:dsdxi} can be applied? We have three
+main cases:
+\begin{itemize}
+\item The equation is valid as long as the species to be retrieved has
+  unpolarised absorption. This as $\MtrStl{C}_i$ and $\MtrStl{C}_{i+1}$ can
+  then both be written as $\sigma_i\IdnMtr$, and
+  $(\aSttElm{i}\MtrStl{C}_i+\aSttElm{i+1}\MtrStl{C}_{i+1})/2$ is commutative
+  with any $\bar{\ExtMat}_i^o$.
+\item Eq.~\ref{eq:wfuns:vec:dsdxi} is not valid when all three matrices
+  involved ($\bar{\ExtMat}_i^o$ and the two \MtrStl{C}-matrices) have
+  off-diagonal elements on the same time. However, this is is unlikely case.
+  The main causes to polarised absorption are free electrons, Zeeman splitting
+  and particles, and these mechanisms are mainly found in the ionosphere,
+  mesosphere and troposphere, respectively.
+\item The remaining case is when $\bar{\ExtMat}_i^o$ is diagonal but the
+  species to be retrieved has polarised absorption. The likely situation is
+  that both $\MtrStl{C}_i$ and $\MtrStl{C}_{i+1}$ are non-diagonal on the same
+  time, and the condition of Eq.~\ref{eq:expmder} is not fulfilled. However, as
+  argued below, Eq.~\ref{eq:wfuns:vec:dsdxi} should still be approximately
+  valid, and this is used as ``working hypothesis'' in ARTS.
+\end{itemize}
+An alternative way to express the propagation matrix is
+\begin{displaymath}
+  \bar{\ExtMat}_i = \frac{\aSttElm{i}+\aSttElm{i+1}}{2}\bar{\MtrStl{C}}_i + 
+   \bar{\ExtMat}_i^o,   
+\end{displaymath}
+with
+\begin{displaymath}
+  \bar{\MtrStl{C}}_i = \frac{\MtrStl{C}_i+\MtrStl{C}_{i+1}}{2}.   
+\end{displaymath}
+With this formulation even the third case above would be handled, as we now
+only have two matrices to consider (and $\bar{\MtrStl{C}}_i$ is commutative
+with a diagonal $\bar{\ExtMat}_i^o$) . We would then have
+\begin{displaymath}
+  \frac{\PartD\aTrnMat{i}}{\PartD\aSttElm{i}} =  
+  \frac{-\Delta\aPpathLng{i}}{2} \bar{\MtrStl{C}}_i \aTrnMat{i}.    
+\end{displaymath}
+As $\MtrStl{C}_i$ and $\MtrStl{C}_{i+1}$ are (very) similar matrices (and then
+also close to $\bar{\MtrStl{C}}_i)$, the practical difference between this
+equation and Eq.~\ref{eq:wfuns:vec:dsdxi} should be small. Or reversely,
+Eq.~\ref{eq:wfuns:vec:dsdxi} should be approximately correct as $\MtrStl{C}_i$
+and $\MtrStl{C}_{i+1}$ are close to identical matrices.
 
 
 
@@ -761,7 +753,7 @@ proportional to the temperature, and if $\bar{\Tmp}$ is the average temperature
 along the path step:
 \begin{equation}
   \frac{\PartD \Delta \aPpathLng{i}}{\PartD \bar{\Tmp}} =   
-                                    \frac{\Delta \aPpathLng{i}}{\bar{\Tmp}} 
+                                    \frac{\Delta \aPpathLng{i}}{\bar{\Tmp}}.
 \end{equation}
 Following the other variables, we set $\bar{\Tmp}=(\aTmp{i}+\aTmp{i+1})/2$, and
 \begin{equation}
@@ -790,7 +782,8 @@ is obtained by setting $\bar{\Planck}_i$
 
 \subsubsection{General case}
 %
-\dots
+The term $\PartD\aTrnMat{i}/\PartD\aSttElm{i}$ is calculated in a pure
+numerical manner.
 
 
 
