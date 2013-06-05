@@ -1,5 +1,12 @@
 2013-06-05  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-1-665
+
+	* src/m_rte.cc (iyEmissionStandard2): Temporary playground for
+	extending WFs to also handle polarised absorption.
+
+2013-06-05  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-1-664
 
 	* Work to avoid repeated checks if ext_mat is diagonal. Mainly
