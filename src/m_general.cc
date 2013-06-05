@@ -63,6 +63,8 @@
 #include "geodetic.h"
 #include "workspace_ng.h"
 
+//#include "lin_alg.h"
+//#include "rte.h"
 
 
 extern const Numeric SPEED_OF_LIGHT;
@@ -411,9 +413,9 @@ void Test(const Verbosity& verbosity)
   const Numeric Q = 2e-4;
   const Numeric U = 0;
   const Numeric V = 0;
-  const Numeric RU = 0;
+  const Numeric RU = 1e-7;
   const Numeric RV = 0;
-  const Numeric RQ = 0;
+  const Numeric RQ = 1e-5;
 
   const Numeric lstep = 20e3;
 
@@ -446,11 +448,14 @@ void Test(const Verbosity& verbosity)
   ntau = ext;
   ntau *= -lstep;
 
-  matrix_exp_p30( trans1, ntau );
-  ext2trans( trans2, ext, lstep );
+  matrix_exp( trans1, ntau, 10 );
+
+  Index icase=0;
+  ext2trans( trans2, icase, ext, lstep );
 
   cout << trans1 << endl << endl;
   cout << trans2 << endl;
+  cout << icase << endl;
   */
   Exit( verbosity );
 }

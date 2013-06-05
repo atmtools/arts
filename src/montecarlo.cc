@@ -580,7 +580,10 @@ void mcPathTraceGeneral(
       ext_mat         = ext_matArray[1];
       ext_mat        += ext_matArray[0];  // Factor 2 fixed by using dl/2
       //
-      ext2trans( incT, ext_mat, dl/2 );
+      {
+        Index extmat_case = 0;
+        ext2trans( incT, extmat_case, ext_mat, dl/2 );
+      }
       //
       mult( evol_op, evol_opArray[0], incT );
       evol_opArray[1] = evol_op;
@@ -634,7 +637,10 @@ void mcPathTraceGeneral(
       ext_mat  = ext_mat_mono;
       ext_mat += ext_matArray[gp[0].idx];
       //
-      ext2trans( incT, ext_mat, ds/2 );
+      {
+        Index extmat_case = 0;
+        ext2trans( incT, extmat_case, ext_mat, ds/2 );
+      }
       //
       mult( evol_op, evol_opArray[gp[0].idx], incT );
       interp( abs_vec_mono, itw, abs_vecArray,gp[0] );

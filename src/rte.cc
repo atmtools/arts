@@ -805,11 +805,15 @@ Numeric dotprod_with_los(
 
     In scalar notation, this is done: iy = iy*t + bbar*(1-t)
 
+    The calculations are done differently for extmat_case 1 and 2/3.
+
     Frequency is throughout leftmost dimension.
 
     \param   iy           In/out: Radiance values
     \param   stokes_dim   In: As the WSV.
     \param   bbar         In: Average of emission source function
+    \param   extmat_case  In: As returned by get_ppath_trans, but just for the
+                              frequency of cocncern.
     \param   t            In: Transmission matrix of the step.
 
     \author Patrick Eriksson 
@@ -819,12 +823,14 @@ void emission_rtstep(
           Matrix&      iy,
     const Index&       stokes_dim,
     ConstVectorView    bbar,
+       ArrayOfIndex&   extmat_case,
     ConstTensor3View   t )
 {
   const Index nf = bbar.nelem();
 
   assert( t.ncols() == stokes_dim  &&  t.nrows() == stokes_dim ); 
   assert( t.npages() == nf );
+  assert( extmat_case.nelem() == nf );
 
   // Spectrum at end of ppath step 
   if( stokes_dim == 1 )
@@ -832,6 +838,7 @@ void emission_rtstep(
       for( Index iv=0; iv<nf; iv++ )  
         { iy(iv,0) = iy(iv,0) * t(iv,0,0) + bbar[iv] * ( 1 - t(iv,0,0) ); }
     }
+
   else
     {
 #pragma omp parallel for      \
@@ -839,8 +846,9 @@ void emission_rtstep(
       && nf >= arts_omp_get_max_threads())
       for( Index iv=0; iv<nf; iv++ )
         {
+          assert( extmat_case[iv]>=1 && extmat_case[iv]<=3 );
           // Unpolarised absorption:
-          if( is_diagonal( t(iv,joker,joker) ) )
+          if( extmat_case[iv] == 1 )
             {
               iy(iv,0) = iy(iv,0) * t(iv,0,0) + bbar[iv] * ( 1 - t(iv,0,0) );
               for( Index is=1; is<stokes_dim; is++ )
@@ -870,15 +878,22 @@ void emission_rtstep(
     Converts an extinction matrix to a transmission matrix
 
     The function performs the calculations differently depending on the
-    conditions to improve the speed. There are three cases: <br>
-       1. Scalar absorption. <br>
-       2. The matrix ext_mat_av is diagonal. <br>
-       3. Special expression for "p30 case". <br>
-       4. The total general case.
+    conditions, to improve the speed. There are three cases: <br>
+       1. Scalar RT and/or the matrix ext_mat_av is diagonal. <br>
+       2. Special expression for "p30" case. <br>
+       3. The total general case.
+
+    If the structure of *ext_mat* is known, *icase* can be set to "case index"
+    (1, 2 or 3) and some time is saved. This includes that no asserts are
+    performed on *ext_mat*.
+
+    Otherwise, *icase* must be set to 0. *ext_mat* is then analysed and *icase*
+    is set by the function and is returned.
 
     trans_mat must be sized before calling the function.
 
     \param   trans_mat          Input/Output: Transmission matrix of slab.
+    \param   icase              Input/Output: Index giving ext_mat case.
     \param   ext_mat            Input: Averaged extinction matrix.
     \param   lstep              Input: The length of the RTE step.
 
@@ -887,6 +902,7 @@ void emission_rtstep(
 */
 void ext2trans(
          MatrixView   trans_mat,
+         Index&       icase,
    ConstMatrixView    ext_mat,
    const Numeric&     lstep )
 {
@@ -900,94 +916,105 @@ void ext2trans(
   // result of negative vmr, and this issue is checked in basics_checkedCalc.
   //assert( ext_mat(0,0) >= 0 );     
 
+  assert( icase>=0 && icase<=3 );
   assert( !is_singular( ext_mat ) );
   assert( lstep >= 0 );
 
+  // Analyse ext_mat?
+  if( icase == 0 )
+    { 
+      icase = 1;  // Start guess is diagonal
 
-  //--- Scalar case ----------------------------------------------------------
-  if( stokes_dim == 1 )
-    { trans_mat(0,0) = exp( -ext_mat(0,0) * lstep ); }
+      //--- Scalar case ----------------------------------------------------------
+      if( stokes_dim == 1 )
+        {}
 
-  //--- Vector RT ------------------------------------------------------------
-  else
-    {
-      // Check symmetries and analyse structure of exp_mat:
-      assert( ext_mat(1,1) == ext_mat(0,0) );
-      assert( ext_mat(1,0) == ext_mat(0,1) );
-
-      bool isp30  = true;
-      bool isdiag = ext_mat(1,0) == 0;
-      
-      if( stokes_dim >= 3 )
-        {     
-          assert( ext_mat(2,2) == ext_mat(0,0) );
-          assert( ext_mat(2,1) == -ext_mat(1,2) );
-          assert( ext_mat(2,0) == ext_mat(0,2) );
-
-          isp30  = ext_mat(2,0) == 0  &&  ext_mat(2,1) == 0;
-          isdiag = isdiag  && isp30;
-
-          if( stokes_dim > 3 )
-            {
-              assert( ext_mat(3,3) == ext_mat(0,0) );
-              assert( ext_mat(3,2) == -ext_mat(2,3) );
-              assert( ext_mat(3,1) == -ext_mat(1,3) );
-              assert( ext_mat(3,0) == ext_mat(0,3) ); 
-
-              isp30  = isp30  &&  ext_mat(3,0) == 0  &&  ext_mat(3,1) == 0;
-              isdiag = isdiag  && isp30  &&  ext_mat(3,2) == 0;
-            }
-        }
-
-
-      // Calculation options:
-      if( isdiag )
+      //--- Vector RT ------------------------------------------------------------
+      else
         {
-          trans_mat = 0;
-          trans_mat(0,0) = exp( -ext_mat(0,0) * lstep );
-          for( Index i=1; i<stokes_dim; i++ )
-            { trans_mat(i,i) = trans_mat(0,0); }
-        }
+          // Check symmetries and analyse structure of exp_mat:
+          assert( ext_mat(1,1) == ext_mat(0,0) );
+          assert( ext_mat(1,0) == ext_mat(0,1) );
+
+          if( ext_mat(1,0) != 0 )
+            { icase = 2; }
       
-      else if( isp30 )
-        {
-          // Expressions below are found in "Polarization in Spectral Lines" by
-          // Landi Degl'Innocenti and Landolfi (2004).
-          const Numeric tI = exp( -ext_mat(0,0) * lstep );
-          const Numeric HQ = ext_mat(0,1) * lstep;
-          trans_mat(0,0) = tI * cosh( HQ );
-          trans_mat(1,1) = trans_mat(0,0);
-          trans_mat(1,0) = -tI * sinh( HQ );
-          trans_mat(0,1) = trans_mat(1,0);
           if( stokes_dim >= 3 )
-            {
-              trans_mat(2,0) = 0;
-              trans_mat(2,1) = 0;
-              trans_mat(0,2) = 0;
-              trans_mat(1,2) = 0;
-              const Numeric RQ = ext_mat(2,3) * lstep;
-              trans_mat(2,2) = tI * cos( RQ );
-              if( stokes_dim > 3 )
+            {     
+              assert( ext_mat(2,2) == ext_mat(0,0) );
+              assert( ext_mat(2,1) == -ext_mat(1,2) );
+              assert( ext_mat(2,0) == ext_mat(0,2) );
+              
+              if( ext_mat(2,0) != 0  ||  ext_mat(2,1) != 0 )
+                { icase = 3; }
+
+              if( stokes_dim > 3 )  
                 {
-                  trans_mat(3,0) = 0;
-                  trans_mat(3,1) = 0;
-                  trans_mat(0,3) = 0;
-                  trans_mat(1,3) = 0;
-                  trans_mat(3,3) = trans_mat(2,2);
-                  trans_mat(3,2) = tI * sin( RQ );
-                  trans_mat(2,3) = -trans_mat(3,2); 
+                  assert( ext_mat(3,3) == ext_mat(0,0) );
+                  assert( ext_mat(3,2) == -ext_mat(2,3) );
+                  assert( ext_mat(3,1) == -ext_mat(1,3) );
+                  assert( ext_mat(3,0) == ext_mat(0,3) ); 
+
+                  if( icase < 3 )  // if icase==3, already at most complex case
+                    {
+                      if( ext_mat(3,0) != 0  ||  ext_mat(3,1) != 0 )
+                        { icase = 3; }
+                      else if( ext_mat(3,2) != 0 )
+                        { icase = 2; }
+                    }
                 }
             }
         }
-      else
+    }
+
+
+  // Calculation options:
+  if( icase == 1 )
+    {
+      trans_mat = 0;
+      trans_mat(0,0) = exp( -ext_mat(0,0) * lstep );
+      for( Index i=1; i<stokes_dim; i++ )
+        { trans_mat(i,i) = trans_mat(0,0); }
+    }
+      
+  else if( icase == 2 )
+    {
+      // Expressions below are found in "Polarization in Spectral Lines" by
+      // Landi Degl'Innocenti and Landolfi (2004).
+      const Numeric tI = exp( -ext_mat(0,0) * lstep );
+      const Numeric HQ = ext_mat(0,1) * lstep;
+      trans_mat(0,0) = tI * cosh( HQ );
+      trans_mat(1,1) = trans_mat(0,0);
+      trans_mat(1,0) = -tI * sinh( HQ );
+      trans_mat(0,1) = trans_mat(1,0);
+      if( stokes_dim >= 3 )
         {
-          Matrix ext_mat_ds = ext_mat;
-          ext_mat_ds *= -lstep; 
-          //         
-          Index q = 10;  // index for the precision of the matrix exp function
-          //
-          matrix_exp( trans_mat, ext_mat_ds, q );
+          trans_mat(2,0) = 0;
+          trans_mat(2,1) = 0;
+          trans_mat(0,2) = 0;
+          trans_mat(1,2) = 0;
+          const Numeric RQ = ext_mat(2,3) * lstep;
+          trans_mat(2,2) = tI * cos( RQ );
+          if( stokes_dim > 3 )
+            {
+              trans_mat(3,0) = 0;
+              trans_mat(3,1) = 0;
+              trans_mat(0,3) = 0;
+              trans_mat(1,3) = 0;
+              trans_mat(3,3) = trans_mat(2,2);
+              trans_mat(3,2) = tI * sin( RQ );
+              trans_mat(2,3) = -trans_mat(3,2); 
+            }
         }
+    }
+  else
+    {
+      Matrix ext_mat_ds = ext_mat;
+      ext_mat_ds *= -lstep; 
+      //         
+      Index q = 10;  // index for the precision of the matrix exp function
+      //
+      matrix_exp( trans_mat, ext_mat_ds, q );
     }
 }
 
@@ -1687,6 +1714,10 @@ void get_ppath_f(
     The argument trans_partial holds the transmission for each propagation path
     step. It has np-1 columns.
 
+    The structure of average extinction matrix for each step is returned in
+    extmat_case. The dimension of this variable is [np-1,nf]. For the coding
+    see *ext2trans*.
+
     The argument trans_cumalat holds the transmission between the path point
     with index 0 and each propagation path point. The transmission is valid for
     the photon travelling direction. It has np columns.
@@ -1694,9 +1725,10 @@ void get_ppath_f(
     The output variables are sized inside the function. The dimension order is 
        [ frequency, stokes, stokes, ppath point ]
 
-    The scalar optical thickness is calculated in parellel.
+    The scalar optical thickness is calculated in parallel.
 
     \param   trans_partial  Out: Transmission for each path step.
+    \param   extmat_case    Out: Corresponds to *icase* of *ext2trans*.
     \param   trans_cumulat  Out: Transmission to each path point.
     \param   scalar_tau     Out: Total (scalar) optical thickness of path
     \param   ppath          As the WSV.    
@@ -1708,13 +1740,14 @@ void get_ppath_f(
     \date   2012-08-15
 */
 void get_ppath_trans( 
-        Tensor4&        trans_partial,
-        Tensor4&        trans_cumulat,
-        Vector&         scalar_tau,
-  const Ppath&          ppath,
-  ConstTensor5View&     ppath_abs,
-  ConstVectorView       f_grid, 
-  const Index&          stokes_dim )
+        Tensor4&               trans_partial,
+        ArrayOfArrayOfIndex&   extmat_case,
+        Tensor4&               trans_cumulat,
+        Vector&                scalar_tau,
+  const Ppath&                 ppath,
+  ConstTensor5View&            ppath_abs,
+  ConstVectorView              f_grid, 
+  const Index&                 stokes_dim )
 {
   // Sizes
   const Index   nf = f_grid.nelem();
@@ -1724,6 +1757,10 @@ void get_ppath_trans(
   //
   trans_partial.resize( nf, stokes_dim, stokes_dim, np-1 );
   trans_cumulat.resize( nf, stokes_dim, stokes_dim, np );
+  //
+  extmat_case.resize(np-1);
+  for( Index i=0; i<np-1; i++ )
+    { extmat_case[i].resize(nf); }
   //
   scalar_tau.resize( nf );
   scalar_tau = 0;
@@ -1773,8 +1810,9 @@ void get_ppath_trans(
                                              abssum_this(iv,is1,is2) );
                 } }
               scalar_tau[iv] += ppath.lstep[ip-1] * ext_mat(0,0); 
-              ext2trans( trans_partial(iv,joker,joker,ip-1), ext_mat,
-                                                             ppath.lstep[ip-1] ); 
+              extmat_case[ip-1][iv] = 0;
+              ext2trans( trans_partial(iv,joker,joker,ip-1), 
+                         extmat_case[ip-1][iv], ext_mat, ppath.lstep[ip-1] ); 
               
               // Cumulative transmission
               // (note that multiplication below depends on ppath loop order)
@@ -1810,15 +1848,16 @@ void get_ppath_trans(
     \date   2012-08-23
 */
 void get_ppath_trans2( 
-        Tensor4&        trans_partial,
-        Tensor4&        trans_cumulat,
-        Vector&         scalar_tau,
-  const Ppath&          ppath,
-  ConstTensor5View&     ppath_abs,
-  ConstVectorView       f_grid, 
-  const Index&          stokes_dim,
-  const ArrayOfIndex&   clear2cloudbox,
-  ConstTensor4View      pnd_ext_mat )
+        Tensor4&               trans_partial,
+        ArrayOfArrayOfIndex&   extmat_case,
+        Tensor4&               trans_cumulat,
+        Vector&                scalar_tau,
+  const Ppath&                 ppath,
+  ConstTensor5View&            ppath_abs,
+  ConstVectorView              f_grid, 
+  const Index&                 stokes_dim,
+  const ArrayOfIndex&          clear2cloudbox,
+  ConstTensor4View             pnd_ext_mat )
 {
   // Sizes
   const Index   nf = f_grid.nelem();
@@ -1828,6 +1867,10 @@ void get_ppath_trans2(
   //
   trans_partial.resize( nf, stokes_dim, stokes_dim, np-1 );
   trans_cumulat.resize( nf, stokes_dim, stokes_dim, np );
+  //
+  extmat_case.resize(np-1);
+  for( Index i=0; i<np-1; i++ )
+    { extmat_case[i].resize(nf); }
   //
   scalar_tau.resize( nf );
   scalar_tau  = 0;
@@ -1882,8 +1925,9 @@ void get_ppath_trans2(
                                              extsum_this(iv,is1,is2) );
                 } }
               scalar_tau[iv] += ppath.lstep[ip-1] * ext_mat(0,0); 
-              ext2trans( trans_partial(iv,joker,joker,ip-1), ext_mat,
-                                                             ppath.lstep[ip-1] );
+              extmat_case[ip-1][iv] = 0;
+              ext2trans( trans_partial(iv,joker,joker,ip-1), 
+                         extmat_case[ip-1][iv], ext_mat, ppath.lstep[ip-1] );
 
               // Note that multiplication below depends on ppath loop order
               mult( trans_cumulat(iv,joker,joker,ip), 

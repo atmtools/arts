@@ -329,6 +329,7 @@ void iyEmissionStandard(
   Tensor4   trans_partial, trans_cumulat;
   Matrix    ppath_blackrad;
   Vector    scalar_tau;
+  ArrayOfArrayOfIndex  extmat_case;          
   //
   if( np > 1 )
     {
@@ -342,8 +343,8 @@ void iyEmissionStandard(
       get_ppath_abs(      ws, ppath_abs, propmat_clearsky_agenda, ppath, 
                           ppath_p, ppath_t, ppath_vmr, ppath_f, 
                           ppath_mag, f_grid, stokes_dim, only_sum_abs );
-      get_ppath_trans(    trans_partial, trans_cumulat, scalar_tau, ppath, 
-                          ppath_abs, f_grid, stokes_dim );
+      get_ppath_trans(    trans_partial, extmat_case, trans_cumulat, 
+                          scalar_tau, ppath, ppath_abs, f_grid, stokes_dim );
       get_ppath_blackrad( ws, ppath_blackrad, blackbody_radiation_agenda, 
                           ppath, ppath_t, ppath_f );
     }
@@ -687,7 +688,7 @@ void iyEmissionStandard(
           //###################################################################
 
           // Spectrum at end of ppath step 
-          emission_rtstep( iy, stokes_dim, bbar, 
+          emission_rtstep( iy, stokes_dim, bbar, extmat_case[ip],
                            trans_partial(joker,joker,joker,ip) );
 
           //=== iy_aux part ===================================================

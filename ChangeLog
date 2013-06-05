@@ -1,3 +1,34 @@
+2013-06-05  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-664
+
+	* Work to avoid repeated checks if ext_mat is diagonal. Mainly
+	justified for extension of WFs, but should give a slight general
+	speed improvement.
+
+	* src/m_fos.cc (fos):
+	* src/m_rte.cc (iyEmissionStandard): Adopted call of
+	get_ppath_trans and emission_rtstep.
+
+	* src/m_transmitter.cc (iyTransmissionStandard, iyRadioLink):
+	* src/m_cloudradar.cc (iyCloudRadar): Adopted call of get_ppath_trans.
+
+	* src/rte.cc (get_ppath_trans, get_ppath_trans2): Adopted call of
+	ext2trans, and added output argument to pass on icase.
+
+	(emission_rtstep): Added input argument matching icase. This
+	avoids a call of is_diagonal, for each frequency.
+
+	* src/montecarlo.cc (mcPathTraceGeneral):
+	* src/m_fos.cc (fos): Adopted call of ext2trans.
+
+	* src/doit.cc (rte_step_doit): Adopted call of ext2trans, and
+	using icase to remove a call of is_diagonal.
+
+	* src/rte.cc (ext2trans): The found structure of ext_mat is now
+	returned, as *icase*. If icase already known, that information can
+	also be provided to save time.
+
 2013-06-04  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-663

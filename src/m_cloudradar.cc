@@ -226,19 +226,21 @@ void iyCloudRadar(
                          ppath_f, ppath_mag, f_grid, stokes_dim, true );
       if( !cloudbox_on )
         { 
-          get_ppath_trans( trans_partial, trans_cumulat, scalar_tau, 
-                           ppath, ppath_abs, f_grid, stokes_dim );
+          ArrayOfArrayOfIndex  extmat_case;
+          get_ppath_trans( trans_partial, extmat_case, trans_cumulat, 
+                           scalar_tau, ppath, ppath_abs, f_grid, stokes_dim );
         }
       else
         {
           // Extract basic scattering data
-          Tensor3 pnd_abs_vec;
+          ArrayOfArrayOfIndex  extmat_case;
+          Tensor3              pnd_abs_vec;
           //
           get_ppath_ext(    clear2cloudbox, pnd_abs_vec, pnd_ext_mat, scat_data,
                             ppath_pnd, ppath, ppath_t, stokes_dim, ppath_f, 
                             atmosphere_dim, cloudbox_limits, pnd_field, 
                             use_mean_scat_data, scat_data_raw, verbosity );
-          get_ppath_trans2( trans_partial, trans_cumulat, scalar_tau, 
+          get_ppath_trans2( trans_partial, extmat_case, trans_cumulat, scalar_tau, 
                             ppath, ppath_abs, f_grid, stokes_dim, 
                             clear2cloudbox, pnd_ext_mat );
         }

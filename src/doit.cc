@@ -142,8 +142,9 @@ void rte_step_doit(//Output and Input:
       unpol_sca_vec = false;
 
   // Calculate transmission by general function, if not precalculated
+  Index extmat_case = 0;
   if( !trans_is_precalc )
-    { ext2trans( trans_mat, ext_mat_av, lstep ); }
+    { ext2trans( trans_mat, extmat_case, ext_mat_av, lstep ); }
 
   //--- Scalar case: ---------------------------------------------------------
   if( stokes_dim == 1 )
@@ -161,7 +162,7 @@ void rte_step_doit(//Output and Input:
   // non-zero value in position 1.
 
   //- Unpolarised
-  else if( is_diagonal(ext_mat_av) && unpol_abs_vec && unpol_sca_vec )
+  else if( extmat_case==1 && unpol_abs_vec && unpol_sca_vec )
     {
       // Stokes dim 1
       stokes_vec[0] = stokes_vec[0] * trans_mat(0,0) +

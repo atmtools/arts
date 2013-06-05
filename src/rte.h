@@ -129,10 +129,12 @@ void emission_rtstep(
           Matrix&      iy,
     const Index&       stokes_dim,
     ConstVectorView    bbar,
+       ArrayOfIndex&   extmat_case,
     ConstTensor3View   t );
 
 void ext2trans(
          MatrixView   trans_mat,
+         Index&       icase,
    ConstMatrixView    ext_mat_av,
    const Numeric&     l_step );
 
@@ -236,24 +238,26 @@ void get_ppath_f(
   ConstMatrixView  ppath_wind );
 
 void get_ppath_trans( 
-        Tensor4&        trans_partial,
-        Tensor4&        trans_cumulat,
-        Vector&         scalar_tau,
-  const Ppath&          ppath,
-  ConstTensor5View&     ppath_abs,
-  ConstVectorView       f_grid, 
-  const Index&          stokes_dim );
+        Tensor4&               trans_partial,
+        ArrayOfArrayOfIndex&   extmat_case,
+        Tensor4&               trans_cumulat,
+        Vector&                scalar_tau,
+  const Ppath&                 ppath,
+  ConstTensor5View&            ppath_abs,
+  ConstVectorView              f_grid, 
+  const Index&                 stokes_dim );
 
 void get_ppath_trans2( 
-        Tensor4&        trans_partial,
-        Tensor4&        trans_cumulat,
-        Vector&         scalar_tau,
-  const Ppath&          ppath,
-  ConstTensor5View&     ppath_abs,
-  ConstVectorView       f_grid, 
-  const Index&          stokes_dim,
-  const ArrayOfIndex&   clear2cloudbox,
-  ConstTensor4View      pnd_ext_mat );
+        Tensor4&               trans_partial,
+        ArrayOfArrayOfIndex&   extmat_case,
+        Tensor4&               trans_cumulat,
+        Vector&                scalar_tau,
+  const Ppath&                 ppath,
+  ConstTensor5View&            ppath_abs,
+  ConstVectorView              f_grid, 
+  const Index&                 stokes_dim,
+  const ArrayOfIndex&          clear2cloudbox,
+  ConstTensor4View             pnd_ext_mat );
 
 Range get_rowindex_for_mblock( 
   const Sparse&   sensor_response, 

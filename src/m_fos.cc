@@ -244,6 +244,7 @@ void fos(
   bool         only_sum_abs = !( auxAbsSpecies.nelem()>0 ); 
   //
   Array<ArrayOfSingleScatteringData> scat_data;
+  ArrayOfArrayOfIndex                extmat_case;  
   //
   if( np > 1 )
     {
@@ -261,8 +262,8 @@ void fos(
                           ppath, ppath_t, ppath_f );
       if( !cloudbox_on )
         { 
-          get_ppath_trans( trans_partial, trans_cumulat, scalar_tau,
-                           ppath, ppath_abs, f_grid, stokes_dim );
+          get_ppath_trans( trans_partial, extmat_case, trans_cumulat, 
+                           scalar_tau, ppath, ppath_abs, f_grid, stokes_dim );
         }
       else
         {
@@ -270,7 +271,7 @@ void fos(
                             ppath_pnd, ppath, ppath_t, stokes_dim, ppath_f, 
                             atmosphere_dim, cloudbox_limits, pnd_field, 
                             use_mean_scat_data, scat_data_raw, verbosity );
-          get_ppath_trans2( trans_partial, trans_cumulat, scalar_tau,
+          get_ppath_trans2( trans_partial, extmat_case, trans_cumulat, scalar_tau,
                             ppath, ppath_abs, f_grid, stokes_dim, 
                             clear2cloudbox, pnd_ext_mat );
         }      
@@ -298,7 +299,7 @@ void fos(
   // Radiative background
   //
   {
-    Agenda iy_cbox_agenda;  // This OK ???
+    Agenda iy_cbox_agenda;
     get_iy_of_background( ws, iy, diy_dx, 
                           iy_trans_new, jacobian_do, ppath, rte_pos2, 
                           atmosphere_dim, t_field, z_field, vmr_field, 
@@ -397,13 +398,14 @@ void fos(
               // No particle absorption to consider
               if( !any_particles )
                 {
-                  emission_rtstep( iy, stokes_dim, bbar, 
+                  emission_rtstep( iy, stokes_dim, bbar, extmat_case[ip],
                                    trans_partial(joker,joker,joker,ip) );
                 }
 
-              else
-                {
-                  Tensor3 t(nf,ns,ns);
+              else  // We want to include particle absorption, but not
+                {   // extinction. trans_partial is then not valid.
+                  Tensor3      t(nf,ns,ns);
+                  ArrayOfIndex extmat_cas2(nf);
                   //
                   for( Index iv=0; iv<nf; iv++ )
                     {
@@ -428,11 +430,13 @@ void fos(
                                      pabs_mat(is1,is2) );
                         } }
                       //
-                      ext2trans( t(iv,joker,joker), ext_mat, ppath.lstep[ip] );
+                      extmat_cas2[iv] = 0;
+                      ext2trans( t(iv,joker,joker), extmat_cas2[iv], 
+                                 ext_mat, ppath.lstep[ip] );
                     }
                                 
                   // Perform RT
-                  emission_rtstep( iy, stokes_dim, bbar, t );
+                  emission_rtstep( iy, stokes_dim, bbar, extmat_cas2, t );
                 }
             }
           
@@ -449,7 +453,7 @@ void fos(
               if( !any_particles )
                 {
                   // Perform RT
-                  emission_rtstep( iy, stokes_dim, bbar, 
+                  emission_rtstep( iy, stokes_dim, bbar, extmat_case[ip],
                                    trans_partial(joker,joker,joker,ip) );
 
                   // Scattering source term at ip is zero:
