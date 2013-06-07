@@ -1208,8 +1208,8 @@ void iyEmissionStandard2(
                                 {
                                   const Numeric x = -0.5 * ppath.lstep[ip] * 
                                                  trans_cumulat(iv,0,0,ip+1);
+                                  const Numeric y = x * sibi(iv,0);
                                   // Stokes component 1
-                                  Numeric y = x * sibi(iv,0);
                                   diy_dpath[iq](ip  ,iv,0) += y * 
                                          unitscf1 * ppath_abs(isp,iv,0,0,ip);
                                   diy_dpath[iq](ip+1,iv,0) += y * 
@@ -1283,51 +1283,26 @@ void iyEmissionStandard2(
                         {
                           for( Index iv=0; iv<nf; iv++ )
                             {
+                              // Pick out disturbed absorption to use. 
+                              // V-component is first guess.
+                              Tensor5& ppath_awx = ppath_awv;
+                              if( wind_i[iq] == 1 )
+                                { ppath_awx = ppath_awu; }
+                              else if( wind_i[iq] == 3 )
+                                { ppath_awx = ppath_aww; }
+
                               // Diagonal transmission matrix
                               if( extmat_case[ip][iv] == 1 )
                                 {
-                                  const Numeric k1 = 
-                                             ppath_abs(joker,iv,0,0,ip  ).sum();
-                                  const Numeric k2 = 
-                                             ppath_abs(joker,iv,0,0,ip+1).sum();
-                                  Numeric dkdx1, dkdx2; 
-                                  // u
-                                  if( wind_i[iq] == 1 )
-                                    {
-                                      dkdx1 = (
-                                          ppath_awu(joker,iv,0,0,ip  ).sum() - 
-                                                                      k1) / dw;
-                                      dkdx2 = ( 
-                                          ppath_awu(joker,iv,0,0,ip+1).sum() -
-                                                                     k2 ) / dw;
-                                    }
-                                  // v
-                                  else if( wind_i[iq] == 2 )
-                                    {
-                                      dkdx1 = ( 
-                                          ppath_awv(joker,iv,0,0,ip  ).sum() -
-                                                                     k1 ) / dw;
-                                      dkdx2 = ( 
-                                          ppath_awv(joker,iv,0,0,ip+1).sum() -
-                                                                     k2 ) / dw;
-                                    }
-                                  // w
-                                  else if( wind_i[iq] == 3 )
-                                    {
-                                      dkdx1 = ( 
-                                          ppath_aww(joker,iv,0,0,ip  ).sum() - 
-                                                                     k1 ) / dw;
-                                      dkdx2 = (
-                                          ppath_aww(joker,iv,0,0,ip+1).sum() -
-                                                                     k2 ) / dw;
-                                    }
-                                  else
-                                    { assert(0); }
-
+                                  const Numeric dkdx1 = (1/dw) * ( 
+                                          ppath_awx(joker,iv,0,0,ip  ).sum() -
+                                          ppath_abs(joker,iv,0,0,ip  ).sum() );
+                                  const Numeric dkdx2 = (1/dw) * ( 
+                                          ppath_awx(joker,iv,0,0,ip+1).sum() -
+                                          ppath_abs(joker,iv,0,0,ip+1).sum() );
                                   const Numeric x = -0.5 * ppath.lstep[ip] * 
                                                  trans_cumulat(iv,0,0,ip+1);
-                                  Numeric y = x * sibi(iv,0);
-
+                                  const Numeric y = x * sibi(iv,0);
                                   // Stokes component 1
                                   diy_dpath[iq](ip  ,iv,0) += y * dkdx1;
                                   diy_dpath[iq](ip+1,iv,0) += y * dkdx2;
@@ -1343,7 +1318,48 @@ void iyEmissionStandard2(
                               // General case
                               else
                                 { 
-                                  assert(0);
+                                  // Disturb for ip
+                                  Matrix ext_mat(ns,ns), dtdx(ns,ns);
+                                  //
+                                  for( Index is1=0; is1<stokes_dim; is1++ ) {
+                                    for( Index is2=0; is2<stokes_dim; is2++ ) {
+                                      ext_mat(is1,is2) = 0.5 * (
+                                       ppath_awx(joker,iv,is1,is2,ip).sum() +
+                                       ppath_abs(joker,iv,is1,is2,ip+1).sum());
+                                    } }
+                                  ext2trans( dtdx, extmat_case[ip][iv], 
+                                             ext_mat, ppath.lstep[ip] ); 
+                                  for( Index is1=0; is1<stokes_dim; is1++ ) {
+                                    for( Index is2=0; is2<stokes_dim; is2++ ) {
+                                      dtdx(is1,is2) = (1/dw) * 
+                                              ( dtdx(is1,is2) -
+                                                trans_partial(iv,is1,is2,ip) );
+                                    } }
+                                  Vector x(ns), y(ns);
+                                  mult( x, dtdx, sibi(iv,joker) );
+                                  mult( y, trans_cumulat(iv,joker,joker,ip), 
+                                                                           x );
+                                  diy_dpath[iq](ip,iv,joker) += y;
+                                  //
+                                  // Disturb for ip+1
+                                  for( Index is1=0; is1<stokes_dim; is1++ ) {
+                                    for( Index is2=0; is2<stokes_dim; is2++ ) {
+                                      ext_mat(is1,is2) = 0.5 * (
+                                       ppath_abs(joker,iv,is1,is2,ip).sum() +
+                                       ppath_awx(joker,iv,is1,is2,ip+1).sum());
+                                    } }
+                                  ext2trans( dtdx, extmat_case[ip][iv], 
+                                             ext_mat, ppath.lstep[ip] ); 
+                                  for( Index is1=0; is1<stokes_dim; is1++ ) {
+                                    for( Index is2=0; is2<stokes_dim; is2++ ) {
+                                      dtdx(is1,is2) = (1/dw) * 
+                                              ( dtdx(is1,is2) -
+                                                trans_partial(iv,is1,is2,ip) );
+                                    } }
+                                  mult( x, dtdx, sibi(iv,joker) );
+                                  mult( y, trans_cumulat(iv,joker,joker,ip), 
+                                                                           x );
+                                  diy_dpath[iq](ip+1,iv,joker) += y;
                                 }
                             }
                         }
