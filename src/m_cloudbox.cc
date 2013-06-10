@@ -1255,7 +1255,7 @@ void pnd_fieldExpand1D(Tensor4&        pnd_field,
   const Index   nlat = cloudbox_limits[3] - cloudbox_limits[2] + 1;
         Index   nlon = 1;
   if( atmosphere_dim == 3 )  
-    { nlon = cloudbox_limits[5] - cloudbox_limits[5] + 1; }
+    { nlon = cloudbox_limits[5] - cloudbox_limits[4] + 1; }
 
   if( pnd_field.npages() != np  ||  pnd_field.nrows() != 1  ||  
       pnd_field.ncols() != 1 )

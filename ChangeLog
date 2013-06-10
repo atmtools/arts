@@ -13,6 +13,20 @@
 	* src/workspace.cc:
 	* src/agendas.cc: FOS stuff removed.
 
+2013-06-10  Jana Mendrok <jana.mendrok@ltu.se>
+
+	* arts-2-0-48
+
+	* src/m_cloudbox.cc (pnd_fieldExpand1D): Bugfix. lon-dim calc of
+	expanded cloudbox had a typo (*slap myself into face* I myself fixed
+	that 6 months ago in arts2.1. why not here, too??? had cost me half a
+	day to find! *argh*).
+
+	* src/methods.cc
+	(Append): Bugfixed description (no, the example Matrix-to-Matrix append
+	is what this method exactly does NOT cover!).
+	(pnd_fieldExpand1D): Typofix.
+
 2013-02-13  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-0-47

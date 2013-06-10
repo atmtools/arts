@@ -1892,14 +1892,14 @@ void define_md_data_raw()
       ( NAME( "Append" ),
         DESCRIPTION
         (
-         "Append a workspace *out* variable to another workspace variable.\n"
+         "Appends a workspace *in* variable to another workspace *out* variable.\n"
          "\n"
          "This method can append a workspace variable\n"
-         "to another workspace variable of the same group. (E.g., a *Matrix* to\n"
-         "another *Matrix*.)\n"
+         "to another workspace variable of the same group. (E.g., a\n"
+         "*ArrayOfMatrix* to another * ArrayOfMatrix*.)\n"
          "\n"
          "This method is not implemented for all types, just for those where an\n"
-         "append makes sense. (See variable list below.).\n"         
+         "append makes sense (see variable list below.).\n"         
          "\n"
          "As always, output comes first in the argument list!\n"
          ),
@@ -6400,7 +6400,7 @@ void define_md_data_raw()
          "Maps a 1D pnd_field to 2D or 3D pnd_field.\n"
          "\n"
          "This method takes a 1D *pnd_field* and converts it to 2D or 3D\n"
-         "\"cloud\". It is assumed that a complet 1D case has been created\n"
+         "\"cloud\". It is assumed that a complete 1D case has been created\n"
          "and after this *atmosphere_dim*, *lat_grid*, *lon_grid* and\n"
          "*cloudbox_limits* have been changed to a 2D or 3D case. This\n"
          "without changing the vertical extension of the cloudbox.\n"
