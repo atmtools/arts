@@ -1,3 +1,40 @@
+2013-06-11  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-667
+
+	* Extension of analytical Jacobians ready. Memory usage decreased
+	for larger calculations involving Jacobians or iy_aux (but the
+	reversed can happen for small calculations). There should also be
+	a slight speed improvement for analytical Jacobians.
+
+	* doc/uguide/wfuns.tex: Some more details on temperature, general
+	case.
+
+	* src/m_transmitter.cc (iyTransmissionStandard): Changed to mimic
+	iyEmissionStandard as far as possible. Old jacobian code removed.
+	Replaced with code from iyEmissionStandard, but with all emission
+	terms removed and no special treatment of Stokes 1 for
+	unpolarised case.
+
+	* src/m_rte.cc (iyEmissionStandard): New version now active.
+	Code for Jacobians with polarised absorption in place.
+
+	* src/m_transmitter.cc (iyRadioLink):
+	* src/m_fos.cc (fos):
+	* src/m_cloudradar.cc (iyCloudRadar): Adopted to change of
+	get_ppath_abs. Required some reorganisation of code.
+
+	* src/rte.cc (get_ppath_abs): Now two output variables. One with
+	summed absorption, and one with "abs_per_species", but only for
+	selected species. This in order to avoid repeated summation of
+	absorption. Memory usage is also decreased, except when all
+	species are either retrieved or their absorption is put into iy_aux.
+
+	(get_ppath_trans2): Adopted to new version of ppath_abs.
+
+	(get_ppath_trans): Adopted to new version of ppath_abs. Some
+	internal variables could be removed.
+
 2013-06-07  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-666

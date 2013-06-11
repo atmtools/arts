@@ -192,7 +192,8 @@ void get_ppath_atmvars(
 
 void get_ppath_abs( 
         Workspace&      ws,
-        Tensor5&        ppath_abs,
+        Tensor4&        ppath_abs,
+        Tensor5&        abs_per_species,
   const Agenda&         propmat_clearsky_agenda,
   const Ppath&          ppath,
   ConstVectorView       ppath_p, 
@@ -202,7 +203,7 @@ void get_ppath_abs(
   ConstMatrixView       ppath_mag,
   ConstVectorView       f_grid, 
   const Index&          stokes_dim,
-  const bool&           only_sum_abs );
+  const ArrayOfIndex&   ispecies );
 
 void get_ppath_blackrad( 
         Workspace&   ws,
@@ -243,7 +244,7 @@ void get_ppath_trans(
         Tensor4&               trans_cumulat,
         Vector&                scalar_tau,
   const Ppath&                 ppath,
-  ConstTensor5View&            ppath_abs,
+  ConstTensor4View&            ppath_abs,
   ConstVectorView              f_grid, 
   const Index&                 stokes_dim );
 
@@ -253,7 +254,7 @@ void get_ppath_trans2(
         Tensor4&               trans_cumulat,
         Vector&                scalar_tau,
   const Ppath&                 ppath,
-  ConstTensor5View&            ppath_abs,
+  ConstTensor4View&            ppath_abs,
   ConstVectorView              f_grid, 
   const Index&                 stokes_dim,
   const ArrayOfIndex&          clear2cloudbox,

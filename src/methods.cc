@@ -5032,35 +5032,6 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "iyEmissionStandard2" ),
-        DESCRIPTION
-        (
-         "Just testing ...\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT( "iy", "iy_aux", "ppath", "diy_dx" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "stokes_dim", "f_grid", "atmosphere_dim", "p_grid", "z_field",
-            "t_field", "vmr_field", "abs_species", 
-            "wind_u_field", "wind_v_field", "wind_w_field", "mag_u_field",
-            "mag_v_field", "mag_w_field", 
-            "cloudbox_on", "iy_unit", "iy_aux_vars", "jacobian_do", 
-            "jacobian_quantities", "jacobian_indices", 
-            "ppath_agenda", "blackbody_radiation_agenda",
-            "propmat_clearsky_agenda", "iy_main_agenda", 
-            "iy_space_agenda", "iy_surface_agenda", "iy_cloudbox_agenda", 
-            "iy_agenda_call1", "iy_transmission", "rte_pos", "rte_los", 
-            "rte_pos2", "rte_alonglos_v", "ppath_lraytrace" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME( "iyFOS" ),
         DESCRIPTION
         (

@@ -598,12 +598,12 @@ is then
 \subsubsection{General case}
 %
 So far, the term $\PartD\aTrnMat{i}/\PartD\aSttElm{i}$ is only estimated by
-performing a small perturbation. However, there exists a potentail to use an
-analytical expression, as discussed below, but this is left for future
-consideration.
+performing a small perturbation, of the absorption associated with the species
+to be retrieved.
 
-The relationship between \aSttElm{i}\ and the propagation matrix of the path
-step can be written as
+However, there exists a potential to use an analytical expression, as discussed
+below, but this is left for future consideration. The relationship between
+\aSttElm{i}\ and the propagation matrix of the path step can be written as
 \begin{equation}
   \bar{\ExtMat}_i = \frac{\aSttElm{i}\MtrStl{C}_i+
                       \aSttElm{i+1}\MtrStl{C}_{i+1}}{2} + \bar{\ExtMat}_i^o,
@@ -680,7 +680,7 @@ for winds.
 Theoretically, the Doppler shift induced by winds affects the emission source
 term ($\bar{\Planck}_i$, in the scalar case), but this impact is extremely small
 and the related terms are ignored. This gives a case basically identical to the
-one above for absorption species. The only difference is that the term
+one above for absorption species. The only difference is that also the term
 $\PartD\aAbsCoef{i}/\PartD\aSttElm{i}$ is obtained in a pure numerical manner,
 by recalculating the absorption coefficient with the wind perturbed slightly.
 
@@ -754,11 +754,13 @@ along the path step:
 \begin{equation}
   \frac{\PartD \Delta \aPpathLng{i}}{\PartD \bar{\Tmp}} =   
                                     \frac{\Delta \aPpathLng{i}}{\bar{\Tmp}}.
+  \label{eq:wfuns:ddldtbar}
 \end{equation}
 Following the other variables, we set $\bar{\Tmp}=(\aTmp{i}+\aTmp{i+1})/2$, and
 \begin{equation}
   \frac{\PartD \Delta \aPpathLng{i}}{\PartD\aSttElm{i}} = 
                                     \frac{\Delta \aPpathLng{i}}{2\aTmp{i}}.
+  \label{eq:wfuns:ddldti}
 \end{equation}
 In summary (assuming \verb|hse| set to ``on''):
 \begin{equation}
@@ -783,7 +785,16 @@ is obtained by setting $\bar{\Planck}_i$
 \subsubsection{General case}
 %
 The term $\PartD\aTrnMat{i}/\PartD\aSttElm{i}$ is calculated in a pure
-numerical manner.
+numerical manner. This is done in two steps. In the first step, the
+transmission matrix is recalculated for a slightly perturbed temperature. If
+hydrostatic equilibrium is considered, the transmission is also recalculated
+with a disturbed $\Delta \aPpathLng{i}$. To avoid making two identical disturbances of
+the transmission matrix, these calculations are performed as
+\begin{displaymath}
+  \frac{\PartD\aTrnMat{i}}{\PartD\aSttElm{i}} = 
+  \frac{\PartD\aTrnMat{i}}{\PartD\bar{\Tmp}}\frac{\bar{\Tmp}}{2\aTmp{i}},
+\end{displaymath}
+a relationship that follows from Eqs.~\ref{eq:wfuns:ddldtbar} and \ref{eq:wfuns:ddldti}.
 
 
 

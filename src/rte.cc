@@ -1321,11 +1321,19 @@ void get_ppath_atmvars(
 /*!
     Determines the "clearsky" absorption along a propagation path.
 
-    The output variable is sized inside the function. The dimension order is 
+    *ppath_abs* returns the summed absorption and has dimensions
+       [ frequency, stokes, stokes, ppath point ]
+
+    *abs_per_species* can hold absorption for individual species. The
+    species to include ar selected by *ispecies*. For example, to store first
+    and third species in abs_per_species, set ispecies to [0][2].
+
+    The output variables are sized inside the function. The dimension order is 
        [ absorption species, frequency, stokes, stokes, ppath point ]
 
     \param   ws                  Out: The workspace
-    \param   ppath_abs_mat       Out: Absorption matrix at each ppath point
+    \param   ppath_abs           Out: Summed absorption at each ppath point
+    \param   abs_per_species     Out: Absorption for "ispecies"
     \param   propmat_clearsky_agenda As the WSV.    
     \param   ppath               As the WSV.    
     \param   ppath_p             Pressure for each ppath point.
@@ -1335,15 +1343,15 @@ void get_ppath_atmvars(
     \param   ppath_mag           See get_ppath_atmvars.
     \param   f_grid              As the WSV.    
     \param   stokes_dim          As the WSV.
-    \param   only_sum_abs        If set to true, only the summed absorption
-                                 is returned. Otherwise, the contribution of
-                                 each abs_species is kept seperated.
+    \param   ispecies            Index of species to store in abs_per_species
+
     \author Patrick Eriksson 
     \date   2012-08-15
 */
 void get_ppath_abs( 
         Workspace&      ws,
-        Tensor5&        ppath_abs,
+        Tensor4&        ppath_abs,
+        Tensor5&        abs_per_species,
   const Agenda&         propmat_clearsky_agenda,
   const Ppath&          ppath,
   ConstVectorView       ppath_p, 
@@ -1353,30 +1361,37 @@ void get_ppath_abs(
   ConstMatrixView       ppath_mag,
   ConstVectorView       f_grid, 
   const Index&          stokes_dim,
-  const bool&           only_sum_abs )
+  const ArrayOfIndex&   ispecies )
 {
   // Sizes
   const Index   nf   = f_grid.nelem();
   const Index   np   = ppath.np;
   const Index   nabs = ppath_vmr.nrows();
+  const Index   nisp = ispecies.nelem();
+
+  DEBUG_ONLY(
+    for( Index i=0; i<nisp; i++ )
+      {
+        assert( ispecies[i] >= 0 );
+        assert( ispecies[i] < nabs );
+      }
+  )
 
   // Size variable
-  try {
-    if( only_sum_abs )
-      { 
-        ppath_abs.resize( 1, nf, stokes_dim, stokes_dim, np ); 
-        ppath_abs = 0;   // Here we sum up
-      }
-    else  // Here we fill and no need to set to 0
-      { ppath_abs.resize( nabs, nf, stokes_dim, stokes_dim, np ); }
-  } catch (std::bad_alloc x) {
+  try 
+    {
+      ppath_abs.resize( nf, stokes_dim, stokes_dim, np ); 
+      abs_per_species.resize( nisp, nf, stokes_dim, stokes_dim, np ); 
+    } 
+  catch (std::bad_alloc x) 
+    {
       ostringstream os;
       os << "Run-time error in function: get_ppath_abs" << endl
          << "Memory allocation failed for ppath_abs("
          << nabs << ", " << nf << ", " << stokes_dim << ", "
          << stokes_dim << ", " << np << ")" << endl;
       throw runtime_error(os.str());
-  }
+    }
 
   String fail_msg;
   bool failed = false;
@@ -1411,33 +1426,37 @@ void get_ppath_abs(
       }
 
       // Copy to output argument
-      if (!failed)
+      if( !failed )
         {
-          if( only_sum_abs )
+          assert( propmat_clearsky.ncols() == stokes_dim );
+          assert( propmat_clearsky.nrows() == stokes_dim );
+          assert( propmat_clearsky.npages() == nf );
+          assert( propmat_clearsky.nbooks() == nabs );
+
+          for( Index i1=0; i1<nf; i1++ )
             {
-              for( Index i1=0; i1<propmat_clearsky.nbooks(); i1++ )
+              for( Index i2=0; i2<stokes_dim; i2++ )
                 {
-                  for( Index i2=0; i2<propmat_clearsky.npages(); i2++ )
+                  for( Index i3=0; i3<stokes_dim; i3++ )
                     {
-                      for( Index i3=0; i3<propmat_clearsky.nrows(); i3++ )
+                      ppath_abs(i1,i2,i3,ip) = propmat_clearsky(joker,i1,i2,i3).sum();
+
+                      for( Index ia=0; ia<nisp; ia++ )
                         {
-                          for( Index i4=0; i4<propmat_clearsky.ncols(); i4++ )
-                            {
-                              ppath_abs(0,i2,i3,i4,ip) +=
-                                               propmat_clearsky(i1,i2,i3,i4);
-                            }
+                          abs_per_species(ia,i1,i2,i3,ip) = 
+                                                propmat_clearsky(ispecies[ia],i1,i2,i3);
                         }
+                      
                     }
                 }
             }
-          else
-            { ppath_abs(joker,joker,joker,joker,ip) = propmat_clearsky; }
         }
     }
 
     if (failed)
         throw runtime_error(fail_msg);
 }
+
 
 
 //! get_ppath_blackrad
@@ -1745,7 +1764,7 @@ void get_ppath_trans(
         Tensor4&               trans_cumulat,
         Vector&                scalar_tau,
   const Ppath&                 ppath,
-  ConstTensor5View&            ppath_abs,
+  ConstTensor4View&            ppath_abs,
   ConstVectorView              f_grid, 
   const Index&                 stokes_dim )
 {
@@ -1767,8 +1786,6 @@ void get_ppath_trans(
 
   // Loop ppath points (in the anti-direction of photons)  
   //
-  Tensor3 abssum_old, abssum_this( nf, stokes_dim, stokes_dim );
-  //
   for( Index ip=0; ip<np; ip++ )
     {
       // If first point, calculate sum of absorption and set transmission
@@ -1781,14 +1798,7 @@ void get_ppath_trans(
       && nf >= arts_omp_get_max_threads())
 #endif
           for( Index iv=0; iv<nf; iv++ )
-            {
-              for( Index is1=0; is1<stokes_dim; is1++ ) {
-                for( Index is2=0; is2<stokes_dim; is2++ ) {
-                  abssum_this(iv,is1,is2) = 
-                                          ppath_abs(joker,iv,is1,is2,ip).sum();
-                } } 
-              id_mat( trans_cumulat(iv,joker,joker,ip) );
-            }
+            { id_mat( trans_cumulat(iv,joker,joker,ip) ); }
         }
 
       else
@@ -1804,10 +1814,8 @@ void get_ppath_trans(
               Matrix ext_mat(stokes_dim,stokes_dim);
               for( Index is1=0; is1<stokes_dim; is1++ ) {
                 for( Index is2=0; is2<stokes_dim; is2++ ) {
-                  abssum_this(iv,is1,is2) = 
-                                          ppath_abs(joker,iv,is1,is2,ip).sum();
-                  ext_mat(is1,is2) = 0.5 * ( abssum_old(iv,is1,is2) + 
-                                             abssum_this(iv,is1,is2) );
+                  ext_mat(is1,is2) = 0.5 * ( ppath_abs(iv,is1,is2,ip-1) + 
+                                             ppath_abs(iv,is1,is2,ip  ) );
                 } }
               scalar_tau[iv] += ppath.lstep[ip-1] * ext_mat(0,0); 
               extmat_case[ip-1][iv] = 0;
@@ -1821,7 +1829,6 @@ void get_ppath_trans(
                     trans_partial(iv,joker,joker,ip-1) );
             }
         }
-      abssum_old = abssum_this;
     }
 }
 
@@ -1853,7 +1860,7 @@ void get_ppath_trans2(
         Tensor4&               trans_cumulat,
         Vector&                scalar_tau,
   const Ppath&                 ppath,
-  ConstTensor5View&            ppath_abs,
+  ConstTensor4View&            ppath_abs,
   ConstVectorView              f_grid, 
   const Index&                 stokes_dim,
   const ArrayOfIndex&          clear2cloudbox,
@@ -1889,8 +1896,7 @@ void get_ppath_trans2(
             {
               for( Index is1=0; is1<stokes_dim; is1++ ) {
                 for( Index is2=0; is2<stokes_dim; is2++ ) {
-                  extsum_this(iv,is1,is2) = 
-                                          ppath_abs(joker,iv,is1,is2,ip).sum();
+                  extsum_this(iv,is1,is2) = ppath_abs(iv,is1,is2,ip);
                 } } 
               id_mat( trans_cumulat(iv,joker,joker,ip) );
             }
@@ -1916,8 +1922,7 @@ void get_ppath_trans2(
               Matrix ext_mat(stokes_dim,stokes_dim);  // -1*tau
               for( Index is1=0; is1<stokes_dim; is1++ ) {
                 for( Index is2=0; is2<stokes_dim; is2++ ) {
-                  extsum_this(iv,is1,is2) = 
-                                          ppath_abs(joker,iv,is1,is2,ip).sum();
+                  extsum_this(iv,is1,is2) = ppath_abs(iv,is1,is2,ip);
                   if( ic >= 0 )
                     { extsum_this(iv,is1,is2) += pnd_ext_mat(iv,is1,is2,ic); }
 

@@ -122,6 +122,20 @@ void fos(
   const Index nf = f_grid.nelem();
   const Index ns = stokes_dim;
   const Index np = ppath.np;
+
+  // The below copied from iyEmission. Activate for-loop when jacobians
+  // introduced.
+
+  // Set up variable with index of species where we want abs_per_species.
+  // This variable can below be extended in iy_aux part.
+  //
+  ArrayOfIndex iaps(0);
+  //
+  //for( Index i=0; i<jac_species_i.nelem(); i++ )
+  //  {
+  //    if( jac_species_i[i] >= 0 )
+  //      { iaps.push_back( jac_species_i[i] ); }
+  //  }
   
   //=== iy_aux part ===========================================================
   Index auxPressure    = -1,
@@ -179,7 +193,14 @@ void fos(
                   throw runtime_error( os.str() );
                 }
               auxAbsSpecies.push_back(i);
-              auxAbsIsp.push_back(ispecies);
+              const Index ihit = find_first( iaps, ispecies );
+              if( ihit >= 0 )
+                { auxAbsIsp.push_back( ihit ); }
+              else
+                { 
+                  iaps.push_back(ispecies); 
+                  auxAbsIsp.push_back( iaps.nelem()-1 ); 
+                }
               iy_aux[i].resize( nf, ns, ns, np );               
             }
           else if( iy_aux_vars[i] == "Radiative background" )
@@ -236,12 +257,11 @@ void fos(
   Vector       ppath_p, ppath_t;
   Matrix       ppath_vmr, ppath_pnd, ppath_wind, ppath_mag, ppath_f;
   Matrix       ppath_blackrad;
-  Tensor5      ppath_abs;
-  Tensor4      trans_partial, trans_cumulat, pnd_ext_mat;
+  Tensor5      abs_per_species;
+  Tensor4      ppath_abs, trans_partial, trans_cumulat, pnd_ext_mat;
   Tensor3      pnd_abs_vec;
   Vector       scalar_tau;
   ArrayOfIndex clear2cloudbox;
-  bool         only_sum_abs = !( auxAbsSpecies.nelem()>0 ); 
   //
   Array<ArrayOfSingleScatteringData> scat_data;
   ArrayOfArrayOfIndex                extmat_case;  
@@ -255,9 +275,10 @@ void fos(
                           mag_u_field, mag_v_field, mag_w_field );
       get_ppath_f(        ppath_f, ppath, f_grid,  atmosphere_dim, 
                           rte_alonglos_v, ppath_wind );
-      get_ppath_abs(      ws, ppath_abs, propmat_clearsky_agenda, ppath, 
+      get_ppath_abs(      ws, ppath_abs, abs_per_species,
+                          propmat_clearsky_agenda, ppath, 
                           ppath_p, ppath_t, ppath_vmr, ppath_f, 
-                          ppath_mag, f_grid, stokes_dim, only_sum_abs );
+                          ppath_mag, f_grid, stokes_dim, iaps );
       get_ppath_blackrad( ws, ppath_blackrad, blackbody_radiation_agenda, 
                           ppath, ppath_t, ppath_f );
       if( !cloudbox_on )
@@ -271,8 +292,8 @@ void fos(
                             ppath_pnd, ppath, ppath_t, stokes_dim, ppath_f, 
                             atmosphere_dim, cloudbox_limits, pnd_field, 
                             use_mean_scat_data, scat_data_raw, verbosity );
-          get_ppath_trans2( trans_partial, extmat_case, trans_cumulat, scalar_tau,
-                            ppath, ppath_abs, f_grid, stokes_dim, 
+          get_ppath_trans2( trans_partial, extmat_case, trans_cumulat, 
+                            scalar_tau, ppath, ppath_abs, f_grid, stokes_dim, 
                             clear2cloudbox, pnd_ext_mat );
         }      
     }
@@ -344,13 +365,13 @@ void fos(
             for( Index is1=0; is1<ns; is1++ ){
               for( Index is2=0; is2<ns; is2++ ){
                 iy_aux[auxAbsSum](iv,is1,is2,np-1) = 
-                                ppath_abs(joker,iv,is1,is2,np-1).sum(); } } } } 
+                                             ppath_abs(iv,is1,is2,np-1); } } } }
       for( Index j=0; j<auxAbsSpecies.nelem(); j++ )
         { for( Index iv=0; iv<nf; iv++ ) {
             for( Index is1=0; is1<stokes_dim; is1++ ){
               for( Index is2=0; is2<stokes_dim; is2++ ){
                 iy_aux[auxAbsSpecies[j]](iv,is1,is2,np-1) = 
-                               ppath_abs(auxAbsIsp[j],iv,is1,is2,np-1); } } } }
+                          abs_per_species(auxAbsIsp[j],iv,is1,is2,np-1); } } } }
       // Particle properties
       if( cloudbox_on  )
         {
@@ -424,10 +445,9 @@ void fos(
                       Matrix ext_mat(stokes_dim,stokes_dim);  
                       for( Index is1=0; is1<stokes_dim; is1++ ) {
                         for( Index is2=0; is2<stokes_dim; is2++ ) {
-                          ext_mat(is1,is2) = 0.5 * ( 
-                                     ppath_abs(joker,iv,is1,is2,ip).sum() +
-                                     ppath_abs(joker,iv,is1,is2,ip+1).sum() +
-                                     pabs_mat(is1,is2) );
+                          ext_mat(is1,is2) = 0.5 * ( pabs_mat(is1,is2) +
+                                                  ppath_abs(iv,is1,is2,ip) +
+                                                  ppath_abs(iv,is1,is2,ip+1) );
                         } }
                       //
                       extmat_cas2[iv] = 0;
@@ -586,13 +606,13 @@ void fos(
                       for( Index is1=0; is1<stokes_dim; is1++ )
                         { 
                           abs_vec[is1] = 0.5 * (                
-                                      ppath_abs(joker,iv,is1,0,ip).sum() +
-                                      ppath_abs(joker,iv,is1,0,ip+1).sum() );
+                                                    ppath_abs(iv,is1,0,ip) +
+                                                    ppath_abs(iv,is1,0,ip+1) );
                           for( Index is2=0; is2<stokes_dim; is2++ )
                             {
                               ext_mat(is1,is2) = 0.5 * (
-                                      ppath_abs(joker,iv,is1,is2,ip).sum() +
-                                      ppath_abs(joker,iv,is1,is2,ip+1).sum() );
+                                                  ppath_abs(iv,is1,is2,ip) +
+                                                  ppath_abs(iv,is1,is2,ip+1) );
                             }
                         }
                       // Particle contribution
@@ -643,20 +663,20 @@ void fos(
             { iy_aux[auxTemperature](0,0,0,ip) = ppath_t[ip]; }
           // VMR
           for( Index j=0; j<auxVmrSpecies.nelem(); j++ )
-            { iy_aux[auxVmrSpecies[j]](0,0,0,ip) =  ppath_vmr(auxVmrIsp[j],ip);}
+            { iy_aux[auxVmrSpecies[j]](0,0,0,ip) = ppath_vmr(auxVmrIsp[j],ip);}
           // Absorption
           if( auxAbsSum >= 0 ) 
             { for( Index iv=0; iv<nf; iv++ ) {
                 for( Index is1=0; is1<ns; is1++ ){
                   for( Index is2=0; is2<ns; is2++ ){
                     iy_aux[auxAbsSum](iv,is1,is2,ip) = 
-                                  ppath_abs(joker,iv,is1,is2,ip).sum(); } } } } 
+                                              ppath_abs(iv,is1,is2,ip); } } } }
           for( Index j=0; j<auxAbsSpecies.nelem(); j++ )
             { for( Index iv=0; iv<nf; iv++ ) {
                 for( Index is1=0; is1<stokes_dim; is1++ ){
                   for( Index is2=0; is2<stokes_dim; is2++ ){
                     iy_aux[auxAbsSpecies[j]](iv,is1,is2,ip) = 
-                                 ppath_abs(auxAbsIsp[j],iv,is1,is2,ip); } } } }
+                           abs_per_species(auxAbsIsp[j],iv,is1,is2,ip); } } } }
           // Particle properties
           if( cloudbox_on ) 
             {
