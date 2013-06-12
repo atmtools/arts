@@ -1,3 +1,12 @@
+2013-06-12  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-668
+
+	* src/linerecord.cc (LineRecord::ReadFromHitran2004Stream):
+
+	Allow one extra space at the end of the line. Workaround for formatting
+	bugs in HITRAN 2012.
+
 2013-06-11  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-667

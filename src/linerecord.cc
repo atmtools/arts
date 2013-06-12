@@ -729,7 +729,7 @@ bool LineRecord::ReadFromHitran2004Stream(istream& is, const Verbosity& verbosit
               // Check if data record has the right number of characters for the
               // in Hitran 2004 format
               Index nChar = line.nelem() + 2; // number of characters in data record;
-              if ( nChar != 160 )
+              if ( (nChar == 161 && line[158] != ' ') || nChar > 161 )
                 {
                   ostringstream os;
                   os << "Invalid HITRAN 2004 line data record with " << nChar <<
