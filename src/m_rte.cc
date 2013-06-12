@@ -668,22 +668,22 @@ void iyEmissionStandard(
                         {
                           for( Index iv=0; iv<nf; iv++ )
                             {
-                              // Pick out disturbed absorption to use. 
-                              // V-component is first guess.
-                              Tensor4& ppath_awx = ppath_awv;
+                              // Create pointer to relevant disturbed 
+                              // absorption to use. V-component is first guess.
+                              Tensor4* ppath_awx = &ppath_awv;
                               if( jac_wind_i[iq] == 1 )
-                                { ppath_awx = ppath_awu; }
+                                { ppath_awx = &ppath_awu; }
                               else if( jac_wind_i[iq] == 3 )
-                                { ppath_awx = ppath_aww; }
+                                { ppath_awx = &ppath_aww; }
 
                               // Diagonal transmission matrix
                               if( extmat_case[ip][iv] == 1 )
                                 {
                                   const Numeric dkdx1 = (1/dw) * ( 
-                                                      ppath_awx(iv,0,0,ip  ) -
+                                                   (*ppath_awx)(iv,0,0,ip  ) -
                                                       ppath_abs(iv,0,0,ip  ) );
                                   const Numeric dkdx2 = (1/dw) * ( 
-                                                      ppath_awx(iv,0,0,ip+1) -
+                                                   (*ppath_awx)(iv,0,0,ip+1) -
                                                       ppath_abs(iv,0,0,ip+1) );
                                   const Numeric x = -0.5 * ppath.lstep[ip] * 
                                                  trans_cumulat(iv,0,0,ip+1);
@@ -709,7 +709,7 @@ void iyEmissionStandard(
                                   for( Index is1=0; is1<ns; is1++ ) {
                                     for( Index is2=0; is2<ns; is2++ ) {
                                       ext_mat(is1,is2) = 0.5 * (
-                                                  ppath_awx(iv,is1,is2,ip  ) +
+                                               (*ppath_awx)(iv,is1,is2,ip  ) +
                                                   ppath_abs(iv,is1,is2,ip+1) );
                                     } }
                                   ext2trans( dtdx, extmat_case[ip][iv], 
@@ -731,7 +731,7 @@ void iyEmissionStandard(
                                     for( Index is2=0; is2<ns; is2++ ) {
                                       ext_mat(is1,is2) = 0.5 * (
                                                   ppath_abs(iv,is1,is2,ip  ) +
-                                                  ppath_awx(iv,is1,is2,ip+1) );
+                                               (*ppath_awx)(iv,is1,is2,ip+1) );
                                     } }
                                   ext2trans( dtdx, extmat_case[ip][iv], 
                                              ext_mat, ppath.lstep[ip] ); 
@@ -757,12 +757,12 @@ void iyEmissionStandard(
                               // Diagonal transmission matrix
                               if( extmat_case[ip][iv] == 1 )
                                 {
-                                  const Numeric k1 = ppath_abs(iv,0,0,ip  );
-                                  const Numeric k2 = ppath_abs(iv,0,0,ip+1);
                                   const Numeric dkdt1 = 1/dt * (
-                                                 ppath_at2(iv,0,0,ip  ) - k1 );
+                                                      ppath_at2(iv,0,0,ip  ) -
+                                                      ppath_abs(iv,0,0,ip  ) );
                                   const Numeric dkdt2 = 1/dt * (
-                                                 ppath_at2(iv,0,0,ip+1) - k2 );
+                                                      ppath_at2(iv,0,0,ip+1) - 
+                                                      ppath_abs(iv,0,0,ip+1) );
                                   const Numeric x = -0.5 * ppath.lstep[ip] * 
                                                  trans_cumulat(iv,0,0,ip+1);
                                   const Numeric y = x * sibi(iv,0);
@@ -794,7 +794,9 @@ void iyEmissionStandard(
                                                                      "HSE on" )
                                     {
                                       // Stokes 1:
-                                      const Numeric kbar = 0.5 * ( k1 + k2 );
+                                      const Numeric kbar = 0.5 * ( 
+                                                      ppath_abs(iv,0,0,ip  ) +
+                                                      ppath_abs(iv,0,0,ip+1) );
                                       diy_dpath[iq](ip  ,iv,0) += y * kbar /
                                                                   ppath_t[ip];
                                       diy_dpath[iq](ip+1,iv,0) += y * kbar /

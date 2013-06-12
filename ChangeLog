@@ -1,3 +1,17 @@
+2013-06-12  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-669
+
+	* src/m_transmitter.cc (iyTransmissionStandard): Same changes as
+	below.
+
+	* src/m_rte.cc (iyEmissionStandard): ppath_awx now a pointer
+	variable. Change after discussion with Oliver. Not sure if
+	previous version was a bug or not. This would then affect u and w
+	component wind jacobians.
+
+	Removed k1 and k2 variables from T-jac part.
+
 2013-06-12  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-668
