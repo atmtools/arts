@@ -222,7 +222,8 @@ bool get_parameters(int argc, char **argv)
     "                    Default is 010.\n"
 #ifdef ENABLE_DOCSERVER
     "-s, --docserver     Start documentation server. Optionally, specify\n"
-    "                    the port number the server should listen on.\n"
+    "                    the port number the server should listen on,\n"
+    "                    e.g. arts -s9999 or arts --docserver=9999.\n"
     "                    Default is 9000.\n"
     "-S, --docdaemon     Start documentation server in the background.\n"
     "-U, --baseurl       Base URL for the documentation server.\n"

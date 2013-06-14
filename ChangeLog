@@ -1,5 +1,11 @@
 2013-06-14  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-671
+
+	* src/parameters.cc (get_parameters): Tweak helptext for docserver.
+
+2013-06-14  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-670
 
 	* controlfiles/artscomponents/absorption/TestAbsDoppler.arts,
