@@ -2069,202 +2069,264 @@ void propmat_clearskyAddFromLookup( Tensor4&       propmat_clearsky,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_mat_fieldCalc( Workspace& ws,
-                        // WS Output:
-                        Tensor7& abs_field,
-                        // WS Input:
-                        const Agenda&  abs_agenda,
-                        const Vector&  f_grid,
-                        const Index&   atmosphere_dim,
-                        const Vector&  p_grid,
-                        const Vector&  lat_grid,
-                        const Vector&  lon_grid,
-                        const Tensor3& t_field,
-                        const Tensor4& vmr_field,
-                        // WS Generic Input:
-                        const Vector&  doppler,
-                        const Index& stokes_dim,
-                        const Verbosity& verbosity )
+void propmat_clearsky_fieldCalc( Workspace& ws,
+                                // WS Output:
+                                Tensor7& propmat_clearsky_field,
+                                // WS Input:
+                                const Agenda&  abs_agenda,
+                                const Vector&  f_grid,
+                                const Index&   atmosphere_dim,
+                                const Index&   stokes_dim,
+                                const Vector&  p_grid,
+                                const Vector&  lat_grid,
+                                const Vector&  lon_grid,
+                                const Tensor3& t_field,
+                                const Tensor4& vmr_field,
+                                const Tensor3& mag_u_field,
+                                const Tensor3& mag_v_field,
+                                const Tensor3& mag_w_field,
+                                // WS Generic Input:
+                                const Vector&  doppler,
+                                const Vector&  los,
+                                const Verbosity& verbosity )
 {
-  CREATE_OUT2;
-  CREATE_OUT3;
-  
-  Tensor4  abs;
-  Vector  a_vmr_list;
+    CREATE_OUT2;
+    CREATE_OUT3;
 
-  // Get the number of species from the leading dimension of vmr_field:
-  const Index n_species = vmr_field.nbooks();
+    Tensor4  abs;
+    Vector  a_vmr_list;
 
-  // Number of frequencies:
-  const Index n_frequencies = f_grid.nelem();
+    // Get the number of species from the leading dimension of vmr_field:
+    const Index n_species = vmr_field.nbooks();
 
-  // Number of pressure levels:
-  const Index n_pressures = p_grid.nelem();
+    // Number of frequencies:
+    const Index n_frequencies = f_grid.nelem();
 
-  // Number of latitude grid points (must be at least one):
-  const Index n_latitudes = max( Index(1), lat_grid.nelem() );
+    // Number of pressure levels:
+    const Index n_pressures = p_grid.nelem();
 
-  // Number of longitude grid points (must be at least one):
-  const Index n_longitudes = max( Index(1), lon_grid.nelem() );
-  
-  // Check grids:
-  chk_atm_grids( atmosphere_dim,
-                 p_grid,
-                 lat_grid,
-                 lon_grid );
-  
-  // Check if t_field is ok:
-  chk_atm_field( "t_field",
-                 t_field,
-                 atmosphere_dim,
-                 p_grid,
-                 lat_grid,
-                 lon_grid );
+    // Number of latitude grid points (must be at least one):
+    const Index n_latitudes = max( Index(1), lat_grid.nelem() );
 
-  // Check if vmr_field is ok.
-  // (Actually, we are not checking the first dimension, since
-  // n_species has been set from this.)
-  chk_atm_field( "vmr_field",
-                 vmr_field,
-                 atmosphere_dim,
-                 n_species,
-                 p_grid,
-                 lat_grid,
-                 lon_grid );
+    // Number of longitude grid points (must be at least one):
+    const Index n_longitudes = max( Index(1), lon_grid.nelem() );
 
-  // Check that doppler is empty or matches p_grid
-  if (0!=doppler.nelem() && p_grid.nelem()!=doppler.nelem())
+    // Check grids:
+    chk_atm_grids( atmosphere_dim,
+                  p_grid,
+                  lat_grid,
+                  lon_grid );
+
+    // Check if t_field is ok:
+    chk_atm_field( "t_field",
+                  t_field,
+                  atmosphere_dim,
+                  p_grid,
+                  lat_grid,
+                  lon_grid );
+
+    // Check if vmr_field is ok.
+    // (Actually, we are not checking the first dimension, since
+    // n_species has been set from this.)
+    chk_atm_field( "vmr_field",
+                  vmr_field,
+                  atmosphere_dim,
+                  n_species,
+                  p_grid,
+                  lat_grid,
+                  lon_grid );
+
+    // Magnetic field
+    if( mag_w_field.npages() > 0 )
     {
-      ostringstream os;
-      os << "Variable doppler must either be empty, or match the dimension of "
-         << "p_grid.";
-      throw runtime_error( os.str() );
+        chk_atm_field("mag_w_field (vertical magfield component)",
+                      mag_w_field, atmosphere_dim, p_grid, lat_grid, lon_grid );
+    }
+    if( mag_u_field.npages() > 0 )
+    {
+        if( mag_v_field.npages() > 0 )
+        {
+            bool chk_poles = false;
+            chk_atm_field("mag_v_field", mag_v_field, atmosphere_dim,
+                          p_grid, lat_grid, lon_grid, chk_poles );
+            chk_atm_field("mag_u_field", mag_u_field, atmosphere_dim,
+                          p_grid, lat_grid, lon_grid, chk_poles );
+            chk_atm_vecfield_lat90("mag_v_field", mag_v_field,
+                                   "mag_u_field", mag_u_field,
+                                   atmosphere_dim, lat_grid);
+        }
+        else
+        {
+            chk_atm_field("mag_u_field", mag_u_field, atmosphere_dim,
+                          p_grid, lat_grid, lon_grid );
+        }
+    }
+    else
+    {
+        if( mag_v_field.npages() > 0 )
+        {
+            chk_atm_field("mag_v_field", mag_v_field, atmosphere_dim,
+                          p_grid, lat_grid, lon_grid);
+        }
     }
 
-  // Resize output field.
-  // The dimension in lat and lon must be at least one, even if these
-  // grids are empty.
-  out2 << "  Creating field with dimensions:\n"
-       << "    " << n_species << "    gas species,\n"
-       << "    " << n_frequencies << "     frequencies,\n"
-       << "    " << n_pressures << "  pressures,\n"
-       << "    " << n_latitudes << "  latitudes,\n"
-       << "    " << n_longitudes << " longitudes.\n";
+    // Stokes and frequency grid
+    chk_if_in_range("stokes_dim", stokes_dim, 1, 4);
 
-  abs_field.resize(n_species,
-                    n_frequencies,
-                    stokes_dim,
-                    stokes_dim,
-                    n_pressures,
-                    n_latitudes,
-                    n_longitudes);
+    // Check that doppler is empty or matches p_grid
+    if (0!=doppler.nelem() && p_grid.nelem()!=doppler.nelem())
+    {
+        ostringstream os;
+        os << "Variable doppler must either be empty, or match the dimension of "
+        << "p_grid.";
+        throw runtime_error( os.str() );
+    }
+
+    // Resize output field.
+    // The dimension in lat and lon must be at least one, even if these
+    // grids are empty.
+    out2 << "  Creating field with dimensions:\n"
+    << "    " << n_species << "    gas species,\n"
+    << "    " << n_frequencies << "     frequencies,\n"
+    << "    " << n_pressures << "  pressures,\n"
+    << "    " << n_latitudes << "  latitudes,\n"
+    << "    " << n_longitudes << " longitudes.\n";
+
+    propmat_clearsky_field.resize(n_species,
+                                  n_frequencies,
+                                  stokes_dim,
+                                  stokes_dim,
+                                  n_pressures,
+                                  n_latitudes,
+                                  n_longitudes);
 
 
-  // We have to make a local copy of the Workspace and the agendas because
-  // only non-reference types can be declared firstprivate in OpenMP
-  Workspace l_ws (ws);
-  Agenda l_abs_agenda (abs_agenda);
+    // We have to make a local copy of the Workspace and the agendas because
+    // only non-reference types can be declared firstprivate in OpenMP
+    Workspace l_ws (ws);
+    Agenda l_abs_agenda (abs_agenda);
 
-  String fail_msg;
-  bool failed = false;
+    String fail_msg;
+    bool failed = false;
 
-  // Make local copy of f_grid, so that we can apply Dopler if we want.
-  Vector this_f_grid = f_grid;
-    
-  // Now we have to loop all points in the atmosphere:
-  if (n_pressures)
+    // Make local copy of f_grid, so that we can apply Dopler if we want.
+    Vector this_f_grid = f_grid;
+
+    // Now we have to loop all points in the atmosphere:
+    if (n_pressures)
 #pragma omp parallel for                             \
-  if (!arts_omp_in_parallel()                        \
-      && n_pressures >= arts_omp_get_max_threads())  \
-  firstprivate(l_ws, l_abs_agenda, this_f_grid)     \
-  private(abs, a_vmr_list)
-  for ( Index ipr=0; ipr<n_pressures; ++ipr )         // Pressure:  ipr
-    {
-      // Skip remaining iterations if an error occurred
-      if (failed) continue;
-
-      // The try block here is necessary to correctly handle
-      // exceptions inside the parallel region. 
-      try
+if (!arts_omp_in_parallel()                        \
+&& n_pressures >= arts_omp_get_max_threads())  \
+firstprivate(l_ws, l_abs_agenda, this_f_grid)     \
+private(abs, a_vmr_list)
+        for ( Index ipr=0; ipr<n_pressures; ++ipr )         // Pressure:  ipr
         {
-          Numeric a_pressure = p_grid[ipr];
-          
-          if (0!=doppler.nelem())
+            // Skip remaining iterations if an error occurred
+            if (failed) continue;
+
+            // The try block here is necessary to correctly handle
+            // exceptions inside the parallel region.
+            try
             {
-              this_f_grid = f_grid;
-              this_f_grid += doppler[ipr];
+                Numeric a_pressure = p_grid[ipr];
+
+                if (0!=doppler.nelem())
+                {
+                    this_f_grid = f_grid;
+                    this_f_grid += doppler[ipr];
+                }
+
+                {
+                    ostringstream os;
+                    os << "  p_grid[" << ipr << "] = " << a_pressure << "\n";
+                    out3 << os.str();
+                }
+
+                for ( Index ila=0; ila<n_latitudes; ++ila )   // Latitude:  ila
+                    for ( Index ilo=0; ilo<n_longitudes; ++ilo ) // Longitude: ilo
+                    {
+                        Numeric a_temperature = t_field( ipr, ila, ilo );
+                        a_vmr_list    = vmr_field( Range(joker),
+                                                  ipr, ila, ilo );
+
+
+                        Vector this_rtp_mag(3, 0.);
+
+                        if (mag_u_field.npages() != 0
+                            && mag_v_field.npages() != 0
+                            && mag_w_field.npages() != 0)
+                        {
+                            this_rtp_mag[0] = mag_u_field(ipr, ila, ilo);
+                            this_rtp_mag[1] = mag_v_field(ipr, ila, ilo);
+                            this_rtp_mag[2] = mag_w_field(ipr, ila, ilo);
+                        }
+
+                        // Execute agenda to calculate local absorption.
+                        // Agenda input:  f_index, a_pressure, a_temperature, a_vmr_list
+                        // Agenda output: abs
+                        propmat_clearsky_agendaExecute(l_ws,
+                                                       abs,
+                                                       this_f_grid,
+                                                       this_rtp_mag, los,
+                                                       a_pressure,
+                                                       a_temperature, a_vmr_list,
+                                                       l_abs_agenda);
+
+                        // Verify, that the number of species in abs is
+                        // constistent with vmr_field:
+                        if ( stokes_dim != abs.nrows() || stokes_dim != abs.ncols() )
+                        {
+                            ostringstream os;
+                            os << "propmat_clearsky_fieldCalc was called with stokes_dim = "
+                            << stokes_dim << ",\n"
+                            << "but the stokes_dim returned by the agenda is "
+                            << abs.nrows() << ".";
+                            throw runtime_error( os.str() );
+                        }
+                            
+                        // Verify, that the number of species in abs is
+                        // constistent with vmr_field:
+                        if ( n_species != abs.nbooks() )
+                        {
+                            ostringstream os;
+                            os << "The number of gas species in vmr_field is "
+                            << n_species << ",\n"
+                            << "but the number of species returned by the agenda is "
+                            << abs.nbooks() << ".";
+                            throw runtime_error( os.str() );
+                        }
+
+                        // Verify, that the number of frequencies in abs is
+                        // constistent with f_extent:
+                        if ( n_frequencies != abs.npages() )
+                        {
+                            ostringstream os;
+                            os << "The number of frequencies desired is "
+                            << n_frequencies << ",\n"
+                            << "but the number of frequencies returned by the agenda is "
+                            << abs.npages() << ".";
+                            throw runtime_error( os.str() );
+                        }
+                        
+                        // Store the result in output field.
+                        // We have to transpose abs, because the dimensions of the
+                        // two variables are:
+                        // abs_field: [ abs_species, f_grid, p_grid, lat_grid, lon_grid]
+                        // abs:       [ f_grid, abs_species ]
+                        propmat_clearsky_field( joker,
+                                               joker,
+                                               joker,
+                                               joker,
+                                               ipr, ila, ilo ) = abs ;
+                        
+                    }
             }
-          
-          {
-            ostringstream os;
-            os << "  p_grid[" << ipr << "] = " << a_pressure << "\n";
-            out3 << os.str();
-          }
-
-          for ( Index ila=0; ila<n_latitudes; ++ila )   // Latitude:  ila
-            for ( Index ilo=0; ilo<n_longitudes; ++ilo ) // Longitude: ilo
-              {
-                Numeric a_temperature = t_field( ipr, ila, ilo );
-                a_vmr_list    = vmr_field( Range(joker),
-                                           ipr, ila, ilo );
-
-                const Vector rtp_mag_dummy(3,0);
-                const Vector ppath_los_dummy;
-
-                // Execute agenda to calculate local absorption.
-                // Agenda input:  f_index, a_pressure, a_temperature, a_vmr_list
-                // Agenda output: abs
-                propmat_clearsky_agendaExecute(l_ws,
-                                                  abs,
-                                                  this_f_grid,
-                                                  rtp_mag_dummy,ppath_los_dummy,
-                                                  a_pressure,
-                                                  a_temperature, a_vmr_list,
-                                                  l_abs_agenda);
-
-                // Verify, that the number of species in abs is
-                // constistent with vmr_field:
-                if ( n_species != abs.nbooks() )
-                  {
-                    ostringstream os;
-                    os << "The number of gas species in vmr_field is "
-                       << n_species << ",\n"
-                       << "but the number of species returned by the agenda is "
-                       << abs.nbooks() << ".";
-                    throw runtime_error( os.str() );
-                  }
-
-                // Verify, that the number of frequencies in abs is
-                // constistent with f_extent:
-                if ( n_frequencies != abs.npages() )
-                  {
-                    ostringstream os;
-                    os << "The number of frequencies desired is "
-                       << n_frequencies << ",\n"
-                       << "but the number of frequencies returned by the agenda is "
-                       << abs.npages() << ".";
-                    throw runtime_error( os.str() );
-                  }
-
-                // Store the result in output field.
-                // We have to transpose abs, because the dimensions of the
-                // two variables are:
-                // abs_field: [ abs_species, f_grid, p_grid, lat_grid, lon_grid]
-                // abs:       [ f_grid, abs_species ]
-                abs_field( joker,
-                            joker,
-                            joker,
-                            joker,
-                           ipr, ila, ilo ) = abs ;
-            
-              }
+            catch (runtime_error e)
+            {
+#pragma omp critical (propmat_clearsky_fieldCalc_fail)
+                { fail_msg = e.what(); failed = true; }
+            }
         }
-      catch (runtime_error e)
-        {
-#pragma omp critical (abs_mat_fieldCalc_fail)
-            { fail_msg = e.what(); failed = true; }
-        }
-    }
 
     if (failed) throw runtime_error(fail_msg);
 }

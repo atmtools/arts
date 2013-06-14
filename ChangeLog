@@ -1,3 +1,20 @@
+2013-06-14  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-670
+
+	* controlfiles/artscomponents/absorption/TestAbsDoppler.arts,
+	controlfiles/artscomponents/absorption/TestCompareArtscat3And4.arts,
+	src/m_abs.cc (WriteMolTau), src/m_abs_lookup.cc (abs_mat_fieldCalc),
+	src/workspace.cc, src/methods.cc:
+
+	Rename abs_mat_field and abs_mat_fieldCalc to propmat_clearsky_field
+	and propmat_clearsky_fieldCalc.
+
+	* src/m_abs_lookup.cc (propmat_clearsky_fieldCalc):
+
+	Add mag_*_field as input. Add checks for magnetic field.
+	Add los Vector as generic input.
+
 2013-06-12  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-669

@@ -549,7 +549,7 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
-    ( NAME( "abs_mat_field" ),
+    ( NAME( "propmat_clearsky_field" ),
       DESCRIPTION
       (
        "Gas absorption field.\n"

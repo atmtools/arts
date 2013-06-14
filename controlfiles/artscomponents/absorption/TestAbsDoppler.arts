@@ -72,11 +72,11 @@ VectorNLinSpace( f_grid, 500, 50e9, 150e9 )
 # Calculate field of absorption coefficients:
 abs_xsec_agenda_checkedCalc
 propmat_clearsky_agenda_checkedCalc
-abs_mat_fieldCalc
+propmat_clearsky_fieldCalc
 
 # Write out:
 Tensor7Create(abs_field_nodoppler)
-Copy(abs_field_nodoppler, abs_mat_field)
+Copy(abs_field_nodoppler, propmat_clearsky_field)
 WriteXML( output_file_format, abs_field_nodoppler )
 
 
@@ -90,13 +90,11 @@ nelemGet( nelem, p_grid )
 VectorNLinSpace( doppler, nelem, 0, 1e9 )
 
 # Calculate field of absorption coefficients:
-abs_mat_fieldCalc( abs_mat_field, propmat_clearsky_agenda, f_grid, 
-               atmosphere_dim, p_grid, lat_grid, lon_grid, t_field, 
-               vmr_field, doppler )
+propmat_clearsky_fieldCalc( doppler=doppler )
 
 # Write out:
 Tensor7Create(abs_field_doppler)
-Copy(abs_field_doppler, abs_mat_field)
+Copy(abs_field_doppler, propmat_clearsky_field)
 WriteXML( output_file_format, abs_field_doppler )
 
 # Now with Doppler and lookup table!
@@ -118,13 +116,11 @@ Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__LookUpTable )
 Copy(f_grid, f_grid_backup)
 
 # Calculate field of absorption coefficients:
-abs_mat_fieldCalc( abs_mat_field, propmat_clearsky_agenda, f_grid, 
-               atmosphere_dim, p_grid, lat_grid, lon_grid, t_field, 
-               vmr_field, doppler )
+propmat_clearsky_fieldCalc( doppler=doppler )
 
 # Write out:
 Tensor7Create(abs_field_doppler_lookup)
-Copy(abs_field_doppler_lookup, abs_mat_field)
+Copy(abs_field_doppler_lookup, propmat_clearsky_field)
 WriteXML( output_file_format, abs_field_doppler_lookup )
 
 

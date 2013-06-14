@@ -1134,7 +1134,7 @@ void define_md_data_raw()
     
   md_data_raw.push_back     
     ( MdRecord
-      ( NAME( "abs_mat_fieldCalc" ),
+      ( NAME( "propmat_clearsky_fieldCalc" ),
         DESCRIPTION
         (
          "Calculate (vector) gas absorption coefficients for all points in the\n"
@@ -1154,20 +1154,23 @@ void define_md_data_raw()
          "*propmat_clearsky_agenda*.\n"
          ),
         AUTHORS( "Stefan Buehler, Richard Larsson" ),
-        OUT( "abs_mat_field" ),
+        OUT( "propmat_clearsky_field" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "propmat_clearsky_agenda",
             "f_grid",
-            "atmosphere_dim",
+            "atmosphere_dim", "stokes_dim",
             "p_grid", "lat_grid", "lon_grid",
-            "t_field", "vmr_field" ),
-        GIN("doppler", "stokes_dim"),
-        GIN_TYPE("Vector", "Index"),
-        GIN_DEFAULT("[]", "1"),
-        GIN_DESC("A vector of doppler shift values in Hz. Must either be\n"
-                 "empty or have same dimension as p_grid\n", "stokes_dim since scalar case is treated differently.")
+            "t_field", "vmr_field",
+            "mag_u_field", "mag_v_field", "mag_w_field" ),
+        GIN("doppler", "los"),
+        GIN_TYPE("Vector", "Vector"),
+        GIN_DEFAULT("[]", "[]"),
+        GIN_DESC("A vector of doppler shift values in Hz. Must either be "
+                 "empty or have same dimension as p_grid.",
+                 "Line of sight"
+                 )
         ));
 
   md_data_raw.push_back
@@ -10822,7 +10825,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN("f_grid", "z_field", "abs_mat_field", "atmosphere_dim" ),
+        IN("f_grid", "z_field", "propmat_clearsky_field", "atmosphere_dim" ),
         GIN("filename"),
         GIN_TYPE("String"),
         GIN_DEFAULT( NODEF),

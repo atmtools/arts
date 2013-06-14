@@ -2429,7 +2429,7 @@ void isotopologue_ratiosInitFromBuiltin(SpeciesAuxData& isotopologue_ratios,
 void WriteMolTau(//WS Input
                  const Vector& f_grid, 
                  const Tensor3& z_field,
-                 const Tensor7& abs_mat_field,
+                 const Tensor7& propmat_clearsky_field,
                  const Index& atmosphere_dim,
                  //Keyword
                  const String& filename,
@@ -2461,7 +2461,7 @@ void WriteMolTau(//WS Input
   if ((retval = nc_def_dim(ncid, "none", 1, &none_dimid)))
     nca_error (retval, "nc_def_dim");
 
-  if ((retval = nc_def_dim(ncid, "nstk", (int) abs_mat_field.nbooks(), &stokes_dimid)))
+  if ((retval = nc_def_dim(ncid, "nstk", (int) propmat_clearsky_field.nbooks(), &stokes_dimid)))
     nca_error (retval, "nc_def_dim");
 
   // Define variables
@@ -2533,19 +2533,19 @@ void WriteMolTau(//WS Input
 
   const Index zfnp = z_field.npages()-1;
   const Index fgne = f_grid.nelem();
-  const Index amfnb = abs_mat_field.nbooks();
+  const Index amfnb = propmat_clearsky_field.nbooks();
 
   Tensor4 tau(zfnp, fgne, amfnb, amfnb, 0.);
 
   // Calculate average tau for layers
-  for (int is=0; is<abs_mat_field.nlibraries(); is++)
+  for (int is=0; is<propmat_clearsky_field.nlibraries(); is++)
     for (int iz=0; iz<zfnp; iz++)
       for (int iv=0; iv<fgne; iv++)
           for (int is1=0; is1<amfnb; is1++)
               for (int is2=0; is2<amfnb; is2++)
                 // sum up all species
-                tau(iz, iv, is1, is2) += 0.5 * (abs_mat_field(is,f_grid.nelem()-1-iv,is1,is2,z_field.npages()-1-iz,0,0)+
-                                    abs_mat_field(is,f_grid.nelem()-1-iv,is1,is2,z_field.npages()-2-iz,0,0))
+                tau(iz, iv, is1, is2) += 0.5 * (propmat_clearsky_field(is,f_grid.nelem()-1-iv,is1,is2,z_field.npages()-1-iz,0,0)+
+                                    propmat_clearsky_field(is,f_grid.nelem()-1-iv,is1,is2,z_field.npages()-2-iz,0,0))
                 *(z_field(z_field.npages()-1-iz,0,0)-z_field(z_field.npages()-2-iz,0,0));
 
   
@@ -2563,7 +2563,7 @@ void WriteMolTau(//WS Input
 void WriteMolTau(//WS Input
                  const Vector& f_grid _U_,
                  const Tensor3& z_field _U_,
-                 const Tensor7& abs_mat_field _U_,
+                 const Tensor7& propmat_clearsky_field _U_,
                  const Index& atmosphere_dim _U_,
                  //Keyword
                  const String& filename _U_,
