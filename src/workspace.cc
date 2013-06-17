@@ -3314,7 +3314,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Usage: Communication variable.\n"
        "\n"
-       "Units: [ Differ between the elements, can be VMR, g/m3 or #/m3. ]\n"
+       "Units: [ Differ between the elements, can be VMR, kg/m3 or #/m3. ]\n"
        "\n"
        "Size:  Should match abs_species.nelem()\n"
        ),
@@ -4552,7 +4552,7 @@ void Workspace::define_wsv_data()
        "this variable is discussed. The variable is listed as a subentry to\n"
        "\"workspace variables\".\n"
        "\n"
-       "Units: [ Differ between the elements, can be VMR, g/m3 or #/m3. ]\n"
+       "Units: [ Differ between the elements, can be VMR, kg/m3 or #/m3. ]\n"
        "\n"
        "Dimensions: [species, p_grid, lat_grid, lon_grid]\n"
         ),
