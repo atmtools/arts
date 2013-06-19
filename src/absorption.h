@@ -199,8 +199,9 @@ public:
                     mhitrantag(-1),
                     mjpltags(),
                     mqcoeff(),
-                    mqcoefftype(),
-                    mqcoeffgrid()
+                    mqcoefftype(-1),
+                    mqcoeffgrid(),
+                    mqcoeffinterporder(-1)
   { /* Nothing left to do here. */ }
 
   /** Copy constructor. We need this, since operator= does not work

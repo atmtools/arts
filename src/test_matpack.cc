@@ -29,6 +29,7 @@
 #include "matpackII.h"
 #include "rational.h"
 #include "logic.h"
+#include "wigner_functions.h"
 
 using std::cout;
 using std::endl;
@@ -880,6 +881,76 @@ void test44()
 #undef docheck
 }
 
+
+void test45()
+{
+    //Rational j1=1,j2=1,j3=1,m1=0,m2=0,m3=0;
+    //std::cout << "My function " << wigner3j(j1,j2,j3,m1,m2,m3)  << std::endl;
+/*    
+    ArrayOfIndex a,b;
+    a=MakeArray<Index>(1,4,5);b=MakeArray<Index>(20,10,10);
+    std::cout << "My factorials for nominators ["<<a<<" ] and denominators ["<<b<<" ]: " << factorials(a,b)  <<"." << std::endl;*/
+    
+/*    
+    for(Rational L(1);L<3;L++)
+    {
+        std::cout << "L="<<L<<std::endl;
+        for(Rational ii=1;ii<11;ii++)
+        {
+            for(Rational jj=1;jj<11;jj++)
+            {
+                std::cout << " "<< wigner3j(ii,jj,L,0,0,0);
+            }
+            std::cout << std::endl;
+        }
+        std::cout << std::endl;
+    }*/
+std::cout<<pow(0,0.3)<<std::endl;
+ArrayOfIndex N;N=MakeArray<Index>(1, 1, 3, 3, 5, 5, 7, 7, 9,  9, 11, 11, 13, 13, 15, 15, 17, 17, 19, 19, 21, 21, 23, 23, 25, 25, 27, 27, 29, 29, 
+                                  31, 31, 33, 33, 35, 35, 37, 37);
+ArrayOfIndex J;J=MakeArray<Index>(0, 2, 2, 4, 4, 6, 6, 8, 8, 10, 10, 12, 12, 14, 14, 16, 16, 18, 18, 20, 20, 22, 22, 24, 24, 26, 26, 28, 28, 30, 
+                                  30, 32, 32, 34, 34, 36, 36, 38);
+
+    for(Index II = 0; II<N.nelem(); II++)
+    {
+        for(Index JJ = 0; JJ<N.nelem(); JJ++)
+        {
+            const Rational Nl(N[II]),Nk(N[JJ]);
+            Numeric A=0;
+            for(Index L(0);L<=10*max(J);L++)
+            {
+                //if(l<k)
+                {
+                    A+=
+                    sqrt(2*Nk.toNumeric()+1)*
+                    sqrt(2*Nl.toNumeric()+1)*
+                    sqrt(sqrt(2*Nk.toNumeric()+1)*
+                    sqrt(2*Nl.toNumeric()+1)*
+                    sqrt(2*J[II]+1)*
+                    sqrt(2*J[JJ]+1))*
+                    ECS_wigner(L,Nl,Nk,Nk,Nl,J[II],J[JJ])*
+                    pow(-1., (Nk+Nl+L+1).toNumeric());
+                }
+            }
+            std::cout << " " << A;
+        }
+        std::cout << std::endl;        
+    }
+    
+    Vector d; d.resize(38);
+    
+    for(Index II = 0; II<N.nelem(); II++)
+        d[II] = wigner6j(1, 1, 1, J[II], N[II], N[II]) * pow(-1,2*N[II]) * sqrt(6*(2*N[II]+1)*(2*J[II]+1));
+    
+    std::cout<<d<<std::endl;
+    
+//     for(Index a = 1; a<6; a++)
+//         for(Index b = 1; b<6; b++)
+//             for(Index c = 1; c<6; c++)
+//                     std::cout << wigner3j(a,b,c,0,0,0)<<std::endl;
+    
+}
+
 int main()
 {
 //   test1();
@@ -926,7 +997,8 @@ int main()
 //  test41();
 //    test42();
 //    test43();
-    test44();
+//    test44();
+    test45();
 
   return 0;
 }

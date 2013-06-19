@@ -348,7 +348,8 @@ target_link_libraries (test_tensor matpack)
 
 ########### next testcase ###############
 
-add_executable (test_matpack describe.h describe.cc test_matpack.cc)
+add_executable (test_matpack describe.h describe.cc
+                wigner_functions.cc test_matpack.cc)
 target_link_libraries (test_matpack matpack)
 
 ########### next testcase ###############

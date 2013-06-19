@@ -463,6 +463,49 @@ is \wsmindex{abs\_xsec\_per\_speciesAddConts}.  Users normally do not
 have to call this method explicitly, since it is used implicitly by
 higher level methods, such as \wsmindex{abs\_coefCalc}.
 
+\subsection{Internal line-mixing}
+For first- and second-ordered line-mixing there exists an explicit tag to read
+and match line-mixing parameters to individual lines. This can be accessed
+through the tags \verb|"O2-LM_2NDORDER"| or \verb|"O2-Z-LM_2NDORDER"|, if you
+want to calculate line-mixing with the Zeeman effect. In order to match the data
+to specific lines, a set of calls are necessary by the user. First of all,
+after \verb|abs_lines| have been created, line mixing needs to be initialized
+through \verb|line_mixing_dataInit|. After this, it is important to pass an
+ArrayOfLineMixingRecord containing the line-mixing data into 
+\verb|line_mixing_dataMatch|, which will match the data in the Array* by quantum
+numbers to lines in \verb|abs_lines|. If this is done properly, line-mixing will
+be applied at a lower level.
+\newpage
+Example flow for code calculating a single Zeeman line with O$_2$ 
+line-mixing spectrum in the background:
+\begin{code}
+# Define your atmospheric species,
+abs_speciesSet(species=["O2-Z-66-LM_2NDORDER-53.0469e9-53.0869e9",
+    "O2-66-LM_2NDORDER","O2"])
+
+# read from a line database,
+abs_linesReadFromHitran(filename="HITRAN08.par", 
+    fmin=40e9,fmax=120e9)
+
+# and create the lines.
+abs_lines_per_speciesCreateFromLines
+
+# Initiate the line-mixing
+line_mixing_dataInit
+
+# Create a way to temporally store line-mixing data.
+ArrayOfLineMixingRecordCreate(lm_o2)
+ReadXML(lm_o2,"o2_v1_0_band_40-120_GHz.xml")
+
+# Finally match the line-mixing data with the species you 
+are interested in.
+line_mixing_dataMatch(
+    species_tag="O2-66-LM_2NDORDER",
+    line_mixing_records=lm_o2)
+line_mixing_dataMatch(
+    species_tag="O2-Z-66-LM_2NDORDER-53.0469e9-53.0869e9",
+    line_mixing_records=lm_o2)
+\end{code}
 
 \section{The gas absorption lookup table}
 \label{sec:absorption:lookup}

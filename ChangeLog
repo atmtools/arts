@@ -1,3 +1,16 @@
+2013-06-19  Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-1-674
+	
+	* src/wigner_functions.{cc,h}: Preparation for ECS line-mixing. Mathematical
+	functions that calculate the wigner 3j and 6j functions. Not yet in use.
+	
+	* doc/uguide/absorption.tex: Some comments on how to use line-mixing.
+	
+	* src/absorption.{cc,h}: Changes in 2nd order line mixing routine to allow
+	more pressure levels necessary for abs_lookup. Also, small changes in {h}
+	for implementing different Q(T) calculations soon.
+	
 2013-06-18  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-673

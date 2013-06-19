@@ -1626,58 +1626,66 @@ void xsec_species_line_mixing_2nd_order(MatrixView               xsec_attenuatio
     const ArrayOfIndex&  lut  = line_mixing_data_lut[this_species];
     
     // Helper variables
-    Matrix attenuation = xsec_attenuation, phase = xsec_phase;
+    Matrix attenuation(f_grid.nelem(),1), phase(f_grid.nelem(),1);
     
     //Since we need to be able to modify the line.
     ArrayOfLineRecord ll;
     ll.resize(1);
+    // Variable containing modifying elements
+    Vector a(2);
     
     // The structure of the line mixing data Vector should follow:
     //  (0)=y0 (1)=y1 (2)=g0 (3)=g1 (4)=dv0 (5)=dv1 (6)=Ts (7)=x_y (8)=x_g (9)=x_dv
     
-    const Numeric p = abs_p[0], T = abs_t[0];
-    Vector a(2);
-    for(Index ii = 0; ii < lut.nelem(); ii++)
+    for(Index jj=0;jj<abs_p.nelem(); jj++)
     {
-        // Since we need cross section per line to do the mixing.
-        ll[0] = abs_lines[ii];//Possible speed-up by separating all non-split lines and doing those as a batch?
+        const Numeric p = abs_p[jj], t = abs_t[jj];
         
-        // Since we need line mixing only for selected lines the rest should ignore by doing nothing.
-        a=0;
-        
-        if(lut[ii]!=-1)
+        for(Index ii = 0; ii < lut.nelem(); ii++)
         {
-            const Vector& dat = data[lut[ii]].Data();
-            // First order phase correction
-            a[0] =              p 
-            * ( ( dat[0] + dat[1] * ( dat[6]/T-1. ) ) 
-            * pow( dat[6]/T, dat[7] ) );
+            // Since we need cross section per line to do the mixing.
+            ll[0] = abs_lines[ii];//Possible speed-up by separating all non-split lines and doing those as a batch?
             
-            // Second order attenuation correction
-            a[1] =      p * p 
-            * ( ( dat[2] + dat[3] * ( dat[6]/T-1. ) ) 
-            * pow( dat[6]/T, dat[8] ) );
+            // Since we need line mixing only for selected lines the rest should ignore by doing nothing.
+            a=0;
             
-            // Second order line-center correction
-            ll[0].setF( p * p 
-            * ( ( dat[4] +  dat[5] * ( dat[6]/T-1. ) ) 
-            * pow( dat[6]/T, dat[9] ) ) + ll[0].F());
+            if(lut[ii]!=-1)
+            {
+                const Vector& dat = data[lut[ii]].Data();
+                // First order phase correction
+                a[0] =              p 
+                * ( ( dat[0] + dat[1] * ( dat[6]/t-1. ) ) 
+                * pow( dat[6]/t, dat[7] ) );
+                
+                // Second order attenuation correction
+                a[1] =      p * p 
+                * ( ( dat[2] + dat[3] * ( dat[6]/t-1. ) ) 
+                * pow( dat[6]/t, dat[8] ) );
+                
+                // Second order line-center correction
+                ll[0].setF( p * p 
+                * ( ( dat[4] +  dat[5] * ( dat[6]/t-1. ) ) 
+                * pow( dat[6]/t, dat[9] ) ) + ll[0].F());
+            }
+            
+            attenuation=0;
+            phase=0;
+            
+            Vector P(1,p),T(1,t);
+            Matrix V(all_vmrs.nrows(),1);V(joker,0)=all_vmrs(joker,jj);
+            
+            xsec_species(attenuation, phase, f_grid, P, T, V,
+                        abs_species, this_species, ll, ind_ls, ind_lsn, cutoff,
+                        isotopologue_ratios, verbosity);
+            
+            // Do the actual line mixing and add this to xsec_attenuation.
+            xsec_phase(joker,jj) += phase(joker,0);
+            phase *= a[0];
+            xsec_attenuation(joker,jj) += phase(joker,0);       // First order phase correction
+            xsec_attenuation(joker,jj) += attenuation(joker,0); // Zeroth order attenuation
+            attenuation *= a[1];
+            xsec_attenuation(joker,jj) += attenuation(joker,0); // Second order attenuation correction
+            
         }
-        
-        attenuation=0;
-        phase=0;
-        
-        xsec_species(attenuation, phase, f_grid, abs_p, abs_t, all_vmrs,
-                     abs_species, this_species, ll, ind_ls, ind_lsn, cutoff,
-                     isotopologue_ratios, verbosity);
-        
-        // Do the actual line mixing and add this to xsec_attenuation.
-        xsec_phase += phase;
-        phase *= a[0];
-        xsec_attenuation += phase;       // First order phase correction
-        xsec_attenuation += attenuation; // Zeroth order attenuation
-        attenuation *= a[1];
-        xsec_attenuation += attenuation; // Second order attenuation correction
-        
     }
 }
