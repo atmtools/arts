@@ -1,3 +1,17 @@
+2013-06-20  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-676
+
+	* src/xml_io.cc (xml_open_output_file, xml_read_from_file):
+
+	Properly handle filenames that are 3 characters or less.
+
+	* doc/uguide/Figs/abs/{abs_lookupCalc.pdf,abs_xsec_agenda.pdf,
+	propmat_clearsky_agenda.pdf,propmat_clearsky_agenda_detail.pdf},
+	doc/uguide/absorption.tex:
+
+	Add some absorbing flow charts.
+
 2013-06-18  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-675

@@ -461,7 +461,7 @@ void xml_open_output_file(ogzstream& file, const String& name)
   // c_str explicitly converts to c String.
   String nname = name;
   
-  if (nname.substr(nname.length()-3, 3) != ".gz")
+  if (nname.nelem() < 3 || nname.substr(nname.length()-3, 3) != ".gz")
     {
       nname += ".gz";
     }
@@ -863,7 +863,7 @@ void xml_read_from_file(const String&    filename,
   out2 << "  Reading " << xml_file << '\n';
   
   // Open input stream:
-  if (xml_file.substr(xml_file.length() - 3, 3) == ".gz")
+  if (xml_file.nelem() > 2 && xml_file.substr(xml_file.length() - 3, 3) == ".gz")
 #ifdef ENABLE_ZLIB
     {
       ifs = new igzstream();
