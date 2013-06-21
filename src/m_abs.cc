@@ -2386,35 +2386,6 @@ void propmat_clearskyAddOnTheFly(// Workspace reference:
 }
 
 
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void f_gridSelectFIndex(// WS Output:
-                        Vector& f_grid,
-                        // WS Input:
-                        const Index& f_index,
-                        const Verbosity&)
-{
-  // Prepare f_grid. f_index < 0 means retain all frequencies, but
-  // f_index >= 0 means to retain only that frequency. 
-  if ( f_index >= 0 )
-    {
-      // Check that f_index is inside f_grid:
-      if ( f_index >= f_grid.nelem() )
-      {
-        ostringstream os;
-        os << "The frequency index you want is outside f_grid.\n"
-           << "You have " << f_index
-           << ", the largest allowed value is " << f_grid.nelem()-1 << ".";
-        throw runtime_error( os.str() );
-      }
-
-      Numeric this_f = f_grid[f_index];
-      f_grid.resize(1);
-      f_grid = this_f;
-    }
-}
-
-
 /* Workspace method: Doxygen documentation will be auto-generated */
 void isotopologue_ratiosInitFromBuiltin(SpeciesAuxData& isotopologue_ratios,
                                         const Verbosity&)

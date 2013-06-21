@@ -4369,33 +4369,6 @@ void define_md_data_raw()
   
   md_data_raw.push_back     
     ( MdRecord
-      ( NAME( "f_gridSelectFIndex" ),
-        DESCRIPTION
-        (
-         "Reduce f_grid to the frequency given by f_index.\n"
-         "\n"
-         "This is one of the methods necessary to do line by line absorption\n"
-         "calculations inside *propmat_clearsky_agenda*.\n"
-         "\n"
-         "It reduces the f_grid to only one frequency, the one given by\n"
-         "f_index. If f_index is -1, then all frequencies are kept. This\n"
-         "behavior is consistent with *propmat_clearskyAddFromLookup*.\n"
-	 "FIXME Stefan: Remove this method?\n"
-         ),
-        AUTHORS( "Stefan Buehler" ),
-        OUT( "f_grid" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "f_grid", "f_index" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back     
-    ( MdRecord
       ( NAME( "g0Earth" ),
         DESCRIPTION
         (

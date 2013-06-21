@@ -4,11 +4,12 @@
 \graphicspath{{Figs/abs/}}
 
 \starthistory
-  2012-08-28 & Updated to propmat\_clearsky - by Richard Larsson. \\
+  2013-06-21 & New intro and general revision. Added CIA part. --- Stefan Buehler\\
+  2012-08-28 & Updated to propmat\_clearsky --- by Richard Larsson. \\
   2011-07-05 & Added intro and sections on abs in RT and abs
                calculation. Also revised lookup table section. First 
                attempt of a complete absorption
-               chapter for ARTS2. \\
+               chapter for ARTS2. --- Stefan Buehler\\
   2003-03-28 & Documentation for WSM abs\_fieldCalc
                extended by Stefan Buehler after comment from Sreerekha
                T.\ R.. \\
@@ -17,35 +18,32 @@
 \stophistory
 
 \startsymbolswithunits
-  \Mpi         & $\frac{\mbox{W}}{\mbox{m$^2$ Hz sr}}$ & i\_rte, i\_field, \dots & Intensity\\
-  \PpathLng    & m                 &                         & Path length element\rule{0ex}{1.2em}\\
-  \aAbsXsec{i} & m$^2$             & xsec                    & Absorption cross section of
-                                                               absorbing species $i$\\ 
-  \aDen{i}     & m$^{-3}$          &                         & Number density of species $i$\\
-  \aAbsCoef{i} & m$^{-1}$          & propmat\_clearsky  & Absorption matrix of
-                                                               absorbing species $i$\\
-  \AbsCoefTot  & m$^{-1}$          &                         & Total gas absorption matrix
+  \AbsCoef     & m$^{-1}$          &                          & Scalar gas absorption coefficient\\
+  \Mpi         & $\frac{\mbox{W}}{\mbox{m$^2$ Hz sr}}$ & \wsvindex{iy}  & Intensity\\
+  \PpathLng    & m                 &                         & Path length element\\
+  \aDen{i}     & molec/m$^{-3}$          &                          & Number density of species $i$\\
+  \aAbsXsec{i} & m$^2$/molec    & \wsvindex{abs\_xsec\_per\_species}    & Absorption cross-section of\\
+&&&                                                               absorbing species $i$\\ 
+  \aAbsXsec{i,j} & m$^5$/molec$^2$  & \wsvindex{abs\_cia\_data}         & Binary absorption cross-section of \\
+&&&                                                              absorbing  species pair ($i$,$j$) \\ 
+  \ExtMat      & m$^{-1}$ (4$\times$4) & \wsvindex{propmat\_clearsky}    & Clear-sky propagation matrix
  \label{symtable:absorption}     
 \stopsymbolswithunits
 
 \section{Introduction}
 
-The absorption matrix describes how strongly the atmosphere is
-absorbing (and emitting).  Its unit (in ARTS) is m$^{-1}$.  For a
-definition, see for example Equation \ref{eq:lookup:beer}.  Both gases
-and particles in the atmosphere absorb, and the total absorption is
-the sum of these two contributions. But this chapter is only about the
-gas absorption.
-
-When calculating radiative transfer, the local absorption matrix
+When calculating radiative transfer, the local absorption 
 at each point in the atmosphere has to be known.  Furthermore, if one
 also wants to calculate Jacobians, then the partial absorption
-matrices for different atmospheric components (different
-absorption species) also have to be known.   
+for different atmospheric components (different
+absorption species) also has to be known.   
 
 This chapter discusses different practical aspects of absorption in
-ARTS. Section \ref{sec:absorption:abs-rt} explains how absorption is
-handled inside radiative transfer calculations.  Section
+ARTS. Sections \ref{sec:absorption:quantities} and
+\ref{sec:absorption:agendas} introduce the main physical quantities
+and the main agendas, respectively. Section
+\ref{sec:absorption:abs-rt} explains how absorption is handled inside
+radiative transfer calculations.  Section
 \ref{sec:absorption:calculating} discusses how absorption is actually
 calculated, and how the calculation is set up.  Finally, Section
 \ref{sec:absorption:lookup} describes how absorption is stored in a
@@ -57,108 +55,114 @@ background, particularly the line-by-line calculations and the
 continuum models.  Some of this background is discussed in \theory,
 Chapter \ref{T-sec:abs_theory}. 
 
+
+\section{Key physical quantities}
+\label{sec:absorption:quantities}
+
+The scalar gas absorption coefficient \AbsCoef\ has units of 1/m.  You
+can think of it as being defined by the Lambert-Beer law
+\begin{equation}
+  \Mpi_1 = \Mpi_0 e^{-\AbsCoef \PpathLng},  
+\end{equation}
+where \Mpi\ is intensity and \PpathLng\ is the distance through a
+homogeneous medium with absorption coefficient \AbsCoef.  
+
+Absorption is additive, so the total absorption is the sum of the
+partial absorptions of all absorbers.  For an individual absorber, we
+can define another important quantity, the absorption cross-section
+\aAbsXsec{i}, as
+\begin{equation}
+  \aAbsXsec{i} = \frac{\aAbsCoef{i}}{\aDen{i}},
+\end{equation}
+where subscript $i$ denotes the absorber and \aDen{i} is the partial
+number density of that absorber.  Absorption cross-sections depend
+less strongly on pressure than absorption coefficients, and are
+therefore more suitable for storing in a lookup table.
+
+Some processes create polarized absorption, which is described by a
+4$\times$4 matrix, in ARTS called propagation matrix
+(\wsvindex{propmat\_clearsky}, already introduced in Section \ref{sec:rteq}).  This variable is used by the ARTS RT
+functions to describe absorption.  In the absence of polarizing
+effects it is simply equal to $\AbsCoef \IdnMtr_4$, where $\IdnMtr_4$
+is the 4$\times$4 identity matrix. 
+
+Both gases
+and particles in the atmosphere absorb, and the total absorption is
+the sum of these two contributions. But this chapter is only about the
+gas absorption.
+
+\section{Agendas}
+\label{sec:absorption:agendas}
+
+There are two key agendas related to absorption in ARTS:
+\wsaindex{propmat\_clearsky\_agenda} and
+\wsaindex{abs\_xsec\_agenda}.  They fulfill different purposes and
+complement each other.  Agenda propmat\_clearsky\_agenda is called by
+RT methods when they need absorption (more precisely the clear-sky
+propagation matrix, as defined above). Hence, this agenda is the
+interface between the RT part and the absorption part. Is is explained
+further in the next section. 
+
+The other agenda, abs\_xsec\_agenda, is called when absorption is
+actually calculated (either inside propmat\_clearsky\_agenda, if
+absorption is handled on-the-fly, or before, when the absorption
+lookup table is generated).  This agenda is just for the scalar gas
+absorption part and describes in detail the line-by-line absorption
+calculation and various continua.  It is explained further in Section
+\ref{sec:absorption:calculating}.  You are likely to need both of the
+above agendas for your ARTS RT simulation.
+
+
 \section{Gas absorption in radiative transfer simulations}
 \label{sec:absorption:abs-rt}
 
-The interface between the radiative transfer (RT) part of ARTS and the
-absorption part of ARTS is very simple, so this will be a short
-section.
+The interface between the RT part of ARTS and the
+absorption part of ARTS is the agenda
+\wsaindex{propmat\_clearsky\_agenda} (see Figure \ref{fig:absorption:pmat_outside}).  RT functions execute this
+agenda whenever they need local absorption matrices.  In a typical
+ARTS run, the agenda will be executed many times over, for different
+points in the atmosphere.  See the built-in documentation for the
+exact input and output arguments of the agenda.  The idea is that
+input arguments are the local atmospheric conditions (temperature,
+pressure, trace gas volume mixing ratios, magnetic field, etc.).
 
-The interface consists in the agenda
-\wsaindex{propmat\_clearsky\_agenda}.  RT functions execute this agenda
-whenever they need local absorption matrices.  See the built-in
-documentation for the exact input and output arguments of the agenda.
-The idea is that input arguments are the local atmospheric conditions
-(temperature, pressure, trace gas volume mixing ratios, magnetic field, etc.).
+\begin{figure}
+ \begin{center}
+  \includegraphics[scale=0.7]{propmat_clearsky_agenda}
+  \caption{An outside view of propmat\_clearsky\_agenda.}
+  \label{fig:absorption:pmat_outside}
+ \end{center}
+\end{figure}
 
 The output of the agenda is a single variable,
-\wsvindex{propmat\_clearsky}, a tensor with dimensions of absorption species,
-frequency, Stokes dimension and Stokes dimension (Stokes dimension of one thus emulates scalar absorption).
-In a typical ARTS run, this agenda will be
-executed many times over, for different points in the atmosphere.
+\wsvindex{propmat\_clearsky}, a tensor with dimensions of absorption
+species, frequency, Stokes dimension and Stokes dimension (Stokes
+dimension of one thus emulates scalar absorption).  The physical
+quantity corresponding to this variable is the clear-sky propagation
+matrix \aAbsMat{a}\, as defined in Equation
+\ref{eq:propmattotal}. It describes all non-scattering extinction
+effects, that is, absorption and related polarization effects.
 
-Typical contents of this agenda are as follows:
+An inside view of propmat\_clearsky\_agenda is given in Figure
+\ref{fig:absorption:pmat_inside}.  The agenda can contain a number of
+different workspace methods that in some way or other compute
+propmat\_clearsky. See the built-in documentation of the individual
+methods to learn more. File \fileindex{agendas.arts}, one of the
+standard include-controlfiles, predefines some typical alternatives
+how propmat\_clearsky\_agenda can be set for different purposes.
 
-\subsection{On-the-fly absorption}
-\label{sec:absorption:abs-rt-otf}
-
-\begin{code}
-AgendaSet( propmat_clearsky_agenda )
-{
- propmat_clearskyInit
- propmat_clearskyAddOnTheFly
- propmat_clearskyAddZeeman
-}
-\end{code}
-
-This will calculate absorption matrices for the exact local
-conditions that are given.  \wsmindex{propmat\_clearskyAddOnTheFly} calculates
-absorption for all non-Zeeman species which is why \wsmindex{propmat\_clearskyAddZeeman}
-follows.
-The setup for the calculation (which
-absorption species and many other details of the calculation) has to
-be done before, outside the agenda.  More information on how to set up
-the absorption calculation can be found in Section
-\ref{sec:absorption:calculating}.  
-
-\begin{figure*}[p]
+\begin{figure}
  \begin{center}
-  \includegraphics*[scale=0.7]{abs_lookupCalc}\\
-  {\small \FIXME{Caption}}
+  \includegraphics[scale=0.7]{propmat_clearsky_agenda_detail}
+  \caption{An inside view of propmat\_clearsky\_agenda. At the same
+    time, this gives an outside view of abs\_xsec\_agenda, as input to
+    \wsmindex{propmat\_clearskyAddOnTheFly} in the context of
+    on-the-fly absorption generation. [FIXME Oliver: Replace
+    abs\_species as input to propmat\_clearskyAddOnTheFly by abs\_xsec\_agenda.]}
+  \label{fig:absorption:pmat_inside}
  \end{center}
-\end{figure*}
+\end{figure}
 
-\begin{figure*}[p]
- \begin{center}
-  \includegraphics*[scale=0.7]{abs_xsec_agenda}\\
-  {\small \FIXME{Caption}}
- \end{center}
-\end{figure*}
-
-\begin{figure*}[p]
- \begin{center}
-  \includegraphics*[scale=0.7]{propmat_clearsky_agenda}\\
-  {\small \FIXME{Caption}}
- \end{center}
-\end{figure*}
-
-\begin{figure*}[p]
- \begin{center}
-  \includegraphics*[scale=0.7]{propmat_clearsky_agenda_detail}\\
-  {\small \FIXME{Caption}}
- \end{center}
-\end{figure*}
-
-
-
-\subsection{Absorption from lookup table}
-
-\begin{code}
-AgendaSet( propmat_clearsky_agenda )
-{
- Ignore(rtp_mag)
- propmat_clearskyInit
- propmat_clearskyAddFromLookup
-}
-\end{code}
-
-This will extract absorption matrices from a pre-calculated lookup
-table.  More information on the lookup table and how to generate it
-can be found in Section \ref{sec:absorption:lookup}.  
-
-\subsection{Doppler shift}
-\label{sec:absorption:doppler}
-
-Each of \wsmindex{propmat\_clearskyAddOnTheFly}, 
-\wsmindex{propmat\_clearskyAddZeeman} and
-\wsmindex{propmat\_clearskyAddFromLookup} take into account a
-possible Doppler shift. However, there is an important difference in
-the implementation: For \wsmindex{propmat\_clearskyAddOnTheFly} and \wsmindex{propmat\_clearskyAddZeeman} the shift
-is implemented by simply making the line-by-line calculation on a
-shifted frequency grid, so the treatment is exact. For
-\wsmindex{propmat\_clearskyAddFromLookup}, on the other hand, the
-shift is implemented numerically, by shifting the frequency grid and
-then linearly interpolating the pre-calculated absorption data.
 
 
 \section{Calculating gas absorption}
@@ -167,13 +171,44 @@ then linearly interpolating the pre-calculated absorption data.
 This section deals with calculating gas absorption matrices in
 ARTS.  This can typically occur in three different contexts:
 as on-the-fly absorption matrix calculation within the radiative transfer
-calculation (see Section \ref{sec:absorption:abs-rt-otf}), when preparing
+calculation (see Section \ref{sec:absorption:abs-rt}), when preparing
 a gas absorption lookup table (see Section \ref{sec:absorption:lookup}),
 or when the user is only interested in the absorption itself (see Section
-\ref{sec:absorption:abs-only}), but not in the radiative transfer simulation.
+\ref{sec:absorption:abs-only}).
 
-In all these cases, the same core absorption routines will be used,
-although the interfaces differ. 
+In all these cases, the same agenda is used to actually calculate
+absorption: abs\_xsec\_agenda. Outside views of this agenda are shown
+in Figure \ref{fig:absorption:pmat_inside} (as input to
+\wsmindex{propmat\_clearskyAddOnTheFly} in the context of on-the-fly
+absorption generation) and Figure \ref{fig:absorption:xsec_in_lookup}
+(as input to \wsmindex{abs\_lookupCalc} in the context of absorption
+lookup table generation).
+
+\begin{figure}
+ \begin{center}
+  \includegraphics[scale=0.7]{abs_lookupCalc}
+  \caption{An outside view of abs\_xsec\_agenda, in the context of
+    absorption lookup table generation.}
+  \label{fig:absorption:xsec_in_lookup}
+ \end{center}
+\end{figure}
+
+An inside view of abs\_xsec\_agenda is given in Figure
+\ref{fig:absorption:xsec_inside}.  The agenda can contain a number of
+different workspace methods that in some way or other compute
+abs\_xsec. See the built-in documentation of the individual methods to
+learn more. As for propmat\_clearsky\_agenda, file
+\fileindex{agendas.arts} predefines some typical alternatives also for
+abs\_xsec\_agenda.
+
+\begin{figure}
+ \begin{center}
+  \includegraphics[scale=0.7]{abs_xsec_agenda}
+  \caption{An inside view of abs\_xsec\_agenda.}
+  \label{fig:absorption:xsec_inside}
+ \end{center}
+\end{figure}
+
 
 \subsection{Absorption species}
 
@@ -494,6 +529,102 @@ is \wsmindex{abs\_xsec\_per\_speciesAddConts}.  Users normally do not
 have to call this method explicitly, since it is used implicitly by
 higher level methods, such as \wsmindex{abs\_coefCalc}.
 
+\subsection{Collision-induced absorption}
+\label{sec:absorption:cia}
+
+Recently, the well-known HITRAN spectral line catalogue has started to
+offer also tabulated binary absorption cross-sections for
+collision-induced absorption (CIA).  This is described in detail in
+\citet{richard:12}, and also in the documentation that comes with the
+data themselves.  
+
+Binary absorption cross-sections
+\aAbsXsec{i,j} have to be multiplied with the number densities of both involved
+molecular species to yield absorption coefficients:
+\begin{equation}
+\aAbsCoef{i,j} =  \aAbsXsec{i,j} \, \aDen{i} \, \aDen{j},
+\end{equation}
+where $i$ and $j$ denote the two different absorbing species. As a
+consequence, \aAbsXsec{i,j} has units of m$^5$/molec$^2$ in ARTS (the
+original HITRAN units are different).
+
+Using CIA in ARTS is easy. First of all, include one or more CIA tags
+in your absorption species list (\wsvindex{abs\_species}). All valid
+tags are listed in Table \ref{tab:absorption:cia_ranges}. Secondly,
+read in WSV \wsvindex{abs\_cia\_data}, which contains the tabulated
+binary absorption cross-sections, from a file. (This will usually be
+file \fileindex{hitran\_cia2012\_adapted.xml.gz} that is included with
+arts-xml-data, but the original HITRAN data files can also be
+read). Finally, use WSM \wsmindex{abs\_xsec\_per\_speciesAddCIA} in
+abs\_xsec\_agenda to add the CIA absorption. For usage examples, look
+in directory \fileindex{controlfiles/artscomponents/cia} that is part
+of the ARTS distribution.
+
+Figure \ref{fig:absorption:cia} shows all CIA continua that are
+currently available in ARTS (left) and separately the ones that are
+relevant for Earth's atmosphere (right). The valid frequency and
+temperature ranges for these data, as available in ARTS, are listed in
+Table \ref{tab:absorption:cia_ranges}.  To make the HITRAN data work
+in ARTS, some modifications were necessary, specifically:
+
+\begin{description}
+\item[N$_2$-N$_2$:] The two high-frequency datasets were merged into one.
+\item[O$_2$-O$_2$:] Three apparently separate datasets that really
+  belong together were merged. UV/Vis dataset were removed.
+\item[CO$_2$-CO$_2$:] Caveat: This is only the self continuum of
+  CO2. The CO2-air continuum has strong features above 250 cm$^{-1}$ that
+  are present in CKD\_MT (also available in ARTS as one of the
+  continuum and full absorption models), but are missing here.  The HITRAN
+  data also generally looks weird. It is only in the alternative folder,
+  and \citet{richard:12} basically recommend not to use
+  it. Conclusion: No changes, but usage not recommended.
+\item[O2-N2, O2-CO2:] These UV/Vis only datasets were removed.
+
+\begin{table}
+    \caption{Absorption species tags, frequency ranges, and
+      temperature ranges for HITRAN CIA data as implemented in
+      ARTS. (These data contain some modifications from the original
+      HITRAN data, which are described in the text.)} 
+    \label{tab:absorption:cia_ranges}
+    \centering
+    \begin{tabular}{llll}
+\hline
+    CIA tag& Spectral range [cm$^{-1}$]& Temp range [K]& No. of datasets\\
+\hline
+  N2-CIA-N2-0& 0.02 -- 554.00& 40.00 -- 400.00& 10\\
+  N2-CIA-N2-1& 1850.00 -- 3000.09& 228.20 -- 362.50& 10\\
+  N2-CIA-H2-0& 0.02 -- 1886.00& 40.00 -- 400.00& 10\\
+  N2-CIA-CH4-0& 0.02 -- 1379.00& 40.00 -- 400.00& 10\\
+  H2-CIA-H2-0& 20.00 -- 10000.00& 200.00 -- 3000.00& 113\\
+  H2-CIA-He-0& 20.00 -- 20000.00& 200.00 -- 9900.00& 334\\
+  H2-CIA-CH4-0& 0.02 -- 1946.00& 40.00 -- 400.00& 10\\
+  H2-CIA-H-0& 100.00 -- 10000.00& 1000.00 -- 2500.00& 4\\
+  He-CIA-H-0& 50.00 -- 11000.00& 1500.00 -- 10000.00& 10\\
+  O2-CIA-O2-0& 1150.00 -- 1950.00& 193.40 -- 353.40& 15\\
+  CO2-CIA-CO2-0& 1.00 -- 250.00& 200.00 -- 800.00& 7\\
+  CH4-CIA-CH4-0& 0.02 -- 990.00& 40.00 -- 400.00& 10\\
+  CH4-CIA-Ar-0& 1.00 -- 697.00& 70.00 -- 296.00& 5\\
+\hline
+\end{tabular}
+\end{table}
+
+
+\end{description}
+
+\begin{figure}
+ \begin{center}
+  \includegraphics[width=.46\hsize]{plot_all_arts_cia_generic_1}
+  \hspace{\fill}
+  \includegraphics[width=.46\hsize]{plot_earth_continua_1_1}
+  \caption{Left: All HITRAN CIA continua that are implemented in ARTS
+    (each gas here has a partial pressure of 1000\,hPa). Right: Only
+    the ones that are relevant for Earth (for Earth surface
+    conditions).}
+  \label{fig:absorption:cia}
+ \end{center}
+\end{figure}
+
+
 \subsection{Internal line-mixing}
 For first- and second-ordered line-mixing there exists an explicit tag to read
 and match line-mixing parameters to individual lines. This can be accessed
@@ -691,7 +822,7 @@ to flag that the table is now ok.
 When the table has been successfully adapted, one can extract
 absorption matrices with the method
 \wsmindex{propmat\_clearskyAddFromLookup}. This will extract
-\emph{absorption matrices}, i.e., the cross sections stored in the
+\emph{absorption matrices}, i.e., the cross-sections stored in the
 table are not only interpolated to the desired atmospheric conditions,
 but are also multiplied with the partial number density of the present
 absorbers.
@@ -704,7 +835,7 @@ needed, both inside the scattering box and outside.
 \subsection{Format of the lookup table}
 Usually the user does not need to bother with it, as ARTS provides methods to
 create, read and write, and extract data from the lookup table. However,
-sometimes one desires to analyze, e.g., the absorption cross section data
+sometimes one desires to analyze, e.g., the absorption cross-section data
 calculated and sored in the lookup table. Therefore we give a short description
 of the format of the absorption lookup table here. More detailed information can
 be found in the source code, where the \typeindex{GasAbsLookup} class is
@@ -727,7 +858,7 @@ pressure grid (Vector)
 \item \textbf{t\_pert:} the temperature perturbations (Vector)
 \item \textbf{nls\_pert:} the VMR perturbations of the non-linear species in
 terms of fractional units of the reference VMRs (Vector)
-\item \textbf{xsec:} the absorption cross sections (Tensor4; dimension: [number
+\item \textbf{xsec:} the absorption cross-sections (Tensor4; dimension: [number
 of temperature perturbations, number of species (and non-linear species
 perturbations), number of frequencies, number of pressure levels])
 \end{itemize}
@@ -747,6 +878,15 @@ In particular, the method \wsmindex{abs\_mat\_fieldCalc} provides the absorption
 matrices, i.e., polarized absorption coefficients, per species tag group for
 an entire atmospheric scenario and the complete frequency grid.
 
+\section{Zeeman calculations}
+\label{sec:absorption:zeeman}
+
+FIXME: Richard.
+
+\section{Line mixing}
+\label{sec:absorption:line-mixing}
+
+FIXME: Richard.
 
 %%% Local Variables: 
 %%% mode: latex 

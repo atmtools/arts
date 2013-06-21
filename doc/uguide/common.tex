@@ -18,7 +18,6 @@
 \usepackage{xcolor}
 
 
-
 %--- Margins
 %
 \voffset-1.5cm
@@ -76,7 +75,7 @@
 
 %--- PDF/LaTeX specific options
 \ifpdf
-  \usepackage[pdftex]{graphicx}    % includegraphics
+  \usepackage{graphicx}    % includegraphics
   \DeclareGraphicsExtensions{.pdf}
   \usepackage{color}
   \definecolor{DarkRed}{rgb}{0.5,0,0}
@@ -99,7 +98,7 @@
   {hyperref}
   \setcounter{tocdepth}{3}
 \else
-  \usepackage[dvips]{graphicx}    % includegraphics
+  \usepackage{graphicx}    % includegraphics
   \DeclareGraphicsExtensions{.eps}
   \setcounter{tocdepth}{1}
 \fi

@@ -653,8 +653,8 @@ page 2:
 %----------------------------------------------------------------------
 
 Everything that was written so far in this chapter referred to linear
-interpolation, which uses 2 neighboring data points in the 1D
-case. But ARTS has also a framework for higher order polynomial
+interpolation, which uses two neighboring data points in the 1D
+case. But ARTS also has a framework for higher order polynomial
 interpolation. It is defined in the two files
 
 \begin{itemize}
@@ -667,7 +667,16 @@ is used. Linear interpolation, the ARTS standard case, corresponds to
 $O=1$. $O=2$ is quadratic interpolation, $O=3$ cubic interpolation.
 The number of interpolation points (and weights) for a 1D
 interpolation is $O+1$ for each point in the new grid. So, linear
-interpolation uses 2 points, quadratic 3, and cubic 4.
+interpolation uses 2 points, quadratic 3, and cubic 4. 
+
+As a special case, interpolation order $O=0$ is also implemented,
+which means `nearest neighbor interpolation'. In other words, the
+value at the closest neighboring point is chosen, so there is no real
+interpolation at all. This case is particularly useful if you have a
+field that may be interpolated in several dimensions, but you do not
+really want to do all dimensions all the time. With $O=0$
+interpolation and a grid that matches the original grid, interpolation
+can be effectively `turned off' for that dimension.
 
 Note, that if you use even interpolation orders, you will have an
 unequal number of interpolation points `to the left' and `to the
