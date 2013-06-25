@@ -66,7 +66,7 @@ ostream& operator << (ostream& os, const RetrievalQuantity& ot)
     \author Patrick Eriksson 
     \date   2009-10-08
 */
-// A small help function, to make the code below cleaner
+// Small help functions, to make the code below cleaner
 void from_dpath_to_dx(
         MatrixView   diy_dx,
    ConstMatrixView   diy_dq,
@@ -76,6 +76,15 @@ void from_dpath_to_dx(
     { 
       for( Index icol=0; icol<diy_dx.ncols(); icol++ )
         { diy_dx(irow,icol) += w * diy_dq(irow,icol); }
+    }
+}
+void gp4length1grid( ArrayOfGridPos&   gp )
+{
+  for( Index i=0; i<gp.nelem(); i++ )
+    { 
+      gp[i].idx   = 0;
+      gp[i].fd[0] = 0; 
+      gp[i].fd[1] = 1; 
     }
 }
 // Kept as a local function as long as just used here.
@@ -110,28 +119,34 @@ void diy_from_path_to_rgrids(
   //                                        extremly high extrapolation factor
   const Numeric   extpolfac = 1.0e99;
 
-  // Retrieval grid of interest
-  Vector r_grid;
-
   if( ppath.np > 1 )  // Otherwise nothing to do here
     {
       // Pressure
-      r_grid = jacobian_quantity.Grids()[0];
-      Index            nr1 = r_grid.nelem();
+      Index            nr1 = jacobian_quantity.Grids()[0].nelem();
       ArrayOfGridPos   gp_p(ppath.np);
-      p2gridpos( gp_p, r_grid, ppath_p, extpolfac );
-      add_extrap( gp_p );
+      if( nr1 > 1 )
+        {
+          p2gridpos( gp_p, jacobian_quantity.Grids()[0], ppath_p, extpolfac );
+          add_extrap( gp_p );
+        }
+      else
+        { gp4length1grid( gp_p ); }        
 
       // Latitude
       Index            nr2 = 1;
       ArrayOfGridPos   gp_lat;
       if( atmosphere_dim > 1 )
-        {
+        {          
           gp_lat.resize(ppath.np);
-          r_grid = jacobian_quantity.Grids()[1];
-          nr2    = r_grid.nelem();
-          gridpos( gp_lat, r_grid, ppath.pos(joker,1), extpolfac );
-          add_extrap( gp_lat );
+          nr2    = jacobian_quantity.Grids()[1].nelem();
+          if( nr2 > 1 )
+            {
+              gridpos( gp_lat, jacobian_quantity.Grids()[1], 
+                       ppath.pos(joker,1), extpolfac );
+              add_extrap( gp_lat );
+            }
+          else
+            { gp4length1grid( gp_lat ); }
         }
 
       // Longitude
@@ -139,9 +154,14 @@ void diy_from_path_to_rgrids(
       if( atmosphere_dim > 2 )
         {
           gp_lon.resize(ppath.np);
-          r_grid = jacobian_quantity.Grids()[2];
-          gridpos( gp_lon, r_grid, ppath.pos(joker,2), extpolfac );
-          add_extrap( gp_lon );
+          if( jacobian_quantity.Grids()[2].nelem() > 1 )
+            {          
+              gridpos( gp_lon, jacobian_quantity.Grids()[2], 
+                       ppath.pos(joker,2), extpolfac );
+              add_extrap( gp_lon );
+            }
+          else
+            { gp4length1grid( gp_lon ); }
         }
       
       //- 1D
@@ -149,7 +169,7 @@ void diy_from_path_to_rgrids(
         {
           for( Index ip=0; ip<ppath.np; ip++ )
             {
-              if( gp_p[ip].fd[0] < 1 )
+              if( gp_p[ip].fd[1] > 0 )
                 {
                   from_dpath_to_dx( diy_dx(gp_p[ip].idx,joker,joker),
                                     diy_dpath(ip,joker,joker), gp_p[ip].fd[1] );
@@ -169,21 +189,25 @@ void diy_from_path_to_rgrids(
             {
               Index   ix = nr1*gp_lat[ip].idx + gp_p[ip].idx;
               // Low lat, low p
-              from_dpath_to_dx( diy_dx(ix,joker,joker),
-                                diy_dpath(ip,joker,joker), 
-                                gp_lat[ip].fd[1]*gp_p[ip].fd[1] );
+              if( gp_lat[ip].fd[1]>0 && gp_p[ip].fd[1]>0 )
+                from_dpath_to_dx( diy_dx(ix,joker,joker),
+                                  diy_dpath(ip,joker,joker), 
+                                  gp_lat[ip].fd[1]*gp_p[ip].fd[1] );
               // Low lat, high p
-              from_dpath_to_dx( diy_dx(ix+1,joker,joker),
-                                diy_dpath(ip,joker,joker), 
-                                gp_lat[ip].fd[1]*gp_p[ip].fd[0] );
+              if( gp_lat[ip].fd[1]>0 && gp_p[ip].fd[0]>0 )
+                from_dpath_to_dx( diy_dx(ix+1,joker,joker),
+                                  diy_dpath(ip,joker,joker), 
+                                  gp_lat[ip].fd[1]*gp_p[ip].fd[0] );
               // High lat, low p
-              from_dpath_to_dx( diy_dx(ix+nr1,joker,joker),
-                                diy_dpath(ip,joker,joker), 
-                                gp_lat[ip].fd[0]*gp_p[ip].fd[1] );
+              if( gp_lat[ip].fd[0]>0 && gp_p[ip].fd[1]>0 )
+                from_dpath_to_dx( diy_dx(ix+nr1,joker,joker),
+                                  diy_dpath(ip,joker,joker), 
+                                  gp_lat[ip].fd[0]*gp_p[ip].fd[1] );
               // High lat, high p
-              from_dpath_to_dx( diy_dx(ix+nr1+1,joker,joker),
-                                diy_dpath(ip,joker,joker), 
-                                gp_lat[ip].fd[0]*gp_p[ip].fd[0] );
+              if( gp_lat[ip].fd[0]>0 && gp_p[ip].fd[0]>0 )
+                from_dpath_to_dx( diy_dx(ix+nr1+1,joker,joker),
+                                  diy_dpath(ip,joker,joker), 
+                                  gp_lat[ip].fd[0]*gp_p[ip].fd[0] );
             }
         }
 
@@ -195,40 +219,48 @@ void diy_from_path_to_rgrids(
               Index   ix = nr2*nr1*gp_lon[ip].idx +
                            nr1*gp_lat[ip].idx + gp_p[ip].idx;
               // Low lon, low lat, low p
-              from_dpath_to_dx( diy_dx(ix,joker,joker),
-                                diy_dpath(ip,joker,joker), 
+              if( gp_lon[ip].fd[1]>0 && gp_lat[ip].fd[1]>0 && gp_p[ip].fd[1]>0 )
+                from_dpath_to_dx( diy_dx(ix,joker,joker),
+                                  diy_dpath(ip,joker,joker), 
                              gp_lon[ip].fd[1]*gp_lat[ip].fd[1]*gp_p[ip].fd[1]);
               // Low lon, low lat, high p
-              from_dpath_to_dx( diy_dx(ix+1,joker,joker),
-                                diy_dpath(ip,joker,joker), 
+              if( gp_lon[ip].fd[1]>0 && gp_lat[ip].fd[1]>0 && gp_p[ip].fd[0]>0 )
+                from_dpath_to_dx( diy_dx(ix+1,joker,joker),
+                                  diy_dpath(ip,joker,joker), 
                              gp_lon[ip].fd[1]*gp_lat[ip].fd[1]*gp_p[ip].fd[0]);
               // Low lon, high lat, low p
-              from_dpath_to_dx( diy_dx(ix+nr1,joker,joker),
-                                diy_dpath(ip,joker,joker), 
+              if( gp_lon[ip].fd[1]>0 && gp_lat[ip].fd[0]>0 && gp_p[ip].fd[1]>0 )
+                from_dpath_to_dx( diy_dx(ix+nr1,joker,joker),
+                                  diy_dpath(ip,joker,joker), 
                              gp_lon[ip].fd[1]*gp_lat[ip].fd[0]*gp_p[ip].fd[1]);
               // Low lon, high lat, high p
-              from_dpath_to_dx( diy_dx(ix+nr1+1,joker,joker),
-                                diy_dpath(ip,joker,joker), 
+              if( gp_lon[ip].fd[1]>0 && gp_lat[ip].fd[0]>0 && gp_p[ip].fd[0]>0 )
+                from_dpath_to_dx( diy_dx(ix+nr1+1,joker,joker),
+                                  diy_dpath(ip,joker,joker), 
                              gp_lon[ip].fd[1]*gp_lat[ip].fd[0]*gp_p[ip].fd[0]);
 
               // Increase *ix* (to be valid for high lon level)
               ix += nr2*nr1;
 
               // High lon, low lat, low p
-              from_dpath_to_dx( diy_dx(ix,joker,joker),
-                                diy_dpath(ip,joker,joker), 
+              if( gp_lon[ip].fd[0]>0 && gp_lat[ip].fd[1]>0 && gp_p[ip].fd[1]>0 )
+                from_dpath_to_dx( diy_dx(ix,joker,joker),
+                                  diy_dpath(ip,joker,joker), 
                              gp_lon[ip].fd[0]*gp_lat[ip].fd[1]*gp_p[ip].fd[1]);
               // High lon, low lat, high p
-              from_dpath_to_dx( diy_dx(ix+1,joker,joker),
-                                diy_dpath(ip,joker,joker), 
+              if( gp_lon[ip].fd[0]>0 && gp_lat[ip].fd[1]>0 && gp_p[ip].fd[0]>0 )
+                from_dpath_to_dx( diy_dx(ix+1,joker,joker),
+                                  diy_dpath(ip,joker,joker), 
                              gp_lon[ip].fd[0]*gp_lat[ip].fd[1]*gp_p[ip].fd[0]);
               // High lon, high lat, low p
-              from_dpath_to_dx( diy_dx(ix+nr1,joker,joker),
-                                diy_dpath(ip,joker,joker), 
+              if( gp_lon[ip].fd[0]>0 && gp_lat[ip].fd[0]>0 && gp_p[ip].fd[1]>0 )
+                from_dpath_to_dx( diy_dx(ix+nr1,joker,joker),
+                                  diy_dpath(ip,joker,joker), 
                              gp_lon[ip].fd[0]*gp_lat[ip].fd[0]*gp_p[ip].fd[1]);
               // High lon, high lat, high p
-              from_dpath_to_dx( diy_dx(ix+nr1+1,joker,joker),
-                                diy_dpath(ip,joker,joker), 
+              if( gp_lon[ip].fd[0]>0 && gp_lat[ip].fd[0]>0 && gp_p[ip].fd[0]>0 )
+                from_dpath_to_dx( diy_dx(ix+nr1+1,joker,joker),
+                                  diy_dpath(ip,joker,joker), 
                              gp_lon[ip].fd[0]*gp_lat[ip].fd[0]*gp_p[ip].fd[0]);
             }
         }
