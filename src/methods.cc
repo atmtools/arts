@@ -10250,6 +10250,29 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "TMatrixTest" ),
+        DESCRIPTION
+        (
+         "T-Matrix validation test.\n"
+         "\n"
+         "Executes the standard test included with the T-Matrix Fortran code.\n"
+         "Should give the same as running the tmatrix_lp executable in\n"
+         "3rdparty/tmatrix/.\n"
+         ),
+        AUTHORS( "Oliver Lemke" ),
+        OUT(),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN(),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "Touch" ),
         DESCRIPTION
         (

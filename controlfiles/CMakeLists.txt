@@ -83,7 +83,11 @@ arts_test_run_ctlfile(nocheck.zeeman artscomponents/zeeman/TestZeeman.arts)
 
 if (ENABLE_DISORT)
   arts_test_run_ctlfile(nocheck.disort artscomponents/disort/TestDISORT.arts)
-endif (ENABLE_DISORT)
+endif ()
+
+if (ENABLE_TMATRIX)
+  arts_test_run_ctlfile(nocheck.tmatrix artscomponents/tmatrix/TestTMatrix.arts)
+endif ()
 
 
 ###################

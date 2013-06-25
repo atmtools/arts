@@ -197,6 +197,7 @@ add_library (artscore STATIC
   m_rte.cc
   m_sensor.cc
   m_surface.cc
+  m_tmatrix.cc
   m_transmitter.cc
   m_xml.cc
   m_zeeman.cc
@@ -226,6 +227,7 @@ add_library (artscore STATIC
   special_interp.cc
   species_data.cc
   surface.cc
+  tmatrix.cc
   token.cc
   workspace.cc
   workspace_ng.cc

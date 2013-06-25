@@ -1,0 +1,57 @@
+T-Matrix codes
+======================
+
+The code can be used without limitations in any not-for-
+profit scientific research.  We only request that in any
+publication using the code the source of the code be acknowledged
+and relevant references (see below) be made.
+
+This version of the code is applicable to spheroids,
+Chebyshev particles, and finite circular cylinders.
+
+The computational method is based on the Watermsn's T-matrix
+approach and is described in detail in the following papers:
+
+1.  M. I. Mishchenko, Light scattering by randomly oriented
+    axially symmetric particles, J. Opt. Soc. Am. A,
+    vol. 8, 871-882 (1991).
+
+2.  M. I. Mishchenko, Light scattering by size-shape
+    distributions of randomly oriented axially symmetric
+    particles of a size comparable to a wavelength,
+    Appl. Opt., vol. 32, 4652-4666 (1993).
+
+3.  M. I. Mishchenko and L. D. Travis, T-matrix computations
+    of light scattering by large spheroidal particles,
+    Opt. Commun., vol. 109, 16-21 (1994).
+
+4.  M. I. Mishchenko, L. D. Travis, and A. Macke, Scattering
+    of light by polydisperse, randomly oriented, finite
+    circular cylinders, Appl. Opt., vol. 35, 4927-4940 (1996).
+
+5.  D. J. Wielaard, M. I. Mishchenko, A. Macke, and B. E. Carlson,
+    Improved T-matrix computations for large, nonabsorbing and
+    weakly absorbing nonspherical particles and comparison
+    with geometrical optics approximation, Appl. Opt., vol. 36,
+    4305-4313 (1997).
+
+A general review of the T-matrix approach can be found in
+
+6.  M. I. Mishchenko, L. D. Travis, and D. W. Mackowski,
+    T-matrix computations of light scattering by nonspherical
+    particles: a review, J. Quant. Spectrosc. Radiat.
+    Transfer, vol. 55, 535-575 (1996).
+
+The following paper provides a detailed user guide to the
+T-matrix code:
+
+7.  M. I. Mishchenko and L. D. Travis, Capabilities and
+    limitations of a current FORTRAN implementation of the
+    T-matrix method for randomly oriented, rotationally
+    symmetric scatterers, J. Quant. Spectrosc. Radiat. Transfer,
+    vol. 60, 309-324 (1998).
+These papers are available in the .pdf format at the web site
+http://www.giss.nasa.gov/~crmim/publications/
+or in hardcopy upon request from Michael Mishchenko
+Please e-mail your request to crmim@giss.nasa.gov.
+

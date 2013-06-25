@@ -113,6 +113,15 @@ CTEST_OUTPUT_ON_FAILURE:
 export CTEST_OUTPUT_ON_FAILURE=1
 
 
+OPTIONAL FEATURES
+=================
+
+To compile features that rely on Fortran code located in the 3rdparty
+subdirectory (such as tmatrix) use:
+
+cmake -DENABLE_FORTRAN=1 ..
+
+
 DISABLING FEATURES
 ==================
 

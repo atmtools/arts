@@ -1,3 +1,37 @@
+2013-06-25  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-680
+
+	* src/tmatrix.cc, src/tmatrix.h, src/m_tmatrix.cc:
+
+	Added. Basic integration of low-level T-Matrix codes for randomly
+	oriented nonspherical particles. Fortran routine tmd can be called from
+	ARTS and produces the same results as the reference example included
+	with the original code.
+
+	* 3rdparty/tmatrix/{README, License.txt, lpd.f, tmatrix_tmd.ref,
+	tmd.lp.f, tmd.lp.f.orig, tmd.par.f, tmd.pyarts.f}:
+
+	Added T-Matrix codes for randomly oriented nonspherical particles.
+	For ARTS I rely on the same version as used by PyARTS. It has already
+	been adapted to be called as a subroutine and results are identical to
+	the latest version from the T-Matrix homepage.
+
+	* 3rdparty/tmatrix/CMakeLists.txt: Add tmatrix_tmd executable.
+
+	* README: Add ENABLE_FORTRAN option.
+
+	* src/methods.cc: Add TMatrixTest for testing the T-Matrix code.
+
+	* src/CMakeLists.txt: Add tmatrix.cc and m_tmatrix.cc to artscore.
+
+	* config.h.cmake: Add ENABLE_TMATRIX.
+
+	* controlfiles/CMakeLists.txt,
+	controlfiles/artscomponents/tmatrix/TestTMatrix.arts:
+
+	Add basic tmatrix test case.
+
 2013-06-25  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-679
