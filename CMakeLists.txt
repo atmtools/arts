@@ -25,6 +25,10 @@ project (ARTS)
 
 enable_testing ()
 
+if (ENABLE_FORTRAN)
+  enable_language (Fortran)
+endif (ENABLE_FORTRAN)
+
 if (NOT CMAKE_BUILD_TYPE)
   set (CMAKE_BUILD_TYPE "RelWithDebInfo")
 endif (NOT CMAKE_BUILD_TYPE)
@@ -134,22 +138,6 @@ if (NOT NO_DOCSERVER)
   set (ENABLE_DOCSERVER true)
 endif (NOT NO_DOCSERVER)
 
-########### Disort support ##########
-if (ENABLE_DISORT)
-  string (TOUPPER ${INDEX} INDEX_UPPER)
-  if (NOT SIZEOF_${INDEX_UPPER} EQUAL 4)
-    message (STATUS "Forcing Index type to int for compatibility with the f2c library")
-    set (INDEX int)
-  endif (NOT SIZEOF_${INDEX_UPPER} EQUAL 4)
-
-  check_include_file (f2c.h HAVE_F2C_H)
-  if (NOT HAVE_F2C_H)
-    message (FATAL_ERROR "cannot find f2c.h which is required for disort")
-  endif (NOT HAVE_F2C_H)
-
-  set (NO_WERROR 1)
-endif (ENABLE_DISORT)
-
 ########### Remove NDEBUG as set by cmake >2.8.10 ##########
 if (CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
   string (REPLACE "-DNDEBUG" "" CMAKE_C_FLAGS_RELWITHDEBINFO
@@ -254,9 +242,6 @@ endif (WITH_GUI)
 string (TOUPPER ${CMAKE_BUILD_TYPE} MY_BUILD_TYPE)
 set (COMPILE_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${MY_BUILD_TYPE}}")
 
-configure_file (${CMAKE_CURRENT_SOURCE_DIR}/config.h.cmake
-                ${CMAKE_CURRENT_BINARY_DIR}/src/config.h)
-
 add_custom_command (
   OUTPUT auto_version.txt
   COMMAND ${CMAKE_COMMAND} -D "ARTS_SOURCE_DIR:STRING=\"${CMAKE_SOURCE_DIR}\"" -P ${CMAKE_SOURCE_DIR}/cmake/scripts/update_auto_version_txt.cmake
@@ -305,12 +290,24 @@ add_custom_target(check-all
 
 ########### subdirectories ###############
 
+add_subdirectory (3rdparty)
+
+get_directory_property(ENABLE_DISORT DIRECTORY
+                       3rdparty/disort1.2
+                       DEFINITION ENABLE_DISORT)
+
+get_directory_property(ENABLE_TMATRIX DIRECTORY
+                       3rdparty/tmatrix
+                       DEFINITION ENABLE_TMATRIX)
+
 add_subdirectory (src)
 add_subdirectory (doc)
 add_subdirectory (controlfiles)
-#add_subdirectory (3rdparty)
 
-if (NOT NUMERIC STREQUAL "double")
+configure_file (${CMAKE_CURRENT_SOURCE_DIR}/config.h.cmake
+                ${CMAKE_CURRENT_BINARY_DIR}/src/config.h)
+
+if (NOT "${NUMERIC}" STREQUAL "double")
   message (WARNING "You chose ${NUMERIC} as the Numeric type. Using anything different than double is completely unsupported, unrecommended and will probably lead to compilation errors, crashes and wrong results. Sorry, you're on your own here. Godspeed!")
-endif (NOT NUMERIC STREQUAL "double")
+endif()
 

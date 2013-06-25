@@ -81,7 +81,9 @@ arts_test_run_ctlfile(slow.wfuns artscomponents/wfuns/TestWfuns.arts)
 
 arts_test_run_ctlfile(nocheck.zeeman artscomponents/zeeman/TestZeeman.arts)
 
-#arts_test_run_ctlfile(slow.disort artscomponents/disort/TestDISORT.arts)
+if (ENABLE_DISORT)
+  arts_test_run_ctlfile(nocheck.disort artscomponents/disort/TestDISORT.arts)
+endif (ENABLE_DISORT)
 
 
 ###################

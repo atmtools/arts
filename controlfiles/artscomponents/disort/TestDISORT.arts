@@ -19,45 +19,48 @@ INCLUDE "general/agendas.arts"
 # Agenda for scalar gas absorption calculation
 Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
 
+Copy( iy_main_agenda, iy_main_agenda__Emission )
+Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
+Copy( blackbody_radiation_agenda, blackbody_radiation_agenda__Planck )
+Copy( iy_space_agenda, iy_space_agenda__CosmicBackground )
+Copy( iy_surface_agenda, iy_surface_agenda__UseSurfaceRtprop )
+Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
+
+jacobianOff
+
 # Frequency grid 
 # --------------
 # This example is only monochromatic. Note: The frequency must be contained
 # in the gas absorption lookup table.  
-IndexSet(nelem){ 1 }
-VectorSetConstant(f_grid){
-        value = 230e9
-}
+VectorSet(f_grid, [230e9])
  
 
 # Pressure grid
-ReadXML( p_grid ){
-  "./data/p_grid.xml"
-}
+ReadXML( p_grid, "../doit/p_grid.xml" )
 
 # Definition of species
-abs_speciesSet(abs_species){
-  species = [ "H2O", "N2", "O2"]
-}
+abs_speciesSet( species=["H2O", "N2", "O2"] )
 
 # Atmospheric profiles
-AtmRawRead{
- basename = "testdata/tropical"
-}
+AtmRawRead( basename="testdata/tropical" )
+
 
 # Gas absorption from lookup table 
 # ---------------------------------
 abs_lookupInit
 
 # Lookup tables can be computed using the MATLAB (please contact Stefan)
-ReadXML( abs_lookup ){
-   "testdata/gas_abs_lookup.xml"
-}
+ReadXML( abs_lookup, "../doit/gas_abs_lookup.xml" )
    	
 abs_lookupAdapt
 
 # absorption from LUT
 Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__LookUpTable )
 
+IndexSet( stokes_dim, 1 )
+refellipsoidEarth
+
+AtmosphereSet1D
 AtmFieldsCalc
 
 
@@ -65,9 +68,7 @@ AtmFieldsCalc
 # ----------------------------
 MatrixSetConstant( z_surface, 1, 1, 500 )
 
-MatrixSetConstant( surface_emissivity_field){
-    value = 1
-}
+MatrixSetConstant( surface_emissivity_DISORT, 1, 1, 1 )
 
 basics_checkedCalc
 
@@ -81,17 +82,12 @@ basics_checkedCalc
 #        value = 150
 #}
 
-IndexSet(nelem){9}
-VectorNLinSpace(vector_1){
-	start = 100
-	stop = 180
-}
+VectorCreate( vector_1 )
+VectorNLinSpace( vector_1, 9, 100, 180 )
 
 # Sensor altitude from earth surface
-nelemGet(vector_1){}
-VectorSetConstant( vector_2 ) {
-   value =  96000.1
-}
+VectorCreate( vector_2 )
+VectorSetConstant( vector_2, 9, 96000.1 )
 
 Matrix1ColFromVector( sensor_pos, vector_2 )
 Matrix1ColFromVector( sensor_los, vector_1 )
@@ -104,30 +100,28 @@ sensor_checkedCalc
 
 # Agendas for clearsky radiative transfer calculation
 # ----------------------------------------------------
-AgendaSet( rte_agenda ){
-   RteStd{}
-}
+#AgendaSet( rte_agenda ){
+   #RteStd{}
+#}
 
 # Specification of cloud
 # -----------------------
     
+ParticleTypeInit
+
 # Special DISORT function, because cloudbox needs to be extended over the 
 # ehole atmosphere
 cloudboxSetDisort
-cloudbox_checkedCalc
-
-ParticleTypeInit
 
 # Only one particle type is added in this example
 # Note that you must use p20 data, because disort only works with this
 # format. 
-ParticleTypeAdd{
-filename_scat_data="testdata/scat_data_disort.xml"
-filename_pnd_field="testdata/pnd_field_1D.xml"
-}
-
+ParticleTypeAdd( filename_scat_data="scat_data_disort.xml",
+                 filename_pnd_field="../doit/pnd_field_1D.xml" )
+scat_data_rawCheck( threshold=5e-3 )
 pnd_fieldCalc
-scat_data_rawCheck
+
+cloudbox_checkedCalc
 
 # Select interpolation method ('linear' or 'polynomial'):
 # ----------------------------------------------------
@@ -135,11 +129,9 @@ scat_data_rawCheck
 # For limb calculations is is very important to have a fine resolution     
 # about 90°. 
 # For DISORT we use the same angular grids as output.
-DoitAngularGridsSet{
-	N_za_grid = 19
-	N_aa_grid = 10
-	za_grid_opt_file = ""
-	}
+DoitAngularGridsSet( N_za_grid = 19,
+                     N_aa_grid = 10,
+	             za_grid_opt_file = "" )
 
 # Calculate opticle properties of particles and add particle absorption
 # and extiction to the gaseous properties to get total extinction and
@@ -163,19 +155,20 @@ AgendaSet(iy_cloudbox_agenda){
 
 #==================start==========================
 
+propmat_clearsky_agenda_checkedCalc
+
 # Perform scattering calculation 
 ScatteringDisort
     
 # Calculate RT from cloudbox boundary to the sensor
 #
-StringSet( iy_unit ){ "RJBT" }
+StringSet( iy_unit, "RJBT" )
 #
 yCalc
 
+WriteXML(in=y)
 
-Print(y){
-level=1
-}
+Print(y, 1)
 
 #==================stop==========================
 

@@ -98,6 +98,7 @@ void ScatteringDisort(Workspace& ws,
                       const Matrix& surface_emissivity_field,
                       const Verbosity& verbosity)
 {
+  CREATE_OUT1;
 
   out1<< "Start DISORT calculation...\n";
   
@@ -220,7 +221,6 @@ void ScatteringDisort(Workspace& ws,
   
   char header[127];
   memset (header, 0, 127);
-  Index header_len = 127;
   
   Index maxcly = nlyr; // Maximum number of layers
   Index maxulv = nlyr+1; // Maximum number of user defined tau
@@ -258,7 +258,7 @@ void ScatteringDisort(Workspace& ws,
       phase_function=0.;
       pmom=0.;
       
-      scat_data_monoCalc(scat_data_mono, scat_data_raw, f_grid, f_index);
+      scat_data_monoCalc(scat_data_mono, scat_data_raw, f_grid, f_index, verbosity);
       
       dtauc_ssalbCalc(ws, dtauc, ssalb, opt_prop_part_agenda,
                       abs_scalar_gas_agenda, spt_calc_agenda, 
@@ -270,7 +270,7 @@ void ScatteringDisort(Workspace& ws,
       phase_functionCalc(phase_function, scat_data_mono, pnd_field);
       //cout << "phase function" << phase_function(15,joker) << "\n";  
       
-      pmomCalc(pmom, phase_function, scat_angle_grid, n_legendre);
+      pmomCalc(pmom, phase_function, scat_angle_grid, n_legendre, verbosity);
       //for (Index i=0; i<nlyr; i++)
       //    cout << "pmom " << pmom(i,joker) << "\n";
       
@@ -283,7 +283,8 @@ void ScatteringDisort(Workspace& ws,
       
       // Cosmic background
       Numeric fisot = planck2( f_grid[f_index], COSMIC_BG_TEMP );
-      
+
+        DEBUG_PRINT(dtauc)
       // Call disort
       disort_(&nlyr, dtauc.get_c_array(),
               ssalb.get_c_array(), pmom.get_c_array(), 
@@ -308,10 +309,9 @@ void ScatteringDisort(Workspace& ws,
               uavg.get_c_array(),
               uu.get_c_array(), u0u.get_c_array(), 
               albmed.get_c_array(),
-              trnmed.get_c_array(), 
-              header_len);
+              trnmed.get_c_array());
 
-      //      cout << "intensity " << uu << endl; 
+            cout << "intensity " << uu << endl; 
       
       
       for(Index j = 0; j<numu; j++)

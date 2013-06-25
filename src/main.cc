@@ -784,6 +784,12 @@ int main (int argc, char **argv)
 #else
         << "disabled" << endl
 #endif
+        << "   Tmatrix code:         "
+#ifdef ENABLE_TMATRIX
+        << "enabled" << endl
+#else
+        << "disabled" << endl
+#endif
         << ""
         << "Include search paths: " << endl;
       

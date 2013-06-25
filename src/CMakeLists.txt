@@ -27,6 +27,10 @@ if (ENABLE_DISORT)
   list (APPEND ALL_ARTS_LIBRARIES disort)
 endif (ENABLE_DISORT)
 
+if (ENABLE_TMATRIX)
+  list (APPEND ALL_ARTS_LIBRARIES tmatrix)
+endif (ENABLE_TMATRIX)
+
 ########### target to extract version number from ChangeLog ###############
 
 add_custom_target (auto_version_h DEPENDS auto_version.h)
@@ -271,18 +275,6 @@ add_library (methods STATIC
 ########### next target ###############
 
 if (ENABLE_DISORT)
-  add_library (disort STATIC
-    disort_D1MACH.c
-    disort_DISORT.c
-    disort_ErrPack.c
-    disort_FAKEMAIN.c
-    disort_LINPAK.c
-    disort_R1MACH.c
-    )
-  target_link_libraries (disort f2c)
-
-  ########### testcase ###############
-
   add_executable (test_disort disort_DISOTEST.c)
 
   target_link_libraries (test_disort disort)
