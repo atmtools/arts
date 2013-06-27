@@ -1,3 +1,39 @@
+2013-06-26  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-681
+
+	* More work in progress on T-Matrix code.
+
+	* 3rdparty/tmatrix/{ampld.lp.f, ampld.lp.f.orig, ampld.par.f,
+          ampld.arts.f, tmatrix_ampld.ref}:
+
+	Added T-Matrix codes for nonspherical particles in a fixed orientation.
+
+	ampld.arts.f is based on the version in PyARTS. Added RAT as a
+	parameter, renamed subroutines that are also present in tmd.arts.f to
+	avoid duplicate symbol errors. Use LaPACK version of TT subroutine
+	from ampld.lp.f.
+
+	* 3rdparty/tmatrix/tmd.arts.f: Renamed from tmd.pyarts.f.
+
+	* 3rdparty/tmatrix/CMakeLists.txt:
+
+	Add ampld.arts.f to tmatrix library.
+
+	Add target tmatrix_ampld for reference calculation.
+
+	* 3rdparty/tmatrix/README: Updated.
+
+	* 3rdparty/tmatrix/tmd.lp.f: Don't output time. It's incorrect.
+
+	* src/tmatrix.{h,cc}:
+
+	Add functions tmatrix_ampld_test, phasmat.
+
+	Add declarations for Fortran subroutines tmatrix_ and ampl_.
+
+	* src/m_tmatrix.cc (TMatrixTest): Add tmatrix_ampld.test.
+
 2013-06-25  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-680

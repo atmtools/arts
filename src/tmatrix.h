@@ -29,9 +29,18 @@
 /** T-Matrix validation test.
 
  Executes the standard test included with the double precision T-Matrix code
+ for nonspherical particles in a fixed orientation.
+ Should give the same as running the 3rdparty/tmatrix/tmatrix_ampld executable.
+
+ \author Oliver Lemke
+ */
+void tmatrix_ampld_test();
+
+/** T-Matrix validation test.
+
+ Executes the standard test included with the double precision T-Matrix code
  for randomly oriented nonspherical particles.
- Should give the same as running the tmatrix_tmd executable in
- 3rdparty/tmatrix/.
+ Should give the same as running the 3rdparty/tmatrix/tmatrix_tmd executable.
 
  \author Oliver Lemke
  */

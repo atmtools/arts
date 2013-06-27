@@ -29,4 +29,5 @@
 void TMatrixTest(const Verbosity&)
 {
     tmatrix_tmd_test();
+    tmatrix_ampld_test();
 }

@@ -4,7 +4,8 @@ The code has been developed by Michael Mishchenko at the NASA
 Goddard Institute for Space Studies, New York. This research
 was funded by the NASA Radiation Sciences Program.
 
-tmd.pyarts.f has been adapted into a callable subroutine by Cory Davis.
+tmd.arts.f and ampld.arts.f have been adapted into callable subroutines by
+Cory Davis.
 
 See License.txt or http://www.giss.nasa.gov/staff/mmishchenko/t_matrix.html
 for details.
@@ -12,17 +13,29 @@ for details.
 
 Files included in this directory:
 
-tmd.lp.f.orig   # Original double-precision T-matrix code for randomly
+tmd.arts.f      # Modified T-Matrix code from PyARTS. This file is used by ARTS
+                # because the main program has been converted into a
+                # subroutine that is callable from ARTS.
+tmd.lp.f.orig   # Original double-precision T-Matrix codes for randomly
                 # oriented nonspherical particles
 tmd.lp.f        # Same as above but stripped example results to make it compile
                 # Compiled into tmatrix_tmd to produce reference output.
-tmd.pyarts.f    # Modified T-Matrix code from PyARTS. This file is used by ARTS
-                # because the main program has been converted into a
-                # subroutine that is callable from ARTS.
 tmatrix_tmd.ref # Reference output of the original T-Matrix program.
                 # Results of the ARTS WSM TMatrixTest and tmatrix_tmd should
                 # be identical to this file.
-
 tmd.par.f       # Parameter file
+
+ampld.arts.f    # Modified T-Matrix code from PyARTS. This file is used by ARTS
+                # because the main program has been converted into a
+                # subroutine that is callable from ARTS.
+ampld.lp.f.orig # Original double-precision T-Matrix codes for nonsperical
+                # particles in a fixed orientation.
+ampld.lp.f      # Same as above but stripped example results to make it compile
+                # Compiled into tmatrix_ampld to produce reference output.
+tmatrix_ampld.ref # Reference output of the original T-Matrix codes.
+                # Results of the ARTS WSM TMatrixTest and tmatrix_tmd should
+                # be identical to this file.
+ampld.par.f     # Parameter file
+
 lpd.f           # LAPACK routines
 
