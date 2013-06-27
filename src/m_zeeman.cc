@@ -816,7 +816,8 @@ void Part_Return_Zeeman(  Tensor3View part_abs_mat, const ArrayOfArrayOfSpeciesT
     Matrix B(f_grid.nelem(), 1, 0.);
     
     ArrayOfArrayOfIndex temp_lut = line_mixing_data_lut;
-    temp_lut[this_species] = temp_species_lut;
+    if( temp_lut.size() > 0 )
+      { temp_lut[this_species] = temp_species_lut; }
     
     for ( Index i=0; i<abs_species[this_species].nelem(); ++i )
     {
