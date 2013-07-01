@@ -1,3 +1,12 @@
+2013-07-01  Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-1-683
+	
+	* doc/uguide/references.bib, doc/uguide/absorption.tex: Added Zeeman
+	explanation. Made line mixing explanation more exhaustive. I am not entirely
+	certain if this is sufficient as documentation, but it should now explain
+	the steps necessary to attain make the program run.
+
 2013-06-27  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-682

@@ -624,8 +624,67 @@ in ARTS, some modifications were necessary, specifically:
  \end{center}
 \end{figure}
 
+\section{Zeeman calculations}
+\label{sec:absorption:zeeman}
+
+The Zeeman effect is calculated in the method \verb|propmat_clearskyAddZeeman|.
+If this method is included in the \verb|propmat_clearsky_agenda|, then species with the
+tag "\verb|-Z|" will be calculated as Zeeman species. If the method is not included,
+then these species will simply be ignored. The order of the tag is important. 
+It must be the first tag. Thus, \verb|O2-Z-66| will be counted as Zeeman splitting on the
+O$^{16}$O$^{16}$ molecule, whereas \verb|O2-66-Z| will not work the same way, or even at all.
+
+The physics and internal workings of the Zeeman calculations follow the scheme presented in
+Larsson et al., submitted 2013 to JQSRT, \textit{A treatment of the Zeeman effect using Stokes
+formalism and its implementation in the Atmospheric
+Radiative Transfer Simulator ARTS}. %FIXME: Proper source when accepted.
+
+In order to calculate Zeeman splitting, additional line parameters that are not readily
+available in, e.g., HITRAN are necessary. These include $g_s$ [-], the relative Land\'{e} factor,
+and $S$ [-], the molecular total spin. These variables must therefore be read to \verb|isotopologue_quantum|.
+The format of this variable is \verb|SpeciesAuxData| and one example format of a file containing such data
+follows:
+\begin{code}
+<arts format="ascii" version="1">
+  <SpeciesAuxData version="1" nelem="1" nparam="2">
+    @ O2-66 2.002064 1
+  </SpeciesAuxData>
+</arts>
+\end{code}
+In this example, the \verb|@ O2-66| indicates what isotopologue we are associating 
+with the data, the number \verb|2.002064| is the relative Land\'{e} factor, and 
+the molecule got $S=1$.
+Note that only oxygen is supported at present in ARTS but that there are plans to 
+add more molecules to this list.
+
+More than the additional line parameters, it is also necessary to input the magnetic
+field into the model. This can be done following:
+\begin{code}
+GriddedField3Create(B_W)
+  ReadXML(B_W,"B_w.xml.gz")
+  GriddedFieldLatLonRegrid( B_W, lat_grid, lon_grid, B_W )
+  GriddedFieldPRegrid( B_W, p_grid, B_W )
+  FieldFromGriddedField( mag_w_field, p_grid, lat_grid, 
+                         lon_grid, B_W )
+\end{code}
+for each of the three variables \verb|mag_w_field|, 
+\verb|mag_v_field|, and \verb|mag_u_field|. The letters that change corresponds to
+the coordinate in the used spherical coordinate system as defined in the theory
+documentation. The file should contain a \verb|GriddedField3| that grids magnetic
+strength in the coordinate basis to latitude, longitude and pressure.
+
+The last thing the user needs to think about is that it becomes necessary to take 
+phase effects into account when calculating the Zeeman effect. It is therefore 
+important that the variable \verb|abs_lineshape| is one that allows for such 
+information to return. One example line shape that does is can be defined through
+\begin{code}
+abs_lineshapeDefine( abs_lineshape, "Faddeeva_Algorithm_916", 
+                     "VVH", 750e9 )
+\end{code}
 
 \subsection{Internal line-mixing}
+\label{sec:absorption:line-mixing}
+
 For first- and second-ordered line-mixing there exists an explicit tag to read
 and match line-mixing parameters to individual lines. This can be accessed
 through the tags \verb|"O2-LM_2NDORDER"| or \verb|"O2-Z-LM_2NDORDER"|, if you
@@ -637,7 +696,7 @@ ArrayOfLineMixingRecord containing the line-mixing data into
 \verb|line_mixing_dataMatch|, which will match the data in the Array* by quantum
 numbers to lines in \verb|abs_lines|. If this is done properly, line-mixing will
 be applied at a lower level.
-\newpage
+
 Example flow for code calculating a single Zeeman line with O$_2$ 
 line-mixing spectrum in the background:
 \begin{code}
@@ -668,6 +727,69 @@ line_mixing_dataMatch(
     species_tag="O2-Z-66-LM_2NDORDER-53.0469e9-53.0869e9",
     line_mixing_records=lm_o2)
 \end{code}
+
+There is future plans for more methods to allow internal line-mixing for different molecules,
+but at the time of writing the second order line-mixing method for the oxygen
+molecule is the only included method.
+As a consequence, first order line-mixing also works for oxygen.
+For details on the second order line-mixing method see \citet{makarov11:_60-ghz_jqsrt}.
+To be fully accurate, the method should work with the correct input data for other molecules as well.
+
+Example of correct input data:
+\begin{code}
+<?xml version="1.0"?>
+<arts format="ascii" version="1">
+<Array type="LineMixingRecord" nelem="38">
+<LineMixingRecord>
+<SpeciesTag>"O2-66-*-*"</SpeciesTag>
+<QuantumNumberRecord>
+<Upper><QuantumNumbers nelem="3"> 
+  J 1/1 N 1/1 v1 0/1 
+</QuantumNumbers></Upper>
+<Lower><QuantumNumbers nelem="3"> 
+  J 2/1 N 1/1 v1 0/1 
+</QuantumNumbers></Lower>
+</QuantumNumberRecord>
+<Vector nelem="11">
+2.65e-06
+-1.32e-07
+-8.35e-12
+8.43e-13
+0.000545
+0.00017
+300
+0.8
+1.6
+1.6
+1.6
+</Vector>
+</LineMixingRecord>
+</Array>
+</arts>
+\end{code}
+The format of the above data is thusly: \verb|SpeciesTag|, \verb|QuantumNumberRecord|, \verb|Vector|, 
+The above input will cause the \verb|O2-66-*-*| line with
+upper quantum numbers $J=1$, $N=1$ and $\nu_1=0$ and with
+lower quantum numbers $J=2$, $N=1$ and $\nu_1=0$ to match.
+If this is the only input file, the described line is the only
+line experiencing line-mixing in your calculations. If there
+were more lines in the file, these would also experience line-mixing.
+In order of appearance in the vector, its format is 
+first order zeroth phase correction [Pa$^{-1}$], 
+first order first phase correction [Pa$^{-1}$],
+second order zeroth absorption correction [Pa$^{-2}$],
+second order first absorption correction [Pa$^{-2}$],
+second order zeroth line-center correction [Hz Pa$^{-2}$],
+second order first line-center correction [Hz Pa$^{-2}$],
+standard temperature for corrections [K],
+first order phase temperature correction exponential term [-],
+second order absorption temperature correction exponential term [-], and
+second order line-center temperature correction exponential term [-].
+The format of the vector is fixed according to necessary information found in \citet{makarov11:_60-ghz_jqsrt},
+the naming scheme of the variables above can also be understood from the same work.
+
+First order line mixing, as per the MPM/PWR complete oxygen models, 
+can be achieved with the correct input by letting the second order terms be nil.
 
 \section{The gas absorption lookup table}
 \label{sec:absorption:lookup}
@@ -877,16 +999,6 @@ workspace methods for this purpose.
 In particular, the method \wsmindex{abs\_mat\_fieldCalc} provides the absorption
 matrices, i.e., polarized absorption coefficients, per species tag group for
 an entire atmospheric scenario and the complete frequency grid.
-
-\section{Zeeman calculations}
-\label{sec:absorption:zeeman}
-
-FIXME: Richard.
-
-\section{Line mixing}
-\label{sec:absorption:line-mixing}
-
-FIXME: Richard.
 
 %%% Local Variables: 
 %%% mode: latex 
