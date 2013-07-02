@@ -26,8 +26,9 @@
 #include "messages.h"
 #include "tmatrix.h"
 
-void TMatrixTest(const Verbosity&)
+void TMatrixTest(const Verbosity& verbosity)
 {
-    tmatrix_tmd_test();
-    tmatrix_ampld_test();
+    tmatrix_tmd_test(verbosity);
+    tmatrix_ampld_test(verbosity);
+    calc_ssp_test(verbosity);
 }

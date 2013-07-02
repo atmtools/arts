@@ -1,7 +1,33 @@
+2013-07-02  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-684
+
+	* src/tmatrix.cc:
+
+	(calcSingleScatteringDataProperties):
+
+	Port of PyARTS' calc_SSP function. Implemented particle type 20 and
+	verified that results are consistent with PyARTS.
+
+	(calc_ssp_test): Test function to compare results to PyARTS.
+
+	(tmatrix_random_orientation):
+
+	Convenience function for T-Matrix calculations of randomly oriented
+	particles. Based on tmat_rnd in PyARTS.
+
+	(tmd_): Add documentation.
+
+	* src/tmatrix.h: Add calc_ssp_test.
+
+	* src/m_tmatrix.cc (TMatrixTest): Call calc_ssp_test.
+
+	* 3rdparty/tmatrix/tmd.arts.f: Comment out unhelpful info output.
+
 2013-07-01  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-1-683
-	
+
 	* doc/uguide/references.bib, doc/uguide/absorption.tex: Added Zeeman
 	explanation. Made line mixing explanation more exhaustive. I am not entirely
 	certain if this is sufficient as documentation, but it should now explain
