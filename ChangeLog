@@ -1,3 +1,39 @@
+2013-07-04  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-685
+
+	* src/tmatrix.{h,cc}:
+
+	(calcSingleScatteringDataProperties):
+
+	Started PARTICLE_TYPE_HORIZ_AL.  Implemented calculation of phase
+	matrix for prolate particles and extinction matrix for oblate and
+	prolate particles.
+	TBD: Csca integral to get abs_vec_data. Phase matrix for oblate
+	particles.
+
+	(tmatrix_fixed_orientation):
+
+	Add wrapper for Fortran subroutine tmatrix_.
+
+	(avgtmatrix_): Add fortran interface.
+
+	(calc_phamat): Calculate phase matrix.
+
+	(ampmat_to_phasmat): Renamed phasmat. Convert phase matrix to m^2.
+
+	(calc_ssp_fixed_test): Add test for particles with fixed orientation.
+
+	* 3rdparty/tmatrix/avg_tmatrix.f: Added from PyARTS.
+
+	* 3rdparty/tmatrix/CMakeLists.txt: Add avg_tmatrix.f.
+
+	* 3rdparty/tmatrix/tmd.lp.f: Output Csca and Cext.
+
+	* 3rdparty/tmatrix/tmatrix_tmd.ref: Updated.
+
+	* src/m_tmatrix.cc (TMatrixTest): Add calc_ssp_fixed_test.
+
 2013-07-02  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-684

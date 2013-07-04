@@ -37,11 +37,21 @@
 
 extern const Numeric PI;
 
-void phasmat(Matrix& z,
-             const Complex& s11,
-             const Complex& s12,
-             const Complex& s21,
-             const Complex& s22);
+void calc_phamat(Matrix& z,
+                 const Index& nmax,
+                 const Numeric& lam,
+                 const Numeric& thet0,
+                 const Numeric& thet,
+                 const Numeric& phi0,
+                 const Numeric& phi,
+                 const Numeric& beta,
+                 const Numeric& alpha);
+
+void ampmat_to_phamat(Matrix& z,
+                      const Complex& s11,
+                      const Complex& s12,
+                      const Complex& s21,
+                      const Complex& s22);
 
 
 #ifdef ENABLE_TMATRIX
@@ -216,6 +226,8 @@ extern "C" {
                Complex&       s12,
                Complex&       s21,
                Complex&       s22);
+
+    void avgtmatrix_(const Index& nmax);
 #ifdef ENABLE_TMATRIX
 }
 #endif
@@ -298,10 +310,37 @@ void ampl_(const Index&,
     throw std::runtime_error("This version of ARTS was compiled without T-Matrix support.");
 }
 
+void avgtmatrix_(const Index&)
+{
+    throw std::runtime_error("This version of ARTS was compiled without T-Matrix support.");
+}
+
 #endif
 
 
-/** Calculate Phase Matrix.
+void calc_phamat(Matrix& z,
+                       const Index& nmax,
+                       const Numeric& lam,
+                       const Numeric& thet0,
+                       const Numeric& thet,
+                       const Numeric& phi0,
+                       const Numeric& phi,
+                       const Numeric& beta,
+                       const Numeric& alpha)
+{
+    Complex s11;
+    Complex s12;
+    Complex s21;
+    Complex s22;
+    ampl_(nmax, lam, thet0, thet, phi0, phi, alpha, beta, s11, s12, s21, s22);
+//    cout << s11 << " " << s12 << " " << s21 << " " << s22 << endl;
+
+    ampmat_to_phamat(z, s11, s12, s21, s22);
+    z *= 1e-12;
+}
+
+
+/** Calculate phase matrix from amplitude matrix.
 
  Ported from the T-Matrix Fortran code in 3rdparty/tmatrix/ampld.lp.f
 
@@ -314,11 +353,11 @@ void ampl_(const Index&,
 
  \author Oliver Lemke
  */
-void phasmat(Matrix& z,
-             const Complex& s11,
-             const Complex& s12,
-             const Complex& s21,
-             const Complex& s22)
+void ampmat_to_phamat(Matrix& z,
+                      const Complex& s11,
+                      const Complex& s12,
+                      const Complex& s21,
+                      const Complex& s22)
 {
     z.resize(4, 4);
     z(0, 0) =               0.5 * (  s11 * conj(s11) + s12 * conj(s12)
@@ -344,6 +383,8 @@ void phasmat(Matrix& z,
     z(3, 1) = (Complex(0.,  1.) * (  s21 * conj(s11) - s22 * conj(s12))).real();
     z(3, 2) = (Complex(0., -1.) * (  s22 * conj(s11) - s12 * conj(s21))).real();
     z(3, 3) =                     (  s22 * conj(s11) - s12 * conj(s21)).real();
+
+    z *= 1e-12;  // micron^2 to meter^2
 }
 
 
@@ -405,7 +446,7 @@ void tmatrix_random_orientation(Numeric& cext,
     // It is necessary to make sure that the Fortran code is not
     // called from different threads at the same time. The common
     // blocks are not threadsafe.
-#pragma omp critical(tmatrix_tmd)
+#pragma omp critical(tmatrix_code)
     tmd_(1.0,
          4,
          equiv_radius,
@@ -447,6 +488,54 @@ void tmatrix_random_orientation(Numeric& cext,
 }
 
 
+/** Calculate properties for particles in a fixed orientation.
+
+ This is a simplified interface to the tmatrix_() function for randomly oriented
+ particles based on the PyARTS function tmat_fxd
+
+ \param[out] cext  Extinction cross section per particle
+ \param[out] csca  Scattering cross section per particle
+ \param[out] nmax  FIXME OLE
+ \param[in] equiv_radius    See parameter axmax in tmd_()
+ \param[in] aspect_ratio    See parameter eps in tmd_()
+ \param[in] np              See tmd_()
+ \param[in] lam             See tmd_()
+ \param[in] ref_index_real  See parameter mrr in tmd_()
+ \param[in] ref_index_imag  See parameter mri in tmd_()
+ \param[in] precision       See parameter ddelt in tmd_()
+ \param[in] quiet           See tmd_()
+ */
+void tmatrix_fixed_orientation(Numeric& cext,
+                               Numeric& csca,
+                               Index& nmax,
+                               const Numeric equiv_radius,
+                               const Numeric aspect_ratio,
+                               const Index np,
+                               const Numeric lam,
+                               const Numeric ref_index_real,
+                               const Numeric ref_index_imag,
+                               const Numeric precision,
+                               const Index quiet = 1)
+{
+    char errmsg[1024] = "";
+
+    // It is necessary to make sure that the Fortran code is not
+    // called from different threads at the same time. The common
+    // blocks are not threadsafe.
+#pragma omp critical(tmatrix_code)
+    tmatrix_(1., equiv_radius, np, lam, aspect_ratio,
+             ref_index_real, ref_index_imag, precision,
+             nmax, csca, cext, quiet, errmsg);
+
+    if (strlen(errmsg))
+    {
+        std::ostringstream os;
+        os << "T-Matrix code failed: " <<  errmsg;
+        throw std::runtime_error(os.str());
+    }
+}
+
+
 /** Calculate SingleScatteringData properties.
 
  Port of calc_SSP function from PyARTS.
@@ -476,11 +565,10 @@ void calcSingleScatteringDataProperties(SingleScatteringData& ssd,
     const Index nT = ssd.T_grid.nelem();
 
     const Index nza = ssd.za_grid.nelem();
-//    const Index naa = ssd.aa_grid.nelem();
 
     extern const Numeric SPEED_OF_LIGHT;
 
-    // The T-Matrix codes need frequency as wavelength in microns
+    // The T-Matrix codes needs wavelength in microns
     Vector lam(nf, 1e6*SPEED_OF_LIGHT);
     lam /= ssd.f_grid;
 
@@ -490,6 +578,10 @@ void calcSingleScatteringDataProperties(SingleScatteringData& ssd,
             ssd.pha_mat_data.resize(nf, nT, nza, 1, 1, 1, 6);
             ssd.ext_mat_data.resize(nf, nT, 1, 1, 1);
             ssd.abs_vec_data.resize(nf, nT, 1, 1, 1);
+
+            ssd.pha_mat_data = NAN;
+            ssd.ext_mat_data = NAN;
+            ssd.abs_vec_data = NAN;
 
             // Output variables
             Numeric cext = NAN;
@@ -502,6 +594,7 @@ void calcSingleScatteringDataProperties(SingleScatteringData& ssd,
             Vector f34;
             Matrix mono_pha_mat_data(nza, 6, NAN);
 
+#pragma omp critical(tmatrix_ssp)
             for (Index f_index = 0; f_index < nf; ++f_index)
                 for (Index T_index = 0; T_index < nT; ++T_index)
                 {
@@ -542,13 +635,138 @@ void calcSingleScatteringDataProperties(SingleScatteringData& ssd,
             
             break;
         }
+        case PARTICLE_TYPE_HORIZ_AL:
+        {
+            Index nza_inc = (nza-1)/2 + 1;
+            const Index naa = ssd.aa_grid.nelem();
+
+            ssd.ext_mat_data.resize(nf, nT, nza_inc, 1, 3);
+            ssd.pha_mat_data.resize(nf, nT, nza, naa, nza_inc, 1, 16);
+            ssd.abs_vec_data.resize(nf, nza_inc, 1, 2, 1);
+
+            ssd.ext_mat_data = NAN;
+            ssd.pha_mat_data = NAN;
+            ssd.abs_vec_data = NAN;
+
+            // Output variables
+            Numeric cext = NAN;
+            Numeric csca = NAN;
+            Index nmax = -1;
+
+#pragma omp critical(tmatrix_ssp)
+            for (Index f_index = 0; f_index < nf; ++f_index)
+            {
+                const Numeric lam_f = lam[f_index];
+
+                for (Index T_index = 0; T_index < nT; ++T_index)
+                {
+                    try {
+                        tmatrix_fixed_orientation
+                        (cext, csca, nmax,
+                         equiv_radius, aspect_ratio, np, lam_f,
+                         ref_index_real(f_index, T_index),
+                         ref_index_imag(f_index, T_index),
+                         precision);
+                    } catch (std::runtime_error e) {
+                        ostringstream os;
+                        os << "Calculation of SingleScatteringData properties failed for\n"
+                        << "f_grid[" << f_index << "] = " << ssd.f_grid[f_index] << "\n"
+                        << "T_grid[" << T_index << "] = " << ssd.T_grid[T_index] << "\n"
+                        << e.what();
+                        throw std::runtime_error(os.str());
+                    }
+
+                    
+                    Matrix phamat;
+                    for (Index za_scat_index = 0; za_scat_index < nza; ++za_scat_index)
+                        for (Index aa_index = 0; aa_index < naa; ++aa_index)
+                            for (Index za_inc_index = 0; za_inc_index < nza_inc; ++za_inc_index)
+                            {
+                                if (aspect_ratio < 1.0)
+                                {
+//                                    cout << "No phamat for AR<1.0 yet" << endl;
+                                }
+                                else
+                                {
+                                    calc_phamat(phamat,
+                                                nmax, lam_f,
+                                                ssd.za_grid[za_inc_index],
+                                                ssd.za_grid[za_scat_index],
+                                                0.0,
+                                                ssd.aa_grid[aa_index],
+                                                0.0, 0.0);
+                                ssd.pha_mat_data(f_index, T_index,
+                                                 za_scat_index, aa_index, za_inc_index,
+                                                 0, Range(0, 4)) = phamat(0, joker);
+                                ssd.pha_mat_data(f_index, T_index,
+                                                 za_scat_index, aa_index, za_inc_index,
+                                                 0, Range(4, 4)) = phamat(1, joker);
+                                ssd.pha_mat_data(f_index, T_index,
+                                                 za_scat_index, aa_index, za_inc_index,
+                                                 0, Range(8, 4)) = phamat(2, joker);
+                                ssd.pha_mat_data(f_index, T_index,
+                                                 za_scat_index, aa_index, za_inc_index,
+                                                 0, Range(12, 4)) = phamat(3, joker);
+                                }
+                            }
+
+                    // Csca integral
+                    for (Index za_scat_index = 0; za_scat_index < nza_inc; ++za_scat_index)
+                    {
+                        if (aspect_ratio < 1.0)
+                        {
+//                            cout << "No Csca for AR<1.0 yet" << endl;
+                        }
+                        else
+                        {
+//                            const Numeric beta = 90.;
+                        }
+                    }
+
+                    // Extinction matrix
+                    if (aspect_ratio < 1.0)
+                    {
+                        avgtmatrix_(nmax);
+                    }
+
+                    for (Index za_inc_index = 0; za_inc_index < nza_inc; ++za_inc_index)
+                    {
+                        Complex s11;
+                        Complex s12;
+                        Complex s21;
+                        Complex s22;
+                        VectorView K = ssd.ext_mat_data(f_index, T_index, za_inc_index, 0, joker);
+
+                        const Numeric beta = 0.;
+                        const Numeric alpha = 0.;
+                        ampl_(nmax, lam_f,
+                              ssd.za_grid[za_inc_index],
+                              ssd.za_grid[za_inc_index],
+                              0., 0.,
+                              alpha, beta,
+                              s11, s12, s21, s22);
+
+
+                        K[0] = (Complex(0., -1.) * (s11+s22)).real();
+                        K[1] = (Complex(0.,  1.) * (s22-s11)).real();
+                        K[2] =                     (s22-s11).real();
+
+                        K *= lam_f * 1e-12;  // micron^2 to meter^2
+
+                    }
+                }
+            }
+            break;
+        }
         default:
+        {
             std::ostringstream os;
-            os << "Only particle type 20 (MACROS_ISO) is currently supported: " << ssd.ptype;
+            os << "Only particle types 20 and 30 are currently supported: "
+            << ssd.ptype;
             throw std::runtime_error(os.str());
             break;
+        }
     }
-
 }
 
 
@@ -572,7 +790,7 @@ void tmatrix_ampld_test(const Verbosity& verbosity)
     Numeric mri = 0.02;
     Numeric ddelt = 0.001;
 
-    Index   quiet = 0;
+    Index   quiet = 1;
 
     // Output variables
     Index   nmax;
@@ -612,7 +830,8 @@ void tmatrix_ampld_test(const Verbosity& verbosity)
     out0 << "s22: " << s22 << "\n";
 
     Matrix z;
-    phasmat(z, s11, s12, s21, s22);
+    ampmat_to_phamat(z, s11, s12, s21, s22);
+    z *= 1e12; // meter^2 to micron^2 for comparison with original results
 
     out0 << "PHASE MATRIX: \n" << z << "\n";
 }
@@ -647,7 +866,7 @@ void tmatrix_tmd_test(const Verbosity& verbosity)
     Numeric r1rat = 0.89031;
     Numeric r2rat = 1.56538;
 
-    Index   quiet = 0;
+    Index   quiet = 1;
 
     // Output variables
     Numeric reff;
@@ -714,11 +933,12 @@ void tmatrix_tmd_test(const Verbosity& verbosity)
 
 
 // Documentation in header file.
-void calc_ssp_test(const Verbosity& verbosity)
+void calc_ssp_random_test(const Verbosity& verbosity)
 {
     CREATE_OUT0;
     out0 << "======================================================\n";
     out0 << "Test calculation of single scattering data\n";
+    out0 << "for randomly oriented, oblate particles\n";
     out0 << "======================================================\n";
 
 
@@ -741,11 +961,87 @@ void calc_ssp_test(const Verbosity& verbosity)
     mri(0, 0) = 0.00278706; mri(0, 1) = 0.00507565;
     mri(1, 0) = 0.00287245; mri(1, 1) = 0.00523012;
 
-    calcSingleScatteringDataProperties(ssd, mrr, mri);
+    calcSingleScatteringDataProperties(ssd, mrr, mri,
+                                       200.,
+                                       -1,
+                                       "ice",
+                                       1.000001);
 
-    out0 << "pha_mat_data:\n" << ssd.pha_mat_data << "\n\n";
+//    out0 << "pha_mat_data:\n" << ssd.pha_mat_data << "\n\n";
+
+    out0 << "ssd.ext_mat_data:\n" << ssd.ext_mat_data << "\n\n";
+//    out0 << "abs_vec_data:\n" << ssd.abs_vec_data << "\n\n";
+
+    out0 << "======================================================\n";
+    out0 << "Test calculation of single scattering data\n";
+    out0 << "for randomly oriented, prolate particles\n";
+    out0 << "======================================================\n";
+
+    calcSingleScatteringDataProperties(ssd, mrr, mri,
+                                       200.,
+                                       -1,
+                                       "ice",
+                                       0.7);
+
+//    out0 << "pha_mat_data:\n" << ssd.pha_mat_data << "\n\n";
+
+    out0 << "ssd.ext_mat_data:\n" << ssd.ext_mat_data << "\n\n";
+//    out0 << "abs_vec_data:\n" << ssd.abs_vec_data << "\n\n";
+}
+
+
+// Documentation in header file.
+void calc_ssp_fixed_test(const Verbosity& verbosity)
+{
+    CREATE_OUT0;
+    out0 << "======================================================\n";
+    out0 << "Test calculation of single scattering data\n";
+    out0 << "for oblate particles with fixed orientation\n";
+    out0 << "======================================================\n";
+
+
+    SingleScatteringData ssd;
+
+    ssd.ptype = PARTICLE_TYPE_HORIZ_AL;
+    ssd.f_grid = MakeVector(230e9, 240e9);
+    ssd.T_grid = MakeVector(220, 250);
+    nlinspace(ssd.za_grid, 0, 180, 19);
+    nlinspace(ssd.aa_grid, 0, 180, 19);
+
+    // Refractive index real and imagenary parts
+    // Dimensions: [nf, nT];
+    Matrix mrr(ssd.f_grid.nelem(), ssd.T_grid.nelem(), 1.78031135);
+    Matrix mri(ssd.f_grid.nelem(), ssd.T_grid.nelem(), 0.00278706);
+
+    mrr(0, 0) = 1.78031135; mrr(0, 1) = 1.78150475;
+    mrr(1, 0) = 1.78037238; mrr(1, 1) = 1.78147686;
+
+    mri(0, 0) = 0.00278706; mri(0, 1) = 0.00507565;
+    mri(1, 0) = 0.00287245; mri(1, 1) = 0.00523012;
+
+    calcSingleScatteringDataProperties(ssd, mrr, mri,
+                                       200.,
+                                       -1,
+                                       "ice",
+                                       1.000001);
+
+//    out0 << "pha_mat_data:\n" << ssd.pha_mat_data << "\n\n";
+//
+    out0 << "ssd.ext_mat_data(0, 0, joker, joker, joker):\n"
+    << ssd.ext_mat_data(0, 0, joker, joker, joker) << "\n\n";
+//    out0 << "abs_vec_data:\n" << ssd.abs_vec_data << "\n\n";
+
+    out0 << "======================================================\n";
+    out0 << "Test calculation of single scattering data\n";
+    out0 << "for prolate particles with fixed orientation\n";
+    out0 << "======================================================\n";
+    calcSingleScatteringDataProperties(ssd, mrr, mri,
+                                       200.,
+                                       -1,
+                                       "ice",
+                                       0.7);
     
-    out0 << "ext_mat_data:\n" << ssd.ext_mat_data << "\n\n";
-    out0 << "abs_vec_data:\n" << ssd.abs_vec_data << "\n\n";
+    out0 << "ssd.ext_mat_data(0, 0, joker, joker, joker):\n"
+    << ssd.ext_mat_data(0, 0, joker, joker, joker) << "\n\n";
 }
 

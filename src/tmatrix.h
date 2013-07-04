@@ -51,29 +51,89 @@ void tmatrix_ampld_test(const Verbosity& verbosity);
 void tmatrix_tmd_test(const Verbosity& verbosity);
 
 
-/** Single scattering properties test calculation.
+/** Single scattering properties calculation for randomly oriented particles.
 
- This testcase is equivalent to the following PyARTS case:
+ Two cases are calculated. One with oblate particles which is equivalent to
+ the following PyARTS case:
  <pre>
- import numpy as np
- from PyARTS import arts_types
+from PyARTS import arts_types
 
- params = {'f_grid': [230e9, 240e9],
- 'T_grid': [220, 250],
- 'za_grid': numpy.arange(0, 181, 10),
- 'aa_grid': numpy.arange(0, 181, 10),
- 'equiv_radius': 200, # equivalent volume radius
- 'NP':-1, # -1 for spheroid, -2 for cylinder, positive for chebyshev
- 'phase':'ice',
- 'aspect_ratio': 1.000001}
- s = arts_types.SingleScatteringData(params)
- s.calc()
+params = {'f_grid': [230e9, 240e9],
+          'T_grid': [220, 250],
+          'za_grid': numpy.arange(0, 181, 10),
+          'aa_grid': numpy.arange(0, 181, 10),
+          'equiv_radius': 200, # equivalent volume radius
+          'NP':-1, # -1 for spheroid, -2 for cylinder, positive for chebyshev
+          'phase':'ice',
+          'aspect_ratio': 1.000001}
+s = arts_types.SingleScatteringData(params)
+s.calc()
+ </pre>
+
+ And one with prolate particles which is equivalent to
+ the following PyARTS case:
+ <pre>
+from PyARTS import arts_types
+
+params = {'f_grid': [230e9, 240e9],
+          'T_grid': [220, 250],
+          'za_grid': numpy.arange(0, 181, 10),
+          'aa_grid': numpy.arange(0, 181, 10),
+          'equiv_radius': 200, # equivalent volume radius
+          'NP':-1, # -1 for spheroid, -2 for cylinder, positive for chebyshev
+          'phase':'ice',
+          'aspect_ratio': 0.7}
+s = arts_types.SingleScatteringData(params)
+s.calc()
  </pre>
 
  \author Oliver Lemke
  */
-void calc_ssp_test(const Verbosity& verbosity);
+void calc_ssp_random_test(const Verbosity& verbosity);
 
+/** Single scattering properties calculation for particles with fixed orientation.
+
+ Two cases are calculated. One with oblate particles which is equivalent to
+ the following PyARTS case:
+ <pre>
+from PyARTS import arts_types
+from PyARTS import constants
+
+params = {'ptype': constants.PARTICLE_TYPE_HORIZ_AL,
+          'f_grid': [230e9, 240e9],
+          'T_grid': [220, 250],
+          'za_grid': numpy.arange(0, 181, 10),
+          'aa_grid': numpy.arange(0, 181, 10),
+          'equiv_radius': 200, # equivalent volume radius
+          'NP':-1, # -1 for spheroid, -2 for cylinder, positive for chebyshev
+          'phase':'ice',
+          'aspect_ratio': 1.000001}
+s = arts_types.SingleScatteringData(params)
+s.calc()
+ </pre>
+
+ And one with prolate particles which is equivalent to
+ the following PyARTS case:
+ <pre>
+from PyARTS import arts_types
+from PyARTS import constants
+
+params = {'ptype': constants.PARTICLE_TYPE_HORIZ_AL,
+          'f_grid': [230e9, 240e9],
+          'T_grid': [220, 250],
+          'za_grid': numpy.arange(0, 181, 10),
+          'aa_grid': numpy.arange(0, 181, 10),
+          'equiv_radius': 200, # equivalent volume radius
+          'NP':-1, # -1 for spheroid, -2 for cylinder, positive for chebyshev
+          'phase':'ice',
+          'aspect_ratio': 0.7}
+s = arts_types.SingleScatteringData(params)
+s.calc()
+ </pre>
+
+ \author Oliver Lemke
+ */
+void calc_ssp_fixed_test(const Verbosity& verbosity);
 
 #endif //  tmatrix_h
 
