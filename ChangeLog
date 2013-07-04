@@ -1,5 +1,19 @@
 2013-07-04  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-686
+
+	* src/tmatrix.cc:
+
+	(integrate_phamat): Add Gauss Legendre phase matrix interpolation.
+
+	(calcSingleScatteringDataProperties):
+
+	Calculate phase matrix for oblate particles.
+
+	(calc_phamat): Remove unit conversion. Now done in ampmat_to_phamat.
+
+2013-07-04  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-685
 
 	* src/tmatrix.{h,cc}:

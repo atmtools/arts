@@ -53,6 +53,16 @@ void ampmat_to_phamat(Matrix& z,
                       const Complex& s21,
                       const Complex& s22);
 
+void integrate_phamat(Matrix& phamat,
+                      const Index& nmax,
+                      const Numeric& lam,
+                      const Numeric& thet0,
+                      const Numeric& thet,
+                      const Numeric& phi0,
+                      const Numeric& phi,
+                      const Numeric& beta,
+                      const Numeric& alpha1,
+                      const Numeric& alpha2);
 
 #ifdef ENABLE_TMATRIX
 extern "C" {
@@ -319,24 +329,22 @@ void avgtmatrix_(const Index&)
 
 
 void calc_phamat(Matrix& z,
-                       const Index& nmax,
-                       const Numeric& lam,
-                       const Numeric& thet0,
-                       const Numeric& thet,
-                       const Numeric& phi0,
-                       const Numeric& phi,
-                       const Numeric& beta,
-                       const Numeric& alpha)
+                 const Index& nmax,
+                 const Numeric& lam,
+                 const Numeric& thet0,
+                 const Numeric& thet,
+                 const Numeric& phi0,
+                 const Numeric& phi,
+                 const Numeric& beta,
+                 const Numeric& alpha)
 {
     Complex s11;
     Complex s12;
     Complex s21;
     Complex s22;
     ampl_(nmax, lam, thet0, thet, phi0, phi, alpha, beta, s11, s12, s21, s22);
-//    cout << s11 << " " << s12 << " " << s21 << " " << s22 << endl;
 
     ampmat_to_phamat(z, s11, s12, s21, s22);
-    z *= 1e-12;
 }
 
 
@@ -385,6 +393,59 @@ void ampmat_to_phamat(Matrix& z,
     z(3, 3) =                     (  s22 * conj(s11) - s12 * conj(s21)).real();
 
     z *= 1e-12;  // micron^2 to meter^2
+}
+
+
+/** Integrate phase matrix over particle orientation angle.
+
+ Performs a ten point Gauss–Legendre integration over the orientation
+ angle (first Euler angle) of the particles from alpha1 to alpha2.
+
+ \param[out] phamat  Integrated phase matrix
+ \param[in]  nmax    FIXME OLE
+ \param[in]  lam     See ampl_()
+ \param[in]  thet0   See ampl_()
+ \param[in]  thet    See ampl_()
+ \param[in]  phi0    See ampl_()
+ \param[in]  phi     See ampl_()
+ \param[in]  beta    See ampl_()
+ \param[in]  alpha1  See alpha in ampl_()
+ \param[in]  alpha2  See alpha in ampl_()
+
+ \author Oliver Lemke
+ */
+void integrate_phamat(Matrix& phamat,
+                      const Index& nmax,
+                      const Numeric& lam,
+                      const Numeric& thet0,
+                      const Numeric& thet,
+                      const Numeric& phi0,
+                      const Numeric& phi,
+                      const Numeric& beta,
+                      const Numeric& alpha1,
+                      const Numeric& alpha2)
+{
+    const Numeric GaussLeg10[][5] = {
+        {0.14887434,0.43339539,0.67940957,0.86506337,0.97390653},
+        {0.29552422,0.26926672,0.21908636,0.14945135,0.06667134}
+    };
+
+    const Numeric c = 0.5 * (alpha2+alpha1);
+    const Numeric m = 0.5 * (alpha2-alpha1);
+
+    phamat.resize(4, 4);
+    Matrix z;
+
+    for (Index i = 0; i < 10; ++i)
+    {
+        const Numeric abscissa = GaussLeg10[0][i];
+        const Numeric weight = GaussLeg10[1][i];
+
+        calc_phamat(z, nmax, lam, thet0, thet, phi0, phi, beta, c + m*abscissa);
+        z *= weight;
+
+        phamat += z;
+    }
 }
 
 
@@ -684,7 +745,14 @@ void calcSingleScatteringDataProperties(SingleScatteringData& ssd,
                             {
                                 if (aspect_ratio < 1.0)
                                 {
-//                                    cout << "No phamat for AR<1.0 yet" << endl;
+                                    integrate_phamat(phamat,
+                                                     nmax, lam_f,
+                                                     ssd.za_grid[za_inc_index],
+                                                     ssd.za_grid[za_scat_index],
+                                                     0.0,
+                                                     ssd.aa_grid[aa_index],
+                                                     90.0, 0.0, 180.0);
+                                    phamat /= 180.;
                                 }
                                 else
                                 {
@@ -695,6 +763,8 @@ void calcSingleScatteringDataProperties(SingleScatteringData& ssd,
                                                 0.0,
                                                 ssd.aa_grid[aa_index],
                                                 0.0, 0.0);
+                                }
+
                                 ssd.pha_mat_data(f_index, T_index,
                                                  za_scat_index, aa_index, za_inc_index,
                                                  0, Range(0, 4)) = phamat(0, joker);
@@ -707,7 +777,6 @@ void calcSingleScatteringDataProperties(SingleScatteringData& ssd,
                                 ssd.pha_mat_data(f_index, T_index,
                                                  za_scat_index, aa_index, za_inc_index,
                                                  0, Range(12, 4)) = phamat(3, joker);
-                                }
                             }
 
                     // Csca integral
@@ -1025,10 +1094,12 @@ void calc_ssp_fixed_test(const Verbosity& verbosity)
                                        "ice",
                                        1.000001);
 
-//    out0 << "pha_mat_data:\n" << ssd.pha_mat_data << "\n\n";
-//
+    out0 << "ssd.pha_mat_data(0, 0, 0, 0, joker, joker, joker):\n"
+    << ssd.pha_mat_data(0, 0, 0, 0, joker, joker, joker) << "\n\n";
+
     out0 << "ssd.ext_mat_data(0, 0, joker, joker, joker):\n"
     << ssd.ext_mat_data(0, 0, joker, joker, joker) << "\n\n";
+    
 //    out0 << "abs_vec_data:\n" << ssd.abs_vec_data << "\n\n";
 
     out0 << "======================================================\n";
