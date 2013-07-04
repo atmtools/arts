@@ -1,7 +1,15 @@
+2013-07-04  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-688
+
+	* ChangeLog: Mixed up prolate/oblate in my previous two entries.
+
+	* src/tmatrix.cc (integrate_phamat): Finished this function.
+
 2013-07-01  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-1-687
-	
+
 	* src/m_zeeman.cc: Added some tests for 3D atmosphere and ppath_los
 	being defined that was missing. Also made the test of quantum numbers
 	print more information when the user defines Zeeman species that are
@@ -17,7 +25,7 @@
 
 	(calcSingleScatteringDataProperties):
 
-	Calculate phase matrix for oblate particles.
+	Calculate phase matrix for prolate particles.
 
 	(calc_phamat): Remove unit conversion. Now done in ampmat_to_phamat.
 
@@ -30,9 +38,9 @@
 	(calcSingleScatteringDataProperties):
 
 	Started PARTICLE_TYPE_HORIZ_AL.  Implemented calculation of phase
-	matrix for prolate particles and extinction matrix for oblate and
+	matrix for oblate particles and extinction matrix for oblate and
 	prolate particles.
-	TBD: Csca integral to get abs_vec_data. Phase matrix for oblate
+	TBD: Csca integral to get abs_vec_data. Phase matrix for prolate
 	particles.
 
 	(tmatrix_fixed_orientation):

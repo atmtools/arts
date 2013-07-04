@@ -434,18 +434,25 @@ void integrate_phamat(Matrix& phamat,
     const Numeric m = 0.5 * (alpha2-alpha1);
 
     phamat.resize(4, 4);
+    Matrix z_sum(4, 4, 0.);
     Matrix z;
 
-    for (Index i = 0; i < 10; ++i)
+    for (Index i = 0; i < 5; ++i)
     {
         const Numeric abscissa = GaussLeg10[0][i];
         const Numeric weight = GaussLeg10[1][i];
 
         calc_phamat(z, nmax, lam, thet0, thet, phi0, phi, beta, c + m*abscissa);
         z *= weight;
-
-        phamat += z;
+        z_sum += z;
+        
+        // if (abscissa != 0)
+        calc_phamat(z, nmax, lam, thet0, thet, phi0, phi, beta, c - m*abscissa);
+        z *= weight;
+        z_sum += z;
     }
+    phamat = m;
+    phamat *= z_sum;
 }
 
 
@@ -745,6 +752,7 @@ void calcSingleScatteringDataProperties(SingleScatteringData& ssd,
                             {
                                 if (aspect_ratio < 1.0)
                                 {
+                                    // Phase matrix for prolate particles
                                     integrate_phamat(phamat,
                                                      nmax, lam_f,
                                                      ssd.za_grid[za_inc_index],
@@ -756,6 +764,7 @@ void calcSingleScatteringDataProperties(SingleScatteringData& ssd,
                                 }
                                 else
                                 {
+                                    // Phase matrix for oblate particles
                                     calc_phamat(phamat,
                                                 nmax, lam_f,
                                                 ssd.za_grid[za_inc_index],
@@ -784,10 +793,12 @@ void calcSingleScatteringDataProperties(SingleScatteringData& ssd,
                     {
                         if (aspect_ratio < 1.0)
                         {
+                            // Csca for prolate particles
 //                            cout << "No Csca for AR<1.0 yet" << endl;
                         }
                         else
                         {
+                            // Csca for oblate particles
 //                            const Numeric beta = 90.;
                         }
                     }
@@ -795,6 +806,7 @@ void calcSingleScatteringDataProperties(SingleScatteringData& ssd,
                     // Extinction matrix
                     if (aspect_ratio < 1.0)
                     {
+                        // Average T-Matrix for prolate particles
                         avgtmatrix_(nmax);
                     }
 
@@ -1094,8 +1106,8 @@ void calc_ssp_fixed_test(const Verbosity& verbosity)
                                        "ice",
                                        1.000001);
 
-    out0 << "ssd.pha_mat_data(0, 0, 0, 0, joker, joker, joker):\n"
-    << ssd.pha_mat_data(0, 0, 0, 0, joker, joker, joker) << "\n\n";
+    out0 << "ssd.pha_mat_data(0, 0, 5, 0, 0, joker, joker):\n"
+    << ssd.pha_mat_data(0, 0, 5, 0, 0, joker, joker) << "\n\n";
 
     out0 << "ssd.ext_mat_data(0, 0, joker, joker, joker):\n"
     << ssd.ext_mat_data(0, 0, joker, joker, joker) << "\n\n";
@@ -1112,6 +1124,9 @@ void calc_ssp_fixed_test(const Verbosity& verbosity)
                                        "ice",
                                        0.7);
     
+    out0 << "ssd.pha_mat_data(0, 0, 5, 0, 0, joker, joker):\n"
+    << ssd.pha_mat_data(0, 0, 5, 0, 0, joker, joker) << "\n\n";
+
     out0 << "ssd.ext_mat_data(0, 0, joker, joker, joker):\n"
     << ssd.ext_mat_data(0, 0, joker, joker, joker) << "\n\n";
 }
