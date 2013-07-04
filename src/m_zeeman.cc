@@ -870,8 +870,6 @@ void propmat_clearskyAddZeeman(Tensor4& propmat_clearsky,
                                const Verbosity& verbosity)
 {
     CREATE_OUT3;
-    Vector R_path_los;
-    mirror_los(R_path_los, ppath_los, atmosphere_dim);
     
     const Numeric margin    = 1e-4;
     bool          do_zeeman = false;
@@ -909,7 +907,14 @@ void propmat_clearskyAddZeeman(Tensor4& propmat_clearsky,
         throw runtime_error("Species dimension of *propmat_clearsky* not equal to length of *abs_species*.");
     if( rtp_mag.nelem() != 3 )
         throw runtime_error("*rtp_mag* must have length 3.");
+    if( atmosphere_dim != 3 )
+        throw runtime_error("*atmosphere_dim* must be 3.");
+    if( ppath_los.nelem() != 2 )
+        throw runtime_error("*ppath_los* is not set correctly.");
     // End   TEST(s)
+
+    Vector R_path_los;
+    mirror_los(R_path_los, ppath_los, atmosphere_dim);
 
     // Using the standard scalar absorption functions to get physics parameters,
     Vector abs_p, abs_t; Matrix abs_vmrs;
@@ -1179,7 +1184,14 @@ void propmat_clearskyAddZeeman(Tensor4& propmat_clearsky,
                         }
                         else
                         { // The tests above failed and catastrophe follows
-                            throw runtime_error("If this happens, something is horribly wrong... did some of the tests above fail?");
+                            ostringstream os;
+                            os << "There seems to be something wrong with the quantum numbers of at least one line in your *abs_lines*. " <<
+                                  "Make sure this is a Zeeman line.\nThe upper quantum numbers are: " << 
+                                  abs_lines_per_species[II][ii].QuantumNumbers().Upper() <<
+                                  "\nThe lower quantum numbers are: " <<
+                                  abs_lines_per_species[II][ii].QuantumNumbers().Lower() <<
+                                  "The entire line information: " << abs_lines_per_species[II][ii];
+                            throw runtime_error(os.str());
                         }
                     }
                     
