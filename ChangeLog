@@ -1,3 +1,9 @@
+2013-07-05  Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-1-689
+	
+	* src/m_rte.cc: Changed y to y[is] on line 913 and 915.
+
 2013-07-04  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-688
@@ -6,7 +12,7 @@
 
 	* src/tmatrix.cc (integrate_phamat): Finished this function.
 
-2013-07-01  Richard Larsson  <ric.larsson@gmail.com>
+2013-07-04  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-1-687
 
