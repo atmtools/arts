@@ -53,16 +53,53 @@ void ampmat_to_phamat(Matrix& z,
                       const Complex& s21,
                       const Complex& s22);
 
-void integrate_phamat(Matrix& phamat,
-                      const Index& nmax,
-                      const Numeric& lam,
-                      const Numeric& thet0,
-                      const Numeric& thet,
-                      const Numeric& phi0,
-                      const Numeric& phi,
-                      const Numeric& beta,
-                      const Numeric& alpha1,
-                      const Numeric& alpha2);
+void integrate_phamat_alpha10(Matrix& phamat,
+                              const Index& nmax,
+                              const Numeric& lam,
+                              const Numeric& thet0,
+                              const Numeric& thet,
+                              const Numeric& phi0,
+                              const Numeric& phi,
+                              const Numeric& beta,
+                              const Numeric& alpha_1,
+                              const Numeric& alpha_2);
+
+void integrate_phamat_alpha6(Matrix& phamat,
+                             const Index& nmax,
+                             const Numeric& lam,
+                             const Numeric& thet0,
+                             const Numeric& thet,
+                             const Numeric& phi0,
+                             const Numeric& phi,
+                             const Numeric& beta,
+                             const Numeric& alpha_1,
+                             const Numeric& alpha_2);
+
+void integrate_phamat_theta0_phi10(Matrix& phamat,
+                                   const Index& nmax,
+                                   const Numeric& lam,
+                                   const Numeric& thet0_1,
+                                   const Numeric& thet0_2,
+                                   const Numeric& thet,
+                                   const Numeric& phi0,
+                                   const Numeric& phi_1,
+                                   const Numeric& phi_2,
+                                   const Numeric& beta,
+                                   const Numeric& alpha);
+
+void integrate_phamat_theta0_phi_alpha6(Matrix& phamat,
+                                        const Index& nmax,
+                                        const Numeric& lam,
+                                        const Numeric& thet0_1,
+                                        const Numeric& thet0_2,
+                                        const Numeric& thet,
+                                        const Numeric& phi0,
+                                        const Numeric& phi_1,
+                                        const Numeric& phi_2,
+                                        const Numeric& beta,
+                                        const Numeric& alpha_1,
+                                        const Numeric& alpha_2);
+
 
 #ifdef ENABLE_TMATRIX
 extern "C" {
@@ -396,6 +433,17 @@ void ampmat_to_phamat(Matrix& z,
 }
 
 
+static const Numeric GaussLeg6[][3] = {
+    {0.23861918, 0.66120939, 0.93246951},
+    {0.46791393, 0.36076157, 0.17132449}
+};
+
+static const Numeric GaussLeg10[][5] = {
+    {0.14887434, 0.43339539, 0.67940957, 0.86506337, 0.97390653},
+    {0.29552422, 0.26926672, 0.21908636, 0.14945135, 0.06667134}
+};
+
+
 /** Integrate phase matrix over particle orientation angle.
 
  Performs a ten point Gauss–Legendre integration over the orientation
@@ -409,32 +457,27 @@ void ampmat_to_phamat(Matrix& z,
  \param[in]  phi0    See ampl_()
  \param[in]  phi     See ampl_()
  \param[in]  beta    See ampl_()
- \param[in]  alpha1  See alpha in ampl_()
- \param[in]  alpha2  See alpha in ampl_()
+ \param[in]  alpha_1 See alpha in ampl_()
+ \param[in]  alpha_2 See alpha in ampl_()
 
  \author Oliver Lemke
  */
-void integrate_phamat(Matrix& phamat,
-                      const Index& nmax,
-                      const Numeric& lam,
-                      const Numeric& thet0,
-                      const Numeric& thet,
-                      const Numeric& phi0,
-                      const Numeric& phi,
-                      const Numeric& beta,
-                      const Numeric& alpha1,
-                      const Numeric& alpha2)
+void integrate_phamat_alpha10(Matrix& phamat,
+                              const Index& nmax,
+                              const Numeric& lam,
+                              const Numeric& thet0,
+                              const Numeric& thet,
+                              const Numeric& phi0,
+                              const Numeric& phi,
+                              const Numeric& beta,
+                              const Numeric& alpha_1,
+                              const Numeric& alpha_2)
 {
-    const Numeric GaussLeg10[][5] = {
-        {0.14887434,0.43339539,0.67940957,0.86506337,0.97390653},
-        {0.29552422,0.26926672,0.21908636,0.14945135,0.06667134}
-    };
-
-    const Numeric c = 0.5 * (alpha2+alpha1);
-    const Numeric m = 0.5 * (alpha2-alpha1);
+    const Numeric c = 0.5 * (alpha_2+alpha_1);
+    const Numeric m = 0.5 * (alpha_2-alpha_1);
 
     phamat.resize(4, 4);
-    Matrix z_sum(4, 4, 0.);
+    phamat = 0.;
     Matrix z;
 
     for (Index i = 0; i < 5; ++i)
@@ -444,15 +487,227 @@ void integrate_phamat(Matrix& phamat,
 
         calc_phamat(z, nmax, lam, thet0, thet, phi0, phi, beta, c + m*abscissa);
         z *= weight;
-        z_sum += z;
+        phamat += z;
         
-        // if (abscissa != 0)
         calc_phamat(z, nmax, lam, thet0, thet, phi0, phi, beta, c - m*abscissa);
         z *= weight;
-        z_sum += z;
+        phamat += z;
     }
-    phamat = m;
-    phamat *= z_sum;
+    phamat *= m;
+}
+
+
+/** Integrate phase matrix over particle orientation angle.
+
+ Performs a six point Gauss–Legendre integration over the orientation
+ angle (first Euler angle) of the particles from alpha1 to alpha2.
+
+ \param[out] phamat  Integrated phase matrix
+ \param[in]  nmax    FIXME OLE
+ \param[in]  lam     See ampl_()
+ \param[in]  thet0   See ampl_()
+ \param[in]  thet    See ampl_()
+ \param[in]  phi0    See ampl_()
+ \param[in]  phi     See ampl_()
+ \param[in]  beta    See ampl_()
+ \param[in]  alpha_1 See alpha in ampl_()
+ \param[in]  alpha_2 See alpha in ampl_()
+
+ \author Oliver Lemke
+ */
+void integrate_phamat_alpha6(Matrix& phamat,
+                             const Index& nmax,
+                             const Numeric& lam,
+                             const Numeric& thet0,
+                             const Numeric& thet,
+                             const Numeric& phi0,
+                             const Numeric& phi,
+                             const Numeric& beta,
+                             const Numeric& alpha_1,
+                             const Numeric& alpha_2)
+{
+    const Numeric c = 0.5 * (alpha_2+alpha_1);
+    const Numeric m = 0.5 * (alpha_2-alpha_1);
+
+    phamat.resize(4, 4);
+    phamat = 0.;
+    Matrix z;
+
+    for (Index i = 0; i < 3; ++i)
+    {
+        const Numeric abscissa = GaussLeg6[0][i];
+        const Numeric weight = GaussLeg6[1][i];
+
+        calc_phamat(z, nmax, lam, thet0, thet, phi0, phi, beta, c + m*abscissa);
+        z *= weight;
+        phamat += z;
+        
+        calc_phamat(z, nmax, lam, thet0, thet, phi0, phi, beta, c - m*abscissa);
+        z *= weight;
+        phamat += z;
+    }
+    phamat *= m;
+}
+
+
+/** Integrate phase matrix over angles thet0 and phi.
+
+ Performs a ten point Gauss–Legendre integration over the
+ zenith angle of the incident beam (thet0) and the azimuth
+ angle of the scattered beam (phi).
+
+ \param[out] phamat  Integrated phase matrix
+ \param[in]  nmax    FIXME OLE
+ \param[in]  lam     See ampl_()
+ \param[in]  thet0_1 See thet0 in ampl_()
+ \param[in]  thet0_2 See thet0 in ampl_()
+ \param[in]  thet    See ampl_()
+ \param[in]  phi0    See ampl_()
+ \param[in]  phi_1   See phi in ampl_()
+ \param[in]  phi_2   See phi in ampl_()
+ \param[in]  beta    See ampl_()
+ \param[in]  alpha   See in ampl_()
+
+ \author Oliver Lemke
+ */
+void integrate_phamat_theta0_phi10(Matrix& phamat,
+                                   const Index& nmax,
+                                   const Numeric& lam,
+                                   const Numeric& thet0_1,
+                                   const Numeric& thet0_2,
+                                   const Numeric& thet,
+                                   const Numeric& phi0,
+                                   const Numeric& phi_1,
+                                   const Numeric& phi_2,
+                                   const Numeric& beta,
+                                   const Numeric& alpha)
+{
+    phamat.resize(4, 4);
+    phamat = 0.;
+    Matrix z;
+
+    const Numeric c_thet0 = 0.5 * (thet0_2+thet0_1);
+    const Numeric m_thet0 = 0.5 * (thet0_2-thet0_1);
+    const Numeric c_phi = 0.5 * (phi_2+phi_1);
+    const Numeric m_phi = 0.5 * (phi_2-phi_1);
+
+    for (Index t = 0; t < 5; ++t)
+    {
+        const Numeric abscissa_thet0 = GaussLeg10[0][t];
+        const Numeric weight_thet0 = GaussLeg10[1][t];
+
+        Matrix phamat_phi(4, 4, 0.);
+
+        for (Index p = 0; p < 5; ++p)
+        {
+            const Numeric abscissa_phi = GaussLeg10[0][p];
+            const Numeric weight_phi = GaussLeg10[1][p];
+
+            Numeric this_thet0 = c_thet0 + m_thet0 * abscissa_thet0;
+            calc_phamat(z, nmax, lam, this_thet0, thet, phi0, c_phi + m_phi * abscissa_phi, beta, alpha);
+            z *= weight_phi * sin(this_thet0*PI/180.);
+            phamat_phi += z;
+
+            calc_phamat(z, nmax, lam, this_thet0, thet, phi0, c_phi - m_phi * abscissa_phi, beta, alpha);
+            z *= weight_phi * sin(this_thet0*PI/180.);
+            phamat_phi += z;
+
+            this_thet0 = c_thet0 - m_thet0 * abscissa_thet0;
+            calc_phamat(z, nmax, lam, this_thet0, thet, phi0, c_phi + m_phi * abscissa_phi, beta, alpha);
+            z *= weight_phi * sin(this_thet0*PI/180.);
+            phamat_phi += z;
+
+            calc_phamat(z, nmax, lam, this_thet0, thet, phi0, c_phi - m_phi * abscissa_phi, beta, alpha);
+            z *= weight_phi * sin(this_thet0*PI/180.);
+            phamat_phi += z;
+        }
+        phamat_phi *= m_phi * weight_thet0;
+        phamat += phamat_phi;
+    }
+    
+    phamat *= m_thet0;
+}
+
+
+/** Integrate phase matrix over angles thet0, phi and alpha.
+
+ Performs a six point Gauss–Legendre integration over the
+ zenith angle of the incident beam (thet0), the azimuth
+ angle of the scattered beam (phi) and the orientation
+ angle (first Euler angle) of the particles.
+
+ \param[out] phamat  Integrated phase matrix
+ \param[in]  nmax    FIXME OLE
+ \param[in]  lam     See ampl_()
+ \param[in]  thet0_1 See thet0 in ampl_()
+ \param[in]  thet0_2 See thet0 in ampl_()
+ \param[in]  thet    See ampl_()
+ \param[in]  phi0    See ampl_()
+ \param[in]  phi_1   See phi in ampl_()
+ \param[in]  phi_2   See phi in ampl_()
+ \param[in]  beta    See ampl_()
+ \param[in]  alpha_1 See alpha in ampl_()
+ \param[in]  alpha_2 See alpha in ampl_()
+
+ \author Oliver Lemke
+ */
+void integrate_phamat_theta0_phi_alpha6(Matrix& phamat,
+                                        const Index& nmax,
+                                        const Numeric& lam,
+                                        const Numeric& thet0_1,
+                                        const Numeric& thet0_2,
+                                        const Numeric& thet,
+                                        const Numeric& phi0,
+                                        const Numeric& phi_1,
+                                        const Numeric& phi_2,
+                                        const Numeric& beta,
+                                        const Numeric& alpha_1,
+                                        const Numeric& alpha_2)
+{
+    phamat.resize(4, 4);
+    phamat = 0.;
+    Matrix z;
+
+    const Numeric c_thet0 = 0.5 * (thet0_2+thet0_1);
+    const Numeric m_thet0 = 0.5 * (thet0_2-thet0_1);
+    const Numeric c_phi = 0.5 * (phi_2+phi_1);
+    const Numeric m_phi = 0.5 * (phi_2-phi_1);
+
+    for (Index t = 0; t < 3; ++t)
+    {
+        const Numeric abscissa_thet0 = GaussLeg6[0][t];
+        const Numeric weight_thet0 = GaussLeg6[1][t];
+
+        Matrix phamat_phi(4, 4, 0.);
+
+        for (Index p = 0; p < 3; ++p)
+        {
+            const Numeric abscissa_phi = GaussLeg6[0][p];
+            const Numeric weight_phi = GaussLeg6[1][p];
+
+            Numeric this_thet0 = c_thet0 + m_thet0 * abscissa_thet0;
+            integrate_phamat_alpha6(z, nmax, lam, this_thet0, thet, phi0, c_phi + m_phi * abscissa_phi, beta, alpha_1, alpha_2);
+            z *= weight_phi * sin(this_thet0*PI/180.);
+            phamat_phi += z;
+
+            integrate_phamat_alpha6(z, nmax, lam, this_thet0, thet, phi0, c_phi - m_phi * abscissa_phi, beta, alpha_1, alpha_2);
+            z *= weight_phi * sin(this_thet0*PI/180.);
+            phamat_phi += z;
+
+            this_thet0 = c_thet0 - m_thet0 * abscissa_thet0;
+            integrate_phamat_alpha6(z, nmax, lam, this_thet0, thet, phi0, c_phi + m_phi * abscissa_phi, beta, alpha_1, alpha_2);
+            z *= weight_phi * sin(this_thet0*PI/180.);
+            phamat_phi += z;
+
+            integrate_phamat_alpha6(z, nmax, lam, this_thet0, thet, phi0, c_phi - m_phi * abscissa_phi, beta, alpha_1, alpha_2);
+            z *= weight_phi * sin(this_thet0*PI/180.);
+            phamat_phi += z;
+        }
+        phamat_phi *= m_phi * weight_thet0;
+        phamat += phamat_phi;
+    }
+    
+    phamat *= m_thet0;
 }
 
 
@@ -721,6 +976,8 @@ void calcSingleScatteringDataProperties(SingleScatteringData& ssd,
             Numeric csca = NAN;
             Index nmax = -1;
 
+            Tensor5 csca_data(nf, nT, nza_inc, 1, 2);
+
 #pragma omp critical(tmatrix_ssp)
             for (Index f_index = 0; f_index < nf; ++f_index)
             {
@@ -753,13 +1010,13 @@ void calcSingleScatteringDataProperties(SingleScatteringData& ssd,
                                 if (aspect_ratio < 1.0)
                                 {
                                     // Phase matrix for prolate particles
-                                    integrate_phamat(phamat,
-                                                     nmax, lam_f,
-                                                     ssd.za_grid[za_inc_index],
-                                                     ssd.za_grid[za_scat_index],
-                                                     0.0,
-                                                     ssd.aa_grid[aa_index],
-                                                     90.0, 0.0, 180.0);
+                                    integrate_phamat_alpha10(phamat,
+                                                             nmax, lam_f,
+                                                             ssd.za_grid[za_inc_index],
+                                                             ssd.za_grid[za_scat_index],
+                                                             0.0,
+                                                             ssd.aa_grid[aa_index],
+                                                             90.0, 0.0, 180.0);
                                     phamat /= 180.;
                                 }
                                 else
@@ -794,12 +1051,28 @@ void calcSingleScatteringDataProperties(SingleScatteringData& ssd,
                         if (aspect_ratio < 1.0)
                         {
                             // Csca for prolate particles
-//                            cout << "No Csca for AR<1.0 yet" << endl;
+                            Matrix csca_integral;
+                            integrate_phamat_theta0_phi_alpha6(csca_integral, nmax, lam_f,
+                                                               0, 180,
+                                                               ssd.za_grid[za_scat_index],
+                                                               0.,
+                                                               0., 180.,
+                                                               90.,
+                                                               0., 180.);
+                            csca_integral /= 180.;
+                            csca_data(f_index, T_index, za_scat_index, 0, joker) = csca_integral(Range(0, 2), 0);
                         }
                         else
                         {
                             // Csca for oblate particles
-//                            const Numeric beta = 90.;
+                            Matrix csca_integral;
+                            integrate_phamat_theta0_phi10(csca_integral, nmax, lam_f,
+                                                          0, 180,
+                                                          ssd.za_grid[za_scat_index],
+                                                          0.,
+                                                          0., 180,
+                                                          0., 0.);
+                            csca_data(f_index, T_index, za_scat_index, 0, joker) = csca_integral(Range(0, 2), 0);
                         }
                     }
 
@@ -837,6 +1110,11 @@ void calcSingleScatteringDataProperties(SingleScatteringData& ssd,
                     }
                 }
             }
+
+            csca_data *= 2.*PI*PI/32400.;
+            ssd.abs_vec_data = ssd.ext_mat_data(joker, joker, joker, joker, Range(0, 2));
+            ssd.abs_vec_data -= csca_data;
+            
             break;
         }
         default:
@@ -1046,12 +1324,13 @@ void calc_ssp_random_test(const Verbosity& verbosity)
                                        200.,
                                        -1,
                                        "ice",
-                                       1.000001);
+                                       1.5);
 
-//    out0 << "pha_mat_data:\n" << ssd.pha_mat_data << "\n\n";
+    out0 << "ssd.pha_mat_data(0, 0, joker, 0, 0, joker, joker):\n"
+    << ssd.pha_mat_data(0, 0, joker, 0, 0, joker, joker) << "\n\n";
 
     out0 << "ssd.ext_mat_data:\n" << ssd.ext_mat_data << "\n\n";
-//    out0 << "abs_vec_data:\n" << ssd.abs_vec_data << "\n\n";
+    out0 << "ssd.abs_vec_data:\n" << ssd.abs_vec_data << "\n\n";
 
     out0 << "======================================================\n";
     out0 << "Test calculation of single scattering data\n";
@@ -1064,10 +1343,11 @@ void calc_ssp_random_test(const Verbosity& verbosity)
                                        "ice",
                                        0.7);
 
-//    out0 << "pha_mat_data:\n" << ssd.pha_mat_data << "\n\n";
+    out0 << "ssd.pha_mat_data(0, 0, joker, 0, 0, joker, joker):\n"
+    << ssd.pha_mat_data(0, 0, joker, 0, 0, joker, joker) << "\n\n";
 
     out0 << "ssd.ext_mat_data:\n" << ssd.ext_mat_data << "\n\n";
-//    out0 << "abs_vec_data:\n" << ssd.abs_vec_data << "\n\n";
+    out0 << "ssd.abs_vec_data:\n" << ssd.abs_vec_data << "\n\n";
 }
 
 
@@ -1104,15 +1384,15 @@ void calc_ssp_fixed_test(const Verbosity& verbosity)
                                        200.,
                                        -1,
                                        "ice",
-                                       1.000001);
+                                       1.5);
 
-    out0 << "ssd.pha_mat_data(0, 0, 5, 0, 0, joker, joker):\n"
-    << ssd.pha_mat_data(0, 0, 5, 0, 0, joker, joker) << "\n\n";
+    out0 << "ssd.pha_mat_data(0, 0, joker, 0, 0, joker, joker):\n"
+    << ssd.pha_mat_data(0, 0, joker, 0, 0, joker, joker) << "\n\n";
 
     out0 << "ssd.ext_mat_data(0, 0, joker, joker, joker):\n"
     << ssd.ext_mat_data(0, 0, joker, joker, joker) << "\n\n";
     
-//    out0 << "abs_vec_data:\n" << ssd.abs_vec_data << "\n\n";
+    out0 << "abs_vec_data:\n" << ssd.abs_vec_data << "\n\n";
 
     out0 << "======================================================\n";
     out0 << "Test calculation of single scattering data\n";
@@ -1124,10 +1404,12 @@ void calc_ssp_fixed_test(const Verbosity& verbosity)
                                        "ice",
                                        0.7);
     
-    out0 << "ssd.pha_mat_data(0, 0, 5, 0, 0, joker, joker):\n"
-    << ssd.pha_mat_data(0, 0, 5, 0, 0, joker, joker) << "\n\n";
+    out0 << "ssd.pha_mat_data(0, 0, joker, 0, 0, joker, joker):\n"
+    << ssd.pha_mat_data(0, 0, joker, 0, 0, joker, joker) << "\n\n";
 
     out0 << "ssd.ext_mat_data(0, 0, joker, joker, joker):\n"
     << ssd.ext_mat_data(0, 0, joker, joker, joker) << "\n\n";
+
+    out0 << "abs_vec_data:\n" << ssd.abs_vec_data << "\n\n";    
 }
 

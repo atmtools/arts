@@ -58,14 +58,17 @@ void tmatrix_tmd_test(const Verbosity& verbosity);
  <pre>
 from PyARTS import arts_types
 
-params = {'f_grid': [230e9, 240e9],
+params = {'ptype': constants.PARTICLE_TYPE_HORIZ_AL,
+          'f_grid': [230e9, 240e9],
           'T_grid': [220, 250],
           'za_grid': numpy.arange(0, 181, 10),
           'aa_grid': numpy.arange(0, 181, 10),
           'equiv_radius': 200, # equivalent volume radius
           'NP':-1, # -1 for spheroid, -2 for cylinder, positive for chebyshev
           'phase':'ice',
-          'aspect_ratio': 1.000001}
+          'mrr': numpy.array([[1.78031135, 1.78150475], [1.78037238, 1.78147686]]),
+          'mri': numpy.array([[0.00278706, 0.00507565], [0.00287245, 0.00523012]]),
+          'aspect_ratio': 1.5}
 s = arts_types.SingleScatteringData(params)
 s.calc()
  </pre>
@@ -75,13 +78,16 @@ s.calc()
  <pre>
 from PyARTS import arts_types
 
-params = {'f_grid': [230e9, 240e9],
+params = {'ptype': constants.PARTICLE_TYPE_HORIZ_AL,
+          'f_grid': [230e9, 240e9],
           'T_grid': [220, 250],
           'za_grid': numpy.arange(0, 181, 10),
           'aa_grid': numpy.arange(0, 181, 10),
           'equiv_radius': 200, # equivalent volume radius
           'NP':-1, # -1 for spheroid, -2 for cylinder, positive for chebyshev
           'phase':'ice',
+          'mrr': numpy.array([[1.78031135, 1.78150475], [1.78037238, 1.78147686]]),
+          'mri': numpy.array([[0.00278706, 0.00507565], [0.00287245, 0.00523012]]),
           'aspect_ratio': 0.7}
 s = arts_types.SingleScatteringData(params)
 s.calc()
@@ -107,7 +113,9 @@ params = {'ptype': constants.PARTICLE_TYPE_HORIZ_AL,
           'equiv_radius': 200, # equivalent volume radius
           'NP':-1, # -1 for spheroid, -2 for cylinder, positive for chebyshev
           'phase':'ice',
-          'aspect_ratio': 1.000001}
+          'mrr': numpy.array([[1.78031135, 1.78150475], [1.78037238, 1.78147686]]),
+          'mri': numpy.array([[0.00278706, 0.00507565], [0.00287245, 0.00523012]]),
+          'aspect_ratio': 1.5}
 s = arts_types.SingleScatteringData(params)
 s.calc()
  </pre>
@@ -126,6 +134,8 @@ params = {'ptype': constants.PARTICLE_TYPE_HORIZ_AL,
           'equiv_radius': 200, # equivalent volume radius
           'NP':-1, # -1 for spheroid, -2 for cylinder, positive for chebyshev
           'phase':'ice',
+          'mrr': numpy.array([[1.78031135, 1.78150475], [1.78037238, 1.78147686]]),
+          'mri': numpy.array([[0.00278706, 0.00507565], [0.00287245, 0.00523012]]),
           'aspect_ratio': 0.7}
 s = arts_types.SingleScatteringData(params)
 s.calc()

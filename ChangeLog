@@ -1,7 +1,41 @@
+2013-07-05  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-690
+
+	The interface between ARTS and the T-Matrix Fortran codes, as well as
+	providing the same functionality as PyARTS, is now pretty much
+	completely. Except for calculating the refractive index,
+	calcSingleScatteringDataProperties now does the same as
+	SingleScatteringData.calc in PyARTS.
+
+	TODO:
+
+	- Integration of calcSingleScatteringDataProperties with the rest
+	of ARTS, so that it can be practically used.
+
+	- Better error handling if Fortran code fails.
+
+	- Ensure all calls into the Fortran codes are threadsafe (via omp
+	critical).
+
+	* src/tmatrix.{cc,h}:
+
+	(calcSingleScatteringDataProperties):
+
+	Calculate Csca integral for oblate and prolate particles and from that
+	K_abs.
+
+	(integrate_phamat_*):
+
+	Add gauss legendre integration for phamat over different angles
+	thet0, phi, alpha.
+
+	(calc_ssp_fixed_test, calc_ssp_random_test): Updated.
+
 2013-07-05  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-1-689
-	
+
 	* src/m_rte.cc: Changed y to y[is] on line 913 and 915.
 
 2013-07-04  Oliver Lemke  <olemke@core-dump.info>
