@@ -1,3 +1,12 @@
+2013-07-08  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-691
+
+	* src/m_linemixing.cc (ArrayOfLineMixingRecordReadAscii):
+
+	Add check that the input stream is good(). Otherwise the last value
+	gets added twice.
+
 2013-07-05  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-690

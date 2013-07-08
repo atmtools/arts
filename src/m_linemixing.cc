@@ -170,7 +170,7 @@ void ArrayOfLineMixingRecordReadAscii(// Generic Output:
             vector<Numeric> temp_mixing_data;
             String s;
             char *c;
-            while (is)
+            while (is.good() && is)
             {
                 is >> s;
                 s.trim();
