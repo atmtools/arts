@@ -1617,7 +1617,7 @@ void xsec_species_line_mixing_2nd_order(MatrixView               xsec_attenuatio
     if (! lineshape_data[ind_ls].Phase())
     {
         ostringstream os;
-        os <<  "\n\nThis is an error message. You are using " << lineshape_data[ind_ls].Name() <<
+        os <<  "This is an error message. You are using " << lineshape_data[ind_ls].Name() <<
         ".\n"<<"This line shape does not include phase in its calculations and\nis therefore invalid for " <<
         "second order line mixing.\n\n";
         throw runtime_error(os.str());
@@ -1634,9 +1634,6 @@ void xsec_species_line_mixing_2nd_order(MatrixView               xsec_attenuatio
     // Variable containing modifying elements
     Vector a(2);
     
-    // The structure of the line mixing data Vector should follow:
-    //  (0)=y0 (1)=y1 (2)=g0 (3)=g1 (4)=dv0 (5)=dv1 (6)=Ts (7)=x_y (8)=x_g (9)=x_dv
-    
     for(Index jj=0;jj<abs_p.nelem(); jj++)
     {
         const Numeric p = abs_p[jj], t = abs_t[jj];
@@ -1652,6 +1649,25 @@ void xsec_species_line_mixing_2nd_order(MatrixView               xsec_attenuatio
             if(lut[ii]!=-1)
             {
                 const Vector& dat = data[lut[ii]].Data();
+                if( dat.nelem() != 10 )
+                {
+                    ostringstream os;
+                    os <<  "This is an error message. You have not defined the linemixing data vector " << 
+                    "properly. It should be of length 10, yet your version is of length: " << dat.nelem() << ".\n" << 
+                    "The structure of the line mixing data Vector should be as follows:\n" << 
+                    "data[0] is the first order zeroth phase correction\n" << 
+                    "data[1] is the first order first phase correction\n" << 
+                    "data[2] is the second order zeroth phase correction\n" << 
+                    "data[3] is the second order first phase correction \n" << 
+                    "data[4] is the second order zeroth frequency correction\n" << 
+                    "data[5] is the second order first frequency correction \n" << 
+                    "data[6] is the reference temperature\n" << 
+                    "data[7] is the first order phase correction temperature dependence exponent\n" << 
+                    "data[8] is the second order attenuation correction temperature dependence exponent\n" << 
+                    "data[9] is the second order frequency correction temperature dependence exponent";
+                    throw runtime_error(os.str());
+                }
+                
                 // First order phase correction
                 a[0] =              p 
                 * ( ( dat[0] + dat[1] * ( dat[6]/t-1. ) ) 
