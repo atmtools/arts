@@ -42,6 +42,19 @@ void AgendaExecute(Workspace& ws,
   this_agenda.execute(ws);
 }
 
+/* Workspace method: Doxygen documentation will be auto-generated */
+void AgendaExecuteCritical(Workspace& ws,
+                   // WS Generic Input:
+                   const Agenda& this_agenda,
+                   const Verbosity& verbosity)
+{
+    CREATE_OUT3;
+    out3 << "  Manual agenda execution\n";
+    
+    #pragma omp critical(AgendaExecuteCritical_region)
+    this_agenda.execute(ws);
+}
+
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void AgendaSet(Workspace& ws,

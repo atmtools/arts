@@ -69,6 +69,56 @@ ReadXML (Workspace&    ws _U_,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 template<typename T> void
+WriteXMLNoClobber (//WS Input:
+const String& file_format,
+// WS Generic Input:
+const T&            v,
+const String& f,
+// WS Generic Input Names:
+const String& v_name,
+const String& f_name _U_,
+const Verbosity& verbosity)
+
+{
+    String filename = f;
+    FileType ftype;
+    
+    // Create default filename if empty
+    filename_xml (filename, v_name);
+    
+    if (file_format == "ascii")
+        ftype = FILE_TYPE_ASCII;
+    else if (file_format == "zascii")
+        ftype = FILE_TYPE_ZIPPED_ASCII;
+    else if (file_format == "binary")
+        ftype = FILE_TYPE_BINARY;
+    else
+        throw runtime_error ("file_format contains illegal string. "
+        "Valid values are:\n"
+        "  ascii:  XML output\n"
+        "  zascii: Zipped XML output\n"
+        "  binary: XML + binary output");
+    
+    xml_write_to_file (filename, v, ftype, verbosity);
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void
+WriteXMLNoClobber (Workspace& ws _U_,
+          //WS Input:
+          const String& file_format,
+          // WS Generic Input:
+          const Agenda& v,
+          const String& f,
+          // WS Generic Input Names:
+          const String& v_name,
+          const String& f_name,
+          const Verbosity& verbosity);
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+template<typename T> void
 WriteXML (//WS Input:
           const String& file_format,
           // WS Generic Input:

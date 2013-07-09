@@ -62,6 +62,23 @@ WriteXML (Workspace& ws _U_,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void
+WriteXMLNoClobber (Workspace& ws _U_,
+          //WS Input:
+          const String& file_format,
+          // WS Generic Input:
+          const Agenda& v,
+          const String& f,
+          // WS Generic Input Names:
+          const String& v_name,
+          const String& f_name,
+          const Verbosity& verbosity)
+{
+    WriteXMLNoClobber (file_format, v, f, v_name, f_name, verbosity);
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void
 WriteXMLIndexed (Workspace& ws _U_,
                  //WS Input:
                  const String& file_format,
