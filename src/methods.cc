@@ -5853,7 +5853,7 @@ void define_md_data_raw()
         GIN( "poly_order", "no_pol_variation", "no_los_variation", 
              "no_mblock_variation" ),
         GIN_TYPE( "Index", "Index", "Index", "Index" ),
-        GIN_DEFAULT( NODEF, "0", "0", "0" ),
+        GIN_DEFAULT( NODEF, "1", "0", "0" ),
         GIN_DESC( "Polynomial order to use for the fit.", 
                   "Set to 1 if the baseline off-set is the same for all "
                   "Stokes components.", 
