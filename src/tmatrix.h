@@ -27,6 +27,33 @@
 #define tmatrix_h
 
 #include "messages.h"
+#include "optproperties.h"
+
+
+/** Calculate SingleScatteringData properties.
+
+ Port of calc_SSP function from PyARTS.
+
+ \param[in,out] ssd Uses the grids given by ssd to calculate
+                    pha_mat_data, ext_mat_data and abs_vec_data
+ \param[in] ref_index_real  Vector with real parts of refractive index
+ \param[in] ref_index_imag  Vector with imaginary parts of refractive index
+ \param[in] equiv_radius    equivalent volume radius [micrometer]
+ \param[in] np              Particle type (-1 for spheroid, -2 for cylinder)
+ \param[in] phase           Particle phase ("ice"), currently unused
+ \param[in] aspect_ratio    Aspect ratio of particles
+ \param[in] precision       Accuracy of the computations
+
+ \author Oliver Lemke
+ */
+void calcSingleScatteringDataProperties(SingleScatteringData& ssd,
+                                        ConstMatrixView& ref_index_real,
+                                        ConstMatrixView& ref_index_imag,
+                                        const Numeric equiv_radius = 200,
+                                        const Index np = -1,
+                                        const String phase = "ice",
+                                        const Numeric aspect_ratio = 1.000001,
+                                        const Numeric precision = 0.001);
 
 
 /** T-Matrix validation test.

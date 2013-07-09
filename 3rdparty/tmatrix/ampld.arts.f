@@ -32,9 +32,8 @@ C   transfer package
 !COMMONS, so any program that calls these subs, will need these
 !declarations
 
-      SUBROUTINE Tmatrix(RAT, AXI,NP,LAM,EPS,MRR,MRI,DDELT,NMAX,
-     &     CSCA,CEXT,
-     &     QUIET,ERRMSG)
+      SUBROUTINE Tmatrix(RAT,AXI,NP,LAM,EPS,MRR,MRI,DDELT,QUIET,
+     &                   NMAX,CSCA,CEXT,ERRMSG)
 
       IMPLICIT REAL*8 (A-H,O-Z)
       INCLUDE 'ampld.par.f'

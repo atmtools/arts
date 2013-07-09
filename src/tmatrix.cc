@@ -35,8 +35,6 @@
 #include "optproperties.h"
 
 
-extern const Numeric PI;
-
 void calc_phamat(Matrix& z,
                  const Index& nmax,
                  const Numeric& lam,
@@ -170,7 +168,7 @@ extern "C" {
                        is the degree of the Chebyshev polynomial, while
                        EPS is the deformation parameter.
      \param[in] np     Shape of the particles (see eps above)
-     \param[in] lam    Wavelength of light
+     \param[in] lam    Wavelength of light [microns]
      \param[in] mrr    Vector with real parts of refractive index
      \param[in] mri    Vector with imaginary parts of refractive index
      \param[in] ddelt  Accuracy of the computations
@@ -243,8 +241,39 @@ extern "C" {
               Numeric* f34,   // Array npna
               char*    errmsg);
 
-    // T-matrix code for nonspherical particles in a fixed orientation
-    //
+    /** T-matrix code for nonspherical particles in a fixed orientation
+
+     This is the interface to the T-Matrix tmatrix Fortran subroutine.
+     It calculates extinction and scattering cross section per particle.
+     The T-Matrix is calculated internally and used accessed later by
+     ampl_() via common blocks.
+
+     See 3rdparty/tmatrix/ampld.lp.f for the complete documentation of the
+     T-Matrix codes.
+
+     \param[in] rat    1 - particle size is specified in terms of the
+                           equal-volume-sphere radius<br>
+                       != 1 - particle size is specified in terms of the
+                          equal-surface-area-sphere radius
+     \param[in] axi    Equivalent-sphere radius [microns]
+     \param[in] np     Shape of the particles<br>
+                       For spheroids NP=-1 and EPS is the ratio of the
+                       horizontal to rotational axes.  EPS is larger than
+                       1 for oblate spheroids and smaller than 1 for
+                       prolate spheroids.<br>
+                       For cylinders NP=-2 and EPS is the ratio of the
+                       diameter to the length.<br>
+     \param[in] lam    Wavelength of light [microns]
+     \param[in] eps    Shape of the particles (see np above)
+     \param[in] mrr    Vector with real parts of refractive index
+     \param[in] mri    Vector with imaginary parts of refractive index
+     \param[in] ddelt  Accuracy of the computations
+     \param[in] quiet  0 = Verbose output from Fortran code, 1 = silent
+     \param[out] nmax  Iteration count
+     \param[out] cext  Extinction cross section per particle
+     \param[out] csca  Scattering cross section per particle
+     \param[out] errmsg  Error message string from Fortran code
+     */
     void tmatrix_(const Numeric& rat,
                   const Numeric& axi,
                   const Index&   np,
@@ -253,14 +282,35 @@ extern "C" {
                   const Numeric& mrr,
                   const Numeric& mri,
                   const Numeric& ddelt,
+                  const Index&   quiet,
                   Index&         nmax,
                   Numeric&       csca,
                   Numeric&       cext,
-                  const Index&   quiet,
                   char*          errmsg);
 
-    // T-matrix code for nonspherical particles in a fixed orientation
-    //
+    /** T-matrix code for nonspherical particles in a fixed orientation
+
+     This is the interface to the T-Matrix ampl Fortran subroutine.
+     It calculates the amplitude matrix.
+     The T-Matrix is passed from tmatrix_() internally via common blocks.
+
+     See 3rdparty/tmatrix/tmd.lp.f for the complete documentation of the
+     T-Matrix codes.
+     
+     \param[in]  nmax   Iteration count. Calculated by tmatrix_()
+     \param[in]  lam    Wavelength of incident light [microns]
+     \param[in]  thet0  Zenith angle of the incident beam [degrees]
+     \param[in]  thet   zenith angle of the scattered beam in degrees
+     \param[in]  phi0   azimuth angle of the incident beam in degrees
+     \param[in]  phi    azimuth angle of the scattered beam in degrees
+     \param[in]  alpha  Euler angle (in degrees) specifying the orientation
+                        of the scattering particle relative to the laboratory
+                        reference frame
+     \param[in]  beta   Euler angle (in degrees) specifying the orientation
+                        of the scattering particle relative to the laboratory
+                        reference frame
+     \param[out] s11    
+     */
     void ampl_(const Index& nmax,
                const Numeric& lam,
                const Numeric& thet0,
@@ -274,6 +324,14 @@ extern "C" {
                Complex&       s21,
                Complex&       s22);
 
+    /** Perform orientation averaging
+
+     This should be called after tmatrix_() for prolate particles.
+     Data is passed from the tmatrix_() subroutine internally in the Fortran
+     code via common blocks.
+
+    \param[in]  nmax   Iteration count. Calculated by tmatrix_()
+     */
     void avgtmatrix_(const Index& nmax);
 #ifdef ENABLE_TMATRIX
 }
@@ -330,10 +388,10 @@ void tmatrix_(const Numeric&,
               const Numeric&,
               const Numeric&,
               const Numeric&,
+              const Index&,
               Index&,
               Numeric&,
               Numeric&,
-              const Index&,
               char*)
 {
     throw std::runtime_error("This version of ARTS was compiled without T-Matrix support.");
@@ -582,6 +640,8 @@ void integrate_phamat_theta0_phi10(Matrix& phamat,
                                    const Numeric& beta,
                                    const Numeric& alpha)
 {
+    extern const Numeric PI;
+
     phamat.resize(4, 4);
     phamat = 0.;
     Matrix z;
@@ -664,21 +724,26 @@ void integrate_phamat_theta0_phi_alpha6(Matrix& phamat,
                                         const Numeric& alpha_1,
                                         const Numeric& alpha_2)
 {
-    phamat.resize(4, 4);
-    phamat = 0.;
+    extern const Numeric PI;
+
     Matrix z;
+    Matrix phamat_phi(4, 4);
+
 
     const Numeric c_thet0 = 0.5 * (thet0_2+thet0_1);
     const Numeric m_thet0 = 0.5 * (thet0_2-thet0_1);
     const Numeric c_phi = 0.5 * (phi_2+phi_1);
     const Numeric m_phi = 0.5 * (phi_2-phi_1);
 
+    phamat.resize(4, 4);
+    phamat = 0.;
+
     for (Index t = 0; t < 3; ++t)
     {
         const Numeric abscissa_thet0 = GaussLeg6[0][t];
         const Numeric weight_thet0 = GaussLeg6[1][t];
 
-        Matrix phamat_phi(4, 4, 0.);
+        phamat_phi = 0.;
 
         for (Index p = 0; p < 3; ++p)
         {
@@ -847,8 +912,8 @@ void tmatrix_fixed_orientation(Numeric& cext,
     // blocks are not threadsafe.
 #pragma omp critical(tmatrix_code)
     tmatrix_(1., equiv_radius, np, lam, aspect_ratio,
-             ref_index_real, ref_index_imag, precision,
-             nmax, csca, cext, quiet, errmsg);
+             ref_index_real, ref_index_imag, precision, quiet,
+             nmax, csca, cext, errmsg);
 
     if (strlen(errmsg))
     {
@@ -859,36 +924,21 @@ void tmatrix_fixed_orientation(Numeric& cext,
 }
 
 
-/** Calculate SingleScatteringData properties.
-
- Port of calc_SSP function from PyARTS.
-
- \param[in,out] ssd Uses the grids given by ssd to calculate
-                    pha_mat_data, ext_mat_data and abs_vec_data
- \param[in] ref_index_real  Vector with real parts of refractive index
- \param[in] ref_index_imag  Vector with imaginary parts of refractive index
- \param[in] equiv_radius    equivalent volume radius [micrometer]
- \param[in] np              Particle type (-1 for spheroid, -2 for cylinder)
- \param[in] phase           Particle phase ("ice")
- \param[in] aspect_ratio    Aspect ratio of particles
- \param[in] precision       Accuracy of the computations
-
- \author Oliver Lemke
- */
 void calcSingleScatteringDataProperties(SingleScatteringData& ssd,
                                         ConstMatrixView& ref_index_real,
                                         ConstMatrixView& ref_index_imag,
-                                        const Numeric equiv_radius = 200,
-                                        const Index np = -1,
-                                        const String phase _U_ = "ice",
-                                        const Numeric aspect_ratio = 1.000001,
-                                        const Numeric precision = 0.001)
+                                        const Numeric equiv_radius,
+                                        const Index np,
+                                        const String phase _U_,
+                                        const Numeric aspect_ratio,
+                                        const Numeric precision)
 {
     const Index nf = ssd.f_grid.nelem();
     const Index nT = ssd.T_grid.nelem();
 
     const Index nza = ssd.za_grid.nelem();
 
+    extern const Numeric PI;
     extern const Numeric SPEED_OF_LIGHT;
 
     // The T-Matrix codes needs wavelength in microns
@@ -1048,10 +1098,10 @@ void calcSingleScatteringDataProperties(SingleScatteringData& ssd,
                     // Csca integral
                     for (Index za_scat_index = 0; za_scat_index < nza_inc; ++za_scat_index)
                     {
+                        Matrix csca_integral;
                         if (aspect_ratio < 1.0)
                         {
                             // Csca for prolate particles
-                            Matrix csca_integral;
                             integrate_phamat_theta0_phi_alpha6(csca_integral, nmax, lam_f,
                                                                0, 180,
                                                                ssd.za_grid[za_scat_index],
@@ -1060,20 +1110,18 @@ void calcSingleScatteringDataProperties(SingleScatteringData& ssd,
                                                                90.,
                                                                0., 180.);
                             csca_integral /= 180.;
-                            csca_data(f_index, T_index, za_scat_index, 0, joker) = csca_integral(Range(0, 2), 0);
                         }
                         else
                         {
                             // Csca for oblate particles
-                            Matrix csca_integral;
                             integrate_phamat_theta0_phi10(csca_integral, nmax, lam_f,
                                                           0, 180,
                                                           ssd.za_grid[za_scat_index],
                                                           0.,
                                                           0., 180,
                                                           0., 0.);
-                            csca_data(f_index, T_index, za_scat_index, 0, joker) = csca_integral(Range(0, 2), 0);
                         }
+                        csca_data(f_index, T_index, za_scat_index, 0, joker) = csca_integral(Range(0, 2), 0);
                     }
 
                     // Extinction matrix
@@ -1157,8 +1205,8 @@ void tmatrix_ampld_test(const Verbosity& verbosity)
     Numeric cext;
     char errmsg[1024] = "";
 
-    tmatrix_(rat, axi, np, lam, eps, mrr, mri, ddelt, nmax, csca, cext,
-             quiet, errmsg);
+    tmatrix_(rat, axi, np, lam, eps, mrr, mri, ddelt, quiet,
+             nmax, csca, cext, errmsg);
 
     out0 << "nmax: " << nmax << "\n";
     out0 << "csca: " << csca << "\n";
