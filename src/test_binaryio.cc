@@ -34,7 +34,7 @@ main (int /* argc */, char * /* argv */ [])
         for (Index l = 0; l < 4; l++)
           v(i, j, k, l) = double (i*4*4*4+j*4*4+k*4+l);
 
-  xml_write_to_file ("outfile.xml", v, FILE_TYPE_BINARY, Verbosity());
+  xml_write_to_file ("outfile.xml", v, FILE_TYPE_BINARY, 0, Verbosity());
 
   // Read binary file
   Tensor4 w;

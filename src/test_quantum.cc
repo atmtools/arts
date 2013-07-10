@@ -46,7 +46,8 @@ main (int /*argc*/, char * /*argv*/ [])
         cout << "q1: " << q1 << endl;
         cout << "q2: " << q2 << endl;
 
-        WriteXML("ascii", q1, "quantum.xml", "q1", "", Verbosity(0, 2, 0));
+        WriteXML("ascii", q1, "quantum.xml", 0,
+                 "q1", "", "", Verbosity(0, 2, 0));
 
         QuantumNumbers q3;
         ReadXML(q3, "q3", "quantum.xml", "", Verbosity(0,2,0));
@@ -80,7 +81,8 @@ main (int /*argc*/, char * /*argv*/ [])
 
         cout << "qnr:  " << qnr << endl;
 
-        WriteXML("ascii", qnr, "quantumrecord.xml", "qnr", "", Verbosity(0, 2, 0));
+        WriteXML("ascii", qnr, "quantumrecord.xml", 0,
+                 "qnr", "", "", Verbosity(0, 2, 0));
 
         QuantumNumberRecord qnr2;
         ReadXML(qnr2, "qnr2", "quantumrecord.xml", "", Verbosity(0,2,0));

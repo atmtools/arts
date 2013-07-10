@@ -327,7 +327,7 @@ void test45()
   //cout << "C=A*B:\n" << A << "\n";
   try {
     cout << "  Writing product to file: test45.xml...";
-    xml_write_to_file ("test45.xml", C, FILE_TYPE_ASCII, Verbosity());
+    xml_write_to_file ("test45.xml", C, FILE_TYPE_ASCII, 0, Verbosity());
     cout << "done.\n";
   } catch (runtime_error e) {
     cerr << e.what () << endl;
@@ -356,7 +356,7 @@ void test46()
 
   try {
     cout << "  Writing transpose(A) to file test46.xml" << endl;
-    xml_write_to_file ("test46.xml", B, FILE_TYPE_ASCII, Verbosity());
+    xml_write_to_file ("test46.xml", B, FILE_TYPE_ASCII, 0, Verbosity());
   } catch (runtime_error e) {
     cerr << e.what () << endl;
   }

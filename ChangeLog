@@ -1,5 +1,14 @@
 2013-07-10  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-697
+
+	* src/test_binaryio.cc, src/test_quantum.cc, src/test_sparse.cc,
+	src/test_xml.cc:
+
+	Adapt calls to WriteXML and xml_write_to_file.
+
+2013-07-10  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-696
 
 	* src/methods.cc, src/xml_io.{h,cc}, src/xml_io_instantiation.h,
