@@ -1,5 +1,19 @@
 2013-07-10  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-698
+
+	* src/file.{h,cc} (make_filename_unique):
+
+	Add optional extension argument. Incrementing numbers are inserted
+	before this extension. Also increase numbering if a gzipped version of
+	the file already exists.
+
+	* src/xml_io.cc (xml_write_to_file):
+
+	Pass xml extension to make_filename_unique.
+
+2013-07-10  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-697
 
 	* src/test_binaryio.cc, src/test_quantum.cc, src/test_sparse.cc,

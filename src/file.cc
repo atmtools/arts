@@ -519,25 +519,42 @@ void list_directory(ArrayOfString& files, String dirname)
 
 /** Make filename unique.
 
- Checks if a file with the given name already exists und appends
- a unique number to the filename if necessary
+ Checks if a file (or a gzipped version of it) with the given name already
+ exists und appends a unique number to the filename if necessary
 
- \param[in,out] filename Filename
+ \param[in,out] filename   Filename
+ \param[in]     extension  Optional, number is inserted before the extension
  \return
 
  \author Oliver Lemke
  */
 
-void make_filename_unique(String& filename)
+void make_filename_unique(String& filename, const String& extension)
 {
+    String basename = filename;
+    String extensionname;
+
+    // Split filename into base and extension
+    if (extension.length())
+    {
+        size_t pos = filename.rfind(extension);
+        if (pos == filename.length() - extension.length())
+        {
+            basename = filename.substr(0, filename.length() - extension.length());
+            extensionname = extension;
+        }
+    }
+
     Index filenumber = 0;
     ostringstream newfilename;
-    newfilename << filename;
-    while (file_exists(newfilename.str()))
+    newfilename << basename << extensionname;
+
+    while (file_exists(newfilename.str())
+           || file_exists(newfilename.str() + ".gz"))
     {
         filenumber++;
         newfilename.str("");
-        newfilename << filename << "." << filenumber;
+        newfilename << basename << "." << filenumber << extensionname;
     }
 
     filename = newfilename.str();

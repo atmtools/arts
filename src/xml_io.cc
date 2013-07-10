@@ -1038,7 +1038,7 @@ void xml_write_to_file(const String&    filename,
   ostream* ofs;
 
   if (no_clobber)
-      make_filename_unique(efilename);
+      make_filename_unique(efilename, ".xml");
  
   out2 << "  Writing " << efilename << '\n';
   if (ftype == FILE_TYPE_ZIPPED_ASCII)
