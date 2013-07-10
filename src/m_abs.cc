@@ -349,7 +349,8 @@ void abs_lines_per_speciesWriteToSplitArtscat(// WS Input:
         species_filename += ".";
       
       species_filename += species_data[(*it)[0].Species()].Name() + ".xml";
-      WriteXML(output_file_format, *it, species_filename, "", "", verbosity);
+      WriteXML(output_file_format, *it, species_filename, 0,
+               "", "", "", verbosity);
     }
   }
 }

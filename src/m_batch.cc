@@ -639,7 +639,7 @@ void ybatchMetProfilesClear(
       cout << "--------------------------------------------------------------------------"<<endl;
       cout << "The file" << met_profile_path +"profile.lat_"+lat_os.str()+".lon_"+lon_os.str()<< "is executed now"<<endl;
       cout << "--------------------------------------------------------------------------"<<endl; 
-      xml_write_to_file("profile_number.xml",  i, FILE_TYPE_ASCII, verbosity);
+      xml_write_to_file("profile_number.xml",  i, FILE_TYPE_ASCII, 0, verbosity);
       // the first element of the species is water vapour. 
       
       // N_p is the number of elements in the pressure grid
@@ -680,7 +680,7 @@ void ybatchMetProfilesClear(
               verbosity);
       cout<<"t_field_raw[0](0,0,0)"<<tfr_p_grid[0]<<endl;
       cout<<"t_field_raw[0](N_p -1,0,0)"<<tfr_p_grid[N_p -1] <<endl;
-      xml_write_to_file("p_grid.xml", p_grid, FILE_TYPE_ASCII, verbosity);
+      xml_write_to_file("p_grid.xml", p_grid, FILE_TYPE_ASCII, 0, verbosity);
 
       // executing the met_profile_calc_agenda
       met_profile_calc_agendaExecute (ws, y, t_field_raw, vmr_field_raw,

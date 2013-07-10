@@ -1680,7 +1680,7 @@ void DoitWriteIterationFields(//WS input
   if( iterations[0] == 0 )
     {
       xml_write_to_file("doit_iteration_" + os.str() + ".xml",
-                        doit_i_field, FILE_TYPE_ASCII, verbosity);
+                        doit_i_field, FILE_TYPE_ASCII, 0, verbosity);
     }
   
   // Only the iterations given by the keyword are written to a file
@@ -1690,7 +1690,7 @@ void DoitWriteIterationFields(//WS input
         {
           if (doit_iteration_counter == iterations[i])
             xml_write_to_file("doit_iteration_" + os.str() + ".xml", 
-                              doit_i_field, FILE_TYPE_ASCII, verbosity);
+                              doit_i_field, FILE_TYPE_ASCII, 0, verbosity);
         }
     }
 }

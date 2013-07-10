@@ -1795,6 +1795,31 @@ void define_md_data_raw()
       
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "AgendaExecuteExclusive" ),
+        DESCRIPTION
+        ( 
+         "Execute an agenda exclusively.\n"
+         "\n"
+         "Only one call to *AgendaExecuteExclusive* is executed at a time.\n"
+         "Other calls to this function are blocked until the current one\n"
+         "finishes. WARNING: Can cause deadlocks! Use with care.\n"
+         ),
+        AUTHORS( "Oliver Lemke" ),
+        OUT(),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN(),
+        GIN(         "a" ),
+        GIN_TYPE(    "Agenda" ),
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC(    "Agenda to be executed." ),
+        SETMETHOD(    false ),
+        AGENDAMETHOD( false )
+        ));
+      
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "AgendaSet" ),
         DESCRIPTION
         ( 
@@ -10873,6 +10898,8 @@ void define_md_data_raw()
          "\n"
          "If the filename is omitted, the variable is written\n"
          "to <basename>.<variable_name>.xml.\n"
+         "If no_clobber is set to 1, an increasing number will be\n"
+         "appended to the filename if the file already exists.\n"
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
@@ -10881,13 +10908,17 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "output_file_format" ),
         GIN(         "in",
-                     "filename" ),
+                     "filename",
+                     "no_clobber"),
         GIN_TYPE(    "Any",
-                     "String" ),
+                     "String",
+                     "Index"),
         GIN_DEFAULT( NODEF,
-                     "" ),
+                     "",
+                     "0"),
         GIN_DESC(    "Variable to be saved.",
-                     "Name of the XML file." ),
+                     "Name of the XML file.",
+                     "0: Overwrite existing files, 1: Use unique filenames"),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         USES_TEMPLATES( true  ),

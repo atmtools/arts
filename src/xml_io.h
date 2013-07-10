@@ -75,6 +75,7 @@ template<typename T>
 void xml_write_to_file(const String&    filename,
                        const T&         type,
                        const FileType   ftype,
+                       const Index      no_clobber,
                        const Verbosity& verbosity);
 
 template<typename T>

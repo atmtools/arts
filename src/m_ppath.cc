@@ -961,7 +961,8 @@ void ppathWriteXMLPartial (//WS Input:
         filename_xml_with_index( filename, file_index, "ppath" );
     }
 
-    WriteXML( file_format, ppath_partial, filename, "ppath", "", verbosity );
+    WriteXML( file_format, ppath_partial, filename, 0,
+             "ppath", "", "", verbosity );
 }
 
 

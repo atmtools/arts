@@ -38,7 +38,7 @@
 
 #define TMPL_XML_READ_WRITE(what) \
   template void xml_read_from_file<what>(const String&, what&, const Verbosity&); \
-  template void xml_write_to_file<what>(const String&, const what&, FileType, const Verbosity&);
+  template void xml_write_to_file<what>(const String&, const what&, FileType, const Index, const Verbosity&);
 
 
 ////////////////////////////////////////////////////////////////////////////

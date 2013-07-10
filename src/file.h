@@ -80,6 +80,8 @@ void get_dirname(String& dirname, const String& path);
 
 void list_directory(ArrayOfString& files, String dirname);
 
+void make_filename_unique(String& filename);
+
 
 ////////////////////////////////////////////////////////////////////////////
 //   IO manipulation classes for parsing nan and inf

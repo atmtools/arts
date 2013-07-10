@@ -1,3 +1,32 @@
+2013-07-10  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-696
+
+	* src/methods.cc, src/xml_io.{h,cc}, src/xml_io_instantiation.h,
+	src/m_xml.{h,cc}:
+
+	Add option no_clobber to WriteXML and xml_write_to_file.
+	Appends an incrementing number to the filename if it already exists.
+
+	(WriteXMLNoClobber): Removed. Sorry Richard, I decided to make
+	no_clobber a flag to WriteXML instead.
+
+	* src/m_abs.cc (abs_lines_per_speciesWriteToSplitArtscat),
+	src/m_batch.cc (ybatchMetProfilesClear), src/m_doit.cc
+	(DoitWriteIterationFields), src/m_ppath.cc (ppathWriteXMLPartial):
+
+	Adapt calls to WriteXML and xml_write_to_file.
+
+	* src/m_xml.h (WriteXML): Add critical region around xml_write_to_file.
+
+	* src/file.{cc.h} (make_filename_unique): Added.
+
+	(file_exists): Make sure to return false if lstat call fails.
+
+	* src/methods.cc: Add AgendaExecuteExclusive.
+
+	* src/m_agenda.cc (AgendaExecuteExclusive): Renamed from ...Critical.
+
 2013-07-09  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-695

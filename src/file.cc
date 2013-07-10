@@ -341,9 +341,8 @@ bool file_exists(const String& filename)
     bool exists = false;
 
     struct stat st;
-    lstat(filename.c_str(), &st);
-
-    if(!S_ISDIR(st.st_mode))
+    if (lstat(filename.c_str(), &st) >= 0
+        && !S_ISDIR(st.st_mode))
     {
         fstream fin;
         fin.open(filename.c_str(), ios::in);
@@ -517,6 +516,33 @@ void list_directory(ArrayOfString& files, String dirname)
 
     closedir(dp);
 }
+
+/** Make filename unique.
+
+ Checks if a file with the given name already exists und appends
+ a unique number to the filename if necessary
+
+ \param[in,out] filename Filename
+ \return
+
+ \author Oliver Lemke
+ */
+
+void make_filename_unique(String& filename)
+{
+    Index filenumber = 0;
+    ostringstream newfilename;
+    newfilename << filename;
+    while (file_exists(newfilename.str()))
+    {
+        filenumber++;
+        newfilename.str("");
+        newfilename << filename << "." << filenumber;
+    }
+
+    filename = newfilename.str();
+}
+
 
 ////////////////////////////////////////////////////////////////////////////
 //   IO manipulation classes for parsing nan and inf

@@ -1019,14 +1019,16 @@ void xml_read_arts_catalogue_from_file(const String&      filename,
   This is a generic functions that is used to write the XML header and
   footer info and calls the overloaded functions to write the data.
 
-  \param filename  XML filename
-  \param type      Generic input value
-  \param ftype     File type
+  \param filename   XML filename
+  \param type       Generic input value
+  \param no_clobber 0: Overwrite, 1: Use unique filename
+  \param ftype      File type
 */
 template<typename T>
 void xml_write_to_file(const String&    filename,
                        const T&         type,
                        const FileType   ftype,
+                       const Index      no_clobber,
                        const Verbosity& verbosity)
 {
   CREATE_OUT2;
@@ -1034,6 +1036,9 @@ void xml_write_to_file(const String&    filename,
   String efilename = add_basedir(filename);
   
   ostream* ofs;
+
+  if (no_clobber)
+      make_filename_unique(efilename);
  
   out2 << "  Writing " << efilename << '\n';
   if (ftype == FILE_TYPE_ZIPPED_ASCII)

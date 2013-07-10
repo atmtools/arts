@@ -43,15 +43,15 @@ void AgendaExecute(Workspace& ws,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void AgendaExecuteCritical(Workspace& ws,
-                   // WS Generic Input:
-                   const Agenda& this_agenda,
-                   const Verbosity& verbosity)
+void AgendaExecuteExclusive(Workspace& ws,
+                            // WS Generic Input:
+                            const Agenda& this_agenda,
+                            const Verbosity& verbosity)
 {
     CREATE_OUT3;
-    out3 << "  Manual agenda execution\n";
+    out3 << "  Manual, exclusive agenda execution\n";
     
-    #pragma omp critical(AgendaExecuteCritical_region)
+    #pragma omp critical(AgendaExecuteExclusive_region)
     this_agenda.execute(ws);
 }
 
