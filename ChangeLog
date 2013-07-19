@@ -1,3 +1,27 @@
+2013-07-19  Jana Mendrok <jana.mendrok@ltu.se>
+
+	* arts-2-1-700
+
+	* src/methods.cc
+	(propmat_clearskyAddParticles, propmat_clearskyAddFaraday):
+	Added description.
+
+	(propmat_clearskyAddZeeman, ParticleType2abs_speciesAdd,
+	basics_checkedCalc):
+	Spell fixed, more internal links, little rewording.
+
+	* src/m_abs.cc (propmat_clearskyAddParticles, propmat_clearskyAddFaraday):
+	Catch case of rtp_los not specified (happened when methods get called
+	from propmat_clearsky_fieldCalc).
+
+	* src/m_abs_lookup.cc (propmat_clearsky_fieldCalc): Temporary(?) bugfix.
+	Do NOT require all 3 magfield components to be explicitly specified, but
+	allow implicit zero-setting for separate components. This particularly
+	circumvents silently ignoring magfield as happened with previous version.
+
+	* doc/uguide/refr_index.tex: Added internal reference to Faraday section.
+	
+
 2013-07-16  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-699
@@ -60,7 +84,7 @@
 
 	* arts-2-1-695
 
-	* src/methods.cc: For jacobianAddPolyfit, changed defualt for
+	* src/methods.cc: For jacobianAddPolyfit, changed default for
 	no_pol_variation from 0 to 1. This as a temporary fix to allow
 	Qpack2 to be used with stokes_dim > 1. Need to think how this
 	shall be handled. I assume that nobody is affected by this change.
@@ -752,7 +776,7 @@
 	Bold i was used both for Stokes vector and total
 	vector of pencil beam monochormatic data, so to avoid this clash
 	redefined as follows
-  	  \PpathLng: s changed to l
+	  \PpathLng: s changed to l
 	  \StoVec: i changed to s
 
 	Added: \SttElm with friends and \Trn with friend.

@@ -2191,6 +2191,22 @@ void propmat_clearskyAddFaraday(
     throw runtime_error( 
                  "To include Faraday rotation, stokes_dim >= 3 is required." );
 
+  if( atmosphere_dim==1 && rtp_los.nelem() < 1 )
+    {
+       ostringstream os; 
+       os << "For applying propmat_clearskyAddParticles, los needs to be specified\n"
+          << "(at least zenith angle component for atmosphere_dim==1),\n"
+          << "but it is not.\n";
+       throw runtime_error( os.str() );
+    }
+  else if(  atmosphere_dim>1 && rtp_los.nelem() < 2 )
+    {
+       ostringstream os; 
+       os << "For applying propmat_clearskyAddParticles, los needs to be specified\n"
+          << "(both zenith and azimuth angle components for atmosphere_dim>1),\n"
+          << "but it is not.\n";
+       throw runtime_error( os.str() );
+    }
 
   Index ife = -1;  
   for( Index sp = 0; sp < abs_species.nelem() && ife < 0; sp++ )
@@ -2267,6 +2283,23 @@ void propmat_clearskyAddParticles(
          << " 'particles' entries\n"
          << "and " << ns << " scat_data_raw elements.\n";
       throw runtime_error( os.str() );
+    }
+
+  if( atmosphere_dim==1 && rtp_los.nelem() < 1 )
+    {
+       ostringstream os; 
+       os << "For applying propmat_clearskyAddParticles, los needs to be specified\n"
+          << "(at least zenith angle component for atmosphere_dim==1),\n"
+          << "but it is not.\n";
+       throw runtime_error( os.str() );
+    }
+  else if(  atmosphere_dim>1 && rtp_los.nelem() < 2 )
+    {
+       ostringstream os; 
+       os << "For applying propmat_clearskyAddParticles, los needs to be specified\n"
+          << "(both zenith and azimuth angle components for atmosphere_dim>1),\n"
+          << "but it is not.\n";
+       throw runtime_error( os.str() );
     }
 
   const Index nf = f_grid.nelem();

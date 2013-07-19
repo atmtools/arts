@@ -2185,7 +2185,8 @@ void propmat_clearsky_fieldCalc( Workspace& ws,
     // Resize output field.
     // The dimension in lat and lon must be at least one, even if these
     // grids are empty.
-    out2 << "  Creating field with dimensions:\n"
+    out2
+    << "  Creating field with dimensions:\n"
     << "    " << n_species << "    gas species,\n"
     << "    " << n_frequencies << "     frequencies,\n"
     << "    " << n_pressures << "  pressures,\n"
@@ -2252,12 +2253,16 @@ private(abs, a_vmr_list)
 
                         Vector this_rtp_mag(3, 0.);
 
-                        if (mag_u_field.npages() != 0
-                            && mag_v_field.npages() != 0
-                            && mag_w_field.npages() != 0)
+                        if (mag_u_field.npages() != 0)
                         {
                             this_rtp_mag[0] = mag_u_field(ipr, ila, ilo);
+                        }
+                        if (mag_v_field.npages() != 0)
+                        {
                             this_rtp_mag[1] = mag_v_field(ipr, ila, ilo);
+                        }
+                        if (mag_w_field.npages() != 0)
+                        {
                             this_rtp_mag[2] = mag_w_field(ipr, ila, ilo);
                         }
 
@@ -2272,8 +2277,8 @@ private(abs, a_vmr_list)
                                                        a_temperature, a_vmr_list,
                                                        l_abs_agenda);
 
-                        // Verify, that the number of species in abs is
-                        // constistent with vmr_field:
+                        // Verify, that the number of elements in abs matrix is
+                        // constistent with stokes_dim:
                         if ( stokes_dim != abs.nrows() || stokes_dim != abs.ncols() )
                         {
                             ostringstream os;
