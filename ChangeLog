@@ -1,3 +1,10 @@
+2013-07-23  Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-1-702
+	
+	* doc/uguid/absorption.tex:  Zeeman is now a subsection of "Calculating gas 
+	absorption". This fix why line mixing was considered a subsection of Zeeman.
+
 2013-07-23  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-701
