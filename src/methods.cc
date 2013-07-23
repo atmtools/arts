@@ -10343,6 +10343,46 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "single_scattering_dataCalcTMatrixTest" ),
+        DESCRIPTION
+        (
+         "Simple interface to T-Matrix code for testing.\n"
+         ),
+        AUTHORS( "Oliver Lemke" ),
+        OUT("single_scattering_data"),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN(),
+        GIN("p_type", "f_grid", "T_grid", "za_grid", "aa_grid",
+            "ref_index_real", "ref_index_imag",
+            "equiv_radius", "np", "phase", "aspect_ratio",
+            "precision"),
+        GIN_TYPE("String", "Vector", "Vector", "Vector", "Vector",
+                 "Matrix", "Matrix",
+                 "Numeric", "Index", "String", "Numeric",
+                 "Numeric"),
+        GIN_DEFAULT(NODEF, NODEF, NODEF, NODEF, NODEF,
+                    NODEF, NODEF,
+                    "200", "-1", "ice", "1.000001",
+                    "0.001" ),
+        GIN_DESC("Particle Type: MACROS_ISO (20) or PARTICLE_TYPE_HORIZ_AL (30)",
+                 "Frequency grid",
+                 "Temperature grid",
+                 "Zenith angle grid",
+                 "Azimuth angle grid",
+                 "Refractive index real part [f_grid.nelem, T_grid.nelem]",
+                 "Refractive index imaginary part [f_grid.nelem, T_grid.nelem]",
+                 "Equivalent radius",
+                 "Particle shape (-1 spherical, -2 cylinders)",
+                 "Phase (currently unused)",
+                 "Aspect ratio",
+                 "Precision"
+                 )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "Touch" ),
         DESCRIPTION
         (

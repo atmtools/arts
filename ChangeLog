@@ -1,3 +1,23 @@
+2013-07-23  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-703
+	
+	* src/m_tmatrix.cc, src/methods.cc:
+
+	(single_scattering_dataCalcTMatrixTest): Add WSM that takes all
+	parameters needed for Tmatrix calculations as input for easier testing.
+
+	* src/tmatrix.{cc,h}:
+	(calcSingleScatteringDataProperties): Don't pass ConstMatrixView as
+	reference.
+
+	* controlfiles/artscomponents/tmatrix/TestTMatrixSSD.arts:
+
+	Add simple test case to calculate single_scattering_data for given
+	parameters and save it to a file.
+
+	* controlfiles/CMakeLists.txt: Add TestTMatrixSSD.arts.
+
 2013-07-23  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-1-702

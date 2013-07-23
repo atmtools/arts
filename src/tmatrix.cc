@@ -925,8 +925,8 @@ void tmatrix_fixed_orientation(Numeric& cext,
 
 
 void calcSingleScatteringDataProperties(SingleScatteringData& ssd,
-                                        ConstMatrixView& ref_index_real,
-                                        ConstMatrixView& ref_index_imag,
+                                        ConstMatrixView ref_index_real,
+                                        ConstMatrixView ref_index_imag,
                                         const Numeric equiv_radius,
                                         const Index np,
                                         const String phase _U_,

@@ -87,6 +87,7 @@ endif ()
 
 if (ENABLE_TMATRIX)
   arts_test_run_ctlfile(nocheck.tmatrix artscomponents/tmatrix/TestTMatrix.arts)
+  arts_test_run_ctlfile(nocheck.tmatrix_ssd artscomponents/tmatrix/TestTMatrixSSD.arts)
 endif ()
 
 

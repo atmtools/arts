@@ -49,8 +49,8 @@
  \author Oliver Lemke
  */
 void calcSingleScatteringDataProperties(SingleScatteringData& ssd,
-                                        ConstMatrixView& ref_index_real,
-                                        ConstMatrixView& ref_index_imag,
+                                        ConstMatrixView ref_index_real,
+                                        ConstMatrixView ref_index_imag,
                                         const Numeric equiv_radius = 200,
                                         const Index np = -1,
                                         const String phase = "ice",
