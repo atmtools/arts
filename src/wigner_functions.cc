@@ -46,6 +46,7 @@ Numeric wigner3j(const Rational j1,const Rational j2,const Rational j3,
             return 0;
         
         if(m1.toIndex() ==0 && m2.toIndex() == 0 && m3.toIndex() ==0)
+        {
             if( !( (( J ).toIndex() % 2) == 0 ) )
                 return 0;
             else
@@ -64,6 +65,7 @@ Numeric wigner3j(const Rational j1,const Rational j2,const Rational j3,
                                                 (J/2-j3).toIndex(),
                                                 (J/2-j3).toIndex())));
             }
+        }
     }// End of TEST Area
     
     
@@ -177,7 +179,7 @@ Numeric wigner6j(const Rational j1,const Rational j2,const Rational j3,
 // /*!
 //  * Equation 34.2.5 in http://dlmf.nist.gov/34.2
 //  */
-Numeric wigner9j(){}//Placeholder
+Numeric wigner9j(){return NAN;}//Placeholder
 
 
 Numeric ECS_wigner(Rational L, Rational Nl, Rational Nk, 

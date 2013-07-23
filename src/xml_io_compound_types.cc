@@ -811,7 +811,7 @@ void xml_write_to_stream(ostream& os_xml,
 
 //=== LineMixingRecord ================================================
 
-//! Reads IsotopologueRecord from XML input stream
+//! Reads LineMixingRecord from XML input stream
 /*!
   \param is_xml   XML Input stream
   \param lmr      LineMixingRecord return value

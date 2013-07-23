@@ -1,3 +1,20 @@
+2013-07-23  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-701
+
+	* src/tmatrix.{cc,h}: Add checks for ref index size.
+
+	* src/xml_io_compound_types.cc: Fix typo.
+
+	* src/wigner_functions.cc (wigner3j):
+
+	Add braces for outer if to avoid confusion where the inner else belongs
+	to.
+
+	(wigner9j): Return NAN to avoid warning.
+
+	* src/test_matpack (test45): Use explicit cast to avoid warning.
+
 2013-07-19  Jana Mendrok <jana.mendrok@ltu.se>
 
 	* arts-2-1-700

@@ -34,9 +34,11 @@
 
  Port of calc_SSP function from PyARTS.
 
- \param[in,out] ssd Uses the grids given by ssd to calculate
-                    pha_mat_data, ext_mat_data and abs_vec_data
+ \param[in,out] ssd         Grids given by ssd are used to calculate
+                            pha_mat_data, ext_mat_data and abs_vec_data
  \param[in] ref_index_real  Vector with real parts of refractive index
+                            Number of rows must match elements in ssd.f_grid
+                            Number of cols must match elements in ssd.T_grid
  \param[in] ref_index_imag  Vector with imaginary parts of refractive index
  \param[in] equiv_radius    equivalent volume radius [micrometer]
  \param[in] np              Particle type (-1 for spheroid, -2 for cylinder)

@@ -941,6 +941,15 @@ void calcSingleScatteringDataProperties(SingleScatteringData& ssd,
     extern const Numeric PI;
     extern const Numeric SPEED_OF_LIGHT;
 
+    if (ref_index_real.nrows() != nf)
+        throw std::runtime_error("Number of rows of refractive index real part must match ssd.f_grid.");
+    if (ref_index_real.ncols() != nT)
+        throw std::runtime_error("Number of cols of refractive index real part must match ssd.T_grid.");
+    if (ref_index_imag.nrows() != nf)
+        throw std::runtime_error("Number of rows of refractive index imaginary part must match ssd.f_grid.");
+    if (ref_index_imag.ncols() != nT)
+        throw std::runtime_error("Number of cols of refractive index imaginary part must match ssd.T_grid.");
+
     // The T-Matrix codes needs wavelength in microns
     Vector lam(nf, 1e6*SPEED_OF_LIGHT);
     lam /= ssd.f_grid;

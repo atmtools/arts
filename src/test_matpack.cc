@@ -940,7 +940,7 @@ ArrayOfIndex J;J=MakeArray<Index>(0, 2, 2, 4, 4, 6, 6, 8, 8, 10, 10, 12, 12, 14,
     Vector d; d.resize(38);
     
     for(Index II = 0; II<N.nelem(); II++)
-        d[II] = wigner6j(1, 1, 1, J[II], N[II], N[II]) * pow(-1.,2.*N[II]) * sqrt(6*(2*N[II]+1)*(2*J[II]+1));
+        d[II] = wigner6j(1, 1, 1, J[II], N[II], N[II]) * pow(-1.,2.*(Numeric)N[II]) * sqrt(6*(2*N[II]+1)*(2*J[II]+1));
     
     std::cout<<d<<std::endl;
     
