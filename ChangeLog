@@ -1,3 +1,11 @@
+2013-07-24  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-0-49
+
+	* doc/uguide/common.tex, doc/uguide/concept.tex:
+
+	Fix docserver URL for stable version.
+
 2013-04-26  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-0-48
