@@ -1,3 +1,29 @@
+2013-07-25  Jana Mendrok <jana.mendrok@ltu.se>
+
+	* arts-2-1-705
+
+	* doc/uguide/absorption.tex: Added sections on
+	propmat_clearskyAddFaraday and propmat_clearskyAddParticles. Added info
+	on setting isotopologue_ratios. Moved input-to-LbL paragraphs into their
+	own subsection (it's not only for LbL. and that way we have a proper
+	place to document how to set iso ratios). Minor updates (it's propmat
+	now!), rewording, re-layouting, spellfixes...
+
+	* doc/uguide/references.bib: Zeeman paper added.
+
+	* doc/uguide/absorption_theory.tex: Updated info on isotopologue ratios
+	(not hard-coded anymore!)
+
+	* doc/uguide/clouds.tex: Section label added.
+
+	* doc/uguide/symbol_defs.tex: \chem makro added.
+
+	* src/workspace.cc, methods.cc: Sorted some stuff in its
+	(alphabetically) right place (particularly propmat*). In abs_speciesSet
+	added clear note that order of tag groups matters.
+
+	* src/gas_abs_lookup.cc (Adapt): Error message improved(?).
+
 2013-07-23  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-704
@@ -2246,7 +2272,7 @@
 	* src/gas_abs_lookup.cc (GasAbsLookup::Extract):
 
 	Ignore species such as Zeeman and free_electrons which are not
-        stored in the lookup table. For those the result is set to 0.
+	stored in the lookup table. For those the result is set to 0.
 
 2013-04-18  Oliver Lemke  <olemke@core-dump.info>
 
@@ -3560,23 +3586,23 @@
 
 	* arts-2-1-515
 
-        * src/m_abs.cc (abs_linesReadFromSplitArtscat): Use
+	* src/m_abs.cc (abs_linesReadFromSplitArtscat): Use
 	SpeciesTag::Type() to decide on type of species tag.
 
-        * src/absorption.cc (checkIsotopologueRatios): Rewritten. Use
+	* src/absorption.cc (checkIsotopologueRatios): Rewritten. Use
 	abs_species only to decide what species to check. For the check
 	itself, rely only on the built in species data and the external
 	isotopologue ratio data.
 
-        * src/species_data.cc: Corrected outdated H2O comment.
+	* src/species_data.cc: Corrected outdated H2O comment.
 
-        * src/agendas.cc (abs_xsec_per_species_agenda):
+	* src/agendas.cc (abs_xsec_per_species_agenda):
 	Added. Name may still change.
 
-        * src/workspace.cc (abs_xsec_per_species_agenda): Added. Name may
+	* src/workspace.cc (abs_xsec_per_species_agenda): Added. Name may
 	still change.
 
-        * controlfiles/general/agendas.arts: Added defaults for
+	* controlfiles/general/agendas.arts: Added defaults for
 	abs_xsec_per_species_agenda.
 
 2013-02-21  Patrick Eriksson  <patrick.eriksson@chalmers.se>

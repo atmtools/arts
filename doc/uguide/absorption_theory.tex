@@ -968,7 +968,7 @@ Parameters 0-28 must be present. Parameter 29 contains coded quantum numbers.
 The coding conventions are species specific. The definitions are given in file
 \shortcode{ARTSCAT-4\_Col29\_Conventions.txt}, which is available along with
 the first incarnation of an ARTSCAT-4 type spectroscopic catalog from the
-\shortcode{arts-xml-data} data package.
+\shortcode{arts-xml-data} package.
 
 \subsection{Pressure broadening and shift calculation}
 
@@ -1122,6 +1122,7 @@ difference which of the VMR is selected for broadening.
 
 
 \subsection{Species-specific data in ARTS}
+\label{sec:abs_theory:species_data}
 
 A line absorption species in ARTS is a particular isotopologue of a
 particular molecule.  Quantities such as the molecular mass and the
@@ -1138,11 +1139,12 @@ list of all species-specific information that is needed:
 
 These data are currently stored in two source code files,
 \fileindex{species\_data.cc} and \fileindex{partition\_function\_data.cc}. 
-That is, currently these data are hard-coded and can not be changed via
-controlfile settings.
-In order to allow calculations for other planets, we are going to change
-this in the not too far future, at least for the isotopologue ratios. It is
-planned, that the data will then be read from include files instead.
+That is, these values are basically hard-coded.
+However, at present at least isotopologue ratios can be replaced via controlfile
+settings, which is useful, e.g., for calculations for other planets.
+% In order to allow calculations for other planets, we are going to change this
+% in the not too far future, at least for the isotopologue ratios. It is
+% planned, that the data will then be read from include files instead.
 
 \citet{buehler:artst:05} contains an explicit list of species that
 were implemented at the time of writing of that article.  We do not include
@@ -1204,8 +1206,8 @@ representative of the range of temperatures occuring in the Earth atmosphere.
 For calculations in planetary atmospheres it might be advantageous being able to
 use other data, e.g. such derived for temperatures prevailing there. We are
 exploring options to allow for that (e.g., read data from include files as
-planned for isotopologue ratios, or replacement of parameterized partition
-functions by directly calculated one through embedding TIPS and the JPL scheme
+done for isotopologue ratios, or replacement of parameterized partition
+functions by directly calculated ones through embedding TIPS and the JPL scheme
 in ARTS).
 
 % ================================================================================

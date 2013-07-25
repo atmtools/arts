@@ -548,57 +548,6 @@ void Workspace::define_wsv_data()
        GROUP( "Index" )));
 
   wsv_data.push_back
-   (WsvRecord
-    ( NAME( "propmat_clearsky_field" ),
-      DESCRIPTION
-      (
-       "Gas absorption field.\n"
-       "\n"
-       "Contains the (polarized) gas absorption coefficients for all species\n"
-       "as a function of *f_grid*, *p_grid*, *lat_grid*, and *lon_grid*. \n"
-       "\n"
-       "This is mainly for testing and plotting gas absorption. For RT\n"
-       "calculations, gas absorption is calculated or extracted locally,\n"
-       "therefore there is no need to store a global field. But this variable\n"
-       "is handy for easy plotting of absorption vs. pressure, for example.\n"
-       "\n"
-       "Unit:       1/m\n"
-       "\n"
-       "Dimensions: [species, f_grid, *stokes_dim*, stokes_dim, p_grid, lat_grid, lon_grid]\n"
-        ),
-      GROUP( "Tensor7" )));
-
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "abs_xsec_agenda_checked" ),
-      DESCRIPTION
-      (
-       "OK-flag for *abs_xsec_agenda*.\n"
-       "\n"
-       "Set by *abs_xsec_agenda_checkedCalc*.\n"
-       ),
-      GROUP( "Index" )));
-
-  wsv_data.push_back
-    (WsvRecord
-    ( NAME( "propmat_clearsky" ),
-      DESCRIPTION
-      (
-       "This contains the absorption coefficients for one point in the\n"
-       "atmosphere (one set of pressure, temperature, magnetic field, and\n"
-       "VMR values). There are two distinct cases:\n"
-       "\n"
-       "Case a:    For all frequencies and all species:\n"
-       "Dimension: [ abs_species, f_grid, stokes_dim, stokes_dim ]\n"
-       "\n"
-       "Case b:    For a single frequency for all species:\n"
-       "Dimension: [ abs_species, 1, stokes_dim, stokes_dim]\n"
-       "\n"
-       "Unit: 1/m\n"
-       ),
-      GROUP( "Tensor4" )));
-
-  wsv_data.push_back
     (WsvRecord
     ( NAME( "abs_p" ),
       DESCRIPTION
@@ -726,6 +675,26 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
     (WsvRecord
+     ( NAME( "abs_xsec_agenda" ),
+      DESCRIPTION
+      (
+       "See agendas.cc.\n"
+       ),
+      GROUP( "Agenda" )));
+    
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "abs_xsec_agenda_checked" ),
+      DESCRIPTION
+      (
+       "OK-flag for *abs_xsec_agenda*.\n"
+       "\n"
+       "Set by *abs_xsec_agenda_checkedCalc*.\n"
+       ),
+      GROUP( "Index" )));
+
+  wsv_data.push_back
+    (WsvRecord
      ( NAME( "abs_xsec_per_species" ),
        DESCRIPTION
        (
@@ -741,15 +710,6 @@ void Workspace::define_wsv_data()
         "            where n is total density.\n"
         ),
        GROUP( "ArrayOfMatrix" )));
-    
-  wsv_data.push_back
-    (WsvRecord
-     ( NAME( "abs_xsec_agenda" ),
-      DESCRIPTION
-      (
-       "See agendas.cc.\n"
-       ),
-      GROUP( "Agenda" )));
     
   wsv_data.push_back
    (WsvRecord
@@ -2953,6 +2913,25 @@ void Workspace::define_wsv_data()
       GROUP( "Agenda" )));
 
   wsv_data.push_back
+    (WsvRecord
+    ( NAME( "propmat_clearsky" ),
+      DESCRIPTION
+      (
+       "This contains the absorption coefficients for one point in the\n"
+       "atmosphere (one set of pressure, temperature, magnetic field, and\n"
+       "VMR values). There are two distinct cases:\n"
+       "\n"
+       "Case a:    For all frequencies and all species:\n"
+       "Dimension: [ abs_species, f_grid, stokes_dim, stokes_dim ]\n"
+       "\n"
+       "Case b:    For a single frequency for all species:\n"
+       "Dimension: [ abs_species, 1, stokes_dim, stokes_dim]\n"
+       "\n"
+       "Unit: 1/m\n"
+       ),
+      GROUP( "Tensor4" )));
+
+  wsv_data.push_back
    (WsvRecord
     ( NAME( "propmat_clearsky_agenda" ),
       DESCRIPTION
@@ -2971,6 +2950,27 @@ void Workspace::define_wsv_data()
        "Set by *propmat_clearsky_agenda_checkedCalc*.\n"
        ),
       GROUP( "Index" )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "propmat_clearsky_field" ),
+      DESCRIPTION
+      (
+       "Gas absorption field.\n"
+       "\n"
+       "Contains the (polarized) gas absorption coefficients for all species\n"
+       "as a function of *f_grid*, *p_grid*, *lat_grid*, and *lon_grid*. \n"
+       "\n"
+       "This is mainly for testing and plotting gas absorption. For RT\n"
+       "calculations, gas absorption is calculated or extracted locally,\n"
+       "therefore there is no need to store a global field. But this variable\n"
+       "is handy for easy plotting of absorption vs. pressure, for example.\n"
+       "\n"
+       "Unit:       1/m\n"
+       "\n"
+       "Dimensions: [species, f_grid, *stokes_dim*, stokes_dim, p_grid, lat_grid, lon_grid]\n"
+        ),
+      GROUP( "Tensor7" )));
 
    wsv_data.push_back
    (WsvRecord

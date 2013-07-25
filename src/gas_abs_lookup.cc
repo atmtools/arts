@@ -732,7 +732,8 @@ void GasAbsLookup::Extract( Matrix&         sga,
       ostringstream os;
       os << "Number of species in lookup table does not match number\n"
          << "of species for which you want to extract absorption.\n"
-         << "Have you used abs_lookupAdapt?";
+         << "Have you used abs_lookupAdapt? Or did you miss to add\n"
+         << "some VRM fields (e.g. for free electrons or particles)?\n";
       throw runtime_error( os.str() );
     }
     

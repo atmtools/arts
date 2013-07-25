@@ -50,7 +50,7 @@ calculated, and how the calculation is set up.  Finally, Section
 lookup table, and how it is extracted again.
 
 Here in the User Guide we focus on practical aspects of absorption in
-ARTS.  But absorption calculations also have a deep theoretical
+ARTS. But absorption calculations also have a deep theoretical
 background, particularly the line-by-line calculations and the
 continuum models.  Some of this background is discussed in \theory,
 Chapter \ref{T-sec:abs_theory}. 
@@ -86,10 +86,12 @@ functions to describe absorption.  In the absence of polarizing
 effects it is simply equal to $\AbsCoef \IdnMtr_4$, where $\IdnMtr_4$
 is the 4$\times$4 identity matrix. 
 
-Both gases
-and particles in the atmosphere absorb, and the total absorption is
-the sum of these two contributions. But this chapter is only about the
-gas absorption.
+Both gases and particles in the atmosphere absorb, and the total absorption is
+the sum of these two contributions.
+This chapter only deals with absorption of non-scattering matter, i.e., gas
+absorption in the first place (but can also include absorption by grey-body
+particles and polarization changes by electrons).
+%But this chapter is only about the gas absorption.
 
 \section{Agendas}
 \label{sec:absorption:agendas}
@@ -109,7 +111,7 @@ absorption is handled on-the-fly, or before, when the absorption
 lookup table is generated).  This agenda is just for the scalar gas
 absorption part and describes in detail the line-by-line absorption
 calculation and various continua.  It is explained further in Section
-\ref{sec:absorption:calculating}.  You are likely to need both of the
+\ref{sec:absorption:calculating}.  You will likely need both of the
 above agendas for your ARTS RT simulation.
 
 
@@ -170,7 +172,9 @@ how propmat\_clearsky\_agenda can be set for different purposes.
 This section deals with calculating gas absorption matrices in
 ARTS.  This can typically occur in three different contexts:
 as on-the-fly absorption matrix calculation within the radiative transfer
-calculation (see Section \ref{sec:absorption:abs-rt}), when preparing
+calculation,
+% (see Section \ref{sec:absorption:abs-rt}), %this reference is more confusing than helping
+when preparing
 a gas absorption lookup table (see Section \ref{sec:absorption:lookup}),
 or when the user is only interested in the absorption itself (see Section
 \ref{sec:absorption:abs-only}).
@@ -225,14 +229,18 @@ species are defined in the ARTS controlfile by special `tags', which
 are stored in the variable \wsvindex{abs\_species}, and set by the
 method \wsmindex{abs\_speciesSet}.
 
-The absorption species tags describe not only the different absorbers,
-but also the model that should be used to calculate the absorption.
+The absorption species tags specify the different considered absorbers, which can
+be gaseous species but also free electrons and (grey-body) particles.
+For gaseous species, they also describe the model that should be used to
+calculate the absorption for each of the species.
 There are three types of tags, those for explicit line-by-line
-calculations, those for continua and complete absorption models, and a special Zeeman effect tag.
-An example of the first kind is `H2O-18', which identifies a
-particular isotopologue of water vapor.  An example of the second kind is
-`H2O-ForeignContCKDMT100', which identifies a particular continuum
-model.  An example of the third is `O2-Z', which identifies that special Zeeman routines should be used.
+calculations, those for continua and complete absorption models, and a special
+Zeeman effect tag.
+An example of the first kind is \verb|"H2O-18"|, which identifies a
+particular isotopologue of water vapor. An example of the second kind is
+\verb|"H2O-ForeignContCKDMT100"|, which identifies a particular continuum
+model. An example of the third is \verb|"O2-Z"|, which identifies that special Zeeman
+routines should be used.
 Tags can be combined, if they refer to the same molecule
 (different isotopologues are allowed). Even continuum tags can be combined
 with explicit line-by-line tags, if they refer to the same molecule.
@@ -241,8 +249,10 @@ It should be noted that isotopologue ratios are taken into account
 implicitly when line strengths are calculated, so even if you make
 calculations for individual isotopologues, the VMR numbers in the
 variable \wsvindex{vmr\_field} should not be adjusted for the isotopologue
-ratio. As an example, to make a line-by-line calculation for all ozone
-isotopologues, you could represent them in different ways by
+ratio (the isotopologue ratio can be changed instead; see
+Section~\ref{sec:absorption:isoratio}). As an example, to make a line-by-line
+calculation for all ozone isotopologues, you could represent them in different
+ways by
 \wsmindex{abs\_speciesSet}.
 \begin{code}
 a) abs_speciesSet(species=["O3"])
@@ -252,28 +262,30 @@ c) abs_speciesSet(species=
                   ["O3-666", "O3-668", "O3-686", "O3-667", "O3-676"])
 \end{code}
 Options (a) and (b) are equivalent, you will have one ozone species
-that represents are isotopologues, and that will be associated with a
+that represents all isotopologues, and that will be associated with a
 single VMR field in \wsvindex{vmr\_field}.  With option (c) you have
 five different ozone species, so you have to supply five different VMR
 fields. If those five fields are identical (exactly same numerical
 values), you will get the same total absorption as with options (a)
 and (b).
 
-Overall, the tag mechanism allows quite complex
-absorption setups. The built-in documentation for
-\wsmindex{abs\_speciesSet} gives a detailed explanation of the tag syntax
-and some examples.  
+Overall, the tag mechanism allows quite complex absorption setups. The built-in
+documentation for \wsmindex{abs\_speciesSet} gives a detailed explanation of the
+tag syntax and some examples.
 
-It is important to note that there is no `intelligence' in ARTS that
-checks that the chosen tag combination makes sense, so the user should
-know what she or he is doing, or follow one of the many examples in
-the ARTS \fileindex{includes} directory.
+Particularly note, that order of the species list matters as absorption line
+data is assigned to species in their order within the \wsvindex{abs\_species}
+list and no line record is assigned to more than one species.
+It is furthermore important to note that there is no `intelligence' in ARTS that
+checks that the chosen tag combinations make sense, so the user should
+know what s/he is doing, or follow one of the many examples in
+the ARTS \fileindex{controlfiles} directory.
 
 \subsection{Explicit line-by-line calculations}
 
 For absorption species with explicit line-by-line calculation the
 calculation involves the steps summarized in Table
-\ref{tab:absorption:lbl}, containing the steps that are common to all the
+\ref{tab:absorption:lbl}, which contains the steps that are common to all the
 three contexts in which explicit line-by-line calculations can occur as well
 as the steps that are specific to each of those cases. 
 The list of variables and methods in the
@@ -311,8 +323,9 @@ matter). &
 Variable: \wsvindex{abs\_lines}. \newline
 Methods: 
 \wsmindex{abs\_linesReadFromArts},
+\wsmindex{abs\_linesReadFromSplitArtscat},
 \wsmindex{abs\_linesReadFromHitran},
-\wsmindex{abs\_linesReadFromHitran},
+\wsmindex{abs\_linesReadFromHitranPre2004},
 \wsmindex{abs\_linesReadFromJpl},
 \wsmindex{abs\_linesReadFromMytran2} (different methods are for
 different catalogue formats). For the ARTS internal format, the
@@ -330,7 +343,7 @@ lines from different catalogues for different species directly with
 %---------------------------------------------------------------------
 \mylabel{step:optline}
 \arabic{rownum} &
-Optimize line data. &
+Optimize line data. (optional)&
 Variable: \wsvindex{abs\_lines\_per\_species}. \newline
 Methods: Add mirror lines for VVW line shape with
 \wsmindex{abs\_lines\_per\_speciesAddMirrorLines} (see \theory,
@@ -347,10 +360,17 @@ line shape cutoff with \wsmindex{abs\_lines\_per\_speciesCompact}. \\
 Calculate absorption on-the-fly. &
 Agenda: \wsaindex{propmat\_clearsky\_agenda}. \newline
 Variable: \wsvindex{propmat\_clearsky}, which is nitialized in \wsmindex{propmat\_clearskyInit}.\newline
-Methods: \wsmindex{propmat\_clearskyAddOnTheFly} and \wsmindex{propmat\_clearskyAddZeeman}. Alternative:
-\wsmindex{propmat\_clearskyAddFromLookup} (extract absorption from
-pre-calculated lookup table). Note that the lookup table cannot contain absorption for
-Zeeman tagged species due to the dependency on magnetic field strength and direction of these.\\
+Methods: \wsmindex{propmat\_clearskyAddOnTheFly} (the core method for on-the-fly
+absoprtion calculation inlcuding line-by-line and continuum absorption), \newline
+\wsmindex{propmat\_clearskyAddZeeman} (see Sec.~\ref{sec:absorption:zeeman}), \newline
+\wsmindex{propmat\_clearskyAddFaraday} (see Sec.~\ref{sec:absorption:faraday}), \newline
+\wsmindex{propmat\_clearskyAddParticles} (see Sec.~\ref{sec:absorption:particles}). \newline
+Alternative:
+\wsmindex{propmat\_clearskyAddFromLookup} instead of \wsmindex{propmat\_clearskyAddOnTheFly}
+(extract absorption from pre-calculated lookup table, see
+Sec.~\ref{sec:absorption:lookup}). Note that the lookup
+table cannot contain absorption for Zeeman tagged species, Faraday rotation, and
+particles due to their directional dependencies.\\
 %---------------------------------------------------------------------
 \arabic{rownum}b &
 Calculate absorption lookup table. &
@@ -361,15 +381,17 @@ current calculation (and checked) with \wsmindex{abs\_lookupAdapt}. \\
 %---------------------------------------------------------------------
 \arabic{rownum}c &
 Calculate absorption only (no RT). &
-Variable: \wsvindex{abs\_mat\_field},\wsvindex{abs\_coef}. \newline
-Methods, high level: \wsmindex{abs\_mat\_fieldCalc}, \wsmindex{abs\_coefCalc},
-\wsmindex{abs\_coefCalcSaveMemory}. \newline
+Variable: \wsvindex{propmat\_clearsky\_field}, \wsvindex{abs\_coef}. \newline
+Methods, high level: \wsmindex{propmat\_clearsky\_fieldCalc}. \newline
+%, \wsmindex{abs\_coefCalc}, \wsmindex{abs\_coefCalcSaveMemory}. \newline
 Methods, low level: \newline
 \wsmindex{abs\_xsec\_per\_speciesInit}, \newline
 \wsmindex{abs\_xsec\_per\_speciesAddLines} (the core method for the
 actual line-by-line calculation, used internally by all higher level methods),\newline
 \wsmindex{abs\_xsec\_per\_speciesAddConts} (add continua or complete absorption
 models, see Section \ref{sec:absorption:continua}),\newline
+\wsmindex{abs\_xsec\_per\_speciesAddCIA} (add collision induced absorption, see
+Section \ref{sec:absorption:cia}),\newline
 \wsmindex{abs\_coefCalcFromXsec} (calculate absorption coefficients
 from absorption cross-sections). \\
 %---------------------------------------------------------------------
@@ -384,26 +406,8 @@ See the built-in documentation of the various variables and methods
 for more information.  It is on purpose not repeated here, for better
 maintainability.  If you are viewing this pdf file on a computer, just
 click on a variable or method name to get to the corresponding
-built-in documentation. 
-
-%\subsection{Spectral line data and other input}
-%\label{sec:absorption:spec}
-
-Important input to the line-by-line calculations is the spectral line data,
-usually provided by spectroscopic catalogues. ARTS has its own format for the
-spectral line data, but is also capable of handling data from other catalogues
-like HITRAN (both pre- and post-2004 formats) and JPL (see Table
-\ref{tab:absorption:lbl}, step \ref{step:readline}).
-Chapter \ref{T-sec:abs_theory} of \theory\ contains more information on
-the internal format of the spectral line data.  It also contains
-theoretical background for the calculation itself.
-
-Some parameters required for line-by-line absorption calculations,
-specifically isotopologue ratios and partition functions, are at the moment
-hard-coded into ARTS. That is, no settings related to those have to be or
-can be done on the user level. For more information on theoretical baxckground
-as well as the source and implementation of those parameters in ARTS see Section
-\ref{T-sec:abs_theory:line_absorption} of \theory.
+built-in documentation. Further input data and parameters required (not only)
+for line-by-line calculations is described in Section~\ref{sec:absorption:input}.
 
 \subsection{Continua and complete absorption models}
 \label{sec:absorption:continua}
@@ -520,22 +524,28 @@ the start of their controlfiles with
 \begin{code}
   INCLUDE "continua.arts"
 \end{code}
-Unless you work on continuum model development of verification, you
+Unless you work on continuum model development or verification, you
 should never have to modify these default settings.
 
 The core method to calculate continua and complete absorption models
 is \wsmindex{abs\_xsec\_per\_speciesAddConts}.  Users normally do not
 have to call this method explicitly, since it is used implicitly by
-higher level methods, such as \wsmindex{abs\_coefCalc}.
+higher level methods, such as \wsmindex{propmat\_clearskyAddOnTheFly} and
+\wsmindex{propmat\_clearsky\_fieldCalc}.
 
 \subsection{Collision-induced absorption}
 \label{sec:absorption:cia}
 
+Collisions of molecules centro-symmetric molecules, e.g., \chem{O_2},
+\chem{N_2}, \chem{H_2}, \chem{CO_2}, and \chem{CH_4}, possessing no permanent
+electric dipole create a transient dipole, which causes so-called collision-induced
+absorption (CIA). Absorption strength of CIA is characterized by its dependency
+on the molecular density of both molecular species involved in the collision.
+
 Recently, the well-known HITRAN spectral line catalogue has started to
-offer also tabulated binary absorption cross-sections for
-collision-induced absorption (CIA).  This is described in detail in
-\citet{richard:12}, and also in the documentation that comes with the
-data themselves.  
+offer also tabulated binary absorption cross-sections for CIA.  This is
+described in detail in \citet{richard:12}, and also in the documentation that
+comes with the data themselves.
 
 Binary absorption cross-sections
 \aAbsXsec{i,j} have to be multiplied with the number densities of both involved
@@ -551,10 +561,10 @@ Using CIA in ARTS is easy. First of all, include one or more CIA tags
 in your absorption species list (\wsvindex{abs\_species}). All valid
 tags are listed in Table \ref{tab:absorption:cia_ranges}. Secondly,
 read in WSV \wsvindex{abs\_cia\_data}, which contains the tabulated
-binary absorption cross-sections, from a file. (This will usually be
-file \fileindex{hitran\_cia2012\_adapted.xml.gz} that is included with
-arts-xml-data, but the original HITRAN data files can also be
-read). Finally, use WSM \wsmindex{abs\_xsec\_per\_speciesAddCIA} in
+binary absorption cross-sections, from a file. This will usually be the
+file \fileindex{hitran\_cia2012\_adapted.xml.gz}, which is included in the
+\shortcode{arts-xml-data}, but the original HITRAN data files can also be
+read. Finally, use WSM \wsmindex{abs\_xsec\_per\_speciesAddCIA} in
 abs\_xsec\_agenda to add the CIA absorption. For usage examples, look
 in directory \fileindex{controlfiles/artscomponents/cia} that is part
 of the ARTS distribution.
@@ -563,8 +573,13 @@ Figure \ref{fig:absorption:cia} shows all CIA continua that are
 currently available in ARTS (left) and separately the ones that are
 relevant for Earth's atmosphere (right). The valid frequency and
 temperature ranges for these data, as available in ARTS, are listed in
-Table \ref{tab:absorption:cia_ranges}.  To make the HITRAN data work
-in ARTS, some modifications were necessary, specifically:
+Table \ref{tab:absorption:cia_ranges}. Outside the covered frequency ranges, the
+binary absorption cross-sections are set to zero, while exceeding the valid
+temperature range will produce \verb|NaN| values and eventually trigger a
+runtime error.
+
+To make the HITRAN data work in ARTS, some modifications were necessary,
+specifically:
 
 \begin{description}
 \item[N$_2$-N$_2$:] The two high-frequency datasets were merged into one.
@@ -573,11 +588,15 @@ in ARTS, some modifications were necessary, specifically:
 \item[CO$_2$-CO$_2$:] Caveat: This is only the self continuum of
   CO2. The CO2-air continuum has strong features above 250 cm$^{-1}$ that
   are present in CKD\_MT (also available in ARTS as one of the
-  continuum and full absorption models), but are missing here.  The HITRAN
-  data also generally looks weird. It is only in the alternative folder,
-  and \citet{richard:12} basically recommend not to use
-  it. Conclusion: No changes, but usage not recommended.
-\item[O2-N2, O2-CO2:] These UV/Vis only datasets were removed.
+  continuum and full absorption models), but are missing here. 
+  %The HITRAN data also generally looks weird. It is only in the alternative
+  %folder, and \citet{richard:12} basically recommend not to use it. Conclusion:
+  %No changes, but usage not recommended.
+  \citet{richard:12} point out that for molecules with more than two atoms
+  further mechanisms affecting CIA exist, which are not covered by the simple
+  models used. They hence state that ``these data should be used very
+  carefully´´. Conclusion: No changes, but use with care.
+\item[O2-N2, O2-CO2:] These UV/Vis-only datasets were removed.
 
 \begin{table}
     \caption{Absorption species tags, frequency ranges, and
@@ -626,23 +645,26 @@ in ARTS, some modifications were necessary, specifically:
 \subsection{Zeeman calculations}
 \label{sec:absorption:zeeman}
 
-The Zeeman effect is calculated in the method \verb|propmat_clearskyAddZeeman|.
-If this method is included in the \verb|propmat_clearsky_agenda|, then species with the
+The Zeeman effect is calculated in the method \wsmindex{propmat\_clearskyAddZeeman}.
+If this method is included in the \builtindoc{propmat\_clearsky\_agenda}, then species with the
 tag "\verb|-Z|" will be calculated as Zeeman species. If the method is not included,
-then these species will simply be ignored. The order of the tag is important. 
-It must be the first tag. Thus, \verb|O2-Z-66| will be counted as Zeeman splitting on the
+then these species will simply be ignored. Note that the order within the tag
+string is important: the Zeeman tag must directly follow the molecular species
+tag. That is, \verb|O2-Z-66| will be counted as Zeeman splitting on the
 O$^{16}$O$^{16}$ molecule, whereas \verb|O2-66-Z| will not work the same way, or even at all.
 
-The physics and internal workings of the Zeeman calculations follow the scheme presented in
-Larsson et al., submitted 2013 to JQSRT, \textit{A treatment of the Zeeman effect using Stokes
-formalism and its implementation in the Atmospheric
-Radiative Transfer Simulator ARTS}. %FIXME: Proper source when accepted.
+The physics and internal workings of the Zeeman calculations follow the scheme
+presented in \citet{larsson:xx} %FIXME: update bibtex reference when accepted.
+%Larsson et al., submitted 2013 to JQSRT, \textit{A treatment of the Zeeman
+%effect using Stokes formalism and its implementation in the Atmospheric
+%Radiative Transfer Simulator ARTS}.
 
-In order to calculate Zeeman splitting, additional line parameters that are not readily
-available in, e.g., HITRAN are necessary. These include $g_s$ [-], the relative Land\'{e} factor,
-and $S$ [-], the molecular total spin. These variables must therefore be read to \verb|isotopologue_quantum|.
-The format of this variable is \verb|SpeciesAuxData| and one example format of a file containing such data
-follows:
+In order to calculate Zeeman splitting, additional line parameters that are not
+readily available in, e.g., HITRAN are necessary. These include $g_s$ [-], the
+relative Land\'{e} factor, and $S$ [-], the molecular total spin. These
+variables must therefore be read to the WSV \wsvindex{isotopologue\_quantum}.
+This variable is of type \builtindoc{SpeciesAuxData}, and a file providing
+that kind of data would, e.g., look like:
 \begin{code}
 <arts format="ascii" version="1">
   <SpeciesAuxData version="1" nelem="1" nparam="2">
@@ -650,32 +672,32 @@ follows:
   </SpeciesAuxData>
 </arts>
 \end{code}
-In this example, the \verb|@ O2-66| indicates what isotopologue we are associating 
-with the data, the number \verb|2.002064| is the relative Land\'{e} factor, and 
-the molecule got $S=1$.
-Note that only oxygen is supported at present in ARTS but that there are plans to 
-add more molecules to this list.
+In this example, \verb|@| indicates the beginning of a new data record, \verb|O2-66|
+specifies what isotopologue is associated with the data, the number
+\verb|2.002064| is the relative Land\'{e} factor, and the molecule got $S=1$.
+Note that at present only oxygen is supported in ARTS, but that there are plans to 
+add capabilities for further molecules.
 
-More than the additional line parameters, it is also necessary to input the magnetic
+Beside the additional line parameters, it is also necessary to input the magnetic
 field into the model. This can be done following:
 \begin{code}
-GriddedField3Create(B_W)
-  ReadXML(B_W,"B_w.xml.gz")
-  GriddedFieldLatLonRegrid( B_W, lat_grid, lon_grid, B_W )
-  GriddedFieldPRegrid( B_W, p_grid, B_W )
+GriddedField3Create(B)
+  ReadXML(B,"B_1comp.xml.gz")
+  GriddedFieldLatLonRegrid( B, lat_grid, lon_grid, B )
+  GriddedFieldPRegrid( B, p_grid, B )
   FieldFromGriddedField( mag_w_field, p_grid, lat_grid, 
-                         lon_grid, B_W )
+                         lon_grid, B )
 \end{code}
-for each of the three variables \verb|mag_w_field|, 
-\verb|mag_v_field|, and \verb|mag_u_field|. The letters that change corresponds to
-the coordinate in the used spherical coordinate system as defined in the theory
-documentation. The file should contain a \verb|GriddedField3| that grids magnetic
-strength in the coordinate basis to latitude, longitude and pressure.
+where \verb|B_1comp.xml.gz| contains the (atmospheric) profile or field for one
+components of the magnetic field. Input needs to be provided for each non-zero
+magnetic field component separately into the respective WSVs \wsvindex{mag\_w\_field}, 
+\wsvindex{mag\_v\_field}, and \wsvindex{mag\_u\_field}. For more information on
+magnetic field format in ARTS see Section~\ref{sec:atm:vecfields}.
 
-The last thing the user needs to think about is that it becomes necessary to take 
-phase effects into account when calculating the Zeeman effect. It is therefore 
-important that the variable \verb|abs_lineshape| is one that allows for such 
-information to return. One example line shape that does is can be defined through
+Lastly, it isnecessary to take phase effects into account when calculating the
+Zeeman effect. It is therefore important that \wsvindex{abs\_lineshape} is
+chosen such that it allows for this information to be provided. One
+suitable line shape can be defined through
 \begin{code}
 abs_lineshapeDefine( abs_lineshape, "Faddeeva_Algorithm_916", 
                      "VVH", 750e9 )
@@ -689,14 +711,14 @@ and match line-mixing parameters to individual lines. This can be accessed
 through the tags \verb|"O2-LM_2NDORDER"| or \verb|"O2-Z-LM_2NDORDER"|, if you
 want to calculate line-mixing with the Zeeman effect. In order to match the data
 to specific lines, a set of calls are necessary by the user. First of all,
-after \verb|abs_lines| have been created, line mixing needs to be initialized
-through \verb|line_mixing_dataInit|. After this, it is important to pass an
+after \builtindoc{abs\_lines} have been created, line mixing needs to be initialized
+through \wsmindex{line\_mixing\_dataInit}. After this, it is important to pass an
 ArrayOfLineMixingRecord containing the line-mixing data into 
-\verb|line_mixing_dataMatch|, which will match the data in the Array* by quantum
-numbers to lines in \verb|abs_lines|. If this is done properly, line-mixing will
+\wsmindex{line\_mixing\_dataMatch}, which will match the data in the Array* by quantum
+numbers to lines in \builtindoc{abs\_lines}. If this is done properly, line-mixing will
 be applied at a lower level.
 
-Example flow for code calculating a single Zeeman line with O$_2$ 
+Example flow for code calculating a single Zeeman line with \chem{O_2} 
 line-mixing spectrum in the background:
 \begin{code}
 # Define your atmospheric species,
@@ -766,7 +788,8 @@ Example of correct input data:
 </Array>
 </arts>
 \end{code}
-The format of the above data is thusly: \verb|SpeciesTag|, \verb|QuantumNumberRecord|, \verb|Vector|, 
+The format of the above data is thusly: \builtindoc{SpeciesTag},
+\builtindoc{QuantumNumberRecord}, \builtindoc{Vector}, 
 The above input will cause the \verb|O2-66-*-*| line with
 upper quantum numbers $J=1$, $N=1$ and $\nu_1=0$ and with
 lower quantum numbers $J=2$, $N=1$ and $\nu_1=0$ to match.
@@ -790,6 +813,161 @@ the naming scheme of the variables above can also be understood from the same wo
 First order line mixing, as per the MPM/PWR complete oxygen models, 
 can be achieved with the correct input by letting the second order terms be nil.
 
+\subsection{Faraday rotation}
+\label{sec:absorption:faraday}
+
+Faraday rotation is a change of polarization state of radiation in interaction
+with (free) electrons in presence of a static magnatic field. For further
+details on theory and usage in ARTS see Section~\ref{sec:faraday}.
+Here we only give a short summary how to setup the calculation of Faraday
+contribution to the absorption (or better: propagation) matrix
+\wsvindex{propmat\_clearsky}.
+
+First, to include Faraday rotation effects
+\wsmindex{propmat\_clearskyAddFaraday} must be included in the
+\builtindoc{propmat\_clearsky\_agenda}. Second, a species tag
+\verb|"free_electrons"| needs to be contained in \wsvindex{abs\_species}.
+Correspondingly, a field of electron densities is required in
+\builtindoc{vmr\_field}.
+
+For usage examples, check \fileindex{controlfiles/artscomponents/faraday} that
+is part of the ARTS distribution.
+
+\subsection{Absorbing particles}
+\label{sec:absorption:particles}
+
+% what are particles doing here? what for / when is this useful?
+As pointed out before, this chapter deals with absorption by non-scattering
+matter. In first place this refers to gases, while particles (aerosols, clouds,
+precipitation) are considered to (also) scatter radiation and are handled
+differently (see Chapters~\ref{sec:clouds} and \ref{sec:scattering}).
+However, when particles are small compared to the wavelength of the radiation
+they act as broadband grey-body absorbers and can be treated similarly to
+continuum absorption by gases.
+
+This is reflected in ARTS providing a few continuum models for condensed
+matter (see Tab.~\ref{tab:absorption:continua}), which essentially are
+particles, too.
+It is tedious, though, to implement those kind of particle continua for a wide
+range of different base materials as become of interest when being interested in
+other than the Earth's atmosphere.
+
+% concept (using scat_data/pnd_field-type data exists - make use of that)
+In the ARTS scattering modules, particles are represented by single scattering
+property data (\builtindoc{scat\_data\_raw}) and particle concentrations
+(particle number densitity fields \builtindoc{pnd\_field}).
+% These data usually originate from scattering theory (e.g., Mie theory,
+% T-matrix model, Discrete dipole approximation) convolved with size
+% distribution models and veetical and horizontal concentration distribution
+% information.
+The single scattering data originate from scattering theory
+programs (e.g., Mie theory, T-matrix model, Discrete Dipole Approximation) and
+their preparation typically requires significant efforts. Comprehensive data for
+hydrometeors in the Earth atmosphere, but also clouds, dust and the like for
+other planets is available from the \shortcode{arts-xml-data} package.
+It is appealing to apply this data in non-scattering calculations (e.g. at low
+frequencies, wherethe scattering contribution is negligible) in a consistent
+manner. ARTS method for that is \wsmindex{propmat\_clearskyAddParticles} and
+its application is described in the following.
+
+% how to setup
+% - per particle type one "particle" tag in abs_species
+% - corresponding pnd field into vmr_field
+% - one entry per particle type into scat_data
+% - (directional dependent absorption, polarized absoprtion)
+To consider grey-body particle absorption, the user has to include
+\wsmindex{propmat\_clearskyAddParticles} in the
+\builtindoc{propmat\_clearsky\_agenda}. Furthermore, for each particle type (see
+Section~\ref{sec:clouds:intro} for how a particle type is defined) a
+\verb|"particles"| tag needs to be added to \builtindoc{abs\_species}, the
+corresponding concentration field to be added to \builtindoc{vmr\_field}, and
+its single scattering data have to be added as an element to
+\wsvindex{scat\_data\_raw}. This can be done each-by-each using
+\builtindoc{ReadXML} and \builtindoc{Append} methods, but a dedicated method
+\wsmindex{ParticleType2abs\_speciesAdd} is available performing these three
+steps for one particle type at once. \wsmindex{ParticleType2abs\_speciesAdd}
+adds the concentration field to \builtindoc{vmr\_field\_raw}, i.e., the particle
+concentration fields can be converted to the internal atmospheric grids together
+with the gas concentration fields using, e.g., \builtindoc{AtmFieldsCalc}.
+Note that \wsmindex{ParticleType2abs\_speciesAdd} is essentially doing the same
+as \builtindoc{ParticleTypeAdd}, but for non-scattering instead for
+scattering-in-cloudbox cases (where in non-scattering setups the concentration
+data is stored together with gas concentrations in \builtindoc{vmr\_field},
+while for scattering setups it is stored separately in
+\builtindoc{pnd\_field}), and that for the single scattering data and
+concentration fields the exact same data can be applied.
+
+% caveats: not to be used together with cloudbox - it's either or.
+% plus/pro: in contrast to particles as continuum model, it consiers direction
+% dependent and polarized absorption as occuring e.g. for non-spherical particles.
+Beside being able to re-use particle data from scattering cases, this method is
+also advantageous compared to the particles-as-continuum-models implementations
+as it allows for directional dependent absorption and for polarization effects
+that occur, e.g., with non-spherical particles.
+
+Be aware that both \wsmindex{propmat\_clearskyAddParticles} and the scattering methods
+use \wsvindex{scat\_data\_raw} to store the particle single scattering data.
+Hence, it is straight-forward that these methods can not be applied
+simultaneously. In one ARTS run, all particles are handled either as scattering
+entities (when using the scattering modules) or as grey-body absorbers (when
+applying \wsmindex{propmat\_clearskyAddParticles}). Trying to use both in
+parallel results in a runtime error.
+
+See the built-in documentation of the individual methods for further
+information. 
+%For usage examples, check \fileindex{controlfiles/artscomponents/...} that is part of the ARTS distribution.
+\FIXME{add a usage example to \fileindex{controlfiles/artscomponents}}.
+
+
+\subsection{Further input data and parameters for calculating gas absorption}
+\label{sec:absorption:input}
+
+\subsubsection{Spectral line data}
+\label{sec:absorption:linecat}
+
+Important input to the line-by-line calculations is the spectral line data,
+usually provided by spectroscopic catalogues. ARTS has its own format for the
+spectral line data, but is also capable of handling data from other catalogues
+like HITRAN (both pre- and post-2004 formats) and JPL (see Table
+\ref{tab:absorption:lbl}, step \ref{step:readline}).
+Section~\ref{T-sec:abs_theory:catalogue_formats} of \theory\ contains more
+information on the internal format of the spectral line data.  It also contains
+theoretical background for the calculation itself.
+
+\subsubsection{Isotopologue ratios}
+\label{sec:absorption:isoratio}
+
+Isotopologue ratios (mostly) from HITRAN and valid for Earth atmosphere are
+stored in ARTS source code. These data is necessary for working with HITRAN data
+(as HITRAN line strengths are weighted with isotopologue abundance). However,
+it is convenient for the user to be able to change isotopologue ratio values,
+e.g., when modeling absorption in other planets' atmospheres.
+
+The WSV \wsvindex{isotopologue\_ratios} holds the isotopologue ratios applied in
+the absorption calculation. They have to be set by the user. It is possible to
+apply the ARTS built-in values mentioned above using
+\wsmindex{isotopologue\_ratiosInitFromBuiltin}. Alternatively, they can be read
+from file using \builtindoc{ReadXML}. For easy manipulation, the user might
+initialize \wsvindex{isotopologue\_ratios} from built-in data, write the
+\wsvindex{isotopologue\_ratios} structure to file using \builtindoc{WriteXML},
+modify the data accordingly, and read in the manipulated file.
+Files with isotopologue ratios for a couple of planetary atmospheres are
+provided with the \shortcode{arts-xml-data} package.
+
+It shall be noted, that only isotopologue ratios of the species used in the
+absorption calculation need to be given. Reading in from file resets the full
+list of isotopologue ratios (i.e., the values for all absorption species known to
+ARTS) with species not given in the input data set to \verb|NaN|.
+
+\subsubsection{Partition functions}
+\label{sec:absorption:partition}
+
+Partition functions are currently still hard-coded into ARTS. That is, no
+settings related to those have to be or can be done on the user level. For more
+information on theoretical background as well as the source and implementation
+in ARTS see Section \ref{T-sec:abs_theory:species_data} of \theory.
+
+
 \section{The gas absorption lookup table}
 \label{sec:absorption:lookup}
 
@@ -806,15 +984,17 @@ but on the atmospheric state variables:
 \begin{itemize}
 \item Pressure
 \item Temperature
-\item Trace gas concentrations
+\item Concentrations of absorbing matter (i.e., gases, absorbing particles, free
+electrons)
 \item Magnetic field
 \end{itemize}
 
 The basic idea of the lookup table is to pre-calculate absorption for
 discrete combinations of these variables, and then use interpolation
 to extract absorption for the actual atmospheric state. Due to the nature of
-the Zeeman effect, this is not implemented in the lookup table and we will 
-thus ignore the magnetic field.
+the Zeeman and Faraday effects (also particle absorption), particularly due to
+their directional dependence, those are not implemented in the lookup table.
+Thus, we can ignore the magnetic field.
 
 The lookup table concept and implementation is described only very
 briefly here in the user guide. Much more details and validation
@@ -863,7 +1043,8 @@ This is the next effect to take into account. Both the line widths and
 the line intensities depend on temperature. Of course, only certain
 combinations of pressure and temperature occur in the Earth's
 atmosphere. Hence, storing the \aAbsXsec{i} in a two dimensional table
-as a function of pressure and temperature would waste a lot of space.
+as a function of pressure and temperature would waste a lot of memory (and
+computation time).
 Instead, they are stored for a reference temperature and set of
 temperature perturbations for each pressure level. E.g., if the set of
 perturbations is $[-10,\, 0,\, +10]$, then the \aAbsXsec{i} would be stored
@@ -923,8 +1104,8 @@ and trace gas concentrations.  These methods are
 the actual atmospheric state, or set of atmospheric states, for the
 calculation. The third alternative simply sets up a table that should
 cover most reasonable atmospheric conditions.
-\citet{buehler:absor:11} contains more information on these setup
-methods.
+\citet{buehler:absor:11} as well as the built-in documentation contains more
+information on these setup methods.
 
 Alternatively, the table can be loaded from a file with
 \builtindoc{ReadXML}.  After loading, the method
@@ -935,10 +1116,11 @@ the set of frequencies for which the table has been calculated.  There
 is no interpolation in frequency. This is on purpose, because the gas
 absorption spectrum is the quantity that changes most rapidly as a
 function of frequency. Frequency interpolation here could be quite
-dangerous. The \builtindoc{abs\_lookupAdapt} method also sorts the
-species in exactly the same way that they occur in your
-calculation. It sets the variable \wsvindex{abs\_lookup\_is\_adapted}
-to flag that the table is now ok. 
+dangerous. The \builtindoc{abs\_lookupAdapt} method also checks that all used
+species (apart from Zeeman, Faraday, and particle species) are present in the
+table, reduces the table to the used species, and sorts the table species data in
+exactly the same way that they occur in your calculation. It sets the variable
+\wsvindex{abs\_lookup\_is\_adapted} to flag that the table is now ok. 
 
 When the table has been successfully adapted, one can extract
 absorption matrices with the method
@@ -950,14 +1132,14 @@ absorbers.
 
 The \builtindoc{propmat\_clearskyAddFromLookup} method is meant to
 be used inside the agenda \wsaindex{propmat\_clearsky\_agenda},
-which is used in several places where absorption matrices are
+which is applied in several places where absorption matrices are
 needed, both inside the scattering box and outside.
 
 \subsection{Format of the lookup table}
 Usually the user does not need to bother with it, as ARTS provides methods to
 create, read and write, and extract data from the lookup table. However,
 sometimes one desires to analyze, e.g., the absorption cross-section data
-calculated and sored in the lookup table. Therefore we give a short description
+calculated and stored in the lookup table. Therefore we give a short description
 of the format of the absorption lookup table here. More detailed information can
 be found in the source code, where the \typeindex{GasAbsLookup} class is
 implemented -- specifically in \fileindex{gas\_abs\_lookup.h}.
@@ -995,9 +1177,9 @@ validating modules of the absorption calculation,  for model comparisons, for
 plotting and analyzing absorption coefficients, etc.
 Table \ref{tab:absorption:lbl}, step \ref{step:calc}c lists high- and low-level
 workspace methods for this purpose.
-In particular, the method \wsmindex{abs\_mat\_fieldCalc} provides the absorption
-matrices, i.e., polarized absorption coefficients, per species tag group for
-an entire atmospheric scenario and the complete frequency grid.
+In particular, the method \wsmindex{propmat\_clearsky\_fieldCalc} provides the
+absorption matrices, i.e., polarized absorption coefficients, per species tag
+group for an entire atmospheric scenario and the complete frequency grid.
 
 %%% Local Variables: 
 %%% mode: latex 

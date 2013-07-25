@@ -1132,47 +1132,6 @@ void define_md_data_raw()
         GIN_DESC()
         ));
     
-  md_data_raw.push_back     
-    ( MdRecord
-      ( NAME( "propmat_clearsky_fieldCalc" ),
-        DESCRIPTION
-        (
-         "Calculate (vector) gas absorption coefficients for all points in the\n"
-         "atmosphere.\n"
-         "\n"
-         "This is useful in two different contexts:\n"
-         "\n"
-         "1. For testing and plotting gas absorption. (For RT calculations, gas\n"
-         "absorption is calculated or extracted locally, therefore there is no\n"
-         "need to calculate a global field. But this method is handy for easy\n"
-         "plotting of absorption vs. pressure, for example.)\n"
-         "\n"
-         "2. Inside the scattering region, monochromatic absorption is\n"
-         "pre-calculated for the entire atmospheric field.\n"
-         "\n"
-         "The calculation itself is performed by the\n"
-         "*propmat_clearsky_agenda*.\n"
-         ),
-        AUTHORS( "Stefan Buehler, Richard Larsson" ),
-        OUT( "propmat_clearsky_field" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "propmat_clearsky_agenda",
-            "f_grid",
-            "atmosphere_dim", "stokes_dim",
-            "p_grid", "lat_grid", "lon_grid",
-            "t_field", "vmr_field",
-            "mag_u_field", "mag_v_field", "mag_w_field" ),
-        GIN("doppler", "los"),
-        GIN_TYPE("Vector", "Vector"),
-        GIN_DEFAULT("[]", "[]"),
-        GIN_DESC("A vector of doppler shift values in Hz. Must either be "
-                 "empty or have same dimension as p_grid.",
-                 "Line of sight"
-                 )
-        ));
-
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "abs_xsec_agenda_checkedCalc" ),
@@ -1196,297 +1155,6 @@ void define_md_data_raw()
         GIN_DESC()
         ));
 
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "propmat_clearsky_agenda_checkedCalc" ),
-        DESCRIPTION
-        (
-         "Checks if the *propmat_clearsky_agenda* contains all necessary\n"
-         "methods to calculate all the species in *abs_species*.\n"
-         "\n"
-         "This method should be called just before the *propmat_clearsky_agenda*\n"
-         "is used, e.g. *CloudboxGetIncoming*, *ybatchCalc*, *yCalc*\n"
-         ),
-        AUTHORS( "Oliver Lemke" ),
-        OUT( "propmat_clearsky_agenda_checked" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "abs_species", "propmat_clearsky_agenda" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "propmat_clearskyAddFaraday" ),
-        DESCRIPTION
-        (
-         "Calculates absorption matrix describing Faraday rotation.\n"
-         "\n"
-         "Faraday rotation is a change of polarization state of an\n"
-         "electromagnetic wave propagating through charged matter by\n"
-         "interaction with a magnetic field. Hence, this method requires\n"
-         "*abs_species* to contain 'free_electrons' and electron content field\n"
-         "(as part of *vmr_field*) as well as magnetic field (*mag_u_field*,\n"
-         "*mag_v_field*, *mag_w_field*) to be specified.\n"
-         "\n"
-         "Faraday rotation affects Stokes parameters 2 and 3 (but not\n"
-         "intensity!). Therefore, this method requires stokes_dim>2.\n"
-         "\n"
-         "Like all 'propmat_clearskyAdd*' methods, the method is additive,\n"
-         "i.e., does not overwrite the propagation matrix *propmat_clearsky*,\n"
-         "but adds further contributions.\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT( "propmat_clearsky" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "propmat_clearsky", "stokes_dim", "atmosphere_dim", "f_grid", 
-            "abs_species", "rtp_vmr", "rtp_los", "rtp_mag" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "propmat_clearskyAddParticles" ),
-        DESCRIPTION
-        (
-         "Calculates absorption coefficients of particles to be used in\n"
-         "clearsky (non-cloudbox) calculations.\n"
-         "\n"
-         "This is a method to include particles (neglecting possible\n"
-         "scattering components) in a clearsky calculation, i.e. without\n"
-         "applying the cloudbox and scattering solvers. Particles are handled\n"
-         "as absorbing species with one instance of 'particles' per particle\n"
-         "type considered added to *abs_species*. Particle absorption cross-\n"
-         "sections at current atmospheric conditions are extracted from the\n"
-         "single scattering data stored in *scat_data_raw*, i.e., one array\n"
-         "element per 'particles' instance in *abs_species* is required. Number\n"
-         "densities are stored in *vmr_field_raw* or *vmr_field* as for all\n"
-         "*abs_species*, but can be taken from (raw) pnd_field type data.\n"
-         "\n"
-         "A line-of-sight direction *rtp_los* is required as particles can\n"
-         "exhibit directional dependent absorption properties, which is taken\n"
-         "into account by this method."
-         "\n"
-         "*ParticleType2abs_speciesAdd* can be used to add all required\n"
-         "settings/data for a single particle type at once, i.e. a 'particles'\n"
-         "tag to *abs_species*, a set of single scattering data to\n"
-         "*scat_data_raw* and a number density field to *vmr_field_raw*\n"
-         "(*vmr_field* is derived applying AtmFieldsCalc once VMRs for all\n"
-         "*abs_species* have been added).\n"
-         "\n"
-         "Like all 'propmat_clearskyAdd*' methods, the method is additive,\n"
-         "i.e., does not overwrite the propagation matrix *propmat_clearsky*,\n"
-         "but adds further contributions.\n"
-         ),
-        AUTHORS( "Jana Mendrok" ),
-        OUT( "propmat_clearsky" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "propmat_clearsky", "stokes_dim", "atmosphere_dim",
-            "f_grid", "abs_species",
-            "rtp_vmr", "rtp_los", "rtp_temperature", "scat_data_raw" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "propmat_clearskyAddFromAbsCoefPerSpecies" ),
-        DESCRIPTION
-        (
-         "Copy *propmat_clearsky* from *abs_coef_per_species*. This is handy for putting an\n"
-         "explicit line-by-line calculation into the\n"
-         "*propmat_clearsky_agenda*. This method is also used internally by.\n"
-         "*propmat_clearskyAddOnTheFly*.\n"
-         "Like all other propmat_clearsky methods, this method does not overwrite\n"
-         "prior content of *propmat_clearsky*, but adds to it.\n"
-         ),
-        AUTHORS( "Stefan Buehler" ),
-        OUT( "propmat_clearsky" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "propmat_clearsky","abs_coef_per_species" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-  
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "propmat_clearskyAddFromLookup" ),
-        DESCRIPTION
-        (
-         "Extract gas absorption coefficients from lookup table.\n"
-         "\n"
-         "This extracts the absorption coefficient for all species from the\n"
-         "lookup table, and adds them to the propagation matrix. Extraction is\n"
-         "for one specific atmospheric condition, i.e., a set of pressure,\n"
-         "temperature, and VMR values.\n"
-         "\n"
-         "Some special species are ignored, for example Zeeman species and free\n"
-         "electrons, since their absorption properties are not simple scalars\n"
-         "and cannot be handled by the lookup table.\n"
-         "\n"
-         "The interpolation order in T and H2O is given by *abs_t_interp_order*\n"
-         "and *abs_nls_interp_order*, respectively.\n"
-         "\n"
-         "Extraction is done for the frequencies in f_grid. Frequency\n"
-         "interpolation is controlled by *abs_f_interp_order*. If this is zero,\n"
-         "then f_grid must either be the same as the internal frequency grid of\n"
-         "the lookup table (for efficiency reasons, only the first and last\n"
-         "element of f_grid are checked), or must have only a single element.\n"
-         "If *abs_f_interp_order* is above zero, then frequency is interpolated\n"
-         "along with the other interpolation dimensions. This is useful for\n"
-         "calculations with Doppler shift.\n"
-         "\n"
-         "For Doppler calculations, you should generate the table with a\n"
-         "somewhat larger frequency grid than the calculation itself has, since\n"
-         "the Doppler shift will push the frequency grid out of the table range\n"
-         "on one side. Alternatively, you can set the input\n"
-         "parameter *extpolfac* to a larger value, to allow extrapolation at the\n"
-         "edges.\n"
-         "\n"
-         "See also: *propmat_clearskyAddOnTheFly*.\n"
-         ),
-        AUTHORS( "Stefan Buehler, Richard Larsson" ),
-        OUT( "propmat_clearsky" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "propmat_clearsky", "abs_lookup", "abs_lookup_is_adapted",
-            "abs_p_interp_order", "abs_t_interp_order", "abs_nls_interp_order",
-            "abs_f_interp_order", "f_grid",
-            "rtp_pressure", "rtp_temperature", "rtp_vmr" ),
-        GIN("extpolfac"),
-        GIN_TYPE("Numeric"),
-        GIN_DEFAULT("0.5"),
-        GIN_DESC("Extrapolation factor (for grid edges).")
-        ));
-    
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "propmat_clearskyAddOnTheFly" ),
-        DESCRIPTION
-        (
-         "Calculates gas absorption coefficients line-by-line.\n"
-         "\n"
-         "This method can be used inside *propmat_clearsky_agenda* just like\n"
-         "*propmat_clearskyAddFromLookup*. It is a shortcut for putting in some\n"
-         "other methods explicitly, namely:\n"
-         "\n"
-         "  1. *AbsInputFromRteScalars*\n"
-         "  2. Execute *abs_xsec_agenda*\n"
-         "  3. *abs_coefCalcFromXsec*\n"
-         "  4. *propmat_clearskyAddFromAbsCoefPerSpecies*\n"
-         "\n"
-         "The calculation is for one specific atmospheric condition, i.e., a set\n"
-         "of pressure, temperature, and VMR values.\n"
-         ),
-        AUTHORS( "Stefan Buehler, Richard Larsson" ),
-        OUT( "propmat_clearsky" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "propmat_clearsky",
-            "f_grid",
-            "abs_species",
-            "rtp_pressure", "rtp_temperature", "rtp_vmr",
-            "abs_xsec_agenda"
-           ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "propmat_clearskyAddZeeman" ),
-        DESCRIPTION
-        (
-        "Calculates Zeeman-effected absorption coefficients.\n"
-        "\n"
-        "This method will, for each Zeeman species, make a local\n"
-        "ArrayOfLineRecord for the various transition types with Zeeman\n"
-        "altered LineRecord(s).  These are then composed into a single\n"
-        "ArrayOfArrayOfLineRecord which is processed as per the scalar case.\n"
-        "\n"
-        "The line broadened absorption coefficients are finally multiplied with\n"
-        "the transition type rotation matrix and the new variable is inserted into\n"
-        "the out variable. Only species containing a -Z- tag are treated.\n"
-        "\n"
-        "Note that between 55 GHz and 65 GHz there is usually ~700 O_2 lines,\n"
-        "however, when this Zeeman splitting method is used, the number of\n"
-        "lines is increased to about 45,000. Be aware that this is a time\n"
-        "consuming method.\n"
-        "\n"
-        "The 'manual_zeeman*' tag variables will change the angles associated\n"
-        "with the Zeeman effect. The user is adviced to either ignore or set\n"
-        "all three at the same time. The user is also advided to read the\n"
-        "theory guide to understand what the different angles mean.\n"
-        "Setting 'manual_zeeman_angles_on' different from zero activates the\n"
-        "other two variables.\n"
-         ),
-        AUTHORS( "Richard Larsson" ),
-        OUT("propmat_clearsky"),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN("propmat_clearsky",
-           "f_grid",
-           "abs_species",
-           "abs_lines_per_species",
-           "abs_lineshape",
-           "isotopologue_ratios",
-           "isotopologue_quantum",
-           "rtp_pressure", "rtp_temperature", "rtp_vmr",
-           "rtp_mag", "rtp_los", "atmosphere_dim",
-           "line_mixing_data", "line_mixing_data_lut" ),
-        GIN("manual_zeeman_angles_on","manual_zeeman_theta","manual_zeeman_eta"),
-        GIN_TYPE("Index","Numeric","Numeric"),
-        GIN_DEFAULT("0","0","0"),
-        GIN_DESC("Manual angles tag","Manual theta given positive tag","Manual eta given positive tag")
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "propmat_clearskyInit" ),
-        DESCRIPTION
-        (
-         "Initialize stokes dim gas absorption coefficients line-by-line.\n"
-         "\n"
-         "This method must be used inside *propmat_clearsky_agenda*\n"
-         ),
-        AUTHORS( "Oliver Lemke, Richard Larsson" ),
-        OUT( "propmat_clearsky" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "abs_species",
-            "f_grid",
-            "stokes_dim",
-            "propmat_clearsky_agenda_checked"
-        ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-    
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "abs_speciesAdd" ),
@@ -1603,6 +1271,79 @@ void define_md_data_raw()
         GIN_DEFAULT(),
         GIN_DESC()
         ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "abs_speciesSet" ),
+        DESCRIPTION
+        (
+         "Set up a list of absorption species tag groups.\n"
+         "\n"
+         "Workspace variables like *abs_species* contain several tag\n"
+         "groups. Each tag group contains one or more tags. This method converts\n"
+         "descriptions of tag groups given in the keyword to the ARTS internal\n"
+         "representation (an *ArrayOfArrayOfSpeciesTag*). A tag group selects\n"
+         "spectral features which belong to the same species.\n"
+         "\n"
+         "A tag is defined in terms of the name of the species, isotopologue, and a\n"
+         "range of frequencies. Species are named after the standard chemical\n"
+         "names, e.g., \"O3\". Isotopologues are given by the last digit of the atomic\n"
+         "weight, i.g., \"O3-668\" for the asymmetric ozone molecule including an\n"
+         "oxygen 18 atom. Groups of transitions are specified by giving a lower\n"
+         "and upper limit of a frequency range, e.g., \"O3-666-500e9-501e9\".\n"
+         "\n"
+         "To turn on Zeeman calculation for a Species, \"-Z\" may be appended\n"
+         "to its name: \"O2-Z\" or \"O2-Z-66\"\n"
+         "\n"
+         "To turn on line mixing for a Species, \"-LM_METHOD\" may be appended\n"
+         "to its name. Currently only one METHOD is supported: 2NDORDER.\n"
+         "Line mixing data has to be provided if this is turned on.\n"
+         "See *line_mixing_dataInit* and *line_mixing_dataRead*\n."
+         "Example: \"O2-66-LM_2NDORDER\".\n"
+         "\n"
+         "The symbol \"*\" acts as a wild card. Furthermore, frequency range or\n"
+         "frequency range and isotopologue may be omitted.\n"
+         "\n"
+         "Finally, instead of the isotopologue the special letter \"nl\" may be given,\n"
+         "e.g., \"H2O-nl\". This means that no absorption at all is associated\n"
+         "with this tag. (It is not quite clear if this feature is useful for\n"
+         "anything right now.)\n"
+         "\n"
+         "Example:\n"
+         "\n"
+         "   species = [ \"O3-666-500e9-501e9, O3-686\",\n"
+         "               \"O3\",\n"
+         "               \"H2O-PWR98\" ]\n"
+         "\n"
+         "   The first tag group selects all O3-666 lines between 500 and\n"
+         "   501 GHz plus all O3-686 lines. \n"
+         "\n"
+         "   The second tag group selects all remaining O3 transitions.\n"
+         "\n"
+         "   The third tag group selects H2O, with one of the complete\n"
+         "   absorption models (Rosenkranz 98). No spectrocopic line catalogue\n"
+         "   data will be used for that third tag group.\n"
+         "\n"
+         "   Note that order of tag groups in the species list matters. In our\n"
+         "   example, changing the order of the first two tag group will give\n"
+         "   different results: as \"O3\" already selects all O3 transitions,\n"
+         "   no lines will remain to be selected by the\n"
+         "   \"O3-666-500e9-501e9, O3-686\" tag.\n"
+         ),
+        AUTHORS( "Stefan Buehler" ),
+        OUT( "abs_species", "abs_xsec_agenda_checked", "propmat_clearsky_agenda_checked" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN(),
+        GIN( "species" ),
+        GIN_TYPE(    "ArrayOfString"   ),
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC("Specify one String for each tag group that you want to\n"
+                 "create. Inside the String, separate the tags by commas\n"
+                 "(plus optional blanks).\n")
+        ));
+
 
   md_data_raw.push_back
     ( MdRecord
@@ -8111,6 +7852,338 @@ void define_md_data_raw()
         PASSWORKSPACE( true  )
         ));
 
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "propmat_clearskyAddFaraday" ),
+        DESCRIPTION
+        (
+         "Calculates absorption matrix describing Faraday rotation.\n"
+         "\n"
+         "Faraday rotation is a change of polarization state of an\n"
+         "electromagnetic wave propagating through charged matter by\n"
+         "interaction with a magnetic field. Hence, this method requires\n"
+         "*abs_species* to contain 'free_electrons' and electron content field\n"
+         "(as part of *vmr_field*) as well as magnetic field (*mag_u_field*,\n"
+         "*mag_v_field*, *mag_w_field*) to be specified.\n"
+         "\n"
+         "Faraday rotation affects Stokes parameters 2 and 3 (but not\n"
+         "intensity!). Therefore, this method requires stokes_dim>2.\n"
+         "\n"
+         "Like all 'propmat_clearskyAdd*' methods, the method is additive,\n"
+         "i.e., does not overwrite the propagation matrix *propmat_clearsky*,\n"
+         "but adds further contributions.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "propmat_clearsky" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "propmat_clearsky", "stokes_dim", "atmosphere_dim", "f_grid", 
+            "abs_species", "rtp_vmr", "rtp_los", "rtp_mag" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "propmat_clearskyAddFromAbsCoefPerSpecies" ),
+        DESCRIPTION
+        (
+         "Copy *propmat_clearsky* from *abs_coef_per_species*. This is handy for putting an\n"
+         "explicit line-by-line calculation into the\n"
+         "*propmat_clearsky_agenda*. This method is also used internally by.\n"
+         "*propmat_clearskyAddOnTheFly*.\n"
+         "Like all other propmat_clearsky methods, this method does not overwrite\n"
+         "prior content of *propmat_clearsky*, but adds to it.\n"
+         ),
+        AUTHORS( "Stefan Buehler" ),
+        OUT( "propmat_clearsky" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "propmat_clearsky","abs_coef_per_species" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+  
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "propmat_clearskyAddFromLookup" ),
+        DESCRIPTION
+        (
+         "Extract gas absorption coefficients from lookup table.\n"
+         "\n"
+         "This extracts the absorption coefficient for all species from the\n"
+         "lookup table, and adds them to the propagation matrix. Extraction is\n"
+         "for one specific atmospheric condition, i.e., a set of pressure,\n"
+         "temperature, and VMR values.\n"
+         "\n"
+         "Some special species are ignored, for example Zeeman species and free\n"
+         "electrons, since their absorption properties are not simple scalars\n"
+         "and cannot be handled by the lookup table.\n"
+         "\n"
+         "The interpolation order in T and H2O is given by *abs_t_interp_order*\n"
+         "and *abs_nls_interp_order*, respectively.\n"
+         "\n"
+         "Extraction is done for the frequencies in f_grid. Frequency\n"
+         "interpolation is controlled by *abs_f_interp_order*. If this is zero,\n"
+         "then f_grid must either be the same as the internal frequency grid of\n"
+         "the lookup table (for efficiency reasons, only the first and last\n"
+         "element of f_grid are checked), or must have only a single element.\n"
+         "If *abs_f_interp_order* is above zero, then frequency is interpolated\n"
+         "along with the other interpolation dimensions. This is useful for\n"
+         "calculations with Doppler shift.\n"
+         "\n"
+         "For Doppler calculations, you should generate the table with a\n"
+         "somewhat larger frequency grid than the calculation itself has, since\n"
+         "the Doppler shift will push the frequency grid out of the table range\n"
+         "on one side. Alternatively, you can set the input\n"
+         "parameter *extpolfac* to a larger value, to allow extrapolation at the\n"
+         "edges.\n"
+         "\n"
+         "See also: *propmat_clearskyAddOnTheFly*.\n"
+         ),
+        AUTHORS( "Stefan Buehler, Richard Larsson" ),
+        OUT( "propmat_clearsky" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "propmat_clearsky", "abs_lookup", "abs_lookup_is_adapted",
+            "abs_p_interp_order", "abs_t_interp_order", "abs_nls_interp_order",
+            "abs_f_interp_order", "f_grid",
+            "rtp_pressure", "rtp_temperature", "rtp_vmr" ),
+        GIN("extpolfac"),
+        GIN_TYPE("Numeric"),
+        GIN_DEFAULT("0.5"),
+        GIN_DESC("Extrapolation factor (for grid edges).")
+        ));
+    
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "propmat_clearskyAddOnTheFly" ),
+        DESCRIPTION
+        (
+         "Calculates gas absorption coefficients line-by-line.\n"
+         "\n"
+         "This method can be used inside *propmat_clearsky_agenda* just like\n"
+         "*propmat_clearskyAddFromLookup*. It is a shortcut for putting in some\n"
+         "other methods explicitly, namely:\n"
+         "\n"
+         "  1. *AbsInputFromRteScalars*\n"
+         "  2. Execute *abs_xsec_agenda*\n"
+         "  3. *abs_coefCalcFromXsec*\n"
+         "  4. *propmat_clearskyAddFromAbsCoefPerSpecies*\n"
+         "\n"
+         "The calculation is for one specific atmospheric condition, i.e., a set\n"
+         "of pressure, temperature, and VMR values.\n"
+         ),
+        AUTHORS( "Stefan Buehler, Richard Larsson" ),
+        OUT( "propmat_clearsky" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "propmat_clearsky",
+            "f_grid",
+            "abs_species",
+            "rtp_pressure", "rtp_temperature", "rtp_vmr",
+            "abs_xsec_agenda"
+           ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "propmat_clearskyAddParticles" ),
+        DESCRIPTION
+        (
+         "Calculates absorption coefficients of particles to be used in\n"
+         "clearsky (non-cloudbox) calculations.\n"
+         "\n"
+         "This is a method to include particles (neglecting possible\n"
+         "scattering components) in a clearsky calculation, i.e. without\n"
+         "applying the cloudbox and scattering solvers. Particles are handled\n"
+         "as absorbing species with one instance of 'particles' per particle\n"
+         "type considered added to *abs_species*. Particle absorption cross-\n"
+         "sections at current atmospheric conditions are extracted from the\n"
+         "single scattering data stored in *scat_data_raw*, i.e., one array\n"
+         "element per 'particles' instance in *abs_species* is required. Number\n"
+         "densities are stored in *vmr_field_raw* or *vmr_field* as for all\n"
+         "*abs_species*, but can be taken from (raw) pnd_field type data.\n"
+         "\n"
+         "A line-of-sight direction *rtp_los* is required as particles can\n"
+         "exhibit directional dependent absorption properties, which is taken\n"
+         "into account by this method."
+         "\n"
+         "*ParticleType2abs_speciesAdd* can be used to add all required\n"
+         "settings/data for a single particle type at once, i.e. a 'particles'\n"
+         "tag to *abs_species*, a set of single scattering data to\n"
+         "*scat_data_raw* and a number density field to *vmr_field_raw*\n"
+         "(*vmr_field* is derived applying AtmFieldsCalc once VMRs for all\n"
+         "*abs_species* have been added).\n"
+         "\n"
+         "Like all 'propmat_clearskyAdd*' methods, the method is additive,\n"
+         "i.e., does not overwrite the propagation matrix *propmat_clearsky*,\n"
+         "but adds further contributions.\n"
+         ),
+        AUTHORS( "Jana Mendrok" ),
+        OUT( "propmat_clearsky" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "propmat_clearsky", "stokes_dim", "atmosphere_dim",
+            "f_grid", "abs_species",
+            "rtp_vmr", "rtp_los", "rtp_temperature", "scat_data_raw" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "propmat_clearskyAddZeeman" ),
+        DESCRIPTION
+        (
+        "Calculates Zeeman-effected absorption coefficients.\n"
+        "\n"
+        "This method will, for each Zeeman species, make a local\n"
+        "ArrayOfLineRecord for the various transition types with Zeeman\n"
+        "altered LineRecord(s).  These are then composed into a single\n"
+        "ArrayOfArrayOfLineRecord which is processed as per the scalar case.\n"
+        "\n"
+        "The line broadened absorption coefficients are finally multiplied with\n"
+        "the transition type rotation matrix and the new variable is inserted into\n"
+        "the out variable. Only species containing a -Z- tag are treated.\n"
+        "\n"
+        "Note that between 55 GHz and 65 GHz there is usually ~700 O_2 lines,\n"
+        "however, when this Zeeman splitting method is used, the number of\n"
+        "lines is increased to about 45,000. Be aware that this is a time\n"
+        "consuming method.\n"
+        "\n"
+        "The 'manual_zeeman*' tag variables will change the angles associated\n"
+        "with the Zeeman effect. The user is adviced to either ignore or set\n"
+        "all three at the same time. The user is also advided to read the\n"
+        "theory guide to understand what the different angles mean.\n"
+        "Setting 'manual_zeeman_angles_on' different from zero activates the\n"
+        "other two variables.\n"
+         ),
+        AUTHORS( "Richard Larsson" ),
+        OUT("propmat_clearsky"),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN("propmat_clearsky",
+           "f_grid",
+           "abs_species",
+           "abs_lines_per_species",
+           "abs_lineshape",
+           "isotopologue_ratios",
+           "isotopologue_quantum",
+           "rtp_pressure", "rtp_temperature", "rtp_vmr",
+           "rtp_mag", "rtp_los", "atmosphere_dim",
+           "line_mixing_data", "line_mixing_data_lut" ),
+        GIN("manual_zeeman_angles_on","manual_zeeman_theta","manual_zeeman_eta"),
+        GIN_TYPE("Index","Numeric","Numeric"),
+        GIN_DEFAULT("0","0","0"),
+        GIN_DESC("Manual angles tag","Manual theta given positive tag","Manual eta given positive tag")
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "propmat_clearskyInit" ),
+        DESCRIPTION
+        (
+         "Initialize stokes dim gas absorption coefficients line-by-line.\n"
+         "\n"
+         "This method must be used inside *propmat_clearsky_agenda*\n"
+         ),
+        AUTHORS( "Oliver Lemke, Richard Larsson" ),
+        OUT( "propmat_clearsky" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "abs_species",
+            "f_grid",
+            "stokes_dim",
+            "propmat_clearsky_agenda_checked"
+        ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+    
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "propmat_clearsky_agenda_checkedCalc" ),
+        DESCRIPTION
+        (
+         "Checks if the *propmat_clearsky_agenda* contains all necessary\n"
+         "methods to calculate all the species in *abs_species*.\n"
+         "\n"
+         "This method should be called just before the *propmat_clearsky_agenda*\n"
+         "is used, e.g. *CloudboxGetIncoming*, *ybatchCalc*, *yCalc*\n"
+         ),
+        AUTHORS( "Oliver Lemke" ),
+        OUT( "propmat_clearsky_agenda_checked" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "abs_species", "propmat_clearsky_agenda" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME( "propmat_clearsky_fieldCalc" ),
+        DESCRIPTION
+        (
+         "Calculate (vector) gas absorption coefficients for all points in the\n"
+         "atmosphere.\n"
+         "\n"
+         "This is useful in two different contexts:\n"
+         "\n"
+         "1. For testing and plotting gas absorption. (For RT calculations, gas\n"
+         "absorption is calculated or extracted locally, therefore there is no\n"
+         "need to calculate a global field. But this method is handy for easy\n"
+         "plotting of absorption vs. pressure, for example.)\n"
+         "\n"
+         "2. Inside the scattering region, monochromatic absorption is\n"
+         "pre-calculated for the entire atmospheric field.\n"
+         "\n"
+         "The calculation itself is performed by the\n"
+         "*propmat_clearsky_agenda*.\n"
+         ),
+        AUTHORS( "Stefan Buehler, Richard Larsson" ),
+        OUT( "propmat_clearsky_field" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "propmat_clearsky_agenda",
+            "f_grid",
+            "atmosphere_dim", "stokes_dim",
+            "p_grid", "lat_grid", "lon_grid",
+            "t_field", "vmr_field",
+            "mag_u_field", "mag_v_field", "mag_w_field" ),
+        GIN("doppler", "los"),
+        GIN_TYPE("Vector", "Vector"),
+        GIN_DEFAULT("[]", "[]"),
+        GIN_DESC("A vector of doppler shift values in Hz. Must either be "
+                 "empty or have same dimension as p_grid.",
+                 "Line of sight"
+                 )
+        ));
+
   md_data_raw.push_back     
     ( MdRecord
       ( NAME( "p_gridFromZRaw" ),
@@ -9563,73 +9636,6 @@ void define_md_data_raw()
         GIN_DESC( "Left sparse matrix.",
                   "Right sparse matrix." )
         ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "abs_speciesSet" ),
-        DESCRIPTION
-        (
-         "Set up a list of absorption species tag groups.\n"
-         "\n"
-         "Workspace variables like *abs_species* contain several tag\n"
-         "groups. Each tag group contains one or more tags. This method converts\n"
-         "descriptions of tag groups given in the keyword to the ARTS internal\n"
-         "representation (an *ArrayOfArrayOfSpeciesTag*). A tag group selects\n"
-         "spectral features which belong to the same species.\n"
-         "\n"
-         "A tag is defined in terms of the name of the species, isotopologue, and a\n"
-         "range of frequencies. Species are named after the standard chemical\n"
-         "names, e.g., \"O3\". Isotopologues are given by the last digit of the atomic\n"
-         "weight, i.g., \"O3-668\" for the asymmetric ozone molecule including an\n"
-         "oxygen 18 atom. Groups of transitions are specified by giving a lower\n"
-         "and upper limit of a frequency range, e.g., \"O3-666-500e9-501e9\".\n"
-         "\n"
-         "To turn on Zeeman calculation for a Species, \"-Z\" may be appended\n"
-         "to its name: \"O2-Z\" or \"O2-Z-66\"\n"
-         "\n"
-         "To turn on line mixing for a Species, \"-LM_METHOD\" may be appended\n"
-         "to its name. Currently only one METHOD is supported: 2NDORDER.\n"
-         "Line mixing data has to be provided if this is turned on.\n"
-         "See *line_mixing_dataInit* and *line_mixing_dataRead*\n."
-         "Example: \"O2-66-LM_2NDORDER\".\n"
-         "\n"
-         "The symbol \"*\" acts as a wild card. Furthermore, frequency range or\n"
-         "frequency range and isotopologue may be omitted.\n"
-         "\n"
-         "Finally, instead of the isotopologue the special letter \"nl\" may be given,\n"
-         "e.g., \"H2O-nl\". This means that no absorption at all is associated\n"
-         "with this tag. (It is not quite clear if this feature is useful for\n"
-         "anything right now.)\n"
-         "\n"
-         "Example:\n"
-         "\n"
-         "   species = [ \"O3-666-500e9-501e9, O3-686\",\n"
-         "               \"O3\",\n"
-         "               \"H2O-PWR98\" ]\n"
-         "\n"
-         "   The first tag group selects all O3-666 lines between 500 and\n"
-         "   501 GHz plus all O3-686 lines. \n"
-         "\n"
-         "   The second tag group selects all remaining O3 transitions.\n"
-         "\n"
-         "   The third tag group selects H2O, with one of the complete\n"
-         "   absorption models (Rosenkranz 98). No spectrocopic line catalogue\n"
-         "   data will be used for that third tag group.\n"
-         ),
-        AUTHORS( "Stefan Buehler" ),
-        OUT( "abs_species", "abs_xsec_agenda_checked", "propmat_clearsky_agenda_checked" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN(),
-        GIN( "species" ),
-        GIN_TYPE(    "ArrayOfString"   ),
-        GIN_DEFAULT( NODEF ),
-        GIN_DESC("Specify one String for each tag group that you want to\n"
-                 "create. Inside the String, separate the tags by commas\n"
-                 "(plus optional blanks).\n")
-        ));
-
 
   md_data_raw.push_back
     ( MdRecord
