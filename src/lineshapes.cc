@@ -1713,10 +1713,10 @@ void faddeeva_algorithm_916(    Vector&         ls_attenuation,
     const Numeric sqrt_invPI =  sqrt(1/PI);
     
     // constant normalization factor for voigt
-    Numeric fac = sqrt_invPI / sigma;
+    const Numeric fac = sqrt_invPI / sigma;
     
     // Ratio of the Lorentz halfwidth to the Doppler halfwidth
-    Numeric YNUMERIC = gamma / (sigma);
+    const Numeric y = gamma / (sigma);
     
     // frequency in units of Doppler
     for (Index ii=0; ii<nf; ii++)
@@ -1726,7 +1726,7 @@ void faddeeva_algorithm_916(    Vector&         ls_attenuation,
     
     for (Index ii=0; ii<nf; ii++)
     {
-        std::complex<Numeric> z(xvector[ii], YNUMERIC);
+        std::complex<Numeric> z(xvector[ii], y);
         
         z = Faddeeva::w(z);
         

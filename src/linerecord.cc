@@ -955,7 +955,7 @@ bool LineRecord::ReadFromHitran2004Stream(istream& is, const Verbosity& verbosit
   if (mlower_lquanta.nelem() == 15)
   {
       Index DN = 0, DJ = 0;
-      if(species_data[mspecies].Name() == "O2")//O2 FIXME: Different mspecies versus HITRAN?
+      if(species_data[mspecies].Name() == "O2")
       {
         mlower_n = atoi(mlower_lquanta.substr(2, 3).c_str());
         mlower_j = atoi(mlower_lquanta.substr(6, 3).c_str());
@@ -996,20 +996,30 @@ bool LineRecord::ReadFromHitran2004Stream(istream& is, const Verbosity& verbosit
           }
         }
       }
-      else if(species_data[mspecies].Name()=="NO")//NO FIXME: Different mspecies versus HITRAN?
+      else if(species_data[mspecies].Name()=="NO")
       {
+	/* 
+     * From the Hitran 2004 paper, several selection rules for finding the quantum numbers
+	 * for NO are available. I try to sort these out in the code below.
+	 */
         DJ = - mlower_lquanta.compare(3,1,"Q");
         
         int nom=-1, denom=0;
         if (mlower_lquanta.substr(4,3) == "   ")
         {
-            nom   = atoi(mlower_lquanta.substr(4,3).c_str());
-            denom = atoi(mlower_lquanta.substr(8,1).c_str());
+	  nom   = atoi(mlower_lquanta.substr(4,3).c_str());
+	  denom = atoi(mlower_lquanta.substr(8,1).c_str());
         }
-        else //out2 << "Hitran read error in mlower_lquanta J for species " <<  mspecies << " in line " << mf << "\n";
+        else
+	{
+	  ostringstream os;
+	  os << "Hitran read error in mlower_lquanta J for species " <<  mspecies << " in line " << mf << "\n";
+	  throw runtime_error(os.str());
+	}
         
         if( denom == 5 ) mlower_j = Rational(nom*2+1,2);
         else mlower_j = nom;
+	
         mupper_j = mlower_j - DJ;
         
         nom=-1;denom=0;
@@ -1018,10 +1028,13 @@ bool LineRecord::ReadFromHitran2004Stream(istream& is, const Verbosity& verbosit
             nom   = atoi(mlower_lquanta.substr(8,1).c_str());
             denom = atoi(mlower_lquanta.substr(10,1).c_str());
         }
-        else //out2 << "Hitran read error in mlower_gquanta i for species " <<  mspecies << " in line " << mf << "\n";
-        
-        // Note that OMEGA is nom/denom
-        
+        else
+	{
+	  ostringstream os;
+	  os << "Hitran read error in mlower_gquanta i for species " <<  mspecies << " in line " << mf << "\n";
+	  throw runtime_error(os.str());
+	}
+	
         if( nom==3&&denom==2 ) mlower_n = mlower_j+Rational(1,2);
         else if( nom==1&&denom==2 ) mlower_n = mlower_j-Rational(1,2);
         else mlower_n = -1;
@@ -1029,23 +1042,33 @@ bool LineRecord::ReadFromHitran2004Stream(istream& is, const Verbosity& verbosit
         nom=-1;denom=0;
         if (mupper_gquanta.substr(4,3) == "   ")
         {
-            nom   = atoi(mupper_lquanta.substr(8,1).c_str());
-            denom = atoi(mupper_lquanta.substr(10,1).c_str());
+	  nom   = atoi(mupper_lquanta.substr(8,1).c_str());
+	  denom = atoi(mupper_lquanta.substr(10,1).c_str());
         }
-        else //out2 << "Hitran read error in mlower_gquanta i for species " <<  mspecies << " in line " << mf << "\n";
-        
-        // Note that OMEGA is nom/denom
+        else
+	{
+	  ostringstream os;
+	  os << "Hitran read error in mlower_gquanta i for species " <<  mspecies << " in line " << mf << "\n";
+	  throw runtime_error(os.str());
+	}
         
         if( nom==3&&denom==2 ) mupper_n = mupper_j+Rational(1,2);
         else if( nom==1&&denom==2 ) mupper_n = mupper_j-Rational(1,2);
         else mupper_n = -1;
         
+	mquantum_numbers.SetLower(QN_N, mlower_n);
+        mquantum_numbers.SetLower(QN_J, mlower_j);
+        mquantum_numbers.SetUpper(QN_N, mupper_n);
+        mquantum_numbers.SetUpper(QN_J, mlower_j);
+        //mquantum_numbers.SetLower(QN_v1, atoi(mlower_gquanta.substr(13, 2).c_str()));
+        //mquantum_numbers.SetUpper(QN_v1, atoi(mupper_gquanta.substr(13, 2).c_str()));
+	
       }
-      else if(species_data[mspecies].Name()=="OH")//OH FIXME: Different mspecies versus HITRAN?
+      else if(species_data[mspecies].Name()=="OH")//OH FIXME: Add this.
       {
         //pass for now
       }
-      else if(species_data[mspecies].Name()=="ClO")//ClO FIXME: Different mspecies versus HITRAN?
+      else if(species_data[mspecies].Name()=="ClO")//ClO FIXME: Add this.
       {
         //pass for now
       }

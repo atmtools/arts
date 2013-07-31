@@ -1,3 +1,12 @@
+2013-07-31  Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-1-706
+	
+	* src/lineshapes.cc: Made some constants const (faddeeva_algorithm_916).
+	
+	* src/linerecord.cc: Changed, hopefully fixed, a very strange bug in the
+	NO quantum number HITRAN reading routine.
+
 2013-07-25  Jana Mendrok <jana.mendrok@ltu.se>
 
 	* arts-2-1-705
