@@ -938,7 +938,8 @@ void Workspace::define_wsv_data()
        "and the surface are defined in a formally correct way, e.g. that\n"
        "the sizes of atmospheric fields match the atmospheric grids.\n"
        "\n"
-       "Shall be set by *basics_checkedCalc*. See that WSM for treated WSVs.\n"
+       "Shall be set by *basics_checkedCalc* or *basics_checkedCalcNoGeo*.\n"
+       "See WSMs for treated WSVs.\n"
        ),
       GROUP( "Index" )));
 

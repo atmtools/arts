@@ -54,9 +54,10 @@ void CloudboxGetIncoming2(
   if (!cloudbox_on) return;
   
   // Basics and cloudbox OK?
-  if( !basics_checked )
-    throw runtime_error( "The atmosphere and basic control variables must be "
-            "flagged to have passed a consistency check (basics_checked=1)." );
+  if( basics_checked<2 )
+    throw runtime_error("The atmosphere, surface and basic control variables "
+                        "must be flagged to have passed a consistency check\n"
+                        "by basics_checkedCalc (basics_checked=2)!" );
   if( !cloudbox_checked )
     throw runtime_error( "The cloudbox must be flagged to have passed a "
                          "consistency check (cloudbox_checked=1)." );

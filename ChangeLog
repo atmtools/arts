@@ -1,3 +1,39 @@
+2013-08-01  Jana Mendrok <jana.mendrok@ltu.se>
+
+	* arts-2-1-707
+
+	* src/m_abs.cc
+	(propmat_clearsky_agenda_checkedCalc): Removed requirement for
+	AddFaraday when free_electrons in abs_species (we might want them for
+	refraction , not for faraday).
+	(propmat_clearskyAddFaraday): Fixed error message.
+
+	* src/m_abs_lookup.cc
+	(propmat_clearsky_fieldCalc): Require basics_checked (non-geometry
+	level; see below). In turn, remove local checks.
+
+	* src/m_atmosphere.cc
+	(basics_checkedCalcNoGeo): Reduced version of basics_checked without
+	surface/geometry checks. Returns basics_checked=1 when passed.
+
+	(basics_checkedCalc): Now returning basics_checked=2 when passed.
+
+	(z_fieldFromHSE): Adapt to modified basics_checked behaviour.
+
+	* src/m_cloudbox.cc
+	(cloudbox_checkedCalc): Adapt to modified basics_checked behaviour. Moved
+	check for no "particles" in abs_species	further up. 
+
+	* src/m_doit2.cc(CloudboxGetIncoming2), src/m_montecarlo.cc(MCGeneral),
+	src/m_cloudradar.cc(yCloudRadar), src/m_ppath.cc(ppathCalc, ppathFromRtePos2),
+	src/m_rte.cc(iyCalc, iy_auxFillParticleVariables, yCalc),
+	src/m_doit.cc(CloudboxGetIncoming, CloudboxGetIncoming1DAtm):
+	Adapt to modified basics_checked behaviour.
+
+	* src/methods.cc(basics_checkedCalcNoGeo, basics_checkedCalc,
+	propmat_clearsky_fieldCalc), workspace.cc(basics_checked):
+	Adapted to changes above.
+
 2013-07-31  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-1-706

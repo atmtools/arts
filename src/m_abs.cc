@@ -1501,14 +1501,14 @@ void propmat_clearsky_agenda_checkedCalc(Workspace& ws _U_,
         throw runtime_error("*abs_species* contains Zeeman species but *propmat_clearsky_agenda*\n"
                             "does not contain *propmat_clearskyAddZeeman*.");
     }
-
+/*
     if (needs_free_electrons
         && !propmat_clearsky_agenda.has_method("propmat_clearskyAddFaraday"))
     {
         throw runtime_error("*abs_species* contains free electrons but *propmat_clearsky_agenda*\n"
                             "does not contain *propmat_clearskyAddFaraday*.");
     }
-
+*/
     if (needs_particles
         && !propmat_clearsky_agenda.has_method("propmat_clearskyAddParticles"))
     {
@@ -2194,7 +2194,7 @@ void propmat_clearskyAddFaraday(
   if( atmosphere_dim==1 && rtp_los.nelem() < 1 )
     {
        ostringstream os; 
-       os << "For applying propmat_clearskyAddParticles, los needs to be specified\n"
+       os << "For applying propmat_clearskyAddFaraday, los needs to be specified\n"
           << "(at least zenith angle component for atmosphere_dim==1),\n"
           << "but it is not.\n";
        throw runtime_error( os.str() );
@@ -2202,7 +2202,7 @@ void propmat_clearskyAddFaraday(
   else if(  atmosphere_dim>1 && rtp_los.nelem() < 2 )
     {
        ostringstream os; 
-       os << "For applying propmat_clearskyAddParticles, los needs to be specified\n"
+       os << "For applying propmat_clearskyAddFaraday, los needs to be specified\n"
           << "(both zenith and azimuth angle components for atmosphere_dim>1),\n"
           << "but it is not.\n";
        throw runtime_error( os.str() );

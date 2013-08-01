@@ -340,6 +340,32 @@ void chk_interpolation_pgrids(const String&   which_interpolation,
                               const Index     order=1,
                               const Numeric&  extpolfac=0.5 );
 
+void chk_basics( const Index&     atmosphere_dim,
+                 const Vector&    p_grid,
+                 const Vector&    lat_grid,
+                 const Vector&    lon_grid,
+                 const Index&   nspecies,
+                 const Tensor3&   t_field,
+                 const Tensor4&   vmr_field,
+                 const Tensor3&   wind_u_field,
+                 const Tensor3&   wind_v_field,
+                 const Tensor3&   wind_w_field,
+                 const Tensor3&   mag_u_field,
+                 const Tensor3&   mag_v_field,
+                 const Tensor3&   mag_w_field,
+                 const Index&     stokes_dim,
+                 const Vector&    f_grid,
+                 const Index&     abs_f_interp_order,
+                 const Index&     negative_vmr_ok );
+
+void chk_geobasics( const Index&     atmosphere_dim,
+                    const Vector&    p_grid,
+                    const Vector&    lat_grid,
+                    const Vector&    lon_grid,
+                    const Tensor3&   z_field,
+                    const Vector&    refellipsoid,
+                    const Matrix&    z_surface );
+
 void chk_atm_grids(
         const Index&      dim,
         ConstVectorView   p_grid,

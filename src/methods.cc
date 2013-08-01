@@ -2437,12 +2437,12 @@ void define_md_data_raw()
          "\n"
          "The following WSVs are treated: *f_grid*, *stokes_dim*, *p_grid*,\n"
          "*lat_grid*, *lon_grid*, *t_field*, *z_field*, *vmr_field*,\n"
-         "wind_u/v/w_field, *refellipsoid*, and *z_surface*.\n"
+         "wind_u/v/w_field, mag_u/v/w_field, *refellipsoid*, and *z_surface*.\n"
          "If any of these variables are changed, then this method shall be\n"
          "called again (no automatic check that this is fulfilled!).\n"
          "\n"
          "The tests include that:\n"
-         " 1. Bbasic control variables *stokes_dim* and *atmosphere_dim*\n"
+         " 1. Basic control variables *stokes_dim* and *atmosphere_dim*\n"
          "    are inside defined ranges.\n"
          " 2. *f_grid* is sorted and increasing.\n"
          " 3. Atmospheric grids (p/lat/lon_grid) are OK with respect to\n"
@@ -2460,7 +2460,7 @@ void define_md_data_raw()
          "requirement can be removed by the *negative_vmr_ok* argument.\n"
          "\n"
          "If any test fails, there is an error. Otherwise, *basics_checked*\n"
-         "is set to 1.\n"
+         "is set to 2.\n"
          "\n"
          "The cloudbox is covered by *cloudbox_checked*.\n"
          ),
@@ -2474,7 +2474,39 @@ void define_md_data_raw()
             "wind_w_field", "mag_u_field", "mag_v_field", "mag_w_field",
             "refellipsoid", "z_surface", 
             "stokes_dim", "f_grid", "abs_f_interp_order" ),
-        GIN( "negative_vmr_ok" ),
+        GIN(  "negative_vmr_ok" ),
+        GIN_TYPE( "Index" ),
+        GIN_DEFAULT( "0" ),
+        GIN_DESC("Boolean for demanding vmr_field > 0 or not.")
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "basics_checkedCalcNoGeo" ),
+        DESCRIPTION
+        (
+         "Checks consistency of the (clear sky) atmosphere.\n"
+         "\n"
+         "As *basics_checkedCalc*, but neglecting geometry related parameters.\n"
+         "That is, (only) the following WSVs are treated: *f_grid*,\n"
+         "*stokes_dim*, *p_grid*, *lat_grid*, *lon_grid*, *t_field*,\n"
+         "*vmr_field*, wind_u/v/w_field, and mag_u/v/w_field.\n"
+         "If any of these variables are changed, then this method shall be\n"
+         "called again (no automatic check that this is fulfilled!).\n"
+         "\n"
+         "If any test fails, there is an error. Otherwise, *basics_checked*\n"
+         "is set to 1.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "basics_checked" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "abs_species",
+            "t_field", "vmr_field", "wind_u_field", "wind_v_field",
+            "wind_w_field", "mag_u_field", "mag_v_field", "mag_w_field",
+            "stokes_dim", "f_grid", "abs_f_interp_order" ),
+        GIN(  "negative_vmr_ok" ),
         GIN_TYPE( "Index" ),
         GIN_DEFAULT( "0" ),
         GIN_DESC("Boolean for demanding vmr_field > 0 or not.")
@@ -8169,12 +8201,12 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "propmat_clearsky_agenda",
-            "f_grid",
-            "atmosphere_dim", "stokes_dim",
+        IN( "basics_checked",
+            "f_grid", "stokes_dim",
             "p_grid", "lat_grid", "lon_grid",
             "t_field", "vmr_field",
-            "mag_u_field", "mag_v_field", "mag_w_field" ),
+            "mag_u_field", "mag_v_field", "mag_w_field",
+            "propmat_clearsky_agenda" ),
         GIN("doppler", "los"),
         GIN_TYPE("Vector", "Vector"),
         GIN_DEFAULT("[]", "[]"),

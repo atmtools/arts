@@ -136,9 +136,10 @@ void iyCalc(
 {
   // Basics and cloudbox OK?
   //
-  if( !basics_checked )
-    throw runtime_error( "The atmosphere and basic control variables must be "
-            "flagged to have passed a consistency check (basics_checked=1)." );
+  if( basics_checked<2 )
+    throw runtime_error("The atmosphere, surface and basic control variables "
+                        "must be flagged to have passed a consistency check\n"
+                        "by basics_checkedCalc (basics_checked=2)!" );
   if( !cloudbox_checked )
     throw runtime_error( "The cloudbox must be flagged to have passed a "
                          "consistency check (cloudbox_checked=1)." );
@@ -1255,7 +1256,7 @@ void iyMC(
                    p_grid, lat_grid, lon_grid, z_field, 
                    refellipsoid, z_surface, t_field, vmr_field,
                    cloudbox_on, cloudbox_limits,
-                   pnd_field, scat_data_mono, 1, cloudbox_checked,
+                   pnd_field, scat_data_mono, 2, cloudbox_checked,
                    mc_seed, iy_unit, mc_std_err, mc_max_time, mc_max_iter,
                    mc_min_iter, verbosity);
           //cout << "Error: "      << mc_error << endl;
@@ -1362,9 +1363,10 @@ void iy_auxFillParticleVariables(
   const Index naux = iy_aux_vars.nelem();
 
   // Input checks
-  if( !basics_checked )
-    throw runtime_error( "The atmosphere and basic control variables must be "
-            "flagged to have passed a consistency check (basics_checked=1)." );
+  if( basics_checked<2 )
+    throw runtime_error("The atmosphere, surface and basic control variables "
+                        "must be flagged to have passed a consistency check\n"
+                        "by basics_checkedCalc (basics_checked=2)!" );
   if( !cloudbox_on )
     throw runtime_error( 
                     "The cloudbox must be activated (cloudbox_on must be 1)" );
@@ -1520,9 +1522,10 @@ void yCalc(
 
   // Basics, cloudbox, and sensor OK?
   //
-  if( !basics_checked )
-    throw runtime_error( "The atmosphere and basic control variables must be "
-            "flagged to have passed a consistency check (basics_checked=1)." );
+  if( basics_checked<2 )
+    throw runtime_error("The atmosphere, surface and basic control variables "
+                        "must be flagged to have passed a consistency check\n"
+                        "by basics_checkedCalc (basics_checked=2)!" );
   if( !cloudbox_checked )
     throw runtime_error( "The cloudbox must be flagged to have passed a "
                          "consistency check (cloudbox_checked=1)." );

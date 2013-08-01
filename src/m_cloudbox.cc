@@ -569,10 +569,11 @@ void cloudbox_checkedCalc(
   // Demanded space between cloudbox and lat and lon edges [degrees]
   const Numeric llmin = 20;
 
-  if( !basics_checked )
-    throw runtime_error( "The atmosphere and basic control variables must be "
-            "flagged to have passed a consistency check (basics_checked=1)." );
-  
+  if( basics_checked<2 )
+    throw runtime_error("The atmosphere, surface and basic control variables "
+                        "must be flagged to have passed a consistency check\n"
+                        "by basics_checkedCalc (basics_checked=2)!" );
+
   chk_if_bool( "cloudbox_on", cloudbox_on );
 
   if( cloudbox_on )
@@ -590,6 +591,24 @@ void cloudbox_checkedCalc(
         if( atmosphere_dim > 2  &&  wind_u_field.npages() > 0 )
           { throw runtime_error( ow.str() ); }
       }
+
+      // no "particles" in abs_species if cloudbox is on (they act on the same
+      // scat_data_raw! and there is no good reason to have some particles as
+      // abs-only, if we anyway do a scattering calculation.).
+      Index has_absparticles=0;
+      for( Index sp = 0; sp < abs_species.nelem() && has_absparticles < 1; sp++ )
+        {
+          if ( abs_species[sp][0].Type() == SpeciesTag::TYPE_PARTICLES )
+            {
+              has_absparticles=1;
+            }
+        }
+      if ( has_absparticles )
+        {
+          throw runtime_error( "For scattering calculations (cloudbox is on),"
+                               "abs_species is not allowed to contain\n"
+                               "'particles' (absorbing-only particles)!" );
+        }
 
       // Cloudbox limits
       if( cloudbox_limits.nelem() != atmosphere_dim*2 )
@@ -763,24 +782,6 @@ void cloudbox_checkedCalc(
           if( min(particle_masses) < 0 )
             throw runtime_error( 
                            "All values in *particles_masses* must be >= 0." );
-        }
-
-      // no "particles" in abs_species if cloudbox is on (they act on the same
-      // scat_data_raw! and there not enough reason to have some particles as
-      // abs-only, if we anyway do a scattering calculation.).
-      Index has_absparticles=0;
-      for( Index sp = 0; sp < abs_species.nelem() && has_absparticles < 1; sp++ )
-        {
-          if ( abs_species[sp][0].Type() == SpeciesTag::TYPE_PARTICLES )
-            {
-              has_absparticles=1;
-            }
-        }
-      if ( has_absparticles )
-        {
-          throw runtime_error( "For scattering calculations (cloudbox is on),"
-                               "abs_species is not allowed to contain\n"
-                               "'particles' (absorbing-only particles)!" );
         }
     }
 

@@ -2073,9 +2073,8 @@ void propmat_clearsky_fieldCalc( Workspace& ws,
                                 // WS Output:
                                 Tensor7& propmat_clearsky_field,
                                 // WS Input:
-                                const Agenda&  abs_agenda,
+                                const Index&   basics_checked,
                                 const Vector&  f_grid,
-                                const Index&   atmosphere_dim,
                                 const Index&   stokes_dim,
                                 const Vector&  p_grid,
                                 const Vector&  lat_grid,
@@ -2085,6 +2084,7 @@ void propmat_clearsky_fieldCalc( Workspace& ws,
                                 const Tensor3& mag_u_field,
                                 const Tensor3& mag_v_field,
                                 const Tensor3& mag_w_field,
+                                const Agenda&  abs_agenda,
                                 // WS Generic Input:
                                 const Vector&  doppler,
                                 const Vector&  los,
@@ -2092,6 +2092,12 @@ void propmat_clearsky_fieldCalc( Workspace& ws,
 {
     CREATE_OUT2;
     CREATE_OUT3;
+
+    if( !basics_checked )
+      throw runtime_error( "The atmosphere and basic control variables must "
+                           "be flagged to have passed a "
+                           "consistency check (basics_checked>0).\n"
+                           "Run basics_checkedCalcNoGeo!" );
 
     Tensor4  abs;
     Vector  a_vmr_list;
@@ -2111,67 +2117,6 @@ void propmat_clearsky_fieldCalc( Workspace& ws,
     // Number of longitude grid points (must be at least one):
     const Index n_longitudes = max( Index(1), lon_grid.nelem() );
 
-    // Check grids:
-    chk_atm_grids( atmosphere_dim,
-                  p_grid,
-                  lat_grid,
-                  lon_grid );
-
-    // Check if t_field is ok:
-    chk_atm_field( "t_field",
-                  t_field,
-                  atmosphere_dim,
-                  p_grid,
-                  lat_grid,
-                  lon_grid );
-
-    // Check if vmr_field is ok.
-    // (Actually, we are not checking the first dimension, since
-    // n_species has been set from this.)
-    chk_atm_field( "vmr_field",
-                  vmr_field,
-                  atmosphere_dim,
-                  n_species,
-                  p_grid,
-                  lat_grid,
-                  lon_grid );
-
-    // Magnetic field
-    if( mag_w_field.npages() > 0 )
-    {
-        chk_atm_field("mag_w_field (vertical magfield component)",
-                      mag_w_field, atmosphere_dim, p_grid, lat_grid, lon_grid );
-    }
-    if( mag_u_field.npages() > 0 )
-    {
-        if( mag_v_field.npages() > 0 )
-        {
-            bool chk_poles = false;
-            chk_atm_field("mag_v_field", mag_v_field, atmosphere_dim,
-                          p_grid, lat_grid, lon_grid, chk_poles );
-            chk_atm_field("mag_u_field", mag_u_field, atmosphere_dim,
-                          p_grid, lat_grid, lon_grid, chk_poles );
-            chk_atm_vecfield_lat90("mag_v_field", mag_v_field,
-                                   "mag_u_field", mag_u_field,
-                                   atmosphere_dim, lat_grid);
-        }
-        else
-        {
-            chk_atm_field("mag_u_field", mag_u_field, atmosphere_dim,
-                          p_grid, lat_grid, lon_grid );
-        }
-    }
-    else
-    {
-        if( mag_v_field.npages() > 0 )
-        {
-            chk_atm_field("mag_v_field", mag_v_field, atmosphere_dim,
-                          p_grid, lat_grid, lon_grid);
-        }
-    }
-
-    // Stokes and frequency grid
-    chk_if_in_range("stokes_dim", stokes_dim, 1, 4);
 
     // Check that doppler is empty or matches p_grid
     if (0!=doppler.nelem() && p_grid.nelem()!=doppler.nelem())
