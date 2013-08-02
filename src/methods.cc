@@ -7202,6 +7202,32 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "ParticleRefractiveIndexWaterLiebe93" ),
+        DESCRIPTION
+        (
+         "Complex refractive index of liquid water according to Liebe 1993.\n"
+         "This method is based upon *complex_nWaterLiebe93*."
+         "\n"
+         "Size of scat_ref_index\n"
+         "    [number of frequencies]\n"
+         "    [number of temperatures]\n"
+         "    [2]\n"
+         ),
+        AUTHORS( "Oliver Lemke" ),
+        OUT(),
+        GOUT( "scat_ref_index" ),
+        GOUT_TYPE( "GriddedField3" ),
+        GOUT_DESC( "Refractive index" ),
+        IN(),
+        GIN( "scat_f_grid", "scat_t_grid" ),
+        GIN_TYPE( "Vector", "Vector" ),
+        GIN_DEFAULT( NODEF, NODEF ),
+        GIN_DESC( "Frequency grid",
+                  "Temperature grid" )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "ParticleSpeciesInit" ),
         DESCRIPTION
         (
@@ -7218,7 +7244,6 @@ void define_md_data_raw()
         GIN_DEFAULT(),
         GIN_DESC()
         ));
-    
     
   md_data_raw.push_back
     ( MdRecord

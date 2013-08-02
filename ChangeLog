@@ -1,3 +1,15 @@
+2013-08-02  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-708
+
+	* src/methods.cc, src/m_physics.cc:
+
+	(ParticleRefractiveIndexWaterLiebe93): New method.
+
+	(complex_nWaterLiebe93): Make method less chatty in out2.
+
+	* doc/uguide/check_refs.py: Exit code should be 0 if no error occured.
+
 2013-08-01  Jana Mendrok <jana.mendrok@ltu.se>
 
 	* arts-2-1-707

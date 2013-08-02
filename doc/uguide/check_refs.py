@@ -75,7 +75,7 @@ def check_tex_file(ws, filename):
             sys.stderr.write("l. %d: Unknown %s %s\n" % e)
         sys.stderr.write("\n")
 
-    return err is None
+    return len(err) == 0
 
 
 def check_arts_tex_files():

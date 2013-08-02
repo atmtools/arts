@@ -84,14 +84,13 @@ void complex_nWaterLiebe93(Matrix&         complex_n,
                            const Numeric&  t,
                            const Verbosity& verbosity)
 {
-  CREATE_OUT2;
   CREATE_OUT3;
   
   chk_if_in_range( "t", t, TEMP_0_C, TEMP_0_C+100 );
   chk_if_in_range( "min of f_grid", min(f_grid), 10e9, 1000e9 );
   chk_if_in_range( "max of f_grid", max(f_grid), 10e9, 1000e9 );
 
-  out2 << "  Sets *complex_n* to model properties of liquid water,\n"
+  out3 << "  Sets *complex_n* to model properties of liquid water,\n"
        << "  according to Liebe 1993\n";
   out3 << "     temperature      : " << t << " K.\n";
 
@@ -196,3 +195,32 @@ void MatrixUnitIntensity(// WS Output:
   for( Index i=0; i<n; i++ )
     { m(i,0) = 1.0; }
 }
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void ParticleRefractiveIndexWaterLiebe93(// Generic output:
+                                         GriddedField3& scat_ref_index,
+                                         // Generic input:
+                                         const Vector& scat_f_grid,
+                                         const Vector& scat_t_grid,
+                                         const Verbosity& verbosity)
+{
+    const Index nf = scat_f_grid.nelem();
+    const Index nt = scat_t_grid.nelem();
+
+    scat_ref_index.resize(nf, nt, 2);
+    scat_ref_index.set_grid_name(0, "Frequency");
+    scat_ref_index.set_grid(0, scat_f_grid);
+    scat_ref_index.set_grid_name(1, "Temperature");
+    scat_ref_index.set_grid(1, scat_t_grid);
+    scat_ref_index.set_grid_name(2, "Complex");
+    scat_ref_index.set_grid(2, MakeArray<String>("real", "imaginary"));
+
+    Matrix complex_n;
+    for (Index t = 0; t < nt; ++t)
+    {
+        complex_nWaterLiebe93(complex_n, scat_f_grid, scat_t_grid[t], verbosity);
+        scat_ref_index.data(joker, t, joker) = complex_n;
+    }
+}
+
