@@ -1312,10 +1312,12 @@ void xml_read_from_stream(istream& is_xml,
 {
   ArtsXMLTag tag(verbosity);
   //Index ptype;
+  String version;
 
   tag.read_from_stream(is_xml);
   tag.check_name("ScatteringMetaData");
-
+  tag.get_attribute_value("version", version);
+  
   //xml_read_from_stream (is_xml, ptype, pbifs, verbosity);
   //ssdata.ptype = ParticleType (ptype);
   xml_read_from_stream(is_xml, smdata.description, pbifs, verbosity);
@@ -1326,7 +1328,14 @@ void xml_read_from_stream(istream& is_xml,
   xml_read_from_stream(is_xml, smdata.V, pbifs, verbosity);
   xml_read_from_stream(is_xml, smdata.A_projec, pbifs, verbosity);
   xml_read_from_stream(is_xml, smdata.asratio, pbifs, verbosity);
-
+  
+  if (version == "2")
+    {  
+      xml_read_from_stream(is_xml, smdata.f_grid, pbifs, verbosity);
+      xml_read_from_stream(is_xml, smdata.T_grid, pbifs, verbosity);
+      xml_read_from_stream(is_xml, smdata.p_type, pbifs, verbosity);
+      xml_read_from_stream(is_xml, smdata.ref_index, pbifs, verbosity);
+    }
 
   tag.read_from_stream(is_xml);
   tag.check_name("/ScatteringMetaData");
@@ -1351,6 +1360,7 @@ void xml_write_to_stream(ostream& os_xml,
   open_tag.set_name("ScatteringMetaData");
   if (name.length())
     open_tag.add_attribute("name", name);
+  open_tag.add_attribute("version", "2");
   open_tag.write_to_stream(os_xml);
 
   xml_write_to_stream(os_xml, smdata.description, pbofs, "", verbosity);
@@ -1361,7 +1371,11 @@ void xml_write_to_stream(ostream& os_xml,
   xml_write_to_stream(os_xml, smdata.V, pbofs, "", verbosity);
   xml_write_to_stream(os_xml, smdata.A_projec, pbofs, "", verbosity);
   xml_write_to_stream(os_xml, smdata.asratio, pbofs, "", verbosity);
-
+  xml_write_to_stream(os_xml, smdata.f_grid, pbofs, "", verbosity);
+  xml_write_to_stream(os_xml, smdata.T_grid, pbofs, "", verbosity);
+  xml_write_to_stream(os_xml, smdata.p_type, pbofs, "", verbosity);
+  xml_write_to_stream(os_xml, smdata.ref_index, pbofs, "", verbosity);
+  
   close_tag.set_name("/ScatteringMetaData");
   close_tag.write_to_stream(os_xml);
   os_xml << '\n';

@@ -10405,7 +10405,32 @@ void define_md_data_raw()
         GIN_DEFAULT(),
         GIN_DESC()
         ));
-
+    
+  md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "scat_data_meta_arrayAdd" ),
+      DESCRIPTION
+      (
+          "Test.\n"
+      ),
+      AUTHORS( "Johan Strandgren" ),
+      OUT("scat_data_meta_array"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN(),
+      GIN( "description", "material", "shape", "p_type", "density", "aspect_ratio", 
+           "r_grid", "f_gridScat", "T_gridScat", "ref_index" ),
+      GIN_TYPE( "String", "String", "String", "String", "Numeric", "Numeric", "Vector", 
+               "Vector", "Vector", "GriddedField3" ),
+      GIN_DEFAULT( NODEF, NODEF, NODEF, NODEF, NODEF, NODEF, NODEF, NODEF, NODEF, NODEF ),
+      GIN_DESC( "Particledescription", "liquid or ice", "Sphere or cylinder", 
+               "Particle Type: MACROS_ISO (20) or PARTICLE_TYPE_HORIZ_AL (30)", "Particle mass density", 
+               "Aspect ratio", "equivalent radius vector", "Frequency grid vector", "Temperature grid vector", 
+               "Gridded field for refractive index"      
+      )
+    ));
+    
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "single_scattering_dataCalcTMatrixTest" ),
@@ -10414,7 +10439,7 @@ void define_md_data_raw()
          "Simple interface to T-Matrix code for testing.\n"
          ),
         AUTHORS( "Oliver Lemke" ),
-        OUT("single_scattering_data"),
+        OUT("scat_data_raw"),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
@@ -10425,11 +10450,11 @@ void define_md_data_raw()
             "precision"),
         GIN_TYPE("String", "Vector", "Vector", "Vector", "Vector",
                  "Matrix", "Matrix",
-                 "Numeric", "Index", "String", "Numeric",
+                 "Vector", "Index", "String", "Numeric",
                  "Numeric"),
         GIN_DEFAULT(NODEF, NODEF, NODEF, NODEF, NODEF,
                     NODEF, NODEF,
-                    "200", "-1", "ice", "1.000001",
+                    "[200]", "-1", "ice", "1.000001",
                     "0.001" ),
         GIN_DESC("Particle Type: MACROS_ISO (20) or PARTICLE_TYPE_HORIZ_AL (30)",
                  "Frequency grid",

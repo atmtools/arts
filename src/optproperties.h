@@ -39,6 +39,7 @@
 #include "matpackVII.h"
 #include "mystring.h"
 #include "messages.h"
+#include "gridded_fields.h"
 
 
 //! An attribute to classify the particle type in a SingleScatteringData
@@ -100,11 +101,15 @@ struct ScatteringMetaData {
   String    description;
   String    type;
   String    shape;
+  String    p_type;
   Numeric   density;
   Numeric   d_max;
   Numeric   V;
   Numeric   A_projec;
   Numeric   asratio;
+  Vector    f_grid;
+  Vector    T_grid;
+  Tensor3   ref_index;
 };
 
 typedef Array<ScatteringMetaData> ArrayOfScatteringMetaData;

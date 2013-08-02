@@ -1,4 +1,22 @@
-2013-08-02  Jana Mendrok <jana.mendrok@ltu.se>
+2013-08-02  Johan Strandgren  <johsat-9@student.ltu.se>
+
+	* arts-2-1-710
+
+	* src/optproperties.h: Updated the format of ScatteringMetaData.
+	Added p_type, f_gridScat, T_gridScat and ref_index as generic inputs.
+
+	* src/m_tmatrix.cc:
+	(scat_data_meta_arrayAdd): Added a method for adding elements to 
+	scat_data_meta_array.
+	(single_scattering_dataCalcTMatrixTest): expand to a vector of equiv_radius.
+
+	* src/xml_io_compound_types.cc (xml_read_from_stream, xml_write_to_stream): 
+	Adapted to changes of ScatteringMetaData.
+
+	* src/methods.cc: added scat_data_meta_arrayAdd and adapted 
+	to changes of single_scattering_dataCalcTMatrixTest
+
+2013-08-02  Jana Mendrok  <jana.mendrok@ltu.se>
 
 	* arts-2-1-709
 
