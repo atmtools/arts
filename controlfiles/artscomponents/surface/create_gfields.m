@@ -52,7 +52,7 @@ xmlStore( 'r_field_2angles.xml', G, 'GriddedField6' );
 
 
 
-%- A very basic complex_n field:
+%- A very basic surface_complex_refr_index field:
   
 G.name      = 'Surface complex refractive index';
 G.gridnames = { 'Frequency', 'Complex', 'Latitude', 'Longitude' };

@@ -65,8 +65,8 @@ extern const Numeric DEG2RAD;
   ===========================================================================*/
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void complex_nFromGriddedField4(
-          Matrix&          complex_n,
+void surface_complex_refr_indexFromGriddedField4(
+          Matrix&          surface_complex_refr_index,
     const Index&           stokes_dim,
     const Vector&          f_grid,
     const Index&           atmosphere_dim,
@@ -154,20 +154,20 @@ void complex_nFromGriddedField4(
   // Extract or interpolate in frequency
   //
   if( nf_in == 1 )
-    { complex_n = n_f; }
+    { surface_complex_refr_index = n_f; }
   else
     {
       chk_interpolation_grids( "Frequency interpolation", 
                                n_field.get_numeric_grid(gfield_fID), f_grid );
       const Index nf_out = f_grid.nelem();
-      complex_n.resize( nf_out, 2 );
+      surface_complex_refr_index.resize( nf_out, 2 );
       //
       ArrayOfGridPos gp( nf_out );
       Matrix         itw( nf_out, 2 );
       gridpos( gp, n_field.get_numeric_grid(gfield_fID), f_grid );
       interpweights( itw, gp );
-      interp( complex_n(joker,0), itw, n_f(joker,0), gp );
-      interp( complex_n(joker,1), itw, n_f(joker,1), gp );
+      interp( surface_complex_refr_index(joker,0), itw, n_f(joker,0), gp );
+      interp( surface_complex_refr_index(joker,1), itw, n_f(joker,1), gp );
     }     
 }
 
@@ -384,7 +384,7 @@ void surfaceFlatRefractiveIndex(
     const Vector&    rtp_los,
     const Vector&    specular_los,
     const Numeric&   surface_skin_t,
-    const Matrix&    complex_n,
+    const Matrix&    surface_complex_refr_index,
     const Agenda&    blackbody_radiation_agenda,
     const Verbosity& verbosity)
 {
@@ -397,15 +397,18 @@ void surfaceFlatRefractiveIndex(
   chk_if_in_range( "stokes_dim", stokes_dim, 1, 4 );
   chk_not_negative( "surface_skin_t", surface_skin_t );
 
-  chk_matrix_ncols( "complex_n", complex_n, 2 ); 
+  chk_matrix_ncols( "surface_complex_refr_index",
+                    surface_complex_refr_index, 2 ); 
   //
-  if( complex_n.nrows() != nf  && complex_n.nrows() != 1 )
+  if( surface_complex_refr_index.nrows() != nf  &&
+      surface_complex_refr_index.nrows() != 1 )
     {
       ostringstream os;
-      os << "The number of rows in *complex_n* should be 1 or match the length "
-         << "of *f_grid*,"
+      os << "The number of rows in *surface_complex_refr_index* should "
+         << "be 1 or match the length of *f_grid*,"
          << "\n length of *f_grid*  : " << nf 
-         << "\n rows in *complex_n* : " << complex_n.nrows() << "\n";
+         << "\n rows in *surface_complex_refr_index* : "
+         << surface_complex_refr_index.nrows() << "\n";
       throw runtime_error( os.str() );
     }
 
@@ -427,10 +430,11 @@ void surfaceFlatRefractiveIndex(
 
   for( Index iv=0; iv<nf; iv++ )
     { 
-      if( iv == 0  || complex_n.nrows() > 1 )
+      if( iv == 0  || surface_complex_refr_index.nrows() > 1 )
         {
           // Set n2 (refractive index of surface medium)
-          Complex n2( complex_n(iv,0), complex_n(iv,1) );
+          Complex n2( surface_complex_refr_index(iv,0),
+                      surface_complex_refr_index(iv,1) );
 
           // Amplitude reflection coefficients
           fresnel( Rv, Rh, Numeric(1.0), n2, incang );

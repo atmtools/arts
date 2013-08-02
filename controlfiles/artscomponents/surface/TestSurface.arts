@@ -95,9 +95,7 @@ Compare( iy, iy_correct, 1e-9 )
 IndexSet(lambertian_nza, 5)
 AgendaSet( surface_rtprop_agenda ){
   Ignore( rtp_pos )
-  surfaceLambertianSimple( surface_los, surface_rmatrix, surface_emission, 
-      f_grid, stokes_dim, atmosphere_dim, rtp_los, surface_skin_t, 
-      surface_scalar_reflectivity, lambertian_nza, blackbody_radiation_agenda, 0.5 )
+  surfaceLambertianSimple( za_pos=0.5 )
 } 
 AgendaExecute( iy_surface_agenda )
 Compare( iy, iy_correct, 1e-9 )
@@ -106,9 +104,7 @@ GriddedField4Create( r_gfield4 )
 ReadXML( r_gfield4, "scalar_r_field_2angles.xml" )
 AgendaSet( surface_rtprop_agenda ){
   specular_losCalc
-  surface_scalar_reflectivityFromGriddedField4( surface_scalar_reflectivity, 
-      stokes_dim, f_grid, atmosphere_dim, lat_grid, lat_true, lon_true, 
-      rtp_pos, rtp_los, r_gfield4 )
+  surface_scalar_reflectivityFromGriddedField4( r_field=r_gfield4 )
   surfaceFlatScalarReflectivity
 } 
 AgendaExecute( iy_surface_agenda )
@@ -164,9 +160,7 @@ ReadXML( r_gfield6, "r_field_2angles.xml" )
 
 AgendaSet( surface_rtprop_agenda ){
   specular_losCalc
-  surface_reflectivityFromGriddedField6( surface_reflectivity, 
-      stokes_dim, f_grid, atmosphere_dim, lat_grid, lat_true, lon_true, 
-      rtp_pos, rtp_los, r_gfield6 )
+  surface_reflectivityFromGriddedField6( r_field=r_gfield6 )
   surfaceFlatReflectivity
 } 
 AgendaExecute( iy_surface_agenda )
@@ -174,7 +168,7 @@ Compare( iy, iy_correct, 1e-9 )
 
 
 # n = (3,0) in two different ways
-MatrixSet( complex_n, [3,0] )
+MatrixSet( surface_complex_refr_index, [3,0] )
 
 AgendaSet( surface_rtprop_agenda ){
   specular_losCalc
@@ -186,8 +180,7 @@ Copy( iy_correct, iy )
 ReadXML( r_gfield4, "complex_n_field.xml" )
 AgendaSet( surface_rtprop_agenda ){
   specular_losCalc
-  complex_nFromGriddedField4( complex_n, stokes_dim, f_grid, atmosphere_dim, 
-      lat_grid, lat_true, lon_true, rtp_pos, r_gfield4 )
+  surface_complex_refr_indexFromGriddedField4( complex_refr_index_field=r_gfield4 )
   surfaceFlatRefractiveIndex
 } 
 AgendaExecute( iy_surface_agenda )

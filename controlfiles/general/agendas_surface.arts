@@ -38,10 +38,9 @@ AgendaSet( surface_rtprop_agenda__Blackbody_SurfTFix ){
 #
 AgendaCreate( surface_rtprop_agenda__Blackbody_SurfTFromt_field )
 AgendaSet( surface_rtprop_agenda__Blackbody_SurfTFromt_field ){
-   Ignore( rtp_los )
-   InterpAtmFieldToRtePos( surface_skin_t, atmosphere_dim, p_grid, lat_grid,
-                           lon_grid, z_field, rtp_pos, t_field )
-   surfaceBlackbody
+  Ignore( rtp_los )
+  InterpAtmFieldToRtePos( out=surface_skin_t, pos=rtp_pos, field=t_field )
+  surfaceBlackbody
 } 
 
 
@@ -65,8 +64,7 @@ AgendaSet( surface_rtprop_agenda__Specular_NoPol_ReflFix_SurfTFix ){
 AgendaCreate( surface_rtprop_agenda__Specular_NoPol_ReflFix_SurfTFromt_surface )
 AgendaSet( surface_rtprop_agenda__Specular_NoPol_ReflFix_SurfTFromt_surface ){
   specular_losCalc
-  InterpSurfaceFieldToRtePos( surface_skin_t, atmosphere_dim, lat_grid, 
-      lon_grid, rtp_pos, t_surface )
+  InterpSurfaceFieldToRtePos( out=surface_skin_t, pos=rtp_pos, field=t_surface )
   surfaceFlatScalarReflectivity
 } 
 
@@ -75,11 +73,9 @@ AgendaSet( surface_rtprop_agenda__Specular_NoPol_ReflFix_SurfTFromt_surface ){
 #
 AgendaCreate( surface_rtprop_agenda__Specular_NoPol_ReflFix_SurfTFromt_field )
 AgendaSet( surface_rtprop_agenda__Specular_NoPol_ReflFix_SurfTFromt_field ){
-   specular_losCalc
-   InterpAtmFieldToRtePos( surface_skin_t,
-                           atmosphere_dim, p_grid, lat_grid, lon_grid,
-                           z_field, rtp_pos, t_field)
-   surfaceFlatScalarReflectivity
+  specular_losCalc
+  InterpAtmFieldToRtePos( out=surface_skin_t, pos=rtp_pos, field=t_field )
+  surfaceFlatScalarReflectivity
 }
 
 # - surface reflectivity interpolated from surface reflectivity field (GriddedField4)
@@ -88,9 +84,7 @@ AgendaSet( surface_rtprop_agenda__Specular_NoPol_ReflFix_SurfTFromt_field ){
 #AgendaCreate( surface_rtprop_agenda__Specular_NoPol_ReflFromField_SurfTFix )
 #AgendaSet( surface_rtprop_agenda__Specular_NoPol_ReflFromField_SurfTFix ){
 #  specular_losCalc
-#  surface_scalar_reflectivityFromGriddedField4( surface_scalar_reflectivity, 
-#      stokes_dim, f_grid, atmosphere_dim, lat_grid, lat_true, lon_true, 
-#      rtp_pos, rtp_los, r_gfield4 )
+#  surface_scalar_reflectivityFromGriddedField4( r_field=r_gfield4 )
 #  surfaceFlatScalarReflectivity
 #} 
 
@@ -100,9 +94,9 @@ AgendaSet( surface_rtprop_agenda__Specular_NoPol_ReflFix_SurfTFromt_field ){
 AgendaCreate( surface_rtprop_agenda__Specular_Pol_Water_SurfTFromt_field )
 AgendaSet( surface_rtprop_agenda__Specular_Pol_Water_SurfTFromt_field ){
   specular_losCalc
-  InterpAtmFieldToRtePos( surface_skin_t, atmosphere_dim, p_grid, lat_grid,
-                           lon_grid, z_field, rtp_pos, t_field )
-  complex_nWaterLiebe93( complex_n, f_grid, surface_skin_t )
+  InterpAtmFieldToRtePos( out=surface_skin_t, pos=rtp_pos, field=t_field )
+  complex_refr_indexWaterLiebe93( complex_refr_index=surface_complex_refr_index,
+                                  t=surface_skin_t )
   surfaceFlatRefractiveIndex
 }
 
@@ -126,9 +120,7 @@ AgendaSet( surface_rtprop_agenda__Specular_Pol_ReflFix_SurfTFix ){
 #AgendaCreate( surface_rtprop_agenda__Specular_Pol_ReflFromField_SurfTFix )
 #AgendaSet( surface_rtprop_agenda__Specular_Pol_ReflFromField_SurfTFix ){
 #  specular_losCalc
-#  surface_reflectivityFromGriddedField6( surface_reflectivity, 
-#      stokes_dim, f_grid, atmosphere_dim, lat_grid, lat_true, lon_true, 
-#      rtp_pos, rtp_los, r_gfield6 )
+#  surface_reflectivityFromGriddedField6( r_field=r_gfield6 )
 #  surfaceFlatReflectivity
 #} 
 
@@ -147,8 +139,7 @@ AgendaSet( surface_rtprop_agenda__Specular_Pol_RefracFix_SurfTFix ){
 #AgendaCreate( surface_rtprop_agenda__Specular_Pol_RefracFromField_SurfTFix )
 #AgendaSet( surface_rtprop_agenda__Specular_Pol_RefracFromField_SurfTFix ){
 #  specular_losCalc
-#  complex_nFromGriddedField4( complex_n, stokes_dim, f_grid, atmosphere_dim, 
-#      lat_grid, lat_true, lon_true, rtp_pos, r_gfield4 )
+#  surface_complex_refr_indexFromGriddedField4( complex_refr_index_field=r_gfield4 )
 #  surfaceFlatRefractiveIndex
 #} 
 
@@ -164,9 +155,7 @@ AgendaSet( surface_rtprop_agenda__Specular_Pol_RefracFix_SurfTFix ){
 AgendaCreate( surface_rtprop_agenda__lambertian_ReflFix_SurfTFix )
 AgendaSet( surface_rtprop_agenda__lambertian_ReflFix_SurfTFix ){
   Ignore( rtp_pos )
-  surfaceLambertianSimple( surface_los, surface_rmatrix, surface_emission, 
-      f_grid, stokes_dim, atmosphere_dim, rtp_los, surface_skin_t, 
-      surface_scalar_reflectivity, lambertian_nza, blackbody_radiation_agenda )
+  surfaceLambertianSimple( za_pos=0.5 )
 } 
 
 # - preset surface reflectivity
@@ -175,11 +164,8 @@ AgendaSet( surface_rtprop_agenda__lambertian_ReflFix_SurfTFix ){
 #
 AgendaCreate( surface_rtprop_agenda__lambertian_ReflFix_SurfTFromt_field )
 AgendaSet( surface_rtprop_agenda__lambertian_ReflFix_SurfTFromt_field ){
-  InterpAtmFieldToRtePos( surface_skin_t, atmosphere_dim, p_grid, lat_grid,
-                           lon_grid, z_field, rtp_pos, t_field )
-  surfaceLambertianSimple( surface_los, surface_rmatrix, surface_emission, 
-      f_grid, stokes_dim, atmosphere_dim, rtp_los, surface_skin_t, 
-      surface_scalar_reflectivity, lambertian_nza, blackbody_radiation_agenda )
+  InterpAtmFieldToRtePos( out=surface_skin_t, pos=rtp_pos, field=t_field )
+  surfaceLambertianSimple( za_pos=0.5 )
 } 
 
 

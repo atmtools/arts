@@ -1,3 +1,30 @@
+2013-08-02  Jana Mendrok <jana.mendrok@ltu.se>
+
+	* arts-2-1-709
+
+	* src/methods.cc,workspace.cc: Replaced complex_n by complex_refr_index
+	and surface_complex_refr_index. Renamed related WSM accordingly
+	depending on intended usage
+	(complex_nWaterLiebe93->complex_refr_indexWaterLiebe93,
+	complex_nFromGriddedField4->surface_complex_refr_indexFromGriddedField4).
+
+	* src/m_cloudradar.cc(iyCloudRadar),
+	src/m_physics.cc(complex_nWaterLiebe93, ParticleRefractiveIndexWaterLiebe93),
+	src/m_surface.cc(complex_nFromGriddedField4, surfaceFlatRefractiveIndex):
+	Adapted to above name changes.
+
+	* controlfiles/artscomponents/surface/create_gfields.m:
+	Adapted to above name changes.
+
+	* controlfiles/artscomponents/surface/TestSurface.arts,
+	controlfiles/artscomponents/arts-xml-data/TestSurf_Venus.arts,
+	controlfiles/artscomponents/arts-xml-data/TestSurf_Mars.arts,
+	controlfiles/general/agendas_surface.arts:
+	Adapted to above name changes.
+
+	* doc/uguide/absorption.tex:
+	Fixed broken links to AUG. Corrected line-mixing data example.
+
 2013-08-02  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-708

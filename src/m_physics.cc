@@ -79,7 +79,8 @@ void blackbody_radiationPlanck(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void complex_nWaterLiebe93(Matrix&         complex_n,
+void complex_refr_indexWaterLiebe93(
+                           Matrix&         complex_refr_index,
                            const Vector&   f_grid,
                            const Numeric&  t,
                            const Verbosity& verbosity)
@@ -96,7 +97,7 @@ void complex_nWaterLiebe93(Matrix&         complex_n,
 
   const Index   nf = f_grid.nelem();
 
-  complex_n.resize( nf, 2 );
+  complex_refr_index.resize( nf, 2 );
 
   // Implementation following epswater93.m (by C. Mätzler), part of Atmlab,
   // but numeric values strictly following the paper version (146, not 146.4)
@@ -114,8 +115,8 @@ void complex_nWaterLiebe93(Matrix&         complex_n,
       Complex n = sqrt( e2 + (e1-e2) / (Numeric(1.0)-ifGHz/f2) + 
                              (e0-e1) / (Numeric(1.0)-ifGHz/f1) );
     
-      complex_n(iv,0) = n.real();
-      complex_n(iv,1) = n.imag();
+      complex_refr_index(iv,0) = n.real();
+      complex_refr_index(iv,1) = n.imag();
     }
 }
 
@@ -219,7 +220,7 @@ void ParticleRefractiveIndexWaterLiebe93(// Generic output:
     Matrix complex_n;
     for (Index t = 0; t < nt; ++t)
     {
-        complex_nWaterLiebe93(complex_n, scat_f_grid, scat_t_grid[t], verbosity);
+        complex_refr_indexWaterLiebe93(complex_n, scat_f_grid, scat_t_grid[t], verbosity);
         scat_ref_index.data(joker, t, joker) = complex_n;
     }
 }

@@ -383,7 +383,6 @@ current calculation (and checked) with \wsmindex{abs\_lookupAdapt}. \\
 Calculate absorption only (no RT). &
 Variable: \wsvindex{propmat\_clearsky\_field}, \wsvindex{abs\_coef}. \newline
 Methods, high level: \wsmindex{propmat\_clearsky\_fieldCalc}. \newline
-%, \wsmindex{abs\_coefCalc}, \wsmindex{abs\_coefCalcSaveMemory}. \newline
 Methods, low level: \newline
 \wsmindex{abs\_xsec\_per\_speciesInit}, \newline
 \wsmindex{abs\_xsec\_per\_speciesAddLines} (the core method for the
@@ -713,7 +712,7 @@ want to calculate line-mixing with the Zeeman effect. In order to match the data
 to specific lines, a set of calls are necessary by the user. First of all,
 after \builtindoc{abs\_lines} have been created, line mixing needs to be initialized
 through \wsmindex{line\_mixing\_dataInit}. After this, it is important to pass an
-ArrayOfLineMixingRecord containing the line-mixing data into 
+\builtindoc{ArrayOfLineMixingRecord} containing the line-mixing data into 
 \wsmindex{line\_mixing\_dataMatch}, which will match the data in the Array* by quantum
 numbers to lines in \builtindoc{abs\_lines}. If this is done properly, line-mixing will
 be applied at a lower level.
@@ -771,7 +770,7 @@ Example of correct input data:
   J 2/1 N 1/1 v1 0/1 
 </QuantumNumbers></Lower>
 </QuantumNumberRecord>
-<Vector nelem="11">
+<Vector nelem="10">
 2.65e-06
 -1.32e-07
 -8.35e-12
@@ -782,14 +781,13 @@ Example of correct input data:
 0.8
 1.6
 1.6
-1.6
 </Vector>
 </LineMixingRecord>
 </Array>
 </arts>
 \end{code}
-The format of the above data is thusly: \builtindoc{SpeciesTag},
-\builtindoc{QuantumNumberRecord}, \builtindoc{Vector}, 
+The format of the above data is thusly: \shortcode{SpeciesTag},
+\shortcode{QuantumNumberRecord}, \shortcode{Vector}, 
 The above input will cause the \verb|O2-66-*-*| line with
 upper quantum numbers $J=1$, $N=1$ and $\nu_1=0$ and with
 lower quantum numbers $J=2$, $N=1$ and $\nu_1=0$ to match.

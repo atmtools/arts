@@ -249,8 +249,7 @@ AgendaSet( surface_rtprop_agenda ){
    #Print( surface_skin_t, 0 )
    Select( lat_true, rtp_pos, [1] )
    Select( lon_true, rtp_pos, [2] )
-   complex_nFromGriddedField4( complex_n, stokes_dim, f_grid, atmosphere_dim,
-                               lat_grid, lat_true, lon_true, rtp_pos, ri_surface )
+   surface_complex_refr_indexFromGriddedField4( complex_refr_index_field=ri_surface )
    surfaceFlatRefractiveIndex
 } 
 yCalc
@@ -274,8 +273,7 @@ AgendaSet( surface_rtprop_agenda ){
    #Print( surface_skin_t, 0 )
    Select( lat_true, rtp_pos, [1] )
    Select( lon_true, rtp_pos, [2] )
-   complex_nFromGriddedField4( complex_n, stokes_dim, f_grid, atmosphere_dim,
-                               lat_grid, lat_true, lon_true, rtp_pos, ri_surface )
+   surface_complex_refr_indexFromGriddedField4( complex_refr_index_field=ri_surface )
    surfaceFlatRefractiveIndex
 } 
 

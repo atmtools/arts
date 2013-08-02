@@ -3056,13 +3056,13 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "complex_nFromGriddedField4" ),
+      ( NAME( "surface_complex_refr_indexFromGriddedField4" ),
         DESCRIPTION
         (
          "Extracts complex refractive index from a field of such data.\n"
          "\n"
-         "This method allows to specify a field of *complex_n* for\n"
-         "automatic interpolation to points of interest. The position\n"
+         "This method allows to specify a field of *surface_complex_refr_index*\n"
+         "for automatic interpolation to points of interest. The position\n"
          "for which refraction shall be extracted is given by *rtp_pos*.\n"
          "The reflectivity field is expected to be stored as:\n"
          "   GriddedField4:\n"
@@ -3074,10 +3074,10 @@ void define_md_data_raw()
          "\n"
          "Grids for latitude and longitude must have a length of >= 2 (ie.\n"
          "no automatic expansion). If the frequency grid has length 1, this\n"
-         "is taken as the refractive index is constant, following the\n"
-         "definition of *complex_n*. The remaining dimension must have size\n"
-         "two, where the first element corresponds to the real part and the\n"
-         "second elemt to the the imaginary part.\n"
+         "is taken as the refractive index is constant following the\n"
+         "definition of *surface_complex_refr_index*. The remaining\n"
+         "dimension must have size two, where the first element corresponds\n"
+         "to the real part and the second element to the the imaginary part.\n"
          "\n"
          "The interpolation is done in steps:\n"
          "   1: Linear interpolation for lat and lon (std. extrapolation).\n"
@@ -3085,13 +3085,13 @@ void define_md_data_raw()
          "      than one frequency).\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUT( "complex_n" ),
+        OUT( "surface_complex_refr_index" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "stokes_dim", "f_grid", "atmosphere_dim", "lat_grid", "lat_true", 
             "lon_true", "rtp_pos" ),
-        GIN( "n_field" ),
+        GIN( "complex_refr_index_field" ),
         GIN_TYPE( "GriddedField4" ),
         GIN_DEFAULT( NODEF ),
         GIN_DESC( "A field of complex refractive index." )
@@ -3099,7 +3099,7 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "complex_nWaterLiebe93" ),
+      ( NAME( "complex_refr_indexWaterLiebe93" ),
         DESCRIPTION
         (
          "Complex refractive index of liquid water according to Liebe 1993.\n"
@@ -3113,7 +3113,7 @@ void define_md_data_raw()
          "Temperature must be between 0 and 100 degrees Celsius.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
-        OUT( "complex_n" ),
+        OUT( "complex_refr_index" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
@@ -7370,7 +7370,7 @@ void define_md_data_raw()
         DESCRIPTION
         (
          "Appends an instance of species 'particles' to *abs_species* including\n"
-         "reading single scattering data and corresonding pnd field.\n"
+         "reading single scattering data and corresponding pnd field.\n"
          "\n"
          "The methods reads the specified single scattering and pnd_field\n"
          "data and appends the obtained data to *scat_data_raw* and\n"
@@ -9748,9 +9748,9 @@ void define_md_data_raw()
          "where the refractive index is specified.\n"
          "\n"
          "The dielectric properties of the surface are described by\n"
-         "*complex_n*. The Fresnel equations are used to calculate\n"
-         "amplitude reflection coefficients. The method can thus result\n"
-         "in that the reflection properties differ between frequencies\n"
+         "*surface_complex_refr_index*. The Fresnel equations are used to\n"
+         "calculate amplitude reflection coefficients. The method can thus\n"
+         "result in that the reflection properties differ between frequencies\n"
          "and polarisations.\n"
          "\n"
          "Local thermodynamic equilibrium is assumed, which corresponds to\n"
@@ -9762,7 +9762,8 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "f_grid", "stokes_dim", "atmosphere_dim", "rtp_los", "specular_los",
-            "surface_skin_t", "complex_n", "blackbody_radiation_agenda" ),
+            "surface_skin_t", "surface_complex_refr_index",
+            "blackbody_radiation_agenda" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -9836,13 +9837,14 @@ void define_md_data_raw()
         "reflectivity, here taken from *surface_scalar_reflectivity*.\n"
         "\n"
         "The down-welling radiation field is estimated by making calculations\n"
-        "for *np* directions. The range of zenith angles ([0,90]) is divided\n"
-        "in an equidistant manner. The values for *surface_rmatrix* are\n"
-        "assuming a constant radiance over each zenith angle range. See AUG.\n"
+        "for *lambertian_nza* directions. The range of zenith angles ([0,90])\n"
+        "is divided in an equidistant manner. The values for *surface_rmatrix*\n"
+        "are assuming a constant radiance over each zenith angle range.\n"
+        "See AUG.\n"
         "\n"
         "Default is to select the zenith angles for *sensor_los* to be placed\n"
-        "centrally in the grid ranges. For example, if *np* is set to 9,\n"
-        "down-welling radiation will be calculated for zenith angles = \n"
+        "centrally in the grid ranges. For example, if *lambertian_nza* is set\n"
+        "to 9, down-welling radiation will be calculated for zenith angles = \n"
         "5, 15, ..., 85. The position of these angles can be shifted by\n"
         "*za_pos*. This variable specifies the fractional distance inside the\n"
         "ranges. For example, a *za_pos* of 0.7 (np still 9) gives the angles\n"

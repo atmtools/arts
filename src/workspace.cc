@@ -1109,14 +1109,13 @@ void Workspace::define_wsv_data()
 
  wsv_data.push_back
     (WsvRecord
-     ( NAME( "complex_n"),
+     ( NAME( "complex_refr_index"),
        DESCRIPTION
        (
         "Complex refractive index (n).\n"
         "\n"
         "This matrix describes the dielectric properties of a medium. \n"
-        "A typical usage of this variable is to describe the properties of\n"
-        "the surface (if it is assumed to be flat).\n"
+        "For the surface rather use *surface_complex_refr_index*.\n"
         "\n"
         "This is a two-column matrix. The first column holds the real part\n"
         "of n, and the second column the imaginary part. The number of rows\n"
@@ -2946,7 +2945,7 @@ void Workspace::define_wsv_data()
     ( NAME( "propmat_clearsky_agenda_checked" ),
       DESCRIPTION
       (
-       "OK-flag for *propmat_clearksy_agenda*.\n"
+       "OK-flag for *propmat_clearsky_agenda*.\n"
        "\n"
        "Set by *propmat_clearsky_agenda_checkedCalc*.\n"
        ),
@@ -4223,7 +4222,23 @@ void Workspace::define_wsv_data()
        ),
       GROUP( "Index" )));
 
-   wsv_data.push_back
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "surface_complex_refr_index"),
+       DESCRIPTION
+       (
+        "Complex refractive index of a surface.\n"
+        "\n"
+        "As *complex_refr_index*, but specifically to describe the properties\n"
+        "of the surface (assuming it to be flat).\n"
+        "\n"
+        "Unit:       -\n"
+        "\n"
+        "Dimensions: [f_grid or 1, 2]\n"
+        ),
+       GROUP( "Matrix" ) ));
+
+  wsv_data.push_back
      (WsvRecord
       ( NAME( "surface_emission" ),
         DESCRIPTION

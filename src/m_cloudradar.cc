@@ -336,7 +336,7 @@ void iyCloudRadar(
     {
       // Get refractive index for water
       Matrix complex_n;
-      complex_nWaterLiebe93( complex_n, f_grid, ze_tref, verbosity );
+      complex_refr_indexWaterLiebe93( complex_n, f_grid, ze_tref, verbosity );
 
       // Common conversion factor
       const Numeric a = 4e18/(PI*PI*PI*PI);
