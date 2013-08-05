@@ -1431,9 +1431,9 @@ void iyTransmissionStandard(
                                       // See also AUG.
                                       for( Index is=0; is<ns; is++ ) 
                                         {
-                                          diy_dpath[iq](ip  ,iv,is) += y *
+                                          diy_dpath[iq](ip  ,iv,is) += y[is] *
                                                     0.5 * tbar / ppath_t[ip];
-                                          diy_dpath[iq](ip+1,iv,is) += y *
+                                          diy_dpath[iq](ip+1,iv,is) += y[is] *
                                                     0.5 * tbar / ppath_t[ip+1];
                                         }
                                     } // HSE
