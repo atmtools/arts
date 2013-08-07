@@ -784,7 +784,13 @@ int main (int argc, char **argv)
 #else
         << "disabled" << endl
 #endif
-        << "   Tmatrix code:         "
+        << "   Refice support:       "
+#ifdef ENABLE_REFICE
+        << "enabled" << endl
+#else
+        << "disabled" << endl
+#endif
+        << "   Tmatrix support:      "
 #ifdef ENABLE_TMATRIX
         << "enabled" << endl
 #else

@@ -22,6 +22,9 @@
 /* Define to compile with disort support */
 #cmakedefine ENABLE_DISORT
 
+/* Define to compile with REFICE support */
+#cmakedefine ENABLE_REFICE
+
 /* Define to compile with T-Matrix support */
 #cmakedefine ENABLE_TMATRIX
 

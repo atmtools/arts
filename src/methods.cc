@@ -7202,6 +7202,54 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "ParticleRefractiveIndexIceWarren84" ),
+        DESCRIPTION
+        (
+         "Calculates complex refractive index of Ice 1H for wavelengths\n"
+         "between 45 nm and 8.6 m.\n"
+         "For wavelengths above 167 microns, temperature dependence is\n"
+         "included for temperatures between 213 and 272K.\n"
+         "Mainly intended for applications in Earth ice\n"
+         "clouds and snow, not other planets or interstellar space;\n"
+         "the temperature dependence or crystalline form of ice may be\n"
+         "incorrect for these latter applications.\n"
+         "\n"
+         "Authors of Fortran function:\n"
+         "Stephen Warren, Univ. of Washington (1983)\n"
+         "Bo-Cai Gao, JCESS, Univ. of Maryland (1995)\n"
+         "Warren Wiscombe, NASA Goddard (1995)\n"
+         "\n"
+         "References:\n"
+         "Warren, S., 1984: Optical Constants of Ice from the Ultraviolet\n"
+         "to the Microwave, Appl. Opt. 23, 1206-1225\n"
+         "\n"
+         "Kou, L., D. Labrie, and P. Chylek, 1994: Refractive indices\n"
+         "of water and ice in the 0.65- to 2.5-micron spectral range,\n"
+         "Appl. Opt. 32, 3531-3540\n"
+         "\n"
+         "Perovich, D., and J. Govoni, 1991: Absorption Coefficients\n"
+         "of Ice from 250 to 400 nm, Geophys. Res. Lett. 18, 1233-1235\n"
+         "\n"
+         "Size of scat_ref_index\n"
+         "    [number of frequencies]\n"
+         "    [number of temperatures]\n"
+         "    [2]\n"
+         ),
+        AUTHORS( "Oliver Lemke" ),
+        OUT(),
+        GOUT( "scat_ref_index" ),
+        GOUT_TYPE( "GriddedField3" ),
+        GOUT_DESC( "Refractive index" ),
+        IN(),
+        GIN( "scat_f_grid", "scat_t_grid" ),
+        GIN_TYPE( "Vector", "Vector" ),
+        GIN_DEFAULT( NODEF, NODEF ),
+        GIN_DESC( "Frequency grid",
+                  "Temperature grid" )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "ParticleRefractiveIndexWaterLiebe93" ),
         DESCRIPTION
         (

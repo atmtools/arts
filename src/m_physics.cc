@@ -225,3 +225,64 @@ void ParticleRefractiveIndexWaterLiebe93(// Generic output:
     }
 }
 
+
+#ifdef ENABLE_REFICE
+/* Workspace method: Doxygen documentation will be auto-generated */
+void ParticleRefractiveIndexIceWarren84(// Generic output:
+                                        GriddedField3& scat_ref_index,
+                                        // Generic input:
+                                        const Vector& scat_f_grid,
+                                        const Vector& scat_t_grid,
+                                        const Verbosity&)
+{
+    extern const Numeric SPEED_OF_LIGHT;
+    const Index nf = scat_f_grid.nelem();
+    const Index nt = scat_t_grid.nelem();
+
+    // Frequency must be between 0.0443 to 8.600E+06 microns
+    const Numeric f_min = 0.0443 * SPEED_OF_LIGHT;
+    const Numeric f_max = 8.6e6 * SPEED_OF_LIGHT;
+    chk_if_in_range("min of scat_f_grid", min(scat_f_grid), f_min, f_max);
+    chk_if_in_range("max of scat_f_grid", max(scat_f_grid), f_min, f_max);
+
+    // Temperature must be between 213.16 to 272.16 K
+    const Numeric t_min = 213.16;
+    const Numeric t_max = 272.16;
+    chk_if_in_range("min of scat_t_grid", min(scat_t_grid), t_min, t_max);
+    chk_if_in_range("max of scat_t_grid", max(scat_t_grid), t_min, t_max);
+
+    scat_ref_index.resize(nf, nt, 2);
+    scat_ref_index.set_grid_name(0, "Frequency");
+    scat_ref_index.set_grid(0, scat_f_grid);
+    scat_ref_index.set_grid_name(1, "Temperature");
+    scat_ref_index.set_grid(1, scat_t_grid);
+    scat_ref_index.set_grid_name(2, "Complex");
+    scat_ref_index.set_grid(2, MakeArray<String>("real", "imaginary"));
+
+    Complex n;
+#pragma omp parallel for                 \
+  if (!arts_omp_in_parallel() && nf > 1) \
+  private(n)
+    for (Index f = 0; f < nf; ++f)
+        for (Index t = 0; t < nt; ++t)
+        {
+            n = refice_(scat_f_grid[f] / SPEED_OF_LIGHT, scat_t_grid[t]);
+            scat_ref_index.data(f, t, 0) = n.real();
+            scat_ref_index.data(f, t, 1) = n.imag();
+        }
+}
+
+#else
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void ParticleRefractiveIndexIceWarren84(// Generic output:
+                                        GriddedField3&,
+                                        // Generic input:
+                                        const Vector&,
+                                        const Vector&,
+                                        const Verbosity&)
+{
+    throw std::runtime_error("ARTS was compiled with Fortran support.");
+}
+
+#endif

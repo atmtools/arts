@@ -1,3 +1,16 @@
+2013-08-07  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-712
+
+	* src/m_physics.cc, src/methods.cc:
+
+	Add WSM ParticleRefractiveIndexIceWarren84.
+
+	* 3rdparty/refice, 3rdparty/CMakeLists.txt, CMakeLists.txt,
+	src/CMakeLists.txt, config.h.cmake, src/main.cc, src/physics_funcs.h:
+
+	Add REFICE fortran routine.
+
 2013-08-05  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-711
