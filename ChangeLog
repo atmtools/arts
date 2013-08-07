@@ -1,3 +1,15 @@
+2013-08-07  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-713
+
+	* src/m_rte.cc (iyEmissionStandard): sibi was incorrect if
+	stokes_dim > 1. Replaced (iv,0) with (iv,is) in for loop.
+
+	* src/methods.cc: Reverted change in arts-2-1-695. That is, for
+	jacobianAddPolyfit, changed default for no_pol_variation back to
+	0. This is the best default value. It is up to qpack2 to handle
+	possible complications.
+
 2013-08-07  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-712

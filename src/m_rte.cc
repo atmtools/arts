@@ -558,7 +558,7 @@ void iyEmissionStandard(
                 {
                   sibi(iv,0) = iy(iv,0) - bbar[iv];
                   for( Index is=1; is<ns; is++ )
-                    { sibi(iv,0) = iy(iv,0); }
+                    { sibi(iv,is) = iy(iv,is); }
                 }
 
               // Loop quantities
