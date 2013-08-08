@@ -142,3 +142,65 @@ void single_scattering_dataCalcTMatrixTest(// WS Output:
         scat_data_raw.push_back(sdd);
     }
 }
+
+
+
+void single_scattering_dataFromTmatrix( 
+         SingleScatteringData& single_scattering_data,
+   const Vector&        f_grid,
+   const Vector&        T_grid,
+   const Vector&        za_grid,
+   const Vector&        aa_grid,
+   const GriddedField3& complex_refr_index,
+   const Numeric&       equiv_radius,
+   const String&        orientation,
+   const String&        shape,
+   const Numeric&       aspect_ratio,
+   const Numeric&       precision,
+   const Verbosity&)
+{
+    single_scattering_data.f_grid  = f_grid;
+    single_scattering_data.T_grid  = T_grid;
+    single_scattering_data.za_grid = za_grid;
+    single_scattering_data.aa_grid = aa_grid;
+
+    if( orientation == "macro_iso" )
+      { single_scattering_data.ptype = PARTICLE_TYPE_MACROS_ISO; }
+    else if( orientation == "horiz_al" )
+      { single_scattering_data.ptype = PARTICLE_TYPE_HORIZ_AL; }
+    else
+      {
+        ostringstream os;
+        os << "Unknown particle orientation: " << orientation << "\n"
+        << "Must be \"macro_iso\" or \"horiz_al\".";
+        throw std::runtime_error(os.str());
+      }
+
+    Index ishape = 999;
+    if( shape == "spherical" )
+      { ishape = -1; }
+    else if( shape == "cylindrical" )
+      { ishape = -2; }
+    else
+      {
+        ostringstream os;
+        os << "Unknown particle shape: " << shape << "\n"
+        << "Must be \"spherical\" or \"cylindrical\".";
+        throw std::runtime_error(os.str());
+      }
+    
+    // Extract real and imaginary part of n
+    // So far we just set to first value
+    const Index nf = f_grid.nelem();
+    const Index nt = T_grid.nelem();
+    //
+    Matrix n_real(nt,nf), n_imag(nt,nf);
+    //
+    n_real = complex_refr_index.data(0,0,0);
+    n_imag = complex_refr_index.data(0,0,1);
+
+    calcSingleScatteringDataProperties( single_scattering_data,
+                                        n_real, n_imag, 1e-6*equiv_radius,
+                                        ishape, "not defined", aspect_ratio,
+                                        precision );
+}

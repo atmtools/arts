@@ -1,9 +1,15 @@
 Arts2 {
-VectorCreate(ssd_za_grid)
-VectorNLinSpace(ssd_za_grid, 19, 0, 180)
 
-VectorCreate(ssd_aa_grid)
-VectorNLinSpace(ssd_aa_grid, 19, 0, 180)
+VectorCreate( ssd_za_grid )
+VectorNLinSpace( ssd_za_grid, 19, 0, 180 )
+
+VectorCreate( ssd_aa_grid )
+VectorNLinSpace( ssd_aa_grid, 19, 0, 180 )
+
+VectorSet( f_grid, [230e9, 240e9] )
+
+VectorCreate( T_grid )
+VectorSet( T_grid, [220, 250] )
 
 MatrixCreate(ref_index_real)
 MatrixSet(ref_index_real,
@@ -17,19 +23,42 @@ MatrixSet(ref_index_imag,
 
 single_scattering_dataCalcTMatrixTest(
         p_type="HORIZ_AL",
-        f_grid=[230e9, 240e9],
-        T_grid=[220, 250],
+        f_grid=f_grid,
+        T_grid=T_grid,
         za_grid=ssd_za_grid,
         aa_grid=ssd_aa_grid,
         ref_index_real=ref_index_real,
         ref_index_imag=ref_index_imag,
-        equiv_radius=200.,
+        equiv_radius=[200.],
         np=-1,
         phase="unused",
         aspect_ratio=0.7
         precision=0.001)
 
-WriteXML("ascii", single_scattering_data)
+#Extract(single_scattering_data,scat_data_raw)
+
+WriteXML( "ascii", scat_data_raw )
+
+GriddedField3Create( n_of_ice )
+
+ParticleRefractiveIndexIceWarren84( 
+  scat_ref_index = n_of_ice, 
+  scat_f_grid    = f_grid,
+  scat_t_grid    = T_grid )
+
+single_scattering_dataFromTmatrix(
+  f_grid             = f_grid,
+  T_grid             = T_grid,
+  za_grid            = ssd_za_grid,
+  aa_grid            = ssd_aa_grid,
+  complex_refr_index = n_of_ice,
+  orientation        = "horiz_al",
+  shape              = "spherical",
+  equiv_radius       = 200e-6,
+  aspect_ratio       = 0.7,
+  precision          = 0.001 )
+
+WriteXML( "ascii", single_scattering_data )
 
 }
 

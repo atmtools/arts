@@ -10521,6 +10521,43 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "single_scattering_dataFromTmatrix" ),
+        DESCRIPTION
+        (
+         "Single particle type T-matrix calculations.\n"
+         "\n"
+         "Start on a basic T-matrix interface WSM ...\n"
+         ),
+        AUTHORS( "Oliver Lemke", "Patrick Eriksson" ),
+        OUT( "single_scattering_data" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN(),
+        GIN("f_grid", "T_grid", "za_grid", "aa_grid",
+            "complex_refr_index", "equiv_radius", "orientation", "shape", 
+            "aspect_ratio", "precision"),
+        GIN_TYPE( "Vector", "Vector", "Vector", "Vector",
+                  "GriddedField3", "Numeric", "String", "String",
+                  "Numeric", "Numeric"),
+        GIN_DEFAULT(NODEF, NODEF, NODEF, NODEF,
+                    NODEF, NODEF, "macro_iso", "spherical", 
+                    "1.000001", "0.001" ),
+        GIN_DESC( "Frequency grid",
+                  "Temperature grid",
+                  "Zenith angle grid",
+                  "Azimuth angle grid",
+                  "Data of complex refractive index.",
+                  "Equivalent radius [m]",
+                  "Particle orientation: \"macro_iso\" or \"horiz_al\"",
+                  "Particle shape      : \"spherical\" or \"cylinder\"",
+                  "Aspect ratio (horisontal size / vertical size)",
+                  "Precision"
+                 )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "Touch" ),
         DESCRIPTION
         (
