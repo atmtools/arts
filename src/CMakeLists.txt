@@ -280,11 +280,11 @@ add_library (methods STATIC
 
 ########### next target ###############
 
-if (ENABLE_DISORT)
+if (ENABLE_DISORT AND HAVE_F2C_H)
   add_executable (test_disort disort_DISOTEST.c)
 
   target_link_libraries (test_disort disort)
-endif (ENABLE_DISORT)
+endif (ENABLE_DISORT AND HAVE_F2C_H)
 
 ########### testcases ###############
 

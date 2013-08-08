@@ -75,6 +75,7 @@ check_include_file (sys/times.h HAVE_SYS_TIMES_H)
 check_include_file (sys/types.h HAVE_SYS_TYPES_H)
 check_include_file (unistd.h    HAVE_UNISTD_H)
 check_include_file (getopt.h    HAVE_GETOPT_H)
+check_include_file (f2c.h       HAVE_F2C_H)
 
 ########### Check C header files for libmicrohttpd ##########
 check_include_file (fcntl.h     HAVE_FCNTL_H)
