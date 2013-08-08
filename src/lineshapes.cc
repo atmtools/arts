@@ -1686,6 +1686,7 @@ void lineshape_CO2_drayson(Vector&         ls_attenuation,
   http://ab-initio.mit.edu/Faddeeva sometimes.
 
   \retval ls_attenuation        The shape function.
+  \retval ls_phase              The phase shape function.
   \retval xvector               Auxillary parameter to store frequency grid.
   \param  f0                    Line center frequency.
   \param  gamma                 The pressure broadening parameter.

@@ -1,3 +1,10 @@
+2013-08-08  Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-1-716
+	
+	* src/linerecord.cc: Pass on NO quantum numbers for now. Will need more 
+	testing here it seems.
+
 2013-08-08  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-715

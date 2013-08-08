@@ -998,68 +998,71 @@ bool LineRecord::ReadFromHitran2004Stream(istream& is, const Verbosity& verbosit
       }
       else if(species_data[mspecies].Name()=="NO")
       {
+	
+	//pass for now
+	
 	/* 
-     * From the Hitran 2004 paper, several selection rules for finding the quantum numbers
+	 * From the Hitran 2004 paper, several selection rules for finding the quantum numbers
 	 * for NO are available. I try to sort these out in the code below.
 	 */
-        DJ = - mlower_lquanta.compare(3,1,"Q");
-        
-        int nom=-1, denom=0;
-        if (mlower_lquanta.substr(4,3) == "   ")
-        {
-	  nom   = atoi(mlower_lquanta.substr(4,3).c_str());
-	  denom = atoi(mlower_lquanta.substr(8,1).c_str());
-        }
-        else
-	{
-	  ostringstream os;
-	  os << "Hitran read error in mlower_lquanta J for species " <<  mspecies << " in line " << mf << "\n";
-	  throw runtime_error(os.str());
-	}
-        
-        if( denom == 5 ) mlower_j = Rational(nom*2+1,2);
-        else mlower_j = nom;
-	
-        mupper_j = mlower_j - DJ;
-        
-        nom=-1;denom=0;
-        if (mlower_gquanta.substr(4,3) == "   ")
-        {
-            nom   = atoi(mlower_lquanta.substr(8,1).c_str());
-            denom = atoi(mlower_lquanta.substr(10,1).c_str());
-        }
-        else
-	{
-	  ostringstream os;
-	  os << "Hitran read error in mlower_gquanta i for species " <<  mspecies << " in line " << mf << "\n";
-	  throw runtime_error(os.str());
-	}
-	
-        if( nom==3&&denom==2 ) mlower_n = mlower_j+Rational(1,2);
-        else if( nom==1&&denom==2 ) mlower_n = mlower_j-Rational(1,2);
-        else mlower_n = -1;
-        
-        nom=-1;denom=0;
-        if (mupper_gquanta.substr(4,3) == "   ")
-        {
-	  nom   = atoi(mupper_lquanta.substr(8,1).c_str());
-	  denom = atoi(mupper_lquanta.substr(10,1).c_str());
-        }
-        else
-	{
-	  ostringstream os;
-	  os << "Hitran read error in mlower_gquanta i for species " <<  mspecies << " in line " << mf << "\n";
-	  throw runtime_error(os.str());
-	}
-        
-        if( nom==3&&denom==2 ) mupper_n = mupper_j+Rational(1,2);
-        else if( nom==1&&denom==2 ) mupper_n = mupper_j-Rational(1,2);
-        else mupper_n = -1;
-        
-	mquantum_numbers.SetLower(QN_N, mlower_n);
-        mquantum_numbers.SetLower(QN_J, mlower_j);
-        mquantum_numbers.SetUpper(QN_N, mupper_n);
-        mquantum_numbers.SetUpper(QN_J, mlower_j);
+//         DJ = - mlower_lquanta.compare(3,1,"Q");
+//         
+//         int nom=-1, denom=0;
+//         if (mlower_lquanta.substr(4,3) == "   ")
+//         {
+// 	  nom   = atoi(mlower_lquanta.substr(4,3).c_str());
+// 	  denom = atoi(mlower_lquanta.substr(8,1).c_str());
+//         }
+//         else
+// 	{
+// 	  ostringstream os;
+// 	  os << "Hitran read error in mlower_lquanta J for species " <<  mspecies << " in line " << mf << "\n";
+// 	  throw runtime_error(os.str());
+// 	}
+//         
+//         if( denom == 5 ) mlower_j = Rational(nom*2+1,2);
+//         else mlower_j = nom;
+// 	
+//         mupper_j = mlower_j - DJ;
+//         
+//         nom=-1;denom=0;
+//         if (mlower_gquanta.substr(4,3) == "   ")
+//         {
+//             nom   = atoi(mlower_lquanta.substr(8,1).c_str());
+//             denom = atoi(mlower_lquanta.substr(10,1).c_str());
+//         }
+//         else
+// 	{
+// 	  ostringstream os;
+// 	  os << "Hitran read error in mlower_gquanta i for species " <<  mspecies << " in line " << mf << "\n";
+// 	  throw runtime_error(os.str());
+// 	}
+// 	
+//         if( nom==3&&denom==2 ) mlower_n = mlower_j+Rational(1,2);
+//         else if( nom==1&&denom==2 ) mlower_n = mlower_j-Rational(1,2);
+//         else mlower_n = -1;
+//         
+//         nom=-1;denom=0;
+//         if (mupper_gquanta.substr(4,3) == "   ")
+//         {
+// 	  nom   = atoi(mupper_lquanta.substr(8,1).c_str());
+// 	  denom = atoi(mupper_lquanta.substr(10,1).c_str());
+//         }
+//         else
+// 	{
+// 	  ostringstream os;
+// 	  os << "Hitran read error in mlower_gquanta i for species " <<  mspecies << " in line " << mf << "\n";
+// 	  throw runtime_error(os.str());
+// 	}
+//         
+//         if( nom==3&&denom==2 ) mupper_n = mupper_j+Rational(1,2);
+//         else if( nom==1&&denom==2 ) mupper_n = mupper_j-Rational(1,2);
+//         else mupper_n = -1;
+//         
+// 	mquantum_numbers.SetLower(QN_N, mlower_n);
+//         mquantum_numbers.SetLower(QN_J, mlower_j);
+//         mquantum_numbers.SetUpper(QN_N, mupper_n);
+//         mquantum_numbers.SetUpper(QN_J, mlower_j);
         //mquantum_numbers.SetLower(QN_v1, atoi(mlower_gquanta.substr(13, 2).c_str()));
         //mquantum_numbers.SetUpper(QN_v1, atoi(mupper_gquanta.substr(13, 2).c_str()));
 	
