@@ -226,6 +226,32 @@ void ParticleRefractiveIndexWaterLiebe93(// Generic output:
 }
 
 
+ /* Workspace method: Doxygen documentation will be auto-generated */
+ void ParticleRefractiveIndexConstant(// Generic output:
+                                      GriddedField3& scat_ref_index,
+                                      // Generic input:
+                                      const Vector& scat_f_grid,
+                                      const Vector& scat_t_grid,
+                                      const Numeric& ref_index_real,
+                                      const Numeric& ref_index_imag,
+                                      const Verbosity&)
+ {
+     const Index nf = scat_f_grid.nelem();
+     const Index nt = scat_t_grid.nelem();
+     
+     scat_ref_index.resize(nf, nt, 2);
+     scat_ref_index.set_grid_name(0, "Frequency");
+     scat_ref_index.set_grid(0, scat_f_grid);
+     scat_ref_index.set_grid_name(1, "Temperature");
+     scat_ref_index.set_grid(1, scat_t_grid);
+     scat_ref_index.set_grid_name(2, "Complex");
+     scat_ref_index.set_grid(2, MakeArray<String>("real", "imaginary"));
+     
+     scat_ref_index.data(joker, joker, 0) = ref_index_real;
+     scat_ref_index.data(joker, joker, 1) = ref_index_imag;
+}
+
+
 #ifdef ENABLE_REFICE
 /* Workspace method: Doxygen documentation will be auto-generated */
 void ParticleRefractiveIndexIceWarren84(// Generic output:

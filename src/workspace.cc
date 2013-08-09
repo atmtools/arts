@@ -3392,12 +3392,14 @@ void Workspace::define_wsv_data()
         (
 	 "An Array of ScatteringMetaData.\n"
 	 "\n"
-	 "The elements of the array hold the scattering meta data for a single particle.\n"
-	 "This data is needed for particle size distribution calculations, with *pnd_fieldSetup*.\n"
+	 "The elements of the array hold the scattering meta data for single\n"
+     "particles\n"
+	 "This data is needed for particle size distribution and particle"
+     "scattering properties calculations, with *pnd_fieldSetup* and"
+     "*single_scattering_dataCalcTMatrixTest*.\n"
 	 "\n"
-	 "Currently some of the meta data entries are not used by ARTS, but were included for \n"
+	 "Currently \"A_projec\" is not used by ARTS, but was included for \n"
 	 "future extensions of pnd calculations in ARTS.\n"
-	 "This applies to: \"shape\", \"A_proje\", \"asratio\"\n"
 	 "\n"
 	 "Note: This array must contain as many elements as *scat_data_raw*\n"
 	 "\n"
@@ -3406,15 +3408,18 @@ void Workspace::define_wsv_data()
 	 "Dimensions/Units: Array[particle types]\n"
 	 "\tString[description]\t[particle description]\n"
 	 "\tString[type]\t\t[''Ice'', ''Water''...]\n"
-	 "\tString[shape]\t\t[''Droxtal'', ''Aggregate'', ''Spherical'', ...]\n"
+	 "\tString[shape]\t\t[''spherical'', ''cylindrical'']\n"
+     "\tNumeric[p_type]\t[kg/m3]\n"
 	 "\tNumeric[density]\t[kg/m3]\n"
 	 "\tNumeric[d_max]\t\t[m]\n"
 	 "\tNumeric[V]\t\t[m3]\n"
-	 "\tNumeric[A_proje]\t[m2]\n"
+	 "\tNumeric[A_projec]\t[m2]\n"
 	 "\tNumeric[asratio]\t[]\n"
-         ),
+     "\tVector[f_grid]\t\t[Hz]\n"
+     "\tVector[T_grid]\t\t[K]\n"
+     "\tTensor3[ref_index]\t[]\n"
+        ),    
         GROUP( "ArrayOfScatteringMetaData" ))); 
-
 
    wsv_data.push_back
      (WsvRecord

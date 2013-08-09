@@ -24,6 +24,7 @@
 */
 
 #include <stdexcept>
+#include <cmath>
 #include "messages.h"
 #include "tmatrix.h"
 #include "check_input.h"
@@ -37,112 +38,183 @@ void TMatrixTest(const Verbosity& verbosity)
     calc_ssp_fixed_test(verbosity);
 }
 //-----------------------------
-
-void scat_data_meta_arrayAdd(// WS Output:
+void scat_data_meta_arrayInit(// WS Output:
                  ArrayOfScatteringMetaData& scat_data_meta_array,
-                 // WS Generic input:
-                 const String& description,
-                 const String& material,
-                 const String& shape,
-                 const String& p_type,
-                 const Numeric& density,
-                 const Numeric& aspect_ratio,
-                 const Vector& r_grid,
-                 const Vector& f_gridScat,
-                 const Vector& T_gridScat,
-                 const GriddedField3& ref_index,
-                 const Verbosity&) 
+                 //WS Input
+                 const Verbosity&)
+{
+    scat_data_meta_array.resize(0);
+}
+                
+                 
+void scat_data_meta_arrayAdd(// WS Output:
+                             ArrayOfScatteringMetaData& scat_data_meta_array,
+                             // WS Generic input:
+                             const String& description,
+                             const String& material,
+                             const String& shape,
+                             const String& p_type,
+                             const Numeric& aspect_ratio,
+                             const Vector& r_grid,
+                             const Vector& scat_f_grid,
+                             const Vector& scat_T_grid,
+                             const GriddedField3& ref_index,
+                             const Verbosity&) 
 
-{ chk_if_equal("f_gridScat", "f_grid from ref_index", f_gridScat, ref_index.get_numeric_grid(0));
-  chk_if_equal("T_gridScat", "T_grid from ref_index", T_gridScat, ref_index.get_numeric_grid(1));
-    
-    for(Index k=0; k<r_grid.nelem(); k++)
-        
-        
+{
+  chk_if_equal("f_gridScat", "f_grid from ref_index", scat_f_grid, ref_index.get_numeric_grid(0));
+  chk_if_equal("T_gridScat", "T_grid from ref_index", scat_T_grid, ref_index.get_numeric_grid(1));
+
+  for(Index k=0; k<r_grid.nelem(); k++)
     {
+      extern const Numeric PI;
 
-        //Works for spheres only atm
-        
-        extern const Numeric PI;
-        
-       
-        
-        
-        ScatteringMetaData smd;
+      Numeric density;
+
+
+      if (material=="Ice")
+        density=916.70000;
+      else if (material=="Water")
+        density=996.56670;
+      else
+        {
+          ostringstream os;
+          os << "Unknown material: " << material << "\n"
+            << "Must be Ice or Water";
+          throw std::runtime_error(os.str());
+        }
+
+      Numeric d_max;
+
+      if (shape == "spherical")
+
+        if (aspect_ratio<1)
+          d_max=2.*r_grid[k]*pow(aspect_ratio, -2./3.)*1e-6;
+
+        else if (aspect_ratio>1)
+          d_max=2.*r_grid[k]*pow(aspect_ratio, 1./3.)*1e-6;
+
+        else
+          {
+            ostringstream os;
+            os << "Incorrect aspect ratio: " << aspect_ratio << "\n"
+              << "Can not be equal to one";
+            throw std::runtime_error(os.str());
+          }
+
+      else if (shape == "cylindrical")
+
+        if (aspect_ratio !=1)
+
+          d_max=pow(pow(16./3., 2./3.)*pow(r_grid[k], 2.)*
+                    (pow(aspect_ratio, -4./3.)+pow(aspect_ratio, 2./3.)), 1./2.)*1e-6;
+        else
+          {
+            ostringstream os;
+            os << "Incorrect aspect ration: " << aspect_ratio << "\n"
+              << "Can not be equal to one";
+            throw std::runtime_error(os.str());
+          } 
+
+      else
+        {
+          ostringstream os;
+          os << "Unknown particle shape: " << shape << "\n"
+            << "Must be spherical or cylindrical";
+          throw std::runtime_error(os.str());
+        }
+
+      ScatteringMetaData smd;
+      if (description=="")
+        {   
+          ostringstream os;
+          os << shape<< " "<< material << " particle of type " << p_type<<
+            ", with equivalent radius "
+            <<r_grid[k]<<" um.";
+          smd.description=os.str();
+        }
+      else 
         smd.description = description;
-        smd.type = material;
-        smd.shape = shape;
-        smd.p_type = p_type;
-        smd.density = density;
-        smd.d_max =2*r_grid[k];
-        smd.V = 4/(float)3*PI*r_grid[k]*r_grid[k]*r_grid[k];
-        smd.A_projec = 2*r_grid[k]*PI;
-        smd.asratio = aspect_ratio;
-        smd.f_grid = f_gridScat;
-        smd.T_grid = T_gridScat;
-        smd.ref_index = ref_index.data;
-        
-        
-        
-        scat_data_meta_array.push_back(smd);
+ 
+      smd.type = material;
+      smd.shape = shape;
+      smd.p_type = p_type;
+      smd.density = density;
+      smd.d_max =d_max;
+      smd.V = 4./3.*PI*r_grid[k]*r_grid[k]*r_grid[k]*1e-18;
+      smd.A_projec = 0;
+      smd.asratio = aspect_ratio;
+      smd.f_grid = scat_f_grid;
+      smd.T_grid = scat_T_grid;
+      smd.ref_index = ref_index.data;
+
+      scat_data_meta_array.push_back(smd);
     }
-    
-    
-    
 }
 
 //-----------------------------------
 
 
-void single_scattering_dataCalcTMatrixTest(// WS Output:
-                                           ArrayOfSingleScatteringData& scat_data_raw,
-                                           // WS Generic input:
-                                           const String& p_type,
-                                           const Vector& f_grid,
-                                           const Vector& T_grid,
-                                           const Vector& za_grid,
-                                           const Vector& aa_grid,
-                                           const Matrix& ref_index_real,
-                                           const Matrix& ref_index_imag,
-                                           const Vector& equiv_radius,
-                                           const Index& np,
-                                           const String& phase,
-                                           const Numeric& aspect_ratio,
-                                           const Numeric& precision,
-                                           const Verbosity&)
+void scat_data_rawFromTMatrix(// WS Output:
+                              ArrayOfSingleScatteringData& scat_data_raw,
+                              //WS Input
+                              const ArrayOfScatteringMetaData& scat_data_meta_array,
+                              // WS Generic input:
+                              const Vector& za_grid,
+                              const Vector& aa_grid,
+                              const Numeric& precision,
+                              const Verbosity&)
 {
-    SingleScatteringData sdd;
-    sdd.f_grid = f_grid;
-    sdd.T_grid = T_grid;
-    sdd.za_grid = za_grid;
-    sdd.aa_grid = aa_grid;
+  for(Index ii=0;ii<scat_data_meta_array.nelem();ii++)
+    {
 
-    if (p_type == "MACROS_ISO")
+      extern const Numeric PI;  
+      const String& p_type = scat_data_meta_array[ii].p_type;
+      Index  np;
+
+      SingleScatteringData sdd;
+      sdd.f_grid = scat_data_meta_array[ii].f_grid;
+      sdd.T_grid = scat_data_meta_array[ii].T_grid;
+      sdd.za_grid = za_grid;
+      sdd.aa_grid = aa_grid;
+
+
+      if (p_type == "MACROS_ISO")
         sdd.ptype = PARTICLE_TYPE_MACROS_ISO;
-    else if (p_type == "HORIZ_AL")
+      else if (p_type == "HORIZ_AL")
         sdd.ptype = PARTICLE_TYPE_HORIZ_AL;
-    else
-    {
-        ostringstream os;
-        os << "Unknown particle type: " << p_type << "\n"
-        << "Must be MACROS_ISO or HORIZ_AL";
-        throw std::runtime_error(os.str());
-    }
-    
-    for(Index ii=0;ii<equiv_radius.nelem();ii++)
-    {
-        calcSingleScatteringDataProperties(sdd,
-                                       ref_index_real,
-                                       ref_index_imag,
-                                       equiv_radius[ii],
-                                       np,
-                                       phase,
-                                       aspect_ratio,
-                                       precision);
-        scat_data_raw.push_back(sdd);
+      else
+        {
+          ostringstream os;
+          os << "Unknown particle type: " << p_type << "\n"
+            << "Must be MACROS_ISO or HORIZ_AL";
+          throw std::runtime_error(os.str());
+        }
+
+      if (scat_data_meta_array[ii].shape == "spherical" )
+        np=-1;
+
+      else if (scat_data_meta_array[ii].shape == "cylindrical")
+        np=-2;
+      else
+        {
+          ostringstream os;
+          os << "Unknown particle shape: " << scat_data_meta_array[ii].shape << "\n"
+            << "Must be spherical or cylindrical";
+          throw std::runtime_error(os.str());
+        }
+
+      calcSingleScatteringDataProperties(sdd,
+                                         scat_data_meta_array[ii].ref_index(joker,joker,0),
+                                         scat_data_meta_array[ii].ref_index(joker,joker,1),
+                                         pow(scat_data_meta_array[ii].V*1e18*3./(4.*PI),1./3.),
+                                         np,
+                                         scat_data_meta_array[ii].asratio,
+                                         precision);
+
+      scat_data_raw.push_back(sdd);
     }
 }
-
 
 
 void single_scattering_dataFromTmatrix( 
@@ -201,6 +273,6 @@ void single_scattering_dataFromTmatrix(
 
     calcSingleScatteringDataProperties( single_scattering_data,
                                         n_real, n_imag, 1e-6*equiv_radius,
-                                        ishape, "not defined", aspect_ratio,
+                                        ishape, aspect_ratio,
                                         precision );
 }

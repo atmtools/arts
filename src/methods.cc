@@ -3856,7 +3856,7 @@ void define_md_data_raw()
                    "Matrix, Matrix,"
                    "Tensor3, Tensor4, Tensor4,"
                    "GriddedField3, ArrayOfGriddedField3,"
-                   "GriddedField4, String" ),
+                   "GriddedField4, String, SingleScatteringData" ),
         GOUT_DESC( "Extracted element." ),
         IN(),
         GIN( "haystack", "index" ),
@@ -3864,7 +3864,7 @@ void define_md_data_raw()
                   "ArrayOfMatrix, Tensor3,"
                   "Tensor4, ArrayOfTensor4, Tensor5,"
                   "ArrayOfGriddedField3, ArrayOfArrayOfGriddedField3,"
-                  "ArrayOfGriddedField4, ArrayOfString",
+                  "ArrayOfGriddedField4, ArrayOfString, ArrayOfSingleScatteringData",
                   "Index" ),
         GIN_DEFAULT( NODEF, NODEF ),
         GIN_DESC( "Variable to extract from.",
@@ -7276,6 +7276,33 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+    ( NAME( "ParticleRefractiveIndexConstant" ),
+      DESCRIPTION
+    (
+            "Set complex refractive index to constant value.\n"
+            "\n"
+            "Size of scat_ref_index\n"
+            "    [number of frequencies]\n"
+            "    [number of temperatures]\n"
+            "    [2]\n"
+     ),
+      AUTHORS( "Oliver Lemke" ),
+      OUT(),
+      GOUT( "scat_ref_index" ),
+      GOUT_TYPE( "GriddedField3" ),
+      GOUT_DESC( "Refractive index" ),
+      IN(),
+      GIN( "scat_f_grid", "scat_t_grid", "ref_index_real", "ref_index_imag" ),
+      GIN_TYPE( "Vector", "Vector", "Numeric", "Numeric" ),
+      GIN_DEFAULT( NODEF, NODEF, NODEF, NODEF ),
+      GIN_DESC( "Frequency grid",
+                "Temperature grid",
+                "real part of refractive index",
+                "imag part of refractive index" )
+      ));
+    
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "ParticleSpeciesInit" ),
         DESCRIPTION
         (
@@ -8955,6 +8982,51 @@ void define_md_data_raw()
         GIN_DEFAULT( "-" ),
         GIN_DESC( "Delimiter string of *part_species* elements." )
          ));
+        
+  md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "scat_data_meta_arrayAdd" ),
+      DESCRIPTION
+      (
+          "Adds particle meta data to the workspace vairalble\n"
+          "*scat_data_meta_array*.\n"
+      ),
+      AUTHORS( "Johan Strandgren" ),
+      OUT("scat_data_meta_array"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "scat_data_meta_array" ),
+      GIN( "description", "material", "shape", "p_type", "aspect_ratio", 
+           "r_grid", "scat_f_grid", "scat_T_grid", "ref_index" ),
+      GIN_TYPE( "String", "String", "String", "String", "Numeric", "Vector", 
+               "Vector", "Vector", "GriddedField3" ),
+      GIN_DEFAULT( "", NODEF, NODEF, NODEF, NODEF, NODEF, NODEF, NODEF, NODEF ),
+      GIN_DESC( "Particle description", "Water or Ice", "Spheroid or cylinder", 
+               "Particle Type: MACROS_ISO (20) or PARTICLE_TYPE_HORIZ_AL (30)", 
+               "Aspect ratio", "equivalent radius vector",  
+               "Frequency grid vector", "Temperature grid vector",  
+               "Gridded field for refractive index" )
+      ));
+    
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "scat_data_meta_arrayInit" ),
+        DESCRIPTION
+        (
+         "Initializes the workspace variable *scat_data_meta_array*.\n"
+         ),
+        AUTHORS( "Johan Strandgren" ),
+        OUT("scat_data_meta_array"),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN(),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -9012,6 +9084,28 @@ void define_md_data_raw()
         GIN_DEFAULT( "1e-3" ),
         GIN_DESC( "Threshold for allowed deviation in albedo when using integrated "
                   "phase matrix vs. using extinction-absorption difference." )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "scat_data_rawFromTMatrix" ),
+        DESCRIPTION
+        (
+         "Calculates *scat_data_raw* using *scat_data_meta_array*.\n"
+         ),
+        AUTHORS( "Johan Strandgren, Oliver Lemke" ),
+        OUT("scat_data_raw"),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN("scat_data_meta_array"),
+        GIN( "za_grid", "aa_grid", "precision" ),
+        GIN_TYPE("Vector", "Vector", "Numeric" ),
+        GIN_DEFAULT(NODEF, NODEF, NODEF ),
+        GIN_DESC("Zenith angle grid",
+                 "Azimuth angle grid",
+                 "Precision"
+                 )
         ));
 
   md_data_raw.push_back
@@ -9719,7 +9813,44 @@ void define_md_data_raw()
         GIN_DEFAULT(),
         GIN_DESC()
         ));
-
+    
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "single_scattering_dataFromTmatrix" ),
+        DESCRIPTION
+        (
+         "Single particle type T-matrix calculations.\n"
+         "\n"
+         "Start on a basic T-matrix interface WSM ...\n"
+         ),
+        AUTHORS( "Oliver Lemke", "Patrick Eriksson" ),
+        OUT( "single_scattering_data" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN(),
+        GIN("f_grid", "T_grid", "za_grid", "aa_grid",
+            "complex_refr_index", "equiv_radius", "orientation", "shape", 
+            "aspect_ratio", "precision"),
+        GIN_TYPE( "Vector", "Vector", "Vector", "Vector",
+                  "GriddedField3", "Numeric", "String", "String",
+                  "Numeric", "Numeric"),
+        GIN_DEFAULT(NODEF, NODEF, NODEF, NODEF,
+                    NODEF, NODEF, "macro_iso", "spherical", 
+                    "1.000001", "0.001" ),
+        GIN_DESC( "Frequency grid",
+                  "Temperature grid",
+                  "Zenith angle grid",
+                  "Azimuth angle grid",
+                  "Data of complex refractive index.",
+                  "Equivalent radius [m]",
+                  "Particle orientation: \"macro_iso\" or \"horiz_al\"",
+                  "Particle shape      : \"spherical\" or \"cylinder\"",
+                  "Aspect ratio (horisontal size / vertical size)",
+                  "Precision"
+                 )
+        ));
+        
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "SparseSparseMultiply" ),
@@ -10452,108 +10583,6 @@ void define_md_data_raw()
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-        ));
-    
-  md_data_raw.push_back
-    ( MdRecord
-    ( NAME( "scat_data_meta_arrayAdd" ),
-      DESCRIPTION
-      (
-          "Test.\n"
-      ),
-      AUTHORS( "Johan Strandgren" ),
-      OUT("scat_data_meta_array"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN(),
-      GIN( "description", "material", "shape", "p_type", "density", "aspect_ratio", 
-           "r_grid", "f_gridScat", "T_gridScat", "ref_index" ),
-      GIN_TYPE( "String", "String", "String", "String", "Numeric", "Numeric", "Vector", 
-               "Vector", "Vector", "GriddedField3" ),
-      GIN_DEFAULT( NODEF, NODEF, NODEF, NODEF, NODEF, NODEF, NODEF, NODEF, NODEF, NODEF ),
-      GIN_DESC( "Particledescription", "liquid or ice", "Sphere or cylinder", 
-               "Particle Type: MACROS_ISO (20) or PARTICLE_TYPE_HORIZ_AL (30)", "Particle mass density", 
-               "Aspect ratio", "equivalent radius vector", "Frequency grid vector", "Temperature grid vector", 
-               "Gridded field for refractive index"      
-      )
-    ));
-    
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "single_scattering_dataCalcTMatrixTest" ),
-        DESCRIPTION
-        (
-         "Simple interface to T-Matrix code for testing.\n"
-         ),
-        AUTHORS( "Oliver Lemke" ),
-        OUT("scat_data_raw"),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN(),
-        GIN("p_type", "f_grid", "T_grid", "za_grid", "aa_grid",
-            "ref_index_real", "ref_index_imag",
-            "equiv_radius", "np", "phase", "aspect_ratio",
-            "precision"),
-        GIN_TYPE("String", "Vector", "Vector", "Vector", "Vector",
-                 "Matrix", "Matrix",
-                 "Vector", "Index", "String", "Numeric",
-                 "Numeric"),
-        GIN_DEFAULT(NODEF, NODEF, NODEF, NODEF, NODEF,
-                    NODEF, NODEF,
-                    "[200]", "-1", "ice", "1.000001",
-                    "0.001" ),
-        GIN_DESC("Particle Type: MACROS_ISO (20) or PARTICLE_TYPE_HORIZ_AL (30)",
-                 "Frequency grid",
-                 "Temperature grid",
-                 "Zenith angle grid",
-                 "Azimuth angle grid",
-                 "Refractive index real part [f_grid.nelem, T_grid.nelem]",
-                 "Refractive index imaginary part [f_grid.nelem, T_grid.nelem]",
-                 "Equivalent radius",
-                 "Particle shape (-1 spherical, -2 cylinders)",
-                 "Phase (currently unused)",
-                 "Aspect ratio",
-                 "Precision"
-                 )
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "single_scattering_dataFromTmatrix" ),
-        DESCRIPTION
-        (
-         "Single particle type T-matrix calculations.\n"
-         "\n"
-         "Start on a basic T-matrix interface WSM ...\n"
-         ),
-        AUTHORS( "Oliver Lemke", "Patrick Eriksson" ),
-        OUT( "single_scattering_data" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN(),
-        GIN("f_grid", "T_grid", "za_grid", "aa_grid",
-            "complex_refr_index", "equiv_radius", "orientation", "shape", 
-            "aspect_ratio", "precision"),
-        GIN_TYPE( "Vector", "Vector", "Vector", "Vector",
-                  "GriddedField3", "Numeric", "String", "String",
-                  "Numeric", "Numeric"),
-        GIN_DEFAULT(NODEF, NODEF, NODEF, NODEF,
-                    NODEF, NODEF, "macro_iso", "spherical", 
-                    "1.000001", "0.001" ),
-        GIN_DESC( "Frequency grid",
-                  "Temperature grid",
-                  "Zenith angle grid",
-                  "Azimuth angle grid",
-                  "Data of complex refractive index.",
-                  "Equivalent radius [m]",
-                  "Particle orientation: \"macro_iso\" or \"horiz_al\"",
-                  "Particle shape      : \"spherical\" or \"cylinder\"",
-                  "Aspect ratio (horisontal size / vertical size)",
-                  "Precision"
-                 )
         ));
 
   md_data_raw.push_back

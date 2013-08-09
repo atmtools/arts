@@ -929,7 +929,6 @@ void calcSingleScatteringDataProperties(SingleScatteringData& ssd,
                                         ConstMatrixView ref_index_imag,
                                         const Numeric equiv_radius,
                                         const Index np,
-                                        const String phase _U_,
                                         const Numeric aspect_ratio,
                                         const Numeric precision)
 {
@@ -1380,7 +1379,6 @@ void calc_ssp_random_test(const Verbosity& verbosity)
     calcSingleScatteringDataProperties(ssd, mrr, mri,
                                        200.,
                                        -1,
-                                       "ice",
                                        1.5);
 
     out0 << "ssd.pha_mat_data(0, 0, joker, 0, 0, joker, joker):\n"
@@ -1397,7 +1395,6 @@ void calc_ssp_random_test(const Verbosity& verbosity)
     calcSingleScatteringDataProperties(ssd, mrr, mri,
                                        200.,
                                        -1,
-                                       "ice",
                                        0.7);
 
     out0 << "ssd.pha_mat_data(0, 0, joker, 0, 0, joker, joker):\n"
@@ -1440,7 +1437,6 @@ void calc_ssp_fixed_test(const Verbosity& verbosity)
     calcSingleScatteringDataProperties(ssd, mrr, mri,
                                        200.,
                                        -1,
-                                       "ice",
                                        1.5);
 
     out0 << "ssd.pha_mat_data(0, 0, joker, 0, 0, joker, joker):\n"
@@ -1458,7 +1454,6 @@ void calc_ssp_fixed_test(const Verbosity& verbosity)
     calcSingleScatteringDataProperties(ssd, mrr, mri,
                                        200.,
                                        -1,
-                                       "ice",
                                        0.7);
     
     out0 << "ssd.pha_mat_data(0, 0, joker, 0, 0, joker, joker):\n"

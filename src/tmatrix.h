@@ -53,7 +53,6 @@ void calcSingleScatteringDataProperties(SingleScatteringData& ssd,
                                         ConstMatrixView ref_index_imag,
                                         const Numeric equiv_radius = 200,
                                         const Index np = -1,
-                                        const String phase = "ice",
                                         const Numeric aspect_ratio = 1.000001,
                                         const Numeric precision = 0.001);
 
