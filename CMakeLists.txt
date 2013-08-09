@@ -27,6 +27,17 @@ enable_testing ()
 
 if (ENABLE_FORTRAN)
   enable_language (Fortran)
+
+  get_filename_component (FORTRAN_COMPILER ${CMAKE_Fortran_COMPILER} NAME)
+  
+  if (FORTRAN_COMPILER MATCHES "gfortran.*")
+    set (FORTRAN_EXTRA_FLAGS "-fdefault-double-8 -fdefault-integer-8 -fdefault-real-8")
+  elseif (FORTRAN_COMPILER MATCHES "g95.*")
+    set (FORTRAN_EXTRA_FLAGS "-d8")
+  else (FORTRAN_COMPILER MATCHES "gfortran.*")
+    message(FATAL_ERROR "Unsupported Fortran compiler. Must be g95 or gfortran.")
+  endif (FORTRAN_COMPILER MATCHES "gfortran.*")
+
 endif (ENABLE_FORTRAN)
 
 if (NOT CMAKE_BUILD_TYPE)

@@ -15,7 +15,7 @@ if (ENABLE_FORTRAN AND NOT NO_TMATRIX)
       avg_tmatrix.f
       )
     set_target_properties (tmatrix PROPERTIES
-      COMPILE_FLAGS "-fdefault-double-8 -fdefault-integer-8 -fdefault-real-8")
+      COMPILE_FLAGS "${FORTRAN_EXTRA_FLAGS}")
 
     add_executable(tmatrix_tmd
       tmd.lp.f

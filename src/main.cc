@@ -778,7 +778,13 @@ int main (int argc, char **argv)
 #else
         << "disabled" << endl
 #endif
-        << "   Disort algorithm:     "
+        << "   Fortran support:      "
+#ifdef FORTRAN_COMPILER
+        << "enabled (" << FORTRAN_COMPILER << ")" << endl
+#else
+        << "disabled" << endl
+#endif
+        << "   Disort support:       "
 #ifdef ENABLE_DISORT
         << "enabled" << endl
 #else

@@ -12,7 +12,7 @@ if (ENABLE_FORTRAN AND NOT NO_REFICE)
       REFICE.f
       )
     set_target_properties (refice PROPERTIES
-      COMPILE_FLAGS "-fdefault-double-8 -fdefault-integer-8 -fdefault-real-8")
+      COMPILE_FLAGS "${FORTRAN_EXTRA_FLAGS}")
 
   endif()
 
