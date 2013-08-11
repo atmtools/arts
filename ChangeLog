@@ -1,3 +1,12 @@
+2013-08-11  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-719
+
+	* src/m_rte.cc (iyEmissionStandard): For T jacobian changed the
+	lines including: x[is] = -trans_partial(iv,0,is,ip)*dbdt; is was 0
+	on the right-hand side. Another bug in this part, of the same
+	type!
+
 2013-08-09  Johan Strandgren  <johsat-9@student.ltu.se>
 
 	* arts-2-1-718
@@ -20,7 +29,7 @@
 
 	Renamed single_scattering_dataCalcTMatrixTest to
 	scat_data_rawFromTMatrix.
-	
+
 	* src/m_tmatrix.cc:
 
 	(scat_data_meta_arrayAdd): Made it compatible with cylinders and 
@@ -53,8 +62,8 @@
 2013-08-08  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-1-716
-	
-	* src/linerecord.cc: Pass on NO quantum numbers for now. Will need more 
+
+	* src/linerecord.cc: Pass on NO quantum numbers for now. Will need more
 	testing here it seems.
 
 2013-08-08  Patrick Eriksson  <patrick.eriksson@chalmers.se>

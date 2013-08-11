@@ -866,7 +866,7 @@ void iyEmissionStandard(
                                                        ppath_blackrad(iv,ip) );
                                   x[0] = v * dbdt;
                                   for( Index is=1; is<ns; is++ ) 
-                                    { x[is] = -trans_partial(iv,0,0,ip)*dbdt; }
+                                    { x[is] = -trans_partial(iv,0,is,ip)*dbdt; }
                                   mult( y, trans_cumulat(iv,joker,joker,ip), 
                                                                            x );
                                   diy_dpath[iq](ip,iv,joker) += y; 
@@ -875,7 +875,7 @@ void iyEmissionStandard(
                                                   ppath_blackrad(iv,ip+1) );
                                   x[0] = v * dbdt;
                                   for( Index is=1; is<ns; is++ ) 
-                                    { x[is] = -trans_partial(iv,0,0,ip)*dbdt; }
+                                    { x[is] = -trans_partial(iv,0,is,ip)*dbdt; }
                                   mult( y, trans_cumulat(iv,joker,joker,ip), 
                                                                            x );
                                   diy_dpath[iq](ip+1,iv,joker) += y; 
