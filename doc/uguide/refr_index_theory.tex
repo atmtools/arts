@@ -1,0 +1,171 @@
+\chapter{Refractive index}
+ \label{sec:rindex_theory}
+
+\starthistory
+  130802 & Started based on AUG chapter and ESA-planetary TN1 (Jana Mendrok).\\
+\stophistory
+
+Refractive index\index{refractive index} describes several effects of matter on
+propagation of electromagnetic waves. Refractive index is basically a complex
+quantity. However, in this chapter it is restricted to its real part, neglecting
+the imaginary part, which describes absorption. Effects the real part of the refractive
+index describes particularly include changes of the propagation speed of
+electromagnetic waves, which leads to a delay of the signal, as well as a change
+of the propagation direction, a bending of the propagation path. The latter is
+commonly called refraction.
+
+Several components in the atmosphere contribute to refraction, hence to the refractive index: the gas mixture(``air''), solid and liquid constituents (clouds, precipitation, aerosols), and electrons.
+Refractivity ($N$) describes the deviation of the refractive index of a medium \Rfr  from the vacuum refractive index (\Rfr$_\mathrm{vacuum}=1$): $N=\Rfr-1$. Contributions of the different components to refractivity are additive.
+One distinguishes between monochromatic and group refractive index, which
+differ in case of dispersion\index{dispersion} leading to diverging propagation
+paths at different frequencies. \FIXME{That needs to be more specific.}
+
+
+
+\section{Gases}
+ \label{sec:rindex:gases}
+%
+According to \citet{newell65:_absolute_jap}, the refractivity $N$, i.e., 
+the deviation of the refractive index $n$ from 1.0 ($N=n-1$), of a gas
+can be assumed to be proportional to its density.
+\citet{newell65:_absolute_jap} give no validity range for this
+assumption, but at least \citet{stratton68:_optical_jas} assumes that
+it is valid even for the relatively high densities in the Venusian
+atmosphere. We have not investigated whether this assumption may break
+down at some point in the Jupiter atmosphere.
+
+If we accept the assumption of refractivity scaling with gas
+density, then the problem of parameterizing the refractivity can
+be separated into two sub-problems: (a) determining the refractivity
+index for reference conditions (reference pressure $p$ and temperature
+$T$), and (b) deciding which gas law to use to scale it to other
+conditions. The total refractivity is then simply the sum of all
+partial refractivities, in other words
+\begin{equation}
+  \label{eq:N_density}
+  N = N_{\mathrm{ref},1} \frac{n_1}{n_\mathrm{ref,1}} + 
+      N_{\mathrm{ref},2} \frac{n_2}{n_\mathrm{ref,2}} + \cdots
+\end{equation}
+where $N$ is the total refractivity, $N_{\mathrm{ref},1}$ is the
+partial refractivity for gas $i$ at reference conditions, $n_i$ is
+the partial density, and $n_\mathrm{ref,i}$ is the reference density.
+
+Different solutions have been proposed, where approaches specific for Earth
+atmosphere commonly are empirical parameterisations.
+Below we describe the background and formulas applied for the different methods
+implemented in ARTS.
+
+\subsection{Microwave general method (\shortcode{refr\_indexMWgeneral)}}
+ \label{sec:rindex:mwgeneral}
+
+Apart from presenting a basic approach, \citet{newell65:_absolute_jap} also
+provide a thorough study of both refractivity of different gases for reference
+conditions and which gas law to use to scale those to other
+conditions. They present laboratory
+refractivity measurements for dry CO$_2$-free air, argon,
+carbon dioxide, helium, hydrogen, nitrogen, and oxygen covering the
+most relevant gases (probably apart from water vapor) in planetary atmospheres.
+The actual refractivity values of \citet{newell65:_absolute_jap}
+are stated in the paper abstract and are not repeated here. The
+conditions for the reported refractivity values are $T$ =
+0$^\circ$C and $p$ = 760\,Torr. The measurements are for a frequency
+of 47.7\,GHz.
+
+\citet{newell65:_absolute_jap} also adress the question which gas law
+to use to scale the measurements to other $p$/$T$ conditions, chosing different
+approaches depending on the specific gas in question. While the more complicated
+gas laws they suggest can be expected to be more
+accurate in the relatively narrow range of $p$/$T$ conditions
+considered by \citet{newell65:_absolute_jap}, it is not easy to
+assess how well they will hold outside the range for which they were
+originally derived. We therefore simply use the ideal gas
+law, as given in Equation 7 of \citet{newell65:_absolute_jap} for all
+gases. This results in the simple parameterization
+\begin{equation}
+  \label{eq:N_density2}
+  N = \frac{273.15\,\mathrm{K}}{760\,\mathrm{Torr}}  
+           \left[
+           N_{\mathrm{ref},1} \frac{p_1}{T} + 
+           N_{\mathrm{ref},2} \frac{p_2}{T} + \cdots
+           \right]
+\end{equation}
+where $ N(T,p)$ is the total refractivity, the
+first factor reflectes the reference conditions for the
+\citet{newell65:_absolute_jap} data, $N_{\mathrm{ref},1}$ are the
+partial refractivities as reported in the abstract of their
+article, $p_i$ are the partial pressures, and $T$ is temperature.
+
+Currently, the above formulas can be used with up to five contributing gas
+species with reference refractive indices taken from
+\citet{newell65:_absolute_jap}, namely \chem{N_2}, \chem{O_2}, \chem{CO_2},
+\chem{H_2}, and \chem{He}. To account for contributions from further gases
+(i.e., when volume mixing ratios of those five do not add up to 1), the
+calculated refractivity from those five gases is normalised to a volume mixing
+ratio of 1. By adding reference refractive index data from further species, the
+method can easily be extended and made more complete.
+
+\subsection{Microwave refractive index for Earth (\shortcode{refr\_indexThayer})}
+ \label{sec:rindex:thayer}
+The microwave refractive index due to gases in the Earth’s atmosphere is
+calculated considering so-called compressibility factors (to cover non-ideal gas behaviour). The refractivity of ``dry air'' and water vapour is summed. All other gases are assumed to have a negligible contribution. \citep{thayer74_improved_rs}
+\FIXME{be more specific and provide actual formula?}
+
+\subsection{Infrared refractive index for Earth (\shortcode{refr\_indexIR})}
+ \label{sec:rindex:IR}
+The infrared refractive index due to gases in the Earth's atmosphere is derived,
+but only refractivity of ``dry air'' is considered. The formula used is
+contributed by Michael Hoepfner, Forschungszentrum Karlsruhe.
+\FIXME{be more specific and document the actual formula?}
+
+
+\section{Free electrons}
+ \label{sec:rindex:freee}
+%
+Free electrons, as exist in the ionosphere, will affect propagating radio waves
+in several ways. Free electrons will have an impact of the propagation speed of
+radio waves, hence a signal can be delayed and refracted. 
+
+An electromagnetic wave passing through a plasma (such as the ionosphere) will
+drive electrons to oscillate and re-radiating the wave frequency. This is the
+basic reason of the contribution of electrons to the refractive index. 
+An important variable is the plasma frequency, $\Frq_{p}$:
+\begin{equation}
+  \omega_{p}=\sqrt{\frac{Ne^{2}}{\epsilon_{0}m}},
+\end{equation}
+where \(\omega_{p}=2\pi\Frq_{p}\), \(N\) is the electron density, \(e\) is the
+charge of an electron, \(\epsilon_{0}\) is the permittivity of free space, and
+\(m\) is the mass of an electron. For example, for the Earth's ionosphere
+\(\Frq_{p}\) \(\approx\) 9\,MHz.
+Waves having a frequency below $\Frq_{p}$ are reflected by a plasma.
+
+Neglecting influences of any magnetic field, the refractive index of a plasma
+is \citep[e.g.][]{rybicki:radia:79}
+\begin{equation}
+\label{eq:n:electrons}
+\Rfr =\sqrt{1-\frac{\omega_{p}^{2}}{\omega^{2}}}=\sqrt{1-\frac{Ne^{2}}
+{\epsilon_{0}m\omega^{2}}}.
+\end{equation}
+where $\omega$ is the angular frequency ($\omega=2\pi\Frq$). This refractive
+index is less than unity (phase velocity is greater than the speed of light),
+but is approaching unity with increasing frequency. The group velocity is
+\citep{rybicki:radia:79}
+\begin{equation}
+\aSpd{g}=\speedoflight\sqrt{1-\frac{Ne^{2}}
+{\epsilon_{0}m\omega^{2}}}
+\end{equation}
+which is clearly less than the speed of light.
+The energy (or information) of a signal propagating through the ionosphere
+travels with the group velocity, and the group speed refractive
+index (\(\Rfr_{g}=\frac{\speedoflight}{\aSpd{g}}\)) is
+\begin{equation}
+\label{eq:ng:electrons}
+  \Rfr_{g}=\left(
+    1-\frac{Ne^{2}}
+    {\epsilon_{0}m\omega^{2}}
+  \right)^{-1/2}.
+\end{equation}
+Equations~\ref{eq:n:electrons} and \ref{eq:ng:electrons} are implemented in
+\wsmindex{refr\_indexFreeElectrons}. The method demands that the radiative
+transfer frequency is at least twice the plasma frequency.
+
+

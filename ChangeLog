@@ -1,3 +1,20 @@
+2013-08-12  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-1-722
+
+	* doc/uguide/refr_index_theory.tex: Added. Moved refractive index (models)
+	theory/background parts	from AUG to here and merge info from
+	ESA-Planetary TN1 into it. Currently an own chapter; in future rather
+	make it a section in propagation paths chapter?
+
+	* doc/uguide/refr_index.tex: Minor updates, corrections. Few parts moved
+	to ATD.
+
+	* doc/uguide/arts_theory.tex: Include the refractive index chapter.
+
+	* doc/uguide/references.bib: Added newell65 as refractive index
+	reference.
+
 2013-08-12  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-1-721
