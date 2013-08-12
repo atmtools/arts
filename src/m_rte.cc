@@ -860,22 +860,22 @@ void iyEmissionStandard(
                                   diy_dpath[iq](ip+1,iv,joker) += y; 
                                   //
                                   // The terms associated with B-bar:
-                                  const Numeric v = 0.5 * 
+                                  const Numeric v = 
                                              ( 1.0 - trans_partial(iv,0,0,ip));
-                                  Numeric dbdt = 1/dt * ( ppath_bt2(iv,ip) -
+                                  Numeric dbdt = 0.5/dt * ( ppath_bt2(iv,ip) -
                                                        ppath_blackrad(iv,ip) );
                                   x[0] = v * dbdt;
                                   for( Index is=1; is<ns; is++ ) 
-                                    { x[is] = -trans_partial(iv,0,is,ip)*dbdt; }
+                                    { x[is] = -trans_partial(iv,is,0,ip)*dbdt; }
                                   mult( y, trans_cumulat(iv,joker,joker,ip), 
                                                                            x );
                                   diy_dpath[iq](ip,iv,joker) += y; 
                                   // Some for ip+1
-                                  dbdt = 1/dt * ( ppath_bt2(iv,ip+1) -
-                                                  ppath_blackrad(iv,ip+1) );
+                                  dbdt = 0.5/dt * ( ppath_bt2(iv,ip+1) -
+                                                    ppath_blackrad(iv,ip+1) );
                                   x[0] = v * dbdt;
                                   for( Index is=1; is<ns; is++ ) 
-                                    { x[is] = -trans_partial(iv,0,is,ip)*dbdt; }
+                                    { x[is] = -trans_partial(iv,is,0,ip)*dbdt; }
                                   mult( y, trans_cumulat(iv,joker,joker,ip), 
                                                                            x );
                                   diy_dpath[iq](ip+1,iv,joker) += y; 
