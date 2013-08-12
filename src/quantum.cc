@@ -72,6 +72,7 @@ std::istream& operator>>(std::istream& is, QuantumNumbers& qn)
     else INPUT_QUANTUM(N);
     else INPUT_QUANTUM(S);
     else INPUT_QUANTUM(F);
+    else INPUT_QUANTUM(Omega);
     else INPUT_QUANTUM(v1);
     else INPUT_QUANTUM(v2);
     else INPUT_QUANTUM(v3);
@@ -99,6 +100,7 @@ std::ostream& operator<<(std::ostream& os, const QuantumNumbers& qn)
     OUTPUT_QUANTUM(N);
     OUTPUT_QUANTUM(S);
     OUTPUT_QUANTUM(F);
+    OUTPUT_QUANTUM(Omega);
     OUTPUT_QUANTUM(v1);
     OUTPUT_QUANTUM(v2);
     OUTPUT_QUANTUM(v3);

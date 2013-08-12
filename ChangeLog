@@ -1,3 +1,39 @@
+2013-08-12  Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-1-721
+
+	* src/linerecord.cc: Reading some quantum numbers for ClO and NO now.
+	
+	* src/m_zeeman.cc: Preliminary compatibility with NO and ClO now. Not
+	tested yet. Any suggestions on how to test this? I could not find any 
+	models doing this.
+	
+	* src/quantum.{h,cc}: Added QN_Omega.
+	
+	* src/partition_function_data.cc, src/species_data.cc: Can now work with
+	HITRAN2012 based on the HITRAN ref-table.pdf. For isotopes already in 
+	these files, I only added the HITRAN tag number. For isotopes of already
+	existing molecules, I assumed Q(T) to by from the most abundant of the
+	species, the mass was calculated from the most common isotope with
+	integer addition for all extra mass. 
+	
+	For new molecules, the atomic mass
+	as an integer of the isotopic parts was assumed, C4H2 was assumed linear
+	and SO3 assumed non-linear for the Q(T)={T,T^1.5}, and were thus given 
+	the corresponding degree of freedoms. HBr have 2 molecules with molecule
+	number "11" in the new HITRAN. The latter of these is now named 11_2 in
+	ARTS, whilst the first remains unchanged in name. 
+	
+	The completely new isotopes are: HNO3-156, HBr-29, HBr-11_2, HI-27, 
+	N2-45, and COF2-369
+	
+	The completely new species are C4H2, and SO3.
+	
+	The isotopes new in HITRAN2012 number are: HCl-25, HCl-27, HF-29, H2-11,
+	and H2-12.
+	
+	Some check-all tests will fail with this commit.
+
 2013-08-12  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-720

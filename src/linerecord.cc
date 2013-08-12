@@ -996,84 +996,163 @@ bool LineRecord::ReadFromHitran2004Stream(istream& is, const Verbosity& verbosit
           }
         }
       }
-      else if(species_data[mspecies].Name()=="NO")
+      else if(species_data[mspecies].Name()=="NO"||species_data[mspecies].Name()=="ClO")
       {
-	
 	//pass for now
 	
 	/* 
 	 * From the Hitran 2004 paper, several selection rules for finding the quantum numbers
 	 * for NO are available. I try to sort these out in the code below.
 	 */
-//         DJ = - mlower_lquanta.compare(3,1,"Q");
-//         
-//         int nom=-1, denom=0;
-//         if (mlower_lquanta.substr(4,3) == "   ")
-//         {
-// 	  nom   = atoi(mlower_lquanta.substr(4,3).c_str());
-// 	  denom = atoi(mlower_lquanta.substr(8,1).c_str());
-//         }
-//         else
-// 	{
-// 	  ostringstream os;
-// 	  os << "Hitran read error in mlower_lquanta J for species " <<  mspecies << " in line " << mf << "\n";
-// 	  throw runtime_error(os.str());
-// 	}
-//         
-//         if( denom == 5 ) mlower_j = Rational(nom*2+1,2);
-//         else mlower_j = nom;
-// 	
-//         mupper_j = mlower_j - DJ;
-//         
-//         nom=-1;denom=0;
-//         if (mlower_gquanta.substr(4,3) == "   ")
-//         {
-//             nom   = atoi(mlower_lquanta.substr(8,1).c_str());
-//             denom = atoi(mlower_lquanta.substr(10,1).c_str());
-//         }
-//         else
-// 	{
-// 	  ostringstream os;
-// 	  os << "Hitran read error in mlower_gquanta i for species " <<  mspecies << " in line " << mf << "\n";
-// 	  throw runtime_error(os.str());
-// 	}
-// 	
-//         if( nom==3&&denom==2 ) mlower_n = mlower_j+Rational(1,2);
-//         else if( nom==1&&denom==2 ) mlower_n = mlower_j-Rational(1,2);
-//         else mlower_n = -1;
-//         
-//         nom=-1;denom=0;
-//         if (mupper_gquanta.substr(4,3) == "   ")
-//         {
-// 	  nom   = atoi(mupper_lquanta.substr(8,1).c_str());
-// 	  denom = atoi(mupper_lquanta.substr(10,1).c_str());
-//         }
-//         else
-// 	{
-// 	  ostringstream os;
-// 	  os << "Hitran read error in mlower_gquanta i for species " <<  mspecies << " in line " << mf << "\n";
-// 	  throw runtime_error(os.str());
-// 	}
-//         
-//         if( nom==3&&denom==2 ) mupper_n = mupper_j+Rational(1,2);
-//         else if( nom==1&&denom==2 ) mupper_n = mupper_j-Rational(1,2);
-//         else mupper_n = -1;
-//         
-// 	mquantum_numbers.SetLower(QN_N, mlower_n);
-//         mquantum_numbers.SetLower(QN_J, mlower_j);
-//         mquantum_numbers.SetUpper(QN_N, mupper_n);
-//         mquantum_numbers.SetUpper(QN_J, mlower_j);
-        //mquantum_numbers.SetLower(QN_v1, atoi(mlower_gquanta.substr(13, 2).c_str()));
-        //mquantum_numbers.SetUpper(QN_v1, atoi(mupper_gquanta.substr(13, 2).c_str()));
-	
+        // Parse upper local quanta J
+        String qnf;
+        
+        qnf = mlower_lquanta.substr(4, 5);
+        qnf.trim();
+        if (qnf.nelem())
+        {
+            ArrayOfString as;
+            qnf.split(as, ".");
+            if (as.nelem() == 2)
+            {
+                Index nom;
+                char* endptr;
+                
+                nom = strtol(as[0].c_str(), &endptr, 10) + mlower_lquanta.compare(3,1,"Q");
+                if (endptr != as[0].c_str()+as[0].nelem())
+                    throw std::runtime_error("Error parsing quantum number J");
+                
+                if (as[1] == "5")
+                    mquantum_numbers.SetUpper(QN_J, Rational(nom * 2 + 1 , 2));
+                else if (as[1] == "0")
+                    mquantum_numbers.SetUpper(QN_J, nom);
+                else
+                    throw std::runtime_error("Error parsing quantum number J");
+            }
+        }
+        
+        // Parse lower local quanta J
+        qnf = mlower_lquanta.substr(4, 5);
+        qnf.trim();
+        if (qnf.nelem())
+        {
+            ArrayOfString as;
+            qnf.split(as, ".");
+            if (as.nelem() == 2)
+            {
+                Index nom;
+                char* endptr;
+                
+                nom = strtol(as[0].c_str(), &endptr, 10);
+                if (endptr != as[0].c_str()+as[0].nelem())
+                    throw std::runtime_error("Error parsing quantum number J");
+                
+                if (as[1] == "5")
+                    mquantum_numbers.SetLower(QN_J, Rational(nom * 2 + 1, 2));
+                else if (as[1] == "0")
+                    mquantum_numbers.SetLower(QN_J, nom);
+                else
+                    throw std::runtime_error("Error parsing quantum number J");
+            }
+        }
+        
+        // Parse lower local quanta F
+        qnf = mlower_lquanta.substr(10, 5);
+        qnf.trim();
+        if (qnf.nelem())
+        {
+            ArrayOfString as;
+            qnf.split(as, ".");
+            if (as.nelem() == 2)
+            {
+                Index nom;
+                char* endptr;
+                
+                nom = strtol(as[0].c_str(), &endptr, 10);
+                if (endptr != as[0].c_str()+as[0].nelem())
+                    throw std::runtime_error("Error parsing quantum number F");
+                
+                if (as[1] == "5")
+                    mquantum_numbers.SetLower(QN_F, Rational(nom * 2 + 1, 2));
+                else if (as[1] == "0")
+                    mquantum_numbers.SetLower(QN_F, nom);
+                else
+                    throw std::runtime_error("Error parsing quantum number F");
+            }
+        }
+        
+        // Parse upper local quanta F
+        qnf = mupper_lquanta.substr(10, 5);
+        qnf.trim();
+        if (qnf.nelem())
+        {
+            ArrayOfString as;
+            qnf.split(as, ".");
+            if (as.nelem() == 2)
+            {
+                Index nom;
+                char* endptr;
+                
+                nom = strtol(as[0].c_str(), &endptr, 10);
+                if (endptr != as[0].c_str()+as[0].nelem())
+                    throw std::runtime_error("Error parsing quantum number F");
+                
+                if (as[1] == "5")
+                    mquantum_numbers.SetUpper(QN_F, Rational(nom * 2 + 1, 2));
+                else if (as[1] == "0")
+                    mquantum_numbers.SetUpper(QN_F, nom);
+                else
+                    throw std::runtime_error("Error parsing quantum number F");
+            }
+        }  
+        
+        // Parse upper global quanta Omega
+        qnf=mupper_gquanta.substr(8,3);
+        qnf.trim();
+        if (qnf.nelem())
+        {
+            ArrayOfString as;
+            qnf.split(as, "/");
+            if (as.nelem() == 2)
+            {
+                Index nom,denom;
+                char* endptr;
+                
+                nom = strtol(as[0].c_str(), &endptr, 10);
+                if (endptr != as[0].c_str()+as[0].nelem())
+                    throw std::runtime_error("Error parsing nominator quantum number Omega");
+                denom = strtol(as[1].c_str(), &endptr, 10);
+                if (endptr != as[1].c_str()+as[1].nelem())
+                    throw std::runtime_error("Error parsing denominator quantum number Omega");
+                mquantum_numbers.SetUpper(QN_Omega, Rational(nom,denom));
+            }
+        }  
+        
+        // Parse lower global quanta Omega
+        qnf=mlower_gquanta.substr(8,3);
+        qnf.trim();
+        if (qnf.nelem())
+        {
+            ArrayOfString as;
+            qnf.split(as, "/");
+            if (as.nelem() == 2)
+            {
+                Index nom,denom;
+                char* endptr;
+                
+                nom = strtol(as[0].c_str(), &endptr, 10);
+                if (endptr != as[0].c_str()+as[0].nelem())
+                    throw std::runtime_error("Error parsing nominator quantum number Omega");
+                denom = strtol(as[1].c_str(), &endptr, 10);
+                if (endptr != as[1].c_str()+as[1].nelem())
+                    throw std::runtime_error("Error parsing denominator quantum number Omega");
+                mquantum_numbers.SetLower(QN_Omega, Rational(nom,denom));
+            }
+        }   
       }
-      else if(species_data[mspecies].Name()=="OH")//OH FIXME: Add this.
+      else if(species_data[mspecies].Name()=="OH")
       {
-        //pass for now
-      }
-      else if(species_data[mspecies].Name()=="ClO")//ClO FIXME: Add this.
-      {
-        //pass for now
+          // pass for now 
       }
   }
 

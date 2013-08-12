@@ -43,6 +43,7 @@ typedef enum {
     QN_N,           // Total-Spin
     QN_S,           // Electronic spin
     QN_F,           // Total + nuclear spin
+    QN_Omega,       // Absolute of projection of total + projection of spin
     QN_v1,          // Vibrational mode 1
     QN_v2,          // Vibrational mode 2
     QN_v3,          // Vibrational mode 3

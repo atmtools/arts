@@ -424,7 +424,8 @@ void define_basic_species_data()
         ISOTOPOLOGUES
         (//  Name,      Isotop. Ratio,   Mass,         MY-tag, HI-tag, JPL-tag
          //             |                |             |       |       |
-         REC("146"      ,0.989110       ,62.995644    ,121    ,121    ,TAGS(63001, 63002, 63003, 63004, 63005, 63006))
+         REC("146"      ,0.989110       ,62.995644    ,121    ,121    ,TAGS(63001, 63002, 63003, 63004, 63005, 63006)),
+         REC("156"      ,3.636e-3       ,63.995644    ,-1     ,122    ,TAGS())
          ) ) );
 
   // OH
@@ -451,7 +452,7 @@ void define_basic_species_data()
         (//  Name,      Isotop. Ratio,   Mass,         MY-tag, HI-tag, JPL-tag
          //             |                |             |       |       |
          REC("19"       ,0.99984425     ,20.006229    ,141    ,141    ,TAGS(20002)),
-         REC("29"       ,0.00014994513  ,21.00        ,-1     ,-1     ,TAGS(21002))
+         REC("29"       ,0.00014994513  ,21.00        ,-1     ,142     ,TAGS(21002))
          ) ) );
 
   // HCl
@@ -465,8 +466,8 @@ void define_basic_species_data()
          //             |                |             |       |       |
          REC("15"       ,0.757587       ,35.976678    ,151    ,151    ,TAGS(36001)),
          REC("17"       ,0.242257       ,37.973729    ,152    ,152    ,TAGS(38001)),
-         REC("25"       ,0.00011324004  ,37.00        ,-1     ,-1     ,TAGS(37001)),
-         REC("27"       ,3.6728230E-05  ,39.00        ,-1     ,-1     ,TAGS(39004))
+         REC("25"       ,0.00011324004  ,37.00        ,-1     ,153     ,TAGS(37001)),
+         REC("27"       ,3.6728230E-05  ,39.00        ,-1     ,154     ,TAGS(39004))
          ) ) );
 
   // HBr
@@ -479,7 +480,9 @@ void define_basic_species_data()
         (//  Name,      Isotop. Ratio,    Mass,         MY-tag, HI-tag, JPL-tag
          //             |                 |             |       |       |
          REC("19"       ,0.506781        ,79.926160    ,161    ,161    ,TAGS(80001)),
-         REC("11"       ,0.493063        ,81.924115    ,162    ,162    ,TAGS(82001))
+         REC("11"       ,0.493063        ,81.924115    ,162    ,162    ,TAGS(82001)),
+         REC("29"       ,7.894e-5        ,80.926160    ,-1     ,163    ,TAGS()),
+         REC("11_2"       ,7.680e-5        ,81.924115    ,-1     ,164    ,TAGS())
          ) ) );
 
   // HI
@@ -496,7 +499,8 @@ void define_basic_species_data()
         ISOTOPOLOGUES
         (//  Name,      Isotop. Ratio,   Mass,         MY-tag, HI-tag, JPL-tag
          //             |                |             |       |       |
-         REC("17"       ,0.99984425     ,127.912297   ,-1     ,171    ,TAGS( ))
+         REC("17"       ,0.99984425     ,127.912297   ,-1     ,171    ,TAGS( )),
+         REC("27"       ,1.557e-4      ,128.912297   ,-1      ,172    ,TAGS( ))
          ) ) );
 
   // ClO
@@ -587,6 +591,7 @@ void define_basic_species_data()
         (//  Name,      Isotop. Ratio,   Mass,         MY-tag, HI-tag, JPL-tag
          //             |                |             |       |       |
          REC("44"       ,0.9926874      ,28.006147    ,-1     ,221    ,TAGS( )),
+         REC("45"       ,3.665e-3       ,29.006147    ,-1     ,222    ,TAGS( )),
          REC( "SelfContMPM93"           ,NAN    ,NAN    ,-1     ,-1     ,TAGS()),
          REC( "SelfContPWR93"           ,NAN    ,NAN    ,-1     ,-1     ,TAGS()),
          REC( "SelfContStandardType"    ,NAN    ,NAN    ,-1     ,-1     ,TAGS()),
@@ -692,7 +697,8 @@ void define_basic_species_data()
         ISOTOPOLOGUES
         (//  Name,      Isotop. Ratio,       Mass,         MY-tag, HI-tag, JPL-tag
          //             |                    |             |       |       |
-         REC("269"      ,.986544E+00        ,65.991722    ,291    ,291    ,TAGS(66001))
+         REC("269"      ,.986544E+00        ,65.991722    ,291    ,291    ,TAGS(66001)),
+         REC("369"      ,1.108e-2           ,65.991722    ,-1     ,292    ,TAGS())
          ) ) );
 
   // SF6
@@ -1050,8 +1056,8 @@ void define_basic_species_data()
         ISOTOPOLOGUES
         (//  Name,      Isotop. Ratio,   Mass,     MY-tag, HI-tag, JPL-tag
          //             |                |         |       |       |
-         REC("11"      ,.999700e+00     , 2.00    ,-1     ,-1     ,TAGS()),
-         REC("12"      ,.299847e-03     , 3.00    ,-1     ,-1     ,TAGS(3001))
+         REC("11"      ,.999700e+00     , 2.00    ,-1     ,451     ,TAGS()),
+         REC("12"      ,.299847e-03     , 3.00    ,-1     ,452     ,TAGS(3001))
 //         REC("22"      ,.224838e-07     , 4.00    ,-1     ,-1     ,TAGS())
          ) ) );
 
@@ -1105,6 +1111,30 @@ void define_basic_species_data()
        //             |                |         |       |       |
        REC("8"       ,1.00            , 18.00    ,-1     ,-1     ,TAGS())
        ) ) );
+    
+    // C4H2
+    // In HITRAN since 2012. Mass is guessed. Degree of Freedom is guessed.
+    species_data.push_back
+    ( SpeciesRecord
+    ( NAME("C4H2"),
+           DEGFR(2),
+           ISOTOPOLOGUES
+           (//  Name,      Isotop. Ratio,   Mass,     MY-tag, HI-tag, JPL-tag
+           //             |                |         |       |       |
+           REC("2211"       ,0.9560            , 50.00    ,-1     ,431     ,TAGS())
+    ) ) );
+    
+    // SO3
+    // In HITRAN since 2012. Mass is guessed. Degree of Freedom is guessed.
+    species_data.push_back
+    ( SpeciesRecord
+    ( NAME("SO3"),
+      DEGFR(3),
+      ISOTOPOLOGUES
+      (//  Name,      Isotop. Ratio,   Mass,     MY-tag, HI-tag, JPL-tag
+      //             |                |         |       |       |
+      REC("26"       ,0.9434            , 80.00    ,-1     ,471     ,TAGS())
+      ) ) );
 
 
 // You also have to change the entry in the file
