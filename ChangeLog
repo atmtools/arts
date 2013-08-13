@@ -1,14 +1,23 @@
+2013-08-13  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-723
+
+	* src/ppath.cc (ppath_calc): Improved check if TOA reached. Added
+	second part of if-statement. Required for some fatal cases where
+	the start part otherwise can jump outside the atmosphere. This
+	fixed one failing case provided by Ole Martin.
+
 2013-08-12  Jana Mendrok  <jana.mendrok@ltu.se>
 
 	* arts-2-1-722
 
-	* doc/uguide/refr_index_theory.tex: Added. Moved refractive index (models)
-	theory/background parts	from AUG to here and merge info from
-	ESA-Planetary TN1 into it. Currently an own chapter; in future rather
-	make it a section in propagation paths chapter?
+	* doc/uguide/refr_index_theory.tex: Added. Moved refractive index
+	(models) theory/background parts from AUG to here and merge info
+	from ESA-Planetary TN1 into it. Currently an own chapter; in
+	future rather make it a section in propagation paths chapter?
 
-	* doc/uguide/refr_index.tex: Minor updates, corrections. Few parts moved
-	to ATD.
+	* doc/uguide/refr_index.tex: Minor updates, corrections. Few parts
+	moved to ATD.
 
 	* doc/uguide/arts_theory.tex: Include the refractive index chapter.
 

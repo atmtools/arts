@@ -5303,7 +5303,11 @@ void ppath_calc(
       if( !ppath_inside_cloudbox_do )
         {
           // Check if the top of the atmosphere is reached
-          if( is_gridpos_at_index_i( ppath_step.gp_p[n-1], imax_p ) )
+          // (Perform first a strict check, and if upward propagation also a
+          //  non-strict check. The later to avoid fatal "fixes" at TOA.)
+          if( is_gridpos_at_index_i( ppath_step.gp_p[n-1], imax_p ) ||
+              ( abs(ppath_step.los(n-1,0))<90  &&
+                is_gridpos_at_index_i(  ppath_step.gp_p[n-1], imax_p, false )))
             { 
               ppath_set_background( ppath_step, 1 ); 
             }
