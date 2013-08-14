@@ -75,7 +75,7 @@ extern const Numeric PI;
   \param abs_vec_data Absorption vector in database.
   \param za_datagrid Zenith angle grid in the database.
   \param aa_datagrid Zenith angle grid in the database.
-  \param ptype Clasiification of the hydometeor species.
+  \param particle_type Clasiification of the hydometeor species.
   \param za_sca Zenith angle of scattered direction.
   \param aa_sca Azimuth angle of scattered direction.
      
@@ -88,7 +88,7 @@ void abs_vecTransform(//Output and Input
                       ConstTensor3View abs_vec_data,
                       ConstVectorView za_datagrid,
                       ConstVectorView aa_datagrid _U_,
-                      const ParticleType& ptype,
+                      const ParticleType& particle_type,
                       const Numeric& za_sca _U_,
                       const Numeric& aa_sca _U_,
                       const Verbosity& verbosity)
@@ -100,7 +100,7 @@ void abs_vecTransform(//Output and Input
                         "must be 1,2,3 or 4");
   }
   
-  switch (ptype){
+  switch (particle_type){
       
     case PARTICLE_TYPE_GENERAL:
     {
@@ -180,7 +180,7 @@ void abs_vecTransform(//Output and Input
   \param ext_mat_data Extinction matrix in database.
   \param za_datagrid Zenith angle grid in the database.
   \param aa_datagrid Zenith angle grid in the database.
-  \param ptype Clasiification of the hydometeor species.
+  \param particle_type Clasiification of the hydometeor species.
   \param za_sca Zenith angle of scattered direction.
   \param aa_sca Azimuth angle of scattered direction.
 
@@ -193,19 +193,19 @@ void ext_matTransform(//Output and Input
                       ConstTensor3View ext_mat_data,
                       ConstVectorView za_datagrid,
                       ConstVectorView aa_datagrid _U_,
-                      const ParticleType& ptype,
+                      const ParticleType& particle_type,
                       const Numeric& za_sca,
                       const Numeric& aa_sca _U_,
                       const Verbosity& verbosity)
 {
   const Index stokes_dim = ext_mat_lab.ncols();
-  
+
   if (stokes_dim > 4 || stokes_dim < 1){
     throw runtime_error("The dimension of the stokes vector \n"
                         "must be 1,2,3 or 4");
   }
   
-  switch (ptype){
+  switch (particle_type){
       
     case PARTICLE_TYPE_GENERAL:
     {
@@ -331,7 +331,7 @@ void ext_matTransform(//Output and Input
   \param[in]     pha_mat_data  Phase matrix in database.
   \param[in]     za_datagrid   Zenith angle grid in the database.
   \param[in]     aa_datagrid   Zenith angle grid in the database.
-  \param[in]     ptype         Classification of the hydometeor species.
+  \param[in]     particle_type Classification of the hydometeor species.
   \param[in]     za_sca_idx    Index of zenith angle of scattered direction.
   \param[in]     aa_sca_idx    Index of azimuth angle of scattered direction.
   \param[in]     za_inc_idx    Index of zenith angle of incoming direction.
@@ -348,7 +348,7 @@ void pha_matTransform(//Output
                       ConstTensor5View pha_mat_data,
                       ConstVectorView za_datagrid,
                       ConstVectorView aa_datagrid,
-                      const ParticleType& ptype,
+                      const ParticleType& particle_type,
                       const Index& za_sca_idx,
                       const Index& aa_sca_idx,
                       const Index& za_inc_idx,
@@ -369,7 +369,7 @@ void pha_matTransform(//Output
                         "must be 1,2,3 or 4");
   }
   
-  switch (ptype){
+  switch (particle_type){
       
     case PARTICLE_TYPE_GENERAL:
     {

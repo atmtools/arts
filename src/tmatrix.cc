@@ -953,7 +953,7 @@ void calcSingleScatteringDataProperties(SingleScatteringData& ssd,
     Vector lam(nf, 1e6*SPEED_OF_LIGHT);
     lam /= ssd.f_grid;
 
-    switch (ssd.ptype) {
+    switch (ssd.particle_type) {
         case PARTICLE_TYPE_MACROS_ISO:
         {
             ssd.pha_mat_data.resize(nf, nT, nza, 1, 1, 1, 6);
@@ -1177,7 +1177,7 @@ void calcSingleScatteringDataProperties(SingleScatteringData& ssd,
         {
             std::ostringstream os;
             os << "Only particle types 20 and 30 are currently supported: "
-            << ssd.ptype;
+            << ssd.particle_type;
             throw std::runtime_error(os.str());
             break;
         }
@@ -1359,7 +1359,7 @@ void calc_ssp_random_test(const Verbosity& verbosity)
 
     SingleScatteringData ssd;
 
-    ssd.ptype = PARTICLE_TYPE_MACROS_ISO;
+    ssd.particle_type = PARTICLE_TYPE_MACROS_ISO;
     ssd.f_grid = MakeVector(230e9, 240e9);
     ssd.T_grid = MakeVector(220, 250);
     nlinspace(ssd.za_grid, 0, 180, 19);
@@ -1417,7 +1417,7 @@ void calc_ssp_fixed_test(const Verbosity& verbosity)
 
     SingleScatteringData ssd;
 
-    ssd.ptype = PARTICLE_TYPE_HORIZ_AL;
+    ssd.particle_type = PARTICLE_TYPE_HORIZ_AL;
     ssd.f_grid = MakeVector(230e9, 240e9);
     ssd.T_grid = MakeVector(220, 250);
     nlinspace(ssd.za_grid, 0, 180, 19);

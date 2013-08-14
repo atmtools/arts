@@ -56,7 +56,7 @@ extern const Numeric PI;
 extern const Numeric DEG2RAD;
 extern const Numeric RAD2DEG;
 
-#define PART_TYPE scat_data_raw[i_pt].ptype
+#define PART_TYPE scat_data_raw[i_pt].particle_type
 #define F_DATAGRID scat_data_raw[i_pt].f_grid
 #define T_DATAGRID scat_data_raw[i_pt].T_grid
 #define ZA_DATAGRID scat_data_raw[i_pt].za_grid
@@ -116,7 +116,7 @@ void pha_mat_sptFromData( // Output:
 
           // First we have to transform the data from the coordinate system 
           // used in the database (depending on the kind of particle type 
-          // specified by *ptype*) to the laboratory coordinate sytem. 
+          // specified by *particle_type*) to the laboratory coordinate sytem.
       
           // Frequency interpolation:
      
@@ -366,7 +366,7 @@ void opt_prop_sptFromData(// Output and Input:
         {
           // First we have to transform the data from the coordinate system 
           // used in the database (depending on the kind of particle type 
-          // specified by *ptype*) to the laboratory coordinate sytem. 
+          // specified by *particle_type*) to the laboratory coordinate sytem.
       
           // Frequency interpolation:
      
@@ -1074,7 +1074,7 @@ void DoitScatteringDataPrepare(//Output:
                                             joker,joker),
                                            scat_data_mono[i_pt].za_grid,
                                            scat_data_mono[i_pt].aa_grid,
-                                           scat_data_mono[i_pt].ptype,
+                                           scat_data_mono[i_pt].particle_type,
                                            za_sca_idx,
                                            aa_sca_idx,
                                            za_inc_idx,
@@ -1143,7 +1143,7 @@ void scat_data_monoCalc(ArrayOfSingleScatteringData& scat_data_mono,
       interpweights(itw, freq_gp);
 
       //Stuff that doesn't need interpolating
-      scat_data_mono[i_pt].ptype=PART_TYPE;
+      scat_data_mono[i_pt].particle_type=PART_TYPE;
       scat_data_mono[i_pt].f_grid.resize(1);
       scat_data_mono[i_pt].f_grid=f_grid[f_index];
       scat_data_mono[i_pt].T_grid=scat_data_raw[i_pt].T_grid;
@@ -1294,7 +1294,7 @@ void opt_prop_sptFromMonoData(// Output and Input:
  
           // First we have to transform the data from the coordinate system 
           // used in the database (depending on the kind of particle type 
-          // specified by *ptype*) to the laboratory coordinate sytem. 
+          // specified by *particle_type*) to the laboratory coordinate sytem. 
           
           //
           // Do the transformation into the laboratory coordinate system.
@@ -1345,7 +1345,7 @@ void opt_prop_sptFromMonoData(// Output and Input:
                            ext_mat_data1temp,
                            scat_data_mono[i_pt].za_grid, 
                            scat_data_mono[i_pt].aa_grid, 
-                           scat_data_mono[i_pt].ptype,
+                           scat_data_mono[i_pt].particle_type,
                            za_sca, aa_sca,
                            verbosity);
           // 
@@ -1377,7 +1377,7 @@ void opt_prop_sptFromMonoData(// Output and Input:
                            abs_vec_data1temp,
                            scat_data_mono[i_pt].za_grid, 
                            scat_data_mono[i_pt].aa_grid, 
-                           scat_data_mono[i_pt].ptype,
+                           scat_data_mono[i_pt].particle_type,
                            za_sca, aa_sca,
                            verbosity);                
         }
@@ -1473,7 +1473,7 @@ void pha_mat_sptFromMonoData(// Output:
                                          joker,joker),
                                         scat_data_mono[i_pt].za_grid, 
                                         scat_data_mono[i_pt].aa_grid,
-                                        scat_data_mono[i_pt].ptype,
+                                        scat_data_mono[i_pt].particle_type,
                                         scat_za_index, scat_aa_index, 
                                         za_inc_idx, 
                                         aa_inc_idx, za_grid, scat_aa_grid,

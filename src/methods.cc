@@ -8997,7 +8997,7 @@ void define_md_data_raw()
       GOUT_TYPE(),
       GOUT_DESC(),
       IN( "scat_data_meta_array" ),
-      GIN( "description", "material", "shape", "p_type", "aspect_ratio", 
+      GIN( "description", "material", "shape", "particle_type", "aspect_ratio", 
            "r_grid", "scat_f_grid", "scat_T_grid", "ref_index" ),
       GIN_TYPE( "String", "String", "String", "String", "Numeric", "Vector", 
                "Vector", "Vector", "GriddedField3" ),

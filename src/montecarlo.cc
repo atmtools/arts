@@ -342,7 +342,7 @@ void findZ11max(Vector& Z11maxvector,
 
   for(Index i = 0;i<np;i++)
     {
-      switch(scat_data_mono[i].ptype){
+      switch(scat_data_mono[i].particle_type){
       case PARTICLE_TYPE_MACROS_ISO:
         {
           Z11maxvector[i]=max(scat_data_mono[i].pha_mat_data(0,joker,joker,0,0,0,0));
@@ -364,7 +364,7 @@ void findZ11max(Vector& Z11maxvector,
 /*!
 Some operations in Monte Carlo simulations are different depending on the 
 particle type of the scattering particles.  This function searches 
-scat_data_mono to determine if any of the particle types have ptype=30
+scat_data_mono to determine if any of the particle types have particle_type=30
 
 \author Cory Davis
 \date 2004-1-31
@@ -377,7 +377,7 @@ bool is_anyptype30(const ArrayOfSingleScatteringData& scat_data_mono)
   Index i=0;
   while(i < np && anyptype30==false)
     {
-      if(scat_data_mono[i].ptype==PARTICLE_TYPE_HORIZ_AL)
+      if(scat_data_mono[i].particle_type==PARTICLE_TYPE_HORIZ_AL)
         {
           anyptype30=true;
         }
@@ -729,7 +729,7 @@ void opt_propExtract(
                      VectorView     abs_vec_mono_spt,
                      const SingleScatteringData& scat_data,
                      const Numeric  za,
-                     const Numeric  aa _U_, // avoid warning until we use ptype=10
+                     const Numeric  aa _U_, // avoid warning until we use particle_type=10
                      const Numeric  rtp_temperature,
                      const Index    stokes_dim,
                      const Verbosity& verbosity
@@ -741,7 +741,7 @@ void opt_propExtract(
     { gridpos( t_gp, scat_data.T_grid, rtp_temperature ); }
 
 
-  switch (scat_data.ptype){
+  switch (scat_data.particle_type){
 
   case PARTICLE_TYPE_GENERAL:
     {
@@ -966,7 +966,7 @@ void pha_mat_singleExtract(
                            const Verbosity& verbosity
                            )                       
 {
-  switch (scat_data.ptype){
+  switch (scat_data.particle_type){
 
     case PARTICLE_TYPE_GENERAL:
     {

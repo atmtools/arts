@@ -590,7 +590,7 @@ void chk_scattering_meta_data(const ScatteringMetaData& scat_data_meta _U_,
   properties of a particle type includes the required frequencies and 
   temperatures and whether the angular grids are defined correctly.
   Furthermore it checks the self consistency of the data by checking the 
-  dimensions of pha_mat, ext_mat and abs_vec depening on the ptype case. 
+  dimensions of pha_mat, ext_mat and abs_vec depending on the particle_type case.
   
   \param scat_data_raw Single scattering data
   \param scat_data_file Filename of the data to be checked.
@@ -608,12 +608,12 @@ void chk_single_scattering_data(const SingleScatteringData& scat_data_raw,
   out2 << "  Check single scattering properties file "<< scat_data_file 
        << "\n";
 
-  if (scat_data_raw.ptype != 10 && 
-      scat_data_raw.ptype != 20 &&
-      scat_data_raw.ptype != 30)
+  if (scat_data_raw.particle_type != 10 &&
+      scat_data_raw.particle_type != 20 &&
+      scat_data_raw.particle_type != 30)
     {
       ostringstream os; 
-      os << "Ptype value in file" << scat_data_file << "is wrong."
+      os << "Particle type value in file" << scat_data_file << "is wrong."
          << "It must be \n"
          << "10 - arbitrary oriented particles \n"
          << "20 - randomly oriented particles or \n"
@@ -671,20 +671,20 @@ void chk_single_scattering_data(const SingleScatteringData& scat_data_raw,
       throw runtime_error( os.str() );
     } 
   
-  if (scat_data_raw.ptype == 10 && scat_data_raw.aa_grid[0] != -180.)
+  if (scat_data_raw.particle_type == 10 && scat_data_raw.aa_grid[0] != -180.)
      {
        ostringstream os;
-       os << "For ptype = 10 (general orientation) the first value"
+       os << "For particle_type = 10 (general orientation) the first value"
           << " of the aa grid in the single scattering"
           << " properties datafile " 
           << scat_data_file << "must be -180.";
          throw runtime_error( os.str() );
      } 
   
-  if (scat_data_raw.ptype == 30 && scat_data_raw.aa_grid[0] != 0.)
+  if (scat_data_raw.particle_type == 30 && scat_data_raw.aa_grid[0] != 0.)
     {
       ostringstream os;
-      os << "For ptype = 30 (horizontal orientation)"
+      os << "For particle_type = 30 (horizontal orientation)"
          << " the first value"
          << " of the aa grid in the single scattering"
          << " properties datafile " 
@@ -692,7 +692,7 @@ void chk_single_scattering_data(const SingleScatteringData& scat_data_raw,
         throw runtime_error( os.str() );
     }   
   
-  if (scat_data_raw.ptype == 30 && last(scat_data_raw.aa_grid) != 180.)
+  if (scat_data_raw.particle_type == 30 && last(scat_data_raw.aa_grid) != 180.)
     {
       ostringstream os;
       os << "The last value of the aa grid in the single"
@@ -708,7 +708,7 @@ void chk_single_scattering_data(const SingleScatteringData& scat_data_raw,
   ostringstream os_abs_vec;
   os_abs_vec << "abs_vec* in the file * " << scat_data_file;
   
-  switch (scat_data_raw.ptype){
+  switch (scat_data_raw.particle_type){
     
   case PARTICLE_TYPE_GENERAL:
     

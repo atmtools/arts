@@ -73,7 +73,7 @@ enum ParticleType {
    It is listed as a sub-entry to "data structures".  
 */
 struct SingleScatteringData {
-  ParticleType ptype;
+  ParticleType particle_type;
   String       description;
   Vector       f_grid;
   Vector       T_grid;
@@ -101,7 +101,7 @@ struct ScatteringMetaData {
   String    description;
   String    type;
   String    shape;
-  String    p_type;
+  String    particle_type;
   Numeric   density;
   Numeric   d_max;
   Numeric   V;
@@ -128,7 +128,7 @@ void abs_vecTransform(//Output and Input
                       ConstTensor3View abs_vec_data,
                       ConstVectorView za_datagrid,
                       ConstVectorView aa_datagrid,
-                      const ParticleType& ptype,
+                      const ParticleType& particle_type,
                       const Numeric& za_sca,
                       const Numeric& aa_sca,
                       const Verbosity& verbosity);
@@ -140,7 +140,7 @@ void ext_matTransform(//Output and Input
                       ConstTensor3View ext_mat_data,
                       ConstVectorView za_datagrid,
                       ConstVectorView aa_datagrid,
-                      const ParticleType& ptype,
+                      const ParticleType& particle_type,
                       const Numeric& za_sca,
                       const Numeric& aa_sca,
                       const Verbosity& verbosity);
@@ -152,7 +152,7 @@ void pha_matTransform(//Output
                       ConstTensor5View pha_mat_data,
                       ConstVectorView za_datagrid,
                       ConstVectorView aa_datagrid,
-                      const ParticleType& ptype,
+                      const ParticleType& particle_type,
                       const Index& za_sca_idx,
                       const Index& aa_sca_idx,
                       const Index& za_inc_idx,

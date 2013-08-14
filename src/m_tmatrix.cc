@@ -53,7 +53,7 @@ void scat_data_meta_arrayAdd(// WS Output:
                              const String& description,
                              const String& material,
                              const String& shape,
-                             const String& p_type,
+                             const String& particle_type,
                              const Numeric& aspect_ratio,
                              const Vector& r_grid,
                              const Vector& scat_f_grid,
@@ -128,7 +128,7 @@ void scat_data_meta_arrayAdd(// WS Output:
       if (description=="")
         {   
           ostringstream os;
-          os << shape<< " "<< material << " particle of type " << p_type<<
+          os << shape<< " "<< material << " particle of type " << particle_type<<
             ", with equivalent radius "
             <<r_grid[k]<<" um.";
           smd.description=os.str();
@@ -138,7 +138,7 @@ void scat_data_meta_arrayAdd(// WS Output:
  
       smd.type = material;
       smd.shape = shape;
-      smd.p_type = p_type;
+      smd.particle_type = particle_type;
       smd.density = density;
       smd.d_max =d_max;
       smd.V = 4./3.*PI*r_grid[k]*r_grid[k]*r_grid[k]*1e-18;
@@ -169,7 +169,7 @@ void scat_data_rawFromTMatrix(// WS Output:
     {
 
       extern const Numeric PI;  
-      const String& p_type = scat_data_meta_array[ii].p_type;
+      const String& particle_type = scat_data_meta_array[ii].particle_type;
       Index  np;
 
       SingleScatteringData sdd;
@@ -179,14 +179,14 @@ void scat_data_rawFromTMatrix(// WS Output:
       sdd.aa_grid = aa_grid;
 
 
-      if (p_type == "MACROS_ISO")
-        sdd.ptype = PARTICLE_TYPE_MACROS_ISO;
-      else if (p_type == "HORIZ_AL")
-        sdd.ptype = PARTICLE_TYPE_HORIZ_AL;
+      if (particle_type == "MACROS_ISO")
+        sdd.particle_type = PARTICLE_TYPE_MACROS_ISO;
+      else if (particle_type == "HORIZ_AL")
+        sdd.particle_type = PARTICLE_TYPE_HORIZ_AL;
       else
         {
           ostringstream os;
-          os << "Unknown particle type: " << p_type << "\n"
+          os << "Unknown particle type: " << particle_type << "\n"
             << "Must be MACROS_ISO or HORIZ_AL";
           throw std::runtime_error(os.str());
         }
@@ -237,9 +237,9 @@ void single_scattering_dataFromTmatrix(
     single_scattering_data.aa_grid = aa_grid;
 
     if( orientation == "macro_iso" )
-      { single_scattering_data.ptype = PARTICLE_TYPE_MACROS_ISO; }
+      { single_scattering_data.particle_type = PARTICLE_TYPE_MACROS_ISO; }
     else if( orientation == "horiz_al" )
-      { single_scattering_data.ptype = PARTICLE_TYPE_HORIZ_AL; }
+      { single_scattering_data.particle_type = PARTICLE_TYPE_HORIZ_AL; }
     else
       {
         ostringstream os;

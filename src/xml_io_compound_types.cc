@@ -1223,13 +1223,13 @@ void xml_read_from_stream(istream& is_xml,
                           bifstream* pbifs, const Verbosity& verbosity)
 {
   ArtsXMLTag tag(verbosity);
-  Index ptype;
+  Index particle_type;
 
   tag.read_from_stream(is_xml);
   tag.check_name("SingleScatteringData");
 
-  xml_read_from_stream(is_xml, ptype, pbifs, verbosity);
-  ssdata.ptype = ParticleType(ptype);
+  xml_read_from_stream(is_xml, particle_type, pbifs, verbosity);
+  ssdata.particle_type = ParticleType(particle_type);
   xml_read_from_stream(is_xml, ssdata.description, pbifs, verbosity);
   xml_read_from_stream(is_xml, ssdata.f_grid, pbifs, verbosity);
   xml_read_from_stream(is_xml, ssdata.T_grid, pbifs, verbosity);
@@ -1282,7 +1282,7 @@ void xml_write_to_stream(ostream& os_xml,
     open_tag.add_attribute("name", name);
   open_tag.write_to_stream(os_xml);
 
-  xml_write_to_stream(os_xml, Index(ssdata.ptype), pbofs, "", verbosity);
+  xml_write_to_stream(os_xml, Index(ssdata.particle_type), pbofs, "", verbosity);
   xml_write_to_stream(os_xml, ssdata.description, pbofs, "", verbosity);
   xml_write_to_stream(os_xml, ssdata.f_grid, pbofs, "", verbosity);
   xml_write_to_stream(os_xml, ssdata.T_grid, pbofs, "", verbosity);
@@ -1333,7 +1333,7 @@ void xml_read_from_stream(istream& is_xml,
     {  
       xml_read_from_stream(is_xml, smdata.f_grid, pbifs, verbosity);
       xml_read_from_stream(is_xml, smdata.T_grid, pbifs, verbosity);
-      xml_read_from_stream(is_xml, smdata.p_type, pbifs, verbosity);
+      xml_read_from_stream(is_xml, smdata.particle_type, pbifs, verbosity);
       xml_read_from_stream(is_xml, smdata.ref_index, pbifs, verbosity);
     }
 
@@ -1373,7 +1373,7 @@ void xml_write_to_stream(ostream& os_xml,
   xml_write_to_stream(os_xml, smdata.asratio, pbofs, "", verbosity);
   xml_write_to_stream(os_xml, smdata.f_grid, pbofs, "", verbosity);
   xml_write_to_stream(os_xml, smdata.T_grid, pbofs, "", verbosity);
-  xml_write_to_stream(os_xml, smdata.p_type, pbofs, "", verbosity);
+  xml_write_to_stream(os_xml, smdata.particle_type, pbofs, "", verbosity);
   xml_write_to_stream(os_xml, smdata.ref_index, pbofs, "", verbosity);
   
   close_tag.set_name("/ScatteringMetaData");
