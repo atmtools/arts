@@ -195,7 +195,7 @@ void parse_psd_param (String& psd_param,
                       const String& part_string,
                       const String& delim);
 
-void parse_part_type (String& part_type,
+void parse_part_material (String& part_material,
                       const String& part_string,
                       const String& delim);
 

@@ -99,17 +99,17 @@ ostream& operator<< (ostream& os, const ArrayOfSingleScatteringData& assd);
 */
 struct ScatteringMetaData {
   String    description;
-  String    type;
+  String    material;
   String    shape;
   String    particle_type;
   Numeric   density;
-  Numeric   d_max;
-  Numeric   V;
-  Numeric   A_projec;
-  Numeric   asratio;
-  Vector    f_grid;
-  Vector    T_grid;
-  Tensor3   ref_index;
+  Numeric   diameter_max;
+  Numeric   volume;
+  Numeric   area_projected;
+  Numeric   aspect_ratio;
+  Vector    scat_f_grid;
+  Vector    scat_T_grid;
+  Tensor3   complex_refr_index;
 };
 
 typedef Array<ScatteringMetaData> ArrayOfScatteringMetaData;

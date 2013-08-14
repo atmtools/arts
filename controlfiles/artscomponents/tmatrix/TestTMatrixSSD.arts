@@ -12,25 +12,26 @@ VectorSet( scat_f_grid, [230e9, 240e9] )
 VectorCreate( scat_T_grid )
 VectorSet( scat_T_grid, [220, 250] )
 
-GriddedField3Create(scat_ref_index)
+GriddedField3Create(scat_refr_index)
 ParticleRefractiveIndexIceWarren84
-	(scat_ref_index=scat_ref_index,
+	(complex_refr_index=scat_refr_index,
 	scat_f_grid=scat_f_grid,
 	scat_t_grid=scat_T_grid )
 
 scat_data_meta_arrayInit
 
-scat_data_meta_arrayAdd(
+scat_data_meta_arrayAddTmatrix(
 	material="Ice",
-	shape="spherical",
-	particle_type="HORIZ_AL",
+	shape="spheroidal",
+	particle_type="horiz_al",
+	density=916.7,
 	aspect_ratio=0.7,
-	r_grid=[200.],
+	diameter_grid=[400e-6],
 	scat_f_grid=scat_f_grid,
 	scat_T_grid=scat_T_grid,
-	ref_index=scat_ref_index )
+	complex_refr_index=scat_refr_index )
 
-scat_data_rawFromTMatrix(
+scat_data_rawFromMeta(
 	za_grid=ssd_za_grid,
 	aa_grid=ssd_aa_grid,
 	precision=0.001 )
@@ -42,7 +43,7 @@ WriteXML( "ascii", scat_data_raw )
 GriddedField3Create( n_of_ice )
 
 ParticleRefractiveIndexIceWarren84( 
-  scat_ref_index = n_of_ice, 
+  complex_refr_index = n_of_ice, 
   scat_f_grid    = scat_f_grid,
   scat_t_grid    = scat_T_grid )
 
@@ -53,7 +54,7 @@ single_scattering_dataFromTmatrix(
   aa_grid            = ssd_aa_grid,
   complex_refr_index = n_of_ice,
   orientation        = "horiz_al",
-  shape              = "spherical",
+  shape              = "spheroidal",
   equiv_radius       = 200e-6,
   aspect_ratio       = 0.7,
   precision          = 0.001 )

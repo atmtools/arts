@@ -1140,26 +1140,26 @@ void ScatteringParticlesSelect (//WS Output:
   for ( Index k=0; k<part_species.nelem(); k++ )
   {
    
-    String part_type;
+    String part_material;
     String partfield_name;
     Numeric sizemin;
     Numeric sizemax;
 
     //split part_species string and copy values to parameter
     parse_partfield_name( partfield_name, part_species[k], delim);
-    parse_part_type( part_type, part_species[k], delim);
+    parse_part_material( part_material, part_species[k], delim);
     parse_part_size(sizemin, sizemax, part_species[k], delim);
 
     // choosing the specified SingleScatteringData and ScatteringMetaData
     for ( Index j=0; j<scat_data_meta_array_tmp.nelem(); j++ )
     {
       // check for particle (material/phase) type (e.g. "Ice", "Water",...)
-      if ( scat_data_meta_array_tmp[j].type == part_type ) 
+      if ( scat_data_meta_array_tmp[j].material == part_material ) 
       {       
         // particle radius is calculated from particle volume given in
         // scattering meta data
         Numeric r_particle = 
-          pow ( 3./4. * scat_data_meta_array_tmp[j].V * 1e18 / PI , 1./3. );
+          pow ( 3./4. * scat_data_meta_array_tmp[j].volume * 1e18 / PI , 1./3. );
 	
 	// check if particle is in size range
   // (sizemax < 0 results from wildcard usage and means consider all sizes on
@@ -1172,7 +1172,7 @@ void ScatteringParticlesSelect (//WS Output:
         }
       selected[j] = 1;
       out3 << "Selecting particle " << j+1 << "/" << scat_data_meta_array_tmp.nelem()
-           << " (" << scat_data_meta_array_tmp[j].type << ")\n";
+           << " (" << scat_data_meta_array_tmp[j].material << ")\n";
       }
     }
     // WSV scat_data_nelem gets the number of elements of scattering data
@@ -1186,7 +1186,7 @@ void ScatteringParticlesSelect (//WS Output:
     if (scat_data_nelem[k]<1)
       {
         ostringstream os;
-        os << "Particle species " << partfield_name << " of type " << part_type
+        os << "Particle species " << partfield_name << " of type " << part_material
            << " requested.\n"
            << "But no Scattering Data found for it!\n";
         throw runtime_error ( os.str() );
@@ -1263,7 +1263,7 @@ void particle_massesSet (//WS Output:
     for ( Index j=scat_data_start; j<scat_data_start+scat_data_nelem[k]; j++ )
     {
       particle_masses (k,j) =
-        scat_data_meta_array[j].density * scat_data_meta_array[j].V;
+        scat_data_meta_array[j].density * scat_data_meta_array[j].volume;
     }
 
     scat_data_start += scat_data_nelem[k];
@@ -1659,13 +1659,13 @@ void pnd_fieldSetup (//WS Output:
 
     String psd_param;
     String partfield_name;
-    String part_type;
+    String part_material;
     String psd;
 
     //split String and copy to ArrayOfString
     parse_psd_param( psd_param, part_species[k], delim);
     parse_partfield_name( partfield_name, part_species[k], delim);
-    parse_part_type( part_type, part_species[k], delim);
+    parse_part_material( part_material, part_species[k], delim);
 
     // initialize control parameters
     Vector vol_unsorted ( scat_data_nelem[k], 0.0 );
@@ -1696,7 +1696,7 @@ void pnd_fieldSetup (//WS Output:
         }
 
         //check for expected particle phase
-        if ( part_type != "Ice" )
+        if ( part_material != "Ice" )
         {
             out1 << "WARNING! The particle phase is unequal 'Ice'.\n"
                  << psd << " should only be applied to ice"
@@ -1726,7 +1726,7 @@ void pnd_fieldSetup (//WS Output:
 
         //check for expected particle phase
       //check for correct particle phase
-        if ( part_type != "Ice" &&  part_type != "Water" )
+        if ( part_material != "Ice" &&  part_material != "Water" )
         {
             out1 << "WARNING! The particle phase is unequal 'Ice'.\n"
                  << psd << " should only be applied to ice (cloud ice or snow)"
@@ -1755,7 +1755,7 @@ void pnd_fieldSetup (//WS Output:
         }
 
         //check for expected particle phase
-        if ( part_type != "Ice" &&  part_type != "Water" )
+        if ( part_material != "Ice" &&  part_material != "Water" )
         {
             out1 << "WARNING! The particle phase is unequal 'Ice' and 'Water'.\n"
                  << psd << " should only be applied to liquid water or water"
@@ -1785,7 +1785,7 @@ void pnd_fieldSetup (//WS Output:
         }
 
         //check for expected particle phase
-        if ( part_type != "Water" )
+        if ( part_material != "Water" )
         {
             out1 << "WARNING! The particle phase is unequal 'Water'.\n"
                  << psd << " should only be applied to liquid water"

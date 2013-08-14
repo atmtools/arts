@@ -47,52 +47,38 @@ void scat_data_meta_arrayInit(// WS Output:
 }
                 
                  
-void scat_data_meta_arrayAdd(// WS Output:
+void scat_data_meta_arrayAddTmatrix(// WS Output:
                              ArrayOfScatteringMetaData& scat_data_meta_array,
                              // WS Generic input:
                              const String& description,
                              const String& material,
                              const String& shape,
                              const String& particle_type,
+                             const Numeric& density,
                              const Numeric& aspect_ratio,
-                             const Vector& r_grid,
+                             const Vector& diameter_grid,
                              const Vector& scat_f_grid,
                              const Vector& scat_T_grid,
-                             const GriddedField3& ref_index,
+                             const GriddedField3& complex_refr_index,
                              const Verbosity&) 
 
 {
-  chk_if_equal("f_gridScat", "f_grid from ref_index", scat_f_grid, ref_index.get_numeric_grid(0));
-  chk_if_equal("T_gridScat", "T_grid from ref_index", scat_T_grid, ref_index.get_numeric_grid(1));
+  chk_if_equal("f_gridScat", "f_grid from complex_refr_index", scat_f_grid, complex_refr_index.get_numeric_grid(0));
+  chk_if_equal("T_gridScat", "T_grid from complex_refr_index", scat_T_grid, complex_refr_index.get_numeric_grid(1));
 
-  for(Index k=0; k<r_grid.nelem(); k++)
+  for(Index k=0; k<diameter_grid.nelem(); k++)
     {
       extern const Numeric PI;
 
-      Numeric density;
+      Numeric diameter_max;
 
-
-      if (material=="Ice")
-        density=916.70000;
-      else if (material=="Water")
-        density=996.56670;
-      else
-        {
-          ostringstream os;
-          os << "Unknown material: " << material << "\n"
-            << "Must be Ice or Water";
-          throw std::runtime_error(os.str());
-        }
-
-      Numeric d_max;
-
-      if (shape == "spherical")
+      if (shape == "spheroidal")
 
         if (aspect_ratio<1)
-          d_max=2.*r_grid[k]*pow(aspect_ratio, -2./3.)*1e-6;
+          diameter_max=diameter_grid[k]*pow(aspect_ratio, -2./3.);
 
         else if (aspect_ratio>1)
-          d_max=2.*r_grid[k]*pow(aspect_ratio, 1./3.)*1e-6;
+          diameter_max=diameter_grid[k]*pow(aspect_ratio, 1./3.);
 
         else
           {
@@ -104,23 +90,15 @@ void scat_data_meta_arrayAdd(// WS Output:
 
       else if (shape == "cylindrical")
 
-        if (aspect_ratio !=1)
-
-          d_max=pow(pow(16./3., 2./3.)*pow(r_grid[k], 2.)*
-                    (pow(aspect_ratio, -4./3.)+pow(aspect_ratio, 2./3.)), 1./2.)*1e-6;
-        else
-          {
-            ostringstream os;
-            os << "Incorrect aspect ration: " << aspect_ratio << "\n"
-              << "Can not be equal to one";
-            throw std::runtime_error(os.str());
-          } 
+          diameter_max=pow(pow(16./3., 2./3.)*pow(diameter_grid[k]/.2, 2.)*
+                    (pow(aspect_ratio, -4./3.)+pow(aspect_ratio, 2./3.)), 1./2.);
+ 
 
       else
         {
           ostringstream os;
           os << "Unknown particle shape: " << shape << "\n"
-            << "Must be spherical or cylindrical";
+            << "Must be spheroidal or cylindrical";
           throw std::runtime_error(os.str());
         }
 
@@ -129,24 +107,24 @@ void scat_data_meta_arrayAdd(// WS Output:
         {   
           ostringstream os;
           os << shape<< " "<< material << " particle of type " << particle_type<<
-            ", with equivalent radius "
-            <<r_grid[k]<<" um.";
+            ", with volume equivalent diameter "
+            <<diameter_grid[k]<<" meters.";
           smd.description=os.str();
         }
       else 
         smd.description = description;
  
-      smd.type = material;
+      smd.material = material;
       smd.shape = shape;
       smd.particle_type = particle_type;
       smd.density = density;
-      smd.d_max =d_max;
-      smd.V = 4./3.*PI*r_grid[k]*r_grid[k]*r_grid[k]*1e-18;
-      smd.A_projec = 0;
-      smd.asratio = aspect_ratio;
-      smd.f_grid = scat_f_grid;
-      smd.T_grid = scat_T_grid;
-      smd.ref_index = ref_index.data;
+      smd.diameter_max =diameter_max;
+      smd.volume = 4./3.*PI*pow(diameter_grid[k]/2., 3);
+      smd.area_projected = 0;
+      smd.aspect_ratio = aspect_ratio;
+      smd.scat_f_grid = scat_f_grid;
+      smd.scat_T_grid = scat_T_grid;
+      smd.complex_refr_index = complex_refr_index.data;
 
       scat_data_meta_array.push_back(smd);
     }
@@ -155,7 +133,7 @@ void scat_data_meta_arrayAdd(// WS Output:
 //-----------------------------------
 
 
-void scat_data_rawFromTMatrix(// WS Output:
+void scat_data_rawFromMeta(// WS Output:
                               ArrayOfSingleScatteringData& scat_data_raw,
                               //WS Input
                               const ArrayOfScatteringMetaData& scat_data_meta_array,
@@ -173,25 +151,25 @@ void scat_data_rawFromTMatrix(// WS Output:
       Index  np;
 
       SingleScatteringData sdd;
-      sdd.f_grid = scat_data_meta_array[ii].f_grid;
-      sdd.T_grid = scat_data_meta_array[ii].T_grid;
+      sdd.f_grid = scat_data_meta_array[ii].scat_f_grid;
+      sdd.T_grid = scat_data_meta_array[ii].scat_T_grid;
       sdd.za_grid = za_grid;
       sdd.aa_grid = aa_grid;
 
 
-      if (particle_type == "MACROS_ISO")
+      if (particle_type == "macros_iso")
         sdd.particle_type = PARTICLE_TYPE_MACROS_ISO;
-      else if (particle_type == "HORIZ_AL")
+      else if (particle_type == "horiz_al")
         sdd.particle_type = PARTICLE_TYPE_HORIZ_AL;
       else
         {
           ostringstream os;
           os << "Unknown particle type: " << particle_type << "\n"
-            << "Must be MACROS_ISO or HORIZ_AL";
+            << "Must be macros_iso or horiz_al";
           throw std::runtime_error(os.str());
         }
 
-      if (scat_data_meta_array[ii].shape == "spherical" )
+      if (scat_data_meta_array[ii].shape == "spheroidal" )
         np=-1;
 
       else if (scat_data_meta_array[ii].shape == "cylindrical")
@@ -200,16 +178,16 @@ void scat_data_rawFromTMatrix(// WS Output:
         {
           ostringstream os;
           os << "Unknown particle shape: " << scat_data_meta_array[ii].shape << "\n"
-            << "Must be spherical or cylindrical";
+            << "Must be spheroidal or cylindrical";
           throw std::runtime_error(os.str());
         }
 
       calcSingleScatteringDataProperties(sdd,
-                                         scat_data_meta_array[ii].ref_index(joker,joker,0),
-                                         scat_data_meta_array[ii].ref_index(joker,joker,1),
-                                         pow(scat_data_meta_array[ii].V*1e18*3./(4.*PI),1./3.),
+                                         scat_data_meta_array[ii].complex_refr_index(joker,joker,0),
+                                         scat_data_meta_array[ii].complex_refr_index(joker,joker,1),
+                                         pow(scat_data_meta_array[ii].volume*1e18*3./(4.*PI),1./3.),
                                          np,
-                                         scat_data_meta_array[ii].asratio,
+                                         scat_data_meta_array[ii].aspect_ratio,
                                          precision);
 
       scat_data_raw.push_back(sdd);
@@ -236,7 +214,7 @@ void single_scattering_dataFromTmatrix(
     single_scattering_data.za_grid = za_grid;
     single_scattering_data.aa_grid = aa_grid;
 
-    if( orientation == "macro_iso" )
+    if( orientation == "macros_iso" )
       { single_scattering_data.particle_type = PARTICLE_TYPE_MACROS_ISO; }
     else if( orientation == "horiz_al" )
       { single_scattering_data.particle_type = PARTICLE_TYPE_HORIZ_AL; }
@@ -244,12 +222,12 @@ void single_scattering_dataFromTmatrix(
       {
         ostringstream os;
         os << "Unknown particle orientation: " << orientation << "\n"
-        << "Must be \"macro_iso\" or \"horiz_al\".";
+        << "Must be \"macros_iso\" or \"horiz_al\".";
         throw std::runtime_error(os.str());
       }
 
     Index ishape = 999;
-    if( shape == "spherical" )
+    if( shape == "spheroidal" )
       { ishape = -1; }
     else if( shape == "cylindrical" )
       { ishape = -2; }
@@ -257,7 +235,7 @@ void single_scattering_dataFromTmatrix(
       {
         ostringstream os;
         os << "Unknown particle shape: " << shape << "\n"
-        << "Must be \"spherical\" or \"cylindrical\".";
+        << "Must be \"spheroidal\" or \"cylindrical\".";
         throw std::runtime_error(os.str());
       }
     
@@ -272,7 +250,7 @@ void single_scattering_dataFromTmatrix(
     n_imag = complex_refr_index.data(0,0,1);
 
     calcSingleScatteringDataProperties( single_scattering_data,
-                                        n_real, n_imag, 1e-6*equiv_radius,
+                                        n_real, n_imag, equiv_radius,
                                         ishape, aspect_ratio,
                                         precision );
 }

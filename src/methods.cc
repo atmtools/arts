@@ -7237,7 +7237,7 @@ void define_md_data_raw()
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
-        GOUT( "scat_ref_index" ),
+        GOUT( "complex_refr_index" ),
         GOUT_TYPE( "GriddedField3" ),
         GOUT_DESC( "Refractive index" ),
         IN(),
@@ -7263,7 +7263,7 @@ void define_md_data_raw()
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
-        GOUT( "scat_ref_index" ),
+        GOUT( "complex_refr_index" ),
         GOUT_TYPE( "GriddedField3" ),
         GOUT_DESC( "Refractive index" ),
         IN(),
@@ -8985,7 +8985,7 @@ void define_md_data_raw()
         
   md_data_raw.push_back
     ( MdRecord
-    ( NAME( "scat_data_meta_arrayAdd" ),
+    ( NAME( "scat_data_meta_arrayAddTmatrix" ),
       DESCRIPTION
       (
           "Adds particle meta data to the workspace vairalble\n"
@@ -8997,16 +8997,19 @@ void define_md_data_raw()
       GOUT_TYPE(),
       GOUT_DESC(),
       IN( "scat_data_meta_array" ),
-      GIN( "description", "material", "shape", "particle_type", "aspect_ratio", 
-           "r_grid", "scat_f_grid", "scat_T_grid", "ref_index" ),
-      GIN_TYPE( "String", "String", "String", "String", "Numeric", "Vector", 
-               "Vector", "Vector", "GriddedField3" ),
-      GIN_DEFAULT( "", NODEF, NODEF, NODEF, NODEF, NODEF, NODEF, NODEF, NODEF ),
-      GIN_DESC( "Particle description", "Water or Ice", "Spheroid or cylinder", 
+      GIN( "description", "material", "shape", "particle_type", "density", 
+           "aspect_ratio", "diameter_grid", "scat_f_grid", "scat_T_grid",
+           "complex_refr_index" ),
+      GIN_TYPE( "String", "String", "String", "String", "Numeric", "Numeric",
+           "Vector", "Vector", "Vector", "GriddedField3" ),
+      GIN_DEFAULT( "", NODEF, NODEF, NODEF, NODEF, NODEF, NODEF, NODEF, NODEF,
+                   NODEF ),
+      GIN_DESC( "Particle description", "Water or Ice", "spheroidal or cylinder", 
                "Particle Type: MACROS_ISO (20) or PARTICLE_TYPE_HORIZ_AL (30)", 
-               "Aspect ratio", "equivalent radius vector",  
-               "Frequency grid vector", "Temperature grid vector",  
-               "Gridded field for refractive index" )
+               "Particle mass density",
+               "Particle aspect ratio (can differ between WSMs. Check the userguide)",
+               "equivalent diameter vector", "Frequency grid vector",
+               "Temperature grid vector", "Gridded field for refractive index" )
       ));
     
   md_data_raw.push_back
@@ -9088,7 +9091,7 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "scat_data_rawFromTMatrix" ),
+      ( NAME( "scat_data_rawFromMeta" ),
         DESCRIPTION
         (
          "Calculates *scat_data_raw* using *scat_data_meta_array*.\n"

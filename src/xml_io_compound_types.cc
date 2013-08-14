@@ -1321,20 +1321,20 @@ void xml_read_from_stream(istream& is_xml,
   //xml_read_from_stream (is_xml, ptype, pbifs, verbosity);
   //ssdata.ptype = ParticleType (ptype);
   xml_read_from_stream(is_xml, smdata.description, pbifs, verbosity);
-  xml_read_from_stream(is_xml, smdata.type, pbifs, verbosity);
+  xml_read_from_stream(is_xml, smdata.material, pbifs, verbosity);
   xml_read_from_stream(is_xml, smdata.shape, pbifs, verbosity);
   xml_read_from_stream(is_xml, smdata.density, pbifs, verbosity);
-  xml_read_from_stream(is_xml, smdata.d_max, pbifs, verbosity);
-  xml_read_from_stream(is_xml, smdata.V, pbifs, verbosity);
-  xml_read_from_stream(is_xml, smdata.A_projec, pbifs, verbosity);
-  xml_read_from_stream(is_xml, smdata.asratio, pbifs, verbosity);
+  xml_read_from_stream(is_xml, smdata.diameter_max, pbifs, verbosity);
+  xml_read_from_stream(is_xml, smdata.volume, pbifs, verbosity);
+  xml_read_from_stream(is_xml, smdata.area_projected, pbifs, verbosity);
+  xml_read_from_stream(is_xml, smdata.aspect_ratio, pbifs, verbosity);
   
   if (version == "2")
     {  
-      xml_read_from_stream(is_xml, smdata.f_grid, pbifs, verbosity);
-      xml_read_from_stream(is_xml, smdata.T_grid, pbifs, verbosity);
+      xml_read_from_stream(is_xml, smdata.scat_f_grid, pbifs, verbosity);
+      xml_read_from_stream(is_xml, smdata.scat_T_grid, pbifs, verbosity);
       xml_read_from_stream(is_xml, smdata.particle_type, pbifs, verbosity);
-      xml_read_from_stream(is_xml, smdata.ref_index, pbifs, verbosity);
+      xml_read_from_stream(is_xml, smdata.complex_refr_index, pbifs, verbosity);
     }
 
   tag.read_from_stream(is_xml);
@@ -1364,17 +1364,17 @@ void xml_write_to_stream(ostream& os_xml,
   open_tag.write_to_stream(os_xml);
 
   xml_write_to_stream(os_xml, smdata.description, pbofs, "", verbosity);
-  xml_write_to_stream(os_xml, smdata.type, pbofs, "", verbosity);
+  xml_write_to_stream(os_xml, smdata.material, pbofs, "", verbosity);
   xml_write_to_stream(os_xml, smdata.shape, pbofs, "", verbosity);
   xml_write_to_stream(os_xml, smdata.density, pbofs, "", verbosity);
-  xml_write_to_stream(os_xml, smdata.d_max, pbofs, "", verbosity);
-  xml_write_to_stream(os_xml, smdata.V, pbofs, "", verbosity);
-  xml_write_to_stream(os_xml, smdata.A_projec, pbofs, "", verbosity);
-  xml_write_to_stream(os_xml, smdata.asratio, pbofs, "", verbosity);
-  xml_write_to_stream(os_xml, smdata.f_grid, pbofs, "", verbosity);
-  xml_write_to_stream(os_xml, smdata.T_grid, pbofs, "", verbosity);
+  xml_write_to_stream(os_xml, smdata.diameter_max, pbofs, "", verbosity);
+  xml_write_to_stream(os_xml, smdata.volume, pbofs, "", verbosity);
+  xml_write_to_stream(os_xml, smdata.area_projected, pbofs, "", verbosity);
+  xml_write_to_stream(os_xml, smdata.aspect_ratio, pbofs, "", verbosity);
+  xml_write_to_stream(os_xml, smdata.scat_f_grid, pbofs, "", verbosity);
+  xml_write_to_stream(os_xml, smdata.scat_T_grid, pbofs, "", verbosity);
   xml_write_to_stream(os_xml, smdata.particle_type, pbofs, "", verbosity);
-  xml_write_to_stream(os_xml, smdata.ref_index, pbofs, "", verbosity);
+  xml_write_to_stream(os_xml, smdata.complex_refr_index, pbofs, "", verbosity);
   
   close_tag.set_name("/ScatteringMetaData");
   close_tag.write_to_stream(os_xml);

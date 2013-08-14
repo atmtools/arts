@@ -1,3 +1,70 @@
+2013-08-14  Johan Strandgren  <johsat-9@student.ltu.se>
+
+	* arts-2-1-728
+
+	* controlfiles/artscomponents/tmatrix/TestTMatrixSSD.arts:
+
+	Adapted testcase to new variable names (see below) and additional
+	minor changes.
+
+	* src/optproperties.h (ScatteringMetaData): Renamed some of
+	the variables:
+
+	type -> material
+	d_max -> diameter_max
+	V -> volume
+	A_projec -> area_projected
+	asratio -> aspect_ratio
+	f_grid -> scat_f_grid
+	T_grid -> scat_T_grid
+	ref_index -> complex_refr_index
+
+	* src/xml_io_compound_types.cc
+
+	(xml_write_to_stream/xml_read_to_stream): Updated with the new 
+	variable names.
+
+	* src/cloudbox.cc:
+ 
+	(pnd_fieldMH97/pnd_fieldH11/pnd_fieldMP48/pnd_fieldH98/parse_part_type):
+	Updated with the new variable names.
+
+	* src/m_cloudbox.cc:
+	(ScatteringParticlesSelect/particle_massesSet/pnd_fieldSetup/):
+	Updated with the new variable names.
+
+	* src/m_tmatrix.cc:
+
+	(scat_data_meta_arrayAddTmatrix): renamed from scat_data_meta_arrayAdd to
+	scat_data_meta_arrayAddTmatrix. Updated with the new variable names.
+	Removed the hardcoding of the density. Renamed Spherical to spheroidal.
+	Replaced the GIN r_grid with GIN diameter_grid. Allowed	aspect_ratio 
+	to be 1 for cylindrical particles. Updated to SI units.
+	Changed to lowercase letters where possible.
+
+	(scat_data_rawFromMeta): Renamed from scat_data_rawFromTmatrix to
+	scat_data_rawFromMeta. Changed to lowercase letters where possible.
+	Updated with the new variable names. Renamed Spherical to spheroidal.
+
+	(single_scattering_dataFromTmatrix): Renamed macro_iso to macros_iso.
+	Renamed spherical to spheroidal. Changed to SI units.
+
+	* scat_data_meta (scat_data_meta): Updated description accoring to
+	new variable names.
+
+ 	* src/cloudbox.h (parse_part_material): updated from "type" to "material"
+
+	* src/methods.cc:
+
+	(ParticleRefractiveIndexIceWarren84/ParticleRefractiveIndexWaterLiebe93):
+	scat_ref_index -> complex_refr_index
+
+	(scat_data_meta_arrayAddTmatrix): renamed from scat_data_meta_arrayAdd to
+	scat_data_meta_arrayAddTmatrix. Updated with the new variable names.
+
+	(scat_data_rawFromMeta): Renamed from scat_data_rawFromTmatrix to
+	scat_data_rawFromMeta.
+
 2013-08-14  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-1-727

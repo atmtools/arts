@@ -948,7 +948,7 @@ void pnd_fieldMH97 (Tensor4View pnd_field,
   bool noisy = (psd_param == "MH97n");
 
   for ( Index i=0; i < npart; i++ )
-      vol_unsorted[i] = ( scat_data_meta_array[i+scat_data_start].V );
+      vol_unsorted[i] = ( scat_data_meta_array[i+scat_data_start].volume );
   get_sorted_indexes(intarr, vol_unsorted);
 
   // extract scattering meta data
@@ -956,10 +956,10 @@ void pnd_fieldMH97 (Tensor4View pnd_field,
   {
       pos = intarr[i]+scat_data_start;
 
-      vol[i] = ( scat_data_meta_array[pos].V ); //m^3
+      vol[i] = ( scat_data_meta_array[pos].volume ); //m^3
       // calculate melted diameter from volume [m]
       dm[i] = pow ( 
-             ( scat_data_meta_array[pos].V *6./PI ),
+             ( scat_data_meta_array[pos].volume *6./PI ),
              ( 1./3. ) );
       // get density from meta data [kg/m^3]
       rho[i] = scat_data_meta_array[pos].density;
@@ -1064,7 +1064,7 @@ void pnd_fieldH11 (Tensor4View pnd_field,
   parse_partfield_name( partfield_name, part_string, delim);
 
   for ( Index i=0; i < npart; i++ )
-      dmax_unsorted[i] = ( scat_data_meta_array[i+scat_data_start].d_max );
+      dmax_unsorted[i] = ( scat_data_meta_array[i+scat_data_start].diameter_max );
   get_sorted_indexes(intarr, dmax_unsorted);
       
   // extract scattering meta data
@@ -1072,9 +1072,9 @@ void pnd_fieldH11 (Tensor4View pnd_field,
   {
       pos = intarr[i]+scat_data_start;
 
-      vol[i]= scat_data_meta_array[pos].V; //[m^3]
+      vol[i]= scat_data_meta_array[pos].volume; //[m^3]
       // get maximum diameter from meta data [m]
-      dm[i] = scat_data_meta_array[pos].d_max;
+      dm[i] = scat_data_meta_array[pos].diameter_max;
       // get density from meta data [kg/m^3]
       rho[i] = scat_data_meta_array[pos].density;
   }
@@ -1186,7 +1186,7 @@ void pnd_fieldMP48 (Tensor4View pnd_field,
   parse_partfield_name( partfield_name, part_string, delim);
 
   for ( Index i=0; i < npart; i++ )
-      vol_unsorted[i] = ( scat_data_meta_array[i+scat_data_start].V );
+      vol_unsorted[i] = ( scat_data_meta_array[i+scat_data_start].volume );
   get_sorted_indexes(intarr, vol_unsorted);
 	
   // extract scattering meta data
@@ -1194,10 +1194,10 @@ void pnd_fieldMP48 (Tensor4View pnd_field,
   {
       pos = intarr[i]+scat_data_start;
 
-      vol[i] = ( scat_data_meta_array[pos].V ); //m^3
+      vol[i] = ( scat_data_meta_array[pos].volume ); //m^3
       // calculate volume equivalent diameter [m]
       d[i] = pow ( 
-             ( scat_data_meta_array[pos].V *6./PI ),
+             ( scat_data_meta_array[pos].volume *6./PI ),
              ( 1./3. ) );
       // get density from meta data [kg/m^3]
       rho[i] = scat_data_meta_array[pos].density;
@@ -1372,7 +1372,7 @@ void pnd_fieldH98 (Tensor4View pnd_field,
   parse_partfield_name( partfield_name, part_string, delim);
 
   for ( Index i=0; i < npart; i++ )
-      vol_unsorted[i] = ( scat_data_meta_array[i+scat_data_start].V );
+      vol_unsorted[i] = ( scat_data_meta_array[i+scat_data_start].volume );
   get_sorted_indexes(intarr, vol_unsorted);
       
   // extract scattering meta data
@@ -1380,10 +1380,10 @@ void pnd_fieldH98 (Tensor4View pnd_field,
   {
       pos = intarr[i]+scat_data_start;
 
-      vol[i]= scat_data_meta_array[pos].V; // [m^3]
+      vol[i]= scat_data_meta_array[pos].volume; // [m^3]
       // calculate radius from volume [m]
       r[i] = 0.5 * pow (
-               ( 6*scat_data_meta_array[pos].V/PI ), ( 1./3. ) );
+               ( 6*scat_data_meta_array[pos].volume/PI ), ( 1./3. ) );
       // get density from meta data [kg/m^3]
       rho[i] = scat_data_meta_array[pos].density;
   }
@@ -2045,8 +2045,8 @@ void parse_psd_param (//WS Output:
   \date 2012-04-03
 
 */
-void parse_part_type (//WS Output:
-                      String& part_type,
+void parse_part_material (//WS Output:
+                      String& part_material,
                       // WS Input:
                       const String& part_string,
                       const String& delim)
@@ -2060,7 +2060,7 @@ void parse_part_type (//WS Output:
   // check, whether we have a third entry
   if (strarr.size()>2)
   {
-      part_type = strarr[2];
+      part_material = strarr[2];
   }
   else
   {
