@@ -57,7 +57,7 @@ extern const Numeric RAD2DEG;
    Extracts the refractive index for 1D cases.
 
    The function interpolates the atmospheric pressure and fields, and
-   calls *refr_index_agenda* to determine the refractive index for the
+   calls *refr_index_air_agenda* to determine the refractive index for the
    given point.
 
    The atmosphere is given by its 1D view. That is, the latitude and
@@ -65,9 +65,9 @@ extern const Numeric RAD2DEG;
    example, the temperature is given as a vector (the vertical profile).
 
    \param   ws                  Current Workspace
-   \param   refr_index          Output: As the WSV with the same name.
-   \param   refr_index_group    Output: As the WSV with the same name.
-   \param   refr_index_agenda   As the WSV with the same name.
+   \param   refr_index_air          Output: As the WSV with the same name.
+   \param   refr_index_air_group    Output: As the WSV with the same name.
+   \param   refr_index_air_agenda   As the WSV with the same name.
    \param   p_grid              As the WSV with the same name.   
    \param   refellipsoid        As the WSV with the same name.
    \param   z_field             Geomtrical alrtitudes (1D).
@@ -81,9 +81,9 @@ extern const Numeric RAD2DEG;
 */
 void get_refr_index_1d(
           Workspace&  ws,
-          Numeric&    refr_index,
-          Numeric&    refr_index_group,
-    const Agenda&     refr_index_agenda,
+          Numeric&    refr_index_air,
+          Numeric&    refr_index_air_group,
+    const Agenda&     refr_index_air_agenda,
     ConstVectorView   p_grid,
     ConstVectorView   refellipsoid,
     ConstVectorView   z_field,
@@ -123,9 +123,9 @@ void get_refr_index_1d(
       rtp_vmr[is] = dummy[0];
     }
 
-  refr_index_agendaExecute( ws, refr_index, refr_index_group, 
+  refr_index_air_agendaExecute( ws, refr_index_air, refr_index_air_group, 
                             rtp_pressure, rtp_temperature, rtp_vmr, 
-                            f_grid, refr_index_agenda );
+                            f_grid, refr_index_air_agenda );
 }
 
 
@@ -135,35 +135,35 @@ void get_refr_index_1d(
    Extracts the refractive index for 2D cases.
 
    The function interpolates the atmospheric pressure and fields, and
-   calls *refr_index_agenda* to determine the refractive index for the
+   calls *refr_index_air_agenda* to determine the refractive index for the
    given point.
 
    The atmosphere is given by its 2D view. That is, the longitude
    dimension is removed from the atmospheric fields. For example,
    the temperature is given as a matrix.
 
-   \param   ws                  Current Workspace
-   \param   refr_index          Output: As the WSV with the same name.
-   \param   refr_index_group    Output: As the WSV with the same name.
-   \param   refr_index_agenda   As the WSV with the same name.
-   \param   p_grid              As the WSV with the same name.
-   \param   lat_grid            As the WSV with the same name.
-   \param   refellipsoid        As the WSV with the same name.
-   \param   z_field             Geomtrical altitudes (2D).
-   \param   t_field             As the WSV with the same name.
-   \param   vmr_field           As the WSV with the same name.
-   \param   f_grid              As the WSV with the same name.
-   \param   r                   The radius of the position of interest.
-   \param   lat                 The latitude of the position of interest.
+   \param   ws                      Current Workspace
+   \param   refr_index_air          Output: As the WSV with the same name.
+   \param   refr_index_air_group    Output: As the WSV with the same name.
+   \param   refr_index_air_agenda   As the WSV with the same name.
+   \param   p_grid                  As the WSV with the same name.
+   \param   lat_grid                As the WSV with the same name.
+   \param   refellipsoid            As the WSV with the same name.
+   \param   z_field                 Geomtrical altitudes (2D).
+   \param   t_field                 As the WSV with the same name.
+   \param   vmr_field               As the WSV with the same name.
+   \param   f_grid                  As the WSV with the same name.
+   \param   r                       The radius of the position of interest.
+   \param   lat                     The latitude of the position of interest.
 
    \author Patrick Eriksson
    \date   2003-01-14
 */
 void get_refr_index_2d(
           Workspace&  ws,
-          Numeric&    refr_index,
-          Numeric&    refr_index_group,
-    const Agenda&     refr_index_agenda,
+          Numeric&    refr_index_air,
+          Numeric&    refr_index_air_group,
+    const Agenda&     refr_index_air_agenda,
     ConstVectorView   p_grid,
     ConstVectorView   lat_grid,
     ConstVectorView   refellipsoid,
@@ -219,9 +219,9 @@ void get_refr_index_2d(
     }
 
 
-  refr_index_agendaExecute( ws, refr_index, refr_index_group, 
+  refr_index_air_agendaExecute( ws, refr_index_air, refr_index_air_group, 
                             rtp_pressure, rtp_temperature, rtp_vmr, 
-                            f_grid, refr_index_agenda );
+                            f_grid, refr_index_air_agenda );
 }
 
 
@@ -231,33 +231,33 @@ void get_refr_index_2d(
    Extracts the refractive index for 3D cases.
 
    The function interpolates the atmospheric pressure and fields, and
-   calls *refr_index_agenda* to determine the refractive index for the
+   calls *refr_index_air_agenda* to determine the refractive index for the
    given point.
 
-   \param   ws                  Current Workspace
-   \param   refr_index          Output: As the WSV with the same name.
-   \param   refr_index_group    Output: As the WSV with the same name.
-   \param   refr_index_agenda   As the WSV with the same name.
-   \param   p_grid              As the WSV with the same name.
-   \param   lat_grid            As the WSV with the same name.
-   \param   lon_grid            As the WSV with the same name.
-   \param   refellipsoid        As the WSV with the same name.
-   \param   z_field             As the WSV with the same name.
-   \param   t_field             As the WSV with the same name.
-   \param   vmr_field           As the WSV with the same name.
-   \param   f_grid              As the WSV with the same name.
-   \param   r                   The radius of the position of interest.
-   \param   lat                 The latitude of the position of interest.
-   \param   lon                 The longitude of the position of interest.
+   \param   ws                      Current Workspace
+   \param   refr_index_air          Output: As the WSV with the same name.
+   \param   refr_index_air_group    Output: As the WSV with the same name.
+   \param   refr_index_air_agenda   As the WSV with the same name.
+   \param   p_grid                  As the WSV with the same name.
+   \param   lat_grid                As the WSV with the same name.
+   \param   lon_grid                As the WSV with the same name.
+   \param   refellipsoid            As the WSV with the same name.
+   \param   z_field                 As the WSV with the same name.
+   \param   t_field                 As the WSV with the same name.
+   \param   vmr_field               As the WSV with the same name.
+   \param   f_grid                  As the WSV with the same name.
+   \param   r                       The radius of the position of interest.
+   \param   lat                     The latitude of the position of interest.
+   \param   lon                     The longitude of the position of interest.
 
    \author Patrick Eriksson
    \date   2003-01-17
 */
 void get_refr_index_3d(
           Workspace&  ws,
-          Numeric&    refr_index,
-          Numeric&    refr_index_group,
-    const Agenda&     refr_index_agenda,
+          Numeric&    refr_index_air,
+          Numeric&    refr_index_air_group,
+    const Agenda&     refr_index_air_agenda,
     ConstVectorView   p_grid,
     ConstVectorView   lat_grid,
     ConstVectorView   lon_grid,
@@ -317,9 +317,9 @@ void get_refr_index_3d(
       rtp_vmr[is] = dummy[0];
     }
 
-  refr_index_agendaExecute( ws, refr_index, refr_index_group, 
+  refr_index_air_agendaExecute( ws, refr_index_air, refr_index_air_group, 
                             rtp_pressure, rtp_temperature, rtp_vmr, 
-                            f_grid, refr_index_agenda );
+                            f_grid, refr_index_air_agenda );
 }
 
 
@@ -342,32 +342,32 @@ void get_refr_index_3d(
    dimension is removed from the atmospheric fields. For example,
    the temperature is given as a matrix.
 
-   \param   ws                  Current Workspace
-   \param   refr_index          Output: As the WSV with the same name.
-   \param   refr_index_group    Output: As the WSV with the same name.
-   \param   dndr                Output: Radial gradient of refractive index.
-   \param   dndlat              Output: Latitude gradient of refractive index.
-   \param   refr_index_agenda   As the WSV with the same name.
-   \param   p_grid              As the WSV with the same name.
-   \param   lat_grid            As the WSV with the same name.
-   \param   refellipsoid        As the WSV with the same name.
-   \param   z_field             Geometrical altitudes (2D).
-   \param   t_field             As the WSV with the same name.
-   \param   vmr_field           As the WSV with the same name.
-   \param   f_grid              As the WSV with the same name.
-   \param   r                   The radius of the position of interest.
-   \param   lat                 The latitude of the position of interest.
+   \param   ws                    Current Workspace
+   \param   refr_index_air        Output: As the WSV with the same name.
+   \param   refr_index_air_group  Output: As the WSV with the same name.
+   \param   dndr                  Output: Radial gradient of refractive index.
+   \param   dndlat                Output: Latitude gradient of refractive index.
+   \param   refr_index_air_agenda As the WSV with the same name.
+   \param   p_grid                As the WSV with the same name.
+   \param   lat_grid              As the WSV with the same name.
+   \param   refellipsoid          As the WSV with the same name.
+   \param   z_field               Geometrical altitudes (2D).
+   \param   t_field               As the WSV with the same name.
+   \param   vmr_field             As the WSV with the same name.
+   \param   f_grid                As the WSV with the same name.
+   \param   r                     The radius of the position of interest.
+   \param   lat                   The latitude of the position of interest.
 
    \author Patrick Eriksson
    \date   2003-01-14
 */
 void refr_gradients_2d(
           Workspace&  ws,
-          Numeric&    refr_index,
-          Numeric&    refr_index_group,
+          Numeric&    refr_index_air,
+          Numeric&    refr_index_air_group,
           Numeric&    dndr,
           Numeric&    dndlat,
-    const Agenda&     refr_index_agenda,
+    const Agenda&     refr_index_air_agenda,
     ConstVectorView   p_grid,
     ConstVectorView   lat_grid,
     ConstVectorView   refellipsoid,
@@ -378,28 +378,28 @@ void refr_gradients_2d(
     const Numeric&    r,
     const Numeric&    lat )
 { 
-  get_refr_index_2d( ws, refr_index, refr_index_group, refr_index_agenda, 
-                     p_grid, lat_grid, refellipsoid, z_field, t_field, 
-                     vmr_field, f_grid, r, lat );
+  get_refr_index_2d( ws, refr_index_air, refr_index_air_group, 
+                     refr_index_air_agenda, p_grid, lat_grid, refellipsoid, 
+                     z_field, t_field, vmr_field, f_grid, r, lat );
 
-  const Numeric   n0 = refr_index;
+  const Numeric   n0 = refr_index_air;
         Numeric   dummy;
 
-  get_refr_index_2d( ws, refr_index, dummy, refr_index_agenda, p_grid, 
+  get_refr_index_2d( ws, refr_index_air, dummy, refr_index_air_agenda, p_grid, 
                      lat_grid, refellipsoid, z_field, t_field, vmr_field, 
                      f_grid, r+1, lat );
 
-  dndr = refr_index - n0;
+  dndr = refr_index_air - n0;
 
   const Numeric   dlat = 1e-4;
 
-  get_refr_index_2d( ws, refr_index, dummy, refr_index_agenda, p_grid, 
+  get_refr_index_2d( ws, refr_index_air, dummy, refr_index_air_agenda, p_grid, 
                      lat_grid, refellipsoid, z_field, t_field, vmr_field, 
                      f_grid, r, lat+dlat );
 
-  dndlat = ( refr_index - n0 ) / ( DEG2RAD * dlat * r ); 
+  dndlat = ( refr_index_air - n0 ) / ( DEG2RAD * dlat * r ); 
 
-  refr_index = n0;
+  refr_index_air = n0;
 }
 
 
@@ -419,36 +419,36 @@ void refr_gradients_2d(
    refractive index for a movement of 1m in the latitude or longitude
    direction.
 
-   \param   ws                  Current Workspace
-   \param   refr_index          Output: As the WSV with the same name.
-   \param   refr_index_group    Output: As the WSV with the same name.
-   \param   dndr                Output: Radial gradient of refractive index.
-   \param   dndlat              Output: Latitude gradient of refractive index.
-   \param   dndlon              Output: Longitude gradient of refractive index.
-   \param   refr_index_agenda   As the WSV with the same name.
-   \param   p_grid              As the WSV with the same name.
-   \param   lat_grid            As the WSV with the same name.
-   \param   lon_grid            As the WSV with the same name.
-   \param   refellipsoid        As the WSV with the same name.
-   \param   z_field             As the WSV with the same name.
-   \param   t_field             As the WSV with the same name.
-   \param   vmr_field           As the WSV with the same name.
-   \param   f_grid              As the WSV with the same name.
-   \param   r                   The radius of the position of interest.
-   \param   lat                 The latitude of the position of interest.
-   \param   lon                 The longitude of the position of interest.
+   \param   ws                   Current Workspace
+   \param   refr_index_air       Output: As the WSV with the same name.
+   \param   refr_index_air_group Output: As the WSV with the same name.
+   \param   dndr                 Output: Radial gradient of refractive index.
+   \param   dndlat               Output: Latitude gradient of refractive index.
+   \param   dndlon               Output: Longitude gradient of refractive index.
+   \param   refr_index_air_agenda As the WSV with the same name.
+   \param   p_grid               As the WSV with the same name.
+   \param   lat_grid             As the WSV with the same name.
+   \param   lon_grid             As the WSV with the same name.
+   \param   refellipsoid         As the WSV with the same name.
+   \param   z_field              As the WSV with the same name.
+   \param   t_field              As the WSV with the same name.
+   \param   vmr_field            As the WSV with the same name.
+   \param   f_grid               As the WSV with the same name.
+   \param   r                    The radius of the position of interest.
+   \param   lat                  The latitude of the position of interest.
+   \param   lon                  The longitude of the position of interest.
 
    \author Patrick Eriksson
    \date   2003-01-17
 */
 void refr_gradients_3d(
           Workspace&  ws,
-          Numeric&    refr_index,
-          Numeric&    refr_index_group,
+          Numeric&    refr_index_air,
+          Numeric&    refr_index_air_group,
           Numeric&    dndr,
           Numeric&    dndlat,
           Numeric&    dndlon,
-    const Agenda&     refr_index_agenda,
+    const Agenda&     refr_index_air_agenda,
     ConstVectorView   p_grid,
     ConstVectorView   lat_grid,
     ConstVectorView   lon_grid,
@@ -461,36 +461,38 @@ void refr_gradients_3d(
     const Numeric&    lat,
     const Numeric&    lon )
 { 
-  get_refr_index_3d( ws, refr_index, refr_index_group, refr_index_agenda, 
-                     p_grid, lat_grid, lon_grid, refellipsoid, z_field, 
-                     t_field, vmr_field, f_grid, r, lat, lon );
+  get_refr_index_3d( ws, refr_index_air, refr_index_air_group, 
+                     refr_index_air_agenda, p_grid, lat_grid, lon_grid, 
+                     refellipsoid, z_field, t_field, vmr_field, f_grid, 
+                     r, lat, lon );
 
-  const Numeric   n0 = refr_index;
+  const Numeric   n0 = refr_index_air;
         Numeric   dummy;
 
-  get_refr_index_3d( ws, refr_index, dummy, refr_index_agenda, p_grid, lat_grid,
-                     lon_grid, refellipsoid, z_field, t_field, vmr_field, 
-                     f_grid, r+1, lat, lon );
+  get_refr_index_3d( ws, refr_index_air, dummy, refr_index_air_agenda, p_grid, 
+                     lat_grid, lon_grid, refellipsoid, z_field, t_field, 
+                     vmr_field, f_grid, r+1, lat, lon );
 
-  dndr = refr_index - n0;
+  dndr = refr_index_air - n0;
 
   const Numeric   dlat = 1e-4;
 
-  get_refr_index_3d( ws, refr_index, dummy, refr_index_agenda, p_grid, lat_grid,
-                     lon_grid, refellipsoid, z_field, t_field, vmr_field, 
-                     f_grid, r, lat+dlat, lon );
+  get_refr_index_3d( ws, refr_index_air, dummy, refr_index_air_agenda, p_grid, 
+                     lat_grid, lon_grid, refellipsoid, z_field, t_field, 
+                     vmr_field, f_grid, r, lat+dlat, lon );
 
-  dndlat = ( refr_index - n0 ) / ( DEG2RAD * dlat * r ); 
+  dndlat = ( refr_index_air - n0 ) / ( DEG2RAD * dlat * r ); 
 
   const Numeric   dlon = 1e-4;
 
-  get_refr_index_3d( ws, refr_index, dummy, refr_index_agenda, p_grid, lat_grid,
-                     lon_grid, refellipsoid, z_field, t_field, vmr_field, 
-                     f_grid, r, lat, lon+dlon);
+  get_refr_index_3d( ws, refr_index_air, dummy, refr_index_air_agenda, p_grid, 
+                     lat_grid, lon_grid, refellipsoid, z_field, t_field, 
+                     vmr_field, f_grid, r, lat, lon+dlon);
 
-  dndlon = ( refr_index - n0 ) / ( DEG2RAD * dlon * r * cos( DEG2RAD*lat ) ); 
+  dndlon = ( refr_index_air - n0 ) / 
+           ( DEG2RAD * dlon * r * cos( DEG2RAD*lat ) ); 
   
-  refr_index = n0;
+  refr_index_air = n0;
 }
 
 

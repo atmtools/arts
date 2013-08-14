@@ -61,9 +61,9 @@ extern const Numeric TORR2PA;
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void refr_indexFreeElectrons(
-          Numeric&   refr_index,
-          Numeric&   refr_index_group,
+void refr_index_airFreeElectrons(
+          Numeric&   refr_index_air,
+          Numeric&   refr_index_air_group,
     const Vector&    f_grid,
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const Vector&    rtp_vmr,
@@ -107,17 +107,17 @@ void refr_indexFreeElectrons(
           throw runtime_error( os.str() );
         }
 
-      refr_index       += n - 1;
-      refr_index_group += 1/n - 1;
+      refr_index_air       += n - 1;
+      refr_index_air_group += 1/n - 1;
     }
 }
 
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void refr_indexIR(
-          Numeric&   refr_index,
-          Numeric&   refr_index_group,
+void refr_index_airIR(
+          Numeric&   refr_index_air,
+          Numeric&   refr_index_air_group,
     const Numeric&   rtp_pressure,
     const Numeric&   rtp_temperature,
     const Verbosity&)
@@ -130,16 +130,16 @@ void refr_indexIR(
   const Numeric n = sqrt( (2.0*bk*rtp_pressure/100.0+rtp_temperature) / 
                           ( rtp_temperature-bk*rtp_pressure/100.0) ) - 1; 
 
-  refr_index       += n;
-  refr_index_group += n;
+  refr_index_air       += n;
+  refr_index_air_group += n;
 }
 
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void refr_indexThayer(
-          Numeric&   refr_index,
-          Numeric&   refr_index_group,
+void refr_index_airThayer(
+          Numeric&   refr_index_air,
+          Numeric&   refr_index_air_group,
     const Numeric&   rtp_pressure,
     const Numeric&   rtp_temperature,
     const Vector&    rtp_vmr,
@@ -164,16 +164,16 @@ void refr_indexThayer(
   const Numeric n = ( 77.6e-8 * ( rtp_pressure - e ) + 
              ( 64.8e-8 + 3.776e-3 / rtp_temperature ) * e ) / rtp_temperature;
 
-  refr_index       += n;
-  refr_index_group += n;
+  refr_index_air       += n;
+  refr_index_air_group += n;
 }
 
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void refr_indexMWgeneral(
-          Numeric&   refr_index,
-          Numeric&   refr_index_group,
+void refr_index_airMWgeneral(
+          Numeric&   refr_index_air,
+          Numeric&   refr_index_air_group,
     const Numeric&   rtp_pressure,
     const Numeric&   rtp_temperature,
     const Vector&    rtp_vmr,
@@ -292,7 +292,7 @@ void refr_indexMWgeneral(
   // now applying the constant factor p/p_0 * T0/T:
   n *= (ratioT*ratiop);
 
-  refr_index       += n;
-  refr_index_group += n;
+  refr_index_air       += n;
+  refr_index_air_group += n;
 }
 

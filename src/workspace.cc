@@ -3035,14 +3035,14 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
     (WsvRecord
-    ( NAME( "refr_index" ),
+    ( NAME( "refr_index_air" ),
       DESCRIPTION
       (
        "Real part of the refractive index of air.\n"
        "\n"
        "The variable contains the refractive index summed over all relevant\n"
        "constituents, at one position in the atmosphere. This refractive\n"
-       "is related to the phase velocity. See also *refr_index_group*.\n"
+       "is related to the phase velocity. See also *refr_index_air_group*.\n"
        "\n"
        "Unit: 1\n"
        ),
@@ -3050,7 +3050,7 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
-    ( NAME( "refr_index_agenda" ),
+    ( NAME( "refr_index_air_agenda" ),
       DESCRIPTION
       (
         "See agendas.cc.\n"
@@ -3059,7 +3059,7 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
     (WsvRecord
-    ( NAME( "refr_index_group" ),
+    ( NAME( "refr_index_air_group" ),
       DESCRIPTION
       (
        "Group index of refractivity.\n"
@@ -3067,7 +3067,7 @@ void Workspace::define_wsv_data()
        "This variable is defined as the ratio between group velocity and the\n"
        "speed of ligh in vacuum. That is, it is defined as the \"standard\"\n"
        "refractive index, but refers to the group velocity instead of the\n"
-       "phase velocity. See also *refr_index*.\n"
+       "phase velocity. See also *refr_index_air*.\n"
        "\n"
        "Unit: 1\n"
        ),

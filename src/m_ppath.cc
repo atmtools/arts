@@ -569,7 +569,7 @@ void ppath_stepGeometric(// WS Output:
 void ppath_stepRefractionBasic(
           Workspace&  ws,
           Ppath&      ppath_step,
-    const Agenda&     refr_index_agenda,
+    const Agenda&     refr_index_air_agenda,
     const Index&      atmosphere_dim,
     const Vector&     p_grid,
     const Vector&     lat_grid,
@@ -597,7 +597,7 @@ void ppath_stepRefractionBasic(
           ppath_step_refr_1d( ws, ppath_step, p_grid, z_field(joker,0,0), 
                               t_field, vmr_field, f_grid, 
                               refellipsoid, z_surface(0,0), ppath_lmax, 
-                              refr_index_agenda, "linear_basic", 
+                              refr_index_air_agenda, "linear_basic", 
                               ppath_lraytrace );
         }
       else if( atmosphere_dim == 2 )
@@ -606,7 +606,7 @@ void ppath_stepRefractionBasic(
                               z_field(joker,joker,0), t_field, vmr_field, 
                               f_grid, refellipsoid, 
                               z_surface(joker,0), ppath_lmax, 
-                              refr_index_agenda, "linear_basic", 
+                              refr_index_air_agenda, "linear_basic", 
                               ppath_lraytrace ); 
         }
       else if( atmosphere_dim == 3 )
@@ -614,7 +614,7 @@ void ppath_stepRefractionBasic(
           ppath_step_refr_3d( ws, ppath_step, p_grid, lat_grid, lon_grid, 
                               z_field, t_field, vmr_field, 
                               f_grid, refellipsoid, z_surface, ppath_lmax, 
-                              refr_index_agenda, "linear_basic", 
+                              refr_index_air_agenda, "linear_basic", 
                               ppath_lraytrace ); 
         }
       else
@@ -626,20 +626,20 @@ void ppath_stepRefractionBasic(
       assert( ppath_step.np == 1 );
       if( atmosphere_dim == 1 )
         { get_refr_index_1d( ws, ppath_step.nreal[0], ppath_step.ngroup[0], 
-                             refr_index_agenda, p_grid, refellipsoid, 
+                             refr_index_air_agenda, p_grid, refellipsoid, 
                              z_field(joker,0,0), t_field, vmr_field, 
                              f_grid, ppath_step.r[0] ); 
         }
       else if( atmosphere_dim == 2 )
         { get_refr_index_2d( ws, ppath_step.nreal[0], ppath_step.ngroup[0], 
-                             refr_index_agenda, p_grid, lat_grid, refellipsoid, 
+                             refr_index_air_agenda, p_grid, lat_grid, refellipsoid, 
                              z_field(joker,joker,0), t_field, vmr_field, 
                              f_grid, ppath_step.r[0], 
                              ppath_step.pos(0,1) ); 
         }
       else
         { get_refr_index_3d( ws, ppath_step.nreal[0], ppath_step.ngroup[0], 
-                             refr_index_agenda, p_grid, lat_grid, lon_grid, 
+                             refr_index_air_agenda, p_grid, lat_grid, lon_grid, 
                              refellipsoid, z_field, t_field, vmr_field, 
                              f_grid, ppath_step.r[0], 
                              ppath_step.pos(0,1), ppath_step.pos(0,2) ); 
@@ -858,7 +858,7 @@ void TangentPointPrint(
 void VectorZtanToZaRefr1D(
            Workspace&    ws,
            Vector&       za_vector,
-     const Agenda&       refr_index_agenda,
+     const Agenda&       refr_index_air_agenda,
      const Matrix&       sensor_pos,
      const Vector&       p_grid,
      const Tensor3&      t_field,
@@ -885,21 +885,21 @@ void VectorZtanToZaRefr1D(
   za_vector.resize( ztan_vector.nelem() );
 
   // Define refraction variables
-  Numeric   refr_index, refr_index_group;
+  Numeric   refr_index_air, refr_index_air_group;
 
   // Calculate refractive index for the tangential altitudes
   for( Index i=0; i<ztan_vector.nelem(); i++ ) 
     {
-      get_refr_index_1d( ws, refr_index, refr_index_group, refr_index_agenda, 
-                         p_grid, refellipsoid[0], z_field(joker,0,0), t_field, 
-                         vmr_field, f_grid,
+      get_refr_index_1d( ws, refr_index_air, refr_index_air_group, 
+                         refr_index_air_agenda, p_grid, refellipsoid[0], 
+                         z_field(joker,0,0), t_field, vmr_field, f_grid,
                          ztan_vector[i] + refellipsoid[0] );
 
-    // Calculate zenith angle
-    za_vector[i] = 180 - RAD2DEG* asin( refr_index * 
-                                        (refellipsoid[0] + ztan_vector[i]) / 
-                                        (refellipsoid[0] + sensor_pos(i,0)) );
-  }
+      // Calculate zenith angle
+      za_vector[i] = 180 - RAD2DEG* asin( refr_index_air * 
+                                          (refellipsoid[0] + ztan_vector[i]) / 
+                                          (refellipsoid[0] + sensor_pos(i,0)) );
+    }
 }
 
 

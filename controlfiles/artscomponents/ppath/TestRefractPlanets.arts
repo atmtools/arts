@@ -63,7 +63,7 @@ AgendaSet( forloop_agenda ){
   ###
   # CASE 0-1: refracted path with n==1 (no refraction)
   Copy( ppath_step_agenda, ppath_step_agenda__RefractedPath )
-  Copy( refr_index_agenda, refr_index_agenda__NoRefrac )
+  Copy( refr_index_air_agenda, refr_index_air_agenda__NoRefrac )
   ppathCalc
   TangentPointExtract( tan_pos=tp2 )
   TangentPointPrint( level=tpoutlev )
@@ -80,7 +80,7 @@ AgendaSet( forloop_agenda ){
 
   ###
   # CASE 1: refracted path with n from Thayer
-  Copy( refr_index_agenda, refr_index_agenda__GasThayer )
+  Copy( refr_index_air_agenda, refr_index_air_agenda__GasThayer )
   ppathCalc
   #WriteXMLIndexed( "ascii", forloop_index, ppath, "thayer" )
   TangentPointExtract( tan_pos=tp1 )
@@ -88,7 +88,7 @@ AgendaSet( forloop_agenda ){
 
   ###
   # CASE 2: refracted path with n from MWgeneral
-  Copy( refr_index_agenda, refr_index_agenda__GasMWgeneral )
+  Copy( refr_index_air_agenda, refr_index_air_agenda__GasMWgeneral )
   ppathCalc
   #WriteXMLIndexed( "ascii", forloop_index, ppath, "mwgeneral" )
   TangentPointExtract( tan_pos=tp2 )

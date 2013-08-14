@@ -7923,7 +7923,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "refr_index_agenda", "ppath_step", "atmosphere_dim", "p_grid", 
+        IN( "refr_index_air_agenda", "ppath_step", "atmosphere_dim", "p_grid", 
             "lat_grid", "lon_grid", "z_field", "t_field", "vmr_field", 
             "refellipsoid", "z_surface", "f_grid",
             "ppath_lmax", "ppath_lraytrace" ),
@@ -8636,14 +8636,14 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "refr_indexFreeElectrons" ),
+      ( NAME( "refr_index_airFreeElectrons" ),
         DESCRIPTION
         (
          "Microwave refractive index due to free electrons.\n"
          "\n"
-         "The refractive index of free electrons is added to *refr_index*.\n"
-         "To obtain the complete value, *refr_index* should be set to 1\n"
-         "before calling this WSM. This applies also to *refr_index_group*.\n"
+         "The refractive index of free electrons is added to *refr_index_air*.\n"
+         "To obtain the complete value, *refr_index_air* should be set to 1\n"
+         "before calling this WSM. This applies also to *refr_index_air_group*.\n"
          "\n"
          "The expression applied is n=sqrt(1-wp^2/w^2) where wp is the plasma\n"
          "frequency, and w is the angular frequency (the function returns\n"
@@ -8656,11 +8656,11 @@ void define_md_data_raw()
          "be at least twice the plasma frequency.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
-        OUT( "refr_index", "refr_index_group" ),
+        OUT( "refr_index_air", "refr_index_air_group" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "refr_index", "refr_index_group", "f_grid", "abs_species", 
+        IN( "refr_index_air", "refr_index_air_group", "f_grid", "abs_species", 
             "rtp_vmr" ),
         GIN(),
         GIN_TYPE(),
@@ -8670,7 +8670,7 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "refr_indexIR" ),
+      ( NAME( "refr_index_airIR" ),
         DESCRIPTION
         (
          "Calculates the IR refractive index due to gases in the\n"
@@ -8679,19 +8679,19 @@ void define_md_data_raw()
          "Only refractivity of dry air is considered. The formula used is\n"
          "contributed by Michael Hoefner, Forschungszentrum Karlsruhe.\n"
          "\n"
-         "The refractivity of dry air is added to *refr_index*. To obtain\n"
-         "the complete value, *refr_index* should be set to 1 before\n"
-         "calling this WSM. This applies also to *refr_index_group*.\n"
+         "The refractivity of dry air is added to *refr_index_air*. To obtain\n"
+         "the complete value, *refr_index_air* should be set to 1 before\n"
+         "calling this WSM. This applies also to *refr_index_air_group*.\n"
          "\n"
-         "The expression used is non-dispersive. Hence, *refr_index* and\n"
-         "*refr_index_group* are identical.\n"
+         "The expression used is non-dispersive. Hence, *refr_index_air* and\n"
+         "*refr_index_air_group* are identical.\n"
          ),
         AUTHORS( "Mattias Ekstrom" ),
-        OUT( "refr_index", "refr_index_group" ),
+        OUT( "refr_index_air", "refr_index_air_group" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "refr_index", "refr_index_group", "rtp_pressure", 
+        IN( "refr_index_air", "refr_index_air_group", "rtp_pressure", 
             "rtp_temperature" ),
         GIN(),
         GIN_TYPE(),
@@ -8701,18 +8701,18 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "refr_indexMWgeneral" ),
+      ( NAME( "refr_index_airMWgeneral" ),
         DESCRIPTION
         (
          "Microwave refractive index due to gases in planetary atmospheres.\n"
          "\n"
-         "The refractivity of a specified gas mixture is calculated and added to\n"
-         "*refr_index*. To obtain the complete value, *refr_index* should\n"
-         "be set to 1 before calling this WSM. This applies also to\n"
-         "*refr_index_group.\n"
+         "The refractivity of a specified gas mixture is calculated and added\n"
+         "to *refr_index_air*. To obtain the complete value, *refr_index_air*\n"
+         "should be set to 1 before calling this WSM. This applies also to\n"
+         "*refr_index_air_group.\n"
          "\n"
-         "The expression used is non-dispersive. Hence, *refr_index* and\n"
-         "*refr_index_group* are identical.\n"
+         "The expression used is non-dispersive. Hence, *refr_index_air* and\n"
+         "*refr_index_air_group* are identical.\n"
          "\n"
          "Uses the methodology introduced by Newell&Baird (1965) for calculating\n"
          "refractivity of variable gas mixtures based on refractivity of the\n"
@@ -8723,11 +8723,11 @@ void define_md_data_raw()
          "can be taken into account.\n"
          ),
         AUTHORS( "Jana Mendrok" ),
-        OUT( "refr_index", "refr_index_group" ),
+        OUT( "refr_index_air", "refr_index_air_group" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "refr_index", "refr_index_group", "rtp_pressure", 
+        IN( "refr_index_air", "refr_index_air_group", "rtp_pressure", 
             "rtp_temperature", "rtp_vmr", "abs_species" ),
         GIN(),
         GIN_TYPE(),
@@ -8737,29 +8737,29 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "refr_indexThayer" ),
+      ( NAME( "refr_index_airThayer" ),
         DESCRIPTION
         (
          "Microwave refractive index due to gases in the Earth's atmosphere.\n"
          "\n"
          "The refractivity of dry air and water vapour is added to\n"
-         "*refr_index*. To obtain the complete value, *refr_index* should\n"
-         "be set to 1 before calling this WSM. This applies also to\n"
-         "*refr_index_group.\n"
+         "*refr_index_air*. To obtain the complete value, *refr_index_air*\n"
+         "shoul be set to 1 before calling this WSM. This applies also to\n"
+         "*refr_index_air_group.\n"
          "\n"
-         "The expression used is non-dispersive. Hence, *refr_index* and\n"
-         "*refr_index_group* are identical.\n"
+         "The expression used is non-dispersive. Hence, *refr_index_air* and\n"
+         "*refr_index_air_group* are identical.\n"
          "\n"
          "The parameterisation of Thayer (Radio Science, 9, 803-807, 1974)\n"
          "is used. See also Eq. 3 and 5 of Solheim et al. (JGR, 104,\n"
          "pp. 9664).\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
-        OUT( "refr_index", "refr_index_group" ),
+        OUT( "refr_index_air", "refr_index_air_group" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "refr_index", "refr_index_group", "rtp_pressure", 
+        IN( "refr_index_air", "refr_index_air_group", "rtp_pressure", 
             "rtp_temperature", "rtp_vmr", "abs_species" ),
         GIN(),
         GIN_TYPE(),
@@ -10939,8 +10939,8 @@ void define_md_data_raw()
         GOUT(      "v_za"       ),
         GOUT_TYPE( "Vector" ),
         GOUT_DESC( "Vector with zenith angles." ),
-        IN( "refr_index_agenda", "sensor_pos", "p_grid", "t_field", "z_field",
-            "vmr_field", "refellipsoid", "atmosphere_dim", 
+        IN( "refr_index_air_agenda", "sensor_pos", "p_grid", "t_field", 
+            "z_field", "vmr_field", "refellipsoid", "atmosphere_dim", 
             "f_grid" ),
         GIN(         "v_ztan" ),
         GIN_TYPE(    "Vector" ),

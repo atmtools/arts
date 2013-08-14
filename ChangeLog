@@ -1,3 +1,33 @@
+2013-08-14  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-729
+
+	* doc/uguide/refr_index_theory.tex:
+	* doc/uguide/ppath.tex:
+	* doc/uguide/rte.tex:
+	* doc/uguide/refr_index.tex:
+	* controlfiles/artscomponents/transmission/TestTransmission.arts:
+	* controlfiles/artscomponents/radiolink/TestRadioOccultation.arts:
+	* controlfiles/artscomponents/radiolink/TestRadioLink2.arts:
+	* controlfiles/artscomponents/radiolink/TestRadioLink.arts:
+	* controlfiles/artscomponents/ppath/TestRefractPlanets.arts:
+	* controlfiles/artscomponents/ppath/TestPpath3D.arts:
+	* controlfiles/artscomponents/ppath/TestPpath2D.arts:
+	* controlfiles/artscomponents/ppath/TestPpath1D.arts:
+	* controlfiles/general/agendas.arts:
+	* src/ppath.cc:
+	* src/m_ppath.cc:
+	* src/m_refraction.cc:
+	* src/refraction.cc:
+	* src/methods.cc:
+	* src/agendas.cc:
+	* src/workspace.cc: As decided in skype meeting, in all files
+	above changed:
+
+	refr_index        -> refr_index_air
+	refr_index_group  -> refr_index_air_group
+	refr_index_agenda -> refr_index_air_agenda
+
 2013-08-14  Johan Strandgren  <johsat-9@student.ltu.se>
 
 	* arts-2-1-728

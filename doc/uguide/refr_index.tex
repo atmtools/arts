@@ -8,7 +8,13 @@
 \FIXME{Write a proper introduction. Comment on that this is not the complex
 refractive index, also covering absorption.} \dots
 
-Refractive index\index{refractive index} (here restricted to the real part of the refractive index, which is basically a complex quantity with the imaginary part expressing absorption) describes several effects of matter on propagation of electromagnetic waves. This particularly includes changes of the propagation speed of electromagnetic waves, which leads to a delay of the signal as well as a change of the propagation direction, a bending of the propagation path. The latter is commonly called refraction.
+Refractive index\index{refractive index} (here restricted to the real part of
+the refractive index, which is basically a complex quantity with the imaginary
+part expressing absorption) describes several effects of matter on propagation
+of electromagnetic waves. This particularly includes changes of the propagation
+speed of electromagnetic waves, which leads to a delay of the signal as well as
+a change of the propagation direction, a bending of the propagation path. The
+latter is commonly called refraction.
 
 Several components in the atmosphere contribute to refraction, hence to the
 refractive index: the gas mixture(``air''), solid and liquid constituents
@@ -21,30 +27,41 @@ properties as input, see Chapter~\ref{sec:clouds}). However, the contribution of
 solid and liquid constituents to the refractive index is commonly neglected in
 radiative transfer models and is expected to have only small effects.
 
-Refractivity ($N$) describes the deviation of the refractive index of a medium \Rfr  from the vacuum refractive index (\Rfr$_\mathrm{vacuum}=1$): $N=\Rfr-1$. Contributions of the different components to refractivity are additive. Therefore, all ARTS methods that provide refractive index, calculate refractivity and sum it up with the input refractive index.
+Refractivity ($N$) describes the deviation of the refractive index of a medium
+\Rfr from the vacuum refractive index (\Rfr$_\mathrm{vacuum}=1$): $N=\Rfr-1$.
+Contributions of the different components to refractivity are additive.
+Therefore, all ARTS methods that provide refractive index, calculate
+refractivity and sum it up with the input refractive index.
 
-Within ARTS, refractive index is required for calculations of refracted propagation paths and related parameters (e.g., deriving viewing angle for a given tangent altitude). \FIXME{for more?}
+Within ARTS, refractive index is required for calculations of refracted
+propagation paths and related parameters (e.g., deriving viewing angle for a
+given tangent altitude). \FIXME{for more?}
 
 
 %\section{Monochromatic and group refractive index}
 
-Whenever refractive index is required, e.g., at each point along a propagation 
-path, it is evaluated according to the mechanism specified by 
-\wsaindex{refr\_index\_agenda}. \wsaindex{refr\_index\_agenda} provides both the 
-monochromatic refractive index \wsvindex{refr\_index}, in the following denoted as \Rfr, as well 
-as the group refractive index \wsvindex{refr\_index\_group}, denoted as \Rfr$_{g}$.
-\wsvindex{refr\_index} differs from \wsvindex{refr\_index\_group} in case of dispersion\index{dispersion}, which e.g. leads to diverging propagation paths at different frequencies.
+Whenever refractive index is required, e.g., at each point along a propagation
+path, it is evaluated according to the mechanism specified by
+\wsaindex{\refr\_index\_air\_agenda}. \wsaindex{\refr\_index\_air\_agenda}
+provides both the monochromatic refractive index \wsvindex{\refr\_index\_air},
+in the following denoted as \Rfr, as well as the group refractive index
+\wsvindex{\refr\_index\_air\_group}, denoted as \Rfr$_{g}$.
+\wsvindex{\refr\_index\_air} differs from \wsvindex{\refr\_index\_air\_group}
+in case of dispersion\index{dispersion}, which e.g. leads to diverging
+propagation paths at different frequencies.
 
 \FIXME{Describe where each variable is used. Expand \dots}
 
 \section{Gases}
 %
-For calculating the contribution to the refractive index from atmospheric gases, the following workspace methods are currently available in ARTS: \wsmindex{refr\_indexMWgeneral},
-\wsmindex{refr\_indexThayer} and \wsmindex{refr\_indexIR}. All of them are
-non-dispersive, i.e., monochromatic and group refractive index are identical.
-They are supposed to be applied as alternatives, not in addition to each other.
+For calculating the contribution to the refractive index from atmospheric
+gases, the following workspace methods are currently available in ARTS:
+\wsmindex{\refr\_index\_airMWgeneral}, \wsmindex{\refr\_index\_airThayer} and
+\wsmindex{\refr\_index\_airIR}. All of them are non-dispersive, i.e.,
+monochromatic and group refractive index are identical. They are supposed to be
+applied as alternatives, not in addition to each other.
 
-\wsmindex{refr\_indexMWgeneral} provides refractivity due to different gas
+\wsmindex{\refr\_index\_airMWgeneral} provides refractivity due to different gas
 mixtures as occuring in planetary atmospheres and is valid in the microwave
 spectral region. It uses the methodology introduced by
 \citet{newell65:_absolute_jap} for calculating refractivity of the gas mixture
@@ -58,13 +75,15 @@ volume mixing ratio of 1. More details on the applied formulas are given in
 Section~\ref{T-sec:rindex:mwgeneral} of \theory.
 %Chapter~\ref{T-sec:ppaththeory} of \theory
 
-\wsmindex{refr\_indexThayer} calculates the microwave ``air'' refractivity
-in the Earth's atmosphere taking into account refractivity of ``dry air'' and water vapour. All other gases are assumed to have a negligible contribution. More details are given in
-Section~\ref{T-sec:rindex:thayer} of \theory.
+\wsmindex{\refr\_index\_airThayer} calculates the microwave ``air''
+refractivity in the Earth's atmosphere taking into account refractivity of
+``dry air'' and water vapour. All other gases are assumed to have a negligible
+contribution. More details are given in Section~\ref{T-sec:rindex:thayer} of
+\theory.
 
-\wsmindex{refr\_indexIR} derives the infrared ``air'' refractivity in the
-Earth's atmosphere considering only refractivity of ``dry air''. More details are given in
-Section~\ref{T-sec:rindex:IR} of \theory.
+\wsmindex{\refr\_index\_airIR} derives the infrared ``air'' refractivity in the
+Earth's atmosphere considering only refractivity of ``dry air''. More details
+are given in Section~\ref{T-sec:rindex:IR} of \theory.
 
 \section{Free electrons}
  \label{sec:rindex:freee}
@@ -77,9 +96,9 @@ field). For effects on polarisation state of the
 waves in presence of a static magnetic field, i.e., Faraday rotation, see
 Section~\ref{sec:faraday}.
 
-\wsmindex{refr\_indexFreeElectrons} derives this contribution of free electrons
-to the refractive index. The method is only valid when the radiative transfer
-frequency is large enough (at least twice the plasma frequency).
+\wsmindex{\refr\_index\_airFreeElectrons} derives this contribution of free
+electrons to the refractive index. The method is only valid when the radiative
+transfer frequency is large enough (at least twice the plasma frequency).
 Information on theoretical background and details on the applied formulas are
 provided in Section~\ref{T-sec:rindex:freee} of \theory.
 

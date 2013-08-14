@@ -590,7 +590,7 @@ void define_agenda_data()
 
   agenda_data.push_back
     (AgRecord
-     ( NAME( "refr_index_agenda" ),
+     ( NAME( "refr_index_air_agenda" ),
        DESCRIPTION
        (
         "Calculation of the refractive index of air.\n"
@@ -599,7 +599,7 @@ void define_agenda_data()
         "relevant atmospheric constituents, with respect to both phase and\n"
         "group velocity.\n"
         ),
-       OUTPUT( "refr_index", "refr_index_group" ),
+       OUTPUT( "refr_index_air", "refr_index_air_group" ),
        INPUT(  "rtp_pressure", "rtp_temperature", "rtp_vmr", "f_grid" )));
 
   agenda_data.push_back

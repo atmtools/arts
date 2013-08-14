@@ -628,10 +628,10 @@ void map_daa(
 
    Both positive and negative zenith angles are handled.
 
-   \return               Path constant.
-   \param   r            Radius.
-   \param   za           LOS Zenith angle.
-   \param   refr_index   Refractive index.
+   \return                   Path constant.
+   \param   r                Radius.
+   \param   za               LOS Zenith angle.
+   \param   refr_index_air   Refractive index.
 
    \author Patrick Eriksson
    \date   2002-05-17
@@ -639,12 +639,12 @@ void map_daa(
 Numeric refraction_ppc( 
         const Numeric&  r, 
         const Numeric&  za, 
-        const Numeric&  refr_index )
+        const Numeric&  refr_index_air )
 {
   assert( r > 0 );
   assert( abs(za) <= 180 );
 
-  return r * refr_index * sin( DEG2RAD * abs(za) );
+  return r * refr_index_air * sin( DEG2RAD * abs(za) );
 }
 
 
@@ -3506,7 +3506,7 @@ void ppath_step_geom_3d(
    \param   vmr_field    As the WSV with the same name.
    \param   f_grid       As the WSV with the same name.
    \param   lmax         As the WSV ppath_lmax
-   \param   refr_index_agenda   As the WSV with the same name.
+   \param   refr_index_air_agenda   As the WSV with the same name.
    \param   lraytrace    Maximum allowed length for ray tracing steps.
    \param   ppc          Propagation path constant.
    \param   r_surface    Radius of the surface.
@@ -3535,7 +3535,7 @@ void raytrace_1d_linear_basic(
         ConstTensor4View       vmr_field,
         ConstVectorView        f_grid,
         const Numeric&         lmax,
-        const Agenda&          refr_index_agenda,
+        const Agenda&          refr_index_air_agenda,
         const Numeric&         lraytrace,
         const Numeric&         ppc,
         const Numeric&         r_surface,
@@ -3549,15 +3549,15 @@ void raytrace_1d_linear_basic(
   bool ready = false;
 
   // Store first point
-  Numeric refr_index, refr_index_group;
-  get_refr_index_1d( ws, refr_index, refr_index_group, refr_index_agenda, 
-                     p_grid, refellipsoid, z_field, t_field, vmr_field, 
-                     f_grid, r );
+  Numeric refr_index_air, refr_index_air_group;
+  get_refr_index_1d( ws, refr_index_air, refr_index_air_group, 
+                     refr_index_air_agenda, p_grid, refellipsoid, z_field,
+                     t_field, vmr_field, f_grid, r );
   r_array.push_back( r );
   lat_array.push_back( lat );
   za_array.push_back( za );
-  n_array.push_back( refr_index );
-  ng_array.push_back( refr_index_group );
+  n_array.push_back( refr_index_air );
+  ng_array.push_back( refr_index_air_group );
 
   // Variables for output from do_gridrange_1d
   Vector    r_v, lat_v, za_v;
@@ -3606,13 +3606,13 @@ void raytrace_1d_linear_basic(
         }
 
       // Refractive index at *r*
-      get_refr_index_1d( ws, refr_index, refr_index_group, refr_index_agenda, 
-                         p_grid, refellipsoid, z_field, t_field, vmr_field, 
-                         f_grid, r );
+      get_refr_index_1d( ws, refr_index_air, refr_index_air_group, 
+                         refr_index_air_agenda, p_grid, refellipsoid, 
+                         z_field, t_field, vmr_field, f_grid, r );
 
       // Calculate LOS zenith angle at found point.
 
-      const Numeric ppc_local = ppc / refr_index; 
+      const Numeric ppc_local = ppc / refr_index_air; 
 
       if( r >= ppc_local )
         { za = geompath_za_at_r( ppc_local, za_flagside, r ); }
@@ -3628,8 +3628,8 @@ void raytrace_1d_linear_basic(
           r_array.push_back( r );
           lat_array.push_back( lat );
           za_array.push_back( za );
-          n_array.push_back( refr_index );
-          ng_array.push_back( refr_index_group );
+          n_array.push_back( refr_index_air );
+          ng_array.push_back( refr_index_air_group );
           l_array.push_back( lcum );
           lcum = 0;
         }
@@ -3658,7 +3658,7 @@ void raytrace_1d_linear_basic(
    \param   refellipsoid      As the WSV with the same name.
    \param   z_surface         Surface altitude (1D).
    \param   lmax              Maximum allowed length between the path points.
-   \param   refr_index_agenda The WSV with the same name.
+   \param   refr_index_air_agenda The WSV with the same name.
    \param   rtrace_method     String giving which ray tracing method to use.
                               See the function for options.
    \param   lraytrace         Maximum allowed length for ray tracing steps.
@@ -3677,7 +3677,7 @@ void ppath_step_refr_1d(
         ConstVectorView   refellipsoid,
         const Numeric&    z_surface,
         const Numeric&    lmax,
-        const Agenda&     refr_index_agenda,
+        const Agenda&     refr_index_air_agenda,
         const String&     rtrace_method,
         const Numeric&    lraytrace )
 {
@@ -3698,11 +3698,11 @@ void ppath_step_refr_1d(
   Numeric ppc;
   if( ppath.constant < 0 )
     { 
-      Numeric refr_index, refr_index_group;
-      get_refr_index_1d( ws, refr_index, refr_index_group, refr_index_agenda, 
-                         p_grid, refellipsoid, z_field, t_field, vmr_field, 
-                         f_grid, r_start );
-      ppc = refraction_ppc( r_start, za_start, refr_index ); 
+      Numeric refr_index_air, refr_index_air_group;
+      get_refr_index_1d( ws, refr_index_air, refr_index_air_group,
+                         refr_index_air_agenda, p_grid, refellipsoid, 
+                         z_field, t_field, vmr_field, f_grid, r_start );
+      ppc = refraction_ppc( r_start, za_start, refr_index_air ); 
     }
   else
     { ppc = ppath.constant; }
@@ -3719,7 +3719,7 @@ void ppath_step_refr_1d(
     {
       raytrace_1d_linear_basic( ws, r_array, lat_array, za_array, l_array, 
             n_array, ng_array, endface, refellipsoid, p_grid, z_field, t_field,
-            vmr_field, f_grid, lmax, refr_index_agenda, 
+            vmr_field, f_grid, lmax, refr_index_air_agenda, 
             lraytrace, ppc, refellipsoid[0] + z_surface, 
             refellipsoid[0]+z_field[ip], refellipsoid[0]+z_field[ip+1], 
             r_start, lat_start, za_start );
@@ -3783,7 +3783,7 @@ void ppath_step_refr_1d(
    \param   vmr_field       The WSV with the same name.
    \param   f_grid          As the WSV with the same name.
    \param   lmax            As the WSV ppath_lmax
-   \param   refr_index_agenda   The WSV with the same name.
+   \param   refr_index_air_agenda   The WSV with the same name.
    \param   lraytrace       Maximum allowed length for ray tracing steps.
    \param   lat1            Latitude of left end face of the grid cell.
    \param   lat3            Latitude of right end face  of the grid cell.
@@ -3817,7 +3817,7 @@ void raytrace_2d_linear_basic(
         ConstTensor4View       vmr_field,
         ConstVectorView        f_grid,
         const Numeric&         lmax,
-        const Agenda&          refr_index_agenda,
+        const Agenda&          refr_index_air_agenda,
         const Numeric&         lraytrace,
         const Numeric&         lat1,
         const Numeric&         lat3,
@@ -3835,15 +3835,15 @@ void raytrace_2d_linear_basic(
   bool ready = false;
 
   // Store first point
-  Numeric refr_index, refr_index_group;
-  get_refr_index_2d( ws, refr_index, refr_index_group, refr_index_agenda, 
-                     p_grid, lat_grid, refellipsoid, z_field, t_field, 
-                     vmr_field, f_grid, r, lat );
+  Numeric refr_index_air, refr_index_air_group;
+  get_refr_index_2d( ws, refr_index_air, refr_index_air_group, 
+                     refr_index_air_agenda, p_grid, lat_grid, refellipsoid, 
+                     z_field, t_field, vmr_field, f_grid, r, lat );
   r_array.push_back( r );
   lat_array.push_back( lat );
   za_array.push_back( za );
-  n_array.push_back( refr_index );
-  ng_array.push_back( refr_index_group );
+  n_array.push_back( refr_index_air );
+  ng_array.push_back( refr_index_air_group );
 
   // Variables for output from do_gridcell_2d
   Vector    r_v, lat_v, za_v;
@@ -3904,16 +3904,17 @@ void raytrace_2d_linear_basic(
 
       // Refractive index at new point
       Numeric   dndr, dndlat;
-      refr_gradients_2d( ws, refr_index, refr_index_group, dndr, dndlat, 
-                         refr_index_agenda, p_grid, lat_grid, refellipsoid, 
-                         z_field, t_field, vmr_field, f_grid, r, lat );
+      refr_gradients_2d( ws, refr_index_air, refr_index_air_group, dndr, 
+                         dndlat, refr_index_air_agenda, p_grid, lat_grid, 
+                         refellipsoid, z_field, t_field, vmr_field, f_grid, 
+                         r, lat );
 
       // Calculate LOS zenith angle at found point.
       const Numeric   za_rad = DEG2RAD * za;
       //
       za += - dlat;   // Pure geometrical effect
       //
-      za += (RAD2DEG * lstep / refr_index) * ( -sin(za_rad) * dndr +
+      za += (RAD2DEG * lstep / refr_index_air) * ( -sin(za_rad) * dndr +
                                                         cos(za_rad) * dndlat );
 
       // Make sure that obtained *za* is inside valid range
@@ -3935,8 +3936,8 @@ void raytrace_2d_linear_basic(
           r_array.push_back( r );
           lat_array.push_back( lat );
           za_array.push_back( za );
-          n_array.push_back( refr_index );
-          ng_array.push_back( refr_index_group );
+          n_array.push_back( refr_index_air );
+          ng_array.push_back( refr_index_air_group );
           l_array.push_back( lcum );
           lcum = 0;
         }
@@ -3964,7 +3965,7 @@ void raytrace_2d_linear_basic(
    \param   refellipsoid      As the WSV with the same name.
    \param   z_surface         Surface altitudes.
    \param   lmax              Maximum allowed length between the path points.
-   \param   refr_index_agenda The WSV with the same name.
+   \param   refr_index_air_agenda The WSV with the same name.
    \param   rtrace_method     String giving which ray tracing method to use.
                               See the function for options.
    \param   lraytrace         Maximum allowed length for ray tracing steps.
@@ -3984,7 +3985,7 @@ void ppath_step_refr_2d(
         ConstVectorView   refellipsoid,
         ConstVectorView   z_surface,
         const Numeric&    lmax,
-        const Agenda&     refr_index_agenda,
+        const Agenda&     refr_index_air_agenda,
         const String&     rtrace_method,
         const Numeric&    lraytrace )
 {
@@ -4017,7 +4018,7 @@ void ppath_step_refr_2d(
                                 n_array, ng_array, endface, p_grid, lat_grid, 
                                 refellipsoid, z_field, t_field, vmr_field,
                                 f_grid, lmax, 
-                                refr_index_agenda, lraytrace, lat1, lat3,
+                                refr_index_air_agenda, lraytrace, lat1, lat3,
                                 rsurface1, rsurface3, r1a, r3a, r3b, r1b, 
                                 r_start, lat_start, za_start );
     }
@@ -4076,7 +4077,7 @@ void ppath_step_refr_2d(
    \param   n_array        Out: Refractive index at ray tracing points.
 
    \param   lmax         As the WSV ppath_lmax
-   \param   refr_index_agenda    The WSV with the same name.
+   \param   refr_index_air_agenda    The WSV with the same name.
    \param   lraytrace      Maximum allowed length for ray tracing steps.
    \param   refellipsoid   The WSV with the same name.
    \param   p_grid         The WSV with the same name.
@@ -4131,7 +4132,7 @@ void raytrace_3d_linear_basic(
         ConstTensor4View       vmr_field,
         ConstVectorView        f_grid,
         const Numeric&         lmax,
-        const Agenda&          refr_index_agenda,
+        const Agenda&          refr_index_air_agenda,
         const Numeric&         lraytrace,
         const Numeric&         lat1,
         const Numeric&         lat3,
@@ -4159,17 +4160,18 @@ void raytrace_3d_linear_basic(
   bool ready = false;
 
   // Store first point
-  Numeric refr_index, refr_index_group;
-  get_refr_index_3d( ws, refr_index, refr_index_group, refr_index_agenda, 
-                     p_grid, lat_grid, lon_grid, refellipsoid, z_field, t_field,
-                     vmr_field, f_grid, r, lat, lon );
+  Numeric refr_index_air, refr_index_air_group;
+  get_refr_index_3d( ws, refr_index_air, refr_index_air_group, 
+                     refr_index_air_agenda, p_grid, lat_grid, lon_grid, 
+                     refellipsoid, z_field, t_field, vmr_field, f_grid, 
+                     r, lat, lon );
   r_array.push_back( r );
   lat_array.push_back( lat );
   lon_array.push_back( lon );
   za_array.push_back( za );
   aa_array.push_back( aa );
-  n_array.push_back( refr_index );
-  ng_array.push_back( refr_index_group );
+  n_array.push_back( refr_index_air );
+  ng_array.push_back( refr_index_air_group );
 
   // Variables for output from do_gridcell_3d
   Vector    r_v, lat_v, lon_v, za_v, aa_v;
@@ -4223,13 +4225,14 @@ void raytrace_3d_linear_basic(
 
       // Refractive index at new point
       Numeric   dndr, dndlat, dndlon;
-      refr_gradients_3d( ws, refr_index, refr_index_group, dndr, dndlat, dndlon,
-                         refr_index_agenda, p_grid, lat_grid, lon_grid, 
-                         refellipsoid, z_field, t_field, vmr_field, 
+      refr_gradients_3d( ws, refr_index_air, refr_index_air_group, 
+                         dndr, dndlat, dndlon, refr_index_air_agenda, 
+                         p_grid, lat_grid, lon_grid, refellipsoid, 
+                         z_field, t_field, vmr_field, 
                          f_grid, r, lat, lon );
 
       // Calculate LOS zenith angle at found point.
-      const Numeric   aterm  = RAD2DEG * lstep / refr_index;
+      const Numeric   aterm  = RAD2DEG * lstep / refr_index_air;
       const Numeric   za_rad = DEG2RAD * za;
       const Numeric   aa_rad = DEG2RAD * aa;
       const Numeric   sinza  = sin( za_rad );
@@ -4279,8 +4282,8 @@ void raytrace_3d_linear_basic(
           lon_array.push_back( lon );
           za_array.push_back( za );
           aa_array.push_back( aa );
-          n_array.push_back( refr_index );
-          ng_array.push_back( refr_index_group );
+          n_array.push_back( refr_index_air );
+          ng_array.push_back( refr_index_air_group );
           l_array.push_back( lcum );
           lcum = 0;
         }  
@@ -4309,7 +4312,7 @@ void raytrace_3d_linear_basic(
    \param   refellipsoid      As the WSV with the same name.
    \param   z_surface         Surface altitudes.
    \param   lmax              Maximum allowed length between the path points.
-   \param   refr_index_agenda The WSV with the same name.
+   \param   refr_index_air_agenda The WSV with the same name.
    \param   rtrace_method     String giving which ray tracing method to use.
                               See the function for options.
    \param   lraytrace         Maximum allowed length for ray tracing steps.
@@ -4330,7 +4333,7 @@ void ppath_step_refr_3d(
         ConstVectorView   refellipsoid,
         ConstMatrixView   z_surface,
         const Numeric&    lmax,
-        const Agenda&     refr_index_agenda,
+        const Agenda&     refr_index_air_agenda,
         const String&     rtrace_method,
         const Numeric&    lraytrace )
 {
@@ -4369,7 +4372,7 @@ void ppath_step_refr_3d(
                            aa_array, l_array, n_array, ng_array, endface, 
                            refellipsoid, p_grid, lat_grid, lon_grid, 
                            z_field, t_field, vmr_field, 
-                           f_grid, lmax, refr_index_agenda, lraytrace, 
+                           f_grid, lmax, refr_index_air_agenda, lraytrace, 
                            lat1, lat3, lon5, lon6, 
                            rsurface15, rsurface35, rsurface36, rsurface16,
                            r15a, r35a, r36a, r16a, r15b, r35b, r36b, r16b,

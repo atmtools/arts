@@ -219,11 +219,11 @@ only enter and leave the model atmosphere at the top of the atmosphere, as the
 atmospheric fields are treated to be undefined outside the covered latitude and
 longitude ranges.
 
-Controlled by \builtindoc{ppath\_step\_agenda}, propagation paths can be 
-calculated purely geometrically or considering refraction. When considering 
-refraction, the refractive index is determined at each point along the path 
-according to \builtindoc{refr\_index\_agenda}. Details about different methods 
-applicable within \builtindoc{refr\_index\_agenda} are given in 
+Controlled by \builtindoc{ppath\_step\_agenda}, propagation paths can be
+calculated purely geometrically or considering refraction. When considering
+refraction, the refractive index is determined at each point along the path
+according to \builtindoc{\refr\_index\_air\_agenda}. Details about different
+methods applicable within \builtindoc{\refr\_index\_air\_agenda} are given in
 Chapter~\ref{sec:rindex}.
 
 If nothing else is stated, it assumed that all frequency components share a
@@ -231,7 +231,7 @@ single propagation path. Another way to express this assumption is that
 \textindex{dispersion} is neglected. See Section~\ref{sec:fm_defs:dispersion}
 for how to consider dispersion. In the non-dispersive case, the propagation
 path is valid for average of the first and last element in \wsvindex{f\_grid},
-as this is the frequency given to \wsaindex{refr\_index\_agenda}.
+as this is the frequency given to \wsaindex{\refr\_index\_air\_agenda}.
 
 Propagation paths can be calculated separately by the method
 \wsmindex{ppathCalc}, but for standard calculations the propagation paths are
@@ -531,12 +531,13 @@ result that a propagation path is calculated for each frequency component.
 
 Some more steps are required to correctly include dispersion. A basic demand is
 that \wsaindex{ppath\_agenda} considers refraction. Further,
-\wsaindex{refr\_index\_agenda} must provide a dispersive refractive index. Most
-methods aimed for \builtindoc{refr\_index\_agenda} give a refractive index that
-does not varies with frequency. An example on the opposite is
-\wsmindex{refr\_indexFreeElectrons}. If a method with dispersive refractive
-index is used for non-dispersive calculations, it receives the mean of the
-first and last element in \builtindoc{f\_grid} (as already commented above).
+\wsaindex{\refr\_index\_air\_agenda} must provide a dispersive refractive
+index. Most methods aimed for \builtindoc{\refr\_index\_air\_agenda} give a
+refractive index that does not varies with frequency. An example on the
+opposite is \wsmindex{\refr\_index\_airFreeElectrons}. If a method with
+dispersive refractive index is used for non-dispersive calculations, it
+receives the mean of the first and last element in \builtindoc{f\_grid} (as
+already commented above).
 
 A limitation of \builtindoc{iyLoopFrequencies} is that it can not be combined
 with auxiliary data of along-the-path character (Sec.~\ref{sec:fm_defs:aux})
