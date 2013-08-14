@@ -1,3 +1,12 @@
+2013-08-14  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-731
+
+	* doc/uguide/ppath.tex:
+	* doc/uguide/refr_index.tex:
+	* doc/uguide/refr_index_theory.tex: My last changes were not
+	completely OK.
+
 2013-08-14  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-730

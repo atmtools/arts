@@ -42,11 +42,11 @@ given tangent altitude). \FIXME{for more?}
 
 Whenever refractive index is required, e.g., at each point along a propagation
 path, it is evaluated according to the mechanism specified by
-\wsaindex{\refr\_index\_air\_agenda}. \wsaindex{\refr\_index\_air\_agenda}
-provides both the monochromatic refractive index \wsvindex{\refr\_index\_air},
+\wsaindex{refr\_index\_air\_agenda}. \wsaindex{refr\_index\_air\_agenda}
+provides both the monochromatic refractive index \wsvindex{refr\_index\_air},
 in the following denoted as \Rfr, as well as the group refractive index
-\wsvindex{\refr\_index\_air\_group}, denoted as \Rfr$_{g}$.
-\wsvindex{\refr\_index\_air} differs from \wsvindex{\refr\_index\_air\_group}
+\wsvindex{refr\_index\_air\_group}, denoted as \Rfr$_{g}$.
+\wsvindex{refr\_index\_air} differs from \wsvindex{refr\_index\_air\_group}
 in case of dispersion\index{dispersion}, which e.g. leads to diverging
 propagation paths at different frequencies.
 
@@ -56,12 +56,12 @@ propagation paths at different frequencies.
 %
 For calculating the contribution to the refractive index from atmospheric
 gases, the following workspace methods are currently available in ARTS:
-\wsmindex{\refr\_index\_airMWgeneral}, \wsmindex{\refr\_index\_airThayer} and
-\wsmindex{\refr\_index\_airIR}. All of them are non-dispersive, i.e.,
+\wsmindex{refr\_index\_airMWgeneral}, \wsmindex{refr\_index\_airThayer} and
+\wsmindex{refr\_index\_airIR}. All of them are non-dispersive, i.e.,
 monochromatic and group refractive index are identical. They are supposed to be
 applied as alternatives, not in addition to each other.
 
-\wsmindex{\refr\_index\_airMWgeneral} provides refractivity due to different gas
+\wsmindex{refr\_index\_airMWgeneral} provides refractivity due to different gas
 mixtures as occuring in planetary atmospheres and is valid in the microwave
 spectral region. It uses the methodology introduced by
 \citet{newell65:_absolute_jap} for calculating refractivity of the gas mixture
@@ -75,13 +75,13 @@ volume mixing ratio of 1. More details on the applied formulas are given in
 Section~\ref{T-sec:rindex:mwgeneral} of \theory.
 %Chapter~\ref{T-sec:ppaththeory} of \theory
 
-\wsmindex{\refr\_index\_airThayer} calculates the microwave ``air''
+\wsmindex{refr\_index\_airThayer} calculates the microwave ``air''
 refractivity in the Earth's atmosphere taking into account refractivity of
 ``dry air'' and water vapour. All other gases are assumed to have a negligible
 contribution. More details are given in Section~\ref{T-sec:rindex:thayer} of
 \theory.
 
-\wsmindex{\refr\_index\_airIR} derives the infrared ``air'' refractivity in the
+\wsmindex{refr\_index\_airIR} derives the infrared ``air'' refractivity in the
 Earth's atmosphere considering only refractivity of ``dry air''. More details
 are given in Section~\ref{T-sec:rindex:IR} of \theory.
 
@@ -96,7 +96,7 @@ field). For effects on polarisation state of the
 waves in presence of a static magnetic field, i.e., Faraday rotation, see
 Section~\ref{sec:faraday}.
 
-\wsmindex{\refr\_index\_airFreeElectrons} derives this contribution of free
+\wsmindex{refr\_index\_airFreeElectrons} derives this contribution of free
 electrons to the refractive index. The method is only valid when the radiative
 transfer frequency is large enough (at least twice the plasma frequency).
 Information on theoretical background and details on the applied formulas are
