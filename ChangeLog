@@ -1,3 +1,12 @@
+2013-08-14  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-724
+
+	* src/ppath.cc (rslope_crossing2d): Changed dmin from 1e-12 to
+	5e-12. A setting to handle numerical problems. Another case from
+	Ole Martin required a dmin of 1.8e-12 to be handled. So increased
+	dmin with some margin.
+
 2013-08-13  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-723

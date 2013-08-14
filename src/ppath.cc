@@ -1033,7 +1033,7 @@ Numeric rslope_crossing2d(
   // The accuracy when solving the polynomial equation gets worse when
   // approaching 0 and 180 deg. The solution is to let the start polynomial
   // order decrease when approaching these angles. The values below based on
-  // practical experience, don't change without making extremly careful tests.
+  // practical experience, don't change without making extremely careful tests.
   //
   if( abs( 90 - zaabs ) > 89.9 )
     { n = 1; }
@@ -1058,7 +1058,7 @@ Numeric rslope_crossing2d(
   // to 0, that we must throw away.
   Numeric   dmin = 0;
   if( abs(r0-rp) < 1e-9 )  // 1 nm set based on practical experience. 
-    { dmin = 1e-12; }
+    { dmin = 5e-12; }
 
   // Find the smallest root with imaginary part = 0, and real part > 0.
   Numeric dlat = 1.571;  // Not interested in solutions above 90 deg!
