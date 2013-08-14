@@ -44,6 +44,8 @@ typedef enum {
     QN_S,           // Electronic spin
     QN_F,           // Total + nuclear spin
     QN_Omega,       // Absolute of projection of total + projection of spin
+    QN_K1,          // Either K or Ka in HITRAN (This is a projection of J along one axis)
+    QN_K2,          // Either Kb in HITRAN (This is a projection of J along another axis)
     QN_v1,          // Vibrational mode 1
     QN_v2,          // Vibrational mode 2
     QN_v3,          // Vibrational mode 3

@@ -588,7 +588,7 @@ void propmat_clearskyAddZeeman(Tensor4& propmat_clearsky,
 		    Numeric RS_sum     = 0; //Sum relative strength (which ought be close to one by the end)
 		    Index number_M_sm  = 0, number_M_sp=0, number_M_pi=0;
                     // Only look at lines which have no change in the main rotational number
-                    // cout << "RSpi=[];RSsp=[];RSsm=[];DFpi=[];DFsm=[];DFsp=[];\n";
+                    // std::cout << "RSpi=[];RSsp=[];RSsm=[];DFpi=[];DFsm=[];DFsp=[];\n";
 		    
 		    Rational Main;
 		    Index DMain;
@@ -614,7 +614,7 @@ void propmat_clearskyAddZeeman(Tensor4& propmat_clearsky,
 			throw std::runtime_error(os.str());
 		    }
 		    
-                    if (!J.isUndefined() != 0 && !Main.isUndefined() != 0 && S>0 ) // This means the lines are considered erroneous.
+                    if (!J.isUndefined() != 0 && !Main.isUndefined() != 0 ) // This means the lines are considered erroneous.
                     {
 
                         for ( Rational M = -J+DJ; M<=J-DJ; M++ )
@@ -634,7 +634,7 @@ void propmat_clearskyAddZeeman(Tensor4& propmat_clearsky,
                                 temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                 temp_abs_lines_sm.push_back(temp_LR);
                                 number_M_sm++;
-                                // cout << "RSsm=[RSsm " << RS << "];DFsm=[DFsm " << DF << "];\n";
+                                // std::cout << "RSsm=[RSsm " << RS << "];DFsm=[DFsm " << DF << "];\n";
 
                                 DF =  frequency_change(Main, M, J, S, DJ,  0, DMain, H_mag, GS);
                                 RS = relative_strength(M, J, DJ,  0);
@@ -643,7 +643,7 @@ void propmat_clearskyAddZeeman(Tensor4& propmat_clearsky,
                                 temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                 temp_abs_lines_pi.push_back(temp_LR);
                                 number_M_pi++;
-                                // cout << "RSpi=[RSpi " << RS << "];DFpi=[DFpi " << DF << "];\n";
+                                // std::cout << "RSpi=[RSpi " << RS << "];DFpi=[DFpi " << DF << "];\n";
 
                                 DF =  frequency_change(Main, M, J, S, DJ, +1, DMain, H_mag, GS);
                                 RS = relative_strength(M, J, DJ, +1);
@@ -652,7 +652,7 @@ void propmat_clearskyAddZeeman(Tensor4& propmat_clearsky,
                                 temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                 temp_abs_lines_sp.push_back(temp_LR);
                                 number_M_sp++;
-                                // cout << "RSsp=[RSsp " << RS << "];DFsp=[DFsp " << DF << "];\n";
+                                // std::cout << "RSsp=[RSsp " << RS << "];DFsp=[DFsp " << DF << "];\n";
                             }
                             else if ( DJ ==  0 )
                             { // Then all DM transitions possible for all M
@@ -663,7 +663,7 @@ void propmat_clearskyAddZeeman(Tensor4& propmat_clearsky,
                                 temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                 temp_abs_lines_sm.push_back(temp_LR);
                                 number_M_sm++;
-                                // cout << "RSsm=[RSsm " << RS << "];DFsm=[DFsm " << DF << "];\n";
+                                // std::cout << "RSsm=[RSsm " << RS << "];DFsm=[DFsm " << DF << "];\n";
                                 if( ! (M == 0) )
                                 {
                                     DF =  frequency_change(Main, M, J, S, DJ,  0, DMain, H_mag, GS);
@@ -673,7 +673,7 @@ void propmat_clearskyAddZeeman(Tensor4& propmat_clearsky,
                                     temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                     temp_abs_lines_pi.push_back(temp_LR);
                                     number_M_pi++;
-                                    // cout << "RSpi=[RSpi " << RS << "];DFpi=[DFpi " << DF << "];\n";
+                                    // std::cout << "RSpi=[RSpi " << RS << "];DFpi=[DFpi " << DF << "];\n";
                                 }
 
                                 DF =  frequency_change(Main, M, J, S, DJ, +1, DMain, H_mag, GS);
@@ -683,7 +683,7 @@ void propmat_clearskyAddZeeman(Tensor4& propmat_clearsky,
                                 temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                 temp_abs_lines_sp.push_back(temp_LR);
                                 number_M_sp++;
-                                // cout << "RSsp=[RSsp " << RS << "];DFsp=[DFsp " << DF << "];\n";
+                                // std::cout << "RSsp=[RSsp " << RS << "];DFsp=[DFsp " << DF << "];\n";
                             }
                             else if ( DJ == -1 )
                             { // Then certain M results in blocked DM transitions
@@ -696,7 +696,7 @@ void propmat_clearskyAddZeeman(Tensor4& propmat_clearsky,
                                     temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                     temp_abs_lines_sp.push_back(temp_LR);
                                     number_M_sp++;
-                                    // cout << "RSsp=[RSsp " << RS << "];DFsp=[DFsp " << DF << "];\n";
+                                    // std::cout << "RSsp=[RSsp " << RS << "];DFsp=[DFsp " << DF << "];\n";
 
                                 }
                                 else if ( M == -J + DJ + 1 && M!=0 )
@@ -708,7 +708,7 @@ void propmat_clearskyAddZeeman(Tensor4& propmat_clearsky,
                                     temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                     temp_abs_lines_sp.push_back(temp_LR);
                                     number_M_sp++;
-                                    // cout << "RSsp=[RSsp " << RS << "];DFsp=[DFsp " << DF << "];\n";
+                                    // std::cout << "RSsp=[RSsp " << RS << "];DFsp=[DFsp " << DF << "];\n";
 
                                     DF =  frequency_change(Main, M, J, S, DJ,  0, DMain, H_mag, GS);
                                     RS = relative_strength(M, J, DJ,  0);
@@ -717,7 +717,7 @@ void propmat_clearskyAddZeeman(Tensor4& propmat_clearsky,
                                     temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                     temp_abs_lines_pi.push_back(temp_LR);
                                     number_M_pi++;
-                                    // cout << "RSpi=[RSpi " << RS << "];DFpi=[DFpi " << DF << "];\n";
+                                    // std::cout << "RSpi=[RSpi " << RS << "];DFpi=[DFpi " << DF << "];\n";
                                 }
                                 else if ( M ==  J - DJ - 1 && M!=0 )
                                 { // Next to upper limit M can only allow DM = 0, -1
@@ -728,7 +728,7 @@ void propmat_clearskyAddZeeman(Tensor4& propmat_clearsky,
                                     temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                     temp_abs_lines_pi.push_back(temp_LR);
                                     number_M_pi++;
-                                    // cout << "RSpi=[RSpi " << RS << "];DFpi=[DFpi " << DF << "];\n";
+                                    // std::cout << "RSpi=[RSpi " << RS << "];DFpi=[DFpi " << DF << "];\n";
 
                                     DF =  frequency_change(Main, M, J, S, DJ, -1, DMain, H_mag, GS);
                                     RS = relative_strength(M, J, DJ, -1);
@@ -737,7 +737,7 @@ void propmat_clearskyAddZeeman(Tensor4& propmat_clearsky,
                                     temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                     temp_abs_lines_sm.push_back(temp_LR);
                                     number_M_sm++;
-                                    // cout << "RSsm=[RSsm " << RS << "];DFsm=[DFsm " << DF << "];\n";
+                                    // std::cout << "RSsm=[RSsm " << RS << "];DFsm=[DFsm " << DF << "];\n";
                                 }
                                 else if ( M == J - DJ && M!=0 )
                                 { // Upper limit M only allow DM = -1
@@ -748,7 +748,7 @@ void propmat_clearskyAddZeeman(Tensor4& propmat_clearsky,
                                     temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                     temp_abs_lines_sm.push_back(temp_LR);
                                     number_M_sm++;
-                                    // cout << "RSsm=[RSsm " << RS << "];DFsm=[DFsm " << DF << "];\n";
+                                    // std::cout << "RSsm=[RSsm " << RS << "];DFsm=[DFsm " << DF << "];\n";
                                 }
                                 else if( (-J + DJ + 1) ==  (J - DJ - 1) && M == 0)
                                 { // Special case for N=1, J=0, M=0. Only allows DM = 0
@@ -759,7 +759,7 @@ void propmat_clearskyAddZeeman(Tensor4& propmat_clearsky,
                                     temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                     temp_abs_lines_pi.push_back(temp_LR);
                                     number_M_pi++;
-                                    // cout << "RSpi=[RSpi " << RS << "];DFpi=[DFpi " << DF << "];\n";
+                                    // std::cout << "RSpi=[RSpi " << RS << "];DFpi=[DFpi " << DF << "];\n";
                                 }
                                 else
                                 { // All DM transitions are possible for these M(s)
@@ -770,7 +770,7 @@ void propmat_clearskyAddZeeman(Tensor4& propmat_clearsky,
                                     temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                     temp_abs_lines_sp.push_back(temp_LR);
                                     number_M_sp++;
-                                    // cout << "RSsp=[RSsp " << RS << "];DFsp=[DFsp " << DF << "];\n";
+                                    // std::cout << "RSsp=[RSsp " << RS << "];DFsp=[DFsp " << DF << "];\n";
 
                                     DF =  frequency_change(Main, M, J, S, DJ,  0, DMain, H_mag, GS);
                                     RS = relative_strength(M, J, DJ,  0);
@@ -779,7 +779,7 @@ void propmat_clearskyAddZeeman(Tensor4& propmat_clearsky,
                                     temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                     temp_abs_lines_pi.push_back(temp_LR);
                                     number_M_pi++;
-                                    // cout << "RSpi=[RSpi " << RS << "];DFpi=[DFpi " << DF << "];\n";
+                                    // std::cout << "RSpi=[RSpi " << RS << "];DFpi=[DFpi " << DF << "];\n";
 
                                     DF =  frequency_change(Main, M, J, S, DJ, -1, DMain, H_mag, GS);
                                     RS = relative_strength(M, J, DJ, -1);
@@ -788,7 +788,7 @@ void propmat_clearskyAddZeeman(Tensor4& propmat_clearsky,
                                     temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                     temp_abs_lines_sm.push_back(temp_LR);
                                     number_M_sm++;
-                                    // cout << "RSsm=[RSsm " << RS << "];DFsm=[DFsm " << DF << "];\n";
+                                    // std::cout << "RSsm=[RSsm " << RS << "];DFsm=[DFsm " << DF << "];\n";
                                 }
                             }
                             else
@@ -827,7 +827,7 @@ void propmat_clearskyAddZeeman(Tensor4& propmat_clearsky,
                     else
                     {
                         ostringstream os;
-                        os << "There are undefined quantum numbers in the line: " << abs_lines_per_species[II][ii] << "\n";
+                        os << "There are undefined quantum numbers in the line: " << abs_lines_per_species[II][ii] << "\nJ is "<<J<<" and Main is "<<Main<<std::endl;
                         throw std::runtime_error(os.str());
                     }
             }

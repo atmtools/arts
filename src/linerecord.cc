@@ -985,16 +985,47 @@ bool LineRecord::ReadFromHitran2004Stream(istream& is, const Verbosity& verbosit
 
             nom = strtol(as[0].c_str(), &endptr, 10);
             if (endptr != as[0].c_str()+as[0].nelem())
-                throw runtime_error("Error parsing quantum number F");
+                throw std::runtime_error("Error parsing quantum number F");
 
             if (as[1] == "5")
                 mquantum_numbers.SetLower(QN_F, Rational(nom * 2 + 1, 2));
             else if (as[1] == "0")
                 mquantum_numbers.SetLower(QN_F, nom);
             else
-                throw runtime_error("Error parsing quantum number F");
+                throw std::runtime_error("Error parsing quantum number F");
           }
         }
+      }
+      else if(species_data[mspecies].Name() == "NO2" || species_data[mspecies].Name() == "HO2")
+      {
+          mlower_n = atoi(mlower_lquanta.substr(0, 3).c_str());
+          mupper_n = atoi(mupper_lquanta.substr(0, 3).c_str());
+          mquantum_numbers.SetUpper(QN_N, mupper_n);
+          mquantum_numbers.SetLower(QN_N, mlower_n);
+          
+          if (mupper_lquanta[14] == '+')
+            mquantum_numbers.SetUpper(QN_J,mupper_n+Rational(1,2));
+          else if (mupper_lquanta[14] == '-')
+            mquantum_numbers.SetUpper(QN_J,mupper_n-Rational(1,2));
+          else
+          { 
+            // The J will be undefined and we fail at another stage.
+          }
+          
+          if (mlower_lquanta[14] == '+')
+              mquantum_numbers.SetLower(QN_J,mlower_n+Rational(1,2));
+          else if (mlower_lquanta[14] == '-')
+              mquantum_numbers.SetLower(QN_J,mlower_n-Rational(1,2));
+          else
+          { 
+            // The J will be undefined and we fail at another stage.
+          }
+          
+          mquantum_numbers.SetLower(QN_K1, atoi(mlower_lquanta.substr(3, 3).c_str()));
+          mquantum_numbers.SetUpper(QN_K1, atoi(mupper_lquanta.substr(3, 3).c_str()));
+          mquantum_numbers.SetLower(QN_K2, atoi(mlower_lquanta.substr(6, 3).c_str()));
+          mquantum_numbers.SetUpper(QN_K2, atoi(mupper_lquanta.substr(6, 3).c_str()));
+          
       }
       else if(species_data[mspecies].Name()=="NO"||species_data[mspecies].Name()=="ClO")
       {

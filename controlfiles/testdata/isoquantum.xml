@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <arts format="ascii" version="1">
-<SpeciesAuxData version="1" nelem="14" nparam="3">
+<SpeciesAuxData version="1" nelem="16" nparam="3">
 @ O2-66 2.002064 1 1
 @ O2-68 2.002064 1 1
 @ O2-67 2.002064 1 1
@@ -15,5 +15,7 @@
 @ SO-26 2.002106 1 1
 @ SO-46 2.002106 1 1
 @ SO-28 2.002106 1 1
+@ NO2-646 2.0023193043622 0.5 1
+@ HO2-166 2.0023193043622 0.5 1
 </SpeciesAuxData>
 </arts>
