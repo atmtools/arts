@@ -1223,13 +1223,24 @@ void xml_read_from_stream(istream& is_xml,
                           bifstream* pbifs, const Verbosity& verbosity)
 {
   ArtsXMLTag tag(verbosity);
-  Index particle_type;
+  String version;
 
   tag.read_from_stream(is_xml);
   tag.check_name("SingleScatteringData");
+  tag.get_attribute_value("version", version);
 
-  xml_read_from_stream(is_xml, particle_type, pbifs, verbosity);
-  ssdata.particle_type = ParticleType(particle_type);
+  if (version == "2")
+    {
+      String particle_type_string;
+      xml_read_from_stream(is_xml, particle_type_string, pbifs, verbosity);
+      ssdata.particle_type = ParticleTypeFromString(particle_type_string);
+    }
+  else
+    {
+      Index particle_type;
+      xml_read_from_stream(is_xml, particle_type, pbifs, verbosity);
+      ssdata.particle_type = ParticleType(particle_type);
+    }
   xml_read_from_stream(is_xml, ssdata.description, pbifs, verbosity);
   xml_read_from_stream(is_xml, ssdata.f_grid, pbifs, verbosity);
   xml_read_from_stream(is_xml, ssdata.T_grid, pbifs, verbosity);
@@ -1280,9 +1291,11 @@ void xml_write_to_stream(ostream& os_xml,
   open_tag.set_name("SingleScatteringData");
   if (name.length())
     open_tag.add_attribute("name", name);
+  open_tag.add_attribute("version", "2");
   open_tag.write_to_stream(os_xml);
 
-  xml_write_to_stream(os_xml, Index(ssdata.particle_type), pbofs, "", verbosity);
+  xml_write_to_stream(os_xml, ParticleTypeToString(ssdata.particle_type),
+                      pbofs, "", verbosity);
   xml_write_to_stream(os_xml, ssdata.description, pbofs, "", verbosity);
   xml_write_to_stream(os_xml, ssdata.f_grid, pbofs, "", verbosity);
   xml_write_to_stream(os_xml, ssdata.T_grid, pbofs, "", verbosity);
@@ -1311,15 +1324,12 @@ void xml_read_from_stream(istream& is_xml,
                           bifstream* pbifs, const Verbosity& verbosity)
 {
   ArtsXMLTag tag(verbosity);
-  //Index ptype;
   String version;
 
   tag.read_from_stream(is_xml);
   tag.check_name("ScatteringMetaData");
   tag.get_attribute_value("version", version);
   
-  //xml_read_from_stream (is_xml, ptype, pbifs, verbosity);
-  //ssdata.ptype = ParticleType (ptype);
   xml_read_from_stream(is_xml, smdata.description, pbifs, verbosity);
   xml_read_from_stream(is_xml, smdata.material, pbifs, verbosity);
   xml_read_from_stream(is_xml, smdata.shape, pbifs, verbosity);
@@ -1330,11 +1340,13 @@ void xml_read_from_stream(istream& is_xml,
   xml_read_from_stream(is_xml, smdata.aspect_ratio, pbifs, verbosity);
   
   if (version == "2")
-    {  
+    {
+      String particle_type;
       xml_read_from_stream(is_xml, smdata.scat_f_grid, pbifs, verbosity);
       xml_read_from_stream(is_xml, smdata.scat_T_grid, pbifs, verbosity);
-      xml_read_from_stream(is_xml, smdata.particle_type, pbifs, verbosity);
+      xml_read_from_stream(is_xml, particle_type, pbifs, verbosity);
       xml_read_from_stream(is_xml, smdata.complex_refr_index, pbifs, verbosity);
+      smdata.particle_type = ParticleTypeFromString(particle_type);
     }
 
   tag.read_from_stream(is_xml);
@@ -1373,7 +1385,8 @@ void xml_write_to_stream(ostream& os_xml,
   xml_write_to_stream(os_xml, smdata.aspect_ratio, pbofs, "", verbosity);
   xml_write_to_stream(os_xml, smdata.scat_f_grid, pbofs, "", verbosity);
   xml_write_to_stream(os_xml, smdata.scat_T_grid, pbofs, "", verbosity);
-  xml_write_to_stream(os_xml, smdata.particle_type, pbofs, "", verbosity);
+  xml_write_to_stream(os_xml, ParticleTypeToString(smdata.particle_type),
+                      pbofs, "", verbosity);
   xml_write_to_stream(os_xml, smdata.complex_refr_index, pbofs, "", verbosity);
   
   close_tag.set_name("/ScatteringMetaData");

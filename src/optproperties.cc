@@ -1012,3 +1012,129 @@ void opt_prop_sum_propmat_clearsky(//Output:
                 ext_mat(iv,is1,is2) += propmat_clearsky(joker,iv,is1,is2).sum();
         }
 }
+
+
+//! Convert particle name to enum value
+/*!
+ Returns the ParticleType enum value for the given String.
+
+ \param[in]  particle_type_string  Particle type name
+ \return     ParticleType enum value
+
+ \author Oliver Lemke
+ */
+ParticleType ParticleTypeFromString(const String& particle_type_string)
+{
+    ParticleType particle_type;
+    if (particle_type_string == "general")
+        particle_type = PARTICLE_TYPE_GENERAL;
+    else if (particle_type_string == "macroscopically_isotropic")
+        particle_type = PARTICLE_TYPE_MACROS_ISO;
+    else if (particle_type_string == "horizontally_aligned")
+        particle_type = PARTICLE_TYPE_HORIZ_AL;
+    else if (particle_type_string == "spherical")
+        particle_type = PARTICLE_TYPE_SPHERICAL;
+    else
+    {
+        ostringstream os;
+        os << "Unknown particle type: " << particle_type_string << endl
+        << "Valid types: general, macroscopically_isotropic, spherical";
+        throw std::runtime_error(os.str());
+    }
+
+    return particle_type;
+}
+
+
+//! Convert particle type enum value to String.
+/*!
+ Returns the ParticleType enum value for the given String.
+
+ \param[in]  particle_type  Particle type
+ \return     String representation of ParticleType
+
+ \author Oliver Lemke
+ */
+String ParticleTypeToString(const ParticleType& particle_type)
+{
+    String particle_type_string;
+
+    switch (particle_type) {
+        case PARTICLE_TYPE_GENERAL:
+            particle_type_string = "general";
+            break;
+        case PARTICLE_TYPE_MACROS_ISO:
+            particle_type_string = "macroscopically_isotropic";
+            break;
+        case PARTICLE_TYPE_HORIZ_AL:
+            particle_type_string = "horizontally_aligned";
+            break;
+        case PARTICLE_TYPE_SPHERICAL:
+            particle_type_string = "spherical";
+            break;
+        default:
+            ostringstream os;
+            os << "Internal error: Cannot map ParticleType enum value "
+            << particle_type << " to String.";
+            throw std::runtime_error(os.str());
+            break;
+    }
+
+    return particle_type_string;
+}
+
+
+//! Convert particle ssd method name to enum value
+/*!
+ Returns the ParticleSSDMethod enum value for the given String.
+
+ \param[in]  particle_ssdmethod_string  Particle SSD method name
+ \return     ParticleSSDMethod enum value
+
+ \author Oliver Lemke
+ */
+ParticleSSDMethod ParticleSSDMethodFromString(const String& particle_ssdmethod_string)
+{
+    ParticleSSDMethod particle_ssdmethod;
+    if (particle_ssdmethod_string == "tmatrix")
+        particle_ssdmethod = PARTICLE_SSDMETHOD_TMATRIX;
+    else
+    {
+        ostringstream os;
+        os << "Unknown particle SSD method: " << particle_ssdmethod_string << endl
+        << "Valid methods: tmatrix";
+        throw std::runtime_error(os.str());
+    }
+
+    return particle_ssdmethod;
+}
+
+
+//! Convert particle type enum value to String.
+/*!
+ Returns the ParticleType enum value for the given String.
+
+ \param[in]  particle_type  Particle type
+ \return     String representation of ParticleSSDMethod
+
+ \author Oliver Lemke
+ */
+String ParticleTypeToString(const ParticleSSDMethod& particle_ssdmethod)
+{
+    String particle_ssdmethod_string;
+
+    switch (particle_ssdmethod) {
+        case PARTICLE_SSDMETHOD_TMATRIX:
+            particle_ssdmethod_string = "tmatrix";
+            break;
+        default:
+            ostringstream os;
+            os << "Internal error: Cannot map ParticleSSDMethod enum value "
+            << particle_ssdmethod << " to String.";
+            throw std::runtime_error(os.str());
+            break;
+    }
+
+    return particle_ssdmethod_string;
+}
+

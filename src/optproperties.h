@@ -42,8 +42,7 @@
 #include "gridded_fields.h"
 
 
-//! An attribute to classify the particle type in a SingleScatteringData
-//  structure.
+//! An attribute to classify the particle type in a SingleScatteringData structure.
 /*! 
   GENERAL      General case
   MACROS_ISO   Macroscopically isotropic and mirror-symmetric scattering media
@@ -61,13 +60,23 @@ enum ParticleType {
 };
 
 
+//! An attribute to classify the method to be used for SingleScatteringData
+/*!
+  NONE         Dummy value
+  TMATRIX      T-Matrix method
+*/
+enum ParticleSSDMethod {
+  PARTICLE_SSDMETHOD_NONE = 0,
+  PARTICLE_SSDMETHOD_TMATRIX = 1,
+};
+
+
 
 /*===========================================================================
   === The SingleScatteringData structure
   ===========================================================================*/
 
-//! Structure which describes the single scattering properties of a 
-//  particle or a particle distribution.
+//! Structure which describes the single scattering properties of a particle or a particle distribution.
 /*! 
    The fields of the structure are described in the ARTS user guide (AUG).
    It is listed as a sub-entry to "data structures".  
@@ -101,7 +110,8 @@ struct ScatteringMetaData {
   String    description;
   String    material;
   String    shape;
-  String    particle_type;
+  ParticleType particle_type;
+  ParticleSSDMethod ssd_method;
   Numeric   density;
   Numeric   diameter_max;
   Numeric   volume;
@@ -202,5 +212,13 @@ void opt_prop_sum_propmat_clearsky(//Output:
                                       Matrix&          abs_vec,
                                       //Input:
                                       const Tensor4    propmat_clearsky);
+
+ParticleType ParticleTypeFromString(const String& particle_type_string);
+
+String ParticleTypeToString(const ParticleType& particle_type);
+
+ParticleSSDMethod ParticleSSDMethodFromString(const String& particle_ssdmethod_string);
+
+String ParticleSSDMethodToString(const ParticleSSDMethod& particle_ssdmethod_type);
 
 #endif //optproperties_h

@@ -116,7 +116,8 @@ void scat_data_meta_arrayAddTmatrix(// WS Output:
  
       smd.material = material;
       smd.shape = shape;
-      smd.particle_type = particle_type;
+      smd.particle_type = ParticleTypeFromString(particle_type);
+      smd.ssd_method = PARTICLE_SSDMETHOD_TMATRIX;
       smd.density = density;
       smd.diameter_max =diameter_max;
       smd.volume = 4./3.*PI*pow(diameter_grid[k]/2., 3);
@@ -147,7 +148,6 @@ void scat_data_rawFromMeta(// WS Output:
     {
 
       extern const Numeric PI;  
-      const String& particle_type = scat_data_meta_array[ii].particle_type;
       Index  np;
 
       SingleScatteringData sdd;
@@ -155,19 +155,7 @@ void scat_data_rawFromMeta(// WS Output:
       sdd.T_grid = scat_data_meta_array[ii].scat_T_grid;
       sdd.za_grid = za_grid;
       sdd.aa_grid = aa_grid;
-
-
-      if (particle_type == "macros_iso")
-        sdd.particle_type = PARTICLE_TYPE_MACROS_ISO;
-      else if (particle_type == "horiz_al")
-        sdd.particle_type = PARTICLE_TYPE_HORIZ_AL;
-      else
-        {
-          ostringstream os;
-          os << "Unknown particle type: " << particle_type << "\n"
-            << "Must be macros_iso or horiz_al";
-          throw std::runtime_error(os.str());
-        }
+      sdd.particle_type = scat_data_meta_array[ii].particle_type;
 
       if (scat_data_meta_array[ii].shape == "spheroidal" )
         np=-1;
@@ -213,18 +201,7 @@ void single_scattering_dataFromTmatrix(
     single_scattering_data.T_grid  = T_grid;
     single_scattering_data.za_grid = za_grid;
     single_scattering_data.aa_grid = aa_grid;
-
-    if( orientation == "macros_iso" )
-      { single_scattering_data.particle_type = PARTICLE_TYPE_MACROS_ISO; }
-    else if( orientation == "horiz_al" )
-      { single_scattering_data.particle_type = PARTICLE_TYPE_HORIZ_AL; }
-    else
-      {
-        ostringstream os;
-        os << "Unknown particle orientation: " << orientation << "\n"
-        << "Must be \"macros_iso\" or \"horiz_al\".";
-        throw std::runtime_error(os.str());
-      }
+    single_scattering_data.particle_type = ParticleTypeFromString(orientation);
 
     Index ishape = 999;
     if( shape == "spheroidal" )

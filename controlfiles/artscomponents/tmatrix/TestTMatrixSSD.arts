@@ -23,7 +23,7 @@ scat_data_meta_arrayInit
 scat_data_meta_arrayAddTmatrix(
 	material="Ice",
 	shape="spheroidal",
-	particle_type="horiz_al",
+	particle_type="horizontally_aligned",
 	density=916.7,
 	aspect_ratio=0.7,
 	diameter_grid=[400e-6],
@@ -38,7 +38,14 @@ scat_data_rawFromMeta(
 
 #Extract(single_scattering_data,scat_data_raw)
 
+WriteXML( "ascii", scat_data_meta_array )
+
 WriteXML( "ascii", scat_data_raw )
+
+ReadXML( scat_data_meta_array )
+
+ReadXML( scat_data_raw )
+
 
 GriddedField3Create( n_of_ice )
 
@@ -53,7 +60,7 @@ single_scattering_dataFromTmatrix(
   za_grid            = ssd_za_grid,
   aa_grid            = ssd_aa_grid,
   complex_refr_index = n_of_ice,
-  orientation        = "horiz_al",
+  orientation        = "horizontally_aligned",
   shape              = "spheroidal",
   equiv_radius       = 200e-6,
   aspect_ratio       = 0.7,

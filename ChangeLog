@@ -1,3 +1,39 @@
+2013-08-14  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-730
+
+	* src/optproperties.{h,cc}:
+
+	Add enum ParticleSSDMethod.
+
+	Change type of particle_type in SMD from String to ParticleType.
+
+	Add methods for mapping ParticleType and ParticleSSDMethod from/to enum
+	value to/from String.
+
+	Add ssd_method member to SMD.
+
+	* src/xml_io_compound_types.cc:
+
+	Add version attribute to SingleScatteringData. New data is now always
+	written as version 2.
+
+	Save particle_type as String in SingleScatteringData and
+	ScatteringMetaData. Mapped to/from enum value on read/write.
+
+	* src/m_tmatrix.cc:
+
+	(scat_data_meta_arrayAddTmatrix): Set smd.ssd_method to T-Matrix.
+	Use ParticleTypeFromString for particle_type String->enum conversion.
+
+	(single_scattering_dataFromTmatrix): Use ParticleTypeFromString.
+
+	* controlfiles/artscomponents/tmatrix/TestTMatrixSSD.arts:
+
+	Change horiz_al to horizontally_aligned.
+
+	Store and load scat_data_meta_array and scat_data_raw.
+
 2013-08-14  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-729
