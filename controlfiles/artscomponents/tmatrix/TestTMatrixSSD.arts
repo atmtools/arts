@@ -23,7 +23,7 @@ scat_data_meta_arrayInit
 scat_data_meta_arrayAdd(
 	material="Ice",
 	shape="spherical",
-	p_type="HORIZ_AL",
+	particle_type="HORIZ_AL",
 	aspect_ratio=0.7,
 	r_grid=[200.],
 	scat_f_grid=scat_f_grid,
