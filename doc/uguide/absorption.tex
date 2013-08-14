@@ -666,16 +666,28 @@ This variable is of type \builtindoc{SpeciesAuxData}, and a file providing
 that kind of data would, e.g., look like:
 \begin{code}
 <arts format="ascii" version="1">
-  <SpeciesAuxData version="1" nelem="1" nparam="2">
-    @ O2-66 2.002064 1
+  <SpeciesAuxData version="1" nelem="1" nparam="3">
+    @ O2-66 2.002064 1 1
   </SpeciesAuxData>
 </arts>
 \end{code}
 In this example, \verb|@| indicates the beginning of a new data record, \verb|O2-66|
 specifies what isotopologue is associated with the data, the number
 \verb|2.002064| is the relative Land\'{e} factor, and the molecule got $S=1$.
-Note that at present only oxygen is supported in ARTS, but that there are plans to 
-add capabilities for further molecules.
+The last value indicates what Hund case is used in the calculations. For oxygen,
+Hund case b is used, indicated b the number "1". Presently, Hund case a, indicated
+by number "0" also works for some molecules. It is up to the user to assure the
+correct quantum numbers for each case are set properly.
+The supported molecules in ARTS so far for Zeeman calculations are
+\begin{itemize}
+\item O$_2$, case b
+\item NO, case a
+\item OH, case a
+\item ClO, case a
+\item HO$_2$, case b
+\item NO$_2$, case b
+\end{itemize}
+but only O$_2$ is tested beyond initial modeling results.
 
 Beside the additional line parameters, it is also necessary to input the magnetic
 field into the model. This can be done following:
