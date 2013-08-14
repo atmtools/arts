@@ -1,15 +1,26 @@
+2013-08-14  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-733
+
+	* src/m_general.cc (Test): Now including code to test function below.
+
+	* src/special_interp.cc (complex_n_interp): New. Function to
+	interpolate variables of complex_refr_index type.
+
+	* src/workspace.cc: Added complex_refr_indexNew (only temporary name).
+	Wrote text describing the format of variables of this type.
+
 2013-08-14  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-1-732
-	
+
 	* src/linerecord.cc: Reading from HITRAN now gets the quantum numbers
 	for Zeeman. There is something wrong in the 2004 paper explaining the
-	format because it seems the Symmetry field is also 2A1, not just as 
+	format because it seems the Symmetry field is also 2A1, not just as
 	stated in the text that the Branch letter is 2A1, for OH.
-	
+
 	* doc/uguide/absorption.tex: Changed text on Zeeman here.
-	
-	
+
 2013-08-14  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-731

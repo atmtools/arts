@@ -405,59 +405,27 @@ void Exit(const Verbosity& verbosity)
 /* Workspace method: Doxygen documentation will be auto-generated */
 void Test(const Verbosity& verbosity)
 {
-  // This function can be used to test stuff.
-  // Feel free to change and test things
+  GriddedField3 complex_n;
 
-  /*
-  const Numeric I = 1e-3;
-  const Numeric Q = 2e-4;
-  const Numeric U = 0;
-  const Numeric V = 0;
-  const Numeric RU = 1e-7;
-  const Numeric RV = 0;
-  const Numeric RQ = 1e-5;
+  MakeVector f_grid1( 10e9,500e9 ); 
+  MakeVector t_grid1( 274,300,373 ); 
 
-  const Numeric lstep = 20e3;
+  MakeVector f_grid2( 15e9, 100e9, 200e9 ); 
+  MakeVector t_grid2( 300,310 ); 
 
-  Matrix ext(4,4), trans1(4,4), trans2(4,4), ntau;
+  ParticleRefractiveIndexWaterLiebe93( complex_n, f_grid1, t_grid1, verbosity );  
 
+  cout << complex_n.data(joker,joker,0) << endl << endl;
+  cout << complex_n.data(joker,joker,1) << endl << endl;
 
-  ext(0,0) = I;
-  ext(1,1) = I;
-  ext(2,2) = I;
-  ext(3,3) = I;
+  Matrix n_real(f_grid2.nelem(),t_grid2.nelem());
+  Matrix n_imag(f_grid2.nelem(),t_grid2.nelem());
 
-  ext(1,0) = Q;
-  ext(0,1) = Q;
+  complex_n_interp( n_real, n_imag, complex_n, "testdata", f_grid2, t_grid2 );
 
-  ext(2,0) = U;
-  ext(0,2) = U;
+  cout << n_real << endl << endl;
+  cout << n_imag << endl;
 
-  ext(3,0) = V;
-  ext(0,3) = V;
-
-  ext(3,1) = RU;
-  ext(1,3) = -RU;
-
-  ext(2,1) = -RV;
-  ext(1,2) = RV;
-
-  ext(2,3) = RQ;
-  ext(3,2) = -RQ;
-
-  ntau = ext;
-  ntau *= -lstep;
-
-  matrix_exp( trans1, ntau, 10 );
-
-  Index icase=0;
-  ext2trans( trans2, icase, ext, lstep );
-
-  cout << trans1 << endl << endl;
-  cout << trans2 << endl;
-  cout << icase << endl;
-  */
-  Exit( verbosity );
 }
 
 

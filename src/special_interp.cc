@@ -54,8 +54,8 @@
 
 
   - Various functions connected to the atmospheric fields:
-  
-  See below to find what functions that exist.
+
+  - Interpolation of Gridded fields of specialö types:
 */
 
 #include <cmath>
@@ -853,4 +853,120 @@ void z_at_latlon(
   interp( z_tensor, itw, z_field, agp_z, agp_lat, agp_lon );
 
   z = z_tensor(Range(joker),0,0);
+}
+
+
+
+/*===========================================================================
+  === Interpolation of GriddedFields
+  ===========================================================================*/
+
+//! complex_n_interp
+/*!
+    General function for interpolating data of complex n type.
+
+    See documentation of comples_refr_index for format of complex_n-.
+
+    \param   n_real      Out: Real part [nf,nt]
+    \param   n_imag      Out: Imaginary part [nf,nt]
+    \param   complex_n   Complex refracton index data.
+    \param   varname     The name of complex_n to use in error message.
+    \param   f_grid      Output frequency grid [nf]
+    \param   t_grid      Output temperature grid [nt]
+
+    \author Patrick Eriksson 
+    \date   2013-08-16
+*/
+void complex_n_interp(
+         MatrixView       n_real,
+         MatrixView       n_imag,
+   const GriddedField3&   complex_n,
+   const String&          varname,
+   ConstVectorView        f_grid,
+   ConstVectorView        t_grid )
+{
+  // Set expected order of grids
+  Index gfield_fID    = 0;
+  Index gfield_tID    = 1;
+  Index gfield_compID = 2;
+
+  // Check of complex_n
+  //
+  complex_n.checksize_strict();
+  //
+  chk_griddedfield_gridname( complex_n, gfield_fID,    "Frequency"   );
+  chk_griddedfield_gridname( complex_n, gfield_tID,    "Temperature" );
+  chk_griddedfield_gridname( complex_n, gfield_compID, "Complex"     );
+  //
+  if( complex_n.data.ncols() != 2 )
+    {
+      ostringstream os;
+      os << "The data in *" << varname << "* must have exactly two pages. One page "
+         << "each\nfor the real and imaginary part of the complex refractive index.";
+    } 
+
+  // Frequency and temperature grid sizes
+  const Index nf_in = complex_n.data.npages();
+  const Index nt_in = complex_n.data.nrows(); 
+  const Index nf_out = f_grid.nelem();
+  const Index nt_out = t_grid.nelem();
+
+  //Assert size of output variables
+  assert( n_real.nrows() == nf_out  &&  n_real.ncols() == nt_out );
+  assert( n_imag.nrows() == nf_out  &&  n_imag.ncols() == nt_out );
+
+  const Vector& f_grid_in = complex_n.get_numeric_grid(gfield_fID);
+  const Vector& t_grid_in = complex_n.get_numeric_grid(gfield_tID);
+
+  // Expand/interpolate in frequency dimension
+  //
+  Matrix nrf(nf_out,nt_in), nif(nf_out,nt_in);
+  //
+  if( nf_in == 1 )
+    {
+      for( Index i=0; i<nf_out; i++ )
+        { 
+          nrf(i,joker) = complex_n.data(0,joker,0); 
+          nif(i,joker) = complex_n.data(0,joker,1); 
+        }
+    }
+  else
+    {
+      chk_interpolation_grids( "Frequency interpolation", f_grid_in, f_grid );
+      //
+      ArrayOfGridPos gp( nf_out );
+      Matrix         itw( nf_out, 2 );
+      gridpos( gp, f_grid_in, f_grid );
+      interpweights( itw, gp );
+      for( Index i=0; i<nt_in; i++ )
+        { 
+          interp( nrf(joker,i), itw, complex_n.data(joker,i,0), gp );
+          interp( nif(joker,i), itw, complex_n.data(joker,i,1), gp );
+        }
+    }
+
+  // Expand/interpolate in temperature dimension
+  //
+  if( nt_in == 1 )
+    {
+      for( Index i=0; i<nt_out; i++ )
+        { 
+          n_real(joker,i) = nrf(joker,0); 
+          n_imag(joker,i) = nif(joker,0); 
+        }
+    }
+  else
+    {
+      chk_interpolation_grids( "Temperature interpolation", t_grid_in, t_grid );
+      //
+      ArrayOfGridPos gp( nt_out );
+      Matrix         itw( nt_out, 2 );
+      gridpos( gp, t_grid_in, t_grid );
+      interpweights( itw, gp );
+      for( Index i=0; i<nf_out; i++ )
+        { 
+          interp( n_real(i,joker), itw, nrf(i,joker), gp );
+          interp( n_imag(i,joker), itw, nif(i,joker), gp );
+        }
+    }
 }

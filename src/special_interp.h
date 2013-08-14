@@ -152,5 +152,12 @@ void z_at_latlon(
         const GridPos&     gp_lat,
         const GridPos&     gp_lon );
 
+void complex_n_interp(
+         MatrixView       n_real,
+         MatrixView       n_imag,
+   const GriddedField3&   complex_n,
+   const String&          varname,
+   ConstVectorView        f_grid,
+   ConstVectorView        t_grid );
 
 #endif // special_interp_h

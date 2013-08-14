@@ -1129,6 +1129,40 @@ void Workspace::define_wsv_data()
         ),
        GROUP( "Matrix" ) ));
 
+ wsv_data.push_back
+    (WsvRecord
+     ( NAME( "complex_refr_indexNew"),
+       DESCRIPTION
+       (
+        "Complex refractive index (n) data.\n"
+        "\n"
+        "The variable works as a lookup-table of complex refractive index.\n"
+        "The matter type (water, ice ...) is unspecified, it is up to the\n"
+        "user to fill the variable with data for the expected matter.\n"
+        "The variable can be used to describe n of both the surface and\n"
+        "atmospheric particles.\n"
+        "\n"
+        "The column dimension has always size 2, where the first and second\n"
+        "column holds the real and imaginary part of n, respectively. The row\n"
+        "dimension matches temperature, and the page dimension is frequency.\n"
+        "Both the temperature and frequency dimensions grids are allowed to\n"
+        "have length 1, which is interpreted as n being constant in that\n"
+        "dimension.\n"
+        "\n"
+        "When mapping these data to the required frequencies and temperatures\n"
+        "a bi-linear interpolation is applied.\n"
+        "\n"
+        "Unit:       -\n"
+        "\n"
+        "Dimensions: \n"
+        "      Vector f_grid[N_f]\n"
+        "      Vector T_grid[N_T]\n"
+        "      ArrayOfString Complex[2]\n"
+        "                   [2]\n"
+        "      Tensor3 data[N_f][N_T][2]\n"
+        ),
+       GROUP( "GriddedField3" ) ));
+
   wsv_data.push_back
    (WsvRecord
     ( NAME( "diy_dx" ),
