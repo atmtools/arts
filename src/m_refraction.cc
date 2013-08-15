@@ -48,6 +48,7 @@
 #include "refraction.h"
 #include "special_interp.h"
 #include "abs_species_tags.h"
+#include "physics_funcs.h"
 
 extern const Numeric ELECTRON_CHARGE;
 extern const Numeric ELECTRON_MASS;
@@ -351,9 +352,10 @@ void complex_refr_indexWaterLiebe93(
 }
 
 
+
 #ifdef ENABLE_REFICE
 /* Workspace method: Doxygen documentation will be auto-generated */
-void ParticleRefractiveIndexIceWarren84(
+void complex_refr_indexIceWarren84(
          GriddedField3&   complex_refr_index,
    const Vector&          f_grid,
    const Vector&          t_grid,
@@ -377,9 +379,9 @@ void ParticleRefractiveIndexIceWarren84(
 
     complex_refr_index.resize(nf, nt, 2);
     complex_refr_index.set_grid_name(0, "Frequency");
-    complex_refr_index.set_grid(0, scat_f_grid);
+    complex_refr_index.set_grid(0, f_grid);
     complex_refr_index.set_grid_name(1, "Temperature");
-    complex_refr_index.set_grid(1, scat_t_grid);
+    complex_refr_index.set_grid(1, t_grid);
     complex_refr_index.set_grid_name(2, "Complex");
     complex_refr_index.set_grid(2, MakeArray<String>("real", "imaginary"));
 
@@ -390,7 +392,7 @@ void ParticleRefractiveIndexIceWarren84(
     for (Index f = 0; f < nf; ++f)
         for (Index t = 0; t < nt; ++t)
         {
-            n = refice_(scat_f_grid[f] / SPEED_OF_LIGHT, scat_t_grid[t]);
+            n = refice_(f_grid[f] / SPEED_OF_LIGHT, t_grid[t]);
             complex_refr_index.data(f, t, 0) = n.real();
             complex_refr_index.data(f, t, 1) = n.imag();
         }
@@ -410,5 +412,4 @@ void complex_refr_indexIceWarren84(// Generic output:
 }
 
 #endif
-
 
