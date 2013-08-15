@@ -78,27 +78,6 @@ AgendaSet( surface_rtprop_agenda__Specular_NoPol_ReflFix_SurfTFromt_field ){
   surfaceFlatScalarReflectivity
 }
 
-# - surface reflectivity interpolated from surface reflectivity field (GriddedField4)
-# - preset (constant) surface skin temperature
-#
-#AgendaCreate( surface_rtprop_agenda__Specular_NoPol_ReflFromField_SurfTFix )
-#AgendaSet( surface_rtprop_agenda__Specular_NoPol_ReflFromField_SurfTFix ){
-#  specular_losCalc
-#  surface_scalar_reflectivityFromGriddedField4( r_field=r_gfield4 )
-#  surfaceFlatScalarReflectivity
-#} 
-
-# - surface reflectivity from Liebe model
-# - surface skin temperature interpolated from atmospheric t_field
-#
-AgendaCreate( surface_rtprop_agenda__Specular_Pol_Water_SurfTFromt_field )
-AgendaSet( surface_rtprop_agenda__Specular_Pol_Water_SurfTFromt_field ){
-  specular_losCalc
-  InterpAtmFieldToRtePos( out=surface_skin_t, pos=rtp_pos, field=t_field )
-  complex_refr_indexWaterLiebe93( complex_refr_index=surface_complex_refr_index,
-                                  t=surface_skin_t )
-  surfaceFlatRefractiveIndex
-}
 
 
 #####
@@ -114,7 +93,8 @@ AgendaSet( surface_rtprop_agenda__Specular_Pol_ReflFix_SurfTFix ){
   surfaceFlatReflectivity
 } 
 
-# - surface reflectivity interpolated from surface reflectivity field (GriddedField6)
+# - surface reflectivity interpolated from surface reflectivity field 
+#   (GriddedField6)
 # - preset (constant) surface skin temperature
 #
 #AgendaCreate( surface_rtprop_agenda__Specular_Pol_ReflFromField_SurfTFix )

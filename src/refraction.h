@@ -40,6 +40,11 @@
 #include "matpackIV.h"
 
 
+void complex_n_water_liebe93(
+         Matrix&   complex_n,
+   const Vector&   f_grid,
+   const Numeric&  t );
+
 void get_refr_index_1d(
           Workspace&  ws,
           Numeric&    refr_index,

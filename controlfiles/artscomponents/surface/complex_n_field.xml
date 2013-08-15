@@ -1,8 +1,11 @@
 <?xml version="1.0"?>
 <arts format="ascii" version="1">
-<GriddedField4 name="Surface complex refractive index">
+<GriddedField5 name="Surface complex refractive index">
 <Vector name="Frequency" nelem="1">
 1.0000000e+10
+</Vector>
+<Vector name="Temperature" nelem="1">
+3.0000000e+02
 </Vector>
 <Vector name="Complex" nelem="2">
 1.0000000e+00
@@ -16,11 +19,11 @@
 -3.6000000e+02
 3.6000000e+02
 </Vector>
-<Tensor4 name="Complex refractivity" nbooks="1" npages="2" nrows="2" ncols="2">
+<Tensor5 name="Complex refractivity" nshelves="1" nbooks="1" npages="2" nrows="2" ncols="2">
 1.0000000e+00 1.0000000e+00
 3.5000000e+00 3.5000000e+00
 0.0000000e+00 0.0000000e+00
 0.0000000e+00 0.0000000e+00
-</Tensor4>
-</GriddedField4>
+</Tensor5>
+</GriddedField5>
 </arts>

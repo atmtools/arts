@@ -65,115 +65,6 @@ extern const Numeric DEG2RAD;
   ===========================================================================*/
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void surface_complex_refr_indexFromGriddedField4(
-          Matrix&          surface_complex_refr_index,
-    const Index&           stokes_dim,
-    const Vector&          f_grid,
-    const Index&           atmosphere_dim,
-    const Vector&          lat_grid,
-    const Vector&          lat_true,
-    const Vector&          lon_true,
-    const Vector&          rtp_pos,
-    const GriddedField4&   n_field,
-    const Verbosity&)
-{
-  // Set expected order of grids
-  Index gfield_fID = 0;
-  Index gfield_compID = 1;
-  Index gfield_latID = 2;
-  Index gfield_lonID = 3;
-
-  // Basic checks and sizes
-  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
-  chk_if_in_range( "stokes_dim", stokes_dim, 1, 4 );
-  chk_latlon_true( atmosphere_dim, lat_grid, lat_true, lon_true );
-  chk_rte_pos( atmosphere_dim, rtp_pos );
-  n_field.checksize_strict();
-  //
-  chk_griddedfield_gridname( n_field, gfield_fID, "Frequency" );
-  chk_griddedfield_gridname( n_field, gfield_compID, "Complex" );
-  chk_griddedfield_gridname( n_field, gfield_latID, "Latitude" );
-  chk_griddedfield_gridname( n_field, gfield_lonID, "Longitude" );
-  //
-  const Index nf_in = n_field.data.nbooks();
-  const Index nn    = n_field.data.npages();
-  const Index nlat  = n_field.data.nrows();
-  const Index nlon  = n_field.data.ncols();
-  //
-  if( nlat < 2  ||  nlon < 2 )
-    {
-      ostringstream os;
-      os << "The data in *n_field* must span a geographical region. That is,\n"
-         << "the latitude and longitude grids must have a length >= 2.";
-    } 
-  //
-  if( nn != 2 )
-    {
-      ostringstream os;
-      os << "The data in *n_field* must have exactly two pages. One page each\n"
-         << "for the real and imaginary part of the complex refractive index.";
-    } 
-
-  const Vector& GFlat=n_field.get_numeric_grid(gfield_latID);
-  const Vector& GFlon=n_field.get_numeric_grid(gfield_lonID);
-
-  // Determine true geographical position
-  Vector lat(1), lon(1);
-  pos2true_latlon( lat[0], lon[0], atmosphere_dim, lat_grid, lat_true, 
-                                                           lon_true, rtp_pos );
-
-  // Ensure correct coverage of lon grid
-  Vector lon_shifted;
-  lon_shiftgrid( lon_shifted, GFlon, lon[0] );
-
-  // Check if lat/lon we need are actually covered
-  chk_if_in_range( "rtp_pos.lat", lat[0], GFlat[0],
-                    GFlat[nlat-1] );
-  chk_if_in_range( "rtp_pos.lon", lon[0], lon_shifted[0],
-                    lon_shifted[nlon-1] );
-
-  // Interpolate in lat and lon
-  Matrix n_f( nf_in, nn );
-  {
-    GridPos gp_lat, gp_lon;
-    gridpos( gp_lat, GFlat, lat[0] );
-    gridpos( gp_lon, lon_shifted, lon[0] );
-    Vector itw(4);
-    interpweights( itw, gp_lat, gp_lon );
-    for( Index iv=0; iv<nf_in; iv++ )
-      {
-        for( Index in=0; in<nn; in++ )
-          { 
-            n_f(iv,in) = interp( itw, n_field.data(iv,in,joker,joker), 
-                                                              gp_lat, gp_lon );
-          }
-      } 
-
-  }    
-  
-  // Extract or interpolate in frequency
-  //
-  if( nf_in == 1 )
-    { surface_complex_refr_index = n_f; }
-  else
-    {
-      chk_interpolation_grids( "Frequency interpolation", 
-                               n_field.get_numeric_grid(gfield_fID), f_grid );
-      const Index nf_out = f_grid.nelem();
-      surface_complex_refr_index.resize( nf_out, 2 );
-      //
-      ArrayOfGridPos gp( nf_out );
-      Matrix         itw( nf_out, 2 );
-      gridpos( gp, n_field.get_numeric_grid(gfield_fID), f_grid );
-      interpweights( itw, gp );
-      interp( surface_complex_refr_index(joker,0), itw, n_f(joker,0), gp );
-      interp( surface_complex_refr_index(joker,1), itw, n_f(joker,1), gp );
-    }     
-}
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
 void InterpSurfaceFieldToRtePos(
           Numeric&   outvalue,
     const Index&     atmosphere_dim,
@@ -333,6 +224,87 @@ void iySurfaceRtpropAgenda(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void specular_losCalc(
+         Vector&   specular_los,
+         Vector&   surface_normal,
+   const Vector&   rtp_pos,
+   const Vector&   rtp_los,
+   const Index&    atmosphere_dim,
+   const Vector&   lat_grid,
+   const Vector&   lon_grid,
+   const Vector&   refellipsoid,
+   const Matrix&   z_surface, 
+   const Verbosity&)
+{
+  surface_normal.resize( max( Index(1), atmosphere_dim-1 ) );
+  specular_los.resize( max( Index(1), atmosphere_dim-1 ) );
+
+  if( atmosphere_dim == 1 )
+    { 
+      surface_normal[0] = 0;
+      specular_los[0]   = 180 - rtp_los[0]; 
+    }
+
+  else if( atmosphere_dim == 2 )
+    { 
+      chk_interpolation_grids( "Latitude interpolation", lat_grid, rtp_pos[1] );
+      GridPos gp_lat;
+      gridpos( gp_lat, lat_grid, rtp_pos[1] );
+      Numeric c1;         // Radial slope of the surface
+      plevel_slope_2d( c1, lat_grid, refellipsoid, z_surface(joker,0), 
+                                                          gp_lat, rtp_los[0] );
+      Vector itw(2); interpweights( itw, gp_lat );
+      const Numeric rv_surface = refell2d( refellipsoid, lat_grid, gp_lat )
+                                + interp( itw, z_surface(joker,0), gp_lat );
+      surface_normal[0] = -plevel_angletilt( rv_surface, c1 );
+      specular_los[0]   = sign( rtp_los[0] ) * 180 - rtp_los[0] + 
+                                                           2*surface_normal[0];
+    }
+
+  else if( atmosphere_dim == 3 )
+    { 
+      // Calculate surface normal in South-North direction
+      chk_interpolation_grids( "Latitude interpolation", lat_grid, rtp_pos[1] );
+      chk_interpolation_grids( "Longitude interpolation", lon_grid, rtp_pos[2]);
+      GridPos gp_lat, gp_lon;
+      gridpos( gp_lat, lat_grid, rtp_pos[1] );
+      gridpos( gp_lon, lon_grid, rtp_pos[2] );
+      Numeric c1, c2;
+      plevel_slope_3d( c1, c2, lat_grid, lon_grid, refellipsoid, z_surface, 
+                       gp_lat, gp_lon, 0 );
+      Vector itw(4); interpweights( itw, gp_lat, gp_lon );
+      const Numeric rv_surface = refell2d( refellipsoid, lat_grid, gp_lat )
+                                 + interp( itw, z_surface, gp_lat, gp_lon );
+      const Numeric zaSN = 90 - plevel_angletilt( rv_surface, c1 );
+      // The same for East-West
+      plevel_slope_3d( c1, c2, lat_grid, lon_grid, refellipsoid, z_surface, 
+                       gp_lat, gp_lon, 90 );
+      const Numeric zaEW = 90 - plevel_angletilt( rv_surface, c1 );
+      // Convert to Cartesian, and determine normal by cross-product
+      Vector tangentSN(3), tangentEW(3), normal(3);
+      zaaa2cart( tangentSN[0], tangentSN[1], tangentSN[2], zaSN, 0 );
+      zaaa2cart( tangentEW[0], tangentEW[1], tangentEW[2], zaEW, 90 );
+      cross3( normal, tangentSN, tangentEW );
+      // Convert rtp_los to cartesian and flip direction
+      Vector di(3);
+      zaaa2cart( di[0], di[1], di[2], rtp_los[0], rtp_los[1] );
+      di *= -1;
+      // Set LOS normal vector 
+      cart2zaaa( surface_normal[0], surface_normal[1], normal[0], normal[1], 
+                                                                  normal[2] );
+      // Specular direction is 2(dn*di)dn-di, where dn is the normal vector
+      Vector speccart(3);      
+      const Numeric fac = 2 * (normal * di);
+      for( Index i=0; i<3; i++ )
+        { speccart[i] = fac*normal[i] - di[i]; }
+      cart2zaaa( specular_los[0], specular_los[1], speccart[0], speccart[1], 
+                                                                speccart[2] );
+   }
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void surfaceBlackbody(
           Workspace& ws,
           Matrix&    surface_los,
@@ -374,43 +346,36 @@ void surfaceBlackbody(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void surfaceFlatRefractiveIndex(
-          Workspace& ws,
-          Matrix&    surface_los,
-          Tensor4&   surface_rmatrix,
-          Matrix&    surface_emission,
-    const Vector&    f_grid,
-    const Index&     stokes_dim,
-    const Index&     atmosphere_dim,
-    const Vector&    rtp_los,
-    const Vector&    specular_los,
-    const Numeric&   surface_skin_t,
-    const Matrix&    surface_complex_refr_index,
-    const Agenda&    blackbody_radiation_agenda,
-    const Verbosity& verbosity)
+          Workspace&     ws,
+          Matrix&        surface_los,
+          Tensor4&       surface_rmatrix,
+          Matrix&        surface_emission,
+    const Vector&        f_grid,
+    const Index&         stokes_dim,
+    const Index&         atmosphere_dim,
+    const Vector&        rtp_los,
+    const Vector&        specular_los,
+    const Numeric&       surface_skin_t,
+    const GriddedField3& surface_complex_refr_index,
+    const Agenda&        blackbody_radiation_agenda,
+    const Verbosity&     verbosity)
 {
   CREATE_OUT2;
   CREATE_OUT3;
   
-  const Index   nf = f_grid.nelem();
-
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
   chk_if_in_range( "stokes_dim", stokes_dim, 1, 4 );
   chk_not_negative( "surface_skin_t", surface_skin_t );
 
-  chk_matrix_ncols( "surface_complex_refr_index",
-                    surface_complex_refr_index, 2 ); 
+  // Interpolate *surface_complex_refr_index*
   //
-  if( surface_complex_refr_index.nrows() != nf  &&
-      surface_complex_refr_index.nrows() != 1 )
-    {
-      ostringstream os;
-      os << "The number of rows in *surface_complex_refr_index* should "
-         << "be 1 or match the length of *f_grid*,"
-         << "\n length of *f_grid*  : " << nf 
-         << "\n rows in *surface_complex_refr_index* : "
-         << surface_complex_refr_index.nrows() << "\n";
-      throw runtime_error( os.str() );
-    }
+  const Index   nf = f_grid.nelem();
+  //
+  Matrix n_real(nf,1), n_imag(nf,1);
+  //
+  complex_n_interp( n_real, n_imag, surface_complex_refr_index,
+                    "surface_complex_refr_index", f_grid, 
+                    Vector(1,surface_skin_t) );
 
   out2 << "  Sets variables to model a flat surface\n";
   out3 << "     surface temperature: " << surface_skin_t << " K.\n";
@@ -430,15 +395,11 @@ void surfaceFlatRefractiveIndex(
 
   for( Index iv=0; iv<nf; iv++ )
     { 
-      if( iv == 0  || surface_complex_refr_index.nrows() > 1 )
-        {
-          // Set n2 (refractive index of surface medium)
-          Complex n2( surface_complex_refr_index(iv,0),
-                      surface_complex_refr_index(iv,1) );
+      // Set n2 (refractive index of surface medium)
+      Complex n2( n_real(iv,0), n_imag(iv,0) );
 
-          // Amplitude reflection coefficients
-          fresnel( Rv, Rh, Numeric(1.0), n2, incang );
-        }
+      // Amplitude reflection coefficients
+      fresnel( Rv, Rh, Numeric(1.0), n2, incang );
 
       // Fill reflection matrix and emission vector
       surface_specular_R_and_b( ws, surface_rmatrix(0,iv,joker,joker), 
@@ -706,82 +667,104 @@ void surfaceLambertianSimple(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void specular_losCalc(
-         Vector&   specular_los,
-         Vector&   surface_normal,
-   const Vector&   rtp_pos,
-   const Vector&   rtp_los,
-   const Index&    atmosphere_dim,
-   const Vector&   lat_grid,
-   const Vector&   lon_grid,
-   const Vector&   refellipsoid,
-   const Matrix&   z_surface, 
-   const Verbosity&)
+void surface_complex_refr_indexFromGriddedField5(
+          GriddedField3&   surface_complex_refr_index,
+    const Index&           atmosphere_dim,
+    const Vector&          lat_grid,
+    const Vector&          lat_true,
+    const Vector&          lon_true,
+    const Vector&          rtp_pos,
+    const GriddedField5&   complex_n_field,
+    const Verbosity&)
 {
-  surface_normal.resize( max( Index(1), atmosphere_dim-1 ) );
-  specular_los.resize( max( Index(1), atmosphere_dim-1 ) );
+  // Set expected order of grids
+  Index gfield_fID = 0;
+  Index gfield_tID = 1;
+  Index gfield_compID = 2;
+  Index gfield_latID = 3;
+  Index gfield_lonID = 4;
 
-  if( atmosphere_dim == 1 )
-    { 
-      surface_normal[0] = 0;
-      specular_los[0]   = 180 - rtp_los[0]; 
-    }
+  // Basic checks and sizes
+  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
+  chk_latlon_true( atmosphere_dim, lat_grid, lat_true, lon_true );
+  chk_rte_pos( atmosphere_dim, rtp_pos );
+  complex_n_field.checksize_strict();
+  //
+  chk_griddedfield_gridname( complex_n_field, gfield_fID, "Frequency" );
+  chk_griddedfield_gridname( complex_n_field, gfield_tID, "Temperature" );
+  chk_griddedfield_gridname( complex_n_field, gfield_compID, "Complex" );
+  chk_griddedfield_gridname( complex_n_field, gfield_latID, "Latitude" );
+  chk_griddedfield_gridname( complex_n_field, gfield_lonID, "Longitude" );
+  //
+  const Index nf    = complex_n_field.data.nshelves();
+  const Index nt    = complex_n_field.data.nbooks();
+  const Index nn    = complex_n_field.data.npages();
+  const Index nlat  = complex_n_field.data.nrows();
+  const Index nlon  = complex_n_field.data.ncols();
+  //
+  if( nlat < 2  ||  nlon < 2 )
+    {
+      ostringstream os;
+      os << "The data in *complex_refr_index_field* must span a geographical "
+         << "region. That is,\nthe latitude and longitude grids must have a "
+         << "length >= 2.";
+    } 
+  //
+  if( nn != 2 )
+    {
+      ostringstream os;
+      os << "The data in *complex_refr_index_field* must have exactly two "
+         << "pages. One page each\nfor the real and imaginary part of the "
+         << "complex refractive index.";
+    } 
 
-  else if( atmosphere_dim == 2 )
-    { 
-      chk_interpolation_grids( "Latitude interpolation", lat_grid, rtp_pos[1] );
-      GridPos gp_lat;
-      gridpos( gp_lat, lat_grid, rtp_pos[1] );
-      Numeric c1;         // Radial slope of the surface
-      plevel_slope_2d( c1, lat_grid, refellipsoid, z_surface(joker,0), 
-                                                          gp_lat, rtp_los[0] );
-      Vector itw(2); interpweights( itw, gp_lat );
-      const Numeric rv_surface = refell2d( refellipsoid, lat_grid, gp_lat )
-                                + interp( itw, z_surface(joker,0), gp_lat );
-      surface_normal[0] = -plevel_angletilt( rv_surface, c1 );
-      specular_los[0]   = sign( rtp_los[0] ) * 180 - rtp_los[0] + 
-                                                           2*surface_normal[0];
-    }
+  const Vector& GFlat = complex_n_field.get_numeric_grid(gfield_latID);
+  const Vector& GFlon = complex_n_field.get_numeric_grid(gfield_lonID);
 
-  else if( atmosphere_dim == 3 )
-    { 
-      // Calculate surface normal in South-North direction
-      chk_interpolation_grids( "Latitude interpolation", lat_grid, rtp_pos[1] );
-      chk_interpolation_grids( "Longitude interpolation", lon_grid, rtp_pos[2]);
-      GridPos gp_lat, gp_lon;
-      gridpos( gp_lat, lat_grid, rtp_pos[1] );
-      gridpos( gp_lon, lon_grid, rtp_pos[2] );
-      Numeric c1, c2;
-      plevel_slope_3d( c1, c2, lat_grid, lon_grid, refellipsoid, z_surface, 
-                       gp_lat, gp_lon, 0 );
-      Vector itw(4); interpweights( itw, gp_lat, gp_lon );
-      const Numeric rv_surface = refell2d( refellipsoid, lat_grid, gp_lat )
-                                 + interp( itw, z_surface, gp_lat, gp_lon );
-      const Numeric zaSN = 90 - plevel_angletilt( rv_surface, c1 );
-      // The same for East-West
-      plevel_slope_3d( c1, c2, lat_grid, lon_grid, refellipsoid, z_surface, 
-                       gp_lat, gp_lon, 90 );
-      const Numeric zaEW = 90 - plevel_angletilt( rv_surface, c1 );
-      // Convert to Cartesian, and determine normal by cross-product
-      Vector tangentSN(3), tangentEW(3), normal(3);
-      zaaa2cart( tangentSN[0], tangentSN[1], tangentSN[2], zaSN, 0 );
-      zaaa2cart( tangentEW[0], tangentEW[1], tangentEW[2], zaEW, 90 );
-      cross3( normal, tangentSN, tangentEW );
-      // Convert rtp_los to cartesian and flip direction
-      Vector di(3);
-      zaaa2cart( di[0], di[1], di[2], rtp_los[0], rtp_los[1] );
-      di *= -1;
-      // Set LOS normal vector 
-      cart2zaaa( surface_normal[0], surface_normal[1], normal[0], normal[1], 
-                                                                  normal[2] );
-      // Specular direction is 2(dn*di)dn-di, where dn is the normal vector
-      Vector speccart(3);      
-      const Numeric fac = 2 * (normal * di);
-      for( Index i=0; i<3; i++ )
-        { speccart[i] = fac*normal[i] - di[i]; }
-      cart2zaaa( specular_los[0], specular_los[1], speccart[0], speccart[1], 
-                                                                speccart[2] );
-   }
+  // Determine true geographical position
+  Vector lat(1), lon(1);
+  pos2true_latlon( lat[0], lon[0], atmosphere_dim, lat_grid, lat_true, 
+                                                           lon_true, rtp_pos );
+
+  // Ensure correct coverage of lon grid
+  Vector lon_shifted;
+  lon_shiftgrid( lon_shifted, GFlon, lon[0] );
+
+  // Check if lat/lon we need are actually covered
+  chk_if_in_range( "rtp_pos.lat", lat[0], GFlat[0], GFlat[nlat-1] );
+  chk_if_in_range( "rtp_pos.lon", lon[0], lon_shifted[0], 
+                                          lon_shifted[nlon-1] );
+
+  // Size and fills grids of *surface_complex_refr_index*
+  surface_complex_refr_index.resize( nf, nt, 2 );
+  surface_complex_refr_index.set_grid_name( 0, "Frequency" );
+  surface_complex_refr_index.set_grid( 0,
+                                 complex_n_field.get_numeric_grid(gfield_fID));
+  surface_complex_refr_index.set_grid_name( 1, "Temperature" );
+  surface_complex_refr_index.set_grid( 1, 
+                                 complex_n_field.get_numeric_grid(gfield_tID));
+  surface_complex_refr_index.set_grid_name( 2, "Complex" );
+  surface_complex_refr_index.set_grid( 2, 
+                                       MakeArray<String>("real", "imaginary"));
+
+  // Interpolate in lat and lon
+  //
+  GridPos gp_lat, gp_lon;
+  gridpos( gp_lat, GFlat, lat[0] );
+  gridpos( gp_lon, lon_shifted, lon[0] );
+  Vector itw(4);
+  interpweights( itw, gp_lat, gp_lon );
+  //
+  for( Index iv=0; iv<nf; iv++ )
+    {
+      for( Index it=0; it<nt; it++ )
+        { 
+          surface_complex_refr_index.data(iv,it,0) = interp( itw, 
+                   complex_n_field.data(iv,it,0,joker,joker), gp_lat, gp_lon );
+          surface_complex_refr_index.data(iv,it,1) = interp( itw, 
+                   complex_n_field.data(iv,it,1,joker,joker), gp_lat, gp_lon );
+        }
+    } 
 }
 
 

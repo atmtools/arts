@@ -405,6 +405,7 @@ void Exit(const Verbosity& verbosity)
 /* Workspace method: Doxygen documentation will be auto-generated */
 void Test(const Verbosity& verbosity)
 {
+  /*
   GriddedField3 complex_n;
 
   MakeVector f_grid1( 10e9,500e9 ); 
@@ -425,7 +426,7 @@ void Test(const Verbosity& verbosity)
 
   cout << n_real << endl << endl;
   cout << n_imag << endl;
-
+  */
 }
 
 

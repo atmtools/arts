@@ -1,3 +1,60 @@
+2013-08-15  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-734
+
+	* src/m_tmatrix.cc (single_scattering_dataFromTmatrix): Removed.
+
+	* controlfiles/artscomponents/tmatrix/TestTMatrixSSD.arts: Adopted.
+
+	* controlfiles/artscomponents/surface/TestSurface.arts: Adopted to
+	changes below.
+
+	* controlfiles/artscomponents/surface/create_gfields.m
+	(create_gfields): Updated, complex_n_field now GriddedField5.
+
+	* controlfiles/artscomponents/doit/TestDOIT.arts: Included, adopted,
+	agenda defintion from below.
+
+	* controlfiles/general/agendas_surface.arts: Removed definition of
+	surface_rtprop_agenda__Specular_Pol_Water_SurfTFromt_field.
+	A bit to specific to be generally defined.
+
+	* src/m_refraction.cc (ParticleRefractiveIndexConstant)
+	(ParticleRefractiveIndexWaterLiebe93)
+	(ParticleRefractiveIndexIceWarren84): Renamed to start with
+	complex_refr_index. In all cases changed output from being GOUT to
+	OUT. Names of GIN variables changed. E.g. scat_ removed from grid
+	names.
+
+	(complex_refr_indexConstant): New version. Now there are no input
+	grids.
+
+	* src/m_cloudradar.cc (iyCloudRadar): Used
+	complex_refr_indexWaterLiebe93, adopted this call.
+
+	* src/refraction.cc (complex_n_water_liebe93): New function, based
+	on old complex_refr_indexWaterLiebe93.
+
+	* src/m_refraction.cc: Removed complex_refr_indexWaterLiebe93.
+
+	* src/methods.cc (define_md_data_raw): Removed defintion of
+	complex_refr_indexWaterLiebe93.
+
+	* src/m_surface.cc (surfaceFlatRefractiveIndex): Adopted to change
+	of type for surface_complex_refr_index.
+
+	(surface_complex_refr_indexFromGriddedField5): Also adopted, and
+	changed to take Field4 to Feidl5 as input. The new dimension is
+	temperature, to be fully consistent with complex_refr_index.
+
+	* src/workspace.cc: Redefined surface_complex_refr_index to
+	GriddedField3. Removed old complex_refr_index and replaced with
+	new version.
+
+	* src/m_refraction.cc:
+	* src/m_physics.cc: Moved all methods for complex refractive index
+	from m_pysics to m_refraction.
+
 2013-08-14  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-733
@@ -28,7 +85,7 @@
 	* doc/uguide/ppath.tex:
 	* doc/uguide/refr_index.tex:
 	* doc/uguide/refr_index_theory.tex: My last changes were not
-	completely OK.
+	completely OK. One \ too many.
 
 2013-08-14  Oliver Lemke  <olemke@core-dump.info>
 

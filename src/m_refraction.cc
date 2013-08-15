@@ -55,10 +55,11 @@ extern const Numeric PI;
 extern const Numeric VACUUM_PERMITTIVITY;
 extern const Numeric TORR2PA;
 
-/*===========================================================================
-  === WSMs
-  ===========================================================================*/
 
+
+/*===========================================================================
+  === WSMs for refr_index_air
+  ===========================================================================*/
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void refr_index_airFreeElectrons(
@@ -217,13 +218,11 @@ void refr_index_airMWgeneral(
   if( abs_species.nelem() != rtp_vmr.nelem() )
     throw runtime_error( "The number of tag groups differ between "
                                          "*rtp_vmr* and *abs_species*." );
-
 /*
    further checks:
    ? non-neg T
    ?
 */
-
 
 // Data management
   // Find the location of all refractive species in abs_species. Set to -1 if
@@ -295,4 +294,121 @@ void refr_index_airMWgeneral(
   refr_index_air       += n;
   refr_index_air_group += n;
 }
+
+
+
+
+
+/*===========================================================================
+  === WSMs for complex_refr_index
+  ===========================================================================*/
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void complex_refr_indexConstant(
+         GriddedField3& complex_refr_index,
+   const Numeric&       refr_index_real,
+   const Numeric&       refr_index_imag,
+   const Verbosity&)
+{
+  complex_refr_index.resize( 1, 1, 2 );
+  complex_refr_index.set_grid_name(0, "Frequency");
+  complex_refr_index.set_grid(0, Vector(1,0) );
+  complex_refr_index.set_grid_name(1, "Temperature");
+  complex_refr_index.set_grid(1, Vector(1,0) );
+  complex_refr_index.set_grid_name(2, "Complex");
+  complex_refr_index.set_grid(2, MakeArray<String>("real", "imaginary"));
+  
+  complex_refr_index.data(joker, joker, 0) = refr_index_real;
+  complex_refr_index.data(joker, joker, 1) = refr_index_imag;
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void complex_refr_indexWaterLiebe93(
+         GriddedField3& complex_refr_index,
+   const Vector&        f_grid,
+   const Vector&        t_grid,
+   const Verbosity& )
+{
+  const Index nf = f_grid.nelem();
+  const Index nt = t_grid.nelem();
+    
+  complex_refr_index.resize( nf, nt, 2 );
+  complex_refr_index.set_grid_name( 0, "Frequency" );
+  complex_refr_index.set_grid( 0, f_grid );
+  complex_refr_index.set_grid_name( 1, "Temperature" );
+  complex_refr_index.set_grid( 1, t_grid );
+  complex_refr_index.set_grid_name( 2, "Complex" );
+  complex_refr_index.set_grid( 2, MakeArray<String>("real", "imaginary") );
+
+  Matrix complex_n;
+  for (Index t = 0; t < nt; ++t)
+    {
+      complex_n_water_liebe93( complex_n, f_grid, t_grid[t] );
+      complex_refr_index.data(joker, t, joker) = complex_n;
+    }
+}
+
+
+#ifdef ENABLE_REFICE
+/* Workspace method: Doxygen documentation will be auto-generated */
+void ParticleRefractiveIndexIceWarren84(
+         GriddedField3&   complex_refr_index,
+   const Vector&          f_grid,
+   const Vector&          t_grid,
+   const Verbosity& )
+{
+    extern const Numeric SPEED_OF_LIGHT;
+    const Index nf = f_grid.nelem();
+    const Index nt = t_grid.nelem();
+
+    // Frequency must be between 0.0443 to 8.600E+06 microns
+    const Numeric f_min = 0.0443 * SPEED_OF_LIGHT;
+    const Numeric f_max = 8.6e6 * SPEED_OF_LIGHT;
+    chk_if_in_range("min of scat_f_grid", min(f_grid), f_min, f_max);
+    chk_if_in_range("max of scat_f_grid", max(f_grid), f_min, f_max);
+
+    // Temperature must be between 213.16 to 272.16 K
+    const Numeric t_min = 213.16;
+    const Numeric t_max = 272.16;
+    chk_if_in_range("min of scat_t_grid", min(t_grid), t_min, t_max);
+    chk_if_in_range("max of scat_t_grid", max(t_grid), t_min, t_max);
+
+    complex_refr_index.resize(nf, nt, 2);
+    complex_refr_index.set_grid_name(0, "Frequency");
+    complex_refr_index.set_grid(0, scat_f_grid);
+    complex_refr_index.set_grid_name(1, "Temperature");
+    complex_refr_index.set_grid(1, scat_t_grid);
+    complex_refr_index.set_grid_name(2, "Complex");
+    complex_refr_index.set_grid(2, MakeArray<String>("real", "imaginary"));
+
+    Complex n;
+#pragma omp parallel for                 \
+  if (!arts_omp_in_parallel() && nf > 1) \
+  private(n)
+    for (Index f = 0; f < nf; ++f)
+        for (Index t = 0; t < nt; ++t)
+        {
+            n = refice_(scat_f_grid[f] / SPEED_OF_LIGHT, scat_t_grid[t]);
+            complex_refr_index.data(f, t, 0) = n.real();
+            complex_refr_index.data(f, t, 1) = n.imag();
+        }
+}
+
+#else
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void complex_refr_indexIceWarren84(// Generic output:
+                                        GriddedField3&,
+                                        // Generic input:
+                                        const Vector&,
+                                        const Vector&,
+                                        const Verbosity&)
+{
+  throw std::runtime_error("ARTS was not compiled with Fortran support.");
+}
+
+#endif
+
 

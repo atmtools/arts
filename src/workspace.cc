@@ -1112,35 +1112,14 @@ void Workspace::define_wsv_data()
      ( NAME( "complex_refr_index"),
        DESCRIPTION
        (
-        "Complex refractive index (n).\n"
-        "\n"
-        "This matrix describes the dielectric properties of a medium. \n"
-        "For the surface rather use *surface_complex_refr_index*.\n"
-        "\n"
-        "This is a two-column matrix. The first column holds the real part\n"
-        "of n, and the second column the imaginary part. The number of rows\n"
-        "should match *f_grid*. The case of one row is also accepted,\n"
-        "interpreted as that the refractive index is constant with \n"
-        "frequency.\n"
-        "\n"
-        "Unit:       -\n"
-        "\n"
-        "Dimensions: [f_grid or 1, 2]\n"
-        ),
-       GROUP( "Matrix" ) ));
-
- wsv_data.push_back
-    (WsvRecord
-     ( NAME( "complex_refr_indexNew"),
-       DESCRIPTION
-       (
         "Complex refractive index (n) data.\n"
         "\n"
         "The variable works as a lookup-table of complex refractive index.\n"
         "The matter type (water, ice ...) is unspecified, it is up to the\n"
         "user to fill the variable with data for the expected matter.\n"
-        "The variable can be used to describe n of both the surface and\n"
-        "atmospheric particles.\n"
+        "This variable type can be used to describe n of both the surface and\n"
+        "atmospheric particles. For the surface, a dedicated variable exists:\n"
+        "*surface_complex_refr_index*.\n"
         "\n"
         "The column dimension has always size 2, where the first and second\n"
         "column holds the real and imaginary part of n, respectively. The row\n"
@@ -1158,7 +1137,6 @@ void Workspace::define_wsv_data()
         "      Vector f_grid[N_f]\n"
         "      Vector T_grid[N_T]\n"
         "      ArrayOfString Complex[2]\n"
-        "                   [2]\n"
         "      Tensor3 data[N_f][N_T][2]\n"
         ),
        GROUP( "GriddedField3" ) ));
@@ -4254,16 +4232,12 @@ void Workspace::define_wsv_data()
      ( NAME( "surface_complex_refr_index"),
        DESCRIPTION
        (
-        "Complex refractive index of a surface.\n"
+        "Complex refractive index of the surface, at a singel point.\n"
         "\n"
-        "As *complex_refr_index*, but specifically to describe the properties\n"
-        "of the surface (assuming it to be flat).\n"
-        "\n"
-        "Unit:       -\n"
-        "\n"
-        "Dimensions: [f_grid or 1, 2]\n"
+        "See *complex_refr_index* for the expected format and how the data\n"
+        "are treated.\n"
         ),
-       GROUP( "Matrix" ) ));
+       GROUP( "GriddedField3" ) ));
 
   wsv_data.push_back
      (WsvRecord

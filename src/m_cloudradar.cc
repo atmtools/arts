@@ -48,6 +48,7 @@
 #include "logic.h"
 #include "messages.h"
 #include "montecarlo.h"
+#include "refraction.h"
 #include "rte.h"
 #include "sensor.h"
 
@@ -336,7 +337,7 @@ void iyCloudRadar(
     {
       // Get refractive index for water
       Matrix complex_n;
-      complex_refr_indexWaterLiebe93( complex_n, f_grid, ze_tref, verbosity );
+      complex_n_water_liebe93( complex_n, f_grid, ze_tref );
 
       // Common conversion factor
       const Numeric a = 4e18/(PI*PI*PI*PI);

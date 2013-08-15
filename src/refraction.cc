@@ -37,6 +37,7 @@
 
 #include <cmath>
 #include "auto_md.h"
+#include "complex.h"          
 #include "interpolation.h"
 #include "geodetic.h"
 #include "refraction.h"
@@ -44,12 +45,70 @@
 
 extern const Numeric DEG2RAD;
 extern const Numeric RAD2DEG;
+extern const Numeric TEMP_0_C;
 
 
 
 /*===========================================================================
   === The functions (in alphabetical order)
   ===========================================================================*/
+
+
+//! complex_n_water_liebe93
+/*! 
+  Complex refractive index of liquid water according to Liebe 1993.
+
+  The method treats liquid water without salt. Thus, not valid below 10 GHz.
+  Upper frequency limit not known, here set to 1000 GHz. Model parameters taken
+  from Atmlab function epswater93 (by C. Maetzler), which refer to Liebe 1993
+  without closer specifications.
+ 
+  Temperature must be between 0 and 100 degrees Celsius.
+
+  The output matrix has two columns, where column 0 is real part and column 1
+  is imaginary part. And rows matches f_grid.
+   
+   \param   complex_n   Out: Complex refractive index.        
+   \param   f_grid      As the WSV with the same name.
+   \param   t           Temperature
+
+   \author Patrick Eriksson
+   \date   2003-08-15
+*/
+void complex_n_water_liebe93(
+         Matrix&   complex_n,
+   const Vector&   f_grid,
+   const Numeric&  t )
+{
+  chk_if_in_range( "t", t, TEMP_0_C, TEMP_0_C+100 );
+  chk_if_in_range( "min of f_grid", min(f_grid), 10e9, 1000e9 );
+  chk_if_in_range( "max of f_grid", max(f_grid), 10e9, 1000e9 );
+
+  const Index   nf = f_grid.nelem();
+
+  complex_n.resize( nf, 2 );
+
+  // Implementation following epswater93.m (by C. Mätzler), part of Atmlab,
+  // but numeric values strictly following the paper version (146, not 146.4)
+  const Numeric   theta = 1 - 300 / t;
+  const Numeric   e0    = 77.66 - 103.3 * theta;
+  const Numeric   e1    = 0.0671 * e0;
+  const Numeric   f1    = 20.2 + 146 * theta + 316 * theta * theta;
+  const Numeric   e2    = 3.52;  
+  const Numeric   f2    = 39.8 * f1;
+
+  for( Index iv=0; iv<nf; iv++ )
+    { 
+      const Complex  ifGHz( 0.0, f_grid[iv]/1e9 );
+          
+      Complex n = sqrt( e2 + (e1-e2) / (Numeric(1.0)-ifGHz/f2) + 
+                             (e0-e1) / (Numeric(1.0)-ifGHz/f1) );
+    
+      complex_n(iv,0) = n.real();
+      complex_n(iv,1) = n.imag();
+    }
+}
+
 
 
 //! get_refr_index_1d

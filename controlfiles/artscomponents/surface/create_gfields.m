@@ -55,12 +55,13 @@ xmlStore( 'r_field_2angles.xml', G, 'GriddedField6' );
 %- A very basic surface_complex_refr_index field:
   
 G.name      = 'Surface complex refractive index';
-G.gridnames = { 'Frequency', 'Complex', 'Latitude', 'Longitude' };
-G.grids     = { 10e9, [1 2], [-90 90], [-360 360] };
+G.gridnames = { 'Frequency', 'Temperature', 'Complex', ...
+                'Latitude', 'Longitude' };
+G.grids     = { 10e9, 300, [1 2], [-90 90], [-360 360] };
 G.dataname  = 'Complex refractivity';
-r           = zeros( [1 2 2 2] );
-r(:,1,1,:)  = 1;
-r(:,1,2,:)  = 3.5;
+r           = zeros( [1 1 2 2 2] );
+r(:,:,1,1,:)= 1;
+r(:,:,1,2,:)= 3.5;
 G.data      = r;
 %
-xmlStore( 'complex_n_field.xml', G, 'GriddedField4' );
+xmlStore( 'complex_n_field.xml', G, 'GriddedField5' );

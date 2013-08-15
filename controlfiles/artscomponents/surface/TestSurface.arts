@@ -168,7 +168,10 @@ Compare( iy, iy_correct, 1e-9 )
 
 
 # n = (3,0) in two different ways
-MatrixSet( surface_complex_refr_index, [3,0] )
+complex_refr_indexConstant( 
+  complex_refr_index = surface_complex_refr_index,
+  refr_index_real    = 3.0,
+  refr_index_imag    = 0 )
 
 AgendaSet( surface_rtprop_agenda ){
   specular_losCalc
@@ -177,14 +180,15 @@ AgendaSet( surface_rtprop_agenda ){
 AgendaExecute( iy_surface_agenda )
 Copy( iy_correct, iy )
 
-ReadXML( r_gfield4, "complex_n_field.xml" )
+GriddedField5Create( r_gfield5 ) 
+ReadXML( r_gfield5, "complex_n_field.xml" )
 AgendaSet( surface_rtprop_agenda ){
   specular_losCalc
-  surface_complex_refr_indexFromGriddedField4( complex_refr_index_field=r_gfield4 )
+  surface_complex_refr_indexFromGriddedField5( 
+    complex_refr_index_field = r_gfield5 )
   surfaceFlatRefractiveIndex
 } 
 AgendaExecute( iy_surface_agenda )
 Compare( iy, iy_correct, 1e-9 )
-
 
 }

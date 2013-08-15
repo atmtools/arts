@@ -3056,45 +3056,70 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "surface_complex_refr_indexFromGriddedField4" ),
+    ( NAME( "complex_refr_indexConstant" ),
+      DESCRIPTION
+      (
+       "Set complex refractive index to a constant value.\n"
+       "\n"
+       "Frequency and temperature grids are set to have length 1 (and\n" 
+       "set to the value 0).\n"
+       ),
+      AUTHORS( "Oliver Lemke" ),
+      OUT( "complex_refr_index" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN(),
+      GIN( "refr_index_real", "refr_index_imag" ),
+      GIN_TYPE( "Numeric", "Numeric" ),
+      GIN_DEFAULT( NODEF, NODEF ),
+      GIN_DESC( "Real part of refractive index",
+                "Imag part of refractive index" )
+      ));
+    
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "complex_refr_indexIceWarren84" ),
         DESCRIPTION
         (
-         "Extracts complex refractive index from a field of such data.\n"
+         "Refractive index of ice follwoing Warren84 parameterization.\n"
          "\n"
-         "This method allows to specify a field of *surface_complex_refr_index*\n"
-         "for automatic interpolation to points of interest. The position\n"
-         "for which refraction shall be extracted is given by *rtp_pos*.\n"
-         "The reflectivity field is expected to be stored as:\n"
-         "   GriddedField4:\n"
-         "      Vector \"Frequency\" [N_f]\n"
-         "      Vector \"Complex\"   [2]\n"
-         "      Vector \"Latitude\"  [N_lat]\n"
-         "      Vector \"Longitude\" [N_lon]\n"
-         "      Tensor4 data[N_f][2][N_lat][N_lon]\n"
+         "Calculates complex refractive index of Ice 1H for wavelengths\n"
+         "between 45 nm and 8.6 m.\n"
+         "For wavelengths above 167 microns, temperature dependence is\n"
+         "included for temperatures between 213 and 272K.\n"
+         "Mainly intended for applications in Earth ice\n"
+         "clouds and snow, not other planets or interstellar space;\n"
+         "the temperature dependence or crystalline form of ice may be\n"
+         "incorrect for these latter applications.\n"
          "\n"
-         "Grids for latitude and longitude must have a length of >= 2 (ie.\n"
-         "no automatic expansion). If the frequency grid has length 1, this\n"
-         "is taken as the refractive index is constant following the\n"
-         "definition of *surface_complex_refr_index*. The remaining\n"
-         "dimension must have size two, where the first element corresponds\n"
-         "to the real part and the second element to the the imaginary part.\n"
+         "Authors of Fortran function:\n"
+         "Stephen Warren, Univ. of Washington (1983)\n"
+         "Bo-Cai Gao, JCESS, Univ. of Maryland (1995)\n"
+         "Warren Wiscombe, NASA Goddard (1995)\n"
          "\n"
-         "The interpolation is done in steps:\n"
-         "   1: Linear interpolation for lat and lon (std. extrapolation).\n"
-         "   2. Linear interpolation in frequency (if input data have more\n"
-         "      than one frequency).\n"
-        ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT( "surface_complex_refr_index" ),
+         "References:\n"
+         "Warren, S., 1984: Optical Constants of Ice from the Ultraviolet\n"
+         "to the Microwave, Appl. Opt. 23, 1206-1225\n"
+         "\n"
+         "Kou, L., D. Labrie, and P. Chylek, 1994: Refractive indices\n"
+         "of water and ice in the 0.65- to 2.5-micron spectral range,\n"
+         "Appl. Opt. 32, 3531-3540\n"
+         "\n"
+         "Perovich, D., and J. Govoni, 1991: Absorption Coefficients\n"
+         "of Ice from 250 to 400 nm, Geophys. Res. Lett. 18, 1233-1235\n"
+         ),
+        AUTHORS( "Oliver Lemke" ),
+        OUT( "complex_refr_index" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "stokes_dim", "f_grid", "atmosphere_dim", "lat_grid", "lat_true", 
-            "lon_true", "rtp_pos" ),
-        GIN( "complex_refr_index_field" ),
-        GIN_TYPE( "GriddedField4" ),
-        GIN_DEFAULT( NODEF ),
-        GIN_DESC( "A field of complex refractive index." )
+        IN(),
+        GIN( "f_grid", "t_grid" ),
+        GIN_TYPE( "Vector", "Vector" ),
+        GIN_DEFAULT( NODEF, NODEF ),
+        GIN_DESC( "Frequency grid",
+                  "Temperature grid" )
         ));
 
   md_data_raw.push_back
@@ -3110,18 +3135,19 @@ void define_md_data_raw()
          "C. Maetzler), which refer to Liebe 1993 without closer\n"
          "specifications.\n"
          "\n"
-         "Temperature must be between 0 and 100 degrees Celsius.\n"
+         "Temperatures must be between 0 and 100 degrees Celsius.\n"
          ),
-        AUTHORS( "Patrick Eriksson" ),
+        AUTHORS( "Patrick Eriksson", "Oliver Lemke" ),
         OUT( "complex_refr_index" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "f_grid" ),
-        GIN( "t" ),
-        GIN_TYPE( "Numeric" ),
-        GIN_DEFAULT( NODEF ),
-        GIN_DESC( "Temperature [K]." )
+        IN(),
+        GIN( "f_grid", "t_grid" ),
+        GIN_TYPE( "Vector", "Vector" ),
+        GIN_DEFAULT( NODEF, NODEF ),
+        GIN_DESC( "Frequency grid",
+                  "Temperature grid" )
         ));
 
   md_data_raw.push_back
@@ -7202,107 +7228,6 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "ParticleRefractiveIndexIceWarren84" ),
-        DESCRIPTION
-        (
-         "Calculates complex refractive index of Ice 1H for wavelengths\n"
-         "between 45 nm and 8.6 m.\n"
-         "For wavelengths above 167 microns, temperature dependence is\n"
-         "included for temperatures between 213 and 272K.\n"
-         "Mainly intended for applications in Earth ice\n"
-         "clouds and snow, not other planets or interstellar space;\n"
-         "the temperature dependence or crystalline form of ice may be\n"
-         "incorrect for these latter applications.\n"
-         "\n"
-         "Authors of Fortran function:\n"
-         "Stephen Warren, Univ. of Washington (1983)\n"
-         "Bo-Cai Gao, JCESS, Univ. of Maryland (1995)\n"
-         "Warren Wiscombe, NASA Goddard (1995)\n"
-         "\n"
-         "References:\n"
-         "Warren, S., 1984: Optical Constants of Ice from the Ultraviolet\n"
-         "to the Microwave, Appl. Opt. 23, 1206-1225\n"
-         "\n"
-         "Kou, L., D. Labrie, and P. Chylek, 1994: Refractive indices\n"
-         "of water and ice in the 0.65- to 2.5-micron spectral range,\n"
-         "Appl. Opt. 32, 3531-3540\n"
-         "\n"
-         "Perovich, D., and J. Govoni, 1991: Absorption Coefficients\n"
-         "of Ice from 250 to 400 nm, Geophys. Res. Lett. 18, 1233-1235\n"
-         "\n"
-         "Size of scat_ref_index\n"
-         "    [number of frequencies]\n"
-         "    [number of temperatures]\n"
-         "    [2]\n"
-         ),
-        AUTHORS( "Oliver Lemke" ),
-        OUT(),
-        GOUT( "complex_refr_index" ),
-        GOUT_TYPE( "GriddedField3" ),
-        GOUT_DESC( "Refractive index" ),
-        IN(),
-        GIN( "scat_f_grid", "scat_t_grid" ),
-        GIN_TYPE( "Vector", "Vector" ),
-        GIN_DEFAULT( NODEF, NODEF ),
-        GIN_DESC( "Frequency grid",
-                  "Temperature grid" )
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "ParticleRefractiveIndexWaterLiebe93" ),
-        DESCRIPTION
-        (
-         "Complex refractive index of liquid water according to Liebe 1993.\n"
-         "This method is based upon *complex_nWaterLiebe93*."
-         "\n"
-         "Size of scat_ref_index\n"
-         "    [number of frequencies]\n"
-         "    [number of temperatures]\n"
-         "    [2]\n"
-         ),
-        AUTHORS( "Oliver Lemke" ),
-        OUT(),
-        GOUT( "complex_refr_index" ),
-        GOUT_TYPE( "GriddedField3" ),
-        GOUT_DESC( "Refractive index" ),
-        IN(),
-        GIN( "scat_f_grid", "scat_t_grid" ),
-        GIN_TYPE( "Vector", "Vector" ),
-        GIN_DEFAULT( NODEF, NODEF ),
-        GIN_DESC( "Frequency grid",
-                  "Temperature grid" )
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-    ( NAME( "ParticleRefractiveIndexConstant" ),
-      DESCRIPTION
-    (
-            "Set complex refractive index to constant value.\n"
-            "\n"
-            "Size of scat_ref_index\n"
-            "    [number of frequencies]\n"
-            "    [number of temperatures]\n"
-            "    [2]\n"
-     ),
-      AUTHORS( "Oliver Lemke" ),
-      OUT(),
-      GOUT( "scat_ref_index" ),
-      GOUT_TYPE( "GriddedField3" ),
-      GOUT_DESC( "Refractive index" ),
-      IN(),
-      GIN( "scat_f_grid", "scat_t_grid", "ref_index_real", "ref_index_imag" ),
-      GIN_TYPE( "Vector", "Vector", "Numeric", "Numeric" ),
-      GIN_DEFAULT( NODEF, NODEF, NODEF, NODEF ),
-      GIN_DESC( "Frequency grid",
-                "Temperature grid",
-                "real part of refractive index",
-                "imag part of refractive index" )
-      ));
-    
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME( "ParticleSpeciesInit" ),
         DESCRIPTION
         (
@@ -9819,43 +9744,6 @@ void define_md_data_raw()
     
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "single_scattering_dataFromTmatrix" ),
-        DESCRIPTION
-        (
-         "Single particle type T-matrix calculations.\n"
-         "\n"
-         "Start on a basic T-matrix interface WSM ...\n"
-         ),
-        AUTHORS( "Oliver Lemke", "Patrick Eriksson" ),
-        OUT( "single_scattering_data" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN(),
-        GIN("f_grid", "T_grid", "za_grid", "aa_grid",
-            "complex_refr_index", "equiv_radius", "orientation", "shape", 
-            "aspect_ratio", "precision"),
-        GIN_TYPE( "Vector", "Vector", "Vector", "Vector",
-                  "GriddedField3", "Numeric", "String", "String",
-                  "Numeric", "Numeric"),
-        GIN_DEFAULT(NODEF, NODEF, NODEF, NODEF,
-                    NODEF, NODEF, "macro_iso", "spherical", 
-                    "1.000001", "0.001" ),
-        GIN_DESC( "Frequency grid",
-                  "Temperature grid",
-                  "Zenith angle grid",
-                  "Azimuth angle grid",
-                  "Data of complex refractive index.",
-                  "Equivalent radius [m]",
-                  "Particle orientation: \"macro_iso\" or \"horiz_al\"",
-                  "Particle shape      : \"spherical\" or \"cylinder\"",
-                  "Aspect ratio (horisontal size / vertical size)",
-                  "Precision"
-                 )
-        ));
-        
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME( "SparseSparseMultiply" ),
         DESCRIPTION
         (
@@ -9874,6 +9762,33 @@ void define_md_data_raw()
         GIN_DEFAULT( NODEF   , NODEF    ),
         GIN_DESC( "Left sparse matrix.",
                   "Right sparse matrix." )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "specular_losCalc" ),
+        DESCRIPTION
+        (
+         "Calculates the specular direction for intersections with the\n"
+         "surface.\n"
+         "\n"
+         "A help method to set up the surface properties. This method\n"
+         "calculates *specular_los*, that is required in several methods\n"
+         "to convert zenith angles to incidence angles.\n"
+         "\n"
+         "The method also returns the line-of-sight for the surface normal.\n"
+        ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "specular_los", "surface_normal" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "rtp_pos", "rtp_los", "atmosphere_dim", "lat_grid", "lon_grid", 
+            "refellipsoid", "z_surface" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
         ));
 
   md_data_raw.push_back
@@ -9927,7 +9842,7 @@ void define_md_data_raw()
         DESCRIPTION
         (
          "Creates variables to mimic specular reflection by a (flat) surface\n"
-         "where the refractive index is specified.\n"
+         "where the complex refractive index is specified.\n"
          "\n"
          "The dielectric properties of the surface are described by\n"
          "*surface_complex_refr_index*. The Fresnel equations are used to\n"
@@ -10053,29 +9968,42 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "specular_losCalc" ),
+      ( NAME( "surface_complex_refr_indexFromGriddedField5" ),
         DESCRIPTION
         (
-         "Calculates the specular direction for intersections with the\n"
-         "surface.\n"
+         "Extracts complex refractive index from a field of such data.\n"
          "\n"
-         "A help method to set up the surface properties. This method\n"
-         "calculates *specular_los*, that is required in several methods\n"
-         "to convert zenith angles to incidence angles.\n"
+         "The method allows to obtain *surface_complex_refr_index* by\n"
+         "interpolation of a geographical field of such data. The position\n"
+         "for which refraction shall be extracted is given by *rtp_pos*.\n"
+         "The reflectivity field is expected to be stored as:\n"
+         "   GriddedField5:\n"
+         "      Vector f_grid[N_f]\n"
+         "      Vector T_grid[N_T]\n"
+         "      ArrayOfString Complex[2]\n"
+         "      Vector \"Latitude\"  [N_lat]\n"
+         "      Vector \"Longitude\" [N_lon]\n"
+         "      Tensor4 data[N_f][N_T][2][N_lat][N_lon]\n"
          "\n"
-         "The method also returns the line-of-sight for the surface normal.\n"
+         "Definition and treatment of the three first dimensions follows\n"
+         "*complex_refractve_index*, e.g. the temperature grid is allowed\n"
+         "to have length 1. The grids for latitude and longitude must have\n"
+         "a length of >= 2 (ie. no automatic expansion).\n"
+         "\n"
+         "Hence, this method performs an interpolation only in the lat and\n"
+         "lon dimensions, to a single point. The remaining GriddedField3 is\n"
+         "simply returned as *surface_complex_refractve_index*.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUT( "specular_los", "surface_normal" ),
+        OUT( "surface_complex_refr_index" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "rtp_pos", "rtp_los", "atmosphere_dim", "lat_grid", "lon_grid", 
-            "refellipsoid", "z_surface" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
+        IN( "atmosphere_dim", "lat_grid", "lat_true", "lon_true", "rtp_pos" ),
+        GIN( "complex_refr_index_field" ),
+        GIN_TYPE( "GriddedField5" ),
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC( "A field of complex refractive index." )
         ));
 
   md_data_raw.push_back
