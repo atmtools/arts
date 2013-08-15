@@ -1,3 +1,12 @@
+2013-08-15  Johan Strandgren  <johsat-9@student.ltu.se>
+
+	* arts-2-1-735
+
+	* src/m_refraction.cc: Included physics_funcs.h.
+
+	(complex_refr_indexIceWarren84): Corrected the name of the WSM.
+	Removed "scat_" from "scat_f_grid" and "scat_t_grid".
+
 2013-08-15  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-734
