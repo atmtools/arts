@@ -1267,8 +1267,6 @@ void plevel_crossing_2d(
 
 
 
-
-
 /*===========================================================================
   = 3D functions for level slope and tilt, and lat/lon crossings
   ===========================================================================*/
@@ -2959,6 +2957,305 @@ void do_gridcell_2d(
 
 
 
+//! do_gridcell_2d_byltest
+/*!
+    Works as do_gridcell_3d_byltest, but downscaled to 2D
+
+    \author Patrick Eriksson
+    \date   2013-08-16
+*/
+void do_gridcell_2d_byltest(
+              Vector&   r_v,
+              Vector&   lat_v,
+              Vector&   za_v,
+              Numeric&  lstep,
+              Index&    endface,
+        const Numeric&  r_start0, 
+        const Numeric&  lat_start0,
+        const Numeric&  za_start,
+        const Numeric&  l_start,
+        const Index&    icall,
+        const Numeric&  ppc,
+        const Numeric&  lmax,
+        const Numeric&  lat1,
+        const Numeric&  lat3,
+        const Numeric&  r1a,
+        const Numeric&  r3a,
+        const Numeric&  r3b,
+        const Numeric&  r1b,
+        const Numeric&  rsurface1,
+        const Numeric&  rsurface3 )
+{
+  Numeric   r_start   = r_start0;
+  Numeric   lat_start = lat_start0;
+
+  assert( icall < 4 );
+
+  // Assert latitude and longitude
+  assert( lat_start >= lat1 - LATLONTOL );
+  assert( lat_start <= lat3 + LATLONTOL );
+
+  // Shift latitude and longitude if outside
+  if( lat_start < lat1 )
+    { lat_start = lat1; }
+  else if( lat_start > lat3 )
+    { lat_start = lat3; }
+
+  // Radius of lower and upper pressure level at the start position
+  Numeric   rlow = rsurf_at_lat( lat1, lat3, r1a, r3a, lat_start );
+  Numeric   rupp = rsurf_at_lat( lat1, lat3, r1b, r3b, lat_start );
+
+  // Assert radius (some extra tolerance is needed for radius)
+  assert( r_start >= rlow - RTOL );
+  assert( r_start <= rupp + RTOL );
+
+  // Shift radius if outside
+  if( r_start < rlow )
+    { r_start = rlow; }
+  else if( r_start > rupp )
+    { r_start = rupp; }
+
+  // Position and LOS in cartesian coordinates
+  Numeric   x, z, dx, dz;
+  poslos2cart( x, z, dx, dz, r_start, lat_start, za_start );
+
+  // Some booleans to check for recursive call
+  bool unsafe     = false;
+  bool do_surface = false;
+
+  // Determine the position of the end point
+  //
+  endface  = 0;
+  //
+  Numeric   r_end, lat_end, l_end;
+
+  // Zenith and nadir looking are handled as special cases
+  const Numeric absza = abs( za_start );
+
+  // Zenith looking
+  if( absza < ANGTOL )
+    {
+      r_end   = rupp;
+      lat_end = lat_start;
+      l_end   = rupp - r_start;
+      endface  = 4;
+    }
+
+  // Nadir looking
+  else if( absza > 180-ANGTOL )
+    {
+      const Numeric rsurface = rsurf_at_lat( lat1, lat3, rsurface1, rsurface3, 
+                                                                  lat_start );
+      
+      if( rlow > rsurface )
+        {
+          r_end  = rlow;
+          endface = 2;
+        }
+      else
+        {
+          r_end  = rsurface;
+          endface = 7;
+        }
+      lat_end = lat_start;
+      l_end   = r_start - r_end;
+    }
+
+  else
+    {
+      unsafe = true;
+
+      // Calculate correction terms for the position to compensate for
+      // numerical inaccuracy. 
+      //
+      Numeric   r_corr, lat_corr;
+      //
+      cart2pol( r_corr, lat_corr, x, z, lat_start, za_start );
+      //
+      r_corr   -= r_start;
+      lat_corr -= lat_start;
+
+      // The end point is found by testing different step lengths until the
+      // step length has been determined by a precision of *l_acc*.
+      //
+      // The first step is to found a length that goes outside the grid cell, 
+      // to find an upper limit. The lower limit is set to 0. The upper
+      // limit is either set to l_start or it is estimated from the size of
+      // the grid cell.
+      // The search algorith is bisection, the next length to test is the
+      // mean value of the minimum and maximum length limits.
+      //
+      if( l_start > 0 )
+        { l_end = l_start; }
+      else
+        { l_end = 2 * ( rupp - rlow ); }
+      //
+      Numeric   l_in   = 0, l_out = l_end;
+      bool      ready  = false, startup = true;
+
+      if( rsurface1+RTOL >= r1a  ||  rsurface3+RTOL >= r3a )
+        { do_surface = true; }
+
+      while( !ready )
+        {
+          cart2pol( r_end, lat_end, x+dx*l_end, z+dz*l_end, lat_start, 
+                                                                   za_start );
+          r_end   -= r_corr;
+          lat_end -= lat_corr;
+
+          bool   inside = true;
+
+          rlow = rsurf_at_lat( lat1, lat3, r1a, r3a, lat_end );
+          
+          if( do_surface )
+            {
+              const Numeric r_surface = rsurf_at_lat( lat1, lat3, rsurface1, 
+                                                         rsurface3, lat_end );
+              if( r_surface >= rlow  &&  r_end <= r_surface )
+                { inside = false;   endface = 7; }
+            }
+
+          if( inside ) 
+            {
+              if( lat_end < lat1 )
+                { inside = false;   endface = 1; }
+              else if( lat_end > lat3 )
+                { inside = false;   endface = 3; }
+              else if( r_end < rlow )
+                { inside = false;   endface = 2; }
+              else
+                {
+                  rupp = rsurf_at_lat( lat1, lat3, r1b, r3b, lat_end );
+                  if( r_end > rupp )
+                    { inside = false;   endface = 4; }
+                }
+            }              
+
+          if( startup )
+            {
+              if( inside )
+                { 
+                  l_in   = l_end;
+                  l_end *= 5; 
+                }
+              else
+                { 
+                  l_out = l_end;   
+                  l_end = ( l_out + l_in ) / 2;
+                  startup = false; 
+                }
+            }
+          else
+            {
+              if( inside )
+                { l_in = l_end; }
+              else
+                { l_out = l_end; }
+                            
+              if( ( l_out - l_in ) < LACC )
+                { ready = true; }
+              else
+                { l_end = ( l_out + l_in ) / 2; }
+            }
+        }
+
+      // Now when we are ready, we remove the correction terms. Otherwise
+      // we can end up in an infinite loop if the step length is smaller
+      // than the correction.
+      r_end   += r_corr;
+      lat_end += lat_corr;
+    }
+
+  //--- Create return vectors
+  //
+  Index n = 1;
+  //
+  if( lmax > 0 )
+    {
+      n = Index( ceil( abs( l_end / lmax ) ) );
+      if( n < 1 )
+        { n = 1; }
+    }
+  //
+  r_v.resize( n+1 );
+  lat_v.resize( n+1 );
+  za_v.resize( n+1 );
+  //
+  r_v[0]   = r_start;
+  lat_v[0] = lat_start;
+  za_v[0]  = za_start;
+  //
+  lstep = l_end / (Numeric)n;
+  Numeric l;
+  bool ready = true; 
+  // 
+  for( Index j=1; j<=n; j++ )
+    {
+      l = lstep * (Numeric)j;
+      cart2poslos( r_v[j], lat_v[j], za_v[j], x+dx*l, z+dz*l, dx, dz, ppc, 
+                                                        lat_start, za_start );
+      
+      if( j < n )
+        {
+          if( unsafe ) 
+            {          
+              // Check that r_v[j] is above lower pressure level and the
+              // surface. This can fail around tangent points. For p-levels
+              // with constant r this is easy to handle analytically, but the
+              // problem is tricky in the general case with a non-spherical
+              // geometry, and this crude solution is used instead. Not the
+              // most elegant solution, but it works! Added later the same
+              // check for upper level, after getting assert in that direction.
+              // The z_field was crazy, but still formerly correct.
+              rlow = rsurf_at_lat( lat1, lat3, r1a, r3a, lat_v[j] );
+              if( do_surface )
+                {
+                  const Numeric r_surface = rsurf_at_lat( lat1, lat3, 
+                                             rsurface1, rsurface3, lat_v[j] ); 
+                  const Numeric r_test = max( r_surface, rlow );
+                  if(  r_v[j] < r_test )
+                    {  ready = false;   break; }
+                } 
+              else  if( r_v[j] < rlow )
+                { ready = false;   break; }
+
+              rupp = rsurf_at_lat( lat1, lat3, r1b, r3b, lat_v[j] );
+              if( r_v[j] > rupp )
+                { ready = false;   break; }
+            }
+        }
+      else // j==n
+        {
+          if( unsafe )
+            {
+              // Set end point to be consistent with found endface.
+              //
+              if( endface == 1 )
+                { lat_v[n] = lat1; }
+              else if( endface == 2 )
+                { r_v[n] = rsurf_at_lat( lat1, lat3, r1a, r3a, lat_v[n] ); }
+              else if( endface == 3 )
+                { lat_v[n] = lat3; }
+              else if( endface == 4 )
+                { r_v[n] = rsurf_at_lat( lat1, lat3, r1b, r3b, lat_v[n] ); }
+              else if( endface == 7 )
+                { r_v[n] = rsurf_at_lat( lat1, lat3, rsurface1, rsurface3, 
+                                                                  lat_v[n] ); }
+            }
+        }
+    }
+
+  if( !ready )
+    { // If an "outside" point found, restart with l as start search length
+      do_gridcell_2d_byltest( r_v, lat_v, za_v, lstep, endface, r_start, 
+                              lat_start, za_start, l, icall+1, ppc, lmax, 
+                              lat1, lat3, r1a, r3a, r3b, r1b,
+                              rsurface1, rsurface3 );
+    }
+}
+
+
+
 //! ppath_step_geom_2d
 /*! 
    Calculates 2D geometrical propagation path steps.
@@ -3011,10 +3308,19 @@ void ppath_step_geom_2d(
   Numeric   lstep;
   Index    endface;
 
-  do_gridcell_2d( r_v, lat_v, za_v, lstep, endface,
+  if( 1 )
+    {
+      do_gridcell_2d( r_v, lat_v, za_v, lstep, endface,
                   r_start, lat_start, za_start, ppc, lmax, lat1, lat3, 
                                     r1a, r3a, r3b, r1b, rsurface1, rsurface3 );
-
+    }
+  else
+    {
+      do_gridcell_2d_byltest( r_v, lat_v, za_v, lstep, endface, r_start, 
+                              lat_start, za_start, -1, 0, ppc, lmax, 
+                              lat1, lat3, r1a, r3a, r3b, r1b,
+                              rsurface1, rsurface3 );
+    }
   // Fill *ppath*
   const Index np = r_v.nelem();
   ppath_end_2d( ppath, r_v, lat_v, za_v, Vector(np-1,lstep), Vector(np,1), 

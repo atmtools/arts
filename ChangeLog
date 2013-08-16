@@ -1,3 +1,10 @@
+2013-08-16  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-736
+
+	* src/ppath.cc (do_gridcell_2d_byltest): A 2D version of the
+	corresponding 3D one. Not yet active, fails at least for negative za.
+
 2013-08-15  Johan Strandgren  <johsat-9@student.ltu.se>
 
 	* arts-2-1-735
