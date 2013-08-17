@@ -1,3 +1,21 @@
+2013-08-17  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-737
+
+	* 2D ray tracing now following the approached already used for 3D.
+	Less elegant but seems needed to get away from a constant tuning
+	of settings to handlle the numerical problems. 
+
+	* src/ppath.cc (ppath_step_geom_2d): Now calling
+	do_gridcell_2d_byltest. If you run into problems with the new 2D
+	ppath calculations, just change if(0) to if(1) on line 3311.
+
+	(raytrace_2d_linear_basic): As above, including a if-statement to
+	switch back to old code.
+
+	* src/geodetic.cc (cart2pol, cart2poslos): Changes to get the
+	functions to work with negative zenith angles.
+
 2013-08-16  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-736

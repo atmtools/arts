@@ -59,7 +59,8 @@ extern const Numeric RAD2DEG;
 // have any value. The input *lat0* is used to shift the output from atan2 with
 // n*360 to return what should be the expected latitude. That is, it is assumed
 // that no operation moves the latitude more than 180 degrees from the initial
-// value *lat0*.
+// value *lat0*. Negative zeniath angles are handled, following ARTS definition
+// of 2D geometry.
 
 
 //! cart2pol
@@ -89,14 +90,15 @@ void cart2pol(
   r   = sqrt( x*x + z*z );
 
   // Zenith and nadir cases
-  if( za0 < ANGTOL  ||  za0 > 180-ANGTOL  )
+  const Numeric absza = abs( za0 );
+  if( absza < ANGTOL  ||  absza > 180-ANGTOL  )
     { lat = lat0; }
 
   else
     { // Latitude inside [0,360]
       lat = RAD2DEG * atan2( z, x );
       // Shift with n*360 to get as close as possible to lat0
-      lat = lat - 360.0 * Numeric( round( ( lat -lat0 ) / 360.0 ) );
+      lat = lat - 360.0 * Numeric( round( ( lat - lat0 ) / 360.0 ) );
     }
 }
 
@@ -135,7 +137,8 @@ void cart2poslos(
   r   = sqrt( x*x + z*z );
 
   // Zenith and nadir cases
-  if( za0 < ANGTOL  ||  za0 > 180-ANGTOL  )
+  const Numeric absza = abs( za0 );
+  if( absza < ANGTOL  ||  absza > 180-ANGTOL  )
     { 
       lat = lat0;
       za  = za0; 
@@ -153,17 +156,25 @@ void cart2poslos(
       // Use ppc for max accuracy, but dr required to resolve if up- 
       // and downward cases
       za = RAD2DEG * asin( ppc / r );
-      if( isnan( za ) )
-        { za = 90; }
-      if( dr < 0 )
+      if( za0 > 0 )
         {
-          za = 180.0 - za;
-          if( za0 < 0 )
-            { za = - za; }
+          if( isnan( za ) )
+            { za = 90; }
+          else if( dr < 0 )
+            { za = 180.0 - za; }
+        }
+      else
+        {
+          if( isnan( za ) )
+            { za = -90; }
+          else if( dr < 0 )
+            { za = -180.0 + za; }
+          else 
+            { za = -za; }
         }
 
       // The difference below can at least be 3e-6 for tangent points 
-      assert( abs( za - RAD2DEG*acos(dr) ) < 1e-4 );
+      assert( abs( abs(za) - RAD2DEG*acos(dr) ) < 1e-4 );
     }
 }
 

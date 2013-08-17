@@ -3308,7 +3308,7 @@ void ppath_step_geom_2d(
   Numeric   lstep;
   Index    endface;
 
-  if( 1 )
+  if( 0 )
     {
       do_gridcell_2d( r_v, lat_v, za_v, lstep, endface,
                   r_start, lat_start, za_start, ppc, lmax, lat1, lat3, 
@@ -4161,8 +4161,17 @@ void raytrace_2d_linear_basic(
       const Numeric   ppc_step = geometrical_ppc( r, za );
 
       // Where will a geometric path exit the grid cell?
-      do_gridcell_2d( r_v, lat_v, za_v, lstep, endface, r, lat, za, ppc_step, 
-                    -1, lat1, lat3, r1a, r3a, r3b, r1b, rsurface1, rsurface3 );
+      if( 0 )
+        {
+          do_gridcell_2d( r_v, lat_v, za_v, lstep, endface, r, lat, za, ppc_step, 
+                       -1, lat1, lat3, r1a, r3a, r3b, r1b, rsurface1, rsurface3 );
+        }
+      else
+        {
+          do_gridcell_2d_byltest( r_v, lat_v, za_v, lstep, endface, r, lat, za,
+                                  -1, 0, ppc_step, -1, lat1, lat3, r1a, r3a, 
+                                  r3b, r1b, rsurface1, rsurface3 );
+        }
       assert( r_v.nelem() == 2 );
 
       // If *lstep* is <= *lraytrace*, extract the found end point (if not 
