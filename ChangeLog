@@ -1,3 +1,31 @@
+2013-08-17  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-1-738
+
+	* controlfiles/artscomponents/arts-xml-data/TestSurf_Venus.arts,
+	controlfiles/artscomponents/arts-xml-data/TestSurf_Mars.arts:
+	Adapted to changes in surface_complex_refr_index handling.
+
+	* controlfiles/artscomponents/absorption/IsoRatios_H2Oorig.xml,
+	controlfiles/artscomponents/absorption/IsoRatios_H2Omani.xml:
+	Include N2-45 to fix broken test case.
+
+	* controlfiles/artscomponents/absorption/TestIsoRatios.arts:
+	Minor adaption.
+
+	* controlfiles/artscomponents/arts-xml-data/TestIsoRatios.arts:
+	Renamed to TestPlanetIsoRatios.arts to avoid mexing up output with
+	absorption/TestIsoRatios.arts case.
+
+	* controlfiles/CMakeLists.txt: Adapted accordingly.
+
+	* src/species_data.cc,partition_function_data.cc:
+	A bit of cleaning up (tag updates, layouting, missed data updates) after
+	arts-2-1-721.
+
+	* src/workspace.cc,methods.cc:
+	Minor fixes.
+
 2013-08-17  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-737
@@ -353,12 +381,12 @@
 	number "11" in the new HITRAN. The latter of these is now named 11_2 in
 	ARTS, whilst the first remains unchanged in name. 
 	
-	The completely new isotopes are: HNO3-156, HBr-29, HBr-11_2, HI-27, 
+	The completely new isotopologues are: HNO3-156, HBr-29, HBr-11_2, HI-27, 
 	N2-45, and COF2-369
 	
 	The completely new species are C4H2, and SO3.
 	
-	The isotopes new in HITRAN2012 number are: HCl-25, HCl-27, HF-29, H2-11,
+	The isotopologues new in HITRAN2012 number are: HCl-25, HCl-27, HF-29, H2-11,
 	and H2-12.
 	
 	Some check-all tests will fail with this commit.
@@ -409,7 +437,7 @@
 	(scat_data_meta_arrayAdd): Made it compatible with cylinders and 
 	spherical particles with other aspect ratios than one. removed 
 	density as an input, which is now set using the input material. 
-	Added the feature to autocreate a descriptoin based on the input data.
+	Added the feature to autocreate a description based on the input data.
 
 	(scat_data_rawFromTMatrix):  Made it compatible with cylinders and 
 	spherical particles with other aspect ratios than one.

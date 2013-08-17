@@ -4232,7 +4232,7 @@ void Workspace::define_wsv_data()
      ( NAME( "surface_complex_refr_index"),
        DESCRIPTION
        (
-        "Complex refractive index of the surface, at a singel point.\n"
+        "Complex refractive index of the surface, at a single point.\n"
         "\n"
         "See *complex_refr_index* for the expected format and how the data\n"
         "are treated.\n"

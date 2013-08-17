@@ -67,7 +67,7 @@ StringSet( basename, "planets/Mars/MPS/" )
 StringCreate( zsurfname )
 StringSet( zsurfname, "Mars.z_surface" )
 StringCreate( risurfname )
-StringSet( risurfname, "Mars.meanRefIndex.n" )
+StringSet( risurfname, "Mars.surface_complex_refr_index_field" )
 StringCreate( atmcase )
 StringCreate( caseext )
 StringCreate( casefull )
@@ -87,6 +87,8 @@ ArrayOfStringCreate( dustcasearray )
 ArrayOfStringSet( dustcasearray, [".dust-high", ".dust-low", ".dust-medium"] )
 
 
+# a vector for holding reference RT results
+VectorCreate(yREFERENCE)
 
 # some settings in order to be able to use basics_checkedCalc
 #####
@@ -231,14 +233,14 @@ yCalc
 # still regional only.
 #####
 
-# reading surface refractive index data (GriddedField4). no regridding here. we
+# reading surface refractive index data (GriddedField5). no regridding here. we
 #  need to do that in form of 1D only inside the surface_rtprop_agenda, as we
 #  only know then which exact point(s) we need. for better traceability (and
 #  since here this isn't just a temporary field), we create a dedicated
 #  workspace variable for this data.
 Copy( casefull, basename )
 Append( casefull, risurfname )
-GriddedField4Create( ri_surface )
+GriddedField5Create( ri_surface )
 ReadXML( ri_surface, casefull )
 
 AgendaSet( surface_rtprop_agenda ){
@@ -249,11 +251,14 @@ AgendaSet( surface_rtprop_agenda ){
    #Print( surface_skin_t, 0 )
    Select( lat_true, rtp_pos, [1] )
    Select( lon_true, rtp_pos, [2] )
-   surface_complex_refr_indexFromGriddedField4( complex_refr_index_field=ri_surface )
+   surface_complex_refr_indexFromGriddedField5( complex_refr_index_field=ri_surface )
    surfaceFlatRefractiveIndex
 } 
 yCalc
 #Print( y, 0 )
+#WriteXML( in=y )
+ReadXML( out=yREFERENCE, filename="TestSurf_Mars.y.xml" )
+Compare( y, yREFERENCE, 1e-8 )
 
 
 #####
@@ -273,7 +278,7 @@ AgendaSet( surface_rtprop_agenda ){
    #Print( surface_skin_t, 0 )
    Select( lat_true, rtp_pos, [1] )
    Select( lon_true, rtp_pos, [2] )
-   surface_complex_refr_indexFromGriddedField4( complex_refr_index_field=ri_surface )
+   surface_complex_refr_indexFromGriddedField5( complex_refr_index_field=ri_surface )
    surfaceFlatRefractiveIndex
 } 
 

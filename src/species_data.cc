@@ -26,6 +26,10 @@
   capability of ARTS.
 
   This is the file from arts-1-0, back-ported to arts-1-1.
+  NOTE that adding new data here (new species or new isotopologues) requires
+  equivalent additions in partition_function_data.cc. Also, equivalent data
+  should be added to the isotopratio.xml for other planets residing in the
+  planets/ folders of arts-xml-data should be done.
 
   \author Stefan Buehler, Axel von Engeln
   \date 2000-08-10 
@@ -85,9 +89,9 @@ using global_data::species_data;
        
        <table>
        <tr>
-       <td> 1: <td> hitran 96 isotopologue ratio, taken from cd: file
-                    software/generic/tables_96.txt or HITRAN 2000 edition
-                    (default, even if jpl and hitran isotopologue ratios are 
+       <td> 1: <td> HITRAN isotopologue ratio (varying editions; usually the
+                    recent one at time of addition)
+                    (DEFAULT, even if jpl and hitran isotopologue ratios are 
                     available).
        <tr>
        <td> 2: <td> jpl isotopologue ratio, taken from the documentation coming
@@ -105,6 +109,8 @@ using global_data::species_data;
        <td> 4: <td> isotopologue ratio calculated from (atomic) isotopic
                     abundances. Origin of isotopic ratio documented in individual
                     species headers.
+  	 	 <tr> 
+	 	   <td> 0: <td> Wild (but educated) guess (e.g. for inert gases).
        </table>
 
       On run-time, isotopologue ratios can be initialized from those built-in
@@ -416,7 +422,7 @@ void define_basic_species_data()
          ) ) );
 
   // HNO3
-  // Isotopologue Ratios: 1
+  // Isotopologue Ratios: 1 1
   species_data.push_back
     ( SpeciesRecord
       ( NAME("HNO3"),
@@ -452,11 +458,11 @@ void define_basic_species_data()
         (//  Name,      Isotop. Ratio,   Mass,         MY-tag, HI-tag, JPL-tag
          //             |                |             |       |       |
          REC("19"       ,0.99984425     ,20.006229    ,141    ,141    ,TAGS(20002)),
-         REC("29"       ,0.00014994513  ,21.00        ,-1     ,142     ,TAGS(21002))
+         REC("29"       ,1.557e-4       ,21.00        ,-1     ,142     ,TAGS(21002))
          ) ) );
 
   // HCl
-  // Isotopologue Ratios: 1 1 2 2
+  // Isotopologue Ratios: 1 1 1 1
   species_data.push_back
     ( SpeciesRecord
       ( NAME("HCl"),
@@ -466,12 +472,12 @@ void define_basic_species_data()
          //             |                |             |       |       |
          REC("15"       ,0.757587       ,35.976678    ,151    ,151    ,TAGS(36001)),
          REC("17"       ,0.242257       ,37.973729    ,152    ,152    ,TAGS(38001)),
-         REC("25"       ,0.00011324004  ,37.00        ,-1     ,153     ,TAGS(37001)),
-         REC("27"       ,3.6728230E-05  ,39.00        ,-1     ,154     ,TAGS(39004))
+         REC("25"       ,1.180e-4       ,37.00        ,-1     ,153     ,TAGS(37001)),
+         REC("27"       ,3.774e-5       ,39.00        ,-1     ,154     ,TAGS(39004))
          ) ) );
 
   // HBr
-  // Isotopologue Ratios: 1 1
+  // Isotopologue Ratios: 1 1 1 1
   species_data.push_back
     ( SpeciesRecord
       ( NAME("HBr"),
@@ -482,12 +488,12 @@ void define_basic_species_data()
          REC("19"       ,0.506781        ,79.926160    ,161    ,161    ,TAGS(80001)),
          REC("11"       ,0.493063        ,81.924115    ,162    ,162    ,TAGS(82001)),
          REC("29"       ,7.894e-5        ,80.926160    ,-1     ,163    ,TAGS()),
-         REC("11_2"       ,7.680e-5        ,81.924115    ,-1     ,164    ,TAGS())
+         REC("21"       ,7.680e-5        ,81.924115    ,-1     ,164    ,TAGS())
          ) ) );
 
   // HI
   // Degrees of freedom: guessed, since it seems to be linear
-  // Isotopologue Ratios: 1
+  // Isotopologue Ratios: 1 1
   // Note: HI is in official mytran list (17), but does not 
   //       seem to be included for calculation, as given
   //       by table tag_table in file glob_def.c
@@ -500,7 +506,7 @@ void define_basic_species_data()
         (//  Name,      Isotop. Ratio,   Mass,         MY-tag, HI-tag, JPL-tag
          //             |                |             |       |       |
          REC("17"       ,0.99984425     ,127.912297   ,-1     ,171    ,TAGS( )),
-         REC("27"       ,1.557e-4      ,128.912297   ,-1      ,172    ,TAGS( ))
+         REC("27"       ,1.557e-4       ,128.912297   ,-1     ,172    ,TAGS( ))
          ) ) );
 
   // ClO
@@ -579,7 +585,9 @@ void define_basic_species_data()
 
   // N2
   // Degrees of freedom: guessed, since it seems to be linear
-  // Isotopologue Ratios: 1
+  // Isotopologue Ratios: 1 1*
+  // Note: N-45 isotopologue ratio seems to be off by factor2 in HITRAN. we
+  // correct for that here.
   // Note: N2 is in official mytran list (22), but does not 
   //       seem to be included for calculation, as given
   //       by table tag_table in file glob_def.c
@@ -591,7 +599,7 @@ void define_basic_species_data()
         (//  Name,      Isotop. Ratio,   Mass,         MY-tag, HI-tag, JPL-tag
          //             |                |             |       |       |
          REC("44"       ,0.9926874      ,28.006147    ,-1     ,221    ,TAGS( )),
-         REC("45"       ,3.665e-3       ,29.006147    ,-1     ,222    ,TAGS( )),
+         REC("45"       ,7.330e-3       ,29.006147    ,-1     ,222    ,TAGS( )),
          REC( "SelfContMPM93"           ,NAN    ,NAN    ,-1     ,-1     ,TAGS()),
          REC( "SelfContPWR93"           ,NAN    ,NAN    ,-1     ,-1     ,TAGS()),
          REC( "SelfContStandardType"    ,NAN    ,NAN    ,-1     ,-1     ,TAGS()),
@@ -689,7 +697,7 @@ void define_basic_species_data()
          ) ) );
 
   // COF2
-  // Isotopologue Ratios: 1
+  // Isotopologue Ratios: 1 1
   species_data.push_back
     ( SpeciesRecord
       ( NAME("COF2"),
@@ -862,7 +870,7 @@ void define_basic_species_data()
 
   // HOBr
   // Isotopologue Ratios: 1 1
-  // Note: latest addtion to Hitran 2000, DEGFR guessed
+  // Note: latest addition to Hitran 2000, DEGFR guessed
   species_data.push_back
     ( SpeciesRecord
       ( NAME("HOBr"),
@@ -876,7 +884,7 @@ void define_basic_species_data()
 
   // C2H4
   // Isotopologue Ratios: 1 1
-  // Note: latest addtion to Hitran 2000, DEGFR guessed
+  // Note: latest addition to Hitran 2000, DEGFR guessed
   species_data.push_back
     ( SpeciesRecord
       ( NAME("C2H4"),
@@ -1040,14 +1048,16 @@ void define_basic_species_data()
         ISOTOPOLOGUES
         (//  Name,      Isotop. Ratio,   Mass,     MY-tag, HI-tag, JPL-tag
          //             |                |         |       |       |
-         REC("21"      ,9.66290e-01     ,44.00    ,-1     ,-1    ,TAGS(44013))
+         REC("21"       ,9.66290e-01    ,44.00    ,-1     ,-1     ,TAGS(44013))
          ) ) );
 
   // H2
-  // Isotopologue Ratios: 4 4 4
+  // Isotopologue Ratios: 1 1* 4
   // Note: H2 is spectroscopically inert, but now needed as broadening/continuum
   // species for planetary atmospheres. Hence we need it to be defined as
   // absorption species.
+  // Note: H-12 isotopologue ratio seems to be off by factor2 in HITRAN. we
+  // correct for that here.
   // Name and Mass guessed. DEGFR and atomic isotopic ratios from JPL.
   species_data.push_back
     ( SpeciesRecord
@@ -1056,9 +1066,9 @@ void define_basic_species_data()
         ISOTOPOLOGUES
         (//  Name,      Isotop. Ratio,   Mass,     MY-tag, HI-tag, JPL-tag
          //             |                |         |       |       |
-         REC("11"      ,.999700e+00     , 2.00    ,-1     ,451     ,TAGS()),
-         REC("12"      ,.299847e-03     , 3.00    ,-1     ,452     ,TAGS(3001))
-//         REC("22"      ,.224838e-07     , 4.00    ,-1     ,-1     ,TAGS())
+         REC("11"       ,0.9997         ,2.00     ,-1     ,451    ,TAGS()),
+         REC("12"       ,3.114e-4       ,3.00     ,-1     ,452    ,TAGS(3001))
+//         REC("22"       ,.224838e-07    ,4.00     ,-1     ,-1     ,TAGS())
          ) ) );
 
 
@@ -1076,7 +1086,7 @@ void define_basic_species_data()
       ISOTOPOLOGUES
       (//  Name,      Isotop. Ratio,   Mass,     MY-tag, HI-tag, JPL-tag
        //             |                |         |       |       |
-       REC("1"       ,1.00            , 1.00    ,-1     ,-1     ,TAGS())
+       REC("1"        ,1.00           ,1.00     ,-1     ,-1     ,TAGS())
        ) ) );
 
     
@@ -1093,48 +1103,50 @@ void define_basic_species_data()
         ISOTOPOLOGUES
         (//  Name,      Isotop. Ratio,   Mass,     MY-tag, HI-tag, JPL-tag
          //             |                |         |       |       |
-         REC("4"       ,1.00            , 4.00    ,-1     ,-1     ,TAGS())
+         REC("4"        ,1.00           ,4.00     ,-1     ,-1     ,TAGS())
          ) ) );
 
-    // Ar
-    // Isotopologue Ratios: 0
-    // Note: Ar is spectroscopically inert, but now needed as broadening/continuum
-    // species for planetary atmospheres. Hence we need it to be defined as
-    // absorption species.
-    // All parameters guessed.
-    species_data.push_back
+  // Ar
+  // Isotopologue Ratios: 0
+  // Note: Ar is spectroscopically inert, but now needed as broadening/continuum
+  // species for planetary atmospheres. Hence it needs to be defined as
+  // absorption species.
+  // All parameters guessed.
+  species_data.push_back
     ( SpeciesRecord
-     ( NAME("Ar"),
-      DEGFR(2),
-      ISOTOPOLOGUES
-      (//  Name,      Isotop. Ratio,   Mass,     MY-tag, HI-tag, JPL-tag
-       //             |                |         |       |       |
-       REC("8"       ,1.00            , 18.00    ,-1     ,-1     ,TAGS())
-       ) ) );
+      ( NAME("Ar"),
+        DEGFR(2),
+        ISOTOPOLOGUES
+        (//  Name,      Isotop. Ratio,   Mass,     MY-tag, HI-tag, JPL-tag
+         //             |                |         |       |       |
+         REC("8"        ,1.00           ,18.00    ,-1     ,-1     ,TAGS())
+         ) ) );
     
-    // C4H2
-    // In HITRAN since 2012. Mass is guessed. Degree of Freedom is guessed.
-    species_data.push_back
+  // C4H2
+  // Isotopologue Ratios: 1
+  // Note: added with HITRAN2012, Mass and DEGFR guessed.
+  species_data.push_back
     ( SpeciesRecord
-    ( NAME("C4H2"),
-           DEGFR(2),
-           ISOTOPOLOGUES
-           (//  Name,      Isotop. Ratio,   Mass,     MY-tag, HI-tag, JPL-tag
-           //             |                |         |       |       |
-           REC("2211"       ,0.9560            , 50.00    ,-1     ,431     ,TAGS())
-    ) ) );
+      ( NAME("C4H2"),
+        DEGFR(2),
+        ISOTOPOLOGUES
+        (//  Name,      Isotop. Ratio,   Mass,     MY-tag, HI-tag, JPL-tag
+         //             |                |         |       |       |
+         REC("2211"     ,0.9560         ,50.00    ,-1     ,431    ,TAGS())
+         ) ) );
     
-    // SO3
-    // In HITRAN since 2012. Mass is guessed. Degree of Freedom is guessed.
-    species_data.push_back
+  // SO3
+  // Isotopologue Ratios: 1
+  // Note: added with HITRAN2012, Mass and DEGFR guessed.
+  species_data.push_back
     ( SpeciesRecord
-    ( NAME("SO3"),
-      DEGFR(3),
-      ISOTOPOLOGUES
-      (//  Name,      Isotop. Ratio,   Mass,     MY-tag, HI-tag, JPL-tag
-      //             |                |         |       |       |
-      REC("26"       ,0.9434            , 80.00    ,-1     ,471     ,TAGS())
-      ) ) );
+      ( NAME("SO3"),
+        DEGFR(3),
+        ISOTOPOLOGUES
+        (//  Name,      Isotop. Ratio,   Mass,     MY-tag, HI-tag, JPL-tag
+         //             |                |         |       |       |
+         REC("26"       ,0.9434         ,80.00    ,-1     ,471    ,TAGS())
+         ) ) );
 
 
 // You also have to change the entry in the file

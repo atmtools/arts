@@ -141,7 +141,7 @@ if (ARTS_XML_DATA_DIR)
                         artscomponents/arts-xml-data/TestSurf_Venus.arts)
 
   arts_test_run_ctlfile(xmldata.isoratios
-                        artscomponents/arts-xml-data/TestIsoRatios.arts)
+                        artscomponents/arts-xml-data/TestPlanetIsoRatios.arts)
 
   arts_test_run_ctlfile(xmldata.cia
                         artscomponents/cia/TestCIA.arts)

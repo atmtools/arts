@@ -51,7 +51,7 @@ StringSet( atmcase, "Venus.spicav.night/Venus.spicav.night" )
 StringCreate( tsurfname )
 StringSet( tsurfname, "Venus.t_surface" )
 StringCreate( risurfname )
-StringSet( risurfname, "Venus.meanRefIndex.n" )
+StringSet( risurfname, "Venus.surface_complex_refr_index_field" )
 StringCreate( casefull )
 
 
@@ -138,7 +138,7 @@ FieldFromGriddedField( t_surface, p_grid, lat_grid, lon_grid, gf2tmp )
 #  workspace variable for this data.
 Copy( casefull, basename )
 Append( casefull, risurfname )
-GriddedField4Create( ri_surface )
+GriddedField5Create( ri_surface )
 ReadXML( ri_surface, casefull )
 
 abs_xsec_agenda_checkedCalc
@@ -162,7 +162,6 @@ AgendaSet( surface_rtprop_agenda ){
    InterpAtmFieldToRtePos( surface_skin_t,
                            atmosphere_dim, p_grid, lat_grid, lon_grid,
                            z_field, rtp_pos, t_field)
-   Print( surface_skin_t, 0 )
    surfaceFlatScalarReflectivity
 }
 #yCalc
@@ -177,7 +176,6 @@ AgendaSet( surface_rtprop_agenda ){
   specular_losCalc
   InterpSurfaceFieldToRtePos( surface_skin_t, atmosphere_dim, lat_grid, 
       lon_grid, rtp_pos, t_surface )
-   Print( surface_skin_t, 0 )
   surfaceFlatScalarReflectivity
 } 
 yCalc
@@ -193,10 +191,9 @@ AgendaSet( surface_rtprop_agenda ){
    specular_losCalc
   InterpSurfaceFieldToRtePos( surface_skin_t, atmosphere_dim, lat_grid, 
                               lon_grid, rtp_pos, t_surface )
-   Print( surface_skin_t, 0 )
    Select( lat_true, rtp_pos, [1] )
    Select( lon_true, rtp_pos, [2] )
-   surface_complex_refr_indexFromGriddedField4( complex_refr_index_field=ri_surface )
+   surface_complex_refr_indexFromGriddedField5( complex_refr_index_field=ri_surface )
    surfaceFlatRefractiveIndex
 } 
 yCalc
