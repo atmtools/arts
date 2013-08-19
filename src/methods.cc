@@ -3135,7 +3135,8 @@ void define_md_data_raw()
          "C. Maetzler), which refer to Liebe 1993 without closer\n"
          "specifications.\n"
          "\n"
-         "Temperatures must be between 0 and 100 degrees Celsius.\n"
+         "Temperatures must be between -40 and 100 degrees Celsius. The\n"
+         "accuracy of the parametrization below 0 C is not known by us.\n"
          ),
         AUTHORS( "Patrick Eriksson", "Oliver Lemke" ),
         OUT( "complex_refr_index" ),
@@ -7199,6 +7200,33 @@ void define_md_data_raw()
     
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "particle_massesFromMetaDataSingleCategory" ),
+        DESCRIPTION
+        (
+         "Sets *particle_masses* based on *scat_data_meta_array* if all\n"
+         "particles are of the same mass category.\n"
+         "\n"
+         "This method calculates the particle masses as density*volume\n"
+         "for each particle type. Singel phase particles, and that all\n"
+         "all particles consist of the same (bulk) matter (e.g. water\n"
+         "or ice) are assumed. With other words, a single mass category\n"
+         "is assumed (see *particle_masses* for a definiotion of \"mass\n"
+         "category\").\n"
+         ),
+        AUTHORS( "Jana Mendrok", "Patrick Eriksson" ),
+        OUT( "particle_masses" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "scat_data_meta_array" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "particle_massesSet" ),
         DESCRIPTION
         (
@@ -8913,7 +8941,7 @@ void define_md_data_raw()
     ( NAME( "scat_data_meta_arrayAddTmatrix" ),
       DESCRIPTION
       (
-          "Adds particle meta data to the workspace vairalble\n"
+          "Adds particle meta data to the workspace variable\n"
           "*scat_data_meta_array*.\n"
       ),
       AUTHORS( "Johan Strandgren" ),
@@ -8927,8 +8955,8 @@ void define_md_data_raw()
            "complex_refr_index" ),
       GIN_TYPE( "String", "String", "String", "String", "Numeric", "Numeric",
            "Vector", "Vector", "Vector", "GriddedField3" ),
-      GIN_DEFAULT( "", NODEF, NODEF, NODEF, NODEF, NODEF, NODEF, NODEF, NODEF,
-                   NODEF ),
+      GIN_DEFAULT( "", "undefined", NODEF, NODEF, "-999", NODEF, NODEF,
+                   NODEF, NODEF, NODEF ),
       GIN_DESC( "Particle description", "Water or Ice", "spheroidal or cylinder", 
                "Particle Type: MACROS_ISO (20) or PARTICLE_TYPE_HORIZ_AL (30)", 
                "Particle mass density",

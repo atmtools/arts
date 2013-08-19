@@ -1235,6 +1235,46 @@ void ScatteringParticlesSelect (//WS Output:
 }
 
 
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void particle_massesFromMetaDataSingleCategory(
+        Matrix&                    particle_masses,
+  const ArrayOfScatteringMetaData& scat_data_meta_array,
+  const Verbosity&)
+{
+  const Index np = scat_data_meta_array.nelem();
+
+  particle_masses.resize(np,1);
+
+  for( Index i=0; i<np; i++ )
+    {
+      if( scat_data_meta_array[i].density <= 0 || 
+          scat_data_meta_array[i].density > 20e3 )
+        {
+          ostringstream os;
+          os << "A presumably incorrect value found for "
+             << "scat_data_meta_array[" << i << "].density.\n"
+             << "The value is " << scat_data_meta_array[i].density;
+          throw std::runtime_error(os.str());
+        }
+
+      if( scat_data_meta_array[i].volume <= 0 || 
+          scat_data_meta_array[i].volume > 0.01 )
+        {
+          ostringstream os;
+          os << "A presumably incorrect value found for "
+             << "scat_data_meta_array[" << i << "].volume.\n"
+             << "The value is " << scat_data_meta_array[i].volume;
+          throw std::runtime_error(os.str());
+        }
+
+      particle_masses(i,0) = scat_data_meta_array[i].density *
+                             scat_data_meta_array[i].volume;
+    }
+}
+
+
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void particle_massesSet (//WS Output:
                          Matrix& particle_masses,

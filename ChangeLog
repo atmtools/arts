@@ -1,3 +1,29 @@
+2013-08-19  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-739
+
+	* src/m_cloudbox.cc (particle_massesFromMetaDataSingleCategory):
+	New WSM. Can set particle_masses from scat_data_meta_array for
+	some special conditions.
+
+	* src/m_general.cc (Test): Just removed verbosity to avoid
+	compiler warning.
+
+	* src/m_refraction.cc (complex_refr_indexWaterLiebe93): Changed
+	built-in doc to reflect change below.
+
+	* src/refraction.cc (complex_n_water_liebe93): Changed lower
+	temperature limit to -40.
+
+	* src/m_tmatrix.cc (scat_data_meta_arrayAddTmatrix): Defined
+	default for material and density, as a way to indicate that they
+	are not actuall needed for T-matrix (as description, already
+	having "" as default). Default for density is -999, to get a
+	number that is easy to detect as unphysical.
+
+	* src/workspace.cc: A very small change of text for
+	particle_masses.
+
 2013-08-17  Jana Mendrok  <jana.mendrok@ltu.se>
 
 	* arts-2-1-738

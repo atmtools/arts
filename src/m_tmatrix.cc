@@ -38,6 +38,9 @@ void TMatrixTest(const Verbosity& verbosity)
     calc_ssp_fixed_test(verbosity);
 }
 //-----------------------------
+
+
+
 void scat_data_meta_arrayInit(// WS Output:
                  ArrayOfScatteringMetaData& scat_data_meta_array,
                  //WS Input
@@ -45,6 +48,7 @@ void scat_data_meta_arrayInit(// WS Output:
 {
     scat_data_meta_array.resize(0);
 }
+
                 
                  
 void scat_data_meta_arrayAddTmatrix(// WS Output:

@@ -80,7 +80,7 @@ void complex_n_water_liebe93(
    const Vector&   f_grid,
    const Numeric&  t )
 {
-  chk_if_in_range( "t", t, TEMP_0_C, TEMP_0_C+100 );
+  chk_if_in_range( "t", t, TEMP_0_C-40, TEMP_0_C+100 );
   chk_if_in_range( "min of f_grid", min(f_grid), 10e9, 1000e9 );
   chk_if_in_range( "max of f_grid", max(f_grid), 10e9, 1000e9 );
 

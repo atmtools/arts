@@ -403,7 +403,7 @@ void Exit(const Verbosity& verbosity)
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Test(const Verbosity& verbosity)
+void Test(const Verbosity& )
 {
   /*
   GriddedField3 complex_n;

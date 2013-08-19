@@ -2584,7 +2584,7 @@ void Workspace::define_wsv_data()
        "The mass of individual particles.\n"
        "\n"
        "Each row corresponds to a particle type (e.g. an element in\n"
-       "scat_data_mono*). The user is free to define different mass\n"
+       "scat_data_raw*). The user is free to define different mass\n"
        "categories and assign a mass for each category. Each column\n"
        "of *particle_masses* corresponds to such a mass category. A\n"
        "particle can have a non-zero mass for more than one category.\n"
