@@ -1276,7 +1276,8 @@ void particle_massesFromMetaDataSingleCategory(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void particle_massesSet (//WS Output:
+void particle_massesFromMetaDataAndPart_species
+                        (//WS Output:
                          Matrix& particle_masses,
                          // WS Input:
                          const ArrayOfScatteringMetaData& scat_data_meta_array,
@@ -1293,7 +1294,7 @@ void particle_massesSet (//WS Output:
   }
 
   // resize particle_masses to required diemsions and properly initialize values
-  particle_masses.resize ( part_species.nelem(), scat_data_meta_array.nelem() );
+  particle_masses.resize ( scat_data_meta_array.nelem(), part_species.nelem() );
   particle_masses = 0.;
   Index scat_data_start = 0;
 
@@ -1302,7 +1303,7 @@ void particle_massesSet (//WS Output:
   {
     for ( Index j=scat_data_start; j<scat_data_start+scat_data_nelem[k]; j++ )
     {
-      particle_masses (k,j) =
+      particle_masses (j, k) =
         scat_data_meta_array[j].density * scat_data_meta_array[j].volume;
     }
 

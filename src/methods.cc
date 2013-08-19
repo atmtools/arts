@@ -7203,14 +7203,14 @@ void define_md_data_raw()
       ( NAME( "particle_massesFromMetaDataSingleCategory" ),
         DESCRIPTION
         (
-         "Sets *particle_masses* based on *scat_data_meta_array* if all\n"
-         "particles are of the same mass category.\n"
+         "Sets *particle_masses* based on *scat_data_meta_array* assuming\n"
+         "all particles are of the same mass category.\n"
          "\n"
          "This method calculates the particle masses as density*volume\n"
-         "for each particle type. Singel phase particles, and that all\n"
+         "for each particle type. Single phase particles, and that all\n"
          "all particles consist of the same (bulk) matter (e.g. water\n"
          "or ice) are assumed. With other words, a single mass category\n"
-         "is assumed (see *particle_masses* for a definiotion of \"mass\n"
+         "is assumed (see *particle_masses* for a definition of \"mass\n"
          "category\").\n"
          ),
         AUTHORS( "Jana Mendrok", "Patrick Eriksson" ),
@@ -7227,7 +7227,7 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "particle_massesSet" ),
+      ( NAME( "particle_massesFromMetaDataAndPart_species" ),
         DESCRIPTION
         (
          "Derives *particle_masses* from *scat_data_meta_array*.\n"

@@ -1,3 +1,16 @@
+2013-08-19  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-1-740
+
+	* src/m_cloudbox.cc:
+	Renamed particle_massesSet -> particle_massesFromMetaDataAndPart_species.
+	Corrected mixed up dimensions pointed out by Patrick.
+
+	* src/methods.cc: Renamed particle_massesSet. Minor fixes in
+	particle_massesFromMetaDataSingleCategory.
+
+	* src/workspace.cc: Minor fixes in particle_masses.
+
 2013-08-19  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-739

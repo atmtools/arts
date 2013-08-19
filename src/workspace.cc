@@ -2581,10 +2581,10 @@ void Workspace::define_wsv_data()
      (NAME( "particle_masses" ),
       DESCRIPTION
       (
-       "The mass of individual particles.\n"
+       "The mass of individual particles (or bulks).\n"
        "\n"
-       "Each row corresponds to a particle type (e.g. an element in\n"
-       "scat_data_raw*). The user is free to define different mass\n"
+       "Each row corresponds to a particle type (i.e. an element in\n"
+       "*scat_data_raw*). The user is free to define different mass\n"
        "categories and assign a mass for each category. Each column\n"
        "of *particle_masses* corresponds to such a mass category. A\n"
        "particle can have a non-zero mass for more than one category.\n"
@@ -2595,7 +2595,7 @@ void Workspace::define_wsv_data()
        "phase, could be divided between the two columns of the matrix.\n"
        "\n"
        "Shall either be empty, or have a row size consistent with the\n"
-       "scattering variables (e.g. *pnd_field*).\n"
+       "scattering variables (*scat_data_raw*, *pnd_field*).\n"
        "\n"
        "Usage: Set by the user.\n"
        "\n"
