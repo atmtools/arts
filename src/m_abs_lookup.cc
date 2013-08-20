@@ -2073,7 +2073,8 @@ void propmat_clearsky_fieldCalc( Workspace& ws,
                                 // WS Output:
                                 Tensor7& propmat_clearsky_field,
                                 // WS Input:
-                                const Index&   basics_checked,
+                                const Index&   abs_checked,
+                                const Index&   atmfields_checked,
                                 const Vector&  f_grid,
                                 const Index&   stokes_dim,
                                 const Vector&  p_grid,
@@ -2093,11 +2094,12 @@ void propmat_clearsky_fieldCalc( Workspace& ws,
     CREATE_OUT2;
     CREATE_OUT3;
 
-    if( !basics_checked )
-      throw runtime_error( "The atmosphere and basic control variables must "
-                           "be flagged to have passed a "
-                           "consistency check (basics_checked>0).\n"
-                           "Run basics_checkedCalcNoGeo!" );
+  if( abs_checked != 1 )
+    throw runtime_error( "The absorption part must be flagged to have "
+                         "passed a consistency check (abs_checked=1)." );
+  if( atmfields_checked != 1 )
+    throw runtime_error( "The atmospheric fields must be flagged to have "
+                         "passed a consistency check (atmfields_checked=1)." );
 
     Tensor4  abs;
     Vector  a_vmr_list;

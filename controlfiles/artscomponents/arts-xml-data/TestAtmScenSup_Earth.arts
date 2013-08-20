@@ -4,7 +4,7 @@
 #
 # General test setup: reading in raw data (including a basic atmosphere),
 #  expanding (where necessary), regridding (incl. extracting), executing
-#  standard pre-RT calc internal test method basics_checkedCalc.
+#  standard pre-RT calc internal test method atmfields_checkedCalc.
 #
 #
 # This case is for Earth and specifically tests
@@ -31,11 +31,6 @@ INCLUDE "general/general.arts"
 INCLUDE "general/agendas.arts"
 INCLUDE "general/planet_earth.arts"
 
-
-# some seeting in order to be able to use basics_checkedCalc
-#####
-IndexSet( stokes_dim, 1 )
-VectorSet( f_grid, [300e9] )
 
 Tensor3Create( edensity_field )
 GriddedField3Create( gf3tmp )
@@ -110,7 +105,8 @@ AgendaSet( forloop_agenda_time ){
   GriddedFieldLatLonRegrid( gf3tmp, lat_grid, lon_grid, gf3tmp, interp_order )
   FieldFromGriddedField( edensity_field, p_grid, lat_grid, lon_grid, gf3tmp )
 
-  basics_checkedCalc
+  atmfields_checkedCalc
+  atmgeom_checkedCalc
   #WriteXML( "ascii", p_grid )
   #WriteXML( "ascii", z_field )
   #WriteXML( "ascii", t_field )
@@ -164,7 +160,6 @@ AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw,
 p_gridFromZRaw(	p_grid, z_field_raw, 0 )
 AtmFieldsCalcExpand1D( vmr_zeropadding=1 )
 
-# surface also needed for basics_checkedCalc
 Extract( z_surface, z_field, 0 )
 
 # now doing the Ne cases (reading, 1D regridding, checking). we use several
@@ -214,7 +209,6 @@ VectorNLogSpace( p_grid, 201, ntmp1, ntmp2)
 #WriteXML( "ascii", p_grid )
 AtmFieldsCalcExpand1D( vmr_zeropadding=1 )
 
-# surface also needed for basics_checkedCalc
 Extract( z_surface, z_field, 0 )
 
 # now doing the Ne cases (reading, 1D regridding, checking). we use several
@@ -269,7 +263,8 @@ AgendaSet( forloop_agenda_Bres ){
   GriddedFieldLatLonRegrid( gf3tmp, lat_grid, lon_grid, gf3tmp, interp_order )
   FieldFromGriddedField( mag_w_field, p_grid, lat_grid, lon_grid, gf3tmp )
 
-  basics_checkedCalc
+  atmfields_checkedCalc
+  atmgeom_checkedCalc
   #WriteXML( "ascii", p_grid )
   #WriteXML( "ascii", z_field )
   #WriteXML( "ascii", t_field )
@@ -333,9 +328,10 @@ VectorNLogSpace( p_grid, 201, ntmp1, ntmp2)
 #WriteXML( "ascii", p_grid )
 AtmFieldsCalcExpand1D( vmr_zeropadding=1 )
 
-# surface also needed for basics_checkedCalc
 Extract( z_surface, z_field, 0 )
-basics_checkedCalc
+
+atmfields_checkedCalc
+atmgeom_checkedCalc
 
 # now doing the B cases (reading, 1D regridding, checking). we use several
 # forloops to loop over the different aspects of the data

@@ -267,7 +267,9 @@ jacobianOff
 
 
 propmat_clearsky_agenda_checkedCalc
-basics_checkedCalc
+abs_checkedCalc
+atmfields_checkedCalc
+atmgeom_checkedCalc
 cloudbox_checkedCalc
 sensor_checkedCalc
 

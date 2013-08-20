@@ -101,7 +101,7 @@ abs_cont_descriptionInit
 Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__OnTheFly )
 
 # We have to also set the absorption lookup table interpolation order, even though
-# we are not using the lookup table here. basics_checkedCalc will otherwise throw an error.
+# we are not using the lookup table here. atmfields_checkedCalc will otherwise throw an error.
 IndexSet( abs_f_interp_order, 1 )
 
 
@@ -126,8 +126,9 @@ jacobianOff
 
 abs_xsec_agenda_checkedCalc
 propmat_clearsky_agenda_checkedCalc
-
-basics_checkedCalc
+abs_checkedCalc
+atmfields_checkedCalc
+atmgeom_checkedCalc
 cloudbox_checkedCalc
 sensor_checkedCalc
 

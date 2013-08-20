@@ -3,7 +3,7 @@
 #  scenario data.
 #
 # General test setup: reading in raw data, regridding to common p-grid (1D),
-#  executing standard pre-RT calc internal test method basics_checkedCalc.
+#  executing standard pre-RT calc internal test method atmfields_checkedCalc.
 #
 #
 # This case is for Jupiter and specifically tests
@@ -29,11 +29,6 @@ INCLUDE "general/general.arts"
 INCLUDE "general/agendas.arts"
 INCLUDE "general/planet_jupiter.arts"
 
-
-# some seeting in order to be able to use basics_checkedCalc
-#####
-IndexSet( stokes_dim, 1 )
-VectorSet( f_grid, [300e9] )
 
 # 1-dimensional atmosphere
 AtmosphereSet1D
@@ -156,10 +151,10 @@ Append( vmr_field_raw, gf3tmp )
 p_gridFromZRaw(	p_grid, z_field_raw, 0 )
 AtmFieldsCalc( vmr_zeropadding=1 )
 
-# surface also needed for basics_checkedCalc
 Extract( z_surface, z_field, 0 )
 
-basics_checkedCalc
+atmfields_checkedCalc
+atmgeom_checkedCalc
 #WriteXML( "ascii", p_grid )
 #WriteXML( "ascii", z_field )
 #WriteXML( "ascii", t_field )
@@ -174,10 +169,10 @@ basics_checkedCalc
 VectorNLogSpace( p_grid, 401, 1020e3, 9.8e-10 )
 AtmFieldsCalc( vmr_zeropadding=1 )
 
-# surface also needed for basics_checkedCalc
 Extract( z_surface, z_field, 0 )
 
-basics_checkedCalc
+atmfields_checkedCalc
+atmgeom_checkedCalc
 #WriteXML( "ascii", p_grid )
 #WriteXML( "ascii", z_field )
 #WriteXML( "ascii", t_field )
@@ -218,10 +213,10 @@ ReadXML( z_field_raw, casefull )
 p_gridFromZRaw(	p_grid, z_field_raw, 0 )
 AtmFieldsCalc( vmr_zeropadding=1 )
 
-# surface also needed for basics_checkedCalc
 Extract( z_surface, z_field, 0 )
 
-basics_checkedCalc
+atmfields_checkedCalc
+atmgeom_checkedCalc
 #WriteXML( "ascii", p_grid )
 #WriteXML( "ascii", z_field )
 #WriteXML( "ascii", t_field )

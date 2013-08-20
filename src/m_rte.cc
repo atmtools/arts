@@ -120,7 +120,9 @@ void iyCalc(
          Matrix&           iy,
          ArrayOfTensor4&   iy_aux,
          Ppath&            ppath,
-   const Index&            basics_checked,
+   const Index&            abs_checked,
+   const Index&            atmfields_checked,
+   const Index&            atmgeom_checked,
    const ArrayOfString&    iy_aux_vars,
    const Vector&           f_grid,
    const Tensor3&          t_field,
@@ -134,15 +136,21 @@ void iyCalc(
    const Agenda&           iy_main_agenda,
    const Verbosity& )
 {
-  // Basics and cloudbox OK?
+  // Basics
   //
-  if( basics_checked<2 )
-    throw runtime_error("The atmosphere, surface and basic control variables "
-                        "must be flagged to have passed a consistency check\n"
-                        "by basics_checkedCalc (basics_checked=2)!" );
-  if( !cloudbox_checked )
-    throw runtime_error( "The cloudbox must be flagged to have passed a "
-                         "consistency check (cloudbox_checked=1)." );
+  if( abs_checked != 1 )
+    throw runtime_error( "The absorption part must be flagged to have "
+                         "passed a consistency check (abs_checked=1)." );
+  if( atmfields_checked != 1 )
+    throw runtime_error( "The atmospheric fields must be flagged to have "
+                         "passed a consistency check (atmfields_checked=1)." );
+  if( atmgeom_checked != 1 )
+    throw runtime_error( "The atmospheric geometry must be flagged to have "
+                         "passed a consistency check (atmgeom_checked=1)." );
+  if( cloudbox_checked != 1 )
+    throw runtime_error( "The cloudbox must be flagged to have "
+                         "passed a consistency check (cloudbox_checked=1)." );
+
 
   // iy_transmission is just input and can be left empty for first call
   Tensor3   iy_transmission(0,0,0);
@@ -1143,7 +1151,6 @@ void iyMC(
    const Matrix&                     z_surface,
    const Index&                      cloudbox_on,
    const ArrayOfIndex&               cloudbox_limits,
-   const Index&                      cloudbox_checked,
    const Index&                      stokes_dim,
    const Vector&                     f_grid,
    const ArrayOfSingleScatteringData&   scat_data_array,
@@ -1256,7 +1263,7 @@ void iyMC(
                    p_grid, lat_grid, lon_grid, z_field, 
                    refellipsoid, z_surface, t_field, vmr_field,
                    cloudbox_on, cloudbox_limits,
-                   pnd_field, scat_data_array_mono, 2, cloudbox_checked,
+                   pnd_field, scat_data_array_mono, 1, 1, 1, 1,
                    mc_seed, iy_unit, mc_std_err, mc_max_time, mc_max_iter,
                    mc_min_iter, verbosity);
           //cout << "Error: "      << mc_error << endl;
@@ -1347,7 +1354,7 @@ void iyReplaceFromAux(
 /* Workspace method: Doxygen documentation will be auto-generated */
 void iy_auxFillParticleVariables(
          ArrayOfTensor4&       iy_aux,
-   const Index&                basics_checked,
+   const Index&                atmfields_checked,
    const Index&                cloudbox_checked,
    const Index&                atmosphere_dim,
    const Index&                cloudbox_on,
@@ -1363,16 +1370,15 @@ void iy_auxFillParticleVariables(
   const Index naux = iy_aux_vars.nelem();
 
   // Input checks
-  if( basics_checked<2 )
-    throw runtime_error("The atmosphere, surface and basic control variables "
-                        "must be flagged to have passed a consistency check\n"
-                        "by basics_checkedCalc (basics_checked=2)!" );
+  if( atmfields_checked != 1 )
+    throw runtime_error( "The atmospheric fields must be flagged to have "
+                         "passed a consistency check (atmfields_checked=1)." );
+  if( cloudbox_checked != 1 )
+    throw runtime_error( "The cloudbox must be flagged to have "
+                         "passed a consistency check (cloudbox_checked=1)." );
   if( !cloudbox_on )
     throw runtime_error( 
                     "The cloudbox must be activated (cloudbox_on must be 1)" );
-  if( !cloudbox_checked )
-    throw runtime_error( "The cloudbox must be flagged to have passed a "
-                         "consistency check (cloudbox_checked=1)." );
   if( iy_aux.nelem() != naux )
     throw runtime_error( "*iy_aux_vars* and *iy_aux* must have the same array "
                          "length. (You can not call this WSM before the main "
@@ -1476,7 +1482,9 @@ void yCalc(
          Matrix&                     y_los,
          ArrayOfVector&              y_aux,
          Matrix&                     jacobian,
-   const Index&                      basics_checked,
+   const Index&                      abs_checked,
+   const Index&                      atmfields_checked,
+   const Index&                      atmgeom_checked,
    const Index&                      atmosphere_dim,
    const Tensor3&                    t_field,
    const Tensor3&                    z_field,
@@ -1505,6 +1513,25 @@ void yCalc(
    const ArrayOfString&              iy_aux_vars,
    const Verbosity&                  verbosity )
 {
+  // Basics
+  //
+  if( abs_checked != 1 )
+    throw runtime_error( "The absorption part must be flagged to have "
+                         "passed a consistency check (abs_checked=1)." );
+  if( atmfields_checked != 1 )
+    throw runtime_error( "The atmospheric fields must be flagged to have "
+                         "passed a consistency check (atmfields_checked=1)." );
+  if( atmgeom_checked != 1 )
+    throw runtime_error( "The atmospheric geometry must be flagged to have "
+                         "passed a consistency check (atmgeom_checked=1)." );
+  if( cloudbox_checked != 1 )
+    throw runtime_error( "The cloudbox must be flagged to have "
+                         "passed a consistency check (cloudbox_checked=1)." );
+  if( sensor_checked != 1 )
+    throw runtime_error( "The sensor variables must be flagged to have "
+                         "passed a consistency check (sensor_checked=1)." );
+
+
   // Some sizes
   const Index   nf      = f_grid.nelem();
   const Index   nza     = mblock_za_grid.nelem();
@@ -1515,23 +1542,6 @@ void yCalc(
   const Index   nmblock = sensor_pos.nrows();
   const Index   niyb    = nf * nza * naa * stokes_dim;
 
-
-  //---------------------------------------------------------------------------
-  // Input checks
-  //---------------------------------------------------------------------------
-
-  // Basics, cloudbox, and sensor OK?
-  //
-  if( basics_checked<2 )
-    throw runtime_error("The atmosphere, surface and basic control variables "
-                        "must be flagged to have passed a consistency check\n"
-                        "by basics_checkedCalc (basics_checked=2)!" );
-  if( !cloudbox_checked )
-    throw runtime_error( "The cloudbox must be flagged to have passed a "
-                         "consistency check (cloudbox_checked=1)." );
-  if( !sensor_checked )
-    throw runtime_error( "The sensor variables must be flagged to have passed"
-                         "a consistency check (sensor_checked=1)." );
 
   //---------------------------------------------------------------------------
   // Allocations and resizing

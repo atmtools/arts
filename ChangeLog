@@ -1,11 +1,129 @@
 2013-08-20  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-1-748
+
+	* Warning! New WSVs and WSMs introduced. You need to change your
+	2.1 cfiles. Basically all cfiles should be affected.
+
+	* Revision of the variables and method of check-type now
+	activated. More WSVs of checked-type, for better modularity and
+	making the variables easier to use in WSMs.
+
+	Note that the checked-variables only are used in methods normally
+	called directly in the control file, but not used in methods
+	normally placed in agendas, for efficiency reasons. So, yCalc,
+	ppathCalc etc. uses the variables, but I have removed old checks
+	in e.g. iyMC and CloudboxGetIncoming to be consistent with this
+	rule.
+
+	That is, if you make direct calls of methods like iyMC,
+	iyEmissionStandard and CloudboxGetIncoming its on your own risk.
+	If you use bad input for such calls, you can obtain an assert
+	instead of an error, or even worse, incorrect result. However, you can
+	of course call e.g. atmfields_checkedCalc anyhow before calling
+	e.g. iyMC. That will decrease the risk of bad surprises later on.
+
+	For a claculation with yCalc you now need these calls
+           propmat_clearsky_agenda_checkedCalc
+           abs_checkedCalc
+	   atmfields_checkedCalc
+           atmgeom_checkedCalc
+           cloudbox_checkedCalc
+           sensor_checkedCalc
+
+	* controlfiles/instruments/odinsmr/TestOdinSMR_1D.arts:
+	* controlfiles/instruments/odinsmr/TestOdinSMR.arts:
+	* controlfiles/instruments/mhs/TestMHS_generic.arts:
+	* controlfiles/instruments/hirs/TestHIRS.arts:
+	* controlfiles/instruments/avhrr/TestAVHRR.arts:
+	* controlfiles/instruments/amsu/TestAMSU_generic.arts:
+	* controlfiles/artscomponents/arts-xml-data/TestPlanetIsoRatios.arts:
+	* controlfiles/artscomponents/arts-xml-data/TestSurf_Venus.arts:
+	* controlfiles/artscomponents/arts-xml-data/TestSurf_Mars.arts:
+	* controlfiles/artscomponents/arts-xml-data/TestSurf_Earth.arts:
+	* controlfiles/artscomponents/arts-xml-data/TestAtmScen_Venus.arts:
+	* controlfiles/artscomponents/arts-xml-data/TestAtmScen_Mars.arts:
+	* controlfiles/artscomponents/arts-xml-data/TestAtmScen_Jupiter.arts:
+	* controlfiles/artscomponents/cia/TestRTwithCIA.arts:
+	* controlfiles/artscomponents/disort/TestDISORT.arts:
+	* controlfiles/artscomponents/groundbased/TestFgrid.arts:
+	* controlfiles/artscomponents/montecarlo/TestMonteCarloGeneralGaussian.arts:
+	* controlfiles/artscomponents/montecarlo/TestMonteCarloGeneral.arts:
+	* controlfiles/artscomponents/montecarlo/TestRteCalcMC.arts:
+	* controlfiles/artscomponents/ppath/TestRefractPlanets.arts:
+	* controlfiles/artscomponents/wfuns/TestWfuns.arts:
+	* controlfiles/artscomponents/zeeman/TestZeeman.arts:
+	* controlfiles/artscomponents/doitbatch/TestDOITBatch.arts:
+	* controlfiles/artscomponents/doit/TestDOIT.arts:
+	* controlfiles/artscomponents/faraday/TestFaradayRotation.arts:
+	* controlfiles/artscomponents/radiolink/TestRadioOccultation.arts:
+	* controlfiles/artscomponents/radiolink/TestRadioLink2.arts:
+	* controlfiles/artscomponents/radiolink/TestRadioLink.arts:
+	* controlfiles/artscomponents/transmission/TestTransmission.arts:
+	* controlfiles/artscomponents/clearsky/TestClearSky2.arts:
+	* controlfiles/artscomponents/clearsky/TestClearSky.arts:
+	* controlfiles/artscomponents/pencilbeam/TestPencilBeam.arts:
+	* controlfiles/artscomponents/arts-xml-data/TestAtmScenSup_Venus.arts:
+	* controlfiles/artscomponents/arts-xml-data/TestAtmScenSup_Earth.arts:
+	* controlfiles/artscomponents/arts-xml-data/TestAtmScenSup_Jupiter.arts:
+	* controlfiles/artscomponents/arts-xml-data/TestAtmScenSup_Mars.arts:
+	* controlfiles/artscomponents/absorption/TestIsoRatios.arts:
+	* controlfiles/artscomponents/absorption/TestCompareArtscat3And4.arts:
+	* controlfiles/artscomponents/absorption/TestAbsDoppler.arts:
+	* controlfiles/artscomponents/groundbased/TestWinds.arts:
+	* controlfiles/artscomponents/groundbased/TestGbased.arts:
+	* controlfiles/artscomponents/ppath/TestPpath3D.arts:
+	* controlfiles/artscomponents/ppath/TestPpath2D.arts:
+	* controlfiles/artscomponents/ppath/TestPpath1D.arts:
+	* controlfiles/artscomponents/helpers/TestHSE.arts: Adopted to
+	changes below.
+
+	* src/m_doit2.cc (CloudboxGetIncoming2, iyInterpCloudboxField2):
+	Removed these from methods.cc. Unfinished work. Do not even
+	remember that I had started this!
+
+	* src/m_rte.cc (iyMC):
+	* src/m_doit.cc (CloudboxGetIncoming1DAtm):
+	* src/m_doit.cc (CloudboxGetIncoming):
+	* src/m_ppath.cc (ppathFromRtePos2): Now not using any of the
+	check variables, see comment at top.
+
+	* src/m_abs_lookup.cc (propmat_clearsky_fieldCalc): Now using
+	abs_checked and atmfields_checked, instead of basics_checked.
+
+	* src/m_rte.cc (iy_auxFillParticleVariables):
+	* src/m_atmosphere.cc (z_fieldFromHSE): Now using atmfields_checked,
+	instead of basics_checked.
+
+	* src/m_ppath.cc (ppathCalc): Now using atmgeom_checked, instead
+	of basics_checked.
+
+	* src/m_montecarlo.cc (MCGeneral):
+	* src/m_rte.cc (iyCalc):
+	* src/m_cloudradar.cc (yCloudRadar):
+	* src/m_rte.cc (yCalc): Now using abs_checked, atmgeom_checked,
+	atmfields_checked, instead of basics_checked.
+
+	* src/m_checked.cc (basics_checkedCalc, basics_checkedCalcNoGeo):
+	Removed these WSMs and related internal functions. Code already
+	reused in atmfields_checkedCalc, atmgeom_checkedCalc.
+
+	(propmat_clearsky_agenda_checkedCalc): Commented out
+	needs_free_electrons, variable not used.
+
+	* src/workspace.cc: Removed basics_checked, and added:
+	   abs_checked
+	   atmfields_checked
+	   atmgeom_checked
+
+2013-08-20  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-1-747
 
 	* src/methods.cc (particle_massesFromMetaDataSingleCategory):
 	Extended doc text, for hopefully better clarity.
 
-	* src/geodetic.cc (cart2poslos): Removed assrt of 
+	* src/geodetic.cc (cart2poslos): Removed assert of
 	abs( abs(za) - RAD2DEG*acos(dr) ) < 1e-4
 
 	Added this assert as a double check that correct angle was

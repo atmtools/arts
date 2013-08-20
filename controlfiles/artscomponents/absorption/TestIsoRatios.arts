@@ -100,9 +100,11 @@ Extract( z_surface, z_field, 0 )
 
 abs_xsec_agenda_checkedCalc
 propmat_clearsky_agenda_checkedCalc
+abs_checkedCalc
 
 # check basic atm&surface setup of
-basics_checkedCalc
+atmfields_checkedCalc
+atmgeom_checkedCalc
 cloudbox_checkedCalc
 sensor_checkedCalc
 
@@ -141,7 +143,8 @@ Copy( vmr_field_raw, vmrall_raw )
 AtmFieldsCalc
 
 # check basic atm&surface setup of
-basics_checkedCalc
+atmfields_checkedCalc
+atmgeom_checkedCalc
 cloudbox_checkedCalc
 sensor_checkedCalc
 
@@ -179,7 +182,8 @@ Copy( vmr_field_raw, vmrall_raw2 )
 AtmFieldsCalc
 
 # check basic atm&surface setup of
-basics_checkedCalc
+atmfields_checkedCalc
+atmgeom_checkedCalc
 cloudbox_checkedCalc
 sensor_checkedCalc
 

@@ -86,7 +86,8 @@ jacobianOff
 
 # Check model atmosphere
 # 
-basics_checkedCalc
+atmfields_checkedCalc
+atmgeom_checkedCalc
 cloudbox_checkedCalc
 
 
@@ -126,6 +127,8 @@ ArrayOfStringSet( iy_aux_vars,
 
 abs_xsec_agenda_checkedCalc
 propmat_clearsky_agenda_checkedCalc
+abs_checkedCalc
+
 
 # Calculate
 #

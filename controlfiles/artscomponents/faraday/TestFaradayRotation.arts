@@ -100,7 +100,8 @@ VectorSet( lon_true, [0] )
 NumericSet( p_hse, 1013e2 )
 NumericSet( z_hse_accuracy, 10 )
 #
-basics_checkedCalc
+atmfields_checkedCalc
+atmgeom_checkedCalc
 z_fieldFromHSE
 
 
@@ -149,7 +150,8 @@ jacobianOff
 
 # Check model atmosphere
 # 
-basics_checkedCalc
+atmfields_checkedCalc
+atmgeom_checkedCalc
 cloudbox_checkedCalc
 
 
@@ -192,6 +194,7 @@ ArrayOfStringSet( iy_aux_vars, [
 #
 abs_xsec_agenda_checkedCalc
 propmat_clearsky_agenda_checkedCalc
+abs_checkedCalc
 yCalc
 
 

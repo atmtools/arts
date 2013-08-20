@@ -111,6 +111,27 @@ void Workspace::define_wsv_data()
   ----------------------------------------------------------------------*/
 
   wsv_data.push_back
+   (WsvRecord
+    ( NAME( "abs_checked" ),
+      DESCRIPTION
+      (
+       "Overall OK-flag for the absorption part.\n"
+       "\n"
+       "This variable is considered by the high level methods and works\n"
+       "as OK stamp that the absorption part is set up in a formally\n"
+       "correct manner. In this context, *stokes_dim* and *f_grid*\n"
+       "are considered as \"absorption variables\".\n"
+       "\n"
+       "The check of the absorption part is broken down into parts, and\n"
+       "more low level flags exist, such as *abs_xsec_agenda_checked*. If\n"
+       "this varaible is set as OK, this imples that the relavant low level\n"
+       "flags also are OK.\n"
+       "\n"
+       "Shall be set by *abs_checkedCalc*. Only the value 1 is taken as OK.\n"
+       ),
+      GROUP( "Index" )));
+
+  wsv_data.push_back
     (WsvRecord
      ( NAME( "abs_cia_data" ),
       DESCRIPTION
@@ -825,6 +846,47 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
+    ( NAME( "atmfields_checked" ),
+      DESCRIPTION
+      (
+       "OK-flag for atmospheric grids and (physical) fields.\n"
+       "\n"
+       "The variable flags that clear-sky part of the atmosphere is\n"
+       "defined in formally correct way. Example on problems captured\n"
+       "include that the size of an atmospheric fields does not match the\n"
+       "length of the atmospheric grids, and physically incorrect data such\n"
+       "as negative temperatures.\n"
+       "\n"
+       "Note that *z_field* is not covered by this variable, it is instead\n"
+       "treated to be part of the geomtrical considerations where the ok-flag\n"
+       "is denoted as *atmgeom_checked*. The cloudbox is covered by\n"
+       "*cloudbox_checked*.\n"
+       "\n"
+       "Shall be set by *atmfield_checkedCalc*. See that WSMs for treated\n"
+       "WSVs. Only the value 1 is taken as OK.\n"
+       ),
+      GROUP( "Index" )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "atmgeom_checked" ),
+      DESCRIPTION
+      (
+       "OK-flag for the geometry of the model atmosphere.\n"
+       "\n"
+       "The variable flags that referense ellipsoid, the surface and *z_field\n"
+       "contain formally correct values. For example, that *z_field* has\n"
+       "strictly increasing values for at each geographical position.\n"
+       "\n"
+       "See also *atmfields_checked*.\n"
+       "\n"
+       "Shall be set by *atmgoem_checkedCalc*. Only the value 1 is taken\n"
+       "as OK.\n"
+       ),
+      GROUP( "Index" )));
+
+  wsv_data.push_back
+   (WsvRecord
     ( NAME( "atm_fields_compact" ),
       DESCRIPTION
       (
@@ -929,22 +991,6 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
-    ( NAME( "basics_checked" ),
-      DESCRIPTION
-      (
-       "OK-flag for basic variables and grids.\n"
-       "\n"
-       "For example, this variable flags that the (clear-sky) atmosphere\n"
-       "and the surface are defined in a formally correct way, e.g. that\n"
-       "the sizes of atmospheric fields match the atmospheric grids.\n"
-       "\n"
-       "Shall be set by *basics_checkedCalc* or *basics_checkedCalcNoGeo*.\n"
-       "See WSMs for treated WSVs.\n"
-       ),
-      GROUP( "Index" )));
-
-  wsv_data.push_back
-   (WsvRecord
     ( NAME( "batch_atm_fields_compact" ),
       DESCRIPTION
       (
@@ -1038,7 +1084,8 @@ void Workspace::define_wsv_data()
        "space between the cloudbox and edges of the model atmosphere (for\n"
        "2D and 3D). Pure clear-sky variables are covered by *basics_checked*.\n"
        "\n"
-       "Relevant checks are performed by *cloudbox_checkedCalc.\n"
+       "Relevant checks are performed by *cloudbox_checkedCalc. Only the\n"
+       "value 1 is taken as OK.\n"
        ),
       GROUP( "Index" )));
 
@@ -3670,6 +3717,7 @@ void Workspace::define_wsv_data()
        "dimensions of *sensor_pos* and *sensor_los*.\n"
        "\n"
        "Shall be set by *sensor_checkedCalc*. See that WSM for treated WSVs.\n"
+       "Only the value 1 is taken as OK.\n"
        ),
       GROUP( "Index" )));
 

@@ -71,7 +71,7 @@ void ppathCalc(
           Ppath&          ppath,
     const Agenda&         ppath_agenda,
     const Numeric&        ppath_lraytrace,
-    const Index&          basics_checked,
+    const Index&          atmgeom_checked,
     const Tensor3&        t_field,
     const Tensor3&        z_field,
     const Tensor4&        vmr_field,
@@ -84,14 +84,14 @@ void ppathCalc(
     const Vector&         rte_pos2,
     const Verbosity&  )
 {
-  //--- Check input -----------------------------------------------------------
-  if( basics_checked<2 )
-    throw runtime_error("The atmosphere, surface and basic control variables "
-                        "must be flagged to have passed a consistency check\n"
-                        "by basics_checkedCalc (basics_checked=2)!" );
-  if( !cloudbox_checked )
-    throw runtime_error( "The cloudbox must be flagged to have passed a "
-                         "consistency check (cloudbox_checked=1)." );
+  // Basics
+  //
+  if( atmgeom_checked != 1 )
+    throw runtime_error( "The atmospheric geometry must be flagged to have "
+                         "passed a consistency check (atmgeom_checked=1)." );
+  if( cloudbox_checked != 1 )
+    throw runtime_error( "The cloudbox must be flagged to have "
+                         "passed a consistency check (cloudbox_checked=1)." );
 
   ppath_agendaExecute( ws, ppath, ppath_lraytrace, rte_pos, rte_los, rte_pos2,
                        cloudbox_on, ppath_inside_cloudbox_do, t_field, z_field,
@@ -107,7 +107,6 @@ void ppathFromRtePos2(
           Vector&         rte_los,
           Numeric&        ppath_lraytrace,
     const Agenda&         ppath_step_agenda,
-    const Index&          basics_checked,
     const Index&          atmosphere_dim,
     const Vector&         p_grid,
     const Vector&         lat_grid,
@@ -126,12 +125,6 @@ void ppathFromRtePos2(
     const Verbosity&      verbosity )
 {
   //--- Check input -----------------------------------------------------------
-  if( basics_checked<2 )
-    throw runtime_error("The atmosphere, surface and basic control variables "
-                        "must be flagged to have passed a consistency check\n"
-                        "by basics_checkedCalc (basics_checked=2)!" );
-  chk_rte_pos( atmosphere_dim, rte_pos );
-  chk_rte_pos( atmosphere_dim, rte_pos2, true );
   if( atmosphere_dim == 2 )
     throw runtime_error( "2D atmospheres not yet handled. Support for negative"
                    " zenith angles needed. Remind me (Patrick) to fix this." );
@@ -376,7 +369,7 @@ void ppathFromRtePos2(
         {
           out2 << "  Re-start with ppath_lraytrace = " << ppath_lraytrace;
           ppathFromRtePos2( ws, ppath, rte_los, ppath_lraytrace, 
-                            ppath_step_agenda, basics_checked, atmosphere_dim,
+                            ppath_step_agenda, atmosphere_dim,
                             p_grid, lat_grid, lon_grid, t_field, z_field, 
                             vmr_field, f_grid, refellipsoid, 
                             z_surface, rte_pos, rte_pos2, za_accuracy,

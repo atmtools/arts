@@ -71,7 +71,8 @@ Extract( z_surface, z_field, 0 )
 #
 cloudboxOff
 
-basics_checkedCalc
+atmfields_checkedCalc
+atmgeom_checkedCalc
 cloudbox_checkedCalc
 
 
@@ -113,7 +114,7 @@ Matrix1ColFromVector( sensor_los, za )
 sensor_checkedCalc
 
 propmat_clearsky_agenda_checkedCalc
-
+abs_checkedCalc
 
 
 

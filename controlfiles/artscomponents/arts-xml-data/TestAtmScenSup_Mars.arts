@@ -4,7 +4,7 @@
 #
 # General test setup: reading in raw data (including a basic atmosphere),
 #  expanding (where necessary), regridding (incl. extracting), executing
-#  standard pre-RT calc internal test method basics_checkedCalc.
+#  standard pre-RT calc internal test method atmfields_checkedCalc.
 #
 #
 # This case is for Mars and specifically tests
@@ -25,16 +25,11 @@ INCLUDE "general/agendas.arts"
 INCLUDE "general/planet_mars.arts"
 
 
-# some seeting in order to be able to use basics_checkedCalc
-#####
-IndexSet( stokes_dim, 1 )
-VectorSet( f_grid, [300e9] )
-
 # 1-dimensional atmosphere
 AtmosphereSet1D
 
 # We have to set the absorption lookup table interpolation order, 
-# since we are using wind fields. basics_checkedCalc will otherwise throw an error.
+# since we are using wind fields. atmfields_checkedCalc will otherwise throw an error.
 IndexSet( abs_f_interp_order, 1 )
 
 Tensor3Create( edensity_field )
@@ -102,7 +97,8 @@ AgendaSet( forloop_agenda_Ne ){
   # eventually: extract the data Tensor from the regridded GriddedField
   FieldFromGriddedField( edensity_field, p_grid, lat_grid, lon_grid, gf3tmp )
 
-  basics_checkedCalc
+  atmfields_checkedCalc
+  atmgeom_checkedCalc
   #WriteXML( "ascii", p_grid )
   #WriteXML( "ascii", z_field )
   #WriteXML( "ascii", t_field )
@@ -127,7 +123,6 @@ AgendaSet( forloop_agenda_solar ){
   p_gridFromZRaw(	p_grid, z_field_raw, 0 )
   AtmFieldsCalc
 
-  # surface also needed for basics_checkedCalc
   Extract( z_surface, z_field, 0 )
 
   # now get the Ne data. with several cases per scenario, we use another forloop
@@ -156,7 +151,8 @@ AgendaSet( forloop_agenda_solar ){
   GriddedFieldPRegrid( gf3tmp, p_grid, gf3tmp, interp_order, 1 )
   GriddedFieldLatLonRegrid( gf3tmp, lat_grid, lon_grid, gf3tmp, interp_order )
   FieldFromGriddedField( edensity_field, p_grid, lat_grid, lon_grid, gf3tmp )
-  basics_checkedCalc
+  atmfields_checkedCalc
+  atmgeom_checkedCalc
 
   # and eventually the winds - here we the two horizontal components (u&v), and
   # the u-component (zonal) in 3 different cases.
@@ -203,7 +199,8 @@ AgendaSet( forloop_agenda_solar ){
   # last, extract the data Tensor from the regridded GriddedField
   FieldFromGriddedField( wind_v_field, p_grid, lat_grid, lon_grid, gf3tmp )
 
-  basics_checkedCalc
+  atmfields_checkedCalc
+  atmgeom_checkedCalc
 }
 
 AgendaCreate( forloop_agenda_dust )

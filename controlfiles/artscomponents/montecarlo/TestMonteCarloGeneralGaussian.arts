@@ -96,7 +96,8 @@ mc_antennaSetGaussianByFWHM( mc_antenna, 0.1137, 0.239 )
 
 #### Check atmosphere ##################################################
 
-basics_checkedCalc
+atmfields_checkedCalc
+atmgeom_checkedCalc
 cloudbox_checkedCalc( scat_data_array=scat_data_array_mono )
 
 
@@ -108,6 +109,7 @@ IndexSet( mc_max_iter, -1 )
 
 abs_xsec_agenda_checkedCalc
 propmat_clearsky_agenda_checkedCalc
+abs_checkedCalc
 MCGeneral
 
 #### Save calculated Stokes vector and std. err.#########################

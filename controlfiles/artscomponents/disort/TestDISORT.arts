@@ -70,7 +70,8 @@ MatrixSetConstant( z_surface, 1, 1, 500 )
 
 MatrixSetConstant( surface_emissivity_DISORT, 1, 1, 1 )
 
-basics_checkedCalc
+atmfields_checkedCalc
+atmgeom_checkedCalc
 
 
 
@@ -156,6 +157,7 @@ AgendaSet(iy_cloudbox_agenda){
 #==================start==========================
 
 propmat_clearsky_agenda_checkedCalc
+abs_checkedCalc
 
 # Perform scattering calculation 
 ScatteringDisort

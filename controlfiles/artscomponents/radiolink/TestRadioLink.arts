@@ -76,7 +76,8 @@ jacobianOff
 
 # Check model atmosphere
 # 
-basics_checkedCalc
+atmfields_checkedCalc
+atmgeom_checkedCalc
 cloudbox_checkedCalc
 
 
@@ -146,6 +147,8 @@ NumericSet( impact_parREFERENCE, 6.389047041e+06 )
 
 abs_xsec_agenda_checkedCalc
 propmat_clearsky_agenda_checkedCalc
+abs_checkedCalc
+
 
 # Calculate and check iy
 #

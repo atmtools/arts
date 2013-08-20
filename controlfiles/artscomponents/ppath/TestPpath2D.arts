@@ -70,7 +70,8 @@ VectorSet( f_grid, [10e9] )
 
 # Check if atmosphere OK
 #
-basics_checkedCalc
+atmfields_checkedCalc
+atmgeom_checkedCalc
 cloudbox_checkedCalc
 
 

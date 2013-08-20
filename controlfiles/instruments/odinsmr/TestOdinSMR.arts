@@ -76,7 +76,8 @@ cloudboxOff
 # No jacobian calculations
 jacobianOff
 
-basics_checkedCalc
+atmfields_checkedCalc
+atmgeom_checkedCalc
 cloudbox_checkedCalc
 
 
@@ -123,6 +124,8 @@ sensor_checkedCalc
 Copy( iy_main_agenda, iy_main_agenda__Emission )
 
 propmat_clearsky_agenda_checkedCalc
+abs_checkedCalc
+
 yCalc
 
 VectorCreate( yREFERENCE )

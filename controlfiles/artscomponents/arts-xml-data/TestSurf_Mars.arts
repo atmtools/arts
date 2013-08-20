@@ -4,7 +4,7 @@
 #
 # General test setup: reading in raw data (including a basic atmosphere),
 #  extracting/regridding, executing standard pre-RT calc internal test method
-#  basics_checkedCalc, and performing some RT simulations in order to apply data
+#  atmfields_checkedCalc, and performing some RT simulations in order to apply data
 #  that has no dedicated check method (e.g., when only used through agendas like
 #  surface reflectivity).
 #
@@ -13,14 +13,14 @@
 #
 #  - surface altitude:
 #      - reading in raw 3D data, preprocess into z_surface variable within a 3D
-#         global case (!but no basics_checkedCalc - as, on a global
+#         global case (!but no atmfields_checkedCalc - as, on a global
 #         scale this fails since altitude reference of altitude data and
 #         atmospheric data is inconsistent. with plenty of negative altitudes in
 #         surface altitude data and atm data starting only at 5m ARTS rejects
 #         the data due to gap between atmo and surface!) (CASE A-1)
 #      - reading in raw 3D data, preprocess into z_surface variable within a 3D
 #         regional case containing only surface altitudes, and perform
-#         basics_checkedCalc (CASE A-2, B)
+#         atmfields_checkedCalc (CASE A-2, B)
 #  - surface refractive index data (CASE B, C):
 #      - reading 3D raw data
 #      - in surface_rt_prop_agenda deriving saurface emission/reflection field
@@ -90,16 +90,12 @@ ArrayOfStringSet( dustcasearray, [".dust-high", ".dust-low", ".dust-medium"] )
 # a vector for holding reference RT results
 VectorCreate(yREFERENCE)
 
-# some settings in order to be able to use basics_checkedCalc
-#####
-IndexSet( stokes_dim, 1 )
-VectorSet( f_grid, [300e9] )
-
-
 # and some further settings in order to be able to do an RT calc
 #####
 cloudboxOff
 jacobianOff
+IndexSet( stokes_dim, 1 )
+VectorSet( f_grid, [300e9] )
 sensorOff
 
 StringSet( iy_unit, "PlanckBT" )
@@ -204,8 +200,9 @@ FieldFromGriddedField( z_surface, p_grid, lat_grid, lon_grid, gf2tmp )
 
 abs_xsec_agenda_checkedCalc
 propmat_clearsky_agenda_checkedCalc
-
-basics_checkedCalc
+abs_checkedCalc
+atmfields_checkedCalc
+atmgeom_checkedCalc
 
 # now we need to do some RT calc in order to APPLY the reflectivity data
 cloudbox_checkedCalc
@@ -315,7 +312,8 @@ AgendaSet( forloop_agenda_dust ){
   Extract( z_surface, z_field, 0 )
   FieldFromGriddedField( t_surface, p_grid, lat_grid, lon_grid, gf2tmp )
 
-  basics_checkedCalc
+  atmfields_checkedCalc
+  atmgeom_checkedCalc
   cloudbox_checkedCalc
   sensor_checkedCalc
 

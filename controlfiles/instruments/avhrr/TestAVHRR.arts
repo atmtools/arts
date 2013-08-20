@@ -142,7 +142,8 @@ AgendaSet( ybatch_calc_agenda ){
 
   # Perform RT calculations
   # ---
-  basics_checkedCalc
+  atmfields_checkedCalc
+  atmgeom_checkedCalc
   cloudbox_checkedCalc
   sensor_checkedCalc
   yCalc

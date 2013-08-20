@@ -142,7 +142,9 @@ MatrixSetConstant( sensor_los, 1, 1, za )
 # ---- Finalise atmosphere ---------------------------------------------------
 
 cloudboxOff
-basics_checkedCalc
+
+atmfields_checkedCalc
+atmgeom_checkedCalc
 cloudbox_checkedCalc
 
 # Important to run HSE before yCalc if temperature jacobians with HSE 
@@ -207,10 +209,12 @@ VectorAddScalar( f_backend, f_backend, v0 )
 AntennaOff
 sensor_responseInit
 sensor_responseBackend
-sensor_checkedCalc
-propmat_clearsky_agenda_checkedCalc
 #
 jacobianOff
+#
+propmat_clearsky_agenda_checkedCalc
+abs_checkedCalc
+sensor_checkedCalc
 #
 yCalc
 #

@@ -138,7 +138,9 @@ MatrixSet( sensor_los, [ 95; 113; 135] )
 # ---
 abs_xsec_agenda_checkedCalc
 propmat_clearsky_agenda_checkedCalc
-basics_checkedCalc
+abs_checkedCalc
+atmfields_checkedCalc
+atmgeom_checkedCalc
 cloudbox_checkedCalc
 sensor_checkedCalc
 yCalc
@@ -177,7 +179,8 @@ Append( sensor_pos, zeros, "trailing" )
 
 # Perform RT calculations
 # ---
-basics_checkedCalc
+atmfields_checkedCalc
+atmgeom_checkedCalc
 cloudbox_checkedCalc
 sensor_checkedCalc
 yCalc
@@ -215,7 +218,8 @@ Append( sensor_los, zeros, "trailing" )
 
 # Perform RT calculations
 # ---
-basics_checkedCalc
+atmfields_checkedCalc
+atmgeom_checkedCalc
 cloudbox_checkedCalc
 sensor_checkedCalc
 yCalc

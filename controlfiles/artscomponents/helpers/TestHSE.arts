@@ -77,7 +77,7 @@ VectorSet( lon_true, [0] )
 NumericSet( p_hse, 1013e2 )
 NumericSet( z_hse_accuracy, 10 )
 #
-basics_checkedCalc
+atmfields_checkedCalc
 z_fieldFromHSE
 
 
@@ -91,7 +91,7 @@ jacobianOff
 
 # Check model atmosphere
 # 
-basics_checkedCalc
+atmfields_checkedCalc
 cloudbox_checkedCalc
 
 
@@ -124,7 +124,8 @@ Compare( z_field, zREFERENCE, 1e-4 )
 #AtmFieldsCalc( t_field, z_field, vmr_field, p_grid, 
 #               lat_grid, lon_grid, t_field_raw, z_field_raw, 
 #               vmr_field_raw, atmosphere_dim )
-#basics_checkedCalc
+#atmfields_checkedCalc
+#atmgeom_checkedCalc
 #z_fieldFromHSE
 #WriteXML( "ascii", z_field, "z_fieldFromHSE_noH2O.xml" )
 }

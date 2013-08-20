@@ -2260,13 +2260,17 @@ void z_fieldFromHSE(
    const Tensor4&     vmr_field,
    const Vector&      refellipsoid,
    const Matrix&      z_surface,
-   const Index&       basics_checked,
+   const Index&       atmfields_checked,
    const Agenda&      g0_agenda,
    const Numeric&     molarmass_dry_air,
    const Numeric&     p_hse,
    const Numeric&     z_hse_accuracy,
    const Verbosity&   verbosity)
 {
+  if( atmfields_checked != 1 )
+    throw runtime_error( "The atmospheric fields must be flagged to have "
+                         "passed a consistency check (atmfields_checked=1)." );
+
   // Some general variables
   const Index np   = p_grid.nelem();
   const Index nlat = t_field.nrows();
@@ -2275,14 +2279,6 @@ void z_fieldFromHSE(
   const Index firstH2O = find_first_species_tg( abs_species,
                                       species_index_from_species_name("H2O") );
 
-  // Input checks
-  //
-  if( basics_checked<2 )
-    throw runtime_error("The atmosphere, surface and basic control variables "
-                        "must be flagged to have passed a consistency check\n"
-                        "by basics_checkedCalc (basics_checked=2)!" );
-
-  //
   if( firstH2O < 0 )
     {
       ostringstream os;

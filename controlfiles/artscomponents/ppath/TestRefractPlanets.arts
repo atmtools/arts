@@ -136,7 +136,8 @@ AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species,
 AtmFieldsCalc
 Extract( z_surface, z_field, 0 )
 
-basics_checkedCalc
+atmfields_checkedCalc
+atmgeom_checkedCalc
 cloudbox_checkedCalc
 
 ForLoop( forloop_agenda, 0, ilast, 1  )
@@ -162,7 +163,8 @@ AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species,
 AtmFieldsCalc
 Extract( z_surface, z_field, 0 )
 
-basics_checkedCalc
+atmfields_checkedCalc
+atmgeom_checkedCalc
 cloudbox_checkedCalc
 
 ForLoop( forloop_agenda, 0, ilast, 1  )
@@ -188,7 +190,8 @@ AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species,
 AtmFieldsCalc( vmr_zeropadding=1 )
 Extract( z_surface, z_field, 0 )
 
-basics_checkedCalc
+atmfields_checkedCalc
+atmgeom_checkedCalc
 cloudbox_checkedCalc
 
 ForLoop( forloop_agenda, 0, ilast, 1  )
@@ -214,7 +217,8 @@ AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species,
 AtmFieldsCalc( vmr_zeropadding=1 )
 Extract( z_surface, z_field, 0 )
 
-basics_checkedCalc
+atmfields_checkedCalc
+atmgeom_checkedCalc
 cloudbox_checkedCalc
 
 ForLoop( forloop_agenda, 0, ilast, 1  )

@@ -188,7 +188,8 @@ AgendaSet( ybatch_calc_agenda ){
 
   # Perform RT calculations
   # ---
-  basics_checkedCalc
+  atmfields_checkedCalc
+  atmgeom_checkedCalc
   cloudbox_checkedCalc
   sensor_checkedCalc
   yCalc
@@ -203,6 +204,7 @@ nelemGet( ybatch_n, batch_atm_fields_compact )
 # Execute the batch calculations:
 # ---
 propmat_clearsky_agenda_checkedCalc
+abs_checkedCalc
 ybatchCalc
 
 }

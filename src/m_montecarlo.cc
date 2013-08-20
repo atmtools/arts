@@ -129,7 +129,9 @@ void MCGeneral(Workspace&            ws,
                const ArrayOfIndex&   cloudbox_limits, 
                const Tensor4&        pnd_field,
                const ArrayOfSingleScatteringData& scat_data_array_mono,
-               const Index&          basics_checked,
+               const Index&          abs_checked,
+               const Index&          atmfields_checked,
+               const Index&          atmgeom_checked,
                const Index&          cloudbox_checked,
                const Index&          mc_seed,
                const String&         y_unit,
@@ -139,18 +141,22 @@ void MCGeneral(Workspace&            ws,
                const Index&          min_iter,
                const Verbosity&      verbosity)
 {
-  // Basic checks
+  // Basics
+  //
+  if( abs_checked != 1 )
+    throw runtime_error( "The absorption part must be flagged to have "
+                         "passed a consistency check (abs_checked=1)." );
+  if( atmfields_checked != 1 )
+    throw runtime_error( "The atmospheric fields must be flagged to have "
+                         "passed a consistency check (atmfields_checked=1)." );
+  if( atmgeom_checked != 1 )
+    throw runtime_error( "The atmospheric geometry must be flagged to have "
+                         "passed a consistency check (atmgeom_checked=1)." );
+  if( cloudbox_checked != 1 )
+    throw runtime_error( "The cloudbox must be flagged to have "
+                         "passed a consistency check (cloudbox_checked=1)." );
   if( !cloudbox_on )
-    throw runtime_error( 
-                    "The cloudbox must be activated (cloudbox_on must be 1)" );
-  cout << "in MCGeneral. basics_checked is " << basics_checked << "\n";
-  if( basics_checked<2 )
-    throw runtime_error("The atmosphere, surface and basic control variables "
-                        "must be flagged to have passed a consistency check\n"
-                        "by basics_checkedCalc (basics_checked=2)!" );
-  if( !cloudbox_checked )
-    throw runtime_error( "The cloudbox must be flagged to have passed a "
-                         "consistency check (cloudbox_checked=1)." );
+    throw runtime_error( "The cloudbox  must be activated (cloudbox_on=1)." );
 
   if( min_iter < 100 )
     throw runtime_error( "*mc_min_iter* must be >= 100." );
@@ -166,7 +172,7 @@ void MCGeneral(Workspace&            ws,
     throw runtime_error( "*f_index* is outside the range of *f_grid*." );
 
   if( atmosphere_dim != 3 )
-    throw runtime_error( "Only #D atmospheres are handled. " );
+    throw runtime_error( "Only 3D atmospheres are handled. " );
 
   if( sensor_pos.ncols() != 3 )
     {

@@ -4,7 +4,7 @@
 #
 # General test setup: reading in raw data (including a basic atmosphere),
 #  expanding (where necessary), regridding (incl. extracting), executing
-#  standard pre-RT calc internal test method basics_checkedCalc.
+#  standard pre-RT calc internal test method atmfields_checkedCalc.
 #
 #
 # This case is for Jupiter and specifically tests
@@ -30,16 +30,11 @@ INCLUDE "general/agendas.arts"
 INCLUDE "general/planet_jupiter.arts"
 
 
-# some seeting in order to be able to use basics_checkedCalc
-#####
-IndexSet( stokes_dim, 1 )
-VectorSet( f_grid, [300e9] )
-
 # 1-dimensional atmosphere
 AtmosphereSet1D
 
 # We have to set the absorption lookup table interpolation order, 
-# since we are using wind fields. basics_checkedCalc will otherwise throw an error.
+# since we are using wind fields. atmfields_checkedCalc will otherwise throw an error.
 IndexSet( abs_f_interp_order, 1 )
 
 Tensor3Create( edensity_field )
@@ -93,7 +88,8 @@ AgendaSet( forloop_agenda_Ne ){
   # eventually, extract the data Tensor from the regridded GriddedField
   FieldFromGriddedField( edensity_field, p_grid, lat_grid, lon_grid, gf3tmp )
 
-  basics_checkedCalc
+  atmfields_checkedCalc
+  atmgeom_checkedCalc
   #WriteXML( "ascii", p_grid )
   #WriteXML( "ascii", z_field )
   #WriteXML( "ascii", t_field )
@@ -123,7 +119,6 @@ AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw,
 p_gridFromZRaw(	p_grid, z_field_raw, 0 )
 AtmFieldsCalc( vmr_zeropadding=1 )
 
-# surface also needed for basics_checkedCalc
 Extract( z_surface, z_field, 0 )
 
 # now looping over the Ne cases (reading, 1D regridding, checking)
@@ -139,7 +134,6 @@ ForLoop( forloop_agenda, 0, ncases, 1 )
 VectorNLogSpace( p_grid, 401, 920e3, 1e-3 )
 AtmFieldsCalc( vmr_zeropadding=1 )
 
-# surface also needed for basics_checkedCalc
 Extract( z_surface, z_field, 0 )
 
 # repeating forloop with different p_grid
@@ -176,7 +170,6 @@ Extract( basename, basecasearray, 1 )
 p_gridFromZRaw(	p_grid, z_field_raw, 0 )
 AtmFieldsCalc( vmr_zeropadding=1 )
 
-# surface also needed for basics_checkedCalc
 Extract( z_surface, z_field, 0 )
 
 # repeating forloop with CASE B Ne scenario
@@ -234,7 +227,10 @@ GriddedFieldLatLonRegrid( gf3tmp, lat_true, lon_true, gf3tmp, interp_order )
 # last, extract the data Tensor from the regridded GriddedField
 FieldFromGriddedField( mag_w_field, p_grid, lat_grid, lon_grid, gf3tmp )
 
-basics_checkedCalc
+
+atmfields_checkedCalc
+atmgeom_checkedCalc
+
 #WriteXML( "ascii", mag_u_field )
 #WriteXML( "ascii", mag_v_field )
 #WriteXML( "ascii", mag_w_field )
@@ -305,7 +301,8 @@ GriddedFieldLatLonRegrid( gf3tmp, lat_grid, lon_grid, gf3tmp, interp_order )
 # last, extract the data Tensor from the regridded GriddedField
 FieldFromGriddedField( mag_w_field, p_grid, lat_grid, lon_grid, gf3tmp )
 
-basics_checkedCalc
+atmfields_checkedCalc
+atmgeom_checkedCalc
 
 #####
 # Winds
@@ -330,7 +327,9 @@ GriddedFieldLatLonRegrid( gf3tmp, lat_grid, lon_grid, gf3tmp, interp_order )
 # last, extract the data Tensor from the regridded GriddedField
 FieldFromGriddedField( wind_u_field, p_grid, lat_grid, lon_grid, gf3tmp )
 
-basics_checkedCalc
+atmfields_checkedCalc
+atmgeom_checkedCalc
+
 
 ###
 # version 2
@@ -346,7 +345,8 @@ GriddedFieldLatLonRegrid( gf3tmp, lat_grid, lon_grid, gf3tmp, interp_order )
 # last, extract the data Tensor from the regridded GriddedField
 FieldFromGriddedField( wind_u_field, p_grid, lat_grid, lon_grid, gf3tmp )
 
-basics_checkedCalc
+atmfields_checkedCalc
+atmgeom_checkedCalc
 #WriteXML( "ascii", wind_u_field )
 #WriteXML( "ascii", wind_v_field )
 #WriteXML( "ascii", wind_w_field )

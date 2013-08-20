@@ -132,8 +132,9 @@ jacobianOff
 
 abs_xsec_agenda_checkedCalc
 propmat_clearsky_agenda_checkedCalc
-
-basics_checkedCalc
+abs_checkedCalc
+atmfields_checkedCalc
+atmgeom_checkedCalc
 cloudbox_checkedCalc
 
 StringSet( iy_unit, "RJBT" )

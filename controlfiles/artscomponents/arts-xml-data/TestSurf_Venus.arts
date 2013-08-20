@@ -4,7 +4,7 @@
 #
 # General test setup: reading in raw data (including a basic atmosphere),
 #  extracting/regridding, executing standard pre-RT calc internal test method
-#  basics_checkedCalc, and performing some RT simulations in order to apply data
+#  atmfields_checkedCalc, and performing some RT simulations in order to apply data
 #  that has no dedicated check method (e.g., when only used through agendas like
 #  surface reflectivity).
 #
@@ -55,12 +55,6 @@ StringSet( risurfname, "Venus.surface_complex_refr_index_field" )
 StringCreate( casefull )
 
 
-# some settings in order to be able to use basics_checkedCalc
-#####
-IndexSet( stokes_dim, 1 )
-VectorSet( f_grid, [300e9] )
-
-
 # some stuff to get a basic atmosphere
 #####
 # we manually select a minumim set of basic atm data (main atm constituents)
@@ -76,6 +70,8 @@ p_gridFromZRaw(	p_grid, z_field_raw, 0 )
 #####
 cloudboxOff
 jacobianOff
+IndexSet( stokes_dim, 1 )
+VectorSet( f_grid, [300e9] )
 sensorOff
 StringSet( iy_unit, "PlanckBT" )
 abs_linesReadFromSplitArtscat(abs_lines, abs_species, "spectroscopy/Perrin/", 0, 1e12)
@@ -143,8 +139,9 @@ ReadXML( ri_surface, casefull )
 
 abs_xsec_agenda_checkedCalc
 propmat_clearsky_agenda_checkedCalc
-
-basics_checkedCalc
+abs_checkedCalc
+atmfields_checkedCalc
+atmgeom_checkedCalc
 
 # now we need to do some RT calc in order to APPLY the reflectivity data
 cloudbox_checkedCalc

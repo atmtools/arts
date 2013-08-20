@@ -377,8 +377,9 @@ void yCloudRadar(
          Workspace&             ws,
          Vector&                y,
          ArrayOfVector&         y_aux,
-   const Index&                 basics_checked,
-   const Index&                 atmosphere_dim,
+   const Index&                 abs_checked,
+   const Index&                 atmfields_checked,
+   const Index&                 atmgeom_checked,
    const ArrayOfString&         iy_aux_vars,
    const Index&                 stokes_dim,
    const Vector&                f_grid,
@@ -389,6 +390,7 @@ void yCloudRadar(
    const Index&                 cloudbox_checked,
    const Matrix&                sensor_pos,
    const Matrix&                sensor_los,
+   const Index&                 sensor_checked,
    const Agenda&                iy_main_agenda,
    const ArrayOfArrayOfIndex&   sensor_pol_array,
    const Vector&                range_bins,
@@ -405,48 +407,22 @@ void yCloudRadar(
   //---------------------------------------------------------------------------
 
   // Basics
-  if( basics_checked<2 )
-    throw runtime_error("The atmosphere, surface and basic control variables "
-                        "must be flagged to have passed a consistency check\n"
-                        "by basics_checkedCalc (basics_checked=2)!" );
-  if( !cloudbox_checked )
-    throw runtime_error( "The cloudbox must be flagged to have passed a "
-                         "consistency check (cloudbox_checked=1)." );
-
-  // Sensor position and LOS.
-  if( sensor_pos.ncols() != atmosphere_dim )
-    throw runtime_error( "The number of columns of sensor_pos must be "
-                         "equal to the atmospheric dimensionality." );
-  if( atmosphere_dim <= 2  &&  sensor_los.ncols() != 1 )
-    throw runtime_error( "For 1D and 2D, sensor_los shall have one column." );
-  if( atmosphere_dim == 3  &&  sensor_los.ncols() != 2 )
-    throw runtime_error( "For 3D, sensor_los shall have two columns." );
-  if( sensor_los.nrows() != npos )
-    {
-      ostringstream os;
-      os << "The number of rows of sensor_pos and sensor_los must be "
-         << "identical, but sensor_pos has " << npos << " rows,\n"
-         << "while sensor_los has " << sensor_los.nrows() << " rows.";
-      throw runtime_error( os.str() );
-    }
-  if( max( sensor_los(joker,0) ) > 180 )
-    throw runtime_error( 
-     "First column of *sensor_los* is not allowed to have values above 180." );
-  if( atmosphere_dim == 2 )
-    {
-      if( min( sensor_los(joker,0) ) < -180 )
-        throw runtime_error( "For atmosphere_dim = 2, first column of "
-                    "*sensor_los* is not allowed to have values below -180." );
-    }     
-  else
-    {
-      if( min( sensor_los(joker,0)  ) < 0 )
-        throw runtime_error( "For atmosphere_dim != 2, first column of "
-                       "*sensor_los* is not allowed to have values below 0." );
-    }    
-  if( atmosphere_dim == 3  &&  max( sensor_los(joker,1) ) > 180 )
-    throw runtime_error( 
-    "Second column of *sensor_los* is not allowed to have values above 180." );
+  //
+  if( abs_checked != 1 )
+    throw runtime_error( "The absorption part must be flagged to have "
+                         "passed a consistency check (abs_checked=1)." );
+  if( atmfields_checked != 1 )
+    throw runtime_error( "The atmospheric fields must be flagged to have "
+                         "passed a consistency check (atmfields_checked=1)." );
+  if( atmgeom_checked != 1 )
+    throw runtime_error( "The atmospheric geometry must be flagged to have "
+                         "passed a consistency check (atmgeom_checked=1)." );
+  if( cloudbox_checked != 1 )
+    throw runtime_error( "The cloudbox must be flagged to have "
+                         "passed a consistency check (cloudbox_checked=1)." );
+  if( sensor_checked != 1 )
+    throw runtime_error( "The sensor variables must be flagged to have "
+                         "passed a consistency check (sensor_checked=1)." );
 
   // Method specific variables
   bool is_z = max(range_bins) > 1;

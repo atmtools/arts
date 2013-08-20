@@ -2751,9 +2751,6 @@ void CloudboxGetIncoming(Workspace&      ws,
                          const Tensor4&  vmr_field,
                          const Index&    cloudbox_on,
                          const ArrayOfIndex&   cloudbox_limits,
-                         const Index&    basics_checked,
-                         const Index&    cloudbox_checked,
-                         const Index&    sensor_checked,
                          const Vector&   f_grid,
                          const Index&    stokes_dim,
                          const String&   iy_unit,
@@ -2767,18 +2764,6 @@ void CloudboxGetIncoming(Workspace&      ws,
   // Don't do anything if there's no cloudbox defined.
   if (!cloudbox_on) return;
   
-  // Basics and cloudbox OK?
-  if( basics_checked<2 )
-    throw runtime_error("The atmosphere, surface and basic control variables "
-                        "must be flagged to have passed a consistency check\n"
-                        "by basics_checkedCalc (basics_checked=2)!" );
-  if( !cloudbox_checked )
-    throw runtime_error( "The cloudbox must be flagged to have passed a "
-                         "consistency check (cloudbox_checked=1)." );
-  if( !sensor_checked )
-    throw runtime_error( "The sensor variables must be flagged to have passed"
-                         "a consistency check (sensor_checked=1)." );
-
   // DOIT requires frequency based radiance:
   if( iy_unit != "1"  || 
       !chk_if_std_blackbody_agenda( ws, blackbody_radiation_agenda ) )
@@ -3041,9 +3026,6 @@ void CloudboxGetIncoming1DAtm(Workspace&      ws,
                               const Tensor3&  t_field,
                               const Tensor4&  vmr_field,
                               const ArrayOfIndex&   cloudbox_limits,
-                              const Index&    basics_checked,
-                              const Index&    cloudbox_checked,
-                              const Index&    sensor_checked,
                               const Vector&   f_grid,
                               const Index&    stokes_dim,
                               const String&   iy_unit,
@@ -3054,18 +3036,6 @@ void CloudboxGetIncoming1DAtm(Workspace&      ws,
 {
   // Don't do anything if there's no cloudbox defined.
   if (!cloudbox_on) return;
-
-  // Basics and cloudbox OK?
-  if( basics_checked<2 )
-    throw runtime_error("The atmosphere, surface and basic control variables "
-                        "must be flagged to have passed a consistency check\n"
-                        "by basics_checkedCalc (basics_checked=2)!" );
-  if( !cloudbox_checked )
-    throw runtime_error( "The cloudbox must be flagged to have passed a "
-                         "consistency check (cloudbox_checked=1)." );
-  if( !sensor_checked )
-    throw runtime_error( "The sensor variables must be flagged to have passed"
-                         "a consistency check (sensor_checked=1)." );
 
   // DOIT requires frequency based radiance:
   if( iy_unit != "1"  || 
