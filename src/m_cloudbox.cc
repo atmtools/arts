@@ -867,7 +867,7 @@ void ScatteringParticleTypeAndMetaRead (//WS Output:
 void ScatteringParticlesSelect (//WS Output:
                                 ArrayOfSingleScatteringData& scat_data_array,
                                 ArrayOfScatteringMetaData& scat_meta_array,
-                                ArrayOfIndex& scat_data_array_nelem,
+                                ArrayOfIndex& part_species_nout,
                                 // WS Input:
                                 const ArrayOfString& part_species,
                                 const String& delim,
@@ -884,7 +884,7 @@ void ScatteringParticlesSelect (//WS Output:
   ArrayOfSingleScatteringData scat_data_array_tmp = scat_data_array;
   ArrayOfScatteringMetaData scat_meta_array_tmp = scat_meta_array;
   
-  scat_data_array_nelem.resize( part_species.nelem() );
+  part_species_nout.resize( part_species.nelem() );
   
   ArrayOfIndex selected;
   selected.resize(scat_meta_array_tmp.nelem());
@@ -928,15 +928,15 @@ void ScatteringParticlesSelect (//WS Output:
            << " (" << scat_meta_array_tmp[j].material << ")\n";
       }
     }
-    // WSV scat_data_array_nelem gets the number of elements of scattering data
+    // WSV part_species_nout gets the number of elements of scattering data
     // connected to each selection String in *part_species*   
-    scat_data_array_nelem[k] = intarr.nelem() - intarr_total;
+    part_species_nout[k] = intarr.nelem() - intarr_total;
     intarr_total = intarr.nelem();
 
     // Use particle profile without corresponding ScattData poses high risk of
     // accidentially neglecting those particles. That's unlikely what the user
     // intends. Hence throw error.
-    if (scat_data_array_nelem[k]<1)
+    if (part_species_nout[k]<1)
       {
         ostringstream os;
         os << "Particle species " << partfield_name << " of type " << part_material
@@ -1034,15 +1034,15 @@ void particle_massesFromMetaDataAndPart_species
                          Matrix& particle_masses,
                          // WS Input:
                          const ArrayOfScatteringMetaData& scat_meta_array,
-                         const ArrayOfIndex& scat_data_array_nelem,
+                         const ArrayOfIndex& part_species_nout,
                          const ArrayOfString& part_species,
                          const Verbosity& )
 {
   // checks
-  if (scat_data_array_nelem.nelem() != part_species.nelem())
+  if (part_species_nout.nelem() != part_species.nelem())
   {
     ostringstream os;
-    os << "Dimensions of part_species and scat_data_array_nelem do not agree.";
+    os << "Dimensions of part_species and part_species_nout do not agree.";
     throw runtime_error(os.str());
   }
 
@@ -1054,13 +1054,13 @@ void particle_massesFromMetaDataAndPart_species
   // calculate and set particle_masses
   for ( Index k=0; k<part_species.nelem(); k++ )
   {
-    for ( Index j=scat_data_start; j<scat_data_start+scat_data_array_nelem[k]; j++ )
+    for ( Index j=scat_data_start; j<scat_data_start+part_species_nout[k]; j++ )
     {
       particle_masses (j, k) =
         scat_meta_array[j].density * scat_meta_array[j].volume;
     }
 
-    scat_data_start += scat_data_array_nelem[k];
+    scat_data_start += part_species_nout[k];
 
   }
 }
@@ -1373,7 +1373,7 @@ void pnd_fieldSetup (//WS Output:
                      const Tensor3& t_field,
                      const ArrayOfScatteringMetaData& scat_meta_array,
                      const ArrayOfString& part_species,
-                     const ArrayOfIndex& scat_data_array_nelem,
+                     const ArrayOfIndex& part_species_nout,
                      const String& delim,
                      const Verbosity& verbosity)
 {
@@ -1462,17 +1462,17 @@ void pnd_fieldSetup (//WS Output:
     parse_part_material( part_material, part_species[k], delim);
 
     // initialize control parameters
-    Vector vol_unsorted ( scat_data_array_nelem[k], 0.0 );
-    Vector d_max_unsorted (scat_data_array_nelem[k], 0.0);
-    Vector vol ( scat_data_array_nelem[k], 0.0 );
-    Vector dm ( scat_data_array_nelem[k], 0.0 );
-    Vector r ( scat_data_array_nelem[k], 0.0 );
-    Vector rho ( scat_data_array_nelem[k], 0.0 );
-    Vector pnd ( scat_data_array_nelem[k], 0.0 );
-    //Vector pnd2 ( scat_data_array_nelem[k], 0.0 ); //temporary
-    Vector dN ( scat_data_array_nelem[k], 0.0 );
-    //Vector dN2 ( scat_data_array_nelem[k], 0.0 ); //temporary
-    //Vector dlwc ( scat_data_array_nelem[k], 0.0 ); //temporary
+    Vector vol_unsorted ( part_species_nout[k], 0.0 );
+    Vector d_max_unsorted (part_species_nout[k], 0.0);
+    Vector vol ( part_species_nout[k], 0.0 );
+    Vector dm ( part_species_nout[k], 0.0 );
+    Vector r ( part_species_nout[k], 0.0 );
+    Vector rho ( part_species_nout[k], 0.0 );
+    Vector pnd ( part_species_nout[k], 0.0 );
+    //Vector pnd2 ( part_species_nout[k], 0.0 ); //temporary
+    Vector dN ( part_species_nout[k], 0.0 );
+    //Vector dN2 ( part_species_nout[k], 0.0 ); //temporary
+    //Vector dlwc ( part_species_nout[k], 0.0 ); //temporary
 
     //Tensor3 md_field =  massdensity_field ( k, joker, joker, joker );
 
@@ -1501,7 +1501,7 @@ void pnd_fieldSetup (//WS Output:
                        massdensity_field ( k, joker, joker, joker ),
                        t_field, limits,
                        scat_meta_array, scat_data_start,
-                       scat_data_array_nelem[k], part_species[k], delim,
+                       part_species_nout[k], part_species[k], delim,
                        verbosity);
     }
 
@@ -1531,7 +1531,7 @@ void pnd_fieldSetup (//WS Output:
                        massdensity_field ( k, joker, joker, joker ),
                        t_field, limits,
                        scat_meta_array, scat_data_start,
-                       scat_data_array_nelem[k], part_species[k], delim,
+                       part_species_nout[k], part_species[k], delim,
                        verbosity);
     }
 
@@ -1560,7 +1560,7 @@ void pnd_fieldSetup (//WS Output:
                        massdensity_field ( k, joker, joker, joker ),
                        limits,
                        scat_meta_array, scat_data_start,
-                       scat_data_array_nelem[k], part_species[k], delim,
+                       part_species_nout[k], part_species[k], delim,
                        verbosity);
     }
 
@@ -1590,7 +1590,7 @@ void pnd_fieldSetup (//WS Output:
                        massdensity_field ( k, joker, joker, joker ),
                        limits,
                        scat_meta_array, scat_data_start,
-                       scat_data_array_nelem[k], part_species[k], delim,
+                       part_species_nout[k], part_species[k], delim,
                        verbosity);
     }
 
@@ -1603,7 +1603,7 @@ void pnd_fieldSetup (//WS Output:
 
     // alter starting index of current scattering data array to starting index
     // of next iteration step
-    scat_data_start = scat_data_start + scat_data_array_nelem[k];
+    scat_data_start = scat_data_start + part_species_nout[k];
 
   }
 }

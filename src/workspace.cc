@@ -3437,15 +3437,15 @@ void Workspace::define_wsv_data()
 
    wsv_data.push_back
      (WsvRecord
-      ( NAME( "scat_data_array_nelem" ),
+      ( NAME( "part_species_nout" ),
         DESCRIPTION
         (
          "Auxiliary array holding the number of *scat_data_array* particle\n"
          "entries associated with each entry in *part_species*. \n"
          "\n"
-         "Size of *scat_data_array_nelem* has to be equal the size of *part_species*.\n"
+         "Size of *part_species_nout* has to be equal the size of *part_species*.\n"
          "\n"
-         "Usage: WSM *ScatteringParticlesSelect* creates *scat_data_array_nelem*.\n"
+         "Usage: WSM *ScatteringParticlesSelect* creates *part_species_nout*.\n"
         ),
         GROUP( "ArrayOfIndex" ))); 
      

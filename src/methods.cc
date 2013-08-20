@@ -7247,7 +7247,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "scat_meta_array", "scat_data_array_nelem", "part_species" ),
+        IN( "scat_meta_array", "part_species_nout", "part_species" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -7640,7 +7640,7 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "atmosphere_dim","cloudbox_on", "cloudbox_limits",
             "massdensity_field", "t_field", "scat_meta_array",
-            "part_species", "scat_data_array_nelem" ),
+            "part_species", "part_species_nout" ),
         GIN( "delim" ),
         GIN_TYPE( "String" ),
         GIN_DEFAULT( "-" ),
@@ -8921,11 +8921,11 @@ void define_md_data_raw()
          "considered particle field (implying a sorting of the selected\n"
          "*scat_meta_array* and *scat_data_array* according to the\n"
          "particle field they correspond to).\n"
-         "Additionaly *scat_data_array_nelem* is created, which contains the number\n"
+         "Additionaly *part_species_nout* is created, which contains the number\n"
          "of particles that have been selected for each of the particle fields.\n"
          ),
         AUTHORS( "Daniel Kreyling" ),
-        OUT( "scat_data_array", "scat_meta_array", "scat_data_array_nelem" ),
+        OUT( "scat_data_array", "scat_meta_array", "part_species_nout" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
