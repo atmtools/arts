@@ -77,14 +77,14 @@ pnd_fieldCalc
 
 WriteXML( output_file_format, pnd_field )
 
-scat_data_monoCalc
+scat_data_array_monoCalc
 
 #For some reason SingleScatteringData binary files can't be loaded 
 output_file_formatSetAscii
 
-WriteXML( output_file_format, scat_data_raw )
+WriteXML( output_file_format, scat_data_array )
 
-WriteXML( output_file_format, scat_data_mono )
+WriteXML( output_file_format, scat_data_array_mono )
 
 WriteXML( output_file_format, cloudbox_limits )
 

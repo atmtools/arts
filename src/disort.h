@@ -50,7 +50,7 @@ void dtauc_ssalbCalc(Workspace &ws,
 void phase_functionCalc(//Output
                         MatrixView phase_function,
                         //Input
-                        const ArrayOfSingleScatteringData& scat_data_mono, 
+                        const ArrayOfSingleScatteringData& scat_data_array_mono, 
                         ConstTensor4View pnd_field);
 
 void pmomCalc(//Output

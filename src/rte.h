@@ -227,7 +227,7 @@ void get_ppath_ext(
   const ArrayOfIndex&                  cloudbox_limits,
   const Tensor4&                       pnd_field,
   const Index&                         use_mean_scat_data,
-  const ArrayOfSingleScatteringData&   scat_data_raw,
+  const ArrayOfSingleScatteringData&   scat_data_array,
   const Verbosity&                     verbosity );
 
 void get_ppath_f( 

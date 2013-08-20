@@ -864,7 +864,7 @@ other than the Earth's atmosphere.
 
 % concept (using scat_data/pnd_field-type data exists - make use of that)
 In the ARTS scattering modules, particles are represented by single scattering
-property data (\builtindoc{scat\_data\_raw}) and particle concentrations
+property data (\builtindoc{scat\_data\_array}) and particle concentrations
 (particle number densitity fields \builtindoc{pnd\_field}).
 % These data usually originate from scattering theory (e.g., Mie theory,
 % T-matrix model, Discrete dipole approximation) convolved with size
@@ -892,7 +892,7 @@ Section~\ref{sec:clouds:intro} for how a particle type is defined) a
 \verb|"particles"| tag needs to be added to \builtindoc{abs\_species}, the
 corresponding concentration field to be added to \builtindoc{vmr\_field}, and
 its single scattering data have to be added as an element to
-\wsvindex{scat\_data\_raw}. This can be done each-by-each using
+\wsvindex{scat\_data\_array}. This can be done each-by-each using
 \builtindoc{ReadXML} and \builtindoc{Append} methods, but a dedicated method
 \wsmindex{ParticleType2abs\_speciesAdd} is available performing these three
 steps for one particle type at once. \wsmindex{ParticleType2abs\_speciesAdd}
@@ -916,7 +916,7 @@ as it allows for directional dependent absorption and for polarization effects
 that occur, e.g., with non-spherical particles.
 
 Be aware that both \wsmindex{propmat\_clearskyAddParticles} and the scattering methods
-use \wsvindex{scat\_data\_raw} to store the particle single scattering data.
+use \wsvindex{scat\_data\_array} to store the particle single scattering data.
 Hence, it is straight-forward that these methods can not be applied
 simultaneously. In one ARTS run, all particles are handled either as scattering
 entities (when using the scattering modules) or as grey-body absorbers (when

@@ -41,18 +41,18 @@ void TMatrixTest(const Verbosity& verbosity)
 
 
 
-void scat_data_meta_arrayInit(// WS Output:
-                 ArrayOfScatteringMetaData& scat_data_meta_array,
+void scat_meta_arrayInit(// WS Output:
+                 ArrayOfScatteringMetaData& scat_meta_array,
                  //WS Input
                  const Verbosity&)
 {
-    scat_data_meta_array.resize(0);
+    scat_meta_array.resize(0);
 }
 
                 
                  
-void scat_data_meta_arrayAddTmatrix(// WS Output:
-                             ArrayOfScatteringMetaData& scat_data_meta_array,
+void scat_meta_arrayAddTmatrix(// WS Output:
+                             ArrayOfScatteringMetaData& scat_meta_array,
                              // WS Generic input:
                              const String& description,
                              const String& material,
@@ -131,58 +131,58 @@ void scat_data_meta_arrayAddTmatrix(// WS Output:
       smd.scat_T_grid = scat_T_grid;
       smd.complex_refr_index = complex_refr_index.data;
 
-      scat_data_meta_array.push_back(smd);
+      scat_meta_array.push_back(smd);
     }
 }
 
 //-----------------------------------
 
 
-void scat_data_rawFromMeta(// WS Output:
-                              ArrayOfSingleScatteringData& scat_data_raw,
+void scat_data_arrayFromMeta(// WS Output:
+                              ArrayOfSingleScatteringData& scat_data_array,
                               //WS Input
-                              const ArrayOfScatteringMetaData& scat_data_meta_array,
+                              const ArrayOfScatteringMetaData& scat_meta_array,
                               // WS Generic input:
                               const Vector& za_grid,
                               const Vector& aa_grid,
                               const Numeric& precision,
                               const Verbosity&)
 {
-  for(Index ii=0;ii<scat_data_meta_array.nelem();ii++)
+  for(Index ii=0;ii<scat_meta_array.nelem();ii++)
     {
 
       extern const Numeric PI;  
       Index  np;
 
       SingleScatteringData sdd;
-      sdd.f_grid = scat_data_meta_array[ii].scat_f_grid;
-      sdd.T_grid = scat_data_meta_array[ii].scat_T_grid;
+      sdd.f_grid = scat_meta_array[ii].scat_f_grid;
+      sdd.T_grid = scat_meta_array[ii].scat_T_grid;
       sdd.za_grid = za_grid;
       sdd.aa_grid = aa_grid;
-      sdd.particle_type = scat_data_meta_array[ii].particle_type;
+      sdd.particle_type = scat_meta_array[ii].particle_type;
 
-      if (scat_data_meta_array[ii].shape == "spheroidal" )
+      if (scat_meta_array[ii].shape == "spheroidal" )
         np=-1;
 
-      else if (scat_data_meta_array[ii].shape == "cylindrical")
+      else if (scat_meta_array[ii].shape == "cylindrical")
         np=-2;
       else
         {
           ostringstream os;
-          os << "Unknown particle shape: " << scat_data_meta_array[ii].shape << "\n"
+          os << "Unknown particle shape: " << scat_meta_array[ii].shape << "\n"
             << "Must be spheroidal or cylindrical";
           throw std::runtime_error(os.str());
         }
 
       calcSingleScatteringDataProperties(sdd,
-                                         scat_data_meta_array[ii].complex_refr_index(joker,joker,0),
-                                         scat_data_meta_array[ii].complex_refr_index(joker,joker,1),
-                                         pow(scat_data_meta_array[ii].volume*1e18*3./(4.*PI),1./3.),
+                                         scat_meta_array[ii].complex_refr_index(joker,joker,0),
+                                         scat_meta_array[ii].complex_refr_index(joker,joker,1),
+                                         pow(scat_meta_array[ii].volume*1e18*3./(4.*PI),1./3.),
                                          np,
-                                         scat_data_meta_array[ii].aspect_ratio,
+                                         scat_meta_array[ii].aspect_ratio,
                                          precision);
 
-      scat_data_raw.push_back(sdd);
+      scat_data_array.push_back(sdd);
     }
 }
 

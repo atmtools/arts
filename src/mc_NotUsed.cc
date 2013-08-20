@@ -32,7 +32,7 @@
             "p_grid", "lat_grid", "lon_grid", "refellipsoid", "z_surface", 
             "z_field", "t_field", "vmr_field", "edensity_field", 
             "f_grid", "f_index", "cloudbox_limits", "pnd_field", 
-            "scat_data_mono", "particle_masses", "mc_seed" ),
+            "scat_data_array_mono", "particle_masses", "mc_seed" ),
         GIN( "max_iter" ),
         GIN_TYPE(    "Index" ),
         GIN_DEFAULT( NODEF ),
@@ -65,7 +65,7 @@ void mc_IWP_cloud_opt_pathCalc(Workspace& ws,
                                const Index&          f_index,
                                const ArrayOfIndex&   cloudbox_limits, 
                                const Tensor4&        pnd_field,
-                               const ArrayOfSingleScatteringData& scat_data_mono,
+                               const ArrayOfSingleScatteringData& scat_data_array_mono,
                                const Matrix&         particle_masses,
                                const Index&          mc_seed,
                                //Keyword params
@@ -87,7 +87,7 @@ void mc_IWP_cloud_opt_pathCalc(Workspace& ws,
                              ppath_step_agenda,p_grid,lat_grid,lon_grid,
                              refellipsoid,z_surface,z_field,t_field,vmr_field,
                              edensity_field, f_mono, cloudbox_limits,
-                             pnd_field,scat_data_mono,particle_masses,
+                             pnd_field,scat_data_array_mono,particle_masses,
                              verbosity);
     }
   else
@@ -112,7 +112,7 @@ void mc_IWP_cloud_opt_pathCalc(Workspace& ws,
                                  refellipsoid,z_surface,z_field,t_field,
                                  vmr_field,edensity_field, f_mono,
                                  cloudbox_limits,
-                                 pnd_field,scat_data_mono,particle_masses,
+                                 pnd_field,scat_data_array_mono,particle_masses,
                                  verbosity);
           mc_IWP+=iwp;
           iwp_squared+=iwp*iwp;
@@ -175,7 +175,7 @@ void mcPathTraceGeneral(Workspace&            ws,
                         const Tensor3&        edensity_field,
                         const ArrayOfIndex&   cloudbox_limits,
                         const Tensor4&        pnd_field,
-                        const ArrayOfSingleScatteringData& scat_data_mono,
+                        const ArrayOfSingleScatteringData& scat_data_array_mono,
                         const Verbosity& verbosity)
                         // 2011-06-17 GH commented out, unused?
                         // const Index           z_field_is_1D)
@@ -225,7 +225,7 @@ void mcPathTraceGeneral(Workspace&            ws,
                            ppath_step.gp_lon[0],p_grid[p_range], 
                            t_field(p_range,lat_range,lon_range), 
                            vmr_field(joker,p_range,lat_range,lon_range),pnd_field,
-                           scat_data_mono, cloudbox_limits,ppath_step.los(0,joker),
+                           scat_data_array_mono, cloudbox_limits,ppath_step.los(0,joker),
                            verbosity);
     }
   else
@@ -278,7 +278,7 @@ void mcPathTraceGeneral(Workspace&            ws,
                                ppath_step.gp_lon[np-1],p_grid[p_range], 
                                t_field(p_range,lat_range,lon_range), 
                                vmr_field(joker,p_range,lat_range,lon_range),pnd_field,
-                               scat_data_mono, cloudbox_limits,ppath_step.los(np-1,joker),
+                               scat_data_array_mono, cloudbox_limits,ppath_step.los(np-1,joker),
                                verbosity);
         }
       else
@@ -421,7 +421,7 @@ void mcPathTraceGeneral(Workspace&            ws,
             "propmat_clearsky_agenda", "ppath_step_agenda", "p_grid", "lat_grid",
             "lon_grid", "z_field", "refellipsoid", "z_surface", "t_field", 
             "vmr_field", "edensity_field", "cloudbox_limits", "pnd_field", 
-            "scat_data_mono", "mc_seed", "iy_unit",
+            "scat_data_array_mono", "mc_seed", "iy_unit",
             "mc_std_err", "mc_max_time", "mc_max_iter", "mc_min_iter",
             "mc_z_field_is_1D" ),
         GIN(),
@@ -457,7 +457,7 @@ void MCIPA(Workspace&            ws,
            const Tensor3&        edensity_field, 
            const ArrayOfIndex&   cloudbox_limits, 
            const Tensor4&        pnd_field,
-           const ArrayOfSingleScatteringData& scat_data_mono,
+           const ArrayOfSingleScatteringData& scat_data_array_mono,
            const Index&          mc_seed,
            const String&         y_unit,
            //Keyword params
@@ -488,10 +488,10 @@ void MCIPA(Workspace&            ws,
   Index N_pt=pnd_field.nbooks();//Number of particle types
   Vector pnd_vec(N_pt); //Vector of particle number densities used at each point
   Vector Z11maxvector;//Vector holding the maximum phase function for each 
-  bool anyptype30=is_anyptype30(scat_data_mono);
+  bool anyptype30=is_anyptype30(scat_data_array_mono);
   if (anyptype30)
     {
-      findZ11max(Z11maxvector,scat_data_mono);
+      findZ11max(Z11maxvector,scat_data_array_mono);
     }
   rng.seed(mc_seed, verbosity);
   bool keepgoing,inside_cloud; // flag indicating whether to stop tracing a photons path
@@ -569,7 +569,7 @@ void MCIPA(Workspace&            ws,
                          stokes_dim, f_mono, p_grid,
                          lat_grid, lon_grid, z_field, refellipsoid, z_surface,
                          t_field, vmr_field, cloudbox_limits, pnd_field,
-                         scat_data_mono, z_field_is_1D, ppath,
+                         scat_data_array_mono, z_field_is_1D, ppath,
                          verbosity );
             
           np=ppath.np;
@@ -680,7 +680,7 @@ void MCIPA(Workspace&            ws,
                   //Sample new line of sight.
                   
                   Sample_los (new_rte_los,g_los_csc_theta,Z,rng,local_rte_los,
-                              scat_data_mono,stokes_dim,
+                              scat_data_array_mono,stokes_dim,
                               pnd_vec,anyptype30,Z11maxvector,ext_mat_mono(0,0)-abs_vec_mono[0],temperature,
                               verbosity);
                                            
@@ -747,7 +747,7 @@ void MCIPA(Workspace&            ws,
          "The function returns the phase matrix for a single particle, for\n"
          "scattering from (za_in,aa_in) to (za_out,aa_out).\n"
          "\n"
-         "Only a single particle type is handled and *scat_data_raw* must\n"
+         "Only a single particle type is handled and *scat_data_array* must\n"
          "have length 1. The frequency is selected by *f_grid* and *f_index*.\n"
          "The temperature is set by *rtp_temperature*.\n"
          ),
@@ -757,7 +757,7 @@ void MCIPA(Workspace&            ws,
         GOUT_TYPE( "Matrix" ),
         GOUT_DESC( 
             "Phase matrix for a single frequency and combination of angles" ),
-        IN( "f_grid", "f_index", "stokes_dim", "scat_data_raw", 
+        IN( "f_grid", "f_index", "stokes_dim", "scat_data_array", 
             "rtp_temperature" ),
         GIN( "za_out", "aa_out", "za_in", "aa_in" ),
         GIN_TYPE( "Numeric", "Numeric", "Numeric", "Numeric" ), 
@@ -771,7 +771,7 @@ void pha_matExtractManually(Matrix&         pha_mat,
                             const Vector&   f_grid,
                             const Index&    f_index,
                             const Index&    stokes_dim,
-                            const ArrayOfSingleScatteringData&   scat_data_raw,
+                            const ArrayOfSingleScatteringData&   scat_data_array,
                             const Numeric&  rtp_temperature,
                             const Numeric&  za_out, 
                             const Numeric&  aa_out, 
@@ -779,11 +779,11 @@ void pha_matExtractManually(Matrix&         pha_mat,
                             const Numeric&  aa_in,
                             const Verbosity& verbosity) 
 {
-  if( scat_data_raw.nelem() > 1 )
-    throw runtime_error( "Only one element in *scat_data_raw* is allowed." );
+  if( scat_data_array.nelem() > 1 )
+    throw runtime_error( "Only one element in *scat_data_array* is allowed." );
   
   ArrayOfSingleScatteringData   scat_data;
-  scat_data_monoCalc( scat_data, scat_data_raw, f_grid, f_index, verbosity);
+  scat_data_array_monoCalc( scat_data, scat_data_array, f_grid, f_index, verbosity);
   
   Vector pnd( 1, 1.0 );
   
@@ -861,7 +861,7 @@ void mcPathTraceIPA(Workspace&            ws,
                     const Tensor4&        vmr_field,
                     const ArrayOfIndex&   cloudbox_limits,
                     const Tensor4&        pnd_field,
-                    const ArrayOfSingleScatteringData& scat_data_mono,
+                    const ArrayOfSingleScatteringData& scat_data_array_mono,
                     const Index           z_field_is_1D,
                     const Ppath&          ppath,
                     const Verbosity&      verbosity)
@@ -943,7 +943,7 @@ void mcPathTraceIPA(Workspace&            ws,
                            gp_p, gp_lat, gp_lon,p_grid[p_range], 
                            t_field(p_range,lat_range,lon_range), 
                            vmr_field(joker,p_range,lat_range,lon_range),
-                           pnd_field,scat_data_mono, cloudbox_limits,rte_los,
+                           pnd_field,scat_data_array_mono, cloudbox_limits,rte_los,
                            verbosity);
     }
   else
@@ -1086,7 +1086,7 @@ void mcPathTraceIPA(Workspace&            ws,
                                f_mono, gp_p,gp_lat, gp_lon, p_grid[p_range],
                                t_field(p_range,lat_range,lon_range), 
                                vmr_field(joker,p_range,lat_range,lon_range),
-                               pnd_field, scat_data_mono, cloudbox_limits,rte_los,
+                               pnd_field, scat_data_array_mono, cloudbox_limits,rte_los,
                                verbosity);
         }
       else
@@ -1223,7 +1223,7 @@ void iwp_cloud_opt_pathCalc(Workspace& ws,
                             const Numeric&        f_mono,
                             const ArrayOfIndex&   cloudbox_limits, 
                             const Tensor4&        pnd_field,
-                            const ArrayOfSingleScatteringData& scat_data_mono,
+                            const ArrayOfSingleScatteringData& scat_data_array_mono,
                             const Matrix&         particle_masses,
                             const Verbosity&      verbosity)
 {
@@ -1278,7 +1278,7 @@ void iwp_cloud_opt_pathCalc(Workspace& ws,
       //calculate integrands
       for (Index i = 0; i < ppath.np ; ++i)
         {
-          opt_propCalc(ext_mat_part,abs_vec_part,ppath.los(i,0),ppath.los(i,1),scat_data_mono,
+          opt_propCalc(ext_mat_part,abs_vec_part,ppath.los(i,0),ppath.los(i,1),scat_data_array_mono,
                        1, pnd_ppath(joker, i), t_ppath[i], verbosity);
           k_vec[i]=ext_mat_part(0,0);
           Vector pnd_vec=pnd_ppath(joker, i);
@@ -1428,7 +1428,7 @@ void mcPathTraceGeneral(
    const Tensor4&        vmr_field,
    const ArrayOfIndex&   cloudbox_limits,
    const Tensor4&        pnd_field,
-   const ArrayOfSingleScatteringData& scat_data_mono,
+   const ArrayOfSingleScatteringData& scat_data_array_mono,
    const Verbosity&      verbosity )
 { 
   ArrayOfMatrix evol_opArray(2);
@@ -1484,7 +1484,7 @@ void mcPathTraceGeneral(
                             p_grid[p_range], 
                             t_field(p_range,lat_range,lon_range), 
                             vmr_field(joker,p_range,lat_range,lon_range),
-                            pnd_field, scat_data_mono, cloudbox_limits,
+                            pnd_field, scat_data_array_mono, cloudbox_limits,
                             ppath_step.los(0,joker), verbosity );
     }
   else
@@ -1551,7 +1551,7 @@ void mcPathTraceGeneral(
                                 p_grid[p_range], 
                                 t_field(p_range,lat_range,lon_range), 
                                 vmr_field(joker,p_range,lat_range,lon_range),
-                                pnd_field, scat_data_mono, cloudbox_limits,
+                                pnd_field, scat_data_array_mono, cloudbox_limits,
                                 ppath_step.los(ip,joker), verbosity );
         }
       else

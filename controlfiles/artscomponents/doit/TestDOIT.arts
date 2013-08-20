@@ -139,7 +139,7 @@ ParticleTypeInit
 # Only one particle type is added in this example 
 ParticleTypeAdd( filename_scat_data="p30f229-231T214-225r100NP-1ar1_5ice.xml",
                  filename_pnd_field="pnd_field_1D.xml" )
-scat_data_rawCheck
+scat_data_arrayCheck
 pnd_fieldCalc
 
 
@@ -172,7 +172,7 @@ AgendaSet( doit_mono_agenda ){
   # Prepare scattering data for DOIT calculation (Optimized method):
   DoitScatteringDataPrepare
   # Alternative method (needs less memory):
-  #scat_data_monoCalc
+  #scat_data_array_monoCalc
   # Set first guess field:		
   doit_i_fieldSetClearsky
   # Perform iterations: 1. scattering integral. 2. RT calculations with 

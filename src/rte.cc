@@ -1529,7 +1529,7 @@ void get_ppath_blackrad(
     \param   cloubox_limits      As the WSV.    
     \param   pnd_field           As the WSV.    
     \param   use_mean_scat_data  As the WSV.    
-    \param   scat_data_raw       As the WSV.    
+    \param   scat_data_array       As the WSV.    
 
     \author Patrick Eriksson 
     \date   2012-08-23
@@ -1548,7 +1548,7 @@ void get_ppath_ext(
   const ArrayOfIndex&                  cloudbox_limits,
   const Tensor4&                       pnd_field,
   const Index&                         use_mean_scat_data,
-  const ArrayOfSingleScatteringData&   scat_data_raw,
+  const ArrayOfSingleScatteringData&   scat_data_array,
   const Verbosity&                     verbosity )
 {
   const Index nf = ppath_f.nrows();
@@ -1601,7 +1601,7 @@ void get_ppath_ext(
     {
       const Numeric f = (mean(ppath_f(0,joker))+mean(ppath_f(nf-1,joker)))/2.0;
       scat_data.resize( 1 );
-      scat_data_monoCalc( scat_data[0], scat_data_raw, Vector(1,f), 0, 
+      scat_data_array_monoCalc( scat_data[0], scat_data_array, Vector(1,f), 0, 
                           verbosity );
     }
   else
@@ -1610,7 +1610,7 @@ void get_ppath_ext(
       for( Index iv=0; iv<nf; iv++ )
         { 
           const Numeric f = mean(ppath_f(iv,joker));
-          scat_data_monoCalc( scat_data[iv], scat_data_raw, Vector(1,f), 0, 
+          scat_data_array_monoCalc( scat_data[iv], scat_data_array, Vector(1,f), 0, 
                               verbosity ); 
         }
     }

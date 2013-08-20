@@ -134,7 +134,7 @@ atmospheric matter:
   scattering (and likely also adding to the absorption). The amount of
   scattering matter is given as particle number density fields ($m^{-3}$),
   denoted as \wsvindex{pnd\_field}. The radiative properties of each particle
-  type are stored in \wsvindex{scat\_data\_raw}.
+  type are stored in \wsvindex{scat\_data\_array}.
 \end{description}
 Atmospheric quantities are not hard-coded to belong to any of these matter
 classes, as the practical division depends on the conditions of the
@@ -165,7 +165,7 @@ extinction process covered by this matrix is absorption (but including
 magneto-optical effects). As workspace variable, \aAbsMat{a}\ is denoted as
 \wsvindex{propmat\_clearsky}, obtained by the
 \wsaindex{propmat\_clearsky\_agenda} agenda. \aExtMat{p}\ is obtained
-internally from \builtindoc{scat\_data\_raw}.
+internally from \builtindoc{scat\_data\_array}.
 
 
 
@@ -199,7 +199,7 @@ where \EmsVec\ can be seen as the emission source vector, defined as
 Hence, as only the first element of \EmsVec\ is non-zero, the absorption
 vector is in this case equal to the first column of \aAbsMat{a}.
 The absorption vector can not be extracted from \aExtMat{p}\ as this
-propagation matrix covers also scattering and \wsvindex{scat\_data\_raw}
+propagation matrix covers also scattering and \wsvindex{scat\_data\_array}
 must also contain such data.
 
 In summary, the total absorption vector in ARTS is obtained as

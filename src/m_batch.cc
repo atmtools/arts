@@ -319,7 +319,7 @@ void ybatchMetProfiles(
                const Vector& lat_grid,
                const Vector& lon_grid,
                const Index& atmosphere_dim,
-               const ArrayOfSingleScatteringData& scat_data_raw,
+               const ArrayOfSingleScatteringData& scat_data_array,
                //Keyword
                const Index& nelem_p_grid,
                const String& met_profile_path,
@@ -347,7 +347,7 @@ void ybatchMetProfiles(
   //pnd_field_raw is an ArrayOfArrayOfTensor3 where the first array
   //holds particle species.
   // Number of particle types:
-  const Index N_pt = scat_data_raw.nelem();
+  const Index N_pt = scat_data_array.nelem();
   
   pnd_field_raw.resize(N_pt);
   

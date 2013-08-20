@@ -79,7 +79,7 @@ void ScatteringDisort(Workspace& ws,
                       Tensor7& scat_i_lat,
                       Tensor7& scat_i_lon,
                       Index& f_index, 
-                      ArrayOfSingleScatteringData& scat_data_mono,
+                      ArrayOfSingleScatteringData& scat_data_array_mono,
                       Tensor4& doit_i_field1D_spectrum,
                       // WS Input
                       const ArrayOfIndex& cloudbox_limits, 
@@ -92,7 +92,7 @@ void ScatteringDisort(Workspace& ws,
                       const Tensor3& z_field, 
                       const Vector& p_grid, 
                       const Tensor4& vmr_field,
-                      const ArrayOfSingleScatteringData& scat_data_raw,
+                      const ArrayOfSingleScatteringData& scat_data_array,
                       const Vector& f_grid,
                       const Vector& scat_za_grid,
                       const Matrix& surface_emissivity_field,
@@ -150,11 +150,11 @@ void ScatteringDisort(Workspace& ws,
   Vector ssalb(nlyr, 0.);
   
   // Phase function
-  Matrix phase_function(nlyr,scat_data_raw[0].za_grid.nelem(), 0.);
+  Matrix phase_function(nlyr,scat_data_array[0].za_grid.nelem(), 0.);
   // Scattering angle grid, assumed here that it is the same for
   // all particle types
-  Vector scat_angle_grid(scat_data_raw[0].za_grid.nelem(), 0.);
-  scat_angle_grid = scat_data_raw[0].za_grid;
+  Vector scat_angle_grid(scat_data_array[0].za_grid.nelem(), 0.);
+  scat_angle_grid = scat_data_array[0].za_grid;
   
   // Number of streams, I think in microwave 8 is more that sufficient
   Index nstr=8 ; 
@@ -258,7 +258,7 @@ void ScatteringDisort(Workspace& ws,
       phase_function=0.;
       pmom=0.;
       
-      scat_data_monoCalc(scat_data_mono, scat_data_raw, f_grid, f_index, verbosity);
+      scat_data_array_monoCalc(scat_data_array_mono, scat_data_array, f_grid, f_index, verbosity);
       
       dtauc_ssalbCalc(ws, dtauc, ssalb, opt_prop_part_agenda,
                       abs_scalar_gas_agenda, spt_calc_agenda, 
@@ -267,7 +267,7 @@ void ScatteringDisort(Workspace& ws,
       //cout << "dtauc " << dtauc << endl
       //     << "ssalb " << ssalb << endl;
       
-      phase_functionCalc(phase_function, scat_data_mono, pnd_field);
+      phase_functionCalc(phase_function, scat_data_array_mono, pnd_field);
       //cout << "phase function" << phase_function(15,joker) << "\n";  
       
       pmomCalc(pmom, phase_function, scat_angle_grid, n_legendre, verbosity);

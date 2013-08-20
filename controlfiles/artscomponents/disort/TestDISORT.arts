@@ -118,7 +118,7 @@ cloudboxSetDisort
 # format. 
 ParticleTypeAdd( filename_scat_data="scat_data_disort.xml",
                  filename_pnd_field="../doit/pnd_field_1D.xml" )
-scat_data_rawCheck( threshold=5e-3 )
+scat_data_arrayCheck( threshold=5e-3 )
 pnd_fieldCalc
 
 cloudbox_checkedCalc

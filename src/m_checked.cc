@@ -378,7 +378,7 @@ void cloudbox_checkedCalc(
    const Index&          cloudbox_on,    
    const ArrayOfIndex&   cloudbox_limits,
    const Tensor4&        pnd_field,
-   const ArrayOfSingleScatteringData& scat_data_raw,
+   const ArrayOfSingleScatteringData& scat_data_array,
    const Matrix&         particle_masses,
    const ArrayOfArrayOfSpeciesTag& abs_species,
    const Verbosity&)
@@ -410,7 +410,7 @@ void cloudbox_checkedCalc(
       }
 
       // no "particles" in abs_species if cloudbox is on (they act on the same
-      // scat_data_raw! and there is no good reason to have some particles as
+      // scat_data_array! and there is no good reason to have some particles as
       // abs-only, if we anyway do a scattering calculation.).
       Index has_absparticles=0;
       for( Index sp = 0; sp < abs_species.nelem() && has_absparticles < 1; sp++ )
@@ -545,7 +545,7 @@ void cloudbox_checkedCalc(
 
       // pnd_field
       //
-      const Index np = scat_data_raw.nelem();
+      const Index np = scat_data_array.nelem();
       // Dummy variables to mimic grids of correct size
       Vector g1( cloudbox_limits[1]-cloudbox_limits[0]+1 ), g2(0), g3(0);
       if( atmosphere_dim >= 2 ) 
@@ -595,7 +595,7 @@ void cloudbox_checkedCalc(
           if( particle_masses.nrows() != np )
             throw runtime_error( "The WSV *particle_masses* must either be "
                                  "empty or have a row size matching the "
-                                 "length of *scat_data_raw*." );
+                                 "length of *scat_data_array*." );
           if( min(particle_masses) < 0 )
             throw runtime_error( 
                            "All values in *particles_masses* must be >= 0." );

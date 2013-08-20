@@ -57,8 +57,8 @@ ReadXML( cloudbox_limits, "TestMonteCarloDataPrepare.cloudbox_limits.xml" )
 
 ReadXML( pnd_field, "TestMonteCarloDataPrepare.pnd_field.xml" )
 
-ReadXML( scat_data_raw, "TestMonteCarloDataPrepare.scat_data_raw.xml" )
-scat_data_rawCheck
+ReadXML( scat_data_array, "TestMonteCarloDataPrepare.scat_data_array.xml" )
+scat_data_arrayCheck
 
 basics_checkedCalc
 cloudbox_checkedCalc

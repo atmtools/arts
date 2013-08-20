@@ -528,22 +528,22 @@ void chk_part_species (
 /*!
   FIXME
   
-  \param scat_data_raw Array of single scattering data
-  \param scat_data_meta_array Array of scattering meta data
+  \param scat_data_array Array of single scattering data
+  \param scat_meta_array Array of scattering meta data
 
   \author Daniel Kreyling
   \date 2010-12-02
 */
 
-void chk_scattering_data(const ArrayOfSingleScatteringData& scat_data_raw,
-                         const ArrayOfScatteringMetaData& scat_data_meta_array,
+void chk_scattering_data(const ArrayOfSingleScatteringData& scat_data_array,
+                         const ArrayOfScatteringMetaData& scat_meta_array,
                          const Verbosity&)
 {
-  if (scat_data_raw.nelem() != scat_data_meta_array.nelem())
+  if (scat_data_array.nelem() != scat_meta_array.nelem())
   {
     ostringstream os;
-    os << "The number of elments in *scat_data_raw*\n"
-    << "and *scat_data_meta_array* do not match.\n"
+    os << "The number of elments in *scat_data_array*\n"
+    << "and *scat_meta_array* do not match.\n"
     << "Each SingleScattering file must correspond\n"
     << "to one ScatteringMeta data file.";
     throw runtime_error( os.str());
@@ -555,27 +555,27 @@ void chk_scattering_data(const ArrayOfSingleScatteringData& scat_data_raw,
 /*!
   FIXME
   
-  \param scat_data_meta scattering meta data
-  \param scat_data_meta_file filename of the data to be checked
+  \param scat_meta scattering meta data
+  \param scat_meta_file filename of the data to be checked
 
   \author Daniel Kreyling
   \date 2010-12-02
 */
-void chk_scattering_meta_data(const ScatteringMetaData& scat_data_meta _U_,
-                              const String& scat_data_meta_file,
+void chk_scattering_meta_data(const ScatteringMetaData& scat_meta _U_,
+                              const String& scat_meta_file,
                               const Verbosity& verbosity)
 {
   CREATE_OUT2;
-  out2 << "  Check scattering meta properties file "<< scat_data_meta_file << "\n";
+  out2 << "  Check scattering meta properties file "<< scat_meta_file << "\n";
   
 /* this check is outdated. type now is free from!
    however, we might want to have other things checked here!?
    - which parameters at least are needed? -> radius, ...?
    - ...
-  if  (scat_data_meta.type != "Ice" && scat_data_meta.type != "Water" && scat_data_meta.type != "Aerosol")
+  if  (scat_meta.type != "Ice" && scat_meta.type != "Water" && scat_meta.type != "Aerosol")
   {
 	  ostringstream os; 
-	  os << "Type in " << scat_data_meta_file << " must be 'Ice', 'Water' or 'Aerosol'\n";     
+	  os << "Type in " << scat_meta_file << " must be 'Ice', 'Water' or 'Aerosol'\n";     
 	  throw runtime_error( os.str() );
 	}
 */
@@ -592,14 +592,14 @@ void chk_scattering_meta_data(const ScatteringMetaData& scat_data_meta _U_,
   Furthermore it checks the self consistency of the data by checking the 
   dimensions of pha_mat, ext_mat and abs_vec depending on the particle_type case.
   
-  \param scat_data_raw Single scattering data
+  \param scat_data_array Single scattering data
   \param scat_data_file Filename of the data to be checked.
   \param f_grid        Frequency grid
   
   \author Claudia Emde
   \date   2005-04-04
 */
-void chk_single_scattering_data(const SingleScatteringData& scat_data_raw,
+void chk_scat_data(const SingleScatteringData& scat_data_array,
                                 const String& scat_data_file,
                                 ConstVectorView f_grid,
                                 const Verbosity& verbosity)
@@ -608,9 +608,9 @@ void chk_single_scattering_data(const SingleScatteringData& scat_data_raw,
   out2 << "  Check single scattering properties file "<< scat_data_file 
        << "\n";
 
-  if (scat_data_raw.particle_type != 10 &&
-      scat_data_raw.particle_type != 20 &&
-      scat_data_raw.particle_type != 30)
+  if (scat_data_array.particle_type != 10 &&
+      scat_data_array.particle_type != 20 &&
+      scat_data_array.particle_type != 30)
     {
       ostringstream os; 
       os << "Particle type value in file" << scat_data_file << "is wrong."
@@ -621,13 +621,13 @@ void chk_single_scattering_data(const SingleScatteringData& scat_data_raw,
       throw runtime_error( os.str() );
     }
     
-    chk_interpolation_grids("scat_data_raw.f_grid to f_grid",
-			    scat_data_raw.f_grid,
+    chk_interpolation_grids("scat_data_array.f_grid to f_grid",
+			    scat_data_array.f_grid,
 			    f_grid);
   
-/*  if (!(scat_data_raw.f_grid[0] <= f_grid[0] &&
+/*  if (!(scat_data_array.f_grid[0] <= f_grid[0] &&
         last(f_grid) <= 
-        last(scat_data_raw.f_grid) ))
+        last(scat_data_array.f_grid) ))
     {
       ostringstream os;
       os << "The range of frequency grid in the single scattering"
@@ -644,7 +644,7 @@ void chk_single_scattering_data(const SingleScatteringData& scat_data_raw,
   // functions where the multiplication with the particle number density is 
   // done. 
 
-  if (!(0. < scat_data_raw.T_grid[0] && last(scat_data_raw.T_grid) < 1001.))
+  if (!(0. < scat_data_array.T_grid[0] && last(scat_data_array.T_grid) < 1001.))
     {
       ostringstream os;
       os << "The temperature values in " <<  scat_data_file 
@@ -653,7 +653,7 @@ void chk_single_scattering_data(const SingleScatteringData& scat_data_raw,
       throw runtime_error( os.str() );
     }
   
-  if (scat_data_raw.za_grid[0] != 0.)
+  if (scat_data_array.za_grid[0] != 0.)
     {
       ostringstream os;
       os << "The first value of the za grid in the single" 
@@ -662,7 +662,7 @@ void chk_single_scattering_data(const SingleScatteringData& scat_data_raw,
         throw runtime_error( os.str() );
     } 
 
-  if (last(scat_data_raw.za_grid) != 180.)
+  if (last(scat_data_array.za_grid) != 180.)
     {
       ostringstream os;
       os << "The last value of the za grid in the single"
@@ -671,7 +671,7 @@ void chk_single_scattering_data(const SingleScatteringData& scat_data_raw,
       throw runtime_error( os.str() );
     } 
   
-  if (scat_data_raw.particle_type == 10 && scat_data_raw.aa_grid[0] != -180.)
+  if (scat_data_array.particle_type == 10 && scat_data_array.aa_grid[0] != -180.)
      {
        ostringstream os;
        os << "For particle_type = 10 (general orientation) the first value"
@@ -681,7 +681,7 @@ void chk_single_scattering_data(const SingleScatteringData& scat_data_raw,
          throw runtime_error( os.str() );
      } 
   
-  if (scat_data_raw.particle_type == 30 && scat_data_raw.aa_grid[0] != 0.)
+  if (scat_data_array.particle_type == 30 && scat_data_array.aa_grid[0] != 0.)
     {
       ostringstream os;
       os << "For particle_type = 30 (horizontal orientation)"
@@ -692,7 +692,7 @@ void chk_single_scattering_data(const SingleScatteringData& scat_data_raw,
         throw runtime_error( os.str() );
     }   
   
-  if (scat_data_raw.particle_type == 30 && last(scat_data_raw.aa_grid) != 180.)
+  if (scat_data_array.particle_type == 30 && last(scat_data_array.aa_grid) != 180.)
     {
       ostringstream os;
       os << "The last value of the aa grid in the single"
@@ -708,26 +708,26 @@ void chk_single_scattering_data(const SingleScatteringData& scat_data_raw,
   ostringstream os_abs_vec;
   os_abs_vec << "abs_vec* in the file * " << scat_data_file;
   
-  switch (scat_data_raw.particle_type){
+  switch (scat_data_array.particle_type){
     
   case PARTICLE_TYPE_GENERAL:
     
     out2 << "  Datafile is for arbitrarily orientated particles. \n";
     
-    chk_size(os_pha_mat.str(), scat_data_raw.pha_mat_data,
-             scat_data_raw.f_grid.nelem(), scat_data_raw.T_grid.nelem(),
-             scat_data_raw.za_grid.nelem(), scat_data_raw.aa_grid.nelem(),
-             scat_data_raw.za_grid.nelem(), scat_data_raw.aa_grid.nelem(), 
+    chk_size(os_pha_mat.str(), scat_data_array.pha_mat_data,
+             scat_data_array.f_grid.nelem(), scat_data_array.T_grid.nelem(),
+             scat_data_array.za_grid.nelem(), scat_data_array.aa_grid.nelem(),
+             scat_data_array.za_grid.nelem(), scat_data_array.aa_grid.nelem(), 
               16); 
     
-    chk_size(os_ext_mat.str(), scat_data_raw.ext_mat_data,
-             scat_data_raw.f_grid.nelem(), scat_data_raw.T_grid.nelem(),
-             scat_data_raw.za_grid.nelem(), scat_data_raw.aa_grid.nelem(),
+    chk_size(os_ext_mat.str(), scat_data_array.ext_mat_data,
+             scat_data_array.f_grid.nelem(), scat_data_array.T_grid.nelem(),
+             scat_data_array.za_grid.nelem(), scat_data_array.aa_grid.nelem(),
              7);
     
-    chk_size(os_abs_vec.str(), scat_data_raw.abs_vec_data,
-             scat_data_raw.f_grid.nelem(), scat_data_raw.T_grid.nelem(),
-             scat_data_raw.za_grid.nelem(), scat_data_raw.aa_grid.nelem(),
+    chk_size(os_abs_vec.str(), scat_data_array.abs_vec_data,
+             scat_data_array.f_grid.nelem(), scat_data_array.T_grid.nelem(),
+             scat_data_array.za_grid.nelem(), scat_data_array.aa_grid.nelem(),
              4);
     break;
     
@@ -737,16 +737,16 @@ void chk_single_scattering_data(const SingleScatteringData& scat_data_raw,
          << "macroscopically isotropic and mirror-symmetric scattering "
          << "media. \n";
     
-    chk_size(os_pha_mat.str(), scat_data_raw.pha_mat_data,
-             scat_data_raw.f_grid.nelem(), scat_data_raw.T_grid.nelem(),
-             scat_data_raw.za_grid.nelem(), 1, 1, 1, 6);
+    chk_size(os_pha_mat.str(), scat_data_array.pha_mat_data,
+             scat_data_array.f_grid.nelem(), scat_data_array.T_grid.nelem(),
+             scat_data_array.za_grid.nelem(), 1, 1, 1, 6);
     
-    chk_size(os_ext_mat.str(), scat_data_raw.ext_mat_data,
-             scat_data_raw.f_grid.nelem(), scat_data_raw.T_grid.nelem(),
+    chk_size(os_ext_mat.str(), scat_data_array.ext_mat_data,
+             scat_data_array.f_grid.nelem(), scat_data_array.T_grid.nelem(),
              1, 1, 1);
     
-    chk_size(os_abs_vec.str(), scat_data_raw.abs_vec_data,
-             scat_data_raw.f_grid.nelem(), scat_data_raw.T_grid.nelem(),
+    chk_size(os_abs_vec.str(), scat_data_array.abs_vec_data,
+             scat_data_array.f_grid.nelem(), scat_data_array.T_grid.nelem(),
              1, 1, 1);
     break; 
     
@@ -754,20 +754,20 @@ void chk_single_scattering_data(const SingleScatteringData& scat_data_raw,
     
     out2 << "  Datafile is for horizontally aligned particles. \n"; 
     
-    chk_size(os_pha_mat.str(), scat_data_raw.pha_mat_data,
-             scat_data_raw.f_grid.nelem(), scat_data_raw.T_grid.nelem(),
-             scat_data_raw.za_grid.nelem(), scat_data_raw.aa_grid.nelem(),
-             scat_data_raw.za_grid.nelem()/2+1, 1, 
+    chk_size(os_pha_mat.str(), scat_data_array.pha_mat_data,
+             scat_data_array.f_grid.nelem(), scat_data_array.T_grid.nelem(),
+             scat_data_array.za_grid.nelem(), scat_data_array.aa_grid.nelem(),
+             scat_data_array.za_grid.nelem()/2+1, 1, 
              16); 
 
-    chk_size(os_ext_mat.str(), scat_data_raw.ext_mat_data,
-             scat_data_raw.f_grid.nelem(), scat_data_raw.T_grid.nelem(),
-             scat_data_raw.za_grid.nelem()/2+1, 1, 
+    chk_size(os_ext_mat.str(), scat_data_array.ext_mat_data,
+             scat_data_array.f_grid.nelem(), scat_data_array.T_grid.nelem(),
+             scat_data_array.za_grid.nelem()/2+1, 1, 
              3);
     
-    chk_size(os_abs_vec.str(), scat_data_raw.abs_vec_data,
-             scat_data_raw.f_grid.nelem(), scat_data_raw.T_grid.nelem(),
-             scat_data_raw.za_grid.nelem()/2+1, 1, 
+    chk_size(os_abs_vec.str(), scat_data_array.abs_vec_data,
+             scat_data_array.f_grid.nelem(), scat_data_array.T_grid.nelem(),
+             scat_data_array.za_grid.nelem()/2+1, 1, 
              2);
     break;
 
@@ -908,7 +908,7 @@ bool is_inside_cloudbox(const Ppath& ppath_step,
     \param IWC_field mass content (cloud ice) field [kg/m3]
     \param t_field atmospheric temperature [K]
     \param limits pnd_field boundaries (indices in p, lat, lon)
-    \param scat_data_meta_array particle meta data for particles
+    \param scat_meta_array particle meta data for particles
     \param scat_data_start start index for particles handled by this distribution
     \param npart number of particles handled by this distribution
     \param part_string part_species tag for profile/distribution handled here
@@ -922,7 +922,7 @@ void pnd_fieldMH97 (Tensor4View pnd_field,
                     const Tensor3& IWC_field,
                     const Tensor3& t_field,
                     const ArrayOfIndex& limits,
-                    const ArrayOfScatteringMetaData& scat_data_meta_array,
+                    const ArrayOfScatteringMetaData& scat_meta_array,
                     const Index& scat_data_start,
                     const Index& npart,
                     const String& part_string,
@@ -948,7 +948,7 @@ void pnd_fieldMH97 (Tensor4View pnd_field,
   bool noisy = (psd_param == "MH97n");
 
   for ( Index i=0; i < npart; i++ )
-      vol_unsorted[i] = ( scat_data_meta_array[i+scat_data_start].volume );
+      vol_unsorted[i] = ( scat_meta_array[i+scat_data_start].volume );
   get_sorted_indexes(intarr, vol_unsorted);
 
   // extract scattering meta data
@@ -956,13 +956,13 @@ void pnd_fieldMH97 (Tensor4View pnd_field,
   {
       pos = intarr[i]+scat_data_start;
 
-      vol[i] = ( scat_data_meta_array[pos].volume ); //m^3
+      vol[i] = ( scat_meta_array[pos].volume ); //m^3
       // calculate melted diameter from volume [m]
       dm[i] = pow ( 
-             ( scat_data_meta_array[pos].volume *6./PI ),
+             ( scat_meta_array[pos].volume *6./PI ),
              ( 1./3. ) );
       // get density from meta data [kg/m^3]
-      rho[i] = scat_data_meta_array[pos].density;
+      rho[i] = scat_meta_array[pos].density;
   }
       
   if (dm.nelem() > 0)
@@ -1028,7 +1028,7 @@ void pnd_fieldMH97 (Tensor4View pnd_field,
     \param IWC_field mass content (cloud ice or snow) field [kg/m3]
     \param t_field atmospheric temperature [K]
     \\param limits pnd_field boundaries (indices in p, lat, lon)
-    \param scat_data_meta_array particle meta data for particles
+    \param scat_meta_array particle meta data for particles
     \param scat_data_start start index for particles handled by this distribution
     \param npart number of particles handled by this distribution
     \param part_string part_species tag for profile/distribution handled here
@@ -1042,7 +1042,7 @@ void pnd_fieldH11 (Tensor4View pnd_field,
                    const Tensor3& IWC_field,
                    const Tensor3& t_field,
                    const ArrayOfIndex& limits,
-                   const ArrayOfScatteringMetaData& scat_data_meta_array,
+                   const ArrayOfScatteringMetaData& scat_meta_array,
                    const Index& scat_data_start,
                    const Index& npart,
                    const String& part_string,
@@ -1064,7 +1064,7 @@ void pnd_fieldH11 (Tensor4View pnd_field,
   parse_partfield_name( partfield_name, part_string, delim);
 
   for ( Index i=0; i < npart; i++ )
-      dmax_unsorted[i] = ( scat_data_meta_array[i+scat_data_start].diameter_max );
+      dmax_unsorted[i] = ( scat_meta_array[i+scat_data_start].diameter_max );
   get_sorted_indexes(intarr, dmax_unsorted);
       
   // extract scattering meta data
@@ -1072,11 +1072,11 @@ void pnd_fieldH11 (Tensor4View pnd_field,
   {
       pos = intarr[i]+scat_data_start;
 
-      vol[i]= scat_data_meta_array[pos].volume; //[m^3]
+      vol[i]= scat_meta_array[pos].volume; //[m^3]
       // get maximum diameter from meta data [m]
-      dm[i] = scat_data_meta_array[pos].diameter_max;
+      dm[i] = scat_meta_array[pos].diameter_max;
       // get density from meta data [kg/m^3]
-      rho[i] = scat_data_meta_array[pos].density;
+      rho[i] = scat_meta_array[pos].density;
   }
 
   //const bool suppress=true;
@@ -1151,7 +1151,7 @@ void pnd_fieldH11 (Tensor4View pnd_field,
     \param pnd_field Particle number density field
     \param PR_field precipitation rate field [kg/(m2*s)]
     \\param limits pnd_field boundaries (indices in p, lat, lon)
-    \param scat_data_meta_array particle meta data for particles
+    \param scat_meta_array particle meta data for particles
     \param scat_data_start start index for particles handled by this distribution
     \param npart number of particles handled by this distribution
     \param part_string part_species tag for profile/distribution handled here
@@ -1164,7 +1164,7 @@ void pnd_fieldH11 (Tensor4View pnd_field,
 void pnd_fieldMP48 (Tensor4View pnd_field,
                     const Tensor3& PR_field,
                     const ArrayOfIndex& limits,
-                    const ArrayOfScatteringMetaData& scat_data_meta_array,
+                    const ArrayOfScatteringMetaData& scat_meta_array,
                     const Index& scat_data_start,
                     const Index& npart,
                     const String& part_string,
@@ -1186,7 +1186,7 @@ void pnd_fieldMP48 (Tensor4View pnd_field,
   parse_partfield_name( partfield_name, part_string, delim);
 
   for ( Index i=0; i < npart; i++ )
-      vol_unsorted[i] = ( scat_data_meta_array[i+scat_data_start].volume );
+      vol_unsorted[i] = ( scat_meta_array[i+scat_data_start].volume );
   get_sorted_indexes(intarr, vol_unsorted);
 	
   // extract scattering meta data
@@ -1194,13 +1194,13 @@ void pnd_fieldMP48 (Tensor4View pnd_field,
   {
       pos = intarr[i]+scat_data_start;
 
-      vol[i] = ( scat_data_meta_array[pos].volume ); //m^3
+      vol[i] = ( scat_meta_array[pos].volume ); //m^3
       // calculate volume equivalent diameter [m]
       d[i] = pow ( 
-             ( scat_data_meta_array[pos].volume *6./PI ),
+             ( scat_meta_array[pos].volume *6./PI ),
              ( 1./3. ) );
       // get density from meta data [kg/m^3]
-      rho[i] = scat_data_meta_array[pos].density;
+      rho[i] = scat_meta_array[pos].density;
   }
 
   // conversion factor from PR [kg/(m^2*s)] to PR[mm/hr]
@@ -1337,7 +1337,7 @@ void pnd_fieldMP48 (Tensor4View pnd_field,
     \param pnd_field Particle number density field
     \param LWC_field mass content (liquid water) field [kg/m3]
     \\param limits pnd_field boundaries (indices in p, lat, lon)
-    \param scat_data_meta_array particle meta data for particles
+    \param scat_meta_array particle meta data for particles
     \param scat_data_start start index for particles handled by this distribution
     \param npart number of particles handled by this distribution
     \param part_string part_species tag for profile/distribution handled here
@@ -1350,7 +1350,7 @@ void pnd_fieldMP48 (Tensor4View pnd_field,
 void pnd_fieldH98 (Tensor4View pnd_field,
                    const Tensor3& LWC_field,
                    const ArrayOfIndex& limits,
-                   const ArrayOfScatteringMetaData& scat_data_meta_array,
+                   const ArrayOfScatteringMetaData& scat_meta_array,
                    const Index& scat_data_start,
                    const Index& npart,
                    const String& part_string,
@@ -1372,7 +1372,7 @@ void pnd_fieldH98 (Tensor4View pnd_field,
   parse_partfield_name( partfield_name, part_string, delim);
 
   for ( Index i=0; i < npart; i++ )
-      vol_unsorted[i] = ( scat_data_meta_array[i+scat_data_start].volume );
+      vol_unsorted[i] = ( scat_meta_array[i+scat_data_start].volume );
   get_sorted_indexes(intarr, vol_unsorted);
       
   // extract scattering meta data
@@ -1380,12 +1380,12 @@ void pnd_fieldH98 (Tensor4View pnd_field,
   {
       pos = intarr[i]+scat_data_start;
 
-      vol[i]= scat_data_meta_array[pos].volume; // [m^3]
+      vol[i]= scat_meta_array[pos].volume; // [m^3]
       // calculate radius from volume [m]
       r[i] = 0.5 * pow (
-               ( 6*scat_data_meta_array[pos].volume/PI ), ( 1./3. ) );
+               ( 6*scat_meta_array[pos].volume/PI ), ( 1./3. ) );
       // get density from meta data [kg/m^3]
-      rho[i] = scat_data_meta_array[pos].density;
+      rho[i] = scat_meta_array[pos].density;
   }
 
   if (r.nelem() > 0)

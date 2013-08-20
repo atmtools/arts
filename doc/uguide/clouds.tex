@@ -504,7 +504,7 @@ region:
 # Initialisation
 ParticleTypeInit
 # Only one particle type is added in this example 
-ParticleTypeAdd( scat_data_raw, pnd_field_raw,
+ParticleTypeAdd( scat_data_array, pnd_field_raw,
                  atmosphere_dim, f_grid, p_grid,
                  lat_grid, lon_grid, cloudbox_limits,
                  "ssd_sphere_50um_p20.xml",
@@ -523,7 +523,7 @@ repeatedly for all particle types, for instance one could add to the
 randomly oriented spherical particles above horizontally aligned
 cylindrical particles:
 \begin{code}
-ParticleTypeAdd( scat_data_raw, pnd_field_raw,
+ParticleTypeAdd( scat_data_array, pnd_field_raw,
                  atmosphere_dim, f_grid, p_grid,
                  lat_grid, lon_grid, cloudbox_limits,
                  "ssd_cylinder_30um_p30.xml",

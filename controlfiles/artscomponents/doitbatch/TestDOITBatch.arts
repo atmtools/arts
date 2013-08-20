@@ -163,7 +163,7 @@ Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__LookUpTable )
 
 # Read SingelScatteringData and ScatteringMetaData
 #-------------------------------------------------
-ScatteringParticleTypeAndMetaRead (scat_data_raw, scat_data_meta_array, f_grid, 
+ScatteringParticleTypeAndMetaRead (scat_data_array, scat_meta_array, f_grid, 
     "SingleScatteringFile.xml",
     "ScatteringMetaFile.xml")
 
@@ -176,7 +176,7 @@ ParticleSpeciesSet(part_species,
 # Selection/filerting of particles according to *part_species*
 #------------------------------------------------------------
 ScatteringParticlesSelect
-scat_data_rawCheck
+scat_data_arrayCheck
 
 # 7.AGENDAS--------------------------------------------------------------
 #------------------------------------------------------------------------
@@ -254,7 +254,7 @@ AgendaSet( ybatch_calc_agenda ){
   # ------------------------------------
   pnd_fieldSetup
   #pnd_fieldSetup( pnd_field, atmosphere_dim, cloudbox_on, cloudbox_limits, 
-  #    massdensity_field, t_field, scat_data_meta_array, part_species, 
+  #    massdensity_field, t_field, scat_meta_array, part_species, 
   #    scat_data_nelem )
   
   #Write indexed pnd_fields to sub-folder for each atmosphere

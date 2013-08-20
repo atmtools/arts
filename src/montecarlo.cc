@@ -147,7 +147,7 @@ void cloudy_rt_vars_at_gp(Workspace&           ws,
                           ConstTensor3View     t_field_cloud,
                           ConstTensor4View     vmr_field_cloud,
                           const Tensor4&       pnd_field,
-                          const ArrayOfSingleScatteringData& scat_data_mono,
+                          const ArrayOfSingleScatteringData& scat_data_array_mono,
                           const ArrayOfIndex&  cloudbox_limits,
                           const Vector&        rte_los,
                           const Verbosity&     verbosity
@@ -207,7 +207,7 @@ void cloudy_rt_vars_at_gp(Workspace&           ws,
   //opt_prop_part_agenda.execute( true );
   //use pnd_ppath and ext_mat_spt to get extmat (and similar for abs_vec
   pnd_vec=pnd_ppath(joker, 0);
-  opt_propCalc(ext_mat_part,abs_vec_part,scat_za,scat_aa,scat_data_mono,
+  opt_propCalc(ext_mat_part,abs_vec_part,scat_za,scat_aa,scat_data_array_mono,
                stokes_dim, pnd_vec, temperature,verbosity);
   
   ext_mat_mono += ext_mat_part;
@@ -329,30 +329,30 @@ void cloud_atm_vars_by_gp(
   This returns a vector with the maximum value of Z11 for each particle type.
 
   \param[out] Z11maxvector Maximum value of Z11 for each particle type
-  \param[in]  scat_data_mono
+  \param[in]  scat_data_array_mono
 
   \author Cory Davis
   \date   2004-31-1
 */
 void findZ11max(Vector& Z11maxvector,
-                const ArrayOfSingleScatteringData& scat_data_mono)
+                const ArrayOfSingleScatteringData& scat_data_array_mono)
 {
-  Index np=scat_data_mono.nelem();
+  Index np=scat_data_array_mono.nelem();
   Z11maxvector.resize(np);
 
   for(Index i = 0;i<np;i++)
     {
-      switch(scat_data_mono[i].particle_type){
+      switch(scat_data_array_mono[i].particle_type){
       case PARTICLE_TYPE_MACROS_ISO:
         {
-          Z11maxvector[i]=max(scat_data_mono[i].pha_mat_data(0,joker,joker,0,0,0,0));
+          Z11maxvector[i]=max(scat_data_array_mono[i].pha_mat_data(0,joker,joker,0,0,0,0));
         }
       case PARTICLE_TYPE_HORIZ_AL:
         {
-          Z11maxvector[i]=max(scat_data_mono[i].pha_mat_data(0,joker,joker,0,joker,0,0));
+          Z11maxvector[i]=max(scat_data_array_mono[i].pha_mat_data(0,joker,joker,0,joker,0,0));
         }
       default:
-        Z11maxvector[i]=max(scat_data_mono[i].pha_mat_data(0,joker,joker,joker,joker,joker,0));
+        Z11maxvector[i]=max(scat_data_array_mono[i].pha_mat_data(0,joker,joker,joker,joker,joker,0));
       }
     }
 }
@@ -364,20 +364,20 @@ void findZ11max(Vector& Z11maxvector,
 /*!
 Some operations in Monte Carlo simulations are different depending on the 
 particle type of the scattering particles.  This function searches 
-scat_data_mono to determine if any of the particle types have particle_type=30
+scat_data_array_mono to determine if any of the particle types have particle_type=30
 
 \author Cory Davis
 \date 2004-1-31
 
 */
-bool is_anyptype30(const ArrayOfSingleScatteringData& scat_data_mono)
+bool is_anyptype30(const ArrayOfSingleScatteringData& scat_data_array_mono)
 {
-  Index np=scat_data_mono.nelem();
+  Index np=scat_data_array_mono.nelem();
   bool anyptype30=false;
   Index i=0;
   while(i < np && anyptype30==false)
     {
-      if(scat_data_mono[i].particle_type==PARTICLE_TYPE_HORIZ_AL)
+      if(scat_data_array_mono[i].particle_type==PARTICLE_TYPE_HORIZ_AL)
         {
           anyptype30=true;
         }
@@ -437,7 +437,7 @@ void mcPathTraceGeneral(
    const Tensor4&        vmr_field,
    const ArrayOfIndex&   cloudbox_limits,
    const Tensor4&        pnd_field,
-   const ArrayOfSingleScatteringData& scat_data_mono,
+   const ArrayOfSingleScatteringData& scat_data_array_mono,
    const Verbosity&      verbosity )
 { 
   ArrayOfMatrix evol_opArray(2);
@@ -493,7 +493,7 @@ void mcPathTraceGeneral(
                             p_grid[p_range], 
                             t_field(p_range,lat_range,lon_range), 
                             vmr_field(joker,p_range,lat_range,lon_range),
-                            pnd_field, scat_data_mono, cloudbox_limits,
+                            pnd_field, scat_data_array_mono, cloudbox_limits,
                             ppath_step.los(0,joker), verbosity );
     }
   else
@@ -560,7 +560,7 @@ void mcPathTraceGeneral(
                                 p_grid[p_range], 
                                 t_field(p_range,lat_range,lon_range), 
                                 vmr_field(joker,p_range,lat_range,lon_range),
-                                pnd_field, scat_data_mono, cloudbox_limits,
+                                pnd_field, scat_data_array_mono, cloudbox_limits,
                                 ppath_step.los(ip,joker), verbosity );
         }
       else
@@ -667,13 +667,13 @@ void mcPathTraceGeneral(
 //! opt_propCalc
 /*!
 Returns the extinction matrix and absorption vector due to scattering particles
-from scat_data_mono
+from scat_data_array_mono
 
    \param ext_mat_mono               Output: extinction matrix
    \param abs_vec_mono           Output: absorption coefficient vector
    \param za              zenith angle of propagation direction
    \param aa              azimuthal angle of propagation
-   \param scat_data_mono  workspace variable
+   \param scat_data_array_mono  workspace variable
    \param stokes_dim     workspace variable
    \param pnd_vec         vector pf particle number densities (one element per particle type)
    \param rtp_temperature loacl temperature (workspace variable)
@@ -686,7 +686,7 @@ void opt_propCalc(
                   VectorView      abs_vec_mono,
                   const Numeric   za,
                   const Numeric   aa,
-                  const ArrayOfSingleScatteringData& scat_data_mono,
+                  const ArrayOfSingleScatteringData& scat_data_array_mono,
                   const Index     stokes_dim,
                   ConstVectorView pnd_vec,
                   const Numeric   rtp_temperature,
@@ -698,7 +698,7 @@ void opt_propCalc(
   assert( ext_mat_mono.ncols() == stokes_dim );
   assert( abs_vec_mono.nelem() == stokes_dim );
 
-  const Index N_pt = scat_data_mono.nelem();
+  const Index N_pt = scat_data_array_mono.nelem();
 
   Matrix ext_mat_mono_spt(stokes_dim,stokes_dim);
   Vector abs_vec_mono_spt(stokes_dim);
@@ -712,7 +712,7 @@ void opt_propCalc(
       if (pnd_vec[i_pt]>0)
         {
           opt_propExtract( ext_mat_mono_spt, abs_vec_mono_spt,
-                          scat_data_mono[i_pt], za, aa,
+                          scat_data_array_mono[i_pt], za, aa,
                           rtp_temperature, stokes_dim, verbosity);
 
           ext_mat_mono_spt *= pnd_vec[i_pt];
@@ -893,7 +893,7 @@ void opt_propExtract(
  \param[in]  aa_sca          and
  \param[in]  za_inc          incident
  \param[in]  aa_inc          directions
- \param[in]  scat_data_mono  workspace variable
+ \param[in]  scat_data_array_mono  workspace variable
  \param[in]  stokes_dim      workspace variable
  \param[in]  pnd_vec         vector of particle number densities at the point 
                              in question
@@ -907,7 +907,7 @@ void pha_mat_singleCalc(
                         const Numeric    aa_sca, 
                         const Numeric    za_inc, 
                         const Numeric    aa_inc,
-                        const ArrayOfSingleScatteringData& scat_data_mono,
+                        const ArrayOfSingleScatteringData& scat_data_array_mono,
                         const Index      stokes_dim,
                         ConstVectorView  pnd_vec,
                         const Numeric    rtp_temperature,
@@ -926,7 +926,7 @@ void pha_mat_singleCalc(
     {
       if (pnd_vec[i_pt]>0)
         {
-          pha_mat_singleExtract(Z_spt,scat_data_mono[i_pt],za_sca,aa_sca,za_inc,
+          pha_mat_singleExtract(Z_spt,scat_data_array_mono[i_pt],za_sca,aa_sca,za_inc,
                                 aa_inc,rtp_temperature,stokes_dim,verbosity);
           Z_spt*=pnd_vec[i_pt];
           Z+=Z_spt;
@@ -1148,7 +1148,7 @@ void pha_mat_singleExtract(
    \param[in,out] rng             Rng random number generator instance
    \param[in]     rte_los         incident line of sight for subsequent 
                                   ray-tracing.                     
-   \param[in]     scat_data_mono
+   \param[in]     scat_data_array_mono
    \param[in]     stokes_dim
    \param[in]     pnd_vec
    \param[in]     anyptype30
@@ -1166,7 +1166,7 @@ void Sample_los (
                  MatrixView       Z,
                  Rng&             rng,
                  ConstVectorView  rte_los,
-                 const ArrayOfSingleScatteringData& scat_data_mono,
+                 const ArrayOfSingleScatteringData& scat_data_array_mono,
                  const Index      stokes_dim,
                  ConstVectorView  pnd_vec,
                  const bool       anyptype30,
@@ -1184,7 +1184,7 @@ void Sample_los (
   if(anyptype30)
     {
       Index np=pnd_vec.nelem();
-      assert(scat_data_mono.nelem()==np);
+      assert(scat_data_array_mono.nelem()==np);
       for(Index i=0;i<np;i++)
         {
           Z11max+=Z11maxvector[i]*pnd_vec[i];
@@ -1196,7 +1196,7 @@ void Sample_los (
       //The following is based on the assumption that the maximum value of the 
       //phase matrix for a given scattered direction is for forward scattering
       pha_mat_singleCalc(dummyZ,180-rte_los[0],aa_scat,180-rte_los[0],
-                         aa_scat,scat_data_mono,stokes_dim,pnd_vec,rtp_temperature,
+                         aa_scat,scat_data_array_mono,stokes_dim,pnd_vec,rtp_temperature,
                          verbosity);
       Z11max=dummyZ(0,0);
     }  
@@ -1210,7 +1210,7 @@ void Sample_los (
         -180+new_rte_los[1]:180+new_rte_los[1];
       
       pha_mat_singleCalc(Z,180-rte_los[0],aa_scat,180-new_rte_los[0],
-                         aa_inc,scat_data_mono,stokes_dim,pnd_vec,rtp_temperature,
+                         aa_inc,scat_data_array_mono,stokes_dim,pnd_vec,rtp_temperature,
                          verbosity);
       
       if (rng.draw()<=Z(0,0)/Z11max)//then new los is accepted

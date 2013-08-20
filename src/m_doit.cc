@@ -1539,7 +1539,7 @@ void DoitInit(//WS Output
               const Index& doit_za_grid_size,
               const Index& cloudbox_on,
               const ArrayOfIndex& cloudbox_limits,
-              const ArrayOfSingleScatteringData& scat_data_raw,
+              const ArrayOfSingleScatteringData& scat_data_array,
               const Verbosity& verbosity)
 {
   if (!cloudbox_on)
@@ -1591,7 +1591,7 @@ void DoitInit(//WS Output
                         "atmospheric dimensions. So its dimension must"
                         "be 2 x *atmosphere_dim*");
 
-  if (scat_data_raw.nelem() == 0)
+  if (scat_data_array.nelem() == 0)
     throw runtime_error(
                          "No scattering data files have been added.\n"
                          "Please use the WSM *ParticleTypeAdd* or \n"

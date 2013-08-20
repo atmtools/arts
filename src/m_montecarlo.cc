@@ -128,7 +128,7 @@ void MCGeneral(Workspace&            ws,
                const Index&          cloudbox_on,
                const ArrayOfIndex&   cloudbox_limits, 
                const Tensor4&        pnd_field,
-               const ArrayOfSingleScatteringData& scat_data_mono,
+               const ArrayOfSingleScatteringData& scat_data_array_mono,
                const Index&          basics_checked,
                const Index&          cloudbox_checked,
                const Index&          mc_seed,
@@ -190,9 +190,9 @@ void MCGeneral(Workspace&            ws,
   Index  N_pt = pnd_field.nbooks();//Number of particle types
   Vector pnd_vec(N_pt); //Vector of particle number densities used at each point
   Vector Z11maxvector;//Vector holding the maximum phase function for each 
-  bool  anyptype30 = is_anyptype30(scat_data_mono);
+  bool  anyptype30 = is_anyptype30(scat_data_array_mono);
   if (anyptype30)
-    { findZ11max(Z11maxvector,scat_data_mono); }
+    { findZ11max(Z11maxvector,scat_data_array_mono); }
   rng.seed(mc_seed, verbosity);
   Numeric g,temperature,albedo,g_los_csc_theta;
   Matrix  A(stokes_dim,stokes_dim), Q(stokes_dim,stokes_dim);
@@ -272,7 +272,7 @@ void MCGeneral(Workspace&            ws,
                               propmat_clearsky_agenda, stokes_dim, f_mono, 
                               p_grid, lat_grid, lon_grid, z_field, refellipsoid,
                               z_surface, t_field, vmr_field, 
-                              cloudbox_limits, pnd_field, scat_data_mono, 
+                              cloudbox_limits, pnd_field, scat_data_array_mono, 
                               verbosity ); 
            
           np = ppath_step.np;
@@ -374,7 +374,7 @@ void MCGeneral(Workspace&            ws,
                 {
                   //we have a scattering event
                   Sample_los( new_rte_los, g_los_csc_theta, Z, rng, 
-                              local_rte_los, scat_data_mono, stokes_dim,
+                              local_rte_los, scat_data_array_mono, stokes_dim,
                               pnd_vec, anyptype30, Z11maxvector, 
                               ext_mat_mono(0,0)-abs_vec_mono[0], temperature,
                               verbosity );
