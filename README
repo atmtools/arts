@@ -117,9 +117,16 @@ OPTIONAL FEATURES
 =================
 
 To compile features that rely on Fortran code located in the 3rdparty
-subdirectory (such as tmatrix) use:
+subdirectory use:
 
 cmake -DENABLE_FORTRAN=1 ..
+
+This enables Disort, Refice and Tmatrix.
+
+If necessary, certain Fortran modules can be selectively disabled:
+
+cmake -DENABLE_FORTRAN=1 -DNO_DISORT=1 ..
+cmake -DENABLE_FORTRAN=1 -DNO_REFICE=1 ..
 
 
 DISABLING FEATURES
@@ -183,10 +190,6 @@ open ARTS.xcodeproj
 
 EXPERIMENTAL FEATURES (ONLY USE IF YOU KNOW WHAT YOU'RE DOING)
 ==============================================================
-
-Enable the disort code:
-
-cmake -DENABLE_DISORT=1 ..
 
 Use C++11 and the new libc++ (currently only supported in Xcode builds):
 

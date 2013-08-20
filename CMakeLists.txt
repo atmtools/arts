@@ -86,7 +86,6 @@ check_include_file (sys/times.h HAVE_SYS_TIMES_H)
 check_include_file (sys/types.h HAVE_SYS_TYPES_H)
 check_include_file (unistd.h    HAVE_UNISTD_H)
 check_include_file (getopt.h    HAVE_GETOPT_H)
-check_include_file (f2c.h       HAVE_F2C_H)
 
 ########### Check C header files for libmicrohttpd ##########
 check_include_file (fcntl.h     HAVE_FCNTL_H)
@@ -177,6 +176,7 @@ else (CMAKE_GENERATOR STREQUAL "Xcode")
   ARTS_ADD_COMPILER_FLAG (Wconversion)
   ARTS_ADD_COMPILER_FLAG (Wno-sign-conversion)
   ARTS_ADD_COMPILER_FLAG (Wno-unknown-pragmas)
+  ARTS_ADD_COMPILER_FLAG (Wno-return-type-c-linkage)
 endif (CMAKE_GENERATOR STREQUAL "Xcode")
 
 if (CMAKE_COMPILER_IS_INTELCXX)
@@ -195,13 +195,7 @@ if (OPENMP_FOUND)
   set (CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS "")
 endif (OPENMP_FOUND)
 
-# Workaround for f2c library in Debian/Ubuntu
-if (ENABLE_DISORT AND CMAKE_COMPILER_IS_GNUCXX AND UNIX)
-  set (CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS "${CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS} -u MAIN__")
-endif (ENABLE_DISORT AND CMAKE_COMPILER_IS_GNUCXX AND UNIX)
-
 set (COMPILER "${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION} (${CMAKE_CXX_COMPILER})")
-
 
 ########### Xcode specific settings ##########
 if (CMAKE_GENERATOR STREQUAL "Xcode")

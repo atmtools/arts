@@ -3,7 +3,7 @@ c RCS version control information:
 c $Header: /srv/svn/cvs/cvsroot/arts/3rdparty/disort1.2/ErrPack.f,v 1.1 2006/02/21 16:23:28 olemke Exp $
 c ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-      SUBROUTINE  DSErrMsg( MESSAG, FATAL )
+      SUBROUTINE  ErrMsg( MESSAG, FATAL )
 
 c        Print out a warning or error message;  abort if error
 
@@ -53,7 +53,7 @@ c                         ( CHARACTER, any length )
       WRITE ( *, '(3A)' )  ' ****  Input variable  ', VarNam,
      &                     '  in error  ****'
       IF ( NumMsg.EQ.MaxMsg )
-     &   CALL  DSErrMsg ( 'Too many input errors.  Aborting...', .TRUE.)
+     &   CALL  ErrMsg ( 'Too many input errors.  Aborting...', .TRUE.)
 
       RETURN
       END

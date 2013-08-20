@@ -149,9 +149,9 @@ c      write(*,*) TEMP, WAVLEN
          PASS1 = .False.
 c                         ** Superficially test if main table messed up
 
-         IF( NWL.LT.100 ) CALL ERRMSG('REFICE--NWL value bad',.True.)
-         IF( WL(1).GT.0.045 ) CALL ERRMSG('REFICE--WL(1) bad',.True.)
-         IF( WL(NWL).LT.166.) CALL ERRMSG('REFICE--WL(NWL) bad',.True.)
+         IF( NWL.LT.100 ) CALL RERRMSG('REFICE--NWL value bad',.True.)
+         IF( WL(1).GT.0.045 ) CALL RERRMSG('REFICE--WL(1) bad',.True.)
+         IF( WL(NWL).LT.166.) CALL RERRMSG('REFICE--WL(NWL) bad',.True.)
 
          DO 1  I = 1, NWL
 
@@ -159,13 +159,13 @@ c                         ** Superficially test if main table messed up
      &          .OR. TABIM(I).LT.0.0  .OR. TABIM(I).GT.10.0 )  THEN
                WRITE( MESSAG, '(A,I5,A)' )  'REFICE--table value ', I,
      &                ' out of bounds '
-               CALL ERRMSG( MESSAG, .True. )
+               CALL RERRMSG( MESSAG, .True. )
             END IF
 
             IF( I.GT.1 .AND. WL(I).LE.WL(I-1) )  THEN
                WRITE( MESSAG, '(A,I5,A)' )  'REFICE--table WL(', I,
      &                ') not increasing  '
-               CALL ERRMSG( MESSAG, .True. )
+               CALL RERRMSG( MESSAG, .True. )
             END IF
 
     1    CONTINUE
@@ -175,7 +175,7 @@ c                         ** Superficially test if main table messed up
 
       IF( WAVLEN.LT.WL(1) .OR. WAVLEN.GT.WLT(NWLT) ) THEN
 
-         CALL ERRMSG('REFICE--wavelength outside table boundaries',
+         CALL RERRMSG('REFICE--wavelength outside table boundaries',
      &                .False.)
          REFICE = (0.,0.)
          RETURN
@@ -204,7 +204,7 @@ c               ** (temperature-dependent case)
 
          IF( TEMP.LT.TEMREF(4) .OR. TEMP.GT.TEMREF(1) ) THEN
 
-            CALL ERRMSG('REFICE--temperature outside table boundaries',
+            CALL RERRMSG('REFICE--temperature outside table boundaries',
      &                  .False.)
             REFICE = (0.,0.)
             RETURN
@@ -1143,7 +1143,7 @@ c                         for TABRET,TABIMT
 
       END
 
-      SUBROUTINE  ErrMsg( MESSAG, FATAL )
+      SUBROUTINE  RErrMsg( MESSAG, FATAL )
 
 c        Print out a warning or error message;  abort if error
 c        after making symbolic dump (machine-specific).

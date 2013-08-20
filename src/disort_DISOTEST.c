@@ -974,7 +974,7 @@ static logical c_true = TRUE_;
 	    , integer *, integer *, integer *, integer *, doublereal *, 
 	    doublereal *, doublereal *, doublereal *, doublereal *, 
 	    doublereal *, doublereal *, doublereal *, doublereal *, ftnlen), 
-	    errmsg_(char *, logical *, ftnlen);
+	    dserrmsg_(char *, logical *, ftnlen);
     static doublereal wvnmhi;
     extern /* Subroutine */ int prtfin_(doublereal *, integer *, doublereal *,
 	     integer *, doublereal *, integer *, integer *, integer *, 
@@ -1126,7 +1126,7 @@ static logical c_true = TRUE_;
 	    azmavg = TRUE_;
 	    nprob = 1;
 	    if (nprob > 9 || icas > 8) {
-		errmsg_("Out of bounds in exact-answer arrays", &c_false, (
+		dserrmsg_("Out of bounds in exact-answer arrays", &c_false, (
 			ftnlen)36);
 	    }
 	    prtfin_(utau, &ntau, umu, &numu, phi, &nphi, &c__5, &c__10, &
@@ -1217,7 +1217,7 @@ dfd", i__4, "testdo_", (ftnlen)209)], &dochek_1.tstuu[(i__5 = (((icas + (
 		azmavg = FALSE_;
 		nprob = 2;
 		if (nprob > 9 || icas > 8) {
-		    errmsg_("Out of bounds in exact-answer arrays", &c_false, 
+		    dserrmsg_("Out of bounds in exact-answer arrays", &c_false, 
 			    (ftnlen)36);
 		}
 		prtfin_(utau, &ntau, umu, &numu, phi, &nphi, &c__5, &c__10, &
@@ -1322,7 +1322,7 @@ dfd", i__4, "testdo_", (ftnlen)209)], &dochek_1.tstuu[(i__5 = (((icas + (
 	    azmavg = TRUE_;
 	    nprob = 3;
 	    if (nprob > 9 || icas > 8) {
-		errmsg_("Out of bounds in exact-answer arrays", &c_false, (
+		dserrmsg_("Out of bounds in exact-answer arrays", &c_false, (
 			ftnlen)36);
 	    }
 	    prtfin_(utau, &ntau, umu, &numu, phi, &nphi, &c__5, &c__10, &
@@ -1421,7 +1421,7 @@ dfd", i__4, "testdo_", (ftnlen)396)], &dochek_1.tstuu[(i__5 = (((icas + (
 	    azmavg = FALSE_;
 	    nprob = 4;
 	    if (nprob > 9 || icas > 8) {
-		errmsg_("Out of bounds in exact-answer arrays", &c_false, (
+		dserrmsg_("Out of bounds in exact-answer arrays", &c_false, (
 			ftnlen)36);
 	    }
 	    prtfin_(utau, &ntau, umu, &numu, phi, &nphi, &c__5, &c__10, &
@@ -1511,7 +1511,7 @@ dfd", i__4, "testdo_", (ftnlen)489)], &dochek_1.tstuu[(i__5 = (((icas + (
 	    azmavg = FALSE_;
 	    nprob = 5;
 	    if (nprob > 9 || icas > 8) {
-		errmsg_("Out of bounds in exact-answer arrays", &c_false, (
+		dserrmsg_("Out of bounds in exact-answer arrays", &c_false, (
 			ftnlen)36);
 	    }
 	    prtfin_(utau, &ntau, umu, &numu, phi, &nphi, &c__5, &c__10, &
@@ -1689,7 +1689,7 @@ t Alb = Non-Lambert";
 	    azmavg = FALSE_;
 	    nprob = 6;
 	    if (nprob > 9 || icas > 8) {
-		errmsg_("Out of bounds in exact-answer arrays", &c_false, (
+		dserrmsg_("Out of bounds in exact-answer arrays", &c_false, (
 			ftnlen)36);
 	    }
 	    prtfin_(utau, &ntau, umu, &numu, phi, &nphi, &c__5, &c__10, &
@@ -1795,7 +1795,7 @@ Sources", (ftnlen)56);
 	    azmavg = FALSE_;
 	    nprob = 7;
 	    if (nprob > 9 || icas > 8) {
-		errmsg_("Out of bounds in exact-answer arrays", &c_false, (
+		dserrmsg_("Out of bounds in exact-answer arrays", &c_false, (
 			ftnlen)36);
 	    }
 	    prtfin_(utau, &ntau, umu, &numu, phi, &nphi, &c__5, &c__10, &
@@ -1887,7 +1887,7 @@ dfd", i__4, "testdo_", (ftnlen)830)], &dochek_1.tstuu[(i__5 = (((icas + (
 	    nprob = 8;
 	    azmavg = FALSE_;
 	    if (nprob > 9 || icas > 8) {
-		errmsg_("Out of bounds in exact-answer arrays", &c_false, (
+		dserrmsg_("Out of bounds in exact-answer arrays", &c_false, (
 			ftnlen)36);
 	    }
 	    prtfin_(utau, &ntau, umu, &numu, phi, &nphi, &c__5, &c__10, &
@@ -2020,7 +2020,7 @@ nclude all possible complexity", (ftnlen)127, (ftnlen)74);
 	    nprob = 9;
 	    azmavg = FALSE_;
 	    if (nprob > 9 || icas > 8) {
-		errmsg_("Out of bounds in exact-answer arrays", &c_false, (
+		dserrmsg_("Out of bounds in exact-answer arrays", &c_false, (
 			ftnlen)36);
 	    }
 	    prtfin_(utau, &ntau, umu, &numu, phi, &nphi, &c__5, &c__10, &
@@ -2525,7 +2525,7 @@ y by Regular Method, Multiple Layer", (ftnlen)127, (ftnlen)79);
 
     /* Local variables */
     static integer k;
-    extern /* Subroutine */ int errmsg_(char *, logical *, ftnlen);
+    extern /* Subroutine */ int dserrmsg_(char *, logical *, ftnlen);
 
 /*        Calculate phase function Legendre expansion coefficients */
 /*        in various special cases */
@@ -2563,13 +2563,13 @@ y by Regular Method, Multiple Layer", (ftnlen)127, (ftnlen)79);
 
     /* Function Body */
     if (*iphas < 1 || *iphas > 5) {
-	errmsg_("GETMOM--bad input variable IPHAS", &c_true, (ftnlen)32);
+	dserrmsg_("GETMOM--bad input variable IPHAS", &c_true, (ftnlen)32);
     }
     if (*iphas == 3 && (*gg <= -1. || *gg >= 1.)) {
-	errmsg_("GETMOM--bad input variable GG", &c_true, (ftnlen)29);
+	dserrmsg_("GETMOM--bad input variable GG", &c_true, (ftnlen)29);
     }
     if (*nmom < 2) {
-	errmsg_("GETMOM--bad input variable NMOM", &c_true, (ftnlen)31);
+	dserrmsg_("GETMOM--bad input variable NMOM", &c_true, (ftnlen)31);
     }
     pmom[(i__1 = 0) < 1 * pmom_dim1 ? i__1 : s_rnge("pmom", i__1, "getmom_", (
 	    ftnlen)1554)] = 1.;
@@ -2643,7 +2643,7 @@ m_", (ftnlen)1562)] = .1;
     extern doublereal ratio_(doublereal *, doublereal *);
     static integer iu, lu, numbad;
     static doublereal fnoise, flxmax;
-    extern /* Subroutine */ int errmsg_(char *, logical *, ftnlen);
+    extern /* Subroutine */ int dserrmsg_(char *, logical *, ftnlen);
     static doublereal unoise, rat1, rat2, rat3, rat4;
 
     /* Fortran I/O blocks */
@@ -2708,7 +2708,7 @@ m_", (ftnlen)1562)] = .1;
 
     /* Function Body */
     if (*ntau > *maxtau || *numu > *maxmu || *nphi > *maxaz) {
-	errmsg_("PRTFIN--out of bounds in comparator arrays", &c_true, (
+	dserrmsg_("PRTFIN--out of bounds in comparator arrays", &c_true, (
 		ftnlen)42);
     }
     flxmax = 0.;
@@ -2722,10 +2722,10 @@ m_", (ftnlen)1562)] = .1;
     }
     fnoise = flxmax * 1e-6;
     if (flxmax <= 0.) {
-	errmsg_("PRTFIN--all fluxes zero or negative", &c_false, (ftnlen)35);
+	dserrmsg_("PRTFIN--all fluxes zero or negative", &c_false, (ftnlen)35);
     }
     if (fnoise <= 0.) {
-	errmsg_("PRTFIN--all fluxes near underflowing", &c_false, (ftnlen)36);
+	dserrmsg_("PRTFIN--all fluxes near underflowing", &c_false, (ftnlen)36);
     }
     numbad = 0;
     s_wsfe(&io___78);
@@ -2777,12 +2777,12 @@ m_", (ftnlen)1562)] = .1;
 	goto L100;
     }
     if (*numu > 100 || *nphi > 100) {
-	errmsg_("PRTFIN--increase parameter MAXRAT", &c_true, (ftnlen)33);
+	dserrmsg_("PRTFIN--increase parameter MAXRAT", &c_true, (ftnlen)33);
     }
     if (*azmavg) {
 /*                                       ** Print az-avg intensities */
 	if (*numu > 8) {
-	    errmsg_("PRTFIN--az-avg-intensity FORMATs inadequate", &c_false, (
+	    dserrmsg_("PRTFIN--az-avg-intensity FORMATs inadequate", &c_false, (
 		    ftnlen)43);
 	}
 	umax = 0.;
@@ -2802,11 +2802,11 @@ m_", (ftnlen)1562)] = .1;
 	}
 	unoise = umax * 1e-6;
 	if (umax <= 0.) {
-	    errmsg_("PRTFIN--all az-avg intensities zero or negative", &
+	    dserrmsg_("PRTFIN--all az-avg intensities zero or negative", &
 		    c_false, (ftnlen)47);
 	}
 	if (unoise <= 0.) {
-	    errmsg_("PRTFIN--all az-avg intensities near underflowing", &
+	    dserrmsg_("PRTFIN--all az-avg intensities near underflowing", &
 		    c_false, (ftnlen)48);
 	}
 	s_wsfe(&io___88);
@@ -2861,7 +2861,7 @@ m_", (ftnlen)1562)] = .1;
     } else {
 /*                                       ** Print intensities */
 	if (*nphi > 8) {
-	    errmsg_("PRTFIN--intensity FORMATs inadequate", &c_false, (ftnlen)
+	    dserrmsg_("PRTFIN--intensity FORMATs inadequate", &c_false, (ftnlen)
 		    36);
 	}
 	umax = 0.;
@@ -2886,11 +2886,11 @@ m_", (ftnlen)1562)] = .1;
 	}
 	unoise = umax * 1e-6;
 	if (umax <= 0.) {
-	    errmsg_("PRTFIN--all intensities zero or negative", &c_false, (
+	    dserrmsg_("PRTFIN--all intensities zero or negative", &c_false, (
 		    ftnlen)40);
 	}
 	if (unoise <= 0.) {
-	    errmsg_("PRTFIN--all intensities near underflowing", &c_false, (
+	    dserrmsg_("PRTFIN--all intensities near underflowing", &c_false, (
 		    ftnlen)41);
 	}
 	s_wsfe(&io___93);

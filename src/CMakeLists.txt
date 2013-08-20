@@ -278,14 +278,6 @@ add_library (methods STATIC
 	groups.cc
 	)
 
-########### next target ###############
-
-if (ENABLE_DISORT AND HAVE_F2C_H)
-  add_executable (test_disort disort_DISOTEST.c)
-
-  target_link_libraries (test_disort disort)
-endif (ENABLE_DISORT AND HAVE_F2C_H)
-
 ########### testcases ###############
 
 add_executable (test_binaryio test_binaryio.cc)

@@ -1,3 +1,35 @@
+2013-08-16  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-741
+
+	* README: Extend section on enabling / disabling Fortran features.
+
+	* CMakeLists.txt: Add -Wno-return-type-c-linkage to shut up clang
+	warning about Complex C++ return type used in C call to refice_. It's
+	fine.
+
+	Remove f2c related code.
+
+	* config.h.cmake: Remove f2c cmakedefine.
+
+	* src/CMakeLists.txt: Removed test_disort. Now in 3rdparty dir.
+
+	* 3rdparty/disort1.2/CMakeLists.txt: Add test_disort.
+
+	* 3rdparty/disort1.2/ErrPack.f: DSERRMSG->ERRMSG.
+
+	* 3rdparty/refice/REFICE.f: ERRMSG->RERRMSG. Easier to rename it here
+	than in the Disort code.
+
+	* 3rdparty/disort1.2/CMakeLists.txt, 3rdparty/refice/CMakeLists.txt,
+	3rdparty/tmatrix/CMakeLists.txt:
+
+	Simplify. Tweak messages.
+
+	* controlfiles/CMakeLists.txt:
+
+	Promote tmatrix tests from nocheck to fast.
+
 2013-08-19  Jana Mendrok  <jana.mendrok@ltu.se>
 
 	* arts-2-1-740

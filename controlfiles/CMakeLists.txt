@@ -86,8 +86,8 @@ if (ENABLE_DISORT)
 endif ()
 
 if (ENABLE_TMATRIX)
-  arts_test_run_ctlfile(nocheck.tmatrix artscomponents/tmatrix/TestTMatrix.arts)
-  arts_test_run_ctlfile(nocheck.tmatrix_ssd artscomponents/tmatrix/TestTMatrixSSD.arts)
+  arts_test_run_ctlfile(fast.tmatrix artscomponents/tmatrix/TestTMatrix.arts)
+  arts_test_run_ctlfile(fast.tmatrix_ssd artscomponents/tmatrix/TestTMatrixSSD.arts)
 endif ()
 
 

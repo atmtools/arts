@@ -55,7 +55,6 @@
 #cmakedefine HAVE_SYS_TYPES_H 1
 #cmakedefine HAVE_UNISTD_H 1
 #cmakedefine HAVE_GETOPT_H 1
-#cmakedefine HAVE_F2C_H 1
 
 /* check existence of c header files for libmicrohttpd */
 
