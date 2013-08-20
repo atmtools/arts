@@ -1,3 +1,16 @@
+2013-08-20  Johan Strandgren  <johsat-9@student.ltu.se>
+
+	* arts-2-1-746
+
+	* src/workspace.cc:
+
+	(scat_meta, scat_meta_array): updated online doc.
+
+	* src/methods.cc:
+
+	(scat_meta_arrayAddTmatrix, scat_data_arrayFromMeta):
+	updated online doc.
+
 2013-08-20  Jana Mendrok  <jana.mendrok@ltu.se>
 
 	* arts-2-1-745

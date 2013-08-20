@@ -3385,17 +3385,17 @@ void Workspace::define_wsv_data()
          "Usage: Set by the user.\n"
          "\n"
          "Dimensions/Units: Array[particle types]\n"
-         "\tString[description]\t[particle description]\n"
+         "\tString[description]\t\t[particle description]\n"
          "\tString[material]\t\t[''Ice'', ''Water''...]\n"
-         "\tString[shape]\t\t[''spheroidal'', ''cylindrical'']\n"
-         "\tNumeric[particle_type]\t[kg/m3]\n"
-         "\tNumeric[density]\t[kg/m3]\n"
+         "\tString[shape]\t\t\t[''spheroidal'', ''cylindrical'']\n"
+         "\tNumeric[density]\t\t[kg/m3]\n"
          "\tNumeric[diameter_max]\t\t[m]\n"
-         "\tNumeric[volume]\t\t[m3]\n"
-         "\tNumeric[area_projected]\t[m2]\n"
-         "\tNumeric[aspect_ratio]\t[]\n"
+         "\tNumeric[volume]\t\t\t[m3]\n"
+         "\tNumeric[area_projected]\t\t[m2]\n"
+         "\tNumeric[aspect_ratio]\t\t[]\n"
          "\tVector[scat_f_grid]\t\t[Hz]\n"
          "\tVector[scat_T_grid]\t\t[K]\n"
+         "\tNumeric[particle_type]\t[kg/m3]\n"
          "\tTensor3[complex_refr_index]\t[]\n"
         ),
         GROUP( "ScatteringMetaData" ))); 
@@ -3405,19 +3405,17 @@ void Workspace::define_wsv_data()
       ( NAME( "scat_meta_array" ),
         DESCRIPTION
         (
-         "An Array of ScatteringMetaData.\n"
+         "An Array of scattering meta data (*scat_meta*).\n"
          "\n"
-         "The elements of the array hold the scattering meta data for single\n"
-         "particles\n"
-         "This data is needed for particle size distribution and particle"
-         "scattering properties calculations, with *pnd_fieldSetup* and"
-         "*scat_data_arrayFromMeta*.\n"
+         "The elements of the array hold the meta data for single particles used\n"
+         "both for PSD and scattering properties calculations with *pnd_fieldSetup*,\n"
+         "*particle_massesFromMetaDataAndPart_species* and *scat_data_arrayFromMeta*.\n"
          "\n"
          "Note: This array must contain as many elements as *scat_data_array*\n"
          "\n"
          "Usage: Set by the user.\n"
          "\n"
-         "See also *scat_meta*."
+         "For more details of its content; see also *scat_meta*."
         ),
         GROUP( "ArrayOfScatteringMetaData" ))); 
 

@@ -8941,8 +8941,25 @@ void define_md_data_raw()
     ( NAME( "scat_meta_arrayAddTmatrix" ),
       DESCRIPTION
       (
-          "Adds particle meta data to the workspace variable\n"
-          "*scat_meta_array*.\n"
+       "This method adds particle meta data to the workspace variable\n"
+       "*scat_meta_array*.\n"
+       "\n"
+       "One set of meta data is created and added to the array for each\n"
+       "diameter in the GIN diamter_grid. The size of *scat_meta_array*\n"
+       "and hence the usage has been extended. For that reason, a short\n"
+       "summary below tells which input parameters are required for certain further\n"
+       "calculations.\n"
+       "\n"
+       "String[description]\t\tNot used for any particular calculations\n"
+       "String[material]\t\tNot used for any particular calculations\n"
+       "String[shape]\t\t\tUsed for scattering properties calculations\n"
+       "Numeric[particle_type]\t\tUsed for scattering properties calculations\n"
+       "Numeric[density]\t\tUsed for PSD calculations\n"
+       "Numeric[aspect_ratio]\t\tUsed for scattering properties calculations\n"
+       "Numeric[diameter_grid]\t\tUsed for both scattering properties and PSD calculations\n"
+       "Vector[scat_f_grid]\t\tUsed for scattering properties calculations\n"
+       "Vector[scat_T_grid]\t\tUsed for scattering properties calculations\n"
+       "Tensor3[complex_refr_index]\tUsed for scattering properties calculations\n"
       ),
       AUTHORS( "Johan Strandgren" ),
       OUT("scat_meta_array"),
@@ -9047,7 +9064,12 @@ void define_md_data_raw()
       ( NAME( "scat_data_arrayFromMeta" ),
         DESCRIPTION
         (
-         "Calculates *scat_data_array* using *scat_meta_array*.\n"
+         "This workspace methos calculates scattering data and adds it to\n"
+         "*scat_data_array* using particle meta data in *scat_meta_array*.\n"
+         "The scattering data is calculated with the T-matrix method.\n"
+         "\n"
+         "One set of scattering data is calculated for each particle in\n"
+         "*scat_meta_array*\n"
          ),
         AUTHORS( "Johan Strandgren, Oliver Lemke" ),
         OUT("scat_data_array"),
