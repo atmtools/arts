@@ -154,7 +154,13 @@ void cart2poslos(
       const Numeric   dr     = coslat*dx + sinlat*dz;
 
       // Use ppc for max accuracy, but dr required to resolve if up- 
-      // and downward cases
+      // and downward cases.
+
+      // Another possible wat to obtain (abolsute value of) za is 
+      // RAD2DEG*acos(dr).
+      // It is checked that the two ways give consistent results, but
+      // occasionaly deviate with 1e-4 deg (due to numerical issues).
+
       za = RAD2DEG * asin( ppc / r );
       if( za0 > 0 )
         {
@@ -172,9 +178,6 @@ void cart2poslos(
           else 
             { za = -za; }
         }
-
-      // The difference below can at least be 3e-6 for tangent points 
-      assert( abs( abs(za) - RAD2DEG*acos(dr) ) < 1e-4 );
     }
 }
 

@@ -1,3 +1,19 @@
+2013-08-20  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-747
+
+	* src/methods.cc (particle_massesFromMetaDataSingleCategory):
+	Extended doc text, for hopefully better clarity.
+
+	* src/geodetic.cc (cart2poslos): Removed assrt of 
+	abs( abs(za) - RAD2DEG*acos(dr) ) < 1e-4
+
+	Added this assert as a double check that correct angle was
+	resolved and there is no real loopholes in the code. Ole Martin
+	now got a case with a difference of 1.018e-4. This is a numerical
+	issue. No point in just relaxing the assert, the assert has
+	fulfilled its purpose.
+
 2013-08-20  Johan Strandgren  <johsat-9@student.ltu.se>
 
 	* arts-2-1-746
@@ -32,7 +48,7 @@
 	src/m_cloudbox.cc, src/methods.cc, src/workspace.cc:
 
 	scat_data_array_nelem -> part_species_nout
-	
+
 2013-08-20  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-743

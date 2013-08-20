@@ -7212,6 +7212,12 @@ void define_md_data_raw()
          "or ice) are assumed. With other words, a single mass category\n"
          "is assumed (see *particle_masses* for a definition of \"mass\n"
          "category\").\n"
+         "\n"
+         "To be clear, the above are assumptions of the method, the user\n"
+         "is free to work with any particle type. For Earth and just having\n"
+         "cloud and particles, the resulting mass category can be seen as\n"
+         "the total cloud water content, with possible contribution from\n"
+         "both ice and liquid phase.\n"
          ),
         AUTHORS( "Jana Mendrok", "Patrick Eriksson" ),
         OUT( "particle_masses" ),
