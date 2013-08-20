@@ -1,4 +1,36 @@
-2013-08-16  Oliver Lemke  <olemke@core-dump.info>
+2013-08-20  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-742
+
+	* Work in progress, no active changes yet.
+
+	* Start on revision of checked WSVs and WSMs. Following the lines
+	of Jana's changes, but instead using more WSVs. And trying to
+	better distinguish between atmospheric and absorption parts. For
+	example, basics_checkedCalc requires f_grid to be set, while
+	f_grid is not always used, such as when calling ppathCalc.
+	Now planning to have these flag WSVs:
+	  abs_checked
+          atmfields_checked
+          atmgeom_checked
+          cloudbox_checked
+          sensor_checked
+
+	For abs_checked to be true, both abs_xsec_agenda_checked and
+        propmat_clearsky_agenda_checked must be true, and some additional
+	tests done. So it is a "super flag" for the absorption part.
+
+	* src/m_checked.cc: New file and placed all WSM returning
+	checked-variables here. The idea is by putting them side-by-side
+	it should be easier to make sure that the checks are complete and
+	there is a good logic between the methods.
+
+	(atmfields_checkedCalc, atmgeom_checkedCalc, abs_checkedCalc): New
+	methods, not yet active.
+
+	* Corrected date for commit below.
+
+2013-08-20  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-741
 

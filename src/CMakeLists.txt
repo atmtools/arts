@@ -181,6 +181,7 @@ add_library (artscore STATIC
   m_atmosphere.cc
   m_basic_types.cc
   m_batch.cc
+  m_checked.cc
   m_cia.cc
   m_cloudbox.cc
   m_cloudradar.cc
