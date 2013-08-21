@@ -1,3 +1,30 @@
+2013-08-21  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-749
+
+	* Polishing of last commit. Mixed CloudboxGetIncoming with
+	iyInterp.... The CloudboxGetIncoming WSMs shall use the checked
+	WSVs. Added these WSVs also to some other WSMs not even using
+	basics_checked, but should have done. Fixes pointed out in email
+	from Jana. Thanks.
+
+	* ChangeLog: Edited entry for 2-1-748, to not have misleading
+	information in the file.
+
+	* src/m_disort.cc (ScatteringDisort):
+	* src/m_doit.cc (CloudboxGetIncoming)
+	(ScatteringDoit,CloudboxGetIncoming1DAtm): Now using abs_checked,
+	atmfields_checked and atmgeom_checked and cloudbox_checked.
+
+	* controlfiles/artscomponents/arts-xml-data/TestSurf_Earth.arts:
+	Changed to 1e-6 also here. Not needed, but for consistency.
+
+	* controlfiles/artscomponents/arts-xml-data/TestSurf_Mars.arts:
+	Test using this file failed worked my work desktop, but failed on
+	home Mac desktop. The diff on the Mac was 1.1e-8, and the limit
+	was set to 1e-8. A very hard limit, now relaxed to 1e-6. Diffs
+	below 1-e3 should have no practical importance.
+
 2013-08-20  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-748
@@ -13,15 +40,14 @@
 	called directly in the control file, but not used in methods
 	normally placed in agendas, for efficiency reasons. So, yCalc,
 	ppathCalc etc. uses the variables, but I have removed old checks
-	in e.g. iyMC and CloudboxGetIncoming to be consistent with this
-	rule.
+	in e.g. iyMC to be consistent with this rule.
 
-	That is, if you make direct calls of methods like iyMC,
-	iyEmissionStandard and CloudboxGetIncoming its on your own risk.
-	If you use bad input for such calls, you can obtain an assert
-	instead of an error, or even worse, incorrect result. However, you can
-	of course call e.g. atmfields_checkedCalc anyhow before calling
-	e.g. iyMC. That will decrease the risk of bad surprises later on.
+	That is, if you make direct calls of methods like iyMC and
+	iyEmissionStandard its on your own risk. If you use bad input for
+	such calls, you can obtain an assert instead of an error, or even
+	worse, incorrect result. However, you can of course call e.g.
+	atmfields_checkedCalc anyhow before calling e.g. iyMC. That will
+	decrease the risk of bad surprises later on.
 
 	For a claculation with yCalc you now need these calls
            propmat_clearsky_agenda_checkedCalc
@@ -83,8 +109,6 @@
 	remember that I had started this!
 
 	* src/m_rte.cc (iyMC):
-	* src/m_doit.cc (CloudboxGetIncoming1DAtm):
-	* src/m_doit.cc (CloudboxGetIncoming):
 	* src/m_ppath.cc (ppathFromRtePos2): Now not using any of the
 	check variables, see comment at top.
 

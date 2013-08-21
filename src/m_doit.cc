@@ -2474,23 +2474,41 @@ void doit_za_interpSet(Index& doit_za_interp,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void ScatteringDoit(Workspace& ws,
-                    Tensor6& doit_i_field,
-                    Tensor7& scat_i_p, 
-                    Tensor7& scat_i_lat, 
-                    Tensor7& scat_i_lon,
-                    Tensor4& doit_i_field1D_spectrum,
-                    const Index&  cloudbox_on,
-                    const Vector& f_grid,
-                    const Agenda& doit_mono_agenda,
-                    const Index& doit_is_initialized,
-                    const Verbosity& verbosity)
+void ScatteringDoit(
+         Workspace& ws,
+         Tensor6&   doit_i_field,
+         Tensor7&   scat_i_p, 
+         Tensor7&   scat_i_lat, 
+         Tensor7&   scat_i_lon,
+         Tensor4&   doit_i_field1D_spectrum,
+   const Index&     abs_checked,
+   const Index&     atmfields_checked,
+   const Index&     atmgeom_checked,
+   const Index&     cloudbox_checked,
+   const Index&     cloudbox_on,
+   const Vector&    f_grid,
+   const Agenda&    doit_mono_agenda,
+   const Index&     doit_is_initialized,
+   const Verbosity& verbosity)
                   
 {
   CREATE_OUT2;
   
   //-------- Check input -------------------------------------------
  
+  if( abs_checked != 1 )
+    throw runtime_error( "The absorption part must be flagged to have "
+                         "passed a consistency check (abs_checked=1)." );
+  if( atmfields_checked != 1 )
+    throw runtime_error( "The atmospheric fields must be flagged to have "
+                         "passed a consistency check (atmfields_checked=1)." );
+  if( atmgeom_checked != 1 )
+    throw runtime_error( "The atmospheric geometry must be flagged to have "
+                         "passed a consistency check (atmgeom_checked=1)." );
+  if( cloudbox_checked != 1 )
+    throw runtime_error( "The cloudbox must be flagged to have "
+                         "passed a consistency check (cloudbox_checked=1)." );
+
   // Don't do anything if there's no cloudbox defined.
   if (!cloudbox_on) return;
   
@@ -2738,29 +2756,48 @@ void DoitCloudboxFieldPut(//WS Output:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void CloudboxGetIncoming(Workspace&      ws,
-                         Tensor7&        scat_i_p,
-                         Tensor7&        scat_i_lat,
-                         Tensor7&        scat_i_lon,
-                         const Agenda&   iy_main_agenda,
-                         const Index&    atmosphere_dim,
-                         const Vector&   lat_grid,
-                         const Vector&   lon_grid,
-                         const Tensor3&  z_field,
-                         const Tensor3&  t_field,
-                         const Tensor4&  vmr_field,
-                         const Index&    cloudbox_on,
-                         const ArrayOfIndex&   cloudbox_limits,
-                         const Vector&   f_grid,
-                         const Index&    stokes_dim,
-                         const String&   iy_unit,
-                         const Agenda&   blackbody_radiation_agenda,
-                         const Vector&   scat_za_grid,
-                         const Vector&   scat_aa_grid,
-                         const Index&    rigorous,
-                         const Numeric&  maxratio,
-                         const Verbosity&)
+void CloudboxGetIncoming(
+         Workspace&      ws,
+         Tensor7&        scat_i_p,
+         Tensor7&        scat_i_lat,
+         Tensor7&        scat_i_lon,
+   const Index&    abs_checked,
+   const Index&    atmfields_checked,
+   const Index&    atmgeom_checked,
+   const Index&    cloudbox_checked,
+   const Agenda&   iy_main_agenda,
+   const Index&    atmosphere_dim,
+   const Vector&   lat_grid,
+   const Vector&   lon_grid,
+   const Tensor3&  z_field,
+   const Tensor3&  t_field,
+   const Tensor4&  vmr_field,
+   const Index&    cloudbox_on,
+   const ArrayOfIndex&   cloudbox_limits,
+   const Vector&   f_grid,
+   const Index&    stokes_dim,
+   const String&   iy_unit,
+   const Agenda&   blackbody_radiation_agenda,
+   const Vector&   scat_za_grid,
+   const Vector&   scat_aa_grid,
+   const Index&    rigorous,
+   const Numeric&  maxratio,
+   const Verbosity&)
 {
+  if( abs_checked != 1 )
+    throw runtime_error( "The absorption part must be flagged to have "
+                         "passed a consistency check (abs_checked=1)." );
+  if( atmfields_checked != 1 )
+    throw runtime_error( "The atmospheric fields must be flagged to have "
+                         "passed a consistency check (atmfields_checked=1)." );
+  if( atmgeom_checked != 1 )
+    throw runtime_error( "The atmospheric geometry must be flagged to have "
+                         "passed a consistency check (atmgeom_checked=1)." );
+  if( cloudbox_checked != 1 )
+    throw runtime_error( "The cloudbox must be flagged to have "
+                         "passed a consistency check (cloudbox_checked=1)." );
+  
+
   // Don't do anything if there's no cloudbox defined.
   if (!cloudbox_on) return;
   
@@ -3013,27 +3050,45 @@ void CloudboxGetIncoming(Workspace&      ws,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void CloudboxGetIncoming1DAtm(Workspace&      ws,
-                              Tensor7&        scat_i_p,
-                              Tensor7&        scat_i_lat,
-                              Tensor7&        scat_i_lon,
-                              Index&          cloudbox_on,
-                              const Agenda&   iy_main_agenda,
-                              const Index&    atmosphere_dim,
-                              const Vector&   lat_grid,
-                              const Vector&   lon_grid,
-                              const Tensor3&  z_field,
-                              const Tensor3&  t_field,
-                              const Tensor4&  vmr_field,
-                              const ArrayOfIndex&   cloudbox_limits,
-                              const Vector&   f_grid,
-                              const Index&    stokes_dim,
-                              const String&   iy_unit,
-                              const Agenda&   blackbody_radiation_agenda,
-                              const Vector&   scat_za_grid,
-                              const Vector&   scat_aa_grid,
-                              const Verbosity&)
+void CloudboxGetIncoming1DAtm(
+         Workspace&      ws,
+         Tensor7&        scat_i_p,
+         Tensor7&        scat_i_lat,
+         Tensor7&        scat_i_lon,
+         Index&          cloudbox_on,
+   const Index&    abs_checked,
+   const Index&    atmfields_checked,
+   const Index&    atmgeom_checked,
+   const Index&    cloudbox_checked,
+   const Agenda&   iy_main_agenda,
+   const Index&    atmosphere_dim,
+   const Vector&   lat_grid,
+   const Vector&   lon_grid,
+   const Tensor3&  z_field,
+   const Tensor3&  t_field,
+   const Tensor4&  vmr_field,
+   const ArrayOfIndex&   cloudbox_limits,
+   const Vector&   f_grid,
+   const Index&    stokes_dim,
+   const String&   iy_unit,
+   const Agenda&   blackbody_radiation_agenda,
+   const Vector&   scat_za_grid,
+   const Vector&   scat_aa_grid,
+   const Verbosity&)
 {
+  if( abs_checked != 1 )
+    throw runtime_error( "The absorption part must be flagged to have "
+                         "passed a consistency check (abs_checked=1)." );
+  if( atmfields_checked != 1 )
+    throw runtime_error( "The atmospheric fields must be flagged to have "
+                         "passed a consistency check (atmfields_checked=1)." );
+  if( atmgeom_checked != 1 )
+    throw runtime_error( "The atmospheric geometry must be flagged to have "
+                         "passed a consistency check (atmgeom_checked=1)." );
+  if( cloudbox_checked != 1 )
+    throw runtime_error( "The cloudbox must be flagged to have "
+                         "passed a consistency check (cloudbox_checked=1)." );
+  
   // Don't do anything if there's no cloudbox defined.
   if (!cloudbox_on) return;
 

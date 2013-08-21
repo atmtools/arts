@@ -214,7 +214,7 @@ yCalc
 VectorCreate( y_3D_extRef )
 Copy( y_3D_extRef, y )
 #Print( y )
-Compare( y_3D_fixRef, y_3D_extRef, 1e-8 )
+Compare( y_3D_fixRef, y_3D_extRef, 1e-6 )
 
 
 

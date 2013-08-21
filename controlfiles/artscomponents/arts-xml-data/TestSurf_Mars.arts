@@ -255,7 +255,7 @@ yCalc
 #Print( y, 0 )
 #WriteXML( in=y )
 ReadXML( out=yREFERENCE, filename="TestSurf_Mars.y.xml" )
-Compare( y, yREFERENCE, 1e-8 )
+Compare( y, yREFERENCE, 1e-6 )
 
 
 #####
