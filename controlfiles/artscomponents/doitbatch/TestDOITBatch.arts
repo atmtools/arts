@@ -255,7 +255,7 @@ AgendaSet( ybatch_calc_agenda ){
   pnd_fieldSetup
   #pnd_fieldSetup( pnd_field, atmosphere_dim, cloudbox_on, cloudbox_limits, 
   #    massdensity_field, t_field, scat_meta_array, part_species, 
-  #    part_species_nout )
+  #    scat_data_per_part_species )
   
   #Write indexed pnd_fields to sub-folder for each atmosphere
   #WriteXMLIndexed (output_file_format, ybatch_index, pnd_field, 

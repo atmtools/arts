@@ -1,3 +1,12 @@
+2013-08-22  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-750
+
+	* controlfiles/artscomponents/doitbatch/TestDOITBatch.arts
+	src/m_cloudbox.cc, src/methods.cc, src/workspace.cc:
+
+	Rename WSV part_species_nout -> scat_data_per_part_species.
+
 2013-08-21  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-749
