@@ -1,3 +1,19 @@
+2013-08-22  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-1-751
+
+	* controlfiles/testdata/isoquantum.xml: Removed. It's a plain copy of
+	zeeman_constants.xml in arts-xm-data. So, we directly want to use that
+	instead!
+
+	* controlfiles/artscomponents/zeeman/TestZeeman.arts:
+	Adapted accordingly to use zeeman_constants.xml from arts-xm-data.
+
+	* controlfiles/CMakeLists.txt: Accordingly, moved Zeeman test into
+	arts-xml-data section.
+
+	* src/geodetic.cc(cart2poslos): Spellfixes in comments.
+
 2013-08-22  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-750
@@ -59,12 +75,12 @@
 	decrease the risk of bad surprises later on.
 
 	For a claculation with yCalc you now need these calls
-           propmat_clearsky_agenda_checkedCalc
-           abs_checkedCalc
+	   propmat_clearsky_agenda_checkedCalc
+	   abs_checkedCalc
 	   atmfields_checkedCalc
-           atmgeom_checkedCalc
-           cloudbox_checkedCalc
-           sensor_checkedCalc
+	   atmgeom_checkedCalc
+	   cloudbox_checkedCalc
+	   sensor_checkedCalc
 
 	* controlfiles/instruments/odinsmr/TestOdinSMR_1D.arts:
 	* controlfiles/instruments/odinsmr/TestOdinSMR.arts:

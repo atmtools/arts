@@ -59,7 +59,7 @@ abs_linesReadFromHitran(abs_lines, hitranfile, 61.1e9, 61.2e9)
 abs_lines_per_speciesCreateFromLines
 
 # Get the quantum Landé constant and molecule electron spin
-ReadXML( isotopologue_quantum, "testdata/isoquantum.xml" )
+ReadXML( isotopologue_quantum, "spectroscopy/QuantumConstants/zeeman_constants.xml" )
 
 #Get isotopologue ratioss
 isotopologue_ratiosInitFromBuiltin

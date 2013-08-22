@@ -156,10 +156,10 @@ void cart2poslos(
       // Use ppc for max accuracy, but dr required to resolve if up- 
       // and downward cases.
 
-      // Another possible wat to obtain (abolsute value of) za is 
+      // Another possibility to obtain (absolute value of) za is 
       // RAD2DEG*acos(dr).
       // It is checked that the two ways give consistent results, but
-      // occasionaly deviate with 1e-4 deg (due to numerical issues).
+      // occasionally deviate with 1e-4 deg (due to numerical issues).
 
       za = RAD2DEG * asin( ppc / r );
       if( za0 > 0 )

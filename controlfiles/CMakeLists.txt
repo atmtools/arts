@@ -79,8 +79,6 @@ arts_test_ctlfile_depends(fast.montecarlo.rtecalc fast.montecarlo.dataprepare)
 
 arts_test_run_ctlfile(slow.wfuns artscomponents/wfuns/TestWfuns.arts)
 
-arts_test_run_ctlfile(nocheck.zeeman artscomponents/zeeman/TestZeeman.arts)
-
 if (ENABLE_DISORT)
   arts_test_run_ctlfile(nocheck.disort artscomponents/disort/TestDISORT.arts)
 endif ()
@@ -110,10 +108,14 @@ arts_test_run_ctlfile(slow.hirs instruments/hirs/TestHIRS.arts)
 
 if (ARTS_XML_DATA_DIR)
 
+  ###########################################
+  ### cases using data from arts-xml-data ###
   arts_test_run_ctlfile(fast.regrid artscomponents/helpers/TestRegridding.arts)
 
   arts_test_run_ctlfile(fast.ppath.planetrefrac
                         artscomponents/ppath/TestRefractPlanets.arts)
+
+  arts_test_run_ctlfile(nocheck.zeeman artscomponents/zeeman/TestZeeman.arts)
 
   ################
   ### XML Data ###
