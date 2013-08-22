@@ -82,7 +82,6 @@ void ScatteringDisort(Workspace& ws,
                       ArrayOfSingleScatteringData& scat_data_array_mono,
                       Tensor4& doit_i_field1D_spectrum,
                       // WS Input
-                      const Index&     abs_checked,
                       const Index&     atmfields_checked,
                       const Index&     atmgeom_checked,
                       const Index&     cloudbox_checked,
@@ -104,9 +103,6 @@ void ScatteringDisort(Workspace& ws,
 {
   CREATE_OUT1;
 
-  if( abs_checked != 1 )
-    throw runtime_error( "The absorption part must be flagged to have "
-                         "passed a consistency check (abs_checked=1)." );
   if( atmfields_checked != 1 )
     throw runtime_error( "The atmospheric fields must be flagged to have "
                          "passed a consistency check (atmfields_checked=1)." );
@@ -355,7 +351,6 @@ void ScatteringDisort(Workspace&,
                       ArrayOfSingleScatteringData&,
                       Tensor4&,
                       // WS Input
-                      const Index&,
                       const Index&,
                       const Index&,
                       const Index&,

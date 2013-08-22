@@ -266,7 +266,6 @@ nelemGet( ybatch_n, batch_atm_fields_compact )
 # Execute the batch calculations:
 # ---
 propmat_clearsky_agenda_checkedCalc
-abs_checkedCalc
 ybatchCalc
 
 

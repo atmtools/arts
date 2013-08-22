@@ -1,3 +1,57 @@
+2013-08-22  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-752
+
+	* After discussion with Stefan, removed abs_check. This leaves
+	stokes_dim and f_grid "uncovered". Add checks where required. See
+	start of yCalc for the checks performed earler in abs_checkedCalc
+	(and before that in basics_checkedCalc).
+
+	* artscomponents/absorption/TestAbsDoppler.arts:
+	* artscomponents/absorption/TestCompareArtscat3And4.arts:
+	* artscomponents/absorption/TestIsoRatios.arts:
+	* artscomponents/arts-xml-data/TestPlanetIsoRatios.arts:
+	* artscomponents/arts-xml-data/TestSurf_Earth.arts:
+	* artscomponents/arts-xml-data/TestSurf_Mars.arts:
+	* artscomponents/arts-xml-data/TestSurf_Venus.arts:
+	* artscomponents/cia/TestRTwithCIA.arts:
+	* artscomponents/clearsky/TestClearSky.arts:
+	* artscomponents/clearsky/TestClearSky2.arts:
+	* artscomponents/disort/TestDISORT.arts:
+	* artscomponents/doit/TestDOIT.arts:
+	* artscomponents/doitbatch/TestDOITBatch.arts:
+	* artscomponents/faraday/TestFaradayRotation.arts:
+	* artscomponents/groundbased/TestFgrid.arts:
+	* artscomponents/groundbased/TestGbased.arts:
+	* artscomponents/groundbased/TestWinds.arts:
+	* artscomponents/montecarlo/TestMonteCarloGeneral.arts:
+	* artscomponents/montecarlo/TestMonteCarloGeneralGaussian.arts:
+	* artscomponents/montecarlo/TestRteCalcMC.arts:
+	* artscomponents/pencilbeam/TestPencilBeam.arts:
+	* artscomponents/radiolink/TestRadioLink.arts:
+	* artscomponents/radiolink/TestRadioLink2.arts:
+	* artscomponents/radiolink/TestRadioOccultation.arts:
+	* artscomponents/transmission/TestTransmission.arts:
+	* artscomponents/wfuns/TestWfuns.arts:
+	* artscomponents/zeeman/TestZeeman.arts:
+	* instruments/amsu/TestAMSU_generic.arts:
+	* instruments/hirs/TestHIRS.arts:
+	* instruments/mhs/TestMHS_generic.arts:
+	* instruments/odinsmr/TestOdinSMR.arts:
+	* instruments/odinsmr/TestOdinSMR_1D.arts: Adopted.
+
+	* src/m_montecarlo.cc (MCGeneral):
+	* src/m_abs_lookup.cc (propmat_clearsky_fieldCalc):
+	* src/m_disort.cc (ScatteringDisort):
+	* src/m_doit.cc (CloudboxGetIncoming,CloudboxGetIncoming1DAtm,ScatteringDoit):
+	* src/m_rte.cc (iyCalc,yCalc):
+	* src/m_cloudradar.cc (iyCloudRadar): Adopted. Added check of
+	stokes_dim, where this WSV is input.
+
+	* src/m_checked.cc (abs_checkedCalc): Removed.
+
+	* src/workspace.cc: Removed abs_checked.
+
 2013-08-22  Jana Mendrok  <jana.mendrok@ltu.se>
 
 	* arts-2-1-751

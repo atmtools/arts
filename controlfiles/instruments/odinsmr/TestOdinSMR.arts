@@ -124,7 +124,6 @@ sensor_checkedCalc
 Copy( iy_main_agenda, iy_main_agenda__Emission )
 
 propmat_clearsky_agenda_checkedCalc
-abs_checkedCalc
 
 yCalc
 

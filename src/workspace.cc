@@ -111,27 +111,6 @@ void Workspace::define_wsv_data()
   ----------------------------------------------------------------------*/
 
   wsv_data.push_back
-   (WsvRecord
-    ( NAME( "abs_checked" ),
-      DESCRIPTION
-      (
-       "Overall OK-flag for the absorption part.\n"
-       "\n"
-       "This variable is considered by the high level methods and works\n"
-       "as OK stamp that the absorption part is set up in a formally\n"
-       "correct manner. In this context, *stokes_dim* and *f_grid*\n"
-       "are considered as \"absorption variables\".\n"
-       "\n"
-       "The check of the absorption part is broken down into parts, and\n"
-       "more low level flags exist, such as *abs_xsec_agenda_checked*. If\n"
-       "this varaible is set as OK, this imples that the relavant low level\n"
-       "flags also are OK.\n"
-       "\n"
-       "Shall be set by *abs_checkedCalc*. Only the value 1 is taken as OK.\n"
-       ),
-      GROUP( "Index" )));
-
-  wsv_data.push_back
     (WsvRecord
      ( NAME( "abs_cia_data" ),
       DESCRIPTION

@@ -2073,7 +2073,6 @@ void propmat_clearsky_fieldCalc( Workspace& ws,
                                 // WS Output:
                                 Tensor7& propmat_clearsky_field,
                                 // WS Input:
-                                const Index&   abs_checked,
                                 const Index&   atmfields_checked,
                                 const Vector&  f_grid,
                                 const Index&   stokes_dim,
@@ -2094,9 +2093,7 @@ void propmat_clearsky_fieldCalc( Workspace& ws,
     CREATE_OUT2;
     CREATE_OUT3;
 
-  if( abs_checked != 1 )
-    throw runtime_error( "The absorption part must be flagged to have "
-                         "passed a consistency check (abs_checked=1)." );
+  chk_if_in_range( "stokes_dim", stokes_dim, 1, 4 );
   if( atmfields_checked != 1 )
     throw runtime_error( "The atmospheric fields must be flagged to have "
                          "passed a consistency check (atmfields_checked=1)." );

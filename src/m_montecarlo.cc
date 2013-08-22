@@ -129,7 +129,6 @@ void MCGeneral(Workspace&            ws,
                const ArrayOfIndex&   cloudbox_limits, 
                const Tensor4&        pnd_field,
                const ArrayOfSingleScatteringData& scat_data_array_mono,
-               const Index&          abs_checked,
                const Index&          atmfields_checked,
                const Index&          atmgeom_checked,
                const Index&          cloudbox_checked,
@@ -143,9 +142,7 @@ void MCGeneral(Workspace&            ws,
 {
   // Basics
   //
-  if( abs_checked != 1 )
-    throw runtime_error( "The absorption part must be flagged to have "
-                         "passed a consistency check (abs_checked=1)." );
+  chk_if_in_range( "stokes_dim", stokes_dim, 1, 4 );
   if( atmfields_checked != 1 )
     throw runtime_error( "The atmospheric fields must be flagged to have "
                          "passed a consistency check (atmfields_checked=1)." );

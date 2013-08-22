@@ -43,34 +43,6 @@ extern const Numeric DEG2RAD;
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_checkedCalc(
-         Index&     abs_checked,
-   const Index&     propmat_clearsky_agenda_checked,
-   const Index&     stokes_dim,
-   const Vector&    f_grid,
-   const Verbosity& )
-{
-  if( propmat_clearsky_agenda_checked != 1 )
-    throw runtime_error( "The checks related to "
-               " *propmat_clearsky_agenda_checked* have not been performed." );
-
-  // Stokes and frequency grid
-  chk_if_in_range( "stokes_dim", stokes_dim, 1, 4 );
-  if ( f_grid.nelem() == 0 )
-    { throw runtime_error ( "The frequency grid is empty." ); }
-  chk_if_increasing ( "f_grid", f_grid );
-  if( f_grid[0] <= 0) 
-    { throw runtime_error( "All frequencies in *f_grid* must be > 0." ); }
-
-  // If here, all OK
-  abs_checked = 1;
-}
-
-
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
 void abs_xsec_agenda_checkedCalc(Workspace& ws _U_,
                                  Index& abs_xsec_agenda_checked,
                                  // WS Input:

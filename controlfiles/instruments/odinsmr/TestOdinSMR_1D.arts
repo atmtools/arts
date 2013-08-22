@@ -108,7 +108,6 @@ Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__LookUpTable )
 # ---- Calculate and save
 
 propmat_clearsky_agenda_checkedCalc
-abs_checkedCalc
 
 yCalc
 

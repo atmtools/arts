@@ -228,40 +228,6 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "abs_checkedCalc" ),
-        DESCRIPTION
-        (
-         "Checks the overall consistency of the absorption part.\n"
-         "\n"
-         "The following WSVs are treated: *propmat_clearsky_agenda_checked*,\n"
-         "*stokes_dim* and *f_grid*.\n"
-         "\n"
-         "If any of the variables above is changed, then this method shall be\n"
-         "called again (no automatic check that this is fulfilled!).\n"
-         "\n"
-         "The tests include that:\n"
-         " 1. That more low level flags are OK.\n"
-         "    are inside defined ranges.\n"
-         " 2. *f_grid* is sorted and increasing.\n"
-         " 3. *stokes_dim* is in the range [1,4].\n"
-         "\n"
-         "If any test fails, there is an error. Otherwise, *abs_checked*\n"
-         "is set to 1.\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT( "abs_checked" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "propmat_clearsky_agenda_checked", "stokes_dim", "f_grid" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME( "abs_coefCalcFromXsec" ),
         DESCRIPTION
         (
@@ -2763,7 +2729,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN("abs_checked", "atmfields_checked", "atmgeom_checked",
+        IN("atmfields_checked", "atmgeom_checked",
            "cloudbox_checked", "iy_main_agenda", "atmosphere_dim", 
            "lat_grid", "lon_grid", "z_field", "t_field", "vmr_field",
             "cloudbox_on", "cloudbox_limits", "f_grid", "stokes_dim", 
@@ -2795,7 +2761,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "abs_checked", "atmfields_checked", "atmgeom_checked",
+        IN( "atmfields_checked", "atmgeom_checked",
             "cloudbox_checked", "iy_main_agenda", "atmosphere_dim", 
             "lat_grid", "lon_grid", "z_field", "t_field", "vmr_field",
             "cloudbox_on", "cloudbox_limits",
@@ -4685,7 +4651,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "abs_checked", "atmgeom_checked", "atmfields_checked", 
+        IN( "atmgeom_checked", "atmfields_checked", 
             "iy_aux_vars", "f_grid", "t_field", 
             "z_field", "vmr_field", "cloudbox_on", "cloudbox_checked", 
             "rte_pos", "rte_los", "rte_pos2", "iy_main_agenda" ),
@@ -6777,7 +6743,7 @@ void define_md_data_raw()
             "lat_grid", "lon_grid", "z_field", "refellipsoid", "z_surface", 
             "t_field", "vmr_field", "cloudbox_on", "cloudbox_limits", 
             "pnd_field", "scat_data_array_mono", 
-            "abs_checked", "atmfields_checked", "atmgeom_checked",
+            "atmfields_checked", "atmgeom_checked",
             "cloudbox_checked", "mc_seed", "iy_unit", 
             "mc_std_err", "mc_max_time", "mc_max_iter", "mc_min_iter" ),
         GIN(),
@@ -8235,7 +8201,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "abs_checked", "atmfields_checked", "f_grid", "stokes_dim",
+        IN( "atmfields_checked", "f_grid", "stokes_dim",
             "p_grid", "lat_grid", "lon_grid",
             "t_field", "vmr_field",
             "mag_u_field", "mag_v_field", "mag_w_field",
@@ -8810,7 +8776,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "abs_checked", "atmfields_checked", "atmgeom_checked",
+        IN( "atmfields_checked", "atmgeom_checked",
             "cloudbox_checked", "cloudbox_limits", "stokes_dim", 
             "opt_prop_part_agenda", "propmat_clearsky_agenda", 
             "spt_calc_agenda", "pnd_field", "t_field",
@@ -8841,7 +8807,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "abs_checked", "atmfields_checked", "atmgeom_checked",
+        IN( "atmfields_checked", "atmgeom_checked",
             "cloudbox_checked", "cloudbox_on", "f_grid", 
             "scat_i_p", "scat_i_lat", "scat_i_lon",
             "doit_mono_agenda", "doit_is_initialized" ),
@@ -11438,7 +11404,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "abs_checked", "atmgeom_checked", "atmfields_checked", 
+        IN( "atmgeom_checked", "atmfields_checked", 
             "atmosphere_dim", "t_field", "z_field", 
             "vmr_field", "cloudbox_on", "cloudbox_checked", "sensor_checked", 
             "stokes_dim", "f_grid", "sensor_pos", "sensor_los",
@@ -11489,7 +11455,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "abs_checked", "atmgeom_checked", "atmfields_checked", 
+        IN( "atmgeom_checked", "atmfields_checked", 
             "iy_aux_vars", "stokes_dim",
             "f_grid", "t_field", "z_field", "vmr_field", "cloudbox_on", 
             "cloudbox_checked", "sensor_pos", "sensor_los", "sensor_checked",

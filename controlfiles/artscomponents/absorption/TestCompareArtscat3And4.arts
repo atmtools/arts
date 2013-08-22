@@ -40,7 +40,6 @@ VectorNLinSpace( f_grid, 100, 50e9, 150e9 )
 
 abs_xsec_agenda_checkedCalc
 propmat_clearsky_agenda_checkedCalc
-abs_checkedCalc
 atmfields_checkedCalc
 
 timerStart

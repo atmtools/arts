@@ -120,7 +120,6 @@ void iyCalc(
          Matrix&           iy,
          ArrayOfTensor4&   iy_aux,
          Ppath&            ppath,
-   const Index&            abs_checked,
    const Index&            atmfields_checked,
    const Index&            atmgeom_checked,
    const ArrayOfString&    iy_aux_vars,
@@ -138,9 +137,6 @@ void iyCalc(
 {
   // Basics
   //
-  if( abs_checked != 1 )
-    throw runtime_error( "The absorption part must be flagged to have "
-                         "passed a consistency check (abs_checked=1)." );
   if( atmfields_checked != 1 )
     throw runtime_error( "The atmospheric fields must be flagged to have "
                          "passed a consistency check (atmfields_checked=1)." );
@@ -1263,7 +1259,7 @@ void iyMC(
                    p_grid, lat_grid, lon_grid, z_field, 
                    refellipsoid, z_surface, t_field, vmr_field,
                    cloudbox_on, cloudbox_limits,
-                   pnd_field, scat_data_array_mono, 1, 1, 1, 1,
+                   pnd_field, scat_data_array_mono, 1, 1, 1,
                    mc_seed, iy_unit, mc_std_err, mc_max_time, mc_max_iter,
                    mc_min_iter, verbosity);
           //cout << "Error: "      << mc_error << endl;
@@ -1482,7 +1478,6 @@ void yCalc(
          Matrix&                     y_los,
          ArrayOfVector&              y_aux,
          Matrix&                     jacobian,
-   const Index&                      abs_checked,
    const Index&                      atmfields_checked,
    const Index&                      atmgeom_checked,
    const Index&                      atmosphere_dim,
@@ -1515,9 +1510,14 @@ void yCalc(
 {
   // Basics
   //
-  if( abs_checked != 1 )
-    throw runtime_error( "The absorption part must be flagged to have "
-                         "passed a consistency check (abs_checked=1)." );
+  chk_if_in_range( "stokes_dim", stokes_dim, 1, 4 );
+  //
+  if ( f_grid.nelem() == 0 )
+    { throw runtime_error ( "The frequency grid is empty." ); }
+  chk_if_increasing ( "f_grid", f_grid );
+  if( f_grid[0] <= 0) 
+    { throw runtime_error( "All frequencies in *f_grid* must be > 0." ); }
+  //
   if( atmfields_checked != 1 )
     throw runtime_error( "The atmospheric fields must be flagged to have "
                          "passed a consistency check (atmfields_checked=1)." );

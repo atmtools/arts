@@ -72,7 +72,6 @@ VectorNLinSpace( f_grid, 500, 50e9, 150e9 )
 # Calculate field of absorption coefficients:
 abs_xsec_agenda_checkedCalc
 propmat_clearsky_agenda_checkedCalc
-abs_checkedCalc
 atmfields_checkedCalc
 
 propmat_clearsky_fieldCalc

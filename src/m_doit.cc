@@ -2481,7 +2481,6 @@ void ScatteringDoit(
          Tensor7&   scat_i_lat, 
          Tensor7&   scat_i_lon,
          Tensor4&   doit_i_field1D_spectrum,
-   const Index&     abs_checked,
    const Index&     atmfields_checked,
    const Index&     atmgeom_checked,
    const Index&     cloudbox_checked,
@@ -2496,9 +2495,6 @@ void ScatteringDoit(
   
   //-------- Check input -------------------------------------------
  
-  if( abs_checked != 1 )
-    throw runtime_error( "The absorption part must be flagged to have "
-                         "passed a consistency check (abs_checked=1)." );
   if( atmfields_checked != 1 )
     throw runtime_error( "The atmospheric fields must be flagged to have "
                          "passed a consistency check (atmfields_checked=1)." );
@@ -2761,7 +2757,6 @@ void CloudboxGetIncoming(
          Tensor7&        scat_i_p,
          Tensor7&        scat_i_lat,
          Tensor7&        scat_i_lon,
-   const Index&    abs_checked,
    const Index&    atmfields_checked,
    const Index&    atmgeom_checked,
    const Index&    cloudbox_checked,
@@ -2784,9 +2779,7 @@ void CloudboxGetIncoming(
    const Numeric&  maxratio,
    const Verbosity&)
 {
-  if( abs_checked != 1 )
-    throw runtime_error( "The absorption part must be flagged to have "
-                         "passed a consistency check (abs_checked=1)." );
+  chk_if_in_range( "stokes_dim", stokes_dim, 1, 4 );
   if( atmfields_checked != 1 )
     throw runtime_error( "The atmospheric fields must be flagged to have "
                          "passed a consistency check (atmfields_checked=1)." );
@@ -3056,7 +3049,6 @@ void CloudboxGetIncoming1DAtm(
          Tensor7&        scat_i_lat,
          Tensor7&        scat_i_lon,
          Index&          cloudbox_on,
-   const Index&    abs_checked,
    const Index&    atmfields_checked,
    const Index&    atmgeom_checked,
    const Index&    cloudbox_checked,
@@ -3076,9 +3068,7 @@ void CloudboxGetIncoming1DAtm(
    const Vector&   scat_aa_grid,
    const Verbosity&)
 {
-  if( abs_checked != 1 )
-    throw runtime_error( "The absorption part must be flagged to have "
-                         "passed a consistency check (abs_checked=1)." );
+  chk_if_in_range( "stokes_dim", stokes_dim, 1, 4 );
   if( atmfields_checked != 1 )
     throw runtime_error( "The atmospheric fields must be flagged to have "
                          "passed a consistency check (atmfields_checked=1)." );

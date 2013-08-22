@@ -157,7 +157,6 @@ AgendaSet(iy_cloudbox_agenda){
 #==================start==========================
 
 propmat_clearsky_agenda_checkedCalc
-abs_checkedCalc
 
 # Perform scattering calculation 
 ScatteringDisort
