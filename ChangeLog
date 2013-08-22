@@ -5,7 +5,8 @@
 	* After discussion with Stefan, removed abs_check. This leaves
 	stokes_dim and f_grid "uncovered". Add checks where required. See
 	start of yCalc for the checks performed earler in abs_checkedCalc
-	(and before that in basics_checkedCalc).
+	(and before that in basics_checkedCalc)...
+	
 
 	* artscomponents/absorption/TestAbsDoppler.arts:
 	* artscomponents/absorption/TestCompareArtscat3And4.arts:
@@ -39,7 +40,6 @@
 	* instruments/mhs/TestMHS_generic.arts:
 	* instruments/odinsmr/TestOdinSMR.arts:
 	* instruments/odinsmr/TestOdinSMR_1D.arts: Adopted.
-
 	* src/m_montecarlo.cc (MCGeneral):
 	* src/m_abs_lookup.cc (propmat_clearsky_fieldCalc):
 	* src/m_disort.cc (ScatteringDisort):
