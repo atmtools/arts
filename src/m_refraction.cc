@@ -330,8 +330,17 @@ void complex_refr_indexWaterLiebe93(
          GriddedField3& complex_refr_index,
    const Vector&        f_grid,
    const Vector&        t_grid,
-   const Verbosity& )
+   const Verbosity&     verbosity)
 {
+   
+  if (min(t_grid) < 250)
+  {
+    CREATE_OUT1;
+    out1 << "WARNING! The minimum chosen temperature is " << min(t_grid) <<
+    ". Temperatures below 250 K may lead to incorrect values of"
+    " *complex_refr_index*.\n";
+  }
+  
   const Index nf = f_grid.nelem();
   const Index nt = t_grid.nelem();
     

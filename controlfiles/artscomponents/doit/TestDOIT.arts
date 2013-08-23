@@ -97,8 +97,8 @@ AgendaSet( surface_rtprop_agenda ){
   VectorSetConstant( n_t_grid, 1, surface_skin_t )
   complex_refr_indexWaterLiebe93( 
     complex_refr_index = surface_complex_refr_index,
-    f_grid             = f_grid,
-    t_grid             = n_t_grid )
+    data_f_grid             = f_grid,
+    data_T_grid             = n_t_grid )
   surfaceFlatRefractiveIndex
 }
 

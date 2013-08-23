@@ -28,6 +28,10 @@
 #include "messages.h"
 #include "tmatrix.h"
 #include "check_input.h"
+#include "make_array.h"
+#include "refraction.h"
+#include "special_interp.h"
+
 
 
 void TMatrixTest(const Verbosity& verbosity)
@@ -38,7 +42,31 @@ void TMatrixTest(const Verbosity& verbosity)
     calc_ssp_fixed_test(verbosity);
 }
 //-----------------------------
+void complex_refr_indexRegrid(//WS Output:
+                 GriddedField3& complex_refr_index,
+                 //WS Generic input
+                 const Vector& scat_f_grid,
+                 const Vector& scat_T_grid,
+                 const Verbosity&)
+{
+  GriddedField3 complex_refr_index_temp = complex_refr_index;
+    
+  const Index nf = scat_f_grid.nelem();
+  const Index nt = scat_T_grid.nelem();
+    
+  complex_refr_index.resize( nf, nt, 2 );
+  complex_refr_index.set_grid_name( 0, "Frequency" );
+  complex_refr_index.set_grid( 0, scat_f_grid );
+  complex_refr_index.set_grid_name( 1, "Temperature" );
+  complex_refr_index.set_grid( 1, scat_T_grid );
+  complex_refr_index.set_grid_name( 2, "Complex" );
+  complex_refr_index.set_grid( 2, MakeArray<String>("real", "imaginary") );
+  
+  complex_n_interp(complex_refr_index.data(joker, joker,0), complex_refr_index.data(joker, joker,1),
+                   complex_refr_index_temp, "complex_refr_index", scat_f_grid, scat_T_grid);
+}
 
+//-----------------------------------
 
 
 void scat_meta_arrayInit(// WS Output:
@@ -53,6 +81,8 @@ void scat_meta_arrayInit(// WS Output:
                  
 void scat_meta_arrayAddTmatrix(// WS Output:
                              ArrayOfScatteringMetaData& scat_meta_array,
+                             // SW Input:
+                             const GriddedField3& complex_refr_index,
                              // WS Generic input:
                              const String& description,
                              const String& material,
@@ -63,12 +93,11 @@ void scat_meta_arrayAddTmatrix(// WS Output:
                              const Vector& diameter_grid,
                              const Vector& scat_f_grid,
                              const Vector& scat_T_grid,
-                             const GriddedField3& complex_refr_index,
                              const Verbosity&) 
 
 {
-  chk_if_equal("f_gridScat", "f_grid from complex_refr_index", scat_f_grid, complex_refr_index.get_numeric_grid(0));
-  chk_if_equal("T_gridScat", "T_grid from complex_refr_index", scat_T_grid, complex_refr_index.get_numeric_grid(1));
+  chk_if_equal("scat_f_grid", "data_f_grid from complex_refr_index", scat_f_grid, complex_refr_index.get_numeric_grid(0));
+  chk_if_equal("scat_T_grid", "data_T_grid from complex_refr_index", scat_T_grid, complex_refr_index.get_numeric_grid(1));
 
   for(Index k=0; k<diameter_grid.nelem(); k++)
     {

@@ -1,3 +1,29 @@
+2013-08-23  Johan Strandgren  <johsat-9@student.ltu.se>
+
+	* arts-2-1-753
+
+	* src/methods.cc:
+	(complex_refr_indexIceWarren84, complex_refr_indexIceLiebe93):
+	Renamed GINs:  f_grid --> data_f_grid
+		       t_grid --> data_T_grid.
+
+	(complex_refr_indexRegrid): Added new WSM to interpolate
+	complex_refr_index.
+
+	* src/m_refraction.cc:
+	(complex_refr_indexWaterLiebe93): Added a warning if 
+	temperatures below 250 K are used.			
+
+	* src/m_tmatrix.cc:
+	(complex_refr_indexRegrid): Added the interpolation method
+	mentioned above.
+	(scat_meta_arrayAddTmatrix): changed complex_ref_index to be IN
+	instead of GIN. Updated the variable names in the check functions.
+	
+	* controlfiles/artscomponents/tmatrix/TestTMatrixSSD.arts:
+	* controlfiles/artscomponents/doit/TestDOIT.arts:
+	Adapted the changed variable names.
+
 2013-08-22  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-752
