@@ -3118,33 +3118,6 @@ void define_md_data_raw()
         GIN_DESC( "Frequency grid for refractive index calculation",
                   "Temperature grid for refractive index calculation" )
         ));
-    
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "complex_refr_indexRegrid" ),
-        DESCRIPTION
-        (
-         "This WSM interpolates the content of *complex_refr_index*\n"
-         "with regards to the GINs scat_f_grid and scat_T_grid, that later on\n"
-         "are used to calculate scattering data with the T-matrix.\n"
-         "\n"
-         "The basic idea is to allow *complex_refr_index* to be 'imported' and\n"
-         "not necessary being calculated together with the rest of the meta data.\n"
-         "In such a case the grids might be different, but now that can be solved\n"
-         "with interpolation.\n"
-         ),
-        AUTHORS( "Johan Strandgren" ),
-        OUT( "complex_refr_index" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "complex_refr_index" ),
-        GIN( "scat_f_grid", "scat_T_grid" ),
-        GIN_TYPE( "Vector", "Vector" ),
-        GIN_DEFAULT( NODEF, NODEF ),
-        GIN_DESC( "Frequency grid to interpolate to",
-                  "Temperature grid to interpolate to" )
-        ));
 
   md_data_raw.push_back
     ( MdRecord

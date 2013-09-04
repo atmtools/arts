@@ -119,7 +119,7 @@ struct ScatteringMetaData {
   Numeric   aspect_ratio;
   Vector    scat_f_grid;
   Vector    scat_T_grid;
-  Tensor3   complex_refr_index;
+  GriddedField3  complex_refr_index;
 };
 
 typedef Array<ScatteringMetaData> ArrayOfScatteringMetaData;

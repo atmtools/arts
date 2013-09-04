@@ -120,6 +120,17 @@ void pnd_fieldH11 (Tensor4View pnd_field,
                    const String& delim,
                    const Verbosity& verbosity);
 
+void pnd_fieldH13 (Tensor4View pnd_field,
+                   const Tensor3& IWC_field,
+                   const Tensor3& t_field,
+                   const ArrayOfIndex& limits,
+                   const ArrayOfScatteringMetaData& scat_meta_array,
+                   const Index& scat_data_start,
+                   const Index& npart,
+                   const String& part_string,
+                   const String& delim,
+                   const Verbosity& verbosity);
+
 void pnd_fieldMP48 (Tensor4View pnd_field,
                     const Tensor3& PR_field,
                     const ArrayOfIndex& limits,
@@ -149,6 +160,9 @@ Numeric IWCtopnd_MH97 (const Numeric iwc,
 Numeric IWCtopnd_H11 ( const Numeric d,
                        const Numeric t);
 
+Numeric IWCtopnd_H13 ( const Numeric d,
+                       const Numeric t);
+
 Numeric LWCtopnd (const Numeric lwc,
                   const Numeric density,
                   const Numeric r);
@@ -176,9 +190,14 @@ void chk_pndsum (Vector& pnd,
                  const Verbosity& verbosity);
 
 void scale_H11 (Vector& pnd,
-                 const Numeric xwc,
-                 const Vector& density,
-		const Vector& vol);
+                const Numeric xwc,
+                const Vector& density,
+                const Vector& vol);
+
+void scale_H13 (Vector& pnd,
+                const Numeric xwc,
+                const Vector& density,
+                const Vector& vol);
 
 void chk_massdensity_field(bool& x, 
                            const Index&  dim,	

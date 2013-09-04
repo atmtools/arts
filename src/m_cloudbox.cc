@@ -1534,6 +1534,36 @@ void pnd_fieldSetup (//WS Output:
                        scat_data_per_part_species[k], part_species[k], delim,
                        verbosity);
     }
+    
+    //---- pnd_field calculations for H13 ----------------------------
+    else if ( psd_param == "H13" )
+    {
+        psd = "H13";
+
+        //check for expected particle field name
+        if ( partfield_name != "IWC" && partfield_name != "Snow")
+        {
+            out1 << "WARNING! The particle field name is unequal 'IWC' and 'Snow'.\n"
+                 << psd << " should only be applied to cloud or precipitating"
+                 << " ice.\n";
+        }
+
+        //check for expected particle phase
+      //check for correct particle phase
+        if ( part_material != "Ice" &&  part_material != "Water" )
+        {
+            out1 << "WARNING! The particle phase is unequal 'Ice'.\n"
+                 << psd << " should only be applied to ice (cloud ice or snow)"
+                 << " particles.\n";
+        }
+
+        pnd_fieldH13 (pnd_field,
+                       massdensity_field ( k, joker, joker, joker ),
+                       t_field, limits,
+                       scat_meta_array, scat_data_start,
+                       scat_data_per_part_species[k], part_species[k], delim,
+                       verbosity);
+    }
 
     //---- pnd_field calculations for MP48 -------------------------------
     else if ( psd_param == "MP48" )

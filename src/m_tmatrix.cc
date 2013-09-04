@@ -41,30 +41,6 @@ void TMatrixTest(const Verbosity& verbosity)
     calc_ssp_random_test(verbosity);
     calc_ssp_fixed_test(verbosity);
 }
-//-----------------------------
-void complex_refr_indexRegrid(//WS Output:
-                 GriddedField3& complex_refr_index,
-                 //WS Generic input
-                 const Vector& scat_f_grid,
-                 const Vector& scat_T_grid,
-                 const Verbosity&)
-{
-  GriddedField3 complex_refr_index_temp = complex_refr_index;
-    
-  const Index nf = scat_f_grid.nelem();
-  const Index nt = scat_T_grid.nelem();
-    
-  complex_refr_index.resize( nf, nt, 2 );
-  complex_refr_index.set_grid_name( 0, "Frequency" );
-  complex_refr_index.set_grid( 0, scat_f_grid );
-  complex_refr_index.set_grid_name( 1, "Temperature" );
-  complex_refr_index.set_grid( 1, scat_T_grid );
-  complex_refr_index.set_grid_name( 2, "Complex" );
-  complex_refr_index.set_grid( 2, MakeArray<String>("real", "imaginary") );
-  
-  complex_n_interp(complex_refr_index.data(joker, joker,0), complex_refr_index.data(joker, joker,1),
-                   complex_refr_index_temp, "complex_refr_index", scat_f_grid, scat_T_grid);
-}
 
 //-----------------------------------
 
@@ -77,11 +53,12 @@ void scat_meta_arrayInit(// WS Output:
     scat_meta_array.resize(0);
 }
 
-                
+//-----------------------------------
+
                  
 void scat_meta_arrayAddTmatrix(// WS Output:
                              ArrayOfScatteringMetaData& scat_meta_array,
-                             // SW Input:
+                             // WS Input:
                              const GriddedField3& complex_refr_index,
                              // WS Generic input:
                              const String& description,
@@ -96,36 +73,54 @@ void scat_meta_arrayAddTmatrix(// WS Output:
                              const Verbosity&) 
 
 {
-  chk_if_equal("scat_f_grid", "data_f_grid from complex_refr_index", scat_f_grid, complex_refr_index.get_numeric_grid(0));
-  chk_if_equal("scat_T_grid", "data_T_grid from complex_refr_index", scat_T_grid, complex_refr_index.get_numeric_grid(1));
-
   for(Index k=0; k<diameter_grid.nelem(); k++)
     {
       extern const Numeric PI;
 
+      Numeric volume;
+      
+      volume=4./3.*PI*pow(diameter_grid[k]/2.,3);
+      
+      
       Numeric diameter_max;
 
       if (shape == "spheroidal")
-
-        if (aspect_ratio<1)
-          diameter_max=diameter_grid[k]*pow(aspect_ratio, -2./3.);
-
-        else if (aspect_ratio>1)
-          diameter_max=diameter_grid[k]*pow(aspect_ratio, 1./3.);
-
+        {
+       if (aspect_ratio>1) // If oblate spheroid
+            {   
+            Numeric a; //rotational axis
+            
+            a=pow(3*volume*aspect_ratio/(4*PI), 1./3.);
+            diameter_max=2*a;
+            }
+        
+       else if (aspect_ratio<1) // If prolate spheroid
+            {  
+            Numeric b; //non-rotational axis (perpendicular to a)
+            
+            b=pow(3*volume/(4*PI*pow(aspect_ratio, 2)),1./3.);
+            diameter_max=2*b;
+            }
+        
         else
-          {
+            {
             ostringstream os;
             os << "Incorrect aspect ratio: " << aspect_ratio << "\n"
               << "Can not be equal to one";
             throw std::runtime_error(os.str());
-          }
-
+            }
+        }
       else if (shape == "cylindrical")
-
-          diameter_max=pow(pow(16./3., 2./3.)*pow(diameter_grid[k]/.2, 2.)*
-                    (pow(aspect_ratio, -4./3.)+pow(aspect_ratio, 2./3.)), 1./2.);
- 
+        {
+            Numeric D;
+            Numeric L;
+            
+            //aspect_ratio=D/L
+            
+            D=pow(volume*4./PI*aspect_ratio, 1./3.);
+            L=D/aspect_ratio;
+            diameter_max=pow((pow(D,2)+pow(L,2)), 1./2.);
+         }
 
       else
         {
@@ -153,12 +148,12 @@ void scat_meta_arrayAddTmatrix(// WS Output:
       smd.ssd_method = PARTICLE_SSDMETHOD_TMATRIX;
       smd.density = density;
       smd.diameter_max =diameter_max;
-      smd.volume = 4./3.*PI*pow(diameter_grid[k]/2., 3);
+      smd.volume = volume;
       smd.area_projected = 0;
       smd.aspect_ratio = aspect_ratio;
       smd.scat_f_grid = scat_f_grid;
       smd.scat_T_grid = scat_T_grid;
-      smd.complex_refr_index = complex_refr_index.data;
+      smd.complex_refr_index = complex_refr_index;
 
       scat_meta_array.push_back(smd);
     }
@@ -179,6 +174,21 @@ void scat_data_arrayFromMeta(// WS Output:
 {
   for(Index ii=0;ii<scat_meta_array.nelem();ii++)
     {
+        
+    //Interpolation
+        
+    Tensor3 complex_refr_index;
+        
+        
+    const Index nf = scat_meta_array[ii].scat_f_grid.nelem();
+    const Index nt = scat_meta_array[ii].scat_T_grid.nelem();
+       
+    complex_refr_index.resize(nf,nt,2);
+  
+    complex_n_interp(complex_refr_index(joker, joker,0), complex_refr_index(joker, joker,1),
+                     scat_meta_array[ii].complex_refr_index, "complex_refr_index", 
+                     scat_meta_array[ii].scat_f_grid, scat_meta_array[ii].scat_T_grid);
+        
 
       extern const Numeric PI;  
       Index  np;
@@ -204,8 +214,8 @@ void scat_data_arrayFromMeta(// WS Output:
         }
 
       calcSingleScatteringDataProperties(sdd,
-                                         scat_meta_array[ii].complex_refr_index(joker,joker,0),
-                                         scat_meta_array[ii].complex_refr_index(joker,joker,1),
+                                         complex_refr_index(joker,joker,0),
+                                         complex_refr_index(joker,joker,1),
                                          pow(scat_meta_array[ii].volume*1e18*3./(4.*PI),1./3.),
                                          np,
                                          scat_meta_array[ii].aspect_ratio,

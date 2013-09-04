@@ -1,3 +1,28 @@
+2013-09-04  Johan Strandgren  <johsat-9@student.ltu.se>
+
+	* arts-2-1-754
+
+	* src/optproperties.h (ScatteringMetaData):
+	Changed complex_refr_index from being a Tensor3 to a Griddedfield3
+
+	* src/m_cloudbox.cc (pnd_fieldSetup):
+	* src/cloudbox.cc (pnd_fieldH13, IWCtopnd_H13, scale_H13):
+	* src/cloudbox.h (pnd_fieldH13, IWCtopnd_H13, void scale_H13):
+	Added the updated version of Heymsfield's PSD from 2013. Very
+	similar to the earlier version (H11), only updated variable values.
+	
+	* src/methods.cc (complex_refr_indexRegrid): Removed this WSM 
+	used for interpolation of the refractive index.
+
+	* src/m_tmatrix.cc
+	(complex_refr_indexRegrid): Deleted and replaced with a built-in
+	interpolation function inside scat_data_arrayFromMeta instead (see below).
+	(scat_meta_arrayAddTmatrix): removed check-function for refractive index.
+	Simplified and clarified the equation used for calculation of diameter_max.
+	(scat_data_arrayFromMeta): Added a built-in interpolation function that 
+	interpolates the refractive index to fit the frequency and temperature grids
+	chosen for the T-matrix calculations.
+
 2013-08-23  Johan Strandgren  <johsat-9@student.ltu.se>
 
 	* arts-2-1-753

@@ -1144,6 +1144,129 @@ void pnd_fieldH11 (Tensor4View pnd_field,
 }
 
 
+/*! Calculates the particle number density field for Heymsfield (2013, personal
+    comm.) size distribution. To be used for atmospheric ice, particularly cloud
+    ice and snow.
+
+    \param pnd_field Particle number density field
+    \param IWC_field mass content (cloud ice or snow) field [kg/m3]
+    \param t_field atmospheric temperature [K]
+    \\param limits pnd_field boundaries (indices in p, lat, lon)
+    \param scat_meta_array particle meta data for particles
+    \param scat_data_start start index for particles handled by this distribution
+    \param npart number of particles handled by this distribution
+    \param part_string part_species tag for profile/distribution handled here
+    \param delim Delimiter string of *part_species* elements
+  
+  \author Johan Strandgren, Daniel Kreyling
+  \date 2013-08-26
+
+*/
+void pnd_fieldH13 (Tensor4View pnd_field,
+                   const Tensor3& IWC_field,
+                   const Tensor3& t_field,
+                   const ArrayOfIndex& limits,
+                   const ArrayOfScatteringMetaData& scat_meta_array,
+                   const Index& scat_data_start,
+                   const Index& npart,
+                   const String& part_string,
+                   const String& delim,
+                   const Verbosity& verbosity)
+{
+  ArrayOfIndex intarr;
+  Index pos;
+  Vector dmax_unsorted ( npart, 0.0 );
+  Vector vol ( npart, 0.0 );
+  Vector dm ( npart, 0.0 );
+  Vector rho ( npart, 0.0 );
+  Vector pnd ( npart, 0.0 );
+  Vector dN ( npart, 0.0 );
+  
+  String partfield_name;
+
+  //split String and copy to ArrayOfString
+  parse_partfield_name( partfield_name, part_string, delim);
+
+  for ( Index i=0; i < npart; i++ )
+      dmax_unsorted[i] = ( scat_meta_array[i+scat_data_start].diameter_max );
+  get_sorted_indexes(intarr, dmax_unsorted);
+      
+  // extract scattering meta data
+  for ( Index i=0; i< npart; i++ )
+  {
+      pos = intarr[i]+scat_data_start;
+
+      vol[i]= scat_meta_array[pos].volume; //[m^3]
+      // get maximum diameter from meta data [m]
+      dm[i] = scat_meta_array[pos].diameter_max;
+      // get density from meta data [kg/m^3]
+      rho[i] = scat_meta_array[pos].density;
+  }
+
+  //const bool suppress=true;
+  //const Verbosity temp_verb(0,0,0);
+
+  if (dm.nelem() > 0)
+  // dm.nelem()=0 implies no selected particles for the respective particle
+  // field. should not occur anymore.
+  {
+      // itertation over all atm. levels
+      for ( Index p=limits[0]; p<limits[1]; p++ )
+      {
+        for ( Index lat=limits[2]; lat<limits[3]; lat++ )
+        {
+          for ( Index lon=limits[4]; lon<limits[5]; lon++ )
+          {
+            // we only need to go through PSD calc if there is any material
+            if (IWC_field ( p, lat, lon ) > 0.)
+            {
+                // iteration over all given size bins
+                for ( Index i=0; i<dm.nelem(); i++ ) //loop over number of particles
+                {
+                    // calculate particle size distribution for H13
+                    // [# m^-3 m^-1]
+                    dN[i] = IWCtopnd_H13 ( dm[i], t_field ( p, lat, lon ) );
+                }
+                // scale pnds by scale width
+                if (dm.nelem() > 1)
+                    scale_pnd( pnd, dm, dN ); //[# m^-3]
+                else
+                    pnd = dN;
+
+                // scale H13 distribution (which is independent of Ice or 
+                // Snow massdensity) to current massdensity.
+                /* JM120411: we don't need this - it's doing exactly, what
+                             chk_pndsum is doing. instead we redefine verbosity
+                             for checksum here to suppress the 'scaling is off'
+                             warnings and let chk_pndsum do the proper scaling.
+                scale_H13 ( pnd, IWC_field ( p,lat,lon ), vol, rho );*/
+
+                // calculate proper scaling of pnd sum from real IWC and apply
+                chk_pndsum ( pnd, IWC_field ( p,lat,lon ), vol, rho,
+                             p, lat, lon, partfield_name, verbosity );
+//                             p, lat, lon, partfield_name, temp_verb );
+
+                // writing pnd vector to wsv pnd_field
+                for ( Index i =0; i< npart; i++ )
+                {
+                    pnd_field ( intarr[i]+scat_data_start, p-limits[0],
+                                lat-limits[2], lon-limits[4] ) = pnd[i];
+                }
+            }
+            else
+            {
+                for ( Index i = 0; i< npart; i++ )
+                {
+                  pnd_field ( intarr[i]+scat_data_start, p-limits[0],
+                              lat-limits[2], lon-limits[4] ) = 0.;
+                }
+            }
+          }
+        }
+      }
+  }
+}
+
 
 /*! Calculates the particle number density field for Marshall and Palmer (1948)
     size distribution. To be used for precipitation, particularly rain.
@@ -1665,6 +1788,59 @@ Numeric IWCtopnd_H11 ( const Numeric d,
 
 
 
+/*! Calculates particle size distribution using H13 parametrization.
+ *  Each diameter of the scattering particles is a node in the distribution.
+ *  One call of this function calculates one particle number density.  
+
+    \return dN particle number density per diameter interval [#/m3/m]
+          
+    \param d maximum diameter of scattering particle [m]
+    \param t atmospheric temperature [K]
+  
+  \author Johan Strandgren, Daniel Kreyling  
+  \date 2013-08-26
+
+*/
+Numeric IWCtopnd_H13 ( const Numeric d,
+                       const Numeric t)
+{  
+  Numeric dN;
+  Numeric la;
+  Numeric mu;
+  // convert m to cm
+  
+
+  Numeric D = d * 1e2;
+  //convert T from Kelvin to Celsius
+  Numeric T = t-273.15;
+  //choose parametrization depending on T
+  if ( T >= -58. )
+  {
+    la= 9.88 * exp( -0.060*T );
+  }
+  else
+  {
+    la= 0.75 * exp( -0.1057*T );
+  }
+  if ( T >= -61. )
+  {
+    mu= -0.59 - 0.030*T;
+  }
+  else
+  {
+    mu= -14.09 - 0.248*T;
+  }
+ 
+  //Distribution function H13
+
+  dN = pow( D, mu ) * exp ( -la * D );
+
+  if (isnan(dN)) dN = 0.0;
+  return dN;
+}
+
+
+
 /*! Calculates particle size distribution for liquid water clouds using a gamma
  *  parametrization by Hess et al., 1998 (continental stratus).
  *  Each radius of the scattering particles is a node in the distribution.
@@ -1940,6 +2116,53 @@ void scale_H11 (
 
 }
 
+/*! The H13 PSD is scaled to the initial 'ice' or 'snow' massdensity, after
+ *  the distribution has been evaluated. This function applies the scaling.
+         
+    \param xwc atmospheric massdensity [kg/m3]
+    \param density scattering particle density [kg/m3]
+    \param vol scattering particle volume [m3]
+  
+  \author Johan Strandgren, Daniel Kreyling
+  \date 2013-09-03
+
+*/
+void scale_H13 (
+         Vector& pnd,
+         const Numeric xwc,
+         const Vector& density,
+         const Vector& vol)
+         // const Index& p,
+         // const Index& lat,
+         // const Index& lon,
+         // const Verbosity& verbosity)
+
+{
+  // set vector x to pnd size
+  Vector x (pnd.nelem(), 0.0);
+
+  for ( Index i = 0; i<pnd.nelem(); i++ )
+  {
+    // convert from particles/m^3 to kg/m^3
+    x[i] = pnd[i]*density[i]*vol[i];
+    //out0<<x[i]<<"\n"<< pnd[i]<< "\n";
+  }
+
+  if ( x.sum() == 0.0 )
+  {
+    // set ratio and all pnd values to zero, IF there are 
+    // no scattering particles at this atmospheric level.
+    pnd = 0.0;
+  }
+  else
+  {
+      // calculate the ratio of initial massdensity (xwc) to sum of pnds
+    const Numeric ratio = xwc/x.sum();
+    // scale each pnd to represent the total massdensity
+    pnd *= ratio;
+  }
+
+}
 
 
 /*! Splitting part_species string and parse type of massdensity_field
