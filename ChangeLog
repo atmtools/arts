@@ -1,5 +1,12 @@
 2013-09-16  Johan Strandgren  <johsat-9@student.ltu.se>
 
+	* arts-2-1-756
+
+	* src/cloudbox.cc (area_ratioH13):
+	Corrected the values for alpha and beta.
+
+2013-09-16  Johan Strandgren  <johsat-9@student.ltu.se>
+
 	* arts-2-1-755
 
 	* src/methods.cc (scat_meta_arrayAddTmatrix):

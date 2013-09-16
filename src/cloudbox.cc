@@ -2188,9 +2188,9 @@ Numeric area_ratioH13 ( const Numeric d,
   Numeric T = t-273.15;
   //Parameterize for all temperatures
   
-  alpha = 0.2833+6.913e-3*T+8.09e-5*pow(T,2); 
+  alpha = 0.25*exp(0.0161*T);
   
-  beta = -0.2026+9.681e-3*T+1.19e-4*pow(T,2);
+  beta = -0.25+0.0033*T;
   
   // Area ratio function depending on temperature
 
