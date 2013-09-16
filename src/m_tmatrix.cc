@@ -66,96 +66,92 @@ void scat_meta_arrayAddTmatrix(// WS Output:
                              const String& shape,
                              const String& particle_type,
                              const Numeric& density,
-                             const Numeric& aspect_ratio,
-                             const Vector& diameter_grid,
+                             const Vector& aspect_ratio_grid,
+                             const Vector& diameter_max_grid,
                              const Vector& scat_f_grid,
                              const Vector& scat_T_grid,
                              const Verbosity&) 
 
 {
-  for(Index k=0; k<diameter_grid.nelem(); k++)
+  for(Index k=0; k<diameter_max_grid.nelem(); k++)
     {
-      extern const Numeric PI;
-
-      Numeric volume;
-      
-      volume=4./3.*PI*pow(diameter_grid[k]/2.,3);
-      
-      
-      Numeric diameter_max;
-
-      if (shape == "spheroidal")
+     for ( Index i=0; i < aspect_ratio_grid.nelem(); i++ )
+      {
+        extern const Numeric PI;  
+        Numeric volume;
+        
+        if (shape == "spheroidal")
         {
-       if (aspect_ratio>1) // If oblate spheroid
+            if (aspect_ratio_grid[i]>1) // If oblate spheroid
             {   
-            Numeric a; //rotational axis
-            
-            a=pow(3*volume*aspect_ratio/(4*PI), 1./3.);
-            diameter_max=2*a;
+                Numeric a; //rotational axis (perpendicular to a)
+                
+                a=diameter_max_grid[k]/2.;
+                volume=pow(a,3.)*4.*PI/(3.*aspect_ratio_grid[i]);
             }
         
-       else if (aspect_ratio<1) // If prolate spheroid
+            else if (aspect_ratio_grid[i]<1) // If prolate spheroid
             {  
-            Numeric b; //non-rotational axis (perpendicular to a)
-            
-            b=pow(3*volume/(4*PI*pow(aspect_ratio, 2)),1./3.);
-            diameter_max=2*b;
+                Numeric b; //non-rotational axis (perpendicular to a)
+                
+                b=diameter_max_grid[k]/2.;
+                volume=pow(b,3.)*4.*PI*pow(aspect_ratio_grid[i],2.)/3.;
             }
         
-        else
+            else
             {
-            ostringstream os;
-            os << "Incorrect aspect ratio: " << aspect_ratio << "\n"
-              << "Can not be equal to one";
-            throw std::runtime_error(os.str());
+                ostringstream os;
+                os << "Incorrect aspect ratio: " << aspect_ratio_grid[i] << "\n"
+                << "Can not be equal to one";
+                throw std::runtime_error(os.str());
             }
         }
-      else if (shape == "cylindrical")
+        else if (shape == "cylindrical")
         {
-            Numeric D;
-            Numeric L;
+            // Formulas to determine cylindrical volume from diamter_max:
             
-            //aspect_ratio=D/L
+            // D/L=aspect_ratio
+            // diameter_max=sqrt(D²+L²)
+            // volume=D³*pi/(4*aspect_ratio)
             
-            D=pow(volume*4./PI*aspect_ratio, 1./3.);
-            L=D/aspect_ratio;
-            diameter_max=pow((pow(D,2)+pow(L,2)), 1./2.);
+            volume=pow(diameter_max_grid[k]/pow((pow(aspect_ratio_grid[i], 2.)+1.), 1./2.), 3)*pow(aspect_ratio_grid[i], 2.)*PI/4.;
          }
 
-      else
+        else
         {
-          ostringstream os;
-          os << "Unknown particle shape: " << shape << "\n"
+            ostringstream os;
+            os << "Unknown particle shape: " << shape << "\n"
             << "Must be spheroidal or cylindrical";
-          throw std::runtime_error(os.str());
+            throw std::runtime_error(os.str());
         }
-
-      ScatteringMetaData smd;
-      if (description=="")
+        
+        ScatteringMetaData smd;
+        if (description=="")
         {   
-          ostringstream os;
-          os << shape<< " "<< material << " particle of type " << particle_type<<
+            ostringstream os;
+            os << shape<< " "<< material << " particle of type " << particle_type<<
             ", with volume equivalent diameter "
-            <<diameter_grid[k]<<" meters.";
-          smd.description=os.str();
+            <<diameter_max_grid[k]<<" meters.";
+            smd.description=os.str();
         }
-      else 
-        smd.description = description;
- 
-      smd.material = material;
-      smd.shape = shape;
-      smd.particle_type = ParticleTypeFromString(particle_type);
-      smd.ssd_method = PARTICLE_SSDMETHOD_TMATRIX;
-      smd.density = density;
-      smd.diameter_max =diameter_max;
-      smd.volume = volume;
-      smd.area_projected = 0;
-      smd.aspect_ratio = aspect_ratio;
-      smd.scat_f_grid = scat_f_grid;
-      smd.scat_T_grid = scat_T_grid;
-      smd.complex_refr_index = complex_refr_index;
+        else 
+            smd.description = description;
+        
+        smd.material = material;
+        smd.shape = shape;
+        smd.particle_type = ParticleTypeFromString(particle_type);
+        smd.ssd_method = PARTICLE_SSDMETHOD_TMATRIX;
+        smd.density = density;
+        smd.diameter_max =diameter_max_grid[k];
+        smd.volume = volume;
+        smd.area_projected = 0;
+        smd.aspect_ratio = aspect_ratio_grid[i];
+        smd.scat_f_grid = scat_f_grid;
+        smd.scat_T_grid = scat_T_grid;
+        smd.complex_refr_index = complex_refr_index;
 
-      scat_meta_array.push_back(smd);
+        scat_meta_array.push_back(smd);
+      }
     }
 }
 

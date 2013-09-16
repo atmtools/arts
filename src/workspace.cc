@@ -3421,8 +3421,8 @@ void Workspace::define_wsv_data()
          "\tNumeric[aspect_ratio]\t\t[]\n"
          "\tVector[scat_f_grid]\t\t[Hz]\n"
          "\tVector[scat_T_grid]\t\t[K]\n"
-         "\tNumeric[particle_type]\t[kg/m3]\n"
-         "\tTensor3[complex_refr_index]\t[]\n"
+         "\tString[particle_type]\t[]\n"
+         "\tGriddedField3[complex_refr_index]\t[]\n"
         ),
         GROUP( "ScatteringMetaData" ))); 
 

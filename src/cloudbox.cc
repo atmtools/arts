@@ -36,6 +36,8 @@ extern const Numeric PI;
   ===========================================================================*/
 #include <stdexcept>
 #include <cmath>
+#include <algorithm>
+#include <limits>
 
 #include "arts.h"
 #include "messages.h"
@@ -937,6 +939,7 @@ void pnd_fieldMH97 (Tensor4View pnd_field,
   Vector rho ( npart, 0.0 );
   Vector pnd ( npart, 0.0 );
   Vector dN ( npart, 0.0 );
+  Vector ar ( npart, 0.0 );
 
   String psd_param;
   String partfield_name;
@@ -963,7 +966,25 @@ void pnd_fieldMH97 (Tensor4View pnd_field,
              ( 1./3. ) );
       // get density from meta data [kg/m^3]
       rho[i] = scat_meta_array[pos].density;
+      // get aspect ratio from meta data [ ]
+      ar[i] = scat_meta_array[pos].aspect_ratio;
   }
+  
+    // Collect all unique aspect ratios and check if the are more than one
+    vector<Numeric> ar_in;
+    for (Iterator1D it = ar.begin(); it != ar.end(); ++it)
+        if (find(ar_in.begin(), ar_in.end(), *it) == ar_in.end())
+            ar_in.push_back(*it);
+    
+    if (ar_in.size()>1)
+    {    
+        ostringstream os;
+        os << "There are " << ar_in.size() << " unique aspect ratios in *scat_meta_array*.\n"
+        "This parametrization is only valid for one single\n"
+        "aspect ratio\n";
+        throw runtime_error(os.str());
+    }
+    
       
   if (dm.nelem() > 0)
   // dm.nelem()=0 implies no selected particles for the respective particle
@@ -1057,7 +1078,7 @@ void pnd_fieldH11 (Tensor4View pnd_field,
   Vector rho ( npart, 0.0 );
   Vector pnd ( npart, 0.0 );
   Vector dN ( npart, 0.0 );
-  
+  Vector ar ( npart, 0.0 );
   String partfield_name;
 
   //split String and copy to ArrayOfString
@@ -1077,8 +1098,25 @@ void pnd_fieldH11 (Tensor4View pnd_field,
       dm[i] = scat_meta_array[pos].diameter_max;
       // get density from meta data [kg/m^3]
       rho[i] = scat_meta_array[pos].density;
+      // get aspect ratio from meta data [ ]
+      ar[i] = scat_meta_array[pos].aspect_ratio;
   }
 
+    // Collect all unique aspect ratios and check if the are more than one
+    vector<Numeric> ar_in;
+    for (Iterator1D it = ar.begin(); it != ar.end(); ++it)
+        if (find(ar_in.begin(), ar_in.end(), *it) == ar_in.end())
+            ar_in.push_back(*it);
+    
+    if (ar_in.size()>1)
+    {    
+        ostringstream os;
+        os << "There are " << ar_in.size() << " unique aspect ratios in *scat_meta_array*.\n"
+        "This parametrization is only valid for one single\n"
+        "aspect ratio\n";
+        throw runtime_error(os.str());
+    }
+    
   //const bool suppress=true;
   //const Verbosity temp_verb(0,0,0);
 
@@ -1181,7 +1219,7 @@ void pnd_fieldH13 (Tensor4View pnd_field,
   Vector rho ( npart, 0.0 );
   Vector pnd ( npart, 0.0 );
   Vector dN ( npart, 0.0 );
-  
+  Vector ar ( npart, 0.0 );
   String partfield_name;
 
   //split String and copy to ArrayOfString
@@ -1201,8 +1239,26 @@ void pnd_fieldH13 (Tensor4View pnd_field,
       dm[i] = scat_meta_array[pos].diameter_max;
       // get density from meta data [kg/m^3]
       rho[i] = scat_meta_array[pos].density;
+      // get aspect ratio from meta data [ ]
+      ar[i] = scat_meta_array[pos].aspect_ratio;
   }
 
+    // Collect all unique aspect ratios and check if the are more than one
+    vector<Numeric> ar_in;
+    for (Iterator1D it = ar.begin(); it != ar.end(); ++it)
+        if (find(ar_in.begin(), ar_in.end(), *it) == ar_in.end())
+            ar_in.push_back(*it);
+    
+    if (ar_in.size()>1)
+    {    
+        ostringstream os;
+        os << "There are " << ar_in.size() << " unique aspect ratios in *scat_meta_array*.\n"
+        "This parametrization is only valid for one single\n"
+        "aspect ratio\n";
+        throw runtime_error(os.str());
+    }
+
+    
   //const bool suppress=true;
   //const Verbosity temp_verb(0,0,0);
 
@@ -1267,6 +1323,217 @@ void pnd_fieldH13 (Tensor4View pnd_field,
   }
 }
 
+/*! Calculates the particle number density field for Heymsfield (2013, personal
+    comm.) size distribution. To be used for atmospheric ice, particularly cloud
+    ice and snow.
+
+    \param pnd_field Particle number density field
+    \param IWC_field mass content (cloud ice or snow) field [kg/m3]
+    \param t_field atmospheric temperature [K]
+    \\param limits pnd_field boundaries (indices in p, lat, lon)
+    \param scat_meta_array particle meta data for particles
+    \param scat_data_start start index for particles handled by this distribution
+    \param npart number of particles handled by this distribution
+    \param part_string part_species tag for profile/distribution handled here
+    \param delim Delimiter string of *part_species* elements
+  
+  \author Johan Strandgren
+  \date 2013-08-26
+
+*/
+void pnd_fieldH13Shape (Tensor4View pnd_field,
+                   const Tensor3& IWC_field,
+                   const Tensor3& t_field,
+                   const ArrayOfIndex& limits,
+                   const ArrayOfScatteringMetaData& scat_meta_array,
+                   const Index& scat_data_start,
+                   const Index& npart,
+                   const String& part_string,
+                   const String& delim,
+                   const Verbosity& verbosity)
+{ 
+  CREATE_OUT1;  
+    
+  ArrayOfIndex intarr;
+  Index pos;
+  Vector dmax_unsorted ( npart, 0.0 );
+  Vector vol ( npart, 0.0 );
+  Vector dm ( npart, 0.0 );
+  Vector rho ( npart, 0.0 );
+  Vector pnd ( npart, 0.0 );
+  Vector ar ( npart, 0.0 ); // Aspect ratio set for the T-matrix calculations
+  String partfield_name;
+
+  //split String and copy to ArrayOfString
+  parse_partfield_name( partfield_name, part_string, delim);
+
+  for ( Index i=0; i < npart; i++ )
+      dmax_unsorted[i] = ( scat_meta_array[i+scat_data_start].diameter_max );
+  get_sorted_indexes(intarr, dmax_unsorted);
+  
+  // extract scattering meta data
+  for ( Index i=0; i< npart; i++ )
+  {
+      pos = intarr[i]+scat_data_start;
+
+      vol[i]= scat_meta_array[pos].volume; //[m^3]
+      // get maximum diameter from meta data [m]
+      dm[i] = scat_meta_array[pos].diameter_max;
+      // get density from meta data [kg/m^3]
+      rho[i] = scat_meta_array[pos].density;
+      // get aspect ratio from meta data [ ]
+      ar[i] = scat_meta_array[pos].aspect_ratio;
+  }
+    // Collect all unique maximum diameters
+    vector<Numeric> dm_in;
+    for (Iterator1D it = dm.begin(); it != dm.end(); ++it)
+        if (find(dm_in.begin(), dm_in.end(), *it) == dm_in.end())
+            dm_in.push_back(*it);
+    
+    // Collect all unique aspect ratios
+    vector<Numeric> ar_in;
+    for (Iterator1D it = ar.begin(); it != ar.end(); ++it)
+        if (find(ar_in.begin(), ar_in.end(), *it) == ar_in.end())
+            ar_in.push_back(*it);
+                
+    Vector dm_input;
+    Vector ar_input;
+    dm_input=dm_in;
+    ar_input=ar_in;
+    
+    // Check size and shape limits
+    if (dm[0]<7.7*1e-5)
+    {
+        ostringstream os;
+        os << "The *H13Shape* parametrization is only valid for particles with\n"
+        "a maximum diameter >= to 77 um, the smallest value of *diameter_max* in\n"
+        "this simulation is " << dm[0] << " um and thus to large. Set a new *diameter_max_grid*!\n";
+        throw runtime_error(os.str());
+    }
+
+    if (ar_input.nelem()==1)
+    { 
+        out1 << "WARNING! Only one unique aspect ratio is used. The parametrization\n"
+             << "*H13* will generate the same result but with less computations\n"
+             << "and thus on a sorter time\n";
+    }
+    
+    if (ar_input[ar_input.nelem()-1] >= 1)
+    {    
+        ostringstream os;
+        os << "H13Shape is only valid for prolate speheroids\n"
+        "and cylinders at the moment, i.e for aspect ratios smaller\n"
+        "than one. The maximum aspect ratio chosen is " << ar_input[ar_input.nelem()-1] << ".\n"
+        "Set a new *aspect_ratio_grid";
+        throw runtime_error( os.str() );
+     }
+    
+    Vector dN ( dm_input.nelem(), 0.0 );
+    Vector Ar ( dm_input.nelem(), 0.0 );
+    Vector arH13 ( dm_input.nelem(), 0.0 );
+    Vector pnd_temp ( dm_input.nelem(), 0.0 );
+
+    
+  //const bool suppress=true;
+  //const Verbosity temp_verb(0,0,0);
+
+  if (dm_input.nelem() > 0)
+  // dm.nelem()=0 implies no selected particles for the respective particle
+  // field. should not occur anymore.
+  {
+      // itertation over all atm. levels
+      for ( Index p=limits[0]; p<limits[1]; p++ )
+      {
+        for ( Index lat=limits[2]; lat<limits[3]; lat++ )
+        {
+          for ( Index lon=limits[4]; lon<limits[5]; lon++ )
+          {
+            // we only need to go through PSD calc if there is any material
+            if (IWC_field ( p, lat, lon ) > 0.)
+            {
+                // iteration over all given size bins
+                for ( Index i=0; i<dm_input.nelem(); i++ ) //loop over number of particles
+                {
+                    // calculate particle size distribution for H13Shape
+                    // [# m^-3 m^-1]
+                    dN[i] = IWCtopnd_H13Shape ( dm_input[i], t_field ( p, lat, lon ) );
+                    
+                    // calculate Area ratio distribution for H13Shape
+                    Ar[i] = area_ratioH13 (dm_input[i], t_field (p, lat, lon ) );
+                    
+                    // Aspect ratio equals area ratio (for prolate particles)
+                    arH13[i] = Ar[i];
+                }
+
+                // scale pnds by scale width
+                if (dm_input.nelem() > 1)
+                    scale_pnd( pnd_temp, dm_input, dN ); //[# m^-3]
+                else
+                    pnd_temp = dN;
+
+                // Check which element in arthat is closest to arH13 and assign
+                // the PND for that size to that particle and zeros to the rest
+                Index l;
+                l=ar_input.nelem();
+
+                Vector diff;
+                
+                for ( Index k=0, j=0; j<pnd_temp.nelem(); k+=l,j++ )
+                {   
+                    diff = ar[Range(k,l)];
+                    
+                    diff -= arH13[j];
+                    
+                    Numeric minval = std::numeric_limits<Numeric>::infinity();
+                    Index   minpos = -1;
+                    
+                    for (Index i = 0; i < diff.nelem(); i++)
+                    {
+                        if (abs(diff[i]) < minval)
+                        {
+                            minval = abs(diff[i]);
+                            minpos = i;
+                        }
+                    }
+                        pnd[Range(k,l)]=0;
+                        pnd[minpos+k]=pnd_temp[j];
+                     
+                    
+                }
+
+                // scale H13 distribution (which is independent of Ice or 
+                // Snow massdensity) to current massdensity.
+                /* JM120411: we don't need this - it's doing exactly, what
+                             chk_pndsum is doing. instead we redefine verbosity
+                             for checksum here to suppress the 'scaling is off'
+                             warnings and let chk_pndsum do the proper scaling.
+                scale_H13 ( pnd, IWC_field ( p,lat,lon ), vol, rho );*/
+
+                // calculate proper scaling of pnd sum from real IWC and apply
+                chk_pndsum ( pnd, IWC_field ( p,lat,lon ), vol, rho,
+                             p, lat, lon, partfield_name, verbosity );
+//                             p, lat, lon, partfield_name, temp_verb );
+               
+                // writing pnd vector to wsv pnd_field
+                for ( Index i =0; i< npart; i++ )
+                {
+                    pnd_field ( intarr[i]+scat_data_start, p-limits[0],
+                                lat-limits[2], lon-limits[4] ) = pnd[i];
+                }
+            }
+            else
+            {
+                for ( Index i = 0; i< npart; i++ )
+                {
+                  pnd_field ( intarr[i]+scat_data_start, p-limits[0],
+                              lat-limits[2], lon-limits[4] ) = 0.;
+                }
+            }
+          }
+        }
+      }
+  }
+}
 
 /*! Calculates the particle number density field for Marshall and Palmer (1948)
     size distribution. To be used for precipitation, particularly rain.
@@ -1837,6 +2104,100 @@ Numeric IWCtopnd_H13 ( const Numeric d,
 
   if (isnan(dN)) dN = 0.0;
   return dN;
+}
+
+
+
+/*! Calculates particle size distribution using H13 parametrization.
+ *  Each diameter of the scattering particles is a node in the distribution.
+ *  One call of this function calculates one particle number density.  
+
+    \return dN particle number density per diameter interval [#/m3/m]
+          
+    \param d maximum diameter of scattering particle [m]
+    \param t atmospheric temperature [K]
+  
+  \author Johan Strandgren  
+  \date 2013-08-26
+
+*/
+Numeric IWCtopnd_H13Shape ( const Numeric d,
+                       const Numeric t)
+{  
+  Numeric dN;
+  Numeric la;
+  Numeric mu;
+  // convert m to cm
+  
+
+  Numeric D = d * 1e2;
+  //convert T from Kelvin to Celsius
+  Numeric T = t-273.15;
+  //choose parametrization depending on T
+  if ( T >= -58. )
+  {
+    la= 9.88 * exp( -0.060*T );
+  }
+  else
+  {
+    la= 0.75 * exp( -0.1057*T );
+  }
+  if ( T >= -61. )
+  {
+    mu= -0.59 - 0.030*T;
+  }
+  else
+  {
+    mu= -14.09 - 0.248*T;
+  }
+  
+  //Distribution function H13Shape
+
+  dN = pow( D, mu ) * exp ( -la * D );
+
+  if (isnan(dN)) dN = 0.0;
+  return dN;
+}
+
+
+
+/*! Calculates area ratio from the temperature and maximum diameter using H13 parametrization.
+ *  Each diameter of the scattering particles is a node in the aspect ratio distribution.
+ *  One call of this function calculates one aspect ratio.  
+
+    \return dN particle number density per diameter interval [#/m3/m]
+          
+    \param d maximum diameter of scattering particle [m]
+    \param t atmospheric temperature [K]
+  
+  \author Johan Strandgren  
+  \date 2013-08-26
+
+*/
+Numeric area_ratioH13 ( const Numeric d,
+                        const Numeric t)
+{  
+  Numeric Ar;
+  Numeric alpha;
+  Numeric beta;
+  // convert m to cm
+  
+
+  Numeric D = d * 1e2;
+  //convert T from Kelvin to Celsius
+  Numeric T = t-273.15;
+  //Parameterize for all temperatures
+  
+  alpha = 0.2833+6.913e-3*T+8.09e-5*pow(T,2); 
+  
+  beta = -0.2026+9.681e-3*T+1.19e-4*pow(T,2);
+  
+  // Area ratio function depending on temperature
+
+  Ar = alpha*pow(D,beta);
+
+  if (isnan(Ar)) Ar = 0.0;
+  return Ar;
 }
 
 

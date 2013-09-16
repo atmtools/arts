@@ -1,3 +1,50 @@
+2013-09-16  Johan Strandgren  <johsat-9@student.ltu.se>
+
+	* arts-2-1-755
+
+	* src/methods.cc (scat_meta_arrayAddTmatrix):
+	Updated GIN and description due to the changes for the aspect
+	ratio and size inputs.
+	Numeric aspect_ratio --> Vector aspect_ratio_grid
+	Vector diameter_grid --> Vector diameter_max_grid
+
+	* src/workspace.cc (scat_meta):
+	Corrected two errors in the description.
+
+	* src/m_tmatrix.cc (scat_meta_arrayAddTmatrix):
+	Changed size input from equivalent diameter to diameter_max
+	and changed the aspect ratio from Numeric to Vector. Added a
+	loop to calculate meta data for each combination of diameter_max
+	and aspect_ratio. 
+	Before the diameter_max was calculated, now it's the volume
+	that is calculated from diameter_max and aspect_ratio.
+
+	* src/m_cloudbox.cc (pnd_fieldSetup):
+	Added a new PND parametrization with an included shape
+	distribution (H13Shape).
+
+	* src/cloudbox.cc: 
+	(pnd_fieldMH97, pnd_fieldH11, pnd_fieldH13):
+	Added a check to make sure that just one aspect ratio is used
+	for these parametrizations, just as before.
+
+	(pnd_fieldH13Shape):
+	The new PND parametrization with an included shape
+	distribution (H13Shape).
+
+	(IWCtopnd_H13Shape, area_ratioH13):
+	The actual parametrizations containing the equations and
+	variables to calculate the PND and area ratio based on temperature.
+
+	* src/cloudbox.h:
+	(pnd_fieldH13Shape, IWCtopnd_H13Shape, area_ratioH13):
+	The same parametrizations have been added as in 
+	src/cloudbox.cc.
+
+	* controlfiles/artscomponents/tmatrix/TestTMatrixSSD.arts:
+	Updated due to the changed inputs (diameter_max_grid and
+	aspect_ratio_grid)
+
 2013-09-04  Johan Strandgren  <johsat-9@student.ltu.se>
 
 	* arts-2-1-754

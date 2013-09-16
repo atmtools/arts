@@ -8895,22 +8895,22 @@ void define_md_data_raw()
        "This method adds particle meta data to the workspace variable\n"
        "*scat_meta_array*.\n"
        "\n"
-       "One set of meta data is created and added to the array for each\n"
-       "diameter in the GIN diamter_grid. The size of *scat_meta_array*\n"
+       "One set of meta data is created and added to the array for each combination of\n"
+       "maximum diameter and aspect ratio in the GINs diamter_max_grid and aspect_ratio_grid. The size of *scat_meta_array*\n"
        "and hence the usage has been extended. For that reason, a short\n"
        "summary below tells which input parameters are required for certain further\n"
        "calculations.\n"
        "\n"
        "String[description]\t\tNot used for any particular calculations\n"
-       "String[material]\t\tNot used for any particular calculations\n"
-       "String[shape]\t\t\tUsed for scattering properties calculations\n"
-       "Numeric[particle_type]\t\tUsed for scattering properties calculations\n"
-       "Numeric[density]\t\tUsed for PSD calculations\n"
-       "Numeric[aspect_ratio]\t\tUsed for scattering properties calculations\n"
-       "Numeric[diameter_grid]\t\tUsed for both scattering properties and PSD calculations\n"
-       "Vector[scat_f_grid]\t\tUsed for scattering properties calculations\n"
-       "Vector[scat_T_grid]\t\tUsed for scattering properties calculations\n"
-       "Tensor3[complex_refr_index]\tUsed for scattering properties calculations\n"
+       "String[material]\t\tUsed for PND calculations\n"
+       "String[shape]\t\t\tUsed for scattering and PND calculations\n"
+       "Numeric[particle_type]\t\tUsed for scattering calculations\n"
+       "Numeric[density]\t\tUsed for PND calculations\n"
+       "Vector[diameter_max_grid]\t\tUsed for both scattering and PND calculations\n"
+       "Vector[aspect_ratio_grid]\t\tUsed for scattering calculations and PND calculations\n"
+       "Vector[scat_f_grid]\t\tUsed for scattering calculations\n"
+       "Vector[scat_T_grid]\t\tUsed for scattering calculations\n"
+       "Tensor3[complex_refr_index]\tUsed for scattering calculations\n"
       ),
       AUTHORS( "Johan Strandgren" ),
       OUT("scat_meta_array"),
@@ -8919,17 +8919,17 @@ void define_md_data_raw()
       GOUT_DESC(),
       IN( "scat_meta_array", "complex_refr_index" ),
       GIN( "description", "material", "shape", "particle_type", "density", 
-           "aspect_ratio", "diameter_grid", "scat_f_grid", "scat_T_grid" ),
-      GIN_TYPE( "String", "String", "String", "String", "Numeric", "Numeric",
+           "aspect_ratio_grid", "diameter_max_grid", "scat_f_grid", "scat_T_grid" ),
+      GIN_TYPE( "String", "String", "String", "String", "Numeric", "Vector",
            "Vector", "Vector", "Vector" ),
       GIN_DEFAULT( "", "undefined", NODEF, NODEF, "-999", NODEF, NODEF,
                    NODEF, NODEF ),
       GIN_DESC( "Particle description", "Water or Ice", "spheroidal or cylinder", 
                "Particle Type: MACROS_ISO (20) or PARTICLE_TYPE_HORIZ_AL (30)", 
                "Particle mass density",
-               "Particle aspect ratio (can differ between WSMs. Check the userguide)",
-               "equivalent diameter vector", "Frequency grid vector",
-               "Temperature grid vector" )
+               "Particle aspect ratio vector",
+               "Maximum diameter vector (diameter of a sphere that fully encloses the particle)",
+               "Frequency grid vector", "Temperature grid vector" )
       ));
     
   md_data_raw.push_back
@@ -9014,7 +9014,7 @@ void define_md_data_raw()
       ( NAME( "scat_data_arrayFromMeta" ),
         DESCRIPTION
         (
-         "This workspace methos calculates scattering data and adds it to\n"
+         "This workspace method calculates scattering data and adds it to\n"
          "*scat_data_array* using particle meta data in *scat_meta_array*.\n"
          "The scattering data is calculated with the T-matrix method.\n"
          "\n"
