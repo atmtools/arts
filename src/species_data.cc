@@ -360,6 +360,7 @@ void define_basic_species_data()
          REC( "PWR93"   ,NAN    ,NAN    ,-1     ,-1     ,TAGS()),
          REC( "PWR88"   ,NAN    ,NAN    ,-1     ,-1     ,TAGS()),
          REC( "MPM93"   ,NAN    ,NAN    ,-1     ,-1     ,TAGS()),
+         REC( "TRE05"   ,NAN    ,NAN    ,-1     ,-1     ,TAGS()),
          REC( "MPM92"   ,NAN    ,NAN    ,-1     ,-1     ,TAGS()),
          REC( "MPM89"   ,NAN    ,NAN    ,-1     ,-1     ,TAGS()),
          REC( "MPM87"   ,NAN    ,NAN    ,-1     ,-1     ,TAGS()),

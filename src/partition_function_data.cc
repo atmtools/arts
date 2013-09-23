@@ -320,6 +320,7 @@ iso(it_isotopologue,	"67" ,	Qcoeff(-2.757545e+01,  9.118689e+00,  -7.483006e-04,
   iso(it_isotopologue,       "PWR93",          Qcoeff( 0     ,0              ,0              ,0          ), IsotopologueRecord::PF_FROMCOEFF);
   iso(it_isotopologue,       "PWR88",          Qcoeff( 0     ,0              ,0              ,0          ), IsotopologueRecord::PF_FROMCOEFF);
   iso(it_isotopologue,       "MPM93",          Qcoeff( 0     ,0              ,0              ,0          ), IsotopologueRecord::PF_FROMCOEFF);
+  iso(it_isotopologue,       "TRE05",          Qcoeff( 0     ,0              ,0              ,0          ), IsotopologueRecord::PF_FROMCOEFF);
   iso(it_isotopologue,       "MPM92",          Qcoeff( 0     ,0              ,0              ,0          ), IsotopologueRecord::PF_FROMCOEFF);
   iso(it_isotopologue,       "MPM89",          Qcoeff( 0     ,0              ,0              ,0          ), IsotopologueRecord::PF_FROMCOEFF);
   iso(it_isotopologue,       "MPM87",          Qcoeff( 0     ,0              ,0              ,0          ), IsotopologueRecord::PF_FROMCOEFF);

@@ -52,7 +52,7 @@ extern const Numeric LANDE_GS;
  *  \author Richard Larsson
  *  \date   2012-08-03
  */
-void phase_matrix(MatrixView K, const Numeric theta, const Numeric eta, const Index DM)
+void phase_matrix(MatrixView K, const Numeric& theta, const Numeric& eta, const Index& DM)
 {
     assert(K.nrows() == 4 );
     assert(K.ncols() == 4 );
@@ -143,7 +143,7 @@ void phase_matrix(MatrixView K, const Numeric theta, const Numeric eta, const In
  *  \author Richard Larsson
  *  \date   2012-08-03
  */
-void attenuation_matrix(MatrixView K, const Numeric theta, const Numeric eta, const Index DM)
+void attenuation_matrix(MatrixView K, const Numeric& theta, const Numeric& eta, const Index& DM)
 {
     assert(K.nrows() == 4 );
     assert(K.ncols() == 4 );
@@ -238,8 +238,8 @@ void attenuation_matrix(MatrixView K, const Numeric theta, const Numeric eta, co
 };
 
 
-Numeric gs_caseb(const Numeric N, const Numeric J, const Numeric S, const Numeric GS) { return (GS*(J*(J+1.)+S*(S+1.)-N*(N+1.))/(J*(J+1.))/2.0); }
-Numeric gs_casea(const Numeric Omega, const Numeric J, const Numeric Sigma, const Numeric GS) { return GS/2.0/J/(J+1)*Omega*(Omega+Sigma); }
+Numeric gs_caseb(const Numeric& N, const Numeric& J, const Numeric& S, const Numeric& GS) { return (GS*(J*(J+1.)+S*(S+1.)-N*(N+1.))/(J*(J+1.))/2.0); }
+Numeric gs_casea(const Numeric& Omega, const Numeric& J, const Numeric& Sigma, const Numeric& GS) { return GS/2.0/J/(J+1)*Omega*(Omega+Sigma); }
 
 
 /*!
@@ -256,7 +256,7 @@ Numeric gs_casea(const Numeric Omega, const Numeric J, const Numeric Sigma, cons
  * \author Richard Larsson
  * \date   2012-10-26
  */
-Numeric relative_strength(Rational m, Rational j, Index dj, Index dm)
+Numeric relative_strength(const Rational& m, const Rational& j, const Index& dj, const Index& dm)
 {
     // Numeric conversions are necessary.
     const Numeric J = (j-dj).toNumeric(), M = (m).toNumeric();
@@ -326,7 +326,7 @@ Numeric relative_strength(Rational m, Rational j, Index dj, Index dm)
 }
 
 
-Numeric (*frequency_change)(const Rational, const  Rational, const Rational, const Numeric, const Index, const Index, const Index, const Numeric, const Numeric);
+Numeric (*frequency_change)(const Rational&, const  Rational&, const Rational&, const Numeric&, const Index&, const Index&, const Index&, const Numeric&, const Numeric&);
 
 
 /*!
@@ -348,7 +348,7 @@ Numeric (*frequency_change)(const Rational, const  Rational, const Rational, con
  * \author Richard Larsson
  * \date   2012-11-13
  */
-Numeric frequency_change_caseb(const Rational n, const Rational m, const Rational j, const Numeric S, const Index DJ, const Index DM, const Index DN, const Numeric H_mag, const Numeric GS)
+Numeric frequency_change_caseb(const Rational& n, const Rational& m, const Rational& j, const Numeric& S, const Index& DJ, const Index& DM, const Index& DN, const Numeric& H_mag, const Numeric& GS)
 {
     const Numeric       N_up = n.toNumeric();
     const Numeric       N_lo = N_up - (Numeric)DN;
@@ -384,7 +384,7 @@ Numeric frequency_change_caseb(const Rational n, const Rational m, const Rationa
  * \author Richard Larsson
  * \date   2013-08-09
  */
-Numeric frequency_change_casea(const Rational omega, const Rational m, const Rational j, const Numeric Sigma, const Index DJ, const Index DM, const Index Domega, const Numeric H_mag, const Numeric GS)
+Numeric frequency_change_casea(const Rational& omega, const Rational& m, const Rational& j, const Numeric& Sigma, const Index& DJ, const Index& DM, const Index& Domega, const Numeric& H_mag, const Numeric& GS)
 {
     const Numeric       Omega_up = omega.toNumeric();
     const Numeric       Omega_lo = Omega_up - (Numeric)Domega;

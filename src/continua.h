@@ -321,6 +321,19 @@ void MPM93O2AbsModel (MatrixView        xsec,        // calculated x-section
                       ConstVectorView   vmr,         // O2 vmr profile
                       const Verbosity& verbosity);
 
+void TRE05O2AbsModel (MatrixView        xsec,        // calculated x-section
+                      const Numeric     CC,          // model parameter
+                      const Numeric     CL,          // model parameter
+                      const Numeric     CW,          // model parameter
+                      const Numeric     CO,          // model parameter
+                      const String&     model,       // model option
+                      ConstVectorView   f_grid,      // frequency vector
+                      ConstVectorView   abs_p,       // pressure vector
+                      ConstVectorView   abs_t,       // temperature vector
+                      ConstVectorView   abs_h2o,     // H2O vmr profile
+                      ConstVectorView   vmr,         // O2 vmr profile
+                      const Verbosity& verbosity);
+
 void PWR93O2AbsModel (MatrixView        xsec,        // calculated x-section
                       const Numeric     CC,          // model parameter
                       const Numeric     CL,          // model parameter

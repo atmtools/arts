@@ -1150,6 +1150,10 @@ bool LineRecord::ReadFromHitran2004Stream(istream& is, const Verbosity& verbosit
                 if (endptr != as[1].c_str()+as[1].nelem())
                     throw std::runtime_error("Error parsing denominator quantum number Omega");
                 mquantum_numbers.SetUpper(QN_Omega, Rational(nom,denom));
+                if( nom == 3 && species_data[mspecies].Name()=="NO" )//This might also be true for ClO, but that is hidden in HITRAN, it might be the opposite order of the plus-minus for ClO
+                    mquantum_numbers.SetUpper(QN_N, mquantum_numbers.Upper(QN_J)+Rational(1,2));
+                else if( nom == 1 && species_data[mspecies].Name()=="NO" )//This might also be true for ClO, but that is hidden in HITRAN, it might be the opposite order of the plus-minus for ClO
+                    mquantum_numbers.SetUpper(QN_N, mquantum_numbers.Upper(QN_J)-Rational(1,2));
             }
         }  
         
@@ -1172,6 +1176,10 @@ bool LineRecord::ReadFromHitran2004Stream(istream& is, const Verbosity& verbosit
                 if (endptr != as[1].c_str()+as[1].nelem())
                     throw std::runtime_error("Error parsing denominator quantum number Omega");
                 mquantum_numbers.SetLower(QN_Omega, Rational(nom,denom));
+                if( nom == 3 && species_data[mspecies].Name()=="NO" )//This might also be true for ClO, but that is hidden in HITRAN, it might be the opposite order of the plus-minus for ClO
+                    mquantum_numbers.SetLower(QN_N, mquantum_numbers.Lower(QN_J)+Rational(1,2));
+                else if( nom == 1 && species_data[mspecies].Name()=="NO" )//This might also be true for ClO, but that is hidden in HITRAN, it might be the opposite order of the plus-minus for ClO
+                    mquantum_numbers.SetLower(QN_N, mquantum_numbers.Lower(QN_J)-Rational(1,2));
             }
         }   
       }
