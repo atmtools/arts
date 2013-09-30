@@ -322,6 +322,18 @@ AgendaSet( refr_index_air_agenda__GasMWgeneralAndElectrons ){
   refr_index_airFreeElectrons
 }
 
+###
+# Combination of Thayer + free electrons. OK for Earth and microwave.
+# 
+AgendaCreate( refr_index_air_agenda__GasThayerAndElectrons )
+AgendaSet( refr_index_air_agenda__GasThayerAndElectrons ){
+  Ignore( f_grid )
+  NumericSet( refr_index_air, 1.0 )
+  NumericSet( refr_index_air_group, 1.0 )
+  refr_index_airThayer
+  refr_index_airFreeElectrons
+}
+
 
 ###
 # all surface agendas are placed in s special file

@@ -1,3 +1,14 @@
+2013-09-30  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-758
+
+	* controlfiles/general/agendas.arts: Defined.
+	refr_index_air_agenda__GasThayerAndElectrons.
+
+	This as refr_index_air_agenda__GasMWgeneralAndElectrons is NOT
+	working for Earth, as water vapour is not considered at all by
+	the MWgeneral method.
+
 2013-09-23  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-1-757
@@ -6,10 +17,10 @@
 	controlfiles/general/continua.arts: Added Tretyakov et al. 2005 mpm-like
 	continua model.  Call "O2-TRE05" to get to it.  This addition is just a
 	copy of mpm93 with the Tretyakov et al. 2005 numbers instead of the mpm.
-	
+
 	* src/{m_zeeman.cc,linerecord.cc}:  Added some quantum number reading
 	for N and J so Zeeman Hund case b should work now.
-	
+
 	* doc/uguide/absorption.tex: Changed text on Zeeman here since NO can do
 	b-case now.  Also added O2-TRE05 to the right list.
 
