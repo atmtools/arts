@@ -10555,12 +10555,37 @@ void define_md_data_raw()
         OUT(),
         GOUT(      "out"     ),
         GOUT_TYPE( "Vector" ),
-        GOUT_DESC( "Input vector" ),
+        GOUT_DESC( "Output vector" ),
         IN(),
         GIN(         "in"    , "value"   ),
         GIN_TYPE(    "Vector", "Numeric" ),
         GIN_DEFAULT( NODEF   , NODEF     ),
-        GIN_DESC( "Output vector", "The value to be added to the vector." )
+        GIN_DESC( "Input vector", "The value to be added to the vector." )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "VectorCrop" ),
+        DESCRIPTION
+        (
+         "Keeps only values of a vector inside the specified range.\n"
+         "\n"
+         "All values outside the range [min_value,max-value] are removed.\n"
+         "Note the default values, that basically should act as -+Inf.\n"
+         "\n"
+         "The result can either be stored in the same or another vector.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT(),
+        GOUT(      "out"     ),
+        GOUT_TYPE( "Vector" ),
+        GOUT_DESC( "Cropped vector" ),
+        IN(),
+        GIN(         "in"    , "min_value", "max_value"   ),
+        GIN_TYPE(    "Vector", "Numeric", "Numeric" ),
+        GIN_DEFAULT( NODEF   , "-99e99", "99e99"    ),
+        GIN_DESC( "Original vector", "Minimum value to keep",
+                                     "Maximum value to keep" )
         ));
 
   md_data_raw.push_back

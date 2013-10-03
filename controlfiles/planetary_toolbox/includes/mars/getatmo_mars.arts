@@ -30,6 +30,36 @@
 
 Arts2 {
 
+VectorNLogSpace( p_grid, 51, 7e2, 7e-7 )
+
+# A way to handle pre-defined lat and lon grids
+#
+ArrayOfVectorCreate( lat_grids )
+ArrayOfVectorCreate( lon_grids )
+VectorCreate( lat_grid_3d )
+VectorCreate( lon_grid_3d )
+IndexCreate( iatmdim  )
+#
+VectorCreate( empty_vector )
+VectorSet( empty_vector, [] )
+#
+VectorNLinSpace( lat_grid_3d, 11, 45, 55 )
+VectorNLinSpace( lon_grid_3d, 11, 5, 15 )
+#
+Append( lat_grids, empty_vector )
+Append( lat_grids, empty_vector )
+Append( lat_grids, lat_grid_3d )
+Append( lon_grids, empty_vector )
+Append( lon_grids, empty_vector )
+Append( lon_grids, lon_grid_3d )
+#
+IndexStepDown( iatmdim, atmosphere_dim )
+#
+Extract( lat_grid, lat_grids, iatmdim )
+Extract( lon_grid, lon_grids, iatmdim )
+
+
+
 #StringSet( tmpformat, "ascii" )
 StringSet( tmpformat, "binary" )
 

@@ -1,3 +1,24 @@
+2013-10-03  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-759
+
+	* Jana and I have decided on a general principle for inclusion of
+	atmospheres. Basically following what is already in place in eg.
+	getatmo_mars.arts, but extend to automatically set p/lat/lon_grid,
+	with the option to crop the grids. Some first step to implement this:
+
+	* src/m_basic_types.cc (VectorCrop): New WSM. Note default values,
+	trying to mimic +-Inf. For example this works:
+	  VectorCrop( out=p_grid, in=p_grid, min_value=0.1e2 )
+
+	* controlfiles/planetary_toolbox/TestMarsAtmo.arts: Removed
+	setting of p_grid, lat_grid and lon_grid.
+
+	* controlfiles/planetary_toolbox/includes/mars/getatmo_mars.arts:
+	p_grid, lat_grid and lon_grid are now set here. lat_grid and
+	lon_grid set to be empty if not 3D. Values for 3D are just test
+	values, things will be improved ...
+
 2013-09-30  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-758

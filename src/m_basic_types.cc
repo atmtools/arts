@@ -715,6 +715,41 @@ void VectorAddScalar(Vector&   out,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void VectorCrop(       Vector&   out,
+                 const Vector&   in,
+                 const Numeric&  min_value,
+                 const Numeric&  max_value,
+                 const Verbosity&)
+{
+  const Index nin  = in.nelem();
+
+  Index nout = 0;
+  //
+  for( Index i=0; i<nin; i++ )
+    { 
+      if( in[i] >= min_value  &&  in[i] <= max_value )
+        { nout += 1; }
+    }
+
+  // Make copy if in-vector, as it also can be the out one
+  Vector c(in);
+  
+  out.resize( nout );
+
+  nout = 0;
+  //
+  for( Index i=0; i<nin; i++ )
+    { 
+      if( c[i] >= min_value  &&  c[i] <= max_value )
+        { 
+          out[nout] = c[i];
+          nout += 1; 
+        }
+    }
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void VectorFlip(Vector&   out,
                 const Vector&   in,
                 const Verbosity&)

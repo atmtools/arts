@@ -32,9 +32,6 @@ IndexSet( interp_order, 1 )
 
 #===========================================
 
-VectorNLogSpace( p_grid, 51, 7e2, 7e-7 )
-VectorNLinSpace( lat_grid, 11, 45, 55 )
-VectorNLinSpace( lon_grid, 11, 5, 15 )
 AtmosphereSet3D
 AtmosphereSet1D
 
