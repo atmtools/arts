@@ -277,6 +277,7 @@ void refr_index_airMWgeneral(
       }
   }
 
+  /*
   if ( abs(ref_spec_vmr_sum-1) > 0.1 )
       {
         ostringstream os;
@@ -285,7 +286,8 @@ void refr_index_airMWgeneral(
              << ", more than 10% " << "different from 1.\n";
         throw runtime_error(os.str());
       }
-    
+  */
+
   // normalize refractive index with the considered total VMR:
   n /= ref_spec_vmr_sum;
 

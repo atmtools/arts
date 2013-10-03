@@ -30,7 +30,11 @@
 
 Arts2 {
 
-VectorNLogSpace( p_grid, 51, 7e2, 7e-7 )
+# Old setting from TestMars.arts:
+VectorNLogSpace( p_grid, 101, 7e2, 7e-7 )
+
+# This setting gives an assert error, that should be tracked down:
+#VectorNLogSpace( p_grid, 101, 7e2, 1e-2 )
 
 # A way to handle pre-defined lat and lon grids
 #

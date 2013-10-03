@@ -1,5 +1,19 @@
 2013-10-03  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-1-760
+
+	* src/m_refraction.cc (refr_index_airMWgeneral): Commented out
+	if-statement demanding that sum(vmr) is close to 1. This is not
+	working together with the Mars data. Discussed with
+	Jana, and seems difficult to keep the constrain. Note that the
+	method applies a "rescaling" to sum(vmr)=1. 
+
+	* controlfiles/planetary_toolbox/includes/mars/getatmo_mars.arts: 
+	Found a setting p_grid resulting in an assert error. Not tracked
+	down, but setting left as a comment in the file.
+
+2013-10-03  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-1-759
 
 	* Jana and I have decided on a general principle for inclusion of
