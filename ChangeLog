@@ -1,3 +1,12 @@
+2013-10-04  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-1-761
+
+	* src/m_atmosphere.cc(GriddedFieldPRegrid,GriddedFieldPRegridHelper):
+	No attempt of interpolation if old grid is completely outside new grid.
+	Rather set everything to 0 if zeropadding (else throw error, as usual).
+	Fixes issue reported by Patrick in 2-1-760.
+
 2013-10-03  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-760
@@ -12647,7 +12656,7 @@
 
 	* src/make_auto_md_cc.cc:
 
-        Bugfix in auto-generated agendaExecute code. Even if a variable is only
+	Bugfix in auto-generated agendaExecute code. Even if a variable is only
 	used as WSM output inside the current agenda, it is possible that it is
 	used first as input further down by another nested agenda, which we
 	can't see here. Therefore initialized variables have to be duplicated.
@@ -13909,7 +13918,7 @@
 
 	* arts-2-0-22
 
-	* doc/uguide/symbol_defs.tex: More definitions around refrcative
+	* doc/uguide/symbol_defs.tex: More definitions around refractive
 	index. Some consistency changes.
 
 	* doc/uguide/rte.tex: Planck function equation now uses symbol

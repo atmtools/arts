@@ -529,11 +529,20 @@ void GriddedFieldPRegridHelper(Index& ing_min,
     gfraw_out.set_grid_name(p_grid_index, gfraw_in.get_grid_name(p_grid_index));
 
     if (zeropadding)
-        chk_interpolation_pgrids_loose_no_data_check(ing_min, ing_max,
-                                                     "Raw field to p_grid",
-                                                     in_p_grid,
-                                                     p_grid,
-                                                     interp_order);
+      {
+        if (in_p_grid[0]<p_grid[p_grid.nelem()-1] ||
+            in_p_grid[in_p_grid.nelem()-1]>p_grid[0])
+          {
+            ing_min = 0;
+            ing_max = ing_min-1;
+          }
+        else
+          chk_interpolation_pgrids_loose_no_data_check(ing_min, ing_max,
+                                                       "Raw field to p_grid",
+                                                       in_p_grid,
+                                                       p_grid,
+                                                       interp_order);
+      }
     else
     {
         ing_min = 0;
@@ -546,12 +555,16 @@ void GriddedFieldPRegridHelper(Index& ing_min,
     Index nelem_in_range = ing_max - ing_min + 1;
 
     // Calculate grid positions:
-    gp_p.resize(nelem_in_range);
-    p2gridpos_poly(gp_p, in_p_grid, p_grid[Range(ing_min, nelem_in_range)], interp_order);
+    if (nelem_in_range>0)
+      {
+        gp_p.resize(nelem_in_range);
+        p2gridpos_poly(gp_p, in_p_grid, p_grid[Range(ing_min, nelem_in_range)],
+                       interp_order);
 
-    // Interpolation weights:
-    itw.resize(nelem_in_range, interp_order+1);
-    interpweights(itw, gp_p);
+        // Interpolation weights:
+        itw.resize(nelem_in_range, interp_order+1);
+        interpweights(itw, gp_p);
+      }
 }
 
 
@@ -600,8 +613,11 @@ void GriddedFieldPRegrid(// WS Generic Output:
                               verbosity);
 
     // Interpolate:
-    if (ing_max - ing_min + 1 != p_grid.nelem())
-    {
+    if (ing_max - ing_min < 0)
+        gfraw_out.data = 0.;
+    else
+      if (ing_max - ing_min + 1 != p_grid.nelem())
+      {
         gfraw_out.data = 0.;
         for (Index i = 0; i < gfraw_in.data.nrows(); i++)
             for (Index j = 0; j < gfraw_in.data.ncols(); j++)
@@ -613,8 +629,8 @@ void GriddedFieldPRegrid(// WS Generic Output:
                 interp(gfraw_out.data(Range(ing_min, ing_max-ing_min+1), i, j),
                        itw, gfraw_in.data(joker, i, j), gp_p);
             }
-    }
-    else
+      }
+      else
         for (Index i = 0; i < gfraw_in.data.nrows(); i++)
             for (Index j = 0; j < gfraw_in.data.ncols(); j++)
                 interp(gfraw_out.data(joker, i, j),
@@ -670,8 +686,11 @@ void GriddedFieldPRegrid(// WS Generic Output:
                               verbosity);
 
     // Interpolate:
-    if (ing_max - ing_min + 1 != p_grid.nelem())
-    {
+    if (ing_max - ing_min < 0)
+        gfraw_out.data = 0.;
+    else
+      if (ing_max - ing_min + 1 != p_grid.nelem())
+      {
         gfraw_out.data = 0.;
         for (Index b = 0; b < gfraw_in.data.nbooks(); b++)
             for (Index i = 0; i < gfraw_in.data.nrows(); i++)
@@ -684,8 +703,8 @@ void GriddedFieldPRegrid(// WS Generic Output:
                     interp(gfraw_out.data(b, Range(ing_min, ing_max-ing_min), i, j),
                            itw, gfraw_in.data(b, joker, i, j), gp_p);
                 }
-    }
-    else
+      }
+      else
         for (Index b = 0; b < gfraw_in.data.nbooks(); b++)
             for (Index i = 0; i < gfraw_in.data.nrows(); i++)
                 for (Index j = 0; j < gfraw_in.data.ncols(); j++)
