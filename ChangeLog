@@ -1,5 +1,18 @@
 2013-10-04  Jana Mendrok  <jana.mendrok@ltu.se>
 
+	* arts-2-1-762
+
+	* src/m_refraction.cc(refr_index_airMWgeneral):
+	Added H2O with reference refractivity calculated from Thayer.
+
+	* src/methods.cc(refr_index_airMWgeneral):
+	Description adapted accordingly.
+
+	* doc/uguide/refr_index.tex, refr_index_theory.tex:
+	AUG and ATD on refr_index_airMWgeneral adapted accordingly.
+
+2013-10-04  Jana Mendrok  <jana.mendrok@ltu.se>
+
 	* arts-2-1-761
 
 	* src/m_atmosphere.cc(GriddedFieldPRegrid,GriddedFieldPRegridHelper):

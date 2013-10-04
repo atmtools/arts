@@ -70,6 +70,9 @@ are stated in the paper abstract and are not repeated here. The
 conditions for the reported refractivity values are $T$ =
 0$^\circ$C and $p$ = 760\,Torr. The measurements are for a frequency
 of 47.7\,GHz.
+Out of the reference refractivities povided by \citet{newell65:_absolute_jap},
+we apply those of \chem{N_2}, \chem{O_2}, \chem{CO_2}, \chem{H_2}, and \chem{He}
+in this algorithm.
 
 \citet{newell65:_absolute_jap} also adress the question which gas law
 to use to scale the measurements to other $p$/$T$ conditions, chosing different
@@ -95,19 +98,33 @@ first factor reflectes the reference conditions for the
 partial refractivities as reported in the abstract of their
 article, $p_i$ are the partial pressures, and $T$ is temperature.
 
-Currently, the above formulas can be used with up to five contributing gas
-species with reference refractive indices taken from
-\citet{newell65:_absolute_jap}, namely \chem{N_2}, \chem{O_2}, \chem{CO_2},
-\chem{H_2}, and \chem{He}. To account for contributions from further gases
+In addition to reference refractivities of the five species given by
+\citet{newell65:_absolute_jap}, we have derived an equivalent value for
+\chem{H_2O} from the \chem{H_2O} contribution in the parametrization by
+\citet{thayer74_improved_rs} for a reference temperature of $T_0$=273.15\,K.
+Using the ideal gas law reduces temperature dependence to inverse
+proportionality, whereas the \citet{thayer74_improved_rs} parameterization also
+carries an inverse quadratic dependence. This causes notable deviations from
+\chem{H_2O} refractivity as given by \citet{thayer74_improved_rs} when
+temperature is not close to the reference temperature applied. However, the
+deviations are significantly smaller than when refraction by \chem{H_2O} is not
+explicitly accounted for.
+
+Hence, the above formulas can currently be used with up to six contributing gas
+species (\chem{N_2}, \chem{O_2}, \chem{CO_2}, \chem{H_2}, and \chem{He} as well
+as \chem{H_2O}). To account for contributions from further gases
 (i.e., when volume mixing ratios of those five do not add up to 1), the
 calculated refractivity from those five gases is normalised to a volume mixing
-ratio of 1. By adding reference refractive index data from further species, the
-method can easily be extended and made more complete.
+ratio of 1. By adding reference refractive index data from further species -- as
+done for water vapor --, the method can easily be extended and made more complete.
 
 \subsection{Microwave refractive index for Earth (\shortcode{refr\_index\_airThayer})}
  \label{sec:rindex:thayer}
 The microwave refractive index due to gases in the Earth’s atmosphere is
-calculated considering so-called compressibility factors (to cover non-ideal gas behaviour). The refractivity of ``dry air'' and water vapour is summed. All other gases are assumed to have a negligible contribution. \citep{thayer74_improved_rs}
+calculated considering so-called compressibility factors (to cover non-ideal gas
+behaviour). The refractivity of ``dry air'' and water vapour is summed. All
+other gases are assumed to have a negligible contribution.
+\citep{thayer74_improved_rs}
 \FIXME{be more specific and provide actual formula?}
 
 \subsection{Infrared refractive index for Earth (\shortcode{refr\_index\_airIR})}

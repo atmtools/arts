@@ -8618,7 +8618,9 @@ void define_md_data_raw()
          "individual gases at reference conditions. Assuming ideal gas law for\n"
          "converting reference refractivity to actual pressure and temperature\n"
          "conditions. Reference refractivities are also taken from Newell&Baird (1965)\n"
-         "and are vailable for N2, O2, CO2, H2, and He. Any mixture of these gases\n"
+         "and are vailable for N2, O2, CO2, H2, and He. Additionally, H2O reference\n"
+         "refractivity has been derived from H2O contribution in Thayer (see\n"
+         "*refr_index_airThayer*) for T0=273.15K. Any mixture of these gases\n"
          "can be taken into account.\n"
          ),
         AUTHORS( "Jana Mendrok" ),

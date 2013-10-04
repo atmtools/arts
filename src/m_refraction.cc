@@ -196,7 +196,7 @@ void refr_index_airMWgeneral(
   const Numeric T0 = 273.15;
 
   // Number of refractive species:
-  const Index nrs = 5;
+  const Index nrs = 6;
 
   // This is hardwired here and quite primitive, but should do the job.
   // Set refractive index species names.
@@ -206,14 +206,17 @@ void refr_index_airMWgeneral(
   ref_spec_names[2] = "CO2";
   ref_spec_names[3]  = "H2";
   ref_spec_names[4]  = "He";
+  ref_spec_names[5] = "H2O";
+
   // Set reference refractive indices
   // Values from Newell and Baird, 1965
   Vector ref_n(nrs);
-  ref_n[0] = 293.81e-6;
-  ref_n[1] = 266.95e-6;
-  ref_n[2] = 495.16e-6;
-  ref_n[3] = 135.77e-6;
-  ref_n[4] =  34.51e-6;
+  ref_n[0] =  293.81e-6;
+  ref_n[1] =  266.95e-6;
+  ref_n[2] =  495.16e-6;
+  ref_n[3] =  135.77e-6;
+  ref_n[4] =   34.51e-6;
+  ref_n[5] = 5368.37e-6; //this dervied from Thayer with T0=273.15K
 
 // Checks
   if( abs_species.nelem() != rtp_vmr.nelem() )
