@@ -1,5 +1,21 @@
 2013-10-04  Jana Mendrok  <jana.mendrok@ltu.se>
 
+	* arts-2-1-763
+
+	* src/m_atmosphere.cc,methods.cc
+	(lat_gridFromRawField, lon_gridFromRawField):
+	Added. For extraction of lat_ and lon_grid from data grids. Similar to
+	p_gridFromZRaw, but acting on a generic GriddedField3 instead of on
+	z_field_raw.
+
+	* controlfiles/artscomponents/helpers/TestGridsExtract.arts:
+	Added. Testing above introduced grid extraction including cropped grids
+	as introduced in 2-1-759.
+
+	* controlfiles/CMakeLists.txt: Added above test case to the test suite.
+
+2013-10-04  Jana Mendrok  <jana.mendrok@ltu.se>
+
 	* arts-2-1-762
 
 	* src/m_refraction.cc(refr_index_airMWgeneral):

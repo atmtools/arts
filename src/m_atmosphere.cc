@@ -2205,6 +2205,27 @@ void p_gridFromZRaw(//WS Output
 }
 
 
+/* Workspace method: Doxygen documentation will be auto-generated */
+void lat_gridFromRawField(//WS Output
+                      Vector& lat_grid,
+                      //WS Input
+                      const GriddedField3& field_raw,
+                      const Verbosity&)
+{
+  lat_grid = field_raw.get_numeric_grid(GFIELD3_LAT_GRID);
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void lon_gridFromRawField(//WS Output
+                      Vector& lon_grid,
+                      //WS Input
+                      const GriddedField3& field_raw,
+                      const Verbosity&)
+{
+  lon_grid = field_raw.get_numeric_grid(GFIELD3_LON_GRID);
+}
+
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void wind_u_fieldIncludePlanetRotation(

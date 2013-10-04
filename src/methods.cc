@@ -1926,6 +1926,47 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "ArrayOfLineMixingRecordReadAscii" ),
+        DESCRIPTION
+        (
+         "Read line mixing data from an ASCII file.\n"
+         "\n"
+         "This is merely a convenience function to convert data from Richard's\n"
+         "ASCII format into XML. For example:\n"
+         "  ArrayOfLineMixingRecordCreate(lm_convert)\n"
+         "  ArrayOfLineMixingRecordReadAscii(lm_convert, \"o2_v1_0_band_40-120_GHz\")\n"
+         "  WriteXML(\"zascii\", lm_convert, \"o2_v1_0_band_40-120_GHz.xml\")\n"
+         "\n"
+         "After reading the data it must be matched to *abs_lines_per_species*.\n"
+         "See *line_mixing_dataMatch*.\n"
+         "\n"
+         "Format Documentation:\n"
+         "Quantum numbers: v1, Upper N, Lower N, Upper J, Lower J,\n"
+         "First Order Zeroth Phase Correction,\n"
+         "First Order First Phase Correction,\n"
+         "Second Order Zeroth Absorption Correction,\n"
+         "Second Order First Absorption Correction,\n"
+         "Second Order Zeroth Line-Center Correction,\n"
+         "Second Order First Line-Center Correction,\n"
+         "Standard Temperature For Corrections,\n"
+         "First Order Phase Temperature Correction Exponential Term,\n"
+         "Second Order Absorption Temperature Correction Exponential Term, and \n"
+         "Second Order Line-Center Temperature Correction Exponential Term.\n"
+         ),
+        AUTHORS( "Oliver Lemke" ),
+        OUT(),
+        GOUT( "line_mixing_records" ),
+        GOUT_TYPE( "ArrayOfLineMixingRecord"),
+        GOUT_DESC( "Unmatched line mixing data." ),
+        IN(),
+        GIN(         "filename" ),
+        GIN_TYPE(    "String" ),
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC(    "Line mixing data file.")
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "ArrayOfStringSet" ),
         DESCRIPTION
         (
@@ -6198,6 +6239,48 @@ void define_md_data_raw()
         GIN_DESC()
         ));
 
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME( "lat_gridFromRawField" ),
+        DESCRIPTION
+        (
+         "Sets *lat_grid* according to given raw atmospheric field's lat_grid.\n"
+         "Similar to *p_gridFromZRaw*, but acting on a generic *GriddedField3*\n"
+         "(e.g., a wind or magnetic field component).\n"
+         ),
+        AUTHORS( "Jana Mendrok" ),
+        OUT( "lat_grid" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN(  ),
+        GIN(         "field_raw" ),
+        GIN_TYPE(    "GriddedField3" ),
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC( "A raw atmospheric field." )
+        ));
+ 
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME( "lon_gridFromRawField" ),
+        DESCRIPTION
+        (
+         "Sets *lon_grid* according to given raw atmospheric field's lat_grid.\n"
+         "Similar to *p_gridFromZRaw*, but acting on a generic *GriddedField3*\n"
+         "(e.g., a wind or magnetic field component).\n"
+         ),
+        AUTHORS( "Jana Mendrok" ),
+        OUT( "lon_grid" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN(  ),
+        GIN(         "field_raw" ),
+        GIN_TYPE(    "GriddedField3" ),
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC( "A raw atmospheric field." )
+        ));
+ 
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "line_mixing_dataInit" ),
@@ -6244,47 +6327,6 @@ void define_md_data_raw()
         GIN_TYPE(    "String",      "ArrayOfLineMixingRecord" ),
         GIN_DEFAULT( NODEF,         NODEF ),
         GIN_DESC(    "Species tag", "Unmatched line mixing data.")
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "ArrayOfLineMixingRecordReadAscii" ),
-        DESCRIPTION
-        (
-         "Read line mixing data from an ASCII file.\n"
-         "\n"
-         "This is merely a convenience function to convert data from Richard's\n"
-         "ASCII format into XML. For example:\n"
-         "  ArrayOfLineMixingRecordCreate(lm_convert)\n"
-         "  ArrayOfLineMixingRecordReadAscii(lm_convert, \"o2_v1_0_band_40-120_GHz\")\n"
-         "  WriteXML(\"zascii\", lm_convert, \"o2_v1_0_band_40-120_GHz.xml\")\n"
-         "\n"
-         "After reading the data it must be matched to *abs_lines_per_species*.\n"
-         "See *line_mixing_dataMatch*.\n"
-         "\n"
-         "Format Documentation:\n"
-         "Quantum numbers: v1, Upper N, Lower N, Upper J, Lower J,\n"
-         "First Order Zeroth Phase Correction,\n"
-         "First Order First Phase Correction,\n"
-         "Second Order Zeroth Absorption Correction,\n"
-         "Second Order First Absorption Correction,\n"
-         "Second Order Zeroth Line-Center Correction,\n"
-         "Second Order First Line-Center Correction,\n"
-         "Standard Temperature For Corrections,\n"
-         "First Order Phase Temperature Correction Exponential Term,\n"
-         "Second Order Absorption Temperature Correction Exponential Term, and \n"
-         "Second Order Line-Center Temperature Correction Exponential Term.\n"
-         ),
-        AUTHORS( "Oliver Lemke" ),
-        OUT(),
-        GOUT( "line_mixing_records" ),
-        GOUT_TYPE( "ArrayOfLineMixingRecord"),
-        GOUT_DESC( "Unmatched line mixing data." ),
-        IN(),
-        GIN(         "filename" ),
-        GIN_TYPE(    "String" ),
-        GIN_DEFAULT( NODEF ),
-        GIN_DESC(    "Line mixing data file.")
         ));
 
   md_data_raw.push_back
