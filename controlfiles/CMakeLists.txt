@@ -20,7 +20,6 @@ install (DIRECTORY artscomponents
 arts_test_run_ctlfile(fast.forloop artscomponents/helpers/TestForloop.arts)
 arts_test_run_ctlfile(fast.agendacopy artscomponents/helpers/TestAgendaCopy.arts)
 arts_test_run_ctlfile(fast.hse artscomponents/helpers/TestHSE.arts)
-arts_test_run_ctlfile(fast.grids artscomponents/helpers/TestGridsExtract.arts)
 
 arts_test_run_ctlfile(fast.absorption artscomponents/absorption/TestAbs.arts)
 arts_test_run_ctlfile(fast.absorption.doppler
@@ -112,6 +111,7 @@ if (ARTS_XML_DATA_DIR)
   ###########################################
   ### cases using data from arts-xml-data ###
   arts_test_run_ctlfile(fast.regrid artscomponents/helpers/TestRegridding.arts)
+  arts_test_run_ctlfile(fast.grids artscomponents/helpers/TestGridsExtract.arts)
 
   arts_test_run_ctlfile(fast.ppath.planetrefrac
                         artscomponents/ppath/TestRefractPlanets.arts)

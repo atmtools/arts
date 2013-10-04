@@ -1,5 +1,13 @@
 2013-10-04  Jana Mendrok  <jana.mendrok@ltu.se>
 
+	* arts-2-1-764
+
+	* controlfiles/CMakeLists.txt:
+	Oops, TestGridsExtract requires arts-xml-data. Moved into the
+	corresponding if clause.
+
+2013-10-04  Jana Mendrok  <jana.mendrok@ltu.se>
+
 	* arts-2-1-763
 
 	* src/m_atmosphere.cc,methods.cc
