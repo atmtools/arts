@@ -136,6 +136,11 @@ if (ARTS_XML_DATA_DIR)
   arts_test_run_ctlfile(xmldata.atmsup.jupiter
                         artscomponents/arts-xml-data/TestAtmScenSup_Jupiter.arts)
 
+  arts_test_run_ctlfile(xmldata.clouds.mars
+                        artscomponents/arts-xml-data/TestClouds_Mars.arts)
+  arts_test_run_ctlfile(xmldata.clouds.venus
+                        artscomponents/arts-xml-data/TestClouds_Venus.arts)
+
   arts_test_run_ctlfile(xmldata.surf.earth
                         artscomponents/arts-xml-data/TestSurf_Earth.arts)
   arts_test_run_ctlfile(xmldata.surf.mars

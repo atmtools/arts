@@ -624,9 +624,9 @@ void ParticleTypeAdd( //WS Output:
                      // WS Input (needed for checking the datafiles):
                      const Index& atmosphere_dim,
                      const Vector& f_grid,
-                     const Vector& p_grid,
-                     const Vector& lat_grid,
-                     const Vector& lon_grid,
+//                     const Vector& p_grid,
+//                     const Vector& lat_grid,
+//                     const Vector& lon_grid,
                      // Keywords:
                      const String& scat_data_file,
                      const String& pnd_field_file,
@@ -638,7 +638,7 @@ void ParticleTypeAdd( //WS Output:
   
   // Atmosphere
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
-  chk_atm_grids( atmosphere_dim, p_grid, lat_grid, lon_grid );
+  //chk_atm_grids( atmosphere_dim, p_grid, lat_grid, lon_grid );
 
   // Frequency grid
   if( f_grid.nelem() == 0 )
@@ -680,6 +680,60 @@ void ParticleTypeAdd( //WS Output:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void ParticleTypeAddAll (//WS Output:
+                         ArrayOfSingleScatteringData& scat_data_array,
+                         ArrayOfGriddedField3&  pnd_field_raw,
+                         // WS Input(needed for checking the datafiles):
+                         const Index& atmosphere_dim,
+                         const Vector& f_grid,
+//                         const Vector& p_grid,
+//                         const Vector& lat_grid,
+//                         const Vector& lon_grid,
+                         // Keywords:
+                         const String& filelist_scat_data,
+                         const String& pnd_fieldarray_file,
+                         const Verbosity& verbosity)
+{
+  CREATE_OUT2;
+  
+  //--- Check input ---------------------------------------------------------
+
+  // Atmosphere
+  chk_if_in_range ( "atmosphere_dim", atmosphere_dim, 1, 3 );
+  //chk_atm_grids ( atmosphere_dim, p_grid, lat_grid, lon_grid );
+
+  // Frequency grid
+  if ( f_grid.nelem() == 0 )
+    throw runtime_error ( "The frequency grid is empty." );
+  chk_if_increasing ( "f_grid", f_grid );
+
+
+  //--- Reading the data ---------------------------------------------------
+  ArrayOfString data_files;
+  xml_read_from_file ( filelist_scat_data, data_files, verbosity );
+  scat_data_array.resize ( data_files.nelem() );
+
+  for ( Index i = 0; i<data_files.nelem(); i++ )
+  {
+
+    out2 << "  Read single scattering data\n";
+    xml_read_from_file ( data_files[i], scat_data_array[i], verbosity );
+
+    chk_scat_data ( scat_data_array[i],
+                                 data_files[i], f_grid,
+                                 verbosity );
+
+  }
+
+  out2 << "  Read particle number density data \n";
+  xml_read_from_file ( pnd_fieldarray_file, pnd_field_raw, verbosity );
+
+  chk_pnd_raw_data ( pnd_field_raw,
+                     pnd_fieldarray_file, atmosphere_dim, verbosity);
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void ParticleType2abs_speciesAdd( //WS Output:
                      ArrayOfSingleScatteringData& scat_data_array,
                      ArrayOfGriddedField3& vmr_field_raw,
@@ -689,9 +743,9 @@ void ParticleType2abs_speciesAdd( //WS Output:
                      // WS Input (needed for checking the datafiles):
                      const Index& atmosphere_dim,
                      const Vector& f_grid,
-                     const Vector& p_grid,
-                     const Vector& lat_grid,
-                     const Vector& lon_grid,
+//                     const Vector& p_grid,
+//                     const Vector& lat_grid,
+//                     const Vector& lon_grid,
                      // Keywords:
                      const String& scat_data_file,
                      const String& pnd_field_file,
@@ -703,7 +757,7 @@ void ParticleType2abs_speciesAdd( //WS Output:
   
   // Atmosphere
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
-  chk_atm_grids( atmosphere_dim, p_grid, lat_grid, lon_grid );
+  //chk_atm_grids( atmosphere_dim, p_grid, lat_grid, lon_grid );
 
   // Frequency grid
   if( f_grid.nelem() == 0 )
@@ -751,60 +805,6 @@ void ParticleType2abs_speciesAdd( //WS Output:
   abs_speciesAdd( abs_species,
                   propmat_clearsky_agenda_checked, abs_xsec_agenda_checked,
                   species, verbosity );
-}
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void ParticleTypeAddAll (//WS Output:
-                         ArrayOfSingleScatteringData& scat_data_array,
-                         ArrayOfGriddedField3&  pnd_field_raw,
-                         // WS Input(needed for checking the datafiles):
-                         const Index& atmosphere_dim,
-                         const Vector& f_grid,
-                         const Vector& p_grid,
-                         const Vector& lat_grid,
-                         const Vector& lon_grid,
-                         // Keywords:
-                         const String& filelist_scat_data,
-                         const String& pnd_fieldarray_file,
-                         const Verbosity& verbosity)
-{
-  CREATE_OUT2;
-  
-  //--- Check input ---------------------------------------------------------
-
-  // Atmosphere
-  chk_if_in_range ( "atmosphere_dim", atmosphere_dim, 1, 3 );
-  chk_atm_grids ( atmosphere_dim, p_grid, lat_grid, lon_grid );
-
-  // Frequency grid
-  if ( f_grid.nelem() == 0 )
-    throw runtime_error ( "The frequency grid is empty." );
-  chk_if_increasing ( "f_grid", f_grid );
-
-
-  //--- Reading the data ---------------------------------------------------
-  ArrayOfString data_files;
-  xml_read_from_file ( filelist_scat_data, data_files, verbosity );
-  scat_data_array.resize ( data_files.nelem() );
-
-  for ( Index i = 0; i<data_files.nelem(); i++ )
-  {
-
-    out2 << "  Read single scattering data\n";
-    xml_read_from_file ( data_files[i], scat_data_array[i], verbosity );
-
-    chk_scat_data ( scat_data_array[i],
-                                 data_files[i], f_grid,
-                                 verbosity );
-
-  }
-
-  out2 << "  Read particle number density data \n";
-  xml_read_from_file ( pnd_fieldarray_file, pnd_field_raw, verbosity );
-
-  chk_pnd_raw_data ( pnd_field_raw,
-                     pnd_fieldarray_file, atmosphere_dim, verbosity);
 }
 
 
