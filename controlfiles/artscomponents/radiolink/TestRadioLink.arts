@@ -137,10 +137,11 @@ NumericCreate( bending_angleREFERENCE )
 NumericCreate( extra_pdREFERENCE )
 NumericCreate( impact_parREFERENCE )
 #
-VectorSet( yREFERENCE, [1.07394e-15, 1.06776e-15 ] )
-NumericSet( bending_angleREFERENCE, 0.37803 )
-NumericSet( extra_pdREFERENCE, 259.1e-09 )
-NumericSet( impact_parREFERENCE, 6.389047041e+06 )
+# Values set 2013-10-07, on Patrick's desktop (Ubunt 13.04)
+VectorSet( yREFERENCE, [1.07137e-15, 1.0652e-15 ] )
+NumericSet( bending_angleREFERENCE, 0.377976 )
+NumericSet( extra_pdREFERENCE, 259.05e-09 )
+NumericSet( impact_parREFERENCE, 6.38905e+06 )
 #
 # Free space, defocusing and atmospheric loss part of y, and no need to check
 # those terms 
@@ -156,7 +157,7 @@ yCalc
 #Print(y)
 #Print(y_aux)
 #
-Compare( y, yREFERENCE, 1e-17 )
+Compare( y, yREFERENCE, 2e-17 )
 
 
 # Bending angle

@@ -1,3 +1,19 @@
+2013-10-07  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-765
+
+	* controlfiles/artscomponents/radiolink/TestRadioLink.arts:
+	Updated reference values, to have a clear reference (data and
+	platform given as comment in file). Increased tolerance for y to
+	2e-17, following data reported by Nicolas. This is about 2%, but
+	impact of numerical inaccuracy on defocuisng results are high (see
+	comment for arts-2-1-495)
+
+	* controlfiles/artscomponents/faraday/test_faraday.m: Improved
+	comment and accuracy of scaling factor.
+
+	* doc/uguide/faraday.tex: Corrected a citep to citet.
+
 2013-10-04  Jana Mendrok  <jana.mendrok@ltu.se>
 
 	* arts-2-1-764
