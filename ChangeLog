@@ -1,3 +1,10 @@
+2013-10-08  Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-1-765
+	
+	* src/methods.cc: Changed documentation on the definition function for
+	line shapes to include the Faddeeva option.
+	
 2013-10-07  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-765
