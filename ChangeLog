@@ -1,3 +1,12 @@
+2013-10-09  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-1-770
+
+	* controlfiles/planetary_toolbox/DemoMarsAtmo3D.arts,
+	DemoMarsAtmo1D.arts, getgrids_1D.arts, getgrids_3Dsimple.arts,
+	getgrids_3Dspaced5deg.arts, getatmo_mars.arts, atmo_mars.arts:
+	Improved documentation.
+
 2013-10-09  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-1-769

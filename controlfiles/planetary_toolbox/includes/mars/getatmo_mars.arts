@@ -7,9 +7,12 @@
 #                                                                              #
 # This file does the actual work of selecting and reading in the RAW           #
 # atmosphere data for Mars as specified by the user. For user specification    #
-# use, e.g., the DemoMarsAtmo.arts as template (this also contains the         #
-# detailed information on which indices are linked to which specific           #
-# value/selection.                                                             #
+# use, e.g., DemoMarsAtmo1D.arts (or its 3D equivalent) as template. The       #
+# template also contains the detailed information on which indices are linked  #
+# to which specific value/selection for each of the variables. The full        #
+# arrays, which the indices refer to and from which the actual values are      #
+# extracted, are defined in atmo_mars.arts (hence, atmo_mars.arts needs to be  #
+# included before the file at hand.                                            #
 #                                                                              #
 # This file expects the following input parameters:                            #
 #   Ls             (Index)           The season of the atmospheric scenario.   #
@@ -26,6 +29,10 @@
 #   Necase         (ArrayOfIndex)    Electron density setup selected           #
 #                                     (off/different sza-dependencies).        #
 #                                                                              #
+# Files to be included before this file:                                       #
+#   includes/mars/atmo_mars.arts                                               #
+#   includes/common/createvars.arts                                            #
+#                                                                              #
 # It provides following output:                                                #
 #   z_field_raw        as the WSV                                              #
 #   t_field_raw        as the WSV                                              #
@@ -36,12 +43,27 @@
 
 Arts2 {
 
-#StringSet( tmpformat, "ascii" )
+# We will need to dummy-store some data in files to be able to export data from
+# forloops. So we create some dummy names. 
 StringSet( tmpformat, "binary" )
-
 StringSet( vmrtmp, "tmp1.xml" )
 StringSet( abstmp, "tmp2.xml" )
 
+
+# Get data for abs_species, where filenames do follow the basic convention
+#(filename=speciesname.xml)
+AgendaCreate( speciesloop_agenda )
+AgendaSet( speciesloop_agenda ){
+  ReadXML( out=vmr_field_raw, filename=vmrtmp )
+  Extract( strtmp, casearray, forloop_index )
+  Append( specfilename, strtmp )
+#  Print( specfilename, 0 )
+  ReadXML( gf3tmp, specfilename )
+  Append( vmr_field_raw, gf3tmp )
+  WriteXML( output_file_format=tmpformat, in=vmr_field_raw, filename=vmrtmp )
+}
+
+# Get data for abs_species, where filenames do NOT follow the basic convention
 AgendaCreate( subspeciesloop_agenda )
 AgendaSet( subspeciesloop_agenda ){
   ReadXML( out=vmr_field_raw, filename=vmrtmp )
@@ -56,27 +78,18 @@ AgendaSet( subspeciesloop_agenda ){
   WriteXML( output_file_format=tmpformat, in=abs_species, filename=abstmp )
 }
 
-AgendaCreate( speciesloop_agenda )
-AgendaSet( speciesloop_agenda ){
-  ReadXML( out=vmr_field_raw, filename=vmrtmp )
-  Extract( strtmp, casearray, forloop_index )
-  Append( specfilename, strtmp )
-#  Print( specfilename, 0 )
-  ReadXML( gf3tmp, specfilename )
-  Append( vmr_field_raw, gf3tmp )
-  WriteXML( output_file_format=tmpformat, in=vmr_field_raw, filename=vmrtmp )
-}
 
-
-# Read the atmospheric setup
+# Read the atmospheric raw data
 # ---
+
 # first, create the casename string down to the common filename part in the
-# scenario folder. For Mars that takes a little more than for the other
-# planets... data is located in
+# scenario folder. Data is located in:
 # Mars.Ls.daytime.dust/
 #   Mars.Ls.daytime.dust.solar/
-#     Mars.Ls.daytime.dust.solar.variable.xml
+#     Mars.Ls.daytime.dust.solar.[variable.xml]
+
 Copy( superatmo, atmobase )
+
 # construct upper level path name (Mars.Ls.daytime.dust)
 StringSet( atmostr, "Mars" )
 StringSet( strtmp, "." )
@@ -89,24 +102,29 @@ Append( atmostr, subatmo )
 Append( atmostr, strtmp )
 Extract( subatmo, dustarray, dust )
 Append( atmostr, subatmo )
+
 # append upper level path name (Mars.Ls.daytime.dust) to base path
 Append( superatmo, atmostr )
 StringSet( strtmp, "/" )
 Append( superatmo, strtmp )
+
 # go on to construct lower level path name (Mars.Ls.daytime.dust.solar)
 StringSet( strtmp, "." )
 Append( atmostr, strtmp )
 Extract( subatmo, solararray, solar )
 Append( atmostr, subatmo )
+
 # append lower level path name (Mars.Ls.daytime.dust.solar) to base/upper-level
 # path
 Append( superatmo, atmostr )
 StringSet( strtmp, "/" )
 Append( superatmo, strtmp )
+
 # append base file name (Mars.Ls.daytime.dust.solar.) to path construction
 Append( superatmo, atmostr )
 StringSet( strtmp, "." )
 Append( superatmo, strtmp )
+
 # eventually, copy full path-basefilename combi to atmostr, to be consistent
 # with setups for the other planets, where we used atmostr for the atmo scenario
 # file location
@@ -118,6 +136,7 @@ Print( infostr )
 
 # second, we construct the name for the specific data files one-by-one and read
 # into corresponding variable
+
 Touch( vmr_field_raw )
 Touch( abs_species )
 WriteXML( output_file_format=tmpformat, in=vmr_field_raw, filename=vmrtmp )
@@ -181,5 +200,14 @@ ForLoop( forloop_agenda, 0, ncases, 1 )
 # now we're ready with the abs_species (and vmr_fields).
 ReadXML( out=abs_species, filename=abstmp )
 ReadXML( out=vmr_field_raw, filename=vmrtmp )
+
+
+# and we clean up the dummy files (not completely, though. but we write an empty
+#  variable into them.)
+Delete( strtmp )
+Touch( strtmp )
+WriteXML( output_file_format=tmpformat, in=strtmp, filename=abstmp )
+WriteXML( output_file_format=tmpformat, in=strtmp, filename=vmrtmp )
+
 }
  

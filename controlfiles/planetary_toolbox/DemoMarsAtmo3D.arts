@@ -1,16 +1,60 @@
-#####
-#
-# This is a template file for deriving user-selected Martian (atmospheric) data
-# from the arts-xml-data package and bringing it to p/lat/lon_grids.
-#
-# Change selections and settings only between the START and END USER SET tags!
-#
-#####
+################################################################################
+#                                                                              #
+#  This is a demo/template file. The USER is supposed to MODIFY it according   #
+# to his/her needs (better, make a copy of it and adapt the copy).             #
+#                                                                              #
+################################################################################
+#                                                                              #
+# This is a template file for deriving Martian (atmospheric) data from the     #
+# arts-xml-data package and convert it to the common spatial grids             #
+# (p/lat/lon_grid), such that they can be applied in radiative transfer        #
+# calculations.                                                                #
+# It is for a 3D atmosphere (for 3D use DemoMarsAtmo1D.arts instead).          #
+#                                                                              #
+# It provides following output:                                                #
+#   atmosphere_dim    as the WSV                                               #
+#   p_grid            as the WSV                                               #
+#   lat_grid          as the WSV                                               #
+#   lon_grid          as the WSV                                               #
+#   z_field           as the WSV                                               #
+#   t_field           as the WSV                                               #
+#   vmr_field         as the WSV                                               #
+#   wind_u/v/w_field  as the WSV                                               #
+#   abs_species       as the WSV                                               #
+#                                                                              #
+# User is supposed to select (atmospheric case, species to include) from list. #
+# Details of setting rules are given at the place of the setting               #
+#                                                                              #
+# Selections and settings to be done are between the flags START USER SETTINGS #
+# and END USER SETTINGS. The rest of the file shall not be modified,           #
+# particularly settings marked with 'do NOT modify'.                           #
+#                                                                              #
+# This template makes use of the following include files                       #
+#   includes/common/createvars.arts                                            #
+#   includes/mars/atmo_mars.arts                                               #
+#   includes/mars/getatmo_mars.arts                                            #
+#   includes/common/getgrids_3Dsimple.arts                                     #
+#   includes/common/makeatmo3D.arts                                            #
+#   includes/mars/getwind_mars.arts                                            #
+#   includes/common/makefield3D.arts                                           #
+#                                                                              #
+################################################################################
 
 Arts2 {
+# do NOT modify
+# prepare some variable containers we will need for later INCLUDE file executions
+# this include has to appear at the beginning. DO NOT include it more than ONCE
+# in a full ARTS run (if you include the template file in another controlfile,
+# e.g., more than once, you (might) have to move the following include to the
+# calling controlfile).
 INCLUDE "planetary_toolbox/includes/common/createvars.arts"
+
+# do NOT modify
+# set up name arrays and the like for selections
 INCLUDE "planetary_toolbox/includes/mars/atmo_mars.arts"
 
+# NOT modify
+# prepare the variables for the atmosphere case & species selections
 IndexCreate( Ls )
 IndexCreate( daytime )
 IndexCreate( dust )
@@ -22,32 +66,44 @@ ArrayOfIndexCreate( Necase )
 ArrayOfIndexCreate( vertwind )
 ArrayOfIndexCreate( NSwind )
 ArrayOfIndexCreate( EWwind )
-IndexCreate( auxfield_zeropad )
-IndexCreate( vmr_zeropad )
-IndexCreate( interp_order )
 NumericCreate( pmin )
 NumericCreate( pmax )
 NumericCreate( latmin )
 NumericCreate( latmax )
 NumericCreate( lonmin )
 NumericCreate( lonmax )
+IndexCreate( auxfield_zeropad )
+IndexCreate( vmr_zeropad )
+IndexCreate( interp_order )
 
-IndexSet( interp_order, 1 )
-IndexSet( vmr_zeropad, 1 )
-IndexSet( auxfield_zeropad, 1 )
 
+# do NOT modify
+# set atmospheric dimensionality to 1D (for 3D use another template!)
 AtmosphereSet3D
 
 
-##################
-# START USER SET #
-##################
+# MODIFY if you know, what you are doing (else the default setting should be fine)
+#
+# interpolation order for atmospheric data
+IndexSet( interp_order, 1 )
+# assume species-vmr to be zero at pressures/altitudes that are not covered by
+#  the species' profile data?
+IndexSet( vmr_zeropad, 1 )
+# as above, but for other data (namely: wind)
+IndexSet( auxfield_zeropad, 1 )
+
+
+################################################################################
+# START USER SETTINGS - Modify selections according to you wishes              #
+################################################################################
 
 # Define limits for vertical grid (in terms of pressure)
 # ---
 # The grid itself is taken from the data (z_field).
 # Setting limits to very low and high values will preserve the data grid limit
-# at the respective end.
+#  at the respective end.
+# For Mars, surface pressure is about 8e2, pressure @ 100km around 1e-2, and
+#  pressure @ 300km (highest altitude on Mars, where we have data) around 1e-8.
 NumericSet( pmin, 1e-2 )
 NumericSet( pmax, 1e99 )
 
@@ -62,16 +118,16 @@ NumericSet( pmax, 1e99 )
 # meridian. equality of x and 360+x is recognised).
 NumericSet( latmin, -90 )
 NumericSet( latmax, 90 )
-NumericSet( lonmin, 0 )
-NumericSet( lonmax, 360 )
+NumericSet( lonmin, -30 )
+NumericSet( lonmax, 270 )
 
 #===========================================
 
 
 # Select the atmospheric scenario to be used
 # ---
-# Mars atmospheric scenarios are available for different seasons (4), daytimes
-# (2), dust loadings (3) and solar activities (3). You chose all of them
+# Mars atmospheric scenarios are available for 4 different seasons, 2 daytimes,
+#  3 dust loadings, and 3 solar activities. You chose all of them
 # separately, and the resulting full scenario (name, location) is derived from
 # these components.
 
@@ -96,29 +152,37 @@ IndexSet( solar, 1 )
 
 # Select the trace gases (and possible sub-scenarios) to be used
 # ---
-# basic species (basic == there's only one version here. no sub-options/further
-# specifications required): Select all species you like to take into account.
+
+
+# Basic species
+# ---
+# refers to species with only one version here. no sub-options/further
+#  specifications required
+# Select ALL species you like to take into account.
 ### CO, CO2, H2, H2O2, H2S, HCl, N2, N2O, O, O2, O3, OCS, OH, SO2
 #    0,   1,  2,    3,   4,   5,  6,   7, 8,  9, 10,  11, 12,  13
 ArrayOfIndexSet( basespecies, [0, 1, 5, 7, 10, 13] )
 
 
-# Select species with sub-scenarios
+# Species with sub-scenarios
 # ---
-# you SHOULD only set UP TO ONE for each species (else the species will be
-# included several times, which makes sense only for particular cases).
+# only set UP TO ONE for each species (else the species will be included
+#  several times, which usually does not make sense).
 # EMPTY selection de-selects the whole species.
 
 ### CH4: low, standard
 #         0 ,    1   
+# select UP TO ONE
 ArrayOfIndexSet( ch4species, [1] )
 
-# Electron density: depending on solar zenith angle. Note that SZA<90 are only
-# available for day data, SZA>90 for night data (non-matching selection will
-# lead to a runtime error).
+# Electron density: depending on solar zenith angle.
+# NOTE that SZA<90 are only available for day data, SZA>90 for night data
+#  (non-matching selection will lead to a runtime error!). That is, COORDINATE
+#  selection here with your selection of DAYTIME.
 #       day       day       day       day       night
 ### SZA0-30, SZA30-50, SZA50-70, SZA70-90, SZA120-180
 #         0,        1,        2,        3,          4
+# select UP TO ONE
 ArrayOfIndexSet( Necase, [4] )
 
 
@@ -130,68 +194,77 @@ ArrayOfIndexSet( Necase, [4] )
 
 ### H2O: HDO (162), all (remaining)
 #          0      ,   1
+# select as many AS YOU WANT, but 'all' index has to be in LAST position
 ArrayOfIndexSet( h2ospecies, [1] )
 
-################
-# END USER SET #
-################
 
+################################################################################
+# END USER SETTINGS                                                            #
+################################################################################
+
+# do NOT modify
+# now, let the prepared include files do the actual work:
+# (a) read in the raw atmosphere including all selected species
 INCLUDE "planetary_toolbox/includes/mars/getatmo_mars.arts"
-INCLUDE "planetary_toolbox/includes/common/getgrids3D.arts"
+# (b) get the common grids for the atmosphere
+INCLUDE "planetary_toolbox/includes/common/getgrids_3Dsimple.arts"
+# (c) do the conversion from raw data with individual grids to the common grids
 INCLUDE "planetary_toolbox/includes/common/makeatmo3D.arts"
 
 
-##################
-# START USER SET #
-##################
 
-# Process further (non-abs_species) variables: wind
+
+
+################################################################################
+# START USER SETTINGS - Modify selections according to you wishes              #
+################################################################################
+
+
+# Get non-abs_species data: wind
 # ---
-# Wind: Note that N-S wind is only applied for 2D and 3D, E-W wind only for 3D
-# cases! You shall ONLY select ONE element per wind component (else the latter
-# will overwrite the earlier).
+# Only select ONE element per wind component (else the latter will overwrite the
+#  earlier).
 
 ### vertical wind: standard
 #                     0
+# select EXACTLY ONE.
+# also, you need to UNCOMMENT lines further below if you want vertical wind.
 ArrayOfIndexSet( vertwind, [0] )
 
 ### N-S wind: standard
 #                0
+# select EXACTLY ONE.
+# also, you need to UNCOMMENT lines further below if you want vertical wind.
 ArrayOfIndexSet( NSwind, [0] )
 
 ### E-W wind: standard
 #                0
+# select EXACTLY ONE.
+# also, you need to UNCOMMENT lines further below if you want vertical wind.
 ArrayOfIndexSet( EWwind, [0] )
 
-# if you WANT winds at all, UNcomment this
+# if you WANT any wind, UNCOMMENT the next line
 #INCLUDE "planetary_toolbox/includes/mars/getwind_mars.arts"
 
-# if you WANT vertical winds (vertwind NOT to be empty then!!), UNcomment this
-# (but only ONE of the two includes! depending on the desired atmospheric
-# dimensionality) 
+# if you want VERTICAL winds, UNCOMMENT the following 3 lines
 #Copy( rawfield, wind_w_raw )
 #INCLUDE "planetary_toolbox/includes/common/makefield3D.arts"
 #Copy( wind_w_field, finalfield )
 
-# if you WANT N-S winds (NSwind NOT to be empty then!!), UNcomment this (but
-# only ONE of the two includes! depending on the desired atmospheric
-# dimensionality) 
+# if you want N-S winds, UNCOMMENT the following 3 lines
 #Copy( rawfield, wind_v_raw )
 #INCLUDE "planetary_toolbox/includes/common/makefield3D.arts"
 #Copy( wind_v_field, finalfield )
 
-# if you WANT E-W winds (EWwind NOT to be empty then!!), UNcomment this (but
-# only ONE of the two includes! depending on the desired atmospheric
-# dimensionality) 
+# if you want E-W winds, UNCOMMENT the following 3 lines
 #Copy( rawfield, wind_u_raw )
 #INCLUDE "planetary_toolbox/includes/common/makefield3D.arts"
 #Copy( wind_u_field, finalfield )
 
-################
-# END USER SET #
-################
 
-#===========================================
+################################################################################
+# END USER SETTINGS                                                            #
+################################################################################
 
 
 }
