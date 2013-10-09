@@ -1,13 +1,48 @@
+2013-10-09  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-1-768
+
+	* controlfiles/planetary_toolbox/includes/mars/getatmo_mars.arts:
+	Remove grid settings recently introduced by Patrick. We rather do them
+	in a separate include (and they do not belong in here, where we just
+	read the raw atmospheric grids).
+
+	* controlfiles/planetary_toolbox/TestMarsAtmo.arts:
+	Removed. Gets replaced by the files below.
+
+	* controlfiles/planetary_toolbox/DemoMarsAtmo[1,3]D.arts:
+	Added. Demos/templates for getting mars atmospheric data. Separate
+	setups for 1D and 3D. They replace the previous TestMarsAtmo.arts.
+
+	* controlfiles/planetary_toolbox/includes/common/getgrids_1D.arts,
+	getgrids_3Dsimple.arts, getgrids_3Dspaced5deg.arts:
+	Added. Include files that create p/lat/lon grid purely on
+	p/lat/lon_min/max specifications by the user (everything else set or
+	extracted internally).
+
+	* controlfiles/planetary_toolbox/includes/common/makemagfield.arts,
+	makefield1D.arts, makefield3D.arts:
+	Use named parameters instead of positional passing.
+
+	* controlfiles/planetary_toolbox/includes/common/createvars.arts:
+	A string variable added.
+
+	* controlfiles/artscomponents/doitbatch/TestDOITBatch.arts:
+	Added abs_xsec check within outcommented make-LUT part.
+
+	* ChangeLog: Added my forgotten-to-commit last entry and fixed version
+	numbering.
+
 2013-10-08  Richard Larsson  <ric.larsson@gmail.com>
 
-	* arts-2-1-765
+	* arts-2-1-767
 	
 	* src/methods.cc: Changed documentation on the definition function for
 	line shapes to include the Faddeeva option.
 	
 2013-10-07  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
-	* arts-2-1-765
+	* arts-2-1-766
 
 	* controlfiles/artscomponents/radiolink/TestRadioLink.arts:
 	Updated reference values, to have a clear reference (data and
@@ -20,6 +55,23 @@
 	comment and accuracy of scaling factor.
 
 	* doc/uguide/faraday.tex: Corrected a citep to citet.
+
+2013-10-06  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-1-765
+
+	* src/m_cloudbox.cc, methods.cc (ParticleTypeAdd, ParticleTypeAddAll,
+	ParticleType2abs_speciesAdd):
+	Removed p/lat/lon_grid as passed variables. We don't need them in there.
+	Whether they are consistent with atmosphere_dim is not necessary to be
+	checked HERE!
+
+	* controlfiles/artscomponents/arts-xml-data/TestClouds_Mars.arts,
+	TestClouds_Venus.arts:
+	Added. Cloud data tests.
+
+	* controlfiles/CMakeLists.txt:
+	Cloud data test added to test suite.
 
 2013-10-04  Jana Mendrok  <jana.mendrok@ltu.se>
 

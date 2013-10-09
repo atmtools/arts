@@ -8,8 +8,8 @@
 Arts2 {
 
 GriddedFieldLatLonExpand( rawfield, rawfield )
-GriddedFieldLatLonRegrid( rawfield, lat_grid, lon_grid, rawfield )
-GriddedFieldPRegrid( rawfield, p_grid, rawfield, interp_order, zeropad )
-FieldFromGriddedField( finalfield, p_grid, lat_grid, lon_grid, rawfield )
+GriddedFieldLatLonRegrid( out=rawfield, in=rawfield, lat_true=lat_grid, lon_true=lon_grid )
+GriddedFieldPRegrid( out=rawfield, in=rawfield, zeropadding=auxfield_zeropad )
+FieldFromGriddedField( out=finalfield, in=rawfield )
 
 }

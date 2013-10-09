@@ -1,0 +1,25 @@
+#####
+#
+# Some explanation
+#
+#####
+
+Arts2 {
+
+# Derive p_grid from atmosphere data (namely from the z_field data)
+p_gridFromZRaw(	no_negZ=0 )
+VectorCrop( out=p_grid, in=p_grid, min_value=pmin, max_value=pmax )
+
+
+# Define lat and lon grids from given min/max values
+
+# (a) first create a global grids with 5deg spacing (that's what Jupiter's
+# magfield, which is the only 3D field in the data for now, has)
+VectorLinSpace( lat_grid, -90, 90, 5 )
+VectorLinSpace( lon_grid, -360, 360, 5 )
+
+# (b) crop the grids to the region the user wants
+VectorCrop( out=lat_grid, in=lat_grid, min_value=latmin, max_value=latmax )
+VectorCrop( out=lon_grid, in=lon_grid, min_value=lonmin, max_value=lonmax )
+
+}

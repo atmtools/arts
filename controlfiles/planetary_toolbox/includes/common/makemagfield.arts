@@ -8,14 +8,14 @@
 Arts2 {
 
 # and this doing the magfields: raw is 3D.
-GriddedFieldLatLonRegrid( mag_u_raw, lat_true, lon_true, mag_u_raw )
-GriddedFieldPRegrid( mag_u_raw, p_grid, mag_u_raw, interp_order, zeropad )
-FieldFromGriddedField( mag_u_field, p_grid, lat_grid, lon_grid, mag_u_raw )
-GriddedFieldLatLonRegrid( mag_v_raw, lat_true, lon_true, mag_v_raw )
-GriddedFieldPRegrid( mag_v_raw, p_grid, mag_v_raw, interp_order, zeropad )
-FieldFromGriddedField( mag_v_field, p_grid, lat_grid, lon_grid, mag_v_raw )
-GriddedFieldLatLonRegrid( mag_w_raw, lat_true, lon_true, mag_w_raw )
-GriddedFieldPRegrid( mag_w_raw, p_grid, mag_u_raw, interp_order, zeropad )
-FieldFromGriddedField( mag_w_field, p_grid, lat_grid, lon_grid, mag_w_raw )
+GriddedFieldLatLonRegrid( out=mag_u_raw, in=mag_u_raw )
+GriddedFieldPRegrid( out=mag_u_raw, in=mag_u_raw, zeropadding=auxfield_zeropad )
+FieldFromGriddedField( out=mag_u_field, in=mag_u_raw )
+GriddedFieldLatLonRegrid( out=mag_v_raw, in=mag_v_raw )
+GriddedFieldPRegrid( out=mag_v_raw, in=mag_v_raw, zeropadding=auxfield_zeropad )
+FieldFromGriddedField( out=mag_v_field, in=mag_v_raw )
+GriddedFieldLatLonRegrid( out=mag_w_raw, in=mag_w_raw )
+GriddedFieldPRegrid( out=mag_w_raw, in=mag_w_raw, zeropadding=auxfield_zeropad )
+FieldFromGriddedField( out=mag_w_field, in=mag_w_raw )
 
 }

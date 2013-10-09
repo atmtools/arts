@@ -7,7 +7,7 @@
 
 Arts2 {
 
-GriddedFieldPRegrid( rawfield, p_grid, rawfield, interp_order, zeropad )
-FieldFromGriddedField( finalfield, p_grid, lat_grid, lon_grid, rawfield )
+GriddedFieldPRegrid( out=rawfield, in=rawfield, zeropadding=auxfield_zeropad )
+FieldFromGriddedField( out=finalfield, in=rawfield )
 
 }

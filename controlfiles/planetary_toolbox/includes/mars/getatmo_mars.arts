@@ -1,68 +1,40 @@
-#####
-#
-# This file does the actual work of selecting and reading in Martian atmospheric
-# data as specified by the user in the MyMars.arts template.
-#
-# This file expects the following input parameters:
-#   Ls             (Index)           The season of the atmospheric scenario.
-#   daytime        (Index)           The daytime of the atmospheric scenario.
-#   dust           (Index)           The dust loading of the atmospheric scenario.
-#   solar          (Index)           The solar activity level of the atmospheric
-#                                     scenario.
-#   basespecies    (ArrayOfIndex)    The abs_species to use (includes only such
-#                                     with on/off options only).
-#   h2ospecies     (ArrayOfIndex)    H2O setup selected (off/low/medium/high).
-#   ndospecies     (ArrayOfIndex)    HDO setup selected
-#                                     (off/low/medium/high/uncorrected).
-#   Necase         (ArrayOfIndex)    Electron density setup selected
-#                                     (off/different sza-dependencies).
-#
-# It provides following output:
-#   z_field_raw        as the WSV
-#   t_field_raw        as the WSV
-#   vmr_field_raw      as the WSV
-#   abs_species        as the WSV
-#
-# Unless further variables or options for existing variables are introduced,
-# there is NO need to MODOFY this file.
-#
-#####
+################################################################################
+#                                                                              #
+# Unless further variables or options for existing variables are introduced,   #
+# DO NOT MODIFY this file! This is only a helper file!                         #
+#                                                                              #
+################################################################################
+#                                                                              #
+# This file does the actual work of selecting and reading in the RAW           #
+# atmosphere data for Mars as specified by the user. For user specification    #
+# use, e.g., the DemoMarsAtmo.arts as template (this also contains the         #
+# detailed information on which indices are linked to which specific           #
+# value/selection.                                                             #
+#                                                                              #
+# This file expects the following input parameters:                            #
+#   Ls             (Index)           The season of the atmospheric scenario.   #
+#   daytime        (Index)           The daytime of the atmospheric scenario.  #
+#   dust           (Index)           The dust loading of the atmospheric       #
+#                                     scenario.                                #
+#   solar          (Index)           The solar activity level of the           #
+#                                     atmospheric scenario.                    #
+#   basespecies    (ArrayOfIndex)    The abs_species to use (includes only     #
+#                                     such with on/off options only).          #
+#   h2ospecies     (ArrayOfIndex)    H2O setup selected (off/low/medium/high). #
+#   hdospecies     (ArrayOfIndex)    HDO setup selected                        #
+#                                     (off/low/medium/high/uncorrected).       #
+#   Necase         (ArrayOfIndex)    Electron density setup selected           #
+#                                     (off/different sza-dependencies).        #
+#                                                                              #
+# It provides following output:                                                #
+#   z_field_raw        as the WSV                                              #
+#   t_field_raw        as the WSV                                              #
+#   vmr_field_raw      as the WSV                                              #
+#   abs_species        as the WSV                                              #
+#                                                                              #
+################################################################################
 
 Arts2 {
-
-# Old setting from TestMars.arts:
-VectorNLogSpace( p_grid, 101, 7e2, 7e-7 )
-
-# This setting gives an assert error, that should be tracked down:
-#VectorNLogSpace( p_grid, 101, 7e2, 1e-2 )
-
-# A way to handle pre-defined lat and lon grids
-#
-ArrayOfVectorCreate( lat_grids )
-ArrayOfVectorCreate( lon_grids )
-VectorCreate( lat_grid_3d )
-VectorCreate( lon_grid_3d )
-IndexCreate( iatmdim  )
-#
-VectorCreate( empty_vector )
-VectorSet( empty_vector, [] )
-#
-VectorNLinSpace( lat_grid_3d, 11, 45, 55 )
-VectorNLinSpace( lon_grid_3d, 11, 5, 15 )
-#
-Append( lat_grids, empty_vector )
-Append( lat_grids, empty_vector )
-Append( lat_grids, lat_grid_3d )
-Append( lon_grids, empty_vector )
-Append( lon_grids, empty_vector )
-Append( lon_grids, lon_grid_3d )
-#
-IndexStepDown( iatmdim, atmosphere_dim )
-#
-Extract( lat_grid, lat_grids, iatmdim )
-Extract( lon_grid, lon_grids, iatmdim )
-
-
 
 #StringSet( tmpformat, "ascii" )
 StringSet( tmpformat, "binary" )
@@ -139,6 +111,9 @@ Append( superatmo, strtmp )
 # with setups for the other planets, where we used atmostr for the atmo scenario
 # file location
 Copy( atmostr, superatmo )
+StringSet( infostr, "Atmospheric data taken from: " )
+Append( infostr, atmostr )
+Print( infostr )
 
 
 # second, we construct the name for the specific data files one-by-one and read
@@ -206,13 +181,5 @@ ForLoop( forloop_agenda, 0, ncases, 1 )
 # now we're ready with the abs_species (and vmr_fields).
 ReadXML( out=abs_species, filename=abstmp )
 ReadXML( out=vmr_field_raw, filename=vmrtmp )
-Print( abs_species )
-#nelemGet( itmp, abs_species )
-#Print( itmp )
-#nelemGet( ncases, vmr_field_raw )
-#Print( ncases )
-#Compare( ncases, itmp, 0,
-#         "Number of entries in abs_species and in vmr_field are not consistent!" )
-
 }
  

@@ -3,9 +3,13 @@
 # This is a template file for deriving user-selected Martian (atmospheric) data
 # from the arts-xml-data package and bringing it to p/lat/lon_grids.
 #
+# Change selections and settings only between the START and END USER SET tags!
+#
 #####
 
 Arts2 {
+INCLUDE "planetary_toolbox/includes/common/createvars.arts"
+INCLUDE "planetary_toolbox/includes/mars/atmo_mars.arts"
 
 IndexCreate( Ls )
 IndexCreate( daytime )
@@ -18,22 +22,33 @@ ArrayOfIndexCreate( Necase )
 ArrayOfIndexCreate( vertwind )
 ArrayOfIndexCreate( NSwind )
 ArrayOfIndexCreate( EWwind )
-IndexCreate( zeropad )
+IndexCreate( auxfield_zeropad )
 IndexCreate( vmr_zeropad )
 IndexCreate( interp_order )
+NumericCreate( pmin )
+NumericCreate( pmax )
+NumericCreate( latmin )
+NumericCreate( latmax )
+NumericCreate( lonmin )
+NumericCreate( lonmax )
 
-INCLUDE "planetary_toolbox/includes/mars/atmo_mars.arts"
-INCLUDE "planetary_toolbox/includes/common/createvars.arts"
-
-IndexSet( zeropad, 1 )
-IndexSet( vmr_zeropad, 1 )
 IndexSet( interp_order, 1 )
+IndexSet( vmr_zeropad, 1 )
+IndexSet( auxfield_zeropad, 1 )
 
-
-#===========================================
-
-AtmosphereSet3D
 AtmosphereSet1D
+
+##################
+# START USER SET #
+##################
+
+# Define limits for vertical grid (in terms of pressure)
+# ---
+# The grid itself is taken from the data (z_field).
+# Setting limits to very low and high values will preserve the data grid limit
+# at the respective end.
+NumericSet( pmin, 1e-2 )
+NumericSet( pmax, 1e99 )
 
 #===========================================
 
@@ -102,18 +117,22 @@ ArrayOfIndexSet( Necase, [4] )
 #          0      ,   1
 ArrayOfIndexSet( h2ospecies, [1] )
 
+################
+# END USER SET #
+################
 
 INCLUDE "planetary_toolbox/includes/mars/getatmo_mars.arts"
-# uncomment one of the following, depending on the desired atmospheric dimensionality
+INCLUDE "planetary_toolbox/includes/common/getgrids1D.arts"
 INCLUDE "planetary_toolbox/includes/common/makeatmo1D.arts"
-#INCLUDE "planetary_toolbox/includes/common/makeatmo3D.arts"
 
-#===========================================
 
+##################
+# START USER SET #
+##################
 
 # Process further (non-abs_species) variables: wind
 # ---
-# Wind: Note, that N-S wind is only applied for 2D and 3D, E-W wind only for 3D
+# Wind: Note that N-S wind is only applied for 2D and 3D, E-W wind only for 3D
 # cases! You shall ONLY select ONE element per wind component (else the latter
 # will overwrite the earlier).
 
@@ -129,35 +148,33 @@ ArrayOfIndexSet( NSwind, [0] )
 #                0
 ArrayOfIndexSet( EWwind, [0] )
 
-INCLUDE "planetary_toolbox/includes/mars/getwind_mars.arts"
+# if you WANT winds at all, UNcomment this
+#INCLUDE "planetary_toolbox/includes/mars/getwind_mars.arts"
 
 # if you WANT vertical winds (vertwind NOT to be empty then!!), UNcomment this
 # (but only ONE of the two includes! depending on the desired atmospheric
 # dimensionality) 
 #Copy( rawfield, wind_w_raw )
-# uncomment only ONE of the following two!
 #INCLUDE "planetary_toolbox/includes/common/makefield1D.arts"
-#INCLUDE "planetary_toolbox/includes/common/makefield3D.arts"
 #Copy( wind_w_field, finalfield )
 
 # if you WANT N-S winds (NSwind NOT to be empty then!!), UNcomment this (but
 # only ONE of the two includes! depending on the desired atmospheric
 # dimensionality) 
 #Copy( rawfield, wind_v_raw )
-# uncomment only ONE of the following two!
 #INCLUDE "planetary_toolbox/includes/common/makefield1D.arts"
-#INCLUDE "planetary_toolbox/includes/common/makefield3D.arts"
 #Copy( wind_v_field, finalfield )
 
 # if you WANT E-W winds (EWwind NOT to be empty then!!), UNcomment this (but
 # only ONE of the two includes! depending on the desired atmospheric
 # dimensionality) 
 #Copy( rawfield, wind_u_raw )
-# uncomment only ONE of the following two!
 #INCLUDE "planetary_toolbox/includes/common/makefield1D.arts"
-#INCLUDE "planetary_toolbox/includes/common/makefield3D.arts"
 #Copy( wind_u_field, finalfield )
 
+################
+# END USER SET #
+################
 
 #===========================================
 

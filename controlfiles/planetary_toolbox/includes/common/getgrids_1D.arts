@@ -1,0 +1,13 @@
+#####
+#
+# Some explanation
+#
+#####
+
+Arts2 {
+
+# Derive p_grid from atmosphere data (namely from the z_field data)
+p_gridFromZRaw(	no_negZ=0 )
+VectorCrop( out=p_grid, in=p_grid, min_value=pmin, max_value=pmax )
+
+}

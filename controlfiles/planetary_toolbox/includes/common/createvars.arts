@@ -7,13 +7,14 @@
 #   common/makefield1D.arts
 #   common/makefield3D.arts
 #
-# It is supposed to be included ONCE (and only once), before the above named
+# It needs to be included ONCE (and ONLY once!), before the above named
 # include files are used.
 #
 #####
 
 Arts2 {
 
+StringCreate( infostr )
 StringCreate( tmpformat )
 StringCreate( atmostr )
 StringCreate( superatmo )
@@ -23,6 +24,7 @@ ArrayOfStringCreate( speciesname )
 ArrayOfIndexCreate( case )
 ArrayOfStringCreate( casearray )
 IndexCreate( ncases )
+
 StringCreate( strtmp )
 StringCreate( Btmp )
 StringCreate( abstmp )
