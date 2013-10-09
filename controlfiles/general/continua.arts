@@ -77,6 +77,10 @@ abs_cont_descriptionAppend( tagname="O2-PWR93",
 abs_cont_descriptionAppend( tagname="O2-MPM93",
                             model="MPM93" )
 
+# Liebe 1989 O2 full absorption model
+abs_cont_descriptionAppend( tagname="O2-MPM89",
+                            model="MPM89" )
+
 # Tretyakov etal. 2005 modernization of Liebe 1993 O2 full absorption model
 abs_cont_descriptionAppend( tagname="O2-TRE05",
                             model="TRE05" )

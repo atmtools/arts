@@ -1,3 +1,10 @@
+2013-10-09  Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-1-769
+	
+	* controlfiles/general/continua.arts: Added O2-MPM89 support since it is
+	already in ARTS.
+
 2013-10-09  Jana Mendrok  <jana.mendrok@ltu.se>
 
 	* arts-2-1-768
