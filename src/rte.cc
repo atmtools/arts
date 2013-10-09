@@ -633,7 +633,7 @@ void defocusing_general(
     Calculates defocusing for limb measurements between two satellites.
 
     The expressions used assume a 1D atmosphere, and can only be applied on
-    limb sounding geoemtry. The function works for 2D and 3D and should give 
+    limb sounding geometry. The function works for 2D and 3D and should give 
     OK estimates. Both the zenith angle (loss) and azimuth angle (gain) terms
     are considered.
 
@@ -679,8 +679,8 @@ void defocusing_sat2sat(
   const Numeric&     dza,
   const Verbosity&   verbosity )
 {
-  if( ppath.start_lstep == 0  ||  ppath.end_lstep == 0  )
-    throw runtime_error( "The function *defocusing_sat2sat* can only be used "
+  if( ppath.end_los[0] < 90  ||  ppath.start_los[0] > 90  )
+     throw runtime_error( "The function *defocusing_sat2sat* can only be used "
                          "for limb sounding geometry." );
 
   // Index of tangent point

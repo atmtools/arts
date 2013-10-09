@@ -1,3 +1,19 @@
+2013-10-09  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-771
+
+	* Removed/changed stuff stopping iyRadioLink to be used with
+	ppath_agenda__FollowSensorLosPath. This combination can i fact be
+	very useful.
+
+	* src/m_transmitter.cc (iyRadioLink): Removed if statement
+	demanding transmitter. rte_los now an input, passed on to
+	ppath_agenda.
+
+	* src/rte.cc (defocusing_sat2sat): Changed if-statement detecting
+	if limb sounding is being performed. Old one demanded tracking of
+	transmitter.
+
 2013-10-09  Jana Mendrok  <jana.mendrok@ltu.se>
 
 	* arts-2-1-770
@@ -10,7 +26,7 @@
 2013-10-09  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-1-769
-	
+
 	* controlfiles/general/continua.arts: Added O2-MPM89 support since it is
 	already in ARTS.
 

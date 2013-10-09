@@ -102,6 +102,7 @@ void iyRadioLink(
    const Index&                       iy_agenda_call1,
    const Tensor3&                     iy_transmission,
    const Vector&                      rte_pos,      
+   const Vector&                      rte_los,      
    const Vector&                      rte_pos2,      
    const Numeric&                     rte_alonglos_v,      
    const Numeric&                     ppath_lraytrace,
@@ -124,16 +125,12 @@ void iyRadioLink(
 
 
   //- Determine propagation path
-  ppath_agendaExecute( ws, ppath, ppath_lraytrace, rte_pos, Vector(0), 
+  ppath_agendaExecute( ws, ppath, ppath_lraytrace, rte_pos, rte_los, 
                        rte_pos2, cloudbox_on, 0, t_field, z_field, vmr_field, 
                        f_grid, ppath_agenda );
 
-  //- Check ppath, and set np to zero if ground intersection
+  //- Set np to zero if ground intersection
   const Index radback = ppath_what_background(ppath);
-  if( !( radback == 0  ||  radback == 2  ||  radback == 9 ) )
-    { throw runtime_error( "Radiative background not set to \"transmitter\", "
-                           "\"surface\" or \"unvalid\" by *ppath_agenda*.\n"
-                           "Is correct WSM used in the agenda?" ); }
   // np should already be 1 fon non-OK cases, but for extra safety ...
   if( radback == 0  || radback == 2 )
     { ppath.np = 1; }
