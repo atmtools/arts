@@ -1,10 +1,17 @@
 #DEFINITIONS:  -*-sh-*-
 #
-# This is ???
+# The scripts demonstrates a 3D radio link calculation. The settings mimics a
+# satellite-to-ground link, but by changing the reciever position a radio
+# occultation geomtry can be achived. Calculations are done for three
+# frequencies (f_centra+-f_bwidth/2), where dispersion is considered.
+#
+# The basic atmospherio is Fascode tropical. An ionopshere is added. By
+# changing an include file, a no-ionopshere case can be obtained (resulting in
+# faster calculations).
 #
 # Run with report level 0: 
 #   arts -r0 link_budget.arts
-# for clearest 
+# to obtain formatted screen output with results.
 #
 # Author: Patrick Eriksson
 
@@ -16,8 +23,6 @@ Arts2{
 
 #
 # Position of receiver 
-# 
-# (Will be centre position of atmosphere.)
 #
 VectorCreate( reciever )      # z [m], lat [deg], lon  [deg]  
 #
@@ -69,13 +74,13 @@ INCLUDE "general/agendas.arts"
 #
 Copy( ppath_agenda,            ppath_agenda__TransmitterReceiverPath )
 Copy( ppath_step_agenda,       ppath_step_agenda__RefractedPath      )
-Copy( refr_index_agenda,       refr_index_agenda__GasThayer          )
+Copy( refr_index_air_agenda,   refr_index_air_agenda__GasThayer      )
 
 #
 # Radiative transfer step lengths
 #
-NumericSet( ppath_lmax, 5e3 )
-NumericSet( ppath_lraytrace, 100 )
+NumericSet( ppath_lmax, 10e3 )
+NumericSet( ppath_lraytrace, 500 )
 
 #
 # Here we consider dispersion (overkill if not ionopshere included)
@@ -170,8 +175,8 @@ VectorNLinSpace( lon_grid, grid_length, grid_start, grid_stop )
 # Load atmosphere and absorption lines
 #============================================================================
 
-INCLUDE "earth_tropical_false3d_0to64km_lowfreq.arts"
-#INCLUDE "earth_tropical_false3d_0to1000km_lowfreq.arts"
+#INCLUDE "earth_tropical_false3d_0to64km_lowfreq.arts"
+INCLUDE "earth_tropical_false3d_0to1000km_lowfreq.arts"
 
 
 
@@ -182,12 +187,14 @@ INCLUDE "earth_tropical_false3d_0to64km_lowfreq.arts"
 #============================================================================
 
 #
-# Runs data checks
+# Run data checks
 #
 abs_xsec_agenda_checkedCalc
 propmat_clearsky_agenda_checkedCalc
-basics_checkedCalc
+atmfields_checkedCalc
+atmgeom_checkedCalc
 cloudbox_checkedCalc
+
 
 #
 # Auxilary variables
@@ -216,17 +223,6 @@ iyCalc
 Tensor4Create( farrot_total )
 Extract( farrot_total, iy_aux, 0 )
 
-#
-# Extract extra path delay
-#
-Tensor4Create( atensor4 )
-Tensor3Create( atensor3 )
-MatrixCreate( amatrix )
-VectorCreate( epd )
-Extract( atensor4, iy_aux, 1 )
-Extract( atensor3, atensor4, 0 )
-Extract( amatrix, atensor3, 0 )
-VectorExtractFromMatrix( epd, amatrix, 0, "row" )
 
 #
 # Report
@@ -266,13 +262,6 @@ Print( empty_line, 0 )
 Print( message, 0 )
 Print( seperator, 0 )
 Print( farrot_total, 0 )
-#
-StringSet( message, "Extra patrh delay [ns]:" )
-Print( empty_line, 0 )
-Print( message, 0 )
-Print( seperator, 0 )
-VectorScale( epd, epd, 1e9 )
-Print( epd, 0 )
 #
 Print( empty_line, 0 )
 

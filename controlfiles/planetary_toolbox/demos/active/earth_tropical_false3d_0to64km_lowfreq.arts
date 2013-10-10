@@ -6,7 +6,7 @@
 # Planet          : Earth
 # Frequency range : 0 - 100 GHz
 # Dimensionality  : 3D
-# Altitude range  : 0 - 64 km, 250 m steps  
+# Altitude range  : 0 - 80 km, 250 m steps  
 # Gas dataset     : Fascod tropical, expanded to 3D
 # Gas species     : H20, O2 and N2, with standard absorption models
 #
@@ -16,7 +16,7 @@ Arts2{
 
 INCLUDE "general/planet_earth.arts"
 
-VectorNLogSpace( p_grid, 256, 1013e2, 10.13 )
+VectorNLogSpace( p_grid, 321, 1013e2, 1 )
 
 abs_speciesSet( species= [ "H2O-PWR98", 
                            "N2-SelfContStandardType",
@@ -30,7 +30,7 @@ Extract( z_surface, z_field, 0 )
 
 Extract( p_hse, p_grid, 0 )
 NumericSet( z_hse_accuracy, 0.1 )
-basics_checkedCalc
+atmfields_checkedCalc
 z_fieldFromHSE
 
 

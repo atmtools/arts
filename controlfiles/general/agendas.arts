@@ -66,6 +66,21 @@ AgendaSet( iy_space_agenda__CosmicBackground ){
 
 
 ##################################
+#    iy_space_agenda
+##################################
+
+###
+# Unit (unpolarised) intensity
+#
+AgendaCreate( iy_transmitter_agenda__UnitUnpolIntensity )
+AgendaSet( iy_transmitter_agenda__UnitUnpolIntensity ){
+  Ignore( rtp_pos )
+  Ignore( rtp_los )
+  MatrixUnitIntensity( iy, stokes_dim, f_grid )
+}
+
+
+##################################
 #    iy_surface_agenda
 ##################################
 

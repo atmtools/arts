@@ -6,7 +6,7 @@
 # Planet          : Earth
 # Frequency range : 0 - 100 GHz
 # Dimensionality  : 3D
-# Altitude range  : 0 - 64 km, 500 steps  
+# Altitude range  : 0 - 1000 km, 250 m steps up to 80 km and 16 km above.
 # Gas dataset     : Fascod tropical, expanded to 3D
 # Gas species     : H20, O2 and N2, with standard absorption models
 #
@@ -16,7 +16,12 @@ Arts2{
 
 INCLUDE "general/planet_earth.arts"
 
-VectorNLogSpace( p_grid, 1001, 1013e2, 1e-59 )
+VectorNLogSpace( p_grid, 321, 1013e2, 1 )
+
+VectorCreate( pionopshere )
+VectorNLogSpace( pionopshere, 59, 0.1, 1e-59 )
+
+Append( p_grid, pionopshere )
 
 # Tempature and z covering the ionosphere
 ReadXML( t_field_raw, "testdata/tropical.expanded.t.xml" )
@@ -57,7 +62,7 @@ Extract( z_surface, z_field, 0 )
 # Apply HSE
 Extract( p_hse, p_grid, 0 )
 NumericSet( z_hse_accuracy, 0.1 )
-basics_checkedCalc
+atmfields_checkedCalc
 z_fieldFromHSE
 
 # Magnetic field, u-component
@@ -78,7 +83,7 @@ GriddedFieldLatLonRegrid( raw3, lat_grid, lon_grid, raw3 )
 GriddedFieldPRegrid( raw3, p_grid, raw3 )
 FieldFromGriddedField( mag_w_field, p_grid, lat_grid, lon_grid, raw3 )
 
-# No trransitions here
+# No transitions here
 abs_lines_per_speciesSetEmpty
 
 # Absorption agendas
