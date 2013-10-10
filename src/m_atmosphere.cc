@@ -834,6 +834,15 @@ void GriddedFieldLatLonRegrid(// WS Generic Output:
     const Index lat_grid_index = 0;
     const Index lon_grid_index = 1;
 
+    if (gfraw_in.get_grid_size(lat_grid_index) < 2 || 
+        gfraw_in.get_grid_size(lon_grid_index) < 2)
+      {
+        ostringstream os;
+        os << "Raw data has to be true 3D data (nlat>1 and nlon>1).\n"
+           << "Use GriddedFieldLatLonExpand to convert 1D or 2D data to 3D!\n"; 
+        throw runtime_error(os.str());
+      }
+
     // Resize output GriddedField
     gfraw_out.resize(lat_true.nelem(), lon_true.nelem());
 
@@ -908,6 +917,15 @@ void GriddedFieldLatLonRegrid(// WS Generic Output:
 
     const Index lat_grid_index = 1;
     const Index lon_grid_index = 2;
+
+    if (gfraw_in.get_grid_size(lat_grid_index) < 2 || 
+        gfraw_in.get_grid_size(lon_grid_index) < 2)
+      {
+        ostringstream os;
+        os << "Raw data has to be true 3D data (nlat>1 and nlon>1).\n"
+           << "Use GriddedFieldLatLonExpand to convert 1D or 2D data to 3D!\n"; 
+        throw runtime_error(os.str());
+      }
 
     // Resize output GriddedField and copy all non-latitude/longitude grids
     gfraw_out.resize(gfraw_in.data.npages(), lat_true.nelem(), lon_true.nelem());
@@ -991,6 +1009,15 @@ void GriddedFieldLatLonRegrid(// WS Generic Output:
 
     const Index lat_grid_index = 2;
     const Index lon_grid_index = 3;
+
+    if (gfraw_in.get_grid_size(lat_grid_index) < 2 || 
+        gfraw_in.get_grid_size(lon_grid_index) < 2)
+      {
+        ostringstream os;
+        os << "Raw data has to be true 3D data (nlat>1 and nlon>1).\n"
+           << "Use GriddedFieldLatLonExpand to convert 1D or 2D data to 3D!\n"; 
+        throw runtime_error(os.str());
+      }
 
     // Resize output GriddedField and copy all non-latitude/longitude grids
     gfraw_out.resize(gfraw_in.data.nbooks(), gfraw_in.data.npages(),

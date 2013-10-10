@@ -1,3 +1,33 @@
+2013-10-09  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-1-771
+
+	* src/m_atmosphere.cc(GriddedFieldLatLonRegrid):
+	Added the true-3D-data check here already to catch mistakenly empty
+	grids (else is_cyclic causes an assert).
+
+	* controlfiles/planetary_toolbox/TestJupiterAtmo.arts,
+	TestVenusAtmo.arts:
+	Removed. Get replaced by the files below.
+
+	* controlfiles/planetary_toolbox/DemoVenusAtmo[1,3]D.arts,
+	DemoJupiterAtmo[1,3]D.arts:
+	Added. Demos/templates for getting venus and jupiter atmospheric data.
+	Separate setups for 1D and 3D. Replace the previous Test*Atmo.arts.
+
+	* controlfiles/planetary_toolbox/DemoMarsAtmo[1,3]D.arts,
+	controlfiles/planetary_toolbox/includes/mars/getatmo_mars.arts,
+	controlfiles/planetary_toolbox/includes/common/makemagfield.arts:
+	Minor fixes.
+
+	* controlfiles/planetary_toolbox/includes/venus/atmo_venus.arts,
+	getatmo_venus.arts, jupiter/atmo_jupiter.arts, getatmo_jupiter.arts:
+	Improved documentation.
+
+	* controlfiles/planetary_toolbox/includes/mars/getwind_mars.arts,
+	controlfiles/planetary_toolbox/includes/jupiter/getmagfield_jupiter.arts:
+	Bugfixes.
+
 2013-10-09  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-771

@@ -60,16 +60,16 @@ AgendaSet( Bloop_agenda ){
 # Read the atmospheric setup
 # ---
 
-# (10) Winds
+# (11) Magnetic Field
 Select( casearray, Barray, Bcase )
 nelemGet( ncases, casearray )
 IndexStepDown( ncases, ncases )
 Copy( forloop_agenda, Bloop_agenda )
 ForLoop( forloop_agenda, 0, ncases, 1 )
 ReadXML( out=aogf3tmp, filename=Btmp )
-Extract( mag_w_raw, aogf3tmp, 0 )
-Extract( mag_v_raw, aogf3tmp, 1 )
-Extract( mag_u_raw, aogf3tmp, 2 )
+Extract( mag_w_raw, aogf3tmp, 3 )
+Extract( mag_v_raw, aogf3tmp, 4 )
+Extract( mag_u_raw, aogf3tmp, 5 )
 
 }
  

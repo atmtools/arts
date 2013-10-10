@@ -12,7 +12,7 @@
 # to which specific value/selection for each of the variables. The full        #
 # arrays, which the indices refer to and from which the actual values are      #
 # extracted, are defined in atmo_mars.arts (hence, atmo_mars.arts needs to be  #
-# included before the file at hand.                                            #
+# included before the file at hand).                                           #
 #                                                                              #
 # This file expects the following input parameters:                            #
 #   Ls             (Index)           The season of the atmospheric scenario.   #

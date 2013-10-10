@@ -5,17 +5,14 @@
 #                                                                              #
 ################################################################################
 #                                                                              #
-# This is a template file for deriving Martian (atmospheric) data from the     #
+# This is a template file for deriving Venusn (atmospheric) data from the      #
 # arts-xml-data package and convert it to the common spatial grids             #
-# (p/lat/lon_grid), such that they can be applied in radiative transfer        #
-# calculations.                                                                #
-# It is for a 3D atmosphere (for 3D use DemoMarsAtmo1D.arts instead).          #
+# (p_grid), such that they can be applied in radiative transfer calculations.  #
+# It is for a 1D atmosphere (for 3D use DemoVenusAtmo3D.arts instead).         #
 #                                                                              #
 # It provides following output:                                                #
 #   atmosphere_dim    as the WSV                                               #
 #   p_grid            as the WSV                                               #
-#   lat_grid          as the WSV                                               #
-#   lon_grid          as the WSV                                               #
 #   z_field           as the WSV                                               #
 #   t_field           as the WSV                                               #
 #   vmr_field         as the WSV                                               #
@@ -31,12 +28,12 @@
 #                                                                              #
 # This template makes use of the following include files                       #
 #   includes/common/createvars.arts                                            #
-#   includes/mars/atmo_mars.arts                                               #
-#   includes/mars/getatmo_mars.arts                                            #
-#   includes/common/getgrids_3Dsimple.arts                                     #
-#   includes/common/makeatmo3D.arts                                            #
-#   includes/mars/getwind_mars.arts                                            #
-#   includes/common/makefield3D.arts                                           #
+#   includes/venus/atmo_venus.arts                                             #
+#   includes/venus/getatmo_venus.arts                                          #
+#   includes/common/getgrids_1D.arts                                           #
+#   includes/common/makeatmo1D.arts                                            #
+#   includes/venus/getwind_venus.arts                                          #
+#   includes/common/makefield1D.arts                                           #
 #                                                                              #
 ################################################################################
 
@@ -52,27 +49,19 @@ INCLUDE "planetary_toolbox/includes/common/createvars.arts"
 
 # do NOT modify
 # set up name arrays and the like for selections
-INCLUDE "planetary_toolbox/includes/mars/atmo_mars.arts"
+INCLUDE "planetary_toolbox/includes/venus/atmo_venus.arts"
 
 # NOT modify
 # prepare the variables for the atmosphere case & species selections
-IndexCreate( Ls )
-IndexCreate( daytime )
-IndexCreate( dust )
-IndexCreate( solar )
+IndexCreate( atmo )
 ArrayOfIndexCreate( basespecies )
 ArrayOfIndexCreate( h2ospecies )
-ArrayOfIndexCreate( ch4species )
+ArrayOfIndexCreate( hdospecies )
 ArrayOfIndexCreate( Necase )
-ArrayOfIndexCreate( vertwind )
 ArrayOfIndexCreate( NSwind )
 ArrayOfIndexCreate( EWwind )
 NumericCreate( pmin )
 NumericCreate( pmax )
-NumericCreate( latmin )
-NumericCreate( latmax )
-NumericCreate( lonmin )
-NumericCreate( lonmax )
 IndexCreate( auxfield_zeropad )
 IndexCreate( vmr_zeropad )
 IndexCreate( interp_order )
@@ -80,7 +69,7 @@ IndexCreate( interp_order )
 
 # do NOT modify
 # set atmospheric dimensionality to 1D (for 3D use another template!)
-AtmosphereSet3D
+AtmosphereSet1D
 
 
 # only MODIFY if you know, what you are doing (else the default setting should
@@ -104,50 +93,23 @@ IndexSet( auxfield_zeropad, 1 )
 # The grid itself is taken from the data (z_field).
 # Setting limits to very low and high values will preserve the data grid limit
 #  at the respective end.
-# For Mars, surface pressure is about 8e2, pressure @ 100km around 1e-2, and
-#  pressure @ 300km (highest altitude on Mars, where we have data) around 1e-8.
-NumericSet( pmin, 1e-2 )
+# For Venus, surface pressure is about 1e7, pressure @ 100km around 1e1, and
+#  pressure @ 500km (highest altitude on Venus, where we have data) around
+#  5e-12.
+NumericSet( pmin, 1e1 )
 NumericSet( pmax, 1e99 )
-
-# Define limits for lat/lon grids
-# ---
-# allowed for latitudes: [-90,90]
-# allowed for longitudes:
-#    values in [-360,360]
-#    lon_max - lon_min <= 360
-# note: in case of global coverage (lon_max - lon_min == 360) cyclicity rules
-# are applied (e.g. the measurement is allowed to switch over the 360-0 border
-# meridian. equality of x and 360+x is recognised).
-NumericSet( latmin, -90 )
-NumericSet( latmax, 90 )
-NumericSet( lonmin, -30 )
-NumericSet( lonmax, 270 )
 
 #===========================================
 
 
 # Select the atmospheric scenario to be used
 # ---
-# Mars atmospheric scenarios are available for 4 different seasons, 2 daytimes,
-#  3 dust loadings, and 3 solar activities. You chose all of them
-# separately, and the resulting full scenario (name, location) is derived from
-# these components.
-
-# Season: (northern) spring (Ls0), summer (Ls90), fall (Ls180), winter (Ls270)
-#                       0        ,    1         ,   2         ,    3
-IndexSet( Ls, 2 )
-
-# Daytime: day, night
-#           0 ,   1
-IndexSet( daytime, 1 )
-
-# Dust Loading: low, medium, high
-#                0 ,   1   ,  2
-IndexSet( dust, 0 )
-
-# Solar activity: low, average, high
-#                  0 ,    1   ,  2
-IndexSet( solar, 1 )
+# (0) night               (from SpicaV)
+# (1) night, cold         (from SpicaV)
+# (2) night               (from VIRA)
+# (3) day                 (from VIRA)
+# (4) day, high latitudes (from VIRA)
+IndexSet( atmo, 2 )
 
 #===========================================
 
@@ -161,9 +123,9 @@ IndexSet( solar, 1 )
 # refers to species with only one version here. no sub-options/further
 #  specifications required
 # Select ALL species you like to take into account.
-### CO, CO2, H2, H2O2, H2S, HCl, N2, N2O, O, O2, O3, OCS, OH, SO2
-#    0,   1,  2,    3,   4,   5,  6,   7, 8,  9, 10,  11, 12,  13
-ArrayOfIndexSet( basespecies, [0, 1, 5, 7, 10, 13] )
+### CO, CO2, H2SO4, HCl, HF, N2, O, O3, OCS, SO2
+#    0,   1,     2,   3,  4,  5, 6,  7,   8,   9
+ArrayOfIndexSet( basespecies, [0, 1, 5, 7, 9] )
 
 
 # Species with sub-scenarios
@@ -172,32 +134,36 @@ ArrayOfIndexSet( basespecies, [0, 1, 5, 7, 10, 13] )
 #  several times, which usually does not make sense).
 # EMPTY selection de-selects the whole species.
 
-### CH4: low, standard
-#         0 ,    1   
+### H2O: low, medium, high
+#         0 ,   1   ,  2
 # select UP TO ONE
-ArrayOfIndexSet( ch4species, [1] )
+ArrayOfIndexSet( h2ospecies, [1] )
+
+# HDO
+# NOTE: ONLY make a (non-empty) selection here, if you REALLY want to take
+#  HDO separately (i.e. with a separate, specific profile) into account.
+# If EMPTY selection here, HDO is routinely covered by the H2O (general) species
+#  selectable above using the corresponding H2O profile scaled by isotopologue
+#  abundance.
+# low/medium/high profiles are related to the low/medium/high profiles of H2O,
+#  hence are suggested to be used consistently with the H2O profile (i.e., we
+#  discourage use of, e.g. H2O-low with HDO-medium or -high, and so on). The
+#  uncorrected profile originates from independent measurements of HDO. (for
+#  details see TN2 p.21)
+### low, medium, high, original (uncorrected)
+#    0 ,   1,     2  ,    3
+# select UP TO ONE
+ArrayOfIndexSet( hdospecies, [3] )
 
 # Electron density: depending on solar zenith angle.
 # NOTE that SZA<90 are only available for day data, SZA>90 for night data
 #  (non-matching selection will lead to a runtime error!). That is, COORDINATE
-#  selection here with your selection of DAYTIME.
-#       day       day       day       day       night
-### SZA0-30, SZA30-50, SZA50-70, SZA70-90, SZA120-180
-#         0,        1,        2,        3,          4
+#  selection here with daytime according to your selection of ATMO.
+#       day       day       day       day       day      night       night
+### SZA0-30, SZA30-50, SZA50-70, SZA70-80, SZA80-90, SZA90-100, SZA100-120
+#         0,        1,        2,        3,        4,         5,          6
 # select UP TO ONE
-ArrayOfIndexSet( Necase, [4] )
-
-
-# Select species with separate isotopologue profiles available
-# ---
-# Here it is ok to select more than one entry. General species (aka 'all')
-# selects all (remaining, i.e., not yet selected) abs lines of the species. That
-# is, general species (i.e., highest index) shall be LAST in selection.
-
-### H2O: HDO (162), all (remaining)
-#          0      ,   1
-# select as many AS YOU WANT, but 'all' index has to be in LAST position
-ArrayOfIndexSet( h2ospecies, [1] )
+ArrayOfIndexSet( Necase, [5] )
 
 
 ################################################################################
@@ -207,11 +173,11 @@ ArrayOfIndexSet( h2ospecies, [1] )
 # do NOT modify
 # now, let the prepared include files do the actual work:
 # (a) read in the raw atmosphere including all selected species
-INCLUDE "planetary_toolbox/includes/mars/getatmo_mars.arts"
+INCLUDE "planetary_toolbox/includes/venus/getatmo_venus.arts"
 # (b) get the common grids for the atmosphere
-INCLUDE "planetary_toolbox/includes/common/getgrids_3Dsimple.arts"
+INCLUDE "planetary_toolbox/includes/common/getgrids_1D.arts"
 # (c) do the conversion from raw data with individual grids to the common grids
-INCLUDE "planetary_toolbox/includes/common/makeatmo3D.arts"
+INCLUDE "planetary_toolbox/includes/common/makeatmo1D.arts"
 
 
 
@@ -224,44 +190,11 @@ INCLUDE "planetary_toolbox/includes/common/makeatmo3D.arts"
 
 # Get non-abs_species data: wind
 # ---
-# Only select ONE element per wind component (else the latter will overwrite the
-#  earlier).
-
-### vertical wind: standard
-#                     0
-# select EXACTLY ONE.
-# also, you need to UNCOMMENT lines further below if you want vertical wind.
-ArrayOfIndexSet( vertwind, [0] )
-
-### N-S wind: standard
-#                0
-# select EXACTLY ONE.
-# also, you need to UNCOMMENT lines further below if you want N-S wind.
-ArrayOfIndexSet( NSwind, [0] )
-
-### E-W wind: standard
-#                0
-# select EXACTLY ONE.
-# also, you need to UNCOMMENT lines further below if you want E-W wind.
-ArrayOfIndexSet( EWwind, [0] )
-
-# if you WANT any wind, UNCOMMENT the next line
-#INCLUDE "planetary_toolbox/includes/mars/getwind_mars.arts"
-
-# if you want VERTICAL winds, UNCOMMENT the following 3 lines
-#Copy( rawfield, wind_w_raw )
-#INCLUDE "planetary_toolbox/includes/common/makefield3D.arts"
-#Copy( wind_w_field, finalfield )
-
-# if you want N-S winds, UNCOMMENT the following 3 lines
-#Copy( rawfield, wind_v_raw )
-#INCLUDE "planetary_toolbox/includes/common/makefield3D.arts"
-#Copy( wind_v_field, finalfield )
-
-# if you want E-W winds, UNCOMMENT the following 3 lines
-#Copy( rawfield, wind_u_raw )
-#INCLUDE "planetary_toolbox/includes/common/makefield3D.arts"
-#Copy( wind_u_field, finalfield )
+# NOTE: If you want N-S or E-W wind, you have to use a 3D atmosphere. Use the
+#  other, 3D atmosphere, template for that!
+# Note: For Venus, no vertical wind data is available (only N-S and E-W wind).
+#  Hence, no considering of wind in Venus 1D case (it won't have any effect
+#  here) and you HAVE to use the 3D template, if you want wind.
 
 
 ################################################################################

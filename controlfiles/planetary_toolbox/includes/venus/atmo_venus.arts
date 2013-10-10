@@ -1,13 +1,16 @@
-#####
-#
-# Here, basic settings describing the structure of Venus atmospheric data are
-# done. Entries are supposed to be consistent with the descriptions given to the
-# user in the MyVenus.arts template.
-#
-# DO NOT MODIFY (unless new database entries need to be accomodated and you
-# know, what you're doing)!
-#
-#####
+################################################################################
+#                                                                              #
+# Unless further variables or options for existing variables are introduced,   #
+# DO NOT MODIFY this file! This is only a helper file!                         #
+#                                                                              #
+################################################################################
+#                                                                              #
+# This file sets up a bunch of arrays that contain names (or pieces of names)  #
+# of locations and files of Venus atmospheric data. The entries are supposed   #
+# to be consistent with the descriptions given to the user in the              #
+# DemoAtmoVenus*.arts templates.                                               #
+#                                                                              #
+################################################################################
 
 Arts2 {
 

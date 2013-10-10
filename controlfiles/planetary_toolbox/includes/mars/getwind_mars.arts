@@ -9,6 +9,7 @@
 #   dust           (Index)           The dust loading of the atmospheric scenario.
 #   solar          (Index)           The solar activity level of the atmospheric
 #                                     scenario.
+#   vertwind       (ArrayOfIndex)    Vertical wind setup selected.
 #   NSwind         (ArrayOfIndex)    N-S wind setup selected.
 #   EWwind         (ArrayOfIndex)    E-W wind setup selected.
 #
@@ -92,7 +93,7 @@ Copy( atmostr, superatmo )
 
 # (1) Vertical Wind
 Copy( specfilename, atmostr )
-Select( casearray, NSwindarray, NSwind )
+Select( casearray, vertwindarray, vertwind )
 nelemGet( ncases, casearray )
 IndexStepDown( ncases, ncases )
 Copy( forloop_agenda, windloop_agenda )

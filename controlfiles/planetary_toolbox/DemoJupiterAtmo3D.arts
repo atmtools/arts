@@ -5,11 +5,10 @@
 #                                                                              #
 ################################################################################
 #                                                                              #
-# This is a template file for deriving Martian (atmospheric) data from the     #
+# This is a template file for deriving Jovian (atmospheric) data from the      #
 # arts-xml-data package and convert it to the common spatial grids             #
-# (p/lat/lon_grid), such that they can be applied in radiative transfer        #
-# calculations.                                                                #
-# It is for a 3D atmosphere (for 3D use DemoMarsAtmo1D.arts instead).          #
+# (p_grid), such that they can be applied in radiative transfer calculations.  #
+# It is for a 1D atmosphere (for 3D use DemoJupiterAtmo3D.arts instead).       #
 #                                                                              #
 # It provides following output:                                                #
 #   atmosphere_dim    as the WSV                                               #
@@ -20,6 +19,7 @@
 #   t_field           as the WSV                                               #
 #   vmr_field         as the WSV                                               #
 #   wind_u/v/w_field  as the WSV                                               #
+#   mag_u/v/w_field   as the WSV                                               #
 #   abs_species       as the WSV                                               #
 #                                                                              #
 # The user is supposed to select (atmospheric case, species to include) from   #
@@ -33,10 +33,12 @@
 #   includes/common/createvars.arts                                            #
 #   includes/mars/atmo_mars.arts                                               #
 #   includes/mars/getatmo_mars.arts                                            #
-#   includes/common/getgrids_3Dsimple.arts                                     #
+#   includes/common/getgrids_3Dspaced5deg.arts                                 #
 #   includes/common/makeatmo3D.arts                                            #
 #   includes/mars/getwind_mars.arts                                            #
 #   includes/common/makefield3D.arts                                           #
+#   includes/jupiter/getmagfield_jupiter.arts"                                 #
+#   includes/common/makemagfield3D.arts"                                       #
 #                                                                              #
 ################################################################################
 
@@ -52,21 +54,19 @@ INCLUDE "planetary_toolbox/includes/common/createvars.arts"
 
 # do NOT modify
 # set up name arrays and the like for selections
-INCLUDE "planetary_toolbox/includes/mars/atmo_mars.arts"
+INCLUDE "planetary_toolbox/includes/jupiter/atmo_jupiter.arts"
 
 # NOT modify
 # prepare the variables for the atmosphere case & species selections
-IndexCreate( Ls )
-IndexCreate( daytime )
-IndexCreate( dust )
-IndexCreate( solar )
+IndexCreate( atmo )
 ArrayOfIndexCreate( basespecies )
 ArrayOfIndexCreate( h2ospecies )
+ArrayOfIndexCreate( nh3species )
 ArrayOfIndexCreate( ch4species )
+ArrayOfIndexCreate( h2species )
 ArrayOfIndexCreate( Necase )
-ArrayOfIndexCreate( vertwind )
-ArrayOfIndexCreate( NSwind )
-ArrayOfIndexCreate( EWwind )
+ArrayOfIndexCreate( windcase )
+ArrayOfIndexCreate( Bcase )
 NumericCreate( pmin )
 NumericCreate( pmax )
 NumericCreate( latmin )
@@ -104,10 +104,11 @@ IndexSet( auxfield_zeropad, 1 )
 # The grid itself is taken from the data (z_field).
 # Setting limits to very low and high values will preserve the data grid limit
 #  at the respective end.
-# For Mars, surface pressure is about 8e2, pressure @ 100km around 1e-2, and
-#  pressure @ 300km (highest altitude on Mars, where we have data) around 1e-8.
-NumericSet( pmin, 1e-2 )
-NumericSet( pmax, 1e99 )
+# Jupiter does not have a surface. Altitude=0km is defined at pressure=1e5(Pa).
+#  Jupiter data in the toolbox reaches from p=1e6 at z~-85km to p=1e-9 at
+# z~3000km. Pressure @ 100km around 7e2, @ 300km 3e-1, @ 500km 5e-3.
+NumericSet( pmin, 5e-2 )
+NumericSet( pmax, 5e5 )
 
 # Define limits for lat/lon grids
 # ---
@@ -118,36 +119,21 @@ NumericSet( pmax, 1e99 )
 # note: in case of global coverage (lon_max - lon_min == 360) cyclicity rules
 # are applied (e.g. the measurement is allowed to switch over the 360-0 border
 # meridian. equality of x and 360+x is recognised).
-NumericSet( latmin, -90 )
-NumericSet( latmax, 90 )
-NumericSet( lonmin, -30 )
-NumericSet( lonmax, 270 )
+NumericSet( latmin, -20 )
+NumericSet( latmax, 30 )
+NumericSet( lonmin, 30 )
+NumericSet( lonmax, 50 )
 
 #===========================================
 
 
 # Select the atmospheric scenario to be used
 # ---
-# Mars atmospheric scenarios are available for 4 different seasons, 2 daytimes,
-#  3 dust loadings, and 3 solar activities. You chose all of them
-# separately, and the resulting full scenario (name, location) is derived from
-# these components.
-
-# Season: (northern) spring (Ls0), summer (Ls90), fall (Ls180), winter (Ls270)
-#                       0        ,    1         ,   2         ,    3
-IndexSet( Ls, 2 )
-
-# Daytime: day, night
-#           0 ,   1
-IndexSet( daytime, 1 )
-
-# Dust Loading: low, medium, high
-#                0 ,   1   ,  2
-IndexSet( dust, 0 )
-
-# Solar activity: low, average, high
-#                  0 ,    1   ,  2
-IndexSet( solar, 1 )
+# (0) mean
+# (1) oval*
+# *Note: only T, z, and Ne are from oval. all the rest will be from mean. Oval
+#  refers to the auroral oval of Jupiter.
+IndexSet( atmo, 1 )
 
 #===========================================
 
@@ -161,31 +147,31 @@ IndexSet( solar, 1 )
 # refers to species with only one version here. no sub-options/further
 #  specifications required
 # Select ALL species you like to take into account.
-### CO, CO2, H2, H2O2, H2S, HCl, N2, N2O, O, O2, O3, OCS, OH, SO2
-#    0,   1,  2,    3,   4,   5,  6,   7, 8,  9, 10,  11, 12,  13
-ArrayOfIndexSet( basespecies, [0, 1, 5, 7, 10, 13] )
+### C2H2, C2H4, C2H6, C3H8, CO, CO2, H2S, HCN, He, PH3
+#      0,    1,    2,    3,  4,   5,   6,   7,  8,   9
+ArrayOfIndexSet( basespecies, [4, 5, 6] )
 
 
-# Species with sub-scenarios
+# Species with further sub-scenarios
 # ---
 # only set UP TO ONE for each species (else the species will be included
 #  several times, which usually does not make sense).
 # EMPTY selection de-selects the whole species.
 
-### CH4: low, standard
-#         0 ,    1   
+### H2O: low, high
+#           0,   1
 # select UP TO ONE
-ArrayOfIndexSet( ch4species, [1] )
+ArrayOfIndexSet( h2ospecies, [0] )
 
-# Electron density: depending on solar zenith angle.
-# NOTE that SZA<90 are only available for day data, SZA>90 for night data
-#  (non-matching selection will lead to a runtime error!). That is, COORDINATE
-#  selection here with your selection of DAYTIME.
-#       day       day       day       day       night
-### SZA0-30, SZA30-50, SZA50-70, SZA70-90, SZA120-180
-#         0,        1,        2,        3,          4
+### NH3: low, high
+#          0,    1
 # select UP TO ONE
-ArrayOfIndexSet( Necase, [4] )
+ArrayOfIndexSet( nh3species, [1] )
+
+### electron density: low, medium, high
+#                       0,      1,    2
+# select UP TO ONE
+ArrayOfIndexSet( Necase, [] )
 
 
 # Select species with separate isotopologue profiles available
@@ -194,10 +180,15 @@ ArrayOfIndexSet( Necase, [4] )
 # selects all (remaining, i.e., not yet selected) abs lines of the species. That
 # is, general species (i.e., highest index) shall be LAST in selection.
 
-### H2O: HDO (162), all (remaining)
-#          0      ,   1
+### CH4: CDH3 (212), all (remaining)
+#           0      ,   1
 # select as many AS YOU WANT, but 'all' index has to be in LAST position
-ArrayOfIndexSet( h2ospecies, [1] )
+ArrayOfIndexSet( ch4species, [] )
+
+### H2: HD (12), all (remaining)
+#        0     ,   1
+# select as many AS YOU WANT, but 'all' index has to be in LAST position
+ArrayOfIndexSet( h2species, [1] )
 
 
 ################################################################################
@@ -207,9 +198,9 @@ ArrayOfIndexSet( h2ospecies, [1] )
 # do NOT modify
 # now, let the prepared include files do the actual work:
 # (a) read in the raw atmosphere including all selected species
-INCLUDE "planetary_toolbox/includes/mars/getatmo_mars.arts"
+INCLUDE "planetary_toolbox/includes/jupiter/getatmo_jupiter.arts"
 # (b) get the common grids for the atmosphere
-INCLUDE "planetary_toolbox/includes/common/getgrids_3Dsimple.arts"
+INCLUDE "planetary_toolbox/includes/common/getgrids_3Dspaced5deg.arts"
 # (c) do the conversion from raw data with individual grids to the common grids
 INCLUDE "planetary_toolbox/includes/common/makeatmo3D.arts"
 
@@ -222,51 +213,50 @@ INCLUDE "planetary_toolbox/includes/common/makeatmo3D.arts"
 ################################################################################
 
 
-# Get non-abs_species data: wind
+# Get non-abs_species data: wind, magnetic field
 # ---
+
+
+# Wind
 # Only select ONE element per wind component (else the latter will overwrite the
 #  earlier).
+# Note, that for Venus no vertical or N-S wind is available, but only E-W wind.
 
-### vertical wind: standard
-#                     0
+### wind: Galileo,  thermal (for explanation see TN2, p.40)
+#               0,        1
 # select EXACTLY ONE.
-# also, you need to UNCOMMENT lines further below if you want vertical wind.
-ArrayOfIndexSet( vertwind, [0] )
+ArrayOfIndexSet( windcase, [1] )
 
-### N-S wind: standard
-#                0
-# select EXACTLY ONE.
-# also, you need to UNCOMMENT lines further below if you want N-S wind.
-ArrayOfIndexSet( NSwind, [0] )
-
-### E-W wind: standard
-#                0
-# select EXACTLY ONE.
-# also, you need to UNCOMMENT lines further below if you want E-W wind.
-ArrayOfIndexSet( EWwind, [0] )
-
-# if you WANT any wind, UNCOMMENT the next line
-#INCLUDE "planetary_toolbox/includes/mars/getwind_mars.arts"
-
-# if you want VERTICAL winds, UNCOMMENT the following 3 lines
-#Copy( rawfield, wind_w_raw )
-#INCLUDE "planetary_toolbox/includes/common/makefield3D.arts"
-#Copy( wind_w_field, finalfield )
-
-# if you want N-S winds, UNCOMMENT the following 3 lines
-#Copy( rawfield, wind_v_raw )
-#INCLUDE "planetary_toolbox/includes/common/makefield3D.arts"
-#Copy( wind_v_field, finalfield )
-
-# if you want E-W winds, UNCOMMENT the following 3 lines
+# if you want winds, UNCOMMENT the following 4 lines
+#INCLUDE "planetary_toolbox/includes/jupiter/getwind_jupiter.arts"
 #Copy( rawfield, wind_u_raw )
 #INCLUDE "planetary_toolbox/includes/common/makefield3D.arts"
 #Copy( wind_u_field, finalfield )
 
+#===========================================
 
-################################################################################
-# END USER SETTINGS                                                            #
-################################################################################
+
+# Magnetic Field
+# NOTE: Using the components separately hardly makes sense, we therefore
+#  automatically read in all 3 components of the field.
+# Only select ONE element (else the latter will overwrite the earlier).
+
+### B: Khurana (for explanation see TN2, p.42)
+#            0
+# select EXACTLY ONE.
+ArrayOfIndexSet( Bcase, [0] )
+
+# To SWITCH ON magnetic field, UNCOMMENT the commands below. Else no magnetic
+# field will be taken into account.
+#
+#Copy( lat_true, lat_grid )
+#Copy( lon_true, lon_grid )
+#INCLUDE "planetary_toolbox/includes/jupiter/getmagfield_jupiter.arts"
+#INCLUDE "planetary_toolbox/includes/common/makemagfield.arts"
+
+#===========================================
+
+
 
 
 }

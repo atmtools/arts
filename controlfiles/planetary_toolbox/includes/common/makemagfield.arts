@@ -11,9 +11,11 @@ Arts2 {
 GriddedFieldLatLonRegrid( out=mag_u_raw, in=mag_u_raw )
 GriddedFieldPRegrid( out=mag_u_raw, in=mag_u_raw, zeropadding=auxfield_zeropad )
 FieldFromGriddedField( out=mag_u_field, in=mag_u_raw )
+
 GriddedFieldLatLonRegrid( out=mag_v_raw, in=mag_v_raw )
 GriddedFieldPRegrid( out=mag_v_raw, in=mag_v_raw, zeropadding=auxfield_zeropad )
 FieldFromGriddedField( out=mag_v_field, in=mag_v_raw )
+
 GriddedFieldLatLonRegrid( out=mag_w_raw, in=mag_w_raw )
 GriddedFieldPRegrid( out=mag_w_raw, in=mag_w_raw, zeropadding=auxfield_zeropad )
 FieldFromGriddedField( out=mag_w_field, in=mag_w_raw )
