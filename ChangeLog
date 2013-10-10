@@ -1,3 +1,20 @@
+2013-10-10  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-1-772
+
+	* controlfiles/planetary_toolbox/includes/venus/getwind_venus.arts,
+	controlfiles/planetary_toolbox/includes/jupiter/getatmo_jupiter.arts,
+	controlfiles/planetary_toolbox/includes/jupiter/getwind_jupiter.arts,
+	controlfiles/planetary_toolbox/includes/jupiter/getmagfield_jupiter.arts,
+	controlfiles/planetary_toolbox/includes/mars/getwind_mars.arts,
+	controlfiles/planetary_toolbox/includes/common/makemagfield.arts,
+	controlfiles/planetary_toolbox/includes/common/makefield1D.arts,
+	controlfiles/planetary_toolbox/includes/common/makefield3D.arts,
+	controlfiles/planetary_toolbox/includes/common/makeatmo1D.arts,
+	controlfiles/planetary_toolbox/includes/common/makeatmo3D.arts,
+	controlfiles/planetary_toolbox/includes/common/getgrids_1D.arts:
+	Improved documentation.
+
 2013-10-09  Jana Mendrok  <jana.mendrok@ltu.se>
 
 	* arts-2-1-771
