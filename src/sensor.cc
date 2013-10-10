@@ -1188,16 +1188,21 @@ void find_effective_channel_boundaries(// Output:
   for(Index idx=0;idx<n_chan;++idx)
   {
     const Vector& backend_filter = backend_channel_response[idx].data;
-    for(Index idy =1;idy < backend_filter.nelem();++idy)
-    {
-      if((backend_filter[idy] ==0)&& (backend_filter[idy-1]==0))
+    if(backend_filter.nelem()>2)
+    { // only run this code when there is more then two elements in the backend
+      for(Index idy =1;idy < backend_filter.nelem();++idy)
       {
+        if((backend_filter[idy] >0)&& (backend_filter[idy-1]==0))
+        {
           numPB ++; // Two consecutive zeros gives the border between two passbands
+        }
       }
     }
-    numPB ++; 
+    else 
+    {
+    	numPB ++; 
+    }
   }
-  cout <<" total number of passbands "<<numPB<<endl;
 
   Vector fmin_pb(numPB);
   Vector fmax_pb(numPB);
@@ -1243,27 +1248,37 @@ void find_effective_channel_boundaries(// Output:
     {
       for(Index idy =1;idy < backend_filter.nelem();++idy)
       {
-        if((backend_filter[idy] >0) && (backend_filter[idy-1]==0))
+        if(idy==1)
+        {
+          fmin_pb[pbIdx] = f_backend[idx]+backend_f_grid[0];
+        }
+        else if((backend_filter[idy] >0) && (backend_filter[idy-1]==0))
         {
           fmin_pb[pbIdx]= f_backend[idx] + backend_f_grid[idy-1]-delta;
         }
         if((backend_filter[idy] ==0) && (backend_filter[idy-1]>0))
         {
           fmax_pb[pbIdx]= f_backend[idx] + backend_f_grid[idy]+delta;
+          out2 << "  " << "fmin_pb "<< fmin_pb[pbIdx] 
+            << "  " << "f_backend" <<f_backend[idx] 
+            << "  " << "fmax_pb "<<fmax_pb[pbIdx] 
+            << "  " << "diff " << fmax_pb[pbIdx]-fmin_pb[pbIdx]
+            << "\n";
           pbIdx++;
         }
       }
+      fmax_pb[pbIdx-1] = f_backend[idx]+last(backend_f_grid);
     } 
     else // Or are the passbands given implicitly - such as the default for AMSUA and MHS
     {
       fmin_pb[pbIdx]= f_backend[idx] + backend_f_grid[0]-delta ; //delta;
       fmax_pb[pbIdx]= f_backend[idx] + backend_f_grid[backend_f_grid.nelem()-1]+delta; ///delta;
+      out2 << "  " << "fmin_pb "<< fmin_pb[pbIdx] 
+           << "  " << "f_backend" <<f_backend[pbIdx] 
+           << "  " << "fmax_pb "<<fmax_pb[pbIdx] 
+           << "\n";
       pbIdx++;
     }
-    out2 << "  " << "fmin_pb "<< fmin_pb[idx] 
-         << "  " << "f_backend" <<f_backend[idx] 
-         << "  " << "fmax_pb "<<fmax_pb[idx] 
-         << "\n";
   }
 
   // The problem is that channels may be overlapping. In that case, we

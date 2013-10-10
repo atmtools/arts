@@ -4197,7 +4197,7 @@ void define_md_data_raw()
          "since our unit is Hz.)"
          "\n"
          "The produced grid will not have exactly the requested spacing, but\n"
-         "will not be coarser than requested. The algorithm starts with the band\n"
+         "it will not be coarser than requested. The algorithm starts with the band\n"
          "edges, then adds additional points until the spacing is at least as\n"
          "fine as requested.\n"
          ),
@@ -4206,7 +4206,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "f_backend","backend_channel_response" ),
+        IN( "f_backend_multi","backend_channel_response_multi" ),
         GIN( "spacing","verbosityVect"),
         GIN_TYPE(    "Numeric","Vector"),
         GIN_DEFAULT( ".1e9","[]"),

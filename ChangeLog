@@ -1,3 +1,12 @@
+2013-10-11  Oscar Isoz <oscar.isoz@ltu.se>
+  * arts-2-1-775
+
+	* src/m_sensor.cc
+	src/sensor.cc
+	src/methods.cc:
+	Corrected how the passbands are calculated for the AMSU-A 
+	sensor.
+
 2013-10-10  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-774

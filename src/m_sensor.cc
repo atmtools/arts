@@ -466,8 +466,8 @@ void f_gridFromSensorAMSU(// WS Output:
 void f_gridFromSensorAMSUgeneric(// WS Output:
     Vector& f_grid,
     // WS Input:
-    const Vector& f_backend_multi,  // Center frequency for each channel
-    const ArrayOfGriddedField1& backend_channel_response_multi,
+    const ArrayOfVector& f_backend_multi,  // Center frequency for each channel 
+    const ArrayOfArrayOfGriddedField1& backend_channel_response_multi,
     // Control Parameters:
     const Numeric& spacing,
     const Vector& verbosityVect,
@@ -477,9 +477,12 @@ void f_gridFromSensorAMSUgeneric(// WS Output:
   CREATE_OUT3;
   Index numFpoints = 0;
   // Calculate the total number of frequency points
-  for(Index i = 0;i<backend_channel_response_multi.nelem();++i)
+  for(Index idx = 0;idx<backend_channel_response_multi.nelem();++idx)
   {
-    numFpoints += backend_channel_response_multi[i].get_grid_size(0);
+    for(Index idy = 0;idy<backend_channel_response_multi[idx].nelem();++idy)
+    {
+      numFpoints += backend_channel_response_multi[idx][idy].get_grid_size(0);
+    }
   }
 
   Index numChan = backend_channel_response_multi.nelem(); // number of channels
@@ -514,28 +517,29 @@ void f_gridFromSensorAMSUgeneric(// WS Output:
 
 
   for(Index i =0;i<f_backend_multi.nelem();++i)
+  {
+    for(Index ii =0;ii<f_backend_multi[i].nelem();++ii)
+    {
+      const GriddedField1& this_grid = backend_channel_response_multi[i][ii];
+      const Numeric this_f_backend = f_backend_multi[i][ii];
+      // Signal passband :
+      f_backend_flat[i] = this_f_backend;
+      backend_channel_response_nonflat[i] = this_grid;
+      for(Index idy=1; idy < backend_channel_response_multi[i][ii].get_grid_size(0);++idy)
       {
-     const GriddedField1& this_grid = backend_channel_response_multi[i];
-    const Numeric this_f_backend = f_backend_multi[i];
-    // Signal passband :
-    f_backend_flat[i] = this_f_backend;
-    backend_channel_response_nonflat[i] = this_grid;
-
-        for(Index idy=1; idy < backend_channel_response_multi[i].get_grid_size(0);++idy)
+        if((backend_channel_response_multi[i][ii].data[idy-1]==0) && (backend_channel_response_multi[i][ii].data[idy]>0))
         {
-          if((backend_channel_response_multi[i].data[idy-1]==0) && (backend_channel_response_multi[i].data[idy]>0))
-          {
-            FminVerbosityVect[VerbVectIdx] = f_backend_multi[i]+backend_channel_response_multi[i].get_numeric_grid(0)[idy];
-            VerbosityValVect[VerbVectIdx] = verbosityVect[i];
-          }
-          if((backend_channel_response_multi[i].data[idy-1]>0) && (backend_channel_response_multi[i].data[idy]==0))
-          {
-            FmaxVerbosityVect[VerbVectIdx] = f_backend_multi[i]+backend_channel_response_multi[i].get_numeric_grid(0)[idy];
-            VerbVectIdx ++;
-          }
+          FminVerbosityVect[VerbVectIdx] = f_backend_multi[i][ii]+backend_channel_response_multi[i][ii].get_numeric_grid(0)[idy];
+          VerbosityValVect[VerbVectIdx] = verbosityVect[i];
+        }
+        if((backend_channel_response_multi[i][ii].data[idy-1]>0) && (backend_channel_response_multi[i][ii].data[idy]==0))
+        {
+          FmaxVerbosityVect[VerbVectIdx] = f_backend_multi[i][ii]+backend_channel_response_multi[i][ii].get_numeric_grid(0)[idy];
+          VerbVectIdx ++;
         }
       }
-  
+    }
+  }
   // We build up a total list of absolute frequency ranges for all passbands 
   // Code reused from the function "f_gridFromSensorAMSU"
   Vector fmin,fmax;  // - these variables will be resized, therefore len(1) is enough for now.,
@@ -543,8 +547,6 @@ void f_gridFromSensorAMSUgeneric(// WS Output:
   // We have to add some additional margin at the band edges, 
   // otherwise the instrument functions are not happy. Define 
   // this in terms of the grid spacing:
-  // Isoz 26-05-13
-  // Make this value static
   const Numeric delta = 10;
 
   // Call subfunction to do the actual work of merging overlapping 
@@ -620,7 +622,6 @@ void f_gridFromSensorAMSUgeneric(// WS Output:
   f_grid = f_grid_array;
 
   out2 << "  Total number of frequencies in f_grid: " << f_grid.nelem() << "\n";
-  //  cout << "f_grid: " << f_grid << "\n";
 
 }
 
@@ -2206,260 +2207,390 @@ void sensor_responseGenericAMSU(// WS Output:
     // WS Generic Input:
     const Numeric& spacing,
     const Verbosity& verbosity)
-{
-  // Number of instrument channels:
-  const Index n = sensor_description_amsu.nrows(); 
-  const Index m = sensor_description_amsu.ncols(); 
-
-  // FIXME  - Oscar Isoz-090413
-  // add error checks 
-  //
-
-  // The meaning of the columns in sensor_description_amsu is:
-  // LO frequency, channel center offset from LO, channel width, second offset from LO (to be extended if needed);
-  // (All in Hz.)
-  //
-  if(5>sensor_description_amsu.ncols() )
-  {
-    ostringstream os;
-    os << "Input variable sensor_description_amsu must have atleast five columns, but it has "
-      << sensor_description_amsu.ncols() << ".";
-    throw runtime_error( os.str() );
-  }
-
-  ConstVectorView lo_multi = sensor_description_amsu(Range(joker),0);
-  ConstMatrixView offset   = sensor_description_amsu(Range(joker),Range(1,m-2)); // Remember to ignore column 2..
-  ConstVectorView verbosityVectIn = sensor_description_amsu(Range(joker),m-1);
-  ConstVectorView width    = sensor_description_amsu(Range(joker),m-2);
-
-
-
-  //is there any undefined verbosity values in the vector?
-  //Set the verbosity to one third of the bandwidth to make sure that the passband flanks does't overlap
-  const Numeric minRatioVerbosityVsFdiff = 10;  // To be used when to passbands are closer then one verbosity value  
-  Vector verbosityVect(n);
-
-  for(Index idx = 0;idx<n;++idx)
-  {
-    if((verbosityVectIn[idx] ==0) || (verbosityVectIn[idx]> width[idx]))
     {
-      verbosityVect[idx] = ((Numeric)width[idx])/3;
-    }
-    else 
-    {
-      verbosityVect[idx] = verbosityVectIn[idx];
-    }	
-  }
+      // Number of instrument channels:
+      const Index n = sensor_description_amsu.nrows(); 
+      const Index m = sensor_description_amsu.ncols(); 
 
-  // Create a vector to store the number of passbands (PB) for each channel 
-  Vector numPB(n);
-  // Find the number of IFs for each channel and calculate the number of passbands 
-  for (Index i=0;i<n;++i)
-  {
-    numPB[i] = 0 ; // make sure that it is zero
-    for(Index j=0;j<(m-2);++j)
-    {
-      if(j!=2)
+      // FIXME  - Oscar Isoz-090413
+      // add error checks 
+      //
+
+      // The meaning of the columns in sensor_description_amsu is:
+      // LO frequency, channel center offset from LO, channel width, second offset from LO (to be extended if needed);
+      // (All in Hz.)
+      //
+      if(5>sensor_description_amsu.ncols() )
       {
-        if (offset(i,j)>0)
-        {
-          numPB[i]++;
-        }
+        ostringstream os;
+        os << "Input variable sensor_description_amsu must have atleast five columns, but it has "
+          << sensor_description_amsu.ncols() << ".";
+        throw runtime_error( os.str() );
       }
-    }  
-    numPB[i] = 1 << (int)numPB[i] ;// number of passbands= 2^numLO
 
-    if(numPB[i]>4)
-    {
-      ostringstream os;
-      os << "This function does currently not support more than 4 passbands per channel"
-        << numPB[i]<< ".";
-      throw runtime_error( os.str() );
-    }
-  }  
+      ConstVectorView lo_multi = sensor_description_amsu(Range(joker),0);
+      ConstMatrixView offset   = sensor_description_amsu(Range(joker),Range(1,m-2)); // Remember to ignore column 2..
+      ConstVectorView verbosityVectIn = sensor_description_amsu(Range(joker),m-1);
+      ConstVectorView width    = sensor_description_amsu(Range(joker),m-2);
 
-  // Find the center frequencies for all sub-channels
-  // Create one center frequency for each passband
-  ArrayOfGriddedField1 backend_channel_response_multi(n);
-  Vector f_backend_multi(n);
-  for (Index i=0; i<n; ++i)
-  {
-    // Channel frequencies
-    Numeric& f_bm = f_backend_multi[i];
-    f_bm = lo_multi[i];
 
-    //channel response 
-    backend_channel_response_multi[i].resize(1);
-    GriddedField1& b_resp = backend_channel_response_multi[i];
-    b_resp.set_name("Backend channel response function");
-    b_resp.resize(4*(Index)numPB[i]);
-    Vector f_range(4*(Index)numPB[i]);
-    Numeric pbOffset = 0;
-    const Numeric slope =15; 
-    // To avoid overlapping passbands in the AMSU-A sensor, reduce the passbands of each channel by a few Hz
-    for(Index pbOffsetIdx = 0;pbOffsetIdx<numPB[i];++pbOffsetIdx)
-    { // Filter response 
-      f_range[pbOffsetIdx*4+0] = -0.5*width[i]+1*slope;
-      f_range[pbOffsetIdx*4+1] = -0.5*width[i]+2*slope;
-      f_range[pbOffsetIdx*4+2] = +0.5*width[i]-2*slope;
-      f_range[pbOffsetIdx*4+3] = +0.5*width[i]-1*slope;
-      b_resp.data[pbOffsetIdx*4+0] = 0;
-      b_resp.data[pbOffsetIdx*4+1] = 1;
-      b_resp.data[pbOffsetIdx*4+2] = 1;
-      b_resp.data[pbOffsetIdx*4+3] = 0;
 
-      // move the passband in frequency to the correct frequency 
-      if(numPB[i]==2)
-      { // feels as an "ugly hack" solution,..
-        if(pbOffsetIdx==0)
-        {
-          pbOffset = -offset(i,0); 
-        }
-        if(pbOffsetIdx==1)
-        {
-          pbOffset = offset(i,0); 
-        }
-      } 
-      if(numPB[i]==4)
+      //is there any undefined verbosity values in the vector?
+      //Set the verbosity to one third of the bandwidth to make sure that the passband flanks does't overlap
+      const Numeric minRatioVerbosityVsFdiff = 10;  // To be used when to passbands are closer then one verbosity value  
+      Index totNumPb =0;
+      Vector verbosityVect(n);
+
+      for(Index idx = 0;idx<n;++idx)
       {
-        if(pbOffsetIdx==0)
+        if((verbosityVectIn[idx] ==0) || (verbosityVectIn[idx]> width[idx]))
         {
-          pbOffset = -offset(i,0)-offset(i,1); 
+          verbosityVect[idx] = ((Numeric)width[idx])/3;
         }
-        if(pbOffsetIdx==1)
+        else 
         {
-          pbOffset = -offset(i,0)+offset(i,1); 
-        }
-        if(pbOffsetIdx==2)
-        {
-          pbOffset = +offset(i,0)-offset(i,1); 
-        }
-        if(pbOffsetIdx==3)
-        {
-          pbOffset = +offset(i,0)+offset(i,1); 
-        }
+          verbosityVect[idx] = verbosityVectIn[idx];
+        }	
       }
-      for(Index iii=0;iii<4;++iii)
+
+      // Create a vector to store the number of passbands (PB) for each channel 
+      Vector numPBpseudo(n); // store values used for calc
+      Vector numPB(n); // Store the true values 
+      // Find the number of IFs for each channel and calculate the number of passbands 
+      for (Index i=0;i<n;++i)
       {
-        f_range[pbOffsetIdx*4+iii] += pbOffset;
-      }
-    }
-    // Are any passbands overlapping?
-    for(Index ii = 2;ii<(f_range.nelem()-2);++ii)
-    {
-      if(((b_resp.data[ii-1]==1) && (b_resp.data[ii]==0) &&(b_resp.data[ii+1]==0) && (b_resp.data[ii+2]==1)))
-      {
-        if((f_range[ii]>=f_range[ii+1]))  // Overlapping passbands
-        { 
-          if((f_range[ii+2]-f_range[ii-1])>verbosityVectIn[i])  // difference in frequency between passbands 
+        numPB[i] = 0 ; // make sure that it is zero
+        for(Index j=0;j<(m-2);++j)
+        {
+          if(j!=2)
           {
-            f_range[ii+1] = f_range[ii+2]-verbosityVectIn[i]/2;
-            f_range[ii] = f_range[ii-1]+verbosityVectIn[i]/2;
+            if (offset(i,j)>0)
+            {
+              numPB[i]++;
+            }
+          }
+        }  
+        numPB[i] = 1 << (int)numPB[i] ;// number of passbands= 2^numLO
+        if(numPB[i] ==1)
+        {
+          numPBpseudo[i] = 2;
+        } 
+        else
+        {
+          numPBpseudo[i] = numPB[i];
+        }
+
+        totNumPb += (int)numPB[i];
+
+        if(numPB[i]>4)
+        {
+          ostringstream os;
+          os << "This function does currently not support more than 4 passbands per channel"
+            << numPB[i]<< ".";
+          throw runtime_error( os.str() );
+        }
+      }  
+
+      // Find the center frequencies for all sub-channels
+      // Create one center frequency for each passband
+      ArrayOfArrayOfGriddedField1 backend_channel_response_multi(n);
+      ArrayOfVector f_backend_multi(n); // changed !!!
+      for (Index i=0; i<n; ++i)
+      {
+        // Channel frequencies
+        Vector &f = f_backend_multi[i];
+        f.resize(1);
+        f[0] = lo_multi[i]+0.0*width[i];//(offset(i,0)+offset(i,1));
+
+        //channel response 
+        const Index numVal = 4;
+        backend_channel_response_multi[i].resize(1);
+        GriddedField1& b_resp = backend_channel_response_multi[i][0];
+        b_resp.set_name("Backend channel response function");
+        b_resp.resize(numVal*(Index)numPBpseudo[i]);
+        Vector f_range(numVal*(Index)numPBpseudo[i]);
+        Numeric pbOffset = 0;
+        b_resp.set_grid_name(0,"Frequency");
+
+        Numeric slope =0; // 1900; 
+        // To avoid overlapping passbands in the AMSU-A sensor, reduce the passbands of each channel by a few Hz
+        for(Index pbOffsetIdx = 0;pbOffsetIdx<numPBpseudo[i];++pbOffsetIdx)
+        { // Filter response 
+          slope = width[i]/100;
+          f_range[pbOffsetIdx*numVal+0] = -0.5*width[i]-0*slope;
+          f_range[pbOffsetIdx*numVal+1] = -0.5*width[i]+1*slope;
+          f_range[pbOffsetIdx*numVal+2] = +0.5*width[i]-1*slope;
+          f_range[pbOffsetIdx*numVal+3] = +0.5*width[i]+0*slope;
+
+          b_resp.data[pbOffsetIdx*numVal+0] = 0.0/numPB[i];;
+          b_resp.data[pbOffsetIdx*numVal+1] = 1.0/numPB[i];
+          b_resp.data[pbOffsetIdx*numVal+2] = 1.0/numPB[i];
+          b_resp.data[pbOffsetIdx*numVal+3] = 0.0/numPB[i];
+
+          if(numPB[i] ==1)
+          {
+            if(pbOffsetIdx==0)
+            {
+              pbOffset = -0.0*width[i];
+              b_resp.data[pbOffsetIdx*numVal+0] = 0;
+              b_resp.data[pbOffsetIdx*numVal+1] = 1.0/1;
+
+              b_resp.data[pbOffsetIdx*numVal+2] = 1.0/1;
+              b_resp.data[pbOffsetIdx*numVal+3] = 1.0/1;
+              f_range[pbOffsetIdx*numVal+0] = -0.5*width[i]-2*slope;
+              f_range[pbOffsetIdx*numVal+1] = -0.5*width[i]-1*slope;
+              f_range[pbOffsetIdx*numVal+2] = -0.5*width[i]+1*slope;
+              f_range[pbOffsetIdx*numVal+3] = -0.5*width[i]+2*slope;
+            }
+            if(pbOffsetIdx ==1)
+            {
+              pbOffset = 0.0*width[i]; //just a dummy band 
+              b_resp.data[pbOffsetIdx*numVal+0] = 1.0/1;
+              b_resp.data[pbOffsetIdx*numVal+1] = 1.0/1;
+              b_resp.data[pbOffsetIdx*numVal+2] = 1.0/1;
+              b_resp.data[pbOffsetIdx*numVal+3] = 0;
+              f_range[pbOffsetIdx*numVal+0] = +0.5*width[i]-3*slope;
+              f_range[pbOffsetIdx*numVal+1] = +0.5*width[i]-2*slope;
+              f_range[pbOffsetIdx*numVal+2] = +0.5*width[i]-1*slope;
+              f_range[pbOffsetIdx*numVal+3] = +0.5*width[i]+0*slope-10; 
+              // without the extra '-10' it will fail due to too narrow backend sensor response.
+            }
+          }
+          else if (numPB[i]==2) 
+          { // move the passband in frequency to the correct frequency 
+            if(pbOffsetIdx==0)
+            {
+              pbOffset = -offset(i,0); 
+            }
+            if(pbOffsetIdx==1)
+            {
+              pbOffset = offset(i,0); 
+            }
           } 
-          else
+          if(numPB[i]==4)
           {
-            f_range[ii-1] = (f_range[ii]+f_range[ii+2])/2-2*verbosityVectIn[i]/minRatioVerbosityVsFdiff;
-            f_range[ii+1] = (f_range[ii]+f_range[ii+2])/2+verbosityVectIn[i]/minRatioVerbosityVsFdiff;
-            f_range[ii] = f_range[ii-1]+verbosityVectIn[i]/minRatioVerbosityVsFdiff ;
-            f_range[ii+2] = f_range[ii+1]+verbosityVectIn[i]/minRatioVerbosityVsFdiff;
+            if(pbOffsetIdx==0)
+            {
+              pbOffset = -offset(i,0)-offset(i,1); 
+            }
+            if(pbOffsetIdx==1)
+            {
+              pbOffset = -offset(i,0)+offset(i,1); 
+            }
+            if(pbOffsetIdx==2)
+            {
+              pbOffset = offset(i,0)-offset(i,1); 
+            }
+            if(pbOffsetIdx==3)
+            {
+              pbOffset = offset(i,0)+offset(i,1); 
+            }
+          }
+          for(Index iii=0;iii<numVal;++iii)
+          {
+            f_range[pbOffsetIdx*numVal+iii] += 1*pbOffset;
           }
         }
+        // Are any passbands overlapping?
+        for(Index ii = 2;ii<(f_range.nelem()-2);++ii)
+        {
+          if(((b_resp.data[ii-1]==1) && (b_resp.data[ii]==0) &&(b_resp.data[ii+1]==0) && (b_resp.data[ii+2]==1)))
+          {
+            if((f_range[ii]>=f_range[ii+1]))  // Overlapping passbands
+            { 
+              if((f_range[ii+2]-f_range[ii-1])>verbosityVectIn[i])  // difference in frequency between passbands 
+              {
+                f_range[ii+1] = f_range[ii+2]-verbosityVectIn[i]/2;
+                f_range[ii] = f_range[ii-1]+verbosityVectIn[i]/2;
+              } 
+              else
+              {
+                f_range[ii-1] = (f_range[ii]+f_range[ii+2])/2-2*verbosityVectIn[i]/minRatioVerbosityVsFdiff;
+                f_range[ii+1] = (f_range[ii]+f_range[ii+2])/2+verbosityVectIn[i]/minRatioVerbosityVsFdiff;
+                f_range[ii] = f_range[ii-1]+verbosityVectIn[i]/minRatioVerbosityVsFdiff ;
+                f_range[ii+2] = f_range[ii+1]+verbosityVectIn[i]/minRatioVerbosityVsFdiff;
+              }
+            }
+          }
+        }
+        b_resp.set_grid(0,f_range); 
       }
-    }
-    b_resp.set_grid(0,f_range); 
-  }
 
-  // construct sideband response 
-  ArrayOfGriddedField1 sideband_response_multi(n);
-  for (Index i=0;i<n;++i)
-  {
-    GriddedField1& r = sideband_response_multi[i];
-    r.set_name("Sideband response function");
-    r.resize((Index)numPB[i]);
-    Vector f((Index)numPB[i]);
-    if(numPB[i]==1)
-    {
-      r.data[0]=1;
-      f[0] = 0;
-    }
-    else if(numPB[i]==2)
-    {
-      r.data[0]=1/numPB[i];
-      r.data[1]=1/numPB[i];
-      f[0] = -offset(i,0);
-      f[1] = +offset(i,0);
-    }
-    else if(numPB[i]==4)
-    {
-      r.data[0]=1/numPB[i];
-      r.data[1]=1/numPB[i];
-      r.data[2]=1/numPB[i];
-      r.data[3]=1/numPB[i];
-      f[0] = -offset(i,0)-offset(i,1);
-      f[1] = -offset(i,0)+offset(i,1);
-      f[2] = +offset(i,0)-offset(i,1);
-      f[3] = +offset(i,0)+offset(i,1);
+      // construct sideband response 
+      ArrayOfGriddedField1 sideband_response_multi(n);
+      for (Index i=0;i<n;++i)
+      {
+        GriddedField1& r = sideband_response_multi[i];
+        r.set_name("Sideband response function");
+        r.resize((Index)numPBpseudo[i]);
+        Vector f((Index)numPBpseudo[i]);
+        if(numPB[i]==1)
+        {
+          r.data[0]=0.5;
+          f[0] = -.0*width[i];
+          r.data[1]=0.5;
+          f[1] = .0*width[i];
+        }
+        else if(numPB[i]==2)
+        {
+          r.data[0]=1/numPB[i];
+          r.data[1]=1/numPB[i];
+          f[0] = -1*offset(i,0)-0.5*width[i];
+          f[1] = +1*offset(i,0)+0.5*width[i];
+        }
+        else if(numPB[i]==4)
+        {
+          r.data[0]=1/numPB[i];
+          r.data[1]=1/numPB[i];
+          r.data[2]=1/numPB[i];
+          r.data[3]=1/numPB[i];
+          f[0] = -offset(i,0)-offset(i,1)-0.5*width[i];;
+          f[1] = -offset(i,0)+offset(i,1)-0.5*width[i];;
+          f[2] = +offset(i,0)-offset(i,1)+0.5*width[i];;
+          f[3] = +offset(i,0)+offset(i,1)+0.5*width[i];;
 
-    }
-    r.set_grid_name(0, "Frequency");
-    r.set_grid(0,f);
-  }
+        }
+        r.set_grid_name(0, "Frequency");
+        r.set_grid(0,f);
+      }
 
-  sensor_norm =1;
-  f_gridFromSensorAMSUgeneric(
-      // out
-      f_grid,
-      // in
-      f_backend_multi, 
-      backend_channel_response_multi, 
-	  spacing,
-      verbosityVect,
-      verbosity);
+      sensor_norm =1;
+      f_gridFromSensorAMSUgeneric(
+          // out
+          f_grid,
+          // in
+          f_backend_multi, 
+          backend_channel_response_multi,
+          spacing,
+          verbosityVect,
+          verbosity);
 
-  // do some final work...
-  AntennaOff(         // out 
-      antenna_dim,
-      mblock_za_grid, 
-      mblock_aa_grid, 
-      // in 
-      verbosity);
+      // do some final work...
+      AntennaOff(         // out 
+          antenna_dim,
+          mblock_za_grid, 
+          mblock_aa_grid, 
+          // in 
+          verbosity);
 
-  sensor_responseInit(
-      // out 
-      sensor_response, 
-      sensor_response_f, sensor_response_pol, 
-      sensor_response_za, sensor_response_aa, 
-      sensor_response_f_grid, 
-      sensor_response_pol_grid, 
-      sensor_response_za_grid, 
-      sensor_response_aa_grid,
-      // in
-      f_grid, 
-      mblock_za_grid, 
-      mblock_aa_grid, 
-      antenna_dim,
-      atmosphere_dim, 
-      stokes_dim,
-      sensor_norm,
-      verbosity);  
+      sensor_responseInit(
+          // out 
+          sensor_response, 
+          sensor_response_f, sensor_response_pol, 
+          sensor_response_za, sensor_response_aa, 
+          sensor_response_f_grid, 
+          sensor_response_pol_grid, 
+          sensor_response_za_grid, 
+          sensor_response_aa_grid,
+          // in
+          f_grid, 
+          mblock_za_grid, 
+          mblock_aa_grid, 
+          antenna_dim,
+          atmosphere_dim, 
+          stokes_dim,
+          sensor_norm,
+          verbosity);  
 
-  // New sensor response
-  sensor_responseBackend( // out
-      sensor_response, 
-      sensor_response_f, 
-      sensor_response_pol,
-      sensor_response_za,
-      sensor_response_aa, 
-      sensor_response_f_grid,
-      //in
-      sensor_response_pol_grid,
-      sensor_response_za_grid,
-      sensor_response_aa_grid, 
-      f_backend_multi, 
-      backend_channel_response_multi, 
-      sensor_norm,
-      verbosity); 
-  cout << "sensor_responseGenericAMSU "<<sensor_response_f_grid<<endl; 
+      Index numLO = lo_multi.nelem();
+      // Variables for data to be appended
+      // Based on code from m_sensor->sensor_responseMultiMixerBackend()
+      Array<Sparse> sr;
+      ArrayOfVector srfgrid;
+      ArrayOfIndex  cumsumf(numLO+1,0);
+      const Index nza  = sensor_response_za_grid.nelem();
+
+      // Do this for all channels .... 
+      for( Index idxLO = 0; idxLO < numLO ; idxLO++)
+      {
+        Sparse       sr1      = sensor_response;
+        Vector       srf1     = sensor_response_f;
+        ArrayOfIndex srpol1   = sensor_response_pol;
+        Vector       srza1    = sensor_response_za;
+        Vector       sraa1    = sensor_response_aa;
+        Vector       srfgrid1 = sensor_response_f_grid;
+
+
+        sensor_responseBackend( // out
+            sr1, 
+            srf1,
+            srpol1,
+            srza1, 
+            sraa1, 
+            srfgrid1, 
+
+            //in
+            sensor_response_pol_grid,
+            sensor_response_za_grid,
+            sensor_response_aa_grid, 
+            f_backend_multi[idxLO],
+            backend_channel_response_multi[idxLO],
+            sensor_norm,
+            verbosity); 
+
+        // Store in temporary arrays
+        sr.push_back( sr1 );
+        srfgrid.push_back( srfgrid1 );
+        //
+        cumsumf[idxLO+1] = cumsumf[idxLO] + srfgrid1.nelem();
+
+      }
+
+      // Append data to create sensor_response_f_grid
+      //
+      const Index  nfnew = cumsumf[numLO];
+      sensor_response_f_grid.resize( nfnew );
+      //
+      for( Index ilo=0; ilo<numLO; ilo++ )
+      {
+        for( Index i=0; i<srfgrid[ilo].nelem(); i++ )
+        {
+          sensor_response_f_grid[cumsumf[ilo]+i] = srfgrid[ilo][i];
+
+        }
+      }
+
+
+      const Index  ncols   = sr[0].ncols();
+      const Index  npolnew = sensor_response_pol_grid.nelem();
+      const Index  nfpolnew = nfnew * npolnew;
+      //
+      sensor_response.resize( nza*nfpolnew, ncols );
+      //
+      Vector dummy( ncols, 0.0 );
+      //
+      for( Index ilo=0; ilo<numLO; ilo++ )
+      {
+        const Index nfpolthis = (cumsumf[ilo+1]-cumsumf[ilo]) * npolnew;
+
+        assert( sr[ilo].nrows() == nza*nfpolthis );
+        assert( sr[ilo].ncols() == ncols );
+
+        for( Index iz=0; iz<nza; iz++ )
+        {
+          for( Index i=0; i<nfpolthis; i++ )
+          {
+            // "Poor mans" transfer of a row from one sparse to another 
+            for( Index ic=0; ic<ncols; ic++ )
+            { dummy[ic] = sr[ilo](iz*nfpolthis+i,ic); }
+
+            sensor_response.insert_row( iz*nfpolnew+cumsumf[ilo]*npolnew+i, 
+                dummy );
+          }
+        }
+      }  
+
+      sensor_aux_vectors( // out
+          sensor_response_f, 
+          sensor_response_pol,
+          sensor_response_za,
+          sensor_response_aa, 
+          sensor_response_f_grid,
+          //in
+          sensor_response_pol_grid,
+          sensor_response_za_grid,
+          sensor_response_aa_grid, 
+          0);
   }
 
 void sensor_responseSimpleAMSU(// WS Output:
