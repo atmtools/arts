@@ -1,5 +1,12 @@
 2013-10-11  Jana Mendrok  <jana.mendrok@ltu.se>
 
+	* arts-2-1-778
+
+	* src/test_cia.cc(test01):
+	Fixed the cia_interpolation call that Hudson didn't like.
+
+2013-10-11  Jana Mendrok  <jana.mendrok@ltu.se>
+
 	* arts-2-1-777
 
 	* src/m_cia.cc, methods.cc (abs_xsec_per_speciesAddCIA):
