@@ -50,6 +50,7 @@ void abs_xsec_per_speciesAddCIA(// WS Output:
                                 const Matrix& abs_vmrs,
                                 const ArrayOfCIARecord& abs_cia_data,
                                 // WS Generic Input:
+                                const Numeric& T_extrapolfac,
                                 const Index& robust,
                                 // Verbosity object:
                                 const Verbosity& verbosity)
@@ -173,7 +174,7 @@ void abs_xsec_per_speciesAddCIA(// WS Output:
                 try {
                     this_cia.Extract(xsec_temp, f_grid, abs_t[ip],
                                      this_species.CIADataset(),
-                                     robust, verbosity);
+                                     T_extrapolfac, robust, verbosity);
                 } catch (runtime_error e) {
                     ostringstream os;
                     os << "Problem with CIA species " << this_species.Name() << ":\n"

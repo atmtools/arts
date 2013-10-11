@@ -54,6 +54,7 @@ void cia_interpolation(VectorView result,
                        ConstVectorView f_grid,
                        const Numeric& temperature,
                        const GriddedField2& cia_data,
+                       const Numeric& T_extrapolfac,
                        const Index& robust,
                        const Verbosity& verbosity)
 {
@@ -173,7 +174,8 @@ void cia_interpolation(VectorView result,
             chk_interpolation_grids("Temperature interpolation for CIA continuum",
                                     data_T_grid,
                                     temperature,
-                                    T_order);
+                                    T_order,
+                                    T_extrapolfac);
         } catch (runtime_error e) {
             //            cout << "Gotcha!\n";
             if (robust) {
@@ -205,7 +207,7 @@ void cia_interpolation(VectorView result,
         // Temperature and frequency interpolation.
         
         // Find temperature grid position:
-        gridpos_poly(T_gp, data_T_grid, temperature, T_order);
+        gridpos_poly(T_gp, data_T_grid, temperature, T_order, T_extrapolfac);
     
         // Calculate combined interpolation weights:
         Tensor3 itw(f_gp.nelem(),T_gp.nelem(),(f_order+1)*(T_order+1));
@@ -264,7 +266,8 @@ void CIARecord::Extract(VectorView      result,
                         ConstVectorView f_grid,
                         const Numeric&  temperature,
                         const Index&    dataset,
-                        const Index& robust,
+                        const Numeric&  T_extrapolfac,
+                        const Index&    robust,
                         const Verbosity& verbosity) const
 {
     // If there is more than one dataset available for this species pair,
@@ -288,6 +291,7 @@ void CIARecord::Extract(VectorView      result,
                       f_grid,
                       temperature,
                       this_cia,
+                      T_extrapolfac,
                       robust,
                       verbosity);
 }

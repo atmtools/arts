@@ -292,7 +292,8 @@ void refr_index_airMWgeneral(
   */
 
   // normalize refractive index with the considered total VMR:
-  n /= ref_spec_vmr_sum;
+  if ( ref_spec_vmr_sum != 0 )
+      n /= ref_spec_vmr_sum;
 
   // now applying the constant factor p/p_0 * T0/T:
   n *= (ratioT*ratiop);

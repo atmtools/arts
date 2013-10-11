@@ -49,6 +49,7 @@ void cia_interpolation(VectorView result,
                        ConstVectorView frequency,
                        const Numeric& temperature,
                        const GriddedField2& cia_data,
+                       const Numeric& T_extrapolfac,
                        const Index& robust,
                        const Verbosity& verbosity);
 
@@ -179,8 +180,9 @@ public:
     void Extract(VectorView      result,
                  ConstVectorView f_grid,
                  const Numeric&  temperature,
-                 const Index& dataset,
-                 const Index& robust,
+                 const Index&    dataset,
+                 const Numeric&  T_extrapolfac,
+                 const Index&    robust,
                  const Verbosity& verbosity) const;
 
 
@@ -199,13 +201,15 @@ public:
     Numeric Extract(const Numeric& frequency,
                     const Numeric& temperature,
                     const Index& dataset,
+                    const Numeric&  T_extrapolfac,
                     const Index& robust,
                     const Verbosity& verbosity) const
     {
       Vector result(1);
       const Vector freqvec(1, frequency);
       
-      Extract(result, freqvec, temperature, dataset, robust, verbosity);
+      Extract(result, freqvec, temperature, dataset, T_extrapolfac, robust,
+              verbosity);
       
       return result[0];
     }

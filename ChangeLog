@@ -1,3 +1,17 @@
+2013-10-11  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-1-777
+
+	* src/m_cia.cc, methods.cc (abs_xsec_per_speciesAddCIA):
+	Added temperature extrapolation factor as method input.
+
+	* src/cia.cc,cia.h(Extract,cia_interpolation):
+	Handling temperature extrapolation factor.
+
+	* src/m_refraction.cc(refr_index_airMWgeneral):
+	Catch case sum(vmr)=0 over all refraction species in rescaling.
+	Fixes issue pointed out by Patrick.
+
 2013-10-11  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-776
