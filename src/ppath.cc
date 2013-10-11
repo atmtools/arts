@@ -3879,18 +3879,15 @@ void raytrace_1d_linear_basic(
                                                        -1, r1, r3, r_surface );
       assert( r_v.nelem() == 2 );
 
-      // If *lstep* is <= *lraytrace*, extract the found end point (if not 
-      // a tangent point, we are ready).
-      // Otherwise, we make a geometrical step with length *lraytrace*.
-
       Numeric za_flagside = za;
 
       if( lstep <= lraytrace )
         {
-          r     = r_v[1];
-          lat   = lat_v[1];
-          lcum += lstep;
-          ready = true;
+          r           = r_v[1];
+          lat         = lat_v[1];
+          lcum       += lstep;
+          za_flagside = za_v[1];
+          ready       = true;
         }
       else
         {
@@ -3904,7 +3901,7 @@ void raytrace_1d_linear_basic(
                 { za_flagside = 80; }     // Tangent point passed!
             }
 
-          r = geompath_r_at_l( ppc_step, l );
+          r = geompath_r_at_l( ppc_step, l );  // Works als0 for l<0
 
           lat = geompath_lat_at_za( za, lat, 
                                 geompath_za_at_r( ppc_step, za_flagside, r ) );
@@ -5601,7 +5598,7 @@ void ppath_calc(
                                 ppath_step_agenda );
       // For debugging:
       //Print( ppath_step, 0, verbosity );
-
+      
       // Number of points in returned path step
       const Index n = ppath_step.np;
 

@@ -9,9 +9,10 @@ O.lmax         = 1e3;
 O.lraytrace    = 200;
 O.z_surface    = 10;
 
-O.z_impact_max = 100e3;
-O.z_impact_dz  = 1e3;
-O.z_impact4t0  = O.z_impact_max;
+O.slta_max     = 200e3;
+O.slta_min     = 0e3;
+O.slta_n       = 20;
+O.z_impact4t0  = 100e3;
 O.f_sampling   = 4;
 
 
@@ -30,10 +31,13 @@ A.interp_order = 1;               % Linear interpolation of fields (higher
 A.pmin         = 1e-6;            % Min pressure to consider. This value
                                   % crops around 200 km
 
+O.gps_altitude = 600e3;    
+A.pmin         = 1e-99;
+
 
 %- Perform calculation
 %
-[R,T] = arts_radioocc_1D( [], O, A );
+[R,T] = arts_radioocc_1D_power( [], O, A );
 
 
 %-Plot result

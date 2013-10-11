@@ -8600,6 +8600,11 @@ void define_md_data_raw()
          "The expression is dispersive. The frequency applied is the mean of\n"
          "first and last element of *f_grid* is selected. This frequency must\n"
          "be at least twice the plasma frequency.\n"
+         "\n"
+         "An error is issued if free electrons not are part of *abs_species*\n"
+         "(and there exist a corresponding \"vmr\"-value). This demand is\n" 
+         "removed if *demand_vmr_value* is set to 0, but use this option\n"
+         "with care.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "refr_index_air", "refr_index_air_group" ),
@@ -8608,10 +8613,11 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "refr_index_air", "refr_index_air_group", "f_grid", "abs_species", 
             "rtp_vmr" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
+        GIN( "demand_vmr_value" ),
+        GIN_TYPE( "Index" ),
+        GIN_DEFAULT( "1" ),
+        GIN_DESC( "Flag to control if it is demanded that free electrons are "
+                  "in *abs_species*. Default is that this is demanded." )
         ));
 
   md_data_raw.push_back

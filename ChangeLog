@@ -1,3 +1,30 @@
+2013-10-11  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-779
+
+	* controlfiles/planetary_toolbox/demos/active/demo_venus_ro.m:
+	Now using arts_radioocc_1D_power.
+
+	* controlfiles/planetary_toolbox/demos/active/demo_mars_ro.m:
+	MNow including some test settings. 
+
+	* src/m_transmitter.cc (iyRadioLink): -1 instead of f_grid was
+	sent to defocusing functions!!! This has worked until now without
+	any bug, but was now catched by free electron refr_index method.
+
+	* controlfiles/general/agendas.arts: Removed an unnecessary ignore
+	from refr_index_air_agenda__GasThayerAndElectrons.
+
+	* src/m_refraction.cc (refr_index_airFreeElectrons): Introduced
+	demand_vmr_value, for higher flexibility. Extended built-in doc to
+	warn about the default constrain on abs_species, and that
+	demand_vmr_value shall be used with care.
+
+	* src/ppath.cc (raytrace_1d_linear_basic): Tangent point a few mm
+	below a pressure level could lead to infinite loop. A bug caused
+	by change of how tangent points are handled. Fixed by adding:
+	za_flagside = za_v[1];
+
 2013-10-11  Jana Mendrok  <jana.mendrok@ltu.se>
 
 	* arts-2-1-778

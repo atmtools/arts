@@ -342,7 +342,6 @@ AgendaSet( refr_index_air_agenda__GasMWgeneralAndElectrons ){
 # 
 AgendaCreate( refr_index_air_agenda__GasThayerAndElectrons )
 AgendaSet( refr_index_air_agenda__GasThayerAndElectrons ){
-  Ignore( f_grid )
   NumericSet( refr_index_air, 1.0 )
   NumericSet( refr_index_air_group, 1.0 )
   refr_index_airThayer

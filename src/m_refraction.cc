@@ -69,6 +69,7 @@ void refr_index_airFreeElectrons(
     const Vector&    f_grid,
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const Vector&    rtp_vmr,
+    const Index&     demand_vmr_value,
     const Verbosity&)
 {
   // The expression used is found in many textbooks, e.g. Rybicki and Lightman
@@ -88,29 +89,34 @@ void refr_index_airFreeElectrons(
 
   if( ife < 0 )
     {
-      throw runtime_error( "Free electrons not found in *abs_species* and "
+      if( demand_vmr_value )
+        {
+          throw runtime_error( "Free electrons not found in *abs_species* and "
                    "contribution to refractive index can not be calculated." );
+        }
     }
   else
-    { edensity = rtp_vmr[ife]; }
+    { 
+      edensity = rtp_vmr[ife]; 
 
-  if( edensity > 0 )
-    {
-      const Numeric f = ( f_grid[0] + last(f_grid) ) / 2.0;
-      const Numeric a = edensity*k/(f*f);
-      const Numeric n = sqrt( 1 - a );
-
-      if( a > 0.25 ) 
+      if( edensity > 0 )
         {
-          ostringstream os;
-          os << "The frequency must at least be twice the plasma frequency.\n"
-             << "For this particular point, the plasma frequency is: " 
-             << sqrt(edensity*k)/1e6 << " MHz.";
-          throw runtime_error( os.str() );
+          const Numeric f = ( f_grid[0] + last(f_grid) ) / 2.0;
+          const Numeric a = edensity*k/(f*f);
+          const Numeric n = sqrt( 1 - a );
+          
+          if( a > 0.25 ) 
+            {
+              ostringstream os;
+              os << "The frequency must at least be twice the plasma frequency.\n"
+                 << "For this particular point, the plasma frequency is: " 
+                 << sqrt(edensity*k)/1e6 << " MHz.";
+              throw runtime_error( os.str() );
+            }
+          
+          refr_index_air       += n - 1;
+          refr_index_air_group += 1/n - 1;
         }
-
-      refr_index_air       += n - 1;
-      refr_index_air_group += 1/n - 1;
     }
 }
 

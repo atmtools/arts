@@ -589,14 +589,14 @@ void iyRadioLink(
         {
           defocusing_general( ws, dfl, ppath_step_agenda, atmosphere_dim, 
                               p_grid, lat_grid, lon_grid, t_field, z_field, 
-                              vmr_field, -1, refellipsoid, 
+                              vmr_field, f_grid, refellipsoid, 
                               z_surface, ppath, ppath_lraytrace,
                               defocus_shift, verbosity );
         }
       else if( defocus_method == 2 )
         { defocusing_sat2sat( ws, dfl, ppath_step_agenda, atmosphere_dim, 
                               p_grid, lat_grid, lon_grid, t_field, z_field, 
-                              vmr_field, -1, refellipsoid, 
+                              vmr_field, f_grid, refellipsoid, 
                               z_surface, ppath, ppath_lraytrace, 
                               defocus_shift, verbosity ); 
         }
