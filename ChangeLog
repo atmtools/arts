@@ -1,10 +1,21 @@
+2013-10-11  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-776
+
+	* controlfiles/planetary_toolbox/demos/active/demo_venus_ro.m:
+	Started.
+
+	* controlfiles/planetary_toolbox/demos/active/demo_mars_ro.m:
+	Added data and info.
+
 2013-10-11  Oscar Isoz <oscar.isoz@ltu.se>
-  * arts-2-1-775
+
+	* arts-2-1-775
 
 	* src/m_sensor.cc
 	src/sensor.cc
 	src/methods.cc:
-	Corrected how the passbands are calculated for the AMSU-A 
+	Corrected how the passbands are calculated for the AMSU-A
 	sensor.
 
 2013-10-10  Patrick Eriksson  <patrick.eriksson@chalmers.se>
