@@ -10,8 +10,8 @@ O.lraytrace    = 200;
 O.z_surface    = 10;
 
 O.slta_max     = 200e3;
-O.slta_min     = 0e3;
-O.slta_n       = 20;
+O.slta_min     = -50e3;
+O.slta_n       = 6;
 O.z_impact4t0  = 100e3;
 O.f_sampling   = 4;
 
@@ -31,8 +31,12 @@ A.interp_order = 1;               % Linear interpolation of fields (higher
 A.pmin         = 1e-6;            % Min pressure to consider. This value
                                   % crops around 200 km
 
-O.gps_altitude = 600e3;    
+O.gps_altitude = 6000e3;    
 A.pmin         = 1e-99;
+O.slta_max     = 200e3;
+O.slta_min     = 0e3;
+O.slta_n       = 101;
+
 
 
 %- Perform calculation
@@ -45,4 +49,6 @@ A.pmin         = 1e-99;
 plot( R.bangle, R.z_impact/1e3 )
 %
 xlabel( 'Bending angle [deg]' );
-ylabel( 'Imapct height [km]' );
+ylabel( 'Impact height [km]' );
+
+keyboard

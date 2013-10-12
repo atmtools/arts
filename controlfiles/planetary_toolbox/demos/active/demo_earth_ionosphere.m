@@ -1,4 +1,4 @@
-% DEMO_EARTH_FASCODE_IONOSPHERE  Earth radio occultation demo
+% DEMO_EARTH_IONOSPHERE  Earth radio occultation demo (ionospheric focus)
 %
 %    A demonstration of simulating a GPS occultation, using the function
 %    *arts_radioocc_1D* combined with *qarts_add_fascode*. See these
@@ -15,11 +15,11 @@
 %    varying results are obtained when changing the IRI settings (such as
 %    longitude and UTC).
 %
-% FORMAT   demo_earth_fascode_ionosphere
+% FORMAT   demo_earth_ionosphere
 
 % 2013-10-10   Created by Patrick Eriksson.
 
-function demo_earth_fascode_ionosphere
+function demo_earth_ionosphere
 
 % When we select tropical, we obtain free electrons for a low latitude 
 % (10N to be precise). This latitude is shifted if you switch Fascode
@@ -56,6 +56,7 @@ A.planet       = 'earth';
 A.atmfunc      = @qarts_add_fascode;
 A.fascode_atm  = 'tropical';
 %
+% The species that contribute to refraction
 A.ABS_SPECIES(1).TAG{1} = 'N2';
 A.ABS_SPECIES(2).TAG{1} = 'O2';
 A.ABS_SPECIES(3).TAG{1} = 'H2O';

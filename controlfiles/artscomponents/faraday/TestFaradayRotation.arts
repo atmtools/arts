@@ -119,7 +119,7 @@ FieldFromGriddedField( mag_w_field, p_grid, lat_grid, lon_grid, raw3 )
 
 
 #
-# Absorption + Faraday
+# Absorption including Faraday rotation
 #
 
 # Agenda for scalar gas absorption calculation
@@ -129,13 +129,7 @@ Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
 # 
 abs_lines_per_speciesSetEmpty
 
-AgendaSet( propmat_clearsky_agenda ){
-  Ignore(rtp_mag)
-  Ignore(rtp_los)
-  propmat_clearskyInit
-  propmat_clearskyAddOnTheFly
-  propmat_clearskyAddFaraday
-}
+Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__OnTheFly_Faraday )
 
 
 

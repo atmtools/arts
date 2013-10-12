@@ -209,6 +209,16 @@ AgendaSet( propmat_clearsky_agenda__OnTheFly_Zeeman ){
 }
 
 ###
+# "on-the-fly" absorption with Faraday rotation
+#
+AgendaCreate( propmat_clearsky_agenda__OnTheFly_Faraday )
+AgendaSet( propmat_clearsky_agenda__OnTheFly_Faraday ){
+  propmat_clearskyInit
+  propmat_clearskyAddOnTheFly
+  propmat_clearskyAddFaraday
+}
+
+###
 # absorption lookup table
 # this could save (considerable) time, especially for batch calculations.
 # 
