@@ -1403,6 +1403,20 @@ void abs_xsec_per_speciesInit(// WS Output:
   if (!abs_xsec_agenda_checked)
     throw runtime_error("You must call *abs_xsec_agenda_checkedCalc* before calling this method.");
 
+  // We need to check that abs_species_active doesn't have more elements than
+  // abs_species (abs_xsec_agenda_checkedCalc doesn't know abs_species_active.
+  // Usually we come here through an agenda call, where abs_species_active has
+  // been properly created somewhere internally. But we might get here by
+  // direct call, and then need to be safe!).
+  if ( tgs.nelem() < abs_species_active.nelem() )
+    {
+      ostringstream os;
+      os << "abs_species_active (n=" << abs_species_active.nelem()
+         << ") not allowed to have more elements than abs_species (n="
+         << tgs.nelem() << ")!\n";
+      throw runtime_error(os.str());
+    }
+
   // Initialize abs_xsec_per_species. The array dimension of abs_xsec_per_species
   // is the same as that of abs_lines_per_species.
   abs_xsec_per_species.resize( tgs.nelem() );

@@ -30,11 +30,17 @@ ArrayOfStringSet( atmoarray,
                   ["Venus.spicav.night","Venus.spiva.night_cold","Venus.vira.night",
                    "Venus.vira.day","Venus.vira.day_highlat"] )
 ArrayOfStringSet( basespeciesarray,
-                  ["CO", "CO2", "H2SO4", "HCl", "HF", "N2",
-                   "O", "O3", "OCS", "SO2"] )
+                  ["CO", "CO2", "CO2-CIA-CO2-0",
+                   "H2SO4", "HCl", "HF",
+                   "N2", "NO", "NO2",
+                   "O", "O2", "O3", "OCS",
+                   "SO", "SO2"] )
 ArrayOfStringSet( basespeciesnamesarray,
-                  ["CO.xml", "CO2.xml", "H2SO4.xml", "HCl.xml", "HF.xml", "N2.xml",
-                   "O.xml", "O3.xml", "OCS.xml", "SO2.xml"] )
+                  ["CO.xml", "CO2.xml", "CO2.xml",
+                   "H2SO4.xml", "HCl.xml", "HF.xml",
+                   "N2.xml", "NO.xml", "NO2.xml",
+                   "O.xml", "O2.xml", "O3.xml", "OCS.xml",
+                   "SO.xml", "SO2.xml"] )
 ArrayOfStringSet( H2Oarray, ["H2O_low.xml","H2O_mid.xml","H2O_high.xml"] )
 ArrayOfStringSet( HDOarray,
                   ["H2O-162_low.xml","H2O-162_mid.xml","H2O-162_high.xml",

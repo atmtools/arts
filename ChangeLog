@@ -1,3 +1,23 @@
+2013-10-12  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-1-780
+
+	* src/m_abs.cc(abs_xsec_per_speciesInit):
+	Bugfix(?). Added a safety check that number of abs_species_active is not
+	larger than number of abs_species. Might happen, when the
+	abs_xsec_per_species* WSM are accessed directly and not through the
+	agenda (e.g. in TestCIA.arts).
+
+	* controlfiles/general/agendas.arts:
+	Added abs_xsec_agenda__withCIAextraT for CIA with (sufficient
+	in practice) temperature extrapolation range.
+
+	* controlfiles/planetary_toolbox/includes/venus/atmo_venus.arts,
+	DemoVenusAtmo1D.arts, DemoVenusAtmo3D.arts:
+	Bugfix. There were some more species in day profiles than in night.
+	Added them as selectable (also requires an arts-xml-data update).
+	Added a CO2-CO2-CIA species.
+
 2013-10-11  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-779
