@@ -165,4 +165,3 @@ xlabel( 'Relative time [s]', 'FontSize', fs );
 ylabel( 'Bending angle [deg]', 'FontSize', fs );
 title( tstring, 'FontSize', fs+2 )
 
-keyboard

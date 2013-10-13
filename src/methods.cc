@@ -632,10 +632,12 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "abs_lines_per_species" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
+        GIN( "max_f" ),
+        GIN_TYPE( "Numeric" ),
+        GIN_DEFAULT( "-1" ),
+        GIN_DESC( "Limit for mirroring, ie. lines above this frequency do "
+                  "not generate a mirror line. All lines mirrored if *max_f* "
+                  "is < 0, that is the default setting.")
         ));
 
   md_data_raw.push_back

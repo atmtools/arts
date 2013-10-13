@@ -1,9 +1,17 @@
 2013-10-13  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-1-784
+
+	* src/m_abs.cc (abs_lines_per_speciesAddMirrorLines): Added GIN
+	max_f, to give the for stopping the mirroring at some frequency.
+	Default is "mirror all", as before.
+
+2013-10-13  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-1-783
 
 	* controlfiles/planetary_toolbox/demos/active/demo_earth_ro.m:
-	Just removed a "keyboard" 
+	Just removed a "keyboard"
 
 	* controlfiles/planetary_toolbox/demos/active/demo_venus_ro.m: Now
 	also covering gas absorption. Header and comments written.

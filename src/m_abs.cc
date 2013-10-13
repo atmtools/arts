@@ -850,9 +850,10 @@ void abs_lines_per_speciesCreateFromLines(// WS Output:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_lines_per_speciesAddMirrorLines(// WS Output:
-                                         ArrayOfArrayOfLineRecord& abs_lines_per_species,
-                                         const Verbosity&)
+void abs_lines_per_speciesAddMirrorLines(
+         ArrayOfArrayOfLineRecord& abs_lines_per_species,
+   const Numeric& max_f,
+   const Verbosity&)
 {
   // We will simply append the mirror lines after the original
   // lines. This way we don't have to make a backup copy of the
@@ -863,26 +864,40 @@ void abs_lines_per_speciesAddMirrorLines(// WS Output:
       // Get a reference to the current list of lines to save typing:
       ArrayOfLineRecord& ll = abs_lines_per_species[i];
       
+      // It is important that we determine the size of ll *before*
+      // we start the loop. After all, we are adding elements. And
+      // we cerainly don't want to continue looping the newly added
+      // elements, we want to loop only the original elements.
+      //
+      Index n = ll.nelem();
+
       // For increased efficiency, reserve the necessary space:
-      ll.reserve(2*ll.nelem());
-
+      //
+      Index nnew = n;
+      //
+      if( max_f >= 0 )
+        { 
+          nnew = 0;
+          for ( Index j=0; j<n; ++j )
+            {
+              if( ll[j].F() <= max_f )
+                { nnew += 1; }
+            }
+        }
+      //
+      ll.reserve( n + nnew );
+      
       // Loop through all lines of this tag group:
-      {
-        // It is important that we determine the size of ll *before*
-        // we start the loop. After all, we are adding elements. And
-        // we cerainly don't want to continue looping the newly added
-        // elements, we want to loop only the original elements.
-        Index n=ll.nelem();
-        for ( Index j=0; j<n; ++j )
-          {
-            LineRecord dummy = ll[j];
-            dummy.setF( -dummy.F() );
-            //      cout << "Adding ML at f = " << dummy.F() << "\n";
-            ll.push_back(dummy);
-          }
-      }
+      for ( Index j=0; j<n; ++j )
+        {          
+          if( max_f < 0  ||  ll[j].F() <= max_f )
+            {
+              LineRecord dummy = ll[j];
+              dummy.setF( -dummy.F() );
+              ll.push_back(dummy);
+            }
+        }
     }
-
 }
 
 
