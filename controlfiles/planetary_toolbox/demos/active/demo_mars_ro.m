@@ -23,19 +23,20 @@ O.leo_altitude = 600e3;
 % Here we let Earth be the "GPS", and thus calculates backwards but this has
 % no impact on the result.
 %
-% The closest distance Earth - Mars is about 60e12. Using this value gave
-% some "noise" for excess range (but 1e12 OK!). Anyhow, the distance
-% set has no impact on these results, beside the absolut path lengths.
-% However, it should be the excess range that is of concern, that will come
-% out right.  
+% The closest distance Earth - Mars is about 60e12, but using this value was
+% found to give numerical problems, and a lower value is used. Anyhow, the
+% distance set has no impact on these results, beside the absolut path lengths.
+% However, it should be the excess range that is of concern, that will come out
+% right.
 %
-O.gps_altitude = 1e9;     
+O.gps_altitude = 1e9;
 O.gps_movement = 'none';
 
 % These are the two frequencies of Mars-Express. Select one.
 %
 O.frequency    = 2.3e9;     
 %O.frequency    = 8.4e9; % This one gives much lower impact of free electrons
+
 % For higher accuracy, decrease these values, particularly lraytrace.
 % lmax mainly affects the accuracy for the tangent point determination
 %
@@ -47,7 +48,7 @@ O.lraytrace    = 1e3;
 O.z_surface    = 5;
 
 % These settings determine end point of occultation, how dense calculations
-% thata re performed etc. See *arts_radioocc_1D* for details.
+% that are performed etc. See *arts_radioocc_1D* for details.
 %
 % These actual settings gives a rough overview
 %
@@ -61,7 +62,7 @@ O.f_sampling   = 4;
 % A part
 %-------
 
-% Don't change these (if you don't swict planet)!
+% Don't change these (if you don't switch planet)!
 %
 A.planet       = 'mars';
 A.atmfunc      = @qarts_add_mars_planettbox;

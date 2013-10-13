@@ -1,3 +1,19 @@
+2013-10-13  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-783
+
+	* controlfiles/planetary_toolbox/demos/active/demo_earth_ro.m:
+	Just removed a "keyboard" 
+
+	* controlfiles/planetary_toolbox/demos/active/demo_venus_ro.m: Now
+	also covering gas absorption. Header and comments written.
+
+	* controlfiles/planetary_toolbox/demos/active/demo_mars_ro.m:
+	Typo in comment.
+
+	* controlfiles/planetary_toolbox/demos/active/
+	demo_earth_fascode_ionosphere.m: Was still in svn.
+
 2013-10-12  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-782
