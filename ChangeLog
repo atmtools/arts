@@ -1,5 +1,12 @@
 2013-10-12  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-1-782
+
+	* controlfiles/planetary_toolbox/demos/active/demo_earth_ro.m:
+	Missed to do svn add.
+
+2013-10-12  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-1-781
 
 	* controlfiles/planetary_toolbox/demos/active/demo_venus_ro.m:
