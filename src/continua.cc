@@ -286,6 +286,11 @@
    131 Hartwell Avenue<br>
    Lexington, MA 02421, USA
    </li>
+ <li><b>CO2-Venus air (CO2-Oschlisniok2012)</b>:<br>
+Equation 9 of Oschlisniok et al. 2012, Microwave absorptivity by sulfuric acid in 
+ the Venus atmosphere: First results from the Venus Express Radio Science experiment VeRa,
+ Icarus 221, 940-948.
+ </li>
    </ol>
    <br>
    <br>
@@ -12880,6 +12885,37 @@ Numeric WVSatPressureIce(const Numeric t)
 
   return es_MPM93;
 }
+
+/* Oschlisniok2012 CO2 continuum for Venus.
+ 
+ Equation 9 of Oschlisniok et al. 2012, Microwave absorptivity by sulfuric acid in
+ the Venus atmosphere: First results from the Venus Express Radio Science experiment VeRa,
+ Icarus 221, 940-948.
+
+ \param[out] pxsec Absorption coefficients [1/m]. Coefficients, not cross-sections!
+                   Dimensions: (Frequency, Pressure)
+ \param[in]  f_grid Frequency grid [Hz].
+ \param[in]  abs_p Pressure grid [Pa].
+ \param[in]  abs_t Temperatures associated with the pressure grid, abs_p [K].
+ \param[in]  abs_n2 Total volume mixing ratio profile of molecular nitrogen.
+ \param[in]  vmr Volume mixing ratio profile of the actual species, CO2 in this case. [1]
+ \param[in]  verbosity The usual verbosity flag.
+ 
+ \author Patrick Eriksson, Stefan Buehler
+ \date 2013-10-14
+ */
+void Oschlisniok2012_CO2_venus(MatrixView pxsec,
+                               ConstVectorView f_grid,
+                               ConstVectorView abs_p,
+                               ConstVectorView abs_t,
+                               ConstVectorView abs_n2,
+                               ConstVectorView vmr )
+
+{
+    pxsec = 0;  // FIXME: Replace this by Equation 9 from the paper.
+
+}
+
 //
 // #################################################################################
 // #################### CONTROL OF ADDITIONAL ABSORPTION MODEL #####################
@@ -16076,7 +16112,41 @@ void xsec_continuum_tag (MatrixView             xsec,
           throw runtime_error(os.str());
         }
     }
-  // ============= cloud and fog absorption from MPM93 ==================================
+    // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  else if ( "CO2-Oschlisniok2012"==name )
+    {
+      // Equation 9 of Oschlisniok et al. 2012, Microwave absorptivity by sulfuric acid in
+      // the Venus atmosphere: First results from the Venus Express Radio Science experiment VeRa,
+      // Icarus 221, 940-948.
+      
+      // We allow no options, so model has to be "default" and nothing else.
+      if ( (model != "default")  )
+        {
+          ostringstream os;
+          os << "ERROR: Continuum model " << name << " requires model \"default\" in the continuum description.";
+          throw runtime_error(os.str());
+        }
+
+      out3 << "Continuum model " << name << ".\n";
+
+      // specific continuum parameters and units:
+      //  OUTPUT
+      //     pxsec          : [1/m],  Absorption coefficient (not cross section, despite variable name)
+      //  INPUT
+      //     f_grid        : [Hz]
+      //     abs_p         : [Pa]
+      //     abs_t         : [K]
+      //     abs_n2        : [1]
+      //     vmr           : [1]
+      //
+          Oschlisniok2012_CO2_venus(pxsec,
+                                    f_grid,
+                                    abs_p,
+                                    abs_t,
+                                    abs_n2,
+                                    vmr );
+    }
+    // ============= cloud and fog absorption from MPM93 ==================================
   else if ( "liquidcloud-MPM93"==name )
     {
       // Suspended water droplet absorption parameterization from MPM93 model
@@ -16111,7 +16181,7 @@ void xsec_continuum_tag (MatrixView             xsec,
       if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
         {
           out3 << "MPM93 liquid water cloud absorption model " << name << " is running with \n"
-               << "user defined parameters according to model " << model << ".\n";
+          << "user defined parameters according to model " << model << ".\n";
           MPM93WaterDropletAbs(pxsec,
                                parameters[0],     // scaling factror
                                parameters[1],     // scaling factror
@@ -16127,14 +16197,14 @@ void xsec_continuum_tag (MatrixView             xsec,
         {
           ostringstream os;
           os << "MPM93 liquid water cloud absorption model " << name << " requires\n"
-             << Nparam << " input parameter for the model " << model << ",\n"
-             << "but you specified " << parameters.nelem() << " parameters.\n";
+          << Nparam << " input parameter for the model " << model << ",\n"
+          << "but you specified " << parameters.nelem() << " parameters.\n";
           throw runtime_error(os.str());
         }
       else if ( (model != "user") && (parameters.nelem() == 0) ) // --------------------
         {
           out3 << "MPM93 liquid water cloud absorption model " << name << " running with \n"
-               << "the parameter for model " << model << ".\n";
+          << "the parameter for model " << model << ".\n";
           MPM93WaterDropletAbs(pxsec,
                                0.000,        // scaling factror
                                0.000,        // scaling factror

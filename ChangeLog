@@ -1,3 +1,18 @@
+2013-10-14  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-2-1-786
+
+	* src/continua.cc (Oschlisniok2012_CO2_venus): Added this
+	function. Just a stubb at the moment, implementation of equation
+	left to Patrick.
+	(xsec_continuum_tag): Added Oschlisniok2012 continuum call.
+
+	* src/species_data.cc (CO2): Added CO2-Oschlisniok2012 absorption
+	model.
+
+	* controlfiles/general/continua.arts: Added entry for
+	CO2-Oschlisniok2012 absorption model.
+
 2013-10-14  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-785
