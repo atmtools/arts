@@ -24,13 +24,13 @@ O.leo_altitude = 600e3;
 % no impact on the result.
 %
 % The closest distance Earth - Venus is about 38e12, but using this value
-% was found to give numerical problems, and a lower (but still high)
-% value is used. 
+% was found to give numerical problems, and the GPS value is used. 
 % The quantities affcted by the distance selected are absolut path lengths and
-% free space loss. But excess range and the variation of free space loss during
-% the occultation are OK if a just a high value is selected.
+% free space loss. But excess range is OK if just a high value is selected.
+% For a distance of >= 38e12, the free space loss is basically constant
+% during the occulation, as the relative change in distance is very small.
 %  
-O.gps_altitude = 1e8;  
+O.gps_altitude = 20200e3;  
 O.gps_movement = 'none';
 
 % These are the two frequencies of Venus-Express. Select one.
@@ -57,12 +57,15 @@ O.z_surface    = 1e3;
 %
 % These actual settings gives a rough overview
 %
-O.slta_max     = 100e3;
-O.slta_min     = -20e3;
-O.slta_n       = 21;
+O.slta_max     = 200e3;
+O.slta_min     = -200e3;
+O.slta_n       = 50;
 O.z_impact4t0  = O.slta_max;  % Sets reference point for time
 O.f_sampling   = 4;
-  
+
+% If you try higher "GPS altitudes", defocus method 1 can be a better choice
+O.defoc_method = 2;
+
   
 %-------
 % A part
@@ -112,7 +115,7 @@ Q.ABS_WSMS{end+1} = 'abs_lines_per_speciesAddMirrorLines';
 
 %- Plot results
 
-tstring = sprintf( 'Venus: Atmosphere %d,Necase %d, %.2f GHz', ...
+tstring = sprintf( 'Venus: Atmosphere %d, Necase %d, %.2f GHz', ...
                                            A.atmo, A.Necase, O.frequency/1e9 );
 fs = 12;
 
@@ -124,8 +127,15 @@ grid
 xlabel( 'Bending angle [deg]', 'FontSize', fs );
 ylabel( 'Impact height [km]', 'FontSize', fs );
 title( tstring, 'FontSize', fs+2 )
+axis([-1e-3 1e-3 80 200])
+
 
 figure(2)
+clf  
+clonefig(1,2)
+axis([0 5.5 45 95])
+
+figure(3)
 clf  
 plot( R.l_optpath-R.l_geometric, R.slta/1e3 )
 %
@@ -134,29 +144,28 @@ xlabel( 'Excess range [m]', 'FontSize', fs );
 ylabel( 'Straight-line tangent altitude [km]', 'FontSize', fs );
 title( tstring, 'FontSize', fs+2 )
 
-% Attenuation dominated by free space loss and remove this start value of this
-% dominatating part
+% Don't show total or free space as we are not using the exact length. But
+% report what the free spae loss should be.
 %
-db0 = 10*log10( 4 * pi * O.gps_altitude^2);  %-10*log10(R.tr_space(1));
+lmin = 38e12;
+db0 = 10*log10( 4 * pi * lmin^2);  
 %
-figure(3)
+figure(4)
 clf  
-plot( -10*log10(R.tr_space)-db0, R.z_tan/1e3, 'm-', ...
-      -10*log10(R.tr_atmos), R.z_tan/1e3, 'r-', ...
-      -10*log10(R.tr_defoc), R.z_tan/1e3, 'b-', ...
-      -10*log10(R.tr_total)-db0, R.z_tan/1e3, 'k-', 'LineWidth', 2 );
+plot( -10*log10(R.tr_atmos), R.z_tan/1e3, 'r-', ...
+      -10*log10(R.tr_defoc), R.z_tan/1e3, 'b-', 'LineWidth', 2 );
 %
 grid
 xlabel( 'Attenuation [dB]', 'FontSize', fs );
 ylabel( 'Tangent height [km]', 'FontSize', fs );
 title( tstring, 'FontSize', fs+2 )
-legend( sprintf(' Free space - %.2f dB',db0), ' Absorption', ...
-        ' Defocusing', sprintf(' Total - %.2f dB',db0) );
+legend( ' Absorption', ' Defocusing' );
+axis([0 22 35 105])
 ax = axis;
-text( ax(2)/4, ax(3)+0.7*diff(ax(3:4)), sprintf(['%.2f dB is the free ',...
-'space loss for\n the used planet distance of %.1e m'], db0, O.gps_altitude ));
+text( ax(2)/4, ax(3)+0.7*diff(ax(3:4)), sprintf(['Free space loss is at ',...
+'least %.0f db, and is\nbasically constant during the occultation'], db0 ));
 
-figure(4)
+figure(5)
 clf  
 plot( T.t, T.bangle )
 %

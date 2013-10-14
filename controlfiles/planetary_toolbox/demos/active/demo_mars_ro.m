@@ -29,7 +29,7 @@ O.leo_altitude = 600e3;
 % However, it should be the excess range that is of concern, and it will
 % come out right.
 %
-O.gps_altitude = 1e10;
+O.gps_altitude = 1e11;
 O.gps_movement = 'none';
 
 % These are the two frequencies of Mars-Express. Select one.
@@ -56,7 +56,7 @@ O.z_impact_max = 250e3;
 O.z_impact_dz  = 2.5e3;
 O.z_impact4t0  = O.z_impact_max;  % Sets reference point for time
 O.f_sampling   = 4;
-  
+
   
 %-------
 % A part

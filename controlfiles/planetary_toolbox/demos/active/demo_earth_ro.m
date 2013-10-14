@@ -34,12 +34,14 @@ O.z_surface    = 10;
 
 O.slta_max     = 20e3;
 O.slta_min     = -100e3;
-%O.slta_n       = 31;
-O.slta_n       = 5;  
+O.slta_n       = 21;          % A low number, to make demo relatively quick
 O.z_impact4t0  = O.slta_max;
 O.f_sampling   = 4;
 
 O.do_faraday   = true;
+
+% For GPS altitude (and lower) defocus method 2 works best
+O.defoc_method = 2;
 
 % Init Q and set a longitude
 %
@@ -119,7 +121,7 @@ title( tstring, 'FontSize', fs+2 )
 legend( sprintf(' Free space - %.1f dB',db0), ' Absorption', ...
         ' Defocusing', sprintf(' Total - %.1f dB',db0) );
 ax = axis;
-text( ax(2)/1.9, mean(ax(3:4)), ...
+text( ax(2)/2.5, mean(ax(3:4)), ...
        sprintf('%.1f dB is the free space loss at start',db0) );
 
 figure(4)

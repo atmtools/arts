@@ -1,3 +1,17 @@
+2013-10-14  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-787
+
+	* controlfiles/planetary_toolbox/demos/active/demo_venus_ro.m:
+	Fine tuned settings. Partly to mimic figures from journal articles.
+
+	* controlfiles/planetary_toolbox/demos/active/demo_mars_ro.m:
+	Just fixed a comment.
+
+	* controlfiles/planetary_toolbox/demos/active/demo_earth_ro.m:
+	Defocus method 2 selected here. As this method appears most stable
+	for the GPS altitude (and lower).
+
 2013-10-14  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-2-1-786
