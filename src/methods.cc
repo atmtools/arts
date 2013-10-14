@@ -5238,7 +5238,7 @@ void define_md_data_raw()
             "rte_pos2", "rte_alonglos_v", "ppath_lraytrace" ),
         GIN(      "defocus_method", "defocus_shift" ),
         GIN_TYPE( "Index", "Numeric" ),
-        GIN_DEFAULT( "1", "1e-3" ),
+        GIN_DEFAULT( "1", "3e-3" ),
         GIN_DESC( "Selection of defocusing calculation method. See above.",
                   "Angular shift to apply in defocusing estimates." )
         ));

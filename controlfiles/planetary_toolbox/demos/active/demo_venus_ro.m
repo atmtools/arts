@@ -24,13 +24,13 @@ O.leo_altitude = 600e3;
 % no impact on the result.
 %
 % The closest distance Earth - Venus is about 38e12, but using this value
-% was found to give numerical problems, and a lower (but still very high)
+% was found to give numerical problems, and a lower (but still high)
 % value is used. 
 % The quantities affcted by the distance selected are absolut path lengths and
 % free space loss. But excess range and the variation of free space loss during
 % the occultation are OK if a just a high value is selected.
 %  
-O.gps_altitude = 1e9;      % 1e10 gives incorrect defocusing!
+O.gps_altitude = 1e8;  
 O.gps_movement = 'none';
 
 % These are the two frequencies of Venus-Express. Select one.
@@ -58,8 +58,8 @@ O.z_surface    = 1e3;
 % These actual settings gives a rough overview
 %
 O.slta_max     = 100e3;
-O.slta_min     = 0e3;
-O.slta_n       = 2;
+O.slta_min     = -20e3;
+O.slta_n       = 21;
 O.z_impact4t0  = O.slta_max;  % Sets reference point for time
 O.f_sampling   = 4;
   

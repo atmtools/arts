@@ -26,10 +26,10 @@ O.leo_altitude = 600e3;
 % The closest distance Earth - Mars is about 60e12, but using this value was
 % found to give numerical problems, and a lower value is used. Anyhow, the
 % distance set has no impact on these results, beside the absolut path lengths.
-% However, it should be the excess range that is of concern, that will come out
-% right.
+% However, it should be the excess range that is of concern, and it will
+% come out right.
 %
-O.gps_altitude = 1e9;
+O.gps_altitude = 1e10;
 O.gps_movement = 'none';
 
 % These are the two frequencies of Mars-Express. Select one.
