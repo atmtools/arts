@@ -117,7 +117,7 @@ Q.ABS_WSMS{end+1} = 'abs_lines_per_speciesAddMirrorLines';
 
 tstring = sprintf( 'Venus: Atmosphere %d, Necase %d, %.2f GHz', ...
                                            A.atmo, A.Necase, O.frequency/1e9 );
-fs = 12;
+fs = 14;
 
 figure(1)
 clf  
