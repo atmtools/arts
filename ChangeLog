@@ -1,9 +1,25 @@
+2013-10-15  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-789
+
+	* controlfiles/general/continua.arts: CO2-SelfContHo66 and
+	CO2-ForeignContHo66.
+
+	* src/species_data.cc (define_basic_species_data): Added
+	SelfContHo66 and ForeignContHo66.
+
+	* src/continua.cc (xsec_continuum_tag): Added CO2-SelfContHo66 and
+	and CO2-ForeignContHo66.
+	(Ho66_CO2_self_continuum, Ho66_CO2_foreign_continuum): New.
+
+	* Removed everything added by Stefan in arts-2-1-786. Sorry!
+
 2013-10-14  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-788
 
 	* controlfiles/planetary_toolbox/demos/active/demo_venus_ro.m:
-	Just changed fs to 14. 
+	Just changed fs to 14.
 
 2013-10-14  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 

@@ -265,7 +265,8 @@ void define_basic_species_data()
          REC( "CKDMT100"         ,NAN    ,NAN    ,-1     ,-1     ,TAGS()),
          REC( "SelfContPWR93"    ,NAN    ,NAN    ,-1     ,-1     ,TAGS()),
          REC( "ForeignContPWR93" ,NAN    ,NAN    ,-1     ,-1     ,TAGS()),
-         REC( "Oschlisniok2012"  ,NAN    ,NAN    ,-1     ,-1     ,TAGS())
+         REC( "SelfContHo66"     ,NAN    ,NAN    ,-1     ,-1     ,TAGS()),
+         REC( "ForeignContHo66"  ,NAN    ,NAN    ,-1     ,-1     ,TAGS())
          ) ) );
   
 

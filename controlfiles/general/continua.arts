@@ -129,13 +129,18 @@ abs_cont_descriptionAppend( tagname="CO2-SelfContPWR93",
 abs_cont_descriptionAppend( tagname="CO2-ForeignContPWR93",
                             model="Rosenkranz" )
 
+# Ho et al 1966 CO2-CO2 continuum:
+abs_cont_descriptionAppend( tagname="CO2-SelfContHo66",
+                            model="Ho66" )
+
+# Ho et al 1966 CO2-N2 continuum:
+abs_cont_descriptionAppend( tagname="CO2-ForeignContHo66",
+                            model="Ho66" )
+
 # far line wing continuum from CKD F77 program:
 abs_cont_descriptionAppend( tagname="CO2-CKDMT100",
                             model="CKDMT100" )
 
-# Oschlisniok CO2 continuum for Venus
-abs_cont_descriptionAppend( tagname="CO2-Oschlisniok2012",
-                            model="default" )
 
 #
 # Hydrometeors

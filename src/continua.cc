@@ -270,6 +270,18 @@
    John Wiley & Sons, Inc., 1993
          <a href="ftp://mesa.mit.edu/phil/lbl_rt">(WWW access)</a>.
    </li>
+   <li><b>CO2-CO2 (CO2-SelfContHo66)</b>:<br>
+         Ho, Kaufman and Thaddeus,<br>
+         Laboratory Measurements of microwave absorption in models of the 
+         atmosphere of Venus"<br>
+         JGR, 1966.
+   </li>
+   <li><b>CO2-N2 (CO2-ForeignContHo66)</b>: <br>
+         Ho, Kaufman and Thaddeus,<br>
+         Laboratory Measurements of microwave absorption in models of the 
+         atmosphere of Venus"<br>
+         JGR, 1966.
+   </li>
    <li><b>CO2-air (CO2-CKD241)</b>:<br>
          CKDv2.4.1 CO2 continuum from the FORTRAN77 code written by<br>
          <a href="http://www.rtweb.aer.com/continuum_frame.html">Atmospheric and
@@ -286,11 +298,6 @@
    131 Hartwell Avenue<br>
    Lexington, MA 02421, USA
    </li>
- <li><b>CO2-Venus air (CO2-Oschlisniok2012)</b>:<br>
-Equation 9 of Oschlisniok et al. 2012, Microwave absorptivity by sulfuric acid in 
- the Venus atmosphere: First results from the Venus Express Radio Science experiment VeRa,
- Icarus 221, 940-948.
- </li>
    </ol>
    <br>
    <br>
@@ -11825,10 +11832,16 @@ void Standard_N2_self_continuum (MatrixView          pxsec,
   }
     }
 }
-//
-// #################################################################################
-// ############################## CARBON DIOXIDE MODELS ############################
-// #################################################################################
+
+
+
+
+
+// ############################################################################
+// ############################## CARBON DIOXIDE MODELS #######################
+// ############################################################################
+
+// ############################################################################
 //! Rosenkranz_CO2_self_continuum
 /*!
    \param[out] pxsec        cross section (absorption/volume mixing ratio) of
@@ -11927,8 +11940,8 @@ void Rosenkranz_CO2_self_continuum (MatrixView          pxsec,
   }
     }
 }
-//
-// #################################################################################
+
+// ############################################################################
 //! Rosenkranz_CO2_foreign_continuum
 /*!
    \param[out] pxsec        cross section (absorption/volume mixing ratio) of
@@ -12027,10 +12040,210 @@ void Rosenkranz_CO2_foreign_continuum (MatrixView          pxsec,
   }
     }
 }
-//
-// #################################################################################
-// ################################### CLOUD AND RAIN MODELS #######################
-// #################################################################################
+
+// ############################################################################
+//! Ho66_CO2_self_continuum
+/*!
+   \param[out] pxsec        cross section (absorption/volume mixing ratio) of
+                            CO2-CO2-continuum according to Ho et al 1966 [1/m]
+   \param    Cin            continuum strength [1/m * 1/(Hz*Pa)²]
+   \param    xin            continuum temperature exponent [1]
+   \param    model          allows user defined input parameter set
+                            (Cin and xin)<br> or choice of
+                            pre-defined parameters of specific models (see note below).
+   \param    f_grid         predefined frequency grid      [Hz]
+   \param    abs_p          predefined pressure grid       [Pa]
+   \param    abs_t          predefined temperature grid    [K]
+   \param    vmr            CO2 volume mixing ratio        [1]
+
+   \note     Except for  model 'user' the input parameters Cin and xin
+             are neglected (model dominates over parameters).<br>
+             Allowed models: 'Ho66' and 'user'.
+             See the user guide for detailed explanations.
+
+   \remark   Reference: Ho, Kaufman and Thaddeus, "Laboratory measurements of
+   microwave absorption in models of the atmosphere of Venus", JGR, 1966.
+
+   \author Patrick Eriksson (mainly by copying Thomas PWR function)
+   \date 2013-10-15
+ */
+
+void Ho66_CO2_self_continuum (MatrixView          pxsec,
+                              const Numeric       Cin,
+                              const Numeric       xin,
+                              const String&       model,
+                              ConstVectorView     f_grid,
+                              ConstVectorView     abs_p,
+                              ConstVectorView     abs_t,
+                              ConstVectorView     vmr,
+                              const Verbosity& verbosity)
+{
+  CREATE_OUT3;
+  
+  // --------- STANDARD MODEL PARAMETERS --------------------------------------
+  // Values (after conversion for C) from abstract of Ho66:
+  const Numeric  C_Ho66 = 1.70e-36; // [ 1/(Pa²*Hz²*m) ]
+  const Numeric  x_Ho66 = 5;        // [ 1 ]
+  // --------------------------------------------------------------------------
+
+  // select the parameter set (!!model dominates values!!):
+  Numeric C, x;
+  if ( model == "Ho66" )
+    {
+      C = C_Ho66;
+      x = x_Ho66;
+    }
+  else if ( model == "user" )
+    {
+      C = Cin;
+      x = xin;
+    }
+  else
+    {
+      ostringstream os;
+      os << "CO2-SelfContHo66 : ERROR! Wrong model values given.\n"
+   << "allowed models are: 'Ho66', 'user'" << "\n";
+      throw runtime_error(os.str());
+    }
+
+  out3  << "CO2-SelfContHo66: (model=" << model 
+        << ") parameter values in use:\n" << " C = " << C << "\n"
+        << " x = " << x << "\n";
+
+  const Index n_p = abs_p.nelem();   // Number of pressure levels
+  const Index n_f = f_grid.nelem();  // Number of frequencies
+
+  // Check that dimensions of abs_p, abs_t, and vmr agree:
+  assert ( n_p==abs_t.nelem() );
+  assert ( n_p==vmr.nelem()   );
+
+  // Check that dimensions of pxsec are consistent with n_f
+  // and n_p. It should be [n_f,n_p]:
+  assert ( n_f==pxsec.nrows() );
+  assert ( n_p==pxsec.ncols() );
+
+  // Loop over pressure/temperature grid:
+  for ( Index i=0; i<n_p; ++i )
+    {
+      // Dummy scalar holds everything except the quadratic frequency
+      // dependence. The second vmr of CO2 will be multiplied at the stage of
+      // absorption calculation: abs = vmr * pxsec.
+
+      Numeric dummy = C * pow( (Numeric)273./abs_t[i], x ) * 
+                                         pow( abs_p[i], (Numeric)2. ) * vmr[i];
+
+      // Loop over frequency grid:
+      for ( Index s=0; s<n_f; ++s )
+        { pxsec(s,i) += dummy * pow( f_grid[s], (Numeric)2. ); }
+    }
+}
+
+// ############################################################################
+//! Ho66_CO2_foreign_continuum
+/*!
+   \param[out] pxsec        cross section (absorption/volume mixing ratio) of
+                            CO2-CO2-continuum according to Ho et al 1966 [1/m]
+   \param    Cin            continuum strength [1/m * 1/(Hz*Pa)²]
+   \param    xin            continuum temperature exponent [1]
+   \param    model          allows user defined input parameter set
+                            (Cin and xin)<br> or choice of
+                            pre-defined parameters of specific models (see note below).
+   \param    f_grid         predefined frequency grid       [Hz]
+   \param    abs_p          predefined pressure grid        [Pa]
+   \param    abs_t          predefined temperature grid     [K]
+   \param    abs_n2         N2 volume mixing ratio profile  [1]
+   \param    vmr            CO2 volume mixing ratio profile [1]
+
+   \note     Except for  model 'user' the input parameters Cin and xin
+             are neglected (model dominates over parameters).<br>
+             Allowed models: 'Ho66' and 'user'.
+             See the user guide for detailed explanations.
+
+   \remark   Reference: Ho, Kaufman and Thaddeus, "Laboratory measurements of
+   microwave absorption in models of the atmosphere of Venus", JGR, 1966.
+
+   \author Patrick Eriksson (mainly by copying Thomas PWR function)
+   \date 2013-10-15
+*/
+
+void Ho66_CO2_foreign_continuum (MatrixView          pxsec,
+                                 const Numeric       Cin,
+                                 const Numeric       xin,
+                                 const String&       model,
+                                 ConstVectorView     f_grid,
+                                 ConstVectorView     abs_p,
+                                 ConstVectorView     abs_t,
+                                 ConstVectorView     abs_n2,
+                                 ConstVectorView     vmr _U_,
+                                 const Verbosity&    verbosity)
+{
+  CREATE_OUT3;
+
+  // --------- STANDARD MODEL PARAMETERS --------------------------------------
+  // Values (after conversion for C) from abstract of Ho66:
+  const Numeric  C_Ho66 = 4.23e-37; // [ 1/(Pa²*Hz²*m) ]
+  const Numeric  x_Ho66 = 5;        // [ 1 ]
+  // --------------------------------------------------------------------------
+
+  // select the parameter set (!!model dominates values!!):
+  Numeric C, x;
+  if ( model == "Ho66" )
+    {
+      C = C_Ho66;
+      x = x_Ho66;
+    }
+  else if ( model == "user" )
+    {
+      C = Cin;
+      x = xin;
+    }
+  else
+    {
+      ostringstream os;
+      os << "CO2-ForeignContHo66: ERROR! Wrong model values given.\n"
+   << "allowed models are: 'Ho66', 'user'" << "\n";
+      throw runtime_error(os.str());
+    }
+
+  out3  << "CO2-ForeignContHo66: (model=" << model 
+        << ") parameter values in use:\n" << " C = " << C << "\n"
+        << " x = " << x << "\n";
+
+  const Index n_p = abs_p.nelem();   // Number of pressure levels
+  const Index n_f = f_grid.nelem();  // Number of frequencies
+
+  // Check that dimensions of abs_p, abs_t, and vmr agree:
+  assert ( n_p==abs_t.nelem() );
+  assert ( n_p==vmr.nelem()   );
+
+  // Check that dimensions of pxsec are consistent with n_f
+  // and n_p. It should be [n_f,n_p]:
+  assert ( n_f==pxsec.nrows() );
+  assert ( n_p==pxsec.ncols() );
+
+  // Loop pressure/temperature:
+  for ( Index i=0; i<n_p; ++i )
+    {
+      // Dummy scalar holds everything except the quadratic frequency
+      // dependence The vmr of CO2 will be multiplied at the stage of
+      // absorption calculation: abs = vmr * pxsec.
+      Numeric dummy = C * pow( (Numeric)273./abs_t[i], x ) * 
+                                  abs_p[i] * abs_p[i] * abs_n2[i];
+
+      // Loop frequency:
+      for ( Index s=0; s<n_f; ++s )
+        { pxsec(s,i) += dummy * pow( f_grid[s], (Numeric)2. ); }
+    }
+}
+
+
+
+
+
+
+// ############################################################################
+// ################################### CLOUD AND RAIN MODELS ##################
+// ############################################################################
 //! MPM93WaterDropletAbs
 /*!
    \param[out] pxsec        cross section (absorption/volume mixing ratio) of
@@ -12886,40 +13099,12 @@ Numeric WVSatPressureIce(const Numeric t)
   return es_MPM93;
 }
 
-/* Oschlisniok2012 CO2 continuum for Venus.
- 
- Equation 9 of Oschlisniok et al. 2012, Microwave absorptivity by sulfuric acid in
- the Venus atmosphere: First results from the Venus Express Radio Science experiment VeRa,
- Icarus 221, 940-948.
 
- \param[out] pxsec Absorption coefficients [1/m]. Coefficients, not cross-sections!
-                   Dimensions: (Frequency, Pressure)
- \param[in]  f_grid Frequency grid [Hz].
- \param[in]  abs_p Pressure grid [Pa].
- \param[in]  abs_t Temperatures associated with the pressure grid, abs_p [K].
- \param[in]  abs_n2 Total volume mixing ratio profile of molecular nitrogen.
- \param[in]  vmr Volume mixing ratio profile of the actual species, CO2 in this case. [1]
- \param[in]  verbosity The usual verbosity flag.
- 
- \author Patrick Eriksson, Stefan Buehler
- \date 2013-10-14
- */
-void Oschlisniok2012_CO2_venus(MatrixView pxsec,
-                               ConstVectorView f_grid,
-                               ConstVectorView abs_p,
-                               ConstVectorView abs_t,
-                               ConstVectorView abs_n2,
-                               ConstVectorView vmr )
-
-{
-    pxsec = 0;  // FIXME: Replace this by Equation 9 from the paper.
-
-}
 
 //
-// #################################################################################
-// #################### CONTROL OF ADDITIONAL ABSORPTION MODEL #####################
-// #################################################################################
+// ############################################################################
+// #################### CONTROL OF ADDITIONAL ABSORPTION MODEL ################
+// ############################################################################
 //
 //
 /**
@@ -16112,40 +16297,142 @@ void xsec_continuum_tag (MatrixView             xsec,
           throw runtime_error(os.str());
         }
     }
-    // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  else if ( "CO2-Oschlisniok2012"==name )
+  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  else if ( "CO2-SelfContHo66"==name )
     {
-      // Equation 9 of Oschlisniok et al. 2012, Microwave absorptivity by sulfuric acid in
-      // the Venus atmosphere: First results from the Venus Express Radio Science experiment VeRa,
-      // Icarus 221, 940-948.
-      
-      // We allow no options, so model has to be "default" and nothing else.
-      if ( (model != "default")  )
-        {
-          ostringstream os;
-          os << "ERROR: Continuum model " << name << " requires model \"default\" in the continuum description.";
-          throw runtime_error(os.str());
-        }
-
-      out3 << "Continuum model " << name << ".\n";
-
+      // data information about this continuum:
+      // Reference: Ho, Kaufman and Thaddeus, "Laboratory measurements of
+      // microwave absorption in models of the atmosphere of Venus", JGR, 1966.
+      //
       // specific continuum parameters and units:
       //  OUTPUT
-      //     pxsec          : [1/m],  Absorption coefficient (not cross section, despite variable name)
+      //     pxsec          : [1/m],
       //  INPUT
+      //     parameters[0] : continuum strength coefficient [1/m * 1/(Hz*Pa)²]
+      //     parameters[1] : continuum temperature exponent  [1]
+      //     f_grid        : [Hz]
+      //     abs_p         : [Pa]
+      //     abs_t         : [K]
+      //     vmr           : [1]
+      //
+      const int Nparam = 2;
+      if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
+        {
+          out3 << "Continuum model " << name << " is running with \n"
+               << "user defined parameters according to model " << model << ".\n";
+          Ho66_CO2_self_continuum( pxsec,
+                                   parameters[0], // coefficient
+                                   parameters[1], // temp. exponent
+                                   model,
+                                   f_grid,
+                                   abs_p,
+                                   abs_t,
+                                   vmr,
+                                   verbosity );
+        }
+      else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
+        {
+          ostringstream os;
+          os << "Continuum model " << name << " requires " << Nparam << " input\n"
+             << "parameters for the model " << model << ",\n"
+             << "but you specified " << parameters.nelem() << " parameters.\n";
+          throw runtime_error(os.str());
+        }
+      else if ( (model != "user") && (parameters.nelem() == 0) ) // --------------------
+        {
+          out3 << "Continuum model " << name << " running with \n"
+               << "the parameters for model " << model << ".\n";
+          Ho66_CO2_self_continuum( pxsec,
+                                   0.00,
+                                   0.00,
+                                   model,
+                                   f_grid,
+                                   abs_p,
+                                   abs_t,
+                                   vmr,
+                                   verbosity );
+        }
+      else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
+        {
+          ostringstream os;
+          os << "ERROR: Continuum model " << name << " requires NO input\n"
+             << "parameters for the model " << model << ",\n"
+             << "but you specified " << parameters.nelem() << " parameters. " << "\n"
+             << "This ambiguity can not be solved by arts.\n"
+             << "Please see the arts user guide chapter 3.\n";
+          throw runtime_error(os.str());
+        }
+    }
+  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  else if ( "CO2-ForeignContHo66"==name )
+    {
+      // data information about this continuum:
+      // Reference: Ho, Kaufman and Thaddeus, "Laboratory measurements of
+      // microwave absorption in models of the atmosphere of Venus", JGR, 1966.
+      //
+      // specific continuum parameters and units:
+      //  OUTPUT
+      //     pxsec          : [1/m],
+      //  INPUT
+      //     parameters[0] : continuum strength coefficient [1/m * 1/(Hz*Pa)²]
+      //     parameters[1] : continuum temperature exponent  [1]
       //     f_grid        : [Hz]
       //     abs_p         : [Pa]
       //     abs_t         : [K]
       //     abs_n2        : [1]
       //     vmr           : [1]
       //
-          Oschlisniok2012_CO2_venus(pxsec,
-                                    f_grid,
-                                    abs_p,
-                                    abs_t,
-                                    abs_n2,
-                                    vmr );
+      const int Nparam = 2;
+      if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
+        {
+          out3 << "Continuum model " << name << " is running with \n"
+               << "user defined parameters according to model " << model << ".\n";
+          Ho66_CO2_foreign_continuum( pxsec,
+                                      parameters[0],
+                                      parameters[1],
+                                      model,
+                                      f_grid,
+                                      abs_p,
+                                      abs_t,
+                                      abs_n2,
+                                      vmr,
+                                      verbosity );
+        }
+      else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
+        {
+          ostringstream os;
+          os << "Continuum model " << name << " requires " << Nparam << " input\n"
+             << "parameters for the model " << model << ",\n"
+             << "but you specified " << parameters.nelem() << " parameters.\n";
+          throw runtime_error(os.str());
+        }
+      else if ( (model != "user") && (parameters.nelem() == 0) ) // --------------------
+        {
+          out3 << "Continuum model " << name << " running with \n"
+               << "the parameters for model " << model << ".\n";
+          Ho66_CO2_foreign_continuum( pxsec,
+                                      0.00,
+                                      0.00,
+                                      model,
+                                      f_grid,
+                                      abs_p,
+                                      abs_t,
+                                      abs_n2,
+                                      vmr,
+                                      verbosity );
+        }
+      else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
+        {
+          ostringstream os;
+          os << "ERROR: Continuum model " << name << " requires NO input\n"
+             << "parameters for the model " << model << ",\n"
+             << "but you specified " << parameters.nelem() << " parameters. " << "\n"
+             << "This ambiguity can not be solved by arts.\n"
+             << "Please see the arts user guide chapter 3.\n";
+          throw runtime_error(os.str());
+        }
     }
+    // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     // ============= cloud and fog absorption from MPM93 ==================================
   else if ( "liquidcloud-MPM93"==name )
     {
