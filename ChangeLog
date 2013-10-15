@@ -1,5 +1,12 @@
 2013-10-15  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-1-790
+
+	* doc/uguide/absorption.tex (subsection{Continua and complete
+	absorption models}): Added H066 also here.
+
+2013-10-15  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-1-789
 
 	* controlfiles/general/continua.arts: CO2-SelfContHo66 and
