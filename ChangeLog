@@ -1,5 +1,14 @@
 2013-10-15  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-1-791
+
+	* controlfiles/planetary_toolbox/demos/active/demo_venus_ro.m:
+	* controlfiles/planetary_toolbox/demos/active/demo_mars_ro.m:
+	Switched position between GPS and LEO, using new feature in the
+	atmlab function used. 
+
+2013-10-15  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-1-790
 
 	* doc/uguide/absorption.tex (subsection{Continua and complete

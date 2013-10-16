@@ -18,20 +18,21 @@ function demo_venus_ro
 % Satellite orbit altitude. Note that the satellite is assumed to be in a
 % circular orbit around the planet.
 %
-O.leo_altitude = 600e3;
+O.gps_altitude = 600e3;
+O.gps_movement = 'disappearing';
 
-% Here we let Earth be the "GPS", and thus calculates backwards but this has
-% no impact on the result.
+% Here we let Earth be the "LEO"
 %
 % The closest distance Earth - Venus is about 38e12, but using this value
-% was found to give numerical problems, and the GPS value is used. 
+% was found to give some occasionaly bad results.
 % The quantities affcted by the distance selected are absolut path lengths and
 % free space loss. But excess range is OK if just a high value is selected.
 % For a distance of >= 38e12, the free space loss is basically constant
 % during the occulation, as the relative change in distance is very small.
 %  
-O.gps_altitude = 20200e3;  
-O.gps_movement = 'none';
+%O.leo_altitude = 38e12;
+O.leo_altitude = 1e10;    % 1e10 seems to give stable results
+O.leo_movement = 'none';
 
 % These are the two frequencies of Venus-Express. Select one.
 %
@@ -60,11 +61,8 @@ O.z_surface    = 1e3;
 O.slta_max     = 200e3;
 O.slta_min     = -200e3;
 O.slta_n       = 50;
-O.z_impact4t0  = O.slta_max;  % Sets reference point for time
+O.z_impact4t0  = 100e3;  % Sets reference point for time
 O.f_sampling   = 4;
-
-% If you try higher "GPS altitudes", defocus method 1 can be a better choice
-O.defoc_method = 2;
 
   
 %-------

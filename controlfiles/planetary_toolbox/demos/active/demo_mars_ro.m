@@ -18,19 +18,18 @@ function demo_mars_ro
 % Satellite orbit altitude. Note that the satellite is assumed to be in a
 % circular orbit around the planet.
 %
-O.leo_altitude = 600e3;
+O.gps_altitude = 600e3;
+O.gps_movement = 'disappearing';
 
-% Here we let Earth be the "GPS", and thus calculates backwards but this has
-% no impact on the result.
+% Here we let Earth be the "LEO"
 %
-% The closest distance Earth - Mars is about 60e12, but using this value was
-% found to give numerical problems, and a lower value is used. Anyhow, the
-% distance set has no impact on these results, beside the absolut path lengths.
-% However, it should be the excess range that is of concern, and it will
-% come out right.
+% The closest distance Earth - Mars is about 60e12.
 %
-O.gps_altitude = 1e11;
-O.gps_movement = 'none';
+% Using the actual distance seems to work here. However, please, double-check
+% the results by testing that the results are not changed by using e.g. 1e10.
+%
+O.leo_altitude = 60e12;
+O.leo_movement = 'none';
 
 % These are the two frequencies of Mars-Express. Select one.
 %
