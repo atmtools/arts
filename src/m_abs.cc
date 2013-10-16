@@ -850,6 +850,40 @@ void abs_lines_per_speciesCreateFromLines(// WS Output:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void abs_lines_per_speciesAddMirrorLinesOld(// WS Output:
+                                         ArrayOfArrayOfLineRecord& abs_lines_per_species,
+                                         const Verbosity&)
+{
+  // We will simply append the mirror lines after the original
+  // lines. This way we don't have to make a backup copy of the
+  // original lines. 
+
+  for ( Index i=0; i<abs_lines_per_species.nelem(); ++i )
+    {
+      // Get a reference to the current list of lines to save typing:
+      ArrayOfLineRecord& ll = abs_lines_per_species[i];
+      
+      // For increased efficiency, reserve the necessary space:
+      ll.reserve(2*ll.nelem());
+
+      // Loop through all lines of this tag group:
+      {
+        // It is important that we determine the size of ll *before*
+        // we start the loop. After all, we are adding elements. And
+        // we cerainly don't want to continue looping the newly added
+        // elements, we want to loop only the original elements.
+        Index n=ll.nelem();
+        for ( Index j=0; j<n; ++j )
+          {
+            LineRecord dummy = ll[j];
+            dummy.setF( -dummy.F() );
+            //      cout << "Adding ML at f = " << dummy.F() << "\n";
+            ll.push_back(dummy);
+          }
+      }
+    }
+
+}
 void abs_lines_per_speciesAddMirrorLines(
          ArrayOfArrayOfLineRecord& abs_lines_per_species,
    const Numeric& max_f,

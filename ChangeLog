@@ -1,5 +1,15 @@
 2013-10-16  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-1-794
+
+	* Something is wrong with line mirroring !!!
+
+	* src/m_abs.cc (abs_lines_per_speciesAddMirrorLinesOld): This is
+	the old version. Put it back for test purpose. But shows the same
+	bad feature.
+
+2013-10-16  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-1-793
 
 	* controlfiles/planetary_toolbox/demos/active/demo_venus_ro.m:

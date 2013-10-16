@@ -104,19 +104,21 @@ A.pmin         = 1e-6;            % Min pressure to consider. This value
 % "linefiles" 
 %
 Q = qarts;
-%
 % Increasing df gives better accuracy (more transitions are included in the
 % calculation, but gives slower calculations). 10 GHz should be sufficient if
-% not max accuracy is demanded. However, the absorption is totally dominated by
-% continuum terms, df can in principle be zero.
+% not max accuracy is demanded. However, if the absorption is totally dominated
+% by continuum terms, df can in principle be zero.
 df = 10e9;
 %
 Q.ABS_WSMS{end+1} = sprintf( ['abs_linesReadFromSplitArtscat(abs_lines,',...
     'abs_species,"spectroscopy/Perrin/",%.2e,%.2e)'], ...
                                  max([O.frequency-df,0]), O.frequency+df );
 Q.ABS_WSMS{end+1} = 'abs_lines_per_speciesCreateFromLines';
-Q.ABS_WSMS{end+1} = 'abs_lines_per_speciesAddMirrorLines';
-
+if df > O.frequency
+%  Q.ABS_WSMS{end+1} = sprintf( ...
+%           'abs_lines_per_speciesAddMirrorLines(max_f=%.6e)', df-O.frequency );
+%Q.ABS_WSMS{end+1} = 'abs_lines_per_speciesAddMirrorLines';
+end
 
 %- Perform calculation
 %

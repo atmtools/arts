@@ -617,6 +617,29 @@ void define_md_data_raw()
   
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "abs_lines_per_speciesAddMirrorLinesOld" ),
+        DESCRIPTION
+        (
+         "Adds mirror lines at negative frequencies to *abs_lines_per_species*.\n"
+         "\n"
+         "For each line at frequency +f in *abs_lines_per_species* a corresponding\n"
+         "entry at frequency -f is added to *abs_lines_per_species*. The mirror\n"
+         "lines are appended to the line list after the original lines.\n" 
+         ),
+        AUTHORS( "Axel von Engeln", "Stefan Buehler" ),
+        OUT( "abs_lines_per_species" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( ),
+        GIN( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
+        GIN_DESC( )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "abs_lines_per_speciesAddMirrorLines" ),
         DESCRIPTION
         (
