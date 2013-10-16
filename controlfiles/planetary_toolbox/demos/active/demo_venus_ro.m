@@ -2,8 +2,9 @@
 %
 %    The demo covers a satellite in a orbit around Venus. 
 %
-%    Bending angles and geometrical/length variables are calculated. See
-%    demo_earth_ro for a calculation involving attenuation quantities.
+%    A high number of quantities are calculated, see the figure that are
+%    created automatically. The demo is slow as extensive line-by-line 
+%    calculations are involved.
 %
 % FORMAT   demo_venus_ro
 
@@ -11,6 +12,8 @@
 
 function demo_venus_ro
 
+error( 'Work in progress, don't use.' );
+  
 %-------
 % O part
 %-------
@@ -18,8 +21,8 @@ function demo_venus_ro
 % Satellite orbit altitude. Note that the satellite is assumed to be in a
 % circular orbit around the planet.
 %
-O.gps_altitude = 600e3;
-O.gps_movement = 'disappearing';
+O.tra_altitude = 1000e3;
+O.tra_movement = 'disappearing';
 
 % Here we let Earth be the "LEO"
 %
@@ -31,8 +34,8 @@ O.gps_movement = 'disappearing';
 % during the occulation, as the relative change in distance is very small.
 %  
 %O.leo_altitude = 38e12;
-O.leo_altitude = 1e9;    
-O.leo_movement = 'none';
+O.rec_altitude = 1e8;    
+O.rec_movement = 'none';
 
 % These are the two frequencies of Venus-Express. Select one.
 %
@@ -45,7 +48,7 @@ O.frequency    = 8.4e9;   % This one gives much lower impact of free
 % lmax mainly affects the accuracy for the tangent point determination
 %
 O.lmax         = 10e3;
-O.lraytrace    = 100;
+O.lraytrace    = 50;
 
 % Surface altitude 
 %
@@ -58,12 +61,22 @@ O.z_surface    = 1e3;
 %
 % These actual settings gives a rough overview
 %
-O.slta_max     = 200e3;
-O.slta_min     = -200e3;
-O.slta_n       = 50;
-O.z_impact4t0  = 100e3;  % Sets reference point for time
+O.z_impact_max = 200e3;
+O.z_impact_max = 60e3;
+O.z_impact_dz  = 200;
+O.z_impact_min = 45e3;
+O.z_impact4t0  = O.z_impact_max;  % Sets reference point for time
 O.f_sampling   = 4;
 
+% We want attenuation
+O.do_atten      = true;
+
+% This one is a bit tricky. Free elctron gets index 1. The "basespecies"
+% follow, and get index 2, 3 .... The water species are included last.
+% These indexes will extract attenuation due to CO2, H2SO4 and SO2
+O.do_absspecies = [2 3 5]; 
+
+%O.defoc_shift = 5e-3;
   
 %-------
 % A part
@@ -107,7 +120,7 @@ Q.ABS_WSMS{end+1} = 'abs_lines_per_speciesAddMirrorLines';
 
 %- Perform calculation
 %
-[R,T] = arts_radioocc_1D_power( Q, O, A );
+[R,T] = arts_radioocc_1D( Q, O, A );
 
 
 
@@ -119,11 +132,11 @@ fs = 14;
 
 figure(1)
 clf  
-plot( R.bangle, R.z_impact/1e3 )
+plot( R.bangle, R.z_tan/1e3 )
 %
 grid
 xlabel( 'Bending angle [deg]', 'FontSize', fs );
-ylabel( 'Impact height [km]', 'FontSize', fs );
+ylabel( 'Tangent height [km]', 'FontSize', fs );
 title( tstring, 'FontSize', fs+2 )
 axis([-1e-3 1e-3 80 200])
 
@@ -131,7 +144,7 @@ axis([-1e-3 1e-3 80 200])
 figure(2)
 clf  
 clonefig(1,2)
-axis([0 5.5 45 95])
+axis([0 5.5 35 95])
 
 figure(3)
 clf  
@@ -165,6 +178,17 @@ text( ax(2)/4, ax(3)+0.7*diff(ax(3:4)), sprintf(['Free space loss is at ',...
 
 figure(5)
 clf  
+plot( -10*log10(R.tr_absspecies), R.z_tan/1e3 );
+%
+grid
+xlabel( 'Attenuation [dB]', 'FontSize', fs );
+ylabel( 'Tangent height [km]', 'FontSize', fs );
+title( tstring, 'FontSize', fs+2 )
+legend( 'CO2', 'H2SO4', 'SO2' );
+axis([0 8 35 80])
+
+figure(6)
+clf  
 plot( T.t, T.bangle )
 %
 grid
@@ -172,3 +196,4 @@ xlabel( 'Relative time [s]', 'FontSize', fs );
 ylabel( 'Bending angle [deg]', 'FontSize', fs );
 title( tstring, 'FontSize', fs+2 )
 
+keyboard

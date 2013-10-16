@@ -17,7 +17,7 @@
 %
 % FORMAT   demo_earth_ionosphere
 
-% 2013-10-10   Created by Patrick Eriksson.
+% 2013-10-16   Created by Patrick Eriksson.
 
 function demo_earth_ionosphere
 
@@ -27,9 +27,10 @@ function demo_earth_ionosphere
   
 % Define observation
 %
-O.leo_altitude = 820e3;
-O.gps_altitude = 20200e3;
-O.gps_movement = 'disappearing';
+O.tra_altitude = 20200e3;
+O.tra_movement = 'disappearing';
+O.rec_altitude = 820e3;
+O.tra_movement = 'disappearing';
 O.frequency    = 1575.42e6;
 O.lmax         = 2e3;
 O.lraytrace    = 100;

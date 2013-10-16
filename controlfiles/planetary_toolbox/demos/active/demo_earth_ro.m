@@ -1,7 +1,7 @@
 % DEMO_EARTH_RO  Earth radio occultation demo (troposphere + attenuation)
 %
 %    A demonstration of simulating a GPS occultation, using the function
-%    *arts_radioocc_1D_power* combined with *qarts_add_fascode*. See these
+%    *arts_radioocc_1D* combined with *qarts_add_fascode*. See these
 %    functions for details around the settings inside the script.
 %
 %    The function focuses on the part passing the lowest approx 20 km.
@@ -14,7 +14,7 @@
 %
 % FORMAT   demo_earth_ro
 
-% 2013-10-11   Created by Patrick Eriksson.
+% 2013-10-16   Created by Patrick Eriksson.
 
 function demo_earth_ro
   
@@ -24,24 +24,23 @@ function demo_earth_ro
   
 % Define observation
 %
-O.leo_altitude = 820e3;
-O.gps_altitude = 20200e3;
-O.gps_movement = 'disappearing';
+O.tra_altitude = 20200e3;
+O.tra_movement = 'disappearing';
+O.rec_altitude = 820e3;
+O.tra_movement = 'disappearing';
 O.frequency    = 1575.42e6;
 O.lmax         = 2e3;
 O.lraytrace    = 100;
 O.z_surface    = 10;
 
-O.slta_max     = 20e3;
-O.slta_min     = -100e3;
-O.slta_n       = 21;          % A low number, to make demo relatively quick
-O.z_impact4t0  = O.slta_max;
+O.z_impact_max = 20e3;
+O.z_impact_dz  = 100;
+O.z_impact4t0  = O.z_impact_max;
 O.f_sampling   = 4;
 
+O.do_atten     = true;
 O.do_faraday   = true;
 
-% For GPS altitude (and lower) defocus method 2 works best
-O.defoc_method = 2;
 
 % Init Q and set a longitude
 %
@@ -74,7 +73,7 @@ A.iri_utc      = 0;
 A.p_min        = z2p_simple( 1200e3 );
 
 
-[R,T] = arts_radioocc_1D_power( Q, O, A );
+[R,T] = arts_radioocc_1D( Q, O, A );
 
 
 %- Plot results

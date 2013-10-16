@@ -1,5 +1,17 @@
 2013-10-16  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-1-793
+
+	* controlfiles/planetary_toolbox/demos/active/demo_venus_ro.m:
+	Something starnge is happening here, trying to understand what.
+
+	* controlfiles/planetary_toolbox/demos/active/demo_earth_ionosphere.m:
+	* controlfiles/planetary_toolbox/demos/active/demo_earth_ro.m:
+	* controlfiles/planetary_toolbox/demos/active/demo_mars_ro.m:
+	Adopted to renaming of O fields, and polishing of coemments.
+
+2013-10-16  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-1-792
 
 	* controlfiles/planetary_toolbox/DemoVenusAtmo3D.arts:
