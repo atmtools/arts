@@ -147,10 +147,11 @@ IndexSet( atmo, 3 )
 #  the abs_xsec_agenda.
 #
 # Select ALL species you like to take into account.
-### CO, CO2, CO2-CO2 CIA, H2SO4, HCl, HF, N2, NO, NO2, O, O2, O3, OCS, SO, SO2
-#   0 ,  1 ,      2     ,   3  ,  4 , 5 , 6 , 7,   8 , 9, 10, 11, 12 , 13, 14
-ArrayOfIndexSet( basespecies, [0, 1, 2, 3, 12, 13, 14] )
-
+### CO, CO2, CO2-CO2 CIA, CO2-CO2 PWR, H2SO4, HCl, HF, N2, NO, NO2, O, O2, 
+#    0 , 1 ,  2 ,          3 ,          4 ,    5 ,  6 , 7,  8 , 9, 10, 11, 
+# O3, OCS, SO, SO2
+# 12,  13, 14,  15
+ArrayOfIndexSet( basespecies, [0, 1, 2, 4, 13, 14, 15] )
 
 
 # Species with sub-scenarios

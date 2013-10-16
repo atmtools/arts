@@ -31,7 +31,7 @@ O.gps_movement = 'disappearing';
 % during the occulation, as the relative change in distance is very small.
 %  
 %O.leo_altitude = 38e12;
-O.leo_altitude = 1e10;    % 1e10 seems to give stable results
+O.leo_altitude = 1e9;    
 O.leo_movement = 'none';
 
 % These are the two frequencies of Venus-Express. Select one.
@@ -76,7 +76,7 @@ A.atmfunc      = @qarts_add_venus_planettbox;
 
 A.atmo         = 3;               % Atmospheric scenario
 %
-A.basespecies  = [1,3,6,14];      % This is CO2, H2SO4, N2 and SO2
+A.basespecies  = [3,4,7,15];      % This is CO2-PWR, H2SO4, N2 and SO2
 A.h2ospecies   = 1;               % Level of water vapour
 A.hdospecies   = 3;               % Level of HDO
 A.Necase       = 2;               % Free electron case. Note that 5-6 needs
