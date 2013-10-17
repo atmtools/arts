@@ -1613,6 +1613,7 @@ void AtmFieldsCalc(//WS Output:
                    // WS Generic Input:
                    const Index& interp_order,
                    const Index& vmr_zeropadding,
+                   const Index& vmr_nonegative,
                    const Verbosity& verbosity)
 {
   CREATE_OUT2;
@@ -1831,6 +1832,22 @@ void AtmFieldsCalc(//WS Output:
     // error check for atmosphere_dim at the beginning.
     assert(false);
   }
+
+  // remove negatives?
+  if( vmr_nonegative )
+    {
+      for( Index ib=0; ib<vmr_field.nbooks(); ib++ )
+        {
+          for( Index ip=0; ip<vmr_field.npages(); ip++ )
+            {
+              for( Index ir=0; ir<vmr_field.nrows(); ir++ )
+                {
+                  for( Index ic=0; ic<vmr_field.ncols(); ic++ )
+                    {
+                      if( vmr_field(ib,ip,ir,ic) < 0 )
+                        { vmr_field(ib,ip,ir,ic) = 0; }
+        }   }   }   } 
+    }
 }
 
 
@@ -1847,6 +1864,7 @@ void AtmFieldsCalcExpand1D(Tensor3&              t_field,
                            const Index&          atmosphere_dim,
                            const Index&          interp_order,
                            const Index&          vmr_zeropadding,
+                           const Index&          vmr_nonegative,
                            const Verbosity&      verbosity)
 {
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
@@ -1862,7 +1880,7 @@ void AtmFieldsCalcExpand1D(Tensor3&              t_field,
   Tensor4   vmr_temp;
   AtmFieldsCalc(t_temp, z_temp, vmr_temp, p_grid, vempty, vempty, 
                 t_field_raw, z_field_raw, vmr_field_raw, 1, interp_order,
-                vmr_zeropadding, verbosity);
+                vmr_zeropadding, vmr_nonegative, verbosity);
 
   // Move values from the temporary tensors to the return arguments
   const Index   np = p_grid.nelem();
@@ -2186,6 +2204,42 @@ void InterpAtmFieldToRtePos(
 
   CREATE_OUT3;
   out3 << "    Result = " << outvalue << "\n";
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void p_gridDensify(
+        Vector& p_grid,
+  const Index&  nfill,
+  const Verbosity& verbosity )
+{
+  if( nfill < 0 ) 
+    { throw runtime_error( "Argument *nfill* must be >= 0." ); }
+
+  // Nothing to do if nfill=0
+  if( nfill > 0 )
+    {
+      // Make copy of _pgrid and allocate new size
+      const Vector p0( p_grid);
+      const Index n0 = p0.nelem();
+      //
+      p_grid.resize( (n0-1)*(1+nfill) + 1 );
+
+      Index iout = 0;
+      p_grid[0] = p0[0];
+
+      for( Index i=1; i<n0; i++ )
+        {
+          Vector pnew;
+          VectorNLogSpace( pnew, 2+nfill, p0[i-1], p0[i], verbosity );
+          for( Index j=1; j<nfill+2; j++ )
+            {
+              iout += 1;
+              p_grid[iout] = pnew[j];
+            }
+        }
+    }
 }
 
 

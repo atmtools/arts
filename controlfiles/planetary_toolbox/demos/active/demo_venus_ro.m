@@ -8,12 +8,10 @@
 %
 % FORMAT   demo_venus_ro
 
-% Patrick Eriksson 2013-10-11
+% Patrick Eriksson 2013-10-17
 
 function demo_venus_ro
 
-error( 'Work in progress, don't use.' );
-  
 %-------
 % O part
 %-------
@@ -24,17 +22,8 @@ error( 'Work in progress, don't use.' );
 O.tra_altitude = 1000e3;
 O.tra_movement = 'disappearing';
 
-% Here we let Earth be the "LEO"
-%
-% The closest distance Earth - Venus is about 38e12, but using this value
-% was found to give some occasionaly bad results.
-% The quantities affcted by the distance selected are absolut path lengths and
-% free space loss. But excess range is OK if just a high value is selected.
-% For a distance of >= 38e12, the free space loss is basically constant
-% during the occulation, as the relative change in distance is very small.
-%  
-%O.leo_altitude = 38e12;
-O.rec_altitude = 1e8;    
+% The closest distance Earth - Venus is about 38e12.  
+O.rec_altitude = 38e12;
 O.rec_movement = 'none';
 
 % These are the two frequencies of Venus-Express. Select one.
@@ -48,7 +37,7 @@ O.frequency    = 8.4e9;   % This one gives much lower impact of free
 % lmax mainly affects the accuracy for the tangent point determination
 %
 O.lmax         = 10e3;
-O.lraytrace    = 50;
+O.lraytrace    = 100;
 
 % Surface altitude 
 %
@@ -62,8 +51,7 @@ O.z_surface    = 1e3;
 % These actual settings gives a rough overview
 %
 O.z_impact_max = 200e3;
-O.z_impact_max = 60e3;
-O.z_impact_dz  = 200;
+O.z_impact_dz  = 1e3;
 O.z_impact_min = 45e3;
 O.z_impact4t0  = O.z_impact_max;  % Sets reference point for time
 O.f_sampling   = 4;
@@ -73,10 +61,9 @@ O.do_atten      = true;
 
 % This one is a bit tricky. Free elctron gets index 1. The "basespecies"
 % follow, and get index 2, 3 .... The water species are included last.
-% These indexes will extract attenuation due to CO2, H2SO4 and SO2
+% These indexes will extract attenuation due to CO2, H2SO4 and SO2 
 O.do_absspecies = [2 3 5]; 
 
-%O.defoc_shift = 5e-3;
   
 %-------
 % A part
@@ -104,20 +91,21 @@ A.pmin         = 1e-6;            % Min pressure to consider. This value
 % "linefiles" 
 %
 Q = qarts;
+
 % Increasing df gives better accuracy (more transitions are included in the
-% calculation, but gives slower calculations). 10 GHz should be sufficient if
+% calculation, but gives slower calculations). 5 GHz is a bit low, but
+% selected to make the calculations a bit faster. 10 GHz should be sufficient if
 % not max accuracy is demanded. However, if the absorption is totally dominated
 % by continuum terms, df can in principle be zero.
-df = 10e9;
+df = 5e9;
 %
 Q.ABS_WSMS{end+1} = sprintf( ['abs_linesReadFromSplitArtscat(abs_lines,',...
     'abs_species,"spectroscopy/Perrin/",%.2e,%.2e)'], ...
                                  max([O.frequency-df,0]), O.frequency+df );
 Q.ABS_WSMS{end+1} = 'abs_lines_per_speciesCreateFromLines';
 if df > O.frequency
-%  Q.ABS_WSMS{end+1} = sprintf( ...
-%           'abs_lines_per_speciesAddMirrorLines(max_f=%.6e)', df-O.frequency );
-%Q.ABS_WSMS{end+1} = 'abs_lines_per_speciesAddMirrorLines';
+  Q.ABS_WSMS{end+1} = sprintf( ...
+           'abs_lines_per_speciesAddMirrorLines(max_f=%.6e)', df-O.frequency );
 end
 
 %- Perform calculation
@@ -148,6 +136,7 @@ clf
 clonefig(1,2)
 axis([0 5.5 35 95])
 
+
 figure(3)
 clf  
 plot( R.l_optpath-R.l_geometric, R.slta/1e3 )
@@ -157,12 +146,7 @@ xlabel( 'Excess range [m]', 'FontSize', fs );
 ylabel( 'Straight-line tangent altitude [km]', 'FontSize', fs );
 title( tstring, 'FontSize', fs+2 )
 
-% Don't show total or free space as we are not using the exact length. But
-% report what the free spae loss should be.
-%
-lmin = 38e12;
-db0 = 10*log10( 4 * pi * lmin^2);  
-%
+
 figure(4)
 clf  
 plot( -10*log10(R.tr_atmos), R.z_tan/1e3, 'r-', ...
@@ -175,8 +159,10 @@ title( tstring, 'FontSize', fs+2 )
 legend( ' Absorption', ' Defocusing' );
 axis([0 22 35 105])
 ax = axis;
-text( ax(2)/4, ax(3)+0.7*diff(ax(3:4)), sprintf(['Free space loss is at ',...
-'least %.0f db, and is\nbasically constant during the occultation'], db0 ));
+db0 = -10*log10( R.tr_space(1) );  
+text( ax(2)/4, ax(3)+0.7*diff(ax(3:4)), sprintf(['Free space loss is ',...
+'%.1f db, and is basically \nconstant during the occultation'], db0 ));
+
 
 figure(5)
 clf  
@@ -187,7 +173,7 @@ xlabel( 'Attenuation [dB]', 'FontSize', fs );
 ylabel( 'Tangent height [km]', 'FontSize', fs );
 title( tstring, 'FontSize', fs+2 )
 legend( 'CO2', 'H2SO4', 'SO2' );
-axis([0 8 35 80])
+axis([0 6 35 80])
 
 figure(6)
 clf  
@@ -198,4 +184,3 @@ xlabel( 'Relative time [s]', 'FontSize', fs );
 ylabel( 'Bending angle [deg]', 'FontSize', fs );
 title( tstring, 'FontSize', fs+2 )
 
-keyboard

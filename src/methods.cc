@@ -2085,6 +2085,12 @@ void define_md_data_raw()
          "is allowed and applied. However, if *vmr_zeropadding*=1 then VMRs at\n"
          "*p_grid* levels exceeding the raw VMRs' pressure grid are set to 0\n"
          "(applying the *zeropadding* option of *GriddedFieldPRegrid*).\n"
+         "\n"
+         "Default is to just accept obtained VMRs. If you want to enforce\n"
+         "that all VMR created are >= 0, set *vmr_nonegative* to 1. Negative\n"
+         "values are then set 0. Beside being present in input data, negative\n"
+         "VMR can be generated from the interpolation if *interp_order* is\n"
+         "above 1.\n"
          ),
         AUTHORS( "Claudia Emde", "Stefan Buehler" ),
         OUT( "t_field", "z_field", "vmr_field" ),
@@ -2093,11 +2099,12 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "p_grid", "lat_grid", "lon_grid", "t_field_raw", "z_field_raw", 
             "vmr_field_raw", "atmosphere_dim" ),
-        GIN( "interp_order", "vmr_zeropadding" ),
-        GIN_TYPE( "Index", "Index" ),
-        GIN_DEFAULT( "1", "0" ),
+        GIN( "interp_order", "vmr_zeropadding", "vmr_nonegative" ),
+        GIN_TYPE( "Index", "Index", "Index" ),
+        GIN_DEFAULT( "1", "0", "0" ),
         GIN_DESC( "Interpolation order (1=linear interpolation).",
-                  "Pad VMRs with zeroes to fit the pressure grid if necessary." )
+                "Pad VMRs with zeroes to fit the pressure grid if necessary.", 
+                "If set to 1, negative VMRs are set to 0." )
         ));
 
   md_data_raw.push_back
@@ -2124,11 +2131,12 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "p_grid", "lat_grid", "lon_grid", "t_field_raw", "z_field_raw", 
             "vmr_field_raw", "atmosphere_dim" ),
-        GIN( "interp_order", "vmr_zeropadding" ),
-        GIN_TYPE( "Index", "Index" ),
-        GIN_DEFAULT( "1", "0" ),
+        GIN( "interp_order", "vmr_zeropadding", "vmr_nonegative" ),
+        GIN_TYPE( "Index", "Index", "Index" ),
+        GIN_DEFAULT( "1", "0", "0" ),
         GIN_DESC( "Interpolation order (1=linear interpolation).",
-                  "Pad VMRs with zeroes to fit the pressure grid if necessary." )
+                "Pad VMRs with zeroes to fit the pressure grid if necessary.", 
+                "If set to 1, negative VMRs are set to 0." )
         ));
 
   md_data_raw.push_back
@@ -8285,6 +8293,34 @@ void define_md_data_raw()
                  "empty or have same dimension as p_grid.",
                  "Line of sight"
                  )
+        ));
+
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME( "p_gridDensify" ),
+        DESCRIPTION
+        (
+         "A simple way to make *p_grid* more dense.\n"
+         "\n"
+         "The method includes new values in *p_grid*. For each intermediate\n"
+         "pressure range, *nfill* points are added. That is, setting *nfill*\n"
+         "to zero returns an unmodified *p_grid*. The number of elements of\n"
+         "the new *p_grid* is (n0-1)*(1+nfill)+1, where n0 is the original\n"
+         "length.\n"
+         "\n"
+         "The new points are distributed equidistant in log(p).\n"         
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "p_grid" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "p_grid" ),
+        GIN(         "nfill" ),
+        GIN_TYPE(    "Index" ),
+        GIN_DEFAULT( "-1" ),
+        GIN_DESC( "Number of points to add between adjacent pressure points."
+                  "The default value (-1) results in an error." )
         ));
 
   md_data_raw.push_back     

@@ -1,3 +1,22 @@
+2013-10-17  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-796
+
+	* Made some additions to test if they could help decreasing impact
+	on radio occultation simulations of abrupt gradient changes in
+	input data (as is the case for Venus). Helped a bit, but no huge
+	success. Smaller peak values, but now both positive and negative
+	"peaks".
+
+	* src/m_atmosphere.cc (p_gridDensify): New WSM.
+
+	(AtmFieldsCalc): Added GIN vmr_nonegative.
+
+ 	(AtmFieldsCalcExpand1D): Adopted to change above.
+
+	* controlfiles/planetary_toolbox/demos/active/demo_venus_ro.m:
+	Now all test settings removed. Now final!?!?
+
 2013-10-16  Jana Mendrok  <jana.mendrok@ltu.se>
 
 	* arts-2-1-795
