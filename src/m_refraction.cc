@@ -101,18 +101,27 @@ void refr_index_airFreeElectrons(
 
       if( edensity > 0 )
         {
-          const Numeric f = ( f_grid[0] + last(f_grid) ) / 2.0;
-          const Numeric a = edensity*k/(f*f);
-          const Numeric n = sqrt( 1 - a );
-          
-          if( a > 0.25 ) 
+          // Check that lowest frequency not too low
+          // Limit at 100 GHz follows Hartmann and Leitinger, Range errors due
+          // to ionospheric and tropospheric effects for signal frequencies
+          // above 100 HMHz, Bull. Goed., 1984.
+          if( f_grid[0] < 100e6 )
+            {
+              throw runtime_error( "All frequencies must be >= 100 MHz, but "
+                                   "this is not the case." );
+            }
+          if( edensity*k/(f_grid[0]*f_grid[0]) > 0.25 ) 
             {
               ostringstream os;
-              os << "The frequency must at least be twice the plasma frequency.\n"
+              os << "All frequencies must at least be twice the plasma frequency.\n"
                  << "For this particular point, the plasma frequency is: " 
                  << sqrt(edensity*k)/1e6 << " MHz.";
               throw runtime_error( os.str() );
             }
+
+          const Numeric f = ( f_grid[0] + last(f_grid) ) / 2.0;
+          const Numeric a = edensity*k/(f*f);
+          const Numeric n = sqrt( 1 - a );
           
           refr_index_air       += n - 1;
           refr_index_air_group += 1/n - 1;

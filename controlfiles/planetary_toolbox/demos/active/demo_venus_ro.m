@@ -134,7 +134,7 @@ axis([-1e-3 1e-3 80 200])
 figure(2)
 clf  
 clonefig(1,2)
-axis([0 5.5 35 95])
+axis([0 7.5 35 95])
 
 
 figure(3)
