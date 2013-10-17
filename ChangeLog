@@ -1,3 +1,12 @@
+2013-10-16  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-1-795
+
+	* src/gas_abs_lookup.cc(Extract):
+	Relaxed identity check of f_grid entries according to Stefan's
+	suggestion. Identity on floats is delicate, so now checking for
+	diff<1Hz.
+
 2013-10-16  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-794

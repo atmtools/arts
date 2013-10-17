@@ -759,9 +759,12 @@ void GasAbsLookup::Extract( Matrix&         sga,
           // (which effectively means no frequency interpolation)
           fgp = &fgp_default;
           
-          // Check identitiy of first and last element for safety's sake.
+          // Check identitiy of first and last element for safety's sake (only
+          // till 1Hz identity; checking float for total identity is sometimes
+          // problematic)
           
-          if (f_grid[0]!=new_f_grid[0])
+          if (abs(f_grid[0]-new_f_grid[0]) > 1)
+          //if (f_grid[0]!=new_f_grid[0])
             {
               ostringstream os;
               os << "First frequency in f_grid inconsistent with lookup table.\n"
@@ -770,7 +773,8 @@ void GasAbsLookup::Extract( Matrix&         sga,
               throw runtime_error( os.str() );
             }
           
-          if (f_grid[n_f_grid-1]!=new_f_grid[n_new_f_grid-1])
+          if (abs(f_grid[n_f_grid-1]-new_f_grid[n_new_f_grid-1]) > 1)
+          //if (f_grid[n_f_grid-1]!=new_f_grid[n_new_f_grid-1])
             {
               ostringstream os;
               os << "Last frequency in f_grid inconsistent with lookup table.\n"
