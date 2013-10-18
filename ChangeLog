@@ -1,3 +1,12 @@
+2013-10-18  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-800
+
+	* src/abs_species_tags.h:
+
+	== operator should return false for a CIA species where the second
+	species doesn't match.
+
 2013-10-18  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-799

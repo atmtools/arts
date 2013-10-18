@@ -104,6 +104,7 @@ public:
     if ( other.muf               != muf      ) return false;
     if ( other.mtype             != mtype    ) return false;
     if ( other.mline_mixing_type != mline_mixing_type ) return false;
+    if ( mtype == TYPE_CIA && other.mcia_second != mcia_second) return false;
     return true;
   }
 
