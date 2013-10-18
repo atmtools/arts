@@ -1,12 +1,12 @@
 #DEFINITIONS:  -*-sh-*-
 #
-# The scripts demonstrates a 3D radio link calculation. The settings mimics a
-# satellite-to-ground link, but by changing the reciever position a radio
-# occultation geomtry can be achived. Calculations are done for three
-# frequencies (f_centra+-f_bwidth/2), where dispersion is considered.
+# The script demonstrates a 3D radio link calculation. The settings mimics a
+# satellite-to-ground link, but by changing the receiver position a radio
+# occultation geometry can be ac hived. Calculations are done for three
+# frequencies (f_centre+-f_bwidth/2), where dispersion is considered.
 #
-# The basic atmospherio is Fascode tropical. An ionopshere is added. By
-# changing an include file, a no-ionopshere case can be obtained (resulting in
+# The basic atmosphere is Fascode tropical. An ionosphere is added. By
+# changing an include file, a non-ionosphere case can be obtained (resulting in
 # faster calculations).
 #
 # Run with report level 0: 
