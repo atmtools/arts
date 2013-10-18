@@ -127,6 +127,7 @@ void iyCloudRadar(
   Index auxPressure     = -1,
         auxTemperature  = -1,
         auxBackScat     = -1,
+        auxTrans        = -1,
         auxRoTrTime     = -1;
   ArrayOfIndex auxPartCont(0), auxPartContI(0);
   ArrayOfIndex auxPartField(0), auxPartFieldI(0);
@@ -140,8 +141,6 @@ void iyCloudRadar(
         { auxPressure = i;      iy_aux[i].resize( 1, 1, 1, np ); }
       else if( iy_aux_vars[i] == "Temperature" )
         { auxTemperature = i;   iy_aux[i].resize( 1, 1, 1, np ); }
-      else if( iy_aux_vars[i] == "Backscattering" )
-        { auxBackScat = i;  iy_aux[i].resize( nf, ns, 1, np ); iy_aux[i] = 0; }
       else if( iy_aux_vars[i].substr(0,14) == "Mass content, " )
         { 
           Index icont;
@@ -174,6 +173,10 @@ void iyCloudRadar(
           auxPartFieldI.push_back(ip);
           iy_aux[i].resize( 1, 1, 1, np );
         }
+      else if( iy_aux_vars[i] == "Backscattering" )
+        { auxBackScat = i;  iy_aux[i].resize( nf, ns, 1, np ); iy_aux[i] = 0; }
+      else if( iy_aux_vars[i] == "Transmission" )
+        { auxTrans = i;  iy_aux[i].resize( nf, ns, ns, np ); }
       else if( iy_aux_vars[i] == "Round-trip time" )
         { auxRoTrTime = i;   iy_aux[i].resize( 1, 1, 1, np ); }
       else
@@ -289,6 +292,17 @@ void iyCloudRadar(
               mult( iy2, P,                      iy1 );
               mult( iy(iv*np+ip,joker), trans_cumulat(iv,joker,joker,ip), iy2 );
 
+              //=== iy_aux part ===========================================
+              // Backscattering
+              if( auxBackScat >= 0 ) {
+                mult( iy_aux[auxBackScat](iv,joker,0,ip), P, iy0(iv,joker) ); }
+              // Transmission
+              if( auxTrans >= 0 ) 
+                { for( Index is1=0; is1<ns; is1++ ){
+                    for( Index is2=0; is2<ns; is2++ ){
+                      iy_aux[auxTrans](iv,is1,is2,ip) = 
+                                                      tr_rev(iv,is1,is2); } } }
+
               // Update tr_rev
               if( ip<np-1 )
                 {
@@ -296,11 +310,6 @@ void iyCloudRadar(
                   mult( tr_rev(iv,joker,joker), 
                         trans_partial(iv,joker,joker,ip), tmp );
                 }
-
-              //=== iy_aux part ===========================================
-              // Backscattering
-              if( auxBackScat >= 0 ) {
-                mult( iy_aux[auxBackScat](iv,joker,0,ip), P, iy0(iv,joker) ); }
             }
         }
 
