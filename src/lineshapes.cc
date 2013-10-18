@@ -1775,9 +1775,12 @@ void lineshape_norm_linear(Vector&         fac,
 {
   const Index nf = f_grid.nelem();
 
+  // Abs(f0) is constant in the loop:
+  const Numeric abs_f0 = abs(f0);
+
   for ( Index i=0; i<nf; ++i )
     {
-      fac[i] = f_grid[i] / f0;
+      fac[i] = f_grid[i] / abs_f0;
     }
 }
 
@@ -1833,7 +1836,7 @@ void lineshape_norm_VVH(Vector&         fac,
   const Numeric kT = 2.0 * BOLTZMAN_CONST * T;
 
   // denominator is constant for the loop
-  const Numeric denom = f0 * tanh( PLANCK_CONST * f0 / kT );
+  const Numeric denom = abs(f0) * tanh( PLANCK_CONST * abs(f0) / kT );
 
   for ( Index i=0; i<nf; ++i )
     {

@@ -1,3 +1,16 @@
+2013-10-18  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-2-1-798
+
+	* src/lineshapes.cc (lineshape_norm_VVH): Fixed bug reported by
+	Patrick. (Take absolute value of line center frequency, so that
+	the factor works also for mirror lines at negative center
+	frequency.)
+	At least I think this fixes the bug, but I have no good
+	testcase. Patrick, please test. :-)
+	(lineshape_norm_linear): Same fix also here, although this
+	function is deprecated anyway and no longer user visible.
+
 2013-10-17  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-797
