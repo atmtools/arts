@@ -76,7 +76,7 @@ A.daytime      = 0;               % Day / night
 A.dust         = 0;               % Dust level
 A.solar        = 2;               % Solar activity
 %
-A.basespecies  = [ 1, 6 ];        % This is CO2 and N2
+A.basespecies  = [ 1, 8 ];        % This is CO2 and N2
 A.ch4species   = 1;               % Standard CH4
 A.h2ospecies   = 1;               % Include all water as one species
 A.Necase       = 1;               % Free electron case. Note that 4 needs

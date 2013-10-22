@@ -127,6 +127,8 @@ IndexSet( atmo, 1 )
 # Select ALL species you like to take into account.
 ### C2H2, C2H4, C2H6, C3H8, CO, CO2, H2S, HCN, He, PH3
 #      0,    1,    2,    3,  4,   5,   6,   7,  8,   9
+# H2-CIA-H2-0, H2-CIA-He-0, H2-CIA-CH4-0, CH4-CIA-CH4-0
+#         10 ,         11 ,          12 ,           13
 ArrayOfIndexSet( basespecies, [4, 5, 6] )
 
 

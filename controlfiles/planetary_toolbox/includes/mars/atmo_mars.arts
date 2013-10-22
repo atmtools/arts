@@ -41,13 +41,14 @@ ArrayOfStringSet( solararray,
                   ["sol-min","sol-avg","sol-max"] )
 
 ArrayOfStringSet( basespeciesarray,
-                  ["CO", "CO2",
+                  ["CO", "CO2", "CO2-CIA-CO2-0", 
+                   "CO2-SelfContPWR93, CO2-ForeignContPWR93",
                    "H2", "H2O2", "H2S", "HCl",
                    "N2", "NO2",
                    "O", "O2", "O3", "OCS", "OH",
                    "SO2"] )
 ArrayOfStringSet( basespeciesnamesarray,
-                  ["CO.xml", "CO2.xml",
+                  ["CO.xml", "CO2.xml", "CO2.xml", "CO2.xml",
                    "H2.xml", "H2O2.xml", "H2S.xml", "HCl.xml",
                    "N2.xml", "NO2.xml",
                    "O.xml", "O2.xml", "O3.xml", "OCS.xml", "OH.xml",

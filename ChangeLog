@@ -1,5 +1,26 @@
 2013-10-22  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-1-804
+
+	* controlfiles/planetary_toolbox/demos/passive/demo_planets_limbcomp.m:
+	Adopted to changes below. For abs_xsec_per_speciesAddCIA, using
+	T_extrapolfac=3. More warnings in header text.
+
+	* controlfiles/planetary_toolbox/includes/jupiter/atmo_jupiter.arts:
+	* controlfiles/planetary_toolbox/DemoJupiterAtmo3D.arts:
+	* controlfiles/planetary_toolbox/DemoJupiterAtmo1D.arts:
+	Added H2-CIA-H2-0, H2-CIA-He-0, H2-CIA-CH4-0, CH4-CIA-CH4-0
+
+	* controlfiles/planetary_toolbox/demos/active/demo_mars_ro.m:
+	Adopted to change below.
+
+	* controlfiles/planetary_toolbox/DemoMarsAtmo3D.arts:
+	* controlfiles/planetary_toolbox/DemoMarsAtmo1D.arts:
+	* controlfiles/planetary_toolbox/includes/mars/atmo_mars.arts:
+	Added CIA and PWR CO2-CO2, and modified accordingly.
+
+2013-10-22  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-1-803
 
 	* controlfiles/planetary_toolbox/demos/passive/demo_planets_limbcomp.m:

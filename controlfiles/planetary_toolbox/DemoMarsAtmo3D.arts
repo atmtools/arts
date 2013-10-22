@@ -160,10 +160,15 @@ IndexSet( solar, 1 )
 # ---
 # refers to species with only one version here. no sub-options/further
 #  specifications required
+# NOTE: if you select CO2-CO2 CIA here, you have to use an appropriate set for
+#  the abs_xsec_agenda.
+#
 # Select ALL species you like to take into account.
-### CO, CO2, H2, H2O2, H2S, HCl, N2, N2O, O, O2, O3, OCS, OH, SO2
-#    0,   1,  2,    3,   4,   5,  6,   7, 8,  9, 10,  11, 12,  13
-ArrayOfIndexSet( basespecies, [0, 1, 5, 7, 10, 13] )
+### CO, CO2, CO2-CO2 CIA, CO2-CO2 PWR, H2, H2O2, H2S, HCl, N2, N2O, O, O2, 
+#    0,  1,   2,           3,           4,  5,    6,   7,   8,  9, 10, 11, 
+# O3, OCS, OH, SO2
+# 12, 13,  14,  15
+ArrayOfIndexSet( basespecies, [0, 1, 7, 9, 12, 15] )
 
 
 # Species with sub-scenarios

@@ -8,9 +8,10 @@
 %   planets. 
 %
 %   This is just a demonstration, and the results give just a rough
-%   overview. Species and absorption continua can be alcking in the results.
+%   overview. For example, species continua can be a lacking in the results.
 %   Some hard-coded settings assume a relatively high tangent altitude (for
-%   Earth should be OK-ish down to about 20 km).
+%   Earth should be OK-ish down to about 20 km). Continuum absorption can be
+%   lacking, or use large extrapolation from defined temperature range.
 %
 % FORMAT [f,Y] = demo_planets_limbcomp( [ztan,f0,df,nf] )
 %
@@ -70,8 +71,8 @@ Am.daytime      = 0;               % Day / night
 Am.dust         = 0;               % Dust level
 Am.solar        = 2;               % Solar activity
 %
-% Includes species: All defined
-Am.basespecies  = [ 0:13 ];
+% Species included: Everything (beside duplicating CO2-cont.)
+Am.basespecies  = [ 0:2 4:15 ];
 Am.ch4species   = 1;               % Standard CH4
 Am.h2ospecies   = 1;               % Include all water as one species
 Am.Necase       = [];              % Free elctrons anyhow ignored
@@ -84,7 +85,7 @@ Am.pmin         = 1e-3;            % This crops around 100 km
 Aj.atmo         = 0;               % Atmospheric scenario
 %
 % Species included: Everything
-Aj.basespecies  = [ 0:9 ];      
+Aj.basespecies  = [ 0:13 ];      
 Aj.h2ospecies   = 1;               % Level of water vapour
 Aj.nh3species   = 1;               % Level of NH3
 Aj.ch4species   = 1;               % All of CH4
@@ -147,7 +148,10 @@ Q0.ABS_WSMS{end+1} = 'abs_lines_per_speciesCreateFromLines';
 Q0.ABS_WSMS{end+1} = [ 'ReadXML(abs_cia_data, "spectroscopy/cia/',...
                        'hitran2011/hitran_cia2012_adapted.xml.gz")' ];
 % Qarts default for abs_xsec_agenda is not including CIA:
-Q0.ABS_XSEC_AGENDA = { 'abs_xsec_agenda__withCIA' };
+Q0.ABS_XSEC_AGENDA = { 'abs_xsec_per_speciesInit', ...
+                       'abs_xsec_per_speciesAddLines', ... 
+                       'abs_xsec_per_speciesAddConts', ...
+                       'abs_xsec_per_speciesAddCIA(T_extrapolfac=3)' };
 
 
 
