@@ -85,7 +85,7 @@ A.interp_order = 1;               % Linear interpolation of fields (higher
 %                                   values risky)
 A.pmin         = 1e-99;           % Min pressure to consider. This value
                                   % gives no cropping. An example:
-%---                              % 1-3 crops around 100 km
+%---                              % 1e-3 crops around 100 km
 
 % Regarding species selected above, remember that we here only calculate
 % refractive index, that is done by *refr_index_airMWgeneral*. No need to
