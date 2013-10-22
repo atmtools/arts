@@ -7,10 +7,12 @@
 %    calculations are involved.
 %
 % FORMAT   demo_venus_ro
+%
+% See *arts_radioocc_1D* for definition of the output arguemnts.
 
 % Patrick Eriksson 2013-10-17
 
-function demo_venus_ro
+function [R,T,O,A] = demo_venus_ro
 
 %-------
 % O part
@@ -161,7 +163,7 @@ axis([0 22 35 105])
 ax = axis;
 db0 = -10*log10( R.tr_space(1) );  
 text( ax(2)/4, ax(3)+0.7*diff(ax(3:4)), sprintf(['Free space loss is ',...
-'%.1f db, and is basically \nconstant during the occultation'], db0 ));
+'%.1f dB, and is basically \nconstant during the occultation'], db0 ));
 
 
 figure(5)

@@ -15,7 +15,9 @@
 %    varying results are obtained when changing the IRI settings (such as
 %    longitude and UTC).
 %
-% FORMAT   demo_earth_ionosphere
+% FORMAT   [R,T,O,A] = demo_earth_ionosphere
+%
+% See *arts_radioocc_1D* for definition of the output arguemnts.
 
 % 2013-10-16   Created by Patrick Eriksson.
 

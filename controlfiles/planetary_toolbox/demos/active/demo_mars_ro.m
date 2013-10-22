@@ -5,11 +5,13 @@
 %    Bending angles and geometrical/length variables are calculated. See
 %    demo_earth_ro for a calculation involving attenuation quantities.
 %
-% FORMAT   demo_mars_ro
+% FORMAT   [R,T,O,A] = demo_mars_ro
+%
+% See *arts_radioocc_1D* for definition of the output arguemnts.
 
 % Patrick Eriksson 2013-10-16
 
-function demo_mars_ro
+function [R,T,O,A] = demo_mars_ro
 
 %-------
 % O part

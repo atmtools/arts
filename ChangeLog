@@ -1,8 +1,19 @@
+2013-10-22  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-802
+
+	* controlfiles/planetary_toolbox/demos/active/demo_mars_ro.m:
+	* controlfiles/planetary_toolbox/demos/active/demo_earth_ro.m:
+	* controlfiles/planetary_toolbox/demos/active/demo_earth_ionosphere.m:
+	* controlfiles/planetary_toolbox/demos/active/demo_venus_ro.m:
+	Added [R,T,O,A] as output for all four functions.
+
 2013-10-18  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-801
 
-	* src/m_cloudradar.cc (iyCloudRadar): Added Transmission as aux variable.
+	* src/m_cloudradar.cc (iyCloudRadar): Added Transmission as aux
+	variable.
 
 2013-10-18  Oliver Lemke  <olemke@core-dump.info>
 

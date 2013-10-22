@@ -12,7 +12,9 @@
 %    determined. If you just need bending angles, use *arts_radioocc_1D* for
 %    (much) faster calculations!
 %
-% FORMAT   demo_earth_ro
+% FORMAT   [R,T,O,A] = demo_earth_ro
+%
+% See *arts_radioocc_1D* for definition of the output arguemnts.
 
 % 2013-10-16   Created by Patrick Eriksson.
 
