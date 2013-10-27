@@ -89,8 +89,8 @@ A.pmin         = 1e-99;           % Min pressure to consider. This value
 
 % Regarding species selected above, remember that we here only calculate
 % refractive index, that is done by *refr_index_airMWgeneral*. No need to
-% include species not considered by this WSM (on the other hand, but no big
-% overhead to load more species, such as CH4).
+% include species not considered by this WSM (but no big overhead to load more
+% species, such as CH4).
 
 
 %- Perform calculation

@@ -2177,14 +2177,14 @@ void AtmRawRead(//WS Output:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void InterpAtmFieldToRtePos(
+void InterpAtmFieldToPosition(
           Numeric&   outvalue,
     const Index&     atmosphere_dim,
     const Vector&    p_grid,
     const Vector&    lat_grid,
     const Vector&    lon_grid,
     const Tensor3&   z_field,
-    const Vector&    pos,
+    const Vector&    rtp_pos,
     const Tensor3&   field,
     const Verbosity& verbosity)
 {
@@ -2192,11 +2192,12 @@ void InterpAtmFieldToRtePos(
   chk_atm_grids( atmosphere_dim, p_grid, lat_grid, lon_grid );
   chk_atm_field( "input argument *field*", field, atmosphere_dim, 
                                                   p_grid, lat_grid, lon_grid );
+  chk_rte_pos( atmosphere_dim, rtp_pos );
 
   // Determine grid positions
   GridPos gp_p, gp_lat, gp_lon;
   rte_pos2gridpos( gp_p, gp_lat, gp_lon, atmosphere_dim, 
-                   p_grid, lat_grid, lon_grid, z_field, pos );
+                   p_grid, lat_grid, lon_grid, z_field, rtp_pos );
 
   // Interpolate
   outvalue = interp_atmfield_by_gp( atmosphere_dim, field, gp_p, gp_lat, 

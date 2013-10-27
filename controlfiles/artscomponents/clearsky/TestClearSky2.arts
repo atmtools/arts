@@ -86,12 +86,8 @@ AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species,
 # Weakly reflecting surface
 # ---
 VectorSetConstant( surface_scalar_reflectivity, 1, 0.8 )
-AgendaSet( surface_rtprop_agenda ){
-  specular_losCalc
-  InterpSurfaceFieldToRtePos( surface_skin_t, atmosphere_dim, lat_grid, 
-      lon_grid, rte_pos, t_surface )
-  surfaceFlatScalarReflectivity
-}
+Copy( surface_rtprop_agenda,
+      surface_rtprop_agenda__Specular_NoPol_ReflFix_SurfTFromt_surface )
 
 
 # We select here to use Rayleigh-Jean brightness temperatures

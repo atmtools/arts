@@ -65,12 +65,13 @@ extern const Numeric DEG2RAD;
   ===========================================================================*/
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void InterpSurfaceFieldToRtePos(
+void InterpSurfaceFieldToPosition(
           Numeric&   outvalue,
     const Index&     atmosphere_dim,
     const Vector&    lat_grid,
     const Vector&    lon_grid,
-    const Vector&    pos,
+    const Vector&    rtp_pos,
+    const Matrix&    z_surface,
     const Matrix&    field,
     const Verbosity& verbosity)
 {
@@ -78,19 +79,34 @@ void InterpSurfaceFieldToRtePos(
   chk_atm_grids( atmosphere_dim, Vector(2,2,-1), lat_grid, lon_grid );
   chk_atm_surface( "input argument *field*", field, atmosphere_dim, lat_grid, 
                                                                     lon_grid );
-  chk_rte_pos( atmosphere_dim, pos );
+  chk_rte_pos( atmosphere_dim, rtp_pos );
+  //
+  const Numeric zmax = max( z_surface );
+  const Numeric zmin = min( z_surface );
+  const Numeric dzok = 1;
+  if( rtp_pos[0] < zmin-dzok || rtp_pos[0] > zmax+dzok )
+    {
+      ostringstream os;
+      os << "The given position does not match *z_surface*.\nThe altitude in "
+         << "*rtp_pos* is " << rtp_pos[0]/1e3 << " km.\n"
+         << "The altitude range covered by *z_surface* is [" << zmin/1e3 
+         <<  "," << zmax/1e3 << "] km.\n"
+         << "One possible mistake is to mix up *rtp_pos* and *rte_pos*.";
+      throw runtime_error( os.str() );
+    }
 
   if( atmosphere_dim == 1 )
     { outvalue = field(0,0); }
   else
     {      
-      chk_interpolation_grids( "Latitude interpolation", lat_grid, pos[1] );
+      chk_interpolation_grids( "Latitude interpolation", lat_grid, rtp_pos[1] );
       GridPos gp_lat, gp_lon;
-      gridpos( gp_lat, lat_grid, pos[1] );
+      gridpos( gp_lat, lat_grid, rtp_pos[1] );
       if( atmosphere_dim == 3 )
         { 
-          chk_interpolation_grids( "Longitude interpolation", lon_grid, pos[2]);
-          gridpos( gp_lon, lon_grid, pos[2] );
+          chk_interpolation_grids( "Longitude interpolation", lon_grid, 
+                                                              rtp_pos[2] );
+          gridpos( gp_lon, lon_grid, rtp_pos[2] );
         }
       //
       outvalue = interp_atmsurface_by_gp( atmosphere_dim, field, gp_lat, 

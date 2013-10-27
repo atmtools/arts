@@ -34,18 +34,13 @@ output_file_formatSetZippedAscii
 StringSet( iy_unit, "PlanckBT" )
 
 #
-# modifiy the maximum propagation step, from the default(10.e3)
-# to 250 m :
+# modifiy the maximum propagation step, from the default to 250 m :
 #
 NumericSet( ppath_lmax, 250 )
 
 # Surface
-AgendaSet( surface_rtprop_agenda ){
-  specular_losCalc
-  InterpSurfaceFieldToRtePos( surface_skin_t, atmosphere_dim, lat_grid, 
-      lon_grid, rte_pos, t_surface )
-  surfaceFlatScalarReflectivity
-} 
+Copy( surface_rtprop_agenda,
+      surface_rtprop_agenda__Specular_NoPol_ReflFix_SurfTFromt_surface )
 
 
 # 2. Spectroscopy

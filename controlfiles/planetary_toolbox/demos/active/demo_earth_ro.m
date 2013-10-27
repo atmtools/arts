@@ -18,7 +18,7 @@
 
 % 2013-10-16   Created by Patrick Eriksson.
 
-function demo_earth_ro
+function [R,T,O,A] = demo_earth_ro
   
 % When we select tropical, we obtain free electrons for a low latitude 
 % (10N to be precise). This latitude is shifted if you switch Fascode

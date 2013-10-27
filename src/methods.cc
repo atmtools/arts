@@ -4606,12 +4606,12 @@ void define_md_data_raw()
 
   md_data_raw.push_back     
     ( MdRecord
-      ( NAME( "InterpAtmFieldToRtePos" ),
+      ( NAME( "InterpAtmFieldToPosition" ),
         DESCRIPTION
         (
          "Point interpolation of atmospheric fields.\n" 
          "\n"
-         "The standard choice for *pos* should be *rtp_pos*.\n"
+         "The default way to specify the position is by *rtp_pos*.\n"
          "\n"
          "Linear interpolation is applied.\n"         
          ),
@@ -4620,34 +4620,42 @@ void define_md_data_raw()
         GOUT(      "out"       ),
         GOUT_TYPE( "Numeric" ),
         GOUT_DESC( "Value obtained by the interpolation." ),
-        IN( "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "z_field" ),
-        GIN(      "pos",    "field"   ),
-        GIN_TYPE( "Vector", "Tensor3" ),
-        GIN_DEFAULT( NODEF, NODEF     ),
-        GIN_DESC( "Position vector.", "Field to interpolate." )
+        IN( "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "z_field",
+            "rtp_pos" ),
+        GIN( "field"),
+        GIN_TYPE( "Tensor3" ),
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC( "Field to interpolate." )
         ));
   
   md_data_raw.push_back     
     ( MdRecord
-      ( NAME( "InterpSurfaceFieldToRtePos" ),
+      ( NAME( "InterpSurfaceFieldToPosition" ),
         DESCRIPTION
         (
          "Point interpolation of surface fields.\n" 
          "\n"
-         "The standard choice for *pos* should be *rtp_pos*.\n"
+         "The default way to specify the position is by *rtp_pos*.\n"
          "\n"
-         "Linear interpolation is applied.\n"         
+         "Linear interpolation is applied.\n" 
+         "\n"
+         "The interpolation is done for the latitude and longitude in\n"
+         "*rtp_pos*, while the altitude in *rtp_pos* is not part of the\n"
+         "calculations. However, it is checked that the altitude of *rtp_pos*\n"
+         "is inside the range covered by *z_surface* with a 1 m margin, to\n"
+         "give a warning when the specified position is not consistent with\n"
+         "the surface altitudes.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
-        GOUT(      "out"       ),
+        GOUT( "out" ),
         GOUT_TYPE( "Numeric" ),
         GOUT_DESC( "Value obtained by interpolation." ),
-        IN( "atmosphere_dim", "lat_grid", "lon_grid" ),
-        GIN(      "pos",    "field"   ),
-        GIN_TYPE( "Vector", "Matrix" ),
-        GIN_DEFAULT( NODEF, NODEF ),
-        GIN_DESC( "Position vector.", "Field to interpolate." )
+        IN( "atmosphere_dim", "lat_grid", "lon_grid", "rtp_pos", "z_surface" ),
+        GIN( "field" ),
+        GIN_TYPE( "Matrix" ),
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC( "Field to interpolate." )
         ));
   
   md_data_raw.push_back

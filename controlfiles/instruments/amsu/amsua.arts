@@ -26,12 +26,9 @@ StringSet( iy_unit, "PlanckBT" )
 NumericSet( ppath_lmax, 250 )
 
 # Surface
-AgendaSet( surface_rtprop_agenda ){
-  specular_losCalc
-  InterpSurfaceFieldToRtePos( surface_skin_t, atmosphere_dim, lat_grid, 
-      lon_grid, rte_pos, t_surface )
-  surfaceFlatScalarReflectivity
-} 
+Copy( surface_rtprop_agenda,
+      surface_rtprop_agenda__Specular_NoPol_ReflFix_SurfTFromt_surface )
+
 
 # 2. Spectroscopy
 #----------------

@@ -212,9 +212,7 @@ VectorSet( surface_scalar_reflectivity, [0.4] )
 # surface temp from atmospheric t_field
 AgendaSet( surface_rtprop_agenda ){
    specular_losCalc
-   InterpAtmFieldToRtePos( surface_skin_t,
-                           atmosphere_dim, p_grid, lat_grid, lon_grid,
-                           z_field, rtp_pos, t_field)
+   InterpAtmFieldToPosition( out=surface_skin_t, field=t_field )   
    #Print( surface_skin_t, 0 )
    surfaceFlatScalarReflectivity
 }
@@ -241,9 +239,7 @@ ReadXML( ri_surface, casefull )
 
 AgendaSet( surface_rtprop_agenda ){
    specular_losCalc
-   InterpAtmFieldToRtePos( surface_skin_t,
-                           atmosphere_dim, p_grid, lat_grid, lon_grid,
-                           z_field, rtp_pos, t_field)
+   InterpAtmFieldToPosition( out=surface_skin_t, field=t_field )
    #Print( surface_skin_t, 0 )
    Select( lat_true, rtp_pos, [1] )
    Select( lon_true, rtp_pos, [2] )
@@ -269,8 +265,7 @@ Copy( lon_grid, lon_grid3D_glob )
 
 AgendaSet( surface_rtprop_agenda ){
    specular_losCalc
-   InterpSurfaceFieldToRtePos( surface_skin_t, atmosphere_dim, lat_grid, 
-                               lon_grid, rtp_pos, t_surface )
+   InterpSurfaceFieldToPosition( out=surface_skin_t, field=t_surface )
    #Print( surface_skin_t, 0 )
    Select( lat_true, rtp_pos, [1] )
    Select( lon_true, rtp_pos, [2] )

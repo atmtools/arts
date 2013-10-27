@@ -72,12 +72,8 @@ NumericSet( ppath_lmax, 250 )
 # corresponds to emissivity=0.75
 VectorSetConstant( surface_scalar_reflectivity, 1, 0.25 )
 
-AgendaSet( surface_rtprop_agenda ){
-  specular_losCalc
-  InterpSurfaceFieldToRtePos( surface_skin_t, atmosphere_dim, lat_grid,
-      lon_grid, rtp_pos, t_surface )
-  surfaceFlatScalarReflectivity
-}
+Copy( surface_rtprop_agenda,
+      surface_rtprop_agenda__Specular_NoPol_ReflFix_SurfTFromt_surface )
 
 
 # 2. Sensor:---------------------------------------------------------

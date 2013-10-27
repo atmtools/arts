@@ -70,13 +70,7 @@ Matrix1ColFromVector( sensor_los, za )
 Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__OnTheFly )
 
 # Blackbody surface
-AgendaSet( surface_rtprop_agenda ){
-  Ignore( rtp_los )
-  InterpAtmFieldToRtePos(surface_skin_t, atmosphere_dim,
-                         p_grid, lat_grid, lon_grid, z_field,
-                         rtp_pos, t_field)
-  surfaceBlackbody
-}
+Copy( surface_rtprop_agenda, surface_rtprop_agenda__Blackbody_SurfTFromt_field )
 
 # Definition of species: here we neglect continua
 abs_speciesSet( species=["H2O-161", "H2O-162", "N2", "O2"] )

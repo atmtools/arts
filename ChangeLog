@@ -1,3 +1,55 @@
+2013-10-27  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-805
+
+	* Made some changes that hopfully shall decrease the risk to mix
+	up rtp_pos and rte_pos when used for interpolation. This commit
+	brakes backwards-compatibility:
+
+	InterpSurfaceFieldToRtePos changed to InterpSurfaceFieldToPosition
+	InterpAtmFieldToRtePos changed to InterpAtmFieldToPosition.
+
+	For both these methods, the GIN pos is removed. The standard
+	choice to use as position is rtp_pos. This is now default.
+
+	Please check that rte_pos is not used here in your cfiles (that
+	was the case earlier).
+
+	* controlfiles/instruments/mhs/mhs.arts:
+	* controlfiles/instruments/amsu/amsub_fast.arts:
+	* controlfiles/instruments/amsu/amsub.arts:
+	* controlfiles/instruments/amsu/amsua.arts:
+	* controlfiles/artscomponents/doitbatch/TestDOITBatch.arts:
+	* controlfiles/artscomponents/clearsky/TestClearSky2.arts:
+	* controlfiles/artscomponents/clearsky/TestClearSky.arts:
+	* controlfiles/artscomponents/cia/TestRTwithCIA.arts:
+	* controlfiles/artscomponents/doit/TestDOIT.arts:
+	* controlfiles/artscomponents/arts-xml-data/TestSurf_Venus.arts:
+	* controlfiles/artscomponents/arts-xml-data/TestSurf_Mars.arts:
+	* controlfiles/artscomponents/arts-xml-data/TestSurf_Earth.arts:
+	* controlfiles/artscomponents/absorption/TestIsoRatios.arts:
+	Adopted to changes below. Switched to use pre-defined agendas in
+	most cases. For the AMSU and MHS files, rte_pos was incorrectly
+	used instead of rtp_pos! This had no effect as 1D, but would
+	otherwise give incorrect results.
+
+	* controlfiles/general/agendas_surface.arts: Updated to match
+	changes below.
+
+	* src/m_surface.cc (InterpSurfaceFieldToPosition): Renamed from
+	InterpSurfaceFieldToRtePos, and changed pos (GIN) to rtp_pos (IN).
+	Also added z_surface as input to allow that rtp_pos is roughly
+	consistent with the surface altitudes.
+
+	* src/m_atmosphere.cc (InterpAtmFieldToPosition): Renamed from
+	InterpAtmFieldToRtePos, and changed pos (GIN) to rtp_pos (IN).
+
+	* controlfiles/planetary_toolbox/demos/active/demo_earth_ro.m:
+	[R,T,O,A] was added just in header.
+
+	* controlfiles/planetary_toolbox/demos/active/demo_mars_ro.m:
+	Fixed bad comment.
+
 2013-10-22  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-804
