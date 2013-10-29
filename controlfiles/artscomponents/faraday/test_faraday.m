@@ -5,14 +5,14 @@
 
 function test_faraday
 
-% Uncomment some lines to store the data that are required  
+arts( '-r000 TestFaradayRotation.arts' );
 
 % Read data stored by ARTS test file  
 f   = xmlLoad( 'f.xml' );
-vmr = xmlLoad( 'vmr_field.xml' );
+vmr = xmlLoad( 'vmr.xml' );
 b   = xmlLoad( 'bw_field.xml' );
 z   = xmlLoad( 'z_field.xml' ); 
-r   = xmlLoad( 'farrot_totalREFERENCE.xml' );
+r   = xmlLoad( 'farrot.xml' );
 %
 n   = vmr(end,:)';
 
