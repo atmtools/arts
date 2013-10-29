@@ -15,14 +15,22 @@
 %    varying results are obtained when changing the IRI settings (such as
 %    longitude and UTC).
 %
-% FORMAT   [R,T,O,A] = demo_earth_ionosphere
+% FORMAT   [R,T,O,A] = demo_earth_ionosphere([workfolder])
 %
-% See *arts_radioocc_1D* for definition of the output arguemnts.
+% See *arts_radioocc_1D* for definition of the output arguements.
+%
+% OPT   workfolder   Default is to use a temporary folder for the
+%                    calculations. If you specify a folder with this
+%                    argument, you will find the control and data files in
+%                    this folder after the calculations are finished.
 
 % 2013-10-16   Created by Patrick Eriksson.
 
-function demo_earth_ionosphere
+function demo_earth_ionosphere(workfolder)
+%
+if nargin < 1, workfolder = []; end
 
+  
 % When we select tropical, we obtain free electrons for a low latitude 
 % (10N to be precise). This latitude is shifted if you switch Fascode
 % atmosphere. The longitude is selected by Q.LON_TRUE.
@@ -65,7 +73,7 @@ A.ABS_SPECIES(2).TAG{1} = 'O2';
 A.ABS_SPECIES(3).TAG{1} = 'H2O';
 A.ABS_SPECIES(4).TAG{1} = 'free_electrons';
 %
-R1 = arts_radioocc_1D( Q, O, A );
+R1 = arts_radioocc_1D( Q, O, A, workfolder );
 
 
 % Add an ionosphere, for low solar activity and night
@@ -81,7 +89,7 @@ A.iri_utc      = 0;
 % km. Seems too high and we use the option to crop!
 A.p_min        = z2p_simple( 1200e3 );
 %
-R2 = arts_radioocc_1D( Q, O, A );
+R2 = arts_radioocc_1D( Q, O, A, workfolder );
 
 
 % Switch to high solar activity and daytime
@@ -90,7 +98,7 @@ A.iri_sun      = 'max';
 A.iri_season   = 'winter';
 A.iri_utc      = 12;
 %
-R3 = arts_radioocc_1D( Q, O, A );
+R3 = arts_radioocc_1D( Q, O, A, workfolder );
 
 
 fac = 1000 * pi/180;

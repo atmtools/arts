@@ -5,13 +5,20 @@
 %    Bending angles and geometrical/length variables are calculated. See
 %    demo_earth_ro for a calculation involving attenuation quantities.
 %
-% FORMAT   [R,T,O,A] = demo_mars_ro
+% FORMAT   [R,T,O,A] = demo_mars_ro([workfolder])
 %
-% See *arts_radioocc_1D* for definition of the output arguemnts.
+% See *arts_radioocc_1D* for definition of the output arguements.
+%
+% OPT   workfolder   Default is to use a temporary folder for the
+%                    calculations. If you specify a folder with this
+%                    argument, you will find the control and data files in
+%                    this folder after the calculations are finished.
 
 % Patrick Eriksson 2013-10-16
 
-function [R,T,O,A] = demo_mars_ro
+function [R,T,O,A] = demo_mars_ro(workfolder)
+%
+if nargin < 1, workfolder = []; end
 
 %-------
 % O part
@@ -95,7 +102,7 @@ A.pmin         = 1e-99;           % Min pressure to consider. This value
 
 %- Perform calculation
 %
-[R,T] = arts_radioocc_1D( [], O, A );
+[R,T] = arts_radioocc_1D( [], O, A, workfolder );
 
 
 %- Plot results

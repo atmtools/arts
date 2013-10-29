@@ -6,13 +6,20 @@
 %    created automatically. The demo is slow as extensive line-by-line 
 %    calculations are involved.
 %
-% FORMAT   demo_venus_ro
+% FORMAT   demo_venus_ro([workfolder])
 %
-% See *arts_radioocc_1D* for definition of the output arguemnts.
+% See *arts_radioocc_1D* for definition of the output arguements.
+%
+% OPT   workfolder   Default is to use a temporary folder for the
+%                    calculations. If you specify a folder with this
+%                    argument, you will find the control and data files in
+%                    this folder after the calculations are finished.
 
 % Patrick Eriksson 2013-10-17
 
-function [R,T,O,A] = demo_venus_ro
+function [R,T,O,A] = demo_venus_ro(workfolder)
+%
+if nargin < 1, workfolder = []; end
 
 %-------
 % O part
@@ -112,7 +119,7 @@ end
 
 %- Perform calculation
 %
-[R,T] = arts_radioocc_1D( Q, O, A );
+[R,T] = arts_radioocc_1D( Q, O, A, workfolder );
 
 
 

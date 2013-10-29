@@ -22,13 +22,19 @@
 %       f0     Centre frequency of the calculation. Default is 552.2 GHz.
 %       df     Frequency width of the calculation. Default is 10 GHz.
 %       nf     Number of frequency points. Default is 10e3.
+%       workfolder   Default is to use a temporary folder for the
+%                    calculations. If you specify a folder with this
+%                    argument, you will find the control and data files 
+%                    (for Jupiter) in this folder after the calculations 
+%                    are finished.
 
 % 2013-10-22   Created by Patrick Eriksson.
 
 
 function [f,Y] = demo_planets_limbcomp(varargin)
 %
-[ztan,f0,df,nf] = optargs( varargin, { 50e3, 552.2e9, 10e9, 10e3 } );
+[ztan,f0,df,nf,workfolder] = optargs( varargin, ...
+                                          { 50e3, 552.2e9, 10e9, 10e3, [] } );
   
   
 % Settings for the different planets:
@@ -172,7 +178,7 @@ Q.SENSOR_LOS   = geomztan2za( Q.REFELLIPSOID(1), Q.SENSOR_POS, ztan );
 %
 Q = qarts_add_venus_planettbox( Av, Q, [] );
 %
-Y(:,1) = arts_y(Q);
+Y(:,1) = arts_y( Q, workfolder );
 %
 do_plot(f,Y)
 
@@ -188,7 +194,7 @@ Q.SENSOR_LOS   = geomztan2za( Q.REFELLIPSOID(1), Q.SENSOR_POS, ztan );
 %
 Q = qarts_add_fascode( Ae, Q, [] );
 %
-Y(:,2) = arts_y(Q);
+Y(:,2) = arts_y( Q, workfolder );
 %
 do_plot(f,Y)
 
@@ -204,7 +210,7 @@ Q.SENSOR_LOS   = geomztan2za( Q.REFELLIPSOID(1), Q.SENSOR_POS, ztan );
 %
 Q = qarts_add_mars_planettbox( Am, Q, [] );
 %
-Y(:,3) = arts_y(Q);
+Y(:,3) = arts_y( Q, workfolder );
 %
 do_plot(f,Y)
 
@@ -220,7 +226,7 @@ Q.SENSOR_LOS   = geomztan2za( Q.REFELLIPSOID(1), Q.SENSOR_POS, ztan );
 %
 Q = qarts_add_jupiter_planettbox( Aj, Q, [] );
 %
-Y(:,4) = arts_y(Q);
+Y(:,4) = arts_y( Q, workfolder );
 %
 do_plot(f,Y)
 

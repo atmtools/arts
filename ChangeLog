@@ -1,3 +1,15 @@
+2013-10-28  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-806
+
+	* controlfiles/planetary_toolbox/demos/passive/demo_planets_limbcomp.m:
+	* controlfiles/planetary_toolbox/demos/active/demo_mars_ro.m:
+	* controlfiles/planetary_toolbox/demos/active/demo_earth_ionosphere.m:
+	* controlfiles/planetary_toolbox/demos/active/demo_earth_ro.m:
+	* controlfiles/planetary_toolbox/demos/active/demo_venus_ro.m:
+	Added optional argument workfolder to all these functions, to make
+	it possible to extract control and data files from the run.
+
 2013-10-27  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-805

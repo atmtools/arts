@@ -12,13 +12,20 @@
 %    determined. If you just need bending angles, use *arts_radioocc_1D* for
 %    (much) faster calculations!
 %
-% FORMAT   [R,T,O,A] = demo_earth_ro
+% FORMAT   [R,T,O,A] = demo_earth_ro([workfolder])
 %
-% See *arts_radioocc_1D* for definition of the output arguemnts.
-
+% See *arts_radioocc_1D* for definition of the output arguements.
+%
+% OPT   workfolder   Default is to use a temporary folder for the
+%                    calculations. If you specify a folder with this
+%                    argument, you will find the control and data files in
+%                    this folder after the calculations are finished.
+ 
 % 2013-10-16   Created by Patrick Eriksson.
 
-function [R,T,O,A] = demo_earth_ro
+function [R,T,O,A] = demo_earth_ro(workfolder)
+%
+if nargin < 1, workfolder = []; end
   
 % When we select tropical, we obtain free electrons for a low latitude 
 % (10N to be precise). This latitude is shifted if you switch Fascode
@@ -75,7 +82,7 @@ A.iri_utc      = 0;
 A.p_min        = z2p_simple( 1200e3 );
 
 
-[R,T] = arts_radioocc_1D( Q, O, A );
+[R,T] = arts_radioocc_1D( Q, O, A, workfolder );
 
 
 %- Plot results
