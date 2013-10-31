@@ -1665,7 +1665,7 @@ void xsec_species_line_mixing_2nd_order(MatrixView               xsec_attenuatio
                     "data[7] is the first order phase correction temperature dependence exponent\n" << 
                     "data[8] is the second order attenuation correction temperature dependence exponent\n" << 
                     "data[9] is the second order frequency correction temperature dependence exponent";
-                    throw runtime_error(os.str());
+                    throw std::runtime_error(os.str());
                 }
                 
                 // First order phase correction
