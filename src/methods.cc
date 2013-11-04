@@ -9058,6 +9058,51 @@ void define_md_data_raw()
                "Maximum diameter vector (diameter of a sphere that fully encloses the particle)",
                "Frequency grid vector", "Temperature grid vector" )
       ));
+
+  md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "scat_meta_arrayAddTmatrixOldVersion" ),
+      DESCRIPTION
+      (
+       "This method adds particle meta data to the workspace variable\n"
+       "*scat_meta_array*.\n"
+       "\n"
+       "One set of meta data is created and added to the array for each\n"
+       "diameter in the GIN diamter_grid. The size of *scat_meta_array*\n"
+       "and hence the usage has been extended. For that reason, a short\n"
+       "summary below tells which input parameters are required for certain further\n"
+       "calculations.\n"
+       "\n"
+       "String[description]\t\tNot used for any particular calculations\n"
+       "String[material]\t\tNot used for any particular calculations\n"
+       "String[shape]\t\t\tUsed for scattering properties calculations\n"
+       "Numeric[particle_type]\t\tUsed for scattering properties calculations\n"
+       "Numeric[density]\t\tUsed for PSD calculations\n"
+       "Numeric[aspect_ratio]\t\tUsed for scattering properties calculations\n"
+       "Numeric[diameter_grid]\t\tUsed for both scattering properties and PSD calculations\n"
+       "Vector[scat_f_grid]\t\tUsed for scattering properties calculations\n"
+       "Vector[scat_T_grid]\t\tUsed for scattering properties calculations\n"
+       "Tensor3[complex_refr_index]\tUsed for scattering properties calculations\n"
+      ),
+      AUTHORS( "Johan Strandgren" ),
+      OUT("scat_meta_array"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "scat_meta_array", "complex_refr_index" ),
+      GIN( "description", "material", "shape", "particle_type", "density", 
+           "aspect_ratio", "diameter_grid", "scat_f_grid", "scat_T_grid" ),
+      GIN_TYPE( "String", "String", "String", "String", "Numeric", "Numeric",
+           "Vector", "Vector", "Vector" ),
+      GIN_DEFAULT( "", "undefined", NODEF, NODEF, "-999", NODEF, NODEF,
+                   NODEF, NODEF ),
+      GIN_DESC( "Particle description", "Water or Ice", "spheroidal or cylinder", 
+               "Particle Type: MACROS_ISO (20) or PARTICLE_TYPE_HORIZ_AL (30)", 
+               "Particle mass density",
+               "Particle aspect ratio (can differ between WSMs. Check the userguide)",
+               "equivalent diameter vector", "Frequency grid vector",
+               "Temperature grid vector" )
+      ));
     
   md_data_raw.push_back
     ( MdRecord

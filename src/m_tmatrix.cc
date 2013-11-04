@@ -221,3 +221,119 @@ void scat_data_arrayFromMeta(// WS Output:
     }
 }
 
+
+
+
+
+
+
+
+
+
+
+void scat_meta_arrayAddTmatrixOldVersion(// WS Output:
+                             ArrayOfScatteringMetaData& scat_meta_array,
+                             // WS Input:
+                             const GriddedField3& complex_refr_index,
+                             // WS Generic input:
+                             const String& description,
+                             const String& material,
+                             const String& shape,
+                             const String& particle_type,
+                             const Numeric& density,
+                             const Numeric& aspect_ratio,
+                             const Vector& diameter_grid,
+                             const Vector& scat_f_grid,
+                             const Vector& scat_T_grid,
+                             const Verbosity&) 
+
+{
+  for(Index k=0; k<diameter_grid.nelem(); k++)
+    {
+      extern const Numeric PI;
+
+      Numeric volume;
+      
+      volume=4./3.*PI*pow(diameter_grid[k]/2.,3);
+      
+      
+      Numeric diameter_max;
+
+      if (shape == "spheroidal")
+        {
+       if (aspect_ratio>1) // If oblate spheroid
+            {   
+            Numeric a; //rotational axis
+            
+            a=pow(3*volume*aspect_ratio/(4*PI), 1./3.);
+            diameter_max=2*a;
+            }
+        
+       else if (aspect_ratio<1) // If prolate spheroid
+            {  
+            Numeric b; //non-rotational axis (perpendicular to a)
+            
+            b=pow(3*volume/(4*PI*pow(aspect_ratio, 2)),1./3.);
+            diameter_max=2*b;
+            }
+        
+        else
+            {
+            ostringstream os;
+            os << "Incorrect aspect ratio: " << aspect_ratio << "\n"
+              << "Can not be equal to one";
+            throw std::runtime_error(os.str());
+            }
+        }
+      else if (shape == "cylindrical")
+        {
+            Numeric D;
+            Numeric L;
+            
+            //aspect_ratio=D/L
+            
+            D=pow(volume*4./PI*aspect_ratio, 1./3.);
+            L=D/aspect_ratio;
+            diameter_max=pow((pow(D,2)+pow(L,2)), 1./2.);
+         }
+
+      else
+        {
+          ostringstream os;
+          os << "Unknown particle shape: " << shape << "\n"
+            << "Must be spheroidal or cylindrical";
+          throw std::runtime_error(os.str());
+        }
+
+      ScatteringMetaData smd;
+      if (description=="")
+        {   
+          ostringstream os;
+          os << shape<< " "<< material << " particle of type " << particle_type<<
+            ", with volume equivalent diameter "
+            <<diameter_grid[k]<<" meters.";
+          smd.description=os.str();
+        }
+      else 
+        smd.description = description;
+ 
+      smd.material = material;
+      smd.shape = shape;
+      smd.particle_type = ParticleTypeFromString(particle_type);
+      smd.ssd_method = PARTICLE_SSDMETHOD_TMATRIX;
+      smd.density = density;
+      smd.diameter_max =diameter_max;
+      smd.volume = volume;
+      smd.area_projected = 0;
+      smd.aspect_ratio = aspect_ratio;
+      smd.scat_f_grid = scat_f_grid;
+      smd.scat_T_grid = scat_T_grid;
+      smd.complex_refr_index = complex_refr_index;
+
+      scat_meta_array.push_back(smd);
+    }
+}
+
+//-----------------------------------
+
+

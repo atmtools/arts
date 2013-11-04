@@ -1,14 +1,25 @@
+2013-11-04  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-809
+
+	* src/optproperties.cc (ParticleTypeFromString): The option
+	macroscopically_isotropic was not included in error message.
+
+	* src/m_tmatrix.cc (scat_meta_arrayAddTmatrixOldVersion): As a
+	temporary solution, extracted the version from arts-2-1-754 and
+	gave it this name.
+
 2013-10-31  Richard Larsson   <ric.larsson@gmail.com>
 
 	* arts-2-1-808
-	
-	* doc/uguide/absorption.tex:  Added a warning about using HITRAN04 
+
+	* doc/uguide/absorption.tex:  Added a warning about using HITRAN04
 	and HITRAN08 in conjunction with line mixing.  There appears to be
 	some quantum coding error in the older versions of HITRAN that causes
 	the line mixing data to be matched with the wrong lines.  Recommended
 	solution is to use HITRAN2012.  I am presently uncertain how/where to
 	warn the user in ARTS about this issue.
-	
+
 2013-10-29  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-807

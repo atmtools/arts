@@ -1038,7 +1038,8 @@ ParticleType ParticleTypeFromString(const String& particle_type_string)
     {
         ostringstream os;
         os << "Unknown particle type: " << particle_type_string << endl
-        << "Valid types: general, macroscopically_isotropic, spherical";
+           << "Valid types are: general, macroscopically_isotropic, "
+           << "horizontally_aligned and spherical.";
         throw std::runtime_error(os.str());
     }
 
