@@ -1,0 +1,208 @@
+#
+# Full RT case for Mars
+# - monochromatic pencil beam for selection of viewing angles (incl. limb)
+# - basic clear-sky (no particles, no magfield, no winds)
+# - no refraction
+# - blackbody surface
+# - atmospheric scenario and abs_species selection handled by INCLUDE file
+#
+# FIXME: proper description
+#
+# To be done/checked/fixed:
+# - more sophisticated surface setup. allow for choices.
+# - viewing angle setup (limb/nadir separately? or all together is ok?)
+# - revise structure (put user settings to one place, if possible)
+# - some (nice(r)) way to specify aux output(?)
+#
+# - version with refraction
+# - version with wind
+# - version with particles/scattering
+# - version with stokes=4 & Faraday(?)
+#
+# D CIA agendas without CIA species? works! :-)
+#
+# 2013-11-15 Jana Mendrok
+
+Arts2 {
+INCLUDE "general/general.arts"
+INCLUDE "general/continua.arts"
+INCLUDE "general/agendas.arts"
+INCLUDE "general/planet_mars.arts"
+
+
+# some basic RT settings: scalar RT with Planck-Tb output
+#####
+IndexSet( stokes_dim, 1 )
+StringSet( iy_unit, "PlanckBT" )
+
+# monochromatic frequency grid
+#####
+VectorLinSpace( f_grid, 320e9, 335e9, 10e6 )
+WriteXML( in=f_grid )
+
+
+# definition of atmosphere (which scenario, which absorption species, ...
+#  - use a copy of DemoMarsAtmo1D.arts adapted to your needs/wishes
+#  - provides as output: atmosphere_dim (1D), abs_species , p_grid, z/t/vmr_field,
+#     wind_w_field (if switched on in adaptation of DemoMarsAtmo1D.arts)
+#####
+INCLUDE "planetary_toolbox/demos/passive/My-Version-Of-DemoMarsAtmo1D.arts"
+WriteXML( in=abs_species )
+
+
+
+# sensor specification: LOS zenith angle and altitude
+NumericCreate( obsh )
+NumericSet( obsh, 450e3 )
+
+VectorCreate( allzang )
+VectorSet( allzang, [180.] )
+
+VectorCreate( tanh )
+VectorSet( tanh, [5., 4.e3, 10.e3, 12.e3, 20.e3, 40.e3, 60.e3] ) #note: our Mars surface is at 5m!
+
+VectorCreate( zang )
+IndexCreate( ntanh )
+nelemGet( ntanh, tanh )
+MatrixSetConstant( sensor_pos, ntanh, 1, obsh )
+VectorZtanToZa1D( zang, sensor_pos, refellipsoid, atmosphere_dim, tanh )
+Append( allzang, zang )
+WriteXML( in=allzang )
+#Matrix1ColFromVector( sensor_los, allzang )
+#nrowsGet( itmp, sensor_los )
+#MatrixSetConstant( sensor_pos, itmp, 1, obsh )
+VectorSetConstant( rte_pos, 1, obsh )
+VectorSet( rte_pos2, [] )
+
+
+
+# setting agendas needed for RT calc (there are alternative settings, though)
+#####
+Copy( iy_main_agenda, iy_main_agenda__Emission )
+Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
+Copy( blackbody_radiation_agenda, blackbody_radiation_agenda__Planck )
+Copy( iy_space_agenda, iy_space_agenda__CosmicBackground )
+Copy( iy_surface_agenda, iy_surface_agenda__UseSurfaceRtprop )
+
+# geometric path calculation (no refraction considered)
+Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
+
+# for abs.coeffs prepare & use a lookup table; for CIA allow temperature extrapolation 
+Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__LookUpTable )
+Copy( abs_xsec_agenda, abs_xsec_agenda__withCIAextraT )
+
+
+
+# for the selected abs_species and atmospheric scenario, now calculate the
+#  absorption lookup table
+#####
+ReadXML( abs_cia_data, "spectroscopy/cia/hitran2011/hitran_cia2012_adapted.xml.gz" )
+abs_linesReadFromSplitArtscat( basename="spectroscopy/Perrin/", fmin=0, fmax=4e12 )
+abs_lines_per_speciesCreateFromLines
+abs_lookupSetup
+abs_xsec_agenda_checkedCalc
+abs_lookupCalc
+# if you want to keep the absLUT data for later use or analysis, uncomment:
+#WriteXML( in=abs_lookup )
+
+
+# surface settings
+#  - for now we just take a blackbody surface at the very bottom of the atmosphere
+#  and of atmospheric temperature
+#  - more complex setups to be implemented in a next step
+#####
+Extract( z_surface, z_field, 0 )
+Extract( t_surface, t_field, 0 )
+
+Copy( surface_rtprop_agenda, surface_rtprop_agenda__Blackbody_SurfTFromt_field )
+
+#VectorSet( lat_true, [0.] )
+#VectorSet( lon_true, [180.] )
+
+#GriddedField2Create( gf2tmp )
+#ReadXML( gf2tmp, tsurfname )
+#GriddedFieldLatLonRegrid( out=gf2tmp, in=gf2tmp )
+#FieldFromGriddedField( out=t_surface, in=gf2tmp )
+
+#Copy( casename, basename )
+#Append( casename, risurfname )
+#GriddedField5Create( ri_surface )
+#ReadXML( ri_surface, casename )
+
+#AgendaSet( surface_rtprop_agenda )
+#{
+#   specular_losCalc
+#   InterpSurfaceFieldToPosition( out=surface_skin_t, field=t_surface )
+#   surface_complex_refr_indexFromGriddedField5( complex_refr_index_field=ri_surface )
+#   surfaceFlatRefractiveIndex
+#} 
+
+
+# Define auxiliary data output we want to have
+#ArrayOfStringSet( iy_aux_vars,  
+#    [ "Pressure", 
+#      "Temperature", 
+#      "Absorption, summed", 
+#      "Absorption, species 0",
+#      "Absorption, species 1",
+#      "Absorption, species 2",
+#      "Absorption, species 3",
+#      "Absorption, species 4",
+#      "Absorption, species 5",
+#      "Absorption, species 6",
+#      "Absorption, species 7",
+#      "Absorption, species 8",
+#      "Absorption, species 9",
+#      "Absorption, species 10",
+#      "Absorption, species 11",
+#      "Absorption, species 12",
+#      "Absorption, species 13",
+#      "Absorption, species 14",
+#      "Absorption, species 15",
+#      "Absorption, species 16",
+#      "Absorption, species 17",
+#      "Absorption, species 18",
+#      "iy", 
+#      "Transmission",
+#      "Optical depth" ] )
+
+
+
+
+
+# no scattering, no jacobian
+#####
+jacobianOff
+cloudboxOff
+
+# the checks necessary for full RT calc
+#####
+atmfields_checkedCalc
+atmgeom_checkedCalc
+cloudbox_checkedCalc
+abs_xsec_agenda_checkedCalc
+propmat_clearsky_agenda_checkedCalc 
+
+
+# and the (clearsky) RT calc
+#####
+NumericCreate( za )
+AgendaCreate( forloop_agenda_angles )
+AgendaSet( forloop_agenda_angles )
+{
+  Extract( za, allzang, forloop_index )
+  rte_losSet( za=za, aa=za )
+  Print( rte_los, 0 )
+  iyCalc
+  WriteXMLIndexed( in=iy, file_index=forloop_index )
+#  WriteXMLIndexed( in=iy_aux, file_index=forloop_index )
+}
+
+IndexCreate( nangles )
+nelemGet( nangles, allzang )
+IndexStepDown( nangles, nangles )
+Copy( forloop_agenda, forloop_agenda_angles )
+ForLoop( forloop_agenda, 0, nangles, 1  )
+
+
+}

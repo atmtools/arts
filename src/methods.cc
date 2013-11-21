@@ -490,7 +490,7 @@ void define_md_data_raw()
          "WWW access of the HITRAN catalogue: http://www.hitran.com/\n"
          "\n"
          "For data in the Hitran 1986-2001 format use the workspace\n"
-         "method: abs_linesReadFromHitranPre2004\n"
+         "method *abs_linesReadFromHitranPre2004*\n"
          ),
         AUTHORS( "Hermann Berg", "Thomas Kuhn" ),
         OUT( "abs_lines" ),
@@ -3913,7 +3913,7 @@ void define_md_data_raw()
       ( NAME( "Extract" ),
         DESCRIPTION
         (
-         "Extract an element from an array.\n"
+         "Extracts an element from an array.\n"
          "\n"
          "Copies the element with the given Index from the input\n"
          "variable to the output variable.\n"
@@ -6436,6 +6436,32 @@ void define_md_data_raw()
         GIN_TYPE(    "Vector" ),
         GIN_DEFAULT( NODEF    ),
         GIN_DESC( "Frequency vector." )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "MatrixExtractFromTensor3" ),
+        DESCRIPTION
+        (
+         "Extracts a Matrix from a Tensor3.\n"
+         "\n"
+         "Copies page or row or column with given Index from input Tensor3\n"
+         "variable to output Matrix.\n"
+         "Higher order equivalent of *VectorExtractFromMatrix*.\n"
+         ),
+        AUTHORS( "Jana Mendrok" ),
+        OUT(),
+        GOUT(      "out"      ),
+        GOUT_TYPE( "Matrix" ),
+        GOUT_DESC( "Extracted matrix." ),
+        IN(),
+        GIN(          "in"     , "i"    , "direction" ),
+        GIN_TYPE(     "Tensor3", "Index", "String"    ),
+        GIN_DEFAULT(  NODEF   , NODEF  , NODEF       ),
+        GIN_DESC( "Input matrix.",
+                  "Index of page or row or column to extract.",
+                  "Direction. \"page\" or \"row\" or \"column\"." 
+                  )
         ));
 
   md_data_raw.push_back
@@ -10765,7 +10791,7 @@ void define_md_data_raw()
       ( NAME( "VectorExtractFromMatrix" ),
         DESCRIPTION
         (
-         "Extract a Vector from a Matrix.\n"
+         "Extracts a Vector from a Matrix.\n"
          "\n"
          "Copies row or column with given Index from input Matrix variable\n"
          "to create output Vector.\n"

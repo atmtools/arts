@@ -1,3 +1,21 @@
+2013-11-21  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-1-810
+
+	* controlfiles/planetary_toolbox/demos/passive/fullRT_Mars.arts,
+	My-Version-Of-DemoMarsAtmo1D.arts:
+	Added. A first simple demo for full passive planetary RT calc.
+
+	* controlfiles/planetary_toolbox/DemoMarsAtmo1D.arts,
+	controlfiles/planetary_toolbox/demos/passive/demo_planets_limbcomp.m:
+	Minor layout and spell fixes.
+
+	* src/m_batch.cc, methods.cc (MatrixExtractFromTensor3):
+	Introduced this WSM for matrix from tensor3 extraction, i.e. for getting
+	a slice in whatever dimension out of a tensor3. Equivalent to
+	VectorExtractFromMatrix. (Would be nicer, though, if we had a common
+	method for extracting TensorN-1 out of TensorN...).
+
 2013-11-04  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-809
@@ -200,7 +218,7 @@
 
 	(AtmFieldsCalc): Added GIN vmr_nonegative.
 
- 	(AtmFieldsCalcExpand1D): Adopted to change above.
+	(AtmFieldsCalcExpand1D): Adopted to change above.
 
 	* controlfiles/planetary_toolbox/demos/active/demo_venus_ro.m:
 	Now all test settings removed. Now final!?!?

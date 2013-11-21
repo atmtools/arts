@@ -141,6 +141,70 @@ void VectorExtractFromMatrix(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void MatrixExtractFromTensor3(
+      // WS Generic Output:
+      Matrix&          m,
+      // WS Input:
+      // WS Generic Input:
+      const Tensor3&    t3,
+      const Index&     index,
+      // Control Parameters:
+      const String& direction,
+      const Verbosity&)
+{
+  if (direction=="page")
+    {
+      if( index >= t3.npages() )
+        {
+          ostringstream os;
+          os << "The index " << index 
+             << " is outside the page range of the Matrix.";
+          throw runtime_error( os.str() );
+
+        }
+
+      m.resize( t3.nrows(), t3.ncols() );
+      m = t3( index, joker, joker );
+    }
+  else if (direction=="row")
+    {
+      if( index >= t3.nrows() )
+        {
+          ostringstream os;
+          os << "The index " << index 
+             << " is outside the row range of the Matrix.";
+          throw runtime_error( os.str() );
+
+        }
+
+      m.resize( t3.npages(), t3.ncols() );
+      m = t3( joker, index, joker );
+    }
+  else if (direction=="column")
+    {
+      if( index >= t3.ncols() )
+        {
+          ostringstream os;
+          os << "The index " << index 
+             << " is outside the column range of the Matrix.";
+          throw runtime_error( os.str() );
+
+        }
+
+      m.resize( t3.npages(), t3.nrows() );
+      m = t3( joker, joker, index );
+    }
+  else
+    {
+      ostringstream os;
+      os << "Keyword *direction* must be either *page* or *row* or *column*,"
+         << "but you gave: " << direction << ".";
+      throw runtime_error( os.str() );
+    }
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void ybatchCalc(Workspace&      ws,
                 // WS Output:
                 ArrayOfVector&         ybatch,

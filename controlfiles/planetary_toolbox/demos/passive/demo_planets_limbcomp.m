@@ -81,7 +81,7 @@ Am.solar        = 2;               % Solar activity
 Am.basespecies  = [ 0:2 4:15 ];
 Am.ch4species   = 1;               % Standard CH4
 Am.h2ospecies   = 1;               % Include all water as one species
-Am.Necase       = [];              % Free elctrons anyhow ignored
+Am.Necase       = [];              % Free electrons anyhow ignored
 Am.interp_order = 1;               % Linear interpolation of fields (higher
 %                                    values risky)
 Am.pmin         = 1e-3;            % This crops around 100 km

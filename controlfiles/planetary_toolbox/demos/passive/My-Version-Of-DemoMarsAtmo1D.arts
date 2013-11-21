@@ -114,7 +114,7 @@ NumericSet( pmax, 1e99 )
 
 # Season: (northern) spring (Ls0), summer (Ls90), fall (Ls180), winter (Ls270)
 #                       0        ,    1         ,   2         ,    3
-IndexSet( Ls, 2 )
+IndexSet( Ls, 3 )
 
 # Daytime: day, night
 #           0 ,   1
@@ -148,7 +148,7 @@ IndexSet( solar, 1 )
 #    0,  1 ,      2     ,      3     ,  4,   5 ,  6 ,  7 ,  8,  9 ,10, 11, ...
 # ... O3, OCS, OH, SO2
 # ... 12,  13, 14,  15
-ArrayOfIndexSet( basespecies, [0, 1, 7, 9, 12, 15] )
+ArrayOfIndexSet( basespecies, [0, 11, 1, 2, 5, 12] )
 
 
 # Species with sub-scenarios
@@ -160,7 +160,7 @@ ArrayOfIndexSet( basespecies, [0, 1, 7, 9, 12, 15] )
 ### CH4: low, standard
 #         0 ,    1   
 # select UP TO ONE
-ArrayOfIndexSet( ch4species, [1] )
+ArrayOfIndexSet( ch4species, [] )
 
 # Electron density: depending on solar zenith angle.
 # NOTE that SZA<90 are only available for day data, SZA>90 for night data
@@ -170,7 +170,7 @@ ArrayOfIndexSet( ch4species, [1] )
 ### SZA0-30, SZA30-50, SZA50-70, SZA70-90, SZA120-180
 #         0,        1,        2,        3,          4
 # select UP TO ONE
-ArrayOfIndexSet( Necase, [4] )
+ArrayOfIndexSet( Necase, [] )
 
 
 # Select species with separate isotopologue profiles available
@@ -182,7 +182,7 @@ ArrayOfIndexSet( Necase, [4] )
 ### H2O: HDO (162), all (remaining)
 #          0      ,   1
 # select as many AS YOU WANT, but 'all' index has to be in LAST position
-ArrayOfIndexSet( h2ospecies, [1] )
+ArrayOfIndexSet( h2ospecies, [0,1] )
 
 
 ################################################################################
