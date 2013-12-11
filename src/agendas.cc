@@ -67,6 +67,9 @@ void define_agenda_data()
         "\n"
         "The methods inside this agenda may require a lot of additional\n"
         "input variables, such as *abs_species*, etc.\n"
+        "\n"
+        "The include file 'agendas.arts' predefines some possible agendas\n"
+        "that can be used here.\n"
         ),
        OUTPUT( "propmat_clearsky" ),
        INPUT(  "f_grid", "rtp_mag", "rtp_los", "rtp_pressure", 
@@ -93,6 +96,9 @@ void define_agenda_data()
        "The only kind of absorption tag not handled here are Zeeman tags\n"
        "and free electron density tags, because they need additional input\n"
        "and because they return an absorption matrix, rather than a scalar.\n"
+       "\n"
+       "The include file 'agendas.arts' predefines a number of agendas that\n"
+       "should be useful for most users.\n"
        ),
       OUTPUT( "abs_xsec_per_species" ),
       INPUT(  "abs_species", "abs_species_active",
@@ -107,6 +113,9 @@ void define_agenda_data()
         "\n"
         "The task of this agenda is to return *blackbody_radiation* for the\n"
         "given temperature (*rtp_temperature*).\n"
+        "\n"
+        "The include file 'agendas.arts' predefines an agenda that can be\n"
+        "used here.\n"
         ),
        OUTPUT( "blackbody_radiation" ),
        INPUT( "rtp_temperature", "f_grid" )));
@@ -308,6 +317,9 @@ void define_agenda_data()
         "A function calling this agenda shall set *rte_pos* and *rte_los* to\n"
         "the position and line-of-sight for which the scattered radiation\n"
         "shall be determined.\n"
+        "\n"
+        "The include-file 'agendas.arts' pre-defines some agendas that can\n"
+        "either be used directly, or serve as examples.\n"
         ),
        OUTPUT( "iy" ),
        INPUT( "f_grid", "rtp_pos", "rtp_los" )));
@@ -326,6 +338,9 @@ void define_agenda_data()
         "Methods for this agenda can either handle the complete calculation,\n"
         "make use of e.g. *iy_cloudbox_agenda* or be restricted to special\n"
         "cases. See the documentation for the different methods.\n"
+        "\n"
+        "The include-file 'agendas.arts' predefines some typical alternatives\n"
+        "that can be used directly, or adapted for specific applications.\n"
         ),
        OUTPUT( "iy", "iy_aux", "ppath", "diy_dx" ),
        INPUT( "iy_agenda_call1", "iy_transmission", "iy_aux_vars",
@@ -346,6 +361,9 @@ void define_agenda_data()
         "the position and line-of-sight for which the entering radiation \n"
         "shall be determined. The position and line-of-sight must be known, \n"
         "for example, when radiation from the sun is considered.\n"
+        "\n"
+        "The include-file 'agendas.arts' predefines an agenda that can be\n"
+        "applied directly for most users.\n"
         ),
        OUTPUT( "iy" ),
        INPUT( "f_grid", "rtp_pos", "rtp_los" )));
@@ -385,6 +403,9 @@ void define_agenda_data()
         "A function calling this agenda shall set *rtp_pos* and *rtp_los* to\n"
         "the position and line-of-sight for which the upwelling radiation\n"
         "shall be determined.\n"
+        "\n"
+        "See also the include-file 'agendas.arts' for a predefined agenda\n"
+        "suitable to be used in most applications.\n"
         ),
        OUTPUT( "iy", "diy_dx" ),
        INPUT( "iy_transmission", "cloudbox_on", 
@@ -402,6 +423,9 @@ void define_agenda_data()
         "path for calculations of transmission type. That is, the agenda\n"
         "describes a transmitter, which either can be a natural source or\n"
         "an artificial device.\n"
+        "\n"
+        "The include-file 'agendas.arts' defines an example agenda that\n"
+        "can be used for transmission calculations\n"
         ),
        OUTPUT( "iy" ),
        INPUT( "f_grid", "rtp_pos", "rtp_los" )));
@@ -536,6 +560,9 @@ void define_agenda_data()
         "The WSV *rte_los* is both input and output as in some cases it is\n"
         "determined as part of the propagation path calculations (such as for"
         "for radio link calculations).\n"
+        "\n"
+        "The include file 'agendas.arts' predefines some agendas that can\n"
+        "either be used directly, or serve as inspiration.\n"
         ),
        OUTPUT( "ppath" ),
        INPUT( "ppath_lraytrace", "rte_pos", "rte_los", "rte_pos2",
@@ -583,6 +610,9 @@ void define_agenda_data()
         "additional points to fulfil some criterion, such as a maximum \n"
         "distance along the path between the points. Accordingly, the \n"
         "number of new points of each step can exceed one.\n"
+        "\n"
+        "The include file 'agendas.arts' defines some agendas that can be\n"
+        "used here."
         ),
        OUTPUT( "ppath_step" ),
        INPUT( "ppath_step", "ppath_lraytrace", "t_field", "z_field", 
@@ -598,6 +628,9 @@ void define_agenda_data()
         "This agenda should calculate the summed refractive index for all\n"
         "relevant atmospheric constituents, with respect to both phase and\n"
         "group velocity.\n"
+        "\n"
+        "The include file 'agendas.arts' predefines several agendas that\n"
+        "may either be used directly, or serve as inspiration.\n"
         ),
        OUTPUT( "refr_index_air", "refr_index_air_group" ),
        INPUT(  "rtp_pressure", "rtp_temperature", "rtp_vmr", "f_grid" )));

@@ -1,3 +1,24 @@
+2013-12-11  Gerrit Holl  <gerrit.holl@ltu.se>
+
+	* arts-2-1-811
+
+	* src/agendas.cc: Point to include file 'agendas.arts' that should be
+	useful for most users.
+
+	* src/methods.cc: Fix typo.
+
+	* controlfiles/instruments/smr/ici.arts,
+	controlfiles/instruments/amsu/mwi.arts,
+	controlfiles/instruments/amsu/mws.arts: Added reference setups for
+	ICI, MWI, MWS (all include 183-GHz channels).  MWI and MWS need some
+	tuning before use, in particular regarding the frequency grid spacing
+	for the lower frequencies, where I don't know good values.
+
+	* doc/uguide/formalism.tex: Fix typo.
+
+	* doc/uguide/concept.tex: Tell user that general.arts can be nice to
+	look at.
+
 2013-11-21  Jana Mendrok  <jana.mendrok@ltu.se>
 
 	* arts-2-1-810
