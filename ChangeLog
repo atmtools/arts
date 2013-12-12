@@ -1,10 +1,18 @@
+2013-12-12  Gerrit Holl  <gerrit.holl@smhi.se>
+
+	* arts-2-1-813
+
+	* controlfiles/general/agendas.arts: Fix small typo in comment
+
+	* controlfiles/instruments/smr/ici.arts: Set instrument geometry
+
 2013-12-12  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-812
 
 	* CMakeLists.txt: Bump cmake requirement to 2.8.0.
 
-2013-12-11  Gerrit Holl  <gerrit.holl@ltu.se>
+2013-12-11  Gerrit Holl  <gerrit.holl@smhi.se>
 
 	* arts-2-1-811
 

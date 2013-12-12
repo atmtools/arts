@@ -66,7 +66,7 @@ AgendaSet( iy_space_agenda__CosmicBackground ){
 
 
 ##################################
-#    iy_space_agenda
+#    iy_transmitter_agenda
 ##################################
 
 ###
@@ -272,7 +272,7 @@ AgendaSet( abs_xsec_agenda__withCIA ){
 
 
 ###
-# With CIA and sufficient temperture extrpolation
+# With CIA and sufficient temperture extrapolation
 #
 AgendaCreate( abs_xsec_agenda__withCIAextraT )
 AgendaSet( abs_xsec_agenda__withCIAextraT ){
