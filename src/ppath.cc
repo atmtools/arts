@@ -4166,8 +4166,8 @@ void raytrace_2d_linear_basic(
       else
         {
           do_gridcell_2d_byltest( r_v, lat_v, za_v, lstep, endface, r, lat, za,
-                                  -1, 0, ppc_step, -1, lat1, lat3, r1a, r3a, 
-                                  r3b, r1b, rsurface1, rsurface3 );
+                                  lraytrace, 0, ppc_step, -1, lat1, lat3, 
+                                  r1a, r3a, r3b, r1b, rsurface1, rsurface3 );
         }
       assert( r_v.nelem() == 2 );
 

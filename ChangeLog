@@ -1,3 +1,11 @@
+2013-12-15  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-814
+
+	* src/ppath.cc (raytrace_2d_linear_basic): Had missed to set
+	l_start to lraytrace when calling do_gridcell_2d_byltest, as done
+	for the corresponding 3d function in arts-2-1-402.
+
 2013-12-12  Gerrit Holl  <gerrit.holl@smhi.se>
 
 	* arts-2-1-813
