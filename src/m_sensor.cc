@@ -844,7 +844,7 @@ void sensor_responseAntenna(// WS Output:
     
   }
   //
-  // Check if the relative grid added to the antena_los za angles
+  // Check if the relative grid added to the antenna_los za angles
   // outside sensor_response_za_grid.
   //
   Numeric za_dlow  = 0.0;
@@ -928,6 +928,8 @@ void sensor_responseAntenna(// WS Output:
   if (error_found)
     throw runtime_error(os.str());
 
+  // And finally check if grids and data size match
+  antenna_response.checksize_strict();
 
 
   // Call the core function 

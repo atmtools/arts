@@ -168,14 +168,14 @@ void antenna1d_matrix(
               if( n_ar_f > 1 )
                 {
                   // Interpolation (do this in "green way")
-                  ArrayOfGridPos gp_f( 1 ), gp_za(n_za);
+                  ArrayOfGridPos gp_f( 1 ), gp_za(n_ar_za);
                   gridpos( gp_f, aresponse_f_grid, Vector(1,f_grid[f]) );
                   gridpos( gp_za, aresponse_za_grid, aresponse_za_grid );
-                  Tensor3 itw( 1, n_za, 4 );
+                  Tensor3 itw( 1, n_ar_za, 4 );
                   interpweights( itw, gp_f, gp_za );
-                  Matrix aresponse_matrix(1,n_za);
+                  Matrix aresponse_matrix(1,n_ar_za);
                   interp( aresponse_matrix, itw, 
-                          antenna_response.data(ip,joker,joker,0), gp_f, gp_za );
+                         antenna_response.data(ip,joker,joker,0), gp_f, gp_za );
                   aresponse = aresponse_matrix(0,joker);
                 }
               else if( pol_step )   // Response changes with polarisation

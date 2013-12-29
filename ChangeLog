@@ -1,3 +1,13 @@
+2013-12-29  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-815
+
+	* src/sensor.cc (antenna1d_matrix): Wrong size variable used for
+	interpolation of aresponse_za_grid: n_za replaced by n_ar_za
+
+	* src/m_sensor.cc (sensor_responseAntenna): Added call of
+	antenna_response.checksize_strict(). This check was missing.
+
 2013-12-15  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-814
