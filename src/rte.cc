@@ -1792,22 +1792,12 @@ void get_ppath_trans(
       // to identity matrix.
       if( ip == 0 )
         { 
-#if !(__APPLE__) || (__INTEL_COMPILER)
-#pragma omp parallel for \
-  if (!arts_omp_in_parallel() \
-      && nf >= arts_omp_get_max_threads())
-#endif
           for( Index iv=0; iv<nf; iv++ )
             { id_mat( trans_cumulat(iv,joker,joker,ip) ); }
         }
 
       else
         {
-#if !(__APPLE__) || (__INTEL_COMPILER)
-#pragma omp parallel for \
-  if (!arts_omp_in_parallel() \
-      && nf >= arts_omp_get_max_threads())
-#endif
           for( Index iv=0; iv<nf; iv++ )
             {
               // Transmission due to absorption

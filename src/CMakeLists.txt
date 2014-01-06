@@ -329,6 +329,13 @@ target_link_libraries (test_integration matpack)
 
 ########### next testcase ###############
 
+add_executable (test_omp
+  test_omp.cc)
+
+target_link_libraries (test_omp artscore methods matpack)
+
+########### next testcase ###############
+
 add_executable (test_poly poly_roots.h poly_roots.cc test_poly.cc)
 target_link_libraries (test_poly matpack)
 

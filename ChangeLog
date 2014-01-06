@@ -1,3 +1,42 @@
+2013-12-12  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-816
+
+	* OpenMP performance improvements.
+
+	* rte.cc (get_ppath_trans):
+
+	Remove parallelization.
+
+	Performance breaks down if threads > 4. This behavior is consistent
+	with different compiler versions on different operating systems and
+	machines. It can lead to deadlocking. OdinSMR test case with 32
+	threads sometimes never finishes. For explanation see below.
+
+	* src/test_omp.cc, src/CMakeLists.txt:
+
+	Add testcase to illustrate performance impact of 'nested' OpenMP loops.
+
+	Case 1): Runtime without #pragma omp in outer loop.
+
+	Case 2): Runtime with #pragma omp if (0) in outer loop, still only
+	the inner loop will run in parallel exactly as before.
+
+	(1) Laptop 8 threads:  6.3s
+	(2) Laptop 8 threads: 22.1s
+
+	(1) Server 8 threads:  3.2s (CPU Load 700-800%)
+	(2) Server 8 threads: 36.3s (CPU Load only 300%)
+
+	This is a quirk with OpenMP. When the program starts, OpenMP creates X
+	threads (X=8 in the test above). In case (1), these threads will be used
+	for parallelizing the inner loop.
+	However, in case (2), even though the outer loop runs sequentially due
+	to the if (0) condition, OpenMP cannot use the already existing 8
+	threads for the inner loop. Every time it enters the inner loop, it
+	has to create 8 new threads. As creating threads is very expensive,
+	this leads to the seen drop in performance.
+
 2013-12-29  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-815
