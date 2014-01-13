@@ -770,6 +770,10 @@ void sensor_checkedCalc(
 
   // Sensor aux variables
   //
+  if( antenna_dim==1 && sensor_response_aa.nelem() )
+    throw runtime_error( "If *antenna_dim* is 1, *sensor_response_aa* must "
+                         "be empty." );
+
   if( n1y != sensor_response_f.nelem()  || n1y != sensor_response_pol.nelem() ||
       n1y != sensor_response_za.nelem() || 
       ( antenna_dim==2 && n1y != sensor_response_aa.nelem() ) )
