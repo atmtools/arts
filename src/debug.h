@@ -44,10 +44,24 @@
   std::cerr << "DBG: " << #n << ": " << ++n << std::endl; \
 }
 
-// Print expression for debug
+// Print value of expression for debugging
 #define DEBUG_PRINT(e) \
 { \
+  std::cerr << "DBG: " << (e) << std::endl; \
+}
+
+// Print expression and value for debugging
+#define DEBUG_VAR(e) \
+{ \
   std::cerr << "DBG: " << #e << ": " << (e) << std::endl; \
+}
+
+// Print expression and value with the given fp precision for debugging
+#define DEBUG_VAR_FLT(p, e) \
+{ \
+  std::streamsize old_p = std::cerr.precision(); \
+  std::cerr << "DBG: " << #e << ": " << std::setprecision(p) \
+  << (e) << std::endl << std::setprecision(old_p); \
 }
 
 #else
@@ -57,6 +71,10 @@
 #define DEBUG_COUNTER(n)
 
 #define DEBUG_PRINT(e)
+
+#define DEBUG_VAR(e)
+
+#define DEBUG_VAR_FLT(p, e)
 
 #endif /* NDEBUG */
 

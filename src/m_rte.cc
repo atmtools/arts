@@ -1465,7 +1465,114 @@ void iy_auxFillParticleVariables(
 }
 
 
+void yCalc_mblock_loop_body(
+         bool&                       failed,
+         String&                     fail_msg,
+         ArrayOfArrayOfVector&       iyb_aux_array,
+         Workspace&                  ws,
+         Vector&                     y,
+         Vector&                     y_f,
+         ArrayOfIndex&               y_pol,
+         Matrix&                     y_pos,
+         Matrix&                     y_los,
+         Matrix&                     jacobian,
+   const Index&                      atmosphere_dim,
+   const Tensor3&                    t_field,
+   const Tensor3&                    z_field,
+   const Tensor4&                    vmr_field,
+   const Index&                      cloudbox_on,
+   const Index&                      stokes_dim,
+   const Vector&                     f_grid,
+   const Matrix&                     sensor_pos,
+   const Matrix&                     sensor_los,
+   const Matrix&                     transmitter_pos,
+   const Vector&                     mblock_za_grid,
+   const Vector&                     mblock_aa_grid,
+   const Index&                      antenna_dim,
+   const Sparse&                     sensor_response,
+   const Vector&                     sensor_response_f,
+   const ArrayOfIndex&               sensor_response_pol,
+   const Vector&                     sensor_response_za,
+   const Vector&                     sensor_response_aa,
+   const Agenda&                     iy_main_agenda,
+   const Agenda&                     jacobian_agenda,
+   const Index&                      jacobian_do,
+   const ArrayOfRetrievalQuantity&   jacobian_quantities,
+   const ArrayOfArrayOfIndex&        jacobian_indices,
+   const ArrayOfString&              iy_aux_vars,
+   const Verbosity&                  verbosity,
+   const Index&                      mblock_index,
+   const Index&                      n1y,
+   const Index&                      j_analytical_do)
+{
+    try
+    {
+        // Calculate monochromatic pencil beam data for 1 measurement block
+        //
+        Vector          iyb, iyb_error, yb(n1y);
+        ArrayOfMatrix   diyb_dx;
+        //
+        iyb_calc(ws, iyb, iyb_aux_array[mblock_index], diyb_dx,
+                 mblock_index, atmosphere_dim, t_field, z_field, vmr_field,
+                 cloudbox_on, stokes_dim, f_grid, sensor_pos, sensor_los,
+                 transmitter_pos, mblock_za_grid, mblock_aa_grid, antenna_dim,
+                 iy_main_agenda, j_analytical_do, jacobian_quantities,
+                 jacobian_indices, iy_aux_vars, verbosity);
 
+
+        // Apply sensor response matrix on iyb, and put into y
+        //
+        const Range rowind = get_rowindex_for_mblock(sensor_response,
+                                                     mblock_index);
+        const Index row0   = rowind.get_start();
+        //
+        mult( yb, sensor_response, iyb );
+        //
+        y[rowind] = yb;  // *yb* also used below, as input to jacobian_agenda
+
+        // Fill information variables
+        //
+        for( Index i=0; i<n1y; i++ )
+        {
+            y_f[row0+i]         = sensor_response_f[i];
+            y_pol[row0+i]       = sensor_response_pol[i];
+            y_pos(row0+i,joker) = sensor_pos(mblock_index,joker);
+            y_los(row0+i,0)     = sensor_los(mblock_index,0) +
+            sensor_response_za[i];
+            if( sensor_response_aa.nelem() )
+            {
+                y_los(row0+i,1) = sensor_los(mblock_index,0) +
+                sensor_response_aa[i];
+            }
+        }
+
+        // Apply sensor response matrix on diyb_dx, and put into jacobian
+        // (that is, analytical jacobian part)
+        //
+        if( j_analytical_do )
+        {
+            FOR_ANALYTICAL_JACOBIANS_DO(
+                                        mult(jacobian(rowind,
+                                                      Range(jacobian_indices[iq][0],
+                                                            jacobian_indices[iq][1]-jacobian_indices[iq][0]+1)),
+                                             sensor_response, diyb_dx[iq] );
+                                        )
+        }
+
+        // Rest of *jacobian*
+        //
+        if( jacobian_do )
+        {
+            jacobian_agendaExecute( ws, jacobian, mblock_index, iyb, yb,
+                                    jacobian_agenda );
+        }
+    }
+    catch (runtime_error e)
+    {
+#pragma omp critical (yCalc_fail)
+        { fail_msg = e.what(); failed = true; }
+    }
+}
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -1508,6 +1615,8 @@ void yCalc(
    const ArrayOfString&              iy_aux_vars,
    const Verbosity&                  verbosity )
 {
+  CREATE_OUT3;
+
   // Basics
   //
   chk_if_in_range( "stokes_dim", stokes_dim, 1, 4 );
@@ -1581,94 +1690,118 @@ void yCalc(
   // The calculations
   //---------------------------------------------------------------------------
 
-  // We have to make a local copy of the Workspace and the agendas because
-  // only non-reference types can be declared firstprivate in OpenMP
-  Workspace l_ws (ws);
-  Agenda l_jacobian_agenda (jacobian_agenda);
-  Agenda l_iy_main_agenda (iy_main_agenda);
-
   String fail_msg;
   bool failed = false;
 
-  if (nmblock)
+  if (nmblock >= arts_omp_get_max_threads()
+      || (nf <= nmblock && nmblock >= nza))
+  {
+      out3 << "  Parallelizing mblock loop (" << nmblock << " iterations)\n";
+
+      // We have to make a local copy of the Workspace and the agendas because
+      // only non-reference types can be declared firstprivate in OpenMP
+      Workspace l_ws (ws);
+      Agenda l_jacobian_agenda (jacobian_agenda);
+      Agenda l_iy_main_agenda (iy_main_agenda);
+
 #pragma omp parallel for                         \
-  if (!arts_omp_in_parallel()                    \
-      && (nmblock >= arts_omp_get_max_threads()  \
-          || (nf <= nmblock && nmblock >= nza))) \
-  firstprivate(l_ws, l_jacobian_agenda, l_iy_main_agenda)
-  for( Index mblock_index=0; mblock_index<nmblock; mblock_index++ )
-    {
-      // Skip remaining iterations if an error occurred
-      if (failed) continue;
+firstprivate(l_ws, l_jacobian_agenda, l_iy_main_agenda)
+      for( Index mblock_index=0; mblock_index<nmblock; mblock_index++ )
+      {
+          // Skip remaining iterations if an error occurred
+          if (failed) continue;
 
-      try
-        {
-          // Calculate monochromatic pencil beam data for 1 measurement block
-          //
-          Vector          iyb, iyb_error, yb(n1y);
-          ArrayOfMatrix   diyb_dx;
-          //
-          iyb_calc(l_ws, iyb, iyb_aux_array[mblock_index], diyb_dx,
-                   mblock_index, atmosphere_dim, t_field, z_field, vmr_field,
-                   cloudbox_on, stokes_dim, f_grid, sensor_pos, sensor_los,
-                   transmitter_pos, mblock_za_grid, mblock_aa_grid, antenna_dim,
-                   l_iy_main_agenda, j_analytical_do, jacobian_quantities, 
-                   jacobian_indices, iy_aux_vars, verbosity);
+          yCalc_mblock_loop_body(failed,
+                                 fail_msg,
+                                 iyb_aux_array,
+                                 l_ws,
+                                 y,
+                                 y_f,
+                                 y_pol,
+                                 y_pos,
+                                 y_los,
+                                 jacobian,
+                                 atmosphere_dim,
+                                 t_field,
+                                 z_field,
+                                 vmr_field,
+                                 cloudbox_on,
+                                 stokes_dim,
+                                 f_grid,
+                                 sensor_pos,
+                                 sensor_los,
+                                 transmitter_pos,
+                                 mblock_za_grid,
+                                 mblock_aa_grid,
+                                 antenna_dim,
+                                 sensor_response,
+                                 sensor_response_f,
+                                 sensor_response_pol,
+                                 sensor_response_za,
+                                 sensor_response_aa,
+                                 l_iy_main_agenda,
+                                 l_jacobian_agenda,
+                                 jacobian_do,
+                                 jacobian_quantities,
+                                 jacobian_indices,
+                                 iy_aux_vars,
+                                 verbosity,
+                                 mblock_index,
+                                 n1y,
+                                 j_analytical_do);
+          
+      }  // End mblock loop
+  }
+  else
+  {
+     out3 << "  Not parallelizing mblock loop (" << nmblock << " iterations)\n";
 
+     for( Index mblock_index=0; mblock_index<nmblock; mblock_index++ )
+      {
+          // Skip remaining iterations if an error occurred
+          if (failed) continue;
 
-          // Apply sensor response matrix on iyb, and put into y
-          //
-          const Range rowind = get_rowindex_for_mblock(sensor_response,
-                                                       mblock_index);
-          const Index row0   = rowind.get_start();
-          //
-          mult( yb, sensor_response, iyb );
-          //
-          y[rowind] = yb;  // *yb* also used below, as input to jacobian_agenda
-
-          // Fill information variables
-          //
-          for( Index i=0; i<n1y; i++ )
-            { 
-              y_f[row0+i]         = sensor_response_f[i];
-              y_pol[row0+i]       = sensor_response_pol[i];
-              y_pos(row0+i,joker) = sensor_pos(mblock_index,joker);
-              y_los(row0+i,0)     = sensor_los(mblock_index,0) +
-                sensor_response_za[i];
-              if( sensor_response_aa.nelem() )
-                {
-                  y_los(row0+i,1) = sensor_los(mblock_index,0) +
-                    sensor_response_aa[i];
-                }
-            }
-
-          // Apply sensor response matrix on diyb_dx, and put into jacobian
-          // (that is, analytical jacobian part)
-          //
-          if( j_analytical_do )
-            {
-              FOR_ANALYTICAL_JACOBIANS_DO(
-                  mult(jacobian(rowind,
-                                Range(jacobian_indices[iq][0],
-                                      jacobian_indices[iq][1]-jacobian_indices[iq][0]+1)),
-                       sensor_response, diyb_dx[iq] );
-              )
-            }
-
-          // Rest of *jacobian*
-          //
-          if( jacobian_do )
-            { 
-              jacobian_agendaExecute( l_ws, jacobian, mblock_index, iyb, yb, 
-                                     l_jacobian_agenda );
-            }
-        }
-        catch (runtime_error e)
-        {
-#pragma omp critical (yCalc_fail)
-            { fail_msg = e.what(); failed = true; }
-        }
-    }  // End mblock loop
+          yCalc_mblock_loop_body(failed,
+                                 fail_msg,
+                                 iyb_aux_array,
+                                 ws,
+                                 y,
+                                 y_f,
+                                 y_pol,
+                                 y_pos,
+                                 y_los,
+                                 jacobian,
+                                 atmosphere_dim,
+                                 t_field,
+                                 z_field,
+                                 vmr_field,
+                                 cloudbox_on,
+                                 stokes_dim,
+                                 f_grid,
+                                 sensor_pos,
+                                 sensor_los,
+                                 transmitter_pos,
+                                 mblock_za_grid,
+                                 mblock_aa_grid,
+                                 antenna_dim,
+                                 sensor_response,
+                                 sensor_response_f,
+                                 sensor_response_pol,
+                                 sensor_response_za,
+                                 sensor_response_aa,
+                                 iy_main_agenda,
+                                 jacobian_agenda,
+                                 jacobian_do,
+                                 jacobian_quantities,
+                                 jacobian_indices,
+                                 iy_aux_vars,
+                                 verbosity,
+                                 mblock_index,
+                                 n1y,
+                                 j_analytical_do);
+          
+      }  // End mblock loop
+  }
 
   // Rethrow exception if a runtime error occurred in the mblock loop
   if (failed) throw runtime_error(fail_msg);
@@ -1708,9 +1841,6 @@ void yCalc(
         }
     }
 }
-
-
-
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */

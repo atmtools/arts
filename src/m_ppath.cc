@@ -245,9 +245,6 @@ void ppathFromRtePos2(
               posc[1] = latc;
               posc[0] = rc - pos2refell_r( atmosphere_dim, refellipsoid, 
                                                     lat_grid, lon_grid, posc );
-              rte_losGeometricFromRtePosToRtePos2( los, atmosphere_dim, 
-                  lat_grid, lon_grid, refellipsoid, rte_pos, posc, verbosity );
-              dza = los[0] - rte_los_geom[0];
             }
           else
             { 

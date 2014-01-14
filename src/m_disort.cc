@@ -297,7 +297,7 @@ void ScatteringDisort(Workspace& ws,
       // Cosmic background
       Numeric fisot = planck2( f_grid[f_index], COSMIC_BG_TEMP );
 
-        DEBUG_PRINT(dtauc)
+        DEBUG_VAR(dtauc)
       // Call disort
       disort_(&nlyr, dtauc.get_c_array(),
               ssalb.get_c_array(), pmom.get_c_array(), 

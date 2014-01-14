@@ -188,7 +188,7 @@ void ArtsXMLTag::read_from_stream(istream& is)
   stringbuf     tag;
   istringstream sstr("");
   XMLAttribute  attr;
-  char          ch;
+  char          ch = 0;
 
   attribs.clear();
 

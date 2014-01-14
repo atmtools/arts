@@ -1,3 +1,34 @@
+2014-01-14  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-818
+
+	* src/m_rte.cc (yCalc), src/rte.cc (iyb_calc):
+
+	Extract parallel loop bodies into separate functions. Works around the
+	OpenMP performance issue mentioned in previous commit when neither the
+	mblock nor za loop actually run vectorized.
+	Speed ups vary. E.g. TestWfuns runs 25% faster on our 32 core server
+	when number of cores > nza.
+
+	Print diagnostic info about parallelization and iteration count to
+	out3.
+
+	(iyb_calc): Further tweak parallel loop condition for za loop. Only
+	delay parallelization if nf >= 10*nza.
+
+	* src/m_ppath.cc (ppathFromRtePos2):
+
+	Remove duplicate code. los and dza where calculated twice for
+	atmosphere_dim <= 2 (inside and after the if statement).
+
+	* src/debug.h (DEBUG_VAR, DEBUG_VAR_FLT): Added more debug macros.
+
+	* src/m_disort.cc (ScatteringDisort):
+
+	Use DEBUG_VAR instead of DEBUG_PRINT.
+
+	* src/xml_io.cc (ArtsXMLTag::read_from_stream): Initialize ch.
+
 2014-01-13  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-817
