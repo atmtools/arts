@@ -1,3 +1,11 @@
+2014-01-15  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-819
+
+	* src/ppath.cc: Removed some lines now obselete after changes in
+	the do_gridcell_Xd_byltest functions. Found by Oliver, using Xcode
+	code analyser.
+
 2014-01-14  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-818

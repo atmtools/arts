@@ -3035,8 +3035,6 @@ void do_gridcell_2d_byltest(
   // Zenith looking
   if( absza < ANGTOL )
     {
-      r_end   = rupp;
-      lat_end = lat_start;
       l_end   = rupp - r_start;
       endface  = 4;
     }
@@ -3049,16 +3047,14 @@ void do_gridcell_2d_byltest(
       
       if( rlow > rsurface )
         {
-          r_end  = rlow;
+          l_end   = r_start - rlow;
           endface = 2;
         }
       else
         {
-          r_end  = rsurface;
+          l_end   = r_start - rsurface;
           endface = 7;
         }
-      lat_end = lat_start;
-      l_end   = r_start - r_end;
     }
 
   else
@@ -3158,12 +3154,6 @@ void do_gridcell_2d_byltest(
                 { l_end = ( l_out + l_in ) / 2; }
             }
         }
-
-      // Now when we are ready, we remove the correction terms. Otherwise
-      // we can end up in an infinite loop if the step length is smaller
-      // than the correction.
-      r_end   += r_corr;
-      lat_end += lat_corr;
     }
 
   //--- Create return vectors
@@ -3429,9 +3419,6 @@ void do_gridcell_3d_byltest(
   // Zenith looking
   if( za_start < ANGTOL )
     {
-      r_end   = rupp;
-      lat_end = lat_start;
-      lon_end = lon_start;
       l_end   = rupp - r_start;
       endface  = 4;
     }
@@ -3445,17 +3432,14 @@ void do_gridcell_3d_byltest(
       
       if( rlow > rsurface )
         {
-          r_end  = rlow;
+          l_end   = r_start - rlow;
           endface = 2;
         }
       else
         {
-          r_end  = rsurface;
+          l_end   = r_start - rsurface;
           endface = 7;
         }
-      lat_end = lat_start;
-      lon_end = lon_start;
-      l_end   = r_start - r_end;
     }
 
   else
@@ -3573,14 +3557,6 @@ void do_gridcell_3d_byltest(
                 { l_end = ( l_out + l_in ) / 2; }
             }
         }
-
-      // Now when we are ready, we remove the correction terms. Otherwise
-      // we can end up in an infinite loop if the step length is smaller
-      // than the correction.
-      r_end   += r_corr;
-      lat_end += lat_corr;
-      lon_end += lon_corr;
-      resolve_lon( lon_end, lon5, lon6 );              
     }
 
   //--- Create return vectors
