@@ -1,3 +1,11 @@
+2014-01-20  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-2-1-820
+
+	* src/gas_abs_lookup.cc (Adapt): Added runtime error if a species
+	is missing in the lookup table, but requested in the
+	calculation. (On request by Jana Mendrok.)
+
 2014-01-15  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-819

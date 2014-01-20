@@ -337,6 +337,13 @@ void GasAbsLookup::Adapt( const ArrayOfArrayOfSpeciesTag& current_species,
               // Set to -1 to flag that this needs special handling later on.
               i_current_species[i] = -1;
             }
+          else
+            {
+              ostringstream os;
+              os << "Species " << get_tag_group_name( current_species[i] )
+                 << " is missing in absorption lookup table.";
+              throw runtime_error( os.str() );
+            }
       }
 
       out3 << "found (or trivial).\n";
