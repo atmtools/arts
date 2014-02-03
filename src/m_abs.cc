@@ -1704,7 +1704,7 @@ void abs_xsec_per_speciesAddLines(// WS Output:
                     }
                 }
             }
-            if (tgs[i][0].LineMixingType() == SpeciesTag::LINE_MIXING_TYPE_NONE)
+          if (tgs[i][0].LineMixingType() == SpeciesTag::LINE_MIXING_TYPE_NONE)
             {
                 Matrix dummy_phase(abs_xsec_per_species[i].nrows(),
                                    abs_xsec_per_species[i].ncols(),
@@ -1724,7 +1724,7 @@ void abs_xsec_per_speciesAddLines(// WS Output:
                              isotopologue_ratios,
                              verbosity );
             }
-            else
+          else
             {
                 Matrix dummy_phase(abs_xsec_per_species[i].nrows(),
                                    abs_xsec_per_species[i].ncols(),

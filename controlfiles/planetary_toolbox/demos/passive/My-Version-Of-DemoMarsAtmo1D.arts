@@ -201,6 +201,12 @@ INCLUDE "planetary_toolbox/includes/common/makeatmo1D.arts"
 
 
 
+# do NOT modify
+# no NS and EW winds will be taken into account, but we we need to set these
+#  arrays for the INLCUDES to work porperly
+ArrayOfIndexSet( NSwind, [] )
+ArrayOfIndexSet( EWwind, [] )
+
 
 ################################################################################
 # START USER SETTINGS - Modify selections according to you wishes              #
@@ -226,6 +232,14 @@ ArrayOfIndexSet( vertwind, [0] )
 #Copy( rawfield, wind_w_raw )
 #INCLUDE "planetary_toolbox/includes/common/makefield1D.arts"
 #Copy( wind_w_field, finalfield )
+
+# only MODIFY if you know, what you are doing
+# If absorption lookup tables are used, we need to allow frequency
+#  interpolation. For that, UNCOMMENT the below (and chose an appropriate
+#  interpolation order. 1=linear).
+# NOTE: It is safer to use OnTheFly absorption calculations instead of lookup
+#  tables when wind is considered. But it will be much more time consuming.
+#IndexSet( abs_f_interp_order, 1 )
 
 ################################################################################
 # END USER SETTINGS                                                            #

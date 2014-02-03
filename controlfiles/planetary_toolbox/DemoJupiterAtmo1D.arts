@@ -201,7 +201,7 @@ INCLUDE "planetary_toolbox/includes/common/makeatmo1D.arts"
 # Note: If you want N-S or E-W wind, you have to use a 3D atmosphere. Use the
 #  other, 3D atmosphere, template for that!
 # NOTE: For Jupiter, no vertical wind data is available (only E-W wind).
-#  Hence, no considering of wind in Venus 1D case (it won't have any effect
+#  Hence, no considering of wind in Jupiter 1D case (it won't have any effect
 #  here) and you HAVE to use the 3D template, if you want wind.
 
 #===========================================

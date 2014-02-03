@@ -3,7 +3,7 @@
 # Demonstration and test the use of CIA contiua in RT calculations, 
 # together with other absorption tags.
 #
-# Based on Patrick Erikssons TestClearSky2.arts
+# Based on Patrick Eriksson's TestClearSky2.arts
 #
 # Author: Stefan Buehler
 # Date:   2013-03-08
@@ -56,12 +56,12 @@ jacobianOff
 
 # Definition of species
 # ---
+# ATTENTION: You also have to include CIA in abs_xsec_agenda,
+# otherwise you will not get any absorption for it!
 abs_speciesSet( species=
             ["H2O-SelfContCKDMT100, H2O-ForeignContCKDMT100, H2O", 
              "O2",
              "N2-CIA-N2-0, N2-CIA-N2-1"] )
-# ATTENTION: You also have to include CIA in abs_xsec_agenda,
-# otherwise you will not get any absorption for it!
 
 # Read CIA data
 # ---

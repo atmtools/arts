@@ -192,7 +192,7 @@ void define_basic_species_data()
   // This would be the place to add additional continuum tags, should
   // this be necessary. Continuum tags must come after the other tags
   // and have NAN for all data entries, like in my example below. Not
-  // even the isotipic ratio is used for continuum tags.
+  // even the isotopic ratio is used for continuum tags.
   //
   // The isotopologue ratio of NAN is used to identify continuum tags in
   // the absorption routines!

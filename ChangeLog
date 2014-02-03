@@ -1,3 +1,53 @@
+2014-02-03  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-1-821
+
+	* controlfiles/planetary_toolbox/demos/passive/fullRT_Mars.arts:
+	Continued to work on. Included:
+	- selectable level of refraction (via INCLUDEs)
+	- selectable way of absorption calc (via INCLUDEs)
+	- applicable also with wind and stokes_dim>1 (tested)
+
+	* controlfiles/planetary_toolbox/includes/common/
+	makegeometry1D_unrefracted.arts,
+	makegeometry1D_refracted-air_effectivetanh.arts,
+	makegeometry1D_refracted-air+electrons_effectivetanh.arts,
+	makegeometry1D_refracted-air_geometrictanh.arts,
+	makegeometry1D_refracted-air+electrons_geometrictanh.arts:
+	Added. Bunch of plug&play type INCLUDEs to prepare viewing geometry
+	setup (allowing to specify and handle both viewing angles AND tangent
+	altitudes within one run) and handle different ways of refraction.
+
+	* controlfiles/planetary_toolbox/includes/common/use-absOnTheFly.arts,
+	make-and-use-absLUT.arts:
+	Added. plug&play type INCLUDEs to handle different ways of absorption
+	calculations (LUT, OtF).
+
+	* controlfiles/planetary_toolbox/DemoMarsAtmo1D.arts,
+	controlfiles/planetary_toolbox/demos/passive/My-Version-Of-DemoMarsAtmo1D.arts:
+	Unbreak wind settings (getwinds_mars.arts didn't like NSwind and EWwind
+	to be conmpletely ignored).
+
+	* controlfiles/planetary_toolbox/DemoMarsAtmo1D.arts,
+	DemoVenusAtmo3D.arts, DemoJupiterAtmo3D.arts, DemoMarsAtmo3D.arts,
+	controlfiles/planetary_toolbox/demos/passive/My-Version-Of-DemoMarsAtmo1D.arts:
+	For winds to work, included (outcommented, to be conciously uncommented
+	by user) "IndexSet( abs_f_interp_order, 1 )".
+
+	* controlfiles/artscomponents/arts-xml-data/TestSpectro_core.arts
+	Updated to unbreak (for changes related to CIA inclusion).
+
+	* controlfiles/artscomponents/arts-xml-data/spectrotest.py:
+	Improved plotting and stats report for spectroscopy tests.
+
+	* src/species_data.cc, workspace.cc, m_abs.cc,
+	doc/uguide/absorption.tex,
+	controlfiles/general/general.arts,
+	controlfiles/artscomponents/cia/TestRTwithCIA.arts,
+	controlfiles/artscomponents/arts-xml-data/TestSurf_[Venus,Mars].arts,
+	controlfiles/planetary_toolbox/DemoJupiterAtmo1D.arts:
+	Minor spelling and layout fixes.
+
 2014-01-20  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-2-1-820

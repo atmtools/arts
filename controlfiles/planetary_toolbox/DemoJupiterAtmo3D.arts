@@ -235,6 +235,14 @@ ArrayOfIndexSet( windcase, [1] )
 #INCLUDE "planetary_toolbox/includes/common/makefield3D.arts"
 #Copy( wind_u_field, finalfield )
 
+# only MODIFY if you know, what you are doing
+# If absorption lookup tables are used, we need to allow frequency
+#  interpolation. For that, UNCOMMENT the line below (and chose an appropriate
+#  interpolation order. 1=linear).
+# NOTE: It is safer to use OnTheFly absorption calculations instead of lookup
+#  tables when wind is considered. But it will be much more time consuming.
+#IndexSet( abs_f_interp_order, 1 )
+
 #===========================================
 
 

@@ -36,6 +36,7 @@ IndexSet( stokes_dim, 1 )
 
 # use abs LUT
 Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__LookUpTable )
+Copy( abs_xsec_agenda, abs_xsec_agenda__noCIA )
 
 # set the source for catalogues
 StringCreate( hitranfile )
@@ -49,7 +50,8 @@ StringSet( catfolder, "spectroscopy/Perrin/" )
 #######
 
 # frequency grid (full toolbox range)
-VectorLinSpace( f_grid, 0e9, 3000e9, 1.e9 )
+#VectorLinSpace( f_grid, 0e9, 3000e9, 1.e9 )
+VectorLinSpace( f_grid, fstart, fend, fspace )
 #WriteXML( "ascii", f_grid )
 
 # set the pressure grids
@@ -72,6 +74,7 @@ abs_lines_per_speciesCreateFromLines
 # create the LUT
 abs_lookupSetup
 #WriteXML( "ascii", abs_p )
+abs_xsec_agenda_checkedCalc
 abs_lookupCalc
 StringSet( outname, "ARTS3-from-HITRAN08_LUT_" )
 Append( outname, ext )
@@ -90,6 +93,7 @@ abs_lines_per_speciesCreateFromLines
 
 # create the LUT
 abs_lookupSetup
+abs_xsec_agenda_checkedCalc
 abs_lookupCalc
 StringSet( outname, "ARTS4-from-HITRAN08_LUT_" )
 Append( outname, ext )
@@ -107,6 +111,7 @@ abs_lines_per_speciesCreateFromLines
 
 # create the LUT
 abs_lookupSetup
+abs_xsec_agenda_checkedCalc
 abs_lookupCalc
 StringSet( outname, "Perrin_LUT_" )
 Append( outname, ext )

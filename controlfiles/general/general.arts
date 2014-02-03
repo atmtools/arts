@@ -138,7 +138,7 @@ abs_lineshapeDefine( shape="Voigt_Kuntz6",
 NumericSet( ppath_lmax, 10e3 )
 #
 # The value for ppath_lraytrace of 1e3 should be OK in general for passive
-# obersvation, but lower values are needed for simulating radio links
+# observation, but lower values are needed for simulating radio links
 #
 NumericSet( ppath_lraytrace, 1e3 )
 

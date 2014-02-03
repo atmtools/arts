@@ -837,11 +837,11 @@ void Workspace::define_wsv_data()
        "as negative temperatures.\n"
        "\n"
        "Note that *z_field* is not covered by this variable, it is instead\n"
-       "treated to be part of the geomtrical considerations where the ok-flag\n"
+       "treated to be part of the geometrical considerations where the ok-flag\n"
        "is denoted as *atmgeom_checked*. The cloudbox is covered by\n"
        "*cloudbox_checked*.\n"
        "\n"
-       "Shall be set by *atmfield_checkedCalc*. See that WSMs for treated\n"
+       "Shall be set by *atmfields_checkedCalc*. See that WSMs for treated\n"
        "WSVs. Only the value 1 is taken as OK.\n"
        ),
       GROUP( "Index" )));
@@ -853,13 +853,13 @@ void Workspace::define_wsv_data()
       (
        "OK-flag for the geometry of the model atmosphere.\n"
        "\n"
-       "The variable flags that referense ellipsoid, the surface and *z_field\n"
-       "contain formally correct values. For example, that *z_field* has\n"
-       "strictly increasing values for at each geographical position.\n"
+       "The variable flags that reference ellipsoid, the surface and *z_field*\n"
+       "contain formally correct values. Includes for example, that *z_field*\n"
+       "holds strictly increasing values at each geographical position.\n"
        "\n"
        "See also *atmfields_checked*.\n"
        "\n"
-       "Shall be set by *atmgoem_checkedCalc*. Only the value 1 is taken\n"
+       "Shall be set by *atmgeom_checkedCalc*. Only the value 1 is taken\n"
        "as OK.\n"
        ),
       GROUP( "Index" )));

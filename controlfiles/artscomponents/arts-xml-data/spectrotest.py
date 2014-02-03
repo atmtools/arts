@@ -1,5 +1,7 @@
 import numpy as N
 import pylab as p
+import os
+from matplotlib.gridspec import GridSpec as gc
 
 def get_data(fa3h=None,fa4h=None,fa4p=None):
   '''
@@ -14,7 +16,7 @@ def get_data(fa3h=None,fa4h=None,fa4p=None):
       name of ARTS4 catalogue file from HITRAN data
   fa4p:
       name of ARTS4 catalogue file from toolbox spectroscopic line data
-  NOTE 1: not all these files have to be given. 'None' will create ampty
+  NOTE 1: not all these files have to be given. 'None' will create empty
    cross-section output. If none of them is given, also the other output will be
    empty.
   NOTE 2: all of them might be used for other ARTS LUT data, too. Basically we
@@ -87,7 +89,7 @@ def get_data(fa3h=None,fa4h=None,fa4p=None):
   return absspec, freq, pres, axs_a3h, axs_a4h, axs_a4p
 
 
-def fast_stats(absspec,axs1,axs2,axs3=None):
+def fast_stats(absspec,axs1,axs2,axs3=None,header=1):
   '''
   Calculates and prints out some deviation statistics (max and mean relative
    deviation) between two (or three) sets of absorption cross sections.
@@ -105,9 +107,11 @@ def fast_stats(absspec,axs1,axs2,axs3=None):
   no returns
   '''
   if axs3 is not None:
+    if header: print('%10s %15s %15s %15s %15s' %('Species','max(ax1-ax2)','mean(ax1-ax2)',
+                                                  'max(ax1-ax3)','mean(ax1-ax3)'))
     for i in N.arange(axs1.shape[1]):
-      print('%10.1e %10.1e %10.1e %10.1e'
-            %(#absspec[i],
+      print('%10s %15.1e %15.1e %15.1e %15.1e'
+            %(absspec[i],
               N.nanmax(2. * abs(axs1[0,i,:,:]-axs2[0,i,:,:]) /
                             (axs1[0,i,:,:]+axs2[0,i,:,:]) ),
               N.nansum(2. * abs(axs1[0,i,:,:]-axs2[0,i,:,:])/
@@ -119,8 +123,9 @@ def fast_stats(absspec,axs1,axs2,axs3=None):
                             (axs1[0,i,:,:]+axs3[0,i,:,:])) /
                 N.isfinite(1./(axs1[0,i,:,:]+axs3[0,i,:,:])).sum()  ) )
   else:
+    if header: print('%10s %15s %15s' %('Species','max(ax1-ax2)','mean(ax1-ax2)'))
     for i in N.arange(axs1.shape[1]):
-      print('%10s %10.1e %10.1e'
+      print('%10s %15.1e %15.1e'
             %(absspec[i],
               N.nanmax(2. * abs(axs1[0,i,:,:]-axs2[0,i,:,:]) /
                             (axs1[0,i,:,:]+axs2[0,i,:,:]) ),
@@ -132,7 +137,7 @@ def fast_stats(absspec,axs1,axs2,axs3=None):
 
 def plotdiff(axs1,axs2,freq,absspec,
              start=0,ende=None,
-             newfig=False,save=False,
+             newfig=False,save=False,specplot=1,
              title='HITRAN vs. Toolbox for ',
              casename='H-vs-TB'):
   '''
@@ -167,6 +172,8 @@ def plotdiff(axs1,axs2,freq,absspec,
        on-screen figure windows).
   save: boolean
       Flag whether to save figures as graphic (png) files.
+  specplot: boolean (or integer)
+      Flag whether to make plots of the abs-xsec spectra themselves.
   title: string
       Basic string of each figure title. Will be complemented with the absspec
        tag corresponging to the respective figure.
@@ -179,51 +186,183 @@ def plotdiff(axs1,axs2,freq,absspec,
   -------
   no returns
   '''
+  col=['b','g','r','c','m','y','k']
   if ende is None: ende=axs1.shape[1]-1
   for i in N.arange(start,ende+1):                     
     if ((axs1[0,i,:,:]+axs2[0,i,:,:]).max()!=0.):
+      if newfig: p.figure()
+      else: p.clf()
+      p.semilogy(freq*1e-9,0.5*abs(axs1[0,i,:,:]-axs2[0,i,:,:])/
+                           (axs1[0,i,:,:]+axs2[0,i,:,:])+1e-60)
+      p.title('%s %s' %(title,absspec[i]))
+      p.xlabel('Frequency [GHz]')
+      p.ylabel('relative difference [-]')
+      p.tight_layout()
+      if save:
+        p.savefig('figures/drel_logabs_%s_%s.png' %(casename,absspec[i]))
+      if newfig: p.figure()
+      else: p.clf()
+      p.plot(freq*1e-9,0.5*(axs1[0,i,:,:]-axs2[0,i,:,:])/
+                       (axs1[0,i,:,:]+axs2[0,i,:,:]))
+      p.title('%s %s' %(title,absspec[i]))
+      p.xlabel('Frequency [GHz]')
+      p.ylabel('relative difference [-]')
+      p.tight_layout()
+      if save:
+        p.savefig('figures/drel_lin_%s_%s.png' %(casename,absspec[i]))
+      if newfig: p.figure()
+      else: p.clf()
+      p.plot(freq*1e-9,axs1[0,i,:,:]-axs2[0,i,:,:])
+      p.xlabel('Frequency [GHz]')
+      p.title('%s %s' %(title,absspec[i]))
+      p.ylabel('absolute difference [m2]')
+      p.tight_layout()
+      if save:
+        p.savefig('figures/dabs_lin_%s_%s.png' %(casename,absspec[i]))
+      if newfig: p.figure()
+      else: p.clf()
+      p.semilogy(freq*1e-9,abs(axs1[0,i,:,:]-axs2[0,i,:,:])+1e-60)
+      p.title('%s %s' %(title,absspec[i]))
+      p.xlabel('Frequency [GHz]')
+      p.ylabel('absolute difference [m2]')
+      p.tight_layout()
+      if save:
+        p.savefig('figures/dabs_logabs_%s_%s.png' %(casename,absspec[i]))
+      if specplot:  
         if newfig: p.figure()
         else: p.clf()
-        p.semilogy(freq*1e-9,0.5*abs(axs1[0,i,:,:]-axs2[0,i,:,:])/
-                             (axs1[0,i,:,:]+axs2[0,i,:,:])+1e-16)
-        p.title('%s %s' %(title,absspec[i]))
+        for j in N.arange(axs2.shape[-1]):
+          p.plot(freq*1e-9,axs2[0,i,:,j],col[j%N.size(col)]+'-',linewidth=2)
+          p.plot(freq*1e-9,axs1[0,i,:,j],col[j%N.size(col)]+'--',linewidth=2)
         p.xlabel('Frequency [GHz]')
-        p.ylabel('relative difference [-]')
+        p.title('%s %s' %(title,absspec[i]))
+        p.ylabel('absorption cross section [m2]')
         p.tight_layout()
         if save:
-          p.savefig('figures/drel_logabs_%s_%s.png' %(casename,absspec[i]))
+          p.savefig('figures/abs_lin_%s_%s.png' %(casename,absspec[i]))
         if newfig: p.figure()
         else: p.clf()
-        p.plot(freq*1e-9,0.5*(axs1[0,i,:,:]-axs2[0,i,:,:])/
-                         (axs1[0,i,:,:]+axs2[0,i,:,:]))
+        for j in N.arange(axs2.shape[-1]):
+          p.semilogy(freq*1e-9,axs2[0,i,:,j],col[j%N.size(col)]+'-',linewidth=2)
+          p.semilogy(freq*1e-9,axs1[0,i,:,j],col[j%N.size(col)]+'--',linewidth=2)
         p.title('%s %s' %(title,absspec[i]))
         p.xlabel('Frequency [GHz]')
-        p.ylabel('relative difference [-]')
+        p.ylabel('absolute cross section [m2]')
         p.tight_layout()
         if save:
-          p.savefig('figures/drel_lin_%s_%s.png' %(casename,absspec[i]))
-        if newfig: p.figure()
-        else: p.clf()
-        p.plot(freq*1e-9,axs1[0,i,:,:]-axs2[0,i,:,:])
-        p.xlabel('Frequency [GHz]')
-        p.title('%s %s' %(title,absspec[i]))
-        p.ylabel('absolute difference [m2]')
-        p.tight_layout()
-        if save:
-          p.savefig('figures/dabs_lin_%s_%s.png' %(casename,absspec[i]))
-        if newfig: p.figure()
-        else: p.clf()
-        p.semilogy(freq*1e-9,abs(axs1[0,i,:,:]-axs2[0,i,:,:])+1e-50)
-        p.title('%s %s' %(title,absspec[i]))
-        p.xlabel('Frequency [GHz]')
-        p.ylabel('absolute difference [m2]')
-        p.tight_layout()
-        if save:
-          p.savefig('figures/dabs_logabs_%s_%s.png' %(casename,absspec[i]))
+          p.savefig('figures/abs_log_%s_%s.png' %(casename,absspec[i]))
     else:
         print('No abs xs !=0 (no lines? vmr=0?) for %s' %absspec[i])
     p.show()
 
+
+def plotabsxsec(axs1,axs2,freq,pres,absspec,
+                abswhich=None,doboth=1,
+                meandelta=0, facdiff=0,
+                newfig=True,save=False,
+                title='Spectroscopy HITRAN vs. Toolbox: ',
+                casename='H-vs-TB',
+                outdir='~/projects/MicrowavePropagationToolbox/study/Validation/basics/figures/'):
+  '''
+  '''
+  sps1,sps2 = prep2to1plot()
+  col=['b','g','r','c','m','y','k']
+  if abswhich is None:
+    abswhich=N.arange(axs1.shape[1])
+  for i in abswhich:                     
+    if ((axs1[0,i,:,:]+axs2[0,i,:,:]).max()!=0.):
+      p.figure()
+      ax1=p.subplot(sps1)
+      ax2=p.subplot(sps2,sharex=ax1)
+      for j in N.arange(axs2.shape[-1]):
+        if meandelta:
+          ax2.plot(freq*1e-9,(axs2[0,i,:,j]-axs1[0,i,:,j])/(axs2[0,i,:,j]+axs1[0,i,:,j])*2e2,
+                   col[j%N.size(col)]+'-',linewidth=2)
+        elif facdiff:
+#           ax2.semilogy(freq*1e-9,N.maximum(axs1[0,i,:,j]/axs2[0,i,:,j],axs2[0,i,:,j]/axs1[0,i,:,j])*1e2-1e2,
+#                   col[j%N.size(col)]+'-',linewidth=2)
+           ax2.semilogy(freq*1e-9,N.maximum(axs1[0,i,:,axs2.shape[-1]-j-1]/axs2[0,i,:,axs2.shape[-1]-j-1],axs2[0,i,:,axs2.shape[-1]-j-1]/axs1[0,i,:,axs2.shape[-1]-j-1])-1.,
+                   col[(axs2.shape[-1]-j-1)%N.size(col)]+'-',linewidth=2)
+        else:
+          ax2.plot(freq*1e-9,axs2[0,i,:,j]/axs1[0,i,:,j]*1e2-1e2,
+                   col[j%N.size(col)]+'-',linewidth=2)
+        ax1.semilogy(freq*1e-9,axs2[0,i,:,j],
+                     col[j%N.size(col)]+'-',linewidth=2,label='%.1ePa' %pres[j])
+        if doboth:
+          ax1.semilogy(freq*1e-9,axs1[0,i,:,j],col[j%N.size(col)]+'--',linewidth=2)
+      ax1.set_xlabel('Frequency [GHz]')
+      ax1.set_ylabel('absolute cross section [m2]')
+      if facdiff:
+        ax2.set_ylabel('factor difference [-]')
+      else:
+        ax2.set_ylabel('relative difference [%]')
+      ax1.legend(loc=0)
+      p.minorticks_on()
+      p.title('%s %s' %(title,absspec[i]))
+      p.tight_layout()
+      if save:
+        p.savefig('%sAbsXsec_%s_%s_xsec-log_drel-lin.png'
+                  %(os.path.expanduser(outdir),casename,absspec[i]))
+    else:
+        print('No abs xs !=0 (no lines? vmr=0?) for %s' %absspec[i])
+    p.show()
+  return ax1,ax2
+
+
+def plotabsxsec3(axs1,axs2,freq,pres,absspec,
+                abswhich=None,
+                newfig=True,save=False,
+                title='Spectroscopy HITRAN vs. Toolbox: ',
+                casename='H-vs-TB',
+                outdir='~/projects/MicrowavePropagationToolbox/study/Validation/basics/figures/'):
+  '''
+  '''
+  col=['b','g','r','c','m','y','k']
+  if abswhich is None:
+    abswhich=N.arange(axs1.shape[1])
+  for i in abswhich:                     
+    if ((axs1[0,i,:,:]+axs2[0,i,:,:]).max()!=0.):
+      fig, ax = p.subplots(3, sharex=True)
+      ax1 = ax[2]
+      ax2 = ax[1]
+      ax3 = ax[0]
+      ax3.set_title('%s %s' %(title,absspec[i]))
+      for j in N.arange(axs2.shape[-1]):
+        ax3.plot(freq*1e-9,axs2[0,i,:,j]/axs1[0,i,:,j]*1e2-1e2,
+               col[j%N.size(col)]+'-',linewidth=2)
+        ax2.semilogy(freq*1e-9,abs(axs2[0,i,:,j]-axs1[0,i,:,j]),
+               col[j%N.size(col)]+'-',linewidth=2)
+        ax1.semilogy(freq*1e-9,axs2[0,i,:,j],
+                   col[j%N.size(col)]+'-',linewidth=2,label='%.1ePa' %pres[j])
+      ax1.set_xlabel('Frequency [GHz]')
+      ax1.set_ylabel('abs. x-sec. [m2]')
+      ax2.set_ylabel('abs. diff. [m2]')
+      ax3.set_ylabel('rel. diff. [%]')
+      ax1.legend(loc=0)
+      ax1.minorticks_on()
+      ax2.minorticks_on()
+      ax3.minorticks_on()
+      fig.tight_layout()
+      p.show()
+      if save:
+        p.savefig('%sAbsXsec_%s_%s_xsec-log_dabs-log_drel-lin.png'
+                  %(os.path.expanduser(outdir),casename,absspec[i]))
+    else:
+        print('No abs xs !=0 (no lines? vmr=0?) for %s' %absspec[i])
+    p.show()
+  return ax1,ax2,ax3
+
+
+def prep2to1plot():
+  '''
+  prepare setup for plotting window with 2 vertically stacked panels, where
+   lower one is double as high as the upper one.
+  '''
+  gridspec=gc(3, 1)
+  subplotspec1=gridspec.new_subplotspec((1,0), 2, 1)
+  subplotspec2=gridspec.new_subplotspec((0,0), 1, 1)
+  return subplotspec1, subplotspec2
+ 
 
 def first_substring(strings, substring):
   '''
@@ -245,12 +384,12 @@ def first_substring(strings, substring):
   return (i for i, string in enumerate(strings) if substring in string).next()
 
 if __name__ == '__main__':
-  fa3h='ARTS3-from-HITRAN08_LUT_WithFascode.xml'
-  fa4h='ARTS4-from-HITRAN08_LUT_WithFascode.xml'
-  fa4p='Perrin_LUT_WithFascode.xml'
-  fa3h2='ARTS3-from-HITRAN08_LUT_NoFascode.xml'
-  fa4h2='ARTS4-from-HITRAN08_LUT_NoFascode.xml'
-  fa4p2='Perrin_LUT_NoFascode.xml'
+  fa3h='output/ARTS3-from-HITRAN08_LUT_WithFascode.xml'
+  fa4h='output/ARTS4-from-HITRAN08_LUT_WithFascode.xml'
+  fa4p='output/Perrin_LUT_WithFascode.xml'
+  fa3h2='output/ARTS3-from-HITRAN08_LUT_NoFascode.xml'
+  fa4h2='output/ARTS4-from-HITRAN08_LUT_NoFascode.xml'
+  fa4p2='output/Perrin_LUT_NoFascode.xml'
 
   absspec,freq,pres,axs_a3h,axs_a4h,axs_a4p = get_data(fa3h,fa4h,fa4p)
   absspec2,freq2,pres2,axs_a3h2,axs_a4h2,axs_a4p2 = get_data(fa3h2,fa4h2,fa4p2)

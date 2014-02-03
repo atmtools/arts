@@ -17,7 +17,7 @@
 #     surface_skin_t from atmospheric t_field). all in 3D.
 #  - surface refractive index data (CASE B):
 #      - reading 3D raw data
-#      - in surface_rt_prop_agenda deriving saurface emission/reflection field
+#      - in surface_rt_prop_agenda deriving surface emission/reflection field
 #         from complex refractive index data (using surfaceFlatRefractiveIndex)
 #      - all in 3D only
 #      
