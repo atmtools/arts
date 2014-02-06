@@ -27,7 +27,7 @@
 #   obsh            Numeric; the receiver altitude                             #
 #   refellipsoid    as the WSV                                                 #
 #   atmosphere_dim  as the WSV                                                 #
-# It also uses (OVERWRITES!) sensor_pos                                        #
+# It also uses (OVERWRITES!) sensor_pos.                                       #
 #                                                                              #
 # It provides following output:                                                #
 #   allzang         Vector; merged (1D) viewing angles resulting from viewang  #

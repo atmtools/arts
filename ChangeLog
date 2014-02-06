@@ -1,3 +1,36 @@
+2014-02-06  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-1-822
+
+	* controlfiles/planetary_toolbox/demos/passive/
+	DemoMars_fullRT_1D_clearsky.arts:
+	Added. Complete version for 1D clearsky RT.
+
+	* controlfiles/planetary_toolbox/demos/common/:
+	Added. Folder for active/passive shared templates (user is supposed to
+	modify these files).
+
+	* controlfiles/planetary_toolbox/demos/common/DemoVenusAtmo1D.arts,
+	DemoJupiterAtmo1D.arts, DemoMarsAtmo1D.arts, DemoVenusAtmo3D.arts,
+	DemoJupiterAtmo3D.arts, DemoMarsAtmo3D.arts:
+	Moved here from controlfiles/planetary_toolbox/.
+
+	* controlfiles/planetary_toolbox/demos/common/DemoMarsSurface1D.arts:
+	Added. Demo/template for setting/deriving surface properties (altitude,
+	temperature, reflection type).
+
+	* controlfiles/planetary_toolbox/includes/common/use-absOnTheFly.arts:
+	Do abs_xsec_agenda_checkedCalc in there.
+
+	* controlfiles/general/agendas_surface.arts
+	controlfiles/planetary_toolbox/includes/common/
+	makegeometry1D_unrefracted.arts:
+	Minor fixes.
+
+	* controlfiles/planetary_toolbox/demos/passive/fullRT_Mars.arts,
+	My-Version-Of-DemoMarsAtmo1D.arts:
+	Deleted work-in-progress version.
+
 2014-02-03  Jana Mendrok  <jana.mendrok@ltu.se>
 
 	* arts-2-1-821
