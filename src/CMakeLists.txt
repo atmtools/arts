@@ -332,7 +332,7 @@ target_link_libraries (test_integration matpack)
 add_executable (test_omp
   test_omp.cc)
 
-target_link_libraries (test_omp artscore methods matpack)
+target_link_libraries (test_omp  ${ALL_ARTS_LIBRARIES})
 
 ########### next testcase ###############
 

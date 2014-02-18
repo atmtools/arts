@@ -1,3 +1,11 @@
+2014-02-18  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-823
+
+	* src/CMakeLists.txt:
+
+	Fix link libraries for test_omp. (Bug reported by Patrick)
+
 2014-02-06  Jana Mendrok  <jana.mendrok@ltu.se>
 
 	* arts-2-1-822
