@@ -1,3 +1,18 @@
+2014-02-19  Richard Larsson  <ric.larsson@gmail.com>
+	
+	* arts-2-1-824
+	
+	* AUTHORS:  Added myself to "important component" contributor list.  
+	Remove or move as you see fit.
+	
+	* doc/uguide/absorption_theory.tex:  Changed the Zeeman part of the 
+	theory to only reference the Zeeman module paper.  The old text was
+	written before there was support for DJ=0 species, and before we had
+	taken into account magneto optics.
+	
+	* doc/uguide/references.bib:  Added the Zeeman paper.  If there is
+	another way to reference 'internal' papers, please let me know.
+	
 2014-02-18  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-823
