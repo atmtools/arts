@@ -2350,6 +2350,20 @@ void propmat_clearskyAddOnTheFly(// Workspace reference:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void propmat_clearskyZero(
+         Tensor4&    propmat_clearsky,
+   const Vector&     f_grid,
+   const Index&      stokes_dim,
+   const Verbosity& )
+{
+  propmat_clearsky.resize( 1, f_grid.nelem(), stokes_dim, stokes_dim );
+  propmat_clearsky = 0;
+}
+
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void isotopologue_ratiosInitFromBuiltin(SpeciesAuxData& isotopologue_ratios,
                                         const Verbosity&)
 {

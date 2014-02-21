@@ -8249,9 +8249,10 @@ void define_md_data_raw()
       ( NAME( "propmat_clearskyInit" ),
         DESCRIPTION
         (
-         "Initialize stokes dim gas absorption coefficients line-by-line.\n"
+         "Initialize *propmat_clearsky*.\n"
          "\n"
-         "This method must be used inside *propmat_clearsky_agenda*\n"
+         "This method must be used inside *propmat_clearsky_agenda* and then\n"
+         "be called first.\n"
          ),
         AUTHORS( "Oliver Lemke, Richard Larsson" ),
         OUT( "propmat_clearsky" ),
@@ -8263,6 +8264,31 @@ void define_md_data_raw()
             "stokes_dim",
             "propmat_clearsky_agenda_checked"
         ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+    
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "propmat_clearskyZero" ),
+        DESCRIPTION
+        (
+         "Sets *propmat_clearsky* to match zero attenuation.\n"
+         "\n"
+         "Use this method just if you know what you are doing!\n"
+         "\n"
+         "If you want to make a calculation with no clear-sky attenuation at\n"
+         "all, fill *propmat_clearsky_agenda* with this method and required\n"
+         "Ignore statements (don't include *propmat_clearskyInit*).\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "propmat_clearsky" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "f_grid", "stokes_dim" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),

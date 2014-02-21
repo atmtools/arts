@@ -40,6 +40,9 @@ arts_test_run_ctlfile(fast.pencilbeam
 arts_test_run_ctlfile(fast.clearsky artscomponents/clearsky/TestClearSky.arts)
 arts_test_run_ctlfile(slow.clearsky2 artscomponents/clearsky/TestClearSky2.arts)
 
+arts_test_run_ctlfile(fast.stokesrotation 
+                      artscomponents/stokesrot/TestStokesRotation.arts)
+
 arts_test_run_ctlfile(fast.fgrid
                       artscomponents/groundbased/TestFgrid.arts)
 arts_test_run_ctlfile(fast.groundbased

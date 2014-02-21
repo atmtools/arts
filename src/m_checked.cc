@@ -140,7 +140,7 @@ void atmfields_checkedCalc(
                                                   p_grid, lat_grid, lon_grid );
 
   // More for vmr_field.
-  if( !negative_vmr_ok && min(vmr_field) < 0 )
+  if( !negative_vmr_ok && abs_species.nelem() && min(vmr_field) < 0 )
     throw runtime_error( "All values in *vmr_field* must be >= 0." );
 
   // More for t_field.

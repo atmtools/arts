@@ -1,5 +1,23 @@
 2014-02-21  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-1-826
+
+	* controlfiles/CMakeLists.txt: Added running file below, as part
+	of fast.
+
+	* controlfiles/artscomponents/stokesrot/TestStokesRotation.arts:
+	A file demonstrating and testing Stokes rotation, as well as shows
+	how to simply set up an atmosphere lacking attenuation.
+
+	* src/m_abs.cc (propmat_clearskyZero): New WSM. Use with care!
+
+	* src/rte.cc (get_ppath_abs): Now handles the case of no abs_species.
+
+	* src/m_checked.cc: A small fix to avoid crash if abs_species is
+	empty. Then no need to search for negative VMRs.
+
+2014-02-21  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-1-825
 
 	* src/m_sensor.cc: Removed some inactive code at end of file. This
@@ -13,17 +31,17 @@
 
 	* arts-2-1-824
 
-	* AUTHORS:  Added myself to "important component" contributor list.  
+	* AUTHORS:  Added myself to "important component" contributor list.
 	Remove or move as you see fit.
-	
-	* doc/uguide/absorption_theory.tex:  Changed the Zeeman part of the 
+
+	* doc/uguide/absorption_theory.tex:  Changed the Zeeman part of the
 	theory to only reference the Zeeman module paper.  The old text was
 	written before there was support for DJ=0 species, and before we had
 	taken into account magneto optics.
-	
+
 	* doc/uguide/references.bib:  Added the Zeeman paper.  If there is
 	another way to reference 'internal' papers, please let me know.
-	
+
 2014-02-18  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-823

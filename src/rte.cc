@@ -1415,11 +1415,20 @@ void get_ppath_abs(
       Tensor4  propmat_clearsky;
       //
       try {
-        propmat_clearsky_agendaExecute( l_ws, propmat_clearsky, ppath_f(joker,ip),
-                            ppath_mag(joker,ip),
-                            ppath.los(ip,joker), ppath_p[ip], ppath_t[ip], 
-                            ppath_vmr(joker,ip),
-                            l_propmat_clearsky_agenda );
+        Vector rtp_vmr(0);
+        if( nabs )
+          {
+            propmat_clearsky_agendaExecute( l_ws, propmat_clearsky, 
+               ppath_f(joker,ip), ppath_mag(joker,ip), ppath.los(ip,joker), 
+               ppath_p[ip], ppath_t[ip], ppath_vmr(joker,ip),
+               l_propmat_clearsky_agenda );
+          }
+        else
+          {
+            propmat_clearsky_agendaExecute( l_ws, propmat_clearsky, 
+               ppath_f(joker,ip), ppath_mag(joker,ip), ppath.los(ip,joker), 
+               ppath_p[ip], ppath_t[ip], Vector(0), l_propmat_clearsky_agenda );
+          }
       } catch (runtime_error e) {
 #pragma omp critical (get_ppath_abs_fail)
           { failed = true; fail_msg = e.what();}
@@ -1431,7 +1440,7 @@ void get_ppath_abs(
           assert( propmat_clearsky.ncols() == stokes_dim );
           assert( propmat_clearsky.nrows() == stokes_dim );
           assert( propmat_clearsky.npages() == nf );
-          assert( propmat_clearsky.nbooks() == nabs );
+          assert( propmat_clearsky.nbooks() == max(nabs,Index(1)) );
 
           for( Index i1=0; i1<nf; i1++ )
             {
