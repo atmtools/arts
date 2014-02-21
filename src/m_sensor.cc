@@ -56,6 +56,7 @@
 #include "auto_md.h"
 
 extern const Numeric PI;
+extern const Numeric DEG2RAD;
 extern const Index GFIELD1_F_GRID;
 extern const Index GFIELD4_FIELD_NAMES;
 extern const Index GFIELD4_F_GRID;
@@ -2187,6 +2188,110 @@ void sensor_responsePolarisation(// WS Output:
 }
 
 
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void sensor_responseStokesRotation(
+         Sparse&         sensor_response,
+   const Vector&         sensor_response_f_grid,
+   const ArrayOfIndex&   sensor_response_pol_grid,
+   const Vector&         sensor_response_za_grid,
+   const Vector&         sensor_response_aa_grid,
+   const Index&          stokes_dim,
+   const Matrix&         stokes_rotation,
+   const Verbosity& )
+{
+  // Basic checks
+  chk_if_in_range( "stokes_dim", stokes_dim, 1, 4 );
+
+  // Some sizes
+  const Index nf   = sensor_response_f_grid.nelem();
+  const Index npol = sensor_response_pol_grid.nelem();
+  const Index nza  = sensor_response_za_grid.nelem();
+  const Index naa  = max( Index(1), sensor_response_aa_grid.nelem() );
+  const Index nin  = nf * npol * nza * naa;
+
+
+  //---------------------------------------------------------------------------
+  // Initialise a output stream for runtime errors and a flag for errors
+  ostringstream os;
+  bool          error_found = false;
+
+  // Check that sensor_response variables are consistent in size
+  if( sensor_response.nrows() != nin )
+  {
+    os << "The sensor block response matrix *sensor_response* does not have\n"
+       << "right size compared to the sensor grid variables\n"
+       << "(sensor_response_f_grid etc.).\n";
+    error_found = true;
+  }
+  
+  // Check special stuff for this method
+  if( stokes_dim < 3 )
+  {
+    os << "To perform a rotation of the Stokes coordinate system,\n"
+       << "*stokes_dim* must be >= 3.\n";
+    error_found = true;
+  }
+  if( stokes_rotation.nrows() != nza  ||  stokes_rotation.ncols() != naa )  
+  {
+    os << "Incorrect number of angles in *stokes_rotation*. The size of this\n"
+       << "matrix must match *sensor_response_za_grid* and "
+       << "*sensor_response_aa_grid*.\n";
+    error_found = true;
+  }
+
+  // If errors where found throw runtime_error with the collected error
+  // message.
+  if (error_found)
+    throw runtime_error(os.str());
+  //---------------------------------------------------------------------------
+
+
+  // Set up the H matrix for applying rotation
+  //
+  Sparse hrot( sensor_response.nrows(), sensor_response.ncols() );
+  Vector row( hrot.ncols(), 0 );
+  Index  irow = -1;
+  //
+  for( Index iaa=0; iaa<naa; iaa++ )
+    {
+      for( Index iza=0; iza<nza; iza++ )
+        {
+          const Numeric a = cos( 2 * DEG2RAD * stokes_rotation(iza,iaa) );
+          const Numeric b = sin( 2 * DEG2RAD * stokes_rotation(iza,iaa) );
+
+          for( Index ifr=0; ifr<nf; ifr++ ) 
+            {
+              for( Index ip=0; ip<npol; ip++ )
+                {
+                  irow += 1;
+                  if( ip==0  ||  ip==3 )  // Row 1 and 4 of Mueller matrix
+                    { row[irow] = 1; }
+                  else if( ip==1 )        // Row 2
+                    { row[irow] = a; row[irow+1] = b; }
+                  else                    // Row 3
+                    { row[irow] = a; row[irow-1] = -b; }
+                  hrot.insert_row( irow, row );
+                  // Make sure that set values are not affecting next row
+                  // (note that column irow+1 always will be overwritten)
+                  row[irow] = 0;
+                  if( ip == 2 )
+                    { row[irow-1] = 0; }
+                }
+            }
+        }
+    }
+
+  // Here we need a temporary sparse that is copy of the sensor_response
+  // sparse matrix. We need it since the multiplication function can not
+  // take the same object as both input and output.
+  Sparse htmp = sensor_response;
+  sensor_response.resize( htmp.nrows(), htmp.ncols());  //Just in case!
+  mult( sensor_response, hrot, htmp );  
+}
+
+
+
 void sensor_responseGenericAMSU(// WS Output:
     Vector& f_grid,
     Index& antenna_dim,
@@ -2594,6 +2699,7 @@ void sensor_responseGenericAMSU(// WS Output:
           sensor_response_aa_grid, 
           0);
   }
+
 
 void sensor_responseSimpleAMSU(// WS Output:
                                Vector& f_grid,
@@ -3065,191 +3171,3 @@ void ySimpleSpectrometer(
   mult( y, sensor_response, iyb );
 }
 
-
-
-
-
-
-
-//--- Stuff to be updated ----------------------------------------------------
-
-
-/* Workspace method: Doxygen documentation will be auto-generated 
-void sensor_responsePolarisation(// WS Output:
-                                 Sparse&          sensor_response,
-                                 Index&           sensor_response_pol,
-                                 // WS Input:
-                                 const Matrix&    sensor_pol,
-                                 const Vector&    sensor_response_za,
-                                 const Vector&    sensor_response_aa,
-                                 const Vector&    sensor_response_f,
-                                 const Index&     stokes_dim,
-                                 const Verbosity& verbosity)
-{
-  CREATE_OUT2;
-  CREATE_OUT3;
- 
-  Index n_aa;
-  if( sensor_response_aa.nelem()==0 )
-    n_aa = 1;
-  else
-    n_aa = sensor_response_aa.nelem();
-  Index n_f_a = sensor_response_f.nelem()*sensor_response_za.nelem()*n_aa;
-
-  // Check that the initial sensor_response has the right size.
-  if( sensor_response.nrows() != sensor_response_pol*n_f_a ) {
-    ostringstream os;
-    os << "The sensor block response matrix *sensor_response* does not have\n"
-       << "the right size. Check that at least *sensor_responseInit* has been\n"
-       << "run prior to this method.\n";
-    throw runtime_error(os.str());
-  }
-
-  // Check that sensor_pol and stokes_dim are consistent??
-  if ( sensor_pol.ncols()!=stokes_dim ) {
-    ostringstream os;
-    os << "The number of columns in *sensor_pol* does not match *stokes_dim*.";
-    throw runtime_error(os.str());
-  }
-
-  //// Check that *sensor_pol* is not a identity matrix. If so this method is
-  //// not just unnecessary but also gives wrong output.
-  //  if( sensor_pol.nrows()==sensor_pol.ncols() ) {
-  //  bool is_I = true;
-  //  for( Index it=0; it<stokes_dim; it++ ) {
-  //    for( Index jt=0; jt<stokes_dim; jt++ ) {
-  //      if( it==jt && sensor_pol(it,jt)!=1 )
-  //        is_I = false;
-  //      else if( it!=jt && sensor_pol(it,jt)!=0 )
-  //        is_I = false;
-  //    }
-  //  }
-  //  if( is_I ) {
-  //    ostringstream os;
-  //    os << "The matrix *sensor_pol* is an identity matrix and this method is\n"
-  //       << "therfor unnecessary.";
-  //    throw runtime_error(os.str());
-  //  }
-  //}
-
-  //// Check each row of *sensor_pol* so that the first element is 1 and the
-  //// sum of the squares of the others also equal 1.
-  //bool input_error = false;
-  //for( Index it=0; it<sensor_pol.nrows(); it++ ) {
-  //  if( sensor_pol(it,1)!=1 )
-  //    input_error = true;
-  //  Numeric row_sum = 0.0;
-  //  for( Index jt=1; jt<sensor_pol.ncols(); jt++ )
-  //    row_sum += pow(sensor_pol(it,jt),2.0);
-  //  if( row_sum!=1.0 )
-  //    input_error = true;
-  //}
-  //if( input_error ) {
-  //  ostringstream os;
-  //  os << "The elements in *sensor_pol* are not correct. The first element\n"
-  //     << "has to be 1 and the sum of the squares of the following should\n"
-  //     << "also be 1.";
-  //  throw runtime_error(os.str());
-  //}
-
-
-  // Output to the user.
-  out2 << "  Calculating the polarisation response using *sensor_pol*.\n";
-
-  // Call to calculating function
-  Sparse pol_response( sensor_pol.nrows()*n_f_a, stokes_dim*n_f_a );
-  polarisation_matrix( pol_response, sensor_pol,
-    sensor_response_f.nelem(), sensor_response_za.nelem(), stokes_dim );
-
-  // Multiply with sensor_response
-  Sparse tmp = sensor_response;
-  sensor_response.resize( sensor_pol.nrows()*n_f_a, tmp.ncols());
-  mult( sensor_response, pol_response, tmp);
-
-  // Some extra output.
-  out3 << "  Size of *sensor_response*: " << sensor_response.nrows()
-       << "x" << sensor_response.ncols() << "\n";
-
-  // Update sensor_response variable
-  sensor_response_pol = sensor_pol.nrows();
-}
-*/
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated 
-void sensor_responseRotation(// WS Output:
-                             Sparse&        sensor_response,
-                             // WS Input:
-                             const Vector&  sensor_rot,
-                             const Matrix&  antenna_los,
-                             const Index&   antenna_dim,
-                             const Index&   stokes_dim,
-                             const Vector&  sensor_response_f,
-                             const Vector&  sensor_response_za,
-                             const Verbosity& verbosity)
-{
-  CREATE_OUT2;
-  CREATE_OUT3;
- 
-  // Check that at least 3 stokes components are simulated. This since no 2
-  // and 3 are weighted together.
-  if( stokes_dim<3 ) {
-    ostringstream os;
-    os << "For a rotating sensor *stokes_dim* has to be at least 3.";
-    throw runtime_error(os.str());
-  }
-
-  // Check that the antenna dimension and the columns of antenna_los is ok.
-  if( antenna_dim!=antenna_los.ncols() ) {
-    ostringstream os;
-    os << "The antenna line-of-sight is not defined in consistency with the\n"
-       << "antenna dimension. The number of columns in *antenna_los* should be\n"
-       << "equal to *antenna_dim*";
-    throw runtime_error(os.str());
-  }
-
-  // Check that the incoming sensor response matrix has the right size. Here
-  // we use *stokes_dim* instead of *sensor_response_pol* since this function
-  // should be used on the 'raw' stokes components. Also check that a antenna
-  // response has been run prior to this method.
-  // NOTE: Here we test that sensor_response_za has the same length as
-  // antenna_los number of rows. Because for 1D, 2D and 3D cases the zenith
-  // angles are allways represented (so far).
-  Index n = stokes_dim*antenna_los.nrows()*sensor_response_f.nelem();
-  if( sensor_response.nrows()!=n ||
-      sensor_response_za.nelem()!=antenna_los.nrows() ) {
-    ostringstream os;
-    os << "A sensor_response antenna function has to be run prior to\n"
-       << "*sensor_responseRotation*.";
-    throw runtime_error(os.str());
-  }
-
-  // Check the size of *sensor_rot* vs. the number rows of *antenna_los*.
-  if( sensor_rot.nelem()!=1 && sensor_rot.nelem()!=antenna_los.nrows() ) {
-    ostringstream os;
-    os << "The size of *sensor_rot* and number of rows in *antenna_los* has\n"
-       << "to be equal.";
-    throw runtime_error(os.str());
-  }
-
-  // Output to the user.
-  out2 << "  Calculating the rotation response with rotation from "
-       << "*sensor_rot*.\n";
-
-  // Setup L-matrix, iterate through rotation and insert in sensor_response
-  Sparse rot_resp( n, n);
-  rotation_matrix(rot_resp, sensor_rot, sensor_response_f.nelem(),
-    stokes_dim );
-
-  // Multiply with sensor_response
-  Sparse tmp = sensor_response;
-  sensor_response.resize( n, tmp.ncols());
-  mult( sensor_response, rot_resp, tmp);
-
-  // Some extra output.
-  out3 << "  Size of *sensor_response*: " << sensor_response.nrows()
-       << "x" << sensor_response.ncols() << "\n";
-
-}
-*/

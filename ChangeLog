@@ -1,7 +1,18 @@
+2014-02-21  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-825
+
+	* src/m_sensor.cc: Removed some inactive code at end of file. This
+	including an old version of new method below.
+
+	(sensor_responseStokesRotation): New WSM .
+
+	* src/workspace.cc: Added stokes_rotation.
+
 2014-02-19  Richard Larsson  <ric.larsson@gmail.com>
-	
+
 	* arts-2-1-824
-	
+
 	* AUTHORS:  Added myself to "important component" contributor list.  
 	Remove or move as you see fit.
 	

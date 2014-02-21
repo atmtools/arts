@@ -9755,6 +9755,36 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "sensor_responseStokesRotation" ),
+        DESCRIPTION
+        (
+         "Includes a rotation of the Stokes H and V directions.\n"
+         "\n"
+         "The method applies the rotations implied by *stokes_rotation*.\n"
+         "See the description of that WSV for details.\n"
+         "\n"
+         "This method does not change the size of *sensor_response*, and\n"
+         "the auxiliary variables (sensor_response_f etc.) are not changed.\n"
+         "\n"
+         "To apply the method, *stokes_dim* must be >= 3. The complete effect\n"
+         "of the rotation can not be determibed with lower *stokes_dim*.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "sensor_response" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "sensor_response", "sensor_response_f_grid",
+            "sensor_response_pol_grid", "sensor_response_za_grid",
+            "sensor_response_aa_grid", "stokes_dim", "stokes_rotation" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "sensor_responseSimpleAMSU" ),
         DESCRIPTION
         (

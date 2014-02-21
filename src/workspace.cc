@@ -4253,6 +4253,37 @@ void Workspace::define_wsv_data()
       GROUP( "Index" )));
 
   wsv_data.push_back
+   (WsvRecord
+    ( NAME( "stokes_rotation" ),
+      DESCRIPTION
+      (
+       "Rotation of the Stokes H and V directions.\n"
+       "\n"
+       "This variable allows to introduce a rotation of the Stokes coordinate\n"
+       "system. Such a rotation could be needed to handle the scanning\n"
+       "procedure of some instruments, such as AMSU-A. The variable is\n"
+       "applied by the *sensor_responseStokesRotation* WSM.\n"
+       "\n"
+       "The rotation is given as an angle for each direction. In general, the\n"
+       "number of rotations to be specified follows *sensor_response_za_grid*\n"
+       "and *sensor_response_aa_grid*. For example, if no antenna is included\n"
+       "or a 1D antenna is used, and the rotation is applied before the\n"
+       "antenna is included in *sensor_response*, there should be one angle\n"
+       "for each element of *mblock_za_grid*. After inclusion of an antenna\n" 
+       "response, the relevant number of angles is determined by\n"
+       "*antenna_los*.\n"
+       "\n"
+       "It is assumed that the rotation is common for all frequency elements.\n"
+       "\n"
+       "Units: degrees\n"
+       "\n"
+       "Size:  [ number of zenith angles, number of azimuth angles ]\n"
+       "\n"
+       "Usage: Set by the user.\n"
+       ),
+      GROUP( "Matrix" )));
+
+  wsv_data.push_back
     (WsvRecord
      ( NAME( "surface_complex_refr_index"),
        DESCRIPTION
