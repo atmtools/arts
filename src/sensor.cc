@@ -658,24 +658,23 @@ void sensor_aux_vectors(
 
 //! sensor_integration_vector
 /*!
-   Calculates the (row) vector that multiplied with an unknown
-   (column) vector approximates the integral of the product
-   between the functions represented by the two vectors.
+   Calculates the (row) vector that multiplied with an unknown (column) vector
+   approximates the integral of the product between the functions represented
+   by the two vectors: h*g = integral( f(x)*g(x) dx )
 
-   E.g. h*g = integral( f(x)*g(x) dx )
-
-   See Eriksson et al., Efficient forward modelling by matrix
-   representation of sensor responses, Int. J. Remote Sensing, 27,
-   1793-1808, 2006, for details.
-
-   The grids are internally normalised to cover the range [0,1] for
-   increased numerical stability.
+   Basic principle follows Eriksson et al., Efficient forward modelling by
+   matrix representation of sensor responses, Int. J. Remote Sensing, 27,
+   1793-1808, 2006. However, while in Eriksson et al. the product between f*g
+   is assumed to vary linearly between the grid point, the expressions applied
+   here are more advanced and are completly exact as long as f and g are
+   piece-wise linear functions. The product f*g is then a quadratic funtion
+   between the grid points.
 
    \param   h       The multiplication (row) vector.
    \param   f       The values of function f(x).
    \param   x_f_in  The grid points of function f(x). Must be increasing.
    \param   x_g_in  The grid points of function g(x). Can be increasing or 
-                    decreasing. Must cover a wider range than x_ft (in
+                    decreasing. Must cover a wider range than x_f (in
                     both ends).
 
    \author Mattias Ekström and Patrick Eriksson
@@ -698,99 +697,237 @@ void sensor_integration_vector(
   assert( is_increasing( x_g_in ) || is_decreasing( x_g_in ) );
   // More asserts below
 
-  // Copy grids, handle reversed x_g and normalise to cover the range
-  // [0 1]. This is necessary to avoid numerical problems for
-  // frequency grids (e.g. experienced for a case with frequencies
-  // around 501 GHz).
-  //
-  Vector x_g         = x_g_in;
-  Vector x_f         = x_f_in;
+  // End points of x_f
+  const Numeric xfmin = x_f_in[0];
+  const Numeric xfmax = x_f_in[nf-1];
+
+  // Handle possibly reversed x_g.
+  Vector x_g;
   Index  xg_reversed = 0;
   //
-  if( is_decreasing( x_g ) )
+  if( is_decreasing( x_g_in ) )
     {
+      x_g = x_g_in[Range(ng-1,ng,-1)];
       xg_reversed = 1;
-      Vector tmp  = x_g[Range(ng-1,ng,-1)];   // Flip order
-      x_g         = tmp;
+    }
+  else
+    { 
+      x_g = x_g_in; 
     }
   //
-  assert( x_g[0]    <= x_f[0] );
-  assert( x_g[ng-1] >= x_f[nf-1] );
-  //
-  const Numeric xmin = x_g[0];
-  const Numeric xmax = x_g[ng-1];
-  //
-  x_f -= xmin;
-  x_g -= xmin;
-  x_f /= xmax - xmin;
-  x_g /= xmax - xmin;
+  assert( x_g[0]    <= xfmin );
+  assert( x_g[ng-1] >= xfmax );
 
-  //Create a reference grid vector, x_ref that containing the values
-  //of x_f and x_g strictly sorted. Only g points inside the f range
-  //are of concern.
+  // Normalise grids so x_f covers [0,1]
+  const Numeric df = xfmax - xfmin;
+  Vector x_f(nf);
+  //
+  for( Index i=0; i<nf; i++ )
+    { x_f[i] = ( x_f_in[i] - xfmin ) / df; }
+  for( Index i=0; i<ng; i++ )
+    { x_g[i] = ( x_g[i] - xfmin ) / df; }
+
+  // Create a reference grid vector, x_ref that containing the values
+  // of x_f and x_g strictly sorted. Only g points inside the f range
+  // are of concern.
   list<Numeric> l_x;
   for( Index it=0; it<nf; it++ )
-    l_x.push_back(x_f[it]);
+    { l_x.push_back(x_f[it]); }
   for (Index it=0; it<ng; it++) 
     {
-      if( x_g[it]>x_f[0] && x_g[it]<x_f[x_f.nelem()-1] )
-        l_x.push_back(x_g[it]);
+      if( x_g[it] > 0  &&  x_g[it] < 1 )  // Range of x_f is [0,1]
+        { l_x.push_back(x_g[it]); }
     }
-
   l_x.sort();
   l_x.unique();
-
+  //
   Vector x_ref(l_x.size());
-  Index e=0;
-  for (list<Numeric>::iterator li=l_x.begin(); li != l_x.end(); li++) {
-    x_ref[e] = *li;
-    e++;
-  }
+  Index  e = 0;
+  for( list<Numeric>::iterator li=l_x.begin(); li != l_x.end(); li++ ) 
+    {
+      x_ref[e] = *li;
+      e++;
+    }
 
   //Initiate output vector, with equal size as x_g, with zeros.
   //Start calculations
   h = 0.0;
   Index i_f = 0;
   Index i_g = 0;
-  //i = 0;
   Numeric dx,a0,b0,c0,a1,b1,c1,x3,x2,x1;
-  //while( i_g < ng && i_f < x_f.nelem() ) {
-  for( Index i=0; i<x_ref.nelem()-1; i++ ) {
-    //Find for what index in x_g (which is the same as for h) and f
-    //calculation corresponds to
-    while( x_g[i_g+1] <= x_ref[i] ) {
-      i_g++;
+  //
+  for( Index i=0; i<x_ref.nelem()-1; i++ ) 
+    {
+      //Find for what index in x_g (which is the same as for h) and f
+      //calculation corresponds to
+      while( x_g[i_g+1] <= x_ref[i] ) 
+        { i_g++; }
+      while( x_f[i_f+1] <= x_ref[i] ) 
+        { i_f++; }
+
+      // If x_ref[i] is out of x_f's range ([0,1] after normalisation) then
+      // that part of the integral is 0, and no calculations should be done
+      if( x_ref[i] >= 0  &&  x_ref[i] < 1 ) 
+        {
+          //Product of steps in x_f and x_g
+          dx = (x_f[i_f+1] - x_f[i_f]) * (x_g[i_g+1] - x_g[i_g]);
+
+          //Calculate a, b and c coefficients; h[i]=ax^3+bx^2+cx
+          a0 = (f[i_f] - f[i_f+1]) / 3;
+          b0 = (-f[i_f]*(x_g[i_g+1]+x_f[i_f+1])+f[i_f+1]*(x_g[i_g+1]+x_f[i_f]))
+            /2;
+          c0 = f[i_f]*x_f[i_f+1]*x_g[i_g+1]-f[i_f+1]*x_f[i_f]*x_g[i_g+1];
+
+          a1 = -a0;
+          b1 = (f[i_f]*(x_g[i_g]+x_f[i_f+1])-f[i_f+1]*(x_g[i_g]+x_f[i_f]))/2;
+          c1 = -f[i_f]*x_f[i_f+1]*x_g[i_g]+f[i_f+1]*x_f[i_f]*x_g[i_g];
+
+          x3 = pow(x_ref[i+1],3) - pow(x_ref[i],3);
+          x2 = pow(x_ref[i+1],2) - pow(x_ref[i],2);
+          x1 = x_ref[i+1]-x_ref[i];
+
+          //Calculate h[i] and h[i+1] increment
+          h[i_g]   += df * (a0*x3+b0*x2+c0*x1) / dx;
+          h[i_g+1] += df * (a1*x3+b1*x2+c1*x1) / dx;
+        }
     }
-    while( x_f[i_f+1] <= x_ref[i] ) {
-     i_f++;
+
+  // Flip back if x_g was decreasing
+  if( xg_reversed )
+    {
+      Vector tmp = h[Range(ng-1,ng,-1)];   // Flip order
+      h = tmp;
+    }
+}
+
+//! sensor_integration_vector
+/*!
+   Calculates the (row) vector that multiplied with an unknown
+   (column) vector approximates the integral of the product
+   between the functions represented by the two vectors.
+
+   E.g. h*g = integral( f(x)*g(x) dx )
+
+   See Eriksson et al., Efficient forward modelling by matrix
+   representation of sensor responses, Int. J. Remote Sensing, 27,
+   1793-1808, 2006, for details.
+
+   \param   h       The multiplication (row) vector.
+   \param   f       The values of function f(x).
+   \param   x_f_in  The grid points of function f(x). Must be increasing.
+   \param   x_g_in  The grid points of function g(x). Can be increasing or 
+                    decreasing. Must cover a wider range than x_ft (in
+                    both ends).
+
+   \author Mattias Ekström and Patrick Eriksson
+   \date   2003-02-13 / 2008-06-12
+*/
+void sensor_integration_vector2(
+        VectorView   h,
+   ConstVectorView   f,
+   ConstVectorView   x_f,
+   ConstVectorView   x_g_in )
+{
+  // Basic sizes 
+  const Index nf = x_f.nelem();
+  const Index ng = x_g_in.nelem();
+
+  // Asserts
+  assert( h.nelem() == ng );
+  assert( f.nelem() == nf );
+  assert( is_increasing( x_f ) );
+  assert( is_increasing( x_g_in ) || is_decreasing( x_g_in ) );
+  // More asserts below
+
+  // End points of x_f
+  const Numeric xfmin = x_f[0];
+  const Numeric xfmax = x_f[nf-1];
+
+  // Handle possibly reversed x_g.
+  Vector x_g;
+  Index  xg_reversed = 0;
+  //
+  if( is_decreasing( x_g_in ) )
+    {
+      x_g = x_g_in[Range(ng-1,ng,-1)];
+      xg_reversed = 1;
+    }
+  else
+    { 
+      x_g = x_g_in; 
+    }
+  //
+  assert( x_g[0]    <= xfmin );
+  assert( x_g[ng-1] >= xfmax );
+
+  // Create a reference grid vector, x_ref that containing the values
+  // of x_f and x_g strictly sorted. Only g points inside the f range
+  // are of concern.
+  list<Numeric> l_x;
+  for( Index it=0; it<nf; it++ )
+    l_x.push_back(x_f[it]);
+  for( Index it=0; it<ng; it++ ) 
+    {
+      if( x_g[it] > xfmin  &&  x_g[it] < xfmax )
+        { l_x.push_back(x_g[it]); }
+    }
+  l_x.sort();
+  l_x.unique();
+  //
+  Vector x_ref(l_x.size());
+  Index  e = 0;
+  for( list<Numeric>::iterator li=l_x.begin(); li != l_x.end(); li++ ) 
+    {
+      x_ref[e] = *li;
+      e++;
     }
 
-    //If x_ref[i] is out of x_f's range then that part of the integral
-    //is set to 0, so no calculations will be done
-    if( x_ref[i] >= x_f[0] && x_ref[i] < x_f[x_f.nelem()-1] ) {
-      //Product of steps in x_f and x_g
-      dx = (x_f[i_f+1] - x_f[i_f]) * (x_g[i_g+1] - x_g[i_g]);
+  // Initiate output vector, with equal size as x_g, with zeros.
+  h = 0.0;
 
-      //Calculate a, b and c coefficients; h[i]=ax^3+bx^2+cx
-      a0 = (f[i_f] - f[i_f+1]) / 3;
-      b0 = (-f[i_f]*(x_g[i_g+1]+x_f[i_f+1])+f[i_f+1]*(x_g[i_g+1]+x_f[i_f]))
-           /2;
-      c0 = f[i_f]*x_f[i_f+1]*x_g[i_g+1]-f[i_f+1]*x_f[i_f]*x_g[i_g+1];
+  // Start calculations
+  //
+  Index i_f = 0;
+  Index i_g = 0;
+  //
+  for( Index i=0; i<x_ref.nelem()-1; i++ ) 
+    {
+      // Find for what index in x_g (which is the same as for h) and f
+      // calculation corresponds to
+      while( x_g[i_g+1] <= x_ref[i] ) 
+        { i_g++; }
+      while( x_f[i_f+1] <= x_ref[i] ) 
+        { i_f++; }
 
-      a1 = -a0;
-      b1 = (f[i_f]*(x_g[i_g]+x_f[i_f+1])-f[i_f+1]*(x_g[i_g]+x_f[i_f]))/2;
-      c1 = -f[i_f]*x_f[i_f+1]*x_g[i_g]+f[i_f+1]*x_f[i_f]*x_g[i_g];
+      // If x_ref[i] is out of x_f's range then that part of the integral
+      // is  0, and no calculations should be done
+      if( x_ref[i] >= xfmin  &&  x_ref[i] < xfmax ) 
+        {
+          // ( x_k+1 - x_k )/2
+          const Numeric dxk = 0.5 * ( x_ref[i+1] - x_ref[i] );
 
-      x3 = pow(x_ref[i+1],3) - pow(x_ref[i],3);
-      x2 = pow(x_ref[i+1],2) - pow(x_ref[i],2);
-      x1 = x_ref[i+1]-x_ref[i];
+          // ( x_i+1 - x_i )
+          const Numeric dxi = x_g[i_g+1] - x_g[i_g];
 
-      //Calculate h[i] and h[i+1] increment
-      h[i_g] += (a0*x3+b0*x2+c0*x1) / dx;
-      h[i_g+1] += (a1*x3+b1*x2+c1*x1) / dx;
+          // The ratio of the two quantities above
+          const Numeric r = dxk / dxi;
+        
+          // Values of f at x_ref[i] and x_ref[i+1]
+          const Numeric dx = x_f[i_f+1] - x_f[i_f];
+          const Numeric f0 = ( f[i_f]   * (x_f[i_f+1]-x_ref[i]) +
+                               f[i_f+1] * (x_ref[i]-x_f[i_f]) ) / dx;
+          const Numeric f1 = ( f[i_f]   * (x_f[i_f+1]-x_ref[i+1]) +
+                               f[i_f+1] * (x_ref[i+1]-x_f[i_f]) ) / dx;
 
+          //cout << "f0/f1 = " << f0-x_ref[i] << " / " << f1-x_ref[i+1] << endl;
+
+          // Add increaments to h
+          h[i_g]   += r * ( f0 * ( x_g[i_g+1] - x_ref[i]   ) + 
+                            f1 * ( x_g[i_g+1] - x_ref[i+1] ) );
+          h[i_g+1] += r * ( f0 * ( x_ref[i]   - x_g[i_g]   ) + 
+                            f1 * ( x_ref[i+1] - x_g[i_g]   ) );
+        }
     }
-  }
 
   // Flip back if x_g was decreasing
   if( xg_reversed )
@@ -1336,136 +1473,5 @@ void find_effective_channel_boundaries(// Output:
     out2 << "  " << fmin[i] << "               " << fmax[i] << "\n";
 
 }
-
-
-
-
-
-
-
-//--- Stuff not yet updated --------------------------------------------------
-
-
-
-
-
-
-
-//! polarisation_matrix
-/*!
-   Sets up the polarisation transfer matrix from stokes vectors describing
-   the sensor polarisation.
-
-   The sensor polarisation matrix is here multiplied 0.5 to get intensities.
-
-   The size of the transfer matrix has to be set up before calling the function
-   as follows:
-     nrows = number of polarisations times frequencies and angles
-     ncols = stokes dimension times frequencies and angles.
-
-   \param   H         The polarisation transfer matrix
-   \param   pol       The polarisation matrix
-   \param   n_f       The number of frequencies
-   \param   n_za      The number of zenith angles/antennas
-   \param   dim       The stokes dimension
-
-   \author Mattias Ekström
-   \date   2004-06-02
-
-void polarisation_matrix(
-              Sparse&   H,
-      ConstMatrixView   pol,
-          const Index   n_f,
-          const Index   n_za,
-          const Index   dim )
-{
-  // Assert size of H and pol
-  assert( H.nrows()==pol.nrows()*n_f*n_za );
-  assert( H.ncols()==dim*n_f*n_za );
-  assert( pol.ncols()==dim );
-
-  Index n_pol = pol.nrows();
-  Matrix pol_half = pol;
-  pol_half *= 0.5;
-
-  // Loop over angles
-  for (Index za=0; za<n_za; za++) {
-    //FIXME: Add rotation here?
-
-    // Loop over frequencies
-    for (Index f=0; f<n_f; f++) {
-
-      // Loop over stokes dimensions
-      for (Index d=0; d<dim; d++) {
-
-        // Loop over polarisations
-        for (Index p=0; p<n_pol; p++) {
-
-          if ( pol(p,d)!=0.0 )
-            H.rw(za*n_f*n_pol+f*n_pol+p,za*n_f*dim+f*dim+d)=pol_half(p,d);
-        }
-      }
-    }
-  }
-}
-*/
-
-
-//! rotation_matrix
-/*!
-   Sets up the rotation transfer matrix from the sensor rotation vector.
-
-   The sensor rotation vector should contain the rotation for each
-   direction. It is coupled with the antenna line-of-sight and has to have the
-   same number of elements/rows.
-
-   The size of the transfer matrix has to be set up before calling the function
-   and it is a quadratic matrix with sizes equal the product of stokes_dim and
-   number of antenna line-of-sight (number of rotations).
-
-   \param   H         The polarisation transfer matrix
-   \param   rot       The polarisation matrix
-   \param   n_f       The number of frequencies
-   \param   dim       The stokes dimension
-
-   \author Mattias Ekström
-   \date   2004-06-02
-
-void rotation_matrix(
-              Sparse&   H,
-      ConstVectorView   rot,
-          const Index   n_f,
-          const Index   dim )
-{
-  // Assert that the matrix has the right size
-  assert( H.nrows()==H.ncols() );
-  assert( H.nrows()==dim*n_f*rot.nelem() );
-
-  // Setup the L matrix for each rotation and distribute the elements for
-  // all frequencies in the rotation matrix.
-  Matrix L(dim,dim,0.0);
-  if( dim==4 )
-    L(3,3) = 1.0;
-  L(0,0) = 1.0;
-  Index tmp;
-
-  for( Index rit=0; rit<rot.nelem(); rit++ ) {
-    L(1,1) = cos(2*rot[rit]*PI/180.);
-    L(2,2) = L(1,1);
-    L(1,2) = sin(2*rot[rit]*PI/180.);
-    L(2,1) = -L(1,2);
-
-    for( Index fit=0; fit<n_f; fit++ ) {
-      for( Index Lcit=0; Lcit<dim; Lcit++ ) {
-        for( Index Lrit=0; Lrit<dim; Lrit++ ) {
-          tmp = (rit*n_f+fit)*dim;
-          H.rw(tmp+Lrit,tmp+Lcit)=L(Lrit,Lcit);
-        }
-      }
-    }
-  }
-}
-*/
-
 
 

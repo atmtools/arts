@@ -103,6 +103,11 @@ void sensor_integration_vector(
    ConstVectorView   f,
    ConstVectorView   x_f_in,
    ConstVectorView   x_g_in );
+void sensor_integration_vector2(
+        VectorView   h,
+   ConstVectorView   f,
+   ConstVectorView   x_f_in,
+   ConstVectorView   x_g_in );
 
 void sensor_summation_vector(
         VectorView   h,

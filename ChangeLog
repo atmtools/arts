@@ -1,3 +1,29 @@
+2014-02-23  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-827
+
+	* src/m_general.cc (Test): Now including a test of
+	sensor_integration_vector and sensor_integration_vector2. It
+	confirms that sensor_integration_vector gives exact result when
+	the two functions are piece-wise linear.
+
+	* src/sensor.cc (sensor_integration_vector): Header text improved.
+	Some cleaning/changes of the code. The only real change is that
+	the grid normalisation is changed. The normalisation now maps x_f
+	to [0,1] (before x_g). In addition, the final result did not
+	consider this normalisation. This was a bug, but still all OK with
+	sensor_norm set to 1. 
+
+	A note: Tried to deactivate normalisation and the Odin-SMR test
+	then raised an error. Seems that Tb changed with 7 K. So the code
+	appears to be sensitive for numerical issues ...
+
+	(sensor_integration_vector2): A version of the function above, but
+	strictly following the sensor repsonse article.
+
+	* src/sensor.cc: Removed some old inactive code related to Stokes
+	rotation.
+
 2014-02-21  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-826

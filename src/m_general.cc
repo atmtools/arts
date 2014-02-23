@@ -60,11 +60,9 @@
 #include "wsv_aux.h"
 
 #include "auto_md.h"
-#include "geodetic.h"
 #include "workspace_ng.h"
 
-//#include "lin_alg.h"
-//#include "rte.h"
+#include "sensor.h"
 
 
 extern const Numeric SPEED_OF_LIGHT;
@@ -403,31 +401,36 @@ void Exit(const Verbosity& verbosity)
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Test(const Verbosity& )
+void Test(const Verbosity& verbosity )
 {
-  /*
-  GriddedField3 complex_n;
+  // Let response be y=x for x=0:0.2:2
+  Vector xr,yr;
+  VectorLinSpace( xr, 0, 2.01, 0.2, verbosity ); 
+  xr[4] += 0.021;
+  yr = xr;
 
-  MakeVector f_grid1( 10e9,500e9 ); 
-  MakeVector t_grid1( 274,300,373 ); 
+  // Let spectrum also be y=x, but defined on -0.05:0.4:3.05
+  Vector xs;
+  VectorLinSpace( xs, -0.05, 3.05, 0.4, verbosity ); 
+  xs[3] -= 0.01;
+  Vector ys(xs.nelem());
+  for( Index i=0; i<xs.nelem(); i++ )
+    { ys[i] = xs[i]; };
 
-  MakeVector f_grid2( 15e9, 100e9, 200e9 ); 
-  MakeVector t_grid2( 300,310 ); 
+  // Determine ingeration vector
+  Vector h(xs.nelem());
+  sensor_integration_vector( h, yr, xr, xs );
 
-  ParticleRefractiveIndexWaterLiebe93( complex_n, f_grid1, t_grid1, verbosity );  
+  // Integrate by using h
+  cout << "Result of 1:th integration: " << h*ys << endl;
+  //cout << h << endl;
 
-  cout << complex_n.data(joker,joker,0) << endl << endl;
-  cout << complex_n.data(joker,joker,1) << endl << endl;
-
-  Matrix n_real(f_grid2.nelem(),t_grid2.nelem());
-  Matrix n_imag(f_grid2.nelem(),t_grid2.nelem());
-
-  complex_n_interp( n_real, n_imag, complex_n, "testdata", f_grid2, t_grid2 );
-
-  cout << n_real << endl << endl;
-  cout << n_imag << endl;
-  */
+  sensor_integration_vector2( h, yr, xr, xs );
+  cout << "Result of 2:nd integration: " << h*ys << endl;
+  cout << "Expected result           : " << (2.0+2.0/3.0) << endl;
+  //cout << h << endl;
 }
+
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
