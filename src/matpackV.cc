@@ -759,14 +759,14 @@ is not 1 because the caller expects to get a C array with continuous data.
 */
 Numeric *Tensor5View::get_c_array()
 {
-  if (msr.mstart != 0 || msr.mstride != mbr.mextent * mpr.mextent * mrr.mextent * mcr.mextent
-      || mbr.mstart != 0 || mbr.mstride != mpr.mextent * mrr.mextent * mcr.mextent
-      || mpr.mstart != 0 || mpr.mstride != mrr.mextent * mcr.mextent
-      || mrr.mstart != 0 || mrr.mstride != mcr.mextent
-      || mcr.mstart != 0 || mcr.mstride != 1)
-    throw runtime_error("A Tensor5View can only be converted to a plain C-array if mbr.mstart == 0 and mbr.mstride == mrp.extent*mrr.extent*mcr.extent and mpr.mstart == 0 and mpr.mstride == mrr.extent*mcr.extent and mrr.mstart == 0 and mrr.mstride == mcr.extent and mcr.mstart == 0 and mcr.mstride == 1");
+    if (msr.mstart != 0 || msr.mstride != mbr.mextent * mpr.mextent * mrr.mextent * mcr.mextent
+        || mbr.mstart != 0 || mbr.mstride != mpr.mextent * mrr.mextent * mcr.mextent
+        || mpr.mstart != 0 || mpr.mstride != mrr.mextent * mcr.mextent
+        || mrr.mstart != 0 || mrr.mstride != mcr.mextent
+        || mcr.mstart != 0 || mcr.mstride != 1)
+        throw std::runtime_error("A Tensor5View can only be converted to a plain C-array if it's pointing to a continuous block of data");
 
-  return mdata;
+    return mdata;
 }
 
 /** Conversion to plain C-array.
@@ -777,14 +777,14 @@ Numeric *Tensor5View::get_c_array()
 */
 const Numeric *Tensor5View::get_c_array() const
 {
-  if (msr.mstart != 0 || msr.mstride != mbr.mextent * mpr.mextent * mrr.mextent * mcr.mextent
-      || mbr.mstart != 0 || mbr.mstride != mpr.mextent * mrr.mextent * mcr.mextent
-      || mpr.mstart != 0 || mpr.mstride != mrr.mextent * mcr.mextent
-      || mrr.mstart != 0 || mrr.mstride != mcr.mextent
-      || mcr.mstart != 0 || mcr.mstride != 1)
-    throw runtime_error("A Tensor5View can only be converted to a plain C-array if mbr.mstart == 0 and mbr.mstride == mrp.extent*mrr.extent*mcr.extent and mpr.mstart == 0 and mpr.mstride == mrr.extent*mcr.extent and mrr.mstart == 0 and mrr.mstride == mcr.extent and mcr.mstart == 0 and mcr.mstride == 1");
+    if (msr.mstart != 0 || msr.mstride != mbr.mextent * mpr.mextent * mrr.mextent * mcr.mextent
+        || mbr.mstart != 0 || mbr.mstride != mpr.mextent * mrr.mextent * mcr.mextent
+        || mpr.mstart != 0 || mpr.mstride != mrr.mextent * mcr.mextent
+        || mrr.mstart != 0 || mrr.mstride != mcr.mextent
+        || mcr.mstart != 0 || mcr.mstride != 1)
+        throw std::runtime_error("A Tensor5View can only be converted to a plain C-array if it's pointing to a continuous block of data");
 
-  return mdata;
+    return mdata;
 }
 
 

@@ -441,7 +441,7 @@ Numeric *Tensor3View::get_c_array()
   if (mpr.mstart != 0 || mpr.mstride != mrr.mextent * mcr.mextent
       || mrr.mstart != 0 || mrr.mstride != mcr.mextent
       || mcr.mstart != 0 || mcr.mstride != 1)
-    throw runtime_error("A Tensor3View can only be converted to a plain C-array if mpr.mstart == 0 and mpr.mstride == mrr.extent*mcr.extent and mrr.mstart == 0 and mrr.mstride == mcr.extent and mcr.mstart == 0 and mcr.mstride == 1");
+      throw std::runtime_error("A Tensor3View can only be converted to a plain C-array if it's pointing to a continuous block of data");
 
   return mdata;
 }
@@ -457,7 +457,7 @@ const Numeric *Tensor3View::get_c_array() const
   if (mpr.mstart != 0 || mpr.mstride != mrr.mextent * mcr.mextent
       || mrr.mstart != 0 || mrr.mstride != mcr.mextent
       || mcr.mstart != 0 || mcr.mstride != 1)
-    throw runtime_error("A Tensor3View can only be converted to a plain C-array if mpr.mstart == 0 and mpr.mstride == mrr.extent*mcr.extent and mrr.mstart == 0 and mrr.mstride == mcr.extent and mcr.mstart == 0 and mcr.mstride == 1");
+      throw std::runtime_error("A Tensor3View can only be converted to a plain C-array if it's pointing to a continuous block of data");
 
   return mdata;
 }
