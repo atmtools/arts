@@ -8488,6 +8488,45 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "Reduce" ),
+        DESCRIPTION
+        (
+         "Reduces a larger class to a smaller class of same size.\n"
+         "\n"
+         "E.g., a 1x1 Matrix can be reduced to a Numeric, and a 1x3x1 Tensor3\n"
+         "can be reduced to a length 3 Vector.  It is not possible to Reduce\n"
+         "a 2x3x1x2 Tensor4 to anything other than a 2x3x4 Tensor3, and it is\n"
+         "not at all possible to reduce a 2x3x4x5x6x7x8 Tensor7.\n"
+         ),
+        AUTHORS( "Oliver Lemke", "Richard Larsson" ),
+        OUT(),
+        GOUT( "o" ),
+        GOUT_TYPE( "Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric,"
+                   "Vector, Vector, Vector, Vector, Vector, Vector,"
+                   "Matrix, Matrix, Matrix, Matrix, Matrix,"
+                   "Tensor3, Tensor3, Tensor3, Tensor3,"
+                   "Tensor4, Tensor4, Tensor4,"
+                   "Tensor5, Tensor5,"
+                   "Tensor6"),
+        GOUT_DESC( "Reduced form of input." ),
+        IN(),
+        GIN( "i" ),
+        GIN_TYPE( "Vector, Matrix, Tensor3, Tensor4, Tensor5, Tensor6, Tensor7,"
+                  "Matrix, Tensor3, Tensor4, Tensor5, Tensor6, Tensor7,"
+                  "Tensor3, Tensor4, Tensor5, Tensor6, Tensor7,"
+                  "Tensor4, Tensor5, Tensor6, Tensor7,"
+                  "Tensor5, Tensor6, Tensor7,"
+                  "Tensor6, Tensor7,"
+                  "Tensor7"),
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC( "Over-dimensioned input" ),
+        SETMETHOD(      false ),
+        AGENDAMETHOD(   false ),
+        USES_TEMPLATES( false  )
+        ));
+        
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "refellipsoidEarth" ),
         DESCRIPTION
         (

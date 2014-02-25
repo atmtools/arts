@@ -1,3 +1,15 @@
+2014-02-25  Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-1-832
+
+	* src/make_auto_md_cc.cc: Added the function below.
+	
+	* src/methods.cc: Added the function below
+
+	* src/m_reduce.h: Function to reduce higher order tensors to lower order
+	tensors.  Can, e.g., convert a 1x4 matrix to Vector type.  This is a
+	simple function that is complementary to the Extract function.
+
 2014-02-25  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-831
