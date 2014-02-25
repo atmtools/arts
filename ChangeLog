@@ -1,3 +1,12 @@
+2014-02-25  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-828
+
+	* src/sensor.cc (sensor_integration_vector): Changed expressions
+	for x2 and x3, to avoid numerical problems for e.g. (f+df)^3-f^3.
+	A slight rewrite of c0 and c1, common term now outside ( ).
+	Added an error message, if f >=0 and and any h <= -small_value.
+
 2014-02-23  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-827

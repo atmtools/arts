@@ -698,8 +698,8 @@ void sensor_integration_vector(
   // More asserts below
 
   // End points of x_f
-  const Numeric xfmin = x_f_in[0];
-  const Numeric xfmax = x_f_in[nf-1];
+  Numeric xfmin = x_f_in[0];
+  Numeric xfmax = x_f_in[nf-1];
 
   // Handle possibly reversed x_g.
   Vector x_g;
@@ -726,7 +726,12 @@ void sensor_integration_vector(
     { x_f[i] = ( x_f_in[i] - xfmin ) / df; }
   for( Index i=0; i<ng; i++ )
     { x_g[i] = ( x_g[i] - xfmin ) / df; }
-
+  xfmin = 0;
+  xfmax = 1;
+  // To test without normalisation, comment out lines above and use:
+  //const Numeric df  = 1;
+  //const Vector  x_f = x_f_in;
+  
   // Create a reference grid vector, x_ref that containing the values
   // of x_f and x_g strictly sorted. Only g points inside the f range
   // are of concern.
@@ -735,7 +740,7 @@ void sensor_integration_vector(
     { l_x.push_back(x_f[it]); }
   for (Index it=0; it<ng; it++) 
     {
-      if( x_g[it] > 0  &&  x_g[it] < 1 )  // Range of x_f is [0,1]
+      if( x_g[it] > xfmin  &&  x_g[it] < xfmax )  
         { l_x.push_back(x_g[it]); }
     }
   l_x.sort();
@@ -749,8 +754,8 @@ void sensor_integration_vector(
       e++;
     }
 
-  //Initiate output vector, with equal size as x_g, with zeros.
-  //Start calculations
+  // Initiate output vector, with equal size as x_g, with zeros.
+  // Start calculations
   h = 0.0;
   Index i_f = 0;
   Index i_g = 0;
@@ -758,37 +763,43 @@ void sensor_integration_vector(
   //
   for( Index i=0; i<x_ref.nelem()-1; i++ ) 
     {
-      //Find for what index in x_g (which is the same as for h) and f
-      //calculation corresponds to
+      // Find for what index in x_g (which is the same as for h) and f
+      // calculation corresponds to
       while( x_g[i_g+1] <= x_ref[i] ) 
         { i_g++; }
       while( x_f[i_f+1] <= x_ref[i] ) 
         { i_f++; }
 
-      // If x_ref[i] is out of x_f's range ([0,1] after normalisation) then
-      // that part of the integral is 0, and no calculations should be done
-      if( x_ref[i] >= 0  &&  x_ref[i] < 1 ) 
+      // If x_ref[i] is out of x_f's range then that part of the integral is 0,
+      // and no calculations should be done
+      if( x_ref[i] >= xfmin  &&  x_ref[i] < xfmax ) 
         {
-          //Product of steps in x_f and x_g
-          dx = (x_f[i_f+1] - x_f[i_f]) * (x_g[i_g+1] - x_g[i_g]);
+          // Product of steps in x_f and x_g
+          dx = ( x_f[i_f+1] - x_f[i_f] ) * ( x_g[i_g+1] - x_g[i_g] );
 
-          //Calculate a, b and c coefficients; h[i]=ax^3+bx^2+cx
-          a0 = (f[i_f] - f[i_f+1]) / 3;
-          b0 = (-f[i_f]*(x_g[i_g+1]+x_f[i_f+1])+f[i_f+1]*(x_g[i_g+1]+x_f[i_f]))
-            /2;
-          c0 = f[i_f]*x_f[i_f+1]*x_g[i_g+1]-f[i_f+1]*x_f[i_f]*x_g[i_g+1];
+          // Calculate a, b and c coefficients; h[i]=ax^3+bx^2+cx
+          a0 = ( f[i_f] - f[i_f+1] ) / 3.0;
+          b0 = (-f[i_f]   * ( x_g[i_g+1] + x_f[i_f+1] ) + 
+                 f[i_f+1] * (x_g[i_g+1]+x_f[i_f]) ) / 2.0;
+          c0 = x_g[i_g+1] * ( f[i_f] * x_f[i_f+1] - f[i_f+1] * x_f[i_f] );
 
           a1 = -a0;
-          b1 = (f[i_f]*(x_g[i_g]+x_f[i_f+1])-f[i_f+1]*(x_g[i_g]+x_f[i_f]))/2;
-          c1 = -f[i_f]*x_f[i_f+1]*x_g[i_g]+f[i_f+1]*x_f[i_f]*x_g[i_g];
+          b1 = ( f[i_f]   * ( x_g[i_g] + x_f[i_f+1] ) - 
+                 f[i_f+1] * ( x_g[i_g] + x_f[i_f]) ) / 2.0;
+          c1 = x_g[i_g] * ( -f[i_f] * x_f[i_f+1] + f[i_f+1] * x_f[i_f] );
 
-          x3 = pow(x_ref[i+1],3) - pow(x_ref[i],3);
-          x2 = pow(x_ref[i+1],2) - pow(x_ref[i],2);
           x1 = x_ref[i+1]-x_ref[i];
+          // Simple way, but sensitive to numerical problems:
+          //x2 = pow(x_ref[i+1],2) - pow(x_ref[i],2);
+          //x3 = pow(x_ref[i+1],3) - pow(x_ref[i],3);
+          // The same but a numerically better way:
+          x2 = x1 * ( 2*x_ref[i] + x1 );
+          x3 = x1 * ( 3*x_ref[i]*(x_ref[i]+x1) + x1*x1 );
 
-          //Calculate h[i] and h[i+1] increment
-          h[i_g]   += df * (a0*x3+b0*x2+c0*x1) / dx;
-          h[i_g+1] += df * (a1*x3+b1*x2+c1*x1) / dx;
+          // Calculate h[i] and h[i+1] increment
+          // (df-factor to compensate for normalisation)
+          h[i_g]   += df * ( a0*x3 + b0*x2 + c0*x1 ) / dx;
+          h[i_g+1] += df * ( a1*x3 + b1*x2 + c1*x1 ) / dx;
         }
     }
 
@@ -798,6 +809,16 @@ void sensor_integration_vector(
       Vector tmp = h[Range(ng-1,ng,-1)];   // Flip order
       h = tmp;
     }
+
+  // The expressions are sensitive to numerical issues if two points in x_ref
+  // are very close compared to the values in x_ref. A test trying to warn when
+  // this happens:
+  if( min(f) >= 0  &&  min(h) < -1e-15 )
+    throw runtime_error( "Significant negative response value obtained, "
+                         "despite sensor reponse is strictly positive. This "
+                         "indicates numerical problems. Is there any very "
+                         "small spacing of the sensor response grid?"
+                         "Please, send a report to Patrick if you see this!" );
 }
 
 //! sensor_integration_vector
