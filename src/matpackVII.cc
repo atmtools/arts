@@ -23,6 +23,7 @@
 */
 
 #include "matpackVII.h"
+#include "exceptions.h"
 
 // Functions for ConstTensor7View:
 // ------------------------------

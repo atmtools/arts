@@ -1,5 +1,11 @@
 2014-02-25  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-831
+
+	* src/matpack{VI,VII}.cc: Hot fix for hudson build error.
+
+2014-02-25  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-830
 
 	* src/matpack{III,V}.cc: Missed these in previous commit.

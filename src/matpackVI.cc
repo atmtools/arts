@@ -23,6 +23,7 @@
 */
 
 #include "matpackVI.h"
+#include "exceptions.h"
 
 // Functions for ConstTensor6View:
 // ------------------------------
