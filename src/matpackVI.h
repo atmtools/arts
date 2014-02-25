@@ -888,6 +888,10 @@ public:
                                 OFFSET(p) + OFFSET(r) + OFFSET(c)    );
     }
 
+  // Conversion to a plain C-array
+  const Numeric *get_c_array() const;
+  Numeric *get_c_array();
+
   // Functions returning const iterators:
   ConstIterator6D begin() const;
   ConstIterator6D end() const;

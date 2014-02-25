@@ -541,10 +541,10 @@ VectorView::operator MatrixView()
 */
 const Numeric * VectorView::get_c_array() const
 {
-  if (mrange.mstart != 0 || mrange.mstride != 1)
-    throw runtime_error("A VectorView can only be converted to a plain C-array if mrange.mstart == 0 and mrange.mstride == 1");
+    if (mrange.mstart != 0 || mrange.mstride != 1)
+        throw std::runtime_error("A VectorView can only be converted to a plain C-array if it's pointing to a continuous block of data");
 
-  return mdata;
+    return mdata;
 }
 
 /** Conversion to plain C-array.
@@ -555,9 +555,9 @@ const Numeric * VectorView::get_c_array() const
 */
 Numeric * VectorView::get_c_array()
 {
-  if (mrange.mstart != 0 || mrange.mstride != 1)
-    throw runtime_error("A VectorView can only be converted to a plain C-array if mrange.mstart == 0 and mrange.mstride == 1");
-
+    if (mrange.mstart != 0 || mrange.mstride != 1)
+        throw std::runtime_error("A VectorView can only be converted to a plain C-array if it's pointing to a continuous block of data");
+    
   return mdata;
 }
 
@@ -1213,11 +1213,11 @@ MatrixView& MatrixView::operator-=(Numeric x)
 */
 const Numeric *MatrixView::get_c_array() const
 {
-  if (mrr.mstart != 0 || mrr.mstride != mcr.mextent
-      || mcr.mstart != 0 || mcr.mstride != 1)
-    throw runtime_error("A MatrixView can only be converted to a plain C-array if mrr.mstart == 0 and mrr.mstride == mcr.extent and mcr.mstart == 0 and mcr.mstride == 1");
+    if (mrr.mstart != 0 || mrr.mstride != mcr.mextent
+        || mcr.mstart != 0 || mcr.mstride != 1)
+        throw std::runtime_error("A MatrixView can only be converted to a plain C-array if it's pointing to a continuous block of data");
 
-  return mdata;
+    return mdata;
 }
 
 /** Conversion to plain C-array.
@@ -1228,11 +1228,11 @@ const Numeric *MatrixView::get_c_array() const
 */
 Numeric *MatrixView::get_c_array()
 {
-  if (mrr.mstart != 0 || mrr.mstride != mcr.mextent
-      || mcr.mstart != 0 || mcr.mstride != 1)
-    throw runtime_error("A MatrixView can only be converted to a plain C-array if mrr.mstart == 0 and mrr.mstride == mcr.extent and mcr.mstart == 0 and mcr.mstride == 1");
+    if (mrr.mstart != 0 || mrr.mstride != mcr.mextent
+        || mcr.mstart != 0 || mcr.mstride != 1)
+        throw std::runtime_error("A MatrixView can only be converted to a plain C-array if it's pointing to a continuous block of data");
 
-  return mdata;
+    return mdata;
 }
 
 /** Element-vise multiplication by another Matrix. */

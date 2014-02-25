@@ -2377,6 +2377,44 @@ VectorView  Tensor6View::operator()
 }
 
 
+/** Conversion to plain C-array.
+    
+This function returns a pointer to the raw data. It fails if the
+Tensor5View is not pointing to the beginning of a Tensor5 or the stride
+is not 1 because the caller expects to get a C array with continuous data.
+*/
+Numeric *Tensor6View::get_c_array()
+{
+    if (mvr.mstart != 0 || mvr.mstride != msr.mextent * mbr.mextent * mpr.mextent * mrr.mextent * mcr.mextent
+        || msr.mstart != 0 || msr.mstride != mbr.mextent * mpr.mextent * mrr.mextent * mcr.mextent
+        || mbr.mstart != 0 || mbr.mstride != mpr.mextent * mrr.mextent * mcr.mextent
+        || mpr.mstart != 0 || mpr.mstride != mrr.mextent * mcr.mextent
+        || mrr.mstart != 0 || mrr.mstride != mcr.mextent
+        || mcr.mstart != 0 || mcr.mstride != 1)
+        throw std::runtime_error("A Tensor6View can only be converted to a plain C-array if it's pointing to a continuous block of data");
+
+    return mdata;
+}
+
+
+/** Conversion to plain C-array.
+
+  This function returns a pointer to the raw data. It fails if the
+  Tensor5View is not pointing to the beginning of a Tensor5 or the stride
+  is not 1 because the caller expects to get a C array with continuous data.
+*/
+const Numeric *Tensor6View::get_c_array() const
+{
+    if (mvr.mstart != 0 || mvr.mstride != msr.mextent * mbr.mextent * mpr.mextent * mrr.mextent * mcr.mextent
+        || msr.mstart != 0 || msr.mstride != mbr.mextent * mpr.mextent * mrr.mextent * mcr.mextent
+        || mbr.mstart != 0 || mbr.mstride != mpr.mextent * mrr.mextent * mcr.mextent
+        || mpr.mstart != 0 || mpr.mstride != mrr.mextent * mcr.mextent
+        || mrr.mstart != 0 || mrr.mstride != mcr.mextent
+        || mcr.mstart != 0 || mcr.mstride != 1)
+        throw std::runtime_error("A Tensor6View can only be converted to a plain C-array if it's pointing to a continuous block of data");
+
+    return mdata;
+}
 
 
 /** Return const iterator to sub-tensor. Has to be redefined here, since it is

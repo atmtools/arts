@@ -1,3 +1,4 @@
+
 /* Copyright (C) 2001-2012 Stefan Buehler <sbuehler@ltu.se>
 
 This program is free software; you can redistribute it and/or modify it
@@ -1866,6 +1867,10 @@ public:
                                 OFFSET(p) + OFFSET(r) + OFFSET(c)    );
       }
 
+
+  // Conversion to a plain C-array
+  const Numeric *get_c_array() const;
+  Numeric *get_c_array();
 
   // Functions returning const iterators:
   ConstIterator7D begin() const;
