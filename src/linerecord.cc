@@ -2432,28 +2432,28 @@ bool LineRecord::ReadFromArtscat4Stream(istream& is, const Verbosity& verbosity)
 
       // Remaining entries are the quantum numbers
       getline(icecream, mquantum_numbers_str);
-      mquantum_numbers_str.trim();
 
+      mquantum_numbers_str.trim();
       // FIXME: OLE: Added this if to catch crash for species like CO, PH3
       // where the line in the catalog is too short. Better would be to
       // only read the n and j for Zeeman species, but we don't have that
       // information here
-      if (line.nelem() >= 288+12+1+12)
+
+      if (mquantum_numbers_str.nelem() >= 25)
       {
-          String qstr1 = line.substr(288,      12);
-          String qstr2 = line.substr(288+12+1, 12);
+          String qstr1 = mquantum_numbers_str.substr(4,      12);
+          String qstr2 = mquantum_numbers_str.substr(4+12+1, 12);
           ArrayOfIndex q(6);
           for (Index qi=0; qi<3; qi++)
               extract(q[qi], qstr1, 4);
           for (Index qi=3; qi<6; qi++)
               extract(q[qi], qstr2, 4);
 
-          if (q[0] > 0) mupper_n = q[0];
-          if (q[1] > 0) mlower_n = q[1];
-          if (q[3] > 0) mupper_j = q[3];
-          if (q[4] > 0) mlower_j = q[4];
+          if (q[0] > 0) mquantum_numbers.SetUpper(QN_N, mupper_n = q[0]);
+          if (q[1] > 0) mquantum_numbers.SetUpper(QN_J, mupper_j = q[1]);
+          if (q[3] > 0) mquantum_numbers.SetLower(QN_N, mlower_n = q[3]);
+          if (q[4] > 0) mquantum_numbers.SetLower(QN_J, mlower_j = q[4]);
       }
-
       LineRecord::ARTSCAT4UnusedToNaN();
     }
 

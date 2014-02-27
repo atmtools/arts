@@ -51,9 +51,11 @@ StringCreate( hitranfile )
 StringSet( hitranfile, "/storage3/data/catalogue/hitran/hitran2008/HITRAN08.par" )
 #StringSet( hitranfile, "/Users/olemke/Dropbox/Hacking/sat/catalogue/HITRAN2008/HITRAN08.par" )
 #StringSet( hitranfile, "/home/mendrok/data/lines/hitran/HITRAN08.par" )
-abs_linesReadFromHitran(abs_lines, hitranfile, 61.1e9, 61.2e9)
+#abs_linesReadFromHitran(abs_lines, hitranfile, 61.1e9, 61.2e9)
 #abs_linesArtscat4FromArtscat3( abs_lines )
 #WriteXML( "ascii", abs_lines, "../../controlfiles/testdata/abs_lines_60GHz.xml" )
+abs_linesReadFromSplitArtscat(abs_lines, abs_species, 
+              "spectroscopy/Perrin/", 61.1e9, 61.2e9)
 
 # Sort the line file according to species
 abs_lines_per_speciesCreateFromLines
