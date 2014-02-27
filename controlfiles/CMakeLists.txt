@@ -119,7 +119,7 @@ if (ARTS_XML_DATA_DIR)
   arts_test_run_ctlfile(fast.ppath.planetrefrac
                         artscomponents/ppath/TestRefractPlanets.arts)
 
-  arts_test_run_ctlfile(nocheck.zeeman artscomponents/zeeman/TestZeeman.arts)
+  arts_test_run_ctlfile(fast.zeeman artscomponents/zeeman/TestZeeman.arts)
 
   ################
   ### XML Data ###

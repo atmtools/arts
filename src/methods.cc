@@ -8216,12 +8216,12 @@ void define_md_data_raw()
         "lines is increased to about 45,000. Be aware that this is a time\n"
         "consuming method.\n"
         "\n"
-        "The 'manual_zeeman*' tag variables will change the angles associated\n"
-        "with the Zeeman effect. The user is adviced to either ignore or set\n"
-        "all three at the same time. The user is also advided to read the\n"
-        "theory guide to understand what the different angles mean.\n"
-        "Setting 'manual_zeeman_angles_on' different from zero activates the\n"
-        "other two variables.\n"
+        "The 'manual_zeeman*' variables will let the user set their own simple\n"
+        "magnetic field.  This path can be accessed by setting\n"
+        "*manual_zeeman_tag* different from zero.  The user is also advided to\n"
+        "read the theory guide to understand what the different variables will\n"
+        "do in the Zeeman theory.  Note that angles are in degrees and strength\n"
+        "in Tesla.\n"
          ),
         AUTHORS( "Richard Larsson" ),
         OUT("propmat_clearsky"),
@@ -8238,10 +8238,12 @@ void define_md_data_raw()
            "rtp_pressure", "rtp_temperature", "rtp_vmr",
            "rtp_mag", "rtp_los", "atmosphere_dim",
            "line_mixing_data", "line_mixing_data_lut" ),
-        GIN("manual_zeeman_angles_on","manual_zeeman_theta","manual_zeeman_eta"),
-        GIN_TYPE("Index","Numeric","Numeric"),
-        GIN_DEFAULT("0","0","0"),
-        GIN_DESC("Manual angles tag","Manual theta given positive tag","Manual eta given positive tag")
+        GIN("manual_zeeman_tag","manual_zeeman_magnetic_field_strength",
+            "manual_zeeman_theta","manual_zeeman_eta"),
+        GIN_TYPE("Index","Numeric","Numeric","Numeric"),
+        GIN_DEFAULT("0","1.0","0.0","0.0"),
+        GIN_DESC("Manual angles tag","Manual Magnetic Field Strength",
+                 "Manual theta given positive tag","Manual eta given positive tag")
         ));
 
   md_data_raw.push_back
@@ -8493,10 +8495,15 @@ void define_md_data_raw()
         (
          "Reduces a larger class to a smaller class of same size.\n"
          "\n"
-         "E.g., a 1x1 Matrix can be reduced to a Numeric, and a 1x3x1 Tensor3\n"
-         "can be reduced to a length 3 Vector.  It is not possible to Reduce\n"
-         "a 2x3x1x2 Tensor4 to anything other than a 2x3x4 Tensor3, and it is\n"
-         "not at all possible to reduce a 2x3x4x5x6x7x8 Tensor7.\n"
+         "The Reduce command reduces all \"1\"-dimensions to nil.  Examples:\n"
+         "\t1) 1 Vector can be reduced to a Numeric\n"
+         "\t2) 2x1 Matrix can be reduced to 2 Vector\n"
+         "\t3) 1x3x1 Tensor3 can be reduced to 3 Vector\n"
+         "\t4) 1x1x1x1 Tensor4 can be reduced to a Numeric\n"
+         "\t5) 3x1x4x1x5 Tensor5 can only be reduced to 3x4x5 Tensor3\n"
+         "\t6) 1x1x1x1x2x3 Tensor6 can be reduced to 2x3 Matrix\n"
+         "\t7) 2x3x4x5x6x7x1 Tensor7 can be reduced to 2x3x4x5x6x7 Tensor6\n"
+         "And so on\n"
          ),
         AUTHORS( "Oliver Lemke", "Richard Larsson" ),
         OUT(),

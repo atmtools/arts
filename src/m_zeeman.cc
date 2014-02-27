@@ -467,14 +467,15 @@ void propmat_clearskyAddZeeman(Tensor4& propmat_clearsky,
         const Index& atmosphere_dim,
         const ArrayOfArrayOfLineMixingRecord& line_mixing_data,
         const ArrayOfArrayOfIndex& line_mixing_data_lut,
-        const Index& manual_zeeman_angles_on,
+        const Index& manual_zeeman_tag,
+        const Numeric& manual_zeeman_magnetic_field_strength,
         const Numeric& manual_zeeman_theta,
         const Numeric& manual_zeeman_eta,
         const Verbosity& verbosity)
 {
     CREATE_OUT3;
 
-    const Numeric margin    = 1e-4;
+    const Numeric margin    = 1e-4; // This margin can perhaps be lowered? Perhaps by returning RS as Rational?
     bool          do_zeeman = false;
 
     // Check that correct isotopologue ratios are defined for the species
@@ -510,13 +511,13 @@ void propmat_clearskyAddZeeman(Tensor4& propmat_clearsky,
     AbsInputFromRteScalars( abs_p, abs_t, abs_vmrs,                        // Output
             rtp_pressure, rtp_temperature, rtp_vmr,  //Input
             verbosity);                                  // Verbose!
-    if( do_zeeman  && ( rtp_mag[0]!=0 || rtp_mag[1]!=0 || rtp_mag[2]!=0 ) )
+    if( do_zeeman  && (( rtp_mag[0]!=0 || rtp_mag[1]!=0 || rtp_mag[2]!=0 ) || manual_zeeman_tag != 0 ))
     {
         //Get the magnitude of the magnetic field and store a local unit Vector for simplified angle calculations.
-        const Numeric H_mag = sqrt( rtp_mag * rtp_mag );
+        const Numeric H_mag = manual_zeeman_tag != 0?manual_zeeman_magnetic_field_strength:sqrt( rtp_mag * rtp_mag );
 
         Numeric theta, eta;
-        if(manual_zeeman_angles_on!=0)
+        if(manual_zeeman_tag!=0)
         { // Leaving it up to the user to manually tag the angles for simplified magnetic fields.
             eta   = manual_zeeman_eta;
             theta = manual_zeeman_theta;

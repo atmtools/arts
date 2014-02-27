@@ -1,3 +1,17 @@
+2014-02-27  Richard Larsson  <ric.larsson@gmail.com>
+	
+	* arts-2-1-833
+	
+	* controlfiles/CMakeLists.txt:  Activated a Zeeman test if arts-xml-file
+	is in path.
+	
+	* controlfiles/artscomponents/zeeman/*:  Adapted the Zeeman test.  Note
+	that there are differences between the previous HITRAN using test and
+	this test that uses Agnes catalog.  These differences were at 45 K.
+	
+	* src/m_zeeman.cc:  Added a simple check to allow the user to set
+	the magnetic field strength manually.  Useful for model comparisons.
+
 2014-02-27  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-833

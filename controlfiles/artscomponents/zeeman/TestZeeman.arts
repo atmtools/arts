@@ -44,16 +44,9 @@ VectorSet(f_grid, [ 61.14e9, 61.15e9, 61.16e9, 61.17e9])
 
 # Definition of species
 # ---
-abs_speciesSet( species=["H2O","O2-Z"] )
+abs_speciesSet( species=["H2O","O2-Z-66","O2-Z-68","O2"] )
 
 # read line catalogue
-StringCreate( hitranfile )
-StringSet( hitranfile, "/storage3/data/catalogue/hitran/hitran2008/HITRAN08.par" )
-#StringSet( hitranfile, "/Users/olemke/Dropbox/Hacking/sat/catalogue/HITRAN2008/HITRAN08.par" )
-#StringSet( hitranfile, "/home/mendrok/data/lines/hitran/HITRAN08.par" )
-#abs_linesReadFromHitran(abs_lines, hitranfile, 61.1e9, 61.2e9)
-#abs_linesArtscat4FromArtscat3( abs_lines )
-#WriteXML( "ascii", abs_lines, "../../controlfiles/testdata/abs_lines_60GHz.xml" )
 abs_linesReadFromSplitArtscat(abs_lines, abs_species, 
               "spectroscopy/Perrin/", 61.1e9, 61.2e9)
 
