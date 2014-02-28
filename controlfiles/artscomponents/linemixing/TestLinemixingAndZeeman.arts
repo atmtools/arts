@@ -44,7 +44,7 @@ VectorSet(f_grid, [ 61.14e9, 61.15e9, 61.16e9, 61.17e9])
 
 # Definition of species
 # ---
-abs_speciesSet( species=["H2O","O2-Z-66","O2-Z-68","O2"] )
+abs_speciesSet( species=["H2O","O2-Z-66-LM_2NDORDER"] )
 
 # read line catalogue
 abs_linesReadFromSplitArtscat(abs_lines, abs_species, 
@@ -55,6 +55,16 @@ abs_lines_per_speciesCreateFromLines
 
 # Get the quantum Landau constant and molecule electron spin
 ReadXML( isotopologue_quantum, "spectroscopy/QuantumConstants/zeeman_constants.xml" )
+
+# Set the linemixing 
+# (FIXME: greater number of lines when the abs_linesReadFromSplitArtscat is updated)
+line_mixing_dataInit
+
+ArrayOfLineMixingRecordCreate(lm_o2)
+
+ReadXML(lm_o2,"spectroscopy/LineMixing/2nd_order/o2_v1_0_band_40-120_GHz.xml.gz")
+
+line_mixing_dataMatch(species_tag="O2-Z-66-LM_2NDORDER",line_mixing_records=lm_o2)
 
 #Get isotopologue ratioss
 isotopologue_ratiosInitFromBuiltin
@@ -133,9 +143,9 @@ yCalc
 
 # OK?
 # ---
-WriteXML( "ascii", y, "yZeeman.xml")
+WriteXML( "ascii", y, "yLineMixingAndZeeman.xml")
 VectorCreate(yREFERENCE)
-ReadXML( yREFERENCE, "yREFERENCE_ZEEMAN.xml" )
+ReadXML( yREFERENCE, "yREFERENCE_LineMixingAndZeeman.xml" )
 Compare( y, yREFERENCE, 1e-2 )
 
 

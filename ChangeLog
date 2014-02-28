@@ -1,3 +1,21 @@
+2014-02-28  Richard Larsson  <ric.larsson@gmail.com>
+	
+	* arts-2-1-834
+	
+	* controlfiles/CMakeLists.txt:  Added two line mixing tests.
+	
+	* controlfiles/artscomponents/linemixing/*:  These are the tests.  There
+	is still no reading routine to get vibrational numbers out of Agnes
+	catalog, so these tests are only preliminary and will have to be 
+	extended at a later date when this reading routine is in place.  The 
+	problem with not reading the vibrational state is that we do not know
+	inside ARTS which line is supposed to be line matched --- no two lines
+	are allowed to be matched with the same input.
+	
+	* controlfiles/artscomponents/zeeman/*:  More strongly linked this test
+	to arts-xml-data, removing the magnetic field files that this folde used
+	to contain.
+
 2014-02-27  Richard Larsson  <ric.larsson@gmail.com>
 	
 	* arts-2-1-833
