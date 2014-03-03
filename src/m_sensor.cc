@@ -57,11 +57,13 @@
 
 extern const Numeric PI;
 extern const Numeric DEG2RAD;
+extern const Numeric RAD2DEG;
 extern const Index GFIELD1_F_GRID;
 extern const Index GFIELD4_FIELD_NAMES;
 extern const Index GFIELD4_F_GRID;
 extern const Index GFIELD4_ZA_GRID;
 extern const Index GFIELD4_AA_GRID;
+extern const Numeric SPEED_OF_LIGHT;
 
 
 /*===========================================================================
@@ -255,7 +257,7 @@ void antenna_responseGaussian(GriddedField4&   r,
                               const Verbosity&)
 {
   Vector x, y;
-  gaussian_response( x, y, 0, fwhm, xwidth_si, dx_si );
+  gaussian_response_autogrid( x, y, 0, fwhm, xwidth_si, dx_si );
 
   r.set_name( "Antenna response" );
 
@@ -274,6 +276,54 @@ void antenna_responseGaussian(GriddedField4&   r,
   const Index n = y.nelem();
   r.data.resize( 1, 1, n, 1 );
   r.data(0,0,joker,0) = y;
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void antenna_responseVaryingGaussian(
+         GriddedField4&   r,
+   const Numeric&         leff,
+   const Numeric&         xwidth_si,
+   const Numeric&         dx_si,
+   const Index&           nf,
+   const Numeric&         fstart,
+   const Numeric&         fstop,
+   const Verbosity&       verbosity )
+{
+  r.set_name( "Antenna response" );
+
+  r.set_grid_name( 0, "Polarisation" );
+  r.set_grid( 0, MakeArray<String>( "NaN" ) ); 
+
+  r.set_grid_name( 3, "Azimuth angle" );
+  r.set_grid( 3, Vector(1,0) );
+
+  Vector f_grid;
+  VectorNLogSpace( f_grid, nf, fstart, fstop, verbosity );
+  r.set_grid_name( 1, "Frequency" );
+  r.set_grid( 1, f_grid );
+
+  // Calculate response for highest frequency, with xwidth_si scaled from
+  // fstart
+  Vector x, y;
+  Numeric fwhm = RAD2DEG * SPEED_OF_LIGHT / ( leff * fstop );
+  gaussian_response_autogrid( x, y, 0, fwhm, (fstop/fstart)*xwidth_si, dx_si );
+
+  r.set_grid_name( 2, "Zenith angle" );
+  r.set_grid( 2, x );
+
+  const Index n = y.nelem();
+  r.data.resize( 1, nf, n, 1 );
+  //
+  r.data(0,nf-1,joker,0) = y;
+  //
+  for( Index i=0; i<nf-1; i++ )
+    {
+      fwhm = RAD2DEG * SPEED_OF_LIGHT / ( leff * f_grid[i] );
+      gaussian_response( y, x, 0, fwhm );
+      r.data(0,i,joker,0) = y;
+    }
 }
 
 
@@ -310,7 +360,7 @@ void backend_channel_responseGaussian(ArrayOfGriddedField1&   r,
   r.resize( 1 );
   Vector x, y;
 
-  gaussian_response( x, y, 0, fwhm, xwidth_si, dx_si );
+  gaussian_response_autogrid( x, y, 0, fwhm, xwidth_si, dx_si );
 
   r[0].set_name( "Backend channel response function" );
 

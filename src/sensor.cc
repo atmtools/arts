@@ -384,9 +384,9 @@ void antenna2d_simplified(
 
 
 
-//! gaussian_response
+//! gaussian_response_autogrid
 /*!
-   Returns a 1D gaussian response
+   Returns a 1D gaussian response with a suitable grid
 
    First a grid is generated. The grid is si*[-xwidth_si:dx_si:xwidth_si],
    where si is the "standard deviation" corresponding to the FWHM.
@@ -394,7 +394,8 @@ void antenna2d_simplified(
    standard deviations. If xwidth_si is set to 2, the response will cover
    about 95% the complete response. For xwidth_si=3, about 99% is covered.
 
-   y is the response matching x.
+   y is the gaussian function on grid x, with max at x0 and width following
+   fwhm.
 
    \param   x           Grid generated.
    \param   y           Calculated response.
@@ -406,7 +407,7 @@ void antenna2d_simplified(
    \author Patrick Eriksson
    \date   2009-09-20
 */
-void gaussian_response(
+void gaussian_response_autogrid(
            Vector&   x,
            Vector&   y,
     const Numeric&   x0,
@@ -415,10 +416,39 @@ void gaussian_response(
     const Numeric&   dx_si )
 {
   const Numeric si = fwhm / ( 2 * sqrt( 2 * NAT_LOG_2 ) );
-  const Numeric a = 1 / ( si * sqrt( 2 * PI ) );
 
   linspace( x, -si*xwidth_si, si*xwidth_si, si*dx_si );
-  const Index n = x.nelem();
+
+  gaussian_response( y, x, x0, fwhm );
+}
+
+
+
+//! gaussian_response
+/*!
+   Returns a 1D gaussian response
+
+   y is the gaussian function on grid x, with max at x0 and width following
+   fwhm.
+
+   \param   y           Calculated response.
+   \param   x           Grid.
+   \param   x0          The x-position of response centre/max.
+   \param   fwhm        The full width at half-maximum of the response
+
+   \author Patrick Eriksson
+   \date   2009-09-20
+*/
+void gaussian_response(
+          Vector&    y,
+    const Vector&    x,
+    const Numeric&   x0,
+    const Numeric&   fwhm )
+{
+  const Numeric si = fwhm / ( 2 * sqrt( 2 * NAT_LOG_2 ) );
+  const Numeric a = 1 / ( si * sqrt( 2 * PI ) );
+  const Index   n = x.nelem();
+
   y.resize( n );
 
   for( Index i=0; i<n; i++ )

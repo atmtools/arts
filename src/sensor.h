@@ -69,13 +69,19 @@ void antenna2d_simplified(
        const Index   n_pol,
        const Index   do_norm );
 
-void gaussian_response(
+void gaussian_response_autogrid(
            Vector&   x,
            Vector&   y,
     const Numeric&   x0,
     const Numeric&   fwhm,
     const Numeric&   xwidth_si,
     const Numeric&   dx_si );
+
+void gaussian_response(
+          Vector&    y,
+    const Vector&    x,
+    const Numeric&   x0,
+    const Numeric&   fwhm );
 
 void mixer_matrix(
            Sparse&   H,

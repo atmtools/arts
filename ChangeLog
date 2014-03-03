@@ -1,9 +1,26 @@
+2014-03-03  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-835
+
+	* src/m_sensor.cc (antenna_responseGaussian)
+	(backend_channel_responseGaussian): Just changed to use
+	gaussian_response_autogrid.
+
+	(antenna_responseVaryingGaussian): New WSM.
+
+	* src/sensor.cc (gaussian_response): Now this function just
+	calculates the gaussian response. That is, a more proper "core"
+	function.
+
+	(gaussian_response_autogrid): The old function renamed.This one
+	also creates a grid.
+
 2014-02-28  Richard Larsson  <ric.larsson@gmail.com>
-	
+
 	* arts-2-1-834
-	
+
 	* controlfiles/CMakeLists.txt:  Added two line mixing tests.
-	
+
 	* controlfiles/artscomponents/linemixing/*:  These are the tests.  There
 	is still no reading routine to get vibrational numbers out of Agnes
 	catalog, so these tests are only preliminary and will have to be 

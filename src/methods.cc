@@ -1840,6 +1840,52 @@ void define_md_data_raw()
                   "Half-width of response, in terms of std. dev.", 
                   "Grid spacing, in terms of std. dev." )
         ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "antenna_responseVaryingGaussian" ),
+        DESCRIPTION
+        (
+         "Sets up gaussian antenna responses.\n"
+         "\n"
+         "Similar to *antenna_responseGaussian* but allows to set up\n"
+         "responses that varies with frequency. That is, the method assumes\n"
+         "that the response is the same for all polarisations, and that it\n"
+         "can be modelled as a gaussian function varying with frequency.\n"
+         "\n"
+         "The full width at half maximum (FWHM in radians) is calculated as:\n"
+         "    fwhm = lambda / leff\n"
+         "where lambda is the wavelength and *leff* is the effective size of\n"
+         "the antenna. Normally, *leff* is smaller than the physical antenna\n"
+         "size.\n"
+         "\n"
+         "Antenna responses are created for *nf* frequencies spanning the\n"
+         "range [*fstart*,*fstop*], with a logarithmic spacing. That is, the\n"
+         "frequency grid of the responses is taken from *VectorNLogSpace*.\n"
+         "\n"
+         "The responses have a common angular grid. The width, determined by\n"
+         "*xwidth_si*, is set for the lowest frequency, while the spacing\n"
+         "(*dx_si*) is set for the highest frequency. This ensures that both\n"
+         "the width and spacing are equal or better than *xwidth_si* and\n"
+         "*dx_si*, respectively, for all frequencies.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "antenna_response" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( ),
+        GIN( "leff", "xwidth_si", "dx_si", "nf", "fstart", "fstop" ),
+        GIN_TYPE( "Numeric", "Numeric", "Numeric", "Index", "Numeric", 
+                  "Numeric" ),
+        GIN_DEFAULT( NODEF, "3", "0.1", NODEF, NODEF, NODEF ),
+        GIN_DESC( "Effective size of the antenna", 
+                  "Half-width of response, in terms of std. dev.", 
+                  "Grid spacing, in terms of std. dev.",
+                  "Number of points in frequency grid (must be >= 2)",
+                  "Start point of frequency grid",
+                  "End point of frequency grid" )
+        ));
  
   md_data_raw.push_back
     ( MdRecord
