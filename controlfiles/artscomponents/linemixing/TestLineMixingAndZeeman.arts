@@ -39,14 +39,14 @@ IndexSet( stokes_dim, 4 )
 # ---
 VectorNLogSpace( p_grid, 41, 1000e2, 1 )
 
-# Looking into the O2 band around 60GHz
+# Looking into one line in the O2 band around 60GHz
 VectorSet(f_grid, [ 61.14e9, 61.15e9, 61.16e9, 61.17e9])
 
 # Definition of species
 # ---
-abs_speciesSet( species=["H2O","O2-Z-66-LM_2NDORDER"] )
+abs_speciesSet( species=["H2O","N2","O2-Z-66-LM_2NDORDER"] )
 
-# read line catalogue
+# read line catalogue (one line)
 abs_linesReadFromSplitArtscat(abs_lines, abs_species, 
               "spectroscopy/Perrin/", 61.1e9, 61.2e9)
 
@@ -57,7 +57,6 @@ abs_lines_per_speciesCreateFromLines
 ReadXML( isotopologue_quantum, "spectroscopy/QuantumConstants/zeeman_constants.xml" )
 
 # Set the linemixing 
-# (FIXME: greater number of lines when the abs_linesReadFromSplitArtscat is updated)
 line_mixing_dataInit
 
 ArrayOfLineMixingRecordCreate(lm_o2)

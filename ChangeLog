@@ -1,3 +1,20 @@
+2014-03-05  Richard Larsson  <ric.larsson@gmail.com>
+	
+	* arts-2-1-837
+	
+	* controlfiles/CMakeLists.txt:  Added one slow line mixing test.
+
+	* controlfiles/artscomponents/linemixing/*:  There is one more test here
+	that shows how to set this up for the entire band.  I might add a test
+	later to show how to do Zeeman for one line but Line Mixing for the
+	entire band.  The other files are updated because I had forgotten that
+	artscat4 require all species to be defined.  This error was pointed out
+	to me by Jana.
+	
+	* controlfiles/artscomponents/zeeman/*:  The files are updated because I
+	had forgotten that artscat4 require all species to be defined.
+	This error was pointed out to me by Jana.
+
 2014-03-05  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-836

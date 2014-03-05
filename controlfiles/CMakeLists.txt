@@ -120,9 +120,10 @@ if (ARTS_XML_DATA_DIR)
                         artscomponents/ppath/TestRefractPlanets.arts)
 
   arts_test_run_ctlfile(fast.zeeman artscomponents/zeeman/TestZeeman.arts)
-  arts_test_run_ctlfile(fast.linemixingandzeeman artscomponents/linemixing/TestLinemixingAndZeeman.arts)
-  arts_test_run_ctlfile(fast.linemixing artscomponents/linemixing/TestLinemixing.arts)
-
+  arts_test_run_ctlfile(fast.linemixingandzeeman artscomponents/linemixing/TestLineMixingAndZeeman.arts)
+  arts_test_run_ctlfile(fast.linemixing artscomponents/linemixing/TestLineMixing.arts)
+  arts_test_run_ctlfile(slow.linemixingandzeeman artscomponents/linemixing/TestLineMixingAndZeeman_50_to_70_GHz.arts)
+  
   ################
   ### XML Data ###
   arts_test_run_ctlfile(xmldata.atm.mars
