@@ -2441,18 +2441,44 @@ bool LineRecord::ReadFromArtscat4Stream(istream& is, const Verbosity& verbosity)
 
       if (mquantum_numbers_str.nelem() >= 25)
       {
-          String qstr1 = mquantum_numbers_str.substr(4,      12);
-          String qstr2 = mquantum_numbers_str.substr(4+12+1, 12);
-          ArrayOfIndex q(6);
-          for (Index qi=0; qi<3; qi++)
-              extract(q[qi], qstr1, 4);
-          for (Index qi=3; qi<6; qi++)
-              extract(q[qi], qstr2, 4);
+          if (species_data[mspecies].Name() == "O2")
+          {
+              String vstr = mquantum_numbers_str.substr(0, 3);
+              ArrayOfIndex v(3);
+              for (Index vi=0; vi<3; vi++)
+                  extract(v[vi], vstr, 1);
 
-          if (q[0] > 0) mquantum_numbers.SetUpper(QN_N, mupper_n = q[0]);
-          if (q[1] > 0) mquantum_numbers.SetUpper(QN_J, mupper_j = q[1]);
-          if (q[3] > 0) mquantum_numbers.SetLower(QN_N, mlower_n = q[3]);
-          if (q[4] > 0) mquantum_numbers.SetLower(QN_J, mlower_j = q[4]);
+              if (v[0] > 0)
+              {
+                  mquantum_numbers.SetUpper(QN_v3, v[0]);
+                  mquantum_numbers.SetLower(QN_v3, v[0]);
+              }
+              if (v[1] > 0)
+              {
+                  mquantum_numbers.SetUpper(QN_v2, v[1]);
+                  mquantum_numbers.SetLower(QN_v2, v[1]);
+              }
+              if (v[2] > 0)
+              {
+                  mquantum_numbers.SetUpper(QN_v1, v[2]);
+                  mquantum_numbers.SetLower(QN_v1, v[2]);
+              }
+
+              String qstr1 = mquantum_numbers_str.substr(4,      12);
+              String qstr2 = mquantum_numbers_str.substr(4+12+1, 12);
+              ArrayOfIndex q(6);
+              for (Index qi=0; qi<3; qi++)
+                  extract(q[qi], qstr1, 4);
+              for (Index qi=3; qi<6; qi++)
+                  extract(q[qi], qstr2, 4);
+
+              if (q[0] > 0) mquantum_numbers.SetUpper(QN_N, mupper_n = q[0]);
+              if (q[1] > 0) mquantum_numbers.SetUpper(QN_J, mupper_j = q[1]);
+              if (q[2] > 0) mquantum_numbers.SetUpper(QN_F, q[2] - Rational(1, 2));
+              if (q[3] > 0) mquantum_numbers.SetLower(QN_N, mlower_n = q[3]);
+              if (q[4] > 0) mquantum_numbers.SetLower(QN_J, mlower_j = q[4]);
+              if (q[5] > 0) mquantum_numbers.SetLower(QN_F, q[5] - Rational(1, 2));
+          }
       }
       LineRecord::ARTSCAT4UnusedToNaN();
     }

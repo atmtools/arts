@@ -1,3 +1,12 @@
+2014-03-05  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-836
+
+	* src/linerecord.cc (LineRecord::ReadFromArtscat4Stream):
+
+	Parse additional quantum numbers v1, v2, v3 and f. Check that species
+	is O2 because the format for other species is different.
+
 2014-03-03  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-835
