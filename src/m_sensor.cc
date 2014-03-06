@@ -82,6 +82,9 @@ void AntennaConstantGaussian1D(Index&           antenna_dim,
                                const Numeric&   dx_si,
                                const Verbosity& verbosity)
 {
+  if( dx_si > xwidth_si )
+    throw runtime_error( "It is demanded that dx_si <= xwidth_si." );
+
   AntennaSet1D( antenna_dim, mblock_aa_grid, verbosity );
   antenna_responseGaussian( r, fwhm, xwidth_si, dx_si, verbosity );
 
@@ -92,20 +95,20 @@ void AntennaConstantGaussian1D(Index&           antenna_dim,
   ConstVectorView r_za_grid =  r.get_numeric_grid(GFIELD4_ZA_GRID);
   const Index nr = r_za_grid.nelem();
 
-  // Cumulative sum of response
-  Vector cumsum(nr);
-  cumsum[0] = r.data(0,0,0,0);
+  // Cumulative integral of response (factor /2 skipped, but does not matter)
+  Vector cumtrapz(nr);
+  cumtrapz[0] = 0;
   for( Index i=1; i<nr; i++ )  
-    { cumsum[i] = cumsum[i-1] + r.data(0,0,i,0); }
+    { cumtrapz[i] = cumtrapz[i-1] + r.data(0,0,i-1,0) + r.data(0,0,i,0); }
 
   // Equally spaced vector between end points of cumulative sum
   Vector csp;
-  nlinspace( csp, cumsum[0], cumsum[nr-1], n_za_grid );
+  nlinspace( csp, cumtrapz[0], cumtrapz[nr-1], n_za_grid );
 
   // Get mblock_za_grid by interpolation
   mblock_za_grid.resize(n_za_grid);   
   ArrayOfGridPos gp(n_za_grid);
-  gridpos( gp, cumsum, csp );
+  gridpos( gp, cumtrapz, csp );
   Matrix itw(n_za_grid,2);
   interpweights( itw, gp );
   interp( mblock_za_grid, itw, r_za_grid, gp );
@@ -256,6 +259,9 @@ void antenna_responseGaussian(GriddedField4&   r,
                               const Numeric&   dx_si,
                               const Verbosity&)
 {
+  if( dx_si > xwidth_si )
+    throw runtime_error( "It is demanded that dx_si <= xwidth_si." );
+
   Vector x, y;
   gaussian_response_autogrid( x, y, 0, fwhm, xwidth_si, dx_si );
 

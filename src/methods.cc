@@ -1819,13 +1819,16 @@ void define_md_data_raw()
          "frequencies and polarisations, and that it can be modelled as\n"
          "gaussian.\n"
          "\n"
-         "The grid generated can be written as\n"
+         "The grid generated is approximately\n"
          "   si * [-xwidth_si:dx_si:xwidth_si]\n"
          "where si is the standard deviation corresponding to the FWHM.\n"
          "That is, width and spacing of the grid is specified in terms of\n"
          "number of standard deviations. If xwidth_si is set to 2, the\n"
          "response will cover about 95% the complete response. For\n"
-         "xwidth_si=3, about 99% is covered.\n"
+         "xwidth_si=3, about 99% is covered. If xwidth_si/dx_si is not\n"
+         "an integer, the end points of the grid are kept and the spacing\n"
+         "if the grid is adjusted in the downward direction (ie. spacing is.\n"
+         "is max *dx_si*).\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "antenna_response" ),
@@ -2621,7 +2624,10 @@ void define_md_data_raw()
          "That is, width and spacing of the grid is specified in terms of\n"
          "number of standard deviations. If xwidth_si is set to 2, the\n"
          "response will cover about 95% the complete response. For\n"
-         "xwidth_si=3, about 99% is covered.\n"
+         "xwidth_si=3, about 99% is covered. If xwidth_si/dx_si is not\n"
+         "an integer, the end points of the grid are kept and the spacing\n"
+         "if the grid is adjusted in the downward direction (ie. spacing is.\n"
+         "is max *dx_si*).\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "backend_channel_response" ),

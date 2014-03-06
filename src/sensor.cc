@@ -388,8 +388,10 @@ void antenna2d_simplified(
 /*!
    Returns a 1D gaussian response with a suitable grid
 
-   First a grid is generated. The grid is si*[-xwidth_si:dx_si:xwidth_si],
-   where si is the "standard deviation" corresponding to the FWHM.
+   First a grid is generated. The grid is si*[-xwidth_si:dx:xwidth_si],
+   where si is the "standard deviation" corresponding to the FWHM, and
+   dx is biggest possible value < dx_si, to enusre an symmetric grid wth end
+   points exactly at xwidth_si.
    That is, width and spacing of the grid is specified in terms of number of 
    standard deviations. If xwidth_si is set to 2, the response will cover
    about 95% the complete response. For xwidth_si=3, about 99% is covered.
@@ -415,10 +417,18 @@ void gaussian_response_autogrid(
     const Numeric&   xwidth_si,
     const Numeric&   dx_si )
 {
+  assert( dx_si <= xwidth_si );
+
   const Numeric si = fwhm / ( 2 * sqrt( 2 * NAT_LOG_2 ) );
 
-  linspace( x, -si*xwidth_si, si*xwidth_si, si*dx_si );
+  // Number of points needed to enure that spacing is max dx_si
+  const Index n = (Index) floor(2*xwidth_si/dx_si) + 1;
 
+  // Grid for response
+  const Numeric dd = si * xwidth_si;
+  nlinspace( x, -dd, dd, n );
+
+  // Calculate response
   gaussian_response( y, x, x0, fwhm );
 }
 
@@ -450,7 +460,7 @@ void gaussian_response(
   const Index   n = x.nelem();
 
   y.resize( n );
-
+  //
   for( Index i=0; i<n; i++ )
     y[i] = a * exp( -0.5 * pow((x[i]-x0)/si,2.0) );
 }

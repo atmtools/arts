@@ -1,7 +1,29 @@
+2014-03-06  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-838
+
+	* Things fixed, inspired by question from Jana:
+
+	* src/m_sensor.cc (AntennaConstantGaussian1D): The algorithm for
+	setting up mblock_za_grid was not perfect. I had selected
+	"cumsum", while "cumtrapz" is a better option to avoid what could
+	be seen as an edge effect. Also added a runtime check.
+
+	* src/m_sensor.cc (antenna_responseGaussian): Added a runtime check.
+
+	* src/methods.cc: Editing to reflect change below, for affected
+	methods.
+
+	* src/sensor.cc (gaussian_response_autogrid): The creation of the
+	grid slightly changed, from using linspace to nlinspace. To ensure
+	perfect fit with defined end points. Now the spacing adjusted
+	accordingly, downwards. So grid spacing now becomes slightly
+	smaller.
+
 2014-03-05  Richard Larsson  <ric.larsson@gmail.com>
-	
+
 	* arts-2-1-837
-	
+
 	* controlfiles/CMakeLists.txt:  Added one slow line mixing test.
 
 	* controlfiles/artscomponents/linemixing/*:  There is one more test here
@@ -10,7 +32,7 @@
 	entire band.  The other files are updated because I had forgotten that
 	artscat4 require all species to be defined.  This error was pointed out
 	to me by Jana.
-	
+
 	* controlfiles/artscomponents/zeeman/*:  The files are updated because I
 	had forgotten that artscat4 require all species to be defined.
 	This error was pointed out to me by Jana.
@@ -85,6 +107,7 @@
 
 	Read from Agnes Catalog.
 
+>>>>>>> .r8797
 2014-02-25  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-1-832
