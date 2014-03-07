@@ -1,3 +1,53 @@
+2014-03-07  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-1-839
+
+	* src/m_abs_lookup.cc
+
+	(abs_lookupSetup): Pass atmfields_checked as input. To avoid
+	abs_lookupSetup acting on (obviously) buggy data like negative
+	temperatures. Remove a bunch of checks that are obsolte now as they are
+	checked by atmfields_checkedCalc.
+
+	(choose_abs_nls_pert): Avoid letting maxdev become infinity (as we can
+	not divide a range [x,inf] into any number of steps and will forever
+	stay in the make-steps while loop). And if it (still) is, throw a
+	runtime error.
+
+	* src/m_basic_types.cc (NumericInvScale): Added. A method to perform a
+	divide. This as plenty of divide operations can only be represented by
+	multiplication in an ugly way.
+
+	* src/methods.cc: Adapt to the above changes.
+
+	* src/species_data.cc: Corrected H2S HITRAN tag assignment. It's
+	basically a HITRAN bug: For H2S HITRAN does not follow its own
+	convention that tags are sorted in terms of isotopologue abundance.
+	However, it's a very old bug, hence probability that HITRAN will fix it
+	is low. So, we have to do something to make ARTS work properly with
+	buggy HITRAN. If not fixed (i.e., for all previous ARTS	versions!),
+	HITRAN-to-ARTSCAT conversion of H2S minor isotopologues is WRONG!
+
+	* src/absorption.h (SpeciesRecord): Removed check for increasingly
+	sorted HITRAN tags. This to allow the above change to work.
+
+	* controlfiles/artscomponents/cia/TestRTwithCIA.iy_reference.xml:
+	Updated with values matching modified O2 & H2O data in Perrin line data.
+
+	* controlfiles/artscomponents/montecarlo/TestMonteCarloDataPrepare.arts:
+	Do atmfields_checkedCalc before abs_lookupSetup.
+
+	* controlfiles/artscomponents/arts-xml-data/spectrotest.py:
+
+	(get_data): Consider that each abs_species entry is an array of tags and
+	allow for multi-tag entries.
+
+	(first_substring): Catch case when substring is not found.
+
+	* doc/uguide/absorption.tex:
+	In CIA part, added note on CO2-CO2 alternative.
+
+
 2014-03-06  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-838
@@ -30,7 +80,7 @@
 	that shows how to set this up for the entire band.  I might add a test
 	later to show how to do Zeeman for one line but Line Mixing for the
 	entire band.  The other files are updated because I had forgotten that
-	artscat4 require all species to be defined.  This error was pointed out
+	artscat4 requires all species to be defined.  This error was pointed out
 	to me by Jana.
 
 	* controlfiles/artscomponents/zeeman/*:  The files are updated because I

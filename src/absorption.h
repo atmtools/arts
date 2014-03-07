@@ -410,7 +410,7 @@ public:
           {
             if ( (0<misotopologue[i].HitranTag()) && (0<misotopologue[i+1].HitranTag()) )
               {
-                assert( misotopologue[i].HitranTag() < misotopologue[i+1].HitranTag() );
+//                assert( misotopologue[i].HitranTag() < misotopologue[i+1].HitranTag() );
             
                 // Also check that the tags have the same base number:
                 assert( misotopologue[i].HitranTag()/10 == misotopologue[i+1].HitranTag()/10 );

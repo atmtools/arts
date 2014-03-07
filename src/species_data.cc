@@ -335,6 +335,8 @@ void define_basic_species_data()
         (//  Name,       Isotop. Ratio,   Mass,         MY-tag, HI-tag, JPL-tag
          //              |                |             |       |       |
          REC("211"      ,.988274E+00     ,16.031300    ,-1     ,61     ,TAGS()),
+// JM: the following version with MADE-UP JPL-TAG(!) is for SWI intercomparison ONLY!
+//         REC("211"      ,.988274E+00     ,16.031300    ,-1     ,61     ,TAGS(16002)),
          REC("311"      ,1.11031E-02     ,17.034655    ,-1     ,62     ,TAGS()),
          REC("212"      ,6.15751E-04     ,17.037475    ,-1     ,63     ,TAGS(17003)),
          REC("312"      ,6.91785E-06     ,18.040830    ,-1     ,64     ,TAGS())
@@ -738,8 +740,14 @@ void define_basic_species_data()
         (//  Name,      Isotop. Ratio,   Mass,         MY-tag, HI-tag, JPL-tag
          //             |                |             |       |       |
          REC("121"      ,.949884E+00    ,33.987721    ,311    ,311    ,TAGS(34002)),
-         REC("141"      ,4.21369E-02    ,35.983515    ,-1     ,312    ,TAGS( )),
-         REC("131"      ,7.49766E-03    ,34.987105    ,-1     ,313    ,TAGS( )),
+// A. Perrin found, HITRAN isotopologue assignments are wrong (inconsistent
+// between molparams.txt and the line parameter files *.par. This dates back to
+// at least HITRAN1996, so it seems safe to just swap around the HITRAN tags
+// here.
+//         REC("141"      ,4.21369E-02    ,35.983515    ,-1     ,312    ,TAGS( )),
+//         REC("131"      ,7.49766E-03    ,34.987105    ,-1     ,313    ,TAGS( )),
+         REC("141"      ,4.21369E-02    ,35.983515    ,-1     ,313    ,TAGS( )),
+         REC("131"      ,7.49766E-03    ,34.987105    ,-1     ,312    ,TAGS( )),
          REC("122"      ,0.00029991625  ,35.00        ,-1     ,-1     ,TAGS(35001))
          ) ) );
 

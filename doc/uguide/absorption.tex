@@ -588,9 +588,9 @@ specifically:
 \item[O$_2$-O$_2$:] Three apparently separate datasets that really
   belong together were merged. UV/Vis dataset were removed.
 \item[CO$_2$-CO$_2$:] Caveat: This is only the self continuum of
-  CO2. The CO2-air continuum has strong features above 250 cm$^{-1}$ that
+  CO2. The CO2-air continuum has strong features above 250\,cm$^{-1}$ that
   are present in CKD\_MT (also available in ARTS as one of the
-  continuum and full absorption models), but are missing here. 
+  continuum and full absorption models), but are missing here.
   %The HITRAN data also generally looks weird. It is only in the alternative
   %folder, and \citet{richard:12} basically recommend not to use it. Conclusion:
   %No changes, but usage not recommended.
@@ -598,6 +598,13 @@ specifically:
   further mechanisms affecting CIA exist, which are not covered by the simple
   models used. They hence state that ``these data should be used very
   carefully''. Conclusion: No changes, but use with care.
+
+  Also note that no data exists at frequencies below 30\,GHz (1\,cm$^{-1}$)
+  though some significant absorption is still present at the limiting frequency.
+  For those low frequencies, the CO2-SelfContPWR93 continuum (see
+  Table~\ref{tab:absorption:continua}) can be used as an alternative (we
+  estimated that to be valid at least up to about 100\,GHz, but deviating
+  significantly above 500\,GHz).
 \item[O2-N2, O2-CO2:] These UV/Vis-only datasets were removed.
 
 \begin{table}

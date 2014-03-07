@@ -1,6 +1,7 @@
 import numpy as N
 import pylab as p
 import os
+#import pdb
 from matplotlib.gridspec import GridSpec as gc
 
 def get_data(fa3h=None,fa4h=None,fa4p=None):
@@ -39,6 +40,7 @@ def get_data(fa3h=None,fa4h=None,fa4p=None):
       absorption cross section tensor from ARTS4 Toolbox data
   NOTE: ntemp is assumed to be 1.
   '''
+  #pdb.set_trace()
   if fa3h is not None:
     f=open(fa3h)
   elif fa4h is not None:
@@ -57,8 +59,33 @@ def get_data(fa3h=None,fa4h=None,fa4p=None):
   lines=f.readlines()
   f.close()
 
-  absspec=[x for x in lines if '<SpeciesTag>' in x]
-  for i,l in enumerate(absspec): absspec[i]=l.partition('"')[2].partition('-')[0]
+  # this works only with one tag per species. and it neglects possible isotopologue subtags.
+  #absspec=[x for x in lines if '<SpeciesTag>' in x]
+  #for i,l in enumerate(absspec): absspec[i]=l.partition('"')[2].partition('-')[0]
+  
+  # so, instead we're trying to be smarter (looks less beautiful but doing what i want):
+  i1 = first_substring(lines,'ArrayOfSpeciesTag')
+  nabsspec = N.int(lines[i1].rpartition('nelem="')[2].rpartition('"')[0])
+  absspec=[]
+  for i in N.arange(nabsspec):
+    i1+=1
+    i2 = first_substring(lines[i1:],'type="SpeciesTag"')
+    assert(i2>=0), \
+      'Looking for %i "ArrayOfSpeciesTag" entries, but could find only %s.'+\
+      ' Aborting.\n' %(nabsspec,i)
+    i1 = i1+i2
+    ntags = N.int(lines[i1].rpartition('nelem="')[2].rpartition('"')[0])
+    isostrings = ''
+    for j in N.arange(ntags)+1:
+      isostring = lines[i1+j].partition('"')[2]
+      if '*' in isostring:
+        isostring = isostring.partition('-*')[0]
+      else:
+        isostring = isostring.partition('"')[0]
+      isostrings = isostrings + ',' + isostring
+    # removing the comma we added for loop simplicity before the first tag
+    absspec.append(isostrings[1:])
+  print(absspec)
 
   ind = first_substring(lines,"FrequencyGrid")
   nfreq = N.int(lines[ind].partition('nelem="')[-1].partition('"')[0])
@@ -76,15 +103,15 @@ def get_data(fa3h=None,fa4h=None,fa4p=None):
   if fa3h is None:
     axs_a3h = N.array([])
   else:
-    axs_a3h=N.loadtxt(fa3h,skiprows=ind+1,comments='<').reshape((-1,len(absspec),nfreq,npres))
+    axs_a3h=N.loadtxt(fa3h,skiprows=ind+1,comments='<').reshape((-1,nabsspec,nfreq,npres))
   if fa4h is None:
     axs_a4h = N.array([])
   else:
-    axs_a4h=N.loadtxt(fa4h,skiprows=ind+1,comments='<').reshape((-1,len(absspec),nfreq,npres))
+    axs_a4h=N.loadtxt(fa4h,skiprows=ind+1,comments='<').reshape((-1,nabsspec,nfreq,npres))
   if fa4p is None:
     axs_a4p = N.array([])
   else:
-    axs_a4p=N.loadtxt(fa4p,skiprows=ind+1,comments='<').reshape((-1,len(absspec),nfreq,npres))
+    axs_a4p=N.loadtxt(fa4p,skiprows=ind+1,comments='<').reshape((-1,nabsspec,nfreq,npres))
 
   return absspec, freq, pres, axs_a3h, axs_a4h, axs_a4p
 
@@ -380,8 +407,13 @@ def first_substring(strings, substring):
   -------
   index: integer
       the index of the first entry in strings that contains substring
+      if substring is not found within the list of strings, -1 is returned
   '''
-  return (i for i, string in enumerate(strings) if substring in string).next()
+  try:
+    index = (i for i, string in enumerate(strings) if substring in string).next()
+  except:
+    index = -1
+  return index
 
 if __name__ == '__main__':
   fa3h='output/ARTS3-from-HITRAN08_LUT_WithFascode.xml'

@@ -786,7 +786,9 @@ void choose_abs_nls_pert(Vector&         abs_nls_pert,
           Numeric delta_max = 2*maxprof[i] / refprof[gp.idx[j]];
 
           if ( delta_min < mindev ) mindev = delta_min;
-          if ( delta_max > maxdev ) maxdev = delta_max;
+          // do not update maxdev, when delta_max is infinity (this results from
+          // refprof being 0)
+          if ( !isinf(delta_max) && (delta_max > maxdev) ) maxdev = delta_max;
         }
     }
 
@@ -805,6 +807,15 @@ void choose_abs_nls_pert(Vector&         abs_nls_pert,
     {
       mindev = 0;
       out3 << "  Adjusted mindev : " << mindev << "\n";
+    }
+
+  if ( isinf(maxdev) ) 
+    {
+      ostringstream os;
+      os << "Perturbation upper limit is infinity (likely due to the reference\n"
+         << "profile being 0 at at least one pressure level). Can not work\n"
+         << "with that.";
+      throw runtime_error( os.str() );
     }
 
   // We divide the interval between mindev and maxdev, so that the
@@ -848,10 +859,11 @@ void abs_lookupSetup(// WS Output:
                      // WS Input:
                      const Index& atmosphere_dim,
                      const Vector& p_grid,
-                     const Vector& lat_grid,
-                     const Vector& lon_grid,
+//                     const Vector& lat_grid,
+//                     const Vector& lon_grid,
                      const Tensor3& t_field,
                      const Tensor4& vmr_field,
+                     const Index& atmfields_checked,
                      const ArrayOfArrayOfSpeciesTag& abs_species,
                      const Index& abs_p_interp_order,
                      const Index& abs_t_interp_order,
@@ -862,20 +874,20 @@ void abs_lookupSetup(// WS Output:
                      const Numeric& h2o_step,
                      const Verbosity& verbosity)
 {
-  // For consistency with other code around arts (e.g., correlation
-  // lengths in atmlab), p_step is given as log10(p[Pa]). However, we
-  // convert it here to the natural log:
-  const Numeric p_step = log(pow(10.0, p_step10));
-
   // Checks on input parameters:
   
+  if( atmfields_checked != 1 )
+    throw runtime_error( "The atmospheric fields must be flagged to have "
+                         "passed a consistency check (atmfields_checked=1)." );
+
   // We don't actually need lat_grid and lon_grid, but we have them as
   // input variables, so that we can use the standard functions to
   // check atmospheric fields and grids. A bit cheesy, but I don't
   // want to program all the checks explicitly.
 
-  // Check grids:
-  chk_atm_grids(atmosphere_dim, p_grid, lat_grid, lon_grid);
+  // Check grids (outcommented the ones that have been done by
+  // atmfields_checkedCalc already):
+  //chk_atm_grids(atmosphere_dim, p_grid, lat_grid, lon_grid);
 
   if (p_grid.nelem()<2)
     {
@@ -885,15 +897,15 @@ void abs_lookupSetup(// WS Output:
     }
 
   // Check T field:
-  chk_atm_field("t_field", t_field, atmosphere_dim,
-                p_grid, lat_grid, lon_grid);
+  //chk_atm_field("t_field", t_field, atmosphere_dim,
+  //              p_grid, lat_grid, lon_grid);
  
   // Check VMR field (and abs_species):
-  chk_atm_field("vmr_field", vmr_field, atmosphere_dim,
-                abs_species.nelem(), p_grid, lat_grid, lon_grid);
+  //chk_atm_field("vmr_field", vmr_field, atmosphere_dim,
+  //              abs_species.nelem(), p_grid, lat_grid, lon_grid);
 
   // Check the keyword arguments:
-  if ( p_step <= 0 || t_step <= 0 || h2o_step <= 0 )
+  if ( p_step10 <= 0 || t_step <= 0 || h2o_step <= 0 )
     {
       ostringstream os;
       os << "The keyword arguments p_step, t_step, and h2o_step must be >0.";
@@ -901,6 +913,12 @@ void abs_lookupSetup(// WS Output:
     }
 
   // Ok, all input parameters seem to be reasonable.
+
+
+  // For consistency with other code around arts (e.g., correlation
+  // lengths in atmlab), p_step is given as log10(p[Pa]). However, we
+  // convert it here to the natural log:
+  const Numeric p_step = log(pow(10.0, p_step10));
 
 
   // We will need the log of the pressure grid:

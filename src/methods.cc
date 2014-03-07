@@ -931,6 +931,11 @@ void define_md_data_raw()
          "are used to make sure that there are enough points in *abs_nls_pert*\n"
          "and *abs_t_pert* for the chosen interpolation order.\n"
          "\n"
+         "Note: For homogeneous 1D cases, it can be advantageous to calculate\n"
+         "*abs_lookup* from the 1D atmosphere, and to expand the atmosphere\n"
+         "to 3D only after that. This particularly if nonlinear species\n"
+         "(i.e., H2O) are involved."
+         "\n"
          "See also:\n"
          "   *abs_lookupSetupBatch*\n"
          ),
@@ -946,10 +951,11 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "atmosphere_dim",
             "p_grid",
-            "lat_grid",
-            "lon_grid",
+//            "lat_grid",
+//            "lon_grid",
             "t_field",
             "vmr_field",
+            "atmfields_checked",
             "abs_species",
             "abs_p_interp_order",
             "abs_t_interp_order",
@@ -1687,7 +1693,7 @@ void define_md_data_raw()
          "More precisely, the grid points are determined by dividing\n"
          "the cumulative sum of the response in equal steps. This makes sense\n"
          "if the representation error of the radiance (as a function of\n"
-         " zenith angle) increases linearly with the grid spacing.\n"
+         "zenith angle) increases linearly with the grid spacing.\n"
          "\n"
          "The WSV *antenna_los* is set to 0.\n"
          ),
@@ -1701,8 +1707,8 @@ void define_md_data_raw()
         GIN( "n_za_grid", "fwhm", "xwidth_si", "dx_si" ),
         GIN_TYPE( "Index", "Numeric", "Numeric", "Numeric" ),
         GIN_DEFAULT( NODEF, NODEF, "3", "0.1" ),
-        GIN_DESC( "Number of poits to include in*mblock_za_grid*.",
-                  "Full width at half-maximum", 
+        GIN_DESC( "Number of points to include in *mblock_za_grid*.",
+                  "Full width at half-maximum of antenna beam [deg].", 
                   "Half-width of response, in terms of std. dev.", 
                   "Grid spacing, in terms of std. dev." )
         ));
@@ -6962,6 +6968,32 @@ void define_md_data_raw()
                      NODEF ),
         GIN_DESC( "Input numeric.",
                   "Value to add." )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "NumericInvScale" ),
+        DESCRIPTION
+        (
+         "Inversely scales/divides a numeric with a value (out = in/value).\n"
+         "\n"
+         "The result can either be stored in the same or another numeric.\n"
+         "(in and out can be the same varible, but not out and value)\n" 
+         ),
+        AUTHORS( "Jana Mendrok" ),
+        OUT(),
+        GOUT(      "out"       ),
+        GOUT_TYPE( "Numeric" ),
+        GOUT_DESC( "Output numeric." ),
+        IN(),
+        GIN(      "in"      ,
+                  "value" ),
+        GIN_TYPE(    "Numeric",
+                     "Numeric" ),
+        GIN_DEFAULT( NODEF   ,
+                     NODEF ),
+        GIN_DESC( "Input numeric.",
+                  "Scaling value." )
         ));
 
   md_data_raw.push_back

@@ -368,6 +368,16 @@ void NumericAdd(Numeric&   out,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void NumericInvScale(Numeric&   out,
+                     const Numeric&   in,
+                     const Numeric&   value,
+                     const Verbosity&)
+{
+  out = in / value;
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void NumericScale(Numeric&   out,
                   const Numeric&   in,
                   const Numeric&   value,
