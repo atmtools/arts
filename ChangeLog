@@ -1,3 +1,12 @@
+2014-03-10  Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-1-840
+	
+	* src/m_zeeman.cc:  BUG.  There was a difference between theory in the 
+	Zeeman paper and code in ARTS.  They way it was coded, horizontal and 
+	vertical polarization got shift around.  I found this while restructuring
+	the code to make it easier to compare with theory.
+
 2014-03-07  Jana Mendrok  <jana.mendrok@ltu.se>
 
 	* arts-2-1-839

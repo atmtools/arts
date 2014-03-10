@@ -56,71 +56,33 @@ void phase_matrix(MatrixView K, const Numeric& theta, const Numeric& eta, const 
 {
     assert(K.nrows() == 4 );
     assert(K.ncols() == 4 );
-
+    
+    const Numeric
+    S2T = sin(theta)*sin(theta),  
+    CT  = cos(theta), 
+    CE2 = cos(2*eta), 
+    SE2 = sin(2*eta);
+    
+    
     switch( DM )
     {
         case -1: // Transitions anti-parallel to the magnetic field
-            K(0,0) =   0;
-            K(0,1) =   0;
-            K(0,2) =   0;
-            K(0,3) =   0;
-
-            K(1,0) =   K(0,1);
-            K(1,1) =   K(0,0);
-            K(1,2) =   2 * cos(theta);
-            K(1,3) =   sin(theta)*sin(theta) * sin(2*eta);
-
-            K(2,0) =   K(0,2);
-            K(2,1) = - K(1,2);
-            K(2,2) =   K(0,0);
-            K(2,3) = - sin(theta)*sin(theta) * cos(2*eta);
-
-            K(3,0) =   K(0,3);
-            K(3,1) = - K(1,3);
-            K(3,2) = - K(2,3);
-            K(3,3) =   K(0,0);
+            K(0,0) =   0;  K(0,1) =           0;  K(0,2) =           0;  K(0,3) =           0;
+            K(1,0) =   0;  K(1,1) =           0;  K(1,2) =      2 * CT;  K(1,3) =   S2T * SE2;
+            K(2,0) =   0;  K(2,1) =    - 2 * CT;  K(2,2) =           0;  K(2,3) = - S2T * CE2;
+            K(3,0) =   0;  K(3,1) = - S2T * SE2;  K(3,2) =   S2T * CE2;  K(3,3) =           0;
             break;
         case  1: // Transitions parallel to the magnetic field
-            K(0,0) =   0;
-            K(0,1) =   0;
-            K(0,2) =   0;
-            K(0,3) =   0;
-
-            K(1,0) =   K(0,1);
-            K(1,1) =   K(0,0);
-            K(1,2) = - 2 * cos(theta);
-            K(1,3) =   sin(theta)*sin(theta) * sin(2*eta);
-
-            K(2,0) =   K(0,2);
-            K(2,1) = - K(1,2);
-            K(2,2) =   K(0,0);
-            K(2,3) = - sin(theta)*sin(theta) * cos(2*eta);
-
-            K(3,0) =   K(0,3);
-            K(3,1) = - K(1,3);
-            K(3,2) = - K(2,3);
-            K(3,3) =   K(0,0);
+            K(0,0) =   0;  K(0,1) =           0;  K(0,2) =           0;  K(0,3) =           0;
+            K(1,0) =   0;  K(1,1) =           0;  K(1,2) =    - 2 * CT;  K(1,3) =   S2T * SE2;
+            K(2,0) =   0;  K(2,1) =      2 * CT;  K(2,2) =           0;  K(2,3) = - S2T * CE2;
+            K(3,0) =   0;  K(3,1) = - S2T * SE2;  K(3,2) =   S2T * CE2;  K(3,3) =           0;
             break;
         case  0:// Transitions perpendicular to the magnetic field
-            K(0,0) =   0;
-            K(0,1) =   0;
-            K(0,2) =   0;
-            K(0,3) =   0;
-
-            K(1,0) =   K(0,1);
-            K(1,1) =   K(0,0);
-            K(1,2) =   0;
-            K(1,3) = - sin(theta)*sin(theta) * sin(2*eta);
-
-            K(2,0) =   K(0,2);
-            K(2,1) = - K(1,2);
-            K(2,2) =   K(0,0);
-            K(2,3) =   sin(theta)*sin(theta) * cos(2*eta);
-
-            K(3,0) =   K(0,3);
-            K(3,1) = - K(1,3);
-            K(3,2) = - K(2,3);
-            K(3,3) =   K(0,0);
+            K(0,0) =   0;  K(0,1) =           0;  K(0,2) =           0;  K(0,3) =           0;
+            K(1,0) =   0;  K(1,1) =           0;  K(1,2) =           0;  K(1,3) = - S2T * SE2;
+            K(2,0) =   0;  K(2,1) =           0;  K(2,2) =           0;  K(2,3) =   S2T * CE2;
+            K(3,0) =   0;  K(3,1) =   S2T * SE2;  K(3,2) = - S2T * CE2;  K(3,3) =           0;
             break;
         default: // Nil matrix since this should not be called.
             K=0;
@@ -147,92 +109,40 @@ void attenuation_matrix(MatrixView K, const Numeric& theta, const Numeric& eta, 
 {
     assert(K.nrows() == 4 );
     assert(K.ncols() == 4 );
-
+    
+    
+    const Numeric 
+    S2T  = sin(theta)*sin(theta),  
+    C2T  = cos(theta)*cos(theta),  
+    CT   = cos(theta), 
+    CE2  = cos(2*eta), 
+    SE2  = sin(2*eta);
+    
     switch( DM )
     {
         case -1: // Transitions anti-parallel to the magnetic field
-            K(0,0) =   1 + cos(theta)*cos(theta);
-            K(0,1) = - sin(theta)*sin(theta) * cos(2*eta);
-            K(0,2) = - sin(theta)*sin(theta) * sin(2*eta);
-            K(0,3) =   2 * cos(theta);
-
-            K(1,0) =   K(0,1);
-            K(1,1) =   K(0,0);
-            K(1,2) =   0;
-            K(1,3) =   0;
-
-            K(2,0) =   K(0,2);
-            K(2,1) = - K(1,2);
-            K(2,2) =   K(0,0);
-            K(2,3) =   0;
-
-            K(3,0) =   K(0,3);
-            K(3,1) = - K(1,3);
-            K(3,2) = - K(2,3);
-            K(3,3) =   K(0,0);
+            K(0,0) =     1 + C2T;  K(0,1) =   S2T * CE2;  K(0,2) =   S2T * SE2;  K(0,3) =    2 * CT;
+            K(1,0) =   S2T * CE2;  K(1,1) =     1 + C2T;  K(1,2) =           0;  K(1,3) =         0;
+            K(2,0) =   S2T * SE2;  K(2,1) =           0;  K(2,2) =     1 + C2T;  K(2,3) =         0;
+            K(3,0) =      2 * CT;  K(3,1) =           0;  K(3,2) =           0;  K(3,3) =   1 + C2T;
             break;
         case  1: // Transitions parallel to the magnetic field
-            K(0,0) =   1 + cos(theta)*cos(theta);
-            K(0,1) = - sin(theta)*sin(theta) * cos(2*eta);
-            K(0,2) = - sin(theta)*sin(theta) * sin(2*eta);
-            K(0,3) = - 2 * cos(theta);
-
-            K(1,0) =   K(0,1);
-            K(1,1) =   K(0,0);
-            K(1,2) =   0;
-            K(1,3) =   0;
-
-            K(2,0) =   K(0,2);
-            K(2,1) = - K(1,2);
-            K(2,2) =   K(0,0);
-            K(2,3) =   0;
-
-            K(3,0) =   K(0,3);
-            K(3,1) = - K(1,3);
-            K(3,2) = - K(2,3);
-            K(3,3) =   K(0,0);
+            K(0,0) =     1 + C2T;  K(0,1) =   S2T * CE2;  K(0,2) =   S2T * SE2;  K(0,3) =  - 2 * CT;
+            K(1,0) =   S2T * CE2;  K(1,1) =     1 + C2T;  K(1,2) =           0;  K(1,3) =         0;
+            K(2,0) =   S2T * SE2;  K(2,1) =           0;  K(2,2) =     1 + C2T;  K(2,3) =         0;
+            K(3,0) =    - 2 * CT;  K(3,1) =           0;  K(3,2) =           0;  K(3,3) =   1 + C2T;
             break;
         case  0: // Transitions perpendicular to the magnetic field
-            K(0,0) =   sin(theta)*sin(theta);
-            K(0,1) =   sin(theta)*sin(theta) * cos(2*eta);
-            K(0,2) =   sin(theta)*sin(theta) * sin(2*eta);
-            K(0,3) =   0;
-
-            K(1,0) =   K(0,1);
-            K(1,1) =   K(0,0);
-            K(1,2) =   0;
-            K(1,3) =   0;
-
-            K(2,0) =   K(0,2);
-            K(2,1) = - K(1,2);
-            K(2,2) =   K(0,0);
-            K(2,3) =   0;
-
-            K(3,0) =   K(0,3);
-            K(3,1) = - K(1,3);
-            K(3,2) = - K(2,3);
-            K(3,3) =   K(0,0);
+            K(0,0) =         S2T;  K(0,1) = - S2T * CE2;  K(0,2) = - S2T * SE2;  K(0,3) =         0;
+            K(1,0) = - S2T * CE2;  K(1,1) =         S2T;  K(1,2) =           0;  K(1,3) =         0;
+            K(2,0) = - S2T * SE2;  K(2,1) =           0;  K(2,2) =         S2T;  K(2,3) =         0;
+            K(3,0) =           0;  K(3,1) =           0;  K(3,2) =           0;  K(3,3) =       S2T;
             break;
         default: // Unity matrix in attenuation
-            K(0,0) = 1;
-            K(0,1) = 0;
-            K(0,2) = 0;
-            K(0,3) = 0;
-
-            K(1,0) = K(0,1);
-            K(1,1) = K(0,0);
-            K(1,2) = 0;
-            K(1,3) = 0;
-
-            K(2,0) = K(0,2);
-            K(2,1) = K(1,2);
-            K(2,2) = K(0,0);
-            K(2,3) = 0;
-
-            K(3,0) = K(0,3);
-            K(3,1) = K(1,3);
-            K(3,2) = K(2,3);
-            K(3,3) = K(0,0);
+            K(0,0) = 1;            K(0,1) =           0;  K(0,2) =           0;  K(0,3) =         0;
+            K(1,0) = 0;            K(1,1) =           1;  K(1,2) =           0;  K(1,3) =         0;
+            K(2,0) = 0;            K(2,1) =           0;  K(2,2) =           1;  K(2,3) =         0;
+            K(3,0) = 0;            K(3,1) =           0;  K(3,2) =           0;  K(3,3) =         1;
             break;
     };
 };
