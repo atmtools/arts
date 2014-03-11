@@ -198,9 +198,10 @@ void atmfields_checkedCalc(
         {
           ostringstream os;
           os << "You have a wind field set, but abs_f_interp_order zero.\n"
-             << "We cannot let you do this, the absorption lookup table\n"
-             << "will handle Doppler shift correctly only if\n"
-             << "abs_f_interp_order is greater than zero.";
+             << "This is not allowed. Though abs_f_interp_order only is\n"
+             << "required and has an effect if absorption lookup tables\n"
+             << "are used, for safety reasons you also have to set it >0\n"
+             << "in case of on-the-fly absorption.";
           throw runtime_error(os.str());
         }
     }

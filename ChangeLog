@@ -1,3 +1,15 @@
+2014-03-11  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-1-841
+
+	* src/m_checked.cc (atmfields_checkedCalc): Be a bit more helpful in
+	abs_f_interp_order-in-case-of-wind error message (you have to set it >0
+	even if absLUT are not used).
+
+	* controlfiles/general/general.arts:
+	Downgrade the do-only-modify-when-you-know message on abs_f_interp_order
+	as user HAS to change it if wind is to be used.
+
 2014-03-10  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-1-840

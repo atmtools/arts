@@ -84,6 +84,14 @@ Tensor3SetConstant( mag_w_field, 0, 0, 0, 0.0 )
 IndexSet( abs_p_interp_order,   5 )
 IndexSet( abs_t_interp_order,   7 )
 IndexSet( abs_nls_interp_order, 5 )
+
+# abs_f_interp_order should normally be set to 0. However, if you are doing
+# calculations with Doppler shift (e.g., wind, planet rotation, or satellite
+# movement considered in forward calculation), you NEED to set it to >=l. This
+# regardless of whether you use absorption lookup tables or on-the-fly
+# calculation of absorption. In case of on-the-fly it will have no practical
+# effects. In case of lookup tables, you should choose abs_f_interp_order
+# depending on the frequency interpolation scheme you want.
 IndexSet( abs_f_interp_order, 0 )
 
 #
