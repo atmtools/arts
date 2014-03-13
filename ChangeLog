@@ -1,4 +1,10 @@
 2014-03-13  Richard Larsson  <ric.larsson@gmail.com>
+	
+	* arts-2-1-843
+		
+	* src/m_lineshapes.cc:  Fixed unsaved spelling mistake...
+	
+2014-03-13  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-1-842
 	

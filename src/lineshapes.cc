@@ -1757,7 +1757,9 @@ void faddeeva_algorithm_916(    Vector&         ls_attenuation,
   \param  sigma                 The Doppler broadening parameter.
   \param  f_grid                The frequency grid.
 
-  \author P. Rosenranz 1988-02-19 (Added by Richard Larsson 2014-03-13 with slight moderation)
+  \author P. Rosenkranz 1988-02-19 
+  
+  (Added by Richard Larsson 2014-03-13 with slight moderation)
 
  */ 
 void hui_etal_1978_lineshape( Vector&         ls_attenuation,
