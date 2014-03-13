@@ -1723,10 +1723,6 @@ void faddeeva_algorithm_916(    Vector&         ls_attenuation,
     for (Index ii=0; ii<nf; ii++)
     {
         xvector[ii] = (f_grid[ii] - f0) / sigma;
-    }
-    
-    for (Index ii=0; ii<nf; ii++)
-    {
         std::complex<Numeric> z(xvector[ii], y);
         
         z = Faddeeva::w(z);
@@ -1736,6 +1732,76 @@ void faddeeva_algorithm_916(    Vector&         ls_attenuation,
     }
 }
 
+
+/*! The Voigt and Faraday-Voigt line shape. Based on Complex Error Function of
+  X+i*Y.
+  
+  Y must be positive.
+  
+  Reference for equations:
+  Hui, Armstrong and Wray, JQSRT V.19, P.509 (1978).
+  
+  ----------------------
+  CERROR(z)=CERROR(x+iy)=CERROR(x,y)=w(x,y)
+  g(nu,nu_0) = (1/DopHW)* sqrt(ln2/pi)*(Re(w(x,y) + Py*Im(w(x,y)) 
+  y=(P*LorHW /DopHW)*sqrt(ln2)
+  x=(nu-nu_0)/DopHW)*sqrt(ln2)                      
+  NB Re(w)=Voigt
+  ----------------------
+  
+  \retval ls_attenuation        The shape function.
+  \retval ls_phase              The phase shape function.
+  \retval xvector               Auxillary parameter to store frequency grid.
+  \param  f0                    Line center frequency.
+  \param  gamma                 The pressure broadening parameter.
+  \param  sigma                 The Doppler broadening parameter.
+  \param  f_grid                The frequency grid.
+
+  \author P. Rosenranz 1988-02-19 (Added by Richard Larsson 2014-03-13 with slight moderation)
+
+ */ 
+void hui_etal_1978_lineshape( Vector&         ls_attenuation,
+                              Vector&         ls_phase,
+                              Vector&         xvector,
+                              const Numeric   f0,
+                              const Numeric   gamma,
+                              const Numeric   sigma,
+                              ConstVectorView f_grid)
+
+{
+    const Index nf = f_grid.nelem();
+    
+    // PI
+    extern const Numeric PI;
+    
+    // constant sqrt(1/pi)
+    const Numeric sqrt_invPI =  sqrt(1/PI);
+    
+    // constant normalization factor for voigt
+    const Numeric fac = sqrt_invPI / sigma;
+    
+    // Ratio of the Lorentz halfwidth to the Doppler halfwidth
+    const Numeric y = gamma / (sigma);
+    
+    // frequency in units of Doppler
+    for (Index ii=0; ii<nf; ii++)
+    {
+        xvector[ii] = (f_grid[ii] - f0) / sigma;
+        
+        // Note that this works but I don't know why there is a difference
+        // between the theory described above and this practical implementation.
+        const std::complex<Numeric> z(y , - xvector[ii]);
+        
+        const std::complex<Numeric> A = (((((.5641896*z+5.912626)*z+30.18014)*z+
+              93.15558)*z+181.9285)*z+214.3824)*z+122.6079;
+        const std::complex<Numeric> B = ((((((z+10.47986)*z+53.99291)*z+170.3540)*z+
+              348.7039)*z+457.3345)*z+352.7306)*z+122.6079;
+        const std::complex<Numeric> C = A / B;
+        
+        ls_attenuation[ii] = fac * C.real();
+        ls_phase[ii]       = fac * C.imag();
+    }
+}
 
 //------------------------------------------------------------------------
 // Normalization Functions 
@@ -1947,6 +2013,13 @@ void define_lineshape_data()
     "v' is a Doppler weighted freqeuncy parameter and a is a Doppler weighted  \n"
     "pressure parameter.",
     faddeeva_algorithm_916, PHASE));
+    
+    lineshape_data.push_back
+    (LineshapeRecord
+    ("Hui_etal_1978",
+    "Classic line shape.  Solving the complex error function returns both parts\n"
+    "of the refractive index.",
+    hui_etal_1978_lineshape, PHASE));
 }
 
 /*! The lookup data for the different normalization factors to the

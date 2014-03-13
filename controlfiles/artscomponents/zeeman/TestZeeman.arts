@@ -138,7 +138,14 @@ VectorCreate(yREFERENCE)
 ReadXML( yREFERENCE, "yREFERENCE_ZEEMAN.xml" )
 Compare( y, yREFERENCE, 1e-2 )
 
+abs_lineshapeDefine( abs_lineshape, "Hui_etal_1978", "VVH", 750e9 )
+yCalc
 
+# OK?
+# ---
+WriteXML( "ascii", y, "yZeeman.xml")
+ReadXML( yREFERENCE, "yREFERENCE_ZEEMAN.xml" )
+Compare( y, yREFERENCE, 1e-2 )
 
 } # End of Main
  

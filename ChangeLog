@@ -1,3 +1,19 @@
+2014-03-13  Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-1-842
+	
+	* src/m_lineshapes.cc:  Added "Hui_etal_1978", implementation by
+	Rosenkranz.  This is based on a classic paper from 1978 referenced in
+	the function's meta data.  This function is most likely faster than
+	the Faddeeva algorithm but might or might not fall apart for some input.
+	This is not thouroughly tested by me.  The function was added
+	to minimize differences between RTTOV and ARTS.
+	
+	* src/controlfiles/artscomponents/zeeman/TestZeeman.arts,
+	controlfiles/artscomponents/linemixing/TestLineMixingAndZeeman.arts:
+	Modified to also use the "Hui_etal_1978" line shape. (Note that I did 
+	not have to change the reference file!).
+
 2014-03-11  Jana Mendrok  <jana.mendrok@ltu.se>
 
 	* arts-2-1-841
