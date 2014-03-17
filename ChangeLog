@@ -1,3 +1,13 @@
+2014-03-17  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-844
+
+	* src/agenda_class.cc (Agenda::execute):
+
+	Add a note to the bad_alloc exception message that reducing the number
+	of threads might solve out of memory issues for large jobs. Suggested
+	by Jana.
+
 2014-03-13  Richard Larsson  <ric.larsson@gmail.com>
 	
 	* arts-2-1-843

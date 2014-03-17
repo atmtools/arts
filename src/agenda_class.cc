@@ -266,6 +266,8 @@ void Agenda::execute(Workspace& ws) const
 
           ostringstream os;
           os << "Memory allocation error in method: " << mdd.Name() << '\n'
+             << "For memory intensive jobs it could help to limit the\n"
+             << "number of threads with the -n option.\n"
              << x.what();
 
           throw runtime_error(os.str());
