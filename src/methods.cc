@@ -8554,6 +8554,8 @@ void define_md_data_raw()
          "\n"
          "If the filename is omitted, the variable is read\n"
          "from <basename>.<variable_name>.xml.\n"
+         "If the given filename does not exist, this method will\n"
+         "also look for files with an added .xml, .xml.gz and .gz extension\n"
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),

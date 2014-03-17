@@ -1,5 +1,27 @@
 2014-03-17  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-845
+
+	* src/file.{cc,h} (find_xml_file):
+
+	Added. This method also outputs a warning to out1 if a .xml and
+	.xml.gz version of the input file exists. (Suggested by Richard)
+
+	* src/xml_io.cc (xml_read_from_file,
+	xml_read_arts_catalogue_from_file):
+
+	Use new find_xml_file function to avoid code duplication.
+
+	* src/m_abs.cc (abs_cont_descriptionInit):
+
+	Prepend abs_cont_ to variable names to avoid name clash with global
+	parameters variable (clang 5.1).
+
+	* src/methods.cc: Add info about extensions automatically being added
+	to filenames by ReadXML. (Suggested by Manfred)
+
+2014-03-17  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-844
 
 	* src/agenda_class.cc (Agenda::execute):

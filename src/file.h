@@ -35,6 +35,7 @@
 #include <fstream>
 #include "matpackI.h"
 #include "mystring.h"
+#include "messages.h"
 
 ////////////////////////////////////////////////////////////////////////////
 //   Default file names
@@ -71,6 +72,8 @@ int check_newline(const String& s);
 bool file_exists(const String& filename);
 
 bool find_file(String& filename, const String extension, const ArrayOfString& paths);
+
+void find_xml_file(String& filename, const Verbosity& verbosity);
 
 String expand_path(const String& path);
 

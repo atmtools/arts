@@ -1947,16 +1947,16 @@ void abs_xsec_per_speciesAddConts(// WS Output:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_cont_descriptionInit(// WS Output:
-                              ArrayOfString& names,
-                              ArrayOfString& options, 
-                              ArrayOfVector& parameters,
+                              ArrayOfString& abs_cont_names,
+                              ArrayOfString& abs_cont_options,
+                              ArrayOfVector& abs_cont_parameters,
                               const Verbosity& verbosity)
 {
   CREATE_OUT2;
   
-  names.resize(0);
-  options.resize(0);
-  parameters.resize(0);
+  abs_cont_names.resize(0);
+  abs_cont_options.resize(0);
+  abs_cont_parameters.resize(0);
   out2 << "  Initialized abs_cont_names \n"
           "              abs_cont_models\n"
           "              abs_cont_parameters.\n";

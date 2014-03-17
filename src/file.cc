@@ -54,7 +54,6 @@
 
 #include "matpackI.h"
 #include "array.h"
-#include "messages.h"
 #include "parameters.h"
 #include "file.h"
 
@@ -413,6 +412,62 @@ bool find_file(String& filename, const String extension, const ArrayOfString& pa
 }
 
 
+/**
+  Find an xml file. If it doesn't exist in the current directory, also
+  search the include path. Also test if a compressed version exists.
+
+  @param filename File to check.
+
+  @return Error code (true = file found, false = file not found)
+
+  @author Oliver Lemke
+*/
+void find_xml_file(String& filename, const Verbosity& verbosity)
+{
+    filename = expand_path(filename);
+
+    String xml_file_zipped = filename;
+
+    bool found_file;
+    bool found_file_zipped;
+
+    // Command line parameters which give us the include search path.
+    extern const Parameters parameters;
+    ArrayOfString allpaths = parameters.includepath;
+    allpaths.insert(allpaths.end(),
+                    parameters.datapath.begin(),
+                    parameters.datapath.end());
+
+    found_file = find_file(filename, ".xml", allpaths);
+    found_file_zipped = find_file(xml_file_zipped, ".xml.gz", allpaths);
+    found_file_zipped = find_file(xml_file_zipped, ".gz", allpaths);
+
+    if (!found_file && found_file_zipped)
+    {
+        found_file = found_file_zipped;
+        filename = xml_file_zipped;
+    }
+    else if (found_file && found_file_zipped
+             && filename != xml_file_zipped
+             && filename.nelem() > 3
+             && filename.substr(filename.nelem()-3, 3) != ".gz")
+    {
+        CREATE_OUT1;
+        out1 << "  WARNING: An uncompressed and compressed version of the file\n"
+        << "  " << filename << " exists.\n"
+        << "  Reading the former instead of the latter.\n";
+    }
+
+    if (!found_file)
+    {
+        ostringstream os;
+        os << "Cannot find input file: " << filename << endl;
+        os << "Search path: " << allpaths << endl;
+        throw runtime_error(os.str());
+    }
+}
+
+
 /*!
  Expands the ~ to home directory location in given path.
  
@@ -449,7 +504,7 @@ String expand_path(const String& path)
  */
 String add_basedir(const String& path)
 {
-  extern Parameters parameters;
+  extern const Parameters parameters;
   String expanded_path = expand_path(path);
   
   if (parameters.outdir.nelem() && path.nelem() && path[0] != '/')
