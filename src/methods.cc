@@ -8962,7 +8962,13 @@ void define_md_data_raw()
          "\n"
          "The parameterisation of Thayer (Radio Science, 9, 803-807, 1974)\n"
          "is used. See also Eq. 3 and 5 of Solheim et al. (JGR, 104,\n"
-         "pp. 9664).\n"
+         "pp. 9664). The expression can be written as\n"
+         "   N = aP/T + be/T + ce/T^2\n"
+         "where N is refractivity, P is pressure, T is temperature and\n"
+         "e is water vapour partial pressure. The values of a, b and c can\n"
+         "be modified. Default values are taken from Thayer (1974).\n"
+         "Note that Thayer uses mbar for pressures, while in ARTS Pa is used\n"
+         "and a, b and c must be scaled accordingly.\n" 
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "refr_index_air", "refr_index_air_group" ),
@@ -8971,10 +8977,11 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "refr_index_air", "refr_index_air_group", "rtp_pressure", 
             "rtp_temperature", "rtp_vmr", "abs_species" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
+        GIN( "a", "b", "c" ),
+        GIN_TYPE( "Numeric", "Numeric", "Numeric" ),
+        GIN_DEFAULT( "77.6e-8", "64.8e-8", "3.776e-3" ),
+        GIN_DESC( "Coefficient a, see above", "Coefficient b, see above",
+                  "Coefficient c, see above" )
         ));
 
     md_data_raw.push_back
