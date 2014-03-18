@@ -1,3 +1,12 @@
+2014-03-18  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-846
+
+	* src/file.{cc,h} (find_xml_file):
+
+	Output full name of the selected and ignored file for better
+	diagnostics.
+
 2014-03-17  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-845

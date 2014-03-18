@@ -453,9 +453,10 @@ void find_xml_file(String& filename, const Verbosity& verbosity)
              && filename.substr(filename.nelem()-3, 3) != ".gz")
     {
         CREATE_OUT1;
-        out1 << "  WARNING: An uncompressed and compressed version of the file\n"
-        << "  " << filename << " exists.\n"
-        << "  Reading the former instead of the latter.\n";
+        out1 << "  WARNING: An uncompressed and compressed version of the file exists.\n"
+        << "  Reading the former instead of the latter.\n"
+        << "  Reading:  " << filename << "\n"
+        << "  Ignoring: " << xml_file_zipped << "\n";
     }
 
     if (!found_file)
