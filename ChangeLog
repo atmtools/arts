@@ -1,3 +1,28 @@
+2014-03-19  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-1-848
+
+	* controlfiles/planetary_toolbox/demos/passive/
+	DemoVenus_fullRT_1D_clearsky.arts:
+	Added. Complete version for Venus 1D clearsky RT.
+
+	* controlfiles/planetary_toolbox/demos/common/DemoVenusSurface1D.arts:
+	Added. Demo/template for setting/deriving surface properties (altitude,
+	temperature, reflection type) for Venus.
+
+	* controlfiles/planetary_toolbox/demos/passive/
+	DemoMars_fullRT_1D_clearsky.arts:
+	Improved documentation following Patrick's comments.
+
+	* controlfiles/planetary_toolbox/includes/common/
+	makegeometry1D_refracted-[air,air+electrons]_effectivetanh.arts ->
+	makegeometry1D_refracted-[air,air+electrons]_truetanh.arts:
+	Renamed effective tanh to true tanh.
+
+	* controlfiles/planetary_toolbox/includes/common/make-and-use-absLUT.arts,
+	controlfiles/artscomponents/arts-xml-data/TestSpectro_core.arts:
+	Updated to new atmfields_checked requirements of abs_lookupSetup.
+
 2014-03-18  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-847

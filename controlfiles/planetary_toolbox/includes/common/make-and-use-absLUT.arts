@@ -57,8 +57,10 @@ ReadXML( abs_cia_data, "spectroscopy/cia/hitran2011/hitran_cia2012_adapted.xml.g
 abs_linesReadFromSplitArtscat( basename="spectroscopy/Perrin/", fmin=0, fmax=4e12 )
 #abs_linesReadFromHitran( filename="your-HITRAN-file", fmin=0, fmax=4e12 )
 abs_lines_per_speciesCreateFromLines
-abs_lookupSetup
+
 abs_xsec_agenda_checkedCalc
+atmfields_checkedCalc
+abs_lookupSetup
 abs_lookupCalc
 
 }

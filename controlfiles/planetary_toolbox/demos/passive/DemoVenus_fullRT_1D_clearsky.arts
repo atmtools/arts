@@ -1,12 +1,6 @@
 #
 # 2014-03-17 Jana Mendrok
 #
-# FIXME:
-# - make separate versions for (example) cases with
-#   - particles/scattering
-#   - 3D
-#   - Faraday/Zeeman(?)
-#
 ################################################################################
 #                                                                              #
 # This is a demo/template file. The USER is supposed to MODIFY it according    #
@@ -77,8 +71,8 @@
 # This template is set up to make use of the following include files           #
 # (internally they might use further includes. See their respective headers    #
 # for details):                                                                #
-#   demos/common/DemoMarsAtmo1D.arts                                           #
-#   demos/common/DemoMarsSurface1D.arts                                        #
+#   demos/common/DemoVenusAtmo1D.arts                                           #
+#   demos/common/DemoVenusSurface1D.arts                                        #
 #   includes/common/makegeometry1D_unrefracted.arts                            #
 #   includes/common/makegeometry1D_refracted-air_effectivetanh.arts            #
 #   includes/common/makegeometry1D_refracted-air_geometrictanh.arts            #
@@ -95,7 +89,7 @@ Arts2 {
 INCLUDE "general/general.arts"
 INCLUDE "general/continua.arts"
 INCLUDE "general/agendas.arts"
-INCLUDE "general/planet_mars.arts"
+INCLUDE "general/planet_venus.arts"
 
 
 # do NOT modify
@@ -124,11 +118,11 @@ IndexSet( stokes_dim, 1 )
 # Definition of atmosphere
 # ---
 # which scenario, which absorption species, ...
-#  - use a COPY of DemoMarsAtmo1D.arts adapted to your needs/wishes
+#  - use a COPY of DemoVenusAtmo1D.arts adapted to your needs/wishes
 #  - provides as output: atmosphere_dim (1D), abs_species , p_grid, z/t/vmr_field,
-#     wind_w_field (if switched on in adaptation of DemoMarsAtmo1D.arts)
+#     wind_w_field (if switched on in adaptation of DemoVenusAtmo1D.arts)
 #####
-INCLUDE "planetary_toolbox/demos/common/DemoMarsAtmo1D.arts"
+INCLUDE "planetary_toolbox/demos/common/DemoVenusAtmo1D.arts"
 WriteXML( in=abs_species )
 
 
@@ -227,12 +221,12 @@ INCLUDE "planetary_toolbox/includes/common/make-and-use-absLUT.arts"
 # ---
 
 # definition of surface (altitude, reflection model, temperature)
-#  - use a copy of DemoMarsSurface1D.arts adapted to your needs/wishes
+#  - use a copy of DemoVenusSurface1D.arts adapted to your needs/wishes
 #  - provides as output: z_surface, surface_rtprop_agenda (additionally:
 #     surface_skin_t (cases B-1: manually set (scalar) surface temperature) or
 #     t_surface (cases B-3: surface temperature field from file))
 #####
-INCLUDE "planetary_toolbox/demos/common/DemoMarsSurface1D.arts"
+INCLUDE "planetary_toolbox/demos/common/DemoVenusSurface1D.arts"
 
 
 
@@ -244,8 +238,8 @@ INCLUDE "planetary_toolbox/demos/common/DemoMarsSurface1D.arts"
 #  online-doc of the WSM selected for iy_main_agenda (here: iyEmissionStandard).
 # NOTE: Last element NOT to be followed by comma.
 # NOTE: Only use "Absorption, species X" up to the number of entries in
-#  abs_species (clearsky calculations in Mars have at maximum 20 abs_species
-#  entries, i.e. highest valid index is 19).
+#  abs_species (clearsky calculations in Venus have at maximum 19 abs_species
+#  entries, i.e. highest valid index is 18).
 
 ArrayOfStringSet( iy_aux_vars,
      [
@@ -271,7 +265,6 @@ ArrayOfStringSet( iy_aux_vars,
 #      "Absorption, species 16",
 #      "Absorption, species 17",
 #      "Absorption, species 18",
-#      "Absorption, species 19",
       "iy", 
 #      "Transmission",
       "Optical depth"
