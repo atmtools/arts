@@ -2447,7 +2447,7 @@ bool LineRecord::ReadFromArtscat4Stream(istream& is, const Verbosity& verbosity)
               ArrayOfIndex v(3);
               for (Index vi=0; vi<3; vi++)
               {
-                  if (vstr[0] != 0)
+                  if (vstr[0] != ' ')
                       extract(v[vi], vstr, 1);
                   else
                       v[vi] = -1;
