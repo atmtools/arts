@@ -1,3 +1,29 @@
+2014-03-19  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-850
+
+	* src/file.{cc,h}:
+
+	(find_file): Improved implementation. Remove unnecessary extension
+	argument. Return list of all matching files found in the search path.
+	Don't search all paths if filename starts with ./
+
+	(find_xml_file): List all matching files found in warning message.
+
+	(open_input_file): Adapt call to find_file.
+
+	* src/m_abs.cc (abs_speciesDefineAllInScenario):
+
+	Use new find_xml_file function.
+
+	* src/parser.cc (ArtsParser::parse_agenda):
+
+	Adapt call to find_file.
+
+	* src/m_optproperties.cc (scat_data_arrayCheck):
+
+	Indent output messages.
+
 2014-03-19  Jana Mendrok  <jana.mendrok@ltu.se>
 
 	* arts-2-1-849

@@ -41,6 +41,7 @@
 #include <cfloat>
 #include <cstdio>
 #include <limits>
+#include <algorithm>
 
 // For getdir
 #include <sys/types.h>
@@ -172,7 +173,10 @@ void open_input_file(ifstream& file, const String& name)
                   parameters.datapath.begin(),
                   parameters.datapath.end());
 
-  find_file(ename, "", allpaths);
+  ArrayOfString matching_files;
+  find_file(matching_files, ename, allpaths);
+
+  if (matching_files.nelem()) ename = matching_files[0];
 
   // Tell the stream that it should throw exceptions.
   // Badbit means that the entire stream is corrupted.
@@ -357,55 +361,50 @@ bool file_exists(const String& filename)
 
 
 /**
-  Find the given file. If it doesn't exist in the current directory, also
-  search the include path.
+  Searches through paths for the given file.
 
-  @param filename File to check.
-  @param extension Extension tried to be appended to the filename.
+  The search paths are ignored if the filename starts with ./
+
+  @param[in,out] matches   Matching files are appended to this list.
+  @param[in]     filename  File to find.
+  @param[in]     paths     List of paths to look in for the file.
 
   @return Error code (true = file found, false = file not found)
 
   @author Oliver Lemke
 */
-bool find_file(String& filename, const String extension, const ArrayOfString& paths)
+bool find_file(ArrayOfString& matches, const String& filename, const ArrayOfString& paths)
 {
-  bool exists = true;
+    bool exists = false;
+    String efilename = expand_path(filename);
 
-  // filename contains full path
-  if (!paths.nelem() || (filename.nelem() && filename[0] == '/'))
-  {
-    if (!file_exists(filename))
+    // filename contains full path
+    if (!paths.nelem()
+        || (efilename.nelem() && efilename[0] == '/')
+        || (efilename.nelem() > 2 && efilename.substr(0, 2) == "./"))
     {
-      // Full path + extension
-      if (file_exists (filename + extension))
-        filename += extension;
-      else
-        exists = false;
+        // Full path + extension
+        if (file_exists (efilename))
+        {
+            matches.push_back(efilename);
+            exists = true;
+        }
     }
-  }
-  // filename contains no or relative path
-  else
-  {
-    ArrayOfString::const_iterator path;
-    for (path = paths.begin(); path != paths.end(); path++)
+    // filename contains no or relative path
+    else
     {
-      String fullpath;
-      fullpath = expand_path(*path) + "/" + filename;
-      if (file_exists (fullpath))
-      {
-        filename = fullpath;
-        break;
-      }
-      else if (file_exists (fullpath + extension))
-      {
-        filename = fullpath + extension;
-        break;
-      }
-    }
-    if (path == paths.end())
-    {
-      exists = false;
-    }
+        ArrayOfString::const_iterator path;
+        for (path = paths.begin(); path != paths.end(); path++)
+        {
+            String fullpath;
+            fullpath = expand_path(*path) + "/" + efilename;
+            if (file_exists (fullpath)
+                && std::find(matches.begin(), matches.end(), fullpath) == matches.end())
+            {
+                matches.push_back(fullpath);
+                exists = true;
+            }
+        }
   }
 
   return exists;
@@ -413,24 +412,22 @@ bool find_file(String& filename, const String extension, const ArrayOfString& pa
 
 
 /**
-  Find an xml file. If it doesn't exist in the current directory, also
-  search the include path. Also test if a compressed version exists.
+  Find an xml file.
+ 
+  If it doesn't exist in the current directory, also search the include
+  and data path. Also tests if a compressed version exists.
 
-  @param filename File to check.
+  The filename will be modified to contain the full path to the found match.
 
-  @return Error code (true = file found, false = file not found)
+  @param[in,out] filename   File to check.
+  @param[in]     verbosity  Verbosity
+
+  @throw runtime_error if file is not found.
 
   @author Oliver Lemke
 */
 void find_xml_file(String& filename, const Verbosity& verbosity)
 {
-    filename = expand_path(filename);
-
-    String xml_file_zipped = filename;
-
-    bool found_file;
-    bool found_file_zipped;
-
     // Command line parameters which give us the include search path.
     extern const Parameters parameters;
     ArrayOfString allpaths = parameters.includepath;
@@ -438,34 +435,29 @@ void find_xml_file(String& filename, const Verbosity& verbosity)
                     parameters.datapath.begin(),
                     parameters.datapath.end());
 
-    found_file = find_file(filename, ".xml", allpaths);
-    found_file_zipped = find_file(xml_file_zipped, ".xml.gz", allpaths);
-    found_file_zipped = find_file(xml_file_zipped, ".gz", allpaths);
+    ArrayOfString matching_files;
+    find_file(matching_files, filename, allpaths);
+    find_file(matching_files, filename + ".xml", allpaths);
+    find_file(matching_files, filename + ".xml.gz", allpaths);
+    find_file(matching_files, filename + ".gz", allpaths);
 
-    if (!found_file && found_file_zipped)
-    {
-        found_file = found_file_zipped;
-        filename = xml_file_zipped;
-    }
-    else if (found_file && found_file_zipped
-             && filename != xml_file_zipped
-             && filename.nelem() > 3
-             && filename.substr(filename.nelem()-3, 3) != ".gz")
+    if (matching_files.nelem() > 1)
     {
         CREATE_OUT1;
-        out1 << "  WARNING: An uncompressed and compressed version of the file exists.\n"
-        << "  Reading the former instead of the latter.\n"
-        << "  Reading:  " << filename << "\n"
-        << "  Ignoring: " << xml_file_zipped << "\n";
+        out1 << "  WARNING: More than one file matching this name exists in the data path.\n"
+        << "  Using the first file (1) found:\n";
+        for (Index i = 0; i < matching_files.nelem(); i++)
+            out1 << "  (" << i+1 << ") " << matching_files[i] << "\n";
     }
-
-    if (!found_file)
+    else if (!matching_files.nelem())
     {
         ostringstream os;
         os << "Cannot find input file: " << filename << endl;
         os << "Search path: " << allpaths << endl;
         throw runtime_error(os.str());
     }
+
+    filename = matching_files[0];
 }
 
 

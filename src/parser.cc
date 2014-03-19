@@ -392,7 +392,11 @@ void ArtsParser::parse_agenda( Agenda& tasklist )
                     parameters.datapath.insert(parameters.datapath.begin(), includedir);
             }
 
-            if (!find_file (include_file, ".arts", current_includepath))
+            ArrayOfString matching_files;
+            find_file (matching_files, include_file, current_includepath);
+            find_file (matching_files, include_file + ".arts", current_includepath);
+
+            if (!matching_files.nelem())
             {
                 ostringstream os;
                 os << "Cannot find include file " << include_file
@@ -403,6 +407,7 @@ void ArtsParser::parse_agenda( Agenda& tasklist )
                 throw runtime_error (os.str());
             }
 
+            include_file = matching_files[0];
             out2 << "- Including control file " << include_file << "\n";
 
             ArtsParser include_parser (tasks, include_file, verbosity);

@@ -71,7 +71,7 @@ int check_newline(const String& s);
 
 bool file_exists(const String& filename);
 
-bool find_file(String& filename, const String extension, const ArrayOfString& paths);
+bool find_file(ArrayOfString& matches, const String& filename, const ArrayOfString& paths);
 
 void find_xml_file(String& filename, const Verbosity& verbosity);
 

@@ -1049,14 +1049,6 @@ void abs_speciesDefineAllInScenario(// WS Output:
 
   // We want to make lists of included and excluded species:
   ArrayOfString included(0), excluded(0);
-  bool found_file;
-
-  // Command line parameters which give us the include search path.
-  extern const Parameters parameters;
-  ArrayOfString allpaths = parameters.includepath;
-  allpaths.insert(allpaths.end(),
-                  parameters.datapath.begin(),
-                  parameters.datapath.end());
 
   tgs.resize(0);
 
@@ -1069,12 +1061,8 @@ void abs_speciesDefineAllInScenario(// WS Output:
         filename += ".";
       filename += specname;
 
-      found_file = find_file(filename, ".xml", allpaths);
-      if (!found_file) found_file = find_file(filename, ".xml.gz", allpaths);
-      if (!found_file) found_file = find_file(filename, ".gz", allpaths);
-
-      if (found_file)
-        {
+      try {
+          find_xml_file(filename, verbosity);
           // Add to included list:
           included.push_back(specname);
 
@@ -1088,12 +1076,12 @@ void abs_speciesDefineAllInScenario(// WS Output:
 
           // Add this tag group to tgs:
           tgs.push_back(this_group);
-        }
-      else
-        {
+      }
+      catch (runtime_error e)
+      {
           // The file for the species could not be found.
           excluded.push_back(specname);
-        }
+      }
     }
   
   // Some nice output:

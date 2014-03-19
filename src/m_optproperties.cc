@@ -934,7 +934,7 @@ void scat_data_arrayCheck(//Input:
   // Loop over the included particle_types
   for (Index i_pt = 0; i_pt < N_pt; i_pt++)
     {
-      out2 << "particle " << i_pt << "\n";
+      out2 << "  particle " << i_pt << "\n";
 
       switch (PART_TYPE){
 
@@ -959,13 +959,13 @@ void scat_data_arrayCheck(//Input:
                     Numeric Csca_data = Cext_data - Cabs_data;
 
 
-                    out2 << "Coefficients in database: "
+                    out2 << "  Coefficients in database: "
                          << "Cext: " << Cext_data << " Cabs: " << Cabs_data
                          << " Csca: " << Csca_data << "\n"
-                         << "Calculated coefficients: "
+                         << "  Calculated coefficients: "
                          << "Cabs calc: " << Cabs   
                          << " Csca calc: " << Csca << "\n"
-                         << "Deviations "
+                         << "  Deviations "
                          << "Cabs: " << 1e2*Cabs/Cabs_data-1e2
                          << "% Csca: " << 1e2*Csca/Csca_data-1e2
                          << "% Alb: " << (Csca-Csca_data)/Cext_data << "\n";
@@ -977,10 +977,10 @@ void scat_data_arrayCheck(//Input:
                     if (abs(Csca-Csca_data)/Cext_data > threshold)
                       {
                         ostringstream os;
-                        os << "Deviations in scat_data_array too large:\n"
-                           << "scat dev [%] " << 1e2*Csca/Csca_data-1e2
+                        os << "  Deviations in scat_data_array too large:\n"
+                           << "  scat dev [%] " << 1e2*Csca/Csca_data-1e2
                            << " at albedo of " << Csca_data/Cext_data << "\n"
-                           << "Check entry for particle " << i_pt << " at "
+                           << "  Check entry for particle " << i_pt << " at "
                            << f << ".frequency and " << t << ".temperature!\n";
                         throw runtime_error( os.str() );
                       }
@@ -992,9 +992,9 @@ void scat_data_arrayCheck(//Input:
         default:
           {
             CREATE_OUT0;
-            out0 << "WARNING:\n"
-                 << "scat_data_array consistency check not implemented (yet?!) for\n"
-                 << "particle type " << PART_TYPE << "!\n";
+            out0 << "  WARNING:\n"
+                 << "  scat_data_array consistency check not implemented (yet?!) for\n"
+                 << "  particle type " << PART_TYPE << "!\n";
           }
       }
     }
