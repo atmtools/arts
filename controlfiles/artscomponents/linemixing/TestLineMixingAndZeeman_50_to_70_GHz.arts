@@ -48,7 +48,7 @@ abs_speciesSet( species=["H2O","N2","O2-Z-66-LM_2NDORDER","O2"] )
 
 # read line catalogue  (full band)
 abs_linesReadFromSplitArtscat(abs_lines, abs_species, 
-              "spectroscopy/Perrin/", 50e9, 70e9)
+              "spectroscopy/Perrin/", 50e9, 120e9)
 
 # Sort the line file according to species
 abs_lines_per_speciesCreateFromLines
