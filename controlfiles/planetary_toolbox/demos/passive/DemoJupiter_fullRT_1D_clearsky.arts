@@ -1,5 +1,5 @@
 #
-# 2014-03-17 Jana Mendrok
+# 2014-03-19 Jana Mendrok
 #
 ################################################################################
 #                                                                              #
@@ -71,8 +71,7 @@
 # This template is set up to make use of the following include files           #
 # (internally they might use further includes. See their respective headers    #
 # for details):                                                                #
-#   demos/common/DemoVenusAtmo1D.arts                                           #
-#   demos/common/DemoVenusSurface1D.arts                                        #
+#   demos/common/DemoJupiterAtmo1D.arts                                        #
 #   includes/common/makegeometry1D_unrefracted.arts                            #
 #   includes/common/makegeometry1D_refracted-air_effectivetanh.arts            #
 #   includes/common/makegeometry1D_refracted-air_geometrictanh.arts            #
@@ -89,13 +88,15 @@ Arts2 {
 INCLUDE "general/general.arts"
 INCLUDE "general/continua.arts"
 INCLUDE "general/agendas.arts"
-INCLUDE "general/planet_venus.arts"
+INCLUDE "general/planet_jupiter.arts"
 
 
 # do NOT modify
 NumericCreate( obsh )
 VectorCreate( tanh )
 VectorCreate( viewang )
+IndexCreate( surface_level )
+NumericCreate( surface_altitude )
 
 
 
@@ -118,11 +119,11 @@ IndexSet( stokes_dim, 1 )
 # Definition of atmosphere
 # ---
 # which scenario, which absorption species, ...
-#  - use a COPY of DemoVenusAtmo1D.arts adapted to your needs/wishes
+#  - use a COPY of DemoJupiterAtmo1D.arts adapted to your needs/wishes
 #  - provides as output: atmosphere_dim (1D), abs_species , p_grid, z/t/vmr_field,
-#     wind_w_field (if switched on in adaptation of DemoVenusAtmo1D.arts)
+#     wind_w_field (if switched on in adaptation of DemoJupiterAtmo1D.arts)
 #####
-INCLUDE "planetary_toolbox/demos/common/DemoVenusAtmo1D.arts"
+INCLUDE "planetary_toolbox/demos/common/DemoJupiterAtmo1D.arts"
 WriteXML( in=abs_species )
 
 
@@ -131,7 +132,7 @@ WriteXML( in=abs_species )
 # Sensor parameters: viewing geometry
 # ---
 # platform altitude (will be identical for all viewing directions)
-NumericSet( obsh, 450e3 )
+NumericSet( obsh, 1400e6 )
 
 # pointing direction
 # note: You can specify line of sight (LOS) in terms of zenith angle AND tangent
@@ -154,7 +155,7 @@ VectorSet( viewang, [180., 150., 120.] )
 # - specified tanh are allowed to be negative. In case of theoretical tangent
 #    altitudes (but not for true ones!), they can even be "false" tangent
 #    altitudes, i.e., pointing BELOW the actual surface level.
-VectorSet( tanh, [0., 4.e3, 10.e3, 12.e3, 20.e3, 40.e3, 60.e3] ) 
+VectorSet( tanh, [-5e4, 0., 10.e3, 20.e3, 40.e3, 60.e3] ) 
 
 
 
@@ -219,14 +220,32 @@ INCLUDE "planetary_toolbox/includes/common/make-and-use-absLUT.arts"
 # ---
 # Surface settings
 # ---
+# NOTE: Jupiter is a gas planet, hence in reality does not have a surface. The
+#  model, however, needs a lower boundary, so we define a pseudo-surface. We
+#  HIGHLY suggest to set the (pseudo)surface as a blackbody of ambient
+#  atmospheric temperature. Placing it at lowest atmoapheric level is the
+#  safest option.
+# ---
 
-# definition of surface (altitude, reflection model, temperature)
-#  - use a copy of DemoVenusSurface1D.arts adapted to your needs/wishes
-#  - provides as output: z_surface, surface_rtprop_agenda (additionally:
-#     surface_skin_t (cases B-1: manually set (scalar) surface temperature) or
-#     t_surface (cases B-3: surface temperature field from file))
-#####
-INCLUDE "planetary_toolbox/demos/common/DemoVenusSurface1D.arts"
+# Do NOT modify (unless you are REALLY sure, what you are doing and that you
+#  want/need a different setting).
+#
+# Pseudo surface as blackbody surface of atmospheric temperature
+Copy( surface_rtprop_agenda,
+      surface_rtprop_agenda__Blackbody_SurfTFromt_field )
+
+# a) Place pseudo surface at atmospheric level
+# We recommend level0 - that is the safe option. But you might use a higher
+#  atmospheric level, e.g., if atmosphere gets opaque higher up.
+#
+IndexSet( surface_level, 0 )
+Extract( z_surface, z_field, surface_level )
+
+# b) Alternatively, you can set the altitude of the pseudo surface explicitly
+#  (note that lowest given atmosperic altitude in toolbox is about -84km).
+#
+#NumericSet( surface_altitude, 800. )
+#MatrixSetConstant( z_surface, 1, 1, surface_altitude )
 
 
 
@@ -238,8 +257,8 @@ INCLUDE "planetary_toolbox/demos/common/DemoVenusSurface1D.arts"
 #  online-doc of the WSM selected for iy_main_agenda (here: iyEmissionStandard).
 # NOTE: Last element NOT to be followed by comma.
 # NOTE: Only use "Absorption, species X" up to the number of entries in
-#  abs_species (clearsky calculations in Venus have at maximum 19 abs_species
-#  entries, i.e. highest valid index is 18).
+#  abs_species (clearsky calculations in Jupiter have at maximum 21 abs_species
+#  entries, i.e. highest valid index is 20).
 
 ArrayOfStringSet( iy_aux_vars,
      [
@@ -265,6 +284,8 @@ ArrayOfStringSet( iy_aux_vars,
 #      "Absorption, species 16",
 #      "Absorption, species 17",
 #      "Absorption, species 18",
+#      "Absorption, species 19",
+#      "Absorption, species 20",
       "iy", 
 #      "Transmission",
       "Optical depth"

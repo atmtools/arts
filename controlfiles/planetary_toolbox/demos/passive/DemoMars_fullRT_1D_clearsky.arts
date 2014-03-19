@@ -157,9 +157,9 @@ VectorSet( viewang, [180., 150., 120.] )
 #    tangent altitudes will either be "theoretical" tangent altitudes (as would
 #    be without refraction) or "true" tangent altitudes (the true tangent
 #    altitude of a refracted ray)
-# - if tanh are theoretical tangent altitudes (but not for true ones!),
-#    specified tangent altitudes can be "false" tangent altitudes, i.e.,
-#    are allowed to point BELOW the zero-altitude level
+# - specified tanh are allowed to be negative. In case of theoretical tangent
+#    altitudes (but not for true ones!), they can even be "false" tangent
+#    altitudes, i.e., pointing BELOW the actual surface level.
 VectorSet( tanh, [5., 4.e3, 10.e3, 12.e3, 20.e3, 40.e3, 60.e3] ) 
 
 

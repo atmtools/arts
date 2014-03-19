@@ -1,5 +1,19 @@
 2014-03-19  Jana Mendrok  <jana.mendrok@ltu.se>
 
+	* arts-2-1-849
+
+	* controlfiles/planetary_toolbox/demos/passive/
+	DemoJupiter_fullRT_1D_clearsky.arts:
+	Added. Complete version for Jupiter 1D clearsky RT.
+
+	* controlfiles/planetary_toolbox/demos/passive/
+	DemoVenus_fullRT_1D_clearsky.arts, DemoMars_fullRT_1D_clearsky.arts:
+	Corrected note on negative/false tangent altitudes (for both true and
+	geometric tanh they can be negative. for tru tanh, they are not allowed
+	to be below the actual surface, though.).
+
+2014-03-19  Jana Mendrok  <jana.mendrok@ltu.se>
+
 	* arts-2-1-848
 
 	* controlfiles/planetary_toolbox/demos/passive/
