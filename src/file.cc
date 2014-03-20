@@ -40,6 +40,7 @@
 #include <cmath>
 #include <cfloat>
 #include <cstdio>
+#include <cstdlib>
 #include <limits>
 #include <algorithm>
 
@@ -361,48 +362,82 @@ bool file_exists(const String& filename)
 
 
 /**
-  Searches through paths for the given file.
+  Convert relative path to absolute path.
+ 
+  @param[in] filename Filename to expand to absolute path.
+ 
+  @return Absolute path.
 
-  The search paths are ignored if the filename starts with ./
+  @author Oliver Lemke
+*/
+String get_absolute_path(const String& filename)
+{
+    char *fullrealpath;
+    fullrealpath = realpath(filename.c_str(), NULL);
+    if (fullrealpath)
+    {
+        String retpath(fullrealpath);
+        free(fullrealpath);
+        return retpath;
+    }
+    else
+        return filename;
+}
 
-  @param[in,out] matches   Matching files are appended to this list.
-  @param[in]     filename  File to find.
-  @param[in]     paths     List of paths to look in for the file.
+
+/**
+  Searches through paths for a file with a matching name.
+
+  If the filename starts with '/', the search path is ignored.
+
+  @param[in,out] matches     Matching files are appended to this list.
+  @param[in]     filename    File to find.
+  @param[in]     paths       List of paths to look in for the file.
+  @param[in]     extensions  List of extensions to add to base filename.
 
   @return Error code (true = file found, false = file not found)
 
   @author Oliver Lemke
 */
-bool find_file(ArrayOfString& matches, const String& filename, const ArrayOfString& paths)
+bool find_file(ArrayOfString& matches, const String& filename, const ArrayOfString& paths,
+               const ArrayOfString& extensions)
 {
     bool exists = false;
     String efilename = expand_path(filename);
 
     // filename contains full path
     if (!paths.nelem()
-        || (efilename.nelem() && efilename[0] == '/')
-        || (efilename.nelem() > 2 && efilename.substr(0, 2) == "./"))
+        || (efilename.nelem() && efilename[0] == '/'))
     {
-        // Full path + extension
-        if (file_exists (efilename))
+        for (ArrayOfString::const_iterator ext = extensions.begin();
+             ext != extensions.end(); ext++)
         {
-            matches.push_back(efilename);
-            exists = true;
+            String fullpath = get_absolute_path(efilename + *ext);
+            // Full path + extension
+            if (file_exists (fullpath))
+            {
+                if (std::find(matches.begin(), matches.end(), fullpath) == matches.end())
+                    matches.push_back(fullpath);
+                exists = true;
+            }
         }
     }
     // filename contains no or relative path
     else
     {
-        ArrayOfString::const_iterator path;
-        for (path = paths.begin(); path != paths.end(); path++)
+        for (ArrayOfString::const_iterator path = paths.begin(); path != paths.end(); path++)
         {
-            String fullpath;
-            fullpath = expand_path(*path) + "/" + efilename;
-            if (file_exists (fullpath)
-                && std::find(matches.begin(), matches.end(), fullpath) == matches.end())
+            for (ArrayOfString::const_iterator ext = extensions.begin();
+                 ext != extensions.end(); ext++)
             {
-                matches.push_back(fullpath);
-                exists = true;
+                String fullpath = get_absolute_path(expand_path(*path) + "/" + efilename + *ext);
+
+                if (file_exists (fullpath))
+                {
+                    if (std::find(matches.begin(), matches.end(), fullpath) == matches.end())
+                        matches.push_back(fullpath);
+                    exists = true;
+                }
             }
         }
   }
@@ -436,10 +471,7 @@ void find_xml_file(String& filename, const Verbosity& verbosity)
                     parameters.datapath.end());
 
     ArrayOfString matching_files;
-    find_file(matching_files, filename, allpaths);
-    find_file(matching_files, filename + ".xml", allpaths);
-    find_file(matching_files, filename + ".xml.gz", allpaths);
-    find_file(matching_files, filename + ".gz", allpaths);
+    find_file(matching_files, filename, allpaths, MakeArray<String>("", ".xml", ".gz", ".xml.gz"));
 
     if (matching_files.nelem() > 1)
     {

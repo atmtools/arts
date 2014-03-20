@@ -1,3 +1,30 @@
+2014-03-20  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-854
+
+	* src/file.{cc,h} (find_file, find_xml_file):
+
+	In some cases the same file could be found through different paths
+	(absolute/relative/~). This led to a warning being issued even though
+	the two paths pointed to the same file. All filenames are now converted
+	to absolute paths to avoid this. Bug reported by Richard.
+
+	Sometimes the search order was wrong for filenames that needed an
+	extension to be appended to be found. find_xml_file would return a
+	match from a directory that is placed later in the search path than the
+	directory which contains the correct match.
+
+	Reverted change from 2-1-850: Ignoring the search path for filenames
+	starting with './' breaks things when running arts from a different
+	path than where the controlfile is located. Although using ./ to force
+	the file being read from the current directory would be 'more correct'
+	than what we do now, the problem is that '.' currently means 'the
+	directory where arts is called'. It would work correctly if '.' could
+	be expanded to 'the directory where the controlfile / include file is
+	located that contains the ReadXML statement for this file'. The cost of
+	implementing this logic in the parser doesn't justify the relatively
+	low benefits.
+
 2014-03-19  Richard Larsson  <ric.larsson@gmail.com>
 	
 	* arts-2-1-853
