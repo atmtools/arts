@@ -1,3 +1,23 @@
+2014-03-22  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-855
+
+	* cmake/modules/ArtsTestcases.cmake, controlfiles/CMakeLists.txt:
+
+	Change naming scheme of testcases. Generate the name automatically from
+	the controlfile path (just replacing the directory separator / with .):
+
+	Old: arts.ctlfile.fast.pencilbeam
+	New: arts.ctlfile.fast.artscomponents.pencilbeam.TestPencilBeam
+
+	This change makes it much easier to identify the controlfile that
+	belongs to each testcase. Omits the need to run
+	'ctest -V -N -R arts.ctlfile.fast.pencilbeam' to find out.
+	Requested by Jana.
+
+	Note that because the testnames are now longer than before, a terminal
+	window wider than 120 chars is required for clean output.
+
 2014-03-20  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-854
