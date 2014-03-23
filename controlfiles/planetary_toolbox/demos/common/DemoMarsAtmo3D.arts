@@ -73,6 +73,8 @@ NumericCreate( latmin )
 NumericCreate( latmax )
 NumericCreate( lonmin )
 NumericCreate( lonmax )
+IndexCreate( nlat )
+IndexCreate( nlon )
 IndexCreate( auxfield_zeropad )
 IndexCreate( vmr_zeropad )
 IndexCreate( interp_order )
@@ -115,13 +117,26 @@ NumericSet( pmax, 1e99 )
 # allowed for longitudes:
 #    values in [-360,360]
 #    lon_max - lon_min <= 360
-# note: in case of global coverage (lon_max - lon_min == 360) cyclicity rules
-# are applied (e.g. the measurement is allowed to switch over the 360-0 border
-# meridian. equality of x and 360+x is recognised).
+# Note: In case of global coverage (lon_max - lon_min == 360), cyclicity rules
+# are applied (e.g., the measurement is allowed to switch over the 360-0 border
+# meridian; equality of x and 360+x is recognised).
 NumericSet( latmin, -90 )
 NumericSet( latmax, 90 )
-NumericSet( lonmin, -30 )
-NumericSet( lonmax, 270 )
+NumericSet( lonmin, -180 )
+NumericSet( lonmax, 180 )
+
+# Define number of points in lat/lon grids
+# ---
+# Minimum: nlat = nlon = 2
+# Minimum is perfectly sufficient for homogeneous fields, but problematic when
+#  fields have some structure.
+# NOTE: The lat/lon grids with this spacing will also be applied for the
+#  surface. That is, use more than the minimum spacing if the surface fields
+#  are inhomogeneous (which is true for surface altitude, temperature, and
+#  refractive index for Mars; finest spacing there is 5deg, which corresponds to
+#  nlat = 37, nlon = 73 for a global grid).
+IndexSet( nlat, 37 )
+IndexSet( nlon, 73 )
 
 #===========================================
 
@@ -129,9 +144,8 @@ NumericSet( lonmax, 270 )
 # Select the atmospheric scenario to be used
 # ---
 # Mars atmospheric scenarios are available for 4 different seasons, 2 daytimes,
-#  3 dust loadings, and 3 solar activities. You chose all of them
-# separately, and the resulting full scenario (name, location) is derived from
-# these components.
+# 3 dust loadings, and 3 solar activities. You chose all of them separately, and
+# the resulting full scenario (name, location) is derived from these components.
 
 # Season: (northern) spring (Ls0), summer (Ls90), fall (Ls180), winter (Ls270)
 #                       0        ,    1         ,   2         ,    3
@@ -164,11 +178,11 @@ IndexSet( solar, 1 )
 #  the abs_xsec_agenda.
 #
 # Select ALL species you like to take into account.
-### CO, CO2, CO2-CO2 CIA, CO2-CO2 PWR, H2, H2O2, H2S, HCl, N2, N2O, O, O2, 
-#    0,  1,   2,           3,           4,  5,    6,   7,   8,  9, 10, 11, 
-# O3, OCS, OH, SO2
-# 12, 13,  14,  15
-ArrayOfIndexSet( basespecies, [0, 1, 7, 9, 12, 15] )
+### CO, CO2, CO2-CO2 CIA, CO2-CO2 PWR, H2, H2O2, H2S, HCl, N2, N2O, O, O2, ...
+#    0,  1,   2,           3,           4,  5,    6,   7,   8,  9, 10, 11, ...
+# ... O3, OCS, OH, SO2
+# ... 12, 13,  14,  15
+ArrayOfIndexSet( basespecies, [0, 1, 2, 7, 9, 12, 15] )
 
 
 # Species with sub-scenarios
@@ -250,32 +264,24 @@ ArrayOfIndexSet( NSwind, [0] )
 # also, you need to UNCOMMENT lines further below if you want E-W wind.
 ArrayOfIndexSet( EWwind, [0] )
 
-# if you WANT any wind, UNCOMMENT the next line
-#INCLUDE "planetary_toolbox/includes/mars/getwind_mars.arts"
+# if you WANT any wind (but only then), UNCOMMENT the next two lines
+INCLUDE "planetary_toolbox/includes/mars/getwind_mars.arts"
+IndexSet( abs_f_interp_order, 1 )
 
 # if you want VERTICAL winds, UNCOMMENT the following 3 lines
-#Copy( rawfield, wind_w_raw )
-#INCLUDE "planetary_toolbox/includes/common/makefield3D.arts"
-#Copy( wind_w_field, finalfield )
+Copy( rawfield, wind_w_raw )
+INCLUDE "planetary_toolbox/includes/common/makefield3D.arts"
+Copy( wind_w_field, finalfield )
 
 # if you want N-S winds, UNCOMMENT the following 3 lines
-#Copy( rawfield, wind_v_raw )
-#INCLUDE "planetary_toolbox/includes/common/makefield3D.arts"
-#Copy( wind_v_field, finalfield )
+Copy( rawfield, wind_v_raw )
+INCLUDE "planetary_toolbox/includes/common/makefield3D.arts"
+Copy( wind_v_field, finalfield )
 
 # if you want E-W winds, UNCOMMENT the following 3 lines
 #Copy( rawfield, wind_u_raw )
 #INCLUDE "planetary_toolbox/includes/common/makefield3D.arts"
 #Copy( wind_u_field, finalfield )
-
-# only MODIFY if you know, what you are doing
-# If absorption lookup tables are used, we need to allow frequency
-#  interpolation. For that, UNCOMMENT the line below (and chose an appropriate
-#  interpolation order. 1=linear).
-# NOTE: It is safer to use OnTheFly absorption calculations instead of lookup
-#  tables when wind is considered. But it will be much more time consuming.
-#IndexSet( abs_f_interp_order, 1 )
-
 
 ################################################################################
 # END USER SETTINGS                                                            #

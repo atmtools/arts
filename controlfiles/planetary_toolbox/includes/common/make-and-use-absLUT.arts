@@ -21,7 +21,7 @@
 #   abs_species               as the WSV                                       #
 #   atmosphere_dim            as the WSV                                       #
 #   p/lat/lon_grid            as the WSV                                       #
-#   t/_field                  as the WSV                                       #
+#   t/z/vmr_field             as the WSV                                       #
 #   abs_p/t/nls_interp_order  as the WSVs                                      #
 #                                                                              #
 # It provides following output (in parentheses: side products):                #

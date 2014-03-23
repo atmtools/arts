@@ -1,3 +1,71 @@
+2014-03-23  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-1-856
+
+	* controlfiles/planetary_toolbox/demos/passive/
+	DemoMars_fullRT_3D_clearsky.arts:
+	Added. A demo case for 3D, here made for making full use of martian
+	winds. Also applies planet rotation. Disclaimer: (a) seems to be not
+	fully functional when using global fields (some odd things seem going on
+	with wind_u_fieldIncludePlanetRotation - asked Oliver to have a look on
+	that) and (b) abs_lookup uses a 1D workaround as abs_lookup doesn't
+	currently work properly for 3D (but that's ok for the toolbox case(s)
+	as the atm data anyway is homogeneous; asked Oliver & Stefan to have a
+	look) on the issue.
+
+	* controlfiles/planetary_toolbox/includes/common/
+	make-and-use-absLUT_1Dfor3D.arts:
+	Added. abs_lookup workaround for 3D cases based on 1D raw atmospheric
+	fields (when trying to use 3d raw fields, AtmFieldsCalc will complain,
+	i.e., should be save to use without side effects).
+
+	* controlfiles/planetary_toolbox/includes/common/
+	makegeometry3D_refracted-air+electrons_geometrictanh.arts,
+	makegeometry3D_refracted-air+electrons_truetanh.arts,
+	makegeometry3D_refracted-air_geometrictanh.arts,
+	makegeometry3D_refracted-air_truetanh.arts,
+	makegeometry3D_unrefracted.arts:
+	Added. Geometry-includes for 3D.
+
+	* controlfiles/planetary_toolbox/demos/common/DemoMarsSurface3D.arts:
+	Added. Demo/template for setting surface properties for 3D case.
+
+	* controlfiles/planetary_toolbox/includes/common/getgrids_3Dsimple.arts:
+	Discarded hard-coding of lat/lon_grid setup (2pts in each horizontal
+	dimension (caused significant deltaTb when using with (inhomogeneous!)
+	t_surface from file) and introduced number of grid points in lat/lon as
+	user parameter. Using number of gridpoint instead of grid spacing
+	ensures that end points are included in either case. Updated
+	documentation accordingly & fixed some doc mistakes.
+
+	* controlfiles/planetary_toolbox/demos/common/DemoMarsAtmo3D.arts:
+	Introduced number of grid points in lat/lon as user parameter (see
+	getgrids_3Dsimple.arts). Switched on winds in repository version. Moved
+	abs_f_interp_order setting to any-wind section and removed "only MODIFY
+	if you know, what you are doing" warning as you HAVE to reset it if
+	winds shall be used. Fixed some spelling and layout issues.
+
+	* controlfiles/planetary_toolbox/demos/common/DemoMarsAtmo1D.arts,
+	DemoJupiterAtmo3D.arts:
+	Removed "only MODIFY if you know, what you are doing" warning from winds
+	section as one HAVE to reset abs_f_interp_order if winds shall be used.
+
+	* controlfiles/planetary_toolbox/includes/common/use-absOnTheFly.arts:
+	Removed (re)setting of and references to abs_f_interp_order. That's
+	better done in the Demo*Atmo*.arts as there one knows, whether one wants
+	winds (and needs to reset abs_f_interp_order), less prone to side
+	effects.
+
+	* controlfiles/planetary_toolbox/demos/common/DemoMars_fullRT_1D_clearsky.arts,
+	DemoMarsSurface1D.arts,
+	controlfiles/planetary_toolbox/includes/common/
+	make-and-use-absLUT.arts, makegeometry1D_unrefracted.arts,
+	makegeometry1D_refracted-air_geometrictanh.arts,
+	makegeometry1D_refracted-air+electrons_geometrictanh.arts,
+	makegeometry1D_refracted-air_truetanh.arts,
+	makegeometry1D_refracted-air+electrons_truetanh.arts:
+	Doc/layout fixes.
+
 2014-03-22  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-855

@@ -63,6 +63,9 @@ GriddedField2Create( surface_temperature_field )
 GriddedField2Create( surface_altitude_field )
 GriddedField5Create( surface_refractive_index_field )
 
+nelemGet( nlat, lat_grid )
+nelemGet( nlon, lon_grid )
+
 
 # only MODIFY if you know, what you are doing (else the default setting should
 #  be fine).
@@ -136,21 +139,6 @@ Copy( surface_temperature_file, superatmo )
 #  marked by 'SET' in the comment line before the respective command lines.
 
 
-
-# Define geographic position of the 1D case
-# ---
-# NOTE: only required for some cases (when data is extracted from global
-#  fields), namely for: A-3, B-1e, B-2e, B-3
-#  If you do not select any of these cases, the values set here do not matter.
-
-# SET one(!) number (-90...90)
-VectorSet( lat_true, [0.] )
-# SET one(!) number (-360...360)
-VectorSet( lon_true, [0.] )
-
-
-
-
 # -------
 # PART A: Surface Altitude (Topography)
 # -------
@@ -162,7 +150,7 @@ VectorSet( lon_true, [0.] )
 #
 # SET number (5m <= surface_altitude!):
 NumericSet( surface_altitude, 800. )
-MatrixSetConstant( z_surface, 1, 1, surface_altitude )
+MatrixSetConstant( z_surface, nlat, nlon, surface_altitude )
 
 
 # CASE 2) Surface at altitude of a given atmospheric level
@@ -190,7 +178,8 @@ MatrixSetConstant( z_surface, 1, 1, surface_altitude )
 #
 #ReadXML( surface_altitude_field, surface_altitude_file )
 #GriddedFieldLatLonRegrid( out=surface_altitude_field,
-#                          in=surface_altitude_field )
+#                          in=surface_altitude_field,
+#                          lat_true=lat_grid, lon_true=lon_grid )
 #FieldFromGriddedField( out=z_surface, in=surface_altitude_field )
 
 
@@ -220,16 +209,8 @@ MatrixSetConstant( z_surface, 1, 1, surface_altitude )
 
 
 # subCASE 1b) Lambertian surface of given reflectivity
+# NOTE: not available for 3D!
 # ---
-#
-# SET number (0 <= reflectivity <= 1; emissivity = 1-reflectivity):
-#NumericSet( reflectivity, 0.13 )
-# SET index (number of rays to consider in reflection calulation, for details
-#  see WSV description):
-#IndexSet( lambertian_nza, 18 )
-#VectorSetConstant( surface_scalar_reflectivity, 1, reflectivity )
-#Copy( surface_rtprop_agenda,
-#      surface_rtprop_agenda__lambertian_ReflFix_SurfTFix )
 
 
 # subCASE 1c) Specular surface of given reflectivity
@@ -273,7 +254,8 @@ MatrixSetConstant( z_surface, 1, 1, surface_altitude )
 #AgendaSet( surface_rtprop_agenda ){
 #  specular_losCalc
 #  surface_complex_refr_indexFromGriddedField5(
-#      complex_refr_index_field=surface_refractive_index_field )
+#      complex_refr_index_field=surface_refractive_index_field,
+#      lat_true=lat_grid, lon_true=lon_grid )
 #  surfaceFlatRefractiveIndex
 #} 
 
@@ -295,16 +277,8 @@ MatrixSetConstant( z_surface, 1, 1, surface_altitude )
 
 
 # subCASE 2b) Lambertian surface of given reflectivity
+# NOTE: not available for 3D!
 # ---
-#
-# SET number (0 <= reflectivity <= 1; emissivity = 1-reflectivity):
-#NumericSet( reflectivity, 0.13 )
-# SET index (number of rays to consider in reflection calulation, for details
-#  see WSV description):
-#IndexSet( lambertian_nza, 18 )
-#VectorSetConstant( surface_scalar_reflectivity, 1, reflectivity )
-#Copy( surface_rtprop_agenda,
-#      surface_rtprop_agenda__lambertian_ReflFix_SurfTFromt_field )
 
 
 # subCASE 2c) Specular surface of given reflectivity
@@ -351,7 +325,8 @@ MatrixSetConstant( z_surface, 1, 1, surface_altitude )
 #AgendaSet( surface_rtprop_agenda ){
 #  specular_losCalc
 #  surface_complex_refr_indexFromGriddedField5(
-#      complex_refr_index_field=surface_refractive_index_field )
+#      complex_refr_index_field=surface_refractive_index_field,
+#      lat_true=lat_grid, lon_true=lon_grid )
 #  InterpAtmFieldToPosition( out=surface_skin_t, field=t_field )
 #  surfaceFlatRefractiveIndex
 #} 
@@ -371,7 +346,8 @@ Append( infostr, surface_temperature_file )
 Print( infostr )
 ReadXML( surface_temperature_field, surface_temperature_file )
 GriddedFieldLatLonRegrid( out=surface_temperature_field,
-                          in=surface_temperature_field )
+                          in=surface_temperature_field,
+                          lat_true=lat_grid, lon_true=lon_grid )
 FieldFromGriddedField( out=t_surface, in=surface_temperature_field )
 
 
@@ -386,18 +362,8 @@ FieldFromGriddedField( out=t_surface, in=surface_temperature_field )
 
 
 # subCASE 3b) Lambertian surface of given reflectivity
+# NOTE: not available for 3D!
 # ---
-#
-# SET number (0 <= reflectivity <= 1; emissivity = 1-reflectivity):
-#NumericSet( reflectivity, 0.13 )
-# SET index (number of rays to consider in reflection calulation, for details
-#  see WSV description):
-#IndexSet( lambertian_nza, 18 )
-#VectorSetConstant( surface_scalar_reflectivity, 1, reflectivity )
-#AgendaSet( surface_rtprop_agenda ){
-#  InterpSurfaceFieldToPosition( out=surface_skin_t, field=t_surface )
-#  surfaceLambertianSimple( za_pos=0.5 )
-#} 
 
 
 # subCASE 3c) Specular surface of given reflectivity
@@ -444,7 +410,8 @@ ReadXML( out=surface_refractive_index_field,
 AgendaSet( surface_rtprop_agenda ){
   specular_losCalc
   surface_complex_refr_indexFromGriddedField5(
-      complex_refr_index_field=surface_refractive_index_field )
+      complex_refr_index_field=surface_refractive_index_field,
+      lat_true=lat_grid, lon_true=lon_grid )
   InterpSurfaceFieldToPosition( out=surface_skin_t, field=t_surface )
   surfaceFlatRefractiveIndex
 } 

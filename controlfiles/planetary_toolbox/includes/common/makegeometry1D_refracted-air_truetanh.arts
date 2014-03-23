@@ -44,7 +44,7 @@
 #  once in an ARTS run!). They can be used in later parts of the script,       #
 #  though.)                                                                    #
 #   zang            Vector                                                     #
-#   ntanh           Numeric                                                    #
+#   ntanh           Index                                                      #
 #                                                                              #
 ################################################################################
 
@@ -74,6 +74,8 @@ VectorZtanToZaRefr1D( zang, refr_index_air_agenda, sensor_pos,
                       refellipsoid, atmosphere_dim, f_grid, tanh )
 Append( allzang, zang )
 #WriteXML( in=allzang )
+#Print( allzang )
+
 
 # for use with yCalc
 #Matrix1ColFromVector( sensor_los, allzang )

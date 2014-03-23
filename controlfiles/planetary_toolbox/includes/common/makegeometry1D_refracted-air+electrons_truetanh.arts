@@ -45,7 +45,7 @@
 #  once in an ARTS run!). They can be used in later parts of the script,       #
 #  though.)                                                                    #
 #   zang            Vector                                                     #
-#   ntanh           Numeric                                                    #
+#   ntanh           Index                                                      #
 #                                                                              #
 ################################################################################
 

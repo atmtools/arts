@@ -229,18 +229,11 @@ INCLUDE "planetary_toolbox/includes/common/makeatmo3D.arts"
 # select EXACTLY ONE.
 ArrayOfIndexSet( windcase, [1] )
 
-# if you want winds, UNCOMMENT the following 4 lines
+# if you want winds (but only then), UNCOMMENT the following 5 lines
 #INCLUDE "planetary_toolbox/includes/jupiter/getwind_jupiter.arts"
 #Copy( rawfield, wind_u_raw )
 #INCLUDE "planetary_toolbox/includes/common/makefield3D.arts"
 #Copy( wind_u_field, finalfield )
-
-# only MODIFY if you know, what you are doing
-# If absorption lookup tables are used, we need to allow frequency
-#  interpolation. For that, UNCOMMENT the line below (and chose an appropriate
-#  interpolation order. 1=linear).
-# NOTE: It is safer to use OnTheFly absorption calculations instead of lookup
-#  tables when wind is considered. But it will be much more time consuming.
 #IndexSet( abs_f_interp_order, 1 )
 
 #===========================================
