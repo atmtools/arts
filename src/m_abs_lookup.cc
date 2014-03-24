@@ -523,20 +523,14 @@ void find_nonlinear_continua(ArrayOfIndex& cont,
   // Loop tag groups:
   for ( Index i=0; i<abs_species.nelem(); ++i )
     {
-      using global_data::species_data;
-
       // Loop tags in tag group
       for ( Index s=0; s<abs_species[i].nelem(); ++s )
         {
 
-          // Check if this is a specific isotopologue, or "all". ("all" is
-          // not a continuum tag.)
-          if ( abs_species[i][s].Isotopologue() <
-               species_data[abs_species[i][s].Species()].Isotopologue().nelem() )
-            {
-              // Check for continuum tags
-              if (species_data[abs_species[i][s].Species()].Isotopologue()[abs_species[i][s].Isotopologue()].isContinuum())
-                {
+           // Check for continuum tags
+           if (abs_species[i][s].Type() == SpeciesTag::TYPE_PREDEF
+               || abs_species[i][s].Type() == SpeciesTag::TYPE_CIA)
+             {
                   const String thisname = abs_species[i][s].Name();
                   // Ok, now we know this is a continuum tag.
                   out3 << "  Continuum tag: " << thisname;
@@ -579,8 +573,7 @@ void find_nonlinear_continua(ArrayOfIndex& cont,
                   out3 << " --> unknown.\n";
                   throw runtime_error("I don't know whether this tag uses h2o_abs or not.\n"
                                       "Cannot set abs_nls automatically.");
-                }
-            }              
+            }
         }
     }
 }
