@@ -1,5 +1,11 @@
 2014-03-24  Jana Mendrok  <jana.mendrok@ltu.se>
 
+	* arts-2-1-859
+
+	* src/m_abs_lookup.cc (find_nonlinear_continua): Bugfix.
+
+2014-03-24  Jana Mendrok  <jana.mendrok@ltu.se>
+
 	* arts-2-1-858
 
 	* src/m_abs_lookup.cc (find_nonlinear_continua):

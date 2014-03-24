@@ -553,10 +553,10 @@ void find_nonlinear_continua(ArrayOfIndex& cont,
                        "CO2-"==thisname.substr(0,4) ||
                        "O2-CIA"==thisname.substr(0,6) ||
                        "O2-v0v"==thisname.substr(0,6) ||
-                       "O2-v1v"==thisname.substr(0,6) ) ||
+                       "O2-v1v"==thisname.substr(0,6) ||
                        "H2-CIA"==thisname.substr(0,6) ||
                        "He-CIA"==thisname.substr(0,6) ||
-                       "CH4-CIA"==thisname.substr(0,7)
+                       "CH4-CIA"==thisname.substr(0,7) )
                     {
                       out3 << " --> not added.\n";
                       break;
