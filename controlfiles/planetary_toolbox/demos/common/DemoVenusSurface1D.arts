@@ -63,6 +63,8 @@ GriddedField2Create( surface_temperature_field )
 GriddedField2Create( surface_altitude_field )
 GriddedField5Create( surface_refractive_index_field )
 
+MatrixSetConstant( t_surface, 1, 1, -1. )
+
 
 # only MODIFY if you know, what you are doing (else the default setting should
 #  be fine).
@@ -91,7 +93,6 @@ StringSet( surface_refractive_index_file,
 #  if you really want to use (and have available) other data.
 # 
 StringSet( surface_temperature_file, "planets/Venus/MPS/Venus.t_surface.xml" )
-
 
 
 
@@ -371,7 +372,7 @@ FieldFromGriddedField( out=t_surface, in=surface_temperature_field )
 #      surface_rtprop_agenda__Specular_NoPol_ReflFix_SurfTFromt_surface )
 
 
-# subCASE 2d) Specular surface of given surface refractive index
+# subCASE 3d) Specular surface of given surface refractive index
 # ---
 #
 # SET number (1 <= surface_refractive_index_real):
@@ -388,7 +389,7 @@ FieldFromGriddedField( out=t_surface, in=surface_temperature_field )
 #} 
 
 
-# subCASE 2e) Specular surface with surface refractive index (global/regional)
+# subCASE 3e) Specular surface with surface refractive index (global/regional)
 #             field from file
 # ---
 # NOTE: Requires lat_true and lon_true to be set. Requires

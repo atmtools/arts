@@ -5,7 +5,7 @@
 #                                                                              #
 ################################################################################
 #                                                                              #
-# This is a template file for deriving Venusn (atmospheric) data from the      #
+# This is a template file for deriving Venus (atmospheric) data from the       #
 # arts-xml-data package and convert it to the common spatial grids             #
 # (p_grid), such that they can be applied in radiative transfer calculations.  #
 # It is for a 1D atmosphere (for 3D use DemoVenusAtmo3D.arts instead).         #
@@ -51,7 +51,7 @@ INCLUDE "planetary_toolbox/includes/common/createvars.arts"
 # set up name arrays and the like for selections
 INCLUDE "planetary_toolbox/includes/venus/atmo_venus.arts"
 
-# NOT modify
+# do NOT modify
 # prepare the variables for the atmosphere case & species selections
 IndexCreate( atmo )
 ArrayOfIndexCreate( basespecies )
@@ -128,7 +128,7 @@ IndexSet( atmo, 3 )
 #
 # Select ALL species you like to take into account.
 ### CO, CO2, CO2-CO2 CIA, CO2-CO2 PWR, H2SO4, HCl, HF, N2, NO, NO2, O, O2, 
-#    0 , 1 ,  2 ,          3 ,          4 ,    5 ,  6 , 7,  8 , 9, 10, 11, 
+#    0 , 1 ,      2     ,     3      ,   4  ,  5 ,  6 , 7,  8 , 9, 10, 11, 
 # O3, OCS, SO, SO2
 # 12,  13, 14,  15
 ArrayOfIndexSet( basespecies, [0, 1, 2, 4, 13, 14, 15] )

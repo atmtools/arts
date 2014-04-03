@@ -1,0 +1,179 @@
+################################################################################
+#                                                                              #
+# This is a demo/template file. The USER is supposed to MODIFY it according    #
+# to his/her needs (better, make a copy of it and adapt the copy).             #
+#                                                                              #
+################################################################################
+#                                                                              #
+# This is a template file for deriving Venusn (atmospheric) data from the      #
+# arts-xml-data package and convert it to the common spatial grids             #
+# (p_grid), such that they can be applied in radiative transfer calculations.  #
+# It is for a 1D atmosphere (for 3D use DemoVenusAtmo3D.arts instead).         #
+#                                                                              #
+# It provides following output:                                                #
+#   atmosphere_dim    as the WSV                                               #
+#   p_grid            as the WSV                                               #
+#   z_field           as the WSV                                               #
+#   t_field           as the WSV                                               #
+#   vmr_field         as the WSV                                               #
+#   wind_u/v/w_field  as the WSV                                               #
+#   abs_species       as the WSV                                               #
+#                                                                              #
+# The user is supposed to select (atmospheric case, species to include) from   #
+# lists. Details of setting rules are given at the place of the settings.      #
+#                                                                              #
+# Selections and settings to be done are between the flags START USER SETTINGS #
+# and END USER SETTINGS. The rest of the file shall not be modified,           #
+# particularly settings marked with 'do NOT modify'.                           #
+#                                                                              #
+# This template makes use of the following include files                       #
+#   includes/common/createvars.arts                                            #
+#   includes/venus/atmo_venus.arts                                             #
+#   includes/venus/getatmo_venus.arts                                          #
+#   includes/common/getgrids_1D.arts                                           #
+#   includes/common/makeatmo1D.arts                                            #
+#   includes/venus/getwind_venus.arts                                          #
+#   includes/common/makefield1D.arts                                           #
+#                                                                              #
+################################################################################
+
+Arts2 {
+
+# do NOT modify
+IndexCreate( scatorder )
+
+################################################################################
+# START USER SETTINGS - Modify settings according to you wishes                #
+################################################################################
+
+
+# ---
+# Scattering order
+# ---
+# Currently implemented are scatorder = 
+# 0 - no scattering; just absorption/emission by particles is considered
+# 1 - atmospheric single scattering is considered
+# ---
+IndexSet( scatorder, 0 )
+
+
+# ---
+# Define (auxiliary) data output
+# ---
+# Uncomment all parameters you want as auxiliary output (i.e., in addition to
+#  total radiance/brigthness temperature). For meaning of each paramters see
+#  online-doc of the WSM selected for iy_main_agenda (here: iyFOS).
+# NOTE: Last element NOT to be followed by comma.
+# NOTE: Only use "Absorption, species X" up to the number of entries in
+#  abs_species (clearsky calculations in Venus have at maximum 19 abs_species
+#  entries, i.e. highest valid index is 18).
+# NOTE: Only use "PND, type Y" up to the number of entries in scat_data_array.
+#  Particle calculations have at maximum 10 particle entries, i.e., highest
+#  valid index is 9).
+# ---
+
+ArrayOfStringSet( iy_aux_vars,
+     [
+      "Pressure", 
+      "Temperature", 
+#      "VMR, species X", # X=0..18
+      "Absorption, summed", 
+#      "Absorption, species 0",
+#      "Absorption, species 1",
+#      "Absorption, species 2",
+#      "Absorption, species 3",
+#      "Absorption, species 4",
+#      "Absorption, species 5",
+#      "Absorption, species 6",
+#      "Absorption, species 7",
+#      "Absorption, species 8",
+#      "Absorption, species 9",
+#      "Absorption, species 10",
+#      "Absorption, species 11",
+#      "Absorption, species 12",
+#      "Absorption, species 13",
+#      "Absorption, species 14",
+#      "Absorption, species 15",
+#      "Absorption, species 16",
+#      "Absorption, species 17",
+#      "Absorption, species 18",
+#      "PND, type 0",
+#      "PND, type 1",
+#      "PND, type 2",
+#      "PND, type 3",
+#      "PND, type 4",
+#      "PND, type 5",
+#      "PND, type 6",
+#      "PND, type 7",
+#      "PND, type 8",
+#      "PND, type 9",
+#      "Radiative background"
+      "iy", 
+      "Optical depth"
+     ] )
+
+
+################################################################################
+# END USER SETTINGS                                                            #
+################################################################################
+
+
+
+# only MODIFY if you know, what you are doing (else the default setting should
+#  be fine).
+#####
+
+# setting agendas needed for RT calc (there are alternative settings, though)
+#####
+Copy( blackbody_radiation_agenda, blackbody_radiation_agenda__Planck )
+Copy( iy_space_agenda, iy_space_agenda__CosmicBackground )
+Copy( iy_surface_agenda, iy_surface_agenda__UseSurfaceRtprop )
+
+# FOS specific settings
+#####
+ReadXML(fos_scatint_angles, "scattering/fosangles_360.xml")
+VectorSet(fos_iyin_za_angles,[0,30,50,80,90,91,92,93,94,95,105,110,130,150,180])
+
+
+# do NOT modify
+#####
+
+# use FOS scattering module
+#####
+AgendaSet(iy_main_agenda)
+{
+  iyFOS(fos_n=scatorder)
+}
+
+# no Jacobians
+#####
+jacobianOff
+
+# the checks necessary for full RT calc
+#####
+atmfields_checkedCalc
+atmgeom_checkedCalc
+cloudbox_checkedCalc
+propmat_clearsky_agenda_checkedCalc 
+
+# and the RT calc
+#####
+NumericCreate( za )
+AgendaCreate( forloop_agenda_angles )
+AgendaSet( forloop_agenda_angles )
+{
+  Extract( za, allzang, forloop_index )
+  rte_losSet( za=za, aa=za )
+  Print( rte_los, 0 )
+  iyCalc
+  WriteXMLIndexed( in=iy, file_index=forloop_index )
+  WriteXMLIndexed( in=iy_aux, file_index=forloop_index )
+}
+
+IndexCreate( nangles )
+nelemGet( nangles, allzang )
+IndexStepDown( nangles, nangles )
+Copy( forloop_agenda, forloop_agenda_angles )
+ForLoop( forloop_agenda, 0, nangles, 1  )
+
+}

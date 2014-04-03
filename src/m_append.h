@@ -206,6 +206,29 @@ void Append(// WS Generic Output:
 }
 
 
+/* Implementation for Vector/Numeric */
+void Append(// WS Generic Output:
+            Vector& out,
+            // WS Generic Input:
+            const Numeric& in,
+            const String& direction _U_,
+            const Verbosity&)
+{
+    // Get backup of out:
+    Vector dummy = out;
+
+    // Make out the right size:
+    out.resize(dummy.nelem() + 1);
+
+    // Copy dummy to first part of out:
+    if (dummy.nelem())
+        out[Range(0, dummy.nelem())] = dummy;
+
+    // Copy in to last part of out:
+    out[Range(dummy.nelem(), 1)] = in;
+}
+
+
 /* Implementation for Tensor4 */
 void Append(// WS Generic Output:
             Tensor4& out,

@@ -1907,7 +1907,8 @@ void define_md_data_raw()
          "e.g. ArrayOfIndex to ArrayOfIndex. Or a single element to an array\n"
          "such as a Tensor3 to an ArrayOfTensor3.\n"
          "\n"
-         "Appending two vectors works as for array variables.\n"
+         "Appending two vectors or a numeric to a vector works as for array\n"
+         "variables.\n"
          "\n"
          "Both another matrix or a vector can be appended to a matrix. In\n"
          "addition, for matrices, the 'append dimension' can be selected.\n" 
@@ -1916,19 +1917,19 @@ void define_md_data_raw()
          "column-wise. Other types are currently only implemented for\n"
          "appending to the leading dimension.\n"
          "\n"
-         "This method is not implemented for all types, just for which were\n"
-         "thought to be useful. (See variable list below.).\n"
+         "This method is not implemented for all types, just for those that\n"
+         "were thought to be useful. (See variable list below.).\n"
          ),
         AUTHORS( "Stefan Buehler, Oliver Lemke" ),
         OUT(),
         GOUT( "out" ),
-        GOUT_TYPE( "Vector, Matrix, Matrix, Tensor4, String, " +
+        GOUT_TYPE( "Vector, Vector, Matrix, Matrix, Tensor4, String, " +
                    ARRAY_GROUPS + ", " + ARRAY_GROUPS_WITH_BASETYPE ),
         GOUT_DESC( "The variable to append to." ),
         IN(),
         GIN( "in",
              "dimension" ),
-        GIN_TYPE( "Vector, Matrix, Vector, Tensor4, String, " +
+        GIN_TYPE( "Numeric, Vector, Matrix, Vector, Tensor4, String, " +
                   ARRAY_GROUPS + "," + GROUPS_WITH_ARRAY_TYPE,
                   "String" ),
         GIN_DEFAULT( NODEF,

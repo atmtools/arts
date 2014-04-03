@@ -1,11 +1,15 @@
 #####
 #
 # The only task of this file is to create variables that are used by:
-#   getatmo_PLANET.arts
-#   getwind_PLANET.arts
-#   getmagfield_PLANET.arts
+#   PLANET/getatmo_PLANET.arts
+#   PLANET/getwind_PLANET.arts
+#   PLANET/getmagfield_PLANET.arts
+#   PLANET/getclouds_PLANET.arts
+#   PLANET/atmo_PLANET.arts
+#   PLANET/clouds_PLANET.arts
 #   common/makefield1D.arts
 #   common/makefield3D.arts
+#   common/makeclouds1D.arts
 #
 # It needs to be included ONCE (and ONLY once!), before the above named
 # include files are used.
@@ -16,20 +20,31 @@ Arts2 {
 
 StringCreate( infostr )
 StringCreate( tmpformat )
-StringCreate( atmostr )
+
+StringCreate( atmobase )
 StringCreate( superatmo )
 StringCreate( subatmo )
+StringCreate( cloudbase )
+
+StringCreate( atmostr )
 StringCreate( specfilename )
 ArrayOfStringCreate( speciesname )
 ArrayOfIndexCreate( case )
 ArrayOfStringCreate( casearray )
 IndexCreate( ncases )
 
+StringCreate( pndstr )
+StringCreate( ssdstr )
+
 StringCreate( strtmp )
 StringCreate( Btmp )
 StringCreate( abstmp )
 StringCreate( vmrtmp )
+StringCreate( pndtmp )
+StringCreate( poptmp )
+
 IndexCreate( itmp )
+ArrayOfIndexCreate( aoitmp )
 GriddedField3Create( gf3tmp )
 ArrayOfGriddedField3Create( aogf3tmp )
 

@@ -76,7 +76,7 @@ AgendaSet( subspeciesloop_agenda ){
 }
 
 
-# Read the atmospheric raw data Read the atmospheric setup
+# Read the atmospheric raw data
 # ---
 
 # first, create the casename string down to the common filename part in the

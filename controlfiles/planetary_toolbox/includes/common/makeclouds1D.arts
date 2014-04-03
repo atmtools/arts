@@ -1,0 +1,47 @@
+################################################################################
+#                                                                              #
+# DO NOT MODIFY this file (unless you are sure what you are doing).            #
+# This is only a helper file!                                                  #
+#                                                                              #
+################################################################################
+#                                                                              #
+# This file interpolates raw 1D basic atmospheric data (z_field_raw,           #
+# t_field_raw, vmr_field_raw) to the calculation grids (p_grid) for 1D         #
+# atmosphere output.                                                           #
+#                                                                              #
+# This file expects the following input parameters:                            #
+#   p_grid             as the WSV                                              #
+#   z_field_raw        as the WSV                                              #
+#   t_field_raw        as the WSV                                              #
+#   vmr_field_raw      as the WSV                                              #
+#   interp_order       (Index)         Grid interpolation order                #
+#   vmr_zeropad        (Index)         Flag, whether to fill VMR at            #
+#                                       non-covered profile regions with zeros #
+# Output:                                                                      #
+#   z_field            as the WSV                                              #
+#   t_field            as the WSV                                              #
+#   vmr_field          as the WSV                                              #
+#                                                                              #
+################################################################################
+
+Arts2 {
+
+# forth, we get the pnd field and and single scattering data in their respective
+#  WSVs pnd_field_raw and scat_data_array.
+ParticleTypeAddAll( filelist_scat_data=poptmp, filename_pnd_fieldarray=pndtmp )
+scat_data_arrayCheck
+cloudboxSetManually( p1=pmax, p2=pmin,
+                     lat1=0, lat2=0, lon1=0, lon2=0 )
+pnd_fieldCalc( zeropadding=1 )
+cloudboxSetAutomatically( massdensity_field=pnd_field )
+pnd_fieldCalc( zeropadding=1 )
+
+# finally, we clean up the dummy files (not completely, though, as deleting
+#  files from within ARTS is not possible. instead, we write an empty variable
+#  into them.)
+Delete( strtmp )
+Touch( strtmp )
+WriteXML( output_file_format=tmpformat, in=strtmp, filename=pndtmp )
+WriteXML( output_file_format=tmpformat, in=strtmp, filename=poptmp )
+
+}

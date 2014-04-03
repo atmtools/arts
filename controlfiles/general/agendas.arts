@@ -97,6 +97,11 @@ AgendaSet( iy_surface_agenda__UseSurfaceRtprop ){
 #    iy_cloudbox_agenda
 ##################################
 
+# Note: iy_cloudbox_agenda only needs to be defined if the DOIT scattering
+#  solver is applied. The agenda is applied within iyEmissionStandard, which -
+#  out of the scattering methods - is only used with DOIT. The other scattering
+#  solvers have their dedicated iy* methods to be applied in the iy_main_agenda:
+#  iyMC and iyFOS.
 ###
 # linear interpolation of the intensity field of the cloud box
 # standard method in connection with DOIT scattering calculations.

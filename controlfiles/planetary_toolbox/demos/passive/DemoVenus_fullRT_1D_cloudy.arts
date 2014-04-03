@@ -1,5 +1,5 @@
 #
-# 2014-03-21 Jana Mendrok
+# 2014-03-24 Jana Mendrok
 #
 ################################################################################
 #                                                                              #
@@ -13,10 +13,10 @@
 # providing synthetic sensor measurements. The demo case covers following      #
 # conditions/capabilities:                                                     #
 #  - passive sensor                                                            #
-#  - 3D calculations (allowing all 3 wind components to be used)               #
+#  - 1D calculations only                                                      #
 #  - monochromatic pencilbeam simulation (no FOV/antenna pattern convolution,  #
 #     no bandwidth/instrumental line shape/... convolution)                    #
-#  - non-particle (i.e., "clearsky") calculations                              #
+#  - considering effects of particles (clouds/aerosols/haze/dust)              #
 #  - no magnetic field effects (Zeeman, Faraday)                               #
 #                                                                              #
 #  + scalar to full polarisation RT possible (limitations might apply in       #
@@ -26,8 +26,7 @@
 #  + selection of atmospheric scenario and abs_species from toolbox data       #
 #     (handled by INCLUDE file)                                                #
 #  + consideration of wind Doppler shifts (by switching on winds in            #
-#     atmospheric scenario INCLUDE file) considering ALL three wind components #
-#  + consideration Doppler shifts from planet rotation                         #
+#     atmospheric scenario INCLUDE file)                                       #
 #  + selection of absorption calculation approach (on-the-fly, lookup table    #
 #     calculation, pre-calculated lookup table from file)                      #
 #  + consideration of refraction selectable                                    #
@@ -72,8 +71,8 @@
 # This template is set up to make use of the following include files           #
 # (internally they might use further includes. See their respective headers    #
 # for details):                                                                #
-#   demos/common/DemoMarsAtmo3D.arts                                           #
-#   demos/common/DemoMarsSurface3D.arts                                        #
+#   demos/common/DemoVenusAtmo1D.arts                                          #
+#   demos/common/DemoVenusSurface1D.arts                                       #
 #   includes/common/makegeometry1D_unrefracted.arts                            #
 #   includes/common/makegeometry1D_refracted-air_effectivetanh.arts            #
 #   includes/common/makegeometry1D_refracted-air_geometrictanh.arts            #
@@ -90,18 +89,13 @@ Arts2 {
 INCLUDE "general/general.arts"
 INCLUDE "general/continua.arts"
 INCLUDE "general/agendas.arts"
-INCLUDE "general/planet_mars.arts"
+INCLUDE "general/planet_venus.arts"
 
 
 # do NOT modify
 NumericCreate( obsh )
-NumericCreate( obslat )
-NumericCreate( obslon )
-VectorCreate( viewang_zen )
-VectorCreate( viewang_azi )
 VectorCreate( tanh )
-VectorCreate( tanh_azi )
-
+VectorCreate( viewang )
 
 
 ################################################################################
@@ -112,7 +106,7 @@ VectorCreate( tanh_azi )
 StringSet( iy_unit, "PlanckBT" )
 
 # monochromatic frequency grid
-VectorLinSpace( f_grid, 595e9, 600e9, 10e6 )
+VectorLinSpace( f_grid, 5e9, 10e9, 5e9 )
 WriteXML( in=f_grid )
 
 # number of Stokes parameters to consider ( 1: scalarRT, 4: fully polarised )
@@ -123,71 +117,40 @@ IndexSet( stokes_dim, 1 )
 # Definition of atmosphere
 # ---
 # which scenario, which absorption species, ...
-#  - use a COPY of DemoMarsAtmo3D.arts adapted to your needs/wishes
+#  - use a COPY of DemoVenusAtmo1D.arts adapted to your needs/wishes
 #  - provides as output: atmosphere_dim (1D), abs_species , p_grid, z/t/vmr_field,
-#     wind_w_field (if switched on in adaptation of DemoMarsAtmo1D.arts)
-#####
-INCLUDE "planetary_toolbox/demos/common/DemoMarsAtmo3D.arts"
+#     wind_w_field (if switched on in adaptation of DemoVenusAtmo1D.arts)
+# ---
+
+# The clear-sky / gaseous absorption part
+###
+INCLUDE "planetary_toolbox/demos/common/DemoVenusAtmo1D.arts"
 WriteXML( in=abs_species )
-WriteXML( in=wind_u_field, filename="wind_u_atm.xml" )
 
-
-# ---
-# Planet parameters
-# ---
-
-# planet size and shape
-# Uncomment the one you want (when all are outcommented, settings from
-#  planet_mars.arts include will be used, which sets a spherical planet). When
-#  selecting the general *refellipsoidSet* method, also adapt equatorial radius
-#  *re* and excentricity *e* according to your need. Check out the online
-#  documentation of *refellipsoid* for more options.
-#
-# a) spherical Mars (re=3389.5km)
-#refellipsoidMars( refellipsoid, "Sphere" )
-# b) ellipsoidal Mars (re=3396.19km, e=0.1083)
-refellipsoidMars( refellipsoid, "Ellipsoid" )
-# c) ellipsoidal planet with freely selected *re* and *e*
-#refellipsoidSet( refellipsoid=refellipsoid, re=3396.19e3, e=0.1083 )
-
-# planet rotation
-# Uncomment if you want to consider Doppler shifts from planet rotation
-wind_u_fieldIncludePlanetRotation
-WriteXML( in=wind_u_field, filename="wind_u_atm+rot.xml" )
+# The particulate matter (clouds, aerosols, dust, haze) part
+###
+INCLUDE "planetary_toolbox/demos/common/DemoVenusClouds1D.arts"
 
 
 # ---
 # Sensor parameters: viewing geometry
 # ---
-# platform altitude [m]
-# note: will be identical for all viewing directions
+# platform altitude (will be identical for all viewing directions)
 NumericSet( obsh, 450e3 )
-
-# platform geographical position [degree]
-# note: will be identical for all viewing directions
-NumericSet( obslat, 0 )
-NumericSet( obslon, 0 )
-
 
 # pointing direction
 # note: You can specify line of sight (LOS) in terms of zenith angle AND tangent
 #  altitude. Both can be used within one ARTS run. For that, tangent altitude
 #  LOS, after being converted to LOS zenith angles, are appended to zenith angle
-#  LOS, and both together are stored in WSV allang_zen (viewang directions are
-#  first! if you want allang_zen as output, use WriteXML to write it to file).
-#  That is, RT calculations for n_LOS = n_viewang + n_tanh pencilbeam LOS
-#  directions will be performed.
-#  Azimuth angles (viewang_azi and tanh_azi) are equivalently appended, too, and
-#  stored in allang_azi. Number of azimuths has to be equal n_LOS as resulting
-#  from zenith viewing angles and tangent altitudes (==n_LOS).
+#  LOS, and both together are stored in WSV allzang (viewang directions are
+#  first! if you want allzang as output, use WriteXML to write it to file). That
+#  is, RT calculations for n_LOS = n_viewang + n_tanh pencilbeam LOS directions
+#  will be performed.
 #
-# (a) viewing angles (e.g., for slantlooking; but working for ALL geometries)
+# (a) zenith viewing angles (e.g., for slantlooking, but working for ALL geometries)
 # - can be empty
-# (a-1) the zenith angles [degree]
-VectorSet( viewang_zen, [180., 150., 120.] )
-# (a-2) the corresponding azimuth angles [degree] (0=North, counting clockwise)
-VectorSet( viewang_azi, [90., 90., 90.] )
-# (b) tangent altitudes for limb views
+VectorSet( viewang, [180., 150., 120.] )
+# (b) tangent altitudes (in m) for limb views
 # - can be empty
 # - depending on your choice of type of geometry/refraction below, specified
 #    tangent altitudes will either be "theoretical" tangent altitudes (as would
@@ -196,11 +159,7 @@ VectorSet( viewang_azi, [90., 90., 90.] )
 # - specified tanh are allowed to be negative. In case of theoretical tangent
 #    altitudes (but not for true ones!), they can even be "false" tangent
 #    altitudes, i.e., pointing BELOW the actual surface level.
-# (b-1) the tangent altitudes [m]
-VectorSet( tanh, [5., 4e3, 4e3, 4e3, 4e3, 10e3, 20e3, 40e3, 60e3] ) 
-# (b-2) the corresponding azimuth angles [degree] (0=North, counting clockwise)
-VectorSet( tanh_azi, [90, -90, 0, 90, 180, 90, 90, 90, 90] ) 
-
+VectorSet( tanh, [0., 4.e3, 10.e3, 12.e3, 20.e3, 40.e3, 60.e3] ) 
 
 
 
@@ -212,40 +171,27 @@ VectorSet( tanh_azi, [90, -90, 0, 90, 180, 90, 90, 90, 90] )
 #   refraction that shall be considered.
 #  NOTE: uncomment the ONE(!) you want. If more than one uncommented, the run
 #   will crash.
-#  NOTE: Usage of tangent altitudes only works correctly if the planet is
-#   spherical (i.e., refellipsoid[1]=e==0) and, specifically for the x-1) cases,
-#   if the refracting atmosphere (i.e., the atmospheric parameters that affect
-#   refraction in the model: z(p), T, N2, O2, CO2, H2, H2, H2O) is horizontally
-#   homogeneous.
-#  If this is not given, the viewing angles calculated from the given tangent
-#   altitudes can be erroneous (they are calculated assuming planet radius equal
-#   the equatorial radius of the planet and taking the relevant refractive
-#   parameters from the south-western-most grid point assuming this is valid for
-#   the whole planet).
-#  No problems occur for the lines-of-sight that are specified via zenith
-#   viewing angles. That is, in case of doubt EXCLUSIVELY USE zenith VIEWING
-#   ANGLES!
 # ---
 
 # a) no refraction at all
-#INCLUDE "planetary_toolbox/includes/common/makegeometry3D_unrefracted.arts"
+INCLUDE "planetary_toolbox/includes/common/makegeometry1D_unrefracted.arts"
 
 # b) refraction (by "air" only)
 # b-1) tanh => true tangent altitudes of refracted rays
-INCLUDE "planetary_toolbox/includes/common/makegeometry3D_refracted-air_truetanh.arts"
+#INCLUDE "planetary_toolbox/includes/common/makegeometry1D_refracted-air_truetanh.arts"
 
 # b-2) tanh => theoretical tangent altitudes of unrefracted rays
 #  (true tangent altitudes will be lower)
-#INCLUDE "planetary_toolbox/includes/common/makegeometry3D_refracted-air_geometrictanh.arts"
+#INCLUDE "planetary_toolbox/includes/common/makegeometry1D_refracted-air_geometrictanh.arts"
 
 # c) refraction (by "air" and free electrons)
 #  These require abs=species to contain "free_electrons".
 # c-1) tanh => true tangent altitudes of refracted rays
-#INCLUDE "planetary_toolbox/includes/common/makegeometry3D_refracted-air+electrons_truetanh.arts"
+#INCLUDE "planetary_toolbox/includes/common/makegeometry1D_refracted-air+electrons_truetanh.arts"
 
 # c-2) tangent altitudes = theoretical tangent altitudes of unrefracted rays
 #  (true ones will be lower)
-#INCLUDE "planetary_toolbox/includes/common/makegeometry3D_refracted-air+electrons_geometrictanh.arts"
+#INCLUDE "planetary_toolbox/includes/common/makegeometry1D_refracted-air+electrons_geometrictanh.arts"
 
 
 
@@ -259,15 +205,9 @@ INCLUDE "planetary_toolbox/includes/common/makegeometry3D_refracted-air_truetanh
 # a) use on-the-fly absorption
 #  (time consuming! but recommended when doing calculations with winds or other
 #  Doppler shifts.)
-INCLUDE "planetary_toolbox/includes/common/use-absOnTheFly.arts"
+#INCLUDE "planetary_toolbox/includes/common/use-absOnTheFly.arts"
 
-# b) calculate and use absorption lookup table
-# Note: Either of the 2 includes below is ok to use. make-and-use-absLUT.arts is
-#  the more general solution, also working for REAL 3D data (while, here we have
-#  only homogeneous 3D created from 1D). make-and-use-absLUT_1Dfor3D.arts is
-#  faster as it only calculates the LUT for a 1D case (assuming the given
-#  atmosphere is homogeneous).
-#INCLUDE "planetary_toolbox/includes/common/make-and-use-absLUT_1Dfor3D.arts"
+# b) calculate and use absorption lookup table (generally recommended)
 #INCLUDE "planetary_toolbox/includes/common/make-and-use-absLUT.arts"
 # b-1) if you want to keep the absLUT data for later use or analysis, uncomment:
 #WriteXML( in=abs_lookup )
@@ -275,117 +215,56 @@ INCLUDE "planetary_toolbox/includes/common/use-absOnTheFly.arts"
 # c) use a previously calculated absorption lookup table
 #  if you want to use an absLUT created earlier, uncomment the following 3 lines
 #  (you might also have to specify the name. check online-doc of ReadXML)
-#Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__LookUpTable )
-#ReadXML( out=abs_lookup )
-#abs_lookupAdapt
+Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__LookUpTable )
+ReadXML( out=abs_lookup )
+abs_lookupAdapt
 
 
 
 # ---
 # Surface settings
 # ---
-
 # definition of surface (altitude, reflection model, temperature)
-#  - use a copy of DemoMarsSurface1D.arts adapted to your needs/wishes
+#  - use a copy of DemoVenusSurface1D.arts adapted to your needs/wishes
 #  - provides as output: z_surface, surface_rtprop_agenda (additionally:
 #     surface_skin_t (cases B-1: manually set (scalar) surface temperature) or
 #     t_surface (cases B-3: surface temperature field from file))
+#
+# NOTE: cases B-Xb (Lambertian surface) do NOT work with the DOIT and the MC
+#  scattering modules. Do NOT USE these in combination.
 #####
-INCLUDE "planetary_toolbox/demos/common/DemoMarsSurface3D.arts"
-
+INCLUDE "planetary_toolbox/demos/common/DemoVenusSurface1D.arts"
 
 
 # ---
-# Define (auxiliary) data output
+# Radiative Transfer Solution
 # ---
-# Uncomment all parameters you want as auxiliary output (i.e., in addition to
-#  total radiance/brigthness temperature). For meaning of each paramters see
-#  online-doc of the WSM selected for iy_main_agenda (here: iyEmissionStandard).
-# NOTE: Last element NOT to be followed by comma.
-# NOTE: Only use "Absorption, species X" up to the number of entries in
-#  abs_species (clearsky calculations in Mars have at maximum 20 abs_species
-#  entries, i.e. highest valid index is 19).
+#  NOTE: use only ONE(!) one of the following. Note, that these are template-
+#   type files, i.e., you should adapt paramters within them to your wishes/
+#   needs. Hence, it is recommended to copy them before, modify the copy, and
+#   adapt the name of the INCLUDE below!
+# ---
 
-ArrayOfStringSet( iy_aux_vars,
-     [
-      "Pressure", 
-      "Temperature", 
-      "Absorption, summed", 
-#      "Absorption, species 0",
-#      "Absorption, species 1",
-#      "Absorption, species 2",
-#      "Absorption, species 3",
-#      "Absorption, species 4",
-#      "Absorption, species 5",
-#      "Absorption, species 6",
-#      "Absorption, species 7",
-#      "Absorption, species 8",
-#      "Absorption, species 9",
-#      "Absorption, species 10",
-#      "Absorption, species 11",
-#      "Absorption, species 12",
-#      "Absorption, species 13",
-#      "Absorption, species 14",
-#      "Absorption, species 15",
-#      "Absorption, species 16",
-#      "Absorption, species 17",
-#      "Absorption, species 18",
-#      "Absorption, species 19",
-#      "Radiative background"
-      "iy", 
-#      "Transmission",
-      "Optical depth"
-     ] )
+# a) DOIT solver
+#
+# NOTEs:
+#  - Does NOT work with refraction, i.e., only with geometry/refraction case a).
+#  - Does NOT work with Lambertian reflecting surface.
+#INCLUDE "planetary_toolbox/demos/passive/DemoScat_DOIT_1D.arts"
 
+# b) MC solver
+#
+# NOTEs:
+#  - Does NOT work with Lambertian reflecting surface.
+INCLUDE "planetary_toolbox/demos/passive/DemoScat_MC_1D.arts"
+
+# c) FOS solver
+#
+#INCLUDE "planetary_toolbox/demos/passive/DemoScat_FOS_1D.arts"
 
 
 ################################################################################
 # END USER SETTINGS                                                            #
 ################################################################################
-
-
-# setting agendas needed for RT calc (there are alternative settings, though)
-#####
-Copy( iy_main_agenda, iy_main_agenda__Emission )
-Copy( blackbody_radiation_agenda, blackbody_radiation_agenda__Planck )
-Copy( iy_space_agenda, iy_space_agenda__CosmicBackground )
-Copy( iy_surface_agenda, iy_surface_agenda__UseSurfaceRtprop )
-
-
-# no scattering, no jacobian
-#####
-jacobianOff
-cloudboxOff
-
-# the checks necessary for full RT calc
-#####
-atmfields_checkedCalc
-atmgeom_checkedCalc
-cloudbox_checkedCalc
-propmat_clearsky_agenda_checkedCalc 
-
-
-# and the (clearsky) RT calc
-#####
-NumericCreate( za )
-NumericCreate( aa )
-AgendaCreate( forloop_agenda_angles )
-AgendaSet( forloop_agenda_angles )
-{
-  Extract( za, allang_zen, forloop_index )
-  Extract( aa, allang_azi, forloop_index )
-  rte_losSet( za=za, aa=aa )
-  Print( rte_los, 0 )
-  iyCalc
-  WriteXMLIndexed( in=iy, file_index=forloop_index )
-  WriteXMLIndexed( in=iy_aux, file_index=forloop_index )
-}
-
-IndexCreate( nangles )
-nelemGet( nangles, allang_zen )
-IndexStepDown( nangles, nangles )
-Copy( forloop_agenda, forloop_agenda_angles )
-ForLoop( forloop_agenda, 0, nangles, 1  )
-
 
 }

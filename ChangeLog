@@ -1,3 +1,65 @@
+2014-04-03  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-1-860
+
+	* controlfiles/planetary_toolbox/demos/passive/
+	DemoVenus_fullRT_1D_cloudy.arts:
+	Added. Demo cloud case for Venus. MISSING proper DOC.
+
+	* controlfiles/planetary_toolbox/demos/common/DemoVenusClouds1D.arts:
+	Added. Demos/templates for getting venus cloud data. MISSING proper DOC.
+
+	* controlfiles/planetary_toolbox/includes/common/makeclouds1D.arts:
+	Added. Include file to prepare cloud data (get scat data into
+	scat_data_array and pnd fields into pnd_field_raw, determine cloudbox,
+	derive pnd_field from raw data). MISSING DOC.
+
+	* controlfiles/planetary_toolbox/includes/venus/controlfiles/
+	getclouds_venus.arts, clouds_venus.arts:
+	Added. Includes with Venus cloud data definitions and to pre-prepare
+	Venus cloud single scattering and pnd data of selected setup for
+	digestion into ARTS. MISSING DOC.
+
+	* controlfiles/planetary_toolbox/demos/passive/
+	DemoScat_[MC,DOIT,FOS]_1D.arts:
+	Added. Demos/templates for scattering solver setups for cloudy cases.
+
+	* controlfiles/planetary_toolbox/includes/common/createvars.arts:
+	Predefined some more helper WSVs with view on clouds.
+
+	* controlfiles/planetary_toolbox/demos/common/DemoVenusSurface1D.arts:
+	Default setting for t_surface in order to make MC setups (3D!)
+	automatically work for all surface settings. Minor doc fix.
+
+	* controlfiles/planetary_toolbox/includes/[venus,mars,jupiter]/
+	atmo_[venus,mars,jupiter].arts:
+	Moved creating of WSV atmobase into createvars.arts (might BREAK Atmlab
+	compatibility).
+
+	* controlfiles/planetary_toolbox/includes/venus/getatmo_venus.arts,
+	controlfiles/planetary_toolbox/demos/common/DemoVenusAtmo1D.arts,
+	controlfiles/general/agendas_surface.arts:
+	Minor doc fix.
+
+	* controlfiles/planetary_toolbox/demos/passive/
+	DemoMars_fullRT_3D_clearsky.arts:
+	Re-include possible use of make-and-use-absLUT.arts. With the fixes from
+	previous commits, this now also works for 3D. Added some doc on the
+	possible use of either make-and-use-absLUT.arts or
+	make-and-use-absLUT_1Dfor3D.arts.
+
+	* controlfiles/general/agendas.arts:
+	Added note on setting of iy_cloudbox_agenda.
+
+	* controlfiles/general/agendasDOIT.arts:
+	Updated to use passing of named parameters into WSMs.
+
+	* src/m_append.h (Append):
+	Added capability to append a Numeric to a Vector.
+
+	* src/methods.cc (Apppend):
+	Adapted to above and slight polishing of doc info.
+
 2014-03-24  Jana Mendrok  <jana.mendrok@ltu.se>
 
 	* arts-2-1-859

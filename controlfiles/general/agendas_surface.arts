@@ -130,7 +130,7 @@ AgendaSet( surface_rtprop_agenda__Specular_Pol_RefracFix_SurfTFix ){
 
 # - preset surface reflectivity
 # - preset (constant) surface skin temperature
-# - preset number of angles, the scattering function will be evaluated on
+# - user set number of angles, the scattering function will be evaluated on
 #
 AgendaCreate( surface_rtprop_agenda__lambertian_ReflFix_SurfTFix )
 AgendaSet( surface_rtprop_agenda__lambertian_ReflFix_SurfTFix ){
