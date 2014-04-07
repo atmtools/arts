@@ -62,7 +62,7 @@ public:
 
   void append(const String& methodname, const TokVal& keywordvalue);
   void check(Workspace& ws, const Verbosity& verbosity);
-  void push_back(MRecord n);
+  void push_back(const MRecord& n);
   void execute(Workspace& ws) const;
   inline void resize(Index n);
   inline Index nelem() const;
@@ -269,7 +269,7 @@ inline Index Agenda::nelem() const
 
   \param n New method to add.
 */
-inline void Agenda::push_back(MRecord n)
+inline void Agenda::push_back(const MRecord& n)
 {
   mml.push_back(n);
   mchecked = false;

@@ -194,38 +194,49 @@ void abs_linesReadFromHitran(// WS Output:
                              const Numeric& fmax,
                              const Verbosity& verbosity)
 {
-  CREATE_OUT2;
-  
-  ifstream is;
-
-  // Reset lines in case it already existed:
-  abs_lines.resize(0);
-
-  out2 << "  Reading file: " << filename << "\n";
-  open_input_file(is, filename);
-
-  bool go_on = true;
-  while ( go_on )
+    CREATE_OUT2;
+    
+    ifstream is;
+    
+    // Reset lines in case it already existed:
+    abs_lines.resize(0);
+    
+    out2 << "  Reading file: " << filename << "\n";
+    open_input_file(is, filename);
+    
+    bool go_on = true;
+    Index linenr = 0;
+    while ( go_on )
     {
-      LineRecord lr;
-      if ( lr.ReadFromHitran2004Stream(is, verbosity) )
-        {
-          // If we are here the read function has reached eof and has
-          // returned no data.
-          go_on = false;
-        }
-      else
-        {
-          if ( fmin <= lr.F() )
+        linenr++;
+        try {
+            LineRecord lr;
+            if ( lr.ReadFromHitran2004Stream(is, verbosity) )
             {
-              if ( lr.F() <= fmax )
-                abs_lines.push_back(lr);
-              else
+                // If we are here the read function has reached eof and has
+                // returned no data.
                 go_on = false;
             }
+            else
+            {
+                if ( fmin <= lr.F() )
+                {
+                    if ( lr.F() <= fmax )
+                        abs_lines.push_back(lr);
+                    else
+                        go_on = false;
+                }
+            }
+        }
+        catch (runtime_error e)
+        {
+            ostringstream os;
+            os << e.what() << "\n";
+            os << "Error parsing line " << linenr << " from catalog.\n";
+            throw runtime_error(os.str());
         }
     }
-  out2 << "  Read " << abs_lines.nelem() << " lines.\n";
+    out2 << "  Read " << abs_lines.nelem() << " lines.\n";
 }
 
 
