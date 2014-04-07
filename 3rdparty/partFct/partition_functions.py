@@ -10,7 +10,7 @@ def do_TIPS_all(infile='TIPS_70-3000K.DAT',lowT=150.,highT=300.):
   Complete chain for deriving partition function polynomial coefficients for
    full set of TIPS species.
   
-  Output is printed to scree in a format to allow direct pasting into ARTS'
+  Output is printed to screen in a format to allow direct pasting into ARTS'
    partition_function_data.cc.
 
   Parameters

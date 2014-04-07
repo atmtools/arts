@@ -1,3 +1,28 @@
+2014-04-07  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-1-862
+
+	* src/species_data.cc:
+	Added CO2-727. Appeared newly in HITRAN2012. NOTE: with this, tag
+	assignments for CO2-838 changed in HITRAN. This version of
+	species_data.cc still made with 2008-and-older assignments (change to
+	2012 prepared: switch manually by out- & uncommenting the respective 2
+	lines in here - auto-switch seems not feasible, though.).
+	Furthermore, updated all HITRAN iso-abundances to molparam.txt values
+	from most recent version (2013!).
+
+	* src/partition_function_data.cc:
+	Added CO2-727.
+
+	NOTE: CO2-727 needs also to be added to planet isoratio data files. So,
+	also update your arts-xml-data!
+
+	* controlfiles/artscomponents/absorption/IsoRatios_H2Oorig.xml:
+	Adapted to be consistent with slight changes in species_data.cc.
+
+	* src/methods.cc (iy_Calc), 3rdparty/partFct/partition_functions.py:
+	Spellfixes.
+
 2014-04-07  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-861

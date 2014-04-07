@@ -4789,7 +4789,7 @@ void define_md_data_raw()
          "Please note that Jacobian type calculations not are supported.\n"
          "For this use *yCalc*.\n"
          "\n"
-         "No sensor charactersitcs are applied. That is most easily\n"
+         "No sensor characteristics are applied. These are most easily\n"
          "incorporated by using *yCalc*\n"
          ),
         AUTHORS( "Patrick Eriksson" ),

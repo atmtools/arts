@@ -232,7 +232,7 @@ iso(it_isotopologue,	"262" ,	Qcoeff(-3.572493e+01,  1.652500e+00,  7.633309e-03,
 
 
   // CO2
-  // Coeff: 1 1 1 1 1 1 1 1 1 1
+  // Coeff: 1 1 1 1 1 1 1 1 1 1 1
   spec(it_species, it_isotopologue, "CO2");
   //                    Name            c0              c1              c2              c3
   //                    |               |               |               |               |
@@ -244,6 +244,7 @@ iso(it_isotopologue,	"638" ,	Qcoeff(-1.882095e+00,  4.025528e+00,  -3.299047e-03
 iso(it_isotopologue,	"637" ,	Qcoeff(-1.788894e+01,  2.358158e+01,  -1.957976e-02,  7.389405e-05 ), IsotopologueRecord::PF_FROMCOEFF);  
 iso(it_isotopologue,	"828" ,	Qcoeff(-1.818540e+00,  1.086818e+00,  -9.427241e-04,  3.352295e-06 ), IsotopologueRecord::PF_FROMCOEFF);  
 iso(it_isotopologue,	"728" ,	Qcoeff(-2.087791e+01,  1.266486e+01,  -1.091287e-02,  3.874034e-05 ), IsotopologueRecord::PF_FROMCOEFF);  
+iso(it_isotopologue,	"727" ,	Qcoeff(-6.008949e+01,  3.692019e+01,  -3.164016e-02,  1.120452e-04 ), IsotopologueRecord::PF_FROMCOEFF);
 iso(it_isotopologue,	"838" , Qcoeff(-1.381515e+00,  2.142230e+00,  -1.790555e-03,  6.861265e-06 ), IsotopologueRecord::PF_FROMCOEFF);
 iso(it_isotopologue,	"837" , Qcoeff(-1.713863e+01,  2.498987e+01,  -2.084202e-02,  7.949796e-05 ), IsotopologueRecord::PF_FROMCOEFF);
   iso(it_isotopologue,       "CKD241",           Qcoeff( 0        ,0              ,0              ,0          ), IsotopologueRecord::PF_FROMCOEFF);
