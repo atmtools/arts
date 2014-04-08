@@ -1,3 +1,13 @@
+2014-04-08  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-1-864
+
+	* src/species_data.cc: Fixed typo in HNO3 isoratio (thanks oliver!).
+
+	* controlfiles/artscomponents/cia/TestRTwithCIA.iy_reference.xml:
+	Updated. Values slightly changed (sub-mK) due to slight changes in
+	isoratios of H2O in arts-2-1-862.
+
 2014-04-08  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-863
