@@ -201,6 +201,34 @@ void abs_linesReadFromHitran(// WS Output:
     // Reset lines in case it already existed:
     abs_lines.resize(0);
     
+    String filename_lower = filename;
+    filename_lower.tolower();
+#ifdef USE_HITRAN2008
+    if (filename_lower.nelem() < 12
+        || (filename_lower.substr(filename_lower.nelem()-12, 12) != "hitran08.par"
+            && filename_lower.substr(filename_lower.nelem()-12, 12) != "hitran04.par"))
+    {
+        ostringstream os;
+        os << "'" << filename << "'\n"
+        << "does not appear to be a HITRAN 2008 catalogue. The catalog\n"
+        << "must be named HITRAN08.par. This version of arts was compiled with\n"
+        << "support only for HITRAN 2008. To switch back to the latest HITRAN\n"
+        << "run 'cmake -DWITH_HITRAN2008=0 ..' and recompile arts";
+        throw std::runtime_error(os.str());
+    }
+#else
+    if (filename_lower.nelem() < 14
+        || filename_lower.substr(filename_lower.nelem()-14, 14) != "hitran2012.par")
+    {
+        ostringstream os;
+        os << "'" << filename << "'\n"
+        << "does not appear to be a HITRAN 2012 catalogue. The catalog\n"
+        << "must be named HITRAN2012.par. If you intend to use a HITRAN 2008 catalog\n"
+        << "run 'cmake -DWITH_HITRAN2008 ..' and recompile arts";
+        throw std::runtime_error(os.str());
+    }
+#endif
+
     out2 << "  Reading file: " << filename << "\n";
     open_input_file(is, filename);
     

@@ -273,12 +273,15 @@ void define_basic_species_data()
          REC( "637"     ,8.24623E-06   ,45.997400    ,26     ,26     ,TAGS() ),
          REC( "828"     ,3.95734E-06   ,47.998322    ,27     ,27     ,TAGS() ),
          REC( "728"     ,1.47180E-06   ,46.998291    ,28     ,28     ,TAGS() ),
-// version for 2008 and earlier
+#ifdef USE_HITRAN2008
+         // version for 2008 and earlier
          REC( "727"     ,1.36847E-07   ,45.998262    ,-1     ,-1     ,TAGS() ),
          REC( "838"     ,4.44600E-08   ,49.001675    ,-1     ,29     ,TAGS() ),
-// version for 2012 and later
-//         REC( "727"     ,1.36847E-07   ,45.998262    ,-1     ,29     ,TAGS() ),
-//         REC( "838"     ,4.44600E-08   ,49.001675    ,-1     ,20     ,TAGS() ),
+#else
+         // version for 2012 and later
+         REC( "727"     ,1.36847E-07   ,45.998262    ,-1     ,29     ,TAGS() ),
+         REC( "838"     ,4.44600E-08   ,49.001675    ,-1     ,20     ,TAGS() ),
+#endif
          REC( "837"     ,1.65354E-08   ,48.001646    ,-1     ,-1     ,TAGS() ),
          REC( "CKD241"           ,NAN    ,NAN    ,-1     ,-1     ,TAGS()),
          REC( "CKDMT100"         ,NAN    ,NAN    ,-1     ,-1     ,TAGS()),

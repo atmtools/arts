@@ -43,6 +43,9 @@
 /* Define to compile with NetCDF support */
 #cmakedefine ENABLE_NETCDF ${NETCDF_FOUND}
 
+/* Define to compile with legacy HITRAN 2008 support */
+#cmakedefine USE_HITRAN2008
+
 /* define if the compiler supports ISO C++ standard library */
 #cmakedefine HAVE_STD 
 

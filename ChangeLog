@@ -1,3 +1,27 @@
+2014-04-09  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-865
+
+	!!! IMPORTANT !!!
+
+	From this version on, ARTS will only work with the HITRAN 2012 catalog
+	by default. 'cmake -DWITH_HITRAN2008=1 ..' can be used to switch to
+	HITRAN 2008.
+
+	* src/m_abs.cc (abs_linesReadFromHitran):
+
+	Add runtime error if catalog filename doesn't match the version arts
+	was compiled for.
+
+	* CMakeLists.txt, README:
+
+	Add cmake option WITH_HITRAN2008. Update docs.
+
+	* config.h.cmake, src/species_data.cc (define_basic_species_data):
+
+	Use preprocessor variable USE_HITRAN2008 to switch between Hitran
+	versions.
+
 2014-04-08  Jana Mendrok  <jana.mendrok@ltu.se>
 
 	* arts-2-1-864
