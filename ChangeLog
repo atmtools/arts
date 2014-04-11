@@ -1,3 +1,17 @@
+2014-04-11  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-866
+
+	* src/linerecord.{cc,h} (LineRecord::ReadFromHitran2004Stream):
+
+	Add optional parameter fmin. If the line center is below fmin, skip
+	parsing the whole line. This can speed up catalog reading significantly
+	depending on fmin (and indirectly fmax).
+
+	* src/m_abs.cc (abs_linesReadFromHitran):
+
+	Pass fmin to LineRecord::ReadFromHitran2004Stream.
+
 2014-04-09  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-865

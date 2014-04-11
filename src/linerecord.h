@@ -755,13 +755,17 @@ public:
     program continues (ignoring this record). For CH3OH this
     warning will be issued even when using the regular Hitran 2004 data base
     (see above).
+    If the line center is below fmin, mf is set to -1 and the caller should ignore
+    this line.
 
     \param is Stream from which to read
+    \param verbosity Verbosity
+    \param fmin Skip line if mf < fmin
     \exception runtime_error Some error occured during the read
     \return false=ok (data returned), true=eof (no data returned)
 
     \author Stefan Buehler, Hermann Berg */
-  bool ReadFromHitran2004Stream(istream& is, const Verbosity& verbosity);
+  bool ReadFromHitran2004Stream(istream& is, const Verbosity& verbosity, const Numeric fmin=0);
 
 
 

@@ -239,7 +239,7 @@ void abs_linesReadFromHitran(// WS Output:
         linenr++;
         try {
             LineRecord lr;
-            if ( lr.ReadFromHitran2004Stream(is, verbosity) )
+            if ( lr.ReadFromHitran2004Stream(is, verbosity, fmin) )
             {
                 // If we are here the read function has reached eof and has
                 // returned no data.

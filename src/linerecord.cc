@@ -555,7 +555,8 @@ bool LineRecord::ReadFromHitran2001Stream(istream& is, const Verbosity& verbosit
 }
 
 
-bool LineRecord::ReadFromHitran2004Stream(istream& is, const Verbosity& verbosity)
+bool LineRecord::ReadFromHitran2004Stream(istream& is, const Verbosity& verbosity,
+                                          const Numeric fmin)
 {
   CREATE_OUT3;
   
@@ -803,6 +804,11 @@ bool LineRecord::ReadFromHitran2004Stream(istream& is, const Verbosity& verbosit
     // ARTS position in Hz:
     mf = v * w2Hz;
 //    cout << "mf = " << mf << endl;
+    if (mf < fmin)
+    {
+        mf = -1;
+        return false;
+    }
   }
 
   // Intensity.
