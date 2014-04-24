@@ -10,17 +10,20 @@
 # atmosphere output.                                                           #
 #                                                                              #
 # This file expects the following input parameters:                            #
+#   poptmp             (String)        Name of temporary file containing the   #
+#                                       list of single scattering data files.  #
+#   pndtmp             (String)        Name of temporary file containing       #
+#                                       pnd_field_raw.                         #
+#   tmpformat          (String)        File format of temporary files.         #
+#   atmosphere_dim     as the WSV                                              #
+#   f_grid             as the WSV                                              #
 #   p_grid             as the WSV                                              #
-#   z_field_raw        as the WSV                                              #
-#   t_field_raw        as the WSV                                              #
-#   vmr_field_raw      as the WSV                                              #
-#   interp_order       (Index)         Grid interpolation order                #
-#   vmr_zeropad        (Index)         Flag, whether to fill VMR at            #
-#                                       non-covered profile regions with zeros #
+#                                                                              #
 # Output:                                                                      #
-#   z_field            as the WSV                                              #
-#   t_field            as the WSV                                              #
-#   vmr_field          as the WSV                                              #
+#   pnd_field          as the WSV                                              #
+#   scat_data_array    as the WSV                                              #
+#   cloudbox_on        as the WSV                                              #
+#   cloudbox_limits    as the WSV                                              #
 #                                                                              #
 ################################################################################
 
@@ -30,6 +33,11 @@ Arts2 {
 #  WSVs pnd_field_raw and scat_data_array.
 ParticleTypeAddAll( filelist_scat_data=poptmp, filename_pnd_fieldarray=pndtmp )
 scat_data_arrayCheck
+
+Extract( pmax_cb, p_grid, 0 )
+nelemGet( itmp, p_grid )
+IndexStepDown( itmp, itmp )
+Extract( pmin_cb, p_grid, itmp )
 cloudboxSetManually( p1=pmax, p2=pmin,
                      lat1=0, lat2=0, lon1=0, lon2=0 )
 pnd_fieldCalc( zeropadding=1 )

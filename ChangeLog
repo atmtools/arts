@@ -1,3 +1,23 @@
+2014-04-24  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-1-867
+
+	* controlfiles/planetary_toolbox/demos/passive/
+	DemoVenus_fullRT_1D_cloudy.arts:
+	Added/updated documentation. Slight adjustments to (tentatively)
+	demonstrate malfunction of refracted path calculation.
+
+	Added/updated cloud case documentation:
+	* controlfiles/planetary_toolbox/demos/passive/DemoScat_[MC,DOIT,FOS]_1D.arts
+	* controlfiles/planetary_toolbox/demos/common/DemoVenusClouds1D.arts
+	* controlfiles/planetary_toolbox/includes/common/makeclouds1D.arts
+	* controlfiles/planetary_toolbox/includes/venus/getclouds_venus.arts
+
+	* controlfiles/planetary_toolbox/demos/common/
+	Demo[Venus,Mars,Jupiter]Atmo[1,3]D.arts,
+	controlfiles/planetary_toolbox/includes/common/createvars.arts:
+	Moved more regularly used WSV creation into createvars.arts.
+
 2014-04-11  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-866

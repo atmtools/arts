@@ -5,34 +5,35 @@
 #                                                                              #
 ################################################################################
 #                                                                              #
-# This file does the actual work of selecting and reading in the RAW           #
-# atmosphere data for Venus as specified by the user. For user specification   #
-# use, e.g., DemoVenusAtmo1D.arts (or its 3D equivalent) as template. The      #
-# template also contains the detailed information on which indices are linked  #
-# to which specific value/selection for each of the variables. The full        #
-# arrays, which the indices refer to and from which the actual values are      #
-# extracted, are defined in atmo_venus.arts (hence, atmo_venus.arts needs to   #
-# be included before the file at hand).                                        #
+# This file does the actual work of selecting and reading in the RAW cloud     #
+# data for Venus as specified by the user. For user specification use, e.g.,   #
+# DemoVenusClouds1D.arts as template. The template also contains the detailed  #
+# information on which indices are linked to which specific value/selection    #
+# for each of the variables. The full arrays, which the indices refer to and   #
+# from which the actual values are extracted, are defined in clouds_venus.arts #
+# (hence, clouds_venus.arts needs to be included before the file at hand).     #
 #                                                                              #
 # This file expects the following input parameters:                            #
-#   atmo           (Index)           The atmospheric scenario.                 #
-#   basespecies    (ArrayOfIndex)    The abs_species to use (includes only     #
-#                                    such with on/off options only).           #
-#   h2ospecies     (ArrayOfIndex)    H2O setup selected (off/low/medium/high). #
-#   hdospecies     (ArrayOfIndex)    HDO setup selected                        #
-#                                     (off/low/medium/high/uncorrected).       #
-#   Necase         (ArrayOfIndex)    Electron density setup selected           #
-#                                     (off/different sza-dependencies).        #
+#   pndcase        (Index)           The cloud field scenario.                 #
+#   cloudtypes     (ArrayOfIndex)    The cloud layers to be considered.        #
 #                                                                              #
 # Files to be included before this file:                                       #
-#   includes/venus/atmo_venus.arts                                             #
+#   includes/venus/clouds_venus.arts                                           #
 #   includes/common/createvars.arts                                            #
 #                                                                              #
-# It provides following output:                                                #
-#   z_field_raw        as the WSV                                              #
-#   t_field_raw        as the WSV                                              #
-#   vmr_field_raw      as the WSV                                              #
-#   abs_species        as the WSV                                              #
+# It provides no direct output, but stores the output in temporary files       #
+# (which will the be processed into their final variable containers by         #
+# makeclouds1D.arts). This externally stored output is:                        #
+#   pnd_field_raw                    as the WSV                                #
+#   ssdfiles       (ArrayOfString)   List of files containing the single       #
+#                                     scattering data for each particle type.  #
+#                                     The file containing this data serves as  #
+#                                     input parameter filelist_scat_data of    #
+#                                     WSM ParticleTypeAddAll.                  #
+# Names of the temporary files are passed into makeclouds1D.arts by the String #
+# variables                                                                    #
+#   pndtmp                           for pnd_field_raw file                    #
+#   poptmp                           for ssdfiles                              #
 #                                                                              #
 ################################################################################
 

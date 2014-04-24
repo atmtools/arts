@@ -33,6 +33,10 @@ ArrayOfIndexCreate( case )
 ArrayOfStringCreate( casearray )
 IndexCreate( ncases )
 
+NumericCreate( pmin )
+NumericCreate( pmax )
+NumericCreate( pmax_cb )
+NumericCreate( pmin_cb )
 StringCreate( pndstr )
 StringCreate( ssdstr )
 

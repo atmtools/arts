@@ -13,10 +13,10 @@
 # providing synthetic sensor measurements. The demo case covers following      #
 # conditions/capabilities:                                                     #
 #  - passive sensor                                                            #
+#  - considering effects of particles (clouds/aerosols/haze/dust)              #
 #  - 1D calculations only                                                      #
 #  - monochromatic pencilbeam simulation (no FOV/antenna pattern convolution,  #
 #     no bandwidth/instrumental line shape/... convolution)                    #
-#  - considering effects of particles (clouds/aerosols/haze/dust)              #
 #  - no magnetic field effects (Zeeman, Faraday)                               #
 #                                                                              #
 #  + scalar to full polarisation RT possible (limitations might apply in       #
@@ -73,6 +73,10 @@
 # for details):                                                                #
 #   demos/common/DemoVenusAtmo1D.arts                                          #
 #   demos/common/DemoVenusSurface1D.arts                                       #
+#   demos/common/DemoVenusClouds1D.arts                                        #
+#   demos/passive/DemoScat_DOIT_1D.arts                                        #
+#   demos/passive/DemoScat_MC_1D.arts                                          #
+#   demos/passive/DemoScat_FOS_1D.arts                                         #
 #   includes/common/makegeometry1D_unrefracted.arts                            #
 #   includes/common/makegeometry1D_refracted-air_effectivetanh.arts            #
 #   includes/common/makegeometry1D_refracted-air_geometrictanh.arts            #
@@ -106,11 +110,11 @@ VectorCreate( viewang )
 StringSet( iy_unit, "PlanckBT" )
 
 # monochromatic frequency grid
-VectorLinSpace( f_grid, 5e9, 10e9, 5e9 )
+VectorLinSpace( f_grid, 505e9, 510e9, 5e9 )
 WriteXML( in=f_grid )
 
 # number of Stokes parameters to consider ( 1: scalarRT, 4: fully polarised )
-IndexSet( stokes_dim, 1 )
+IndexSet( stokes_dim, 4 )
 
 
 # ---
@@ -149,7 +153,7 @@ NumericSet( obsh, 450e3 )
 #
 # (a) zenith viewing angles (e.g., for slantlooking, but working for ALL geometries)
 # - can be empty
-VectorSet( viewang, [180., 150., 120.] )
+VectorSet( viewang, [180.]) #, 150., 120.] )
 # (b) tangent altitudes (in m) for limb views
 # - can be empty
 # - depending on your choice of type of geometry/refraction below, specified
@@ -159,7 +163,7 @@ VectorSet( viewang, [180., 150., 120.] )
 # - specified tanh are allowed to be negative. In case of theoretical tangent
 #    altitudes (but not for true ones!), they can even be "false" tangent
 #    altitudes, i.e., pointing BELOW the actual surface level.
-VectorSet( tanh, [0., 4.e3, 10.e3, 12.e3, 20.e3, 40.e3, 60.e3] ) 
+VectorSet( tanh, []) #0., 4.e3, 10.e3, 12.e3, 20.e3, 40.e3, 60.e3] ) 
 
 
 
@@ -174,7 +178,7 @@ VectorSet( tanh, [0., 4.e3, 10.e3, 12.e3, 20.e3, 40.e3, 60.e3] )
 # ---
 
 # a) no refraction at all
-INCLUDE "planetary_toolbox/includes/common/makegeometry1D_unrefracted.arts"
+#INCLUDE "planetary_toolbox/includes/common/makegeometry1D_unrefracted.arts"
 
 # b) refraction (by "air" only)
 # b-1) tanh => true tangent altitudes of refracted rays
@@ -182,7 +186,7 @@ INCLUDE "planetary_toolbox/includes/common/makegeometry1D_unrefracted.arts"
 
 # b-2) tanh => theoretical tangent altitudes of unrefracted rays
 #  (true tangent altitudes will be lower)
-#INCLUDE "planetary_toolbox/includes/common/makegeometry1D_refracted-air_geometrictanh.arts"
+INCLUDE "planetary_toolbox/includes/common/makegeometry1D_refracted-air_geometrictanh.arts"
 
 # c) refraction (by "air" and free electrons)
 #  These require abs=species to contain "free_electrons".
@@ -208,16 +212,16 @@ INCLUDE "planetary_toolbox/includes/common/makegeometry1D_unrefracted.arts"
 #INCLUDE "planetary_toolbox/includes/common/use-absOnTheFly.arts"
 
 # b) calculate and use absorption lookup table (generally recommended)
-#INCLUDE "planetary_toolbox/includes/common/make-and-use-absLUT.arts"
+INCLUDE "planetary_toolbox/includes/common/make-and-use-absLUT.arts"
 # b-1) if you want to keep the absLUT data for later use or analysis, uncomment:
 #WriteXML( in=abs_lookup )
 
 # c) use a previously calculated absorption lookup table
 #  if you want to use an absLUT created earlier, uncomment the following 3 lines
 #  (you might also have to specify the name. check online-doc of ReadXML)
-Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__LookUpTable )
-ReadXML( out=abs_lookup )
-abs_lookupAdapt
+#Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__LookUpTable )
+#ReadXML( out=abs_lookup )
+#abs_lookupAdapt
 
 
 
@@ -256,11 +260,11 @@ INCLUDE "planetary_toolbox/demos/common/DemoVenusSurface1D.arts"
 #
 # NOTEs:
 #  - Does NOT work with Lambertian reflecting surface.
-INCLUDE "planetary_toolbox/demos/passive/DemoScat_MC_1D.arts"
+#INCLUDE "planetary_toolbox/demos/passive/DemoScat_MC_1D.arts"
 
 # c) FOS solver
 #
-#INCLUDE "planetary_toolbox/demos/passive/DemoScat_FOS_1D.arts"
+INCLUDE "planetary_toolbox/demos/passive/DemoScat_FOS_1D.arts"
 
 
 ################################################################################

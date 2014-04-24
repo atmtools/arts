@@ -5,35 +5,45 @@
 #                                                                              #
 ################################################################################
 #                                                                              #
-# This is a template file for deriving Venusn (atmospheric) data from the      #
-# arts-xml-data package and convert it to the common spatial grids             #
-# (p_grid), such that they can be applied in radiative transfer calculations.  #
-# It is for a 1D atmosphere (for 3D use DemoVenusAtmo3D.arts instead).         #
-#                                                                              #
-# It provides following output:                                                #
+# This is a template file for doing scattering calculations of passive         #
+# measurements using the Discrete Ordinate Iterative method scattering solver. #
+# It is for a 1D atmosphere.                                                   #
+# The file is supposed to be used as an include file in a full radiative       #
+# transfer case. Atmospheric scenario, surface and sensor settings, etc. have  #
+# to be done in the calling file before this file is included (hence,          #
+# executed).                                                                   #
+# This file requires the following input parameters:                           #
 #   atmosphere_dim    as the WSV                                               #
+#   f_grid            as the WSV                                               #
+#   iy_unit           as the WSV                                               #
+#   stokes_dim        as the WSV                                               #
 #   p_grid            as the WSV                                               #
 #   z_field           as the WSV                                               #
 #   t_field           as the WSV                                               #
 #   vmr_field         as the WSV                                               #
-#   wind_u/v/w_field  as the WSV                                               #
+#   pnd_field         as the WSV                                               #
+#   scat_data_array   as the WSV                                               #
+#   cloudbox_on       as the WSV                                               #
+#   cloudbox_limits   as the WSV                                               #
 #   abs_species       as the WSV                                               #
+#   z_surface         as the WSV                                               #
+#   t_surface         as the WSV                                               #
+#   rte_pos           as the WSV                                               #
+#   allzang           (Vector)       Sensor viewing angles                     #
 #                                                                              #
-# The user is supposed to select (atmospheric case, species to include) from   #
-# lists. Details of setting rules are given at the place of the settings.      #
+# It provides following OUTPUT (written to file):                              #
+#   iy         as the WSV                                                      #
+#               radiance; units selectable                                     #
+#   iy_aux     as the WSV                                                      #
+#               auxiliary output parameters (particularly of along-the-path    #
+#               type), selectable variety                                      #
 #                                                                              #
 # Selections and settings to be done are between the flags START USER SETTINGS #
 # and END USER SETTINGS. The rest of the file shall not be modified,           #
 # particularly settings marked with 'do NOT modify'.                           #
 #                                                                              #
 # This template makes use of the following include files                       #
-#   includes/common/createvars.arts                                            #
-#   includes/venus/atmo_venus.arts                                             #
-#   includes/venus/getatmo_venus.arts                                          #
-#   includes/common/getgrids_1D.arts                                           #
-#   includes/common/makeatmo1D.arts                                            #
-#   includes/venus/getwind_venus.arts                                          #
-#   includes/common/makefield1D.arts                                           #
+#   general/agendasDOIT.arts                                                   #
 #                                                                              #
 ################################################################################
 
@@ -65,7 +75,7 @@ StringSet( strtmp, "tmp1.xml" )
 
 # number of zenith angles:
 ###
-IndexSet( Nza, 101 )
+IndexSet( Nza, 20 )
 
 # number of azimuth angles:
 ###
