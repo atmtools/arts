@@ -1505,6 +1505,16 @@ void AtmFieldsFromCompact(// WS Output:
   // Check that the (supposed) VMR fields match abs_species:
   for (Index i=0; i<nsa; ++i)
     {
+      if (i >= abs_species.nelem())
+        {
+          ostringstream os;
+          os << "Based on the field names for absorption species,\n"
+            << "these species are missing in *abs_species*:\n";
+          for (Index itf_species = i; itf_species < nsa; ++itf_species)
+              os << c.get_string_grid(GFIELD4_FIELD_NAMES)[2+nsp+itf_species] << " ";
+          throw runtime_error(os.str());
+        }
+        
       const String tf_species = c.get_string_grid(GFIELD4_FIELD_NAMES)[2+nsp+i];
       
       // Get name of species from abs_species:      

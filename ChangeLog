@@ -1,3 +1,13 @@
+2014-04-25  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-868
+
+	* src/m_atmosphere.cc (AtmFieldsFromCompact):
+
+	Fix assertion. Throw runtime error if abs_species only contains the
+	first n species from atm_fields_compact. (n < number of species in
+	atm_fields_compact)
+
 2014-04-24  Jana Mendrok  <jana.mendrok@ltu.se>
 
 	* arts-2-1-867
