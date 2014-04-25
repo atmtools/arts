@@ -1,3 +1,29 @@
+2014-04-25  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-1-868
+
+	* controlfiles/planetary_toolbox/demos/passive/
+	DemoMars_fullRT_1D_cloudy.arts, DemoMarsClouds1D.arts,
+	controlfiles/planetary_toolbox/includes/mars/getclouds_mars.arts,
+	clouds_mars.arts:
+	Added. Martian cloud/dust case files.
+
+	* controlfiles/planetary_toolbox/demos/common/DemoMarsSurface1D.arts:
+	Use z_surface from 0th z_field level as preset setting (that's the only
+	case when DOIT works...).
+
+	* controlfiles/planetary_toolbox/demos/passive/
+	DemoVenus_fullRT_1D_cloudy.arts:
+	Improved documentation, particularly on scattering solver limitations.
+
+	* controlfiles/planetary_toolbox/demos/passive/DemoScat_DOIT_1D.arts:
+	More zenith angles in presetting.
+
+	* controlfiles/planetary_toolbox/demos/passive/
+	DemoVenus_fullRT_1D_clearsky.arts: Minor layout adjustment.
+
+	* src/methods.cc: Spell/formulation fixes.
+
 2014-04-25  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-868

@@ -75,7 +75,7 @@ StringSet( strtmp, "tmp1.xml" )
 
 # number of zenith angles:
 ###
-IndexSet( Nza, 20 )
+IndexSet( Nza, 91 )
 
 # number of azimuth angles:
 ###

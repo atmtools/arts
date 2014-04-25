@@ -1833,8 +1833,7 @@ void define_md_data_raw()
          "response will cover about 95% the complete response. For\n"
          "xwidth_si=3, about 99% is covered. If xwidth_si/dx_si is not\n"
          "an integer, the end points of the grid are kept and the spacing\n"
-         "if the grid is adjusted in the downward direction (ie. spacing is.\n"
-         "is max *dx_si*).\n"
+         "of the grid is reduced (ie. spacing is equal or smaller *dx_si*).\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "antenna_response" ),
@@ -7909,11 +7908,11 @@ void define_md_data_raw()
          "manner. Each step is denoted as a \"ppath_step\" and is the path\n"
          "through/inside a single grid box.\n"
          "\n"
-         "The definition of a propgation path cannot be accomodated here.\n"
+         "The definition of a propgation path cannot be accommodated here.\n"
          "For more information read the chapter on propagation paths in the\n"
          "ARTS user guide.\n"
          "\n"
-         "This method shuld never be called directly. Use instead *ppathCalc*\n"
+         "This method should never be called directly. Use *ppathCalc* instead\n"
          "if you want to extract propagation paths.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),

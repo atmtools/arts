@@ -161,8 +161,8 @@ VectorSet( lon_true, [0.] )
 #  For Mars, this is at max 5m, but might be higher depending on choice of pmax.
 #
 # SET number (5m <= surface_altitude!):
-NumericSet( surface_altitude, 800. )
-MatrixSetConstant( z_surface, 1, 1, surface_altitude )
+#NumericSet( surface_altitude, 800. )
+#MatrixSetConstant( z_surface, 1, 1, surface_altitude )
 
 
 # CASE 2) Surface at altitude of a given atmospheric level
@@ -173,8 +173,8 @@ MatrixSetConstant( z_surface, 1, 1, surface_altitude )
 # NOTE: surface_level=0 is the intended application of this case (A-2).
 #
 # SET index (0 <= surface_level!):
-#IndexSet( surface_level, 0 )
-#Extract( z_surface, z_field, surface_level )
+IndexSet( surface_level, 0 )
+Extract( z_surface, z_field, surface_level )
 
 
 # CASE 3) Surface altitude from read-in topography file
