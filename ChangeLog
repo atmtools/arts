@@ -9,7 +9,7 @@
 	a runtime error (giving a rough idea about the problem), to not
 	end up with an asseert as before. Some tuning of the crieria for
 	issuing the error could be needed.
-	
+
 2014-04-28  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-870
