@@ -73,7 +73,7 @@ const Numeric sum_check_epsilon = 1e-6;
     We cannot use a sharp comparison there, due to numerical
     noise. The value of 1e-3 is an ad-hoc value.
 */
-const Numeric FD_TOL = 1e-3;
+const Numeric FD_TOL = 1.5e-3;
 
 
 

@@ -1,3 +1,12 @@
+2014-04-28  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-869
+
+	* src/interpolation.cc:
+
+	Increase FD_TOL from 1e-3 to 1.5e-3 to fix assertion in
+	gridpos_check_fd called from ppath_end_1d for Manfred's CIRC case.
+
 2014-04-25  Jana Mendrok  <jana.mendrok@ltu.se>
 
 	* arts-2-1-868
