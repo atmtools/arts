@@ -11932,7 +11932,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", 
+        IN( "wind_u_field", "atmosphere_dim", "p_grid", "lat_grid", "lon_grid",
             "refellipsoid", "z_field", "planet_rotation_period" ),
         GIN(),
         GIN_TYPE(),

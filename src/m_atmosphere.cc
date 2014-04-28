@@ -2344,10 +2344,14 @@ void wind_u_fieldIncludePlanetRotation(
     { chk_atm_field( "wind_u_field", wind_u_field, atmosphere_dim, 
                                                   p_grid, lat_grid, lon_grid );}
   else
-    { wind_u_field.resize( np, na, no ); }
+    {
+        wind_u_field.resize( np, na, no );
+        wind_u_field = 0.;
+    }
 
   const Numeric k1 = 2 * PI / planet_rotation_period;
 
+  
   for( Index a=0; a<na; a++ )
     {
       const Numeric k2 = k1 * cos( DEG2RAD*lat_grid[a] );

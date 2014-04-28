@@ -1,5 +1,20 @@
 2014-04-28  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-870
+
+	* src/methods.cc:
+
+	Add wind_u_field as input to wind_u_fieldIncludePlanetRotation.
+	It was only defined as output variable but used as input in the
+	implementation.
+
+	* src/m_atmosphere.cc (wind_u_fieldIncludePlanetRotation):
+
+	Add missing initialization to 0 after resizing wind_u_field. Otherwise
+	the += inside the loop is adding to garbage values.
+
+2014-04-28  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-869
 
 	* src/interpolation.cc:
