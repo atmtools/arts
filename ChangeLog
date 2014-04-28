@@ -1,3 +1,15 @@
+2014-04-28  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-871
+
+	* src/ppath.cc (raytrace_1d_linear_basic): It is clear that some
+	cases with very strong refraction not is handled. All should be OK
+	for Earth, but low altitudes of e.g. Venus is not properly handled
+	with refraction. As a temporary solution, added a check that gives
+	a runtime error (giving a rough idea about the problem), to not
+	end up with an asseert as before. Some tuning of the crieria for
+	issuing the error could be needed.
+	
 2014-04-28  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-870

@@ -3888,6 +3888,13 @@ void raytrace_1d_linear_basic(
       get_refr_index_1d( ws, refr_index_air, refr_index_air_group, 
                          refr_index_air_agenda, p_grid, refellipsoid, 
                          z_field, t_field, vmr_field, f_grid, r );
+      // A temporary solution to catch upward paths that are converted to
+      // downward due to very high refractivity. This is not yet handled
+      // properly.
+      if( refr_index_air > 1.01  &&  abs(za-90) < 5 )
+        { throw runtime_error("Not all propagation involving high refraction "
+            "is not yet handled, and unfortunately your case ends up in this "
+            "category. Contact Patrick for details." ); } 
 
       // Calculate LOS zenith angle at found point.
 
