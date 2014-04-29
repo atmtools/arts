@@ -1,5 +1,13 @@
 2014-04-29  Jana Mendrok  <jana.mendrok@ltu.se>
 
+	* arts-2-1-873
+
+	* src/m_ppath.cc (VectorZtanToZaRefr1D, VectorZtanToZa1D):
+	Added runtime error catch of sensor position lower than given tangent
+	altitude case.
+
+2014-04-29  Jana Mendrok  <jana.mendrok@ltu.se>
+
 	* arts-2-1-872
 
 	* src/ppath.cc (raytrace_1d_linear_basic): Improved checks for

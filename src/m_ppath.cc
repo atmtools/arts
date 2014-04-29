@@ -880,15 +880,26 @@ void VectorZtanToZaRefr1D(
   // Calculate refractive index for the tangential altitudes
   for( Index i=0; i<ztan_vector.nelem(); i++ ) 
     {
-      get_refr_index_1d( ws, refr_index_air, refr_index_air_group, 
-                         refr_index_air_agenda, p_grid, refellipsoid[0], 
-                         z_field(joker,0,0), t_field, vmr_field, f_grid,
-                         ztan_vector[i] + refellipsoid[0] );
+      if( ztan_vector[i] > sensor_pos(i,0) )
+        {
+          ostringstream os;
+          os << "Invalid observation geometry: sensor (at z=" << sensor_pos(i,0)
+             << "m) is located below the requested tangent altitude (tanh="
+             << ztan_vector[i] << "m)";
+          throw runtime_error( os.str() );
+        }
+      else
+        {
+          get_refr_index_1d( ws, refr_index_air, refr_index_air_group, 
+                             refr_index_air_agenda, p_grid, refellipsoid[0], 
+                             z_field(joker,0,0), t_field, vmr_field, f_grid,
+                             ztan_vector[i] + refellipsoid[0] );
 
-      // Calculate zenith angle
-      za_vector[i] = 180 - RAD2DEG* asin( refr_index_air * 
+          // Calculate zenith angle
+          za_vector[i] = 180 - RAD2DEG* asin( refr_index_air * 
                                           (refellipsoid[0] + ztan_vector[i]) / 
                                           (refellipsoid[0] + sensor_pos(i,0)) );
+        }
     }
 }
 
@@ -922,8 +933,21 @@ void VectorZtanToZa1D(
   za_vector.resize( npos );
 
   for( Index i=0; i<npos; i++ )
-    { za_vector[i] = geompath_za_at_r( refellipsoid[0] + ztan_vector[i], 100,
-                                       refellipsoid[0] + sensor_pos(i,0) ); }
+    { 
+      if( ztan_vector[i] > sensor_pos(i,0) )
+        {
+          ostringstream os;
+          os << "Invalid observation geometry: sensor (at z=" << sensor_pos(i,0)
+             << "m) is located below the requested tangent altitude (tanh="
+             << ztan_vector[i] << "m)";
+          throw runtime_error( os.str() );
+        }
+      else
+        {
+          za_vector[i] = geompath_za_at_r( refellipsoid[0] + ztan_vector[i], 100,
+                                       refellipsoid[0] + sensor_pos(i,0) );
+        }
+    }
 }
 
 
