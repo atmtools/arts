@@ -21,6 +21,10 @@
 #     switched-on cloudbox!)                                                   #
 #                                                                              #
 #  + considering effects of particles (clouds/aerosols/haze/dust)              #
+#    - In Venus, DOIT and FOS do NOT work with refraction. MC might            #
+#      ocassionally fail when considering refraction. This due to high         #
+#      refractivity gradients, that currently can not be properly handled by   #
+#      ARTS.                                                                   #
 #  + scalar to full polarisation RT possible (limitations might apply in       #
 #     combination with, e.g., certain surface property settings)               #
 #  + multiple viewing directions (allowing their specification by viewing      #
@@ -154,7 +158,7 @@ NumericSet( obsh, 450e3 )
 #
 # (a) zenith viewing angles (e.g., for slantlooking, but working for ALL geometries)
 # - can be empty
-VectorSet( viewang, [180.]) #, 150., 120.] )
+VectorSet( viewang, [180., 150., 120.] )
 # (b) tangent altitudes (in m) for limb views
 # - can be empty
 # - depending on your choice of type of geometry/refraction below, specified
@@ -164,7 +168,7 @@ VectorSet( viewang, [180.]) #, 150., 120.] )
 # - specified tanh are allowed to be negative. In case of theoretical tangent
 #    altitudes (but not for true ones!), they can even be "false" tangent
 #    altitudes, i.e., pointing BELOW the actual surface level.
-VectorSet( tanh, []) #0., 4.e3, 10.e3, 12.e3, 20.e3, 40.e3, 60.e3] ) 
+VectorSet( tanh, [0., 4.e3, 10.e3, 12.e3, 20.e3, 40.e3, 60.e3] ) 
 
 
 
@@ -261,7 +265,8 @@ INCLUDE "planetary_toolbox/demos/common/DemoVenusSurface1D.arts"
 #     with IndexSet( surface_level, 0 )
 #  - Does NOT work with Lambertian reflecting surface.
 #  - Does NOT work with winds.
-#  - Does NOT work with refraction, i.e., only with geometry/refraction case a).
+#  - For Venus, where high refractivity gradients occur, path calculations for
+#     shallow angles do not work, hence DOIT can NOT be used with refraction here.
 #INCLUDE "planetary_toolbox/demos/passive/DemoScat_DOIT_1D.arts"
 
 # b) MC solver
@@ -269,12 +274,16 @@ INCLUDE "planetary_toolbox/demos/common/DemoVenusSurface1D.arts"
 # NOTEs:
 #  - Does NOT work with Lambertian reflecting surface.
 #  - Does NOT work with winds.
+#  - DOES work with refraction (Exceptions can occur, but are rare. Rerunning
+#     case with different random-number generator seed should fix it).
 #INCLUDE "planetary_toolbox/demos/passive/DemoScat_MC_1D.arts"
 
 # c) FOS solver
 #
 # NOTEs:
 #  - Does NOT work with winds.
+#  - For Venus, where high refractivity gradients occur, path calculations for
+#     shallow angles do not work, hence FOS can NOT be used with refraction here.
 INCLUDE "planetary_toolbox/demos/passive/DemoScat_FOS_1D.arts"
 
 

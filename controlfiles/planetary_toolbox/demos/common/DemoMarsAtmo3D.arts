@@ -277,9 +277,9 @@ INCLUDE "planetary_toolbox/includes/common/makefield3D.arts"
 Copy( wind_v_field, finalfield )
 
 # if you want E-W winds, UNCOMMENT the following 3 lines
-#Copy( rawfield, wind_u_raw )
-#INCLUDE "planetary_toolbox/includes/common/makefield3D.arts"
-#Copy( wind_u_field, finalfield )
+Copy( rawfield, wind_u_raw )
+INCLUDE "planetary_toolbox/includes/common/makefield3D.arts"
+Copy( wind_u_field, finalfield )
 
 ################################################################################
 # END USER SETTINGS                                                            #

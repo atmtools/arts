@@ -229,7 +229,7 @@ void refr_index_airMWgeneral(
   ref_spec_names[5] = "H2O";
 
   // Set reference refractive indices
-  // Values from Newell and Baird, 1965
+  // Values from Newell and Baird, 1965 (except H2O)
   Vector ref_n(nrs);
   ref_n[0] =  293.81e-6;
   ref_n[1] =  266.95e-6;

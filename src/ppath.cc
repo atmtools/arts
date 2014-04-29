@@ -3827,6 +3827,36 @@ void raytrace_1d_linear_basic(
               Numeric&         lat,
               Numeric&         za )
 {
+//  /*
+  // We currently do not handle bending of rays back into the medium due to
+  // refraction. Following check test, whether this is expected to happen for
+  // the given grid cell and ray zenith angle.
+  // Generally constant path constant rule applies:
+  // n1 * r1 * sin(th1) == n3 * r3 * sin(th3),
+  // where largest path constant values that can occur are (n1*r1) and (n3*r3)
+  // No solution exists if
+  // n1 * r1 * sin(th1) > n3 * r3, hence
+  // n3 < n1 * sin(th1) * r1/r3 (similar for n1 < n3 * sin(th3) * r3/r1)
+  // Assuming that za is given at r1, we check for n3 >= n1 * sin(za) * r1/r3
+  Numeric refr1, refr3, refrg;
+  get_refr_index_1d( ws, refr1, refrg, 
+                     refr_index_air_agenda, p_grid, refellipsoid, z_field,
+                     t_field, vmr_field, f_grid, r1 );
+  get_refr_index_1d( ws, refr3, refrg, 
+                     refr_index_air_agenda, p_grid, refellipsoid, z_field,
+                     t_field, vmr_field, f_grid, r3 );
+  if( refr3 < refr1 * (r1/r3) * sin( DEG2RAD * abs(za) ) )
+    {
+      ostringstream os;
+      os << "For path between r1=" << r1 << "(n-1=" << refr1-1. << ") and r2="
+         << r3 << "(n-1=" << refr3-1. << "),\n"
+         << "path calculation will run into refractive back-bending issues.\n"
+         << "We are currently NOT ABLE to handle them. Consider repeating\n"
+         << "your calculation without taking refraction into account.";
+      throw runtime_error(os.str());
+    }
+//  */
+
   // Loop boolean
   bool ready = false;
 
@@ -3849,6 +3879,22 @@ void raytrace_1d_linear_basic(
     {
       // Constant for the geometrical step to make
       const Numeric   ppc_step = geometrical_ppc( r, za );
+
+      // Explicitly check here, that predicted path point is still within
+      // gridcell and did not undetectedly slip out. This can happen in case of
+      // close-to-lateral angles and high refraction gradient, which causes a
+      // bending of the ray back into the medium (kind of reflection). There is
+      // no proper handling of this back-bending case yet.
+      if( ( r < r1 - RTOL ) || ( r > r3 + RTOL ) )
+        {
+          throw runtime_error(
+            "Ooops. Path undetectedly left the grid cell.\n"
+            "This should not happen. But there are issues with cases of high\n"
+            "refractivity gradients. Seems you unfortunately encountered such\n"
+            "a case. Little to be done about this now (if this is an option\n"
+            "for you, run the case without considering refraction). For further\n"
+            "details, contact Patrick Eriksson.");
+        }
 
       // Where will a geometric path exit the grid cell?
       do_gridrange_1d( r_v, lat_v, za_v, lstep, endface, r, lat, za, ppc_step, 
@@ -3888,13 +3934,6 @@ void raytrace_1d_linear_basic(
       get_refr_index_1d( ws, refr_index_air, refr_index_air_group, 
                          refr_index_air_agenda, p_grid, refellipsoid, 
                          z_field, t_field, vmr_field, f_grid, r );
-      // A temporary solution to catch upward paths that are converted to
-      // downward due to very high refractivity. This is not yet handled
-      // properly.
-      if( refr_index_air > 1.01  &&  abs(za-90) < 5 )
-        { throw runtime_error("Not all propagation involving high refraction "
-            "is not yet handled, and unfortunately your case ends up in this "
-            "category. Contact Patrick for details." ); } 
 
       // Calculate LOS zenith angle at found point.
 

@@ -112,8 +112,7 @@ VectorCreate( tanh_azi )
 StringSet( iy_unit, "PlanckBT" )
 
 # monochromatic frequency grid
-VectorLinSpace( f_grid, 595e9, 600e9, 10e6 )
-WriteXML( in=f_grid )
+VectorLinSpace( f_grid, 595.07e9, 595.09e9, 100e3 )
 
 # number of Stokes parameters to consider ( 1: scalarRT, 4: fully polarised )
 IndexSet( stokes_dim, 1 )
@@ -129,7 +128,6 @@ IndexSet( stokes_dim, 1 )
 #####
 INCLUDE "planetary_toolbox/demos/common/DemoMarsAtmo3D.arts"
 WriteXML( in=abs_species )
-WriteXML( in=wind_u_field, filename="wind_u_atm.xml" )
 
 
 # ---
@@ -153,7 +151,6 @@ refellipsoidMars( refellipsoid, "Ellipsoid" )
 # planet rotation
 # Uncomment if you want to consider Doppler shifts from planet rotation
 wind_u_fieldIncludePlanetRotation
-WriteXML( in=wind_u_field, filename="wind_u_atm+rot.xml" )
 
 
 # ---
@@ -207,21 +204,20 @@ VectorSet( tanh_azi, [90, -90, 0, 90, 180, 90, 90, 90, 90] )
 # ---
 # Type of geometry/refraction
 # ---
-#  Prepares the (1D) viewing angles for the RT calculation from the above
+#  Prepares the viewing angles for the RT calculation from the above
 #   specified viewang and tanh. Select proper INCLUDE for the type/level of
 #   refraction that shall be considered.
 #  NOTE: uncomment the ONE(!) you want. If more than one uncommented, the run
 #   will crash.
-#  NOTE: Usage of tangent altitudes only works correctly if the planet is
-#   spherical (i.e., refellipsoid[1]=e==0) and, specifically for the x-1) cases,
-#   if the refracting atmosphere (i.e., the atmospheric parameters that affect
-#   refraction in the model: z(p), T, N2, O2, CO2, H2, H2, H2O) is horizontally
-#   homogeneous.
-#  If this is not given, the viewing angles calculated from the given tangent
-#   altitudes can be erroneous (they are calculated assuming planet radius equal
-#   the equatorial radius of the planet and taking the relevant refractive
-#   parameters from the south-western-most grid point assuming this is valid for
-#   the whole planet).
+#  NOTE: Cases b-1 and c-1 only are correct if the refracting atmosphere (i.e.,
+#   the atmospheric parameters that affect refraction in the model: z(p), T, N2,
+#   O2, CO2, H2, H2, H2O) is horizontally homogeneous.
+#  Note: Calculated zenith angles exactly correspond to the given tangent
+#   altitudes only if the planet is spherical (i.e., refellipsoid[1]=e==0), else
+#   local planet curvature, which is effected by latitude and azimuthal viewing
+#   direction, might cause some deviations. However, we correct for that to a
+#   wide extent, such that the output zenith angles are a very good
+#   approximation.
 #  No problems occur for the lines-of-sight that are specified via zenith
 #   viewing angles. That is, in case of doubt EXCLUSIVELY USE zenith VIEWING
 #   ANGLES!
@@ -380,6 +376,8 @@ AgendaSet( forloop_agenda_angles )
   WriteXMLIndexed( in=iy, file_index=forloop_index )
   WriteXMLIndexed( in=iy_aux, file_index=forloop_index )
 }
+
+WriteXML( in=f_grid )
 
 IndexCreate( nangles )
 nelemGet( nangles, allang_zen )

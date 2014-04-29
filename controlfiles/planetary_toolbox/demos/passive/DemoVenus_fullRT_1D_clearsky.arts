@@ -18,6 +18,8 @@
 #     no bandwidth/instrumental line shape/... convolution)                    #
 #  - non-particle (i.e., "clearsky") calculations                              #
 #  - no magnetic field effects (Zeeman, Faraday)                               #
+#  - for certain conditions (shallow viewing angles), refraction calculations  #
+#    might fail                                                                #
 #                                                                              #
 #  + scalar to full polarisation RT possible (limitations might apply in       #
 #     combination with, e.g., certain surface property settings)               #
@@ -265,6 +267,7 @@ ArrayOfStringSet( iy_aux_vars,
 #      "Absorption, species 16",
 #      "Absorption, species 17",
 #      "Absorption, species 18",
+      "Radiative background",
       "iy", 
 #      "Transmission",
       "Optical depth"

@@ -18,10 +18,11 @@
 #  - sets ppath_step_agenda: refracted ppath calculation                       #
 #  - sets refr_index_air_agenda: refr_index_airMWgeneral for air               #
 #  - calculates viewing angles from given vector of tangent altitudes          #
-#     (where the given tangent altitudes refer to the ones the receiver is     #
+#    - with given tangent altitudes referring to the ones the receiver is      #
 #     pointing at. actual refracted rays will have their true tangent point at #
-#     lower altitudes than set by the user) assuming a spherical planet of     #
-#     equatorial radius of the (possibly) given ellipsoid.                     #
+#     lower altitudes than set by the user                                     #
+#    - considering the (possibly) viewing direction dependent curvature of the #
+#      planetary ellipsoid                                                     #
 #  - creates a common vector from (given) viewing angle vector and the viewing #
 #     angles associated with the tangent altitudes                             #
 #  - sets sensor positions: constant receiver position, empty transmitter      #
@@ -51,9 +52,12 @@
 #  script or created again (it also implies, this include can only be included #
 #  once in an ARTS run!). They can be used in later parts of the script,       #
 #  though.)                                                                    #
-#   planetR         Vector                                                     #
-#   zang            Vector                                                     #
-#   ntanh           Index                                                      #
+#   zang                  Vector                                               #
+#   tzang                 Vector                                               #
+#   szang                 Numeric                                              #
+#   azimuth               Numeric                                              #
+#   ntanh                 Index                                                #
+#   forloop_agenda_tanh   Agenda                                               #
 #                                                                              #
 ################################################################################
 
@@ -72,23 +76,45 @@ Copy( refr_index_air_agenda, refr_index_air_agenda__GasMWgeneral )
 
 # DO NOT MODIFY
 # preprocessing of viewing geometry parameters
-VectorCreate( planetR )
 VectorCreate( allang_zen )
 VectorCreate( allang_azi )
-#
-Select( planetR, refellipsoid, [0] )
-VectorSet( allang_zen, [0.] ) # allang_zen just used as container
-Append( planetR, allang_zen )
 #
 Copy( allang_zen, viewang_zen )
 Copy( allang_azi, viewang_azi )
 #
+ArrayOfIndexCreate( itanh )
+Touch( itanh )
+NumericCreate( azimuth )
+VectorCreate( tzang )
 VectorCreate( zang )
+Touch( zang )
+#
+StringSet( tmpformat, "ascii" )
+#StringSet( tmpformat, "binary" )
+StringSet( strtmp, "tmp1.xml" )
+WriteXML( output_file_format=tmpformat, in=zang, filename=strtmp )
+#
+AgendaCreate( forloop_agenda_tanh )
+AgendaSet( forloop_agenda_tanh )
+{
+ReadXML( out=zang, filename=strtmp )
+Extract( azimuth, tanh_azi, forloop_index )
+Append( itanh, forloop_index )
+Select( tanh, tanh, itanh )
+refellipsoidForAzimuth( refellipsoid, obslat, azimuth )
+VectorZtanToZa1D( tzang, sensor_pos, refellipsoid, 1, tanh )
+Append( zang, tzang )
+WriteXML( output_file_format=tmpformat, in=zang, filename=strtmp )
+}
+#
+MatrixSetConstant( sensor_pos, 1, 1, obsh )
 IndexCreate( ntanh )
 nelemGet( ntanh, tanh )
-MatrixSetConstant( sensor_pos, ntanh, 1, obsh )
-VectorZtanToZa1D( zang, sensor_pos, planetR, 1, tanh )
+IndexStepDown( ntanh, ntanh )
+Copy( forloop_agenda, forloop_agenda_tanh )
+ForLoop( forloop_agenda, 0, ntanh, 1  )
 #
+ReadXML( out=zang, filename=strtmp )
 Append( allang_zen, zang )
 Append( allang_azi, tanh_azi )
 #WriteXML( in=allang_zen )

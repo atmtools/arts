@@ -1,3 +1,46 @@
+2014-04-29  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-1-872
+
+	* src/ppath.cc (raytrace_1d_linear_basic): Improved checks for
+	problematic refraction cases. Currently used: check that current
+	predicted path point is still within grid cell. Implemented, but
+	currently outcommented (switch on & test, please): check that path
+	constant rule can be fulfilled over whole grid cell.
+
+	* src/m_refraction.cc (refr_index_airMWgeneral): Minor doc improvement.
+
+	* controlfiles/planetary_toolbox/includes/common/makegeometry3D_*.arts:
+	Use refellipsoidForAzimuth for better fitting 1D refellipsoid  to the 3D
+	observation geometry. This (almost?) perfectly ensures correct zenith
+	angles from tanh for ellipsoidal planet cases (before, north/south were
+	undesireably pointing to different effective tangent altitudes than
+	east/west for identical tanh requests - indicated by different Tb
+	baseline).
+
+	* controlfiles/planetary_toolbox/demos/passive/
+	DemoMars_fullRT_3D_clearsky.arts:
+	Cleaned up from planet rotation pseudo-wind testing stuff. Corrected
+	info on zang-from-tanh limitations. Set an f_grid that is more
+	illustrative of wind effects.
+
+	* controlfiles/planetary_toolbox/demos/common/DemoMarsAtmo3D.arts:
+	Switch on E-W winds again, now that planet rotation pseudo-wind issues
+	fixed.
+
+	* controlfiles/planetary_toolbox/demos/passive/
+	DemoVenus_fullRT_1D_cloudy.arts:
+	Added more clear doc on limitations of the different scattering solvers,
+	specifically in Venus.
+
+	* controlfiles/planetary_toolbox/demos/passive/
+	DemoVenus_fullRT_1D_clearsky.arts:
+	Add info on refraction issues to header.
+
+	* controlfiles/planetary_toolbox/demos/passive/DemoScat_FOS_1D.arts,
+	DemoMars_fullRT_1D_clearsky.arts:
+	Minor fixes.
+
 2014-04-28  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-871

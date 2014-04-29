@@ -116,7 +116,7 @@ ArrayOfStringSet( iy_aux_vars,
 #      "PND, type 7",
 #      "PND, type 8",
 #      "PND, type 9",
-#      "Radiative background"
+#      "Radiative background",
       "iy", 
       "Optical depth"
      ] )

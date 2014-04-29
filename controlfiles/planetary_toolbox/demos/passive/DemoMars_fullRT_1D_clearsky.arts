@@ -271,7 +271,7 @@ ArrayOfStringSet( iy_aux_vars,
 #      "Absorption, species 17",
 #      "Absorption, species 18",
 #      "Absorption, species 19",
-      "Radiative background"
+      "Radiative background",
       "iy", 
 #      "Transmission",
       "Optical depth"
