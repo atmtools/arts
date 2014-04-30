@@ -87,9 +87,9 @@ IndexSet( Naa, 37 )
 #  do we allow to interpolate?
 # ---
 #
-# The lower, the finer the angular grid has to be around the limb directions.
-#  This an issue particularly in thin atmospheres, where the hemispheric
-#  gradient is huge.
+# The lower the limit is, the finer the angular grid has to be around the limb
+#  directions. This an issue particularly in thin atmospheres, where the
+#  hemispheric gradient is huge.
 # Internal default: 100
 NumericSet( DOITinterpol_ratio, 100 )
 
@@ -197,9 +197,15 @@ INCLUDE "general/agendasDOIT.arts"
 AgendaSet( doit_conv_test_agenda ){
   doit_conv_flagAbsBT( epsilon=epsilonTb, max_iterations=DOITmax_iterations )
 }
+#
+AgendaSet( iy_cloudbox_agenda ){
+  iyInterpCloudboxField( maxratio=DOITinterpol_ratio )
+}
+#
 doit_za_interpSet( doit_za_interp, atmosphere_dim, "linear" )
 DoitAngularGridsSet( doit_za_grid_size, scat_aa_grid, scat_za_grid,
                      Nza, Naa, "" )
+
 
 
 # do NOT modify

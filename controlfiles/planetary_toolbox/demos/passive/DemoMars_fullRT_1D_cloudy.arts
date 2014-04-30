@@ -154,7 +154,7 @@ NumericSet( obsh, 450e3 )
 #
 # (a) zenith viewing angles (e.g., for slantlooking, but working for ALL geometries)
 # - can be empty
-VectorSet( viewang, [180.]) #, 150., 120.] )
+VectorSet( viewang, [180., 150., 120.] )
 # (b) tangent altitudes (in m) for limb views
 # - can be empty
 # - depending on your choice of type of geometry/refraction below, specified
@@ -164,7 +164,7 @@ VectorSet( viewang, [180.]) #, 150., 120.] )
 # - specified tanh are allowed to be negative. In case of theoretical tangent
 #    altitudes (but not for true ones!), they can even be "false" tangent
 #    altitudes, i.e., pointing BELOW the actual surface level.
-VectorSet( tanh, []) #0., 4.e3, 10.e3, 12.e3, 20.e3, 40.e3, 60.e3] ) 
+VectorSet( tanh, [0., 4.e3, 10.e3, 12.e3, 20.e3, 40.e3, 60.e3] ) 
 
 
 
@@ -183,11 +183,11 @@ VectorSet( tanh, []) #0., 4.e3, 10.e3, 12.e3, 20.e3, 40.e3, 60.e3] )
 
 # b) refraction (by "air" only)
 # b-1) tanh => true tangent altitudes of refracted rays
-#INCLUDE "planetary_toolbox/includes/common/makegeometry1D_refracted-air_truetanh.arts"
+INCLUDE "planetary_toolbox/includes/common/makegeometry1D_refracted-air_truetanh.arts"
 
 # b-2) tanh => theoretical tangent altitudes of unrefracted rays
 #  (true tangent altitudes will be lower)
-INCLUDE "planetary_toolbox/includes/common/makegeometry1D_refracted-air_geometrictanh.arts"
+#INCLUDE "planetary_toolbox/includes/common/makegeometry1D_refracted-air_geometrictanh.arts"
 
 # c) refraction (by "air" and free electrons)
 #  These require abs=species to contain "free_electrons".
@@ -261,6 +261,8 @@ INCLUDE "planetary_toolbox/demos/common/DemoMarsSurface1D.arts"
 #     with IndexSet( surface_level, 0 )
 #  - Does NOT work with Lambertian reflecting surface.
 #  - Does NOT work with winds.
+#  - Performs POOR in thin atmosphere, hence we STRONGLY DISrecommend its usage
+#     here.
 #INCLUDE "planetary_toolbox/demos/passive/DemoScat_DOIT_1D.arts"
 
 # b) MC solver
@@ -268,6 +270,7 @@ INCLUDE "planetary_toolbox/demos/common/DemoMarsSurface1D.arts"
 # NOTEs:
 #  - Does NOT work with Lambertian reflecting surface.
 #  - Does NOT work with winds.
+#  - Performs fairly poor in thin atmosphere, hence we discommend its usage here.
 #INCLUDE "planetary_toolbox/demos/passive/DemoScat_MC_1D.arts"
 
 # c) FOS solver

@@ -1,3 +1,15 @@
+2014-04-30  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-1-876
+
+	* controlfiles/planetary_toolbox/demos/passive/
+	DemoMars_fullRT_1D_cloudy.arts:
+	Added info on poor DOIT and MC performance.
+
+	* controlfiles/planetary_toolbox/demos/passive/DemoScat_DOIT_1D.arts:
+	(Re)Define iy_cloudbox_agenda with explicitly setting maxratio in
+	iyInterpCloudboxField, using same value as for ClouboxGetIncoming.
+
 2014-04-30  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-875
