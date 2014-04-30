@@ -372,8 +372,16 @@ bool file_exists(const String& filename)
 */
 String get_absolute_path(const String& filename)
 {
-    char *fullrealpath;
-    fullrealpath = realpath(filename.c_str(), NULL);
+    // Instead of relying on realpath to allocate the memory for the return
+    // string by passing NULL as the second argument, we allocate it ourselves.
+    // This works around a bug in OS X < 10.6 that leads to a crash otherwise.
+    // See e.g. https://code.google.com/p/dart/issues/detail?id=1875,
+    // and https://bugreports.qt-project.org/browse/QTBUG-11161
+    // Also, we don't use PATH_MAX for the maximum length of the full path because
+    // it sometimes gives a too small value.
+    // See http://insanecoding.blogspot.de/2007/11/pathmax-simply-isnt.html
+    char *fullrealpath = (char *)std::malloc(8192);
+    realpath(filename.c_str(), fullrealpath);
     if (fullrealpath)
     {
         String retpath(fullrealpath);
