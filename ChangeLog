@@ -4,7 +4,7 @@
 
 	* src/file.cc (get_absolute_path):
 
-	Workaround a bug in the C-library realpath function on OS X < 10.5 that
+	Workaround a bug in the C-library realpath function on OS X < 10.6 that
 	leads to a crash. Reported by Patrick.
 
 2014-04-29  Jana Mendrok  <jana.mendrok@ltu.se>
