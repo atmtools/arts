@@ -1503,6 +1503,15 @@ void abs_xsec_per_speciesInit(// WS Output:
   for ( Index ii=0; ii<abs_species_active.nelem(); ++ii )
     {
       const Index i = abs_species_active[ii];
+      // Check that abs_species_active index is not higher than the number
+      // of species
+      if (i >= tgs.nelem())
+      {
+          ostringstream os;
+          os << "*abs_species_active* contains an invalid species index.\n"
+          << "Species index must be between 0 and " << tgs.nelem()-1;
+          throw std::runtime_error(os.str());
+      }
       // Make this element of abs_xsec_per_species the right size:
       abs_xsec_per_species[i].resize( f_grid.nelem(), abs_p.nelem() );
       abs_xsec_per_species[i] = 0;       // Matpack can set all elements like this.

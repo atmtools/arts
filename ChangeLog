@@ -1,3 +1,13 @@
+2014-05-16  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-877
+
+	* src/m_abs.cc (abs_xsec_per_speciesInit):
+
+	Add check to ensure that the species indexes in abs_species_active
+	are smaller than the number of species. Fixes assertion reported by
+	Theresa.
+
 2014-04-30  Jana Mendrok  <jana.mendrok@ltu.se>
 
 	* arts-2-1-876
