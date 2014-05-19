@@ -1,3 +1,15 @@
+2014-05-19  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-2-1-878
+
+	* src/m_abs.cc
+	(abs_lines_per_speciesAddMirrorLinesOld): Removed this function,
+	since it is obsolete.
+	(abs_lines_per_speciesAddMirrorLines): Added const qualifier to
+	Index n definition.
+
+	* src/methods.cc (abs_lines_per_speciesAddMirrorLinesOld): Removed.
+
 2014-05-16  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-877
