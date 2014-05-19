@@ -1843,6 +1843,109 @@ firstprivate(l_ws, l_jacobian_agenda, l_iy_main_agenda)
 }
 
 
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void yCalcAppend(
+         Workspace&                  ws,
+         Vector&                     y,
+         Vector&                     y_f,
+         ArrayOfIndex&               y_pol,
+         Matrix&                     y_pos,
+         Matrix&                     y_los,
+         ArrayOfVector&              y_aux,
+         Matrix&                     jacobian,
+   const Index&                      atmfields_checked,
+   const Index&                      atmgeom_checked,
+   const Index&                      atmosphere_dim,
+   const Tensor3&                    t_field,
+   const Tensor3&                    z_field,
+   const Tensor4&                    vmr_field,
+   const Index&                      cloudbox_on,
+   const Index&                      cloudbox_checked,
+   const Index&                      sensor_checked,
+   const Index&                      stokes_dim,
+   const Vector&                     f_grid,
+   const Matrix&                     sensor_pos,
+   const Matrix&                     sensor_los,
+   const Matrix&                     transmitter_pos,
+   const Vector&                     mblock_za_grid,
+   const Vector&                     mblock_aa_grid,
+   const Index&                      antenna_dim,
+   const Sparse&                     sensor_response,
+   const Vector&                     sensor_response_f,
+   const ArrayOfIndex&               sensor_response_pol,
+   const Vector&                     sensor_response_za,
+   const Vector&                     sensor_response_aa,
+   const Agenda&                     iy_main_agenda,
+   const Agenda&                     jacobian_agenda,
+   const Index&                      jacobian_do,
+   const ArrayOfRetrievalQuantity&   jacobian_quantities,
+   const ArrayOfArrayOfIndex&        jacobian_indices,
+   const ArrayOfString&              iy_aux_vars,
+   const Index&                      merge_instrument_wfs,
+   const Verbosity&                  verbosity )
+{
+  // Some initial checks of old measurement
+  const Index n1 = y.nelem(); 
+  if( n1 == 0 )
+    throw runtime_error( "Input *y* is empty. Use *yCalc*" );
+  if( y_f.nelem() != n1 )
+    throw runtime_error( "Lengths of *y* and *y_f* are inconsistent." );
+  if( y_pol.nelem() != n1 )
+    throw runtime_error( "Lengths of *y* and *y_pol* are inconsistent." );
+  if( y_pos.nrows() != n1 )
+    throw runtime_error( "Sizes of *y* and *y_pos* are inconsistent." );
+  if( y_los.nrows() != n1 )
+    throw runtime_error( "Sizes of *y* and *y_los* are inconsistent." );
+
+  if( jacobian_do )
+    throw runtime_error( "Jacobians are not yet handled." );
+  
+  // Calculate new measurement
+  //
+  Vector        y2, y_f2;
+  Matrix        y_pos2, y_los2, jacobian2;
+  ArrayOfIndex  y_pol2;
+  ArrayOfVector y_aux2;
+  //
+  yCalc( ws, y2, y_f2, y_pol2, y_pos2, y_los2, y_aux2, jacobian2,
+         atmfields_checked, atmgeom_checked, atmosphere_dim, t_field,
+         z_field, vmr_field, cloudbox_on, cloudbox_checked, sensor_checked,
+         stokes_dim, f_grid, sensor_pos, sensor_los, transmitter_pos,
+         mblock_za_grid, mblock_aa_grid, antenna_dim, sensor_response,
+         sensor_response_f, sensor_response_pol, sensor_response_za, 
+         sensor_response_aa, iy_main_agenda, jacobian_agenda, jacobian_do, 
+         jacobian_quantities, jacobian_indices, iy_aux_vars, verbosity );
+
+  // Consistency checks
+  if( y_pos.ncols() != y_pos2.ncols() )
+    throw runtime_error( 
+          "Different number of columns in *y_pos* between the measurements." );
+  if( y_los.ncols() != y_los2.ncols() )
+    throw runtime_error( 
+          "Different number of columns in *y_pos* between the measurements." );
+  
+  // Make copy of old measurement
+  //
+  Vector        y1=y, y_f1=y_f;
+  Matrix        y_pos1=y_pos, y_los1=y_los, jacobian1=jacobian;
+  ArrayOfIndex  y_pol1=y_pol;
+  ArrayOfVector y_aux1=y_aux;
+
+  // Join measurements
+  //
+  const Index n2 = y2.nelem(); 
+  //
+  y.resize( n1+n2 );
+  y[Range(0,n1)] = y1;   y[Range(n1,n2)] = y2; 
+
+  // Dummy
+  if( merge_instrument_wfs )
+    cout << merge_instrument_wfs << endl;
+}
+
+
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void yApplyUnit(
          Vector&         y,

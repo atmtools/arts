@@ -11815,6 +11815,58 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "yCalcAppend" ),
+        DESCRIPTION
+        (
+         "Replaces *yCalc* if a measurement shall be appended to an\n"
+         "existing one.\n"
+         "\n"
+         "The method works exactly as *yCalc* but appends the results to\n"
+         "existing data, instead of creating completely new *y* and its\n"
+         "associated variables. This method is required if your measurement\n"
+         "consists of data from two instruments using different observation\n"
+         "techniques (corresponding to different iyCalc-methods). One such\n"
+         "example is if emission and transmission data are combined into a\n"
+         "joint retrieval. The method can also be used to get around the\n"
+         "constrain that *sensor_response* is required to be the same for\n"
+         "all data.\n"
+         "\n"
+         "The new measurement is simply appended to the input *y*, and the\n"
+         "other output variables are treated correspondingly. Data are\n"
+         "appended \"blindly\" in *y_aux*. That is, data of different type\n"
+         "be appended. The number of auxiliary variables can differ between\n"
+         "the measurements. Missing data are set to zero.\n"
+         "\n"
+         "The set of retrieval quantities can differ between the two\n"
+         "calculations. If an atmospheric quantity is part of both Jacobians,\n"
+         "they are merged. This demands that the retrieval grids are the\n"
+         "same. The treatment of instrument related Jacobians (baseline fits,\n"
+         "pointing ...) follows the *merge_instrument_wfs* argument.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "y", "y_f", "y_pol", "y_pos", "y_los", "y_aux", "jacobian" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "y", "y_f", "y_pol", "y_pos", "y_los", "y_aux", "jacobian",
+            "atmgeom_checked", "atmfields_checked", 
+            "atmosphere_dim", "t_field", "z_field", 
+            "vmr_field", "cloudbox_on", "cloudbox_checked", "sensor_checked", 
+            "stokes_dim", "f_grid", "sensor_pos", "sensor_los",
+            "transmitter_pos", "mblock_za_grid", "mblock_aa_grid",
+            "antenna_dim", "sensor_response", "sensor_response_f",
+            "sensor_response_pol", "sensor_response_za", "sensor_response_aa",
+            "iy_main_agenda", "jacobian_agenda", "jacobian_do", 
+            "jacobian_quantities", "jacobian_indices", "iy_aux_vars" ),
+        GIN( "merge_instrument_wfs" ),
+        GIN_TYPE( "Index" ),
+        GIN_DEFAULT( "0" ),
+        GIN_DESC( "Flag controlling if instrumental weighting functions are "
+                  "merged or not." )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "yCloudRadar" ),
         DESCRIPTION
         (
