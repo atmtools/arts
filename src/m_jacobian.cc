@@ -83,7 +83,6 @@ extern const String WIND_MAINTAG;
 void jacobianClose(
         Workspace&                 ws,
         Index&                     jacobian_do,
-        Matrix&                    jacobian,
         ArrayOfArrayOfIndex&       jacobian_indices,
         Agenda&                    jacobian_agenda,
   const ArrayOfRetrievalQuantity&  jacobian_quantities,
@@ -114,7 +113,6 @@ void jacobianClose(
     }
 
   // Loop over retrieval quantities, set JacobianIndices
-  Index nrows = sensor_pos.nrows() * sensor_response.nrows();
   Index ncols = 0;
   //
   for( Index it=0; it<jacobian_quantities.nelem(); it++ )
@@ -136,10 +134,6 @@ void jacobianClose(
       ncols += cols;
     }
   
-  // Resize *jacobian*
-  jacobian.resize( nrows, ncols );
-  jacobian = 0;
-
   jacobian_agenda.check(ws, verbosity);
   jacobian_do = 1;
 }

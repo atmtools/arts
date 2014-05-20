@@ -59,6 +59,9 @@
 
 extern const Numeric PI;
 extern const Numeric SPEED_OF_LIGHT;
+extern const String ABSSPECIES_MAINTAG;
+extern const String TEMPERATURE_MAINTAG;
+extern const String WIND_MAINTAG;
 
 
 
@@ -422,7 +425,7 @@ void iyEmissionStandard(
   // Fill parts of iy_aux that are defined even for np=1.
   // Radiative background
   if( auxBackground >= 0 ) 
-    { iy_aux[auxBackground](0,0,0,0) = (Numeric)min( (Index)2,
+    { iy_aux[auxBackground](joker,0,0,0) = (Numeric)min( (Index)2,
                                               ppath_what_background(ppath)-1); }
   // Radiance 
   if( auxIy >= 0 ) 
@@ -1552,9 +1555,9 @@ void yCalc_mblock_loop_body(
         if( j_analytical_do )
         {
             FOR_ANALYTICAL_JACOBIANS_DO(
-                                        mult(jacobian(rowind,
-                                                      Range(jacobian_indices[iq][0],
-                                                            jacobian_indices[iq][1]-jacobian_indices[iq][0]+1)),
+                         mult(jacobian(rowind,
+                                            Range(jacobian_indices[iq][0],
+                          jacobian_indices[iq][1]-jacobian_indices[iq][0]+1)),
                                              sensor_response, diyb_dx[iq] );
                                         )
         }
@@ -1573,6 +1576,7 @@ void yCalc_mblock_loop_body(
         { fail_msg = e.what(); failed = true; }
     }
 }
+
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -1854,6 +1858,8 @@ void yCalcAppend(
          Matrix&                     y_los,
          ArrayOfVector&              y_aux,
          Matrix&                     jacobian,
+         ArrayOfRetrievalQuantity&   jacobian_quantities,
+         ArrayOfArrayOfIndex&        jacobian_indices,
    const Index&                      atmfields_checked,
    const Index&                      atmgeom_checked,
    const Index&                      atmosphere_dim,
@@ -1879,28 +1885,38 @@ void yCalcAppend(
    const Agenda&                     iy_main_agenda,
    const Agenda&                     jacobian_agenda,
    const Index&                      jacobian_do,
-   const ArrayOfRetrievalQuantity&   jacobian_quantities,
-   const ArrayOfArrayOfIndex&        jacobian_indices,
    const ArrayOfString&              iy_aux_vars,
-   const Index&                      merge_instrument_wfs,
+   const ArrayOfRetrievalQuantity&   jacobian_quantities1,
+   const ArrayOfArrayOfIndex&        jacobian_indices1,
+   const Index&                      append_instrument_wfs,
    const Verbosity&                  verbosity )
 {
   // Some initial checks of old measurement
-  const Index n1 = y.nelem(); 
+  const Index n1   = y.nelem();
+        Index nrq1 = 0; 
   if( n1 == 0 )
     throw runtime_error( "Input *y* is empty. Use *yCalc*" );
   if( y_f.nelem() != n1 )
-    throw runtime_error( "Lengths of *y* and *y_f* are inconsistent." );
+    throw runtime_error( "Lengths of input *y* and *y_f* are inconsistent." );
   if( y_pol.nelem() != n1 )
-    throw runtime_error( "Lengths of *y* and *y_pol* are inconsistent." );
+    throw runtime_error( "Lengths of input *y* and *y_pol* are inconsistent." );
   if( y_pos.nrows() != n1 )
-    throw runtime_error( "Sizes of *y* and *y_pos* are inconsistent." );
+    throw runtime_error( "Sizes of input *y* and *y_pos* are inconsistent." );
   if( y_los.nrows() != n1 )
-    throw runtime_error( "Sizes of *y* and *y_los* are inconsistent." );
-
+    throw runtime_error( "Sizes of input *y* and *y_los* are inconsistent." );
   if( jacobian_do )
-    throw runtime_error( "Jacobians are not yet handled." );
-  
+    {
+      nrq1 = jacobian_quantities1.nelem();
+      if( jacobian.nrows() != n1 )
+        throw runtime_error( "Sizes of *y* and *jacobian* are inconsistent." );
+      if( jacobian_indices1.nelem() != nrq1 )
+        throw runtime_error( "Lengths of *jacobian_quantities_copy* and "
+                             "*jacobian_indices_copy* are inconsistent." );
+      if( jacobian.ncols() != jacobian_indices1[nrq1-1][1]+1 )
+        throw runtime_error( "Size of input *jacobian* and max value in " 
+                             "*jacobian_indices_copy* are inconsistent." );
+    }
+
   // Calculate new measurement
   //
   Vector        y2, y_f2;
@@ -1925,23 +1941,172 @@ void yCalcAppend(
     throw runtime_error( 
           "Different number of columns in *y_pos* between the measurements." );
   
-  // Make copy of old measurement
-  //
-  Vector        y1=y, y_f1=y_f;
-  Matrix        y_pos1=y_pos, y_los1=y_los, jacobian1=jacobian;
-  ArrayOfIndex  y_pol1=y_pol;
-  ArrayOfVector y_aux1=y_aux;
 
-  // Join measurements
+  // y and y_XXX
   //
-  const Index n2 = y2.nelem(); 
+  const Index         n2 = y2.nelem(); 
   //
-  y.resize( n1+n2 );
-  y[Range(0,n1)] = y1;   y[Range(n1,n2)] = y2; 
+  {
+    // Make copy of old measurement
+    const Vector        y1=y, y_f1=y_f;
+    const Matrix        y_pos1=y_pos, y_los1=y_los;
+    const ArrayOfIndex  y_pol1=y_pol;
+    const ArrayOfVector y_aux1=y_aux;
+    //
+    y.resize( n1+n2 );
+    y[Range(0,n1)] = y1;   y[Range(n1,n2)] = y2; 
+    //
+    y_f.resize( n1+n2 );
+    y_f[Range(0,n1)] = y_f1;   y_f[Range(n1,n2)] = y_f2; 
+    //
+    y_pos.resize( n1+n2, y_pos1.ncols() );
+    y_pos(Range(0,n1),joker) = y_pos1;   y_pos(Range(n1,n2),joker) = y_pos2; 
+    //
+    y_los.resize( n1+n2, y_los1.ncols() );
+    y_los(Range(0,n1),joker) = y_los1;   y_los(Range(n1,n2),joker) = y_los2; 
+    //
+    y_pol.resize( n1+n2 );
+    for( Index i=0; i<n1; i++ )
+      { y_pol[i] = y_pol1[i]; }
+    for( Index i=0; i<n2; i++ )
+      { y_pol[n1+i] = y_pol2[i]; }
 
-  // Dummy
-  if( merge_instrument_wfs )
-    cout << merge_instrument_wfs << endl;
+    // y_aux
+    const Index na1 = y_aux1.nelem();
+    const Index na2 = y_aux2.nelem();
+    const Index na  = max(na1,na2);
+    //
+    y_aux.resize( na );
+    //
+    for( Index a=0; a<na; a++ )
+      {
+        y_aux[a].resize( n1+n2 );        
+        if( a < na1 )
+          { y_aux[a][Range(0,n1)] = y_aux1[a]; }
+        else
+          { y_aux[a][Range(0,n1)] = 0; }
+        if( a < na2 )
+          { y_aux[a][Range(n1,n2)] = y_aux2[a]; }
+        else
+          { y_aux[a][Range(n1,n2)] = 0; }
+      }
+  }
+
+  // Jacobian and friends
+  if( jacobian_do )
+    {
+      // Put in old jacobian_quantities and jacobian_indices as first part in
+      // new version of these variables
+      ArrayOfRetrievalQuantity  jacobian_quantities2 = jacobian_quantities;
+      ArrayOfArrayOfIndex       jacobian_indices2    = jacobian_indices;
+      //
+      jacobian_quantities = jacobian_quantities1;
+      jacobian_indices    = jacobian_indices1;
+
+      // Loop new jacobian_quantities to determine how new jacobian data shall
+      // be inserted
+      //
+      const Index    nrq2 = jacobian_quantities2.nelem();
+      ArrayOfIndex   map_table(nrq2);
+      //
+      for( Index q2=0; q2<nrq2; q2++ )
+        {
+
+          Index pos = -1;
+          cout << append_instrument_wfs << endl;
+
+          // Compare to old quantities, if append shall be considered
+          if( jacobian_quantities2[q2].MainTag() == ABSSPECIES_MAINTAG   ||
+              jacobian_quantities2[q2].MainTag() == TEMPERATURE_MAINTAG  ||
+              jacobian_quantities2[q2].MainTag() == WIND_MAINTAG         ||
+              append_instrument_wfs )
+            {
+              for( Index q1=0; q1<nrq1; q1++ && pos < 0 )
+                {
+                  if( jacobian_quantities2[q2].MainTag() ==
+                      jacobian_quantities1[q1].MainTag()    &&
+                      jacobian_quantities2[q2].Subtag() ==
+                      jacobian_quantities1[q1].Subtag() )
+                    { pos = q1; }
+                }
+            }
+
+
+          // New quantity
+          if( pos < 0 )
+            {
+              map_table[q2] = jacobian_quantities.nelem();
+              jacobian_quantities.push_back( jacobian_quantities2[q2] );
+              ArrayOfIndex indices(2);
+              indices[0] = jacobian_indices[jacobian_indices.nelem()-1][1]+1;
+              indices[1] = indices[0] + jacobian_indices2[q2][1] -
+                                        jacobian_indices2[q2][0];
+              jacobian_indices.push_back( indices );
+            }
+          // Existing quantity
+          else
+            {
+              map_table[q2] = pos;
+              // Check if grids are equal
+              ArrayOfVector grids1 = jacobian_quantities1[pos].Grids();
+              ArrayOfVector grids2 = jacobian_quantities2[q2].Grids();
+              bool any_wrong = false;
+              if( grids1.nelem() != grids2.nelem() )
+                { any_wrong = true; }
+              else
+                {
+                  for( Index g=0; g<grids1.nelem(); g++ )
+                    {
+                      if( grids1[g].nelem() != grids2[g].nelem() )
+                        { any_wrong = true; }
+                      else
+                        {
+                          for( Index e=0; e<grids1[g].nelem(); e++ )
+                            {
+                              const Numeric v1 = grids1[g][e];
+                              const Numeric v2 = grids2[g][e];
+                              if( ( v1 == 0  &&  abs(v2) > 1e-9 ) || 
+                                                 abs(v1-v2)/v1 > 1e-6 )
+                                { any_wrong = true; }
+                            }   
+                        }   
+                    }   
+                }
+              if( any_wrong )
+                {
+                  ostringstream os;
+                  os << "Jacobians for " 
+                     << jacobian_quantities2[q2].MainTag()
+                     << "/" << jacobian_quantities2[q2].Subtag() 
+                     << " shall be appended.\nThis requires that the "
+                     << "same grids are used for both measurements,\nbut "
+                     << "it seems that this requirement is not met.";
+                  throw runtime_error(os.str());
+                }
+            }
+        }
+
+      // Create and fill *jacobian*
+      //
+      const Index  nrq = jacobian_quantities.nelem();
+      const Matrix jacobian1 = jacobian;
+      //
+      jacobian.resize( n1+n2, jacobian_indices[nrq-1][1]+1 );
+      jacobian = 0;
+      //
+      // Put in old part in top-left corner
+      jacobian(Range(0,n1),Range(0,jacobian_indices1[nrq1-1][1]+1)) = jacobian1;
+      // New parts
+      for( Index q2=0; q2<nrq2; q2++ )
+        {
+          jacobian(Range(n1,n2),Range(jacobian_indices[map_table[q2]][0], 
+                                      jacobian_indices[map_table[q2]][1]-
+                                      jacobian_indices[map_table[q2]][0]+1) ) =
+                jacobian2(joker,Range(jacobian_indices2[q2][0], 
+                                      jacobian_indices2[q2][1]-
+                                      jacobian_indices2[q2][0]+1) );
+        } 
+    }
 }
 
 

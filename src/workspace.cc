@@ -183,15 +183,6 @@ void Workspace::define_wsv_data()
         ),
        GROUP( "ArrayOfMatrix" )));
 
-//   wsv_data.push_back
-//    (WsvRecord
-//     ( NAME( "abs_coef_agenda" ),
-//       DESCRIPTION
-//       (
-//         "See agendas.cc.\n"
-//        ),
-//       GROUP( "Agenda" )));
-  
   wsv_data.push_back
     (WsvRecord
      ( NAME( "abs_cont_models" ),
@@ -1578,31 +1569,6 @@ void Workspace::define_wsv_data()
        ),
       GROUP( "Index" )));
   
-//  wsv_data.push_back
-//    (WsvRecord
-//     ( NAME( "geomag_los_calc_agenda" ),
-//       DESCRIPTION
-//       (
-//         "See agendas.cc.\n"
-//        ),
-//       GROUP( "Agenda" )));
-
-//   wsv_data.push_back
-//     (WsvRecord
-//     ( NAME( "geomag_los" ),
-//       DESCRIPTION
-//       (
-//        "Magnetic field along the line of sight\n"
-//        "\n"
-//        "more text by Nikolay \n"
-//        "\n"
-//        "Unit: ..."
-//        "\n"
-//        "Dimensions: [Magnetic field B, angle between B and los] \n"
-//        ),
-//       GROUP( "Matrix" )));
-
-   
   wsv_data.push_back
     (WsvRecord
      (NAME( "g0" ),
@@ -1901,17 +1867,6 @@ void Workspace::define_wsv_data()
        "Usage:      Set by *jacobianClose*.\n"
       ),
       GROUP( "ArrayOfArrayOfIndex" )));
-
-//  Keep this (PE 081113)
-//
-//  wsv_data.push_back
-//    (WsvRecord
-//     ( NAME( "jacobian_particle_update_agenda" ),
-//       DESCRIPTION
-//       (
-//         "See agendas.cc.\n"
-//        ),
-//       GROUP( "Agenda" )));
 
  wsv_data.push_back
    (WsvRecord
@@ -2230,20 +2185,6 @@ void Workspace::define_wsv_data()
        ),
       GROUP( "Tensor4" ))); 
     
-/*    wsv_data.push_back
-    (WsvRecord
-     (NAME( "massdensity_threshold" ),
-      DESCRIPTION
-      (
-       "Threshold value for minimum massdensity concentration in *massdensity_field*.\n"
-       "\n"
-       "Check WSM *Massdensity_cleanup* for more information!\n"
-       "\n"
-       "Default value:\t1e-15\n"      
-       ),
-      GROUP( "Numeric" )));   
-*/     
-
   wsv_data.push_back
    (WsvRecord
     ( NAME( "mblock_aa_grid" ),
@@ -2567,15 +2508,6 @@ void Workspace::define_wsv_data()
        ),
       GROUP( "Numeric" )));
 
-//  wsv_data.push_back
-//    (WsvRecord
-//     ( NAME( "opt_prop_gas_agenda" ),
-//       DESCRIPTION
-//       (
-//         "See agendas.cc.\n"
-//        ),
-//       GROUP( "Agenda" )));
-
    wsv_data.push_back
    (WsvRecord
     ( NAME( "opt_prop_part_agenda" ),
@@ -2791,33 +2723,6 @@ void Workspace::define_wsv_data()
        "       (cloudbox_limits[5] - cloudbox_limits[4]) +1 ] \n"
         ),
       GROUP( "Tensor4" )));
-
-//    wsv_data.push_back
-//    (WsvRecord
-//     ( NAME( "pnd_field_perturb" ),
-//       DESCRIPTION
-//       (
-//        "The field representing particle number density perturbations.\n"
-//        "\n"
-//        "This variable gives the perturbation of particle number density\n"
-//        "of the chosen particle types as a function of p_grid, lat_grid,\n"
-//        "lon_grid for each retrieval quantity. The variable has to be\n"
-//        "prepared outside ARTS and it has to be setup prior to calling\n"
-//        "*jacobianAddParticle*. Since it is added to *pnd_field* during\n"
-//        "the calculation of the Jacobian, the perturbations are absolute\n"
-//        "and as such should have the same unit as *pnd_field*\n"
-//        "\n"
-//        "See further the ARTS user guide (AUG). Use the index to find where\n"
-//        "this variable is discussed. The variable is listed as a subentry to\n"
-//        "\"workspace variables\".\n"
-//        "\n"
-//        "Usage:      Set by the user.\n"
-//        "\n"
-//        "Unit:       m^-3\n"
-//        "\n"
-//        "Dimensions: [N_retrieval_quantities, as *pnd_field* ]\n"
-//         ),
-//       GROUP( "Tensor5" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -4059,39 +3964,6 @@ void Workspace::define_wsv_data()
        ),
       GROUP( "Vector" )));
 
-  /* Sensor rotation not yet updated 
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "sensor_rot" ),
-      DESCRIPTION
-      (
-       "The rotation of the sensor for each antenna line-of-sight.\n"
-       "\n"
-       "The rotation is the angle between the atmospheric and sensor frames\n"
-       "for polarisation. The angle increases with clockwise rotation of the\n"
-       "sensor when looking along the line-of-sight of the sensor. \n"
-       "\n"
-       "If the purpose of the simulations is to extract the polarisation\n"
-       "of the radiation coming from the atmosphere (no sensor), the angles\n"
-       "shall be set to 0.\n"
-       "\n"
-       "The size of the vector shall either be equal to the number of rows in\n"
-       "*antenna_los* or be one. In the latter case the constant rotation\n"
-       "will be applied for all antennae line-of-sight.\n"
-       "\n"
-       "See further the ARTS user guide (AUG). Use the index to find where\n"
-       "this variable is discussed. The variable is listed as a subentry to\n"
-       "\"workspace variables\".\n"
-       "\n"
-       "Usage: Set by the user.\n"
-       "\n"
-       "Unit:  [ degrees ]\n"
-       "\n"
-       "Size:  [ number of antennae or one ]\n"
-       ),
-      GROUP( "Vector" )));
-  */
-
   wsv_data.push_back
    (WsvRecord
     ( NAME( "sensor_time" ),
@@ -5033,15 +4905,6 @@ void Workspace::define_wsv_data()
        "Dimensions: [ p_grid, lat_grid, lon_grid ]\n"
        ),
       GROUP( "Tensor3" )));
-
-//    wsv_data.push_back
-//    (WsvRecord
-//     ( NAME( "gfield3" ),
-//       DESCRIPTION
-//       (
-//        "Variable for testing the new gridded fields implementation.\n"
-//        ),
-//       GROUP( "GriddedField3" )));
 
    wsv_data.push_back
    (WsvRecord

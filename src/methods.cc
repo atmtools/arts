@@ -6261,7 +6261,7 @@ void define_md_data_raw()
          "No calculations are performed here.\n"
          ),
         AUTHORS( "Mattias Ekstrom" ),
-        OUT( "jacobian_do", "jacobian", "jacobian_indices", "jacobian_agenda" ),
+        OUT( "jacobian_do", "jacobian_indices", "jacobian_agenda" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
@@ -11821,7 +11821,7 @@ void define_md_data_raw()
          "Replaces *yCalc* if a measurement shall be appended to an\n"
          "existing one.\n"
          "\n"
-         "The method works exactly as *yCalc* but appends the results to\n"
+         "The method works basically as *yCalc* but appends the results to\n"
          "existing data, instead of creating completely new *y* and its\n"
          "associated variables. This method is required if your measurement\n"
          "consists of data from two instruments using different observation\n"
@@ -11834,17 +11834,29 @@ void define_md_data_raw()
          "The new measurement is simply appended to the input *y*, and the\n"
          "other output variables are treated correspondingly. Data are\n"
          "appended \"blindly\" in *y_aux*. That is, data of different type\n"
-         "be appended. The number of auxiliary variables can differ between\n"
-         "the measurements. Missing data are set to zero.\n"
+         "are appended if *iy_aux_vars* differs between the two measurements,\n"
+         "the data are appended strictly following the order. First variable\n"
+         "of second measurement is appended to first variable of first\n"
+         "measurement, and so on. The number of auxiliary variables can differ\n"
+         "between the measurements. Missing data are set to zero.\n"
          "\n"
          "The set of retrieval quantities can differ between the two\n"
          "calculations. If an atmospheric quantity is part of both Jacobians,\n"
-         "they are merged. This demands that the retrieval grids are the\n"
-         "same. The treatment of instrument related Jacobians (baseline fits,\n"
-         "pointing ...) follows the *merge_instrument_wfs* argument.\n"
+         "the same retrieval grids must be used in both cases.\n"
+         "The treatment of instrument related Jacobians (baseline fits,\n"
+         "pointing ...) follows the *append_instrument_wfs* argument.\n"
+         "\n"
+         "A difference to *yCalc* is that *jacobian_quantities* and\n"
+         "*jacobian_indices* are both in- and output variables. The input\n"
+         "version shall match the measurement to be calculated, while the\n"
+         "version matches the output *y*, the combined, measurements. Copies\n"
+         "of *jacobian_quantities* and * jacobian_indices* of the first\n"
+         "measurement must be made and shall be provided to the method as\n"
+         "*jacobian_quantities_copy* and *jacobian_indices_copy*.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
-        OUT( "y", "y_f", "y_pol", "y_pos", "y_los", "y_aux", "jacobian" ),
+        OUT( "y", "y_f", "y_pol", "y_pos", "y_los", "y_aux", 
+             "jacobian", "jacobian_quantities", "jacobian_indices" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
@@ -11858,11 +11870,14 @@ void define_md_data_raw()
             "sensor_response_pol", "sensor_response_za", "sensor_response_aa",
             "iy_main_agenda", "jacobian_agenda", "jacobian_do", 
             "jacobian_quantities", "jacobian_indices", "iy_aux_vars" ),
-        GIN( "merge_instrument_wfs" ),
-        GIN_TYPE( "Index" ),
-        GIN_DEFAULT( "0" ),
-        GIN_DESC( "Flag controlling if instrumental weighting functions are "
-                  "merged or not." )
+        GIN( "jacobian_quantities_copy", "jacobian_indices_copy", 
+             "append_instrument_wfs" ),
+        GIN_TYPE( "ArrayOfRetrievalQuantity", "ArrayOfArrayOfIndex", "Index" ),
+        GIN_DEFAULT( NODEF, NODEF, "0" ),
+        GIN_DESC( "Copy of *jacobian_quantities* of first measurement.",
+                  "Copy of *jacobian_indices* of first measurement.",
+                  "Flag controlling if instrumental weighting functions are "
+                  "appended or treated as different retrieval quantities." )
         ));
 
   md_data_raw.push_back
