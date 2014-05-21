@@ -7774,39 +7774,6 @@ void define_md_data_raw()
     
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "ScatteringDoitMergeParticles1D" ),
-        DESCRIPTION
-        (
-         "This method pre-calculates a weighted sum of all particles per pressure level.\n"
-         "before the actual DOIT calculation is taking place in *ScatteringDoit*.\n"
-         "It should be called directly after *pnd_fieldSetup* (but after\n"
-         "*cloudbox_checkedCalc*). It's purpose is speeding up DOIT calculations.\n"
-         "\n"
-         "*pnd_field* is resized to [np, np, 1, 1]. Where np is the number of pressure levels\n"
-         "inside the cloudbox. The diagonal elements of the new *pnd_field* are set to 1, all\n"
-         "others to 0. Accordingly, *scat_data_array* is resized to np. Each particle\n"
-         "is the weighted sum of all particles at this presssure level.\n"
-         "This is an experimental method currently only working for very specific cases.\n"
-         "All particles must be of the same type and all particles must share the same\n"
-         "f_grid and za_grid. And pha_mat_data, ext_mat_data and abs_vec_data must be all\n"
-         "the same size.\n"
-         "This method can only be used with a 1D atmosphere.\n"
-         ),
-        AUTHORS( "Oliver Lemke" ),
-        OUT( "pnd_field", "scat_data_array"),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "pnd_field", "scat_data_array", "atmosphere_dim", "cloudbox_on", "cloudbox_limits",
-            "t_field", "cloudbox_checked" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));  
-    
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME( "pnd_fieldZero" ),
         DESCRIPTION
         (
@@ -9144,6 +9111,39 @@ void define_md_data_raw()
         GIN_DEFAULT(),
         GIN_DESC()
         ));
+    
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "ScatteringDoitMergeParticles1D" ),
+        DESCRIPTION
+        (
+         "This method pre-calculates a weighted sum of all particles per pressure level.\n"
+         "before the actual DOIT calculation is taking place in *ScatteringDoit*.\n"
+         "It should be called directly after *pnd_fieldSetup* (but after\n"
+         "*cloudbox_checkedCalc*). It's purpose is speeding up DOIT calculations.\n"
+         "\n"
+         "*pnd_field* is resized to [np, np, 1, 1]. Where np is the number of pressure levels\n"
+         "inside the cloudbox. The diagonal elements of the new *pnd_field* are set to 1, all\n"
+         "others to 0. Accordingly, *scat_data_array* is resized to np. Each particle\n"
+         "is the weighted sum of all particles at this presssure level.\n"
+         "This is an experimental method currently only working for very specific cases.\n"
+         "All particles must be of the same type and all particles must share the same\n"
+         "f_grid and za_grid. And pha_mat_data, ext_mat_data and abs_vec_data must be all\n"
+         "the same size.\n"
+         "This method can only be used with a 1D atmosphere.\n"
+         ),
+        AUTHORS( "Oliver Lemke" ),
+        OUT( "pnd_field", "scat_data_array"),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "pnd_field", "scat_data_array", "atmosphere_dim", "cloudbox_on", "cloudbox_limits",
+            "t_field", "cloudbox_checked" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));  
     
   md_data_raw.push_back
     ( MdRecord

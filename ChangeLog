@@ -1,5 +1,13 @@
 2014-05-21  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-882
+
+	* src/methods.cc (ScatteringDoitMergeParticles1D):
+
+	Put alphabetically in the correct place.
+
+2014-05-21  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-881
 
 	* src/m_cloudbox.cc, src/methods.cc (ScatteringDoitMergeParticles1D):
