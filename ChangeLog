@@ -1,3 +1,26 @@
+2014-05-21  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-881
+
+	* src/m_cloudbox.cc, src/methods.cc (ScatteringDoitMergeParticles1D):
+
+	New experimental method to speed up DOIT calculations.
+
+	This method pre-calculates a weighted sum of all particles per pressure
+	level before the actual DOIT calculation is taking place in
+	*ScatteringDoit*. It should be called directly after pnd_fieldSetup
+	(but after cloudbox_checkedCalc).
+
+	*pnd_field* is resized to [np, np, 1, 1]. Where np is the number
+	of pressure levels inside the cloudbox. The diagonal elements of
+	the new *pnd_field* are set to 1, all others to 0. Accordingly,
+	*scat_data_array* is resized to np. Each particle is the weighted sum
+	of all particles at this presssure level. This is an experimental
+	method currently only working for very specific cases. All particles
+	must be of the same type and all particles must share the same f_grid
+	and za_grid. And pha_mat_data, ext_mat_data and abs_vec_data must be
+	all the same size. This method can only be used with a 1D atmosphere.
+
 2014-05-20  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-880
