@@ -2013,7 +2013,6 @@ void yCalcAppend(
         {
 
           Index pos = -1;
-          cout << append_instrument_wfs << endl;
 
           // Compare to old quantities, if append shall be considered
           if( jacobian_quantities2[q2].MainTag() == ABSSPECIES_MAINTAG   ||
