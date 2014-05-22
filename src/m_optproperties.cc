@@ -1502,3 +1502,227 @@ void pha_mat_sptFromMonoData(// Output:
     }
 }
 
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void ScatteringDoitMergeParticles1D(//WS Output:
+                                    Tensor4& pnd_field,
+                                    ArrayOfSingleScatteringData& scat_data_array,
+                                    //WS Input:
+                                    const Index& atmosphere_dim,
+                                    const Index& cloudbox_on,
+                                    const ArrayOfIndex& cloudbox_limits,
+                                    const Tensor3& t_field,
+                                    const Index& cloudbox_checked,
+                                    const Verbosity& /*verbosity*/)
+{
+    if (!cloudbox_checked)
+        throw std::runtime_error("You must call *cloudbox_checkedCalc* before this method.");
+    
+    if (atmosphere_dim != 1)
+        throw std::runtime_error("Merging particles only works with a 1D atmoshere");
+
+    // Cloudbox on/off?
+    if ( !cloudbox_on )
+    {
+        /* Must initialise pnd_field anyway; but empty */
+        pnd_field.resize(0, 0, 0, 0);
+        return;
+    }
+    
+    // ------- setup new pnd_field and scat_data_array -------------------
+    ArrayOfIndex limits(2);
+    //pressure
+    limits[0] = cloudbox_limits[0];
+    limits[1] = cloudbox_limits[1] + 1;
+
+    Tensor4 pnd_field_merged(limits[1] - limits[0],
+                          limits[1] - limits[0],
+                          1,
+                          1,
+                          0.);
+
+    ArrayOfSingleScatteringData scat_data_array_merged;
+    
+    scat_data_array_merged.resize(pnd_field_merged.nbooks());
+    for (Index sp = 0; sp < scat_data_array_merged.nelem(); sp++)
+    {
+        SingleScatteringData &this_part = scat_data_array_merged[sp];
+        this_part.particle_type = scat_data_array[0].particle_type;
+        this_part.description = "Merged particles";
+        this_part.f_grid = scat_data_array[0].f_grid;
+        this_part.za_grid = scat_data_array[0].za_grid;
+        this_part.aa_grid = scat_data_array[0].aa_grid;
+        this_part.description = "Merged particles";
+        this_part.pha_mat_data.resize(scat_data_array[0].pha_mat_data.nlibraries(),
+                                      1,
+                                      scat_data_array[0].pha_mat_data.nshelves(),
+                                      scat_data_array[0].pha_mat_data.nbooks(),
+                                      scat_data_array[0].pha_mat_data.npages(),
+                                      scat_data_array[0].pha_mat_data.nrows(),
+                                      scat_data_array[0].pha_mat_data.ncols());
+        this_part.ext_mat_data.resize(scat_data_array[0].ext_mat_data.nshelves(),
+                                      1,
+                                      scat_data_array[0].ext_mat_data.npages(),
+                                      scat_data_array[0].ext_mat_data.nrows(),
+                                      scat_data_array[0].ext_mat_data.ncols());
+        this_part.abs_vec_data.resize(scat_data_array[0].abs_vec_data.nshelves(),
+                                      1,
+                                      scat_data_array[0].abs_vec_data.npages(),
+                                      scat_data_array[0].abs_vec_data.nrows(),
+                                      scat_data_array[0].abs_vec_data.ncols());
+        this_part.pha_mat_data = 0.;
+        this_part.ext_mat_data = 0.;
+        this_part.abs_vec_data = 0.;
+        this_part.T_grid.resize(1);
+        this_part.T_grid[0] = t_field(sp, 0, 0);
+    }
+    
+    // Check that all particles have same type and data dimensions
+    SingleScatteringData &first_part = scat_data_array[0];
+    for (Index i_pt = 1; i_pt < pnd_field.nbooks(); i_pt++)
+    {
+        SingleScatteringData &orig_part = scat_data_array[i_pt];
+        
+        if (orig_part.particle_type != first_part.particle_type)
+            throw std::runtime_error("All particles must have the same type");
+
+        if (orig_part.f_grid.nelem() != first_part.f_grid.nelem())
+            throw std::runtime_error("All particles must have the same f_grid");
+        
+        if (!is_size(orig_part.pha_mat_data,
+                     first_part.pha_mat_data.nlibraries(),
+                     first_part.pha_mat_data.nvitrines(),
+                     first_part.pha_mat_data.nshelves(),
+                     first_part.pha_mat_data.nbooks(),
+                     first_part.pha_mat_data.npages(),
+                     first_part.pha_mat_data.nrows(),
+                     first_part.pha_mat_data.ncols()
+            ))
+            throw std::runtime_error("All particles must have the same pha_mat_data size.");
+        
+        if (!is_size(orig_part.ext_mat_data,
+                     first_part.ext_mat_data.nshelves(),
+                     first_part.ext_mat_data.nbooks(),
+                     first_part.ext_mat_data.npages(),
+                     first_part.ext_mat_data.nrows(),
+                     first_part.ext_mat_data.ncols()
+                     ))
+            throw std::runtime_error("All particles must have the same ext_mat_data size.");
+        
+        if (!is_size(orig_part.abs_vec_data,
+                     first_part.abs_vec_data.nshelves(),
+                     first_part.abs_vec_data.nbooks(),
+                     first_part.abs_vec_data.npages(),
+                     first_part.abs_vec_data.nrows(),
+                     first_part.abs_vec_data.ncols()
+                     ))
+            throw std::runtime_error("All particles must have the same abs_vec_data size.");
+    }
+    
+    //-------- Start pnd_field_merged and scat_data_array_merged calculations--------------------
+    
+    GridPos T_gp;
+    Vector itw(2);
+    
+    Index nlevels = pnd_field_merged.nbooks();
+    // loop over nelem of part_species
+    for (Index i_lv = 0; i_lv < nlevels; i_lv++)
+    {
+        pnd_field_merged(i_lv,i_lv,0,0) = 1.;
+
+        SingleScatteringData &this_part = scat_data_array_merged[i_lv];
+        for (Index i_pt = 0; i_pt < pnd_field.nbooks(); i_pt++)
+        {
+            SingleScatteringData &orig_part = scat_data_array[i_pt];
+            
+            // If the particle number density at a specific point in the atmosphere
+            // for the i_pt particle type is zero, we don't need to do the
+            // transformation!
+            if (pnd_field(i_pt, i_lv, 0, 0) > PND_LIMIT) //TRS
+            {
+                Numeric temperature = this_part.T_grid[0];
+                if( scat_data_array[i_pt].T_grid.nelem() > 1)
+                {
+                    ostringstream os;
+                    os << "The temperature grid of the scattering data does not cover the \n"
+                    "atmospheric temperature at cloud location. The data should \n"
+                    "include the value T="<< this_part.T_grid[0] << " K. \n";
+                    chk_interpolation_grids(os.str(), orig_part.T_grid, temperature);
+                    
+                    // Gridpositions:
+                    gridpos(T_gp, orig_part.T_grid, temperature);
+                    // Interpolationweights:
+                    interpweights(itw, T_gp);
+                }
+                
+                // Loop over frequencies
+                for (Index i_f = 0; i_f < orig_part.pha_mat_data.nlibraries(); i_f++)
+                {
+                    // Weighted sum of ext_mat_data and abs_vec_data
+                    if( scat_data_array[i_pt].T_grid.nelem() == 1)
+                    {
+                        this_part.ext_mat_data(i_f, 0, 0, 0, joker) +=
+                        pnd_field(i_pt, i_lv, 0, 0)
+                        * orig_part.ext_mat_data(i_f, 0, 0, 0, joker);
+                        
+                        this_part.abs_vec_data(i_f, 0, 0, 0, joker) +=
+                        pnd_field(i_pt, i_lv, 0, 0)
+                        * orig_part.abs_vec_data(i_f, 0, 0, 0, joker);
+                    }
+                    else
+                    {
+                        for (Index i = 0; i < orig_part.ext_mat_data.ncols(); i++)
+                        {
+                            // Temperature interpolation
+                            this_part.ext_mat_data(i_f, 0, 0, 0, i) +=
+                            pnd_field(i_pt, i_lv, 0, 0)
+                            * interp(itw,
+                                     orig_part.ext_mat_data(i_f, joker, 0, 0, i),
+                                     T_gp);
+                        }
+                        for (Index i = 0; i < orig_part.abs_vec_data.ncols(); i++)
+                        {
+                            // Temperature interpolation
+                            this_part.abs_vec_data(i_f, 0, 0, 0, i) +=
+                            pnd_field(i_pt, i_lv, 0, 0)
+                            * interp(itw,
+                                     orig_part.abs_vec_data(i_f, joker, 0, 0, i),
+                                     T_gp);
+                        }
+                    }
+                    
+                    // Loop over zenith angles
+                    for (Index i_za = 0; i_za < orig_part.pha_mat_data.nshelves(); i_za++)
+                    {
+                        // Weighted sum of pha_mat_data
+                        if( scat_data_array[i_pt].T_grid.nelem() == 1)
+                        {
+                            this_part.pha_mat_data(i_f, 0, i_za, 0, 0, 0, joker) +=
+                            pnd_field(i_pt, i_lv, 0, 0)
+                            * orig_part.pha_mat_data(i_f, 0, i_za, 0, 0, 0, joker);
+                        }
+                        else
+                        {
+                            // Temperature interpolation
+                            for (Index i = 0; i < orig_part.pha_mat_data.ncols(); i++)
+                            {
+                                this_part.pha_mat_data(i_f, 0, i_za, 0, 0, 0, i) +=
+                                pnd_field(i_pt, i_lv, 0, 0)
+                                * interp(itw,
+                                         orig_part.pha_mat_data(i_f, joker, i_za, 0, 0, 0, i),
+                                         T_gp);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // pnd_field values at upper and lower boundary of the cloudbox must be zero
+    pnd_field_merged(0,0,0,0) = 0.;
+    pnd_field_merged(pnd_field_merged.nbooks()-1,pnd_field_merged.nbooks()-1,0,0) = 0.;
+    
+    pnd_field = pnd_field_merged;
+    scat_data_array = scat_data_array_merged;
+}
