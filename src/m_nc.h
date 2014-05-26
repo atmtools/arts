@@ -71,6 +71,27 @@ WriteNetCDF (// WS Generic Input:
   nca_write_to_file (filename, v, verbosity);
 }
 
+/* Workspace method: Doxygen documentation will be auto-generated */
+template<typename T> void
+WriteNetCDFIndexed (//WS Input:
+             const Index&  file_index,
+             // WS Generic Input:
+             const T&      v,
+             const String& f,
+             // WS Generic Input Names:
+             const String& v_name,
+             const String& f_name _U_,
+             const Verbosity& verbosity)
+
+{
+    String filename = f;
+
+    // Create default filename if empty
+    nca_filename_with_index (filename, file_index, v_name);
+
+    nca_write_to_file (filename, v, verbosity);
+}
+
 #else // NetCDF not enabled
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -90,6 +111,22 @@ ReadNetCDF (// WS Generic Input:
 /* Workspace method: Doxygen documentation will be auto-generated */
 template<typename T> void
 WriteNetCDF (// WS Generic Input:
+             const T&,
+             const String&,
+             // WS Generic Input Names:
+             const String&,
+             const String&,
+             const Verbosity&)
+
+{
+  throw runtime_error("This version of ARTS was compiled without NetCDF support.");
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+template<typename T> void
+WriteNetCDFIndexed (//WS Input:
+             const Index&  file_index,
+             // WS Generic Input:
              const T&,
              const String&,
              // WS Generic Input Names:

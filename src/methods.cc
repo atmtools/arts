@@ -11508,7 +11508,7 @@ void define_md_data_raw()
         (
          "Writes a workspace variable to a NetCDF file.\n"
          "\n"
-         "This method can write variables of any group.\n"
+         "This method can write variables of limited groups.\n"
          "\n"
          "If the filename is omitted, the variable is written\n"
          "to <basename>.<variable_name>.nc.\n"
@@ -11519,6 +11519,40 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN(),
+        GIN(          "in",
+                      "filename" ),
+        GIN_TYPE(     "Vector, Matrix, Tensor3, Tensor4, Tensor5, ArrayOfVector,"
+                      "ArrayOfMatrix, GasAbsLookup",
+                      "String" ),
+        GIN_DEFAULT(  NODEF,
+                      "" ),
+        GIN_DESC(     "Variable to be saved.",
+                      "Name of the NetCDF file." ),
+        SETMETHOD(      false ),
+        AGENDAMETHOD(   false ),
+        USES_TEMPLATES( true  ),
+        PASSWORKSPACE(  false ),
+        PASSWSVNAMES(   true  )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "WriteNetCDFIndexed" ),
+        DESCRIPTION
+        (
+         "As *WriteNetCDF*, but creates indexed file names.\n"
+         "\n"
+         "This method can write variables of any group.\n"
+         "\n"
+         "If the filename is omitted, the variable is written\n"
+         "to <basename>.<variable_name>.nc.\n"
+         ),
+        AUTHORS( "Oliver Lemke" ),
+        OUT(),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "file_index" ),
         GIN(          "in",
                       "filename" ),
         GIN_TYPE(     "Vector, Matrix, Tensor3, Tensor4, Tensor5, ArrayOfVector,"
