@@ -1512,6 +1512,8 @@ void ScatteringDoitMergeParticles1D(//WS Output:
                                     const Index& cloudbox_on,
                                     const ArrayOfIndex& cloudbox_limits,
                                     const Tensor3& t_field,
+                                    const Tensor3& z_field,
+                                    const Matrix& z_surface,
                                     const Index& cloudbox_checked,
                                     const Verbosity& /*verbosity*/)
 {
@@ -1589,34 +1591,34 @@ void ScatteringDoitMergeParticles1D(//WS Output:
         if (orig_part.f_grid.nelem() != first_part.f_grid.nelem())
             throw std::runtime_error("All particles must have the same f_grid");
         
-        if (!is_size(orig_part.pha_mat_data,
+        if (!is_size(orig_part.pha_mat_data(joker, 0, joker, joker, joker, joker, joker),
                      first_part.pha_mat_data.nlibraries(),
-                     first_part.pha_mat_data.nvitrines(),
                      first_part.pha_mat_data.nshelves(),
                      first_part.pha_mat_data.nbooks(),
                      first_part.pha_mat_data.npages(),
                      first_part.pha_mat_data.nrows(),
                      first_part.pha_mat_data.ncols()
             ))
-            throw std::runtime_error("All particles must have the same pha_mat_data size.");
+            throw std::runtime_error("All particles must have the same pha_mat_data size"
+                                     " (except for temperature).");
         
-        if (!is_size(orig_part.ext_mat_data,
+        if (!is_size(orig_part.ext_mat_data(joker, 0, joker, joker, joker),
                      first_part.ext_mat_data.nshelves(),
-                     first_part.ext_mat_data.nbooks(),
                      first_part.ext_mat_data.npages(),
                      first_part.ext_mat_data.nrows(),
                      first_part.ext_mat_data.ncols()
                      ))
-            throw std::runtime_error("All particles must have the same ext_mat_data size.");
+            throw std::runtime_error("All particles must have the same ext_mat_data size"
+                                     " (except for temperature).");
         
-        if (!is_size(orig_part.abs_vec_data,
+        if (!is_size(orig_part.abs_vec_data(joker, 0, joker, joker, joker),
                      first_part.abs_vec_data.nshelves(),
-                     first_part.abs_vec_data.nbooks(),
                      first_part.abs_vec_data.npages(),
                      first_part.abs_vec_data.nrows(),
                      first_part.abs_vec_data.ncols()
                      ))
-            throw std::runtime_error("All particles must have the same abs_vec_data size.");
+            throw std::runtime_error("All particles must have the same abs_vec_data size"
+                                     " (except for temperature).");
     }
     
     //-------- Start pnd_field_merged and scat_data_array_merged calculations--------------------
@@ -1625,8 +1627,8 @@ void ScatteringDoitMergeParticles1D(//WS Output:
     Vector itw(2);
     
     Index nlevels = pnd_field_merged.nbooks();
-    // loop over nelem of part_species
-    for (Index i_lv = 0; i_lv < nlevels; i_lv++)
+    // loop over pressure levels in cloudbox
+    for (Index i_lv = 0; i_lv < nlevels-1; i_lv++)
     {
         pnd_field_merged(i_lv,i_lv,0,0) = 1.;
 
@@ -1719,10 +1721,12 @@ void ScatteringDoitMergeParticles1D(//WS Output:
         }
     }
 
-    // pnd_field values at upper and lower boundary of the cloudbox must be zero
-    pnd_field_merged(0,0,0,0) = 0.;
-    pnd_field_merged(pnd_field_merged.nbooks()-1,pnd_field_merged.nbooks()-1,0,0) = 0.;
-    
+    // Set new pnd_field at lowest altitude to 0 if the cloudbox doesn't touch the ground
+    // The consistency for the original pnd_field has already been ensured by
+    // cloudbox_checkedCalc
+    if (z_field(cloudbox_limits[0], 0, 0) > z_surface(0, 0))
+        pnd_field_merged(0, 0, 0, 0) = 0.;
+
     pnd_field = pnd_field_merged;
     scat_data_array = scat_data_array_merged;
 }

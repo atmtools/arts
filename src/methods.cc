@@ -9138,7 +9138,7 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "pnd_field", "scat_data_array", "atmosphere_dim", "cloudbox_on", "cloudbox_limits",
-            "t_field", "cloudbox_checked" ),
+            "t_field", "z_field", "z_surface", "cloudbox_checked" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
