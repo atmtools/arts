@@ -1,3 +1,15 @@
+2014-05-27  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-887
+
+	* src/m_refraction.cc (complex_refr_indexIceWarren84): BUG FIX!
+	The fortran sub-routine got wrong argument. It got 1/lambda, with
+	lambda in m. Old code:
+	  n = refice_(f_grid[f] / SPEED_OF_LIGHT, t_grid[t]);
+	While the input shall be lambda in um.
+	For microwaves, this bug had biggest impact below 100 GHz. No
+	significant impact for real part between 100 and 1000 GHz.
+
 2014-05-26  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-886

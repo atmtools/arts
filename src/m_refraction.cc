@@ -401,8 +401,8 @@ void complex_refr_indexIceWarren84(
     const Index nt = t_grid.nelem();
 
     // Frequency must be between 0.0443 to 8.600E+06 microns
-    const Numeric f_min = 0.0443 * SPEED_OF_LIGHT;
-    const Numeric f_max = 8.6e6 * SPEED_OF_LIGHT;
+    const Numeric f_max = 1e6*SPEED_OF_LIGHT/0.0443;
+    const Numeric f_min = 1e6*SPEED_OF_LIGHT/8.6e6;
     chk_if_in_range("min of scat_f_grid", min(f_grid), f_min, f_max);
     chk_if_in_range("max of scat_f_grid", max(f_grid), f_min, f_max);
 
@@ -427,7 +427,7 @@ void complex_refr_indexIceWarren84(
     for (Index f = 0; f < nf; ++f)
         for (Index t = 0; t < nt; ++t)
         {
-            n = refice_(f_grid[f] / SPEED_OF_LIGHT, t_grid[t]);
+            n = refice_( 1e6*SPEED_OF_LIGHT/f_grid[f], t_grid[t] );
             complex_refr_index.data(f, t, 0) = n.real();
             complex_refr_index.data(f, t, 1) = n.imag();
         }
