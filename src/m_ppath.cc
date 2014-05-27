@@ -584,28 +584,27 @@ void ppath_stepRefractionBasic(
     {
       if( atmosphere_dim == 1 )
         { 
-          ppath_step_refr_1d( ws, ppath_step, p_grid, z_field(joker,0,0), 
-                              t_field, vmr_field, f_grid, 
-                              refellipsoid, z_surface(0,0), ppath_lmax, 
-                              refr_index_air_agenda, "linear_basic", 
-                              ppath_lraytrace );
+          ppath_step_refr_1d( ws, ppath_step, p_grid, 
+                              z_field, t_field, vmr_field, 
+                              f_grid, refellipsoid, z_surface(0,0), 
+                              ppath_lmax, refr_index_air_agenda, 
+                              "linear_basic", ppath_lraytrace );
         }
       else if( atmosphere_dim == 2 )
         { 
           ppath_step_refr_2d( ws, ppath_step, p_grid, lat_grid, 
-                              z_field(joker,joker,0), t_field, vmr_field, 
-                              f_grid, refellipsoid, 
-                              z_surface(joker,0), ppath_lmax, 
-                              refr_index_air_agenda, "linear_basic", 
-                              ppath_lraytrace ); 
+                              z_field, t_field, vmr_field, 
+                              f_grid, refellipsoid, z_surface(joker,0), 
+                              ppath_lmax, refr_index_air_agenda, 
+                              "linear_basic", ppath_lraytrace ); 
         }
       else if( atmosphere_dim == 3 )
         { 
           ppath_step_refr_3d( ws, ppath_step, p_grid, lat_grid, lon_grid, 
                               z_field, t_field, vmr_field, 
-                              f_grid, refellipsoid, z_surface, ppath_lmax, 
-                              refr_index_air_agenda, "linear_basic", 
-                              ppath_lraytrace ); 
+                              f_grid, refellipsoid, z_surface, 
+                              ppath_lmax, refr_index_air_agenda, 
+                              "linear_basic", ppath_lraytrace ); 
         }
       else
         { throw runtime_error( "The atmospheric dimensionality must be 1-3." );}
@@ -617,13 +616,13 @@ void ppath_stepRefractionBasic(
       if( atmosphere_dim == 1 )
         { get_refr_index_1d( ws, ppath_step.nreal[0], ppath_step.ngroup[0], 
                              refr_index_air_agenda, p_grid, refellipsoid, 
-                             z_field(joker,0,0), t_field, vmr_field, 
+                             z_field, t_field, vmr_field, 
                              f_grid, ppath_step.r[0] ); 
         }
       else if( atmosphere_dim == 2 )
         { get_refr_index_2d( ws, ppath_step.nreal[0], ppath_step.ngroup[0], 
-                             refr_index_air_agenda, p_grid, lat_grid, refellipsoid, 
-                             z_field(joker,joker,0), t_field, vmr_field, 
+                             refr_index_air_agenda, p_grid, lat_grid, 
+                             refellipsoid, z_field, t_field, vmr_field, 
                              f_grid, ppath_step.r[0], 
                              ppath_step.pos(0,1) ); 
         }
@@ -892,7 +891,7 @@ void VectorZtanToZaRefr1D(
         {
           get_refr_index_1d( ws, refr_index_air, refr_index_air_group, 
                              refr_index_air_agenda, p_grid, refellipsoid[0], 
-                             z_field(joker,0,0), t_field, vmr_field, f_grid,
+                             z_field, t_field, vmr_field, f_grid,
                              ztan_vector[i] + refellipsoid[0] );
 
           // Calculate zenith angle

@@ -2827,136 +2827,6 @@ void ppath_step_geom_1d(
 
 
 
-//! do_gridcell_2d
-/*!
-   Calculates the geometrical path through a 2D grid cell.
-
-   The function determines the geometrical path from the given start
-   point to the boundary of the grid cell. The face where the path
-   exits the grid cell is denoted as the end face. The following
-   number coding is used for the variable *endface*: <br>
-   1: The face at the lower latitude point. <br>
-   2: The face at the lower (geometrically) pressure level. <br>
-   3: The face at the upper latitude point. <br>
-   4: The face at the upper (geometrically) pressure level. <br>
-   7: The end point is an intersection with the surface. 
-
-   The corner points are names r[lat][a,b]. For example: r3b.
-   The latitudes are numbered to match the end faces. This means that
-   the lower latitude has number 1, and the upper number 3. The pressure
-   levels are named as a and b: <br>
-   a: Lower pressure level (highest pressure). <br>
-   b: Upper pressure level (lowest pressure).
-
-   Path points are included if *lmax*>0 and the distance to the end
-   point is > than *lmax*.
-
-   The return vectors (*r_v* etc.) can have any length when handed to
-   the function.
-
-   \param   r_v         Out: Vector with radius of found path points.
-   \param   lat_v       Out: Vector with latitude of found path points.
-   \param   za_v        Out: Vector with LOS zenith angle at found path points.
-   \param   lstep       Out: Vector with length along the path between points.
-   \param   endface     Out: Number coding for exit face. See above.
-   \param   r_start0    Radius of start point.
-   \param   lat_start   Latitude of start point.
-   \param   za_start    LOS zenith angle at start point.
-   \param   ppc         Propagation path constant.
-   \param   lmax        Maximum allowed length along the path. -1 = no limit.
-   \param   lat1        Latitude of left end face (face 1) of the grid cell.
-   \param   lat3        Latitude of right end face (face 3) of the grid cell.
-   \param   r1a         Radius of lower-left corner of the grid cell.
-   \param   r3a         Radius of lower-right corner of the grid cell.
-   \param   r3b         Radius of upper-right corner of the grid cell (r3b>r3a)
-   \param   r1b         Radius of upper-left corner of the grid cell (r1b>r1a).
-   \param   rsurface1   Radius for the surface at *lat1*.
-   \param   rsurface3   Radius for the surface at *lat3*.
-
-   \author Patrick Eriksson
-   \date   2002-11-28
-*/
-void do_gridcell_2d(
-              Vector&   r_v,
-              Vector&   lat_v,
-              Vector&   za_v,
-              Numeric&  lstep,
-              Index&    endface,
-        const Numeric&  r_start,
-        const Numeric&  lat_start,
-        const Numeric&  za_start,
-        const Numeric&  ppc,
-        const Numeric&  lmax,
-        const Numeric&  lat1,
-        const Numeric&  lat3,
-        const Numeric&  r1a,
-        const Numeric&  r3a,
-        const Numeric&  r3b,
-        const Numeric&  r1b,
-        const Numeric&  rsurface1,
-        const Numeric&  rsurface3 )
-{
-  // Radius and latitude of end point, and the length to it
-  Numeric r, lat, l= L_NOT_FOUND;  // l not always calculated/needed
-
-  endface = 0;
-
-  // Check if crossing with lower pressure level
-  plevel_crossing_2d( r, lat, l, r_start, lat_start, za_start, ppc, lat1, lat3, 
-                                                              r1a, r3a, true );
-  if( r > 0 )
-    { endface = 2; }
-
-  // Check if crossing with surface
-  if( rsurface1 >= r1a  ||  rsurface3 >= r3a )
-    {
-      Numeric rt, latt, lt; 
-      plevel_crossing_2d( rt, latt, lt, r_start, lat_start, za_start, ppc, 
-                                    lat1, lat3, rsurface1, rsurface3, true );
-
-      if( rt > 0  &&  lt <= l )  // lt<=l to resolve the closest crossing
-        { endface = 7;   r = rt;   lat = latt;   l = lt; }
-    }
-
-  // Upper pressure level
-  {
-    Numeric rt, latt, lt; 
-    plevel_crossing_2d( rt, latt, lt, r_start, lat_start, za_start, ppc, 
-                                                 lat1, lat3, r1b, r3b, false );
-    if( rt > 0  &&  lt < l )  // lt<l to resolve the closest crossing
-      { endface = 4;   r = rt;   lat = latt;  /* l = lt; */ }
-  }
-  
-  // Latitude endfaces
-  if( r <= 0 )
-    {
-      if( za_start < 0 )
-        { endface = 1;  lat = lat1; }
-      else
-        { endface = 3;  lat = lat3; }
-      r = geompath_r_at_lat( ppc, lat_start, za_start, lat ); 
-    }
-
-  assert( endface );
-
-  //Check if there is a tangent point inside the grid cell. 
-  bool tanpoint;
-  const Numeric absza = abs( za_start );
-  if( absza > 90  &&  ( absza - abs(lat_start-lat) ) < 90 ) 
-    { tanpoint = true; }
-  else
-    { tanpoint = false; }
-
-  geompath_from_r1_to_r2( r_v, lat_v, za_v, lstep, ppc, r_start, lat_start, 
-                          za_start, r, tanpoint, lmax );
-
-  // Force exact values for end point when they are known
-  if( endface == 1  ||  endface == 3 )
-    { lat_v[lat_v.nelem()-1] = lat; }
-}
-
-
-
 //! do_gridcell_2d_byltest
 /*!
     Works as do_gridcell_3d_byltest, but downscaled to 2D
@@ -3298,19 +3168,10 @@ void ppath_step_geom_2d(
   Numeric   lstep;
   Index    endface;
 
-  if( 0 )
-    {
-      do_gridcell_2d( r_v, lat_v, za_v, lstep, endface,
-                  r_start, lat_start, za_start, ppc, lmax, lat1, lat3, 
-                                    r1a, r3a, r3b, r1b, rsurface1, rsurface3 );
-    }
-  else
-    {
-      do_gridcell_2d_byltest( r_v, lat_v, za_v, lstep, endface, r_start, 
+  do_gridcell_2d_byltest( r_v, lat_v, za_v, lstep, endface, r_start, 
                               lat_start, za_start, -1, 0, ppc, lmax, 
                               lat1, lat3, r1a, r3a, r3b, r1b,
                               rsurface1, rsurface3 );
-    }
   // Fill *ppath*
   const Index np = r_v.nelem();
   ppath_end_2d( ppath, r_v, lat_v, za_v, Vector(np-1,lstep), Vector(np,1), 
@@ -3759,44 +3620,37 @@ void ppath_step_geom_3d(
 
    A geometrical step with length of *lraytrace* is taken from each
    point. The zenith angle for the end point of that step is
-   calculated exactly by the expression c = r*n*sin(theta), and a new
-   step is taken. The length of the last ray tracing step to reach the
-   end radius is adopted to the distance to the end radius.
-
-   The refractive index is assumed to vary linearly between the pressure
-   levels.
-
-   As the ray tracing is performed from the last end point, the found path
-   will not be symmetric around the tangent point.
+   calculated considering the gradient of the refractive index. The
+   length of the last ray tracing step is set to the distance to grid
+   box boundary.
 
    For more information read the chapter on propagation paths in AUG.
    The algorithm used is described in that part of ATD.
 
-   \param   ws           Current Workspace
-   \param   r_array      Out: Radius of ray tracing points.
-   \param   lat_array    Out: Latitude of ray tracing points.
-   \param   za_array     Out: LOS zenith angle at ray tracing points.
-   \param   l_array      Out: Distance along the path between ray tracing 
-                         points.
-   \param   n_array      Out: Refractive index at ray tracing points.
-   \param   ng_array     Out: Group refractive index at ray tracing points.
-   \param   endface      See do_gridrange_1d.
-   \param   refellipsoid As the WSV with the same name.
-   \param   p_grid       Pressure grid.
-   \param   z_field      Geometrical altitudes (1D).
-   \param   t_field      As the WSV with the same name.
-   \param   vmr_field    As the WSV with the same name.
-   \param   f_grid       As the WSV with the same name.
-   \param   lmax         As the WSV ppath_lmax
-   \param   refr_index_air_agenda   As the WSV with the same name.
-   \param   lraytrace    Maximum allowed length for ray tracing steps.
-   \param   ppc          Propagation path constant.
-   \param   r_surface    Radius of the surface.
-   \param   r1           Radius of lower pressure level.
-   \param   r3           Radius of upper pressure level (r3 > r1).
-   \param   r            Start radius for ray tracing.
-   \param   lat          Start latitude for ray tracing.
-   \param   za           Start zenith angle for ray tracing.
+   \param   ws              Current Workspace
+   \param   r_array         Out: Radius of ray tracing points.
+   \param   lat_array       Out: Latitude of ray tracing points.
+   \param   za_array        Out: LOS zenith angle at ray tracing points.
+   \param   l_array         Out: Distance along the path between ray tracing 
+                            points.
+   \param   n_array         Out: Refractive index at ray tracing points.
+   \param   endface         Out: Number coding of exit face.
+   \param   p_grid          The WSV with the same name.
+   \param   refellipsoid    The WSV with the same name.
+   \param   lat_grid        The WSV with the same name.
+   \param   z_field         The WSV with the same name.
+   \param   t_field         The WSV with the same name.
+   \param   vmr_field       The WSV with the same name.
+   \param   f_grid          As the WSV with the same name.
+   \param   lmax            As the WSV ppath_lmax
+   \param   refr_index_air_agenda   The WSV with the same name.
+   \param   lraytrace       Maximum allowed length for ray tracing steps.
+   \param   r_surface       Radius of the surface.
+   \param   r1              Radius of lower pressure level.
+   \param   r3              Radius of upper pressure level (r3 > r1).
+   \param   r               Start radius for ray tracing.
+   \param   lat             Start latitude for ray tracing.
+   \param   za              Start zenith angle for ray tracing.
 
    \author Patrick Eriksson
    \date   2002-12-02
@@ -3810,106 +3664,63 @@ void raytrace_1d_linear_basic(
               Array<Numeric>&  n_array,
               Array<Numeric>&  ng_array,
               Index&           endface,
-        ConstVectorView        refellipsoid,
         ConstVectorView        p_grid,
-        ConstVectorView        z_field,
+        ConstVectorView        refellipsoid,
+        ConstTensor3View       z_field,
         ConstTensor3View       t_field,
         ConstTensor4View       vmr_field,
         ConstVectorView        f_grid,
         const Numeric&         lmax,
         const Agenda&          refr_index_air_agenda,
         const Numeric&         lraytrace,
-        const Numeric&         ppc,
-        const Numeric&         r_surface,
+        const Numeric&         rsurface,
         const Numeric&         r1,
         const Numeric&         r3,
-              Numeric&         r,
-              Numeric&         lat,
-              Numeric&         za )
+              Numeric          r,
+              Numeric          lat,
+              Numeric          za )
 {
-//  /*
-  // We currently do not handle bending of rays back into the medium due to
-  // refraction. Following check test, whether this is expected to happen for
-  // the given grid cell and ray zenith angle.
-  // Generally constant path constant rule applies:
-  // n1 * r1 * sin(th1) == n3 * r3 * sin(th3),
-  // where largest path constant values that can occur are (n1*r1) and (n3*r3)
-  // No solution exists if
-  // n1 * r1 * sin(th1) > n3 * r3, hence
-  // n3 < n1 * sin(th1) * r1/r3 (similar for n1 < n3 * sin(th3) * r3/r1)
-  // Assuming that za is given at r1, we check for n3 >= n1 * sin(za) * r1/r3
-  Numeric refr1, refr3, refrg;
-  get_refr_index_1d( ws, refr1, refrg, 
-                     refr_index_air_agenda, p_grid, refellipsoid, z_field,
-                     t_field, vmr_field, f_grid, r1 );
-  get_refr_index_1d( ws, refr3, refrg, 
-                     refr_index_air_agenda, p_grid, refellipsoid, z_field,
-                     t_field, vmr_field, f_grid, r3 );
-  if( refr3 < refr1 * (r1/r3) * sin( DEG2RAD * abs(za) ) )
-    {
-      ostringstream os;
-      os << "For path between r1=" << r1 << "(n-1=" << refr1-1. << ") and r2="
-         << r3 << "(n-1=" << refr3-1. << "),\n"
-         << "path calculation will run into refractive back-bending issues.\n"
-         << "We are currently NOT ABLE to handle them. Consider repeating\n"
-         << "your calculation without taking refraction into account.";
-      throw runtime_error(os.str());
-    }
-//  */
-
   // Loop boolean
   bool ready = false;
 
   // Store first point
   Numeric refr_index_air, refr_index_air_group;
   get_refr_index_1d( ws, refr_index_air, refr_index_air_group, 
-                     refr_index_air_agenda, p_grid, refellipsoid, z_field,
-                     t_field, vmr_field, f_grid, r );
+                     refr_index_air_agenda, p_grid, refellipsoid, 
+                     z_field, t_field, vmr_field, f_grid, r );
   r_array.push_back( r );
   lat_array.push_back( lat );
   za_array.push_back( za );
   n_array.push_back( refr_index_air );
   ng_array.push_back( refr_index_air_group );
 
-  // Variables for output from do_gridrange_1d
+  // Variables for output from do_gridcell_2d
   Vector    r_v, lat_v, za_v;
-  Numeric   lstep, lcum = 0;
+  Numeric   lstep, lcum = 0, dlat;
 
   while( !ready )
     {
       // Constant for the geometrical step to make
       const Numeric   ppc_step = geometrical_ppc( r, za );
 
-      // Explicitly check here, that predicted path point is still within
-      // gridcell and did not undetectedly slip out. This can happen in case of
-      // close-to-lateral angles and high refraction gradient, which causes a
-      // bending of the ray back into the medium (kind of reflection). There is
-      // no proper handling of this back-bending case yet.
-      if( ( r < r1 - RTOL ) || ( r > r3 + RTOL ) )
-        {
-          throw runtime_error(
-            "Ooops. Path undetectedly left the grid cell.\n"
-            "This should not happen. But there are issues with cases of high\n"
-            "refractivity gradients. Seems you unfortunately encountered such\n"
-            "a case. Little to be done about this now (if this is an option\n"
-            "for you, run the case without considering refraction). For further\n"
-            "details, contact Patrick Eriksson.");
-        }
-
       // Where will a geometric path exit the grid cell?
-      do_gridrange_1d( r_v, lat_v, za_v, lstep, endface, r, lat, za, ppc_step, 
-                                                       -1, r1, r3, r_surface );
+      do_gridrange_1d( r_v, lat_v, za_v, lstep, endface, r, lat, za,
+                       ppc_step, -1, r1, r3, rsurface );
       assert( r_v.nelem() == 2 );
+
+      // If *lstep* is <= *lraytrace*, extract the found end point (if not 
+      // a tangent point, we are ready).
+      // Otherwise, we make a geometrical step with length *lraytrace*.
 
       Numeric za_flagside = za;
 
       if( lstep <= lraytrace )
         {
-          r           = r_v[1];
-          lat         = lat_v[1];
-          lcum       += lstep;
-          za_flagside = za_v[1];
-          ready       = true;
+          r     = r_v[1];
+          dlat  = lat_v[1] - lat;
+          lat   = lat_v[1];
+          lcum += lstep;
+          ready = true; 
         }
       else
         {
@@ -3920,32 +3731,37 @@ void raytrace_1d_linear_basic(
             { 
               l = geompath_l_at_r(ppc_step,r) - lraytrace; 
               if( l < 0 )
-                { za_flagside = 80; }     // Tangent point passed!
+                { za_flagside = 180-za_flagside; } // Tangent point passed!
             }
 
-          r = geompath_r_at_l( ppc_step, l );  // Works als0 for l<0
+          r = geompath_r_at_l( ppc_step, l );
 
-          lat = geompath_lat_at_za( za, lat, 
-                                geompath_za_at_r( ppc_step, za_flagside, r ) );
+          const Numeric lat_new = geompath_lat_at_za( za, lat, 
+                                 geompath_za_at_r( ppc_step, za_flagside, r) );
+          dlat  = lat_new - lat;
+          lat   = lat_new;
+          lstep = lraytrace;
           lcum += lraytrace;
         }
 
-      // Refractive index at *r*
-      get_refr_index_1d( ws, refr_index_air, refr_index_air_group, 
-                         refr_index_air_agenda, p_grid, refellipsoid, 
-                         z_field, t_field, vmr_field, f_grid, r );
+      // Refractive index at new point
+      Numeric   dndr;
+      refr_gradients_1d( ws, refr_index_air, refr_index_air_group, dndr, 
+                         refr_index_air_agenda, p_grid, refellipsoid, z_field, 
+                         t_field, vmr_field, f_grid, r );
 
       // Calculate LOS zenith angle at found point.
+      const Numeric   za_rad = DEG2RAD * za;
+      //
+      za += - dlat;   // Pure geometrical effect
+      //
+      za += (RAD2DEG * lstep / refr_index_air) * ( -sin(za_rad) * dndr );
 
-      const Numeric ppc_local = ppc / refr_index_air; 
-
-      if( r >= ppc_local )
-        { za = geompath_za_at_r( ppc_local, za_flagside, r ); }
-      else  // If moved below tangent point:
-        { 
-          r = ppc_local;
-          za = 90;
-        }
+      // Make sure that obtained *za* is inside valid range
+      if( za < 0 )
+        { za = -za; }
+      else if( za > 180 )
+        { za -= 360; }
 
       // Store found point?
       if( ready  ||  ( lmax > 0  &&  lcum + lraytrace > lmax ) )
@@ -3962,7 +3778,6 @@ void raytrace_1d_linear_basic(
 }
 
 
-
 //! ppath_step_refr_1d
 /*! 
    Calculates 1D propagation path steps including effects of refraction.
@@ -3976,7 +3791,7 @@ void raytrace_1d_linear_basic(
    \param   ws                Current Workspace
    \param   ppath             Out: A Ppath structure.
    \param   p_grid            Pressure grid.
-   \param   z_field           Geometrical altitudes (1D).
+   \param   z_field           As the WSV with the same name.
    \param   t_field           As the WSV with the same name.
    \param   vmr_field         As the WSV with the same name.
    \param   f_grid            As the WSV with the same name.
@@ -3995,7 +3810,7 @@ void ppath_step_refr_1d(
               Workspace&  ws,
               Ppath&      ppath,
         ConstVectorView   p_grid,
-        ConstVectorView   z_field,
+        ConstTensor3View  z_field,
         ConstTensor3View  t_field,
         ConstTensor4View  vmr_field,
         ConstVectorView   f_grid,
@@ -4042,12 +3857,19 @@ void ppath_step_refr_1d(
   //
   if( rtrace_method  == "linear_basic" )
     {
+      /*
       raytrace_1d_linear_basic( ws, r_array, lat_array, za_array, l_array, 
             n_array, ng_array, endface, refellipsoid, p_grid, z_field, t_field,
             vmr_field, f_grid, lmax, refr_index_air_agenda, 
             lraytrace, ppc, refellipsoid[0] + z_surface, 
             refellipsoid[0]+z_field[ip], refellipsoid[0]+z_field[ip+1], 
             r_start, lat_start, za_start );
+      */
+      raytrace_1d_linear_basic( ws, r_array, lat_array, za_array, l_array, 
+            n_array, ng_array, endface, p_grid, refellipsoid, z_field, t_field,
+            vmr_field, f_grid, lmax, refr_index_air_agenda, lraytrace, 
+            refellipsoid[0] + z_surface, refellipsoid[0]+z_field(ip,0,0), 
+            refellipsoid[0]+z_field(ip+1,0,0), r_start, lat_start, za_start );
     }
   else
     {
@@ -4070,8 +3892,8 @@ void ppath_step_refr_1d(
         { l_v[i] = l_array[i]; }
     }
   //
-  ppath_end_1d( ppath, r_v, lat_v, za_v, l_v, n_v, ng_v, z_field, refellipsoid,
-                                                            ip, endface, ppc );
+  ppath_end_1d( ppath, r_v, lat_v, za_v, l_v, n_v, ng_v, z_field(joker,0,0), 
+                refellipsoid, ip, endface, ppc );
 }
 
 
@@ -4083,11 +3905,8 @@ void ppath_step_refr_1d(
    A geometrical step with length of *lraytrace* is taken from each
    point. The zenith angle for the end point of that step is
    calculated considering the gradient of the refractive index. The
-   length of the last ray tracing step to reach the end radius is
-   adopted to the distance to the end radius.
-
-   The refractive index is assumed to vary linearly along the pressure
-   levels and the latitude grid points.
+   length of the last ray tracing step is set to the distance to grid
+   box boundary.
 
    For more information read the chapter on propagation paths in AUG.
    The algorithm used is described in that part of ATD.
@@ -4103,7 +3922,7 @@ void ppath_step_refr_1d(
    \param   p_grid          The WSV with the same name.
    \param   lat_grid        The WSV with the same name.
    \param   refellipsoid    The WSV with the same name.
-   \param   z_field         Geomtrical altitudes (2D).
+   \param   z_field         The WSV with the same name.
    \param   t_field         The WSV with the same name.
    \param   vmr_field       The WSV with the same name.
    \param   f_grid          As the WSV with the same name.
@@ -4137,7 +3956,7 @@ void raytrace_2d_linear_basic(
         ConstVectorView        p_grid,
         ConstVectorView        lat_grid,
         ConstVectorView        refellipsoid,
-        ConstMatrixView        z_field,
+        ConstTensor3View       z_field,
         ConstTensor3View       t_field,
         ConstTensor4View       vmr_field,
         ConstVectorView        f_grid,
@@ -4180,17 +3999,9 @@ void raytrace_2d_linear_basic(
       const Numeric   ppc_step = geometrical_ppc( r, za );
 
       // Where will a geometric path exit the grid cell?
-      if( 0 )
-        {
-          do_gridcell_2d( r_v, lat_v, za_v, lstep, endface, r, lat, za, ppc_step, 
-                       -1, lat1, lat3, r1a, r3a, r3b, r1b, rsurface1, rsurface3 );
-        }
-      else
-        {
-          do_gridcell_2d_byltest( r_v, lat_v, za_v, lstep, endface, r, lat, za,
+      do_gridcell_2d_byltest( r_v, lat_v, za_v, lstep, endface, r, lat, za,
                                   lraytrace, 0, ppc_step, -1, lat1, lat3, 
                                   r1a, r3a, r3b, r1b, rsurface1, rsurface3 );
-        }
       assert( r_v.nelem() == 2 );
 
       // If *lstep* is <= *lraytrace*, extract the found end point (if not 
@@ -4215,8 +4026,8 @@ void raytrace_2d_linear_basic(
           else
             { 
               l = geompath_l_at_r(ppc_step,r) - lraytrace; 
-              if( l < 0 )
-                { za_flagside = sign(za)*80; }     // Tangent point passed!
+              if( l < 0 )  // Tangent point passed!
+                { za_flagside = sign(za)*180-za_flagside; } 
             }
 
           r = geompath_r_at_l( ppc_step, l );
@@ -4292,7 +4103,7 @@ void raytrace_2d_linear_basic(
    \param   ppath             Out: A Ppath structure.
    \param   p_grid            Pressure grid.
    \param   lat_grid          Latitude grid.
-   \param   z_field           Geometrical altitudes (2D).
+   \param   z_field           As the WSV with the same name.
    \param   t_field           As the WSV with the same name.
    \param   vmr_field         As the WSV with the same name.
    \param   f_grid            As the WSV with the same name.
@@ -4312,7 +4123,7 @@ void ppath_step_refr_2d(
               Ppath&      ppath,
         ConstVectorView   p_grid,
         ConstVectorView   lat_grid,
-        ConstMatrixView   z_field,
+        ConstTensor3View  z_field,
         ConstTensor3View  t_field,
         ConstTensor4View  vmr_field,
         ConstVectorView   f_grid,
@@ -4335,7 +4146,8 @@ void ppath_step_refr_2d(
   // Determine the variables defined above and make all possible asserts
   ppath_start_2d( r_start, lat_start, za_start, ip, ilat, 
                   lat1, lat3, r1a, r3a, r3b, r1b, rsurface1, rsurface3,
-                  ppath, lat_grid, z_field, refellipsoid, z_surface );
+                  ppath, lat_grid, z_field(joker,joker,0), refellipsoid, 
+                  z_surface );
 
   // Perform the ray tracing
   //
@@ -4377,8 +4189,8 @@ void ppath_step_refr_2d(
         { l_v[i] = l_array[i]; }
     }
   //
-  ppath_end_2d( ppath, r_v, lat_v, za_v, l_v, n_v, ng_v, lat_grid, z_field, 
-                                         refellipsoid, ip, ilat, endface, -1 );
+  ppath_end_2d( ppath, r_v, lat_v, za_v, l_v, n_v, ng_v, lat_grid, 
+                z_field(joker,joker,0), refellipsoid, ip, ilat, endface, -1 );
 }
 
 
@@ -4390,11 +4202,8 @@ void ppath_step_refr_2d(
    A geometrical step with length of *lraytrace* is taken from each
    point. The zenith angle for the end point of that step is
    calculated considering the gradient of the refractive index. The
-   length of the last ray tracing step to reach the end radius is
-   adopted to the distance to the end radius.
-
-   The refractive index is assumed to vary linearly along the pressure
-   levels and the latitude grid points.
+   length of the last ray tracing step is set to the distance to grid
+   box boundary.
 
    For more information read the chapter on propagation paths in AUG.
    The algorithm used is described in that part of ATD.
@@ -4525,7 +4334,7 @@ void raytrace_3d_linear_basic(
                               rsurface15, rsurface35, rsurface36, rsurface16 );
       assert( r_v.nelem() == 2 );
 
-      // If *lstep* is <= *lraytrace*, extract the found end point
+      // If *lstep* is <= *lraytrace*, extract the found end point.
       // Otherwise, we make a geometrical step with length *lraytrace*.
 
       if( lstep <= lraytrace )

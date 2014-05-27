@@ -129,7 +129,7 @@ void complex_n_water_liebe93(
    \param   refr_index_air_agenda   As the WSV with the same name.
    \param   p_grid              As the WSV with the same name.   
    \param   refellipsoid        As the WSV with the same name.
-   \param   z_field             Geomtrical alrtitudes (1D).
+   \param   z_field             As the WSV with the same name.
    \param   t_field             As the WSV with the same name.
    \param   vmr_field           As the WSV with the same name.
    \param   f_grid              As the WSV with the same name.
@@ -145,7 +145,7 @@ void get_refr_index_1d(
     const Agenda&     refr_index_air_agenda,
     ConstVectorView   p_grid,
     ConstVectorView   refellipsoid,
-    ConstVectorView   z_field,
+    ConstTensor3View  z_field,
     ConstTensor3View  t_field,
     ConstTensor4View  vmr_field,
     ConstVectorView   f_grid,
@@ -156,7 +156,7 @@ void get_refr_index_1d(
 
   // Pressure grid position
   ArrayOfGridPos   gp(1);
-  gridpos( gp, z_field, Vector( 1, r - refellipsoid[0] ) );
+  gridpos( gp, z_field(joker,0,0), Vector( 1, r - refellipsoid[0] ) );
 
   // Altitude interpolation weights
   Matrix   itw(1,2);
@@ -208,7 +208,7 @@ void get_refr_index_1d(
    \param   p_grid                  As the WSV with the same name.
    \param   lat_grid                As the WSV with the same name.
    \param   refellipsoid            As the WSV with the same name.
-   \param   z_field                 Geomtrical altitudes (2D).
+   \param   z_field                 As the WSV with the same name.
    \param   t_field                 As the WSV with the same name.
    \param   vmr_field               As the WSV with the same name.
    \param   f_grid                  As the WSV with the same name.
@@ -226,7 +226,7 @@ void get_refr_index_2d(
     ConstVectorView   p_grid,
     ConstVectorView   lat_grid,
     ConstVectorView   refellipsoid,
-    ConstMatrixView   z_field,
+    ConstTensor3View  z_field,
     ConstTensor3View  t_field,
     ConstTensor4View  vmr_field,
     ConstVectorView   f_grid,
@@ -242,7 +242,7 @@ void get_refr_index_2d(
   ArrayOfGridPos   gp_lat(1);
   //
   gridpos( gp_lat, lat_grid, lat );
-  z_at_lat_2d( z_grid, p_grid, lat_grid, z_field, gp_lat[0] );
+  z_at_lat_2d( z_grid, p_grid, lat_grid, z_field(joker,joker,0), gp_lat[0] );
 
   // Determine the ellipsoid radius at *lat*
   const Numeric   rellips = refell2d( refellipsoid, lat_grid, gp_lat[0] );
@@ -383,6 +383,64 @@ void get_refr_index_3d(
 
 
 
+//! refr_gradients_1d
+/*! 
+   Determines the refractive index, and its gradients, for the given position.
+
+   The gradients are calculated in pure numerical way. That is, the
+   refractive index is calculated for slightly shifted radius or
+   latitude and the difference to the refractive index at the given
+   point determines the gradient.
+
+   \param   ws                    Current Workspace
+   \param   refr_index_air        Output: As the WSV with the same name.
+   \param   refr_index_air_group  Output: As the WSV with the same name.
+   \param   dndr                  Output: Radial gradient of refractive index.
+   \param   refr_index_air_agenda As the WSV with the same name.
+   \param   p_grid                As the WSV with the same name.
+   \param   refellipsoid          As the WSV with the same name.
+   \param   z_field               As the WSV with the same name.
+   \param   t_field               As the WSV with the same name.
+   \param   vmr_field             As the WSV with the same name.
+   \param   f_grid                As the WSV with the same name.
+   \param   r                     The radius of the position of interest.
+   \param   lat                   The latitude of the position of interest.
+
+   \author Patrick Eriksson
+   \date   2003-01-14
+*/
+void refr_gradients_1d(
+          Workspace&  ws,
+          Numeric&    refr_index_air,
+          Numeric&    refr_index_air_group,
+          Numeric&    dndr,
+    const Agenda&     refr_index_air_agenda,
+    ConstVectorView   p_grid,
+    ConstVectorView   refellipsoid,
+    ConstTensor3View  z_field,
+    ConstTensor3View  t_field,
+    ConstTensor4View  vmr_field,
+    ConstVectorView   f_grid,
+    const Numeric&    r )
+{ 
+  get_refr_index_1d( ws, refr_index_air, refr_index_air_group, 
+                     refr_index_air_agenda, p_grid, refellipsoid, 
+                     z_field, t_field, vmr_field, f_grid, r );
+
+  const Numeric   n0 = refr_index_air;
+        Numeric   dummy;
+
+  get_refr_index_1d( ws, refr_index_air, dummy, 
+                     refr_index_air_agenda, p_grid, refellipsoid, 
+                     z_field, t_field, vmr_field, f_grid, r+1 );
+
+  dndr = refr_index_air - n0;
+
+  refr_index_air = n0;
+}
+
+
+
 //! refr_gradients_2d
 /*! 
    Determines the refractive index, and its gradients, for the given position.
@@ -397,10 +455,6 @@ void get_refr_index_3d(
    change of the refractive index for a movement of 1m in the latitude
    direction.
 
-   The atmosphere is given by its 2D view. That is, the longitude
-   dimension is removed from the atmospheric fields. For example,
-   the temperature is given as a matrix.
-
    \param   ws                    Current Workspace
    \param   refr_index_air        Output: As the WSV with the same name.
    \param   refr_index_air_group  Output: As the WSV with the same name.
@@ -410,7 +464,7 @@ void get_refr_index_3d(
    \param   p_grid                As the WSV with the same name.
    \param   lat_grid              As the WSV with the same name.
    \param   refellipsoid          As the WSV with the same name.
-   \param   z_field               Geometrical altitudes (2D).
+   \param   z_field               As the WSV with the same name.
    \param   t_field               As the WSV with the same name.
    \param   vmr_field             As the WSV with the same name.
    \param   f_grid                As the WSV with the same name.
@@ -430,7 +484,7 @@ void refr_gradients_2d(
     ConstVectorView   p_grid,
     ConstVectorView   lat_grid,
     ConstVectorView   refellipsoid,
-    ConstMatrixView   z_field,
+    ConstTensor3View  z_field,
     ConstTensor3View  t_field,
     ConstTensor4View  vmr_field,
     ConstVectorView   f_grid,

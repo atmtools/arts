@@ -1,5 +1,36 @@
 2014-05-27  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-1-888
+
+	* src/ppath.cc (raytrace_2d_linear_basic): It was assumed that
+	zenith angle after tangent/turning point is below 90. Fixed.
+	Should now work with "super-refractivity".
+
+	(ppath_step_refr_1d): New version of this function. A new approach
+	to handle paths starting with zenith angles below 90 and moving to
+	> 90 due to "super-refractivity" was needed. The solution was just
+	to adopt the 2D algorithm to 1D. That is, refraction in 1D, 2D and
+	3D are now handled in basically the same manner.
+
+	* src/m_ppath.cc (ppath_stepRefractionBasic)
+	(VectorZtanToZaRefr1D): Adopted call of get_refr_index_1/2d.
+
+	* src/ppath_NotUsed.cc: Removed old version of refr_gradients_1d
+	as these functions now use another set of arguments.
+
+	(raytrace_1d_linear_basic): Old version put here.
+
+	* src/refraction.cc: z_field was a vector for 1D etc. This
+	differed from e.g. t_field, and z_field now Tensor3 inside the file.
+
+	(refr_gradients_1d): New function, a downscaled version from 2D.
+
+	* src/ppath.cc: Removed everything around do_gridcell_2d (the
+	byltest version used). The code of do_gridcell_2d is found in
+	ppath_NotUsed.cc.
+
+2014-05-27  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-1-887
 
 	* src/m_refraction.cc (complex_refr_indexIceWarren84): BUG FIX!

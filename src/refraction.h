@@ -52,7 +52,7 @@ void get_refr_index_1d(
     const Agenda&     refr_index_agenda,
     ConstVectorView   p_grid,
     ConstVectorView   refellipsoid,
-    ConstVectorView   z_field,
+    ConstTensor3View  z_field,
     ConstTensor3View  t_field,
     ConstTensor4View  vmr_field,
     ConstVectorView   f_grid,
@@ -66,7 +66,7 @@ void get_refr_index_2d(
     ConstVectorView   p_grid,
     ConstVectorView   lat_grid,
     ConstVectorView   refellipsoid,
-    ConstMatrixView   z_field,
+    ConstTensor3View  z_field,
     ConstTensor3View  t_field,
     ConstTensor4View  vmr_field,
     ConstVectorView   f_grid,
@@ -90,6 +90,20 @@ void get_refr_index_3d(
     const Numeric&    lat,
     const Numeric&    lon );
 
+void refr_gradients_1d(
+          Workspace&  ws,
+          Numeric&    refr_index_air,
+          Numeric&    refr_index_air_group,
+          Numeric&    dndr,
+    const Agenda&     refr_index_air_agenda,
+    ConstVectorView   p_grid,
+    ConstVectorView   refellipsoid,
+    ConstTensor3View  z_field,
+    ConstTensor3View  t_field,
+    ConstTensor4View  vmr_field,
+    ConstVectorView   f_grid,
+    const Numeric&    r );
+
 void refr_gradients_2d(
           Workspace&  ws,
           Numeric&    refr_index,
@@ -100,7 +114,7 @@ void refr_gradients_2d(
     ConstVectorView   p_grid,
     ConstVectorView   lat_grid,
     ConstVectorView   refellipsoid,
-    ConstMatrixView   z_field,
+    ConstTensor3View  z_field,
     ConstTensor3View  t_field,
     ConstTensor4View  vmr_field,
     ConstVectorView   f_grid,
