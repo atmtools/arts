@@ -2014,7 +2014,8 @@ void yCalcAppend(
 
           Index pos = -1;
 
-          // Compare to old quantities, if append shall be considered
+          // Compare to old quantities, to determine if append shall be 
+          // considered. Some special checks performed here, grids checked later
           if( jacobian_quantities2[q2].MainTag() == ABSSPECIES_MAINTAG   ||
               jacobian_quantities2[q2].MainTag() == TEMPERATURE_MAINTAG  ||
               jacobian_quantities2[q2].MainTag() == WIND_MAINTAG         ||
@@ -2023,10 +2024,57 @@ void yCalcAppend(
               for( Index q1=0; q1<nrq1; q1++ && pos < 0 )
                 {
                   if( jacobian_quantities2[q2].MainTag() ==
-                      jacobian_quantities1[q1].MainTag()    &&
-                      jacobian_quantities2[q2].Subtag() ==
-                      jacobian_quantities1[q1].Subtag() )
-                    { pos = q1; }
+                      jacobian_quantities1[q1].MainTag() )
+                    {
+                      // Absorption species
+                      if( jacobian_quantities2[q2].MainTag() == 
+                                                           ABSSPECIES_MAINTAG )
+                        {
+                          if( jacobian_quantities2[q2].Subtag() ==
+                              jacobian_quantities1[q1].Subtag() )
+                            {
+                              if( jacobian_quantities2[q2].Mode() ==
+                                  jacobian_quantities1[q1].Mode() )
+                                { pos = q1; }
+                              else
+                                {
+                                  ostringstream os;
+                                  os << "Jacobians for " 
+                                     << jacobian_quantities2[q2].MainTag()<<"/" 
+                                     << jacobian_quantities2[q2].Subtag() 
+                                     << " shall be appended.\nThis requires "
+                                     << "that the same retrieval unit is used "
+                                     << "but it seems that this requirement is "
+                                     << "not met.";
+                                  throw runtime_error(os.str());
+                                }
+                            }
+                        }
+                      // Temperature
+                      else if( jacobian_quantities2[q2].MainTag() == 
+                                                          TEMPERATURE_MAINTAG )
+                        {
+                          if( jacobian_quantities2[q2].Subtag() ==
+                              jacobian_quantities1[q1].Subtag() )
+                            { pos = q1; }
+                          else
+                            {
+                              ostringstream os;
+                              os << "Jacobians for " 
+                                 << jacobian_quantities2[q2].MainTag()<<"/" 
+                                 << jacobian_quantities2[q2].Subtag() 
+                                 << " shall be appended.\nThis requires "
+                                 << "that HSE is either ON or OFF for both "
+                                 << "parts but it seems that this requirement "
+                                 << "is not met.";
+                              throw runtime_error(os.str());
+                            }
+                        }
+                      // Other
+                      else if( jacobian_quantities2[q2].Subtag() ==
+                               jacobian_quantities1[q1].Subtag() )
+                        { pos = q1; }
+                    }
                 }
             }
 

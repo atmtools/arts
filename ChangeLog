@@ -1,3 +1,12 @@
+2014-06-01  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-890
+
+	* src/m_rte.cc (yCalcAppend): Improved consistency checks. For
+	absorption species, it is now checked that the same unit is used
+	(vmr, nd ...) and for temperature HSE must now either be ON or OFF
+	for both parts. Changes after some testing by Ole Martin.
+
 2014-05-28  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-889
