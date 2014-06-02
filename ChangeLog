@@ -1,3 +1,17 @@
+2014-06-02  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-891
+
+	* src/src/m_nc.h (WriteNetCDFIndexed):
+	
+	Call WriteNetCDF instead of calling nca_write_to_file directly.
+
+	* src/src/nc_io.cc (nca_read_from_file, nca_write_to_file),
+	src/m_abs.cc (WriteMolTau):
+
+	Put critical regions around all NetCDF IO because the NetCDF C-library
+	is not thread-safe.
+
 2014-06-01  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-890

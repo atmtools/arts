@@ -2392,6 +2392,8 @@ void WriteMolTau(//WS Input
   if (atmosphere_dim != 1)
     throw runtime_error("WriteMolTau can only be used for atmsophere_dim=1");
 
+#pragma omp critical(netcdf__critical_region)
+    {
   // Open file
   if ((retval = nc_create(filename.c_str(), NC_CLOBBER, &ncid)))
     nca_error (retval, "nc_create");
@@ -2503,7 +2505,7 @@ void WriteMolTau(//WS Input
   // Close the file
   if ((retval = nc_close(ncid)))
     nca_error (retval, "nc_close");
-
+    }
 }
 
 #else

@@ -80,7 +80,7 @@ WriteNetCDFIndexed (//WS Input:
              const String& f,
              // WS Generic Input Names:
              const String& v_name,
-             const String& f_name _U_,
+             const String& f_name,
              const Verbosity& verbosity)
 
 {
@@ -89,7 +89,7 @@ WriteNetCDFIndexed (//WS Input:
     // Create default filename if empty
     nca_filename_with_index (filename, file_index, v_name);
 
-    nca_write_to_file (filename, v, verbosity);
+    WriteNetCDF(v, filename, v_name, f_name, verbosity);
 }
 
 #else // NetCDF not enabled

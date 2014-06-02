@@ -112,6 +112,8 @@ void nca_read_from_file(const String&    filename,
   
   out2 << "  Reading " << efilename << '\n';
 
+#pragma omp critical(netcdf__critical_region)
+    {
   int ncid;
   if (nc_open(efilename.c_str(), NC_NOWRITE, &ncid))
     {
@@ -133,6 +135,7 @@ void nca_read_from_file(const String&    filename,
     }
 
   nc_close(ncid);
+    }
 }
 
 
@@ -155,6 +158,8 @@ void nca_write_to_file(const String&    filename,
   
   out2 << "  Writing " << efilename << '\n';
 
+#pragma omp critical(netcdf__critical_region)
+    {
   int ncid;
   if (nc_create(efilename.c_str(), NC_CLOBBER, &ncid))
     {
@@ -176,6 +181,7 @@ void nca_write_to_file(const String&    filename,
     }
 
   nc_close(ncid);
+    }
 }
 
 
