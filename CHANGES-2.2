@@ -58,6 +58,11 @@ propmat_clearsky_agenda_checkedCalc, abs_xsec_agenda_checkedCalc
 - GriddedFields with atmospheric data must contain correct grid names
 attributes: Pressure, Latitude, Longitude etc. (e.g. for AtmRawRead)
 
+- Methods for pressure regridding of atmospheric fields (e.g. AtmFieldsCalc,
+GriddedFieldPRegrid, pnd_fieldCalc) allow to fill not explicitly given pressure
+levels with zeros (when flag zeropadding set to 1; default remains no
+zeropadding)
+
 - Atmospheric dimension must be set explicitly with AtmosphereSet1D or
 *2D or *3D
 
