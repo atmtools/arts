@@ -39,7 +39,7 @@ General
 
 - in-ARTS pnd_field calculations from atmospheric fields
 
-- in-ARTS scat_data calculations by T-matrix
+- in-ARTS scat_data calculations by Mie or T-matrix
 
 - possibility for non-scattering particles, i.e. FOS(order=0)
   EXPERIMENTAL!
@@ -59,11 +59,11 @@ propmat_clearsky_agenda_checkedCalc, abs_xsec_agenda_checkedCalc
 attributes: Pressure, Latitude, Longitude etc. (e.g. for AtmRawRead)
 
 - Atmospheric dimension must be set explicitly with AtmosphereSet1D or
-*2D or *3D (or via planet_*.arts include file)
+*2D or *3D
 
-- isotopologue_ratiosInitFromBuiltin must be called for Earth or loaded
-from a file for other planets (or set by including planet_*.arts for
-predefined setups)
+- isotopologue_ratios need to be set explicitly. can be initialized from
+isotopologue_ratiosInitFromBuiltin (for Earth) or loaded
+from a file (including planet_*.arts loads predefined setups)
 
 - stokes_dim must be explicitly set to 1-4: IndexSet(stokes_dim, 1)
 
