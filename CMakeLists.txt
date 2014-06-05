@@ -32,11 +32,16 @@ if (ENABLE_FORTRAN)
   
   if (FORTRAN_COMPILER MATCHES "gfortran.*")
     set (FORTRAN_EXTRA_FLAGS "-fdefault-double-8 -fdefault-integer-8 -fdefault-real-8")
-  elseif (FORTRAN_COMPILER MATCHES "g95.*")
-    set (FORTRAN_EXTRA_FLAGS "-d8")
   else (FORTRAN_COMPILER MATCHES "gfortran.*")
-    message(FATAL_ERROR "Unsupported Fortran compiler. Must be g95 or gfortran.")
+    message (FATAL_ERROR "Unsupported Fortran compiler. Must be gfortran.")
   endif (FORTRAN_COMPILER MATCHES "gfortran.*")
+
+  INCLUDE (CheckTypeSize)
+  CHECK_TYPE_SIZE (long SIZEOF_LONG)
+  if (NOT SIZEOF_LONG EQUAL 8)
+    message (FATAL_ERROR "Fortran interface only works on 64-bit with long size of 8 bytes.\n"
+      "Size of long on this system: ${SIZEOF_LONG} bytes")
+  endif (NOT SIZEOF_LONG EQUAL 8)
 
 endif (ENABLE_FORTRAN)
 

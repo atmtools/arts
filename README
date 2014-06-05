@@ -145,6 +145,9 @@ If necessary, certain Fortran modules can be selectively disabled:
 cmake -DENABLE_FORTRAN=1 -DNO_DISORT=1 ..
 cmake -DENABLE_FORTRAN=1 -DNO_REFICE=1 ..
 
+IMPORTANT: Only gfortran is currently supported and a 64-bit system is
+required (size of long type must be 8 bytes).
+
 
 DISABLING FEATURES
 ==================
