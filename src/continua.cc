@@ -382,21 +382,21 @@ extern const Numeric SPEED_OF_LIGHT;
 // conversion from decibel to neper:
 //const Numeric dB_to_Np  = (1.000000 / Np_to_dB);            // [Np/dB]
 // conversion from GHz to Hz:
-const Numeric GHz_to_Hz = 1.000000e9;                       // [Hz/GHz]
+//const Numeric GHz_to_Hz = 1.000000e9;                       // [Hz/GHz]
 // conversion from Hz to GHz:
 const Numeric Hz_to_GHz = 1.000000e-9;                      // [GHz/Hz]
 // conversion from kPa to Pa:
-const Numeric kPa_to_Pa = 1.000000e3;                       // [kPa/Pa]
+//const Numeric kPa_to_Pa = 1.000000e3;                       // [kPa/Pa]
 // conversion from Pa to kPa:
 const Numeric Pa_to_kPa = 1.000000e-3;                      // [Pa/kPa]
 // conversion from hPa to Pa (hPa = mbar):
-const Numeric hPa_to_Pa = 1.000000e2;                       // [hPa/Pa]
+//const Numeric hPa_to_Pa = 1.000000e2;                       // [hPa/Pa]
 // conversion from Pa to hPa (hPa = mbar):
 const Numeric Pa_to_hPa = 1.000000e-2;                      // [Pa/hPa]
 
 // MPM pre-factor for unit setting:
-const Numeric dB_m_Hz   = 0.1820427855916028e-06; // [dB/m/Hz]   (4 * pi / c) * 10 * log(e)
-const Numeric dB_km_GHz = 0.1820427855916028e+06; // [dB/km/GHz] (4 * pi / c) * 10 * log(e)
+//const Numeric dB_m_Hz   = 0.1820427855916028e-06; // [dB/m/Hz]   (4 * pi / c) * 10 * log(e)
+//const Numeric dB_km_GHz = 0.1820427855916028e+06; // [dB/km/GHz] (4 * pi / c) * 10 * log(e)
 
 
 // absorption unit conversions

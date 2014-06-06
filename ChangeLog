@@ -1,3 +1,11 @@
+2014-06-06  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-897
+
+	* doc/doxygen/Doxyfile.in: Remove obsolete variables.
+
+	* src/continua.cc: Comment out unused constants.
+
 2014-06-05  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-896
