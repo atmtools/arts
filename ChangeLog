@@ -1,5 +1,11 @@
 2014-06-06  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-2-0
+
+	* 2.2 Release
+
+2014-06-06  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-897
 
 	* doc/doxygen/Doxyfile.in: Remove obsolete variables.
