@@ -12355,7 +12355,7 @@ void MPM93WaterDropletAbs (MatrixView         pxsec,
       // Numeric RH       = e / es;
 
       // Check limits of suspended water droplet density ("vmr") [kg/m³]
-      if ( (vmr[i] > low_lim_den) && (vmr[i] < high_lim_den) )
+      if ( (vmr[i] >= low_lim_den) && (vmr[i] <= high_lim_den) )
   {
     // relative inverse temperature [1]
     Numeric theta    = 300.000 / abs_t[i];
@@ -12535,7 +12535,7 @@ void MPM93IceCrystalAbs (MatrixView        pxsec,
       // Numeric RH = e / es;
 
       // Check limits of suspended water ice crystal density ("vmr") [kg/m³]
-      if ( (vmr[i] > low_lim_den) && (vmr[i] < high_lim_den) )
+      if ( (vmr[i] >= low_lim_den) && (vmr[i] <= high_lim_den) )
   {
     // relative inverse temperature [1]
     Numeric theta = 300.000 / abs_t[i];

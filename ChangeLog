@@ -1,3 +1,11 @@
+2014-06-10  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-2-1
+
+	* continua.cc (MPM93IceCrystalAbs, MPM93WaterDropletAbs):
+	Include vmr limits into if-branch of xsec calc. Fixes missing xsec calc
+	for liquid water/ice continuum for abs_lookup, bug reported by Ian Adams.
+
 2014-06-06  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-2-0
