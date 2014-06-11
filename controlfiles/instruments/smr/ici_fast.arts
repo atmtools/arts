@@ -1,0 +1,63 @@
+#DEFINITIONS:  -*-sh-*-
+
+# ARTS setup file for fast ICI simulations
+# 
+# Basic setup (observation geometry, channel definitions) is a copy
+# of ici.arts.
+#
+# This is a version with a reduced frequency grid (only 1-2
+# frequencies per channel).
+# The frequencies have been derived with atmlab's simulated annealing
+# functionality from the Garand data set (42 atmospheric cases).
+# Optimization was run by Antonin Verlet-Banide on 140609 for channel
+# accuracies of ?K.
+#
+# Accuracy for the different channels:
+# Channel RMS_err[K]  Max_err[K]
+#    01   0.0036
+#    02   0.0546
+#    03   0.0897
+#    04   0.0597
+#    05   0.0708
+#    06   0.0997
+#    07   0.00722
+#    08   0.0804
+#    09   0.0763
+#    10   0.0836
+#    11   0.0755
+#
+# 2014-06-09 Jana Mendrok, Antonin Verlet-Banide
+
+Arts2 {
+
+# Observation geometry
+# ---
+
+MatrixSetConstant(sensor_pos, 1, 1, 817e3)
+MatrixSetConstant(sensor_los, 1, 1, 135)
+
+
+# Sensor response setup
+# ---
+
+# Initialization of sensor parameters
+MatrixSet( sensor_description_amsu,
+           [ 183.31e9,  7.00e9, 2000e6 ;
+             183.31e9,  3.40e9, 1500e6 ;
+             183.31e9,  2.00e9, 1500e6 ;
+             243.2e9,   2.50e9, 3000e6 ;
+             325.15e9,  9.50e9, 3000e6 ;
+             325.15e9,  3.50e9, 2400e6 ;
+             325.15e9,  1.50e9, 1600e6 ;
+      	     448e9,     7.20e9, 3000e6 ;
+      	     448e9,     3.00e9, 2000e6 ;
+      	     448e9,     1.40e9, 1200e6 ;
+      	     664e9,     4.20e9, 5000e6 ] )
+sensor_responseSimpleAMSU
+
+# Replace f_grid and sensor_response by optimized ones
+# (other parameters remain like initialized above).
+ReadXML( f_grid, "ici.f_grid_fast.xml")
+ReadXML( sensor_response, "ici.sensor_response_fast.xml")
+
+}

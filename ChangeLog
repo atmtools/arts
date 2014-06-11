@@ -1,5 +1,21 @@
 2014-06-11  Jana Mendrok  <jana.mendrok@ltu.se>
 
+	* arts-2-2-3
+
+	* controlfiles/instruments/smr/ici_fast.arts,
+	ici.sensor_response_fast.xml, ici.f_grid_fast.xml: Added. Optimized
+	frequency setup (derived fromsimulated annealing) for ICI.
+
+	* controlfiles/instruments/smr/TestICI_fast.arts,
+	TestICI_fast.ybatch.ref.xml: Added. ICI test case and corresponding
+	reference output.
+
+	* controlfiles/CMakeLists.txt: ICI test case added in "fast" chain.
+
+	* controlfiles/instruments/smr/ici.arts: bugfix in comments.
+
+2014-06-11  Jana Mendrok  <jana.mendrok@ltu.se>
+
 	* arts-2-2-2
 
 	* src/m_cloudbox.cc, methods.cc:

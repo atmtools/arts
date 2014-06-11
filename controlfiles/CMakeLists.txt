@@ -91,6 +91,8 @@ arts_test_run_ctlfile(slow instruments/amsu/TestAMSUB.arts)
 
 arts_test_run_ctlfile(nocheck instruments/amsu/TestAMSUA.arts)
 
+arts_test_run_ctlfile(fast instruments/smr/TestICI_fast.arts)
+
 arts_test_run_ctlfile(fast instruments/mhs/TestMHS_fast.arts)
 arts_test_run_ctlfile(slow instruments/mhs/TestMHS.arts)
 

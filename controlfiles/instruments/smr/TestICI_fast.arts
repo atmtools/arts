@@ -1,0 +1,229 @@
+#DEFINITIONS:  -*-sh-*-
+
+Arts2 {
+
+INCLUDE "general/general.arts"
+INCLUDE "general/continua.arts"
+INCLUDE "general/agendas.arts"
+INCLUDE "general/planet_earth.arts"
+
+# Agenda for scalar gas absorption calculation
+Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
+
+# Basic settings (already needed in sensor part)
+# ---
+AtmosphereSet1D
+IndexSet( stokes_dim, 1 )
+
+
+# 1. General
+#-----------
+
+output_file_formatSetZippedAscii
+
+# AMSU uses Planck brightness temperatures
+# ---
+StringSet( iy_unit, "PlanckBT" )
+
+# AMSU uses Planck brightness temperatures
+# ---
+StringSet( iy_unit, "PlanckBT" )
+
+# (standard) emission calculation
+Copy( iy_main_agenda, iy_main_agenda__Emission )
+
+# cosmic background radiation
+Copy( iy_space_agenda, iy_space_agenda__CosmicBackground )
+
+# standard surface agenda (i.e., make use of surface_rtprop_agenda)
+Copy( iy_surface_agenda, iy_surface_agenda__UseSurfaceRtprop )
+
+# Planck as blackbody radiation
+Copy( blackbody_radiation_agenda, blackbody_radiation_agenda__Planck )
+
+# sensor-only path
+Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
+
+# no refraction
+Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
+
+#
+# modifiy the maximum propagation step, from the default to 250 m :
+#
+NumericSet( ppath_lmax, 250 )
+
+# Surface
+Copy( surface_rtprop_agenda,
+      surface_rtprop_agenda__Specular_NoPol_ReflFix_SurfTFromt_surface )
+
+
+# 2. Spectroscopy
+#----------------
+
+# We take a smaller cutoff, since the line-by-line calculation is 
+# only for O3, where only the local lines matter.
+# Could be speed-optimized further by selecting only the relevant 
+# lines from the line list.
+ArrayOfLineshapeSpecCreate( abs_lineshapeDefine )
+abs_lineshapeDefine( abs_lineshapeDefine, "Voigt_Kuntz6", "VVH", 5e9 )
+
+abs_speciesSet( species=[ "H2O-PWR98",
+#                          "O3",
+                          "O2-PWR93",
+                          "N2-SelfContStandardType" ] )
+
+# Read HITRAN catalog (needed for O3):
+#abs_linesReadFromHitran( abs_lines,
+#                         "/storage3/data/catalogue/hitran/hitran2012/HITRAN2012.par",
+#                         150e9,
+#                         700e9 )
+#WriteXML( "ascii", abs_lines, "ici.hitran12_lines.xml" )
+
+#ReadXML( abs_lines, "ici.hitran12_lines.xml" )
+#abs_lines_per_speciesCreateFromLines
+abs_lines_per_speciesSetEmpty
+
+# WARNING: If you redefine abs_species, and want to do a line-by-line
+# calculation, you also have to call
+# abs_lines_per_speciesCreateFromLines again.
+
+
+# 3. Sensor:
+#-----------
+
+INCLUDE "ici_fast.arts"
+
+
+# 4. Atmosphere
+#--------------
+# Atmospheric profiles are stored in an ArrayOfMatrix.
+# It contains one matrix for each atmospheric state.
+# Each matrix row corresponds to one pressure level. The
+# meaning of the columns is:
+# p[Pa]        T[K]         z[m]         H2O[VMR]	O3[VMR]
+#
+ArrayOfMatrixCreate( arrayofmatrix_1 )
+#ReadXML( arrayofmatrix_1,
+#         "/storage2/home/sbuehler/checkouts/arts-xml-data/atmosphere/chevallier_91L/chevallierl91_clear_q.xml" )
+ReadXML( arrayofmatrix_1, "../amsu/chevallierl91_clear_q_extract.xml" )
+
+# Storage in an array of matrix is handy for Chevallier data, because
+# it is very compact. However, the more general internal
+# representation of the data is in batch_atm_fields_compact.
+
+# Convert to batch_atm_fields_compact
+# ---
+# The values taken for O2 and N2 are from Wallace&Hobbs, 2nd edition.
+batch_atm_fields_compactFromArrayOfMatrix(
+   batch_atm_fields_compact,
+   atmosphere_dim,
+   arrayofmatrix_1,
+#   ["T", "z", "H2O", "O3"],
+   ["T", "z", "H2O", "ignore"],
+   ["O2", "N2"],
+   [0.2095, 0.7808]
+)
+
+# Delete original data array to conserve memory:
+# ---
+Delete( arrayofmatrix_1 )
+
+# Set parameters for lookup table
+# ---
+# Arguments omitted for better maintainability of this test file.
+#abs_lookupSetupWide
+abs_lookupSetupBatch
+
+# Create the lookup table
+# ---
+abs_xsec_agenda_checkedCalc
+abs_lookupCalc
+
+# Set propmat_clearsky_agenda to use lookup table
+# ---
+Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__LookUpTable )
+
+
+# Set up RT calculation
+# =====================
+
+# Set surface reflectivity
+# ---
+# Here we take a value representative for the sea surface.
+# NumericSet( surface_emissivity, 0.6 )  <--- Old, replaced by:
+VectorSetConstant( surface_scalar_reflectivity, 1, 0.4 )
+
+
+# Set the agenda for batch calculations:
+# ---
+#
+AgendaSet( ybatch_calc_agenda ){
+  
+  # Extract the atmospheric profiles for this case:
+  Extract(
+    atm_fields_compact, 
+    batch_atm_fields_compact, 
+    ybatch_index
+  )
+
+  # Split up *atm_fields_compact* to
+  # generate p_grid, t_field, z_field, vmr_field:
+  AtmFieldsFromCompact
+
+  # Optionally set Jacobian parameters.
+  # uncomment this for NO jacobian calculations
+  jacobianOff
+  # Uncomment this block if you want Jacobians. Attention, it slows down the
+  # computation a lot.
+  # Also, you can add other Jacobians here, for example for temperature.
+#  jacobianInit
+#  jacobianAddAbsSpecies( jacobian_quantities, jacobian_agenda,
+#                         atmosphere_dim,
+#                         p_grid, lat_grid, lon_grid, 
+#                         p_grid, lat_grid, lon_grid,
+#                         "H2O-PWR98",
+#                         "analytical",
+#                         "rel",
+#                         0.01 )
+#  jacobianClose
+
+  # No scattering
+  cloudboxOff
+
+  # get some surface properties from corresponding atmospheric fields
+  Extract( z_surface, z_field, 0 )
+  Extract( t_surface, t_field, 0 )
+
+  # Perform RT calculations
+  # ---
+  atmfields_checkedCalc
+  atmgeom_checkedCalc
+  cloudbox_checkedCalc
+  sensor_checkedCalc
+  yCalc
+}
+
+
+# Set number of batch cases:
+nelemGet( ybatch_n, batch_atm_fields_compact )
+#IndexSet(ybatch_start, 2)
+#IndexSet(ybatch_n, 2)
+
+# Execute the batch calculations:
+# ---
+propmat_clearsky_agenda_checkedCalc
+ybatchCalc
+
+
+# Store result matrix:
+# ---
+WriteXML( "ascii", ybatch )
+
+#WriteXML( "ascii", ybatch_jacobians )
+
+ArrayOfVectorCreate( ybatch_ref )
+ReadXML( ybatch_ref, "TestICI_fast.ybatch.ref.xml" )
+Compare( ybatch, ybatch_ref, 0.2,
+         "Total radiance should be close to the reference values" )
+
+}
