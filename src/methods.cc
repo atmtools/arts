@@ -3301,6 +3301,162 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "dN_H11" ),
+        DESCRIPTION
+        (
+         "Calculation of particle size distribution (dN/dD) following\n"
+         "a parametrization by Heymsfield (2011; unpublished).\n"
+         "\n"
+         "A wrapper to internal particle size distribution calculation.\n"
+         "Heymsfield (2011) is an unpublished pre-version of\n"
+         "Heymsfield (2013). It is a globally valid parametrization for cloud\n"
+         "ice. The parametrization is in ambient atmospheric temperature over\n"
+         "particle size in terms of maximum dimension of the particles.\n"
+         "Provides only the shape of the number density disribution function.\n"
+         "\n"
+         "For testing purposes mainly.\n"
+         ),
+        AUTHORS( "Jana Mendrok" ),
+        OUT(),
+        GOUT( "dN" ),
+        GOUT_TYPE( "Vector" ),
+        GOUT_DESC( "size distribution number density" ),
+        IN(),
+        GIN( "Dmax", "t" ),
+        GIN_TYPE( "Vector", "Numeric" ),
+        GIN_DEFAULT( NODEF, NODEF ),
+        GIN_DESC( "Maximum dimension of the particles [m]",
+                  "Ambient atmospheric temperature [K]" )
+        ));  
+    
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "dN_Ar_H13" ),
+        DESCRIPTION
+        (
+         "Calculation of particle size and shape distribution (dN/dD, area\n"
+         "ratio) following Heymsfield (2013).\n"
+         "\n"
+         "A wrapper to internal particle size and shape distribution\n"
+         "calculation. Heymsfield (2013) is a globally valid parametrization\n"
+         "for cloud ice. The parametrization is in ambient atmospheric\n"
+         "temperature over particle size in terms of maximum dimension. It\n"
+         "provides the shape of the distribution function of both number\n"
+         "density and area ratio.\n"
+         "\n"
+         "For testing purposes mainly.\n"
+         ),
+        AUTHORS( "Jana Mendrok" ),
+        OUT(),
+        GOUT( "dN", "Ar" ),
+        GOUT_TYPE( "Vector", "Vector" ),
+        GOUT_DESC( "size distribution number density", "area ratio distribution" ),
+        IN(),
+        GIN( "Dmax", "t" ),
+        GIN_TYPE( "Vector", "Numeric" ),
+        GIN_DEFAULT( NODEF, NODEF ),
+        GIN_DESC( "Maximum dimension of the particles [m]",
+                  "Ambient atmospheric temperature [K]" )
+        ));  
+    
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "dN_H98" ),
+        DESCRIPTION
+        (
+         "Calculation of particle size shape distribution (dN/dR) following\n"
+         "Hess et al. (1998).\n"
+         "\n"
+         "A wrapper to internal particle size distribution calculation. The\n"
+         "distribution implemented here is for cloud liquid water,\n"
+         "specifically for continental stratus. The parametrization is over\n"
+         "radius of spherical droplets. Provides number density normalized to\n"
+         "the given liquid water content.\n"
+         "\n"
+         "For testing purposes mainly.\n"
+         ),
+        AUTHORS( "Jana Mendrok" ),
+        OUT(),
+        GOUT( "dN" ),
+        GOUT_TYPE( "Vector" ),
+        GOUT_DESC( "size distribution number density" ),
+        IN(),
+        GIN( "R", "LWC", "density" ),
+        GIN_TYPE( "Vector", "Numeric", "Vector" ),
+        GIN_DEFAULT( NODEF, NODEF, NODEF ),
+        GIN_DESC( "Radii of the particles [m]",
+                  "Atmospheric liquid water content [kg/m3]",
+                  "Density of the particles [kg/m3]" )
+        ));  
+   
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "dN_MH97" ),
+        DESCRIPTION
+        (
+         "Calculation of particle size distribution (dN/dD) following\n"
+         "McFarquahar and Heymsfield (1997) parametrization.\n"
+         "\n"
+         "A wrapper to internal particle size distribution calculation.\n"
+         "McFarquhar and Heymsfield (1997) is a parametrization for cloud\n"
+         "ice in the tropics. Parametrization is in ice water content (IWC)\n"
+         "and ambient atmospheric temperature over particle size in terms of\n"
+         "mass equivalent sphere diameter. McFarquhar and Heymsfield (1997)\n"
+         "additionally provide uncertainties of the distribution's\n"
+         "parameters, which can be used here to created perturbed\n"
+         "distributions (set *noisy* to 1). Provides number density\n"
+         "normalized to the given ice water content.\n"
+         "\n"
+         "For testing purposes mainly.\n"
+         ),
+        AUTHORS( "Jana Mendrok" ),
+        OUT(),
+        GOUT( "dN" ),
+        GOUT_TYPE( "Vector" ),
+        GOUT_DESC( "size distribution number density" ),
+        IN(),
+        GIN( "Dme", "IWC", "t", "density", "noisy" ),
+        GIN_TYPE( "Vector", "Numeric", "Numeric", "Vector", "Index" ),
+        GIN_DEFAULT( NODEF, NODEF, NODEF, NODEF, "0" ),
+        GIN_DESC( "Mass equivalent sphere diameter of the particles [m]",
+                  "Atmospheric ice water content [kg/m3]",
+                  "Ambient atmospheric temperature [K]",
+                  "Density of the particles [kg/m3]",
+                  "Distribution parameter perturbance flag" )
+        ));  
+    
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "dN_MP48" ),
+        DESCRIPTION
+        (
+         "Calculation of particle size distribution (dN/dD) following\n"
+         "Marshall and Palmer (1948) parametrization.\n"
+         "\n"
+         "A wrapper to internal particle size distribution calculation.\n"
+         "Marshall and Palmer (1948) is a parametrization for liquid and ice\n"
+         "precipitation, i.e., rain and snow. Parametrization is in\n"
+         "precipitation rate (PR) over particle size in terms of mass\n"
+         "equivalent sphere diameter. Provides number density normalized to\n"
+         "the given precipitation rate.\n"
+         "\n"
+         "For testing purposes mainly.\n"
+         ),
+        AUTHORS( "Jana Mendrok" ),
+        OUT(),
+        GOUT( "dN" ),
+        GOUT_TYPE( "Vector" ),
+        GOUT_DESC( "size distribution number density" ),
+        IN(),
+        GIN( "Dme", "PR" ),
+        GIN_TYPE( "Vector", "Numeric" ),
+        GIN_DEFAULT( NODEF, NODEF ),
+        GIN_DESC( "Mass equivalent sphere diameter of the particles [m]",
+                  "Precipitation rate [mm/h]" )
+        ));  
+    
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "DoitAngularGridsSet" ),
         DESCRIPTION
         (
