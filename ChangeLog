@@ -1,3 +1,13 @@
+2014-06-11  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-2-6
+
+	* src/montecarlo.cc (opt_propCalc): Check whether atm temperature is in
+	valid particle property temperature range.
+
+	* controlfiles/instruments/smr/ici_fast.arts: Give full path to f_grid
+	and sensor_response files. 
+
 2014-06-19  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-2-5

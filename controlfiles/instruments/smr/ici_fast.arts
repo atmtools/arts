@@ -57,7 +57,7 @@ sensor_responseSimpleAMSU
 
 # Replace f_grid and sensor_response by optimized ones
 # (other parameters remain like initialized above).
-ReadXML( f_grid, "ici.f_grid_fast.xml")
-ReadXML( sensor_response, "ici.sensor_response_fast.xml")
+ReadXML( f_grid, "instruments/smr/ici.f_grid_fast.xml")
+ReadXML( sensor_response, "instruments/smr/ici.sensor_response_fast.xml")
 
 }
