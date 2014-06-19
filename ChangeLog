@@ -1,3 +1,13 @@
+2014-06-19  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-2-5
+
+	* src/matpackI.cc (vector_angle):
+
+	Due to numerical inaccuracy, the argument to acos might end up being
+	slightly larger than 1 and thus acos returns nan. Those cases are now
+	caught and 0 is returned.
+	
 2014-06-17  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-2-4
