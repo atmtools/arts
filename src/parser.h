@@ -43,6 +43,8 @@ private:
 
     void skip_to_next_argument();
 
+    void at_end_of_argument(const String& argname);
+
     void get_argument_index_by_name(Index& arg_index,
                                     NamedArguments& named_args,
                                     String name);

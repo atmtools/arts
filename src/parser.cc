@@ -156,6 +156,31 @@ void ArtsParser::skip_to_next_argument()
 }
 
 
+/** Check if current position in controlfile is at the end of an argument.
+
+ Throws an UnexpectedChar exception if condition is not met.
+
+ \param[in] argname Name of argument for error message
+
+ \throws UnexpectedChar
+
+ \author Oliver Lemke
+ */
+void ArtsParser::at_end_of_argument(const String& argname)
+{
+    eat_whitespace();
+    if (msource.Current() != ',' && msource.Current() != ')')
+    {
+        ostringstream os;
+        os << "Expected ',' or ')' but found '" << msource.Current() << "' after " << argname;
+        throw UnexpectedChar(os.str(),
+                             msource.File(),
+                             msource.Line(),
+                             msource.Column());
+    }
+}
+
+
 /** Return the index of the argument with the given name.
 
  \author Oliver Lemke
@@ -1084,6 +1109,7 @@ void ArtsParser::parse_generic_input(const MdRecord*& mdd,
                                  msource.Line(),
                                  msource.Column() );
             }
+            if (call_by_name) at_end_of_argument("generic input argument");
         }
 
         {
@@ -1266,6 +1292,7 @@ void ArtsParser::parse_generic_output(const MdRecord*& mdd,
         }
 
         read_name(wsvname);
+        if (call_by_name) at_end_of_argument("generic output argument");
 
         {
             wsvid = -1;
@@ -1478,6 +1505,7 @@ void ArtsParser::parse_specific_input(const MdRecord* mdd,
                 read_name_or_value(wsvname, auto_vars, auto_vars_values,
                                    Workspace::wsv_data[*ins].Name(),
                                    mdd, Workspace::wsv_data[*ins].Group());
+                at_end_of_argument("specific input argument");
             }
         }
         else
@@ -1578,6 +1606,7 @@ void ArtsParser::parse_specific_output(const MdRecord* mdd,
                 named_args.erase(named_args.begin()+this_arg_index);
 
                 read_name(wsvname);
+                at_end_of_argument("specific output argument");
             }
         }
         else

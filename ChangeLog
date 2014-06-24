@@ -1,3 +1,17 @@
+2014-06-24  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-2-7
+
+	* src/parser.{cc,h} (ArtsParser::at_end_of_argument):
+
+	Add additional check to catch invalid characters at the end of named
+	argument parameters instead of silently ignoring them.
+
+	* src/m_nc.h (WriteNetCDFIndexed):
+
+	Remove unused argument to fix compiler warning when compiling without
+	netcdf support.
+
 2014-06-11  Jana Mendrok  <jana.mendrok@ltu.se>
 
 	* arts-2-2-6
