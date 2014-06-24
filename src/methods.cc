@@ -4646,6 +4646,33 @@ void define_md_data_raw()
                   "Interpolation order.",
                   "Apply zero-padding." )
         ));
+    
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "GriddedFieldZToPRegrid" ),
+      DESCRIPTION
+      (
+      "Interpolates the input field along the vertical dimension to *p_grid*.\n"
+      "\n"
+      "This is done from z_field, and thus requires the atmosphere to be set \n"
+      "beforehand.\n"
+      "\n"
+      "The latitude and longitude grid of the input field must match *lat_grid*\n"
+      "and *lon_grid* for the method to work.\n"
+      "\n"
+      "BETA mode.\n"
+      ),
+      AUTHORS( "Richard Larsson" ),
+      OUT( ),
+      GOUT( "out" ),
+      GOUT_TYPE( "GriddedField3" ),
+      GOUT_DESC( "Regridded output; Pressure-gridded field." ),
+      IN( "p_grid", "lat_grid", "lon_grid", "z_field" ),
+      GIN( "in", "interp_order"),
+      GIN_TYPE( "GriddedField3", "Index"),
+      GIN_DEFAULT(NODEF, "1"),
+      GIN_DESC( "Raw input; Altitude-gridded field.", "Interpolation order.")
+      ));
 
   md_data_raw.push_back
     ( MdRecord
