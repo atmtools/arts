@@ -1,3 +1,14 @@
+2014-06-25  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-2-9
+
+	* src/m_basic_types.cc, src/methods.cc:
+
+	Add Compare method for GriddedField3.
+
+	* controlfiles/CMakeLists.txt,
+	controlfiles/artscomponents/regrid: Add regridding test case.
+
 2014-06-24  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-2-8

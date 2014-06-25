@@ -63,6 +63,7 @@
 #include "messages.h"
 #include "logic.h"
 #include "sorting.h"
+#include "gridded_fields.h"
 
 
 /*===========================================================================
@@ -1416,4 +1417,39 @@ void Compare(const ArrayOfMatrix&    var1,
     throw runtime_error(fail_msg.str());
 }
 
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void Compare(const GriddedField3&    var1,
+             const GriddedField3&    var2,
+             const Numeric&   maxabsdiff,
+             const String&    error_message,
+             const String&    var1name,
+             const String&    var2name,
+             const String&,
+             const String&,
+             const Verbosity& verbosity)
+{
+    for (Index i = 0; i < var1.get_dim(); i++)
+    {
+        if( var1.get_grid_size(i) != var2.get_grid_size(i) )
+        {
+            ostringstream os;
+            os << var1name << " and "
+            << var2name << " grid " << i << " do not have the same size: "
+            << var1.get_grid_size(i) << " != " << var2.get_grid_size(i);
+            throw runtime_error(os.str());
+        }
+        if( var1.get_grid_name(i) != var2.get_grid_name(i) )
+        {
+            ostringstream os;
+            os << var1name << " and "
+            << var2name << " grid " << i << " do not have the same name: "
+            << var1.get_grid_name(i) << " != " << var2.get_grid_name(i);
+            throw runtime_error(os.str());
+        }
+    }
+
+    Compare(var1.data, var2.data, maxabsdiff, error_message,
+            var1name, var2name, "", "", verbosity);
+}
 

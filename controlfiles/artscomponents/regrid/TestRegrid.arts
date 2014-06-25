@@ -1,0 +1,50 @@
+Arts2 {
+  GriddedField3Create(gf_ref)
+  GriddedField3Create(gf_regridded)
+  GriddedField3Create(gf)
+  StringCreate(fname)
+  NumericCreate(maxabsdiff)
+  NumericSet(maxabsdiff, 1e-12)
+  
+  ReadXML(out=gf, filename="gf.xml")
+
+  #
+  # New grid is inside the old grid
+  #
+  StringSet(fname, "gfREFERENCE_ref_0p_none.xml")
+  VectorNLogSpace(p_grid, 20, 6000, 2000)
+  GriddedFieldPRegrid(out=gf_regridded, in=gf, zeropadding=0)
+  #WriteXML("ascii", gf_regridded, fname)
+  ReadXML(gf_ref, fname)
+  Compare(gf_regridded, gf_ref, maxabsdiff)
+
+  #
+  # New grid is outside the old grid
+  #
+  StringSet(fname, "gfREFERENCE_0p_both_sides.xml")
+  VectorNLogSpace(p_grid, 20, 15000, 100)
+  GriddedFieldPRegrid(out=gf_regridded, in=gf, zeropadding=1)
+  #WriteXML("ascii", gf_regridded, fname)
+  ReadXML(gf_ref, fname)
+  Compare(gf_regridded, gf_ref, maxabsdiff)
+
+  #
+  # New grid is outside the old grid at lower end
+  #
+  StringSet(fname, "gfREFERENCE_ref_0p_bottom.xml")
+  VectorNLogSpace(p_grid, 20, 5000, 100)
+  GriddedFieldPRegrid(out=gf_regridded, in=gf, zeropadding=1)
+  #WriteXML("ascii", gf_regridded, fname)
+  ReadXML(gf_ref, fname)
+  Compare(gf_regridded, gf_ref, maxabsdiff)
+
+  #
+  # New grid is outside the old grid at higher end
+  #
+  StringSet(fname, "gfREFERENCE_ref_0p_top.xml")
+  VectorNLogSpace(p_grid, 20, 15000, 5000)
+  GriddedFieldPRegrid(out=gf_regridded, in=gf, zeropadding=1)
+  #WriteXML("ascii", gf_regridded, fname)
+  ReadXML(gf_ref, fname)
+  Compare(gf_regridded, gf_ref, maxabsdiff)
+}

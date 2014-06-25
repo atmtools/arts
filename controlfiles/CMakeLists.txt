@@ -41,6 +41,8 @@ arts_test_run_ctlfile(slow artscomponents/clearsky/TestClearSky2.arts)
 
 arts_test_run_ctlfile(fast artscomponents/stokesrot/TestStokesRotation.arts)
 
+arts_test_run_ctlfile(fast artscomponents/regrid/TestRegrid.arts)
+
 arts_test_run_ctlfile(fast artscomponents/groundbased/TestFgrid.arts)
 arts_test_run_ctlfile(fast artscomponents/groundbased/TestGbased.arts)
 arts_test_run_ctlfile(fast artscomponents/groundbased/TestWinds.arts)
