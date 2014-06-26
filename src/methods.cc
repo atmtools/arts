@@ -4668,10 +4668,12 @@ void define_md_data_raw()
       GOUT_TYPE( "GriddedField3" ),
       GOUT_DESC( "Regridded output; Pressure-gridded field." ),
       IN( "p_grid", "lat_grid", "lon_grid", "z_field" ),
-      GIN( "in", "interp_order"),
-      GIN_TYPE( "GriddedField3", "Index"),
-      GIN_DEFAULT(NODEF, "1"),
-      GIN_DESC( "Raw input; Altitude-gridded field.", "Interpolation order.")
+      GIN( "in", "interp_order", "zeropadding"),
+      GIN_TYPE( "GriddedField3", "Index", "Index"),
+      GIN_DEFAULT( NODEF, "1", "0" ),
+      GIN_DESC( "Raw input; Altitude-gridded field.",
+                "Interpolation order.",
+                "Apply zero-padding." )
       ));
 
   md_data_raw.push_back

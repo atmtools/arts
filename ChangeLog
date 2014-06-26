@@ -1,3 +1,21 @@
+2014-06-26  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-2-10
+
+	* src/check_input.cc (chk_interpolation_grids_loose_no_data_check):
+
+	Fix code for ascending grids.
+
+	* src/m_atmosphere.cc:
+
+	(GriddedFieldZToPRegrid): Add zeropadding support.
+
+	(GriddedFieldZToPRegridHelper): New helper function.
+
+	* src/methods.cc: Add zeropadding to GriddedFieldZToPRegrid.
+
+	* controlfiles/artscomponents/regrid/: Extend test case.
+
 2014-06-25  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-2-9
