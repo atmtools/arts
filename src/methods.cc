@@ -10535,6 +10535,9 @@ void define_md_data_raw()
         "ranges. For example, a *za_pos* of 0.7 (np still 9) gives the angles\n"
         "7, 17, ..., 87.\n"
         "\n"
+        "Only upper-left diagonal element of the *surface_rmatrix*-es is\n"
+        "non-zero. That is, the upwelling radiation is always unpolarised.\n"
+        "\n"
         "Local thermodynamic equilibrium is assumed, which corresponds to\n"
         "that the reflection and emission coefficients \"add up to 1\".\n"
          ),

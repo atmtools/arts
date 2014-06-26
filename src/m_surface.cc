@@ -667,7 +667,11 @@ void surfaceLambertianSimple(
       if( iv == 0  || surface_scalar_reflectivity.nelem() > 1 )
         { r = surface_scalar_reflectivity[iv]; }
 
-      // surface_rmatrix
+      // surface_rmatrix:
+      // Only element (0,0) is set to be non-zero. This follows VDISORT
+      // that refers to: K. L. Coulson, Polarization and Intensity of Light in
+      // the Atmosphere (1989), page 229.
+      // (Thanks to Michael Kahnert for providing this information!)
       for( Index ip=0; ip<lambertian_nza; ip++ )
         {
           const Numeric w = r * 0.5 * ( cos(2*DEG2RAD*za_lims[ip]) - 
