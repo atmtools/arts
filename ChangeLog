@@ -1,5 +1,12 @@
 2014-06-26  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-2-12
+
+	* src/m_surface.cc (surfaceLambertianSimple): Extended the comment
+	with a page reference for a 1988 edition of the cited book.
+
+2014-06-26  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-2-11
 
 	* src/m_surface.cc (surfaceLambertianSimple): Added reference

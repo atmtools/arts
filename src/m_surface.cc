@@ -670,8 +670,11 @@ void surfaceLambertianSimple(
       // surface_rmatrix:
       // Only element (0,0) is set to be non-zero. This follows VDISORT
       // that refers to: K. L. Coulson, Polarization and Intensity of Light in
-      // the Atmosphere (1989), page 229.
+      // the Atmosphere (1989), page 229 
       // (Thanks to Michael Kahnert for providing this information!)
+      // Update: Is the above for a later edition? We have not found a copy of
+      // that edition. In a 1988 version of the book, the relevant page seems 
+      // to be 232.
       for( Index ip=0; ip<lambertian_nza; ip++ )
         {
           const Numeric w = r * 0.5 * ( cos(2*DEG2RAD*za_lims[ip]) - 
