@@ -939,7 +939,6 @@ void pnd_fieldMH97 (Tensor4View pnd_field,
   Vector rho ( npart, 0.0 );
   Vector pnd ( npart, 0.0 );
   Vector dN ( npart, 0.0 );
-  Vector ar ( npart, 0.0 );
 
   String psd_param;
   String partfield_name;
@@ -967,25 +966,8 @@ void pnd_fieldMH97 (Tensor4View pnd_field,
       // get density from meta data [kg/m^3]
       rho[i] = scat_meta_array[pos].density;
       // get aspect ratio from meta data [ ]
-      ar[i] = scat_meta_array[pos].aspect_ratio;
   }
   
-    // Collect all unique aspect ratios and check if the are more than one
-    vector<Numeric> ar_in;
-    for (Iterator1D it = ar.begin(); it != ar.end(); ++it)
-        if (find(ar_in.begin(), ar_in.end(), *it) == ar_in.end())
-            ar_in.push_back(*it);
-    
-    if (ar_in.size()>1)
-    {    
-        ostringstream os;
-        os << "There are " << ar_in.size() << " unique aspect ratios in *scat_meta_array*.\n"
-        "This parametrization is only valid for one single\n"
-        "aspect ratio\n";
-        throw runtime_error(os.str());
-    }
-    
-      
   if (dm.nelem() > 0)
   // dm.nelem()=0 implies no selected particles for the respective particle
   // field. should not occur.
@@ -1078,7 +1060,6 @@ void pnd_fieldH11 (Tensor4View pnd_field,
   Vector rho ( npart, 0.0 );
   Vector pnd ( npart, 0.0 );
   Vector dN ( npart, 0.0 );
-  Vector ar ( npart, 0.0 );
   String partfield_name;
 
   //split String and copy to ArrayOfString
@@ -1099,26 +1080,7 @@ void pnd_fieldH11 (Tensor4View pnd_field,
       // get density from meta data [kg/m^3]
       rho[i] = scat_meta_array[pos].density;
       // get aspect ratio from meta data [ ]
-      ar[i] = scat_meta_array[pos].aspect_ratio;
   }
-
-    // Collect all unique aspect ratios and check if the are more than one
-    vector<Numeric> ar_in;
-    for (Iterator1D it = ar.begin(); it != ar.end(); ++it)
-        if (find(ar_in.begin(), ar_in.end(), *it) == ar_in.end())
-            ar_in.push_back(*it);
-    
-    if (ar_in.size()>1)
-    {    
-        ostringstream os;
-        os << "There are " << ar_in.size() << " unique aspect ratios in *scat_meta_array*.\n"
-        "This parametrization is only valid for one single\n"
-        "aspect ratio\n";
-        throw runtime_error(os.str());
-    }
-    
-  //const bool suppress=true;
-  //const Verbosity temp_verb(0,0,0);
 
   if (dm.nelem() > 0)
   // dm.nelem()=0 implies no selected particles for the respective particle
@@ -1158,7 +1120,6 @@ void pnd_fieldH11 (Tensor4View pnd_field,
                 // calculate proper scaling of pnd sum from real IWC and apply
                 chk_pndsum ( pnd, IWC_field ( p,lat,lon ), vol, rho,
                              p, lat, lon, partfield_name, verbosity );
-//                             p, lat, lon, partfield_name, temp_verb );
 
                 // writing pnd vector to wsv pnd_field
                 for ( Index i =0; i< npart; i++ )
@@ -1219,7 +1180,7 @@ void pnd_fieldH13 (Tensor4View pnd_field,
   Vector rho ( npart, 0.0 );
   Vector pnd ( npart, 0.0 );
   Vector dN ( npart, 0.0 );
-  Vector ar ( npart, 0.0 );
+//  Vector ar ( npart, 0.0 );
   String partfield_name;
 
   //split String and copy to ArrayOfString
@@ -1240,9 +1201,10 @@ void pnd_fieldH13 (Tensor4View pnd_field,
       // get density from meta data [kg/m^3]
       rho[i] = scat_meta_array[pos].density;
       // get aspect ratio from meta data [ ]
-      ar[i] = scat_meta_array[pos].aspect_ratio;
+//      ar[i] = scat_meta_array[pos].aspect_ratio;
   }
 
+/*
     // Collect all unique aspect ratios and check if the are more than one
     vector<Numeric> ar_in;
     for (Iterator1D it = ar.begin(); it != ar.end(); ++it)
@@ -1257,11 +1219,8 @@ void pnd_fieldH13 (Tensor4View pnd_field,
         "aspect ratio\n";
         throw runtime_error(os.str());
     }
-
+*/
     
-  //const bool suppress=true;
-  //const Verbosity temp_verb(0,0,0);
-
   if (dm.nelem() > 0)
   // dm.nelem()=0 implies no selected particles for the respective particle
   // field. should not occur anymore.
@@ -1300,7 +1259,6 @@ void pnd_fieldH13 (Tensor4View pnd_field,
                 // calculate proper scaling of pnd sum from real IWC and apply
                 chk_pndsum ( pnd, IWC_field ( p,lat,lon ), vol, rho,
                              p, lat, lon, partfield_name, verbosity );
-//                             p, lat, lon, partfield_name, temp_verb );
 
                 // writing pnd vector to wsv pnd_field
                 for ( Index i =0; i< npart; i++ )

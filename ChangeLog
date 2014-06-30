@@ -1,3 +1,14 @@
+2014-06-11  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-2-13
+
+	* cloudbox.cc (pnd_fieldMH97, pnd_fieldH11, pnd_fieldH13):
+	Revert check for equal aspect ratios introduced in arts-2-1-755 (r8634).
+	This seems unnecessary: it's perfectly fine to run those
+	parametrizations on different aspect ratio particles (as is, e.g., the
+	Hong data for a fixed particle!). In contrast to what arts-2-1-755
+	suggests, this has never been a requirement before.
+
 2014-06-26  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-2-12
