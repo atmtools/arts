@@ -1,8 +1,16 @@
+2014-07-10  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-2-14
+
+	* src/m_optproperties.cc (ScatteringDoitMergeParticles1D):
+	Phase matrix merging using array multiplication caused asserts.
+	Tentatively(?) fixed by replacing it with explicit loop.
+
 2014-06-11  Jana Mendrok  <jana.mendrok@ltu.se>
 
 	* arts-2-2-13
 
-	* cloudbox.cc (pnd_fieldMH97, pnd_fieldH11, pnd_fieldH13):
+	* src/cloudbox.cc (pnd_fieldMH97, pnd_fieldH11, pnd_fieldH13):
 	Revert check for equal aspect ratios introduced in arts-2-1-755 (r8634).
 	This seems unnecessary: it's perfectly fine to run those
 	parametrizations on different aspect ratio particles (as is, e.g., the

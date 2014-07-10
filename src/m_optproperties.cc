@@ -1697,11 +1697,22 @@ void ScatteringDoitMergeParticles1D(//WS Output:
                     for (Index i_za = 0; i_za < orig_part.pha_mat_data.nshelves(); i_za++)
                     {
                         // Weighted sum of pha_mat_data
-                        if( scat_data_array[i_pt].T_grid.nelem() == 1)
+/*                        if( scat_data_array[i_pt].T_grid.nelem() == 1)
                         {
                             this_part.pha_mat_data(i_f, 0, i_za, 0, 0, 0, joker) +=
                             pnd_field(i_pt, i_lv, 0, 0)
                             * orig_part.pha_mat_data(i_f, 0, i_za, 0, 0, 0, joker);
+                        }
+*/
+                        if( scat_data_array[i_pt].T_grid.nelem() == 1)
+                        {
+                          Numeric pnd=pnd_field(i_pt, i_lv, 0, 0);
+                          for (Index i_s = 0; i_s <
+                               orig_part.pha_mat_data.ncols(); i_s++)
+                            {
+                              this_part.pha_mat_data(i_f, 0, i_za, 0, 0, 0, i_s) =
+                                pnd*orig_part.pha_mat_data(i_f, 0, i_za, 0, 0, 0, i_s);
+                            }
                         }
                         else
                         {
