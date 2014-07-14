@@ -1,3 +1,16 @@
+2014-07-14  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-2-15
+
+	* src/m_optproperties.cc (ScatteringDoitMergeParticles1D):
+
+	Removed old code. Fix from jana was correct. We don't have+want an
+	operator* overload for Numeric*Vector Multiplication. This problem was
+	caused by the one exception we made (operator* for scalar Vector*Vector
+	multiplication). The Numeric is automatically casted to a
+	ConstVectorView and the following scalar product fails because the two
+	Vectors have different number of elements.
+
 2014-07-10  Jana Mendrok  <jana.mendrok@ltu.se>
 
 	* arts-2-2-14
