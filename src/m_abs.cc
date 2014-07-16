@@ -1317,7 +1317,32 @@ void abs_n2Set(Vector&            abs_n2,
   abs_n2 = abs_vmrs(n2_index,Range(joker));   
 }
 
+//!  abs_o2Set.
+/*!
+ Sets abs_o2 to the profile of the first tag group containing
+ molecular oxygen. See *abs_h2oSet* for more details.
+ 
+ \author Stefan Buehler
+ 
+ \param[out] abs_o2    WS Output
+ \param[in]     abs_species WS Input
+ \param[in]     abs_vmrs WS Input
+ */
+void abs_o2Set(Vector&            abs_o2,
+               const ArrayOfArrayOfSpeciesTag& abs_species,
+               const Matrix&    abs_vmrs,
+               const Verbosity&)
+{
+  const Index o2_index 
+    = find_first_species_tg( abs_species,
+                             species_index_from_species_name("O2") );
 
+  if ( o2_index < 0 )
+    throw runtime_error("No tag group contains oxygen!");
+
+  abs_o2.resize( abs_vmrs.ncols() );
+  abs_o2 = abs_vmrs(o2_index,Range(joker));   
+}
 /* Workspace method: Doxygen documentation will be auto-generated */
 void AbsInputFromAtmFields (// WS Output:
                             Vector& abs_p,
@@ -1782,7 +1807,7 @@ void abs_xsec_per_speciesAddConts(// WS Output:
   CREATE_OUT3;
   
   // Needed for some continua, and set here from abs_vmrs:
-  Vector abs_h2o, abs_n2;
+  Vector abs_h2o, abs_n2, abs_o2;
   
   // Check that all paramters that should have the number of tag
   // groups as a dimension are consistent.
@@ -1913,7 +1938,8 @@ void abs_xsec_per_speciesAddConts(// WS Output:
                   // Set abs_h2o and abs_n2, from the first matching species.
                   abs_h2oSet(abs_h2o, tgs, abs_vmrs, verbosity);
                   abs_n2Set(abs_n2, tgs, abs_vmrs, verbosity);
-
+                  abs_o2Set(abs_o2, tgs, abs_vmrs, verbosity);
+ 
                   // Add the continuum for this tag. The parameters in
                   // this call should be clear. The vmr is in
                   // abs_vmrs(i,Range(joker)). The other vmr variable, `abs_h2o'
@@ -1928,6 +1954,7 @@ void abs_xsec_per_speciesAddConts(// WS Output:
                                       abs_t,
                                       abs_n2,
                                       abs_h2o,
+                                      abs_o2,
                                       abs_vmrs(i,Range(joker)),
                                       verbosity );
                   // Calling this function with a row of Matrix abs_vmrs

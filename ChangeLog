@@ -1,5 +1,19 @@
 2014-07-16  Mayuri Tatiya <maytat@student.ltu.se>
 
+	* arts-2-2-17
+
+	* src/continua.h, src/continua.cc 
+        Added functions of species for new MTCKD 2.5 ("H2O-SelfContCKDMT250",
+        "H2O-ForeignContCKDMT250","O2-visCKDMT250", "N2-CIArotCKDMT250", "N2-CIAfunCKDMT250", "CO2-CKDMT250")
+
+        * src/m_abs.cc
+        Added 'abs_o2' needed for workspace method 'abs_xsec_per_speciesAddConts'
+        
+        * src/partition_function_data.cc, src/species_data.cc
+        Added information of the MTCKD 2.5 species  
+        
+2014-07-16  Mayuri Tatiya <maytat@student.ltu.se>
+
 	* arts-2-2-16
 
 	* controlfiles/general/continua.arts:
