@@ -1,3 +1,10 @@
+2014-07-16  Mayuri Tatiya <maytat@student.ltu.se>
+
+	* arts-2-2-16
+
+	* controlfiles/general/continua.arts:
+	Added defintions for new MTCKD 2.5 continua.
+
 2014-07-14  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-2-15
