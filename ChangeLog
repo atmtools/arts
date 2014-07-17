@@ -1,17 +1,46 @@
+2014-07-10  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-2-18
+
+	* src/m_abs.cc(abs_h2oSet, abs_n2Set, abs_o2Set):
+	Do not throw error if respective species (H2O, N2, O2) is not given.
+	Instead set the abs_XX with a dummy, absence flagging value (-99).
+	This to get rid of the requirement to always include H2O, N2, and O2
+	when any continuum/full model is to be applied although for the specific
+	continuum they might not be needed at all).
+
+	* src/continua.cc (xsec_continuum_tag):
+	Introduced checks for valid abs_n2/o2/h2o for the specific continua that
+	require those variables. Throw proper error message indicating the
+	"problematic" continuum tag and the missing species.
+
+	* src/continua.cc,continua.h(CKD_222_self_h2o,CKD_222_foreign_h2o,
+	CKD_242_self_h2o, CKD_242_foreign_h2o, CKD_mt_100_self_h2o,
+	CKD_mt_100_foreign_h2o, CKD_mt_250_self_h2o, CKD_mt_250_foreign_h2o):
+	Removed abs_n2 as input parameter as abs_n2 is actually not used within
+	in these functions.
+
+	* controlfiles/instruments/amsu/amsub_fast.arts,smr/iss-smr_fast.arts:
+	Use full path to f_grid	and sensor_response files in order to be able to
+	use these as ARTS include files from everywhere.
+
+
 2014-07-16  Mayuri Tatiya <maytat@student.ltu.se>
 
 	* arts-2-2-17
 
-	* src/continua.h, src/continua.cc 
-        Added functions of species for new MTCKD 2.5 ("H2O-SelfContCKDMT250",
-        "H2O-ForeignContCKDMT250","O2-visCKDMT250", "N2-CIArotCKDMT250", "N2-CIAfunCKDMT250", "CO2-CKDMT250")
+	* src/continua.h, src/continua.cc:
+	Added functions of species for new MTCKD2.5 ("H2O-SelfContCKDMT250",
+	"H2O-ForeignContCKDMT250","O2-visCKDMT250", "N2-CIArotCKDMT250",
+	"N2-CIAfunCKDMT250", "CO2-CKDMT250")
 
-        * src/m_abs.cc
-        Added 'abs_o2' needed for workspace method 'abs_xsec_per_speciesAddConts'
-        
-        * src/partition_function_data.cc, src/species_data.cc
-        Added information of the MTCKD 2.5 species  
-        
+	* src/m_abs.cc (abs_xsec_per_speciesAddConts, abs_o2Set):
+	Added variable abs_o2 and a function to derive that from vmr_field as
+	required by MTCKD2.5 N2 continuum.
+
+	* src/partition_function_data.cc, src/species_data.cc:
+	Added species tags for MTCKD2.5.
+
 2014-07-16  Mayuri Tatiya <maytat@student.ltu.se>
 
 	* arts-2-2-16
@@ -48,7 +77,7 @@
 	Revert check for equal aspect ratios introduced in arts-2-1-755 (r8634).
 	This seems unnecessary: it's perfectly fine to run those
 	parametrizations on different aspect ratio particles (as is, e.g., the
-	Hong data for a fixed particle!). In contrast to what arts-2-1-755
+	Hong data for a fixed habit!). In contrast to what arts-2-1-755
 	suggests, this has never been a requirement before.
 
 2014-06-26  Patrick Eriksson  <patrick.eriksson@chalmers.se>

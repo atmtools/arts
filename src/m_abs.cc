@@ -1282,11 +1282,13 @@ void abs_h2oSet(Vector&          abs_h2o,
     = find_first_species_tg( abs_species,
                              species_index_from_species_name("H2O") );
 
-  if ( h2o_index < 0 )
-    throw runtime_error("No tag group contains water!");
-
   abs_h2o.resize( abs_vmrs.ncols() );
-  abs_h2o = abs_vmrs(h2o_index,Range(joker));
+  cout << "h2o_index=" << h2o_index << "\n";
+  if ( h2o_index < 0 )
+    abs_h2o = -99;
+  else
+    abs_h2o = abs_vmrs(h2o_index,Range(joker));   
+  cout << "abs_H2O sum=" << abs_h2o.sum() << "\n";
 }
 
 
@@ -1310,11 +1312,11 @@ void abs_n2Set(Vector&            abs_n2,
     = find_first_species_tg( abs_species,
                              species_index_from_species_name("N2") );
 
-  if ( n2_index < 0 )
-    throw runtime_error("No tag group contains nitrogen!");
-
   abs_n2.resize( abs_vmrs.ncols() );
-  abs_n2 = abs_vmrs(n2_index,Range(joker));   
+  if ( n2_index < 0 )
+    abs_n2 = -99;
+  else
+    abs_n2 = abs_vmrs(n2_index,Range(joker));   
 }
 
 //!  abs_o2Set.
@@ -1322,7 +1324,7 @@ void abs_n2Set(Vector&            abs_n2,
  Sets abs_o2 to the profile of the first tag group containing
  molecular oxygen. See *abs_h2oSet* for more details.
  
- \author Stefan Buehler
+ \author Mayuri Tatiya
  
  \param[out] abs_o2    WS Output
  \param[in]     abs_species WS Input
@@ -1337,12 +1339,14 @@ void abs_o2Set(Vector&            abs_o2,
     = find_first_species_tg( abs_species,
                              species_index_from_species_name("O2") );
 
-  if ( o2_index < 0 )
-    throw runtime_error("No tag group contains oxygen!");
-
   abs_o2.resize( abs_vmrs.ncols() );
-  abs_o2 = abs_vmrs(o2_index,Range(joker));   
+  if ( o2_index < 0 )
+    abs_o2 = -99;
+  else
+    abs_o2 = abs_vmrs(o2_index,Range(joker));   
 }
+
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void AbsInputFromAtmFields (// WS Output:
                             Vector& abs_p,
@@ -1873,7 +1877,7 @@ void abs_xsec_per_speciesAddConts(// WS Output:
       throw runtime_error(os.str());
     }
 
-  // We set abs_h2o and abs_n2 later, because we only want to
+  // We set abs_h2o, abs_n2, and abs_o2 later, because we only want to
   // do it if the parameters are really needed.
 
 
@@ -1935,16 +1939,30 @@ void abs_xsec_per_speciesAddConts(// WS Output:
                   // of options. The actual field of the array is n:
                   const String ContOption = abs_cont_models[n];
 
-                  // Set abs_h2o and abs_n2, from the first matching species.
+                  // Set abs_h2o, abs_n2, and abs_o2 from the first matching species.
                   abs_h2oSet(abs_h2o, tgs, abs_vmrs, verbosity);
                   abs_n2Set(abs_n2, tgs, abs_vmrs, verbosity);
                   abs_o2Set(abs_o2, tgs, abs_vmrs, verbosity);
  
                   // Add the continuum for this tag. The parameters in
                   // this call should be clear. The vmr is in
-                  // abs_vmrs(i,Range(joker)). The other vmr variable, `abs_h2o'
-                  // contains the real H2O vmr, which is needed for
-                  // the oxygen continuum.
+                  // abs_vmrs(i,Range(joker)). The other vmr variables,
+                  // abs_h2o, abs_n2, and abs_o2 contains the real vmr of H2O,
+                  // N2, nad O2, which are needed as additional information for
+                  // certain continua:
+                  // abs_h2o for
+                  //   O2-PWR88, O2-PWR93, O2-PWR98,
+                  //   O2-MPM85, O2-MPM87, O2-MPM89, O2-MPM92, O2-MPM93,
+                  //   O2-TRE05,
+                  //   O2-SelfContStandardType, O2-SelfContMPM93, O2-SelfContPWR93,
+                  //   N2-SelfContMPM93, N2-DryContATM01,
+                  //   N2-CIArotCKDMT250, N2-CIAfunCKDMT250
+                  // abs_n2 for
+                  //   H2O-SelfContCKD24, H2O-ForeignContCKD24,
+                  //   O2-v0v0CKDMT100,
+                  //   CO2-ForeignContPWR93, CO2-ForeignContHo66
+                  // abs_o2 for
+                  //   N2-CIArotCKDMT250, N2-CIAfunCKDMT250
                   xsec_continuum_tag( abs_xsec_per_species[i],
                                       name,
                                       abs_cont_parameters[n],

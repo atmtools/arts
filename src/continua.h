@@ -186,7 +186,6 @@ void CKD_222_self_h2o (MatrixView          xsec,
                        ConstVectorView     abs_p,
                        ConstVectorView     abs_t,
                        ConstVectorView     vmr,
-                       ConstVectorView     abs_n2,
                        const Verbosity& verbosity);
 
 void CKD_222_foreign_h2o (MatrixView          xsec,
@@ -196,7 +195,6 @@ void CKD_222_foreign_h2o (MatrixView          xsec,
                           ConstVectorView     abs_p,
                           ConstVectorView     abs_t,
                           ConstVectorView     vmr,
-                          ConstVectorView     abs_n2,
                           const Verbosity& verbosity);
 
 void CKD_242_self_h2o (MatrixView          xsec,
@@ -206,7 +204,6 @@ void CKD_242_self_h2o (MatrixView          xsec,
                        ConstVectorView     abs_p,
                        ConstVectorView     abs_t,
                        ConstVectorView     vmr,
-                       ConstVectorView     abs_n2,
                        const Verbosity& verbosity);
 
 void CKD24_H20 (MatrixView          xsec,      // calculated x-section
@@ -227,7 +224,6 @@ void CKD_242_foreign_h2o (MatrixView          xsec,
                           ConstVectorView     abs_p,
                           ConstVectorView     abs_t,
                           ConstVectorView     vmr,
-                          ConstVectorView     abs_n2,
                           const Verbosity& verbosity);
 
 void CKD_mt_100_self_h2o (MatrixView          xsec,
@@ -237,7 +233,6 @@ void CKD_mt_100_self_h2o (MatrixView          xsec,
                           ConstVectorView     abs_p,
                           ConstVectorView     abs_t,
                           ConstVectorView     vmr,
-                          ConstVectorView     abs_n2,
                           const Verbosity& verbosity);
 
 void CKD_mt_100_foreign_h2o (MatrixView          xsec,
@@ -247,7 +242,6 @@ void CKD_mt_100_foreign_h2o (MatrixView          xsec,
                              ConstVectorView     abs_p,
                              ConstVectorView     abs_t,
                              ConstVectorView     vmr,
-                             ConstVectorView     abs_n2,
                              const Verbosity& verbosity);
 
 void CKD_mt_250_self_h2o (MatrixView          xsec,
@@ -257,7 +251,6 @@ void CKD_mt_250_self_h2o (MatrixView          xsec,
                           ConstVectorView     abs_p,
                           ConstVectorView     abs_t,
                           ConstVectorView     vmr,
-                          ConstVectorView     abs_n2,
                           const Verbosity& verbosity);
 
 
@@ -268,7 +261,6 @@ void CKD_mt_250_foreign_h2o (MatrixView          xsec,
                              ConstVectorView     abs_p,
                              ConstVectorView     abs_t,
                              ConstVectorView     vmr,
-                             ConstVectorView     abs_n2,
                              const Verbosity& verbosity);
 
 //////////////////////////////////////////////////////////////////////////// 

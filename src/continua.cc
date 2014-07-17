@@ -6688,7 +6688,6 @@ Numeric RADFN_FUN (const Numeric VI,
    \param    abs_p          predefined pressure grid             [Pa]
    \param    abs_t          predefined temperature grid          [K]
    \param    vmr            H2O volume mixing ratio profile      [1]
-   \param    abs_n2         N2 volume mixing ratio profile       [1]
 
    \note     This absorption model is taken from the FORTRAN77 code of
              CKD version 2.2.2 written by<br>
@@ -6708,7 +6707,6 @@ void CKD_222_self_h2o (MatrixView          pxsec,
                        ConstVectorView     abs_p,
                        ConstVectorView     abs_t,
                        ConstVectorView     vmr,
-                       ConstVectorView     abs_n2 _U_,
                        const Verbosity& verbosity)
 {
   CREATE_OUT3;
@@ -6975,7 +6973,6 @@ void CKD_222_self_h2o (MatrixView          pxsec,
    \param    abs_p          predefined pressure grid             [Pa]
    \param    abs_t          predefined temperature grid          [K]
    \param    vmr            H2O volume mixing ratio profile      [1]
-   \param    abs_n2         N2 volume mixing ratio profile       [1]
 
    \note     This absorption model is taken from the FORTRAN77 code of
              CKD version 2.2.2 written by<br>
@@ -6995,7 +6992,6 @@ void CKD_222_foreign_h2o (MatrixView          pxsec,
                           ConstVectorView     abs_p,
                           ConstVectorView     abs_t,
                           ConstVectorView     vmr,
-                          ConstVectorView     abs_n2 _U_,
                           const Verbosity& verbosity)
 {
   CREATE_OUT3;
@@ -7200,7 +7196,6 @@ void CKD_222_foreign_h2o (MatrixView          pxsec,
    \param    abs_p          predefined pressure grid             [Pa]
    \param    abs_t          predefined temperature grid          [K]
    \param    vmr            H2O volume mixing ratio profile      [1]
-   \param    abs_n2         N2 volume mixing ratio profile       [1]
 
    \note     This absorption model is taken from the FORTRAN77 code of
              CKD version 2.4.2 written by<br>
@@ -7220,7 +7215,6 @@ void CKD_242_self_h2o (MatrixView          pxsec,
                        ConstVectorView     abs_p,
                        ConstVectorView     abs_t,
                        ConstVectorView     vmr,
-                       ConstVectorView     abs_n2 _U_,
                        const Verbosity& verbosity)
 {
   CREATE_OUT3;
@@ -7500,7 +7494,6 @@ void CKD_242_self_h2o (MatrixView          pxsec,
    \param    abs_p          predefined pressure grid             [Pa]
    \param    abs_t          predefined temperature grid          [K]
    \param    vmr            H2O volume mixing ratio profile      [1]
-   \param    abs_n2         N2 volume mixing ratio profile       [1]
 
    \note     This absorption model is taken from the FORTRAN77 code of
              CKD version 2.4.2 written by<br>
@@ -7520,7 +7513,6 @@ void CKD_242_foreign_h2o (MatrixView          pxsec,
                           ConstVectorView     abs_p,
                           ConstVectorView     abs_t,
                           ConstVectorView     vmr,
-                          ConstVectorView     abs_n2 _U_,
                           const Verbosity& verbosity)
 {
   CREATE_OUT3;
@@ -7744,7 +7736,6 @@ void CKD_242_foreign_h2o (MatrixView          pxsec,
    \param    abs_p          predefined pressure grid             [Pa]
    \param    abs_t          predefined temperature grid          [K]
    \param    vmr            H2O volume mixing ratio profile      [1]
-   \param    abs_n2         N2 volume mixing ratio profile       [1]
 
    \note     This absorption model is taken from the FORTRAN77 code of
              CKD_MT version 1.00 written by<br>
@@ -7764,7 +7755,6 @@ void CKD_mt_100_self_h2o (MatrixView          pxsec,
                           ConstVectorView     abs_p,
                           ConstVectorView     abs_t,
                           ConstVectorView     vmr,
-                          ConstVectorView     abs_n2 _U_,
                           const Verbosity& verbosity)
 {
   CREATE_OUT3;
@@ -7996,7 +7986,6 @@ void CKD_mt_100_self_h2o (MatrixView          pxsec,
    \param    abs_p          predefined pressure grid             [Pa]
    \param    abs_t          predefined temperature grid          [K]
    \param    vmr            H2O volume mixing ratio profile      [1]
-   \param    abs_n2         N2 volume mixing ratio profile       [1]
 
    \note     This absorption model is taken from the FORTRAN77 code of
              CKD_MT version 1.00 written by<br>
@@ -8016,7 +8005,6 @@ void CKD_mt_100_foreign_h2o (MatrixView          pxsec,
                              ConstVectorView     abs_p,
                              ConstVectorView     abs_t,
                              ConstVectorView     vmr,
-                             ConstVectorView     abs_n2 _U_,
                              const Verbosity& verbosity)
 {
   CREATE_OUT3;
@@ -8189,6 +8177,7 @@ void CKD_mt_100_foreign_h2o (MatrixView          pxsec,
      Mlawer and S. A. Clough). Measurements in the far-IR were from the AERI_ext at the
      NSA site, in the time surrounding and including the RHUBC-I campaign (J. Delamere
      and S. A. Clough).
+
    \param[out] pxsec        cross section (absorption/volume mixing ratio) of
                             H2O self continuum according to CKD_MT 1.00   [1/m]
    \param    Cin            strength scaling factor                  [1]
@@ -8200,7 +8189,6 @@ void CKD_mt_100_foreign_h2o (MatrixView          pxsec,
    \param    abs_p          predefined pressure grid             [Pa]
    \param    abs_t          predefined temperature grid          [K]
    \param    vmr            H2O volume mixing ratio profile      [1]
-   \param    abs_n2         N2 volume mixing ratio profile       [1]
 
    \note     This absorption model is taken from the FORTRAN77 code of
              CKD_MT version 2.50 written by<br>
@@ -8220,7 +8208,6 @@ void CKD_mt_250_self_h2o (MatrixView          pxsec,
                           ConstVectorView     abs_p,
                           ConstVectorView     abs_t,
                           ConstVectorView     vmr,
-                          ConstVectorView     abs_n2 _U_,
                           const Verbosity& verbosity)
 {
   CREATE_OUT3;
@@ -8489,7 +8476,6 @@ void CKD_mt_250_self_h2o (MatrixView          pxsec,
    \param    abs_p          predefined pressure grid             [Pa]
    \param    abs_t          predefined temperature grid          [K]
    \param    vmr            H2O volume mixing ratio profile      [1]
-   \param    abs_n2         N2 volume mixing ratio profile       [1]
 
    \note     This absorption model is taken from the FORTRAN77 code of
              CKD_MT version 1.00 written by<br>
@@ -8509,7 +8495,6 @@ void CKD_mt_250_foreign_h2o (MatrixView          pxsec,
                              ConstVectorView     abs_p,
                              ConstVectorView     abs_t,
                              ConstVectorView     vmr,
-                             ConstVectorView     abs_n2 _U_,
                              const Verbosity& verbosity)
 {
   CREATE_OUT3;
@@ -16505,7 +16490,6 @@ void xsec_continuum_tag (MatrixView             xsec,
       //   abs_p          predefined pressure grid             [Pa]
       //   abs_t          predefined temperature grid          [K]
       //   vmr            H2O volume mixing ratio profile      [1]
-      //   abs_n2         N2 volume mixing ratio profile       [1]
       //
       // WWW resource: ftp.aer.com/aer_contnm_ckd
       const int Nparam = 1;
@@ -16520,7 +16504,6 @@ void xsec_continuum_tag (MatrixView             xsec,
                             abs_p,
                             abs_t,
                             vmr,
-                            abs_n2,
                             verbosity );
         }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
@@ -16542,7 +16525,6 @@ void xsec_continuum_tag (MatrixView             xsec,
                             abs_p,
                             abs_t,
                             vmr,
-                            abs_n2,
                             verbosity );
         }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
@@ -16571,7 +16553,6 @@ void xsec_continuum_tag (MatrixView             xsec,
       //   abs_p          predefined pressure grid             [Pa]
       //   abs_t          predefined temperature grid          [K]
       //   vmr            H2O volume mixing ratio profile      [1]
-      //   abs_n2         N2 volume mixing ratio profile       [1]
       //
       // WWW resource: ftp.aer.com/aer_contnm_ckd
       const int Nparam = 1;
@@ -16586,7 +16567,6 @@ void xsec_continuum_tag (MatrixView             xsec,
                                abs_p,
                                abs_t,
                                vmr,
-                               abs_n2,
                                verbosity );
         }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
@@ -16608,7 +16588,6 @@ void xsec_continuum_tag (MatrixView             xsec,
                                abs_p,
                                abs_t,
                                vmr,
-                               abs_n2,
                                verbosity );
         }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
@@ -16637,7 +16616,6 @@ void xsec_continuum_tag (MatrixView             xsec,
       //   abs_p          predefined pressure grid             [Pa]
       //   abs_t          predefined temperature grid          [K]
       //   vmr            H2O volume mixing ratio profile      [1]
-      //   abs_n2         N2 volume mixing ratio profile       [1]
       //
       // WWW resource: ftp.aer.com/aer_contnm_ckd
       const int Nparam = 1;
@@ -16652,7 +16630,6 @@ void xsec_continuum_tag (MatrixView             xsec,
                             abs_p,
                             abs_t,
                             vmr,
-                            abs_n2,
                             verbosity );
         }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
@@ -16674,7 +16651,6 @@ void xsec_continuum_tag (MatrixView             xsec,
                             abs_p,
                             abs_t,
                             vmr,
-                            abs_n2,
                             verbosity );
         }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
@@ -16703,7 +16679,6 @@ void xsec_continuum_tag (MatrixView             xsec,
       //   abs_p          predefined pressure grid             [Pa]
       //   abs_t          predefined temperature grid          [K]
       //   vmr            H2O volume mixing ratio profile      [1]
-      //   abs_n2         N2 volume mixing ratio profile       [1]
       //
       // WWW resource: ftp.aer.com/aer_contnm_ckd
       const int Nparam = 1;
@@ -16718,7 +16693,6 @@ void xsec_continuum_tag (MatrixView             xsec,
                                abs_p,
                                abs_t,
                                vmr,
-                               abs_n2,
                                verbosity );
         }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
@@ -16740,7 +16714,6 @@ void xsec_continuum_tag (MatrixView             xsec,
                                abs_p,
                                abs_t,
                                vmr,
-                               abs_n2,
                                verbosity );
         }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
@@ -16769,7 +16742,6 @@ void xsec_continuum_tag (MatrixView             xsec,
       //   abs_p          predefined pressure grid             [Pa]
       //   abs_t          predefined temperature grid          [K]
       //   vmr            H2O volume mixing ratio profile      [1]
-      //   abs_n2         N2 volume mixing ratio profile       [1]
       //
       // WWW resource: ftp.aer.com/aer_contnm_ckd
       const int Nparam = 1;
@@ -16784,7 +16756,6 @@ void xsec_continuum_tag (MatrixView             xsec,
                                abs_p,
                                abs_t,
                                vmr,
-                               abs_n2,
                                verbosity );
         }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
@@ -16806,7 +16777,6 @@ void xsec_continuum_tag (MatrixView             xsec,
                                abs_p,
                                abs_t,
                                vmr,
-                               abs_n2,
                                verbosity );
         }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
@@ -16835,7 +16805,6 @@ void xsec_continuum_tag (MatrixView             xsec,
       //   abs_p          predefined pressure grid             [Pa]
       //   abs_t          predefined temperature grid          [K]
       //   vmr            H2O volume mixing ratio profile      [1]
-      //   abs_n2         N2 volume mixing ratio profile       [1]
       //
       // WWW resource: ftp.aer.com/aer_contnm_ckd
       const int Nparam = 1;
@@ -16850,7 +16819,6 @@ void xsec_continuum_tag (MatrixView             xsec,
                                   abs_p,
                                   abs_t,
                                   vmr,
-                                  abs_n2,
                                   verbosity );
         }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
@@ -16872,7 +16840,6 @@ void xsec_continuum_tag (MatrixView             xsec,
                                   abs_p,
                                   abs_t,
                                   vmr,
-                                  abs_n2,
                                   verbosity );
         }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
@@ -16901,7 +16868,6 @@ void xsec_continuum_tag (MatrixView             xsec,
       //   abs_p          predefined pressure grid             [Pa]
       //   abs_t          predefined temperature grid          [K]
       //   vmr            H2O volume mixing ratio profile      [1]
-      //   abs_n2         N2 volume mixing ratio profile       [1]
       //
       // WWW resource: ftp.aer.com/aer_contnm_ckd
       const int Nparam = 1;
@@ -16916,7 +16882,6 @@ void xsec_continuum_tag (MatrixView             xsec,
                                abs_p,
                                abs_t,
                                vmr,
-                               abs_n2,
                                verbosity );
         }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
@@ -16938,7 +16903,6 @@ void xsec_continuum_tag (MatrixView             xsec,
                                abs_p,
                                abs_t,
                                vmr,
-                               abs_n2,
                                verbosity );
         }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
@@ -16967,7 +16931,6 @@ void xsec_continuum_tag (MatrixView             xsec,
       //   abs_p          predefined pressure grid             [Pa]
       //   abs_t          predefined temperature grid          [K]
       //   vmr            H2O volume mixing ratio profile      [1]
-      //   abs_n2         N2 volume mixing ratio profile       [1]
       //
       // WWW resource: ftp.aer.com/aer_contnm_ckd
       const int Nparam = 1;
@@ -16982,7 +16945,6 @@ void xsec_continuum_tag (MatrixView             xsec,
                                   abs_p,
                                   abs_t,
                                   vmr,
-                                  abs_n2,
                                   verbosity );
         }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
@@ -17004,7 +16966,6 @@ void xsec_continuum_tag (MatrixView             xsec,
                                   abs_p,
                                   abs_t,
                                   vmr,
-                                  abs_n2,
                                   verbosity );
         }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
@@ -17033,10 +16994,20 @@ void xsec_continuum_tag (MatrixView             xsec,
       //   f_grid         predefined frequency grid            [Hz]
       //   abs_p          predefined pressure grid             [Pa]
       //   abs_t          predefined temperature grid          [K]
-      //   vmr            H2O volume mixing ratio profile      [1]
       //   abs_n2         N2 volume mixing ratio profile       [1]
+      //   vmr            H2O volume mixing ratio profile      [1]
       //
       // WWW resource: ftp.aer.com/aer_contnm_ckd
+
+      // abs_n2 needed here. check, whether this is valid.
+      if( abs_n2.sum() < -1. )
+        {
+          ostringstream os;
+          os << "Continuum/full model tag " << name
+             << " requires N2-vmr, but no tag group contains N2!";
+          throw runtime_error(os.str());
+        }
+
       const int Nparam = 1;
       if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
         {
@@ -17105,6 +17076,15 @@ void xsec_continuum_tag (MatrixView             xsec,
       //   abs_n2         N2 volume mixing ratio profile       [1]
       //
       // WWW resource: ftp.aer.com/aer_contnm_ckd
+
+      if( abs_n2.sum() < -1. )
+        {
+          ostringstream os;
+          os << "Continuum/full model tag " << name
+             << " requires N2-vmr, but no tag group contains N2!";
+          throw runtime_error(os.str());
+        }
+
       const int Nparam = 1;
       if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
         {
@@ -17503,7 +17483,6 @@ void xsec_continuum_tag (MatrixView             xsec,
       //     f_grid        : [Hz]
       //     abs_p         : [Pa]
       //     abs_t         : [K]
-      //     abs_h2o       : [1]
       //     vmr           : [1]
       //
       const int Nparam = 1;
@@ -17572,8 +17551,16 @@ void xsec_continuum_tag (MatrixView             xsec,
       //     abs_t         : [K]
       //     vmr           : [1]
       //     abs_n2        : [1]
-      //     abs_h2o       : [1]
       //
+
+      if( abs_n2.sum() < -1. )
+        {
+          ostringstream os;
+          os << "Continuum/full model tag " << name
+             << " requires N2-vmr, but no tag group contains N2!";
+          throw runtime_error(os.str());
+        }
+
       const int Nparam = 1;
       if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
         {
@@ -17640,8 +17627,6 @@ void xsec_continuum_tag (MatrixView             xsec,
       //     abs_p         : [Pa]
       //     abs_t         : [K]
       //     vmr           : [1]
-      //     abs_n2        : [1]
-      //     abs_h2o       : [1]
       //
       const int Nparam = 1;
       if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
@@ -17685,7 +17670,7 @@ void xsec_continuum_tag (MatrixView             xsec,
              << "parameters for the model " << model << ",\n"
              << "but you specified " << parameters.nelem() << " parameters.\n"
              << "This ambiguity can not be solved by arts.\n"
-             << "Please see the arts user guide chapter 3.\n";
+             << "Please see the ARTS User Guide.\n";
           throw runtime_error(os.str());
         }
     }
@@ -17709,8 +17694,6 @@ void xsec_continuum_tag (MatrixView             xsec,
       //     abs_p         : [Pa]
       //     abs_t         : [K]
       //     vmr           : [1]
-      //     abs_n2        : [1]
-      //     abs_h2o       : [1]
       //
       const int Nparam = 1;
       if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
@@ -17792,6 +17775,15 @@ void xsec_continuum_tag (MatrixView             xsec,
       //     abs_h2o       : [1]
       //     vmr           : [1]
       //
+
+      if( abs_h2o.sum() < -1. )
+        {
+          ostringstream os;
+          os << "Continuum/full model tag " << name
+             << " requires H2O-vmr, but no tag group contains H2O!";
+          throw runtime_error(os.str());
+        }
+
       const int Nparam = 6;
       if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
         {
@@ -17872,6 +17864,15 @@ void xsec_continuum_tag (MatrixView             xsec,
       //     abs_h2o       : [1]
       //     vmr           : [1]
       //
+
+      if( abs_h2o.sum() < -1. )
+        {
+          ostringstream os;
+          os << "Continuum/full model tag " << name
+             << " requires H2O-vmr, but no tag group contains H2O!";
+          throw runtime_error(os.str());
+        }
+
       const int Nparam = 4;
       if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
         {
@@ -17946,6 +17947,15 @@ void xsec_continuum_tag (MatrixView             xsec,
       //     abs_t         : [K]
       //     vmr           : [1]
       //
+
+      if( abs_h2o.sum() < -1. )
+        {
+          ostringstream os;
+          os << "Continuum/full model tag " << name
+             << " requires H2O-vmr, but no tag group contains H2O!";
+          throw runtime_error(os.str());
+        }
+
       const int Nparam = 4;
       if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
         {
@@ -18030,6 +18040,15 @@ void xsec_continuum_tag (MatrixView             xsec,
       //     abs_h2o,      : [1]
       //     vmr           : [1]
       //
+
+      if( abs_h2o.sum() < -1. )
+        {
+          ostringstream os;
+          os << "Continuum/full model tag " << name
+             << " requires H2O-vmr, but no tag group contains H2O!";
+          throw runtime_error(os.str());
+        }
+
       const int Nparam = 4;
       const char *version="PWR88";
       if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
@@ -18110,6 +18129,15 @@ void xsec_continuum_tag (MatrixView             xsec,
       //     abs_h2o,      : [1]
       //     vmr           : [1]
       //
+
+      if( abs_h2o.sum() < -1. )
+        {
+          ostringstream os;
+          os << "Continuum/full model tag " << name
+             << " requires H2O-vmr, but no tag group contains H2O!";
+          throw runtime_error(os.str());
+        }
+
       const int Nparam = 4;
       const char *version="PWR93";
       if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
@@ -18196,6 +18224,15 @@ void xsec_continuum_tag (MatrixView             xsec,
       //     abs_h2o,      : [1]
       //     vmr           : [1]
       //
+
+      // abs_h2o needed here. check, whether this is valid.
+      if( abs_h2o.sum() < -1. )
+        {
+          ostringstream os;
+          os << "Continuum/full model tag " << name << " requires H2O-vmr, but no tag group contains H2O!";
+          throw runtime_error(os.str());
+        }
+
       const int Nparam = 4;
       const char *version="PWR98";
       if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
@@ -18276,6 +18313,15 @@ void xsec_continuum_tag (MatrixView             xsec,
       //     abs_h2o,      : [1]
       //     vmr           : [1]
       //
+
+      if( abs_h2o.sum() < -1. )
+        {
+          ostringstream os;
+          os << "Continuum/full model tag " << name
+             << " requires H2O-vmr, but no tag group contains H2O!";
+          throw runtime_error(os.str());
+        }
+
       const int Nparam = 4;
       if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
         {
@@ -18353,6 +18399,15 @@ void xsec_continuum_tag (MatrixView             xsec,
         //     abs_h2o,      : [1]
         //     vmr           : [1]
         //
+
+      if( abs_h2o.sum() < -1. )
+        {
+          ostringstream os;
+          os << "Continuum/full model tag " << name
+             << " requires H2O-vmr, but no tag group contains H2O!";
+          throw runtime_error(os.str());
+        }
+
         const int Nparam = 4;
         if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
         {
@@ -18429,6 +18484,15 @@ void xsec_continuum_tag (MatrixView             xsec,
       //     abs_h2o,      : [1]
       //     vmr           : [1]
       //
+
+      if( abs_h2o.sum() < -1. )
+        {
+          ostringstream os;
+          os << "Continuum/full model tag " << name
+             << " requires H2O-vmr, but no tag group contains H2O!";
+          throw runtime_error(os.str());
+        }
+
       const int Nparam = 4;
       if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
         {
@@ -18504,6 +18568,15 @@ void xsec_continuum_tag (MatrixView             xsec,
       //     abs_h2o,      : [1]
       //     vmr           : [1]
       //
+
+      if( abs_h2o.sum() < -1. )
+        {
+          ostringstream os;
+          os << "Continuum/full model tag " << name
+             << " requires H2O-vmr, but no tag group contains H2O!";
+          throw runtime_error(os.str());
+        }
+
       const int Nparam = 4;
       if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
         {
@@ -18583,6 +18656,15 @@ void xsec_continuum_tag (MatrixView             xsec,
       //     abs_h2o,      : [1]
       //     vmr           : [1]
       //
+
+      if( abs_h2o.sum() < -1. )
+        {
+          ostringstream os;
+          os << "Continuum/full model tag " << name
+             << " requires H2O-vmr, but no tag group contains H2O!";
+          throw runtime_error(os.str());
+        }
+
       const int Nparam = 4;
       if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
         {
@@ -18658,6 +18740,15 @@ void xsec_continuum_tag (MatrixView             xsec,
       //     abs_h2o,      : [1]
       //     vmr           : [1]
       //
+
+      if( abs_h2o.sum() < -1. )
+        {
+          ostringstream os;
+          os << "Continuum/full model tag " << name
+             << " requires H2O-vmr, but no tag group contains H2O!";
+          throw runtime_error(os.str());
+        }
+
       const int Nparam = 4;
       if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
         {
@@ -18735,6 +18826,15 @@ void xsec_continuum_tag (MatrixView             xsec,
       //     abs_h2o       : [1]
       //     vmr           : [1]
       //
+
+      if( abs_h2o.sum() < -1. )
+        {
+          ostringstream os;
+          os << "Continuum/full model tag " << name
+             << " requires H2O-vmr, but no tag group contains H2O!";
+          throw runtime_error(os.str());
+        }
+
       const int Nparam = 4;
       if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
         {
@@ -18831,9 +18931,18 @@ void xsec_continuum_tag (MatrixView             xsec,
       //     f_grid        : [Hz]
       //     abs_p         : [Pa]
       //     abs_t         : [K]
-      //     vmr           : [1]   for  N2
-      //     h2ovmr        : [1]   for  H2O
+      //     vmr           : [1]   N2 vmr
+      //     abs_h2o       : [1]   H2O vmr
       //
+
+      if( abs_h2o.sum() < -1. )
+        {
+          ostringstream os;
+          os << "Continuum/full model tag " << name
+             << " requires H2O-vmr, but no tag group contains H2O!";
+          throw runtime_error(os.str());
+        }
+
       const int Nparam = 1;
       if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
         {
@@ -19185,6 +19294,23 @@ void xsec_continuum_tag (MatrixView             xsec,
       // data information about this continuum:
       // A. Borysow and L. Frommhold, The Astrophysical Journal,
       // Vol. 311, pp.1043-1057, 1986
+
+      if( abs_o2.sum() < -1. )
+        {
+          ostringstream os;
+          os << "Continuum/full model tag " << name
+             << " requires O2-vmr, but no tag group contains O2!";
+          throw runtime_error(os.str());
+        }
+
+      if( abs_h2o.sum() < -1. )
+        {
+          ostringstream os;
+          os << "Continuum/full model tag " << name
+             << " requires H2O-vmr, but no tag group contains H2O!";
+          throw runtime_error(os.str());
+        }
+
       const int Nparam = 1;
       if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
         {
@@ -19244,6 +19370,22 @@ void xsec_continuum_tag (MatrixView             xsec,
       // N2 near 4.3 microns for atmospheric applications:
       // Measurements and emprirical modeling,
       // Appl. Optics, 35, 5911-5917, (1996)
+
+      if( abs_o2.sum() < -1. )
+        {
+          ostringstream os;
+          os << "Continuum/full model tag " << name
+             << " requires O2-vmr, but no tag group contains O2!";
+          throw runtime_error(os.str());
+        }
+
+      if( abs_h2o.sum() < -1. )
+        {
+          ostringstream os;
+          os << "Continuum/full model tag " << name
+             << " requires H2O-vmr, but no tag group contains H2O!";
+          throw runtime_error(os.str());
+        }
 
       const int Nparam = 1;
       if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
@@ -19314,7 +19456,6 @@ void xsec_continuum_tag (MatrixView             xsec,
       //     abs_p         : [Pa]
       //     abs_t         : [K]
       //     vmr           : [1]
-      //     abs_h2o       : [1]
       //
       const int Nparam = 1;
       if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
@@ -19380,7 +19521,6 @@ void xsec_continuum_tag (MatrixView             xsec,
       //     abs_p         : [Pa]
       //     abs_t         : [K]
       //     vmr           : [1]
-      //     abs_h2o       : [1]
       //
       const int Nparam = 1;
       if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
@@ -19446,7 +19586,6 @@ void xsec_continuum_tag (MatrixView             xsec,
       //     abs_p         : [Pa]
       //     abs_t         : [K]
       //     vmr           : [1]
-      //     abs_h2o       : [1]
       //
       const int Nparam = 1;
       if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
@@ -19582,6 +19721,15 @@ void xsec_continuum_tag (MatrixView             xsec,
       //     abs_n2        : [1]
       //     vmr           : [1]
       //
+
+      if( abs_n2.sum() < -1. )
+        {
+          ostringstream os;
+          os << "Continuum/full model tag " << name
+             << " requires N2-vmr, but no tag group contains N2!";
+          throw runtime_error(os.str());
+        }
+
       const int Nparam = 2;
       if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
         {
@@ -19717,6 +19865,15 @@ void xsec_continuum_tag (MatrixView             xsec,
       //     abs_n2        : [1]
       //     vmr           : [1]
       //
+
+      if( abs_n2.sum() < -1. )
+        {
+          ostringstream os;
+          os << "Continuum/full model tag " << name
+             << " requires N2-vmr, but no tag group contains N2!";
+          throw runtime_error(os.str());
+        }
+
       const int Nparam = 2;
       if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
         {
