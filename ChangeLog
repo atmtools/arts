@@ -1,5 +1,11 @@
 2014-07-23  Jana Mendrok  <jana.mendrok@ltu.se>
 
+	* arts-2-2-20
+
+	* controlfiles/CMakeLists.txt: missed to commit in previous attempt.
+
+2014-07-23  Jana Mendrok  <jana.mendrok@ltu.se>
+
 	* arts-2-2-19
 
 	* controlfiles/instruments/[ici,smr]/
