@@ -20,7 +20,8 @@ MatrixSet( sensor_description_amsu,
 sensor_responseSimpleAMSU
 
 # Replace f_grid and sensor_response by optimized ones.
-ReadXML( f_grid, "smr/ciwsir.f_grid_fast.xml")
-ReadXML( sensor_response, "smr/ciwsir.sensor_response_fast.xml")
+ReadXML( f_grid, "instruments/smr/ciwsir.f_grid_fast.xml")
+ReadXML( sensor_response, "instruments/smr/ciwsir.sensor_response_fast.xml")
+ReadXML( sensor_response_f, "instruments/smr//ciwsir.sensor_response_f_fast.xml" )
 
 }

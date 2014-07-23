@@ -1,4 +1,30 @@
-2014-07-10  Jana Mendrok  <jana.mendrok@ltu.se>
+2014-07-23  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-2-19
+
+	* controlfiles/instruments/[ici,smr]/
+	[ici,ciwsir,cloudice,iss-smr,jaxa-smr].sensor_response_f_fast.xml:
+	Added. Data for sensor_response_f set such that y_f created on their
+	basis can safely be used with yApplyUnit (essentially, square of channel
+	frequency is sum over monochromatic frequencies times their weight
+	associated with the respective channel). 
+
+	* controlfiles/instruments/[ici,smr]/
+	[ici,ciwsir,cloudice,iss-smr,jaxa-smr]_fast.arts:
+	Read sensor_response_f with BT-conversion valid frequencies from file
+	(overwrites sensor_response_f set from sensor_responseSimpleAMSU).
+
+	* controlfiles/instruments/ici/*.*:
+	Moved all ICI related data & controlfiles here (from instruments/smr/).
+
+	* controlfiles/CMakeLists.txt: Adapted to above move of ICI files.
+
+	* controlfiles/instruments/smr/jaxa-smr*.*:
+	Renamed smr*.* to jaxa-smr for better recognizability.
+
+	* src/m_abs.cc (abs_h2oSet): Removed spurious cout.
+
+2014-07-17  Jana Mendrok  <jana.mendrok@ltu.se>
 
 	* arts-2-2-18
 

@@ -1,4 +1,11 @@
 #DEFINITIONS:  -*-sh-*-
+# This is a test doing simulations for MSG-ICI instrument.
+#
+# So far, it's doing clearsky-pencilbeam simulations from and for (planned) ICI
+#  orbit and observation geometry considering planned radiometer band
+#  characteristics.
+#
+# Author: Jana Mendrok
 
 Arts2 {
 
@@ -91,7 +98,7 @@ abs_lines_per_speciesSetEmpty
 # 3. Sensor:
 #-----------
 
-INCLUDE "ici_fast.arts"
+INCLUDE "instruments/ici/ici_fast.arts"
 
 
 # 4. Atmosphere

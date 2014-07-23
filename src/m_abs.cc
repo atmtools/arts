@@ -1283,12 +1283,10 @@ void abs_h2oSet(Vector&          abs_h2o,
                              species_index_from_species_name("H2O") );
 
   abs_h2o.resize( abs_vmrs.ncols() );
-  cout << "h2o_index=" << h2o_index << "\n";
   if ( h2o_index < 0 )
     abs_h2o = -99;
   else
     abs_h2o = abs_vmrs(h2o_index,Range(joker));   
-  cout << "abs_H2O sum=" << abs_h2o.sum() << "\n";
 }
 
 
