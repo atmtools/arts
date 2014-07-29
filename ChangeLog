@@ -1,3 +1,9 @@
+2014-07-29  Mayuri Tatiya <maytat@student.ltu.se>
+
+	* arts-2-2-21
+
+	* src/continua.h, src/continua.cc:
+        fixed the bug in "CO2-CKDMT250"
 2014-07-23  Jana Mendrok  <jana.mendrok@ltu.se>
 
 	* arts-2-2-20

@@ -10277,8 +10277,11 @@ void CKD_mt_250_CIAfun_n2 (MatrixView          pxsec,
         C0[J] = factor * xn2[J] * pow((xn2t[J]/xn2[J]), xktfac) / VJ;
         SN2 = tau_fac * C0[J];
       }
+    else
+    {
         C0[J] = factor * (xn2[J] + (xn2t[J]-xn2[J])*xt_lin) / VJ;
         SN2 = tau_fac * C0[J];
+    }
     // CKD cross section with radiative field
     k[J] = SN2 * RADFN_FUN(VJ,XKT); // [1/cm]
   }
