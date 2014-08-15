@@ -1,9 +1,19 @@
+2014-08-15  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-2-22
+
+	* src/continua.cc (CKD_mt_250_co2):
+
+	Fix array out of bounds access. Replaced tdep_bandhead[J-1196] with
+	tdep_bandhead[(I1 + J-1)-1196] and introduced helper variable I1J.
+
 2014-07-29  Mayuri Tatiya <maytat@student.ltu.se>
 
 	* arts-2-2-21
 
 	* src/continua.h, src/continua.cc:
         fixed the bug in "CO2-CKDMT250"
+
 2014-07-23  Jana Mendrok  <jana.mendrok@ltu.se>
 
 	* arts-2-2-20

@@ -9319,6 +9319,7 @@ void CKD_mt_250_co2 (MatrixView          pxsec,
   {
     Numeric VJ   = V1C + (DVC * (Numeric)(J-1));
     Numeric FCO2 = FCO2T0[J];
+    const Index I1J = I1 + J-1;
  
 //  CKD MT 2.0 This continuum differs from mt_ck_1.3 in that an entirely
 //  new co2 continuum has been developed based on the line coupling parameters from 
@@ -9328,9 +9329,9 @@ void CKD_mt_250_co2 (MatrixView          pxsec,
 // at 2385 cm-1, the 'bandhead' of v3. Clough et al., presentation at EGU 2007
 
   
-    if ( ((I1 + J-1) >= 1196.0e0) && ((I1 + J-1) <= 1220.0e0) )
+    if ( (I1J >= 1196.0e0) && (I1J <= 1220.0e0) )
       {
-        FCO2 = pow( (Tave/246.0e0), tdep_bandhead[J-1196] ) * FCO2;
+        FCO2 = pow( (Tave/246.0e0), tdep_bandhead[I1J-1196] ) * FCO2;
       }
 //  CKD MT 2.5 Adjustment to the original scaling made (temperature dependece added)
     if ( (VJ > 2000.0e0) && (VJ < 2998.0e0) )
