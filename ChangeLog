@@ -1,3 +1,15 @@
+2014-09-05  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-2-23
+
+	* src/m_batch.cc (ybatchCalc):
+
+	Use schedule(dynamic) for better CPU utilization in batch jobs.
+
+	* src/methods.cc, src/m_general.cc (StringCompose):
+
+	Add new convenience WSM to concatenate several strings at once.
+
 2014-08-15  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-2-22

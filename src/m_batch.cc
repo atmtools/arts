@@ -251,6 +251,7 @@ void ybatchCalc(Workspace&      ws,
 
     if (ybatch_n)
 #pragma omp parallel for       \
+  schedule(dynamic)            \
   if (!arts_omp_in_parallel()  \
       && ybatch_n > 1)         \
   firstprivate(l_ws, l_ybatch_calc_agenda)

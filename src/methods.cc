@@ -10381,6 +10381,34 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "StringCompose" ),
+        DESCRIPTION
+        (
+         "Concatenate two or more strings.\n"
+         "\n"
+         "The output string is overwritten, but is allowed to appear\n"
+         "in the input list. Up to 10 strings can be concatenated at once.\n"
+         ),
+        AUTHORS( "Oliver Lemke" ),
+        OUT(),
+        GOUT(      "out"      ),
+        GOUT_TYPE( "String" ),
+        GOUT_DESC( "Concatenated string." ),
+        IN(),
+        GIN(         "in1",    "in2",    "in3",    "in4",    "in5",
+                     "in6",    "in7",    "in8",    "in9",    "in10"),
+        GIN_TYPE(    "String", "String", "String", "String", "String",
+                     "String", "String", "String", "String", "String" ),
+        GIN_DEFAULT( NODEF,    NODEF,    "",       "",       "",
+                     "",       "",       "",       "",       ""),
+        GIN_DESC( "Input text string.", "Input text string.", "Input text string.",
+                  "Input text string.", "Input text string.", "Input text string.",
+                  "Input text string.", "Input text string.", "Input text string.",
+                  "Input text string.")
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "StringSet" ),
         DESCRIPTION
         (
