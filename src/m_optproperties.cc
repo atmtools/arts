@@ -1504,18 +1504,18 @@ void pha_mat_sptFromMonoData(// Output:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void ScatteringDoitMergeParticles1D(//WS Output:
-                                    Tensor4& pnd_field,
-                                    ArrayOfSingleScatteringData& scat_data_array,
-                                    //WS Input:
-                                    const Index& atmosphere_dim,
-                                    const Index& cloudbox_on,
-                                    const ArrayOfIndex& cloudbox_limits,
-                                    const Tensor3& t_field,
-                                    const Tensor3& z_field,
-                                    const Matrix& z_surface,
-                                    const Index& cloudbox_checked,
-                                    const Verbosity& /*verbosity*/)
+void ScatteringMergeParticles1D(//WS Output:
+                                Tensor4& pnd_field,
+                                ArrayOfSingleScatteringData& scat_data_array,
+                                //WS Input:
+                                const Index& atmosphere_dim,
+                                const Index& cloudbox_on,
+                                const ArrayOfIndex& cloudbox_limits,
+                                const Tensor3& t_field,
+                                const Tensor3& z_field,
+                                const Matrix& z_surface,
+                                const Index& cloudbox_checked,
+                                const Verbosity& /*verbosity*/)
 {
     if (!cloudbox_checked)
         throw std::runtime_error("You must call *cloudbox_checkedCalc* before this method.");

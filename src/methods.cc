@@ -9299,7 +9299,7 @@ void define_md_data_raw()
     
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "ScatteringDoitMergeParticles1D" ),
+      ( NAME( "ScatteringMergeParticles1D" ),
         DESCRIPTION
         (
          "This method pre-calculates a weighted sum of all particles per pressure level.\n"
