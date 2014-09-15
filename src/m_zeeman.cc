@@ -785,16 +785,30 @@ void propmat_clearskyAddZeeman(Tensor4& propmat_clearsky,
         {
             // If the species isn't Zeeman, look at the next species.
             if(!is_zeeman(abs_species[II])) continue;
-
+            
             Tensor3 part_abs_mat(f_grid.nelem(), 4, 4);
-            xsec_species_line_mixing_wrapper_with_zeeman(  part_abs_mat, abs_species, abs_lineshape,
-                    abs_lines_per_species[II], isotopologue_ratios,
-                    abs_vmrs, abs_p, abs_t, f_grid,
-                    0,0,1023, II, 
-                    line_mixing_data,
-                    line_mixing_data_lut,
-                    line_mixing_data_lut[II],
-                    verbosity );
+            
+            if(abs_species[II][0].LineMixingType() == SpeciesTag::LINE_MIXING_TYPE_NONE){
+                ArrayOfIndex empty;
+                xsec_species_line_mixing_wrapper_with_zeeman(  part_abs_mat, abs_species, abs_lineshape,
+                                                               abs_lines_per_species[II], isotopologue_ratios,
+                                                               abs_vmrs, abs_p, abs_t, f_grid,
+                                                               0,0,1023, II, 
+                                                               line_mixing_data,
+                                                               line_mixing_data_lut,
+                                                               empty,
+                                                               verbosity );
+            }
+            else{
+                xsec_species_line_mixing_wrapper_with_zeeman(  part_abs_mat, abs_species, abs_lineshape,
+                                                               abs_lines_per_species[II], isotopologue_ratios,
+                                                               abs_vmrs, abs_p, abs_t, f_grid,
+                                                               0,0,1023, II, 
+                                                               line_mixing_data,
+                                                               line_mixing_data_lut,
+                                                               line_mixing_data_lut[II],
+                                                               verbosity );
+            }
             propmat_clearsky(II, joker, joker, joker) += part_abs_mat;
         }
     }

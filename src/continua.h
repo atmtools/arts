@@ -50,6 +50,7 @@ void xsec_continuum_tag (MatrixView         xsec,       // calculated x-section
                          ConstVectorView    abs_t,      // temperature vector 
                          ConstVectorView    abs_n2,     // N2 vmr profile
                          ConstVectorView    abs_h2o,    // H2O vmr profile
+                         ConstVectorView    abs_o2,    // H2O vmr profile
                          ConstVectorView    vmr,        // species vmr profile
                          const Verbosity& verbosity);
 
@@ -185,7 +186,6 @@ void CKD_222_self_h2o (MatrixView          xsec,
                        ConstVectorView     abs_p,
                        ConstVectorView     abs_t,
                        ConstVectorView     vmr,
-                       ConstVectorView     abs_n2,
                        const Verbosity& verbosity);
 
 void CKD_222_foreign_h2o (MatrixView          xsec,
@@ -195,7 +195,6 @@ void CKD_222_foreign_h2o (MatrixView          xsec,
                           ConstVectorView     abs_p,
                           ConstVectorView     abs_t,
                           ConstVectorView     vmr,
-                          ConstVectorView     abs_n2,
                           const Verbosity& verbosity);
 
 void CKD_242_self_h2o (MatrixView          xsec,
@@ -205,7 +204,6 @@ void CKD_242_self_h2o (MatrixView          xsec,
                        ConstVectorView     abs_p,
                        ConstVectorView     abs_t,
                        ConstVectorView     vmr,
-                       ConstVectorView     abs_n2,
                        const Verbosity& verbosity);
 
 void CKD24_H20 (MatrixView          xsec,      // calculated x-section
@@ -226,7 +224,6 @@ void CKD_242_foreign_h2o (MatrixView          xsec,
                           ConstVectorView     abs_p,
                           ConstVectorView     abs_t,
                           ConstVectorView     vmr,
-                          ConstVectorView     abs_n2,
                           const Verbosity& verbosity);
 
 void CKD_mt_100_self_h2o (MatrixView          xsec,
@@ -236,7 +233,6 @@ void CKD_mt_100_self_h2o (MatrixView          xsec,
                           ConstVectorView     abs_p,
                           ConstVectorView     abs_t,
                           ConstVectorView     vmr,
-                          ConstVectorView     abs_n2,
                           const Verbosity& verbosity);
 
 void CKD_mt_100_foreign_h2o (MatrixView          xsec,
@@ -246,7 +242,25 @@ void CKD_mt_100_foreign_h2o (MatrixView          xsec,
                              ConstVectorView     abs_p,
                              ConstVectorView     abs_t,
                              ConstVectorView     vmr,
-                             ConstVectorView     abs_n2,
+                             const Verbosity& verbosity);
+
+void CKD_mt_250_self_h2o (MatrixView          xsec,
+                          const Numeric       Cin,
+                          const String&       model,
+                          ConstVectorView     f_grid,
+                          ConstVectorView     abs_p,
+                          ConstVectorView     abs_t,
+                          ConstVectorView     vmr,
+                          const Verbosity& verbosity);
+
+
+void CKD_mt_250_foreign_h2o (MatrixView          xsec,
+                             const Numeric       Cin,
+                             const String&       model,
+                             ConstVectorView     f_grid,
+                             ConstVectorView     abs_p,
+                             ConstVectorView     abs_t,
+                             ConstVectorView     vmr,
                              const Verbosity& verbosity);
 
 //////////////////////////////////////////////////////////////////////////// 
@@ -406,6 +420,16 @@ void CKD_mt_v1v0_o2 (MatrixView          xsec,        // calculated x-section
                      ConstVectorView     vmr,         // O2 vmr profile
                      const Verbosity& verbosity);
 
+void CKD_mt_250_o2_vis (MatrixView          xsec,        // calculated x-section
+                     const Numeric       Cin,         // scaling factor
+                     const String&       model,       // model option
+                     ConstVectorView     f_grid,      // frequency vector
+                     ConstVectorView     abs_p,       // pressure vector
+                     ConstVectorView     abs_t,       // temperature vector
+                     ConstVectorView     vmr,         // O2 vmr profile
+                     const Verbosity& verbosity);
+
+
 //////////////////////////////////////////////////////////////////////////// 
 // nitrogen continuum absorption models
 //////////////////////////////////////////////////////////////////////////// 
@@ -427,6 +451,30 @@ void CKD_mt_CIAfun_n2 (MatrixView          xsec,        // calculated x-section
                        ConstVectorView     abs_t,       // temperature vector
                        ConstVectorView     vmr,         // N2 vmr profile
                        const Verbosity& verbosity);
+
+void CKD_mt_250_CIArot_n2 (MatrixView         xsec,        // calculated x-section
+                       const Numeric      Cin,         // scaling factor
+                       const String&      model,       // model option
+                       ConstVectorView    f_grid,      // frequency vector
+                       ConstVectorView    abs_p,       // pressure vector
+                       ConstVectorView    abs_t,       // temperature vector
+                       ConstVectorView    vmr,         // N2 vmr profile
+                       ConstVectorView    abs_h2o,     // H2O vmr profile
+                       ConstVectorView    abs_o2,      // O2 vmr profile
+                       const Verbosity& verbosity);
+
+
+void CKD_mt_250_CIAfun_n2 (MatrixView          xsec,        // calculated x-section
+                       const Numeric       Cin,         // scaling factor
+                       const String&       model,       // model option
+                       ConstVectorView     f_grid,      // frequency vector
+                       ConstVectorView     abs_p,       // pressure vector
+                       ConstVectorView     abs_t,       // temperature vector
+                       ConstVectorView     vmr,         // N2 vmr profile
+                       ConstVectorView     abs_h2o,     // H2O vmr profile
+                       ConstVectorView     abs_o2,      // O2 vmr profile
+                       const Verbosity& verbosity);
+
 
 void BF86_CIA_N2 (MatrixView              xsec,        // calculated x-section
                   const Numeric           Cin,         // model parameter
@@ -496,6 +544,15 @@ void CKD_241_co2 (MatrixView          xsec,        // calculated x-section
                   const Verbosity& verbosity);
 
 void CKD_mt_co2 (MatrixView          xsec,         // calculated x-section
+                 const Numeric       Cin,          // scaling factor
+                 const String&       model,        // model option
+                 ConstVectorView     f_grid,       // frequency vector
+                 ConstVectorView     abs_p,        // pressure vector
+                 ConstVectorView     abs_t,        // temperature vector
+                 ConstVectorView     vmr,          // CO2 vmr profile
+                 const Verbosity& verbosity);
+
+void CKD_250_mt_co2 (MatrixView          xsec,         // calculated x-section
                  const Numeric       Cin,          // scaling factor
                  const String&       model,        // model option
                  ConstVectorView     f_grid,       // frequency vector

@@ -65,7 +65,7 @@ abs_speciesSet( species=[ "H2O-PWR98",
 #                             200e9 )
 #WriteXML( "ascii", abs_lines, "amsub.hitran04_lines.xml" )
 
-ReadXML( abs_lines, "amsub.hitran04_lines.xml" )
+ReadXML( abs_lines, "instruments/amsu/amsub.hitran04_lines.xml" )
 abs_lines_per_speciesCreateFromLines
 
 # WARNING: If you redefine abs_species, and want to do a line-by-line
@@ -78,7 +78,7 @@ abs_lines_per_speciesCreateFromLines
 
 # Definition of sensor position and LOS
 # ---
-ReadXML( sensor_los, "amsub.sensor_los.xml" )
+ReadXML( sensor_los, "instruments/amsu/amsub.sensor_los.xml" )
 nrowsGet( nrows, sensor_los )
 ncolsGet( ncols, sensor_los )
 MatrixSetConstant( sensor_pos, nrows, ncols, 850e3 )
@@ -98,7 +98,7 @@ sensor_responseSimpleAMSU
 
 
 # Replace f_grid and sensor_response by optimized ones.
-ReadXML( f_grid, "amsub.f_grid_fast.xml")
-ReadXML( sensor_response, "amsub.sensor_response_fast.xml")
+ReadXML( f_grid, "instruments/amsu/amsub.f_grid_fast.xml")
+ReadXML( sensor_response, "instruments/amsu/amsub.sensor_response_fast.xml")
 
 }

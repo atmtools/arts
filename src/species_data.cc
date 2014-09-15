@@ -226,6 +226,8 @@ void define_basic_species_data()
          REC( "ContMPM93"               ,NAN    ,NAN    ,-1     ,-1     ,TAGS()      ),
          REC( "SelfContCKDMT100"        ,NAN    ,NAN    ,-1     ,-1     ,TAGS()      ),
          REC( "ForeignContCKDMT100"     ,NAN    ,NAN    ,-1     ,-1     ,TAGS()      ),
+         REC( "SelfContCKDMT250"        ,NAN    ,NAN    ,-1     ,-1     ,TAGS()      ),
+         REC( "ForeignContCKDMT250"     ,NAN    ,NAN    ,-1     ,-1     ,TAGS()      ),
          REC( "SelfContCKD222"          ,NAN    ,NAN    ,-1     ,-1     ,TAGS()      ),
          REC( "ForeignContCKD222"       ,NAN    ,NAN    ,-1     ,-1     ,TAGS()      ),
          REC( "SelfContCKD242"          ,NAN    ,NAN    ,-1     ,-1     ,TAGS()      ),
@@ -285,6 +287,7 @@ void define_basic_species_data()
          REC( "837"     ,1.65354E-08   ,48.001646    ,-1     ,-1     ,TAGS() ),
          REC( "CKD241"           ,NAN    ,NAN    ,-1     ,-1     ,TAGS()),
          REC( "CKDMT100"         ,NAN    ,NAN    ,-1     ,-1     ,TAGS()),
+         REC( "CKDMT250"         ,NAN    ,NAN    ,-1     ,-1     ,TAGS()),
          REC( "SelfContPWR93"    ,NAN    ,NAN    ,-1     ,-1     ,TAGS()),
          REC( "ForeignContPWR93" ,NAN    ,NAN    ,-1     ,-1     ,TAGS()),
          REC( "SelfContHo66"     ,NAN    ,NAN    ,-1     ,-1     ,TAGS()),
@@ -379,6 +382,7 @@ void define_basic_species_data()
          REC( "CIAfunCKDMT100"  ,NAN    ,NAN    ,-1     ,-1     ,TAGS()),
          REC( "v0v0CKDMT100"    ,NAN    ,NAN    ,-1     ,-1     ,TAGS()),
          REC( "v1v0CKDMT100"    ,NAN    ,NAN    ,-1     ,-1     ,TAGS()),
+         REC( "visCKDMT250"    ,NAN    ,NAN    ,-1     ,-1     ,TAGS()),
          REC( "SelfContStandardType"    ,NAN    ,NAN    ,-1     ,-1     ,TAGS()),
          REC( "SelfContMPM93"   ,NAN    ,NAN    ,-1     ,-1     ,TAGS()),
          REC( "SelfContPWR93"   ,NAN    ,NAN    ,-1     ,-1     ,TAGS()),
@@ -631,6 +635,8 @@ void define_basic_species_data()
          REC( "SelfContBorysow"         ,NAN    ,NAN    ,-1     ,-1     ,TAGS()),
          REC( "CIArotCKDMT100"          ,NAN    ,NAN    ,-1     ,-1     ,TAGS()),
          REC( "CIAfunCKDMT100"          ,NAN    ,NAN    ,-1     ,-1     ,TAGS()),
+         REC( "CIArotCKDMT250"          ,NAN    ,NAN    ,-1     ,-1     ,TAGS()),
+         REC( "CIAfunCKDMT250"          ,NAN    ,NAN    ,-1     ,-1     ,TAGS()),
          REC( "DryContATM01"            ,NAN    ,NAN    ,-1     ,-1     ,TAGS())
          ) ) );
 

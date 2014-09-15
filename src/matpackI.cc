@@ -1763,8 +1763,11 @@ void cross3(VectorView c, const ConstVectorView& a, const ConstVectorView& b)
 Numeric vector_angle(ConstVectorView a, ConstVectorView b)
 {
     assert( a.nelem() == b.nelem() );
+    Numeric arg = (a*b) / sqrt(a*a) / sqrt(b*b);
 
-    return acos( (a*b) / sqrt(a*a) / sqrt(b*b) ) * RAD2DEG;
+    // Due to numerical inaccuracy, arg might be slightly larger than 1.
+    // We catch those cases to avoid spurious returns of NaNs
+    return fabs(arg) > 1. ? 0. : acos(arg) * RAD2DEG;
 }
 
 

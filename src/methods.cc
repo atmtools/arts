@@ -3122,8 +3122,8 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN(),
         GIN( "var1", "var2", "maxabsdiff", "error_message" ),
-        GIN_TYPE( "Numeric, Vector, Matrix, Tensor3, Tensor7, ArrayOfVector, ArrayOfMatrix",
-                  "Numeric, Vector, Matrix, Tensor3, Tensor7, ArrayOfVector, ArrayOfMatrix",
+        GIN_TYPE( "Numeric, Vector, Matrix, Tensor3, Tensor7, ArrayOfVector, ArrayOfMatrix, GriddedField3",
+                  "Numeric, Vector, Matrix, Tensor3, Tensor7, ArrayOfVector, ArrayOfMatrix, GriddedField3",
                   "Numeric", "String" ),
         GIN_DEFAULT( NODEF, NODEF, "", "" ),
         GIN_DESC( "A first variable", "A second variable", 
@@ -3299,6 +3299,162 @@ void define_md_data_raw()
         PASSWSVNAMES(   true  )
         ));
 
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "dN_H11" ),
+        DESCRIPTION
+        (
+         "Calculation of particle size distribution (dN/dD) following\n"
+         "a parametrization by Heymsfield (2011; unpublished).\n"
+         "\n"
+         "A wrapper to internal particle size distribution calculation.\n"
+         "Heymsfield (2011) is an unpublished pre-version of\n"
+         "Heymsfield (2013). It is a globally valid parametrization for cloud\n"
+         "ice. The parametrization is in ambient atmospheric temperature over\n"
+         "particle size in terms of maximum dimension of the particles.\n"
+         "Provides only the shape of the number density disribution function.\n"
+         "\n"
+         "For testing purposes mainly.\n"
+         ),
+        AUTHORS( "Jana Mendrok" ),
+        OUT(),
+        GOUT( "dN" ),
+        GOUT_TYPE( "Vector" ),
+        GOUT_DESC( "size distribution number density" ),
+        IN(),
+        GIN( "Dmax", "t" ),
+        GIN_TYPE( "Vector", "Numeric" ),
+        GIN_DEFAULT( NODEF, NODEF ),
+        GIN_DESC( "Maximum dimension of the particles [m]",
+                  "Ambient atmospheric temperature [K]" )
+        ));  
+    
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "dN_Ar_H13" ),
+        DESCRIPTION
+        (
+         "Calculation of particle size and shape distribution (dN/dD, area\n"
+         "ratio) following Heymsfield (2013).\n"
+         "\n"
+         "A wrapper to internal particle size and shape distribution\n"
+         "calculation. Heymsfield (2013) is a globally valid parametrization\n"
+         "for cloud ice. The parametrization is in ambient atmospheric\n"
+         "temperature over particle size in terms of maximum dimension. It\n"
+         "provides the shape of the distribution function of both number\n"
+         "density and area ratio.\n"
+         "\n"
+         "For testing purposes mainly.\n"
+         ),
+        AUTHORS( "Jana Mendrok" ),
+        OUT(),
+        GOUT( "dN", "Ar" ),
+        GOUT_TYPE( "Vector", "Vector" ),
+        GOUT_DESC( "size distribution number density", "area ratio distribution" ),
+        IN(),
+        GIN( "Dmax", "t" ),
+        GIN_TYPE( "Vector", "Numeric" ),
+        GIN_DEFAULT( NODEF, NODEF ),
+        GIN_DESC( "Maximum dimension of the particles [m]",
+                  "Ambient atmospheric temperature [K]" )
+        ));  
+    
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "dN_H98" ),
+        DESCRIPTION
+        (
+         "Calculation of particle size shape distribution (dN/dR) following\n"
+         "Hess et al. (1998).\n"
+         "\n"
+         "A wrapper to internal particle size distribution calculation. The\n"
+         "distribution implemented here is for cloud liquid water,\n"
+         "specifically for continental stratus. The parametrization is over\n"
+         "radius of spherical droplets. Provides number density normalized to\n"
+         "the given liquid water content.\n"
+         "\n"
+         "For testing purposes mainly.\n"
+         ),
+        AUTHORS( "Jana Mendrok" ),
+        OUT(),
+        GOUT( "dN" ),
+        GOUT_TYPE( "Vector" ),
+        GOUT_DESC( "size distribution number density" ),
+        IN(),
+        GIN( "R", "LWC", "density" ),
+        GIN_TYPE( "Vector", "Numeric", "Vector" ),
+        GIN_DEFAULT( NODEF, NODEF, NODEF ),
+        GIN_DESC( "Radii of the particles [m]",
+                  "Atmospheric liquid water content [kg/m3]",
+                  "Density of the particles [kg/m3]" )
+        ));  
+   
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "dN_MH97" ),
+        DESCRIPTION
+        (
+         "Calculation of particle size distribution (dN/dD) following\n"
+         "McFarquahar and Heymsfield (1997) parametrization.\n"
+         "\n"
+         "A wrapper to internal particle size distribution calculation.\n"
+         "McFarquhar and Heymsfield (1997) is a parametrization for cloud\n"
+         "ice in the tropics. Parametrization is in ice water content (IWC)\n"
+         "and ambient atmospheric temperature over particle size in terms of\n"
+         "mass equivalent sphere diameter. McFarquhar and Heymsfield (1997)\n"
+         "additionally provide uncertainties of the distribution's\n"
+         "parameters, which can be used here to created perturbed\n"
+         "distributions (set *noisy* to 1). Provides number density\n"
+         "normalized to the given ice water content.\n"
+         "\n"
+         "For testing purposes mainly.\n"
+         ),
+        AUTHORS( "Jana Mendrok" ),
+        OUT(),
+        GOUT( "dN" ),
+        GOUT_TYPE( "Vector" ),
+        GOUT_DESC( "size distribution number density" ),
+        IN(),
+        GIN( "Dme", "IWC", "t", "density", "noisy" ),
+        GIN_TYPE( "Vector", "Numeric", "Numeric", "Vector", "Index" ),
+        GIN_DEFAULT( NODEF, NODEF, NODEF, NODEF, "0" ),
+        GIN_DESC( "Mass equivalent sphere diameter of the particles [m]",
+                  "Atmospheric ice water content [kg/m3]",
+                  "Ambient atmospheric temperature [K]",
+                  "Density of the particles [kg/m3]",
+                  "Distribution parameter perturbance flag" )
+        ));  
+    
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "dN_MP48" ),
+        DESCRIPTION
+        (
+         "Calculation of particle size distribution (dN/dD) following\n"
+         "Marshall and Palmer (1948) parametrization.\n"
+         "\n"
+         "A wrapper to internal particle size distribution calculation.\n"
+         "Marshall and Palmer (1948) is a parametrization for liquid and ice\n"
+         "precipitation, i.e., rain and snow. Parametrization is in\n"
+         "precipitation rate (PR) over particle size in terms of mass\n"
+         "equivalent sphere diameter. Provides number density normalized to\n"
+         "the given precipitation rate.\n"
+         "\n"
+         "For testing purposes mainly.\n"
+         ),
+        AUTHORS( "Jana Mendrok" ),
+        OUT(),
+        GOUT( "dN" ),
+        GOUT_TYPE( "Vector" ),
+        GOUT_DESC( "size distribution number density" ),
+        IN(),
+        GIN( "Dme", "PR" ),
+        GIN_TYPE( "Vector", "Numeric" ),
+        GIN_DEFAULT( NODEF, NODEF ),
+        GIN_DESC( "Mass equivalent sphere diameter of the particles [m]",
+                  "Precipitation rate [mm/h]" )
+        ));  
+    
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "DoitAngularGridsSet" ),
@@ -4490,6 +4646,35 @@ void define_md_data_raw()
                   "Interpolation order.",
                   "Apply zero-padding." )
         ));
+    
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "GriddedFieldZToPRegrid" ),
+      DESCRIPTION
+      (
+      "Interpolates the input field along the vertical dimension to *p_grid*.\n"
+      "\n"
+      "This is done from z_field, and thus requires the atmosphere to be set \n"
+      "beforehand.\n"
+      "\n"
+      "The latitude and longitude grid of the input field must match *lat_grid*\n"
+      "and *lon_grid* for the method to work.\n"
+      "\n"
+      "BETA mode.\n"
+      ),
+      AUTHORS( "Richard Larsson" ),
+      OUT( ),
+      GOUT( "out" ),
+      GOUT_TYPE( "GriddedField3" ),
+      GOUT_DESC( "Regridded output; Pressure-gridded field." ),
+      IN( "p_grid", "lat_grid", "lon_grid", "z_field" ),
+      GIN( "in", "interp_order", "zeropadding"),
+      GIN_TYPE( "GriddedField3", "Index", "Index"),
+      GIN_DEFAULT( NODEF, "1", "0" ),
+      GIN_DESC( "Raw input; Altitude-gridded field.",
+                "Interpolation order.",
+                "Apply zero-padding." )
+      ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -9114,7 +9299,7 @@ void define_md_data_raw()
     
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "ScatteringDoitMergeParticles1D" ),
+      ( NAME( "ScatteringMergeParticles1D" ),
         DESCRIPTION
         (
          "This method pre-calculates a weighted sum of all particles per pressure level.\n"
@@ -10196,6 +10381,34 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "StringCompose" ),
+        DESCRIPTION
+        (
+         "Concatenate two or more strings.\n"
+         "\n"
+         "The output string is overwritten, but is allowed to appear\n"
+         "in the input list. Up to 10 strings can be concatenated at once.\n"
+         ),
+        AUTHORS( "Oliver Lemke" ),
+        OUT(),
+        GOUT(      "out"      ),
+        GOUT_TYPE( "String" ),
+        GOUT_DESC( "Concatenated string." ),
+        IN(),
+        GIN(         "in1",    "in2",    "in3",    "in4",    "in5",
+                     "in6",    "in7",    "in8",    "in9",    "in10"),
+        GIN_TYPE(    "String", "String", "String", "String", "String",
+                     "String", "String", "String", "String", "String" ),
+        GIN_DEFAULT( NODEF,    NODEF,    "",       "",       "",
+                     "",       "",       "",       "",       ""),
+        GIN_DESC( "Input text string.", "Input text string.", "Input text string.",
+                  "Input text string.", "Input text string.", "Input text string.",
+                  "Input text string.", "Input text string.", "Input text string.",
+                  "Input text string.")
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "StringSet" ),
         DESCRIPTION
         (
@@ -10349,6 +10562,9 @@ void define_md_data_raw()
         "*za_pos*. This variable specifies the fractional distance inside the\n"
         "ranges. For example, a *za_pos* of 0.7 (np still 9) gives the angles\n"
         "7, 17, ..., 87.\n"
+        "\n"
+        "Only upper-left diagonal element of the *surface_rmatrix*-es is\n"
+        "non-zero. That is, the upwelling radiation is always unpolarised.\n"
         "\n"
         "Local thermodynamic equilibrium is assumed, which corresponds to\n"
         "that the reflection and emission coefficients \"add up to 1\".\n"

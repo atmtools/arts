@@ -216,6 +216,8 @@ iso(it_isotopologue,	"262" ,	Qcoeff(-3.572493e+01,  1.652500e+00,  7.633309e-03,
   iso(it_isotopologue,       "ContMPM93",               Qcoeff( 0    ,0              ,0              ,0          ), IsotopologueRecord::PF_FROMCOEFF);
   iso(it_isotopologue,       "SelfContCKDMT100",        Qcoeff( 0    ,0              ,0              ,0          ), IsotopologueRecord::PF_FROMCOEFF);
   iso(it_isotopologue,       "ForeignContCKDMT100",     Qcoeff( 0    ,0              ,0              ,0          ), IsotopologueRecord::PF_FROMCOEFF);
+  iso(it_isotopologue,       "SelfContCKDMT250",        Qcoeff( 0    ,0              ,0              ,0          ), IsotopologueRecord::PF_FROMCOEFF);
+  iso(it_isotopologue,       "ForeignContCKDMT250",     Qcoeff( 0    ,0              ,0              ,0          ), IsotopologueRecord::PF_FROMCOEFF);
   iso(it_isotopologue,       "SelfContCKD222",          Qcoeff( 0    ,0              ,0              ,0          ), IsotopologueRecord::PF_FROMCOEFF);
   iso(it_isotopologue,       "ForeignContCKD222",       Qcoeff( 0    ,0              ,0              ,0          ), IsotopologueRecord::PF_FROMCOEFF);
   iso(it_isotopologue,       "SelfContCKD242",          Qcoeff( 0    ,0              ,0              ,0          ), IsotopologueRecord::PF_FROMCOEFF);
@@ -249,6 +251,7 @@ iso(it_isotopologue,	"838" , Qcoeff(-1.381515e+00,  2.142230e+00,  -1.790555e-03
 iso(it_isotopologue,	"837" , Qcoeff(-1.713863e+01,  2.498987e+01,  -2.084202e-02,  7.949796e-05 ), IsotopologueRecord::PF_FROMCOEFF);
   iso(it_isotopologue,       "CKD241",           Qcoeff( 0        ,0              ,0              ,0          ), IsotopologueRecord::PF_FROMCOEFF);
   iso(it_isotopologue,       "CKDMT100",         Qcoeff( 0        ,0              ,0              ,0          ), IsotopologueRecord::PF_FROMCOEFF);
+  iso(it_isotopologue,       "CKDMT250",         Qcoeff( 0        ,0              ,0              ,0          ), IsotopologueRecord::PF_FROMCOEFF);
   iso(it_isotopologue,       "SelfContPWR93",    Qcoeff( 0        ,0              ,0              ,0          ), IsotopologueRecord::PF_FROMCOEFF);
   iso(it_isotopologue,       "ForeignContPWR93", Qcoeff( 0        ,0              ,0              ,0          ), IsotopologueRecord::PF_FROMCOEFF);
 
@@ -314,6 +317,7 @@ iso(it_isotopologue,	"67" ,	Qcoeff(-2.757545e+01,  9.118689e+00,  -7.483006e-04,
   iso(it_isotopologue,       "CIAfunCKDMT100", Qcoeff( 0     ,0              ,0              ,0          ), IsotopologueRecord::PF_FROMCOEFF);
   iso(it_isotopologue,       "v0v0CKDMT100",   Qcoeff( 0     ,0              ,0              ,0          ), IsotopologueRecord::PF_FROMCOEFF);
   iso(it_isotopologue,       "v1v0CKDMT100",   Qcoeff( 0     ,0              ,0              ,0          ), IsotopologueRecord::PF_FROMCOEFF);
+  iso(it_isotopologue,       "visCKDMT250",   Qcoeff( 0     ,0              ,0              ,0          ), IsotopologueRecord::PF_FROMCOEFF);
   iso(it_isotopologue,       "SelfContStandardType",   Qcoeff( 0     ,0              ,0              ,0          ), IsotopologueRecord::PF_FROMCOEFF);
   iso(it_isotopologue,       "SelfContMPM93",  Qcoeff( 0    ,0              ,0              ,0          ), IsotopologueRecord::PF_FROMCOEFF);
   iso(it_isotopologue,       "SelfContPWR93",  Qcoeff( 0    ,0              ,0              ,0          ), IsotopologueRecord::PF_FROMCOEFF);
@@ -483,6 +487,8 @@ iso(it_isotopologue,  "45" ,  Qcoeff(1.704255e+00,  1.562748e+00,  2.437406e-05,
   iso(it_isotopologue,       "SelfContBorysow",      Qcoeff( 0       ,0              ,0              ,0   ), IsotopologueRecord::PF_FROMCOEFF);
   iso(it_isotopologue,       "CIArotCKDMT100",       Qcoeff( 0       ,0              ,0              ,0   ), IsotopologueRecord::PF_FROMCOEFF);
   iso(it_isotopologue,       "CIAfunCKDMT100",       Qcoeff( 0       ,0              ,0              ,0   ), IsotopologueRecord::PF_FROMCOEFF);
+  iso(it_isotopologue,       "CIArotCKDMT250",       Qcoeff( 0       ,0              ,0              ,0   ), IsotopologueRecord::PF_FROMCOEFF);
+  iso(it_isotopologue,       "CIAfunCKDMT250",       Qcoeff( 0       ,0              ,0              ,0   ), IsotopologueRecord::PF_FROMCOEFF);
   iso(it_isotopologue,       "DryContATM01",         Qcoeff( 0       ,0              ,0              ,0   ), IsotopologueRecord::PF_FROMCOEFF);
 
 

@@ -41,6 +41,8 @@ arts_test_run_ctlfile(slow artscomponents/clearsky/TestClearSky2.arts)
 
 arts_test_run_ctlfile(fast artscomponents/stokesrot/TestStokesRotation.arts)
 
+arts_test_run_ctlfile(fast artscomponents/regrid/TestRegrid.arts)
+
 arts_test_run_ctlfile(fast artscomponents/groundbased/TestFgrid.arts)
 arts_test_run_ctlfile(fast artscomponents/groundbased/TestGbased.arts)
 arts_test_run_ctlfile(fast artscomponents/groundbased/TestWinds.arts)
@@ -90,6 +92,8 @@ arts_test_run_ctlfile(fast instruments/amsu/TestAMSUB_fast.arts)
 arts_test_run_ctlfile(slow instruments/amsu/TestAMSUB.arts)
 
 arts_test_run_ctlfile(nocheck instruments/amsu/TestAMSUA.arts)
+
+arts_test_run_ctlfile(fast instruments/ici/TestICI_fast.arts)
 
 arts_test_run_ctlfile(fast instruments/mhs/TestMHS_fast.arts)
 arts_test_run_ctlfile(slow instruments/mhs/TestMHS.arts)

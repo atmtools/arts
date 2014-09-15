@@ -125,7 +125,7 @@ WriteNetCDF (// WS Generic Input:
 /* Workspace method: Doxygen documentation will be auto-generated */
 template<typename T> void
 WriteNetCDFIndexed (//WS Input:
-             const Index&  file_index,
+             const Index&,
              // WS Generic Input:
              const T&,
              const String&,

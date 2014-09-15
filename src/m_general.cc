@@ -332,6 +332,26 @@ void PrintWorkspace(// Workspace reference
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void
+StringCompose(String& out,
+              const String& in1,
+              const String& in2,
+              const String& in3,
+              const String& in4,
+              const String& in5,
+              const String& in6,
+              const String& in7,
+              const String& in8,
+              const String& in9,
+              const String& in10,
+              const Verbosity&
+              )
+{
+    out = in1 + in2 + in3 + in4 + in5 + in6 + in7 + in8 + in9 + in10;
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 #ifdef TIME_SUPPORT
 void
 timerStart (// WS Output

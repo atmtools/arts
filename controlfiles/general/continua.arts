@@ -52,6 +52,15 @@ abs_cont_descriptionAppend( tagname="H2O-SelfContCKDMT100",
 # CKD MT 1.00 H2O foreign continuum original parameters:
 abs_cont_descriptionAppend( tagname="H2O-ForeignContCKDMT100",
                             model="CKDMT100" )
+
+#
+# CKD MT 2.50 self continuum original parameters:
+abs_cont_descriptionAppend( tagname="H2O-SelfContCKDMT250",
+                            model="CKDMT250" )
+#
+# CKD MT 2.50 H2O foreign continuum original parameters:
+abs_cont_descriptionAppend( tagname="H2O-ForeignContCKDMT250",
+                            model="CKDMT250" )
 #
 #  Cruz-Pol et al. 98 Continuum:
 abs_cont_descriptionAppend( tagname="H2O-CP98",
@@ -90,6 +99,23 @@ abs_cont_descriptionAppend( tagname="O2-TRE05",
 # Thibault et  al. from CKD F77 program:
 abs_cont_descriptionAppend( tagname="O2-CIAfunCKDMT100",
                             model="CKDMT100" )
+
+# Mate et  al. from CKD F77 program:
+abs_cont_descriptionAppend( tagname="O2-v0v0CKDMT100",
+                            model="CKDMT100" )
+
+# Mlawer et  al. from CKD F77 program:
+abs_cont_descriptionAppend( tagname="O2-v1v0CKDMT100",
+                            model="CKDMT100" )
+
+# Mlawer et  al. from CKD F77 program:
+abs_cont_descriptionAppend( tagname="O2-v1v0CKDMT100",
+                            model="CKDMT100" )
+
+# Greenblatt et  al. from CKD F77 program:
+abs_cont_descriptionAppend( tagname="O2-visCKDMT250",
+                            model="CKDMT250" )
+
 #
 
 #
@@ -116,6 +142,15 @@ abs_cont_descriptionAppend( tagname="N2-CIArotCKDMT100",
 abs_cont_descriptionAppend( tagname="N2-CIAfunCKDMT100",
                             model="CKDMT100" )
 
+# Borysow-Frommhold from CKD F77 program:
+abs_cont_descriptionAppend( tagname="N2-CIArotCKDMT250",
+                            model="CKDMT250" )
+#
+#
+# Lafferty et  al. from CKD F77 program:
+abs_cont_descriptionAppend( tagname="N2-CIAfunCKDMT250",
+                            model="CKDMT250" )
+
 #
 
 #
@@ -140,6 +175,10 @@ abs_cont_descriptionAppend( tagname="CO2-ForeignContHo66",
 # far line wing continuum from CKD F77 program:
 abs_cont_descriptionAppend( tagname="CO2-CKDMT100",
                             model="CKDMT100" )
+
+# far line wing continuum from CKD F77 program:
+abs_cont_descriptionAppend( tagname="CO2-CKDMT250",
+                            model="CKDMT250" )
 
 
 #

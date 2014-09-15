@@ -3,8 +3,8 @@
 Arts2 {
 
 # EPS-SG-B[123] shall be 817 km above the surface.  ICI shall be a conical
-# scanner with a 53.1° incidence angle = 45° nadir angle = 13° zenith
-# angle
+# scanner with a 53.1° incidence angle (at surface) = 45° nadir angle =
+# 135° zenith angle
 
 MatrixSetConstant(sensor_pos, 1, 1, 817e3)
 MatrixSetConstant(sensor_los, 1, 1, 135)

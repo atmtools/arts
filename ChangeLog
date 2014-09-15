@@ -1,3 +1,280 @@
+2014-09-15  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-2-24
+
+	* src/m_optproperties.cc, src/methods.cc:
+
+	Rename ScatteringDoitMergeParticles1D -> ScatteringMergeParticles1D.
+
+2014-09-05  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-2-23
+
+	* src/m_batch.cc (ybatchCalc):
+
+	Use schedule(dynamic) for better CPU utilization in batch jobs.
+
+	* src/methods.cc, src/m_general.cc (StringCompose):
+
+	Add new convenience WSM to concatenate several strings at once.
+
+2014-08-15  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-2-22
+
+	* src/continua.cc (CKD_mt_250_co2):
+
+	Fix array out of bounds access. Replaced tdep_bandhead[J-1196] with
+	tdep_bandhead[(I1 + J-1)-1196] and introduced helper variable I1J.
+
+2014-07-29  Mayuri Tatiya <maytat@student.ltu.se>
+
+	* arts-2-2-21
+
+	* src/continua.h, src/continua.cc:
+        fixed the bug in "CO2-CKDMT250"
+
+2014-07-23  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-2-20
+
+	* controlfiles/CMakeLists.txt: missed to commit in previous attempt.
+
+2014-07-23  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-2-19
+
+	* controlfiles/instruments/[ici,smr]/
+	[ici,ciwsir,cloudice,iss-smr,jaxa-smr].sensor_response_f_fast.xml:
+	Added. Data for sensor_response_f set such that y_f created on their
+	basis can safely be used with yApplyUnit (essentially, square of channel
+	frequency is sum over monochromatic frequencies times their weight
+	associated with the respective channel). 
+
+	* controlfiles/instruments/[ici,smr]/
+	[ici,ciwsir,cloudice,iss-smr,jaxa-smr]_fast.arts:
+	Read sensor_response_f with BT-conversion valid frequencies from file
+	(overwrites sensor_response_f set from sensor_responseSimpleAMSU).
+
+	* controlfiles/instruments/ici/*.*:
+	Moved all ICI related data & controlfiles here (from instruments/smr/).
+
+	* controlfiles/CMakeLists.txt: Adapted to above move of ICI files.
+
+	* controlfiles/instruments/smr/jaxa-smr*.*:
+	Renamed smr*.* to jaxa-smr for better recognizability.
+
+	* src/m_abs.cc (abs_h2oSet): Removed spurious cout.
+
+2014-07-17  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-2-18
+
+	* src/m_abs.cc(abs_h2oSet, abs_n2Set, abs_o2Set):
+	Do not throw error if respective species (H2O, N2, O2) is not given.
+	Instead set the abs_XX with a dummy, absence flagging value (-99).
+	This to get rid of the requirement to always include H2O, N2, and O2
+	when any continuum/full model is to be applied although for the specific
+	continuum they might not be needed at all).
+
+	* src/continua.cc (xsec_continuum_tag):
+	Introduced checks for valid abs_n2/o2/h2o for the specific continua that
+	require those variables. Throw proper error message indicating the
+	"problematic" continuum tag and the missing species.
+
+	* src/continua.cc,continua.h(CKD_222_self_h2o,CKD_222_foreign_h2o,
+	CKD_242_self_h2o, CKD_242_foreign_h2o, CKD_mt_100_self_h2o,
+	CKD_mt_100_foreign_h2o, CKD_mt_250_self_h2o, CKD_mt_250_foreign_h2o):
+	Removed abs_n2 as input parameter as abs_n2 is actually not used within
+	in these functions.
+
+	* controlfiles/instruments/amsu/amsub_fast.arts,smr/iss-smr_fast.arts:
+	Use full path to f_grid	and sensor_response files in order to be able to
+	use these as ARTS include files from everywhere.
+
+
+2014-07-16  Mayuri Tatiya <maytat@student.ltu.se>
+
+	* arts-2-2-17
+
+	* src/continua.h, src/continua.cc:
+	Added functions of species for new MTCKD2.5 ("H2O-SelfContCKDMT250",
+	"H2O-ForeignContCKDMT250","O2-visCKDMT250", "N2-CIArotCKDMT250",
+	"N2-CIAfunCKDMT250", "CO2-CKDMT250")
+
+	* src/m_abs.cc (abs_xsec_per_speciesAddConts, abs_o2Set):
+	Added variable abs_o2 and a function to derive that from vmr_field as
+	required by MTCKD2.5 N2 continuum.
+
+	* src/partition_function_data.cc, src/species_data.cc:
+	Added species tags for MTCKD2.5.
+
+2014-07-16  Mayuri Tatiya <maytat@student.ltu.se>
+
+	* arts-2-2-16
+
+	* controlfiles/general/continua.arts:
+	Added defintions for new MTCKD 2.5 continua.
+
+2014-07-14  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-2-15
+
+	* src/m_optproperties.cc (ScatteringDoitMergeParticles1D):
+
+	Removed old code. Fix from jana was correct. We don't have+want an
+	operator* overload for Numeric*Vector Multiplication. This problem was
+	caused by the one exception we made (operator* for scalar Vector*Vector
+	multiplication). The Numeric is automatically casted to a
+	ConstVectorView and the following scalar product fails because the two
+	Vectors have different number of elements.
+
+2014-07-10  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-2-14
+
+	* src/m_optproperties.cc (ScatteringDoitMergeParticles1D):
+	Phase matrix merging using array multiplication caused asserts.
+	Tentatively(?) fixed by replacing it with explicit loop.
+
+2014-06-11  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-2-13
+
+	* src/cloudbox.cc (pnd_fieldMH97, pnd_fieldH11, pnd_fieldH13):
+	Revert check for equal aspect ratios introduced in arts-2-1-755 (r8634).
+	This seems unnecessary: it's perfectly fine to run those
+	parametrizations on different aspect ratio particles (as is, e.g., the
+	Hong data for a fixed habit!). In contrast to what arts-2-1-755
+	suggests, this has never been a requirement before.
+
+2014-06-26  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-2-12
+
+	* src/m_surface.cc (surfaceLambertianSimple): Extended the comment
+	with a page reference for a 1988 edition of the cited book.
+
+2014-06-26  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-2-11
+
+	* src/m_surface.cc (surfaceLambertianSimple): Added reference
+	motivating how the rmatrices are set. After input from Michael
+	Kahnert.
+
+	* src/methods.cc: Also some extra informaton here.
+
+2014-06-26  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-2-10
+
+	* src/check_input.cc (chk_interpolation_grids_loose_no_data_check):
+
+	Fix code for ascending grids.
+
+	* src/m_atmosphere.cc:
+
+	(GriddedFieldZToPRegrid): Add zeropadding support.
+
+	(GriddedFieldZToPRegridHelper): New helper function.
+
+	* src/methods.cc: Add zeropadding to GriddedFieldZToPRegrid.
+
+	* controlfiles/artscomponents/regrid/: Extend test case.
+
+2014-06-25  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-2-9
+
+	* src/m_basic_types.cc, src/methods.cc:
+
+	Add Compare method for GriddedField3.
+
+	* controlfiles/CMakeLists.txt,
+	controlfiles/artscomponents/regrid: Add regridding test case.
+
+2014-06-24  Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-2-8
+
+	* src/m_atmosphere.cc:  Added (GriddedFieldZToPRegrid), which should
+	allow the user to input altitude-gridded datafields of type
+	GriddedField3.
+
+2014-06-24  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-2-7
+
+	* src/parser.{cc,h} (ArtsParser::at_end_of_argument):
+
+	Add additional check to catch invalid characters at the end of named
+	argument parameters instead of silently ignoring them.
+
+	* src/m_nc.h (WriteNetCDFIndexed):
+
+	Remove unused argument to fix compiler warning when compiling without
+	netcdf support.
+
+2014-06-11  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-2-6
+
+	* src/montecarlo.cc (opt_propCalc): Check whether atm temperature is in
+	valid particle property temperature range.
+
+	* controlfiles/instruments/smr/ici_fast.arts: Give full path to f_grid
+	and sensor_response files. 
+
+2014-06-19  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-2-5
+
+	* src/matpackI.cc (vector_angle):
+
+	Due to numerical inaccuracy, the argument to acos might end up being
+	slightly larger than 1 and thus acos returns nan. Those cases are now
+	caught and 0 is returned.
+	
+2014-06-17  Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-2-4
+	
+	* src/m_zeeman.cc:  Fixed bug that made zero-magnetic field runs crash
+	when there is no line mixing.
+
+2014-06-11  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-2-3
+
+	* controlfiles/instruments/smr/ici_fast.arts,
+	ici.sensor_response_fast.xml, ici.f_grid_fast.xml: Added. Optimized
+	frequency setup (derived fromsimulated annealing) for ICI.
+
+	* controlfiles/instruments/smr/TestICI_fast.arts,
+	TestICI_fast.ybatch.ref.xml: Added. ICI test case and corresponding
+	reference output.
+
+	* controlfiles/CMakeLists.txt: ICI test case added in "fast" chain.
+
+	* controlfiles/instruments/smr/ici.arts: bugfix in comments.
+
+2014-06-11  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-2-2
+
+	* src/m_cloudbox.cc, methods.cc:
+	Added WSMs interfacing the hydrometeor size distribution
+	parametrizations providing dN/dsize. For details see built-in doc.
+
+2014-06-10  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-2-1
+
+	* continua.cc (MPM93IceCrystalAbs, MPM93WaterDropletAbs):
+	Include vmr limits into if-branch of xsec calc. Fixes missing xsec calc
+	for liquid water/ice continuum for abs_lookup, bug reported by Ian Adams.
+
 2014-06-06  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-2-0

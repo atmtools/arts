@@ -1504,18 +1504,18 @@ void pha_mat_sptFromMonoData(// Output:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void ScatteringDoitMergeParticles1D(//WS Output:
-                                    Tensor4& pnd_field,
-                                    ArrayOfSingleScatteringData& scat_data_array,
-                                    //WS Input:
-                                    const Index& atmosphere_dim,
-                                    const Index& cloudbox_on,
-                                    const ArrayOfIndex& cloudbox_limits,
-                                    const Tensor3& t_field,
-                                    const Tensor3& z_field,
-                                    const Matrix& z_surface,
-                                    const Index& cloudbox_checked,
-                                    const Verbosity& /*verbosity*/)
+void ScatteringMergeParticles1D(//WS Output:
+                                Tensor4& pnd_field,
+                                ArrayOfSingleScatteringData& scat_data_array,
+                                //WS Input:
+                                const Index& atmosphere_dim,
+                                const Index& cloudbox_on,
+                                const ArrayOfIndex& cloudbox_limits,
+                                const Tensor3& t_field,
+                                const Tensor3& z_field,
+                                const Matrix& z_surface,
+                                const Index& cloudbox_checked,
+                                const Verbosity& /*verbosity*/)
 {
     if (!cloudbox_checked)
         throw std::runtime_error("You must call *cloudbox_checkedCalc* before this method.");
@@ -1699,9 +1699,12 @@ void ScatteringDoitMergeParticles1D(//WS Output:
                         // Weighted sum of pha_mat_data
                         if( scat_data_array[i_pt].T_grid.nelem() == 1)
                         {
-                            this_part.pha_mat_data(i_f, 0, i_za, 0, 0, 0, joker) +=
-                            pnd_field(i_pt, i_lv, 0, 0)
-                            * orig_part.pha_mat_data(i_f, 0, i_za, 0, 0, 0, joker);
+                          const Numeric pnd = pnd_field(i_pt, i_lv, 0, 0);
+                          for (Index i_s = 0; i_s < orig_part.pha_mat_data.ncols(); i_s++)
+                            {
+                              this_part.pha_mat_data(i_f, 0, i_za, 0, 0, 0, i_s) =
+                                pnd * orig_part.pha_mat_data(i_f, 0, i_za, 0, 0, 0, i_s);
+                            }
                         }
                         else
                         {

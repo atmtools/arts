@@ -1667,3 +1667,125 @@ void pnd_fieldSetup (//WS Output:
 
   }
 }
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void dN_MH97 (//WS Output:
+              Vector& dN,
+              //WS Input:
+              const Vector& Dme,
+              const Numeric& IWC,
+              const Numeric& t,
+              const Vector& density,
+              const Index& noisy,
+              const Verbosity&)
+{
+  Index n = Dme.nelem();
+
+  if ( density.nelem() != n )
+    {
+      ostringstream os;
+      os << "Particle size and particle density vectors need to be of\n"
+         << "identical size, but are not.";
+      throw runtime_error(os.str());
+    }
+
+  dN.resize(n);
+
+  for ( Index i=0; i<n; i++ )
+    {
+      // calculate particle size distribution with MH97
+      // [# m^-3 m^-1]
+      dN[i] = IWCtopnd_MH97 ( IWC, Dme[i], t, density[i], noisy );
+    }
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void dN_H11 (//WS Output:
+             Vector& dN,
+             //WS Input:
+             const Vector& Dmax,
+             const Numeric& t,
+             const Verbosity&)
+{
+  Index n = Dmax.nelem();
+  dN.resize(n);
+
+  for ( Index i=0; i<n; i++ ) //loop over number of particles
+    {
+      // calculate particle size distribution for H11
+      // [# m^-3 m^-1]
+      dN[i] = IWCtopnd_H11 ( Dmax[i], t );
+    }
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void dN_Ar_H13 (//WS Output:
+                Vector& dN,
+                Vector& Ar,
+                //WS Input:
+                const Vector& Dmax,
+                const Numeric& t,
+                const Verbosity&)
+{
+  Index n = Dmax.nelem();
+  dN.resize(n);
+  Ar.resize(n);
+
+  for ( Index i=0; i<n; i++ ) //loop over number of particles
+    {
+      // calculate particle size distribution for H13Shape
+      // [# m^-3 m^-1]
+      dN[i] = IWCtopnd_H13Shape ( Dmax[i], t );
+      // calculate Area ratio distribution for H13Shape
+      Ar[i] = area_ratioH13 ( Dmax[i], t );
+    }
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void dN_H98 (//WS Output:
+             Vector& dN,
+             //WS Input:
+             const Vector& R,
+             const Numeric& LWC,
+             const Vector& density,
+             const Verbosity&)
+{
+  Index n = R.nelem();
+
+  if ( density.nelem() != n )
+    {
+      ostringstream os;
+      os << "Particle size and particle density vectors need to be of\n"
+         << "identical size, but are not.";
+      throw runtime_error(os.str());
+    }
+
+  dN.resize(n);
+
+  for ( Index i=0; i<n; i++ )
+    {
+      // calculate particle size distribution for liquid
+      // [# m^-3 m^-1]
+      dN[i] = LWCtopnd ( LWC, density[i], R[i] );
+    }
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void dN_MP48 (//WS Output:
+              Vector& dN,
+              //WS Input:
+              const Vector& Dme,
+              const Numeric& PR,
+              const Verbosity&)
+{
+  Index n = Dme.nelem();
+
+  // derive particle number density for all given sizes
+  for ( Index i=0; i<n; i++ )
+    {
+      // calculate particle size distribution with MP48
+      // output: [# m^-3 m^-1]
+      dN[i] = PRtopnd_MP48 ( PR, Dme[i]);
+    }
+}
+

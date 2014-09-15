@@ -914,7 +914,6 @@ void chk_interpolation_grids_loose_no_data_check(Index&          ing_min,
     }
     
     // The max is now the first point, the min the last point!
-    // I think the sign is right here...
     og_max = old_grid[0];
     og_min = old_grid[n_old-1];
   }
@@ -926,25 +925,40 @@ void chk_interpolation_grids_loose_no_data_check(Index&          ing_min,
   // If new grid is not inside old grid, determine the indexes of the range
   // that is.
   
-  const Index iog_min = ascending?old_grid.nelem()-1:0;
-  const Index iog_max = ascending?0:old_grid.nelem()-1;
-  
+  const Index iog_min = 0;
+  const Index iog_max = old_grid.nelem()-1;
+
   ing_min = 0;
   ing_max = new_grid.nelem()-1;
 
-  if (ng_min < og_min)
+  if (ascending)
   {
-    while (ing_max > 0 && new_grid[ing_max] < old_grid[iog_max])
-      ing_max--;
+      if (ng_max > og_max)
+      {
+          while (ing_max > 0 && new_grid[ing_max] > old_grid[iog_max])
+              ing_max--;
+      }
+
+      if (ng_min < og_min)
+      {
+          while (ing_min < new_grid.nelem()-1 && new_grid[ing_min] < old_grid[iog_min])
+              ing_min++;
+      }
   }
-  
-  if (ng_max > og_max)
+  else
   {
-    while (ing_min < new_grid.nelem()-1 && new_grid[ing_min] > old_grid[iog_min])
-      ing_min++;
+      if (ng_min < og_min)
+      {
+          while (ing_max > 0 && new_grid[ing_max] < old_grid[iog_max])
+              ing_max--;
+      }
+
+      if (ng_max > og_max)
+      {
+          while (ing_min < new_grid.nelem()-1 && new_grid[ing_min] > old_grid[iog_min])
+              ing_min++;
+      }
   }
-  
-  // If we get here, than everything should be fine.
 }
 
 

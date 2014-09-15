@@ -1101,6 +1101,181 @@ void GriddedFieldLatLonRegrid(// WS Generic Output:
 }
 
 
+//! Calculate grid positions and interpolations weights for GriddedFieldZToPRegrid
+/*
+ This helper function is used by GriddedFieldZToPRegrid WSM to do the common
+ calculation of the grid positions and interpolation weights for latitudes and longitudes.
+
+ \param[out]    ing_min       Index in the new grid with first value covered
+ by the old grid.
+ \param[out]    ing_max       Index in the new grid with last value covered
+ by the old grid.
+ \param[out]    gp_p          Altitude grid positions
+ \param[out]    itw           Interpolation weights
+ \param[in]     gfraw_in      Input GriddedField
+ \param[in]     z_grid_index  Index of altitude grid
+ \param[in]     z_grid        New z_grid grid
+ \param[in]     interp_order  Interpolation order
+ \param[in]     zeropadding   Allow zero padding
+ \param[in]     verbosity     Verbosity levels
+ */
+void GriddedFieldZToPRegridHelper(Index& ing_min,
+                                  Index& ing_max,
+                                  ArrayOfGridPosPoly& gp_p,
+                                  Matrix& itw,
+                                  const GriddedField& gfraw_in,
+                                  const Index z_grid_index,
+                                  ConstVectorView z_grid,
+                                  const Index& interp_order,
+                                  const Index& zeropadding,
+                                  const Verbosity& verbosity)
+{
+    CREATE_OUT2;
+
+    chk_griddedfield_gridname(gfraw_in, z_grid_index, "Altitude");
+
+    out2 << "  Interpolation order: " << interp_order << "\n";
+
+    const ConstVectorView in_z_grid = gfraw_in.get_numeric_grid(z_grid_index);
+
+    if (zeropadding)
+    {
+        if (in_z_grid[0] > z_grid[z_grid.nelem()-1] ||
+            in_z_grid[in_z_grid.nelem()-1] < z_grid[0])
+        {
+            ing_min = 0;
+            ing_max = ing_min-1;
+        }
+        else
+            chk_interpolation_grids_loose_no_data_check(ing_min, ing_max,
+                                                         "Raw field to z_grid",
+                                                         in_z_grid,
+                                                         z_grid,
+                                                         interp_order);
+    }
+    else
+    {
+        ing_min = 0;
+        ing_max = z_grid.nelem()-1;
+        chk_interpolation_pgrids("Raw field to p_grid",
+                                 in_z_grid,
+                                 z_grid,
+                                 interp_order);
+    }
+
+    Index nelem_in_range = ing_max - ing_min + 1;
+
+    // Calculate grid positions:
+    if (nelem_in_range>0)
+    {
+        gp_p.resize(nelem_in_range);
+        gridpos_poly(gp_p, in_z_grid, z_grid[Range(ing_min, nelem_in_range)],
+                     interp_order);
+
+        // Interpolation weights:
+        itw.resize(nelem_in_range, interp_order+1);
+        interpweights(itw, gp_p);
+    }
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void GriddedFieldZToPRegrid(// WS Generic Output:
+                            GriddedField3& gfraw_out, //grid in P
+                            // WS Input:
+                            const Vector& p_grid,
+                            const Vector& lat_grid,
+                            const Vector& lon_grid,
+                            const Tensor3& z_field,
+                            // WS Generic Input:
+                            const GriddedField3& gfraw_in_orig,//grid in Z
+                            const Index& interp_order, // Only linear interpolation allowed
+                            const Index& zeropadding,
+                            const Verbosity& verbosity)
+{
+    
+    // z_field must be of the same size as its grids
+    if(!((z_field.npages()==p_grid.nelem() && z_field.nrows() == lat_grid.nelem()) && z_field.ncols() == lon_grid.nelem()))
+        throw std::runtime_error("*z_field* must be of the same size as *p_grid*, *lat_grid*, and *lon_grid* in *GriddedFieldZToPRegrid*.");
+    
+    // Must name the dimension "Altitude" to ensure user is aware of what they are doing.
+    chk_griddedfield_gridname(gfraw_in_orig, 0, "Altitude");
+    
+    // Each lat and lon grid must be identical between z_field and in field
+    const Vector& lat_in = gfraw_in_orig.get_numeric_grid(1);
+    const Vector& lon_in = gfraw_in_orig.get_numeric_grid(2);
+    
+    if(lat_grid.nelem()!=lat_in.nelem() || lon_grid.nelem()!=lon_in.nelem())
+        throw std::runtime_error("Gridding of field to regrid is bad.\n*GriddedFieldZToPRegrid* requires latitude and longitude to be on the same grid as *z_field*.");
+    else
+    {
+        for(Index ii=0;ii<lat_grid.nelem();ii++)
+            if(lat_grid[ii]!=lat_in[ii])
+                throw std::runtime_error("Gridding of field to regrid is bad.\n*GriddedFieldZToPRegrid* requires latitude and longitude to be the same as for *z_field*.");
+        for(Index ii=0;ii<lon_grid.nelem();ii++)
+            if(lon_grid[ii]!=lon_in[ii])
+                throw std::runtime_error("Gridding of field to regrid is bad.\n*GriddedFieldZToPRegrid* requires latitude and longitude to be the same as for *z_field*.");
+    }
+    
+    // Pointer in case output is input variable (same memory allocated)
+    const GriddedField3* gfraw_in_pnt;
+    GriddedField3 gfraw_in_copy;
+    
+    if (&gfraw_in_orig == &gfraw_out)
+    {
+        gfraw_in_copy = gfraw_in_orig;
+        gfraw_in_pnt = &gfraw_in_copy;
+    }
+    else
+        gfraw_in_pnt = &gfraw_in_orig;
+    
+    // Now output and input are separate variables (not allocating the same memory)
+    const GriddedField3 &gfraw_in = *gfraw_in_pnt;
+    
+    // Right size and order
+    gfraw_out.resize(p_grid.nelem(),lat_grid.nelem(),lon_grid.nelem());
+    gfraw_out.set_grid(0, p_grid);
+    gfraw_out.set_grid_name(0, "Pressure");
+    gfraw_out.set_grid(1, lat_grid);
+    gfraw_out.set_grid_name(1, gfraw_in.get_grid_name(1));
+    gfraw_out.set_grid(2, lon_grid);
+    gfraw_out.set_grid_name(2, gfraw_in.get_grid_name(2));
+    gfraw_out.data = 0.;
+
+    ArrayOfGridPosPoly gp_p;
+    Matrix itw;
+
+    Index ing_min, ing_max;
+
+    for(Index lat_index = 0;lat_index<lat_grid.nelem();lat_index++)
+    {
+        for(Index lon_index = 0;lon_index<lon_grid.nelem();lon_index++)
+        {
+            const Vector z_out = z_field(joker,lat_index,lon_index);
+
+            GriddedFieldZToPRegridHelper(ing_min, ing_max,
+                                         gp_p, itw,
+                                         gfraw_in, 0,
+                                         z_out, interp_order, zeropadding,
+                                         verbosity);
+
+            if (ing_max - ing_min >= 0)
+            {
+                Range r = joker;
+
+                if (ing_max - ing_min + 1 != z_out.nelem())
+                {
+                    r = Range(ing_min, ing_max-ing_min+1);
+                }
+
+                interp(gfraw_out.data(r, lat_index, lon_index),
+                       itw, gfraw_in.data(joker, lat_index, lon_index), gp_p);
+            }
+        }
+    }
+}
+
+
 // Workspace method, doxygen header will be auto-generated.
 // 2007-07-25 Stefan Buehler
 void atm_fields_compactFromMatrix(// WS Output:

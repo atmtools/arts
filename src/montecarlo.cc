@@ -711,6 +711,30 @@ void opt_propCalc(
     {
       if (pnd_vec[i_pt]>0)
         {
+          Index nT=scat_data_array_mono[i_pt].T_grid.nelem();
+          if( nT > 1 )
+            {
+              //set extrapolfax explicitly. should correspond to the one assumed
+              //by gridpos call in opt_propExtract.
+              Numeric extrapolfac=0.5;
+              Numeric lowlim = scat_data_array_mono[i_pt].T_grid[0]-
+                               extrapolfac*(scat_data_array_mono[i_pt].T_grid[1]
+                                           -scat_data_array_mono[i_pt].T_grid[0]);
+              Numeric uplim = scat_data_array_mono[i_pt].T_grid[nT-1]+
+                              extrapolfac*(scat_data_array_mono[i_pt].T_grid[nT-1]
+                                          -scat_data_array_mono[i_pt].T_grid[nT-2]);
+
+              if( rtp_temperature<lowlim || rtp_temperature>uplim )
+                {
+                  ostringstream os;
+                  os << "Atmospheric temperature (" << rtp_temperature
+                     << "K) out of valid temperature\n"
+                     << "range of particle optical properties (" 
+                     << lowlim << "-" << uplim
+                     << "K) of particle #" << i_pt << ".\n";
+                  throw runtime_error( os.str() );
+                }
+            }
           opt_propExtract( ext_mat_mono_spt, abs_vec_mono_spt,
                           scat_data_array_mono[i_pt], za, aa,
                           rtp_temperature, stokes_dim, verbosity);
