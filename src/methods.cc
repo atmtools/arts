@@ -6627,6 +6627,27 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "MatrixAddScalar" ),
+        DESCRIPTION
+        (
+         "Adds a scalar to all elements of a matrix.\n"
+         "\n"
+         "The result can either be stored in the same or another matrix.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT(),
+        GOUT(      "out"     ),
+        GOUT_TYPE( "Matrix" ),
+        GOUT_DESC( "Output matrix" ),
+        IN(),
+        GIN(         "in"    , "value"   ),
+        GIN_TYPE(    "Matrix", "Numeric" ),
+        GIN_DEFAULT( NODEF   , NODEF     ),
+        GIN_DESC( "Input matrix.", "The value to be added to the matrix." )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "MatrixCBR" ),
         DESCRIPTION
         (
