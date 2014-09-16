@@ -215,3 +215,34 @@ Use C++11 and the new libc++ (currently only supported in Xcode builds):
 
 cmake -G Xcode -DWITH_XCODE_LIBCPP=1 ..
 
+
+GPROF PROFILING
+===============
+
+To utilize gprof to obtain profiling information, you can configure ARTS
+in the following way:
+
+1. Create an new build directory:
+cd arts
+mkdir build_profile
+cd build_profile
+
+2. Compile ARTS with profiling information:
+CFLAGS="-pg" CXXFLAGS="-pg" cmake ..
+make arts
+
+If your gprof version does not support GCC's latest dwarf format, you have
+to force a compatible format:
+CFLAGS="-pg -gdwarf-3" CXXFLAGS="-pg -gdwarf-3" cmake ..
+
+3. Run ARTS in the configuration you want to analyze:
+src/arts MYCONTROLFILE.arts
+
+4. Step 3 created a file gmon.out with timing information. Use gprof to
+analyze it:
+gprof src/arts
+
+As gprof adds code overhead into the produced binary, using a sampling profiler
+such as 'Instruments' on Mac OS X is recommended to obtain more realistic timing
+results.
+
