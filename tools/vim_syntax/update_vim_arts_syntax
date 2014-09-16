@@ -1,0 +1,74 @@
+#!/bin/bash
+# author: Lukas Kluft
+# version: 03.06.2014 
+#
+# purpose: update vim's ARTS syntax highlighting
+#
+# 2014-08-19 OLE: Add path to ARTS as input parameter
+
+[[ $# -eq 1 ]] && ARTS_BIN=$1 || ARTS_BIN=arts
+
+if ! which -s $ARTS_BIN; then
+    echo "ERROR: $ARTS_BIN not found"
+    echo "Usage: $0 [PATH_TO_ARTS_BINARY]"
+    exit 1
+fi
+
+# create subdirectories in ~/.vim
+mkdir -p $HOME/.vim/{syntax,ftdetect}
+
+# path to vim syntax file
+f="$HOME/.vim/ftdetect/arts.vim"
+
+# enable file extension for auto recognition
+echo "au BufRead,BufNewFile *.arts set filetype=arts" > $f
+echo "Written $f"
+
+# generate arts.vim file
+f="$HOME/.vim/syntax/arts.vim"
+
+cat << 'EOF' > $f
+" Vim syntax file
+" Language: ARTS
+" Maintainer: Lukas Kluft (via update_vim_arts_syntax)
+EOF
+
+echo \" Latest Revision: $(date) >> $f
+
+cat << 'EOF' >> $f
+if exists("b:current_syntax")
+  finish
+endif
+
+" Mapping of ARTS types to formatting classes
+hi def link ArtsMethod Constant
+hi def link ArtsComment Comment
+hi def link ArtsVariable Structure
+hi def link ArtsGroup Type
+hi def link ArtsNumber Number
+hi def link ArtsString Statement
+
+let b:current_syntax = "arts"
+
+" Definition of comments
+syn match ArtsComment "#.*$" 
+
+" Definition of numbers
+syn match ArtsNumber '\W[-+]\=\d\+\(\.\d*\)\=\([eE][-+]\=\d\+\)\='
+
+" Definition of strings
+syn region ArtsString start='"' end='"'
+
+EOF
+
+echo \" Definition of Workspace methods >> $f
+$ARTS_BIN -p -m all | sed 's/^/syn keyword ArtsMethod /g' >> $f
+
+echo \" Definition of Workspace variables >> $f
+$ARTS_BIN -p -w all | sed 's/^/syn keyword ArtsVariable /g' >> $f
+
+echo \" Definition of Workspace variable groups >> $f
+$ARTS_BIN -p -g all | sed 's/^/syn keyword ArtsGroup /g' >> $f
+
+echo "Written $f"
+

@@ -1,5 +1,15 @@
 2014-09-16  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-3-3
+
+	* tools: Add new tools directory.
+
+	* tools/bash_completion: Add bash_completion script.
+
+	* tools/vim_syntax: Add vim syntax script by Lukas Kluft.
+
+2014-09-16  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-3-2
 
 	* README: Add info about profiling.

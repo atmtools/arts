@@ -1,0 +1,32 @@
+Add commandline completion for ARTS in the Bash shell
+-----------------------------------------------------
+
+To get the completion working in your current shell run source the
+'completion_arts.sh' file in your shell:
+
+source completion_arts.sh
+
+Assuming that the arts binary is in your search PATH, you can now type:
+
+arts --<TAB><TAB>
+
+and you should get a list of the available command line options from
+arts. The completion also works if you specify the full/relative path to arts:
+
+~/arts/build/src/arts --<TAB><TAB>
+
+The completion does not only work for command line options, but also for
+additional arguments to this options, e.g. you're looking for the description
+of a method or variable and only know that the name starts with abs. So you
+type:
+
+arts -d Doit<TAB><TAB>
+
+And you end up with a list of matching names:
+
+DoitAngularGridsSet        DoitInit                   DoitWriteIterationFields
+DoitCloudboxFieldPut       DoitScatteringDataPrepare  
+
+
+Author: Oliver Lemke
+
