@@ -69,7 +69,7 @@ void chk_pnd_field_raw_only_in_cloudbox(
         ConstVectorView              lon_grid,
         const ArrayOfIndex&          cloudbox_limits);
 
-void chk_part_species (const ArrayOfString& part_species,
+void chk_scat_species (const ArrayOfString& scat_species,
                        const String& delim);
 
 void chk_scattering_data (const ArrayOfSingleScatteringData& scat_data_array,

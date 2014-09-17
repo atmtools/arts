@@ -1,3 +1,16 @@
+2014-09-17  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-4
+
+	* controlfiles/artscomponents/doitbatch/TestDOITBatch.arts,
+	controlfiles/general/general.arts, src/cloudbox.cc, src/cloudbox.h,
+	src/m_abs_lookup.cc, src/m_atmosphere.cc, src/m_cloudbox.cc,
+	src/methods.cc, src/workspace.cc 
+
+	Rename part_species -> scat_species
+	Rename ParticleSpeciesInit -> scat_speciesInit
+	Rename ParticleSpeciesSet -> scat_speciesSet
+
 2014-09-16  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-3

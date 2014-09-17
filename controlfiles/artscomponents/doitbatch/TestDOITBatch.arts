@@ -166,11 +166,11 @@ ScatteringParticleTypeAndMetaRead (scat_data_array, scat_meta_array, f_grid,
 
 # Definition of particle species
 #--------------------------------
-ParticleSpeciesSet(part_species,
-                   ["LWC-liquid-Water-0.1-2000",
-                    "IWC-MH97-Ice-0.1-2000"])
+scat_speciesSet(scat_species,
+                ["LWC-liquid-Water-0.1-2000",
+                "IWC-MH97-Ice-0.1-2000"])
 
-# Selection/filerting of particles according to *part_species*
+# Selection/filerting of particles according to *scat_species*
 #------------------------------------------------------------
 ScatteringParticlesSelect
 scat_data_arrayCheck
@@ -251,8 +251,8 @@ AgendaSet( ybatch_calc_agenda ){
   # ------------------------------------
   pnd_fieldSetup
   #pnd_fieldSetup( pnd_field, atmosphere_dim, cloudbox_on, cloudbox_limits, 
-  #    massdensity_field, t_field, scat_meta_array, part_species, 
-  #    scat_data_per_part_species )
+  #    massdensity_field, t_field, scat_meta_array, scat_species, 
+  #    scat_data_per_scat_species )
   
   #Write indexed pnd_fields to sub-folder for each atmosphere
   #WriteXMLIndexed (output_file_format, ybatch_index, pnd_field, 

@@ -2565,7 +2565,7 @@ void Workspace::define_wsv_data()
     
    wsv_data.push_back
    (WsvRecord
-    ( NAME( "part_species" ),
+    ( NAME( "scat_species" ),
       DESCRIPTION
       (
        "Array of Strings defining (scattering) particles to consider and their\n"
@@ -3366,15 +3366,15 @@ void Workspace::define_wsv_data()
 
    wsv_data.push_back
      (WsvRecord
-      ( NAME( "scat_data_per_part_species" ),
+      ( NAME( "scat_data_per_scat_species" ),
         DESCRIPTION
         (
          "Auxiliary array holding the number of *scat_data_array* particle\n"
-         "entries associated with each entry in *part_species*. \n"
+         "entries associated with each entry in *scat_species*. \n"
          "\n"
-         "Size of *scat_data_per_part_species* has to be equal the size of *part_species*.\n"
+         "Size of *scat_data_per_scat_species* has to be equal the size of *scat_species*.\n"
          "\n"
-         "Usage: WSM *ScatteringParticlesSelect* creates *scat_data_per_part_species*.\n"
+         "Usage: WSM *ScatteringParticlesSelect* creates *scat_data_per_scat_species*.\n"
         ),
         GROUP( "ArrayOfIndex" ))); 
      

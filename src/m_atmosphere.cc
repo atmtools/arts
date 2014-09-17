@@ -1600,7 +1600,7 @@ void AtmFieldsFromCompact(// WS Output:
                           Tensor4& massdensity_field,
                           // WS Input:
                           const ArrayOfArrayOfSpeciesTag& abs_species,
-                          const ArrayOfString& part_species,
+                          const ArrayOfString& scat_species,
                           const GriddedField4& atm_fields_compact,
                           const Index&  atmosphere_dim,
                           const String& delim,
@@ -1630,7 +1630,7 @@ void AtmFieldsFromCompact(// WS Output:
   // T[K] z[m] Particle_1[?] ...  Particle_m[?] VMR_1[1] ... VMR_n[1]
 
   // Number of Particle&VMR species:
-  const Index nsp = part_species.nelem();
+  const Index nsp = scat_species.nelem();
   const Index nsa = nf-nsp-2;
   
   // Check that there is at least one VMR species:
@@ -1660,18 +1660,18 @@ void AtmFieldsFromCompact(// WS Output:
       throw runtime_error( os.str() );
     }
 
-  // Check that the (supposed) particle fields match part_species:
+  // Check that the (supposed) particle fields match scat_species:
   for (Index i=0; i<nsp; ++i)
     {
       const String tf_species = c.get_string_grid(GFIELD4_FIELD_NAMES)[2+i];
       String ps_species;
-      parse_partfield_name(ps_species,part_species[i],delim);
+      parse_partfield_name(ps_species,scat_species[i],delim);
       if (tf_species != ps_species)
         {
           ostringstream os;
           os << "Field name for particle field not valid: "
              << tf_species << "\n"
-             << "Based on *part_species*, the field name should be: "
+             << "Based on *scat_species*, the field name should be: "
              << ps_species;
           throw runtime_error( os.str() );
         }

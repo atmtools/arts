@@ -33,7 +33,7 @@ verbosityInit
 #
 # No particle/scattering species (yet)
 #
-ParticleSpeciesSet( part_species, [] )
+scat_speciesSet( scat_species, [] )
 MatrixSet( particle_masses, [] )
 
 

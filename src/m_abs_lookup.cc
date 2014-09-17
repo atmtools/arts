@@ -1173,7 +1173,7 @@ void abs_lookupSetupBatch(// WS Output:
 
   // Derive field, where abs_species profiles start
   // (in batch_fields, first 2 are T and z, then we have an unknown number of
-  // part_species fields, followed by N fields corresponding to the N entries in
+  // scat_species fields, followed by N fields corresponding to the N entries in
   // abs_species)
   const Index indoff = batch_fields[0].data.nbooks()-abs_species.nelem();
 //  cout << "abs species start at column " << indoff << ", i.e.,\n"
@@ -1224,7 +1224,7 @@ void abs_lookupSetupBatch(// WS Output:
         throw runtime_error( os.str() );
       }
 */
-    // field_names.nelem = 2(T,z) + M(part_species) + N(abs_species)
+    // field_names.nelem = 2(T,z) + M(scat_species) + N(abs_species)
     // but we don't know M, so we can only check whether we have at least
     // N+2 (abs_species+T+z) atmospheric fields
     if (abs_species.nelem() >  field_names.nelem()-2)
@@ -1336,7 +1336,7 @@ void abs_lookupSetupBatch(// WS Output:
   // profiles of min, max, and mean of these, on the abs_p grid.
 
 //  Index n_variables = batch_fields[0].data.nbooks();
-  // we will do statistics for data fields excluding the part_species fields
+  // we will do statistics for data fields excluding the scat_species fields
   Index n_variables = 2+abs_species.nelem();
 
   // The first dimension of datamin, datamax, and datamean is the
@@ -1478,7 +1478,7 @@ void abs_lookupSetupBatch(// WS Output:
           {
 //          for (Index fi=0; fi<data.nbooks(); ++fi)
             // we have to handle T/z and abs_species parts separately since they
-            // can have part_species in between, which we want to ignore
+            // can have scat_species in between, which we want to ignore
             for (Index fi=0; fi<2; ++fi)
               interp(data_interp(fi, joker, la, lo),
                      itw,

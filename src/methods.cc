@@ -2459,11 +2459,11 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "abs_species", "part_species", "atm_fields_compact", "atmosphere_dim" ),
+        IN( "abs_species", "scat_species", "atm_fields_compact", "atmosphere_dim" ),
         GIN( "delim" ),
         GIN_TYPE( "String" ),
         GIN_DEFAULT( "-" ),
-        GIN_DESC( "Delimiter string of *part_species* elements." )
+        GIN_DESC( "Delimiter string of *scat_species* elements." )
         ));
     
   md_data_raw.push_back
@@ -2927,7 +2927,7 @@ void define_md_data_raw()
          "WSMs.\n"
          "NOTE: only 1-dim case is handeled in the moment!\n"
          "\n"
-         "The function iterates over all *part_species* and performs a \n"
+         "The function iterates over all *scat_species* and performs a \n"
          "check, to see if the corresponding scattering particle profiles do not\n"
          "contain a cloud (all values equal zero). If, after all iterations,\n"
          "all the considrered profiles proove to contain no cloud,\n"
@@ -7568,17 +7568,17 @@ void define_md_data_raw()
          "(in contrast to reading it from external sources using\n"
          "*ParticleTypeAdd* and *pnd_fieldCalc*).\n"
          "It extracts particle the mass information (density*volume) from\n"
-         "*scat_meta_array*. Different entries in *part_species* are\n"
+         "*scat_meta_array*. Different entries in *scat_species* are\n"
          "taken as different categories of particle_masses, i.e., the\n"
          "resulting *particle_masses* matrix will contain as many columns as\n"
-         "entries exist in *part_species*.\n"
+         "entries exist in *scat_species*.\n"
          ),
         AUTHORS( "Jana Mendrok" ),
         OUT( "particle_masses" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "scat_meta_array", "scat_data_per_part_species", "part_species" ),
+        IN( "scat_meta_array", "scat_data_per_scat_species", "scat_species" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -7587,13 +7587,13 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "ParticleSpeciesInit" ),
+      ( NAME( "scat_speciesInit" ),
         DESCRIPTION
         (
-         "Initializes empty *part_species* array.\n"
+         "Initializes empty *scat_species* array.\n"
          ),
         AUTHORS( "Daniel Kreyling" ),
-        OUT( "part_species" ),
+        OUT( "scat_species" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
@@ -7606,15 +7606,15 @@ void define_md_data_raw()
     
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "ParticleSpeciesSet" ),
+      ( NAME( "scat_speciesSet" ),
         DESCRIPTION
         (
-         "Sets the WSV *part_species*."
+         "Sets the WSV *scat_species*."
          "\n"
          "With this function, the user specifies settings for the \n"
          "particle number density calculations using *pnd_fieldSetup*.\n"
          "The input is an ArrayOfString that needs to be in a specific format,\n"
-         "for details, see WSV *part_species*.\n"
+         "for details, see WSV *scat_species*.\n"
          "\n"         
          "*Example:* \t ['IWC-MH97-Ice-0.1-200', 'LWC-H98_STCO-Water-0.1-50'] \n"
          "\n"
@@ -7623,7 +7623,7 @@ void define_md_data_raw()
          "of *atm_fields_compact* are considered particle profiles.\n"
          ),
         AUTHORS( "Daniel Kreyling" ),
-        OUT( "part_species" ),
+        OUT( "scat_species" ),
         GOUT( ),
         GOUT_TYPE( ),
         GOUT_DESC( ),
@@ -7632,7 +7632,7 @@ void define_md_data_raw()
         GIN_TYPE(  "ArrayOfString", "String" ),
         GIN_DEFAULT( NODEF, "-" ),
         GIN_DESC("Array of pnd calculation parameters.",
-                 "Delimiter string of *part_species* elements." )
+                 "Delimiter string of *scat_species* elements." )
         ));
 
 
@@ -7949,7 +7949,7 @@ void define_md_data_raw()
          "\t See internal function 'LWCtopnd' for implementation/units/output.\n"
          "\t (src.: Deirmendjian D., 1963 and Hess M., et al 1998)\n"
          "\n"
-         "According to the selection criteria in *part_species*, the first specified\n" 
+         "According to the selection criteria in *scat_species*, the first specified\n" 
          "psd parametrisation is selected together with all particles of specified phase\n"
          "and size. Then pnd calculations are performed on all levels inside the cloudbox.\n"
          "The *massdensity_field* input weights the pnds by the amount of scattering\n" 
@@ -7957,12 +7957,12 @@ void define_md_data_raw()
          "the *pnd_field* will be zero as well.\n"
          "Subsequently the pnd values get written to *pnd_field*.\n"
          "\n"
-         "Now the next selection criteria string in *part_species* is used to repeat\n"
+         "Now the next selection criteria string in *scat_species* is used to repeat\n"
          "the process.The new pnd values will be appended to the existing *pnd_field*.\n"
          "And so on...\n"
          "\n"
          "NOTE: the order of scattering particle profiles in *massdensity_field* has to\n"
-         "fit the order of part_species tags!\n"
+         "fit the order of scat_species tags!\n"
          ),
         AUTHORS( "Daniel Kreyling" ),
         OUT( "pnd_field"),
@@ -7971,11 +7971,11 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "atmosphere_dim","cloudbox_on", "cloudbox_limits",
             "massdensity_field", "t_field", "scat_meta_array",
-            "part_species", "scat_data_per_part_species" ),
+            "scat_species", "scat_data_per_scat_species" ),
         GIN( "delim" ),
         GIN_TYPE( "String" ),
         GIN_DEFAULT( "-" ),
-        GIN_DESC( "Delimiter string of *part_species* elements" )
+        GIN_DESC( "Delimiter string of *scat_species* elements" )
         ));  
     
   md_data_raw.push_back
@@ -9396,29 +9396,29 @@ void define_md_data_raw()
         DESCRIPTION
         (
          "Selects data of *scat_data_array* corresponding to particles that\n"
-         "according to *part_species* shall be considered in the scattering\n"
+         "according to *scat_species* shall be considered in the scattering\n"
          "calculation.\n"
          "\n"
-         "Selection is controlled by *part_species* settings and done based on\n"
+         "Selection is controlled by *scat_species* settings and done based on\n"
          "particle type and size. *scat_meta_array* is searched\n"
          "for particles that fulfill the selection criteria. Selection is done\n"
-         "individually for each element of *part_species*, i.e. for each\n"
+         "individually for each element of *scat_species*, i.e. for each\n"
          "considered particle field (implying a sorting of the selected\n"
          "*scat_meta_array* and *scat_data_array* according to the\n"
          "particle field they correspond to).\n"
-         "Additionaly *scat_data_per_part_species* is created, which contains the number\n"
+         "Additionaly *scat_data_per_scat_species* is created, which contains the number\n"
          "of particles that have been selected for each of the particle fields.\n"
          ),
         AUTHORS( "Daniel Kreyling" ),
-        OUT( "scat_data_array", "scat_meta_array", "scat_data_per_part_species" ),
+        OUT( "scat_data_array", "scat_meta_array", "scat_data_per_scat_species" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "scat_data_array", "scat_meta_array", "part_species" ),
+        IN( "scat_data_array", "scat_meta_array", "scat_species" ),
         GIN( "delim" ),
         GIN_TYPE( "String" ),
         GIN_DEFAULT( "-" ),
-        GIN_DESC( "Delimiter string of *part_species* elements." )
+        GIN_DESC( "Delimiter string of *scat_species* elements." )
          ));
         
   md_data_raw.push_back

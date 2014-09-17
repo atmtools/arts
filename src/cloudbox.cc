@@ -464,33 +464,33 @@ void chk_pnd_field_raw_only_in_cloudbox(
 
 
 
-//!  Check validity of part_species setting
+//!  Check validity of scat_species setting
 /*!
   This function checks, whether number of elements in each particle string is
   ok, and whether the entries for size limits are indeed numbers (or '*').
 
-	\param part_species Array of particle species tags.
-  \param delim Delimiter string of *part_species* elements.
+	\param scat_species Array of particle species tags.
+  \param delim Delimiter string of *scat_species* elements.
 
   \author Jana Mendrok
   \date 2012-10-25
 
 */
-void chk_part_species (
-                      const ArrayOfString& part_species,
+void chk_scat_species (
+                      const ArrayOfString& scat_species,
                       const String& delim
                       )
 {
   ArrayOfString strarr;
   Numeric sizeval;
 
-  for ( Index k=0; k<part_species.nelem(); k++ )
+  for ( Index k=0; k<scat_species.nelem(); k++ )
     {
-      part_species[k].split ( strarr, delim );
+      scat_species[k].split ( strarr, delim );
       if ( strarr.nelem() > 5 )
         {     
           ostringstream os;
-          os << "Individual strings in part_species can only contain up to 5\n"
+          os << "Individual strings in scat_species can only contain up to 5\n"
              << "elements, but entry #" << k << " contains the following "
              << strarr.nelem() << ":\n" << strarr << "\n";
           throw runtime_error ( os.str() );
@@ -913,8 +913,8 @@ bool is_inside_cloudbox(const Ppath& ppath_step,
     \param scat_meta_array particle meta data for particles
     \param scat_data_start start index for particles handled by this distribution
     \param npart number of particles handled by this distribution
-    \param part_string part_species tag for profile/distribution handled here
-    \param delim Delimiter string of *part_species* elements
+    \param part_string scat_species tag for profile/distribution handled here
+    \param delim Delimiter string of *scat_species* elements
   
   \author Jana Mendrok, Daniel Kreyling
   \date 2012-04-03
@@ -1034,8 +1034,8 @@ void pnd_fieldMH97 (Tensor4View pnd_field,
     \param scat_meta_array particle meta data for particles
     \param scat_data_start start index for particles handled by this distribution
     \param npart number of particles handled by this distribution
-    \param part_string part_species tag for profile/distribution handled here
-    \param delim Delimiter string of *part_species* elements
+    \param part_string scat_species tag for profile/distribution handled here
+    \param delim Delimiter string of *scat_species* elements
   
   \author Jana Mendrok, Daniel Kreyling
   \date 2012-04-05
@@ -1154,8 +1154,8 @@ void pnd_fieldH11 (Tensor4View pnd_field,
     \param scat_meta_array particle meta data for particles
     \param scat_data_start start index for particles handled by this distribution
     \param npart number of particles handled by this distribution
-    \param part_string part_species tag for profile/distribution handled here
-    \param delim Delimiter string of *part_species* elements
+    \param part_string scat_species tag for profile/distribution handled here
+    \param delim Delimiter string of *scat_species* elements
   
   \author Johan Strandgren, Daniel Kreyling
   \date 2013-08-26
@@ -1292,8 +1292,8 @@ void pnd_fieldH13 (Tensor4View pnd_field,
     \param scat_meta_array particle meta data for particles
     \param scat_data_start start index for particles handled by this distribution
     \param npart number of particles handled by this distribution
-    \param part_string part_species tag for profile/distribution handled here
-    \param delim Delimiter string of *part_species* elements
+    \param part_string scat_species tag for profile/distribution handled here
+    \param delim Delimiter string of *scat_species* elements
   
   \author Johan Strandgren
   \date 2013-08-26
@@ -1502,8 +1502,8 @@ void pnd_fieldH13Shape (Tensor4View pnd_field,
     \param scat_meta_array particle meta data for particles
     \param scat_data_start start index for particles handled by this distribution
     \param npart number of particles handled by this distribution
-    \param part_string part_species tag for profile/distribution handled here
-    \param delim Delimiter string of *part_species* elements
+    \param part_string scat_species tag for profile/distribution handled here
+    \param delim Delimiter string of *scat_species* elements
   
   \author Jana Mendrok
   \date 2012-04-04
@@ -1688,8 +1688,8 @@ void pnd_fieldMP48 (Tensor4View pnd_field,
     \param scat_meta_array particle meta data for particles
     \param scat_data_start start index for particles handled by this distribution
     \param npart number of particles handled by this distribution
-    \param part_string part_species tag for profile/distribution handled here
-    \param delim Delimiter string of *part_species* elements
+    \param part_string scat_species tag for profile/distribution handled here
+    \param delim Delimiter string of *scat_species* elements
   
   \author Jana Mendrok, Daniel Kreyling
   \date 2012-04-04
@@ -2484,11 +2484,11 @@ void scale_H13 (
 }
 
 
-/*! Splitting part_species string and parse type of massdensity_field
+/*! Splitting scat_species string and parse type of massdensity_field
 
 	\param  partfield_name name of atmospheric particle field
 	\param  part_string containing infos about scattering particle calculations
-  \param delim Delimiter string of *part_species* elements
+  \param delim Delimiter string of *scat_species* elements
 
   \author Daniel Kreyling
   \date 2011-02-21
@@ -2502,7 +2502,7 @@ void parse_partfield_name (//WS Output:
 {
   ArrayOfString strarr;
 
-  // split part_species string at delim and write to ArrayOfString
+  // split scat_species string at delim and write to ArrayOfString
   part_string.split ( strarr, delim );
 
   //first entry is particle field name (e.g. "IWC", "LWC" etc.)
@@ -2527,17 +2527,17 @@ void parse_partfield_name (//WS Output:
     ostringstream os;
     os << "First substring in " << part_string
        << " must be rather 'LWC', 'IWC', 'Rain' or 'Snow'\n"
-       <<"Check input in *part_species*!\n";
+       <<"Check input in *scat_species*!\n";
     throw runtime_error ( os.str() );
   }*/
 }
 
 
 
-/*! Splitting part_species string and parse psd_param
+/*! Splitting scat_species string and parse psd_param
 	\param psd_param particle size distribution parametrization
 	\param part_string containing infos about scattering particle calculations
-  \param delim Delimiter string of *part_species* elements
+  \param delim Delimiter string of *scat_species* elements
   
   \author Daniel Kreyling
   \date 2011-02-21
@@ -2551,7 +2551,7 @@ void parse_psd_param (//WS Output:
 {
   ArrayOfString strarr;
 
-  // split part_species string at delim and write to ArrayOfString
+  // split scat_species string at delim and write to ArrayOfString
   part_string.split ( strarr, delim );
 
   // second entry is particle size distribution parametrisation  ( e.g."MH97")
@@ -2577,11 +2577,11 @@ void parse_psd_param (//WS Output:
 
 
 
-/*! Splitting part_species string and parse type of particle (from ScattData array)
+/*! Splitting scat_species string and parse type of particle (from ScattData array)
 
 	\param  part_type particle type (material, phase). 
 	\param  part_string containing infos about scattering particle calculations
-  \param delim Delimiter string of *part_species* elements
+  \param delim Delimiter string of *scat_species* elements
 
   \author Jana Mendrok
   \date 2012-04-03
@@ -2595,7 +2595,7 @@ void parse_part_material (//WS Output:
 {
   ArrayOfString strarr;
 
-  // split part_species string at delim and write to ArrayOfString
+  // split scat_species string at delim and write to ArrayOfString
   part_string.split ( strarr, delim );
 
   // third entry is requested particle (material) type ( e.g."Water", "Ice")
@@ -2614,11 +2614,11 @@ void parse_part_material (//WS Output:
 
 
 
-/*! Splitting part_species string and parse min and max particle radius
+/*! Splitting scat_species string and parse min and max particle radius
 	\param sizemin min scattering particle radius
 	\param sizemax max scattering particle radius
 	\param part_string containing infos about scattering particle calculations
-  \param delim Delimiter string of *part_species* elements
+  \param delim Delimiter string of *scat_species* elements
   
   \author Daniel Kreyling
   \date 2011-02-21
@@ -2633,7 +2633,7 @@ void parse_part_size (//WS Output:
 {
   ArrayOfString strarr;
 
-  // split part_species string at delim and write to ArrayOfString
+  // split scat_species string at delim and write to ArrayOfString
   part_string.split ( strarr, delim );
   
   // convert String for size range, into Numeric
