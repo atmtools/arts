@@ -1,5 +1,14 @@
 2014-09-17  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-3-6
+
+	* CHANGES-2.3, ChangeLog:
+
+	Missed that scat_data_per_part_species also was renamed to
+	scat_data_per_scat_species in arts-2-3-4.
+
+2014-09-17  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-3-5
 
 	* CHANGES-2.3: Added to document changes in the dev version. Especially
@@ -15,6 +24,7 @@
 	src/methods.cc, src/workspace.cc 
 
 	Rename part_species -> scat_species
+	Rename scat_data_per_part_species -> scat_data_per_scat_species
 	Rename ParticleSpeciesInit -> scat_speciesInit
 	Rename ParticleSpeciesSet -> scat_speciesSet
 
