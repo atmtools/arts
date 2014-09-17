@@ -1,5 +1,12 @@
 2014-09-17  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-3-5
+
+	* CHANGES-2.3: Added to document changes in the dev version. Especially
+	renaming of WSMs and WSVs should be written down here.
+
+2014-09-17  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-3-4
 
 	* controlfiles/artscomponents/doitbatch/TestDOITBatch.arts,
