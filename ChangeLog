@@ -1,3 +1,21 @@
+2014-09-22  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-2-26
+
+	* controlfiles/general/agendasDOIT.art:
+
+	Turn on DOIT correction by default with an error threshold of 1.
+
+	Watch out for warning messages:
+
+	WARNING: DOIT correction factor above threshold/2: ...
+
+	This can be an indication that your DOIT grids are too coarse.
+
+	* controlfiles/artscomponents/doitbatch/TestDOITBatch.ybatch.ref.xml:
+
+	Updated.
+
 2014-09-15  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-2-25
