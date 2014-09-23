@@ -93,6 +93,11 @@ void mixer_matrix(
       const Index&   n_sp,
       const Index&   do_norm );
 
+void mueller_rotation(
+          Sparse&    H,
+    const Index&     stokes_dim,
+    const Numeric&   rotangle );
+
 void sensor_aux_vectors(
                Vector&   sensor_response_f,
          ArrayOfIndex&   sensor_response_pol,

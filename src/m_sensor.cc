@@ -2091,14 +2091,14 @@ void sensor_responsePolarisation(// WS Output:
                                  const Vector&   sensor_response_za_grid,
                                  const Vector&   sensor_response_aa_grid,
                                  const Index&    stokes_dim,
-                                 const String&   y_unit,
+                                 const String&   iy_unit,
                                  const ArrayOfIndex&   sensor_pol,
                                  const Verbosity&)
 {
   // Vectors for extracting polarisation components
   //
   Numeric w = 0.5;
-  if( y_unit == "PlanckBT"  ||  y_unit == "RJBT"  )
+  if( iy_unit == "PlanckBT"  ||  iy_unit == "RJBT"  )
     { w = 1.0; }
   //
   ArrayOfVector pv;

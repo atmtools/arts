@@ -44,6 +44,7 @@
 
 extern const Numeric PI;
 extern const Numeric NAT_LOG_2;
+extern const Numeric DEG2RAD;
 extern const Index GFIELD1_F_GRID;
 extern const Index GFIELD4_FIELD_NAMES;
 extern const Index GFIELD4_F_GRID;
@@ -596,6 +597,62 @@ void mixer_matrix(
                                                                      = row_temp;
               H.insert_row(a*f_mixer.nelem()*n_pol+p+i*n_pol,row_final);
             }
+        }
+    }
+}
+
+
+
+//! mueller_rotation
+/*!
+   Returns the Mueller matrix for a rotation of the coordinate system defining
+   H and V directions.
+
+   The function follows Eq 9 in the sensor response article (Eriksson et al,
+   Efficient forward modelling by matrix representation of sensor responses,
+   IJRS, 2006).
+
+   The sparse matrix H is not sized by the function, in order to save time for
+   repeated usage. Before first call of this function, size H as
+   H.resize( stokes_dim, stokes_dim );
+   The H returned of this function can be used as input for later calls. That
+   is, no need to repeat the resize command above.
+
+   \param   H           Mueller matrix
+   \param   stokes_dim  Stokes dimensionality
+   \param   rotangle    Rotation angle.
+
+   \author Patrick Eriksson
+   \date   2014-09-23
+*/
+void mueller_rotation(
+          Sparse&    H,
+    const Index&     stokes_dim,
+    const Numeric&   rotangle )
+{
+  assert( stokes_dim > 1 );
+  assert( H.nrows() == stokes_dim );
+  assert( H.ncols() == stokes_dim );
+  assert( H(0,1) == 0 );
+  assert( H(1,0) == 0 );
+
+  H.rw(0,0) = 1;
+  const Numeric a = cos( 2*DEG2RAD*rotangle );
+  H.rw(1,1) = a;
+  if( stokes_dim > 2 )
+    {
+      assert( H(2,0) == 0 );
+      assert( H(0,2) == 0 );
+
+      const Numeric b = sin( 2*DEG2RAD*rotangle );
+      H.rw(1,2) = b;
+      H.rw(2,1) = -b;
+      H.rw(2,2) = a;
+      if( stokes_dim > 3 ) 
+        { 
+          // More values should be checked, but to save time we just assert one 
+          assert( H(2,3) == 0 );
+          H.rw(3,3) = 1; 
         }
     }
 }

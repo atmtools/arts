@@ -421,36 +421,90 @@ void Exit(const Verbosity& verbosity)
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Test(const Verbosity& verbosity )
+void Test(const Verbosity&  )
 {
-  // Let response be y=x for x=0:0.2:2
-  Vector xr,yr;
-  VectorLinSpace( xr, 0, 2.01, 0.2, verbosity ); 
-  xr[4] += 0.021;
-  yr = xr;
+  // This should be input
+  const Index stokes_dim=4;
+  String iy_unit="RJBT";
+  Numeric za = 170;
+  ArrayOfString pol(3); pol[0] = "V"; pol[1] = "H"; pol[2] = "LHC"; 
 
-  // Let spectrum also be y=x, but defined on -0.05:0.4:3.05
-  Vector xs;
-  VectorLinSpace( xs, -0.05, 3.05, 0.4, verbosity ); 
-  xs[3] -= 0.01;
-  Vector ys(xs.nelem());
-  for( Index i=0; i<xs.nelem(); i++ )
-    { ys[i] = xs[i]; };
+  // If stokes_dim == 1, there is nothing to do. The total H matrix is then
+  // unchanged. Add if-statement to handle this. Here just an assert to flag
+  // this:
+  assert( stokes_dim > 1 );
 
-  // Determine ingeration vector
-  Vector h(xs.nelem());
-  sensor_integration_vector( h, yr, xr, xs );
+  // Set "Stokes vector weights" according to iy_unit
+  Numeric w = 0.5;
+  if( iy_unit == "PlanckBT"  ||  iy_unit == "RJBT"  )
+    { w = 1.0; }
 
-  // Integrate by using h
-  cout << "Result of 1:th integration: " << h*ys << endl;
-  //cout << h << endl;
+  // Vectors representing standard cases of sensor polarisation response 
+  ArrayOfVector pv;
+  stokes2pol( pv, w );
 
-  sensor_integration_vector2( h, yr, xr, xs );
-  cout << "Result of 2:nd integration: " << h*ys << endl;
-  cout << "Expected result           : " << (2.0+2.0/3.0) << endl;
-  //cout << h << endl;
+  // Init H for polarisation, just needed to be done once
+  Sparse Hpol( stokes_dim, stokes_dim );
+
+  // The above should be outside any loop
+
+  // Here we mimic AMSU-A (at least my guees how it should be)
+  mueller_rotation( Hpol, stokes_dim, 180-abs(za) );
+
+  // If only one za (which I guess), also the above outside loop
+
+
+  // Complete H, for all channels
+  const Index npol = pol.nelem();
+  Sparse H( npol, npol*stokes_dim );
+
+  for( Index i=0; i<npol; i++ )
+    {
+      // See stokes2pol for index order used in pv
+      Index ipv;
+      if( pol[i] == "V" )
+        { ipv = 4; }
+      else if( pol[i] == "H" )
+        { ipv = 5; }
+      else if( pol[i] == "RHC" )  // Right hand circular
+        { ipv = 8; }
+      else if( pol[i] == "LHC" )  // Left hand circular
+        { ipv = 9; }
+      else
+        { assert( 0 ); }
+
+      // Maybe this error messages should be mofified
+      if( pv[ipv].nelem() > stokes_dim )
+        {
+          ostringstream os;
+          os << "You have selected an output polarisation that is not covered "
+             << "by present value of *stokes_dim* (the later has to be "
+             << "increased).";
+          throw runtime_error(os.str());
+        }
+
+      // H-matrix matching pv[ipv] (can this made in more compact way?)
+      Sparse Hr( 1, stokes_dim );
+      {
+        Vector hrow( stokes_dim, 0.0 );
+        hrow[Range(0,pv[ipv].nelem())] = pv[ipv];
+        Hr.insert_row( 0, hrow );
+      }
+
+      // H for the individual channel
+      Sparse Hc( 1, stokes_dim );
+      mult( Hc, Hr, Hpol );
+
+      // Put Hc into H
+      Vector hrow( npol*stokes_dim, 0.0 );
+      const Index i0=i*stokes_dim;
+      for( Index s=0; s<stokes_dim; s++ )
+        {  hrow[i0+s] = Hc(0,s); }
+        H.insert_row( i, hrow );      
+    }
+
+  cout << "Complete H matrix for polarisation part:\n" << H;
 }
-
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
