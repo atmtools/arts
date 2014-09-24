@@ -31,6 +31,7 @@ AgendaSet( iy_main_agenda__Emission ){
 ###
 AgendaCreate( iy_main_agenda__Transmission )
 AgendaSet( iy_main_agenda__Transmission ){
+  Ignore( iy_unit )
   iyTransmissionStandard
 }
 
@@ -45,6 +46,7 @@ AgendaSet( iy_main_agenda__ScattMC ){
 ###
 AgendaCreate( iy_main_agenda__Radiolink )
 AgendaSet( iy_main_agenda__Radiolink ){
+  Ignore( iy_unit )
   Ignore( rte_los )
   iyRadioLink
 }

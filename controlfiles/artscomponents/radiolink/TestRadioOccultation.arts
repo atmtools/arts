@@ -104,6 +104,7 @@ AgendaSet( iy_transmitter_agenda ){
   MatrixUnitIntensity( iy, stokes_dim, f_grid )
 }
 AgendaSet( iy_main_agenda ){
+  Ignore( iy_unit )
   Ignore( rte_los )
   iyRadioLink( defocus_method = 2 ) 
 }

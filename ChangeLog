@@ -1,3 +1,48 @@
+2014-09-24  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-8
+
+	* doc/uguide/scattering.tex: Added a second chapter inside the
+	file, a chapter on MC. Moved stuff the Wiki page. Adopted the
+	first lines in the DOIT chapter.
+
+	* src/m_montecarlo.cc (MCGeneral): Renamed y_unit to iy_unit
+	inside the method.
+
+	* Fixed ticket 78 around iy_calc. See below. make check runs.
+	check-all tales just too much time on my laptop, will check that
+	later at the office.
+
+	* controlfiles/general/agendas.arts:
+	* controlfiles/artscomponents/radiolink/TestRadioOccultation.arts:
+	* controlfiles/artscomponents/radiolink/TestRadioLink2.arts:
+	* controlfiles/artscomponents/radiolink/TestRadioLink.arts:
+	* controlfiles/artscomponents/transmission/TestTransmission.arts:
+	* controlfiles/artscomponents/surface/TestSurface.arts: Adopted by
+	adding Ignore( iy_unit ) in some agenda definitions.
+
+	* src/m_fos.cc (fos): Adopted call of get_iy_of_background.
+
+	* src/m_surface.cc (iySurfaceRtpropAgenda):
+	* src/m_jacobian.cc (jacobianCalcAbsSpeciesPerturbations)
+	(jacobianCalcPointingZaRecalc)
+	(jacobianCalcTemperaturePerturbations):
+	* src/rte.cc (iyb_calc_za_loop_body, iyb_calc, get_iy_of_background):
+	* src/m_rte.cc (iyCalc, yCalcAppend, yCalc, yCalc_mblock_loop_body):
+	* src/m_cloudradar.cc (yCloudRadar): Adopted to change of
+	iy_main_agenda. iy_unit just added as input and passed on.
+
+	* src/CMakeLists.txt: Removed m_doit2.cc.
+
+	* src/m_doit2.cc: Removed from svn. Old stuff of new use anymore.
+
+	* src/m_doit.cc (CloudboxGetIncoming):
+	* src/m_doit.cc (CloudboxGetIncoming1DAtm): iy_unit now hard-coded
+	to "1".
+
+	* src/agendas.cc: Added iy_unit as input to iy_main_agenda,
+	iy_sub_agenda and iy_surface_agenda.
+
 2014-09-23  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-7

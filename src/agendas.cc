@@ -343,7 +343,7 @@ void define_agenda_data()
         "that can be used directly, or adapted for specific applications.\n"
         ),
        OUTPUT( "iy", "iy_aux", "ppath", "diy_dx" ),
-       INPUT( "iy_agenda_call1", "iy_transmission", "iy_aux_vars",
+       INPUT( "iy_agenda_call1", "iy_unit", "iy_transmission", "iy_aux_vars",
               "cloudbox_on", "jacobian_do", "t_field", "z_field", "vmr_field", 
               "f_grid", "rte_pos", "rte_los", "rte_pos2" )));  
 
@@ -383,7 +383,7 @@ void define_agenda_data()
         "This agenda has exactly the same in- and output as *iy_main_agenda*.\n"
         ),
        OUTPUT( "iy", "iy_aux", "ppath", "diy_dx" ),
-       INPUT( "iy_agenda_call1", "iy_transmission", "iy_aux_vars",
+       INPUT( "iy_agenda_call1", "iy_unit", "iy_transmission", "iy_aux_vars",
               "cloudbox_on", "jacobian_do", "t_field", "z_field", "vmr_field", 
               "f_grid", "rte_pos", "rte_los", "rte_pos2" )));  
 
@@ -408,7 +408,7 @@ void define_agenda_data()
         "suitable to be used in most applications.\n"
         ),
        OUTPUT( "iy", "diy_dx" ),
-       INPUT( "iy_transmission", "cloudbox_on", 
+       INPUT( "iy_unit", "iy_transmission", "cloudbox_on", 
               "jacobian_do", "t_field", "z_field", "vmr_field", "f_grid",
               "iy_main_agenda", "rtp_pos", "rtp_los", "rte_pos2" )));
 

@@ -132,8 +132,8 @@ void MCGeneral(Workspace&            ws,
                const Index&          atmfields_checked,
                const Index&          atmgeom_checked,
                const Index&          cloudbox_checked,
+               const String&         iy_unit,
                const Index&          mc_seed,
-               const String&         y_unit,
                const Numeric&        std_err,
                const Index&          max_time,
                const Index&          max_iter,
@@ -230,18 +230,18 @@ void MCGeneral(Workspace&            ws,
   Isum=0.0;Isquaredsum=0.0;
   Numeric std_err_i;
   bool    convert_to_rjbt = false;
-  if ( y_unit == "RJBT" )
+  if ( iy_unit == "RJBT" )
     { 
       std_err_i = f_mono*f_mono*2*BOLTZMAN_CONST/
                                           SPEED_OF_LIGHT/SPEED_OF_LIGHT*std_err;
       convert_to_rjbt = true;
     }
-  else if ( y_unit == "1" )
+  else if ( iy_unit == "1" )
     { std_err_i = std_err; }
   else
     {
       ostringstream os;
-      os << "Invalid value for *y_unit*:" << y_unit <<".\n" 
+      os << "Invalid value for *iy_unit*:" << iy_unit <<".\n" 
          << "This method allows only the options \"RJBT\" and \"1\".";
       throw runtime_error( os.str() );
     }

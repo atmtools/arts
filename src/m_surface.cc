@@ -137,6 +137,7 @@ void iySurfaceRtpropAgenda(
     const Vector&           rtp_pos,
     const Vector&           rtp_los,
     const Vector&           rte_pos2,
+    const String&           iy_unit,  
     const Agenda&           iy_main_agenda,
     const Agenda&           surface_rtprop_agenda,
     const Verbosity& )
@@ -209,7 +210,7 @@ void iySurfaceRtpropAgenda(
           {
             ArrayOfTensor4   iy_aux;
             Ppath            ppath;
-            iy_main_agendaExecute( ws, iy, iy_aux, ppath, diy_dx, 0, 
+            iy_main_agendaExecute( ws, iy, iy_aux, ppath, diy_dx, 0, iy_unit, 
                                    iy_trans_new, ArrayOfString(0), 
                                    cloudbox_on, jacobian_do, t_field, 
                                    z_field, vmr_field, f_grid, rtp_pos, 

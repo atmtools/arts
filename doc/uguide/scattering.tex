@@ -10,24 +10,20 @@
  050929 & Included technical part, example contol file
 \stophistory
 
-The \textindex{Discrete Ordinate ITerative (DOIT) method} is one of the scattering
-algorithms in ARTS. Besides the DOIT method a backward Monte Carlo
-scheme has been implemented (see \theory, Section \ref{T-sec:montecarlo}). The DOIT
-method is unique because a discrete ordinate iterative method is used to solve the
-scattering problem in a spherical atmosphere. Although the DOIT module
-is implemented for 1D and 3D atmospheres, it is strongly recommended to
-use it only for 1D, because the Monte Carlo module
-(\theory, Chapter \ref{T-sec:montecarlo}) is much more appropriate for 3D
-calulations. More appropriate in the sense that it is much more
-efficient. A literature review
-about scattering models for the microwave region, which is presented
-in \citet{sreerekha04:_devel_rt_ghz_wp1}, shows that former implementations
-of discrete ordinate schemes are only applicable for
-(1D-)plane-parallel or 3D-cartesian atmospheres. All of these algorithms
-can not be used for the simulation of limb radiances.
-A description of the DOIT method, similar to what is presented in this
-chapter, has been published in \citet{emde04:_doit_jgr} and in 
-\citet{emde05:_phdthesis}. 
+The \textindex{Discrete Ordinate ITerative (DOIT) method} is one of the
+scattering algorithms in ARTS. The DOIT method is unique because a discrete
+ordinate iterative method is used to solve the scattering problem in a
+spherical atmosphere. Although the DOIT module is implemented for 1D and 3D
+atmospheres, it is strongly recommended to use it only for 1D, because the
+Monte Carlo module (Chapter \ref{sec:mcscat}) is much more
+appropriate for 3D calulations. More appropriate in the sense that it is much
+more efficient. A literature review about scattering models for the microwave
+region, which is presented in \citet{sreerekha04:_devel_rt_ghz_wp1}, shows that
+former implementations of discrete ordinate schemes are only applicable for
+(1D-)plane-parallel or 3D-cartesian atmospheres. All of these algorithms can
+not be used for the simulation of limb radiances. A description of the DOIT
+method, similar to what is presented in this chapter, has been published in
+\citet{emde04:_doit_jgr} and in \citet{emde05:_phdthesis}.
 
 
 \section{The discrete ordinate iterative method}
@@ -971,6 +967,55 @@ documentation for the workspace method for  3D scattering calculations
 (\wsmindex{doit\_i\_fieldUpdateSeq3D}). All other workspace
 methods adapt automatically to the atmospheric dimensionality.
 
+
+
+
+
+\chapter{Monte Carlo scattering module}
+ \label{sec:mcscat}
+
+\starthistory
+ 140924 & Started by Patrick Erikssn\\ 
+\stophistory
+
+(This is just a stub for this chapter. So far just rescuing some text from an
+old (and now deleted) Wiki page.)\\
+
+\noindent
+The ARTS \textindex{Monte Carlo scattering module} offers an efficient method
+for single viewing direction radiative transfer calculations in arbitrarily
+complex 3D cloudy cases. When simulating the observation of detailed 3D cloudy
+scenarios, reversed Monte Carlo algorithms have several advantages over other
+methods, such as discrete ordinate and Forward Monte Carlo methods. These
+features include:
+
+\begin{itemize}
+\item All computational effort is dedicated to calculating the Stokes vector at
+  the location of interest and in the direction of interest. This is
+  particularly relevant for space-borne remote sensing, where we are only
+  interested in a narrow field of view. This is contrast to DOM methods where
+  the whole radiation field is calculated.
+\item CPU and memory cost scales more slowly than other methods with grid size.
+  so that large or detailed 3D scenarios are not a problem. This stems from the
+  suitability of Monte Carlo Integration (MCI) for evaluating integrals over
+  highly dimensioned spaces. As well as CPU cost increasing dramatically in 3D
+  DOM applications with the number of grid-points in each dimension, the memory
+  requirements becomes prohibitive at moderate grid sizes due to the
+  requirement that the radiance in every direction must be stored at each grid
+  point.
+\item Optically thick media are no problem. A feature of reversed Monte Carlo
+  algorithms is that only parts of the atmosphere that actually contribute to
+  the observed radiance are considered in the computation. So where the medium
+  is optically thick due to absorption or scattering, only the parts of the
+  atmosphere closest to the sensor are visited by the algorithm. This contrasts
+  with DOM methods, where, as mentioned above, the whole radiation field is
+  computed. Also, a requirement of DOM methods is that the optical thickness
+  between adjacent grid points must be <= 1, which increases the grid-size, and
+  hence cost, of the method.
+\end{itemize}
+
+For the theory behind the ARTS MC module see Section \ref{T-sec:montecarlo} of
+\theory.
 
 
 

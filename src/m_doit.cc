@@ -2771,7 +2771,6 @@ void CloudboxGetIncoming(
    const ArrayOfIndex&   cloudbox_limits,
    const Vector&   f_grid,
    const Index&    stokes_dim,
-   const String&   iy_unit,
    const Agenda&   blackbody_radiation_agenda,
    const Vector&   scat_za_grid,
    const Vector&   scat_aa_grid,
@@ -2793,22 +2792,22 @@ void CloudboxGetIncoming(
 
   // Don't do anything if there's no cloudbox defined.
   if (!cloudbox_on) return;
-  
+
   // DOIT requires frequency based radiance:
-  if( iy_unit != "1"  || 
-      !chk_if_std_blackbody_agenda( ws, blackbody_radiation_agenda ) )
+  if( !chk_if_std_blackbody_agenda( ws, blackbody_radiation_agenda ) )
     {
       ostringstream os;
       os << "It is assumed that you use this method together with DOIT.\n"
-         << "Usage of this method then demands that the *iy_main_agenda*\n"
-         << "returns frequency based radiance (ie. [W/m2/Hz/sr]).\n"
-         << "This requires that *iy_unit* is set to \"1\" and that\n"
-         << "*blackbody_radiation_agenda uses *blackbody_radiationPlanck*\n"
+         << "Usage of this method then demands that "
+         << "*blackbody_radiation_agenda* uses *blackbody_radiationPlanck* "
          << "or a corresponding WSM.\n"
          << "At least one of these requirements is not met.\n";
       throw runtime_error( os.str() );
     }
 
+  // iy_unit hard.coded to "1" here
+  const String iy_unit = "1";
+  
   Index  Nf       = f_grid.nelem();
   Index  Np_cloud = cloudbox_limits[1] - cloudbox_limits[0] + 1;
   Index  Nza      = scat_za_grid.nelem();
@@ -2845,7 +2844,7 @@ void CloudboxGetIncoming(
           // in the loop
           los[0] =  scat_za_grid[0];
           get_iy( ws, iy, t_field, z_field, vmr_field, 0, f_grid, pos, los, 
-                  Vector(0), iy_main_agenda );
+                  Vector(0), iy_unit, iy_main_agenda );
           scat_i_p( joker, boundary, 0, 0, 0, 0, joker ) = iy;
 
           for (Index scat_za_index = 1; scat_za_index < Nza; scat_za_index ++)
@@ -2853,7 +2852,7 @@ void CloudboxGetIncoming(
               los[0] =  scat_za_grid[scat_za_index];
 
               get_iy( ws, iy, t_field, z_field, vmr_field, 0, f_grid, pos, los, 
-                      Vector(0), iy_main_agenda );
+                      Vector(0), iy_unit, iy_main_agenda );
 
               scat_i_p( joker, boundary, 0, 0, scat_za_index, 0, joker ) = iy;
 
@@ -2946,7 +2945,7 @@ void CloudboxGetIncoming(
                             {
                               get_iy( ws, iy, t_field, z_field, vmr_field, 0, 
                                       f_grid, pos, los, Vector(0), 
-                                      iy_main_agenda );
+                                      iy_unit, iy_main_agenda );
                             }
 
                           scat_i_p( joker, boundary, lat_index, lon_index, 
@@ -2987,7 +2986,7 @@ void CloudboxGetIncoming(
                             {
                               get_iy( ws, iy, t_field, z_field, vmr_field, 0, 
                                       f_grid, pos, los, Vector(0), 
-                                      iy_main_agenda );
+                                      iy_unit, iy_main_agenda );
                             }
 
                           scat_i_lat( joker, p_index, boundary, lon_index, 
@@ -3028,7 +3027,7 @@ void CloudboxGetIncoming(
                             {
                               get_iy( ws, iy, t_field, z_field, vmr_field, 0, 
                                       f_grid, pos, los, Vector(0), 
-                                      iy_main_agenda );
+                                      iy_unit, iy_main_agenda );
                             }
 
                           scat_i_lon( joker, p_index, lat_index, boundary, 
@@ -3062,7 +3061,6 @@ void CloudboxGetIncoming1DAtm(
    const ArrayOfIndex&   cloudbox_limits,
    const Vector&   f_grid,
    const Index&    stokes_dim,
-   const String&   iy_unit,
    const Agenda&   blackbody_radiation_agenda,
    const Vector&   scat_za_grid,
    const Vector&   scat_aa_grid,
@@ -3083,20 +3081,20 @@ void CloudboxGetIncoming1DAtm(
   if (!cloudbox_on) return;
 
   // DOIT requires frequency based radiance:
-  if( iy_unit != "1"  || 
-      !chk_if_std_blackbody_agenda( ws, blackbody_radiation_agenda ) )
+  if( !chk_if_std_blackbody_agenda( ws, blackbody_radiation_agenda ) )
     {
       ostringstream os;
       os << "It is assumed that you use this method together with DOIT.\n"
-         << "Usage of this method then demands that the *iy_main_agenda*\n"
-         << "returns frequency based radiance (ie. [W/m2/Hz/sr]).\n"
-         << "This requires that *iy_unit* is set to \"1\" and that\n"
-         << "*blackbody_radiation_agenda uses *blackbody_radiationPlanck*\n"
+         << "Usage of this method then demands that "
+         << "*blackbody_radiation_agenda* uses *blackbody_radiationPlanck* "
          << "or a corresponding WSM.\n"
          << "At least one of these requirements is not met.\n";
       throw runtime_error( os.str() );
     }
-  
+
+  // iy_unit hard.coded to "1" here
+  const String iy_unit = "1";
+
   Index  Nf       = f_grid.nelem();
   Index  Np_cloud = cloudbox_limits[1] - cloudbox_limits[0] + 1;
   Index  Nlat_cloud = cloudbox_limits[3] - cloudbox_limits[2] + 1;
@@ -3106,7 +3104,6 @@ void CloudboxGetIncoming1DAtm(
   Index  Ni       = stokes_dim;
   Matrix iy;
   Ppath  ppath;
-
 
   //--- Check input ----------------------------------------------------------
   if( atmosphere_dim != 3 )
@@ -3159,7 +3156,7 @@ void CloudboxGetIncoming1DAtm(
           los[0] = scat_za_grid[scat_za_index];
 
           get_iy( ws, iy, t_field, z_field, vmr_field, 0, f_grid, pos, los, 
-                  Vector(0), iy_main_agenda );
+                  Vector(0), iy_unit, iy_main_agenda );
           
           for (Index aa = 0; aa < Naa; aa ++)
             {

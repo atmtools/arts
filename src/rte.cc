@@ -1038,7 +1038,8 @@ void ext2trans(
     \param   cloudbox_on           As the WSV.
     \param   rte_pos               As the WSV.
     \param   rte_los               As the WSV.
-    \param   iy_main_agenda    As the WSV.
+    \param   iy_unit               As the WSV.
+    \param   iy_main_agenda        As the WSV.
 
     \author Patrick Eriksson 
     \date   2012-08-08
@@ -1054,6 +1055,7 @@ void get_iy(
    ConstVectorView    rte_pos,
    ConstVectorView    rte_los,
    ConstVectorView    rte_pos2,
+   const String&      iy_unit,
    const Agenda&      iy_main_agenda )
 {
   ArrayOfTensor3    diy_dx;
@@ -1061,7 +1063,8 @@ void get_iy(
   Ppath             ppath;
   Tensor3           iy_transmission(0,0,0);
 
-  iy_main_agendaExecute( ws, iy, iy_aux, ppath, diy_dx, 1, iy_transmission, 
+  iy_main_agendaExecute( ws, iy, iy_aux, ppath, diy_dx, 
+                         1, iy_unit, iy_transmission, 
                          ArrayOfString(0), cloudbox_on, 0, t_field, z_field,
                          vmr_field, f_grid, rte_pos, rte_los, rte_pos2,
                          iy_main_agenda );
@@ -1095,6 +1098,7 @@ void get_iy(
     \param   cloudbox_on           As the WSV.
     \param   stokes_dim            As the WSV.
     \param   f_grid                As the WSV.
+    \param   iy_unit               As the WSV.    
     \param   iy_main_agenda        As the WSV.
     \param   iy_space_agenda       As the WSV.
     \param   iy_surface_agenda     As the WSV.
@@ -1118,6 +1122,7 @@ void get_iy_of_background(
   const Index&            cloudbox_on,
   const Index&            stokes_dim,
   ConstVectorView         f_grid,
+  const String&           iy_unit,  
   const Agenda&           iy_main_agenda,
   const Agenda&           iy_space_agenda,
   const Agenda&           iy_surface_agenda,
@@ -1165,7 +1170,8 @@ void get_iy_of_background(
       {
         agenda_name = "iy_surface_agenda";
         chk_not_empty( agenda_name, iy_surface_agenda );
-        iy_surface_agendaExecute( ws, iy, diy_dx, iy_transmission, cloudbox_on,
+        iy_surface_agendaExecute( ws, iy, diy_dx, 
+                                  iy_unit, iy_transmission, cloudbox_on,
                                   jacobian_do, t_field, z_field, vmr_field,
                                   f_grid, iy_main_agenda, rtp_pos, rtp_los, 
                                   rte_pos2, iy_surface_agenda );
@@ -1987,6 +1993,7 @@ void iyb_calc_za_loop_body(
   ConstVectorView                   mblock_za_grid,
   ConstVectorView                   mblock_aa_grid,
   const Index&                      antenna_dim,
+  const String&                     iy_unit,  
   const Agenda&                     iy_main_agenda,
   const Index&                      j_analytical_do,
   const ArrayOfRetrievalQuantity&   jacobian_quantities,
@@ -2032,7 +2039,8 @@ void iyb_calc_za_loop_body(
             Index          iang = iza*naa + iaa;
             //
             iy_main_agendaExecute(ws, iy, iy_aux_array[iang], ppath,
-                                  diy_dx, 1, iy_transmission, iy_aux_vars,
+                                  diy_dx, 
+                                  1, iy_unit, iy_transmission, iy_aux_vars,
                                   cloudbox_on, j_analytical_do, t_field,
                                   z_field, vmr_field, f_grid, rtp_pos, los,
                                   rtp_pos2, iy_main_agenda );
@@ -2117,6 +2125,7 @@ void iyb_calc(
   ConstVectorView                   mblock_za_grid,
   ConstVectorView                   mblock_aa_grid,
   const Index&                      antenna_dim,
+  const String&                     iy_unit,  
   const Agenda&                     iy_main_agenda,
   const Index&                      j_analytical_do,
   const ArrayOfRetrievalQuantity&   jacobian_quantities,
@@ -2193,6 +2202,7 @@ firstprivate(l_ws, l_iy_main_agenda)
                                 mblock_za_grid,
                                 mblock_aa_grid,
                                 antenna_dim,
+                                iy_unit,
                                 l_iy_main_agenda,
                                 j_analytical_do,
                                 jacobian_quantities,
@@ -2234,6 +2244,7 @@ firstprivate(l_ws, l_iy_main_agenda)
                                 mblock_za_grid,
                                 mblock_aa_grid,
                                 antenna_dim,
+                                iy_unit,
                                 iy_main_agenda,
                                 j_analytical_do,
                                 jacobian_quantities,

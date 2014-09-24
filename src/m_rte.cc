@@ -135,6 +135,7 @@ void iyCalc(
    const Vector&           rte_pos,
    const Vector&           rte_los,
    const Vector&           rte_pos2,
+   const String&           iy_unit,  
    const Agenda&           iy_main_agenda,
    const Verbosity& )
 {
@@ -156,8 +157,9 @@ void iyCalc(
 
   ArrayOfTensor3 diy_dx;
 
-  iy_main_agendaExecute( ws, iy, iy_aux, ppath, diy_dx, 1, iy_transmission, 
-                         iy_aux_vars, cloudbox_on, 0, t_field, 
+  iy_main_agendaExecute( ws, iy, iy_aux, ppath, diy_dx, 
+                         1, iy_unit, iy_transmission, iy_aux_vars, 
+                         cloudbox_on, 0, t_field, 
                          z_field, vmr_field, f_grid, rte_pos, rte_los, rte_pos2,
                          iy_main_agenda );
 }
@@ -416,9 +418,9 @@ void iyEmissionStandard(
   get_iy_of_background( ws, iy, diy_dx, 
                         iy_trans_new, jacobian_do, ppath, rte_pos2, 
                         atmosphere_dim, t_field, z_field, vmr_field, 
-                        cloudbox_on, stokes_dim, f_grid, iy_main_agenda, 
-                        iy_space_agenda, iy_surface_agenda, iy_cloudbox_agenda,
-                        verbosity );
+                        cloudbox_on, stokes_dim, f_grid, iy_unit,
+                        iy_main_agenda, iy_space_agenda, iy_surface_agenda, 
+                        iy_cloudbox_agenda, verbosity );
 
 
   //=== iy_aux part ===========================================================
@@ -1065,6 +1067,7 @@ void iyLoopFrequencies(
    const Tensor4&          vmr_field,
    const Index&            cloudbox_on,
    const Index&            iy_agenda_call1,
+   const String&           iy_unit,  
    const Tensor3&          iy_transmission,
    const Vector&           rte_pos,
    const Vector&           rte_los,
@@ -1090,9 +1093,9 @@ void iyLoopFrequencies(
       ArrayOfTensor3 diy_dx1;
       
       iy_sub_agendaExecute( ws, iy1, iy_aux1, ppath, diy_dx1, 
-                            1, iy_transmission, iy_aux_vars, cloudbox_on, 
-                            jacobian_do, t_field, z_field, vmr_field, 
-                            Vector(1,f_grid[i]),
+                            1, iy_unit, iy_transmission, iy_aux_vars, 
+                            cloudbox_on, jacobian_do, t_field, z_field, 
+                            vmr_field, Vector(1,f_grid[i]),
                             rte_pos, rte_los, rte_pos2, iy_sub_agenda );
 
       // After first frequency, give output its size
@@ -1262,8 +1265,8 @@ void iyMC(
                    p_grid, lat_grid, lon_grid, z_field, 
                    refellipsoid, z_surface, t_field, vmr_field,
                    cloudbox_on, cloudbox_limits,
-                   pnd_field, scat_data_array_mono, 1, 1, 1,
-                   mc_seed, iy_unit, mc_std_err, mc_max_time, mc_max_iter,
+                   pnd_field, scat_data_array_mono, 1, 1, 1, iy_unit,
+                   mc_seed, mc_std_err, mc_max_time, mc_max_iter,
                    mc_min_iter, verbosity);
           //cout << "Error: "      << mc_error << endl;
           //cout << "N photons: " << mc_iteration_count << endl;
@@ -1497,6 +1500,7 @@ void yCalc_mblock_loop_body(
    const ArrayOfIndex&               sensor_response_pol,
    const Vector&                     sensor_response_za,
    const Vector&                     sensor_response_aa,
+   const String&                     iy_unit,   
    const Agenda&                     iy_main_agenda,
    const Agenda&                     jacobian_agenda,
    const Index&                      jacobian_do,
@@ -1519,7 +1523,7 @@ void yCalc_mblock_loop_body(
                  mblock_index, atmosphere_dim, t_field, z_field, vmr_field,
                  cloudbox_on, stokes_dim, f_grid, sensor_pos, sensor_los,
                  transmitter_pos, mblock_za_grid, mblock_aa_grid, antenna_dim,
-                 iy_main_agenda, j_analytical_do, jacobian_quantities,
+                 iy_unit, iy_main_agenda, j_analytical_do, jacobian_quantities,
                  jacobian_indices, iy_aux_vars, verbosity);
 
 
@@ -1611,6 +1615,7 @@ void yCalc(
    const ArrayOfIndex&               sensor_response_pol,
    const Vector&                     sensor_response_za,
    const Vector&                     sensor_response_aa,
+   const String&                     iy_unit,   
    const Agenda&                     iy_main_agenda,
    const Agenda&                     jacobian_agenda,
    const Index&                      jacobian_do,
@@ -1743,6 +1748,7 @@ firstprivate(l_ws, l_jacobian_agenda, l_iy_main_agenda)
                                  sensor_response_pol,
                                  sensor_response_za,
                                  sensor_response_aa,
+                                 iy_unit,
                                  l_iy_main_agenda,
                                  l_jacobian_agenda,
                                  jacobian_do,
@@ -1793,6 +1799,7 @@ firstprivate(l_ws, l_jacobian_agenda, l_iy_main_agenda)
                                  sensor_response_pol,
                                  sensor_response_za,
                                  sensor_response_aa,
+                                 iy_unit,
                                  iy_main_agenda,
                                  jacobian_agenda,
                                  jacobian_do,
@@ -1882,6 +1889,7 @@ void yCalcAppend(
    const ArrayOfIndex&               sensor_response_pol,
    const Vector&                     sensor_response_za,
    const Vector&                     sensor_response_aa,
+   const String&                     iy_unit,   
    const Agenda&                     iy_main_agenda,
    const Agenda&                     jacobian_agenda,
    const Index&                      jacobian_do,
@@ -1930,8 +1938,9 @@ void yCalcAppend(
          stokes_dim, f_grid, sensor_pos, sensor_los, transmitter_pos,
          mblock_za_grid, mblock_aa_grid, antenna_dim, sensor_response,
          sensor_response_f, sensor_response_pol, sensor_response_za, 
-         sensor_response_aa, iy_main_agenda, jacobian_agenda, jacobian_do, 
-         jacobian_quantities, jacobian_indices, iy_aux_vars, verbosity );
+         sensor_response_aa, iy_unit, iy_main_agenda, 
+         jacobian_agenda, jacobian_do, jacobian_quantities, jacobian_indices, 
+         iy_aux_vars, verbosity );
 
   // Consistency checks
   if( y_pos.ncols() != y_pos2.ncols() )

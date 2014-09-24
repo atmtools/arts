@@ -324,9 +324,9 @@ void fos(
     get_iy_of_background( ws, iy, diy_dx, 
                           iy_trans_new, jacobian_do, ppath, rte_pos2, 
                           atmosphere_dim, t_field, z_field, vmr_field, 
-                          cloudbox_on, stokes_dim, f_grid, iy_main_agenda, 
-                          iy_space_agenda, iy_surface_agenda, iy_cbox_agenda,
-                          verbosity );
+                          cloudbox_on, stokes_dim, f_grid, iy_unit,
+                          iy_main_agenda, iy_space_agenda, iy_surface_agenda, 
+                          iy_cbox_agenda, verbosity );
   }
 
   //=== iy_aux part ===========================================================
