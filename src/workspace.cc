@@ -2254,29 +2254,6 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
     (WsvRecord
-     ( NAME( "mc_cloud_opt_path" ),
-       DESCRIPTION
-       (
-        "The cloud optical path integrated over the field of view.\n"
-        "\n"
-        "Usage: Output from mc_IWP_cloud_opt_pathCalc \n"
-        ), 
-       GROUP( "Numeric" )));
-
-  wsv_data.push_back
-    (WsvRecord
-     ( NAME( "mc_cloud_opt_path_error" ),
-       DESCRIPTION
-       (
-        "Standad error in the cloud optical path integrated over the field\n"
-        "of view.\n"
-        "\n"
-        "Usage: Output from mc_IWP_cloud_opt_pathCalc \n"
-        ), 
-       GROUP( "Numeric" )));
-
-  wsv_data.push_back
-    (WsvRecord
      ( NAME( "mc_error" ),
        DESCRIPTION
        (
@@ -2301,28 +2278,6 @@ void Workspace::define_wsv_data()
         "Usage: Set by MCGeneral and other MC methods.\n"
        ),
        GROUP( "Index" )));
-
-  wsv_data.push_back
-    (WsvRecord
-     ( NAME( "mc_IWP" ),
-       DESCRIPTION
-       (
-        "The ice water path integrated over the field of view\n"
-        "\n"
-        "Usage: Output from mc_IWP_cloud_opt_pathCalc \n"
-        ), 
-       GROUP( "Numeric" )));
-
-  wsv_data.push_back
-    (WsvRecord
-     ( NAME( "mc_IWP_error" ),
-       DESCRIPTION
-       (
-        "The standard error of ice water path integrated over the field of view\n"
-        "\n"
-        "Usage: Output from mc_IWP_cloud_opt_pathCalc \n"
-        ), 
-       GROUP( "Numeric" )));
 
   wsv_data.push_back
     (WsvRecord

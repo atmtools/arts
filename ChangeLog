@@ -1,5 +1,13 @@
 2014-09-24  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-3-9
+
+	* src/workspace.cc: Removed WSVs mc_cloud_opt_path,
+	mc_cloud_opt_path_error, mc_IWP and mc_IWP_error, as not now not
+	used by any WSM. Just causing confusion to have them around.
+
+2014-09-24  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-3-8
 
 	* doc/uguide/scattering.tex: Added a second chapter inside the
@@ -10,7 +18,7 @@
 	inside the method.
 
 	* Fixed ticket 78 around iy_calc. See below. make check runs.
-	check-all tales just too much time on my laptop, will check that
+	check-all takes just too much time on my laptop, will check that
 	later at the office.
 
 	* controlfiles/general/agendas.arts:
