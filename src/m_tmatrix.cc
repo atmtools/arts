@@ -32,6 +32,68 @@
 #include "refraction.h"
 #include "special_interp.h"
 
+extern const Numeric PI;  
+
+
+
+void scat_dataFromTmatrix(
+          SingleScatteringData&   scat_data,
+    const String&                 shape,
+    const Numeric&                de,
+    const Numeric&                aratio,
+    const String&                 orientation,
+    const GriddedField3&          complex_refr_index,
+    const Vector&                 f_grid,
+    const Vector&                 t_grid,
+    const Vector&                 za_grid,
+    const Vector&                 aa_grid,
+    const Numeric&                precision,
+    const Verbosity&)
+{
+  // Add grids to scat_data
+  //
+  scat_data.f_grid        = f_grid;
+  scat_data.T_grid        = t_grid;
+  scat_data.za_grid       = za_grid;
+  scat_data.aa_grid       = aa_grid;
+
+  // Index coding for shape
+  Index np;
+  if( shape == "spheroidal" )
+    { np=-1; }
+  else if( shape == "cylindrical" )
+    { np=-2; }
+  else
+    {
+      ostringstream os;
+      os << "Unknown particle shape: " << shape << "\n"
+         << "Must be spheroidal or cylindrical";
+      throw std::runtime_error(os.str());
+    }
+
+  // Get internal coding for orientation
+  scat_data.particle_type = ParticleTypeFromString( orientation );
+
+  // Interpolate refractive index to relevant grids
+  //
+  const Index nf = f_grid.nelem();
+  const Index nt = t_grid.nelem();
+  //
+  Tensor3 ncomp( nf, nt, 2 );
+  complex_n_interp( ncomp(joker,joker,0), ncomp(joker,joker,1),
+                    complex_refr_index, "complex_refr_index", f_grid, t_grid );
+
+  // Run T-matrix and we are ready
+  calcSingleScatteringDataProperties( scat_data,
+                                      ncomp(joker,joker,0), 
+                                      ncomp(joker,joker,1),
+                                      1e6*de, np, aratio, precision );
+}
+
+
+
+
+
 
 
 void TMatrixTest(const Verbosity& verbosity)
@@ -77,7 +139,6 @@ void scat_meta_arrayAddTmatrix(// WS Output:
     {
      for ( Index i=0; i < aspect_ratio_grid.nelem(); i++ )
       {
-        extern const Numeric PI;  
         Numeric volume;
         
         if (shape == "spheroidal")
@@ -186,7 +247,6 @@ void scat_data_arrayFromMeta(// WS Output:
                      scat_meta_array[ii].scat_f_grid, scat_meta_array[ii].scat_T_grid);
         
 
-      extern const Numeric PI;  
       Index  np;
 
       SingleScatteringData sdd;
@@ -250,7 +310,6 @@ void scat_meta_arrayAddTmatrixOldVersion(// WS Output:
 {
   for(Index k=0; k<diameter_grid.nelem(); k++)
     {
-      extern const Numeric PI;
 
       Numeric volume;
       

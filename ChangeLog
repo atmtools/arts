@@ -1,3 +1,12 @@
+2014-09-25  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-10
+
+	* src/m_tmatrix.cc (scat_dataFromTmatrix): Started on this basic
+	Tmatrix WSM. Not finished.
+
+	* src/tmatrix.h: Corrected and extended header.
+
 2014-09-24  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-9
