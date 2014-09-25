@@ -56,14 +56,12 @@ abs_lines_per_speciesCreateFromLines
 # Get the quantum Landau constant and molecule electron spin
 ReadXML( isotopologue_quantum, "spectroscopy/QuantumConstants/zeeman_constants.xml" )
 
-# Set the linemixing 
-line_mixing_dataInit
 
 ArrayOfLineMixingRecordCreate(lm_o2)
 
 ReadXML(lm_o2,"spectroscopy/LineMixing/2nd_order/o2_v1_0_band_40-120_GHz.xml.gz")
 
-line_mixing_dataMatch(species_tag="O2-Z-66-LM_2NDORDER",line_mixing_records=lm_o2)
+line_mixing_dataMatch(species_tag="O2-Z-66-LM_2NDORDER",line_mixing_tag="L2",line_mixing_records=lm_o2)
 
 #Get isotopologue ratioss
 isotopologue_ratiosInitFromBuiltin

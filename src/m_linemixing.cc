@@ -37,25 +37,29 @@ void line_mixing_dataInit(// WS Output:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void line_mixing_dataMatch(// WS Output:
-                           ArrayOfArrayOfLineMixingRecord& line_mixing_data,
-                           ArrayOfArrayOfIndex& line_mixing_data_lut,
+                           //ArrayOfArrayOfLineMixingRecord& line_mixing_data,
+                           //ArrayOfArrayOfIndex& line_mixing_data_lut,
+                           // WS Output/Input:
+                           ArrayOfArrayOfLineRecord& abs_lines_per_species,
                            // WS Input:
-                           const ArrayOfArrayOfLineRecord& abs_lines_per_species,
                            const ArrayOfArrayOfSpeciesTag& abs_species,
                            const String& species_tag,
+                           const String& line_mixing_tag,
                            const ArrayOfLineMixingRecord& line_mixing_records,
                            const Verbosity& verbosity)
 {
     CREATE_OUT2;
     CREATE_OUT3;
-
+/*
     if (abs_species.nelem() != line_mixing_data.nelem())
-        throw runtime_error( "*line_mixing_data* doesn't match *abs_species*.\n"
+        throw std::runtime_error( "*line_mixing_data* doesn't match *abs_species*.\n"
                              "Make sure to call line_mixing_dataInit first." );
     if (abs_species.nelem() != line_mixing_data_lut.nelem())
-        throw runtime_error( "*line_mixing_data_lut* doesn't match *abs_species*.\n"
-                            "Make sure to call line_mixing_dataInit first." );
-
+        throw std::runtime_error( "*line_mixing_data_lut* doesn't match *abs_species*.\n"
+                            "Make sure to call line_mixing_dataInit first." );*/
+    //std::cout<<"help\n";
+    LineMixingData line_mixing_data_holder;
+    line_mixing_data_holder.StorageTag2SetType(line_mixing_tag);
 
     // Find index of species_tag in abs_species
     SpeciesTag this_species( species_tag );
@@ -70,14 +74,12 @@ void line_mixing_dataMatch(// WS Output:
     {
         ostringstream os;
         os << "Can't find tag \"" << species_tag << "\" in *abs_species*.";
-        throw runtime_error(os.str());
+        throw std::runtime_error(os.str());
     }
-
+ArrayOfArrayOfLineMixingRecord line_mixing_data(abs_species.nelem());//FIXME: Added for convenience to match old use case
     line_mixing_data[species_index] = line_mixing_records;
 
     ArrayOfIndex matches;
-    line_mixing_data_lut[species_index].resize(abs_lines_per_species[species_index].nelem());
-    line_mixing_data_lut[species_index] = -1;
 
     // Now we use the quantum numbers to match the line mixing
     // data to lines in abs_lines_per_species
@@ -85,12 +87,15 @@ void line_mixing_dataMatch(// WS Output:
     for (Index i = 0; i < line_mixing_data[species_index].nelem(); i++)
     {
         const LineMixingRecord& this_lmr = line_mixing_data[species_index][i];
+        
         find_matching_lines(matches,
                             abs_lines_per_species[species_index],
                             this_lmr.Species(),
                             this_lmr.Isotopologue(),
                             this_lmr.Quantum());
-
+        
+        line_mixing_data_holder.SetDataFromVectorWithKnownType(line_mixing_data[species_index][i].Data());
+        
         if (!matches.nelem())
         {
             out3 << "  Found no matching lines for\n" << this_lmr.Quantum() << "\n";
@@ -98,19 +103,19 @@ void line_mixing_dataMatch(// WS Output:
         else if (matches.nelem() == 1)
         {
             out3 << "  Found matching line for\n" << this_lmr.Quantum() << "\n";
-            line_mixing_data_lut[species_index][matches[0]] = i;
+            abs_lines_per_species[species_index][matches[0]].SetLineMixingData(line_mixing_data_holder);
             nmatches++;
         }
         else
         {
             ostringstream os;
-            os << "  Found multiple lines for\n" << this_lmr.Quantum() << endl
-            << "  Matching lines are: " << endl;
+            os << "  Found multiple lines for\n" << this_lmr.Quantum() << std::endl
+            << "  Matching lines are: " << std::endl;
             for (Index m = 0; m < matches.nelem(); m++)
-                os << "  " << abs_lines_per_species[species_index][matches[m]] << endl
+                os << "  " << abs_lines_per_species[species_index][matches[m]] << std::endl
                 << "  " << abs_lines_per_species[species_index][matches[m]].QuantumNumbers()
-                << endl;
-            throw runtime_error(os.str());
+                << std::endl;
+            throw std::runtime_error(os.str());
         }
     }
 
@@ -178,7 +183,7 @@ void ArrayOfLineMixingRecordReadAscii(// Generic Output:
                 {
                     temp_mixing_data.push_back(strtod(s.c_str(), &c));
                     if (c != s.c_str() + s.nelem())
-                        throw runtime_error(line);
+                        throw std::runtime_error(line);
                 }
             }
 
@@ -187,9 +192,9 @@ void ArrayOfLineMixingRecordReadAscii(// Generic Output:
         } catch (runtime_error e) {
             ostringstream os;
 
-            os << "Error parsing line mixing file in line " << linenr << endl;
+            os << "Error parsing line mixing file in line " << linenr << std::endl;
             os << e.what();
-            throw runtime_error(os.str());
+            throw std::runtime_error(os.str());
         }
     }
 

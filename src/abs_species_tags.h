@@ -51,7 +51,7 @@ public:
                  mlf(0.),
                  muf(0.),
                  mtype(-1),
-                 mline_mixing_type(LINE_MIXING_TYPE_NONE),
+                 mline_mixing(LINE_MIXING_OFF),
                  mcia_second(-1),
                  mcia_dataset(-1)
   { /* Nothing to be done here. */ }
@@ -103,7 +103,7 @@ public:
     if ( other.mlf               != mlf      ) return false;
     if ( other.muf               != muf      ) return false;
     if ( other.mtype             != mtype    ) return false;
-    if ( other.mline_mixing_type != mline_mixing_type ) return false;
+    if ( other.mline_mixing != mline_mixing ) return false;
     if ( mtype == TYPE_CIA && (other.mcia_second != mcia_second
                                || other.mcia_dataset != mcia_dataset)) return false;
     return true;
@@ -125,10 +125,10 @@ public:
 
   /** Enum for line mixing type of this tag.
 
-  See private member mline_mixing_type for more explanations.   */
+  See private member mline_mixing for more explanations.   */
    enum {
-       LINE_MIXING_TYPE_NONE,
-       LINE_MIXING_TYPE_2NDORDER
+       LINE_MIXING_OFF,
+       LINE_MIXING_ON
    };
   
 
@@ -138,10 +138,10 @@ public:
   Index Type() const { return mtype; }
 
 
-  /** Return the line mixing type of this tag.
+  /** Return line mixing status of this tag.
 
    See private member mtype for more explanations.   */
-  Index LineMixingType() const { return mline_mixing_type; }
+  Index LineMixing() const { return mline_mixing; }
 
 
 private:
@@ -182,11 +182,11 @@ private:
 
    The type can be:
    <PRE>
-   LINE_MIXING_TYPE_NONE:     No line mixing
-   LINE_MIXING_TYPE_2NDORDER: 2nd order line mixing
+   LINE_MIXING_OFF:     No line mixing
+   LINE_MIXING_ON:      Line mixing active, see linemixingdata.{h,cc} for details
    </PRE>
    */
-  Index mline_mixing_type;
+  Index mline_mixing;
 
   //! 2nd CIA species index.
   /*! Contains the species index of the second CIA species that should be used for this tag. */

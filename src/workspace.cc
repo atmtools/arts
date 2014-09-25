@@ -1963,7 +1963,7 @@ void Workspace::define_wsv_data()
        "Unit:  degrees\n"
        ),
       GROUP( "Vector" )));
- 
+/* 
   wsv_data.push_back
     (WsvRecord
      ( NAME( "line_mixing_data" ),
@@ -1976,7 +1976,7 @@ void Workspace::define_wsv_data()
         "            the isotopologue index, the QuantumNumberRecord and the line mixing data.\n"
        ),
        GROUP( "ArrayOfArrayOfLineMixingRecord" )));
-
+*//*
   wsv_data.push_back
     (WsvRecord
      ( NAME( "line_mixing_data_lut" ),
@@ -1991,7 +1991,7 @@ void Workspace::define_wsv_data()
         "            Second dimension is zero for line mixing species without line mixing data.\n"
         "            and the same size as *abs_lines_per_species* for line mixing species.\n"
        ),
-       GROUP( "ArrayOfArrayOfIndex" )));
+       GROUP( "ArrayOfArrayOfIndex" )));*/
 
   wsv_data.push_back
    (WsvRecord

@@ -1,3 +1,56 @@
+2014-09-25  Richard Larsson <ric.larsson@gmail.com>
+
+	* arts-2-3-11
+	
+	Big changes in line mixing handling.  Now line mixing is part of
+	the line instead of, as before, a lookup table.  View this update
+	as first beta version of the new line mixing functionality that we are
+	adding.
+	
+	* controlfiles/general/general.arts:  Removed old line mixing scheme.
+	
+	* src/CMakeLists.txt:  Added linemixingdata.cc
+	
+	* src/abs_species_tags.{cc,h}:  Changed line mixing from type to on/off
+	switch.  Still work to be done here so that the abs_species tag is
+	"LM" instead of "LM_2NDORDER" to trigger line mixing on switch.
+	
+	* src/absorption.{cc,h}:  Now interacts with LineMixingData whenever
+	line mixing is active. (xsec_species_line_mixing_wrapper) will now
+	loop over all lines if the species is actively doing line mixing and
+	then switch between line mixing calculations depending on the tag 
+	of line mixing carried by the line.  Note that so far this has only
+	been implemented for the old case of 2nd order line mixing, and that
+	it is not fully representable of the physics because it ignores lines
+	that are not line mixed.  This will change in the coming days/weeks.
+	That is only (xsec_species_line_mixing_2nd_order) will work in this
+	version.
+	
+	* src/linemixingdata.{h,cc}:  This contains the LineMixingData class,
+	which is a part of all LineRecords since this version.  This class will
+	handle all line mixing data, except the builtin, in ARTS.  It is 
+	presently feature incomplete but performs on par with previous scheme.
+	
+	* src/linerecord.{h,cc}:  Fixed (ReadFromHitran2001Stream), which was 
+	broken.  Also added (ReadFromLBLRTMStream) as a copy of the previous 
+	function that can also read the LBLRTM line mixing catalog.  Also,
+	LineRecord now contains the LineMixingData class.
+	
+	* src/m_abs.cc: Added (abs_linesReadFromLBLRTM).  Also fixed mentionings
+	of previous line mixing scheme.
+	
+	* src/m_linemixing.cc:  The function (line_mixing_dataMatch) has been
+	adapted to work with the new scheme.  This still requires a lot of
+	clean-up.
+	
+	* src/m_zeeman.cc:  Is adapted for the new line mixing scheme.
+	
+	* src/methods.cc:  Is adapted for new scheme.  Old methods remains
+	but are commented out.
+	
+	* src/workspace.cc:: Is adapted for new scheme.  Old variable remains
+	but are commented out.
+
 2014-09-25  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-10

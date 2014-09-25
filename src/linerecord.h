@@ -33,6 +33,7 @@
 #include "array.h"
 #include "matpackI.h"
 #include "quantum.h"
+#include "linemixingdata.h"
 
 /* Forward declaration of classes */
 class SpeciesRecord;
@@ -537,6 +538,9 @@ public:
   /** Quantum numbers */
   const QuantumNumberRecord& QuantumNumbers() const { return mquantum_numbers; }
     
+  LineMixingData LineMixing() const { return mlinemixingdata; }
+  void SetLineMixingData(const LineMixingData input) { mlinemixingdata=input; }
+    
 
   /** Indices of different broadening species in Gamma_foreign, 
    N_foreign, and Delta_foreign. */
@@ -690,6 +694,13 @@ public:
     \author Stefan Buehler */
   bool ReadFromHitran2001Stream(istream& is, const Verbosity& verbosity);
 
+  
+/** LBLRTM uses the same format as HITRAN pre-2004 but also carry 
+    line mixing data, so we must read it separately.
+
+   \author Richard Larsson
+   \date   2014-09-24 */
+  bool ReadFromLBLRTMStream(istream& is, const Verbosity& verbosity);
 
 
   /** Read one line from a stream associated with a HITRAN 2004 file. The
@@ -1074,6 +1085,9 @@ private:
 
   /** Quantum numbers from HITRAN */
   QuantumNumberRecord mquantum_numbers;
+  
+  /** Line Mixing Data */
+  LineMixingData mlinemixingdata;
 };
 
 /** Output operator for LineRecord. The result should look like a

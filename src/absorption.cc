@@ -42,6 +42,7 @@
 #include "messages.h"
 #include "logic.h"
 #include "interpolation_poly.h"
+#include "linemixingdata.h"
 
 #include "global_data.h"
 
@@ -658,7 +659,7 @@ void xsec_species( MatrixView               xsec_attenuation,
           os << "If you use a lineshape function with cutoff, your\n"
              << "frequency grid *f_grid* must be sorted.\n"
              << "(Duplicate values are allowed.)";
-          throw runtime_error(os.str());
+          throw std::runtime_error(os.str());
         }
     }
   
@@ -676,7 +677,7 @@ void xsec_species( MatrixView               xsec_attenuation,
       ostringstream os;
       os << "abs_t contains at least one negative temperature value.\n"
          << "This is not allowed.";
-      throw runtime_error(os.str());
+      throw std::runtime_error(os.str());
     }
   
   // We need a local copy of f_grid which is 1 element longer, because
@@ -706,7 +707,7 @@ void xsec_species( MatrixView               xsec_attenuation,
       os << "Variable abs_t must have the same dimension as abs_p.\n"
          << "abs_t.nelem() = " << abs_t.nelem() << '\n'
          << "abs_p.nelem() = " << np;
-      throw runtime_error(os.str());
+      throw std::runtime_error(os.str());
     }
 
   // all_vmrs should have dimensions [nspecies, np]:
@@ -717,7 +718,7 @@ void xsec_species( MatrixView               xsec_attenuation,
       os << "Number of columns of all_vmrs must match abs_p.\n"
          << "all_vmrs.ncols() = " << all_vmrs.ncols() << '\n'
          << "abs_p.nelem() = " << np;
-      throw runtime_error(os.str());
+      throw std::runtime_error(os.str());
     }
 
   const Index nspecies = abs_species.nelem();
@@ -728,7 +729,7 @@ void xsec_species( MatrixView               xsec_attenuation,
     os << "Number of rows of all_vmrs must match abs_species.\n"
     << "all_vmrs.nrows() = " << all_vmrs.nrows() << '\n'
     << "abs_species.nelem() = " << nspecies;
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 
   // With abs_h2o it is different. We do not really need this in most
@@ -773,7 +774,7 @@ void xsec_species( MatrixView               xsec_attenuation,
          << ", " << xsec_attenuation.ncols() << "]\n"
          << "f_grid.nelem() = " << nf << '\n'
          << "abs_p.nelem() = " << np;
-      throw runtime_error(os.str());
+      throw std::runtime_error(os.str());
     }
    if ( xsec_phase.nrows() != nf || xsec_phase.ncols() != np )
     {
@@ -783,7 +784,7 @@ void xsec_species( MatrixView               xsec_attenuation,
          << ", " << xsec_phase.ncols() << "]\n"
          << "f_grid.nelem() = " << nf << '\n'
          << "abs_p.nelem() = " << np;
-      throw runtime_error(os.str());
+      throw std::runtime_error(os.str());
     } 
   
   // Find the location of all broadening species in abs_species. Set to -1 if
@@ -904,7 +905,7 @@ void xsec_species( MatrixView               xsec_attenuation,
                 os << "Unknown spectral line catalogue version (artscat-"
                 << l_l.Version() << ").\n"
                 << "Allowed are artscat-3 and artscat-4.";
-                throw runtime_error(os.str());
+                throw std::runtime_error(os.str());
               }
               
               // Center frequency in vacuum:
@@ -1205,7 +1206,7 @@ void xsec_species( MatrixView               xsec_attenuation,
           }
     } // end of parallel pressure loop
 
-  if (failed) throw runtime_error("Run-time error in function: xsec_species\n" + fail_msg);
+  if (failed) throw std::runtime_error("Run-time error in function: xsec_species\n" + fail_msg);
 
 }
 
@@ -1509,8 +1510,6 @@ ostream& operator<< (ostream &os, const LineshapeSpec& lsspec)
  *                              true attenuation cross section in units of m^2.
  *  \retval xsec_phase          Cross section of one tag group. This is now the
  *                              true phase cross section in units of m^2.
- *  \param line_mixing_data     Line mixing data for specific type of line mixing.
- *  \param line_mixing_data_lut Line mixing data lookup table.
  *  \param f_grid               Frequency grid.
  *  \param abs_p                Pressure grid.
  *  \param abs_t                Temperatures associated with abs_p.
@@ -1529,8 +1528,6 @@ ostream& operator<< (ostream &os, const LineshapeSpec& lsspec)
  */
 void xsec_species_line_mixing_wrapper(  MatrixView               xsec_attenuation,
                                         MatrixView               xsec_phase,
-                                        const ArrayOfArrayOfLineMixingRecord& line_mixing_data,
-                                        const ArrayOfArrayOfIndex& line_mixing_data_lut,
                                         ConstVectorView          f_grid,
                                         ConstVectorView          abs_p,
                                         ConstVectorView          abs_t,
@@ -1544,19 +1541,38 @@ void xsec_species_line_mixing_wrapper(  MatrixView               xsec_attenuatio
                                         const SpeciesAuxData&    isotopologue_ratios,
                                         const Verbosity&         verbosity )
 {
-    if(abs_species[this_species][0].LineMixingType() == SpeciesTag::LINE_MIXING_TYPE_NONE) // If no linemixing data exists
+    if(abs_species[this_species][0].LineMixing() == SpeciesTag::LINE_MIXING_OFF) // If no linemixing data exists
         xsec_species(xsec_attenuation, xsec_phase, f_grid, abs_p, abs_t, all_vmrs,
                      abs_species, this_species, abs_lines, ind_ls, ind_lsn, cutoff,
                      isotopologue_ratios, verbosity);
         else // If linemixing data exists
     {
-        switch(abs_species[this_species][0].LineMixingType())
+      for(Index ii=0; ii<abs_lines.nelem();ii++)
+        switch(abs_lines[ii].LineMixing().Type())
         {
-            case SpeciesTag::LINE_MIXING_TYPE_2NDORDER:
-                xsec_species_line_mixing_2nd_order(xsec_attenuation, xsec_phase, line_mixing_data, 
-                                                   line_mixing_data_lut, f_grid, abs_p, abs_t, all_vmrs,
+          case LineMixingData::LM_NONE:
+                /*xsec_species_line_mixing_2nd_order(xsec_attenuation, xsec_phase, f_grid, abs_p, abs_t, all_vmrs,
                                                    abs_species, this_species, abs_lines, ind_ls, ind_lsn, 
-                                                   cutoff, isotopologue_ratios, verbosity);
+                                                   cutoff, isotopologue_ratios, verbosity);*/
+                break;
+          case LineMixingData::LM_LBLRTM:
+                break;
+          case LineMixingData::LM_2NDORDER:
+            xsec_species_line_mixing_2nd_order(
+                                        xsec_attenuation,
+                                        xsec_phase,
+                                        f_grid,
+                                        abs_p,
+                                        abs_t,
+                                        all_vmrs,
+                                        abs_species,
+                                        this_species,
+                                        abs_lines[ii],
+                                        ind_ls,
+                                        ind_lsn,
+                                        cutoff,
+                                        isotopologue_ratios,
+                                        verbosity );
                 break;
                 //             default:
                 //                 //ERROR
@@ -1577,8 +1593,6 @@ void xsec_species_line_mixing_wrapper(  MatrixView               xsec_attenuatio
  *                              true attenuation cross section in units of m^2.
  *  \retval xsec_phase          Cross section of one tag group. This is now the
  *                              true phase cross section in units of m^2.
- *  \param line_mixing_data     Line mixing data for specific type of line mixing.
- *  \param line_mixing_data_lut Line mixing data lookup table.
  *  \param f_grid               Frequency grid.
  *  \param abs_p                Pressure grid.
  *  \param abs_t                Temperatures associated with abs_p.
@@ -1597,21 +1611,22 @@ void xsec_species_line_mixing_wrapper(  MatrixView               xsec_attenuatio
  */
 void xsec_species_line_mixing_2nd_order(MatrixView               xsec_attenuation,
                                         MatrixView               xsec_phase,
-                                        const ArrayOfArrayOfLineMixingRecord& line_mixing_data,
-                                        const ArrayOfArrayOfIndex& line_mixing_data_lut,
                                         ConstVectorView          f_grid,
                                         ConstVectorView          abs_p,
                                         ConstVectorView          abs_t,
                                         ConstMatrixView          all_vmrs,
                                         const ArrayOfArrayOfSpeciesTag& abs_species,
                                         const Index              this_species,
-                                        const ArrayOfLineRecord& abs_lines,
+                                        const LineRecord&        my_line,
                                         const Index              ind_ls,
                                         const Index              ind_lsn,
                                         const Numeric            cutoff,
                                         const SpeciesAuxData&    isotopologue_ratios,
                                         const Verbosity&         verbosity )
 {
+    if( abs_p.nelem() != 1 )
+      throw std::runtime_error("Line mixing only supports that abs_p.nelem() is 1.");
+      
     // Must have the phase
     using global_data::lineshape_data;
     if (! lineshape_data[ind_ls].Phase())
@@ -1619,89 +1634,34 @@ void xsec_species_line_mixing_2nd_order(MatrixView               xsec_attenuatio
         ostringstream os;
         os <<  "This is an error message. You are using " << lineshape_data[ind_ls].Name() <<
         ".\n"<<"This line shape does not include phase in its calculations and\nis therefore invalid for " <<
-        "second order line mixing.\n\n";
-        throw runtime_error(os.str());
+        "line mixing.\n\n";
+        throw std::runtime_error(os.str());
     }
-    const ArrayOfLineMixingRecord& data = line_mixing_data[this_species];
-    const ArrayOfIndex&  lut  = line_mixing_data_lut[this_species];
     
     // Helper variables
-    Matrix attenuation(f_grid.nelem(),1), phase(f_grid.nelem(),1);
+    Matrix attenuation(f_grid.nelem(),1,0), phase(f_grid.nelem(),1,0);
+    const Numeric& p = abs_p[0], t = abs_t[0];
     
-    //Since we need to be able to modify the line.
-    ArrayOfLineRecord ll;
-    ll.resize(1);
-    // Variable containing modifying elements
-    Vector a(2);
+    Numeric Y, G, DV;
+    my_line.LineMixing().Get2ndOrder(Y,G,DV,t);
+    Y  *= p;
+    G  *= p * p;
+    DV *= p * p;
     
-    for(Index jj=0;jj<abs_p.nelem(); jj++)
-    {
-        const Numeric p = abs_p[jj], t = abs_t[jj];
-        
-        for(Index ii = 0; ii < lut.nelem(); ii++)
-        {
-            // Since we need cross section per line to do the mixing.
-            ll[0] = abs_lines[ii];//Possible speed-up by separating all non-split lines and doing those as a batch?
-            
-            // Since we need line mixing only for selected lines the rest should ignore by doing nothing.
-            a=0;
-            
-            if(lut[ii]!=-1)
-            {
-                const Vector& dat = data[lut[ii]].Data();
-                if( dat.nelem() != 10 )
-                {
-                    ostringstream os;
-                    os <<  "This is an error message. You have not defined the linemixing data vector " << 
-                    "properly. It should be of length 10, yet your version is of length: " << dat.nelem() << ".\n" << 
-                    "The structure of the line mixing data Vector should be as follows:\n" << 
-                    "data[0] is the first order zeroth phase correction\n" << 
-                    "data[1] is the first order first phase correction\n" << 
-                    "data[2] is the second order zeroth phase correction\n" << 
-                    "data[3] is the second order first phase correction \n" << 
-                    "data[4] is the second order zeroth frequency correction\n" << 
-                    "data[5] is the second order first frequency correction \n" << 
-                    "data[6] is the reference temperature\n" << 
-                    "data[7] is the first order phase correction temperature dependence exponent\n" << 
-                    "data[8] is the second order attenuation correction temperature dependence exponent\n" << 
-                    "data[9] is the second order frequency correction temperature dependence exponent";
-                    throw std::runtime_error(os.str());
-                }
-                
-                // First order phase correction
-                a[0] =              p 
-                * ( ( dat[0] + dat[1] * ( dat[6]/t-1. ) ) 
-                * pow( dat[6]/t, dat[7] ) );
-                
-                // Second order attenuation correction
-                a[1] =      p * p 
-                * ( ( dat[2] + dat[3] * ( dat[6]/t-1. ) ) 
-                * pow( dat[6]/t, dat[8] ) );
-                
-                // Second order line-center correction
-                ll[0].setF( p * p 
-                * ( ( dat[4] +  dat[5] * ( dat[6]/t-1. ) ) 
-                * pow( dat[6]/t, dat[9] ) ) + ll[0].F());
-            }
-            
-            attenuation=0;
-            phase=0;
-            
-            Vector P(1,p),T(1,t);
-            Matrix V(all_vmrs.nrows(),1);V(joker,0)=all_vmrs(joker,jj);
-            
-            xsec_species(attenuation, phase, f_grid, P, T, V,
-                        abs_species, this_species, ll, ind_ls, ind_lsn, cutoff,
-                        isotopologue_ratios, verbosity);
-            
-            // Do the actual line mixing and add this to xsec_attenuation.
-            xsec_phase(joker,jj) += phase(joker,0);
-            phase *= a[0];
-            xsec_attenuation(joker,jj) += phase(joker,0);       // First order phase correction
-            xsec_attenuation(joker,jj) += attenuation(joker,0); // Zeroth order attenuation
-            attenuation *= a[1];
-            xsec_attenuation(joker,jj) += attenuation(joker,0); // Second order attenuation correction
-            
-        }
-    }
+    LineRecord temp = my_line;
+    temp.setF(my_line.F()+DV);
+    const ArrayOfLineRecord ll(1,temp); // Temporary variable to trick xsec_species
+    
+    xsec_species(attenuation, phase, f_grid, abs_p, abs_t, all_vmrs,
+                abs_species, this_species, ll, ind_ls, ind_lsn, cutoff,
+                isotopologue_ratios, verbosity);
+    
+    // Do the actual line mixing and add this to xsec_attenuation.
+    xsec_phase(joker,0) += phase(joker,0);
+    phase *= Y;
+    xsec_attenuation(joker,0) += phase(joker,0);       // First order phase correction
+    xsec_attenuation(joker,0) += attenuation(joker,0); // Zeroth order attenuation
+    attenuation *= G;
+    xsec_attenuation(joker,0) += attenuation(joker,0); // Second order attenuation correction
+    
 }

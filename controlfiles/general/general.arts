@@ -157,16 +157,5 @@ NumericSet( ppath_lraytrace, 1e3 )
 IndexSet( mc_min_iter, 100 )
 
 
-#
-# Line Mixing Data
-#
-# These are okay to be empty if no line mixing species is present.
-# They have to exist because they're input to abs_xsec_per_speciesAddLines.
-# If a line mixing species is added, a later check will make sure
-# the data is initialized properly.
-#
-Touch( line_mixing_data )
-Touch( line_mixing_data_lut )
-
 }
 

@@ -1307,12 +1307,6 @@ void define_md_data_raw()
          "To turn on Zeeman calculation for a Species, \"-Z\" may be appended\n"
          "to its name: \"O2-Z\" or \"O2-Z-66\"\n"
          "\n"
-         "To turn on line mixing for a Species, \"-LM_METHOD\" may be appended\n"
-         "to its name. Currently only one METHOD is supported: 2NDORDER.\n"
-         "Line mixing data has to be provided if this is turned on.\n"
-         "See *line_mixing_dataInit* and *line_mixing_dataRead*\n."
-         "Example: \"O2-66-LM_2NDORDER\".\n"
-         "\n"
          "The symbol \"*\" acts as a wild card. Furthermore, frequency range or\n"
          "frequency range and isotopologue may be omitted.\n"
          "\n"
@@ -1504,7 +1498,7 @@ void define_md_data_raw()
         IN( "abs_xsec_per_species", "abs_species", "abs_species_active",
             "f_grid", "abs_p", "abs_t",
             "abs_vmrs", "abs_lines_per_species", "abs_lineshape",
-            "isotopologue_ratios", "line_mixing_data", "line_mixing_data_lut" ),
+            "isotopologue_ratios"),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -1985,7 +1979,7 @@ void define_md_data_raw()
         GIN_DESC( "Array value.." ),
         SETMETHOD( true )
         ));
-
+/*
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "ArrayOfLineMixingRecordReadAscii" ),
@@ -2025,7 +2019,7 @@ void define_md_data_raw()
         GIN_TYPE(    "String" ),
         GIN_DEFAULT( NODEF ),
         GIN_DESC(    "Line mixing data file.")
-        ));
+        ));*/
 
   md_data_raw.push_back
     ( MdRecord
@@ -6549,7 +6543,7 @@ void define_md_data_raw()
         GIN_DEFAULT( NODEF ),
         GIN_DESC( "A raw atmospheric field." )
         ));
- 
+/* 
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "line_mixing_dataInit" ),
@@ -6568,7 +6562,7 @@ void define_md_data_raw()
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-        ));
+        ));*/
 
   md_data_raw.push_back
     ( MdRecord
@@ -6586,16 +6580,15 @@ void define_md_data_raw()
 
          ),
         AUTHORS( "Oliver Lemke" ),
-        OUT( "line_mixing_data", "line_mixing_data_lut" ),
+        OUT( "abs_lines_per_species" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "line_mixing_data", "line_mixing_data_lut",
-            "abs_lines_per_species", "abs_species" ),
-        GIN(         "species_tag", "line_mixing_records" ),
-        GIN_TYPE(    "String",      "ArrayOfLineMixingRecord" ),
-        GIN_DEFAULT( NODEF,         NODEF ),
-        GIN_DESC(    "Species tag", "Unmatched line mixing data.")
+        IN(  "abs_lines_per_species" ,  "abs_species" ),
+        GIN(         "species_tag",  "line_mixing_tag", "line_mixing_records" ),
+        GIN_TYPE(  "String",  "String",      "ArrayOfLineMixingRecord" ),
+        GIN_DEFAULT( NODEF,     NODEF,         NODEF ),
+        GIN_DESC(   "Species tag", "Line mixing tag" , "Unmatched line mixing data")
         ));
 
   md_data_raw.push_back
@@ -8503,8 +8496,7 @@ void define_md_data_raw()
            "isotopologue_ratios",
            "isotopologue_quantum",
            "rtp_pressure", "rtp_temperature", "rtp_vmr",
-           "rtp_mag", "rtp_los", "atmosphere_dim",
-           "line_mixing_data", "line_mixing_data_lut" ),
+           "rtp_mag", "rtp_los", "atmosphere_dim"),
         GIN("manual_zeeman_tag","manual_zeeman_magnetic_field_strength",
             "manual_zeeman_theta","manual_zeeman_eta"),
         GIN_TYPE("Index","Numeric","Numeric","Numeric"),

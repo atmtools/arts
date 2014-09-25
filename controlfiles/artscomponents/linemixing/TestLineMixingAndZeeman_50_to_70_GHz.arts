@@ -56,14 +56,11 @@ abs_lines_per_speciesCreateFromLines
 # Get the quantum Landau constant and molecule electron spin
 ReadXML( isotopologue_quantum, "spectroscopy/QuantumConstants/zeeman_constants.xml" )
 
-# 2ND Order line mixing (Makarov et al., 2011)
-line_mixing_dataInit
-
 ArrayOfLineMixingRecordCreate(lm_o2)
 
 ReadXML(lm_o2,"spectroscopy/LineMixing/2nd_order/o2_v1_0_band_40-120_GHz.xml.gz")
 
-line_mixing_dataMatch(species_tag="O2-Z-66-LM_2NDORDER",line_mixing_records=lm_o2)
+line_mixing_dataMatch(species_tag="O2-Z-66-LM_2NDORDER",line_mixing_tag="L2",line_mixing_records=lm_o2)
 
 #Get isotopologue ratioss
 isotopologue_ratiosInitFromBuiltin
@@ -149,9 +146,8 @@ Compare( y, yREFERENCE, 1e-2 )
 
 
 # 1ST Order line mixing (Tretyakov et al., 2005)
-line_mixing_dataInit
 ReadXML(lm_o2,"spectroscopy/LineMixing/1st_order/o2_v1_0_band_40-120_GHz.xml.gz")
-line_mixing_dataMatch(species_tag="O2-Z-66-LM_2NDORDER",line_mixing_records=lm_o2)
+line_mixing_dataMatch(species_tag="O2-Z-66-LM_2NDORDER",line_mixing_tag="L2",line_mixing_records=lm_o2)
 
 yCalc
 

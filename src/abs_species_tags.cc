@@ -70,8 +70,8 @@ SpeciesTag::SpeciesTag(String def)
   // Set type to normal LBL species by default
   mtype = TYPE_PLAIN;
   
-  // Set line mixing type to none by default
-  mline_mixing_type = LINE_MIXING_TYPE_NONE;
+  // Set line mixing to off by default
+  mline_mixing = LINE_MIXING_OFF;
 
   // We cannot set a default value for the isotopologue, because the
   // default should be `ALL' and the value for `ALL' depends on the
@@ -285,14 +285,14 @@ SpeciesTag::SpeciesTag(String def)
 
       String lmtype = def.substr(0, n);
       if (lmtype == "LM_2NDORDER")
-          mline_mixing_type = LINE_MIXING_TYPE_2NDORDER;
+          mline_mixing = LINE_MIXING_ON;
       else if (lmtype == "LM_NONE")
-          mline_mixing_type = LINE_MIXING_TYPE_NONE;
+          mline_mixing = LINE_MIXING_OFF;
       else
       {
           ostringstream os;
           os << "Unknown line mixing type \"" << lmtype << "\"";
-          throw runtime_error(os.str());
+          throw std::runtime_error(os.str());
       }
 
       def.erase(0, n+1);
@@ -441,16 +441,16 @@ String SpeciesTag::Name() const
 
         // Line Mixing Type
 
-        if (mline_mixing_type != LINE_MIXING_TYPE_NONE)
+        if (mline_mixing != LINE_MIXING_OFF)
         {
             os << "LM_";
-            switch (mline_mixing_type)
+            switch (mline_mixing)
             {
-                case LINE_MIXING_TYPE_2NDORDER:
+                case LINE_MIXING_ON:
                     os << "2NDORDER";
                     break;
                 default:
-                    throw runtime_error("Invalid line mixing type. This is impossible.");
+                    throw std::runtime_error("Invalid line mixing type. This is impossible.");
             }
             os << "-";
         }
@@ -738,24 +738,24 @@ void check_abs_species( const ArrayOfArrayOfSpeciesTag& abs_species )
                 has_particles = true;
             }
 
-            if (abs_species[i][s].LineMixingType() != SpeciesTag::LINE_MIXING_TYPE_NONE)
+            if (abs_species[i][s].LineMixing() != SpeciesTag::LINE_MIXING_OFF)
             {
                 has_line_mixing = true;
             }
         }
 
         if (abs_species[i].nelem() > 1 && has_free_electrons)
-            throw runtime_error("'free_electrons' must not be combined "
+            throw std::runtime_error("'free_electrons' must not be combined "
                                 "with other tags in the same group.");
         if (num_free_electrons > 1)
-            throw runtime_error("'free_electrons' must not be defined "
+            throw std::runtime_error("'free_electrons' must not be defined "
                                 "more than once.");
 
         if (abs_species[i].nelem() > 1 && has_particles)
-            throw runtime_error("'particles' must not be combined "
+            throw std::runtime_error("'particles' must not be combined "
                                 "with other tags in the same group.");
         if (abs_species[i].nelem() > 1 && has_line_mixing)
-            throw runtime_error("Line mixing species must not be combined "
+            throw std::runtime_error("Line mixing species must not be combined "
                                 "with other tags in the same group.");
     }
 }

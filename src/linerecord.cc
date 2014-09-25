@@ -156,7 +156,7 @@ bool LineRecord::ReadFromHitran2001Stream(istream& is, const Verbosity& verbosit
           // We have to be careful and check for the case that all
           // HITRAN isotopologue tags are -1 (this species is missing in HITRAN).
 
-          if ( 0 < sr.Isotopologue()[0].HitranTag() )
+          if ( sr.Isotopologue().nelem() && 0 < sr.Isotopologue()[0].HitranTag() )
             {
               // The HITRAN tags are stored as species plus isotopologue tags
               // (MO and ISO)
@@ -554,6 +554,541 @@ bool LineRecord::ReadFromHitran2001Stream(istream& is, const Verbosity& verbosit
   return false;
 }
 
+// The below is a derivative of ReadFromHitran2001Stream
+bool LineRecord::ReadFromLBLRTMStream(istream& is, const Verbosity& verbosity)
+{
+  CREATE_OUT3;
+  
+  // Global species lookup data:
+  using global_data::species_data;
+
+  // This value is used to flag missing data both in species and
+  // isotopologue lists. Could be any number, it just has to be made sure
+  // that it is neither the index of a species nor of an isotopologue.
+  const Index missing = species_data.nelem() + 100;
+
+  // We need a species index sorted by HITRAN tag. Keep this in a
+  // static variable, so that we have to do this only once.  The ARTS
+  // species index is hind[<HITRAN tag>]. 
+  //
+  // Allow for up to 100 species in HITRAN in the future.
+  static Array< Index >        hspec(100);
+
+  // This is  an array of arrays for each hitran tag. It contains the
+  // ARTS indices of the HITRAN isotopologues. 
+  static Array< ArrayOfIndex > hiso(100);
+
+  // Remember if this stuff has already been initialized:
+  static bool hinit = false;
+
+  // Remember, about which missing species we have already issued a
+  // warning: 
+  static ArrayOfIndex warned_missing;
+
+  if ( !hinit )
+    {
+      // Initialize hspec.
+      // The value of missing means that we don't have this species.
+      hspec = missing;  // Matpack can set all elements like this.
+      for ( Index i=0; i<species_data.nelem(); ++i )
+        {
+          const SpeciesRecord& sr = species_data[i];
+          // We have to be careful and check for the case that all
+          // HITRAN isotopologue tags are -1 (this species is missing in HITRAN).
+          if ( sr.Isotopologue().nelem() && 0 < sr.Isotopologue()[0].HitranTag() )
+            {
+              // The HITRAN tags are stored as species plus isotopologue tags
+              // (MO and ISO)
+              // in the Isotopologue() part of the species record.
+              // We can extract the MO part from any of the isotopologue tags,
+              // so we use the first one. We do this by taking an integer
+              // division by 10.
+          
+              Index mo = sr.Isotopologue()[0].HitranTag() / 10;
+              //          cout << "mo = " << mo << endl;
+              hspec[mo] = i; 
+          
+              // Get a nicer to handle array of HITRAN iso tags:
+              Index n_iso = sr.Isotopologue().nelem();
+              ArrayOfIndex iso_tags;
+              iso_tags.resize(n_iso);
+              for ( Index j=0; j<n_iso; ++j )
+                {
+                  iso_tags[j] = sr.Isotopologue()[j].HitranTag();
+                }
+
+              // Reserve elements for the isotopologue tags. How much do we
+              // need? This depends on the largest HITRAN tag that we know
+              // about!
+              // Also initialize the tags to missing.
+              //          cout << "iso_tags = " << iso_tags << endl;
+              //          cout << "static_cast<Index>(max(iso_tags))%10 + 1 = "
+              //               << static_cast<Index>(max(iso_tags))%10 + 1 << endl;
+              hiso[mo].resize( max(iso_tags)%10 + 1 );
+              hiso[mo] = missing; // Matpack can set all elements like this.
+
+
+              // Set the isotopologue tags:
+              for ( Index j=0; j<n_iso; ++j )
+                {
+                  if ( 0 < iso_tags[j] )                                  // ignore -1 elements
+                    {
+                      // To get the iso tags from HitranTag() we also have to take
+                      // modulo 10 to get rid of mo.
+                      hiso[mo][iso_tags[j] % 10] = j;
+                    }
+                }
+            }
+        }
+
+
+      // Print the generated data structures (for debugging):
+      out3 << "  HITRAN index table:\n";
+      for ( Index i=0; i<hspec.nelem(); ++i )
+        {
+          if ( missing != hspec[i] )
+            {
+              // The explicit conversion of Name to a c-String is
+              // necessary, because setw does not work correctly for
+              // stl Strings.
+              out3 << "  mo = " << i << "   Species = "
+                   << std::setw(10) << std::setiosflags(std::ios::left)
+                   << species_data[hspec[i]].Name().c_str()
+                   << "iso = ";
+              for ( Index j=1; j<hiso[i].nelem(); ++j )
+                {
+                  if ( missing==hiso[i][j] )
+                    out3 << " " << "m";
+                  else
+                    out3 << " " << species_data[hspec[i]].Isotopologue()[hiso[i][j]].Name();
+                }
+              out3 << "\n";
+            }
+        }
+
+      hinit = true;
+    }
+
+
+  // This contains the rest of the line to parse. At the beginning the
+  // entire line. Line gets shorter and shorter as we continue to
+  // extract stuff from the beginning.
+  String line;
+
+  // The first item is the molecule number:
+  Index mo;
+
+  // Look for more comments?
+  bool comment = true;
+
+  while (comment)
+    {
+      // Return true if eof is reached:
+      if (is.eof()) return true;
+
+      // Throw runtime_error if stream is bad:
+      if (!is) throw std::runtime_error ("Stream bad.");
+
+      // Read line from file into linebuffer:
+      getline(is,line);
+
+      // It is possible that we were exactly at the end of the file before
+      // calling getline. In that case the previous eof() was still false
+      // because eof() evaluates only to true if one tries to read after the
+      // end of the file. The following check catches this.
+      if (line.nelem() == 0 && is.eof()) return true;
+
+      // If the catalogue is in dos encoding, throw away the
+      // additional carriage return
+      if (line[line.nelem () - 1] == 13)
+        {
+          line.erase (line.nelem () - 1, 1);
+        }
+
+      // Because of the fixed FORTRAN format, we need to break up the line
+      // explicitly in apropriate pieces. Not elegant, but works!
+
+      // Extract molecule number:
+      mo = 0;
+      // Initialization of mo is important, because mo stays the same
+      // if line is empty.
+      extract(mo,line,2);
+      //      cout << "mo = " << mo << endl;
+  
+      // If mo == 0 this is just a comment line:
+      if ( 0 != mo )
+        {
+          // See if we know this species. Exit with an error if the species is unknown. 
+          if ( missing != hspec[mo] )
+            {
+              comment = false;
+
+              // Check if data record has the right number of characters for the
+              // in Hitran 1986-2001 format
+              Index nChar = line.nelem() + 2; // number of characters in data record;
+              if ( nChar != 100 )
+                {
+                  ostringstream os;
+                  os << "Invalid HITRAN 1986-2001 line data record with " << nChar <<
+                        " characters (expected: 100)." << endl << line << " n: " << line.nelem ();
+                  throw runtime_error(os.str());
+                }
+
+            }
+          else
+            {
+              // See if this is already in warned_missing, use
+              // std::count for that:
+              if ( 0 == std::count(warned_missing.begin(),
+                                   warned_missing.end(),
+                                   mo) )
+                {
+                  CREATE_OUT0;
+                  out0 << "Error: HITRAN mo = " << mo << " is not "
+                       << "known to ARTS.\n";
+                  warned_missing.push_back(mo);
+                }
+            }
+        }
+    }
+
+  // Ok, we seem to have a valid species here.
+
+  // Set mspecies from my cool index table:
+  mspecies = hspec[mo];
+
+  // Extract isotopologue:
+  Index iso;                              
+  extract(iso,line,1);
+  //  cout << "iso = " << iso << endl;
+
+
+  // Set misotopologue from the other cool index table.
+  // We have to be careful to issue an error for unknown iso tags. Iso
+  // could be either larger than the size of hiso[mo], or set
+  // explicitly to missing. Unfortunately we have to test both cases. 
+  misotopologue = missing;
+  if ( iso < hiso[mo].nelem() )
+    if ( missing != hiso[mo][iso] )
+      misotopologue = hiso[mo][iso];
+
+  // Issue error message if misotopologue is still missing:
+  if (missing == misotopologue)
+    {
+      ostringstream os;
+      os << "Species: " << species_data[mspecies].Name()
+         << ", isotopologue iso = " << iso
+         << " is unknown.";
+      throw std::runtime_error(os.str());
+    }
+
+  
+  // Position.
+  {
+    // HITRAN position in wavenumbers (cm^-1):
+    Numeric v;
+    // External constant from constants.cc:
+    extern const Numeric SPEED_OF_LIGHT;
+    // Conversion from wavenumber to Hz. If you multiply a line
+    // position in wavenumber (cm^-1) by this constant, you get the
+    // frequency in Hz.
+    const Numeric w2Hz = SPEED_OF_LIGHT * 100.;
+
+    // Extract HITRAN postion:
+    extract(v,line,12);
+
+    // ARTS position in Hz:
+    mf = v * w2Hz;
+//    cout << "mf = " << mf << endl;
+  }
+
+  // Intensity.
+  {
+    extern const Numeric SPEED_OF_LIGHT; // in [m/s]
+
+    // HITRAN intensity is in cm-1/(molec * cm-2) at 296 Kelvin.
+    // It already includes the isotpic ratio.
+    // The first cm-1 is the frequency unit (it cancels with the
+    // 1/frequency unit of the line shape function). 
+    //
+    // We need to do the following:
+    // 1. Convert frequency from wavenumber to Hz (factor 1e2 * c).
+    // 2. Convert [molec * cm-2] to [molec * m-2] (factor 1e-4).
+    // 3. Take out the isotopologue ratio.
+
+    const Numeric hi2arts = 1e-2 * SPEED_OF_LIGHT;
+
+    Numeric s;
+
+    // Extract HITRAN intensity:
+    extract(s,line,10);
+    // Convert to ARTS units (Hz / (molec * m-2) ), or shorter: Hz*m^2
+    mi0 = s * hi2arts;
+    // Take out isotopologue ratio:
+    mi0 /= species_data[mspecies].Isotopologue()[misotopologue].Abundance();  
+  }  
+  
+  // Skip transition probability:
+  {
+    Numeric r;
+    extract(r,line,10);
+  }
+  
+
+  // Air broadening parameters.
+  {
+    // HITRAN parameter is in cm-1/atm at 296 Kelvin
+    // All parameters are HWHM (I hope this is true!)
+    Numeric gam;
+    // External constant from constants.cc: Converts atm to
+    // Pa. Multiply value in atm by this number to get value in Pa. 
+    extern const Numeric ATM2PA;
+    // External constant from constants.cc:
+    extern const Numeric SPEED_OF_LIGHT;
+    // Conversion from wavenumber to Hz. If you multiply a value in
+    // wavenumber (cm^-1) by this constant, you get the value in Hz.
+    const Numeric w2Hz = SPEED_OF_LIGHT * 1e2;
+    // Ok, put together the end-to-end conversion that we need:
+    const Numeric hi2arts = w2Hz / ATM2PA;
+
+    // Extract HITRAN AGAM value:
+    extract(gam,line,5);
+
+    // ARTS parameter in Hz/Pa:
+    magam = gam * hi2arts;
+
+    // Extract HITRAN SGAM value:
+    extract(gam,line,5);
+
+    // ARTS parameter in Hz/Pa:
+    msgam = gam * hi2arts;
+
+    // If zero, set to agam:
+    if (0==msgam)
+      msgam = magam;
+
+    //    cout << "agam, sgam = " << magam << ", " << msgam << endl;
+  }
+
+
+  // Lower state energy.
+  {
+    // HITRAN parameter is in wavenumbers (cm^-1).
+    // We have to convert this to the ARTS unit Joule.
+
+    // Extract from Catalogue line
+    extract(melow,line,10);
+
+    // Convert to Joule:
+    melow = wavenumber_to_joule(melow);
+  }
+
+  
+  // Temperature coefficient of broadening parameters.
+  {
+    // This is dimensionless, we can also extract directly.
+    extract(mnair,line,4);
+
+    // Set self broadening temperature coefficient to the same value:
+    mnself = mnair;
+//    cout << "mnair = " << mnair << endl;
+  }
+
+
+  // Pressure shift.
+  {
+    // HITRAN value in cm^-1 / atm. So the conversion goes exactly as
+    // for the broadening parameters.
+    Numeric d;
+    // External constant from constants.cc: Converts atm to
+    // Pa. Multiply value in atm by this number to get value in Pa. 
+    extern const Numeric ATM2PA;
+    // External constant from constants.cc:
+    extern const Numeric SPEED_OF_LIGHT;
+    // Conversion from wavenumber to Hz. If you multiply a value in
+    // wavenumber (cm^-1) by this constant, you get the value in Hz.
+    const Numeric w2Hz = SPEED_OF_LIGHT * 1e2;
+    // Ok, put together the end-to-end conversion that we need:
+    const Numeric hi2arts = w2Hz / ATM2PA;
+
+    // Extract HITRAN value:
+    extract(d,line,8);
+
+    // ARTS value in Hz/Pa
+    mpsf = d * hi2arts;
+  }
+  // Set the accuracies using the definition of HITRAN 
+  // indices. If some are missing, they are set to -1.
+
+  //Skip upper state global quanta index
+  {
+    Index eu;
+    extract(eu,line,3);
+  }
+
+ //Skip lower state global quanta index
+  {
+    Index el;
+    extract(el,line,3);
+  }
+
+  //Skip upper state local quanta 
+  {
+    Index eul;
+    extract(eul,line,9);
+  }
+
+  //Skip lower state local quanta 
+  {
+    Index ell;
+    extract(ell,line,9);
+  }
+
+  // Accuracy index for frequency reference
+  {
+  Index df;
+  // Extract HITRAN value:
+  extract(df,line,1);
+  // Convert it to ARTS units (Hz)
+  convHitranIERF(mdf,df);
+  }
+
+  // Accuracy index for intensity reference
+  {
+  Index di0;
+  // Extract HITRAN value:
+    extract(di0,line,1);
+    convHitranIERSH(mdi0,di0);
+  }
+
+  // Accuracy index for halfwidth reference
+  {
+    Index dgam;
+    // Extract HITRAN value:
+    extract(dgam,line,1);
+    //Convert to ARTS units (%)
+    convHitranIERSH(mdagam,dgam);
+    // convHitranIERSH(mdsgam,dgam);
+    // convHitranIERSH(mdnair,dgam);
+    // convHitranIERSH(mdnself,dgam);
+  }
+ 
+  
+  // Accuracy for pressure shift
+  // This is missing in HITRAN catalogue and it is set to -1.
+    mdpsf =-1;
+
+  // These were all the parameters that we can extract from
+  // HITRAN. However, we still have to set the reference temperatures
+  // to the appropriate value:
+
+  // Reference temperature for Intensity in K.
+  // (This is fix for HITRAN)
+  mti0 = 296.0;
+
+  // Reference temperature for AGAM and SGAM in K.
+  // (This is also fix for HITRAN)
+  mtgam = 296.0;
+
+  // Skip one
+  {
+    Index one;
+    extract(one,line,1);
+  }
+  
+  // This is the test
+  {
+    Index linemixing_test;
+    extract(linemixing_test,line,2);
+    
+    //If the tag is as it should be, then a minus one means that more should be read
+    if( linemixing_test==-1 )
+      getline(is,line);
+    else // the line is done and we are happy to leave
+      return false;
+  }
+  
+  // In case we are unable to leave, the next line is a line mixing parameter line
+  
+  // First is the molecular number.  This should be the same as above.
+  {
+  Index mo2;
+  extract(mo2,line,2);
+    // Skip one
+  
+  if( mo != mo2 )
+    throw std::runtime_error("There is an error in the line mixing\n");
+  }
+  
+  Vector Y(4), G(4), T(4);
+  
+  // These are constants for AER but should be included because we need their grid.
+  T[0] = 200;
+  T[1] = 250;
+  T[2] = 296;
+  T[3] = 340;
+  
+  // Next is the Y  and G at various temperatures
+  {
+    Numeric Y_200K;
+    extract(Y_200K,line,13);
+    Y[0] = Y_200K;
+  }
+  {
+    Numeric G_200K;
+    extract(G_200K,line,11);
+    G[0] = G_200K;
+  }
+  {
+    Numeric Y_250K;
+    extract(Y_250K,line,13);
+    Y[1] = Y_250K;
+  }
+  {
+    Numeric G_250K;
+    extract(G_250K,line,11);
+    G[1] = G_250K;
+  }
+  {
+    Numeric Y_296K;
+    extract(Y_296K,line,13);
+    Y[2] = Y_296K;
+  }
+  {
+    Numeric G_296K;
+    extract(G_296K,line,11);
+    G[2] = G_296K;
+  }
+  {
+    Numeric Y_340K;
+    extract(Y_340K,line,13);
+    Y[3] = Y_340K;
+  }
+  {
+    Numeric G_340K;
+    extract(G_340K,line,11);
+    Y[3] = G_340K;
+  }
+  
+  extern const Numeric ATM2PA;
+  
+  Y *= ATM2PA;
+  G *= ATM2PA*ATM2PA;
+  
+  // Set the data in the class
+  mlinemixingdata.SetLBLRTMFromTheirCatalog(T,Y,G);
+  
+  // Test that this is the end  
+  {
+    Index test;
+    extract(test,line,2);
+    if( test == -1 )
+      return false;
+    else
+      return true;
+  }
+}
+
 
 bool LineRecord::ReadFromHitran2004Stream(istream& is, const Verbosity& verbosity,
                                           const Numeric fmin)
@@ -735,7 +1270,7 @@ bool LineRecord::ReadFromHitran2004Stream(istream& is, const Verbosity& verbosit
                   ostringstream os;
                   os << "Invalid HITRAN 2004 line data record with " << nChar <<
                         " characters (expected: 160).";
-                  throw runtime_error(os.str());
+                  throw std::runtime_error(os.str());
                 }
                 
             }
@@ -783,7 +1318,7 @@ bool LineRecord::ReadFromHitran2004Stream(istream& is, const Verbosity& verbosit
       os << "Species: " << species_data[mspecies].Name()
          << ", isotopologue iso = " << iso
          << " is unknown.";
-      throw runtime_error(os.str());
+      throw std::runtime_error(os.str());
     }
 
 

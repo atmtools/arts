@@ -313,12 +313,20 @@ Numeric frequency_change_casea(const Rational& omega, const Rational& m, const R
 /*!
   Helper function. This is the only place where m_zeeman interacts with other absorption protocols.
  */
-void xsec_species_line_mixing_wrapper_with_zeeman(  Tensor3View part_abs_mat, const ArrayOfArrayOfSpeciesTag& abs_species, const ArrayOfLineshapeSpec& abs_lineshape, 
-        const ArrayOfLineRecord& lr, const SpeciesAuxData& isotopologue_ratios, const Matrix& abs_vmrs, const Vector& abs_p,
-        const Vector& abs_t, const Vector& f_grid, const Numeric& theta, const Numeric& eta, const Index& DM, const Index& this_species,
-        const ArrayOfArrayOfLineMixingRecord& line_mixing_data,
-        const ArrayOfArrayOfIndex& line_mixing_data_lut,
-        const ArrayOfIndex& temp_species_lut,
+void xsec_species_line_mixing_wrapper_with_zeeman(  
+        Tensor3View part_abs_mat, 
+        const ArrayOfArrayOfSpeciesTag& abs_species, 
+        const ArrayOfLineshapeSpec& abs_lineshape, 
+        const ArrayOfLineRecord& lr, 
+        const SpeciesAuxData& isotopologue_ratios, 
+        const Matrix& abs_vmrs, 
+        const Vector& abs_p,
+        const Vector& abs_t, 
+        const Vector& f_grid, 
+        const Numeric& theta, 
+        const Numeric& eta, 
+        const Index& DM, 
+        const Index& this_species,
         const Verbosity& verbosity )
 {
     assert( part_abs_mat.npages() == f_grid.nelem() && part_abs_mat.ncols() == 4 && part_abs_mat.nrows() == 4 );
@@ -326,17 +334,12 @@ void xsec_species_line_mixing_wrapper_with_zeeman(  Tensor3View part_abs_mat, co
     Matrix A(f_grid.nelem(), 1, 0.);
     Matrix B(f_grid.nelem(), 1, 0.);
     
-    // Handle line-mixing, if line-mixing is supposed to be handled.
-    ArrayOfArrayOfIndex temp_lut = line_mixing_data_lut;
-    for ( Index i=0; i<abs_species[this_species].nelem(); ++i )
-	if( abs_species[this_species][i].LineMixingType() != SpeciesTag::LINE_MIXING_TYPE_NONE )
-	    { temp_lut[this_species] = temp_species_lut; break;}
     
     for ( Index i=0; i<abs_species[this_species].nelem(); ++i )
     {
         Matrix attenuation(f_grid.nelem(), 1, 0.), phase(f_grid.nelem(), 1, 0.);;
 
-        xsec_species_line_mixing_wrapper( attenuation, phase, line_mixing_data, temp_lut,
+        xsec_species_line_mixing_wrapper( attenuation, phase,
                 f_grid, abs_p, abs_t, abs_vmrs, abs_species, this_species, lr,
                 abs_lineshape[i].Ind_ls(), abs_lineshape[i].Ind_lsn(), abs_lineshape[i].Cutoff(),
                 isotopologue_ratios, verbosity ); // Now in cross section
@@ -375,8 +378,6 @@ void propmat_clearskyAddZeeman(Tensor4& propmat_clearsky,
         const Vector& rtp_mag,
         const Vector& ppath_los,
         const Index& atmosphere_dim,
-        const ArrayOfArrayOfLineMixingRecord& line_mixing_data,
-        const ArrayOfArrayOfIndex& line_mixing_data_lut,
         const Index& manual_zeeman_tag,
         const Numeric& manual_zeeman_magnetic_field_strength,
         const Numeric& manual_zeeman_theta,
@@ -385,7 +386,7 @@ void propmat_clearskyAddZeeman(Tensor4& propmat_clearsky,
 {
     CREATE_OUT3;
 
-    const Numeric margin    = 1e-4; // This margin can perhaps be lowered? Perhaps by returning RS as Rational?
+    const Numeric margin    = 1e-4; // This margin is for relative strength and can perhaps be lowered by returning RS as Rational?
     bool          do_zeeman = false;
 
     // Check that correct isotopologue ratios are defined for the species
@@ -408,7 +409,7 @@ void propmat_clearskyAddZeeman(Tensor4& propmat_clearsky,
     if( rtp_mag.nelem() != 3 )
         throw std::runtime_error("*rtp_mag* must have length 3.");
     if( atmosphere_dim != 3 )
-        throw std::runtime_error("*atmosphere_dim* must be 3.");
+        throw std::runtime_error("*atmosphere_dim* must be 3.  Zeeman Effect is only implemented for 3D geometry.");
     if( ppath_los.nelem() != 2 )
         throw std::runtime_error("*ppath_los* is not set correctly.");
     }// End   TEST(s)
@@ -481,7 +482,6 @@ void propmat_clearskyAddZeeman(Tensor4& propmat_clearsky,
             // Reinitialize every loop to empty the set.
             ArrayOfLineRecord temp_abs_lines_sm, temp_abs_lines_sp, //sigma minus, sigma plus
                               temp_abs_lines_pi; // pi
-            ArrayOfIndex temp_lut_sm, temp_lut_sp, temp_lut_pi;
 
             // If the species isn't Zeeman, look at the next species
             if(!is_zeeman(abs_species[II])) continue;
@@ -723,17 +723,6 @@ void propmat_clearskyAddZeeman(Tensor4& propmat_clearsky,
                                 abs_lines_per_species[II][ii] <<"\n";
                             throw std::runtime_error(os.str());
                         }
-
-                        if(abs_species[II][0].LineMixingType() != SpeciesTag::LINE_MIXING_TYPE_NONE)
-                        {
-                            for(Index n=0;n<number_M_sm;n++)
-                                temp_lut_sm.push_back(line_mixing_data_lut[II][ii]);
-                            for(Index n=0;n<number_M_pi;n++)
-                                temp_lut_pi.push_back(line_mixing_data_lut[II][ii]);
-                            for(Index n=0;n<number_M_sp;n++)
-                                temp_lut_sp.push_back(line_mixing_data_lut[II][ii]);
-                        }
-
                     }
                     else
                     {
@@ -749,9 +738,6 @@ void propmat_clearskyAddZeeman(Tensor4& propmat_clearsky,
                     temp_abs_lines_pi, isotopologue_ratios,
                     abs_vmrs, abs_p, abs_t, f_grid,
                     theta, eta, 0, II, 
-                    line_mixing_data,
-                    line_mixing_data_lut,
-                    temp_lut_pi,
                     verbosity );
             propmat_clearsky(II, joker, joker, joker) += part_abs_mat;
 
@@ -760,9 +746,6 @@ void propmat_clearskyAddZeeman(Tensor4& propmat_clearsky,
                     temp_abs_lines_sm, isotopologue_ratios,
                     abs_vmrs, abs_p, abs_t, f_grid,
                     theta, eta, -1, II,
-                    line_mixing_data,
-                    line_mixing_data_lut,
-                    temp_lut_sm,
                     verbosity );
             propmat_clearsky(II, joker, joker, joker) += part_abs_mat;
 
@@ -771,9 +754,6 @@ void propmat_clearskyAddZeeman(Tensor4& propmat_clearsky,
                     temp_abs_lines_sp, isotopologue_ratios,
                     abs_vmrs, abs_p, abs_t, f_grid,
                     theta, eta, 1, II, 
-                    line_mixing_data,
-                    line_mixing_data_lut,
-                    temp_lut_sp,
                     verbosity );
             propmat_clearsky(II, joker, joker, joker) += part_abs_mat;
 
@@ -787,28 +767,11 @@ void propmat_clearskyAddZeeman(Tensor4& propmat_clearsky,
             if(!is_zeeman(abs_species[II])) continue;
             
             Tensor3 part_abs_mat(f_grid.nelem(), 4, 4);
-            
-            if(abs_species[II][0].LineMixingType() == SpeciesTag::LINE_MIXING_TYPE_NONE){
-                ArrayOfIndex empty;
-                xsec_species_line_mixing_wrapper_with_zeeman(  part_abs_mat, abs_species, abs_lineshape,
-                                                               abs_lines_per_species[II], isotopologue_ratios,
-                                                               abs_vmrs, abs_p, abs_t, f_grid,
-                                                               0,0,1023, II, 
-                                                               line_mixing_data,
-                                                               line_mixing_data_lut,
-                                                               empty,
-                                                               verbosity );
-            }
-            else{
-                xsec_species_line_mixing_wrapper_with_zeeman(  part_abs_mat, abs_species, abs_lineshape,
-                                                               abs_lines_per_species[II], isotopologue_ratios,
-                                                               abs_vmrs, abs_p, abs_t, f_grid,
-                                                               0,0,1023, II, 
-                                                               line_mixing_data,
-                                                               line_mixing_data_lut,
-                                                               line_mixing_data_lut[II],
-                                                               verbosity );
-            }
+            xsec_species_line_mixing_wrapper_with_zeeman(  part_abs_mat, abs_species, abs_lineshape,
+                                                            abs_lines_per_species[II], isotopologue_ratios,
+                                                            abs_vmrs, abs_p, abs_t, f_grid,
+                                                            0,0,1023, II, 
+                                                            verbosity );
             propmat_clearsky(II, joker, joker, joker) += part_abs_mat;
         }
     }

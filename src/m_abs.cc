@@ -141,6 +141,51 @@ void abs_linesArtscat4FromArtscat3(// WS Output:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void abs_linesReadFromLBLRTM(
+                             // WS Output:
+                             ArrayOfLineRecord& abs_lines,
+                             // Control Parameters:
+                             const String& filename,
+                             const Numeric& fmin,
+                             const Numeric& fmax,
+                             const Verbosity& verbosity)
+{
+  CREATE_OUT2;
+  
+  ifstream is;
+
+  // Reset lines in case it already existed:
+  abs_lines.resize(0);
+
+  out2 << "  Reading file: " << filename << "\n";
+  open_input_file(is, filename);
+
+  bool go_on = true;
+  while ( go_on )
+    {
+      LineRecord lr;
+      if ( lr.ReadFromLBLRTMStream(is, verbosity) )
+        {
+          // If we are here the read function has reached eof and has
+          // returned no data.
+          go_on = false;
+        }
+      else
+        {
+          if ( fmin <= lr.F() )
+            {
+              if ( lr.F() <= fmax )
+                abs_lines.push_back(lr);
+              else
+                go_on = false;
+            }
+        }
+    }
+  out2 << "  Read " << abs_lines.nelem() << " lines.\n";
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void abs_linesReadFromHitranPre2004(
                              // WS Output:
                              ArrayOfLineRecord& abs_lines,
@@ -1529,8 +1574,6 @@ void abs_xsec_per_speciesAddLines(// WS Output:
                                   const ArrayOfArrayOfLineRecord&  abs_lines_per_species,
                                   const ArrayOfLineshapeSpec&      abs_lineshape,
                                   const SpeciesAuxData&            isotopologue_ratios,
-                                  const ArrayOfArrayOfLineMixingRecord& line_mixing_data,
-                                  const ArrayOfArrayOfIndex&       line_mixing_data_lut,
                                   const Verbosity&                 verbosity)
 {
   CREATE_OUT3;
@@ -1546,7 +1589,7 @@ void abs_xsec_per_speciesAddLines(// WS Output:
       ostringstream os;
       os << "Temperature must be at least 0 K. But you request an absorption\n"
          << "calculation at " << min(abs_t) << " K!"; 
-      throw runtime_error(os.str());
+      throw std::runtime_error(os.str());
     }
 
   // Check that all parameters that should have the number of tag
@@ -1572,7 +1615,7 @@ void abs_xsec_per_speciesAddLines(// WS Output:
            << "abs_lines_per_species: " << abs_lines_per_species.nelem() << "\n"
            << "abs_lineshape:    " << abs_lineshape.nelem() << "\n"
            << "(As a special case, abs_lineshape is allowed to have only one element.)";
-        throw runtime_error(os.str());
+        throw std::runtime_error(os.str());
       }
   }  
 
@@ -1648,7 +1691,7 @@ void abs_xsec_per_speciesAddLines(// WS Output:
                  << "for which you want to calculate absorption:\n"
                  << "abs_species:           " << get_tag_group_name(tgs[i]) << "\n"
                  << "abs_lines_per_species: " << ll[0].Name();
-              throw runtime_error(os.str());
+              throw std::runtime_error(os.str());
             }
 
           // Get the name of the species. The member function name of a
@@ -1731,7 +1774,7 @@ void abs_xsec_per_speciesAddLines(// WS Output:
                     }
                 }
             }
-          if (tgs[i][0].LineMixingType() == SpeciesTag::LINE_MIXING_TYPE_NONE)
+          if (tgs[i][0].LineMixing() == SpeciesTag::LINE_MIXING_OFF)
             {
                 Matrix dummy_phase(abs_xsec_per_species[i].nrows(),
                                    abs_xsec_per_species[i].ncols(),
@@ -1758,8 +1801,6 @@ void abs_xsec_per_speciesAddLines(// WS Output:
                                    0.);
                 xsec_species_line_mixing_wrapper(abs_xsec_per_species[i],
                                                  dummy_phase,
-                                                 line_mixing_data,
-                                                 line_mixing_data_lut,
                                                  f_grid,
                                                  abs_p,
                                                  abs_t,
