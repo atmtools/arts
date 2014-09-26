@@ -1,3 +1,16 @@
+2014-09-26  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-3-14
+
+	* controlfiles/instruments/ismar:
+	Folder added for ISMAR setups (rather: all FAAM microwave radiometer,
+	includes MARSS and Deimos).
+
+	* controlfiles/instruments/ismar/marss.arts, deimos.arts, ismar.arts:
+	Basic sensor description setups. So far contain only the
+	sensor_description matrix (in amsu form. to be updated when new format
+	is implemented.).
+
 2014-09-26  Richard Larsson <ric.larsson@gmail.com>
 
 	* arts-2-3-13
@@ -270,7 +283,7 @@
 	* arts-2-2-21
 
 	* src/continua.h, src/continua.cc:
-        fixed the bug in "CO2-CKDMT250"
+	fixed the bug in "CO2-CKDMT250"
 
 2014-07-23  Jana Mendrok  <jana.mendrok@ltu.se>
 
