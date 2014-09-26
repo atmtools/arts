@@ -535,6 +535,37 @@ void define_md_data_raw()
                   "Minimum frequency for lines to read [Hz].",
                   "Maximum frequency for lines to read [Hz]." )
         ));
+    
+    
+    md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "abs_linesReadFromLBLRTM" ),
+        DESCRIPTION
+        (
+         "Read all the lines from a LBLRTM catalogue file in\n"
+         "the given frequency range. Otherwise a runtime error will be\n"
+         "thrown.  \n"
+         "\n"
+         "Note that this method will automatically set line mixing format\n"
+         "to LBLRTM for the lines affected, but the abs_species tag must\n"
+         "be set to activate line mixing for the species.\n"
+         "\n"
+         "Access data via: http://rtweb.aer.com/\n"
+         ),
+        AUTHORS( "Richard Larsson" ),
+        OUT( "abs_lines" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN(),
+        GIN( "filename",  "fmin",    "fmax" ),
+        GIN_TYPE(    "String",    "Numeric", "Numeric" ),
+        GIN_DEFAULT( NODEF,       NODEF,     NODEF ),
+        GIN_DESC( "Name (and path) of the catalogue file.",
+                  "Minimum frequency for lines to read [Hz].",
+                  "Maximum frequency for lines to read [Hz]." )
+        ));
+    
 
   md_data_raw.push_back
     ( MdRecord
@@ -4334,6 +4365,48 @@ void define_md_data_raw()
         GIN_DESC("wavelength [m]" )
         ));
 
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "FrequencyFromCGSAngularWavenumber" ),
+        DESCRIPTION
+        (
+         "Convert from angular wavenumber [cm^-1] to frequency [Hz].\n"
+         "\n"
+         "This converts angular wavenumber (2*PI/wavelength) into frequency.\n"
+         ),
+        AUTHORS( "Richard Larsson" ),
+        OUT(),
+        GOUT("frequency"),
+        GOUT_TYPE("Numeric, Vector"),
+        GOUT_DESC("frequency [Hz]"),
+        IN(),
+        GIN( "angular_wavenumber"),
+        GIN_TYPE("Numeric, Vector" ),
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC("angular wavenumber [cm^-1]" )
+        ));
+    
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "FrequencyFromCGSKayserWavenumber" ),
+        DESCRIPTION
+        (
+         "Convert from Kayser wavenumber [cm^-1] to frequency [Hz].\n"
+         "\n"
+         "This converts Kayser wavenumber (1/wavelength) into frequency.\n"
+         ),
+        AUTHORS( "Richard Larsson" ),
+        OUT(),
+        GOUT("frequency"),
+        GOUT_TYPE("Numeric, Vector"),
+        GOUT_DESC("frequency [Hz]"),
+        IN(),
+        GIN( "kayser_wavenumber"),
+        GIN_TYPE("Numeric, Vector" ),
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC("Kayser wavenumber [cm^-1]" )
+        ));
+    
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "f_gridFromGasAbsLookup" ),

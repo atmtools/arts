@@ -105,7 +105,8 @@ void LineMixingData::SetDataFromVectorWithKnownType(const Vector& input)
 // This will convert the read vector to the LBLRTM data format
 void LineMixingData::Vector2LBLRTMData(const Vector& input)
 {
-      //FIXME set or test LM_LBLRTM as true?
+      if(mtype != LineMixingData::LM_LBLRTM)
+        throw std::runtime_error("Trying to set LBLRTM data from vector for wrong type.\n");
       
       if(input.nelem() != 12)
         throw std::runtime_error("The line mixing data vector is not of the right length for LBLRTM.\n");
@@ -137,15 +138,21 @@ void LineMixingData::Vector2LBLRTMData(const Vector& input)
 
 
 // This will convert the read vector to the LBLRTM data format
-void LineMixingData::Vector2NoneData(const Vector&)
+void LineMixingData::Vector2NoneData(const Vector& input)
 {
+  if(mtype != LineMixingData::LM_LBLRTM)
+        throw std::runtime_error("Trying to set no data from vector for wrong type.\n");
+  
+  if( input.nelem() != 0 )
+    throw std::runtime_error("You are trying to set line mixing data to a none line mixed line.\n");
 }
 
 
 // This will convert the read vector to the LBLRTM data format
 void LineMixingData::Vector2SecondOrderData(const Vector& input)
 {
-      //FIXME set or test LM_LBLRTM as true?
+      if(mtype != LineMixingData::LM_2NDORDER)
+        throw std::runtime_error("Trying to set 2ndOrder data from vector for wrong type.\n");
       
       if(input.nelem() != 10)
         throw std::runtime_error("The line mixing data vector is not of the right length for 2ndOrder.\n");
@@ -219,8 +226,6 @@ void LineMixingData::LBLRTMData2Vector(Vector& output)
 // This will convert the read vector to the LBLRTM data format
 void LineMixingData::SecondOrderData2Vector(Vector& output)
 {
-      //FIXME set or test LM_2NDORDER as true?
-      
       output.resize(10);
       
       // This is the temperature vector

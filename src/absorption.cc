@@ -1541,6 +1541,20 @@ void xsec_species_line_mixing_wrapper(  MatrixView               xsec_attenuatio
                                         const SpeciesAuxData&    isotopologue_ratios,
                                         const Verbosity&         verbosity )
 {
+    if( abs_p.nelem() != 1 )
+      throw std::runtime_error("Line mixing only supports that abs_p.nelem() is 1.");
+      
+    // Must have the phase
+    using global_data::lineshape_data;
+    if (! lineshape_data[ind_ls].Phase())
+    {
+        ostringstream os;
+        os <<  "This is an error message. You are using " << lineshape_data[ind_ls].Name() <<
+        ".\n"<<"This line shape does not include phase in its calculations and\nis therefore invalid for " <<
+        "line mixing.\n\n";
+        throw std::runtime_error(os.str());
+    }
+    
     if(abs_species[this_species][0].LineMixing() == SpeciesTag::LINE_MIXING_OFF) // If no linemixing data exists
         xsec_species(xsec_attenuation, xsec_phase, f_grid, abs_p, abs_t, all_vmrs,
                      abs_species, this_species, abs_lines, ind_ls, ind_lsn, cutoff,
@@ -1551,12 +1565,41 @@ void xsec_species_line_mixing_wrapper(  MatrixView               xsec_attenuatio
         switch(abs_lines[ii].LineMixing().Type())
         {
           case LineMixingData::LM_NONE:
-                /*xsec_species_line_mixing_2nd_order(xsec_attenuation, xsec_phase, f_grid, abs_p, abs_t, all_vmrs,
-                                                   abs_species, this_species, abs_lines, ind_ls, ind_lsn, 
-                                                   cutoff, isotopologue_ratios, verbosity);*/
-                break;
+            xsec_species_line_mixing_none(
+                                        xsec_attenuation,
+                                        xsec_phase,
+                                        f_grid,
+                                        abs_p,
+                                        abs_t,
+                                        all_vmrs,
+                                        abs_species,
+                                        this_species,
+                                        abs_lines[ii],
+                                        ind_ls,
+                                        ind_lsn,
+                                        cutoff,
+                                        isotopologue_ratios,
+                                        verbosity );
+            break;
+            
           case LineMixingData::LM_LBLRTM:
-                break;
+            xsec_species_line_mixing_LBLRTM(
+                                        xsec_attenuation,
+                                        xsec_phase,
+                                        f_grid,
+                                        abs_p,
+                                        abs_t,
+                                        all_vmrs,
+                                        abs_species,
+                                        this_species,
+                                        abs_lines[ii],
+                                        ind_ls,
+                                        ind_lsn,
+                                        cutoff,
+                                        isotopologue_ratios,
+                                        verbosity );
+            break;
+            
           case LineMixingData::LM_2NDORDER:
             xsec_species_line_mixing_2nd_order(
                                         xsec_attenuation,
@@ -1573,9 +1616,11 @@ void xsec_species_line_mixing_wrapper(  MatrixView               xsec_attenuatio
                                         cutoff,
                                         isotopologue_ratios,
                                         verbosity );
-                break;
-                //             default:
-                //                 //ERROR
+            break;
+            
+          default:
+            throw std::runtime_error{"Bad line mixing tag detected.\n"};
+            break;
         }
     }
     
@@ -1599,7 +1644,7 @@ void xsec_species_line_mixing_wrapper(  MatrixView               xsec_attenuatio
  *  \param all_vmrs             Gas volume mixing ratios [nspecies, np].
  *  \param abs_species          Species tags for all species.
  *  \param this_species         Index of the current species in abs_species.
- *  \param abs_lines            The spectroscopic line list.
+ *  \param my_lines             The linerecord.
  *  \param ind_ls               Index to lineshape function.
  *  \param ind_lsn              Index to lineshape norm.
  *  \param cutoff               Lineshape cutoff.
@@ -1624,19 +1669,6 @@ void xsec_species_line_mixing_2nd_order(MatrixView               xsec_attenuatio
                                         const SpeciesAuxData&    isotopologue_ratios,
                                         const Verbosity&         verbosity )
 {
-    if( abs_p.nelem() != 1 )
-      throw std::runtime_error("Line mixing only supports that abs_p.nelem() is 1.");
-      
-    // Must have the phase
-    using global_data::lineshape_data;
-    if (! lineshape_data[ind_ls].Phase())
-    {
-        ostringstream os;
-        os <<  "This is an error message. You are using " << lineshape_data[ind_ls].Name() <<
-        ".\n"<<"This line shape does not include phase in its calculations and\nis therefore invalid for " <<
-        "line mixing.\n\n";
-        throw std::runtime_error(os.str());
-    }
     
     // Helper variables
     Matrix attenuation(f_grid.nelem(),1,0), phase(f_grid.nelem(),1,0);
@@ -1663,5 +1695,127 @@ void xsec_species_line_mixing_2nd_order(MatrixView               xsec_attenuatio
     xsec_attenuation(joker,0) += attenuation(joker,0); // Zeroth order attenuation
     attenuation *= G;
     xsec_attenuation(joker,0) += attenuation(joker,0); // Second order attenuation correction
+    
+}
+
+
+/** 
+ *  
+ *  This is the LBLRTM line mixing correction as found in their database.
+ *  
+ *  \retval xsec_attenuation    Cross section of one tag group. This is now the
+ *                              true attenuation cross section in units of m^2.
+ *  \retval xsec_phase          Cross section of one tag group. This is now the
+ *                              true phase cross section in units of m^2.
+ *  \param f_grid               Frequency grid.
+ *  \param abs_p                Pressure grid.
+ *  \param abs_t                Temperatures associated with abs_p.
+ *  \param all_vmrs             Gas volume mixing ratios [nspecies, np].
+ *  \param abs_species          Species tags for all species.
+ *  \param this_species         Index of the current species in abs_species.
+ *  \param my_lines             The linerecord.
+ *  \param ind_ls               Index to lineshape function.
+ *  \param ind_lsn              Index to lineshape norm.
+ *  \param cutoff               Lineshape cutoff.
+ *  \param isotopologue_ratios  Isotopologue ratios.
+ * 
+ *  \author Richard Larsson
+ *  \date   2013-04-24
+ * 
+ */
+void xsec_species_line_mixing_LBLRTM(  MatrixView               xsec_attenuation,
+                                       MatrixView               xsec_phase,
+                                       ConstVectorView          f_grid,
+                                       ConstVectorView          abs_p,
+                                       ConstVectorView          abs_t,
+                                       ConstMatrixView          all_vmrs,
+                                       const ArrayOfArrayOfSpeciesTag& abs_species,
+                                       const Index              this_species,
+                                       const LineRecord&        my_line,
+                                       const Index              ind_ls,
+                                       const Index              ind_lsn,
+                                       const Numeric            cutoff,
+                                       const SpeciesAuxData&    isotopologue_ratios,
+                                       const Verbosity&         verbosity )
+{
+    
+    // Helper variables
+    Matrix attenuation(f_grid.nelem(),1,0), phase(f_grid.nelem(),1,0);
+    const Numeric& p = abs_p[0], t = abs_t[0];
+    
+    Numeric Y, G;
+    my_line.LineMixing().GetLBLRTM(Y,G,t,1);
+    Y  *= p;
+    G  *= p * p;
+    
+    const ArrayOfLineRecord ll(1,my_line); // Temporary variable to trick xsec_species
+    
+    xsec_species(attenuation, phase, f_grid, abs_p, abs_t, all_vmrs,
+                abs_species, this_species, ll, ind_ls, ind_lsn, cutoff,
+                isotopologue_ratios, verbosity);
+    
+    // Do the actual line mixing and add this to xsec_attenuation.
+    xsec_phase(joker,0) += phase(joker,0);
+    phase *= Y;
+    xsec_attenuation(joker,0) += phase(joker,0);       // First order phase correction
+    xsec_attenuation(joker,0) += attenuation(joker,0); // Zeroth order attenuation
+    attenuation *= G;
+    xsec_attenuation(joker,0) += attenuation(joker,0); // Second order attenuation correction
+    
+}
+
+
+/** 
+ *  
+ *  This is the LBLRTM line mixing correction as found in their database.
+ *  
+ *  \retval xsec_attenuation    Cross section of one tag group. This is now the
+ *                              true attenuation cross section in units of m^2.
+ *  \retval xsec_phase          Cross section of one tag group. This is now the
+ *                              true phase cross section in units of m^2.
+ *  \param f_grid               Frequency grid.
+ *  \param abs_p                Pressure grid.
+ *  \param abs_t                Temperatures associated with abs_p.
+ *  \param all_vmrs             Gas volume mixing ratios [nspecies, np].
+ *  \param abs_species          Species tags for all species.
+ *  \param this_species         Index of the current species in abs_species.
+ *  \param my_lines             The linerecord.
+ *  \param ind_ls               Index to lineshape function.
+ *  \param ind_lsn              Index to lineshape norm.
+ *  \param cutoff               Lineshape cutoff.
+ *  \param isotopologue_ratios  Isotopologue ratios.
+ * 
+ *  \author Richard Larsson
+ *  \date   2013-04-24
+ * 
+ */
+void xsec_species_line_mixing_none(    MatrixView               xsec_attenuation,
+                                       MatrixView               xsec_phase,
+                                       ConstVectorView          f_grid,
+                                       ConstVectorView          abs_p,
+                                       ConstVectorView          abs_t,
+                                       ConstMatrixView          all_vmrs,
+                                       const ArrayOfArrayOfSpeciesTag& abs_species,
+                                       const Index              this_species,
+                                       const LineRecord&        my_line,
+                                       const Index              ind_ls,
+                                       const Index              ind_lsn,
+                                       const Numeric            cutoff,
+                                       const SpeciesAuxData&    isotopologue_ratios,
+                                       const Verbosity&         verbosity )
+{
+    
+    // Helper variables
+    Matrix attenuation(f_grid.nelem(),1,0), phase(f_grid.nelem(),1,0);
+    
+    const ArrayOfLineRecord ll(1,my_line); // Temporary variable to trick xsec_species
+    
+    xsec_species(attenuation, phase, f_grid, abs_p, abs_t, all_vmrs,
+                abs_species, this_species, ll, ind_ls, ind_lsn, cutoff,
+                isotopologue_ratios, verbosity);
+    
+    // Do the actual line mixing and add this to xsec_attenuation.
+    xsec_phase(joker,0) += phase(joker,0);
+    xsec_attenuation(joker,0) += attenuation(joker,0);
     
 }

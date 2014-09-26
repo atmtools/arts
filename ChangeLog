@@ -1,3 +1,22 @@
+2014-09-26  Richard Larsson <ric.larsson@gmail.com>
+
+	* arts-2-3-13
+	
+	* src/absorption.{cc.h}:  Added functionality to deal with lines that
+	are not mixed even though the species is mixed.  Also added LBLRTM
+	mixing scheme.  This is still very much in testing.
+	
+	* src/linemixingdata.cc:  Added some more error checking.
+	
+	* src/m_conversion.h:  Added functionality to convert wavenumber units
+	to frequency.  This makes testing CO2 line mixing data easier, since
+	the units are usually in wavenumbers.  These are 
+	(FrequencyFromCGSAngularWavenumber) and 
+	(FrequencyFromCGSKayserWavenumber)
+	
+	* src/methods.cc:  Made access point to reading routine for LBLRTM data
+	(abs_linesReadFromLBLRTM).
+
 2014-09-26  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-12

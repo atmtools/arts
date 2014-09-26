@@ -28,6 +28,7 @@
 #define m_conversion_h
 
 extern const Numeric SPEED_OF_LIGHT;
+extern const Numeric PI;
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void FrequencyFromWavelength(// WS Generic Output
@@ -56,5 +57,55 @@ void FrequencyFromWavelength(// WS Generic Output
     frequency[i]=SPEED_OF_LIGHT/wavelength[i];
 }
 
-#endif /* m_conversion_h */
 
+/* Workspace method: Doxygen documentation will be auto-generated */
+void FrequencyFromCGSAngularWavenumber(// WS Generic Output
+                             Numeric& frequency,
+                             // WS Generic Input
+                             const Numeric& angular_wavenumber,
+                             const Verbosity&)
+{
+  frequency=SPEED_OF_LIGHT*angular_wavenumber/(2*PI)*100;
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void FrequencyFromCGSAngularWavenumber(// WS Generic Output
+                             Vector& frequency,
+                             // WS Generic Input
+                             const Vector& angular_wavenumber,
+                             const Verbosity&)
+{
+  frequency.resize(angular_wavenumber.nelem());
+  // Convert from angular wavenumber to frequency
+  for (Index i=0; i<angular_wavenumber.nelem(); i++)
+    frequency[i]=SPEED_OF_LIGHT*angular_wavenumber[i]/(2*PI)*100;
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void FrequencyFromCGSKayserWavenumber(// WS Generic Output
+                             Numeric& frequency,
+                             // WS Generic Input
+                             const Numeric& kayser_wavenumber,
+                             const Verbosity&)
+{
+  frequency=SPEED_OF_LIGHT*kayser_wavenumber*100;
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void FrequencyFromCGSKayserWavenumber(// WS Generic Output
+                             Vector& frequency,
+                             // WS Generic Input
+                             const Vector& kayser_wavenumber,
+                             const Verbosity&)
+{
+  frequency.resize(kayser_wavenumber.nelem());
+  // Convert from Kayser wavenumber to frequency
+  for (Index i=0; i<kayser_wavenumber.nelem(); i++)
+    frequency[i]=SPEED_OF_LIGHT*kayser_wavenumber[i]*100;
+}
+
+
+#endif /* m_conversion_h */
