@@ -2368,6 +2368,88 @@ void Workspace::define_wsv_data()
        ),
       GROUP( "Matrix" )));
  
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "met_mm_antenna" ),
+      DESCRIPTION
+      (
+       "The antenna beam width for meteorological millimeter instruments.\n"
+       "\n"
+       "This Vector must match the number and order of channels in\n"
+       "*met_mm_backend*."
+       "\n"
+       "Usage: Set by the user.\n"
+       "\n"
+       "Unit:  [ Hz ]\n"
+       "\n"
+       "Size:  [ number of channels ]\n"
+       ),
+      GROUP( "Vector" )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "met_mm_backend" ),
+      DESCRIPTION
+      (
+	   "Backend description for meteorological millimeter sensors with passbands.\n"
+	   "\n"
+	   "This is a compact description of a passband-type sensor, e.g. AMSU-A. The matrix\n"
+	   "contains one row for each instrument channel. Each row contains four elements:\n\n"
+	   "  LO position [Hz]\n"
+       "  first offset from the LO [Hz]\n"
+       "  second offset from the LO+offset1 [Hz]\n"
+	   "  channel width [Hz]\n"
+       "\n"
+       "                          LO\n"
+       "                           |\n"
+       "               offset1     |    offset1\n"
+       "           ----------------+----------------\n"
+       "           |                               |\n"
+       "           |                               |\n"
+       "  offset2  |  offset2             offset2  |  offset2\n"
+       "  ---------+---------             ---------+---------\n"
+       "  |                 |             |                 |\n"
+       "  |                 |             |                 |\n"
+       "#####             #####         #####             #####\n"
+       "width             width         width             width\n"
+	   "\n"
+       "For a sensor with 1 passband, offset1 and offset2 are zero.\n"
+       "For a sensor with 2 passbands, only offset2 is zero.\n"
+       "\n"
+	   "Usage: Set by the user.\n"
+	   "\n"
+	   "Unit: All entries in Hz.\n"
+	   "\n"
+	   "Size: [number of channels, 4]\n"
+       ),
+      GROUP( "Matrix" )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "met_mm_polarisation" ),
+      DESCRIPTION
+      (
+       "The polarisation for meteorological millimeter instruments.\n"
+       "\n"
+       "This array must match the number and order of channels in\n"
+       "*met_mm_backend*."
+       "\n"
+       "Possible values:"
+       "V: \n"
+       "H: \n"
+       "AMSU-V: \n"
+       "AMSU-H: \n"
+       "ISMAR-V: \n"
+       "ISMAR-H: \n"
+       "\n"
+       "Usage: Set by the user.\n"
+       "\n"
+       "Unit:  [ String ]\n"
+       "\n"
+       "Size:  [ number of channels ]\n"
+       ),
+      GROUP( "ArrayOfString" )));
+
  wsv_data.push_back
    (WsvRecord
     ( NAME( "met_profile_calc_agenda" ),

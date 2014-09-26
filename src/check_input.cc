@@ -2158,3 +2158,111 @@ bool chk_if_std_blackbody_agenda(
   else
     { return true; }
 }
+
+
+
+/*===========================================================================
+ === Functions checking sensor
+ ===========================================================================*/
+
+/** Check met_mm_backend.
+
+ Verifies that the backend description matrix has the correct size and format.
+
+ \param[in] mmb met_mm_backend
+
+ \throws std::runtime_error
+
+ \author Oliver Lemke
+ */
+void chk_met_mm_backend(const Matrix& mmb)
+{
+    if (!mmb.nrows())
+        throw std::runtime_error("No channels defined in *met_mm_backend*.");
+
+    if (mmb.ncols() != 4)
+        throw std::runtime_error("*met_mm_backend* must have 4 columns.");
+
+    for (Index ch = 0 ; ch < mmb.nrows(); ch++)
+    {
+        Numeric lo = mmb(ch, 0);
+        Numeric offset1 = mmb(ch, 1);
+        Numeric offset2 = mmb(ch, 2);
+        Numeric bandwidth = mmb(ch, 3);
+
+        // Negative LO
+        if (lo < 0.)
+        {
+            ostringstream os;
+            os << "Error in channel " << ch+1 << " at row " << ch
+            << " in *met_mm_backend*.\n"
+            << "Center frequency is negative: " << mmb(ch, 0) << " Hz";
+            throw std::runtime_error(os.str());
+        }
+
+        // Negative offsets
+        if (offset1 < 0. || offset2 < 0.)
+        {
+            ostringstream os;
+            os << "Error in channel " << ch+1 << " at row " << ch
+            << " in *met_mm_backend*.\n"
+            << "Offset is negative:\n"
+            << "offset1: " << offset1 << " Hz\n"
+            << "offset2: " << offset2 << " Hz\n";
+            throw std::runtime_error(os.str());
+        }
+
+        // First offset is smaller than second offset
+        if (offset1 != 0. && offset1 <= offset2)
+        {
+            ostringstream os;
+            os << "Error in channel " << ch+1 << " at row " << ch
+            << " in *met_mm_backend*.\n"
+            << "First passband offset is smaller than/equal to the second offset:\n"
+            << "offset1: " << offset1 << " Hz\n"
+            << "offset2: " << offset2 << " Hz\n";
+            throw std::runtime_error(os.str());
+        }
+
+        // Bandwidth too wide, overlap with LO
+        if (offset1 > 0 && offset1 - offset2 <= bandwidth/2.)
+        {
+            ostringstream os;
+            os << "Error in channel " << ch+1 << " at row " << ch
+            << " in *met_mm_backend*.\n"
+            << "Band touches or overlaps with the center frequency:\n"
+            << "offset1                        : " << offset1 << " Hz\n"
+            << "offset2                        : " << offset2 << " Hz\n"
+            << "bandwidth                      : " << bandwidth << " Hz\n"
+            << "offset1 - offset2 - bandwidth/2: " << offset1 - offset2 - bandwidth/2. << " Hz\n";
+            throw std::runtime_error(os.str());
+        }
+
+        // Bandwidth too wide, passbands overlap
+        if (offset2 > 0 && offset2 <= bandwidth/2.)
+        {
+            ostringstream os;
+            os << "Error in channel " << ch+1 << " at row " << ch
+            << " in *met_mm_backend*.\n"
+            << "Bands overlap or touch, offset2 > bandwidth/2:\n"
+            << "offset2    : " << offset2 << " Hz\n"
+            << "bandwidth/2: " << bandwidth/2. << " Hz\n";
+            throw std::runtime_error(os.str());
+        }
+
+        // Channel too wide, goes negative
+        if (lo - offset1 - offset2 - bandwidth/2. <= 0)
+        {
+            ostringstream os;
+            os << "Error in channel " << ch+1 << " at row " << ch
+            << " in *met_mm_backend*.\n"
+            << "Band too wide, reaches/exceeds 0 Hz:\n"
+            << "LO                                  : " << lo << " Hz\n"
+            << "offset1                             : " << offset1 << " Hz\n"
+            << "offset2                             : " << offset2 << " Hz\n"
+            << "bandwidth                           : " << bandwidth << " Hz\n"
+            << "LO - offset1 - offset2 - bandwidth/2: " << lo - offset1 - offset2 - bandwidth/2. << " Hz\n";
+            throw std::runtime_error(os.str());
+        }
+    }
+}

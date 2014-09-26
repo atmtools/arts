@@ -158,6 +158,8 @@ private:
 
     void parse_matrix(Matrix& res);
 
+    bool parse_intvector_from_string (ArrayOfIndex& res, String& str);
+
     bool parse_numvector_from_string (Vector& res, String& str);
 
     bool parse_stringarray_from_string (ArrayOfString& res, String& str);

@@ -46,7 +46,11 @@ abs_speciesSet( species=[ "H2O-PWR98",
 #                             200e9 )
 #WriteXML( "ascii", abs_lines, "amsub.hitran04_lines.xml" )
 
-ReadXML( abs_lines, "amsub.hitran04_lines.xml" )
+abs_linesReadFromHitran( abs_lines,
+                         "HITRAN2012.par",
+                         17e9,
+                         120e9 )
+#ReadXML( abs_lines, "amsub.hitran04_lines.xml" )
 abs_lines_per_speciesCreateFromLines
 
 # WARNING: If you redefine abs_species, and want to do a line-by-line
@@ -68,14 +72,18 @@ MatrixSetConstant( sensor_pos, nrows, ncols, 850e3 )
 # Sensor response setup
 # ---
 
-MatrixSet( sensor_description_amsu,
-           [  89.00e9, 0.90e9, 1000e6 ;
-      	     150.00e9, 0.90e9, 1000e6 ;
-      	     183.31e9, 1.00e9,  500e6 ;
-      	     183.31e9, 3.00e9, 1000e6 ;
-      	     183.31e9, 7.00e9, 2000e6 ] )
+MatrixSet( met_mm_backend,
+           [  89.00e9, 0.90e9, 0., 1000e6 ;
+      	     150.00e9, 0.90e9, 0., 1000e6 ;
+      	     183.31e9, 1.00e9, 0., 500e6 ;
+      	     183.31e9, 3.00e9, 0., 1000e6 ;
+      	     183.31e9, 7.00e9, 0., 2000e6 ] )
 
-sensor_responseSimpleAMSU
+VectorSet( met_mm_antenna, [] )
+ArrayOfStringSet( met_mm_polarisation, [] )
+
+sensor_responseBackendMetMM(freq_spacing=.1e9,
+		            freq_number=[10], use_polarisation=0)
 
 WriteXML("ascii", sensor_response)
 WriteXML("ascii", f_grid)

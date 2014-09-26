@@ -9822,6 +9822,61 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "sensor_responseBackendMetMM" ),
+        DESCRIPTION
+        (
+         "Sensor setup for meteorological millimeter instruments.\n"
+         "\n"
+         "This method is handy if you are simulating an passband-type instrument,\n"
+         "consisting of a few discrete channels. The case that channels touch,\n"
+         "as for MHS, is handled correctly. But the case that channels overlap\n"
+         "is not handled and results in an error message.\n"
+         "\n"
+         "The method calculates *f_grid* to match the instrument, as specified by\n"
+         "the *met_mm_backend*.\n"
+         "\n"
+         "You have to specify the desired spacing in Hz using the keyword *freq_spacing*,\n"
+         "which has a default value of 100 MHz.\n"
+         "\n"
+         "Optionally, *freq_number* can be set to specify the mininum number of frequencies\n"
+         "per passband for each channel. The frequencies are placed equally spaced\n"
+         "in each passband. The minimum spacing resulting from *freq_number* and *freq_spacing*\n"
+         "will be used for the calculation. To explicitly use *freq_spacing* for a channel,\n"
+         "*freq_number* can be set to -1 for this channel.\n"
+         "\n"
+         "The number of elements in *freq_number* can either be the number of channels or 1.\n"
+         "If only one element is given, this number is used for all channels.\n"
+         "If *freq_number* is 1 and *freq_spacing* is wider than the bandwidth of the channel,\n"
+         "one frequency is placed in the middle of each passband.\n"
+         "\n"
+         "Frequencies that would be closer than *freq_merge_threshold* in the\n"
+         "generated *f_grid* are merged together. This value should be left at the default\n"
+         "value. This is only meant to compensate for numerical inaccuracies in the frequency\n"
+         "calculation to merge frequency that are supposed to be identical.\n"
+         ),
+        AUTHORS( "Oliver Lemke" ),
+        OUT( "f_grid", "antenna_dim", "mblock_za_grid", "mblock_aa_grid", "sensor_response",
+             "sensor_response_f", "sensor_response_pol", "sensor_response_za",
+             "sensor_response_aa", "sensor_response_f_grid", "sensor_response_pol_grid",
+             "sensor_response_za_grid", "sensor_response_aa_grid", "sensor_norm" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "met_mm_backend", "met_mm_polarisation", "met_mm_antenna",
+            "stokes_dim", "sensor_los", "iy_unit" ),
+        GIN( "freq_spacing", "freq_number", "freq_merge_threshold",
+             "use_antenna", "use_polarisation" ),
+        GIN_TYPE(    "Numeric", "ArrayOfIndex", "Numeric", "Index", "Index" ),
+        GIN_DEFAULT( ".1e9",    "[-1]",         "1",       "0",     "0" ),
+        GIN_DESC( "Desired grid spacing in Hz.",
+                  "Number of frequencies per passband for each channel.",
+                  "Merge frequencies that are closer than this value in Hz.",
+                  "Flag to enable (1) or disable (0) antenna.",
+                  "Flag to enable (1) or disable (0) polarisation." )
+        ));
+  
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "sensor_responseBeamSwitching" ),
         DESCRIPTION
         (

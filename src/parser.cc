@@ -719,6 +719,16 @@ String ArtsParser::set_gin_to_default(const MdRecord*       mdd,
             }
             tv = v;
         }
+        else if (mdd->GInType()[gin_index] == get_wsv_group_id ("ArrayOfIndex"))
+        {
+            ArrayOfIndex v;
+            String s = mdd->GInDefault()[gin_index];
+            if (!parse_intvector_from_string(v, s))
+            {
+                failed = true;
+            }
+            tv = v;
+        }
         else
         {
             using global_data::wsv_group_names;
@@ -2552,6 +2562,74 @@ void ArtsParser::parse_matrix(Matrix& res)
             res(i, j) = tres[i*ncols+j];
 
     msource.AdvanceChar();
+}
+
+
+/** Read an array of integers from a String. This looks as follows: [1, 5]
+    Whitespace has to have been eaten before, that is, the current
+    character must be `['.
+  
+    The empty vector is allowed.
+  
+    \see parse_intvector */
+bool ArtsParser::parse_intvector_from_string (ArrayOfIndex& res, String& str)
+{
+    bool first = true;            // To skip the first comma.
+    size_t pos = 0;
+    
+    // We need a temporary Array<Numeric>, so that we can use push_back
+    // to store the values.
+    Array<Index> tres;
+    
+    eat_whitespace_from_string (str, pos);
+    
+    // Make sure that the current character really is `[' and proceed.
+    if (str[pos] != '[')
+    {
+        throw runtime_error ("No opening bracket\n");
+    }
+    
+    pos++;
+    
+    eat_whitespace_from_string (str, pos);
+    
+    // Read the elements of the vector (`]' means that we have
+    // reached the end):
+    while ( pos < str.length() && str[pos] != ']'  )
+    {
+        if (first)
+            first = false;
+        else
+        {
+            if (str[pos] != ',')
+            {
+                return false;
+            }
+            pos++;
+            eat_whitespace_from_string (str, pos);
+        }
+        
+        Index dummy;
+        istringstream is (str.substr(pos));
+        is >> dummy;
+        if (is.bad () || is.fail ())
+            return false;
+        tres.push_back(dummy);
+        while (pos < str.length()
+               && (isdigit(str[pos]) || str[pos] == '-'
+                   || str[pos] == 'e'))
+            pos++;
+        eat_whitespace_from_string (str, pos);
+    }
+    
+    // Copy tres to res:
+    res.resize(tres.nelem());
+    for (int i = 0; i < tres.nelem (); i++)
+    {
+        res[i] = tres[i];
+    }
+    
+    return true;
 }
 
 

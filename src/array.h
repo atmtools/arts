@@ -314,6 +314,29 @@ void find_all( ArrayOfIndex&      pos,
 }
 
 
+/** Helper comparison class to sort an array or vector based on an ArrayOfNumeric.
+
+ Usage:
+
+ Vector v1
+ ArrayOfNumeric v2;
+ ...
+ std::sort(v1.begin(), v1.end(), CmpArrayOfNumeric(v2));
+
+ Source: http://stackoverflow.com/questions/8147911/locking-two-vectors-and-sorting-them
+ */
+class CmpArrayOfNumeric
+{
+public:
+    CmpArrayOfNumeric(const ArrayOfNumeric& vec) : values(vec) {}
+    bool operator() (const int& a, const int& b) const
+    {
+        return values[a] < values[b];
+    }
+
+    const ArrayOfNumeric& values;
+};
+
 
 // It is not a good idea to put all the predefined array types in one
 // place. If I do this than a file cannot use one without defining all

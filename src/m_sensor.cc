@@ -43,6 +43,7 @@
 #include <cmath>
 #include <stdexcept>
 #include <string>
+#include <algorithm>
 #include "arts.h"
 #include "check_input.h"
 #include "interpolation_poly.h"
@@ -1259,6 +1260,302 @@ void sensor_responseBackendFrequencySwitching(Sparse&         sensor_response,
                       sensor_response_za_grid, sensor_response_aa_grid, 0 );
 }
 
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void sensor_responseBackendMetMM(// WS Output:
+                                 Vector& f_grid,
+                                 Index& antenna_dim,
+                                 Vector& mblock_za_grid,
+                                 Vector& mblock_aa_grid,
+                                 Sparse& sensor_response,
+                                 Vector& sensor_response_f,
+                                 ArrayOfIndex& sensor_response_pol,
+                                 Vector& sensor_response_za,
+                                 Vector& sensor_response_aa,
+                                 Vector& sensor_response_f_grid,
+                                 ArrayOfIndex& sensor_response_pol_grid,
+                                 Vector& sensor_response_za_grid,
+                                 Vector& sensor_response_aa_grid,
+                                 Index& sensor_norm,
+                                 // WS Input:
+                                 const Matrix& mm_back, /* met_mm_backend */
+                                 const ArrayOfString& mm_pol, /* met_mm_polarisation */
+                                 const Vector& /* mm_ant */, /* met_mm_antenna */
+                                 const Index& stokes_dim,
+                                 const Matrix& sensor_los,
+                                 const String& iy_unit,
+                                 // Control Parameters:
+                                 const Numeric& freq_spacing,
+                                 const ArrayOfIndex& freq_number,
+                                 const Numeric& freq_merge_threshold,
+                                 const Index& use_antenna,
+                                 const Index& use_polarisation,
+                                 const Verbosity& verbosity)
+{
+    CREATE_OUT2;
+
+    chk_if_bool("use_antenna", use_antenna);
+    chk_if_bool("use_polarisation", use_antenna);
+
+    chk_met_mm_backend(mm_back);
+
+    const Index nchannels = mm_back.nrows();
+
+    if (freq_spacing <= 0)
+        throw std::runtime_error("*freq_spacing must be > 0.");
+
+    if (freq_number.nelem() != 1 && freq_number.nelem() != nchannels)
+        throw std::runtime_error("Length of *freq_number* vector must be either 1 or correspond\n"
+                                 "to the number of rows in *met_mm_backend*.");
+
+    if (freq_merge_threshold > 10.)
+    {
+        throw std::runtime_error("The *freq_merge_threshold* is only meant to merge frequencies\n"
+                                 "that are basically identical and only differ slightly due to\n"
+                                 "numerical inaccuracies. Setting it to >10Hz is not reasonable.");
+    }
+    // For stokes_dim > 1, all sensor line of sights must be equal. Otherwise
+    // we need a different H matrix for each sensor_los to calculate polarisation
+    if (stokes_dim > 1)
+    {
+        for (Index ilos = 1; ilos < sensor_los.nrows(); ilos++)
+        {
+            if (sensor_los(ilos, 0) != sensor_los(ilos-1, 0))
+            {
+                ostringstream os;
+                os << "For *stokes_dim* > 1, all elements of *sensor_los* must be the same:";
+                os << "sensor_los[" << ilos-1 << ", 0] = " << sensor_los(ilos-1, 0) << "\n";
+                os << "sensor_los[" << ilos   << ", 0] = " << sensor_los(ilos,   0) << "\n";
+            }
+        }
+    }
+
+    // Setup frequency grid
+    ArrayOfNumeric all_frequencies;
+    ArrayOfIndex channel_pos_in_all_freq;
+    channel_pos_in_all_freq.resize(nchannels + 1);
+    channel_pos_in_all_freq[0] = 0;
+
+    // Create vector with frequencies for all channels
+    // and fill sensor_response_f_grid with nominal frequency for each channel
+    sensor_response_f_grid.resize(nchannels);
+    Index channel_pos_index = 0;
+    Vector band_frequencies;
+    for (Index ch = 0; ch < nchannels; ch++)
+    {
+        const Numeric lo = mm_back(ch, 0);
+        const Numeric offset1 = mm_back(ch, 1);
+        const Numeric offset2 = mm_back(ch, 2);
+        const Numeric bandwidth = mm_back(ch, 3);
+
+        Index this_fnumber = (freq_number.nelem() == 1) ? freq_number[0] : freq_number[ch];
+
+        if (this_fnumber == 0)
+        {
+            ostringstream os;
+            os << "*freq_number* must be -1 or greater zero:"
+            << "freq_number[" << ch << "] = " << this_fnumber;
+            std::runtime_error(os.str());
+        }
+
+        // Determine the frequency grid for this channel
+        if (this_fnumber == 1 && bandwidth <= freq_spacing)
+        {
+            band_frequencies.resize(1);
+            band_frequencies[0] = bandwidth / 2.;
+        }
+        else
+        {
+            // Use freq_spacing if freq_number is -1, otherwise use the finer spacing of the two
+            if (this_fnumber == -1 || this_fnumber == 1
+                || bandwidth / (Numeric)this_fnumber > freq_spacing)
+            {
+                // Adjust the number of frequencies so that they are at least
+                // as fine as freq_spacing and cover the band evenly
+                this_fnumber = (Index)ceil(bandwidth / freq_spacing);
+            }
+
+            const Numeric bin_width = 0.5 * bandwidth / (Numeric)this_fnumber;
+            nlinspace(band_frequencies, bin_width, bandwidth - bin_width, this_fnumber);
+        }
+
+        // Create frequencies for each passband
+        if (offset1 > 0.)
+        {
+
+            // 4 passbands
+            if (offset2 > 0.)
+            {
+                for (Index f = 0; f < this_fnumber; f++)
+                {
+                    const Numeric f_offset = -bandwidth / 2. + band_frequencies[f];
+                    all_frequencies.push_back(lo - offset1 - offset2 + f_offset);
+                    all_frequencies.push_back(lo - offset1 + offset2 + f_offset);
+                    all_frequencies.push_back(lo + offset1 - offset2 + f_offset);
+                    all_frequencies.push_back(lo + offset1 + offset2 + f_offset);
+                    channel_pos_index += 4;
+                }
+            }
+            // 2 passbands
+            else
+            {
+                for (Index f = 0; f < this_fnumber; f++)
+                {
+                    all_frequencies.push_back(lo - offset1 - bandwidth / 2. + band_frequencies[f]);
+                    all_frequencies.push_back(lo + offset1 - bandwidth / 2. + band_frequencies[f]);
+                    channel_pos_index += 2;
+                }
+            }
+        }
+        else
+        {
+            // 1 Passband
+            for (Index f = 0; f < this_fnumber; f++)
+            {
+                all_frequencies.push_back(lo - bandwidth / 2. + band_frequencies[f]);
+                channel_pos_index++;
+            }
+        }
+
+        sensor_response_f_grid[ch] = lo;
+        channel_pos_in_all_freq[ch+1] = channel_pos_index;
+    }
+
+    // Create frequency position vector (1...nf)
+    ArrayOfIndex frequency_indexes;
+    frequency_indexes.resize(all_frequencies.size());
+    for (size_t i = 0; i < all_frequencies.size(); i++)
+        frequency_indexes[i] = i;
+
+    // Sort frequency position vector by frequency
+    std::sort(frequency_indexes.begin(), frequency_indexes.end(),
+              CmpArrayOfNumeric(all_frequencies));
+
+    // Find number of frequencies without duplicates
+    Index num_f = 1;
+    {
+        Index f_merge_start = 0;
+        for (size_t f_index = 0; f_index < all_frequencies.size() - 1; f_index++)
+            if (all_frequencies[frequency_indexes[f_index + 1]]
+                - all_frequencies[frequency_indexes[f_merge_start]] > freq_merge_threshold)
+            {
+                num_f++;
+                f_merge_start = f_index + 1;
+            }
+    }
+
+    // Create weights vector and channel number vector
+    Vector frequency_weights(all_frequencies.size());
+    Vector channel_number(all_frequencies.size());
+    for (Index ch = 0; ch < nchannels; ch++)
+    {
+        const Range range(channel_pos_in_all_freq[ch],
+                          channel_pos_in_all_freq[ch+1] - channel_pos_in_all_freq[ch]);
+
+        frequency_weights[range] = 1. / (Numeric)(channel_pos_in_all_freq[ch+1]
+                                                  - channel_pos_in_all_freq[ch]);
+        channel_number[range] = (Numeric)ch;
+    }
+
+    // Create sensor response and f grid
+    sensor_response = Sparse(nchannels * stokes_dim, num_f * stokes_dim);
+    f_grid.resize(num_f);
+
+    Index target_f_index = 0;
+    size_t f_merge_start = 0;
+    for (size_t f_index = 0; f_index < frequency_indexes.size(); f_index++)
+    {
+        for (Index is = 0; is < stokes_dim; is++)
+        {
+            sensor_response.rw((Index)channel_number[frequency_indexes[f_index]] * stokes_dim + is,
+                               target_f_index * stokes_dim + is)
+            = frequency_weights[frequency_indexes[f_index]];
+        }
+
+        // If the next frequency is further away than the merge threshold,
+        // or we are at the last frequency, write the original frequency
+        // or the averaged frequencies into f_grid
+        if (f_index == frequency_indexes.size() - 1
+            || (all_frequencies[frequency_indexes[f_index + 1]]
+                - all_frequencies[frequency_indexes[f_merge_start]] > freq_merge_threshold))
+        {
+            if (f_merge_start < f_index)
+            {
+                Numeric f_sum = 0;
+                for (size_t merge_index = f_merge_start; merge_index <= f_index; merge_index++)
+                {
+                    f_sum += all_frequencies[frequency_indexes[merge_index]];
+                }
+                f_grid[target_f_index] = f_sum / (1. + (Numeric)(f_index - f_merge_start));
+            }
+            else
+            {
+                f_grid[target_f_index] = all_frequencies[frequency_indexes[f_index]];
+            }
+
+            target_f_index++;
+            f_merge_start = f_index + 1;
+        }
+    }
+
+    // Apply polarisation
+    if (stokes_dim > 1 && use_polarisation)
+    {
+        if (mm_pol.nelem() != nchannels)
+        {
+            ostringstream os;
+            os << "Length of *met_mm_polarisation* (" << mm_pol.nelem() << ") must match\n"
+            << "number of channels in *met_mm_backend* (" << nchannels << ").";
+            throw std::runtime_error(os.str());
+        }
+
+        Sparse H_pol;
+        Sparse H = sensor_response;
+
+        sensor_response = Sparse(nchannels, H.ncols());
+        met_mm_polarisation_hmatrix(H_pol, mm_pol,
+                                    sensor_los(0, 0), stokes_dim, iy_unit);
+        mult(sensor_response, H_pol, H);
+        sensor_response_pol_grid.resize(1);
+        sensor_response_pol_grid[0] = 1;
+    }
+    else
+    {
+        sensor_response_pol_grid.resize(stokes_dim);
+        //
+        for( Index is=0; is<stokes_dim; is++ )
+        {
+            sensor_response_pol_grid[is] = is + 1;
+        }
+
+    }
+
+    // Setup antenna
+    if (use_antenna)
+    {
+        // FIXME: Do something smart here
+        throw std::runtime_error("The antenna hasn't arrived yet.");
+    }
+    else
+    {
+        AntennaOff(antenna_dim, mblock_za_grid, mblock_aa_grid, verbosity);
+    }
+
+    // Set sensor response aux variables
+    sensor_response_za_grid = mblock_za_grid;
+    sensor_response_aa_grid = mblock_aa_grid;
+
+
+    // Set aux variables
+    sensor_aux_vectors(sensor_response_f,       sensor_response_pol,
+                       sensor_response_za,      sensor_response_aa,
+                       sensor_response_f_grid,  sensor_response_pol_grid,
+                       sensor_response_za_grid, sensor_response_aa_grid, 0);
+    
+    sensor_norm = 0;
+    
+    out2 << "  Total number of frequencies in f_grid: " << f_grid.nelem() << "\n";
+}
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */

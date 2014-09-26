@@ -404,4 +404,6 @@ bool chk_if_std_blackbody_agenda(
          Workspace&   ws,
    const Agenda&      blackbody_radiation_agenda );
 
+void chk_met_mm_backend(const Matrix& bdsp);
+
 #endif  // checkinput_h

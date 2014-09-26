@@ -98,6 +98,12 @@ void mueller_rotation(
     const Index&     stokes_dim,
     const Numeric&   rotangle );
 
+void met_mm_polarisation_hmatrix(Sparse& H,
+                                 const ArrayOfString& pol,
+                                 const Numeric za,
+                                 const Index stokes_dim,
+                                 const String& iy_unit);
+
 void sensor_aux_vectors(
                Vector&   sensor_response_f,
          ArrayOfIndex&   sensor_response_pol,
