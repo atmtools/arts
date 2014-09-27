@@ -38,24 +38,24 @@ extern const Numeric PI;
 
 void scat_dataFromTmatrix(
           SingleScatteringData&   scat_data,
+    const GriddedField3&          complex_refr_index,
     const String&                 shape,
     const Numeric&                de,
     const Numeric&                aratio,
     const String&                 orientation,
-    const GriddedField3&          complex_refr_index,
-    const Vector&                 f_grid,
-    const Vector&                 t_grid,
-    const Vector&                 za_grid,
-    const Vector&                 aa_grid,
+    const Vector&                 scat_f_grid,
+    const Vector&                 scat_t_grid,
+    const Vector&                 scat_za_grid,
+    const Vector&                 scat_aa_grid,
     const Numeric&                precision,
     const Verbosity&)
 {
   // Add grids to scat_data
   //
-  scat_data.f_grid        = f_grid;
-  scat_data.T_grid        = t_grid;
-  scat_data.za_grid       = za_grid;
-  scat_data.aa_grid       = aa_grid;
+  scat_data.f_grid  = scat_f_grid;
+  scat_data.T_grid  = scat_t_grid;
+  scat_data.za_grid = scat_za_grid;
+  scat_data.aa_grid = scat_aa_grid;
 
   // Index coding for shape
   Index np;
@@ -74,20 +74,30 @@ void scat_dataFromTmatrix(
   // Get internal coding for orientation
   scat_data.particle_type = ParticleTypeFromString( orientation );
 
+  // Set description
+  {   
+    ostringstream os;
+    os << "T-matrix calculation for " << shape 
+       << " with De=" << 1e6*de << "um and aspect ration of " << aratio;
+    scat_data.description = os.str();
+  }
+
+
   // Interpolate refractive index to relevant grids
   //
-  const Index nf = f_grid.nelem();
-  const Index nt = t_grid.nelem();
+  const Index nf = scat_f_grid.nelem();
+  const Index nt = scat_t_grid.nelem();
   //
   Tensor3 ncomp( nf, nt, 2 );
   complex_n_interp( ncomp(joker,joker,0), ncomp(joker,joker,1),
-                    complex_refr_index, "complex_refr_index", f_grid, t_grid );
+                    complex_refr_index, "complex_refr_index", 
+                    scat_f_grid, scat_t_grid );
 
-  // Run T-matrix and we are ready
+  // Run T-matrix and we are ready (T-matrix takes de as radius in um)
   calcSingleScatteringDataProperties( scat_data,
                                       ncomp(joker,joker,0), 
                                       ncomp(joker,joker,1),
-                                      1e6*de, np, aratio, precision );
+                                      0.5e6*de, np, aratio, precision );
 }
 
 

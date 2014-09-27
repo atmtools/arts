@@ -9486,6 +9486,40 @@ void define_md_data_raw()
         GIN_DESC( "Delimiter string of *scat_species* elements." )
          ));
         
+
+
+  md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "scat_dataFromTmatrix" ),
+      DESCRIPTION
+      (
+       "To be written ...\n"
+      ),
+      AUTHORS( "Patrick Eriksson" ),
+      OUT("scat_data"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "complex_refr_index" ),
+      GIN( "shape", "de", "aratio", "orientation", 
+           "scat_f_grid", "scat_t_grid", "scat_za_grid", "scat_aa_grid",
+           "precision" ),
+      GIN_TYPE( "String", "Numeric", "Numeric", "String", 
+                "Vector", "Vector", "Vector", "Vector",
+                "Numeric" ),
+      GIN_DEFAULT( NODEF, NODEF, NODEF, NODEF, NODEF, NODEF, NODEF, NODEF, 
+                   "0.001" ),
+      GIN_DESC( "Particle shape", 
+                "Particle equivalent diameter", 
+                "Particle aspect ratio", 
+                "Particle orientation",
+                "Frequency grid of the scattering data to be calculated.",
+                "Temperature grid of the scattering data to be calculated.",
+                "Zenith angle grid of the scattering data to be calculated.",
+                "Azimuth angle grid of the scattering data to be calculated.",
+                "Accuracy of the computations." )
+      ));
+
   md_data_raw.push_back
     ( MdRecord
     ( NAME( "scat_meta_arrayAddTmatrix" ),

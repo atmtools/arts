@@ -1,3 +1,12 @@
+2014-09-27  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-15
+
+	* src/m_tmatrix.cc (scat_dataFromTmatrix): Missed that r, not d
+	should be input to T-matrix. Now seems to match old
+	implementation. Documentation not yet in place. And unsure about
+	setting of ptype.
+
 2014-09-26  Jana Mendrok  <jana.mendrok@ltu.se>
 
 	* arts-2-3-14
