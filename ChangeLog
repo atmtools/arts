@@ -1,5 +1,22 @@
 2014-09-27  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-3-16
+
+	* src/m_tmatrix.cc (ParticleDeToDmax, ParticleDmaxToDe): New. Not
+	yet tested in detail.
+
+	* src/m_tmatrix.cc (scat_dataFromTmatrix): Write on-line doc for
+	the WSM.
+	(scat_meta_arrayAddTmatrixOldVersion): Removed.
+
+	* src/optproperties.h:
+	* src/cloudbox.cc (chk_scat_data):
+	* src/optproperties.cc (ParticleTypeFromString)
+	(ParticleTypeToString): Removed PARTICLE_TYPE_SPHERICAL. This
+	ptype has not been implemented in any part.
+
+2014-09-27  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-3-15
 
 	* src/m_tmatrix.cc (scat_dataFromTmatrix): Missed that r, not d

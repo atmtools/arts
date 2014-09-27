@@ -36,13 +36,113 @@ extern const Numeric PI;
 
 
 
+/* Workspace method: Doxygen documentation will be auto-generated */
+void ParticleDeToDmax(
+          Numeric&                dmax,
+          Numeric&                volume,
+    const String&                 shape,
+    const Numeric&                de,
+    const Numeric&                aratio,
+    const Verbosity&)
+{
+  volume = ( 4.*PI*pow(de/2.,3) ) / 3.;
+
+  if( shape == "spheroidal" )
+    {
+      if( aratio > 1 ) // oblate spheriod
+        {   
+          //rotational axis
+          const Numeric a = pow( (3.*volume*aratio)/(4*PI), 1./3.);
+          dmax = 2.*a;
+        }
+      else if( aratio < 1) // prolate spheroid
+        {  
+          //non-rotational axis (perpendicular to a)
+          const Numeric b = pow( (3.*volume)/(4.*PI*pow(aratio,2)),1./3.);
+          dmax = 2.*b;
+        }
+      else
+        {
+          throw runtime_error( "For spheriodal particles, the aspect ratio "
+                               "is not allowed to be exactly 1 (due to "
+                               "numerical problems)." );
+        }
+    }
+  
+  else if (shape == "cylindrical")
+    {
+      //aratio=D/L
+      const Numeric D = pow( (volume*4*aratio)/PI, 1./3.);
+      const Numeric L = D / aratio;
+      dmax = pow( pow(D,2) + pow(L,2), 1./2. );
+    }
+  
+  else
+    {
+      ostringstream os;
+      os << "Unknown particle shape: " << shape << "\n"
+         << "Must be spheroidal or cylindrical";
+      throw runtime_error( os.str() );
+    }
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void ParticleDmaxToDe(
+          Numeric&                de,
+          Numeric&                volume,
+    const String&                 shape,
+    const Numeric&                dmax,
+    const Numeric&                aratio,
+    const Verbosity&)
+{
+  if( shape == "spheroidal" )
+    {
+      if( aratio > 1 ) // oblate spheriod
+        {   
+          const Numeric a = dmax/2.;
+          volume = (pow(a,3.)*4.*PI)/(3.*aratio);
+        }
+      else if( aratio < 1) // prolate spheroid
+        {  
+          const Numeric b = dmax/2.;
+          volume = (pow(b,3.)*4.*PI*pow(aratio,2.))/3.;
+        }
+      else
+        {
+          throw runtime_error( "For spheriodal particles, the aspect ratio "
+                               "is not allowed to be exactly 1 (due to "
+                               "numerical problems)." );
+        }
+    }
+  
+  else if (shape == "cylindrical")
+    {
+      volume = pow( dmax/pow((pow(aratio,2.)+1.),1./2.),3)*pow(aratio,2.)*PI/4.;
+    }
+  
+  else
+    {
+      ostringstream os;
+      os << "Unknown particle shape: " << shape << "\n"
+         << "Must be spheroidal or cylindrical";
+      throw runtime_error( os.str() );
+    }
+
+  de = pow( (24.*volume) / (4.*PI), 1./3. );
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void scat_dataFromTmatrix(
           SingleScatteringData&   scat_data,
     const GriddedField3&          complex_refr_index,
     const String&                 shape,
     const Numeric&                de,
     const Numeric&                aratio,
-    const String&                 orientation,
+    const String&                 ptype,
     const Vector&                 scat_f_grid,
     const Vector&                 scat_t_grid,
     const Vector&                 scat_za_grid,
@@ -60,7 +160,13 @@ void scat_dataFromTmatrix(
   // Index coding for shape
   Index np;
   if( shape == "spheroidal" )
-    { np=-1; }
+    { 
+      np=-1; 
+      if( aratio == 1 )
+        throw runtime_error( "For spheriodal particles, the aspect ratio "
+                             "is not allowed to be exactly 1 (due to "
+                             "numerical problems)." );
+    }
   else if( shape == "cylindrical" )
     { np=-2; }
   else
@@ -68,20 +174,19 @@ void scat_dataFromTmatrix(
       ostringstream os;
       os << "Unknown particle shape: " << shape << "\n"
          << "Must be spheroidal or cylindrical";
-      throw std::runtime_error(os.str());
+      throw runtime_error( os.str() );
     }
 
-  // Get internal coding for orientation
-  scat_data.particle_type = ParticleTypeFromString( orientation );
+  // Get internal coding for ptype
+  scat_data.particle_type = ParticleTypeFromString( ptype );
 
   // Set description
   {   
     ostringstream os;
     os << "T-matrix calculation for " << shape 
-       << " with De=" << 1e6*de << "um and aspect ration of " << aratio;
+       << " with De=" << 1e6*de << "um and aspect ratio of " << aratio;
     scat_data.description = os.str();
   }
-
 
   // Interpolate refractive index to relevant grids
   //

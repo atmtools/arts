@@ -1032,14 +1032,12 @@ ParticleType ParticleTypeFromString(const String& particle_type_string)
         particle_type = PARTICLE_TYPE_MACROS_ISO;
     else if (particle_type_string == "horizontally_aligned")
         particle_type = PARTICLE_TYPE_HORIZ_AL;
-    else if (particle_type_string == "spherical")
-        particle_type = PARTICLE_TYPE_SPHERICAL;
     else
     {
         ostringstream os;
         os << "Unknown particle type: " << particle_type_string << endl
-           << "Valid types are: general, macroscopically_isotropic, "
-           << "horizontally_aligned and spherical.";
+           << "Valid types are: general, macroscopically_isotropic and"
+           << "horizontally_aligned.";
         throw std::runtime_error(os.str());
     }
 
@@ -1070,9 +1068,7 @@ String ParticleTypeToString(const ParticleType& particle_type)
         case PARTICLE_TYPE_HORIZ_AL:
             particle_type_string = "horizontally_aligned";
             break;
-        case PARTICLE_TYPE_SPHERICAL:
-            particle_type_string = "spherical";
-            break;
+
         default:
             ostringstream os;
             os << "Internal error: Cannot map ParticleType enum value "

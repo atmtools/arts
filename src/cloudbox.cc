@@ -773,13 +773,6 @@ void chk_scat_data(const SingleScatteringData& scat_data_array,
              2);
     break;
 
-  case PARTICLE_TYPE_SPHERICAL:
-    throw runtime_error(
-                        "Special case for spherical particles not"
-                        "implemented."
-                        "Use p20 (randomly oriented particles) instead."
-                        );
-    
   }
 
 }

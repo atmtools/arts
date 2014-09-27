@@ -7591,6 +7591,68 @@ void define_md_data_raw()
     
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "ParticleDeToDmax" ),
+        DESCRIPTION
+        (
+         "Converts from equivalent to maximum diameter.\n"
+         "\n"
+         "This is primarily a help functopn for using the T-matrix method\n"
+         "and only a few particle shapes are handled. "
+         "\n"
+         "For shapes handled and further comments in the input arguments, see\n"
+         "*scat_dataFromTmatrix*.\n"
+         "\n"
+         "Also the volume is provided. It is simply sqrt3(4*pi*de/24), and is\n"
+         "returned as it is anyhow calculated inside the method.\n"
+         ),
+        AUTHORS( "Daniel Kreyling", "Patrick Eriksson" ),
+        OUT(),
+        GOUT( "dmax", "volume" ),
+        GOUT_TYPE( "Numeric", "Numeric" ),
+        GOUT_DESC( "Maximum dimension of the particle.",
+                   "Volume (solid) of the particle." ),
+        IN(),
+        GIN( "shape", "de", "aratio" ),
+        GIN_TYPE( "String", "Numeric", "Numeric" ),
+        GIN_DEFAULT( NODEF, NODEF, NODEF ),
+        GIN_DESC( "Particle shape.", 
+                  "Particle equivalent diameter.", 
+                  "Particle aspect ratio." )
+        ));
+    
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "ParticleDmaxToDe" ),
+        DESCRIPTION
+        (
+         "Converts from maximum to equivalent diameter.\n"
+         "\n"
+         "This is primarily a help function for using the T-matrix part\n"
+         "and only a few particle shapes are handled. "
+         "\n"
+         "For shapes handled and further comments in the input arguments,\n"
+         "see *scat_dataFromTmatrix*.\n"
+         "\n"
+         "Also the volume is provided. It is simply sqrt3(4*pi*de/24), and is\n"
+         "returned as it is anyhow calculated inside the method.\n"
+         ),
+        AUTHORS( "Daniel Kreyling", "Patrick Eriksson" ),
+        OUT(),
+        GOUT( "de", "volume" ),
+        GOUT_TYPE( "Numeric", "Numeric" ),
+        GOUT_DESC( "Particle equivalent diameter.",
+                   "Volume (solid) of the particle." ),
+        IN(),
+        GIN( "shape", "dmax", "aratio" ),
+        GIN_TYPE( "String", "Numeric", "Numeric" ),
+        GIN_DEFAULT( NODEF, NODEF, NODEF ),
+        GIN_DESC( "Particle shape.", 
+                  "Maximum dimension of the particle.", 
+                  "Particle aspect ratio." )
+        ));
+    
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "particle_massesFromMetaDataSingleCategory" ),
         DESCRIPTION
         (
@@ -9493,7 +9555,30 @@ void define_md_data_raw()
     ( NAME( "scat_dataFromTmatrix" ),
       DESCRIPTION
       (
-       "To be written ...\n"
+        "A basic interface to the T-matrix code linked to ARTS.\n"
+        "\n"
+        "The method performas a T-matrix calculation for a single scattering\n"
+        "elements, i.e. a combination of particle shape, size, aspect ratio\n"
+        "and orientation.\n"
+        "\n"
+        "Particle shape (*shape*) has two options:\n"
+        "   \"spheroidal\" and \"cylindrical\"\n"
+        "\n"
+        "Particle size (*de*) is given as the equivalent volume sphere\n"
+        "diameter. That is, the diameter obtained if all the particle's\n"
+        "material is rearranged as a (solid) sphere.\n"
+        "\n"
+        "Particle aspect ratio (*aratio*) is a numeric value. For spheroidal\n"
+        "particles it is not allowed to set this value to exactly 1, as this\n"
+        "can trigger numerical problems. For spheres use a value such as\n"
+        "1.0001.\n"
+        "\n"
+        "Particle type (*ptype*) has two options:\n"
+        "   \"macroscopically_isotropic\" and \"horizontally_aligned\"\n"
+        "\n"
+        "For further information on how aspect ratio and the different shapes\n"
+        "and orientations are defined, see the docuemntation of the T-matrix\n"
+        "code found http://www.giss.nasa.gov/staff/mmishchenko/t_matrix.html\n"
       ),
       AUTHORS( "Patrick Eriksson" ),
       OUT("scat_data"),
@@ -9501,7 +9586,7 @@ void define_md_data_raw()
       GOUT_TYPE(),
       GOUT_DESC(),
       IN( "complex_refr_index" ),
-      GIN( "shape", "de", "aratio", "orientation", 
+      GIN( "shape", "de", "aratio", "ptype", 
            "scat_f_grid", "scat_t_grid", "scat_za_grid", "scat_aa_grid",
            "precision" ),
       GIN_TYPE( "String", "Numeric", "Numeric", "String", 
@@ -9509,10 +9594,10 @@ void define_md_data_raw()
                 "Numeric" ),
       GIN_DEFAULT( NODEF, NODEF, NODEF, NODEF, NODEF, NODEF, NODEF, NODEF, 
                    "0.001" ),
-      GIN_DESC( "Particle shape", 
-                "Particle equivalent diameter", 
-                "Particle aspect ratio", 
-                "Particle orientation",
+      GIN_DESC( "Particle shape. Options listed above.", 
+                "Particle equivalent diameter. See defintion above.", 
+                "Particle aspect ratio.", 
+                "Particle type/orientation. Options listed above.",
                 "Frequency grid of the scattering data to be calculated.",
                 "Temperature grid of the scattering data to be calculated.",
                 "Zenith angle grid of the scattering data to be calculated.",
@@ -9565,51 +9650,6 @@ void define_md_data_raw()
                "Frequency grid vector", "Temperature grid vector" )
       ));
 
-  md_data_raw.push_back
-    ( MdRecord
-    ( NAME( "scat_meta_arrayAddTmatrixOldVersion" ),
-      DESCRIPTION
-      (
-       "This method adds particle meta data to the workspace variable\n"
-       "*scat_meta_array*.\n"
-       "\n"
-       "One set of meta data is created and added to the array for each\n"
-       "diameter in the GIN diamter_grid. The size of *scat_meta_array*\n"
-       "and hence the usage has been extended. For that reason, a short\n"
-       "summary below tells which input parameters are required for certain further\n"
-       "calculations.\n"
-       "\n"
-       "String[description]\t\tNot used for any particular calculations\n"
-       "String[material]\t\tNot used for any particular calculations\n"
-       "String[shape]\t\t\tUsed for scattering properties calculations\n"
-       "Numeric[particle_type]\t\tUsed for scattering properties calculations\n"
-       "Numeric[density]\t\tUsed for PSD calculations\n"
-       "Numeric[aspect_ratio]\t\tUsed for scattering properties calculations\n"
-       "Numeric[diameter_grid]\t\tUsed for both scattering properties and PSD calculations\n"
-       "Vector[scat_f_grid]\t\tUsed for scattering properties calculations\n"
-       "Vector[scat_T_grid]\t\tUsed for scattering properties calculations\n"
-       "Tensor3[complex_refr_index]\tUsed for scattering properties calculations\n"
-      ),
-      AUTHORS( "Johan Strandgren" ),
-      OUT("scat_meta_array"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN( "scat_meta_array", "complex_refr_index" ),
-      GIN( "description", "material", "shape", "particle_type", "density", 
-           "aspect_ratio", "diameter_grid", "scat_f_grid", "scat_T_grid" ),
-      GIN_TYPE( "String", "String", "String", "String", "Numeric", "Numeric",
-           "Vector", "Vector", "Vector" ),
-      GIN_DEFAULT( "", "undefined", NODEF, NODEF, "-999", NODEF, NODEF,
-                   NODEF, NODEF ),
-      GIN_DESC( "Particle description", "Water or Ice", "spheroidal or cylinder", 
-               "Particle Type: MACROS_ISO (20) or PARTICLE_TYPE_HORIZ_AL (30)", 
-               "Particle mass density",
-               "Particle aspect ratio (can differ between WSMs. Check the userguide)",
-               "equivalent diameter vector", "Frequency grid vector",
-               "Temperature grid vector" )
-      ));
-    
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "scat_meta_arrayInit" ),
