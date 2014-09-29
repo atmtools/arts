@@ -7591,38 +7591,7 @@ void define_md_data_raw()
     
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "ParticleDeToDmax" ),
-        DESCRIPTION
-        (
-         "Converts from equivalent to maximum diameter.\n"
-         "\n"
-         "This is primarily a help functopn for using the T-matrix method\n"
-         "and only a few particle shapes are handled. "
-         "\n"
-         "For shapes handled and further comments in the input arguments, see\n"
-         "*scat_dataFromTmatrix*.\n"
-         "\n"
-         "Also the volume is provided. It is simply sqrt3(4*pi*de/24), and is\n"
-         "returned as it is anyhow calculated inside the method.\n"
-         ),
-        AUTHORS( "Daniel Kreyling", "Patrick Eriksson" ),
-        OUT(),
-        GOUT( "dmax", "volume" ),
-        GOUT_TYPE( "Numeric", "Numeric" ),
-        GOUT_DESC( "Maximum dimension of the particle.",
-                   "Volume (solid) of the particle." ),
-        IN(),
-        GIN( "shape", "de", "aratio" ),
-        GIN_TYPE( "String", "Numeric", "Numeric" ),
-        GIN_DEFAULT( NODEF, NODEF, NODEF ),
-        GIN_DESC( "Particle shape.", 
-                  "Particle equivalent diameter.", 
-                  "Particle aspect ratio." )
-        ));
-    
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "ParticleDmaxToDe" ),
+      ( NAME( "ParticleDeFromDmax" ),
         DESCRIPTION
         (
          "Converts from maximum to equivalent diameter.\n"
@@ -7630,24 +7599,53 @@ void define_md_data_raw()
          "This is primarily a help function for using the T-matrix part\n"
          "and only a few particle shapes are handled. "
          "\n"
-         "For shapes handled and further comments in the input arguments,\n"
-         "see *scat_dataFromTmatrix*.\n"
+         "For shapes handled and further comments on the input arguments,\n"
+         "see *scat_dataTmatrix*.\n"
          "\n"
-         "Also the volume is provided. It is simply sqrt3(4*pi*de/24), and is\n"
-         "returned as it is anyhow calculated inside the method.\n"
+         "Also the volume is provided. It is simply sqrt3(4*pi*de^3/24).\n"
          ),
-        AUTHORS( "Daniel Kreyling", "Patrick Eriksson" ),
+        AUTHORS( "Johan Strandgren", "Patrick Eriksson" ),
         OUT(),
         GOUT( "de", "volume" ),
         GOUT_TYPE( "Numeric", "Numeric" ),
         GOUT_DESC( "Particle equivalent diameter.",
-                   "Volume (solid) of the particle." ),
+                   "Volume of the particle." ),
         IN(),
         GIN( "shape", "dmax", "aratio" ),
         GIN_TYPE( "String", "Numeric", "Numeric" ),
         GIN_DEFAULT( NODEF, NODEF, NODEF ),
         GIN_DESC( "Particle shape.", 
                   "Maximum dimension of the particle.", 
+                  "Particle aspect ratio." )
+        ));
+    
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "ParticleDmaxFromDe" ),
+        DESCRIPTION
+        (
+         "Converts from equivalent to maximum diameter.\n"
+         "\n"
+         "This is primarily a help functopn for using the T-matrix method\n"
+         "and only a few particle shapes are handled. "
+         "\n"
+         "For shapes handled and further comments on the input arguments, see\n"
+         "*scat_dataTmatrix*.\n"
+         "\n"
+         "Also the volume is provided. It is simply sqrt3(4*pi*de^3/24).\n"
+         ),
+        AUTHORS( "Johan Strandgren", "Patrick Eriksson" ),
+        OUT(),
+        GOUT( "dmax", "volume" ),
+        GOUT_TYPE( "Numeric", "Numeric" ),
+        GOUT_DESC( "Maximum dimension of the particle.",
+                   "Volume of the particle." ),
+        IN(),
+        GIN( "shape", "de", "aratio" ),
+        GIN_TYPE( "String", "Numeric", "Numeric" ),
+        GIN_DEFAULT( NODEF, NODEF, NODEF ),
+        GIN_DESC( "Particle shape.", 
+                  "Particle equivalent diameter.", 
                   "Particle aspect ratio." )
         ));
     
@@ -9552,12 +9550,12 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-    ( NAME( "scat_dataFromTmatrix" ),
+    ( NAME( "scat_dataTmatrix" ),
       DESCRIPTION
       (
         "A basic interface to the T-matrix code linked to ARTS.\n"
         "\n"
-        "The method performas a T-matrix calculation for a single scattering\n"
+        "The method performs a T-matrix calculation for a single scattering\n"
         "elements, i.e. a combination of particle shape, size, aspect ratio\n"
         "and orientation.\n"
         "\n"
@@ -9566,7 +9564,7 @@ void define_md_data_raw()
         "\n"
         "Particle size (*de*) is given as the equivalent volume sphere\n"
         "diameter. That is, the diameter obtained if all the particle's\n"
-        "material is rearranged as a (solid) sphere.\n"
+        "material is rearranged into a (solid) sphere.\n"
         "\n"
         "Particle aspect ratio (*aratio*) is a numeric value. For spheroidal\n"
         "particles it is not allowed to set this value to exactly 1, as this\n"
@@ -9577,10 +9575,10 @@ void define_md_data_raw()
         "   \"macroscopically_isotropic\" and \"horizontally_aligned\"\n"
         "\n"
         "For further information on how aspect ratio and the different shapes\n"
-        "and orientations are defined, see the docuemntation of the T-matrix\n"
+        "and orientations are defined, see the documentation of the T-matrix\n"
         "code found http://www.giss.nasa.gov/staff/mmishchenko/t_matrix.html\n"
       ),
-      AUTHORS( "Patrick Eriksson" ),
+      AUTHORS( "Johan Strandgren", "Patrick Eriksson" ),
       OUT("scat_data"),
       GOUT(),
       GOUT_TYPE(),

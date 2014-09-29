@@ -37,7 +37,7 @@ extern const Numeric PI;
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void ParticleDeToDmax(
+void ParticleDmaxFromDe(
           Numeric&                dmax,
           Numeric&                volume,
     const String&                 shape,
@@ -65,7 +65,7 @@ void ParticleDeToDmax(
         {
           throw runtime_error( "For spheriodal particles, the aspect ratio "
                                "is not allowed to be exactly 1 (due to "
-                               "numerical problems)." );
+                               "potential numerical problems)." );
         }
     }
   
@@ -89,7 +89,7 @@ void ParticleDeToDmax(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void ParticleDmaxToDe(
+void ParticleDeFromDmax(
           Numeric&                de,
           Numeric&                volume,
     const String&                 shape,
@@ -136,7 +136,7 @@ void ParticleDmaxToDe(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void scat_dataFromTmatrix(
+void scat_dataTmatrix(
           SingleScatteringData&   scat_data,
     const GriddedField3&          complex_refr_index,
     const String&                 shape,

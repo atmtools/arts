@@ -1,3 +1,12 @@
+2014-09-29  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-17
+
+	* src/m_tmatrix.cc (scat_dataTmatrix): Removed "From" from name
+	and fixed typos in description.
+	(ParticleDmaxFromDe, ParticleDeFromDmax): Also renamed, now using
+	From instead of To, to have the output variable first in WSM name.
+
 2014-09-27  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-16
