@@ -1,16 +1,24 @@
+2014-09-29  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-19
+
+	* src/sensor.cc (met_mm_polarisation_hmatrix): Added rotation
+	information for ISMAR. And on the same time rearranged the code
+	and the notation, hopefully to make things clearer. 
+
 2014-09-29  Richard Larsson <ric.larsson@gmail.com>
 
 	* arts-2-3-18
-	
+
 	Implementation of LBLRTM line mixing now works.  For O2,
 	this produces less than 0.1 K difference with PWR98 in the
 	band center, and about 0.5 K difference in the band wings.
 	The test was done on straight-downward looking geometry across
 	the 60 GHz band.
-	
+
 	* src/linemixingdata.{cc,h}:  Fixed interpolation scheme so that it
 	does not crash at run.
-	
+
 	* src/linerecord.cc:  Fixed non-working test and error in conversion
 	factor.
 

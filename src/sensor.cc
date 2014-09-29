@@ -671,25 +671,37 @@ void met_mm_polarisation_hmatrix(Sparse& H,
     if( iy_unit == "PlanckBT"  ||  iy_unit == "RJBT"  )
     { w = 1.0; }
 
-    // Identify sensor specific polarisations
-    const Index npol = mm_pol.nelem();
-    ArrayOfString pol(npol);
-    ArrayOfString pol_type(npol);
-    for (Index i = 0; i < mm_pol.nelem(); i++)
+    // Identify (basic) polarisation response and possible sensor specific
+    // "rotation" 
+    const Index nch = mm_pol.nelem();  // Number of channels
+    ArrayOfString pol(nch);
+    ArrayOfString rot(nch);
+    for (Index i = 0; i < nch; i++)
     {
         if (mm_pol[i] == "AMSU-H")
         {
-            pol_type[i] = "AMSU";
+            rot[i] = "AMSU";
             pol[i] = "H";
         }
         else if (mm_pol[i] == "AMSU-V")
         {
-            pol_type[i] = "AMSU";
+            rot[i] = "AMSU";
             pol[i] = "V";
         }
-        else if (mm_pol[i] == "H" || mm_pol[i] == "V")
+        if (mm_pol[i] == "ISMAR-H")
         {
-            pol_type[i] = "Default";
+            rot[i] = "ISMAR";
+            pol[i] = "H";
+        }
+        else if (mm_pol[i] == "ISMAR-V")
+        {
+            rot[i] = "ISMAR";
+            pol[i] = "V";
+        }
+        else if (mm_pol[i] == "H"   || mm_pol[i] == "V"   || 
+                 mm_pol[i] == "LHC" || mm_pol[i] == "RHC" )
+        {
+            rot[i] = "none";
             pol[i] = mm_pol[i];
         }
         else
@@ -698,24 +710,16 @@ void met_mm_polarisation_hmatrix(Sparse& H,
             os << "Unknown polarisation " << mm_pol[i];
             throw std::runtime_error(os.str());
         }
-
-
     }
+
     // Vectors representing standard cases of sensor polarisation response
     ArrayOfVector pv;
     stokes2pol( pv, w );
 
-    // Init H for polarisation, just needed to be done once
-    Sparse Hpol( stokes_dim, stokes_dim );
-
-    // The above should be outside any loop
-
-    // If only one za (which I guess), also the above outside loop
-
     // Complete H, for all channels
-    H = Sparse( npol, npol*stokes_dim );
+    H = Sparse( nch, nch*stokes_dim );
 
-    for( Index i=0; i<npol; i++ )
+    for( Index i=0; i<nch; i++ )
     {
         // See stokes2pol for index order used in pv
         Index ipv;
@@ -730,51 +734,68 @@ void met_mm_polarisation_hmatrix(Sparse& H,
         else
         { assert( 0 ); }
 
-        // Apply sensor specific rotation
-        if (pol_type[i] == "AMSU")
-        {
-            // Here we mimic AMSU-A (at least my guees how it should be)
-            mueller_rotation( Hpol, stokes_dim, 180-abs(za) );
-        }
-        else if (pol_type[i] == "Default")
-        {
-            Hpol.make_I(stokes_dim, stokes_dim);
-        }
-        else
-        {
-            assert(0);
-        }
-        
         // Maybe this error messages should be mofified
         if( pv[ipv].nelem() > stokes_dim )
         {
             ostringstream os;
-            os << "You have selected an output polarisation that is not covered "
-            << "by present value of *stokes_dim* (the later has to be "
+            os << "You have selected a channel polarisation that is not "
+            << "covered by present value of *stokes_dim* (the later has to be "
             << "increased).";
             throw runtime_error(os.str());
         }
 
-        // H-matrix matching pv[ipv] (can this made in more compact way?)
-        Sparse Hr( 1, stokes_dim );
+        // No rotation, just plane polarisation response
+        if( rot[i] == "none" )
         {
+          // Here we just need to fill the row H
+          Vector hrow( nch*stokes_dim, 0.0 );
+          hrow[Range(i*stokes_dim,pv[ipv].nelem())] = pv[ipv];
+          H.insert_row( i, hrow );      
+        }
+        
+        // Rotation + pol-response
+        else
+        {
+          // Rotation part
+          Sparse Hrot( stokes_dim, stokes_dim );
+          if (rot[i] == "AMSU")
+          {
+            // Here we mimic AMSU-A (at least my guees how it should be)
+            mueller_rotation( Hrot, stokes_dim, 180-abs(za) );
+          }
+          else if (rot[i] == "ISMAR")
+          {
+            // Here we mimic ISMAR (so far it is just a guess for the sign
+            // of the rotation, 127=180-53)
+            mueller_rotation( Hrot, stokes_dim, abs(za)-127 );
+          }
+          else
+          {
+            assert(0);
+          }
+        
+          // H-matrix matching pv[ipv] (can this made in more compact way?)
+          Sparse Hpol( 1, stokes_dim );
+          {
             Vector hrow( stokes_dim, 0.0 );
             hrow[Range(0,pv[ipv].nelem())] = pv[ipv];
-            Hr.insert_row( 0, hrow );
+            Hpol.insert_row( 0, hrow );
+          }
+
+          // H for the individual channel
+          Sparse Hc( 1, stokes_dim );
+          mult( Hc, Hpol, Hrot );
+
+          // Put Hc into H
+          Vector hrow( nch*stokes_dim, 0.0 );
+          const Index i0=i*stokes_dim;
+          for( Index s=0; s<stokes_dim; s++ )
+          {  hrow[i0+s] = Hc(0,s); }
+          H.insert_row( i, hrow );      
         }
-
-        // H for the individual channel
-        Sparse Hc( 1, stokes_dim );
-        mult( Hc, Hr, Hpol );
-
-        // Put Hc into H
-        Vector hrow( npol*stokes_dim, 0.0 );
-        const Index i0=i*stokes_dim;
-        for( Index s=0; s<stokes_dim; s++ )
-        {  hrow[i0+s] = Hc(0,s); }
-        H.insert_row( i, hrow );      
     }
 }
+
 
 
 //! sensor_aux_vectors
