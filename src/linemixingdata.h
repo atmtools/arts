@@ -28,6 +28,7 @@ USA. */
 
 #include <stdexcept>
 #include <cmath>
+#include "interpolation.h"
 #include "interpolation_poly.h"
 #include "matpackI.h"
 #include "array.h"

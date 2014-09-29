@@ -731,7 +731,7 @@ bool LineRecord::ReadFromLBLRTMStream(istream& is, const Verbosity& verbosity)
                   ostringstream os;
                   os << "Invalid HITRAN 1986-2001 line data record with " << nChar <<
                         " characters (expected: 100)." << endl << line << " n: " << line.nelem ();
-                  throw runtime_error(os.str());
+                  throw std::runtime_error(os.str());
                 }
 
             }
@@ -820,8 +820,8 @@ bool LineRecord::ReadFromLBLRTMStream(istream& is, const Verbosity& verbosity)
 
     Numeric s;
 
-    // Extract HITRAN intensity:
-    extract(s,line,10);
+    // Extract HITRAN intensity:  
+    extract(s,line,10); // NOTE:  If error shooting, FORTRAN "D" is not read properly.
     // Convert to ARTS units (Hz / (molec * m-2) ), or shorter: Hz*m^2
     mi0 = s * hi2arts;
     // Take out isotopologue ratio:
@@ -989,18 +989,17 @@ bool LineRecord::ReadFromLBLRTMStream(istream& is, const Verbosity& verbosity)
   // Reference temperature for AGAM and SGAM in K.
   // (This is also fix for HITRAN)
   mtgam = 296.0;
-
-  // Skip one
+  
+  // Skip four
   {
-    Index one;
-    extract(one,line,1);
+    Index four;
+    extract(four,line,4);
   }
   
   // This is the test
   {
     Index linemixing_test;
     extract(linemixing_test,line,2);
-    
     //If the tag is as it should be, then a minus one means that more should be read
     if( linemixing_test==-1 )
       getline(is,line);
@@ -1072,8 +1071,8 @@ bool LineRecord::ReadFromLBLRTMStream(istream& is, const Verbosity& verbosity)
   
   extern const Numeric ATM2PA;
   
-  Y *= ATM2PA;
-  G *= ATM2PA*ATM2PA;
+  Y /= ATM2PA;
+  G /= ATM2PA/ATM2PA;
   
   // Set the data in the class
   mlinemixingdata.SetLBLRTMFromTheirCatalog(T,Y,G);

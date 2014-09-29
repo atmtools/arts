@@ -47,17 +47,24 @@ void LineMixingData::GetLBLRTM(Numeric& Y, Numeric& G, const Numeric& Temperatur
       const Vector& y = mdata[1];
       const Vector& g = mdata[2];
       
+      const Vector T0(1,Temperature);
+      Vector tmp(1);
+      
       // Interpolation variables
-      GridPosPoly gp;
-      Vector itw;
+      ArrayOfGridPosPoly gp(1);
+      
+      Matrix itw;
+      itw.resize(gp.nelem(),order+1);
       
       // Interpolation variale determination
-      gridpos_poly(gp, t, Temperature, order);
+      gridpos_poly(gp, t, T0, order);
       interpweights(itw, gp);
       
       // Interpolated values
-      Y = interp(itw, y, gp);
-      G = interp(itw, g, gp);
+      interp(tmp, itw, y, gp);
+      Y = tmp[0];
+      interp(tmp,itw, g, gp);
+      G = tmp[0];
 }
 
 void LineMixingData::Get2ndOrder(Numeric& Y, Numeric& G, Numeric& DV, const Numeric& Temperature)
