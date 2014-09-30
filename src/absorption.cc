@@ -1619,7 +1619,7 @@ void xsec_species_line_mixing_wrapper(  MatrixView               xsec_attenuatio
             break;
             
           default:
-            throw std::runtime_error{"Bad line mixing tag detected.\n"};
+            throw std::runtime_error("Bad line mixing tag detected.\n");
             break;
         }
     }
