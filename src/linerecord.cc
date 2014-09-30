@@ -819,7 +819,8 @@ bool LineRecord::ReadFromLBLRTMStream(istream& is, const Verbosity& verbosity)
     const Numeric hi2arts = 1e-2 * SPEED_OF_LIGHT;
 
     Numeric s;
-
+    if(line[6]=='D')
+      line[6]='E';
     // Extract HITRAN intensity:  
     extract(s,line,10); // NOTE:  If error shooting, FORTRAN "D" is not read properly.
     // Convert to ARTS units (Hz / (molec * m-2) ), or shorter: Hz*m^2
@@ -941,6 +942,20 @@ bool LineRecord::ReadFromLBLRTMStream(istream& is, const Verbosity& verbosity)
   //Skip lower state local quanta 
   {
     Index ell;
+    if(species_data[mspecies].Name() == "O2")
+    {
+      String helper = line.substr(0,9);
+      Index DJ =  -  helper.compare(3, 1, "Q");
+      Index DN =  -  helper.compare(0, 1, "Q");
+      Index N = atoi(helper.substr(1,2).c_str());
+      Index J = atoi(helper.substr(4,2).c_str());
+      
+      mquantum_numbers.SetLower(QN_N, N);
+      mquantum_numbers.SetLower(QN_J, J);
+      mquantum_numbers.SetUpper(QN_N, N - DN);
+      mquantum_numbers.SetUpper(QN_J, J - DJ);
+    }
+      
     extract(ell,line,9);
   }
 
@@ -996,13 +1011,23 @@ bool LineRecord::ReadFromLBLRTMStream(istream& is, const Verbosity& verbosity)
     extract(four,line,4);
   }
   
-  // This is the test
+  // This is the test for the last two characters of the line
   {
-    Index linemixing_test;
-    extract(linemixing_test,line,2);
+    /* 
+     *   0 is nothing, 
+     *  -1 is linemixing on the next line, 
+     *  -3 is the non-resonant line 
+     */
+    Index test;
+    extract(test,line,2);
     //If the tag is as it should be, then a minus one means that more should be read
-    if( linemixing_test==-1 )
+    if( test==-1 )
       getline(is,line);
+    else if( test==-3 )
+    {
+      getline(is,line);
+      return false;
+    }
     else // the line is done and we are happy to leave
       return false;
   }

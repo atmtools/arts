@@ -710,12 +710,19 @@ GriddedField3Create(B)
                          lon_grid, B )
 \end{code}
 where \verb|B_1comp.xml.gz| contains the (atmospheric) profile or field for one
-components of the magnetic field. Input needs to be provided for each non-zero
+components of the magnetic field. 
+Since the magnetic field is usually not dependent on the pressure,
+it is also possible to use the  
+\begin{code}
+ GriddedFieldZToPRegrid(*)
+\end{code}
+functionality to input altitude-gridded magnetism.
+Input needs to be provided for each non-zero
 magnetic field component separately into the respective WSVs \wsvindex{mag\_w\_field}, 
 \wsvindex{mag\_v\_field}, and \wsvindex{mag\_u\_field}. For more information on
 magnetic field format in ARTS see Section~\ref{sec:atm:vecfields}.
 
-Lastly, it isnecessary to take phase effects into account when calculating the
+Lastly, it is necessary to take phase effects into account when calculating the
 Zeeman effect. It is therefore important that \wsvindex{abs\_lineshape} is
 chosen such that it allows for this information to be provided. One
 suitable line shape can be defined through
@@ -727,57 +734,94 @@ abs_lineshapeDefine( abs_lineshape, "Faddeeva_Algorithm_916",
 \subsection{Internal line-mixing}
 \label{sec:absorption:line-mixing}
 
-For first- and second-ordered line-mixing there exists an explicit tag to read
-and match line-mixing parameters to individual lines. This can be accessed
-through the tags \verb|"O2-LM_2NDORDER"| or \verb|"O2-Z-LM_2NDORDER"|, if you
-want to calculate line-mixing with the Zeeman effect. In order to match the data
-to specific lines, a set of calls are necessary by the user. First of all,
-after \builtindoc{abs\_lines} have been created, line mixing needs to be initialized
-through \wsmindex{line\_mixing\_dataInit}. After this, it is important to pass an
-\builtindoc{ArrayOfLineMixingRecord} containing the line-mixing data into 
-\wsmindex{line\_mixing\_dataMatch}, which will match the data in the Array* by quantum
-numbers to lines in \builtindoc{abs\_lines}. If this is done properly, line-mixing will
-be applied at a lower level.
+Line mixing is implemented as the \verb|-LM-| species tag.  Added to 
+a species, ARTS knows that it should look for lines with
+line mixing data attached to them when it calculates the spectral cross sections.
+Note that each line is initialized without any line mixing data, and with a tag 
+state that says they are not to be line mixed.  If this is not changed before the
+absorption calculations are performed, the line will regardless of species tag still
+act like if it were not line mixed.  Also note that it is possible to calculate line mixing
+in conjuncture with the Zeeman effect, but that it is not possible to calculate the line mixing
+of individual Zeeman lines, which as far as we know when writing this is unimportant.
 
-Example flow for code calculating a single Zeeman line with \chem{O_2} 
-line-mixing spectrum in the background:
+The possible tags on species \verb|X| that activates the line mixing module are thus
+\verb|X-LM-*|, and \verb|X-Z-LM-*|.
+The supported ways to ensure that the line record contains information on
+how to calculate line mixing, thus not ignoring it, are 
+\begin{itemize}
+ \item Read an ARTS catalogue file with line mixing parameters.
+ \item Read LBLRTM line catalogue containing line mixing parameters using 
+ \verb|abs_linesReadFromLBLRTM(*)|.
+ \item Read a line database that does not have line mixing, but use the 
+ \verb|line_mixing_dataMatch(*)| method to inject line mixing data into the line record.
+\end{itemize}
+There is no preferred method in ARTS --- each work the same when they reach the absorption
+calculations --- but we urge the user to be sure that line mixing data and the line database
+are of the same origin, as the calculations will be of poor quality if this is not the case.
+
+Example control file meta flow for code calculating line mixing using \verb|abs_linesReadFromLBLRTM|:
 \begin{code}
 # Define your atmospheric species,
-abs_speciesSet(species=["O2-Z-66-LM_2NDORDER-53.0469e9-53.0869e9",
-    "O2-66-LM_2NDORDER","O2"])
+abs_speciesSet(species=["O2-Z-LM","CO2-LM"])
 
 # read from a line database,
-abs_linesReadFromHitran(filename="HITRAN08.par", 
-    fmin=40e9,fmax=120e9)
+abs_linesReadFromLBLRTM(filename="aer", 
+    fmin=1e1,fmax=1e20)
+\end{code}
+Note that this meta flow is very similar to using an ARTS catalogue with line mixing.
+These methods are easy, because they identity what line mixing method will be used 
+directly from the catalogue.
 
-# and create the lines.
+Example control file meta flow for code calculating line mixing using \verb|line_mixing_dataMatch|:
+\begin{code}
+# Define your atmospheric species,
+abs_speciesSet(species=["O2-Z-LM","CO2-LM"])
+
+# Read from a line database,
+abs_linesReadFromHITRAN(filename="HITRAN2012.par", 
+    fmin=1e1,fmax=1e20)
+
+# Sort the line records into the format ARTS wants
 abs_lines_per_speciesCreateFromLines
 
-# Initiate the line-mixing
-line_mixing_dataInit
-
-# Create a way to temporally store line-mixing data.
+# Create a way to temporally store O2 line mixing data.
 ArrayOfLineMixingRecordCreate(lm_o2)
-ReadXML(lm_o2,"o2_v1_0_band_40-120_GHz.xml")
+ReadXML(lm_o2,"o2.xml")
 
-# Finally match the line-mixing data with the species you 
-are interested in.
+# Create a way to temporally store CO2 line mixing data.
+ArrayOfLineMixingRecordCreate(lm_co2)
+ReadXML(lm_co2,"co2.xml")
+
+# Match the line mixing data with O2 and Zeeman effect
 line_mixing_dataMatch(
-    species_tag="O2-66-LM_2NDORDER",
-    line_mixing_records=lm_o2)
+    species_tag="O2-Z-LM",
+    line_mixing_records=lm_o2
+    line_mixing_tag=LM*)
+
+# Match the line mixing data with O2 and Zeeman effect
 line_mixing_dataMatch(
-    species_tag="O2-Z-66-LM_2NDORDER-53.0469e9-53.0869e9",
-    line_mixing_records=lm_o2)
+    species_tag="CO2-LM",
+    line_mixing_records=lm_co2,
+    line_mixing_tag=LM*)
 \end{code}
+The latter method is much more complicated than reading directly from the catalogue.
+This is because the user has to ensure what type of line mixing is going on
+and then parse that data properly to ARTS.  In order for ARTS to know what line the user 
+wants to line mix, a series of line database matching 
+based on the quantum numbers of the line is necessary.
+This means that it only works for those species and catalogue formats
+for which we have implemented quantum number reading.
+This list is small but growing, and if you need help adding another species, 
+let us know via the mailing list.
 
-There is future plans for more methods to allow internal line-mixing for different molecules,
-but at the time of writing the second order line-mixing method for the oxygen
-molecule is the only included method.
-As a consequence, first order line-mixing also works for oxygen.
-For details on the second order line-mixing method see \citet{makarov11:_60-ghz_jqsrt}.
-To be fully accurate, the method should work with the correct input data for other molecules as well.
+There are two \verb|line_mixing_tag| supported at this point:
+\verb|"LL"| and \verb|"L2"|.  These refer to LBLRTM, and second order line mixing.
+Setting these tags will tell ARTS how to calculate the line mixing of any particular line.
+The data is matched from \verb|ArrayOfLineMixingRecord|,
+which must contain a \verb|SpeciesTag|, a
+\verb|QuantumNumberRecord|, and a vector that is the correct length for the method selected
 
-Example of correct input data:
+Example of correct input data for using the second order approach ("L2"):
 \begin{code}
 <?xml version="1.0"?>
 <arts format="ascii" version="1">
@@ -814,8 +858,8 @@ The above input will cause the \verb|O2-66-*-*| line with
 upper quantum numbers $J=1$, $N=1$ and $\nu_1=0$ and with
 lower quantum numbers $J=2$, $N=1$ and $\nu_1=0$ to match.
 If this is the only input file, the described line is the only
-line experiencing line-mixing in your calculations. If there
-were more lines in the file, these would also experience line-mixing.
+line experiencing line mixing in your calculations. If there
+were more lines in the file, these would also experience line mixing.
 In order of appearance in the vector, its format is 
 first order zeroth phase correction [Pa$^{-1}$], 
 first order first phase correction [Pa$^{-1}$],
@@ -827,11 +871,52 @@ standard temperature for corrections [K],
 first order phase temperature correction exponential term [-],
 second order absorption temperature correction exponential term [-], and
 second order line-center temperature correction exponential term [-].
-The format of the vector is fixed according to necessary information found in \citet{makarov11:_60-ghz_jqsrt},
+The format of the vector is fixed according to necessary information found 
+in \citet{makarov11:_60-ghz_jqsrt},
 the naming scheme of the variables above can also be understood from the same work.
-
-First order line mixing, as per the MPM/PWR complete oxygen models, 
+Note that first order line mixing, as per the MPM/PWR complete oxygen models, 
 can be achieved with the correct input by letting the second order terms be nil.
+
+
+
+Example of correct input data for using the LBLRTM approach ("LL"):
+\begin{code}
+<?xml version="1.0"?>
+<arts format="ascii" version="1">
+<Array type="LineMixingRecord" nelem="38">
+<LineMixingRecord>
+<SpeciesTag>"O2-66-*-*"</SpeciesTag>
+<QuantumNumberRecord>
+<Upper><QuantumNumbers nelem="3"> 
+  J 1/1 N 1/1 v1 0/1 
+</QuantumNumbers></Upper>
+<Lower><QuantumNumbers nelem="3"> 
+  J 2/1 N 1/1 v1 0/1 
+</QuantumNumbers></Lower>
+</QuantumNumberRecord>
+<Vector nelem="12">
+200
+250
+296
+340
+-0.004433034295584e-4
+-0.003982500863558e-4
+-0.003628075993092e-4
+-0.003341074759437e-4
+0
+0
+0
+0
+</Vector>
+</LineMixingRecord>
+</Array>
+</arts>
+\end{code}
+In this format, the first four values are a temperature grid in Kelvin, 
+the following four values are the first order
+line mixing coefficients at these temperature grid points [in units 1/Pa], 
+and the last four are the second order line mixing coefficients at these temperature grid points [in units 1/Pa$^2$].
+ARTS will use linear interpolation to get line mixing coefficients between and outside grid points.
 
 \textit{Warning:} There appears to be some errors in the quantum number encoding
 in HITRAN04 and HITRAN08 that makes the line mixing module wrong.  The newer

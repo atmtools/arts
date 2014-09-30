@@ -1,3 +1,12 @@
+2014-09-30  Richard Larsson <ric.larsson@gmail.com>
+
+	* arts-2-3-22
+
+	* src/linerecord.cc:  Fixed so that Zeeman calculations for 
+	molecular oxygen works with the LBLRTM catalog.
+
+	* doc/uguide/absorption.tex:  Document changes in line mixing.
+
 2014-09-30  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-21
