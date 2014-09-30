@@ -1,5 +1,22 @@
 2014-09-30  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-3-21
+
+	* src/abs_species_tags.cc:
+	
+	(SpeciesTag::SpeciesTag): Remove tag LM_2NDORDER. Instead a -LM flag
+	should be placed after the species name (or the optional Z tag).
+
+	(SpeciesTag::Name): Adapt for LM tag change.
+
+	* src/methods.cc: Update docs for LM tag change.
+
+	* controlfiles/artscomponents/linemixing/TestLineMixing*.arts:
+
+	Adapt for LM tag change.
+
+2014-09-30  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-3-20
 
 	* src/absorption.cc (xsec_species_line_mixing_wrapper):

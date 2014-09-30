@@ -44,7 +44,7 @@ VectorSet(f_grid, [ 61.14e9, 61.15e9, 61.16e9, 61.17e9])
 
 # Definition of species
 # ---
-abs_speciesSet( species=["H2O","N2","O2-66-LM_2NDORDER"] )
+abs_speciesSet( species=["H2O","N2","O2-LM-66"] )
 
 # read line catalogue (one line)
 abs_linesReadFromSplitArtscat(abs_lines, abs_species, 
@@ -57,7 +57,7 @@ ArrayOfLineMixingRecordCreate(lm_o2)
 
 ReadXML(lm_o2,"spectroscopy/LineMixing/2nd_order/o2_v1_0_band_40-120_GHz.xml.gz")
 
-line_mixing_dataMatch(species_tag="O2-66-LM_2NDORDER",line_mixing_tag="L2",line_mixing_records=lm_o2)
+line_mixing_dataMatch(species_tag="O2-LM-66",line_mixing_tag="L2",line_mixing_records=lm_o2)
 
 #Get isotopologue ratioss
 isotopologue_ratiosInitFromBuiltin

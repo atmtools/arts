@@ -1335,8 +1335,11 @@ void define_md_data_raw()
          "oxygen 18 atom. Groups of transitions are specified by giving a lower\n"
          "and upper limit of a frequency range, e.g., \"O3-666-500e9-501e9\".\n"
          "\n"
-         "To turn on Zeeman calculation for a Species, \"-Z\" may be appended\n"
+         "To turn on Zeeman calculation for a species, \"-Z\" may be appended\n"
          "to its name: \"O2-Z\" or \"O2-Z-66\"\n"
+         "\n"
+         "To turn on line mixing calculation for a species, \"-LM\" may be appended\n"
+         "to its name (or after the Zeeman tag): \"O2-LM\" or \"O2-Z-LM-66\"\n"
          "\n"
          "The symbol \"*\" acts as a wild card. Furthermore, frequency range or\n"
          "frequency range and isotopologue may be omitted.\n"
@@ -6648,7 +6651,7 @@ void define_md_data_raw()
          "  ArrayOfLineMixingRecordCreate(lm_o2)\n"
          "  ReadXML(lm_o2, \"o2_v1_0_band_40-120_GHz.xml\")\n"
          "  line_mixing_dataInit\n"
-         "  line_mixing_dataMatch(species_tag=\"O2-66-LM_2NDORDER\",\n"
+         "  line_mixing_dataMatch(species_tag=\"O2-LM-66\",\n"
          "                        line_mixing_records=lm_o2)\n"
 
          ),

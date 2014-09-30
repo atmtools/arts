@@ -164,6 +164,27 @@ SpeciesTag::SpeciesTag(String def)
               def  = "";
             }
         }
+
+        if ("LM" == isoname)
+        {
+            mline_mixing = LINE_MIXING_ON;
+
+            // Line mixing flag was present, now extract the isotopologue name:
+            n    = def.find('-');    // find the '-'
+            if (n != def.npos )
+            {
+                isoname = def.substr(0,n);    // Extract before '-'
+                def.erase(0,n+1);             // Remove from def
+            }
+            else
+            {
+                // n==def.npos means that def does not contain a '-'. In that
+                // case we assume that it contains just the isotopologue name and
+                // nothing else.
+                isoname = def;
+                def  = "";
+            }
+        }
     }
   else
     {
@@ -179,6 +200,14 @@ SpeciesTag::SpeciesTag(String def)
           // the user wants all isotopologues and no frequency limits.
           misotopologue = spr.Isotopologue().nelem();
           return;
+        }
+        if ("LM" == isoname)
+        {
+            mline_mixing = LINE_MIXING_ON;
+            // This means that there is nothing else to parse. Apparently
+            // the user wants all isotopologues and no frequency limits.
+            misotopologue = spr.Isotopologue().nelem();
+            return;
         }
     }
 
@@ -275,31 +304,6 @@ SpeciesTag::SpeciesTag(String def)
 
       return;
     }
-
-  // Check if a line mixing type is present
-
-  if (def.substr(0, 2) == "LM")
-  {
-      n = def.find('-');    // find the '-' or the end
-      if (n == def.npos) n = def.nelem();
-
-      String lmtype = def.substr(0, n);
-      if (lmtype == "LM_2NDORDER")
-          mline_mixing = LINE_MIXING_ON;
-      else if (lmtype == "LM_NONE")
-          mline_mixing = LINE_MIXING_OFF;
-      else
-      {
-          ostringstream os;
-          os << "Unknown line mixing type \"" << lmtype << "\"";
-          throw std::runtime_error(os.str());
-      }
-
-      def.erase(0, n+1);
-
-      // Return if there's nothing else to parse
-      if (!def.nelem()) return;
-  }
 
   if (def[0] != '*' && !isdigit(def[0]))
     {
@@ -421,8 +425,15 @@ String SpeciesTag::Name() const
     else
       {
         // Zeeman flag.
-        if (mtype==TYPE_ZEEMAN) os << "Z-";
+        if (mtype == TYPE_ZEEMAN) os << "Z-";
         
+        // Line Mixing Type
+
+        if (mline_mixing != LINE_MIXING_OFF)
+        {
+            os << "LM-";
+        }
+
         // Now the isotopologue. Can be a single isotopologue or ALL.
         if ( misotopologue == spr.Isotopologue().nelem() )
           {
@@ -438,22 +449,6 @@ String SpeciesTag::Name() const
           {
             os << spr.Isotopologue()[misotopologue].Name() << "-";
           }
-
-        // Line Mixing Type
-
-        if (mline_mixing != LINE_MIXING_OFF)
-        {
-            os << "LM_";
-            switch (mline_mixing)
-            {
-                case LINE_MIXING_ON:
-                    os << "2NDORDER";
-                    break;
-                default:
-                    throw std::runtime_error("Invalid line mixing type. This is impossible.");
-            }
-            os << "-";
-        }
 
         // Now the frequency limits, if there are any. For this we first
         // need to determine the floating point precision.

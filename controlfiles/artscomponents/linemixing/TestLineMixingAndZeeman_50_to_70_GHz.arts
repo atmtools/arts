@@ -44,7 +44,7 @@ VectorLinSpace(f_grid, 50e9,70e9,1e9)
 
 # Definition of species
 # ---
-abs_speciesSet( species=["H2O","N2","O2-Z-66-LM_2NDORDER","O2"] )
+abs_speciesSet( species=["H2O","N2","O2-Z-LM-66","O2"] )
 
 # read line catalogue  (full band)
 abs_linesReadFromSplitArtscat(abs_lines, abs_species, 
@@ -60,7 +60,7 @@ ArrayOfLineMixingRecordCreate(lm_o2)
 
 ReadXML(lm_o2,"spectroscopy/LineMixing/2nd_order/o2_v1_0_band_40-120_GHz.xml.gz")
 
-line_mixing_dataMatch(species_tag="O2-Z-66-LM_2NDORDER",line_mixing_tag="L2",line_mixing_records=lm_o2)
+line_mixing_dataMatch(species_tag="O2-Z-LM-66",line_mixing_tag="L2",line_mixing_records=lm_o2)
 
 #Get isotopologue ratioss
 isotopologue_ratiosInitFromBuiltin
@@ -147,7 +147,7 @@ Compare( y, yREFERENCE, 1e-2 )
 
 # 1ST Order line mixing (Tretyakov et al., 2005)
 ReadXML(lm_o2,"spectroscopy/LineMixing/1st_order/o2_v1_0_band_40-120_GHz.xml.gz")
-line_mixing_dataMatch(species_tag="O2-Z-66-LM_2NDORDER",line_mixing_tag="L2",line_mixing_records=lm_o2)
+line_mixing_dataMatch(species_tag="O2-Z-LM-66",line_mixing_tag="L2",line_mixing_records=lm_o2)
 
 yCalc
 
