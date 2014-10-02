@@ -1,3 +1,23 @@
+2014-10-02  Richard Larsson <ric.larsson@gmail.com>
+
+	* arts-2-3-23
+	
+	We can now calculate non-resonant O2 from LBLRTM catalogue.
+
+	* doc/uguide/absorption.tex:  Document how to use the changes.
+	
+	* src/absorption.{cc,h}:  Added a special function to deal with non-resonant
+	molecular oxygen band at zero frequency in the same way that LBLRTM deals
+	with this.
+	
+	* src/linemixingdata.{h,cc}: The complementary class metods were added here.
+	
+	* src/linerecord.cc:  And the reading routine here was also adjusted.
+	
+	* src/lineshapes.cc: Added a special line shape for non-resonant O2.  It is not
+	recommended to use this line shape elsewhere, since it is custom made for 
+	non-resonance.
+
 2014-09-30  Richard Larsson <ric.larsson@gmail.com>
 
 	* arts-2-3-22

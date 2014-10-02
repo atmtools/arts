@@ -771,6 +771,9 @@ abs_linesReadFromLBLRTM(filename="aer",
 Note that this meta flow is very similar to using an ARTS catalogue with line mixing.
 These methods are easy, because they identity what line mixing method will be used 
 directly from the catalogue.
+It should be noted that LBLRTM also gives the non-resonant term of the molecular oxygen
+spectra as a low frequency line.  If it is desired to calculate this term, the lower
+frequency range must contain the line as per the definition of our reading routines.
 
 Example control file meta flow for code calculating line mixing using \verb|line_mixing_dataMatch|:
 \begin{code}
@@ -814,8 +817,8 @@ for which we have implemented quantum number reading.
 This list is small but growing, and if you need help adding another species, 
 let us know via the mailing list.
 
-There are two \verb|line_mixing_tag| supported at this point:
-\verb|"LL"| and \verb|"L2"|.  These refer to LBLRTM, and second order line mixing.
+There are three \verb|line_mixing_tag| supported at this point:
+\verb|"LL"|, \verb|"NR"| and \verb|"L2"|.  These refer to LBLRTM, and second order line mixing.
 Setting these tags will tell ARTS how to calculate the line mixing of any particular line.
 The data is matched from \verb|ArrayOfLineMixingRecord|,
 which must contain a \verb|SpeciesTag|, a
@@ -879,7 +882,7 @@ can be achieved with the correct input by letting the second order terms be nil.
 
 
 
-Example of correct input data for using the LBLRTM approach ("LL"):
+Example of correct input data for using the LBLRTM approach ("LL" and "NR"):
 \begin{code}
 <?xml version="1.0"?>
 <arts format="ascii" version="1">
@@ -912,11 +915,15 @@ Example of correct input data for using the LBLRTM approach ("LL"):
 </Array>
 </arts>
 \end{code}
-In this format, the first four values are a temperature grid in Kelvin, 
-the following four values are the first order
+In this format, the first four values are a temperature grid in Kelvin.
+For "LL" the following four values are the first order
 line mixing coefficients at these temperature grid points [in units 1/Pa], 
 and the last four are the second order line mixing coefficients at these temperature grid points [in units 1/Pa$^2$].
-ARTS will use linear interpolation to get line mixing coefficients between and outside grid points.
+For "NR" the following four values are the first order
+non-resonant term at these temperature grid points [in units 1/Pa], 
+and the last four are the second order non-resonant terms
+at these temperature grid points [in units 1/Pa$^2$].
+ARTS will use linear interpolation to get proper coefficients between and slightly outside grid points.
 
 \textit{Warning:} There appears to be some errors in the quantum number encoding
 in HITRAN04 and HITRAN08 that makes the line mixing module wrong.  The newer

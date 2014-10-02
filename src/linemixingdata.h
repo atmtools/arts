@@ -39,9 +39,10 @@ class LineMixingData
 public:
     
     enum LM_Type {
-      LM_NONE,          // Reserved for no line mixing
-      LM_LBLRTM,        // Reserved for LBLRTM line mixing
-      LM_2NDORDER       // Reserved for Makarov et al. 2011 second order line mixing
+      LM_NONE,                          // Reserved for no line mixing
+      LM_LBLRTM,                        // Reserved for LBLRTM line mixing
+      LM_LBLRTM_O2NonResonant,          // Reserved for the non-resonant O2 line in LBLRTM
+      LM_2NDORDER                       // Reserved for Makarov et al. 2011 second order line mixing
     };
   
     // Defining an object
@@ -54,8 +55,9 @@ public:
     // Use these to return data in the format required by the line shape calculator
     void GetLBLRTM(Numeric& Y, Numeric& G, const Numeric& Temperature, const Index& order); 
     void Get2ndOrder(Numeric& Y, Numeric& G, Numeric& DV, const Numeric& Temperature);
+    void GetLBLRTM_O2NonResonant(Numeric& Gamma1, Numeric& Gamma2, const Numeric& Temperature, const Index& order);
     
-    // Use these to insert the data in the required format
+    // Use these to insert the data in the required format from catalog readings
     void SetLBLRTMFromTheirCatalog(const Vector& t, const Vector& y, const Vector& g) {
       mtype = LM_LBLRTM;
       mdata.resize(3);
@@ -63,16 +65,28 @@ public:
       mdata[1] = y;
       mdata[2] = g;
     }
+    void SetLBLRTM_O2NonResonantFromTheirCatalog(const Vector& t, const Vector& gamma1, const Vector& gamma2) {
+      mtype = LM_LBLRTM_O2NonResonant;
+      mdata.resize(3);
+      mdata[0] = t;
+      mdata[1] = gamma1;
+      mdata[2] = gamma2;
+    }
+    
+    // Use these to read data from XML-formats
+    void StorageTag2SetType(const String& input);
+    Index ExpectedVectorLengthFromType();
+    void SetDataFromVectorWithKnownType(const Vector& input);
     
     // Use these to read data from ARTS catalog
     void Vector2LBLRTMData(const Vector& input);
+    void Vector2LBLRTM_O2NonResonantData(const Vector& input);
     void Vector2NoneData(const Vector&);
     void Vector2SecondOrderData(const Vector& input);
-    void StorageTag2SetType(const String& input);
-    void SetDataFromVectorWithKnownType(const Vector& input);
     
-    // Use these to save data  to  ARTS catalog
+    // Use these to save output vector back to save in ARTS catalog
     void LBLRTMData2Vector(Vector& output);
+    void LBLRTM_O2NonResonantData2Vector(Vector& output);
     void Type2StorageTag(String& output);
     void SecondOrderData2Vector(Vector& output);
     

@@ -31,6 +31,7 @@
 */
 
 #include "arts.h"
+#include "auto_md.h"
 #include <map>
 #include <cfloat>
 #include <algorithm>
@@ -1599,7 +1600,23 @@ void xsec_species_line_mixing_wrapper(  MatrixView               xsec_attenuatio
                                         isotopologue_ratios,
                                         verbosity );
             break;
-            
+          case LineMixingData::LM_LBLRTM_O2NonResonant:
+            xsec_species_LBLRTM_O2NonResonant(
+                                        xsec_attenuation,
+                                        //xsec_phase,
+                                        f_grid,
+                                        abs_p,
+                                        abs_t,
+                                        all_vmrs,
+                                        abs_species,
+                                        this_species,
+                                        abs_lines[ii],
+                                        //ind_ls,
+                                        //ind_lsn,
+                                        cutoff,
+                                        isotopologue_ratios,
+                                        verbosity );
+            break;
           case LineMixingData::LM_2NDORDER:
             xsec_species_line_mixing_2nd_order(
                                         xsec_attenuation,
@@ -1761,6 +1778,71 @@ void xsec_species_line_mixing_LBLRTM(  MatrixView               xsec_attenuation
     xsec_attenuation(joker,0) += attenuation(joker,0); // Zeroth order attenuation
     attenuation *= G;
     xsec_attenuation(joker,0) += attenuation(joker,0); // Second order attenuation correction
+    
+}
+
+
+/** 
+ *  
+ *  This is the LBLRTM O2 non-resonant correction as found in their database.
+ *  
+ *  \retval xsec_attenuation    Cross section of one tag group. This is now the
+ *                              true attenuation cross section in units of m^2.
+ *  xsec_phase          Cross section of one tag group. This is now the
+ *                              true phase cross section in units of m^2.
+ *  \param f_grid               Frequency grid.
+ *  \param abs_p                Pressure grid.
+ *  \param abs_t                Temperatures associated with abs_p.
+ *  \param all_vmrs             Gas volume mixing ratios [nspecies, np].
+ *  \param abs_species          Species tags for all species.
+ *  \param this_species         Index of the current species in abs_species.
+ *  \param my_lines             The linerecord.
+ *  ind_ls               Index to lineshape function.
+ *  ind_lsn              Index to lineshape norm.
+ *  \param cutoff               Lineshape cutoff.
+ *  \param isotopologue_ratios  Isotopologue ratios.
+ * 
+ *  \author Richard Larsson
+ *  \date   2013-04-24
+ * 
+ */
+void xsec_species_LBLRTM_O2NonResonant( MatrixView               xsec_attenuation,
+                                        //MatrixView               xsec_phase,
+                                        ConstVectorView          f_grid,
+                                        ConstVectorView          abs_p,
+                                        ConstVectorView          abs_t,
+                                        ConstMatrixView          all_vmrs,
+                                        const ArrayOfArrayOfSpeciesTag& abs_species,
+                                        const Index              this_species,
+                                        const LineRecord&        my_line,
+                                        //const Index              ind_ls,
+                                        //const Index              ind_lsn,
+                                        const Numeric            cutoff,
+                                        const SpeciesAuxData&    isotopologue_ratios,
+                                        const Verbosity&         verbosity )
+{
+    
+    // Helper variables
+    Matrix attenuation(f_grid.nelem(),1,0), phase(f_grid.nelem(),1,0);
+    const Numeric& p = abs_p[0], t = abs_t[0];
+    
+    Numeric gamma1, gamma2;
+    my_line.LineMixing().GetLBLRTM_O2NonResonant(gamma1,gamma2,t,1);
+    gamma1  *= p;
+    gamma2  *= p * p;
+    
+    ArrayOfLineshapeSpec tmp;
+    abs_lineshapeDefine( tmp, "O2NonResonant", "no_norm", -1, verbosity );
+    
+    
+    const ArrayOfLineRecord ll(1, my_line); // Temporary variable to trick xsec_species
+    
+    xsec_species(attenuation, phase, f_grid, abs_p, abs_t, all_vmrs,
+                abs_species, this_species, ll, tmp[0].Ind_ls(), tmp[0].Ind_lsn(), cutoff,
+                isotopologue_ratios, verbosity);
+    
+    attenuation *= 1 - gamma1 - gamma2;
+    xsec_attenuation(joker,0) += attenuation(joker,0); 
     
 }
 

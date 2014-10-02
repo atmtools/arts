@@ -1805,6 +1805,44 @@ void hui_etal_1978_lineshape( Vector&         ls_attenuation,
     }
 }
 
+
+
+/*! The O2 non-resonant line shape.
+
+    \retval ls_attenuation              The shape function.
+    \retval ls_phase                    The shape function.
+    \retval X                           Auxillary parameter, only used in Voigt fct.
+    \param  f0                          Line center frequency.
+    \param  gamma                       The pressure broadening parameter.
+    \param  sigma                       The Doppler broadening parameter. (Not used.)
+    \param  f_grid                      The frequency grid.
+
+    \author Richard Larsson
+    \date 2014-10-02 */
+void lineshape_o2nonresonant( Vector&         ls_attenuation,
+                              Vector&         ls_phase _U_,
+                              Vector&         X _U_,
+                              const Numeric   f0,
+                              const Numeric   gamma,
+                              const Numeric   sigma _U_,
+                              ConstVectorView f_grid)
+{
+  const Index nf = f_grid.nelem();
+
+  // PI:
+  extern const Numeric PI;
+
+  //  assert( ls.nelem() == nf );
+  
+  Numeric fac = gamma/PI;
+
+  for ( Index i=0; i<nf; ++i )
+    {
+      ls_attenuation[i] =  fac / ( (f_grid[i]-f0) * (f_grid[i]-f0) );
+    }
+}
+
+
 //------------------------------------------------------------------------
 // Normalization Functions 
 //------------------------------------------------------------------------
@@ -2022,6 +2060,12 @@ void define_lineshape_data()
     "Classic line shape.  Solving the complex error function returns both parts\n"
     "of the refractive index.",
     hui_etal_1978_lineshape, PHASE));
+    
+    lineshape_data.push_back
+    (LineshapeRecord
+    ("O2NonResonant",
+    "Special line shape.  Only use for non-resonant O2.",
+    lineshape_o2nonresonant, NO_PHASE));
 }
 
 /*! The lookup data for the different normalization factors to the

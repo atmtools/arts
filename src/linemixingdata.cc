@@ -67,6 +67,44 @@ void LineMixingData::GetLBLRTM(Numeric& Y, Numeric& G, const Numeric& Temperatur
       G = tmp[0];
 }
 
+
+void LineMixingData::GetLBLRTM_O2NonResonant(Numeric& Gamma1, Numeric& Gamma2, const Numeric& Temperature, const Index& order)
+{
+      if( mtype != LM_LBLRTM_O2NonResonant )
+        throw std::runtime_error("Trying to access LineMixingData of another type than defined by the LineRecord.\n");
+      
+      if(mdata.nelem() != 3)
+        throw std::runtime_error("Trying to access LineMixingData of LBLRTM O2 non-resonant type but the LineMixingData does not match this format.\n");
+      
+      if(mdata[0].nelem() != 4 && mdata[1].nelem() != 4 && mdata[2].nelem() != 4)
+        throw std::runtime_error("Trying to access LineMixingData of LBLRTM O2 non-resonant type but the LineMixingData does not match this format.\n");
+      
+      // Helper to understand the following interpolation
+      const Vector& t = mdata[0];
+      const Vector& g1 = mdata[1];
+      const Vector& g2 = mdata[2];
+      
+      const Vector T0(1,Temperature);
+      Vector tmp(1);
+      
+      // Interpolation variables
+      ArrayOfGridPosPoly gp(1);
+      
+      Matrix itw;
+      itw.resize(gp.nelem(),order+1);
+      
+      // Interpolation variale determination
+      gridpos_poly(gp, t, T0, order);
+      interpweights(itw, gp);
+      
+      // Interpolated values
+      interp(tmp, itw, g1, gp);
+      Gamma1 = tmp[0];
+      interp(tmp,itw, g2, gp);
+      Gamma2 = tmp[0];
+}
+
+
 void LineMixingData::Get2ndOrder(Numeric& Y, Numeric& G, Numeric& DV, const Numeric& Temperature)
 {
       if( mtype != LM_2NDORDER )
@@ -103,11 +141,31 @@ void LineMixingData::SetDataFromVectorWithKnownType(const Vector& input)
     Vector2NoneData(input);
   else if(mtype == LM_LBLRTM) // The LBLRTM case
     Vector2LBLRTMData(input);
+  else if(mtype == LM_LBLRTM_O2NonResonant) // The LBLRTM case
+    Vector2LBLRTM_O2NonResonantData(input);
   else if(mtype == LM_2NDORDER) // The 2nd order case
     Vector2SecondOrderData(input);
   else
     throw std::runtime_error("You are trying to store a line mixing type that is unknown to ARTS.\n");
 }
+
+
+// This will be used to know how many parameters must be read from the catalog
+Index LineMixingData::ExpectedVectorLengthFromType()
+{
+  if(mtype == LM_NONE) // The standard case
+    return 0;
+  else if(mtype == LM_LBLRTM) // The LBLRTM case
+    return 12;
+  else if(mtype == LM_LBLRTM_O2NonResonant) // The LBLRTM case
+    return 12;
+  else if(mtype == LM_2NDORDER) // The 2nd order case
+    return 10;
+  else
+    throw std::runtime_error("You are trying to store a line mixing type that is unknown to ARTS.\n");
+  return 0;
+}
+
 
 // This will convert the read vector to the LBLRTM data format
 void LineMixingData::Vector2LBLRTMData(const Vector& input)
@@ -144,10 +202,45 @@ void LineMixingData::Vector2LBLRTMData(const Vector& input)
 }
 
 
+// This will convert the read vector to the LBLRTM O2 non-resonant data format
+void LineMixingData::Vector2LBLRTM_O2NonResonantData(const Vector& input)
+{
+      if(mtype != LineMixingData::LM_LBLRTM_O2NonResonant)
+        throw std::runtime_error("Trying to set LBLRTM O2 non-resonant data from vector for wrong type.\n");
+      
+      if(input.nelem() != 2)
+        throw std::runtime_error("The line mixing data vector is not of the right length for LBLRTM.\n");
+      
+      // Then this is a three-long ArrayOfVector
+      mdata.resize(3);
+      
+      // This is supposed to be the temperature vector
+      mdata[0].resize(4);
+      mdata[0][0] = input[0];
+      mdata[0][1] = input[1];
+      mdata[0][2] = input[2];
+      mdata[0][3] = input[3];
+      
+      // This is supposed to be the gamma1-vector
+      mdata[1].resize(4);
+      mdata[1][0] = input[4];
+      mdata[1][1] = input[5];
+      mdata[1][2] = input[6];
+      mdata[1][3] = input[7];
+      
+      // This is supposed to be the gamma2-vector
+      mdata[2].resize(4);
+      mdata[2][0] = input[8];
+      mdata[2][1] = input[9];
+      mdata[2][2] = input[10];
+      mdata[2][3] = input[11];
+}
+
+
 // This will convert the read vector to the LBLRTM data format
 void LineMixingData::Vector2NoneData(const Vector& input)
 {
-  if(mtype != LineMixingData::LM_LBLRTM)
+  if(mtype != LineMixingData::LM_NONE)
         throw std::runtime_error("Trying to set no data from vector for wrong type.\n");
   
   if( input.nelem() != 0 )
@@ -198,6 +291,8 @@ void LineMixingData::StorageTag2SetType(const String& input)
     mtype = LM_NONE;
   else if(input == "LL") // The LBLRTM case
     mtype = LM_LBLRTM;
+  else if(input == "NR") // The LBLRTM O2 non-resonant case
+    mtype = LM_LBLRTM_O2NonResonant;
   else if(input == "L2") // The 2nd order case
     mtype = LM_2NDORDER;
   else
@@ -223,6 +318,31 @@ void LineMixingData::LBLRTMData2Vector(Vector& output)
       output[7]  = mdata[1][3];
       
       // This is the G-vector
+      output[8]  = mdata[2][0];
+      output[9]  = mdata[2][1];
+      output[10] = mdata[2][2];
+      output[11] = mdata[2][3];
+}
+
+
+// This will convert the LBLRTM data format to a vector for storage
+void LineMixingData::LBLRTM_O2NonResonantData2Vector(Vector& output)
+{
+      output.resize(12);
+      
+      // This is the T-vector
+      output[0]  = mdata[0][0];
+      output[1]  = mdata[0][1];
+      output[2]  = mdata[0][2];
+      output[3]  = mdata[0][3];
+      
+      // This is the gamma1-vector
+      output[4]  = mdata[1][0];
+      output[5]  = mdata[1][1];
+      output[6]  = mdata[1][2];
+      output[7]  = mdata[1][3];
+      
+      // This is the gamma2-vector
       output[8]  = mdata[2][0];
       output[9]  = mdata[2][1];
       output[10] = mdata[2][2];
@@ -264,6 +384,8 @@ void LineMixingData::Type2StorageTag(String& output)
     output = "NA";
   else if(mtype == LM_LBLRTM) // The LBLRTM case
     output = "LL";
+  else if(mtype == LM_LBLRTM_O2NonResonant) // The LBLRTM O2 non-resonant case
+    output = "NR";
   else if(mtype == LM_2NDORDER) // The 2nd order case
     output = "L2"; 
   else

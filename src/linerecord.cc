@@ -1021,13 +1021,8 @@ bool LineRecord::ReadFromLBLRTMStream(istream& is, const Verbosity& verbosity)
     Index test;
     extract(test,line,2);
     //If the tag is as it should be, then a minus one means that more should be read
-    if( test==-1 )
+    if( test==-1 || test==-3 )
       getline(is,line);
-    else if( test==-3 )
-    {
-      getline(is,line);
-      return false;
-    }
     else // the line is done and we are happy to leave
       return false;
   }
@@ -1100,14 +1095,22 @@ bool LineRecord::ReadFromLBLRTMStream(istream& is, const Verbosity& verbosity)
   G /= ATM2PA/ATM2PA;
   
   // Set the data in the class
-  mlinemixingdata.SetLBLRTMFromTheirCatalog(T,Y,G);
+  
   
   // Test that this is the end  
   {
     Index test;
     extract(test,line,2);
     if( test == -1 )
+    {
+      mlinemixingdata.SetLBLRTMFromTheirCatalog(T,Y,G);
       return false;
+    }
+    else if( test == -3 )
+    {
+      mlinemixingdata.SetLBLRTM_O2NonResonantFromTheirCatalog(T,Y,G); 
+      return false;
+    }
     else
       return true;
   }
