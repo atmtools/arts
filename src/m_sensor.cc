@@ -2592,6 +2592,24 @@ void sensor_responseStokesRotation(
        << "*sensor_response_aa_grid*.\n";
     error_found = true;
   }
+  if( npol != stokes_dim )  
+  {
+    os << "Inconsistency detected. The length of *sensor_response_pol_grid*\n"
+       << "must be equal to *stokes_dim*, and this is not the case.\n";
+    error_found = true;
+  }
+  for( Index is=0; is<npol; is++ )
+    {
+      if( sensor_response_pol_grid[is] != is+1 )  
+      {
+        os << "For this method, the values in *sensor_response_pol_grid* must\n"
+           << "be 1,2...stokes_dim. This is not the case, indicating that\n"
+           << "some previous sensor part has that the data no longer are\n"
+           << "Stokes vectors.\n";
+        error_found = true;
+        break;
+      }
+    }
 
   // If errors where found throw runtime_error with the collected error
   // message.
@@ -2600,47 +2618,47 @@ void sensor_responseStokesRotation(
   //---------------------------------------------------------------------------
 
 
-  // Set up the H matrix for applying rotation
+  // Set up complete the H matrix for applying rotation
   //
-  Sparse hrot( sensor_response.nrows(), sensor_response.ncols() );
-  Vector row( hrot.ncols(), 0 );
-  Index  irow = -1;
-  //
-  for( Index iaa=0; iaa<naa; iaa++ )
-    {
-      for( Index iza=0; iza<nza; iza++ )
-        {
-          const Numeric a = cos( 2 * DEG2RAD * stokes_rotation(iza,iaa) );
-          const Numeric b = sin( 2 * DEG2RAD * stokes_rotation(iza,iaa) );
-
-          for( Index ifr=0; ifr<nf; ifr++ ) 
-            {
-              for( Index ip=0; ip<npol; ip++ )
-                {
-                  irow += 1;
-                  if( ip==0  ||  ip==3 )  // Row 1 and 4 of Mueller matrix
-                    { row[irow] = 1; }
-                  else if( ip==1 )        // Row 2
-                    { row[irow] = a; row[irow+1] = b; }
-                  else                    // Row 3
-                    { row[irow] = a; row[irow-1] = -b; }
-                  hrot.insert_row( irow, row );
-                  // Make sure that set values are not affecting next row
-                  // (note that column irow+1 always will be overwritten)
-                  row[irow] = 0;
-                  if( ip == 2 )
-                    { row[irow-1] = 0; }
-                }
-            }
-        }
-    }
+  Sparse H( sensor_response.nrows(), sensor_response.ncols() );
+  {
+    Sparse Hrot( npol, npol );  // Mueller matrix for 1 Stokes vec
+    Vector row( H.ncols(), 0 );
+    Index  irow = 0;
+    //
+    for( Index iaa=0; iaa<naa; iaa++ )
+      {
+        for( Index iza=0; iza<nza; iza++ )
+          {
+            // Rotation matrix for directuon of concern
+            mueller_rotation( Hrot, npol, stokes_rotation(iza,iaa)  );
+            
+            for( Index ifr=0; ifr<nf; ifr++ ) 
+              {
+                for( Index ip=0; ip<npol; ip++ )
+                  {
+                    // Fill relevant part of row with matching (complete) row
+                    // in Hrot, and instert this row in H
+                    for( Index is=0; is<npol; is++ )
+                      { row[irow+is] = Hrot.ro(ip,is); }
+                    H.insert_row( irow+ip, row );
+                    // Re-zero row.
+                    for( Index is=0; is<npol; is++ )
+                      { row[irow+is] = 0; }
+                  }
+                // Update irow, i.e. jump to next frequency
+                irow += npol;
+              }
+          }
+      }
+  }
 
   // Here we need a temporary sparse that is copy of the sensor_response
   // sparse matrix. We need it since the multiplication function can not
   // take the same object as both input and output.
-  Sparse htmp = sensor_response;
-  sensor_response.resize( htmp.nrows(), htmp.ncols());  //Just in case!
-  mult( sensor_response, hrot, htmp );  
+  Sparse Htmp = sensor_response;
+  sensor_response.resize( Htmp.nrows(), Htmp.ncols());  //Just in case!
+  mult( sensor_response, H, Htmp );  
 }
 
 

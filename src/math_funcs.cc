@@ -564,7 +564,7 @@ Numeric lgamma_func(Numeric xx)
 
 
 
-//! lunit
+//! unitl
 /*!
     Normalises a vector to have unit length.
 

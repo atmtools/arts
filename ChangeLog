@@ -1,3 +1,14 @@
+2014-10-03  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-24
+
+	* src/math_funcs.cc (unitl): Corrected header.
+
+	* src/m_sensor.cc (sensor_responseStokesRotation): Changed the
+	method to make use of the internal function mueller_rotation, to
+	avoid duplication of very similar code. Forgot that we had this
+	method when implementing mueller_rotation!
+
 2014-10-02  Richard Larsson <ric.larsson@gmail.com>
 
 	* arts-2-3-23
@@ -51,6 +62,10 @@
 	* src/absorption.cc (xsec_species_line_mixing_wrapper):
 
 	Fix incorrect parenthesis.
+
+2014-09-29  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* src/math_funcs.cc (unitl): 
 
 2014-09-29  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
