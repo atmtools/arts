@@ -1,3 +1,17 @@
+2014-10-04  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-3-25
+
+	* src/methods.cc, workspace.cc: Revised built-in doc regarding
+	particle type -> scattering species/element terminology. Some further
+	spell, grammar, and formulation fixes.
+
+	* controlfiles/instruments/ici/ici_fast.arts: base on ici.arts by
+	actually including it. minimize risk of inconsistent setting between
+	fast and normal case.
+
+	* controlfiles/instruments/ici/ici.arts: minor layout adaptions.
+
 2014-10-03  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-24

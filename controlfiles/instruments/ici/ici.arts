@@ -2,6 +2,8 @@
 
 Arts2 {
 
+# Observation geometry
+# ---
 # EPS-SG-B[123] shall be 817 km above the surface.  ICI shall be a conical
 # scanner with a 53.1° incidence angle (at surface) = 45° nadir angle =
 # 135° zenith angle
@@ -9,7 +11,9 @@ Arts2 {
 MatrixSetConstant(sensor_pos, 1, 1, 817e3)
 MatrixSetConstant(sensor_los, 1, 1, 135)
 
-# Sensor response setup for EPS-SG ICI.
+# Sensor response setup
+# ---
+# For EPS-SG ICI.
 #
 # Source: EUMETSAT EPS-SG End User Requirements Document,
 # EUM/PEPS/REQ/09/0151, v3B Draft, 8 April 2013.  Table 18.

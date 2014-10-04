@@ -1413,19 +1413,15 @@ void define_md_data_raw()
       ( NAME( "abs_vecAddPart" ),
         DESCRIPTION
         (
-         "The particle absorption is added to *abs_vec*\n"
+         "Absorption by scattering elements is added to *abs_vec*\n"
          "\n"
-         "This function sums up the absorption vectors for all particle\n"
-         "types weighted with particle number density.\n"
-         "The resluling absorption vector is added to the workspace\n"
-         "variable *abs_vec*\n"
-         "Output and input of this method is *abs_vec* (stokes_dim).\n"
-         "The inputs are the absorption vector for the single particle type\n"
-         "*abs_vec_spt* (N_particletypes, stokes_dim) and the local particle\n"
-         " number densities for all particle types namely the\n"
-         "*pnd_field* (N_particletypes, p_grid, lat_grid, lon_grid, ) for given\n"
-         "*p_grid*, *lat_grid*, and *lon_grid*. The particle types required\n"
-         "are specified in the control file.\n"
+         "This function sums up the monochromatic absorption vectors of all\n"
+         "scattering elements *abs_vec_spt* weighted with their respective\n"
+         "particle number density, given by *pnd_field* for a single location\n"
+         "within the cloudbox, given by *scat_p_index*, *scat_lat_index*, and\n"
+         "*scat_lon_index*.\n"
+         "The resulting absorption vector is added to the workspace variable\n"
+         "*abs_vec*.\n"
          ),
         AUTHORS( "Sreerekha T.R." ),
         OUT( "abs_vec" ),
@@ -1445,7 +1441,7 @@ void define_md_data_raw()
       ( NAME( "abs_vecInit" ),
         DESCRIPTION
         (
-         "Initialize absorption vector.\n"
+         "Initialize absorption vector *abs_vec*.\n"
          "\n"
          "This method is necessary, because all other absorption methods just\n"
          "add to the existing absorption vector.\n"
@@ -2952,27 +2948,25 @@ void define_md_data_raw()
          "\n"
          "The function must be called before any *cloudbox_limits* using\n"
          "WSMs.\n"
-         "NOTE: only 1-dim case is handeled in the moment!\n"
+         "NOTE: only 1-dim case is handeled at the moment!\n"
          "\n"
          "The function iterates over all *scat_species* and performs a \n"
-         "check, to see if the corresponding scattering particle profiles do not\n"
-         "contain a cloud (all values equal zero). If, after all iterations,\n"
-         "all the considrered profiles proove to contain no cloud,\n"
-         "the cloudbox is switched off! (see WSM *cloudboxOff*)\n"
+         "check, to see if the corresponding scattering species profiles do\n"
+         "contain non-zero mass density oo flux values. In case none of the\n"
+         "scattering species profiles contains any non-zero value, the cloudbox\n"
+         "is switched off (see WSM *cloudboxOff*).\n"
          "\n"
-         "Each scattering particle profile is searched for the first and last\n"
+         "Each scattering species profile is searched for the first and last\n"
          "pressure index, where the value is unequal to zero. This index\n"
          "is then copied to *cloudbox_limits*.\n"
          "\n"
-         "Additionaly the lower cloudbox_limit is altered by\n" 
-         "*cloudbox_margin*.\n"
-         "The margin is given as a height difference in meters and\n"
-         "trasformed into a pressure.(via isothermal barometric heightformula)\n"
-         "This alteration is needed to ensure, that scattered photons\n"
-         "do not leave and re-enter the cloudbox, due to its convex\n"
-         "shape.\n"
-         "If *cloudbox_margin* is set to -1 (default), the cloudbox will extend to\n" 
-         "the surface. Hence the lower cloudbox_limit is set to 0 (index\n"
+         "Additionaly the lower cloudbox_limit is altered by *cloudbox_margin*.\n"
+         "The margin is given as a height difference in meters and transformed\n"
+         "into a pressure (via isothermal barometric height formula). This\n"
+         "alteration is to ensure covering photons that leave the cloud, but\n"
+         "reenter through a limb path.\n"
+         "If *cloudbox_margin* is set to -1 (default), the cloudbox will extend\n" 
+         "to the surface. Hence, the lower cloudbox_limit is set to 0 (index\n"
          "of first pressure level).\n"
          ),
         AUTHORS( "Daniel Kreyling" ),
@@ -2984,10 +2978,10 @@ void define_md_data_raw()
         GIN( "cloudbox_margin"),
         GIN_TYPE( "Numeric" ),
         GIN_DEFAULT( "-1" ),
-        GIN_DESC( "The margin alters the lower vertical\n"
-                  "cloudbox limit. Value must be given in [m].\n"
-                  "If cloudbox_margin is set to *-1* (default), the lower\n" 
-                  "cloudbox limit equals 0, what corresponds to the surface !\n"
+        GIN_DESC( "The margin alters the lower vertical cloudbox limit. Value"
+                  "must be given in [m]. If cloudbox_margin is set to *-1*"
+                  "(default), the lower cloudbox limit equals 0, which"
+                  "corresponds to the surface."
         )
         ));
   
@@ -3096,18 +3090,19 @@ void define_md_data_raw()
       ( NAME( "cloudbox_checkedCalc" ),
         DESCRIPTION
         (
-         "Checks consistency between cloudbox and particle variables.\n"
+         "Checks consistency between cloudbox and scattering element variables.\n"
          "\n"
          "The following WSVs are treated: *cloudbox_on*, *cloudbox_limits*,\n"
          "*pnd_field*, *scat_data_array*, *particle_masses* and\n"
          "wind_u/v/w_field.\n"
          "\n"
-         "If any of these variables are changed, then this method shall be\n"
+         "If any of these variables is changed, then this method shall be\n"
          "called again (no automatic check that this is fulfilled!).\n"
          "\n"
          "The main checks are if the cloudbox limits are OK with respect to\n"
          "the atmospheric dimensionality and the limits of the atmosphere,\n"
-         "and that the particle variables match in size.\n"
+         "and that the scattering element variables *pnd_field* and\n"
+         "*scat_data_array* match in size.\n"
          "\n"
          "If any test fails, there is an error. Otherwise, *cloudbox_checked*\n"
          "is set to 1.\n"
@@ -3338,7 +3333,8 @@ void define_md_data_raw()
          "Heymsfield (2011) is an unpublished pre-version of\n"
          "Heymsfield (2013). It is a globally valid parametrization for cloud\n"
          "ice. The parametrization is in ambient atmospheric temperature over\n"
-         "particle size in terms of maximum dimension of the particles.\n"
+         "particle size in terms of maximum dimension of the particles (in ARTS:\n"
+         "the scattering elements).\n"
          "Provides only the shape of the number density disribution function.\n"
          "\n"
          "For testing purposes mainly.\n"
@@ -4193,19 +4189,15 @@ void define_md_data_raw()
       ( NAME( "ext_matAddPart" ),
         DESCRIPTION
         (
-         "The particle extinction is added to *ext_mat*\n"
+         "Extinction by scattering elements is added to *ext_mat*\n"
          "\n"
-         "This function sums up the extinction matrices for all particle\n"
-         "types weighted with particle number density.\n"
-         "The resulting extinction matrix is added to the workspace\n"
-         "variable *ext_mat*\n"
-         "The output of this method is *ext_mat* (stokes_dim, stokes_dim).\n"
-         "The inputs are the extinction matrix for the single particle type\n"
-         "*ext_mat_spt* (N_particletypes, stokes_dim, stokes_dim) and the local\n"
-         "particle number densities for all particle types namely the\n"
-         "*pnd_field* (N_particletypes, p_grid, lat_grid, lon_grid ) for given\n"
-         "*p_grid*, *lat_grid*, and *lon_grid*. The particle types required\n"
-         "are specified in the control file.\n"
+         "This function sums up the monochromatic extinction matrices of all\n"
+         "scattering elements *ext_mat_spt* weighted with their respective\n"
+         "particle number density, given by *pnd_field*, for a single location\n"
+         "within the cloudbox, given by *scat_p_index*, *scat_lat_index*, and\n"
+         "*scat_lon_index*.\n"
+         "The resulting  extinction matrix is added to the workspace variable\n"
+         "*ext_mat*.\n"
          ),
         AUTHORS( "Sreerekha T.R." ),
         OUT( "ext_mat" ),
@@ -5093,9 +5085,10 @@ void define_md_data_raw()
          "  \"Round-trip time\": The time for the pulse to propagate. For a \n"
          "     totally correct result, refraction must be considered (in\n"
          "     *pppath_agenda*). Size: [1,1,1,np].\n"
-         "  \"PND, type X\": The particle number density for particle type X\n"
-         "       (ie. corresponds to book X in pnd_field). Size: [1,1,1,np].\n"
-         "  \"Mass content, X\": The particle content for mass category X.\n"
+         "  \"PND, type X\": The particle number density for scattering element\n"
+         "       type X (ie. corresponds to book X in pnd_field).\n"
+         "       Size: [1,1,1,np].\n"
+         "  \"Mass content, X\": The mass content for scattering element X.\n"
          "       This corresponds to column X in *particle_masses* (zero-\n"
          "       based indexing). Size: [1,1,1,np].\n"
          ),
@@ -5254,9 +5247,10 @@ void define_md_data_raw()
          "  \"Absorption, species X\": The absorption matrix along the path\n"
          "     for an individual species (X works as for VMR).\n"
          "     Size: [nf,ns,ns,np].\n"
-         "  \"PND, type X\": The particle number density for particle type X\n"
-         "       (ie. corresponds to book X in pnd_field). Size: [1,1,1,np].\n"
-         "  \"Mass content, X\": The particle content for mass category X.\n"
+         "  \"PND, type X\": The particle number density for scattering element\n"
+         "       type X (ie. corresponds to book X in pnd_field).\n"
+         "       Size: [1,1,1,np].\n"
+         "  \"Mass content, X\": The mass content for scattering element X.\n"
          "       This corresponds to column X in *particle_masses* (zero-\n"
          "       based indexing). Size: [1,1,1,np].\n"
          "* \"Radiative background\": Index value flagging the radiative\n"
@@ -5514,11 +5508,12 @@ void define_md_data_raw()
          "  \"Absorption, species X\": The absorption matrix along the path\n"
          "     for an individual species (X works as for VMR).\n"
          "     Size: [nf,ns,ns,np].\n"
-         "  \"Particle extinction, summed\": The total particle extinction\n"
-         "       matrix along the path. Size: [nf,ns,ns,np].\n"
-         "  \"PND, type X\": The particle number density for particle type X\n"
-         "       (ie. corresponds to book X in pnd_field). Size: [1,1,1,np].\n"
-         "  \"Mass content, X\": The particle content for mass category X.\n"
+         "  \"Particle extinction, summed\": The total extinction matrix over\n"
+         "       all scattering elements along the path. Size: [nf,ns,ns,np].\n"
+         "  \"PND, type X\": The particle number density for scattering element\n"
+         "       type X (ie. corresponds to book X in pnd_field).\n"
+         "       Size: [1,1,1,np].\n"
+         "  \"Mass content, X\": The mass content for scattering element X.\n"
          "       This corresponds to column X in *particle_masses* (zero-\n"
          "       based indexing). Size: [1,1,1,np].\n"
          "* \"Impact parameter\": As normally defined for GNRSS radio\n"
@@ -5663,11 +5658,12 @@ void define_md_data_raw()
          "  \"Absorption, species X\": The absorption matrix along the path\n"
          "     for an individual species (X works as for VMR).\n"
          "     Size: [nf,ns,ns,np].\n"
-         "  \"Particle extinction, summed\": The total particle extinction\n"
-         "       matrix along the path. Size: [nf,ns,ns,np].\n"
-         "  \"PND, type X\": The particle number density for particle type X\n"
-         "       (ie. corresponds to book X in pnd_field). Size: [1,1,1,np].\n"
-         "  \"Mass content, X\": The particle content for mass category X.\n"
+         "  \"Particle extinction, summed\": The total extinction matrix over\n"
+         "       all scattering elements along the path. Size: [nf,ns,ns,np].\n"
+         "  \"PND, type X\": The particle number density for scattering element\n"
+         "       type X (ie. corresponds to book X in pnd_field).\n"
+         "       Size: [1,1,1,np].\n"
+         "  \"Mass content, X\": The mass content for scattering element X.\n"
          "       This corresponds to column X in *particle_masses* (zero-\n"
          "       based indexing). Size: [1,1,1,np].\n"
          "* \"Radiative background\": Index value flagging the radiative\n"
@@ -5724,15 +5720,16 @@ void define_md_data_raw()
       ( NAME( "iy_auxFillParticleVariables" ),
         DESCRIPTION
         (
-         "Additional treatment some particle auxiliary variables.\n"
+         "Additional treatment of some particle auxiliary variables.\n"
          "\n"
          "This WSM is intended to complement main radiative transfer methods\n"
-         "that does not handle scattering, and thus can not provide auxiliary\n"
+         "that do not handle scattering, and thus can not provide auxiliary\n"
          "data for particle properties. The following auxiliary variables\n"
          "are covered:\n"
-         "  \"PND, type X\": The particle number density for particle type X\n"
-         "       (ie. corresponds to book X in pnd_field). Size: [1,1,1,np].\n"
-         "  \"Mass content, X\": The particle content for mass category X.\n"
+         "  \"PND, type X\": The particle number density for scattering element\n"
+         "       type X (ie. corresponds to book X in pnd_field).\n"
+         "       Size: [1,1,1,np].\n"
+         "  \"Mass content, X\": The mass content for scattering element X.\n"
          "       This corresponds to column X in *particle_masses* (zero-\n"
          "       based indexing). Size: [1,1,1,np].\n"
          "\n"
@@ -7483,7 +7480,8 @@ void define_md_data_raw()
       ( NAME( "opt_prop_sptFromData" ),
         DESCRIPTION
         (
-         "Calculates opticle properties for the single particle types.\n"
+         "Calculates monochromatic optical properties for all scattering\n"
+         "elements.\n"
          "\n"
          "In this function the extinction matrix and the absorption vector\n"
          "are calculated in the laboratory frame. An interpolation of the\n"
@@ -7491,9 +7489,9 @@ void define_md_data_raw()
          "The next step is a transformation from the database coordinate\n"
          "system to the laboratory coordinate system.\n"
          "\n"
-         "Output of the function are *ext_mat_spt* and *abs_vec_spt* which\n"
+         "Output of the function are *ext_mat_spt* and *abs_vec_spt*, which\n"
          "hold the optical properties for a specified propagation direction\n"
-         "for each particle type.\n"
+         "for each scattering element.\n"
          ),
         AUTHORS( "Claudia Emde" ),
         OUT( "ext_mat_spt", "abs_vec_spt" ),
@@ -7515,7 +7513,7 @@ void define_md_data_raw()
       ( NAME( "opt_prop_sptFromMonoData" ),
         DESCRIPTION
         (
-         "Calculates optical properties for the single particle types.\n"
+         "Calculates optical properties for the scattering elements.\n"
          "\n"
          "As *opt_prop_sptFromData* but no frequency interpolation is\n"
          "performed. The single scattering data is here obtained from\n"
@@ -7661,14 +7659,14 @@ void define_md_data_raw()
          "all particles are of the same mass category.\n"
          "\n"
          "This method calculates the particle masses as density*volume\n"
-         "for each particle type. Single phase particles, and that all\n"
-         "all particles consist of the same (bulk) matter (e.g. water\n"
-         "or ice) are assumed. With other words, a single mass category\n"
+         "for each scattering element. It is assumed that all scattering\n"
+         "elements represent particles of single phase and single (bulk) matter\n"
+         "(e.g. water or ice). With other words, a single mass category\n"
          "is assumed (see *particle_masses* for a definition of \"mass\n"
          "category\").\n"
          "\n"
          "To be clear, the above are assumptions of the method, the user\n"
-         "is free to work with any particle type. For Earth and just having\n"
+         "is free to work with any scattering element. For Earth and just having\n"
          "cloud and particles, the resulting mass category can be seen as\n"
          "the total cloud water content, with possible contribution from\n"
          "both ice and liquid phase.\n"
@@ -7696,11 +7694,11 @@ void define_md_data_raw()
          "when *pnd_field* is internally calculated using *pnd_fieldSetup*\n"
          "(in contrast to reading it from external sources using\n"
          "*ParticleTypeAdd* and *pnd_fieldCalc*).\n"
-         "It extracts particle the mass information (density*volume) from\n"
-         "*scat_meta_array*. Different entries in *scat_species* are\n"
-         "taken as different categories of particle_masses, i.e., the\n"
-         "resulting *particle_masses* matrix will contain as many columns as\n"
-         "entries exist in *scat_species*.\n"
+         "It extracts the mass information of the scattering elements from\n"
+         "*scat_meta_array* (as density*volume). Different entries in\n"
+         "*scat_species* are taken as different categories of particle_masses,\n"
+         "i.e., the resulting *particle_masses* matrix will contain as many\n"
+         "columns as entries exist in *scat_species*.\n"
          ),
         AUTHORS( "Jana Mendrok" ),
         OUT( "particle_masses" ),
@@ -7747,9 +7745,9 @@ void define_md_data_raw()
          "\n"         
          "*Example:* \t ['IWC-MH97-Ice-0.1-200', 'LWC-H98_STCO-Water-0.1-50'] \n"
          "\n"
-         "NOTE: The order of the Strings need to match the order of the\n"
+         "NOTE: The order of the Strings needs to match the order of the\n"
          "*atm_fields_compact* field names, their number determines how many fields\n"
-         "of *atm_fields_compact* are considered particle profiles.\n"
+         "of *atm_fields_compact* are considered to be scattering species profiles.\n"
          ),
         AUTHORS( "Daniel Kreyling" ),
         OUT( "scat_species" ),
@@ -7757,7 +7755,7 @@ void define_md_data_raw()
         GOUT_TYPE( ),
         GOUT_DESC( ),
         IN(),
-        GIN( "particle_tags", "delim" ),
+        GIN( "scat_tags", "delim" ),
         GIN_TYPE(  "ArrayOfString", "String" ),
         GIN_DEFAULT( NODEF, "-" ),
         GIN_DESC("Array of pnd calculation parameters.",
@@ -7799,11 +7797,12 @@ void define_md_data_raw()
          "Reads single scattering data and particle number densities.\n"
          "\n"
          "The WSV *pnd_field_raw* containing particle number densities for all\n"
-         "scattering particle species can be generated outside ARTS, for example by using\n"
-         "PyARTS. This method needs as input an XML-file containing an array of filenames\n"
-         "(ArrayOfString) of single scattering data and a file containing the corresponding\n"
-         "*pnd_field_raw*. In contrast to the scattering data, all corresponding pnd-fields\n"
-         "are stored in a single XML-file containing an ArrayofGriddedField3\n"
+         "scattering species can be generated outside ARTS, for example by using\n"
+         "PyARTS. This method needs as input an XML-file containing an array of\n"
+         "filenames (ArrayOfString) of single scattering data and a file\n"
+         "containing the corresponding *pnd_field_raw*. In contrast to the\n"
+         "scattering data, all corresponding pnd-fields are stored in a single\n"
+         "XML-file containing an ArrayofGriddedField3.\n"
          "\n"
          "Important note:\n"
          "The order of the filenames for the scattering data files has to\n"
@@ -7832,9 +7831,9 @@ void define_md_data_raw()
         (
          "Initializes *scat_data_array* and *pnd_field_raw*.\n"
          "\n"
-         "This method initializes variables containing data about the\n"
-         "optical properties of particles (*scat_data_array*) and about the\n"
-         "particle number distribution (*pnd_field_raw*)\n"
+         "This method initializes variables that will hold the optical\n"
+         "properties of the scattering elements (*scat_data_array*) and the\n"
+         "particle number distribution (*pnd_field_raw*).\n"
          "\n"
          "This method has to be executed before executing e.g.\n"
          "*ParticleTypeAdd*.\n"
@@ -7888,8 +7887,13 @@ void define_md_data_raw()
       ( NAME( "pha_matCalc" ),
         DESCRIPTION
         (
-         "This function sums up the phase matrices for all particle\n"
-         "types weighted with particle number density.\n"
+         "Calculates the total phase matrix of all scattering elements.\n"
+         "\n"
+         "This function sums up the monochromatic phase matrices of all\n"
+         "scattering elements *pha_mat_spt* weighted with  their respective\n"
+         "particle number density, given by *pnd_field*, for a single location\n"
+         "within the cloudbox, given by *scat_p_index*, *scat_lat_index*, and\n"
+         "*scat_lon_index*.\n"
          ),
         AUTHORS( "Sreerekha T.R." ),
         OUT( "pha_mat" ),
@@ -7909,7 +7913,7 @@ void define_md_data_raw()
       ( NAME( "pha_mat_sptFromData" ),
         DESCRIPTION
         (
-         "Calculation of the phase matrix for the single particle types.\n"
+         "Calculation of the phase matrix of the individual scattering elements.\n"
          "\n"
          "This function can be used in *pha_mat_spt_agenda* as part of\n"
          "the calculation of the scattering integral.\n"
@@ -7938,7 +7942,7 @@ void define_md_data_raw()
       ( NAME( "pha_mat_sptFromMonoData" ),
         DESCRIPTION
         (
-         "Calculation of the phase matrix for the single particle types.\n"
+         "Calculation of the phase matrix of the individual scattering elements.\n"
          "\n"
          "This function is the monochromatic version of *pha_mat_sptFromData*.\n"
          ),
@@ -7961,12 +7965,12 @@ void define_md_data_raw()
       ( NAME( "pha_mat_sptFromDataDOITOpt" ),
         DESCRIPTION
         (
-         "Calculation of the phase matrix for the single particle types.\n"
+         "Calculation of the phase matrix of the individual scattering elements.\n"
          "\n"
          "In this function the phase matrix is extracted from\n"
          "*pha_mat_sptDOITOpt*. It can be used in the agenda\n"
-         "*pha_mat_spt_agenda*. This method must be used in \n "
-         "combination with *DoitScatteringDataPrepare*.\n"
+         "*pha_mat_spt_agenda*. This method must be used in combination with\n"
+         "*DoitScatteringDataPrepare*.\n"
          ),
         AUTHORS( "Claudia Emde" ),
         OUT( "pha_mat_spt" ),
@@ -8554,8 +8558,8 @@ void define_md_data_raw()
          "This is a method to include particles (neglecting possible\n"
          "scattering components) in a clearsky calculation, i.e. without\n"
          "applying the cloudbox and scattering solvers. Particles are handled\n"
-         "as absorbing species with one instance of 'particles' per particle\n"
-         "type considered added to *abs_species*. Particle absorption cross-\n"
+         "as absorbing species with one instance of 'particles' per scattering\n"
+         "element considered added to *abs_species*. Particle absorption cross-\n"
          "sections at current atmospheric conditions are extracted from the\n"
          "single scattering data stored in *scat_data_array*, i.e., one array\n"
          "element per 'particles' instance in *abs_species* is required. Number\n"
@@ -8567,8 +8571,8 @@ void define_md_data_raw()
          "into account by this method."
          "\n"
          "*ParticleType2abs_speciesAdd* can be used to add all required\n"
-         "settings/data for a single particle type at once, i.e. a 'particles'\n"
-         "tag to *abs_species*, a set of single scattering data to\n"
+         "settings/data for a single scattering element type at once, i.e. a\n"
+         " 'particles' tag to *abs_species*, a set of single scattering data to\n"
          "*scat_data_array* and a number density field to *vmr_field_raw*\n"
          "(*vmr_field* is derived applying AtmFieldsCalc once VMRs for all\n"
          "*abs_species* have been added).\n"
@@ -9451,19 +9455,30 @@ void define_md_data_raw()
       ( NAME( "ScatteringMergeParticles1D" ),
         DESCRIPTION
         (
-         "This method pre-calculates a weighted sum of all particles per pressure level.\n"
-         "before the actual DOIT calculation is taking place in *ScatteringDoit*.\n"
-         "It should be called directly after *pnd_fieldSetup* (but after\n"
-         "*cloudbox_checkedCalc*). It's purpose is speeding up DOIT calculations.\n"
+         "Merges single scattering data of all scattering elements into one\n"
+         "element of bulk properties.\n"
          "\n"
-         "*pnd_field* is resized to [np, np, 1, 1]. Where np is the number of pressure levels\n"
-         "inside the cloudbox. The diagonal elements of the new *pnd_field* are set to 1, all\n"
-         "others to 0. Accordingly, *scat_data_array* is resized to np. Each particle\n"
-         "is the weighted sum of all particles at this presssure level.\n"
-         "This is an experimental method currently only working for very specific cases.\n"
-         "All particles must be of the same type and all particles must share the same\n"
-         "f_grid and za_grid. And pha_mat_data, ext_mat_data and abs_vec_data must be all\n"
-         "the same size.\n"
+         "Before entering the scattering solver, this method prepares the\n"
+         "effective bulk single scattering properties of all scattering\n"
+         "elements. Done by calculating the particle number density weighted sum\n"
+         "of the single scattering properties of all scattering elements per\n"
+         "pressure level. Accordingly, *pnd_field* is resized to [np, np, 1, 1],\n"
+         "where np is the number of pressure levels inside the cloudbox. The\n"
+         "diagonal elements of the new *pnd_field* are set to 1, all others to\n"
+         "0. *scat_data_array* is resized to np. Each new scattering element\n"
+         "represents the weighted sum of all particles at one presssure level.\n"
+         "\n"
+         "The method is suggested to be called directly after *pnd_fieldSetup*\n"
+         "(but after *cloudbox_checkedCalc*). It's purpose is to speed up the\n"
+         "scattering calculations.\n"
+         "\n"
+         "This is an experimental method currently only working for limited\n"
+         "cases. All particles must be of the same ptype, and all particles must\n"
+         "share the same *f_grid*, *za_grid*, and *aa_grid*. That is, the\n"
+         "scattering matrix, extinction matrix, and absotption vector of all\n"
+         "scattering elements have to have the same dimensions. No interpolation\n"
+         "(apart from temperature) is performed.\n"
+         "\n"
          "This method can only be used with a 1D atmosphere.\n"
          ),
         AUTHORS( "Oliver Lemke" ),
@@ -9471,7 +9486,8 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "pnd_field", "scat_data_array", "atmosphere_dim", "cloudbox_on", "cloudbox_limits",
+        IN( "pnd_field", "scat_data_array", "atmosphere_dim",
+            "cloudbox_on", "cloudbox_limits",
             "t_field", "z_field", "z_surface", "cloudbox_checked" ),
         GIN(),
         GIN_TYPE(),
@@ -9492,12 +9508,13 @@ void define_md_data_raw()
          "For each single scattering file, there needs to be exactly one\n"
          "scattering meta data file.\n"
          "\n"
-         "Currently particles of phase ice and/or water can be added for the same calculation.\n"
-         "It is also possible to read *SingleScatteringData* for different shapes of\n"
-         "ice particles. But all ice particels will share the same IWC, while performing\n"
-         "the *pnd_field* calculations with *pnd_fieldSetup*.\n"
-         "Also make sure, that two scattering particles of the same phase are never equal\n"
-         "in size. This will break the calculations in *pnd_fieldSetup*\n"
+         "Scattering elements of several phases, materials, and shapes can be\n"
+         "added. The scattering species, which each of the scattering elements\n"
+         "is assigned to, is determined by the *scat_meta* 'material' tag in\n"
+         "comparison to the 'particle type' part of the *scat_species* tag.\n"
+         "Note that no two scattering elements of the same scattering species\n"
+         "are allowed to be equal in size; this will result in an error in\n"
+         "*pnd_fieldSetup*\n"
          "\n"
          "Very important note:\n"
          "The order of the filenames for the single scattering data files has to\n"
@@ -9512,8 +9529,8 @@ void define_md_data_raw()
         GIN(         "filename_scat_data", "filename_scat_meta_data" ),
         GIN_TYPE(    "String",             "String"             ),
         GIN_DEFAULT( NODEF,                NODEF                ),
-        GIN_DESC( "File containing single scattering data file names.",
-                  "File containing scattering meta data file names." 
+        GIN_DESC( "Name of file containing the single scattering data file names.",
+                  "Name of file containing the scattering meta data file names." 
                   )
         ));
 
@@ -9523,19 +9540,20 @@ void define_md_data_raw()
       ( NAME( "ScatteringParticlesSelect" ),
         DESCRIPTION
         (
-         "Selects data of *scat_data_array* corresponding to particles that\n"
+         "Selects data of *scat_data_array* of the scattering elements that\n"
          "according to *scat_species* shall be considered in the scattering\n"
          "calculation.\n"
          "\n"
          "Selection is controlled by *scat_species* settings and done based on\n"
-         "particle type and size. *scat_meta_array* is searched\n"
-         "for particles that fulfill the selection criteria. Selection is done\n"
-         "individually for each element of *scat_species*, i.e. for each\n"
-         "considered particle field (implying a sorting of the selected\n"
-         "*scat_meta_array* and *scat_data_array* according to the\n"
-         "particle field they correspond to).\n"
-         "Additionaly *scat_data_per_scat_species* is created, which contains the number\n"
-         "of particles that have been selected for each of the particle fields.\n"
+         "particle type/material and size. *scat_meta_array* is searched\n"
+         "for scattering elements that fulfill the selection criteria. Selection\n"
+         "is done individually for each element of *scat_species*, i.e. for each\n"
+         "considered scattering species (implying a sorting of the selected\n"
+         "*scat_meta_array* and *scat_data_array* according to the scattering\n"
+         "species they correspond to).\n"
+         "Additionally, *scat_data_per_scat_species* is created, which contains\n"
+         "the number of scattering elements that have been selected for each of\n"
+         "the scattering species.\n"
          ),
         AUTHORS( "Daniel Kreyling" ),
         OUT( "scat_data_array", "scat_meta_array", "scat_data_per_scat_species" ),
@@ -9611,13 +9629,14 @@ void define_md_data_raw()
     ( NAME( "scat_meta_arrayAddTmatrix" ),
       DESCRIPTION
       (
-       "This method adds particle meta data to the workspace variable\n"
+       "This method adds scattering element meta data to the workspace variable\n"
        "*scat_meta_array*.\n"
        "\n"
-       "One set of meta data is created and added to the array for each combination of\n"
-       "maximum diameter and aspect ratio in the GINs diamter_max_grid and aspect_ratio_grid. The size of *scat_meta_array*\n"
-       "and hence the usage has been extended. For that reason, a short\n"
-       "summary below tells which input parameters are required for certain further\n"
+       "One set of meta data is created and added to the array for each\n"
+       "combination of maximum diameter and aspect ratio in the GINs\n"
+       "diamter_max_grid and aspect_ratio_grid. The size of *scat_meta_array*\n"
+       "and hence the usage has been extended. For that reason, a short summary\n"
+       "below tells which input parameters are required for certain further\n"
        "calculations.\n"
        "\n"
        "String[description]\t\tNot used for any particular calculations\n"
@@ -9644,11 +9663,13 @@ void define_md_data_raw()
       GIN_DEFAULT( "", "undefined", NODEF, NODEF, "-999", NODEF, NODEF,
                    NODEF, NODEF ),
       GIN_DESC( "Particle description", "Water or Ice", "spheroidal or cylinder", 
-               "Particle Type: MACROS_ISO (20) or PARTICLE_TYPE_HORIZ_AL (30)", 
-               "Particle mass density",
-               "Particle aspect ratio vector",
-               "Maximum diameter vector (diameter of a sphere that fully encloses the particle)",
-               "Frequency grid vector", "Temperature grid vector" )
+                "Particle Type: MACROS_ISO (20) or PARTICLE_TYPE_HORIZ_AL (30)", 
+                "Particle mass density",
+                "Particle aspect ratio vector",
+                "Maximum diameter vector (diameter of a sphere that fully"
+                "encloses the particle)",
+                "Frequency grid vector",
+                "Temperature grid vector" )
       ));
 
   md_data_raw.push_back
@@ -9698,8 +9719,8 @@ void define_md_data_raw()
          "in the database.\n"
          "\n"
          "This function can be used to check datafiles containing data for\n"
-         "randomly oriented scattering media. For other particle types, the\n"
-         "check is skipped and a warning is printed to screen.\n"
+         "randomly oriented scattering media. For scattering elements of other\n"
+         "ptype, the check is skipped and a warning is printed to screen.\n"
          "It is checked whether that the integral over\n"
          "the phase matrix element Z11 is equal (or: close to) the scattering\n"
          "cross section as derived from the difference of (scalar) extinction\n"
@@ -9734,11 +9755,11 @@ void define_md_data_raw()
         DESCRIPTION
         (
          "This workspace method calculates scattering data and adds it to\n"
-         "*scat_data_array* using particle meta data in *scat_meta_array*.\n"
+         "*scat_data_array* using the *scat_meta_array* data.\n"
          "The scattering data is calculated with the T-matrix method.\n"
          "\n"
-         "One set of scattering data is calculated for each particle in\n"
-         "*scat_meta_array*\n"
+         "One set of scattering data is calculated for each scattering element\n"
+         "in *scat_meta_array*.\n"
          ),
         AUTHORS( "Johan Strandgren, Oliver Lemke" ),
         OUT("scat_data_array"),
@@ -12195,7 +12216,7 @@ void define_md_data_raw()
          "loops over the number of profiles and corresponding to each\n"
          "longitude create the appropriate profile basename. Then,\n"
          "corresponding to each basename we have temperature field, altitude\n"
-         "field, humidity field and particle number density field. The\n"
+         "field, humidity field, and particle number density field. The\n"
          "temperature field and altitude field are stored in the same dimensions\n"
          "as *t_field_raw* and *z_field_raw*. The oxygen and nitrogen VMRs are\n"
          "set to constant values of 0.209 and 0.782, respectively and are used\n"
@@ -12239,7 +12260,7 @@ void define_md_data_raw()
          "loops over the number of profiles and corresponding to each\n"
          "longitude create the appropriate profile basename. Then,\n"
          "Corresponding to each basename we have temperature field, altitude\n"
-         "field, humidity field and particle number density field. The\n"
+         "field, humidity field, and particle number density field. The\n"
          "temperature field and altitude field are stored in the same dimensions\n"
          "as *t_field_raw* and *z_field_raw*. The oxygen and nitrogen VMRs are\n"
          "set to constant values of 0.209 and 0.782, respectively and are used\n"
