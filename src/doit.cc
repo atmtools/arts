@@ -244,7 +244,7 @@ void rte_step_doit(//Output and Input:
   \param abs_vec_field absorption vector field
   // Input
   \param spt_calc_agenda Agenda for calculation of single scattering properties
-  \param opt_prop_part_agenda Agenda for summing over all hydrometeor species
+  \param opt_prop_part_agenda Agenda for summing over all scattering elements
   \param scat_za_index Indices for
   \param scat_aa_index    propagation direction
   \param cloudbox_limits Cloudbox limits.
@@ -276,7 +276,7 @@ void cloud_fieldsCalc(Workspace& ws,
   out3 << "Calculate scattering properties in cloudbox \n";
   
   const Index atmosphere_dim = cloudbox_limits.nelem()/2;
-  const Index N_pt = pnd_field.nbooks();
+  const Index N_se = pnd_field.nbooks();
   const Index stokes_dim = ext_mat_field.ncols(); 
   
   assert( atmosphere_dim == 1 || atmosphere_dim ==3 );
@@ -297,9 +297,9 @@ void cloud_fieldsCalc(Workspace& ws,
   
   // Initialize ext_mat(_spt), abs_vec(_spt)
   // Resize and initialize variables for storing optical properties
-  // of cloud particles
-  Matrix abs_vec_spt_local(N_pt, stokes_dim, 0.);
-  Tensor3 ext_mat_spt_local(N_pt, stokes_dim, stokes_dim, 0.);
+  // of all scattering elements.
+  Matrix abs_vec_spt_local(N_se, stokes_dim, 0.);
+  Tensor3 ext_mat_spt_local(N_se, stokes_dim, stokes_dim, 0.);
   Matrix abs_vec_local;
   Tensor3 ext_mat_local;
   Numeric rtp_temperature_local;
@@ -334,7 +334,7 @@ void cloud_fieldsCalc(Workspace& ws,
                           scat_lat_index_local + cloudbox_limits[2],
                           scat_lon_index_local + cloudbox_limits[4]);
               
-              //Calculate optical properties for single particle types:
+              //Calculate optical properties for individual scattering elements:
               //( Execute agendas silently. )
               spt_calc_agendaExecute(ws, ext_mat_spt_local, 
                                      abs_vec_spt_local,
@@ -999,9 +999,9 @@ void cloud_ppath_update3D(Workspace& ws,
   (this can include several points)
   \param t_int Temperature values interpolated on propagation path points.
   \param vmr_list_int Interpolated volume mixing ratios. 
-  \param ext_mat_int Interpolated particle extinction matrix.
-  \param abs_vec_int Interpolated particle absorption vector. 
-  \param sca_vec_int Interpolated particle scattering vector. 
+  \param ext_mat_int Interpolated total particle extinction matrix.
+  \param abs_vec_int Interpolated total particle absorption vector. 
+  \param sca_vec_int Interpolated total particle scattering vector. 
   \param doit_i_field_int Interpolated radiances. 
   \param p_int Interpolated pressure values. 
   \param cloudbox_limits Cloudbox_limits. 

@@ -53,7 +53,7 @@
     which implies that a 3D model is unavoidable for simulating realistic
     cases. Especially for simulating limb measurements, a 3D geometry is
     required as the observed region in the atmosphere has a horizontally
-    large extent. Clouds consist of a variety of particle types. There
+    large extent. Clouds consist of a variety of hydrometeors. There
     are liquid water clouds but also cirrus clouds which consist of ice
     particles of different sizes and shapes. Particle scattering leads to
     polarization effects, therefore modeling only the first component of
@@ -65,9 +65,9 @@
     differential equation for the Stokes vector. This equation can be
     solved numerically using an iterative method. So far gaseous absorption
     is pre-calculated using the first version of ARTS and stored in a
-    lookup table. The particle properties, i.e. extinction, absorption and
-    scattering, are calculated using the T-matrix method and stored in a
-    data base.
+    lookup table. The single scattering properties of the particles, i.e.
+    extinction, absorption and scattering, are calculated using the T-matrix
+    method and stored in a data base.
 
     The Zeeman effect is also currently being implemented.
 

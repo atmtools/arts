@@ -80,7 +80,7 @@ void dtauc_ssalbCalc(Workspace& ws,
                     )
 {
   
-  const Index N_pt = pnd_field.nbooks();
+  const Index N_se = pnd_field.nbooks();
   // In DISORT the "cloudbox" must cover the whole atmosphere
   const Index Np_cloud = pnd_field.npages();
   const Index stokes_dim = 1; 
@@ -89,8 +89,8 @@ void dtauc_ssalbCalc(Workspace& ws,
   assert( ssalb.nelem() == Np_cloud-1);
 
   // Local variables to be used in agendas
-  Matrix abs_vec_spt_local(N_pt, stokes_dim, 0.);
-  Tensor3 ext_mat_spt_local(N_pt, stokes_dim, stokes_dim, 0.);
+  Matrix abs_vec_spt_local(N_se, stokes_dim, 0.);
+  Tensor3 ext_mat_spt_local(N_se, stokes_dim, stokes_dim, 0.);
   Matrix abs_vec_local;
   Tensor3 ext_mat_local;
   Numeric rtp_temperature_local; 
@@ -110,7 +110,7 @@ void dtauc_ssalbCalc(Workspace& ws,
      rtp_temperature_local = 
        t_field(scat_p_index_local, 0, 0);
      
-     //Calculate optical properties for single particle types:
+     //Calculate optical properties for all individual scattering elements:
      spt_calc_agendaExecute(ws,
                             ext_mat_spt_local, 
                             abs_vec_spt_local,
@@ -176,7 +176,7 @@ void dtauc_ssalbCalc(Workspace& ws,
   Calculates layer averaged normalized phase functions from 
   the phase matrix in SingleScatteringData. The scattering angle 
   grid is taken from the data. 
-  It is required that all particle types include the same 
+  It is required that all scattering elements are given on the same 
   scattering angle grid (FIXME: Include angle interpolation)
 
   \param phase_function normalized phase function

@@ -155,8 +155,8 @@ void cloudy_rt_vars_at_gp(Workspace&           ws,
 
 {
   const Index   ns = vmr_field_cloud.nbooks();
-  const Index N_pt = pnd_field.nbooks();
-  Matrix  pnd_ppath(N_pt,1);
+  const Index N_se = pnd_field.nbooks();
+  Matrix  pnd_ppath(N_se,1);
   Vector t_ppath(1);
   Vector   p_ppath(1);//may not be efficient with unecessary vectors
   Matrix itw_p(1,2);
@@ -226,9 +226,9 @@ void cloudy_rt_vars_at_gp(Workspace&           ws,
 
   \param pressure  Output: a vector of pressures
   \param temperature  Output: a vector of temperatures
-  \param vmr          Output: a n_species by n matrix of VMRs
-  \param pnd          Output: a n_ptypes by n matrix of VMRs
-  \param gp_p         an array of pressre gridpoints
+  \param vmr          Output: a n_species by n_p matrix of VMRs
+  \param pnd          Output: a n_scatelem by n_p matrix of PNDs
+  \param gp_p         an array of pressure gridpoints
   \param gp_lat       an array of latitude gridpoints
   \param gp_lon       an array of longitude gridpoints
   \param cloudbox_limits  the WSV
@@ -258,7 +258,7 @@ void cloud_atm_vars_by_gp(
   Index np=gp_p.nelem();
   assert(pressure.nelem()==np);
   Index ns=vmr_field_cloud.nbooks();
-  Index N_pt=pnd_field.nbooks();
+  Index N_se=pnd_field.nbooks();
   ArrayOfGridPos gp_p_cloud   = gp_p;
   ArrayOfGridPos gp_lat_cloud = gp_lat;
   ArrayOfGridPos gp_lon_cloud = gp_lon;
@@ -308,14 +308,14 @@ void cloud_atm_vars_by_gp(
                               gp_lon_cloud, itw_field );
     }
   
-  //Determine the particle number density for every particle type at 
+  //Determine the particle number density for every scattering element at 
   // each propagation path point
-  for( Index ip=0; ip<N_pt; ip++ )
+  for( Index i_se=0; i_se<N_se; i_se++ )
     {
       // if grid positions still outside the range the propagation path step 
       // must be outside the cloudbox and pnd is set to zero
-      interp_atmfield_by_itw( pnd(ip, joker), atmosphere_dim,
-                              pnd_field(ip, joker, joker,  joker), 
+      interp_atmfield_by_itw( pnd(i_se, joker), atmosphere_dim,
+                              pnd_field(i_se, joker, joker,  joker), 
                               gp_p_cloud, gp_lat_cloud, 
                               gp_lon_cloud, itw_field );
     }
@@ -326,9 +326,10 @@ void cloud_atm_vars_by_gp(
 //! findZ11max
 /*! 
   The direction sampling method requires a bounding value for Z11.
-  This returns a vector with the maximum value of Z11 for each particle type.
+  This returns a vector with the maximum value of Z11 for each scattering
+  element.
 
-  \param[out] Z11maxvector Maximum value of Z11 for each particle type
+  \param[out] Z11maxvector Maximum value of Z11 for each scattering element
   \param[in]  scat_data_array_mono
 
   \author Cory Davis
@@ -363,8 +364,8 @@ void findZ11max(Vector& Z11maxvector,
 //! is_anyptype30
 /*!
 Some operations in Monte Carlo simulations are different depending on the 
-particle type of the scattering particles.  This function searches 
-scat_data_array_mono to determine if any of the particle types have particle_type=30
+ptype of the scattering elements. This function searches scat_data_array_mono
+to determine if any of the scattering elements have ptype=30.
 
 \author Cory Davis
 \date 2004-1-31
@@ -666,17 +667,18 @@ void mcPathTraceGeneral(
 
 //! opt_propCalc
 /*!
-Returns the extinction matrix and absorption vector due to scattering particles
-from scat_data_array_mono
+Returns the total monochromatic extinction matrix and absorption vector over all
+scattering elements at a specific atmospheric location.
 
-   \param ext_mat_mono               Output: extinction matrix
-   \param abs_vec_mono           Output: absorption coefficient vector
+   \return ext_mat_mono   Output: total monochromatic extinction matrix
+   \return abs_vec_mono   Output: total monochromatic absorption vector
    \param za              zenith angle of propagation direction
    \param aa              azimuthal angle of propagation
-   \param scat_data_array_mono  workspace variable
-   \param stokes_dim     workspace variable
-   \param pnd_vec         vector pf particle number densities (one element per particle type)
-   \param rtp_temperature loacl temperature (workspace variable)
+   \param scat_data_array_mono  as the WSV
+   \param stokes_dim      as the WSV
+   \param pnd_vec         vector of particle number densities (one element per
+                          scattering element)
+   \param rtp_temperature as the WSV
 
    \author Cory Davis
    \date   2004-7-16
@@ -698,7 +700,7 @@ void opt_propCalc(
   assert( ext_mat_mono.ncols() == stokes_dim );
   assert( abs_vec_mono.nelem() == stokes_dim );
 
-  const Index N_pt = scat_data_array_mono.nelem();
+  const Index N_se = scat_data_array_mono.nelem();
 
   Matrix ext_mat_mono_spt(stokes_dim,stokes_dim);
   Vector abs_vec_mono_spt(stokes_dim);
@@ -706,23 +708,23 @@ void opt_propCalc(
   ext_mat_mono=0.0;
   abs_vec_mono=0.0;  
 
-  // Loop over the included particle_types
-  for (Index i_pt = 0; i_pt < N_pt; i_pt++)
+  // Loop over the included scattering elements
+  for (Index i_se = 0; i_se < N_se; i_se++)
     {
-      if (pnd_vec[i_pt]>0)
+      if (pnd_vec[i_se]>0)
         {
-          Index nT=scat_data_array_mono[i_pt].T_grid.nelem();
+          Index nT=scat_data_array_mono[i_se].T_grid.nelem();
           if( nT > 1 )
             {
               //set extrapolfax explicitly. should correspond to the one assumed
               //by gridpos call in opt_propExtract.
               Numeric extrapolfac=0.5;
-              Numeric lowlim = scat_data_array_mono[i_pt].T_grid[0]-
-                               extrapolfac*(scat_data_array_mono[i_pt].T_grid[1]
-                                           -scat_data_array_mono[i_pt].T_grid[0]);
-              Numeric uplim = scat_data_array_mono[i_pt].T_grid[nT-1]+
-                              extrapolfac*(scat_data_array_mono[i_pt].T_grid[nT-1]
-                                          -scat_data_array_mono[i_pt].T_grid[nT-2]);
+              Numeric lowlim = scat_data_array_mono[i_se].T_grid[0]-
+                               extrapolfac*(scat_data_array_mono[i_se].T_grid[1]
+                                           -scat_data_array_mono[i_se].T_grid[0]);
+              Numeric uplim = scat_data_array_mono[i_se].T_grid[nT-1]+
+                              extrapolfac*(scat_data_array_mono[i_se].T_grid[nT-1]
+                                          -scat_data_array_mono[i_se].T_grid[nT-2]);
 
               if( rtp_temperature<lowlim || rtp_temperature>uplim )
                 {
@@ -731,16 +733,16 @@ void opt_propCalc(
                      << "K) out of valid temperature\n"
                      << "range of particle optical properties (" 
                      << lowlim << "-" << uplim
-                     << "K) of particle #" << i_pt << ".\n";
+                     << "K) of scattering element #" << i_se << ".\n";
                   throw runtime_error( os.str() );
                 }
             }
           opt_propExtract( ext_mat_mono_spt, abs_vec_mono_spt,
-                          scat_data_array_mono[i_pt], za, aa,
+                          scat_data_array_mono[i_se], za, aa,
                           rtp_temperature, stokes_dim, verbosity);
 
-          ext_mat_mono_spt *= pnd_vec[i_pt];
-          abs_vec_mono_spt *= pnd_vec[i_pt];
+          ext_mat_mono_spt *= pnd_vec[i_se];
+          abs_vec_mono_spt *= pnd_vec[i_se];
           ext_mat_mono     += ext_mat_mono_spt;
           abs_vec_mono     += abs_vec_mono_spt;
         }
@@ -753,7 +755,7 @@ void opt_propExtract(
                      VectorView     abs_vec_mono_spt,
                      const SingleScatteringData& scat_data,
                      const Numeric  za,
-                     const Numeric  aa _U_, // avoid warning until we use particle_type=10
+                     const Numeric  aa _U_, // avoid warning until we use ptype=10
                      const Numeric  rtp_temperature,
                      const Index    stokes_dim,
                      const Verbosity& verbosity
@@ -898,7 +900,7 @@ void opt_propExtract(
   default:
     {
       CREATE_OUT0;
-      out0 << "Not all particle type cases are implemented\n";
+      out0 << "Not all ptype cases are implemented\n";
     }
     
   }
@@ -917,11 +919,11 @@ void opt_propExtract(
  \param[in]  aa_sca          and
  \param[in]  za_inc          incident
  \param[in]  aa_inc          directions
- \param[in]  scat_data_array_mono  workspace variable
- \param[in]  stokes_dim      workspace variable
+ \param[in]  scat_data_array_mono  as the WSV
+ \param[in]  stokes_dim      as the WSV
  \param[in]  pnd_vec         vector of particle number densities at the point 
                              in question
- \param[in]  rtp_temperature workspace variable
+ \param[in]  rtp_temperature as the WSV
  \author Cory Davis
  \date   2003-11-27
 */
@@ -938,21 +940,21 @@ void pha_mat_singleCalc(
                         const Verbosity& verbosity
                         )
 {
-  Index N_pt=pnd_vec.nelem();
+  Index N_se=pnd_vec.nelem();
 
   assert(aa_inc>=-180 && aa_inc<=180);
   assert(aa_sca>=-180 && aa_sca<=180);
 
   Matrix Z_spt(stokes_dim, stokes_dim, 0.);
   Z=0.0;
-  // this is a loop over the different particle types
-  for (Index i_pt = 0; i_pt < N_pt; i_pt++)
+  // this is a loop over the different scattering elements
+  for (Index i_se = 0; i_se < N_se; i_se++)
     {
-      if (pnd_vec[i_pt]>0)
+      if (pnd_vec[i_se]>0)
         {
-          pha_mat_singleExtract(Z_spt,scat_data_array_mono[i_pt],za_sca,aa_sca,za_inc,
+          pha_mat_singleExtract(Z_spt,scat_data_array_mono[i_se],za_sca,aa_sca,za_inc,
                                 aa_inc,rtp_temperature,stokes_dim,verbosity);
-          Z_spt*=pnd_vec[i_pt];
+          Z_spt*=pnd_vec[i_se];
           Z+=Z_spt;
         }
     }
@@ -1153,7 +1155,7 @@ void pha_mat_singleExtract(
     }  
   default:
       CREATE_OUT0;
-      out0 << "Not all particle type cases are implemented\n";
+      out0 << "Not all ptype cases are implemented\n";
     
   }
 }

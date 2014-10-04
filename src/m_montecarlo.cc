@@ -190,8 +190,8 @@ void MCGeneral(Workspace&            ws,
   Ppath  ppath_step;
   Rng    rng;                      //Random Number generator
   time_t start_time=time(NULL);
-  Index  N_pt = pnd_field.nbooks();//Number of particle types
-  Vector pnd_vec(N_pt); //Vector of particle number densities used at each point
+  Index  N_se = pnd_field.nbooks();//Number of scattering elements
+  Vector pnd_vec(N_se); //Vector of particle number densities used at each point
   Vector Z11maxvector;//Vector holding the maximum phase function for each 
   bool  anyptype30 = is_anyptype30(scat_data_array_mono);
   if (anyptype30)

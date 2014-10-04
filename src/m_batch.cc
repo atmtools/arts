@@ -410,11 +410,11 @@ void ybatchMetProfiles(
   vmr_field_raw.resize(abs_species.nelem());
   
   //pnd_field_raw is an ArrayOfArrayOfTensor3 where the first array
-  //holds particle species.
-  // Number of particle types:
-  const Index N_pt = scat_data_array.nelem();
+  //holds the scattering elements.
+  // Number of scattering elements:
+  const Index N_se = scat_data_array.nelem();
   
-  pnd_field_raw.resize(N_pt);
+  pnd_field_raw.resize(N_se);
   
   // The satellite zenith angle is read in from the amsu data
   // and converted to arts sensor_los
@@ -476,7 +476,7 @@ void ybatchMetProfiles(
       xml_read_from_file(met_profile_path +"profile.lat_"+lat_os.str()+".lon_"+lon_os.str() + ".H2O.xml", 
                          vmr_field_raw[0], verbosity);
       
-      //Reads the pnd_field_raw for one particle
+      //Reads the pnd_field_raw for one scattering element
       //xml_read_from_file("/rinax/storage/users/rekha/uk_data/profiles/new_obs/newest_forecastfields/reff100/profile.lat_"+lat_os.str()+".lon_"+lon_os.str() + ".pnd100.xml",  pnd_field_raw[0]);
      
       //xml_read_from_file(met_profile_pnd_path +"reff100_newformat/profile.lat_"+lat_os.str()+".lon_"+lon_os.str() + ".pnd100.xml",  pnd_field_raw[0]);

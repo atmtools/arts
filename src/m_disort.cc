@@ -124,7 +124,7 @@ void ScatteringDisort(Workspace& ws,
     throw runtime_error( "DISORT can only be used for unpolarized \n"
                          "calculations (i.e., stokes_dim=1),\n" );
   
-  // NOTE: It is at the moment not possible to combine particle types  
+  // NOTE: It is at the moment not possible to combine scattering elements 
   // being stored on different scattering angle grids.
   // Ask whether this is required. Temperature dependance also not yet 
   // implemented. 
@@ -165,7 +165,7 @@ void ScatteringDisort(Workspace& ws,
   // Phase function
   Matrix phase_function(nlyr,scat_data_array[0].za_grid.nelem(), 0.);
   // Scattering angle grid, assumed here that it is the same for
-  // all particle types
+  // all scattering elements
   Vector scat_angle_grid(scat_data_array[0].za_grid.nelem(), 0.);
   scat_angle_grid = scat_data_array[0].za_grid;
   

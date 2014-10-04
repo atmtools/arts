@@ -137,7 +137,7 @@ void cloudboxSetAutomatically (// WS Output:
   // Allocate cloudbox_limits
   cloudbox_limits.resize ( atmosphere_dim*2 );
 
-  //--------- Start loop over particles ----------------------------------------
+  //--------- Start loop over scattering elements ------------------------------
   for ( l=0; l<massdensity_field.nbooks(); l++ )
   {
     bool y; // empty_flag
@@ -584,20 +584,20 @@ void scat_speciesInit (ArrayOfString&  scat_species,
 void scat_speciesSet (// WS Generic Output:
                       ArrayOfString&  scat_species,
                       // Control Parameters:
-                      const ArrayOfString& particle_tags,
+                      const ArrayOfString& scatspecies_tags,
                       const String& delim,
                       const Verbosity& verbosity)
 {
   CREATE_OUT3;
   
-  scat_species.resize ( particle_tags.nelem() );
+  scat_species.resize ( scatspecies_tags.nelem() );
   //assign input strings to scat_species
-  scat_species = particle_tags;
+  scat_species = scatspecies_tags;
 
   chk_scat_species (scat_species, delim);
 
-  // Print list of particle settings to the most verbose output stream:
-  out3 << "  Defined particle settings: ";
+  // Print list of scattering species settings to the most verbose output stream:
+  out3 << "  Defined scattering species settings: ";
   for ( Index i=0; i<scat_species.nelem(); ++i )
   {
     out3 << "\n  " << i << ": "<<scat_species[i];
@@ -906,15 +906,16 @@ void ScatteringParticlesSelect (//WS Output:
     // choosing the specified SingleScatteringData and ScatteringMetaData
     for ( Index j=0; j<scat_meta_array_tmp.nelem(); j++ )
     {
-      // check for particle (material/phase) type (e.g. "Ice", "Water",...)
+      // check for scattering element (material/phase) type (e.g. "Ice",
+      // "Water",...)
       if ( scat_meta_array_tmp[j].material == part_material ) 
       {       
-        // particle radius is calculated from particle volume given in
-        // scattering meta data
+        // scattering element radius is calculated from scattering element
+        // volume given in scattering meta data
         Numeric r_particle = 
           pow ( 3./4. * scat_meta_array_tmp[j].volume * 1e18 / PI , 1./3. );
 	
-	// check if particle is in size range
+	// check if scattering element is in size range
   // (sizemax < 0 results from wildcard usage and means consider all sizes on
   // the upper end)
         if ( r_particle  >= sizemin &&
@@ -924,7 +925,8 @@ void ScatteringParticlesSelect (//WS Output:
           intarr.push_back ( j );
         }
       selected[j] = 1;
-      out3 << "Selecting particle " << j+1 << "/" << scat_meta_array_tmp.nelem()
+      out3 << "Selecting scattering element " << j+1 << "/"
+           << scat_meta_array_tmp.nelem()
            << " (" << scat_meta_array_tmp[j].material << ")\n";
       }
     }
@@ -933,15 +935,15 @@ void ScatteringParticlesSelect (//WS Output:
     scat_data_per_scat_species[k] = intarr.nelem() - intarr_total;
     intarr_total = intarr.nelem();
 
-    // Use particle profile without corresponding ScattData poses high risk of
-    // accidentially neglecting those particles. That's unlikely what the user
-    // intends. Hence throw error.
+    // To use a particle species field without associated scattering element
+    // data poses a high risk of accidentially neglecting these species. That's
+    // unlikely what the user intends. Hence throw error.
     if (scat_data_per_scat_species[k]<1)
       {
         ostringstream os;
-        os << "Particle species " << partfield_name << " of type " << part_material
+        os << "Scattering species " << partfield_name << " of type " << part_material
            << " requested.\n"
-           << "But no Scattering Data found for it!\n";
+           << "But no matching scattering elements found for it!\n";
         throw runtime_error ( os.str() );
       }
   }
@@ -956,8 +958,8 @@ void ScatteringParticlesSelect (//WS Output:
         "--> Does the selection in *scat_species* fit any of the "
         "Single Scattering Data input? \n";
     throw runtime_error ( os.str() );*/
-    out1 << "WARNING! No ScatteringData selected.\n"
-         << "Continuing with no particles.\n";
+    out1 << "WARNING! No scattering elements selected.\n"
+         << "Continuing without any selected scattering elements.\n";
   }
 
   // check if we ignored any ScatteringMetaData entry
@@ -1084,12 +1086,13 @@ void pnd_fieldCalc(//WS Output:
   // Particle number density data
   // 
   if (pnd_field_raw.nelem() == 0)
-    throw runtime_error(
-                        "No particle number density data given. Please\n"
-                        "use WSMs *ParticleTypeInit* and \n"
-                        "*ParticleTypeAdd(All)* for reading cloud particle\n"
-                        "data.\n"
-                        );
+  {
+    ostringstream os;
+    os << "No particle number density data given. Please use WSMs\n"
+       << "*ParticleTypeInit* and *ParticleTypeAdd(All)* for reading\n"
+       << "scattering element data.\n";
+    throw runtime_error(os.str());
+  }
   
   chk_atm_grids( atmosphere_dim, p_grid, lat_grid, lon_grid );
   ArrayOfIndex cloudbox_limits_tmp;
@@ -1195,7 +1198,7 @@ void pnd_fieldCalc(//WS Output:
       ArrayOfGridPos gp_lat(Nlat_cloud);
       
       // Interpolate pnd_field. 
-      // Loop over the particle types:
+      // Loop over the scattering element:
       for (Index i = 0; i < pnd_field_raw.nelem(); ++ i)
         {
           // Calculate grid positions:
@@ -1240,7 +1243,7 @@ void pnd_fieldCalc(//WS Output:
       ArrayOfGridPos gp_lon(Nlon_cloud);
       
       // Interpolate pnd_field. 
-      // Loop over the particle types:
+      // Loop over the scattering element types:
       for (Index i = 0; i < pnd_field_raw.nelem(); ++ i)
         {
           // Calculate grid positions:
@@ -1343,7 +1346,7 @@ void pnd_fieldZero(//WS Output:
      }
   
   //Resize scat_data_array and set it to 0:
-  // Number iof particle types
+  // Number of scattering elements
   scat_data_array.resize(1);
   scat_data_array[0].particle_type = PARTICLE_TYPE_MACROS_ISO;
   scat_data_array[0].description = " ";
@@ -1439,7 +1442,7 @@ void pnd_fieldSetup (//WS Output:
     throw runtime_error(os.str());
   }
 
-  //resize pnd_field to required atmospheric dimension and scatt particles
+  //resize pnd_field to required atmospheric dimension and scattering elements
   pnd_field.resize ( scat_meta_array.nelem(), limits[1]-limits[0],
                      limits[3]-limits[2], limits[5]-limits[4] );
   Index scat_data_start = 0;
@@ -1481,18 +1484,18 @@ void pnd_fieldSetup (//WS Output:
     {
         psd = "MH97";
 
-        //check for expected particle field name
+        //check for expected scattering species field name
         if ( partfield_name != "IWC" )
         {
-            out1 << "WARNING! The particle field name is unequal 'IWC'.\n"
+            out1 << "WARNING! The scattering species field name is unequal 'IWC'.\n"
                  << psd << " should should only be applied to cloud"
                  << " ice.\n";
         }
 
-        //check for expected particle phase
+        //check for expected scattering species phase
         if ( part_material != "Ice" )
         {
-            out1 << "WARNING! The particle phase is unequal 'Ice'.\n"
+            out1 << "WARNING! The scattering species phase is unequal 'Ice'.\n"
                  << psd << " should only be applied to ice"
                  << " particles.\n";
         }
@@ -1510,19 +1513,19 @@ void pnd_fieldSetup (//WS Output:
     {
         psd = "H11";
 
-        //check for expected particle field name
+        //check for expected scattering species field name
         if ( partfield_name != "IWC" && partfield_name != "Snow")
         {
-            out1 << "WARNING! The particle field name is unequal 'IWC' and 'Snow'.\n"
+            out1 << "WARNING! The scattering species field name is unequal"
+                 << "'IWC' or 'Snow'.\n"
                  << psd << " should only be applied to cloud or precipitating"
                  << " ice.\n";
         }
 
-        //check for expected particle phase
-      //check for correct particle phase
+        //check for expected scattering species phase
         if ( part_material != "Ice" &&  part_material != "Water" )
         {
-            out1 << "WARNING! The particle phase is unequal 'Ice'.\n"
+            out1 << "WARNING! The scattering species phase is unequal 'Ice'.\n"
                  << psd << " should only be applied to ice (cloud ice or snow)"
                  << " particles.\n";
         }
@@ -1540,19 +1543,19 @@ void pnd_fieldSetup (//WS Output:
     {
         psd = "H13";
 
-        //check for expected particle field name
+        //check for expected scattering species field name
         if ( partfield_name != "IWC" && partfield_name != "Snow")
         {
-            out1 << "WARNING! The particle field name is unequal 'IWC' and 'Snow'.\n"
+            out1 << "WARNING! The scattering species field name is unequal"
+                 << "'IWC' and 'Snow'.\n"
                  << psd << " should only be applied to cloud or precipitating"
                  << " ice.\n";
         }
 
-        //check for expected particle phase
-      //check for correct particle phase
+        //check for expected scattering species phase
         if ( part_material != "Ice" &&  part_material != "Water" )
         {
-            out1 << "WARNING! The particle phase is unequal 'Ice'.\n"
+            out1 << "WARNING! The scattering species phase is unequal 'Ice'.\n"
                  << psd << " should only be applied to ice (cloud ice or snow)"
                  << " particles.\n";
         }
@@ -1570,19 +1573,19 @@ void pnd_fieldSetup (//WS Output:
     {
         psd = "H13Shape";
 
-        //check for expected particle field name
+        //check for expected scattering species field name
         if ( partfield_name != "IWC" && partfield_name != "Snow")
         {
-            out1 << "WARNING! The particle field name is unequal 'IWC' and 'Snow'.\n"
+            out1 << "WARNING! The scattering species field name is unequal"
+                 << "'IWC' and 'Snow'.\n"
                  << psd << " should only be applied to cloud or precipitating"
                  << " ice.\n";
         }
 
-      //check for expected particle phase
-      //check for correct particle phase
+      //check for expected scattering species phase
         if ( part_material != "Ice" &&  part_material != "Water" )
         {
-            out1 << "WARNING! The particle phase is unequal 'Ice'.\n"
+            out1 << "WARNING! The scattering species phase is unequal 'Ice'.\n"
                  << psd << " should only be applied to ice (cloud ice or snow)"
                  << " particles.\n";
         }
@@ -1600,18 +1603,20 @@ void pnd_fieldSetup (//WS Output:
     {
         psd = "MP48";
 
-        //check for expected particle field name
+        //check for expected scattering species field name
         if ( partfield_name != "Rain" && partfield_name != "Snow")
         {
-            out1 << "WARNING! The particle field name is unequal 'Rain' and 'Snow'.\n"
+            out1 << "WARNING! The scattering species field name is unequal"
+                 << "'Rain' and 'Snow'.\n"
                  << psd << " should only be applied to liquid or frozen"
                  << " precipitation.\n";
         }
 
-        //check for expected particle phase
+        //check for expected scattering species phase
         if ( part_material != "Ice" &&  part_material != "Water" )
         {
-            out1 << "WARNING! The particle phase is unequal 'Ice' and 'Water'.\n"
+            out1 << "WARNING! The scattering species phase is unequal"
+                 << "'Ice' or 'Water'.\n"
                  << psd << " should only be applied to liquid water or water"
                  << " ice particles.\n";
         }
@@ -1630,18 +1635,18 @@ void pnd_fieldSetup (//WS Output:
     {
         psd = "H98_STCO";
 
-        //check for expected particle field name
+        //check for expected scattering species field name
         if ( partfield_name != "LWC")
         {
-            out1 << "WARNING! The particle field name is unequal 'LWC'.\n"
+            out1 << "WARNING! The scattering species field name is unequal 'LWC'.\n"
                  << psd << " should should only be applied to liquid or frozen"
                  << " precipitation.\n";
         }
 
-        //check for expected particle phase
+        //check for expected scattering species phase
         if ( part_material != "Water" )
         {
-            out1 << "WARNING! The particle phase is unequal 'Water'.\n"
+            out1 << "WARNING! The scattering species phase is unequal 'Water'.\n"
                  << psd << " should only be applied to liquid water"
                  << " particles.\n";
         }
@@ -1684,7 +1689,7 @@ void dN_MH97 (//WS Output:
   if ( density.nelem() != n )
     {
       ostringstream os;
-      os << "Particle size and particle density vectors need to be of\n"
+      os << "Particle size and density vectors need to be of\n"
          << "identical size, but are not.";
       throw runtime_error(os.str());
     }
@@ -1710,7 +1715,7 @@ void dN_H11 (//WS Output:
   Index n = Dmax.nelem();
   dN.resize(n);
 
-  for ( Index i=0; i<n; i++ ) //loop over number of particles
+  for ( Index i=0; i<n; i++ ) //loop over number of scattering elementss
     {
       // calculate particle size distribution for H11
       // [# m^-3 m^-1]
@@ -1731,7 +1736,7 @@ void dN_Ar_H13 (//WS Output:
   dN.resize(n);
   Ar.resize(n);
 
-  for ( Index i=0; i<n; i++ ) //loop over number of particles
+  for ( Index i=0; i<n; i++ ) //loop over number of scattering elementss
     {
       // calculate particle size distribution for H13Shape
       // [# m^-3 m^-1]
@@ -1755,7 +1760,7 @@ void dN_H98 (//WS Output:
   if ( density.nelem() != n )
     {
       ostringstream os;
-      os << "Particle size and particle density vectors need to be of\n"
+      os << "Particle size and density vectors need to be of\n"
          << "identical size, but are not.";
       throw runtime_error(os.str());
     }

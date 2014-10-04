@@ -1521,22 +1521,22 @@ void get_ppath_blackrad(
 
 //! get_ppath_ext
 /*!
-    Determines the particle properties along a propagation path.
+    Determines the particle optical properties along a propagation path.
 
-    Note that the extinction for all particle types is summed. And that
+    Note that the extinction for all scattering elements is summed. And that
     all frequencies are filled for pnd_abs_vec and pnd_ext_mat even if
     use_mean_scat_data is true (but data equal for all frequencies).
 
     \param   ws                  Out: The workspace
     \param   clear2cloudbox      Out: Mapping of index. See code for details. 
-    \param   pnd_abs_vec         Out: Absorption vectors for particles
+    \param   pnd_abs_vec         Out: Particle absorption vector
                                       (defined only where particles are found)
-    \param   pnd_ext_vec         Out: Extinction matrices for particles
+    \param   pnd_ext_vec         Out: Particle extinction matrix
                                       (defined only where particles are found)
     \param   scat_data           Out: Extracted scattering data. Length of
                                       array affected by *use_mean_scat_data*.
     \param   ppath_pnd           Out. The particle number density for each
-                                      point (also outside cloudbox).
+                                      path point (also outside cloudbox).
     \param   ppath               As the WSV.    
     \param   ppath_t             Temperature for each ppath point.
     \param   stokes_dim          As the WSV.    

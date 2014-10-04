@@ -379,7 +379,7 @@ void fos(
           for( Index j=0; j<auxPartCont.nelem(); j++ )
             { iy_aux[auxPartCont[j]](0,0,0,np-1) = ppath_pnd(joker,np-1) *
                                       particle_masses(joker,auxPartContI[j]); }
-          // Particle field
+          // Particle number density
           for( Index j=0; j<auxPartField.nelem(); j++ )
             { iy_aux[auxPartField[j]](0,0,0,np-1) = 
                                             ppath_pnd(auxPartFieldI[j],np-1); }
@@ -684,7 +684,7 @@ void fos(
               for( Index j=0; j<auxPartCont.nelem(); j++ )
                 { iy_aux[auxPartCont[j]](0,0,0,ip) = ppath_pnd(joker,ip) *
                                       particle_masses(joker,auxPartContI[j]); }
-              // Particle field
+              // Particle number density
               for( Index j=0; j<auxPartField.nelem(); j++ )
                 { iy_aux[auxPartField[j]](0,0,0,ip) = 
                                               ppath_pnd(auxPartFieldI[j],ip); }

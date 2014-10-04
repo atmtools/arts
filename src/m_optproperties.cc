@@ -56,14 +56,14 @@ extern const Numeric PI;
 extern const Numeric DEG2RAD;
 extern const Numeric RAD2DEG;
 
-#define PART_TYPE scat_data_array[i_pt].particle_type
-#define F_DATAGRID scat_data_array[i_pt].f_grid
-#define T_DATAGRID scat_data_array[i_pt].T_grid
-#define ZA_DATAGRID scat_data_array[i_pt].za_grid
-#define AA_DATAGRID scat_data_array[i_pt].aa_grid
-#define PHA_MAT_DATA_RAW scat_data_array[i_pt].pha_mat_data  //CPD: changed from pha_mat_data
-#define EXT_MAT_DATA_RAW scat_data_array[i_pt].ext_mat_data  //which wouldn't let me play with
-#define ABS_VEC_DATA_RAW scat_data_array[i_pt].abs_vec_data  //scat_data_array_mono.
+#define PART_TYPE scat_data_array[i_se].particle_type
+#define F_DATAGRID scat_data_array[i_se].f_grid
+#define T_DATAGRID scat_data_array[i_se].T_grid
+#define ZA_DATAGRID scat_data_array[i_se].za_grid
+#define AA_DATAGRID scat_data_array[i_se].aa_grid
+#define PHA_MAT_DATA_RAW scat_data_array[i_se].pha_mat_data  //CPD: changed from pha_mat_data
+#define EXT_MAT_DATA_RAW scat_data_array[i_se].ext_mat_data  //which wouldn't let me play with
+#define ABS_VEC_DATA_RAW scat_data_array[i_se].abs_vec_data  //scat_data_array_mono.
 #define PND_LIMIT 1e-12 // If particle number density is below this value, 
                         // no transformations will be performed
 
@@ -91,7 +91,7 @@ void pha_mat_sptFromData( // Output:
   
   out3 << "Calculate *pha_mat_spt* from database\n";
 
-  const Index N_pt = scat_data_array.nelem();
+  const Index N_se = scat_data_array.nelem();
   const Index stokes_dim = pha_mat_spt.ncols();
 
   if (stokes_dim > 4 || stokes_dim < 1){
@@ -99,24 +99,24 @@ void pha_mat_sptFromData( // Output:
                         "must be 1,2,3 or 4");
   }
   
-  assert( pha_mat_spt.nshelves() == N_pt );
+  assert( pha_mat_spt.nshelves() == N_se );
   
   // Phase matrix in laboratory coordinate system. Dimensions:
   // [frequency, za_inc, aa_inc, stokes_dim, stokes_dim]
   Tensor5 pha_mat_data_int;
   
 
-  // Loop over the included particle_types
-  for (Index i_pt = 0; i_pt < N_pt; i_pt++)
+  // Loop over the included scattering elements
+  for (Index i_se = 0; i_se < N_se; i_se++)
     {
       // If the particle number density at a specific point in the atmosphere for 
-      // the i_pt particle type is zero, we don't need to do the transfromation!
-      if (pnd_field(i_pt, scat_p_index, scat_lat_index, scat_lon_index) > PND_LIMIT)
+      // the i_se scattering element is zero, we don't need to do the transfromation!
+      if (pnd_field(i_se, scat_p_index, scat_lat_index, scat_lon_index) > PND_LIMIT)
         {
 
           // First we have to transform the data from the coordinate system 
-          // used in the database (depending on the kind of particle type 
-          // specified by *particle_type*) to the laboratory coordinate sytem.
+          // used in the database (depending on the kind of ptype) to the
+          // laboratory coordinate system.
       
           // Frequency interpolation:
      
@@ -171,7 +171,7 @@ void pha_mat_sptFromData( // Output:
                    aa_inc_idx ++) 
                 {
                   pha_matTransform(pha_mat_spt
-                                   (i_pt, za_inc_idx, aa_inc_idx, joker, joker),
+                                   (i_se, za_inc_idx, aa_inc_idx, joker, joker),
                                    pha_mat_data_int, 
                                    ZA_DATAGRID, AA_DATAGRID,
                                    PART_TYPE, scat_za_index, scat_aa_index,
@@ -206,8 +206,8 @@ void pha_mat_sptFromDataDOITOpt(// Output:
   if (pnd_field.ncols() > 1)
     {
       assert(pha_mat_sptDOITOpt.nelem() == scat_data_array_mono.nelem());
-      // I assume that if the size is o.k. for one particle type is will 
-      // also be o.k. for more particle types. 
+      // Assuming that if the size is o.k. for one scattering element, it will
+      // also be o.k. for the other scattering elements. 
       assert(pha_mat_sptDOITOpt[0].nlibraries() == scat_data_array_mono[0].T_grid.nelem());
       assert(pha_mat_sptDOITOpt[0].nvitrines() == doit_za_grid_size);
       assert(pha_mat_sptDOITOpt[0].nshelves() == scat_aa_grid.nelem() );
@@ -222,8 +222,8 @@ void pha_mat_sptFromDataDOITOpt(// Output:
       //                doit_za_grid_size, scat_aa_grid.nelem()));
       
       assert(pha_mat_sptDOITOpt.nelem() == scat_data_array_mono.nelem());
-      // I assume that if the size is o.k. for one particle type is will 
-      // also be o.k. for more particle types. 
+      // Assuming that if the size is o.k. for one scattering element, it will
+      // also be o.k. for the other scattering elements. 
       assert(pha_mat_sptDOITOpt[0].nlibraries() == scat_data_array_mono[0].T_grid.nelem());
       assert(pha_mat_sptDOITOpt[0].nvitrines() == doit_za_grid_size);
       assert(pha_mat_sptDOITOpt[0].nshelves() == 1);
@@ -237,7 +237,7 @@ void pha_mat_sptFromDataDOITOpt(// Output:
   Vector za_grid;
   nlinspace(za_grid, 0, 180, doit_za_grid_size);  
   
-  const Index N_pt = scat_data_array_mono.nelem();
+  const Index N_se = scat_data_array_mono.nelem();
   const Index stokes_dim = pha_mat_spt.ncols();
   
   if (stokes_dim > 4 || stokes_dim < 1){
@@ -245,7 +245,7 @@ void pha_mat_sptFromDataDOITOpt(// Output:
                         "must be 1,2,3 or 4");
   }
   
-  assert( pha_mat_spt.nshelves() == N_pt );
+  assert( pha_mat_spt.nshelves() == N_se );
 
   GridPos T_gp;
   Vector itw(2);
@@ -254,23 +254,23 @@ void pha_mat_sptFromDataDOITOpt(// Output:
   pha_mat_spt = 0.;
 
   // Do the transformation into the laboratory coordinate system.
-  for (Index i_pt = 0; i_pt < N_pt; i_pt ++)
+  for (Index i_se = 0; i_se < N_se; i_se ++)
     {
       // If the particle number density at a specific point in the atmosphere  
-      // for the i_pt particle type is zero, we don't need to do the 
+      // for the i_se scattering element is zero, we don't need to do the 
       // transfromation!
-      if (pnd_field(i_pt, scat_p_index, scat_lat_index, scat_lon_index) > PND_LIMIT) //TRS
+      if (pnd_field(i_se, scat_p_index, scat_lat_index, scat_lon_index) > PND_LIMIT) //TRS
         {
-          if( scat_data_array_mono[i_pt].T_grid.nelem() > 1)
+          if( scat_data_array_mono[i_se].T_grid.nelem() > 1)
             {
               ostringstream os;
               os << "The temperature grid of the scattering data does not cover the \n"
                   "atmospheric temperature at cloud location. The data should \n"
                   "include the value T="<< rtp_temperature << " K. \n";
-              chk_interpolation_grids(os.str(),	scat_data_array_mono[i_pt].T_grid, rtp_temperature);
+              chk_interpolation_grids(os.str(),	scat_data_array_mono[i_se].T_grid, rtp_temperature);
               
               // Gridpositions:
-              gridpos(T_gp, scat_data_array_mono[i_pt].T_grid, rtp_temperature); 
+              gridpos(T_gp, scat_data_array_mono[i_se].T_grid, rtp_temperature); 
               // Interpolationweights:
               interpweights(itw, T_gp);
             }
@@ -283,10 +283,10 @@ void pha_mat_sptFromDataDOITOpt(// Output:
               for (Index aa_inc_idx = 0; aa_inc_idx < scat_aa_grid.nelem();
                    aa_inc_idx ++) 
                 {
-                  if( scat_data_array_mono[i_pt].T_grid.nelem() == 1)
+                  if( scat_data_array_mono[i_se].T_grid.nelem() == 1)
                     {
-                      pha_mat_spt(i_pt, za_inc_idx, aa_inc_idx, joker, joker) =
-                        pha_mat_sptDOITOpt[i_pt](0, scat_za_index,
+                      pha_mat_spt(i_se, za_inc_idx, aa_inc_idx, joker, joker) =
+                        pha_mat_sptDOITOpt[i_se](0, scat_za_index,
                                                  scat_aa_index, za_inc_idx, 
                                                  aa_inc_idx, joker, joker);
                     }
@@ -298,8 +298,8 @@ void pha_mat_sptFromDataDOITOpt(// Output:
                         {
                           for (Index j = 0; j< stokes_dim; j++)
                             {
-                              pha_mat_spt(i_pt, za_inc_idx, aa_inc_idx, i, j)=
-                                interp(itw,pha_mat_sptDOITOpt[i_pt]
+                              pha_mat_spt(i_se, za_inc_idx, aa_inc_idx, i, j)=
+                                interp(itw,pha_mat_sptDOITOpt[i_se]
                                        (joker, scat_za_index,
                                         scat_aa_index, za_inc_idx, 
                                         aa_inc_idx, i, j) , T_gp);
@@ -333,7 +333,7 @@ void opt_prop_sptFromData(// Output and Input:
                           const Verbosity& verbosity)
 {
   
-  const Index N_pt = scat_data_array.nelem();
+  const Index N_se = scat_data_array.nelem();
   const Index stokes_dim = ext_mat_spt.ncols();
   const Numeric za_sca = scat_za_grid[scat_za_index];
   const Numeric aa_sca = scat_aa_grid[scat_aa_index];
@@ -343,8 +343,8 @@ void opt_prop_sptFromData(// Output and Input:
                         "must be 1,2,3 or 4");
   }
   
-  assert( ext_mat_spt.npages() == N_pt );
-  assert( abs_vec_spt.nrows() == N_pt );
+  assert( ext_mat_spt.npages() == N_se );
+  assert( abs_vec_spt.nrows() == N_se );
 
   // Phase matrix in laboratory coordinate system. Dimensions:
   // [frequency, za_inc, aa_inc, stokes_dim, stokes_dim]
@@ -356,17 +356,17 @@ void opt_prop_sptFromData(// Output and Input:
   abs_vec_spt = 0.;
 
 
-  // Loop over the included particle_types
-  for (Index i_pt = 0; i_pt < N_pt; i_pt++)
+  // Loop over the included scattering elements
+  for (Index i_se = 0; i_se < N_se; i_se++)
     {
       // If the particle number density at a specific point in the atmosphere for 
-      // the i_pt particle type is zero, we don't need to do the transfromation
+      // the i_se scattering element is zero, we don't need to do the transfromation
 
-      if (pnd_field(i_pt, scat_p_index, scat_lat_index, scat_lon_index) > PND_LIMIT)
+      if (pnd_field(i_se, scat_p_index, scat_lat_index, scat_lon_index) > PND_LIMIT)
         {
           // First we have to transform the data from the coordinate system 
-          // used in the database (depending on the kind of particle type 
-          // specified by *particle_type*) to the laboratory coordinate sytem.
+          // used in the database (depending on the kind of ptype) to the
+          // laboratory coordinate system.
       
           // Frequency interpolation:
      
@@ -494,7 +494,7 @@ void opt_prop_sptFromData(// Output and Input:
           //
      
   
-          ext_matTransform(ext_mat_spt(i_pt, joker, joker),
+          ext_matTransform(ext_mat_spt(i_se, joker, joker),
                            ext_mat_data_int,
                            ZA_DATAGRID, AA_DATAGRID, PART_TYPE,
                            za_sca, aa_sca,
@@ -502,7 +502,7 @@ void opt_prop_sptFromData(// Output and Input:
           // 
           // Absorption vector:
           //
-          abs_vecTransform(abs_vec_spt(i_pt, joker),
+          abs_vecTransform(abs_vec_spt(i_se, joker),
                            abs_vec_data_int,
                            ZA_DATAGRID, AA_DATAGRID, PART_TYPE,
                            za_sca, aa_sca, verbosity);                
@@ -523,7 +523,7 @@ void ext_matAddPart(Tensor3& ext_mat,
                     const Verbosity&)
                      
 {
-  Index N_pt = ext_mat_spt.npages();
+  Index N_se = ext_mat_spt.npages();
   Index stokes_dim = ext_mat_spt.nrows();
   
   Matrix ext_mat_part(stokes_dim, stokes_dim, 0.0);
@@ -542,8 +542,8 @@ void ext_matAddPart(Tensor3& ext_mat,
 
   if (atmosphere_dim == 1)
     {
-      // this is a loop over the different particle types
-      for (Index l = 0; l < N_pt; l++)
+      // this is a loop over the different scattering elements
+      for (Index l = 0; l < N_se; l++)
         { 
           
           // now the last two loops over the stokes dimension.
@@ -557,15 +557,15 @@ void ext_matAddPart(Tensor3& ext_mat,
             }
         }
 
-      //Add particle extinction matrix to *ext_mat*.
+      //Add extinction matrix due single scattering element to *ext_mat*.
       ext_mat(0, Range(joker), Range(joker)) += ext_mat_part;
     }
  
   if (atmosphere_dim == 3)
     {
       
-      // this is a loop over the different particle types
-      for (Index l = 0; l < N_pt; l++)
+      // this is a loop over the different scattering elements
+      for (Index l = 0; l < N_se; l++)
         { 
           
           // now the last two loops over the stokes dimension.
@@ -582,7 +582,7 @@ void ext_matAddPart(Tensor3& ext_mat,
             } 
         }
 
-      //Add particle extinction matrix to *ext_mat*.
+      //Add extinction matrix due single scattering element to *ext_mat*.
       ext_mat(0, Range(joker), Range(joker)) += ext_mat_part;
 
     }
@@ -601,7 +601,7 @@ void abs_vecAddPart(Matrix& abs_vec,
                     const Verbosity&)
                     
 {
-  Index N_pt = abs_vec_spt.nrows();
+  Index N_se = abs_vec_spt.nrows();
   Index stokes_dim = abs_vec_spt.ncols();
 
   Vector abs_vec_part(stokes_dim, 0.0);
@@ -613,8 +613,8 @@ void abs_vecAddPart(Matrix& abs_vec,
  
   if (atmosphere_dim == 1)
     {
-      // this is a loop over the different particle types
-      for (Index l = 0; l < N_pt ; ++l)
+      // this is a loop over the different scattering elements
+      for (Index l = 0; l < N_se ; ++l)
         {
           // now the loop over the stokes dimension.
           //(CE:) in the middle was l instead of m
@@ -625,14 +625,14 @@ void abs_vecAddPart(Matrix& abs_vec,
               (abs_vec_spt(l, m) * pnd_field(l, scat_p_index, 0, 0));
           
         }
-      //Add the particle absorption
+      //Add absorption due single scattering element.
       abs_vec(0, Range(joker)) += abs_vec_part;
     }
   
   if (atmosphere_dim == 3)
     {
-      // this is a loop over the different particle types
-      for (Index l = 0; l < N_pt ; ++l)
+      // this is a loop over the different scattering elements
+      for (Index l = 0; l < N_se ; ++l)
         {
           
           // now the loop over the stokes dimension.
@@ -645,7 +645,7 @@ void abs_vecAddPart(Matrix& abs_vec,
                                           scat_lon_index));
           
         }
-      //Add the particle absorption
+      //Add absorption due single scattering element.
       abs_vec(0,Range(joker)) += abs_vec_part;
     }
 } 
@@ -839,7 +839,7 @@ void pha_matCalc(Tensor4& pha_mat,
                  const Verbosity&)
 {
 
-  Index N_pt = pha_mat_spt.nshelves();
+  Index N_se = pha_mat_spt.nshelves();
   Index Nza = pha_mat_spt.nbooks();
   Index Naa = pha_mat_spt.npages();
   Index stokes_dim = pha_mat_spt.nrows();
@@ -851,8 +851,8 @@ void pha_matCalc(Tensor4& pha_mat,
           
   if (atmosphere_dim == 1)
     {
-      // this is a loop over the different particle types
-      for (Index pt_index = 0; pt_index < N_pt; ++ pt_index)
+      // this is a loop over the different scattering elements
+      for (Index pt_index = 0; pt_index < N_se; ++ pt_index)
         {
           // these are loops over zenith angle and azimuth angle
           for (Index za_index = 0; za_index < Nza; ++ za_index)
@@ -882,8 +882,8 @@ void pha_matCalc(Tensor4& pha_mat,
           
   if (atmosphere_dim == 3)
     {
-      // this is a loop over the different particle types
-      for (Index pt_index = 0; pt_index < N_pt; ++ pt_index)
+      // this is a loop over the different scattering elements
+      for (Index pt_index = 0; pt_index < N_se; ++ pt_index)
         {
           
           // these are loops over zenith angle and azimuth angle
@@ -929,12 +929,12 @@ void scat_data_arrayCheck(//Input:
 //  xml_write_to_file("SingleScatteringData", scat_data_array, FILE_TYPE_ASCII,
 //                    verbosity);
   
-  const Index N_pt = scat_data_array.nelem();
+  const Index N_se = scat_data_array.nelem();
   
-  // Loop over the included particle_types
-  for (Index i_pt = 0; i_pt < N_pt; i_pt++)
+  // Loop over the included scattering elements
+  for (Index i_se = 0; i_se < N_se; i_se++)
     {
-      out2 << "  particle " << i_pt << "\n";
+      out2 << "  scattering element " << i_se << "\n";
 
       switch (PART_TYPE){
 
@@ -980,7 +980,7 @@ void scat_data_arrayCheck(//Input:
                         os << "  Deviations in scat_data_array too large:\n"
                            << "  scat dev [%] " << 1e2*Csca/Csca_data-1e2
                            << " at albedo of " << Csca_data/Cext_data << "\n"
-                           << "  Check entry for particle " << i_pt << " at "
+                           << "  Check entry for scattering element " << i_se << " at "
                            << f << ".frequency and " << t << ".temperature!\n";
                         throw runtime_error( os.str() );
                       }
@@ -994,7 +994,7 @@ void scat_data_arrayCheck(//Input:
             CREATE_OUT0;
             out0 << "  WARNING:\n"
                  << "  scat_data_array consistency check not implemented (yet?!) for\n"
-                 << "  particle type " << PART_TYPE << "!\n";
+                 << "  ptype " << PART_TYPE << "!\n";
           }
       }
     }
@@ -1033,19 +1033,19 @@ void DoitScatteringDataPrepare(//Output:
 
   assert( scat_data_array.nelem() == scat_data_array_mono.nelem() );
   
-  Index N_pt = scat_data_array.nelem();  
+  Index N_se = scat_data_array.nelem();  
   
-  pha_mat_sptDOITOpt.resize(N_pt);
+  pha_mat_sptDOITOpt.resize(N_se);
 
-  for (Index i_pt = 0; i_pt < N_pt; i_pt++)
+  for (Index i_se = 0; i_se < N_se; i_se++)
     {
-      Index N_T = scat_data_array_mono[i_pt].T_grid.nelem();
-      pha_mat_sptDOITOpt[i_pt].resize(N_T, doit_za_grid_size, N_aa_sca, 
+      Index N_T = scat_data_array_mono[i_se].T_grid.nelem();
+      pha_mat_sptDOITOpt[i_se].resize(N_T, doit_za_grid_size, N_aa_sca, 
                                       doit_za_grid_size, scat_aa_grid.nelem(), 
                                       stokes_dim, stokes_dim);
       
       //    Initialize:
-      pha_mat_sptDOITOpt[i_pt]= 0.;
+      pha_mat_sptDOITOpt[i_se]= 0.;
    
       // Calculate all scattering angles for all combinations of incoming 
       // and scattered directions and interpolation.
@@ -1064,17 +1064,17 @@ void DoitScatteringDataPrepare(//Output:
                              scat_aa_grid.nelem();
                            aa_inc_idx ++)
                         {
-                          pha_matTransform(pha_mat_sptDOITOpt[i_pt]
+                          pha_matTransform(pha_mat_sptDOITOpt[i_se]
                                            (t_idx, za_sca_idx,            
                                             aa_sca_idx, za_inc_idx, aa_inc_idx,
                                             joker, joker),
-                                           scat_data_array_mono[i_pt].
+                                           scat_data_array_mono[i_se].
                                            pha_mat_data
                                            (0,t_idx,joker,joker,joker,
                                             joker,joker),
-                                           scat_data_array_mono[i_pt].za_grid,
-                                           scat_data_array_mono[i_pt].aa_grid,
-                                           scat_data_array_mono[i_pt].particle_type,
+                                           scat_data_array_mono[i_se].za_grid,
+                                           scat_data_array_mono[i_se].aa_grid,
+                                           scat_data_array_mono[i_se].particle_type,
                                            za_sca_idx,
                                            aa_sca_idx,
                                            za_inc_idx,
@@ -1126,13 +1126,13 @@ void scat_data_array_monoCalc(ArrayOfSingleScatteringData& scat_data_array_mono,
         }*/
     }
 
-  const Index N_pt = scat_data_array.nelem();
+  const Index N_se = scat_data_array.nelem();
   
   //Initialise scat_data_array_mono
-  scat_data_array_mono.resize(N_pt);
+  scat_data_array_mono.resize(N_se);
   
-  // Loop over the included particle_types
-  for (Index i_pt = 0; i_pt < N_pt; i_pt++)
+  // Loop over the included scattering elements
+  for (Index i_se = 0; i_se < N_se; i_se++)
     {
       // Gridpositions:
       GridPos freq_gp;
@@ -1143,15 +1143,15 @@ void scat_data_array_monoCalc(ArrayOfSingleScatteringData& scat_data_array_mono,
       interpweights(itw, freq_gp);
 
       //Stuff that doesn't need interpolating
-      scat_data_array_mono[i_pt].particle_type=PART_TYPE;
-      scat_data_array_mono[i_pt].f_grid.resize(1);
-      scat_data_array_mono[i_pt].f_grid=f_grid[f_index];
-      scat_data_array_mono[i_pt].T_grid=scat_data_array[i_pt].T_grid;
-      scat_data_array_mono[i_pt].za_grid=ZA_DATAGRID;
-      scat_data_array_mono[i_pt].aa_grid=AA_DATAGRID;
+      scat_data_array_mono[i_se].particle_type=PART_TYPE;
+      scat_data_array_mono[i_se].f_grid.resize(1);
+      scat_data_array_mono[i_se].f_grid=f_grid[f_index];
+      scat_data_array_mono[i_se].T_grid=scat_data_array[i_se].T_grid;
+      scat_data_array_mono[i_se].za_grid=ZA_DATAGRID;
+      scat_data_array_mono[i_se].aa_grid=AA_DATAGRID;
           
       //Phase matrix data
-      scat_data_array_mono[i_pt].pha_mat_data.resize(1,
+      scat_data_array_mono[i_se].pha_mat_data.resize(1,
                                                PHA_MAT_DATA_RAW.nvitrines(),
                                                PHA_MAT_DATA_RAW.nshelves(),
                                                PHA_MAT_DATA_RAW.nbooks(),
@@ -1177,7 +1177,7 @@ void scat_data_array_monoCalc(ArrayOfSingleScatteringData& scat_data_array_mono,
                         {  
                           for (Index i = 0; i < PHA_MAT_DATA_RAW.ncols(); i++)
                             {
-                              scat_data_array_mono[i_pt].pha_mat_data(0, t_index, 
+                              scat_data_array_mono[i_se].pha_mat_data(0, t_index, 
                                                                 i_za_sca, 
                                                                 i_aa_sca,
                                                                 i_za_inc, 
@@ -1194,7 +1194,7 @@ void scat_data_array_monoCalc(ArrayOfSingleScatteringData& scat_data_array_mono,
                 }
             }
           //Extinction matrix data
-          scat_data_array_mono[i_pt].ext_mat_data.resize(1, T_DATAGRID.nelem(), 
+          scat_data_array_mono[i_se].ext_mat_data.resize(1, T_DATAGRID.nelem(), 
                                                    EXT_MAT_DATA_RAW.npages(),
                                                    EXT_MAT_DATA_RAW.nrows(),
                                                    EXT_MAT_DATA_RAW.ncols());
@@ -1209,7 +1209,7 @@ void scat_data_array_monoCalc(ArrayOfSingleScatteringData& scat_data_array_mono,
                   //
                   for (Index i = 0; i < EXT_MAT_DATA_RAW.ncols(); i++)
                     {
-                      scat_data_array_mono[i_pt].ext_mat_data(0, t_index, 
+                      scat_data_array_mono[i_se].ext_mat_data(0, t_index, 
                                                         i_za_sca, i_aa_sca, i)
                         = interp(itw, EXT_MAT_DATA_RAW(joker, t_index, i_za_sca,
                                                        i_aa_sca, i),
@@ -1218,7 +1218,7 @@ void scat_data_array_monoCalc(ArrayOfSingleScatteringData& scat_data_array_mono,
                 }
             }
           //Absorption vector data
-          scat_data_array_mono[i_pt].abs_vec_data.resize(1, T_DATAGRID.nelem(),
+          scat_data_array_mono[i_se].abs_vec_data.resize(1, T_DATAGRID.nelem(),
                                                    ABS_VEC_DATA_RAW.npages(),
                                                    ABS_VEC_DATA_RAW.nrows(),
                                                    ABS_VEC_DATA_RAW.ncols());
@@ -1233,7 +1233,7 @@ void scat_data_array_monoCalc(ArrayOfSingleScatteringData& scat_data_array_mono,
                   //
                   for (Index i = 0; i < ABS_VEC_DATA_RAW.ncols(); i++)
                     {
-                      scat_data_array_mono[i_pt].abs_vec_data(0, t_index, i_za_sca,
+                      scat_data_array_mono[i_se].abs_vec_data(0, t_index, i_za_sca,
                                                         i_aa_sca, i) =
                         interp(itw, ABS_VEC_DATA_RAW(joker, t_index, i_za_sca,
                                                      i_aa_sca, i),
@@ -1263,7 +1263,7 @@ void opt_prop_sptFromMonoData(// Output and Input:
                               const Index& scat_lon_index,
                               const Verbosity& verbosity)
 {
-  const Index N_pt = scat_data_array_mono.nelem();
+  const Index N_se = scat_data_array_mono.nelem();
   const Index stokes_dim = ext_mat_spt.ncols();
   const Numeric za_sca = scat_za_grid[scat_za_index];
   const Numeric aa_sca = scat_aa_grid[scat_aa_index];
@@ -1273,8 +1273,8 @@ void opt_prop_sptFromMonoData(// Output and Input:
                          "must be 1,2,3 or 4");
   }
   
-  assert( ext_mat_spt.npages() == N_pt );
-  assert( abs_vec_spt.nrows() == N_pt );
+  assert( ext_mat_spt.npages() == N_se );
+  assert( abs_vec_spt.nrows() == N_se );
 
   // Initialisation
   ext_mat_spt = 0.;
@@ -1284,34 +1284,34 @@ void opt_prop_sptFromMonoData(// Output and Input:
   
   Vector itw(2);
   
-  // Loop over the included particle_types
-  for (Index i_pt = 0; i_pt < N_pt; i_pt++)
+  // Loop over the included scattering elements
+  for (Index i_se = 0; i_se < N_se; i_se++)
     {
       // If the particle number density at a specific point in the atmosphere for 
-      // the i_pt particle type is zero, we don't need to do the transfromation!
-      if (pnd_field(i_pt, scat_p_index, scat_lat_index, scat_lon_index) > PND_LIMIT)
+      // the i_se scattering element is zero, we don't need to do the transfromation!
+      if (pnd_field(i_se, scat_p_index, scat_lat_index, scat_lon_index) > PND_LIMIT)
         {
  
           // First we have to transform the data from the coordinate system 
-          // used in the database (depending on the kind of particle type 
-          // specified by *particle_type*) to the laboratory coordinate sytem. 
+          // used in the database (depending on the kind of ptype) to the
+          // laboratory coordinate system.
           
           //
           // Do the transformation into the laboratory coordinate system.
           //
           // Extinction matrix:
           //
-          Index ext_npages = scat_data_array_mono[i_pt].ext_mat_data.npages();  
-          Index ext_nrows = scat_data_array_mono[i_pt].ext_mat_data.nrows();  
-          Index ext_ncols = scat_data_array_mono[i_pt].ext_mat_data.ncols();  
-          Index abs_npages = scat_data_array_mono[i_pt].abs_vec_data.npages();  
-          Index abs_nrows = scat_data_array_mono[i_pt].abs_vec_data.nrows();  
-          Index abs_ncols = scat_data_array_mono[i_pt].abs_vec_data.ncols();  
+          Index ext_npages = scat_data_array_mono[i_se].ext_mat_data.npages();  
+          Index ext_nrows = scat_data_array_mono[i_se].ext_mat_data.nrows();  
+          Index ext_ncols = scat_data_array_mono[i_se].ext_mat_data.ncols();  
+          Index abs_npages = scat_data_array_mono[i_se].abs_vec_data.npages();  
+          Index abs_nrows = scat_data_array_mono[i_se].abs_vec_data.nrows();  
+          Index abs_ncols = scat_data_array_mono[i_se].abs_vec_data.ncols();  
           Tensor3 ext_mat_data1temp(ext_npages,ext_nrows,ext_ncols,0.0);
           Tensor3 abs_vec_data1temp(abs_npages,abs_nrows,abs_ncols,0.0);
 
           //Check that scattering data temperature range covers required temperature
-          ConstVectorView t_grid = scat_data_array_mono[i_pt].T_grid;
+          ConstVectorView t_grid = scat_data_array_mono[i_se].T_grid;
       
           if (t_grid.nelem() > 1)
             {
@@ -1321,7 +1321,7 @@ void opt_prop_sptFromMonoData(// Output and Input:
               //             }
           
               //interpolate over temperature
-              gridpos(t_gp, scat_data_array_mono[i_pt].T_grid, rtp_temperature);
+              gridpos(t_gp, scat_data_array_mono[i_se].T_grid, rtp_temperature);
               interpweights(itw, t_gp);
               for (Index i_p = 0; i_p < ext_npages ; i_p++)
                 {
@@ -1330,7 +1330,7 @@ void opt_prop_sptFromMonoData(// Output and Input:
                       for (Index i_c = 0; i_c < ext_ncols ; i_c++)
                         {
                           ext_mat_data1temp(i_p,i_r,i_c)=interp(itw,
-                                                                scat_data_array_mono[i_pt].ext_mat_data(0,joker,i_p,i_r,i_c),t_gp);
+                                                                scat_data_array_mono[i_se].ext_mat_data(0,joker,i_p,i_r,i_c),t_gp);
                         }
                     }
                 }
@@ -1338,14 +1338,14 @@ void opt_prop_sptFromMonoData(// Output and Input:
           else 
             {
               ext_mat_data1temp = 
-                scat_data_array_mono[i_pt].ext_mat_data(0,0,joker,joker,joker);
+                scat_data_array_mono[i_se].ext_mat_data(0,0,joker,joker,joker);
             }
       
-          ext_matTransform(ext_mat_spt(i_pt, joker, joker),
+          ext_matTransform(ext_mat_spt(i_se, joker, joker),
                            ext_mat_data1temp,
-                           scat_data_array_mono[i_pt].za_grid, 
-                           scat_data_array_mono[i_pt].aa_grid, 
-                           scat_data_array_mono[i_pt].particle_type,
+                           scat_data_array_mono[i_se].za_grid, 
+                           scat_data_array_mono[i_se].aa_grid, 
+                           scat_data_array_mono[i_se].particle_type,
                            za_sca, aa_sca,
                            verbosity);
           // 
@@ -1362,7 +1362,7 @@ void opt_prop_sptFromMonoData(// Output and Input:
                       for (Index i_c = 0; i_c < abs_ncols ; i_c++)
                         {
                           abs_vec_data1temp(i_p,i_r,i_c)=interp(itw,
-                                                                scat_data_array_mono[i_pt].abs_vec_data(0,joker,i_p,i_r,i_c),t_gp);
+                                                                scat_data_array_mono[i_se].abs_vec_data(0,joker,i_p,i_r,i_c),t_gp);
                         }
                     }
                 }
@@ -1370,14 +1370,14 @@ void opt_prop_sptFromMonoData(// Output and Input:
           else
             {
               abs_vec_data1temp = 
-                scat_data_array_mono[i_pt].abs_vec_data(0,0,joker,joker,joker);
+                scat_data_array_mono[i_se].abs_vec_data(0,0,joker,joker,joker);
             }
       
-          abs_vecTransform(abs_vec_spt(i_pt, joker),
+          abs_vecTransform(abs_vec_spt(i_se, joker),
                            abs_vec_data1temp,
-                           scat_data_array_mono[i_pt].za_grid, 
-                           scat_data_array_mono[i_pt].aa_grid, 
-                           scat_data_array_mono[i_pt].particle_type,
+                           scat_data_array_mono[i_se].za_grid, 
+                           scat_data_array_mono[i_se].aa_grid, 
+                           scat_data_array_mono[i_se].particle_type,
                            za_sca, aa_sca,
                            verbosity);                
         }
@@ -1409,7 +1409,7 @@ void pha_mat_sptFromMonoData(// Output:
   Vector za_grid;
   nlinspace(za_grid, 0, 180, doit_za_grid_size); 
 
-  const Index N_pt = scat_data_array_mono.nelem();
+  const Index N_se = scat_data_array_mono.nelem();
   const Index stokes_dim = pha_mat_spt.ncols();
 
  
@@ -1419,7 +1419,7 @@ void pha_mat_sptFromMonoData(// Output:
                         "must be 1,2,3 or 4");
   }
   
-  assert( pha_mat_spt.nshelves() == N_pt );
+  assert( pha_mat_spt.nshelves() == N_se );
   
   GridPos T_gp;
   Vector itw(2);
@@ -1427,30 +1427,30 @@ void pha_mat_sptFromMonoData(// Output:
   // Initialisation
   pha_mat_spt = 0.;
   
-  for (Index i_pt = 0; i_pt < N_pt; i_pt ++)
+  for (Index i_se = 0; i_se < N_se; i_se ++)
     { 
       // If the particle number density at a specific point in the atmosphere 
-      // for the i_pt particle type is zero, we don't need to do the 
+      // for the i_se scattering element is zero, we don't need to do the 
       // transfromation!
-      if (pnd_field(i_pt, scat_p_index, scat_lat_index, scat_lon_index) >
+      if (pnd_field(i_se, scat_p_index, scat_lat_index, scat_lon_index) >
           PND_LIMIT)
         { 
           // Temporary phase matrix wich icludes the all temperatures.
-          Tensor3 pha_mat_spt_tmp(scat_data_array_mono[i_pt].T_grid.nelem(), 
+          Tensor3 pha_mat_spt_tmp(scat_data_array_mono[i_se].T_grid.nelem(), 
                                   pha_mat_spt.nrows(), pha_mat_spt.ncols());
   
           pha_mat_spt_tmp = 0.; 
       
-          if( scat_data_array_mono[i_pt].T_grid.nelem() > 1)
+          if( scat_data_array_mono[i_se].T_grid.nelem() > 1)
             {
               ostringstream os;
               os << "The temperature grid of the scattering data does not cover the \n"
                     "atmospheric temperature at cloud location. The data should \n"
                     "include the value T="<< rtp_temperature << " K. \n";
-              chk_interpolation_grids(os.str(),	scat_data_array_mono[i_pt].T_grid, rtp_temperature);
+              chk_interpolation_grids(os.str(),	scat_data_array_mono[i_se].T_grid, rtp_temperature);
               
               // Gridpositions:
-              gridpos(T_gp, scat_data_array_mono[i_pt].T_grid, rtp_temperature); 
+              gridpos(T_gp, scat_data_array_mono[i_se].T_grid, rtp_temperature); 
               // Interpolationweights:
               interpweights(itw, T_gp);
             }
@@ -1463,37 +1463,37 @@ void pha_mat_sptFromMonoData(// Output:
                    aa_inc_idx ++) 
                 {
                   for (Index t_idx = 0; t_idx < 
-                         scat_data_array_mono[i_pt].T_grid.nelem();
+                         scat_data_array_mono[i_se].T_grid.nelem();
                        t_idx ++)
                     {
                       pha_matTransform( pha_mat_spt_tmp(t_idx, joker, joker),
-                                        scat_data_array_mono[i_pt].
+                                        scat_data_array_mono[i_se].
                                         pha_mat_data
                                         (0,0,joker,joker,joker,
                                          joker,joker),
-                                        scat_data_array_mono[i_pt].za_grid, 
-                                        scat_data_array_mono[i_pt].aa_grid,
-                                        scat_data_array_mono[i_pt].particle_type,
+                                        scat_data_array_mono[i_se].za_grid, 
+                                        scat_data_array_mono[i_se].aa_grid,
+                                        scat_data_array_mono[i_se].particle_type,
                                         scat_za_index, scat_aa_index, 
                                         za_inc_idx, 
                                         aa_inc_idx, za_grid, scat_aa_grid,
                                         verbosity );
                     }
                   // Temperature interpolation
-                  if( scat_data_array_mono[i_pt].T_grid.nelem() > 1)
+                  if( scat_data_array_mono[i_se].T_grid.nelem() > 1)
                     {
                       for (Index i = 0; i< stokes_dim; i++)
                         {
                           for (Index j = 0; j< stokes_dim; j++)
                             {
-                              pha_mat_spt(i_pt, za_inc_idx, aa_inc_idx, i, j)=
+                              pha_mat_spt(i_se, za_inc_idx, aa_inc_idx, i, j)=
                                 interp(itw, pha_mat_spt_tmp(joker, i, j), T_gp);
                             }
                         }
                     }
                   else // no temperatue interpolation required
                     {
-                      pha_mat_spt(i_pt, za_inc_idx, aa_inc_idx, joker, joker) =
+                      pha_mat_spt(i_se, za_inc_idx, aa_inc_idx, joker, joker) =
                         pha_mat_spt_tmp(0, joker, joker);
                     }
                 }
@@ -1518,10 +1518,12 @@ void ScatteringMergeParticles1D(//WS Output:
                                 const Verbosity& /*verbosity*/)
 {
     if (!cloudbox_checked)
-        throw std::runtime_error("You must call *cloudbox_checkedCalc* before this method.");
+        throw std::runtime_error(
+              "You must call *cloudbox_checkedCalc* before this method.");
     
     if (atmosphere_dim != 1)
-        throw std::runtime_error("Merging particles only works with a 1D atmoshere");
+        throw std::runtime_error(
+              "Merging scattering elements only works with a 1D atmoshere");
 
     // Cloudbox on/off?
     if ( !cloudbox_on )
@@ -1550,11 +1552,11 @@ void ScatteringMergeParticles1D(//WS Output:
     {
         SingleScatteringData &this_part = scat_data_array_merged[sp];
         this_part.particle_type = scat_data_array[0].particle_type;
-        this_part.description = "Merged particles";
+        this_part.description = "Merged scattering elements";
         this_part.f_grid = scat_data_array[0].f_grid;
         this_part.za_grid = scat_data_array[0].za_grid;
         this_part.aa_grid = scat_data_array[0].aa_grid;
-        this_part.description = "Merged particles";
+        this_part.description = "Merged scattering elements";
         this_part.pha_mat_data.resize(scat_data_array[0].pha_mat_data.nlibraries(),
                                       1,
                                       scat_data_array[0].pha_mat_data.nshelves(),
@@ -1579,17 +1581,19 @@ void ScatteringMergeParticles1D(//WS Output:
         this_part.T_grid[0] = t_field(sp, 0, 0);
     }
     
-    // Check that all particles have same type and data dimensions
+    // Check that all scattering elements have same ptype and data dimensions
     SingleScatteringData &first_part = scat_data_array[0];
-    for (Index i_pt = 1; i_pt < pnd_field.nbooks(); i_pt++)
+    for (Index i_se = 1; i_se < pnd_field.nbooks(); i_se++)
     {
-        SingleScatteringData &orig_part = scat_data_array[i_pt];
+        SingleScatteringData &orig_part = scat_data_array[i_se];
         
         if (orig_part.particle_type != first_part.particle_type)
-            throw std::runtime_error("All particles must have the same type");
+            throw std::runtime_error(
+                  "All scattering elements must have the same type");
 
         if (orig_part.f_grid.nelem() != first_part.f_grid.nelem())
-            throw std::runtime_error("All particles must have the same f_grid");
+            throw std::runtime_error(
+                  "All scattering elements must have the same f_grid");
         
         if (!is_size(orig_part.pha_mat_data(joker, 0, joker, joker, joker, joker, joker),
                      first_part.pha_mat_data.nlibraries(),
@@ -1599,8 +1603,9 @@ void ScatteringMergeParticles1D(//WS Output:
                      first_part.pha_mat_data.nrows(),
                      first_part.pha_mat_data.ncols()
             ))
-            throw std::runtime_error("All particles must have the same pha_mat_data size"
-                                     " (except for temperature).");
+            throw std::runtime_error(
+                  "All scattering elements must have the same pha_mat_data size"
+                  " (except for temperature).");
         
         if (!is_size(orig_part.ext_mat_data(joker, 0, joker, joker, joker),
                      first_part.ext_mat_data.nshelves(),
@@ -1608,8 +1613,9 @@ void ScatteringMergeParticles1D(//WS Output:
                      first_part.ext_mat_data.nrows(),
                      first_part.ext_mat_data.ncols()
                      ))
-            throw std::runtime_error("All particles must have the same ext_mat_data size"
-                                     " (except for temperature).");
+            throw std::runtime_error(
+                  "All scattering elements must have the same ext_mat_data size"
+                  " (except for temperature).");
         
         if (!is_size(orig_part.abs_vec_data(joker, 0, joker, joker, joker),
                      first_part.abs_vec_data.nshelves(),
@@ -1617,8 +1623,9 @@ void ScatteringMergeParticles1D(//WS Output:
                      first_part.abs_vec_data.nrows(),
                      first_part.abs_vec_data.ncols()
                      ))
-            throw std::runtime_error("All particles must have the same abs_vec_data size"
-                                     " (except for temperature).");
+            throw std::runtime_error(
+                  "All scattering elements must have the same abs_vec_data size"
+                  " (except for temperature).");
     }
     
     //-------- Start pnd_field_merged and scat_data_array_merged calculations--------------------
@@ -1633,17 +1640,17 @@ void ScatteringMergeParticles1D(//WS Output:
         pnd_field_merged(i_lv,i_lv,0,0) = 1.;
 
         SingleScatteringData &this_part = scat_data_array_merged[i_lv];
-        for (Index i_pt = 0; i_pt < pnd_field.nbooks(); i_pt++)
+        for (Index i_se = 0; i_se < pnd_field.nbooks(); i_se++)
         {
-            SingleScatteringData &orig_part = scat_data_array[i_pt];
+            SingleScatteringData &orig_part = scat_data_array[i_se];
             
             // If the particle number density at a specific point in the atmosphere
-            // for the i_pt particle type is zero, we don't need to do the
+            // for the i_se scattering element is zero, we don't need to do the
             // transformation!
-            if (pnd_field(i_pt, i_lv, 0, 0) > PND_LIMIT) //TRS
+            if (pnd_field(i_se, i_lv, 0, 0) > PND_LIMIT) //TRS
             {
                 Numeric temperature = this_part.T_grid[0];
-                if( scat_data_array[i_pt].T_grid.nelem() > 1)
+                if( scat_data_array[i_se].T_grid.nelem() > 1)
                 {
                     ostringstream os;
                     os << "The temperature grid of the scattering data does not cover the \n"
@@ -1661,14 +1668,14 @@ void ScatteringMergeParticles1D(//WS Output:
                 for (Index i_f = 0; i_f < orig_part.pha_mat_data.nlibraries(); i_f++)
                 {
                     // Weighted sum of ext_mat_data and abs_vec_data
-                    if( scat_data_array[i_pt].T_grid.nelem() == 1)
+                    if( scat_data_array[i_se].T_grid.nelem() == 1)
                     {
                         this_part.ext_mat_data(i_f, 0, 0, 0, joker) +=
-                        pnd_field(i_pt, i_lv, 0, 0)
+                        pnd_field(i_se, i_lv, 0, 0)
                         * orig_part.ext_mat_data(i_f, 0, 0, 0, joker);
                         
                         this_part.abs_vec_data(i_f, 0, 0, 0, joker) +=
-                        pnd_field(i_pt, i_lv, 0, 0)
+                        pnd_field(i_se, i_lv, 0, 0)
                         * orig_part.abs_vec_data(i_f, 0, 0, 0, joker);
                     }
                     else
@@ -1677,7 +1684,7 @@ void ScatteringMergeParticles1D(//WS Output:
                         {
                             // Temperature interpolation
                             this_part.ext_mat_data(i_f, 0, 0, 0, i) +=
-                            pnd_field(i_pt, i_lv, 0, 0)
+                            pnd_field(i_se, i_lv, 0, 0)
                             * interp(itw,
                                      orig_part.ext_mat_data(i_f, joker, 0, 0, i),
                                      T_gp);
@@ -1686,7 +1693,7 @@ void ScatteringMergeParticles1D(//WS Output:
                         {
                             // Temperature interpolation
                             this_part.abs_vec_data(i_f, 0, 0, 0, i) +=
-                            pnd_field(i_pt, i_lv, 0, 0)
+                            pnd_field(i_se, i_lv, 0, 0)
                             * interp(itw,
                                      orig_part.abs_vec_data(i_f, joker, 0, 0, i),
                                      T_gp);
@@ -1697,9 +1704,9 @@ void ScatteringMergeParticles1D(//WS Output:
                     for (Index i_za = 0; i_za < orig_part.pha_mat_data.nshelves(); i_za++)
                     {
                         // Weighted sum of pha_mat_data
-                        if( scat_data_array[i_pt].T_grid.nelem() == 1)
+                        if( scat_data_array[i_se].T_grid.nelem() == 1)
                         {
-                          const Numeric pnd = pnd_field(i_pt, i_lv, 0, 0);
+                          const Numeric pnd = pnd_field(i_se, i_lv, 0, 0);
                           for (Index i_s = 0; i_s < orig_part.pha_mat_data.ncols(); i_s++)
                             {
                               this_part.pha_mat_data(i_f, 0, i_za, 0, 0, 0, i_s) =
@@ -1712,7 +1719,7 @@ void ScatteringMergeParticles1D(//WS Output:
                             for (Index i = 0; i < orig_part.pha_mat_data.ncols(); i++)
                             {
                                 this_part.pha_mat_data(i_f, 0, i_za, 0, 0, 0, i) +=
-                                pnd_field(i_pt, i_lv, 0, 0)
+                                pnd_field(i_se, i_lv, 0, 0)
                                 * interp(itw,
                                          orig_part.pha_mat_data(i_f, joker, i_za, 0, 0, 0, i),
                                          T_gp);

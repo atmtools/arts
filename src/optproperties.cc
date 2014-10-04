@@ -63,11 +63,11 @@ extern const Numeric PI;
 //! Transformation of absorption vector.
 /*! 
   In the single scattering database the data of the absorption vector is 
-  stored in different coordinate systems, depending on the type of 
-  hydrometeor species.
+  stored in different coordinate systems, depending on the type (ptype) of 
+  the scattering particle (scattering element).
 
-  See AUG for information about different classifications of 
-  the hydrometeor species. 
+  See AUG for information about the different classifications of the scattering
+  elements.
 
   Output and Input:
   \param abs_vec_lab Absorption vector in Laboratory frame.
@@ -75,7 +75,7 @@ extern const Numeric PI;
   \param abs_vec_data Absorption vector in database.
   \param za_datagrid Zenith angle grid in the database.
   \param aa_datagrid Zenith angle grid in the database.
-  \param particle_type Clasiification of the hydometeor species.
+  \param particle_type Type of scattering element.
   \param za_sca Zenith angle of scattered direction.
   \param aa_sca Azimuth angle of scattered direction.
      
@@ -159,7 +159,7 @@ void abs_vecTransform(//Output and Input
     default:
     {
       CREATE_OUT0;
-      out0 << "Not all particle type cases are implemented\n";
+      out0 << "Not all ptype cases are implemented\n";
     }
   }  
 }
@@ -168,11 +168,11 @@ void abs_vecTransform(//Output and Input
 //! Transformation of extinction matrix.
 /*! 
   In the single scattering database the data of the extinction matrix is 
-  stored in different coordinate systems, depending on the type of 
-  hydrometeor species.
+  stored in different coordinate systems, depending on the type (ptype) of 
+  the scattering particle (scattering element).
 
-  See AUG for information about different classifications of 
-  the hydrometeor species. 
+  See AUG for information about the different classifications of the scattering
+  elements.
 
   Output and Input:
   \param ext_mat_lab Extinction matrix in Laboratory frame.
@@ -180,7 +180,7 @@ void abs_vecTransform(//Output and Input
   \param ext_mat_data Extinction matrix in database.
   \param za_datagrid Zenith angle grid in the database.
   \param aa_datagrid Zenith angle grid in the database.
-  \param particle_type Clasiification of the hydometeor species.
+  \param particle_type Type of scattering element.
   \param za_sca Zenith angle of scattered direction.
   \param aa_sca Azimuth angle of scattered direction.
 
@@ -312,7 +312,7 @@ void ext_matTransform(//Output and Input
     default:
     {
       CREATE_OUT0;
-      out0 << "Not all particle type cases are implemented\n";
+      out0 << "Not all ptype cases are implemented\n";
     }
   }
 }  
@@ -321,17 +321,17 @@ void ext_matTransform(//Output and Input
 //! Transformation of phase matrix.
 /*! 
   In the single scattering database the data of the phase matrix is 
-  stored in different coordinate systems, depending on the type of 
-  hydrometeor  species.
+  stored in different coordinate systems, depending on the type (ptype) of 
+  the scattering particle (scattering element).
 
-  See AUG for information about different classifications of 
-  the hydrometeor species. 
+  See AUG for information about the different classifications of the scattering
+  elements.
 
   \param[out,in] pha_mat_lab   Phase matrix in Laboratory frame.
   \param[in]     pha_mat_data  Phase matrix in database.
   \param[in]     za_datagrid   Zenith angle grid in the database.
   \param[in]     aa_datagrid   Zenith angle grid in the database.
-  \param[in]     particle_type Classification of the hydometeor species.
+  \param[in]     particle_type Type of scattering element.
   \param[in]     za_sca_idx    Index of zenith angle of scattered direction.
   \param[in]     aa_sca_idx    Index of azimuth angle of scattered direction.
   \param[in]     za_inc_idx    Index of zenith angle of incoming direction.
@@ -529,7 +529,7 @@ void pha_matTransform(//Output
     default:
     {
       CREATE_OUT0;
-      out0 << "Not all particle type cases are implemented\n";
+      out0 << "Not all ptype cases are implemented\n";
     }
   }
 }
@@ -538,8 +538,8 @@ void pha_matTransform(//Output
 
 //! Derive extinction matrix from absorption vector.
 /*! 
-  In case, when only absorption of a particle shall be considered, and the
-  scattering is negelected, the extinction matrix is set from the absorption
+  In case, when only absorption of a scattering element shall be considered, and
+  the scattering is negelected, the extinction matrix is set from the absorption
   vector only.
 
   Extinction matrix is set the following way:
@@ -1014,7 +1014,7 @@ void opt_prop_sum_propmat_clearsky(//Output:
 }
 
 
-//! Convert particle name to enum value
+//! Convert particle_type name to enum value
 /*!
  Returns the ParticleType enum value for the given String.
 
@@ -1035,7 +1035,7 @@ ParticleType ParticleTypeFromString(const String& particle_type_string)
     else
     {
         ostringstream os;
-        os << "Unknown particle type: " << particle_type_string << endl
+        os << "Unknown ptype: " << particle_type_string << endl
            << "Valid types are: general, macroscopically_isotropic and"
            << "horizontally_aligned.";
         throw std::runtime_error(os.str());

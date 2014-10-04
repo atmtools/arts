@@ -2325,14 +2325,14 @@ void propmat_clearskyAddParticles(
   for( Index iv=0; iv<nf; iv++ )
     { 
       // first, get the scat_data at the required frequency. we can do that for
-      // all particle types at once.
+      // all scattering elements at once.
       scat_data_array_monoCalc( scat_data_array_mono, scat_data_array, f_grid, iv, 
                           verbosity );
 
       // now we again need to loop over the abs_species entries. we need to do
       // this as there is no guarantee that all the 'particles' are
       // one-after-the-other. and we need separate output per abs_species entry,
-      // i.e., per particle type.
+      // i.e., per scattering element.
       np = -1;
       for( Index sp = 0; sp < abs_species.nelem(); sp++ )
         {
@@ -2342,17 +2342,17 @@ void propmat_clearskyAddParticles(
 
               if ( rtp_vmr[sp] > 0. )
                 {
-                  // second, get extinction matrix and absorption vector at required
-                  // temperature and direction for the individual particle type and
-                  // multiply with their occurence.
+                  // second, get extinction matrix and absorption vector at
+                  // required temperature and direction for the individual
+                  // scattering element and multiply with their occurence.
                   opt_propExtract(pnd_ext_mat, pnd_abs_vec, scat_data_array_mono[np],
                                   rtp_los_back[0], rtp_los_back[1],
                                   rtp_temperature, stokes_dim, verbosity);
                   //pnd_ext_mat *= rtp_vmr[sp];
                   pnd_abs_vec *= rtp_vmr[sp];
 
-                  // last, sort the extracted absorption vector data into propmat_clearsky,
-                  // which is of extinction matrix type
+                  // last, sort the extracted absorption vector data into
+                  // propmat_clearsky, which is of extinction matrix type
 
                   ext_matFromabs_vec(propmat_clearsky(sp,iv,joker,joker),
                                      pnd_abs_vec, stokes_dim);

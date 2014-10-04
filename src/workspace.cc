@@ -4547,7 +4547,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Unit:  absolute number\n"
        "\n"
-       "Size:  Array[N_pt]\n"
+       "Size:  Array[number of absorption species]\n"
        "       GriddedField3 \n "
        "       [N_p] \n"
        "       [N_lat] \n"

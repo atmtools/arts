@@ -42,12 +42,12 @@
 #include "gridded_fields.h"
 
 
-//! An attribute to classify the particle type in a SingleScatteringData structure.
+//! An attribute to classify the particle type (ptype) of a SingleScatteringData
+//structure (a scattering element).
 /*! 
   GENERAL      General case
-  MACROS_ISO   Macroscopically isotropic and mirror-symmetric scattering media
-  HORIZ_AL     Horizonatally aligned plates and columns
-  SPHERICAL    Spherical particles
+  MACROS_ISO   Macroscopically isotropic scattering media
+  HORIZ_AL     Horizonatally aligned particles
 
   A detailed description of the different cases can be found in AUG.
 
@@ -75,8 +75,10 @@ enum ParticleSSDMethod {
   === The SingleScatteringData structure
   ===========================================================================*/
 
-//! Structure which describes the single scattering properties of a particle or a particle distribution.
-/*! 
+/*!
+   Structure which describes the single scattering properties of a scattering
+   element (a single particle or a particle bulk).
+
    The fields of the structure are described in the ARTS user guide (AUG).
    It is listed as a sub-entry to "data structures".  
 */
@@ -102,8 +104,8 @@ ostream& operator<< (ostream& os, const ArrayOfSingleScatteringData& assd);
   === The ScatteringMetaData structure
   ===========================================================================*/
 /*!
-   Structure which holds the meta scattering properties of a 
-   particle or a particle distribution, like (size parameters, shape, etc.). 
+   Structure which holds the meta scattering properties of a scattering
+   element (a single particle or a particle bulk), like size parameters, shape, etc. 
 */
 struct ScatteringMetaData {
   String    description;

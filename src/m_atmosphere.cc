@@ -1660,7 +1660,7 @@ void AtmFieldsFromCompact(// WS Output:
       throw runtime_error( os.str() );
     }
 
-  // Check that the (supposed) particle fields match scat_species:
+  // Check that the (supposed) scattering species fields match scat_species:
   for (Index i=0; i<nsp; ++i)
     {
       const String tf_species = c.get_string_grid(GFIELD4_FIELD_NAMES)[2+i];
@@ -1669,7 +1669,7 @@ void AtmFieldsFromCompact(// WS Output:
       if (tf_species != ps_species)
         {
           ostringstream os;
-          os << "Field name for particle field not valid: "
+          os << "Field name for scattering species field not valid: "
              << tf_species << "\n"
              << "Based on *scat_species*, the field name should be: "
              << ps_species;

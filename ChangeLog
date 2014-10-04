@@ -1,5 +1,12 @@
 2014-10-04  Jana Mendrok  <jana.mendrok@ltu.se>
 
+	* arts-2-3-26
+
+	* src/*.cc,*.h: Revised doc of internal function (and code comments)
+	regarding particle type -> scattering species/element terminology.
+
+2014-10-04  Jana Mendrok  <jana.mendrok@ltu.se>
+
 	* arts-2-3-25
 
 	* src/methods.cc, workspace.cc: Revised built-in doc regarding

@@ -319,7 +319,7 @@ void doit_conv_flagAbsBT(//WS Input and Output:
       ostringstream out;
       out <<"At frequency " << f_grid[f_index] << " GHz \n"
           <<"method does not converge (number of iterations \n"
-          <<"is > " << max_iterations << "). Either the cloud particle"
+          <<"is > " << max_iterations << "). Either the particle"
           <<" number density \n"
           <<"is too large or the numerical setup for the DOIT \n"
           <<"calculation is not correct. In case of limb \n"
@@ -463,7 +463,7 @@ void doit_conv_flagLsq(//WS Output:
     {
       ostringstream out;
       out <<"Method does not converge (number of iterations \n"
-          <<"is > " << max_iterations << "). Either the cloud"
+          <<"is > " << max_iterations << "). Either the"
           <<" particle number density \n"
           <<"is too large or the numerical setup for the DOIT \n"
           <<"calculation is not correct. In case of limb \n"
@@ -614,7 +614,7 @@ doit_i_fieldUpdate1D(Workspace& ws,
                      // Calculate scalar gas absorption:
                      const Agenda& propmat_clearsky_agenda,
                      const Tensor4& vmr_field,
-                     // Optical properties for single particle type:
+                     // Optical properties for individual scattering elements:
                      const Agenda& spt_calc_agenda,
                      const Vector& scat_za_grid,
                      const Tensor4& pnd_field,
@@ -705,7 +705,7 @@ doit_i_fieldUpdate1D(Workspace& ws,
   //=======================================================================
   // Calculate scattering coefficients for all positions in the cloudbox 
   //=======================================================================
-  out3 << "Calculate single particle properties \n";
+  out3 << "Calculate optical properties of individual scattering elements\n";
 
   // At this place only the particle properties are calculated. Gaseous
   // absorption is calculated inside the radiative transfer part. Inter-
@@ -778,7 +778,7 @@ doit_i_fieldUpdateSeq1D(Workspace& ws,
                         // Calculate scalar gas absorption:
                         const Agenda& propmat_clearsky_agenda,
                         const Tensor4& vmr_field,
-                        // Optical properties for single particle type:
+                        // Optical properties for individual scattering elements:
                         const Agenda& spt_calc_agenda,
                         const Vector& scat_za_grid,
                         const Vector& scat_aa_grid,
@@ -873,7 +873,7 @@ doit_i_fieldUpdateSeq1D(Workspace& ws,
   //=======================================================================
   // Calculate scattering coefficients for all positions in the cloudbox 
   //=======================================================================
-  out3 << "Calculate single particle properties \n";
+  out3 << "Calculate optical properties of individual scattering elements\n";
 
   // At this place only the particle properties are calculated. Gaseous
   // absorption is calculated inside the radiative transfer part. Inter-
@@ -1070,7 +1070,7 @@ doit_i_fieldUpdateSeq3D(Workspace& ws,
                         // Calculate scalar gas absorption:
                         const Agenda& propmat_clearsky_agenda,
                         const Tensor4& vmr_field,
-                        // Optical properties for single particle type:
+                        // Optical properties for individual scattering elements:
                         const Agenda& spt_calc_agenda,
                         const Vector& scat_za_grid,
                         const Vector& scat_aa_grid,
@@ -1177,7 +1177,7 @@ doit_i_fieldUpdateSeq3D(Workspace& ws,
   //=======================================================================
   // Calculate coefficients for all positions in the cloudbox 
   //=======================================================================
-  out3 << "Calculate single particle properties \n";
+  out3 << "Calculate optical properties of individual scattering elements\n";
 
   // At this place only the particle properties are calculated. Gaseous
   // absorption is calculated inside the radiative transfer part. Inter-
@@ -1368,7 +1368,7 @@ doit_i_fieldUpdateSeq1DPP(Workspace& ws,
                           // Calculate scalar gas absorption:
                           const Agenda& propmat_clearsky_agenda,
                           const Tensor4& vmr_field,
-                          // Optical properties for single particle type:
+                          // Optical properties for individual scattering elements:
                           const Agenda& spt_calc_agenda,
                           const Vector& scat_za_grid,
                           const Tensor4& pnd_field,
@@ -1430,7 +1430,7 @@ doit_i_fieldUpdateSeq1DPP(Workspace& ws,
   //=======================================================================
   // Calculate scattering coefficients for all positions in the cloudbox 
   //=======================================================================
-  out3 << "Calculate single particle properties \n";
+  out3 << "Calculate optical properties of individual scttering elements\n";
 
   // At this place only the particle properties are calculated. Gaseous
   // absorption is calculated inside the radiative transfer part. Inter-
@@ -1832,7 +1832,7 @@ doit_scat_fieldCalc(Workspace& ws,
               // Dummy index
               Index index_zero = 0;
               
-              // Calculate the phase matric of a single particle type
+              // Calculate the phase matric of individual scattering elements
               out3 << "Calculate the phase matrix \n"; 
               pha_mat_spt_agendaExecute(ws, pha_mat_spt_local,
                                         scat_za_index_local,
@@ -1843,7 +1843,7 @@ doit_scat_fieldCalc(Workspace& ws,
                                         rtp_temperature_local,
                                         pha_mat_spt_agenda);
               
-              // Sum over all particle types
+              // Sum over all scattering elements
               pha_matCalc(pha_mat_local, pha_mat_spt_local, pnd_field, 
                           atmosphere_dim, p_index, 0, 
                           0, verbosity);
@@ -2187,7 +2187,7 @@ doit_scat_fieldCalcLimb(Workspace& ws,
               // Dummy index
               Index index_zero = 0;
               
-              // Calculate the phase matrix of a single particle type
+              // Calculate the phase matrix of individual scattering elements
               out3 << "Calculate the phase matrix \n"; 
               pha_mat_spt_agendaExecute(ws, pha_mat_spt_local,
                                         scat_za_index_local,
@@ -2198,7 +2198,7 @@ doit_scat_fieldCalcLimb(Workspace& ws,
                                         rtp_temperature_local,
                                         pha_mat_spt_agenda);
               
-              // Sum over all particle types
+              // Sum over all scattering elements
               pha_matCalc(pha_mat_local, pha_mat_spt_local, pnd_field, 
                           atmosphere_dim, p_index, 0, 
                           0, verbosity);

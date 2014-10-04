@@ -494,15 +494,15 @@ void define_agenda_data()
        DESCRIPTION
        (
         "Calculate the optical properties (absorption vector and extinction.\n"
-        "matrix) for particles at a given atmospheric grid point.\n"
+        "matrix) for scattering elements at a given atmospheric grid point.\n"
         "\n"
         "This agenda, for example, can be defined in the following manner:\n"
         "\n"
         "*ext_matAddPart* : This method calculates the extinction \n"
-        "                   matrix for particles and adds it to the \n"
+        "                   matrix for scattering elements and adds it to the \n"
         "                   workspace variable *ext_mat*.\n"
         "*abs_vecAddPart* : This method calculates the absorption\n"
-        "                   vector for particles and adds it to the\n"
+        "                   vector for scattering elements and adds it to the\n"
         "                   workspace variables abs_vec.\n"     
         " \n"
         "Note that the initialization of *ext_mat* is not done inside the\n"
@@ -514,10 +514,10 @@ void define_agenda_data()
         "   abs_vec     : Absorption vector. \n"
         "\n"
         "Input:\n"
-        "   ext_mat     : Extinction matrix. \n"
-        "   ext_mat_spt : Extinction matrix for single particle type. \n"
-        "   abs_vec     : Absorption vector. \n"
-        "   abs_vec_spt : Absorption vector for single particle type. \n"
+        "   ext_mat     : Total extinction matrix. \n"
+        "   ext_mat_spt : Extinction matrix for individual scattering elements. \n"
+        "   abs_vec     : Total absorption vector. \n"
+        "   abs_vec_spt : Absorption vector for individual scattering elements. \n"
         "   pnd_field   : Particle number density field. \n"
         "   atmosphere_dim: Atmospheric dimension. \n"
         "   scat_p_index : Position. \n"
@@ -535,7 +535,7 @@ void define_agenda_data()
      ( NAME( "pha_mat_spt_agenda" ),
        DESCRIPTION
        (
-        "Calculates the phase matrix for a single particle type.\n"
+        "Calculates the phase matrix for individual scattering elements.\n"
         "\n"
         "Different options are possible for the usage of this agenda: \n"
         "*pha_mat_sptFromData* or *pha_mat_sptDOITOpt*. \n"
@@ -654,10 +654,11 @@ void define_agenda_data()
      ( NAME( "spt_calc_agenda" ),
        DESCRIPTION
        (
-        "Calculates single particle properties from the amplitude matrix.\n"
+        "Calculates single scattering properties for individual scattering\n"
+        "elements from the amplitude matrix.\n"
         "\n"
         "This agenda sets up the methods, which should be used to calculate \n"
-        "the particle properties, i.e. the extinction matrix and the \n"
+        "the single scattering properties, i.e. the extinction matrix and the \n"
         "absorbtion vector.\n "
         "\n"
         "Normally you  use:\n"
