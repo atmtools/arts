@@ -57,8 +57,8 @@ ReadXML( cloudbox_limits, "TestMonteCarloDataPrepare.cloudbox_limits.xml" )
 
 ReadXML( pnd_field, "TestMonteCarloDataPrepare.pnd_field.xml" )
 
-ReadXML( scat_data_array, "TestMonteCarloDataPrepare.scat_data_array.xml" )
-scat_data_arrayCheck
+ReadXML( scat_data, "TestMonteCarloDataPrepare.scat_data.xml" )
+scat_dataCheck
 
 atmfields_checkedCalc
 atmgeom_checkedCalc

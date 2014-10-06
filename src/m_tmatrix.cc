@@ -136,8 +136,8 @@ void ParticleDeFromDmax(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void scat_dataTmatrix(
-          SingleScatteringData&   scat_data,
+void scat_data_singleTmatrix(
+          SingleScatteringData&   scat_data_single,
     const GriddedField3&          complex_refr_index,
     const String&                 shape,
     const Numeric&                de,
@@ -150,12 +150,12 @@ void scat_dataTmatrix(
     const Numeric&                precision,
     const Verbosity&)
 {
-  // Add grids to scat_data
+  // Add grids to scat_data_single
   //
-  scat_data.f_grid  = scat_f_grid;
-  scat_data.T_grid  = scat_t_grid;
-  scat_data.za_grid = scat_za_grid;
-  scat_data.aa_grid = scat_aa_grid;
+  scat_data_single.f_grid  = scat_f_grid;
+  scat_data_single.T_grid  = scat_t_grid;
+  scat_data_single.za_grid = scat_za_grid;
+  scat_data_single.aa_grid = scat_aa_grid;
 
   // Index coding for shape
   Index np;
@@ -178,14 +178,14 @@ void scat_dataTmatrix(
     }
 
   // Get internal coding for ptype
-  scat_data.ptype = PTypeFromString( ptype );
+  scat_data_single.ptype = PTypeFromString( ptype );
 
   // Set description
   {   
     ostringstream os;
     os << "T-matrix calculation for " << shape 
        << " with De=" << 1e6*de << "um and aspect ratio of " << aratio;
-    scat_data.description = os.str();
+    scat_data_single.description = os.str();
   }
 
   // Interpolate refractive index to relevant grids
@@ -199,7 +199,7 @@ void scat_dataTmatrix(
                     scat_f_grid, scat_t_grid );
 
   // Run T-matrix and we are ready (T-matrix takes de as radius in um)
-  calcSingleScatteringDataProperties( scat_data,
+  calcSingleScatteringDataProperties( scat_data_single,
                                       ncomp(joker,joker,0), 
                                       ncomp(joker,joker,1),
                                       0.5e6*de, np, aratio, precision );
@@ -222,32 +222,32 @@ void TMatrixTest(const Verbosity& verbosity)
 //-----------------------------------
 
 
-void scat_meta_arrayInit(// WS Output:
-                 ArrayOfScatteringMetaData& scat_meta_array,
-                 //WS Input
-                 const Verbosity&)
+void scat_metaInit(// WS Output:
+                   ArrayOfScatteringMetaData& scat_meta,
+                   //WS Input
+                   const Verbosity&)
 {
-    scat_meta_array.resize(0);
+    scat_meta.resize(0);
 }
 
 //-----------------------------------
 
                  
-void scat_meta_arrayAddTmatrix(// WS Output:
-                             ArrayOfScatteringMetaData& scat_meta_array,
-                             // WS Input:
-                             const GriddedField3& complex_refr_index,
-                             // WS Generic input:
-                             const String& description,
-                             const String& material,
-                             const String& shape,
-                             const String& ptype,
-                             const Numeric& density,
-                             const Vector& aspect_ratio_grid,
-                             const Vector& diameter_max_grid,
-                             const Vector& scat_f_grid,
-                             const Vector& scat_T_grid,
-                             const Verbosity&) 
+void scat_metaAddTmatrix(// WS Output:
+                         ArrayOfScatteringMetaData& scat_meta,
+                         // WS Input:
+                         const GriddedField3& complex_refr_index,
+                         // WS Generic input:
+                         const String& description,
+                         const String& material,
+                         const String& shape,
+                         const String& ptype,
+                         const Numeric& density,
+                         const Vector& aspect_ratio_grid,
+                         const Vector& diameter_max_grid,
+                         const Vector& scat_f_grid,
+                         const Vector& scat_T_grid,
+                         const Verbosity&)
 
 {
   for(Index k=0; k<diameter_max_grid.nelem(); k++)
@@ -326,7 +326,7 @@ void scat_meta_arrayAddTmatrix(// WS Output:
         smd.scat_T_grid = scat_T_grid;
         smd.complex_refr_index = complex_refr_index;
 
-        scat_meta_array.push_back(smd);
+        scat_meta.push_back(smd);
       }
     }
 }
@@ -334,17 +334,17 @@ void scat_meta_arrayAddTmatrix(// WS Output:
 //-----------------------------------
 
 
-void scat_data_arrayFromMeta(// WS Output:
-                              ArrayOfSingleScatteringData& scat_data_array,
-                              //WS Input
-                              const ArrayOfScatteringMetaData& scat_meta_array,
-                              // WS Generic input:
-                              const Vector& za_grid,
-                              const Vector& aa_grid,
-                              const Numeric& precision,
-                              const Verbosity&)
+void scat_dataFromMeta(// WS Output:
+                       ArrayOfSingleScatteringData& scat_data,
+                       //WS Input
+                       const ArrayOfScatteringMetaData& scat_meta,
+                       // WS Generic input:
+                       const Vector& za_grid,
+                       const Vector& aa_grid,
+                       const Numeric& precision,
+                       const Verbosity&)
 {
-  for(Index ii=0;ii<scat_meta_array.nelem();ii++)
+  for(Index ii=0;ii<scat_meta.nelem();ii++)
     {
         
     //Interpolation
@@ -352,34 +352,34 @@ void scat_data_arrayFromMeta(// WS Output:
     Tensor3 complex_refr_index;
         
         
-    const Index nf = scat_meta_array[ii].scat_f_grid.nelem();
-    const Index nt = scat_meta_array[ii].scat_T_grid.nelem();
+    const Index nf = scat_meta[ii].scat_f_grid.nelem();
+    const Index nt = scat_meta[ii].scat_T_grid.nelem();
        
     complex_refr_index.resize(nf,nt,2);
   
     complex_n_interp(complex_refr_index(joker, joker,0), complex_refr_index(joker, joker,1),
-                     scat_meta_array[ii].complex_refr_index, "complex_refr_index", 
-                     scat_meta_array[ii].scat_f_grid, scat_meta_array[ii].scat_T_grid);
+                     scat_meta[ii].complex_refr_index, "complex_refr_index", 
+                     scat_meta[ii].scat_f_grid, scat_meta[ii].scat_T_grid);
         
 
       Index  np;
 
       SingleScatteringData sdd;
-      sdd.f_grid = scat_meta_array[ii].scat_f_grid;
-      sdd.T_grid = scat_meta_array[ii].scat_T_grid;
+      sdd.f_grid = scat_meta[ii].scat_f_grid;
+      sdd.T_grid = scat_meta[ii].scat_T_grid;
       sdd.za_grid = za_grid;
       sdd.aa_grid = aa_grid;
-      sdd.ptype = scat_meta_array[ii].ptype;
+      sdd.ptype = scat_meta[ii].ptype;
 
-      if (scat_meta_array[ii].shape == "spheroidal" )
+      if (scat_meta[ii].shape == "spheroidal" )
         np=-1;
 
-      else if (scat_meta_array[ii].shape == "cylindrical")
+      else if (scat_meta[ii].shape == "cylindrical")
         np=-2;
       else
         {
           ostringstream os;
-          os << "Unknown particle shape: " << scat_meta_array[ii].shape << "\n"
+          os << "Unknown particle shape: " << scat_meta[ii].shape << "\n"
             << "Must be spheroidal or cylindrical";
           throw std::runtime_error(os.str());
         }
@@ -387,12 +387,12 @@ void scat_data_arrayFromMeta(// WS Output:
       calcSingleScatteringDataProperties(sdd,
                                          complex_refr_index(joker,joker,0),
                                          complex_refr_index(joker,joker,1),
-                                         pow(scat_meta_array[ii].volume*1e18*3./(4.*PI),1./3.),
+                                         pow(scat_meta[ii].volume*1e18*3./(4.*PI),1./3.),
                                          np,
-                                         scat_meta_array[ii].aspect_ratio,
+                                         scat_meta[ii].aspect_ratio,
                                          precision);
 
-      scat_data_array.push_back(sdd);
+      scat_data.push_back(sdd);
     }
 }
 
@@ -407,7 +407,7 @@ void scat_data_arrayFromMeta(// WS Output:
 
 
 void scat_meta_arrayAddTmatrixOldVersion(// WS Output:
-                             ArrayOfScatteringMetaData& scat_meta_array,
+                             ArrayOfScatteringMetaData& scat_meta,
                              // WS Input:
                              const GriddedField3& complex_refr_index,
                              // WS Generic input:
@@ -504,7 +504,7 @@ void scat_meta_arrayAddTmatrixOldVersion(// WS Output:
       smd.scat_T_grid = scat_T_grid;
       smd.complex_refr_index = complex_refr_index;
 
-      scat_meta_array.push_back(smd);
+      scat_meta.push_back(smd);
     }
 }
 

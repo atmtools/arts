@@ -2572,7 +2572,7 @@ void Workspace::define_wsv_data()
        "The mass of individual particles (or bulks).\n"
        "\n"
        "Each row corresponds to a scattering element (i.e. an element in\n"
-       "*scat_data_array*). The user is free to define different mass\n"
+       "*scat_data*). The user is free to define different mass\n"
        "categories and assign a mass for each category. Each column\n"
        "of *particle_masses* corresponds to such a mass category. A scattering\n"
        "element can have a non-zero mass for more than one category.\n"
@@ -2583,7 +2583,7 @@ void Workspace::define_wsv_data()
        "phase, could be divided between the two columns of the matrix.\n"
        "\n"
        "Shall either be empty, or have a row size consistent with the\n"
-       "scattering variables (*scat_data_array*, *pnd_field*).\n"
+       "scattering variables (*scat_data*, *pnd_field*).\n"
        "\n"
        "Usage:      Set by the user.\n"
        "\n"
@@ -2614,8 +2614,8 @@ void Workspace::define_wsv_data()
        "\t currently possible PSDs see *pnd_fieldSetup*.\n"
        "- particle type [*String*]:\n"
        "\t the type (material/phase) of the individual particles to select from\n"
-       "\t *scat_data_array* (Ice, Water, or similar). Free form, but will\n"
-       "\t select particles with matching *scat_meta*.material.\n"
+       "\t *scat_data* (Ice, Water, or similar). Free form, but will\n"
+       "\t select particles with matching *scat_meta_single*.material.\n"
        "- sizemin and sizemax [*Numeric*]:\n"
        "\t the minimum and maximum size (volume equivalent sphere radius in um)\n"
        "\t of the individual scattering elements to consider. Minimum and\n"
@@ -3328,7 +3328,7 @@ void Workspace::define_wsv_data()
 
    wsv_data.push_back
      (WsvRecord
-      ( NAME( "scat_meta" ),
+      ( NAME( "scat_meta_single" ),
         DESCRIPTION
         (
          "Structure for the scattering meta data.\n"
@@ -3360,34 +3360,34 @@ void Workspace::define_wsv_data()
 
    wsv_data.push_back
      (WsvRecord
-      ( NAME( "scat_meta_array" ),
+      ( NAME( "scat_meta" ),
         DESCRIPTION
         (
-         "An Array of scattering meta data (*scat_meta*).\n"
+         "An Array of scattering meta data (*scat_meta_single*).\n"
          "\n"
          "The array holds the meta data for all scattering elements. It is used\n"
          "both for PSD and scattering property calculations by *pnd_fieldSetup*,\n"
          "*particle_massesFromMetaDataAndPart_species* and\n"
-         "*scat_data_arrayFromMeta*.\n"
+         "*scat_dataFromMeta*.\n"
          "\n"
-         "Note: This array must contain as many elements as *scat_data_array*\n"
+         "Note: This array must contain as many elements as *scat_data*\n"
          "\n"
          "Usage: Set by the user.\n"
          "\n"
-         "For more details, see also *scat_meta*."
+         "For more details, see also *scat_meta_single*."
         ),
         GROUP( "ArrayOfScatteringMetaData" ))); 
 
    wsv_data.push_back
      (WsvRecord
-      ( NAME( "scat_data_array_mono" ),
+      ( NAME( "scat_data_mono" ),
         DESCRIPTION
         (
          "Monochromatic single scattering data.\n"
          "\n"
          "This variable holds the single scattering properties for all\n"
-         "scattering species. It is calculated from *scat_data_array* by\n"
-         "*scat_data_array_monoCalc*, which interpolates *scat_data_array* for\n"
+         "scattering species. It is calculated from *scat_data* by\n"
+         "*scat_data_monoCalc*, which interpolates *scat_data* for\n"
          "the required frequency.\n"
          ),
         GROUP( "ArrayOfSingleScatteringData" ))); 
@@ -3409,7 +3409,7 @@ void Workspace::define_wsv_data()
      
    wsv_data.push_back
      (WsvRecord
-      ( NAME( "scat_data_array" ),
+      ( NAME( "scat_data" ),
         DESCRIPTION
         (
          "Raw data of single scattering data.\n"
@@ -3419,7 +3419,7 @@ void Workspace::define_wsv_data()
          "methods *ParticleTypeAdd* or *ParticleTypeAddAll* or\n"
          "*ScatteringParticleTypeAndMetaRead*. \n" 
          "\n"
-         "This may be used in combination with *scat_meta_array*\n"
+         "This may be used in combination with *scat_meta*\n"
          "\n"
          "Usage: Method ouput.\n"
          "\n"
@@ -4085,7 +4085,7 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
-    ( NAME( "scat_data" ),
+    ( NAME( "scat_data_single" ),
       DESCRIPTION
       (
        "Structure for the  single scattering data.\n"

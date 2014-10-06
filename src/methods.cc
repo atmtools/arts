@@ -2920,12 +2920,12 @@ void define_md_data_raw()
          "Use this method if no scattering calculations shall be performed.\n"
          "\n"
          "The function sets *cloudbox_on* to 0, *cloudbox_limits*,\n"
-         "*pnd_field*, *scat_data_array*, *iy_cloudbox_agenda* and\n"
+         "*pnd_field*, *scat_data*, *iy_cloudbox_agenda* and\n"
          "*particle_masses* to be empty and *use_mean_scat_data* to -999.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "cloudbox_on", "cloudbox_limits", "iy_cloudbox_agenda", 
-             "pnd_field", "scat_data_array", "particle_masses"
+             "pnd_field", "scat_data", "particle_masses"
            ),
         GOUT(),
         GOUT_TYPE(),
@@ -3093,7 +3093,7 @@ void define_md_data_raw()
          "Checks consistency between cloudbox and scattering element variables.\n"
          "\n"
          "The following WSVs are treated: *cloudbox_on*, *cloudbox_limits*,\n"
-         "*pnd_field*, *scat_data_array*, *particle_masses* and\n"
+         "*pnd_field*, *scat_data*, *particle_masses* and\n"
          "wind_u/v/w_field.\n"
          "\n"
          "If any of these variables is changed, then this method shall be\n"
@@ -3102,7 +3102,7 @@ void define_md_data_raw()
          "The main checks are if the cloudbox limits are OK with respect to\n"
          "the atmospheric dimensionality and the limits of the atmosphere,\n"
          "and that the scattering element variables *pnd_field* and\n"
-         "*scat_data_array* match in size.\n"
+         "*scat_data* match in size.\n"
          "\n"
          "If any test fails, there is an error. Otherwise, *cloudbox_checked*\n"
          "is set to 1.\n"
@@ -3115,7 +3115,7 @@ void define_md_data_raw()
         IN( "atmfields_checked", "atmosphere_dim", "p_grid", "lat_grid", 
             "lon_grid", "z_field", "z_surface",
             "wind_u_field", "wind_v_field", "wind_w_field", 
-            "cloudbox_on", "cloudbox_limits", "pnd_field", "scat_data_array",
+            "cloudbox_on", "cloudbox_limits", "pnd_field", "scat_data",
             "particle_masses", "abs_species" ),
         GIN(),
         GIN_TYPE(),
@@ -3667,7 +3667,7 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "stokes_dim", "atmosphere_dim", "scat_za_grid", "scat_aa_grid",
-            "doit_za_grid_size", "cloudbox_on", "cloudbox_limits", "scat_data_array" ),
+            "doit_za_grid_size", "cloudbox_on", "cloudbox_limits", "scat_data" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -3970,18 +3970,18 @@ void define_md_data_raw()
          "Prepares single scattering data for a DOIT scattering calculation.\n"
          "\n"
          "First the scattering data is interpolated in frequency using\n"
-         "*scat_data_array_monoCalc*. Then the phase matrix data is\n"
+         "*scat_data_monoCalc*. Then the phase matrix data is\n"
          "transformed or interpolated from the raw data to the laboratory frame\n"
          "for all possible combinations of the angles contained in the angular\n"
          "grids which are set in *DoitAngularGridsSet*. The resulting phase\n"
          "matrices are stored in *pha_mat_sptDOITOpt*.\n"
          ),
         AUTHORS( "Claudia Emde" ),
-        OUT( "pha_mat_sptDOITOpt", "scat_data_array_mono" ),
+        OUT( "pha_mat_sptDOITOpt", "scat_data_mono" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "doit_za_grid_size", "scat_aa_grid", "scat_data_array", "f_grid", 
+        IN( "doit_za_grid_size", "scat_aa_grid", "scat_data", "f_grid", 
             "f_index", "atmosphere_dim", "stokes_dim" ),
         GIN(),
         GIN_TYPE(),
@@ -5102,7 +5102,7 @@ void define_md_data_raw()
             "wind_u_field", "wind_v_field", "wind_w_field", "mag_u_field",
             "mag_v_field", "mag_w_field", "cloudbox_on", 
             "cloudbox_limits", "pnd_field", "use_mean_scat_data",
-            "scat_data_array", "particle_masses",
+            "scat_data", "particle_masses",
             "iy_unit", "iy_aux_vars", "jacobian_do", "ppath_agenda", 
             "propmat_clearsky_agenda", "iy_transmitter_agenda",
             "iy_agenda_call1", "iy_transmission", "rte_pos", "rte_los",
@@ -5282,7 +5282,7 @@ void define_md_data_raw()
             "t_field", "vmr_field", "abs_species", 
             "wind_u_field", "wind_v_field", "wind_w_field", "mag_u_field",
             "mag_v_field", "mag_w_field", "cloudbox_on", "cloudbox_limits",
-            "pnd_field", "use_mean_scat_data", "scat_data_array",
+            "pnd_field", "use_mean_scat_data", "scat_data",
             "particle_masses", "iy_unit", "iy_aux_vars", "jacobian_do", 
             "ppath_agenda", "blackbody_radiation_agenda",
             "propmat_clearsky_agenda", "iy_main_agenda", "iy_space_agenda", 
@@ -5346,7 +5346,7 @@ void define_md_data_raw()
             "lat_grid", "lon_grid", "z_field", "t_field", "vmr_field", 
             "refellipsoid", 
             "z_surface", "cloudbox_on", "cloudbox_limits",
-            "stokes_dim", "f_grid", "scat_data_array", "iy_space_agenda", 
+            "stokes_dim", "f_grid", "scat_data", "iy_space_agenda", 
             "surface_rtprop_agenda", "propmat_clearsky_agenda",
             "ppath_step_agenda", "ppath_lraytrace", "pnd_field", "iy_unit",
             "mc_std_err", "mc_max_time", "mc_max_iter", "mc_min_iter" ),
@@ -5557,7 +5557,7 @@ void define_md_data_raw()
             "wind_u_field", "wind_v_field", "wind_w_field", "mag_u_field",
             "mag_v_field", "mag_w_field", 
             "refellipsoid", "z_surface", "cloudbox_on", "cloudbox_limits", 
-            "pnd_field", "use_mean_scat_data","scat_data_array", 
+            "pnd_field", "use_mean_scat_data","scat_data", 
             "particle_masses", "iy_aux_vars", "jacobian_do", 
             "ppath_agenda", "ppath_step_agenda",
             "propmat_clearsky_agenda", "iy_transmitter_agenda",
@@ -5703,7 +5703,7 @@ void define_md_data_raw()
             "wind_u_field", "wind_v_field", "wind_w_field", "mag_u_field",
             "mag_v_field", "mag_w_field", 
             "cloudbox_on", "cloudbox_limits", "pnd_field", 
-            "use_mean_scat_data", "scat_data_array", "particle_masses",
+            "use_mean_scat_data", "scat_data", "particle_masses",
             "iy_aux_vars", "jacobian_do", "jacobian_quantities", 
             "jacobian_indices", "ppath_agenda", "propmat_clearsky_agenda",
             "iy_transmitter_agenda", "iy_agenda_call1", "iy_transmission", 
@@ -7166,7 +7166,7 @@ void define_md_data_raw()
             "propmat_clearsky_agenda", "p_grid",
             "lat_grid", "lon_grid", "z_field", "refellipsoid", "z_surface", 
             "t_field", "vmr_field", "cloudbox_on", "cloudbox_limits", 
-            "pnd_field", "scat_data_array_mono", 
+            "pnd_field", "scat_data_mono",
             "atmfields_checked", "atmgeom_checked",
             "cloudbox_checked", "iy_unit", "mc_seed", 
             "mc_std_err", "mc_max_time", "mc_max_iter", "mc_min_iter" ),
@@ -7498,7 +7498,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "ext_mat_spt", "abs_vec_spt", "scat_data_array", "scat_za_grid", 
+        IN( "ext_mat_spt", "abs_vec_spt", "scat_data", "scat_za_grid", 
             "scat_aa_grid", "scat_za_index", "scat_aa_index", 
             "f_index", "f_grid", "rtp_temperature",
             "pnd_field", "scat_p_index", "scat_lat_index", "scat_lon_index" ),
@@ -7517,14 +7517,14 @@ void define_md_data_raw()
          "\n"
          "As *opt_prop_sptFromData* but no frequency interpolation is\n"
          "performed. The single scattering data is here obtained from\n"
-         "*scat_data_array_mono*, instead of *scat_data_array*.\n"
+         "*scat_data_mono*, instead of *scat_data*.\n"
          ),
         AUTHORS( "Cory Davis" ),
         OUT( "ext_mat_spt", "abs_vec_spt" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "ext_mat_spt", "abs_vec_spt", "scat_data_array_mono", "scat_za_grid", 
+        IN( "ext_mat_spt", "abs_vec_spt", "scat_data_mono", "scat_za_grid", 
             "scat_aa_grid", "scat_za_index", "scat_aa_index", "rtp_temperature",
             "pnd_field", "scat_p_index", "scat_lat_index", "scat_lon_index" ),
         GIN(),
@@ -7601,7 +7601,7 @@ void define_md_data_raw()
          "and only a few particle shapes are handled. "
          "\n"
          "For shapes handled and further comments on the input arguments,\n"
-         "see *scat_dataTmatrix*.\n"
+         "see *scat_data_singleTmatrix*.\n"
          "\n"
          "Also the volume is provided. It is simply sqrt3(4*pi*de^3/24).\n"
          ),
@@ -7631,7 +7631,7 @@ void define_md_data_raw()
          "and only a few particle shapes are handled. "
          "\n"
          "For shapes handled and further comments on the input arguments, see\n"
-         "*scat_dataTmatrix*.\n"
+         "*scat_data_singleTmatrix*.\n"
          "\n"
          "Also the volume is provided. It is simply sqrt3(4*pi*de^3/24).\n"
          ),
@@ -7655,7 +7655,7 @@ void define_md_data_raw()
       ( NAME( "particle_massesFromMetaDataSingleCategory" ),
         DESCRIPTION
         (
-         "Sets *particle_masses* based on *scat_meta_array* assuming\n"
+         "Sets *particle_masses* based on *scat_meta* assuming\n"
          "all particles are of the same mass category.\n"
          "\n"
          "This method calculates the particle masses as density*volume\n"
@@ -7676,7 +7676,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "scat_meta_array" ),
+        IN( "scat_meta" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -7688,14 +7688,14 @@ void define_md_data_raw()
       ( NAME( "particle_massesFromMetaDataAndPart_species" ),
         DESCRIPTION
         (
-         "Derives *particle_masses* from *scat_meta_array*.\n"
+         "Derives *particle_masses* from *scat_meta*.\n"
          "\n"
          "This method is supposed to be used to derive *particle_masses*\n"
          "when *pnd_field* is internally calculated using *pnd_fieldSetup*\n"
          "(in contrast to reading it from external sources using\n"
          "*ParticleTypeAdd* and *pnd_fieldCalc*).\n"
          "It extracts the mass information of the scattering elements from\n"
-         "*scat_meta_array* (as density*volume). Different entries in\n"
+         "*scat_meta* (as density*volume). Different entries in\n"
          "*scat_species* are taken as different categories of particle_masses,\n"
          "i.e., the resulting *particle_masses* matrix will contain as many\n"
          "columns as entries exist in *scat_species*.\n"
@@ -7705,7 +7705,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "scat_meta_array", "scat_data_per_scat_species", "scat_species" ),
+        IN( "scat_meta", "scat_data_per_scat_species", "scat_species" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -7772,10 +7772,10 @@ void define_md_data_raw()
          "density fields.\n"
          "\n"
          "The methods reads the specified files and appends the obtained data\n"
-         "to *scat_data_array* and *pnd_field_raw*.\n"
+         "to *scat_data* and *pnd_field_raw*.\n"
          ),
         AUTHORS( "Claudia Emde" ),
-        OUT( "scat_data_array", "pnd_field_raw" ),
+        OUT( "scat_data", "pnd_field_raw" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
@@ -7810,7 +7810,7 @@ void define_md_data_raw()
          "*pnd_field_raw*.\n"
          ),
         AUTHORS( "Claudia Emde" ),
-        OUT( "scat_data_array", "pnd_field_raw" ),
+        OUT( "scat_data", "pnd_field_raw" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
@@ -7829,17 +7829,17 @@ void define_md_data_raw()
       ( NAME( "ParticleTypeInit" ),
         DESCRIPTION
         (
-         "Initializes *scat_data_array* and *pnd_field_raw*.\n"
+         "Initializes *scat_data* and *pnd_field_raw*.\n"
          "\n"
          "This method initializes variables that will hold the optical\n"
-         "properties of the scattering elements (*scat_data_array*) and the\n"
+         "properties of the scattering elements (*scat_data*) and the\n"
          "particle number distribution (*pnd_field_raw*).\n"
          "\n"
          "This method has to be executed before executing e.g.\n"
          "*ParticleTypeAdd*.\n"
          ),
         AUTHORS( "Claudia Emde" ),
-        OUT( "scat_data_array", "pnd_field_raw" ),
+        OUT( "scat_data", "pnd_field_raw" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
@@ -7860,12 +7860,12 @@ void define_md_data_raw()
          "reading single scattering data and corresponding pnd field.\n"
          "\n"
          "The methods reads the specified single scattering and pnd_field\n"
-         "data and appends the obtained data to *scat_data_array* and\n"
+         "data and appends the obtained data to *scat_data* and\n"
          "*vmr_field_raw*. It also appends one instance of species 'particles'\n"
          "to *abs_species*.\n"
          ),
         AUTHORS( "Jana Mendrok" ),
-        OUT( "scat_data_array", "vmr_field_raw", "abs_species",
+        OUT( "scat_data", "vmr_field_raw", "abs_species",
              "propmat_clearsky_agenda_checked", "abs_xsec_agenda_checked" ),
         GOUT(),
         GOUT_TYPE(),
@@ -7927,7 +7927,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "pha_mat_spt", "scat_data_array", "scat_za_grid", "scat_aa_grid", 
+        IN( "pha_mat_spt", "scat_data", "scat_za_grid", "scat_aa_grid", 
             "scat_za_index", "scat_aa_index", "f_index", "f_grid",
             "rtp_temperature", "pnd_field", "scat_p_index", "scat_lat_index",
             "scat_lon_index" ),
@@ -7951,7 +7951,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "pha_mat_spt", "scat_data_array_mono", "doit_za_grid_size",
+        IN( "pha_mat_spt", "scat_data_mono", "doit_za_grid_size",
             "scat_aa_grid", "scat_za_index", "scat_aa_index", "rtp_temperature",
             "pnd_field", "scat_p_index", "scat_lat_index", "scat_lon_index" ),
         GIN(),
@@ -7977,7 +7977,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "pha_mat_spt", "pha_mat_sptDOITOpt", "scat_data_array_mono", 
+        IN( "pha_mat_spt", "pha_mat_sptDOITOpt", "scat_data_mono", 
             "doit_za_grid_size",
             "scat_aa_grid", 
             "scat_za_index", "scat_aa_index", "rtp_temperature",
@@ -8103,7 +8103,7 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "atmosphere_dim","cloudbox_on", "cloudbox_limits",
-            "massdensity_field", "t_field", "scat_meta_array",
+            "massdensity_field", "t_field", "scat_meta",
             "scat_species", "scat_data_per_scat_species" ),
         GIN( "delim" ),
         GIN_TYPE( "String" ),
@@ -8124,10 +8124,10 @@ void define_md_data_raw()
          "an empty cloudbox. That means that the iterative method is\n"
          "performed for a cloudbox including no particles. This method sets\n"
          "the particle number density field to zero and creates a\n"
-         "dummy *scat_data_array* structure. \n"
+         "dummy *scat_data* structure. \n"
          ),
         AUTHORS( "Claudia Emde" ),
-        OUT( "pnd_field", "scat_data_array" ),
+        OUT( "pnd_field", "scat_data" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
@@ -8561,7 +8561,7 @@ void define_md_data_raw()
          "as absorbing species with one instance of 'particles' per scattering\n"
          "element considered added to *abs_species*. Particle absorption cross-\n"
          "sections at current atmospheric conditions are extracted from the\n"
-         "single scattering data stored in *scat_data_array*, i.e., one array\n"
+         "single scattering data stored in *scat_data*, i.e., one array\n"
          "element per 'particles' instance in *abs_species* is required. Number\n"
          "densities are stored in *vmr_field_raw* or *vmr_field* as for all\n"
          "*abs_species*, but can be taken from (raw) pnd_field type data.\n"
@@ -8573,7 +8573,7 @@ void define_md_data_raw()
          "*ParticleType2abs_speciesAdd* can be used to add all required\n"
          "settings/data for a single scattering element type at once, i.e. a\n"
          " 'particles' tag to *abs_species*, a set of single scattering data to\n"
-         "*scat_data_array* and a number density field to *vmr_field_raw*\n"
+         "*scat_data* and a number density field to *vmr_field_raw*\n"
          "(*vmr_field* is derived applying AtmFieldsCalc once VMRs for all\n"
          "*abs_species* have been added).\n"
          "\n"
@@ -8588,7 +8588,7 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "propmat_clearsky", "stokes_dim", "atmosphere_dim",
             "f_grid", "abs_species",
-            "rtp_vmr", "rtp_los", "rtp_temperature", "scat_data_array" ),
+            "rtp_vmr", "rtp_los", "rtp_temperature", "scat_data" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -9405,7 +9405,7 @@ void define_md_data_raw()
          ),
         AUTHORS( "Claudia Emde" ),
         OUT( "scat_i_p", "scat_i_lat", "scat_i_lon", 
-             "f_index", "scat_data_array_mono", "doit_i_field1D_spectrum" ),
+             "f_index", "scat_data_mono", "doit_i_field1D_spectrum" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
@@ -9413,7 +9413,7 @@ void define_md_data_raw()
             "cloudbox_checked", "cloudbox_limits", "stokes_dim", 
             "opt_prop_part_agenda", "propmat_clearsky_agenda", 
             "spt_calc_agenda", "pnd_field", "t_field",
-            "z_field", "p_grid", "vmr_field", "scat_data_array", "f_grid", 
+            "z_field", "p_grid", "vmr_field", "scat_data", "f_grid", 
             "scat_za_grid", "surface_emissivity_DISORT" ),
         GIN(),
         GIN_TYPE(),
@@ -9465,7 +9465,7 @@ void define_md_data_raw()
          "pressure level. Accordingly, *pnd_field* is resized to [np, np, 1, 1],\n"
          "where np is the number of pressure levels inside the cloudbox. The\n"
          "diagonal elements of the new *pnd_field* are set to 1, all others to\n"
-         "0. *scat_data_array* is resized to np. Each new scattering element\n"
+         "0. *scat_data* is resized to np. Each new scattering element\n"
          "represents the weighted sum of all particles at one presssure level.\n"
          "\n"
          "The method is suggested to be called directly after *pnd_fieldSetup*\n"
@@ -9482,11 +9482,11 @@ void define_md_data_raw()
          "This method can only be used with a 1D atmosphere.\n"
          ),
         AUTHORS( "Oliver Lemke" ),
-        OUT( "pnd_field", "scat_data_array"),
+        OUT( "pnd_field", "scat_data"),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "pnd_field", "scat_data_array", "atmosphere_dim",
+        IN( "pnd_field", "scat_data", "atmosphere_dim",
             "cloudbox_on", "cloudbox_limits",
             "t_field", "z_field", "z_surface", "cloudbox_checked" ),
         GIN(),
@@ -9510,7 +9510,7 @@ void define_md_data_raw()
          "\n"
          "Scattering elements of several phases, materials, and shapes can be\n"
          "added. The scattering species, which each of the scattering elements\n"
-         "is assigned to, is determined by the *scat_meta* 'material' tag in\n"
+         "is assigned to, is determined by the *scat_meta_single* 'material' tag in\n"
          "comparison to the 'particle type' part of the *scat_species* tag.\n"
          "Note that no two scattering elements of the same scattering species\n"
          "are allowed to be equal in size; this will result in an error in\n"
@@ -9521,7 +9521,7 @@ void define_md_data_raw()
          "exactly correspond to the order of the scattering meta data files.\n"
          ),
         AUTHORS( "Daniel Kreyling" ),
-        OUT( "scat_data_array", "scat_meta_array" ),
+        OUT( "scat_data", "scat_meta" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
@@ -9540,27 +9540,27 @@ void define_md_data_raw()
       ( NAME( "ScatteringParticlesSelect" ),
         DESCRIPTION
         (
-         "Selects data of *scat_data_array* of the scattering elements that\n"
+         "Selects data of *scat_data* of the scattering elements that\n"
          "according to *scat_species* shall be considered in the scattering\n"
          "calculation.\n"
          "\n"
          "Selection is controlled by *scat_species* settings and done based on\n"
-         "particle type/material and size. *scat_meta_array* is searched\n"
+         "particle type/material and size. *scat_meta* is searched\n"
          "for scattering elements that fulfill the selection criteria. Selection\n"
          "is done individually for each element of *scat_species*, i.e. for each\n"
          "considered scattering species (implying a sorting of the selected\n"
-         "*scat_meta_array* and *scat_data_array* according to the scattering\n"
+         "*scat_meta* and *scat_data* according to the scattering\n"
          "species they correspond to).\n"
          "Additionally, *scat_data_per_scat_species* is created, which contains\n"
          "the number of scattering elements that have been selected for each of\n"
          "the scattering species.\n"
          ),
         AUTHORS( "Daniel Kreyling" ),
-        OUT( "scat_data_array", "scat_meta_array", "scat_data_per_scat_species" ),
+        OUT( "scat_data", "scat_meta", "scat_data_per_scat_species" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "scat_data_array", "scat_meta_array", "scat_species" ),
+        IN( "scat_data", "scat_meta", "scat_species" ),
         GIN( "delim" ),
         GIN_TYPE( "String" ),
         GIN_DEFAULT( "-" ),
@@ -9571,7 +9571,7 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-    ( NAME( "scat_dataTmatrix" ),
+    ( NAME( "scat_data_singleTmatrix" ),
       DESCRIPTION
       (
         "A basic interface to the T-matrix code linked to ARTS.\n"
@@ -9600,7 +9600,7 @@ void define_md_data_raw()
         "code found http://www.giss.nasa.gov/staff/mmishchenko/t_matrix.html\n"
       ),
       AUTHORS( "Johan Strandgren", "Patrick Eriksson" ),
-      OUT("scat_data"),
+      OUT("scat_data_single"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
@@ -9626,15 +9626,15 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-    ( NAME( "scat_meta_arrayAddTmatrix" ),
+    ( NAME( "scat_metaAddTmatrix" ),
       DESCRIPTION
       (
        "This method adds scattering element meta data to the workspace variable\n"
-       "*scat_meta_array*.\n"
+       "*scat_meta*.\n"
        "\n"
        "One set of meta data is created and added to the array for each\n"
        "combination of maximum diameter and aspect ratio in the GINs\n"
-       "diamter_max_grid and aspect_ratio_grid. The size of *scat_meta_array*\n"
+       "diamter_max_grid and aspect_ratio_grid. The size of *scat_meta*\n"
        "and hence the usage has been extended. For that reason, a short summary\n"
        "below tells which input parameters are required for certain further\n"
        "calculations.\n"
@@ -9651,11 +9651,11 @@ void define_md_data_raw()
        "Tensor3[complex_refr_index]\tUsed for scattering calculations\n"
       ),
       AUTHORS( "Johan Strandgren" ),
-      OUT("scat_meta_array"),
+      OUT("scat_meta"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN( "scat_meta_array", "complex_refr_index" ),
+      IN( "scat_meta", "complex_refr_index" ),
       GIN( "description", "material", "shape", "ptype", "density", 
            "aspect_ratio_grid", "diameter_max_grid", "scat_f_grid", "scat_T_grid" ),
       GIN_TYPE( "String", "String", "String", "String", "Numeric", "Vector",
@@ -9663,7 +9663,7 @@ void define_md_data_raw()
       GIN_DEFAULT( "", "undefined", NODEF, NODEF, "-999", NODEF, NODEF,
                    NODEF, NODEF ),
       GIN_DESC( "Particle description", "Water or Ice", "spheroidal or cylinder", 
-                "Particle Type: MACROS_ISO (20) or PARTICLE_TYPE_HORIZ_AL (30)", 
+                "Particle Type: MACROS_ISO (20) or PTYPE_HORIZ_AL (30)", 
                 "Particle mass density",
                 "Particle aspect ratio vector",
                 "Maximum diameter vector (diameter of a sphere that fully"
@@ -9674,13 +9674,13 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "scat_meta_arrayInit" ),
+      ( NAME( "scat_metaInit" ),
         DESCRIPTION
         (
-         "Initializes the workspace variable *scat_meta_array*.\n"
+         "Initializes the workspace variable *scat_meta*.\n"
          ),
         AUTHORS( "Johan Strandgren" ),
-        OUT("scat_meta_array"),
+        OUT("scat_meta"),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
@@ -9693,17 +9693,17 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "scat_data_array_monoCalc" ),
+      ( NAME( "scat_data_monoCalc" ),
         DESCRIPTION
         (
-         "Interpolates *scat_data_array* by frequency to give *scat_data_array_mono*.\n"
+         "Interpolates *scat_data* by frequency to give *scat_data_mono*.\n"
          ),
         AUTHORS( "Cory Davis" ),
-        OUT( "scat_data_array_mono" ),
+        OUT( "scat_data_mono" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "scat_data_array", "f_grid", "f_index" ),
+        IN( "scat_data", "f_grid", "f_index" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -9712,7 +9712,7 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "scat_data_arrayCheck" ),
+      ( NAME( "scat_dataCheck" ),
         DESCRIPTION
         (
          "Method for checking the consistency of the optical properties\n"
@@ -9741,7 +9741,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "scat_data_array" ),
+        IN( "scat_data" ),
         GIN( "threshold" ),
         GIN_TYPE( "Numeric" ),
         GIN_DEFAULT( "1e-3" ),
@@ -9751,22 +9751,22 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "scat_data_arrayFromMeta" ),
+      ( NAME( "scat_dataFromMeta" ),
         DESCRIPTION
         (
          "This workspace method calculates scattering data and adds it to\n"
-         "*scat_data_array* using the *scat_meta_array* data.\n"
+         "*scat_data* using the *scat_meta* data.\n"
          "The scattering data is calculated with the T-matrix method.\n"
          "\n"
          "One set of scattering data is calculated for each scattering element\n"
-         "in *scat_meta_array*.\n"
+         "in *scat_meta*.\n"
          ),
         AUTHORS( "Johan Strandgren, Oliver Lemke" ),
-        OUT("scat_data_array"),
+        OUT("scat_data"),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN("scat_meta_array"),
+        IN("scat_meta"),
         GIN( "za_grid", "aa_grid", "precision" ),
         GIN_TYPE("Vector", "Vector", "Numeric" ),
         GIN_DEFAULT(NODEF, NODEF, NODEF ),
@@ -12238,7 +12238,7 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "abs_species", "met_profile_calc_agenda", "f_grid", "met_amsu_data",
             "sensor_pos", "refellipsoid", "lat_grid", "lon_grid", 
-            "atmosphere_dim", "scat_data_array" ),
+            "atmosphere_dim", "scat_data" ),
         GIN( "nelem_p_grid", "met_profile_path", "met_profile_pnd_path" ),
         GIN_TYPE(    "Index",        "String",           "String" ),
         GIN_DEFAULT( NODEF,          NODEF,              NODEF ),

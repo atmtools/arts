@@ -109,9 +109,9 @@ fields (compare also Table \ref{tab:scattering:datastructure}):
   
   Possible values of ptype are:
   
-  \shortcode{PARTICLE\_TYPE\_GENERAL} = 10 \\
-  \shortcode{PARTICLE\_TYPE\_MACROS\_ISO} = 20\\
-  \shortcode{PARTICLE\_TYPE\_HORIZ\_AL} = 30\\
+  \shortcode{PTYPE\_GENERAL} = 10 \\
+  \shortcode{PTYPE\_MACROS\_ISO} = 20\\
+  \shortcode{PTYPE\_HORIZ\_AL} = 30\\
   
   A more detailed description of the different cases is given below.
 
@@ -504,7 +504,7 @@ region:
 # Initialisation
 ParticleTypeInit
 # Only one particle type is added in this example 
-ParticleTypeAdd( scat_data_array, pnd_field_raw,
+ParticleTypeAdd( scat_data, pnd_field_raw,
                  atmosphere_dim, f_grid, p_grid,
                  lat_grid, lon_grid, cloudbox_limits,
                  "ssd_sphere_50um_p20.xml",
@@ -523,7 +523,7 @@ repeatedly for all particle types, for instance one could add to the
 randomly oriented spherical particles above horizontally aligned
 cylindrical particles:
 \begin{code}
-ParticleTypeAdd( scat_data_array, pnd_field_raw,
+ParticleTypeAdd( scat_data, pnd_field_raw,
                  atmosphere_dim, f_grid, p_grid,
                  lat_grid, lon_grid, cloudbox_limits,
                  "ssd_cylinder_30um_p30.xml",

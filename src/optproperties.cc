@@ -102,13 +102,13 @@ void abs_vecTransform(//Output and Input
   
   switch (ptype){
       
-    case PARTICLE_TYPE_GENERAL:
+    case PTYPE_GENERAL:
     {
       CREATE_OUT0;
-      out0 << "Case PARTICLE_TYPE_GENERAL not yet implemented. \n"; 
+      out0 << "Case PTYPE_GENERAL not yet implemented. \n"; 
       break;
     }
-    case PARTICLE_TYPE_MACROS_ISO:
+    case PTYPE_MACROS_ISO:
     {
       // The first element of the vector corresponds to the absorption 
       // coefficient which is stored in the database, the others are 0.
@@ -119,7 +119,7 @@ void abs_vecTransform(//Output and Input
       break;
     }
       
-    case PARTICLE_TYPE_HORIZ_AL://Added by Cory Davis 9/12/03
+    case PTYPE_HORIZ_AL://Added by Cory Davis 9/12/03
     {
       assert (abs_vec_data.ncols() == 2);
       
@@ -207,13 +207,13 @@ void ext_matTransform(//Output and Input
   
   switch (ptype){
       
-    case PARTICLE_TYPE_GENERAL:
+    case PTYPE_GENERAL:
     {
       CREATE_OUT0;
-      out0 << "Case PARTICLE_TYPE_GENERAL not yet implemented. \n"; 
+      out0 << "Case PTYPE_GENERAL not yet implemented. \n"; 
       break;
     }
-    case PARTICLE_TYPE_MACROS_ISO:
+    case PTYPE_MACROS_ISO:
     {
       assert (ext_mat_data.ncols() == 1);
       
@@ -246,7 +246,7 @@ void ext_matTransform(//Output and Input
       break;
     }
       
-    case PARTICLE_TYPE_HORIZ_AL://Added by Cory Davis 9/12/03
+    case PTYPE_HORIZ_AL://Added by Cory Davis 9/12/03
     {
       assert (ext_mat_data.ncols() == 3);
       
@@ -371,13 +371,13 @@ void pha_matTransform(//Output
   
   switch (ptype){
       
-    case PARTICLE_TYPE_GENERAL:
+    case PTYPE_GENERAL:
     {
       CREATE_OUT0;
-      out0 << "Case PARTICLE_TYPE_GENERAL not yet implemented. \n"; 
+      out0 << "Case PTYPE_GENERAL not yet implemented. \n"; 
       break;
     }
-    case PARTICLE_TYPE_MACROS_ISO:
+    case PTYPE_MACROS_ISO:
     {
       // Calculate the scattering and interpolate the data on the scattering
       // angle:
@@ -397,7 +397,7 @@ void pha_matTransform(//Output
       break;
     }
       
-    case PARTICLE_TYPE_HORIZ_AL://Added by Cory Davis
+    case PTYPE_HORIZ_AL://Added by Cory Davis
                                 //Data is already stored in the laboratory frame, but it is compressed
                                 //a little.  Details elsewhere
     {
@@ -1018,24 +1018,24 @@ void opt_prop_sum_propmat_clearsky(//Output:
 /*!
  Returns the PType enum value for the given String.
 
- \param[in]  particle_type_string  Particle type name
+ \param[in]  ptype_string  Particle type name
  \return     PType enum value
 
  \author Oliver Lemke
  */
-PType PTypeFromString(const String& particle_type_string)
+PType PTypeFromString(const String& ptype_string)
 {
     PType ptype;
-    if (particle_type_string == "general")
-        ptype = PARTICLE_TYPE_GENERAL;
-    else if (particle_type_string == "macroscopically_isotropic")
-        ptype = PARTICLE_TYPE_MACROS_ISO;
-    else if (particle_type_string == "horizontally_aligned")
-        ptype = PARTICLE_TYPE_HORIZ_AL;
+    if (ptype_string == "general")
+        ptype = PTYPE_GENERAL;
+    else if (ptype_string == "macroscopically_isotropic")
+        ptype = PTYPE_MACROS_ISO;
+    else if (ptype_string == "horizontally_aligned")
+        ptype = PTYPE_HORIZ_AL;
     else
     {
         ostringstream os;
-        os << "Unknown ptype: " << particle_type_string << endl
+        os << "Unknown ptype: " << ptype_string << endl
            << "Valid types are: general, macroscopically_isotropic and"
            << "horizontally_aligned.";
         throw std::runtime_error(os.str());
@@ -1056,17 +1056,17 @@ PType PTypeFromString(const String& particle_type_string)
  */
 String PTypeToString(const PType& ptype)
 {
-    String particle_type_string;
+    String ptype_string;
 
     switch (ptype) {
-        case PARTICLE_TYPE_GENERAL:
-            particle_type_string = "general";
+        case PTYPE_GENERAL:
+            ptype_string = "general";
             break;
-        case PARTICLE_TYPE_MACROS_ISO:
-            particle_type_string = "macroscopically_isotropic";
+        case PTYPE_MACROS_ISO:
+            ptype_string = "macroscopically_isotropic";
             break;
-        case PARTICLE_TYPE_HORIZ_AL:
-            particle_type_string = "horizontally_aligned";
+        case PTYPE_HORIZ_AL:
+            ptype_string = "horizontally_aligned";
             break;
 
         default:
@@ -1077,7 +1077,7 @@ String PTypeToString(const PType& ptype)
             break;
     }
 
-    return particle_type_string;
+    return ptype_string;
 }
 
 

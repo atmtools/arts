@@ -22,7 +22,7 @@
 #   t_field           as the WSV                                               #
 #   vmr_field         as the WSV                                               #
 #   pnd_field         as the WSV                                               #
-#   scat_data_array   as the WSV                                               #
+#   scat_data   as the WSV                                               #
 #   cloudbox_on       as the WSV                                               #
 #   cloudbox_limits   as the WSV                                               #
 #   abs_species       as the WSV                                               #
@@ -76,7 +76,7 @@ IndexSet( scatorder, 1 )
 # NOTE: Only use "Absorption, species X" up to the number of entries in
 #  abs_species (clearsky calculations in Venus have at maximum 19 abs_species
 #  entries, i.e. highest valid index is 18).
-# NOTE: Only use "PND, type Y" up to the number of entries in scat_data_array.
+# NOTE: Only use "PND, type Y" up to the number of entries in scat_data.
 #  Particle calculations have at maximum 10 particle entries, i.e., highest
 #  valid index is 9).
 # ---

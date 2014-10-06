@@ -219,7 +219,7 @@ void get_ppath_ext(
         ArrayOfIndex&                  clear2cloudbox,
         Tensor3&                       pnd_abs_vec, 
         Tensor4&                       pnd_ext_mat, 
-  Array<ArrayOfSingleScatteringData>&  scat_data,
+  Array<ArrayOfSingleScatteringData>&  scat_data_single,
         Matrix&                        ppath_pnd,
   const Ppath&                         ppath,
   ConstVectorView                      ppath_t, 
@@ -229,7 +229,7 @@ void get_ppath_ext(
   const ArrayOfIndex&                  cloudbox_limits,
   const Tensor4&                       pnd_field,
   const Index&                         use_mean_scat_data,
-  const ArrayOfSingleScatteringData&   scat_data_array,
+  const ArrayOfSingleScatteringData&   scat_data,
   const Verbosity&                     verbosity );
 
 void get_ppath_f( 

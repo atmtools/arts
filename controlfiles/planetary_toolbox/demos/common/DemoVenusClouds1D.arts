@@ -11,7 +11,7 @@
 #                                                                              #
 # It provides following output:                                                #
 #   pnd_field         as the WSV                                               #
-#   scat_data_array   as the WSV                                               #
+#   scat_data   as the WSV                                               #
 #   cloudbox_on       as the WSV                                               #
 #   cloudbox_limits   as the WSV                                               #
 #                                                                              #

@@ -180,7 +180,7 @@ void dtauc_ssalbCalc(Workspace& ws,
   scattering angle grid (FIXME: Include angle interpolation)
 
   \param phase_function normalized phase function
-  \param scat_data_array_mono use arts -d for docu
+  \param scat_data_mono use arts -d for docu
   \param pnd_field use arts -d for docu
   
   \author Claudia Emde
@@ -189,33 +189,33 @@ void dtauc_ssalbCalc(Workspace& ws,
 void phase_functionCalc(//Output
                        MatrixView phase_function,
                        //Input
-                       const ArrayOfSingleScatteringData& scat_data_array_mono, 
+                       const ArrayOfSingleScatteringData& scat_data_mono, 
                        ConstTensor4View pnd_field)
 {
   Matrix phase_function_level(pnd_field.npages(), 
-                              scat_data_array_mono[0].za_grid.nelem(), 0.);
+                              scat_data_mono[0].za_grid.nelem(), 0.);
   
   //Loop over pressure levels
   for (Index i_p = 0; i_p < pnd_field.npages(); i_p++)
     {
       // Loop over scattering angles
-      for (Index i_t = 0; i_t < scat_data_array_mono[0].za_grid.nelem(); i_t++)
+      for (Index i_t = 0; i_t < scat_data_mono[0].za_grid.nelem(); i_t++)
         {
           // Calculate ensemble averaged extinction coefficient
           Numeric sca_coeff=0.;
           
-          for (Index j = 0; j < scat_data_array_mono.nelem(); j++)
+          for (Index j = 0; j < scat_data_mono.nelem(); j++)
             sca_coeff +=  pnd_field(j, i_p, 0, 0) *
-              (scat_data_array_mono[j].ext_mat_data(0, 0, 0, 0, 0)-
-              scat_data_array_mono[j].abs_vec_data(0, 0, 0, 0, 0));
+              (scat_data_mono[j].ext_mat_data(0, 0, 0, 0, 0)-
+              scat_data_mono[j].abs_vec_data(0, 0, 0, 0, 0));
           
           // Phase function
-            for (Index j = 0; j < scat_data_array_mono.nelem(); j++)
+            for (Index j = 0; j < scat_data_mono.nelem(); j++)
               {
                 if (sca_coeff != 0)
                   phase_function_level(i_p, i_t) += 
                     pnd_field(j, i_p, 0, 0) *
-                     scat_data_array_mono[j].pha_mat_data(0, 0, i_t, 0, 0, 0, 0)
+                     scat_data_mono[j].pha_mat_data(0, 0, i_t, 0, 0, 0, 0)
                     *4*PI/sca_coeff;// Normalization
               }
 

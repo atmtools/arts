@@ -1,5 +1,55 @@
 2014-10-06  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-3-28
+
+	* controlfiles/artscomponents/doit/TestDOIT.arts,
+	controlfiles/artscomponents/doitbatch/TestDOITBatch.arts,
+	controlfiles/artscomponents/montecarlo/TestMonteCarloDataPrepare.arts,
+	controlfiles/artscomponents/montecarlo/TestMonteCarloGeneral.arts,
+	controlfiles/artscomponents/montecarlo/TestMonteCarloGeneralGaussian.arts,
+	controlfiles/artscomponents/montecarlo/TestRteCalcMC.arts,
+	controlfiles/artscomponents/tmatrix/TestTMatrixSSD.arts,
+	controlfiles/planetary_toolbox/demos/common/DemoMarsClouds1D.arts,
+	controlfiles/planetary_toolbox/demos/common/DemoVenusClouds1D.arts,
+	controlfiles/planetary_toolbox/demos/passive/DemoScat_DOIT_1D.arts,
+	controlfiles/planetary_toolbox/demos/passive/DemoScat_FOS_1D.arts,
+	controlfiles/planetary_toolbox/demos/passive/DemoScat_MC_1D.arts,
+	controlfiles/planetary_toolbox/includes/common/makeclouds1D.arts,
+	controlfiles/planetary_toolbox/includes/mars/getclouds_mars.arts,
+	controlfiles/planetary_toolbox/includes/venus/getclouds_venus.arts,
+	doc/uguide/absorption.tex, doc/uguide/clouds.tex,
+	doc/uguide/rte_basics.tex, doc/uguide/scattering.tex,
+	src/cloudbox.cc, src/cloudbox.h, src/disort.cc, src/disort.h,
+	src/m_abs.cc, src/m_batch.cc, src/m_checked.cc, src/m_cloudbox.cc,
+	src/m_cloudradar.cc, src/m_disort.cc, src/m_doit.cc, src/m_fos.cc,
+	src/m_montecarlo.cc, src/m_optproperties.cc, src/m_rte.cc,
+	src/m_tmatrix.cc, src/m_transmitter.cc, src/mc_interp.cc,
+	src/mc_interp.h, src/methods.cc, src/montecarlo.cc, src/montecarlo.h,
+	src/optproperties.cc, src/optproperties.h,
+	src/partition_function_data.cc, src/rte.cc, src/rte.h,
+	src/tmatrix.cc, src/tmatrix.h, src/workspace.cc,
+	src/xml_io_compound_types.cc:
+
+	Huge scattering renaming commit:
+
+	scat_data -> scat_data_single
+	scat_meta -> scat_meta_single
+	scat_data_array -> scat_data
+	scat_meta_array -> scat_meta
+	scat_data_array_mono -> scat_data_mono
+	scat_data_arrayCheck -> scat_dataCheck
+	scat_data_arrayFromMeta -> scat_dataFromMeta
+	scat_data_array_monoCalc -> scat_data_monoCalc
+	scat_dataTmatrix -> scat_data_singleTmatrix
+	scat_data_array_monoCalc -> scat_data_monoCalc
+	scat_meta_arrayAddTmatrix -> scat_metaAddTmatrix
+	scat_meta_arrayInit -> scat_metaInit
+
+	Also replaced PARTICLE_TYPE_* with PTYPE_* and some local variables
+	accordingly.
+
+2014-10-06  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-3-27
 
 	* src/cloudbox.cc, src/m_cloudbox.cc, src/m_optproperties.cc,

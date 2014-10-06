@@ -1533,7 +1533,7 @@ void get_ppath_blackrad(
                                       (defined only where particles are found)
     \param   pnd_ext_vec         Out: Particle extinction matrix
                                       (defined only where particles are found)
-    \param   scat_data           Out: Extracted scattering data. Length of
+    \param   scat_data_single           Out: Extracted scattering data. Length of
                                       array affected by *use_mean_scat_data*.
     \param   ppath_pnd           Out. The particle number density for each
                                       path point (also outside cloudbox).
@@ -1544,7 +1544,7 @@ void get_ppath_blackrad(
     \param   cloubox_limits      As the WSV.    
     \param   pnd_field           As the WSV.    
     \param   use_mean_scat_data  As the WSV.    
-    \param   scat_data_array       As the WSV.    
+    \param   scat_data       As the WSV.    
 
     \author Patrick Eriksson 
     \date   2012-08-23
@@ -1553,7 +1553,7 @@ void get_ppath_ext(
         ArrayOfIndex&                  clear2cloudbox,
         Tensor3&                       pnd_abs_vec, 
         Tensor4&                       pnd_ext_mat, 
-  Array<ArrayOfSingleScatteringData>&  scat_data,
+  Array<ArrayOfSingleScatteringData>&  scat_data_single,
         Matrix&                        ppath_pnd,
   const Ppath&                         ppath,
   ConstVectorView                      ppath_t, 
@@ -1563,7 +1563,7 @@ void get_ppath_ext(
   const ArrayOfIndex&                  cloudbox_limits,
   const Tensor4&                       pnd_field,
   const Index&                         use_mean_scat_data,
-  const ArrayOfSingleScatteringData&   scat_data_array,
+  const ArrayOfSingleScatteringData&   scat_data,
   const Verbosity&                     verbosity )
 {
   const Index nf = ppath_f.nrows();
@@ -1615,17 +1615,17 @@ void get_ppath_ext(
   if( use_mean_scat_data )
     {
       const Numeric f = (mean(ppath_f(0,joker))+mean(ppath_f(nf-1,joker)))/2.0;
-      scat_data.resize( 1 );
-      scat_data_array_monoCalc( scat_data[0], scat_data_array, Vector(1,f), 0, 
+      scat_data_single.resize( 1 );
+      scat_data_monoCalc( scat_data_single[0], scat_data, Vector(1,f), 0, 
                           verbosity );
     }
   else
     {
-      scat_data.resize( nf );
+      scat_data_single.resize( nf );
       for( Index iv=0; iv<nf; iv++ )
         { 
           const Numeric f = mean(ppath_f(iv,joker));
-          scat_data_array_monoCalc( scat_data[iv], scat_data_array, Vector(1,f), 0, 
+          scat_data_monoCalc( scat_data_single[iv], scat_data, Vector(1,f), 0, 
                               verbosity ); 
         }
     }
@@ -1653,7 +1653,7 @@ void get_ppath_ext(
               Vector   abs_vec( stokes_dim );
               Matrix   ext_mat( stokes_dim, stokes_dim );
               opt_propCalc( ext_mat, abs_vec, rtp_los2[0], rtp_los2[1], 
-                            scat_data[0], stokes_dim, ppath_pnd(joker,ip), 
+                            scat_data_single[0], stokes_dim, ppath_pnd(joker,ip), 
                             ppath_t[ip], verbosity);
               for( Index iv=0; iv<nf; iv++ )
                 { 
@@ -1667,7 +1667,7 @@ void get_ppath_ext(
                 { 
                   opt_propCalc( pnd_ext_mat(iv,joker,joker,i), 
                                 pnd_abs_vec(iv,joker,i), rtp_los2[0], 
-                                rtp_los2[1], scat_data[iv], stokes_dim,
+                                rtp_los2[1], scat_data_single[iv], stokes_dim,
                                 ppath_pnd(joker,ip), ppath_t[ip], verbosity );
                 }
             }

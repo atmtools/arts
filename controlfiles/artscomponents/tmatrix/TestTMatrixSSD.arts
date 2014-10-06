@@ -16,9 +16,9 @@ complex_refr_indexIceWarren84(
     	data_f_grid = scat_f_grid,
 		data_T_grid = scat_T_grid )
 
-scat_meta_arrayInit
+scat_metaInit
 
-scat_meta_arrayAddTmatrix(
+scat_metaAddTmatrix(
 	material="Ice",
 	shape="spheroidal",
 	ptype="horizontally_aligned",
@@ -29,20 +29,20 @@ scat_meta_arrayAddTmatrix(
 	scat_T_grid=scat_T_grid,
 	complex_refr_index= complex_refr_index )
 
-scat_data_arrayFromMeta(
+scat_dataFromMeta(
 	za_grid=ssd_za_grid,
 	aa_grid=ssd_aa_grid,
 	precision=0.001 )
 
-#Extract(scat_data,scat_data_array)
+#Extract(scat_data_single,scat_data)
 
-WriteXML( "ascii", scat_meta_array )
+WriteXML( "ascii", scat_meta )
 
-WriteXML( "ascii", scat_data_array )
+WriteXML( "ascii", scat_data )
 
-ReadXML( scat_meta_array )
+ReadXML( scat_meta )
 
-ReadXML( scat_data_array )
+ReadXML( scat_data )
 
 
 }

@@ -21,7 +21,7 @@
 #                                                                              #
 # Output:                                                                      #
 #   pnd_field          as the WSV                                              #
-#   scat_data_array    as the WSV                                              #
+#   scat_data    as the WSV                                              #
 #   cloudbox_on        as the WSV                                              #
 #   cloudbox_limits    as the WSV                                              #
 #                                                                              #
@@ -30,9 +30,9 @@
 Arts2 {
 
 # forth, we get the pnd field and and single scattering data in their respective
-#  WSVs pnd_field_raw and scat_data_array.
+#  WSVs pnd_field_raw and scat_data.
 ParticleTypeAddAll( filelist_scat_data=poptmp, filename_pnd_fieldarray=pndtmp )
-scat_data_arrayCheck
+scat_dataCheck
 
 Extract( pmax_cb, p_grid, 0 )
 nelemGet( itmp, p_grid )

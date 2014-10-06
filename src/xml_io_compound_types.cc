@@ -1231,9 +1231,9 @@ void xml_read_from_stream(istream& is_xml,
 
   if (version == "2")
     {
-      String particle_type_string;
-      xml_read_from_stream(is_xml, particle_type_string, pbifs, verbosity);
-      ssdata.ptype = PTypeFromString(particle_type_string);
+      String ptype_string;
+      xml_read_from_stream(is_xml, ptype_string, pbifs, verbosity);
+      ssdata.ptype = PTypeFromString(ptype_string);
     }
   else
     {

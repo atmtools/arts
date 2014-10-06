@@ -755,7 +755,7 @@ AgendaSet( doit_mono_agenda ){
  # Prepare scattering data for DOIT calculation (Optimized method):
    DoitScatteringDataPrepare
  # Alternative method (needs less memory):
- # scat_data_array_monoCalc
+ # scat_data_monoCalc
  # Set first guess field:		
    doit_i_fieldSetClearsky
  # Perform iterations: 1. scattering integral. 2. RT calculations with 
@@ -769,7 +769,7 @@ The first method \wsmindex{DoitScatteringDataPrepare} reads the
 single scattering data and interpolates it on the requested
 frequency. It also performs the transformation from the scattering
 frame into the laboratory frame. Alternatively the method
-\wsmindex{scat\_data\_array\_monoCalc} can be used. In this case only the
+\wsmindex{scat\_data\_monoCalc} can be used. In this case only the
 frequency interpolation is done and the transformations are done
 later. The advantage is that this method needs less memory. For 1D
 calculation it is recommended to use
@@ -884,7 +884,7 @@ equation. How they are calculated is specified in
 \wsmindex{opt\_prop\_sptFromMonoData} requires that the raw data is
 already interpolated on the frequency of the monochromatic
 calculation. This requirement is fulfilled when
-\wsmindex{DoitScatteringDataPrepare} or \wsmindex{scat\_data\_array\_monoCalc}
+\wsmindex{DoitScatteringDataPrepare} or \wsmindex{scat\_data\_monoCalc}
 is executed before \wsmindex{doit\_i\_fieldIterate} (see
 Section \ref{sec:scattering:doit_main_agenda}). The work space method
 \wsmindex{ext\_matAddPart} and \wsmindex{abs\_vecAddPart} are used to

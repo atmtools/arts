@@ -147,7 +147,7 @@ void cloudy_rt_vars_at_gp(Workspace&           ws,
                           ConstTensor3View     t_field_cloud,
                           ConstTensor4View     vmr_field_cloud,
                           const Tensor4&       pnd_field,
-                          const ArrayOfSingleScatteringData& scat_data_array_mono,
+                          const ArrayOfSingleScatteringData& scat_data_mono,
                           const ArrayOfIndex&  cloudbox_limits,
                           const Vector&        rte_los,
                           const Verbosity&     verbosity
@@ -207,7 +207,7 @@ void cloudy_rt_vars_at_gp(Workspace&           ws,
   //opt_prop_part_agenda.execute( true );
   //use pnd_ppath and ext_mat_spt to get extmat (and similar for abs_vec
   pnd_vec=pnd_ppath(joker, 0);
-  opt_propCalc(ext_mat_part,abs_vec_part,scat_za,scat_aa,scat_data_array_mono,
+  opt_propCalc(ext_mat_part,abs_vec_part,scat_za,scat_aa,scat_data_mono,
                stokes_dim, pnd_vec, temperature,verbosity);
   
   ext_mat_mono += ext_mat_part;
@@ -330,30 +330,30 @@ void cloud_atm_vars_by_gp(
   element.
 
   \param[out] Z11maxvector Maximum value of Z11 for each scattering element
-  \param[in]  scat_data_array_mono
+  \param[in]  scat_data_mono
 
   \author Cory Davis
   \date   2004-31-1
 */
 void findZ11max(Vector& Z11maxvector,
-                const ArrayOfSingleScatteringData& scat_data_array_mono)
+                const ArrayOfSingleScatteringData& scat_data_mono)
 {
-  Index np=scat_data_array_mono.nelem();
+  Index np=scat_data_mono.nelem();
   Z11maxvector.resize(np);
 
   for(Index i = 0;i<np;i++)
     {
-      switch(scat_data_array_mono[i].ptype){
-      case PARTICLE_TYPE_MACROS_ISO:
+      switch(scat_data_mono[i].ptype){
+      case PTYPE_MACROS_ISO:
         {
-          Z11maxvector[i]=max(scat_data_array_mono[i].pha_mat_data(0,joker,joker,0,0,0,0));
+          Z11maxvector[i]=max(scat_data_mono[i].pha_mat_data(0,joker,joker,0,0,0,0));
         }
-      case PARTICLE_TYPE_HORIZ_AL:
+      case PTYPE_HORIZ_AL:
         {
-          Z11maxvector[i]=max(scat_data_array_mono[i].pha_mat_data(0,joker,joker,0,joker,0,0));
+          Z11maxvector[i]=max(scat_data_mono[i].pha_mat_data(0,joker,joker,0,joker,0,0));
         }
       default:
-        Z11maxvector[i]=max(scat_data_array_mono[i].pha_mat_data(0,joker,joker,joker,joker,joker,0));
+        Z11maxvector[i]=max(scat_data_mono[i].pha_mat_data(0,joker,joker,joker,joker,joker,0));
       }
     }
 }
@@ -364,21 +364,21 @@ void findZ11max(Vector& Z11maxvector,
 //! is_anyptype30
 /*!
 Some operations in Monte Carlo simulations are different depending on the 
-ptype of the scattering elements. This function searches scat_data_array_mono
+ptype of the scattering elements. This function searches scat_data_mono
 to determine if any of the scattering elements have ptype=30.
 
 \author Cory Davis
 \date 2004-1-31
 
 */
-bool is_anyptype30(const ArrayOfSingleScatteringData& scat_data_array_mono)
+bool is_anyptype30(const ArrayOfSingleScatteringData& scat_data_mono)
 {
-  Index np=scat_data_array_mono.nelem();
+  Index np=scat_data_mono.nelem();
   bool anyptype30=false;
   Index i=0;
   while(i < np && anyptype30==false)
     {
-      if(scat_data_array_mono[i].ptype==PARTICLE_TYPE_HORIZ_AL)
+      if(scat_data_mono[i].ptype==PTYPE_HORIZ_AL)
         {
           anyptype30=true;
         }
@@ -438,7 +438,7 @@ void mcPathTraceGeneral(
    const Tensor4&        vmr_field,
    const ArrayOfIndex&   cloudbox_limits,
    const Tensor4&        pnd_field,
-   const ArrayOfSingleScatteringData& scat_data_array_mono,
+   const ArrayOfSingleScatteringData& scat_data_mono,
    const Verbosity&      verbosity )
 { 
   ArrayOfMatrix evol_opArray(2);
@@ -494,7 +494,7 @@ void mcPathTraceGeneral(
                             p_grid[p_range], 
                             t_field(p_range,lat_range,lon_range), 
                             vmr_field(joker,p_range,lat_range,lon_range),
-                            pnd_field, scat_data_array_mono, cloudbox_limits,
+                            pnd_field, scat_data_mono, cloudbox_limits,
                             ppath_step.los(0,joker), verbosity );
     }
   else
@@ -561,7 +561,7 @@ void mcPathTraceGeneral(
                                 p_grid[p_range], 
                                 t_field(p_range,lat_range,lon_range), 
                                 vmr_field(joker,p_range,lat_range,lon_range),
-                                pnd_field, scat_data_array_mono, cloudbox_limits,
+                                pnd_field, scat_data_mono, cloudbox_limits,
                                 ppath_step.los(ip,joker), verbosity );
         }
       else
@@ -674,7 +674,7 @@ scattering elements at a specific atmospheric location.
    \return abs_vec_mono   Output: total monochromatic absorption vector
    \param za              zenith angle of propagation direction
    \param aa              azimuthal angle of propagation
-   \param scat_data_array_mono  as the WSV
+   \param scat_data_mono  as the WSV
    \param stokes_dim      as the WSV
    \param pnd_vec         vector of particle number densities (one element per
                           scattering element)
@@ -688,7 +688,7 @@ void opt_propCalc(
                   VectorView      abs_vec_mono,
                   const Numeric   za,
                   const Numeric   aa,
-                  const ArrayOfSingleScatteringData& scat_data_array_mono,
+                  const ArrayOfSingleScatteringData& scat_data_mono,
                   const Index     stokes_dim,
                   ConstVectorView pnd_vec,
                   const Numeric   rtp_temperature,
@@ -700,7 +700,7 @@ void opt_propCalc(
   assert( ext_mat_mono.ncols() == stokes_dim );
   assert( abs_vec_mono.nelem() == stokes_dim );
 
-  const Index N_se = scat_data_array_mono.nelem();
+  const Index N_se = scat_data_mono.nelem();
 
   Matrix ext_mat_mono_spt(stokes_dim,stokes_dim);
   Vector abs_vec_mono_spt(stokes_dim);
@@ -713,18 +713,18 @@ void opt_propCalc(
     {
       if (pnd_vec[i_se]>0)
         {
-          Index nT=scat_data_array_mono[i_se].T_grid.nelem();
+          Index nT=scat_data_mono[i_se].T_grid.nelem();
           if( nT > 1 )
             {
               //set extrapolfax explicitly. should correspond to the one assumed
               //by gridpos call in opt_propExtract.
               Numeric extrapolfac=0.5;
-              Numeric lowlim = scat_data_array_mono[i_se].T_grid[0]-
-                               extrapolfac*(scat_data_array_mono[i_se].T_grid[1]
-                                           -scat_data_array_mono[i_se].T_grid[0]);
-              Numeric uplim = scat_data_array_mono[i_se].T_grid[nT-1]+
-                              extrapolfac*(scat_data_array_mono[i_se].T_grid[nT-1]
-                                          -scat_data_array_mono[i_se].T_grid[nT-2]);
+              Numeric lowlim = scat_data_mono[i_se].T_grid[0]-
+                               extrapolfac*(scat_data_mono[i_se].T_grid[1]
+                                           -scat_data_mono[i_se].T_grid[0]);
+              Numeric uplim = scat_data_mono[i_se].T_grid[nT-1]+
+                              extrapolfac*(scat_data_mono[i_se].T_grid[nT-1]
+                                          -scat_data_mono[i_se].T_grid[nT-2]);
 
               if( rtp_temperature<lowlim || rtp_temperature>uplim )
                 {
@@ -738,7 +738,7 @@ void opt_propCalc(
                 }
             }
           opt_propExtract( ext_mat_mono_spt, abs_vec_mono_spt,
-                          scat_data_array_mono[i_se], za, aa,
+                          scat_data_mono[i_se], za, aa,
                           rtp_temperature, stokes_dim, verbosity);
 
           ext_mat_mono_spt *= pnd_vec[i_se];
@@ -753,7 +753,7 @@ void opt_propCalc(
 void opt_propExtract(
                      MatrixView     ext_mat_mono_spt,
                      VectorView     abs_vec_mono_spt,
-                     const SingleScatteringData& scat_data,
+                     const SingleScatteringData& scat_data_single,
                      const Numeric  za,
                      const Numeric  aa _U_, // avoid warning until we use ptype=10
                      const Numeric  rtp_temperature,
@@ -763,27 +763,27 @@ void opt_propExtract(
 {
   // Temperature grid position
   GridPos t_gp;
-  if( scat_data.T_grid.nelem() > 1)
-    { gridpos( t_gp, scat_data.T_grid, rtp_temperature ); }
+  if( scat_data_single.T_grid.nelem() > 1)
+    { gridpos( t_gp, scat_data_single.T_grid, rtp_temperature ); }
 
 
-  switch (scat_data.ptype){
+  switch (scat_data_single.ptype){
 
-  case PARTICLE_TYPE_GENERAL:
+  case PTYPE_GENERAL:
     {
       // This is only included to remove warnings about unused variables 
       // during compilation
       CREATE_OUT0;
-      out0 << "Case PARTICLE_TYPE_GENERAL not yet implemented. \n"; 
+      out0 << "Case PTYPE_GENERAL not yet implemented. \n"; 
       break;
     }
-  case PARTICLE_TYPE_MACROS_ISO:
+  case PTYPE_MACROS_ISO:
     {
-      assert (scat_data.ext_mat_data.ncols() == 1);
+      assert (scat_data_single.ext_mat_data.ncols() == 1);
       
       Vector itw(2);
       //interpolate over temperature
-      if( scat_data.T_grid.nelem() > 1)
+      if( scat_data_single.T_grid.nelem() > 1)
       {
         interpweights(itw, t_gp);
       }
@@ -794,16 +794,16 @@ void opt_propExtract(
       ext_mat_mono_spt = 0.;
       abs_vec_mono_spt = 0;
       
-      if( scat_data.T_grid.nelem() == 1)
+      if( scat_data_single.T_grid.nelem() == 1)
         {
-          ext_mat_mono_spt(0,0) = scat_data.ext_mat_data(0,0,0,0,0);
-          abs_vec_mono_spt[0] = scat_data.abs_vec_data(0,0,0,0,0);
+          ext_mat_mono_spt(0,0) = scat_data_single.ext_mat_data(0,0,0,0,0);
+          abs_vec_mono_spt[0] = scat_data_single.abs_vec_data(0,0,0,0,0);
         }
       // Temperature interpolation
       else
         {
-          ext_mat_mono_spt(0,0) = interp(itw,scat_data.ext_mat_data(0,joker,0,0,0),t_gp);
-          abs_vec_mono_spt[0] = interp(itw,scat_data.abs_vec_data(0,joker,0,0,0),t_gp);
+          ext_mat_mono_spt(0,0) = interp(itw,scat_data_single.ext_mat_data(0,joker,0,0,0),t_gp);
+          abs_vec_mono_spt[0] = interp(itw,scat_data_single.abs_vec_data(0,joker,0,0,0),t_gp);
         }
       
       if( stokes_dim == 1 ){
@@ -826,9 +826,9 @@ void opt_propExtract(
       break;
     }
 
-  case PARTICLE_TYPE_HORIZ_AL://Added by Cory Davis 9/12/03
+  case PTYPE_HORIZ_AL://Added by Cory Davis 9/12/03
     {
-      assert (scat_data.ext_mat_data.ncols() == 3);
+      assert (scat_data_single.ext_mat_data.ncols() == 3);
       
       // In the case of horizontally oriented particles the extinction matrix
       // has only 3 independent non-zero elements ext_mat_monojj, K12=K21, and
@@ -843,7 +843,7 @@ void opt_propExtract(
       Numeric K12;
       Numeric K34;
       
-      if( scat_data.T_grid.nelem() == 1)
+      if( scat_data_single.T_grid.nelem() == 1)
         {
           ostringstream os;
           os << "Given optical property data are for constant temperature "
@@ -855,7 +855,7 @@ void opt_propExtract(
       // This fix for za=90 copied from  ext_matTransform in optproperties.cc
       // (121113, PE).
       ConstVectorView this_za_datagrid = 
-              scat_data.za_grid[ Range( 0, scat_data.ext_mat_data.npages() ) ];
+              scat_data_single.za_grid[ Range( 0, scat_data_single.ext_mat_data.npages() ) ];
       if( za > 90 )
         { gridpos( za_gp, this_za_datagrid, 180-za ); }
       else
@@ -865,19 +865,19 @@ void opt_propExtract(
 
       ext_mat_mono_spt = 0.0;
       abs_vec_mono_spt = 0.0;
-      Kjj = interp(itw,scat_data.ext_mat_data(0,joker,joker,0,0),t_gp,za_gp);
+      Kjj = interp(itw,scat_data_single.ext_mat_data(0,joker,joker,0,0),t_gp,za_gp);
       ext_mat_mono_spt(0,0) = Kjj;
       abs_vec_mono_spt[0]   = interp( itw, 
-                       scat_data.abs_vec_data(0,joker,joker,0,0), t_gp,za_gp );
+                       scat_data_single.abs_vec_data(0,joker,joker,0,0), t_gp,za_gp );
 
       if( stokes_dim == 1 )
         { break; }
       
-      K12=interp(itw,scat_data.ext_mat_data(0,joker,joker,0,1),t_gp,za_gp);
+      K12=interp(itw,scat_data_single.ext_mat_data(0,joker,joker,0,1),t_gp,za_gp);
       ext_mat_mono_spt(1,1)=Kjj;
       ext_mat_mono_spt(0,1)=K12;
       ext_mat_mono_spt(1,0)=K12;
-      abs_vec_mono_spt[1] = interp(itw,scat_data.abs_vec_data(0,joker,joker,0,1),
+      abs_vec_mono_spt[1] = interp(itw,scat_data_single.abs_vec_data(0,joker,joker,0,1),
                             t_gp,za_gp);
 
       if( stokes_dim == 2 ){
@@ -890,7 +890,7 @@ void opt_propExtract(
         break;
       }
       
-      K34=interp(itw,scat_data.ext_mat_data(0,joker,joker,0,2),t_gp,za_gp);
+      K34=interp(itw,scat_data_single.ext_mat_data(0,joker,joker,0,2),t_gp,za_gp);
       ext_mat_mono_spt(2,3)=K34;
       ext_mat_mono_spt(3,2)=-K34;
       ext_mat_mono_spt(3,3)=Kjj;
@@ -919,7 +919,7 @@ void opt_propExtract(
  \param[in]  aa_sca          and
  \param[in]  za_inc          incident
  \param[in]  aa_inc          directions
- \param[in]  scat_data_array_mono  as the WSV
+ \param[in]  scat_data_mono  as the WSV
  \param[in]  stokes_dim      as the WSV
  \param[in]  pnd_vec         vector of particle number densities at the point 
                              in question
@@ -933,7 +933,7 @@ void pha_mat_singleCalc(
                         const Numeric    aa_sca, 
                         const Numeric    za_inc, 
                         const Numeric    aa_inc,
-                        const ArrayOfSingleScatteringData& scat_data_array_mono,
+                        const ArrayOfSingleScatteringData& scat_data_mono,
                         const Index      stokes_dim,
                         ConstVectorView  pnd_vec,
                         const Numeric    rtp_temperature,
@@ -952,7 +952,7 @@ void pha_mat_singleCalc(
     {
       if (pnd_vec[i_se]>0)
         {
-          pha_mat_singleExtract(Z_spt,scat_data_array_mono[i_se],za_sca,aa_sca,za_inc,
+          pha_mat_singleExtract(Z_spt,scat_data_mono[i_se],za_sca,aa_sca,za_inc,
                                 aa_inc,rtp_temperature,stokes_dim,verbosity);
           Z_spt*=pnd_vec[i_se];
           Z+=Z_spt;
@@ -968,7 +968,7 @@ void pha_mat_singleCalc(
   scattered directions, and the temperature, this function returns the phase
   matrix in the laboratory frame
   \param[out] Z_spt the phase matrix
-  \param[in]  scat_data a monochromatic SingleScatteringData object
+  \param[in]  scat_data_single a monochromatic SingleScatteringData object
   \param[in]  za_sca 
   \param[in]  aa_sca
   \param[in]  za_inc
@@ -982,7 +982,7 @@ void pha_mat_singleCalc(
 */
 void pha_mat_singleExtract(
                            MatrixView Z_spt,
-                           const SingleScatteringData& scat_data,
+                           const SingleScatteringData& scat_data_single,
                            const Numeric za_sca,
                            const Numeric aa_sca,
                            const Numeric za_inc,
@@ -992,16 +992,16 @@ void pha_mat_singleExtract(
                            const Verbosity& verbosity
                            )                       
 {
-  switch (scat_data.ptype){
+  switch (scat_data_single.ptype){
 
-    case PARTICLE_TYPE_GENERAL:
+    case PTYPE_GENERAL:
     {
       // to remove warnings during compilation.
       CREATE_OUT0;
-      out0 << "Case PARTICLE_TYPE_GENERAL not yet implemented. \n"; 
+      out0 << "Case PTYPE_GENERAL not yet implemented. \n"; 
       break;
     }
-  case PARTICLE_TYPE_MACROS_ISO:
+  case PTYPE_MACROS_ISO:
     {
       // Calculate the scattering and interpolate the data on the scattering
       // angle:
@@ -1011,7 +1011,7 @@ void pha_mat_singleExtract(
             
       // Interpolation of the data on the scattering angle:
       interp_scat_angle_temperature(pha_mat_int, theta_rad, 
-                                    scat_data, za_sca, aa_sca, 
+                                    scat_data_single, za_sca, aa_sca, 
                                     za_inc, aa_inc, rtp_temperature);
       
       // Caclulate the phase matrix in the laboratory frame:
@@ -1020,11 +1020,11 @@ void pha_mat_singleExtract(
       break;
     }
 
-  case PARTICLE_TYPE_HORIZ_AL://Added by Cory Davis
+  case PTYPE_HORIZ_AL://Added by Cory Davis
     //Data is already stored in the laboratory frame, but it is compressed
     //a little.  Details elsewhere
     {
-      assert (scat_data.pha_mat_data.ncols()==16);
+      assert (scat_data_single.pha_mat_data.ncols()==16);
       Numeric delta_aa=aa_sca-aa_inc+(aa_sca-aa_inc<-180)*360-
         (aa_sca-aa_inc>180)*360;//delta_aa corresponds to the "pages" 
                                 //dimension of pha_mat_data
@@ -1034,7 +1034,7 @@ void pha_mat_singleExtract(
       GridPos za_inc_gp;
       Vector itw(16);
       
-      if( scat_data.T_grid.nelem() == 1)
+      if( scat_data_single.T_grid.nelem() == 1)
         {
           ostringstream os;
           os << "Given optical property data is for constant temperature only.\n"
@@ -1042,34 +1042,34 @@ void pha_mat_singleExtract(
                 throw runtime_error( os.str() );
         }
       
-      gridpos(t_gp, scat_data.T_grid, rtp_temperature);
-      gridpos(delta_aa_gp,scat_data.aa_grid,abs(delta_aa));
+      gridpos(t_gp, scat_data_single.T_grid, rtp_temperature);
+      gridpos(delta_aa_gp,scat_data_single.aa_grid,abs(delta_aa));
       if (za_inc>90)
         {
-          gridpos(za_inc_gp,scat_data.za_grid,180-za_inc);
-          gridpos(za_sca_gp,scat_data.za_grid,180-za_sca);
+          gridpos(za_inc_gp,scat_data_single.za_grid,180-za_inc);
+          gridpos(za_sca_gp,scat_data_single.za_grid,180-za_sca);
         }
       else
         {
-          gridpos(za_inc_gp,scat_data.za_grid,za_inc);
-          gridpos(za_sca_gp,scat_data.za_grid,za_sca);
+          gridpos(za_inc_gp,scat_data_single.za_grid,za_inc);
+          gridpos(za_sca_gp,scat_data_single.za_grid,za_sca);
         }
 
       interpweights(itw,t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
 
-      Z_spt(0,0)=interp(itw,scat_data.pha_mat_data(0,joker,Range(joker),Range(joker),
+      Z_spt(0,0)=interp(itw,scat_data_single.pha_mat_data(0,joker,Range(joker),Range(joker),
                                                Range(joker),0,0),
                               t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
       if( stokes_dim == 1 ){
         break;
       }
-      Z_spt(0,1)=interp(itw,scat_data.pha_mat_data(0,joker,Range(joker),Range(joker),
+      Z_spt(0,1)=interp(itw,scat_data_single.pha_mat_data(0,joker,Range(joker),Range(joker),
                                                Range(joker),0,1),
                               t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
-      Z_spt(1,0)=interp(itw,scat_data.pha_mat_data(0,joker,Range(joker),Range(joker),
+      Z_spt(1,0)=interp(itw,scat_data_single.pha_mat_data(0,joker,Range(joker),Range(joker),
                                                Range(joker),0,4),
                               t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
-      Z_spt(1,1)=interp(itw,scat_data.pha_mat_data(0,joker,Range(joker),Range(joker),
+      Z_spt(1,1)=interp(itw,scat_data_single.pha_mat_data(0,joker,Range(joker),Range(joker),
                                                Range(joker),0,5),
                               t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
       if( stokes_dim == 2 ){
@@ -1077,35 +1077,35 @@ void pha_mat_singleExtract(
       }
       if ((za_inc<=90 && delta_aa>=0)||(za_inc>90 && delta_aa<0))
         {
-          Z_spt(0,2)=interp(itw,scat_data.pha_mat_data(0,joker,Range(joker),Range(joker),
+          Z_spt(0,2)=interp(itw,scat_data_single.pha_mat_data(0,joker,Range(joker),Range(joker),
                                                    Range(joker),0,2),
                                   t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
-          Z_spt(1,2)=interp(itw,scat_data.pha_mat_data(0,joker,Range(joker),Range(joker),
+          Z_spt(1,2)=interp(itw,scat_data_single.pha_mat_data(0,joker,Range(joker),Range(joker),
                                                    Range(joker),0,6),
                                   t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
-          Z_spt(2,0)=interp(itw,scat_data.pha_mat_data(0,joker,Range(joker),Range(joker),
+          Z_spt(2,0)=interp(itw,scat_data_single.pha_mat_data(0,joker,Range(joker),Range(joker),
                                                    Range(joker),0,8),
                                   t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
-          Z_spt(2,1)=interp(itw,scat_data.pha_mat_data(0,joker,Range(joker),Range(joker),
+          Z_spt(2,1)=interp(itw,scat_data_single.pha_mat_data(0,joker,Range(joker),Range(joker),
                                                    Range(joker),0,9),
                                   t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
         }
       else
         {
-          Z_spt(0,2)=-interp(itw,scat_data.pha_mat_data(0,joker,Range(joker),Range(joker),
+          Z_spt(0,2)=-interp(itw,scat_data_single.pha_mat_data(0,joker,Range(joker),Range(joker),
                                                    Range(joker),0,2),
                                   t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
-          Z_spt(1,2)=-interp(itw,scat_data.pha_mat_data(0,joker,Range(joker),Range(joker),
+          Z_spt(1,2)=-interp(itw,scat_data_single.pha_mat_data(0,joker,Range(joker),Range(joker),
                                                    Range(joker),0,6),
                                   t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
-          Z_spt(2,0)=-interp(itw,scat_data.pha_mat_data(0,joker,Range(joker),Range(joker),
+          Z_spt(2,0)=-interp(itw,scat_data_single.pha_mat_data(0,joker,Range(joker),Range(joker),
                                                    Range(joker),0,8),
                                   t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
-          Z_spt(2,1)=-interp(itw,scat_data.pha_mat_data(0,joker,Range(joker),Range(joker),
+          Z_spt(2,1)=-interp(itw,scat_data_single.pha_mat_data(0,joker,Range(joker),Range(joker),
                                                    Range(joker),0,9),
                                   t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
         }                             
-      Z_spt(2,2)=interp(itw,scat_data.pha_mat_data(0,joker,Range(joker),Range(joker),
+      Z_spt(2,2)=interp(itw,scat_data_single.pha_mat_data(0,joker,Range(joker),Range(joker),
                                                Range(joker),0,10),
                                   t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
       if( stokes_dim == 3 ){
@@ -1113,41 +1113,41 @@ void pha_mat_singleExtract(
       }
       if ((za_inc<=90 && delta_aa>=0)||(za_inc>90 && delta_aa<0))
         {
-          Z_spt(0,3)=interp(itw,scat_data.pha_mat_data(0,joker,Range(joker),Range(joker),
+          Z_spt(0,3)=interp(itw,scat_data_single.pha_mat_data(0,joker,Range(joker),Range(joker),
                                                    Range(joker),0,3),
                                   t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
-          Z_spt(1,3)=interp(itw,scat_data.pha_mat_data(0,joker,Range(joker),Range(joker),
+          Z_spt(1,3)=interp(itw,scat_data_single.pha_mat_data(0,joker,Range(joker),Range(joker),
                                                    Range(joker),0,7),
                                   t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
-          Z_spt(3,0)=interp(itw,scat_data.pha_mat_data(0,joker,Range(joker),Range(joker),
+          Z_spt(3,0)=interp(itw,scat_data_single.pha_mat_data(0,joker,Range(joker),Range(joker),
                                                    Range(joker),0,12),
                                   t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
-          Z_spt(3,1)=interp(itw,scat_data.pha_mat_data(0,joker,Range(joker),Range(joker),
+          Z_spt(3,1)=interp(itw,scat_data_single.pha_mat_data(0,joker,Range(joker),Range(joker),
                                                    Range(joker),0,13),
                                   t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
         }
       else
         {
-          Z_spt(0,3)=-interp(itw,scat_data.pha_mat_data(0,joker,Range(joker),Range(joker),
+          Z_spt(0,3)=-interp(itw,scat_data_single.pha_mat_data(0,joker,Range(joker),Range(joker),
                                                    Range(joker),0,3),
                                   t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
-          Z_spt(1,3)=-interp(itw,scat_data.pha_mat_data(0,joker,Range(joker),Range(joker),
+          Z_spt(1,3)=-interp(itw,scat_data_single.pha_mat_data(0,joker,Range(joker),Range(joker),
                                                    Range(joker),0,7),
                                   t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
-          Z_spt(3,0)=-interp(itw,scat_data.pha_mat_data(0,joker,Range(joker),Range(joker),
+          Z_spt(3,0)=-interp(itw,scat_data_single.pha_mat_data(0,joker,Range(joker),Range(joker),
                                                    Range(joker),0,12),
                                   t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
-          Z_spt(3,1)=-interp(itw,scat_data.pha_mat_data(0,joker,Range(joker),Range(joker),
+          Z_spt(3,1)=-interp(itw,scat_data_single.pha_mat_data(0,joker,Range(joker),Range(joker),
                                                    Range(joker),0,13),
                                   t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
         }
-      Z_spt(2,3)=interp(itw,scat_data.pha_mat_data(0,joker,Range(joker),Range(joker),
+      Z_spt(2,3)=interp(itw,scat_data_single.pha_mat_data(0,joker,Range(joker),Range(joker),
                                                Range(joker),0,11),
                               t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
-      Z_spt(3,2)=interp(itw,scat_data.pha_mat_data(0,joker,Range(joker),Range(joker),
+      Z_spt(3,2)=interp(itw,scat_data_single.pha_mat_data(0,joker,Range(joker),Range(joker),
                                                Range(joker),0,14),
                               t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
-      Z_spt(3,3)=interp(itw,scat_data.pha_mat_data(0,joker,Range(joker),Range(joker),
+      Z_spt(3,3)=interp(itw,scat_data_single.pha_mat_data(0,joker,Range(joker),Range(joker),
                                                Range(joker),0,15),
                               t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
       break;
@@ -1174,7 +1174,7 @@ void pha_mat_singleExtract(
    \param[in,out] rng             Rng random number generator instance
    \param[in]     rte_los         incident line of sight for subsequent 
                                   ray-tracing.                     
-   \param[in]     scat_data_array_mono
+   \param[in]     scat_data_mono
    \param[in]     stokes_dim
    \param[in]     pnd_vec
    \param[in]     anyptype30
@@ -1192,7 +1192,7 @@ void Sample_los (
                  MatrixView       Z,
                  Rng&             rng,
                  ConstVectorView  rte_los,
-                 const ArrayOfSingleScatteringData& scat_data_array_mono,
+                 const ArrayOfSingleScatteringData& scat_data_mono,
                  const Index      stokes_dim,
                  ConstVectorView  pnd_vec,
                  const bool       anyptype30,
@@ -1210,7 +1210,7 @@ void Sample_los (
   if(anyptype30)
     {
       Index np=pnd_vec.nelem();
-      assert(scat_data_array_mono.nelem()==np);
+      assert(scat_data_mono.nelem()==np);
       for(Index i=0;i<np;i++)
         {
           Z11max+=Z11maxvector[i]*pnd_vec[i];
@@ -1222,7 +1222,7 @@ void Sample_los (
       //The following is based on the assumption that the maximum value of the 
       //phase matrix for a given scattered direction is for forward scattering
       pha_mat_singleCalc(dummyZ,180-rte_los[0],aa_scat,180-rte_los[0],
-                         aa_scat,scat_data_array_mono,stokes_dim,pnd_vec,rtp_temperature,
+                         aa_scat,scat_data_mono,stokes_dim,pnd_vec,rtp_temperature,
                          verbosity);
       Z11max=dummyZ(0,0);
     }  
@@ -1236,7 +1236,7 @@ void Sample_los (
         -180+new_rte_los[1]:180+new_rte_los[1];
       
       pha_mat_singleCalc(Z,180-rte_los[0],aa_scat,180-new_rte_los[0],
-                         aa_inc,scat_data_array_mono,stokes_dim,pnd_vec,rtp_temperature,
+                         aa_inc,scat_data_mono,stokes_dim,pnd_vec,rtp_temperature,
                          verbosity);
       
       if (rng.draw()<=Z(0,0)/Z11max)//then new los is accepted

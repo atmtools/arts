@@ -913,7 +913,7 @@ iso(it_isotopologue,  "26" ,  Qcoeff(   -76.2339,  6.95356,  1.30510e-07,  -1.17
   // free_electrons: skip iso setting
   spec(it_species, it_isotopologue, "free_electrons");
 
-  // particles (to be derived from scat_data_array and pnd_field): skip iso setting
+  // particles (to be derived from scat_data and pnd_field): skip iso setting
   spec(it_species, it_isotopologue, "particles");
 
 

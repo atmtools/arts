@@ -53,9 +53,9 @@
 
 */
 enum PType {
-  PARTICLE_TYPE_GENERAL = 10,
-  PARTICLE_TYPE_MACROS_ISO = 20,
-  PARTICLE_TYPE_HORIZ_AL = 30
+  PTYPE_GENERAL = 10,
+  PTYPE_MACROS_ISO = 20,
+  PTYPE_HORIZ_AL = 30
 };
 
 
@@ -214,7 +214,7 @@ void opt_prop_sum_propmat_clearsky(//Output:
                                       //Input:
                                       const Tensor4    propmat_clearsky);
 
-PType PTypeFromString(const String& particle_type_string);
+PType PTypeFromString(const String& ptype_string);
 
 String PTypeToString(const PType& ptype);
 

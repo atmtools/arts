@@ -1155,7 +1155,7 @@ void iyMC(
    const ArrayOfIndex&               cloudbox_limits,
    const Index&                      stokes_dim,
    const Vector&                     f_grid,
-   const ArrayOfSingleScatteringData&   scat_data_array,
+   const ArrayOfSingleScatteringData&   scat_data,
    const Agenda&                     iy_space_agenda,
    const Agenda&                     surface_rtprop_agenda,
    const Agenda&                     propmat_clearsky_agenda, 
@@ -1244,9 +1244,9 @@ void iyMC(
       if (failed) continue;
 
       try {
-        ArrayOfSingleScatteringData   scat_data_array_mono;
+        ArrayOfSingleScatteringData   scat_data_mono;
 
-        scat_data_array_monoCalc( scat_data_array_mono, scat_data_array,
+        scat_data_monoCalc( scat_data_mono, scat_data,
                             f_grid, f_index, verbosity );
 
         // Seed reset for each loop. If not done, the errors
@@ -1265,7 +1265,7 @@ void iyMC(
                    p_grid, lat_grid, lon_grid, z_field, 
                    refellipsoid, z_surface, t_field, vmr_field,
                    cloudbox_on, cloudbox_limits,
-                   pnd_field, scat_data_array_mono, 1, 1, 1, iy_unit,
+                   pnd_field, scat_data_mono, 1, 1, 1, iy_unit,
                    mc_seed, mc_std_err, mc_max_time, mc_max_iter,
                    mc_min_iter, verbosity);
           //cout << "Error: "      << mc_error << endl;

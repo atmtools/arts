@@ -132,12 +132,12 @@ Print( infostr )
 #  pnd field data and construct pnd_field_raw (array of pnd fields), and store
 #  the ssd file names as array in a file. This in order to later use
 #  ParticleTypeAddAll to actually get the respective data into the pnd_field_raw
-#  and scat_data_array ARTS WSV. Compared to directly putting the individual pnd
+#  and scat_data ARTS WSV. Compared to directly putting the individual pnd
 #  field and single scattering data array entries into the WSV one-by-one, this
-#  is advantageous as (1) we do not need to read & write the scat_data_array
+#  is advantageous as (1) we do not need to read & write the scat_data
 #  over and over to get the data out of the ForLoop (saves time) and (2)
 #  some basic checks (covering f_grid, correct atmospheric dimension) will be
-#  performed on scat_data_array and pnd_field_raw.
+#  performed on scat_data and pnd_field_raw.
 
 # second, we need to initialize the containers for the pndfield and scatdata
 Touch( pnd_field_raw )

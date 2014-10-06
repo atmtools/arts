@@ -184,7 +184,7 @@ void interp_scat_angle_temperature(//Output:
                                    VectorView pha_mat_int,
                                    Numeric& theta_rad,
                                    //Input:
-                                   const SingleScatteringData& scat_data,
+                                   const SingleScatteringData& scat_data_single,
                                    const Numeric& za_sca,
                                    const Numeric& aa_sca,
                                    const Numeric& za_inc,
@@ -216,7 +216,7 @@ void interp_scat_angle_temperature(//Output:
       const Numeric aa_inc_rad = aa_inc * DEG2RAD;
       
       // cout << "Interpolation on scattering angle" << endl;
-      assert (scat_data.pha_mat_data.ncols() == 6);
+      assert (scat_data_single.pha_mat_data.ncols() == 6);
       // Calculation of the scattering angle:
       theta_rad = acos(cos(za_sca_rad) * cos(za_inc_rad) + 
                        sin(za_sca_rad) * sin(za_inc_rad) * 
@@ -227,29 +227,29 @@ void interp_scat_angle_temperature(//Output:
   // Interpolation of the data on the scattering angle:
  
   GridPos thet_gp;
-  gridpos(thet_gp, scat_data.za_grid, theta);
+  gridpos(thet_gp, scat_data_single.za_grid, theta);
   GridPos t_gp;
   
-  if( scat_data.T_grid.nelem() == 1)
+  if( scat_data_single.T_grid.nelem() == 1)
     {
       Vector itw(2);
       interpweights(itw, thet_gp);
       
       for (Index i = 0; i < 6; i++)
       {
-        pha_mat_int[i] = interp(itw, scat_data.pha_mat_data(0,0,joker, 0, 0, 0, i),thet_gp);
+        pha_mat_int[i] = interp(itw, scat_data_single.pha_mat_data(0,0,joker, 0, 0, 0, i),thet_gp);
       }
     }
   else
     {
-      gridpos(t_gp, scat_data.T_grid, rtp_temperature);
+      gridpos(t_gp, scat_data_single.T_grid, rtp_temperature);
           
       Vector itw(4);
       interpweights(itw, t_gp,thet_gp);
 
       for (Index i = 0; i < 6; i++)
         {
-          pha_mat_int[i] = interp(itw, scat_data.pha_mat_data(0,joker,joker, 0, 0, 0, i), 
+          pha_mat_int[i] = interp(itw, scat_data_single.pha_mat_data(0,joker,joker, 0, 0, 0, i), 
                                   t_gp,thet_gp);
         }
     }

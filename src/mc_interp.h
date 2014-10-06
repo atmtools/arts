@@ -88,7 +88,7 @@ void interp_scat_angle_temperature(//Output:
                                    VectorView pha_mat_int,
                                    Numeric& theta_rad,
                                    //Input:
-                                   const SingleScatteringData& scat_data,
+                                   const SingleScatteringData& scat_data_single,
                                    const Numeric& za_sca,
                                    const Numeric& aa_sca,
                                    const Numeric& za_inc,

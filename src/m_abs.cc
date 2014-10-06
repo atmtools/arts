@@ -2266,11 +2266,11 @@ void propmat_clearskyAddParticles(
                                     const Vector& rtp_vmr,
                                     const Vector& rtp_los,
                                     const Numeric& rtp_temperature,
-                                    const ArrayOfSingleScatteringData& scat_data_array,
+                                    const ArrayOfSingleScatteringData& scat_data,
                                     // Verbosity object:
                                     const Verbosity& verbosity)
 {
-  const Index ns = scat_data_array.nelem();
+  const Index ns = scat_data.nelem();
   Index np = 0;
   for( Index sp = 0; sp < abs_species.nelem(); sp++ )
     {
@@ -2292,9 +2292,9 @@ void propmat_clearskyAddParticles(
     {
       ostringstream os; 
       os << "Number of 'particles' entries in abs_species and of elements in\n"
-         << "scat_data_array needs to be identical. But you have " << np
+         << "scat_data needs to be identical. But you have " << np
          << " 'particles' entries\n"
-         << "and " << ns << " scat_data_array elements.\n";
+         << "and " << ns << " scat_data elements.\n";
       throw runtime_error( os.str() );
     }
 
@@ -2318,15 +2318,15 @@ void propmat_clearskyAddParticles(
   const Index nf = f_grid.nelem();
   Vector rtp_los_back;
   mirror_los( rtp_los_back, rtp_los, atmosphere_dim );
-  ArrayOfSingleScatteringData scat_data_array_mono;
+  ArrayOfSingleScatteringData scat_data_mono;
   Matrix pnd_ext_mat(stokes_dim,stokes_dim);
   Vector pnd_abs_vec(stokes_dim);
 
   for( Index iv=0; iv<nf; iv++ )
     { 
-      // first, get the scat_data at the required frequency. we can do that for
+      // first, get the scat_data_single at the required frequency. we can do that for
       // all scattering elements at once.
-      scat_data_array_monoCalc( scat_data_array_mono, scat_data_array, f_grid, iv, 
+      scat_data_monoCalc( scat_data_mono, scat_data, f_grid, iv, 
                           verbosity );
 
       // now we again need to loop over the abs_species entries. we need to do
@@ -2345,7 +2345,7 @@ void propmat_clearskyAddParticles(
                   // second, get extinction matrix and absorption vector at
                   // required temperature and direction for the individual
                   // scattering element and multiply with their occurence.
-                  opt_propExtract(pnd_ext_mat, pnd_abs_vec, scat_data_array_mono[np],
+                  opt_propExtract(pnd_ext_mat, pnd_abs_vec, scat_data_mono[np],
                                   rtp_los_back[0], rtp_los_back[1],
                                   rtp_temperature, stokes_dim, verbosity);
                   //pnd_ext_mat *= rtp_vmr[sp];

@@ -71,7 +71,7 @@ void cloudy_rt_vars_at_gp (Workspace&            ws,
                            ConstTensor3View      t_field_cloud,
                            ConstTensor4View      vmr_field_cloud,
                            const Tensor4&        pnd_field,
-                           const ArrayOfSingleScatteringData& scat_data_array_mono,
+                           const ArrayOfSingleScatteringData& scat_data_mono,
                            const ArrayOfIndex&   cloudbox_limits,
                            const Vector&         rte_los,
                            const Verbosity&      verbosity);
@@ -90,9 +90,9 @@ void cloud_atm_vars_by_gp (VectorView pressure,
                            ConstTensor4View   pnd_field);
 
 void findZ11max (Vector& Z11maxvector,
-                 const ArrayOfSingleScatteringData& scat_data_array_mono);
+                 const ArrayOfSingleScatteringData& scat_data_mono);
 
-bool is_anyptype30 (const ArrayOfSingleScatteringData& scat_data_array_mono);
+bool is_anyptype30 (const ArrayOfSingleScatteringData& scat_data_mono);
 
 
 void mcPathTraceGeneral (Workspace&            ws,
@@ -123,14 +123,14 @@ void mcPathTraceGeneral (Workspace&            ws,
                          const Tensor4&        vmr_field,
                          const ArrayOfIndex&   cloudbox_limits,
                          const Tensor4&        pnd_field,
-                         const ArrayOfSingleScatteringData& scat_data_array_mono,
+                         const ArrayOfSingleScatteringData& scat_data_mono,
                          const Verbosity&      verbosity);
 
 void opt_propCalc (MatrixView      K,
                    VectorView      K_abs,
                    const Numeric   za,
                    const Numeric   aa,
-                   const ArrayOfSingleScatteringData& scat_data_array_mono,
+                   const ArrayOfSingleScatteringData& scat_data_mono,
                    const Index     stokes_dim,
                    ConstVectorView pnd_vec,
                    const Numeric   rtp_temperature,
@@ -138,7 +138,7 @@ void opt_propCalc (MatrixView      K,
 
 void opt_propExtract (MatrixView     K_spt,
                       VectorView     K_abs_spt,
-                      const SingleScatteringData& scat_data,
+                      const SingleScatteringData& scat_data_single,
                       const Numeric  za,
                       const Numeric  aa,
                       const Numeric  rtp_temperature,
@@ -150,14 +150,14 @@ void pha_mat_singleCalc (MatrixView Z,
                          const Numeric    aa_sca, 
                          const Numeric    za_inc, 
                          const Numeric    aa_inc,
-                         const ArrayOfSingleScatteringData& scat_data_array_mono,
+                         const ArrayOfSingleScatteringData& scat_data_mono,
                          const Index      stokes_dim,
                          ConstVectorView  pnd_vec,
                          const Numeric    rtp_temperature,
                          const Verbosity& verbosity);
 
 void pha_mat_singleExtract (MatrixView Z_spt,
-                            const SingleScatteringData& scat_data,
+                            const SingleScatteringData& scat_data_single,
                             const Numeric za_sca,
                             const Numeric aa_sca,
                             const Numeric za_inc,
@@ -172,7 +172,7 @@ void Sample_los (VectorView       new_rte_los,
                  MatrixView       Z,
                  Rng&             rng,
                  ConstVectorView  rte_los,
-                 const ArrayOfSingleScatteringData& scat_data_array_mono,
+                 const ArrayOfSingleScatteringData& scat_data_mono,
                  const Index      stokes_dim,
                  ConstVectorView  pnd_vec,
                  const bool       anyptype30,
