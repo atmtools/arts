@@ -178,7 +178,7 @@ void scat_dataTmatrix(
     }
 
   // Get internal coding for ptype
-  scat_data.particle_type = ParticleTypeFromString( ptype );
+  scat_data.ptype = PTypeFromString( ptype );
 
   // Set description
   {   
@@ -241,7 +241,7 @@ void scat_meta_arrayAddTmatrix(// WS Output:
                              const String& description,
                              const String& material,
                              const String& shape,
-                             const String& particle_type,
+                             const String& ptype,
                              const Numeric& density,
                              const Vector& aspect_ratio_grid,
                              const Vector& diameter_max_grid,
@@ -305,7 +305,7 @@ void scat_meta_arrayAddTmatrix(// WS Output:
         if (description=="")
         {   
             ostringstream os;
-            os << shape<< " "<< material << " particle of type " << particle_type<<
+            os << shape<< " "<< material << " particle of type " << ptype<<
             ", with volume equivalent diameter "
             <<diameter_max_grid[k]<<" meters.";
             smd.description=os.str();
@@ -315,7 +315,7 @@ void scat_meta_arrayAddTmatrix(// WS Output:
         
         smd.material = material;
         smd.shape = shape;
-        smd.particle_type = ParticleTypeFromString(particle_type);
+        smd.ptype = PTypeFromString(ptype);
         smd.ssd_method = PARTICLE_SSDMETHOD_TMATRIX;
         smd.density = density;
         smd.diameter_max =diameter_max_grid[k];
@@ -369,7 +369,7 @@ void scat_data_arrayFromMeta(// WS Output:
       sdd.T_grid = scat_meta_array[ii].scat_T_grid;
       sdd.za_grid = za_grid;
       sdd.aa_grid = aa_grid;
-      sdd.particle_type = scat_meta_array[ii].particle_type;
+      sdd.ptype = scat_meta_array[ii].ptype;
 
       if (scat_meta_array[ii].shape == "spheroidal" )
         np=-1;
@@ -414,7 +414,7 @@ void scat_meta_arrayAddTmatrixOldVersion(// WS Output:
                              const String& description,
                              const String& material,
                              const String& shape,
-                             const String& particle_type,
+                             const String& ptype,
                              const Numeric& density,
                              const Numeric& aspect_ratio,
                              const Vector& diameter_grid,
@@ -483,7 +483,7 @@ void scat_meta_arrayAddTmatrixOldVersion(// WS Output:
       if (description=="")
         {   
           ostringstream os;
-          os << shape<< " "<< material << " particle of type " << particle_type<<
+          os << shape<< " "<< material << " particle of type " << ptype<<
             ", with volume equivalent diameter "
             <<diameter_grid[k]<<" meters.";
           smd.description=os.str();
@@ -493,7 +493,7 @@ void scat_meta_arrayAddTmatrixOldVersion(// WS Output:
  
       smd.material = material;
       smd.shape = shape;
-      smd.particle_type = ParticleTypeFromString(particle_type);
+      smd.ptype = PTypeFromString(ptype);
       smd.ssd_method = PARTICLE_SSDMETHOD_TMATRIX;
       smd.density = density;
       smd.diameter_max =diameter_max;

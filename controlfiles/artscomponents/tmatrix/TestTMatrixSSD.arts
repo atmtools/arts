@@ -21,7 +21,7 @@ scat_meta_arrayInit
 scat_meta_arrayAddTmatrix(
 	material="Ice",
 	shape="spheroidal",
-	particle_type="horizontally_aligned",
+	ptype="horizontally_aligned",
 	density=916.7,
 	aspect_ratio_grid=[0.7],
 	diameter_max_grid=[400e-6],

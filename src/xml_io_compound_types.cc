@@ -1233,13 +1233,13 @@ void xml_read_from_stream(istream& is_xml,
     {
       String particle_type_string;
       xml_read_from_stream(is_xml, particle_type_string, pbifs, verbosity);
-      ssdata.particle_type = ParticleTypeFromString(particle_type_string);
+      ssdata.ptype = PTypeFromString(particle_type_string);
     }
   else
     {
-      Index particle_type;
-      xml_read_from_stream(is_xml, particle_type, pbifs, verbosity);
-      ssdata.particle_type = ParticleType(particle_type);
+      Index ptype;
+      xml_read_from_stream(is_xml, ptype, pbifs, verbosity);
+      ssdata.ptype = PType(ptype);
     }
   xml_read_from_stream(is_xml, ssdata.description, pbifs, verbosity);
   xml_read_from_stream(is_xml, ssdata.f_grid, pbifs, verbosity);
@@ -1294,7 +1294,7 @@ void xml_write_to_stream(ostream& os_xml,
   open_tag.add_attribute("version", "2");
   open_tag.write_to_stream(os_xml);
 
-  xml_write_to_stream(os_xml, ParticleTypeToString(ssdata.particle_type),
+  xml_write_to_stream(os_xml, PTypeToString(ssdata.ptype),
                       pbofs, "", verbosity);
   xml_write_to_stream(os_xml, ssdata.description, pbofs, "", verbosity);
   xml_write_to_stream(os_xml, ssdata.f_grid, pbofs, "", verbosity);
@@ -1341,12 +1341,12 @@ void xml_read_from_stream(istream& is_xml,
   
   if (version == "2")
     {
-      String particle_type;
+      String ptype;
       xml_read_from_stream(is_xml, smdata.scat_f_grid, pbifs, verbosity);
       xml_read_from_stream(is_xml, smdata.scat_T_grid, pbifs, verbosity);
-      xml_read_from_stream(is_xml, particle_type, pbifs, verbosity);
+      xml_read_from_stream(is_xml, ptype, pbifs, verbosity);
       xml_read_from_stream(is_xml, smdata.complex_refr_index, pbifs, verbosity);
-      smdata.particle_type = ParticleTypeFromString(particle_type);
+      smdata.ptype = PTypeFromString(ptype);
     }
 
   tag.read_from_stream(is_xml);
@@ -1385,7 +1385,7 @@ void xml_write_to_stream(ostream& os_xml,
   xml_write_to_stream(os_xml, smdata.aspect_ratio, pbofs, "", verbosity);
   xml_write_to_stream(os_xml, smdata.scat_f_grid, pbofs, "", verbosity);
   xml_write_to_stream(os_xml, smdata.scat_T_grid, pbofs, "", verbosity);
-  xml_write_to_stream(os_xml, ParticleTypeToString(smdata.particle_type),
+  xml_write_to_stream(os_xml, PTypeToString(smdata.ptype),
                       pbofs, "", verbosity);
   xml_write_to_stream(os_xml, smdata.complex_refr_index, pbofs, "", verbosity);
   

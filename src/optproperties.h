@@ -52,7 +52,7 @@
   A detailed description of the different cases can be found in AUG.
 
 */
-enum ParticleType {
+enum PType {
   PARTICLE_TYPE_GENERAL = 10,
   PARTICLE_TYPE_MACROS_ISO = 20,
   PARTICLE_TYPE_HORIZ_AL = 30
@@ -83,7 +83,7 @@ enum ParticleSSDMethod {
    It is listed as a sub-entry to "data structures".  
 */
 struct SingleScatteringData {
-  ParticleType particle_type;
+  PType ptype;
   String       description;
   Vector       f_grid;
   Vector       T_grid;
@@ -111,7 +111,7 @@ struct ScatteringMetaData {
   String    description;
   String    material;
   String    shape;
-  ParticleType particle_type;
+  PType ptype;
   ParticleSSDMethod ssd_method;
   Numeric   density;
   Numeric   diameter_max;
@@ -139,7 +139,7 @@ void abs_vecTransform(//Output and Input
                       ConstTensor3View abs_vec_data,
                       ConstVectorView za_datagrid,
                       ConstVectorView aa_datagrid,
-                      const ParticleType& particle_type,
+                      const PType& ptype,
                       const Numeric& za_sca,
                       const Numeric& aa_sca,
                       const Verbosity& verbosity);
@@ -151,7 +151,7 @@ void ext_matTransform(//Output and Input
                       ConstTensor3View ext_mat_data,
                       ConstVectorView za_datagrid,
                       ConstVectorView aa_datagrid,
-                      const ParticleType& particle_type,
+                      const PType& ptype,
                       const Numeric& za_sca,
                       const Numeric& aa_sca,
                       const Verbosity& verbosity);
@@ -163,7 +163,7 @@ void pha_matTransform(//Output
                       ConstTensor5View pha_mat_data,
                       ConstVectorView za_datagrid,
                       ConstVectorView aa_datagrid,
-                      const ParticleType& particle_type,
+                      const PType& ptype,
                       const Index& za_sca_idx,
                       const Index& aa_sca_idx,
                       const Index& za_inc_idx,
@@ -214,9 +214,9 @@ void opt_prop_sum_propmat_clearsky(//Output:
                                       //Input:
                                       const Tensor4    propmat_clearsky);
 
-ParticleType ParticleTypeFromString(const String& particle_type_string);
+PType PTypeFromString(const String& particle_type_string);
 
-String ParticleTypeToString(const ParticleType& particle_type);
+String PTypeToString(const PType& ptype);
 
 ParticleSSDMethod ParticleSSDMethodFromString(const String& particle_ssdmethod_string);
 

@@ -37,7 +37,7 @@
  \param[in,out] ssd         As input all grids must be set (f, T, za and aa).
                             These grids are given by ssd are used to calculate
                             pha_mat_data, ext_mat_data and abs_vec_data.
-                            Also ssd.particle_type must be set as input.
+                            Also ssd.ptype must be set as input.
                             The output ssd has remaining fields set.
  \param[in] ref_index_real  Vector with real parts of refractive index
                             Number of rows must match elements in ssd.f_grid

@@ -75,7 +75,7 @@ extern const Numeric PI;
   \param abs_vec_data Absorption vector in database.
   \param za_datagrid Zenith angle grid in the database.
   \param aa_datagrid Zenith angle grid in the database.
-  \param particle_type Type of scattering element.
+  \param ptype Type of scattering element.
   \param za_sca Zenith angle of scattered direction.
   \param aa_sca Azimuth angle of scattered direction.
      
@@ -88,7 +88,7 @@ void abs_vecTransform(//Output and Input
                       ConstTensor3View abs_vec_data,
                       ConstVectorView za_datagrid,
                       ConstVectorView aa_datagrid _U_,
-                      const ParticleType& particle_type,
+                      const PType& ptype,
                       const Numeric& za_sca _U_,
                       const Numeric& aa_sca _U_,
                       const Verbosity& verbosity)
@@ -100,7 +100,7 @@ void abs_vecTransform(//Output and Input
                         "must be 1,2,3 or 4");
   }
   
-  switch (particle_type){
+  switch (ptype){
       
     case PARTICLE_TYPE_GENERAL:
     {
@@ -180,7 +180,7 @@ void abs_vecTransform(//Output and Input
   \param ext_mat_data Extinction matrix in database.
   \param za_datagrid Zenith angle grid in the database.
   \param aa_datagrid Zenith angle grid in the database.
-  \param particle_type Type of scattering element.
+  \param ptype Type of scattering element.
   \param za_sca Zenith angle of scattered direction.
   \param aa_sca Azimuth angle of scattered direction.
 
@@ -193,7 +193,7 @@ void ext_matTransform(//Output and Input
                       ConstTensor3View ext_mat_data,
                       ConstVectorView za_datagrid,
                       ConstVectorView aa_datagrid _U_,
-                      const ParticleType& particle_type,
+                      const PType& ptype,
                       const Numeric& za_sca,
                       const Numeric& aa_sca _U_,
                       const Verbosity& verbosity)
@@ -205,7 +205,7 @@ void ext_matTransform(//Output and Input
                         "must be 1,2,3 or 4");
   }
   
-  switch (particle_type){
+  switch (ptype){
       
     case PARTICLE_TYPE_GENERAL:
     {
@@ -331,7 +331,7 @@ void ext_matTransform(//Output and Input
   \param[in]     pha_mat_data  Phase matrix in database.
   \param[in]     za_datagrid   Zenith angle grid in the database.
   \param[in]     aa_datagrid   Zenith angle grid in the database.
-  \param[in]     particle_type Type of scattering element.
+  \param[in]     ptype Type of scattering element.
   \param[in]     za_sca_idx    Index of zenith angle of scattered direction.
   \param[in]     aa_sca_idx    Index of azimuth angle of scattered direction.
   \param[in]     za_inc_idx    Index of zenith angle of incoming direction.
@@ -348,7 +348,7 @@ void pha_matTransform(//Output
                       ConstTensor5View pha_mat_data,
                       ConstVectorView za_datagrid,
                       ConstVectorView aa_datagrid,
-                      const ParticleType& particle_type,
+                      const PType& ptype,
                       const Index& za_sca_idx,
                       const Index& aa_sca_idx,
                       const Index& za_inc_idx,
@@ -369,7 +369,7 @@ void pha_matTransform(//Output
                         "must be 1,2,3 or 4");
   }
   
-  switch (particle_type){
+  switch (ptype){
       
     case PARTICLE_TYPE_GENERAL:
     {
@@ -1014,24 +1014,24 @@ void opt_prop_sum_propmat_clearsky(//Output:
 }
 
 
-//! Convert particle_type name to enum value
+//! Convert ptype name to enum value
 /*!
- Returns the ParticleType enum value for the given String.
+ Returns the PType enum value for the given String.
 
  \param[in]  particle_type_string  Particle type name
- \return     ParticleType enum value
+ \return     PType enum value
 
  \author Oliver Lemke
  */
-ParticleType ParticleTypeFromString(const String& particle_type_string)
+PType PTypeFromString(const String& particle_type_string)
 {
-    ParticleType particle_type;
+    PType ptype;
     if (particle_type_string == "general")
-        particle_type = PARTICLE_TYPE_GENERAL;
+        ptype = PARTICLE_TYPE_GENERAL;
     else if (particle_type_string == "macroscopically_isotropic")
-        particle_type = PARTICLE_TYPE_MACROS_ISO;
+        ptype = PARTICLE_TYPE_MACROS_ISO;
     else if (particle_type_string == "horizontally_aligned")
-        particle_type = PARTICLE_TYPE_HORIZ_AL;
+        ptype = PARTICLE_TYPE_HORIZ_AL;
     else
     {
         ostringstream os;
@@ -1041,24 +1041,24 @@ ParticleType ParticleTypeFromString(const String& particle_type_string)
         throw std::runtime_error(os.str());
     }
 
-    return particle_type;
+    return ptype;
 }
 
 
 //! Convert particle type enum value to String.
 /*!
- Returns the ParticleType enum value for the given String.
+ Returns the PType enum value for the given String.
 
- \param[in]  particle_type  Particle type
- \return     String representation of ParticleType
+ \param[in]  ptype  Particle type
+ \return     String representation of PType
 
  \author Oliver Lemke
  */
-String ParticleTypeToString(const ParticleType& particle_type)
+String PTypeToString(const PType& ptype)
 {
     String particle_type_string;
 
-    switch (particle_type) {
+    switch (ptype) {
         case PARTICLE_TYPE_GENERAL:
             particle_type_string = "general";
             break;
@@ -1071,8 +1071,8 @@ String ParticleTypeToString(const ParticleType& particle_type)
 
         default:
             ostringstream os;
-            os << "Internal error: Cannot map ParticleType enum value "
-            << particle_type << " to String.";
+            os << "Internal error: Cannot map PType enum value "
+            << ptype << " to String.";
             throw std::runtime_error(os.str());
             break;
     }
@@ -1109,14 +1109,14 @@ ParticleSSDMethod ParticleSSDMethodFromString(const String& particle_ssdmethod_s
 
 //! Convert particle type enum value to String.
 /*!
- Returns the ParticleType enum value for the given String.
+ Returns the PType enum value for the given String.
 
- \param[in]  particle_type  Particle type
+ \param[in]  ptype  Particle type
  \return     String representation of ParticleSSDMethod
 
  \author Oliver Lemke
  */
-String ParticleTypeToString(const ParticleSSDMethod& particle_ssdmethod)
+String PTypeToString(const ParticleSSDMethod& particle_ssdmethod)
 {
     String particle_ssdmethod_string;
 

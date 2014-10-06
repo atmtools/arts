@@ -343,7 +343,7 @@ void findZ11max(Vector& Z11maxvector,
 
   for(Index i = 0;i<np;i++)
     {
-      switch(scat_data_array_mono[i].particle_type){
+      switch(scat_data_array_mono[i].ptype){
       case PARTICLE_TYPE_MACROS_ISO:
         {
           Z11maxvector[i]=max(scat_data_array_mono[i].pha_mat_data(0,joker,joker,0,0,0,0));
@@ -378,7 +378,7 @@ bool is_anyptype30(const ArrayOfSingleScatteringData& scat_data_array_mono)
   Index i=0;
   while(i < np && anyptype30==false)
     {
-      if(scat_data_array_mono[i].particle_type==PARTICLE_TYPE_HORIZ_AL)
+      if(scat_data_array_mono[i].ptype==PARTICLE_TYPE_HORIZ_AL)
         {
           anyptype30=true;
         }
@@ -767,7 +767,7 @@ void opt_propExtract(
     { gridpos( t_gp, scat_data.T_grid, rtp_temperature ); }
 
 
-  switch (scat_data.particle_type){
+  switch (scat_data.ptype){
 
   case PARTICLE_TYPE_GENERAL:
     {
@@ -992,7 +992,7 @@ void pha_mat_singleExtract(
                            const Verbosity& verbosity
                            )                       
 {
-  switch (scat_data.particle_type){
+  switch (scat_data.ptype){
 
     case PARTICLE_TYPE_GENERAL:
     {

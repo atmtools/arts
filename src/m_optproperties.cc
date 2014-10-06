@@ -56,7 +56,7 @@ extern const Numeric PI;
 extern const Numeric DEG2RAD;
 extern const Numeric RAD2DEG;
 
-#define PART_TYPE scat_data_array[i_se].particle_type
+#define PART_TYPE scat_data_array[i_se].ptype
 #define F_DATAGRID scat_data_array[i_se].f_grid
 #define T_DATAGRID scat_data_array[i_se].T_grid
 #define ZA_DATAGRID scat_data_array[i_se].za_grid
@@ -1074,7 +1074,7 @@ void DoitScatteringDataPrepare(//Output:
                                             joker,joker),
                                            scat_data_array_mono[i_se].za_grid,
                                            scat_data_array_mono[i_se].aa_grid,
-                                           scat_data_array_mono[i_se].particle_type,
+                                           scat_data_array_mono[i_se].ptype,
                                            za_sca_idx,
                                            aa_sca_idx,
                                            za_inc_idx,
@@ -1143,7 +1143,7 @@ void scat_data_array_monoCalc(ArrayOfSingleScatteringData& scat_data_array_mono,
       interpweights(itw, freq_gp);
 
       //Stuff that doesn't need interpolating
-      scat_data_array_mono[i_se].particle_type=PART_TYPE;
+      scat_data_array_mono[i_se].ptype=PART_TYPE;
       scat_data_array_mono[i_se].f_grid.resize(1);
       scat_data_array_mono[i_se].f_grid=f_grid[f_index];
       scat_data_array_mono[i_se].T_grid=scat_data_array[i_se].T_grid;
@@ -1345,7 +1345,7 @@ void opt_prop_sptFromMonoData(// Output and Input:
                            ext_mat_data1temp,
                            scat_data_array_mono[i_se].za_grid, 
                            scat_data_array_mono[i_se].aa_grid, 
-                           scat_data_array_mono[i_se].particle_type,
+                           scat_data_array_mono[i_se].ptype,
                            za_sca, aa_sca,
                            verbosity);
           // 
@@ -1377,7 +1377,7 @@ void opt_prop_sptFromMonoData(// Output and Input:
                            abs_vec_data1temp,
                            scat_data_array_mono[i_se].za_grid, 
                            scat_data_array_mono[i_se].aa_grid, 
-                           scat_data_array_mono[i_se].particle_type,
+                           scat_data_array_mono[i_se].ptype,
                            za_sca, aa_sca,
                            verbosity);                
         }
@@ -1473,7 +1473,7 @@ void pha_mat_sptFromMonoData(// Output:
                                          joker,joker),
                                         scat_data_array_mono[i_se].za_grid, 
                                         scat_data_array_mono[i_se].aa_grid,
-                                        scat_data_array_mono[i_se].particle_type,
+                                        scat_data_array_mono[i_se].ptype,
                                         scat_za_index, scat_aa_index, 
                                         za_inc_idx, 
                                         aa_inc_idx, za_grid, scat_aa_grid,
@@ -1551,7 +1551,7 @@ void ScatteringMergeParticles1D(//WS Output:
     for (Index sp = 0; sp < scat_data_array_merged.nelem(); sp++)
     {
         SingleScatteringData &this_part = scat_data_array_merged[sp];
-        this_part.particle_type = scat_data_array[0].particle_type;
+        this_part.ptype = scat_data_array[0].ptype;
         this_part.description = "Merged scattering elements";
         this_part.f_grid = scat_data_array[0].f_grid;
         this_part.za_grid = scat_data_array[0].za_grid;
@@ -1587,7 +1587,7 @@ void ScatteringMergeParticles1D(//WS Output:
     {
         SingleScatteringData &orig_part = scat_data_array[i_se];
         
-        if (orig_part.particle_type != first_part.particle_type)
+        if (orig_part.ptype != first_part.ptype)
             throw std::runtime_error(
                   "All scattering elements must have the same type");
 

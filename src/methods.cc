@@ -9642,7 +9642,7 @@ void define_md_data_raw()
        "String[description]\t\tNot used for any particular calculations\n"
        "String[material]\t\tUsed for PND calculations\n"
        "String[shape]\t\t\tUsed for scattering and PND calculations\n"
-       "Numeric[particle_type]\t\tUsed for scattering calculations\n"
+       "Numeric[ptype]\t\tUsed for scattering calculations\n"
        "Numeric[density]\t\tUsed for PND calculations\n"
        "Vector[diameter_max_grid]\t\tUsed for both scattering and PND calculations\n"
        "Vector[aspect_ratio_grid]\t\tUsed for scattering calculations and PND calculations\n"
@@ -9656,7 +9656,7 @@ void define_md_data_raw()
       GOUT_TYPE(),
       GOUT_DESC(),
       IN( "scat_meta_array", "complex_refr_index" ),
-      GIN( "description", "material", "shape", "particle_type", "density", 
+      GIN( "description", "material", "shape", "ptype", "density", 
            "aspect_ratio_grid", "diameter_max_grid", "scat_f_grid", "scat_T_grid" ),
       GIN_TYPE( "String", "String", "String", "String", "Numeric", "Vector",
            "Vector", "Vector", "Vector" ),

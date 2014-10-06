@@ -603,17 +603,17 @@ void chk_scattering_meta_data(const ScatteringMetaData& scat_meta _U_,
   \date   2005-04-04
 */
 void chk_scat_data(const SingleScatteringData& scat_data_array,
-                                const String& scat_data_file,
-                                ConstVectorView f_grid,
-                                const Verbosity& verbosity)
+                   const String& scat_data_file,
+                   ConstVectorView f_grid,
+                   const Verbosity& verbosity)
 {
   CREATE_OUT2;
   out2 << "  Check single scattering properties file "<< scat_data_file 
        << "\n";
 
-  if (scat_data_array.particle_type != 10 &&
-      scat_data_array.particle_type != 20 &&
-      scat_data_array.particle_type != 30)
+  if (scat_data_array.ptype != 10 &&
+      scat_data_array.ptype != 20 &&
+      scat_data_array.ptype != 30)
     {
       ostringstream os; 
       os << "Ptype value in file" << scat_data_file << "is wrong."
@@ -674,7 +674,7 @@ void chk_scat_data(const SingleScatteringData& scat_data_array,
       throw runtime_error( os.str() );
     } 
   
-  if (scat_data_array.particle_type == 10 && scat_data_array.aa_grid[0] != -180.)
+  if (scat_data_array.ptype == 10 && scat_data_array.aa_grid[0] != -180.)
      {
        ostringstream os;
        os << "For ptype = 10 (general orientation) the first value"
@@ -684,7 +684,7 @@ void chk_scat_data(const SingleScatteringData& scat_data_array,
          throw runtime_error( os.str() );
      } 
   
-  if (scat_data_array.particle_type == 30 && scat_data_array.aa_grid[0] != 0.)
+  if (scat_data_array.ptype == 30 && scat_data_array.aa_grid[0] != 0.)
     {
       ostringstream os;
       os << "For ptype = 30 (horizontal orientation)"
@@ -695,7 +695,7 @@ void chk_scat_data(const SingleScatteringData& scat_data_array,
         throw runtime_error( os.str() );
     }   
   
-  if (scat_data_array.particle_type == 30 && last(scat_data_array.aa_grid) != 180.)
+  if (scat_data_array.ptype == 30 && last(scat_data_array.aa_grid) != 180.)
     {
       ostringstream os;
       os << "The last value of the aa grid in the single"
@@ -711,7 +711,7 @@ void chk_scat_data(const SingleScatteringData& scat_data_array,
   ostringstream os_abs_vec;
   os_abs_vec << "abs_vec* in the file * " << scat_data_file;
   
-  switch (scat_data_array.particle_type){
+  switch (scat_data_array.ptype){
     
   case PARTICLE_TYPE_GENERAL:
     

@@ -1,3 +1,16 @@
+2014-10-06  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-27
+
+	* src/cloudbox.cc, src/m_cloudbox.cc, src/m_optproperties.cc,
+	src/m_tmatrix.cc, src/methods.cc, src/montecarlo.cc,
+	src/optproperties.cc, src/optproperties.h, src/tmatrix.cc,
+	src/tmatrix.h, src/workspace.cc, src/xml_io_compound_types.cc,
+	controlfiles/artscomponents/tmatrix/TestTMatrixSSD.arts:
+
+	Rename particle_type to ptype, ParticleType to PType and
+	ParticleType{From,To}String to PType{From,To}String.
+
 2014-10-04  Jana Mendrok  <jana.mendrok@ltu.se>
 
 	* arts-2-3-26
