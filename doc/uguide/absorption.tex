@@ -86,7 +86,7 @@ functions to describe absorption.  In the absence of polarizing
 effects it is simply equal to $\AbsCoef \IdnMtr_4$, where $\IdnMtr_4$
 is the 4$\times$4 identity matrix. 
 
-Both gases and particles in the atmosphere absorb, and the total absorption is
+Both, gases and particles in the atmosphere absorb, and the total absorption is
 the sum of these two contributions.
 This chapter only deals with absorption of non-scattering matter, i.e., gas
 absorption in the first place (but can also include absorption by grey-body
@@ -993,17 +993,17 @@ its application is described in the following.
 % - (directional dependent absorption, polarized absoprtion)
 To consider grey-body particle absorption, the user has to include
 \wsmindex{propmat\_clearskyAddParticles} in the
-\builtindoc{propmat\_clearsky\_agenda}. Furthermore, for each particle type (see
-Section~\ref{sec:clouds:intro} for how a particle type is defined) a
+\builtindoc{propmat\_clearsky\_agenda}. Furthermore, for each scattering element
+(see Section~\ref{sec:clouds:intro} for how a scattering element is defined) a
 \verb|"particles"| tag needs to be added to \builtindoc{abs\_species}, the
 corresponding concentration field to be added to \builtindoc{vmr\_field}, and
 its single scattering data have to be added as an element to
 \wsvindex{scat\_data}. This can be done each-by-each using
 \builtindoc{ReadXML} and \builtindoc{Append} methods, but a dedicated method
 \wsmindex{ParticleType2abs\_speciesAdd} is available performing these three
-steps for one particle type at once. \wsmindex{ParticleType2abs\_speciesAdd}
-adds the concentration field to \builtindoc{vmr\_field\_raw}, i.e., the particle
-concentration fields can be converted to the internal atmospheric grids together
+steps for one scattering element at once. \wsmindex{ParticleType2abs\_speciesAdd}
+adds the raw number density field to \builtindoc{vmr\_field\_raw}, i.e., the raw
+concentration fields can be converted to internal atmospheric grids together
 with the gas concentration fields using, e.g., \builtindoc{AtmFieldsCalc}.
 Note that \wsmindex{ParticleType2abs\_speciesAdd} is essentially doing the same
 as \builtindoc{ParticleTypeAdd}, but for non-scattering instead for

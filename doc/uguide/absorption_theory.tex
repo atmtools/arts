@@ -289,10 +289,10 @@ effects or the complete picture of the broadened line \citep{thorne:99}.
 
 The second effect, Doppler broadening, is important for the upper
 stratosphere and mesosphere for microwave frequencies. The line shape
-follows the velocity distribution of the particles. Under the conditions
-of thermodynamic equilibrium, we have  a probability distribution for
-the relative velocity $u$ between the gas molecule and the observer 
-of Maxwell type 
+follows the velocity distribution of the gas molecules or atoms. Under the
+conditions of thermodynamic equilibrium, we have  a probability distribution for
+the relative velocity $u$ between the gas molecule and the observer of Maxwell
+type 
 \begin{equation}\label{eq:abs_theory:maxwell_distribution1}
   p(u)=\sqrt{\frac{m}{2\pi kT}}~~exp~\left[-\frac{mu^2}{2kT}\right]
 \end{equation}
@@ -321,7 +321,7 @@ for the far wing region. The various approximations, which are
 therefore used, are immanently limited to the certain line regions
 they deal with.  The most popular among these approximations is the
 {\it{impact approximation}} which postulates that the duration of the
-collisions of the gas particles is very small compared to the average
+collisions of the gas molecules or atoms is very small compared to the average
 time between the collisions.  Due to the Fourier-pair relationship
 between time and frequency, the line shape that follows from the
 impact approximation can only be expected to be accurate near the line
@@ -434,7 +434,7 @@ qualitatively almost identically by Lorentzian line shape
 functions.
 
 According to the Maxwell-Boltzmann distribution law, in $LTE$ the total number
-of gas particles $N_n$  in a state $E_n$ is given by 
+of gas particles (molecules and atoms) $N_n$  in a state $E_n$ is given by 
 \begin{equation}\label{eq:abs_theory:maxwell_distribution2}
  N_n=N_0\frac{g_n}{g_0}e^{-E_n/kT}
 \end{equation}
@@ -446,7 +446,7 @@ ground state \citep{gordyandcook:70}. Thus the total particle number $N$ is give
 \end{equation}
 The quantity $Q(T)$ is the {\it{partition function}\nocorr} of the
 gas, which generally speaking describes the energy states distribution
-of the gas particles. 
+of the gas molecules and atoms. 
 
 The partition function for a perfect gas molecule can be represented
 by the product of the {\it{translational}\nocorr} and the
@@ -456,15 +456,15 @@ by the product of the {\it{translational}\nocorr} and the
 \end{equation}
 bearing in mind that the respective energies, translational and
 internal, are independent of each other. The first quantity $Q_{tr}$ accounts
-for the distribution of the translational energy of the gas particles
+for the distribution of the translational energy of the gas molecules and atoms
 - it takes into account that the translational velocities of the
-particles fulfill the Maxwell distribution. However, for Equation
+molecules and atoms fulfill the Maxwell distribution. However, for Equation
 \ref{eq:abs_theory:line_intensity}, the quantity we are interested in
 is the {\it{internal}\nocorr} partition function (or the {\it{total internal
 partition function}\nocorr}) because the transitions between the discrete
 internal energy states are responsible for the absorption or emittance
 of radiation. Accordingly $Q_{int}$ describes the distribution of energy among
-the internal energy states of the gas particles.
+the internal energy states of the gas molecules and atoms.
 
 The internal partition function for free gaseous molecules is a
 function of the electronic, the vibrational, the rotational, and the
@@ -2471,25 +2471,30 @@ and thus proportional to the dry air pressure\footnote{The absorption
 \chapter{Cloud absorption}
 \label{sec:abs_theory:cloudabsorption}
 
-\section{Liquid water and ice particle absorption}
-\label{sec:abs_theory:lipartabs}
-
 So far only absorption due to air was described. However 
-hydrometeors\footnote{We denote liquid water and ice particles, either
-  suspended or precipitating, in the air as hydrometeors.}
-can have a noticeable effect on the radiative transfer through the
-atmosphere.
-To treat hydrometeors you should normally set up a calculation with
+further, larger particles like hydrometeors (i.e., liquid water and
+ice particles in the air, either suspended or precipitating),
+aerosols, dust, haze and the like can have a noticeable effect on the radiative
+transfer through the atmosphere, too.
+To treat these particles, one normally sets up a calculation with
 scattering, which needs input optical properties such as the phase
 matrix. Several chapters, both in \user\ and here in \theory, deal
 with such scattering simulations.
 
-This very short chapter is not related to the scattering parts in
+This short chapter is not related to the scattering parts in
 ARTS. Instead, it describes some functions that handle only the
-absorption of hydrometeors, not the scattering. They may be useful in
+absorption by particles, not the scattering. They may be useful in
 some special cases. Practically, they work exactly as the continuum
 and complete gas absorption models, just the `VMR' is interpreted as a
 condensate amount.
+
+Note that it is also possible to only use particles with complete optical
+property data in the non-scattering context, only considering their absoprtion
+effects and neglecting the scattering. This is described in \user, Section
+\ref{U-sec:absorption:particles}.
+
+\section{Liquid water and ice particle absorption}
+\label{sec:abs_theory:lipartabs}
 
 The MPM93 model provides beside the absorption model of air also an
 absorption model for suspended liquid water droplets and ice particles

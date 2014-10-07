@@ -14,28 +14,37 @@ In the Earth's atmosphere we find liquid water clouds consisting of
 approximately spherical water droplets and cirrus clouds consisting of
 ice particles of diverse shapes and sizes. We also find different
 kinds of aerosols. In order to take into account this variety, the
-model allows to define several \emph{particle types}. A particle type
-is either a specified particle or a specified particle distribution,
-for example a particle ensemble following a gamma size distribution.
-The particles can be completely randomly oriented, azimuthally
-randomly oriented or arbitrarily oriented. For each particle type
-being a part of the modeled cloud field, a data file containing the
-single scattering properties ($\langle\ExtMat_i\rangle$,
-$\langle\AbsVec_i\rangle$, and $\langle\PhaMat_i\rangle$), and the
-appropriate particle number density field is required. The particle
-number density fields are stored as \typeindex{GField3}, including the
-field stored in a three-dimensional tensor and also the appropriate
-atmospheric grids (pressure, latitude and longitude grid). For each
-grid point in the cloud box the single scattering properties are
-averaged using the particle number density fields.  In the scattering
-database the single scattering properties are not always stored in the
-same coordinate system. For instance for randomly oriented particles
-it makes sense to store the single scattering properties in the
-so-called scattering frame in order to reduce memory requirements. 
-The following section describes in detail the \typeindex{SingleScatteringData}
-class.  The consequent section describes how to realize different
-kinds of size distributions in the ARTS frame by defining appropriate
-particle number density fields. 
+model allows to define several \emph{scattering elements}.
+
+A scattering element is either a specific single particle or a particle
+ensemble, e.g., an ensemble following a certain size or shape distribution. The
+scattering element can represent particles that are completely randomly
+oriented, azimuthally randomly oriented or arbitrarily oriented. Each scattering
+element is characterized by its single scattering properties and a field of
+particle number densities.
+For each grid point in the cloud box, the atmospheric volume that enclosed all
+scattering particles, the single scattering properties of all scattering
+elements weighted by their respective particle number density at this location
+are summed up to derive the cloud ensemble optical properties.
+
+The \wsvindex{scat\_data} structure contains the single scattering properties
+($\langle\ExtMat_i\rangle$, $\langle\AbsVec_i\rangle$, and
+$\langle\PhaMat_i\rangle$) for each of the scattering elements. 
+In \wsvindex{scat\_data}, the single scattering properties are stored in
+different coordinate systems, depending on the kind of particle. For instance, for
+randomly oriented particles it makes sense to store the single scattering
+properties in the so-called scattering frame in order to reduce memory
+requirements. The following section describes in detail the
+\typeindex{SingleScatteringData} class.
+
+The number density field, \wsvindex{pnd\_field}, contains the number densities
+of all scattering elements at all grid points within the cloudbox. Section
+\ref{sec:clouds:size} describes how to realize different kinds of size distributions in the
+ARTS frame by defining appropriate particle number density fields.
+\wsvindex{pnd\_field} can be read in from externally prepared data files or be
+derived from mass density of flux fields provided to the model. Section
+\ref{sec:clouds:implement} below describes the first. The latter can be done
+using \wsmindex{pnd\_fieldSetup} (\FIXME: document here in AUG!).
 
 
 \section{\textindex{Single scattering properties}}
@@ -47,7 +56,7 @@ particle number density fields.
 
 For radiative transfer calculations we need a coordinate system to
 describe the direction of propagation. For this purpose we use the
-laboratory frame, which is also shown in
+laboratory frame, which is shown in
 \theory, Figure \ref{T-fig:RT_theory_coordinates}.  The z-axis corresponds to the
 local zenith direction and the x-axis points towards the
 north-pole. The propagation direction is described by the local zenith
@@ -101,27 +110,27 @@ fields (compare also Table \ref{tab:scattering:datastructure}):
 \begin{itemize}
 \item  {\sl enum} \shortcode{ptype}: An attribute which contains
   information about the 
-  data type, which is the classification of the kind of hydrometeor
-  species (randomly oriented, general case~...). This attribute is
+  data type, which is a classification of the scattering
+  particle, specifically regarding its symmetry properties (randomly oriented,
+horizontally aligned, general case, \dots). This attribute is
   needed in the radiative transfer function to be able to extract
   the physical phase matrix, the physical extinction matrix and the
   physical absorption vector from the data. 
   
   Possible values of ptype are:
   
-  \shortcode{PTYPE\_GENERAL} = 10 \\
-  \shortcode{PTYPE\_MACROS\_ISO} = 20\\
-  \shortcode{PTYPE\_HORIZ\_AL} = 30\\
+  \shortcode{PARTICLE\_TYPE\_GENERAL} = 10 \\
+  \shortcode{PARTICLE\_TYPE\_MACROS\_ISO} = 20\\
+  \shortcode{PARTICLE\_TYPE\_HORIZ\_AL} = 30\\
   
   A more detailed description of the different cases is given below.
 
-\item {\sl String} \shortcode{description}: Here the particle type
-  should be specified 
-  explicitly. We can have the case randomly oriented particles, but
-  furthermore we also have to specify the exact particle properties
-  (i.e. size and shape distribution). This can be a longer text
-  describing how the scattering properties were generated. It should
-  be formatted for direct printout to screen or file.
+\item {\sl String} \shortcode{description}: Here the scattering element
+  can be characterized explicitly. For example, information on the size and
+  shape of the particle or the respective distributions of a particle ensemble
+  might be given. This can be a longer text describing how the scattering
+  properties were generated. It should be formatted for direct printout to screen
+  or file.
   
 \item {\sl Vector} \shortcode{f\_grid}: Frequency grid [Unit: Hz].
   
@@ -189,8 +198,8 @@ fields (compare also Table \ref{tab:scattering:datastructure}):
 \hline
 \multicolumn{1}{c}{Symbol}&Type&Dimensions&Description \\
 \hline
-  &enum& & specification of particle type \\
-  &String& & short description of particle type \\
+  &enum& & ptype specification \\
+  &String& & short description of the scattering element \\
 \Frq & Vector & (\Frq) & frequency grid \\
 \Tmp  & Vector & (\Tmp) & temperature grid \\
 \ZntAng & Vector & (\ZntAng) & zenith angle grid \\
@@ -204,8 +213,13 @@ $\ZntAng'$, $\AzmAng'$, $i$ )  & phase matrix \\
 \end{flushleft}
 \end{table}
 
-\subsection{Definition of \textindex{particle types}}
+\subsection{Definition of \textindex{ptypes}}
 \label{sec:clouds:particle_types}
+
+Ptype essentially classifies the scattering elements regarding their
+orientation. As described above, this effects the optimal choice of the
+coordinate system to represent the scattering element in. Below we give a more
+detailed description of each possible ptype classification in the model.
 
 \subsubsection{Macroscopically isotropic and mirror-symmetric scattering
   media (p20)}
@@ -248,8 +262,8 @@ case is the same as \shortcode{ext\_mat\_data}:
 
 \paragraph{Horizontally aligned plates and columns (p30)}
 
-For particle distributions of horizontally aligned plates and columns
-that are oriented randomly in the azimuth the angular dimension can be
+For horizontally particles
+that are oriented randomly in the azimuth, the angular dimension can be
 reduced by one, if we rotate the coordinate system appropriately. For
 this case we use the T-matrix code for single particles in fixed
 orientation and average phase matrix and extinction matrix manually
@@ -319,13 +333,14 @@ The ATMLAB package includes functions to generate single scattering
 properties for spherical particles (Mie-Theory). 
 
 
-\section[Particle size distributions]{Representation of the \textindex{particle size distribution}}
+\section[Particle size distributions]
+{Representation of the \textindex{particle size distribution}}
 \label{sec:clouds:size_distr}
 
 The particle size has an important impact on the scattering and
-absorption properties of cloud particles as shown for instance in 
-\citep{emde04:_doit_jgr}.  Clouds contain a whole range of
-different particle sizes, which can be described by a size
+absorption properties of particle ensembles, e.g. clouds, as shown for instance
+in \citep{emde04:_doit_jgr}.  Particle ensembles typically contain a whole range
+of different particle sizes, which can be described by a size
 distribution giving the number of particles per unit volume per unit
 radius interval as a function of radius.  It is most convenient to
 parameterize the size distribution by analytical functions, because in
@@ -338,7 +353,7 @@ used for the ARTS simulations included in this thesis.
 
 \subsection{Mono-disperse particle distribution}
 
-The most simple assumption is, that all particles in the cloud have
+The most simple assumption is, that all particles in an ensemble have
 the same size.  In order to study scattering effects like polarization
 or the influence of particle shape, it makes sense to use this most
 simple assumption, because one can exclude effects resulting from the
@@ -346,7 +361,7 @@ particle size distribution itself.
 
 Along with the single scattering properties we need the particle
 number density field, which specifies the number of particles per
-cubic meter at each grid point, for ARTS scattering simulations.  For
+unit volume at each grid point, for ARTS scattering simulations.  For
 a given \imc\ and mono-disperse particles the particle number density
 $n^p$ is simply
 \begin{equation}
@@ -379,7 +394,7 @@ the gamma function. For cirrus clouds $\rho$ corresponds to the bulk
 density of ice, which is approximately 917 kg/m$^3$.
 
 Generally, the effective radius \Reff\ is defined as the average
-radius weighted by the particle cross-section
+radius weighted by the particles' cross-sectional area
 \begin{equation}
   \label{eq:Reff}
   \Reff= \frac{1}{\EnsAvr{A}} \int_{r_{min}}^{r_{max}} {A(r) r n(r) \DiffD r},
@@ -424,7 +439,8 @@ particle size of $R$ is smaller than the particle number density for
 gamma distributed particles with $\Reff=R$. The reason is that in the
 gamma distribution most particles are smaller than~\Reff.
 
-\subsection[McFarquhar and Heymsfield parametrization]{Ice particle size parameterization by McFarquhar and Heymsfield}
+\subsection[McFarquhar and Heymsfield parametrization]
+{Ice particle size parameterization by McFarquhar and Heymsfield}
 \label{sec:McFHey_distr}
 
 A more realistic parameterization of tropical cirrus ice crystal size
@@ -466,7 +482,10 @@ been implemented in the PyARTS package, which was introduced in
 Section \ref{sec:clouds:ARTS_SSP_structure}. Using PyARTS one can calculate the size
 distributions, the corresponding single scattering properties and the
 particle number density fields for given \imc\ and temperature.
+
+
 \section{Implementation}
+\label{sec:clouds:implement}
 
 The workspace methods related to the description of clouds in ARTS are
 implemented in the file \fileindex{m\_cloudbox.cc}.
@@ -481,11 +500,11 @@ The following controlfile section illustrates how a simple cloud can
 be included in an ARTS calculation. 
 
 First we have to define the cloudbox region, i.e. the region where
-scattering objects are found. To do this we use the method
+scattering objects are found. To do this we can use the method
 \wsmindex{cloudboxSetManuallyAltitude}:
 \begin{code}
 cloudboxSetManuallyAltitude( cloudbox_on, cloudbox_limits,
-                             atmosphere_dim, p_grid,
+                             atmosphere_dim, z_field,
                              lat_grid, lon_grid,
                              8000, 120000,
                              0, 0, 0, 0 )
@@ -503,42 +522,41 @@ region:
 \begin{code}
 # Initialisation
 ParticleTypeInit
-# Only one particle type is added in this example 
+# Only one scattering element is added in this example 
 ParticleTypeAdd( scat_data, pnd_field_raw,
-                 atmosphere_dim, f_grid, p_grid,
-                 lat_grid, lon_grid, cloudbox_limits,
+                 atmosphere_dim, f_grid,
                  "ssd_sphere_50um_p20.xml",
                  "pnd_sphere_50um_p20.xml" )
 \end{code}
 In the workspace method \wsmindex{ParticleTypeAdd} the single
-scattering properties for one particle type are read. The
+scattering properties for one scattering element are read. The
 generic input \shortcode{filename\_scat\_data} must be set to
-the filename of a datafile including scattering data (class
+the filename of a datafile containing the single scattering data (class
 \typeindex{SingleScatteringData}) in xml-format. The generic input
 \shortcode{filename\_pnd\_field} must contain the filename of the
 corresponding particle number density field in xml-format (class
 \typeindex{GField3}). If the cloud is composed of several
-different particle types \wsmindex{ParticleTypeAdd} can be used
-repeatedly for all particle types, for instance one could add to the
-randomly oriented spherical particles above horizontally aligned
+different scattering elements \wsmindex{ParticleTypeAdd} can be used
+repeatedly for all scattering elements, for instance to the
+randomly oriented spherical particles from above one could add horizontally aligned
 cylindrical particles:
 \begin{code}
 ParticleTypeAdd( scat_data, pnd_field_raw,
-                 atmosphere_dim, f_grid, p_grid,
-                 lat_grid, lon_grid, cloudbox_limits,
+                 atmosphere_dim, f_grid,
                  "ssd_cylinder_30um_p30.xml",
                  "pnd_cylinder_30um_p30.xml" )
 \end{code}
 Alternatively it is possible to use the method
 \wsmindex{ParticleTypeAddAll}, which is convenient to generate a size
 distribution using several size bins. In this case one needs to define
-one
-particle type for each size bin. For many size bins the control file
-becomes very lengthy if one uses \wsmindex{ParticleTypeAdd}
+one scattering element for each size bin. If the num,ber of size bins is large,
+the control file
+becomes very lengthy when using \wsmindex{ParticleTypeAdd}
 repeatedly. \wsmindex{ParticleTypeAddAll} requires as input an array
-of string including all filenames of the single scattering data files
+of string including the filenames of the single scattering data files for all
+individual scattering elements
 and the variable \wsvindex{pnd\_field\_raw} which includes the particle
-number density fields for all particle types. Using this function, one
+number density fields for all scattering elements at once. Using this function, one
 has to make sure that the order of the filenames containing the single
 scattering data corresponds to the order of the particle number
 density fields in \wsvindex{pnd\_field\_raw}.

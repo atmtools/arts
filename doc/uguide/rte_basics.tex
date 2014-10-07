@@ -117,7 +117,7 @@ act to increase the intensity: emission and scattering.
 \subsection{Absorbing species and particles}
 \label{sec:rteq:absspecies}
 
-The complexity of the radiative transfer is largely dependent on if scattering
+The complexity of the radiative transfer is largely dependent on whether scattering
 must be considered or not. For this reason, ARTS operates with two classes of
 atmospheric matter:
 \begin{description}
@@ -133,19 +133,25 @@ atmospheric matter:
 \item[Particles] This second class treats all matter causing significant
   scattering (and likely also adding to the absorption). The amount of
   scattering matter is given as particle number density fields ($m^{-3}$),
-  denoted as \wsvindex{pnd\_field}. The radiative properties of each particle
-  type are stored in \wsvindex{scat\_data}.
+  denoted as \wsvindex{pnd\_field}. The \wsvindex{pnd\_field} is provided per
+  scattering element (see Chapter \ref{sec:clouds} for definition). The
+  corresponding optical properties of the particles are given by
+  \wsvindex{scat\_data} containing one set of single scattering properties
+  for each scattering element. Particles can be grouped into scattering
+  species, each characterized by a mass density ($kg/m^3$) or flux ($kg/(m^2s$)
+  field that is converted into particle number density fields before solving the
+  radiative transfer equation.
 \end{description}
 Atmospheric quantities are not hard-coded to belong to any of these matter
 classes, as the practical division depends on the conditions of the
 simulations. The general rule is that for the shorter the wavelengths, a higher
 number of atmospheric constituents must be treated as ``particles''. For
-thermal infrared and microwave calculations, electrons and molecules, and
-likely also aerosols, can be treated as absorbing species. It can also be
+thermal infrared and microwave calculations, molecules and electrons (and
+likely also aerosols) can be treated as absorbing species. It can also be
 possible to place some hydrometeors in this class. For example,
 non-precipitating liquid clouds can be treated as purely absorbing in the
 microwave region.
-Related with the division between absorbing species and particles is:
+Related to the division between absorbing species and particles is:
 \begin{description}
 \item[Clear-sky] In ARTS, the term ``clear-sky'' refers to the case when the
   influence of ``particles'' can be ignored, and only ``absorbing species'' are

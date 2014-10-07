@@ -307,13 +307,14 @@ for the maximum propagation path step length. If a propagation path step from on
 grid cell to the intersection point with the next grid cell boundary
 is greater than this value, the path step is divided in several steps such
 that all steps are less than the maximum value. The user has to make
-sure that the optical depth due to cloud particles for one propagation
+sure that the optical depth due to particles for one propagation
 path sub-step is is sufficiently small to assume
-single scattering. The maximum optical depth due to ice particles is 
+single scattering. The maximum optical depth due to particles along such a
+propagation path sub-step is 
 \begin{equation}
-  \tau_{max} = \EnsAvr{\ExtMat^p} \cdot \Delta s,
+  \tau_{max} = \EnsAvr{\ExtMat^p} \cdot \Delta s_{max},
 \end{equation}
-where $\Delta s$ is the length of a propagation  path step. In all
+where $\Delta s_{max}$ is the maximum length of a propagation path sub-step. In all
 simulations presented in \citet{emde05:_phdthesis}, $\tau_{max} \ll$ 0.01 is
 assumed. This threshold value is also used in \citet{czekala99:_microw}.
 The radiative transfer calculation
@@ -878,8 +879,8 @@ AgendaSet( doit_rte_agenda ){
    }
 \end{code}
 The optical properties of the particles, i.e., extinction matrix and
-absorption vector are required for solving the radiative transfer
-equation. How they are calculated is specified in
+absorption vector (for all scattering elements) are required for solving the
+radiative transfer equation. How they are calculated is specified in
 \wsaindex{spt\_calc\_agenda}. The workspace method
 \wsmindex{opt\_prop\_sptFromMonoData} requires that the raw data is
 already interpolated on the frequency of the monochromatic

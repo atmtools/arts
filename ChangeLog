@@ -1,3 +1,13 @@
+2014-10-07  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-3-29
+
+	* doc/uguide/cloudradar.tex, absorption.tex, wfuns.tex, scattering.tex,
+	polarization.tex, rte_basics.tex, rte_theory.tex, clouds.tex, rte.tex,
+	montecarlo.tex, absorption_theory.tex:
+
+	Revised doc for terminology (particle type->scattering species/element).
+
 2014-10-06  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-28
