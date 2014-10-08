@@ -130,7 +130,7 @@
    131 Hartwell Avenue<br>
    Lexington, MA 02421, USA
    </li>
-   <li><b>H2O-H2O (H2O-SelfContCKDMT250)</b>:<br>
+   <li><b>H2O-H2O (H2O-SelfContCKDMT252)</b>:<br>
          CKD_MTv2.50 H2O self continuum from the FORTRAN77 code written by<br>
          <a href="http://www.rtweb.aer.com/continuum_frame.html">Atmospheric and
          Environmental Research Inc. (AER),</a><br>
@@ -168,7 +168,7 @@
    131 Hartwell Avenue<br>
    Lexington, MA 02421, USA
    </li>
-   <li><b>H2O-air (H2O-foreignContCKDMT250)</b>:<br>
+   <li><b>H2O-air (H2O-foreignContCKDMT252)</b>:<br>
          CKD_MTv2.50 H2O foreign continuum from the FORTRAN77 code written by<br>
          <a href="http://www.rtweb.aer.com/continuum_frame.html">Atmospheric and
          Environmental Research Inc. (AER),</a><br>
@@ -8213,13 +8213,13 @@ void CKD_mt_250_self_h2o (MatrixView          pxsec,
   CREATE_OUT3;
 
   // check the model name about consistency
-  if ((model != "user") &&  (model != "CKDMT250"))
+  if ((model != "user") &&  (model != "CKDMT252"))
     {
       ostringstream os;
       os << "!!ERROR!!\n"
    << "CKD_MT2.50 H2O self continuum:\n"
    << "INPUT model name is: " << model << ".\n"
-   << "VALID model names are user and CKDMT250\n";
+   << "VALID model names are user and CKDMT252\n";
       throw runtime_error(os.str());
     }
 
@@ -8500,13 +8500,13 @@ void CKD_mt_250_foreign_h2o (MatrixView          pxsec,
   CREATE_OUT3;
 
   // check the model name about consistency
-  if ((model != "user") &&  (model != "CKDMT250"))
+  if ((model != "user") &&  (model != "CKDMT252"))
     {
       ostringstream os;
       os << "!!ERROR!!\n"
    << "CKD_MT2.50 H2O foreign continuum:\n"
    << "INPUT model name is: " << model << ".\n"
-   << "VALID model names are user and CKDMT250\n";
+   << "VALID model names are user and CKDMT252\n";
       throw runtime_error(os.str());
     }
 
@@ -9099,13 +9099,13 @@ void CKD_mt_250_co2 (MatrixView          pxsec,
   CREATE_OUT3;
 
   // check the model name about consistency
-  if ((model != "user") &&  (model != "CKDMT250"))
+  if ((model != "user") &&  (model != "CKDMT252"))
     {
       ostringstream os;
       os << "!!ERROR!!\n"
    << "CKD_MT.2.50 CO2 continuum:\n"
    << "INPUT model name is: " << model << ".\n"
-   << "VALID model names are user and CKDMT250\n";
+   << "VALID model names are user and CKDMT252\n";
       throw runtime_error(os.str());
     }
 
@@ -9877,13 +9877,13 @@ void CKD_mt_250_CIArot_n2 (MatrixView         pxsec,
   CREATE_OUT3;
 
   // check the model name about consistency
-  if ((model != "user") &&  (model != "CKDMT250"))
+  if ((model != "user") &&  (model != "CKDMT252"))
     {
       ostringstream os;
       os << "!!ERROR!!\n"
    << "CKD_MT2.50 N2 CIA rotational band:\n"
    << "INPUT model name is: " << model << ".\n"
-   << "VALID model names are user and CKDMT250\n";
+   << "VALID model names are user and CKDMT252\n";
       throw runtime_error(os.str());
     }
 
@@ -10140,13 +10140,13 @@ void CKD_mt_250_CIAfun_n2 (MatrixView          pxsec,
   CREATE_OUT3;
 
   // check the model name about consistency
-  if ((model != "user") &&  (model != "CKDMT250"))
+  if ((model != "user") &&  (model != "CKDMT252"))
     {
       ostringstream os;
       os << "!!ERROR!!\n"
    << "CKD_MT2.50 N2 CIA fundamental band:\n"
    << "INPUT model name is: " << model << ".\n"
-   << "VALID model names are user and CKDMT250\n";
+   << "VALID model names are user and CKDMT252\n";
       throw runtime_error(os.str());
     }
 
@@ -11010,13 +11010,13 @@ void CKD_mt_250_o2_vis (MatrixView          pxsec,
   CREATE_OUT3;
 
   // check the model name about consistency
-  if ((model != "user") &&  (model != "CKDMT250"))
+  if ((model != "user") &&  (model != "CKDMT252"))
     {
       ostringstream os;
       os << "!!ERROR!!\n"
    << "CKD_MT2.50 O2 band at 1.06 micrometer:\n"
    << "INPUT model name is: " << model << ".\n"
-   << "VALID model names are user and CKDMT250\n";
+   << "VALID model names are user and CKDMT252\n";
       throw runtime_error(os.str());
     }
 
@@ -16858,7 +16858,7 @@ void xsec_continuum_tag (MatrixView             xsec,
         }
     }
   // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  else if ( "H2O-SelfContCKDMT250"==name )
+  else if ( "H2O-SelfContCKDMT252"==name )
     {
       // OUTPUT:
       //   pxsec           cross section (absorption/volume mixing ratio) of
@@ -16921,7 +16921,7 @@ void xsec_continuum_tag (MatrixView             xsec,
         }
     }
   // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  else if ( "H2O-ForeignContCKDMT250"==name )
+  else if ( "H2O-ForeignContCKDMT252"==name )
     {
       // OUTPUT:
       //   pxsec           cross section (absorption/volume mixing ratio) of
@@ -17680,7 +17680,7 @@ void xsec_continuum_tag (MatrixView             xsec,
     }
 
   // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  else if ( "O2-visCKDMT250"==name )
+  else if ( "O2-visCKDMT252"==name )
     {
       // Model reference:
       //     O2 continuum formulated by Greenblatt et al. over the spectral region
@@ -19293,7 +19293,7 @@ void xsec_continuum_tag (MatrixView             xsec,
         }
     }
   // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  else if ( "N2-CIArotCKDMT250"==name )
+  else if ( "N2-CIArotCKDMT252"==name )
     {
       // data information about this continuum:
       // A. Borysow and L. Frommhold, The Astrophysical Journal,
@@ -19366,7 +19366,7 @@ void xsec_continuum_tag (MatrixView             xsec,
         }
     }
   // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  else if ( "N2-CIAfunCKDMT250"==name )
+  else if ( "N2-CIAfunCKDMT252"==name )
     {
       // data information about this continuum:
       // Lafferty, W.J., A.M. Solodov,A. Weber, W.B. Olson and J._M. Hartmann,
@@ -19573,7 +19573,7 @@ void xsec_continuum_tag (MatrixView             xsec,
         }
     }
   // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  else if ( "CO2-CKDMT250"==name )
+  else if ( "CO2-CKDMT252"==name )
     {
       // data information about this continuum:
       // CKD model at http://www.rtweb.aer.com/continuum_frame.html

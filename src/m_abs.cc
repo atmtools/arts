@@ -1995,13 +1995,13 @@ void abs_xsec_per_speciesAddConts(// WS Output:
                   //   O2-TRE05,
                   //   O2-SelfContStandardType, O2-SelfContMPM93, O2-SelfContPWR93,
                   //   N2-SelfContMPM93, N2-DryContATM01,
-                  //   N2-CIArotCKDMT250, N2-CIAfunCKDMT250
+                  //   N2-CIArotCKDMT252, N2-CIAfunCKDMT252
                   // abs_n2 for
                   //   H2O-SelfContCKD24, H2O-ForeignContCKD24,
                   //   O2-v0v0CKDMT100,
                   //   CO2-ForeignContPWR93, CO2-ForeignContHo66
                   // abs_o2 for
-                  //   N2-CIArotCKDMT250, N2-CIAfunCKDMT250
+                  //   N2-CIArotCKDMT252, N2-CIAfunCKDMT252
                   xsec_continuum_tag( abs_xsec_per_species[i],
                                       name,
                                       abs_cont_parameters[n],

@@ -1,3 +1,14 @@
+2014-10-08  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-3-30
+
+	* src/continua.cc, m_abs.cc, partition_function_data.cc,
+	species_data.cc, controlfiles/general/continua.arts:
+	Corrected version tag of new MTCKD: CKDMT250->CKDMT252.
+
+	* doc/uguide/absorption.tex:
+	Added MTCKD2.5.2 continua in table of available continua.
+
 2014-10-07  Jana Mendrok  <jana.mendrok@ltu.se>
 
 	* arts-2-3-29
@@ -8050,13 +8061,13 @@
 
 	* arts-2-1-490
 
-        * src/abs_species_tags.cc (SpeciesTag::SpeciesTag(String def)):
+	* src/abs_species_tags.cc (SpeciesTag::SpeciesTag(String def)):
 	Fixed runtime error message when second species is unknown.
 
-        * src/species_data.cc: Added species Ar, which is needed for
+	* src/species_data.cc: Added species Ar, which is needed for
 	HITRAN CIA continua.
 
-        * src/partition_function_data.cc: Added species Ar, which is needed for
+	* src/partition_function_data.cc: Added species Ar, which is needed for
 	HITRAN CIA continua.
 
 2013-02-06  Oliver Lemke  <olemke@core-dump.info>

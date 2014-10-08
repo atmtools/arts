@@ -55,12 +55,12 @@ abs_cont_descriptionAppend( tagname="H2O-ForeignContCKDMT100",
 
 #
 # CKD MT 2.50 self continuum original parameters:
-abs_cont_descriptionAppend( tagname="H2O-SelfContCKDMT250",
-                            model="CKDMT250" )
+abs_cont_descriptionAppend( tagname="H2O-SelfContCKDMT252",
+                            model="CKDMT252" )
 #
 # CKD MT 2.50 H2O foreign continuum original parameters:
-abs_cont_descriptionAppend( tagname="H2O-ForeignContCKDMT250",
-                            model="CKDMT250" )
+abs_cont_descriptionAppend( tagname="H2O-ForeignContCKDMT252",
+                            model="CKDMT252" )
 #
 #  Cruz-Pol et al. 98 Continuum:
 abs_cont_descriptionAppend( tagname="H2O-CP98",
@@ -113,8 +113,8 @@ abs_cont_descriptionAppend( tagname="O2-v1v0CKDMT100",
                             model="CKDMT100" )
 
 # Greenblatt et  al. from CKD F77 program:
-abs_cont_descriptionAppend( tagname="O2-visCKDMT250",
-                            model="CKDMT250" )
+abs_cont_descriptionAppend( tagname="O2-visCKDMT252",
+                            model="CKDMT252" )
 
 #
 
@@ -143,13 +143,13 @@ abs_cont_descriptionAppend( tagname="N2-CIAfunCKDMT100",
                             model="CKDMT100" )
 
 # Borysow-Frommhold from CKD F77 program:
-abs_cont_descriptionAppend( tagname="N2-CIArotCKDMT250",
-                            model="CKDMT250" )
+abs_cont_descriptionAppend( tagname="N2-CIArotCKDMT252",
+                            model="CKDMT252" )
 #
 #
 # Lafferty et  al. from CKD F77 program:
-abs_cont_descriptionAppend( tagname="N2-CIAfunCKDMT250",
-                            model="CKDMT250" )
+abs_cont_descriptionAppend( tagname="N2-CIAfunCKDMT252",
+                            model="CKDMT252" )
 
 #
 
@@ -177,8 +177,8 @@ abs_cont_descriptionAppend( tagname="CO2-CKDMT100",
                             model="CKDMT100" )
 
 # far line wing continuum from CKD F77 program:
-abs_cont_descriptionAppend( tagname="CO2-CKDMT250",
-                            model="CKDMT250" )
+abs_cont_descriptionAppend( tagname="CO2-CKDMT252",
+                            model="CKDMT252" )
 
 
 #
