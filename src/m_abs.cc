@@ -2266,7 +2266,7 @@ void propmat_clearskyAddParticles(
                                     const Vector& rtp_vmr,
                                     const Vector& rtp_los,
                                     const Numeric& rtp_temperature,
-                                    const ArrayOfSingleScatteringData& scat_data,
+                                    const ArrayOfArrayOfSingleScatteringData& scat_data,
                                     // Verbosity object:
                                     const Verbosity& verbosity)
 {
@@ -2318,7 +2318,7 @@ void propmat_clearskyAddParticles(
   const Index nf = f_grid.nelem();
   Vector rtp_los_back;
   mirror_los( rtp_los_back, rtp_los, atmosphere_dim );
-  ArrayOfSingleScatteringData scat_data_mono;
+  ArrayOfArrayOfSingleScatteringData scat_data_mono;
   Matrix pnd_ext_mat(stokes_dim,stokes_dim);
   Vector pnd_abs_vec(stokes_dim);
 
@@ -2342,13 +2342,16 @@ void propmat_clearskyAddParticles(
 
               if ( rtp_vmr[sp] > 0. )
                 {
+                  // FIXME: OLE SCATT: Is it correct to just use the first scattering species
+                  // here?
+
                   // second, get extinction matrix and absorption vector at
                   // required temperature and direction for the individual
                   // scattering element and multiply with their occurence.
-                  opt_propExtract(pnd_ext_mat, pnd_abs_vec, scat_data_mono[np],
+                  opt_propExtract(pnd_ext_mat, pnd_abs_vec, scat_data_mono[0][np],
                                   rtp_los_back[0], rtp_los_back[1],
                                   rtp_temperature, stokes_dim, verbosity);
-                  //pnd_ext_mat *= rtp_vmr[sp];
+                  pnd_ext_mat *= rtp_vmr[sp];
                   pnd_abs_vec *= rtp_vmr[sp];
 
                   // last, sort the extracted absorption vector data into

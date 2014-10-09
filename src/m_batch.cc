@@ -384,7 +384,7 @@ void ybatchMetProfiles(
                const Vector& lat_grid,
                const Vector& lon_grid,
                const Index& atmosphere_dim,
-               const ArrayOfSingleScatteringData& scat_data,
+               const ArrayOfArrayOfSingleScatteringData& scat_data,
                //Keyword
                const Index& nelem_p_grid,
                const String& met_profile_path,
@@ -412,7 +412,7 @@ void ybatchMetProfiles(
   //pnd_field_raw is an ArrayOfArrayOfTensor3 where the first array
   //holds the scattering elements.
   // Number of scattering elements:
-  const Index N_se = scat_data.nelem();
+  const Index N_se = TotalNumberOfElements(scat_data);
   
   pnd_field_raw.resize(N_se);
   

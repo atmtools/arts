@@ -1533,7 +1533,7 @@ void get_ppath_blackrad(
                                       (defined only where particles are found)
     \param   pnd_ext_vec         Out: Particle extinction matrix
                                       (defined only where particles are found)
-    \param   scat_data_single           Out: Extracted scattering data. Length of
+    \param   scat_data_single    Out: Extracted scattering data. Length of
                                       array affected by *use_mean_scat_data*.
     \param   ppath_pnd           Out. The particle number density for each
                                       path point (also outside cloudbox).
@@ -1553,7 +1553,7 @@ void get_ppath_ext(
         ArrayOfIndex&                  clear2cloudbox,
         Tensor3&                       pnd_abs_vec, 
         Tensor4&                       pnd_ext_mat, 
-  Array<ArrayOfSingleScatteringData>&  scat_data_single,
+  Array<ArrayOfArrayOfSingleScatteringData>&  scat_data_single,
         Matrix&                        ppath_pnd,
   const Ppath&                         ppath,
   ConstVectorView                      ppath_t, 
@@ -1563,7 +1563,7 @@ void get_ppath_ext(
   const ArrayOfIndex&                  cloudbox_limits,
   const Tensor4&                       pnd_field,
   const Index&                         use_mean_scat_data,
-  const ArrayOfSingleScatteringData&   scat_data,
+  const ArrayOfArrayOfSingleScatteringData&   scat_data,
   const Verbosity&                     verbosity )
 {
   const Index nf = ppath_f.nrows();
@@ -1616,7 +1616,7 @@ void get_ppath_ext(
     {
       const Numeric f = (mean(ppath_f(0,joker))+mean(ppath_f(nf-1,joker)))/2.0;
       scat_data_single.resize( 1 );
-      scat_data_monoCalc( scat_data_single[0], scat_data, Vector(1,f), 0, 
+      scat_data_monoCalc( scat_data_single[0], scat_data, Vector(1,f), 0,
                           verbosity );
     }
   else

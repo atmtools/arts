@@ -128,8 +128,10 @@ void define_wsv_group_names()
   wsv_group_names.push_back("GasAbsLookup");
   wsv_group_names.push_back("SingleScatteringData");
   wsv_group_names.push_back("ArrayOfSingleScatteringData");
+  wsv_group_names.push_back("ArrayOfArrayOfSingleScatteringData");
   wsv_group_names.push_back("ScatteringMetaData");
   wsv_group_names.push_back("ArrayOfScatteringMetaData");
+  wsv_group_names.push_back("ArrayOfArrayOfScatteringMetaData");
   wsv_group_names.push_back("GriddedField1");
   wsv_group_names.push_back("GriddedField2");
   wsv_group_names.push_back("GriddedField3");

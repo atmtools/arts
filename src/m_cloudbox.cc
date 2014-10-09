@@ -78,7 +78,7 @@ void cloudboxOff (
          ArrayOfIndex&                cloudbox_limits,
          Agenda&                      iy_cloudbox_agenda,
          Tensor4&                     pnd_field,
-         ArrayOfSingleScatteringData& scat_data,
+         ArrayOfArrayOfSingleScatteringData& scat_data,
          Matrix&                      particle_masses,
    const Verbosity&)
 {
@@ -608,7 +608,7 @@ void scat_speciesSet (// WS Generic Output:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void ParticleTypeInit (//WS Output:
-                       ArrayOfSingleScatteringData& scat_data,
+                       ArrayOfArrayOfSingleScatteringData& scat_data,
                        ArrayOfGriddedField3& pnd_field_raw,
                        const Verbosity&)
 {
@@ -619,7 +619,7 @@ void ParticleTypeInit (//WS Output:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void ParticleTypeAdd( //WS Output:
-                     ArrayOfSingleScatteringData& scat_data,
+                     ArrayOfArrayOfSingleScatteringData& scat_data,
                      ArrayOfGriddedField3&  pnd_field_raw,
                      // WS Input (needed for checking the datafiles):
                      const Index& atmosphere_dim,
@@ -648,18 +648,25 @@ void ParticleTypeAdd( //WS Output:
 
   //--- Reading the data ---------------------------------------------------
 
-  // Append *scat_data* and *pnd_field_raw* with empty Arrays of Tensors. 
+  Index last_species = scat_data.nelem()-1;
+  if (last_species == -1)
+  {
+      scat_data.resize(1);
+      last_species = 0;
+  }
+
+  // Append *scat_data* and *pnd_field_raw* with empty Arrays of Tensors.
   SingleScatteringData scat_data_single;
-  scat_data.push_back(scat_data_single);
+  scat_data[last_species].push_back(scat_data_single);
   
   GriddedField3 pnd_field_data;
   pnd_field_raw.push_back(pnd_field_data);
   
   out2 << "  Read single scattering data\n";
-  xml_read_from_file(scat_data_file, scat_data[scat_data.nelem()-1],
+  xml_read_from_file(scat_data_file, scat_data[last_species][scat_data.nelem()-1],
                      verbosity);
 
-  chk_scat_data(scat_data[scat_data.nelem()-1],
+  chk_scat_data(scat_data[last_species][scat_data[last_species].nelem()-1],
                              scat_data_file, f_grid, verbosity);       
   
   out2 << "  Read particle number density field\n";
@@ -681,7 +688,7 @@ void ParticleTypeAdd( //WS Output:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void ParticleTypeAddAll (//WS Output:
-                         ArrayOfSingleScatteringData& scat_data,
+                         ArrayOfArrayOfSingleScatteringData& scat_data,
                          ArrayOfGriddedField3&  pnd_field_raw,
                          // WS Input(needed for checking the datafiles):
                          const Index& atmosphere_dim,
@@ -711,7 +718,8 @@ void ParticleTypeAddAll (//WS Output:
   //--- Reading the data ---------------------------------------------------
   ArrayOfString data_files;
   xml_read_from_file ( filelist_scat_data, data_files, verbosity );
-  scat_data.resize ( data_files.nelem() );
+  scat_data.resize(1);
+  scat_data[0].resize ( data_files.nelem() );
 
   for ( Index i = 0; i<data_files.nelem(); i++ )
   {
@@ -719,7 +727,7 @@ void ParticleTypeAddAll (//WS Output:
     out2 << "  Read single scattering data\n";
     xml_read_from_file ( data_files[i], scat_data[i], verbosity );
 
-    chk_scat_data ( scat_data[i],
+    chk_scat_data ( scat_data[0][i],
                                  data_files[i], f_grid,
                                  verbosity );
 
@@ -735,7 +743,7 @@ void ParticleTypeAddAll (//WS Output:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void ParticleType2abs_speciesAdd( //WS Output:
-                     ArrayOfSingleScatteringData& scat_data,
+                     ArrayOfArrayOfSingleScatteringData& scat_data,
                      ArrayOfGriddedField3& vmr_field_raw,
                      ArrayOfArrayOfSpeciesTag& abs_species,
                      Index& propmat_clearsky_agenda_checked,
@@ -770,15 +778,20 @@ void ParticleType2abs_speciesAdd( //WS Output:
   // Append *scat_data* and (later on) *vmr_field_raw* with empty Arrays of
   // Tensors, then fill those from file. 
   SingleScatteringData scat_data_single;
-  scat_data.push_back(scat_data_single);
-  
+
+  // Append as new species???
+  ArrayOfSingleScatteringData new_scat_species;
+  new_scat_species.push_back(scat_data_single);
+
   out2 << "  Read single scattering data\n";
-  xml_read_from_file(scat_data_file, scat_data[scat_data.nelem()-1],
+  xml_read_from_file(scat_data_file, new_scat_species[new_scat_species.nelem()-1],
                      verbosity);
 
-  chk_scat_data(scat_data[scat_data.nelem()-1],
+  chk_scat_data(new_scat_species[new_scat_species.nelem()-1],
                              scat_data_file, f_grid, verbosity);       
-  
+
+  scat_data.push_back(new_scat_species);
+
   out2 << "  Read particle number density field\n";
   if (pnd_field_file.nelem() < 1)
   {
@@ -808,11 +821,10 @@ void ParticleType2abs_speciesAdd( //WS Output:
 }
 
 
-
 /* Workspace method: Doxygen documentation will be auto-generated */
 void ScatteringParticleTypeAndMetaRead (//WS Output:
-                                        ArrayOfSingleScatteringData& scat_data,
-                                        ArrayOfScatteringMetaData& scat_meta,
+                                        ArrayOfArrayOfSingleScatteringData& scat_data,
+                                        ArrayOfArrayOfScatteringMetaData& scat_meta,
                                         const Vector& f_grid,
                                         // Keywords:
                                         const String& filename_scat_data,
@@ -824,17 +836,20 @@ void ScatteringParticleTypeAndMetaRead (//WS Output:
   //--- Reading the data ---------------------------------------------------
   ArrayOfString data_files;
   ArrayOfString meta_data_files;
-  
+
+  ArrayOfSingleScatteringData arr_ssd;
+  ArrayOfScatteringMetaData arr_smd;
+
   // single scattering data read to temporary ArrayOfSingleScatteringData
   xml_read_from_file ( filename_scat_data, data_files, verbosity );
-  scat_data.resize ( data_files.nelem() );
+  arr_ssd.resize ( data_files.nelem() );
 
   for ( Index i = 0; i<data_files.nelem(); i++ )
   {
     out3 << "  Read single scattering data\n";
-    xml_read_from_file ( data_files[i], scat_data[i], verbosity );
+    xml_read_from_file ( data_files[i], arr_ssd[i], verbosity );
 
-    chk_scat_data ( scat_data[i],
+    chk_scat_data ( arr_ssd[i],
                                  data_files[i], f_grid,
                                  verbosity );
 
@@ -842,32 +857,34 @@ void ScatteringParticleTypeAndMetaRead (//WS Output:
 
   // scattering meta data read to temporary ArrayOfScatteringMetaData
   xml_read_from_file ( filename_scat_meta_data, meta_data_files, verbosity );
-  scat_meta.resize ( meta_data_files.nelem() );
+  arr_smd.resize ( meta_data_files.nelem() );
 
   for ( Index i = 0; i<meta_data_files.nelem(); i++ )
   {
 
     out3 << "  Read scattering meta data\n";
-    xml_read_from_file ( meta_data_files[i], scat_meta[i], verbosity );
+    xml_read_from_file ( meta_data_files[i], arr_smd[i], verbosity );
 
     //FIXME: currently nothing is done in chk_scattering_meta_data!
-    chk_scattering_meta_data ( scat_meta[i],
+    chk_scattering_meta_data ( arr_smd[i],
                                meta_data_files[i], verbosity );
 
   }
   
   // check if arrays have same size
-  chk_scattering_data ( scat_data,
-                        scat_meta, verbosity );
-  
+  chk_scattering_data ( arr_ssd,
+                        arr_smd, verbosity );
+
+  // append as new scattering species
+  scat_data.push_back(arr_ssd);
+  scat_meta.push_back(arr_smd);
 }
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void ScatteringParticlesSelect (//WS Output:
-                                ArrayOfSingleScatteringData& scat_data,
-                                ArrayOfScatteringMetaData& scat_meta,
-                                ArrayOfIndex& scat_data_per_scat_species,
+                                ArrayOfArrayOfSingleScatteringData& scat_data,
+                                ArrayOfArrayOfScatteringMetaData& scat_meta,
                                 // WS Input:
                                 const ArrayOfString& scat_species,
                                 const String& delim,
@@ -876,19 +893,13 @@ void ScatteringParticlesSelect (//WS Output:
   CREATE_OUT1;
   CREATE_OUT3;
   //--- Adjusting data to user specified input (scat_species)-------------------
-  
-  Index intarr_total = 0;
-  ArrayOfIndex intarr;
-  
-  // make temporary copy
-  ArrayOfSingleScatteringData scat_data_tmp = scat_data;
-  ArrayOfScatteringMetaData scat_meta_array_tmp = scat_meta;
-  
-  scat_data_per_scat_species.resize( scat_species.nelem() );
-  
-  ArrayOfIndex selected;
-  selected.resize(scat_meta_array_tmp.nelem());
-  selected = 0;
+
+  // create temporary containers for selected elements
+  ArrayOfArrayOfSingleScatteringData scat_data_tmp;
+  ArrayOfArrayOfScatteringMetaData scat_meta_tmp;
+  scat_data_tmp.resize(scat_species.nelem());
+  scat_meta_tmp.resize(scat_species.nelem());
+
   // loop over array of scat_species--------------------------------------------
   for ( Index k=0; k<scat_species.nelem(); k++ )
   {
@@ -904,41 +915,40 @@ void ScatteringParticlesSelect (//WS Output:
     parse_part_size(sizemin, sizemax, scat_species[k], delim);
 
     // choosing the specified SingleScatteringData and ScatteringMetaData
-    for ( Index j=0; j<scat_meta_array_tmp.nelem(); j++ )
+    for ( Index i_ss=0; i_ss<scat_meta.nelem(); i_ss++ )
     {
-      // check for scattering element (material/phase) type (e.g. "Ice",
-      // "Water",...)
-      if ( scat_meta_array_tmp[j].material == part_material ) 
-      {       
-        // scattering element radius is calculated from scattering element
-        // volume given in scattering meta data
-        Numeric r_particle = 
-          pow ( 3./4. * scat_meta_array_tmp[j].volume * 1e18 / PI , 1./3. );
-	
-	// check if scattering element is in size range
-  // (sizemax < 0 results from wildcard usage and means consider all sizes on
-  // the upper end)
-        if ( r_particle  >= sizemin &&
-             ( sizemax >= r_particle || sizemax < 0. ))
-	{
-	  // fill ArrayOfIndex with indices of selected scattering data
-          intarr.push_back ( j );
+        for ( Index i_se=0; i_se<scat_meta[i_ss].nelem(); i_se++ )
+        {
+            // check for scattering element (material/phase) type (e.g. "Ice",
+            // "Water",...)
+            if ( scat_meta[i_ss][i_se].material == part_material )
+            {
+                // scattering element radius is calculated from scattering element
+                // volume given in scattering meta data
+                Numeric r_particle =
+                pow ( 3./4. * scat_meta[i_ss][i_se].volume * 1e18 / PI , 1./3. );
+
+                // check if scattering element is in size range
+                // (sizemax < 0 results from wildcard usage and means consider all sizes on
+                // the upper end)
+                if ( r_particle  >= sizemin &&
+                    ( sizemax >= r_particle || sizemax < 0. ))
+                {
+                    // copy selected scattering element to temp arrays
+                    scat_data_tmp[k].push_back(scat_data[i_ss][i_se]);
+                    scat_meta_tmp[k].push_back(scat_meta[i_ss][i_se]);
+                }
+                out3 << "Selecting scattering element " << i_se+1 << "/"
+                << scat_meta[i_ss].nelem()
+                << " (" << scat_meta[i_ss][i_se].material << ")\n";
+            }
         }
-      selected[j] = 1;
-      out3 << "Selecting scattering element " << j+1 << "/"
-           << scat_meta_array_tmp.nelem()
-           << " (" << scat_meta_array_tmp[j].material << ")\n";
-      }
     }
-    // WSV scat_data_per_scat_species gets the number of elements of scattering data
-    // connected to each selection String in *scat_species*   
-    scat_data_per_scat_species[k] = intarr.nelem() - intarr_total;
-    intarr_total = intarr.nelem();
 
     // To use a particle species field without associated scattering element
     // data poses a high risk of accidentially neglecting these species. That's
     // unlikely what the user intends. Hence throw error.
-    if (scat_data_per_scat_species[k]<1)
+    if (scat_meta_tmp[k].nelem()<1)
       {
         ostringstream os;
         os << "Scattering species " << partfield_name << " of type " << part_material
@@ -949,7 +959,7 @@ void ScatteringParticlesSelect (//WS Output:
   }
 
   // check if array is empty
-  if ( !intarr.nelem() )
+  if ( !TotalNumberOfElements(scat_meta_tmp) )
   {
     /* don't throw error. just a warning (should only apply when scat_species is empty)!
     ostringstream os;
@@ -975,18 +985,8 @@ void ScatteringParticlesSelect (//WS Output:
   } */
 
 
-  // resize WSVs to size of intarr
-  scat_data.resize ( intarr.nelem() );
-  scat_meta.resize ( intarr.nelem() );
-
-  for ( Index j=0; j<intarr.nelem(); j++ )
-  {
-    //append to WSV Arrays
-    scat_meta[j] = scat_meta_array_tmp[intarr[j]] ;
-    scat_data[j] = scat_data_tmp[intarr[j]] ;
-  }
-
-
+    scat_meta = scat_meta_tmp;
+    scat_data = scat_data_tmp;
 }
 
 
@@ -994,40 +994,45 @@ void ScatteringParticlesSelect (//WS Output:
 /* Workspace method: Doxygen documentation will be auto-generated */
 void particle_massesFromMetaDataSingleCategory(
         Matrix&                    particle_masses,
-  const ArrayOfScatteringMetaData& scat_meta,
+  const ArrayOfArrayOfScatteringMetaData& scat_meta,
   const Verbosity&)
 {
-  const Index np = scat_meta.nelem();
+  const Index np_total = TotalNumberOfElements(scat_meta);
 
-  particle_masses.resize(np,1);
+  particle_masses.resize(np_total,1);
 
-  for( Index i=0; i<np; i++ )
-    {
-      if( scat_meta[i].density <= 0 || 
-          scat_meta[i].density > 20e3 )
-        {
-          ostringstream os;
-          os << "A presumably incorrect value found for "
-             << "scat_meta[" << i << "].density.\n"
-             << "The value is " << scat_meta[i].density;
-          throw std::runtime_error(os.str());
-        }
+  Index i_se_flat = 0;
+  for( Index i_ss=0; i_ss<scat_meta.nelem(); i_ss++ )
+  {
+      for( Index i_se=0; i_se<scat_meta[i_ss].nelem(); i_se++ )
+      {
+          if( scat_meta[i_ss][i_se].density <= 0 ||
+             scat_meta[i_ss][i_se].density > 20e3 )
+          {
+              ostringstream os;
+              os << "A presumably incorrect value found for "
+              << "scat_meta[" << i_ss << "][" << i_se << "].density.\n"
+              << "The value is " << scat_meta[i_ss][i_se].density;
+              throw std::runtime_error(os.str());
+          }
 
-      if( scat_meta[i].volume <= 0 || 
-          scat_meta[i].volume > 0.01 )
-        {
-          ostringstream os;
-          os << "A presumably incorrect value found for "
-             << "scat_meta[" << i << "].volume.\n"
-             << "The value is " << scat_meta[i].volume;
-          throw std::runtime_error(os.str());
-        }
+          if( scat_meta[i_ss][i_se].volume <= 0 ||
+             scat_meta[i_ss][i_se].volume > 0.01 )
+          {
+              ostringstream os;
+              os << "A presumably incorrect value found for "
+              << "scat_meta[" << i_ss << "][" << i_se << "].volume.\n"
+              << "The value is " << scat_meta[i_ss][i_se].volume;
+              throw std::runtime_error(os.str());
+          }
 
-      particle_masses(i,0) = scat_meta[i].density *
-                             scat_meta[i].volume;
-    }
+          particle_masses(i_se_flat,0) = scat_meta[i_ss][i_se].density *
+          scat_meta[i_ss][i_se].volume;
+
+          i_se_flat++;
+      }
+  }
 }
-
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -1035,35 +1040,23 @@ void particle_massesFromMetaDataAndPart_species
                         (//WS Output:
                          Matrix& particle_masses,
                          // WS Input:
-                         const ArrayOfScatteringMetaData& scat_meta,
-                         const ArrayOfIndex& scat_data_per_scat_species,
-                         const ArrayOfString& scat_species,
+                         const ArrayOfArrayOfScatteringMetaData& scat_meta,
                          const Verbosity& )
 {
-  // checks
-  if (scat_data_per_scat_species.nelem() != scat_species.nelem())
-  {
-    ostringstream os;
-    os << "Dimensions of scat_species and scat_data_per_scat_species do not agree.";
-    throw runtime_error(os.str());
-  }
-
   // resize particle_masses to required diemsions and properly initialize values
-  particle_masses.resize ( scat_meta.nelem(), scat_species.nelem() );
+  particle_masses.resize ( TotalNumberOfElements(scat_meta), scat_meta.nelem() );
   particle_masses = 0.;
-  Index scat_data_start = 0;
 
   // calculate and set particle_masses
-  for ( Index k=0; k<scat_species.nelem(); k++ )
+  Index i_se_flat = 0;
+  for ( Index i_ss=0; i_ss<scat_meta.nelem(); i_ss++ )
   {
-    for ( Index j=scat_data_start; j<scat_data_start+scat_data_per_scat_species[k]; j++ )
+    for ( Index i_se=0; i_se<scat_meta[i_ss].nelem(); i_se++ )
     {
-      particle_masses (j, k) =
-        scat_meta[j].density * scat_meta[j].volume;
+      particle_masses (i_se_flat, i_ss) =
+        scat_meta[i_ss][i_se].density * scat_meta[i_ss][i_se].volume;
+      i_se_flat++;
     }
-
-    scat_data_start += scat_data_per_scat_species[k];
-
   }
 }
 
@@ -1324,7 +1317,7 @@ void pnd_fieldExpand1D(Tensor4&        pnd_field,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void pnd_fieldZero(//WS Output:
                    Tensor4& pnd_field,
-                   ArrayOfSingleScatteringData& scat_data,
+                   ArrayOfArrayOfSingleScatteringData& scat_data,
                    //WS Input:
                    const Vector& p_grid,
                    const Vector& lat_grid,
@@ -1348,20 +1341,21 @@ void pnd_fieldZero(//WS Output:
   //Resize scat_data and set it to 0:
   // Number of scattering elements
   scat_data.resize(1);
-  scat_data[0].ptype = PTYPE_MACROS_ISO;
-  scat_data[0].description = " ";
+  scat_data[0].resize(1);
+  scat_data[0][0].ptype = PTYPE_MACROS_ISO;
+  scat_data[0][0].description = " ";
   // Grids which contain full ranges which one wants to calculate
-  nlinspace(scat_data[0].f_grid, 1e9, 3.848043e+13 , 5);  
-  nlinspace(scat_data[0].T_grid, 0, 400, 5);
-  nlinspace(scat_data[0].za_grid, 0, 180, 5);
-  nlinspace(scat_data[0].aa_grid, 0, 360, 5);
+  nlinspace(scat_data[0][0].f_grid, 1e9, 3.848043e+13 , 5);
+  nlinspace(scat_data[0][0].T_grid, 0, 400, 5);
+  nlinspace(scat_data[0][0].za_grid, 0, 180, 5);
+  nlinspace(scat_data[0][0].aa_grid, 0, 360, 5);
   // Resize the data arrays
-  scat_data[0].pha_mat_data.resize(5,5,5,1,1,1,6);
-  scat_data[0].pha_mat_data = 0.;
-  scat_data[0].ext_mat_data.resize(5,5,1,1,1);
-  scat_data[0].ext_mat_data = 0.;
-  scat_data[0].abs_vec_data.resize(5,5,1,1,1);
-  scat_data[0].abs_vec_data = 0.;
+  scat_data[0][0].pha_mat_data.resize(5,5,5,1,1,1,6);
+  scat_data[0][0].pha_mat_data = 0.;
+  scat_data[0][0].ext_mat_data.resize(5,5,1,1,1);
+  scat_data[0][0].ext_mat_data = 0.;
+  scat_data[0][0].abs_vec_data.resize(5,5,1,1,1);
+  scat_data[0][0].abs_vec_data = 0.;
 }
 
 
@@ -1374,9 +1368,8 @@ void pnd_fieldSetup (//WS Output:
                      const ArrayOfIndex& cloudbox_limits,
                      const Tensor4& massdensity_field,
                      const Tensor3& t_field,
-                     const ArrayOfScatteringMetaData& scat_meta,
+                     const ArrayOfArrayOfScatteringMetaData& scat_meta,
                      const ArrayOfString& scat_species,
-                     const ArrayOfIndex& scat_data_per_scat_species,
                      const String& delim,
                      const Verbosity& verbosity)
 {
@@ -1443,9 +1436,8 @@ void pnd_fieldSetup (//WS Output:
   }
 
   //resize pnd_field to required atmospheric dimension and scattering elements
-  pnd_field.resize ( scat_meta.nelem(), limits[1]-limits[0],
+  pnd_field.resize ( TotalNumberOfElements(scat_meta), limits[1]-limits[0],
                      limits[3]-limits[2], limits[5]-limits[4] );
-  Index scat_data_start = 0;
   ArrayOfIndex intarr;
 
   //-------- Start pnd_field calculations---------------------------------------
@@ -1464,18 +1456,19 @@ void pnd_fieldSetup (//WS Output:
     parse_partfield_name( partfield_name, scat_species[k], delim);
     parse_part_material( part_material, scat_species[k], delim);
 
+    const Index N_se = scat_meta[k].nelem();
     // initialize control parameters
-    Vector vol_unsorted ( scat_data_per_scat_species[k], 0.0 );
-    Vector d_max_unsorted (scat_data_per_scat_species[k], 0.0);
-    Vector vol ( scat_data_per_scat_species[k], 0.0 );
-    Vector dm ( scat_data_per_scat_species[k], 0.0 );
-    Vector r ( scat_data_per_scat_species[k], 0.0 );
-    Vector rho ( scat_data_per_scat_species[k], 0.0 );
-    Vector pnd ( scat_data_per_scat_species[k], 0.0 );
-    //Vector pnd2 ( scat_data_per_scat_species[k], 0.0 ); //temporary
-    Vector dN ( scat_data_per_scat_species[k], 0.0 );
-    //Vector dN2 ( scat_data_per_scat_species[k], 0.0 ); //temporary
-    //Vector dlwc ( scat_data_per_scat_species[k], 0.0 ); //temporary
+    Vector vol_unsorted (N_se , 0.0 );
+    Vector d_max_unsorted (N_se, 0.0);
+    Vector vol ( N_se, 0.0 );
+    Vector dm ( N_se, 0.0 );
+    Vector r ( N_se, 0.0 );
+    Vector rho ( N_se, 0.0 );
+    Vector pnd ( N_se, 0.0 );
+    //Vector pnd2 ( N_se, 0.0 ); //temporary
+    Vector dN ( N_se, 0.0 );
+    //Vector dN2 ( N_se, 0.0 ); //temporary
+    //Vector dlwc ( N_se, 0.0 ); //temporary
 
     //Tensor3 md_field =  massdensity_field ( k, joker, joker, joker );
 
@@ -1503,8 +1496,8 @@ void pnd_fieldSetup (//WS Output:
         pnd_fieldMH97( pnd_field,
                        massdensity_field ( k, joker, joker, joker ),
                        t_field, limits,
-                       scat_meta, scat_data_start,
-                       scat_data_per_scat_species[k], scat_species[k], delim,
+                       scat_meta, k,
+                       scat_species[k], delim,
                        verbosity);
     }
 
@@ -1533,8 +1526,8 @@ void pnd_fieldSetup (//WS Output:
         pnd_fieldH11 (pnd_field,
                        massdensity_field ( k, joker, joker, joker ),
                        t_field, limits,
-                       scat_meta, scat_data_start,
-                       scat_data_per_scat_species[k], scat_species[k], delim,
+                       scat_meta, k,
+                       scat_species[k], delim,
                        verbosity);
     }
     
@@ -1563,8 +1556,8 @@ void pnd_fieldSetup (//WS Output:
         pnd_fieldH13 (pnd_field,
                        massdensity_field ( k, joker, joker, joker ),
                        t_field, limits,
-                       scat_meta, scat_data_start,
-                       scat_data_per_scat_species[k], scat_species[k], delim,
+                       scat_meta, k,
+                       scat_species[k], delim,
                        verbosity);
     }
     
@@ -1593,8 +1586,8 @@ void pnd_fieldSetup (//WS Output:
         pnd_fieldH13Shape (pnd_field,
                        massdensity_field ( k, joker, joker, joker ),
                        t_field, limits,
-                       scat_meta, scat_data_start,
-                       scat_data_per_scat_species[k], scat_species[k], delim,
+                       scat_meta, k,
+                       scat_species[k], delim,
                        verbosity);
     }
     
@@ -1624,8 +1617,8 @@ void pnd_fieldSetup (//WS Output:
         pnd_fieldMP48( pnd_field,
                        massdensity_field ( k, joker, joker, joker ),
                        limits,
-                       scat_meta, scat_data_start,
-                       scat_data_per_scat_species[k], scat_species[k], delim,
+                       scat_meta, k,
+                       scat_species[k], delim,
                        verbosity);
     }
 
@@ -1654,8 +1647,8 @@ void pnd_fieldSetup (//WS Output:
         pnd_fieldH98 (pnd_field,
                        massdensity_field ( k, joker, joker, joker ),
                        limits,
-                       scat_meta, scat_data_start,
-                       scat_data_per_scat_species[k], scat_species[k], delim,
+                       scat_meta, k,
+                       scat_species[k], delim,
                        verbosity);
     }
 
@@ -1665,11 +1658,6 @@ void pnd_fieldSetup (//WS Output:
         os << "Size distribution function '" << psd_param << "' is unknown!\n";
         throw runtime_error( os.str() );
     }
-
-    // alter starting index of current scattering data array to starting index
-    // of next iteration step
-    scat_data_start = scat_data_start + scat_data_per_scat_species[k];
-
   }
 }
 

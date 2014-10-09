@@ -1539,7 +1539,7 @@ void DoitInit(//WS Output
               const Index& doit_za_grid_size,
               const Index& cloudbox_on,
               const ArrayOfIndex& cloudbox_limits,
-              const ArrayOfSingleScatteringData& scat_data,
+              const ArrayOfArrayOfSingleScatteringData& scat_data,
               const Verbosity& verbosity)
 {
   if (!cloudbox_on)

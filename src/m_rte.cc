@@ -1155,7 +1155,7 @@ void iyMC(
    const ArrayOfIndex&               cloudbox_limits,
    const Index&                      stokes_dim,
    const Vector&                     f_grid,
-   const ArrayOfSingleScatteringData&   scat_data,
+   const ArrayOfArrayOfSingleScatteringData&   scat_data,
    const Agenda&                     iy_space_agenda,
    const Agenda&                     surface_rtprop_agenda,
    const Agenda&                     propmat_clearsky_agenda, 
@@ -1244,7 +1244,7 @@ void iyMC(
       if (failed) continue;
 
       try {
-        ArrayOfSingleScatteringData   scat_data_mono;
+        ArrayOfArrayOfSingleScatteringData   scat_data_mono;
 
         scat_data_monoCalc( scat_data_mono, scat_data,
                             f_grid, f_index, verbosity );

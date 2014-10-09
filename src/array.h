@@ -338,6 +338,36 @@ public:
 };
 
 
+//! Determine total number of elements in an ArrayOfArray
+template <class base>
+Index TotalNumberOfElements(const Array<Array<base> > aa)
+{
+    Index N_aa = 0;
+    for (Index i = 0; i < aa.nelem(); i++)
+    {
+        N_aa += aa[i].nelem();
+    }
+
+    return N_aa;
+}
+
+
+//! Determine the index of an element in a flattened version of the array
+template <class base>
+Index FlattenedIndex(const Array<Array<base> > aa, Index outer, Index inner = 0)
+{
+    assert(outer < aa.nelem());
+    assert(inner < aa[outer].nelem());
+
+    Index N = 0;
+    for (Index i = 0; i < outer; i++)
+    {
+        N += aa[i].nelem();
+    }
+
+    return N + inner;
+}
+
 // It is not a good idea to put all the predefined array types in one
 // place. If I do this than a file cannot use one without defining all
 // the others.

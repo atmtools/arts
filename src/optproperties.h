@@ -95,6 +95,7 @@ struct SingleScatteringData {
 };
 
 typedef Array<SingleScatteringData> ArrayOfSingleScatteringData;
+typedef Array<Array<SingleScatteringData> > ArrayOfArrayOfSingleScatteringData;
 
 ostream& operator<< (ostream& os, const SingleScatteringData& ssd);
 ostream& operator<< (ostream& os, const ArrayOfSingleScatteringData& assd);
@@ -124,6 +125,7 @@ struct ScatteringMetaData {
 };
 
 typedef Array<ScatteringMetaData> ArrayOfScatteringMetaData;
+typedef Array<Array<ScatteringMetaData> > ArrayOfArrayOfScatteringMetaData;
 
 ostream& operator<< (ostream& os, const ScatteringMetaData& ssd);
 ostream& operator<< (ostream& os, const ArrayOfScatteringMetaData& assd);

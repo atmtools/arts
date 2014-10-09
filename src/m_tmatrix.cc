@@ -223,7 +223,7 @@ void TMatrixTest(const Verbosity& verbosity)
 
 
 void scat_metaInit(// WS Output:
-                   ArrayOfScatteringMetaData& scat_meta,
+                   ArrayOfArrayOfScatteringMetaData& scat_meta,
                    //WS Input
                    const Verbosity&)
 {
@@ -234,7 +234,7 @@ void scat_metaInit(// WS Output:
 
                  
 void scat_metaAddTmatrix(// WS Output:
-                         ArrayOfScatteringMetaData& scat_meta,
+                         ArrayOfArrayOfScatteringMetaData& scat_meta,
                          // WS Input:
                          const GriddedField3& complex_refr_index,
                          // WS Generic input:
@@ -250,6 +250,14 @@ void scat_metaAddTmatrix(// WS Output:
                          const Verbosity&)
 
 {
+    // FIXME OLE: Where to add to scat_meta?
+  Index last_species = scat_meta.nelem()-1;
+  if (last_species < 0)
+  {
+      scat_meta.resize(1);
+      last_species = 0;
+  }
+
   for(Index k=0; k<diameter_max_grid.nelem(); k++)
     {
      for ( Index i=0; i < aspect_ratio_grid.nelem(); i++ )
@@ -326,7 +334,7 @@ void scat_metaAddTmatrix(// WS Output:
         smd.scat_T_grid = scat_T_grid;
         smd.complex_refr_index = complex_refr_index;
 
-        scat_meta.push_back(smd);
+        scat_meta[last_species].push_back(smd);
       }
     }
 }
@@ -335,64 +343,70 @@ void scat_metaAddTmatrix(// WS Output:
 
 
 void scat_dataFromMeta(// WS Output:
-                       ArrayOfSingleScatteringData& scat_data,
+                       ArrayOfArrayOfSingleScatteringData& scat_data,
                        //WS Input
-                       const ArrayOfScatteringMetaData& scat_meta,
+                       const ArrayOfArrayOfScatteringMetaData& scat_meta,
                        // WS Generic input:
                        const Vector& za_grid,
                        const Vector& aa_grid,
                        const Numeric& precision,
                        const Verbosity&)
 {
-  for(Index ii=0;ii<scat_meta.nelem();ii++)
+    for(Index i_ss=0;i_ss<scat_meta.nelem();i_ss++)
     {
-        
-    //Interpolation
-        
-    Tensor3 complex_refr_index;
-        
-        
-    const Index nf = scat_meta[ii].scat_f_grid.nelem();
-    const Index nt = scat_meta[ii].scat_T_grid.nelem();
-       
-    complex_refr_index.resize(nf,nt,2);
-  
-    complex_n_interp(complex_refr_index(joker, joker,0), complex_refr_index(joker, joker,1),
-                     scat_meta[ii].complex_refr_index, "complex_refr_index", 
-                     scat_meta[ii].scat_f_grid, scat_meta[ii].scat_T_grid);
-        
+        ArrayOfSingleScatteringData assd;
 
-      Index  np;
-
-      SingleScatteringData sdd;
-      sdd.f_grid = scat_meta[ii].scat_f_grid;
-      sdd.T_grid = scat_meta[ii].scat_T_grid;
-      sdd.za_grid = za_grid;
-      sdd.aa_grid = aa_grid;
-      sdd.ptype = scat_meta[ii].ptype;
-
-      if (scat_meta[ii].shape == "spheroidal" )
-        np=-1;
-
-      else if (scat_meta[ii].shape == "cylindrical")
-        np=-2;
-      else
+        for(Index i_se=0;i_se<scat_meta.nelem();i_se++)
         {
-          ostringstream os;
-          os << "Unknown particle shape: " << scat_meta[ii].shape << "\n"
-            << "Must be spheroidal or cylindrical";
-          throw std::runtime_error(os.str());
+
+            //Interpolation
+
+            Tensor3 complex_refr_index;
+
+            const Index nf = scat_meta[i_ss][i_se].scat_f_grid.nelem();
+            const Index nt = scat_meta[i_ss][i_se].scat_T_grid.nelem();
+
+            complex_refr_index.resize(nf,nt,2);
+
+            complex_n_interp(complex_refr_index(joker, joker,0), complex_refr_index(joker, joker,1),
+                             scat_meta[i_ss][i_se].complex_refr_index, "complex_refr_index",
+                             scat_meta[i_ss][i_se].scat_f_grid, scat_meta[i_ss][i_se].scat_T_grid);
+
+
+            Index  np;
+
+            SingleScatteringData ssd;
+            ssd.f_grid = scat_meta[i_ss][i_se].scat_f_grid;
+            ssd.T_grid = scat_meta[i_ss][i_se].scat_T_grid;
+            ssd.za_grid = za_grid;
+            ssd.aa_grid = aa_grid;
+            ssd.ptype = scat_meta[i_ss][i_se].ptype;
+
+            if (scat_meta[i_ss][i_se].shape == "spheroidal" )
+                np=-1;
+
+            else if (scat_meta[i_ss][i_se].shape == "cylindrical")
+                np=-2;
+            else
+            {
+                ostringstream os;
+                os << "Unknown particle shape: " << scat_meta[i_ss][i_se].shape << "\n"
+                << "Must be spheroidal or cylindrical";
+                throw std::runtime_error(os.str());
+            }
+
+            calcSingleScatteringDataProperties(ssd,
+                                               complex_refr_index(joker,joker,0),
+                                               complex_refr_index(joker,joker,1),
+                                               pow(scat_meta[i_ss][i_se].volume*1e18*3./(4.*PI),1./3.),
+                                               np,
+                                               scat_meta[i_ss][i_se].aspect_ratio,
+                                               precision);
+            
+            assd.push_back(ssd);
         }
 
-      calcSingleScatteringDataProperties(sdd,
-                                         complex_refr_index(joker,joker,0),
-                                         complex_refr_index(joker,joker,1),
-                                         pow(scat_meta[ii].volume*1e18*3./(4.*PI),1./3.),
-                                         np,
-                                         scat_meta[ii].aspect_ratio,
-                                         precision);
-
-      scat_data.push_back(sdd);
+        scat_data.push_back(assd);
     }
 }
 

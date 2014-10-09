@@ -79,7 +79,7 @@ void ScatteringDisort(Workspace& ws,
                       Tensor7& scat_i_lat,
                       Tensor7& scat_i_lon,
                       Index& f_index, 
-                      ArrayOfSingleScatteringData& scat_data_mono,
+                      ArrayOfArrayOfSingleScatteringData& scat_data_mono,
                       Tensor4& doit_i_field1D_spectrum,
                       // WS Input
                       const Index&     atmfields_checked,
@@ -95,7 +95,7 @@ void ScatteringDisort(Workspace& ws,
                       const Tensor3& z_field, 
                       const Vector& p_grid, 
                       const Tensor4& vmr_field,
-                      const ArrayOfSingleScatteringData& scat_data,
+                      const ArrayOfArrayOfSingleScatteringData& scat_data,
                       const Vector& f_grid,
                       const Vector& scat_za_grid,
                       const Matrix& surface_emissivity_field,
@@ -163,11 +163,11 @@ void ScatteringDisort(Workspace& ws,
   Vector ssalb(nlyr, 0.);
   
   // Phase function
-  Matrix phase_function(nlyr,scat_data[0].za_grid.nelem(), 0.);
+  Matrix phase_function(nlyr,scat_data[0][0].za_grid.nelem(), 0.);
   // Scattering angle grid, assumed here that it is the same for
   // all scattering elements
-  Vector scat_angle_grid(scat_data[0].za_grid.nelem(), 0.);
-  scat_angle_grid = scat_data[0].za_grid;
+  Vector scat_angle_grid(scat_data[0][0].za_grid.nelem(), 0.);
+  scat_angle_grid = scat_data[0][0].za_grid;
   
   // Number of streams, I think in microwave 8 is more that sufficient
   Index nstr=8 ; 
@@ -348,7 +348,7 @@ void ScatteringDisort(Workspace&,
                       Tensor7&,
                       Tensor7&,
                       Index&,
-                      ArrayOfSingleScatteringData&,
+                      ArrayOfArrayOfSingleScatteringData&,
                       Tensor4&,
                       // WS Input
                       const Index&,
@@ -364,7 +364,7 @@ void ScatteringDisort(Workspace&,
                       const Tensor3&,
                       const Vector&,
                       const Tensor4&,
-                      const ArrayOfSingleScatteringData&,
+                      const ArrayOfArrayOfSingleScatteringData&,
                       const Vector&,
                       const Vector&,
                       const Matrix&,

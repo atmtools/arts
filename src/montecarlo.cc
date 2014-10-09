@@ -147,7 +147,7 @@ void cloudy_rt_vars_at_gp(Workspace&           ws,
                           ConstTensor3View     t_field_cloud,
                           ConstTensor4View     vmr_field_cloud,
                           const Tensor4&       pnd_field,
-                          const ArrayOfSingleScatteringData& scat_data_mono,
+                          const ArrayOfArrayOfSingleScatteringData& scat_data_mono,
                           const ArrayOfIndex&  cloudbox_limits,
                           const Vector&        rte_los,
                           const Verbosity&     verbosity
@@ -336,26 +336,32 @@ void cloud_atm_vars_by_gp(
   \date   2004-31-1
 */
 void findZ11max(Vector& Z11maxvector,
-                const ArrayOfSingleScatteringData& scat_data_mono)
+                const ArrayOfArrayOfSingleScatteringData& scat_data_mono)
 {
-  Index np=scat_data_mono.nelem();
-  Z11maxvector.resize(np);
+  Z11maxvector.resize(TotalNumberOfElements(scat_data_mono));
 
-  for(Index i = 0;i<np;i++)
-    {
-      switch(scat_data_mono[i].ptype){
-      case PTYPE_MACROS_ISO:
-        {
-          Z11maxvector[i]=max(scat_data_mono[i].pha_mat_data(0,joker,joker,0,0,0,0));
-        }
-      case PTYPE_HORIZ_AL:
-        {
-          Z11maxvector[i]=max(scat_data_mono[i].pha_mat_data(0,joker,joker,0,joker,0,0));
-        }
-      default:
-        Z11maxvector[i]=max(scat_data_mono[i].pha_mat_data(0,joker,joker,joker,joker,joker,0));
+  Index i_total = -1;
+  // Loop over the included scattering species
+  for (Index i_ss = 0; i_ss<scat_data_mono.nelem(); i_ss++)
+  {
+      // Loop over the included scattering elements
+      for (Index i_se = 0; i_se < scat_data_mono[i_ss].nelem(); i_se++)
+      {
+          i_total++;
+          switch(scat_data_mono[i_ss][i_se].ptype){
+              case PTYPE_MACROS_ISO:
+              {
+                  Z11maxvector[i_total]=max(scat_data_mono[i_ss][i_se].pha_mat_data(0,joker,joker,0,0,0,0));
+              }
+              case PTYPE_HORIZ_AL:
+              {
+                  Z11maxvector[i_total]=max(scat_data_mono[i_ss][i_se].pha_mat_data(0,joker,joker,0,joker,0,0));
+              }
+              default:
+                  Z11maxvector[i_total]=max(scat_data_mono[i_ss][i_se].pha_mat_data(0,joker,joker,joker,joker,joker,0));
+          }
       }
-    }
+  }
 }
 
 
@@ -371,20 +377,21 @@ to determine if any of the scattering elements have ptype=30.
 \date 2004-1-31
 
 */
-bool is_anyptype30(const ArrayOfSingleScatteringData& scat_data_mono)
+bool is_anyptype30(const ArrayOfArrayOfSingleScatteringData& scat_data_mono)
 {
-  Index np=scat_data_mono.nelem();
-  bool anyptype30=false;
-  Index i=0;
-  while(i < np && anyptype30==false)
+    bool anyptype30=false;
+    for (Index i_ss = 0; anyptype30 == false && i_ss<scat_data_mono.nelem(); i_ss++)
     {
-      if(scat_data_mono[i].ptype==PTYPE_HORIZ_AL)
+        for (Index i_se = 0; i_se < scat_data_mono[i_ss].nelem(); i_se++)
         {
-          anyptype30=true;
+            if(scat_data_mono[i_ss][i_se].ptype==PTYPE_HORIZ_AL)
+            {
+                anyptype30=true;
+            }
         }
-      i+=1;
     }
-  return anyptype30;
+
+    return anyptype30;
 }
 
 
@@ -438,7 +445,7 @@ void mcPathTraceGeneral(
    const Tensor4&        vmr_field,
    const ArrayOfIndex&   cloudbox_limits,
    const Tensor4&        pnd_field,
-   const ArrayOfSingleScatteringData& scat_data_mono,
+   const ArrayOfArrayOfSingleScatteringData& scat_data_mono,
    const Verbosity&      verbosity )
 { 
   ArrayOfMatrix evol_opArray(2);
@@ -688,7 +695,7 @@ void opt_propCalc(
                   VectorView      abs_vec_mono,
                   const Numeric   za,
                   const Numeric   aa,
-                  const ArrayOfSingleScatteringData& scat_data_mono,
+                  const ArrayOfArrayOfSingleScatteringData& scat_data_mono,
                   const Index     stokes_dim,
                   ConstVectorView pnd_vec,
                   const Numeric   rtp_temperature,
@@ -700,7 +707,7 @@ void opt_propCalc(
   assert( ext_mat_mono.ncols() == stokes_dim );
   assert( abs_vec_mono.nelem() == stokes_dim );
 
-  const Index N_se = scat_data_mono.nelem();
+  const Index N_hm = scat_data_mono.nelem();
 
   Matrix ext_mat_mono_spt(stokes_dim,stokes_dim);
   Vector abs_vec_mono_spt(stokes_dim);
@@ -708,45 +715,51 @@ void opt_propCalc(
   ext_mat_mono=0.0;
   abs_vec_mono=0.0;  
 
-  // Loop over the included scattering elements
-  for (Index i_se = 0; i_se < N_se; i_se++)
-    {
-      if (pnd_vec[i_se]>0)
-        {
-          Index nT=scat_data_mono[i_se].T_grid.nelem();
-          if( nT > 1 )
-            {
-              //set extrapolfax explicitly. should correspond to the one assumed
-              //by gridpos call in opt_propExtract.
-              Numeric extrapolfac=0.5;
-              Numeric lowlim = scat_data_mono[i_se].T_grid[0]-
-                               extrapolfac*(scat_data_mono[i_se].T_grid[1]
-                                           -scat_data_mono[i_se].T_grid[0]);
-              Numeric uplim = scat_data_mono[i_se].T_grid[nT-1]+
-                              extrapolfac*(scat_data_mono[i_se].T_grid[nT-1]
-                                          -scat_data_mono[i_se].T_grid[nT-2]);
+  // Loop over the included scattering species
+  for (Index i_ss = 0; i_ss < N_hm; i_ss++)
+  {
+      const Index N_se = scat_data_mono[i_ss].nelem();
 
-              if( rtp_temperature<lowlim || rtp_temperature>uplim )
-                {
-                  ostringstream os;
-                  os << "Atmospheric temperature (" << rtp_temperature
-                     << "K) out of valid temperature\n"
-                     << "range of particle optical properties (" 
-                     << lowlim << "-" << uplim
-                     << "K) of scattering element #" << i_se << ".\n";
-                  throw runtime_error( os.str() );
-                }
-            }
-          opt_propExtract( ext_mat_mono_spt, abs_vec_mono_spt,
-                          scat_data_mono[i_se], za, aa,
-                          rtp_temperature, stokes_dim, verbosity);
+      // Loop over the included scattering elements
+      for (Index i_se = 0; i_se < N_se; i_se++)
+      {
+          if (pnd_vec[i_se]>0)
+          {
+              Index nT=scat_data_mono[i_ss][i_se].T_grid.nelem();
+              if( nT > 1 )
+              {
+                  //set extrapolfax explicitly. should correspond to the one assumed
+                  //by gridpos call in opt_propExtract.
+                  Numeric extrapolfac=0.5;
+                  Numeric lowlim = scat_data_mono[i_ss][i_se].T_grid[0]-
+                  extrapolfac*(scat_data_mono[i_ss][i_se].T_grid[1]
+                               -scat_data_mono[i_ss][i_se].T_grid[0]);
+                  Numeric uplim = scat_data_mono[i_ss][i_se].T_grid[nT-1]+
+                  extrapolfac*(scat_data_mono[i_ss][i_se].T_grid[nT-1]
+                               -scat_data_mono[i_ss][i_se].T_grid[nT-2]);
 
-          ext_mat_mono_spt *= pnd_vec[i_se];
-          abs_vec_mono_spt *= pnd_vec[i_se];
-          ext_mat_mono     += ext_mat_mono_spt;
-          abs_vec_mono     += abs_vec_mono_spt;
-        }
-    }
+                  if( rtp_temperature<lowlim || rtp_temperature>uplim )
+                  {
+                      ostringstream os;
+                      os << "Atmospheric temperature (" << rtp_temperature
+                      << "K) out of valid temperature\n"
+                      << "range of particle optical properties ("
+                      << lowlim << "-" << uplim
+                      << "K) of scattering element #" << i_se << ".\n";
+                      throw runtime_error( os.str() );
+                  }
+              }
+              opt_propExtract( ext_mat_mono_spt, abs_vec_mono_spt,
+                              scat_data_mono[i_ss][i_se], za, aa,
+                              rtp_temperature, stokes_dim, verbosity);
+
+              ext_mat_mono_spt *= pnd_vec[i_se];
+              abs_vec_mono_spt *= pnd_vec[i_se];
+              ext_mat_mono     += ext_mat_mono_spt;
+              abs_vec_mono     += abs_vec_mono_spt;
+          }
+      }
+  }
 }
 
 
@@ -933,7 +946,7 @@ void pha_mat_singleCalc(
                         const Numeric    aa_sca, 
                         const Numeric    za_inc, 
                         const Numeric    aa_inc,
-                        const ArrayOfSingleScatteringData& scat_data_mono,
+                        const ArrayOfArrayOfSingleScatteringData& scat_data_mono,
                         const Index      stokes_dim,
                         ConstVectorView  pnd_vec,
                         const Numeric    rtp_temperature,
@@ -947,17 +960,22 @@ void pha_mat_singleCalc(
 
   Matrix Z_spt(stokes_dim, stokes_dim, 0.);
   Z=0.0;
+  Index i_se_pnd = -1;
   // this is a loop over the different scattering elements
-  for (Index i_se = 0; i_se < N_se; i_se++)
-    {
-      if (pnd_vec[i_se]>0)
-        {
-          pha_mat_singleExtract(Z_spt,scat_data_mono[i_se],za_sca,aa_sca,za_inc,
-                                aa_inc,rtp_temperature,stokes_dim,verbosity);
-          Z_spt*=pnd_vec[i_se];
-          Z+=Z_spt;
-        }
-    }
+  for (Index i_ss = 0; i_ss<scat_data_mono.nelem(); i_ss++)
+  {
+      for (Index i_se = 0; i_se < N_se; i_se++)
+      {
+          i_se_pnd++;
+          if (pnd_vec[i_se_pnd]>0)
+          {
+              pha_mat_singleExtract(Z_spt,scat_data_mono[i_ss][i_se],za_sca,aa_sca,za_inc,
+                                    aa_inc,rtp_temperature,stokes_dim,verbosity);
+              Z_spt*=pnd_vec[i_se];
+              Z+=Z_spt;
+          }
+      }
+  }
 }
 
 
@@ -1192,7 +1210,7 @@ void Sample_los (
                  MatrixView       Z,
                  Rng&             rng,
                  ConstVectorView  rte_los,
-                 const ArrayOfSingleScatteringData& scat_data_mono,
+                 const ArrayOfArrayOfSingleScatteringData& scat_data_mono,
                  const Index      stokes_dim,
                  ConstVectorView  pnd_vec,
                  const bool       anyptype30,

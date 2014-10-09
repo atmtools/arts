@@ -347,7 +347,7 @@ void cloudbox_checkedCalc(
    const Index&          cloudbox_on,    
    const ArrayOfIndex&   cloudbox_limits,
    const Tensor4&        pnd_field,
-   const ArrayOfSingleScatteringData& scat_data,
+   const ArrayOfArrayOfSingleScatteringData& scat_data,
    const Matrix&         particle_masses,
    const ArrayOfArrayOfSpeciesTag& abs_species,
    const Verbosity&)
@@ -513,7 +513,7 @@ void cloudbox_checkedCalc(
 
       // pnd_field
       //
-      const Index np = scat_data.nelem();
+      const Index np = TotalNumberOfElements(scat_data);
       // Dummy variables to mimic grids of correct size
       Vector g1( cloudbox_limits[1]-cloudbox_limits[0]+1 ), g2(0), g3(0);
       if( atmosphere_dim >= 2 ) 

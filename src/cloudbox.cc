@@ -905,8 +905,7 @@ bool is_inside_cloudbox(const Ppath& ppath_step,
     \param t_field atmospheric temperature [K]
     \param limits pnd_field boundaries (indices in p, lat, lon)
     \param scat_meta scattering meta data for all scattering elements
-    \param scat_data_start start index for scattering elements handled by this distribution
-    \param npart number of scattering elements handled by this distribution
+    \param scat_species index for scattering species handled by this distribution
     \param part_string scat_species tag for profile/distribution handled here
     \param delim Delimiter string of *scat_species* elements
   
@@ -918,15 +917,15 @@ void pnd_fieldMH97 (Tensor4View pnd_field,
                     const Tensor3& IWC_field,
                     const Tensor3& t_field,
                     const ArrayOfIndex& limits,
-                    const ArrayOfScatteringMetaData& scat_meta,
-                    const Index& scat_data_start,
-                    const Index& npart,
+                    const ArrayOfArrayOfScatteringMetaData& scat_meta,
+                    const Index& scat_species,
                     const String& part_string,
                     const String& delim,
                     const Verbosity& verbosity)
 {
+  const Index npart = scat_meta[scat_species].nelem();
+  const Index scat_data_start = FlattenedIndex(scat_meta, scat_species);
   ArrayOfIndex intarr;
-  Index pos;
   Vector vol_unsorted ( npart, 0.0 );
   Vector vol ( npart, 0.0 );
   Vector dm ( npart, 0.0 );
@@ -944,21 +943,19 @@ void pnd_fieldMH97 (Tensor4View pnd_field,
   bool noisy = (psd_param == "MH97n");
 
   for ( Index i=0; i < npart; i++ )
-      vol_unsorted[i] = ( scat_meta[i+scat_data_start].volume );
+      vol_unsorted[i] = ( scat_meta[scat_species][i].volume );
   get_sorted_indexes(intarr, vol_unsorted);
 
   // extract scattering meta data
   for ( Index i=0; i< npart; i++ )
   {
-      pos = intarr[i]+scat_data_start;
-
-      vol[i] = ( scat_meta[pos].volume ); //m^3
+      vol[i] = ( scat_meta[scat_species][i].volume ); //m^3
       // calculate melted diameter from volume [m]
       dm[i] = pow ( 
-             ( scat_meta[pos].volume *6./PI ),
+             ( scat_meta[scat_species][i].volume *6./PI ),
              ( 1./3. ) );
       // get density from meta data [kg/m^3]
-      rho[i] = scat_meta[pos].density;
+      rho[i] = scat_meta[scat_species][i].density;
       // get aspect ratio from meta data [ ]
   }
   
@@ -1039,15 +1036,15 @@ void pnd_fieldH11 (Tensor4View pnd_field,
                    const Tensor3& IWC_field,
                    const Tensor3& t_field,
                    const ArrayOfIndex& limits,
-                   const ArrayOfScatteringMetaData& scat_meta,
-                   const Index& scat_data_start,
-                   const Index& npart,
+                   const ArrayOfArrayOfScatteringMetaData& scat_meta,
+                   const Index& scat_species,
                    const String& part_string,
                    const String& delim,
                    const Verbosity& verbosity)
 {
+  const Index npart = scat_meta[scat_species].nelem();
+  const Index scat_data_start = FlattenedIndex(scat_meta, scat_species);
   ArrayOfIndex intarr;
-  Index pos;
   Vector dmax_unsorted ( npart, 0.0 );
   Vector vol ( npart, 0.0 );
   Vector dm ( npart, 0.0 );
@@ -1060,19 +1057,17 @@ void pnd_fieldH11 (Tensor4View pnd_field,
   parse_partfield_name( partfield_name, part_string, delim);
 
   for ( Index i=0; i < npart; i++ )
-      dmax_unsorted[i] = ( scat_meta[i+scat_data_start].diameter_max );
+      dmax_unsorted[i] = ( scat_meta[scat_species][i].diameter_max );
   get_sorted_indexes(intarr, dmax_unsorted);
       
   // extract scattering meta data
   for ( Index i=0; i< npart; i++ )
   {
-      pos = intarr[i]+scat_data_start;
-
-      vol[i]= scat_meta[pos].volume; //[m^3]
+      vol[i]= scat_meta[scat_species][i].volume; //[m^3]
       // get maximum diameter from meta data [m]
-      dm[i] = scat_meta[pos].diameter_max;
+      dm[i] = scat_meta[scat_species][i].diameter_max;
       // get density from meta data [kg/m^3]
-      rho[i] = scat_meta[pos].density;
+      rho[i] = scat_meta[scat_species][i].density;
       // get aspect ratio from meta data [ ]
   }
 
@@ -1159,15 +1154,15 @@ void pnd_fieldH13 (Tensor4View pnd_field,
                    const Tensor3& IWC_field,
                    const Tensor3& t_field,
                    const ArrayOfIndex& limits,
-                   const ArrayOfScatteringMetaData& scat_meta,
-                   const Index& scat_data_start,
-                   const Index& npart,
+                   const ArrayOfArrayOfScatteringMetaData& scat_meta,
+                   const Index& scat_species,
                    const String& part_string,
                    const String& delim,
                    const Verbosity& verbosity)
 {
+  const Index npart = scat_meta[scat_species].nelem();
+  const Index scat_data_start = FlattenedIndex(scat_meta, scat_species);
   ArrayOfIndex intarr;
-  Index pos;
   Vector dmax_unsorted ( npart, 0.0 );
   Vector vol ( npart, 0.0 );
   Vector dm ( npart, 0.0 );
@@ -1181,19 +1176,17 @@ void pnd_fieldH13 (Tensor4View pnd_field,
   parse_partfield_name( partfield_name, part_string, delim);
 
   for ( Index i=0; i < npart; i++ )
-      dmax_unsorted[i] = ( scat_meta[i+scat_data_start].diameter_max );
+      dmax_unsorted[i] = ( scat_meta[scat_species][i].diameter_max );
   get_sorted_indexes(intarr, dmax_unsorted);
       
   // extract scattering meta data
   for ( Index i=0; i< npart; i++ )
   {
-      pos = intarr[i]+scat_data_start;
-
-      vol[i]= scat_meta[pos].volume; //[m^3]
+      vol[i]= scat_meta[scat_species][i].volume; //[m^3]
       // get maximum diameter from meta data [m]
-      dm[i] = scat_meta[pos].diameter_max;
+      dm[i] = scat_meta[scat_species][i].diameter_max;
       // get density from meta data [kg/m^3]
-      rho[i] = scat_meta[pos].density;
+      rho[i] = scat_meta[scat_species][i].density;
       // get aspect ratio from meta data [ ]
 //      ar[i] = scat_meta[pos].aspect_ratio;
   }
@@ -1294,20 +1287,20 @@ void pnd_fieldH13 (Tensor4View pnd_field,
 
 */
 void pnd_fieldH13Shape (Tensor4View pnd_field,
-                   const Tensor3& IWC_field,
-                   const Tensor3& t_field,
-                   const ArrayOfIndex& limits,
-                   const ArrayOfScatteringMetaData& scat_meta,
-                   const Index& scat_data_start,
-                   const Index& npart,
-                   const String& part_string,
-                   const String& delim,
-                   const Verbosity& verbosity)
+                        const Tensor3& IWC_field,
+                        const Tensor3& t_field,
+                        const ArrayOfIndex& limits,
+                        const ArrayOfArrayOfScatteringMetaData& scat_meta,
+                        const Index& scat_species,
+                        const String& part_string,
+                        const String& delim,
+                        const Verbosity& verbosity)
 { 
   CREATE_OUT1;  
     
+  const Index npart = scat_meta[scat_species].nelem();
+  const Index scat_data_start = FlattenedIndex(scat_meta, scat_species);
   ArrayOfIndex intarr;
-  Index pos;
   Vector dmax_unsorted ( npart, 0.0 );
   Vector vol ( npart, 0.0 );
   Vector dm ( npart, 0.0 );
@@ -1320,21 +1313,19 @@ void pnd_fieldH13Shape (Tensor4View pnd_field,
   parse_partfield_name( partfield_name, part_string, delim);
 
   for ( Index i=0; i < npart; i++ )
-      dmax_unsorted[i] = ( scat_meta[i+scat_data_start].diameter_max );
+      dmax_unsorted[i] = ( scat_meta[scat_species][i].diameter_max );
   get_sorted_indexes(intarr, dmax_unsorted);
   
   // extract scattering meta data
   for ( Index i=0; i< npart; i++ )
   {
-      pos = intarr[i]+scat_data_start;
-
-      vol[i]= scat_meta[pos].volume; //[m^3]
+      vol[i]= scat_meta[scat_species][i].volume; //[m^3]
       // get maximum diameter from meta data [m]
-      dm[i] = scat_meta[pos].diameter_max;
+      dm[i] = scat_meta[scat_species][i].diameter_max;
       // get density from meta data [kg/m^3]
-      rho[i] = scat_meta[pos].density;
+      rho[i] = scat_meta[scat_species][i].density;
       // get aspect ratio from meta data [ ]
-      ar[i] = scat_meta[pos].aspect_ratio;
+      ar[i] = scat_meta[scat_species][i].aspect_ratio;
   }
     // Collect all unique maximum diameters
     vector<Numeric> dm_in;
@@ -1507,15 +1498,15 @@ void pnd_fieldH13Shape (Tensor4View pnd_field,
 void pnd_fieldMP48 (Tensor4View pnd_field,
                     const Tensor3& PR_field,
                     const ArrayOfIndex& limits,
-                    const ArrayOfScatteringMetaData& scat_meta,
-                    const Index& scat_data_start,
-                    const Index& npart,
+                    const ArrayOfArrayOfScatteringMetaData& scat_meta,
+                    const Index& scat_species,
                     const String& part_string,
                     const String& delim,
                     const Verbosity& verbosity)
 {
+  const Index npart = scat_meta[scat_species].nelem();
+  const Index scat_data_start = FlattenedIndex(scat_meta, scat_species);
   ArrayOfIndex intarr;
-  Index pos;
   Vector vol_unsorted ( npart, 0.0 );
   Vector vol ( npart, 0.0 );
   Vector d ( npart, 0.0 );
@@ -1529,21 +1520,19 @@ void pnd_fieldMP48 (Tensor4View pnd_field,
   parse_partfield_name( partfield_name, part_string, delim);
 
   for ( Index i=0; i < npart; i++ )
-      vol_unsorted[i] = ( scat_meta[i+scat_data_start].volume );
+      vol_unsorted[i] = ( scat_meta[scat_species][i].volume );
   get_sorted_indexes(intarr, vol_unsorted);
 	
   // extract scattering meta data
   for ( Index i=0; i< npart; i++ )
   {
-      pos = intarr[i]+scat_data_start;
-
-      vol[i] = ( scat_meta[pos].volume ); //m^3
+      vol[i] = ( scat_meta[scat_species][i].volume ); //m^3
       // calculate volume equivalent diameter [m]
       d[i] = pow ( 
-             ( scat_meta[pos].volume *6./PI ),
+             ( scat_meta[scat_species][i].volume *6./PI ),
              ( 1./3. ) );
       // get density from meta data [kg/m^3]
-      rho[i] = scat_meta[pos].density;
+      rho[i] = scat_meta[scat_species][i].density;
   }
 
   // conversion factor from PR [kg/(m^2*s)] to PR[mm/hr]
@@ -1693,15 +1682,15 @@ void pnd_fieldMP48 (Tensor4View pnd_field,
 void pnd_fieldH98 (Tensor4View pnd_field,
                    const Tensor3& LWC_field,
                    const ArrayOfIndex& limits,
-                   const ArrayOfScatteringMetaData& scat_meta,
-                   const Index& scat_data_start,
-                   const Index& npart,
+                   const ArrayOfArrayOfScatteringMetaData& scat_meta,
+                   const Index& scat_species,
                    const String& part_string,
                    const String& delim,
                    const Verbosity& verbosity)
 {
+  const Index npart = scat_meta[scat_species].nelem();
+  const Index scat_data_start = FlattenedIndex(scat_meta, scat_species);
   ArrayOfIndex intarr;
-  Index pos;
   Vector vol_unsorted ( npart, 0.0 );
   Vector vol ( npart, 0.0 );
   Vector r ( npart, 0.0 );
@@ -1715,20 +1704,18 @@ void pnd_fieldH98 (Tensor4View pnd_field,
   parse_partfield_name( partfield_name, part_string, delim);
 
   for ( Index i=0; i < npart; i++ )
-      vol_unsorted[i] = ( scat_meta[i+scat_data_start].volume );
+      vol_unsorted[i] = ( scat_meta[scat_species][i].volume );
   get_sorted_indexes(intarr, vol_unsorted);
       
   // extract scattering meta data
   for ( Index i=0; i< npart; i++ )
   {
-      pos = intarr[i]+scat_data_start;
-
-      vol[i]= scat_meta[pos].volume; // [m^3]
+      vol[i]= scat_meta[scat_species][i].volume; // [m^3]
       // calculate radius from volume [m]
       r[i] = 0.5 * pow (
-               ( 6*scat_meta[pos].volume/PI ), ( 1./3. ) );
+               ( 6*scat_meta[scat_species][i].volume/PI ), ( 1./3. ) );
       // get density from meta data [kg/m^3]
-      rho[i] = scat_meta[pos].density;
+      rho[i] = scat_meta[scat_species][i].density;
   }
 
   if (r.nelem() > 0)

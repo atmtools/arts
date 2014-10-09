@@ -3374,9 +3374,11 @@ void Workspace::define_wsv_data()
          "\n"
          "Usage: Set by the user.\n"
          "\n"
+         "Dimensions: [scattering species, scattering elements]"
+         "\n"
          "For more details, see also *scat_meta_single*."
         ),
-        GROUP( "ArrayOfScatteringMetaData" ))); 
+        GROUP( "ArrayOfArrayOfScatteringMetaData" ))); 
 
    wsv_data.push_back
      (WsvRecord
@@ -3390,23 +3392,8 @@ void Workspace::define_wsv_data()
          "*scat_data_monoCalc*, which interpolates *scat_data* for\n"
          "the required frequency.\n"
          ),
-        GROUP( "ArrayOfSingleScatteringData" ))); 
+        GROUP( "ArrayOfArrayOfSingleScatteringData" ))); 
 
-   wsv_data.push_back
-     (WsvRecord
-      ( NAME( "scat_data_per_scat_species" ),
-        DESCRIPTION
-        (
-         "Auxiliary array holding the number of scattering elements per\n"
-         "scattering species as defined by *scat_species*.\n"
-         "\n"
-         "Size of *scat_data_per_scat_species* has to be equal the size of\n"
-         "*scat_species*.\n"
-         "\n"
-         "Usage: Output of *ScatteringParticlesSelect*\n"
-        ),
-        GROUP( "ArrayOfIndex" ))); 
-     
    wsv_data.push_back
      (WsvRecord
       ( NAME( "scat_data" ),
@@ -3423,8 +3410,7 @@ void Workspace::define_wsv_data()
          "\n"
          "Usage: Method ouput.\n"
          "\n"
-         "Dimensions: Array[number of scattering elements] \n"
-         "  SingleScatteringData \n"
+         "Members: SingleScatteringData:\n"
          "  Enum[ptype attribute]\n"
          "  String[description] \n"
          "  Vector[f_grid]\n"
@@ -3439,8 +3425,11 @@ void Workspace::define_wsv_data()
          "      [f_grid, T_grid, za_grid, aa_grid, matrix_element]\n"
          "  Tensor5[abs_vec_data]\n"
          "      [f_grid, T_grid, za_grid, aa_grid, matrix_element]\n"
+         "\n"
+         "Dimensions: [number of scattering species, number of scattering elements] \n"
+         "\n"
          ),
-        GROUP( "ArrayOfSingleScatteringData" ))); 
+        GROUP( "ArrayOfArrayOfSingleScatteringData" )));
    
  wsv_data.push_back
    (WsvRecord

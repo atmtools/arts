@@ -189,35 +189,47 @@ void dtauc_ssalbCalc(Workspace& ws,
 void phase_functionCalc(//Output
                        MatrixView phase_function,
                        //Input
-                       const ArrayOfSingleScatteringData& scat_data_mono, 
+                       const ArrayOfArrayOfSingleScatteringData& scat_data_mono,
                        ConstTensor4View pnd_field)
 {
   Matrix phase_function_level(pnd_field.npages(), 
-                              scat_data_mono[0].za_grid.nelem(), 0.);
+                              scat_data_mono[0][0].za_grid.nelem(), 0.);
   
   //Loop over pressure levels
   for (Index i_p = 0; i_p < pnd_field.npages(); i_p++)
     {
       // Loop over scattering angles
-      for (Index i_t = 0; i_t < scat_data_mono[0].za_grid.nelem(); i_t++)
+      for (Index i_t = 0; i_t < scat_data_mono[0][0].za_grid.nelem(); i_t++)
         {
           // Calculate ensemble averaged extinction coefficient
           Numeric sca_coeff=0.;
-          
-          for (Index j = 0; j < scat_data_mono.nelem(); j++)
-            sca_coeff +=  pnd_field(j, i_p, 0, 0) *
-              (scat_data_mono[j].ext_mat_data(0, 0, 0, 0, 0)-
-              scat_data_mono[j].abs_vec_data(0, 0, 0, 0, 0));
-          
-          // Phase function
-            for (Index j = 0; j < scat_data_mono.nelem(); j++)
+
+          Index i_se_flat = 0;
+          for (Index i_ss = 0; i_ss < scat_data_mono.nelem(); i_ss++)
+          {
+              for (Index i_se = 0; i_se < scat_data_mono[i_ss].nelem(); i_se++)
               {
-                if (sca_coeff != 0)
-                  phase_function_level(i_p, i_t) += 
-                    pnd_field(j, i_p, 0, 0) *
-                     scat_data_mono[j].pha_mat_data(0, 0, i_t, 0, 0, 0, 0)
-                    *4*PI/sca_coeff;// Normalization
+                  sca_coeff +=  pnd_field(i_se, i_p, 0, 0) *
+                  (scat_data_mono[i_ss][i_se].ext_mat_data(0, 0, 0, 0, 0)-
+                   scat_data_mono[i_ss][i_se].abs_vec_data(0, 0, 0, 0, 0));
+                  i_se_flat++;
               }
+          }
+
+          // Phase function
+          i_se_flat = 0;
+          for (Index i_ss = 0; i_ss < scat_data_mono.nelem(); i_ss++)
+          {
+              for (Index i_se = 0; i_se < scat_data_mono.nelem(); i_se++)
+              {
+                  if (sca_coeff != 0)
+                      phase_function_level(i_p, i_t) +=
+                      pnd_field(i_se, i_p, 0, 0) *
+                      scat_data_mono[i_ss][i_se].pha_mat_data(0, 0, i_t, 0, 0, 0, 0)
+                      *4*PI/sca_coeff;// Normalization
+                  i_se_flat++;
+              }
+          }
 
         }
     }

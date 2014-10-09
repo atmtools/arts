@@ -80,7 +80,7 @@ void iyCloudRadar(
    const ArrayOfIndex&                cloudbox_limits,
    const Tensor4&                     pnd_field,
    const Index&                       use_mean_scat_data,
-   const ArrayOfSingleScatteringData& scat_data,
+   const ArrayOfArrayOfSingleScatteringData& scat_data,
    const Matrix&                      particle_masses,
    const String&                      iy_unit,
    const ArrayOfString&               iy_aux_vars,
@@ -214,7 +214,7 @@ void iyCloudRadar(
   Tensor5   dummy_abs_per_species;
   Vector    scalar_tau;
   ArrayOfIndex clear2cloudbox;
-  Array<ArrayOfSingleScatteringData> scat_data_single;
+  Array<ArrayOfArrayOfSingleScatteringData> scat_data_single;
   //
   if( np > 1 )
     {

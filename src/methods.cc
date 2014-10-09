@@ -7705,7 +7705,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "scat_meta", "scat_data_per_scat_species", "scat_species" ),
+        IN( "scat_meta" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -8104,7 +8104,7 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "atmosphere_dim","cloudbox_on", "cloudbox_limits",
             "massdensity_field", "t_field", "scat_meta",
-            "scat_species", "scat_data_per_scat_species" ),
+            "scat_species" ),
         GIN( "delim" ),
         GIN_TYPE( "String" ),
         GIN_DEFAULT( "-" ),
@@ -9551,12 +9551,9 @@ void define_md_data_raw()
          "considered scattering species (implying a sorting of the selected\n"
          "*scat_meta* and *scat_data* according to the scattering\n"
          "species they correspond to).\n"
-         "Additionally, *scat_data_per_scat_species* is created, which contains\n"
-         "the number of scattering elements that have been selected for each of\n"
-         "the scattering species.\n"
          ),
         AUTHORS( "Daniel Kreyling" ),
-        OUT( "scat_data", "scat_meta", "scat_data_per_scat_species" ),
+        OUT( "scat_data", "scat_meta" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
