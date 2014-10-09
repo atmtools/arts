@@ -1,9 +1,17 @@
 2014-10-09  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-3-32
+
+	* ChangeLog: Slight retouching.
+
+2014-10-09  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-3-31
 
-	* Change of data type of scat_data and scat_meta from an
-	ArrayOfSingleScatteringData to ArrayOfArrayOfSingleScatteringData.
+	* Change of data types of scat_data and scat_meta from
+	ArrayOfSingleScatteringData to ArrayOfArrayOfSingleScatteringData
+	and 
+	ArrayOfScatteringMetaData to ArrayOfArrayOfScatteringMetaData.
 
 	* src/workspace.cc:
 
