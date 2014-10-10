@@ -108,20 +108,20 @@ following
 fields (compare also Table \ref{tab:scattering:datastructure}):
 
 \begin{itemize}
-\item  {\sl enum} \shortcode{ptype}: An attribute which contains
+\item  {\sl String} \shortcode{ptype}: An attribute which contains
   information about the 
   data type, which is a classification of the scattering
   particle, specifically regarding its symmetry properties (randomly oriented,
-horizontally aligned, general case, \dots). This attribute is
+  horizontally aligned, general case, \dots). This attribute is
   needed in the radiative transfer function to be able to extract
   the physical phase matrix, the physical extinction matrix and the
   physical absorption vector from the data. 
   
   Possible values of ptype are:
   
-  \shortcode{PARTICLE\_TYPE\_GENERAL} = 10 \\
-  \shortcode{PARTICLE\_TYPE\_MACROS\_ISO} = 20\\
-  \shortcode{PARTICLE\_TYPE\_HORIZ\_AL} = 30\\
+  \shortcode{"general"} \\
+  \shortcode{"macroscopically\_isotropic"} \\
+  \shortcode{"horizontally\_aligned"}
   
   A more detailed description of the different cases is given below.
 
@@ -138,16 +138,16 @@ horizontally aligned, general case, \dots). This attribute is
   
 \item {\sl Vector} \shortcode{za\_grid}:
   \begin{enumerate}
-  \item \shortcode{p10, p30}: Zenith angle grid (Range: 0.0\degree $\le$ za $\le$ 180.0\degree).
-  \item \shortcode{p20}: Scattering angle grid (Range: 0.0\degree $\le$ za $\le$ 180.0\degree).
+  \item \shortcode{"general", }: Zenith angle grid (Range: 0.0\degree $\le$ za $\le$ 180.0\degree).
+  \item \shortcode{"horizontally\_aligned"}: Scattering angle grid (Range: 0.0\degree $\le$ za $\le$ 180.0\degree).
   \end{enumerate}
   
 \item {\sl Vector} \shortcode{aa\_grid}: Azimuth angle grid.
   \begin{enumerate}
-  \item \shortcode{p10}: Range: -180.0\degree $\le$ aa $\le$ 180.0\degree
-  \item \shortcode{p20}: Not needed, since optical properties depend only on
+  \item \shortcode{"general"}: Range: -180.0\degree $\le$ aa $\le$ 180.0\degree
+  \item \shortcode{"macroscopically\_isotropic"}: Not needed, since optical properties depend only on
     scattering angle (dummy grid).
-  \item \shortcode{p30}: Only half of the grid is required (Range: 0.0\degree $\le$ aa $\le$ 180.0\degree)
+  \item \shortcode{"horizontally\_aligned"}: Only half of the grid is required (Range: 0.0\degree $\le$ aa $\le$ 180.0\degree)
   \end{enumerate}
   
   The angular grids have to satisfy the following conditions:
@@ -222,7 +222,7 @@ coordinate system to represent the scattering element in. Below we give a more
 detailed description of each possible ptype classification in the model.
 
 \subsubsection{Macroscopically isotropic and mirror-symmetric scattering
-  media (p20)}
+  media}
 For macroscopically isotropic and mirror-symmetric scattering media
 (totally randomly oriented particles) the optical properties are
 calculated in the so-called scattering frame as shown in
@@ -260,7 +260,7 @@ case is the same as \shortcode{ext\_mat\_data}:
 
 \shortcode{[N\_f N\_T 1 1 1]}
 
-\paragraph{Horizontally aligned plates and columns (p30)}
+\paragraph{Horizontally aligned plates and columns}
 
 For horizontally particles
 that are oriented randomly in the azimuth, the angular dimension can be
@@ -293,7 +293,7 @@ The absorption coefficient vector has only two elements {\sl a1} and
 
 \shortcode{[N\_f N\_T N\_za/2+1 1 2]}
 
-\paragraph{General case (p10)}
+\paragraph{General case}
 
 If there are no symmetries at all we have to store all 16 elements of
 the phase matrix. The average phase matrix has to be generated from

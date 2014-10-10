@@ -1,3 +1,15 @@
+2014-10-10  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-33
+
+	* doc/uguide/Figs/scattering/interp_err.pdf,
+	doc/uguide/clouds.tex,
+	doc/uguide/montecarlo.tex,
+	doc/uguide/scattering.tex:
+
+	Replace p10, p20, p30 with strings "general",
+	"macroscopically_isotropic" and "horizontally_aligned".
+
 2014-10-09  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-32
