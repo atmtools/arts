@@ -39,7 +39,7 @@ requirements. The following section describes in detail the
 
 The number density field, \wsvindex{pnd\_field}, contains the number densities
 of all scattering elements at all grid points within the cloudbox. Section
-\ref{sec:clouds:size} describes how to realize different kinds of size distributions in the
+\ref{sec:clouds:size_distr} describes how to realize different kinds of size distributions in the
 ARTS frame by defining appropriate particle number density fields.
 \wsvindex{pnd\_field} can be read in from externally prepared data files or be
 derived from mass density of flux fields provided to the model. Section
@@ -90,22 +90,15 @@ between the incident and the scattering direction.
  \end{center}
 \end{figure}
 
-\subsection{Scattering datafile structure}
+\subsection{Scattering data structure}
 \label{sec:clouds:ARTS_SSP_structure}
  
-The single scattering properties are pre-calculated, for example by
-using the T-matrix 
-code by \citet{Mishchenko:02}, and stored in data-files. Different
-methods for the calculation of single scattering properties are
-reviewed in \citet{emde05:_phdthesis}. 
-
-The format of the scattering database allows space reduction due to
+The single scattering data is stored in a specific structure format, the
+the \typeindex{SingleScatteringData} class\footnote{Definition resides in
+\fileindex{optproperties.h}.}. The format allows space reduction due to
 symmetry for certain special cases, e.g. random orientation or
-horizontal alignment. The file format is XML. The data is stored in a
-class called \typeindex{SingleScatteringData}, which resides in
-the files \fileindex{optproperties.h}. The class consists of the
-following 
-fields (compare also Table \ref{tab:scattering:datastructure}):
+horizontal alignment. The class consists of the following fields (compare also
+Table \ref{tab:scattering:datastructure}):
 
 \begin{itemize}
 \item  {\sl String} \shortcode{ptype}: An attribute which contains
@@ -152,13 +145,13 @@ fields (compare also Table \ref{tab:scattering:datastructure}):
   
   The angular grids have to satisfy the following conditions:
   \begin{itemize}
-  \item They have to be equidistant.
+  \item They have to be equidistant. \FIXME{is this actually (still) true?}
   \item The value of the data must be the same for the first and the
-    last grid-point. This condition is required for the integration
-    routine.
+    last grid-point \FIXME{of the azimuthal grid? doesn't make sense for zenith
+    angle grid.}. This condition is required for the integration routine.
   \item If we only have to store a part of the grid, for example
-    \shortcode{za\_grid} only from 0\degree to 90\degree, these two values (0\degree, 90\degree) must be
-    grid-points. 
+    \shortcode{za\_grid} only from 0\degree to 90\degree, these two values
+    (0\degree, 90\degree) must be grid-points.
   \end{itemize}
   
 \item {\sl Tensor7} \shortcode{pha\_mat\_data}: Phase matrix data
@@ -221,10 +214,11 @@ orientation. As described above, this effects the optimal choice of the
 coordinate system to represent the scattering element in. Below we give a more
 detailed description of each possible ptype classification in the model.
 
-\subsubsection{Macroscopically isotropic and mirror-symmetric scattering
-  media}
-For macroscopically isotropic and mirror-symmetric scattering media
-(totally randomly oriented particles) the optical properties are
+\subsubsection{``macroscopically\_isotropic''}
+The ptype value ``macroscopically\_isotropic'' refers to macroscopically
+isotropic and mirror-symmetric scattering media. It covers totally randomly
+oriented particles as well as spherical particles.
+For this type of scattering media the optical properties are
 calculated in the so-called scattering frame as shown in
 Figure \ref{fig:scattering:part_frame}. In this coordinate 
 system the z-axis corresponds to the incident direction and the
@@ -260,10 +254,12 @@ case is the same as \shortcode{ext\_mat\_data}:
 
 \shortcode{[N\_f N\_T 1 1 1]}
 
-\paragraph{Horizontally aligned plates and columns}
+\subsubsection{``horizontally\_aligned''}
 
-For horizontally particles
-that are oriented randomly in the azimuth, the angular dimension can be
+The ptype value ``horizontally\_aligned'' refers to particles that are
+aligned with respect to polar angle, specifically in horizontal direction, but
+oriented randomly regarding the azimuthal angle. For these particles,
+the angular dimension can be
 reduced by one, if we rotate the coordinate system appropriately. For
 this case we use the T-matrix code for single particles in fixed
 orientation and average phase matrix and extinction matrix manually
@@ -293,10 +289,11 @@ The absorption coefficient vector has only two elements {\sl a1} and
 
 \shortcode{[N\_f N\_T N\_za/2+1 1 2]}
 
-\paragraph{General case}
+\subsubsection{``general''}
 
-If there are no symmetries at all we have to store all 16 elements of
-the phase matrix. The average phase matrix has to be generated from
+The ptype value ``general'' refers to arbitrarily shaped and oriented particles.
+For those, generally no symmetries ecist, hence all 16 elements of
+the phase matrix have to be stored. The average phase matrix has to be generated from
 all individual phase matrices of the particles in the distribution
 outside ARTS. The individual phase matrices are calculated using
 Mishchenko's T-matrix code for single particles in fixed orientation
@@ -319,8 +316,20 @@ accordingly:
 
 \shortcode{[N\_f N\_T N\_za\_inc N\_aa\_inc 4]}
 
-\paragraph{Generating single scattering properties}
-It is very convenient to use the Python module PyARTS, which has been
+\subsection{Generating single scattering properties}
+The single scattering properties have to be pre-calculated before entering the
+scattering solver. This can be done for example by Mie, T-Matrix or
+Discrete dipole approximation methods. Different methods for the calculation of
+single scattering properties are reviewed in \citet{emde05:_phdthesis}.
+
+Calculations of the single scattering properties can be done by external tools
+or by internally interfaced methods:
+\begin{itemize}
+\item
+The ATMLAB package includes functions to generate single scattering
+properties for spherical particles (Mie-Theory). 
+\item
+It is also convenient to use the Python module PyARTS, which has been
 developed especially for ARTS and which is freely available at
 \href{http://www.sat.ltu.se/arts/tools/}
 {\url{http://www.sat.ltu.se/arts/tools/}}. This
@@ -329,9 +338,10 @@ horizontally aligned as well as for randomly oriented particles in the
 ARTS data-file-format. PyARTS has been developed by C. Davis, who has
 implemented the Monte Carlo scattering algorithm in ARTS (see
 \theory, Section \ref{T-sec:montecarlo}).
-The ATMLAB package includes functions to generate single scattering
-properties for spherical particles (Mie-Theory). 
-
+\item
+The WSM \wsmindex{scat\_data\_singleTmatrix} provides an ARTS internal interface
+to the the T-matrix code by \citet{Mishchenko:02}.
+\end{itemize}
 
 \section[Particle size distributions]
 {Representation of the \textindex{particle size distribution}}
@@ -525,8 +535,8 @@ ParticleTypeInit
 # Only one scattering element is added in this example 
 ParticleTypeAdd( scat_data, pnd_field_raw,
                  atmosphere_dim, f_grid,
-                 "ssd_sphere_50um_p20.xml",
-                 "pnd_sphere_50um_p20.xml" )
+                 "ssd_sphere_50um_macroscopically_isotropic.xml",
+                 "pnd_sphere_50um_macroscopically_isotropic.xml" )
 \end{code}
 In the workspace method \wsmindex{ParticleTypeAdd} the single
 scattering properties for one scattering element are read. The
@@ -543,8 +553,8 @@ cylindrical particles:
 \begin{code}
 ParticleTypeAdd( scat_data, pnd_field_raw,
                  atmosphere_dim, f_grid,
-                 "ssd_cylinder_30um_p30.xml",
-                 "pnd_cylinder_30um_p30.xml" )
+                 "ssd_cylinder_30um_horizontally_aligned.xml",
+                 "pnd_cylinder_30um_horizontally_aligned.xml" )
 \end{code}
 Alternatively it is possible to use the method
 \wsmindex{ParticleTypeAddAll}, which is convenient to generate a size
@@ -570,8 +580,8 @@ pnd_fieldCalc
 The definition of the single scattering data along with the
 corresponding particle number density fields is common in both
 scattering modules, the DOIT module described in 
-Chapter \ref{sec:scattering} and the Monte Carlo module described in
-\theory, Chapter \ref{T-sec:montecarlo}.
+Chapter \ref{sec:scattering:doit} and the Monte Carlo module in
+Chapter \ref{sec:scattering:mc}.
 
 
 %%% Local Variables: 

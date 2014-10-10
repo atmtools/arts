@@ -61,6 +61,7 @@ if (PDFLATEX_COMPILER AND BIBTEX_COMPILER AND MAKEINDEX_COMPILER)
                       "${CMAKE_CURRENT_SOURCE_DIR}/rte_theory.tex"
                       "${CMAKE_CURRENT_SOURCE_DIR}/polarization.tex"
                       "${CMAKE_CURRENT_SOURCE_DIR}/ppath_theory.tex"
+                      "${CMAKE_CURRENT_SOURCE_DIR}/doit.tex"
                       "${CMAKE_CURRENT_SOURCE_DIR}/montecarlo.tex")
   file (GLOB FIGFILES "${CMAKE_CURRENT_SOURCE_DIR}/Figs/*/*.pdf")
   ARTS_ADD_TEX_DOC ("arts_theory" "${TEXFILES}" "${FIGFILES}")

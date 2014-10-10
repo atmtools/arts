@@ -1,3 +1,30 @@
+2014-10-10  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-3-34
+
+	Make sure, SingleScatteringData and UseDOIT wiki parts are represented
+	in AUG or built-in doc.
+
+	* doc/uguide/clouds.tex: Checked for complete coverage of wiki's
+	SingleScatteringData info. Some small issues updated along the way.
+	FIXMEs raised on angular grid requirements.
+
+	* doc/uguide/scattering.tex: removed DOIT theory part from here, i.e.
+	the scattering doc in AUG. Checked for complete coverage of wiki's
+	UseDOIT info. Some small issues updated along the way.
+
+	* doc/uguide/doit.tex: Added. DOIT part for ATD, containing the method
+	theory description formerly in AUG.
+
+	* doc/uguide/montecarlo.tex, atmosphere.tex, ppath.tex, absorption.tex,
+	integration.tex, concept.tex, arts_user.tex:
+	References adapted to AUG/ATD separation of DOIT part.
+	
+	* doc/uguide/arts_theory.tex, CMakeLists.txt:
+	Adapted to cover moved ATD DOIT chapter.
+
+	* src/cloudbox.cc: spellfix.
+
 2014-10-10  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-33

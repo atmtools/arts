@@ -545,10 +545,9 @@ void chk_scattering_data(const ArrayOfSingleScatteringData& scat_data,
   if (scat_data.nelem() != scat_meta.nelem())
   {
     ostringstream os;
-    os << "The number of elments in *scat_data*\n"
-    << "and *scat_meta* do not match.\n"
-    << "Each SingleScattering file must correspond\n"
-    << "to one ScatteringMeta data file.";
+    os << "The number of elements in *scat_data* and *scat_meta* do not match.\n"
+       << "Each SingleScattering file must correspond to one ScatteringMeta"
+       << " data file.";
     throw runtime_error( os.str());
   }
 
