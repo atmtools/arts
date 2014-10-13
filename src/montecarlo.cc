@@ -859,9 +859,9 @@ void opt_propExtract(
       if( scat_data_single.T_grid.nelem() == 1)
         {
           ostringstream os;
-          os << "Given optical property data are for constant temperature "
-             << "only.\nMC with p30 requires temperature-dependent optical "
-             << "property data\n";
+          os << "Given optical property data are for constant temperature\n"
+             << "only.\nMC with \"horizontally_aligned\" particles requires\n"
+             << "temperature-dependent optical property data\n";
           throw runtime_error( os.str() );
         }
 
@@ -1056,7 +1056,8 @@ void pha_mat_singleExtract(
         {
           ostringstream os;
           os << "Given optical property data is for constant temperature only.\n"
-                "MC with p30 requires temperature-dependent optical property data\n";
+                "MC with \"horizontally_aligned\" requires temperature-dependent\n"
+                "optical property data\n";
                 throw runtime_error( os.str() );
         }
       

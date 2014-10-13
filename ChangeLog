@@ -1,3 +1,22 @@
+2014-10-13  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-35
+
+	* src/xml_io_compound_types.cc (xml_read_from_stream):
+
+	Add runtime error check for ptype for SingleScatteringData version < 2.
+
+	* src/cloudbox.cc (chk_scat_data):
+
+	Change ptype check to assertion. Runtime error check is now done in
+	the reading routine.
+
+	Replace references to ptype 10,20,30 with strings.
+
+	* src/montecarlo.cc (opt_propExtract), src/rte.cc (emission_rtstep):
+
+	Replace references to ptype 30 with string.
+
 2014-10-10  Jana Mendrok  <jana.mendrok@ltu.se>
 
 	* arts-2-3-34

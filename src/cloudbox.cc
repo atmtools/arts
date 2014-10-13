@@ -610,20 +610,11 @@ void chk_scat_data(const SingleScatteringData& scat_data,
   out2 << "  Check single scattering properties file "<< scat_data_file 
        << "\n";
 
-  if (scat_data.ptype != 10 &&
-      scat_data.ptype != 20 &&
-      scat_data.ptype != 30)
-    {
-      ostringstream os; 
-      os << "Ptype value in file" << scat_data_file << "is wrong."
-         << "It must be \n"
-         << "10 - arbitrary oriented particles \n"
-         << "20 - randomly oriented particles or \n"
-         << "30 - horizontally aligned particles.\n";
-      throw runtime_error( os.str() );
-    }
-    
-    chk_interpolation_grids("scat_data.f_grid to f_grid",
+  assert(scat_data.ptype == PTYPE_GENERAL ||
+         scat_data.ptype == PTYPE_MACROS_ISO ||
+         scat_data.ptype == PTYPE_HORIZ_AL);
+
+  chk_interpolation_grids("scat_data.f_grid to f_grid",
 			    scat_data.f_grid,
 			    f_grid);
   
@@ -673,20 +664,20 @@ void chk_scat_data(const SingleScatteringData& scat_data,
       throw runtime_error( os.str() );
     } 
   
-  if (scat_data.ptype == 10 && scat_data.aa_grid[0] != -180.)
+  if (scat_data.ptype == PTYPE_GENERAL && scat_data.aa_grid[0] != -180.)
      {
        ostringstream os;
-       os << "For ptype = 10 (general orientation) the first value"
+       os << "For ptype = \"general\" the first value"
           << " of the aa grid in the single scattering"
           << " properties datafile " 
           << scat_data_file << "must be -180.";
          throw runtime_error( os.str() );
      } 
   
-  if (scat_data.ptype == 30 && scat_data.aa_grid[0] != 0.)
+  if (scat_data.ptype == PTYPE_HORIZ_AL && scat_data.aa_grid[0] != 0.)
     {
       ostringstream os;
-      os << "For ptype = 30 (horizontal orientation)"
+      os << "For ptype = \"horizontally_aligned\""
          << " the first value"
          << " of the aa grid in the single scattering"
          << " properties datafile " 
@@ -694,10 +685,11 @@ void chk_scat_data(const SingleScatteringData& scat_data,
         throw runtime_error( os.str() );
     }   
   
-  if (scat_data.ptype == 30 && last(scat_data.aa_grid) != 180.)
+  if (scat_data.ptype == PTYPE_HORIZ_AL && last(scat_data.aa_grid) != 180.)
     {
       ostringstream os;
-      os << "The last value of the aa grid in the single"
+      os << "For ptype = \"horizontally_aligned\""
+         << " the last value of the aa grid in the single"
          << " scattering properties datafile " 
          << scat_data_file << " must be 180.";
         throw runtime_error( os.str() );

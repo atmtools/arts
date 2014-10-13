@@ -1239,6 +1239,18 @@ void xml_read_from_stream(istream& is_xml,
     {
       Index ptype;
       xml_read_from_stream(is_xml, ptype, pbifs, verbosity);
+      if (ptype != PTYPE_GENERAL &&
+          ptype != PTYPE_MACROS_ISO &&
+          ptype != PTYPE_HORIZ_AL)
+      {
+            ostringstream os;
+            os << "Ptype value (" << ptype << ") is wrong."
+            << "It must be \n"
+            << "10 - arbitrary oriented particles \n"
+            << "20 - randomly oriented particles or \n"
+            << "30 - horizontally aligned particles.\n";
+            throw runtime_error( os.str() );
+      }
       ssdata.ptype = PType(ptype);
     }
   xml_read_from_stream(is_xml, ssdata.description, pbifs, verbosity);
