@@ -1,5 +1,12 @@
 2014-10-14  Richard Larsson <ric.larsson@gmail.com>
 	
+	* arts-2-3-37
+	
+	* src/absorption.{cc,h}:  Small optimization for several pressure levels
+	in line mixing.
+
+2014-10-14  Richard Larsson <ric.larsson@gmail.com>
+	
 	* arts-2-3-36
 	
 	* src/absorption.{cc,h}:  Added support for several pressure levels

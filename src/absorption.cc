@@ -1560,6 +1560,7 @@ void xsec_species_line_mixing_wrapper(  MatrixView               xsec_attenuatio
     {
       
       //Helper var 
+      ArrayOfLineRecord tmp_none_mixed_lines;
       Matrix tmp_vmrs(all_vmrs.nrows(),1);
       Vector tmp_p(1),tmp_t(1);
       for(Index jj=0; jj<abs_p.nelem();jj++)
@@ -1574,21 +1575,8 @@ void xsec_species_line_mixing_wrapper(  MatrixView               xsec_attenuatio
           switch(abs_lines[ii].LineMixing().Type())
           {
             case LineMixingData::LM_NONE:
-              xsec_species_line_mixing_none(
-                                          xsec_attenuation(joker,jj),
-                                          xsec_phase(joker,jj),
-                                          f_grid,
-                                          tmp_p,
-                                          tmp_t,
-                                          tmp_vmrs,
-                                          abs_species,
-                                          this_species,
-                                          abs_lines[ii],
-                                          ind_ls,
-                                          ind_lsn,
-                                          cutoff,
-                                          isotopologue_ratios,
-                                          verbosity );
+              if(jj==0)
+                tmp_none_mixed_lines.push_back(abs_lines[ii]);
               break;
               
             case LineMixingData::LM_LBLRTM:
@@ -1648,6 +1636,12 @@ void xsec_species_line_mixing_wrapper(  MatrixView               xsec_attenuatio
               break;
           }
       }
+      // Deal with these lines together
+      if(tmp_none_mixed_lines.nelem()>0)
+        xsec_species(xsec_attenuation, xsec_phase, f_grid, abs_p, abs_t, all_vmrs,
+                     abs_species, this_species, tmp_none_mixed_lines, ind_ls, ind_lsn, cutoff,
+                     isotopologue_ratios, verbosity);
+    
     }
     
 }
@@ -1908,7 +1902,7 @@ void xsec_species_line_mixing_none(    VectorView               xsec_attenuation
                 isotopologue_ratios, verbosity);
     
     // Do the actual line mixing and add this to xsec_attenuation.
-    xsec_phase += phase(joker,0); // FIXME: This works with Z-LM, but not for lines that are not Zeeman split...
+    xsec_phase += phase(joker,0); 
     xsec_attenuation += attenuation(joker,0);
     
 }
