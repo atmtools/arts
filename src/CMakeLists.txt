@@ -240,6 +240,7 @@ add_library (artscore STATIC
   xml_io_array_types.cc
   xml_io_basic_types.cc
   xml_io_compound_types.cc
+  zeeman.cc
 	)
 add_dependencies (artscore auto_version_h)
 

@@ -537,6 +537,8 @@ public:
 
   /** Quantum numbers */
   const QuantumNumberRecord& QuantumNumbers() const { return mquantum_numbers; }
+  void SetQuantumNumberLower(const Index i, const Rational r) { mquantum_numbers.SetLower(i,r); }
+  void SetQuantumNumberUpper(const Index i, const Rational r) { mquantum_numbers.SetUpper(i,r); }
     
   LineMixingData LineMixing() const { return mlinemixingdata; }
   void SetLineMixingData(const LineMixingData input) { mlinemixingdata=input; }

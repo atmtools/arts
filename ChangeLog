@@ -1,3 +1,13 @@
+2014-10-14  Richard Larsson <ric.larsson@gmail.com>
+	
+	* arts-2-3-40
+	
+	* src/m_zeeman.cc:   Starting modularization of code.
+	
+	* src/zeeman.{cc,h}: Modules for the Zeeman code added.  The goal is to 
+	make Zeeman more modular to make extensions of functionality easier.
+	Hope is for more speed improvements.  Work still in progress.
+
 2014-10-14  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-39

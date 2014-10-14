@@ -40,6 +40,7 @@
  */
 typedef enum {
     QN_J,           // Total
+    QN_M,           // Projection of J
     QN_N,           // Total-Spin
     QN_S,           // Electronic spin
     QN_F,           // Total + nuclear spin
