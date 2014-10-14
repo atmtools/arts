@@ -596,21 +596,6 @@ void xsec_species_LBLRTM_O2NonResonant(   VectorView               xsec_attenuat
                                           const Verbosity&         verbosity );
 
 
-void xsec_species_line_mixing_none(       VectorView               xsec_attenuation,
-                                          VectorView               xsec_phase,
-                                          ConstVectorView          f_grid,
-                                          ConstVectorView          abs_p,
-                                          ConstVectorView          abs_t,
-                                          ConstMatrixView          all_vmrs,
-                                          const ArrayOfArrayOfSpeciesTag& abs_species,
-                                          const Index              this_species,
-                                          const LineRecord&        my_line,
-                                          const Index              ind_ls,
-                                          const Index              ind_lsn,
-                                          const Numeric            cutoff,
-                                          const SpeciesAuxData&    isotopologue_ratios,
-                                          const Verbosity&         verbosity );
-
 // A helper function for energy conversion:
 Numeric wavenumber_to_joule(Numeric e);
 

@@ -1,5 +1,20 @@
 2014-10-14  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-3-39
+
+	* src/absorption.cc (xsec_species_line_mixing_2nd_order,
+	xsec_species_line_mixing_LBLRTM, xsec_species_LBLRTM_O2NonResonant):
+
+	Slight performance improvements.
+
+	* src/absorption.{cc,h} (xsec_species_line_mixing_none): Removed.
+
+	* src/m_zeeman.cc (propmat_clearskyAddZeeman):
+
+	Approx. 50% performance improvement for extensive test case.
+
+2014-10-14  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-3-38
 
 	* src/absorption.cc (xsec_species_line_mixing_wrapper):

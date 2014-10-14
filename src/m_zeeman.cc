@@ -476,12 +476,20 @@ void propmat_clearskyAddZeeman(Tensor4& propmat_clearsky,
 
         Numeric DF, RS; // Delta Frequency and Relative Strength
 
+            // Reinitialize every loop to empty the set.
+        ArrayOfLineRecord temp_abs_lines_sm, temp_abs_lines_sp, //sigma minus, sigma plus
+                          temp_abs_lines_pi; // pi
+
         // For all species
         for(Index II = 0; II<abs_species.nelem(); II++)
         {
-            // Reinitialize every loop to empty the set.
-            ArrayOfLineRecord temp_abs_lines_sm, temp_abs_lines_sp, //sigma minus, sigma plus
-                              temp_abs_lines_pi; // pi
+            temp_abs_lines_sm.resize(0);
+            temp_abs_lines_sp.resize(0);
+            temp_abs_lines_pi.resize(0);
+
+            temp_abs_lines_sm.reserve(25000);
+            temp_abs_lines_sp.reserve(25000);
+            temp_abs_lines_pi.reserve(25000);
 
             // If the species isn't Zeeman, look at the next species
             if(!is_zeeman(abs_species[II])) continue;

@@ -1711,10 +1711,10 @@ void xsec_species_line_mixing_2nd_order(VectorView               xsec_attenuatio
     G  *= p * p;
     DV *= p * p;
     
-    LineRecord temp = my_line;
-    temp.setF(my_line.F()+DV);
-    const ArrayOfLineRecord ll(1,temp); // Temporary variable to trick xsec_species
-    
+    ArrayOfLineRecord ll(1);
+    ll[0] = my_line; // Temporary variable to trick xsec_species
+    ll[0].setF(ll[0].F()+DV);
+
     xsec_species(attenuation, phase, f_grid, abs_p, abs_t, all_vmrs,
                 abs_species, this_species, ll, ind_ls, ind_lsn, cutoff,
                 isotopologue_ratios, verbosity);
@@ -1779,8 +1779,9 @@ void xsec_species_line_mixing_LBLRTM(  VectorView               xsec_attenuation
     Y  *= p;
     G  *= p * p;
     
-    const ArrayOfLineRecord ll(1,my_line); // Temporary variable to trick xsec_species
-    
+    ArrayOfLineRecord ll(1);
+    ll[0] = my_line; // Temporary variable to trick xsec_species
+
     xsec_species(attenuation, phase, f_grid, abs_p, abs_t, all_vmrs,
                 abs_species, this_species, ll, ind_ls, ind_lsn, cutoff,
                 isotopologue_ratios, verbosity);
@@ -1851,7 +1852,8 @@ void xsec_species_LBLRTM_O2NonResonant( VectorView               xsec_attenuatio
     // use the same as the user defines.
     
     
-    const ArrayOfLineRecord ll(1, my_line); // Temporary variable to trick xsec_species
+    ArrayOfLineRecord ll(1);
+    ll[0] = my_line; // Temporary variable to trick xsec_species
     
     xsec_species(attenuation, phase, f_grid, abs_p, abs_t, all_vmrs,
                 abs_species, this_species, ll, tmp[0].Ind_ls(), ind_lsn, cutoff,
@@ -1859,61 +1861,5 @@ void xsec_species_LBLRTM_O2NonResonant( VectorView               xsec_attenuatio
     
     attenuation *= 1 - gamma1 - gamma2;
     xsec_attenuation += attenuation(joker,0); 
-    
-}
-
-
-/** 
- *  
- *  This is the LBLRTM line mixing correction as found in their database.
- *  
- *  \retval xsec_attenuation    Cross section of one tag group. This is now the
- *                              true attenuation cross section in units of m^2.
- *  \retval xsec_phase          Cross section of one tag group. This is now the
- *                              true phase cross section in units of m^2.
- *  \param f_grid               Frequency grid.
- *  \param abs_p                Pressure grid.
- *  \param abs_t                Temperatures associated with abs_p.
- *  \param all_vmrs             Gas volume mixing ratios [nspecies, np].
- *  \param abs_species          Species tags for all species.
- *  \param this_species         Index of the current species in abs_species.
- *  \param my_lines             The linerecord.
- *  \param ind_ls               Index to lineshape function.
- *  \param ind_lsn              Index to lineshape norm.
- *  \param cutoff               Lineshape cutoff.
- *  \param isotopologue_ratios  Isotopologue ratios.
- * 
- *  \author Richard Larsson
- *  \date   2013-04-24
- * 
- */
-void xsec_species_line_mixing_none(    VectorView               xsec_attenuation,
-                                       VectorView               xsec_phase,
-                                       ConstVectorView          f_grid,
-                                       ConstVectorView          abs_p,
-                                       ConstVectorView          abs_t,
-                                       ConstMatrixView          all_vmrs,
-                                       const ArrayOfArrayOfSpeciesTag& abs_species,
-                                       const Index              this_species,
-                                       const LineRecord&        my_line,
-                                       const Index              ind_ls,
-                                       const Index              ind_lsn,
-                                       const Numeric            cutoff,
-                                       const SpeciesAuxData&    isotopologue_ratios,
-                                       const Verbosity&         verbosity )
-{
-    
-    // Helper variables
-    Matrix attenuation(f_grid.nelem(),1,0), phase(f_grid.nelem(),1,0);
-    
-    const ArrayOfLineRecord ll(1,my_line); // Temporary variable to trick xsec_species
-    
-    xsec_species(attenuation, phase, f_grid, abs_p, abs_t, all_vmrs,
-                abs_species, this_species, ll, ind_ls, ind_lsn, cutoff,
-                isotopologue_ratios, verbosity);
-    
-    // Do the actual line mixing and add this to xsec_attenuation.
-    xsec_phase += phase(joker,0); 
-    xsec_attenuation += attenuation(joker,0);
     
 }
