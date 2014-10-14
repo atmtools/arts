@@ -1,3 +1,13 @@
+2014-10-14  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-38
+
+	* src/absorption.cc (xsec_species_line_mixing_wrapper):
+
+	Vectorized pressure loop.
+
+	Use index array to select non-linemixing lines to improve performance.
+
 2014-10-14  Richard Larsson <ric.larsson@gmail.com>
 	
 	* arts-2-3-37

@@ -1560,12 +1560,15 @@ void xsec_species_line_mixing_wrapper(  MatrixView               xsec_attenuatio
     {
       
       //Helper var 
-      ArrayOfLineRecord tmp_none_mixed_lines;
-      Matrix tmp_vmrs(all_vmrs.nrows(),1);
-      Vector tmp_p(1),tmp_t(1);
+      ArrayOfIndex tmp_none_mixed_lines_index;
+
+#pragma omp parallel for     \
+if (!arts_omp_in_parallel())
       for(Index jj=0; jj<abs_p.nelem();jj++)
       {
-        
+        Matrix tmp_vmrs(all_vmrs.nrows(),1);
+        Vector tmp_p(1),tmp_t(1);
+
         // These are wrappers that are very slow for many pressure levels...
         tmp_p[0]=abs_p[jj];
         tmp_t[0]=abs_t[jj];
@@ -1576,7 +1579,7 @@ void xsec_species_line_mixing_wrapper(  MatrixView               xsec_attenuatio
           {
             case LineMixingData::LM_NONE:
               if(jj==0)
-                tmp_none_mixed_lines.push_back(abs_lines[ii]);
+                tmp_none_mixed_lines_index.push_back(ii);
               break;
               
             case LineMixingData::LM_LBLRTM:
@@ -1637,10 +1640,18 @@ void xsec_species_line_mixing_wrapper(  MatrixView               xsec_attenuatio
           }
       }
       // Deal with these lines together
-      if(tmp_none_mixed_lines.nelem()>0)
+      if(tmp_none_mixed_lines_index.nelem()>0)
+      {
+        ArrayOfLineRecord tmp_none_mixed_lines(tmp_none_mixed_lines_index.nelem());
+        for (Index i = 0; i < tmp_none_mixed_lines_index.nelem(); i++)
+        {
+            tmp_none_mixed_lines[i] = abs_lines[tmp_none_mixed_lines_index[i]];
+        }
+
         xsec_species(xsec_attenuation, xsec_phase, f_grid, abs_p, abs_t, all_vmrs,
                      abs_species, this_species, tmp_none_mixed_lines, ind_ls, ind_lsn, cutoff,
                      isotopologue_ratios, verbosity);
+      }
     
     }
     
