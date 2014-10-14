@@ -549,8 +549,8 @@ void xsec_species_line_mixing_wrapper(      MatrixView               xsec_attenu
                                             const Verbosity&         verbosity );
 
 
-void xsec_species_line_mixing_2nd_order(    MatrixView               xsec_attenuation,
-                                            MatrixView               xsec_phase,
+void xsec_species_line_mixing_2nd_order(    VectorView               xsec_attenuation,
+                                            VectorView               xsec_phase,
                                             ConstVectorView          f_grid,
                                             ConstVectorView          abs_p,
                                             ConstVectorView          abs_t,
@@ -564,8 +564,8 @@ void xsec_species_line_mixing_2nd_order(    MatrixView               xsec_attenu
                                             const SpeciesAuxData&    isotopologue_ratios,
                                             const Verbosity&         verbosity );
 
-void xsec_species_line_mixing_LBLRTM(       MatrixView               xsec_attenuation,
-                                            MatrixView               xsec_phase,
+void xsec_species_line_mixing_LBLRTM(       VectorView               xsec_attenuation,
+                                            VectorView               xsec_phase,
                                             ConstVectorView          f_grid,
                                             ConstVectorView          abs_p,
                                             ConstVectorView          abs_t,
@@ -580,8 +580,8 @@ void xsec_species_line_mixing_LBLRTM(       MatrixView               xsec_attenu
                                             const Verbosity&         verbosity );
 
 
-void xsec_species_LBLRTM_O2NonResonant(   MatrixView               xsec_attenuation,
-                                          //MatrixView               xsec_phase,
+void xsec_species_LBLRTM_O2NonResonant(   VectorView               xsec_attenuation,
+                                          //VectorView               xsec_phase,
                                           ConstVectorView          f_grid,
                                           ConstVectorView          abs_p,
                                           ConstVectorView          abs_t,
@@ -590,14 +590,14 @@ void xsec_species_LBLRTM_O2NonResonant(   MatrixView               xsec_attenuat
                                           const Index              this_species,
                                           const LineRecord&        my_line,
                                           //const Index              ind_ls,
-                                          //const Index              ind_lsn,
+                                          const Index              ind_lsn,
                                           const Numeric            cutoff,
                                           const SpeciesAuxData&    isotopologue_ratios,
                                           const Verbosity&         verbosity );
 
 
-void xsec_species_line_mixing_none(       MatrixView               xsec_attenuation,
-                                          MatrixView               xsec_phase,
+void xsec_species_line_mixing_none(       VectorView               xsec_attenuation,
+                                          VectorView               xsec_phase,
                                           ConstVectorView          f_grid,
                                           ConstVectorView          abs_p,
                                           ConstVectorView          abs_t,
