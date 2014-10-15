@@ -108,3 +108,19 @@ void alter_linerecord(LineRecord& new_LR,
                       const Index& DO_RS,
                       const Index& DO_DF,
                       const Index& DO_QR);
+
+
+void create_Zeeman_linerecordarrays(ArrayOfArrayOfLineRecord& aoaol,
+                                    const ArrayOfArrayOfSpeciesTag& abs_species,
+                                    const ArrayOfArrayOfLineRecord& abs_lines_per_species,
+                                    const SpeciesAuxData& isotopologue_quantum,
+                                    const Numeric& H_mag,
+                                    const Index&DO_RS,
+                                    const Index&DO_DF,
+                                    const Index&DO_QR,
+                                    const Index&DO_Main,
+                                    const Index&DO_J,
+                                    const Index&DO_M,
+                                    const Verbosity& verbosity);
+
+void set_part_isotopolouge_constants(Index& hund,Numeric& GS,const SpeciesAuxData& isotopologue_quantum,const LineRecord& temp_LR);

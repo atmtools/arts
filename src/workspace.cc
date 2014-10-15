@@ -4987,6 +4987,17 @@ void Workspace::define_wsv_data()
        "Dimensions: [ lat_grid, lon_grid ]\n"
        ),
       GROUP( "Matrix" )));
+   
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "zeeman_linerecord_precalc" ),
+      DESCRIPTION
+      (
+       "LineRecord holder for speedy Zeeman effect calculaions.\n"
+       "\n"
+       "Dimensions: none or three times the Zeeman species in *abs_species*\n"
+       ),
+      GROUP( "ArrayOfArrayOfLineRecord" )));
 }
 
 

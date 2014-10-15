@@ -469,12 +469,6 @@ void alter_linerecord(LineRecord& new_LR,
                       const Index& DO_DF,
                       const Index& DO_QR)
 {
-  if(DO_DF!=0)
-  { 
-    const Numeric DF =  frequency_change(Main, M, J, S, DJ, DM, DMain, H_mag, GS);
-    new_LR.setF(  old_LR.F()  + DF );
-  }
-  
   if(DO_RS!=0)
   { 
     const Numeric RS = relative_strength(M, J, DJ, DM);
@@ -482,9 +476,235 @@ void alter_linerecord(LineRecord& new_LR,
     new_LR.setI0( old_LR.I0() * RS );
   }
   
+  if(DO_DF!=0)
+  { 
+    const Numeric DF =  frequency_change(Main, M, J, S, DJ, DM, DMain, H_mag, GS);
+    new_LR.setF(  old_LR.F()  + DF );
+  }
+  
   if(DO_QR!=0)
   { 
     new_LR.SetQuantumNumberLower(QN_M, M);
     new_LR.SetQuantumNumberUpper(QN_M, M+DM);
   }
+}
+
+
+
+void create_Zeeman_linerecordarrays(
+        ArrayOfArrayOfLineRecord& aoaol,
+        const ArrayOfArrayOfSpeciesTag& abs_species,
+        const ArrayOfArrayOfLineRecord& abs_lines_per_species,
+        const SpeciesAuxData& isotopologue_quantum,
+        const Numeric& H_mag,
+        const Index&DO_RS,
+        const Index&DO_DF,
+        const Index&DO_QR,
+        const Index&DO_Main,
+        const Index&DO_J,
+        const Index&DO_M,
+        const Verbosity& verbosity)
+{
+    CREATE_OUT3;
+    
+    // Note that this function assumes that all tests that are not line specifice are done elsewhere
+    
+    const Numeric margin    = 1e-4; // This margin is for relative strength and can perhaps be lowered by returning RS as Rational?
+    
+    // Reisize every loop to empty the set.
+    ArrayOfLineRecord temp_abs_lines_sm, temp_abs_lines_sp, //sigma minus, sigma plus
+                        temp_abs_lines_pi; // pi
+    Numeric (*frequency_change)(const Rational&, const  Rational&, const Rational&, 
+                                  const Numeric&, const Index&, const Index&, 
+                                  const Index&, const Numeric&, const Numeric&);
+    // holder names
+    Numeric GS;
+    Index hund;
+
+      // For all species
+      for(Index II = 0; II<abs_species.nelem(); II++)
+      {
+          temp_abs_lines_sm.resize(0);
+          temp_abs_lines_sp.resize(0);
+          temp_abs_lines_pi.resize(0);
+
+          temp_abs_lines_sm.reserve(25000);
+          temp_abs_lines_sp.reserve(25000);
+          temp_abs_lines_pi.reserve(25000);
+
+          // If the species isn't Zeeman, look at the next species
+          if(!is_zeeman(abs_species[II])) continue;
+          
+          // Else loop over all the lines in the species.
+          for (Index ii = 0; ii< abs_lines_per_species[II].nelem(); ii++)
+          {
+                  
+                  set_part_isotopolouge_constants(hund,GS,isotopologue_quantum,abs_lines_per_species[II][ii]);
+                  // local LineRecord
+                  LineRecord temp_LR = abs_lines_per_species[II][ii];
+                  Numeric RS_sum     = 0; //Sum relative strength (which ought be close to one by the end)
+                  // Only look at lines which have no change in the main rotational number
+                  
+                  // Separate setting of the frequency_change function...
+                  if( hund ==0 )//Case a
+                      frequency_change=frequency_change_casea;
+                  else if( hund == 1 )// Case b
+                      frequency_change=frequency_change_caseb;
+                  else
+                  {
+                      std::ostringstream os;
+                      os << "There are undefined Hund cases: " << temp_LR << 
+                      "\nThe case is: "<<hund<<", allowed are (a): "<<0<<" and (b): " << 1<<"\n";
+                      throw std::runtime_error(os.str());
+                  }
+                  
+                  // Quantum numbers
+                  Rational Main,J,NA;
+                  Index DMain,DJ,DNA;
+                  Numeric S;
+                  
+                  set_quantum_numbers( Main, DMain, J, DJ, NA, DNA, S,
+                                        temp_LR, hund, isotopologue_quantum,
+                                        DO_Main, DO_J, DO_M);
+                  
+                  if (!J.isUndefined() != 0 && !Main.isUndefined() != 0 ) // This means the lines are considered erroneous if they fail.
+                  {
+
+                      for ( Rational M = -J+DJ; M<=J-DJ; M++ )
+                      {
+                          /*
+                              Note that:
+                              sp := sigma plus,  which means DM =  1
+                              sm := sigma minus, which means DM = -1
+                              pi := planar,      which means DM =  0
+                            */
+                          if ( DJ ==  1 )
+                          { // Then all DM transitions possible for all M
+                              alter_linerecord( temp_LR, RS_sum, abs_lines_per_species[II][ii], Main, M, J, S, DJ, -1,//DM
+                                                DMain, H_mag, GS, frequency_change, DO_RS,DO_DF,DO_QR);
+                              temp_abs_lines_sm.push_back(temp_LR);
+
+                              alter_linerecord( temp_LR, RS_sum, abs_lines_per_species[II][ii], Main, M, J, S, DJ, 0,//DM
+                                                DMain, H_mag, GS, frequency_change, DO_RS,DO_DF,DO_QR);
+                              temp_abs_lines_pi.push_back(temp_LR);
+
+                              alter_linerecord( temp_LR, RS_sum, abs_lines_per_species[II][ii], Main, M, J, S, DJ, +1,//DM
+                                                DMain, H_mag, GS, frequency_change, DO_RS,DO_DF,DO_QR);
+                              temp_abs_lines_sp.push_back(temp_LR);
+                          }
+                          else if ( DJ ==  0 )
+                          { // Then all DM transitions possible for all M
+                              alter_linerecord( temp_LR, RS_sum, abs_lines_per_species[II][ii], Main, M, J, S, DJ, -1,//DM
+                                                DMain, H_mag, GS, frequency_change, DO_RS,DO_DF,DO_QR);
+                              temp_abs_lines_sm.push_back(temp_LR);
+                              if( ! (M == 0) )
+                              {
+                                  alter_linerecord( temp_LR, RS_sum, abs_lines_per_species[II][ii], Main, M, J, S, DJ, 0,//DM
+                                                    DMain, H_mag, GS, frequency_change, DO_RS,DO_DF,DO_QR);
+                                  temp_abs_lines_pi.push_back(temp_LR);
+                              }
+
+                              alter_linerecord( temp_LR, RS_sum, abs_lines_per_species[II][ii], Main, M, J, S, DJ, +1,//DM
+                                                DMain, H_mag, GS, frequency_change, DO_RS,DO_DF,DO_QR);
+                              temp_abs_lines_sp.push_back(temp_LR);
+                          }
+                          else if ( DJ == -1 )
+                          { // Then certain M results in blocked DM transitions
+                              if ( M == -J + DJ && M!=0 )
+                              { // Lower limit M only allows DM = 1
+                                  alter_linerecord( temp_LR, RS_sum, abs_lines_per_species[II][ii], Main, M, J, S, DJ, +1,//DM
+                                                    DMain, H_mag, GS, frequency_change, DO_RS,DO_DF,DO_QR);
+                                  temp_abs_lines_sp.push_back(temp_LR);
+
+                              }
+                              else if ( M == -J + DJ + 1 && M!=0 )
+                              { // Next to lower limit M can only allow DM = 1, 0
+                                  alter_linerecord( temp_LR, RS_sum, abs_lines_per_species[II][ii], Main, M, J, S, DJ, +1,//DM
+                                                    DMain, H_mag, GS, frequency_change, DO_RS,DO_DF,DO_QR);
+                                  temp_abs_lines_sp.push_back(temp_LR);
+
+                                  alter_linerecord( temp_LR, RS_sum, abs_lines_per_species[II][ii], Main, M, J, S, DJ, 0,//DM
+                                                DMain, H_mag, GS, frequency_change, DO_RS,DO_DF,DO_QR);
+                                  temp_abs_lines_pi.push_back(temp_LR);
+                              }
+                              else if ( M ==  J - DJ - 1 && M!=0 )
+                              { // Next to upper limit M can only allow DM = 0, -1
+                                  alter_linerecord( temp_LR, RS_sum, abs_lines_per_species[II][ii], Main, M, J, S, DJ, 0,//DM
+                                                DMain, H_mag, GS, frequency_change, DO_RS,DO_DF,DO_QR);
+                                  temp_abs_lines_pi.push_back(temp_LR);
+
+                                  alter_linerecord( temp_LR, RS_sum, abs_lines_per_species[II][ii], Main, M, J, S, DJ, -1,//DM
+                                                    DMain, H_mag, GS, frequency_change, DO_RS,DO_DF,DO_QR);
+                                  temp_abs_lines_sm.push_back(temp_LR);
+                              }
+                              else if ( M == J - DJ && M!=0 )
+                              { // Upper limit M only allow DM = -1
+                                  alter_linerecord( temp_LR, RS_sum, abs_lines_per_species[II][ii], Main, M, J, S, DJ, -1,//DM
+                                                    DMain, H_mag, GS, frequency_change, DO_RS,DO_DF,DO_QR);
+                                  temp_abs_lines_sm.push_back(temp_LR);
+                              }
+                              else if( (-J + DJ + 1) ==  (J - DJ - 1) && M == 0)
+                              { // Special case for N=1, J=0, M=0. Only allows DM = 0
+                                  alter_linerecord( temp_LR, RS_sum, abs_lines_per_species[II][ii], Main, M, J, S, DJ, 0,//DM
+                                                    DMain, H_mag, GS, frequency_change, DO_RS,DO_DF,DO_QR);
+                                  temp_abs_lines_pi.push_back(temp_LR);
+                              }
+                              else
+                              { // All DM transitions are possible for these M(s)
+                                  alter_linerecord( temp_LR, RS_sum, abs_lines_per_species[II][ii], Main, M, J, S, DJ, +1,//DM
+                                                    DMain, H_mag, GS, frequency_change, DO_RS,DO_DF,DO_QR);
+                                  temp_abs_lines_sp.push_back(temp_LR);
+
+                                  alter_linerecord( temp_LR, RS_sum, abs_lines_per_species[II][ii], Main, M, J, S, DJ, 0,//DM
+                                                DMain, H_mag, GS, frequency_change, DO_RS,DO_DF,DO_QR);
+                                  temp_abs_lines_pi.push_back(temp_LR);
+
+                                  alter_linerecord( temp_LR, RS_sum, abs_lines_per_species[II][ii], Main, M, J, S, DJ, -1,//DM
+                                                DMain, H_mag, GS, frequency_change, DO_RS,DO_DF,DO_QR);
+                                  temp_abs_lines_sm.push_back(temp_LR);
+                              }
+                          }
+                          else
+                          { // The tests above failed and catastrophe follows
+                              std::ostringstream os;
+                              os << "There seems to be something wrong with the quantum numbers of at least one line in your *abs_lines*. " <<
+                                  "Make sure this is a Zeeman line.\nThe upper quantum numbers are: " << 
+                                  temp_LR.QuantumNumbers().Upper() <<
+                                  "\nThe lower quantum numbers are: " <<
+                                  temp_LR.QuantumNumbers().Lower() <<
+                                  "\nThe entire line information: " << temp_LR;
+                              throw std::runtime_error(os.str());
+                          }
+                      }
+
+                      if (abs(RS_sum-1.)>margin) //Reasonable confidence?
+                      {
+                          std::ostringstream os;
+                          os << "The sum of relative strengths is not close to one. This is severly problematic and "
+                              "you should look into why this happens.\nIt is currently " << RS_sum 
+                              << " with DJ: "<<DJ<<", DMain: "<<DMain<<" for line: "<<
+                              temp_LR <<"\n";
+                          throw std::runtime_error(os.str());
+                      }
+                  }
+                  else
+                  {
+                      std::ostringstream os;
+                      os << "There are undefined quantum numbers in the line: " << temp_LR 
+                      << "\nJ is "<<J<<" and Main is "<<Main<<std::endl;
+                      throw std::runtime_error(os.str());
+                  }
+          }
+          
+          aoaol.push_back(temp_abs_lines_sm); // First is neative
+          aoaol.push_back(temp_abs_lines_pi); // Second is 0
+          aoaol.push_back(temp_abs_lines_sp); // Third is positive
+      }
+}
+
+
+void set_part_isotopolouge_constants(Index& hund,Numeric& GS,const SpeciesAuxData& isotopologue_quantum,const LineRecord& temp_LR)
+{
+  hund = (Index) isotopologue_quantum.getParam(temp_LR.Species(), temp_LR.Isotopologue(), 2);
+  GS   = isotopologue_quantum.getParam(temp_LR.Species(), temp_LR.Isotopologue(), 0); 
 }

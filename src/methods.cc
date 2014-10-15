@@ -8647,6 +8647,40 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "propmat_clearskyAddZeemanFromPreCalc" ),
+        DESCRIPTION
+        (
+        "Calculates Zeeman-effected absorption coefficients.\n"
+        "\n"
+        "This method will use a precalculated ArrayOfArrayOfLineRecord to get the\n"
+        "Zeeman effect into the propagation matrix.\n"
+        "\n"
+        "The other inputs are similar as for *propmat_clearskyAddZeeman*.\n"
+         ),
+        AUTHORS( "Richard Larsson" ),
+        OUT("propmat_clearsky","zeeman_linerecord_precalc"),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN("propmat_clearsky",
+           "zeeman_linerecord_precalc",
+           "f_grid",
+           "abs_species",
+           "abs_lineshape",
+           "isotopologue_ratios",
+           "isotopologue_quantum",
+           "rtp_pressure", "rtp_temperature", "rtp_vmr",
+           "rtp_mag", "rtp_los", "atmosphere_dim"),
+        GIN("manual_zeeman_tag","manual_zeeman_magnetic_field_strength",
+            "manual_zeeman_theta","manual_zeeman_eta"),
+        GIN_TYPE("Index","Numeric","Numeric","Numeric"),
+        GIN_DEFAULT("0","1.0","0.0","0.0"),
+        GIN_DESC("Manual angles tag","Manual Magnetic Field Strength",
+                 "Manual theta given positive tag","Manual eta given positive tag")
+        ));
+    
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "propmat_clearskyInit" ),
         DESCRIPTION
         (
@@ -12541,4 +12575,26 @@ void define_md_data_raw()
         GIN_DEFAULT(),
         GIN_DESC()
         ));
+    
+    md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "ZeemanLineRecordPreCalc" ),
+        DESCRIPTION
+        (
+         "Creates a Zeeman ArrayOfArrayOfLineRecord prior to atmospheric looping.\n"
+         "\n"
+         "Will reset the *zeeman_linerecord_precalc* at every call.\n"
+         ),
+        AUTHORS( "Richard Larsson" ),
+        OUT( "zeeman_linerecord_precalc" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "abs_species", "abs_lines_per_species", "isotopologue_quantum"  ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+    
 }

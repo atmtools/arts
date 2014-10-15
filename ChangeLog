@@ -1,3 +1,29 @@
+2014-10-15  Richard Larsson <ric.larsson@gmail.com>
+	
+	* arts-2-3-42
+	
+	* src/m_zeeman.cc:   Created two new functions to calculate Zeeman
+	effect a little bit different.  These new methods makes the Zeeman 
+	test cases 10 to 25% faster, but should offer much larger speed
+	improvements on higher p_grid:s.  
+	
+	The old Zeeman code still works as before but will be slower for
+	magnetic fields that are exactly zero.  Documentation pending.
+	
+	Use (ZeemanLineRecordPreCalc) after the linerecords are finalized
+	and change (propmat_clearskyAddZeeman) to
+	(propmat_clearskyAddZeemanFromPreCalc) in the agenda to use the
+	new method.
+	
+	* src/zeeman.{cc,h}: Incorporated linerecord creation in this
+	file.
+	
+	* src/workspace.cc:  Added zeeman_linerecord_precalc.
+	
+	* {the rest}:  Controlfiles for test added; looks at the same
+	comparison with both Zeeman methods.  Agenda call added to agendas.arts.
+	Corresponding fixes in m_checked and methods.
+
 2014-10-15  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-41
