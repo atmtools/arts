@@ -1,3 +1,15 @@
+2014-10-15  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-41
+
+	* src/quantum.{cc,h} (QuantumNumbers):
+
+	Change QuantumContainer from std::map to Array. Speeds up the extensive
+	zeeman test case by 1.5x on Linux and 2x on Mac. Even though the array
+	now allocates space for all quantum numbers instead of just the ones
+	that actually exist, early test have shown that it does not use more
+	memory than the prior std::map implementation.
+
 2014-10-14  Richard Larsson <ric.larsson@gmail.com>
 	
 	* arts-2-3-40

@@ -39,7 +39,7 @@
  to handle the added numbers.
  */
 typedef enum {
-    QN_J,           // Total
+    QN_J=0,         // Total
     QN_M,           // Projection of J
     QN_N,           // Total-Spin
     QN_S,           // Electronic spin
@@ -58,20 +58,28 @@ typedef enum {
 class QuantumNumbers
 {
 public:
-    typedef std::map<Index, Rational> QuantumContainer;
+    typedef Array<Rational> QuantumContainer;
+
+    QuantumNumbers()
+    {
+        mqnumbers.resize(QN_FINAL_ENTRY);
+        for (Index i = 0; i < mqnumbers.nelem(); i++)
+            mqnumbers[i] = RATIONAL_UNDEFINED;
+    }
 
     //! Return copy of quantum number
     const Rational operator[](const Index qn) const
     {
-        QuantumContainer::const_iterator it = mqnumbers.find(qn);
-        if (it != mqnumbers.end())
-            return it->second;
-        else
-            return RATIONAL_UNDEFINED;
+        assert(qn < QN_FINAL_ENTRY);
+        return mqnumbers[qn];
     }
 
     //! Set quantum number
-    void Set(Index qn, Rational r) { assert(qn < QN_FINAL_ENTRY); mqnumbers[qn] = r; }
+    void Set(Index qn, Rational r)
+    {
+        assert(qn < QN_FINAL_ENTRY);
+        mqnumbers[qn] = r;
+    }
 
     const QuantumContainer& GetNumbers() const { return mqnumbers; }
 

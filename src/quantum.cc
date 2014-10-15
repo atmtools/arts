@@ -34,28 +34,24 @@ bool QuantumNumbers::Compare(const QuantumNumbers& qn) const
 
     bool match = true;
 
-    QuantumContainer::const_iterator qnr1it = mqnumbers.begin();
-    QuantumContainer::const_iterator qnr2it;
+    Index qnri = 0;
 
-    // Loop over all quantum numbers in mqnumbers and use their keys
-    // to find the corresponding numbers in qnumbers2
-    while (match && qnr1it != mqnumbers.end())
+    // Compare all quantum numbers in mqnumbers and qnumbers2
+    while (match && qnri != QN_FINAL_ENTRY)
     {
-        qnr2it = qnumbers2.find(qnr1it->first);
-
         // If one of the two numbers is undefined, it is considered as
         // a match.
-        if (qnr2it != qnumbers2.end()
-            && !(qnr1it->second).isUndefined()
-            && !(qnr2it->second).isUndefined()
-            && qnr1it->second != qnr2it->second)
+        if (!mqnumbers[qnri].isUndefined()
+            && !qnumbers2[qnri].isUndefined()
+            && mqnumbers[qnri] != qnumbers2[qnri])
             match = false;
 
-        qnr1it++;
+        qnri++;
     }
 
     return match;
 }
+
 
 std::istream& operator>>(std::istream& is, QuantumNumbers& qn)
 {
