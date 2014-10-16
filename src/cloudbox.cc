@@ -949,8 +949,8 @@ void pnd_fieldMH97 (Tensor4View pnd_field,
     // we can't rely on that!)?
     // for now, i just leave it as it is. to be able to reproduce what was done
     // before.
-      Dvol[i] = scat_meta[scat_species][i].diameter_volume_equ; // [m]
-      mass[i] = scat_meta[scat_species][i].mass; // [kg]
+      Dvol[i] = scat_meta[scat_species][intarr[i]].diameter_volume_equ; // [m]
+      mass[i] = scat_meta[scat_species][intarr[i]].mass; // [kg]
   }
   
   if (Dvol.nelem() > 0)
@@ -1054,8 +1054,8 @@ void pnd_fieldH11 (Tensor4View pnd_field,
   // extract scattering meta data
   for ( Index i=0; i< N_se; i++ )
   {
-      Dmax[i] = scat_meta[scat_species][i].diameter_max; // [m]
-      mass[i] = scat_meta[scat_species][i].mass; // [kg]
+      Dmax[i] = scat_meta[scat_species][intarr[i]].diameter_max; // [m]
+      mass[i] = scat_meta[scat_species][intarr[i]].mass; // [kg]
   }
 
   if (Dmax.nelem() > 0)
@@ -1158,8 +1158,8 @@ void pnd_fieldH13 (Tensor4View pnd_field,
   // extract scattering meta data
   for ( Index i=0; i< N_se; i++ )
   {
-      Dmax[i] = scat_meta[scat_species][i].diameter_max; // [m]
-      mass[i] = scat_meta[scat_species][i].mass; // [kg]
+      Dmax[i] = scat_meta[scat_species][intarr[i]].diameter_max; // [m]
+      mass[i] = scat_meta[scat_species][intarr[i]].mass; // [kg]
   }
 
   if (Dmax.nelem() > 0)
@@ -1264,9 +1264,9 @@ void pnd_fieldH13Shape (Tensor4View pnd_field,
   // extract scattering meta data
   for ( Index i=0; i< N_se; i++ )
   {
-      Dmax[i] = scat_meta[scat_species][i].diameter_max; // [m]
-      Darea[i] = scat_meta[scat_species][i].diameter_area_equ_aerodynamical; // [m]
-      mass[i] = scat_meta[scat_species][i].mass; // [kg]
+      Dmax[i] = scat_meta[scat_species][intarr[i]].diameter_max; // [m]
+      Darea[i] = scat_meta[scat_species][intarr[i]].diameter_area_equ_aerodynamical; // [m]
+      mass[i] = scat_meta[scat_species][intarr[i]].mass; // [kg]
       Rarea[i] = (Darea[i]*Darea[i]) / (Dmax[i]*Dmax[i]); // [m2/m2]
   }
     // Collect all unique maximum diameters
@@ -1445,8 +1445,8 @@ void pnd_fieldMP48 (Tensor4View pnd_field,
   // extract scattering meta data
   for ( Index i=0; i< N_se; i++ )
   {
-      Dvol[i] = scat_meta[scat_species][i].diameter_volume_equ; // [m]
-      mass[i] = scat_meta[scat_species][i].mass; // [kg]
+      Dvol[i] = scat_meta[scat_species][intarr[i]].diameter_volume_equ; // [m]
+      mass[i] = scat_meta[scat_species][intarr[i]].mass; // [kg]
       vol[i] = PI/6. * Dvol[i]*Dvol[i]*Dvol[i]; // [m3]
   }
 
@@ -1620,8 +1620,8 @@ void pnd_fieldH98 (Tensor4View pnd_field,
   // extract scattering meta data
   for ( Index i=0; i< N_se; i++ )
   {
-      Dvol[i]= scat_meta[scat_species][i].diameter_volume_equ; // [m]
-      mass[i] = scat_meta[scat_species][i].mass; // [kg]
+      Dvol[i]= scat_meta[scat_species][intarr[i]].diameter_volume_equ; // [m]
+      mass[i] = scat_meta[scat_species][intarr[i]].mass; // [kg]
       radius[i] = 0.5 * Dvol[i]; // [m]
   }
 

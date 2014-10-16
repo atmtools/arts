@@ -1,3 +1,13 @@
+2014-10-16  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-44
+
+	* src/cloudbox.cc (pnd_fieldMH97, pnd_fieldH11, pnd_fieldH13,
+	pnd_fieldH13Shape, pnd_fieldMP48, pnd_fieldH98):
+
+	Fix bug introduced in arts-2-3-31. The scat_meta elements were
+	used in unsorted order. Bug found by Jana.
+
 2014-10-15  Jana Mendrok  <jana.mendrok@ltu.se>
 
 	* arts-2-3-43
