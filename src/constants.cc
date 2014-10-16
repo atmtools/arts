@@ -99,6 +99,24 @@ extern const Numeric COSMIC_BG_TEMP = 2.735;
 extern const Numeric DEG2RAD        = 0.017453292519943;
 
 
+/** Global constant, Density of water ice at 0C [kg/m3]
+
+    source: http://en.wikipedia.org/wiki/Ice
+
+    \author Jana Mendrok 
+    \date   2014-10-15
+*/
+extern const Numeric DENSITY_OF_ICE = 0.9167e3;
+
+/** Global constant, Density of liquid water +4C [kg/m3]
+
+    source: http://en.wikipedia.org/wiki/Water
+
+    \author Jana Mendrok 
+    \date   2014-10-15
+*/
+extern const Numeric DENSITY_OF_WATER = 1e3;
+
 /** Global constant, the radius of the Earth [m]
     \author Patrick Eriksson 
     \date   08.04.2000
@@ -137,11 +155,12 @@ extern const Numeric EULER_NUMBER   = 2.7182818284590452;
 extern const Numeric GAS_CONSTANT   = 8.3144621;
 
 
-/** Lande factor gs
- *  \author Richard Larsson
- *  \date   2012-09-26
- */
-// Wikipedia source: http://en.wikipedia.org/wiki/G-factor_%28physics%29#Measured_g-factor_values
+/** Global constant, Lande factor gs
+
+    source: http://en.wikipedia.org/wiki/G-factor_%28physics%29#Measured_g-factor_values
+    \author Richard Larsson
+    \date   2012-09-26
+*/
 extern const Numeric LANDE_GS      = 2.0023193043622;
 
 /** Global constant, log10(Euler's number)

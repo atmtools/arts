@@ -157,33 +157,27 @@ void pnd_fieldH98 (Tensor4View pnd_field,
                    const Verbosity& verbosity);
 
 Numeric IWCtopnd_MH97 (const Numeric iwc,
-                       Numeric dm,
+                       Numeric Dvol,
                        const Numeric t,
-                       const Numeric density,
                        const bool noisy);
 
-Numeric IWCtopnd_H11 ( const Numeric d,
-                       const Numeric t);
+Numeric IWCtopnd_H11 (const Numeric Dmax,
+                      const Numeric t);
 
-Numeric IWCtopnd_H13 ( const Numeric d,
-                       const Numeric t);
+Numeric IWCtopnd_H13 (const Numeric Dmax,
+                      const Numeric t);
 
-Numeric IWCtopnd_H13Shape ( const Numeric d,
-                       const Numeric t);
+Numeric IWCtopnd_H13Shape (const Numeric Dmax,
+                           const Numeric t);
 
-Numeric area_ratioH13 ( const Numeric d,
-                            const Numeric t);
+Numeric area_ratioH13 (const Numeric Dmax,
+                       const Numeric t);
 
 Numeric LWCtopnd (const Numeric lwc,
-                  const Numeric density,
-                  const Numeric r);
+                  const Numeric radius);
 
-// ONLY FOR TESTING PURPOSES
-Numeric LWCtopnd2 (//const Numeric density,
-                   const Numeric r);
-
-Numeric PRtopnd_MP48 (	const Numeric R,
-			const Numeric D);
+Numeric PRtopnd_MP48 (const Numeric R,
+                      const Numeric D);
 
 
 void scale_pnd (Vector& w,
@@ -192,23 +186,12 @@ void scale_pnd (Vector& w,
 
 void chk_pndsum (Vector& pnd,
                  const Numeric xwc,
-                 const Vector& vol,
-                 const Vector& density,
+                 const Vector& mass,
                  const Index& p,
                  const Index& lat,
                  const Index& lon,
                  const String& part_type,
                  const Verbosity& verbosity);
-
-void scale_H11 (Vector& pnd,
-                const Numeric xwc,
-                const Vector& density,
-                const Vector& vol);
-
-void scale_H13 (Vector& pnd,
-                const Numeric xwc,
-                const Vector& density,
-                const Vector& vol);
 
 void chk_massdensity_field(bool& x, 
                            const Index&  dim,	
@@ -222,10 +205,6 @@ void parse_partfield_name (String& partfield_name,
                       const String& delim);
 
 void parse_psd_param (String& psd_param,
-                      const String& part_string,
-                      const String& delim);
-
-void parse_part_material (String& part_material,
                       const String& part_string,
                       const String& delim);
 

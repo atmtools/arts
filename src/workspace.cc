@@ -2610,12 +2610,8 @@ void Workspace::define_wsv_data()
        "\t or similar) to act on. Free form, but needs to match (name, order)\n"
        "\t *atm_fields_compact* field names.\n"
        "- particle size distribution [*String*]:\n"
-       "\t the size distribution function/parameterisation to apply. For\n"
+       "\t the size distribution function/parametrization to apply. For\n"
        "\t currently possible PSDs see *pnd_fieldSetup*.\n"
-       "- particle type [*String*]:\n"
-       "\t the type (material/phase) of the individual particles to select from\n"
-       "\t *scat_data* (Ice, Water, or similar). Free form, but will\n"
-       "\t select particles with matching *scat_meta_single*.material.\n"
        "- sizemin and sizemax [*Numeric*]:\n"
        "\t the minimum and maximum size (volume equivalent sphere radius in um)\n"
        "\t of the individual scattering elements to consider. Minimum and\n"
@@ -2624,7 +2620,7 @@ void Workspace::define_wsv_data()
        "\t scattering elements at the respective size\n"
        "\t end)."
        "\n"
-       "Example: [''IWC-MH97-Ice-2-1000'', ''LWC-HM98_STCO-Water-0.1-10'', ...]\n"
+       "Example: [''IWC-MH97-2-1000'', ''LWC-HM98_STCO-0.1-10'', ...]\n"
        ),
       GROUP( "ArrayOfString" )));
 
@@ -3328,83 +3324,17 @@ void Workspace::define_wsv_data()
 
    wsv_data.push_back
      (WsvRecord
-      ( NAME( "scat_meta_single" ),
-        DESCRIPTION
-        (
-         "Structure for the scattering meta data.\n"
-         "\n"
-         "This variable holds the scattering meta data for a single scattering\n"
-         "element. This data is needed for particle size distribution\n"
-         "calculations.\n"
-         "\n"
-         "Currently \"area_projected\" is not used by ARTS, but was included for \n"
-         "future extensions of pnd calculations in ARTS.\n"
-         "\n"
-         "Usage: Set by the user.\n"
-         "\n"
-         "Dimensions/Units: Array[number of scattering elements]\n"
-         "\tString[description]\t\t[particle description]\n"
-         "\tString[material]\t\t[''Ice'', ''Water''...]\n"
-         "\tString[shape]\t\t\t[''spheroidal'', ''cylindrical'']\n"
-         "\tNumeric[density]\t\t[kg/m3]\n"
-         "\tNumeric[diameter_max]\t\t[m]\n"
-         "\tNumeric[volume]\t\t\t[m3]\n"
-         "\tNumeric[area_projected]\t\t[m2]\n"
-         "\tNumeric[aspect_ratio]\t\t[]\n"
-         "\tVector[scat_f_grid]\t\t[Hz]\n"
-         "\tVector[scat_T_grid]\t\t[K]\n"
-         "\tString[ptype]\t[]\n"
-         "\tGriddedField3[complex_refr_index]\t[]\n"
-        ),
-        GROUP( "ScatteringMetaData" ))); 
-
-   wsv_data.push_back
-     (WsvRecord
-      ( NAME( "scat_meta" ),
-        DESCRIPTION
-        (
-         "An Array of scattering meta data (*scat_meta_single*).\n"
-         "\n"
-         "The array holds the meta data for all scattering elements. It is used\n"
-         "both for PSD and scattering property calculations by *pnd_fieldSetup*,\n"
-         "*particle_massesFromMetaDataAndPart_species* and\n"
-         "*scat_dataFromMeta*.\n"
-         "\n"
-         "Note: This array must contain as many elements as *scat_data*\n"
-         "\n"
-         "Usage: Set by the user.\n"
-         "\n"
-         "Dimensions: [scattering species, scattering elements]"
-         "\n"
-         "For more details, see also *scat_meta_single*."
-        ),
-        GROUP( "ArrayOfArrayOfScatteringMetaData" ))); 
-
-   wsv_data.push_back
-     (WsvRecord
-      ( NAME( "scat_data_mono" ),
-        DESCRIPTION
-        (
-         "Monochromatic single scattering data.\n"
-         "\n"
-         "This variable holds the single scattering properties for all\n"
-         "scattering species. It is calculated from *scat_data* by\n"
-         "*scat_data_monoCalc*, which interpolates *scat_data* for\n"
-         "the required frequency.\n"
-         ),
-        GROUP( "ArrayOfArrayOfSingleScatteringData" ))); 
-
-   wsv_data.push_back
-     (WsvRecord
       ( NAME( "scat_data" ),
         DESCRIPTION
         (
-         "Raw data of single scattering data.\n"
+         "Array of raw single scattering data.\n"
          "\n"
          "This variable holds the single scattering properties for all \n"
-         "scattering elements included in a calculation by using the \n"
-         "methods *ParticleTypeAdd* or *ParticleTypeAddAll* or\n"
-         "*ScatteringParticleTypeAndMetaRead*. \n" 
+         "scattering elements, organized according to their assignment to a\n"
+         "scattering species. *scat_data* entries can be derived from\n"
+         "precalculated data files using the methods *ParticleTypeAdd*,\n"
+         "*ParticleTypeAddAll*, or *ScatteringParticleTypeAndMetaRead* or\n" 
+         "can be calculated using *scat_data_singleTmatrix*."
          "\n"
          "This may be used in combination with *scat_meta*\n"
          "\n"
@@ -3426,11 +3356,55 @@ void Workspace::define_wsv_data()
          "  Tensor5[abs_vec_data]\n"
          "      [f_grid, T_grid, za_grid, aa_grid, matrix_element]\n"
          "\n"
-         "Dimensions: [number of scattering species, number of scattering elements] \n"
+         "Dimensions: [number of scattering species][number of scattering elements] \n"
          "\n"
          ),
         GROUP( "ArrayOfArrayOfSingleScatteringData" )));
    
+   wsv_data.push_back
+     (WsvRecord
+      ( NAME( "scat_data_mono" ),
+        DESCRIPTION
+        (
+         "Monochromatic single scattering data.\n"
+         "\n"
+         "This variable holds the single scattering properties for all\n"
+         "scattering species and scattering elements for a specified frequency.\n"
+         "It can be calculated from *scat_data* using *scat_data_monoCalc*,\n"
+         "which interpolates *scat_data* to the required frequency.\n"
+         ),
+        GROUP( "ArrayOfArrayOfSingleScatteringData" ))); 
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "scat_data_single" ),
+      DESCRIPTION
+      (
+       "Structure for the single scattering data.\n"
+       "\n"
+       "Comprises the single scattering data of a single scattering element.\n"
+       "See ARTS user guide for further information.\n"
+       "\n"
+       "Usage: Set by the user.\n"
+       "\n"
+       "Dimensions:  SingleScatteringData \n"
+       "  Enum[ptype attribute]\n"
+       "  String[description] \n"
+       "  Vector[f_grid]\n"
+       "  Vector[T_grid]\n"
+       "  Vector[za_grid]\n"
+       "  Vector[aa_grid]\n"
+       "  Tensor7[pha_mat_data]\n"
+       "      [f_grid, T_grid, za_grid, aa_grid, za_grid, aa_grid, matrix_element]\n"
+       "                       ^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^\n"
+       "                       scattered         incoming\n"
+       "  Tensor5[ext_mat_data]\n"
+       "      [f_grid, T_grid, za_grid, aa_grid, matrix_element]\n"
+       "  Tensor5[abs_vec_data]\n"
+       "      [f_grid, T_grid, za_grid, aa_grid, matrix_element]\n"
+       ),
+      GROUP( "SingleScatteringData" )));
+
  wsv_data.push_back
    (WsvRecord
     ( NAME( "scat_i_lat" ),
@@ -3550,6 +3524,100 @@ void Workspace::define_wsv_data()
        "                               *pha_mat_spt_agenda*\n"
        ),
      GROUP( "Index" ))); 
+
+   wsv_data.push_back
+     (WsvRecord
+      ( NAME( "scat_meta_single" ),
+        DESCRIPTION
+        (
+         "Structure for the scattering meta data.\n"
+         "\n"
+         "This variable holds the scattering meta data for a single scattering\n"
+         "element (see AUG for definition). Scattering meta data comprises\n"
+         "the microphysical description of the scattering element as necessary\n"
+         "to relate single scattering properties with mass density or flux\n"
+         "fields. That is, e.g., in order to handle the scattering element in\n"
+         "particle size (and shape) distribution calculations.\n"
+         "\n"
+         "For a definition of the structure members see below.\n"
+         "\n"
+         "Members of Numeric type can be flagged as unknown by setting them to\n"
+         "NAN. This will cause a runtime error in case the parameter is needed in\n"
+         "the calculation, but will be ignored otherwise.\n"
+         "\n"
+         "Usage: Set by the user.\n"
+         "\n"
+         "Members:\n"
+         "  description [*String*]\n"
+         "    Description: Free-form description of the scattering element,\n"
+         "    holding information deemed of interest by the user but not covered\n"
+         "    by other structure members (and not used within ARTS).\n"
+         "  source [*String*]\n"
+         "    Description: Free-form description of the source of the data,\n"
+         "    e.g., Mie, T-Matrix, or DDA calculation or a database or a\n"
+         "    literature source.\n"
+         "  refr_index [*String*]\n"
+         "    Description: Free-form description of the underlying complex\n"
+         "    refractive index data, e.g., a literature source.\n"
+         "  mass [*Numeric*]\n"
+         "    Unit: [kg]\n"
+         "    Description: The mass of the scattering element.\n"
+         "  diameter_max [*Numeric*]\n"
+         "    Unit: [m]\n"
+         "    Description: The maximum diameter (or dimension) of the scattering\n"
+         "    element, defined by the circumferential sphere diameter of the\n"
+         "    element. Note that this parameter is only used by some size\n"
+         "    distributions; it does not have a proper meaning if the scattering\n"
+         "    element represents an ensemble of differently sized particles.\n"
+         "  diameter_volume_equ [*Numeric*]\n"
+         "    Unit: [m]\n"
+         "    Description: The volume equivalent sphere diameter of the\n"
+         "    scattering element, i.e., the diameter of a sphere with the same\n"
+         "    volume. For nonspherical particles, volume refers to the volume\n"
+         "    of the particle-forming substance, not that of the circumferential\n"
+         "    sphere (which can be derived from diameter_max). If the particle\n"
+         "    consists of a mixture of materials, the substance\n"
+         "    encompasses the complete mixture. E.g., the substance of 'soft'\n"
+         "    ice particles includes both the ice and the air.\n" 
+         "  diameter_area_equ_aerodynamical [*Numeric*]\n"
+         "    Unit: [m]\n"
+         "    Description: The area equivalent sphere diameter of the\n"
+         "    scattering element, i.e., the diameter of a sphere with the same\n"
+         "    cross-sectional area. Here, area refers to the aerodynamically\n"
+         "    relevant area, i.e., the cross-sectional area perpendicular to the\n"
+         "    direction of fall. Similarly to volume in the definition of\n"
+         "    diameter_volume_equ, for non-spherical and mixed-material\n"
+         "    particles, area refers to the area covered by the substance\n"
+         "    mixture of the particle.\n"
+        ),
+        GROUP( "ScatteringMetaData" ))); 
+
+   wsv_data.push_back
+     (WsvRecord
+      ( NAME( "scat_meta" ),
+        DESCRIPTION
+        (
+         "An Array of scattering meta data (*scat_meta_single*).\n"
+         "\n"
+         "The array holds the meta data for all scattering elements.\n"
+         "Corresponding to *scat_data*, it is organized in terms of scattering\n"
+         "species (i.e., one sub-array per scattering species holding one\n"
+         "*scat_meta_single* instance per scattering element assigned to this\n"
+         "scattering species. It isused primarily for particle size and shape\n"
+         "distribution calculations using *pnd_fieldSetup*. It is also applied\n"
+         "for deducing microphysical characterizations of scattering species,\n"
+         "e.g., by *particle_massesFromMetaDataAndScat_species*.\n"
+         "\n"
+         "Note: This array must contain as many elements as *scat_data* (on\n"
+         "both array levels).\n"
+         "\n"
+         "Usage: Set by the user.\n"
+         "\n"
+         "Dimensions: [scattering species][scattering elements]"
+         "\n"
+         "For more details, see also *scat_meta_single*."
+        ),
+        GROUP( "ArrayOfArrayOfScatteringMetaData" ))); 
 
   wsv_data.push_back
    (WsvRecord
@@ -4071,35 +4139,6 @@ void Workspace::define_wsv_data()
        "Usage: Set by the user.\n"
        ),
       GROUP( "ArrayOfGriddedField1" )));
-
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "scat_data_single" ),
-      DESCRIPTION
-      (
-       "Structure for the  single scattering data.\n"
-       "\n"
-       "See ARTS user guide for further information.\n"
-       "\n"
-       "Usage: Set by the user.\n"
-       "\n"
-       "Dimensions:  SingleScatteringData \n"
-       "  Enum[ptype attribute]\n"
-       "  String[description] \n"
-       "  Vector[f_grid]\n"
-       "  Vector[T_grid]\n"
-       "  Vector[za_grid]\n"
-       "  Vector[aa_grid]\n"
-       "  Tensor7[pha_mat_data]\n"
-       "      [f_grid, T_grid, za_grid, aa_grid, za_grid, aa_grid, matrix_element]\n"
-       "                       ^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^\n"
-       "                       scattered         incoming\n"
-       "  Tensor5[ext_mat_data]\n"
-       "      [f_grid, T_grid, za_grid, aa_grid, matrix_element]\n"
-       "  Tensor5[abs_vec_data]\n"
-       "      [f_grid, T_grid, za_grid, aa_grid, matrix_element]\n"
-       ),
-      GROUP( "SingleScatteringData" )));
 
   wsv_data.push_back
     (WsvRecord

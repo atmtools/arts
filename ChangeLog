@@ -1,3 +1,70 @@
+2014-10-15  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-3-43
+
+	Change of scattering meta data structure. Adaption of all methods that
+	use scat_meta. Removed material tag fromscat_species.
+
+	* src/optproperties.h (ScatteringMetaData): Revised format of class.
+
+	* src/xml_io_compound_types.cc: Read/write support for new (version3)
+	nScatteringMetaData class format. Removed version1 and 2 support.
+
+	* src/m_cloudbox.cc
+	(ScatteringParticlesSelect): Removed obsolote material tag based selection.
+
+	(pnd_fieldSetup): Removed any use of material meta info.
+
+	(dNdD_*): Renamed from dN_* to properly reflect output parameter.
+	Removed density as input parameter.
+
+	(particle_massesFromMetaDataSingleCategory): Use mass info from meta data.
+
+	(particle_massesFromMetaDataAndScat_species): Renamed (from 
+	particle_massesFromMetaDataAndScat_species). Use mass info from meta data.
+
+	* src/cloudbox.cc/h:
+	(chk_scat_species): Adapt for removed material tag.
+
+	(pnd_fieldMH97, pnd_fieldH11, pnd_fieldH13, pnd_fieldH13Shape,
+	pnd_fieldMP48, pnd_fieldH98):
+	Adapted to new fromat of scattering meta data. Cleaned up a little.
+
+	(IWCtopnd_MH97, IWCtopnd_H11, IWCtopnd_H13, IWCtopnd_H13Shape,
+	area_ratioH13, LWCtopnd, PRtopnd_MP48):
+	Removed density from method interfaces. More consistent naming of method
+	parameters.
+
+	(chk_pndsum): Replace method input volume and density by mass.
+
+	(scale_H11, scale_H13, parse_part_material): Removed obsolete methods.
+
+	* src/m_tmatrix.cc: Removed methods scat_metaAddTmatrix,
+	scat_dataFromMeta, scat_metaAddTmatrixOldVersion. New meta data format
+	does not support Tmatrix inpu anymore.
+
+	* src/constants.cc: Density of water ice and liquid water added.
+
+	* src/methods.cc, workspace.cc: Revised scat_meta_single and
+	scat_species documentation. Revised documntation of methods using these.
+
+	* controlfiles/artscomponents/doitbatch/TestDOITBatch.arts:
+	Adapted to scat_meta and scat_species changes.
+
+	* controlfiles/artscomponents/doitbatch/scatData/*.meta.xml.gz:
+	Adapted test case meta data to new format.
+
+	* controlfiles/artscomponents/doitbatch/ScatteringMetaFile_H2Oice.xml,
+	ScatteringMetaFile_H2Oliquid.xml, SingleScatteringFile_H2Oice.xml,
+	SingleScatteringFile_H2Oliquid.xml:
+	Added. Scattering data and meta files for DoitBatch test case, separated
+	by scattering species.
+
+	* controlfiles/artscomponents/doitbatch/SingleScatteringFile.xml,
+	ScatteringMetaFile.xml: Removed.
+
+	* doc/uguide/scattering.tex: Bugfix.
+
 2014-10-15  Richard Larsson <ric.larsson@gmail.com>
 	
 	* arts-2-3-42

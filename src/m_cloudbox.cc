@@ -894,6 +894,19 @@ void ScatteringParticlesSelect (//WS Output:
   CREATE_OUT3;
   //--- Adjusting data to user specified input (scat_species)-------------------
 
+  // first check that sizes of scat_species and scat_data/scat_meta agree
+  Index nspecies = scat_species.nelem();
+  if ( nspecies != scat_data.nelem() || nspecies != scat_meta.nelem() )
+    {
+      ostringstream os;
+      os << "Number of scattering species as specified by scat_species does\n"
+         << "not agree that contained in scat_data or scat_meta:\n"
+         << "scat_species has " << nspecies << " entries, while scat_data has "
+         << scat_data.nelem() << " and scat_meta has " << scat_meta.nelem()
+         << ".";
+      throw runtime_error ( os.str() );
+    }
+
   // create temporary containers for selected elements
   ArrayOfArrayOfSingleScatteringData scat_data_tmp;
   ArrayOfArrayOfScatteringMetaData scat_meta_tmp;
@@ -901,92 +914,60 @@ void ScatteringParticlesSelect (//WS Output:
   scat_meta_tmp.resize(scat_species.nelem());
 
   // loop over array of scat_species--------------------------------------------
-  for ( Index k=0; k<scat_species.nelem(); k++ )
+  // no more sorting by material tag. only left to select scattering elements
+  // within specified size range (in terms of volume equiv diameter).
+  for ( Index i_ss=0; i_ss<nspecies; i_ss++ )
   {
    
-    String part_material;
     String partfield_name;
     Numeric sizemin;
     Numeric sizemax;
 
     //split scat_species string and copy values to parameter
-    parse_partfield_name( partfield_name, scat_species[k], delim);
-    parse_part_material( part_material, scat_species[k], delim);
-    parse_part_size(sizemin, sizemax, scat_species[k], delim);
+    parse_partfield_name( partfield_name, scat_species[i_ss], delim);
+    parse_part_size(sizemin, sizemax, scat_species[i_ss], delim);
 
-    // choosing the specified SingleScatteringData and ScatteringMetaData
-    for ( Index i_ss=0; i_ss<scat_meta.nelem(); i_ss++ )
-    {
-        for ( Index i_se=0; i_se<scat_meta[i_ss].nelem(); i_se++ )
-        {
-            // check for scattering element (material/phase) type (e.g. "Ice",
-            // "Water",...)
-            if ( scat_meta[i_ss][i_se].material == part_material )
-            {
-                // scattering element radius is calculated from scattering element
-                // volume given in scattering meta data
-                Numeric r_particle =
-                pow ( 3./4. * scat_meta[i_ss][i_se].volume * 1e18 / PI , 1./3. );
-
-                // check if scattering element is in size range
-                // (sizemax < 0 results from wildcard usage and means consider all sizes on
-                // the upper end)
-                if ( r_particle  >= sizemin &&
-                    ( sizemax >= r_particle || sizemax < 0. ))
-                {
-                    // copy selected scattering element to temp arrays
-                    scat_data_tmp[k].push_back(scat_data[i_ss][i_se]);
-                    scat_meta_tmp[k].push_back(scat_meta[i_ss][i_se]);
-                }
-                out3 << "Selecting scattering element " << i_se+1 << "/"
-                << scat_meta[i_ss].nelem()
-                << " (" << scat_meta[i_ss][i_se].material << ")\n";
-            }
-        }
-    }
+  // choosing the specified SingleScatteringData and ScatteringMetaData
+    for ( Index i_se=0; i_se<scat_meta[i_ss].nelem(); i_se++ )
+      {
+        // scattering element volume equivalent diameter is extracted from the
+        // scattering element's meta data and checked whether it's within size
+        // selected range (sizemax < 0 check follows from wildcard usage and
+        // means consider all sizes on the upper end)
+        if ( scat_meta[i_ss][i_se].diameter_volume_equ >= sizemin*1e-6 &&
+             ( sizemax*1e-6 >=  scat_meta[i_ss][i_se].diameter_volume_equ ||
+               sizemax < 0. ) )
+          {
+            // copy selected scattering element to temp arrays
+            scat_data_tmp[i_ss].push_back(scat_data[i_ss][i_se]);
+            scat_meta_tmp[i_ss].push_back(scat_meta[i_ss][i_se]);
+          }
+      }
 
     // To use a particle species field without associated scattering element
     // data poses a high risk of accidentially neglecting these species. That's
     // unlikely what the user intends. Hence throw error.
-    if (scat_meta_tmp[k].nelem()<1)
+    if (scat_meta_tmp[i_ss].nelem()<1)
       {
         ostringstream os;
-        os << "Scattering species " << partfield_name << " of type " << part_material
-           << " requested.\n"
-           << "But no matching scattering elements found for it!\n";
+        os << "For scattering species " << partfield_name << " no scattering "
+           << "element matching the requested size range found.\n"
+           << "Check scat_data and scat_meta input as well as the scat_species "
+           << "definition!";
         throw runtime_error ( os.str() );
       }
   }
 
-  // check if array is empty
+  // check if array is empty. should only apply when scat_species is empty,
+  // hence just post a warning, don't throw error.
   if ( !TotalNumberOfElements(scat_meta_tmp) )
   {
-    /* don't throw error. just a warning (should only apply when scat_species is empty)!
-    ostringstream os;
-    os << "The selection in " << scat_species << 
-        " is NOT choosing any of the given Scattering Data.\n"
-        "--> Does the selection in *scat_species* fit any of the "
-        "Single Scattering Data input? \n";
-    throw runtime_error ( os.str() );*/
     out1 << "WARNING! No scattering elements selected.\n"
          << "Continuing without any selected scattering elements.\n";
   }
 
-  // check if we ignored any ScatteringMetaData entry
-  /* JM120401: what's the meaning of this? does it work properly?
-               uncomment again, when answered.
-  for ( Index j = 0; j<selected.nelem(); j++)
-  {
-    if (selected[j]==0)
-    {
-      out1 << "WARNING! Ignored ScatteringMetaData[" << j << "] ("
-           << scat_meta_array_tmp[j].type << ")!\n";
-    }
-  } */
-
-
-    scat_meta = scat_meta_tmp;
-    scat_data = scat_data_tmp;
+  scat_meta = scat_meta_tmp;
+  scat_data = scat_data_tmp;
 }
 
 
@@ -1006,28 +987,28 @@ void particle_massesFromMetaDataSingleCategory(
   {
       for( Index i_se=0; i_se<scat_meta[i_ss].nelem(); i_se++ )
       {
-          if( scat_meta[i_ss][i_se].density <= 0 ||
-             scat_meta[i_ss][i_se].density > 20e3 )
+          if( isnan(scat_meta[i_ss][i_se].mass) ||
+              scat_meta[i_ss][i_se].mass <= 0 ||
+              scat_meta[i_ss][i_se].mass > 1. )
           {
               ostringstream os;
               os << "A presumably incorrect value found for "
-              << "scat_meta[" << i_ss << "][" << i_se << "].density.\n"
-              << "The value is " << scat_meta[i_ss][i_se].density;
+              << "scat_meta[" << i_ss << "][" << i_se << "].mass.\n"
+              << "The value is " << scat_meta[i_ss][i_se].mass;
               throw std::runtime_error(os.str());
           }
 
-          if( scat_meta[i_ss][i_se].volume <= 0 ||
-             scat_meta[i_ss][i_se].volume > 0.01 )
+          if( scat_meta[i_ss][i_se].diameter_volume_equ <= 0 ||
+             scat_meta[i_ss][i_se].diameter_volume_equ > 0.5 )
           {
               ostringstream os;
               os << "A presumably incorrect value found for "
-              << "scat_meta[" << i_ss << "][" << i_se << "].volume.\n"
-              << "The value is " << scat_meta[i_ss][i_se].volume;
+              << "scat_meta[" << i_ss << "][" << i_se << "].diameter_volume_equ.\n"
+              << "The value is " << scat_meta[i_ss][i_se].diameter_volume_equ;
               throw std::runtime_error(os.str());
           }
 
-          particle_masses(i_se_flat,0) = scat_meta[i_ss][i_se].density *
-          scat_meta[i_ss][i_se].volume;
+          particle_masses(i_se_flat,0) = scat_meta[i_ss][i_se].diameter_volume_equ;
 
           i_se_flat++;
       }
@@ -1036,7 +1017,7 @@ void particle_massesFromMetaDataSingleCategory(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void particle_massesFromMetaDataAndPart_species
+void particle_massesFromMetaDataAndScat_species
                         (//WS Output:
                          Matrix& particle_masses,
                          // WS Input:
@@ -1053,8 +1034,7 @@ void particle_massesFromMetaDataAndPart_species
   {
     for ( Index i_se=0; i_se<scat_meta[i_ss].nelem(); i_se++ )
     {
-      particle_masses (i_se_flat, i_ss) =
-        scat_meta[i_ss][i_se].density * scat_meta[i_ss][i_se].volume;
+      particle_masses (i_se_flat, i_ss) = scat_meta[i_ss][i_se].diameter_volume_equ;
       i_se_flat++;
     }
   }
@@ -1443,34 +1423,16 @@ void pnd_fieldSetup (//WS Output:
   //-------- Start pnd_field calculations---------------------------------------
 
   // loop over nelem of scat_species
-  for ( Index k=0; k<scat_species.nelem(); k++ )
+  for ( Index i_ss=0; i_ss<scat_species.nelem(); i_ss++ )
   {
 
     String psd_param;
     String partfield_name;
-    String part_material;
     String psd;
 
     //split String and copy to ArrayOfString
-    parse_psd_param( psd_param, scat_species[k], delim);
-    parse_partfield_name( partfield_name, scat_species[k], delim);
-    parse_part_material( part_material, scat_species[k], delim);
-
-    const Index N_se = scat_meta[k].nelem();
-    // initialize control parameters
-    Vector vol_unsorted (N_se , 0.0 );
-    Vector d_max_unsorted (N_se, 0.0);
-    Vector vol ( N_se, 0.0 );
-    Vector dm ( N_se, 0.0 );
-    Vector r ( N_se, 0.0 );
-    Vector rho ( N_se, 0.0 );
-    Vector pnd ( N_se, 0.0 );
-    //Vector pnd2 ( N_se, 0.0 ); //temporary
-    Vector dN ( N_se, 0.0 );
-    //Vector dN2 ( N_se, 0.0 ); //temporary
-    //Vector dlwc ( N_se, 0.0 ); //temporary
-
-    //Tensor3 md_field =  massdensity_field ( k, joker, joker, joker );
+    parse_psd_param( psd_param, scat_species[i_ss], delim);
+    parse_partfield_name( partfield_name, scat_species[i_ss], delim);
 
     //---- pnd_field calculations for MH97 -------------------------------
     if ( psd_param.substr(0,4) == "MH97" )
@@ -1485,19 +1447,11 @@ void pnd_fieldSetup (//WS Output:
                  << " ice.\n";
         }
 
-        //check for expected scattering species phase
-        if ( part_material != "Ice" )
-        {
-            out1 << "WARNING! The scattering species phase is unequal 'Ice'.\n"
-                 << psd << " should only be applied to ice"
-                 << " particles.\n";
-        }
-
         pnd_fieldMH97( pnd_field,
-                       massdensity_field ( k, joker, joker, joker ),
+                       massdensity_field ( i_ss, joker, joker, joker ),
                        t_field, limits,
-                       scat_meta, k,
-                       scat_species[k], delim,
+                       scat_meta, i_ss,
+                       scat_species[i_ss], delim,
                        verbosity);
     }
 
@@ -1515,19 +1469,11 @@ void pnd_fieldSetup (//WS Output:
                  << " ice.\n";
         }
 
-        //check for expected scattering species phase
-        if ( part_material != "Ice" &&  part_material != "Water" )
-        {
-            out1 << "WARNING! The scattering species phase is unequal 'Ice'.\n"
-                 << psd << " should only be applied to ice (cloud ice or snow)"
-                 << " particles.\n";
-        }
-
         pnd_fieldH11 (pnd_field,
-                       massdensity_field ( k, joker, joker, joker ),
+                       massdensity_field ( i_ss, joker, joker, joker ),
                        t_field, limits,
-                       scat_meta, k,
-                       scat_species[k], delim,
+                       scat_meta, i_ss,
+                       scat_species[i_ss], delim,
                        verbosity);
     }
     
@@ -1545,19 +1491,11 @@ void pnd_fieldSetup (//WS Output:
                  << " ice.\n";
         }
 
-        //check for expected scattering species phase
-        if ( part_material != "Ice" &&  part_material != "Water" )
-        {
-            out1 << "WARNING! The scattering species phase is unequal 'Ice'.\n"
-                 << psd << " should only be applied to ice (cloud ice or snow)"
-                 << " particles.\n";
-        }
-
         pnd_fieldH13 (pnd_field,
-                       massdensity_field ( k, joker, joker, joker ),
+                       massdensity_field ( i_ss, joker, joker, joker ),
                        t_field, limits,
-                       scat_meta, k,
-                       scat_species[k], delim,
+                       scat_meta, i_ss,
+                       scat_species[i_ss], delim,
                        verbosity);
     }
     
@@ -1575,19 +1513,11 @@ void pnd_fieldSetup (//WS Output:
                  << " ice.\n";
         }
 
-      //check for expected scattering species phase
-        if ( part_material != "Ice" &&  part_material != "Water" )
-        {
-            out1 << "WARNING! The scattering species phase is unequal 'Ice'.\n"
-                 << psd << " should only be applied to ice (cloud ice or snow)"
-                 << " particles.\n";
-        }
-
         pnd_fieldH13Shape (pnd_field,
-                       massdensity_field ( k, joker, joker, joker ),
+                       massdensity_field ( i_ss, joker, joker, joker ),
                        t_field, limits,
-                       scat_meta, k,
-                       scat_species[k], delim,
+                       scat_meta, i_ss,
+                       scat_species[i_ss], delim,
                        verbosity);
     }
     
@@ -1605,20 +1535,11 @@ void pnd_fieldSetup (//WS Output:
                  << " precipitation.\n";
         }
 
-        //check for expected scattering species phase
-        if ( part_material != "Ice" &&  part_material != "Water" )
-        {
-            out1 << "WARNING! The scattering species phase is unequal"
-                 << "'Ice' or 'Water'.\n"
-                 << psd << " should only be applied to liquid water or water"
-                 << " ice particles.\n";
-        }
-
         pnd_fieldMP48( pnd_field,
-                       massdensity_field ( k, joker, joker, joker ),
+                       massdensity_field ( i_ss, joker, joker, joker ),
                        limits,
-                       scat_meta, k,
-                       scat_species[k], delim,
+                       scat_meta, i_ss,
+                       scat_species[i_ss], delim,
                        verbosity);
     }
 
@@ -1636,19 +1557,11 @@ void pnd_fieldSetup (//WS Output:
                  << " precipitation.\n";
         }
 
-        //check for expected scattering species phase
-        if ( part_material != "Water" )
-        {
-            out1 << "WARNING! The scattering species phase is unequal 'Water'.\n"
-                 << psd << " should only be applied to liquid water"
-                 << " particles.\n";
-        }
-
         pnd_fieldH98 (pnd_field,
-                       massdensity_field ( k, joker, joker, joker ),
+                       massdensity_field ( i_ss, joker, joker, joker ),
                        limits,
-                       scat_meta, k,
-                       scat_species[k], delim,
+                       scat_meta, i_ss,
+                       scat_species[i_ss], delim,
                        verbosity);
     }
 
@@ -1662,123 +1575,106 @@ void pnd_fieldSetup (//WS Output:
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void dN_MH97 (//WS Output:
-              Vector& dN,
+void dNdD_MH97 (//WS Output:
+              Vector& dNdD,
               //WS Input:
               const Vector& Dme,
               const Numeric& IWC,
               const Numeric& t,
-              const Vector& density,
               const Index& noisy,
               const Verbosity&)
 {
-  Index n = Dme.nelem();
+  Index n_se = Dme.nelem();
+  dNdD.resize(n_se);
 
-  if ( density.nelem() != n )
-    {
-      ostringstream os;
-      os << "Particle size and density vectors need to be of\n"
-         << "identical size, but are not.";
-      throw runtime_error(os.str());
-    }
-
-  dN.resize(n);
-
-  for ( Index i=0; i<n; i++ )
+  for ( Index i=0; i<n_se; i++ )
     {
       // calculate particle size distribution with MH97
       // [# m^-3 m^-1]
-      dN[i] = IWCtopnd_MH97 ( IWC, Dme[i], t, density[i], noisy );
+      dNdD[i] = IWCtopnd_MH97 ( IWC, Dme[i], t, noisy );
     }
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void dN_H11 (//WS Output:
-             Vector& dN,
+void dNdD_H11 (//WS Output:
+             Vector& dNdD,
              //WS Input:
              const Vector& Dmax,
              const Numeric& t,
              const Verbosity&)
 {
-  Index n = Dmax.nelem();
-  dN.resize(n);
+  Index n_se = Dmax.nelem();
+  dNdD.resize(n_se);
 
-  for ( Index i=0; i<n; i++ ) //loop over number of scattering elementss
+  for ( Index i=0; i<n_se; i++ ) //loop over number of scattering elementss
     {
       // calculate particle size distribution for H11
       // [# m^-3 m^-1]
-      dN[i] = IWCtopnd_H11 ( Dmax[i], t );
+      dNdD[i] = IWCtopnd_H11 ( Dmax[i], t );
     }
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void dN_Ar_H13 (//WS Output:
-                Vector& dN,
+void dNdD_Ar_H13 (//WS Output:
+                Vector& dNdD,
                 Vector& Ar,
                 //WS Input:
                 const Vector& Dmax,
                 const Numeric& t,
                 const Verbosity&)
 {
-  Index n = Dmax.nelem();
-  dN.resize(n);
-  Ar.resize(n);
+  Index n_se = Dmax.nelem();
+  dNdD.resize(n_se);
+  Ar.resize(n_se);
 
-  for ( Index i=0; i<n; i++ ) //loop over number of scattering elementss
+  for ( Index i=0; i<n_se; i++ ) //loop over number of scattering elementss
     {
       // calculate particle size distribution for H13Shape
       // [# m^-3 m^-1]
-      dN[i] = IWCtopnd_H13Shape ( Dmax[i], t );
+      dNdD[i] = IWCtopnd_H13Shape ( Dmax[i], t );
       // calculate Area ratio distribution for H13Shape
       Ar[i] = area_ratioH13 ( Dmax[i], t );
     }
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void dN_H98 (//WS Output:
-             Vector& dN,
+void dNdD_H98 (//WS Output:
+             Vector& dNdD,
              //WS Input:
-             const Vector& R,
+             const Vector& Dvol,
              const Numeric& LWC,
-             const Vector& density,
              const Verbosity&)
 {
-  Index n = R.nelem();
+  Index n_se = Dvol.nelem();
+  dNdD.resize(n_se);
+  const Numeric dDdR = 2.; 
 
-  if ( density.nelem() != n )
-    {
-      ostringstream os;
-      os << "Particle size and density vectors need to be of\n"
-         << "identical size, but are not.";
-      throw runtime_error(os.str());
-    }
-
-  dN.resize(n);
-
-  for ( Index i=0; i<n; i++ )
+  for ( Index i=0; i<n_se; i++ )
     {
       // calculate particle size distribution for liquid
+      // and compensate for LWCtopnd providing dNdR
       // [# m^-3 m^-1]
-      dN[i] = LWCtopnd ( LWC, density[i], R[i] );
+      dNdD[i] = LWCtopnd ( LWC, Dvol[i]/2. ) / dDdR;
     }
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void dN_MP48 (//WS Output:
-              Vector& dN,
+void dNdD_MP48 (//WS Output:
+              Vector& dNdD,
               //WS Input:
               const Vector& Dme,
               const Numeric& PR,
               const Verbosity&)
 {
-  Index n = Dme.nelem();
+  Index n_se = Dme.nelem();
+  dNdD.resize(n_se);
 
   // derive particle number density for all given sizes
-  for ( Index i=0; i<n; i++ )
+  for ( Index i=0; i<n_se; i++ )
     {
       // calculate particle size distribution with MP48
       // output: [# m^-3 m^-1]
-      dN[i] = PRtopnd_MP48 ( PR, Dme[i]);
+      dNdD[i] = PRtopnd_MP48 ( PR, Dme[i]);
     }
 }
 

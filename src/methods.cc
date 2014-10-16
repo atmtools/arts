@@ -3323,7 +3323,7 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "dN_H11" ),
+      ( NAME( "dNdD_H11" ),
         DESCRIPTION
         (
          "Calculation of particle size distribution (dN/dD) following\n"
@@ -3341,7 +3341,7 @@ void define_md_data_raw()
          ),
         AUTHORS( "Jana Mendrok" ),
         OUT(),
-        GOUT( "dN" ),
+        GOUT( "dNdD" ),
         GOUT_TYPE( "Vector" ),
         GOUT_DESC( "size distribution number density" ),
         IN(),
@@ -3354,7 +3354,7 @@ void define_md_data_raw()
     
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "dN_Ar_H13" ),
+      ( NAME( "dNdD_Ar_H13" ),
         DESCRIPTION
         (
          "Calculation of particle size and shape distribution (dN/dD, area\n"
@@ -3371,7 +3371,7 @@ void define_md_data_raw()
          ),
         AUTHORS( "Jana Mendrok" ),
         OUT(),
-        GOUT( "dN", "Ar" ),
+        GOUT( "dNdD", "Ar" ),
         GOUT_TYPE( "Vector", "Vector" ),
         GOUT_DESC( "size distribution number density", "area ratio distribution" ),
         IN(),
@@ -3384,7 +3384,7 @@ void define_md_data_raw()
     
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "dN_H98" ),
+      ( NAME( "dNdD_H98" ),
         DESCRIPTION
         (
          "Calculation of particle size shape distribution (dN/dR) following\n"
@@ -3400,21 +3400,20 @@ void define_md_data_raw()
          ),
         AUTHORS( "Jana Mendrok" ),
         OUT(),
-        GOUT( "dN" ),
+        GOUT( "dNdD" ),
         GOUT_TYPE( "Vector" ),
         GOUT_DESC( "size distribution number density" ),
         IN(),
-        GIN( "R", "LWC", "density" ),
-        GIN_TYPE( "Vector", "Numeric", "Vector" ),
-        GIN_DEFAULT( NODEF, NODEF, NODEF ),
-        GIN_DESC( "Radii of the particles [m]",
-                  "Atmospheric liquid water content [kg/m3]",
-                  "Density of the particles [kg/m3]" )
+        GIN( "Dvol", "LWC" ),
+        GIN_TYPE( "Vector", "Numeric" ),
+        GIN_DEFAULT( NODEF, NODEF ),
+        GIN_DESC( "Volume equivalent sphere diameter of the particles [m]",
+                  "Atmospheric liquid water content [kg/m3]" )
         ));  
    
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "dN_MH97" ),
+      ( NAME( "dNdD_MH97" ),
         DESCRIPTION
         (
          "Calculation of particle size distribution (dN/dD) following\n"
@@ -3434,23 +3433,22 @@ void define_md_data_raw()
          ),
         AUTHORS( "Jana Mendrok" ),
         OUT(),
-        GOUT( "dN" ),
+        GOUT( "dNdD" ),
         GOUT_TYPE( "Vector" ),
         GOUT_DESC( "size distribution number density" ),
         IN(),
-        GIN( "Dme", "IWC", "t", "density", "noisy" ),
-        GIN_TYPE( "Vector", "Numeric", "Numeric", "Vector", "Index" ),
-        GIN_DEFAULT( NODEF, NODEF, NODEF, NODEF, "0" ),
+        GIN( "Dme", "IWC", "t", "noisy" ),
+        GIN_TYPE( "Vector", "Numeric", "Numeric", "Index" ),
+        GIN_DEFAULT( NODEF, NODEF, NODEF, "0" ),
         GIN_DESC( "Mass equivalent sphere diameter of the particles [m]",
                   "Atmospheric ice water content [kg/m3]",
                   "Ambient atmospheric temperature [K]",
-                  "Density of the particles [kg/m3]",
                   "Distribution parameter perturbance flag" )
         ));  
     
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "dN_MP48" ),
+      ( NAME( "dNdD_MP48" ),
         DESCRIPTION
         (
          "Calculation of particle size distribution (dN/dD) following\n"
@@ -3467,7 +3465,7 @@ void define_md_data_raw()
          ),
         AUTHORS( "Jana Mendrok" ),
         OUT(),
-        GOUT( "dN" ),
+        GOUT( "dNdD" ),
         GOUT_TYPE( "Vector" ),
         GOUT_DESC( "size distribution number density" ),
         IN(),
@@ -7658,9 +7656,9 @@ void define_md_data_raw()
          "Sets *particle_masses* based on *scat_meta* assuming\n"
          "all particles are of the same mass category.\n"
          "\n"
-         "This method calculates the particle masses as density*volume\n"
-         "for each scattering element. It is assumed that all scattering\n"
-         "elements represent particles of single phase and single (bulk) matter\n"
+         "This method derives the particle masses from the mass entry\n"
+         "of each scattering element. It is assumed that all scattering\n"
+         "elements represent particles of the same (bulk) matter\n"
          "(e.g. water or ice). With other words, a single mass category\n"
          "is assumed (see *particle_masses* for a definition of \"mass\n"
          "category\").\n"
@@ -7685,7 +7683,7 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "particle_massesFromMetaDataAndPart_species" ),
+      ( NAME( "particle_massesFromMetaDataAndScat_species" ),
         DESCRIPTION
         (
          "Derives *particle_masses* from *scat_meta*.\n"
@@ -7695,10 +7693,10 @@ void define_md_data_raw()
          "(in contrast to reading it from external sources using\n"
          "*ParticleTypeAdd* and *pnd_fieldCalc*).\n"
          "It extracts the mass information of the scattering elements from\n"
-         "*scat_meta* (as density*volume). Different entries in\n"
-         "*scat_species* are taken as different categories of particle_masses,\n"
-         "i.e., the resulting *particle_masses* matrix will contain as many\n"
-         "columns as entries exist in *scat_species*.\n"
+         "*scat_meta*. Different entries in *scat_species* are taken as\n"
+         "different categories of particle_masses, i.e., the resulting\n"
+         "*particle_masses* matrix will contain as many columns as entries\n"
+         "exist in *scat_species*.\n"
          ),
         AUTHORS( "Jana Mendrok" ),
         OUT( "particle_masses" ),
@@ -8057,7 +8055,7 @@ void define_md_data_raw()
       ( NAME( "pnd_fieldSetup" ),
         DESCRIPTION
         (
-         "Calculation of *pnd_field* using ScatteringMetaData and *massdensity_field*.\n"
+         "Calculation of *pnd_field* using *scat_meta* and *massdensity_field*.\n"
          "\n"
          "The WSM first checks if cloudbox is empty. If so, the pnd calculations\n"
          "will be skipped.\n"
@@ -8094,8 +8092,12 @@ void define_md_data_raw()
          "the process.The new pnd values will be appended to the existing *pnd_field*.\n"
          "And so on...\n"
          "\n"
-         "NOTE: the order of scattering particle profiles in *massdensity_field* has to\n"
-         "fit the order of scat_species tags!\n"
+         "NOTE: the order of scattering particle profiles in *massdensity_field*\n"
+         "has to fit the order of *scat_species* tags, and the order of\n"
+         "*scat_species* tags has to fit the order of scattering species in the\n"
+         "*scat_meta* array (i.e., *ScatteringParticleTypeAndMetaRead* with the\n"
+         "respective scattering data and meta data files has to be applied in\n"
+         "the right order!\n"
          ),
         AUTHORS( "Daniel Kreyling" ),
         OUT( "pnd_field"),
@@ -9407,6 +9409,7 @@ void define_md_data_raw()
                   "Longitude of sensor position." 
                   )
         ));
+
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "rte_pos_losMoveToStartOfPpath" ),
@@ -9531,6 +9534,33 @@ void define_md_data_raw()
     
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "ScatteringParticlesSelect" ),
+        DESCRIPTION
+        (
+         "Selects data of *scat_data* of the scattering elements that\n"
+         "according to *scat_species* shall be considered in the scattering\n"
+         "calculation.\n"
+         "\n"
+         "Selection is controlled by *scat_species* settings and done regarding\n"
+         "particle size (in terms of volume equivalent diameter). Each\n"
+         "scattering species in *scat_meta* is searched for scattering elements\n"
+         "that fulfill the selection criteria of the corresponding\n"
+         "*scat_species* entry.\n"
+         ),
+        AUTHORS( "Daniel Kreyling, Oliver Lemke, Jana Mendrok" ),
+        OUT( "scat_data", "scat_meta" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "scat_data", "scat_meta", "scat_species" ),
+        GIN( "delim" ),
+        GIN_TYPE( "String" ),
+        GIN_DEFAULT( "-" ),
+        GIN_DESC( "Delimiter string of *scat_species* elements." )
+         ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "ScatteringParticleTypeAndMetaRead" ),
         DESCRIPTION
         (
@@ -9542,10 +9572,12 @@ void define_md_data_raw()
          "For each single scattering file, there needs to be exactly one\n"
          "scattering meta data file.\n"
          "\n"
-         "Scattering elements of several phases, materials, and shapes can be\n"
-         "added. The scattering species, which each of the scattering elements\n"
-         "is assigned to, is determined by the *scat_meta_single* 'material' tag in\n"
-         "comparison to the 'particle type' part of the *scat_species* tag.\n"
+         "All scattering elements read in one call of the method are assigned\n"
+         "to one and the same scattering species. That is, reading in data for\n"
+         "a bunch of scattering species can be realized by multiple call of\n"
+         "this method. Assignement to scattering species is in the order of the\n"
+         "calls (i.e., first method call reads data for first *scat_species*\n"
+         "entry, second call for second scat_species entry and so on).\n"
          "Note that no two scattering elements of the same scattering species\n"
          "are allowed to be equal in size; this will result in an error in\n"
          "*pnd_fieldSetup*\n"
@@ -9567,38 +9599,6 @@ void define_md_data_raw()
                   "Name of file containing the scattering meta data file names." 
                   )
         ));
-
- 
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "ScatteringParticlesSelect" ),
-        DESCRIPTION
-        (
-         "Selects data of *scat_data* of the scattering elements that\n"
-         "according to *scat_species* shall be considered in the scattering\n"
-         "calculation.\n"
-         "\n"
-         "Selection is controlled by *scat_species* settings and done based on\n"
-         "particle type/material and size. *scat_meta* is searched\n"
-         "for scattering elements that fulfill the selection criteria. Selection\n"
-         "is done individually for each element of *scat_species*, i.e. for each\n"
-         "considered scattering species (implying a sorting of the selected\n"
-         "*scat_meta* and *scat_data* according to the scattering\n"
-         "species they correspond to).\n"
-         ),
-        AUTHORS( "Daniel Kreyling" ),
-        OUT( "scat_data", "scat_meta" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "scat_data", "scat_meta", "scat_species" ),
-        GIN( "delim" ),
-        GIN_TYPE( "String" ),
-        GIN_DEFAULT( "-" ),
-        GIN_DESC( "Delimiter string of *scat_species* elements." )
-         ));
-        
-
 
   md_data_raw.push_back
     ( MdRecord
@@ -9655,7 +9655,8 @@ void define_md_data_raw()
                 "Accuracy of the computations." )
       ));
 
-  md_data_raw.push_back
+/*
+   md_data_raw.push_back
     ( MdRecord
     ( NAME( "scat_metaAddTmatrix" ),
       DESCRIPTION
@@ -9702,7 +9703,8 @@ void define_md_data_raw()
                 "Frequency grid vector",
                 "Temperature grid vector" )
       ));
-
+*/
+  
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "scat_metaInit" ),
@@ -9780,6 +9782,7 @@ void define_md_data_raw()
                   "phase matrix vs. using extinction-absorption difference." )
         ));
 
+/*
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "scat_dataFromMeta" ),
@@ -9806,7 +9809,8 @@ void define_md_data_raw()
                  "Precision"
                  )
         ));
-
+*/
+  
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "Select" ),

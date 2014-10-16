@@ -105,23 +105,21 @@ ostream& operator<< (ostream& os, const ArrayOfSingleScatteringData& assd);
   === The ScatteringMetaData structure
   ===========================================================================*/
 /*!
-   Structure which holds the meta scattering properties of a scattering
-   element (a single particle or a particle bulk), like size parameters, shape, etc. 
+   Structure which holds the meta data of a scattering element (a single
+   particle or an ensemble of particles), mainly microphysical parameter
+   necessary for calculating size and shape distributions.
+
+  For a description of the structure members see built-in documentation of
+  scat_meta_single in workspace.cc 
 */
 struct ScatteringMetaData {
   String    description;
-  String    material;
-  String    shape;
-  PType ptype;
-  ParticleSSDMethod ssd_method;
-  Numeric   density;
+  String    source;
+  String    refr_index;
+  Numeric   mass;
   Numeric   diameter_max;
-  Numeric   volume;
-  Numeric   area_projected;
-  Numeric   aspect_ratio;
-  Vector    scat_f_grid;
-  Vector    scat_T_grid;
-  GriddedField3  complex_refr_index;
+  Numeric   diameter_volume_equ;
+  Numeric   diameter_area_equ_aerodynamical;
 };
 
 typedef Array<ScatteringMetaData> ArrayOfScatteringMetaData;

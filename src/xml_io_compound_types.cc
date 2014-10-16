@@ -1341,25 +1341,22 @@ void xml_read_from_stream(istream& is_xml,
   tag.read_from_stream(is_xml);
   tag.check_name("ScatteringMetaData");
   tag.get_attribute_value("version", version);
-  
-  xml_read_from_stream(is_xml, smdata.description, pbifs, verbosity);
-  xml_read_from_stream(is_xml, smdata.material, pbifs, verbosity);
-  xml_read_from_stream(is_xml, smdata.shape, pbifs, verbosity);
-  xml_read_from_stream(is_xml, smdata.density, pbifs, verbosity);
-  xml_read_from_stream(is_xml, smdata.diameter_max, pbifs, verbosity);
-  xml_read_from_stream(is_xml, smdata.volume, pbifs, verbosity);
-  xml_read_from_stream(is_xml, smdata.area_projected, pbifs, verbosity);
-  xml_read_from_stream(is_xml, smdata.aspect_ratio, pbifs, verbosity);
-  
-  if (version == "2")
+
+  if (version != "3")
     {
-      String ptype;
-      xml_read_from_stream(is_xml, smdata.scat_f_grid, pbifs, verbosity);
-      xml_read_from_stream(is_xml, smdata.scat_T_grid, pbifs, verbosity);
-      xml_read_from_stream(is_xml, ptype, pbifs, verbosity);
-      xml_read_from_stream(is_xml, smdata.complex_refr_index, pbifs, verbosity);
-      smdata.ptype = PTypeFromString(ptype);
+        ostringstream os;
+        os << "Only ScatteringMetaData version 3 can be handled. "
+           << "Versions 1 and 2 are obsolete.";
+        throw runtime_error(os.str());
     }
+      
+  xml_read_from_stream(is_xml, smdata.description, pbifs, verbosity);
+  xml_read_from_stream(is_xml, smdata.source, pbifs, verbosity);
+  xml_read_from_stream(is_xml, smdata.refr_index, pbifs, verbosity);
+  xml_read_from_stream(is_xml, smdata.mass, pbifs, verbosity);
+  xml_read_from_stream(is_xml, smdata.diameter_max, pbifs, verbosity);
+  xml_read_from_stream(is_xml, smdata.diameter_volume_equ, pbifs, verbosity);
+  xml_read_from_stream(is_xml, smdata.diameter_area_equ_aerodynamical, pbifs, verbosity);
 
   tag.read_from_stream(is_xml);
   tag.check_name("/ScatteringMetaData");
@@ -1384,22 +1381,16 @@ void xml_write_to_stream(ostream& os_xml,
   open_tag.set_name("ScatteringMetaData");
   if (name.length())
     open_tag.add_attribute("name", name);
-  open_tag.add_attribute("version", "2");
+  open_tag.add_attribute("version", "3");
   open_tag.write_to_stream(os_xml);
 
   xml_write_to_stream(os_xml, smdata.description, pbofs, "", verbosity);
-  xml_write_to_stream(os_xml, smdata.material, pbofs, "", verbosity);
-  xml_write_to_stream(os_xml, smdata.shape, pbofs, "", verbosity);
-  xml_write_to_stream(os_xml, smdata.density, pbofs, "", verbosity);
+  xml_write_to_stream(os_xml, smdata.source, pbofs, "", verbosity);
+  xml_write_to_stream(os_xml, smdata.refr_index, pbofs, "", verbosity);
+  xml_write_to_stream(os_xml, smdata.mass, pbofs, "", verbosity);
   xml_write_to_stream(os_xml, smdata.diameter_max, pbofs, "", verbosity);
-  xml_write_to_stream(os_xml, smdata.volume, pbofs, "", verbosity);
-  xml_write_to_stream(os_xml, smdata.area_projected, pbofs, "", verbosity);
-  xml_write_to_stream(os_xml, smdata.aspect_ratio, pbofs, "", verbosity);
-  xml_write_to_stream(os_xml, smdata.scat_f_grid, pbofs, "", verbosity);
-  xml_write_to_stream(os_xml, smdata.scat_T_grid, pbofs, "", verbosity);
-  xml_write_to_stream(os_xml, PTypeToString(smdata.ptype),
-                      pbofs, "", verbosity);
-  xml_write_to_stream(os_xml, smdata.complex_refr_index, pbofs, "", verbosity);
+  xml_write_to_stream(os_xml, smdata.diameter_volume_equ, pbofs, "", verbosity);
+  xml_write_to_stream(os_xml, smdata.diameter_area_equ_aerodynamical, pbofs, "", verbosity);
   
   close_tag.set_name("/ScatteringMetaData");
   close_tag.write_to_stream(os_xml);

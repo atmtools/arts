@@ -158,17 +158,20 @@ Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__LookUpTable )
 # 6.Specification of cloud-----------------------------------------------
 # -----------------------------------------------------------------------
 
-# Read SingelScatteringData and ScatteringMetaData
-#-------------------------------------------------
-ScatteringParticleTypeAndMetaRead (scat_data, scat_meta, f_grid, 
-    "SingleScatteringFile.xml",
-    "ScatteringMetaFile.xml")
-
 # Definition of particle species
 #--------------------------------
 scat_speciesSet(scat_species,
-                ["LWC-liquid-Water-0.1-2000",
-                "IWC-MH97-Ice-0.1-2000"])
+                ["LWC-H98_STCO-0.1-2000",
+                "IWC-MH97-0.1-2000"])
+
+# Read SingelScatteringData and ScatteringMetaData
+#-------------------------------------------------
+ScatteringParticleTypeAndMetaRead (scat_data, scat_meta, f_grid, 
+    "SingleScatteringFile_H2Oliquid.xml",
+    "ScatteringMetaFile_H2Oliquid.xml")
+ScatteringParticleTypeAndMetaRead (scat_data, scat_meta, f_grid, 
+    "SingleScatteringFile_H2Oice.xml",
+    "ScatteringMetaFile_H2Oice.xml")
 
 # Selection/filerting of particles according to *scat_species*
 #------------------------------------------------------------

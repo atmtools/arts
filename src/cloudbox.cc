@@ -30,6 +30,8 @@ extern const Index GFIELD3_P_GRID;
 extern const Index GFIELD3_LAT_GRID;
 extern const Index GFIELD3_LON_GRID;
 extern const Numeric PI;
+extern const Numeric DENSITY_OF_ICE;
+extern const Numeric DENSITY_OF_WATER;
 
 /*===========================================================================
   === External declarations
@@ -471,7 +473,7 @@ void chk_pnd_field_raw_only_in_cloudbox(
   '*').
 
 	\param scat_species Array of scattering species tags.
-  \param delim Delimiter string of *scat_species* elements.
+  \param delim        delimiter string of *scat_species* elements.
 
   \author Jana Mendrok
   \date 2012-10-25
@@ -488,13 +490,26 @@ void chk_scat_species (
   for ( Index k=0; k<scat_species.nelem(); k++ )
     {
       scat_species[k].split ( strarr, delim );
-      if ( strarr.nelem() > 5 )
+      if ( strarr.nelem() > 4 )
         {     
           ostringstream os;
-          os << "Individual strings in scat_species can only contain up to 5\n"
+          os << "Individual strings in scat_species can only contain up to 4\n"
              << "elements, but entry #" << k << " contains the following "
              << strarr.nelem() << ":\n" << strarr << "\n";
           throw runtime_error ( os.str() );
+        }
+
+      if ( strarr.nelem() > 2 && strarr[2] != "*" )
+        {
+          istringstream os1 ( strarr[3] );
+          os1 >> sizeval;
+          if (os1.fail())
+            {
+              ostringstream os;
+              os << "Sizemin specification can only be a number or wildcard ('*')"
+                 << ", but is '" << strarr[2] << "'\n";
+              throw runtime_error ( os.str() );
+            }
         }
 
       if ( strarr.nelem() > 3 && strarr[3] != "*" )
@@ -504,21 +519,8 @@ void chk_scat_species (
           if (os1.fail())
             {
               ostringstream os;
-              os << "Sizemin specification can only be a number or wildcard ('*')"
-                 << ", but is '" << strarr[3] << "'\n";
-              throw runtime_error ( os.str() );
-            }
-        }
-
-      if ( strarr.nelem() > 4 && strarr[4] != "*" )
-        {
-          istringstream os1 ( strarr[4] );
-          os1 >> sizeval;
-          if (os1.fail())
-            {
-              ostringstream os;
               os << "Sizemax specification can only be a number or wildcard ('*')"
-                 << ", but is '" << strarr[4] << "'\n";
+                 << ", but is '" << strarr[3] << "'\n";
               throw runtime_error ( os.str() );
             }
         }
@@ -567,10 +569,11 @@ void chk_scattering_meta_data(const ScatteringMetaData& scat_meta_single _U_,
                               const String& scat_meta_file,
                               const Verbosity& verbosity)
 {
-  CREATE_OUT2;
-  out2 << "  Check scattering meta properties file "<< scat_meta_file << "\n";
-  
-/* this check is outdated. type now is free from!
+  CREATE_OUT3;
+  out3 << "  Check scattering meta data file "<< scat_meta_file 
+       << "\n";
+
+  /* this check is outdated. type now is free from!
    however, we might want to have other things checked here!?
    - which parameters at least are needed? -> radius, ...?
    - ...
@@ -891,14 +894,14 @@ bool is_inside_cloudbox(const Ppath& ppath_step,
 /*! Calculates the particle number density field for McFarquhar and Heymsfield
     (1997) size distribution. To be used for cloud ice.
 
-    \return pnd_field Particle number density field
-    \param IWC_field mass content (cloud ice) field [kg/m3]
-    \param t_field atmospheric temperature [K]
-    \param limits pnd_field boundaries (indices in p, lat, lon)
-    \param scat_meta scattering meta data for all scattering elements
-    \param scat_species index for scattering species handled by this distribution
-    \param part_string scat_species tag for profile/distribution handled here
-    \param delim Delimiter string of *scat_species* elements
+    \return pnd_field   Particle number density field
+    \param IWC_field    mass content (cloud ice) field [kg/m3]
+    \param t_field      atmospheric temperature [K]
+    \param limits       pnd_field boundaries (indices in p, lat, lon)
+    \param scat_meta    scattering meta data for all scattering elements
+    \param scat_species array index of scattering species handled by this distribution
+    \param part_string  scat_species tag for profile/distribution handled here
+    \param delim        delimiter string of *scat_species* elements
   
   \author Jana Mendrok, Daniel Kreyling
   \date 2012-04-03
@@ -914,15 +917,14 @@ void pnd_fieldMH97 (Tensor4View pnd_field,
                     const String& delim,
                     const Verbosity& verbosity)
 {
-  const Index npart = scat_meta[scat_species].nelem();
+  const Index N_se = scat_meta[scat_species].nelem();
   const Index scat_data_start = FlattenedIndex(scat_meta, scat_species);
   ArrayOfIndex intarr;
-  Vector vol_unsorted ( npart, 0.0 );
-  Vector vol ( npart, 0.0 );
-  Vector dm ( npart, 0.0 );
-  Vector rho ( npart, 0.0 );
-  Vector pnd ( npart, 0.0 );
-  Vector dN ( npart, 0.0 );
+  Vector Dvol_unsorted ( N_se, 0.0 );
+  Vector Dvol ( N_se, 0.0 );
+  Vector mass ( N_se, 0.0 );
+  Vector pnd ( N_se, 0.0 );
+  Vector dNdD ( N_se, 0.0 );
 
   String psd_param;
   String partfield_name;
@@ -933,25 +935,26 @@ void pnd_fieldMH97 (Tensor4View pnd_field,
 
   bool noisy = (psd_param == "MH97n");
 
-  for ( Index i=0; i < npart; i++ )
-      vol_unsorted[i] = ( scat_meta[scat_species][i].volume );
-  get_sorted_indexes(intarr, vol_unsorted);
+  for ( Index i=0; i < N_se; i++ )
+      Dvol_unsorted[i] = ( scat_meta[scat_species][i].diameter_volume_equ );
+  get_sorted_indexes(intarr, Dvol_unsorted);
 
   // extract scattering meta data
-  for ( Index i=0; i< npart; i++ )
+  for ( Index i=0; i< N_se; i++ )
   {
-      vol[i] = ( scat_meta[scat_species][i].volume ); //m^3
-      // calculate melted diameter from volume [m]
-      dm[i] = pow ( 
-             ( scat_meta[scat_species][i].volume *6./PI ),
-             ( 1./3. ) );
-      // get density from meta data [kg/m^3]
-      rho[i] = scat_meta[scat_species][i].density;
-      // get aspect ratio from meta data [ ]
+    // FIXME: how is Dvol different from Dvol_unsorted? shouldn't we take
+    // scat_meta[scat_species][intarr[i]] to get a sorted Dvol?
+    // doesn't this imply we did bullshit all the time, using unsorted size
+    // parameters (ususally, we have the entries in scat_meta files sorted. but
+    // we can't rely on that!)?
+    // for now, i just leave it as it is. to be able to reproduce what was done
+    // before.
+      Dvol[i] = scat_meta[scat_species][i].diameter_volume_equ; // [m]
+      mass[i] = scat_meta[scat_species][i].mass; // [kg]
   }
   
-  if (dm.nelem() > 0)
-  // dm.nelem()=0 implies no selected scattering element for the respective
+  if (Dvol.nelem() > 0)
+  // Dvol.nelem()=0 implies no selected scattering element for the respective
   // scattering species field. should not occur.
   {
       // iteration over all atm. levels
@@ -965,35 +968,34 @@ void pnd_fieldMH97 (Tensor4View pnd_field,
             if (IWC_field ( p, lat, lon ) > 0.)
             {
                 // iteration over all given size bins
-                for ( Index i=0; i<dm.nelem(); i++ )
+                for ( Index i=0; i<Dvol.nelem(); i++ )
                 {
                   // calculate particle size distribution with MH97
                   // [# m^-3 m^-1]
-                  dN[i] = IWCtopnd_MH97 ( IWC_field ( p, lat, lon ),
-                                          dm[i], t_field ( p, lat, lon ),
-                                          rho[i], noisy );
-                  //dN2[i] = dN[i] * vol[i] * rho[i];
+                  dNdD[i] = IWCtopnd_MH97 ( IWC_field ( p, lat, lon ),
+                                            Dvol[i], t_field ( p, lat, lon ),
+                                            noisy );
                 }
             
                 // scale pnds by bin width
-                if (dm.nelem() > 1)
-                  scale_pnd( pnd, dm, dN );
+                if (Dvol.nelem() > 1)
+                  scale_pnd( pnd, Dvol, dNdD );
                 else
-                  pnd = dN;
+                  pnd = dNdD;
 	    
                 // calculate error of pnd sum and real XWC
-                chk_pndsum ( pnd, IWC_field ( p,lat,lon ), vol, rho,
+                chk_pndsum ( pnd, IWC_field ( p,lat,lon ), mass,
                              p, lat, lon, partfield_name, verbosity );
 	    
                 // writing pnd vector to wsv pnd_field
-                for ( Index i = 0; i< npart; i++ )
+                for ( Index i = 0; i< N_se; i++ )
                 {
                   pnd_field ( intarr[i]+scat_data_start, p-limits[0],
                               lat-limits[2], lon-limits[4] ) = pnd[i];
                 }
             }
             else
-                for ( Index i = 0; i< npart; i++ )
+                for ( Index i = 0; i< N_se; i++ )
                 {
                   pnd_field ( intarr[i]+scat_data_start, p-limits[0],
                               lat-limits[2], lon-limits[4] ) = 0.;
@@ -1009,15 +1011,14 @@ void pnd_fieldMH97 (Tensor4View pnd_field,
     comm.) size distribution. To be used for atmospheric ice, particularly cloud
     ice and snow.
 
-    \return pnd_field Particle number density field
-    \param IWC_field mass content (cloud ice or snow) field [kg/m3]
-    \param t_field atmospheric temperature [K]
-    \param limits pnd_field boundaries (indices in p, lat, lon)
-    \param scat_meta scattering meta data for all scattering elements
-    \param scat_data_start start index for scattering elements handled by this distribution
-    \param npart number of scattering elements handled by this distribution
-    \param part_string scat_species tag for profile/distribution handled here
-    \param delim Delimiter string of *scat_species* elements
+    \return pnd_field   Particle number density field
+    \param IWC_field    mass content (cloud ice or snow) field [kg/m3]
+    \param t_field      atmospheric temperature [K]
+    \param limits       pnd_field boundaries (indices in p, lat, lon)
+    \param scat_meta    scattering meta data for all scattering elements
+    \param scat_species array index of scattering species handled by this distribution
+    \param part_string  scat_species tag for profile/distribution handled here
+    \param delim        delimiter string of *scat_species* elements
   
   \author Jana Mendrok, Daniel Kreyling
   \date 2012-04-05
@@ -1033,37 +1034,32 @@ void pnd_fieldH11 (Tensor4View pnd_field,
                    const String& delim,
                    const Verbosity& verbosity)
 {
-  const Index npart = scat_meta[scat_species].nelem();
+  const Index N_se = scat_meta[scat_species].nelem();
   const Index scat_data_start = FlattenedIndex(scat_meta, scat_species);
   ArrayOfIndex intarr;
-  Vector dmax_unsorted ( npart, 0.0 );
-  Vector vol ( npart, 0.0 );
-  Vector dm ( npart, 0.0 );
-  Vector rho ( npart, 0.0 );
-  Vector pnd ( npart, 0.0 );
-  Vector dN ( npart, 0.0 );
+  Vector Dmax_unsorted ( N_se, 0.0 );
+  Vector Dmax ( N_se, 0.0 );
+  Vector mass ( N_se, 0.0 );
+  Vector pnd ( N_se, 0.0 );
+  Vector dNdD ( N_se, 0.0 );
   String partfield_name;
 
   //split String and copy to ArrayOfString
   parse_partfield_name( partfield_name, part_string, delim);
 
-  for ( Index i=0; i < npart; i++ )
-      dmax_unsorted[i] = ( scat_meta[scat_species][i].diameter_max );
-  get_sorted_indexes(intarr, dmax_unsorted);
+  for ( Index i=0; i < N_se; i++ )
+      Dmax_unsorted[i] = ( scat_meta[scat_species][i].diameter_max );
+  get_sorted_indexes(intarr, Dmax_unsorted);
       
   // extract scattering meta data
-  for ( Index i=0; i< npart; i++ )
+  for ( Index i=0; i< N_se; i++ )
   {
-      vol[i]= scat_meta[scat_species][i].volume; //[m^3]
-      // get maximum diameter from meta data [m]
-      dm[i] = scat_meta[scat_species][i].diameter_max;
-      // get density from meta data [kg/m^3]
-      rho[i] = scat_meta[scat_species][i].density;
-      // get aspect ratio from meta data [ ]
+      Dmax[i] = scat_meta[scat_species][i].diameter_max; // [m]
+      mass[i] = scat_meta[scat_species][i].mass; // [kg]
   }
 
-  if (dm.nelem() > 0)
-  // dm.nelem()=0 implies no selected scattering element for the respective
+  if (Dmax.nelem() > 0)
+  // Dmax.nelem()=0 implies no selected scattering element for the respective
   // scattering species field. should not occur anymore.
   {
       // itertation over all atm. levels
@@ -1077,32 +1073,24 @@ void pnd_fieldH11 (Tensor4View pnd_field,
             if (IWC_field ( p, lat, lon ) > 0.)
             {
                 // iteration over all given size bins
-                for ( Index i=0; i<dm.nelem(); i++ ) //loop over number of scattering elements
+                for ( Index i=0; i<Dmax.nelem(); i++ ) //loop over number of scattering elements
                 {
                     // calculate particle size distribution for H11
                     // [# m^-3 m^-1]
-                    dN[i] = IWCtopnd_H11 ( dm[i], t_field ( p, lat, lon ) );
+                    dNdD[i] = IWCtopnd_H11 ( Dmax[i], t_field ( p, lat, lon ) );
                 }
                 // scale pnds by scale width
-                if (dm.nelem() > 1)
-                    scale_pnd( pnd, dm, dN ); //[# m^-3]
+                if (Dmax.nelem() > 1)
+                    scale_pnd( pnd, Dmax, dNdD ); //[# m^-3]
                 else
-                    pnd = dN;
-
-                // scale H11 distribution (which is independent of Ice or 
-                // Snow massdensity) to current massdensity.
-                /* JM120411: we don't need this - it's doing exactly, what
-                             chk_pndsum is doing. instead we redefine verbosity
-                             for checksum here to suppress the 'scaling is off'
-                             warnings and let chk_pndsum do the proper scaling.
-                scale_H11 ( pnd, IWC_field ( p,lat,lon ), vol, rho ); */
+                    pnd = dNdD;
 
                 // calculate proper scaling of pnd sum from real IWC and apply
-                chk_pndsum ( pnd, IWC_field ( p,lat,lon ), vol, rho,
+                chk_pndsum ( pnd, IWC_field ( p,lat,lon ), mass,
                              p, lat, lon, partfield_name, verbosity );
 
                 // writing pnd vector to wsv pnd_field
-                for ( Index i =0; i< npart; i++ )
+                for ( Index i =0; i< N_se; i++ )
                 {
                     pnd_field ( intarr[i]+scat_data_start, p-limits[0],
                                 lat-limits[2], lon-limits[4] ) = pnd[i];
@@ -1110,7 +1098,7 @@ void pnd_fieldH11 (Tensor4View pnd_field,
             }
             else
             {
-                for ( Index i = 0; i< npart; i++ )
+                for ( Index i = 0; i< N_se; i++ )
                 {
                   pnd_field ( intarr[i]+scat_data_start, p-limits[0],
                               lat-limits[2], lon-limits[4] ) = 0.;
@@ -1127,15 +1115,14 @@ void pnd_fieldH11 (Tensor4View pnd_field,
     comm.) size distribution. To be used for atmospheric ice, particularly cloud
     ice and snow.
 
-    \return pnd_field Particle number density field
-    \param IWC_field mass content (cloud ice or snow) field [kg/m3]
-    \param t_field atmospheric temperature [K]
-    \param limits pnd_field boundaries (indices in p, lat, lon)
-    \param scat_meta scattering meta data for all scattering elements
-    \param scat_data_start start index for scattering elements handled by this distribution
-    \param npart number of scattering elements handled by this distribution
-    \param part_string scat_species tag for profile/distribution handled here
-    \param delim Delimiter string of *scat_species* elements
+    \return pnd_field   Particle number density field
+    \param IWC_field    mass content (cloud ice or snow) field [kg/m3]
+    \param t_field      atmospheric temperature [K]
+    \param limits       pnd_field boundaries (indices in p, lat, lon)
+    \param scat_meta    scattering meta data for all scattering elements
+    \param scat_species array index of scattering species handled by this distribution
+    \param part_string  scat_species tag for profile/distribution handled here
+    \param delim        delimiter string of *scat_species* elements
   
   \author Johan Strandgren, Daniel Kreyling
   \date 2013-08-26
@@ -1151,56 +1138,32 @@ void pnd_fieldH13 (Tensor4View pnd_field,
                    const String& delim,
                    const Verbosity& verbosity)
 {
-  const Index npart = scat_meta[scat_species].nelem();
+  const Index N_se = scat_meta[scat_species].nelem();
   const Index scat_data_start = FlattenedIndex(scat_meta, scat_species);
   ArrayOfIndex intarr;
-  Vector dmax_unsorted ( npart, 0.0 );
-  Vector vol ( npart, 0.0 );
-  Vector dm ( npart, 0.0 );
-  Vector rho ( npart, 0.0 );
-  Vector pnd ( npart, 0.0 );
-  Vector dN ( npart, 0.0 );
-//  Vector ar ( npart, 0.0 );
+  Vector Dmax_unsorted ( N_se, 0.0 );
+  Vector Dmax ( N_se, 0.0 );
+  Vector mass ( N_se, 0.0 );
+  Vector pnd ( N_se, 0.0 );
+  Vector dNdD ( N_se, 0.0 );
   String partfield_name;
 
   //split String and copy to ArrayOfString
   parse_partfield_name( partfield_name, part_string, delim);
 
-  for ( Index i=0; i < npart; i++ )
-      dmax_unsorted[i] = ( scat_meta[scat_species][i].diameter_max );
-  get_sorted_indexes(intarr, dmax_unsorted);
+  for ( Index i=0; i < N_se; i++ )
+      Dmax_unsorted[i] = ( scat_meta[scat_species][i].diameter_max );
+  get_sorted_indexes(intarr, Dmax_unsorted);
       
   // extract scattering meta data
-  for ( Index i=0; i< npart; i++ )
+  for ( Index i=0; i< N_se; i++ )
   {
-      vol[i]= scat_meta[scat_species][i].volume; //[m^3]
-      // get maximum diameter from meta data [m]
-      dm[i] = scat_meta[scat_species][i].diameter_max;
-      // get density from meta data [kg/m^3]
-      rho[i] = scat_meta[scat_species][i].density;
-      // get aspect ratio from meta data [ ]
-//      ar[i] = scat_meta[pos].aspect_ratio;
+      Dmax[i] = scat_meta[scat_species][i].diameter_max; // [m]
+      mass[i] = scat_meta[scat_species][i].mass; // [kg]
   }
 
-/*
-    // Collect all unique aspect ratios and check if the are more than one
-    vector<Numeric> ar_in;
-    for (Iterator1D it = ar.begin(); it != ar.end(); ++it)
-        if (find(ar_in.begin(), ar_in.end(), *it) == ar_in.end())
-            ar_in.push_back(*it);
-    
-    if (ar_in.size()>1)
-    {    
-        ostringstream os;
-        os << "There are " << ar_in.size() << " unique aspect ratios in *scat_meta*.\n"
-        "This parametrization is only valid for one single\n"
-        "aspect ratio\n";
-        throw runtime_error(os.str());
-    }
-*/
-    
-  if (dm.nelem() > 0)
-  // dm.nelem()=0 implies no selected scattering elements for the respective
+  if (Dmax.nelem() > 0)
+  // Dmax.nelem()=0 implies no selected scattering elements for the respective
   // scattering species field. should not occur anymore.
   {
       // itertation over all atm. levels
@@ -1214,32 +1177,24 @@ void pnd_fieldH13 (Tensor4View pnd_field,
             if (IWC_field ( p, lat, lon ) > 0.)
             {
                 // iteration over all given size bins
-                for ( Index i=0; i<dm.nelem(); i++ ) //loop over number of scattering elements
+                for ( Index i=0; i<Dmax.nelem(); i++ ) //loop over number of scattering elements
                 {
                     // calculate particle size distribution for H13
                     // [# m^-3 m^-1]
-                    dN[i] = IWCtopnd_H13 ( dm[i], t_field ( p, lat, lon ) );
+                    dNdD[i] = IWCtopnd_H13 ( Dmax[i], t_field ( p, lat, lon ) );
                 }
                 // scale pnds by scale width
-                if (dm.nelem() > 1)
-                    scale_pnd( pnd, dm, dN ); //[# m^-3]
+                if (Dmax.nelem() > 1)
+                    scale_pnd( pnd, Dmax, dNdD ); //[# m^-3]
                 else
-                    pnd = dN;
-
-                // scale H13 distribution (which is independent of Ice or 
-                // Snow massdensity) to current massdensity.
-                /* JM120411: we don't need this - it's doing exactly, what
-                             chk_pndsum is doing. instead we redefine verbosity
-                             for checksum here to suppress the 'scaling is off'
-                             warnings and let chk_pndsum do the proper scaling.
-                scale_H13 ( pnd, IWC_field ( p,lat,lon ), vol, rho );*/
+                    pnd = dNdD;
 
                 // calculate proper scaling of pnd sum from real IWC and apply
-                chk_pndsum ( pnd, IWC_field ( p,lat,lon ), vol, rho,
+                chk_pndsum ( pnd, IWC_field ( p,lat,lon ), mass,
                              p, lat, lon, partfield_name, verbosity );
 
                 // writing pnd vector to wsv pnd_field
-                for ( Index i =0; i< npart; i++ )
+                for ( Index i =0; i< N_se; i++ )
                 {
                     pnd_field ( intarr[i]+scat_data_start, p-limits[0],
                                 lat-limits[2], lon-limits[4] ) = pnd[i];
@@ -1247,7 +1202,7 @@ void pnd_fieldH13 (Tensor4View pnd_field,
             }
             else
             {
-                for ( Index i = 0; i< npart; i++ )
+                for ( Index i = 0; i< N_se; i++ )
                 {
                   pnd_field ( intarr[i]+scat_data_start, p-limits[0],
                               lat-limits[2], lon-limits[4] ) = 0.;
@@ -1263,15 +1218,14 @@ void pnd_fieldH13 (Tensor4View pnd_field,
     comm.) size distribution. To be used for atmospheric ice, particularly cloud
     ice and snow.
 
-    \return pnd_field Particle number density field
-    \param IWC_field mass content (cloud ice or snow) field [kg/m3]
-    \param t_field atmospheric temperature [K]
-    \param limits pnd_field boundaries (indices in p, lat, lon)
-    \param scat_meta scattering meta data for all scattering elements
-    \param scat_data_start start index for scattering elements handled by this distribution
-    \param npart number of scattering elements handled by this distribution
-    \param part_string scat_species tag for profile/distribution handled here
-    \param delim Delimiter string of *scat_species* elements
+    \return pnd_field   Particle number density field
+    \param IWC_field    mass content (cloud ice or snow) field [kg/m3]
+    \param t_field      atmospheric temperature [K]
+    \param limits       pnd_field boundaries (indices in p, lat, lon)
+    \param scat_meta    scattering meta data for all scattering elements
+    \param scat_species array index of scattering species handled by this distribution
+    \param part_string  scat_species tag for profile/distribution handled here
+    \param delim        delimiter string of *scat_species* elements
   
   \author Johan Strandgren
   \date 2013-08-26
@@ -1289,91 +1243,78 @@ void pnd_fieldH13Shape (Tensor4View pnd_field,
 { 
   CREATE_OUT1;  
     
-  const Index npart = scat_meta[scat_species].nelem();
+  const Index N_se = scat_meta[scat_species].nelem();
   const Index scat_data_start = FlattenedIndex(scat_meta, scat_species);
   ArrayOfIndex intarr;
-  Vector dmax_unsorted ( npart, 0.0 );
-  Vector vol ( npart, 0.0 );
-  Vector dm ( npart, 0.0 );
-  Vector rho ( npart, 0.0 );
-  Vector pnd ( npart, 0.0 );
-  Vector ar ( npart, 0.0 ); // Aspect ratio set for the T-matrix calculations
+  Vector Dmax_unsorted ( N_se, 0.0 );
+  Vector Dmax ( N_se, 0.0 );
+  Vector mass ( N_se, 0.0 );
+  Vector pnd ( N_se, 0.0 );
+  Vector Darea ( N_se, 0.0 );
+  Vector Rarea ( N_se, 0.0 ); // Area ratio = Darea^2/Dmax^2
   String partfield_name;
 
   //split String and copy to ArrayOfString
   parse_partfield_name( partfield_name, part_string, delim);
 
-  for ( Index i=0; i < npart; i++ )
-      dmax_unsorted[i] = ( scat_meta[scat_species][i].diameter_max );
-  get_sorted_indexes(intarr, dmax_unsorted);
+  for ( Index i=0; i < N_se; i++ )
+      Dmax_unsorted[i] = ( scat_meta[scat_species][i].diameter_max );
+  get_sorted_indexes(intarr, Dmax_unsorted);
   
   // extract scattering meta data
-  for ( Index i=0; i< npart; i++ )
+  for ( Index i=0; i< N_se; i++ )
   {
-      vol[i]= scat_meta[scat_species][i].volume; //[m^3]
-      // get maximum diameter from meta data [m]
-      dm[i] = scat_meta[scat_species][i].diameter_max;
-      // get density from meta data [kg/m^3]
-      rho[i] = scat_meta[scat_species][i].density;
-      // get aspect ratio from meta data [ ]
-      ar[i] = scat_meta[scat_species][i].aspect_ratio;
+      Dmax[i] = scat_meta[scat_species][i].diameter_max; // [m]
+      Darea[i] = scat_meta[scat_species][i].diameter_area_equ_aerodynamical; // [m]
+      mass[i] = scat_meta[scat_species][i].mass; // [kg]
+      Rarea[i] = (Darea[i]*Darea[i]) / (Dmax[i]*Dmax[i]); // [m2/m2]
   }
     // Collect all unique maximum diameters
-    vector<Numeric> dm_in;
-    for (Iterator1D it = dm.begin(); it != dm.end(); ++it)
-        if (find(dm_in.begin(), dm_in.end(), *it) == dm_in.end())
-            dm_in.push_back(*it);
+    vector<Numeric> Dmax_in;
+    for (Iterator1D it = Dmax.begin(); it != Dmax.end(); ++it)
+        if (find(Dmax_in.begin(), Dmax_in.end(), *it) == Dmax_in.end())
+            Dmax_in.push_back(*it);
     
-    // Collect all unique aspect ratios
-    vector<Numeric> ar_in;
-    for (Iterator1D it = ar.begin(); it != ar.end(); ++it)
-        if (find(ar_in.begin(), ar_in.end(), *it) == ar_in.end())
-            ar_in.push_back(*it);
+    // Collect all unique area ratios
+    vector<Numeric> Rarea_in;
+    for (Iterator1D it = Rarea.begin(); it != Rarea.end(); ++it)
+        if (find(Rarea_in.begin(), Rarea_in.end(), *it) == Rarea_in.end())
+            Rarea_in.push_back(*it);
                 
-    Vector dm_input;
-    Vector ar_input;
-    dm_input=dm_in;
-    ar_input=ar_in;
+    Vector Dmax_input;
+    Vector Rarea_input;
+    Dmax_input=Dmax_in;
+    Rarea_input=Rarea_in;
     
     // Check size and shape limits
-    if (dm[0]<7.7*1e-5)
+    if (Dmax[0]<7.7*1e-5)
     {
         ostringstream os;
         os << "The *H13Shape* parametrization is only valid for particles with\n"
            << "a maximum diameter >= to 77 um, but the smallest value of\n"
-           << "*diameter_max* in this simulation is " << dm[0] << " um.\n"
+           << "*diameter_max* in this simulation is " << Dmax[0] << " um.\n"
            << "Set a new *diameter_max_grid*!\n";
         throw runtime_error(os.str());
     }
 
-    if (ar_input.nelem()==1)
+    if (Rarea_input.nelem()==1)
     { 
-        out1 << "WARNING! Only one unique aspect ratio is used. The\n"
-             << "parametrization *H13* will generate the same result but with\n"
-             << "less computations and thus in a shorter time.\n";
+        out1 << "WARNING! Only one unique area ratio is used.\n"
+             << "Using parametrization *H13* will generate the same results "
+             << "as *H13shape*\n"
+             << "but with less computational effort, hence in a shorter time.\n";
     }
     
-    if (ar_input[ar_input.nelem()-1] >= 1)
-    {    
-        ostringstream os;
-        os << "H13Shape is currently only valid for prolate spheroids and\n"
-           << "cylinders, i.e for aspect ratios smaller than one. The maximum\n"
-           << "aspect ratio chosen is " << ar_input[ar_input.nelem()-1] << ".\n"
-           << "Set a new *aspect_ratio_grid";
-        throw runtime_error( os.str() );
-     }
-    
-    Vector dN ( dm_input.nelem(), 0.0 );
-    Vector Ar ( dm_input.nelem(), 0.0 );
-    Vector arH13 ( dm_input.nelem(), 0.0 );
-    Vector pnd_temp ( dm_input.nelem(), 0.0 );
+    Vector dNdD ( Dmax_input.nelem(), 0.0 );
+    Vector Ar ( Dmax_input.nelem(), 0.0 );
+    Vector pnd_temp ( Dmax_input.nelem(), 0.0 );
 
     
   //const bool suppress=true;
   //const Verbosity temp_verb(0,0,0);
 
-  if (dm_input.nelem() > 0)
-  // dm.nelem()=0 implies no selected scattering elements for the respective
+  if (Dmax_input.nelem() > 0)
+  // Dmax.nelem()=0 implies no selected scattering elements for the respective
   // scattering species field. should not occur anymore.
   {
       // itertation over all atm. levels
@@ -1387,37 +1328,34 @@ void pnd_fieldH13Shape (Tensor4View pnd_field,
             if (IWC_field ( p, lat, lon ) > 0.)
             {
                 // iteration over all given size bins
-                for ( Index i=0; i<dm_input.nelem(); i++ ) //loop over number of scattering elements
+                for ( Index i=0; i<Dmax_input.nelem(); i++ ) //loop over number of scattering elements
                 {
                     // calculate particle size distribution for H13Shape
                     // [# m^-3 m^-1]
-                    dN[i] = IWCtopnd_H13Shape ( dm_input[i], t_field ( p, lat, lon ) );
+                    dNdD[i] = IWCtopnd_H13Shape ( Dmax_input[i], t_field ( p, lat, lon ) );
                     
                     // calculate Area ratio distribution for H13Shape
-                    Ar[i] = area_ratioH13 (dm_input[i], t_field (p, lat, lon ) );
-                    
-                    // Aspect ratio equals area ratio (for prolate particles)
-                    arH13[i] = Ar[i];
+                    Ar[i] = area_ratioH13 (Dmax_input[i], t_field (p, lat, lon ) );
                 }
 
                 // scale pnds by scale width
-                if (dm_input.nelem() > 1)
-                    scale_pnd( pnd_temp, dm_input, dN ); //[# m^-3]
+                if (Dmax_input.nelem() > 1)
+                    scale_pnd( pnd_temp, Dmax_input, dNdD ); //[# m^-3]
                 else
-                    pnd_temp = dN;
+                    pnd_temp = dNdD;
 
-                // Check which element in ar is closest to arH13 and assign
+                // Check which element in Rarea is closest to Ar and assign
                 // the PND for that size to that scattering element and zeros to the rest
                 Index l;
-                l=ar_input.nelem();
+                l=Rarea_input.nelem();
 
                 Vector diff;
                 
                 for ( Index k=0, j=0; j<pnd_temp.nelem(); k+=l,j++ )
                 {   
-                    diff = ar[Range(k,l)];
+                    diff = Rarea[Range(k,l)];
                     
-                    diff -= arH13[j];
+                    diff -= Ar[j];
                     
                     Numeric minval = std::numeric_limits<Numeric>::infinity();
                     Index   minpos = -1;
@@ -1436,21 +1374,12 @@ void pnd_fieldH13Shape (Tensor4View pnd_field,
                     
                 }
 
-                // scale H13 distribution (which is independent of Ice or 
-                // Snow massdensity) to current massdensity.
-                /* JM120411: we don't need this - it's doing exactly, what
-                             chk_pndsum is doing. instead we redefine verbosity
-                             for checksum here to suppress the 'scaling is off'
-                             warnings and let chk_pndsum do the proper scaling.
-                scale_H13 ( pnd, IWC_field ( p,lat,lon ), vol, rho );*/
-
                 // calculate proper scaling of pnd sum from real IWC and apply
-                chk_pndsum ( pnd, IWC_field ( p,lat,lon ), vol, rho,
+                chk_pndsum ( pnd, IWC_field ( p,lat,lon ), mass,
                              p, lat, lon, partfield_name, verbosity );
-//                             p, lat, lon, partfield_name, temp_verb );
                
                 // writing pnd vector to wsv pnd_field
-                for ( Index i =0; i< npart; i++ )
+                for ( Index i =0; i< N_se; i++ )
                 {
                     pnd_field ( intarr[i]+scat_data_start, p-limits[0],
                                 lat-limits[2], lon-limits[4] ) = pnd[i];
@@ -1458,7 +1387,7 @@ void pnd_fieldH13Shape (Tensor4View pnd_field,
             }
             else
             {
-                for ( Index i = 0; i< npart; i++ )
+                for ( Index i = 0; i< N_se; i++ )
                 {
                   pnd_field ( intarr[i]+scat_data_start, p-limits[0],
                               lat-limits[2], lon-limits[4] ) = 0.;
@@ -1473,14 +1402,13 @@ void pnd_fieldH13Shape (Tensor4View pnd_field,
 /*! Calculates the particle number density field for Marshall and Palmer (1948)
     size distribution. To be used for precipitation, particularly rain.
 
-    \return pnd_field Particle number density field
-    \param PR_field precipitation rate field [kg/(m2*s)]
-    \param limits pnd_field boundaries (indices in p, lat, lon)
-    \param scat_meta scattering meta data for all scattering elements
-    \param scat_data_start start index for scattering elements handled by this distribution
-    \param npart number of scattering elements handled by this distribution
-    \param part_string scat_species tag for profile/distribution handled here
-    \param delim Delimiter string of *scat_species* elements
+    \return pnd_field   Particle number density field
+    \param PR_field     precipitation rate field [kg/(m2*s)]
+    \param limits       pnd_field boundaries (indices in p, lat, lon)
+    \param scat_meta    scattering meta data for all scattering elements
+    \param scat_species array index of scattering species handled by this distribution
+    \param part_string  scat_species tag for profile/distribution handled here
+    \param delim        delimiter string of *scat_species* elements
   
   \author Jana Mendrok
   \date 2012-04-04
@@ -1495,48 +1423,44 @@ void pnd_fieldMP48 (Tensor4View pnd_field,
                     const String& delim,
                     const Verbosity& verbosity)
 {
-  const Index npart = scat_meta[scat_species].nelem();
+  const Index N_se = scat_meta[scat_species].nelem();
   const Index scat_data_start = FlattenedIndex(scat_meta, scat_species);
   ArrayOfIndex intarr;
-  Vector vol_unsorted ( npart, 0.0 );
-  Vector vol ( npart, 0.0 );
-  Vector d ( npart, 0.0 );
-  Vector rho ( npart, 0.0 );
-  Vector pnd ( npart, 0.0 );
-  Vector dN ( npart, 0.0 );
+  Vector Dvol_unsorted ( N_se, 0.0 );
+  Vector Dvol ( N_se, 0.0 );
+  Vector vol ( N_se, 0.0 );
+  Vector mass ( N_se, 0.0 );
+  Vector pnd ( N_se, 0.0 );
+  Vector dNdD ( N_se, 0.0 );
 
   String partfield_name;
 
   //split String and copy to ArrayOfString
   parse_partfield_name( partfield_name, part_string, delim);
 
-  for ( Index i=0; i < npart; i++ )
-      vol_unsorted[i] = ( scat_meta[scat_species][i].volume );
-  get_sorted_indexes(intarr, vol_unsorted);
+  for ( Index i=0; i < N_se; i++ )
+      Dvol_unsorted[i] = ( scat_meta[scat_species][i].diameter_volume_equ );
+  get_sorted_indexes(intarr, Dvol_unsorted);
 	
   // extract scattering meta data
-  for ( Index i=0; i< npart; i++ )
+  for ( Index i=0; i< N_se; i++ )
   {
-      vol[i] = ( scat_meta[scat_species][i].volume ); //m^3
-      // calculate volume equivalent diameter [m]
-      d[i] = pow ( 
-             ( scat_meta[scat_species][i].volume *6./PI ),
-             ( 1./3. ) );
-      // get density from meta data [kg/m^3]
-      rho[i] = scat_meta[scat_species][i].density;
+      Dvol[i] = scat_meta[scat_species][i].diameter_volume_equ; // [m]
+      mass[i] = scat_meta[scat_species][i].mass; // [kg]
+      vol[i] = PI/6. * Dvol[i]*Dvol[i]*Dvol[i]; // [m3]
   }
 
   // conversion factor from PR [kg/(m^2*s)] to PR[mm/hr]
   /* for the conversion we need to know the mean density of distribution:
      rho_mean = mass_total/vol_total
-              = int(vol[D]*rho[D]*dN[D])dD/int(vol[D]*dN[D])dD
+              = int(mass[D]*dNdD[D])dD/int(vol[D]*dNdD[D])dD
 
-     However, we do not yet know dN[D], which in turn is dependent on rho[D].
+     However, we do not yet know dNdD[D], which in turn is dependent on rho[D].
       proper solution requires iterative approach (does it?), but is it really
       worth to implement this? at least rain drops density should not really
       vary with particle size. might be different for snow/hail/graupel.
      So, here we set conversion factor to pseudo-PR[mm/hr]*[kg/m^3] and divide by
-      density later on 
+      density later on.
   */
   const Numeric convfac=3.6e6; // [PR [kg/(m^2*s)] to PR[mm/hr]*[kg/m3]
   Numeric fac, rho_mean, vol_total, mass_total, tPR;
@@ -1548,8 +1472,8 @@ void pnd_fieldMP48 (Tensor4View pnd_field,
   const Numeric lambda_exp = -0.21;
   Numeric PWC, lambda = NAN;
 
-  if (d.nelem() > 0)
-  // d.nelem()=0 implies no selected scattering elements for the respective
+  if (Dvol.nelem() > 0)
+  // Dvol.nelem()=0 implies no selected scattering elements for the respective
   // scattering species field. should not occur.
   {
       // iteration over all atm. levels
@@ -1567,7 +1491,7 @@ void pnd_fieldMP48 (Tensor4View pnd_field,
               // initializing for proper start of while loop
               lambda = 0.;
               rho_mean = 0.;
-              mass_total = rho.sum()/Numeric(npart);
+              mass_total = mass.sum();
               vol_total = 1.;
               while (abs( rho_mean/(mass_total/vol_total)-1.)>1e-2)
               // did bulk mean density change?
@@ -1592,55 +1516,51 @@ void pnd_fieldMP48 (Tensor4View pnd_field,
                 lambda = lambda_fac * pow(tPR,lambda_exp);
 
                 // derive particle number density for all given sizes
-                for ( Index i=0; i<d.nelem(); i++ )
+                for ( Index i=0; i<Dvol.nelem(); i++ )
                 {
                     // calculate particle size distribution with MP48
                     // output: [# m^-3 m^-1]
-                    //dN[i] = PRtopnd_MP48 ( tPR, d[i]);
+                    //dNdD[i] = PRtopnd_MP48 ( tPR, Dvol[i]);
                     // too much a hassle to have a separate function. so we do
                     // the calculation directly here.
-                    dN[i] = N0 * exp(-lambda*d[i]);
-                    //dN2[i] = dN[i] * vol[i] * rho[i];
+                    dNdD[i] = N0 * exp(-lambda*Dvol[i]);
+                    //dNdD2[i] = dNdD[i] * vol[i] * rho[i];
                 }
 
                 // scale pnds by bin width
-                if (d.nelem() > 1)
-                    scale_pnd( pnd, d, dN );
+                if (Dvol.nelem() > 1)
+                    scale_pnd( pnd, Dvol, dNdD );
                 else
-                    pnd = dN;
+                    pnd = dNdD;
 
                 // derive mass and volume over whole size distribution for
                 // updated mean density
                 mass_total = vol_total = 0.;
-                for ( Index i=0; i<d.nelem(); i++ )
+                for ( Index i=0; i<Dvol.nelem(); i++ )
                 {
-                    mass_total += vol[i]*rho[i]*pnd[i];
+                    mass_total += mass[i]*pnd[i];
                     vol_total += vol[i]*pnd[i];
                 }
-                //cout << n_it << ". iteration changing bulk density from "
-                //     << rho_mean << " to " << mass_total/vol_total << "\n";
                 n_it++;
               }
-              //cout << "fine at p: " << p << " lat: " << lat << " lon" << lon
-              //     << " for PR=" << PR_field ( p, lat, lon )*fac << "mm/hr.\n";
 
               // Make sure lambda was initialized in the while loop
               assert(!isnan(lambda));
 
               // calculate error of pnd sum and real XWC
               PWC = rho_mean*PI*N0 / pow(lambda,4.);
-              chk_pndsum ( pnd, PWC, vol, rho,
+              chk_pndsum ( pnd, PWC, mass,
                            p, lat, lon, partfield_name, verbosity );
 	    
               // writing pnd vector to wsv pnd_field
-              for ( Index i = 0; i< npart; i++ )
+              for ( Index i = 0; i< N_se; i++ )
               {
                   pnd_field ( intarr[i]+scat_data_start, p-limits[0],
                               lat-limits[2], lon-limits[4] ) = pnd[i];
               }
             }
             else
-                for ( Index i = 0; i< npart; i++ )
+                for ( Index i = 0; i< N_se; i++ )
                 {
                   pnd_field ( intarr[i]+scat_data_start, p-limits[0],
                               lat-limits[2], lon-limits[4] ) = 0.;
@@ -1657,14 +1577,13 @@ void pnd_fieldMP48 (Tensor4View pnd_field,
     size distribution, namely the continental stratus case. To be used for
     liquid clouds.
 
-    \return pnd_field Particle number density field
-    \param LWC_field mass content (liquid water) field [kg/m3]
-    \param limits pnd_field boundaries (indices in p, lat, lon)
-    \param scat_meta scattering meta data for all scattering elements
-    \param scat_data_start start index for scattering elements handled by this distribution
-    \param npart number of scattering elements handled by this distribution
-    \param part_string scat_species tag for profile/distribution handled here
-    \param delim Delimiter string of *scat_species* elements
+    \return pnd_field   Particle number density field
+    \param LWC_field    mass content (liquid water) field [kg/m3]
+    \param limits       pnd_field boundaries (indices in p, lat, lon)
+    \param scat_meta    scattering meta data for all scattering elements
+    \param scat_species array index of scattering species handled by this distribution
+    \param part_string  scat_species tag for profile/distribution handled here
+    \param delim        delimiter string of *scat_species* elements
   
   \author Jana Mendrok, Daniel Kreyling
   \date 2012-04-04
@@ -1679,38 +1598,35 @@ void pnd_fieldH98 (Tensor4View pnd_field,
                    const String& delim,
                    const Verbosity& verbosity)
 {
-  const Index npart = scat_meta[scat_species].nelem();
+  const Index N_se = scat_meta[scat_species].nelem();
   const Index scat_data_start = FlattenedIndex(scat_meta, scat_species);
   ArrayOfIndex intarr;
-  Vector vol_unsorted ( npart, 0.0 );
-  Vector vol ( npart, 0.0 );
-  Vector r ( npart, 0.0 );
-  Vector rho ( npart, 0.0 );
-  Vector pnd ( npart, 0.0 );
-  Vector dN ( npart, 0.0 );
+  Vector Dvol_unsorted ( N_se, 0.0 );
+  Vector Dvol ( N_se, 0.0 );
+  Vector mass ( N_se, 0.0 );
+  Vector radius ( N_se, 0.0 );
+  Vector pnd ( N_se, 0.0 );
+  Vector dNdr ( N_se, 0.0 );
 
   String partfield_name;
 
   //split String and copy to ArrayOfString
   parse_partfield_name( partfield_name, part_string, delim);
 
-  for ( Index i=0; i < npart; i++ )
-      vol_unsorted[i] = ( scat_meta[scat_species][i].volume );
-  get_sorted_indexes(intarr, vol_unsorted);
+  for ( Index i=0; i < N_se; i++ )
+      Dvol_unsorted[i] = ( scat_meta[scat_species][i].diameter_volume_equ );
+  get_sorted_indexes(intarr, Dvol_unsorted);
       
   // extract scattering meta data
-  for ( Index i=0; i< npart; i++ )
+  for ( Index i=0; i< N_se; i++ )
   {
-      vol[i]= scat_meta[scat_species][i].volume; // [m^3]
-      // calculate radius from volume [m]
-      r[i] = 0.5 * pow (
-               ( 6*scat_meta[scat_species][i].volume/PI ), ( 1./3. ) );
-      // get density from meta data [kg/m^3]
-      rho[i] = scat_meta[scat_species][i].density;
+      Dvol[i]= scat_meta[scat_species][i].diameter_volume_equ; // [m]
+      mass[i] = scat_meta[scat_species][i].mass; // [kg]
+      radius[i] = 0.5 * Dvol[i]; // [m]
   }
 
-  if (r.nelem() > 0)
-  // r.nelem()=0 implies no selected scattering elements for the respective
+  if (radius.nelem() > 0)
+  // radius.nelem()=0 implies no selected scattering elements for the respective
   // scattering species field. should not occur anymore
   {
       // iteration over all atm. levels
@@ -1723,27 +1639,25 @@ void pnd_fieldH98 (Tensor4View pnd_field,
             if (LWC_field ( p,lat,lon )>0.)
             {
                 // iteration over all given size bins
-                for ( Index i=0; i<r.nelem(); i++ ) //loop over number of scattering elements
+                for ( Index i=0; i<radius.nelem(); i++ ) //loop over number of scattering elements
                 {
                     // calculate particle size distribution for liquid
                     // [# m^-3 m^-1]
-                    dN[i] = LWCtopnd ( LWC_field ( p,lat,lon ), rho[i], r[i] );
-                    //dN2[i] = LWCtopnd2 ( r[i] );  // [# m^-3 m^-1]
-                    //dN2[i] = dN[i] * vol[i] * rho[i];
+                    dNdr[i] = LWCtopnd ( LWC_field ( p,lat,lon ), radius[i] );
                 }
 
                 // scale pnds by scale width. output: [# m^-3]
-                if (r.nelem() > 1)
-                    scale_pnd( pnd, r, dN );
+                if (radius.nelem() > 1)
+                    scale_pnd( pnd, radius, dNdr );
                 else
-                    pnd = dN;
+                    pnd = dNdr;
 	    
                 // calculate error of pnd sum and real XWC
-                chk_pndsum ( pnd, LWC_field ( p,lat,lon ), vol, rho,
+                chk_pndsum ( pnd, LWC_field ( p,lat,lon ), mass,
                              p, lat, lon, partfield_name, verbosity );
 
                 // writing pnd vector to wsv pnd_field
-                for ( Index i =0; i< npart; i++ )
+                for ( Index i =0; i< N_se; i++ )
                 {
                     pnd_field ( intarr[i]+scat_data_start, p-limits[0],
                                 lat-limits[2], lon-limits[4] ) = pnd[i];
@@ -1752,7 +1666,7 @@ void pnd_fieldH98 (Tensor4View pnd_field,
             }
             else
             {
-                for ( Index i = 0; i< npart; i++ )
+                for ( Index i = 0; i< N_se; i++ )
                 {
                   pnd_field ( intarr[i]+scat_data_start, p-limits[0],
                               lat-limits[2], lon-limits[4] ) = 0.;
@@ -1769,14 +1683,13 @@ void pnd_fieldH98 (Tensor4View pnd_field,
 /*! Calculates particle size distribution using MH97 parametrization.
  *  Each diameter of the scattering elements is a node in the distribution.
  *  One call of this function calculates number density for one scattering
- *  element.  
+ *  element. Implicitly assumes particles of water ice.
 
-    \return dN particle number density per diameter interval [#/m3*m]
+    \return dNdD particle number density per diameter interval [#/m3*m]
           
-    \param iwc atmospheric ice water content [kg/m3]
-    \param dm mass equivalent diameter of scattering element [m]
-    \param t atmospheric temperature [K]
-    \param density density of the scattering element [kg/m3]
+    \param iwc     atmospheric ice water content [kg/m3]
+    \param Dvol    volume equivalent diameter of scattering element [m]
+    \param t       atmospheric temperature [K]
     \param perturb flag whether to add noise onto PSD parameters according to
                    their reported error statistics
   
@@ -1785,10 +1698,9 @@ void pnd_fieldH98 (Tensor4View pnd_field,
 
 */
 Numeric IWCtopnd_MH97 (	const Numeric iwc,
-			const Numeric dm,
-			const Numeric t,
-			const Numeric density,
-			const bool noisy )
+                        const Numeric Dvol,
+                        const Numeric t,
+                        const bool noisy )
 {
   // skip calculation if IWC is 0.0
   if ( iwc == 0.0 )
@@ -1798,7 +1710,7 @@ Numeric IWCtopnd_MH97 (	const Numeric iwc,
 
   //[kg/m3] -> [g/m3] as used by parameterisation
   Numeric ciwc = iwc*1e3;
-  Numeric cdensity = density*1e3;
+  Numeric cdensity = DENSITY_OF_ICE*1e3;
 
   Numeric sig_a=0.068, sig_b1=0.054;
   Numeric sig_b2=5.5e-3, sig_m=0.0029;
@@ -1837,12 +1749,12 @@ Numeric IWCtopnd_MH97 (	const Numeric iwc,
     sig_absigma=0., sig_bbsigma=0.;
   }
 
-  Numeric dN1;
-  Numeric dN2;
-  Numeric dN;
+  Numeric dNdD1;
+  Numeric dNdD2;
+  Numeric dNdD;
 
   // convert m to microns
-  Numeric Dm = dm * 1e6;
+  Numeric dvol = Dvol * 1e6;
   //convert T from Kelvin to Celsius
   Numeric T = t-273.15;
   //split IWC in IWCs100 and IWCl100
@@ -1859,19 +1771,19 @@ Numeric IWCtopnd_MH97 (	const Numeric iwc,
   Numeric b2=-4.99e-3+sig_b2; //micron^-1
   Numeric m=0.0494+sig_m; //micron^-1
   Numeric alphas100=b2-m*log10 ( IWCs100 ); //micron^-1
-  // for large IWC alpha, hence dN1, goes negative. avoid that.
+  // for large IWC alpha, hence dNdD1, goes negative. avoid that.
   // towards this limit, particles anyway get larger 100um, i.e.,
   // outside the size region gamma distrib is intended for
   if (alphas100>0.)
   {
     Numeric Ns100 = 6*IWCs100 * pow ( alphas100,5. ) /
                     ( PI*cdensity*gamma_func ( 5. ) );//micron^-5
-    Numeric Nm1 = Ns100*Dm*exp ( -alphas100*Dm ); //micron^-4
-    dN1 = Nm1*1e18; // m^-3 micron^-1
+    Numeric Nm1 = Ns100*dvol*exp ( -alphas100*dvol ); //micron^-4
+    dNdD1 = Nm1*1e18; // m^-3 micron^-1
   }
   else
   {
-    dN1 = 0.;
+    dNdD1 = 0.;
   }
 
 
@@ -1879,7 +1791,7 @@ Numeric IWCtopnd_MH97 (	const Numeric iwc,
   //Log normal distribution component
 
   // for small IWC, IWCtotal==IWC<100 & IWC>100=0.
-  // this will give dN2=NaN. avoid that by explicitly setting to 0
+  // this will give dNdD2=NaN. avoid that by explicitly setting to 0
   if (IWCl100>0.)
   {
     //FIXME: Do we need to ensure mul100>0 and sigmal100>0?
@@ -1905,15 +1817,15 @@ Numeric IWCtopnd_MH97 (	const Numeric iwc,
       Numeric a1 = 6*IWCl100; //g/m^3
       Numeric a2 = pow ( PI,3./2. ) * cdensity*sqrt(2) *
                    exp( 3*mul100+9./2. * pow ( sigmal100,2 ) ) * 
-                   sigmal100 * pow ( 1.,3 ) * Dm; //g/m^3/micron^4
+                   sigmal100 * pow ( 1.,3 ) * dvol; //g/m^3/micron^4
       Numeric Nm2 = a1/a2 *
-                    exp ( -0.5 * pow ( ( log ( Dm )-mul100 ) /sigmal100,2 ) );
+                    exp ( -0.5 * pow ( ( log ( dvol )-mul100 ) /sigmal100,2 ) );
                     //micron^-4
-      dN2 = Nm2*1e18; // m^-3 micron^-1
+      dNdD2 = Nm2*1e18; // m^-3 micron^-1
     }
     else
     {
-      dN2 = 0.;
+      dNdD2 = 0.;
 /*      ostringstream os;
       os<< "ERROR: not a valid MH97 size distribution:\n"
         << "mu>100=" << mul100 << " resulting from amu="<< amu << " and bmu="<< bmu << "\n"
@@ -1925,14 +1837,14 @@ Numeric IWCtopnd_MH97 (	const Numeric iwc,
   }
   else
   {
-    dN2 = 0.;
+    dNdD2 = 0.;
   }
 
 
 
-  dN = ( dN1+dN2 ) *1e6; // m^-3 m^-1
-  if (isnan(dN)) dN = 0.0;
-  return dN;
+  dNdD = ( dNdD1+dNdD2 ) *1e6; // m^-3 m^-1
+  if (isnan(dNdD)) dNdD = 0.0;
+  return dNdD;
 }
 
 
@@ -1942,23 +1854,24 @@ Numeric IWCtopnd_MH97 (	const Numeric iwc,
  *  One call of this function calculates number density for one scattering
  *  element.  
 
-    \return dN particle number density per diameter interval [#/m3/m]
+    \return dNdD particle number density per diameter interval [#/m3/m]
           
-    \param d maximum diameter of scattering scattering element [m]
-    \param t atmospheric temperature [K]
+    \param Dmax  maximum diameter of scattering scattering element [m]
+    \param t     atmospheric temperature [K]
   
   \author Daniel Kreyling
   \date 2011-10-28
 
 */
-Numeric IWCtopnd_H11 ( const Numeric d,
+Numeric IWCtopnd_H11 ( const Numeric Dmax,
                        const Numeric t)
 {  
-  Numeric dN;
+  Numeric dNdD;
   Numeric la;
   Numeric mu;
+
   // convert m to cm
-  Numeric D = d * 1e2;
+  Numeric dmax = Dmax * 1e2;
   //convert T from Kelvin to Celsius
   Numeric T = t-273.15;
   //choose parametrization depending on T
@@ -1981,10 +1894,10 @@ Numeric IWCtopnd_H11 ( const Numeric d,
  
   //Distribution function H11
 
-  dN = pow( D, mu ) * exp ( -la * D );
+  dNdD = pow( dmax, mu ) * exp ( -la * dmax );
 
-  if (isnan(dN)) dN = 0.0;
-  return dN;
+  if (isnan(dNdD)) dNdD = 0.0;
+  return dNdD;
 }
 
 
@@ -1994,25 +1907,24 @@ Numeric IWCtopnd_H11 ( const Numeric d,
  *  One call of this function calculates number density for one scattering
  *  element.  
 
-    \return dN particle number density per diameter interval [#/m3/m]
+    \return dNdD particle number density per diameter interval [#/m3/m]
           
-    \param d maximum diameter of scattering scattering element [m]
-    \param t atmospheric temperature [K]
+    \param Dmax  maximum diameter of scattering scattering element [m]
+    \param t     atmospheric temperature [K]
   
   \author Johan Strandgren, Daniel Kreyling  
   \date 2013-08-26
 
 */
-Numeric IWCtopnd_H13 ( const Numeric d,
+Numeric IWCtopnd_H13 ( const Numeric Dmax,
                        const Numeric t)
 {  
-  Numeric dN;
+  Numeric dNdD;
   Numeric la;
   Numeric mu;
-  // convert m to cm
-  
 
-  Numeric D = d * 1e2;
+  // convert m to cm
+  Numeric dmax = Dmax * 1e2;
   //convert T from Kelvin to Celsius
   Numeric T = t-273.15;
   //choose parametrization depending on T
@@ -2035,10 +1947,10 @@ Numeric IWCtopnd_H13 ( const Numeric d,
  
   //Distribution function H13
 
-  dN = pow( D, mu ) * exp ( -la * D );
+  dNdD = pow( dmax, mu ) * exp ( -la * dmax );
 
-  if (isnan(dN)) dN = 0.0;
-  return dN;
+  if (isnan(dNdD)) dNdD = 0.0;
+  return dNdD;
 }
 
 
@@ -2048,25 +1960,25 @@ Numeric IWCtopnd_H13 ( const Numeric d,
  *  One call of this function calculates number density for one scattering
  *  element.  
 
-    \return dN particle number density per diameter interval [#/m3/m]
+    \return dNdD particle number density per diameter interval [#/m3/m]
           
-    \param d maximum diameter of scattering scattering element [m]
-    \param t atmospheric temperature [K]
+    \param Dmax  maximum diameter of scattering scattering element [m]
+    \param t     atmospheric temperature [K]
   
   \author Johan Strandgren  
   \date 2013-08-26
 
 */
-Numeric IWCtopnd_H13Shape ( const Numeric d,
+Numeric IWCtopnd_H13Shape ( const Numeric Dmax,
                        const Numeric t)
 {  
-  Numeric dN;
+  Numeric dNdD;
   Numeric la;
   Numeric mu;
   // convert m to cm
   
 
-  Numeric D = d * 1e2;
+  Numeric dmax = Dmax * 1e2;
   //convert T from Kelvin to Celsius
   Numeric T = t-273.15;
   //choose parametrization depending on T
@@ -2089,10 +2001,10 @@ Numeric IWCtopnd_H13Shape ( const Numeric d,
   
   //Distribution function H13Shape
 
-  dN = pow( D, mu ) * exp ( -la * D );
+  dNdD = pow( dmax, mu ) * exp ( -la * dmax );
 
-  if (isnan(dN)) dN = 0.0;
-  return dN;
+  if (isnan(dNdD)) dNdD = 0.0;
+  return dNdD;
 }
 
 
@@ -2101,25 +2013,24 @@ Numeric IWCtopnd_H13Shape ( const Numeric d,
  *  Each scattering element is a node in the aspect ratio distribution.
  *  One call of this function calculates one aspect ratio.  
 
-    \return dN particle number density per diameter interval [#/m3/m]
+    \return dNdD particle number density per diameter interval [#/m3/m]
           
-    \param d maximum diameter of scattering scattering element [m]
-    \param t atmospheric temperature [K]
+    \param Dmax  maximum diameter of scattering scattering element [m]
+    \param t     atmospheric temperature [K]
   
   \author Johan Strandgren  
   \date 2013-08-26
 
 */
-Numeric area_ratioH13 ( const Numeric d,
+Numeric area_ratioH13 ( const Numeric Dmax,
                         const Numeric t)
 {  
   Numeric Ar;
   Numeric alpha;
   Numeric beta;
-  // convert m to cm
-  
 
-  Numeric D = d * 1e2;
+  // convert m to cm
+  Numeric dmax = Dmax * 1e2;
   //convert T from Kelvin to Celsius
   Numeric T = t-273.15;
   //Parameterize for all temperatures
@@ -2130,7 +2041,7 @@ Numeric area_ratioH13 ( const Numeric d,
   
   // Area ratio function depending on temperature
 
-  Ar = alpha*pow(D,beta);
+  Ar = alpha*pow(dmax,beta);
 
   if (isnan(Ar)) Ar = 0.0;
   return Ar;
@@ -2141,9 +2052,10 @@ Numeric area_ratioH13 ( const Numeric d,
 /*! Calculates particle size distribution for liquid water clouds using a gamma
  *  parametrization by Hess et al., 1998 (continental stratus).
  *  Each scattering element is a node in the distribution.
- *  One call of this function calculates one particle number density. 
+ *  One call of this function calculates one particle number density.
+ *  Implicitly assumes particles of liquid water.
 
-	\return n particle number density per radius interval [#/m3*m]
+	\return n  particle number density per radius interval [#/m3*m]
          
 	\param lwc atmospheric liquid water content [kg/m3]
 	\param r radius of scattering scattering element [m]
@@ -2153,8 +2065,7 @@ Numeric area_ratioH13 ( const Numeric d,
 
 */
 Numeric LWCtopnd (const Numeric lwc, //[kg/m^3]
-		  const Numeric density, //[kg/m^3]
-		  const Numeric r // [m]
+                  const Numeric radius // [m]
 		  )
 { 
   // skip calculation if LWC is 0.0
@@ -2168,31 +2079,22 @@ Numeric LWCtopnd (const Numeric lwc, //[kg/m^3]
 	
 	Numeric a4g = (alpha+4.)/gam;
 	Numeric B = (alpha/gam) / pow(rc,gam); 
-	Numeric A = 0.75/PI * lwc/density * gam * pow(B,a4g) /
+	Numeric A = 0.75/PI * lwc/DENSITY_OF_WATER * gam * pow(B,a4g) /
                     gamma_func(a4g);
-	Numeric n = A * (pow(r,alpha) * exp(-B*pow(r,gam)));
-	// n in [# m^-3 m^-1]
+	Numeric dNdr = A * (pow(radius,alpha) * exp(-B*pow(radius,gam))); // [#/m3/m]
 	
-	if (isnan(n)) n = 0.0;
-	return n;
-}
-
-// ONLY FOR TESTING PURPOSES
-Numeric LWCtopnd2 (
-		   const Numeric r // [m]
-		  )
-{ 	
-	Numeric rc = 4.7; //micron
+/* alternative implementation
+  Numeric rc = 4.7; //micron
 	Numeric alpha = 5.0;
 	Numeric gam = 1.05;
 	
 	Numeric B=(alpha/gam)/pow(rc,gam); 
 	Numeric A=gam*pow(B,((alpha+1)/gam))/gamma_func((alpha+1)/gam);
-	Numeric n=A*(pow(r*1e6,alpha)*exp(-B*pow(r*1e6,gam)))*1e6;
-	// [# m^-3 m^-1]
-	
-	if (isnan(n)) n = 0.0;
-	return n;
+	Numeric dNdr=A*(pow(radius*1e6,alpha)*exp(-B*pow(radius*1e6,gam)))*1e6; // [#/m3/m]
+*/
+
+  if (isnan(dNdr)) dNdr = 0.0;
+	return dNdr;
 }
 
 
@@ -2201,28 +2103,28 @@ Numeric LWCtopnd2 (
  *  Each scattering element is a node in the distribution.
  *  One call of this function calculates one particle number density.  
 
-    \return dN particle number density per diameter interval [#/m3*m]
+    \return dNdD particle number density per diameter interval [#/m3*m]
           
-    \param R precipitation rate [mm/hr]
-    \param D volume equivalent diameter of scattering scattering element [m]
+    \param PR   precipitation rate [mm/hr]
+    \param Dvol volume equivalent diameter of scattering scattering element [m]
  
   \author Jana Mendrok
   \date 2012-04-04
 
 */
-Numeric PRtopnd_MP48 (	const Numeric R,
-			const Numeric D)
+Numeric PRtopnd_MP48 (const Numeric PR,
+                      const Numeric Dvol)
 {
   // skip calculation if PR is 0.0
-  if ( R == 0.0 )
+  if ( PR == 0.0 )
   {
     return 0.0;
   }
 
-  Numeric N0 = 0.08*1e-2; // [#/cm^3/cm] converted to [#/m^3/um]
-  Numeric lambda = 41.*1e2*pow(R,-0.21); // [cm^-1] converted to [m^-1] to fit D[m]
+  Numeric N0 = 0.08*1e-2; // [#/cm3/cm] converted to [#/m3/um]
+  Numeric lambda = 41.*1e2*pow(PR,-0.21); // [1/cm] converted to [1/m] to fit Dvol[m]
 
-  Numeric n = N0*exp(-lambda*D);
+  Numeric n = N0*exp(-lambda*Dvol);
   return n;
 }
 
@@ -2269,7 +2171,7 @@ void scale_pnd  (  Vector& w,
             }
         }
     }
-    else // for monodisperse pnd=dN
+    else // for monodisperse pnd=dNdD
     {
       w[0] = y[0];
     }
@@ -2280,10 +2182,9 @@ void scale_pnd  (  Vector& w,
 /*! Check sum of pnd vector against total mass density value.
  *  Deviation is calculated and used to adjust the output of vector pnd.
          
-	\param pnd particle number density [#/m3]
-	\param xwc atmospheric massdensity [kg/m3]
-	\param density scattering element density [kg/m3]
-	\param vol scattering element volume [m3]
+	\param pnd   particle number density [#/m3]
+	\param xwc   scattering species massdensity [kg/m3]
+	\param mass  scattering element mass [kg]
   
   \author Daniel Kreyling
   \date 2010-12-15
@@ -2291,8 +2192,7 @@ void scale_pnd  (  Vector& w,
 */
 void chk_pndsum (Vector& pnd,
                  const Numeric xwc,
-                 const Vector& vol,
-                 const Vector& density,
+                 const Vector& mass,
                  const Index& p,
                  const Index& lat,
                  const Index& lon,
@@ -2302,6 +2202,14 @@ void chk_pndsum (Vector& pnd,
 {
   CREATE_OUT2;
   
+  if ( xwc == 0.0 )
+    {
+      // set all pnd values to zero, IF particle mass density/flux is
+      // zero at this atmospheric level.
+      pnd = 0.0;
+      return;
+    }
+
   // set vector x to pnd size
   Vector x ( pnd.nelem(), 0.0 );
   Numeric error;
@@ -2310,23 +2218,13 @@ void chk_pndsum (Vector& pnd,
   for ( Index i = 0; i<pnd.nelem(); i++ )
   {
     // convert from particles/m^3 to kg/m^3
-    x[i] = pnd[i]*density[i]*vol[i];
+    x[i] = pnd[i]*mass[i];
     /*cout<< "p = " << p << ", i: " << i << "\n"
         << "pnd[i]: " << pnd[i] << ", density[i]: " << density[i] << ", vol[i]: " << vol[i] << "\n"
         << "x[i]: " << x[i] << "\n";*/
   }
 
-  //cout<<"at p = "<<p<<", lat = "<<lat<<", lon = "<<lon
-  //<<" given mass density: "<<xwc<<", calc mass density: "<<x.sum() << "\n";
   if ( x.sum() == 0.0 )
-    if ( xwc == 0.0 )
-    {
-      // set error and all pnd values to zero, IF particle mass density/flux is
-      // zero at this atmospheric level.
-      error = 0.0;
-      pnd = 0.0;
-    }
-    else
     { // when x.sum()==0, but xwc!=0, obviously something went wrong in pnd calc
       ostringstream os;
       os<< "ERROR: in WSM chk_pndsum in pnd_fieldSetup!\n" 
@@ -2337,146 +2235,43 @@ void chk_pndsum (Vector& pnd,
      throw runtime_error ( os.str() );
     }
   else
-  {
-    error = xwc/x.sum();
-  // correct all pnd values with error
-    pnd *= error;
-  // give warning if deviations are more than 10%
-    if ( error > 1.10 || error < 0.90 )
     {
-      CREATE_OUT1;
-      //ostringstream os;
-      out1<< "WARNING: in WSM chk_pndsum in pnd_fieldSetup!\n" 
-      << "The deviation of the sum of nodes in the particle size distribution\n"
-      << "to the initial input mass density (IWC/LWC) is larger than 10%!\n"
-      << "The deviation of: "<< error-1.0<<" occured in the atmospheric level: "
-      << "p = "<<p<<", lat = "<<lat<<", lon = "<<lon<<".\n";
-      //cerr<<os;
+      error = xwc/x.sum();
+      // correct all pnd values with error
+      pnd *= error;
+      // give warning if deviations are more than 10%
+      if ( error > 1.10 || error < 0.90 )
+        {
+          CREATE_OUT1;
+          out1<< "WARNING: in WSM chk_pndsum in pnd_fieldSetup!\n" 
+              << "The deviation of the sum of nodes in the particle size distribution\n"
+              << "to the initial input mass density (IWC/LWC) is larger than 10%!\n"
+              << "The deviation of: "<< error-1.0<<" occured in the atmospheric level: "
+              << "p = "<<p<<", lat = "<<lat<<", lon = "<<lon<<".\n";
+        }
     }
-  }
-  //cout<<", error: "<<error<<"corrected to: "<<x.sum()*error<<"\n";
 
   out2 << "PND scaling factor in atm. level "
        << "(p = "<<p<<", lat = "<<lat<<", lon = "<<lon<<"): "<< error <<"\n";
-    //cout<<"\npnd_scaled\t"<<pnd<<endl;
-    //cout<<"\nPND\t"<<pnd.sum()<<"\nXWC\t"<<xwc<<"\nerror\t"<<error<<endl;
-    //cout<<"\n"<<x.sum()<<"\n"<<xwc<<"\n"<<error<<endl;
 }
 
-
-
-/*! The H11 PSD is scaled to the initial 'ice' or 'snow' massdensity, after
- *  the distribution has been evaluated. This function applies the scaling.
-         
-	\param xwc atmospheric massdensity [kg/m3]
-	\param density scattering element density [kg/m3]
-	\param vol scattering element volume [m3]
-  
-  \author Daniel Kreyling
-  \date 2011-10-31
-
-*/
-void scale_H11 (
-		 Vector& pnd,
-		 const Numeric xwc,
-		 const Vector& density,
-		 const Vector& vol)
-		 // const Index& p,
-		 // const Index& lat,
-		 // const Index& lon,
-		 // const Verbosity& verbosity)
-
-{
-  // set vector x to pnd size
-  Vector x (pnd.nelem(), 0.0);
-
-  for ( Index i = 0; i<pnd.nelem(); i++ )
-  {
-    // convert from particles/m^3 to kg/m^3
-    x[i] = pnd[i]*density[i]*vol[i];
-    //out0<<x[i]<<"\n"<< pnd[i]<< "\n";
-  }
-
-  if ( x.sum() == 0.0 )
-  {
-    // set error and all pnd values to zero, IF particle mass density/flux is
-    // zero at this atmospheric level.
-    pnd = 0.0;
-  }
-  else
-  {
-      // calculate the ratio of initial massdensity (xwc) to sum of pnds
-    const Numeric ratio = xwc/x.sum();
-    // scale each pnd to represent the total massdensity
-    pnd *= ratio;
-  }
-
-}
-
-/*! The H13 PSD is scaled to the initial 'ice' or 'snow' massdensity, after
- *  the distribution has been evaluated. This function applies the scaling.
-         
-    \param xwc atmospheric massdensity [kg/m3]
-    \param density scattering element density [kg/m3]
-    \param vol scattering element volume [m3]
-  
-  \author Johan Strandgren, Daniel Kreyling
-  \date 2013-09-03
-
-*/
-void scale_H13 (
-         Vector& pnd,
-         const Numeric xwc,
-         const Vector& density,
-         const Vector& vol)
-         // const Index& p,
-         // const Index& lat,
-         // const Index& lon,
-         // const Verbosity& verbosity)
-
-{
-  // set vector x to pnd size
-  Vector x (pnd.nelem(), 0.0);
-
-  for ( Index i = 0; i<pnd.nelem(); i++ )
-  {
-    // convert from particles/m^3 to kg/m^3
-    x[i] = pnd[i]*density[i]*vol[i];
-    //out0<<x[i]<<"\n"<< pnd[i]<< "\n";
-  }
-
-  if ( x.sum() == 0.0 )
-  {
-    // set error and all pnd values to zero, IF particle mass density/flux is
-    // zero at this atmospheric level.
-    pnd = 0.0;
-  }
-  else
-  {
-      // calculate the ratio of initial massdensity (xwc) to sum of pnds
-    const Numeric ratio = xwc/x.sum();
-    // scale each pnd to represent the total massdensity
-    pnd *= ratio;
-  }
-
-}
 
 
 /*! Splitting scat_species string and parse type of massdensity_field
 
-	\param  partfield_name name of atmospheric scattering species field
-	\param  part_string scattering species tag from *scat_species*
-  \param  delim Delimiter string of *scat_species* elements
+  \param  partfield_name name of atmospheric scattering species field
+  \param  part_string    scattering species tag from *scat_species*
+  \param  delim          delimiter string of *scat_species* elements
 
   \author Daniel Kreyling
   \date 2011-02-21
 
 */
 void parse_partfield_name (//WS Output:
-                      String& partfield_name,
-                      // WS Input:
-                      const String& part_string,
-                      const String& delim)
+                           String& partfield_name,
+                          // WS Input:
+                          const String& part_string,
+                          const String& delim)
 {
   ArrayOfString strarr;
 
@@ -2496,27 +2291,14 @@ void parse_partfield_name (//WS Output:
       throw runtime_error ( os.str() );
 
   }
-
-  /* no restrictions on profile naming anymore
-  if (  partfield_name != "IWC" && 
-	partfield_name != "Snow" &&
-	partfield_name != "LWC" &&
-	partfield_name != "Rain" )
-  {
-    ostringstream os;
-    os << "First substring in " << part_string
-       << " must be rather 'LWC', 'IWC', 'Rain' or 'Snow'\n"
-       <<"Check input in *scat_species*!\n";
-    throw runtime_error ( os.str() );
-  }*/
 }
 
 
 
 /*! Splitting scat_species string and parse psd_param
-	\param  psd_param particle size distribution parametrization
+	\param  psd_param   particle size distribution parametrization
 	\param  part_string scattering species tag from *scat_species*
-  \param  delim Delimiter string of *scat_species* elements
+  \param  delim       delimiter string of *scat_species* elements
   
   \author Daniel Kreyling
   \date 2011-02-21
@@ -2539,67 +2321,15 @@ void parse_psd_param (//WS Output:
       psd_param = strarr[1];
   else
       psd_param = "";
-
-/*  // jm120218: FIX! <- DONE (120401)
-  // this should not be checked here, but in pnd_fieldSetup (e.g., via
-  // a case switch default)
-  if ( psd_param.substr(0,4) != "MH97" && psd_param != "liquid" &&
-       psd_param != "H11" )
-  {
-    ostringstream os;
-    os <<"The chosen PSD parametrisation in " << part_string
-       << " can not be handeled in the moment.\n"
-       <<"Choose either 'MH97', 'H11' or 'liquid'!\n" ;
-    throw runtime_error ( os.str() );
-  }*/
-}
-
-
-
-/*! Splitting scat_species string and parse type of particles
-
-	\param  part_type particle type (material, phase). To be matched with
-                    scat_meta_single material entry
-	\param  part_string scattering species tag from *scat_species*
-  \param  delim Delimiter string of *scat_species* elements
-
-  \author Jana Mendrok
-  \date 2012-04-03
-
-*/
-void parse_part_material (//WS Output:
-                      String& part_material,
-                      // WS Input:
-                      const String& part_string,
-                      const String& delim)
-{
-  ArrayOfString strarr;
-
-  // split scat_species string at delim and write to ArrayOfString
-  part_string.split ( strarr, delim );
-
-  // third entry is requested particle (material) type ( e.g."Water", "Ice")
-  // check, whether we have a third entry
-  if (strarr.size()>2)
-  {
-      part_material = strarr[2];
-  }
-  else
-  {
-      ostringstream os;
-      os << "No information on particle type (material) in '"
-         << part_string << "'\n";
-      throw runtime_error ( os.str() );
-  }
 }
 
 
 
 /*! Splitting scat_species string and parse min and max particle radius
-	\param  sizemin minimum radius of particles to consider
-	\param  sizemax maximum radius of particles to consider
+	\param  sizemin     minimum radius of particles to consider
+	\param  sizemax     maximum radius of particles to consider
 	\param  part_string scattering species tag from *scat_species*
-  \param  delim Delimiter string of *scat_species* elements
+  \param  delim       delimiter string of *scat_species* elements
   
   \author Daniel Kreyling
   \date 2011-02-21
@@ -2619,23 +2349,23 @@ void parse_part_size (//WS Output:
   
   // convert String for size range, into Numeric
   // 1. third entry is minimum particle size
-  if ( strarr.nelem() < 4 || strarr[3] == "*" )
+  if ( strarr.nelem() < 3 || strarr[2] == "*" )
   {
     sizemin = 0.;
   }
   else
   {
-    istringstream os1 ( strarr[3] );
+    istringstream os1 ( strarr[2] );
     os1 >> sizemin;
   }
   // 2. fourth entry is maximum particle size
-  if ( strarr.nelem() < 5 || strarr[4] == "*" )
+  if ( strarr.nelem() < 4 || strarr[3] == "*" )
   {
     sizemax = -1.;
   }
   else
   {
-    istringstream os2 ( strarr[4] );
+    istringstream os2 ( strarr[3] );
     os2 >> sizemax;
   }
 }

@@ -207,10 +207,6 @@ void scat_data_singleTmatrix(
 
 
 
-
-
-
-
 void TMatrixTest(const Verbosity& verbosity)
 {
     tmatrix_tmd_test(verbosity);
@@ -219,7 +215,6 @@ void TMatrixTest(const Verbosity& verbosity)
     calc_ssp_fixed_test(verbosity);
 }
 
-//-----------------------------------
 
 
 void scat_metaInit(// WS Output:
@@ -230,9 +225,17 @@ void scat_metaInit(// WS Output:
     scat_meta.resize(0);
 }
 
+
 //-----------------------------------
 
                  
+/* commenting out. in ARTS 2.3 we change the interface-TMatrix approach:
+   Instead of setting the meat data and doing TMatrix based on that, now we
+   first do the TMatrix (per scattering element; use scat_data_singleTmatrix),
+   then or along with this the meta data is dervied and set.
+   Keeping old code, but commented out, for now in case we want to re-use
+   something...
+
 void scat_metaAddTmatrix(// WS Output:
                          ArrayOfArrayOfScatteringMetaData& scat_meta,
                          // WS Input:
@@ -338,9 +341,16 @@ void scat_metaAddTmatrix(// WS Output:
       }
     }
 }
+*/
 
-//-----------------------------------
 
+
+/* commenting out. in ARTS 2.3 we change the interface-TMatrix approach:
+   Instead of setting the meat data and doing TMatrix based on that, now we
+   first do the TMatrix (per scattering element; use scat_data_singleTmatrix),
+   then or along with this the meta data is dervied and set.
+   Keeping old code, but commented out, for now in case we want to re-use
+   something...
 
 void scat_dataFromMeta(// WS Output:
                        ArrayOfArrayOfSingleScatteringData& scat_data,
@@ -410,17 +420,18 @@ void scat_dataFromMeta(// WS Output:
     }
 }
 
+*/
 
 
 
+/* commenting out. in ARTS 2.3 we change the interface-TMatrix approach:
+   Instead of setting the meat data and doing TMatrix based on that, now we
+   first do the TMatrix (per scattering element; use scat_data_singleTmatrix),
+   then or along with this the meta data is dervied and set.
+   Keeping old code, but commented out, for now in case we want to re-use
+   something...
 
-
-
-
-
-
-
-void scat_meta_arrayAddTmatrixOldVersion(// WS Output:
+void scat_metaAddTmatrixOldVersion(// WS Output:
                              ArrayOfScatteringMetaData& scat_meta,
                              // WS Input:
                              const GriddedField3& complex_refr_index,
@@ -522,6 +533,4 @@ void scat_meta_arrayAddTmatrixOldVersion(// WS Output:
     }
 }
 
-//-----------------------------------
-
-
+*/
