@@ -340,7 +340,7 @@ public:
 
 //! Determine total number of elements in an ArrayOfArray
 template <class base>
-Index TotalNumberOfElements(const Array<Array<base> > aa)
+Index TotalNumberOfElements(const Array<Array<base> >& aa)
 {
     Index N_aa = 0;
     for (Index i = 0; i < aa.nelem(); i++)
@@ -354,7 +354,7 @@ Index TotalNumberOfElements(const Array<Array<base> > aa)
 
 //! Determine the index of an element in a flattened version of the array
 template <class base>
-Index FlattenedIndex(const Array<Array<base> > aa, Index outer, Index inner = 0)
+Index FlattenedIndex(const Array<Array<base> >& aa, Index outer, Index inner = 0)
 {
     assert(outer < aa.nelem());
     assert(inner < aa[outer].nelem());
