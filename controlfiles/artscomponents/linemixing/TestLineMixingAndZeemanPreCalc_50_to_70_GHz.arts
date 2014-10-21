@@ -37,7 +37,7 @@ IndexSet( stokes_dim, 4 )
 
 # A pressure grid rougly matching 0 to 80 km, in steps of 2 km.
 # ---
-VectorNLogSpace( p_grid, 41, 1000e2, 1 )
+VectorNLogSpace( p_grid, 401, 1000e2, 1 )
 
 # Looking into the O2 band around 60 GHz in steps of 1 GHz
 VectorLinSpace(f_grid, 50e9,70e9,1e9)
@@ -125,7 +125,7 @@ FieldFromGriddedField( mag_v_field, p_grid, lat_grid, lon_grid, B_V )
 FieldFromGriddedField( mag_w_field, p_grid, lat_grid, lon_grid, B_W )
 FieldFromGriddedField( mag_u_field, p_grid, lat_grid, lon_grid, B_U )
 
-abs_lineshapeDefine( abs_lineshape, "Faddeeva_Algorithm_916", "VVH", 750e9 )
+abs_lineshapeDefine( abs_lineshape, "Faddeeva_Algorithm_916", "VVH", -1 )
 
 # Perform RT calculations
 # ---

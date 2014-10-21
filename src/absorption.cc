@@ -1143,7 +1143,7 @@ void xsec_species( MatrixView               xsec_attenuation,
                       // Subtract baseline from xsec. 
                       // this_xsec -= base;
                       this_ls_attenuation -= ls_attenuation[nfls-1];
-                      if (calc_phase) this_ls_phase -= ls_phase[nfls-1];
+                      //if (calc_phase) this_ls_phase -= ls_phase[nfls-1];  PHASE is not compatible with cutoff
                     }
 
                   // Add line to xsec. 
@@ -1549,7 +1549,14 @@ void xsec_species_line_mixing_wrapper(  MatrixView               xsec_attenuatio
         ostringstream os;
         os <<  "This is an error message. You are using " << lineshape_data[ind_ls].Name() <<
         ".\n"<<"This line shape does not include phase in its calculations and\nis therefore invalid for " <<
-        "line mixing.\n\n";
+        "line mixing or Zeeman.\n\n";
+        throw std::runtime_error(os.str());
+    }
+    if ( cutoff != -1 )
+    {
+        ostringstream os;
+        os <<  "This is an error message. You are using cutoff. This is not compatible with line mixing or Zeeman.\n" <<
+        "Please set cutoff to -1.\n\n";
         throw std::runtime_error(os.str());
     }
     if(abs_species[this_species][0].LineMixing() == SpeciesTag::LINE_MIXING_OFF) // If no linemixing data exists

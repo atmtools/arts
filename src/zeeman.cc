@@ -511,9 +511,6 @@ void create_Zeeman_linerecordarrays(
     
     const Numeric margin    = 1e-4; // This margin is for relative strength and can perhaps be lowered by returning RS as Rational?
     
-    // Reisize every loop to empty the set.
-    ArrayOfLineRecord temp_abs_lines_sm, temp_abs_lines_sp, //sigma minus, sigma plus
-                        temp_abs_lines_pi; // pi
     Numeric (*frequency_change)(const Rational&, const  Rational&, const Rational&, 
                                   const Numeric&, const Index&, const Index&, 
                                   const Index&, const Numeric&, const Numeric&);
@@ -524,6 +521,17 @@ void create_Zeeman_linerecordarrays(
       // For all species
       for(Index II = 0; II<abs_species.nelem(); II++)
       {
+          // If the species isn't Zeeman, look at the next species
+          if(!is_zeeman(abs_species[II])) continue;
+
+          aoaol.push_back(ArrayOfLineRecord()); // First is neative
+          aoaol.push_back(ArrayOfLineRecord()); // Second is 0
+          aoaol.push_back(ArrayOfLineRecord()); // Third is positive
+
+          ArrayOfLineRecord& temp_abs_lines_sm = aoaol[aoaol.nelem()-3]; // sigma minus
+          ArrayOfLineRecord& temp_abs_lines_pi = aoaol[aoaol.nelem()-2]; // pi
+          ArrayOfLineRecord& temp_abs_lines_sp = aoaol[aoaol.nelem()-1]; // sigma plus
+
           temp_abs_lines_sm.resize(0);
           temp_abs_lines_sp.resize(0);
           temp_abs_lines_pi.resize(0);
@@ -532,9 +540,6 @@ void create_Zeeman_linerecordarrays(
           temp_abs_lines_sp.reserve(25000);
           temp_abs_lines_pi.reserve(25000);
 
-          // If the species isn't Zeeman, look at the next species
-          if(!is_zeeman(abs_species[II])) continue;
-          
           // Else loop over all the lines in the species.
           for (Index ii = 0; ii< abs_lines_per_species[II].nelem(); ii++)
           {
@@ -695,10 +700,6 @@ void create_Zeeman_linerecordarrays(
                       throw std::runtime_error(os.str());
                   }
           }
-          
-          aoaol.push_back(temp_abs_lines_sm); // First is neative
-          aoaol.push_back(temp_abs_lines_pi); // Second is 0
-          aoaol.push_back(temp_abs_lines_sp); // Third is positive
       }
 }
 

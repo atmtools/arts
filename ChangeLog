@@ -1,3 +1,18 @@
+2014-10-21  Richard Larsson <ric.larsson@gmail.com>
+	
+	* arts-2-3-46
+	
+	* controlfiles/*{zeeman,linemixing}*:  Fixed to reflect the changes.
+	
+	* src/absorption.cc:  Cutoff was implemented poorly for phase, and 
+	the implementation does not work with line mixing at all.  Now, cutoff
+	must be turned off for line mixing and Zeeman calculations to work.
+	
+	* src/rational.{h,cc}: Less Simplify() calls.
+	
+	* src/*zeeman.{h,cc}:  Small speed improvements moving variables around.
+	Still a huge speed loss for copying inputs to speedy Zeeman case.
+
 2014-10-17  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-45

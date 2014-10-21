@@ -119,7 +119,7 @@ FieldFromGriddedField( mag_v_field, p_grid, lat_grid, lon_grid, B_V )
 FieldFromGriddedField( mag_w_field, p_grid, lat_grid, lon_grid, B_W )
 FieldFromGriddedField( mag_u_field, p_grid, lat_grid, lon_grid, B_U )
 
-abs_lineshapeDefine( abs_lineshape, "Faddeeva_Algorithm_916", "VVH", 750e9 )
+abs_lineshapeDefine( abs_lineshape, "Faddeeva_Algorithm_916", "VVH", -1 )
 
 # Perform RT calculations
 # ---
@@ -139,7 +139,7 @@ VectorCreate(yREFERENCE)
 ReadXML( yREFERENCE, "yREFERENCE_ZEEMAN.xml" )
 Compare( y, yREFERENCE, 1e-2 )
 
-abs_lineshapeDefine( abs_lineshape, "Hui_etal_1978", "VVH", 750e9 )
+abs_lineshapeDefine( abs_lineshape, "Hui_etal_1978", "VVH", -1 )
 yCalc
 
 # OK?

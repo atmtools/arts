@@ -31,6 +31,7 @@ Numeric wigner3j(const Rational j1,const Rational j2,const Rational j3,
     //std::cout<<std::endl<<"Wigner3j (" << j1 <<" "<<j2 <<" "<<j3<<"; " << m1 <<" " << m2 << " "<<m3<<")"<<std::endl;
     
     Rational J = j1 + j2 + j3;
+    J.Simplify();
     
     {// TEST Area
         if( !( ( m1 + m2 + m3 ).toIndex() == 0 ) )

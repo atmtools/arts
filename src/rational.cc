@@ -64,7 +64,10 @@ void Rational::Simplify()
 
 std::ostream& operator<<(std::ostream& os, const Rational& a)
 {
-    os << a.Nom() << "/" << a.Denom();
+    Rational r = a;
+    r.Simplify();
+
+    os << r.Nom() << "/" << r.Denom();
     return os;
 }
 

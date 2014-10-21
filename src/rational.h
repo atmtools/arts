@@ -39,7 +39,7 @@ public:
     Rational() : mnom(0), mdenom(1) {}
     Rational(const Index& n1) : mnom(n1), mdenom(1) {}
     Rational(const int& n1) : mnom((Index)n1), mdenom(1) {}
-    Rational(const Index& n1, const Index& n2) : mnom(n1), mdenom(n2) {Simplify();}
+    Rational(const Index& n1, const Index& n2) : mnom(n1), mdenom(n2) {}
     
     // Reading values of object
     Index Nom() const {return mnom;}
@@ -55,10 +55,10 @@ public:
     void Simplify();
     
     // Assignment operators
-    Rational& operator+=(const Rational& a) {mnom = mnom*a.Denom() + a.Nom()*mdenom;mdenom *= a.Denom();Simplify(); return *this;}
-    Rational& operator-=(const Rational& a) {mnom = mnom*a.Denom() - a.Nom()*mdenom;mdenom *= a.Denom();Simplify(); return *this;}
-    Rational& operator/=(const Rational& a) {mnom*=a.Denom();mdenom*=a.Nom();Simplify(); return *this;}
-    Rational& operator*=(const Rational& a) {mnom*=a.Nom();mdenom*=a.Denom();Simplify(); return *this;}
+    Rational& operator+=(const Rational& a) {mnom = mnom*a.Denom() + a.Nom()*mdenom;mdenom *= a.Denom(); return *this;}
+    Rational& operator-=(const Rational& a) {mnom = mnom*a.Denom() - a.Nom()*mdenom;mdenom *= a.Denom(); return *this;}
+    Rational& operator/=(const Rational& a) {mnom*=a.Denom();mdenom*=a.Nom(); return *this;}
+    Rational& operator*=(const Rational& a) {mnom*=a.Nom();mdenom*=a.Denom(); return *this;}
 
     // Iterative operators
     Rational  operator++(int) {mnom += mdenom; return *this;}

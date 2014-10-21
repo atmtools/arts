@@ -101,7 +101,7 @@ Append( sensor_pos, zeros, "trailing" )
 Append( sensor_pos, zeros, "trailing" )
 Append( sensor_los, zeros, "trailing" )
 
-abs_lineshapeDefine( abs_lineshape, "Faddeeva_Algorithm_916", "VVH", 750e9 )
+abs_lineshapeDefine( abs_lineshape, "Faddeeva_Algorithm_916", "VVH", -1 )
 
 # Perform RT calculations
 # ---
