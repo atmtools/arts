@@ -3437,7 +3437,7 @@ void define_md_data_raw()
         GOUT_TYPE( "Vector" ),
         GOUT_DESC( "size distribution number density" ),
         IN(),
-        GIN( "Dme", "IWC", "t", "noisy" ),
+        GIN( "Dmass", "IWC", "t", "noisy" ),
         GIN_TYPE( "Vector", "Numeric", "Numeric", "Index" ),
         GIN_DEFAULT( NODEF, NODEF, NODEF, "0" ),
         GIN_DESC( "Mass equivalent sphere diameter of the particles [m]",
@@ -3455,11 +3455,11 @@ void define_md_data_raw()
          "Marshall and Palmer (1948) parametrization.\n"
          "\n"
          "A wrapper to internal particle size distribution calculation.\n"
-         "Marshall and Palmer (1948) is a parametrization for liquid and ice\n"
-         "precipitation, i.e., rain and snow. Parametrization is in\n"
-         "precipitation rate (PR) over particle size in terms of mass\n"
-         "equivalent sphere diameter. Provides number density normalized to\n"
-         "the given precipitation rate.\n"
+         "Marshall and Palmer (1948) is a parametrization for precipitating\n"
+         "hydrometeors, e.g., rain and snow. Parametrization is in\n"
+         "precipitation rate (PR) over particle size, here taken in terms of\n"
+         "melted equivalent sphere diameter. Provides number density normalized\n"
+         "to the given precipitation rate.\n"
          "\n"
          "For testing purposes mainly.\n"
          ),
@@ -3469,10 +3469,10 @@ void define_md_data_raw()
         GOUT_TYPE( "Vector" ),
         GOUT_DESC( "size distribution number density" ),
         IN(),
-        GIN( "Dme", "PR" ),
+        GIN( "Dmelt", "PR" ),
         GIN_TYPE( "Vector", "Numeric" ),
         GIN_DEFAULT( NODEF, NODEF ),
-        GIN_DESC( "Mass equivalent sphere diameter of the particles [m]",
+        GIN_DESC( "Melted equivalent sphere diameter of the particles [m]",
                   "Precipitation rate [mm/h]" )
         ));  
     

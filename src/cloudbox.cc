@@ -920,9 +920,9 @@ void pnd_fieldMH97 (Tensor4View pnd_field,
   const Index N_se = scat_meta[scat_species].nelem();
   const Index scat_data_start = FlattenedIndex(scat_meta, scat_species);
   ArrayOfIndex intarr;
-  Vector Dvol_unsorted ( N_se, 0.0 );
-  Vector Dvol ( N_se, 0.0 );
+  Vector mass_unsorted ( N_se, 0.0 );
   Vector mass ( N_se, 0.0 );
+  Vector Dmass ( N_se, 0.0 );
   Vector pnd ( N_se, 0.0 );
   Vector dNdD ( N_se, 0.0 );
 
@@ -936,25 +936,30 @@ void pnd_fieldMH97 (Tensor4View pnd_field,
   bool noisy = (psd_param == "MH97n");
 
   for ( Index i=0; i < N_se; i++ )
-      Dvol_unsorted[i] = ( scat_meta[scat_species][i].diameter_volume_equ );
-  get_sorted_indexes(intarr, Dvol_unsorted);
+    {
+      if ( isnan(scat_meta[scat_species][i].mass) )
+        {
+          ostringstream os;
+          os << "Use of size distribution MH97 (as requested for\n"
+             << "scattering species #" << scat_species << ")\n"
+             << "requires knowledge of scattering element mass.\n"
+             << "But mass is not given for scattering elements #"
+             << i << "!";
+          throw runtime_error( os.str() );
+        }
+      mass_unsorted[i] = ( scat_meta[scat_species][i].mass );
+    }
+  get_sorted_indexes(intarr, mass_unsorted);
 
   // extract scattering meta data
   for ( Index i=0; i< N_se; i++ )
   {
-    // FIXME: how is Dvol different from Dvol_unsorted? shouldn't we take
-    // scat_meta[scat_species][intarr[i]] to get a sorted Dvol?
-    // doesn't this imply we did bullshit all the time, using unsorted size
-    // parameters (ususally, we have the entries in scat_meta files sorted. but
-    // we can't rely on that!)?
-    // for now, i just leave it as it is. to be able to reproduce what was done
-    // before.
-      Dvol[i] = scat_meta[scat_species][intarr[i]].diameter_volume_equ; // [m]
       mass[i] = scat_meta[scat_species][intarr[i]].mass; // [kg]
+      Dmass[i] = pow(6.*mass[i]/PI/DENSITY_OF_ICE,1./3.); // [m]
   }
   
-  if (Dvol.nelem() > 0)
-  // Dvol.nelem()=0 implies no selected scattering element for the respective
+  if (mass.nelem() > 0)
+  // mass.nelem()=0 implies no selected scattering element for the respective
   // scattering species field. should not occur.
   {
       // iteration over all atm. levels
@@ -968,18 +973,18 @@ void pnd_fieldMH97 (Tensor4View pnd_field,
             if (IWC_field ( p, lat, lon ) > 0.)
             {
                 // iteration over all given size bins
-                for ( Index i=0; i<Dvol.nelem(); i++ )
+                for ( Index i=0; i<Dmass.nelem(); i++ )
                 {
                   // calculate particle size distribution with MH97
                   // [# m^-3 m^-1]
                   dNdD[i] = IWCtopnd_MH97 ( IWC_field ( p, lat, lon ),
-                                            Dvol[i], t_field ( p, lat, lon ),
+                                            Dmass[i], t_field ( p, lat, lon ),
                                             noisy );
                 }
             
                 // scale pnds by bin width
-                if (Dvol.nelem() > 1)
-                  scale_pnd( pnd, Dvol, dNdD );
+                if (Dmass.nelem() > 1)
+                  scale_pnd( pnd, Dmass, dNdD );
                 else
                   pnd = dNdD;
 	    
@@ -1048,13 +1053,36 @@ void pnd_fieldH11 (Tensor4View pnd_field,
   parse_partfield_name( partfield_name, part_string, delim);
 
   for ( Index i=0; i < N_se; i++ )
+    {
+      if ( isnan(scat_meta[scat_species][i].diameter_max) )
+        {
+          ostringstream os;
+          os << "Use of size distribution H11 (as requested for\n"
+             << "scattering species #" << scat_species << ")\n"
+             << "requires knowledge of scattering element maximum diameter.\n"
+             << "But maximum diameter is not given for scattering elements #"
+             << i << "!";
+          throw runtime_error( os.str() );
+        }
       Dmax_unsorted[i] = ( scat_meta[scat_species][i].diameter_max );
+    }
   get_sorted_indexes(intarr, Dmax_unsorted);
       
   // extract scattering meta data
   for ( Index i=0; i< N_se; i++ )
   {
       Dmax[i] = scat_meta[scat_species][intarr[i]].diameter_max; // [m]
+
+      if ( isnan(scat_meta[scat_species][intarr[i]].mass) )
+        {
+          ostringstream os;
+          os << "Use of size distribution H11 (as requested for\n"
+             << "scattering species #" << scat_species << ")\n"
+             << "requires knowledge of scattering element mass.\n"
+             << "But mass is not given for scattering elements #"
+             << i << "!";
+          throw runtime_error( os.str() );
+        }
       mass[i] = scat_meta[scat_species][intarr[i]].mass; // [kg]
   }
 
@@ -1152,13 +1180,36 @@ void pnd_fieldH13 (Tensor4View pnd_field,
   parse_partfield_name( partfield_name, part_string, delim);
 
   for ( Index i=0; i < N_se; i++ )
+    {
+      if ( isnan(scat_meta[scat_species][i].diameter_max) )
+        {
+          ostringstream os;
+          os << "Use of size distribution H13 (as requested for\n"
+             << "scattering species #" << scat_species << ")\n"
+             << "requires knowledge of scattering element maximum diameter.\n"
+             << "But maximum diameter is not given for scattering elements #"
+             << i << "!";
+          throw runtime_error( os.str() );
+        }
       Dmax_unsorted[i] = ( scat_meta[scat_species][i].diameter_max );
+    }
   get_sorted_indexes(intarr, Dmax_unsorted);
       
   // extract scattering meta data
   for ( Index i=0; i< N_se; i++ )
   {
       Dmax[i] = scat_meta[scat_species][intarr[i]].diameter_max; // [m]
+
+      if ( isnan(scat_meta[scat_species][intarr[i]].mass) )
+        {
+          ostringstream os;
+          os << "Use of size distribution H13 (as requested for\n"
+             << "scattering species #" << scat_species << ")\n"
+             << "requires knowledge of scattering element mass.\n"
+             << "But mass is not given for scattering elements #"
+             << i << "!";
+          throw runtime_error( os.str() );
+        }
       mass[i] = scat_meta[scat_species][intarr[i]].mass; // [kg]
   }
 
@@ -1258,15 +1309,50 @@ void pnd_fieldH13Shape (Tensor4View pnd_field,
   parse_partfield_name( partfield_name, part_string, delim);
 
   for ( Index i=0; i < N_se; i++ )
+    {
+      if ( isnan(scat_meta[scat_species][i].diameter_max) )
+        {
+          ostringstream os;
+          os << "Use of size distribution H13Shape (as requested for\n"
+             << "scattering species #" << scat_species << ")\n"
+             << "requires knowledge of scattering element maximum diameter.\n"
+             << "But maximum diameter is not given for scattering elements #"
+             << i << "!";
+          throw runtime_error( os.str() );
+        }
       Dmax_unsorted[i] = ( scat_meta[scat_species][i].diameter_max );
+    }
   get_sorted_indexes(intarr, Dmax_unsorted);
   
   // extract scattering meta data
   for ( Index i=0; i< N_se; i++ )
   {
       Dmax[i] = scat_meta[scat_species][intarr[i]].diameter_max; // [m]
+
+      if ( isnan(scat_meta[scat_species][intarr[i]].diameter_area_equ_aerodynamical) )
+        {
+          ostringstream os;
+          os << "Use of size distribution H13Shape (as requested for\n"
+             << "scattering species #" << scat_species << ")\n"
+             << "requires knowledge of scattering element area equivalent diameter.\n"
+             << "But area equivalent diameter is not given for scattering elements #"
+             << i << "!";
+          throw runtime_error( os.str() );
+        }
       Darea[i] = scat_meta[scat_species][intarr[i]].diameter_area_equ_aerodynamical; // [m]
+
+      if ( isnan(scat_meta[scat_species][intarr[i]].mass) )
+        {
+          ostringstream os;
+          os << "Use of size distribution H13Shape (as requested for\n"
+             << "scattering species #" << scat_species << ")\n"
+             << "requires knowledge of scattering element mass.\n"
+             << "But mass is not given for scattering elements #"
+             << i << "!";
+          throw runtime_error( os.str() );
+        }
       mass[i] = scat_meta[scat_species][intarr[i]].mass; // [kg]
+
       Rarea[i] = (Darea[i]*Darea[i]) / (Dmax[i]*Dmax[i]); // [m2/m2]
   }
     // Collect all unique maximum diameters
@@ -1426,10 +1512,10 @@ void pnd_fieldMP48 (Tensor4View pnd_field,
   const Index N_se = scat_meta[scat_species].nelem();
   const Index scat_data_start = FlattenedIndex(scat_meta, scat_species);
   ArrayOfIndex intarr;
-  Vector Dvol_unsorted ( N_se, 0.0 );
-  Vector Dvol ( N_se, 0.0 );
-  Vector vol ( N_se, 0.0 );
+  Vector mass_unsorted ( N_se, 0.0 );
   Vector mass ( N_se, 0.0 );
+  Vector Dmelt ( N_se, 0.0 );
+  Vector vol ( N_se, 0.0 );
   Vector pnd ( N_se, 0.0 );
   Vector dNdD ( N_se, 0.0 );
 
@@ -1439,15 +1525,39 @@ void pnd_fieldMP48 (Tensor4View pnd_field,
   parse_partfield_name( partfield_name, part_string, delim);
 
   for ( Index i=0; i < N_se; i++ )
-      Dvol_unsorted[i] = ( scat_meta[scat_species][i].diameter_volume_equ );
-  get_sorted_indexes(intarr, Dvol_unsorted);
+    {
+      if ( isnan(scat_meta[scat_species][i].mass) )
+        {
+          ostringstream os;
+          os << "Use of size distribution MP48 (as requested for\n"
+             << "scattering species #" << scat_species << ")\n"
+             << "requires knowledge of scattering element mass.\n"
+             << "But mass is not given for scattering elements #"
+             << i << "!";
+          throw runtime_error( os.str() );
+        }
+      mass_unsorted[i] = ( scat_meta[scat_species][i].mass );
+    }
+  get_sorted_indexes(intarr, mass_unsorted);
 	
   // extract scattering meta data
   for ( Index i=0; i< N_se; i++ )
   {
-      Dvol[i] = scat_meta[scat_species][intarr[i]].diameter_volume_equ; // [m]
       mass[i] = scat_meta[scat_species][intarr[i]].mass; // [kg]
-      vol[i] = PI/6. * Dvol[i]*Dvol[i]*Dvol[i]; // [m3]
+      Dmelt[i] = pow(6.*mass[i]/PI/DENSITY_OF_WATER,1./3.); // [m]
+
+      if ( isnan(scat_meta[scat_species][intarr[i]].mass) )
+        {
+          ostringstream os;
+          os << "Use of size distribution MP48 (as requested for\n"
+             << "scattering species #" << scat_species << ")\n"
+             << "requires knowledge of scattering element volume.\n"
+             << "But volume is not given for scattering elements #"
+             << i << "!";
+          throw runtime_error( os.str() );
+        }
+      vol[i] = PI/6. *
+        pow(scat_meta[scat_species][intarr[i]].diameter_volume_equ,3.); // [m3]
   }
 
   // conversion factor from PR [kg/(m^2*s)] to PR[mm/hr]
@@ -1472,8 +1582,8 @@ void pnd_fieldMP48 (Tensor4View pnd_field,
   const Numeric lambda_exp = -0.21;
   Numeric PWC, lambda = NAN;
 
-  if (Dvol.nelem() > 0)
-  // Dvol.nelem()=0 implies no selected scattering elements for the respective
+  if (Dmelt.nelem() > 0)
+  // Dmelt.nelem()=0 implies no selected scattering elements for the respective
   // scattering species field. should not occur.
   {
       // iteration over all atm. levels
@@ -1516,27 +1626,27 @@ void pnd_fieldMP48 (Tensor4View pnd_field,
                 lambda = lambda_fac * pow(tPR,lambda_exp);
 
                 // derive particle number density for all given sizes
-                for ( Index i=0; i<Dvol.nelem(); i++ )
+                for ( Index i=0; i<Dmelt.nelem(); i++ )
                 {
                     // calculate particle size distribution with MP48
                     // output: [# m^-3 m^-1]
-                    //dNdD[i] = PRtopnd_MP48 ( tPR, Dvol[i]);
+                    //dNdD[i] = PRtopnd_MP48 ( tPR, Dmelt[i]);
                     // too much a hassle to have a separate function. so we do
                     // the calculation directly here.
-                    dNdD[i] = N0 * exp(-lambda*Dvol[i]);
+                    dNdD[i] = N0 * exp(-lambda*Dmelt[i]);
                     //dNdD2[i] = dNdD[i] * vol[i] * rho[i];
                 }
 
                 // scale pnds by bin width
-                if (Dvol.nelem() > 1)
-                    scale_pnd( pnd, Dvol, dNdD );
+                if (Dmelt.nelem() > 1)
+                    scale_pnd( pnd, Dmelt, dNdD );
                 else
                     pnd = dNdD;
 
                 // derive mass and volume over whole size distribution for
                 // updated mean density
                 mass_total = vol_total = 0.;
-                for ( Index i=0; i<Dvol.nelem(); i++ )
+                for ( Index i=0; i<Dmelt.nelem(); i++ )
                 {
                     mass_total += mass[i]*pnd[i];
                     vol_total += vol[i]*pnd[i];
@@ -1614,15 +1724,38 @@ void pnd_fieldH98 (Tensor4View pnd_field,
   parse_partfield_name( partfield_name, part_string, delim);
 
   for ( Index i=0; i < N_se; i++ )
+    {
+      if ( isnan(scat_meta[scat_species][i].diameter_volume_equ) )
+        {
+          ostringstream os;
+          os << "Use of size distribution H98 (as requested for\n"
+             << "scattering species #" << scat_species << ")\n"
+             << "requires knowledge of scattering element volume equivalent diameter.\n"
+             << "But volume equivalent diameter is not given for scattering elements #"
+             << i << "!";
+          throw runtime_error( os.str() );
+        }
       Dvol_unsorted[i] = ( scat_meta[scat_species][i].diameter_volume_equ );
+    }
   get_sorted_indexes(intarr, Dvol_unsorted);
       
   // extract scattering meta data
   for ( Index i=0; i< N_se; i++ )
   {
       Dvol[i]= scat_meta[scat_species][intarr[i]].diameter_volume_equ; // [m]
-      mass[i] = scat_meta[scat_species][intarr[i]].mass; // [kg]
       radius[i] = 0.5 * Dvol[i]; // [m]
+
+      if ( isnan(scat_meta[scat_species][intarr[i]].mass) )
+        {
+          ostringstream os;
+          os << "Use of size distribution H98 (as requested for\n"
+             << "scattering species #" << scat_species << ")\n"
+             << "requires knowledge of scattering element mass.\n"
+             << "But mass is not given for scattering elements #"
+             << i << "!";
+          throw runtime_error( os.str() );
+        }
+      mass[i] = scat_meta[scat_species][intarr[i]].mass; // [kg]
   }
 
   if (radius.nelem() > 0)
@@ -1688,7 +1821,7 @@ void pnd_fieldH98 (Tensor4View pnd_field,
     \return dNdD particle number density per diameter interval [#/m3*m]
           
     \param iwc     atmospheric ice water content [kg/m3]
-    \param Dvol    volume equivalent diameter of scattering element [m]
+    \param Dmass   mass equivalent diameter of scattering element [m]
     \param t       atmospheric temperature [K]
     \param perturb flag whether to add noise onto PSD parameters according to
                    their reported error statistics
@@ -1697,8 +1830,8 @@ void pnd_fieldH98 (Tensor4View pnd_field,
   \date 2010-12-06
 
 */
-Numeric IWCtopnd_MH97 (	const Numeric iwc,
-                        const Numeric Dvol,
+Numeric IWCtopnd_MH97 ( const Numeric iwc,
+                        const Numeric Dmass,
                         const Numeric t,
                         const bool noisy )
 {
@@ -1754,7 +1887,7 @@ Numeric IWCtopnd_MH97 (	const Numeric iwc,
   Numeric dNdD;
 
   // convert m to microns
-  Numeric dvol = Dvol * 1e6;
+  Numeric dmass = Dmass * 1e6;
   //convert T from Kelvin to Celsius
   Numeric T = t-273.15;
   //split IWC in IWCs100 and IWCl100
@@ -1778,7 +1911,7 @@ Numeric IWCtopnd_MH97 (	const Numeric iwc,
   {
     Numeric Ns100 = 6*IWCs100 * pow ( alphas100,5. ) /
                     ( PI*cdensity*gamma_func ( 5. ) );//micron^-5
-    Numeric Nm1 = Ns100*dvol*exp ( -alphas100*dvol ); //micron^-4
+    Numeric Nm1 = Ns100*dmass*exp ( -alphas100*dmass ); //micron^-4
     dNdD1 = Nm1*1e18; // m^-3 micron^-1
   }
   else
@@ -1817,9 +1950,9 @@ Numeric IWCtopnd_MH97 (	const Numeric iwc,
       Numeric a1 = 6*IWCl100; //g/m^3
       Numeric a2 = pow ( PI,3./2. ) * cdensity*sqrt(2) *
                    exp( 3*mul100+9./2. * pow ( sigmal100,2 ) ) * 
-                   sigmal100 * pow ( 1.,3 ) * dvol; //g/m^3/micron^4
+                   sigmal100 * pow ( 1.,3 ) * dmass; //g/m^3/micron^4
       Numeric Nm2 = a1/a2 *
-                    exp ( -0.5 * pow ( ( log ( dvol )-mul100 ) /sigmal100,2 ) );
+                    exp ( -0.5 * pow ( ( log ( dmass )-mul100 ) /sigmal100,2 ) );
                     //micron^-4
       dNdD2 = Nm2*1e18; // m^-3 micron^-1
     }
@@ -2099,21 +2232,22 @@ Numeric LWCtopnd (const Numeric lwc, //[kg/m^3]
 
 
 
-/*! Calculates particle size distribution using MP48 parametrization for rain.
+/*! Calculates particle size distribution using MP48 parametrization for
+ *  precipitating hydrometeors (rain, snow, ...).
  *  Each scattering element is a node in the distribution.
  *  One call of this function calculates one particle number density.  
 
     \return dNdD particle number density per diameter interval [#/m3*m]
           
-    \param PR   precipitation rate [mm/hr]
-    \param Dvol volume equivalent diameter of scattering scattering element [m]
+    \param PR    precipitation rate [mm/hr]
+    \param Dmelt melted equivalent diameter of scattering scattering element [m]
  
   \author Jana Mendrok
   \date 2012-04-04
 
 */
 Numeric PRtopnd_MP48 (const Numeric PR,
-                      const Numeric Dvol)
+                      const Numeric Dmelt)
 {
   // skip calculation if PR is 0.0
   if ( PR == 0.0 )
@@ -2122,9 +2256,9 @@ Numeric PRtopnd_MP48 (const Numeric PR,
   }
 
   Numeric N0 = 0.08*1e-2; // [#/cm3/cm] converted to [#/m3/um]
-  Numeric lambda = 41.*1e2*pow(PR,-0.21); // [1/cm] converted to [1/m] to fit Dvol[m]
+  Numeric lambda = 41.*1e2*pow(PR,-0.21); // [1/cm] converted to [1/m] to fit Dmelt[m]
 
-  Numeric n = N0*exp(-lambda*Dvol);
+  Numeric n = N0*exp(-lambda*Dmelt);
   return n;
 }
 

@@ -1578,20 +1578,20 @@ void pnd_fieldSetup (//WS Output:
 void dNdD_MH97 (//WS Output:
               Vector& dNdD,
               //WS Input:
-              const Vector& Dme,
+              const Vector& Dmass,
               const Numeric& IWC,
               const Numeric& t,
               const Index& noisy,
               const Verbosity&)
 {
-  Index n_se = Dme.nelem();
+  Index n_se = Dmass.nelem();
   dNdD.resize(n_se);
 
   for ( Index i=0; i<n_se; i++ )
     {
       // calculate particle size distribution with MH97
       // [# m^-3 m^-1]
-      dNdD[i] = IWCtopnd_MH97 ( IWC, Dme[i], t, noisy );
+      dNdD[i] = IWCtopnd_MH97 ( IWC, Dmass[i], t, noisy );
     }
 }
 
@@ -1662,11 +1662,11 @@ void dNdD_H98 (//WS Output:
 void dNdD_MP48 (//WS Output:
               Vector& dNdD,
               //WS Input:
-              const Vector& Dme,
+              const Vector& Dmelt,
               const Numeric& PR,
               const Verbosity&)
 {
-  Index n_se = Dme.nelem();
+  Index n_se = Dmelt.nelem();
   dNdD.resize(n_se);
 
   // derive particle number density for all given sizes
@@ -1674,7 +1674,7 @@ void dNdD_MP48 (//WS Output:
     {
       // calculate particle size distribution with MP48
       // output: [# m^-3 m^-1]
-      dNdD[i] = PRtopnd_MP48 ( PR, Dme[i]);
+      dNdD[i] = PRtopnd_MP48 ( PR, Dmelt[i]);
     }
 }
 

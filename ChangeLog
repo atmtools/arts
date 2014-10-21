@@ -1,3 +1,27 @@
+2014-10-21  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-3-47
+
+	* src/cloudbox.cc(pnd_field*): Ensure that meta data required by
+	specific size distribution method is available for each individual
+	scattering element, else throw error.
+
+	* src/methods.cc, m_cloudbox.cc(dNdD_MH97, dNdD_MP48),
+	cloudbox.cc(pnd_fieldMH97, pnd_fieldMP48, IWCtopnd_MH97, PRtopnd_MP48):
+	Change from using volume equivalent diameter to mass equivalent
+	diameter, Dmass, in MH97 and melted equivalent diameter, Dmelt, in MP48.
+	MH97 according to definition in MH97 paper. For MP48 literature is not
+	very clear. MP48 itself only discussed rain drops, but MP48 is
+	widely used for precipitating hydrometeors in general, e.g. in RTTOV
+	(see doherty07:_ice_amsu_b_qjrms). Literature is not clear though, what
+	diameter to be used in case of frozen hydrometeors. Considering the
+	measurement technique used by MP48 is seems most plausible to assume
+	melted diameter.
+
+	* controlfiles/artscomponents/doitbatch/TestDOITBatch.ybatch.ref.xml:
+	Adjusted. Using Dmass instead of Dvol in MH97 causes small changes in
+	BT due to slightly different assumption of ice density.
+
 2014-10-21  Richard Larsson <ric.larsson@gmail.com>
 	
 	* arts-2-3-46
