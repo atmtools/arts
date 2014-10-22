@@ -1,3 +1,33 @@
+2014-10-22  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-3-52
+
+	Renamed massdensity_field to scat_species_mass_density_field, added
+	scat_species_mass_flux_field and scat_species_number_density_field (so
+	far only placeholders) and changed some massdensity_field methods to
+	support the new fields.
+
+	* src/workspace.cc: Renamed massdensity_field to
+	scat_species_mass_density_field. Added scat_species_mass_flux_field and
+	scat_species_number_density_field. Adapted documentation.
+
+	* src/methods.cc, m_cloudbox.cc, m_atmosphere.cc:
+	Renamed all occurences of massdensity_field to scat_species_mass_density_field.
+
+	* src/methods.cc,  m_cloudbox.cc (Massdensity_cleanup):
+	Renamed method to scat_species_fieldCleanup and adapted to be applicable
+	for all	scat_species_XX_fields, i.e. now taking/providing generic
+	Tensor4	in/output.
+
+	* src/cloudbox.cc, cloudbox.h (chk_massdensity_field):
+	Renamed method to chk_scat_species_field and adapted to be applicable
+	for all	scat_species_XX_fields
+
+	* controlfiles/artscomponents/doitbatch/TestDOITBatch.arts:
+	Adapt for change of Massdensity_cleanup to scat_species_fieldCleanup.
+
+	* src/m_basic_types.cc: Spell fix.
+
 2014-10-22  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-51

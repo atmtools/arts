@@ -2479,7 +2479,7 @@ void define_md_data_raw()
          ),
         AUTHORS( "Stefan Buehler", "Daniel Kreyling", "Jana Mendrok" ),
         OUT( "p_grid", "lat_grid", "lon_grid", "t_field", "z_field",
-             "vmr_field", "massdensity_field" ),
+             "vmr_field", "scat_species_mass_density_field" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
@@ -2944,7 +2944,7 @@ void define_md_data_raw()
         DESCRIPTION
         (
          "Sets the cloud box to encompass the cloud given by the entries\n"
-         "in *massdensity_field*. \n"
+         "in *scat_species_mass_density_field*. \n"
          "\n"
          "The function must be called before any *cloudbox_limits* using\n"
          "WSMs.\n"
@@ -2974,7 +2974,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "massdensity_field"),
+        IN( "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "scat_species_mass_density_field"),
         GIN( "cloudbox_margin"),
         GIN_TYPE( "Numeric" ),
         GIN_DEFAULT( "-1" ),
@@ -6720,37 +6720,10 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN(  "abs_lines_per_species" ,  "abs_species" ),
-        GIN(         "species_tag",  "line_mixing_tag", "line_mixing_records" ),
-        GIN_TYPE(  "String",  "String",      "ArrayOfLineMixingRecord" ),
-        GIN_DEFAULT( NODEF,     NODEF,         NODEF ),
-        GIN_DESC(   "Species tag", "Line mixing tag" , "Unmatched line mixing data")
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "Massdensity_cleanup" ),
-        DESCRIPTION
-        (
-         "This WSM checks if *massdensity_field* contains values smaller than\n"
-         "*massdensity_threshold*. In this case, these values will be set to zero.\n"
-         "\n"
-         "The Method should be applied if *massdensity_field* contains unrealistic small\n"
-         "or erroneous data. (e.g. the chevallierl_91l data sets contain these small values)\n"
-         "\n"
-         "*Massdensity_cleanup* is called after generation of atmopheric fields.\n"
-         "\n"
-         "*Default value*:\t1e-15\n"
-         ),
-        AUTHORS( "Daniel Kreyling" ),
-        OUT( "massdensity_field" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "massdensity_field" ),
-        GIN( "massdensity_threshold" ),
-        GIN_TYPE( "Numeric" ),
-        GIN_DEFAULT( "1e-15" ),
-        GIN_DESC( "Values in *massdensity_field* smaller than *massdensity_threshold* will be set to zero." )
+        GIN(         "species_tag", "line_mixing_tag", "line_mixing_records" ),
+        GIN_TYPE(    "String",      "String",          "ArrayOfLineMixingRecord" ),
+        GIN_DEFAULT( NODEF,         NODEF,             NODEF ),
+        GIN_DESC( "Species tag", "Line mixing tag" , "Unmatched line mixing data")
         ));
 
   md_data_raw.push_back
@@ -7767,6 +7740,36 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "scat_species_fieldCleanup" ),
+        DESCRIPTION
+        (
+         "This WSM checks if a *scat_species_field* contains values smaller\n"
+         "than the given *threshold*. In this case, these values will be set\n"
+         "to zero.\n"
+         "\n"
+         "The method should be applied if *scat_species_field* contains\n"
+         "unrealistically small or erroneous data (model data, e.g. from the\n"
+         "Chevallierl_91l sets, often contain very small or even negative\n"
+         "values, which are numerical artefacts rather than physical values.)\n"
+         "\n"
+         "*scat_species_field_cleanup* shall be called after generation of the\n"
+         "atmopheric fields.\n"
+         ),
+        AUTHORS( "Daniel Kreyling" ),
+        OUT(),
+        GOUT( "scat_species_field_out" ),
+        GOUT_TYPE( "Tensor4" ),
+        GOUT_DESC( "A scattering species field, e.g. *scat_species_mass_density_field*" ),
+        IN(),
+        GIN(         "scat_species_field_in", "threshold" ),
+        GIN_TYPE(    "Tensor4",               "Numeric" ),
+        GIN_DEFAULT( NODEF,                   NODEF ),
+        GIN_DESC( "A scattering species field, e.g. *scat_species_mass_density_field*" ,
+                  "Threshold below which the *scat_species_field* values are set to zero." )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "ParticleTypeAdd" ),
         DESCRIPTION
         (
@@ -8059,7 +8062,7 @@ void define_md_data_raw()
       ( NAME( "pnd_fieldSetup" ),
         DESCRIPTION
         (
-         "Calculation of *pnd_field* using *scat_meta* and *massdensity_field*.\n"
+         "Calculation of *pnd_field* using *scat_meta* and *scat_species_mass_density_field*.\n"
          "\n"
          "The WSM first checks if cloudbox is empty. If so, the pnd calculations\n"
          "will be skipped.\n"
@@ -8087,8 +8090,8 @@ void define_md_data_raw()
          "According to the selection criteria in *scat_species*, the first specified\n" 
          "psd parametrisation is selected together with all particles of specified phase\n"
          "and size. Then pnd calculations are performed on all levels inside the cloudbox.\n"
-         "The *massdensity_field* input weights the pnds by the amount of scattering\n" 
-         "particles in each gridbox inside the cloudbox. Where *massdensity_field* is zero,\n"
+         "The *scat_species_mass_density_field* input weights the pnds by the amount of scattering\n" 
+         "particles in each gridbox inside the cloudbox. Where *scat_species_mass_density_field* is zero,\n"
          "the *pnd_field* will be zero as well.\n"
          "Subsequently the pnd values get written to *pnd_field*.\n"
          "\n"
@@ -8096,7 +8099,7 @@ void define_md_data_raw()
          "the process.The new pnd values will be appended to the existing *pnd_field*.\n"
          "And so on...\n"
          "\n"
-         "NOTE: the order of scattering particle profiles in *massdensity_field*\n"
+         "NOTE: the order of scattering particle profiles in *scat_species_mass_density_field*\n"
          "has to fit the order of *scat_species* tags, and the order of\n"
          "*scat_species* tags has to fit the order of scattering species in the\n"
          "*scat_meta* array (i.e., *ScatteringParticleTypeAndMetaRead* with the\n"
@@ -8109,7 +8112,7 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "atmosphere_dim","cloudbox_on", "cloudbox_limits",
-            "massdensity_field", "t_field", "scat_meta",
+            "scat_species_mass_density_field", "t_field", "scat_meta",
             "scat_species" ),
         GIN( "delim" ),
         GIN_TYPE( "String" ),

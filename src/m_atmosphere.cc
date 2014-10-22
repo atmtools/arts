@@ -1597,7 +1597,7 @@ void AtmFieldsFromCompact(// WS Output:
                           Tensor3& t_field,
                           Tensor3& z_field,
                           Tensor4& vmr_field,
-                          Tensor4& massdensity_field,
+                          Tensor4& scat_species_mass_density_field,
                           // WS Input:
                           const ArrayOfArrayOfSpeciesTag& abs_species,
                           const ArrayOfString& scat_species,
@@ -1717,8 +1717,8 @@ void AtmFieldsFromCompact(// WS Output:
   z_field = c.data(1,Range(joker),Range(joker),Range(joker));
 
   //Particle profiles:
-  massdensity_field.resize(nsp,np,nlat,nlon);
-  massdensity_field = c.data(Range(2,nsp),Range(joker),Range(joker),Range(joker));
+  scat_species_mass_density_field.resize(nsp,np,nlat,nlon);
+  scat_species_mass_density_field = c.data(Range(2,nsp),Range(joker),Range(joker),Range(joker));
 
   // VMR profiles (remaining fields):
   vmr_field.resize(nsa,np,nlat,nlon);

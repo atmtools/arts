@@ -56,50 +56,48 @@ extern const Numeric DENSITY_OF_WATER;
 
 
 
-//! Check whether hydromet grid size is equal to atmospheric grid size 
-//! and if hydromet profile is zero (no cloud) in each grid point.
+//! Check whether field of a specific scattering species zero everywhere.
 /*!
-  \param dim atmosphere dimension 
-  \param hydromet hydrometeor grid in p, lat or lon dimension
-  \param p_grid p grid of current atmosphere
-  \param lat_grid lat grid of current atmosphere
-  \param lon_grid lon grid of current atmosphere
+  \return empty_flag        flag whether all field entries are zero
+  \param scat_species_field scattering species field (e.g. mass density,
+                             mass flux, total number density)
+  \param fieldname          name of scattering species field (just for info)
+  \param dim                the atmosphere dimension 
+  \param p_grid             pressure grid of current atmosphere
+  \param lat_grid           latitude grid of current atmosphere
+  \param lon_grid           longitude grid of current atmosphere
 
   \author Daniel Kreyling
   \date   2011-01-27
 */  
-void chk_massdensity_field( bool& empty_flag,
-			 const Index&  dim,	
-			 const Tensor3& massdensity, 
-			 const Vector& p_grid,
-			 const Vector& lat_grid,
-			 const Vector& lon_grid
-		       )
+void chk_scat_species_field(bool& empty_flag,
+                            const Tensor3& scat_species_field, 
+                            const String& fieldname,
+                            const Index&  dim,	
+                            const Vector& p_grid,
+                            const Vector& lat_grid,
+                            const Vector& lon_grid)
 {
   
   // check p
-  if ( massdensity.npages() != p_grid.nelem()) {
+  if ( scat_species_field.npages() != p_grid.nelem()) {
     
       ostringstream os;
-      os << "The size of *p_grid* ("
-         << p_grid.nelem()
-         << ") is not equal to the number of pages of *massdensity* ("
-         << massdensity.npages()
-         <<").";
+      os << "The size of *p_grid* (" << p_grid.nelem()
+         << ") is unequal the number of pages of *" << fieldname << "* ("
+         << scat_species_field.npages() << ").";
       throw runtime_error(os.str() );
   }
   
   // check lat
   if(dim >= 2 )
   {
-    if ( massdensity.nrows() != lat_grid.nelem()) {
+    if ( scat_species_field.nrows() != lat_grid.nelem()) {
     
       ostringstream os;
-      os << "The size of *lat_grid* ("
-         << lat_grid.nelem()
-         << ") is not equal to the number of rows of *massdensity* ("
-         << massdensity
-         << ").";
+      os << "The size of *lat_grid* (" << lat_grid.nelem()
+         << ") is unequal the number of rows of *" << fieldname << "* ("
+         << scat_species_field.nrows() << ").";
       throw runtime_error(os.str() );
       
     }
@@ -108,14 +106,12 @@ void chk_massdensity_field( bool& empty_flag,
   // check lon
   if(dim == 3 )
   {
-    if ( massdensity.ncols() != lon_grid.nelem()) {
+    if ( scat_species_field.ncols() != lon_grid.nelem()) {
     
       ostringstream os;
-      os << "The size of *lon_grid* ("
-         << lon_grid.nelem()
-         << ") is not equal to the number of columns of *massdensity*"
-         << massdensity
-         << ").";
+      os << "The size of *lon_grid* (" << lon_grid.nelem()
+         << ") is unequal the number of columns of *" << fieldname << "* ("
+         << scat_species_field.ncols() << ").";
       throw runtime_error(os.str() );
       
     }
@@ -123,10 +119,10 @@ void chk_massdensity_field( bool& empty_flag,
   
   empty_flag = false;
   // set empty_flag to true if a single value of hydromet_field is unequal zero    
-    for (Index j=0; j<massdensity.npages(); j++) {
-      for (Index k=0; k<massdensity.nrows(); k++) {
-	    for (Index l=0; l<massdensity.ncols(); l++) {
-	      if ( massdensity(j,k,l) != 0.0) empty_flag = true;
+    for (Index j=0; j<scat_species_field.npages(); j++) {
+      for (Index k=0; k<scat_species_field.nrows(); k++) {
+	    for (Index l=0; l<scat_species_field.ncols(); l++) {
+	      if ( scat_species_field(j,k,l) != 0.0) empty_flag = true;
 	}
       }
     }  
@@ -2391,7 +2387,7 @@ void chk_pndsum (Vector& pnd,
 
 
 
-/*! Splitting scat_species string and parse type of massdensity_field
+/*! Splitting scat_species string and parse type of scattering species field
 
   \param  partfield_name name of atmospheric scattering species field
   \param  part_string    scattering species tag from *scat_species*

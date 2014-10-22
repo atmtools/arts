@@ -818,7 +818,7 @@ void VectorInsertGridPoints(// WS Generic Output:
   CREATE_OUT2;
   CREATE_OUT3;
   
-  // First make duplikates of the input vectors, in case one of them
+  // First make duplicates of the input vectors, in case one of them
   // happens to be identical to the output vector. Also, we can fool
   // around with these, if we want.
   Vector ig(ingrid);

@@ -104,25 +104,27 @@ void cloudboxSetAutomatically (// WS Output:
                                const Vector&   p_grid,
                                const Vector&   lat_grid,
                                const Vector&   lon_grid,
-                               const Tensor4&  massdensity_field,
+                               const Tensor4&  scat_species_mass_density_field,
+//                               const Tensor4&  scat_species_flux_density_field,
+//                               const Tensor4&  scat_species_number_density_field,
                                // Control Parameters
                                const Numeric&  cloudbox_margin,
                                const Verbosity& verbosity)
 {
   // Variables
-  //const Index np = massdensity_field.npages(); 
-  Index p1 = massdensity_field.npages()-1;
+  //const Index np = scat_species_mass_density_field.npages(); 
+  Index p1 = scat_species_mass_density_field.npages()-1;
   Index p2 = 0;
   DEBUG_ONLY(
-             Index lat1 = massdensity_field.nrows()-1;
+             Index lat1 = scat_species_mass_density_field.nrows()-1;
              Index lat2 = 0;
-             Index lon1 = massdensity_field.ncols()-1;
+             Index lon1 = scat_species_mass_density_field.ncols()-1;
              Index lon2 = 0;
   )
 
   Index i, j, k, l;
 
-  // initialize flag, telling if all selected *massdensity_fields* are
+  // initialize flag, telling if all selected *scat_species_XX_field* entries are
   // zero(false) or not(true)
   bool x = false; 
 
@@ -137,28 +139,27 @@ void cloudboxSetAutomatically (// WS Output:
   // Allocate cloudbox_limits
   cloudbox_limits.resize ( atmosphere_dim*2 );
 
-  //--------- Start loop over scattering elements ------------------------------
-  for ( l=0; l<massdensity_field.nbooks(); l++ )
+  //--------- Start loop over scattering species ------------------------------
+  for ( l=0; l<scat_species_mass_density_field.nbooks(); l++ )
   {
-    bool y; // empty_flag
-    //y is set to true, if a single value of massdensity_field is unequal zero
-    chk_massdensity_field ( y,
-                         atmosphere_dim,
-                         massdensity_field ( l, joker, joker, joker ),
-                         p_grid,
-                         lat_grid,
-                         lon_grid );
+    bool empty_species;
+    //empty_species is set to true, if a single value of scat_species_XX_field
+    //is unequal zero
+    chk_scat_species_field ( empty_species,
+                             scat_species_mass_density_field ( l, joker, joker, joker ),
+                             "scat_species_mass_density_field",
+                             atmosphere_dim, p_grid, lat_grid, lon_grid );
 
     //-----------Start setting cloudbox limits----------------------------------
-    if ( y )
+    if ( empty_species )
     {
-      //massdensity_field unequal zero -> x is true
+      //scat_species_mass_density_field unequal zero -> x is true
       x = true;
 
       if ( atmosphere_dim == 1 )
       {
         // Pressure limits
-        ConstVectorView hydro_p = massdensity_field ( l, joker, 0 , 0 );
+        ConstVectorView hydro_p = scat_species_mass_density_field ( l, joker, 0 , 0 );
 
 
         // set lower cloudbox_limit to surface if margin = -1
@@ -186,7 +187,7 @@ void cloudboxSetAutomatically (// WS Output:
           }
 
         }
-        // find index of highest pressure level, where massdensity_field is
+        // find index of highest pressure level, where scat_species_mass_density_field is
         // unequal 0, starting from top of the atmosphere
         for ( j=hydro_p.nelem()-1; j>=i; j-- )
         {
@@ -284,14 +285,14 @@ void cloudboxSetAutomatically (// WS Output:
 
   // increase upper cb limit by one to ensure that linear interpolation of 
   // particle number densities is possible.
-  p2 = min(p2+1, massdensity_field.npages()-1);
+  p2 = min(p2+1, scat_species_mass_density_field.npages()-1);
   // set upper cloudbox_limit
   // if cloudbox reaches to the upper most pressure level
-  if ( p2 >= massdensity_field.npages()-1)
+  if ( p2 >= scat_species_mass_density_field.npages()-1)
   {
     CREATE_OUT2;
     out2<<"The cloud reaches to TOA!\n"
-    <<"Check massdensity_field data, if realistic!\n";
+    <<"Check scat_species_mass_density_field data, if realistic!\n";
   }
   cloudbox_limits[1] = p2;
 
@@ -545,30 +546,36 @@ void cloudboxSetManuallyAltitude(// WS Output:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Massdensity_cleanup (//WS Output:
-                          Tensor4& massdensity_field,
+void scat_species_fieldCleanup (//WS Output:
+                          Tensor4& scat_species_field_out,
                           //WS Input:
-                          const Numeric& massdensity_threshold,
+                          const Tensor4& scat_species_field_in,
+                          const Numeric& threshold,
                           const Verbosity&)
 {
-  // Check that massdensity_fields contain realistic values
-  //(values smaller than massdensity_threshold will be set to 0)
-  for ( Index i=0; i<massdensity_field.nbooks(); i++ )
+  // First make a copy of scat_species_field_in as it might be identical with
+  // scat_species_field_out. And resize scat_species_field_out appropriately.
+  Tensor4 infield = scat_species_field_in;
+
+  // Check that scat_species_field contains realistic values
+  //(values smaller than the threshold will be set to 0)
+  for ( Index i=0; i<scat_species_field_in.nbooks(); i++ )
   {
-    for ( Index j=0; j<massdensity_field.npages(); j++ )
+    for ( Index j=0; j<scat_species_field_in.npages(); j++ )
     {
-      for ( Index k=0; k<massdensity_field.nrows(); k++ )
+      for ( Index k=0; k<scat_species_field_in.nrows(); k++ )
       {
-        for ( Index l=0; l<massdensity_field.ncols(); l++ )
+        for ( Index l=0; l<scat_species_field_in.ncols(); l++ )
         {
-          if ( massdensity_field ( i,j,k,l ) < massdensity_threshold ) 
+          if ( scat_species_field_in ( i,j,k,l ) < threshold ) 
           {
-            massdensity_field ( i,j,k,l ) = 0.0;
+            infield ( i,j,k,l ) = 0.0;
           }
         }
       }
     }
   }
+  scat_species_field_out = infield;
 }
 
 
@@ -1346,7 +1353,7 @@ void pnd_fieldSetup (//WS Output:
                      const Index& atmosphere_dim,
                      const Index& cloudbox_on,
                      const ArrayOfIndex& cloudbox_limits,
-                     const Tensor4& massdensity_field,
+                     const Tensor4& scat_species_mass_density_field,
                      const Tensor3& t_field,
                      const ArrayOfArrayOfScatteringMetaData& scat_meta,
                      const ArrayOfString& scat_species,
@@ -1393,21 +1400,21 @@ void pnd_fieldSetup (//WS Output:
 
   /* Do some checks. Not foolproof, but catches at least some. */
 
-  if ((limits[1] > massdensity_field.npages()) ||
+  if ((limits[1] > scat_species_mass_density_field.npages()) ||
       (limits[1] > t_field.npages()) ||
-      (limits[3] > massdensity_field.nrows()) ||
+      (limits[3] > scat_species_mass_density_field.nrows()) ||
       (limits[3] > t_field.nrows()) ||
-      (limits[5] > massdensity_field.ncols()) ||
+      (limits[5] > scat_species_mass_density_field.ncols()) ||
       (limits[5] > t_field.ncols()))
   {
     ostringstream os;
     os << "Cloudbox out of bounds compared to fields. "
        << "Upper limits: (p, lat, lon): "
        << "(" << limits[1] << ", " << limits[3] << ", " << limits[5] << "). "
-       << "*massdensity_field*: "
-       << "(" << massdensity_field.npages() << ", "
-       << massdensity_field.nrows() << ", "
-       << massdensity_field.ncols() << "). "
+       << "*scat_species_mass_density_field*: "
+       << "(" << scat_species_mass_density_field.npages() << ", "
+       << scat_species_mass_density_field.nrows() << ", "
+       << scat_species_mass_density_field.ncols() << "). "
        << "*t_field*: "
        << "(" << t_field.npages() << ", "
        << t_field.nrows() << ", "
@@ -1448,7 +1455,7 @@ void pnd_fieldSetup (//WS Output:
         }
 
         pnd_fieldMH97( pnd_field,
-                       massdensity_field ( i_ss, joker, joker, joker ),
+                       scat_species_mass_density_field ( i_ss, joker, joker, joker ),
                        t_field, limits,
                        scat_meta, i_ss,
                        scat_species[i_ss], delim,
@@ -1470,7 +1477,7 @@ void pnd_fieldSetup (//WS Output:
         }
 
         pnd_fieldH11 (pnd_field,
-                       massdensity_field ( i_ss, joker, joker, joker ),
+                       scat_species_mass_density_field ( i_ss, joker, joker, joker ),
                        t_field, limits,
                        scat_meta, i_ss,
                        scat_species[i_ss], delim,
@@ -1492,7 +1499,7 @@ void pnd_fieldSetup (//WS Output:
         }
 
         pnd_fieldH13 (pnd_field,
-                       massdensity_field ( i_ss, joker, joker, joker ),
+                       scat_species_mass_density_field ( i_ss, joker, joker, joker ),
                        t_field, limits,
                        scat_meta, i_ss,
                        scat_species[i_ss], delim,
@@ -1514,7 +1521,7 @@ void pnd_fieldSetup (//WS Output:
         }
 
         pnd_fieldH13Shape (pnd_field,
-                       massdensity_field ( i_ss, joker, joker, joker ),
+                       scat_species_mass_density_field ( i_ss, joker, joker, joker ),
                        t_field, limits,
                        scat_meta, i_ss,
                        scat_species[i_ss], delim,
@@ -1536,7 +1543,7 @@ void pnd_fieldSetup (//WS Output:
         }
 
         pnd_fieldMP48( pnd_field,
-                       massdensity_field ( i_ss, joker, joker, joker ),
+                       scat_species_mass_density_field ( i_ss, joker, joker, joker ),
                        limits,
                        scat_meta, i_ss,
                        scat_species[i_ss], delim,
@@ -1558,7 +1565,7 @@ void pnd_fieldSetup (//WS Output:
         }
 
         pnd_fieldH98 (pnd_field,
-                       massdensity_field ( i_ss, joker, joker, joker ),
+                       scat_species_mass_density_field ( i_ss, joker, joker, joker ),
                        limits,
                        scat_meta, i_ss,
                        scat_species[i_ss], delim,

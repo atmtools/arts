@@ -229,8 +229,9 @@ AgendaSet( ybatch_calc_agenda ){
   AtmFieldsFromCompact
 
   # Unrealistic (small) values in massdensity_field will be set to zero
-  Massdensity_cleanup
-  #Massdensity_cleanup(massdensity_field, 1e-9)
+  scat_species_fieldCleanup (scat_species_mass_density_field,
+                             scat_species_mass_density_field,
+                             1e-15)
 
   # Get some surface properties from corresponding atmospheric fields
   Extract( z_surface, z_field, 0 )

@@ -193,12 +193,13 @@ void chk_pndsum (Vector& pnd,
                  const String& part_type,
                  const Verbosity& verbosity);
 
-void chk_massdensity_field(bool& x, 
-                           const Index&  dim,	
-                           const Tensor3& massdensity,			 
-                           const Vector& p_grid,
-                           const Vector& lat_grid,
-                           const Vector& lon_grid);
+void chk_scat_species_field(bool& empty_flag,
+                            const Tensor3& scat_species_field, 
+                            const String& fieldname,
+                            const Index&  dim,	
+                            const Vector& p_grid,
+                            const Vector& lat_grid,
+                            const Vector& lon_grid);
 
 void parse_partfield_name (String& partfield_name,
                       const String& part_string,

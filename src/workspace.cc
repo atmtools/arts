@@ -2154,32 +2154,6 @@ void Workspace::define_wsv_data()
    
   wsv_data.push_back
    (WsvRecord
-    ( NAME( "massdensity_field" ),
-      DESCRIPTION
-      (
-       "The field of atmospheric scattering species.\n"
-       "\n"
-       "The fields can contain mass densities or mass fluxes.\n"
-       "If *massdensity_field* is obtained from Chevallier91L data, the\n"
-       "scattering species are the hydrometeors:\n"
-       "CLW[kg/m^3] CIW[kg/m^3] Rain[kg/(m2*s)] Snow[kg/(m2*s)]\n"
-       "\n"
-       "Possible future changes:\n"
-       "*massdensity_field* should be renamed to a more general term (not\n"
-       "limited to mass densities).\n"
-       "*massdensity_field_raw* might be needed, which contains the gridded\n"
-       "not-interpolated scattering species fields.\n"
-       "\n"
-       "Usage:      Set by the user.\n"
-       "\n"
-       "Unit:       [kg/m3] or [kg/m2/s]\n"
-       "\n"
-       "Dimension:  [ type, p_grid, lat_grid, lon_grid ]\n"
-       ),
-      GROUP( "Tensor4" ))); 
-    
-  wsv_data.push_back
-   (WsvRecord
     ( NAME( "mblock_aa_grid" ),
       DESCRIPTION
       (
@@ -2593,37 +2567,6 @@ void Workspace::define_wsv_data()
        ),
       GROUP( "Matrix" )));
     
-   wsv_data.push_back
-   (WsvRecord
-    ( NAME( "scat_species" ),
-      DESCRIPTION
-      (
-       "Array of Strings defining (scattering) particles to consider and their\n"
-       "connection to scattering species.\n"
-       "\n"
-       "Each String contains the information for particles to be connected to\n"
-       "one specific scattering species (e.g., a hydrometeor density field). It\n"
-       "has to have the following structure with elements separated by dashes:\n"
-       "\n"
-       "- particle field name [*String*]\n"
-       "\t the name of the scattering species field (mass content, precip rate,\n"
-       "\t or similar) to act on. Free form, but needs to match (name, order)\n"
-       "\t *atm_fields_compact* field names.\n"
-       "- particle size distribution [*String*]:\n"
-       "\t the size distribution function/parametrization to apply. For\n"
-       "\t currently possible PSDs see *pnd_fieldSetup*.\n"
-       "- sizemin and sizemax [*Numeric*]:\n"
-       "\t the minimum and maximum size (volume equivalent sphere radius in um)\n"
-       "\t of the individual scattering elements to consider. Minimum and\n"
-       "\t maximum size may be omitted (meaning full size range will be\n"
-       "\t selected), the symbol '*' can be used as a wildcard (selecting all\n"
-       "\t scattering elements at the respective size\n"
-       "\t end)."
-       "\n"
-       "Example: [''IWC-MH97-2-1000'', ''LWC-HM98_STCO-0.1-10'', ...]\n"
-       ),
-      GROUP( "ArrayOfString" )));
-
     wsv_data.push_back
    (WsvRecord
     ( NAME( "pha_mat" ),
@@ -3636,6 +3579,104 @@ void Workspace::define_wsv_data()
        ),
      GROUP( "Index" ))); 
   
+   wsv_data.push_back
+   (WsvRecord
+    ( NAME( "scat_species" ),
+      DESCRIPTION
+      (
+       "Array of Strings defining (scattering) particles to consider and their\n"
+       "connection to scattering species.\n"
+       "\n"
+       "Each String contains the information for particles to be connected to\n"
+       "one specific scattering species (e.g., a hydrometeor density field). It\n"
+       "has to have the following structure with elements separated by dashes:\n"
+       "\n"
+       "- particle field name [*String*]\n"
+       "\t the name of the scattering species field (mass content, precip rate,\n"
+       "\t or similar) to act on. Free form, but needs to match (name, order)\n"
+       "\t *atm_fields_compact* field names.\n"
+       "- particle size distribution [*String*]:\n"
+       "\t the size distribution function/parametrization to apply. For\n"
+       "\t currently possible PSDs see *pnd_fieldSetup*.\n"
+       "- sizemin and sizemax [*Numeric*]:\n"
+       "\t the minimum and maximum size (volume equivalent sphere radius in um)\n"
+       "\t of the individual scattering elements to consider. Minimum and\n"
+       "\t maximum size may be omitted (meaning full size range will be\n"
+       "\t selected), the symbol '*' can be used as a wildcard (selecting all\n"
+       "\t scattering elements at the respective size\n"
+       "\t end)."
+       "\n"
+       "Example: [''IWC-MH97-2-1000'', ''LWC-HM98_STCO-0.1-10'', ...]\n"
+       ),
+      GROUP( "ArrayOfString" )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "scat_species_mass_density_field" ),
+      DESCRIPTION
+      (
+       "The mass density field of atmospheric scattering species.\n"
+       "\n"
+       "Currently it contain mass densities or mass fluxes as provided by\n"
+       "NWP/GCM model data, e.g. Chevallier91L data.\n"
+       "\n"
+       "In future, it will only hold the mass density data, while mass fluxes\n"
+       "are supposed to be stored in *scat_species_mass_flux_field* (3rd moment\n"
+       "of size distribution) and *scat_species_number_density_field* will hold\n"
+       "number density fields (0th moment of size distribution).\n"
+       "\n"
+       "Possible future changes:\n"
+       "*scat_species_mass_density_field_raw* might be needed containing the\n"
+       "gridded not-yet-interpolated scattering species fields.\n"
+       "\n"
+       "Usage:      Set by the user.\n"
+       "\n"
+       "Unit:       [kg/m3] or [kg/m2/s]\n"
+       "\n"
+       "Dimension:  [number of scattering species, p_grid, lat_grid, lon_grid]\n"
+       ),
+      GROUP( "Tensor4" ))); 
+    
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "scat_species_mass_flux_field" ),
+      DESCRIPTION
+      (
+       "The mass flux field of atmospheric scattering species.\n"
+       "\n"
+       "Currently it is not used, but just a placeholder.\n"
+       "\n"
+       "In future, it will hold the mass flux data (see also\n"
+       "*scat_species_mass_densityfield*.\n"
+       "\n"
+       "Usage:      Set by the user.\n"
+       "\n"
+       "Unit:       [kg/m2/s]\n"
+       "\n"
+       "Dimension:  [number of scattering species, p_grid, lat_grid, lon_grid]\n"
+       ),
+      GROUP( "Tensor4" ))); 
+    
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "scat_species_number_density_field" ),
+      DESCRIPTION
+      (
+       "The total number density field of atmospheric scattering species.\n"
+       "\n"
+       "Currently it is not used, but just a placeholder.\n"
+       "\n"
+       "In future, it will hold the mass flux data (see also\n"
+       "*scat_species_mass_densityfield*.\n"
+       "\n"
+       "Usage:      Set by the user.\n"
+       "\n"
+       "Unit:       [1/m3]\n"
+       "\n"
+       "Dimension:  [number of scattering species, p_grid, lat_grid, lon_grid]\n"
+       ),
+      GROUP( "Tensor4" ))); 
+    
   wsv_data.push_back
     (WsvRecord
      ( NAME( "scat_za_grid" ),
