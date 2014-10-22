@@ -694,7 +694,7 @@ String ArtsParser::set_gin_to_default(const MdRecord*       mdd,
         {
             Numeric n;
             istringstream is(mdd->GInDefault()[gin_index]);
-            is >> n;
+            is >> double_imanip() >> n;
             tv = n;
             if (is.bad () || is.fail ())
                 failed = true;
@@ -2300,7 +2300,7 @@ void ArtsParser::parse_numeric(Numeric& n)
     String res;
     read_numeric(res);
     istringstream is(res);
-    is >> n;
+    is >> double_imanip() >> n;
 }
 
 
@@ -2679,14 +2679,21 @@ bool ArtsParser::parse_numvector_from_string (Vector& res, String& str)
         
         Numeric dummy;
         istringstream is (str.substr(pos));
-        is >> dummy;
+        is >> double_imanip() >> dummy;
         if (is.bad () || is.fail ())
             return false;
         tres.push_back(dummy);
-        while (pos < str.length()
-               && (isdigit(str[pos]) || str[pos] == '-' || str[pos] == '.'
-                   || str[pos] == 'e'))
-            pos++;
+        if (str[pos] == 'N' && str.find("NaN", pos) == pos)
+        {
+            pos += 3;
+        }
+        else
+        {
+            while (pos < str.length()
+                   && (isdigit(str[pos]) || str[pos] == '-' || str[pos] == '.'
+                       || str[pos] == 'e'))
+                pos++;
+        }
         eat_whitespace_from_string (str, pos);
     }
     
