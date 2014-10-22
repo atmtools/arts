@@ -1,3 +1,10 @@
+2014-10-22  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-53
+
+	* controlfiles/artscomponents/tmatrix/TestTMatrix.arts: Mass now
+	not set to a dummy value. Default NaN is used now, after Oliver's fix.
+
 2014-10-22  Jana Mendrok  <jana.mendrok@ltu.se>
 
 	* arts-2-3-52
