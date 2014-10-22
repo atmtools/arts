@@ -1,11 +1,13 @@
 2014-10-22  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-3-48
+
 	* controlfiles/CMakeLists.txt: TestTMatrixSSD.arts removed.
 
 	* controlfiles/artscomponents/tmatrix/TestTMatrix.arts: Extended,
 	now also testing scat_data_singleTmatrix,
 	diameter_maxFromDiameter_volume_equ and
-	diameter_volume_equFromDiameter_max. 
+	diameter_volume_equFromDiameter_max.
 
 	* controlfiles/artscomponents/tmatrix/TestTMatrixSSD.arts: Removed.
 
