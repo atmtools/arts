@@ -749,9 +749,9 @@ void check_abs_species( const ArrayOfArrayOfSpeciesTag& abs_species )
         if (abs_species[i].nelem() > 1 && has_particles)
             throw std::runtime_error("'particles' must not be combined "
                                 "with other tags in the same group.");
-        if (abs_species[i].nelem() > 1 && has_line_mixing)
-            throw std::runtime_error("Line mixing species must not be combined "
-                                "with other tags in the same group.");
+//         if (abs_species[i].nelem() > 1 && has_line_mixing)
+//             throw std::runtime_error("Line mixing species must not be combined "
+//                                 "with other tags in the same group.");
     }
 }
 
