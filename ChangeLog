@@ -1,5 +1,14 @@
 2014-10-22  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-3-51
+
+	* controlfiles/artscomponents/doitbatch/ScatteringMetaFile_H2Oice.xml,
+	controlfiles/artscomponents/doitbatch/ScatteringMetaFile_H2Oliquid.xml:
+
+	Correct wrong xml version. Should be 1.0 not 3.0.
+
+2014-10-22  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-3-50
 
 	* src/parser.cc (ArtsParser::set_gin_to_default,
