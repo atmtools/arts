@@ -1,3 +1,27 @@
+2014-10-22  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* controlfiles/CMakeLists.txt: TestTMatrixSSD.arts removed.
+
+	* controlfiles/artscomponents/tmatrix/TestTMatrix.arts: Extended,
+	now also testing scat_data_singleTmatrix,
+	diameter_maxFromDiameter_volume_equ and
+	diameter_volume_equFromDiameter_max. 
+
+	* controlfiles/artscomponents/tmatrix/TestTMatrixSSD.arts: Removed.
+
+	* src/m_tmatrix.cc (diameter_maxFromDiameter_volume_equ): New name
+	of theis WSM. And now also returns maximum axial area.
+	(diameter_volume_equFromDiameter_max): New name of this WSM.
+	(scat_data_singleTmatrix): Now also setting single_meta_data.
+
+	* src/methods.cc:
+	* src/tmatrix.h:
+	* src/tmatrix.cc:
+	* src/m_tmatrix.cc: Changed "aspect ratio" to "axial ratio"
+	throughout the code, to follow what seems to be the standard
+	nomenclature. At least, this is the name used in
+	Mishchenko&Travis, 1998.
+
 2014-10-21  Jana Mendrok  <jana.mendrok@ltu.se>
 
 	* arts-2-3-47

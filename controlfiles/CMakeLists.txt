@@ -79,7 +79,6 @@ endif ()
 
 if (ENABLE_TMATRIX)
   arts_test_run_ctlfile(fast artscomponents/tmatrix/TestTMatrix.arts)
-  arts_test_run_ctlfile(fast artscomponents/tmatrix/TestTMatrixSSD.arts)
 endif ()
 
 

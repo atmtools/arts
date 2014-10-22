@@ -790,7 +790,7 @@ void integrate_phamat_theta0_phi_alpha6(Matrix& phamat,
  \param[out] f12   See tmd_()
  \param[out] f34   See tmd_()
  \param[in] equiv_radius    See parameter axmax in tmd_()
- \param[in] aspect_ratio    See parameter eps in tmd_()
+ \param[in] axial_ratio    See parameter eps in tmd_()
  \param[in] np              See tmd_()
  \param[in] lam             See tmd_()
  \param[in] ref_index_real  See parameter mrr in tmd_()
@@ -808,7 +808,7 @@ void tmatrix_random_orientation(Numeric& cext,
                                 Vector& f12,
                                 Vector& f34,
                                 const Numeric equiv_radius,
-                                const Numeric aspect_ratio,
+                                const Numeric axial_ratio,
                                 const Index np,
                                 const Numeric lam,
                                 const Numeric ref_index_real,
@@ -842,7 +842,7 @@ void tmatrix_random_orientation(Numeric& cext,
          0.1,
          1.0,
          -1,
-         aspect_ratio,
+         axial_ratio,
          np,
          lam,
          ref_index_real,
@@ -885,7 +885,7 @@ void tmatrix_random_orientation(Numeric& cext,
  \param[out] csca  Scattering cross section per particle
  \param[out] nmax  FIXME OLE
  \param[in] equiv_radius    See parameter axmax in tmd_()
- \param[in] aspect_ratio    See parameter eps in tmd_()
+ \param[in] axial_ratio    See parameter eps in tmd_()
  \param[in] np              See tmd_()
  \param[in] lam             See tmd_()
  \param[in] ref_index_real  See parameter mrr in tmd_()
@@ -897,7 +897,7 @@ void tmatrix_fixed_orientation(Numeric& cext,
                                Numeric& csca,
                                Index& nmax,
                                const Numeric equiv_radius,
-                               const Numeric aspect_ratio,
+                               const Numeric axial_ratio,
                                const Index np,
                                const Numeric lam,
                                const Numeric ref_index_real,
@@ -911,7 +911,7 @@ void tmatrix_fixed_orientation(Numeric& cext,
     // called from different threads at the same time. The common
     // blocks are not threadsafe.
 #pragma omp critical(tmatrix_code)
-    tmatrix_(1., equiv_radius, np, lam, aspect_ratio,
+    tmatrix_(1., equiv_radius, np, lam, axial_ratio,
              ref_index_real, ref_index_imag, precision, quiet,
              nmax, csca, cext, errmsg);
 
@@ -929,7 +929,7 @@ void calcSingleScatteringDataProperties(SingleScatteringData& ssd,
                                         ConstMatrixView ref_index_imag,
                                         const Numeric equiv_radius,
                                         const Index np,
-                                        const Numeric aspect_ratio,
+                                        const Numeric axial_ratio,
                                         const Numeric precision)
 {
     const Index nf = ssd.f_grid.nelem();
@@ -983,7 +983,7 @@ void calcSingleScatteringDataProperties(SingleScatteringData& ssd,
                         tmatrix_random_orientation
                         (cext, csca,
                          f11, f22, f33, f44, f12, f34,
-                         equiv_radius, aspect_ratio, np, lam[f_index],
+                         equiv_radius, axial_ratio, np, lam[f_index],
                          ref_index_real(f_index, T_index),
                          ref_index_imag(f_index, T_index),
                          precision,
@@ -1046,7 +1046,7 @@ void calcSingleScatteringDataProperties(SingleScatteringData& ssd,
                     try {
                         tmatrix_fixed_orientation
                         (cext, csca, nmax,
-                         equiv_radius, aspect_ratio, np, lam_f,
+                         equiv_radius, axial_ratio, np, lam_f,
                          ref_index_real(f_index, T_index),
                          ref_index_imag(f_index, T_index),
                          precision);
@@ -1065,7 +1065,7 @@ void calcSingleScatteringDataProperties(SingleScatteringData& ssd,
                         for (Index aa_index = 0; aa_index < naa; ++aa_index)
                             for (Index za_inc_index = 0; za_inc_index < nza_inc; ++za_inc_index)
                             {
-                                if (aspect_ratio < 1.0)
+                                if (axial_ratio < 1.0)
                                 {
                                     // Phase matrix for prolate particles
                                     integrate_phamat_alpha10(phamat,
@@ -1107,7 +1107,7 @@ void calcSingleScatteringDataProperties(SingleScatteringData& ssd,
                     for (Index za_scat_index = 0; za_scat_index < nza_inc; ++za_scat_index)
                     {
                         Matrix csca_integral;
-                        if (aspect_ratio < 1.0)
+                        if (axial_ratio < 1.0)
                         {
                             // Csca for prolate particles
                             integrate_phamat_theta0_phi_alpha6(csca_integral, nmax, lam_f,
@@ -1133,7 +1133,7 @@ void calcSingleScatteringDataProperties(SingleScatteringData& ssd,
                     }
 
                     // Extinction matrix
-                    if (aspect_ratio < 1.0)
+                    if (axial_ratio < 1.0)
                     {
                         // Average T-Matrix for prolate particles
                         avgtmatrix_(nmax);

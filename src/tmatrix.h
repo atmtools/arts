@@ -45,7 +45,7 @@
  \param[in] ref_index_imag  Vector with imaginary parts of refractive index
  \param[in] equiv_radius    equivalent volume radius [micrometer]
  \param[in] np              Particle type (-1 for spheroid, -2 for cylinder)
- \param[in] aspect_ratio    Aspect ratio of particles
+ \param[in] axial_ratio    Axial ratio of particles
  \param[in] precision       Accuracy of the computations
 
  \author Oliver Lemke
@@ -55,7 +55,7 @@ void calcSingleScatteringDataProperties(SingleScatteringData& ssd,
                                         ConstMatrixView ref_index_imag,
                                         const Numeric equiv_radius = 200,
                                         const Index np = -1,
-                                        const Numeric aspect_ratio = 1.000001,
+                                        const Numeric axial_ratio = 1.000001,
                                         const Numeric precision = 0.001);
 
 
@@ -98,7 +98,7 @@ params = {'ptype': constants.PTYPE_HORIZ_AL,
           'phase':'ice',
           'mrr': numpy.array([[1.78031135, 1.78150475], [1.78037238, 1.78147686]]),
           'mri': numpy.array([[0.00278706, 0.00507565], [0.00287245, 0.00523012]]),
-          'aspect_ratio': 1.5}
+          'axial_ratio': 1.5}
 s = arts_types.SingleScatteringData(params)
 s.calc()
  </pre>
@@ -118,7 +118,7 @@ params = {'ptype': constants.PTYPE_HORIZ_AL,
           'phase':'ice',
           'mrr': numpy.array([[1.78031135, 1.78150475], [1.78037238, 1.78147686]]),
           'mri': numpy.array([[0.00278706, 0.00507565], [0.00287245, 0.00523012]]),
-          'aspect_ratio': 0.7}
+          'axial_ratio': 0.7}
 s = arts_types.SingleScatteringData(params)
 s.calc()
  </pre>
@@ -145,7 +145,7 @@ params = {'ptype': constants.PTYPE_HORIZ_AL,
           'phase':'ice',
           'mrr': numpy.array([[1.78031135, 1.78150475], [1.78037238, 1.78147686]]),
           'mri': numpy.array([[0.00278706, 0.00507565], [0.00287245, 0.00523012]]),
-          'aspect_ratio': 1.5}
+          'axial_ratio': 1.5}
 s = arts_types.SingleScatteringData(params)
 s.calc()
  </pre>
@@ -166,7 +166,7 @@ params = {'ptype': constants.PTYPE_HORIZ_AL,
           'phase':'ice',
           'mrr': numpy.array([[1.78031135, 1.78150475], [1.78037238, 1.78147686]]),
           'mri': numpy.array([[0.00278706, 0.00507565], [0.00287245, 0.00523012]]),
-          'aspect_ratio': 0.7}
+          'axial_ratio': 0.7}
 s = arts_types.SingleScatteringData(params)
 s.calc()
  </pre>

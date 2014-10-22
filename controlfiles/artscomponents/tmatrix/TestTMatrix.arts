@@ -1,4 +1,87 @@
 Arts2 {
+
+# First run basic tests of implementation
 TMatrixTest
+
+
+
+# Make a run of the interface, including saving and reading
+#
+VectorCreate ( data_za_grid )
+VectorNLinSpace( data_za_grid, 19, 0, 180 )
+VectorCreate ( data_aa_grid )
+VectorNLinSpace( data_aa_grid, 37, 0, 360 )
+VectorCreate ( data_f_grid )
+VectorSet( data_f_grid, [ 230e9, 240e9 ] )
+VectorCreate( data_t_grid )
+VectorSet( data_t_grid, [ 220, 250, 270] )
+complex_refr_indexIceWarren84(
+    	data_f_grid = data_f_grid,
+		data_T_grid = data_t_grid )
+#
+scat_data_singleTmatrix( 
+   shape               = "cylindrical",
+   diameter_volume_equ = 100e-6,
+   axial_ratio         = 2,
+   mass                = 999,
+   ptype               = "horizontally_aligned",
+   data_f_grid         = data_f_grid,
+   data_t_grid         = data_t_grid,
+   data_za_grid        = data_za_grid,
+   data_aa_grid        = data_aa_grid,
+)
+#
+WriteXML( "ascii", scat_data_single, "ssd_test.xml" )
+WriteXML( "ascii", scat_meta_single, "ssd_test.meta.xml" )
+ReadXML( scat_data_single, "ssd_test.xml" )
+ReadXML( scat_meta_single, "ssd_test.meta.xml" )
+
+
+
+# Check conversion between Dveq and Dmax
+#
+NumericCreate( dveq0 )
+NumericCreate( dveq )
+NumericCreate( dmax )
+NumericCreate( volume )
+NumericCreate( amax )
+StringCreate( shape )
+NumericCreate( aratio )
+#
+NumericSet( dveq0, 100e-6 )
+
+
+StringSet( shape, "cylindrical" )
+#
+NumericSet( aratio, 3.45 )
+diameter_maxFromDiameter_volume_equ( dmax, amax, 
+                                     shape, dveq0, aratio ) 
+diameter_volume_equFromDiameter_max( dveq, volume, 
+                                     shape, dmax, aratio )
+Compare( dveq, dveq0, 1e-12 )
+#
+NumericSet( aratio, 0.22 )
+diameter_maxFromDiameter_volume_equ( dmax, amax, 
+                                     shape, dveq0, aratio ) 
+diameter_volume_equFromDiameter_max( dveq, volume, 
+                                     shape, dmax, aratio )
+Compare( dveq, dveq0, 1e-12 )
+
+
+StringSet( shape, "spheroidal" )
+#
+NumericSet( aratio, 3.45 )
+diameter_maxFromDiameter_volume_equ( dmax, amax, 
+                                     shape, dveq0, aratio ) 
+diameter_volume_equFromDiameter_max( dveq, volume, 
+                                     shape, dmax, aratio )
+Compare( dveq, dveq0, 1e-12 )
+#
+NumericSet( aratio, 0.22 )
+diameter_maxFromDiameter_volume_equ( dmax, amax, 
+                                     shape, dveq0, aratio ) 
+diameter_volume_equFromDiameter_max( dveq, volume, 
+                                     shape, dmax, aratio )
+Compare( dveq, dveq0, 1e-12 )
 }
 

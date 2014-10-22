@@ -2143,8 +2143,8 @@ Numeric IWCtopnd_H13Shape ( const Numeric Dmax,
 
 
 /*! Calculates area ratio using H13 shape parametrization.
- *  Each scattering element is a node in the aspect ratio distribution.
- *  One call of this function calculates one aspect ratio.  
+ *  Each scattering element is a node in the axial ratio distribution.
+ *  One call of this function calculates one axial ratio.  
 
     \return dNdD particle number density per diameter interval [#/m3/m]
           
