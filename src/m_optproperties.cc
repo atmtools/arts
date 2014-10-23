@@ -1610,9 +1610,9 @@ void ScatteringMergeParticles1D(//WS Output:
                           0.);
 
     ArrayOfArrayOfSingleScatteringData scat_data_merged;
-    
+    scat_data_merged.resize(1);
     scat_data_merged[0].resize(pnd_field_merged.nbooks());
-    for (Index sp = 0; sp < scat_data_merged.nelem(); sp++)
+    for (Index sp = 0; sp < scat_data_merged[0].nelem(); sp++)
     {
         SingleScatteringData &this_part = scat_data_merged[0][sp];
         this_part.ptype = scat_data[0][0].ptype;
@@ -1644,7 +1644,7 @@ void ScatteringMergeParticles1D(//WS Output:
         this_part.T_grid.resize(1);
         this_part.T_grid[0] = t_field(sp, 0, 0);
     }
-    
+
     // Check that all scattering elements have same ptype and data dimensions
     SingleScatteringData &first_part = scat_data[0][0];
     for (Index i_ss = 0; i_ss < scat_data.nelem(); i_ss++)
@@ -1712,19 +1712,22 @@ void ScatteringMergeParticles1D(//WS Output:
             for (Index i_se = 0; i_se < scat_data[i_ss].nelem(); i_se++)
             {
                 SingleScatteringData &orig_part = scat_data[i_ss][i_se];
+                const Index pnd_index = FlattenedIndex(scat_data, i_ss, i_se);
 
                 // If the particle number density at a specific point in the atmosphere
                 // for the i_se scattering element is zero, we don't need to do the
                 // transformation!
-                if (pnd_field(i_se, i_lv, 0, 0) > PND_LIMIT) //TRS
+                if (pnd_field(pnd_index, i_lv, 0, 0) > PND_LIMIT) //TRS
                 {
                     Numeric temperature = this_part.T_grid[0];
-                    if( scat_data[i_ss][i_se].T_grid.nelem() > 1)
+                    if( orig_part.T_grid.nelem() > 1)
                     {
                         ostringstream os;
                         os << "The temperature grid of the scattering data does not cover the \n"
                         "atmospheric temperature at cloud location. The data should \n"
-                        "include the value T="<< this_part.T_grid[0] << " K. \n";
+                        "include the value T="<< this_part.T_grid[0] << " K. \n"
+                        "Offending particle is scat_data[" << i_ss << "][" << i_se << "]:\n"
+                        " Description: " << orig_part.description << "\n";
                         chk_interpolation_grids(os.str(), orig_part.T_grid, temperature);
 
                         // Gridpositions:
@@ -1737,14 +1740,14 @@ void ScatteringMergeParticles1D(//WS Output:
                     for (Index i_f = 0; i_f < orig_part.pha_mat_data.nlibraries(); i_f++)
                     {
                         // Weighted sum of ext_mat_data and abs_vec_data
-                        if( scat_data[i_ss][i_se].T_grid.nelem() == 1)
+                        if( orig_part.T_grid.nelem() == 1)
                         {
                             this_part.ext_mat_data(i_f, 0, 0, 0, joker) +=
-                            pnd_field(i_se, i_lv, 0, 0)
+                            pnd_field(pnd_index, i_lv, 0, 0)
                             * orig_part.ext_mat_data(i_f, 0, 0, 0, joker);
 
                             this_part.abs_vec_data(i_f, 0, 0, 0, joker) +=
-                            pnd_field(i_se, i_lv, 0, 0)
+                            pnd_field(pnd_index, i_lv, 0, 0)
                             * orig_part.abs_vec_data(i_f, 0, 0, 0, joker);
                         }
                         else
@@ -1753,7 +1756,7 @@ void ScatteringMergeParticles1D(//WS Output:
                             {
                                 // Temperature interpolation
                                 this_part.ext_mat_data(i_f, 0, 0, 0, i) +=
-                                pnd_field(i_se, i_lv, 0, 0)
+                                pnd_field(pnd_index, i_lv, 0, 0)
                                 * interp(itw,
                                          orig_part.ext_mat_data(i_f, joker, 0, 0, i),
                                          T_gp);
@@ -1762,7 +1765,7 @@ void ScatteringMergeParticles1D(//WS Output:
                             {
                                 // Temperature interpolation
                                 this_part.abs_vec_data(i_f, 0, 0, 0, i) +=
-                                pnd_field(i_se, i_lv, 0, 0)
+                                pnd_field(pnd_index, i_lv, 0, 0)
                                 * interp(itw,
                                          orig_part.abs_vec_data(i_f, joker, 0, 0, i),
                                          T_gp);
@@ -1773,9 +1776,9 @@ void ScatteringMergeParticles1D(//WS Output:
                         for (Index i_za = 0; i_za < orig_part.pha_mat_data.nshelves(); i_za++)
                         {
                             // Weighted sum of pha_mat_data
-                            if( scat_data[i_ss][i_se].T_grid.nelem() == 1)
+                            if( orig_part.T_grid.nelem() == 1)
                             {
-                                const Numeric pnd = pnd_field(i_se, i_lv, 0, 0);
+                                const Numeric pnd = pnd_field(pnd_index, i_lv, 0, 0);
                                 for (Index i_s = 0; i_s < orig_part.pha_mat_data.ncols(); i_s++)
                                 {
                                     this_part.pha_mat_data(i_f, 0, i_za, 0, 0, 0, i_s) =
@@ -1788,7 +1791,7 @@ void ScatteringMergeParticles1D(//WS Output:
                                 for (Index i = 0; i < orig_part.pha_mat_data.ncols(); i++)
                                 {
                                     this_part.pha_mat_data(i_f, 0, i_za, 0, 0, 0, i) +=
-                                    pnd_field(i_se, i_lv, 0, 0)
+                                    pnd_field(pnd_index, i_lv, 0, 0)
                                     * interp(itw,
                                              orig_part.pha_mat_data(i_f, joker, i_za, 0, 0, 0, i),
                                              T_gp);
