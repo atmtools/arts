@@ -280,13 +280,17 @@ void pha_mat_sptFromDataDOITOpt(// Output:
               if( scat_data_mono[i_ss][i_se].T_grid.nelem() > 1)
               {
                   ostringstream os;
-                  os << "The temperature grid of the scattering data does not cover the \n"
-                  "atmospheric temperature at cloud location. The data should \n"
-                  "include the value T="<< rtp_temperature << " K. \n";
-                  chk_interpolation_grids(os.str(),	scat_data_mono[i_ss][i_se].T_grid, rtp_temperature);
+                  os << "The temperature grid of the scattering data does not\n"
+                     << "cover the atmospheric temperature at cloud location.\n"
+                     << "The data should include the value T = "
+                     << rtp_temperature << " K.";
+                  chk_interpolation_grids( os.str(), 
+                                           scat_data_mono[i_ss][i_se].T_grid, 
+                                           rtp_temperature);
 
                   // Gridpositions:
-                  gridpos(T_gp, scat_data_mono[i_ss][i_se].T_grid, rtp_temperature);
+                  gridpos( T_gp, scat_data_mono[i_ss][i_se].T_grid, 
+                           rtp_temperature);
                   // Interpolationweights:
                   interpweights(itw, T_gp);
               }
@@ -418,10 +422,12 @@ void opt_prop_sptFromData(// Output and Input:
               if ( T_DATAGRID.nelem() > 1)
               {
                   ostringstream os;
-                  os << "The temperature grid of the scattering data does not cover the \n"
-                  "atmospheric temperature at cloud location. The data should \n"
-                  "include the value T="<< rtp_temperature << " K. \n";
-                  chk_interpolation_grids(os.str(),	T_DATAGRID, rtp_temperature);
+                  os << "The temperature grid of the scattering data does not\n"
+                     << "cover the atmospheric temperature at cloud location.\n"
+                     << "The data should include the value T = "
+                     << rtp_temperature << " K.";
+                  chk_interpolation_grids( os.str(), T_DATAGRID, 
+                                           rtp_temperature );
 
                   gridpos(t_gp, T_DATAGRID, rtp_temperature);
 
@@ -1505,13 +1511,17 @@ void pha_mat_sptFromMonoData(// Output:
               if( scat_data_mono[i_ss][i_se].T_grid.nelem() > 1)
               {
                   ostringstream os;
-                  os << "The temperature grid of the scattering data does not cover the \n"
-                  "atmospheric temperature at cloud location. The data should \n"
-                  "include the value T="<< rtp_temperature << " K. \n";
-                  chk_interpolation_grids(os.str(),	scat_data_mono[i_ss][i_se].T_grid, rtp_temperature);
+                  os << "The temperature grid of the scattering data does not\n"
+                     << "cover the atmospheric temperature at cloud location.\n"
+                     << "The data should include the value T = "
+                     << rtp_temperature << " K.";
+                  chk_interpolation_grids( os.str(), 
+                                           scat_data_mono[i_ss][i_se].T_grid, 
+                                           rtp_temperature );
 
                   // Gridpositions:
-                  gridpos(T_gp, scat_data_mono[i_ss][i_se].T_grid, rtp_temperature);
+                  gridpos( T_gp, scat_data_mono[i_ss][i_se].T_grid, 
+                           rtp_temperature );
                   // Interpolationweights:
                   interpweights(itw, T_gp);
               }
@@ -1723,15 +1733,15 @@ void ScatteringMergeParticles1D(//WS Output:
                     if( orig_part.T_grid.nelem() > 1)
                     {
                         ostringstream os;
-                        os << "The temperature grid of the scattering data does not cover the \n"
-                        "atmospheric temperature at cloud location. The data should \n"
-                        "include the value T="<< this_part.T_grid[0] << " K. \n"
+                        os << "The temperature grid of the scattering data does not cover the\n"
+                        "atmospheric temperature at cloud location. The data should\n"
+                        "include the value T = "<< temperature << " K."
                         "Offending particle is scat_data[" << i_ss << "][" << i_se << "]:\n"
-                        " Description: " << orig_part.description << "\n";
+                        "Description: " << orig_part.description << "\n";
                         chk_interpolation_grids(os.str(), orig_part.T_grid, temperature);
 
                         // Gridpositions:
-                        gridpos(T_gp, orig_part.T_grid, temperature);
+                        gridpos( T_gp, orig_part.T_grid, temperature );
                         // Interpolationweights:
                         interpweights(itw, T_gp);
                     }

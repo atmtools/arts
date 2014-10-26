@@ -3347,12 +3347,12 @@ void define_md_data_raw()
         GOUT_DESC( "Maximum dimension of the particle.",
                    "Maximum axial area of the particle, see above." ),
         IN(),
-        GIN( "shape", "diameter_volume_equ", "axial_ratio" ),
+        GIN( "shape", "diameter_volume_equ", "aspect_ratio" ),
         GIN_TYPE( "String", "Numeric", "Numeric" ),
         GIN_DEFAULT( NODEF, NODEF, NODEF ),
         GIN_DESC( "Particle shape.", 
                   "Particle equivalent volume diameter.", 
-                  "Particle axial ratio." )
+                  "Particle aspect ratio." )
         ));
     
   md_data_raw.push_back
@@ -3377,12 +3377,12 @@ void define_md_data_raw()
         GOUT_DESC( "Particle volume equivalent diameter.",
                    "Volume of the particle." ),
         IN(),
-        GIN( "shape", "diameter_max", "axial_ratio" ),
+        GIN( "shape", "diameter_max", "aspect_ratio" ),
         GIN_TYPE( "String", "Numeric", "Numeric" ),
         GIN_DEFAULT( NODEF, NODEF, NODEF ),
         GIN_DESC( "Particle shape.", 
                   "Maximum dimension of the particle.", 
-                  "Particle axial ratio." )
+                  "Particle aspect ratio." )
         ));
     
   md_data_raw.push_back
@@ -9615,7 +9615,7 @@ void define_md_data_raw()
         "A basic interface to the T-matrix code linked to ARTS.\n"
         "\n"
         "The method performs a T-matrix calculation for a single scattering\n"
-        "element, i.e. a combination of particle shape, size, axial ratio\n"
+        "element, i.e. a combination of particle shape, size, aspect ratio\n"
         "and orientation.\n"
         "\n"
         "Particle shape (*shape*) has two options:\n"
@@ -9625,15 +9625,15 @@ void define_md_data_raw()
         "volume sphere diameter. That is, the diameter obtained if all the\n"
         "particle's material is rearranged into a (solid) sphere.\n"
         "\n"
-        "Particle axial ratio (*axial_ratio*) is a numeric value. For\n"
-        "spheroidal particles it is not allowed to set the axialratio to\n"
+        "Particle aspect ratio (*aspect_ratio*) is a numeric value. For\n"
+        "spheroidal particles it is not allowed to set the aspectratio to\n"
         "exactly 1, as this can trigger numerical problems. For spheres use\n"
         "a value such as 1.0001.\n"
         "\n"
         "Particle type (*ptype*) has two options:\n"
         "   \"macroscopically_isotropic\" and \"horizontally_aligned\"\n"
         "\n"
-        "For further information on how axial ratio and the different shapes\n"
+        "For further information on how aspect ratio and the different shapes\n"
         "and orientations are defined, see the documentation of the T-matrix\n"
         "code found http://www.giss.nasa.gov/staff/mmishchenko/t_matrix.html\n"
       ),
@@ -9643,7 +9643,7 @@ void define_md_data_raw()
       GOUT_TYPE(),
       GOUT_DESC(),
       IN( "complex_refr_index" ),
-      GIN( "shape", "diameter_volume_equ", "axial_ratio", "mass", "ptype", 
+      GIN( "shape", "diameter_volume_equ", "aspect_ratio", "mass", "ptype", 
            "data_f_grid", "data_t_grid", "data_za_grid", "data_aa_grid",
            "precision", "cri_source" ),
       GIN_TYPE( "String", "Numeric", "Numeric", "Numeric", "String", 
@@ -9654,7 +9654,7 @@ void define_md_data_raw()
                    "0.001", "Set by user, unknown source." ),
       GIN_DESC( "Particle shape. Options listed above.", 
                 "Particle volume equivalent diameter. See defintion above.", 
-                "Particle axial ratio.",
+                "Particle aspect ratio.",
                 "Particle mass. This information is just included in the meta"
                 " data, and does not affect the T-matrix calculations.",
                 "Particle type/orientation. Options listed above.",
@@ -9677,8 +9677,8 @@ void define_md_data_raw()
        "*scat_meta*.\n"
        "\n"
        "One set of meta data is created and added to the array for each\n"
-       "combination of maximum diameter and axial ratio in the GINs\n"
-       "diameter_max_grid and axial_ratio_grid. The size of *scat_meta*\n"
+       "combination of maximum diameter and aspect ratio in the GINs\n"
+       "diameter_max_grid and aspect_ratio_grid. The size of *scat_meta*\n"
        "and hence the usage has been extended. For that reason, a short summary\n"
        "below tells which input parameters are required for certain further\n"
        "calculations.\n"
@@ -9689,7 +9689,7 @@ void define_md_data_raw()
        "Numeric[ptype]\t\tUsed for scattering calculations\n"
        "Numeric[density]\t\tUsed for PND calculations\n"
        "Vector[diameter_max_grid]\t\tUsed for both scattering and PND calculations\n"
-       "Vector[axial_ratio_grid]\t\tUsed for scattering calculations and PND calculations\n"
+       "Vector[aspect_ratio_grid]\t\tUsed for scattering calculations and PND calculations\n"
        "Vector[scat_f_grid]\t\tUsed for scattering calculations\n"
        "Vector[scat_T_grid]\t\tUsed for scattering calculations\n"
        "Tensor3[complex_refr_index]\tUsed for scattering calculations\n"
@@ -9701,7 +9701,7 @@ void define_md_data_raw()
       GOUT_DESC(),
       IN( "scat_meta", "complex_refr_index" ),
       GIN( "description", "material", "shape", "ptype", "density", 
-           "axial_ratio_grid", "diameter_max_grid", "scat_f_grid", "scat_T_grid" ),
+           "aspect_ratio_grid", "diameter_max_grid", "scat_f_grid", "scat_T_grid" ),
       GIN_TYPE( "String", "String", "String", "String", "Numeric", "Vector",
            "Vector", "Vector", "Vector" ),
       GIN_DEFAULT( "", "undefined", NODEF, NODEF, "-999", NODEF, NODEF,
@@ -9709,7 +9709,7 @@ void define_md_data_raw()
       GIN_DESC( "Particle description", "Water or Ice", "spheroidal or cylinder", 
                 "Particle Type: MACROS_ISO (20) or PTYPE_HORIZ_AL (30)", 
                 "Particle mass density",
-                "Particle axial ratio vector",
+                "Particle aspect ratio vector",
                 "Maximum diameter vector (diameter of a sphere that fully"
                 "encloses the particle)",
                 "Frequency grid vector",

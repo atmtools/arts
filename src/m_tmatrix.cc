@@ -39,33 +39,33 @@ extern const Numeric PI;
 /* Workspace method: Doxygen documentation will be auto-generated */
 void diameter_maxFromDiameter_volume_equ(
           Numeric&   diameter_max,
-          Numeric&   axial_area_max,
+          Numeric&   aspect_area_max,
     const String&    shape,
     const Numeric&   diameter_volume_equ,
-    const Numeric&   axial_ratio,
+    const Numeric&   aspect_ratio,
     const Verbosity& )
 {
   const Numeric volume = ( PI*pow(diameter_volume_equ,3) ) / 6.;
 
   if( shape == "spheroidal" )
     {
-      if( axial_ratio > 1 ) // oblate spheriod
+      if( aspect_ratio > 1 ) // oblate spheriod
         {   
           //rotational axis
-          const Numeric a = pow( (3.*volume*axial_ratio)/(4*PI), 1./3. );
+          const Numeric a = pow( (3.*volume*aspect_ratio)/(4*PI), 1./3. );
           diameter_max   = 2.*a;
-          axial_area_max = PI * a * a;
+          aspect_area_max = PI * a * a;
         }
-      else if( axial_ratio < 1) // prolate spheroid
+      else if( aspect_ratio < 1) // prolate spheroid
         {  
           //non-rotational axis (perpendicular to a)
-          const Numeric b = pow( (3.*volume)/(4.*PI*pow(axial_ratio,2)), 1./3.);
+          const Numeric b = pow( (3.*volume)/(4.*PI*pow(aspect_ratio,2)), 1./3.);
           diameter_max   = 2.*b;
-          axial_area_max = PI * b * b;
+          aspect_area_max = PI * b * b;
         }
       else
         {
-          throw runtime_error( "For spheriodal particles, the axial ratio "
+          throw runtime_error( "For spheriodal particles, the aspect ratio "
                                "is not allowed to be exactly 1 (due to "
                                "potential numerical problems)." );
         }
@@ -73,11 +73,11 @@ void diameter_maxFromDiameter_volume_equ(
   
   else if (shape == "cylindrical")
     {
-      //axial_ratio=D/L
-      const Numeric D = pow( (volume*4*axial_ratio)/PI, 1./3. );
-      const Numeric L = D / axial_ratio;
+      //aspect_ratio=D/L
+      const Numeric D = pow( (volume*4*aspect_ratio)/PI, 1./3. );
+      const Numeric L = D / aspect_ratio;
       diameter_max   = pow( pow(D,2) + pow(L,2), 1./2. );
-      axial_area_max = max( PI*D*D/4., D*L );
+      aspect_area_max = max( PI*D*D/4., D*L );
     }
   
   else
@@ -97,24 +97,24 @@ void diameter_volume_equFromDiameter_max(
           Numeric&   volume,
     const String&    shape,
     const Numeric&   diameter_max,
-    const Numeric&   axial_ratio,
+    const Numeric&   aspect_ratio,
     const Verbosity&)
 {
   if( shape == "spheroidal" )
     {
-      if( axial_ratio > 1 ) // oblate spheriod
+      if( aspect_ratio > 1 ) // oblate spheriod
         {   
           const Numeric a = diameter_max/2.;
-          volume = (pow(a,3.)*4.*PI)/(3.*axial_ratio);
+          volume = (pow(a,3.)*4.*PI)/(3.*aspect_ratio);
         }
-      else if( axial_ratio < 1 ) // prolate spheroid
+      else if( aspect_ratio < 1 ) // prolate spheroid
         {  
           const Numeric b = diameter_max/2.;
-          volume = (pow(b,3.)*4.*PI*pow(axial_ratio,2.))/3.;
+          volume = (pow(b,3.)*4.*PI*pow(aspect_ratio,2.))/3.;
         }
       else
         {
-          throw runtime_error( "For spheriodal particles, the axial ratio "
+          throw runtime_error( "For spheriodal particles, the aspect ratio "
                                "is not allowed to be exactly 1 (due to "
                                "numerical problems)." );
         }
@@ -122,8 +122,8 @@ void diameter_volume_equFromDiameter_max(
   
   else if (shape == "cylindrical")
     {
-      volume = pow( diameter_max/pow((pow(axial_ratio,2.)+1.),1./2.),3)*
-               pow(axial_ratio,2.)*PI/4.;
+      volume = pow( diameter_max/pow((pow(aspect_ratio,2.)+1.),1./2.),3)*
+               pow(aspect_ratio,2.)*PI/4.;
     }
   
   else
@@ -146,7 +146,7 @@ void scat_data_singleTmatrix(
     const GriddedField3&          complex_refr_index,
     const String&                 shape,
     const Numeric&                diameter_volume_equ,
-    const Numeric&                axial_ratio,
+    const Numeric&                aspect_ratio,
     const Numeric&                mass,
     const String&                 ptype,
     const Vector&                 data_f_grid,
@@ -169,8 +169,8 @@ void scat_data_singleTmatrix(
   if( shape == "spheroidal" )
     { 
       np=-1; 
-      if( axial_ratio == 1 )
-        throw runtime_error( "For spheriodal particles, the axial ratio "
+      if( aspect_ratio == 1 )
+        throw runtime_error( "For spheriodal particles, the aspect ratio "
                              "is not allowed to be exactly 1 (due to "
                              "numerical problems)." );
     }
@@ -192,7 +192,7 @@ void scat_data_singleTmatrix(
     ostringstream os;
     os << "T-matrix calculation for a " << shape << " particle, with " 
        << "diameter_volume_equ = " << 1e6*diameter_volume_equ << "um and "
-       << "axial ratio = " << axial_ratio << ".";
+       << "aspect ratio = " << aspect_ratio << ".";
     scat_data_single.description = os.str();
   }
 
@@ -211,7 +211,7 @@ void scat_data_singleTmatrix(
                                       ncomp(joker,joker,0), 
                                       ncomp(joker,joker,1),
                                       0.5e6*diameter_volume_equ, 
-                                      np, axial_ratio, precision );
+                                      np, aspect_ratio, precision );
 
   // Meta data
   scat_meta_single.description  = 
@@ -222,7 +222,7 @@ void scat_data_singleTmatrix(
   //
   Numeric diameter_max, area_max;
   diameter_maxFromDiameter_volume_equ( diameter_max, area_max, shape, 
-                                       diameter_volume_equ, axial_ratio,
+                                       diameter_volume_equ, aspect_ratio,
                                        verbosity );
   //
   scat_meta_single.mass                            = mass;
@@ -272,7 +272,7 @@ void scat_metaAddTmatrix(// WS Output:
                          const String& shape,
                          const String& ptype,
                          const Numeric& density,
-                         const Vector& axial_ratio_grid,
+                         const Vector& aspect_ratio_grid,
                          const Vector& diameter_max_grid,
                          const Vector& scat_f_grid,
                          const Vector& scat_T_grid,
@@ -289,32 +289,32 @@ void scat_metaAddTmatrix(// WS Output:
 
   for(Index k=0; k<diameter_max_grid.nelem(); k++)
     {
-     for ( Index i=0; i < axial_ratio_grid.nelem(); i++ )
+     for ( Index i=0; i < aspect_ratio_grid.nelem(); i++ )
       {
         Numeric volume;
         
         if (shape == "spheroidal")
         {
-            if (axial_ratio_grid[i]>1) // If oblate spheroid
+            if (aspect_ratio_grid[i]>1) // If oblate spheroid
             {   
                 Numeric a; //rotational axis (perpendicular to a)
                 
                 a=diameter_max_grid[k]/2.;
-                volume=pow(a,3.)*4.*PI/(3.*axial_ratio_grid[i]);
+                volume=pow(a,3.)*4.*PI/(3.*aspect_ratio_grid[i]);
             }
         
-            else if (axial_ratio_grid[i]<1) // If prolate spheroid
+            else if (aspect_ratio_grid[i]<1) // If prolate spheroid
             {  
                 Numeric b; //non-rotational axis (perpendicular to a)
                 
                 b=diameter_max_grid[k]/2.;
-                volume=pow(b,3.)*4.*PI*pow(axial_ratio_grid[i],2.)/3.;
+                volume=pow(b,3.)*4.*PI*pow(aspect_ratio_grid[i],2.)/3.;
             }
         
             else
             {
                 ostringstream os;
-                os << "Incorrect axial ratio: " << axial_ratio_grid[i] << "\n"
+                os << "Incorrect aspect ratio: " << aspect_ratio_grid[i] << "\n"
                 << "Can not be equal to one";
                 throw std::runtime_error(os.str());
             }
@@ -323,11 +323,11 @@ void scat_metaAddTmatrix(// WS Output:
         {
             // Formulas to determine cylindrical volume from diamter_max:
             
-            // D/L=axial_ratio
+            // D/L=aspect_ratio
             // diameter_max=sqrt(D²+L²)
-            // volume=D³*pi/(4*axial_ratio)
+            // volume=D³*pi/(4*aspect_ratio)
             
-            volume=pow(diameter_max_grid[k]/pow((pow(axial_ratio_grid[i], 2.)+1.), 1./2.), 3)*pow(axial_ratio_grid[i], 2.)*PI/4.;
+            volume=pow(diameter_max_grid[k]/pow((pow(aspect_ratio_grid[i], 2.)+1.), 1./2.), 3)*pow(aspect_ratio_grid[i], 2.)*PI/4.;
          }
 
         else
@@ -358,7 +358,7 @@ void scat_metaAddTmatrix(// WS Output:
         smd.diameter_max =diameter_max_grid[k];
         smd.volume = volume;
         smd.area_projected = 0;
-        smd.axial_ratio = axial_ratio_grid[i];
+        smd.aspect_ratio = aspect_ratio_grid[i];
         smd.scat_f_grid = scat_f_grid;
         smd.scat_T_grid = scat_T_grid;
         smd.complex_refr_index = complex_refr_index;
@@ -436,7 +436,7 @@ void scat_dataFromMeta(// WS Output:
                                                complex_refr_index(joker,joker,1),
                                                pow(scat_meta[i_ss][i_se].volume*1e18*3./(4.*PI),1./3.),
                                                np,
-                                               scat_meta[i_ss][i_se].axial_ratio,
+                                               scat_meta[i_ss][i_se].aspect_ratio,
                                                precision);
             
             assd.push_back(ssd);
@@ -467,7 +467,7 @@ void scat_metaAddTmatrixOldVersion(// WS Output:
                              const String& shape,
                              const String& ptype,
                              const Numeric& density,
-                             const Numeric& axial_ratio,
+                             const Numeric& aspect_ratio,
                              const Vector& diameter_grid,
                              const Vector& scat_f_grid,
                              const Vector& scat_T_grid,
@@ -486,26 +486,26 @@ void scat_metaAddTmatrixOldVersion(// WS Output:
 
       if (shape == "spheroidal")
         {
-       if (axial_ratio>1) // If oblate spheroid
+       if (aspect_ratio>1) // If oblate spheroid
             {   
             Numeric a; //rotational axis
             
-            a=pow(3*volume*axial_ratio/(4*PI), 1./3.);
+            a=pow(3*volume*aspect_ratio/(4*PI), 1./3.);
             diameter_max=2*a;
             }
         
-       else if (axial_ratio<1) // If prolate spheroid
+       else if (aspect_ratio<1) // If prolate spheroid
             {  
             Numeric b; //non-rotational axis (perpendicular to a)
             
-            b=pow(3*volume/(4*PI*pow(axial_ratio, 2)),1./3.);
+            b=pow(3*volume/(4*PI*pow(aspect_ratio, 2)),1./3.);
             diameter_max=2*b;
             }
         
         else
             {
             ostringstream os;
-            os << "Incorrect axial ratio: " << axial_ratio << "\n"
+            os << "Incorrect aspect ratio: " << aspect_ratio << "\n"
               << "Can not be equal to one";
             throw std::runtime_error(os.str());
             }
@@ -515,10 +515,10 @@ void scat_metaAddTmatrixOldVersion(// WS Output:
             Numeric D;
             Numeric L;
             
-            //axial_ratio=D/L
+            //aspect_ratio=D/L
             
-            D=pow(volume*4./PI*axial_ratio, 1./3.);
-            L=D/axial_ratio;
+            D=pow(volume*4./PI*aspect_ratio, 1./3.);
+            L=D/aspect_ratio;
             diameter_max=pow((pow(D,2)+pow(L,2)), 1./2.);
          }
 
@@ -550,7 +550,7 @@ void scat_metaAddTmatrixOldVersion(// WS Output:
       smd.diameter_max =diameter_max;
       smd.volume = volume;
       smd.area_projected = 0;
-      smd.axial_ratio = axial_ratio;
+      smd.aspect_ratio = aspect_ratio;
       smd.scat_f_grid = scat_f_grid;
       smd.scat_T_grid = scat_T_grid;
       smd.complex_refr_index = complex_refr_index;

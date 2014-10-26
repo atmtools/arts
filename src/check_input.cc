@@ -868,8 +868,8 @@ void chk_interpolation_grids_loose_no_data_check(Index&          ing_min,
   if (!new_grid.nelem()) throw runtime_error("The new grid is not allowed to be empty.");
 
   ostringstream os;
-  os << "There is a problem with the grids for the\n"
-  << "following interpolation: " << which_interpolation << ".\n";
+  os << "There is a problem with the grids for the following interpolation:\n" 
+     << which_interpolation << "\n";
   
   // Old grid must have at least order+1 elements:
   if (n_old < order+1)
@@ -1039,8 +1039,8 @@ void chk_interpolation_grids_loose_check_data(Index&          ing_min,
   if (!new_grid.nelem()) throw runtime_error("The new grid is not allowed to be empty.");
 
   ostringstream os;
-  os << "There is a problem with the grids for the\n"
-     << "following interpolation: " << which_interpolation << ".\n";
+  os << "There is a problem with the grids for the following interpolation:\n" 
+     << which_interpolation << "\n";
 
   // Decide whether we have an ascending or descending grid:
   const bool ascending = ( old_grid[0] <= old_grid[1] );
@@ -1100,15 +1100,15 @@ void chk_interpolation_grids(const String&   which_interpolation,
 {
   const Index n_old = old_grid.nelem();
 
-  if (!new_grid.nelem()) throw runtime_error("The new grid is not allowed to be empty.");
-
+  if (!new_grid.nelem()) throw runtime_error(
+                                  "The new grid is not allowed to be empty." );
 
   // Old grid must have at least order+1 elements:
   if (n_old < order+1)
     {
       ostringstream os;
-      os << "There is a problem with the grids for the\n"
-         << "following interpolation: " << which_interpolation << ".\n"
+      os << "There is a problem with the grids for the following "
+         << "interpolation:\n" << which_interpolation << "\n"
          << "The original grid must have at least " << order+1 << " elements.";
       throw runtime_error( os.str() );
     }
@@ -1126,8 +1126,8 @@ void chk_interpolation_grids(const String&   which_interpolation,
       if ( !is_increasing(old_grid) )
         {
           ostringstream os;
-          os << "There is a problem with the grids for the\n"
-             << "following interpolation: " << which_interpolation << ".\n"
+          os << "There is a problem with the grids for the "
+             << "following interpolation:\n" << which_interpolation << "\n"
              << "The original grid must be strictly sorted\n"
              << "(no duplicate values). Yours is:\n"
              << old_grid << ".";
@@ -1146,8 +1146,8 @@ void chk_interpolation_grids(const String&   which_interpolation,
       if ( !is_decreasing(old_grid) )
         {
           ostringstream os;
-          os << "There is a problem with the grids for the\n"
-             << "following interpolation: " << which_interpolation << ".\n"
+          os << "There is a problem with the grids for the "
+             << "following interpolation:\n" << which_interpolation << "\n"
              << "The original grid must be strictly sorted\n"
              << "(no duplicate values). Yours is:\n"
              << old_grid << ".";
@@ -1172,10 +1172,10 @@ void chk_interpolation_grids(const String&   which_interpolation,
   if (ng_min < og_min)
     {
       ostringstream os;
-      os << "There is a problem with the grids for the\n"
-         << "following interpolation: " << which_interpolation << ".\n"
-         << "The minimum of the new grid must be inside\n"
-         << "the original grid. (We allow a bit of extrapolation,\n"
+      os << "There is a problem with the grids for the "
+         << "following interpolation:\n" << which_interpolation << "\n"
+         << "The minimum of the new grid must be inside "
+         << "the original grid.\n(We allow a bit of extrapolation, "
          << "but not so much).\n"
          << "Minimum of original grid:           " << min(old_grid);
       if (islog) os << " (" << exp(min(old_grid)) << ")";
@@ -1189,8 +1189,8 @@ void chk_interpolation_grids(const String&   which_interpolation,
   if (ng_max > og_max)
     {
       ostringstream os;
-      os << "There is a problem with the grids for the\n"
-         << "following interpolation: " << which_interpolation << ".\n"
+      os << "There is a problem with the grids for the "
+         << "following interpolation:\n" << which_interpolation << "\n"
          << "The maximum of the new grid must be inside\n"
          << "the original grid. (We allow a bit of extrapolation,\n"
          << "but not so much).\n"

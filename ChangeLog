@@ -1,3 +1,25 @@
+2014-10-26  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-55
+
+	* src/check_input.cc (chk_interpolation_grids_loose_no_data_check)
+	(chk_interpolation_grids_loose_check_data)
+	(chk_interpolation_grids): Adjusted how the input error string is
+	outputted. Did not look good with long strings, as the ones fixed
+	below. There could be a need to adjust other input strings ...
+
+	* src/m_optproperties.cc (pha_mat_sptFromDataDOITOpt)
+	(opt_prop_sptFromData, pha_mat_sptFromMonoData)
+	(ScatteringMergeParticles1D): Tweaked temperature interpolation
+	error string.
+
+	* controlfiles/artscomponents/tmatrix/TestTMatrix.arts:
+	* src/tmatrix.cc:
+	* src/methods.cc:
+	* src/m_tmatrix.cc: Changed my mind, and also checked with some
+	others this time! Renamed axial_ratio back to aspect_ratio
+	throughout the code. This as the later is a more general term.
+
 2014-10-23  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-54

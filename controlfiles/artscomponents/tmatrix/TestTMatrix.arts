@@ -22,7 +22,7 @@ complex_refr_indexIceWarren84(
 scat_data_singleTmatrix( 
    shape               = "cylindrical",
    diameter_volume_equ = 100e-6,
-   axial_ratio         = 2,
+   aspect_ratio        = 2,
    ptype               = "horizontally_aligned",
    data_f_grid         = data_f_grid,
    data_t_grid         = data_t_grid,
