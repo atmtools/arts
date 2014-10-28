@@ -21,8 +21,9 @@ complex_refr_indexIceWarren84(
 #
 scat_data_singleTmatrix( 
    shape               = "cylindrical",
-   diameter_volume_equ = 100e-6,
+   diameter_volume_equ = 100e-6, # [m]
    aspect_ratio        = 2,
+   mass                = 4.7998300e-10, # [kg]; m = Pi/6. * diameter_volume_equ^3 * density_ice
    ptype               = "horizontally_aligned",
    data_f_grid         = data_f_grid,
    data_t_grid         = data_t_grid,

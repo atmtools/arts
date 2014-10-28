@@ -259,8 +259,7 @@ AgendaSet( ybatch_calc_agenda ){
   #    scat_data_per_scat_species )
   
   #Write indexed pnd_fields to sub-folder for each atmosphere
-  #WriteXMLIndexed (output_file_format, ybatch_index, pnd_field, 
-  #    "./pnd_fields/pnd_f")
+  #WriteXMLIndexed (output_file_format, ybatch_index, pnd_field)
 
   # Consistency checks
   atmfields_checkedCalc

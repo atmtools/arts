@@ -1,3 +1,15 @@
+2014-10-27  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-3-56
+
+	* controlfiles/artscomponents/tmatrix/TestTMatrix.arts:
+	Set correct mass value. In order to have a demonstration case that could
+	also work with pnd_fieldSetup (mass is the basic parameter there,
+	required by ALL psd).
+
+	* src/m_optproperties.cc (ScatteringMergeParticles1D): Removed duplicate
+	setting of merged scattering element's description string.
+
 2014-10-26  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-55

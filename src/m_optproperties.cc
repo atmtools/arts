@@ -1630,7 +1630,6 @@ void ScatteringMergeParticles1D(//WS Output:
         this_part.f_grid = scat_data[0][0].f_grid;
         this_part.za_grid = scat_data[0][0].za_grid;
         this_part.aa_grid = scat_data[0][0].aa_grid;
-        this_part.description = "Merged scattering elements";
         this_part.pha_mat_data.resize(scat_data[0][0].pha_mat_data.nlibraries(),
                                       1,
                                       scat_data[0][0].pha_mat_data.nshelves(),
