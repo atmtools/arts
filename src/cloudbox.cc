@@ -918,7 +918,7 @@ void pnd_fieldMH97 (Tensor4View pnd_field,
   ArrayOfIndex intarr;
   Vector mass_unsorted ( N_se, 0.0 );
   Vector mass ( N_se, 0.0 );
-  Vector Dmass ( N_se, 0.0 );
+  Vector diameter_mass_equivalent ( N_se, 0.0 );
   Vector pnd ( N_se, 0.0 );
   Vector dNdD ( N_se, 0.0 );
 
@@ -951,7 +951,7 @@ void pnd_fieldMH97 (Tensor4View pnd_field,
   for ( Index i=0; i< N_se; i++ )
   {
       mass[i] = scat_meta[scat_species][intarr[i]].mass; // [kg]
-      Dmass[i] = pow(6.*mass[i]/PI/DENSITY_OF_ICE,1./3.); // [m]
+      diameter_mass_equivalent[i] = pow(6.*mass[i]/PI/DENSITY_OF_ICE,1./3.); // [m]
   }
   
   if (mass.nelem() > 0)
@@ -969,18 +969,19 @@ void pnd_fieldMH97 (Tensor4View pnd_field,
             if (IWC_field ( p, lat, lon ) > 0.)
             {
                 // iteration over all given size bins
-                for ( Index i=0; i<Dmass.nelem(); i++ )
+                for ( Index i=0; i<diameter_mass_equivalent.nelem(); i++ )
                 {
                   // calculate particle size distribution with MH97
                   // [# m^-3 m^-1]
                   dNdD[i] = IWCtopnd_MH97 ( IWC_field ( p, lat, lon ),
-                                            Dmass[i], t_field ( p, lat, lon ),
+                                            diameter_mass_equivalent[i],
+                                            t_field ( p, lat, lon ),
                                             noisy );
                 }
             
                 // scale pnds by bin width
-                if (Dmass.nelem() > 1)
-                  scale_pnd( pnd, Dmass, dNdD );
+                if (diameter_mass_equivalent.nelem() > 1)
+                  scale_pnd( pnd, diameter_mass_equivalent, dNdD );
                 else
                   pnd = dNdD;
 	    
@@ -1038,8 +1039,8 @@ void pnd_fieldH11 (Tensor4View pnd_field,
   const Index N_se = scat_meta[scat_species].nelem();
   const Index scat_data_start = FlattenedIndex(scat_meta, scat_species);
   ArrayOfIndex intarr;
-  Vector Dmax_unsorted ( N_se, 0.0 );
-  Vector Dmax ( N_se, 0.0 );
+  Vector diameter_max_unsorted ( N_se, 0.0 );
+  Vector diameter_max ( N_se, 0.0 );
   Vector mass ( N_se, 0.0 );
   Vector pnd ( N_se, 0.0 );
   Vector dNdD ( N_se, 0.0 );
@@ -1060,14 +1061,14 @@ void pnd_fieldH11 (Tensor4View pnd_field,
              << i << "!";
           throw runtime_error( os.str() );
         }
-      Dmax_unsorted[i] = ( scat_meta[scat_species][i].diameter_max );
+      diameter_max_unsorted[i] = ( scat_meta[scat_species][i].diameter_max );
     }
-  get_sorted_indexes(intarr, Dmax_unsorted);
+  get_sorted_indexes(intarr, diameter_max_unsorted);
       
   // extract scattering meta data
   for ( Index i=0; i< N_se; i++ )
   {
-      Dmax[i] = scat_meta[scat_species][intarr[i]].diameter_max; // [m]
+      diameter_max[i] = scat_meta[scat_species][intarr[i]].diameter_max; // [m]
 
       if ( isnan(scat_meta[scat_species][intarr[i]].mass) )
         {
@@ -1082,8 +1083,8 @@ void pnd_fieldH11 (Tensor4View pnd_field,
       mass[i] = scat_meta[scat_species][intarr[i]].mass; // [kg]
   }
 
-  if (Dmax.nelem() > 0)
-  // Dmax.nelem()=0 implies no selected scattering element for the respective
+  if (diameter_max.nelem() > 0)
+  // diameter_max.nelem()=0 implies no selected scattering element for the respective
   // scattering species field. should not occur anymore.
   {
       // itertation over all atm. levels
@@ -1097,15 +1098,15 @@ void pnd_fieldH11 (Tensor4View pnd_field,
             if (IWC_field ( p, lat, lon ) > 0.)
             {
                 // iteration over all given size bins
-                for ( Index i=0; i<Dmax.nelem(); i++ ) //loop over number of scattering elements
+                for ( Index i=0; i<diameter_max.nelem(); i++ ) //loop over number of scattering elements
                 {
                     // calculate particle size distribution for H11
                     // [# m^-3 m^-1]
-                    dNdD[i] = IWCtopnd_H11 ( Dmax[i], t_field ( p, lat, lon ) );
+                    dNdD[i] = IWCtopnd_H11 ( diameter_max[i], t_field ( p, lat, lon ) );
                 }
                 // scale pnds by scale width
-                if (Dmax.nelem() > 1)
-                    scale_pnd( pnd, Dmax, dNdD ); //[# m^-3]
+                if (diameter_max.nelem() > 1)
+                    scale_pnd( pnd, diameter_max, dNdD ); //[# m^-3]
                 else
                     pnd = dNdD;
 
@@ -1165,8 +1166,8 @@ void pnd_fieldH13 (Tensor4View pnd_field,
   const Index N_se = scat_meta[scat_species].nelem();
   const Index scat_data_start = FlattenedIndex(scat_meta, scat_species);
   ArrayOfIndex intarr;
-  Vector Dmax_unsorted ( N_se, 0.0 );
-  Vector Dmax ( N_se, 0.0 );
+  Vector diameter_max_unsorted ( N_se, 0.0 );
+  Vector diameter_max ( N_se, 0.0 );
   Vector mass ( N_se, 0.0 );
   Vector pnd ( N_se, 0.0 );
   Vector dNdD ( N_se, 0.0 );
@@ -1187,14 +1188,14 @@ void pnd_fieldH13 (Tensor4View pnd_field,
              << i << "!";
           throw runtime_error( os.str() );
         }
-      Dmax_unsorted[i] = ( scat_meta[scat_species][i].diameter_max );
+      diameter_max_unsorted[i] = ( scat_meta[scat_species][i].diameter_max );
     }
-  get_sorted_indexes(intarr, Dmax_unsorted);
+  get_sorted_indexes(intarr, diameter_max_unsorted);
       
   // extract scattering meta data
   for ( Index i=0; i< N_se; i++ )
   {
-      Dmax[i] = scat_meta[scat_species][intarr[i]].diameter_max; // [m]
+      diameter_max[i] = scat_meta[scat_species][intarr[i]].diameter_max; // [m]
 
       if ( isnan(scat_meta[scat_species][intarr[i]].mass) )
         {
@@ -1209,8 +1210,8 @@ void pnd_fieldH13 (Tensor4View pnd_field,
       mass[i] = scat_meta[scat_species][intarr[i]].mass; // [kg]
   }
 
-  if (Dmax.nelem() > 0)
-  // Dmax.nelem()=0 implies no selected scattering elements for the respective
+  if (diameter_max.nelem() > 0)
+  // diameter_max.nelem()=0 implies no selected scattering elements for the respective
   // scattering species field. should not occur anymore.
   {
       // itertation over all atm. levels
@@ -1224,15 +1225,15 @@ void pnd_fieldH13 (Tensor4View pnd_field,
             if (IWC_field ( p, lat, lon ) > 0.)
             {
                 // iteration over all given size bins
-                for ( Index i=0; i<Dmax.nelem(); i++ ) //loop over number of scattering elements
+                for ( Index i=0; i<diameter_max.nelem(); i++ ) //loop over number of scattering elements
                 {
                     // calculate particle size distribution for H13
                     // [# m^-3 m^-1]
-                    dNdD[i] = IWCtopnd_H13 ( Dmax[i], t_field ( p, lat, lon ) );
+                    dNdD[i] = IWCtopnd_H13 ( diameter_max[i], t_field ( p, lat, lon ) );
                 }
                 // scale pnds by scale width
-                if (Dmax.nelem() > 1)
-                    scale_pnd( pnd, Dmax, dNdD ); //[# m^-3]
+                if (diameter_max.nelem() > 1)
+                    scale_pnd( pnd, diameter_max, dNdD ); //[# m^-3]
                 else
                     pnd = dNdD;
 
@@ -1293,12 +1294,12 @@ void pnd_fieldH13Shape (Tensor4View pnd_field,
   const Index N_se = scat_meta[scat_species].nelem();
   const Index scat_data_start = FlattenedIndex(scat_meta, scat_species);
   ArrayOfIndex intarr;
-  Vector Dmax_unsorted ( N_se, 0.0 );
-  Vector Dmax ( N_se, 0.0 );
+  Vector diameter_max_unsorted ( N_se, 0.0 );
+  Vector diameter_max ( N_se, 0.0 );
   Vector mass ( N_se, 0.0 );
   Vector pnd ( N_se, 0.0 );
-  Vector Darea ( N_se, 0.0 );
-  Vector Rarea ( N_se, 0.0 ); // Area ratio = Darea^2/Dmax^2
+  Vector diameter_area_equivalent ( N_se, 0.0 );
+  Vector Rarea ( N_se, 0.0 ); // Area ratio = diameter_area_equivalent^2/diameter_max^2
   String partfield_name;
 
   //split String and copy to ArrayOfString
@@ -1316,14 +1317,14 @@ void pnd_fieldH13Shape (Tensor4View pnd_field,
              << i << "!";
           throw runtime_error( os.str() );
         }
-      Dmax_unsorted[i] = ( scat_meta[scat_species][i].diameter_max );
+      diameter_max_unsorted[i] = ( scat_meta[scat_species][i].diameter_max );
     }
-  get_sorted_indexes(intarr, Dmax_unsorted);
+  get_sorted_indexes(intarr, diameter_max_unsorted);
   
   // extract scattering meta data
   for ( Index i=0; i< N_se; i++ )
   {
-      Dmax[i] = scat_meta[scat_species][intarr[i]].diameter_max; // [m]
+      diameter_max[i] = scat_meta[scat_species][intarr[i]].diameter_max; // [m]
 
       if ( isnan(scat_meta[scat_species][intarr[i]].diameter_area_equ_aerodynamical) )
         {
@@ -1335,7 +1336,7 @@ void pnd_fieldH13Shape (Tensor4View pnd_field,
              << i << "!";
           throw runtime_error( os.str() );
         }
-      Darea[i] = scat_meta[scat_species][intarr[i]].diameter_area_equ_aerodynamical; // [m]
+      diameter_area_equivalent[i] = scat_meta[scat_species][intarr[i]].diameter_area_equ_aerodynamical; // [m]
 
       if ( isnan(scat_meta[scat_species][intarr[i]].mass) )
         {
@@ -1349,13 +1350,14 @@ void pnd_fieldH13Shape (Tensor4View pnd_field,
         }
       mass[i] = scat_meta[scat_species][intarr[i]].mass; // [kg]
 
-      Rarea[i] = (Darea[i]*Darea[i]) / (Dmax[i]*Dmax[i]); // [m2/m2]
+      Rarea[i] = (diameter_area_equivalent[i]*diameter_area_equivalent[i]) / 
+                 (diameter_max[i]*diameter_max[i]); // [m2/m2]
   }
     // Collect all unique maximum diameters
-    vector<Numeric> Dmax_in;
-    for (Iterator1D it = Dmax.begin(); it != Dmax.end(); ++it)
-        if (find(Dmax_in.begin(), Dmax_in.end(), *it) == Dmax_in.end())
-            Dmax_in.push_back(*it);
+    vector<Numeric> diameter_max_in;
+    for (Iterator1D it = diameter_max.begin(); it != diameter_max.end(); ++it)
+        if (find(diameter_max_in.begin(), diameter_max_in.end(), *it) == diameter_max_in.end())
+            diameter_max_in.push_back(*it);
     
     // Collect all unique area ratios
     vector<Numeric> Rarea_in;
@@ -1363,18 +1365,18 @@ void pnd_fieldH13Shape (Tensor4View pnd_field,
         if (find(Rarea_in.begin(), Rarea_in.end(), *it) == Rarea_in.end())
             Rarea_in.push_back(*it);
                 
-    Vector Dmax_input;
+    Vector diameter_max_input;
     Vector Rarea_input;
-    Dmax_input=Dmax_in;
+    diameter_max_input=diameter_max_in;
     Rarea_input=Rarea_in;
     
     // Check size and shape limits
-    if (Dmax[0]<7.7*1e-5)
+    if (diameter_max[0]<7.7*1e-5)
     {
         ostringstream os;
         os << "The *H13Shape* parametrization is only valid for particles with\n"
            << "a maximum diameter >= to 77 um, but the smallest value of\n"
-           << "*diameter_max* in this simulation is " << Dmax[0] << " um.\n"
+           << "*diameter_max* in this simulation is " << diameter_max[0] << " um.\n"
            << "Set a new *diameter_max_grid*!\n";
         throw runtime_error(os.str());
     }
@@ -1387,16 +1389,16 @@ void pnd_fieldH13Shape (Tensor4View pnd_field,
              << "but with less computational effort, hence in a shorter time.\n";
     }
     
-    Vector dNdD ( Dmax_input.nelem(), 0.0 );
-    Vector Ar ( Dmax_input.nelem(), 0.0 );
-    Vector pnd_temp ( Dmax_input.nelem(), 0.0 );
+    Vector dNdD ( diameter_max_input.nelem(), 0.0 );
+    Vector Ar ( diameter_max_input.nelem(), 0.0 );
+    Vector pnd_temp ( diameter_max_input.nelem(), 0.0 );
 
     
   //const bool suppress=true;
   //const Verbosity temp_verb(0,0,0);
 
-  if (Dmax_input.nelem() > 0)
-  // Dmax.nelem()=0 implies no selected scattering elements for the respective
+  if (diameter_max_input.nelem() > 0)
+  // diameter_max.nelem()=0 implies no selected scattering elements for the respective
   // scattering species field. should not occur anymore.
   {
       // itertation over all atm. levels
@@ -1410,19 +1412,19 @@ void pnd_fieldH13Shape (Tensor4View pnd_field,
             if (IWC_field ( p, lat, lon ) > 0.)
             {
                 // iteration over all given size bins
-                for ( Index i=0; i<Dmax_input.nelem(); i++ ) //loop over number of scattering elements
+                for ( Index i=0; i<diameter_max_input.nelem(); i++ ) //loop over number of scattering elements
                 {
                     // calculate particle size distribution for H13Shape
                     // [# m^-3 m^-1]
-                    dNdD[i] = IWCtopnd_H13Shape ( Dmax_input[i], t_field ( p, lat, lon ) );
+                    dNdD[i] = IWCtopnd_H13Shape ( diameter_max_input[i], t_field ( p, lat, lon ) );
                     
                     // calculate Area ratio distribution for H13Shape
-                    Ar[i] = area_ratioH13 (Dmax_input[i], t_field (p, lat, lon ) );
+                    Ar[i] = area_ratioH13 (diameter_max_input[i], t_field (p, lat, lon ) );
                 }
 
                 // scale pnds by scale width
-                if (Dmax_input.nelem() > 1)
-                    scale_pnd( pnd_temp, Dmax_input, dNdD ); //[# m^-3]
+                if (diameter_max_input.nelem() > 1)
+                    scale_pnd( pnd_temp, diameter_max_input, dNdD ); //[# m^-3]
                 else
                     pnd_temp = dNdD;
 
@@ -1510,7 +1512,7 @@ void pnd_fieldMP48 (Tensor4View pnd_field,
   ArrayOfIndex intarr;
   Vector mass_unsorted ( N_se, 0.0 );
   Vector mass ( N_se, 0.0 );
-  Vector Dmelt ( N_se, 0.0 );
+  Vector diameter_melted_equivalent ( N_se, 0.0 );
   Vector vol ( N_se, 0.0 );
   Vector pnd ( N_se, 0.0 );
   Vector dNdD ( N_se, 0.0 );
@@ -1540,7 +1542,7 @@ void pnd_fieldMP48 (Tensor4View pnd_field,
   for ( Index i=0; i< N_se; i++ )
   {
       mass[i] = scat_meta[scat_species][intarr[i]].mass; // [kg]
-      Dmelt[i] = pow(6.*mass[i]/PI/DENSITY_OF_WATER,1./3.); // [m]
+      diameter_melted_equivalent[i] = pow(6.*mass[i]/PI/DENSITY_OF_WATER,1./3.); // [m]
 
       if ( isnan(scat_meta[scat_species][intarr[i]].mass) )
         {
@@ -1578,8 +1580,8 @@ void pnd_fieldMP48 (Tensor4View pnd_field,
   const Numeric lambda_exp = -0.21;
   Numeric PWC, lambda = NAN;
 
-  if (Dmelt.nelem() > 0)
-  // Dmelt.nelem()=0 implies no selected scattering elements for the respective
+  if (diameter_melted_equivalent.nelem() > 0)
+  // diameter_melted_equivalent.nelem()=0 implies no selected scattering elements for the respective
   // scattering species field. should not occur.
   {
       // iteration over all atm. levels
@@ -1622,27 +1624,27 @@ void pnd_fieldMP48 (Tensor4View pnd_field,
                 lambda = lambda_fac * pow(tPR,lambda_exp);
 
                 // derive particle number density for all given sizes
-                for ( Index i=0; i<Dmelt.nelem(); i++ )
+                for ( Index i=0; i<diameter_melted_equivalent.nelem(); i++ )
                 {
                     // calculate particle size distribution with MP48
                     // output: [# m^-3 m^-1]
-                    //dNdD[i] = PRtopnd_MP48 ( tPR, Dmelt[i]);
+                    //dNdD[i] = PRtopnd_MP48 ( tPR, diameter_melted_equivalent[i]);
                     // too much a hassle to have a separate function. so we do
                     // the calculation directly here.
-                    dNdD[i] = N0 * exp(-lambda*Dmelt[i]);
+                    dNdD[i] = N0 * exp(-lambda*diameter_melted_equivalent[i]);
                     //dNdD2[i] = dNdD[i] * vol[i] * rho[i];
                 }
 
                 // scale pnds by bin width
-                if (Dmelt.nelem() > 1)
-                    scale_pnd( pnd, Dmelt, dNdD );
+                if (diameter_melted_equivalent.nelem() > 1)
+                    scale_pnd( pnd, diameter_melted_equivalent, dNdD );
                 else
                     pnd = dNdD;
 
                 // derive mass and volume over whole size distribution for
                 // updated mean density
                 mass_total = vol_total = 0.;
-                for ( Index i=0; i<Dmelt.nelem(); i++ )
+                for ( Index i=0; i<diameter_melted_equivalent.nelem(); i++ )
                 {
                     mass_total += mass[i]*pnd[i];
                     vol_total += vol[i]*pnd[i];
@@ -1707,8 +1709,8 @@ void pnd_fieldH98 (Tensor4View pnd_field,
   const Index N_se = scat_meta[scat_species].nelem();
   const Index scat_data_start = FlattenedIndex(scat_meta, scat_species);
   ArrayOfIndex intarr;
-  Vector Dvol_unsorted ( N_se, 0.0 );
-  Vector Dvol ( N_se, 0.0 );
+  Vector diameter_volume_equivalent_unsorted ( N_se, 0.0 );
+  Vector diameter_volume_equivalent ( N_se, 0.0 );
   Vector mass ( N_se, 0.0 );
   Vector radius ( N_se, 0.0 );
   Vector pnd ( N_se, 0.0 );
@@ -1731,15 +1733,15 @@ void pnd_fieldH98 (Tensor4View pnd_field,
              << i << "!";
           throw runtime_error( os.str() );
         }
-      Dvol_unsorted[i] = ( scat_meta[scat_species][i].diameter_volume_equ );
+      diameter_volume_equivalent_unsorted[i] = ( scat_meta[scat_species][i].diameter_volume_equ );
     }
-  get_sorted_indexes(intarr, Dvol_unsorted);
+  get_sorted_indexes(intarr, diameter_volume_equivalent_unsorted);
       
   // extract scattering meta data
   for ( Index i=0; i< N_se; i++ )
   {
-      Dvol[i]= scat_meta[scat_species][intarr[i]].diameter_volume_equ; // [m]
-      radius[i] = 0.5 * Dvol[i]; // [m]
+      diameter_volume_equivalent[i]= scat_meta[scat_species][intarr[i]].diameter_volume_equ; // [m]
+      radius[i] = 0.5 * diameter_volume_equivalent[i]; // [m]
 
       if ( isnan(scat_meta[scat_species][intarr[i]].mass) )
         {
@@ -1817,7 +1819,7 @@ void pnd_fieldH98 (Tensor4View pnd_field,
     \return dNdD particle number density per diameter interval [#/m3*m]
           
     \param iwc     atmospheric ice water content [kg/m3]
-    \param Dmass   mass equivalent diameter of scattering element [m]
+    \param diameter_mass_equivalent  mass equivalent diameter of scattering element [m]
     \param t       atmospheric temperature [K]
     \param perturb flag whether to add noise onto PSD parameters according to
                    their reported error statistics
@@ -1827,7 +1829,7 @@ void pnd_fieldH98 (Tensor4View pnd_field,
 
 */
 Numeric IWCtopnd_MH97 ( const Numeric iwc,
-                        const Numeric Dmass,
+                        const Numeric diameter_mass_equivalent,
                         const Numeric t,
                         const bool noisy )
 {
@@ -1883,7 +1885,7 @@ Numeric IWCtopnd_MH97 ( const Numeric iwc,
   Numeric dNdD;
 
   // convert m to microns
-  Numeric dmass = Dmass * 1e6;
+  Numeric dmass = diameter_mass_equivalent * 1e6;
   //convert T from Kelvin to Celsius
   Numeric T = t-273.15;
   //split IWC in IWCs100 and IWCl100
@@ -1985,14 +1987,14 @@ Numeric IWCtopnd_MH97 ( const Numeric iwc,
 
     \return dNdD particle number density per diameter interval [#/m3/m]
           
-    \param Dmax  maximum diameter of scattering scattering element [m]
+    \param diameter_max  maximum diameter of scattering scattering element [m]
     \param t     atmospheric temperature [K]
   
   \author Daniel Kreyling
   \date 2011-10-28
 
 */
-Numeric IWCtopnd_H11 ( const Numeric Dmax,
+Numeric IWCtopnd_H11 ( const Numeric diameter_max,
                        const Numeric t)
 {  
   Numeric dNdD;
@@ -2000,7 +2002,7 @@ Numeric IWCtopnd_H11 ( const Numeric Dmax,
   Numeric mu;
 
   // convert m to cm
-  Numeric dmax = Dmax * 1e2;
+  Numeric dmax = diameter_max * 1e2;
   //convert T from Kelvin to Celsius
   Numeric T = t-273.15;
   //choose parametrization depending on T
@@ -2038,14 +2040,14 @@ Numeric IWCtopnd_H11 ( const Numeric Dmax,
 
     \return dNdD particle number density per diameter interval [#/m3/m]
           
-    \param Dmax  maximum diameter of scattering scattering element [m]
+    \param diameter_max  maximum diameter of scattering scattering element [m]
     \param t     atmospheric temperature [K]
   
   \author Johan Strandgren, Daniel Kreyling  
   \date 2013-08-26
 
 */
-Numeric IWCtopnd_H13 ( const Numeric Dmax,
+Numeric IWCtopnd_H13 ( const Numeric diameter_max,
                        const Numeric t)
 {  
   Numeric dNdD;
@@ -2053,7 +2055,7 @@ Numeric IWCtopnd_H13 ( const Numeric Dmax,
   Numeric mu;
 
   // convert m to cm
-  Numeric dmax = Dmax * 1e2;
+  Numeric dmax = diameter_max * 1e2;
   //convert T from Kelvin to Celsius
   Numeric T = t-273.15;
   //choose parametrization depending on T
@@ -2091,15 +2093,15 @@ Numeric IWCtopnd_H13 ( const Numeric Dmax,
 
     \return dNdD particle number density per diameter interval [#/m3/m]
           
-    \param Dmax  maximum diameter of scattering scattering element [m]
+    \param diameter_max  maximum diameter of scattering scattering element [m]
     \param t     atmospheric temperature [K]
   
   \author Johan Strandgren  
   \date 2013-08-26
 
 */
-Numeric IWCtopnd_H13Shape ( const Numeric Dmax,
-                       const Numeric t)
+Numeric IWCtopnd_H13Shape ( const Numeric diameter_max,
+                            const Numeric t)
 {  
   Numeric dNdD;
   Numeric la;
@@ -2107,7 +2109,7 @@ Numeric IWCtopnd_H13Shape ( const Numeric Dmax,
   // convert m to cm
   
 
-  Numeric dmax = Dmax * 1e2;
+  Numeric dmax = diameter_max * 1e2;
   //convert T from Kelvin to Celsius
   Numeric T = t-273.15;
   //choose parametrization depending on T
@@ -2144,14 +2146,14 @@ Numeric IWCtopnd_H13Shape ( const Numeric Dmax,
 
     \return dNdD particle number density per diameter interval [#/m3/m]
           
-    \param Dmax  maximum diameter of scattering scattering element [m]
+    \param diameter_max  maximum diameter of scattering scattering element [m]
     \param t     atmospheric temperature [K]
   
   \author Johan Strandgren  
   \date 2013-08-26
 
 */
-Numeric area_ratioH13 ( const Numeric Dmax,
+Numeric area_ratioH13 ( const Numeric diameter_max,
                         const Numeric t)
 {  
   Numeric Ar;
@@ -2159,7 +2161,7 @@ Numeric area_ratioH13 ( const Numeric Dmax,
   Numeric beta;
 
   // convert m to cm
-  Numeric dmax = Dmax * 1e2;
+  Numeric dmax = diameter_max * 1e2;
   //convert T from Kelvin to Celsius
   Numeric T = t-273.15;
   //Parameterize for all temperatures
@@ -2236,14 +2238,14 @@ Numeric LWCtopnd (const Numeric lwc, //[kg/m^3]
     \return dNdD particle number density per diameter interval [#/m3*m]
           
     \param PR    precipitation rate [mm/hr]
-    \param Dmelt melted equivalent diameter of scattering scattering element [m]
+    \param diameter_melted_equivalent melted equivalent diameter of scattering scattering element [m]
  
   \author Jana Mendrok
   \date 2012-04-04
 
 */
 Numeric PRtopnd_MP48 (const Numeric PR,
-                      const Numeric Dmelt)
+                      const Numeric diameter_melted_equivalent)
 {
   // skip calculation if PR is 0.0
   if ( PR == 0.0 )
@@ -2252,9 +2254,9 @@ Numeric PRtopnd_MP48 (const Numeric PR,
   }
 
   Numeric N0 = 0.08*1e-2; // [#/cm3/cm] converted to [#/m3/um]
-  Numeric lambda = 41.*1e2*pow(PR,-0.21); // [1/cm] converted to [1/m] to fit Dmelt[m]
+  Numeric lambda = 41.*1e2*pow(PR,-0.21); // [1/cm] converted to [1/m] to fit diameter_melted_equivalent[m]
 
-  Numeric n = N0*exp(-lambda*Dmelt);
+  Numeric n = N0*exp(-lambda*diameter_melted_equivalent);
   return n;
 }
 

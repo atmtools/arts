@@ -941,8 +941,8 @@ void ScatteringParticlesSelect (//WS Output:
         // scattering element's meta data and checked whether it's within size
         // selected range (sizemax < 0 check follows from wildcard usage and
         // means consider all sizes on the upper end)
-        if ( scat_meta[i_ss][i_se].diameter_volume_equ >= sizemin*1e-6 &&
-             ( sizemax*1e-6 >=  scat_meta[i_ss][i_se].diameter_volume_equ ||
+        if ( scat_meta[i_ss][i_se].diameter_volume_equ*1e6 >= sizemin &&
+             ( sizemax >=  scat_meta[i_ss][i_se].diameter_volume_equ*1e6 ||
                sizemax < 0. ) )
           {
             // copy selected scattering element to temp arrays
@@ -1585,20 +1585,20 @@ void pnd_fieldSetup (//WS Output:
 void dNdD_MH97 (//WS Output:
               Vector& dNdD,
               //WS Input:
-              const Vector& Dmass,
+              const Vector& diameter_mass_equivalent,
               const Numeric& IWC,
               const Numeric& t,
               const Index& noisy,
               const Verbosity&)
 {
-  Index n_se = Dmass.nelem();
+  Index n_se = diameter_mass_equivalent.nelem();
   dNdD.resize(n_se);
 
   for ( Index i=0; i<n_se; i++ )
     {
       // calculate particle size distribution with MH97
       // [# m^-3 m^-1]
-      dNdD[i] = IWCtopnd_MH97 ( IWC, Dmass[i], t, noisy );
+      dNdD[i] = IWCtopnd_MH97 ( IWC, diameter_mass_equivalent[i], t, noisy );
     }
 }
 
@@ -1648,11 +1648,11 @@ void dNdD_Ar_H13 (//WS Output:
 void dNdD_H98 (//WS Output:
              Vector& dNdD,
              //WS Input:
-             const Vector& Dvol,
+             const Vector& diameter_volume_equivalent,
              const Numeric& LWC,
              const Verbosity&)
 {
-  Index n_se = Dvol.nelem();
+  Index n_se = diameter_volume_equivalent.nelem();
   dNdD.resize(n_se);
   const Numeric dDdR = 2.; 
 
@@ -1661,7 +1661,7 @@ void dNdD_H98 (//WS Output:
       // calculate particle size distribution for liquid
       // and compensate for LWCtopnd providing dNdR
       // [# m^-3 m^-1]
-      dNdD[i] = LWCtopnd ( LWC, Dvol[i]/2. ) / dDdR;
+      dNdD[i] = LWCtopnd ( LWC, diameter_volume_equivalent[i]/2. ) / dDdR;
     }
 }
 
@@ -1669,11 +1669,11 @@ void dNdD_H98 (//WS Output:
 void dNdD_MP48 (//WS Output:
               Vector& dNdD,
               //WS Input:
-              const Vector& Dmelt,
+              const Vector& diameter_melted_equivalent,
               const Numeric& PR,
               const Verbosity&)
 {
-  Index n_se = Dmelt.nelem();
+  Index n_se = diameter_melted_equivalent.nelem();
   dNdD.resize(n_se);
 
   // derive particle number density for all given sizes
@@ -1681,7 +1681,7 @@ void dNdD_MP48 (//WS Output:
     {
       // calculate particle size distribution with MP48
       // output: [# m^-3 m^-1]
-      dNdD[i] = PRtopnd_MP48 ( PR, Dmelt[i]);
+      dNdD[i] = PRtopnd_MP48 ( PR, diameter_melted_equivalent[i]);
     }
 }
 

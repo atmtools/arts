@@ -157,27 +157,27 @@ void pnd_fieldH98 (Tensor4View pnd_field,
                    const Verbosity& verbosity);
 
 Numeric IWCtopnd_MH97 (const Numeric iwc,
-                       Numeric Dvol,
+                       Numeric diameter_volume_equivalent,
                        const Numeric t,
                        const bool noisy);
 
-Numeric IWCtopnd_H11 (const Numeric Dmax,
+Numeric IWCtopnd_H11 (const Numeric diameter_mass_equivalent,
                       const Numeric t);
 
-Numeric IWCtopnd_H13 (const Numeric Dmax,
+Numeric IWCtopnd_H13 (const Numeric diameter_mass_equivalent,
                       const Numeric t);
 
-Numeric IWCtopnd_H13Shape (const Numeric Dmax,
+Numeric IWCtopnd_H13Shape (const Numeric diameter_mass_equivalent,
                            const Numeric t);
 
-Numeric area_ratioH13 (const Numeric Dmax,
+Numeric area_ratioH13 (const Numeric diameter_mass_equivalent,
                        const Numeric t);
 
 Numeric LWCtopnd (const Numeric lwc,
                   const Numeric radius);
 
 Numeric PRtopnd_MP48 (const Numeric R,
-                      const Numeric D);
+                      const Numeric diameter_melted_equivalent);
 
 
 void scale_pnd (Vector& w,

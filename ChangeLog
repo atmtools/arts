@@ -1,5 +1,17 @@
 2014-10-27  Jana Mendrok  <jana.mendrok@ltu.se>
 
+	* arts-2-3-57
+
+	* src/m_cloudbox.cc, methods.cc (dNdD_H11, dNdD_Ar_H13, dNdD_H98,
+	dNdD_MH97, dNdD_MP48),
+	src/cloudbox.cc/h (pnd_fieldMH97, pnd_fieldH11, pnd_fieldH13,
+	pnd_fieldH13Shape, pnd_fieldMP48, pnd_fieldH98, IWCtopnd_MH97,
+	IWCtopnd_H11, IWCtopnd_H13, IWCtopnd_H13Shape, area_ratioH13, LWCtopnd,
+	PRtopnd_MP48):
+	Adapt size parameter namings to agreed naming convention (diameter_XX).
+
+2014-10-27  Jana Mendrok  <jana.mendrok@ltu.se>
+
 	* arts-2-3-56
 
 	* controlfiles/artscomponents/tmatrix/TestTMatrix.arts:

@@ -3400,8 +3400,6 @@ void define_md_data_raw()
          "particle size in terms of maximum dimension of the particles (in ARTS:\n"
          "the scattering elements).\n"
          "Provides only the shape of the number density disribution function.\n"
-         "\n"
-         "For testing purposes mainly.\n"
          ),
         AUTHORS( "Jana Mendrok" ),
         OUT(),
@@ -3430,8 +3428,6 @@ void define_md_data_raw()
          "temperature over particle size in terms of maximum dimension. It\n"
          "provides the shape of the distribution function of both number\n"
          "density and area ratio.\n"
-         "\n"
-         "For testing purposes mainly.\n"
          ),
         AUTHORS( "Jana Mendrok" ),
         OUT(),
@@ -3459,8 +3455,6 @@ void define_md_data_raw()
          "specifically for continental stratus. The parametrization is over\n"
          "radius of spherical droplets. Provides number density normalized to\n"
          "the given liquid water content.\n"
-         "\n"
-         "For testing purposes mainly.\n"
          ),
         AUTHORS( "Jana Mendrok" ),
         OUT(),
@@ -3468,7 +3462,7 @@ void define_md_data_raw()
         GOUT_TYPE( "Vector" ),
         GOUT_DESC( "size distribution number density" ),
         IN(),
-        GIN( "Dvol", "LWC" ),
+        GIN( "diameter_volume_equivalent", "LWC" ),
         GIN_TYPE( "Vector", "Numeric" ),
         GIN_DEFAULT( NODEF, NODEF ),
         GIN_DESC( "Volume equivalent sphere diameter of the particles [m]",
@@ -3492,8 +3486,6 @@ void define_md_data_raw()
          "parameters, which can be used here to created perturbed\n"
          "distributions (set *noisy* to 1). Provides number density\n"
          "normalized to the given ice water content.\n"
-         "\n"
-         "For testing purposes mainly.\n"
          ),
         AUTHORS( "Jana Mendrok" ),
         OUT(),
@@ -3501,7 +3493,7 @@ void define_md_data_raw()
         GOUT_TYPE( "Vector" ),
         GOUT_DESC( "size distribution number density" ),
         IN(),
-        GIN( "Dmass", "IWC", "t", "noisy" ),
+        GIN( "diameter_mass_equivalent", "IWC", "t", "noisy" ),
         GIN_TYPE( "Vector", "Numeric", "Numeric", "Index" ),
         GIN_DEFAULT( NODEF, NODEF, NODEF, "0" ),
         GIN_DESC( "Mass equivalent sphere diameter of the particles [m]",
@@ -3524,8 +3516,6 @@ void define_md_data_raw()
          "precipitation rate (PR) over particle size, here taken in terms of\n"
          "melted equivalent sphere diameter. Provides number density normalized\n"
          "to the given precipitation rate.\n"
-         "\n"
-         "For testing purposes mainly.\n"
          ),
         AUTHORS( "Jana Mendrok" ),
         OUT(),
@@ -3533,7 +3523,7 @@ void define_md_data_raw()
         GOUT_TYPE( "Vector" ),
         GOUT_DESC( "size distribution number density" ),
         IN(),
-        GIN( "Dmelt", "PR" ),
+        GIN( "diameter_melted_equivalent", "PR" ),
         GIN_TYPE( "Vector", "Numeric" ),
         GIN_DEFAULT( NODEF, NODEF ),
         GIN_DESC( "Melted equivalent sphere diameter of the particles [m]",
