@@ -1,5 +1,12 @@
 2014-10-27  Jana Mendrok  <jana.mendrok@ltu.se>
 
+	* arts-2-3-58
+
+	* src/m_cloudbox.cc (ScatteringParticlesSelect): Replace 'are equal'
+	checks of size limits by more robust proximity estimation.
+
+2014-10-27  Jana Mendrok  <jana.mendrok@ltu.se>
+
 	* arts-2-3-57
 
 	* src/m_cloudbox.cc, methods.cc (dNdD_H11, dNdD_Ar_H13, dNdD_H98,

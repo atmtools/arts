@@ -929,6 +929,7 @@ void ScatteringParticlesSelect (//WS Output:
     String partfield_name;
     Numeric sizemin;
     Numeric sizemax;
+    const Numeric tolerance = 1e-6;
 
     //split scat_species string and copy values to parameter
     parse_partfield_name( partfield_name, scat_species[i_ss], delim);
@@ -941,8 +942,8 @@ void ScatteringParticlesSelect (//WS Output:
         // scattering element's meta data and checked whether it's within size
         // selected range (sizemax < 0 check follows from wildcard usage and
         // means consider all sizes on the upper end)
-        if ( scat_meta[i_ss][i_se].diameter_volume_equ*1e6 >= sizemin &&
-             ( sizemax >=  scat_meta[i_ss][i_se].diameter_volume_equ*1e6 ||
+        if ( scat_meta[i_ss][i_se].diameter_volume_equ*1e6 > sizemin-sizemin*tolerance &&
+             ( sizemax+sizemax*tolerance > scat_meta[i_ss][i_se].diameter_volume_equ*1e6 ||
                sizemax < 0. ) )
           {
             // copy selected scattering element to temp arrays
