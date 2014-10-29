@@ -8657,7 +8657,7 @@ void define_md_data_raw()
         "The other inputs are similar as for *propmat_clearskyAddZeeman*.\n"
          ),
         AUTHORS( "Richard Larsson" ),
-        OUT("propmat_clearsky","zeeman_linerecord_precalc"),
+        OUT("propmat_clearsky"),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),

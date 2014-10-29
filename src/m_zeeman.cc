@@ -114,26 +114,20 @@ void propmat_clearskyAddZeeman(Tensor4& propmat_clearsky,
     
     // Add Pi contribution to final propmat_clearsky
     xsec_species_line_mixing_wrapper_with_zeeman( part_abs_mat, abs_species, abs_lineshape,
-            aoaol[zeeman_ind+1], isotopologue_ratios,
-            abs_vmrs, abs_p, abs_t, f_grid,
-            theta, eta, 0, II, 
-            verbosity );
+                                                  aoaol[zeeman_ind+1], Vector(), isotopologue_ratios,
+                                                  abs_vmrs, abs_p, abs_t, f_grid, theta, eta, 0, II, verbosity );
     propmat_clearsky(II, joker, joker, joker) += part_abs_mat;
 
     // Add Sigma minus contribution to final propmat_clearsky
     xsec_species_line_mixing_wrapper_with_zeeman( part_abs_mat, abs_species, abs_lineshape,
-            aoaol[zeeman_ind+0], isotopologue_ratios,
-            abs_vmrs, abs_p, abs_t, f_grid,
-            theta, eta, -1, II,
-            verbosity );
+                                                  aoaol[zeeman_ind+0], Vector(), isotopologue_ratios,  
+                                                  abs_vmrs, abs_p, abs_t, f_grid, theta, eta, -1, II, verbosity );
     propmat_clearsky(II, joker, joker, joker) += part_abs_mat;
 
     // Add Sigma plus contribution to final propmat_clearsky
     xsec_species_line_mixing_wrapper_with_zeeman( part_abs_mat, abs_species, abs_lineshape,
-            aoaol[zeeman_ind+2], isotopologue_ratios,
-            abs_vmrs, abs_p, abs_t, f_grid,
-            theta, eta, 1, II, 
-            verbosity );
+                                                  aoaol[zeeman_ind+2],Vector(), isotopologue_ratios,
+                                                  abs_vmrs, abs_p, abs_t, f_grid, theta, eta, 1, II, verbosity );
     propmat_clearsky(II, joker, joker, joker) += part_abs_mat;
     
     zeeman_ind +=3;
@@ -176,7 +170,7 @@ void ZeemanLineRecordPreCalc( ArrayOfArrayOfLineRecord& zeeman_linerecord_precal
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void propmat_clearskyAddZeemanFromPreCalc(Tensor4& propmat_clearsky,
-                                          ArrayOfArrayOfLineRecord& zeeman_linerecord_precalc,
+                                          const ArrayOfArrayOfLineRecord& zeeman_linerecord_precalc,
                                           const Vector& f_grid,
                                           const ArrayOfArrayOfSpeciesTag& abs_species,
                                           const ArrayOfLineshapeSpec& abs_lineshape,
@@ -231,27 +225,27 @@ void propmat_clearskyAddZeemanFromPreCalc(Tensor4& propmat_clearsky,
   // FOR LOG:  Loss of speed when mag == 0
   // Set the magnetic parameters...
   Numeric H_mag,eta,theta;
-  set_magnetic_parameters(H_mag,eta,theta,manual_zeeman_tag,manual_zeeman_eta,manual_zeeman_theta,manual_zeeman_magnetic_field_strength,rtp_mag,R_path_los);
+  set_magnetic_parameters(H_mag,eta,theta,manual_zeeman_tag,manual_zeeman_eta,
+                          manual_zeeman_theta,manual_zeeman_magnetic_field_strength,
+                          rtp_mag,R_path_los);
   
   Numeric S;
   Index hund,DM,DJ,DMain;
   Rational Main,J,M;
-  Numeric GS,unused=0;
+  Numeric GS;
   Numeric (*frequency_change)(const Rational&, const  Rational&, const Rational&, 
                                   const Numeric&, const Index&, const Index&, 
                                   const Index&, const Numeric&, const Numeric&);
   
   // Store central frequency here
-  ArrayOfVector Freq(zeeman_linerecord_precalc.nelem());
+  ArrayOfVector FreqShift(zeeman_linerecord_precalc.nelem());
   
   // Section to fix central line frequency
   for(Index II=0;II<zeeman_linerecord_precalc.nelem();II++)
   {
-    Freq[II].resize(zeeman_linerecord_precalc[II].nelem());
+    FreqShift[II].resize(zeeman_linerecord_precalc[II].nelem());
     for(Index JJ=0;JJ<zeeman_linerecord_precalc[II].nelem();JJ++)
     {
-      // Store original line frequency
-      Freq[II][JJ] = zeeman_linerecord_precalc[II][JJ].F();
       
       // Set necessary parameters from isotopologue_quantum
       set_part_isotopolouge_constants(hund,GS,isotopologue_quantum,zeeman_linerecord_precalc[II][JJ]);
@@ -272,8 +266,8 @@ void propmat_clearskyAddZeemanFromPreCalc(Tensor4& propmat_clearsky,
           throw std::runtime_error(os.str());
       }
       
-      // alter the line record by switching the frequency
-      alter_linerecord(zeeman_linerecord_precalc[II][JJ],unused,zeeman_linerecord_precalc[II][JJ],Main,M,J,S,DJ,DM,DMain,H_mag,GS,frequency_change,0,1,0);
+      // Store the frequency shift
+    FreqShift[II][JJ] = frequency_change(Main, M, J, S, DJ, DM, DMain,H_mag,GS);
     }
   }
   
@@ -291,34 +285,26 @@ void propmat_clearskyAddZeemanFromPreCalc(Tensor4& propmat_clearsky,
     
     // Add Pi contribution to final propmat_clearsky
     xsec_species_line_mixing_wrapper_with_zeeman( part_abs_mat, abs_species, abs_lineshape,
-            zeeman_linerecord_precalc[zeeman_ind+1], isotopologue_ratios,
-            abs_vmrs, abs_p, abs_t, f_grid,
-            theta, eta, 0, II, 
-            verbosity );
+                                                  zeeman_linerecord_precalc[zeeman_ind+1], FreqShift[zeeman_ind+1], 
+                                                  isotopologue_ratios, abs_vmrs, abs_p, abs_t, f_grid,
+                                                  theta, eta, 0, II, verbosity );
     propmat_clearsky(II, joker, joker, joker) += part_abs_mat;
 
     // Add Sigma minus contribution to final propmat_clearsky
     xsec_species_line_mixing_wrapper_with_zeeman( part_abs_mat, abs_species, abs_lineshape,
-            zeeman_linerecord_precalc[zeeman_ind+0], isotopologue_ratios,
-            abs_vmrs, abs_p, abs_t, f_grid,
-            theta, eta, -1, II,
-            verbosity );
+                                                  zeeman_linerecord_precalc[zeeman_ind+0], FreqShift[zeeman_ind+0], 
+                                                  isotopologue_ratios, abs_vmrs, abs_p, abs_t, f_grid,
+                                                  theta, eta, -1, II, verbosity );
     propmat_clearsky(II, joker, joker, joker) += part_abs_mat;
 
     // Add Sigma plus contribution to final propmat_clearsky
     xsec_species_line_mixing_wrapper_with_zeeman( part_abs_mat, abs_species, abs_lineshape,
-            zeeman_linerecord_precalc[zeeman_ind+2], isotopologue_ratios,
-            abs_vmrs, abs_p, abs_t, f_grid,
-            theta, eta, 1, II, 
-            verbosity );
+                                                  zeeman_linerecord_precalc[zeeman_ind+2], FreqShift[zeeman_ind+2],
+                                                  isotopologue_ratios, abs_vmrs, abs_p, abs_t, f_grid,
+                                                  theta, eta, 1, II, verbosity );
     propmat_clearsky(II, joker, joker, joker) += part_abs_mat;
     
     zeeman_ind +=3;
   }
-  
-  // Section to fix central line frequency back for next level.
-  for(Index II=0;II<zeeman_linerecord_precalc.nelem();II++)
-    for(Index JJ=0;JJ<zeeman_linerecord_precalc[II].nelem();JJ++)
-      zeeman_linerecord_precalc[II][JJ].setF(Freq[II][JJ]);
     
 }

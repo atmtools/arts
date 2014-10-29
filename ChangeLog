@@ -1,3 +1,41 @@
+2014-10-29  Richard Larsson <ric.larsson@gmail.com>
+	
+	* arts-2-3-59
+	
+	* src/abs_species_tag.cc:  Removed tagging problems with line mixing.
+	
+	* src/absorption.{cc,h}:  Removed LineRecord dependency for internal-
+	most loop of (xsec_species).  The function call inside to
+	(xsec_single_line) now only depends on base variables.  The advantage
+	is that neither Zeeman nor line mixing must copy LineRecords to work,
+	reducing their slowest test case by a factor 3 in runtime for the 
+	fastest setup requiring PreCalc.  (calc_gamma_and_deltaf_artscat4)
+	was changed to reflect previous behaviour.  There are some other small 
+	changes inside (xsec_single_line) resulting in small gains but the 
+	function call is complicated so the overall runtime running no Zeeman
+	and no line mixing is slightly slower (less than 5%) in our test case.
+	The old methods are still included in the function but there is no
+	way to use them without altering code.  The speed increase is from
+	accessing the absorption calculations from the wrappers instead of
+	through xsec_species.  Line mixing is now done internally in 
+	(xsec_singel_line) instead of in wrapper.
+	
+	* src/linerecord.h:  Can return artscat4 full vectors now.
+	
+	* src/lineshapes.cc:  Fixed slight error in (faddeeva_algorithm_916)
+	use of aux vector.
+	
+	* src/m_abs.cc:  Minor change in input to wrapper to work with above.
+	
+	* src/m_zeeman.cc:  PreCalc now only touch the LineRecord before 
+	calculations.  The frequency shift is passed along to wrapper 
+	before being applied to frequency input in (xsec_single_line).
+	
+	* src/methods.cc:  Changed LineRecord to not be an output of PreCalc.
+	
+	* src/zeeman.{cc,h}:  Zeeman wrapper now pass central frequency along
+	for PreCalc and empty vector for level-by-level calculations.
+
 2014-10-27  Jana Mendrok  <jana.mendrok@ltu.se>
 
 	* arts-2-3-58

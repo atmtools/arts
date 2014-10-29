@@ -442,11 +442,20 @@ public:
   /** ARTSCAT-4 foreign broadening parameters in <b> Hz/Pa </b>: */
   Numeric Gamma_foreign(const Index i) const { return mgamma_foreign[i]; }
 
+    /** ARTSCAT-4 foreign broadening parameters in <b> Hz/Pa </b>: */
+    const Vector& Gamma_foreign() const { return mgamma_foreign; }
+    
    /** ARTSCAT-4 foreign temperature exponents (dimensionless): */
    Numeric N_foreign(const Index i) const { return mn_foreign[i]; }
-
+    
+    /** ARTSCAT-4 foreign temperature exponents (dimensionless): */
+    const Vector& N_foreign() const { return mn_foreign; }
+    
    /** ARTSCAT-4 pressure shift parameters in <b> Hz/Pa </b>: */
    Numeric Delta_foreign(const Index i) const { return mdelta_foreign[i]; }
+    
+    /** ARTSCAT-4 pressure shift parameters in <b> Hz/Pa </b>: */
+    const Vector& Delta_foreign() const { return mdelta_foreign; }
 
 //  /** Broadening parameter self in <b> Hz/Pa </b>: */
 //  Numeric Gamma_self() const { return mgamma_self; }

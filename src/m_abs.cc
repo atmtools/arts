@@ -1808,6 +1808,7 @@ void abs_xsec_per_speciesAddLines(// WS Output:
                                                  tgs,
                                                  i,
                                                  ll,
+                                                 Vector(),
                                                  ls.Ind_ls(),
                                                  ls.Ind_lsn(),
                                                  ls.Cutoff(),

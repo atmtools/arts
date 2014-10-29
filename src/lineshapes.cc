@@ -1698,7 +1698,7 @@ void lineshape_CO2_drayson(Vector&         ls_attenuation,
  */ 
 void faddeeva_algorithm_916(    Vector&         ls_attenuation,
                                 Vector&         ls_phase,
-                                Vector&         xvector,
+                                Vector&         x _U_,
                                 const Numeric   f0,
                                 const Numeric   gamma,
                                 const Numeric   sigma,
@@ -1722,10 +1722,8 @@ void faddeeva_algorithm_916(    Vector&         ls_attenuation,
     // frequency in units of Doppler
     for (Index ii=0; ii<nf; ii++)
     {
-        xvector[ii] = (f_grid[ii] - f0) / sigma;
-        std::complex<Numeric> z(xvector[ii], y);
-        
-        z = Faddeeva::w(z);
+        const std::complex<Numeric> z =
+        Faddeeva::w(std::complex<Numeric>((f_grid[ii] - f0) / sigma, y));
         
         ls_attenuation[ii] = fac * z.real();
         ls_phase[ii]       = fac * z.imag();

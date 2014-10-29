@@ -55,6 +55,7 @@ void xsec_species_line_mixing_wrapper_with_zeeman(
         const ArrayOfArrayOfSpeciesTag& abs_species, 
         const ArrayOfLineshapeSpec& abs_lineshape, 
         const ArrayOfLineRecord& lr, 
+        const Vector&  Zeeman_DF,
         const SpeciesAuxData& isotopologue_ratios, 
         const Matrix& abs_vmrs, 
         const Vector& abs_p,

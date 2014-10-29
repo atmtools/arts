@@ -294,14 +294,12 @@ Numeric frequency_change_casea(const Rational& omega, const Rational& m, const R
 }
 
 
-/*!
-  Helper function. This is the only place where m_zeeman interacts with other absorption protocols.
- */
 void xsec_species_line_mixing_wrapper_with_zeeman(  
         Tensor3View part_abs_mat, 
         const ArrayOfArrayOfSpeciesTag& abs_species, 
         const ArrayOfLineshapeSpec& abs_lineshape, 
-        const ArrayOfLineRecord& lr, 
+        const ArrayOfLineRecord& lr,
+        const Vector& Zeeman_DF,
         const SpeciesAuxData& isotopologue_ratios, 
         const Matrix& abs_vmrs, 
         const Vector& abs_p,
@@ -324,7 +322,7 @@ void xsec_species_line_mixing_wrapper_with_zeeman(
         Matrix attenuation(f_grid.nelem(), 1, 0.), phase(f_grid.nelem(), 1, 0.);;
 
         xsec_species_line_mixing_wrapper( attenuation, phase,
-                f_grid, abs_p, abs_t, abs_vmrs, abs_species, this_species, lr,
+                f_grid, abs_p, abs_t, abs_vmrs, abs_species, this_species, lr, Zeeman_DF,
                 abs_lineshape[i].Ind_ls(), abs_lineshape[i].Ind_lsn(), abs_lineshape[i].Cutoff(),
                 isotopologue_ratios, verbosity ); // Now in cross section
 
@@ -346,7 +344,6 @@ void xsec_species_line_mixing_wrapper_with_zeeman(
     part_abs_mat+=temp_part_abs_mat;
 
 }
-
 
 
 void set_magnetic_parameters(Numeric& H_mag,
@@ -409,6 +406,7 @@ void set_magnetic_parameters(Numeric& H_mag,
   }
 }
 
+
 void set_quantum_numbers(Rational& Main,
                          Index& DMain,
                          Rational& J,
@@ -449,6 +447,7 @@ void set_quantum_numbers(Rational& Main,
     DM = (temp_LR.QuantumNumbers().Upper(QN_M) - M).toIndex(); //Note that this is a strange definition
   }
 }
+
 
 void alter_linerecord(LineRecord& new_LR,
                       Numeric& Test_RS,

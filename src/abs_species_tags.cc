@@ -719,7 +719,6 @@ void check_abs_species( const ArrayOfArrayOfSpeciesTag& abs_species )
     {
         bool has_free_electrons = false;
         bool has_particles = false;
-        bool has_line_mixing = false;
         for ( Index s=0; s<abs_species[i].nelem(); ++s )
         {
             if (abs_species[i][s].Type() == SpeciesTag::TYPE_FREE_ELECTRONS)
@@ -731,11 +730,6 @@ void check_abs_species( const ArrayOfArrayOfSpeciesTag& abs_species )
             if (abs_species[i][s].Type() == SpeciesTag::TYPE_PARTICLES)
             {
                 has_particles = true;
-            }
-
-            if (abs_species[i][s].LineMixing() != SpeciesTag::LINE_MIXING_OFF)
-            {
-                has_line_mixing = true;
             }
         }
 
@@ -749,9 +743,6 @@ void check_abs_species( const ArrayOfArrayOfSpeciesTag& abs_species )
         if (abs_species[i].nelem() > 1 && has_particles)
             throw std::runtime_error("'particles' must not be combined "
                                 "with other tags in the same group.");
-//         if (abs_species[i].nelem() > 1 && has_line_mixing)
-//             throw std::runtime_error("Line mixing species must not be combined "
-//                                 "with other tags in the same group.");
     }
 }
 

@@ -325,12 +325,12 @@ public:
             return qcoeff_at_t_ref / qtemp;
         else
           {
-            ostringstream os;
+            std::ostringstream os;
             os << "Partition function of "
                << "Isotopologue " << mname
 //               << " is unknown.";
                << " at T=" << actual_temperature << "K is zero or negative.";
-            throw runtime_error(os.str());
+            throw std::runtime_error(os.str());
           }
   }
   
@@ -533,6 +533,52 @@ void xsec_species(                          MatrixView               xsec_attenu
                                             const Verbosity&         verbosity );
 
 
+void xsec_single_line(VectorView xsec_accum_attenuation, 
+                      VectorView xsec_accum_phase, 
+                      Vector& attenuation, 
+                      Vector& phase,
+                      Vector& fac, 
+                      Vector& f_local, 
+                      Vector& aux, 
+                      const SpeciesAuxData& isotopologue_ratios,
+                      const ArrayOfIndex& broad_spec_locations,
+                      const Vector& f_grid, 
+                      ConstVectorView vmrs,
+                      const Vector& Gamma_foreign,
+                      const Vector& N_foreign,
+                      const Vector& Delta_foreign,
+                      Numeric F0, 
+                      Numeric intensity, 
+                      const Numeric part_fct_ratio, 
+                      const Numeric Isotopologue_Mass,
+                      const Numeric e_lower, 
+                      const Numeric T0, 
+                      const Numeric Sgam,
+                      const Numeric Nself,
+                      const Numeric Tgam,
+                      const Numeric Agam,
+                      const Numeric Nair,
+                      const Numeric Psf,
+                      const Numeric temperature, 
+                      const Numeric pressure, 
+                      const Numeric p_partial, 
+                      const Numeric cutoff,
+                      const Numeric LM_DF,
+                      const Numeric LM_Y, 
+                      const Numeric LM_G, 
+                      const Index this_species,
+                      const Index nf, 
+                      const Index ind_ls, 
+                      const Index ind_lsn, 
+                      const Index LineRecord_Version, 
+                      const Index LineRecord_Species, 
+                      const Index LineRecord_Isotopologue, 
+                      const bool quadratic_lineshape, 
+                      const bool cut, 
+                      const bool calc_phase, 
+                      const Verbosity& verbosity);
+
+
 void xsec_species_line_mixing_wrapper(      MatrixView               xsec_attenuation,
                                             MatrixView               xsec_phase,
                                             ConstVectorView          f_grid,
@@ -542,6 +588,7 @@ void xsec_species_line_mixing_wrapper(      MatrixView               xsec_attenu
                                             const ArrayOfArrayOfSpeciesTag& abs_species,
                                             const Index              this_species,
                                             const ArrayOfLineRecord& abs_lines,
+                                            const Vector&            Z_DF,
                                             const Index              ind_ls,
                                             const Index              ind_lsn,
                                             const Numeric            cutoff,
@@ -549,51 +596,98 @@ void xsec_species_line_mixing_wrapper(      MatrixView               xsec_attenu
                                             const Verbosity&         verbosity );
 
 
-void xsec_species_line_mixing_2nd_order(    VectorView               xsec_attenuation,
-                                            VectorView               xsec_phase,
-                                            ConstVectorView          f_grid,
-                                            ConstVectorView          abs_p,
-                                            ConstVectorView          abs_t,
-                                            ConstMatrixView          all_vmrs,
-                                            const ArrayOfArrayOfSpeciesTag& abs_species,
-                                            const Index              this_species,
-                                            const LineRecord&        abs_lines,
-                                            const Index              ind_ls,
-                                            const Index              ind_lsn,
-                                            const Numeric            cutoff,
-                                            const SpeciesAuxData&    isotopologue_ratios,
-                                            const Verbosity&         verbosity );
-
-void xsec_species_line_mixing_LBLRTM(       VectorView               xsec_attenuation,
-                                            VectorView               xsec_phase,
-                                            ConstVectorView          f_grid,
-                                            ConstVectorView          abs_p,
-                                            ConstVectorView          abs_t,
-                                            ConstMatrixView          all_vmrs,
-                                            const ArrayOfArrayOfSpeciesTag& abs_species,
-                                            const Index              this_species,
-                                            const LineRecord&        my_line,
-                                            const Index              ind_ls,
-                                            const Index              ind_lsn,
-                                            const Numeric            cutoff,
-                                            const SpeciesAuxData&    isotopologue_ratios,
-                                            const Verbosity&         verbosity );
+void xsec_species_line_mixing_2nd_order(VectorView               xsec_attenuation,
+                                        VectorView               xsec_phase,
+                                        Vector&                  attenuation,
+                                        Vector&                  phase,
+                                        Vector&                  f_local,
+                                        Vector&                  aux,
+                                        Vector&                  fac,
+                                        const Vector&            f_grid,
+                                        const Numeric            p,
+                                        const Numeric            t,
+                                        ConstVectorView          vmrs,
+                                        const Index              this_species,
+                                        const LineRecord&        my_line,
+                                        const Numeric            Z_DF,
+                                        const Index              ind_ls,
+                                        const Index              ind_lsn,
+                                        const Numeric            cutoff,
+                                        const Numeric            p_partial,
+                                        const ArrayOfIndex       broad_spec_locations,
+                                        const SpeciesAuxData&    isotopologue_ratios,
+                                        const Verbosity&         verbosity );
 
 
-void xsec_species_LBLRTM_O2NonResonant(   VectorView               xsec_attenuation,
-                                          //VectorView               xsec_phase,
-                                          ConstVectorView          f_grid,
-                                          ConstVectorView          abs_p,
-                                          ConstVectorView          abs_t,
-                                          ConstMatrixView          all_vmrs,
-                                          const ArrayOfArrayOfSpeciesTag& abs_species,
-                                          const Index              this_species,
-                                          const LineRecord&        my_line,
-                                          //const Index              ind_ls,
-                                          const Index              ind_lsn,
-                                          const Numeric            cutoff,
-                                          const SpeciesAuxData&    isotopologue_ratios,
-                                          const Verbosity&         verbosity );
+void xsec_species_line_mixing_LBLRTM(VectorView               xsec_attenuation,
+                                     VectorView               xsec_phase,
+                                     Vector&                  attenuation,
+                                     Vector&                  phase,
+                                     Vector&                  f_local,
+                                     Vector&                  aux,
+                                     Vector&                  fac,
+                                     const Vector&            f_grid,
+                                     const Numeric            p,
+                                     const Numeric            t,
+                                     ConstVectorView          vmrs,
+                                     const Index              this_species,
+                                     const LineRecord&        my_line,
+                                     const Numeric            Z_DF,
+                                     const Index              ind_ls,
+                                     const Index              ind_lsn,
+                                     const Numeric            cutoff,
+                                     const Numeric            p_partial,
+                                     const ArrayOfIndex       broad_spec_locations,
+                                     const SpeciesAuxData&    isotopologue_ratios,
+                                     const Verbosity&         verbosity );
+
+
+void xsec_species_LBLRTM_O2NonResonant(VectorView               xsec_attenuation,
+                                       VectorView               xsec_phase,
+                                       Vector&                  attenuation,
+                                       Vector&                  phase,
+                                       Vector&                  f_local,
+                                       Vector&                  aux,
+                                       Vector&                  fac,
+                                       const Vector&            f_grid,
+                                       const Numeric            p,
+                                       const Numeric            t,
+                                       ConstVectorView          vmrs,
+                                       const Index              this_species,
+                                       const LineRecord&        my_line,
+                                       const Index              ind_lsn,
+                                       const Numeric            cutoff,
+                                       const Numeric            p_partial,
+                                       const ArrayOfIndex       broad_spec_locations,
+                                       const SpeciesAuxData&    isotopologue_ratios,
+                                       const Verbosity&         verbosity );
+
+
+
+void calc_gamma_and_deltaf_artscat4(Numeric& gamma,
+                                    Numeric& deltaf,
+                                    const Numeric p,
+                                    const Numeric t,
+                                    ConstVectorView vmrs,
+                                    const Index this_species,
+                                    const ArrayOfIndex& broad_spec_locations,
+                                    const Numeric& T0,
+                                    const Numeric& Sgam,
+                                    const Numeric& Nself,
+                                    const Vector&  Gamma_foreign,
+                                    const Vector&  N_foreign,
+                                    const Vector&  Delta_foreign,
+                                    const Verbosity& verbosity);
+
+void calc_gamma_and_deltaf_artscat4_old_unused(Numeric& gamma,
+                                               Numeric& deltaf,
+                                               const Numeric p,
+                                               const Numeric t,
+                                               ConstVectorView vmrs,
+                                               const Index this_species,
+                                               const ArrayOfIndex& broad_spec_locations,
+                                               const LineRecord& l_l,
+                                               const Verbosity& verbosity);
 
 
 // A helper function for energy conversion:
