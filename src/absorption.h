@@ -702,7 +702,6 @@ Index species_index_from_species_name( String name );
 
 String species_name_from_species_index( const Index spec_ind );
 
-
 //======================================================================
 //             Functions to convert the accuracy index
 //======================================================================

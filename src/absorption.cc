@@ -661,10 +661,10 @@ void xsec_species( MatrixView               xsec_attenuation,
     {
         if ( ! is_sorted( f_grid ) )
         {
-            ostringstream os;
+            std::ostringstream os;
             os << "If you use a lineshape function with cutoff, your\n"
-            << "frequency grid *f_grid* must be sorted.\n"
-            << "(Duplicate values are allowed.)";
+               << "frequency grid *f_grid* must be sorted.\n"
+               << "(Duplicate values are allowed.)";
             throw std::runtime_error(os.str());
         }
     }
@@ -682,7 +682,7 @@ void xsec_species( MatrixView               xsec_attenuation,
     {
         std::ostringstream os;
         os << "abs_t contains at least one negative temperature value.\n"
-        << "This is not allowed.";
+           << "This is not allowed.";
         throw std::runtime_error(os.str());
     }
     
@@ -712,8 +712,8 @@ void xsec_species( MatrixView               xsec_attenuation,
     {
         std::ostringstream os;
         os << "Variable abs_t must have the same dimension as abs_p.\n"
-        << "abs_t.nelem() = " << abs_t.nelem() << '\n'
-        << "abs_p.nelem() = " << np;
+           << "abs_t.nelem() = " << abs_t.nelem() << '\n'
+           << "abs_p.nelem() = " << np;
         throw std::runtime_error(os.str());
     }
     
@@ -721,10 +721,10 @@ void xsec_species( MatrixView               xsec_attenuation,
     
     if ( all_vmrs.ncols() != np )
     {
-        ostringstream os;
+        std::ostringstream os;
         os << "Number of columns of all_vmrs must match abs_p.\n"
-        << "all_vmrs.ncols() = " << all_vmrs.ncols() << '\n'
-        << "abs_p.nelem() = " << np;
+           << "all_vmrs.ncols() = " << all_vmrs.ncols() << '\n'
+           << "abs_p.nelem() = " << np;
         throw std::runtime_error(os.str());
     }
     
@@ -732,10 +732,10 @@ void xsec_species( MatrixView               xsec_attenuation,
     
     if ( all_vmrs.nrows() != nspecies)
     {
-        ostringstream os;
+        std::ostringstream os;
         os << "Number of rows of all_vmrs must match abs_species.\n"
-        << "all_vmrs.nrows() = " << all_vmrs.nrows() << '\n'
-        << "abs_species.nelem() = " << nspecies;
+           << "all_vmrs.nrows() = " << all_vmrs.nrows() << '\n'
+           << "abs_species.nelem() = " << nspecies;
         throw std::runtime_error(os.str());
     }
     
@@ -745,20 +745,21 @@ void xsec_species( MatrixView               xsec_attenuation,
     {
         std::ostringstream os;
         os << "Variable xsec must have dimensions [f_grid.nelem(),abs_p.nelem()].\n"
-        << "[xsec_attenuation.nrows(),xsec_attenuation.ncols()] = [" << xsec_attenuation.nrows()
-        << ", " << xsec_attenuation.ncols() << "]\n"
-        << "f_grid.nelem() = " << nf << '\n'
-        << "abs_p.nelem() = " << np;
+           << "[xsec_attenuation.nrows(),xsec_attenuation.ncols()] = [" << xsec_attenuation.nrows()
+           << ", " << xsec_attenuation.ncols() << "]\n"
+           << "f_grid.nelem() = " << nf << '\n'
+           << "abs_p.nelem() = " << np;
         throw std::runtime_error(os.str());
     }
+    
     if ( xsec_phase.nrows() != nf || xsec_phase.ncols() != np )
     {
         std::ostringstream os;
         os << "Variable xsec must have dimensions [f_grid.nelem(),abs_p.nelem()].\n"
-        << "[xsec_phase.nrows(),xsec_phase.ncols()] = [" << xsec_phase.nrows()
-        << ", " << xsec_phase.ncols() << "]\n"
-        << "f_grid.nelem() = " << nf << '\n'
-        << "abs_p.nelem() = " << np;
+           << "[xsec_phase.nrows(),xsec_phase.ncols()] = [" << xsec_phase.nrows()
+           << ", " << xsec_phase.ncols() << "]\n"
+           << "f_grid.nelem() = " << nf << '\n'
+           << "abs_p.nelem() = " << np;
         throw std::runtime_error(os.str());
     }
     
@@ -779,155 +780,155 @@ void xsec_species( MatrixView               xsec_attenuation,
     
     // Loop all pressures:
     if (np)
-        #pragma omp parallel for                    \
-        if (!arts_omp_in_parallel()               \
-            && np >= arts_omp_get_max_threads())  \
-            firstprivate(ls_attenuation, ls_phase, fac, f_local, aux)
-            for ( Index i=0; i<np; ++i )
+#pragma omp parallel for                    \
+if (!arts_omp_in_parallel()               \
+&& np >= arts_omp_get_max_threads())  \
+firstprivate(ls_attenuation, ls_phase, fac, f_local, aux)
+        for ( Index i=0; i<np; ++i )
+        {
+            if (failed) continue;
+            
+            // Store input profile variables, this is perhaps slightly faster.
+            const Numeric p_i       = abs_p[i];
+            const Numeric t_i       = abs_t[i];
+            const Numeric vmr_i     = all_vmrs(this_species,i);
+            
+            //out3 << "  p = " << p_i << " Pa\n";
+            
+            // Calculate total number density from pressure and temperature.
+            // n = n0*T0/p0 * p/T or n = p/kB/t, ideal gas law
+            //      const Numeric n = p_i / BOLTZMAN_CONST / t_i;
+            // This is not needed anymore, since we now calculate true cross
+            // sections, which do not contain the n.
+            
+            // For the pressure broadening, we also need the partial pressure:
+            const Numeric p_partial = p_i * vmr_i;
+            
+            // Get handle on xsec for this pressure level i.
+            // Watch out! This is output, we have to be careful not to
+            // introduce race conditions when writing to it.
+            VectorView xsec_i_attenuation = xsec_attenuation(Range(joker),i);
+            VectorView xsec_i_phase = xsec_phase(Range(joker),i);
+            
+            
+            //       if (omp_in_parallel())
+            //         cout << "omp_in_parallel: true\n";
+            //       else
+            //         cout << "omp_in_parallel: false\n";
+            
+            
+            // Prepare a variable that can be used by the individual LBL
+            // threads to add up absorption:
+            Index n_lbl_threads;
+            if (arts_omp_in_parallel())
             {
+                // If we already are running parallel, then the LBL loop
+                // will not be parallelized.
+                n_lbl_threads = 1;
+            }
+            else
+            {
+                n_lbl_threads = arts_omp_get_max_threads();
+            }
+            Matrix xsec_accum_attenuation(n_lbl_threads, xsec_i_attenuation.nelem(), 0);
+            Matrix xsec_accum_phase(n_lbl_threads, xsec_i_phase.nelem(), 0);
+            
+            ConstVectorView vmrs = all_vmrs(joker,i);
+            
+            // Loop all lines:
+            if (nl)
+#pragma omp parallel for                   \
+if (!arts_omp_in_parallel()               \
+&& nl >= arts_omp_get_max_threads())  \
+firstprivate(ls_attenuation, ls_phase, fac, f_local, aux)
+                for ( Index l=0; l< nl; ++l )
+                {
+                    // Skip remaining iterations if an error occurred
+                    if (failed) continue;
+                    
+                    //           if (omp_in_parallel())
+                    //             cout << "LBL: omp_in_parallel: true\n";
+                    //           else
+                    //             cout << "LBL: omp_in_parallel: false\n";
+                    
+                    
+                    // The try block here is necessary to correctly handle
+                    // exceptions inside the parallel region.
+                    try
+                    {
+                        const LineRecord& l_l = abs_lines[l];
+                        
+                        xsec_single_line(xsec_accum_attenuation(arts_omp_get_thread_num(),joker),
+                                         xsec_accum_phase(arts_omp_get_thread_num(),joker),
+                                         ls_attenuation,
+                                         ls_phase,
+                                         fac,
+                                         f_local,
+                                         aux,
+                                         isotopologue_ratios,
+                                         broad_spec_locations,
+                                         f_grid,
+                                         vmrs,
+                                         l_l.Gamma_foreign(),
+                                         l_l.N_foreign(),
+                                         l_l.Delta_foreign(),
+                                         l_l.F(),
+                                         l_l.I0(),
+                                         l_l.IsotopologueData().CalculatePartitionFctRatio(l_l.Ti0(),t_i),
+                                         l_l.IsotopologueData().Mass(),
+                                         l_l.Elow(),
+                                         l_l.Ti0(),
+                                         l_l.Sgam(),
+                                         l_l.Nself(),
+                                         l_l.Tgam(),
+                                         l_l.Agam(),
+                                         l_l.Nair(),
+                                         l_l.Psf(),
+                                         t_i,
+                                         p_i,
+                                         p_partial,
+                                         cutoff,
+                                         0,
+                                         0,
+                                         0,
+                                         this_species,
+                                         nf,
+                                         ind_ls,
+                                         ind_lsn,
+                                         l_l.Version(),
+                                         l_l.Species(),
+                                         l_l.Isotopologue(),
+                                         lineshape_norm_data[ind_lsn].Name() == "quadratic",
+                                         cut,
+                                         calc_phase,
+                                         verbosity);
+                        
+                    } // end of try block
+                    catch (runtime_error e)
+                    {
+                        #pragma omp critical (xsec_species_fail)
+                        { fail_msg = e.what(); failed = true; }
+                    }
+                    
+                } // end of parallel LBL loop
+                
+                // Bail out if an error occurred in the LBL loop
                 if (failed) continue;
                 
-                // Store input profile variables, this is perhaps slightly faster.
-                const Numeric p_i       = abs_p[i];
-                const Numeric t_i       = abs_t[i];
-                const Numeric vmr_i     = all_vmrs(this_species,i);
-                
-                //out3 << "  p = " << p_i << " Pa\n";
-                
-                // Calculate total number density from pressure and temperature.
-                // n = n0*T0/p0 * p/T or n = p/kB/t, ideal gas law
-                //      const Numeric n = p_i / BOLTZMAN_CONST / t_i;
-                // This is not needed anymore, since we now calculate true cross
-                // sections, which do not contain the n.
-                
-                // For the pressure broadening, we also need the partial pressure:
-                const Numeric p_partial = p_i * vmr_i;
-                
-                // Get handle on xsec for this pressure level i.
-                // Watch out! This is output, we have to be careful not to
-                // introduce race conditions when writing to it.
-                VectorView xsec_i_attenuation = xsec_attenuation(Range(joker),i);
-                VectorView xsec_i_phase = xsec_phase(Range(joker),i);
-                
-                
-                //       if (omp_in_parallel())
-                //         cout << "omp_in_parallel: true\n";
-                //       else
-                //         cout << "omp_in_parallel: false\n";
-                
-                
-                // Prepare a variable that can be used by the individual LBL
-                // threads to add up absorption:
-                Index n_lbl_threads;
-                if (arts_omp_in_parallel())
+                // Now we just have to add up all the rows of xsec_accum:
+                for (Index j=0; j<xsec_accum_attenuation.nrows(); ++j)
                 {
-                    // If we already are running parallel, then the LBL loop
-                    // will not be parallelized.
-                    n_lbl_threads = 1;
+                    xsec_i_attenuation += xsec_accum_attenuation(j, Range(joker));
                 }
-                else
-                {
-                    n_lbl_threads = arts_omp_get_max_threads();
-                }
-                Matrix xsec_accum_attenuation(n_lbl_threads, xsec_i_attenuation.nelem(), 0);
-                Matrix xsec_accum_phase(n_lbl_threads, xsec_i_phase.nelem(), 0);
                 
-                ConstVectorView vmrs = all_vmrs(joker,i);
-                
-                // Loop all lines:
-                if (nl)
-                    #pragma omp parallel for                   \
-                    if (!arts_omp_in_parallel()               \
-                        && nl >= arts_omp_get_max_threads())  \
-                        firstprivate(ls_attenuation, ls_phase, fac, f_local, aux)
-                        for ( Index l=0; l< nl; ++l )
-                        {
-                            // Skip remaining iterations if an error occurred
-                            if (failed) continue;
-                            
-                            //           if (omp_in_parallel())
-                            //             cout << "LBL: omp_in_parallel: true\n";
-                            //           else
-                            //             cout << "LBL: omp_in_parallel: false\n";
-                            
-                            
-                            // The try block here is necessary to correctly handle
-                            // exceptions inside the parallel region.
-                            try
-                            {
-                                const LineRecord& l_l = abs_lines[l];
-                                
-                                xsec_single_line(xsec_accum_attenuation(arts_omp_get_thread_num(),joker),
-                                                 xsec_accum_phase(arts_omp_get_thread_num(),joker),
-                                                 ls_attenuation,
-                                                 ls_phase,
-                                                 fac,
-                                                 f_local,
-                                                 aux,
-                                                 isotopologue_ratios,
-                                                 broad_spec_locations,
-                                                 f_grid,
-                                                 vmrs,
-                                                 l_l.Gamma_foreign(),
-                                                 l_l.N_foreign(),
-                                                 l_l.Delta_foreign(),
-                                                 l_l.F(),
-                                                 l_l.I0(),
-                                                 l_l.IsotopologueData().CalculatePartitionFctRatio(l_l.Ti0(),t_i),
-                                                 l_l.IsotopologueData().Mass(),
-                                                 l_l.Elow(),
-                                                 l_l.Ti0(),
-                                                 l_l.Sgam(),
-                                                 l_l.Nself(),
-                                                 l_l.Tgam(),
-                                                 l_l.Agam(),
-                                                 l_l.Nair(),
-                                                 l_l.Psf(),
-                                                 t_i,
-                                                 p_i,
-                                                 p_partial,
-                                                 cutoff,
-                                                 0,
-                                                 0,
-                                                 0,
-                                                 this_species,
-                                                 nf,
-                                                 ind_ls,
-                                                 ind_lsn,
-                                                 l_l.Version(),
-                                                 l_l.Species(),
-                                                 l_l.Isotopologue(),
-                                                 lineshape_norm_data[ind_lsn].Name() == "quadratic",
-                                                 cut,
-                                                 calc_phase,
-                                                 verbosity);
-                                
-                            } // end of try block
-                            catch (runtime_error e)
-                            {
-                                #pragma omp critical (xsec_species_fail)
-                                { fail_msg = e.what(); failed = true; }
-                            }
-                            
-                        } // end of parallel LBL loop
-                        
-                        // Bail out if an error occurred in the LBL loop
-                        if (failed) continue;
-                        
-                        // Now we just have to add up all the rows of xsec_accum:
-                        for (Index j=0; j<xsec_accum_attenuation.nrows(); ++j)
-                        {
-                            xsec_i_attenuation += xsec_accum_attenuation(j, Range(joker));
-                        }
-                        
-                        if (calc_phase)
-                            for (Index j=0; j<xsec_accum_phase.nrows(); ++j)
-                            {
-                                xsec_i_phase += xsec_accum_phase(j, Range(joker));
-                            }
-            } // end of parallel pressure loop
-            
-            if (failed) throw std::runtime_error("Run-time error in function: xsec_species\n" + fail_msg);
+                if (calc_phase)
+                    for (Index j=0; j<xsec_accum_phase.nrows(); ++j)
+                    {
+                        xsec_i_phase += xsec_accum_phase(j, Range(joker));
+                    }
+    } // end of parallel pressure loop
+    
+    if (failed) throw std::runtime_error("Run-time error in function: xsec_species\n" + fail_msg);
 }
 
 
@@ -1231,10 +1232,6 @@ void xsec_single_line(VectorView xsec_accum_attenuation,
     // will always be at least one, because it contains the cutoff.
     if ( nfl > 0 )
     {
-        //               cout << ls << endl
-        //                    << "aux / F0 / gamma / sigma" << aux << "/" << F0 << "/" << gamma << "/" << sigma << endl
-        //                    << f_local[Range(i_f_min,nfls)] << endl
-        //                    << nfls << endl;
         
         // Calculate the line shape:
         global_data::lineshape_data[ind_ls].Function()(attenuation,phase,
@@ -1246,6 +1243,7 @@ void xsec_single_line(VectorView xsec_accum_attenuation,
                                                              f_local[Range(i_f_min,nfls)],
                                                              temperature);
         
+        // Reset f_local for next loop through now that cutoff is calculated
         if( i_f_max < nf )
             f_local[i_f_max] = f_grid[i_f_max];
         
@@ -1262,13 +1260,19 @@ void xsec_single_line(VectorView xsec_accum_attenuation,
         // Line Mixing
         if(LM_G!=0)
         {
+            // Apply line mixing to both cutoff and other values
             this_ls_attenuation*=1+LM_G;
+            if(cut)
+                attenuation[nfls-1]*=1+LM_G;
         }
         if(LM_Y!=0)
         {
+            // Apply line mixing to both cutoff and other values
             Vector tmp = this_ls_phase;
             tmp *=LM_Y;
             this_ls_attenuation+=tmp;
+            if(cut)
+                attenuation[nfls-1]+=phase[nfls-1]*LM_Y;
         }
         
         // cutoff ?
@@ -1279,20 +1283,33 @@ void xsec_single_line(VectorView xsec_accum_attenuation,
             // to the value at the cutoff frequency.
             // Subtract baseline from xsec.
             // this_xsec -= base;
-            if(LM_Y!=0) // Note that this practically twists the function...
+            
+            // If line mixing is active we need to be 
+            // careful about how to do the cutoff so we do not produce
+            // large negative values of attenuation.
+            // Error checking means that if this produce large errors we
+            // should introduce hard limits on absorption to force set it
+            // as zero if negative.  First try sign change.
+            if(LM_Y!=0) 
             {
-                Vector tmp;
+                Vector tmp = f_local[Range(i_f_min,nfl)];
+                tmp -= F0; // make it go from positive to negative values on either side of the line center
+                tmp /= (cutoff / attenuation[nfls-1]); // make extreme values take on attenuation at 
                 if(LM_Y<0)
-                    nlinspace(tmp,attenuation[nfls-1],-attenuation[nfls-1],nfl);
+                {
+                    // If Y less than 0 then attenuation is added after line center.
+                    this_ls_attenuation -= tmp; // Note minus sign.
+                }
                 else
-                    nlinspace(tmp,-attenuation[nfls-1],attenuation[nfls-1],nfl);
-                this_ls_attenuation -= tmp; //  And that this only works if cutoff >> broadening
+                {
+                    // If Y is larger than 0 then attenuation is added before line center.
+                    this_ls_attenuation += tmp; // Note plus sign.
+                } 
             }
             else
             {
-                this_ls_attenuation -= attenuation[nfls-1];
+                this_ls_attenuation -= attenuation[nfls-1]; // cutoff is constant otherwise
             }
-            //if (calc_phase) this_ls_phase -= ls_phase[nfls-1];  PHASE is not compatible with cutoff
         }
         
         // Add line to xsec.
@@ -1688,6 +1705,82 @@ void xsec_species_line_mixing_wrapper(  MatrixView               xsec_attenuatio
         throw std::runtime_error(os.str());
     }
     
+    const bool cut = (cutoff != -1) ? true : false;
+    
+    // Check that the frequency grid is sorted in the case of lineshape
+    // with cutoff. Duplicate frequency values are allowed.
+    if (cut)
+    {
+        if ( ! is_sorted( f_grid ) )
+        {
+            std::ostringstream os;
+            os << "If you use a lineshape function with cutoff, your\n"
+               << "frequency grid *f_grid* must be sorted.\n"
+               << "(Duplicate values are allowed.)";
+            throw std::runtime_error(os.str());
+        }
+    }
+    
+    // Check that all temperatures are non-negative
+    bool negative = false;
+    
+    for (Index i = 0; !negative && i < abs_t.nelem (); i++)
+    {
+        if (abs_t[i] < 0.)
+            negative = true;
+    }
+    
+    if (negative)
+    {
+        std::ostringstream os;
+        os << "abs_t contains at least one negative temperature value.\n"
+           << "This is not allowed.";
+        throw std::runtime_error(os.str());
+    }
+    
+    if ( abs_t.nelem() != abs_p.nelem() )
+    {
+        std::ostringstream os;
+        os << "Variable abs_t must have the same dimension as abs_p.\n"
+           << "abs_t.nelem() = " << abs_t.nelem() << '\n'
+           << "abs_p.nelem() = " << abs_p.nelem();
+        throw std::runtime_error(os.str());
+    }
+    
+    // all_vmrs should have dimensions [nspecies, np]:
+    
+    if ( all_vmrs.ncols() != abs_p.nelem() )
+    {
+        std::ostringstream os;
+        os << "Number of columns of all_vmrs must match abs_p.\n"
+           << "all_vmrs.ncols() = " << all_vmrs.ncols() << '\n'
+           << "abs_p.nelem() = " << abs_p.nelem();
+        throw std::runtime_error(os.str());
+    }
+    
+    // Check that the dimension of xsec is indeed [f_grid.nelem(),
+    // abs_p.nelem()]:
+    if ( xsec_attenuation.nrows() != f_grid.nelem() || xsec_attenuation.ncols() != abs_p.nelem() )
+    {
+        std::ostringstream os;
+        os << "Variable xsec must have dimensions [f_grid.nelem(),abs_p.nelem()].\n"
+           << "[xsec_attenuation.nrows(),xsec_attenuation.ncols()] = [" << xsec_attenuation.nrows()
+           << ", " << xsec_attenuation.ncols() << "]\n"
+           << "f_grid.nelem() = " << f_grid.nelem() << '\n'
+           << "abs_p.nelem() = " << abs_p.nelem();
+        throw std::runtime_error(os.str());
+    }
+    
+    if ( xsec_phase.nrows() != f_grid.nelem() || xsec_phase.ncols() != abs_p.nelem() )
+    {
+        std::ostringstream os;
+        os << "Variable xsec must have dimensions [f_grid.nelem(),abs_p.nelem()].\n"
+           << "[xsec_phase.nrows(),xsec_phase.ncols()] = [" << xsec_phase.nrows()
+           << ", " << xsec_phase.ncols() << "]\n"
+           << "f_grid.nelem() = " << f_grid.nelem() << '\n'
+           << "abs_p.nelem() = " << abs_p.nelem();
+        throw std::runtime_error(os.str());
+    }
     
     //Helper var 
     ArrayOfIndex tmp_none_mixed_lines_index;
@@ -1703,8 +1796,6 @@ void xsec_species_line_mixing_wrapper(  MatrixView               xsec_attenuatio
     find_broad_spec_locations(broad_spec_locations,
                               abs_species,
                               this_species);
-    
-    const bool cut = (cutoff != -1) ? true : false;
     
     #pragma omp parallel for        \
     if (!arts_omp_in_parallel())    \

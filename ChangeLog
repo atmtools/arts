@@ -1,3 +1,10 @@
+2014-10-30  Richard Larsson <ric.larsson@gmail.com>
+	
+	* arts-2-3-60
+	
+	* src/absorption.{cc,h}:  Fixed how line mixing deals with cutoff.
+	Also added sec_species tests to wrapper.
+
 2014-10-29  Richard Larsson <ric.larsson@gmail.com>
 	
 	* arts-2-3-59
