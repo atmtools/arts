@@ -1,5 +1,12 @@
 2014-10-30  Richard Larsson <ric.larsson@gmail.com>
 	
+	* arts-2-3-62
+	
+	* src/methods.cc:  propmat_clearsky is now also input to the zero forcing
+	function.
+
+2014-10-30  Richard Larsson <ric.larsson@gmail.com>
+	
 	* arts-2-3-61
 	
 	* src/{m_abs.cc,methods.cc}:  Added propmat_clearskyForceNegativeToZero, 

@@ -8744,7 +8744,7 @@ void define_md_data_raw()
           GOUT(),
           GOUT_TYPE(),
           GOUT_DESC(),
-          IN(),
+          IN("propmat_clearsky"),
           GIN(),
           GIN_TYPE(),
           GIN_DEFAULT(),
