@@ -8729,6 +8729,28 @@ void define_md_data_raw()
         GIN_DESC()
         ));
     
+    md_data_raw.push_back
+      ( MdRecord
+        ( NAME( "propmat_clearskyForceNegativeToZero" ),
+          DESCRIPTION
+          (
+           "Sets *propmat_clearsky* to match zero attenuation\n"
+           "if negative value.  Useful for line mixing in some cases.\n"
+           "\n"
+           "Use this method just if you know what you are doing!\n"
+          ),
+          AUTHORS( "Richard Larsson" ),
+          OUT("propmat_clearsky"),
+          GOUT(),
+          GOUT_TYPE(),
+          GOUT_DESC(),
+          IN(),
+          GIN(),
+          GIN_TYPE(),
+          GIN_DEFAULT(),
+          GIN_DESC()
+        ));
+    
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "propmat_clearsky_agenda_checkedCalc" ),

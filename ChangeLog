@@ -1,5 +1,13 @@
 2014-10-30  Richard Larsson <ric.larsson@gmail.com>
 	
+	* arts-2-3-61
+	
+	* src/{m_abs.cc,methods.cc}:  Added propmat_clearskyForceNegativeToZero, 
+	which force propmat_clearsky to zero if negative.  This seems necessary
+	for CO2 line mixing from testing.
+
+2014-10-30  Richard Larsson <ric.larsson@gmail.com>
+	
 	* arts-2-3-60
 	
 	* src/absorption.{cc,h}:  Fixed how line mixing deals with cutoff.

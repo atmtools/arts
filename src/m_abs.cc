@@ -2449,6 +2449,16 @@ void propmat_clearskyZero(
 }
 
 
+/* Workspace method: Doxygen documentation will be auto-generated */
+void propmat_clearskyForceNegativeToZero(
+    Tensor4&    propmat_clearsky,
+    const Verbosity& )
+{
+    for(Index ii=0;ii<propmat_clearsky.nbooks();ii++)
+        for(Index jj=0;jj<propmat_clearsky.npages();jj++)
+            if(propmat_clearsky(ii,jj,0,0)<0)
+                propmat_clearsky(ii,jj,0,0) = 0;
+}
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
