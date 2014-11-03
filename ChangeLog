@@ -1,3 +1,13 @@
+2014-11-03  Richard Larsson <ric.larsson@gmail.com>
+
+        * arts-2-3-63
+	
+	* src/absorption.cc:  Simplified so cutoff is not dependent on 
+	linemixing.  We (me and Manfred) found this produced most consistent
+	results with AER's own simulations.  Note that line mixing will 
+	produce negative absorption at some frequencies in the present
+	only option so zero forcing is required.
+
 2014-10-30  Richard Larsson <ric.larsson@gmail.com>
 	
 	* arts-2-3-62

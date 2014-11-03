@@ -1269,7 +1269,7 @@ void xsec_single_line(VectorView xsec_accum_attenuation,
         {
             // Apply line mixing to both cutoff and other values
             Vector tmp = this_ls_phase;
-            tmp *=LM_Y;
+            tmp *= LM_Y;
             this_ls_attenuation+=tmp;
             if(cut)
                 attenuation[nfls-1]+=phase[nfls-1]*LM_Y;
@@ -1282,34 +1282,7 @@ void xsec_single_line(VectorView xsec_accum_attenuation,
             // The index nfls-1 should be exactly the index pointing
             // to the value at the cutoff frequency.
             // Subtract baseline from xsec.
-            // this_xsec -= base;
-            
-            // If line mixing is active we need to be 
-            // careful about how to do the cutoff so we do not produce
-            // large negative values of attenuation.
-            // Error checking means that if this produce large errors we
-            // should introduce hard limits on absorption to force set it
-            // as zero if negative.  First try sign change.
-            if(LM_Y!=0) 
-            {
-                Vector tmp = f_local[Range(i_f_min,nfl)];
-                tmp -= F0; // make it go from positive to negative values on either side of the line center
-                tmp /= (cutoff / attenuation[nfls-1]); // make extreme values take on attenuation at 
-                if(LM_Y<0)
-                {
-                    // If Y less than 0 then attenuation is added after line center.
-                    this_ls_attenuation -= tmp; // Note minus sign.
-                }
-                else
-                {
-                    // If Y is larger than 0 then attenuation is added before line center.
-                    this_ls_attenuation += tmp; // Note plus sign.
-                } 
-            }
-            else
-            {
-                this_ls_attenuation -= attenuation[nfls-1]; // cutoff is constant otherwise
-            }
+            this_ls_attenuation -= attenuation[nfls-1]; // cutoff is constant
         }
         
         // Add line to xsec.
