@@ -1594,6 +1594,93 @@ void pnd_fieldSetup (//WS Output:
                        scat_data_per_part_species[k], part_species[k], delim,
                        verbosity);
     }
+      
+      //---- pnd_field calculations for F07TR ----------------------------
+    else if ( psd_param == "F07TR" )
+    {
+        psd = "F07TR";
+        
+        //check for expected particle field name
+        if ( partfield_name != "SWC" && partfield_name != "IWC")
+        {
+            out1 << "WARNING! The particle field name is unequal 'IWC' and 'SWC'.\n"
+            << psd << " should only be applied to cloud or precipitating"
+            << " ice.\n";
+        }
+        
+        //check for expected particle phase
+        //check for correct particle phase
+        if ( part_material != "Ice" &&  part_material != "Snow" )
+        {
+            out1 << "WARNING! The particle phase is unequal 'Ice'.\n"
+            << psd << " should only be applied to ice (cloud ice or snow)"
+            << " particles.\n";
+        }
+        
+        pnd_fieldF07TR (pnd_field,
+                           massdensity_field ( k, joker, joker, joker ),
+                           t_field, limits,
+                           scat_meta_array, scat_data_start,
+                           scat_data_per_part_species[k], part_species[k], delim,
+                           verbosity);
+    }
+      
+      //---- pnd_field calculations for GM58 -------------------------------
+    else if ( psd_param == "GM58" )
+    {
+        psd = "GM58";
+        
+        //check for expected particle field name
+        if ( partfield_name != "Snow")
+        {
+            out1 << "WARNING! The particle field name is unequal 'Snow'.\n"
+            << psd << " should only be applied to frozen"
+            << " precipitation.\n";
+        }
+        
+        //check for expected particle phase
+        if ( part_material != "Ice")
+        {
+            out1 << "WARNING! The particle phase is unequal 'Ice' and 'Water'.\n"
+            << psd << " should only be applied to ice particles.\n";
+        }
+        
+        pnd_fieldGM58( pnd_field,
+                      massdensity_field ( k, joker, joker, joker ),
+                      limits,
+                      scat_meta_array, scat_data_start,
+                      scat_data_per_part_species[k], part_species[k], delim,
+                      verbosity);
+    }
+      
+      //---- pnd_field calculations for GM58 -------------------------------
+    else if ( psd_param == "SS70" )
+    {
+        psd = "SS70";
+        
+        //check for expected particle field name
+        if ( partfield_name != "Snow")
+        {
+            out1 << "WARNING! The particle field name is unequal 'Snow'.\n"
+            << psd << " should only be applied to frozen"
+            << " precipitation.\n";
+        }
+        
+        //check for expected particle phase
+        if ( part_material != "Ice")
+        {
+            out1 << "WARNING! The particle phase is unequal 'Ice' and 'Water'.\n"
+            << psd << " should only be applied to ice particles.\n";
+        }
+        
+        pnd_fieldSS70( pnd_field,
+                      massdensity_field ( k, joker, joker, joker ),
+                      limits,
+                      scat_meta_array, scat_data_start,
+                      scat_data_per_part_species[k], part_species[k], delim,
+                      verbosity);
+    }
+  
     
     //---- pnd_field calculations for MP48 -------------------------------
     else if ( psd_param == "MP48" )

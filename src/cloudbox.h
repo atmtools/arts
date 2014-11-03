@@ -142,6 +142,37 @@ void pnd_fieldH13Shape (Tensor4View pnd_field,
                    const String& delim,
                    const Verbosity& verbosity);
 
+void pnd_fieldF07TR (Tensor4View pnd_field,
+                      const Tensor3& IWC_field,
+                      const Tensor3& t_field,
+                      const ArrayOfIndex& limits,
+                      const ArrayOfScatteringMetaData& scat_meta_array,
+                      const Index& scat_data_start,
+                      const Index& npart,
+                      const String& part_string,
+                      const String& delim,
+                      const Verbosity& verbosity);
+
+void pnd_fieldGM58 (Tensor4View pnd_field,
+                    const Tensor3& PR_field,
+                    const ArrayOfIndex& limits,
+                    const ArrayOfScatteringMetaData& scat_meta_array,
+                    const Index& scat_data_start,
+                    const Index& npart,
+                    const String& part_string,
+                    const String& delim,
+                    const Verbosity& verbosity);
+
+void pnd_fieldSS70 (Tensor4View pnd_field,
+                    const Tensor3& PR_field,
+                    const ArrayOfIndex& limits,
+                    const ArrayOfScatteringMetaData& scat_meta_array,
+                    const Index& scat_data_start,
+                    const Index& npart,
+                    const String& part_string,
+                    const String& delim,
+                    const Verbosity& verbosity);
+
 void pnd_fieldMP48 (Tensor4View pnd_field,
                     const Tensor3& PR_field,
                     const ArrayOfIndex& limits,
@@ -179,6 +210,9 @@ Numeric IWCtopnd_H13Shape ( const Numeric d,
 
 Numeric area_ratioH13 ( const Numeric d,
                             const Numeric t);
+
+Numeric IWCtopnd_F07TR ( const Numeric d, const Numeric t,
+                         const Numeric iwc);
 
 Numeric LWCtopnd (const Numeric lwc,
                   const Numeric density,

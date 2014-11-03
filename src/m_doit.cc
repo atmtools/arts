@@ -2530,6 +2530,10 @@ void ScatteringDoit(
   // only non-reference types can be declared firstprivate in OpenMP
   Workspace l_ws (ws);
   Agenda l_doit_mono_agenda(doit_mono_agenda);
+    
+  // Resize and initialize
+  doit_i_field1D_spectrum.resize(0,0,0,0);
+    
 
   // OMP likes simple loop end conditions, so we make a local copy here: 
   const Index nf = f_grid.nelem();
@@ -2602,9 +2606,16 @@ void DoitCloudboxFieldPut(//WS Output:
                         "be 2 x *atmosphere_dim*"); 
   // End of checks.
   
-  // Resize and initialize *doit_i_field_spectra*
-  doit_i_field1D_spectrum.resize(N_f, N_p, N_za, stokes_dim); 
-  doit_i_field1D_spectrum = 0;
+  if( doit_i_field1D_spectrum.nbooks() != N_f
+     || doit_i_field1D_spectrum.npages() != N_p
+     || doit_i_field1D_spectrum.nrows() != N_za
+     || doit_i_field1D_spectrum.ncols() != stokes_dim)
+  {
+    
+    // Resize and initialize *doit_i_field_spectra*
+    doit_i_field1D_spectrum.resize(N_f, N_p, N_za, stokes_dim);
+    doit_i_field1D_spectrum = 0;
+  }
 
   // Put the doit_i_field at the cloudbox boundary into the interface variable 
   // scat_i_p.

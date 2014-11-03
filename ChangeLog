@@ -1,3 +1,27 @@
+2014-11-03 Manfred Brath  <manfred.brath@uni-hamburg.de>
+	
+	* arts-2-2-27
+	
+	* src/agendas.cc:
+	
+	Added doit_i_field1D_spectrum as input for doit_mono_agenda.
+	
+	* src/methods.cc:
+	
+	Added doit_i_field1D_spectrum as input for DoitCloudboxFieldPut.
+	
+	* src/m_doit.cc:
+	
+	(ScatteringDoit): Resize doit_i_field1D_spectrum to 0.
+	
+	(DoitCloudboxFieldPut): Resize doit_i_field1D_spectrum to correct
+	size if necessary.
+	
+	* src/cloudbox.{h,cc} (pnd_fieldF07TR, pnd_fieldGM58, pnd_fieldSS70),
+	src/m_cloudbox.cc (pnd_fieldSetup): 
+	
+	Added new distributions.
+
 2014-09-22  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-2-26

@@ -3517,7 +3517,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "scat_i_p", "doit_i_field", "f_grid", "f_index",   "p_grid", "lat_grid", 
+        IN( "scat_i_p", "doit_i_field1D_spectrum","doit_i_field", "f_grid", "f_index",   "p_grid", "lat_grid", 
             "lon_grid", "scat_za_grid", "scat_aa_grid", "stokes_dim",
             "atmosphere_dim", "cloudbox_limits", "sensor_pos", "z_field" ),
         GIN(),
