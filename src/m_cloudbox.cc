@@ -1442,6 +1442,11 @@ void pnd_fieldSetup (//WS Output:
     parse_psd_param( psd_param, scat_species[i_ss], delim);
     parse_partfield_name( partfield_name, scat_species[i_ss], delim);
 
+  /* NOTE: when adding further distributions here, document them (particularly
+   * the tags) in the WSM online documentation in methods.cc. Also, create a
+   * wrapper WSM to the dNdD core method.
+   */
+
     //---- pnd_field calculations for MH97 -------------------------------
     if ( psd_param.substr(0,4) == "MH97" )
     {

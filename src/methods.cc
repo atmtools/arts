@@ -3387,6 +3387,34 @@ void define_md_data_raw()
     
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "dNdD_Ar_H13" ),
+        DESCRIPTION
+        (
+         "Calculation of particle size and shape distribution (dN/dD, area\n"
+         "ratio) following Heymsfield (2013).\n"
+         "\n"
+         "A wrapper to internal particle size and shape distribution\n"
+         "calculation. Heymsfield (2013) is a globally valid parametrization\n"
+         "for cloud ice. The parametrization is in ambient atmospheric\n"
+         "temperature over particle size in terms of maximum dimension. It\n"
+         "provides the shape of the distribution function of both number\n"
+         "density and area ratio.\n"
+         ),
+        AUTHORS( "Jana Mendrok" ),
+        OUT(),
+        GOUT( "dNdD", "Ar" ),
+        GOUT_TYPE( "Vector", "Vector" ),
+        GOUT_DESC( "size distribution number density", "area ratio distribution" ),
+        IN(),
+        GIN( "Dmax", "t" ),
+        GIN_TYPE( "Vector", "Numeric" ),
+        GIN_DEFAULT( NODEF, NODEF ),
+        GIN_DESC( "Maximum dimension of the particles [m]",
+                  "Ambient atmospheric temperature [K]" )
+        ));  
+    
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "dNdD_H11" ),
         DESCRIPTION
         (
@@ -3416,39 +3444,11 @@ void define_md_data_raw()
     
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "dNdD_Ar_H13" ),
-        DESCRIPTION
-        (
-         "Calculation of particle size and shape distribution (dN/dD, area\n"
-         "ratio) following Heymsfield (2013).\n"
-         "\n"
-         "A wrapper to internal particle size and shape distribution\n"
-         "calculation. Heymsfield (2013) is a globally valid parametrization\n"
-         "for cloud ice. The parametrization is in ambient atmospheric\n"
-         "temperature over particle size in terms of maximum dimension. It\n"
-         "provides the shape of the distribution function of both number\n"
-         "density and area ratio.\n"
-         ),
-        AUTHORS( "Jana Mendrok" ),
-        OUT(),
-        GOUT( "dNdD", "Ar" ),
-        GOUT_TYPE( "Vector", "Vector" ),
-        GOUT_DESC( "size distribution number density", "area ratio distribution" ),
-        IN(),
-        GIN( "Dmax", "t" ),
-        GIN_TYPE( "Vector", "Numeric" ),
-        GIN_DEFAULT( NODEF, NODEF ),
-        GIN_DESC( "Maximum dimension of the particles [m]",
-                  "Ambient atmospheric temperature [K]" )
-        ));  
-    
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME( "dNdD_H98" ),
         DESCRIPTION
         (
-         "Calculation of particle size shape distribution (dN/dR) following\n"
-         "Hess et al. (1998).\n"
+         "Calculation of particle size shape distribution (dN/dD) following\n"
+         "continental stratus case of Hess et al. (1998).\n"
          "\n"
          "A wrapper to internal particle size distribution calculation. The\n"
          "distribution implemented here is for cloud liquid water,\n"
@@ -8052,13 +8052,39 @@ void define_md_data_raw()
       ( NAME( "pnd_fieldSetup" ),
         DESCRIPTION
         (
-         "Calculation of *pnd_field* using *scat_meta* and *scat_species_mass_density_field*.\n"
+         "Calculation of *pnd_field* using *scat_meta* and\n"
+         "*scat_species_mass_density_field*.\n"
          "\n"
-         "The WSM first checks if cloudbox is empty. If so, the pnd calculations\n"
-         "will be skipped.\n"
+         "The method calculates the number densities (pnd_field values) of\n"
+         "all individual scattering elements covered by the considered\n"
+         "scattering species for all grid points in the cloudbox. The number\n"
+         "densities represent the mass density profiles of the scattering\n"
+         "species according to the particle size distribution (PSD)\n"
+         "parametrization chosen for the respective scattering species.\n"
+         "\n"
+         "The following PSDs are available (for further information check\n"
+         "their corresponding distribution WSM):\n"
+         "\n"
+         "Tag       PSD WSM      Target         Notes\n"
+         "MH97      *dNdD_MH97*    cloud ice\n"
+         "H11       *dNdD_H11*     cloud ice\n"
+         "H13       *dNdD_Ar_H13*  cloud ice      neglects shape information\n"
+         "H13Shape  *dNdD_Ar_H13*  cloud ice\n"
+         "MP48      *dNdD_MP48*    precipitation  rain in particular\n"
+         "H98_STCO  *dNdD_H98*     cloud liquid   specifically continental stratus\n"
+         "\n"
+         "NOTE: The order of scattering particle profiles in\n"
+         "*scat_species_mass_density_field* has to fit the order of\n"
+         "*scat_species* tags. Furthermore, the order of *scat_species* tags\n"
+         "has to fit the order of scattering species in the *scat_meta*\n"
+         "array, i.e., *ScatteringParticleTypeAndMetaRead* with the\n"
+         "respective scattering data and meta data files has to be applied in\n"
+         "the right order!\n"
+/*         "The WSM first checks if cloudbox is empty. If so, the pnd\n"
+         "calculations will be skipped.\n"
          "The *cloudbox_limits* are used to determine the p, lat and lon size for\n"
          "the *pnd_field* tensor.\n"
-         "Currently there are three particle size distribution (PSD) parameterisations\n"
+         "Currently these particle size distribution (PSD) parameterisations are\n"
          "implemented:\n"
          "\t1. 'MH97' for ice particles. Parameterisation in temperature and mass content.\n"
          "\t Using a first-order gamma distribution for particles smaller than \n"
@@ -8067,11 +8093,11 @@ void define_md_data_raw()
          "\t See internal function 'IWCtopnd_MH97' for implementation/units/output.\n"
          "\t (src.: McFarquhar G.M., Heymsfield A.J., 1997)"
          "\n"
-	 "\t2. 'H11' for cloud ice and precipitating ice (snow). H11 is NOT dependent\n"
-	 "\t on mass content of ice/snow, but only on atmospheric temperature.\n"
-	 "\t The PSD is scaled to the current IWC/Snow density in an additional step.\n"
-	 "\t See internal function 'pnd_H11' and 'scale_H11' for implementation/units/output.\n"
-	 "\t (src.: Heymsfield A.J., 2011, not published yet)\n"
+         "\t2. 'H11' for cloud ice and precipitating ice (snow). H11 is NOT dependent\n"
+         "\t on mass content of ice/snow, but only on atmospheric temperature.\n"
+         "\t The PSD is scaled to the current IWC/Snow density in an additional step.\n"
+         "\t See internal function 'pnd_H11' and 'scale_H11' for implementation/units/output.\n"
+         "\t (src.: Heymsfield A.J., 2011, not published yet)\n"
          "\t3. 'H98_STCO' for liquid water clouds. Using a gamma distribution with\n"
          "\t parameters from Hess et al., 1998, continental stratus.\n"
          "\t See internal function 'LWCtopnd' for implementation/units/output.\n"
@@ -8095,6 +8121,7 @@ void define_md_data_raw()
          "*scat_meta* array (i.e., *ScatteringParticleTypeAndMetaRead* with the\n"
          "respective scattering data and meta data files has to be applied in\n"
          "the right order!\n"
+*/
          ),
         AUTHORS( "Daniel Kreyling" ),
         OUT( "pnd_field"),
