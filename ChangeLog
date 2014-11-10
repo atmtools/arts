@@ -1,5 +1,20 @@
 2014-11-10  Jana Mendrok  <jana.mendrok@ltu.se>
 
+	* arts-2-3-66
+
+	* controlfiles/testdata/testdoit_*.xml:
+	Moved all test data from artscomponents/doit/ folder to here in order to
+	use it for other test cases, too.
+
+	* controlfiles/artscomponents/doit/TestDOIT.arts,
+	controlfiles/artscomponents/absorption/TestAbsParticle.arts:
+	Adapted according to data moves above.
+
+	* controlfiles/CMakeLists.txt:
+	Added TestAbsParticle.arts to regular tests.
+
+2014-11-10  Jana Mendrok  <jana.mendrok@ltu.se>
+
 	* arts-2-3-65
 
 	* src/m_cloudbox.cc (ParticleTypeAdd, ParticleType2abs_speciesAdd):

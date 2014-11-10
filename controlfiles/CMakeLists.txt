@@ -26,6 +26,8 @@ arts_test_run_ctlfile(fast
                       artscomponents/absorption/TestAbsDoppler.arts)
 arts_test_run_ctlfile(fast 
                       artscomponents/absorption/TestCompareArtscat3And4.arts)
+arts_test_run_ctlfile(fast
+                      artscomponents/absorption/TestAbsParticle.arts)
 arts_test_run_ctlfile(slow artscomponents/absorption/TestIsoRatios.arts)
 
 arts_test_run_ctlfile(fast artscomponents/surface/TestSurface.arts)
@@ -104,7 +106,7 @@ arts_test_run_ctlfile(slow instruments/hirs/TestHIRS.arts)
 if (ARTS_XML_DATA_DIR)
 
   ###########################################
-  ### cases using data from arts-xml-data ###
+  ### cases USING data from arts-xml-data ###
   arts_test_run_ctlfile(fast artscomponents/helpers/TestRegridding.arts)
   arts_test_run_ctlfile(fast artscomponents/helpers/TestGridsExtract.arts)
 
@@ -117,8 +119,8 @@ if (ARTS_XML_DATA_DIR)
   arts_test_run_ctlfile(slow artscomponents/linemixing/TestLineMixingAndZeeman_50_to_70_GHz.arts)
   arts_test_run_ctlfile(slow artscomponents/linemixing/TestLineMixingAndZeemanPreCalc_50_to_70_GHz.arts)
   
-  ################
-  ### XML Data ###
+  ###############################
+  ### testing XML Data itself ###
   arts_test_run_ctlfile(xmldata artscomponents/arts-xml-data/TestAtmScen_Mars.arts)
   arts_test_run_ctlfile(xmldata artscomponents/arts-xml-data/TestAtmScen_Venus.arts)
   arts_test_run_ctlfile(xmldata artscomponents/arts-xml-data/TestAtmScen_Jupiter.arts)

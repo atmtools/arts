@@ -58,7 +58,7 @@ IndexSet( stokes_dim, 4 )
 AtmosphereSet1D
 
 # Pressure grid
-ReadXML( p_grid, "p_grid.xml" )
+ReadXML( p_grid, "testdata/testdoit_p_grid.xml" )
 
 # Definition of species
 abs_speciesSet( species=[ "H2O", "N2", "O2"] )
@@ -70,7 +70,7 @@ AtmRawRead( basename="testdata/tropical" )
 # ---------------------------------
 
 # for how to create lookup tables, see ../absorption/TestAbs.arts
-ReadXML( abs_lookup, "gas_abs_lookup.xml" )
+ReadXML( abs_lookup, "testdata/testdoit_gas_abs_lookup.xml" )
 abs_lookupAdapt
 
 # absorption from LUT
@@ -138,10 +138,10 @@ ParticleTypeInit
 # Adding scattering elements.
 # Here actually both added elements are indentical. however, for testing and for
 # demonstration purposed, having 2 elements is better.
-ParticleTypeAdd( filename_scat_data="p30f229-231T214-225r100NP-1ar1_5ice.xml",
-                 filename_pnd_field="pnd_field_1D.xml" )
-ParticleTypeAdd( filename_scat_data="p30f229-231T214-225r100NP-1ar1_5ice.xml",
-                 filename_pnd_field="pnd_field_1D.xml" )
+ParticleTypeAdd( filename_scat_data="testdata/testdoit_p30f229-231T214-225r100NP-1ar1_5ice.xml",
+                 filename_pnd_field="testdata/testdoit_pnd_field_1D.xml" )
+ParticleTypeAdd( filename_scat_data="testdata/testdoit_p30f229-231T214-225r100NP-1ar1_5ice.xml",
+                 filename_pnd_field="testdata/testdoit_pnd_field_1D.xml" )
 scat_dataCheck
 pnd_fieldCalc
 # rescaling back to pnd equivalent to only one scattering element. in a true
@@ -166,7 +166,7 @@ doit_za_interpSet( interp_method="linear" )
 # equidistant grids are used for both, scattering integral and RT calculation. 
 # This option can only be used for down-looking geometries. 
 DoitAngularGridsSet( N_za_grid=19, N_aa_grid=37,
-                     za_grid_opt_file="doit_za_grid_opt.xml" )
+                     za_grid_opt_file="testdata/testdoit_za_grid_opt.xml" )
 
 # Main agenda for DOIT calculation
 # --------------------------------

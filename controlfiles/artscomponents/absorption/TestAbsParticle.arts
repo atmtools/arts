@@ -55,7 +55,7 @@ IndexSet( stokes_dim, 4 )
 AtmosphereSet1D
 
 # Pressure grid
-ReadXML( p_grid, "p_grid.xml" )
+ReadXML( p_grid, "testdata/testdoit_p_grid.xml" )
 
 # Definition of species
 abs_speciesSet( species=[ "H2O", "N2", "O2"] )
@@ -76,10 +76,12 @@ ParticleTypeInit
 # Adding scattering elements.
 # Here actually both added elements are indentical. however, for testing and for
 # demonstration purposed, having 2 elements is better.
-ParticleType2abs_speciesAdd( filename_scat_data="p30f229-231T214-225r100NP-1ar1_5ice.xml",
-                 filename_pnd_field="pnd_field_1D.xml" )
-ParticleType2abs_speciesAdd( filename_scat_data="p30f229-231T214-225r100NP-1ar1_5ice.xml",
-                 filename_pnd_field="pnd_field_1D.xml" )
+ParticleType2abs_speciesAdd(
+                 filename_scat_data="testdata/testdoit_p30f229-231T214-225r100NP-1ar1_5ice.xml",
+                 filename_pnd_field="testdata/testdoit_pnd_field_1D.xml" )
+ParticleType2abs_speciesAdd(
+                 filename_scat_data="testdata/testdoit_p30f229-231T214-225r100NP-1ar1_5ice.xml",
+                 filename_pnd_field="testdata/testdoit_pnd_field_1D.xml" )
 scat_dataCheck
 # DON'T remove this Write. we need the written out data later on to circumvent
 # the scat_data clean out by cloudboxOff.
@@ -89,7 +91,7 @@ WriteXML( in=scat_data )
 # ---------------------------------
 
 # for how to create lookup tables, see ../absorption/TestAbs.arts
-ReadXML( abs_lookup, "gas_abs_lookup.xml" )
+ReadXML( abs_lookup, "testdata/testdoit_gas_abs_lookup.xml" )
 abs_lookupAdapt
 
 # absorption from LUT
