@@ -2271,7 +2271,7 @@ void propmat_clearskyAddParticles(
                                     // Verbosity object:
                                     const Verbosity& verbosity)
 {
-  const Index ns = scat_data.nelem();
+  const Index ns = TotalNumberOfElements(scat_data);
   Index np = 0;
   for( Index sp = 0; sp < abs_species.nelem(); sp++ )
     {
@@ -2317,6 +2317,7 @@ void propmat_clearskyAddParticles(
     }
 
   const Index nf = f_grid.nelem();
+  const Index na = abs_species.nelem();
   Vector rtp_los_back;
   mirror_los( rtp_los_back, rtp_los, atmosphere_dim );
   ArrayOfArrayOfSingleScatteringData scat_data_mono;
@@ -2330,38 +2331,52 @@ void propmat_clearskyAddParticles(
       scat_data_monoCalc( scat_data_mono, scat_data, f_grid, iv, 
                           verbosity );
 
-      // now we again need to loop over the abs_species entries. we need to do
-      // this as there is no guarantee that all the 'particles' are
-      // one-after-the-other. and we need separate output per abs_species entry,
-      // i.e., per scattering element.
-      np = -1;
-      for( Index sp = 0; sp < abs_species.nelem(); sp++ )
+      // then we loop over the scat_data and link them with correct vmr_field
+      // entry according to the position of the particle type entries in
+      // abs_species.
+      Index sp = 0;
+      for( Index i_ss=0; i_ss<scat_data.nelem(); i_ss++ )
         {
-          if (abs_species[sp][0].Type() == SpeciesTag::TYPE_PARTICLES)
+          for( Index i_se=0; i_se<scat_data[i_ss].nelem(); i_se++ )
             {
-              np++;
+              // forward to next particle entry in abs_species
+              while ( sp < na && 
+                      abs_species[sp][0].Type() != SpeciesTag::TYPE_PARTICLES )
+                sp++;
 
+              //cout << "redone: found " << i_se << "th particle entry at abs_species "
+              //     << "entry #" << sp << "\n";
+              // running beyond number of ab_Species entries when looking for
+              // next particle entry. shouldn't happen, though.
+              assert ( sp < na );
               if ( rtp_vmr[sp] > 0. )
                 {
-                  // FIXME: OLE SCATT: Is it correct to just use the first scattering species
-                  // here?
-
-                  // second, get extinction matrix and absorption vector at
+                  // get extinction matrix and absorption vector at
                   // required temperature and direction for the individual
                   // scattering element and multiply with their occurence.
-                  opt_propExtract(pnd_ext_mat, pnd_abs_vec, scat_data_mono[0][np],
+                  opt_propExtract(pnd_ext_mat, pnd_abs_vec,
+                                  scat_data_mono[i_ss][i_se],
                                   rtp_los_back[0], rtp_los_back[1],
                                   rtp_temperature, stokes_dim, verbosity);
+                  //cout << "absvec[0] = " << pnd_abs_vec[0] << "\n";
                   pnd_ext_mat *= rtp_vmr[sp];
                   pnd_abs_vec *= rtp_vmr[sp];
 
-                  // last, sort the extracted absorption vector data into
+                  // sort the extracted absorption vector data into
                   // propmat_clearsky, which is of extinction matrix type
-
                   ext_matFromabs_vec(propmat_clearsky(sp,iv,joker,joker),
                                      pnd_abs_vec, stokes_dim);
                 }
+              sp++;
             }
+        }
+      //checking that no further 'particle' entry left after all scat_data
+      //entries are processes. this is basically not necessary. but checking it
+      //anyway to really be safe. remove later, when more extensively tested.
+      while (sp < na)
+        {
+          assert ( abs_species[sp][0].Type() != SpeciesTag::TYPE_PARTICLES );
+          sp++;
         }
     }
 }

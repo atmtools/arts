@@ -1,3 +1,34 @@
+2014-11-10  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-3-65
+
+	* src/m_cloudbox.cc (ParticleTypeAdd, ParticleType2abs_speciesAdd):
+	Fixed for use with ArrayOfArray scat_data.
+
+	* src/m_abs.cc (propmat_clearskyAddParticles):
+	Fixed for use with ArrayOfArray scat_data. Don't silently assume there's
+	only one scat species, instead allow scat_data to contain multiple.
+
+	* src/methods.cc (ParticleType2abs_speciesAdd):
+	More precise doc.
+
+	* doc/uguide/absorption.tex:
+	Revised absorbing-only particles section. Added reference to setup
+	example.
+
+	* doc/uguide/rte_basics.tex:
+	Reworded 'Absorbing species and particles' to 'Absorbing species and
+	scattering particles' in order to avoid misreading as
+	'absorbing particles'.
+	
+	* controlfiles/artscomponents/absorption/TestAbsParticle.arts:
+	Added a test case for absorbing-only particles.
+
+	* controlfiles/artscomponents/doit/TestDOIT.arts:
+	Modified to use two scattering elements instead of only one (that's
+	better to detect bugs in handling ArrayOfArray and other non-1D
+	elements).
+
 2014-11-07  Jana Mendrok  <jana.mendrok@ltu.se>
 
 	* arts-2-3-64

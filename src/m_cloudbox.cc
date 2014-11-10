@@ -670,7 +670,8 @@ void ParticleTypeAdd( //WS Output:
   pnd_field_raw.push_back(pnd_field_data);
   
   out2 << "  Read single scattering data\n";
-  xml_read_from_file(scat_data_file, scat_data[last_species][scat_data.nelem()-1],
+  xml_read_from_file(scat_data_file,
+                     scat_data[last_species][scat_data[last_species].nelem()-1],
                      verbosity);
 
   chk_scat_data(scat_data[last_species][scat_data[last_species].nelem()-1],
@@ -782,23 +783,25 @@ void ParticleType2abs_speciesAdd( //WS Output:
 
   //--- Reading the data ---------------------------------------------------
 
-  // Append *scat_data* and (later on) *vmr_field_raw* with empty Arrays of
-  // Tensors, then fill those from file. 
+  Index last_species = scat_data.nelem()-1;
+  if (last_species == -1)
+  {
+      scat_data.resize(1);
+      last_species = 0;
+  }
+
+  // Append *scat_data* and *pnd_field_raw* with empty Arrays of Tensors.
   SingleScatteringData scat_data_single;
-
-  // Append as new species???
-  ArrayOfSingleScatteringData new_scat_species;
-  new_scat_species.push_back(scat_data_single);
-
+  scat_data[last_species].push_back(scat_data_single);
+  
   out2 << "  Read single scattering data\n";
-  xml_read_from_file(scat_data_file, new_scat_species[new_scat_species.nelem()-1],
+  xml_read_from_file(scat_data_file,
+                     scat_data[last_species][scat_data[last_species].nelem()-1],
                      verbosity);
 
-  chk_scat_data(new_scat_species[new_scat_species.nelem()-1],
+  chk_scat_data(scat_data[last_species][scat_data[last_species].nelem()-1],
                              scat_data_file, f_grid, verbosity);       
-
-  scat_data.push_back(new_scat_species);
-
+  
   out2 << "  Read particle number density field\n";
   if (pnd_field_file.nelem() < 1)
   {

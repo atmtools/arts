@@ -7855,7 +7855,8 @@ void define_md_data_raw()
          "reading single scattering data and corresponding pnd field.\n"
          "\n"
          "The methods reads the specified single scattering and pnd_field\n"
-         "data and appends the obtained data to *scat_data* and\n"
+         "data (of a single scattering element) and appends the obtained data\n"
+         "to *scat_data* (appending to its last scattering species) and\n"
          "*vmr_field_raw*. It also appends one instance of species 'particles'\n"
          "to *abs_species*.\n"
          ),

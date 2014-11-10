@@ -994,7 +994,7 @@ hydrometeors in the Earth atmosphere, but also clouds, dust and the like for
 other planets is available from the \shortcode{arts-xml-data} package.
 It is appealing to apply this data in non-scattering calculations (e.g. at low
 frequencies, where the scattering contribution is negligible) in a consistent
-manner. ARTS method for that is \wsmindex{propmat\_clearskyAddParticles} and
+manner. The ARTS method for that is \wsmindex{propmat\_clearskyAddParticles} and
 its application is described in the following.
 
 % how to setup
@@ -1005,10 +1005,10 @@ its application is described in the following.
 To consider grey-body particle absorption, the user has to include
 \wsmindex{propmat\_clearskyAddParticles} in the
 \builtindoc{propmat\_clearsky\_agenda}. Furthermore, for each scattering element
-(see Section~\ref{sec:clouds:intro} for how a scattering element is defined) a
-\verb|"particles"| tag needs to be added to \builtindoc{abs\_species}, the
-corresponding concentration field to be added to \builtindoc{vmr\_field}, and
-its single scattering data have to be added as an element to
+(see Section~\ref{sec:clouds:intro} for how a scattering element is defined) 1) a
+\verb|"particles"| tag needs to be added to \builtindoc{abs\_species}, 2) the
+corresponding concentration field has to be added to \builtindoc{vmr\_field},
+and 3) its single scattering data have to be added to
 \wsvindex{scat\_data}. This can be done each-by-each using
 \builtindoc{ReadXML} and \builtindoc{Append} methods, but a dedicated method
 \wsmindex{ParticleType2abs\_speciesAdd} is available performing these three
@@ -1016,6 +1016,9 @@ steps for one scattering element at once. \wsmindex{ParticleType2abs\_speciesAdd
 adds the raw number density field to \builtindoc{vmr\_field\_raw}, i.e., the raw
 concentration fields can be converted to internal atmospheric grids together
 with the gas concentration fields using, e.g., \builtindoc{AtmFieldsCalc}.
+Single scattering data of all individual scattering elements is added to one and
+the same scattering species, specifically to the last one of these in the
+\builtindoc{scat\_data} array.
 Note that \wsmindex{ParticleType2abs\_speciesAdd} is essentially doing the same
 as \builtindoc{ParticleTypeAdd}, but for non-scattering instead for
 scattering-in-cloudbox cases (where in non-scattering setups the concentration
@@ -1040,10 +1043,9 @@ entities (when using the scattering modules) or as grey-body absorbers (when
 applying \wsmindex{propmat\_clearskyAddParticles}). Trying to use both in
 parallel results in a runtime error.
 
-See the built-in documentation of the individual methods for further
-information. 
-%For usage examples, check \fileindex{controlfiles/artscomponents/...} that is part of the ARTS distribution.
-\FIXME{add a usage example to \fileindex{controlfiles/artscomponents}}.
+For a setup example check \fileindex{TestAbsParticle.arts} in
+\fileindex{controlfiles/artscomponents/absorption/}. See the built-in
+documentation of the individual methods for further information.
 
 
 \subsection{Further input data and parameters for calculating gas absorption}
