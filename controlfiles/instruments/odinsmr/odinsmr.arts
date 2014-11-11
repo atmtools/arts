@@ -69,7 +69,7 @@ abs_cont_descriptionAppend( abs_cont_names, abs_cont_models, abs_cont_parameters
 # Line shape settings
 abs_lineshapeDefine( abs_lineshape,
   "Voigt_Kuntz3",
-  "quadratic",
+  "Rosenkranz_quadratic",
   -1 
 )
 

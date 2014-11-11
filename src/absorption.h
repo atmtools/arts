@@ -560,7 +560,6 @@ void xsec_single_line(VectorView xsec_accum_attenuation,
                       const Index ind_lsn,  
                       const Index LineRecord_Species, 
                       const Index LineRecord_Isotopologue, 
-                      const bool quadratic_lineshape, 
                       const bool cut, 
                       const bool calc_phase);
 

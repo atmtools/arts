@@ -1,4 +1,22 @@
 2014-11-11  Richard Larsson <ric.larsson@gmail.com>
+	
+	* arts-2-3-68
+	
+	This commit fixes a strangeness found in the quadratic normalisation.
+	Warning: it breaks controlfiles for clarity.
+	
+	* constrolfiles/instruments/odinsmr/odinsmr.arts:  Changes reflect above.
+	
+	* src/absorption.cc{cc,h}  Removed quadratic lineshape normalization test.
+	
+	* src/lineshapes.cc:  moved hv/2kT/sinh(hv/2kT) into the normalisation
+	routine.  Changed name of routine to “Rosenkranz_quadratic” to reflect
+	what was going on inside absorption.cc before this commit.
+	
+	* src/methods.cc:  Updated documentation to properly reflect new and old
+	behaviour for quadratic normalisation.
+
+2014-11-11  Richard Larsson <ric.larsson@gmail.com>
 
 	* arts-2-3-67
 	

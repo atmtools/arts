@@ -891,7 +891,6 @@ firstprivate(ls_attenuation, ls_phase, fac, f_local, aux)
                                          ind_lsn,
                                          l_l.Species(),
                                          l_l.Isotopologue(),
-                                         lineshape_norm_data[ind_lsn].Name() == "quadratic",
                                          cut,
                                          calc_phase);
                         
@@ -1025,7 +1024,6 @@ void xsec_single_line(VectorView xsec_accum_attenuation,
                       const Index ind_lsn,  
                       const Index LineRecord_Species, 
                       const Index LineRecord_Isotopologue, 
-                      const bool quadratic_lineshape, 
                       const bool cut, 
                       const bool calc_phase)
 {//asdasd;
@@ -1070,19 +1068,6 @@ void xsec_single_line(VectorView xsec_accum_attenuation,
     // (calculate the line intensity according to the standard
     // expression given in HITRAN)
     intensity *= part_fct_ratio * nom / denom;
-    
-    if (quadratic_lineshape)
-    {
-        // in case of the quadratic normalization factor use the
-        // so called 'microwave approximation' of the line intensity
-        // given by
-        // P. W. Rosenkranz, Chapter 2, Eq.(2.16), in M. A. Janssen,
-        // Atmospheric Remote Sensing by Microwave Radiometry,
-        // John Wiley & Sons, Inc., 1993
-        const Numeric mafac = (PLANCK_CONST * F0) / (2.000e0 * BOLTZMAN_CONST
-                                                     * temperature);
-        intensity     = intensity * mafac / sinh(mafac);
-    }
     
     
     // Apply pressure shift:
@@ -1737,7 +1722,6 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                                          ind_lsn, 
                                          abs_lines[ii].Species(), 
                                          abs_lines[ii].Isotopologue(), 
-                                         0, 
                                          cut,
                                          1);
                         break;
@@ -1889,7 +1873,6 @@ void xsec_species_line_mixing_2nd_order(VectorView               xsec_attenuatio
                      ind_lsn, 
                      my_line.Species(), 
                      my_line.Isotopologue(), 
-                     0, 
                      cutoff!=-1,
                      1);
     
@@ -1979,7 +1962,6 @@ void xsec_species_line_mixing_LBLRTM(VectorView               xsec_attenuation,
                      ind_lsn, 
                      my_line.Species(), 
                      my_line.Isotopologue(), 
-                     0, 
                      cutoff!=-1,
                      1);
     
@@ -2064,8 +2046,7 @@ void xsec_species_LBLRTM_O2NonResonant(VectorView               xsec_attenuation
                      tmp[0].Ind_ls(), 
                      ind_lsn, 
                      my_line.Species(), 
-                     my_line.Isotopologue(), 
-                     0, 
+                     my_line.Isotopologue(),
                      cutoff!=-1, 
                      0);
     

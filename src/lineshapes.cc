@@ -1888,27 +1888,36 @@ void lineshape_norm_linear(Vector&         fac,
     }
 }
 
-/*!  Quadratic normalization factor of the lineshape function with (f/f0)^2.
-
+/*!  Quadratic normalization factor of the lineshape function with (f/f0)^2*hf0/2kT/sinh(hf0/2kT).
+     in case of the quadratic normalization factor use the
+     so called 'microwave approximation' of the line intensity
+     given by
+     P. W. Rosenkranz, Chapter 2, Eq.(2.16), in M. A. Janssen,
+     Atmospheric Remote Sensing by Microwave Radiometry,
+     John Wiley & Sons, Inc., 1993
+ 
     \retval fac    Normalization factor to the lineshape function.
     \param  f0     Line center frequency.
     \param  f_grid The frequency grid.
     \param  T      Temperature (unused here)
 
     \author Axel von Engeln 30.11.2000 */
-void lineshape_norm_quadratic(Vector&         fac,
-                              const Numeric   f0,
-                              ConstVectorView f_grid,
-                              const Numeric   T _U_)
+void lineshape_norm_quadratic_Rosenkranz(Vector&         fac,
+                                         const Numeric   f0,
+                                         ConstVectorView f_grid,
+                                         const Numeric   T)
 {
-  const Index nf = f_grid.nelem();
-
-  // don't do this for the whole loop
-  const Numeric f0_2 = f0 * f0;
-
-  for ( Index i=0; i<nf; ++i )
+    extern const Numeric PLANCK_CONST;
+    extern const Numeric BOLTZMAN_CONST;
+    const Numeric mafac = (PLANCK_CONST * f0) / (2.000e0 * BOLTZMAN_CONST * T) /
+                                sinh((PLANCK_CONST * f0) / (2.000e0 * BOLTZMAN_CONST * T));
+    const Index nf = f_grid.nelem();
+    // don't do this for the whole loop
+    const Numeric f0_2 = f0 * f0;
+    
+    for ( Index i=0; i<nf; ++i )
     {
-      fac[i] = (f_grid[i] * f_grid[i]) / f0_2;
+        fac[i] = mafac * (f_grid[i] * f_grid[i]) / f0_2;
     }
 }
 
@@ -2087,9 +2096,9 @@ void define_lineshape_norm_data()
 
   lineshape_norm_data.push_back
     (LineshapeNormRecord
-     ("quadratic",
-      "Quadratic normalization of the lineshape with (f/f0)^2.",
-      lineshape_norm_quadratic));
+     ("Rosenkranz_quadratic",
+      "Quadratic normalization of the lineshape with (f/f0)^2*h*f0/(2*k*T)/sinh(h*f0/(2*k*T)).",
+      lineshape_norm_quadratic_Rosenkranz));
 
   lineshape_norm_data.push_back
     (LineshapeNormRecord

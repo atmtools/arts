@@ -362,7 +362,7 @@ void define_md_data_raw()
          "\n"
          "forefactor:\n"
          "   no_norm:                  1\n"
-         "   quadratic:                (f/f0)^2\n"
+         "   Rosenkranz_quadratic:     (f/f0)^2*h*f/(2k*T)/sinh(h*f/(2k*T))\n"
          "   VVH:                      (f*tanh(h*f/(2k*T))) / (f0*tanh(h*f0/(2k*T)))\n"
          "\n"
          "cutoff:\n"
