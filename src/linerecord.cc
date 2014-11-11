@@ -78,7 +78,7 @@ void LineRecord::ARTSCAT4FromARTSCAT3() {
     {
         ostringstream os;
         os << "This line is not ARTSCAT-3, it is ARTSCAT-" << this->Version();
-        throw runtime_error(os.str());
+        throw std::runtime_error(os.str());
     }
 
     // Set version to 4:
@@ -86,10 +86,12 @@ void LineRecord::ARTSCAT4FromARTSCAT3() {
 
     const Index nbs = NBroadSpec();
 
+    Vector gamma_foreign(nbs),n_foreign(nbs),delta_foreign(nbs);
+    
     // Resize foreign parameter arrays:
-    mgamma_foreign.resize(nbs);
-    mn_foreign.resize(nbs);
-    mdelta_foreign.resize(nbs);
+    //mgamma_foreign.resize(nbs);
+    //mn_foreign.resize(nbs);
+    //mdelta_foreign.resize(nbs);
 
     // Loop over broadening species:
     for (Index i=0; i<nbs; ++i) {
@@ -97,17 +99,21 @@ void LineRecord::ARTSCAT4FromARTSCAT3() {
         // Find out if this broadening species is identical to the line species:
         if (this->Species() == BroadSpecSpecIndex(i)) {
             // We have to copy the self parameters here.
-            mgamma_foreign[i] = msgam;
-            mn_foreign[i] =     mnself;
-            mdelta_foreign[i] = 0;
+            gamma_foreign[i] = mpressurebroadeningdata.Sgam();
+            n_foreign[i] =     mpressurebroadeningdata.AirBroadeningNair();
+            delta_foreign[i] = 0;
         } else {
             // We have to copy the foreign parameters here.
-            mgamma_foreign[i] = magam;
-            mn_foreign[i] =     mnair;
-            mdelta_foreign[i] = mpsf;
+            gamma_foreign[i] = mpressurebroadeningdata.AirBroadeningAgam();
+            n_foreign[i] =     mpressurebroadeningdata.AirBroadeningNair();
+            delta_foreign[i] = mpressurebroadeningdata.AirBroadeningPsf();
         }
     }
-
+    
+    mpressurebroadeningdata.SetPerrinBroadeningFromCatalog(mpressurebroadeningdata.Sgam(),
+                                                           mpressurebroadeningdata.Nself(),
+                                                           gamma_foreign,n_foreign,delta_foreign);
+    
     // Erase the ARTSCAT-3 foreign parameteres:
     ARTSCAT4UnusedToNaN();
 }
@@ -397,6 +403,7 @@ bool LineRecord::ReadFromHitran2001Stream(istream& is, const Verbosity& verbosit
   
 
   // Air broadening parameters.
+  Numeric agam,sgam;
   {
     // HITRAN parameter is in cm-1/atm at 296 Kelvin
     // All parameters are HWHM (I hope this is true!)
@@ -416,17 +423,17 @@ bool LineRecord::ReadFromHitran2001Stream(istream& is, const Verbosity& verbosit
     extract(gam,line,5);
 
     // ARTS parameter in Hz/Pa:
-    magam = gam * hi2arts;
+    agam = gam * hi2arts;
 
     // Extract HITRAN SGAM value:
     extract(gam,line,5);
 
     // ARTS parameter in Hz/Pa:
-    msgam = gam * hi2arts;
+    sgam = gam * hi2arts;
 
     // If zero, set to agam:
-    if (0==msgam)
-      msgam = magam;
+    if (0==sgam)
+      sgam = agam;
 
     //    cout << "agam, sgam = " << magam << ", " << msgam << endl;
   }
@@ -446,17 +453,19 @@ bool LineRecord::ReadFromHitran2001Stream(istream& is, const Verbosity& verbosit
 
   
   // Temperature coefficient of broadening parameters.
+  Numeric nair,nself;
   {
     // This is dimensionless, we can also extract directly.
-    extract(mnair,line,4);
+    extract(nair,line,4);
 
     // Set self broadening temperature coefficient to the same value:
-    mnself = mnair;
+    nself = nair;
 //    cout << "mnair = " << mnair << endl;
   }
 
 
   // Pressure shift.
+  Numeric psf;
   {
     // HITRAN value in cm^-1 / atm. So the conversion goes exactly as
     // for the broadening parameters.
@@ -476,7 +485,7 @@ bool LineRecord::ReadFromHitran2001Stream(istream& is, const Verbosity& verbosit
     extract(d,line,8);
 
     // ARTS value in Hz/Pa
-    mpsf = d * hi2arts;
+    psf = d * hi2arts;
   }
   // Set the accuracies using the definition of HITRAN 
   // indices. If some are missing, they are set to -1.
@@ -523,12 +532,14 @@ bool LineRecord::ReadFromHitran2001Stream(istream& is, const Verbosity& verbosit
   }
 
   // Accuracy index for halfwidth reference
+  Numeric dsgam,dagam;
   {
     Index dgam;
     // Extract HITRAN value:
     extract(dgam,line,1);
     //Convert to ARTS units (%)
-    convHitranIERSH(mdagam,dgam);
+    convHitranIERSH(dagam,dgam);
+    dsgam = dagam;
     // convHitranIERSH(mdsgam,dgam);
     // convHitranIERSH(mdnair,dgam);
     // convHitranIERSH(mdnself,dgam);
@@ -536,7 +547,7 @@ bool LineRecord::ReadFromHitran2001Stream(istream& is, const Verbosity& verbosit
 
   // Accuracy for pressure shift
   // This is missing in HITRAN catalogue and it is set to -1.
-    mdpsf =-1;
+    Numeric dpsf =-1;
 
   // These were all the parameters that we can extract from
   // HITRAN. However, we still have to set the reference temperatures
@@ -548,7 +559,10 @@ bool LineRecord::ReadFromHitran2001Stream(istream& is, const Verbosity& verbosit
 
   // Reference temperature for AGAM and SGAM in K.
   // (This is also fix for HITRAN)
-  mtgam = 296.0;
+  //mtgam = 296.0; NOTE: Deprecated
+  
+  // Assume that error index on dnair and dnself is unknown
+  mpressurebroadeningdata.SetAirBroadeningFromCatalog(sgam,nself,agam,nair,psf,dsgam,-1,dagam,-1,dpsf);
 
   // That's it!
   return false;
@@ -837,6 +851,7 @@ bool LineRecord::ReadFromLBLRTMStream(istream& is, const Verbosity& verbosity)
   
 
   // Air broadening parameters.
+  Numeric sgam,agam;
   {
     // HITRAN parameter is in cm-1/atm at 296 Kelvin
     // All parameters are HWHM (I hope this is true!)
@@ -856,17 +871,17 @@ bool LineRecord::ReadFromLBLRTMStream(istream& is, const Verbosity& verbosity)
     extract(gam,line,5);
 
     // ARTS parameter in Hz/Pa:
-    magam = gam * hi2arts;
+    agam = gam * hi2arts;
 
     // Extract HITRAN SGAM value:
     extract(gam,line,5);
 
     // ARTS parameter in Hz/Pa:
-    msgam = gam * hi2arts;
+    sgam = gam * hi2arts;
 
     // If zero, set to agam:
-    if (0==msgam)
-      msgam = magam;
+    if (0==sgam)
+      sgam = agam;
 
     //    cout << "agam, sgam = " << magam << ", " << msgam << endl;
   }
@@ -884,19 +899,19 @@ bool LineRecord::ReadFromLBLRTMStream(istream& is, const Verbosity& verbosity)
     melow = wavenumber_to_joule(melow);
   }
 
-  
   // Temperature coefficient of broadening parameters.
+  Numeric nair,nself;
   {
     // This is dimensionless, we can also extract directly.
-    extract(mnair,line,4);
+    extract(nair,line,4);
 
     // Set self broadening temperature coefficient to the same value:
-    mnself = mnair;
+    nself = nair;
 //    cout << "mnair = " << mnair << endl;
   }
 
-
   // Pressure shift.
+  Numeric psf;
   {
     // HITRAN value in cm^-1 / atm. So the conversion goes exactly as
     // for the broadening parameters.
@@ -916,7 +931,7 @@ bool LineRecord::ReadFromLBLRTMStream(istream& is, const Verbosity& verbosity)
     extract(d,line,8);
 
     // ARTS value in Hz/Pa
-    mpsf = d * hi2arts;
+    psf = d * hi2arts;
   }
   // Set the accuracies using the definition of HITRAN 
   // indices. If some are missing, they are set to -1.
@@ -977,12 +992,14 @@ bool LineRecord::ReadFromLBLRTMStream(istream& is, const Verbosity& verbosity)
   }
 
   // Accuracy index for halfwidth reference
+  Numeric dsgam,dagam;
   {
     Index dgam;
     // Extract HITRAN value:
     extract(dgam,line,1);
     //Convert to ARTS units (%)
-    convHitranIERSH(mdagam,dgam);
+    convHitranIERSH(dagam,dgam);
+    dsgam = dagam;
     // convHitranIERSH(mdsgam,dgam);
     // convHitranIERSH(mdnair,dgam);
     // convHitranIERSH(mdnself,dgam);
@@ -991,7 +1008,7 @@ bool LineRecord::ReadFromLBLRTMStream(istream& is, const Verbosity& verbosity)
   
   // Accuracy for pressure shift
   // This is missing in HITRAN catalogue and it is set to -1.
-    mdpsf =-1;
+    Numeric dpsf =-1;
 
   // These were all the parameters that we can extract from
   // HITRAN. However, we still have to set the reference temperatures
@@ -1003,7 +1020,10 @@ bool LineRecord::ReadFromLBLRTMStream(istream& is, const Verbosity& verbosity)
 
   // Reference temperature for AGAM and SGAM in K.
   // (This is also fix for HITRAN)
-  mtgam = 296.0;
+  //mtgam = 296.0; NOTE: Deprecated
+  
+  // Assume that error index on dnair and dnself is unknown
+  mpressurebroadeningdata.SetAirBroadeningFromCatalog(sgam,nself,agam,nair,psf,dsgam,-1,dagam,-1,dpsf);
   
   // Skip four
   {
@@ -1407,6 +1427,7 @@ bool LineRecord::ReadFromHitran2004Stream(istream& is, const Verbosity& verbosit
 
 
   // Air broadening parameters.
+  Numeric agam,sgam;
   {
     // HITRAN parameter is in cm-1/atm at 296 Kelvin
     // All parameters are HWHM (I hope this is true!)
@@ -1426,17 +1447,17 @@ bool LineRecord::ReadFromHitran2004Stream(istream& is, const Verbosity& verbosit
     extract(gam,line,5);
 
     // ARTS parameter in Hz/Pa:
-    magam = gam * hi2arts;
+    agam = gam * hi2arts;
 
     // Extract HITRAN SGAM value:
     extract(gam,line,5);
 
     // ARTS parameter in Hz/Pa:
-    msgam = gam * hi2arts;
+    sgam = gam * hi2arts;
 
     // If zero, set to agam:
-    if (0==msgam)
-      msgam = magam;
+    if (0==sgam)
+      sgam = agam;
 
     //    cout << "agam, sgam = " << magam << ", " << msgam << endl;
   }
@@ -1456,17 +1477,19 @@ bool LineRecord::ReadFromHitran2004Stream(istream& is, const Verbosity& verbosit
 
 
   // Temperature coefficient of broadening parameters.
+  Numeric nair,nself;
   {
     // This is dimensionless, we can also extract directly.
-    extract(mnair,line,4);
+    extract(nair,line,4);
 
     // Set self broadening temperature coefficient to the same value:
-    mnself = mnair;
+    nself = nair;
 //    cout << "mnair = " << mnair << endl;
   }
 
 
   // Pressure shift.
+  Numeric psf;
   {
     // HITRAN value in cm^-1 / atm. So the conversion goes exactly as
     // for the broadening parameters.
@@ -1486,7 +1509,7 @@ bool LineRecord::ReadFromHitran2004Stream(istream& is, const Verbosity& verbosit
     extract(d,line,8);
 
     // ARTS value in Hz/Pa
-    mpsf = d * hi2arts;
+    psf = d * hi2arts;
   }
   // Set the accuracies using the definition of HITRAN
   // indices. If some are missing, they are set to -1.
@@ -1921,45 +1944,49 @@ bool LineRecord::ReadFromHitran2004Stream(istream& is, const Verbosity& verbosit
   }
 
   // Accuracy index for air-broadened halfwidth
+  Numeric dagam;
   {
-    Index dagam;
+    Index dgam;
     // Extract HITRAN value:
-    extract(dagam,line,1);
+    extract(dgam,line,1);
     //Convert to ARTS units (%)
-    convHitranIERSH(mdagam,dagam);
+    convHitranIERSH(dagam,dgam);
   }
 
   // Accuracy index for self-broadened half-width
+  Numeric dsgam;
   {
-    Index dsgam;
+    Index dgam;
     // Extract HITRAN value:
-    extract(dsgam,line,1);
+    extract(dgam,line,1);
     //Convert to ARTS units (%)
-    convHitranIERSH(mdsgam,dsgam);
+    convHitranIERSH(dsgam,dgam);
   }
   
   // Accuracy index for temperature-dependence exponent for agam
+  Numeric dnair;
   {
-    Index dnair;
+    Index dn;
     // Extract HITRAN value:
-    extract(dnair,line,1);
+    extract(dn,line,1);
     //Convert to ARTS units (%)
-    convHitranIERSH(mdnair,dnair);
+    convHitranIERSH(dnair,dn);
   }
 
   // Accuracy index for temperature-dependence exponent for sgam
   // This is missing in HITRAN catalogue and is set to -1.
-    mdnself =-1;
+  Numeric dnself =-1;
 
   // Accuracy index for pressure shift
+  Numeric dpsf;
   {
-    Index dpsf;
+    Index dpsfi;
     // Extract HITRAN value (given in cm-1):
-    extract(dpsf,line,1);
+    extract(dpsfi,line,1);
     // Convert it to ARTS units (Hz)
-    convHitranIERF(mdpsf,dpsf);
+    convHitranIERF(dpsf,dpsfi);
     // ARTS wants this error in %
-    mdpsf = mdpsf / mf;
+    dpsf = dpsf / mf;
   }
 
   // These were all the parameters that we can extract from
@@ -1972,7 +1999,9 @@ bool LineRecord::ReadFromHitran2004Stream(istream& is, const Verbosity& verbosit
 
   // Reference temperature for AGAM and SGAM in K.
   // (This is also fix for HITRAN 2004)
-  mtgam = 296.0;
+  //mtgam = 296.0; NOTE: Deprecated
+  
+  mpressurebroadeningdata.SetAirBroadeningFromCatalog(sgam,nself,agam,nair,psf,dsgam,dnself,dagam,dnair,dpsf);
 
   // That's it!
   return false;
@@ -2236,6 +2265,7 @@ bool LineRecord::ReadFromMytran2Stream(istream& is, const Verbosity& verbosity)
 
   
   // Air broadening parameters.
+  Numeric agam,sgam;
   {
     // MYTRAN parameter is in MHz/Torr at reference temperature
     // All parameters are HWHM
@@ -2248,13 +2278,13 @@ bool LineRecord::ReadFromMytran2Stream(istream& is, const Verbosity& verbosity)
     extract(gam,line,5);
 
     // ARTS parameter in Hz/Pa:
-    magam = gam * 1E6 / TORR2PA;
+    agam = gam * 1E6 / TORR2PA;
 
     // Extract MYTRAN SGAM value:
     extract(gam,line,5);
 
     // ARTS parameter in Hz/Pa:
-    msgam = gam * 1E6 / TORR2PA;
+    sgam = gam * 1E6 / TORR2PA;
 
 //    cout << "agam, sgam = " << magam << ", " << msgam << endl;
   }
@@ -2274,24 +2304,27 @@ bool LineRecord::ReadFromMytran2Stream(istream& is, const Verbosity& verbosity)
 
   
   // Temperature coefficient of broadening parameters.
+  Numeric nself,nair;
   {
     // This is dimensionless, we can also extract directly.
-    extract(mnair,line,4);
+    extract(nair,line,4);
 
     // Extract the self broadening parameter:
-    extract(mnself,line,4);
+    extract(nself,line,4);
 //    cout << "mnair = " << mnair << endl;
   }
 
   
   // Reference temperature for broadening parameter in K:
-  {
-    // correct units, extract directly
-    extract(mtgam,line,7);
-  }
+  Numeric tgam;
+     {
+       // correct units, extract directly
+       extract(tgam,line,7);
+     }
 
 
   // Pressure shift.
+  Numeric psf;
   {
     // MYTRAN value in MHz/Torr
     Numeric d;
@@ -2303,7 +2336,7 @@ bool LineRecord::ReadFromMytran2Stream(istream& is, const Verbosity& verbosity)
     extract(d,line,9);
 
     // ARTS value in Hz/Pa
-    mpsf = d * 1E6 / TORR2PA;
+    psf = d * 1E6 / TORR2PA;
   }
   // Set the accuracies using the definition of MYTRAN accuracy
   // indices. If some are missing, they are set to -1.
@@ -2341,21 +2374,25 @@ bool LineRecord::ReadFromMytran2Stream(istream& is, const Verbosity& verbosity)
   }
 
   // Accuracy index for AGAM
+  Numeric dagam,dsgam;
   {
   Index dgam;
   // Extract MYTRAN value:
   extract(dgam,line,1);
   //convert to ARTS units (%)
-  convMytranIER(mdagam,dgam);
+  convMytranIER(dagam,dgam);
+  dsgam=dagam;
   }
 
   // Accuracy index for NAIR 
+  Numeric dnair,dnself;
   {
-  Index dnair;
+  Index dair;
   // Extract MYTRAN value:
-  extract(dnair,line,1); 
+  extract(dair,line,1); 
   //convert to ARTS units (%);
-  convMytranIER(mdnair,dnair);
+  convMytranIER(dnair,dair);
+  dnself=dnair;
   }
 
 
@@ -2371,7 +2408,17 @@ bool LineRecord::ReadFromMytran2Stream(istream& is, const Verbosity& verbosity)
   // you added to the line record. (This applies to all the reading
   // functions, also for ARTS, JPL, and HITRAN format.) Parameters
   // should be either set from the catalogue, or set to -1.)
-
+  
+  // Convert to correct temperature if tgam != ti0
+  if(tgam!=mti0)
+  {
+      agam *= pow(tgam/mti0,nair);
+      sgam *= pow(tgam/mti0,nself);
+      psf  *= pow(tgam/mti0, (Numeric).25 + (Numeric)1.5*nair );
+  }
+  // Unknown pressure shift error
+  mpressurebroadeningdata.SetAirBroadeningFromCatalog(sgam,nself,agam,nair,psf,dsgam,dnself,dagam,dnair,-1);
+  
   // That's it!
   return false;
 }
@@ -2576,12 +2623,13 @@ bool LineRecord::ReadFromJplStream(istream& is, const Verbosity& verbosity)
   // in the program code. The explicitly given values are ignored and
   // only the default value is set. Self broadening was in general not
   // considered in the old forward model.
+  Numeric agam,sgam;
   {
     // ARTS parameter in Hz/Pa:
-    magam = 2.5E4;
+    agam = 2.5E4;
 
     // ARTS parameter in Hz/Pa:
-    msgam = magam;
+    sgam = agam;
   }
 
 
@@ -2590,23 +2638,25 @@ bool LineRecord::ReadFromJplStream(istream& is, const Verbosity& verbosity)
   // given explicitly in the program code. The explicitly given values
   // are ignored and only the default value is set. Self broadening
   // not considered.
+  Numeric nair,nself;
   {
-    mnair = 0.75;
-    mnself = 0.0;
+    nair = 0.75;
+    nself = 0.0;
   }
 
   
   // Reference temperature for broadening parameter in K, was
   // generally set to 300 K in old forward model, with the exceptions
-  // as already mentioned above:
-  {
-    mtgam = 300.0;
-  }
+  // as already mentioned above: //DEPRECEATED but is same as for mti0 so moving on
+//   {
+//     mtgam = 300.0;
+//   }
 
 
   // Pressure shift: not given in JPL, set to 0
+  Numeric psf;
   {
-    mpsf = 0.0;
+    psf = 0.0;
   }
 
 
@@ -2617,7 +2667,10 @@ bool LineRecord::ReadFromJplStream(istream& is, const Verbosity& verbosity)
   // Reference temperature for Intensity in K.
   // (This is fix for JPL)
   mti0 = 300.0;
-
+  
+  // Assume that errors are unknown
+  mpressurebroadeningdata.SetAirBroadeningFromCatalog(sgam,nself,agam,nair,psf,-1,-1,-1,-1,-1);
+  
   // That's it!
   return false;
 }
@@ -2747,9 +2800,9 @@ bool LineRecord::ReadFromArtscat3Stream(istream& is, const Verbosity& verbosity)
     // Extract center frequency:
     icecream >> mf;
     
-    
+    Numeric psf;
     // Extract pressure shift:
-    icecream >> mpsf;
+    icecream >> psf;
     
     // Extract intensity:
     icecream >> mi0;
@@ -2764,16 +2817,19 @@ bool LineRecord::ReadFromArtscat3Stream(istream& is, const Verbosity& verbosity)
     
     
     // Extract air broadening parameters:
-    icecream >> magam;
-    icecream >> msgam;
+    Numeric agam,sgam;
+    icecream >> agam;
+    icecream >> sgam;
     
     // Extract temperature coefficient of broadening parameters:
-    icecream >> mnair;
-    icecream >> mnself;
+    Numeric nair,nself;
+    icecream >> nair;
+    icecream >> nself;
     
     
     // Extract reference temperature for broadening parameter in K:
-    icecream >> mtgam;
+    Numeric tgam;
+    icecream >> tgam;
     
     // Extract the aux parameters:
     Index naux;
@@ -2789,29 +2845,41 @@ bool LineRecord::ReadFromArtscat3Stream(istream& is, const Verbosity& verbosity)
     }
     
     // Extract accuracies:
+    Numeric dagam,dsgam,dnair,dnself,dpsf;
     try
     {
       icecream >> mdf;
       icecream >> mdi0;
-      icecream >> mdagam;
-      icecream >> mdsgam;
-      icecream >> mdnair;
-      icecream >> mdnself;
-      icecream >> mdpsf;
+      icecream >> dagam;
+      icecream >> dsgam;
+      icecream >> dnair;
+      icecream >> dnself;
+      icecream >> dpsf;
     }
-    catch (runtime_error)
+    catch (std::runtime_error)
     {
       // Nothing to do here, the accuracies are optional, so we
       // just set them to -1 and continue reading the next line of
       // the catalogue
       mdf      = -1;
       mdi0     = -1;
-      mdagam   = -1;
-      mdsgam   = -1;
-      mdnair   = -1;
-      mdnself  = -1;
-      mdpsf    = -1;            
+      dagam   = -1;
+      dsgam   = -1;
+      dnair   = -1;
+      dnself  = -1;
+      dpsf    = -1;            
     }
+    
+    // Fix if tgam is different from ti0
+    if(tgam!=mti0)
+    {
+        agam = agam * pow(tgam/mti0,nair);
+        sgam = sgam * pow(tgam/mti0,nself);
+        psf  = psf  * pow(tgam/mti0, (Numeric).25 + (Numeric)1.5*nair );
+    }
+    
+    // Set pressure broadening
+    mpressurebroadeningdata.SetAirBroadeningFromCatalog(sgam,nself,agam,nair,psf,dsgam,dnself,dagam,dnair,dpsf);
   }
   
   // That's it!
@@ -2962,11 +3030,12 @@ bool LineRecord::ReadFromArtscat4Stream(istream& is, const Verbosity& verbosity)
       icecream >> mglower;
 
       // Extract broadening parameters:
-      icecream >> msgam;
+      Numeric sgam;
+      icecream >> sgam;
 
-      mgamma_foreign.resize(6);
+      Vector gamma_foreign(6);
       for (Index s=0; s<6; ++s)
-          icecream >> mgamma_foreign[s];
+          icecream >> gamma_foreign[s];
 //      icecream >> mgamma_n2;
 //      icecream >> mgamma_o2;
 //      icecream >> mgamma_h2o;
@@ -2975,11 +3044,12 @@ bool LineRecord::ReadFromArtscat4Stream(istream& is, const Verbosity& verbosity)
 //      icecream >> mgamma_he;
       
       // Extract GAM temp. exponents:
-      icecream >> mnself;
+      Numeric nself;
+      icecream >> nself;
     
-      mn_foreign.resize(6);
+      Vector n_foreign(6);
       for (Index s=0; s<6; ++s)
-          icecream >> mn_foreign[s];
+          icecream >> n_foreign[s];
 //      icecream >> mn_n2;
 //      icecream >> mn_o2;
 //      icecream >> mn_h2o;
@@ -2988,16 +3058,19 @@ bool LineRecord::ReadFromArtscat4Stream(istream& is, const Verbosity& verbosity)
 //      icecream >> mn_he;
 
       // Extract F pressure shifts:
-      mdelta_foreign.resize(6);
+      Vector delta_foreign(6);
       for (Index s=0; s<6; ++s)
-          icecream >> mdelta_foreign[s];
+          icecream >> delta_foreign[s];
 //      icecream >> mdelta_n2;
 //      icecream >> mdelta_o2;
 //      icecream >> mdelta_h2o;
 //      icecream >> mdelta_co2;
 //      icecream >> mdelta_h2;
 //      icecream >> mdelta_he;
-
+      
+      // Set pressure broadening
+      mpressurebroadeningdata.SetPerrinBroadeningFromCatalog(sgam,nself,gamma_foreign,n_foreign,delta_foreign);
+      
       // Remaining entries are the quantum numbers
       getline(icecream, mquantum_numbers_str);
 
@@ -3101,7 +3174,7 @@ ostream& operator<< (ostream& os, const LineRecord& lr)
       << " " << lr.Sgam  ()
       << " " << lr.Nair  ()
       << " " << lr.Nself ()
-      << " " << lr.Tgam  ()
+      << " " << lr.Ti0   () // Used to be Tgam. It is deprecated to have different temperatures for different parameters.
       << " " << lr.Naux  ()
       << " " << lr.dF    ()
       << " " << lr.dI0   ()

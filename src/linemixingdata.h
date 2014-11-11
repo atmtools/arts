@@ -16,11 +16,11 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
 USA. */
 
-/** Contains the linemixingdata class definition
+/** Contains the line mixing data class definition
  * \file   linemixingdata.h
  * 
  * \author Richard Larsson
- * \date   2012-10-31
+ * \date   2014-10-31
  **/
 
 #ifndef linemixingdata_h
@@ -53,19 +53,23 @@ public:
     const ArrayOfVector& Data() const {return mdata;}
     
     // Use these to return data in the format required by the line shape calculator
-    void GetLBLRTM(Numeric& Y, Numeric& G, const Numeric& Temperature, const Index& order); 
-    void Get2ndOrder(Numeric& Y, Numeric& G, Numeric& DV, const Numeric& Temperature);
-    void GetLBLRTM_O2NonResonant(Numeric& Gamma1, Numeric& Gamma2, const Numeric& Temperature, const Index& order);
+    void GetLBLRTM(Numeric& Y, Numeric& G, const Numeric& Temperature, const Index& order) const; 
+    void Get2ndOrder(Numeric& Y, Numeric& G, Numeric& DV, const Numeric& Temperature) const;
+    void GetLBLRTM_O2NonResonant(Numeric& Gamma1, Numeric& Gamma2, 
+                                 const Numeric& Temperature, const Index& order) const;
     
     // Use these to insert the data in the required format from catalog readings
-    void SetLBLRTMFromTheirCatalog(const Vector& t, const Vector& y, const Vector& g) {
+    void SetLBLRTMFromTheirCatalog(const Vector& t, const Vector& y, const Vector& g) 
+    {
       mtype = LM_LBLRTM;
       mdata.resize(3);
       mdata[0] = t;
       mdata[1] = y;
       mdata[2] = g;
     }
-    void SetLBLRTM_O2NonResonantFromTheirCatalog(const Vector& t, const Vector& gamma1, const Vector& gamma2) {
+    
+    void SetLBLRTM_O2NonResonantFromTheirCatalog(const Vector& t, const Vector& gamma1, const Vector& gamma2) 
+    {
       mtype = LM_LBLRTM_O2NonResonant;
       mdata.resize(3);
       mdata[0] = t;
@@ -84,7 +88,8 @@ public:
     void Vector2NoneData(const Vector&);
     void Vector2SecondOrderData(const Vector& input);
     
-    // Use these to save output vector back to save in ARTS catalog
+    // Use these to save output vector in ARTS catalog
+    void GetVectorFromData(Vector& output);
     void LBLRTMData2Vector(Vector& output);
     void LBLRTM_O2NonResonantData2Vector(Vector& output);
     void Type2StorageTag(String& output);

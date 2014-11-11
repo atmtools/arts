@@ -1,4 +1,4 @@
-/* Copyright (C) 2012 
+/* Copyright (C) 2014 
 Richard Larsson <ric.larsson@gmail.com>
 
 This program is free software; you can redistribute it and/or modify it
@@ -16,11 +16,11 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
 USA. */
 
-/** Contains some additional functionality of the rational class
-   \file   linemixing.cc
+/** Contains some additional functionality of the line mixing data class
+   \file   linemixingdata.cc
    
    \author Richard Larsson
-   \date   2012-10-31
+   \date   2014-10-31
 **/
 
 #include "linemixingdata.h"
@@ -31,16 +31,11 @@ USA. */
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //Note that first order is used by LBLRTM on the data we have.
-void LineMixingData::GetLBLRTM(Numeric& Y, Numeric& G, const Numeric& Temperature, const Index& order=1)
+void LineMixingData::GetLBLRTM(Numeric& Y, Numeric& G, const Numeric& Temperature, const Index& order=1) const
     {
-      if( mtype != LM_LBLRTM )
-        throw std::runtime_error("Trying to access LineMixingData of another type than defined by the LineRecord.\n");
-      
-      if(mdata.nelem() != 3)
-        throw std::runtime_error("Trying to access LineMixingData of LBLRTM type but the LineMixingData does not match this format.\n");
-      
-      if(mdata[0].nelem() != 4 && mdata[1].nelem() != 4 && mdata[2].nelem() != 4)
-        throw std::runtime_error("Trying to access LineMixingData of LBLRTM type but the LineMixingData does not match this format.\n");
+      assert( mtype == LM_LBLRTM );
+      assert(mdata.nelem() == 3);
+      assert(mdata[0].nelem() == 4 && mdata[1].nelem() == 4 && mdata[2].nelem() == 4);
       
       // Helper to understand the following interpolation
       const Vector& t = mdata[0];
@@ -68,16 +63,11 @@ void LineMixingData::GetLBLRTM(Numeric& Y, Numeric& G, const Numeric& Temperatur
 }
 
 
-void LineMixingData::GetLBLRTM_O2NonResonant(Numeric& Gamma1, Numeric& Gamma2, const Numeric& Temperature, const Index& order)
+void LineMixingData::GetLBLRTM_O2NonResonant(Numeric& Gamma1, Numeric& Gamma2, const Numeric& Temperature, const Index& order) const
 {
-      if( mtype != LM_LBLRTM_O2NonResonant )
-        throw std::runtime_error("Trying to access LineMixingData of another type than defined by the LineRecord.\n");
-      
-      if(mdata.nelem() != 3)
-        throw std::runtime_error("Trying to access LineMixingData of LBLRTM O2 non-resonant type but the LineMixingData does not match this format.\n");
-      
-      if(mdata[0].nelem() != 4 && mdata[1].nelem() != 4 && mdata[2].nelem() != 4)
-        throw std::runtime_error("Trying to access LineMixingData of LBLRTM O2 non-resonant type but the LineMixingData does not match this format.\n");
+      assert( mtype == LM_LBLRTM_O2NonResonant );
+      assert(mdata.nelem() == 3);
+      assert(mdata[0].nelem() == 4 && mdata[1].nelem() == 4 && mdata[2].nelem() == 4);
       
       // Helper to understand the following interpolation
       const Vector& t = mdata[0];
@@ -105,16 +95,11 @@ void LineMixingData::GetLBLRTM_O2NonResonant(Numeric& Gamma1, Numeric& Gamma2, c
 }
 
 
-void LineMixingData::Get2ndOrder(Numeric& Y, Numeric& G, Numeric& DV, const Numeric& Temperature)
+void LineMixingData::Get2ndOrder(Numeric& Y, Numeric& G, Numeric& DV, const Numeric& Temperature) const
 {
-      if( mtype != LM_2NDORDER )
-        throw std::runtime_error("Trying to access LineMixingData of another type than defined by the LineRecord.\n");
-      
-      if(mdata.nelem() != 4)
-        throw std::runtime_error("Trying to access LineMixingData of 2ndOrder type but the LineMixingData does not match this format.\n");
-      
-      if(mdata[0].nelem() != 1 && mdata[1].nelem() != 3 && mdata[2].nelem() != 3 && mdata[3].nelem() != 3)
-        throw std::runtime_error("Trying to access LineMixingData of 2ndOrder type but the LineMixingData does not match this format.\n");
+      assert( mtype == LM_2NDORDER );
+      assert(mdata.nelem() == 4);
+      assert(mdata[0].nelem() == 1 && mdata[1].nelem() == 3 && mdata[2].nelem() == 3 && mdata[3].nelem() == 3);
       
       // Helper to understand the following interpolation
       const Numeric& T0  = mdata[0][0];
@@ -170,11 +155,12 @@ Index LineMixingData::ExpectedVectorLengthFromType()
 // This will convert the read vector to the LBLRTM data format
 void LineMixingData::Vector2LBLRTMData(const Vector& input)
 {
-      if(mtype != LineMixingData::LM_LBLRTM)
-        throw std::runtime_error("Trying to set LBLRTM data from vector for wrong type.\n");
+      assert(mtype == LineMixingData::LM_LBLRTM);
       
-      if(input.nelem() != 12)
-        throw std::runtime_error("The line mixing data vector is not of the right length for LBLRTM.\n");
+      if(input.nelem() != ExpectedVectorLengthFromType())
+      {
+          throw std::runtime_error("The line mixing data vector is not of the right length for LBLRTM.\n");
+      }
       
       // Then this is a three-long ArrayOfVector
       mdata.resize(3);
@@ -205,11 +191,11 @@ void LineMixingData::Vector2LBLRTMData(const Vector& input)
 // This will convert the read vector to the LBLRTM O2 non-resonant data format
 void LineMixingData::Vector2LBLRTM_O2NonResonantData(const Vector& input)
 {
-      if(mtype != LineMixingData::LM_LBLRTM_O2NonResonant)
-        throw std::runtime_error("Trying to set LBLRTM O2 non-resonant data from vector for wrong type.\n");
-      
-      if(input.nelem() != 2)
-        throw std::runtime_error("The line mixing data vector is not of the right length for LBLRTM.\n");
+      assert(mtype == LineMixingData::LM_LBLRTM_O2NonResonant);
+      if(input.nelem() != ExpectedVectorLengthFromType())
+      {
+          throw std::runtime_error("The line mixing data vector is not of the right length for LBLRTM non-resonant.\n");
+      }
       
       // Then this is a three-long ArrayOfVector
       mdata.resize(3);
@@ -239,11 +225,9 @@ void LineMixingData::Vector2LBLRTM_O2NonResonantData(const Vector& input)
 
 // This will convert the read vector to the LBLRTM data format
 void LineMixingData::Vector2NoneData(const Vector& input)
-{
-  if(mtype != LineMixingData::LM_NONE)
-        throw std::runtime_error("Trying to set no data from vector for wrong type.\n");
-  
-  if( input.nelem() != 0 )
+{ // Setting mdata.resize(0) is probably a better method for this...
+  assert(mtype == LineMixingData::LM_NONE);
+  if( input.nelem() != ExpectedVectorLengthFromType() )
     throw std::runtime_error("You are trying to set line mixing data to a none line mixed line.\n");
 }
 
@@ -251,10 +235,8 @@ void LineMixingData::Vector2NoneData(const Vector& input)
 // This will convert the read vector to the LBLRTM data format
 void LineMixingData::Vector2SecondOrderData(const Vector& input)
 {
-      if(mtype != LineMixingData::LM_2NDORDER)
-        throw std::runtime_error("Trying to set 2ndOrder data from vector for wrong type.\n");
-      
-      if(input.nelem() != 10)
+      assert(mtype == LineMixingData::LM_2NDORDER);
+      if(input.nelem() != ExpectedVectorLengthFromType())
         throw std::runtime_error("The line mixing data vector is not of the right length for 2ndOrder.\n");
       
       // Then this is a three-long ArrayOfVector
@@ -372,6 +354,21 @@ void LineMixingData::SecondOrderData2Vector(Vector& output)
       output[4] = mdata[3][0];
       output[5] = mdata[3][1];
       output[9] = mdata[3][2];
+}
+
+
+void LineMixingData::GetVectorFromData(Vector& output)
+{
+    if(mtype == LM_NONE) // The standard case
+        output.resize(0);
+    else if(mtype == LM_LBLRTM) // The LBLRTM case
+        LBLRTMData2Vector(output);
+    else if(mtype == LM_LBLRTM_O2NonResonant) // The LBLRTM O2 non-resonant case
+        LBLRTM_O2NonResonantData2Vector(output);
+    else if(mtype == LM_2NDORDER) // The 2nd order case
+        SecondOrderData2Vector(output);
+    else
+        throw std::runtime_error("You are trying to store a line mixing type that is unknown to ARTS.\n");
 }
 
 

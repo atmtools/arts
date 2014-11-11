@@ -857,6 +857,12 @@ firstprivate(ls_attenuation, ls_phase, fac, f_local, aux)
                     try
                     {
                         const LineRecord& l_l = abs_lines[l];
+                        Numeric gamma,deltaf;
+                        l_l.PressureBroadening().GetPressureBroadeningParams(gamma,deltaf,
+                                                                             l_l.Ti0()/t_i,p_i,
+                                                                             p_partial,this_species,
+                                                                             broad_spec_locations,
+                                                                             vmrs,verbosity);
                         
                         xsec_single_line(xsec_accum_attenuation(arts_omp_get_thread_num(),joker),
                                          xsec_accum_phase(arts_omp_get_thread_num(),joker),
@@ -866,42 +872,28 @@ firstprivate(ls_attenuation, ls_phase, fac, f_local, aux)
                                          f_local,
                                          aux,
                                          isotopologue_ratios,
-                                         broad_spec_locations,
                                          f_grid,
-                                         vmrs,
-                                         l_l.Gamma_foreign(),
-                                         l_l.N_foreign(),
-                                         l_l.Delta_foreign(),
                                          l_l.F(),
                                          l_l.I0(),
                                          l_l.IsotopologueData().CalculatePartitionFctRatio(l_l.Ti0(),t_i),
                                          l_l.IsotopologueData().Mass(),
                                          l_l.Elow(),
                                          l_l.Ti0(),
-                                         l_l.Sgam(),
-                                         l_l.Nself(),
-                                         l_l.Tgam(),
-                                         l_l.Agam(),
-                                         l_l.Nair(),
-                                         l_l.Psf(),
                                          t_i,
-                                         p_i,
-                                         p_partial,
+                                         gamma,
+                                         deltaf,
                                          cutoff,
                                          0,
                                          0,
                                          0,
-                                         this_species,
                                          nf,
                                          ind_ls,
                                          ind_lsn,
-                                         l_l.Version(),
                                          l_l.Species(),
                                          l_l.Isotopologue(),
                                          lineshape_norm_data[ind_lsn].Name() == "quadratic",
                                          cut,
-                                         calc_phase,
-                                         verbosity);
+                                         calc_phase);
                         
                     } // end of try block
                     catch (runtime_error e)
@@ -1014,42 +1006,28 @@ void xsec_single_line(VectorView xsec_accum_attenuation,
                       Vector& f_local, 
                       Vector& aux, 
                       const SpeciesAuxData& isotopologue_ratios,
-                      const ArrayOfIndex& broad_spec_locations,
                       const Vector& f_grid, 
-                      ConstVectorView vmrs,
-                      const Vector& Gamma_foreign,
-                      const Vector& N_foreign,
-                      const Vector& Delta_foreign,
                       Numeric F0, 
                       Numeric intensity, 
                       const Numeric part_fct_ratio, 
                       const Numeric Isotopologue_Mass,
                       const Numeric e_lower, 
                       const Numeric T0, 
-                      const Numeric Sgam,
-                      const Numeric Nself,
-                      const Numeric Tgam,
-                      const Numeric Agam,
-                      const Numeric Nair,
-                      const Numeric Psf,
                       const Numeric temperature, 
-                      const Numeric pressure, 
-                      const Numeric p_partial, 
+                      const Numeric gamma,
+                      const Numeric deltaf,
                       const Numeric cutoff,
                       const Numeric LM_DF,
                       const Numeric LM_Y, 
                       const Numeric LM_G, 
-                      const Index this_species,
                       const Index nf, 
                       const Index ind_ls, 
-                      const Index ind_lsn, 
-                      const Index LineRecord_Version, 
+                      const Index ind_lsn,  
                       const Index LineRecord_Species, 
                       const Index LineRecord_Isotopologue, 
                       const bool quadratic_lineshape, 
                       const bool cut, 
-                      const bool calc_phase, 
-                      const Verbosity& verbosity)
+                      const bool calc_phase)
 {//asdasd;
  
     extern const Numeric PLANCK_CONST;
@@ -1076,17 +1054,6 @@ void xsec_single_line(VectorView xsec_accum_attenuation,
     // abs_lines[l] is used several times, this construct should be
     // faster (Oliver Lemke)
     // const LineRecord& l_l = abs_lines[l];  // Removed in this version
-    
-    // Make sure that catalogue version is either 3 or 4 (no other
-    // versions are supported yet):
-    if ( 3!=LineRecord_Version && 4!=LineRecord_Version )
-    {
-        ostringstream os;
-        os << "Unknown spectral line catalogue version (artscat-"
-        << LineRecord_Version << ").\n"
-        << "Allowed are artscat-3 and artscat-4.";
-        throw std::runtime_error(os.str());
-    }
     
     // Upper state energy:
     const Numeric e_upper = e_lower + F0 * PLANCK_CONST;
@@ -1117,56 +1084,6 @@ void xsec_single_line(VectorView xsec_accum_attenuation,
         intensity     = intensity * mafac / sinh(mafac);
     }
     
-    // 2. Calculate the pressure broadened line width and the pressure
-    // shifted center frequency.
-    //
-    // Here there is a difference betweeen catalogue version 4
-    // (from ESA planetary study) and earlier catalogue versions.
-    Numeric gamma;     // The line width.
-    Numeric deltaf=0;    // Pressure shift.
-    if (LineRecord_Version == 4)
-    {
-        calc_gamma_and_deltaf_artscat4(gamma,
-                                       deltaf,
-                                       pressure,
-                                       temperature,
-                                       vmrs,
-                                       this_species,
-                                       broad_spec_locations,
-                                       T0,
-                                       Sgam,
-                                       Nself,
-                                       Gamma_foreign,
-                                       N_foreign,
-                                       Delta_foreign,
-                                       verbosity);
-    }
-    else if (LineRecord_Version == 3)
-    {
-        
-        // Get pressure broadened line width:
-        // (Agam is in Hz/Pa, abs_p is in Pa, gamma is in Hz)
-        const Numeric theta = Tgam / temperature;
-        const Numeric theta_Nair = pow(theta, Nair);
-        
-        gamma =   Agam * theta_Nair  * (pressure - p_partial)
-        + Sgam * pow(theta, Nself) * p_partial;
-        
-        
-        // Pressure shift:
-        // The T dependence is connected to that of agam by:
-        // n_shift = .25 + 1.5 * n_agam
-        // Theta has been initialized above.
-        deltaf = Psf * pressure
-        * std::pow( theta , (Numeric).25 + (Numeric)1.5*Nair );
-        
-    }
-    else
-    {
-        // There is a runtime error check for allowed artscat versions
-        // further up.
-        assert(false);
-    }
     
     // Apply pressure shift:
     F0 += deltaf + LM_DF;
@@ -1688,8 +1605,8 @@ void xsec_species_line_mixing_wrapper(  MatrixView               xsec_attenuatio
         {
             std::ostringstream os;
             os << "If you use a lineshape function with cutoff, your\n"
-               << "frequency grid *f_grid* must be sorted.\n"
-               << "(Duplicate values are allowed.)";
+            << "frequency grid *f_grid* must be sorted.\n"
+            << "(Duplicate values are allowed.)";
             throw std::runtime_error(os.str());
         }
     }
@@ -1707,7 +1624,7 @@ void xsec_species_line_mixing_wrapper(  MatrixView               xsec_attenuatio
     {
         std::ostringstream os;
         os << "abs_t contains at least one negative temperature value.\n"
-           << "This is not allowed.";
+        << "This is not allowed.";
         throw std::runtime_error(os.str());
     }
     
@@ -1715,8 +1632,8 @@ void xsec_species_line_mixing_wrapper(  MatrixView               xsec_attenuatio
     {
         std::ostringstream os;
         os << "Variable abs_t must have the same dimension as abs_p.\n"
-           << "abs_t.nelem() = " << abs_t.nelem() << '\n'
-           << "abs_p.nelem() = " << abs_p.nelem();
+        << "abs_t.nelem() = " << abs_t.nelem() << '\n'
+        << "abs_p.nelem() = " << abs_p.nelem();
         throw std::runtime_error(os.str());
     }
     
@@ -1726,8 +1643,8 @@ void xsec_species_line_mixing_wrapper(  MatrixView               xsec_attenuatio
     {
         std::ostringstream os;
         os << "Number of columns of all_vmrs must match abs_p.\n"
-           << "all_vmrs.ncols() = " << all_vmrs.ncols() << '\n'
-           << "abs_p.nelem() = " << abs_p.nelem();
+        << "all_vmrs.ncols() = " << all_vmrs.ncols() << '\n'
+        << "abs_p.nelem() = " << abs_p.nelem();
         throw std::runtime_error(os.str());
     }
     
@@ -1737,10 +1654,10 @@ void xsec_species_line_mixing_wrapper(  MatrixView               xsec_attenuatio
     {
         std::ostringstream os;
         os << "Variable xsec must have dimensions [f_grid.nelem(),abs_p.nelem()].\n"
-           << "[xsec_attenuation.nrows(),xsec_attenuation.ncols()] = [" << xsec_attenuation.nrows()
-           << ", " << xsec_attenuation.ncols() << "]\n"
-           << "f_grid.nelem() = " << f_grid.nelem() << '\n'
-           << "abs_p.nelem() = " << abs_p.nelem();
+        << "[xsec_attenuation.nrows(),xsec_attenuation.ncols()] = [" << xsec_attenuation.nrows()
+        << ", " << xsec_attenuation.ncols() << "]\n"
+        << "f_grid.nelem() = " << f_grid.nelem() << '\n'
+        << "abs_p.nelem() = " << abs_p.nelem();
         throw std::runtime_error(os.str());
     }
     
@@ -1748,10 +1665,10 @@ void xsec_species_line_mixing_wrapper(  MatrixView               xsec_attenuatio
     {
         std::ostringstream os;
         os << "Variable xsec must have dimensions [f_grid.nelem(),abs_p.nelem()].\n"
-           << "[xsec_phase.nrows(),xsec_phase.ncols()] = [" << xsec_phase.nrows()
-           << ", " << xsec_phase.ncols() << "]\n"
-           << "f_grid.nelem() = " << f_grid.nelem() << '\n'
-           << "abs_p.nelem() = " << abs_p.nelem();
+        << "[xsec_phase.nrows(),xsec_phase.ncols()] = [" << xsec_phase.nrows()
+        << ", " << xsec_phase.ncols() << "]\n"
+        << "f_grid.nelem() = " << f_grid.nelem() << '\n'
+        << "abs_p.nelem() = " << abs_p.nelem();
         throw std::runtime_error(os.str());
     }
     
@@ -1770,9 +1687,9 @@ void xsec_species_line_mixing_wrapper(  MatrixView               xsec_attenuatio
                               abs_species,
                               this_species);
     
-    #pragma omp parallel for        \
-    if (!arts_omp_in_parallel())    \
-        firstprivate(attenuation, phase, fac, f_local, aux)
+#pragma omp parallel for        \
+if (!arts_omp_in_parallel())    \
+firstprivate(attenuation, phase, fac, f_local, aux)
         for(Index jj=0; jj<abs_p.nelem();jj++)
         {
             const Numeric t=abs_t[jj];
@@ -1780,8 +1697,16 @@ void xsec_species_line_mixing_wrapper(  MatrixView               xsec_attenuatio
             ConstVectorView vmrs = all_vmrs(joker,jj);
             
             const Numeric p_partial = p * vmrs[this_species];
+            Numeric gamma, deltaf_pressure;
             
             for(Index ii=0; ii<abs_lines.nelem();ii++)
+            {
+                abs_lines[ii].PressureBroadening().GetPressureBroadeningParams(gamma,deltaf_pressure,
+                                                                               abs_lines[ii].Ti0()/t,p,
+                                                                               p_partial,this_species,
+                                                                               broad_spec_locations,
+                                                                               vmrs,verbosity);
+                
                 switch(abs_lines[ii].LineMixing().Type())
                 {
                     case LineMixingData::LM_NONE:
@@ -1793,42 +1718,28 @@ void xsec_species_line_mixing_wrapper(  MatrixView               xsec_attenuatio
                                          f_local, 
                                          aux, 
                                          isotopologue_ratios,
-                                         broad_spec_locations,
                                          f_grid, 
-                                         vmrs,
-                                         abs_lines[ii].Gamma_foreign(),
-                                         abs_lines[ii].N_foreign(),
-                                         abs_lines[ii].Delta_foreign(),
                                          abs_lines[ii].F()+(precalc_zeeman?Z_DF[ii]:0.), 
                                          abs_lines[ii].I0(), 
                                          abs_lines[ii].IsotopologueData().CalculatePartitionFctRatio(abs_lines[ii].Ti0(),t), 
                                          abs_lines[ii].IsotopologueData().Mass(),
                                          abs_lines[ii].Elow(), 
                                          abs_lines[ii].Ti0(), 
-                                         abs_lines[ii].Sgam(),
-                                         abs_lines[ii].Nself(),
-                                         abs_lines[ii].Tgam(),
-                                         abs_lines[ii].Agam(),
-                                         abs_lines[ii].Nair(),
-                                         abs_lines[ii].Psf(),
                                          t, 
-                                         p, 
-                                         p_partial, 
+                                         gamma,
+                                         deltaf_pressure,
                                          cutoff,
                                          0,
                                          0, 
                                          0, 
-                                         this_species,
                                          f_grid.nelem(), 
                                          ind_ls, 
                                          ind_lsn, 
-                                         abs_lines[ii].Version(), 
                                          abs_lines[ii].Species(), 
                                          abs_lines[ii].Isotopologue(), 
                                          0, 
                                          cut,
-                                         1,
-                                         verbosity);
+                                         1);
                         break;
                     case LineMixingData::LM_LBLRTM:
                         xsec_species_line_mixing_LBLRTM(xsec_attenuation(joker,jj),
@@ -1841,17 +1752,14 @@ void xsec_species_line_mixing_wrapper(  MatrixView               xsec_attenuatio
                                                         f_grid,
                                                         p,
                                                         t,
-                                                        vmrs,
-                                                        this_species,
+                                                        gamma,
+                                                        deltaf_pressure,
                                                         abs_lines[ii],
                                                         (precalc_zeeman?Z_DF[ii]:0),
                                                         ind_ls,
                                                         ind_lsn,
                                                         cutoff,
-                                                        p_partial,
-                                                        broad_spec_locations,
-                                                        isotopologue_ratios,
-                                                        verbosity );
+                                                        isotopologue_ratios);
                         break;
                     case LineMixingData::LM_LBLRTM_O2NonResonant:
                         xsec_species_LBLRTM_O2NonResonant(xsec_attenuation(joker,jj),
@@ -1864,13 +1772,11 @@ void xsec_species_line_mixing_wrapper(  MatrixView               xsec_attenuatio
                                                           f_grid,
                                                           p,
                                                           t,
-                                                          vmrs,
-                                                          this_species,
+                                                          gamma,
+                                                          deltaf_pressure,
                                                           abs_lines[ii],
                                                           ind_lsn,
                                                           cutoff,
-                                                          p_partial,
-                                                          broad_spec_locations,
                                                           isotopologue_ratios,
                                                           verbosity );
                         break;
@@ -1885,22 +1791,20 @@ void xsec_species_line_mixing_wrapper(  MatrixView               xsec_attenuatio
                                                            f_grid,
                                                            p,
                                                            t,
-                                                           vmrs,
-                                                           this_species,
+                                                           gamma,
+                                                           deltaf_pressure,
                                                            abs_lines[ii],
                                                            (precalc_zeeman?Z_DF[ii]:0),
                                                            ind_ls,
                                                            ind_lsn,
                                                            cutoff,
-                                                           p_partial,
-                                                           broad_spec_locations,
-                                                           isotopologue_ratios,
-                                                           verbosity );
+                                                           isotopologue_ratios );
                         break;
                     default:
                         throw std::runtime_error("Bad line mixing tag detected.\n");
                         break;
                 }
+            }
         }
 }
 
@@ -1942,17 +1846,14 @@ void xsec_species_line_mixing_2nd_order(VectorView               xsec_attenuatio
                                         const Vector&            f_grid,
                                         const Numeric            p,
                                         const Numeric            t,
-                                        ConstVectorView          vmrs,
-                                        const Index              this_species,
+                                        const Numeric            gamma,
+                                        const Numeric            deltaf,
                                         const LineRecord&        my_line,
                                         const Numeric            Z_DF,
                                         const Index              ind_ls,
                                         const Index              ind_lsn,
                                         const Numeric            cutoff,
-                                        const Numeric            p_partial,
-                                        const ArrayOfIndex       broad_spec_locations,
-                                        const SpeciesAuxData&    isotopologue_ratios,
-                                        const Verbosity&         verbosity )
+                                        const SpeciesAuxData&    isotopologue_ratios)
 {
     
     Numeric Y, G, DV;
@@ -1969,42 +1870,28 @@ void xsec_species_line_mixing_2nd_order(VectorView               xsec_attenuatio
                      f_local, 
                      aux, 
                      isotopologue_ratios,
-                     broad_spec_locations,
                      f_grid, 
-                     vmrs,
-                     my_line.Gamma_foreign(),
-                     my_line.N_foreign(),
-                     my_line.Delta_foreign(),
                      my_line.F()+Z_DF, 
                      my_line.I0(), 
                      my_line.IsotopologueData().CalculatePartitionFctRatio(my_line.Ti0(),t), 
                      my_line.IsotopologueData().Mass(),
                      my_line.Elow(), 
                      my_line.Ti0(), 
-                     my_line.Sgam(),
-                     my_line.Nself(),
-                     my_line.Tgam(),
-                     my_line.Agam(),
-                     my_line.Nair(),
-                     my_line.Psf(),
-                     t, 
-                     p, 
-                     p_partial, 
+                     t,
+                     gamma,
+                     deltaf,
                      cutoff,
                      DV,
                      Y, 
                      G, 
-                     this_species,
                      f_grid.nelem(), 
                      ind_ls, 
                      ind_lsn, 
-                     my_line.Version(), 
                      my_line.Species(), 
                      my_line.Isotopologue(), 
                      0, 
                      cutoff!=-1,
-                     1, 
-                     verbosity);
+                     1);
     
 //     // Do the actual line mixing and add this to xsec_attenuation.
 //     xsec_phase += phase(joker,0);
@@ -2051,17 +1938,14 @@ void xsec_species_line_mixing_LBLRTM(VectorView               xsec_attenuation,
                                      const Vector&            f_grid,
                                      const Numeric            p,
                                      const Numeric            t,
-                                     ConstVectorView          vmrs,
-                                     const Index              this_species,
+                                     const Numeric            gamma,
+                                     const Numeric            deltaf,
                                      const LineRecord&        my_line,
                                      const Numeric            Z_DF,
                                      const Index              ind_ls,
                                      const Index              ind_lsn,
                                      const Numeric            cutoff,
-                                     const Numeric            p_partial,
-                                     const ArrayOfIndex       broad_spec_locations,
-                                     const SpeciesAuxData&    isotopologue_ratios,
-                                     const Verbosity&         verbosity )
+                                     const SpeciesAuxData&    isotopologue_ratios)
 {
     Numeric Y, G;
     my_line.LineMixing().GetLBLRTM(Y,G,t,1);
@@ -2076,42 +1960,28 @@ void xsec_species_line_mixing_LBLRTM(VectorView               xsec_attenuation,
                      f_local, 
                      aux, 
                      isotopologue_ratios,
-                     broad_spec_locations,
                      f_grid, 
-                     vmrs,
-                     my_line.Gamma_foreign(),
-                     my_line.N_foreign(),
-                     my_line.Delta_foreign(),
                      my_line.F()+Z_DF, 
                      my_line.I0(), 
                      my_line.IsotopologueData().CalculatePartitionFctRatio(my_line.Ti0(),t), 
                      my_line.IsotopologueData().Mass(),
                      my_line.Elow(), 
                      my_line.Ti0(), 
-                     my_line.Sgam(),
-                     my_line.Nself(),
-                     my_line.Tgam(),
-                     my_line.Agam(),
-                     my_line.Nair(),
-                     my_line.Psf(),
                      t, 
-                     p, 
-                     p_partial, 
+                     gamma,
+                     deltaf,
                      cutoff,
                      0,
                      Y, 
                      G, 
-                     this_species,
                      f_grid.nelem(), 
                      ind_ls, 
                      ind_lsn, 
-                     my_line.Version(), 
                      my_line.Species(), 
                      my_line.Isotopologue(), 
                      0, 
                      cutoff!=-1,
-                     1, 
-                     verbosity);
+                     1);
     
 }
 
@@ -2150,15 +2020,13 @@ void xsec_species_LBLRTM_O2NonResonant(VectorView               xsec_attenuation
                                        const Vector&            f_grid,
                                        const Numeric            p,
                                        const Numeric            t,
-                                       ConstVectorView          vmrs,
-                                       const Index              this_species,
+                                       const Numeric            gamma,
+                                       const Numeric            deltaf,
                                        const LineRecord&        my_line,
                                        const Index              ind_lsn,
                                        const Numeric            cutoff,
-                                       const Numeric            p_partial,
-                                       const ArrayOfIndex       broad_spec_locations,
                                        const SpeciesAuxData&    isotopologue_ratios,
-                                       const Verbosity&         verbosity )
+                                       const Verbosity& verbosity)
 {
     Numeric gamma1, gamma2;
     my_line.LineMixing().GetLBLRTM_O2NonResonant(gamma1,gamma2,t,1);
@@ -2178,42 +2046,28 @@ void xsec_species_LBLRTM_O2NonResonant(VectorView               xsec_attenuation
                      f_local, 
                      aux, 
                      isotopologue_ratios,
-                     broad_spec_locations,
-                     f_grid, 
-                     vmrs,
-                     my_line.Gamma_foreign(),
-                     my_line.N_foreign(),
-                     my_line.Delta_foreign(),
+                     f_grid,
                      my_line.F(), 
                      my_line.I0(), 
                      my_line.IsotopologueData().CalculatePartitionFctRatio(my_line.Ti0(),t), 
                      my_line.IsotopologueData().Mass(),
                      my_line.Elow(), 
                      my_line.Ti0(), 
-                     my_line.Sgam(),
-                     my_line.Nself(),
-                     my_line.Tgam(),
-                     my_line.Agam(),
-                     my_line.Nair(),
-                     my_line.Psf(),
                      t, 
-                     p, 
-                     p_partial, 
+                     gamma,
+                     deltaf,
                      cutoff,
                      0,
                      0, 
                      - gamma1 - gamma2, 
-                     this_species,
                      f_grid.nelem(), 
                      tmp[0].Ind_ls(), 
                      ind_lsn, 
-                     my_line.Version(), 
                      my_line.Species(), 
                      my_line.Isotopologue(), 
                      0, 
                      cutoff!=-1, 
-                     0, 
-                     verbosity);
+                     0);
     
 }
 
@@ -2658,7 +2512,7 @@ void xsec_species_old_unused( MatrixView               xsec_attenuation,
                                     
                                     //              if (l_l.Version() == 3)
                                     //              {
-                                    const Numeric Tgam = l_l.Tgam();
+                                    const Numeric Tgam = l_l.Ti0(); // FIXME: This is breaking old catalogs??
                                     const Numeric Agam = l_l.Agam();
                                     const Numeric Nair = l_l.Nair();
                                     const Numeric Sgam = l_l.Sgam();

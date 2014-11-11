@@ -1,3 +1,32 @@
+2014-11-11  Richard Larsson <ric.larsson@gmail.com>
+
+	* arts-2-3-67
+	
+	Restructuring of pressure broadening in preparation for ARTSCAT-5 format.
+	
+	* src/absorption.{cc,h}:  These files were restructured to reflect changes
+	below.
+	
+	* src/linerecord.{cc,h}:  The linerecord no longer contains an assortment of
+	pressure broadening parameters but a single pressurebroadeningdata class.
+	This is reflected in how the reading routines handle pressure data.  There are
+	adaptions to all the relevant previous calls to return individual line parameters
+	inside the pressure broadening class.
+
+	One
+	important design decision is that we no longer allow internally different
+	temperatures for line parameters and pressure parameters.  All old formats
+	that allowed this have been adapted to store pressure broadening internally
+	at the appropriate temperature by (T0/T1)^n conversion for gamma and
+	(T0/T1)^(.25+1.5n) for deltaf.
+	
+	* src/linemixingdata.{cc,h}:  restructured slightly to reflect design decisions
+	in pressurebroadeningdata.
+	
+	* src/pressurebroadeningdata.{cc,h} (added):  This class contains a structure
+	of data that is similar to the structures that previously were kept in linerecord.
+	
+
 2014-11-10  Jana Mendrok  <jana.mendrok@ltu.se>
 
 	* arts-2-3-66

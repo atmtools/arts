@@ -34,6 +34,7 @@
 #include "matpackI.h"
 #include "quantum.h"
 #include "linemixingdata.h"
+#include "pressurebroadeningdata.h"
 
 /* Forward declaration of classes */
 class SpeciesRecord;
@@ -205,29 +206,30 @@ public:
       mspecies (1000000),
       misotopologue (1000000),
       mf       (0.     ),
-      mpsf     (0.     ),
+      //mpsf     (0.     ),
       mi0      (0.     ),
       mti0     (0.     ),
       melow    (0.     ),
-      magam    (0.     ),
-      msgam    (0.     ),
-      mnair    (0.     ),
-      mnself   (0.     ),
-      mtgam    (0.     ),
+      //magam    (0.     ),
+      //msgam    (0.     ),
+      //mnair    (0.     ),
+      //mnself   (0.     ),
+      //mtgam    (0.     ),
       maux     (       ),
       mdf      (-1.    ),
       mdi0     (-1.    ),
-      mdagam   (-1.    ),
-      mdsgam   (-1.    ),
-      mdnair   (-1.    ),
-      mdnself  (-1.    ),
-      mdpsf    (-1.    ),
+      //mdagam   (-1.    ),
+      //mdsgam   (-1.    ),
+      //mdnair   (-1.    ),
+      //mdnself  (-1.    ),
+      //mdpsf    (-1.    ),
       mupper_n (-1     ),
       mupper_j (-1     ),
       mlower_n (-1     ),
       mlower_j (-1     ),
       mquantum_numbers_str(""),
-      mquantum_numbers()
+      mquantum_numbers(),
+      mpressurebroadeningdata()
  { /* Nothing to do here. */ }
 
   /** Constructor that sets all data elements explicitly. If
@@ -245,7 +247,7 @@ public:
               Numeric               sgam,
               Numeric               nair,
               Numeric               nself,
-              Numeric               tgam,
+              Numeric               /*tgam*/, 
               const ArrayOfNumeric& aux,
               Numeric               /* df */,
               Numeric               /* di0 */,
@@ -258,23 +260,23 @@ public:
       mspecies (species    ),
       misotopologue (isotopologue    ),
       mf       (f          ),
-      mpsf     (psf        ),
+      //mpsf     (psf        ),
       mi0      (i0         ),
       mti0     (ti0        ),
       melow    (elow       ),
-      magam    (agam       ),
-      msgam    (sgam       ),
-      mnair    (nair       ),
-      mnself   (nself      ),
-      mtgam    (tgam       ), 
+      //magam    (agam       ),
+      //msgam    (sgam       ),
+      //mnair    (nair       ),
+      //mnself   (nself      ),
+      //mtgam    (tgam       ), 
       maux     (aux        ),
       mdf      (-1.    ),
       mdi0     (-1.    ),
-      mdagam   (-1.    ),
-      mdsgam   (-1.    ),
-      mdnair   (-1.    ),
-      mdnself  (-1.    ),
-      mdpsf    (-1.    ),
+      //mdagam   (-1.    ),
+      //mdsgam   (-1.    ),
+      //mdnair   (-1.    ),
+      //mdnself  (-1.    ),
+      //mdpsf    (-1.    ),
       mupper_n (-1     ),
       mupper_j (-1     ),
       mlower_n (-1     ),
@@ -282,6 +284,7 @@ public:
       mquantum_numbers_str(""),
       mquantum_numbers()
   {
+    mpressurebroadeningdata.SetAirBroadeningFromCatalog( sgam,nself,agam,nair,psf,NAN,NAN,NAN,NAN,NAN);
     // Thanks to Matpack, initialization of misotopologue with isotopologue
     // should now work correctly.  
 
@@ -343,10 +346,10 @@ public:
   void setF( Numeric new_mf ) { mf = new_mf; }
 
   /** The pressure shift parameter in <b> Hz/Pa</b>. */
-  Numeric Psf() const   { return mpsf; }
+  Numeric Psf() const   { return mpressurebroadeningdata.AirBroadeningPsf(); }
 
   /** Set the pressure shift parameter in <b> Hz/Pa</b>. */
-  void setPsf( Numeric new_mpsf ) { mpsf = new_mpsf; }
+  //void setPsf( Numeric new_mpsf ) { mpsf = new_mpsf; }
 
   /** The line intensity in <b> m^2*Hz</b> at the reference temperature \c Ti0. 
 
@@ -372,31 +375,31 @@ public:
   Numeric Elow() const  { return melow; }
 
   /** Air broadened width in <b> Hz/Pa</b>: */
-  Numeric Agam() const  { return magam; }
+  Numeric Agam() const  { return mpressurebroadeningdata.AirBroadeningAgam(); }
 
-   /** Set Air broadened width in <b> Hz/Pa</b>: */
-  void setAgam( Numeric new_agam ) { magam = new_agam; }
+  /** Set Air broadened width in <b> Hz/Pa</b>: */
+  //void setAgam( Numeric new_agam ) { magam = new_agam; }
 
   /** Self broadened width in <b> Hz/Pa</b>: */
-  Numeric Sgam() const  { return msgam; }
+  Numeric Sgam() const  { return mpressurebroadeningdata.Sgam(); }
 
   /** Set Self  broadened width in <b> Hz/Pa</b>: */
-  void setSgam( Numeric new_sgam ) { msgam = new_sgam; }
+  //void setSgam( Numeric new_sgam ) { msgam = new_sgam; }
 
   /** AGAM temperature exponent (dimensionless): */
-  Numeric Nair() const  { return mnair; }
+  Numeric Nair() const  { return mpressurebroadeningdata.AirBroadeningNair(); }
 
   /** Set AGAM temperature exponent (dimensionless): */
-  void setNair( Numeric new_mnair ) { mnair = new_mnair; }
+  //void setNair( Numeric new_mnair ) { mnair = new_mnair; }
 
   /** SGAM temperature exponent (dimensionless): */
-  Numeric Nself() const { return mnself; }
+  Numeric Nself() const { return mpressurebroadeningdata.Nself(); }
 
  /** Set SGAM temperature exponent (dimensionless): */
-  void setNself( Numeric new_mnself ) { mnself = new_mnself; }
+  //void setNself( Numeric new_mnself ) { mnself = new_mnself; }
 
   /** Reference temperature for AGAM and SGAM in <b> K</b>: */
-  Numeric Tgam() const  { return mtgam; }
+  //Numeric Tgam() const  { return mtgam; }
 
   /** Number of auxiliary parameters. This function is actually
       redundant, since the number of auxiliary parameters can also be
@@ -416,19 +419,19 @@ public:
   Numeric dI0() const  { return mdi0; }
 
  /** Accuracy for air broadened width in <b> relative value </b>: */
-  Numeric dAgam() const  { return mdagam; }
+  Numeric dAgam() const  { return mpressurebroadeningdata.AirBroadeningDAgam(); }
 
   /** Accuracy for self broadened width in <b> relative value </b>: */
-  Numeric dSgam() const  { return mdsgam; }
+  Numeric dSgam() const  { return mpressurebroadeningdata.dSgam(); }
 
   /** Accuracy for AGAM temperature exponent in <b> relative value </b>: */
-  Numeric dNair() const  { return mdnair; }
+  Numeric dNair() const  { return mpressurebroadeningdata.AirBroadeningDNair(); }
 
   /** Accuracy for SGAM temperature exponent in <b> relative value</b>: */
-  Numeric dNself() const { return mdnself; }
+  Numeric dNself() const { return mpressurebroadeningdata.dNself(); }
 
   /** Accuracy for pressure shift in <b> relative value </b>: */
-  Numeric dPsf() const { return mdpsf; }
+  Numeric dPsf() const { return mpressurebroadeningdata.AirBroadeningDPsf(); }
 
   /** ARTSCAT-4 Einstein A-coefficient in <b> 1/s </b>: */
   Numeric A() const { return ma; }
@@ -440,22 +443,22 @@ public:
   Numeric G_lower() const { return mglower; }
   
   /** ARTSCAT-4 foreign broadening parameters in <b> Hz/Pa </b>: */
-  Numeric Gamma_foreign(const Index i) const { return mgamma_foreign[i]; }
+  Numeric Gamma_foreign(const Index i) const { return mpressurebroadeningdata.PerrinGammaForeign(i); }
 
     /** ARTSCAT-4 foreign broadening parameters in <b> Hz/Pa </b>: */
-    const Vector& Gamma_foreign() const { return mgamma_foreign; }
+    const Vector Gamma_foreign() const { return mpressurebroadeningdata.PerrinGammaForeign(); }
     
    /** ARTSCAT-4 foreign temperature exponents (dimensionless): */
-   Numeric N_foreign(const Index i) const { return mn_foreign[i]; }
+   Numeric N_foreign(const Index i) const { return mpressurebroadeningdata.PerrinNForeign(i); }
     
     /** ARTSCAT-4 foreign temperature exponents (dimensionless): */
-    const Vector& N_foreign() const { return mn_foreign; }
+    const Vector N_foreign() const { return mpressurebroadeningdata.PerrinNForeign(); }
     
    /** ARTSCAT-4 pressure shift parameters in <b> Hz/Pa </b>: */
-   Numeric Delta_foreign(const Index i) const { return mdelta_foreign[i]; }
+   Numeric Delta_foreign(const Index i) const { return mpressurebroadeningdata.PerrinDeltaForeign(i); }
     
     /** ARTSCAT-4 pressure shift parameters in <b> Hz/Pa </b>: */
-    const Vector& Delta_foreign() const { return mdelta_foreign; }
+    const Vector Delta_foreign() const { return mpressurebroadeningdata.PerrinDeltaForeign(); }
 
 //  /** Broadening parameter self in <b> Hz/Pa </b>: */
 //  Numeric Gamma_self() const { return mgamma_self; }
@@ -548,10 +551,15 @@ public:
   const QuantumNumberRecord& QuantumNumbers() const { return mquantum_numbers; }
   void SetQuantumNumberLower(const Index i, const Rational r) { mquantum_numbers.SetLower(i,r); }
   void SetQuantumNumberUpper(const Index i, const Rational r) { mquantum_numbers.SetUpper(i,r); }
-    
-  LineMixingData LineMixing() const { return mlinemixingdata; }
+  
+  /** Line Mixing data */
+  const LineMixingData& LineMixing() const { return mlinemixingdata; }
   void SetLineMixingData(const LineMixingData input) { mlinemixingdata=input; }
-    
+  
+  /** Pressure Broadening Data */
+  const PressureBroadeningData& PressureBroadening() const { return mpressurebroadeningdata; }
+  void SetPressureBroadeningData(const PressureBroadeningData input) { mpressurebroadeningdata=input; }
+        
 
   /** Indices of different broadening species in Gamma_foreign, 
    N_foreign, and Delta_foreign. */
@@ -630,18 +638,18 @@ public:
       maux.resize(0);
       
       // Set other parameters to NAN:
-      magam    = NAN;
-      mnair    = NAN;
-      mpsf     = NAN;
-      mtgam    = NAN;
+      //magam    = NAN;
+      //mnair    = NAN;
+      //mpsf     = NAN;
+      //mtgam    = NAN;
       
       mdf      = NAN;
       mdi0     = NAN;
-      mdagam   = NAN;
-      mdsgam   = NAN;
-      mdnair   = NAN;
-      mdnself  = NAN;
-      mdpsf    = NAN;
+      //mdagam   = NAN;
+      //mdsgam   = NAN;
+      //mdnair   = NAN;
+      //mdnself  = NAN;
+      //mdpsf    = NAN;
     }
   
   /** Read one line from a stream associated with a HITRAN 1986-2001 file. The
@@ -969,7 +977,7 @@ private:
   // The line center frequency in Hz:
   Numeric mf;
   // The pressure shift parameter in Hz/Pa:
-  Numeric mpsf;
+  //Numeric mpsf;
   // The line intensity in m^2/Hz:
   Numeric mi0;
   // Reference temperature for I0 in K:
@@ -977,15 +985,15 @@ private:
   // Lower state energy in cm^-1:
   Numeric melow;
   // Air broadened width in Hz/Pa:
-  Numeric magam;
+  //Numeric magam;
   // Self broadened width in Hz/Pa:
-  Numeric msgam;
+  //Numeric msgam;
   // AGAM temperature exponent (dimensionless):
-  Numeric mnair;
+  //Numeric mnair;
   // SGAM temperature exponent (dimensionless):
-  Numeric mnself;
+  //Numeric mnself;
   // Reference temperature for AGAM and SGAM in K:
-  Numeric mtgam;
+  //Numeric mtgam;
   // Array to hold auxiliary parameters:
   ArrayOfNumeric maux;
   //
@@ -996,15 +1004,15 @@ private:
   // Accuracy for line intensity in %:
   Numeric mdi0;
   // Accuracy for air broadened width in %:
-  Numeric mdagam;
+  //Numeric mdagam;
   // Accuracy for self broadened width in %:
-  Numeric mdsgam;
+  //Numeric mdsgam;
   // Accuracy for AGAM temperature exponent in %:
-  Numeric mdnair;
+  //Numeric mdnair;
   //  Accuracy for SGAM temperature exponent in %:
-  Numeric mdnself;
- //  Accuracy for pressure shift in %:
-  Numeric mdpsf;
+  //Numeric mdnself;
+  //  Accuracy for pressure shift in %:
+  //Numeric mdpsf;
   
   //// New fields in ARTSCAT-4
   
@@ -1021,7 +1029,7 @@ private:
     
   // Array of foreign broadening parameters in Hz/Pa. Parameters for
   // individual species can be found using the enum defined in this class.
-  Vector mgamma_foreign;
+  //Vector mgamma_foreign;
   
 //  // Broadening parameter N2 in Hz/Pa:
 //  Numeric mgamma_n2;
@@ -1042,7 +1050,7 @@ private:
 
   // Array of foreign temp. exponents (dimensionless). Parameters for
   // individual species can be found using the enum defined in this class.
-  Vector mn_foreign;
+  //Vector mn_foreign;
 
 //  // GAM temp. exponent N2:
 //  Numeric mn_n2;
@@ -1059,7 +1067,7 @@ private:
   
   // Array of pressure shift parameters in Hz/Pa. Parameters for
   // individual species can be found using the enum defined in this class.
-  Vector mdelta_foreign;
+  //Vector mdelta_foreign;
 
 //  // F Pressure shift N2 in Hz/Pa:
 //  Numeric mdelta_n2;
@@ -1099,6 +1107,9 @@ private:
   
   /** Line Mixing Data */
   LineMixingData mlinemixingdata;
+  
+  /** Pressure Broadening Data */
+  PressureBroadeningData mpressurebroadeningdata;
 };
 
 /** Output operator for LineRecord. The result should look like a
