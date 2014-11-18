@@ -1,5 +1,14 @@
 2014-11-18  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+        * arts-2-3-70
+
+	* src/m_rte.cc (iyEmissionStandard): Added a check of obtained
+	ppath to catch infinite loops at the surface. This could happen if
+	you set (or as we did disturb) specular_los in an incorrect way,
+	or potentially also happen due limited numerical accuarcy.
+
+2014-11-18  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
         * arts-2-3-69
 
 	* src/surface.cc (surface_specular_R_and_b): surface_rmatrix(3,2)
