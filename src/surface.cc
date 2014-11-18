@@ -145,18 +145,18 @@ void surface_specular_R_and_b(
 
         if( stokes_dim > 2 )
           {
-            const Complex   a     = Rh * conj(Rv);
-            const Complex   b     = Rv * conj(Rh);
-            const Numeric   c     = real( a + b ) / 2.0;
+            const Complex   a = Rh * conj(Rv);
+            const Complex   b = Rv * conj(Rh);
+            const Numeric   c = real( a + b ) / 2.0;
 
             surface_rmatrix(2,2) = c;
       
             if( stokes_dim > 3 )
               {
-                const Numeric   d     = imag( a - b ) / 2.0;
+                const Numeric   d = imag( a - b ) / 2.0;
 
-                surface_rmatrix(3,2) = d;
                 surface_rmatrix(2,3) = d;
+                surface_rmatrix(3,2) = -d;
                 surface_rmatrix(3,3) = c;
               }
           }
