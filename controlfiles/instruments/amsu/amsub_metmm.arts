@@ -23,6 +23,14 @@ NumericSet( ppath_lmax, 250 )
 Copy( surface_rtprop_agenda,
       surface_rtprop_agenda__Specular_NoPol_ReflFix_SurfTFromt_surface )
 
+# Polarisation test
+#NumericSet(surface_skin_t, 285)
+#complex_refr_indexConstant(surface_complex_refr_index, 1.5, 0.0)
+#AgendaSet( surface_rtprop_agenda ){
+#  specular_losCalc
+#  surfaceFlatRefractiveIndex
+#} 
+
 
 # 2. Spectroscopy
 #----------------
@@ -40,17 +48,13 @@ abs_speciesSet( species=[ "H2O-PWR98",
                           "N2-SelfContStandardType" ] )
 
 # Read HITRAN catalog (needed for O3):
-#abs_linesReadFromHitran2004( abs_lines,
-#                             "/storage1/pool/lookup2/hitran2004/HITRAN04.par",
-#                             80e9,
-#                             200e9 )
-#WriteXML( "ascii", abs_lines, "amsub.hitran04_lines.xml" )
+#abs_linesReadFromHitran( abs_lines,
+#                         "HITRAN2012.par",
+#                         80e9,
+#                         200e9 )
+#WriteXML( "ascii", abs_lines, "amsub.hitran12_o3_lines.xml" )
 
-abs_linesReadFromHitran( abs_lines,
-                         "HITRAN2012.par",
-                         17e9,
-                         120e9 )
-#ReadXML( abs_lines, "amsub.hitran04_lines.xml" )
+ReadXML( abs_lines, "amsub.hitran12_o3_lines.xml" )
 abs_lines_per_speciesCreateFromLines
 
 # WARNING: If you redefine abs_species, and want to do a line-by-line
@@ -63,13 +67,23 @@ abs_lines_per_speciesCreateFromLines
 
 # Definition of sensor position and LOS
 # ---
-ReadXML( sensor_los, "amsub.sensor_los.xml" )
-nrowsGet( nrows, sensor_los )
-ncolsGet( ncols, sensor_los )
-MatrixSetConstant( sensor_pos, nrows, ncols, 850e3 )
+MatrixSetConstant( sensor_pos, 1, 1, 850e3 )
+
+# Nadir looking direction of the sensor
+MatrixSetConstant( sensor_los, 1, 1, 180 )
+
+# Viewing angles
+# There are 45 different angles, corresponding to one side of the AMSU-B
+# Scan. You can instead set it here to a single value if you want to 
+# calculate only for one viewing angle.
+
+ReadXML( mblock_za_grid, "amsub.mblock_za_grid.xml" )
+
+# For speed reasons, just calculate one angle
+VectorSet( mblock_za_grid, [ -0.5 ] )
 
 
-# Sensor response setup
+# Sensor setup
 # ---
 
 MatrixSet( met_mm_backend,
@@ -79,11 +93,17 @@ MatrixSet( met_mm_backend,
       	     183.31e9, 3.00e9, 0., 1000e6 ;
       	     183.31e9, 7.00e9, 0., 2000e6 ] )
 
+ArrayOfStringSet( met_mm_polarisation, ["AMSU-V",
+                                        "AMSU-V",
+                                        "AMSU-V",
+                                        "AMSU-V",
+                                        "AMSU-V",
+                                        "AMSU-V"])
+
 VectorSet( met_mm_antenna, [] )
-ArrayOfStringSet( met_mm_polarisation, [] )
 
 sensor_responseBackendMetMM(freq_spacing=.1e9,
-		            freq_number=[10], use_polarisation=0)
+		            freq_number=[12])
 
 WriteXML("ascii", sensor_response)
 WriteXML("ascii", f_grid)

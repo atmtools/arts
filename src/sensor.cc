@@ -657,7 +657,16 @@ void mueller_rotation(
     }
 }
 
+/** Calculate polarisation H-matrix
+ 
+ Takes into account instrument channel polarisation and zenith angle.
 
+ \param[out] H          Polarisation matrix
+ \param[in]  mm_pol     Instrument channel polarisations
+ \param[in]  za         Zenith angle
+ \param[in]  stokes_dim Workspace variable
+ \param[in]  iy_unit    Workspace variable
+ */
 void met_mm_polarisation_hmatrix(Sparse& H,
                                  const ArrayOfString& mm_pol,
                                  const Numeric za,
@@ -688,7 +697,7 @@ void met_mm_polarisation_hmatrix(Sparse& H,
             rot[i] = "AMSU";
             pol[i] = "V";
         }
-        if (mm_pol[i] == "ISMAR-H")
+        else if (mm_pol[i] == "ISMAR-H")
         {
             rot[i] = "ISMAR";
             pol[i] = "H";

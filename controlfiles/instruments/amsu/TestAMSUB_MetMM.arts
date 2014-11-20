@@ -18,7 +18,7 @@ IndexSet( stokes_dim, 1 )
 # be aware, that amsub.arts as is only works for 1D and stokes_dim=1
 INCLUDE "amsub_metmm.arts"
 
-INCLUDE "TestAMSU_generic.arts"
+INCLUDE "TestAMSU_MetMM_generic.arts"
 
 
 # Store result matrix:

@@ -40,13 +40,13 @@ abs_speciesSet( species=[ "H2O-PWR98",
                           "N2-SelfContStandardType" ] )
 
 # Read HITRAN catalog (needed for O3):
-#abs_linesReadFromHitran2004( abs_lines,
-#                             "/storage1/pool/lookup2/hitran2004/HITRAN04.par",
-#                             80e9,
-#                             200e9 )
-#WriteXML( "ascii", abs_lines, "amsub.hitran04_lines.xml" )
+#abs_linesReadFromHitran( abs_lines,
+#                         "HITRAN2012.par",
+#                         80e9,
+#                         200e9 )
+#WriteXML( "ascii", abs_lines, "amsub.hitran12_o3_lines.xml" )
 
-ReadXML( abs_lines, "amsub.hitran04_lines.xml" )
+ReadXML( abs_lines, "amsub.hitran12_o3_lines.xml" )
 abs_lines_per_speciesCreateFromLines
 
 # WARNING: If you redefine abs_species, and want to do a line-by-line

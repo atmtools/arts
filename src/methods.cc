@@ -10084,9 +10084,7 @@ void define_md_data_raw()
          "Sensor setup for meteorological millimeter instruments.\n"
          "\n"
          "This method is handy if you are simulating an passband-type instrument,\n"
-         "consisting of a few discrete channels. The case that channels touch,\n"
-         "as for MHS, is handled correctly. But the case that channels overlap\n"
-         "is not handled and results in an error message.\n"
+         "consisting of a few discrete channels.\n"
          "\n"
          "The method calculates *f_grid* to match the instrument, as specified by\n"
          "the *met_mm_backend*.\n"
@@ -10118,17 +10116,16 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "met_mm_backend", "met_mm_polarisation", "met_mm_antenna",
+        IN( "mblock_za_grid", "met_mm_backend", "met_mm_polarisation", "met_mm_antenna",
             "stokes_dim", "sensor_los", "iy_unit" ),
         GIN( "freq_spacing", "freq_number", "freq_merge_threshold",
-             "use_antenna", "use_polarisation" ),
-        GIN_TYPE(    "Numeric", "ArrayOfIndex", "Numeric", "Index", "Index" ),
-        GIN_DEFAULT( ".1e9",    "[-1]",         "1",       "0",     "0" ),
+             "use_antenna" ),
+        GIN_TYPE(    "Numeric", "ArrayOfIndex", "Numeric", "Index" ),
+        GIN_DEFAULT( ".1e9",    "[-1]",         "1",       "0" ),
         GIN_DESC( "Desired grid spacing in Hz.",
                   "Number of frequencies per passband for each channel.",
                   "Merge frequencies that are closer than this value in Hz.",
-                  "Flag to enable (1) or disable (0) antenna.",
-                  "Flag to enable (1) or disable (0) polarisation." )
+                  "Flag to enable (1) or disable (0) antenna." )
         ));
   
   md_data_raw.push_back

@@ -1,3 +1,62 @@
+2014-11-20  Oliver Lemke  <olemke@core-dump.info>
+
+        * arts-2-3-71
+
+	* src/methods.cc, src/m_sensor.cc:
+
+	(sensor_responseBackendMetMM):
+
+	Remove use_polarisation input. stokes_dim is used to determine whether
+	or not to calculate polarisation.
+
+	Add mblock_za_grid as input.
+
+	sensor_los contains now the nadir zenith angle direction of the sensor
+	(e.g. 180 for AMSU). And mblock_za_grid the off-nadir scan angles.
+
+	For each looking angle a measurement block is now used.
+
+	* src/sensor.cc (met_mm_polarisation_hmatrix):
+
+	Fix bug in if/elseif.
+
+	Add doxygen documentation.
+
+	* src/workspace.cc: Add polarisation docs to met_mm_polarisation.
+
+	* controlfiles/instruments/amsu/amsub.arts: Use lines based on hitran12 catalog.
+	
+	* controlfiles/instruments/amsu/amsub.hitran12_o3_lines.xml.gz:
+
+	Extracted from hitran12. Also vastly reduce catalog size by only including
+	O3 lines instead of all species.
+
+	* controlfiles/instruments/amsu/TestAMSUB.ybatch.ref.xml:
+
+	Updated based on calculation with hitran12 lines.
+
+	* controlfiles/instruments/amsu/amsub_metmm.arts:
+
+	Use mblock_za_grid for scan angles.
+
+	Add channel polarisation settings.
+
+	* controlfiles/instruments/amsu/TestAMSUB_MetMM.arts:
+
+	Include new TestAMSU_MetMM_generic.arts.
+
+	* controlfiles/instruments/amsu/TestAMSU_MetMM_generic.arts:
+
+	Based on TestAMSU_generic. Removed sensor_los because it can't be
+	changed here anymore. It has to be set before the sensor setup because
+	sensor_response now contains scan angle dependent polarisation information.
+
+	* controlfiles/instruments/amsu/amsub.mblock_za_grid.xml:
+
+	Added. AMSU-B scan angles.
+
+	* controlfiles/CMakeLists.txt: Add TestAMSUB_MetMM.
+
 2014-11-18  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
         * arts-2-3-70
