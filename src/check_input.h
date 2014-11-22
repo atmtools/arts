@@ -362,7 +362,8 @@ void chk_atm_field(
         const Index&    nspecies,
         ConstVectorView p_grid,
         ConstVectorView lat_grid,
-        ConstVectorView lon_grid );
+        ConstVectorView lon_grid,
+        const bool&     check_nan = 1 );
 
 void chk_atm_vecfield_lat90( 
         const String&     x1_name,

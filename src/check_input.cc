@@ -1533,7 +1533,8 @@ void chk_atm_field(
         const Index&    nspecies,
         ConstVectorView p_grid,
         ConstVectorView lat_grid,
-        ConstVectorView lon_grid )
+        ConstVectorView lon_grid,
+        const bool&     check_nan )
 {
   const Index nbooks=nspecies;
   // 
@@ -1569,22 +1570,24 @@ void chk_atm_field(
       throw runtime_error( os.str() );
     }
 
-  // NaNs are not allowed
-  for( Index ib=0; ib<nbooks; ib++ )
-    { for( Index ip=0; ip<npages; ip++ )
-      { for( Index ir=0; ir<nrows; ir++ )
-          { for( Index ic=0; ic<ncols; ic++ )
-              {
-                if( isnan( x(ib,ip,ir,ic) ) )
-                  {
-                    ostringstream os;
-                    os << "The variable *" << x_name <<  "* contains one or "
-                       << "several NaNs. This is not allowed!";
-                    throw runtime_error( os.str() );
-                  }
-              }
-          }
-      }
+  if (check_nan)
+    // NaNs are not allowed
+    { for( Index ib=0; ib<nbooks; ib++ )
+        { for( Index ip=0; ip<npages; ip++ )
+            { for( Index ir=0; ir<nrows; ir++ )
+                { for( Index ic=0; ic<ncols; ic++ )
+                    {
+                      if( isnan( x(ib,ip,ir,ic) ) )
+                        {
+                          ostringstream os;
+                          os << "The variable *" << x_name <<  "* contains one or "
+                             << "several NaNs. This is not allowed!";
+                          throw runtime_error( os.str() );
+                        }
+                    }
+                }
+            }
+        }
     }
 
   // Special 3D checks:

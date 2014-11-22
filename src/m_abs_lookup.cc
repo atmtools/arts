@@ -33,6 +33,7 @@
 #include "gas_abs_lookup.h"
 #include "agenda_class.h"
 #include "check_input.h"
+#include "cloudbox.h"
 #include "matpackV.h"
 #include "physics_funcs.h"
 #include "math_funcs.h"
@@ -1171,14 +1172,6 @@ void abs_lookupSetupBatch(// WS Output:
   // convert it here to the natural log:
   const Numeric p_step = log(pow(10.0, p_step10));
 
-  // Derive field, where abs_species profiles start
-  // (in batch_fields, first 2 are T and z, then we have an unknown number of
-  // scat_species fields, followed by N fields corresponding to the N entries in
-  // abs_species)
-  const Index indoff = batch_fields[0].data.nbooks()-abs_species.nelem();
-//  cout << "abs species start at column " << indoff << ", i.e.,\n"
-//       << indoff-2 << " particle related columns are present\n";
-
   // Derive which abs_species is H2O (required for nonlinear species handling)
   // returns -1 if no H2O present
   const Index h2o_index = find_first_species_tg( abs_species,
@@ -1187,72 +1180,25 @@ void abs_lookupSetupBatch(// WS Output:
 //  cout << "That is, H2O is expected to be the " << indoff+h2o_index
 //       << ". column of the atmospheric fields\n";
 
+  ArrayOfIndex batch_index(abs_species.nelem());
+  Index T_index;
+  Index z_index;
+
+  ArrayOfString species_names(abs_species.nelem());
+  for (Index i=0; i<abs_species.nelem(); ++i)
+    species_names[i] = get_species_name(abs_species[i]);
+
+  const ArrayOfString field_names = batch_fields[0].get_string_grid(0);
+
+  String species_type;
+  String species_name;
+  const String delim="-";
+
   // Check that the field names in batch_fields are good. (We check
   // only the first field in the batch.)  
   {
     ostringstream os;
     bool bail = false;
-
-    const ArrayOfString field_names = batch_fields[0].get_string_grid(0);
-
-    ArrayOfString species_names(abs_species.nelem());
-    for (Index i=0; i<abs_species.nelem(); ++i)
-      species_names[i] = get_species_name(abs_species[i]);
-
-    // First simply check dimensions of abs_species and field_names
-    if (field_names.nelem() < 3)
-      {
-        os << "Atmospheric states in batch_fields must have at\n"
-           << "least three fields: T, z, and at least one species.";
-        throw runtime_error( os.str() );
-      }
-
-    if (abs_species.nelem() < 1)
-      {
-        os << "At least one absorption species needs to be defined "
-           << "in abs_species.";
-        throw runtime_error( os.str() );
-      }
-
-/*
-    if (abs_species.nelem() != field_names.nelem()-2)
-      {
-        os << "Dimension of fields in batch_fields does not match that of abs_species.\n"
-           << "(First two fields must be T and z, rest must match absorption species.)\n"
-           << "Field names:        " << field_names << "\n"
-           << "Absorption species: " << species_names; 
-        throw runtime_error( os.str() );
-      }
-*/
-    // field_names.nelem = 2(T,z) + M(scat_species) + N(abs_species)
-    // but we don't know M, so we can only check whether we have at least
-    // N+2 (abs_species+T+z) atmospheric fields
-    if (abs_species.nelem() >  field_names.nelem()-2)
-      {
-        os << "Dimension of fields in batch_fields does not match that of abs_species.\n"
-           << "(First two fields must be T and z, the N last fields must match the\n"
-           << "absorption species, where N is the number of species as defined in abs_species.)\n"
-           << "Field names:        " << field_names << "\n"
-           << "Absorption species: " << species_names; 
-        throw runtime_error( os.str() );
-      }
-
-    os << "The consistency check of the first compact atmospheric state in\n"
-       << "batch_fields has shown one or more errors:\n";
-
-    // First field must be T:
-    if ("T" != field_names[0])
-      {
-        os << "The first field name must be T.\n";
-        bail = true;
-      }
-
-    // Second field must be z:
-    if ("z" != field_names[1])
-      {
-        os << "The second field name must be z.\n";
-        bail = true;
-      }
 
     // One of the abs_species has to be H2O
     // (ideally that should be checked later, when we know whether there are
@@ -1264,20 +1210,109 @@ void abs_lookupSetupBatch(// WS Output:
         bail = true;
       }
 
-    // The other fields must match abs_species:
-    bool wrong_species = false;
-    for (Index i=0; i<abs_species.nelem(); ++i)
-      if (field_names[indoff+i] != species_names[i])
-        wrong_species = true;
-
-    if (wrong_species)
+    // First simply check dimensions of abs_species and field_names
+    if (field_names.nelem() < 3)
       {
-        os << "The " << abs_species.nelem() << " last field names must "
-           << "match the absorption species in\n"
-           << "abs_species, which are:\n"
-           << species_names << "\n";
+        os << "Atmospheric states in batch_fields must have at\n"
+           << "least three fields: T, z, and at least one absorption species.";
+        throw runtime_error( os.str() );
+      }
+
+    if (abs_species.nelem() < 1)
+      {
+        os << "At least one absorption species needs to be defined "
+           << "in abs_species.";
+        throw runtime_error( os.str() );
+      }
+
+    // Check that all required fields are present.
+    const Index nf = field_names.nelem();
+    bool found;
+
+    // Looking for temperature field:
+    found = false;
+    for (Index fi=0; fi<nf; ++fi)
+      {
+        parse_atmcompact_speciestype(species_type, field_names[fi], delim);
+        if ( species_type=="T" )
+        {
+          if (found)
+            {
+               os << "Only one temperature ('T') field allowed, "
+                  << "but found at least 2.\n";
+               bail = true;
+            }
+          else
+            {
+              found = true;
+              T_index = fi;
+            }
+        }
+      }
+    if (!found)
+      {
+        os << "One temperature ('T') field required, but none found.\n";
         bail = true;
       }
+
+    // Looking for altitude field:
+    found = false;
+    for (Index fi=0; fi<nf; ++fi)
+      {
+        parse_atmcompact_speciestype(species_type, field_names[fi], delim);
+        if ( species_type=="z")
+        {
+          if (found)
+            {
+               os << "Only one altitude ('z') field allowed, "
+                  << "but found at least 2.\n";
+               bail = true;
+            }
+          else
+            {
+              found = true;
+            }
+        }
+      }
+    if (!found)
+      {
+        os << "One altitude ('z') field required, but none found.\n";
+        bail = true;
+      }
+
+    // Now going over all abs_species elements and match the corresponding
+    // field_name (we always take the first occurence of a matching field). We
+    // don't care that batch_fields contains further fields, too. And we can't
+    // expect the fields being in the same order as the abs_species.
+    // At the same time, we keep the indices of the fields corresponding to the
+    // abs_species elements, because later we will need the field data.
+    Index fi;
+    for (Index j=0; j<abs_species.nelem(); ++j)
+    {
+      found = false;
+      fi = 0;
+      while (!found && fi<nf)
+        {
+          parse_atmcompact_speciestype(species_type, field_names[fi], delim);
+          // do we have an abs_species type field?
+          if (species_type=="abs_species")
+            {
+              parse_atmcompact_speciesname(species_name, field_names[fi], delim);
+              if (species_name==species_names[j])
+                {
+                  found=true;
+                  batch_index[j]=fi;
+                }
+            }
+          fi++;
+        }
+      if (!found)
+        {
+          os << "No field for absorption species '" << species_names[j]
+             << "'found.\n";
+          bail = true;
+        }
+    }
 
     os << "Your field names are:\n"
        << field_names;
@@ -1365,29 +1400,12 @@ void abs_lookupSetupBatch(// WS Output:
       // comment above.)
       if (batch_fields[i].get_string_grid(GFIELD4_FIELD_NAMES)
           != batch_fields[0].get_string_grid(GFIELD4_FIELD_NAMES))
-        throw runtime_error("All fields in the batch must have the same field names.");
+        throw runtime_error("All batch atmospheres must contain the same field names.");
 
-      // Check that the first field is indeed T 
-      if ("T" != batch_fields[i].get_string_grid(GFIELD4_FIELD_NAMES)[0])
-        {
-          ostringstream os;
-          os << "The first variable in the compact atmospheric state must be \"T\",\n"
-             << "but yours is: " << batch_fields[i].get_string_grid(GFIELD4_FIELD_NAMES)[0];
-          throw runtime_error( os.str() );
-        }
-
-      // Check that field h2o_index+indoff is indeed H2O:
-      if ("H2O" != 
-        batch_fields[i].get_string_grid(GFIELD4_FIELD_NAMES)[indoff+h2o_index])
-        {
-          ostringstream os;
-          os << "According to abs_species setting the " << indoff+h2o_index
-             << ". variable in the compact\n"
-             << "atmospheric state is supposed to be \"H2O\",\n"
-             << "but yours is: "
-             << batch_fields[i].get_string_grid(GFIELD4_FIELD_NAMES)[indoff+h2o_index];
-          throw runtime_error( os.str() );
-        }
+      for (Index j=0; j<batch_fields[i].get_string_grid(GFIELD4_FIELD_NAMES).nelem(); ++j)
+        if (batch_fields[i].get_string_grid(GFIELD4_FIELD_NAMES)[j]
+          != batch_fields[0].get_string_grid(GFIELD4_FIELD_NAMES)[j])
+        throw runtime_error("All batch atmospheres must contain the same individual field names.");
 
       // Create convenient handles:
       const Vector&  p_grid = batch_fields[i].get_numeric_grid(GFIELD4_P_GRID);
@@ -1403,14 +1421,14 @@ void abs_lookupSetupBatch(// WS Output:
         for (Index ilat=0; ilat<data.nrows(); ++ilat)
           for (Index ilon=0; ilon<data.ncols(); ++ilon)
         {
-          // Field 0 is temperature:
-          if (data(0,ip,ilat,ilon) < mint) mint = data(0,ip,ilat,ilon);
-          if (data(0,ip,ilat,ilon) > maxt) maxt = data(0,ip,ilat,ilon);
-          // Field indoff+h2o_index is H2O:
-          if (data(indoff+h2o_index,ip,ilat,ilon) < minh2o)
-            { minh2o = data(indoff+h2o_index,ip,ilat,ilon); }
-          if (data(indoff+h2o_index,ip,ilat,ilon) > maxh2o)
-            { maxh2o = data(indoff+h2o_index,ip,ilat,ilon); }
+          // Field T_index is temperature:
+          if (data(T_index,ip,ilat,ilon) < mint) mint = data(T_index,ip,ilat,ilon);
+          if (data(T_index,ip,ilat,ilon) > maxt) maxt = data(T_index,ip,ilat,ilon);
+          // Field batch_index[h2o_index] is H2O:
+          if (data(batch_index[h2o_index],ip,ilat,ilon) < minh2o)
+            { minh2o = data(batch_index[h2o_index],ip,ilat,ilon); }
+          if (data(batch_index[h2o_index],ip,ilat,ilon) > maxh2o)
+            { maxh2o = data(batch_index[h2o_index],ip,ilat,ilon); }
         }
 
       // Interpolate the current batch fields to the abs_p grid. We
@@ -1479,15 +1497,18 @@ void abs_lookupSetupBatch(// WS Output:
 //          for (Index fi=0; fi<data.nbooks(); ++fi)
             // we have to handle T/z and abs_species parts separately since they
             // can have scat_species in between, which we want to ignore
-            for (Index fi=0; fi<2; ++fi)
-              interp(data_interp(fi, joker, la, lo),
+            interp(data_interp(0, joker, la, lo),
                      itw,
-                     data(fi, joker, la, lo),
+                     data(T_index, joker, la, lo),
                      gp);
-            for (Index fi=indoff; fi<data.nbooks(); ++fi)
-              interp(data_interp(fi-indoff+2, joker, la, lo),
+            interp(data_interp(1, joker, la, lo),
                      itw,
-                     data(fi, joker, la, lo),
+                     data(z_index, joker, la, lo),
+                     gp);
+            for (Index fi=0; fi<abs_species.nelem(); ++fi)
+              interp(data_interp(fi+2, joker, la, lo),
+                     itw,
+                     data(batch_index[fi], joker, la, lo),
                      gp);
           }
 
@@ -1589,9 +1610,13 @@ void abs_lookupSetupBatch(// WS Output:
   // divide by the reference value. So, we set it here to 1e-9.
   for (Index i=0; i<np; ++i)
     {
-      // Assert that really H2O has index h2o_index+indoff in the VMR field list
-      assert("H2O" == 
-        batch_fields[0].get_string_grid(GFIELD4_FIELD_NAMES)[indoff+h2o_index]);
+      // Assert that really H2O has index batch_index[h2o_index] VMR field list
+      // and h2o_index in abs_species
+      parse_atmcompact_speciestype(species_type, field_names[batch_index[h2o_index]], delim);
+      assert(species_type=="abs_species");
+      parse_atmcompact_speciesname(species_name, field_names[batch_index[h2o_index]], delim);
+      assert("H2O" == species_name);
+      assert("H2O" == species_names[h2o_index]);
 
       // Find mean and max H2O for this level:
       Numeric& mean_h2o = smooth_datamean(h2o_index+2,i);

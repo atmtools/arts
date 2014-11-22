@@ -858,16 +858,45 @@ void Workspace::define_wsv_data()
     ( NAME( "atm_fields_compact" ),
       DESCRIPTION
       (
-       "A compact combination of all atmospheric fields for a clear-sky\n"
-       "calculation on a common set of grids.\n"
+       "A compact set of atmospheric fields on a common set of grids.\n"
        "\n"
-       "This concerns temperature, altitude, and gas VMRs.\n"
+       "Data is supposed to contain basic atmsopheric fields for a RT\n"
+       "calculation, i.e., temperature, altitude, and gas VMRs. It can\n"
+       "furthermore contain fields describing scattering species like mass\n"
+       "content, mass flux, number density of diverse scattering species.\n"
+       "\n"
+       "VMR fields are unitless, scattering species fields are supposed to be\n"
+       "in SI units (i.e. kg/m3 for mass contents, kg/m2/s for mass flux,\n"
+       "1/m3 for number densities).\n"
        "\n"
        "The data are stored in a *GriddedField4*.\n"
        "\n"
-       "The order of the fields must be:\n"
-       "T[K] z[m] VMR_1[1] ... VMR_n[1]\n"
-       "(the field names for the gases do not have to start with VMR_)\n"
+       "The first field in the matrix (i.e., first matrix column) has to be\n"
+       "atmospheric pressure. Apart from this, the order of the fields is\n"
+       "free. Field content (apart from pressure) is identified by their\n"
+       "given field name tag. Furthermore, absorption species (e.g. VMR)\n"
+       "fields and scattering species fields are related to *abs_species*\n"
+       "and *scat_species* entries, respectively, by their field name tags.\n"
+       "The tags must exhibit the following structure:\n"
+       "\n"
+       "0) species identifier:\n"
+       "   Fields, supposed to be sorted into *vrm_field*, must be headed the\n"
+       "   tag 'abs_species'. Names of scattering species fields likewise must\n"
+       "   be headed by the 'scat_species' tag. Temperature, and altitude\n"
+       "   fields do not hold any heading tag.\n"
+       "1) species name:\n"
+       "   The (core) name of the field: 'T' for temperature, 'z' for\n"
+       "   altitude, the absorption species name (e.g. 'H2O, 'O3', etc.) for\n"
+       "   absorption species, the scattering species name (e.g. 'IWC') for\n"
+       "   scattering species. For scattering species, this part is matched\n"
+       "   against the scattering species name part of the *scat_species*\n"
+       "   tags.\n"
+       "2) field type:\n"
+       "   This has to be given for scattering species only, indicating the\n"
+       "   type of the scattering species fields, i.e. 'mass_density',\n"
+       "   'mass_flux', or 'number_density'.\n"
+       "Dashes ('-') serve as delimiter, separating the elements of each\n"
+       "field name tag.\n"
        "\n"
        "Usage: Used inside batch calculations, to hold successive atmospheric\n"
        "       states from an *ArrayOfGriddedField4*.\n"
@@ -882,35 +911,6 @@ void Workspace::define_wsv_data()
        ),
       GROUP( "GriddedField4" )));
    
-    wsv_data.push_back
-   (WsvRecord
-    ( NAME( "atm_fields_compact_all" ),
-      DESCRIPTION
-      (
-       "A compact combination of all atmospheric fields for a clear-sky\n"
-       "and particle scattering calculation on a common set of grids.\n"
-       "\n"
-       "This concerns temperature, altitude, scattering particles and gas VMRs.\n"
-       "\n"
-       "The data are stored in a *GriddedField4*.\n"
-       "\n"
-       "The order of the fields must be:\n"
-       "T[K] z[m] LWC[kg/m3] IWC[kg/m3] Rain[kg/m2/s] Snow[kg/m2/s] VMR_1[1] ... VMR_n[1]\n"
-       "(the field names for the gases do not have to start with VMR_)\n"
-       "\n"
-       "Usage: Used inside batch calculations, to hold successive atmospheric\n"
-       "       states from an *ArrayOfGriddedField4*.\n"
-       "\n"
-       "Dimensions: \n"
-       "   GriddedField4:\n"
-       "      ArrayOfString field_names[N_fields]\n"
-       "      Vector p_grid[N_p]\n"
-       "      Vector lat_grid[N_lat]\n"
-       "      Vector lon_grid[N_lon]\n"
-       "      Tensor4 data[N_fields][N_p][N_lat][N_lon]\n"
-       ),
-      GROUP( "GriddedField4" )));
-
   wsv_data.push_back
    (WsvRecord
     ( NAME( "backend_channel_response" ),
@@ -962,22 +962,10 @@ void Workspace::define_wsv_data()
        "An array of compact atmospheric states.\n"
        "\n"
        "This is used to hold a set of *atm_fields_compact* for batch\n"
-       "calculations. \n"
+       "calculations. For further information see *atm_fields_compact*.\n"
        ),
       GROUP( "ArrayOfGriddedField4" )));
    
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "batch_atm_fields_compact_all" ),
-      DESCRIPTION
-      (
-       "An array of compact atmospheric states, including scattering particles.\n"
-       "\n"
-       "This is used to hold a set of *atm_fields_compact_all* for batch\n"
-       "calculations. \n"
-       ),
-      GROUP( "ArrayOfGriddedField4" )));
-
   wsv_data.push_back
    (WsvRecord
     ( NAME( "batch_cloudbox_limits" ),
@@ -3586,27 +3574,27 @@ void Workspace::define_wsv_data()
     ( NAME( "scat_species" ),
       DESCRIPTION
       (
-       "Array of Strings defining (scattering) particles to consider and their\n"
-       "connection to scattering species.\n"
+       "Array of Strings defining the scattering species to consider.\n"
        "\n"
-       "Each String contains the information for particles to be connected to\n"
-       "one specific scattering species (e.g., a hydrometeor density field). It\n"
-       "has to have the following structure with elements separated by dashes:\n"
+       "Each String contains the information to connect scattering species\n"
+       "(e.g., hydrometeor) atmospheric fields with the microphysical\n"
+       "information like size and shape distributions. The strings follow\n"
+       "the following structure with individual elements separated by dashes:\n"
        "\n"
-       "- particle field name [*String*]\n"
-       "\t the name of the scattering species field (mass content, precip rate,\n"
-       "\t or similar) to act on. Free form, but needs to match (name, order)\n"
-       "\t *atm_fields_compact* field names.\n"
+       "- scattering species name [*String*]\n"
+       "  the name of the scattering species' atmospheric field. Free form,\n"
+       "  but is matched to *atm_fields_compact* fields by their names.\n"
+       "  Common are e.g. IWC (ice water content), LWC (liquid water content),\n"
+       "  RR (rain rate), and SR (snow rate).\n"
        "- particle size distribution [*String*]:\n"
-       "\t the size distribution function/parametrization to apply. For\n"
-       "\t currently possible PSDs see *pnd_fieldSetup*.\n"
+       "  the size distribution function/parametrization to apply. For\n"
+       "  currently possible PSDs see *pnd_fieldSetup*.\n"
        "- sizemin and sizemax [*Numeric*]:\n"
-       "\t the minimum and maximum size (volume equivalent sphere radius in um)\n"
-       "\t of the individual scattering elements to consider. Minimum and\n"
-       "\t maximum size may be omitted (meaning full size range will be\n"
-       "\t selected), the symbol '*' can be used as a wildcard (selecting all\n"
-       "\t scattering elements at the respective size\n"
-       "\t end)."
+       "  the minimum and maximum size (volume equivalent sphere radius in um)\n"
+       "  of the individual scattering elements to consider. Minimum and\n"
+       "  maximum size may be omitted (meaning, complete available size range\n"
+       "  will be considered) and the symbol '*' can be used as a wildcard\n"
+       "  (selecting all scattering elements at the respective size end).\n"
        "\n"
        "Example: [''IWC-MH97-2-1000'', ''LWC-HM98_STCO-0.1-10'', ...]\n"
        ),

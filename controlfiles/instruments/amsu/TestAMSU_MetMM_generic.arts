@@ -55,8 +55,8 @@ batch_atm_fields_compactFromArrayOfMatrix(
    batch_atm_fields_compact,
    atmosphere_dim,
    arrayofmatrix_1,
-   ["T", "z", "H2O", "O3"],
-   ["O2", "N2"],
+   ["T", "z", "abs_species-H2O", "abs_species-O3"],
+   ["abs_species-O2", "abs_species-N2"],
    [0.2095, 0.7808]
 )
 

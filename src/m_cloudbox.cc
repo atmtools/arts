@@ -105,30 +105,12 @@ void cloudboxSetAutomatically (// WS Output:
                                const Vector&   lat_grid,
                                const Vector&   lon_grid,
                                const Tensor4&  scat_species_mass_density_field,
-//                               const Tensor4&  scat_species_flux_density_field,
-//                               const Tensor4&  scat_species_number_density_field,
+                               const Tensor4&  scat_species_mass_flux_field,
+                               const Tensor4&  scat_species_number_density_field,
                                // Control Parameters
                                const Numeric&  cloudbox_margin,
                                const Verbosity& verbosity)
 {
-  // Variables
-  //const Index np = scat_species_mass_density_field.npages(); 
-  Index p1 = scat_species_mass_density_field.npages()-1;
-  Index p2 = 0;
-  DEBUG_ONLY(
-             Index lat1 = scat_species_mass_density_field.nrows()-1;
-             Index lat2 = 0;
-             Index lon1 = scat_species_mass_density_field.ncols()-1;
-             Index lon2 = 0;
-  )
-
-  Index i, j, k, l;
-
-  // initialize flag, telling if all selected *scat_species_XX_field* entries are
-  // zero(false) or not(true)
-  bool x = false; 
-
-
   // Check existing WSV
   chk_if_in_range ( "atmosphere_dim", atmosphere_dim, 1, 3 );
   // includes p_grid chk_if_decresasing
@@ -136,51 +118,115 @@ void cloudboxSetAutomatically (// WS Output:
   // Set cloudbox_on
   cloudbox_on = 1;
 
+  if ( atmosphere_dim > 1 )
+    {
+      ostringstream os;
+      os << "cloudboxSetAutomatically not yet available for 2D and 3D cases.";
+      throw runtime_error( os.str() );
+    }
+
   // Allocate cloudbox_limits
   cloudbox_limits.resize ( atmosphere_dim*2 );
+
+  // Variables
+  Index i, j, k, l;
+  Index np = scat_species_mass_density_field.npages();
+  Index p1;
+  if ( cloudbox_margin == -1 )
+    {
+      cloudbox_limits[0] = 0;
+      i = p1 = 0;
+    }
+  else p1 = np-1;
+  Index p2 = 0;
+
+  if ( atmosphere_dim > 1 )
+    {
+      Index lat1 = scat_species_mass_density_field.nrows()-1;
+      Index lat2 = 0;
+    }
+  if ( atmosphere_dim > 2 )
+    {
+      Index lon1 = scat_species_mass_density_field.ncols()-1;
+      Index lon2 = 0;
+    }
+
+  // initialize flag, telling if all selected *scat_species_XX_field* entries are
+  // zero(false) or not(true)
+  bool x = false; 
 
   //--------- Start loop over scattering species ------------------------------
   for ( l=0; l<scat_species_mass_density_field.nbooks(); l++ )
   {
-    bool empty_species;
-    //empty_species is set to true, if a single value of scat_species_XX_field
-    //is unequal zero
-    chk_scat_species_field ( empty_species,
+    bool not_empty_any;
+    bool not_empty_md;
+    bool not_empty_mf;
+    bool not_empty_nd;
+
+    //not_empty is set to true, if a single value of scat_species_XX_field
+    //is unequal zero (and not NaN), i.e. if we actually have some amount of
+    //these scattering species in the atmosphere.
+    chk_scat_species_field ( not_empty_md,
                              scat_species_mass_density_field ( l, joker, joker, joker ),
                              "scat_species_mass_density_field",
                              atmosphere_dim, p_grid, lat_grid, lon_grid );
+    chk_scat_species_field ( not_empty_mf,
+                             scat_species_mass_flux_field ( l, joker, joker, joker ),
+                             "scat_species_mass_flux_field",
+                             atmosphere_dim, p_grid, lat_grid, lon_grid );
+    chk_scat_species_field ( not_empty_nd,
+                             scat_species_number_density_field ( l, joker, joker, joker ),
+                             "scat_species_number_density_field",
+                             atmosphere_dim, p_grid, lat_grid, lon_grid );
+    not_empty_any = not_empty_md || not_empty_mf || not_empty_nd;
+    /*
+    cout << "for scatt species #" << l << ":\n";
+    cout << "particles in mass density field: " << not_empty_md << "\n";
+    cout << "particles in mass flux field: " << not_empty_mf << "\n";
+    cout << "particles in number density field: " << not_empty_nd << "\n";
+    cout << "particles in any field: " << not_empty_any << "\n";
+    */
 
     //-----------Start setting cloudbox limits----------------------------------
-    if ( empty_species )
+    if ( not_empty_any )
     {
-      //scat_species_mass_density_field unequal zero -> x is true
+      //cout << "entering detailed search as particles where found.\n"
+      //     << "current lower and limits: " << p1 << " and " << p2 << "\n";
+
+      //scat_species_*_*_field unequal zero -> x is true
       x = true;
 
       if ( atmosphere_dim == 1 )
       {
-        // Pressure limits
-        ConstVectorView hydro_p = scat_species_mass_density_field ( l, joker, 0 , 0 );
+        // scattering species profiles
+        ConstVectorView md_prof = scat_species_mass_density_field ( l, joker, 0 , 0 );
+        ConstVectorView mf_prof = scat_species_mass_flux_field ( l, joker, 0 , 0 );
+        ConstVectorView nd_prof = scat_species_number_density_field ( l, joker, 0 , 0 );
 
-
-        // set lower cloudbox_limit to surface if margin = -1
-        if ( cloudbox_margin == -1 )
-        {
-          cloudbox_limits[0] = 0;
-          i = p1 = 0;
-        }
-        else
+        // find lower cloudbox_limit to surface if margin != -1 (cloudbox not
+        // forced to reach down to surface)
+        if ( cloudbox_margin != -1 )
         {
           // find index of first pressure level where hydromet_field is
           // unequal 0, starting from the surface
-          for ( i=0; i<hydro_p.nelem(); i++ )
+          for ( i=0; i<p1; i++ )
           {
-            if ( hydro_p[i] != 0.0 )
+            //cout << "for lower limit checking level #" << i << "\n";
+
+            // if any of the scat species fields contains a non-zero, non-NaN
+            // value at this atm level we found a potential lower limit value
+            if ( (md_prof[i] != 0.0 && !isnan(md_prof[i])) ||
+                 (mf_prof[i] != 0.0 && !isnan(mf_prof[i])) ||
+                 (nd_prof[i] != 0.0 && !isnan(nd_prof[i])) )
             {
-               // check if p1 is the lowest index in all selected
-               // massdensity fields
-               if ( p1 > i )
+              //cout << "found particles\n";
+
+              // check if p1 is the lowest index in all selected
+              // massdensity fields
+              if ( p1 > i )
               {
                 p1 = i;
+                cout << "new lower limit at level #" << p1 << "\n";
               }
               break;
             }
@@ -189,15 +235,24 @@ void cloudboxSetAutomatically (// WS Output:
         }
         // find index of highest pressure level, where scat_species_mass_density_field is
         // unequal 0, starting from top of the atmosphere
-        for ( j=hydro_p.nelem()-1; j>=i; j-- )
+        for ( j=np-1; j>=max(i,p2); j-- )
         {
-          if ( hydro_p[j] != 0.0 )
+          //cout << "for upper limit checking level #" << j << "\n";
+
+          // if any of the scat species fields contains a non-zero, non-NaN
+          // value at this atm level we found a potential lower limit value
+          if ( (md_prof[j] != 0.0 && !isnan(md_prof[j])) ||
+               (mf_prof[j] != 0.0 && !isnan(mf_prof[j])) ||
+               (nd_prof[j] != 0.0 && !isnan(nd_prof[j])) )
           {
-             // check if p2 is the highest index in all selected
-             // massdensity fields
-             if ( p2 < j )
+            //cout << "found particles\n";
+
+            // check if p2 is the highest index in all selected
+            // massdensity fields
+            if ( p2 < j )
             {
-	      p2 = j;
+              p2 = j;
+              //cout << "new upper limit at level #" << p2 << "\n";
             }
             break;
           }
@@ -269,6 +324,7 @@ void cloudboxSetAutomatically (// WS Output:
 
 }*/
   }
+
   // decrease lower cb limit by one to ensure that linear interpolation of 
   // particle number densities is possible.
   Index p0 = 0; //only for the use of function *max*
@@ -320,6 +376,7 @@ void cloudboxSetAutomatically (// WS Output:
   // The pressure in *p2* must be smaller than the first value in *p_grid*."
   assert ( p_grid[p2] < p_grid[0] );
 
+  /*
   if ( atmosphere_dim >= 2 )
   {
     // The latitude in *lat2* must be bigger than the latitude in *lat1*.
@@ -338,6 +395,7 @@ void cloudboxSetAutomatically (// WS Output:
     // The longitude in *lon2* must be <= the next to last value in *lon_grid*.
     assert ( lon_grid[lon2] <= lon_grid[lon_grid.nelem()-2] );
   }
+  */
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -1358,6 +1416,8 @@ void pnd_fieldSetup (//WS Output:
                      const Index& cloudbox_on,
                      const ArrayOfIndex& cloudbox_limits,
                      const Tensor4& scat_species_mass_density_field,
+                     const Tensor4& scat_species_mass_flux_field,
+                     const Tensor4& scat_species_number_density_field,
                      const Tensor3& t_field,
                      const ArrayOfArrayOfScatteringMetaData& scat_meta,
                      const ArrayOfString& scat_species,
@@ -1437,6 +1497,7 @@ void pnd_fieldSetup (//WS Output:
   for ( Index i_ss=0; i_ss<scat_species.nelem(); i_ss++ )
   {
 
+    //cout << "for scat species #" << i_ss << " using PSD ";
     String psd_param;
     String partfield_name;
     String psd;
@@ -1454,6 +1515,7 @@ void pnd_fieldSetup (//WS Output:
     if ( psd_param.substr(0,4) == "MH97" )
     {
         psd = "MH97";
+        //cout << psd << "\n";
 
         //check for expected scattering species field name
         if ( partfield_name != "IWC" )
@@ -1475,6 +1537,7 @@ void pnd_fieldSetup (//WS Output:
     else if ( psd_param == "H11" )
     {
         psd = "H11";
+        //cout << psd << "\n";
 
         //check for expected scattering species field name
         if ( partfield_name != "IWC" && partfield_name != "Snow")
@@ -1497,6 +1560,7 @@ void pnd_fieldSetup (//WS Output:
     else if ( psd_param == "H13" )
     {
         psd = "H13";
+        //cout << psd << "\n";
 
         //check for expected scattering species field name
         if ( partfield_name != "IWC" && partfield_name != "Snow")
@@ -1519,6 +1583,7 @@ void pnd_fieldSetup (//WS Output:
     else if ( psd_param == "H13Shape" )
     {
         psd = "H13Shape";
+        //cout << psd << "\n";
 
         //check for expected scattering species field name
         if ( partfield_name != "IWC" && partfield_name != "Snow")
@@ -1541,6 +1606,7 @@ void pnd_fieldSetup (//WS Output:
     else if ( psd_param == "MP48" )
     {
         psd = "MP48";
+        //cout << psd << "\n";
 
         //check for expected scattering species field name
         if ( partfield_name != "Rain" && partfield_name != "Snow")
@@ -1552,7 +1618,7 @@ void pnd_fieldSetup (//WS Output:
         }
 
         pnd_fieldMP48( pnd_field,
-                       scat_species_mass_density_field ( i_ss, joker, joker, joker ),
+                       scat_species_mass_flux_field ( i_ss, joker, joker, joker ),
                        limits,
                        scat_meta, i_ss,
                        scat_species[i_ss], delim,
@@ -1564,6 +1630,7 @@ void pnd_fieldSetup (//WS Output:
     else if ( psd_param == "H98_STCO" || psd_param == "STCO" || psd_param == "liquid" )
     {
         psd = "H98_STCO";
+        //cout << psd << "\n";
 
         //check for expected scattering species field name
         if ( partfield_name != "LWC")

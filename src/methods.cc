@@ -1074,8 +1074,9 @@ void define_md_data_raw()
          "accuracy for the different interpolations with abs_lookupTestAccuracy.\n"
          "\n"
          "You can give min an max values for the atmospheric conditions. The\n"
-         "default values are chosen such that they cover all Chevallier data set\n"
-         "cases, and a bit more. The statistics of the Chevallier data are:\n"
+         "default values are chosen such that they cover the value range over\n"
+         "the complete Chevallier91L data set, and a bit more. The statistics\n"
+         "of the Chevallier91L data are:\n"
          "\n"
          "min(p)   / max(p)   [Pa]:  1 / 104960\n"
          "min(T)   / max(T)   [K]:   158.21 / 320.39\n"
@@ -2220,10 +2221,10 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "t_field", "z_field", "vmr_field", "p_grid", "lat_grid", 
             "lon_grid", "atmosphere_dim" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
+        GIN( "chk_vmr_nan" ),
+        GIN_TYPE( "Index" ),
+        GIN_DEFAULT( "1" ),
+        GIN_DESC( "TBA" )
         ));
 
   md_data_raw.push_back
@@ -2382,7 +2383,7 @@ void define_md_data_raw()
          "A typical use case for this method may be to add a climatology of some gas\n"
          "when this gas is needed for radiative transfer calculations, but\n"
          "not yet present in *atm_fields_compact*. One case where this happens\n"
-         "is when using the Chevalier dataset for infrared simulations.\n"
+         "is when using the Chevalier91L dataset for infrared simulations.\n"
          "\n"
          "The grids in *atm_fields_compact* must fully encompass the grids in\n"
          "the *GriddedField3* to be added, for interpolation to succeed. If\n"
@@ -2406,30 +2407,32 @@ void define_md_data_raw()
       ( NAME( "atm_fields_compactFromMatrix" ),
         DESCRIPTION
         (
-         "Set *atm_fields_compact* from 1D profiles in a matrix.\n"
+         "Sets *atm_fields_compact* from 1D profiles in a matrix.\n"
          "\n"
          "For clear-sky batch calculations it is handy to store atmospheric\n"
          "profiles in an array of matrix. We take such a matrix, and create\n"
          "*atm_fields_compact* from it.\n"
          "\n"
          "The matrix must contain one row for each pressure level.\n"
-         "The matrix can contain some additional fields which are not directly used\n"
-         "by ARTS for calculations but can be required for further processing,\n"
-         "for e.g. wind speed and direction. In this case, additional fields must\n"
-         "be put at the end of the matrix and they must be flagged by 'ignore',\n"
-         "large or small letters, in the field names.\n"
-         "Recommended row format:\n"
          "\n"
-         "p[Pa] T[K] z[m] VMR_1[fractional] ... VMR[fractional] IGNORE ... IGNORE\n"
+         "Not all fields contained in the matrix must be selected into\n"
+         "*atm_fields_compact*, but the selection must at least contain\n"
+         "fields of pressure, temperature, altitude and one absorption\n"
+         "species.\n"
+         "The matrix can contain some additional fields which are not\n"
+         "directly used by ARTS for calculations but can be required for\n"
+         "further processing, e.g. wind speed and direction. These fields do\n"
+         "not need to be transfered into the *atm_fields_compact* variable.\n"
+         "Selection of fields into *atm_fields_compact* works by providing a\n"
+         "field name tag for the selected fields, while not-to-select fields\n"
+         "are tagged by 'ignore'.\n"
+         "The pressure fields by convention are the first column of the\n"
+         "matrix, hence must not be tagged. That is, there must be given one\n"
+         "field name tag less than matrix columns.\n"
          "\n"
-         "Works only for *atmosphere_dim==1.*\n"         
+         "For detailed tagging conventions see *atm_fields_compact*.\n"
          "\n"
-         "Keywords:\n"
-         "   field_names : Field names to store in atm_fields_compact.\n"
-         "                 This should be, e.g.:\n"
-         "                 [\"T[K]\", \"z[m]\", \"vmr_h2o[fractional]\", \"ignore\"]\n"
-         "                 There must be one name less than matrix columns,\n"
-         "                 because the first column must contain pressure.\n"
+         "Works only for *atmosphere_dim==1.*\n"
          ),
         AUTHORS( "Stefan Buehler", "Daniel Kreyling", "Jana Mendrok" ),
         OUT( "atm_fields_compact" ),
@@ -2446,7 +2449,6 @@ void define_md_data_raw()
         GIN_DESC( "One atmosphere matrix from batch input ArrayOfMatrix.",
                   "Order/names of atmospheric fields." )
         ));
-    
 
   md_data_raw.push_back
     ( MdRecord
@@ -2461,25 +2463,22 @@ void define_md_data_raw()
          "           1. temperature field\n"
          "           2. the corresponding altitude field\n"
          "           3. vmr fields for the gaseous species\n"
+         "           4. scattering species fields\n"
          "\n"
          "This method just splits up the data found in *atm_fields_compact* to\n"
-         "p_grid, lat_grid, lon_grid, and the various fields. No interpolation.\n"
+         "p_grid, lat_grid, lon_grid, and the various fields. No interpolation\n"
+         "is performed.\n"
          "See documentation of *atm_fields_compact* for a definition of the data.\n"
-         "\n"
-         "There are some safety checks on the names of the fields: The first\n"
-         "field must be called \"T\", the second \"z\"*. Remaining fields must be\n"
-         "trace gas species volume mixing ratios, named for example \"H2O\", \"O3\",\n"
-         "and so on. The species names must fit the species in *abs_species*.\n"
-         "(Same species in same order.) Only the species name must fit, not the\n"
-         "full tag.\n"
          "\n"
          "Possible future extensions: Add a keyword parameter to refine the\n"
          "pressure grid if it is too coarse. Or a version that interpolates onto\n"
          "given grids, instead of using and returning the original grids.\n"
          ),
-        AUTHORS( "Stefan Buehler", "Daniel Kreyling", "Jana Mendrok" ),
-        OUT( "p_grid", "lat_grid", "lon_grid", "t_field", "z_field",
-             "vmr_field", "scat_species_mass_density_field" ),
+        AUTHORS( "Jana Mendrok" ),
+        OUT( "p_grid", "lat_grid", "lon_grid", "t_field", "z_field", "vmr_field",
+//             "scat_species_mass_density_field"),
+             "scat_species_mass_density_field", "scat_species_mass_flux_field",
+             "scat_species_number_density_field" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
@@ -2703,32 +2702,25 @@ void define_md_data_raw()
         (
          "Expand batch of 1D atmospheric states to a batch_atm_fields_compact.\n"
          "\n"
-         "This is used to handle 1D batch cases, for example from the Chevallier\n"
-         "data set, stored in a matrix.\n"
+         "This is used to handle 1D batch cases, e.g. from NWP/GCM model like\n"
+         "the Chevallier91L data set, stored in a matrix.\n"
          "\n"
-         "The matrix must contain one row for each pressure level.\n"
-         "The matrix can contain some additional fiels which are not directly used\n"
-         "by ARTS for calculations but can be required for further processing,\n"
-         "for e.g. wind speed and direction. In this case, additional fields must\n"
-         "be put at the end of the matrix and they must be flagged by 'ignore',\n"
-         "large or small letters, in the field names.\n"
-         "Row format:\n"
-         "\n" 
-         "p[Pa] T[K] z[m] VMR_1[fractional] ... VMR[fractional] IGNORE ... IGNORE\n"
+         "See *atm_fields_compactFromArrayOfMatrix* for documentation. Here,\n"
+         "only additional, batch specific information is provided.\n"
+         "For the batch case, it is possible to atmospheric fields with\n"
+         "constant field values to the ones given in the field matrices. This\n"
+         "is done by specifying the following two parameters:\n"
          "\n"
-         "Keywords:\n"
-         "   field_names : Field names to store in atm_fields_compact.\n"
-         "                 This should be, e.g.:\n"
-         "                 [\"T\", \"z\", \"H2O\", \"O3\", \"ignore\"]\n"
-         "                 There must be one name less than matrix columns,\n"
-         "                 because the first column must contain pressure.\n"
+         "extra_field_names:\n:"
+         "  You can add additional constant VMR fields, which is handy for O2\n"
+         "  and N2. Here, give an array of the field names to add following\n"
+         "  the name tag conventions as described at *atm_fields_compact*,\n"
+         "  e.g., \"abs_species-O2\". Default: Empty.\n"
+         "extra_field_values:\n"
+         "  Here, give an array containing the constant field values.\n"
+         "  Default: Empty. Dimension must match extra_field_names.\n"
          "\n"
-         "   extra_field_names : You can add additional constant VMR fields,\n"
-         "                       which is handy for O2 and N2. Give here the\n"
-         "                       field name, e.g., \"O2\". Default: Empty.\n"
-         "\n"
-         "   extra_field_values : Give here the constant field value. Default:\n"
-         "                        Empty. Dimension must match extra_field_names.\n"
+         "Works only for *atmosphere_dim==1.*\n"
          ),
         AUTHORS( "Stefan Buehler", "Daniel Kreyling", "Jana Mendrok" ),
         OUT( "batch_atm_fields_compact" ),
@@ -2736,10 +2728,10 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "atmosphere_dim" ),
-        GIN(      "gin1"             ,
-                  "field_names", "extra_field_names", "extra_field_values" ),
-        GIN_TYPE(    "ArrayOfMatrix",
-                     "ArrayOfString", "ArrayOfString",     "Vector" ),
+        GIN( "atmospheres_fields"             ,
+             "field_names", "extra_field_names", "extra_field_values" ),
+        GIN_TYPE( "ArrayOfMatrix",
+                  "ArrayOfString", "ArrayOfString", "Vector" ),
         GIN_DEFAULT( NODEF          ,
                      NODEF,         "[]",                "[]" ),
         //KW_DEFAULT( NODEF,         NODEF,                NODEF ),
@@ -2946,17 +2938,16 @@ void define_md_data_raw()
          "Sets the cloud box to encompass the cloud given by the entries\n"
          "in *scat_species_mass_density_field*. \n"
          "\n"
-         "The function must be called before any *cloudbox_limits* using\n"
-         "WSMs.\n"
-         "NOTE: only 1-dim case is handeled at the moment!\n"
+         "The function must be called before executing any WSM that uses\n"
+         "*cloudbox_limits*.\n"
          "\n"
-         "The function iterates over all *scat_species* and performs a \n"
+         "The function iterates over all *scat_species* and performs a\n"
          "check, to see if the corresponding scattering species profiles do\n"
-         "contain non-zero mass density oo flux values. In case none of the\n"
-         "scattering species profiles contains any non-zero value, the cloudbox\n"
-         "is switched off (see WSM *cloudboxOff*).\n"
+         "contain non-zero, non-NaN mass/number density/flux values. In case\n"
+         "none of the scattering species fields contains any non-zero,\n"
+         "non-NaN value, the cloudbox is switched off (see WSM *cloudboxOff*).\n"
          "\n"
-         "Each scattering species profile is searched for the first and last\n"
+         "Each scattering species field is searched for the first and last\n"
          "pressure index, where the value is unequal to zero. This index\n"
          "is then copied to *cloudbox_limits*.\n"
          "\n"
@@ -2968,20 +2959,24 @@ void define_md_data_raw()
          "If *cloudbox_margin* is set to -1 (default), the cloudbox will extend\n" 
          "to the surface. Hence, the lower cloudbox_limit is set to 0 (index\n"
          "of first pressure level).\n"
+         "\n"
+         "Works only for *atmosphere_dim==1.*\n"
          ),
         AUTHORS( "Daniel Kreyling" ),
-        OUT( "cloudbox_on", "cloudbox_limits"),
+        OUT( "cloudbox_on", "cloudbox_limits" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "scat_species_mass_density_field"),
-        GIN( "cloudbox_margin"),
+        IN( "atmosphere_dim", "p_grid", "lat_grid", "lon_grid",
+            "scat_species_mass_density_field", "scat_species_mass_flux_field",
+            "scat_species_number_density_field" ),
+        GIN( "cloudbox_margin" ),
         GIN_TYPE( "Numeric" ),
         GIN_DEFAULT( "-1" ),
-        GIN_DESC( "The margin alters the lower vertical cloudbox limit. Value"
-                  "must be given in [m]. If cloudbox_margin is set to *-1*"
-                  "(default), the lower cloudbox limit equals 0, which"
-                  "corresponds to the surface."
+        GIN_DESC( "Minimum distance [m] between lowest 'cloudy' level and "
+                  "cloudbox lower limit. If set to *-1* (default), the "
+                  "cloudbox lower limit is fixed to 0, i.e., corresponds to "
+                  "the lowest atmospheric level (or the surface)."
         )
         ));
   
@@ -7708,11 +7703,7 @@ void define_md_data_raw()
          "The input is an ArrayOfString that needs to be in a specific format,\n"
          "for details, see WSV *scat_species*.\n"
          "\n"         
-         "*Example:* \t ['IWC-MH97-Ice-0.1-200', 'LWC-H98_STCO-Water-0.1-50'] \n"
-         "\n"
-         "NOTE: The order of the Strings needs to match the order of the\n"
-         "*atm_fields_compact* field names, their number determines how many fields\n"
-         "of *atm_fields_compact* are considered to be scattering species profiles.\n"
+         "*Example:*  ['IWC-MH97-Ice-0.1-200', 'LWC-H98_STCO-Water-0.1-50']\n"
          ),
         AUTHORS( "Daniel Kreyling" ),
         OUT( "scat_species" ),
@@ -7738,9 +7729,10 @@ void define_md_data_raw()
          "to zero.\n"
          "\n"
          "The method should be applied if *scat_species_field* contains\n"
-         "unrealistically small or erroneous data (model data, e.g. from the\n"
-         "Chevallierl_91l sets, often contain very small or even negative\n"
-         "values, which are numerical artefacts rather than physical values.)\n"
+         "unrealistically small or erroneous data (NWP/GCM model data, e.g.\n"
+         "from theChevallierl_91l sets, often contain very small or even\n"
+         "negative values, which are numerical artefacts rather than physical\n"
+         "values.)\n"
          "\n"
          "*scat_species_field_cleanup* shall be called after generation of the\n"
          "atmopheric fields.\n"
@@ -8053,76 +8045,37 @@ void define_md_data_raw()
       ( NAME( "pnd_fieldSetup" ),
         DESCRIPTION
         (
-         "Calculation of *pnd_field* using *scat_meta* and\n"
-         "*scat_species_mass_density_field*.\n"
+         "Calculation of *pnd_field* from *scat_meta* and\n"
+         "the scattering species fields.\n"
          "\n"
          "The method calculates the number densities (pnd_field values) of\n"
          "all individual scattering elements covered by the considered\n"
          "scattering species for all grid points in the cloudbox. The number\n"
-         "densities represent the mass density profiles of the scattering\n"
-         "species according to the particle size distribution (PSD)\n"
-         "parametrization chosen for the respective scattering species.\n"
+         "densities represent the mass density, mass flux, an/or number\n"
+         "density fields of the scattering species according to the particle\n"
+         "size distribution (PSD) chosen for the respective scattering\n"
+         "species.\n"
          "\n"
          "The following PSDs are available (for further information check\n"
          "their corresponding distribution WSM):\n"
          "\n"
-         "Tag       PSD WSM      Target         Notes\n"
-         "MH97      *dNdD_MH97*    cloud ice\n"
-         "H11       *dNdD_H11*     cloud ice\n"
-         "H13       *dNdD_Ar_H13*  cloud ice      neglects shape information\n"
-         "H13Shape  *dNdD_Ar_H13*  cloud ice\n"
-         "MP48      *dNdD_MP48*    precipitation  rain in particular\n"
-         "H98_STCO  *dNdD_H98*     cloud liquid   specifically continental stratus\n"
+         "Tag       PSD WSM        fields(s) used  Target         Notes\n"
+         "MH97      *dNdD_MH97*    mass density    cloud ice\n"
+         "H11       *dNdD_H11*     mass density    cloud ice\n"
+         "H13       *dNdD_Ar_H13*  mass density    cloud ice      neglects shape information\n"
+         "H13Shape  *dNdD_Ar_H13*  mass density    cloud ice\n"
+         "MP48      *dNdD_MP48*    mass flux       precipitation  rain in particular\n"
+         "H98_STCO  *dNdD_H98*     mass density    cloud liquid   specifically continental stratus\n"
          "\n"
-         "NOTE: The order of scattering particle profiles in\n"
-         "*scat_species_mass_density_field* has to fit the order of\n"
-         "*scat_species* tags. Furthermore, the order of *scat_species* tags\n"
-         "has to fit the order of scattering species in the *scat_meta*\n"
-         "array, i.e., *ScatteringParticleTypeAndMetaRead* with the\n"
-         "respective scattering data and meta data files has to be applied in\n"
-         "the right order!\n"
-/*         "The WSM first checks if cloudbox is empty. If so, the pnd\n"
-         "calculations will be skipped.\n"
-         "The *cloudbox_limits* are used to determine the p, lat and lon size for\n"
-         "the *pnd_field* tensor.\n"
-         "Currently these particle size distribution (PSD) parameterisations are\n"
-         "implemented:\n"
-         "\t1. 'MH97' for ice particles. Parameterisation in temperature and mass content.\n"
-         "\t Using a first-order gamma distribution for particles smaller than \n"
-         "\t 100 microns (melted diameter) and a lognormal distribution for\n"
-         "\t particles bigger 100 microns. Values from both modes are cumulative.\n"
-         "\t See internal function 'IWCtopnd_MH97' for implementation/units/output.\n"
-         "\t (src.: McFarquhar G.M., Heymsfield A.J., 1997)"
-         "\n"
-         "\t2. 'H11' for cloud ice and precipitating ice (snow). H11 is NOT dependent\n"
-         "\t on mass content of ice/snow, but only on atmospheric temperature.\n"
-         "\t The PSD is scaled to the current IWC/Snow density in an additional step.\n"
-         "\t See internal function 'pnd_H11' and 'scale_H11' for implementation/units/output.\n"
-         "\t (src.: Heymsfield A.J., 2011, not published yet)\n"
-         "\t3. 'H98_STCO' for liquid water clouds. Using a gamma distribution with\n"
-         "\t parameters from Hess et al., 1998, continental stratus.\n"
-         "\t See internal function 'LWCtopnd' for implementation/units/output.\n"
-         "\t (src.: Deirmendjian D., 1963 and Hess M., et al 1998)\n"
-         "\n"
-         "According to the selection criteria in *scat_species*, the first specified\n" 
-         "psd parametrisation is selected together with all particles of specified phase\n"
-         "and size. Then pnd calculations are performed on all levels inside the cloudbox.\n"
-         "The *scat_species_mass_density_field* input weights the pnds by the amount of scattering\n" 
-         "particles in each gridbox inside the cloudbox. Where *scat_species_mass_density_field* is zero,\n"
-         "the *pnd_field* will be zero as well.\n"
-         "Subsequently the pnd values get written to *pnd_field*.\n"
-         "\n"
-         "Now the next selection criteria string in *scat_species* is used to repeat\n"
-         "the process.The new pnd values will be appended to the existing *pnd_field*.\n"
-         "And so on...\n"
-         "\n"
-         "NOTE: the order of scattering particle profiles in *scat_species_mass_density_field*\n"
-         "has to fit the order of *scat_species* tags, and the order of\n"
-         "*scat_species* tags has to fit the order of scattering species in the\n"
-         "*scat_meta* array (i.e., *ScatteringParticleTypeAndMetaRead* with the\n"
-         "respective scattering data and meta data files has to be applied in\n"
-         "the right order!\n"
-*/
+         "NOTE: The number and order of the scattering species in the\n"
+         "scattering species fields (*scat_species_mass_density_field*,\n"
+         "*scat_species_mass_flux_field*, and\n"
+         "*scat_species_number_density_field*) has to fit number and order of\n"
+         "the *scat_species* tags.\n"
+         "Moreover, the order of *scat_species* tags has to fit the order of\n"
+         "scattering species in the *scat_meta* array, i.e.,\n"
+         "*ScatteringParticleTypeAndMetaRead* with the respective scattering\n"
+         "data and meta data files has to be applied in the right order!\n"
          ),
         AUTHORS( "Daniel Kreyling" ),
         OUT( "pnd_field"),
@@ -8130,8 +8083,9 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "atmosphere_dim","cloudbox_on", "cloudbox_limits",
-            "scat_species_mass_density_field", "t_field", "scat_meta",
-            "scat_species" ),
+            "scat_species_mass_density_field", "scat_species_mass_flux_field",
+            "scat_species_number_density_field",
+            "t_field", "scat_meta", "scat_species" ),
         GIN( "delim" ),
         GIN_TYPE( "String" ),
         GIN_DEFAULT( "-" ),

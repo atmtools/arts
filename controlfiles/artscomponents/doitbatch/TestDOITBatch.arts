@@ -105,8 +105,11 @@ batch_atm_fields_compactFromArrayOfMatrix(
    batch_atm_fields_compact,
    atmosphere_dim,
    arrayofmatrix_1,
-   ["T", "z", "LWC", "IWC", "ignore", "ignore", "H2O", "O3"],
-   ["O2", "N2"],
+   ["T", "z",
+    "scat_species-LWC-mass_density", "scat_species-IWC-mass_density",
+    "ignore", "ignore",
+    "abs_species-H2O", "abs_species-O3"],
+   ["abs_species-O2", "abs_species-N2"],
    [0.2095, 0.7808]
 )
 # WriteXML("output_file_format", batch_atm_fields_compact_all)
@@ -162,7 +165,7 @@ Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__LookUpTable )
 #--------------------------------
 scat_speciesSet(scat_species,
                 ["LWC-H98_STCO-0.1-2000",
-                "IWC-MH97-0.1-2000"])
+                 "IWC-MH97-0.1-2000"])
 
 # Read SingelScatteringData and ScatteringMetaData
 #-------------------------------------------------
@@ -232,6 +235,7 @@ AgendaSet( ybatch_calc_agenda ){
   scat_species_fieldCleanup (scat_species_mass_density_field,
                              scat_species_mass_density_field,
                              1e-15)
+  #WriteXMLIndexed (output_file_format, ybatch_index, scat_species_mass_density_field)
 
   # Get some surface properties from corresponding atmospheric fields
   Extract( z_surface, z_field, 0 )

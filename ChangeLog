@@ -1,6 +1,66 @@
+2014-11-22  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-3-72
+
+	* Changed approach of handling compact and batch scenarios. Now allows
+	the compact batch (ArrayOfGriddedField4) to be the basic data type, not
+	anymore the ArrayOfMatrix.
+
+	* src/m_atmosphere.cc
+	(AtmFieldsFromCompact): Revised atm_fields_compact to *_fields
+	conversion, selection approach. No more constraints on order of fields.
+	All matching/selection done based on field name tags.
+	Cleaner handling of scattering species data fields. They are now sorted
+	into data fields depending on their type - no mixing of mass densities
+	and fluxes, etc. anymore.
+	(AtmFieldsExpand1D): Allow switching off rejection of fields with NaN
+	values. Need that to be able to expand the scat_species_*_*_field when
+	converting to 3D atmosphere.
+
+	* src/m_abs_lookup.cc (abs_lookupSetupBatch): Revised to work with new
+	batch_atm_fields_compact definition (e.g. consider fields are not
+	sorted).
+
+	* src/m_cloudbox.cc (cloudboxSetAutomatically):
+	Consider all scat_species_*_*_fields, not just mass_density. Improved
+	efficiency of cloudbox limits search. Ensure, it's only run for 1D,
+	throwing an error for higher dims.
+
+	(pnd_fieldSetup): For MP48, pass mass_flux field.
+
+	* src/check_input.[cc,h] (chk_atm_field):
+	Keyword to switch off NaN rejection.
+
+	* cloudbox.[cc,h] (chk_scat_species_field):
+	Consider NaN as a non-set value that doesn't trigger the cloudbox,
+	equivalently to zero values.
+
+	(pnd_fieldMH97, pnd_fieldH11, pnd_fieldH13, pnd_fieldH13Shape,
+	pnd_fieldH98, pnd_fieldMP48):
+	Proper error check, ensuring whatever field is needed by the PSD is
+	present, i.e. has a non-NaN value. For PSD with PSD shape being a
+	function of mass content or flux, disallow negative mass content/flux
+	values; Ok for PSD, where mass content/flux only scales the pnd.
+
+	(parse_atmcompact_speciestype, parse_atmcompact_speciesname,
+	parse_atmcompact_scattype):
+	Added methods to parse field name tags of compact atmospheres.
+
+	* src/workspace.cc, methods.cc:
+	Revised and updated documentation of all compact atmosphere related WSV
+	and WSM. Adapted doc to further changes above.
+
+	* controlfiles/artscomponents/doitbatch/TestDOITBatch.arts,
+	controlfiles/instruments/ici/TestICI_fast.arts,
+	controlfiles/instruments/amsu/TestAMSU_MetMM_generic.arts,
+	controlfiles/instruments/amsu/TestAMSU_generic.arts,
+	controlfiles/instruments/hirs/TestHIRS.arts,
+	controlfiles/instruments/mhs/TestMHS_generic.arts:
+	Adapted batch_atm_fields_compact field_names to new convention.
+
 2014-11-20  Oliver Lemke  <olemke@core-dump.info>
 
-        * arts-2-3-71
+	* arts-2-3-71
 
 	* src/methods.cc, src/m_sensor.cc:
 
@@ -59,7 +119,7 @@
 
 2014-11-18  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
-        * arts-2-3-70
+	* arts-2-3-70
 
 	* src/m_rte.cc (iyEmissionStandard): Added a check of obtained
 	ppath to catch infinite loops at the surface. This could happen if
@@ -68,7 +128,7 @@
 
 2014-11-18  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
-        * arts-2-3-69
+	* arts-2-3-69
 
 	* src/surface.cc (surface_specular_R_and_b): surface_rmatrix(3,2)
 	had the wrong sign, compared to equation in ATD.

@@ -122,7 +122,9 @@ void chk_scat_species_field(bool& empty_flag,
     for (Index j=0; j<scat_species_field.npages(); j++) {
       for (Index k=0; k<scat_species_field.nrows(); k++) {
 	    for (Index l=0; l<scat_species_field.ncols(); l++) {
-	      if ( scat_species_field(j,k,l) != 0.0) empty_flag = true;
+	      if ( scat_species_field(j,k,l) != 0.0 &&
+            !isnan(scat_species_field(j,k,l)) ) empty_flag = true;
+//	      if ( scat_species_field(j,k,l) != 0.0 ) empty_flag = true;
 	}
       }
     }  
@@ -965,37 +967,64 @@ void pnd_fieldMH97 (Tensor4View pnd_field,
         {
           for ( Index lon=limits[4]; lon<limits[5]; lon++ )
           {
-            // we only need to go through PSD calc if there is any material
+            // a valid IWC value encountered. Calculating dNdD.
             if (IWC_field ( p, lat, lon ) > 0.)
-            {
+              {
                 // iteration over all given size bins
                 for ( Index i=0; i<diameter_mass_equivalent.nelem(); i++ )
-                {
-                  // calculate particle size distribution with MH97
-                  // [# m^-3 m^-1]
-                  dNdD[i] = IWCtopnd_MH97 ( IWC_field ( p, lat, lon ),
-                                            diameter_mass_equivalent[i],
-                                            t_field ( p, lat, lon ),
-                                            noisy );
-                }
-            
-                // scale pnds by bin width
-                if (diameter_mass_equivalent.nelem() > 1)
-                  scale_pnd( pnd, diameter_mass_equivalent, dNdD );
-                else
-                  pnd = dNdD;
+                  {
+                    // calculate particle size distribution with MH97
+                    // [# m^-3 m^-1]
+                    dNdD[i] = IWCtopnd_MH97 ( IWC_field ( p, lat, lon ),
+                                              diameter_mass_equivalent[i],
+                                              t_field ( p, lat, lon ),
+                                              noisy );
+                  }
+                  // scale pnds by bin width
+                  if (diameter_mass_equivalent.nelem() > 1)
+                    scale_pnd( pnd, diameter_mass_equivalent, dNdD );
+                  else
+                    pnd = dNdD;
 	    
-                // calculate error of pnd sum and real XWC
-                chk_pndsum ( pnd, IWC_field ( p,lat,lon ), mass,
-                             p, lat, lon, partfield_name, verbosity );
+                  // calculate error of pnd sum and real XWC
+                  chk_pndsum ( pnd, IWC_field ( p,lat,lon ), mass,
+                               p, lat, lon, partfield_name, verbosity );
 	    
-                // writing pnd vector to wsv pnd_field
-                for ( Index i = 0; i< N_se; i++ )
-                {
-                  pnd_field ( intarr[i]+scat_data_start, p-limits[0],
-                              lat-limits[2], lon-limits[4] ) = pnd[i];
-                }
-            }
+                  // writing pnd vector to wsv pnd_field
+                  for ( Index i = 0; i< N_se; i++ )
+                    {
+                      pnd_field ( intarr[i]+scat_data_start, p-limits[0],
+                                  lat-limits[2], lon-limits[4] ) = pnd[i];
+                    }
+              }
+
+            // MH97 requires mass density. If not set, abort calculation.
+            else if ( isnan(IWC_field ( p, lat, lon )) )
+              {
+                ostringstream os;
+                os << "Size distribution MH97 requires knowledge of mass "
+                   << "density of atmospheric ice.\n"
+                   << "At grid point (" << p << ", " << lat << ", " << lon
+                   << ") in (p,lat,lon) a NaN value is encountered, "
+                   << "i.e. mass density is unknown.";
+                throw runtime_error( os.str() );
+              }
+
+            // MH97 PSD is parameterized in IWC and can not handle negative
+            // numbers, hence abort.
+            else if (IWC_field ( p, lat, lon ) < 0.)
+              {
+                ostringstream os;
+                os << "Size distribution MH97 is parametrized in ice mass"
+                   << "content.\n"
+                   << "It can not handle negative values like IWC="
+                   << IWC_field (p,lat,lon) << " kg/m3\n"
+                   << "found at grid point ("
+                   << p << ", " << lat << ", " << lon << ")";
+                throw runtime_error( os.str() );
+              }
+
+            // for IWC==0, we just set pnd_field=0
             else
                 for ( Index i = 0; i< N_se; i++ )
                 {
@@ -1094,8 +1123,21 @@ void pnd_fieldH11 (Tensor4View pnd_field,
         {
           for ( Index lon=limits[4]; lon<limits[5]; lon++ )
           {
-            // we only need to go through PSD calc if there is any material
-            if (IWC_field ( p, lat, lon ) > 0.)
+            // H11 requires mass density. If not set, abort calculation.
+            if ( isnan(IWC_field ( p, lat, lon )) )
+              {
+                ostringstream os;
+                os << "Size distribution H11 requires knowledge of mass "
+                   << "density of atmospheric ice.\n"
+                   << "At grid point (" << p << ", " << lat << ", " << lon
+                   << ") in (p,lat,lon) a NaN value is encountered, "
+                   << "i.e. mass density is unknown.";
+                throw runtime_error( os.str() );
+              }
+
+            // A valid IWC value encountered (here, we can also handle negative
+            // values!). Calculating dNdD.
+            else if (IWC_field ( p, lat, lon ) != 0.)
             {
                 // iteration over all given size bins
                 for ( Index i=0; i<diameter_max.nelem(); i++ ) //loop over number of scattering elements
@@ -1121,6 +1163,8 @@ void pnd_fieldH11 (Tensor4View pnd_field,
                                 lat-limits[2], lon-limits[4] ) = pnd[i];
                 }
             }
+
+            // for IWC==0, we just set pnd_field=0
             else
             {
                 for ( Index i = 0; i< N_se; i++ )
@@ -1221,8 +1265,21 @@ void pnd_fieldH13 (Tensor4View pnd_field,
         {
           for ( Index lon=limits[4]; lon<limits[5]; lon++ )
           {
-            // we only need to go through PSD calc if there is any material
-            if (IWC_field ( p, lat, lon ) > 0.)
+            // H13 requires mass density. If not set, abort calculation.
+            if ( isnan(IWC_field ( p, lat, lon )) )
+              {
+                ostringstream os;
+                os << "Size distribution H13 requires knowledge of mass "
+                   << "density of atmospheric ice.\n"
+                   << "At grid point (" << p << ", " << lat << ", " << lon
+                   << ") in (p,lat,lon) a NaN value is encountered, "
+                   << "i.e. mass density is unknown.";
+                throw runtime_error( os.str() );
+              }
+
+            // A valid IWC value encountered (here, we can also handle negative
+            // values!). Calculating dNdD.
+            else if (IWC_field ( p, lat, lon ) != 0.)
             {
                 // iteration over all given size bins
                 for ( Index i=0; i<diameter_max.nelem(); i++ ) //loop over number of scattering elements
@@ -1248,6 +1305,8 @@ void pnd_fieldH13 (Tensor4View pnd_field,
                                 lat-limits[2], lon-limits[4] ) = pnd[i];
                 }
             }
+
+            // for IWC==0, we just set pnd_field=0
             else
             {
                 for ( Index i = 0; i< N_se; i++ )
@@ -1408,8 +1467,21 @@ void pnd_fieldH13Shape (Tensor4View pnd_field,
         {
           for ( Index lon=limits[4]; lon<limits[5]; lon++ )
           {
-            // we only need to go through PSD calc if there is any material
-            if (IWC_field ( p, lat, lon ) > 0.)
+            // H13 requires mass density. If not set, abort calculation.
+            if ( isnan(IWC_field ( p, lat, lon )) )
+              {
+                ostringstream os;
+                os << "Size distribution H13 requires knowledge of mass "
+                   << "density of atmospheric ice.\n"
+                   << "At grid point (" << p << ", " << lat << ", " << lon
+                   << ") in (p,lat,lon) a NaN value is encountered, "
+                   << "i.e. mass density is unknown.";
+                throw runtime_error( os.str() );
+              }
+
+            // A valid IWC value encountered (here, we can also handle negative
+            // values!). Calculating dNdD.
+            else if (IWC_field ( p, lat, lon ) != 0.)
             {
                 // iteration over all given size bins
                 for ( Index i=0; i<diameter_max_input.nelem(); i++ ) //loop over number of scattering elements
@@ -1469,6 +1541,8 @@ void pnd_fieldH13Shape (Tensor4View pnd_field,
                                 lat-limits[2], lon-limits[4] ) = pnd[i];
                 }
             }
+
+            // for IWC==0, we just set pnd_field=0
             else
             {
                 for ( Index i = 0; i< N_se; i++ )
@@ -1487,7 +1561,7 @@ void pnd_fieldH13Shape (Tensor4View pnd_field,
     size distribution. To be used for precipitation, particularly rain.
 
     \return pnd_field   Particle number density field
-    \param PR_field     precipitation rate field [kg/(m2*s)]
+    \param PR_field     precipitation rate (mass flux) field [kg/(m2*s)]
     \param limits       pnd_field boundaries (indices in p, lat, lon)
     \param scat_meta    scattering meta data for all scattering elements
     \param scat_species array index of scattering species handled by this distribution
@@ -1591,7 +1665,8 @@ void pnd_fieldMP48 (Tensor4View pnd_field,
         {
           for ( Index lon=limits[4]; lon<limits[5]; lon++ )
           {
-            // we only need to go through PSD calc if there is any precipitation
+            // A valid PR value encountered (here, we can also handle negative
+            // values!). Calculating dNdD.
             if (PR_field ( p, lat, lon ) > 0.)
             {
               Index n_it = 0;
@@ -1667,6 +1742,35 @@ void pnd_fieldMP48 (Tensor4View pnd_field,
                               lat-limits[2], lon-limits[4] ) = pnd[i];
               }
             }
+
+            // MP48 requires mass flux (actually, it's preci rate. but we can
+            // convert these). If not set, abort calculation.
+            else if ( isnan(PR_field ( p, lat, lon )) )
+              {
+                ostringstream os;
+                os << "Size distribution MP48 requires knowledge of mass "
+                   << "flux of atmospheric (liquid/solid) water.\n"
+                   << "At grid point (" << p << ", " << lat << ", " << lon
+                   << ") in (p,lat,lon) a NaN value is encountered, "
+                   << "i.e. mass flux is unknown.";
+                throw runtime_error( os.str() );
+              }
+
+            // MP48 PSD is parameterized in PR and can not handle negative
+            // numbers, hence abort.
+            else if (PR_field ( p, lat, lon ) < 0.)
+              {
+                ostringstream os;
+                os << "Size distribution MP48 is parametrized in "
+                   << "precipitation rate (mass flux).\n"
+                   << "It can not handle negative values like PR="
+                   << PR_field (p,lat,lon) << " kg/m2/s\n"
+                   << "found at grid point ("
+                   << p << ", " << lat << ", " << lon << ")";
+                throw runtime_error( os.str() );
+              }
+
+            // for PR==0, we just set pnd_field=0
             else
                 for ( Index i = 0; i< N_se; i++ )
                 {
@@ -1767,7 +1871,21 @@ void pnd_fieldH98 (Tensor4View pnd_field,
         {
           for ( Index lon=limits[4]; lon<limits[5]; lon++ )
           {
-            if (LWC_field ( p,lat,lon )>0.)
+            // H98 requires mass density. If not set, abort calculation.
+            if ( isnan(LWC_field ( p, lat, lon )) )
+              {
+                ostringstream os;
+                os << "Size distribution H98_STCO requires knowledge of mass "
+                   << "density of atmospheric liquid water.\n"
+                   << "At grid point (" << p << ", " << lat << ", " << lon
+                   << ") in (p,lat,lon) a NaN value is encountered, "
+                   << "i.e. mass density is unknown.";
+                throw runtime_error( os.str() );
+              }
+
+            // A valid LWC value encountered (here, we can also handle negative
+            // values!). Calculating dNdD.
+            if (LWC_field ( p,lat,lon ) != 0.)
             {
                 // iteration over all given size bins
                 for ( Index i=0; i<radius.nelem(); i++ ) //loop over number of scattering elements
@@ -1795,6 +1913,8 @@ void pnd_fieldH98 (Tensor4View pnd_field,
                     //dlwc[q] = pnd2[q]*vol[q]*rho[q];
                 }
             }
+
+            // for LWC==0, we just set pnd_field=0
             else
             {
                 for ( Index i = 0; i< N_se; i++ )
@@ -2389,6 +2509,121 @@ void chk_pndsum (Vector& pnd,
 
 
 
+/*! Parse atm_field_compact fieldname for species type
+
+  \param  species_type  species indentifier (first part of field_name)
+  \param  field_name    fieldname of atm_field_compact data entry
+  \param  delim         delimiter string of field_name
+
+  \author Jana Mendrok
+  \date 2014-11-20
+
+*/
+void parse_atmcompact_speciestype (//WS Output:
+                                   String& species_type,
+                                   // WS Input:
+                                   const String& field_name,
+                                   const String& delim)
+{
+  ArrayOfString strarr;
+
+  // split field_name string at '-' and write to ArrayOfString
+  field_name.split ( strarr, delim );
+
+  // first entry is species type
+  // (i.e. "abs_species" or "scat_species". or "T" or "z", which are ignored.)
+  if (strarr.size()>0 && field_name[0]!='-')
+  {
+      species_type = strarr[0];
+  }
+  else
+  {
+      ostringstream os;
+      os << "No information on field species type found in '"
+         << field_name << "'\n";
+      throw runtime_error ( os.str() );
+
+  }
+}
+
+
+/*! Parse atm_field_compact fieldname for species name
+
+  \param  species_type  species name (second part of field_name)
+  \param  field_name    fieldname of atm_field_compact data entry
+  \param  delim         delimiter string of field_name
+
+  \author Jana Mendrok
+  \date 2014-11-20
+
+*/
+void parse_atmcompact_speciesname (//WS Output:
+                                   String& species_name,
+                                   // WS Input:
+                                   const String& field_name,
+                                   const String& delim)
+{
+  ArrayOfString strarr;
+
+  // split field_name string at '-' and write to ArrayOfString
+  field_name.split ( strarr, delim );
+
+  // second entry is species name
+  // (e.g. "H2O, "O3" etc. for abs_species or "IWC", "LWC" etc. for scat_species)
+  if (strarr.size()>1)
+  {
+      species_name = strarr[1];
+  }
+  else
+  {
+      ostringstream os;
+      os << "No information on field species name found in '"
+         << field_name << "'\n";
+      throw runtime_error ( os.str() );
+
+  }
+}
+
+
+/*! Parse atm_field_compact fieldname for type of scat_species field
+
+  \param  scat_type     species name (second part of field_name)
+  \param  field_name    fieldname of atm_field_compact data entry
+  \param  delim         delimiter string of field_name
+
+  \author Jana Mendrok
+  \date 2014-11-20
+
+*/
+void parse_atmcompact_scattype (//WS Output:
+                                String& scat_type,
+                                // WS Input:
+                                const String& field_name,
+                                const String& delim)
+{
+  ArrayOfString strarr;
+
+  // split field_name string at '-' and write to ArrayOfString
+  field_name.split ( strarr, delim );
+
+  // third entry is type of scat_species field
+  // (e.g. "mass_density", "mass_flux", "number_density")
+  if (strarr.size()>2)
+  {
+      scat_type = strarr[2];
+  }
+  else
+  {
+      ostringstream os;
+      os << "No information on type of scat_species field found in '"
+         << field_name << "'\n";
+      throw runtime_error ( os.str() );
+
+  }
+}
+
+
+
 /*! Splitting scat_species string and parse type of scattering species field
 
   \param  partfield_name name of atmospheric scattering species field
@@ -2426,7 +2661,6 @@ void parse_partfield_name (//WS Output:
 }
 
 
-
 /*! Splitting scat_species string and parse psd_param
 	\param  psd_param   particle size distribution parametrization
 	\param  part_string scattering species tag from *scat_species*
@@ -2454,7 +2688,6 @@ void parse_psd_param (//WS Output:
   else
       psd_param = "";
 }
-
 
 
 /*! Splitting scat_species string and parse min and max particle radius

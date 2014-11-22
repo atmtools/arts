@@ -201,6 +201,18 @@ void chk_scat_species_field(bool& empty_flag,
                             const Vector& lat_grid,
                             const Vector& lon_grid);
 
+void parse_atmcompact_speciestype (String& species_type,
+                                   const String& field_name,
+                                   const String& delim);
+
+void parse_atmcompact_speciesname (String& species_name,
+                                   const String& field_name,
+                                   const String& delim);
+
+void parse_atmcompact_scattype (String& scat_type,
+                                const String& field_name,
+                                const String& delim);
+
 void parse_partfield_name (String& partfield_name,
                       const String& part_string,
                       const String& delim);

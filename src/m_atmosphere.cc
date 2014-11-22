@@ -1291,7 +1291,7 @@ void atm_fields_compactFromMatrix(// WS Output:
   if (1!=atmosphere_dim)
     {
       ostringstream os; 
-      os << "Atmospheric dimension must be one.";
+      os << "Atmospheric dimension must be 1.";
       throw runtime_error( os.str() );
     }
 
@@ -1324,10 +1324,6 @@ void atm_fields_compactFromMatrix(// WS Output:
         f_1.push_back(f);
         //cout << " put as element " << f_1.size()-1 << " into selection\n";
       }
-      /*else
-      {
-        cout << " not selected\n";
-      }*/
     }
 
   // Copy required field_names to a new variable called field_names_1
@@ -1598,6 +1594,8 @@ void AtmFieldsFromCompact(// WS Output:
                           Tensor3& z_field,
                           Tensor4& vmr_field,
                           Tensor4& scat_species_mass_density_field,
+                          Tensor4& scat_species_mass_flux_field,
+                          Tensor4& scat_species_number_density_field,
                           // WS Input:
                           const ArrayOfArrayOfSpeciesTag& abs_species,
                           const ArrayOfString& scat_species,
@@ -1618,111 +1616,229 @@ void AtmFieldsFromCompact(// WS Output:
 
   const Index nf   = c.get_grid_size(GFIELD4_FIELD_NAMES);
   const Index np   = c.get_grid_size(GFIELD4_P_GRID);
-  const Index nlat = c.get_grid_size(GFIELD4_LAT_GRID);
-  const Index nlon = c.get_grid_size(GFIELD4_LON_GRID);
+//  const Index nlat = c.get_grid_size(GFIELD4_LAT_GRID);
+//  const Index nlon = c.get_grid_size(GFIELD4_LON_GRID);
+  Index nlat = c.get_grid_size(GFIELD4_LAT_GRID);
+  Index nlon = c.get_grid_size(GFIELD4_LON_GRID);
+  if (nlat==0) nlat++;
+  if (nlon==0) nlon++;
 
   // Grids:
   p_grid = c.get_numeric_grid(GFIELD4_P_GRID);
   lat_grid = c.get_numeric_grid(GFIELD4_LAT_GRID);
   lon_grid = c.get_numeric_grid(GFIELD4_LON_GRID);
 
-  // The order of the fields is:
-  // T[K] z[m] Particle_1[?] ...  Particle_m[?] VMR_1[1] ... VMR_n[1]
-
-  // Number of Particle&VMR species:
+  const Index nsa = abs_species.nelem();
   const Index nsp = scat_species.nelem();
-  const Index nsa = nf-nsp-2;
   
   // Check that there is at least one VMR species:
   if (nsa<1)
     {
       ostringstream os;
-      os << "There must be at least three fields in *atm_fields_compact*.\n"
-         << "T, z, and at least one VMR.";
+      os << "There must be at least one absorption species.";
       throw runtime_error( os.str() );
     }
 
-  // Check that first field is T:
-  if (c.get_string_grid(GFIELD4_FIELD_NAMES)[0] != "T")
-    {
-      ostringstream os;
-      os << "The first field must be \"T\", but it is:"
-         << c.get_string_grid(GFIELD4_FIELD_NAMES)[0];
-      throw runtime_error( os.str() );
-    }
+  // In contrast to older versions, we allow the data entries to be in arbitrary
+  // order. that is, we have to look for all fields individually. we require the
+  // abs_species related fields as well as the scat_species related fields to
+  // have leading identifiers, namely 'abs_species' and 'scat_species'. it is not
+  // mandatory that all fields available in atm_field_compact are applied
+  // through abs_species and scat_species; left over fields are silently
+  // ignored.
+  // For temperature and altitude, occurence of exactly one field entry is
+  // ensured. For other fields, the first match is used.
+  // FIXME: or should a match be removed such that a second species occurence
+  // would match a later-in-line field?
 
-  // Check that second field is z:
-  if (c.get_string_grid(GFIELD4_FIELD_NAMES)[1] != "z")
-    {
-      ostringstream os;
-      os << "The second field must be \"z\"*, but it is:"
-         << c.get_string_grid(GFIELD4_FIELD_NAMES)[1];
-      throw runtime_error( os.str() );
-    }
+  bool found;
+  const String as_type="abs_species";
+  const String ss_type="scat_species";
 
-  // Check that the (supposed) scattering species fields match scat_species:
-  for (Index i=0; i<nsp; ++i)
-    {
-      const String tf_species = c.get_string_grid(GFIELD4_FIELD_NAMES)[2+i];
-      String ps_species;
-      parse_partfield_name(ps_species,scat_species[i],delim);
-      if (tf_species != ps_species)
-        {
-          ostringstream os;
-          os << "Field name for scattering species field not valid: "
-             << tf_species << "\n"
-             << "Based on *scat_species*, the field name should be: "
-             << ps_species;
-          throw runtime_error( os.str() );
-        }
-    }
-
-  // Check that the (supposed) VMR fields match abs_species:
-  for (Index i=0; i<nsa; ++i)
-    {
-      if (i >= abs_species.nelem())
-        {
-          ostringstream os;
-          os << "Based on the field names for absorption species,\n"
-            << "these species are missing in *abs_species*:\n";
-          for (Index itf_species = i; itf_species < nsa; ++itf_species)
-              os << c.get_string_grid(GFIELD4_FIELD_NAMES)[2+nsp+itf_species] << " ";
-          throw runtime_error(os.str());
-        }
-        
-      const String tf_species = c.get_string_grid(GFIELD4_FIELD_NAMES)[2+nsp+i];
-      
-      // Get name of species from abs_species:      
-      using global_data::species_data;  // The species lookup data:
-      const String as_species = species_data[abs_species[i][0].Species()].Name();
-
-      // Species in field name and abs_species should be the same:
-      if (tf_species != as_species)
-        {
-          ostringstream os;
-          os << "Field name for absorption species field not valid: "
-             << tf_species << "\n"
-             << "Based on *abs_species*, the field name should be: "
-             << as_species;
-          throw runtime_error( os.str() );
-        }
-    }
-
-  // Temperature field (first field):
+  // Find temperature field:
+  found = false;
   t_field.resize(np,nlat,nlon);
-  t_field = c.data(0,Range(joker),Range(joker),Range(joker));
+  for (Index i=0; i<nf; ++i)
+    {
+      if (c.get_string_grid(GFIELD4_FIELD_NAMES)[i] == "T")
+        {
+          if (found)
+            {
+               ostringstream os;
+               os << "Only one temperature ('T') field allowed,\n"
+                  << "but found at least 2.";
+               throw runtime_error( os.str() );
+            }
+          else
+            {
+              found = true;
+              t_field = c.data(i,Range(joker),Range(joker),Range(joker));
+            }
+        }
+    }
+  if (!found)
+    {
+      ostringstream os;
+      os << "One temperature ('T') field required, but none found";
+      throw runtime_error( os.str() );
+    }
 
-  // Altitude profile (second field):
+  // Find Altitude field:
+  found = false;
   z_field.resize(np,nlat,nlon);
-  z_field = c.data(1,Range(joker),Range(joker),Range(joker));
+  for (Index i=0; i<nf; ++i)
+    {
+      if (c.get_string_grid(GFIELD4_FIELD_NAMES)[i] == "z")
+        {
+          if (found)
+            {
+               ostringstream os;
+               os << "Only one altitude ('z') field allowed,\n"
+                  << "but found at least 2.";
+               throw runtime_error( os.str() );
+            }
+          else
+            {
+              found = true;
+              z_field = c.data(i,Range(joker),Range(joker),Range(joker));
+            }
+        }
+    }
+  if (!found)
+    {
+      ostringstream os;
+      os << "One altitude ('z') field required, but none found";
+      throw runtime_error( os.str() );
+    }
 
-  //Particle profiles:
-  scat_species_mass_density_field.resize(nsp,np,nlat,nlon);
-  scat_species_mass_density_field = c.data(Range(2,nsp),Range(joker),Range(joker),Range(joker));
-
-  // VMR profiles (remaining fields):
+  // Extracting the required abs_species fields:
   vmr_field.resize(nsa,np,nlat,nlon);
-  vmr_field = c.data(Range(2+nsp,nsa),Range(joker),Range(joker),Range(joker));
+  for (Index j=0; j<nsa; ++j)
+    {
+      using global_data::species_data;  // The species lookup data:
+      const String as_name = species_data[abs_species[j][0].Species()].Name();
+      found = false;
+      Index i = 0;
+      String species_type;
+      String species_name;
+      while (!found && i<nf)
+        {
+          parse_atmcompact_speciestype(species_type,
+                                       c.get_string_grid(GFIELD4_FIELD_NAMES)[i],
+                                       delim);
+          // do we have an abs_species type field?
+          if (species_type==as_type)
+            {
+              parse_atmcompact_speciesname(species_name,
+                                           c.get_string_grid(GFIELD4_FIELD_NAMES)[i],
+                                           delim);
+              if (species_name==as_name)
+                {
+                  found=true;
+                  vmr_field(j,Range(joker),Range(joker),Range(joker)) =
+                    c.data(i,Range(joker),Range(joker),Range(joker));
+                }
+            }
+          i++;
+        }
+      if (!found)
+        {
+          ostringstream os;
+          os << "No field for absorption species '" << as_name << "' found.";
+          throw runtime_error( os.str() );
+        }
+    }
+ 
+  // Extracting the required scattering species fields:
+  scat_species_mass_density_field.resize(nsp,np,nlat,nlon);
+  scat_species_mass_density_field = NAN;
+  scat_species_mass_flux_field.resize(nsp,np,nlat,nlon);
+  scat_species_mass_flux_field = NAN;
+  scat_species_number_density_field.resize(nsp,np,nlat,nlon);
+  scat_species_number_density_field = NAN;
+
+  // to be on safe said (avoiding overwriting of fields), we separately monitor
+  // found status of the individual fields possible per scat_species (we check
+  // each of them whether present, and if sort it into the scat_species**fields.
+  // but for each of them, we only take the first match.).
+  bool found_md;
+  bool found_mf;
+  bool found_nd;
+
+  const String md="mass_density";
+  const String mf="mass_flux";
+  const String nd="number_density";
+
+  for (Index j=0; j<nsp; ++j)
+    {
+      String ss_name;
+      parse_partfield_name(ss_name, scat_species[j], delim);
+      found = false;
+      found_md = false;
+      found_mf = false;
+      found_nd = false;
+      Index i = 0;
+      String species_type;
+      String species_name;
+      String scat_type;
+      while (!found && i<nf)
+        {
+          parse_atmcompact_speciestype(species_type,
+                                       c.get_string_grid(GFIELD4_FIELD_NAMES)[i],
+                                       delim);
+          // do we have an scat_species type field?
+          if (species_type==ss_type)
+            {
+              parse_atmcompact_speciesname(species_name,
+                                           c.get_string_grid(GFIELD4_FIELD_NAMES)[i],
+                                           delim);
+              if (species_name==ss_name)
+                {
+                  parse_atmcompact_scattype(scat_type,
+                                            c.get_string_grid(GFIELD4_FIELD_NAMES)[i],
+                                            delim);
+                  if (!found_md && scat_type==md)
+                    {
+                      found_md=true;
+                      scat_species_mass_density_field(j,Range(joker),Range(joker),Range(joker))
+                        = c.data(i,Range(joker),Range(joker),Range(joker));
+                    }
+                  else if (!found_mf && scat_type==mf)
+                    {
+                      found_mf=true;
+                      scat_species_mass_flux_field(j,Range(joker),Range(joker),Range(joker))
+                        = c.data(i,Range(joker),Range(joker),Range(joker));
+                    }
+                  else if (!found_nd && scat_type==nd)
+                    {
+                      found_nd=true;
+                      scat_species_number_density_field(j,Range(joker),Range(joker),Range(joker))
+                        = c.data(i,Range(joker),Range(joker),Range(joker));
+                    }
+                  else
+                    {
+                      ostringstream os;
+                      os << "scat_species field type " << scat_type
+                         << "is unknown, hence can't be handled.";
+                      throw runtime_error( os.str() );
+                    }
+                }
+            }
+          // if all possible scat_species fields have been filled, we don't need
+          // to check the rest any longer.
+          if (found_md && found_mf && found_nd) found=true;
+          i++;
+        }
+      // did we find at least one of the possible scat_species fields for this
+      // scat species?
+      found = (found_md || found_mf || found_nd);
+      if (!found)
+        {
+          ostringstream os;
+          os << "No field for scattering species '" << ss_name << "' found.";
+          throw runtime_error( os.str() );
+        }
+    }
 }
 
 
@@ -2105,6 +2221,7 @@ void AtmFieldsExpand1D(Tensor3&         t_field,
                        const Vector&    lat_grid,
                        const Vector&    lon_grid,
                        const Index&     atmosphere_dim,
+                       const Index&     chk_vmr_nan,
                        const Verbosity&)
 {
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
@@ -2116,13 +2233,16 @@ void AtmFieldsExpand1D(Tensor3&         t_field,
   const Index   nlon = max( Index(1), lon_grid.nelem() );
   const Index   nspecies = vmr_field.nbooks();
 
+  const bool chknan = chk_vmr_nan;
+
   if( atmosphere_dim == 1 )
     { throw runtime_error( "No use in calling this method for 1D.");}
   chk_atm_field( "t_field", t_field, 1, p_grid, Vector(0), Vector(0) );
   chk_atm_field( "z_field", z_field, 1, p_grid, Vector(0), Vector(0) );
   if( nspecies )
-    chk_atm_field( "vmr_field", vmr_field, 1, nspecies, p_grid, Vector(0), 
-                                                                Vector(0) );
+    chk_atm_field( "vmr_field", vmr_field, 1, nspecies,
+                   p_grid, Vector(0), Vector(0),
+                   chknan );
 
   // Temporary containers
   Tensor3 t_temp = t_field, z_temp = z_field;
