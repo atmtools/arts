@@ -1822,3 +1822,48 @@ void ScatteringMergeParticles1D(//WS Output:
     pnd_field = pnd_field_merged;
     scat_data = scat_data_merged;
 }
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void ExtractFromMetaSingleScatSpecies(
+                     //WS Output:
+                     Vector& meta_param,
+                     //WS Input:
+                     const ArrayOfArrayOfScatteringMetaData& scat_meta,
+                     const String& meta_name,
+                     const Index& scat_species,
+                     const Verbosity& /*verbosity*/)
+{
+    const Index nss = scat_meta.nelem();
+
+    // check that scat_meta actually has at least scat_species elements
+    if ( !(nss>scat_species) )
+    {
+      ostringstream os;
+      os << "Can not extract data for scattering species #"
+         << scat_species << "\n"
+         << "because scat_meta has only " << nss << " elements.";
+      throw runtime_error( os.str() );
+    }
+
+    const Index nse = scat_meta[scat_species].nelem();
+    meta_param.resize(nse);
+
+    for ( Index i=0; i<nse; i++ )
+      {
+        if ( meta_name=="mass" )
+          meta_param[i] = scat_meta[scat_species][i].mass;
+        else if ( meta_name=="diameter_max" )
+          meta_param[i] = scat_meta[scat_species][i].diameter_max;
+        else if ( meta_name=="diameter_volume_equ" )
+          meta_param[i] = scat_meta[scat_species][i].diameter_volume_equ;
+        else if ( meta_name=="diameter_area_equ_aerodynamical" )
+          meta_param[i] = scat_meta[scat_species][i].diameter_area_equ_aerodynamical;
+        else
+          {
+            ostringstream os;
+            os << "Meta parameter \"" << meta_name << "\"is unknown.";
+            throw runtime_error( os.str() );
+          }
+      }
+}

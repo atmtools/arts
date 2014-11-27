@@ -4211,6 +4211,29 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "ExtractFromMetaSingleScatSpecies" ),
+        DESCRIPTION
+        (
+        "Extract (numeric) parameters from meta_data of a single scattering\n"
+        "species.\n"
+        "\n"
+        "...\n"
+        ),
+        AUTHORS( "Jana Mendrok" ),
+        OUT(),
+        GOUT( "meta_param" ),
+        GOUT_TYPE( "Vector" ),
+        GOUT_DESC( "The extracted meta parameter values." ),
+        IN( "scat_meta" ),
+        GIN(         "meta_name", "scat_species" ),
+        GIN_TYPE(    "String",    "Index" ),
+        GIN_DEFAULT( NODEF,       NODEF ),
+        GIN_DESC(    "Name of the meta parameter to extract.",
+                     "Array index of scattering species from which to extract." )
+        ));
+ 
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "ext_matAddGas" ),
         DESCRIPTION
         (
@@ -8121,6 +8144,37 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "pndFromdNdD" ),
+        DESCRIPTION
+        (
+        "Calculates pnds from given dNdD.\n"
+        "\n"
+        "The method mimics what happens inside pnd_fieldSetup, but for a\n"
+        "single size distribution. It is supposed to be used with the *dNdD*\n"
+        "methods\n"
+        ),
+        AUTHORS( "Jana Mendrok" ),
+        OUT(),
+        GOUT( "pnd" ),
+        GOUT_TYPE( "Vector" ),
+        GOUT_DESC( "The pnd vector (pnd as function of particle size)" ),
+        IN(),
+        GIN(         "dNdD",   "diameter", "total_content", "scatelem_content" ),
+        GIN_TYPE(    "Vector", "Vector",   "Numeric",       "Vector" ),
+        GIN_DEFAULT( NODEF, NODEF, NODEF, NODEF ),
+        GIN_DESC(    "Size distribution number density",
+                     "Size of the particles (the same as used in deriving dNdD",
+                     "Material content that should be contained in the"
+                     "distribution. E.g., Mass density, mass flux, total number"
+                     "density. If dNdD was derived from a content-dependent PSD,"
+                     "then this value should correspond to the one used there.",
+                     "Material content of each particle (scattering element)."
+                     "Needs to be the same content type as the total content"
+                     "above." )
+        ));
+ 
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "ppathCalc" ),
         DESCRIPTION
         (
@@ -11767,6 +11821,29 @@ void define_md_data_raw()
         GIN_DEFAULT( NODEF ),
         GIN_DESC( "The vector elements." ),
         SETMETHOD( true )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "VectorVectorMultiply" ),
+        DESCRIPTION
+        (
+         "Multiply a Vector with another Vector and store result in a third one.\n"
+         "\n"
+         "This is an element-wise multiplication. It is ok if output Vector is\n"
+         "the same as any of the input Vectors.\n"
+         ),
+        AUTHORS( "Jana Mendrok" ),
+        OUT(),
+        GOUT(      "out"       ),
+        GOUT_TYPE( "Vector" ),
+        GOUT_DESC( "The result of the multiplication (dimension m)." ),
+        IN(),
+        GIN(          "v1"    , "v2"     ),
+        GIN_TYPE(     "Vector", "Vector" ),
+        GIN_DEFAULT(  NODEF   , NODEF    ),
+        GIN_DESC( "Original Vector #1 (dimension m).",
+                  "Original Vector #2 (dimension m)." )
         ));
 
   md_data_raw.push_back

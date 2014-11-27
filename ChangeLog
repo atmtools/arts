@@ -1,3 +1,22 @@
+2014-11-27  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-3-73
+
+	* a couple of WSM for analysis of PSD data.
+
+	* src/m_cloudbox.cc (pndFromdNdD):
+	Method to convert dNdD to pnd, i.e. size bin integrated number
+	densities. Mimics what is happening inside pnd_fieldSetup.
+
+	* src/m_optproperties.cc (ExtractFromMetaSingleScatSpecies):
+	Method to extract parameters from meta data structure.
+
+	* src/m_basic_types.cc (VectorVectorMultiply):
+	Method for element-wise multiplication of 2 vectors.
+
+	* src/m_basic_types.cc:
+	Definition and doc of the above new WSM.
+
 2014-11-22  Jana Mendrok  <jana.mendrok@ltu.se>
 
 	* arts-2-3-72

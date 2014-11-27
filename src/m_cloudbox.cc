@@ -1761,3 +1761,27 @@ void dNdD_MP48 (//WS Output:
     }
 }
 
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void pndFromdNdD (//WS Output:
+              Vector& pnd,
+              //WS Input:
+              const Vector& dNdD,
+              const Vector& diameter,
+              const Numeric& total_content,
+              const Vector& scatelem_content,
+              const Verbosity& verbosity)
+{
+  pnd.resize( diameter.nelem() );
+
+  // scale dNdD by size bin width
+  if (diameter.nelem() > 1)
+      scale_pnd( pnd, diameter, dNdD ); //[# m^-3]
+  else
+      pnd = dNdD;
+
+  // scaling pnd to real mass/number density/flux (some PSDs have implicit
+  // scaling - then this is only a check -, other don't
+  chk_pndsum ( pnd, total_content, scatelem_content,
+               0, 0, 0, "your field", verbosity );
+}

@@ -807,6 +807,7 @@ void VectorFlip(Vector&   out,
     }
 }
 
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void VectorInsertGridPoints(// WS Generic Output:
                             Vector& og,                  // Output grid
@@ -958,6 +959,7 @@ void VectorLinSpace(Vector&    x,
   }
 }
 
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void VectorLogSpace(Vector&    x, 
                     const Numeric&   start,
@@ -981,6 +983,7 @@ void VectorLogSpace(Vector&    x,
     out3 << "         last value : " << x[x.nelem()-1] << "\n";
   }
 }
+
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void VectorMatrixMultiply(// WS Generic Output:
@@ -1009,6 +1012,7 @@ void VectorMatrixMultiply(// WS Generic Output:
 
   y = dummy;
 }
+
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void VectorNLinSpace(Vector&    x, 
@@ -1109,6 +1113,34 @@ void VectorSet(Vector&       x,
                const Verbosity&)
 {
   x = values;
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void VectorVectorMultiply(// WS Generic Output:
+                          Vector& y,
+                          // WS Generic Input:
+                          const Vector& x1,
+                          const Vector& x2,
+                          const Verbosity&)
+{
+  // Check that dimensions are right, x1 must match x2:
+  if (x1.nelem()!=x2.nelem())
+    {
+      ostringstream os;
+      os << "Both vectors have to have identical dimensions!\n"
+         << "Vector1.nelem() = " << x1.nelem() << "\n"
+         << "Vector2.nelem() = " << x2.nelem();
+      throw runtime_error( os.str() );
+    }
+
+  Vector dummy;
+  dummy.resize(x1.nelem());
+
+  for ( Index i=0; i<x1.nelem(); i++ )
+    dummy[i] = x1[i]*x2[i];
+
+  y = dummy;
 }
 
 
