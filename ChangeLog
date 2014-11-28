@@ -1,3 +1,10 @@
+2014-11-28  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-3-75
+
+	* src/m_abs_lookup.cc (abs_lookupSetupBatch):
+	Fix bug (missing setting of z_index). Pointed out by Oliver.
+
 2014-11-27  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-74

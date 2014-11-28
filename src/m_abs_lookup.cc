@@ -1271,6 +1271,7 @@ void abs_lookupSetupBatch(// WS Output:
           else
             {
               found = true;
+              z_index = fi;
             }
         }
       }
