@@ -3587,9 +3587,10 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "scat_i_p", "doit_i_field", "f_grid", "f_index",   "p_grid", "lat_grid", 
-            "lon_grid", "scat_za_grid", "scat_aa_grid", "stokes_dim",
-            "atmosphere_dim", "cloudbox_limits", "sensor_pos", "z_field" ),
+        IN( "scat_i_p", "doit_i_field1D_spectrum", "doit_i_field",
+            "f_grid", "f_index", "p_grid", "lat_grid", "lon_grid",
+            "scat_za_grid", "scat_aa_grid", "stokes_dim",
+            "atmosphere_dim", "cloudbox_limits" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -3705,15 +3706,23 @@ void define_md_data_raw()
         DESCRIPTION
         (
          "Initialises variables for DOIT scattering calculations.\n"
+         "\n"
+         "Note that multi-dimensional output variables (Tensors, specifically)\n"
+         "are zero-initialized. That is, this methods needs to be called\n"
+         "BEFORE other WSMs that provide input to *ScatteringDOIT*, e.g.\n"
+         "before *CloudboxGetIncoming*.\n"
          ),
         AUTHORS( "Claudia Emde" ),
         OUT( "scat_p_index", "scat_lat_index", "scat_lon_index", 
              "scat_za_index", "scat_aa_index", "doit_scat_field",
-             "doit_i_field", "doit_is_initialized" ),
+             "doit_i_field", "doit_i_field1D_spectrum",
+             "scat_i_p", "scat_i_lat", "scat_i_lon", 
+             "doit_is_initialized" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "stokes_dim", "atmosphere_dim", "scat_za_grid", "scat_aa_grid",
+        IN( "stokes_dim", "atmosphere_dim", "f_grid",
+            "scat_za_grid", "scat_aa_grid",
             "doit_za_grid_size", "cloudbox_on", "cloudbox_limits", "scat_data" ),
         GIN(),
         GIN_TYPE(),
@@ -3747,6 +3756,33 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "doit_i_field", "doit_scat_field_agenda", "doit_rte_agenda", 
             "doit_conv_test_agenda" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "doit_i_fieldSetFromdoit_i_field1D_spectrum" ),
+        DESCRIPTION
+        (
+         "Sets the initial cloudbox intensity field from doit_i_field1D_spectrum.\n"
+         "\n"
+         "This method sets the (monochromatic) first guess radiation field in\n"
+         "the cloudbox from a precalculated *doit_i_field1D_spectrum*, e.g.\n"
+         "from the solution of a similar atmospheric scenario. The dimensions\n"
+         "of *doit_i_field1D_Spectrum* have to be consistent with the DOIT\n"
+         "setup in terms of frequencies, pressure levels inside the\n"
+         "cloudbox, polar angles used as well as the stokes dimension.\n"
+         ),
+        AUTHORS( "Jana Mendrok" ),
+        OUT( "doit_i_field" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "doit_i_field1D_spectrum", "scat_za_grid", "f_grid", "f_index",
+            "atmosphere_dim", "stokes_dim", "cloudbox_limits" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -9535,6 +9571,7 @@ void define_md_data_raw()
         IN( "atmfields_checked", "atmgeom_checked",
             "cloudbox_checked", "cloudbox_on", "f_grid", 
             "scat_i_p", "scat_i_lat", "scat_i_lon",
+            "doit_i_field1D_spectrum",
             "doit_mono_agenda", "doit_is_initialized" ),
         GIN(),
         GIN_TYPE(),

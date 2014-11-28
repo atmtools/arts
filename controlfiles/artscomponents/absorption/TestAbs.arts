@@ -60,15 +60,14 @@ AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, "testdata/trop
 # grid and create the atmospheric variables `t_field', `z_field', `vmr_field'
 AtmFieldsCalc
 
-# Initialize the input variables of abs_coefCalc from the Atm fields:
+# Initialize the input variables of abs_coefCalcFromXsec from the Atm fields:
 AbsInputFromAtmFields
 
 # Create the frequency grid `f_grid':
 VectorNLinSpace( f_grid, 100, 50e9, 150e9 )
 
-# Calculate absorption coefficients, both total (`abs_coef') and 
-# separately for each tag group (`abs_coef_per_species'):
-#abs_coefCalc
+# Calculate absorption coefficients, separately for each tag group:
+#abs_coefCalcFromXsec
 
 # Select species for non-linear treatment in lookup table:
 abs_speciesSet( abs_species=abs_nls, species=[] )

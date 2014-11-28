@@ -274,11 +274,11 @@ AgendaSet( ybatch_calc_agenda ){
   # No unit conversion at this stage
   StringSet( iy_unit, "1" )
 
-  # Calculate incoming radiation field on cloudbox boundaries
-  CloudboxGetIncoming
-
   # Initialize Doit variables
   DoitInit
+
+  # Calculate incoming radiation field on cloudbox boundaries
+  CloudboxGetIncoming
 
   # Executes doit_mono_agenda for all frequencies
   ScatteringDoit

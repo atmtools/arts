@@ -277,11 +277,11 @@ atmgeom_checkedCalc
 cloudbox_checkedCalc
 sensor_checkedCalc
 
-# Perform scattering calculation 
-CloudboxGetIncoming
-
 # Initialize Doit variables
 DoitInit
+
+# Perform scattering calculation 
+CloudboxGetIncoming
 
 # Executes doit_mono_agenda for all frequencies
 ScatteringDoit

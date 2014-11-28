@@ -63,7 +63,7 @@ AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, "testdata/trop
 # grid and create the atmospheric variables `t_field', `z_field', `vmr_field'
 AtmFieldsCalc
 
-# Initialize the input variables of abs_coefCalc from the Atm fields:
+# Initialize the input variables of propmat_clearsky_fieldCalc from the Atm fields:
 AbsInputFromAtmFields
 
 # Create the frequency grid `f_grid':

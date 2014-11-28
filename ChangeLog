@@ -1,5 +1,53 @@
 2014-11-28  Jana Mendrok  <jana.mendrok@ltu.se>
 
+	* arts-2-3-76
+
+	* Modifications to allow DOIT's first guess doit_i_field to be set from
+	precalculated doit_i_field1D_spectrum (instead of from clearsky).
+	To be backported to ARTS-2.2.
+
+	* src/m_doit.cc
+	(doit_i_fieldSetFromDoit_i_field1D_spectrum): Added. Method to set first
+	guess doit_i_field from precalculated full spectrum field
+	doit_i_field1D_spectrum (e.g. from a similar, but not identical
+	atmospheric scenario). Note, works for 1D only. Currently a very basic
+	versions that requires the precalculated field to be on same grids
+	(freq, atm levels, angles) as the current calculation, i.e. no
+	interpolation. In future, atm level and angle grid interpolation
+	could/should be allowed.
+
+	(DoitCloudboxFieldPut): Don't resize and zero doit_i_field1D_spectrum.
+	It has been initialized by DoitInit already. However, for atm_dim=1
+	always set it from doit_i_field, not only when sensor inside cloudbox
+	(we might want to output it for later use/analysis).
+
+	(ScatteringDoit): Don't zero-size doit_i_field1D_spectrum before
+	entering doit_mono_agenda. It might contain data we want to use inside
+	the agenda.
+
+	(DoitInit): Initialize, i.e. properly size and set to zero,
+	scat_i_p/lat/lon and doit_i_field1D_spectrum. Needed as either group of
+	them can be used to set the first guess doit_i_field, meaning that the
+	other group usually remains uninitialized otherwise. Note, this change
+	requuires DoitInit to be called BEFORE any other WSM setting input for
+	ScatteringDoit like CloudboxGetIncoming (else the data will be erased
+	again)..
+
+	* src/methods.cc: Adapt to changes of WSMs above.
+
+	* src/agendas.cc (doit_mon_agenda):
+	Added doit_i_field1D_spectrum as input.
+
+	* controlfiles/artscomponents/doit/TestDOIT.arts,
+	doitbatch/TestDOITBatch.arts:
+	Move DoitInit call to before CloudboxGetIncoming, adopting to DoitInit
+	changes above.
+
+	* controlfiles/artscomponents/absorption/TestAbs.arts, TestAbsDoppler.arts:
+	Replaced references to obsolete abs_coefCalc.
+
+2014-11-28  Jana Mendrok  <jana.mendrok@ltu.se>
+
 	* arts-2-3-75
 
 	* src/m_abs_lookup.cc (abs_lookupSetupBatch):
