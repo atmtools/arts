@@ -1733,3 +1733,66 @@ void ScatteringMergeParticles1D(//WS Output:
     pnd_field = pnd_field_merged;
     scat_data_array = scat_data_array_merged;
 }
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void ExtractFromMetaSinglePartSpecies(
+                     //WS Output:
+                     Vector& meta_param,
+                     //WS Input:
+                     const ArrayOfScatteringMetaData& scat_meta_array,
+                     const ArrayOfIndex& scat_data_per_part_species,
+                     const String& meta_name,
+                     const Index& part_species_index,
+                     const Verbosity& ) //verbosity
+{
+    if ( part_species_index<0 )
+    {
+      ostringstream os;
+      os << "part_species_index can't be <0!";
+      throw runtime_error( os.str() );
+    }
+
+    const Index nps = scat_data_per_part_species.nelem();
+
+    // check that scat_data_per_part_species actually has at least
+    // part_species_index elements
+    if ( !(nps>part_species_index) )
+    {
+      ostringstream os;
+      os << "Can not extract data for scattering species #"
+         << part_species_index << "\n"
+         << "because scat_data_per_part_species has only " << nps << " elements.";
+      throw runtime_error( os.str() );
+    }
+
+    const Index npe = scat_data_per_part_species[part_species_index];
+    meta_param.resize(npe);
+
+    // calculate offset index scattering species part_species_index within
+    // scat_meta_array
+    Index indoff=0;
+    for ( Index i=0; i<part_species_index; i++ )
+      indoff+=scat_data_per_part_species[i];
+
+    // eventually, copy the meta data into the output Vector
+    for ( Index i=0; i<npe; i++ )
+      {
+        if ( meta_name=="volume" )
+          meta_param[i] = scat_meta_array[indoff+i].volume;
+        else if ( meta_name=="diameter_max" )
+          meta_param[i] = scat_meta_array[indoff+i].diameter_max;
+        else if ( meta_name=="density" )
+          meta_param[i] = scat_meta_array[indoff+i].density;
+        else if ( meta_name=="area_projected" )
+          meta_param[i] = scat_meta_array[indoff+i].area_projected;
+        else if ( meta_name=="aspect_ratio" )
+          meta_param[i] = scat_meta_array[indoff+i].aspect_ratio;
+        else
+          {
+            ostringstream os;
+            os << "Meta parameter \"" << meta_name << "\"is unknown.";
+            throw runtime_error( os.str() );
+          }
+      }
+}

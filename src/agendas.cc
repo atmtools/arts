@@ -167,7 +167,8 @@ void define_agenda_data()
         ),
        OUTPUT( "doit_i_field", "scat_i_p", "scat_i_lat", "scat_i_lon", 
                "doit_i_field1D_spectrum"),
-       INPUT("doit_i_field", "f_grid", "f_index", "scat_i_p", "scat_i_lat", "scat_i_lon","doit_i_field1D_spectrum")));
+       INPUT("doit_i_field", "f_grid", "f_index",
+             "scat_i_p", "scat_i_lat", "scat_i_lon", "doit_i_field1D_spectrum")));
             
  agenda_data.push_back
     (AgRecord

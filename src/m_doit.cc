@@ -1530,10 +1530,15 @@ void DoitInit(//WS Output
               Index& scat_aa_index,
               Tensor6& doit_scat_field,
               Tensor6& doit_i_field,
+              Tensor4& doit_i_field1D_spectrum,
+              Tensor7& scat_i_p,
+              Tensor7& scat_i_lat,
+              Tensor7& scat_i_lon,
               Index& doit_is_initialized,
               // WS Input
               const Index& stokes_dim,
               const Index& atmosphere_dim,
+              const Vector& f_grid,
               const Vector& scat_za_grid,
               const Vector& scat_aa_grid,
               const Index& doit_za_grid_size,
@@ -1627,6 +1632,18 @@ void DoitInit(//WS Output
                         scat_za_grid.nelem(), 
                         1,
                         stokes_dim);
+      doit_i_field1D_spectrum.resize(f_grid.nelem(),
+                        (cloudbox_limits[1] - cloudbox_limits[0]) +1,
+                        scat_za_grid.nelem(), 
+                        stokes_dim);
+      scat_i_p.resize(f_grid.nelem(), 2, 1, 1,
+                      scat_za_grid.nelem(), 1, stokes_dim);
+      scat_i_lat.resize(f_grid.nelem(),
+                      (cloudbox_limits[1]-cloudbox_limits[0])+1, 2, 0,
+                      scat_za_grid.nelem(), 1, stokes_dim);
+      scat_i_lon.resize(f_grid.nelem(),
+                      (cloudbox_limits[1]-cloudbox_limits[0])+1, 0, 2,
+                      scat_za_grid.nelem(), 1, stokes_dim);
     }
   else if (atmosphere_dim == 3)
     {
@@ -1655,6 +1672,10 @@ void DoitInit(//WS Output
   
   doit_i_field = 0.;
   doit_scat_field = 0.;
+  doit_i_field1D_spectrum = 0.;
+  scat_i_p = 0.;
+  scat_i_lat = 0.;
+  scat_i_lon = 0.;
   doit_is_initialized = 1;
 }
 
@@ -2531,10 +2552,6 @@ void ScatteringDoit(
   Workspace l_ws (ws);
   Agenda l_doit_mono_agenda(doit_mono_agenda);
     
-  // Resize and initialize
-  doit_i_field1D_spectrum.resize(0,0,0,0);
-    
-
   // OMP likes simple loop end conditions, so we make a local copy here: 
   const Index nf = f_grid.nelem();
 
@@ -2573,9 +2590,7 @@ void DoitCloudboxFieldPut(//WS Output:
                           const Index& stokes_dim,
                           const Index& atmosphere_dim,
                           const ArrayOfIndex& cloudbox_limits,
-                          const Matrix& sensor_pos,
-                          const Tensor3& z_field,
-                          const Verbosity& verbosity)
+                          const Verbosity& )
 {
   // Some sizes:
   Index N_f = f_grid.nelem();
@@ -2606,36 +2621,10 @@ void DoitCloudboxFieldPut(//WS Output:
                         "be 2 x *atmosphere_dim*"); 
   // End of checks.
   
-  if( doit_i_field1D_spectrum.nbooks() != N_f
-     || doit_i_field1D_spectrum.npages() != N_p
-     || doit_i_field1D_spectrum.nrows() != N_za
-     || doit_i_field1D_spectrum.ncols() != stokes_dim)
-  {
-    
-    // Resize and initialize *doit_i_field_spectra*
-    doit_i_field1D_spectrum.resize(N_f, N_p, N_za, stokes_dim);
-    doit_i_field1D_spectrum = 0;
-  }
-
   // Put the doit_i_field at the cloudbox boundary into the interface variable 
   // scat_i_p.
   if(atmosphere_dim == 1)
     {
-      bool in_cloudbox = false;
-      // Check if sensor inside the cloudbox:
-      //loop over all sensor positions
-      for (Index i = 0; i < sensor_pos.nrows(); i++)
-        {
-          if(sensor_pos(i, 0) >= z_field(cloudbox_limits[0], 0, 0) &&
-             sensor_pos(i, 0) <= z_field(cloudbox_limits[1], 0, 0) )
-            {
-              CREATE_OUT2;
-              in_cloudbox = true;
-              out2 << "  Sensor position in cloudbox, store radiation field\n"
-                   << "  in cloudbox for all frequencies. \n"; 
-            }
-        }
-      
       // Check size of doit_i_field.
       assert ( is_size( doit_i_field, 
                         (cloudbox_limits[1] - cloudbox_limits[0]) + 1,
@@ -2660,17 +2649,13 @@ void DoitCloudboxFieldPut(//WS Output:
               //doit_i_field at upper boundary
               scat_i_p(f_index, 1, 0, 0,
                        za, 0, i) = 
-                doit_i_field(cloudbox_limits[1] - cloudbox_limits[0],
-                        0, 0, za, 0, i); 
+              doit_i_field(cloudbox_limits[1] - cloudbox_limits[0],
+                       0, 0, za, 0, i); 
 
-              // If a sensor pos is inside the cloudbox we also need to 
-              // define *doit_i_field1D_spectra*
-              if( in_cloudbox)
-                {
-                  doit_i_field1D_spectrum(f_index, joker, za, i) = 
-                    doit_i_field(joker, 0, 0, za, 0, i);
-                }
-              
+              // full 1D spectrum
+              doit_i_field1D_spectrum(f_index, joker, za, i) = 
+                       doit_i_field(joker, 0, 0, za, 0, i);
+
             }//end stokes_dim
         }//end za loop
       
@@ -3107,7 +3092,7 @@ void CloudboxGetIncoming1DAtm(
          << "At least one of these requirements is not met.\n";
       throw runtime_error( os.str() );
     }
-  
+
   Index  Nf       = f_grid.nelem();
   Index  Np_cloud = cloudbox_limits[1] - cloudbox_limits[0] + 1;
   Index  Nlat_cloud = cloudbox_limits[3] - cloudbox_limits[2] + 1;
@@ -3117,7 +3102,6 @@ void CloudboxGetIncoming1DAtm(
   Index  Ni       = stokes_dim;
   Matrix iy;
   Ppath  ppath;
-
 
   //--- Check input ----------------------------------------------------------
   if( atmosphere_dim != 3 )
@@ -3312,6 +3296,76 @@ void iyInterpPolyCloudboxField(Matrix&         iy,
                             scat_za_grid, scat_aa_grid, f_grid, "polynomial",
                             0, 10,
                             verbosity );
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void doit_i_fieldSetFromdoit_i_field1D_spectrum(
+                             Tensor6& doit_i_field,
+                             const Tensor4& doit_i_field1D_spectrum,
+                             const Vector& scat_za_grid,
+                             const Vector& f_grid,
+                             const Index& f_index,
+                             const Index& atmosphere_dim,
+                             const Index& stokes_dim,
+                             const ArrayOfIndex& cloudbox_limits,
+                             const Verbosity& ) //verbosity)
+{
+  // this is only for 1D atmo!
+  if( atmosphere_dim!=1 )
+    {
+      ostringstream os;
+      os << "This method is only for 1D atmospheres!\n";
+      throw runtime_error( os.str() );
+    }
+  
+  // check dimensions of doit_i_field1D_spectrum
+  Index nf = f_grid.nelem();
+  Index nza = scat_za_grid.nelem();
+  Index np = cloudbox_limits[1] - cloudbox_limits[0] +1;
+
+  if( nf!=doit_i_field1D_spectrum.nbooks() )
+    {
+      ostringstream os;
+      os << "doit_i_field1D_spectrum has wrong size in frequency dimension.\n"
+         << nf << " frequency points are expected, but doit_i_field1D_spectrum "
+         << "contains " << doit_i_field1D_spectrum.nbooks()
+         << "frequency points.\n";
+      throw runtime_error( os.str() );
+    }
+  if( np!=doit_i_field1D_spectrum.npages() )
+    {
+      ostringstream os;
+      os << "doit_i_field1D_spectrum has wrong size in pressure level dimension.\n"
+         << np << " pressure levels expected, but doit_i_field1D_spectrum "
+         << "contains " << doit_i_field1D_spectrum.npages()
+         << "pressure levels.\n";
+      throw runtime_error( os.str() );
+    }
+  if( nza!=doit_i_field1D_spectrum.nrows() )
+    {
+      ostringstream os;
+      os << "doit_i_field1D_spectrum has wrong size in polar angle dimension.\n"
+         << nza << " angles expected, but doit_i_field1D_spectrum "
+         << "contains " << doit_i_field1D_spectrum.nbooks()
+         << "angles.\n";
+      throw runtime_error( os.str() );
+    }
+  if( stokes_dim!=doit_i_field1D_spectrum.ncols() )
+    {
+      ostringstream os;
+      os << "doit_i_field1D_spectrum has wrong stokes dimension.\n"
+         << "Dimesnion " << stokes_dim
+         << " expected, but doit_i_field1D_spectrum is dimesnion "
+         << doit_i_field1D_spectrum.nrows() << ".\n";
+      throw runtime_error( os.str() );
+    }
+
+  // now copy data to doit_i_field
+  doit_i_field.resize(np,1,1,nza,1,stokes_dim);
+  doit_i_field(joker,0,0,joker,0,joker) =
+    doit_i_field1D_spectrum(f_index,joker,joker,joker);
+
 }
 
 
