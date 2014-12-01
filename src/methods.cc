@@ -4250,7 +4250,7 @@ void define_md_data_raw()
       ( NAME( "ExtractFromMetaSingleScatSpecies" ),
         DESCRIPTION
         (
-        "Extract (numeric) parameters from meta_data of a single scattering\n"
+        "Extract (numeric) parameters from scat_meta of a single scattering\n"
         "species.\n"
         "\n"
         "...\n"
@@ -4261,7 +4261,7 @@ void define_md_data_raw()
         GOUT_TYPE( "Vector" ),
         GOUT_DESC( "The extracted meta parameter values." ),
         IN( "scat_meta" ),
-        GIN(         "meta_name", "scat_species" ),
+        GIN(         "meta_name", "scat_species_index" ),
         GIN_TYPE(    "String",    "Index" ),
         GIN_DEFAULT( NODEF,       NODEF ),
         GIN_DESC(    "Name of the meta parameter to extract.",
@@ -8187,7 +8187,7 @@ void define_md_data_raw()
         "\n"
         "The method mimics what happens inside pnd_fieldSetup, but for a\n"
         "single size distribution. It is supposed to be used with the *dNdD*\n"
-        "methods\n"
+        "methods.\n"
         ),
         AUTHORS( "Jana Mendrok" ),
         OUT(),

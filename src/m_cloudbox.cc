@@ -1781,7 +1781,7 @@ void pndFromdNdD (//WS Output:
       pnd = dNdD;
 
   // scaling pnd to real mass/number density/flux (some PSDs have implicit
-  // scaling - then this is only a check -, other don't
+  // scaling - then this is only a check -, others don't
   chk_pndsum ( pnd, total_content, scatelem_content,
                0, 0, 0, "your field", verbosity );
 }

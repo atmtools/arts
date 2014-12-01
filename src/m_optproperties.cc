@@ -1831,34 +1831,41 @@ void ExtractFromMetaSingleScatSpecies(
                      //WS Input:
                      const ArrayOfArrayOfScatteringMetaData& scat_meta,
                      const String& meta_name,
-                     const Index& scat_species,
+                     const Index& scat_species_index,
                      const Verbosity& /*verbosity*/)
 {
+    if ( scat_species_index<0 )
+    {
+      ostringstream os;
+      os << "scat_species_index can't be <0!";
+      throw runtime_error( os.str() );
+    }
+
     const Index nss = scat_meta.nelem();
 
-    // check that scat_meta actually has at least scat_species elements
-    if ( !(nss>scat_species) )
+    // check that scat_meta actually has at least scat_species_index elements
+    if ( !(nss>scat_species_index) )
     {
       ostringstream os;
       os << "Can not extract data for scattering species #"
-         << scat_species << "\n"
+         << scat_species_index << "\n"
          << "because scat_meta has only " << nss << " elements.";
       throw runtime_error( os.str() );
     }
 
-    const Index nse = scat_meta[scat_species].nelem();
+    const Index nse = scat_meta[scat_species_index].nelem();
     meta_param.resize(nse);
 
     for ( Index i=0; i<nse; i++ )
       {
         if ( meta_name=="mass" )
-          meta_param[i] = scat_meta[scat_species][i].mass;
+          meta_param[i] = scat_meta[scat_species_index][i].mass;
         else if ( meta_name=="diameter_max" )
-          meta_param[i] = scat_meta[scat_species][i].diameter_max;
+          meta_param[i] = scat_meta[scat_species_index][i].diameter_max;
         else if ( meta_name=="diameter_volume_equ" )
-          meta_param[i] = scat_meta[scat_species][i].diameter_volume_equ;
+          meta_param[i] = scat_meta[scat_species_index][i].diameter_volume_equ;
         else if ( meta_name=="diameter_area_equ_aerodynamical" )
-          meta_param[i] = scat_meta[scat_species][i].diameter_area_equ_aerodynamical;
+          meta_param[i] = scat_meta[scat_species_index][i].diameter_area_equ_aerodynamical;
         else
           {
             ostringstream os;

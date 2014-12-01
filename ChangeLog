@@ -1,3 +1,12 @@
+2014-11-30  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-3-77
+
+	* src/m_optproperties.cc (ExtractFromMetaSingleScatSpecies):
+	Don't shadow WSV with a generic one. Improved checks.
+
+	* src/m_cloudbox.cc, methods.cc: Typos fixed.
+
 2014-11-28  Jana Mendrok  <jana.mendrok@ltu.se>
 
 	* arts-2-3-76
@@ -76,7 +85,7 @@
 	* src/m_basic_types.cc (VectorVectorMultiply):
 	Method for element-wise multiplication of 2 vectors.
 
-	* src/m_basic_types.cc:
+	* src/methods.cc:
 	Definition and doc of the above new WSM.
 
 2014-11-22  Jana Mendrok  <jana.mendrok@ltu.se>
