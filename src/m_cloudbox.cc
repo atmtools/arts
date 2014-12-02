@@ -1654,7 +1654,7 @@ void pnd_fieldSetup (//WS Output:
     }
       
       //---- pnd_field calculations for MGD_LWC -------------------------------
-    else if ( psd_param == "MDG_LWC" )
+    else if ( psd_param == "MGD_LWC" )
     {
         psd = "MGD_LWC";
         
@@ -1681,7 +1681,7 @@ void pnd_fieldSetup (//WS Output:
     }
       
       //---- pnd_field calculations for MGD_LWC -------------------------------
-    else if ( psd_param == "MDG_IWC" )
+    else if ( psd_param == "MGD_IWC" )
     {
         psd = "MGD_IWC";
         
