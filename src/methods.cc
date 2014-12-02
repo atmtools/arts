@@ -3423,7 +3423,129 @@ void define_md_data_raw()
                   "Ambient atmospheric temperature [K]",
                   "Density of the particles [kg/m3]",
                   "Distribution parameter perturbance flag" )
-        ));  
+        ));
+    
+  md_data_raw.push_back
+    ( MdRecord
+     ( NAME( "dN_F07TR" ),
+      DESCRIPTION
+      (
+       "Calculation of particle size distribution (dN/dD) following\n"
+       "Field et al. (2007) for tropics parametrization.\n"
+       "\n"
+       "A wrapper to internal particle size distribution calculation.\n"
+       "Field et al. (2007) for tropics is a parametrization for Snow\n"
+       "and cloud ice in the tropics. Parametrization is in ice water content (IWC)\n"
+       "and ambient atmospheric temperature over particle size in terms of\n"
+       "maximum diameter. Provides number density\n"
+       "normalized to the given snow/ice water content.\n"
+       ),
+      AUTHORS( "Manfred Brath" ),
+      OUT(),
+      GOUT( "dN" ),
+      GOUT_TYPE( "Vector" ),
+      GOUT_DESC( "size distribution number density" ),
+      IN(),
+      GIN( "diameter_max", "SWC", "t", "alpha", "beta" ),
+      GIN_TYPE( "Vector", "Numeric", "Numeric", "Numeric", "Numeric" ),
+      GIN_DEFAULT( NODEF, NODEF, NODEF, "0.0257","2.0" ),
+      GIN_DESC( "Maximum diameter of the particles [m]",
+               "Atmospheric ice water content [kg/m3]",
+               "Ambient atmospheric temperature [K]",
+               "Factor for the mass-dimension (m=alpha*(Dmax/D0)^beta) relationship [kg]",
+               "Exponent for the mass-dimension relationship [pure number]")
+      ));
+    
+  md_data_raw.push_back
+    ( MdRecord
+     ( NAME( "dN_F07ML" ),
+      DESCRIPTION
+      (
+       "Calculation of particle size distribution (dN/dD) following\n"
+       "Field et al. (2007) for mid latitude parametrization.\n"
+       "\n"
+       "A wrapper to internal particle size distribution calculation.\n"
+       "Field et al. (2007) for mid latitude is a parametrization for Snow\n"
+       "and cloud ice in the mid latitude. Parametrization is in ice water content (IWC)\n"
+       "and ambient atmospheric temperature over particle size in terms of\n"
+       "maximum diameter. Provides number density\n"
+       "normalized to the given snow/ice water content.\n"
+       ),
+      AUTHORS( "Manfred Brath" ),
+      OUT(),
+      GOUT( "dN" ),
+      GOUT_TYPE( "Vector" ),
+      GOUT_DESC( "size distribution number density" ),
+      IN(),
+      GIN( "diameter_max", "SWC", "t", "alpha", "beta" ),
+      GIN_TYPE( "Vector", "Numeric", "Numeric", "Numeric", "Numeric" ),
+      GIN_DEFAULT( NODEF, NODEF, NODEF, "0.0257","2.0" ),
+      GIN_DESC( "Maximum diameter of the particles [m]",
+               "Atmospheric ice water content [kg/m3]",
+               "Ambient atmospheric temperature [K]",
+               "Factor for the mass-dimension (m=alpha*(Dmax/D0)^beta) relationship [kg]",
+               "Exponent for the mass-dimension relationship [pure number]")
+      ));
+    
+  md_data_raw.push_back
+    ( MdRecord
+     ( NAME( "dN_MGD_LWC" ),
+      DESCRIPTION
+      (
+       "Calculation of particle size distribution (dN/dD) according\n"
+       "to the modified gamma distribution for cloud water\n"
+       "inside of Geer and Baordo (2014)\n"
+       "\n"
+       "A wrapper to internal particle size distribution calculation.\n"
+       "MDG_LWC is a parametrization for cloud liquid water. It is a\n"
+       "modified gamma distribution with the coefficients of Geer and Baordo (2014)\n"
+       "Parametrization is in liquid water content (LWC)\n"
+       "Assumptions are: density of particles is constant and particle shape is sphere.\n"
+       "Provides number density normalized to the given liquid water content.\n"
+       ),
+      AUTHORS( "Manfred Brath" ),
+      OUT(),
+      GOUT( "dN" ),
+      GOUT_TYPE( "Vector" ),
+      GOUT_DESC( "size distribution number density" ),
+      IN(),
+      GIN( "diameter_max","rho","LWC"),
+      GIN_TYPE( "Vector","Numeric","Numeric" ),
+      GIN_DEFAULT( NODEF, NODEF, NODEF ),
+      GIN_DESC( "Maximum diameter of the particles [m]",
+               "Density of the particles [kg/m^3]",
+               "Atmospheric ice water content [kg/m3]")
+      ));
+    
+  md_data_raw.push_back
+    ( MdRecord
+     ( NAME( "dN_MGD_IWC" ),
+      DESCRIPTION
+      (
+       "Calculation of particle size distribution (dN/dD) according\n"
+       "to the modified gamma distribution for cloud ice\n"
+       "inside of Geer and Baordo (2014)\n"
+       "\n"
+       "A wrapper to internal particle size distribution calculation.\n"
+       "MDG_IWC is a parametrization for cloud ice. It is a\n"
+       "modified gamma distribution with the coefficients of Geer and Baordo (2014)\n"
+       "Parametrization is in liquid water content (IWC)\n"
+       "Assumptions are: density of particles is constant and particle shape is sphere.\n"
+       "Provides number density normalized to the given ice water content.\n"
+       ),
+      AUTHORS( "Manfred Brath" ),
+      OUT(),
+      GOUT( "dN" ),
+      GOUT_TYPE( "Vector" ),
+      GOUT_DESC( "size distribution number density" ),
+      IN(),
+      GIN( "diameter_max","rho","IWC"),
+      GIN_TYPE( "Vector","Numeric","Numeric" ),
+      GIN_DEFAULT( NODEF, NODEF, NODEF ),
+      GIN_DESC( "Maximum diameter of the particles [m]",
+               "Density of the particles [kg/m^3]",
+               "Atmospheric ice water content [kg/m3]")
+      ));
     
   md_data_raw.push_back
     ( MdRecord
