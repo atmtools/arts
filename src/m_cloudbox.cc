@@ -1601,7 +1601,97 @@ void pnd_fieldSetup (//WS Output:
                        scat_species[i_ss], delim,
                        verbosity);
     }
-    
+      
+    //---- pnd_field calculations for F07TR ----------------------------
+    else if ( psd_param == "F07TR" )
+    {
+        psd = "F07TR";
+        //cout << psd << "\n";
+        
+        //check for expected scattering species field name
+        if ( partfield_name != "IWC" && partfield_name != "Snow" && partfield_name != "SWC")
+        {
+            out1 << "WARNING! The scattering species field name is unequal"
+            << "'IWC','Snow' or 'Snow'.\n"
+            << psd << " should only be applied to cloud or precipitating"
+            << " ice.\n";
+        }
+        
+        pnd_fieldF07TR (pnd_field,
+                      scat_species_mass_density_field ( i_ss, joker, joker, joker ),
+                      t_field, limits,
+                      scat_meta, i_ss,
+                      scat_species[i_ss], delim,
+                      verbosity);
+    }
+      
+      //---- pnd_field calculations for F07ML ----------------------------
+    else if ( psd_param == "F07ML" )
+    {
+        psd = "F07ML";
+        //cout << psd << "\n";
+        
+        //check for expected scattering species field name
+        if ( partfield_name != "IWC" && partfield_name != "Snow" && partfield_name != "SWC")
+        {
+            out1 << "WARNING! The scattering species field name is unequal"
+            << "'IWC','Snow' or 'Snow'.\n"
+            << psd << " should only be applied to cloud or precipitating"
+            << " ice.\n";
+        }
+        
+        pnd_fieldF07ML (pnd_field,
+                        scat_species_mass_density_field ( i_ss, joker, joker, joker ),
+                        t_field, limits,
+                        scat_meta, i_ss,
+                        scat_species[i_ss], delim,
+                        verbosity);
+    }
+      
+      //---- pnd_field calculations for MGD_LWC ----------------------------
+    else if ( psd_param == "MGD_LWC" )
+    {
+        psd = "MGD_LWC";
+        //cout << psd << "\n";
+        
+        //check for expected scattering species field name
+        if ( partfield_name != "LWC" )
+        {
+            out1 << "WARNING! The scattering species field name is unequal"
+            << "'LWC'.\n"
+            << psd << " should only be applied to liquid cloud water.\n";
+        }
+        
+        pnd_fieldMGD_LWC (pnd_field,
+                        scat_species_mass_density_field ( i_ss, joker, joker, joker ),
+                        limits,
+                        scat_meta, i_ss,
+                        scat_species[i_ss], delim,
+                        verbosity);
+    }
+      
+      //---- pnd_field calculations for MGD_LWC ----------------------------
+    else if ( psd_param == "MGD_IWC" )
+    {
+        psd = "MGD_IWC";
+        //cout << psd << "\n";
+        
+        //check for expected scattering species field name
+        if ( partfield_name != "IWC" )
+        {
+            out1 << "WARNING! The scattering species field name is unequal"
+            << "'IWC'.\n"
+            << psd << " should only be applied to cloud ice.\n";
+        }
+        
+        pnd_fieldMGD_IWC (pnd_field,
+                          scat_species_mass_density_field ( i_ss, joker, joker, joker ),
+                          limits,
+                          scat_meta, i_ss,
+                          scat_species[i_ss], delim,
+                          verbosity);
+    }
+      
     //---- pnd_field calculations for MP48 -------------------------------
     else if ( psd_param == "MP48" )
     {
@@ -1720,6 +1810,94 @@ void dNdD_Ar_H13 (//WS Output:
     }
 }
 
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void dNdD_F07TR (//WS Output:
+                Vector& dNdD,
+                //WS Input:
+                const Vector& diameter_max,
+                const Numeric& SWC,
+                const Numeric& t,
+                const Numeric& alpha,
+                const Numeric& beta,
+                const Verbosity&)
+{
+    Index n_se = diameter_max.nelem();
+    dNdD.resize(n_se);
+    
+    for ( Index i=0; i<n_se; i++ )
+    {
+        // calculate particle size distribution with MH97
+        // [# m^-3 m^-1]
+        dNdD[i] = IWCtopnd_F07TR(diameter_max[i], t, SWC, alpha, beta) ;
+    }
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void dNdD_F07ML (//WS Output:
+                 Vector& dNdD,
+                 //WS Input:
+                 const Vector& diameter_max,
+                 const Numeric& SWC,
+                 const Numeric& t,
+                 const Numeric& alpha,
+                 const Numeric& beta,
+                 const Verbosity&)
+{
+    Index n_se = diameter_max.nelem();
+    dNdD.resize(n_se);
+    
+    for ( Index i=0; i<n_se; i++ )
+    {
+        // calculate particle size distribution with MH97
+        // [# m^-3 m^-1]
+        dNdD[i] = IWCtopnd_F07ML(diameter_max[i], t, SWC, alpha, beta) ;
+    }
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void dNdD_MGD_LWC (//WS Output:
+                 Vector& dNdD,
+                 //WS Input:
+                 const Vector& diameter_max,
+                 const Numeric& rho,
+                 const Numeric& LWC,
+                 const Verbosity&)
+{
+    Index n_se = diameter_max.nelem();
+    dNdD.resize(n_se);
+    
+    for ( Index i=0; i<n_se; i++ )
+    {
+        // calculate particle size distribution with MH97
+        // [# m^-3 m^-1]
+        dNdD[i] = LWCtopnd_MGD_LWC( diameter_max[i],rho ,LWC );
+    }
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void dNdD_MGD_IWC (//WS Output:
+                   Vector& dNdD,
+                   //WS Input:
+                   const Vector& diameter_max,
+                   const Numeric& rho,
+                   const Numeric& IWC,
+                   const Verbosity&)
+{
+    Index n_se = diameter_max.nelem();
+    dNdD.resize(n_se);
+    
+    for ( Index i=0; i<n_se; i++ )
+    {
+        // calculate particle size distribution with MH97
+        // [# m^-3 m^-1]
+        dNdD[i] = IWCtopnd_MGD_IWC( diameter_max[i],rho,IWC );
+    }
+}
+
+
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void dNdD_H98 (//WS Output:
              Vector& dNdD,
@@ -1781,7 +1959,7 @@ void pndFromdNdD (//WS Output:
       pnd = dNdD;
 
   // scaling pnd to real mass/number density/flux (some PSDs have implicit
-  // scaling - then this is only a check -, others don't
+  // scaling - then this is only a check -, other don't
   chk_pndsum ( pnd, total_content, scatelem_content,
                0, 0, 0, "your field", verbosity );
 }

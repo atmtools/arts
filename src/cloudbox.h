@@ -138,6 +138,46 @@ void pnd_fieldH13Shape (Tensor4View pnd_field,
                         const String& delim,
                         const Verbosity& verbosity);
 
+void pnd_fieldF07TR (Tensor4View pnd_field,
+                   const Tensor3& SWC_field,
+                   const Tensor3& t_field,
+                   const ArrayOfIndex& limits,
+                   const ArrayOfArrayOfScatteringMetaData& scat_meta,
+                   const Index& scat_species,
+                   const String& part_string,
+                   const String& delim,
+                   const Verbosity& verbosity);
+
+void pnd_fieldF07ML (Tensor4View pnd_field,
+                     const Tensor3& SWC_field,
+                     const Tensor3& t_field,
+                     const ArrayOfIndex& limits,
+                     const ArrayOfArrayOfScatteringMetaData& scat_meta,
+                     const Index& scat_species,
+                     const String& part_string,
+                     const String& delim,
+                     const Verbosity& verbosity);
+
+void pnd_fieldMGD_LWC (Tensor4View pnd_field,
+                       const Tensor3& LWC_field,
+                       const ArrayOfIndex& limits,
+                       const ArrayOfArrayOfScatteringMetaData& scat_meta,
+                       const Index& scat_species,
+                       const String& part_string,
+                       const String& delim,
+                       const Verbosity& verbosity);
+
+
+void pnd_fieldMGD_IWC (Tensor4View pnd_field,
+                       const Tensor3& IWC_field,
+                       const ArrayOfIndex& limits,
+                       const ArrayOfArrayOfScatteringMetaData& scat_meta,
+                       const Index& scat_species,
+                       const String& part_string,
+                       const String& delim,
+                       const Verbosity& verbosity);
+
+
 void pnd_fieldMP48 (Tensor4View pnd_field,
                     const Tensor3& PR_field,
                     const ArrayOfIndex& limits,
@@ -172,6 +212,18 @@ Numeric IWCtopnd_H13Shape (const Numeric diameter_mass_equivalent,
 
 Numeric area_ratioH13 (const Numeric diameter_mass_equivalent,
                        const Numeric t);
+
+Numeric IWCtopnd_F07TR ( const Numeric d, const Numeric t,
+                        const Numeric swc,const Numeric alpha,
+                        const Numeric beta );
+
+Numeric IWCtopnd_F07ML ( const Numeric d, const Numeric t,
+                        const Numeric swc,const Numeric alpha,
+                        const Numeric beta );
+
+Numeric LWCtopnd_MGD_LWC ( const Numeric d, const Numeric m, const Numeric lwc);
+
+Numeric IWCtopnd_MGD_IWC ( const Numeric d, const Numeric m, const Numeric iwc);
 
 Numeric LWCtopnd (const Numeric lwc,
                   const Numeric radius);

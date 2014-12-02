@@ -1,3 +1,18 @@
+2014-12-02  Manfred Brath  <manfred.brath@uni-hamburg.de>
+
+	* arts-2-3-79
+
+	* src/cloudbox.{h,cc} (pnd_fieldMGD_LWC, LWCtopnd_MGD_LWC, pnd_fieldMGD_LWC,
+    LWCtopnd_MGD_LWC, pnd_fieldF07TR, IWCtopnd_F07TR, pnd_fieldF07ML, 
+    IWCtopnd_F07ML), src/m_cloudbox.cc (pnd_fieldSetup): 
+	
+	Added new distributions.
+	
+	* src/m_cloudbox.cc (dNdD_F07TR, dNdD_F07ML, dNdD_MGD_LWC, dNdD_MGD_IWC),
+	src/methods.cc: 
+	
+	Added new WSMs for the new distributions.
+
 2014-12-02  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-78
