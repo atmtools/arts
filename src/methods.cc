@@ -9018,6 +9018,37 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "ReadXMLIndexed" ),
+        DESCRIPTION
+        (
+         "As *ReadXML*, but reads indexed file names.\n"
+         "\n"
+         "The variable is read from a file with name:\n"
+         "   <filename>.<file_index>.xml.\n"
+         "where <file_index> is the value of *file_index*.\n"
+         "\n"
+         "This means that *filename* shall here not include the .xml\n"
+         "extension. Omitting filename works as for *ReadXML*.\n"
+         ),
+        AUTHORS( "Oliver Lemke" ),
+        OUT(),
+        GOUT(      "out" ),
+        GOUT_TYPE( "Any" ),
+        GOUT_DESC( "Workspace variable to be read." ),
+        IN( "file_index" ),
+        GIN(          "filename" ),
+        GIN_TYPE(     "String"   ),
+        GIN_DEFAULT(  ""         ),
+        GIN_DESC( "File name. See above." ),
+        SETMETHOD(      false ),
+        AGENDAMETHOD(   false ),
+        USES_TEMPLATES( true  ),
+        PASSWORKSPACE(  false ),
+        PASSWSVNAMES(   true  )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "Reduce" ),
         DESCRIPTION
         (

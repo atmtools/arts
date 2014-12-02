@@ -45,6 +45,25 @@ ReadXML (Workspace&    ws _U_,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void
+ReadXMLIndexed (Workspace&    ws _U_,
+                // WS Generic Output:
+                Agenda&       v,
+                // WS Generic Output Names:
+                const String& v_name,
+                // WS Input:
+                const Index& file_index,
+                // WS Generic Input:
+                const String& f,
+                // WS Generic Input Names:
+                const String& f_name,
+                const Verbosity& verbosity)
+{
+  ReadXMLIndexed (v, v_name, file_index, f, f_name, verbosity);
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void
 WriteXML (Workspace& ws _U_,
           //WS Input:
           const String& file_format,

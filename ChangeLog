@@ -1,3 +1,11 @@
+2014-12-02  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-78
+
+	* src/m_xml.cc, src/m_xml.h, src/methods.cc:
+
+	Added new WSM ReadXMLIndexed.
+
 2014-11-30  Jana Mendrok  <jana.mendrok@ltu.se>
 
 	* arts-2-3-77

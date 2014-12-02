@@ -69,6 +69,43 @@ ReadXML (Workspace&    ws _U_,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 template<typename T> void
+ReadXMLIndexed (// WS Generic Output:
+                T&            v,
+                // WS Generic Output Names:
+                const String& v_name,
+                // WS Input:
+                const Index& file_index,
+                // WS Generic Input:
+                const String& f,
+                // WS Generic Input Names:
+                const String& f_name _U_,
+                const Verbosity& verbosity)
+{
+  String filename = f;
+
+  // Create default filename if empty
+  filename_xml_with_index( filename, file_index, v_name );
+
+  xml_read_from_file (filename, v, verbosity);
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void
+ReadXMLIndexed (Workspace&    ws _U_,
+                // WS Generic Output:
+                Agenda&       v,
+                // WS Generic Output Names:
+                const String& v_name,
+                // WS Generic Input:
+                const String& f,
+                // WS Generic Input Names:
+                const String& f_name,
+                const Verbosity& verbosity);
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+template<typename T> void
 WriteXML (//WS Input:
           const String& file_format,
           // WS Generic Input:
