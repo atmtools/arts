@@ -1181,8 +1181,8 @@ void abs_lookupSetupBatch(// WS Output:
 //       << ". column of the atmospheric fields\n";
 
   ArrayOfIndex batch_index(abs_species.nelem());
-  Index T_index;
-  Index z_index;
+  Index T_index = -1;
+  Index z_index = -1;
 
   ArrayOfString species_names(abs_species.nelem());
   for (Index i=0; i<abs_species.nelem(); ++i)

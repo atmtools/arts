@@ -1,3 +1,17 @@
+2014-12-03  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-80
+
+	* src/linerecord.h:
+
+	Add ma, mgupper and mglower to element initialization list in
+	constructor and set them to NAN. Other they ended up being uninitialized
+	when converting from ARTSCAT-3 to ARTSCAT-4.
+
+	* src/m_abs_lookup.cc (abs_lookupSetupBatch):
+
+	Initialize T_index and z_index with -1 to avoid false compiler warning.
+
 2014-12-02  Manfred Brath  <manfred.brath@uni-hamburg.de>
 
 	* arts-2-3-79
