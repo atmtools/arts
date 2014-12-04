@@ -1,3 +1,19 @@
+2014-12-04  Manfred Brath  <manfred.brath@uni-hamburg.de>
+
+	* arts-2-2-33
+
+	* src/cloudbox.{h,cc} (pnd_fieldMGD_LWC, LWCtopnd_MGD_LWC, pnd_fieldMGD_LWC,
+    LWCtopnd_MGD_LWC), src/m_cloudbox.cc (pnd_fieldSetup), 
+    src/m_cloudbox.cc (dN_F07TR, dN_F07ML, dN_MGD_LWC, dN_MGD_IWC), src/methods.cc: 
+	
+	Changed the used size parameter from maximum dimension diameter
+	to volume equivalent spherical diameter. 
+	
+	* src/cloudbox.cc (pnd_fieldMGD_LWC,pnd_fieldMGD_LWC):
+	
+	Furthermore added an error-notification, if the density of the used 
+	particles are too different.
+
 2014-12-02  Manfred Brath  <manfred.brath@uni-hamburg.de>
 
 	* arts-2-2-32

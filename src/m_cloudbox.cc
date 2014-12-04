@@ -1959,19 +1959,19 @@ void dN_F07ML (//WS Output:
 void dN_MGD_LWC (//WS Output:
                    Vector& dN,
                    //WS Input:
-                   const Vector& diameter_max,
+                   const Vector& deq,
                    const Numeric& rho,
                    const Numeric& LWC,
                    const Verbosity&)
 {
-    Index n_se = diameter_max.nelem();
+    Index n_se = deq.nelem();
     dN.resize(n_se);
     
     for ( Index i=0; i<n_se; i++ )
     {
         // calculate particle size distribution with MH97
         // [# m^-3 m^-1]
-        dN[i] = LWCtopnd_MGD_LWC( diameter_max[i],rho ,LWC );
+        dN[i] = LWCtopnd_MGD_LWC( deq[i],rho ,LWC );
     }
 }
 
@@ -1979,19 +1979,19 @@ void dN_MGD_LWC (//WS Output:
 void dN_MGD_IWC (//WS Output:
                    Vector& dN,
                    //WS Input:
-                   const Vector& diameter_max,
+                   const Vector& deq,
                    const Numeric& rho,
                    const Numeric& IWC,
                    const Verbosity&)
 {
-    Index n_se = diameter_max.nelem();
+    Index n_se = deq.nelem();
     dN.resize(n_se);
     
     for ( Index i=0; i<n_se; i++ )
     {
         // calculate particle size distribution with MH97
         // [# m^-3 m^-1]
-        dN[i] = IWCtopnd_MGD_IWC( diameter_max[i],rho,IWC );
+        dN[i] = IWCtopnd_MGD_IWC( deq[i],rho,IWC );
     }
 }
 

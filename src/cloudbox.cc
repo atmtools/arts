@@ -1832,13 +1832,17 @@ void pnd_fieldMGD_LWC (Tensor4View pnd_field,
     Index pos;
     Vector dmax_unsorted ( npart, 0.0 );
     Vector vol ( npart, 0.0 );
-    Vector dmax ( npart, 0.0 );
+    Vector deq ( npart, 0.0 );
     Vector rho ( npart, 0.0 );
     Vector pnd ( npart, 0.0 );
     Vector dN ( npart, 0.0 );
     Numeric mean_rho;
+    Numeric min_rho;
+    Numeric max_rho;
+    Numeric delta_rho;
     String partfield_name;
-    
+
+    CREATE_OUT1;
     
     //split String and copy to ArrayOfString
     parse_partfield_name( partfield_name, part_string, delim);
@@ -1853,8 +1857,11 @@ void pnd_fieldMGD_LWC (Tensor4View pnd_field,
         pos = intarr[i]+scat_data_start;
         
         vol[i]= scat_meta_array[pos].volume; //[m^3]
-        // get maximum diameter from meta data [m]
-        dmax[i] = scat_meta_array[pos].diameter_max;
+        // get sphere equivalent diameter [m]
+        deq[i] = pow( (6*vol[i]/PI),(1./3.));
+        
+        out1<<"deq["<<i<<"] = "<<deq[i] <<"\n";
+
         
         //        dummy1=dmax[i];
         
@@ -1867,14 +1874,34 @@ void pnd_fieldMGD_LWC (Tensor4View pnd_field,
     mean_rho=rho.sum()/(Numeric)rho.nelem();
     
     
+    // checking if the particles have the same density
+    min_rho=min(rho);
+    max_rho=max(rho);
+    delta_rho=(max_rho-min(rho))/max_rho;
     
-    if (dmax.nelem() > 0)
+    if (delta_rho >= 0.1)
+    {
+        ostringstream os;
+        os << "MGD_LWC is valid only for particles with the same\n"
+        "at least almost the same density. The difference between\n"
+        " maximum and minimum density must be lower than 10 percent.\n"
+        "Your difference is  " << delta_rho << ".\n"
+        "Check your scattering particles";
+        throw runtime_error( os.str() );
+    }
+    
+    
+    if (deq.nelem() > 0)
         // dm.nelem()=0 implies no selected particles for the respective particle
         // field. should not occur anymore.
     {
         // itertation over all atm. levels
         for ( Index p=limits[0]; p<limits[1]; p++ )
         {
+
+            out1<<"p="<<p <<"\n";
+
+            ///
             for ( Index lat=limits[2]; lat<limits[3]; lat++ )
             {
                 for ( Index lon=limits[4]; lon<limits[5]; lon++ )
@@ -1883,17 +1910,15 @@ void pnd_fieldMGD_LWC (Tensor4View pnd_field,
                     if (LWC_field ( p, lat, lon ) > 0.)
                     {
                         // iteration over all given size bins
-                        for ( Index i=0; i<dmax.nelem(); i++ ) //loop over number of particles
+                        for ( Index i=0; i<deq.nelem(); i++ ) //loop over number of particles
                         {
-                            // calculate particle size distribution for F07
-                            // [# m^-3 m^-1]
-//                            dNdD[i] = LWCtopnd_MGD_LWC( diameter_max[i],mean_rho,LWC_field ( p, lat, lon ));
-                            dN[i] = LWCtopnd_MGD_LWC( dmax[i], mean_rho ,
+                            // calculate particle size distribution
+                            dN[i] = LWCtopnd_MGD_LWC( deq[i], mean_rho ,
                                                    LWC_field ( p, lat, lon ));
                         }
                         // scale pnds by scale width
-                        if (dmax.nelem() > 1)
-                            scale_pnd( pnd, dmax, dN ); //[# m^-3]
+                        if (deq.nelem() > 1)
+                            scale_pnd( pnd, deq, dN ); //[# m^-3]
                         else
                             pnd = dN;
                         
@@ -1956,11 +1981,14 @@ void pnd_fieldMGD_IWC (Tensor4View pnd_field,
     Index pos;
     Vector dmax_unsorted ( npart, 0.0 );
     Vector vol ( npart, 0.0 );
-    Vector dmax ( npart, 0.0 );
+    Vector deq ( npart, 0.0 );
     Vector rho ( npart, 0.0 );
     Vector pnd ( npart, 0.0 );
     Vector dN ( npart, 0.0 );
     Numeric mean_rho;
+    Numeric min_rho;
+    Numeric max_rho;
+    Numeric delta_rho;
     String partfield_name;
     
    
@@ -1977,11 +2005,10 @@ void pnd_fieldMGD_IWC (Tensor4View pnd_field,
         pos = intarr[i]+scat_data_start;
         
         vol[i]= scat_meta_array[pos].volume; //[m^3]
-        // get maximum diameter from meta data [m]
-        dmax[i] = scat_meta_array[pos].diameter_max;
+        // get sphere equivalent diameter [m]
+        deq[i] = pow( (6*vol[i]/PI),(1./3.));
         
-        //        dummy1=dmax[i];
-        
+
         // get density from meta data [kg/m^3]
         rho[i] = scat_meta_array[pos].density;
         
@@ -1990,9 +2017,25 @@ void pnd_fieldMGD_IWC (Tensor4View pnd_field,
     // mean density
     mean_rho=rho.sum()/(Numeric)rho.nelem();
     
+    // checking if the particles have the same density
+    min_rho=min(rho);
+    max_rho=max(rho);
+    delta_rho=(max_rho-min(rho))/max_rho;
+    
+    if (delta_rho >= 0.1)
+    {
+        ostringstream os;
+        os << "MGD_IWC is valid only for particles with the same\n"
+        "at least almost the same density. The difference between\n"
+        " maximum and minimum density must be lower than 10 percent.\n"
+        "Your difference is  " << delta_rho << ".\n"
+        "Check your scattering particles";
+        throw runtime_error( os.str() );
+    }
     
     
-    if (dmax.nelem() > 0)
+    
+    if (deq.nelem() > 0)
         // dm.nelem()=0 implies no selected particles for the respective particle
         // field. should not occur anymore.
     {
@@ -2007,15 +2050,15 @@ void pnd_fieldMGD_IWC (Tensor4View pnd_field,
                     if (IWC_field ( p, lat, lon ) > 0.)
                     {
                         // iteration over all given size bins
-                        for ( Index i=0; i<dmax.nelem(); i++ ) //loop over number of particles
+                        for ( Index i=0; i<deq.nelem(); i++ ) //loop over number of particles
                         {
                             // calculate particle size distribution for MGD_IWC
-                            dN[i] = IWCtopnd_MGD_IWC( dmax[i], mean_rho,
+                            dN[i] = IWCtopnd_MGD_IWC( deq[i], mean_rho,
                             IWC_field ( p, lat, lon ));
                         }
                         // scale pnds by scale width
-                        if (dmax.nelem() > 1)
-                            scale_pnd( pnd, dmax, dN ); //[# m^-3]
+                        if (deq.nelem() > 1)
+                            scale_pnd( pnd, deq, dN ); //[# m^-3]
                         else
                             pnd = dN;
                         
@@ -3310,7 +3353,7 @@ Numeric LWCtopnd2 (
  
  \return dN particle number density per diameter interval [#/m3/m]
  
- \param d maximum diameter of scattering particle [m]
+ \param d volume equivalent diameter of scattering particle [m]
  \param lwc liquid water content [kg/m^3]
  
  \author Manfred Brath
@@ -3349,7 +3392,7 @@ Numeric LWCtopnd_MGD_LWC ( const Numeric d, const Numeric rho, const Numeric lwc
  
  \return dN particle number density per diameter interval [#/m3/m]
  
- \param d maximum diameter of scattering particle [m]
+ \param d volume equivalent diameter of scattering particle [m]
  \param iwc ice water content [kg/m^3]
  
  \author Manfred Brath

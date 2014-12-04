@@ -3509,10 +3509,10 @@ void define_md_data_raw()
       GOUT_TYPE( "Vector" ),
       GOUT_DESC( "size distribution number density" ),
       IN(),
-      GIN( "diameter_max","rho","LWC"),
+      GIN( "deq","rho","LWC"),
       GIN_TYPE( "Vector","Numeric","Numeric" ),
       GIN_DEFAULT( NODEF, NODEF, NODEF ),
-      GIN_DESC( "Maximum diameter of the particles [m]",
+      GIN_DESC( "volume equivalent diameter of the particles [m]",
                "Density of the particles [kg/m^3]",
                "Atmospheric ice water content [kg/m3]")
       ));
@@ -3539,10 +3539,10 @@ void define_md_data_raw()
       GOUT_TYPE( "Vector" ),
       GOUT_DESC( "size distribution number density" ),
       IN(),
-      GIN( "diameter_max","rho","IWC"),
+      GIN( "deq","rho","IWC"),
       GIN_TYPE( "Vector","Numeric","Numeric" ),
       GIN_DEFAULT( NODEF, NODEF, NODEF ),
-      GIN_DESC( "Maximum diameter of the particles [m]",
+      GIN_DESC( "volume equivalent diameter of the particles [m]",
                "Density of the particles [kg/m^3]",
                "Atmospheric ice water content [kg/m3]")
       ));
