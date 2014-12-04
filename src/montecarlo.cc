@@ -528,9 +528,9 @@ void mcPathTraceGeneral(
     {
       istep++;
 
-      if( istep > 5000 )
+      if( istep > 25000 )
         {
-          throw runtime_error( "5000 path points have been reached. "
+          throw runtime_error( "25000 path points have been reached. "
                                "Is this an infinite loop?" );
         }
 
