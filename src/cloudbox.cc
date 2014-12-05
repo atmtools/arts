@@ -1947,11 +1947,14 @@ void pnd_fieldMGD_LWC (Tensor4View pnd_field,
     const Index N_se = scat_meta[scat_species].nelem();
     const Index scat_data_start = FlattenedIndex(scat_meta, scat_species);
     ArrayOfIndex intarr;
-    Vector diameter_max_unsorted ( N_se, 0.0 );
-    Vector diameter_max ( N_se, 0.0 );
+    Vector diameter_volume_equ_unsorted ( N_se, 0.0 );
+    Vector diameter_volume_equ ( N_se, 0.0 );
     Vector mass ( N_se, 0.0 );
     Vector rho ( N_se, 0.0 );
     Numeric mean_rho;
+    Numeric min_rho;
+    Numeric max_rho;
+    Numeric delta_rho;
     Vector pnd ( N_se, 0.0 );
     Vector dNdD ( N_se, 0.0 );
     String partfield_name;
@@ -1963,29 +1966,29 @@ void pnd_fieldMGD_LWC (Tensor4View pnd_field,
     
     for ( Index i=0; i < N_se; i++ )
     {
-        if ( isnan(scat_meta[scat_species][i].diameter_max) )
+        if ( isnan(scat_meta[scat_species][i].diameter_volume_equ) )
         {
             ostringstream os;
             os << "Use of size distribution MGD_LWC (as requested for\n"
             << "scattering species #" << scat_species << ")\n"
-            << "requires knowledge of scattering element maximum diameter.\n"
-            << "But maximum diameter is not given for scattering elements #"
+            << "requires knowledge of scattering element volume equivalent diameter.\n"
+            << "But volume equvalent diameter is not given for scattering elements #"
             << i << "!";
             throw runtime_error( os.str() );
         }
-        diameter_max_unsorted[i] = ( scat_meta[scat_species][i].diameter_max );
+        diameter_volume_equ_unsorted[i] = ( scat_meta[scat_species][i].diameter_volume_equ );
     }
-    get_sorted_indexes(intarr, diameter_max_unsorted);
+    get_sorted_indexes(intarr, diameter_volume_equ_unsorted);
     
     // extract scattering meta data
     for ( Index i=0; i< N_se; i++ )
     {
-        diameter_max[i] = scat_meta[scat_species][intarr[i]].diameter_max; // [m]
+        diameter_volume_equ[i] = scat_meta[scat_species][intarr[i]].diameter_volume_equ; // [m]
         
         if ( isnan(scat_meta[scat_species][intarr[i]].mass) )
         {
             ostringstream os;
-            os << "Use of size distribution H11 (as requested for\n"
+            os << "Use of size distribution MGD_LWC (as requested for\n"
             << "scattering species #" << scat_species << ")\n"
             << "requires knowledge of scattering element mass.\n"
             << "But mass is not given for scattering elements #"
@@ -1993,11 +1996,30 @@ void pnd_fieldMGD_LWC (Tensor4View pnd_field,
             throw runtime_error( os.str() );
         }
         mass[i] = scat_meta[scat_species][intarr[i]].mass; // [kg]
-        rho[i] = mass[i]/(pow(diameter_max[i],3) *PI/6);
+        rho[i] = mass[i]/(pow(diameter_volume_equ[i],3) *PI/6);
     }
     mean_rho=rho.sum()/(Numeric)rho.nelem();
     
-    if (diameter_max.nelem() > 0)
+    
+    // checking if the particles have the same density
+    min_rho=min(rho);
+    max_rho=max(rho);
+    delta_rho=(max_rho-min(rho))/max_rho;
+    
+    if (delta_rho >= 0.1)
+    {
+        ostringstream os;
+        os << "MGD_IWC is valid only for particles with the same\n"
+        "at least almost the same density. The difference between\n"
+        " maximum and minimum density must be lower than 10 percent.\n"
+        "Your difference is  " << delta_rho << ".\n"
+        "Check your scattering particles";
+        throw runtime_error( os.str() );
+    }
+    
+    
+    
+    if (diameter_volume_equ.nelem() > 0)
         // diameter_max.nelem()=0 implies no selected scattering element for the respective
         // scattering species field. should not occur anymore.
     {
@@ -2025,17 +2047,17 @@ void pnd_fieldMGD_LWC (Tensor4View pnd_field,
                     else if (LWC_field ( p, lat, lon ) != 0.)
                     {
                         // iteration over all given size bins
-                        for ( Index i=0; i<diameter_max.nelem(); i++ ) //loop over number of scattering elements
+                        for ( Index i=0; i<diameter_volume_equ.nelem(); i++ ) //loop over number of scattering elements
                         {
                             // calculate particle size distribution for H11
                             // [# m^-3 m^-1]
 //                            dNdD[i] = IWCtopnd_F07TR( diameter_max[i], t_field ( p, lat, lon ),
 //                                                     SWC_field ( p, lat, lon ), alpha, beta);
-                            dNdD[i] = LWCtopnd_MGD_LWC( diameter_max[i],mean_rho,LWC_field ( p, lat, lon ));
+                            dNdD[i] = LWCtopnd_MGD_LWC( diameter_volume_equ[i],mean_rho,LWC_field ( p, lat, lon ));
                         }
                         // scale pnds by scale width
-                        if (diameter_max.nelem() > 1)
-                            scale_pnd( pnd, diameter_max, dNdD ); //[# m^-3]
+                        if (diameter_volume_equ.nelem() > 1)
+                            scale_pnd( pnd, diameter_volume_equ, dNdD ); //[# m^-3]
                         else
                             pnd = dNdD;
                         
@@ -2096,11 +2118,14 @@ void pnd_fieldMGD_IWC (Tensor4View pnd_field,
     const Index N_se = scat_meta[scat_species].nelem();
     const Index scat_data_start = FlattenedIndex(scat_meta, scat_species);
     ArrayOfIndex intarr;
-    Vector diameter_max_unsorted( N_se, 0.0 );
-    Vector diameter_max( N_se, 0.0 );
+    Vector diameter_volume_equ_unsorted( N_se, 0.0 );
+    Vector diameter_volume_equ( N_se, 0.0 );
     Vector mass( N_se, 0.0 );
     Vector rho( N_se, 0.0 );
     Numeric mean_rho;
+    Numeric min_rho;
+    Numeric max_rho;
+    Numeric delta_rho;
     Vector pnd( N_se, 0.0 );
     Vector dNdD( N_se, 0.0 );
     String partfield_name;
@@ -2115,26 +2140,26 @@ void pnd_fieldMGD_IWC (Tensor4View pnd_field,
         if ( isnan(scat_meta[scat_species][i].diameter_max) )
         {
             ostringstream os;
-            os << "Use of size distribution MGD_LWC (as requested for\n"
+            os << "Use of size distribution MGD_WC (as requested for\n"
             << "scattering species #" << scat_species << ")\n"
-            << "requires knowledge of scattering element maximum diameter.\n"
-            << "But maximum diameter is not given for scattering elements #"
+            << "requires knowledge of scattering element volume equivalent diameter.\n"
+            << "But volume equivalent diameter is not given for scattering elements #"
             << i << "!";
             throw runtime_error( os.str() );
         }
-        diameter_max_unsorted[i] = ( scat_meta[scat_species][i].diameter_max );
+        diameter_volume_equ_unsorted[i] = ( scat_meta[scat_species][i].diameter_volume_equ );
     }
-    get_sorted_indexes(intarr, diameter_max_unsorted);
+    get_sorted_indexes(intarr, diameter_volume_equ_unsorted);
     
     // extract scattering meta data
     for ( Index i=0; i< N_se; i++ )
     {
-        diameter_max[i] = scat_meta[scat_species][intarr[i]].diameter_max; // [m]
+        diameter_volume_equ[i] = scat_meta[scat_species][intarr[i]].diameter_volume_equ; // [m]
         
         if ( isnan(scat_meta[scat_species][intarr[i]].mass) )
         {
             ostringstream os;
-            os << "Use of size distribution H11 (as requested for\n"
+            os << "Use of size distribution MGD_IWC (as requested for\n"
             << "scattering species #" << scat_species << ")\n"
             << "requires knowledge of scattering element mass.\n"
             << "But mass is not given for scattering elements #"
@@ -2142,11 +2167,29 @@ void pnd_fieldMGD_IWC (Tensor4View pnd_field,
             throw runtime_error( os.str() );
         }
         mass[i] = scat_meta[scat_species][intarr[i]].mass; // [kg]
-        rho[i] = mass[i]/(pow(diameter_max[i],3) *PI/6);
+        rho[i] = mass[i]/(pow(diameter_volume_equ[i],3) *PI/6);
     }
     mean_rho=rho.sum()/(Numeric)rho.nelem();
     
-    if (diameter_max.nelem() > 0)
+    
+    // checking if the particles have the same density
+    min_rho=min(rho);
+    max_rho=max(rho);
+    delta_rho=(max_rho-min(rho))/max_rho;
+    
+    if (delta_rho >= 0.1)
+    {
+        ostringstream os;
+        os << "MGD_IWC is valid only for particles with the same\n"
+        "at least almost the same density. The difference between\n"
+        " maximum and minimum density must be lower than 10 percent.\n"
+        "Your difference is  " << delta_rho << ".\n"
+        "Check your scattering particles";
+        throw runtime_error( os.str() );
+    }
+    
+    
+    if (diameter_volume_equ.nelem() > 0)
         // diameter_max.nelem()=0 implies no selected scattering element for the respective
         // scattering species field. should not occur anymore.
     {
@@ -2174,17 +2217,17 @@ void pnd_fieldMGD_IWC (Tensor4View pnd_field,
                     else if (IWC_field ( p, lat, lon ) != 0.)
                     {
                         // iteration over all given size bins
-                        for ( Index i=0; i<diameter_max.nelem(); i++ ) //loop over number of scattering elements
+                        for ( Index i=0; i<diameter_volume_equ.nelem(); i++ ) //loop over number of scattering elements
                         {
                             // calculate particle size distribution for H11
                             // [# m^-3 m^-1]
                             //                            dNdD[i] = IWCtopnd_F07TR( diameter_max[i], t_field ( p, lat, lon ),
                             //                                                     SWC_field ( p, lat, lon ), alpha, beta);
-                            dNdD[i] = IWCtopnd_MGD_IWC( diameter_max[i],mean_rho,IWC_field ( p, lat, lon ));
+                            dNdD[i] = IWCtopnd_MGD_IWC( diameter_volume_equ[i],mean_rho,IWC_field ( p, lat, lon ));
                         }
                         // scale pnds by scale width
-                        if (diameter_max.nelem() > 1)
-                            scale_pnd( pnd, diameter_max, dNdD ); //[# m^-3]
+                        if (diameter_volume_equ.nelem() > 1)
+                            scale_pnd( pnd, diameter_volume_equ, dNdD ); //[# m^-3]
                         else
                             pnd = dNdD;
                         
@@ -3200,7 +3243,7 @@ Numeric LWCtopnd (const Numeric lwc, //[kg/m^3]
  
  \return dN particle number density per diameter interval [#/m3/m]
  
- \param d maximum diameter of scattering particle [m]
+ \param d volume equivalent diameter of scattering particle [m]
  \param lwc liquid water content [kg/m^3]
  
  \author Manfred Brath
@@ -3239,7 +3282,7 @@ Numeric LWCtopnd_MGD_LWC ( const Numeric d, const Numeric rho, const Numeric lwc
  
  \return dN particle number density per diameter interval [#/m3/m]
  
- \param d maximum diameter of scattering particle [m]
+ \param d volume equivalent diameter of scattering particle [m]
  \param iwc ice water content [kg/m^3]
  
  \author Manfred Brath

@@ -1860,19 +1860,19 @@ void dNdD_F07ML (//WS Output:
 void dNdD_MGD_LWC (//WS Output:
                  Vector& dNdD,
                  //WS Input:
-                 const Vector& diameter_max,
+                 const Vector& diameter_volume_equ,
                  const Numeric& rho,
                  const Numeric& LWC,
                  const Verbosity&)
 {
-    Index n_se = diameter_max.nelem();
+    Index n_se = diameter_volume_equ.nelem();
     dNdD.resize(n_se);
     
     for ( Index i=0; i<n_se; i++ )
     {
         // calculate particle size distribution with MH97
         // [# m^-3 m^-1]
-        dNdD[i] = LWCtopnd_MGD_LWC( diameter_max[i],rho ,LWC );
+        dNdD[i] = LWCtopnd_MGD_LWC( diameter_volume_equ[i],rho ,LWC );
     }
 }
 
@@ -1880,19 +1880,19 @@ void dNdD_MGD_LWC (//WS Output:
 void dNdD_MGD_IWC (//WS Output:
                    Vector& dNdD,
                    //WS Input:
-                   const Vector& diameter_max,
+                   const Vector& diameter_volume_equ,
                    const Numeric& rho,
                    const Numeric& IWC,
                    const Verbosity&)
 {
-    Index n_se = diameter_max.nelem();
+    Index n_se = diameter_volume_equ.nelem();
     dNdD.resize(n_se);
     
     for ( Index i=0; i<n_se; i++ )
     {
         // calculate particle size distribution with MH97
         // [# m^-3 m^-1]
-        dNdD[i] = IWCtopnd_MGD_IWC( diameter_max[i],rho,IWC );
+        dNdD[i] = IWCtopnd_MGD_IWC( diameter_volume_equ[i],rho,IWC );
     }
 }
 

@@ -3581,12 +3581,13 @@ void define_md_data_raw()
       GOUT_TYPE( "Vector" ),
       GOUT_DESC( "size distribution number density" ),
       IN(),
-      GIN( "diameter_max","rho","LWC"),
+      GIN( "diameter_volume_equ","rho","IWC"),
       GIN_TYPE( "Vector","Numeric","Numeric" ),
       GIN_DEFAULT( NODEF, NODEF, NODEF ),
-      GIN_DESC( "Maximum diameter of the particles [m]",
+      GIN_DESC( "Volume equivalent diameter of the particles [m]",
                "Density of the particles [kg/m^3]",
                "Atmospheric ice water content [kg/m3]")
+
       ));
     
   md_data_raw.push_back
@@ -3611,10 +3612,10 @@ void define_md_data_raw()
       GOUT_TYPE( "Vector" ),
       GOUT_DESC( "size distribution number density" ),
       IN(),
-      GIN( "diameter_max","rho","IWC"),
+      GIN( "diameter_volume_equ","rho","IWC"),
       GIN_TYPE( "Vector","Numeric","Numeric" ),
       GIN_DEFAULT( NODEF, NODEF, NODEF ),
-      GIN_DESC( "Maximum diameter of the particles [m]",
+      GIN_DESC( "Volume equivalent diameter of the particles [m]",
                "Density of the particles [kg/m^3]",
                "Atmospheric ice water content [kg/m3]")
       ));
@@ -8245,8 +8246,12 @@ void define_md_data_raw()
          "H11       *dNdD_H11*     mass density    cloud ice\n"
          "H13       *dNdD_Ar_H13*  mass density    cloud ice      neglects shape information\n"
          "H13Shape  *dNdD_Ar_H13*  mass density    cloud ice\n"
+         "MGD_IWC   *dNdD_MGD_IWC* mass density    cloud ice\n"
+         "F07TR     *dNdD_F07TR*   mass density    snow           for tropics\n"
+         "F07ML     *dNdD_F07ML*   mass density    snow           for mid latitudes\n"
          "MP48      *dNdD_MP48*    mass flux       precipitation  rain in particular\n"
          "H98_STCO  *dNdD_H98*     mass density    cloud liquid   specifically continental stratus\n"
+         "MGD_LWC   *dNdD_MGD_LWC* mass density    cloud liquid\n"
          "\n"
          "NOTE: The number and order of the scattering species in the\n"
          "scattering species fields (*scat_species_mass_density_field*,\n"
