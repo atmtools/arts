@@ -1,3 +1,9 @@
+2014-12-05  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-82
+
+	* ChangeLog: Removed conflict marker.
+
 2014-12-04  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-81
@@ -2840,7 +2846,6 @@
 
 	Read from Agnes Catalog.
 
->>>>>>> .r8797
 2014-02-25  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-1-832
