@@ -1,3 +1,25 @@
+2014-12-09  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-84
+
+	* 3rdparty/fastem/*:
+
+	Add FASTEM from RTTOV. README contains email conversion with RTTOV
+	helpdesk that gives us permission to integrate FASTEM into ARTS.
+	
+	* CMakeLists.txt, 3rdparty/CMakeLists.txt,
+	config.h.cmake, src/CMakeLists.txt, src/main.cc (main):
+
+	Add FASTEM support.
+
+	* src/fastem.{cc,h}:
+
+	Replace old fastem function with interface to rttov_fastem5.
+
+	* src/m_general.cc (Test):
+
+	Call fastem with some test values and output results.
+
 2014-12-05  Manfred Brath  <manfred.brath@uni-hamburg.de>
 
 	* arts-2-3-83

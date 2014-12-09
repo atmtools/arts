@@ -1,0 +1,67 @@
+Subject: 	RE: RTTOV Query Ref: 10987/10988
+Date: 	Mon, 8 Dec 2014 17:18:15 +0000
+From: 	Hocking, James <james.hocking@metoffice.gov.uk>
+To: 	'patrick.eriksson@chalmers.se' <patrick.eriksson@chalmers.se>
+
+
+
+RTTOV query
+
+Hi Patrick,
+
+FASTEM is not available as a separate module so you will have to extract
+it from the RTTOV code unfortunately.  It is also unfortunately the case
+that the FASTEM code as it stands is not well documented: there are now
+6 versions of the model which have involved incremental changes and
+additions to the code.
+
+I recommend looking at Table 14  (p42) in the RTTOV v11 user guide which
+lists the 6 versions and gives references which provide information on
+the science behind the code and should help decipher what is going on.
+FASTEM-6 is now the recommended version because it fixes a problem with
+the azimuthal dependence which has existed since at least FASTEM-4.
+There are some caveats regarding the use of FASTEM-6 in Table 14.
+
+The coefficients used by FASTEM 1-3 are in
+src/main/mod_rttov_fastem3_coef.F90.
+
+The coefficients used by FASTEM 4-6 are in
+src/main/mod_rttov_fastem5_coef.F90.
+
+FASTEM 4-6 are implemented in rttov_fastem5.F90. This subroutine is
+called by rttov_calcemis_mw.F90 and this latter subroutine also
+implements FASTEM 1-3.
+
+There shouldn’t be any problems if you want to implement FASTEM in ARTS
+in respect of licenses. However we would like to ensure that if FASTEM-X
+is implemented in ARTS then it is the same FASTEM-X as is implemented in
+RTTOV. FASTEM has also been included in the CRTM (a fast model similar
+to RTTOV) for a long time, but it recently became apparent that there
+are significant differences in the implementations of FASTEM-5 between
+RTTOV and CRTM. This is a situation we would like to avoid in the future.
+
+Our plans for RTTOV v12 (due for release end of 2016) include
+consolidating the FASTEM versions into a single version. We hope to also
+make this available as a stand-alone module/subroutine which other RTM
+developers can use. This will be based on FASTEM-6.
+
+Regarding your specific questions:
+
+-Frequency is in GHz
+
+-You are right: emissivity(1:4) corresponds to eqn 13a-d in the FASTEM-4
+paper.
+
+-In RTTOV the surface-reflected downwelling atmospheric emission is
+treated according to the assumption of specular reflection when the RT
+equation is integrated. FASTEM modifies the surface emissivity in such a
+way to account for the anisotropic downwelling radiation.
+“Transmittance” is the top-of-atmosphere to surface transmittance. This
+is described in http://nwpsaf.eu/deliverables/rtm/evalfastems.pdf. I’d
+assume for ARTS that you would not want to include this since ARTS is a
+fully 3-D RT model (if I remember rightly!)
+
+Best regards,
+
+James
+

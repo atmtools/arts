@@ -33,14 +33,17 @@
 #include "matpackI.h"
 
 void fastem(// Output:
-            VectorView surface_emiss,
+            Vector &emissivity,
+            Vector &reflectivity,
             // Input:
-            const Numeric& surface_temp,
-            ConstVectorView surface_wind,
-            ConstVectorView surface_fastem_constants,
-            const Numeric& freq
-            //const Index& f_index,
-            //const Index& stokes_dim
-           );
+            const Numeric frequency,
+            const Numeric za,
+            const Numeric temperature,
+            const Numeric salinity,
+            const Numeric wind_speed,
+            const Numeric transmittance,
+            const Numeric rel_azimuth,
+            const Index fastem_version =6
+            );
 
 #endif //fastem_h

@@ -790,6 +790,12 @@ int main (int argc, char **argv)
 #else
         << "disabled" << endl
 #endif
+        << "   FASTEM support:       "
+#ifdef ENABLE_FASTEM
+        << "enabled" << endl
+#else
+        << "disabled" << endl
+#endif
         << "   Refice support:       "
 #ifdef ENABLE_REFICE
         << "enabled" << endl

@@ -44,137 +44,97 @@ using std::runtime_error;
 extern const Numeric PI;
 extern const Numeric DEG2RAD;
 extern const Numeric RAD2DEG;
-//! Calculate the surface emissivity using Fastem model
+
+#ifdef ENABLE_FASTEM
+extern "C" {
+#endif
+
+    void rttov_fastem5_(
+                       const Index& fastem_version,
+                       const Numeric& frequency,
+                       const Numeric& za,
+                       const Numeric& temperature,
+                       const Numeric& salinity,
+                       const Numeric& wind_speed,
+                       Numeric *emissivity,
+                       Numeric *reflectivity,
+                       const Numeric& transmittance,
+                       const Numeric& rel_azimuth
+                       );
+
+#ifdef ENABLE_FASTEM
+}
+#endif
+
+
+// Define dummy function that throws a runtime error if ARTS is
+// compiled without FASTEM support.
+#ifndef ENABLE_FASTEM
+void rttov_fastem5_(
+                   const Index&,
+                   const Numeric&,
+                   const Numeric&,
+                   const Numeric&,
+                   const Numeric&,
+                   const Numeric&,
+                   Numeric *,
+                   Numeric *,
+                   const Numeric&,
+                   const Numeric&
+                   )
+{
+    throw std::runtime_error("This version of ARTS was compiled without FASTEM support.");
+}
+
+#endif
+
+
+//! Calculate the surface emissivity using FASTEM
 /*! 
-  Calculate surface emissivity using fastem  
+  Calculate surface emissivity using the FASTEM model from RTTOV.
 
-  \param surface_emiss surface emissivity at one one point
-  \param surface_temp surface temperature at one point
-  \param surface_wind surface wind at one point
-  \param surface_fastem_constants surface fastem constants
-  \param freq frequency
+  \param[out] emissivity      Calculated surface emissivity
+  \param[out] reflectivity    Calculated surface reflectivity
+  \param[in]  frequency       Frequency [Hz]
+  \param[in]  za              Zenith angle
+  \param[in]  temperature     Temperature
+  \param[in]  salinity        Salinity
+  \param[in]  wind_speed      Wind speed
+  \param[in]  transmittance   Transmittance (may not be used)
+  \param[in]  rel_azimuth     Relative azimuth angle (may not be used)
+  \param[in]  fastem_version  Default version is 6
 
-  \author Sreerekha Ravi
-  \date 2004-08-10
+  \author Oliver Lemke
+  \date 2014-12-09
 */
 void fastem(// Output:
-            VectorView surface_emiss,
+            Vector &emissivity,
+            Vector &reflectivity,
             // Input:
-            const Numeric& surface_temp,
-            ConstVectorView surface_wind,
-            ConstVectorView surface_fastem_constants,
-            const Numeric& freq
-           )
+            const Numeric frequency,
+            const Numeric za,
+            const Numeric temperature,
+            const Numeric salinity,
+            const Numeric wind_speed,
+            const Numeric transmittance,
+            const Numeric rel_azimuth,
+            const Index fastem_version
+            )
 {
-  //  Calculate PIOM (Ellison et al.) xperm
-  //Calculate xperm using the dclamkaouchi method
-  //  Calculate PIOM (Ellison et al.) xperm
+    emissivity.resize(4);
+    reflectivity.resize(4);
 
-  // Convert the surface temperature in Kelvin to centigrade.
-  Numeric temp_c  = surface_temp - 273.15;
-  Numeric temp_cc = temp_c * temp_c;
-  Numeric temp_ccc = temp_cc * temp_c;
+    rttov_fastem5_(fastem_version,
+                  frequency / 1e9,
+                  za,
+                  temperature,
+                  salinity,
+                  wind_speed,
+                  emissivity.get_c_array(),
+                  reflectivity.get_c_array(),
+                  transmittance,
+                  rel_azimuth);
 
-  if (  (temp_c < -5.0)  ||  (temp_c > 100.0)  || 
-        (freq < 10e+9) || (freq > 500e+9) )
-    {
-      
-      ostringstream os;
-      os << "Severe warning from dclamkaouchi: "
-        << "The accepted temperature range in centigrade is "
-        << "[-5,100],\nbut a value of " << temp_c 
-        << "degree C was found. Also the allowed frequency range is "
-        << "[10 GHz,500 GHz],\nbut a value of " <<  freq
-        << " was found.";
-      
-      throw runtime_error( os.str() );
-    }
-  else 
-  if (	(freq < 20e+9) || (freq > 200e+9) )
-    {
-      
-      ostringstream os;
-      os << "Warning from dclamkaouchi: "
-        << "The accepted temperature range in centigrade is "
-        << "[-5,100],\nbut a value of " << temp_c 
-        << "degree C was found. Also the allowed frequency range is "
-        << "[10 GHz,500 GHz],\nbut a value of " <<  freq
-        << " was found."<< surface_wind; //remove surface_wind, it
-                                         //was only to avoid
-                                         //
-                                         //compilation error due to unused variable  
-
-      
-      throw runtime_error( os.str() );
-    }
-
-  // define the two relaxation frequencies, tau1 and tau2
-  Numeric tau1 = surface_fastem_constants[0] + surface_fastem_constants[1]* temp_c +  
-    surface_fastem_constants[2] * temp_cc;
-
-  Numeric tau2 = surface_fastem_constants[3] + surface_fastem_constants[4]* temp_c +  
-    surface_fastem_constants[5] * temp_cc + surface_fastem_constants[6] * temp_ccc; 
-
-  // define static xperm - FIXME TRS
-  Numeric del1 = surface_fastem_constants[7] + surface_fastem_constants[8]* temp_c + 
-    surface_fastem_constants[9] * temp_cc + surface_fastem_constants[10] * temp_ccc;
-
-  Numeric del2 = surface_fastem_constants[11] + surface_fastem_constants[12]* temp_c + 
-    surface_fastem_constants[13] * temp_cc + surface_fastem_constants[14] * temp_ccc;
-
-  Numeric einf = surface_fastem_constants[17] + surface_fastem_constants[18] * temp_c;
-
-  //calculate xperm using double debye formula
-  Numeric fen = 2.0 * surface_fastem_constants[19] * freq/1e+9 * 0.001;
-  Numeric fen2 = pow(fen,2);
-  Numeric den1 = 1.0 + fen2 * tau1 * tau1;
-  Numeric den2 = 1.0 + fen2 * tau2 * tau2;
-  Numeric perm_real1 = del1/den1;
-  Numeric perm_real2 = del2/den2;
-  Numeric perm_imag1 = del1 * fen * tau1/den1;
-  Numeric perm_imag2 = del2 * fen * tau2/den2;
-  Numeric perm_real = perm_real1 + perm_real2 + einf;
-  Numeric perm_imag = perm_imag1 + perm_imag2;
-  
-  Complex xperm (perm_real, perm_imag); //FIXME use complex here
-
-  //Now the fresnel calculations
-  // This is used to calculate vertical and horizontal polarised 
-  //reflectivities given xperm at local incidence angle. I am not sure
-  // how to include this theta now!!! FIXME
-  Numeric theta = 55.0;
- 
-  Numeric cos_theta = cos(theta * DEG2RAD);
-  Numeric sin_theta = sin(theta * DEG2RAD);
-  
-  //Numeric cos_2 = pow(cos_theta, 2);
-  Numeric sin_2 = pow(sin_theta, 2);
-
-  Complex perm1 = sqrt(xperm - sin_2);
-  Complex perm2 = xperm * cos_theta;
-
-  Complex rhth = (cos_theta - perm1)/(cos_theta + perm1);
-  Complex rvth = (perm2 - perm1)/(perm2 + perm1);
-
-  //Numeric rvertsr = real.rvth();
-  //Numeric rvertsi = imag.rvth();
-  Numeric rvertsr = real(rvth);
-  Numeric rvertsi = imag(rvth);
-
-  Numeric rverts = pow(rvertsr, 2) + pow(rvertsi, 2);
-
-  //Numeric rhorzsr = real.rhth();
-  //Numeric rhorzsi = imag.rhth();
-  Numeric rhorzsr = real(rhth);
-  Numeric rhorzsi = imag(rhth);
-  Numeric rhorzs = pow(rhorzsr, 2) + pow(rhorzsi, 2);
-
-  surface_emiss[0] = rverts;
-  surface_emiss[1] = rhorzs;
-  surface_emiss[2] = 0;
-  surface_emiss[3] = 0;
-  
-    
 }
 
 
