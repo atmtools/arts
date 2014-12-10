@@ -84,25 +84,12 @@ INCLUDE "avhrr_reference.arts"
 # Set up absorption
 # =================
 
-ArrayOfMatrixCreate( arrayofmatrix_1 )
+ReadXML( batch_atm_fields_compact, "testdata/garand_profiles.xml.gz" )
 
-ReadXML( arrayofmatrix_1, "testdata/garand_profiles.xml.gz" )
+# add constant profiles for O2 and N2
+batch_atm_fields_compactAddConstant( name="abs_species-O2", value=0.2095 )
+batch_atm_fields_compactAddConstant( name="abs_species-N2", value=0.7808 )
 
-# Convert to batch_atm_fields_compact
-# ---
-# The values taken for O2 and N2 are from Wallace&Hobbs, 2nd edition.
-batch_atm_fields_compactFromArrayOfMatrix(
-   batch_atm_fields_compact,
-   atmosphere_dim,
-   arrayofmatrix_1,
-   ["T", "z", "H2O", "O3", "CO2", "N2O", "CO", "CH4"],
-   ["O2", "N2"],
-   [0.2095, 0.7808]
-)
-
-# Delete original data array to conserve memory:
-# ---
-Delete( arrayofmatrix_1 )
 
 # Setup lookup table
 # ---

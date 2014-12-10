@@ -1,3 +1,28 @@
+2014-12-10  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-3-87
+
+	* Changes of controlfiles (and some test data) in accordance with
+	arts-2-3-72 and ARTS-XML-DATA-2-3-4, i.e. providing compact batch input
+	as ArrayOfGriddedField4 instead of ArrayOfMatrix.
+
+	* controlfiles/testdata/garand_profiles.xml.gz,
+	chevallierl91_all_extract.xml, 
+	controlfiles/instruments/amsu/chevallierl91_clear_q_extract.xml.gz,
+	mhs/chevallierl91_clear_q_extract.xml.gz:
+	Converted compact batch state data to ArrayOfGriddedField4.
+
+	* controlfiles/instruments/avhrr/TestAVHRR.arts,
+	ici/TestICI_fast.arts, hirs/TestHIRS.arts,
+	amsu/TestAMSU_MetMM_generic.arts, TestAMSU_generic.arts,
+	mhs/TestMHS_generic.arts,
+	controlfiles/artscomponents/doitbatch/TestDOITBatch.arts:
+	Adapted input of compact batch state data handling.
+
+	* src/methods.cc, workspace.cc:
+	Adaptations according to changes above and clarification on some
+	WSM/WSV.
+
 2014-12-10  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-86
@@ -98,8 +123,8 @@
 	* arts-2-3-83
 
 	* src/cloudbox.cc (pnd_fieldMGD_LWC, LWCtopnd_MGD_LWC, pnd_fieldMGD_LWC,
-    LWCtopnd_MGD_LWC, pnd_fieldF07TR, IWCtopnd_F07TR, pnd_fieldF07ML, 
-    IWCtopnd_F07ML): 
+	LWCtopnd_MGD_LWC, pnd_fieldF07TR, IWCtopnd_F07TR, pnd_fieldF07ML, 
+	IWCtopnd_F07ML): 
 	
 	Changed the used size parameter from maximum dimension diameter
 	to volume equivalent spherical diameter. 
@@ -146,8 +171,8 @@
 	* arts-2-3-79
 
 	* src/cloudbox.{h,cc} (pnd_fieldMGD_LWC, LWCtopnd_MGD_LWC, pnd_fieldMGD_LWC,
-    LWCtopnd_MGD_LWC, pnd_fieldF07TR, IWCtopnd_F07TR, pnd_fieldF07ML, 
-    IWCtopnd_F07ML), src/m_cloudbox.cc (pnd_fieldSetup): 
+	LWCtopnd_MGD_LWC, pnd_fieldF07TR, IWCtopnd_F07TR, pnd_fieldF07ML, 
+	IWCtopnd_F07ML), src/m_cloudbox.cc (pnd_fieldSetup): 
 	
 	Added new distributions.
 	

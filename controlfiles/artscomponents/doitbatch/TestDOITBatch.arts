@@ -93,28 +93,12 @@ sensorOff
 
 # 3. Read chevallier atmospheric profiles for batch calc--------------
 #---------------------------------------------------------------------
-ArrayOfMatrixCreate( arrayofmatrix_1 )
-#read data to ArrayOfMatrix
-ReadXML( arrayofmatrix_1, "testdata/chevallierl91_all_extract.xml" )
+ReadXML( batch_atm_fields_compact, "testdata/chevallierl91_all_extract.xml" )
 
+# add constant profiles for O2 and N2
+batch_atm_fields_compactAddConstant( name="abs_species-O2", value=0.2095 )
+batch_atm_fields_compactAddConstant( name="abs_species-N2", value=0.7808 )
 
-# Convert to batch_atm_fields_compact AND batch_atm_fields_compact_all
-# -----------------------------------------------------------------------
-# The values taken for O2 and N2 are from Wallace&Hobbs, 2nd edition.
-batch_atm_fields_compactFromArrayOfMatrix(
-   batch_atm_fields_compact,
-   atmosphere_dim,
-   arrayofmatrix_1,
-   ["T", "z",
-    "scat_species-LWC-mass_density", "scat_species-IWC-mass_density",
-    "ignore", "ignore",
-    "abs_species-H2O", "abs_species-O3"],
-   ["abs_species-O2", "abs_species-N2"],
-   [0.2095, 0.7808]
-)
-# WriteXML("output_file_format", batch_atm_fields_compact_all)
-
-Delete( arrayofmatrix_1 )
 
 # 4. Absorption-------------------------------------------------
 #---------------------------------------------------------------

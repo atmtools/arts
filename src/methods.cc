@@ -2372,10 +2372,14 @@ void define_md_data_raw()
         (
          "Adds a constant field to atm_fields_compact.\n"
          "\n"
-         "This is handy for nitrogen or oxygen. The constant value can be\n"
-         "appended or prepended to the fields that are already there. All\n"
-         "dimensions (pressure, latitude, longitude) are filled up, so this\n"
-         "works for 1D, 2D, or 3D atmospheres.\n"
+         "This is handy, e.g., for nitrogen or oxygen. The constant value can\n"
+         "be appended or prepended as an additional field to the already\n"
+         "existing collection of fields. All dimensions (pressure, latitude,\n"
+         "longitude) are filled up, so this works for 1D, 2D, or 3D\n"
+         "atmospheres.\n"
+         "\n"
+         "The passed *name* of the field has to be in accordance with the\n"
+         "tagging structure described for *atm_fields_compact*.\n"
          ),
         AUTHORS( "Stefan Buehler" ),
         OUT( "atm_fields_compact" ),
@@ -2399,15 +2403,19 @@ void define_md_data_raw()
          "Adds a field to atm_fields_compact, with interpolation.\n"
          "\n"
          "This method appends or prepends a *GriddedField3* to *atm_fields_compact*.\n"
-         "The *GriddedField3* is interpolated upon the grid of *atm_fields_compact*.\n"
-         "A typical use case for this method may be to add a climatology of some gas\n"
-         "when this gas is needed for radiative transfer calculations, but\n"
-         "not yet present in *atm_fields_compact*. One case where this happens\n"
-         "is when using the Chevalier91L dataset for infrared simulations.\n"
+         "The *GriddedField3* is interpolated upon the grid of\n"
+         "*atm_fields_compact*. A typical use case for this method may be to\n"
+         "add a climatology of some gas when this gas is needed for radiative\n"
+         "transfer calculations, but not yet present in *atm_fields_compact*.\n"
+         "One case where this happens is when using the Chevalier91L dataset\n"
+         "for infrared simulations.\n"
          "\n"
          "The grids in *atm_fields_compact* must fully encompass the grids in\n"
          "the *GriddedField3* to be added, for interpolation to succeed. If\n"
          "this is not the case, a RuntimeError is thrown.\n"
+         "\n"
+         "The passed *name* of the field has to be in accordance with the\n"
+         "tagging structure described for *atm_fields_compact*.\n"
          ),
         AUTHORS( "Gerrit Holl" ),
         OUT( "atm_fields_compact" ),
@@ -7929,17 +7937,25 @@ void define_md_data_raw()
       ( NAME( "scat_species_fieldCleanup" ),
         DESCRIPTION
         (
-         "This WSM checks if a *scat_species_field* contains values smaller\n"
-         "than the given *threshold*. In this case, these values will be set\n"
-         "to zero.\n"
+         "Removes unrealistically small or erroneous data from scat_species\n"
+         "fields\n"
          "\n"
-         "The method should be applied if *scat_species_field* contains\n"
+         "This WSM checks if the input scat_species_*_field\n"
+         "(*scat_species_mass_density_field*, *scat_species_mass_flux_field*,\n"
+         "*scat_species_number_density_field*) contains values smaller than\n"
+         "the given *threshold*. In this case, these values will be set to\n"
+         "zero.\n"
+         "\n"
+         "The method should be applied if the scat_species_*_fields contain\n"
          "unrealistically small or erroneous data (NWP/GCM model data, e.g.\n"
          "from theChevallierl_91l sets, often contain very small or even\n"
          "negative values, which are numerical artefacts rather than physical\n"
          "values.)\n"
+         "It needs to be applied separately per scat_species field that shall\n"
+         "be handled. This allows to use different thresholds for the\n"
+         "different types of fields.\n"
          "\n"
-         "*scat_species_field_cleanup* shall be called after generation of the\n"
+         "*scat_species_fieldCleanup* shall be called after generation of the\n"
          "atmopheric fields.\n"
          ),
         AUTHORS( "Daniel Kreyling" ),

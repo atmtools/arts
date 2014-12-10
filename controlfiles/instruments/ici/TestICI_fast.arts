@@ -103,37 +103,15 @@ INCLUDE "instruments/ici/ici_fast.arts"
 
 # 4. Atmosphere
 #--------------
-# Atmospheric profiles are stored in an ArrayOfMatrix.
-# It contains one matrix for each atmospheric state.
-# Each matrix row corresponds to one pressure level. The
-# meaning of the columns is:
-# p[Pa]        T[K]         z[m]         H2O[VMR]	O3[VMR]
+# Atmospheric profiles are stored in an ArrayOfGriddedField4.
+# It contains one GriddedField4 for each atmospheric state.
 #
-ArrayOfMatrixCreate( arrayofmatrix_1 )
-#ReadXML( arrayofmatrix_1,
-#         "/storage2/home/sbuehler/checkouts/arts-xml-data/atmosphere/chevallier_91L/chevallierl91_clear_q.xml" )
-ReadXML( arrayofmatrix_1, "../amsu/chevallierl91_clear_q_extract.xml" )
+ReadXML( batch_atm_fields_compact, "../amsu/chevallierl91_clear_q_extract.xml" )
 
-# Storage in an array of matrix is handy for Chevallier data, because
-# it is very compact. However, the more general internal
-# representation of the data is in batch_atm_fields_compact.
+# add constant profiles for O2 and N2
+batch_atm_fields_compactAddConstant( name="abs_species-O2", value=0.2095 )
+batch_atm_fields_compactAddConstant( name="abs_species-N2", value=0.7808 )
 
-# Convert to batch_atm_fields_compact
-# ---
-# The values taken for O2 and N2 are from Wallace&Hobbs, 2nd edition.
-batch_atm_fields_compactFromArrayOfMatrix(
-   batch_atm_fields_compact,
-   atmosphere_dim,
-   arrayofmatrix_1,
-#   ["T", "z", "H2O", "O3"],
-   ["T", "z", "abs_species-H2O", "ignore"],
-   ["abs_species-O2", "abs_species-N2"],
-   [0.2095, 0.7808]
-)
-
-# Delete original data array to conserve memory:
-# ---
-Delete( arrayofmatrix_1 )
 
 # Set parameters for lookup table
 # ---
