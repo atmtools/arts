@@ -1589,14 +1589,14 @@ void DoitInit(//WS Output
          << "calculation will be very slow. The recommended value is 19.\n";
   }
   
-  if ( cloudbox_limits.nelem()!= 2*atmosphere_dim)
+  if ( cloudbox_limits.nelem()!= 2*atmosphere_dim )
     throw runtime_error(
                         "*cloudbox_limits* is a vector which contains the"
                         "upper and lower limit of the cloud for all "
                         "atmospheric dimensions. So its dimension must"
                         "be 2 x *atmosphere_dim*");
 
-  if (scat_data.nelem() == 0)
+  if ( scat_data.nelem() == 0 )
     throw runtime_error(
                          "No scattering data files have been added.\n"
                          "Please use the WSM *ParticleTypeAdd* or \n"
@@ -2756,6 +2756,7 @@ void CloudboxGetIncoming(
    const Index&    atmfields_checked,
    const Index&    atmgeom_checked,
    const Index&    cloudbox_checked,
+   const Index&    doit_is_initialized,
    const Agenda&   iy_main_agenda,
    const Index&    atmosphere_dim,
    const Vector&   lat_grid,
@@ -2788,6 +2789,12 @@ void CloudboxGetIncoming(
 
   // Don't do anything if there's no cloudbox defined.
   if (!cloudbox_on) return;
+
+  // Check whether DoitInit was executed
+  if (!doit_is_initialized)
+    throw runtime_error(
+                        "Initialization method *DoitInit* has to be "
+                        "put before *CloudboxGetIncoming*");
 
   // DOIT requires frequency based radiance:
   if( !chk_if_std_blackbody_agenda( ws, blackbody_radiation_agenda ) )

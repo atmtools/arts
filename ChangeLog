@@ -1,5 +1,12 @@
 2014-12-10  Jana Mendrok  <jana.mendrok@ltu.se>
 
+	* arts-2-3-88
+
+	* src/m_doit.cc, methods.cc (CloudboxGetIncoming):
+	Check whether doit has been initialized beforehand.
+
+2014-12-10  Jana Mendrok  <jana.mendrok@ltu.se>
+
 	* arts-2-3-87
 
 	* Changes of controlfiles (and some test data) in accordance with
