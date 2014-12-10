@@ -119,6 +119,20 @@ void LineRecord::ARTSCAT4FromARTSCAT3() {
 }
 
 
+void LineRecord::ARTSCAT5FromARTSCAT4() {
+    // Check that this line really is ARTSCAT-4
+    if ( this->Version() != 4)
+    {
+        ostringstream os;
+        os << "This line is not ARTSCAT-4, it is ARTSCAT-" << this->Version();
+        throw std::runtime_error(os.str());
+    }
+
+    // Set version to 5:
+    mversion = 5;
+}
+
+
 bool LineRecord::ReadFromHitran2001Stream(istream& is, const Verbosity& verbosity)
 {
   CREATE_OUT3;
@@ -3144,6 +3158,260 @@ bool LineRecord::ReadFromArtscat4Stream(istream& is, const Verbosity& verbosity)
 }
 
 
+bool LineRecord::ReadFromArtscat5Stream(istream& is, const Verbosity& verbosity)
+{
+    CREATE_OUT3;
+
+    // Global species lookup data:
+    using global_data::species_data;
+
+    // We need a species index sorted by Arts identifier. Keep this in a
+    // static variable, so that we have to do this only once.  The ARTS
+    // species index is ArtsMap[<Arts String>].
+    static map<String, SpecIsoMap> ArtsMap;
+
+    // Remember if this stuff has already been initialized:
+    static bool hinit = false;
+
+    mversion = 5;
+
+    if ( !hinit )
+    {
+
+        out3 << "  ARTS index table:\n";
+
+        for ( Index i=0; i<species_data.nelem(); ++i )
+        {
+            const SpeciesRecord& sr = species_data[i];
+
+
+            for ( Index j=0; j<sr.Isotopologue().nelem(); ++j)
+            {
+
+                SpecIsoMap indicies(i,j);
+                String buf = sr.Name()+"-"+sr.Isotopologue()[j].Name();
+
+                ArtsMap[buf] = indicies;
+
+                // Print the generated data structures (for debugging):
+                // The explicit conversion of Name to a c-String is
+                // necessary, because setw does not work correctly for
+                // stl Strings.
+                const Index& i1 = ArtsMap[buf].Speciesindex();
+                const Index& i2 = ArtsMap[buf].Isotopologueindex();
+
+                out3 << "  Arts Identifier = " << buf << "   Species = "
+                << setw(10) << setiosflags(ios::left)
+                << species_data[i1].Name().c_str()
+                << "iso = "
+                << species_data[i1].Isotopologue()[i2].Name().c_str()
+                << "\n";
+
+            }
+        }
+        hinit = true;
+    }
+
+
+    // This always contains the rest of the line to parse. At the
+    // beginning the entire line. Line gets shorter and shorter as we
+    // continue to extract stuff from the beginning.
+    String line;
+
+    // Look for more comments?
+    bool comment = true;
+
+    while (comment)
+    {
+        // Return true if eof is reached:
+        if (is.eof()) return true;
+
+        // Throw runtime_error if stream is bad:
+        if (!is) throw runtime_error ("Stream bad.");
+
+        // Read line from file into linebuffer:
+        getline(is,line);
+
+        // It is possible that we were exactly at the end of the file before
+        // calling getline. In that case the previous eof() was still false
+        // because eof() evaluates only to true if one tries to read after the
+        // end of the file. The following check catches this.
+        if (line.nelem() == 0 && is.eof()) return true;
+
+        // @ as first character marks catalogue entry
+        char c;
+        extract(c,line,1);
+
+        // check for empty line
+        if (c == '@')
+        {
+            comment = false;
+        }
+    }
+
+
+    // read the arts identifier String
+    istringstream icecream(line);
+
+    try {
+        String artsid;
+        icecream >> artsid;
+
+        if (artsid.length() != 0)
+        {
+
+            // ok, now for the cool index map:
+            // is this arts identifier valid?
+            const map<String, SpecIsoMap>::const_iterator i = ArtsMap.find(artsid);
+            if ( i == ArtsMap.end() )
+            {
+                ostringstream os;
+                os << "ARTS Tag: " << artsid << " is unknown.";
+                throw runtime_error(os.str());
+            }
+
+            SpecIsoMap id = i->second;
+
+
+            // Set mspecies:
+            mspecies = id.Speciesindex();
+
+            // Set misotopologue:
+            misotopologue = id.Isotopologueindex();
+
+
+            // Extract center frequency:
+            icecream >> mf;
+
+
+            // Extract intensity:
+            icecream >> mi0;
+
+            // Extract reference temperature for Intensity in K:
+            icecream >> mti0;
+
+            // Extract lower state energy:
+            icecream >> melow;
+
+            // Extract Einstein A-coefficient:
+            icecream >> ma;
+
+            // Extract upper state stat. weight:
+            icecream >> mgupper;
+
+            // Extract lower state stat. weight:
+            icecream >> mglower;
+
+            // Extract broadening parameters:
+            Numeric sgam;
+            icecream >> sgam;
+
+            String token;
+            Index nelem;
+            icecream >> token;
+
+            while (icecream)
+            {
+                // Read pressure broadening
+                if (token == "PB")
+                {
+                    icecream >> token;
+                    mpressurebroadeningdata.StorageTag2SetType(token);
+
+                    icecream >> nelem;
+
+                    Vector broadening(nelem);
+                    for (Index ib = 0; ib < nelem; ib++)
+                    {
+                        icecream >> broadening[ib];
+                    }
+                    mpressurebroadeningdata.SetDataFromVectorWithKnownType(broadening);
+                    icecream >> token;
+                }
+                // Read quantum numbers
+                else if (token == "QN")
+                {
+                    icecream >> token;
+                    if (token != "UP")
+                    {
+                        ostringstream os;
+                        os << "Unknown quantum number tag: " << token;
+                        throw std::runtime_error(os.str());
+                    }
+
+                    icecream >> token;
+                    Rational r;
+                    while (icecream && IsValidQuantumNumberName(token))
+                    {
+                        icecream >> r;
+                        mquantum_numbers.Upper().Set(token, r);
+                        icecream >> token;
+                    }
+
+                    if (token != "LO")
+                    {
+                        ostringstream os;
+                        os << "Unknown quantum number tag: " << token;
+                        throw std::runtime_error(os.str());
+                    }
+
+                    icecream >> token;
+                    while (icecream && IsValidQuantumNumberName(token))
+                    {
+                        icecream >> r;
+                        mquantum_numbers.Lower().Set(token, r);
+                        icecream >> token;
+                    }
+                }
+                // Read quantum numbers
+                else if (token == "LM")
+                {
+                    icecream >> token;
+                    mlinemixingdata.StorageTag2SetType(token);
+
+                    Index n = -1;
+                    icecream >> n;
+                    if (n < 1)
+                        throw std::runtime_error("Error parsing line mixing data number of elements");
+
+                    Vector lmd(n);
+                    for (Index l = 0; l < n; l++)
+                    {
+                        icecream >> lmd[l];
+                        if (!icecream)
+                        {
+                            ostringstream os;
+                            os << "Error parsing line mixing data element " << l+1;
+                            throw std::runtime_error(os.str());
+                        }
+                    }
+                    mlinemixingdata.SetDataFromVectorWithKnownType(lmd);
+                    icecream >> token;
+                }
+                else
+                {
+                    ostringstream os;
+                    os << "Unknown line data tag: " << token;
+                    throw std::runtime_error(os.str());
+                }
+            }
+            
+            LineRecord::ARTSCAT4UnusedToNaN();
+        }
+    }
+    catch (std::runtime_error e)
+    {
+        ostringstream os;
+        os << "Parse error in catalog line: " << endl;
+        os << line << endl;
+        os << e.what();
+        throw std::runtime_error(os.str());
+    }
+    // That's it!
+    return false;
+}
+
+
 ostream& operator<< (ostream& os, const LineRecord& lr)
 {
   // Determine the precision, depending on whether Numeric is double
@@ -3158,6 +3426,8 @@ ostream& operator<< (ostream& os, const LineRecord& lr)
 #error Numeric must be double or float
 #endif
 #endif
+
+  ostringstream ls;
 
   switch (lr.Version()) {
     case 3:
@@ -3190,9 +3460,7 @@ ostream& operator<< (ostream& os, const LineRecord& lr)
       
       break;
       
-    case 4: {
-      ostringstream ls;
-
+    case 4:
       ls << "@"
          << " " << lr.Name  ()
          << " "
@@ -3247,11 +3515,74 @@ ostream& operator<< (ostream& os, const LineRecord& lr)
       os << ls.str();
       
       break;
-    }
-      
-    default:
-      os << "Unknown ARTSCAT version: " << lr.Version();
-      break;
+
+      case 5:
+          ls << "@"
+          << " " << lr.Name  ()
+          << " "
+          << setprecision(precision)
+          <<        lr.F()
+          << " " << lr.I0()
+          << " " << lr.Ti0()
+          << " " << lr.Elow()
+          << " " << lr.A()
+          << " " << lr.G_upper()
+          << " " << lr.G_lower()
+          << " " << lr.Sgam();
+
+          // Write Pressure Broadening
+          {
+              const PressureBroadeningData& pbd = lr.PressureBroadening();
+              if (pbd.Type() != PressureBroadeningData::PB_NONE)
+              {
+                  ls << " PB " << pbd.Type2StorageTag();
+                  Vector broadening;
+                  pbd.GetVectorFromData(broadening);
+                  ls << " " << broadening.nelem() << " " << broadening;
+              }
+          }
+
+          // Write Quantum Numbers
+          {
+              Index nUpper = lr.QuantumNumbers().Upper().nNumbers();
+              Index nLower = lr.QuantumNumbers().Lower().nNumbers();
+
+              if (nUpper || nLower)
+              {
+                  ls << " QN";
+
+                  if (nUpper)
+                      ls << " UP " << lr.QuantumNumbers().Upper();
+
+                  if (nLower)
+                      ls << " LO " << lr.QuantumNumbers().Lower();
+              }
+          }
+
+          // Write Line Mixing Data
+          {
+              const LineMixingData& lm = lr.LineMixing();
+              if (lm.Type() != LineMixingData::LM_NONE)
+              {
+                  Vector mixingdata;
+                  lm.GetVectorFromData(mixingdata);
+                  if (mixingdata.nelem() > 0)
+                  {
+                      ls << " LM " << lm.Type2StorageTag();
+                      ls << " " << mixingdata.nelem() << " " << mixingdata;
+                  }
+              }
+
+          }
+
+
+          os << ls.str();
+
+          break;
+
+      default:
+          os << "Unknown ARTSCAT version: " << lr.Version();
+          break;
   }
   
   return os;

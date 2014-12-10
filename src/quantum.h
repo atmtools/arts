@@ -27,8 +27,10 @@
 
 #include <map>
 #include <iostream>
+#include <stdexcept>
 #include "matpack.h"
 #include "rational.h"
+#include "mystring.h"
 
 
 //! Enum for Quantum Numbers used for indexing
@@ -81,7 +83,44 @@ public:
         mqnumbers[qn] = r;
     }
 
+    //! Set quantum number
+    void Set(String name, Rational r)
+    {
+        // Define a helper macro to save some typing.
+#define INPUT_QUANTUM(ID) \
+if (name == #ID) this->Set(QN_ ## ID, r)
+
+        INPUT_QUANTUM(J);
+        else INPUT_QUANTUM(N);
+        else INPUT_QUANTUM(S);
+        else INPUT_QUANTUM(F);
+        else INPUT_QUANTUM(Omega);
+        else INPUT_QUANTUM(K1);
+        else INPUT_QUANTUM(K2);
+        else INPUT_QUANTUM(v1);
+        else INPUT_QUANTUM(v2);
+        else INPUT_QUANTUM(v3);
+        else
+        {
+            std::ostringstream os;
+            os << "Unknown quantum number: " << name << " (" << r << ").";
+            throw std::runtime_error(os.str());
+        }
+
+#undef INPUT_QUANTUM
+    }
+    
     const QuantumContainer& GetNumbers() const { return mqnumbers; }
+
+    Index nNumbers() const
+    {
+        Index n = 0;
+        for (QuantumContainer::const_iterator it = mqnumbers.begin();
+             it != mqnumbers.end(); it++)
+            if (!(*it).isUndefined())
+                n++;
+        return n;
+    }
 
     //! Compare Quantum Numbers
     /**
@@ -132,6 +171,10 @@ private:
     //! Lower state quantum numbers
     QuantumNumbers mqn_lower;
 };
+
+
+//! Check for valid quantum number name
+bool IsValidQuantumNumberName(String name);
 
 
 std::istream& operator>>(std::istream& is, QuantumNumbers& qn);

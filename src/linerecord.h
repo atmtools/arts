@@ -636,7 +636,9 @@ public:
      are some other additional fields in ARTSCAT-4, which we so far ignore.
    */
   void ARTSCAT4FromARTSCAT3();
-  
+
+  void ARTSCAT5FromARTSCAT4();
+
  /** Set to NaN all parameters that are not in ARTSCAT-4. */
   void ARTSCAT4UnusedToNaN() {
       
@@ -972,7 +974,28 @@ public:
    \author Oliver Lemke
    */
   bool ReadFromArtscat4Stream(istream& is, const Verbosity& verbosity);
-    
+
+
+  /** Read one line from a stream associated with an ARTSCAT-5 file.
+   
+   Format: see Documentation of class LineRecord
+   
+   The function attempts to read a line of data from the
+   catalogue. It returns false if it succeeds. Otherwise, if eof is
+   reached, it returns true. If an error occurs, a runtime_error is
+   thrown. When the function looks for a data line, comment lines are
+   automatically skipped.
+   
+   \param is Stream from which to read
+   \exception runtime_error Some error occured during the read
+   \return false=ok (data returned), true=eof (no data returned)
+   
+   \date   2014-12-01
+   \author Oliver Lemke
+   */
+  bool ReadFromArtscat5Stream(istream& is, const Verbosity& verbosity);
+
+
 private:
   // Version number:
   Index mversion;

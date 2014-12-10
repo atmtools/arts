@@ -283,7 +283,7 @@ void LineMixingData::StorageTag2SetType(const String& input)
  
  
 // This will convert the LBLRTM data format to a vector for storage
-void LineMixingData::LBLRTMData2Vector(Vector& output)
+void LineMixingData::LBLRTMData2Vector(Vector& output) const
 {
       output.resize(12);
       
@@ -308,7 +308,7 @@ void LineMixingData::LBLRTMData2Vector(Vector& output)
 
 
 // This will convert the LBLRTM data format to a vector for storage
-void LineMixingData::LBLRTM_O2NonResonantData2Vector(Vector& output)
+void LineMixingData::LBLRTM_O2NonResonantData2Vector(Vector& output) const
 {
       output.resize(12);
       
@@ -333,7 +333,7 @@ void LineMixingData::LBLRTM_O2NonResonantData2Vector(Vector& output)
 
 
 // This will convert the read vector to the LBLRTM data format
-void LineMixingData::SecondOrderData2Vector(Vector& output)
+void LineMixingData::SecondOrderData2Vector(Vector& output) const
 {
       output.resize(10);
       
@@ -357,7 +357,7 @@ void LineMixingData::SecondOrderData2Vector(Vector& output)
 }
 
 
-void LineMixingData::GetVectorFromData(Vector& output)
+void LineMixingData::GetVectorFromData(Vector& output) const
 {
     if(mtype == LM_NONE) // The standard case
         output.resize(0);
@@ -373,8 +373,9 @@ void LineMixingData::GetVectorFromData(Vector& output)
 
 
 // This will convert LM_Type to a two char string for storage
-void LineMixingData::Type2StorageTag(String& output)
- {
+String LineMixingData::Type2StorageTag() const
+{
+  String output;
   output.resize(2); // ARTS format specify that this is the size of the tag
   
   if(mtype == LM_NONE) // The standard case
@@ -387,4 +388,6 @@ void LineMixingData::Type2StorageTag(String& output)
     output = "L2"; 
   else
     throw std::runtime_error("You are trying to store a line mixing type that is unknown to ARTS.\n");
+
+  return output;
 }

@@ -25,7 +25,6 @@
 #include "quantum.h"
 
 #include <stdexcept>
-#include "mystring.h"
 
 
 bool QuantumNumbers::Compare(const QuantumNumbers& qn) const
@@ -50,6 +49,28 @@ bool QuantumNumbers::Compare(const QuantumNumbers& qn) const
     }
 
     return match;
+}
+
+
+bool IsValidQuantumNumberName(String name)
+{
+    bool valid = false;
+    // Define a helper macro to save some typing.
+#define INPUT_QUANTUM(ID) \
+if (name == #ID) valid = true
+
+    INPUT_QUANTUM(J);
+    else INPUT_QUANTUM(N);
+    else INPUT_QUANTUM(S);
+    else INPUT_QUANTUM(F);
+    else INPUT_QUANTUM(Omega);
+    else INPUT_QUANTUM(K1);
+    else INPUT_QUANTUM(K2);
+    else INPUT_QUANTUM(v1);
+    else INPUT_QUANTUM(v2);
+    else INPUT_QUANTUM(v3);
+#undef INPUT_QUANTUM
+    return valid;
 }
 
 

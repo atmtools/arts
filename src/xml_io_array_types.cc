@@ -2662,7 +2662,7 @@ void xml_read_from_stream(istream&           is_xml,
       is >> artscat_version;
     }
 
-  if (artscat_version < 3 or artscat_version > 4)
+  if (artscat_version < 3 or artscat_version > 5)
     {
       ostringstream os;
       os << "Unknown ARTS line file version: " << version;
@@ -2685,6 +2685,10 @@ void xml_read_from_stream(istream&           is_xml,
               break;
             case 4:
               if (lr.ReadFromArtscat4Stream(is_xml, verbosity))
+                throw runtime_error("Cannot read line from file");
+              break;
+            case 5:
+              if (lr.ReadFromArtscat5Stream(is_xml, verbosity))
                 throw runtime_error("Cannot read line from file");
               break;
             default:

@@ -26,6 +26,7 @@ USA. */
 #include "rational.h"
 
 #include <stdexcept>
+#include <ostream>
 #include "mystring.h"
 
 
@@ -80,29 +81,38 @@ std::istream& operator>>(std::istream& is, Rational& a)
 
     is >> s;
 
-    ArrayOfString as;
+    try {
+        ArrayOfString as;
 
-    s.split(as, "/");
+        s.split(as, "/");
 
-    if (as.nelem() == 1)
-    {
-        nom=strtol(s.c_str(), &endptr, 10);
-        if (endptr != s.c_str()+s.nelem())
-            throw std::runtime_error("Error parsing quantum number");
-        a = Rational(nom, 1);
+        if (as.nelem() == 1)
+        {
+            nom=strtol(s.c_str(), &endptr, 10);
+            if (endptr != s.c_str()+s.nelem())
+                throw std::runtime_error("Error parsing rational number");
+            a = Rational(nom, 1);
+        }
+        else if (as.nelem() == 2)
+        {
+            nom=strtol(as[0].c_str(), &endptr, 10);
+            if (endptr != as[0].c_str()+as[0].nelem())
+                throw std::runtime_error("Error parsing rational number nominator");
+            denom=strtol(as[1].c_str(), &endptr, 10);
+            if (endptr != as[1].c_str()+as[1].nelem())
+                throw std::runtime_error("Error parsing rational number denominator");
+            a = Rational(nom, denom);
+        }
+        else
+            throw std::runtime_error("Error parsing rational number");
     }
-    else if (as.nelem() == 2)
+    catch (std::runtime_error e)
     {
-        nom=strtol(as[0].c_str(), &endptr, 10);
-        if (endptr != as[0].c_str()+as[0].nelem())
-            throw std::runtime_error("Error parsing quantum number nominator");
-        denom=strtol(as[1].c_str(), &endptr, 10);
-        if (endptr != as[1].c_str()+as[1].nelem())
-            throw std::runtime_error("Error parsing quantum number denominator");
-        a = Rational(nom, denom);
+        std::ostringstream os;
+        os << "Error parsing rational number: " << s << std::endl;
+        os << e.what();
+        throw std::runtime_error(os.str());
     }
-    else
-        throw std::runtime_error("Error parsing quantum number");
 
     return is;
 }

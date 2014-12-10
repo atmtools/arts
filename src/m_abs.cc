@@ -141,6 +141,39 @@ void abs_linesArtscat4FromArtscat3(// WS Output:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void abs_linesArtscat5FromArtscat34(// WS Output:
+                                    ArrayOfLineRecord& abs_lines,
+                                    // Verbosity object:
+                                    const Verbosity&)
+{
+    String fail_msg;
+    bool failed = false;
+
+    // Loop over all lines, use member function to do conversion.
+#pragma omp parallel for      \
+  if (!arts_omp_in_parallel()  \
+      && abs_lines.nelem() >= arts_omp_get_max_threads())
+    for ( Index i=0; i<abs_lines.nelem(); ++i )
+    {
+        try
+        {
+            if (abs_lines[i].Version() == 3)
+                abs_lines[i].ARTSCAT4FromARTSCAT3();
+
+            abs_lines[i].ARTSCAT5FromARTSCAT4();
+        }
+        catch (runtime_error e)
+        {
+#pragma omp critical (abs_linesArtscat4FromArtscat3_fail)
+            { fail_msg = e.what(); failed = true; }
+        }
+    }
+
+    if (failed) throw runtime_error(fail_msg);
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void abs_linesReadFromLBLRTM(
                              // WS Output:
                              ArrayOfLineRecord& abs_lines,

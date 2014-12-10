@@ -89,11 +89,11 @@ public:
     void Vector2SecondOrderData(const Vector& input);
     
     // Use these to save output vector in ARTS catalog
-    void GetVectorFromData(Vector& output);
-    void LBLRTMData2Vector(Vector& output);
-    void LBLRTM_O2NonResonantData2Vector(Vector& output);
-    void Type2StorageTag(String& output);
-    void SecondOrderData2Vector(Vector& output);
+    void GetVectorFromData(Vector& output) const;
+    void LBLRTMData2Vector(Vector& output) const;
+    void LBLRTM_O2NonResonantData2Vector(Vector& output) const;
+    String Type2StorageTag() const;
+    void SecondOrderData2Vector(Vector& output) const;
     
 private:
     // mtype identifies the type of line mixing and mdata should contain the required data

@@ -340,14 +340,18 @@ void PressureBroadeningData::GetVectorFromData(Vector& output) const
 }
 
 
-void PressureBroadeningData::Type2StorageTag(String & output)
+String PressureBroadeningData::Type2StorageTag() const
 {
+    String output;
+
     if(mtype==PB_NONE) // The none case
         output = "NA";
     else if(mtype==PB_AIR_BROADENING) // Air Broadening is mostly N2 ...
         output = "N2";
     else if(mtype==PB_PERRIN_BROADENING) // Perring broadening
-        output="PA";
+        output="AP";
     else
         throw std::runtime_error("You are trying to set pressure broadening type that is unknown to ARTS.\n");
+
+    return output;
 }

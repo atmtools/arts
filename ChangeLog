@@ -1,5 +1,54 @@
 2014-12-10  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-3-86
+
+	* Preliminary ARTSCAT version 5 implementation.
+
+	* src/linemixingdata.{cc,h}:
+
+	Declare all member functions that don't modify the object as const.
+
+	(LineMixingData::StorageTag2SetType): For convenience, return the
+	string instead of using a reference parameter.
+
+	* src/linerecord.{cc,h}:
+
+	(LineRecord::ARTSCAT5FromARTSCAT4): New conversion function.
+
+	(LineRecord::ReadFromArtscat5Stream): Add ARTSCAT-5 reading routine.
+
+	(operator<<): Add writing support for ARTSCAT-5.
+
+	* src/methods.cc, src/m_abs.cc (abs_linesArtscat5FromArtscat34):
+
+	New WSM to convert an ARTSCAT-3 and ARTSCAT-4 to ARTSCAT-5 format.
+
+	* src/pressurebroadeningdata.{cc,h}:
+
+	(Sgam, Nself): Add assertion.
+
+	(PressureBroadeningData::Type2StorageTag): For convenience, return the
+	string instead of using a reference parameter.
+	Fix typo for tag 'PA' -> 'AP'.
+
+	* src/quantum.{cc,h}:
+
+	(IsValidQuantumNumberName): Added. Check if QN name is valid.
+
+	(QuantumNumbers::Set): Added. Set QN to rational by name.
+
+	(QuantumNumbers::nNumbers): Added. Returns number of used QNs.
+
+	* src/rational.cc (operator>>):
+
+	Don't use term quantum number in rational class. Improved error output.
+
+	* src/xml_io_array_types.cc (xml_read_from_stream):
+
+	Add ARTSCAT-5 support for ArrayOfLineRecord.
+
+2014-12-10  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-3-85
 
 	* src/methods.cc, src/m_atmosphere.cc (atm_fields_compactAddConstant,

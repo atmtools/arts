@@ -448,6 +448,25 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "abs_linesArtscat5FromArtscat34" ),
+        DESCRIPTION
+        (
+	 "Convert a line list from ARTSCAT-3 and ARTSCAT-4 to ARTSCAT-5 format.\n"
+         ),
+        AUTHORS( "Oliver Lemke" ),
+        OUT( "abs_lines" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "abs_lines" ),
+        GIN(  ),
+        GIN_TYPE(     ),
+        GIN_DEFAULT(  ),
+        GIN_DESC(  )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "abs_linesReadFromArts" ),
         DESCRIPTION
         (

@@ -113,8 +113,8 @@ public:
     Numeric AirBroadeningAgam() const { assert(PB_AIR_BROADENING==mtype);  return mdata[2][0]; }
     Numeric AirBroadeningNair() const { assert(PB_AIR_BROADENING==mtype);  return mdata[3][0]; }
     Numeric AirBroadeningPsf()  const { assert(PB_AIR_BROADENING==mtype);  return mdata[4][0]; }
-    Numeric Sgam() const {return mdata[0][0]; }
-    Numeric Nself() const {return mdata[1][0]; }
+    Numeric Sgam() const { assert(mdata.nelem() != 0); assert(mdata[0].nelem() != 0); return mdata[0][0]; }
+    Numeric Nself() const { assert(mdata.nelem() > 0); assert(mdata[1].nelem() != 0); return mdata[1][0]; }
     Numeric AirBroadeningDAgam() const { assert(PB_AIR_BROADENING==mtype);  return mdataerror[2][0]; }
     Numeric AirBroadeningDNair() const { assert(PB_AIR_BROADENING==mtype);  return mdataerror[3][0]; }
     Numeric AirBroadeningDPsf()  const { assert(PB_AIR_BROADENING==mtype);  return mdataerror[4][0]; }
@@ -195,7 +195,7 @@ public:
    Index ExpectedVectorLengthFromType() const;
    void SetDataFromVectorWithKnownType(const Vector& input);
    void GetVectorFromData(Vector& output) const;
-   void Type2StorageTag(String& output);
+   String Type2StorageTag() const;
    
 private:
     // mtype identifies the type of of pressure broadening and the other variables
