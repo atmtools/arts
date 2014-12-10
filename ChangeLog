@@ -1,3 +1,10 @@
+2014-12-10  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-2-35
+
+	* src/m_doit.cc, methods.cc (CloudboxGetIncoming):
+	Check whether doit has been initialized beforehand.
+
 2014-12-05  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-2-34
@@ -9,8 +16,8 @@
 	* arts-2-2-33
 
 	* src/cloudbox.{h,cc} (pnd_fieldMGD_LWC, LWCtopnd_MGD_LWC, pnd_fieldMGD_LWC,
-    LWCtopnd_MGD_LWC), src/m_cloudbox.cc (pnd_fieldSetup), 
-    src/m_cloudbox.cc (dN_F07TR, dN_F07ML, dN_MGD_LWC, dN_MGD_IWC), src/methods.cc: 
+	LWCtopnd_MGD_LWC), src/m_cloudbox.cc (pnd_fieldSetup), 
+	src/m_cloudbox.cc (dN_F07TR, dN_F07ML, dN_MGD_LWC, dN_MGD_IWC), src/methods.cc: 
 	
 	Changed the used size parameter from maximum dimension diameter
 	to volume equivalent spherical diameter. 
@@ -33,7 +40,7 @@
 	* arts-2-2-31
 
 	* src/cloudbox.{h,cc} (pnd_fieldMGD_LWC, LWCtopnd_MGD_LWC, pnd_fieldMGD_LWC,
-    LWCtopnd_MGD_LWC), src/m_cloudbox.cc (pnd_fieldSetup): 
+	LWCtopnd_MGD_LWC), src/m_cloudbox.cc (pnd_fieldSetup): 
 	
 	Added new distributions.
 	

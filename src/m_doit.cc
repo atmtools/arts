@@ -2756,6 +2756,7 @@ void CloudboxGetIncoming(
    const Index&    atmfields_checked,
    const Index&    atmgeom_checked,
    const Index&    cloudbox_checked,
+   const Index&    doit_is_initialized,
    const Agenda&   iy_main_agenda,
    const Index&    atmosphere_dim,
    const Vector&   lat_grid,
@@ -2790,6 +2791,11 @@ void CloudboxGetIncoming(
   // Don't do anything if there's no cloudbox defined.
   if (!cloudbox_on) return;
   
+  // Check whether DoitInit was executed
+  if (!doit_is_initialized)
+    throw runtime_error(
+                        "Initialization method *DoitInit* has to be "
+                        "put before *CloudboxGetIncoming*");
   // DOIT requires frequency based radiance:
   if( iy_unit != "1"  || 
       !chk_if_std_blackbody_agenda( ws, blackbody_radiation_agenda ) )
