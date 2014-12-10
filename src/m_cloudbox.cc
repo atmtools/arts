@@ -140,16 +140,17 @@ void cloudboxSetAutomatically (// WS Output:
   else p1 = np-1;
   Index p2 = 0;
 
-  if ( atmosphere_dim > 1 )
-    {
-      Index lat1 = scat_species_mass_density_field.nrows()-1;
-      Index lat2 = 0;
-    }
-  if ( atmosphere_dim > 2 )
-    {
-      Index lon1 = scat_species_mass_density_field.ncols()-1;
-      Index lon2 = 0;
-    }
+  // OLE: Commented out until code that uses it at the end of this function is commented back in
+//  if ( atmosphere_dim > 1 )
+//    {
+//      Index lat1 = scat_species_mass_density_field.nrows()-1;
+//      Index lat2 = 0;
+//    }
+//  if ( atmosphere_dim > 2 )
+//    {
+//      Index lon1 = scat_species_mass_density_field.ncols()-1;
+//      Index lon2 = 0;
+//    }
 
   // initialize flag, telling if all selected *scat_species_XX_field* entries are
   // zero(false) or not(true)
@@ -1417,7 +1418,7 @@ void pnd_fieldSetup (//WS Output:
                      const ArrayOfIndex& cloudbox_limits,
                      const Tensor4& scat_species_mass_density_field,
                      const Tensor4& scat_species_mass_flux_field,
-                     const Tensor4& scat_species_number_density_field,
+                     const Tensor4& /* scat_species_number_density_field */,
                      const Tensor3& t_field,
                      const ArrayOfArrayOfScatteringMetaData& scat_meta,
                      const ArrayOfString& scat_species,

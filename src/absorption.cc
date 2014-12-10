@@ -634,7 +634,6 @@ void xsec_species( MatrixView               xsec_attenuation,
 {
     // Make lineshape and species lookup data visible:
     using global_data::lineshape_data;
-    using global_data::lineshape_norm_data;
     
     // dimension of f_grid, abs_lines
     const Index nf = f_grid.nelem();

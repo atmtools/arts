@@ -94,6 +94,7 @@ extern const Numeric EPSILON_LON_CYCLIC = 2*DBL_EPSILON;
    \retval  af         The new atm_fields_compact 
    \retval  nf         The new number of fields
    \param   name       Name of new field
+   \param   prepend    0 = append, otherwise prepend
 
    \author Gerrit Holl
    \date   2011-05-04
@@ -102,38 +103,33 @@ extern const Numeric EPSILON_LON_CYCLIC = 2*DBL_EPSILON;
 void atm_fields_compactExpand(GriddedField4& af,
                               Index& nf,
                               const String& name,
+                              const Index& prepend,
                               const Verbosity&)
 {
-  // Number of fields already present:
-  nf = af.get_string_grid(GFIELD4_FIELD_NAMES).nelem();
+    // Number of fields already present:
+    nf = af.get_string_grid(GFIELD4_FIELD_NAMES).nelem();
 
-// Most of the functionality moved from atm_fields_compactAddConstant when
-// atm_fields_compactAddSpecies was added, in order to share the code.
-//
-// Commented out by Gerrit 2011-05-04. I believe this check is not needed.
-// Oliver agrees. We can still infer the dimensions even if there are zero
-// fields; e.g., the data might have dimensions (0, 4, 3, 8).
-// 
-//  if (0==nf)
-//    {
-//      ostringstream os;
-//      os << "The *atm_fields_compact* must already contain at least one field,\n"
-//         << "so that we can infer the dimensions from that.";
-//      throw runtime_error( os.str() );
-//    }
+    if (prepend)
+    {
+        // Add name of new field to field name list:
+        ArrayOfString& as = af.get_string_grid(GFIELD4_FIELD_NAMES);
+        as.insert(as.begin(), name);
+    }
+    else
+    {
+        // Add name of new field to field name list:
+        af.get_string_grid(GFIELD4_FIELD_NAMES).push_back(name);
+    }
 
-  // Add name of new field to field name list:
-  af.get_string_grid(GFIELD4_FIELD_NAMES).push_back(name);
+    // Save original fields:
+    const Tensor4 dummy = af.data;
 
-  // Save original fields:
-  const Tensor4 dummy = af.data;
+    // Adjust size:
+    af.resize( nf+1, dummy.npages(), dummy.nrows(), dummy.ncols() );
+    nf++; // set to new number of fields
 
-  // Adjust size:
-  af.resize( nf+1, dummy.npages(), dummy.nrows(), dummy.ncols() );
-  nf++; // set to new number of fields
-
-  // Copy back original field:
-  af.data( Range(0,nf-1), Range(joker), Range(joker), Range(joker) ) = dummy;
+    // Copy back original field:
+    af.data( Range((prepend && nf > 1)?1:0, nf-1), joker, joker, joker ) = dummy;
 }
 
 
@@ -1360,15 +1356,19 @@ void atm_fields_compactAddConstant(// WS Output:
                                    // Control Parameters:
                                    const String& name,
                                    const Numeric& value,
+                                   const Index& prepend,
                                    const Verbosity& verbosity)
 {
   Index nf; // Will hold new size
 
   // Add book
-  atm_fields_compactExpand(af, nf, name, verbosity);
+  atm_fields_compactExpand(af, nf, name, prepend, verbosity);
   
   // Add the constant value:
-  af.data( nf-1, Range(joker), Range(joker), Range(joker) ) = value;
+  if (prepend)
+    af.data( 0, Range(joker), Range(joker), Range(joker) ) = value;
+  else
+    af.data( nf-1, Range(joker), Range(joker), Range(joker) ) = value;
 }
 
 // Workspace method, doxygen header is auto-generated
@@ -1378,6 +1378,7 @@ void atm_fields_compactAddSpecies(// WS Output:
                                   // WS Generic Input:
                                   const String& name,
                                   const GriddedField3& species,
+                                  const Index& prepend,
                                   const Verbosity& verbosity)
 {
 
@@ -1392,8 +1393,9 @@ void atm_fields_compactAddSpecies(// WS Output:
   ConstVectorView sp_lon_grid = species.get_numeric_grid(GFIELD3_LON_GRID);
 
   Index new_n_fields; // To be set in next line
-  atm_fields_compactExpand(atm_fields_compact, new_n_fields, name, verbosity);
+  atm_fields_compactExpand(atm_fields_compact, new_n_fields, name, prepend, verbosity);
 
+  const Index insert_pos = (prepend)?0:new_n_fields-1;
 
   // Interpolate species to atm_fields_compact
 
@@ -1428,7 +1430,7 @@ void atm_fields_compactAddSpecies(// WS Output:
           Tensor3 newfield(af_p_grid.nelem(), af_lat_grid.nelem(), af_lon_grid.nelem());
           interp(newfield, itw, species.data, p_gridpos, lat_gridpos, lon_gridpos);
 
-          atm_fields_compact.data(new_n_fields-1, joker, joker, joker) = newfield;
+          atm_fields_compact.data(insert_pos, joker, joker, joker) = newfield;
       } else { // 2D-case
           
           Tensor3 itw(p_gridpos.nelem(), lat_gridpos.nelem(), 4);
@@ -1437,7 +1439,7 @@ void atm_fields_compactAddSpecies(// WS Output:
           Matrix newfield(af_p_grid.nelem(), af_lat_grid.nelem());
           interp(newfield, itw, species.data(joker, joker, 0), p_gridpos, lat_gridpos);
 
-          atm_fields_compact.data(new_n_fields-1, joker, joker, 0) = newfield;
+          atm_fields_compact.data(insert_pos, joker, joker, 0) = newfield;
       }
   } else { // 1D-case
       Matrix itw(p_gridpos.nelem(), 2);
@@ -1446,7 +1448,7 @@ void atm_fields_compactAddSpecies(// WS Output:
       Vector newfield(af_p_grid.nelem());
       interp(newfield, itw, species.data(joker, 0, 0), p_gridpos);
 
-      atm_fields_compact.data(new_n_fields-1, joker, 0, 0) = newfield;
+      atm_fields_compact.data(insert_pos, joker, 0, 0) = newfield;
   }
 
 }
@@ -1460,11 +1462,12 @@ void batch_atm_fields_compactAddConstant(// WS Output:
                                          // WS Generic Input:
                                          const String& name,
                                          const Numeric& value,
+                                         const Index& prepend,
                                          const Verbosity& verbosity)
 {
     for (Index i=0; i<batch_atm_fields_compact.nelem(); i++)
     {
-        atm_fields_compactAddConstant(batch_atm_fields_compact[i], name, value, verbosity);
+        atm_fields_compactAddConstant(batch_atm_fields_compact[i], name, value, prepend, verbosity);
     }
 
 }
@@ -1476,6 +1479,7 @@ void batch_atm_fields_compactAddSpecies(// WS Output:
                                         // WS Generic Input:
                                         const String& name,
                                         const GriddedField3& species,
+                                        const Index& prepend,
                                         const Verbosity& verbosity)
 {
     const Index nelem = batch_atm_fields_compact.nelem();
@@ -1491,7 +1495,7 @@ void batch_atm_fields_compactAddSpecies(// WS Output:
     for (Index i=0; i<nelem; i++)
     {
         try {
-            atm_fields_compactAddSpecies(batch_atm_fields_compact[i], name, species, verbosity);
+            atm_fields_compactAddSpecies(batch_atm_fields_compact[i], name, species, prepend, verbosity);
         }
         catch (runtime_error e)
         {
@@ -1573,6 +1577,7 @@ void batch_atm_fields_compactFromArrayOfMatrix(// WS Output:
             atm_fields_compactAddConstant(batch_atm_fields_compact[i],
                                           extra_field_names[j],
                                           extra_field_values[j],
+                                          0,
                                           verbosity);
         }
       catch (runtime_error e)

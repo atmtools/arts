@@ -1,3 +1,27 @@
+2014-12-10  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-85
+
+	* src/methods.cc, src/m_atmosphere.cc (atm_fields_compactAddConstant,
+	atm_fields_compactAddSpecies, batch_atm_fields_compactAddConstant,
+	batch_atm_fields_compactAddSpecies):
+
+	Add support for inserting a field at the beginning of
+	[batch_]atm_fields_compact in addition to appending it.
+
+	* src/m_atmosphere.cc (atm_fields_compactExpand):
+
+	Add prepend support. Use joker instead of Range(joker) for readability.
+
+	* src/m_cloudbox.cc:
+
+	(cloudboxSetAutomatically): Commented out currently unused variables.
+
+	(pnd_fieldSetup): Commented out currently unused parameter
+	scat_species_number_density_field.
+
+	* src/absorption.cc (xsec_species): Remove unused lineshape_norm_data.
+
 2014-12-09  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-84

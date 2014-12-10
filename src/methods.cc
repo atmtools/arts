@@ -2353,8 +2353,8 @@ void define_md_data_raw()
         (
          "Adds a constant field to atm_fields_compact.\n"
          "\n"
-         "This is handy for nitrogen or oxygen. The constant value is\n"
-         "appended at the end of the fields that are already there. All\n"
+         "This is handy for nitrogen or oxygen. The constant value can be\n"
+         "appended or prepended to the fields that are already there. All\n"
          "dimensions (pressure, latitude, longitude) are filled up, so this\n"
          "works for 1D, 2D, or 3D atmospheres.\n"
          ),
@@ -2364,11 +2364,12 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "atm_fields_compact" ),
-        GIN( "name",   "value" ),
-        GIN_TYPE(    "String", "Numeric" ),
-        GIN_DEFAULT( NODEF,    NODEF ),
+        GIN(         "name",   "value",   "prepend" ),
+        GIN_TYPE(    "String", "Numeric", "Index" ),
+        GIN_DEFAULT( NODEF,    NODEF,     "0" ),
         GIN_DESC( "Name of additional atmospheric field, with constant value.",
-                  "Constant value of additional field." )
+                  "Constant value of additional field.",
+                  "0 = Append to the end, 1 = insert at the beginning.")
         ));
 
   md_data_raw.push_back
@@ -2378,7 +2379,7 @@ void define_md_data_raw()
         (
          "Adds a field to atm_fields_compact, with interpolation.\n"
          "\n"
-         "This method appends a *GriddedField3* to *atm_fields_compact*.\n"
+         "This method appends or prepends a *GriddedField3* to *atm_fields_compact*.\n"
          "The *GriddedField3* is interpolated upon the grid of *atm_fields_compact*.\n"
          "A typical use case for this method may be to add a climatology of some gas\n"
          "when this gas is needed for radiative transfer calculations, but\n"
@@ -2395,11 +2396,12 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "atm_fields_compact" ),
-        GIN( "name",   "value" ),
-        GIN_TYPE(    "String", "GriddedField3" ),
-        GIN_DEFAULT( NODEF,    NODEF ),
+        GIN(         "name",   "value",         "prepend" ),
+        GIN_TYPE(    "String", "GriddedField3", "Index" ),
+        GIN_DEFAULT( NODEF,    NODEF,           "0" ),
         GIN_DESC( "Name of additional atmospheric field.",
-                  "Value of additional atmospheric field." )
+                  "Value of additional atmospheric field.",
+                  "0 = Append to the end, 1 = insert at the beginning.")
         ));
 
   md_data_raw.push_back
@@ -2665,11 +2667,12 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "batch_atm_fields_compact" ),
-        GIN( "name",   "value" ),
-        GIN_TYPE(    "String", "Numeric" ),
-        GIN_DEFAULT( NODEF,    NODEF ),
+        GIN(         "name",   "value",   "prepend" ),
+        GIN_TYPE(    "String", "Numeric", "Index" ),
+        GIN_DEFAULT( NODEF,    NODEF,     "0" ),
         GIN_DESC( "Name of additional atmospheric field, with constant value.",
-                  "Constant value of additional field." )
+                  "Constant value of additional field.",
+                  "0 = Append to the end, 1 = insert at the beginning.")
         ));
 
    md_data_raw.push_back
@@ -2679,7 +2682,7 @@ void define_md_data_raw()
         (
          "Adds a field to *batch_atm_fields_compact*, with interpolation.\n"
          "\n"
-         "This method appends a *GriddedField3* to each *atm_fields_compact*.\n"
+         "This method appends or prepends a *GriddedField3* to each *atm_fields_compact*.\n"
          "in *batch_atm_fields_compact*. For details, see *atm_fields_compactAddSpecies*.\n"
          ),
         AUTHORS( "Gerrit Holl" ),
@@ -2688,11 +2691,12 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "batch_atm_fields_compact" ),
-        GIN( "name",   "value" ),
-        GIN_TYPE(    "String", "GriddedField3" ),
-        GIN_DEFAULT( NODEF,    NODEF ),
+        GIN(         "name",   "value",         "prepend" ),
+        GIN_TYPE(    "String", "GriddedField3", "Index" ),
+        GIN_DEFAULT( NODEF,    NODEF,           "0" ),
         GIN_DESC( "Name of additional atmospheric field. Use, e.g., vmr_ch4 for methane VMR",
-                  "Value of additional atmospheric field." )
+                  "Value of additional atmospheric field.",
+                  "0 = Append to the end, 1 = insert at the beginning.")
         ));
 
   md_data_raw.push_back
