@@ -1,14 +1,15 @@
 #DEFINITIONS:  -*-sh-*-
 #
-# filename: simpleDOIT.arts
+# filename: TestDOITprecalcInit.arts
 #
-# Demonstration of a DOIT scattering calculation
+# Demonstration of a DOIT scattering calculation initialized from a previous
+# solution instead of the clearsky field.
 #
-# Author: Claudia Emde
+# Author: Jana Mendrok
 # 
-# A big part of the control file consists of definitions for the 
-# radiative transfer calculations. Parts, where a calculation is 
-# performed are marked with ===start=== and ===stop===.
+# To a large part this controlfile is a copy of TestDOIT. However, the
+# pnd_field is slightly varied and DOIT is initialized by the solution of
+# TestDOIT.
 #
 
 Arts2 {
@@ -78,13 +79,6 @@ atmfields_checkedCalc
 
 # Gas absorption from lookup table 
 # ---------------------------------
-
-# in case an abs_lookup table need to be calculated, uncomment the below lines.
-#abs_xsec_agenda_checkedCalc
-#abs_lookupSetup
-#abs_lookupCalc
-#WriteXML( output_file_format="binary", in=abs_lookup,
-#           filename="gas_abs_lookup.xml" )
 
 ReadXML( abs_lookup, "gas_abs_lookup.xml" )
 abs_lookupAdapt
@@ -162,6 +156,9 @@ pnd_fieldCalc
 # case, this is NOT needed!
 Tensor4Scale( out=pnd_field, in=pnd_field, value=0.5 )
 
+# Perturbing the pnd_field by 1%
+Tensor4Scale( out=pnd_field, in=pnd_field, value=1.01 )
+
 # Select interpolation method ('linear' or 'polynomial'):
 # ----------------------------------------------------
 
@@ -188,12 +185,15 @@ DoitAngularGridsSet( N_za_grid=19, N_aa_grid=37,
 # Input: incoming field on the cloudbox boundary
 # Ouput: the scattered field on the cloudbox boundary
 AgendaSet( doit_mono_agenda ){
+  Ignore(scat_i_lat)
+  Ignore(scat_i_lon)
   # Prepare scattering data for DOIT calculation (Optimized method):
   DoitScatteringDataPrepare
   # Alternative method (needs less memory):
   #scat_data_array_monoCalc
   # Set first guess field:		
-  doit_i_fieldSetClearsky
+  doit_i_fieldSetFromdoit_i_field1D_spectrum
+  #WriteXMLIndexed( in=doit_i_field, file_index=f_index )
   # Perform iterations: 1. scattering integral. 2. RT calculations with 
   # fixed scattering integral field, 3. convergence test 
   doit_i_fieldIterate
@@ -272,6 +272,7 @@ AgendaSet( doit_conv_test_agenda ){
   #DoitWriteIterationFields( doit_iteration_counter, doit_i_field ){
   #  iterations = [2, 4]
   #}
+  #Print( doit_iteration_counter, 0 )
 }
 
 AgendaSet( iy_cloudbox_agenda ){
@@ -294,15 +295,13 @@ sensor_checkedCalc
 # Initialize Doit variables
 DoitInit
 
-# Calculate incoming radiation field at cloudbox boundary 
-CloudboxGetIncoming
+# read in precalculated in-cloudbox radition field to be used as first guess
+ReadXML( out=doit_i_field1D_spectrum, filename="TestDOIT.doit_i_field1D_spectrum.xml" )
 
 # Executes doit_mono_agenda for all frequencies
 ScatteringDoit
-# Writing out the radition field solution from inside cloudbox for
-# initialization of perturbed pnd_field calculation from non-clearsky first
-# guess
-WriteXML( in=doit_i_field1D_spectrum )
+#WriteXML( in=doit_i_field1D_spectrum )
+#WriteXML( in=scat_i_p )
 
 # Calculate RT from cloudbox boundary to the sensor
 #
@@ -317,7 +316,7 @@ WriteXML( in=y )
 #==================check==========================
 
 VectorCreate(yREFERENCE)
-ReadXML( yREFERENCE, "yREFERENCE_DOIT.xml" )
+ReadXML( yREFERENCE, "yREFERENCE_DOITprecalcInit.xml" )
 Compare( y, yREFERENCE, 2e-5 )
 
 } # End of Main
