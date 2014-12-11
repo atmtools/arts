@@ -1,5 +1,12 @@
 2014-12-10  Jana Mendrok  <jana.mendrok@ltu.se>
 
+	* arts-2-2-37
+
+	* controlfiles/CMakeLists.txt:
+	Include TestDOITprecalcInit in regular test case set.
+
+2014-12-10  Jana Mendrok  <jana.mendrok@ltu.se>
+
 	* arts-2-2-36
 
 	* Added a DOIT testcase demonstrating first guess field from read-in
