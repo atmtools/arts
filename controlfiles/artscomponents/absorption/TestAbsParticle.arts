@@ -41,7 +41,8 @@ Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
 # --------------
 # This example is only monochromatic. Note: The frequency must be contained
 # in the gas absorption lookup table.  
-VectorSet( f_grid, [230e9] )
+VectorSet( f_grid, [229.5e9,230.5e9] )
+#VectorSet( f_grid, [230e9] )
 
 
 # Number of Stokes components to be computed
@@ -58,7 +59,10 @@ AtmosphereSet1D
 ReadXML( p_grid, "testdata/testdoit_p_grid.xml" )
 
 # Definition of species
-abs_speciesSet( species=[ "H2O", "N2", "O2"] )
+#abs_speciesSet( species=[ "H2O", "N2", "O2"] )
+abs_speciesSet( species=[ "H2O-PWR98",
+                          "O2-PWR93",
+                          "N2-SelfContStandardType" ] )
 
 # Atmospheric profiles
 AtmRawRead( basename="testdata/tropical" )
@@ -175,25 +179,15 @@ propmat_clearsky_agenda_checkedCalc
 StringSet( iy_unit, "RJBT" )
 yCalc
 
-WriteXML( "ascii", y )
+WriteXML( in=y )
 
 #==================stop==========================
 
 #==================check==========================
 
-NumericCreate(y_ref)
-
-NumericSet(y_ref, 248.92)
-NumericCreate(y_0)
-Extract(y_0, y, 0)
-Compare(y_0, y_ref, 1e-2,
-        "Total radiance y[0] should be close to 248.92 K")
-
-NumericSet(y_ref, 0.78)
-NumericCreate(y_1)
-Extract(y_1, y, 1)
-Compare(y_1, y_ref, 1e-2,
-        "Polarization difference y[1] should be 0.0 K")
+VectorCreate(yREFERENCE)
+ReadXML( yREFERENCE, "yREFERENCE_AbsParticle.xml" )
+Compare( y, yREFERENCE, 1e-2 )
 
 } # End of Main
  

@@ -1,5 +1,28 @@
 2014-12-10  Jana Mendrok  <jana.mendrok@ltu.se>
 
+	* arts-2-3-89
+
+	* Added a DOIT testcase demonstrating first guess field from read-in
+	precalculated doit_i_field1D_spectrum
+
+	* controlfiles/artscomponents/doit/TestDOITprecalcInit.arts:
+	Added. Precalculated first guess test case.
+
+	* controlfiles/artscomponents/doit/TestDOIT.doit_i_field1D_spectrum.xml:
+	Added. DOIT in-cloudbox solution from TestDOIT.arts as input to
+	TestDOITprecalcInit.arts
+
+	* controlfiles/artscomponents/doit/TestDOIT.arts, gas_abs_lookup.xml,
+	gas_abs_lookup.xml.bin:
+	Slight modifications in existing DOIT test case, e.g. using
+	2 frequencies and using 2 scattering elements.
+
+	* controlfiles/artscomponents/absorption/yREFERENCE_AbsParticle.xml,
+	controlfiles/artscomponents/doit/yREFERENCE_DOITprecalcInit.xml, yREFERENCE_DOIT.xml:
+	Reference output for 3 more cases added.
+
+2014-12-10  Jana Mendrok  <jana.mendrok@ltu.se>
+
 	* arts-2-3-88
 
 	* src/m_doit.cc, methods.cc (CloudboxGetIncoming):
