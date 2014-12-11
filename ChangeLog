@@ -1,3 +1,12 @@
+2014-12-11  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-93
+
+	* src/src/linemixingdata.cc
+	(LineMixingData::GetLBLRTM, LineMixingData::GetLBLRTM_O2NonResonant):
+
+	Add chk_interpolation_grids to avoid assertion.
+
 2014-12-11  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-92

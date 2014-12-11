@@ -24,6 +24,7 @@ USA. */
 **/
 
 #include "linemixingdata.h"
+#include "check_input.h"
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -50,7 +51,12 @@ void LineMixingData::GetLBLRTM(Numeric& Y, Numeric& G, const Numeric& Temperatur
       
       Matrix itw;
       itw.resize(gp.nelem(),order+1);
-      
+
+      chk_interpolation_grids("Line mixing data temperature interpolation",
+                              t,
+                              T0,
+                              order);
+
       // Interpolation variale determination
       gridpos_poly(gp, t, T0, order);
       interpweights(itw, gp);
@@ -83,6 +89,11 @@ void LineMixingData::GetLBLRTM_O2NonResonant(Numeric& Gamma1, Numeric& Gamma2, c
       Matrix itw;
       itw.resize(gp.nelem(),order+1);
       
+      chk_interpolation_grids("Line mixing data O2 non-resonant temperature interpolation",
+                              t,
+                              T0,
+                              order);
+
       // Interpolation variale determination
       gridpos_poly(gp, t, T0, order);
       interpweights(itw, gp);
