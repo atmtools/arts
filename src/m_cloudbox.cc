@@ -223,7 +223,7 @@ void cloudboxSetAutomatically (// WS Output:
               //cout << "found particles\n";
 
               // check if p1 is the lowest index in all selected
-              // massdensity fields
+              // scattering species fields
               if ( p1 > i )
               {
                 p1 = i;
@@ -249,7 +249,7 @@ void cloudboxSetAutomatically (// WS Output:
             //cout << "found particles\n";
 
             // check if p2 is the highest index in all selected
-            // massdensity fields
+            // scattering species fields
             if ( p2 < j )
             {
               p2 = j;
@@ -355,7 +355,7 @@ void cloudboxSetAutomatically (// WS Output:
 
   //out0<<"\n"<<p2<<"\n"<<p_grid[p2]<<"\n";
 
-  // check if all selected massdensity fields are zero at each level,
+  // check if all selected scattering species fields are zero at each level,
   // than switch cloudbox off, skipping scattering calculations
   if ( !x )
   {

@@ -1,5 +1,13 @@
 2014-12-10  Jana Mendrok  <jana.mendrok@ltu.se>
 
+	* arts-2-3-91
+
+	* src/methods.cc, workspace.cc, m_cloudbox.cc, cloudbox.cc: Updated and
+	completed online-doc on scat_species_mass/number_density/flux_field.
+	Updated terminology in code comments.
+
+2014-12-10  Jana Mendrok  <jana.mendrok@ltu.se>
+
 	* arts-2-3-90
 
 	* ChangeLog: with change message arts-2-3-89

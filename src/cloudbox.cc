@@ -3399,7 +3399,7 @@ void scale_pnd  (  Vector& w,
  *  Deviation is calculated and used to adjust the output of vector pnd.
          
 	\param pnd   particle number density [#/m3]
-	\param xwc   scattering species massdensity [kg/m3]
+	\param xwc   scattering species mass density [kg/m3]
 	\param mass  scattering element mass [kg]
   
   \author Daniel Kreyling
