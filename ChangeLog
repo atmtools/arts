@@ -1,5 +1,11 @@
 2014-12-10  Jana Mendrok  <jana.mendrok@ltu.se>
 
+	* arts-2-3-90
+
+	* ChangeLog: with change message arts-2-3-89
+
+2014-12-10  Jana Mendrok  <jana.mendrok@ltu.se>
+
 	* arts-2-3-89
 
 	* Added a DOIT testcase demonstrating first guess field from read-in
@@ -12,10 +18,16 @@
 	Added. DOIT in-cloudbox solution from TestDOIT.arts as input to
 	TestDOITprecalcInit.arts
 
-	* controlfiles/artscomponents/doit/TestDOIT.arts, gas_abs_lookup.xml,
-	gas_abs_lookup.xml.bin:
+	* controlfiles/CMakeLists.txt:
+	Include TestDOITprecalcInit in regular test case set.
+
+	* controlfiles/artscomponents/doit/TestDOIT.arts,
+	controlfiles/testdata/testdoit_gas_abs_lookup.xml, testdoit_gas_abs_lookup.xml.bin:
 	Slight modifications in existing DOIT test case, e.g. using
 	2 frequencies and using 2 scattering elements.
+
+	* controlfiles/artscomponents/absorption/TestAbsParticle.arts:
+	Using same abs_lookup as TestDOIT.arts, hence adapted to changes made there.
 
 	* controlfiles/artscomponents/absorption/yREFERENCE_AbsParticle.xml,
 	controlfiles/artscomponents/doit/yREFERENCE_DOITprecalcInit.xml, yREFERENCE_DOIT.xml:
