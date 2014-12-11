@@ -1,5 +1,20 @@
 2014-12-11  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-3-94
+
+	* src/linerecord.cc:
+
+	(LineRecord::ReadFromArtscat5Stream):
+
+	Use double_imanip for parsing floating point numbers. Otherwise breaks
+	using the failbit for error detection in gcc. Contrary to clang, gcc
+	sets the failbit to true if it encounters a NaN value.
+
+	(operator<<): Don't write Sgam separately into ARTSCAT-5. It is part of the
+	pressurebroadening.
+
+2014-12-11  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-3-93
 
 	* src/src/linemixingdata.cc

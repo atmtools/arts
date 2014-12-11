@@ -30,6 +30,8 @@
 
 #include "global_data.h"
 
+#include "file.h"
+
 
 String LineRecord::VersionString() const
 {
@@ -3281,30 +3283,26 @@ bool LineRecord::ReadFromArtscat5Stream(istream& is, const Verbosity& verbosity)
 
 
             // Extract center frequency:
-            icecream >> mf;
+            icecream >> double_imanip() >> mf;
 
 
             // Extract intensity:
-            icecream >> mi0;
+            icecream >> double_imanip() >> mi0;
 
             // Extract reference temperature for Intensity in K:
-            icecream >> mti0;
+            icecream >> double_imanip() >> mti0;
 
             // Extract lower state energy:
-            icecream >> melow;
+            icecream >> double_imanip() >> melow;
 
             // Extract Einstein A-coefficient:
-            icecream >> ma;
+            icecream >> double_imanip() >> ma;
 
             // Extract upper state stat. weight:
-            icecream >> mgupper;
+            icecream >> double_imanip() >> mgupper;
 
             // Extract lower state stat. weight:
-            icecream >> mglower;
-
-            // Extract broadening parameters:
-            Numeric sgam;
-            icecream >> sgam;
+            icecream >> double_imanip() >> mglower;
 
             String token;
             Index nelem;
@@ -3323,7 +3321,7 @@ bool LineRecord::ReadFromArtscat5Stream(istream& is, const Verbosity& verbosity)
                     Vector broadening(nelem);
                     for (Index ib = 0; ib < nelem; ib++)
                     {
-                        icecream >> broadening[ib];
+                        icecream >> double_imanip() >> broadening[ib];
                     }
                     mpressurebroadeningdata.SetDataFromVectorWithKnownType(broadening);
                     icecream >> token;
@@ -3377,7 +3375,7 @@ bool LineRecord::ReadFromArtscat5Stream(istream& is, const Verbosity& verbosity)
                     Vector lmd(n);
                     for (Index l = 0; l < n; l++)
                     {
-                        icecream >> lmd[l];
+                        icecream >> double_imanip() >> lmd[l];
                         if (!icecream)
                         {
                             ostringstream os;
@@ -3527,8 +3525,7 @@ ostream& operator<< (ostream& os, const LineRecord& lr)
           << " " << lr.Elow()
           << " " << lr.A()
           << " " << lr.G_upper()
-          << " " << lr.G_lower()
-          << " " << lr.Sgam();
+          << " " << lr.G_lower();
 
           // Write Pressure Broadening
           {
