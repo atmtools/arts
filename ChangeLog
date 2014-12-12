@@ -1,5 +1,11 @@
 2014-12-10  Jana Mendrok  <jana.mendrok@ltu.se>
 
+	* arts-2-2-38
+
+	* CHANGES-2.2: Added DoitInit-before-CloudboxGetIncoming note.
+
+2014-12-10  Jana Mendrok  <jana.mendrok@ltu.se>
+
 	* arts-2-2-37
 
 	* controlfiles/CMakeLists.txt:
