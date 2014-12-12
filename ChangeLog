@@ -1,3 +1,11 @@
+2014-12-12  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-96
+
+	* src/methods.cc: The description of aux var Transmission, of
+	iyEmissionStandard and iyTransmissioStandard, was cryptic, or
+	maybe even wrong. Now hopefully more clear.
+
 2014-12-10  Jana Mendrok  <jana.mendrok@ltu.se>
 
 	* arts-2-3-95
