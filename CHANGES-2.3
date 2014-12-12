@@ -1,3 +1,31 @@
+Key features
+============
+
+
+General
+=======
+- new format of scattering meta data (see online doc of scat_meta_single)
+
+- Cleaner separation of scattering data of the different scattering species:
+  scat_data and scat_meta now organized as ArrayOfArrayOfSingleScattering/MetaData
+  with each high-level array element corresponding to one scattering species,
+  each lower level array element corresponding to one scattering element.
+
+- ScatteringParticlesSelect doesn't select on material anymore (governed by
+  sorting scattering data into ArrayOfArray...). Size range selection changed to
+  diameter based selection instead of radius based.
+
+- default input format for compact batch atmospheres changed from ArrayOfMatrix
+  to ArrayOfGriddedField. Selection of fields from input data now purely on the
+  basis of abs_species and scat_species definitions.
+
+- DoitInit required to be called before DoitGetIncoming.
+
+- Doit's first guess field now can be initialized with a (precalculated)
+  complete in-cloudbox field instead of (or in addition to) deriving it from
+  clearsky incoming radiation.
+
+
 NAME CHANGES-2.3
 ================
 
@@ -5,4 +33,7 @@ NAME CHANGES-2.3
 - ParticleSpeciesInit -> scat_speciesInit
 - ParticleSpeciesSet -> scat_speciesSet
 - scat_data_per_part_species -> scat_data_per_scat_species
+- scat_data_array -> scat_data
+- scat_meta_array -> scat_meta
+- CloudboxGetIncoming -> DoitGetIncoming
 

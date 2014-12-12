@@ -2867,7 +2867,7 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "CloudboxGetIncoming" ),
+      ( NAME( "DoitGetIncoming" ),
         DESCRIPTION
         (
          "Calculates incoming radiation field of the cloudbox by repeated\n"
@@ -2906,10 +2906,10 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "CloudboxGetIncoming1DAtm" ),
+      ( NAME( "DoitGetIncoming1DAtm" ),
         DESCRIPTION
         (
-         "As *CloudboxGetIncoming* but assumes clear sky part to be 1D."
+         "As *DoitGetIncoming* but assumes clear sky part to be 1D."
          "\n"
          "The incoming field is calculated only for one position and azimuth\n"
          "angle for each cloud box boundary, and obtained values are used\n"
@@ -2923,8 +2923,8 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "atmfields_checked", "atmgeom_checked",
-            "cloudbox_checked", "iy_main_agenda", "atmosphere_dim", 
+        IN( "atmfields_checked", "atmgeom_checked", "cloudbox_checked",
+            "doit_is_initialized", "iy_main_agenda", "atmosphere_dim", 
             "lat_grid", "lon_grid", "z_field", "t_field", "vmr_field",
             "cloudbox_on", "cloudbox_limits",
             "f_grid", "stokes_dim", 
@@ -3427,9 +3427,11 @@ void define_md_data_raw()
          "A wrapper to internal particle size and shape distribution\n"
          "calculation. Heymsfield (2013) is a globally valid parametrization\n"
          "for cloud ice. The parametrization is in ambient atmospheric\n"
-         "temperature over particle size in terms of maximum dimension. It\n"
-         "provides the shape of the distribution function of both number\n"
-         "density and area ratio.\n"
+         "temperature over particle size in terms of maximum dimension.\n"
+         "\n"
+         "Provides only the shape of the distribution function of both number\n"
+         "density and area ratio. When used by *pnd_fieldSetup*, number\n"
+         "density is rescaled to the given ice water content [kg/m3].\n"
          ),
         AUTHORS( "Jana Mendrok" ),
         OUT(),
@@ -3455,10 +3457,13 @@ void define_md_data_raw()
          "A wrapper to internal particle size distribution calculation.\n"
          "Heymsfield (2011) is an unpublished pre-version of\n"
          "Heymsfield (2013). It is a globally valid parametrization for cloud\n"
-         "ice. The parametrization is in ambient atmospheric temperature over\n"
-         "particle size in terms of maximum dimension of the particles (in ARTS:\n"
-         "the scattering elements).\n"
-         "Provides only the shape of the number density disribution function.\n"
+         "ice. The parametrization is in ambient atmospheric temperature\n"
+         "over particle size in terms of maximum dimension of the\n"
+         "scattering elements).\n"
+         "\n"
+         "Provides only the shape of the number density distribution\n"
+         "function. When used by *pnd_fieldSetup*, it is rescaled to the\n"
+         "given ice water content [kg/m3].\n"
          ),
         AUTHORS( "Jana Mendrok" ),
         OUT(),
@@ -3484,8 +3489,10 @@ void define_md_data_raw()
          "A wrapper to internal particle size distribution calculation. The\n"
          "distribution implemented here is for cloud liquid water,\n"
          "specifically for continental stratus. The parametrization is over\n"
-         "radius of spherical droplets. Provides number density normalized to\n"
-         "the given liquid water content.\n"
+         "diameter of spherical droplets.\n"
+         "\n"
+         "Provides number density normalized to the given liquid water\n"
+         "content [kg/m3].\n"
          ),
         AUTHORS( "Jana Mendrok" ),
         OUT(),
@@ -3512,11 +3519,13 @@ void define_md_data_raw()
          "McFarquhar and Heymsfield (1997) is a parametrization for cloud\n"
          "ice in the tropics. Parametrization is in ice water content (IWC)\n"
          "and ambient atmospheric temperature over particle size in terms of\n"
-         "mass equivalent sphere diameter. McFarquhar and Heymsfield (1997)\n"
-         "additionally provide uncertainties of the distribution's\n"
-         "parameters, which can be used here to created perturbed\n"
-         "distributions (set *noisy* to 1). Provides number density\n"
-         "normalized to the given ice water content.\n"
+         "mass equivalent sphere diameter of the ice particles. McFarquhar\n"
+         "and Heymsfield (1997) additionally provide uncertainties of the\n"
+         "distribution's parameters, which can be used here to create\n"
+         "perturbed distributions (set *noisy* to 1).\n"
+         "\n"
+         "Provides number density normalized to the given ice water content\n"
+         "[kg/m3].\n"
          ),
         AUTHORS( "Jana Mendrok" ),
         OUT(),
@@ -3539,14 +3548,16 @@ void define_md_data_raw()
       DESCRIPTION
       (
        "Calculation of particle size distribution (dN/dD) following\n"
-       "Field et al. (2007) for tropics parametrization.\n"
+       "Field et al. (2007) parametrization for tropical conditions.\n"
        "\n"
        "A wrapper to internal particle size distribution calculation.\n"
-       "Field et al. (2007) for tropics is a parametrization for Snow\n"
-       "and cloud ice in the tropics. Parametrization is in ice water content (IWC)\n"
-       "and ambient atmospheric temperature over particle size in terms of\n"
-       "maximum diameter. Provides number density\n"
-       "normalized to the given snow/ice water content.\n"
+       "This distribution is a parametrization for snow and cloud ice in the\n"
+       "tropics. Parametrization is in snow water or ice water content (SWC,\n"
+       "IWC) and ambient atmospheric temperature over particle size in terms\n"
+       "of maximum diameter.\n"
+       "\n"
+       "Provides number density normalized to the given snow/ice water\n"
+       "content [kg/m3].\n"
        ),
       AUTHORS( "Manfred Brath" ),
       OUT(),
@@ -3558,10 +3569,10 @@ void define_md_data_raw()
       GIN_TYPE( "Vector", "Numeric", "Numeric", "Numeric", "Numeric" ),
       GIN_DEFAULT( NODEF, NODEF, NODEF, "0.0257","2.0" ),
       GIN_DESC( "Maximum diameter of the particles [m]",
-               "Atmospheric ice water content [kg/m3]",
-               "Ambient atmospheric temperature [K]",
-               "Factor for the mass-dimension (m=alpha*(Dmax/D0)^beta) relationship [kg]",
-               "Exponent for the mass-dimension relationship [pure number]")
+                "Atmospheric ice water content [kg/m3]",
+                "Ambient atmospheric temperature [K]",
+                "Factor for the mass-dimension (m=alpha*(Dmax/D0)^beta) relationship [kg]",
+                "Exponent for the mass-dimension relationship [pure number]")
       ));
     
   md_data_raw.push_back
@@ -3570,14 +3581,16 @@ void define_md_data_raw()
       DESCRIPTION
       (
        "Calculation of particle size distribution (dN/dD) following\n"
-       "Field et al. (2007) for mid latitude parametrization.\n"
+       "Field et al. (2007) parametrization for mid-latitude conditions.\n"
        "\n"
        "A wrapper to internal particle size distribution calculation.\n"
-       "Field et al. (2007) for mid latitude is a parametrization for Snow\n"
-       "and cloud ice in mid latitude. Parametrization is in ice water content (IWC)\n"
-       "and ambient atmospheric temperature over particle size in terms of\n"
-       "maximum diameter. Provides number density\n"
-       "normalized to the given snow/ice water content.\n"
+       "This distribution is a parametrization for snow and cloud ice in the\n"
+       "mid-latitudes. Parametrization is in snow water or ice water content\n"
+       "(SWC, IWC) and ambient atmospheric temperature over particle size in\n"
+       "terms of maximum diameter.\n"
+       "\n"
+       "Provides number density normalized to the given snow/ice water\n"
+       "content [kg/m3].\n"
        ),
       AUTHORS( "Manfred Brath" ),
       OUT(),
@@ -3589,10 +3602,10 @@ void define_md_data_raw()
       GIN_TYPE( "Vector", "Numeric", "Numeric", "Numeric", "Numeric" ),
       GIN_DEFAULT( NODEF, NODEF, NODEF, "0.0257","2.0" ),
       GIN_DESC( "Maximum diameter of the particles [m]",
-               "Atmospheric ice water content [kg/m3]",
-               "Ambient atmospheric temperature [K]",
-               "Factor for the mass-dimension (m=alpha*(Dmax/D0)^beta) relationship [kg]",
-               "Exponent for the mass-dimension relationship [pure number]")
+                "Atmospheric ice water content [kg/m3]",
+                "Ambient atmospheric temperature [K]",
+                "Factor for the mass-dimension (m=alpha*(Dmax/D0)^beta) relationship [kg]",
+                "Exponent for the mass-dimension relationship [pure number]")
       ));
     
   md_data_raw.push_back
@@ -3601,15 +3614,17 @@ void define_md_data_raw()
       DESCRIPTION
       (
        "Calculation of particle size distribution (dN/dD) according\n"
-       "to the modified gamma distribution for cloud water\n"
-       "inside of Geer and Baordo (2014)\n"
+       "to the fixed modified gamma distribution for liquid cloud water\n"
+       "inside of Geer and Baordo (2014).\n"
        "\n"
        "A wrapper to internal particle size distribution calculation.\n"
        "MDG_LWC is a parametrization for cloud liquid water. It is a\n"
-       "modified gamma distribution with the coefficients of Geer and Baordo (2014)\n"
-       "Parametrization is in liquid water content (LWC)\n"
-       "Assumptions are: density of particles is constant and particle shape is sphere.\n"
-       "Provides number density normalized to the given liquid water content.\n"
+       "modified gamma distribution with the coefficients of\n"
+       " Geer and Baordo (2014). It assumes spherical particles of constant\n"
+       "density.\n"
+       "\n"
+       "Provides number density normalized to the given liquid water content\n"
+       "[kg/m3].\n"
        ),
       AUTHORS( "Manfred Brath" ),
       OUT(),
@@ -3617,12 +3632,12 @@ void define_md_data_raw()
       GOUT_TYPE( "Vector" ),
       GOUT_DESC( "size distribution number density" ),
       IN(),
-      GIN( "diameter_volume_equ","rho","IWC"),
-      GIN_TYPE( "Vector","Numeric","Numeric" ),
+      GIN( "diameter_volume_equ", "rho", "LWC"),
+      GIN_TYPE( "Vector", "Numeric", "Numeric" ),
       GIN_DEFAULT( NODEF, NODEF, NODEF ),
       GIN_DESC( "Volume equivalent diameter of the particles [m]",
-               "Density of the particles [kg/m^3]",
-               "Atmospheric ice water content [kg/m3]")
+                "Density of the particles [kg/m^3]",
+                "Atmospheric ice water content [kg/m3]")
 
       ));
     
@@ -3633,14 +3648,16 @@ void define_md_data_raw()
       (
        "Calculation of particle size distribution (dN/dD) according\n"
        "to the modified gamma distribution for cloud ice\n"
-       "inside of Geer and Baordo (2014)\n"
+       "inside of Geer and Baordo (2014).\n"
        "\n"
        "A wrapper to internal particle size distribution calculation.\n"
-       "MDG_IWC is a parametrization for cloud ice. It is a\n"
-       "modified gamma distribution with the coefficients of Geer and Baordo (2014)\n"
-       "Parametrization is in liquid water content (IWC)\n"
-       "Assumptions are: density of particles is constant and particle shape is sphere.\n"
-       "Provides number density normalized to the given ice water content.\n"
+       "MDG_IWC is a parametrization for cloud ice water. It is a\n"
+       "modified gamma distribution with the coefficients of\n"
+       " Geer and Baordo (2014). It assumes spherical particles of constant\n"
+       "density.\n"
+       "\n"
+       "Provides number density normalized to the given ice water content\n"
+       "[kg/m3].\n"
        ),
       AUTHORS( "Manfred Brath" ),
       OUT(),
@@ -3668,8 +3685,10 @@ void define_md_data_raw()
          "Marshall and Palmer (1948) is a parametrization for precipitating\n"
          "hydrometeors, e.g., rain and snow. Parametrization is in\n"
          "precipitation rate (PR) over particle size, here taken in terms of\n"
-         "melted equivalent sphere diameter. Provides number density normalized\n"
-         "to the given precipitation rate.\n"
+         "melted equivalent sphere diameter.\n"
+         "\n"
+         "Provides number density normalized to the given precipitation rate\n"
+         "[kg/m2/s].\n"
          ),
         AUTHORS( "Jana Mendrok" ),
         OUT(),
@@ -3869,7 +3888,7 @@ void define_md_data_raw()
          "Note that multi-dimensional output variables (Tensors, specifically)\n"
          "are zero-initialized. That is, this methods needs to be called\n"
          "BEFORE other WSMs that provide input to *ScatteringDOIT*, e.g.\n"
-         "before *CloudboxGetIncoming*.\n"
+         "before *DoitGetIncoming*.\n"
          ),
         AUTHORS( "Claudia Emde" ),
         OUT( "scat_p_index", "scat_lat_index", "scat_lon_index", 
@@ -7917,11 +7936,11 @@ void define_md_data_raw()
          "Sets the WSV *scat_species*."
          "\n"
          "With this function, the user specifies settings for the \n"
-         "particle number density calculations using *pnd_fieldSetup*.\n"
-         "The input is an ArrayOfString that needs to be in a specific format,\n"
-         "for details, see WSV *scat_species*.\n"
+         "particle number density calculations by *pnd_fieldSetup*.\n"
+         "The input is an ArrayOfString that needs to be in a specific format.\n"
+         "For details, see WSV *scat_species*.\n"
          "\n"         
-         "*Example:*  ['IWC-MH97-Ice-0.1-200', 'LWC-H98_STCO-Water-0.1-50']\n"
+         "*Example:*  ['IWC-MH97-0.1-200', 'LWC-H98_STCO-0.1-50']\n"
          ),
         AUTHORS( "Daniel Kreyling" ),
         OUT( "scat_species" ),
@@ -8276,11 +8295,10 @@ void define_md_data_raw()
          "\n"
          "The method calculates the number densities (pnd_field values) of\n"
          "all individual scattering elements covered by the considered\n"
-         "scattering species for all grid points in the cloudbox. The number\n"
-         "densities represent the mass density, mass flux, an/or number\n"
-         "density fields of the scattering species according to the particle\n"
-         "size distribution (PSD) chosen for the respective scattering\n"
-         "species.\n"
+         "scattering species for all grid points in the cloudbox. The pnds\n"
+         "represent the mass density, mass flux, an/or number density fields\n"
+         "of the scattering species according to the particle size\n"
+         "distribution (PSD) chosen for the respective scattering species.\n"
          "\n"
          "The following PSDs are available (for further information check\n"
          "their corresponding distribution WSM):\n"
@@ -9003,7 +9021,7 @@ void define_md_data_raw()
          "methods to calculate all the species in *abs_species*.\n"
          "\n"
          "This method should be called just before the *propmat_clearsky_agenda*\n"
-         "is used, e.g. *CloudboxGetIncoming*, *ybatchCalc*, *yCalc*\n"
+         "is used, e.g. *DoitGetIncoming*, *ybatchCalc*, *yCalc*\n"
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT( "propmat_clearsky_agenda_checked" ),

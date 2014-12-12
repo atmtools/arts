@@ -294,7 +294,7 @@ sensor_checkedCalc
 DoitInit
 
 # Calculate incoming radiation field at cloudbox boundary 
-CloudboxGetIncoming
+DoitGetIncoming
 
 # Executes doit_mono_agenda for all frequencies
 ScatteringDoit

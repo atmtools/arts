@@ -1,3 +1,31 @@
+2014-12-10  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-3-95
+
+	* src/m_doit.cc (CloudboxGetIncoming, CloudboxGetIncoming1DAtm):
+	Renamed to DoitGetIncoming[1DAtm]. Added doit-initialized check to 1DAtm
+	variant.
+
+	* controlfiles/artscomponents/doit/TestDOIT.arts,
+	controlfiles/artscomponents/doitbatch/TestDOITBatch.arts,
+	controlfiles/planetary_toolbox/demos/passive/DemoScat_DOIT_1D.arts,
+	doc/uguide/scattering.tex:
+	Followed name change CloudboxGetIncoming -> DoitGetIncoming.
+
+	* src/methods.cc (CloudboxGetIncoming, CloudboxGetIncoming1DAtm):
+	Renamed CloudboxGetIncoming[1dAtm] -> DoitGetIncoming[1DAtm] at all
+	occurences.
+	(dNdD_*):
+	Updated docs making sure, scaling and scaling parameter are pointed out.
+
+	* src/agendas.cc (met_profile_calc_agenda):
+	Updated WSM names in example agenda setting.
+
+	* src/cloudbox.cc (parse_part_size), src/workspace.cc (scat_species):
+	Corrected doc (assuming diamter, not radius).
+
+	* CHANGES-2.2, CHANGES-2.3: Updated.
+
 2014-12-11  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-94

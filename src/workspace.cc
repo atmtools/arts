@@ -3581,7 +3581,7 @@ void Workspace::define_wsv_data()
        "  the size distribution function/parametrization to apply. For\n"
        "  currently possible PSDs see *pnd_fieldSetup*.\n"
        "- sizemin and sizemax [*Numeric*]:\n"
-       "  the minimum and maximum size (volume equivalent sphere radius in um)\n"
+       "  the minimum and maximum size (volume equivalent sphere diameter in um)\n"
        "  of the individual scattering elements to consider. Minimum and\n"
        "  maximum size may be omitted (meaning, complete available size range\n"
        "  will be considered) and the symbol '*' can be used as a wildcard\n"

@@ -3654,9 +3654,10 @@ void parse_psd_param (//WS Output:
 }
 
 
-/*! Splitting scat_species string and parse min and max particle radius
-	\param  sizemin     minimum radius of particles to consider
-	\param  sizemax     maximum radius of particles to consider
+/*! Splitting scat_species string and parse min and max particle size
+	\param  sizemin     minimum size of particles to consider (size parameter
+                      might depend on the calling method)
+	\param  sizemax     maximum size of particles to consider
 	\param  part_string scattering species tag from *scat_species*
   \param  delim       delimiter string of *scat_species* elements
   

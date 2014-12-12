@@ -262,7 +262,7 @@ AgendaSet( ybatch_calc_agenda ){
   DoitInit
 
   # Calculate incoming radiation field on cloudbox boundaries
-  CloudboxGetIncoming
+  DoitGetIncoming
 
   # Executes doit_mono_agenda for all frequencies
   ScatteringDoit

@@ -226,8 +226,8 @@ propmat_clearsky_agenda_checkedCalc
 #####
 Copy( strtmp, iy_unit )
 StringSet( iy_unit, "1" )
-CloudboxGetIncoming( maxratio=DOITinterpol_ratio )
 DoitInit
+DoitGetIncoming( maxratio=DOITinterpol_ratio )
 ScatteringDoit
 
 # and the (clearsky) RT calc

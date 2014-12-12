@@ -2748,7 +2748,7 @@ void DoitCloudboxFieldPut(//WS Output:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void CloudboxGetIncoming(
+void DoitGetIncoming(
          Workspace&      ws,
          Tensor7&        scat_i_p,
          Tensor7&        scat_i_lat,
@@ -2794,7 +2794,7 @@ void CloudboxGetIncoming(
   if (!doit_is_initialized)
     throw runtime_error(
                         "Initialization method *DoitInit* has to be "
-                        "put before *CloudboxGetIncoming*");
+                        "put before *DoitGetIncoming*");
 
   // DOIT requires frequency based radiance:
   if( !chk_if_std_blackbody_agenda( ws, blackbody_radiation_agenda ) )
@@ -3045,7 +3045,7 @@ void CloudboxGetIncoming(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void CloudboxGetIncoming1DAtm(
+void DoitGetIncoming1DAtm(
          Workspace&      ws,
          Tensor7&        scat_i_p,
          Tensor7&        scat_i_lat,
@@ -3054,6 +3054,7 @@ void CloudboxGetIncoming1DAtm(
    const Index&    atmfields_checked,
    const Index&    atmgeom_checked,
    const Index&    cloudbox_checked,
+   const Index&    doit_is_initialized,
    const Agenda&   iy_main_agenda,
    const Index&    atmosphere_dim,
    const Vector&   lat_grid,
@@ -3082,6 +3083,12 @@ void CloudboxGetIncoming1DAtm(
   
   // Don't do anything if there's no cloudbox defined.
   if (!cloudbox_on) return;
+
+  // Check whether DoitInit was executed
+  if (!doit_is_initialized)
+    throw runtime_error(
+                        "Initialization method *DoitInit* has to be "
+                        "put before *DoitGetIncoming*");
 
   // DOIT requires frequency based radiance:
   if( !chk_if_std_blackbody_agenda( ws, blackbody_radiation_agenda ) )
