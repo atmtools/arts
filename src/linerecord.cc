@@ -3316,7 +3316,7 @@ bool LineRecord::ReadFromArtscat5Stream(istream& is, const Verbosity& verbosity)
                     icecream >> token;
                     mpressurebroadeningdata.StorageTag2SetType(token);
 
-                    icecream >> nelem;
+                    nelem = mpressurebroadeningdata.ExpectedVectorLengthFromType();
 
                     Vector broadening(nelem);
                     for (Index ib = 0; ib < nelem; ib++)
@@ -3367,13 +3367,10 @@ bool LineRecord::ReadFromArtscat5Stream(istream& is, const Verbosity& verbosity)
                     icecream >> token;
                     mlinemixingdata.StorageTag2SetType(token);
 
-                    Index n = -1;
-                    icecream >> n;
-                    if (n < 1)
-                        throw std::runtime_error("Error parsing line mixing data number of elements");
+                    nelem = mlinemixingdata.ExpectedVectorLengthFromType();
 
-                    Vector lmd(n);
-                    for (Index l = 0; l < n; l++)
+                    Vector lmd(nelem);
+                    for (Index l = 0; l < nelem; l++)
                     {
                         icecream >> double_imanip() >> lmd[l];
                         if (!icecream)
@@ -3535,7 +3532,7 @@ ostream& operator<< (ostream& os, const LineRecord& lr)
                   ls << " PB " << pbd.Type2StorageTag();
                   Vector broadening;
                   pbd.GetVectorFromData(broadening);
-                  ls << " " << broadening.nelem() << " " << broadening;
+                  ls << " " << broadening;
               }
           }
 
@@ -3566,7 +3563,7 @@ ostream& operator<< (ostream& os, const LineRecord& lr)
                   if (mixingdata.nelem() > 0)
                   {
                       ls << " LM " << lm.Type2StorageTag();
-                      ls << " " << mixingdata.nelem() << " " << mixingdata;
+                      ls << " " << mixingdata;
                   }
               }
 
