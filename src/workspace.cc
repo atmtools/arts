@@ -1967,6 +1967,24 @@ void Workspace::define_wsv_data()
        ),
        GROUP( "ArrayOfArrayOfIndex" )));*/
 
+       
+    wsv_data.push_back
+     (WsvRecord
+      ( NAME( "lm_p_lim" ),
+        DESCRIPTION
+        (
+            "The lower pressure limit at which line mixing takes place.\n"
+            "\n"
+            "The necessity to set this number depends on line mixing model\n"
+            "and atmospheric profiles.\n"
+            "\n"
+            "Unit:  Pa\n"
+            "\n"
+            "Usage: Set by the user.\n"
+        ),
+        GROUP( "Numeric" )));
+    
+       
   wsv_data.push_back
    (WsvRecord
     ( NAME( "lo" ),

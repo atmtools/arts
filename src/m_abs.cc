@@ -1603,6 +1603,7 @@ void abs_xsec_per_speciesAddLines(// WS Output:
                                   const Vector&                    f_grid,
                                   const Vector&                    abs_p,
                                   const Vector&                    abs_t,
+                                  const Numeric&                   lm_p_lim,
                                   const Matrix&                    abs_vmrs,
                                   const ArrayOfArrayOfLineRecord&  abs_lines_per_species,
                                   const ArrayOfLineshapeSpec&      abs_lineshape,
@@ -1844,6 +1845,7 @@ void abs_xsec_per_speciesAddLines(// WS Output:
                                                  Vector(),
                                                  ls.Ind_ls(),
                                                  ls.Ind_lsn(),
+                                                 lm_p_lim,
                                                  ls.Cutoff(),
                                                  isotopologue_ratios,
                                                  verbosity);

@@ -1551,6 +1551,7 @@ void xsec_species_line_mixing_wrapper(  MatrixView               xsec_attenuatio
                                         const Vector&            Z_DF,
                                         const Index              ind_ls,
                                         const Index              ind_lsn,
+                                        const Numeric            lm_p_lim,
                                         const Numeric            cutoff,
                                         const SpeciesAuxData&    isotopologue_ratios,
                                         const Verbosity&         verbosity )
@@ -1735,6 +1736,7 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                                                         f_grid,
                                                         p,
                                                         t,
+                                                        lm_p_lim,
                                                         gamma,
                                                         deltaf_pressure,
                                                         abs_lines[ii],
@@ -1755,6 +1757,7 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                                                           f_grid,
                                                           p,
                                                           t,
+                                                          lm_p_lim,
                                                           gamma,
                                                           deltaf_pressure,
                                                           abs_lines[ii],
@@ -1774,6 +1777,7 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                                                            f_grid,
                                                            p,
                                                            t,
+                                                           lm_p_lim,
                                                            gamma,
                                                            deltaf_pressure,
                                                            abs_lines[ii],
@@ -1829,6 +1833,7 @@ void xsec_species_line_mixing_2nd_order(VectorView               xsec_attenuatio
                                         const Vector&            f_grid,
                                         const Numeric            p,
                                         const Numeric            t,
+                                        const Numeric            lm_p_lim,
                                         const Numeric            gamma,
                                         const Numeric            deltaf,
                                         const LineRecord&        my_line,
@@ -1840,10 +1845,7 @@ void xsec_species_line_mixing_2nd_order(VectorView               xsec_attenuatio
 {
     
     Numeric Y, G, DV;
-    my_line.LineMixing().Get2ndOrder(Y,G,DV,t);
-    Y  *= p;
-    G  *= p * p;
-    DV *= p * p;
+    my_line.LineMixing().Get2ndOrder(Y,G,DV,t,p,lm_p_lim);
 
     xsec_single_line(xsec_attenuation, 
                      xsec_phase, 
@@ -1920,6 +1922,7 @@ void xsec_species_line_mixing_LBLRTM(VectorView               xsec_attenuation,
                                      const Vector&            f_grid,
                                      const Numeric            p,
                                      const Numeric            t,
+                                     const Numeric            lm_p_lim,
                                      const Numeric            gamma,
                                      const Numeric            deltaf,
                                      const LineRecord&        my_line,
@@ -1930,9 +1933,7 @@ void xsec_species_line_mixing_LBLRTM(VectorView               xsec_attenuation,
                                      const SpeciesAuxData&    isotopologue_ratios)
 {
     Numeric Y, G;
-    my_line.LineMixing().GetLBLRTM(Y,G,t,1);
-    Y  *= p;
-    G  *= p * p;
+    my_line.LineMixing().GetLBLRTM(Y,G,t,p,lm_p_lim,1);
     
     xsec_single_line(xsec_attenuation, 
                      xsec_phase, 
@@ -2001,6 +2002,7 @@ void xsec_species_LBLRTM_O2NonResonant(VectorView               xsec_attenuation
                                        const Vector&            f_grid,
                                        const Numeric            p,
                                        const Numeric            t,
+                                       const Numeric            lm_p_lim,
                                        const Numeric            gamma,
                                        const Numeric            deltaf,
                                        const LineRecord&        my_line,
@@ -2010,9 +2012,7 @@ void xsec_species_LBLRTM_O2NonResonant(VectorView               xsec_attenuation
                                        const Verbosity& verbosity)
 {
     Numeric gamma1, gamma2;
-    my_line.LineMixing().GetLBLRTM_O2NonResonant(gamma1,gamma2,t,1);
-    gamma1  *= p;
-    gamma2  *= p * p;
+    my_line.LineMixing().GetLBLRTM_O2NonResonant(gamma1,gamma2,t,p,lm_p_lim,1);
     
     ArrayOfLineshapeSpec tmp;
     abs_lineshapeDefine( tmp, "O2NonResonant", "no_norm", -1, verbosity );

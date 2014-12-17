@@ -61,6 +61,7 @@ void xsec_species_line_mixing_wrapper_with_zeeman(
         const Vector& abs_p,
         const Vector& abs_t, 
         const Vector& f_grid, 
+        const Numeric& lm_p_lim,
         const Numeric& theta, 
         const Numeric& eta, 
         const Index& DM, 

@@ -101,7 +101,7 @@ void PressureBroadeningData::GetPerrinBroadening(Numeric& gamma,
     Numeric broad_spec_vmr_sum = 0;
     
     // Gamma is the line width. We first initialize gamma with the self width
-    gamma = mdata[0][0] * pow(theta, mdata[1][0]) * self_pressure;
+    gamma = mdata[0][0] * std::pow(theta, mdata[1][0]) * self_pressure;
     
     // Set deltaf to 0
     deltaf = 0;
@@ -129,12 +129,12 @@ void PressureBroadeningData::GetPerrinBroadening(Numeric& gamma,
             broad_spec_vmr_sum += vmrs[broad_spec_locations[i]];
             
             // foreign broadening:
-            foreign_gamma +=  mdata[2][i] * pow(theta, mdata[3][i])
+            foreign_gamma +=  mdata[2][i] * std::pow(theta, mdata[3][i])
                 * vmrs[broad_spec_locations[i]];
             
             // Delta f (not .25+1.5*foreign_broadening)
             deltaf += mdata[4][i]
-            * pow( theta , (Numeric).25 + (Numeric)1.5*mdata[3][i] )
+            * std::pow( theta , (Numeric).25 + (Numeric)1.5*mdata[3][i] )
             * vmrs[broad_spec_locations[i]];
         }
     }

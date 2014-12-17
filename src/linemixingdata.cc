@@ -32,96 +32,110 @@ USA. */
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //Note that first order is used by LBLRTM on the data we have.
-void LineMixingData::GetLBLRTM(Numeric& Y, Numeric& G, const Numeric& Temperature, const Index& order=1) const
+void LineMixingData::GetLBLRTM(Numeric& Y, Numeric& G, const Numeric& Temperature, const Numeric& Pressure, const Numeric& Pressure_Limit, const Index& order=1) const
     {
       assert( mtype == LM_LBLRTM );
       assert(mdata.nelem() == 3);
       assert(mdata[0].nelem() == 4 && mdata[1].nelem() == 4 && mdata[2].nelem() == 4);
       
-      // Helper to understand the following interpolation
-      const Vector& t = mdata[0];
-      const Vector& y = mdata[1];
-      const Vector& g = mdata[2];
-      
-      const Vector T0(1,Temperature);
-      Vector tmp(1);
-      
-      // Interpolation variables
-      ArrayOfGridPosPoly gp(1);
-      
-      Matrix itw;
-      itw.resize(gp.nelem(),order+1);
+      if(Pressure>Pressure_Limit)
+      {
+        // Helper to understand the following interpolation
+        const Vector& t = mdata[0];
+        const Vector& y = mdata[1];
+        const Vector& g = mdata[2];
+        
+        const Vector T0(1,Temperature);
+        Vector tmp(1);
+        
+        // Interpolation variables
+        ArrayOfGridPosPoly gp(1);
+        
+        Matrix itw;
+        itw.resize(gp.nelem(),order+1);
 
-      chk_interpolation_grids("Line mixing data temperature interpolation",
-                              t,
-                              T0,
-                              order);
+        chk_interpolation_grids("Line mixing data temperature interpolation",
+                                t,
+                                T0,
+                                order);
 
-      // Interpolation variale determination
-      gridpos_poly(gp, t, T0, order);
-      interpweights(itw, gp);
-      
-      // Interpolated values
-      interp(tmp, itw, y, gp);
-      Y = tmp[0];
-      interp(tmp,itw, g, gp);
-      G = tmp[0];
+        // Interpolation variale determination
+        gridpos_poly(gp, t, T0, order);
+        interpweights(itw, gp);
+        
+        // Interpolated values
+        interp(tmp, itw, y, gp);
+        Y = tmp[0] * Pressure;
+        interp(tmp,itw, g, gp);
+        G = tmp[0] * Pressure * Pressure;
+      }
+      else
+        Y=G=0;
 }
 
 
-void LineMixingData::GetLBLRTM_O2NonResonant(Numeric& Gamma1, Numeric& Gamma2, const Numeric& Temperature, const Index& order) const
+void LineMixingData::GetLBLRTM_O2NonResonant(Numeric& Gamma1, Numeric& Gamma2, const Numeric& Temperature, const Numeric& Pressure, const Numeric& Pressure_Limit, const Index& order=1) const
 {
       assert( mtype == LM_LBLRTM_O2NonResonant );
       assert(mdata.nelem() == 3);
       assert(mdata[0].nelem() == 4 && mdata[1].nelem() == 4 && mdata[2].nelem() == 4);
-      
-      // Helper to understand the following interpolation
-      const Vector& t = mdata[0];
-      const Vector& g1 = mdata[1];
-      const Vector& g2 = mdata[2];
-      
-      const Vector T0(1,Temperature);
-      Vector tmp(1);
-      
-      // Interpolation variables
-      ArrayOfGridPosPoly gp(1);
-      
-      Matrix itw;
-      itw.resize(gp.nelem(),order+1);
-      
-      chk_interpolation_grids("Line mixing data O2 non-resonant temperature interpolation",
-                              t,
-                              T0,
-                              order);
+     
+      if(Pressure>Pressure_Limit)
+      {
+        // Helper to understand the following interpolation
+        const Vector& t = mdata[0];
+        const Vector& g1 = mdata[1];
+        const Vector& g2 = mdata[2];
+        
+        const Vector T0(1,Temperature);
+        Vector tmp(1);
+        
+        // Interpolation variables
+        ArrayOfGridPosPoly gp(1);
+        
+        Matrix itw;
+        itw.resize(gp.nelem(),order+1);
+        
+        chk_interpolation_grids("Line mixing data O2 non-resonant temperature interpolation",
+                                t,
+                                T0,
+                                order);
 
-      // Interpolation variale determination
-      gridpos_poly(gp, t, T0, order);
-      interpweights(itw, gp);
-      
-      // Interpolated values
-      interp(tmp, itw, g1, gp);
-      Gamma1 = tmp[0];
-      interp(tmp,itw, g2, gp);
-      Gamma2 = tmp[0];
+        // Interpolation variale determination
+        gridpos_poly(gp, t, T0, order);
+        interpweights(itw, gp);
+        
+        // Interpolated values
+        interp(tmp, itw, g1, gp);
+        Gamma1 = tmp[0] * Pressure;
+        interp(tmp,itw, g2, gp);
+        Gamma2 = tmp[0] * Pressure * Pressure;
+      }
+      else
+        Gamma1=Gamma2=0;
 }
 
 
-void LineMixingData::Get2ndOrder(Numeric& Y, Numeric& G, Numeric& DV, const Numeric& Temperature) const
+void LineMixingData::Get2ndOrder(Numeric& Y, Numeric& G, Numeric& DV, const Numeric& Temperature, const Numeric& Pressure, const Numeric& Pressure_Limit) const
 {
       assert( mtype == LM_2NDORDER );
       assert(mdata.nelem() == 4);
       assert(mdata[0].nelem() == 1 && mdata[1].nelem() == 3 && mdata[2].nelem() == 3 && mdata[3].nelem() == 3);
       
-      // Helper to understand the following interpolation
-      const Numeric& T0  = mdata[0][0];
-      const Vector& y  = mdata[1];
-      const Vector& g  = mdata[2];
-      const Vector& dv = mdata[3];
-      
-      Y  =  ( ( y[0] + y[1] * ( T0/Temperature-1. ) ) * pow( T0/Temperature, y[2] ) );
-      G  =  ( ( g[0] + g[1] * ( T0/Temperature-1. ) ) * pow( T0/Temperature, g[2] ) );
-      DV  = ( ( dv[0] + dv[1] * ( T0/Temperature-1. ) ) * pow( T0/Temperature, dv[2] ) );
-      
+      if(Pressure>Pressure_Limit)
+      {
+        // Helper to understand the following interpolation
+        const Numeric& T0  = mdata[0][0];
+        const Vector& y  = mdata[1];
+        const Vector& g  = mdata[2];
+        const Vector& dv = mdata[3];
+        
+        Y  =  ( ( y[0] + y[1] * ( T0/Temperature-1. ) ) * pow( T0/Temperature, y[2] ) ) * Pressure;
+        G  =  ( ( g[0] + g[1] * ( T0/Temperature-1. ) ) * pow( T0/Temperature, g[2] ) ) * Pressure * Pressure;
+        DV  = ( ( dv[0] + dv[1] * ( T0/Temperature-1. ) ) * pow( T0/Temperature, dv[2] ) ) * Pressure * Pressure;
+      }
+      else
+        Y=DV=G=0;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -157,5 +157,11 @@ NumericSet( ppath_lraytrace, 1e3 )
 IndexSet( mc_min_iter, 100 )
 
 
+#
+# Line Mixing
+#
+# Limit to pressure is passed on as a constant numeric.  Default:  No limit
+NumericSet(lm_p_lim,0)
+
 }
 

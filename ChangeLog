@@ -1,3 +1,22 @@
+2014-12-17  Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-3-97
+	
+	Added lm_p_lim as a limit to pressure for line mixing. Default is 0.
+	This is because I encountered a problem with lblrtm line mixing
+	temperature grid at high altitude, where atmospheric temeprature is low.
+	Opted for workspace variable instead of linemixing variable by advice
+	from Oliver.  The other options were to make it part of abs_species 
+	or store limit per line, one of which is confusing, the other of which
+	is a waste of space.
+	
+	* src/linemixingdata*: Changed so that each function that deals with line
+	mixing accepts pressure and pressure limit.  If pressure is lower than
+	pressure limit, then the line mixing output is set to zero, essentailly
+	ignoring it.
+	
+	* the rest:  passing lm_p_lim to the right position.
+
 2014-12-12  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-96
