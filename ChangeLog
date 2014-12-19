@@ -1,3 +1,47 @@
+2014-12-19  Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-3-99
+	
+	This update fixes a bug with line mixing lblrtm at high temperatures
+	found from looking at artscat5 output. 
+	
+	Conversion from artscat3 to artscat5 more consistent though not perfect.
+	
+	Water and air pressure broadening scheme added.  
+	Promted due to finding:
+	"Pressure broadening of oxygen fine structure lines by water" in JQSRT Volume 154, 
+	March 2015, Pages 24–27.
+	
+	Tried for molecular oxygen at 118 GHz between 113 and 121 GHz with 5x 
+	subarctic-summer water content.	Results on initial trial gives difference 
+	to air broadening scheme of upwards 0.7 K for ground-based and as low as 
+	0.01 K for satellite-based platforms in this frequency range. Note that
+	the paper gives two values for water pressure broadening found using different 
+	spectroscopic techniques.  The least broadening had a factor ~3 less difference
+	with air broadening scheme as the values above
+	
+	
+	* src/absorption.cc: Using a routine to find the water index in abs_species.
+	Passing this along to pressure broadening.
+	
+	* src/linemixingdata.h:  Minor formatting.
+	
+	* src/linerecord.*,m_abs.cc:  Fixed bug on reading line mixing parameters at high
+	temperatures. Fixed error in conversion from artscat3 to artscat5.  artscat5 is identical
+	to artscat3 given the right pressure broadening definition, but before artscat3to4
+	was used as a layer.  Found that this fix removed strangeness in reading lines
+	from external, storing lines, then rereading lines from artscat5.  Now 
+	just reading lines from external is more close to the previous scheme, but some
+	cases it still produce strangeness (though at numerical drift levels of uncertainity).
+	
+	* src/pressurebroadeningdata.*:  Added a water and air pressure broadening scheme.
+	This assumes air pressure is pressure-self_pressure-water pressure for non-water
+	species then copies the simple air broadening scheme for the rest.  This method is
+	used only if artscat5 pressure broadening scheme tag is "WA", and expects a bit different
+	variables than simple air broadening.  No data error is stored, contrary to how air is
+	dealt with.  Proper documentation pending on time.
+	
+
 2014-12-17  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-98

@@ -158,9 +158,10 @@ void abs_linesArtscat5FromArtscat34(// WS Output:
         try
         {
             if (abs_lines[i].Version() == 3)
-                abs_lines[i].ARTSCAT4FromARTSCAT3();
-
-            abs_lines[i].ARTSCAT5FromARTSCAT4();
+                abs_lines[i].ARTSCAT5FromARTSCAT3();
+            else if (abs_lines[i].Version() == 4)
+                abs_lines[i].ARTSCAT5FromARTSCAT4();
+            
         }
         catch (runtime_error e)
         {

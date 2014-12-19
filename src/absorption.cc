@@ -773,6 +773,8 @@ void xsec_species( MatrixView               xsec_attenuation,
     find_broad_spec_locations(broad_spec_locations,
                               abs_species,
                               this_species);
+    const Index h2o_index = find_first_species_tg( abs_species,
+                                                   species_index_from_species_name("H2O") );
     
     String fail_msg;
     bool failed = false;
@@ -859,7 +861,7 @@ firstprivate(ls_attenuation, ls_phase, fac, f_local, aux)
                         Numeric gamma,deltaf;
                         l_l.PressureBroadening().GetPressureBroadeningParams(gamma,deltaf,
                                                                              l_l.Ti0()/t_i,p_i,
-                                                                             p_partial,this_species,
+                                                                             p_partial,this_species,h2o_index,
                                                                              broad_spec_locations,
                                                                              vmrs,verbosity);
                         
@@ -1671,6 +1673,9 @@ void xsec_species_line_mixing_wrapper(  MatrixView               xsec_attenuatio
     find_broad_spec_locations(broad_spec_locations,
                               abs_species,
                               this_species);
+    // Water index
+    const Index h2o_index = find_first_species_tg( abs_species,
+                           species_index_from_species_name("H2O") );
     
 #pragma omp parallel for        \
 if (!arts_omp_in_parallel())    \
@@ -1688,7 +1693,7 @@ firstprivate(attenuation, phase, fac, f_local, aux)
             {
                 abs_lines[ii].PressureBroadening().GetPressureBroadeningParams(gamma,deltaf_pressure,
                                                                                abs_lines[ii].Ti0()/t,p,
-                                                                               p_partial,this_species,
+                                                                               p_partial,this_species,h2o_index,
                                                                                broad_spec_locations,
                                                                                vmrs,verbosity);
                 

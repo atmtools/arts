@@ -37,6 +37,7 @@ void PressureBroadeningData::GetPressureBroadeningParams(Numeric& gamma,
                                                          const Numeric& pressure,
                                                          const Numeric& self_pressure,
                                                          const Index    this_species,
+                                                         const Index    h2o_species,
                                                          const ArrayOfIndex& broad_spec_locations,
                                                          ConstVectorView vmrs,
                                                          const Verbosity& verbosity) const
@@ -49,6 +50,9 @@ void PressureBroadeningData::GetPressureBroadeningParams(Numeric& gamma,
             break;
         case PB_AIR_BROADENING:
             GetAirBroadening(gamma, deltaf, theta, pressure, self_pressure);
+            break;
+        case PB_AIR_AND_WATER_BROADENING:
+            GetAirAndWaterBroadening(gamma, deltaf, theta, pressure, self_pressure,this_species,h2o_species,vmrs,verbosity);
             break;
         case PB_PERRIN_BROADENING:
             GetPerrinBroadening(gamma, deltaf, theta, pressure, self_pressure,
@@ -76,7 +80,57 @@ void PressureBroadeningData::GetAirBroadening(Numeric& gamma,
 }
 
 
-// Get Perring broadening
+// Get air broadening
+void PressureBroadeningData::GetAirAndWaterBroadening(Numeric& gamma,
+                                                      Numeric& deltaf,
+                                                      const Numeric& theta,
+                                                      const Numeric& pressure,
+                                                      const Numeric& self_pressure,
+                                                      const Index    this_species,
+                                                      const Index    h2o_species,
+                                                      ConstVectorView vmrs,
+                                                      const Verbosity& verbosity) const
+{
+    CREATE_OUT2;
+    
+    if(this_species==h2o_species)    
+    {
+        gamma   =
+        mdata[1][0] * pow(theta,mdata[1][1]) * (pressure-self_pressure)
+        + mdata[0][0] * pow(theta,mdata[0][1]) *         self_pressure;
+        
+        deltaf  =
+        mdata[1][2] * pow(theta,(Numeric)0.25+(Numeric)1.5*mdata[1][1]) * (pressure-self_pressure)
+        + mdata[0][2] * pow(theta,(Numeric)0.25+(Numeric)1.5*mdata[0][1]) *         self_pressure;
+    }
+    else if(h2o_species==-1)
+    {
+        gamma   =
+        mdata[1][0] * pow(theta,mdata[1][1]) * (pressure-self_pressure)
+        + mdata[0][0] * pow(theta,mdata[0][1]) *         self_pressure;
+        
+        deltaf  =
+        mdata[1][2] * pow(theta,(Numeric)0.25+(Numeric)1.5*mdata[1][1]) * (pressure-self_pressure)
+        + mdata[0][2] * pow(theta,(Numeric)0.25+(Numeric)1.5*mdata[0][1]) *         self_pressure;
+        
+        out2 << "You have no H2O in species but you use water-broadened line shape.\n";
+    }
+    else
+    {
+        gamma   =
+        mdata[1][0] * pow(theta,mdata[1][1]) * (pressure-self_pressure-vmrs[h2o_species]*pressure)
+        + mdata[0][0] * pow(theta,mdata[0][1]) * self_pressure
+        + mdata[2][0] * pow(theta,mdata[2][1]) * vmrs[h2o_species]*pressure;
+        
+        deltaf  =
+        mdata[1][2] * pow(theta,(Numeric)0.25+(Numeric)1.5*mdata[1][1]) * (pressure-self_pressure-vmrs[h2o_species]*pressure)
+        + mdata[0][2] * pow(theta,(Numeric)0.25+(Numeric)1.5*mdata[0][1]) * self_pressure
+        + mdata[2][2] * pow(theta,(Numeric)0.25+(Numeric)1.5*mdata[2][1]) * vmrs[h2o_species]*pressure;
+    }
+}
+
+
+// Get Perrin broadening
 void PressureBroadeningData::GetPerrinBroadening(Numeric& gamma,
                                                  Numeric& deltaf,
                                                  const Numeric& theta,
@@ -224,6 +278,39 @@ void PressureBroadeningData::SetAirBroadeningFromCatalog(const Numeric& sgam,
     mdataerror[4][0] = dair_pressure_DF;  // Pressure shift parameter
 }
 
+
+// Use these to insert the data in the required format from catalog readings
+void PressureBroadeningData::SetAirAndWaterBroadeningFromCatalog(const Numeric& sgam, 
+                                                                 const Numeric& sn, 
+                                                                 const Numeric& sdelta, 
+                                                                 const Numeric& agam,
+                                                                 const Numeric& an,
+                                                                 const Numeric& adelta,
+                                                                 const Numeric& wgam,
+                                                                 const Numeric& wn,
+                                                                 const Numeric& wdelta) 
+{
+    mtype = PB_AIR_AND_WATER_BROADENING;
+    mdata.resize(3);
+    mdataerror.resize(0);
+    
+    mdata[0].resize(3);
+    mdata[0][0] = sgam;             // Self broadening gamma parameter
+    mdata[0][1] = sn;               // Self broadening n parameter
+    mdata[0][2] = sdelta;           // Self broadening shift parameter
+    
+    mdata[1].resize(3);
+    mdata[1][0] = agam;             // Air broadening gamma parameter
+    mdata[1][1] = an;               // Air broadening n parameter
+    mdata[1][2] = adelta;           // Air broadening shift parameter
+    
+    mdata[2].resize(3);
+    mdata[2][0] = wgam;             // Water broadening gamma parameter
+    mdata[2][1] = wn;               // Water broadening n parameter
+    mdata[2][2] = wdelta;           // Water broadening shift parameter
+}
+
+
 // Use these to insert the data in the required format from catalog readings
 void PressureBroadeningData::SetPerrinBroadeningFromCatalog(const Numeric& sgam, 
                                                             const Numeric& nself,
@@ -259,6 +346,8 @@ Index PressureBroadeningData::ExpectedVectorLengthFromType() const
         return 0;
     else if(mtype == PB_AIR_BROADENING) // 10 Numerics
         return 10;
+    else if(mtype == PB_AIR_AND_WATER_BROADENING) // 10 Numerics
+        return 9;
     else if(mtype == PB_PERRIN_BROADENING) // 2 Numerics and 3 Vectors of 6-length
         return 20;
     else
@@ -290,6 +379,18 @@ void PressureBroadeningData::SetDataFromVectorWithKnownType(const Vector & input
                                     input[8],
                                     input[9]);
     }
+    else if(mtype == PB_AIR_AND_WATER_BROADENING) // 9 Numerics
+    {
+        SetAirAndWaterBroadeningFromCatalog(input[0],
+                                            input[1],
+                                            input[2],
+                                            input[3],
+                                            input[4],
+                                            input[5],
+                                            input[6],
+                                            input[7],
+                                            input[8]);
+    }
     else if(mtype == PB_PERRIN_BROADENING) // 2 Numerics and 3 Vectors of 6-length
         SetPerrinBroadeningFromCatalog(input[0],
                                        input[1],
@@ -302,9 +403,11 @@ void PressureBroadeningData::StorageTag2SetType(const String & input)
 {
     if(input == "NA") // The none case
         mtype=PB_NONE;
-    else if(input == "N2") // Air Broadening is mostly N2 ...
+    else if(input == "N2") // Air Broadening is N2 broadening mostly...
         mtype=PB_AIR_BROADENING;
-    else if(input == "AP") // Perring broadening
+    else if(input == "WA") // Water and Air Broadening
+        mtype=PB_AIR_AND_WATER_BROADENING;
+    else if(input == "AP") // Perrin broadening
         mtype=PB_PERRIN_BROADENING;
     else
         throw std::runtime_error("You are trying to set pressure broadening type that is unknown to ARTS.\n");
@@ -329,6 +432,20 @@ void PressureBroadeningData::GetVectorFromData(Vector& output) const
         output[9]=mdataerror[4][0];
         
     }
+    else if(mtype == PB_AIR_AND_WATER_BROADENING) // 9 Numerics
+    {
+        output[0]=mdata[0][0];
+        output[1]=mdata[0][1];
+        output[2]=mdata[0][2];
+        
+        output[0]=mdata[1][0];
+        output[1]=mdata[1][1];
+        output[2]=mdata[1][2];
+        
+        output[0]=mdata[2][0];
+        output[1]=mdata[2][1];
+        output[2]=mdata[2][2];
+    }
     else if(mtype == PB_PERRIN_BROADENING) // 2 Numerics and 3 Vectors of 6-length
     {
         output[0]=mdata[0][0];
@@ -348,6 +465,8 @@ String PressureBroadeningData::Type2StorageTag() const
         output = "NA";
     else if(mtype==PB_AIR_BROADENING) // Air Broadening is mostly N2 ...
         output = "N2";
+    else if(mtype==PB_AIR_AND_WATER_BROADENING) // Water and Air Broadening
+        output = "WA";
     else if(mtype==PB_PERRIN_BROADENING) // Perring broadening
         output="AP";
     else

@@ -134,6 +134,19 @@ void LineRecord::ARTSCAT5FromARTSCAT4() {
     mversion = 5;
 }
 
+void LineRecord::ARTSCAT5FromARTSCAT3() {
+    // Check that this line really is ARTSCAT-4
+    if ( this->Version() != 3)
+    {
+        ostringstream os;
+        os << "This line is not ARTSCAT-3, it is ARTSCAT-" << this->Version();
+        throw std::runtime_error(os.str());
+    }
+    
+    // Set version to 5:
+    mversion = 5;
+}
+
 
 bool LineRecord::ReadFromHitran2001Stream(istream& is, const Verbosity& verbosity)
 {
@@ -1122,7 +1135,7 @@ bool LineRecord::ReadFromLBLRTMStream(istream& is, const Verbosity& verbosity)
   {
     Numeric G_340K;
     extract(G_340K,line,11);
-    Y[3] = G_340K;
+    G[3] = G_340K;
   }
   
   extern const Numeric ATM2PA;

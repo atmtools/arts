@@ -48,6 +48,7 @@ public:
     enum PB_Type {
         PB_NONE,                          // No pressure broadening
         PB_AIR_BROADENING,                // Air broadening and self broadening only
+        PB_AIR_AND_WATER_BROADENING,      // Air, water, and self broadening
         PB_PERRIN_BROADENING              // Gas broadening as done by A. Perrin
     };
     
@@ -83,6 +84,29 @@ public:
                                      const Numeric& dagam,
                                      const Numeric& dnair,
                                      const Numeric& dair_pressure_DF);
+    
+    /** 
+     The HITRAN air broadening scheme was used exclusively for a long time by ARTS.
+     This function follows that scheme and ARTSCAT-3, but also adds water broadening.
+     Since it is new, we skip mdataerror usage for now. 
+     
+     The quantities are:
+     \param sgam  self broadening gamma
+     \param nself  self broadening n
+     \param agam  air broadening gamma
+     \param nair  air broadening n
+     \param air_pressure_DF  air broadening pressure-based frequency shift
+     \param d*  variable associated errors.  A tag of -1 is used when the errors are unknown.
+     */
+    void SetAirAndWaterBroadeningFromCatalog(const Numeric& sgam, 
+                                             const Numeric& sn, 
+                                             const Numeric& sdelta, 
+                                             const Numeric& agam,
+                                             const Numeric& an,
+                                             const Numeric& adelta,
+                                             const Numeric& wgam,
+                                             const Numeric& wn,
+                                             const Numeric& wdelta);
     
     
     /**
@@ -139,6 +163,26 @@ public:
                           const Numeric& theta,
                           const Numeric& pressure,
                           const Numeric& self_pressure) const;
+
+    /**
+    Air and water broadening calculations                              *
+    
+    The quantities are:
+    \param gamma  the pressure broadening in Hz
+    \param deltaf  the pressure shift in Hz
+    \param theta  the scaled temperature (T0/T)
+    \param pressure  All gasses, in Pa
+    \param self_pressure  pressure of the molecule the line belongs to
+    */
+    void GetAirAndWaterBroadening(Numeric& gamma,
+                                  Numeric& deltaf,
+                                  const Numeric& theta,
+                                  const Numeric& pressure,
+                                  const Numeric& self_pressure,
+                                  const Index    this_species,
+                                  const Index    h2o_species,
+                                  ConstVectorView vmrs,
+                                  const Verbosity& verbosity) const;
     
     /**
      Perrin broadening calculations
@@ -184,6 +228,7 @@ public:
                                       const Numeric& pressure,
                                       const Numeric& self_pressure,
                                       const Index    this_species,
+                                      const Index    h2o_species,
                                       const ArrayOfIndex& broad_spec_locations,
                                       ConstVectorView vmrs,
                                       const Verbosity& verbosity) const;

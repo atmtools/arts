@@ -637,6 +637,8 @@ public:
    */
   void ARTSCAT4FromARTSCAT3();
 
+  void ARTSCAT5FromARTSCAT3();
+  
   void ARTSCAT5FromARTSCAT4();
 
  /** Set to NaN all parameters that are not in ARTSCAT-4. */
