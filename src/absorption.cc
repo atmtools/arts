@@ -1680,380 +1680,101 @@ void xsec_species_line_mixing_wrapper(  MatrixView               xsec_attenuatio
 #pragma omp parallel for        \
 if (!arts_omp_in_parallel())    \
 firstprivate(attenuation, phase, fac, f_local, aux)
-        for(Index jj=0; jj<abs_p.nelem();jj++)
+    for(Index jj=0; jj<abs_p.nelem();jj++)
+    {
+        const Numeric& t=abs_t[jj];
+        const Numeric& p=abs_p[jj];
+        ConstVectorView vmrs = all_vmrs(joker,jj);
+        
+        const Numeric p_partial = p * vmrs[this_species];
+        
+        for(Index ii=0; ii<abs_lines.nelem();ii++)
         {
-            const Numeric t=abs_t[jj];
-            const Numeric p=abs_p[jj];
-            ConstVectorView vmrs = all_vmrs(joker,jj);
+            // Pressure broadening parameters
+            Numeric gamma=0, deltaf_pressure=0; // Set to zero since case with 0 exist
+            abs_lines[ii].PressureBroadening().GetPressureBroadeningParams(gamma,deltaf_pressure,
+                                                                            abs_lines[ii].Ti0()/t,p,
+                                                                            p_partial,this_species,h2o_index,
+                                                                            broad_spec_locations,
+                                                                            vmrs,verbosity);
             
-            const Numeric p_partial = p * vmrs[this_species];
-            Numeric gamma, deltaf_pressure;
+            // Line mixing parameters
+            Numeric Y=0,DV=0,G=0; // Set to zero since case with 0 exist
+            abs_lines[ii].LineMixing().GetLineMixingParams( Y,  G,  DV,  t, p, lm_p_lim, 1);
             
-            for(Index ii=0; ii<abs_lines.nelem();ii++)
+            // Still an ugly case with non-resonant line near 0 frequency, since this is actually a band...
+            if( LineMixingData::LM_LBLRTM_O2NonResonant != abs_lines[ii].LineMixing().Type() )
             {
-                abs_lines[ii].PressureBroadening().GetPressureBroadeningParams(gamma,deltaf_pressure,
-                                                                               abs_lines[ii].Ti0()/t,p,
-                                                                               p_partial,this_species,h2o_index,
-                                                                               broad_spec_locations,
-                                                                               vmrs,verbosity);
-                
-                switch(abs_lines[ii].LineMixing().Type())
-                {
-                    case LineMixingData::LM_NONE:
-                        xsec_single_line(xsec_attenuation(joker,jj), 
-                                         xsec_phase(joker,jj), 
-                                         attenuation, 
-                                         phase,
-                                         fac, 
-                                         f_local, 
-                                         aux, 
-                                         isotopologue_ratios,
-                                         f_grid, 
-                                         abs_lines[ii].F()+(precalc_zeeman?Z_DF[ii]:0.), 
-                                         abs_lines[ii].I0(), 
-                                         abs_lines[ii].IsotopologueData().CalculatePartitionFctRatio(abs_lines[ii].Ti0(),t), 
-                                         abs_lines[ii].IsotopologueData().Mass(),
-                                         abs_lines[ii].Elow(), 
-                                         abs_lines[ii].Ti0(), 
-                                         t, 
-                                         gamma,
-                                         deltaf_pressure,
-                                         cutoff,
-                                         0,
-                                         0, 
-                                         0, 
-                                         f_grid.nelem(), 
-                                         ind_ls, 
-                                         ind_lsn, 
-                                         abs_lines[ii].Species(), 
-                                         abs_lines[ii].Isotopologue(), 
-                                         cut,
-                                         1);
-                        break;
-                    case LineMixingData::LM_LBLRTM:
-                        xsec_species_line_mixing_LBLRTM(xsec_attenuation(joker,jj),
-                                                        xsec_phase(joker,jj),
-                                                        attenuation,
-                                                        phase,
-                                                        f_local,
-                                                        aux,
-                                                        fac,
-                                                        f_grid,
-                                                        p,
-                                                        t,
-                                                        lm_p_lim,
-                                                        gamma,
-                                                        deltaf_pressure,
-                                                        abs_lines[ii],
-                                                        (precalc_zeeman?Z_DF[ii]:0),
-                                                        ind_ls,
-                                                        ind_lsn,
-                                                        cutoff,
-                                                        isotopologue_ratios);
-                        break;
-                    case LineMixingData::LM_LBLRTM_O2NonResonant:
-                        xsec_species_LBLRTM_O2NonResonant(xsec_attenuation(joker,jj),
-                                                          xsec_phase(joker,jj),
-                                                          attenuation,
-                                                          phase,
-                                                          f_local,
-                                                          aux,
-                                                          fac,
-                                                          f_grid,
-                                                          p,
-                                                          t,
-                                                          lm_p_lim,
-                                                          gamma,
-                                                          deltaf_pressure,
-                                                          abs_lines[ii],
-                                                          ind_lsn,
-                                                          cutoff,
-                                                          isotopologue_ratios,
-                                                          verbosity );
-                        break;
-                    case LineMixingData::LM_2NDORDER:
-                        xsec_species_line_mixing_2nd_order(xsec_attenuation(joker,jj),
-                                                           xsec_phase(joker,jj),
-                                                           attenuation,
-                                                           phase,
-                                                           f_local,
-                                                           aux,
-                                                           fac,
-                                                           f_grid,
-                                                           p,
-                                                           t,
-                                                           lm_p_lim,
-                                                           gamma,
-                                                           deltaf_pressure,
-                                                           abs_lines[ii],
-                                                           (precalc_zeeman?Z_DF[ii]:0),
-                                                           ind_ls,
-                                                           ind_lsn,
-                                                           cutoff,
-                                                           isotopologue_ratios );
-                        break;
-                    default:
-                        throw std::runtime_error("Bad line mixing tag detected.\n");
-                        break;
-                }
+                xsec_single_line(   xsec_attenuation(joker,jj), 
+                                    xsec_phase(joker,jj), 
+                                    attenuation, 
+                                    phase,
+                                    fac, 
+                                    f_local, 
+                                    aux, 
+                                    isotopologue_ratios,
+                                    f_grid, 
+                                    abs_lines[ii].F()+(precalc_zeeman?Z_DF[ii]:0), // Since vector is 0-length if no Zeeman pre-calculations
+                                    abs_lines[ii].I0(), 
+                                    abs_lines[ii].IsotopologueData().CalculatePartitionFctRatio(abs_lines[ii].Ti0(),t), 
+                                    abs_lines[ii].IsotopologueData().Mass(),
+                                    abs_lines[ii].Elow(), 
+                                    abs_lines[ii].Ti0(), 
+                                    t,
+                                    gamma,
+                                    deltaf_pressure,
+                                    cutoff,
+                                    DV,
+                                    Y, 
+                                    G, 
+                                    f_grid.nelem(), 
+                                    ind_ls, 
+                                    ind_lsn, 
+                                    abs_lines[ii].Species(), 
+                                    abs_lines[ii].Isotopologue(), 
+                                    cutoff!=-1,
+                                    1);
             }
+            else
+            {
+                //FIXME:  Make sure this is as intended.  no_norm is not known.  So I will 
+                // use the same as the user defines.
+                ArrayOfLineshapeSpec tmp;
+                abs_lineshapeDefine( tmp, "O2NonResonant", "no_norm", -1, verbosity );
+                
+                xsec_single_line(   xsec_attenuation(joker,jj), 
+                                    xsec_phase(joker,jj), 
+                                    attenuation, 
+                                    phase,
+                                    fac, 
+                                    f_local, 
+                                    aux, 
+                                    isotopologue_ratios,
+                                    f_grid, 
+                                    abs_lines[ii].F()+(precalc_zeeman?Z_DF[ii]:0), // Since vector is 0-length if no Zeeman pre-calculations 
+                                    abs_lines[ii].I0(), 
+                                    abs_lines[ii].IsotopologueData().CalculatePartitionFctRatio(abs_lines[ii].Ti0(),t), 
+                                    abs_lines[ii].IsotopologueData().Mass(),
+                                    abs_lines[ii].Elow(), 
+                                    abs_lines[ii].Ti0(), 
+                                    t,
+                                    gamma,
+                                    deltaf_pressure,
+                                    cutoff,
+                                    DV,
+                                    Y, 
+                                    G, 
+                                    f_grid.nelem(), 
+                                    tmp[0].Ind_ls(), 
+                                    ind_lsn, 
+                                    abs_lines[ii].Species(), 
+                                    abs_lines[ii].Isotopologue(), 
+                                    cutoff!=-1,
+                                    1);
+            }
+            
         }
-}
-
-
-/** 
- *  
- *  This is the second order line mixing correction as presented by:
- *  Makarov, D.S, M.Yu. Tretyakov and P.W. Rosenkranz, 2011, 60-GHz
- *  oxygen band: Precise experimental profiles and extended absorption
- *  modeling in a wide temperature range, JQSRT 112, 1420-1428.
- *  
- *  \retval xsec_attenuation    Cross section of one tag group. This is now the
- *                              true attenuation cross section in units of m^2.
- *  \retval xsec_phase          Cross section of one tag group. This is now the
- *                              true phase cross section in units of m^2.
- *  \param f_grid               Frequency grid.
- *  \param abs_p                Pressure grid.
- *  \param abs_t                Temperatures associated with abs_p.
- *  \param all_vmrs             Gas volume mixing ratios [nspecies, np].
- *  \param abs_species          Species tags for all species.
- *  \param this_species         Index of the current species in abs_species.
- *  \param my_lines             The linerecord.
- *  \param ind_ls               Index to lineshape function.
- *  \param ind_lsn              Index to lineshape norm.
- *  \param cutoff               Lineshape cutoff.
- *  \param isotopologue_ratios  Isotopologue ratios.
- * 
- *  \author Richard Larsson
- *  \date   2013-04-24
- * 
- */
-void xsec_species_line_mixing_2nd_order(VectorView               xsec_attenuation,
-                                        VectorView               xsec_phase,
-                                        Vector&                  attenuation,
-                                        Vector&                  phase,
-                                        Vector&                  f_local,
-                                        Vector&                  aux,
-                                        Vector&                  fac,
-                                        const Vector&            f_grid,
-                                        const Numeric            p,
-                                        const Numeric            t,
-                                        const Numeric            lm_p_lim,
-                                        const Numeric            gamma,
-                                        const Numeric            deltaf,
-                                        const LineRecord&        my_line,
-                                        const Numeric            Z_DF,
-                                        const Index              ind_ls,
-                                        const Index              ind_lsn,
-                                        const Numeric            cutoff,
-                                        const SpeciesAuxData&    isotopologue_ratios)
-{
-    
-    Numeric Y, G, DV;
-    my_line.LineMixing().Get2ndOrder(Y,G,DV,t,p,lm_p_lim);
-
-    xsec_single_line(xsec_attenuation, 
-                     xsec_phase, 
-                     attenuation, 
-                     phase,
-                     fac, 
-                     f_local, 
-                     aux, 
-                     isotopologue_ratios,
-                     f_grid, 
-                     my_line.F()+Z_DF, 
-                     my_line.I0(), 
-                     my_line.IsotopologueData().CalculatePartitionFctRatio(my_line.Ti0(),t), 
-                     my_line.IsotopologueData().Mass(),
-                     my_line.Elow(), 
-                     my_line.Ti0(), 
-                     t,
-                     gamma,
-                     deltaf,
-                     cutoff,
-                     DV,
-                     Y, 
-                     G, 
-                     f_grid.nelem(), 
-                     ind_ls, 
-                     ind_lsn, 
-                     my_line.Species(), 
-                     my_line.Isotopologue(), 
-                     cutoff!=-1,
-                     1);
-    
-//     // Do the actual line mixing and add this to xsec_attenuation.
-//     xsec_phase += phase(joker,0);
-//     phase *= Y;
-//     xsec_attenuation += phase(joker,0);       // First order phase correction
-//     xsec_attenuation += attenuation(joker,0); // Zeroth order attenuation
-//     attenuation *= G;
-//     xsec_attenuation += attenuation(joker,0); // Second order attenuation correction
-    
-}
-
-
-/** 
- *  
- *  This is the LBLRTM line mixing correction as found in their database.
- *  
- *  \retval xsec_attenuation    Cross section of one tag group. This is now the
- *                              true attenuation cross section in units of m^2.
- *  \retval xsec_phase          Cross section of one tag group. This is now the
- *                              true phase cross section in units of m^2.
- *  \param f_grid               Frequency grid.
- *  \param abs_p                Pressure grid.
- *  \param abs_t                Temperatures associated with abs_p.
- *  \param all_vmrs             Gas volume mixing ratios [nspecies, np].
- *  \param abs_species          Species tags for all species.
- *  \param this_species         Index of the current species in abs_species.
- *  \param my_lines             The linerecord.
- *  \param ind_ls               Index to lineshape function.
- *  \param ind_lsn              Index to lineshape norm.
- *  \param cutoff               Lineshape cutoff.
- *  \param isotopologue_ratios  Isotopologue ratios.
- * 
- *  \author Richard Larsson
- *  \date   2013-04-24
- * 
- */
-void xsec_species_line_mixing_LBLRTM(VectorView               xsec_attenuation,
-                                     VectorView               xsec_phase,
-                                     Vector&                  attenuation,
-                                     Vector&                  phase,
-                                     Vector&                  f_local,
-                                     Vector&                  aux,
-                                     Vector&                  fac,
-                                     const Vector&            f_grid,
-                                     const Numeric            p,
-                                     const Numeric            t,
-                                     const Numeric            lm_p_lim,
-                                     const Numeric            gamma,
-                                     const Numeric            deltaf,
-                                     const LineRecord&        my_line,
-                                     const Numeric            Z_DF,
-                                     const Index              ind_ls,
-                                     const Index              ind_lsn,
-                                     const Numeric            cutoff,
-                                     const SpeciesAuxData&    isotopologue_ratios)
-{
-    Numeric Y, G;
-    my_line.LineMixing().GetLBLRTM(Y,G,t,p,lm_p_lim,1);
-    
-    xsec_single_line(xsec_attenuation, 
-                     xsec_phase, 
-                     attenuation, 
-                     phase,
-                     fac, 
-                     f_local, 
-                     aux, 
-                     isotopologue_ratios,
-                     f_grid, 
-                     my_line.F()+Z_DF, 
-                     my_line.I0(), 
-                     my_line.IsotopologueData().CalculatePartitionFctRatio(my_line.Ti0(),t), 
-                     my_line.IsotopologueData().Mass(),
-                     my_line.Elow(), 
-                     my_line.Ti0(), 
-                     t, 
-                     gamma,
-                     deltaf,
-                     cutoff,
-                     0,
-                     Y, 
-                     G, 
-                     f_grid.nelem(), 
-                     ind_ls, 
-                     ind_lsn, 
-                     my_line.Species(), 
-                     my_line.Isotopologue(), 
-                     cutoff!=-1,
-                     1);
-    
-}
-
-
-/** 
- *  
- *  This is the LBLRTM O2 non-resonant correction as found in their database.
- *  
- *  \retval xsec_attenuation    Cross section of one tag group. This is now the
- *                              true attenuation cross section in units of m^2.
- *  xsec_phase          Cross section of one tag group. This is now the
- *                              true phase cross section in units of m^2.
- *  \param f_grid               Frequency grid.
- *  \param abs_p                Pressure grid.
- *  \param abs_t                Temperatures associated with abs_p.
- *  \param all_vmrs             Gas volume mixing ratios [nspecies, np].
- *  \param abs_species          Species tags for all species.
- *  \param this_species         Index of the current species in abs_species.
- *  \param my_lines             The linerecord.
- *  ind_ls               Index to lineshape function.
- *  ind_lsn              Index to lineshape norm.
- *  \param cutoff               Lineshape cutoff.
- *  \param isotopologue_ratios  Isotopologue ratios.
- * 
- *  \author Richard Larsson
- *  \date   2013-04-24
- * 
- */
-void xsec_species_LBLRTM_O2NonResonant(VectorView               xsec_attenuation,
-                                       VectorView               xsec_phase,
-                                       Vector&                  attenuation,
-                                       Vector&                  phase,
-                                       Vector&                  f_local,
-                                       Vector&                  aux,
-                                       Vector&                  fac,
-                                       const Vector&            f_grid,
-                                       const Numeric            p,
-                                       const Numeric            t,
-                                       const Numeric            lm_p_lim,
-                                       const Numeric            gamma,
-                                       const Numeric            deltaf,
-                                       const LineRecord&        my_line,
-                                       const Index              ind_lsn,
-                                       const Numeric            cutoff,
-                                       const SpeciesAuxData&    isotopologue_ratios,
-                                       const Verbosity& verbosity)
-{
-    Numeric gamma1, gamma2;
-    my_line.LineMixing().GetLBLRTM_O2NonResonant(gamma1,gamma2,t,p,lm_p_lim,1);
-    
-    ArrayOfLineshapeSpec tmp;
-    abs_lineshapeDefine( tmp, "O2NonResonant", "no_norm", -1, verbosity );
-    //FIXME:  Make sure this is as intended.  no_norm is not known.  So I will 
-    // use the same as the user defines.
-    
-    xsec_single_line(xsec_attenuation, 
-                     xsec_phase, 
-                     attenuation, 
-                     phase,
-                     fac, 
-                     f_local, 
-                     aux, 
-                     isotopologue_ratios,
-                     f_grid,
-                     my_line.F(), 
-                     my_line.I0(), 
-                     my_line.IsotopologueData().CalculatePartitionFctRatio(my_line.Ti0(),t), 
-                     my_line.IsotopologueData().Mass(),
-                     my_line.Elow(), 
-                     my_line.Ti0(), 
-                     t, 
-                     gamma,
-                     deltaf,
-                     cutoff,
-                     0,
-                     0, 
-                     - gamma1 - gamma2, 
-                     f_grid.nelem(), 
-                     tmp[0].Ind_ls(), 
-                     ind_lsn, 
-                     my_line.Species(), 
-                     my_line.Isotopologue(),
-                     cutoff!=-1, 
-                     0);
-    
+    }
 }
 
 

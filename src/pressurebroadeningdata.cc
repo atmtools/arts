@@ -45,19 +45,18 @@ void PressureBroadeningData::GetPressureBroadeningParams(Numeric& gamma,
     switch(mtype)
     {
         case PB_NONE:
-            gamma  = 0.; //  Note that this is not wanted in most cases we study,
-            deltaf = 0.; //  but we accept no broadening is a case.
+            // Note that this is oftentimes not wanted, but a valid case at low pressures
             break;
         case PB_AIR_BROADENING:
             GetAirBroadening(gamma, deltaf, theta, pressure, self_pressure);
             break;
         case PB_AIR_AND_WATER_BROADENING:
-            GetAirAndWaterBroadening(gamma, deltaf, theta, pressure, self_pressure,this_species,h2o_species,vmrs,verbosity);
+            GetAirAndWaterBroadening(gamma, deltaf, theta, pressure, self_pressure, 
+                                     this_species, h2o_species, vmrs, verbosity);
             break;
         case PB_PERRIN_BROADENING:
             GetPerrinBroadening(gamma, deltaf, theta, pressure, self_pressure,
-                                this_species, broad_spec_locations,
-                                vmrs, verbosity);
+                                this_species, broad_spec_locations, vmrs, verbosity);
             break;
         default:
             throw std::runtime_error("You have defined an unknown broadening mechanism.\n");

@@ -1,3 +1,21 @@
+2015-01-08  Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-3-100
+	
+	This updates clears some technological debts in how linemixing was dealt with
+	in a completely different manner than pressure broadening, yet their data
+	structures are similar.  Still a debt left with non-resonant O2, which is 
+	treated as linemixing because the mathematics is so very similar but requires
+	a specialized line shape function to operate properly.
+	
+	* src/absortprion.cc:  All specialized line mixing xsec functions
+	have been removed and are now part of linemixingdata.{cc,h} and 
+	the wrapper function.
+	
+	* src/linemixingdata.{cc,h}:  Now has a generic "GetData" functionality.
+	
+	* src/pressurebroadeningdata.cc:  Just a tiny bit of tidying up.
+
 2014-12-19  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-3-99

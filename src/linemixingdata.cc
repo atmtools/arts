@@ -31,9 +31,25 @@ USA. */
 // Line mixing interactions to get cross section goes below here
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+
+void LineMixingData::GetLineMixingParams(Numeric& Y, Numeric& G, Numeric& DV, const Numeric& Temperature, const Numeric& Pressure, const Numeric& Pressure_Limit, const Index& order=1) const
+{
+    if(mtype == LM_NONE) {} // The standard case
+    else if(mtype == LM_LBLRTM) // The LBLRTM case
+        GetLBLRTM(Y,G,Temperature,Pressure,Pressure_Limit,order);
+    else if(mtype == LM_LBLRTM_O2NonResonant) // The LBLRTM case
+        GetLBLRTM_O2NonResonant(Y,G,Temperature,Pressure,Pressure_Limit,order); // Note that they only act like Y and G
+    else if(mtype == LM_2NDORDER) // The 2nd order case
+        Get2ndOrder(Y,G,DV,Temperature,Pressure,Pressure_Limit);
+    else
+        throw std::runtime_error("You are trying to store a line mixing type that is unknown to ARTS.\n");
+}
+
+
+
 //Note that first order is used by LBLRTM on the data we have.
 void LineMixingData::GetLBLRTM(Numeric& Y, Numeric& G, const Numeric& Temperature, const Numeric& Pressure, const Numeric& Pressure_Limit, const Index& order=1) const
-    {
+{
       assert( mtype == LM_LBLRTM );
       assert(mdata.nelem() == 3);
       assert(mdata[0].nelem() == 4 && mdata[1].nelem() == 4 && mdata[2].nelem() == 4);
