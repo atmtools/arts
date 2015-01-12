@@ -299,7 +299,7 @@ DoitInit
 ReadXML( out=doit_i_field1D_spectrum, filename="TestDOIT.doit_i_field1D_spectrum.xml" )
 
 # Executes doit_mono_agenda for all frequencies
-ScatteringDoit
+DoitCalc
 #WriteXML( in=doit_i_field1D_spectrum )
 #WriteXML( in=scat_i_p )
 

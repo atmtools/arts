@@ -9781,7 +9781,7 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "ScatteringDisort" ),
+      ( NAME( "DisortCalc" ),
         DESCRIPTION
         (
          "Calls DISORT RT solver from ARTS.\n"
@@ -9806,7 +9806,7 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "ScatteringDoit" ),
+      ( NAME( "DoitCalc" ),
         DESCRIPTION
         (
          "Main DOIT method.\n"

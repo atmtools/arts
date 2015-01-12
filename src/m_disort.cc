@@ -73,7 +73,7 @@ void cloudboxSetDisort(//WS Output
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 #ifdef ENABLE_DISORT
-void ScatteringDisort(Workspace& ws,
+void DisortCalc(Workspace& ws,
                       // WS Output:
                       Tensor7& scat_i_p,
                       Tensor7& scat_i_lat,
@@ -342,7 +342,7 @@ void ScatteringDisort(Workspace& ws,
   delete [] prnt;
     
 #else
-void ScatteringDisort(Workspace&,
+void DisortCalc(Workspace&,
                       // WS Output:
                       Tensor7&,
                       Tensor7&,

@@ -1,3 +1,14 @@
+2015-01-12  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-3-102
+
+	* src/agendas.cc, m_disort.cc, m_doit.cc, methods.cc, workspace.cc,
+	controlfiles/artscomponents/doit/TestDOIT.arts, TestDOITprecalcInit.arts,
+	controlfiles/artscomponents/doitbatch/TestDOITBatch.arts,
+	controlfiles/planetary_toolbox/demos/passive/DemoScat_DOIT_1D.arts,
+	doc/uguide/scattering.tex:
+	Renamed ScatteringDoit -> DoitCalc, ScatteringDisort -> DisortCalc.
+
 2015-01-12  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-101

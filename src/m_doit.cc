@@ -2495,7 +2495,7 @@ void doit_za_interpSet(Index& doit_za_interp,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void ScatteringDoit(
+void DoitCalc(
          Workspace& ws,
          Tensor6&   doit_i_field,
          Tensor7&   scat_i_p, 
@@ -2542,7 +2542,7 @@ void ScatteringDoit(
     throw runtime_error(
                         "Initialization method *DoitInit* has to be "
                         "put before\n"
-                        "start of *ScatteringDoit*");
+                        "start of *DoitCalc*");
 
   //-------- end of checks ----------------------------------------
 

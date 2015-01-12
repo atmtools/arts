@@ -1285,7 +1285,7 @@ void Workspace::define_wsv_data()
       (
        "Flag to determine if *DoitInit* was called.\n"
        "\n"
-       "This flag is checked by *ScatteringDoit* to make sure that\n"
+       "This flag is checked by *DoitCalc* to make sure that\n"
        "*DoitInit* was called before.\n"
        ),
       GROUP( "Index" )));
@@ -3367,7 +3367,7 @@ void Workspace::define_wsv_data()
        "this variable is discussed. The variable is listed as a subentry to\n"
        "\"workspace variables\".\n"
        "\n"
-       "Usage:      In/Output from/to *ScatteringDoit* and *ScatteringDisort*\n"
+       "Usage:      In/Output from/to *DoitCalc* and *DisortCalc*\n"
        "\n"
        "Unit:        W / (m^2 Hz sr) \n"
        "\n"
@@ -3396,7 +3396,7 @@ void Workspace::define_wsv_data()
        "this variable is discussed. The variable is listed as a subentry to\n"
        "\"workspace variables\".\n"
        "\n"
-       "Usage:      Output from *ScatteringDoit* and *ScatteringDisort* \n"
+       "Usage:      Output from *DoitCalc* and *DisortCalc* \n"
        "\n"
        "Unit:        W / (m^2 Hz sr) \n"
        "\n"
@@ -3424,7 +3424,7 @@ void Workspace::define_wsv_data()
        "this variable is discussed. The variable is listed as a subentry to\n"
        "\"workspace variables\".\n"
        "\n"
-       "Usage:      In/Output from *ScatteringDoit* and *ScatteringDisort* \n"
+       "Usage:      In/Output from *DoitCalc* and *DisortCalc* \n"
        "\n"
        "Unit:        W / (m^2 Hz sr) \n"
        "\n"

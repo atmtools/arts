@@ -477,7 +477,7 @@ void define_agenda_data()
         "*abs_lookupAdapt*\n"
         "*DoitInit	*\n"
         "*DoitGetIncoming*\n"
-        "*ScatteringDoit*\n"
+        "*DoitCalc*\n"
         "*yCalc*\n"
         "\n"
         "For example, if you want the output in brightness temperature unit,\n"

@@ -228,7 +228,7 @@ Copy( strtmp, iy_unit )
 StringSet( iy_unit, "1" )
 DoitInit
 DoitGetIncoming( maxratio=DOITinterpol_ratio )
-ScatteringDoit
+DoitCalc
 
 # and the (clearsky) RT calc
 #####

@@ -265,7 +265,7 @@ AgendaSet( ybatch_calc_agenda ){
   DoitGetIncoming
 
   # Executes doit_mono_agenda for all frequencies
-  ScatteringDoit
+  DoitCalc
 
   # Here we choose our *y* output unit 
   StringSet( iy_unit, "PlanckBT" )
