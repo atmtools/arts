@@ -1,5 +1,13 @@
 2015-01-12  Jana Mendrok  <jana.mendrok@ltu.se>
 
+	* arts-2-3-103
+
+	* controlfiles/artscomponents/doit/yREFERENCE_DOIT.xml,
+	TestDOIT.doit_i_field1D_spectrum.xml:
+	Re-added accidentially deleted test data.
+
+2015-01-12  Jana Mendrok  <jana.mendrok@ltu.se>
+
 	* arts-2-3-102
 
 	* src/agendas.cc, m_disort.cc, m_doit.cc, methods.cc, workspace.cc,
