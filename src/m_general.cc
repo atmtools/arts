@@ -429,7 +429,7 @@ void Test(const Verbosity& verbosity)
     Vector emiss;
     Vector refl;
 
-    fastem(emiss, refl, 3e9, 10., 283., 30., 3., 0.9, 0.);
+    fastem(emiss, refl, 3e9, 10., 283., 0.030, 3., 0.9, 0., 6 );
 
     out1 << "Emissivity:   " << emiss << "\n";
     out1 << "Reflectivity: " << refl << "\n";

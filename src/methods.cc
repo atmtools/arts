@@ -4525,6 +4525,39 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "FastemStandAlone" ),
+        DESCRIPTION
+        (
+         "Stand-alone usage of FASTEM.\n"
+         "\n"
+         "FASTEM is a parameterisation of the emissivity of water surfaces\n"
+         "including the impact of waves, salinity and non-specular effects.\n"
+         "\n"
+         "To be written ...\n"
+         ),
+        AUTHORS( "Oliver Lemke, Patrick Eriksson" ),
+        OUT(),
+        GOUT( "emissivity", "reflectivity" ),
+        GOUT_TYPE( "Matrix", "Matrix" ),
+        GOUT_DESC( "Emission values. See above.", 
+                   "Reflectivity values. See above." ),
+        IN( "f_grid" ),
+        GIN( "temperature", "salinity", "wind_speed", "transmittance",
+             "za", "rel_aa", "fastem_version" ),
+        GIN_TYPE( "Numeric", "Numeric", "Numeric", "Numeric",
+                  "Numeric", "Numeric", "Index"),
+        GIN_DEFAULT( NODEF, NODEF, NODEF, NODEF, NODEF, NODEF, "6" ),
+        GIN_DESC( "Skin temperature.",
+                  "Salinity, 0-1. That is, 3\% is given as 0.03.",
+                  "Wind speed.",
+                  "The transmission of the atmosphere",
+                  "Zenith angle",
+                  "Azimuth angle with respect to line-of-sight.",
+                  "The version of FASTEM to use." )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "FieldFromGriddedField" ),
         DESCRIPTION
         (

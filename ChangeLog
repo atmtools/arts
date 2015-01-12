@@ -1,28 +1,43 @@
+2015-01-12  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-101
+
+	* src/m_surface.cc (FastemStandAlone): Just started.
+
+	* src/m_general.cc (Test): Just adopted to change below.
+
+	* src/fastem.h: Removed default for FASTEM version. This will be
+	controlled by setting in methods.cc.
+
+	* src/fastem.cc: Changed salinity from o/oo to be between 0 and 1,
+	following how we treat VMR.
+
 2015-01-08  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-3-100
-	
-	This updates clears some technological debts in how linemixing was dealt with
-	in a completely different manner than pressure broadening, yet their data
-	structures are similar.  Still a debt left with non-resonant O2, which is 
-	treated as linemixing because the mathematics is so very similar but requires
-	a specialized line shape function to operate properly.
-	
+
+	This updates clears some technological debts in how linemixing was
+	dealt with in a completely different manner than pressure
+	broadening, yet their data structures are similar. Still a debt
+	left with non-resonant O2, which is treated as linemixing because
+	the mathematics is so very similar but requires a specialized line
+	shape function to operate properly.
+
 	* src/absortprion.cc:  All specialized line mixing xsec functions
-	have been removed and are now part of linemixingdata.{cc,h} and 
+	have been removed and are now part of linemixingdata.{cc,h} and
 	the wrapper function.
-	
+
 	* src/linemixingdata.{cc,h}:  Now has a generic "GetData" functionality.
-	
+
 	* src/pressurebroadeningdata.cc:  Just a tiny bit of tidying up.
 
 2014-12-19  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-3-99
-	
+
 	This update fixes a bug with line mixing lblrtm at high temperatures
-	found from looking at artscat5 output. 
-	
+	found from looking at artscat5 output.
+
 	Conversion from artscat3 to artscat5 more consistent though not perfect.
 	
 	Water and air pressure broadening scheme added.  

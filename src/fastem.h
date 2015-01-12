@@ -43,7 +43,8 @@ void fastem(// Output:
             const Numeric wind_speed,
             const Numeric transmittance,
             const Numeric rel_azimuth,
-            const Index fastem_version =6
+            const Index fastem_version 
             );
+
 
 #endif //fastem_h

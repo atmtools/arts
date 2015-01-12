@@ -46,6 +46,7 @@
 #include "auto_md.h"
 #include "check_input.h"
 #include "complex.h"          
+#include "fastem.h"
 #include "geodetic.h"          
 #include "math_funcs.h"
 #include "messages.h"
@@ -63,6 +64,48 @@ extern const Numeric DEG2RAD;
 /*===========================================================================
   === The functions (in alphabetical order)
   ===========================================================================*/
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void FastemStandAlone(
+          Matrix&   emissivity,
+          Matrix&   reflectivity,
+    const Vector&   f_grid,
+    const Numeric&  temperature,
+    const Numeric&  salinity,
+    const Numeric&  wind_speed,
+    const Numeric&  transmittance,
+    const Numeric&  za,
+    const Numeric&  rel_aa,
+    const Index&    fastem_version,
+    const Verbosity& )
+{
+  assert( za >= 0  &&  za <= 180 );
+  assert( temperature > 270  &&  temperature  < 374 );
+  assert( salinity >= 0  &&  salinity < 100 );
+  assert( wind_speed >= 0  &&  wind_speed < 100 );
+  assert( transmittance >= 0  &&  transmittance <= 1 );
+  assert( rel_aa >= -180  &&  rel_aa <= 180 );
+  assert( fastem_version >= 3  &&  fastem_version <= 6 );
+
+  const Index nf = f_grid.nelem();
+
+  emissivity.resize( nf, 4 );
+  reflectivity.resize( nf, 4 );
+
+  for( Index i=0; i<nf; i++ )
+    {
+      assert( f_grid[i] < 100e9 );
+
+      Vector e, r;
+      fastem( e, r, f_grid[i], za, temperature, salinity, 
+              wind_speed, transmittance, rel_aa, fastem_version );
+
+      emissivity(i,joker) = e;
+      reflectivity(i,joker) = r;
+    }
+}
+
+
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void InterpSurfaceFieldToPosition(

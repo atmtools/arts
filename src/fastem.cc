@@ -38,6 +38,8 @@
 #include "exceptions.h"
 #include "complex.h"
 
+#include "messages.h"
+
 using std::ostringstream;
 using std::runtime_error;
 
@@ -89,6 +91,7 @@ void rttov_fastem5_(
 #endif
 
 
+
 //! Calculate the surface emissivity using FASTEM
 /*! 
   Calculate surface emissivity using the FASTEM model from RTTOV.
@@ -98,11 +101,11 @@ void rttov_fastem5_(
   \param[in]  frequency       Frequency [Hz]
   \param[in]  za              Zenith angle
   \param[in]  temperature     Temperature
-  \param[in]  salinity        Salinity
+  \param[in]  salinity        Salinity [0-1]
   \param[in]  wind_speed      Wind speed
   \param[in]  transmittance   Transmittance (may not be used)
   \param[in]  rel_azimuth     Relative azimuth angle (may not be used)
-  \param[in]  fastem_version  Default version is 6
+  \param[in]  fastem_version  FASTEM version
 
   \author Oliver Lemke
   \date 2014-12-09
@@ -118,7 +121,7 @@ void fastem(// Output:
             const Numeric wind_speed,
             const Numeric transmittance,
             const Numeric rel_azimuth,
-            const Index fastem_version
+            const Index   fastem_version
             )
 {
     emissivity.resize(4);
@@ -128,7 +131,7 @@ void fastem(// Output:
                   frequency / 1e9,
                   za,
                   temperature,
-                  salinity,
+                  salinity * 1e3,
                   wind_speed,
                   emissivity.get_c_array(),
                   reflectivity.get_c_array(),
@@ -136,5 +139,3 @@ void fastem(// Output:
                   rel_azimuth);
 
 }
-
-
