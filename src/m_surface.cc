@@ -50,6 +50,7 @@
 #include "geodetic.h"          
 #include "math_funcs.h"
 #include "messages.h"
+#include "ppath.h"
 #include "special_interp.h"
 #include "interpolation.h"
 #include "physics_funcs.h"
@@ -135,6 +136,7 @@ void iyWaterSurfaceFastem(
     const Numeric&          surface_skin_t,
     const Numeric&          salinity,
     const Numeric&          wind_speed,
+    const Numeric&          wind_direction,
     const Index&            fastem_version,
     const Verbosity&        verbosity )
 {
@@ -142,6 +144,9 @@ void iyWaterSurfaceFastem(
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
   chk_rte_pos( atmosphere_dim, rtp_pos );
   chk_rte_los( atmosphere_dim, rtp_los );
+  chk_if_in_range( "salinity", atmosphere_dim, 0, 1 );
+  chk_if_in_range( "wind_speed", wind_speed, 0, 100 );
+  chk_if_in_range( "wind_direction", wind_direction, -180, 180 );
 
   const Index nf = f_grid.nelem();
 
@@ -171,11 +176,32 @@ void iyWaterSurfaceFastem(
       { transmittance[i] = exp( -iy_aux[0](i,0,0,0) ); }
   }
 
+  // Determine relative azimuth 
+  //
+  // According to email from James Hocking, UkMet:
+  // All azimuth angles are defined as being measured clockwise from north
+  // (i.e. if the projection onto the Earth's surface of the view path lies due
+  // north the azimuth angle is 0 and if it lies due east the azimuth angle is
+  // 90 degrees). The relative azimuth is the wind direction (azimuth) angle
+  // minus the satellite azimuth angle.
+  Numeric rel_azimuth = wind_direction; // Always true for 1D
+  if( atmosphere_dim == 2  &&  rtp_los[0] < 0 )
+    {
+      rel_azimuth -= 180;
+      resolve_lon( rel_azimuth, -180, 180 );
+    }
+  else if( atmosphere_dim == 3 )
+    { 
+      rel_azimuth -= rtp_los[1];
+      resolve_lon( rel_azimuth, -180, 180 );      
+    }
+
+  cout << "Rel. azimuth = " << rel_azimuth << endl;
 
   // Call FASTEM
   Matrix emissivity, reflectivity;
   FastemStandAlone(  emissivity, reflectivity, f_grid, surface_skin_t, 
-                     abs(rtp_los[0]), salinity, wind_speed, 0, 
+                     abs(rtp_los[0]), salinity, wind_speed, rel_azimuth, 
                      transmittance, fastem_version, verbosity );
 
   // Surface emission
@@ -241,6 +267,70 @@ void iyWaterSurfaceFastem(
             }
         }
     }
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void InterpGriddedField2ToPosition(
+          Numeric&         outvalue,
+    const Index&           atmosphere_dim,
+    const Vector&          lat_grid,
+    const Vector&          lat_true,
+    const Vector&          lon_true,
+    const Vector&          rtp_pos,
+    const GriddedField2&   gfield2,
+    const Verbosity& )
+{
+  // Set expected order of grids
+  Index gfield_latID = 0;
+  Index gfield_lonID = 1;
+
+  // Basic checks and sizes
+  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
+  chk_latlon_true( atmosphere_dim, lat_grid, lat_true, lon_true );
+  chk_rte_pos( atmosphere_dim, rtp_pos );
+  gfield2.checksize_strict();
+  //
+  chk_griddedfield_gridname( gfield2, gfield_latID, "Latitude" );
+  chk_griddedfield_gridname( gfield2, gfield_lonID, "Longitude" );
+  //
+  const Index nlat  = gfield2.data.nrows();
+  const Index nlon  = gfield2.data.ncols();
+  //
+  if( nlat < 2  ||  nlon < 2 )
+    {
+      ostringstream os;
+      os << "The data in *complex_refr_index_field* must span a geographical "
+         << "region. That is,\nthe latitude and longitude grids must have a "
+         << "length >= 2.";
+    } 
+
+  const Vector& GFlat = gfield2.get_numeric_grid(gfield_latID);
+  const Vector& GFlon = gfield2.get_numeric_grid(gfield_lonID);
+
+  // Determine true geographical position
+  Vector lat(1), lon(1);
+  pos2true_latlon( lat[0], lon[0], atmosphere_dim, lat_grid, lat_true, 
+                                                           lon_true, rtp_pos );
+
+  // Ensure correct coverage of lon grid
+  Vector lon_shifted;
+  lon_shiftgrid( lon_shifted, GFlon, lon[0] );
+
+  // Check if lat/lon we need are actually covered
+  chk_if_in_range( "rtp_pos.lat", lat[0], GFlat[0], GFlat[nlat-1] );
+  chk_if_in_range( "rtp_pos.lon", lon[0], lon_shifted[0], 
+                                          lon_shifted[nlon-1] );
+
+  // Interpolate in lat and lon
+  //
+  GridPos gp_lat, gp_lon;
+  gridpos( gp_lat, GFlat, lat[0] );
+  gridpos( gp_lon, lon_shifted, lon[0] );
+  Vector itw(4);
+  interpweights( itw, gp_lat, gp_lon );
+  outvalue = interp( itw, gfield2.data, gp_lat, gp_lon );
 }
 
 

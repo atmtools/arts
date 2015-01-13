@@ -4557,7 +4557,8 @@ void define_md_data_raw()
         GIN_DESC( "Zenith angle of line-of-sigh, 90 to 180 deg.",
                   "Salinity, 0-1. That is, 3\% is given as 0.03.",
                   "Wind speed.",
-                  "Azimuth angle between wind direction and line-of-sight.",
+                  "Azimuth angle between wind direction and line-of-sight. "
+                  "This angle is measured clockwise from north, i.e. E=90deg.",
                   "The transmission of the atmosphere, along the propagation "
                   "path of the downwelling radiation. One value per frequency.",
                   "The version of FASTEM to use." )
@@ -5235,6 +5236,34 @@ void define_md_data_raw()
   
   md_data_raw.push_back     
     ( MdRecord
+      ( NAME( "InterpGriddedField2ToPosition" ),
+        DESCRIPTION
+        (
+         "Latitude and longitude interpolation of a GriddedField2.\n" 
+         "\n"
+         "The default way to specify the position is by *rtp_pos*.\n"
+         "\n"
+         "The interpolation is done for the latitude and longitude in\n"
+         "*rtp_pos*. The altitude in *rtp_pos* is completely ignored.\n"
+         "Linear interpolation is applied.\n" 
+         "\n"
+         "The input field (*gfield2*) is expected to have latitude and\n"
+         "longitude as first and second dimension.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT(),
+        GOUT( "out" ),
+        GOUT_TYPE( "Numeric" ),
+        GOUT_DESC( "Value obtained by interpolation." ),
+        IN( "atmosphere_dim", "lat_grid", "lat_true", "lon_true", "rtp_pos" ),
+        GIN( "gfield2" ),
+        GIN_TYPE( "GriddedField2" ),
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC( "Gridded field to interpolate." )
+        ));
+  
+  md_data_raw.push_back     
+    ( MdRecord
       ( NAME( "InterpSurfaceFieldToPosition" ),
         DESCRIPTION
         (
@@ -5796,7 +5825,13 @@ void define_md_data_raw()
          "FASTEM is not giving complete information for reflectivity. The\n"
          "reflectivity for U and V components is set to zero.\n"
          "\n"
-         "The angle between LOS and wind direction is not yet implemented.\n"
+         "The wind direction is given as the azimuth angle, counted\n"
+         "clockwise from north (i.e. an easterly wind is at 90 deg).\n"
+         "This matches the general definition of azimuth inside ARTS.\n"
+         "For 1D and 2D, the wind direction must be adjusted to match the\n"
+         "fact that the line-of-sight is locked to be at 0 deg (180 for 2D\n"
+         "in the case of a negative zenith angle). For 3D, the true wind\n"
+         "direction shall be used.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "iy", "diy_dx" ),
@@ -5808,11 +5843,12 @@ void define_md_data_raw()
             "cloudbox_on", "stokes_dim", "f_grid", "refellipsoid",
             "rtp_pos", "rtp_los", "rte_pos2", "iy_unit", "iy_main_agenda", 
             "blackbody_radiation_agenda", "surface_skin_t" ),
-        GIN( "salinity", "wind_speed", "fastem_version" ),
-        GIN_TYPE( "Numeric", "Numeric", "Index" ),
-        GIN_DEFAULT( NODEF, NODEF, "6" ),
+        GIN( "salinity", "wind_speed", "wind_direction", "fastem_version" ),
+        GIN_TYPE( "Numeric", "Numeric", "Numeric", "Index" ),
+        GIN_DEFAULT( NODEF, NODEF, "0", "6" ),
         GIN_DESC( "Salinity, 0-1. That is, 3\% is given as 0.03.",
                   "Wind speed.",
+                  "Wind direction. See futher above.",
                   "The version of FASTEM to use." )
         ));
 

@@ -307,4 +307,9 @@ void ppath_calc(
     const bool&           ppath_inside_cloudbox_do,
     const Verbosity&      verbosity);
 
+void resolve_lon(
+              Numeric&  lon,
+        const Numeric&  lon5,   
+        const Numeric&  lon6 );
+
 #endif  // ppath_h
