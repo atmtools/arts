@@ -1035,6 +1035,15 @@ also advantageous compared to the particles-as-continuum-models implementations
 as it allows for directional dependent absorption and for polarization effects
 that occur, e.g., with non-spherical particles.
 
+In the default case, absorption by particles is applied both in the extinction
+and emission terms of the radiative transfer equation, i.e. both right hand
+terms in Equation~\ref{eq:VRTE1}. However, using a flag,
+\wsmindex{propmat\_clearskyAddParticles} can apply total particle extinction
+instead. It shall be noted, that while this applies the correct extinction, it
+also creates an unphysical emission term. Hence, this option shall only be
+applied when the source term is negligible, as e.g. for occultation
+measurements.
+
 Be aware that both \wsmindex{propmat\_clearskyAddParticles} and the scattering methods
 use \wsvindex{scat\_data} to store the particle single scattering data.
 Hence, it is straight-forward that these methods can not be applied

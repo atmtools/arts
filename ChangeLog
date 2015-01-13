@@ -1,3 +1,17 @@
+2015-01-13  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-3-107
+
+	* src/m_abs.cc, methods.cc, doc/uguide/absorption.tex:
+	Added option to propmat_ClearskyAddParticle to use total particle
+	extinction instead of particle aborption in Schwarzschild RTE. Adapted
+	built-in doc and AUG accordingly.
+
+	* controlfiles/planetary_toolbox/demos/common/DemoMarsClouds1D.arts,
+	controlfiles/planetary_toolbox/demos/passive/DemoScat_FOS_1D.arts,
+	controlfiles/planetary_toolbox/includes/common/makeclouds1D.arts:
+	Minor layout fixes.
+
 2015-01-13  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-3-106

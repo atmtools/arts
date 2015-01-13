@@ -41,7 +41,7 @@ Extract( pmin_cb, p_grid, itmp )
 cloudboxSetManually( p1=pmax, p2=pmin,
                      lat1=0, lat2=0, lon1=0, lon2=0 )
 pnd_fieldCalc( zeropadding=1 )
-cloudboxSetAutomatically( massdensity_field=pnd_field )
+cloudboxSetAutomatically( scat_species_mass_density_field=pnd_field )
 pnd_fieldCalc( zeropadding=1 )
 
 # finally, we clean up the dummy files (not completely, though, as deleting

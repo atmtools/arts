@@ -8404,7 +8404,7 @@ void define_md_data_raw()
          "*ScatteringParticleTypeAndMetaRead* with the respective scattering\n"
          "data and meta data files has to be applied in the right order!\n"
          ),
-        AUTHORS( "Daniel Kreyling" ),
+        AUTHORS( "Daniel Kreyling, Jana Mendrok" ),
         OUT( "pnd_field"),
         GOUT(),
         GOUT_TYPE(),
@@ -8905,6 +8905,18 @@ void define_md_data_raw()
          "densities are stored in *vmr_field_raw* or *vmr_field* as for all\n"
          "*abs_species*, but can be taken from (raw) pnd_field type data.\n"
          "\n"
+         "Note that the absorption coefficient is applied both in the\n"
+         "extinction term (neglecting scattering out of the line of sight)\n"
+         "and the emission term (neglecting the scattering source term, i.e.\n"
+         "scattering into the line of sight).\n"
+         "\n"
+         "Optionally, particle extinction (sum of absorption and scattering\n"
+         "coefficient) can be used instead of absorption only. To choose this\n"
+         "case, set the *use_abs_as_ext* flag to 0. However, be aware that\n"
+         "this creates some unphysical emission term, hence is only suitable,\n"
+         "where the source term is negligible anyways, e.g. for occultation\n"
+         "simulations.\n"
+         "\n"
          "A line-of-sight direction *rtp_los* is required as particles can\n"
          "exhibit directional dependent absorption properties, which is taken\n"
          "into account by this method."
@@ -8928,10 +8940,19 @@ void define_md_data_raw()
         IN( "propmat_clearsky", "stokes_dim", "atmosphere_dim",
             "f_grid", "abs_species",
             "rtp_vmr", "rtp_los", "rtp_temperature", "scat_data" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
+        GIN(         "use_abs_as_ext" ),
+        GIN_TYPE(    "Index" ),
+        GIN_DEFAULT( "1" ),
+        GIN_DESC(
+                 "A flag with value 1 or 0. If set to one, particle absorption\n"
+                 "is used in extinction and emission parts of the RT equation,\n"
+                 "and scattering out of LOS as well as into LOS is neglected.\n"
+                 "Otherwise, particle extinction (absorption+scattering) is\n"
+                 "applied in both the extinction as well as the emission part\n"
+                 "of the RT equation. That is, true extinction is applied, but\n"
+                 "emission also includes a pseudo-emission contribution from\n"
+                 "the scattering coefficient.\n"
+                 )
         ));
 
   md_data_raw.push_back

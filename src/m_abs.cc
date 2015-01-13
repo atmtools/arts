@@ -2304,6 +2304,7 @@ void propmat_clearskyAddParticles(
                                     const Vector& rtp_los,
                                     const Numeric& rtp_temperature,
                                     const ArrayOfArrayOfSingleScatteringData& scat_data,
+                                    const Index& use_abs_as_ext,
                                     // Verbosity object:
                                     const Verbosity& verbosity)
 {
@@ -2382,7 +2383,7 @@ void propmat_clearskyAddParticles(
 
               //cout << "redone: found " << i_se << "th particle entry at abs_species "
               //     << "entry #" << sp << "\n";
-              // running beyond number of ab_Species entries when looking for
+              // running beyond number of abs_species entries when looking for
               // next particle entry. shouldn't happen, though.
               assert ( sp < na );
               if ( rtp_vmr[sp] > 0. )
@@ -2398,10 +2399,17 @@ void propmat_clearskyAddParticles(
                   pnd_ext_mat *= rtp_vmr[sp];
                   pnd_abs_vec *= rtp_vmr[sp];
 
-                  // sort the extracted absorption vector data into
-                  // propmat_clearsky, which is of extinction matrix type
-                  ext_matFromabs_vec(propmat_clearsky(sp,iv,joker,joker),
-                                     pnd_abs_vec, stokes_dim);
+                  if (use_abs_as_ext)
+                    {
+                      // sort the extracted absorption vector data into
+                      // propmat_clearsky, which is of extinction matrix type
+                      ext_matFromabs_vec(propmat_clearsky(sp,iv,joker,joker),
+                                         pnd_abs_vec, stokes_dim);
+                    }
+                  else
+                    {
+                      propmat_clearsky(sp,iv,joker,joker) = pnd_ext_mat;
+                    }
                 }
               sp++;
             }
