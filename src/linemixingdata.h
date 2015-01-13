@@ -42,7 +42,8 @@ public:
       LM_NONE,                          // Reserved for no line mixing
       LM_LBLRTM,                        // Reserved for LBLRTM line mixing
       LM_LBLRTM_O2NonResonant,          // Reserved for the non-resonant O2 line in LBLRTM
-      LM_2NDORDER                       // Reserved for Makarov et al. 2011 second order line mixing
+      LM_1STORDER,                      // Reserved for Tretyakov et al. 2005 1st order of line mixing
+      LM_2NDORDER                       // Reserved for Makarov et al. 2011 second order of line mixing
     };
   
     // Defining an object
@@ -55,6 +56,7 @@ public:
     // Use these to return data in the format required by the line shape calculator
     void GetLineMixingParams(Numeric& Y, Numeric& G, Numeric& DV, const Numeric& Temperature, const Numeric& Pressure, const Numeric& Pressure_Limit, const Index& order) const;
     void Get2ndOrder(Numeric& Y, Numeric& G, Numeric& DV, const Numeric& Temperature, const Numeric& Pressure, const Numeric& Pressure_Limit) const;
+    void Get1stOrder(Numeric& Y, const Numeric& Temperature, const Numeric& Pressure, const Numeric& Pressure_Limit) const;
     void GetLBLRTM(Numeric& Y, Numeric& G, const Numeric& Temperature, const Numeric& Pressure, const Numeric& Pressure_Limit, const Index& order) const; 
     void GetLBLRTM_O2NonResonant(Numeric& Gamma1, Numeric& Gamma2, const Numeric& Temperature, const Numeric& Pressure, const Numeric& Pressure_Limit, const Index& order) const;
     
@@ -87,6 +89,7 @@ public:
     void Vector2LBLRTM_O2NonResonantData(const Vector& input);
     void Vector2NoneData(const Vector&);
     void Vector2SecondOrderData(const Vector& input);
+    void Vector2FirstOrderData(const Vector& input);
     
     // Use these to save output vector in ARTS catalog
     void GetVectorFromData(Vector& output) const;
@@ -94,6 +97,7 @@ public:
     void LBLRTM_O2NonResonantData2Vector(Vector& output) const;
     String Type2StorageTag() const;
     void SecondOrderData2Vector(Vector& output) const;
+    void FirstOrderData2Vector(Vector& output) const;
     
 private:
     // mtype identifies the type of line mixing and mdata should contain the required data

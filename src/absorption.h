@@ -582,69 +582,6 @@ void xsec_species_line_mixing_wrapper(      MatrixView               xsec_attenu
                                             const Verbosity&         verbosity );
 
 
-void xsec_species_line_mixing_2nd_order(VectorView               xsec_attenuation,
-                                        VectorView               xsec_phase,
-                                        Vector&                  attenuation,
-                                        Vector&                  phase,
-                                        Vector&                  f_local,
-                                        Vector&                  aux,
-                                        Vector&                  fac,
-                                        const Vector&            f_grid,
-                                        const Numeric            p,
-                                        const Numeric            t,
-                                        const Numeric            lm_p_lim,
-                                        const Numeric            gamma,
-                                        const Numeric            deltaf,
-                                        const LineRecord&        my_line,
-                                        const Numeric            Z_DF,
-                                        const Index              ind_ls,
-                                        const Index              ind_lsn,
-                                        const Numeric            cutoff,
-                                        const SpeciesAuxData&    isotopologue_ratios);
-
-
-void xsec_species_line_mixing_LBLRTM(VectorView               xsec_attenuation,
-                                     VectorView               xsec_phase,
-                                     Vector&                  attenuation,
-                                     Vector&                  phase,
-                                     Vector&                  f_local,
-                                     Vector&                  aux,
-                                     Vector&                  fac,
-                                     const Vector&            f_grid,
-                                     const Numeric            p,
-                                     const Numeric            t,
-                                     const Numeric            lm_p_lim,
-                                     const Numeric            gamma,
-                                     const Numeric            deltaf,
-                                     const LineRecord&        my_line,
-                                     const Numeric            Z_DF,
-                                     const Index              ind_ls,
-                                     const Index              ind_lsn,
-                                     const Numeric            cutoff,
-                                     const SpeciesAuxData&    isotopologue_ratios);
-
-
-void xsec_species_LBLRTM_O2NonResonant(VectorView               xsec_attenuation,
-                                       VectorView               xsec_phase,
-                                       Vector&                  attenuation,
-                                       Vector&                  phase,
-                                       Vector&                  f_local,
-                                       Vector&                  aux,
-                                       Vector&                  fac,
-                                       const Vector&            f_grid,
-                                       const Numeric            p,
-                                       const Numeric            t,
-                                       const Numeric            lm_p_lim,
-                                       const Numeric            gamma,
-                                       const Numeric            deltaf,
-                                       const LineRecord&        my_line,
-                                       const Index              ind_lsn,
-                                       const Numeric            cutoff,
-                                       const SpeciesAuxData&    isotopologue_ratios,
-                                       const Verbosity& verbosity );
-
-
-
 void calc_gamma_and_deltaf_artscat4(Numeric& gamma,
                                     Numeric& deltaf,
                                     const Numeric p,

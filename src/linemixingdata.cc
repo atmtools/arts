@@ -41,6 +41,8 @@ void LineMixingData::GetLineMixingParams(Numeric& Y, Numeric& G, Numeric& DV, co
         GetLBLRTM_O2NonResonant(Y,G,Temperature,Pressure,Pressure_Limit,order); // Note that they only act like Y and G
     else if(mtype == LM_2NDORDER) // The 2nd order case
         Get2ndOrder(Y,G,DV,Temperature,Pressure,Pressure_Limit);
+    else if(mtype == LM_1STORDER) // The 1st order case
+        Get1stOrder(Y,Temperature,Pressure,Pressure_Limit);
     else
         throw std::runtime_error("You are trying to store a line mixing type that is unknown to ARTS.\n");
 }
@@ -154,6 +156,26 @@ void LineMixingData::Get2ndOrder(Numeric& Y, Numeric& G, Numeric& DV, const Nume
         Y=DV=G=0;
 }
 
+
+void LineMixingData::Get1stOrder(Numeric& Y, const Numeric& Temperature, const Numeric& Pressure, const Numeric& Pressure_Limit) const
+{
+    assert( mtype == LM_1STORDER );
+    assert(mdata.nelem() == 3);
+    assert(mdata[0].nelem() == 1 && mdata[1].nelem() == 1 && mdata[2].nelem() == 1);
+    
+    if(Pressure>Pressure_Limit)
+    {
+        // Helper to understand the following interpolation
+        const Numeric& T0  = mdata[0][0];
+        const Numeric& y  = mdata[1][0];
+        const Numeric& x  = mdata[2][0];
+        
+        Y  =  y * pow(T0/Temperature, x) * Pressure;
+    }
+    else
+        Y=0;
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Line mixing interactions to get cross section goes above here
 // Below is line mixing storage functions.
@@ -171,6 +193,8 @@ void LineMixingData::SetDataFromVectorWithKnownType(const Vector& input)
     Vector2LBLRTM_O2NonResonantData(input);
   else if(mtype == LM_2NDORDER) // The 2nd order case
     Vector2SecondOrderData(input);
+  else if(mtype == LM_1STORDER) // The 1st order case
+      Vector2FirstOrderData(input);
   else
     throw std::runtime_error("You are trying to store a line mixing type that is unknown to ARTS.\n");
 }
@@ -187,6 +211,8 @@ Index LineMixingData::ExpectedVectorLengthFromType()
     return 12;
   else if(mtype == LM_2NDORDER) // The 2nd order case
     return 10;
+  else if(mtype == LM_1STORDER) // The 2nd order case
+      return 3;
   else
     throw std::runtime_error("You are trying to store a line mixing type that is unknown to ARTS.\n");
   return 0;
@@ -264,7 +290,7 @@ void LineMixingData::Vector2LBLRTM_O2NonResonantData(const Vector& input)
 }
 
 
-// This will convert the read vector to the LBLRTM data format
+// This will convert the read vector to the none data format
 void LineMixingData::Vector2NoneData(const Vector& input)
 { // Setting mdata.resize(0) is probably a better method for this...
   assert(mtype == LineMixingData::LM_NONE);
@@ -273,14 +299,14 @@ void LineMixingData::Vector2NoneData(const Vector& input)
 }
 
 
-// This will convert the read vector to the LBLRTM data format
+// This will convert the read vector to the 2nd order data format
 void LineMixingData::Vector2SecondOrderData(const Vector& input)
 {
       assert(mtype == LineMixingData::LM_2NDORDER);
       if(input.nelem() != ExpectedVectorLengthFromType())
         throw std::runtime_error("The line mixing data vector is not of the right length for 2ndOrder.\n");
       
-      // Then this is a three-long ArrayOfVector
+      // Then this is a four-long ArrayOfVector
       mdata.resize(4);
       
       // This is supposed to be the temperature vector
@@ -307,6 +333,31 @@ void LineMixingData::Vector2SecondOrderData(const Vector& input)
 }
 
 
+// This will convert the read vector to the 1st order data format
+void LineMixingData::Vector2FirstOrderData(const Vector& input)
+{
+    assert(mtype == LineMixingData::LM_1STORDER);
+    if(input.nelem() != ExpectedVectorLengthFromType())
+        throw std::runtime_error("The line mixing data vector is not of the right length for 1stOrder.\n");
+    
+    // Then this is a three-long ArrayOfVector
+    mdata.resize(3);
+    
+    // This is supposed to be the temperature vector
+    mdata[0].resize(1);
+    mdata[0][0] = input[0];
+    
+    // This is supposed to be value
+    mdata[1].resize(1);
+    mdata[1][0] = input[1];
+    
+    // This is supposed to be exponential value
+    mdata[2].resize(1);
+    mdata[2][0] = input[2];
+    
+}
+
+
 // This will convert the stored two char string to LM_Type
 void LineMixingData::StorageTag2SetType(const String& input)
  {
@@ -318,6 +369,8 @@ void LineMixingData::StorageTag2SetType(const String& input)
     mtype = LM_LBLRTM_O2NonResonant;
   else if(input == "L2") // The 2nd order case
     mtype = LM_2NDORDER;
+  else if(input == "L1") // The 2nd order case
+      mtype = LM_1STORDER;
   else
     throw std::runtime_error("You are trying to read a line mixing type that is unknown to ARTS.\n");
 }
@@ -373,7 +426,7 @@ void LineMixingData::LBLRTM_O2NonResonantData2Vector(Vector& output) const
 }
 
 
-// This will convert the read vector to the LBLRTM data format
+// This will convert the 2ndOrder data format to a vector for storage
 void LineMixingData::SecondOrderData2Vector(Vector& output) const
 {
       output.resize(10);
@@ -398,6 +451,22 @@ void LineMixingData::SecondOrderData2Vector(Vector& output) const
 }
 
 
+// This will convert the 1stOrder data format to a vector for storage
+void LineMixingData::FirstOrderData2Vector(Vector& output) const
+{
+    output.resize(3);
+    
+    // This is the temperature
+    output[0] = mdata[0][0];
+    
+    // This is the y-value
+    output[1] = mdata[1][0];
+    
+     // This is the exponent
+    output[2] = mdata[2][0];
+}
+
+
 void LineMixingData::GetVectorFromData(Vector& output) const
 {
     if(mtype == LM_NONE) // The standard case
@@ -408,6 +477,8 @@ void LineMixingData::GetVectorFromData(Vector& output) const
         LBLRTM_O2NonResonantData2Vector(output);
     else if(mtype == LM_2NDORDER) // The 2nd order case
         SecondOrderData2Vector(output);
+    else if(mtype == LM_1STORDER) // The 1st order case
+        FirstOrderData2Vector(output);
     else
         throw std::runtime_error("You are trying to store a line mixing type that is unknown to ARTS.\n");
 }
@@ -427,6 +498,8 @@ String LineMixingData::Type2StorageTag() const
     output = "NR";
   else if(mtype == LM_2NDORDER) // The 2nd order case
     output = "L2"; 
+  else if(mtype == LM_1STORDER) // The 2nd order case
+      output = "L1"; 
   else
     throw std::runtime_error("You are trying to store a line mixing type that is unknown to ARTS.\n");
 

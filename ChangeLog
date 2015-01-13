@@ -1,3 +1,16 @@
+2015-01-13  Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-3-106
+	
+	* src/absorption.cc:  Removed old header information.
+	
+	* src/pressurebroadeningdata.cc:  Fixed fatal bug in how self broadening was 
+	stored and read in my implementation for ARTSCAT-5.
+	
+	* src/linemixingdata.{cc,h}:  Added explicit 1st order line mixing functionality.
+	This was technologically possible with 2nd order line mixing, but it was confusing
+	to read and understand.
+
 2015-01-13  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-105

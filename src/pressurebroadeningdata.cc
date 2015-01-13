@@ -392,8 +392,8 @@ void PressureBroadeningData::SetDataFromVectorWithKnownType(const Vector & input
     }
     else if(mtype == PB_PERRIN_BROADENING) // 2 Numerics and 3 Vectors of 6-length
         SetPerrinBroadeningFromCatalog(input[0],
-                                       input[1],
-                                       input[Range(2,6)],
+                                       input[7],
+                                       input[Range(1,6)],
                                        input[Range(8,6)],
                                        input[Range(14,6)]);
 }
@@ -448,8 +448,8 @@ void PressureBroadeningData::GetVectorFromData(Vector& output) const
     else if(mtype == PB_PERRIN_BROADENING) // 2 Numerics and 3 Vectors of 6-length
     {
         output[0]=mdata[0][0];
-        output[1]=mdata[1][0];
-        output[Range(2,6)]=mdata[2];
+        output[7]=mdata[1][0];
+        output[Range(1,6)]=mdata[2];
         output[Range(8,6)]=mdata[3];
         output[Range(14,6)]=mdata[4];
     }
