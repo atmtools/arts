@@ -792,14 +792,16 @@ the scattering integral field (\wsvindex{doit\_scat\_field}), the
 radiative transfer calculations in 
 the cloudbox with fixed scattering integral and the convergence test.
 
-After convergence is obtained the radiation field inside the
-cloudbox is stored in the interface variable \wsvindex{scat\_i\_p} if
-the sensor is located outside the cloudbox, or in the variable 
-\wsvindex{doit\_i\_field1D\_spectrum} if the sensor is located inside
-the cloudbox. This is done by the workspace method
-\wsmindex{DoitCloudboxFieldPut}. In contrast to
-\wsvindex{doit\_i\_field} the interface 
-variables include an additional dimension for the frequency.
+After convergence is obtained the radiation field has to be stored in an
+interface variable that creates the link between the scattering solver solution
+and the evaluation of the radiative transfer equation. This is done by the
+workspace method \wsmindex{DoitCloudboxFieldPut}.
+ The radiation field at the boundary of the cloudbox is
+stored in the interface variable \wsvindex{scat\_i\_p}.  
+\wsvindex{doit\_i\_field1D\_spectrum} is used as interface
+variable storing the cloudbox radiation field. In contrast to
+\wsvindex{doit\_i\_field} the interface variables include an additional
+dimension for the frequency.
 
 
 \subsubsection{Agendas used in \wsmindex{doit\_i\_fieldIterate}}
