@@ -1,3 +1,15 @@
+2015-01-13  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-105
+
+	* src/m_rte.cc (iyEmissionStandard): iy_aux now also considered
+	even if iy_agenda_call1==0. A bit of overhead in the general case,
+	but handy in some cases. For example, totally needed to handle
+	FASTEM in an efficient manner.
+
+	* src/m_surface.cc (iyWaterSurfaceFastem): Some simple tests done
+	and the method seems to work.
+
 2015-01-12  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-104

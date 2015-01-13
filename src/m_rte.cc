@@ -290,81 +290,78 @@ void iyEmissionStandard(
   ArrayOfIndex auxAbsSpecies(0), auxAbsIsp(0);
   ArrayOfIndex auxVmrSpecies(0), auxVmrIsp(0);
   //
-  if( !iy_agenda_call1 )
-    { iy_aux.resize( 0 ); }
-  else
-    {
-      const Index naux = iy_aux_vars.nelem();
-      iy_aux.resize( naux );
-      //
-      for( Index i=0; i<naux; i++ )
-        {
-          if( iy_aux_vars[i] == "Pressure" )
-            { auxPressure = i;      iy_aux[i].resize( 1, 1, 1, np ); }
-          else if( iy_aux_vars[i] == "Temperature" )
-            { auxTemperature = i;   iy_aux[i].resize( 1, 1, 1, np ); }
-          else if( iy_aux_vars[i].substr(0,13) == "VMR, species " )
-            { 
-              Index ispecies;
-              istringstream is(iy_aux_vars[i].substr(13,2));
-              is >> ispecies;
-              if( ispecies < 0  ||  ispecies>=abs_species.nelem() )
-                {
-                  ostringstream os;
-                  os << "You have selected VMR of species with index "
-                     << ispecies << ".\nThis species does not exist!";
-                  throw runtime_error( os.str() );
-                }
-              auxVmrSpecies.push_back(i);
-              auxVmrIsp.push_back(ispecies);
-              iy_aux[i].resize( 1, 1, 1, np );               
-            }
-          else if( iy_aux_vars[i] == "Absorption, summed" )
-            { auxAbsSum = i;   iy_aux[i].resize( nf, ns, ns, np ); }
-          else if( iy_aux_vars[i].substr(0,20) == "Absorption, species " )
-            { 
-              Index ispecies;
-              istringstream is(iy_aux_vars[i].substr(20,2));
-              is >> ispecies;
-              if( ispecies < 0  ||  ispecies>=abs_species.nelem() )
-                {
-                  ostringstream os;
-                  os << "You have selected absorption species with index "
-                     << ispecies << ".\nThis species does not exist!";
-                  throw runtime_error( os.str() );
-                }
-              auxAbsSpecies.push_back(i);
-              const Index ihit = find_first( iaps, ispecies );
-              if( ihit >= 0 )
-                { auxAbsIsp.push_back( ihit ); }
-              else
-                { 
-                  iaps.push_back(ispecies); 
-                  auxAbsIsp.push_back( iaps.nelem()-1 ); 
-                }
-              iy_aux[i].resize( nf, ns, ns, np );               
-            }
-          else if( iy_aux_vars[i] == "Radiative background" )
-            { auxBackground = i;   iy_aux[i].resize( nf, 1, 1, 1 ); }
-          else if( iy_aux_vars[i] == "iy"   &&  auxIy < 0 )
-            { auxIy = i;           iy_aux[i].resize( nf, ns, 1, np ); }
-          else if( iy_aux_vars[i] == "Transmission"   &&  auxTrans < 0 )
-            { auxTrans = i;        iy_aux[i].resize( nf, ns, ns, np ); }
-          else if( iy_aux_vars[i] == "Optical depth" )
-            { auxOptDepth = i;     iy_aux[i].resize( nf, 1, 1, 1 ); }
-          else if( iy_aux_vars[i].substr(0,14) == "Mass content, " )
-            { iy_aux[i].resize( 0, 0, 0, 0 ); }
-          else if( iy_aux_vars[i].substr(0,10) == "PND, type " )
-            { iy_aux[i].resize( 0, 0, 0, 0 ); }
-          else
-            {
-              ostringstream os;
-              os << "In *iy_aux_vars* you have included: \"" << iy_aux_vars[i]
-                 << "\"\nThis choice is not recognised.";
-              throw runtime_error( os.str() );
-            }
-        }
-    }
+  {
+    const Index naux = iy_aux_vars.nelem();
+    iy_aux.resize( naux );
+    //
+    for( Index i=0; i<naux; i++ )
+      {
+        if( iy_aux_vars[i] == "Pressure" )
+          { auxPressure = i;      iy_aux[i].resize( 1, 1, 1, np ); }
+        else if( iy_aux_vars[i] == "Temperature" )
+          { auxTemperature = i;   iy_aux[i].resize( 1, 1, 1, np ); }
+        else if( iy_aux_vars[i].substr(0,13) == "VMR, species " )
+          { 
+            Index ispecies;
+            istringstream is(iy_aux_vars[i].substr(13,2));
+            is >> ispecies;
+            if( ispecies < 0  ||  ispecies>=abs_species.nelem() )
+              {
+                ostringstream os;
+                os << "You have selected VMR of species with index "
+                   << ispecies << ".\nThis species does not exist!";
+                throw runtime_error( os.str() );
+              }
+            auxVmrSpecies.push_back(i);
+            auxVmrIsp.push_back(ispecies);
+            iy_aux[i].resize( 1, 1, 1, np );               
+          }
+        else if( iy_aux_vars[i] == "Absorption, summed" )
+          { auxAbsSum = i;   iy_aux[i].resize( nf, ns, ns, np ); }
+        else if( iy_aux_vars[i].substr(0,20) == "Absorption, species " )
+          { 
+            Index ispecies;
+            istringstream is(iy_aux_vars[i].substr(20,2));
+            is >> ispecies;
+            if( ispecies < 0  ||  ispecies>=abs_species.nelem() )
+              {
+                ostringstream os;
+                os << "You have selected absorption species with index "
+                   << ispecies << ".\nThis species does not exist!";
+                throw runtime_error( os.str() );
+              }
+            auxAbsSpecies.push_back(i);
+            const Index ihit = find_first( iaps, ispecies );
+            if( ihit >= 0 )
+              { auxAbsIsp.push_back( ihit ); }
+            else
+              { 
+                iaps.push_back(ispecies); 
+                auxAbsIsp.push_back( iaps.nelem()-1 ); 
+              }
+            iy_aux[i].resize( nf, ns, ns, np );               
+          }
+        else if( iy_aux_vars[i] == "Radiative background" )
+          { auxBackground = i;   iy_aux[i].resize( nf, 1, 1, 1 ); }
+        else if( iy_aux_vars[i] == "iy"   &&  auxIy < 0 )
+          { auxIy = i;           iy_aux[i].resize( nf, ns, 1, np ); }
+        else if( iy_aux_vars[i] == "Transmission"   &&  auxTrans < 0 )
+          { auxTrans = i;        iy_aux[i].resize( nf, ns, ns, np ); }
+        else if( iy_aux_vars[i] == "Optical depth" )
+          { auxOptDepth = i;     iy_aux[i].resize( nf, 1, 1, 1 ); }
+        else if( iy_aux_vars[i].substr(0,14) == "Mass content, " )
+          { iy_aux[i].resize( 0, 0, 0, 0 ); }
+        else if( iy_aux_vars[i].substr(0,10) == "PND, type " )
+          { iy_aux[i].resize( 0, 0, 0, 0 ); }
+        else
+          {
+            ostringstream os;
+            os << "In *iy_aux_vars* you have included: \"" << iy_aux_vars[i]
+               << "\"\nThis choice is not recognised.";
+            throw runtime_error( os.str() );
+          }
+      }
+  }
   //===========================================================================
 
 
