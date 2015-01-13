@@ -41,6 +41,13 @@ Numeric calc_incang(
    ConstVectorView   rte_los,
    ConstVectorView   specular_los );
 
+void surface_calc(
+              Matrix&         iy,
+        ConstTensor3View      I,
+        ConstMatrixView       surface_los,
+        ConstTensor4View      surface_rmatrix,
+        ConstMatrixView       surface_emission );
+
 void surface_specular_R_and_b(
               Workspace&   ws,
               MatrixView   surface_rmatrix,

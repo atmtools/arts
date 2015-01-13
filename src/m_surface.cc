@@ -70,24 +70,24 @@ void FastemStandAlone(
           Matrix&   emissivity,
           Matrix&   reflectivity,
     const Vector&   f_grid,
-    const Numeric&  temperature,
+    const Numeric&  surface_skin_t,
+    const Numeric&  za,
     const Numeric&  salinity,
     const Numeric&  wind_speed,
-    const Numeric&  transmittance,
-    const Numeric&  za,
     const Numeric&  rel_aa,
+    const Vector&   transmittance,
     const Index&    fastem_version,
     const Verbosity& )
 {
-  assert( za >= 0  &&  za <= 180 );
-  assert( temperature > 270  &&  temperature  < 374 );
+  const Index nf = f_grid.nelem();
+
+  assert( za >= 90  &&  za <= 180 );
+  assert( surface_skin_t > 270  &&  surface_skin_t  < 374 );
   assert( salinity >= 0  &&  salinity < 100 );
   assert( wind_speed >= 0  &&  wind_speed < 100 );
-  assert( transmittance >= 0  &&  transmittance <= 1 );
   assert( rel_aa >= -180  &&  rel_aa <= 180 );
   assert( fastem_version >= 3  &&  fastem_version <= 6 );
-
-  const Index nf = f_grid.nelem();
+  assert( transmittance.nelem() == nf );
 
   emissivity.resize( nf, 4 );
   reflectivity.resize( nf, 4 );
@@ -95,13 +95,151 @@ void FastemStandAlone(
   for( Index i=0; i<nf; i++ )
     {
       assert( f_grid[i] < 100e9 );
+      assert( transmittance[i] >= 0  &&  transmittance[i] <= 1 );
 
       Vector e, r;
-      fastem( e, r, f_grid[i], za, temperature, salinity, 
-              wind_speed, transmittance, rel_aa, fastem_version );
+      fastem( e, r, f_grid[i], za, surface_skin_t, salinity, 
+              wind_speed, transmittance[i], rel_aa, fastem_version );
 
       emissivity(i,joker) = e;
       reflectivity(i,joker) = r;
+    }
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void iyWaterSurfaceFastem(
+          Workspace&        ws,
+          Matrix&           iy,
+          ArrayOfTensor3&   diy_dx,  
+    const Tensor3&          iy_transmission,
+    const Index&            jacobian_do,
+    const Index&            atmosphere_dim,
+    const Vector&           lat_grid,
+    const Vector&           lon_grid,
+    const Tensor3&          t_field,
+    const Tensor3&          z_field,
+    const Tensor4&          vmr_field,
+    const Matrix&           z_surface,
+    const Index&            cloudbox_on,
+    const Index&            stokes_dim,
+    const Vector&           f_grid,
+    const Vector&           refellipsoid,
+    const Vector&           rtp_pos,
+    const Vector&           rtp_los,
+    const Vector&           rte_pos2,
+    const String&           iy_unit,  
+    const Agenda&           iy_main_agenda,
+    const Agenda&           blackbody_radiation_agenda,
+    const Numeric&          surface_skin_t,
+    const Numeric&          salinity,
+    const Numeric&          wind_speed,
+    const Index&            fastem_version,
+    const Verbosity&        verbosity )
+{
+  // Input checks
+  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
+  chk_rte_pos( atmosphere_dim, rtp_pos );
+  chk_rte_los( atmosphere_dim, rtp_los );
+
+  const Index nf = f_grid.nelem();
+
+  // Obtian radiance and transmission for specular direction
+  Vector transmittance( nf );
+  {
+    // Determine specular direction
+    Vector specular_los, surface_normal;  
+    specular_losCalc( specular_los, surface_normal, rtp_pos, rtp_los, 
+                      atmosphere_dim, lat_grid, lon_grid, refellipsoid, 
+                      z_surface, verbosity );
+    
+    // Use iy_aux to get optical depth for downwelling radiation.
+    ArrayOfString    iy_aux_vars(1); iy_aux_vars[0] = "Optical depth";
+    
+    // Note that iy_transmission used here lacks surface R. Fixed below.
+    ArrayOfTensor4   iy_aux;
+    Ppath            ppath;
+    iy_main_agendaExecute( ws, iy, iy_aux, ppath, diy_dx, 0, iy_unit, 
+                           iy_transmission, iy_aux_vars, 
+                           cloudbox_on, jacobian_do, t_field, 
+                           z_field, vmr_field, f_grid, rtp_pos, 
+                           specular_los, rte_pos2, iy_main_agenda );
+
+    // Convert tau to transmissions
+    for( Index i=0; i<nf; i++ )
+      { transmittance[i] = exp( -iy_aux[0](i,0,0,0) ); }
+  }
+
+
+  // Call FASTEM
+  Matrix emissivity, reflectivity;
+  FastemStandAlone(  emissivity, reflectivity, f_grid, surface_skin_t, 
+                     abs(rtp_los[0]), salinity, wind_speed, 0, 
+                     transmittance, fastem_version, verbosity );
+
+  // Surface emission
+  //
+  Vector b;
+  blackbody_radiation_agendaExecute( ws, b, surface_skin_t, f_grid, 
+                                     blackbody_radiation_agenda );  
+  //
+  Matrix surface_emission( nf, stokes_dim );
+  for( Index i=0; i<nf; i++ )
+    {
+      // I
+      surface_emission(i,0) = b[i] * 0.5 * ( emissivity(i,0) + 
+                                             emissivity(i,1) ); 
+      // Q
+      if( stokes_dim >= 2 )
+        { surface_emission(i,1) = b[i] * 0.5 * ( emissivity(i,0) - 
+                                                 emissivity(i,1) ); }
+      // U and V
+      for( Index j=2; j<stokes_dim; j++ )
+        { surface_emission(i,j) = b[i] * emissivity(i,j); }
+    }
+  
+  // Surface reflectivity matrix
+  //
+  Tensor4 surface_rmatrix( 1, nf, stokes_dim, stokes_dim );
+  surface_rmatrix = 0.0;
+  for( Index i=0; i<nf; i++ )
+    {
+      surface_rmatrix(0,i,0,0) = 0.5 * ( reflectivity(i,0) +
+                                         reflectivity(i,1) ); 
+      if( stokes_dim >= 2 )
+        {
+          surface_rmatrix(0,i,0,1) = 0.5 * ( reflectivity(i,0) -
+                                             reflectivity(i,1) ); ;
+          surface_rmatrix(0,i,1,0) = surface_rmatrix(0,i,0,1);
+          surface_rmatrix(0,i,1,1) = surface_rmatrix(0,i,0,0);
+        }
+    }  
+
+  // Add up
+  //
+  Tensor3   I( 1, nf, stokes_dim );   I(0,joker,joker) = iy;
+  //
+  surface_calc( iy, I, rtp_los, surface_rmatrix, surface_emission );
+
+
+  // Adjust diy_dx, if necessary.
+  // For vector cases this is a slight approximation, as the order of the
+  // different transmission and reflectivities matters.
+  if( iy_transmission.npages() )
+    {
+      for( Index q=0; q<diy_dx.nelem(); q++ )
+        {
+          for( Index p=0; p<diy_dx[q].npages(); p++ )
+            {
+              for( Index i=0; i<nf; i++ )
+                {
+                  Vector x = diy_dx[q](p,i,joker);
+                  mult( diy_dx[q](p,i,joker), surface_rmatrix(0,i,joker,joker),
+                                                                           x );
+                }
+            }
+        }
     }
 }
 
@@ -134,7 +272,7 @@ void InterpSurfaceFieldToPosition(
          << "*rtp_pos* is " << rtp_pos[0]/1e3 << " km.\n"
          << "The altitude range covered by *z_surface* is [" << zmin/1e3 
          <<  "," << zmax/1e3 << "] km.\n"
-         << "One possible mistake is to mix up *rtp_pos* and *rte_pos*.";
+         << "One possible mistake is to mix up *rtp_pos* and *rte_los*.";
       throw runtime_error( os.str() );
     }
 

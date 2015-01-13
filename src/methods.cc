@@ -4532,27 +4532,34 @@ void define_md_data_raw()
          "\n"
          "FASTEM is a parameterisation of the emissivity of water surfaces\n"
          "including the impact of waves, salinity and non-specular effects.\n"
+         "This is more or less direct interface to FASTEM, but slightly\n"
+         "adopted to fit with ARTS. The unit of *frequency* and salinity\n"
+         "differ, and this version is \"vectorised\" in frequency.\n"
          "\n"
-         "To be written ...\n"
+         "The output is four emissivity and reflectivity values for each\n"
+         "frequency. These values are defined in Eq. 13 of  \"An Improved\n"
+         "Fast Microwave Water Emissivity Model\" by Liu, Weng and English,\n"
+         "I3TRGS, 2011. Note that emissivity and reflectivity do not add up\n"
+         "to 1, which is the way FASTEM compensates for non-specular effects.\n"
          ),
         AUTHORS( "Oliver Lemke, Patrick Eriksson" ),
         OUT(),
         GOUT( "emissivity", "reflectivity" ),
         GOUT_TYPE( "Matrix", "Matrix" ),
-        GOUT_DESC( "Emission values. See above.", 
-                   "Reflectivity values. See above." ),
-        IN( "f_grid" ),
-        GIN( "temperature", "salinity", "wind_speed", "transmittance",
-             "za", "rel_aa", "fastem_version" ),
-        GIN_TYPE( "Numeric", "Numeric", "Numeric", "Numeric",
-                  "Numeric", "Numeric", "Index"),
-        GIN_DEFAULT( NODEF, NODEF, NODEF, NODEF, NODEF, NODEF, "6" ),
-        GIN_DESC( "Skin temperature.",
+        GOUT_DESC( "Emission values. One row for each frequency. See above.", 
+                   "Reflectivity values. One row for each frequency. See above." ),
+        IN( "f_grid", "surface_skin_t" ),
+        GIN( "za", "salinity", "wind_speed", "rel_aa",
+             "transmittance", "fastem_version" ),
+        GIN_TYPE( "Numeric", "Numeric", "Numeric",
+                  "Numeric", "Vector", "Index"),
+        GIN_DEFAULT( NODEF, NODEF, NODEF, NODEF, NODEF, "6" ),
+        GIN_DESC( "Zenith angle of line-of-sigh, 90 to 180 deg.",
                   "Salinity, 0-1. That is, 3\% is given as 0.03.",
                   "Wind speed.",
-                  "The transmission of the atmosphere",
-                  "Zenith angle",
-                  "Azimuth angle with respect to line-of-sight.",
+                  "Azimuth angle between wind direction and line-of-sight.",
+                  "The transmission of the atmosphere, along the propagation "
+                  "path of the downwelling radiation. One value per frequency.",
                   "The version of FASTEM to use." )
         ));
 
@@ -5617,65 +5624,6 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "iyMC" ),
-        DESCRIPTION
-        (
-         "Interface to Monte Carlo part for *iy_main_agenda*.\n"
-         "\n"
-         "Basically an interface to *MCGeneral* for doing monochromatic\n"
-         "pencil beam calculations. This functions allows Monte Carlo (MC)\n"
-         "calculations for sets of frequencies and sensor pos/los in a single\n"
-         "run. Sensor responses can be included in the standard manner\n" 
-         "(through *yCalc*).\n"
-         "\n"
-         "This function does not apply the MC approach when it comes\n"
-         "to sensor properties. These properties are not considered when\n"
-         "tracking photons, which is done in *MCGeneral* (but then only for\n"
-         "the antenna pattern).\n"
-         "\n"
-         "Output unit options  (*iy_unit*) exactly as for *MCGeneral*.\n"
-         "\n"
-         "The MC calculation errors are all assumed be uncorrelated and each\n"
-         "have a normal distribution. These properties are of relevance when\n"
-         "weighting the errors with the sensor repsonse matrix. The seed is\n"
-         "reset for each call of *MCGeneral* to obtain uncorrelated errors.\n"
-         "\n"
-         "MC control arguments (mc_std_err, mc_max_time, mc_min_iter and\n"
-         "mc_mas_iter) as for *MCGeneral*. The arguments are applied\n"
-         "for each monochromatic pencil beam calculation individually.\n"
-         "As or *MCGeneral*, the value of *mc_error* shall be adopted to\n"
-         "*iy_unit*.\n"
-         "\n"
-         "The following auxiliary data can be obtained:\n"
-         "  \"Error (uncorrelated)\": Calculation error. Size: [nf,ns,1,1].\n"
-         "    (The later part of the text string is required. It is used as\n"
-         "    a flag to yCalc for how to apply the sensor data.)\n"
-         "where\n"
-         "  nf: Number of frequencies.\n"
-         "  ns: Number of Stokes elements.\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT( "iy", "iy_aux", "diy_dx" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "iy_agenda_call1", "iy_transmission", "rte_pos", "rte_los", 
-            "iy_aux_vars", "jacobian_do", "atmosphere_dim", "p_grid", 
-            "lat_grid", "lon_grid", "z_field", "t_field", "vmr_field", 
-            "refellipsoid", 
-            "z_surface", "cloudbox_on", "cloudbox_limits",
-            "stokes_dim", "f_grid", "scat_data", "iy_space_agenda", 
-            "surface_rtprop_agenda", "propmat_clearsky_agenda",
-            "ppath_step_agenda", "ppath_lraytrace", "pnd_field", "iy_unit",
-            "mc_std_err", "mc_max_time", "mc_max_iter", "mc_min_iter" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME( "iyInterpCloudboxField" ),
         DESCRIPTION
         (
@@ -5770,6 +5718,102 @@ void define_md_data_raw()
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "iyMC" ),
+        DESCRIPTION
+        (
+         "Interface to Monte Carlo part for *iy_main_agenda*.\n"
+         "\n"
+         "Basically an interface to *MCGeneral* for doing monochromatic\n"
+         "pencil beam calculations. This functions allows Monte Carlo (MC)\n"
+         "calculations for sets of frequencies and sensor pos/los in a single\n"
+         "run. Sensor responses can be included in the standard manner\n" 
+         "(through *yCalc*).\n"
+         "\n"
+         "This function does not apply the MC approach when it comes\n"
+         "to sensor properties. These properties are not considered when\n"
+         "tracking photons, which is done in *MCGeneral* (but then only for\n"
+         "the antenna pattern).\n"
+         "\n"
+         "Output unit options  (*iy_unit*) exactly as for *MCGeneral*.\n"
+         "\n"
+         "The MC calculation errors are all assumed be uncorrelated and each\n"
+         "have a normal distribution. These properties are of relevance when\n"
+         "weighting the errors with the sensor repsonse matrix. The seed is\n"
+         "reset for each call of *MCGeneral* to obtain uncorrelated errors.\n"
+         "\n"
+         "MC control arguments (mc_std_err, mc_max_time, mc_min_iter and\n"
+         "mc_mas_iter) as for *MCGeneral*. The arguments are applied\n"
+         "for each monochromatic pencil beam calculation individually.\n"
+         "As or *MCGeneral*, the value of *mc_error* shall be adopted to\n"
+         "*iy_unit*.\n"
+         "\n"
+         "The following auxiliary data can be obtained:\n"
+         "  \"Error (uncorrelated)\": Calculation error. Size: [nf,ns,1,1].\n"
+         "    (The later part of the text string is required. It is used as\n"
+         "    a flag to yCalc for how to apply the sensor data.)\n"
+         "where\n"
+         "  nf: Number of frequencies.\n"
+         "  ns: Number of Stokes elements.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "iy", "iy_aux", "diy_dx" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "iy_agenda_call1", "iy_transmission", "rte_pos", "rte_los", 
+            "iy_aux_vars", "jacobian_do", "atmosphere_dim", "p_grid", 
+            "lat_grid", "lon_grid", "z_field", "t_field", "vmr_field", 
+            "refellipsoid", 
+            "z_surface", "cloudbox_on", "cloudbox_limits",
+            "stokes_dim", "f_grid", "scat_data", "iy_space_agenda", 
+            "surface_rtprop_agenda", "propmat_clearsky_agenda",
+            "ppath_step_agenda", "ppath_lraytrace", "pnd_field", "iy_unit",
+            "mc_std_err", "mc_max_time", "mc_max_iter", "mc_min_iter" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "iyWaterSurfaceFastem" ),
+        DESCRIPTION
+        (
+         "Usage of FASTEM for emissivity and reflectivity o9f water surfaces.\n"
+         "\n"
+         "This method allows usage of the FASTEM model inside\n"
+         "*iy_surface_Agenda*. The aim is to use FASTEM in the exact same\n"
+         "way as done in RTTOV. For example, the transmittance for down-\n"
+         "welling radiation is considered. RTTOV os just 1D. Here 2D and 3D\n"
+         "are handled as the 1D case, the down-welling radiation is just\n"
+         "calculated for the directuon matching specular reflection.\n"
+         "\n"
+         "FASTEM is not giving complete information for reflectivity. The\n"
+         "reflectivity for U and V components is set to zero.\n"
+         "\n"
+         "The angle between LOS and wind direction is not yet implemented.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "iy", "diy_dx" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "iy_transmission", "jacobian_do", "atmosphere_dim", "lat_grid",
+            "lon_grid", "t_field", "z_field", "vmr_field", "z_surface",
+            "cloudbox_on", "stokes_dim", "f_grid", "refellipsoid",
+            "rtp_pos", "rtp_los", "rte_pos2", "iy_unit", "iy_main_agenda", 
+            "blackbody_radiation_agenda", "surface_skin_t" ),
+        GIN( "salinity", "wind_speed", "fastem_version" ),
+        GIN_TYPE( "Numeric", "Numeric", "Index" ),
+        GIN_DEFAULT( NODEF, NODEF, "6" ),
+        GIN_DESC( "Salinity, 0-1. That is, 3\% is given as 0.03.",
+                  "Wind speed.",
+                  "The version of FASTEM to use." )
         ));
 
   md_data_raw.push_back

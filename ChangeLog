@@ -1,3 +1,17 @@
+2015-01-12  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-104
+
+	* src/m_surface.cc (iyWaterSurfaceFastem): New WSM. Complete but
+	needs changes in how iy_aux is handled for secondary ppaths.
+
+	(FastemStandAlone): Better documentation. Transmittance now also vector.
+
+	* src/surface.cc (surface_calc): Moved from rte.cc.
+
+	* src/fastem.cc: Extended header text. Za is now expected to be
+	[90,180].
+
 2015-01-12  Jana Mendrok  <jana.mendrok@ltu.se>
 
 	* arts-2-3-103

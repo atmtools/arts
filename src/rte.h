@@ -312,11 +312,4 @@ void pos2true_latlon(
     ConstVectorView    lon_true,
     ConstVectorView    pos );
 
-void surface_calc(
-              Matrix&         iy,
-        ConstTensor3View      I,
-        ConstMatrixView       surface_los,
-        ConstTensor4View      surface_rmatrix,
-        ConstMatrixView       surface_emission );
-
 #endif  // rte_h
