@@ -84,7 +84,7 @@ void FastemStandAlone(
 
   assert( za >= 90  &&  za <= 180 );
   assert( surface_skin_t > 270  &&  surface_skin_t  < 374 );
-  assert( salinity >= 0  &&  salinity < 100 );
+  assert( salinity >= 0  &&  salinity < 1 );
   assert( wind_speed >= 0  &&  wind_speed < 100 );
   assert( rel_aa >= -180  &&  rel_aa <= 180 );
   assert( fastem_version >= 3  &&  fastem_version <= 6 );
@@ -144,7 +144,7 @@ void iyWaterSurfaceFastem(
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
   chk_rte_pos( atmosphere_dim, rtp_pos );
   chk_rte_los( atmosphere_dim, rtp_los );
-  chk_if_in_range( "salinity", atmosphere_dim, 0, 1 );
+  chk_if_in_range( "salinity", salinity, 0, 1 );
   chk_if_in_range( "wind_speed", wind_speed, 0, 100 );
   chk_if_in_range( "wind_direction", wind_direction, -180, 180 );
 
@@ -245,8 +245,9 @@ void iyWaterSurfaceFastem(
   // Add up
   //
   Tensor3   I( 1, nf, stokes_dim );   I(0,joker,joker) = iy;
+  Matrix sensor_los_dummy(1,1,0);
   //
-  surface_calc( iy, I, rtp_los, surface_rmatrix, surface_emission );
+  surface_calc( iy, I, sensor_los_dummy, surface_rmatrix, surface_emission );
 
 
   // Adjust diy_dx, if necessary.

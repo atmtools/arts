@@ -3628,7 +3628,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Usage:      Set by the user.\n"
        "\n"
-       "Unit:       [kg/m3] or [kg/m2/s]\n"
+       "Unit:       [kg/m3]\n"
        "\n"
        "Dimension:  [number of scattering species, p_grid, lat_grid, lon_grid]\n"
        ),

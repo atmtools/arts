@@ -1,9 +1,22 @@
+2015-01-13  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-111
+
+	* src/workspace.cc: Corrected unit string for
+	scat_species_mass_density_field.
+
+	* src/m_surface.cc (iyWaterSurfaceFastem): Stupid typo among
+	intial input checks. Had to introduce sensor_los_dummy. rtp_los
+	was used beofre, but telescoping for 3D cases gives wrong
+	dimension for resulting matrix.
+
 2015-01-13  Manfred Brath  <manfred.brath@uni-hamburg.de>
 
 	* arts-2-3-110
-	
-	* doc/uguide/scattering.tex: Corrected the last paragraph in the subsection
-	"DOIT main agenda" concerning doit_i_field1D_spectrum and scat_i_p.
+
+	* doc/uguide/scattering.tex: Corrected the last paragraph in the
+	subsection "DOIT main agenda" concerning doit_i_field1D_spectrum
+	and scat_i_p.
 
 2015-01-13  Jana Mendrok  <jana.mendrok@ltu.se>
 
