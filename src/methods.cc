@@ -3430,8 +3430,8 @@ void define_md_data_raw()
          "temperature over particle size in terms of maximum dimension.\n"
          "\n"
          "Provides only the shape of the distribution function of both number\n"
-         "density and area ratio. When used by *pnd_fieldSetup*, number\n"
-         "density is rescaled to the given ice water content [kg/m3].\n"
+         "density and area ratio. When used by *pnd_fieldCalcFromscat_speciesFields*,\n"
+         "number density is rescaled to the given ice water content [kg/m3].\n"
          ),
         AUTHORS( "Jana Mendrok" ),
         OUT(),
@@ -3462,8 +3462,8 @@ void define_md_data_raw()
          "scattering elements).\n"
          "\n"
          "Provides only the shape of the number density distribution\n"
-         "function. When used by *pnd_fieldSetup*, it is rescaled to the\n"
-         "given ice water content [kg/m3].\n"
+         "function. When used by *pnd_fieldCalcFromscat_speciesFields*, it is\n"
+         "rescaled to the given ice water content [kg/m3].\n"
          ),
         AUTHORS( "Jana Mendrok" ),
         OUT(),
@@ -8003,9 +8003,10 @@ void define_md_data_raw()
          "Derives *particle_masses* from *scat_meta*.\n"
          "\n"
          "This method is supposed to be used to derive *particle_masses*\n"
-         "when *pnd_field* is internally calculated using *pnd_fieldSetup*\n"
-         "(in contrast to reading it from external sources using\n"
-         "*ParticleTypeAdd* and *pnd_fieldCalc*).\n"
+         "when *pnd_field* is internally calculated using\n"
+         "*pnd_fieldCalcFromscat_speciesFields* (in contrast to reading it\n"
+         "from external sources using *ParticleTypeAdd* and\n"
+         "*pnd_fieldCalcFrompnd_field_raw*).\n"
          "It extracts the mass information of the scattering elements from\n"
          "*scat_meta*. Different entries in *scat_species* are taken as\n"
          "different categories of particle_masses, i.e., the resulting\n"
@@ -8051,7 +8052,7 @@ void define_md_data_raw()
          "Sets the WSV *scat_species*."
          "\n"
          "With this function, the user specifies settings for the \n"
-         "particle number density calculations by *pnd_fieldSetup*.\n"
+         "particle number density calculations by *pnd_fieldCalcFromscat_speciesFields*.\n"
          "The input is an ArrayOfString that needs to be in a specific format.\n"
          "For details, see WSV *scat_species*.\n"
          "\n"         
@@ -8338,7 +8339,7 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "pnd_fieldCalc" ),
+      ( NAME( "pnd_fieldCalcFrompnd_field_raw" ),
         DESCRIPTION
         ( "Interpolation of particle number density fields to calculation grid\n"
           "inside cloudbox.\n"
@@ -8402,7 +8403,7 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "pnd_fieldSetup" ),
+      ( NAME( "pnd_fieldCalcFromscat_speciesFields" ),
         DESCRIPTION
         (
          "Calculation of *pnd_field* from *scat_meta* and\n"
@@ -8489,9 +8490,9 @@ void define_md_data_raw()
         (
         "Calculates pnds from given dNdD.\n"
         "\n"
-        "The method mimics what happens inside pnd_fieldSetup, but for a\n"
-        "single size distribution. It is supposed to be used with the *dNdD*\n"
-        "methods.\n"
+        "The method mimics what happens inside *pnd_fieldCalcFromscat_speciesFields*,\n"
+        "but for a single size distribution. It is supposed to be used with\n"
+        "the *dNdD* methods.\n"
         ),
         AUTHORS( "Jana Mendrok" ),
         OUT(),
@@ -9953,9 +9954,9 @@ void define_md_data_raw()
          "0. *scat_data* is resized to np. Each new scattering element\n"
          "represents the weighted sum of all particles at one presssure level.\n"
          "\n"
-         "The method is suggested to be called directly after *pnd_fieldSetup*\n"
-         "(but after *cloudbox_checkedCalc*). It's purpose is to speed up the\n"
-         "scattering calculations.\n"
+         "The method is suggested to be called directly after\n"
+         "*pnd_fieldCalcFromscat_speciesFields* (but after *cloudbox_checkedCalc*).\n"
+         "It's purpose is to speed up the scattering calculations.\n"
          "\n"
          "This is an experimental method currently only working for limited\n"
          "cases. All particles must be of the same ptype, and all particles must\n"
@@ -10028,7 +10029,7 @@ void define_md_data_raw()
          "entry, second call for second scat_species entry and so on).\n"
          "Note that no two scattering elements of the same scattering species\n"
          "are allowed to be equal in size; this will result in an error in\n"
-         "*pnd_fieldSetup*\n"
+         "*pnd_fieldCalcFromscat_speciesFields*\n"
          "\n"
          "Very important note:\n"
          "The order of the filenames for the single scattering data files has to\n"

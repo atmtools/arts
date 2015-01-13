@@ -282,7 +282,7 @@ void chk_if_pnd_zero_lon(const Index& i_lon,
 /*!
   This function checks, whether the particle number density file
   has the right atmospheric dimension (check for no non-zero pnd values outside
-  cloudbox removed. done in pnd_fieldCalc). 
+  cloudbox removed. done in pnd_fieldCalcFrompnd_field_raw). 
 
   \param pnd_field_raw   pnd field data
   \param pnd_field_file  pnd field filename
@@ -3443,9 +3443,9 @@ void chk_pndsum (Vector& pnd,
   if ( x.sum() == 0.0 )
     { // when x.sum()==0, but xwc!=0, obviously something went wrong in pnd calc
       ostringstream os;
-      os<< "ERROR: in WSM chk_pndsum in pnd_fieldSetup!\n" 
+      os<< "ERROR: in WSM chk_pndsum in pnd_fieldCalcFromscat_speciesFields!\n" 
       << "Given mass density != 0, but calculated mass density == 0.\n"
-      << "Seems, something went wrong in pnd_fieldSetup. Check!\n"
+      << "Seems, something went wrong in pnd_fieldCalcFromscat_speciesFields. Check!\n"
       << "The problem occured for profile '"<< partfield_name <<"' at: "
       << "p = "<<p<<", lat = "<<lat<<", lon = "<<lon<<".\n";
      throw runtime_error ( os.str() );
@@ -3459,7 +3459,7 @@ void chk_pndsum (Vector& pnd,
       if ( error > 1.10 || error < 0.90 )
         {
           CREATE_OUT1;
-          out1<< "WARNING: in WSM chk_pndsum in pnd_fieldSetup!\n" 
+          out1<< "WARNING: in WSM chk_pndsum in pnd_fieldCalcFromscat_speciesFields!\n" 
               << "The deviation of the sum of nodes in the particle size distribution\n"
               << "to the initial input mass density (IWC/LWC) is larger than 10%!\n"
               << "The deviation of: "<< error-1.0<<" occured in the atmospheric level: "

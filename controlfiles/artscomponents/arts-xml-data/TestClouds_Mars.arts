@@ -220,7 +220,7 @@ AgendaSet( forloop_agenda_particles ){
                    filename_pnd_field="" )
   ReadXML( pnd_field_raw, pndname )
   #scat_data_rawCheck
-  pnd_fieldCalc( zeropadding=1 )
+  pnd_fieldCalcFrompnd_field_raw( zeropadding=1 )
 
   atmfields_checkedCalc
   atmgeom_checkedCalc

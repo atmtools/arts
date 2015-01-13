@@ -241,8 +241,9 @@ AgendaSet( ybatch_calc_agenda ){
 
   # Particle Number Density calculations
   # ------------------------------------
-  pnd_fieldSetup
-  #pnd_fieldSetup( pnd_field, atmosphere_dim, cloudbox_on, cloudbox_limits, 
+  pnd_fieldCalcFromscat_speciesFields
+  #pnd_fieldCalcFromscat_speciesFields(
+  #    pnd_field, atmosphere_dim, cloudbox_on, cloudbox_limits, 
   #    massdensity_field, t_field, scat_meta, scat_species, 
   #    scat_data_per_scat_species )
   

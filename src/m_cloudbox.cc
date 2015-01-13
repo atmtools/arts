@@ -1112,7 +1112,7 @@ void particle_massesFromMetaDataAndScat_species
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void pnd_fieldCalc(//WS Output:
+void pnd_fieldCalcFrompnd_field_raw(//WS Output:
                    Tensor4& pnd_field,
                    //WS Input
                    const Vector& p_grid,
@@ -1410,7 +1410,7 @@ void pnd_fieldZero(//WS Output:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void pnd_fieldSetup (//WS Output:
+void pnd_fieldCalcFromscat_speciesFields (//WS Output:
                      Tensor4& pnd_field,
                      //WS Input:
                      const Index& atmosphere_dim,

@@ -151,7 +151,7 @@ ParticleTypeAdd( filename_scat_data="testdata/testdoit_p30f229-231T214-225r100NP
 ParticleTypeAdd( filename_scat_data="testdata/testdoit_p30f229-231T214-225r100NP-1ar1_5ice.xml",
                  filename_pnd_field="testdata/testdoit_pnd_field_1D.xml" )
 scat_dataCheck
-pnd_fieldCalc
+pnd_fieldCalcFrompnd_field_raw
 # rescaling back to pnd equivalent to only one scattering element. in a true
 # case, this is NOT needed!
 Tensor4Scale( out=pnd_field, in=pnd_field, value=0.5 )

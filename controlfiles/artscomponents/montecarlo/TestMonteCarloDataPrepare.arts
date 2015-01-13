@@ -74,7 +74,7 @@ ParticleTypeAdd( filename_scat_data="p30f229-231T214-225r100NP-1ar1_5ice.xml",
 
 ReadXML( pnd_field_raw, "pnd_field_raw.xml" )
 
-pnd_fieldCalc
+pnd_fieldCalcFrompnd_field_raw
 
 WriteXML( output_file_format, pnd_field )
 

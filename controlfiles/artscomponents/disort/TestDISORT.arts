@@ -120,7 +120,7 @@ cloudboxSetDisort
 ParticleTypeAdd( filename_scat_data="scat_data_disort.xml",
                  filename_pnd_field="../doit/pnd_field_1D.xml" )
 scat_dataCheck( threshold=5e-3 )
-pnd_fieldCalc
+pnd_fieldCalcFrompnd_field_raw
 
 cloudbox_checkedCalc
 
@@ -159,7 +159,7 @@ AgendaSet(iy_cloudbox_agenda){
 propmat_clearsky_agenda_checkedCalc
 
 # Perform scattering calculation 
-ScatteringDisort
+DisortCalc
     
 # Calculate RT from cloudbox boundary to the sensor
 #
