@@ -162,14 +162,13 @@ For details on the agendas involved see Section
 After convergence is obtained the radiation field has to be stored in an
 interface variable that creates the link between the scattering solver solution
 and the evaluation of the radiative transfer equation. This is done by the
-workspace method \wsmindex{DoitCloudboxFieldPut}. If the sensor is located
-outside the cloudbox, the radiation field at the boundary of the cloudbox is
-stored in the interface variable \wsvindex{scat\_i\_p}. If the sensor is inside
-the cloudbox, \wsvindex{doit\_i\_field1D\_spectrum} is used as interface
+workspace method \wsmindex{DoitCloudboxFieldPut}.
+ The radiation field at the boundary of the cloudbox is
+stored in the interface variable \wsvindex{scat\_i\_p}.  
+\wsvindex{doit\_i\_field1D\_spectrum} is used as interface
 variable storing the cloudbox radiation field. In contrast to
 \wsvindex{doit\_i\_field} the interface variables include an additional
 dimension for the frequency.
-\FIXME{Oliver, Manfred: please update this paragraph to current state.}
 
 \subsection{Agendas used in \wsmindex{doit\_i\_fieldIterate}}
 \label{sec:scattering:doit_iterate_agendas}
