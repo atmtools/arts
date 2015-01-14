@@ -4439,6 +4439,42 @@ void Workspace::define_wsv_data()
        ),
       GROUP( "Agenda" )));
     
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "surface_type2_agenda" ),
+      DESCRIPTION
+      (
+       "See agendas.cc.\n"
+       ),
+      GROUP( "Agenda" )));
+    
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "surface_type3_agenda" ),
+      DESCRIPTION
+      (
+       "See agendas.cc.\n"
+       ),
+      GROUP( "Agenda" )));
+    
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "surface_type4_agenda" ),
+      DESCRIPTION
+      (
+       "See agendas.cc.\n"
+       ),
+      GROUP( "Agenda" )));
+    
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "surface_type5_agenda" ),
+      DESCRIPTION
+      (
+       "See agendas.cc.\n"
+       ),
+      GROUP( "Agenda" )));
+    
    wsv_data.push_back
    (WsvRecord
     ( NAME( "surface_type_aux" ),

@@ -367,8 +367,6 @@ void iyWaterSurfaceFastem(
       resolve_lon( rel_azimuth, -180, 180 );      
     }
 
-  cout << "Rel. azimuth = " << rel_azimuth << endl;
-
   // Call FASTEM
   Matrix emissivity, reflectivity;
   FastemStandAlone(  emissivity, reflectivity, f_grid, surface_skin_t, 
@@ -480,6 +478,118 @@ void iySurfaceRtpropAgenda(
                                 surface_rtprop_agenda );
 
   // Check output of *surface_rtprop_agenda*
+  const Index   nlos = surface_los.nrows();
+  const Index   nf   = f_grid.nelem();
+  //
+  if( nlos )   // if 0, blackbody ground and not all checks are needed
+    {
+      if( surface_los.ncols() != rtp_los.nelem() )
+        throw runtime_error( 
+                        "Number of columns in *surface_los* is not correct." );
+      if( nlos != surface_rmatrix.nbooks() )
+        throw runtime_error( 
+                  "Mismatch in size of *surface_los* and *surface_rmatrix*." );
+      if( surface_rmatrix.npages() != nf )
+        throw runtime_error( 
+                       "Mismatch in size of *surface_rmatrix* and *f_grid*." );
+      if( surface_rmatrix.nrows() != stokes_dim  ||  
+          surface_rmatrix.ncols() != stokes_dim ) 
+        throw runtime_error( 
+              "Mismatch between size of *surface_rmatrix* and *stokes_dim*." );
+    }
+  if( surface_emission.ncols() != stokes_dim )
+    throw runtime_error( 
+             "Mismatch between size of *surface_emission* and *stokes_dim*." );
+  if( surface_emission.nrows() != nf )
+    throw runtime_error( 
+                       "Mismatch in size of *surface_emission* and f_grid*." );
+
+  // Variable to hold down-welling radiation
+  Tensor3   I( nlos, nf, stokes_dim );
+ 
+  // Loop *surface_los*-es. If no such LOS, we are ready.
+  if( nlos > 0 )
+    {
+      for( Index ilos=0; ilos<nlos; ilos++ )
+        {
+          Vector los = surface_los(ilos,joker);
+
+          // Include surface reflection matrix in *iy_transmission*
+          // If iy_transmission is empty, this is interpreted as the
+          // variable is not needed.
+          //
+          Tensor3 iy_trans_new;
+          //
+          if( iy_transmission.npages() )
+            {
+              iy_transmission_mult(  iy_trans_new, iy_transmission, 
+                                     surface_rmatrix(ilos,joker,joker,joker) );
+            }
+
+          // Calculate downwelling radiation for LOS ilos 
+          //
+          {
+            ArrayOfTensor4   iy_aux;
+            Ppath            ppath;
+            iy_main_agendaExecute( ws, iy, iy_aux, ppath, diy_dx, 0, iy_unit, 
+                                   iy_trans_new, ArrayOfString(0), 
+                                   cloudbox_on, jacobian_do, t_field, 
+                                   z_field, vmr_field, f_grid, rtp_pos, 
+                                   los, rte_pos2, iy_main_agenda );
+          }
+
+          if( iy.ncols() != stokes_dim  ||  iy.nrows() != nf )
+            {
+              ostringstream os;
+              os << "The size of *iy* returned from *" 
+                 << iy_main_agenda.name() << "* is\n"
+                 << "not correct:\n"
+                 << "  expected size = [" << nf << "," << stokes_dim << "]\n"
+                 << "  size of iy    = [" << iy.nrows() << "," << iy.ncols()
+                 << "]\n";
+              throw runtime_error( os.str() );      
+            }
+
+          I(ilos,joker,joker) = iy;
+        }
+    }
+  
+  // Add up
+  surface_calc( iy, I, surface_los, surface_rmatrix, surface_emission );
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void iySurfaceRtpropCalc(
+          Workspace&        ws,
+          Matrix&           iy,
+          ArrayOfTensor3&   diy_dx,  
+    const Matrix&           surface_los,
+    const Tensor4&          surface_rmatrix,
+    const Matrix&           surface_emission,
+    const Tensor3&          iy_transmission,
+    const Index&            jacobian_do,
+    const Index&            atmosphere_dim,
+    const Tensor3&          t_field,
+    const Tensor3&          z_field,
+    const Tensor4&          vmr_field,
+    const Index&            cloudbox_on,
+    const Index&            stokes_dim,
+    const Vector&           f_grid,
+    const Vector&           rtp_pos,
+    const Vector&           rtp_los,
+    const Vector&           rte_pos2,
+    const String&           iy_unit,  
+    const Agenda&           iy_main_agenda,
+    const Verbosity& )
+{
+  // Input checks
+  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
+  chk_rte_pos( atmosphere_dim, rtp_pos );
+  chk_rte_los( atmosphere_dim, rtp_los );
+
+  // Check provided surface rtprop variables
   const Index   nlos = surface_los.nrows();
   const Index   nf   = f_grid.nelem();
   //
@@ -862,7 +972,7 @@ void surfaceFlatScalarReflectivity(
   CREATE_OUT3;
   
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
-  chk_if_in_range( "stokes_dim", stokes_dim, 1, 1 );
+  chk_if_in_range( "stokes_dim", stokes_dim, 1, 4 );
   chk_not_negative( "surface_skin_t", surface_skin_t );
 
   const Index   nf = f_grid.nelem();
@@ -895,6 +1005,9 @@ void surfaceFlatScalarReflectivity(
 
   surface_emission.resize( nf, stokes_dim );
   surface_rmatrix.resize( 1, nf, stokes_dim, stokes_dim );
+
+  surface_emission = 0;
+  surface_rmatrix  = 0;
 
   Vector b;
   blackbody_radiation_agendaExecute( ws, b, surface_skin_t, f_grid, 

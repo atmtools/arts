@@ -1,7 +1,6 @@
 #DEFINITIONS:  -*-sh-*-
 #
-# ARTS control file for basic testing of iy_surface_agenda and
-# surface_rtprop_agenda. 
+# ARTS control file for some basic testing of iy_surface_agenda.
 #
 # 2012-06-24 Patrick Eriksson
 
@@ -37,11 +36,6 @@ Touch( iy_transmission )
 #
 # "Background" agendas:
 #
-
-AgendaSet( iy_surface_agenda ){
-  iySurfaceRtpropAgenda
-} 
-
 AgendaSet( iy_main_agenda ){
   Ignore( iy_unit ) 
   Ignore( iy_agenda_call1 )
@@ -71,7 +65,7 @@ AgendaSet( blackbody_radiation_agenda ){
 
 
 #
-# Test different versions of surface_rtprop_agenda
+# Test different versions of iy_surface_agenda
 #
 MatrixCreate( iy_correct )
 
@@ -87,27 +81,30 @@ IndexSet( stokes_dim, 1 )
 VectorSetConstant( surface_scalar_reflectivity, 1, 0.8 )
 MatrixSet( iy_correct, [140] )
 
-AgendaSet( surface_rtprop_agenda ){
+AgendaSet( iy_surface_agenda ){
   specular_losCalc
   surfaceFlatScalarReflectivity
+  iySurfaceRtpropCalc
 } 
 AgendaExecute( iy_surface_agenda )
 Compare( iy, iy_correct, 1e-9 )
 
 IndexSet(lambertian_nza, 5)
-AgendaSet( surface_rtprop_agenda ){
+AgendaSet( iy_surface_agenda ){
   Ignore( rtp_pos )
   surfaceLambertianSimple( za_pos=0.5 )
+  iySurfaceRtpropCalc
 } 
 AgendaExecute( iy_surface_agenda )
 Compare( iy, iy_correct, 1e-9 )
 
 GriddedField4Create( r_gfield4 ) 
 ReadXML( r_gfield4, "scalar_r_field_2angles.xml" )
-AgendaSet( surface_rtprop_agenda ){
+AgendaSet( iy_surface_agenda ){
   specular_losCalc
   surface_scalar_reflectivityFromGriddedField4( r_field=r_gfield4 )
   surfaceFlatScalarReflectivity
+  iySurfaceRtpropCalc
 } 
 AgendaExecute( iy_surface_agenda )
 Compare( iy, iy_correct, 1e-9 )
@@ -126,18 +123,20 @@ IndexSet( stokes_dim, 4 )
 # Blackbody surface in two diffferent ways
 MatrixSet( iy_correct, [300,0,0,0] )
 
-AgendaSet( surface_rtprop_agenda ){
+AgendaSet( iy_surface_agenda ){
   Ignore( rtp_los )
   Ignore( rtp_pos )
   surfaceBlackbody
+  iySurfaceRtpropCalc
 } 
 AgendaExecute( iy_surface_agenda )
 Compare( iy, iy_correct, 1e-9 )
 
-AgendaSet( surface_rtprop_agenda ){
+AgendaSet( iy_surface_agenda ){
   specular_losCalc
   Tensor3SetConstant( surface_reflectivity, 1, stokes_dim, stokes_dim, 0 )
   surfaceFlatReflectivity
+  iySurfaceRtpropCalc
 } 
 AgendaExecute( iy_surface_agenda )
 Compare( iy, iy_correct, 1e-9 )
@@ -146,10 +145,11 @@ Compare( iy, iy_correct, 1e-9 )
 # r=0.8 for all elements (not realistic)
 MatrixSet( iy_correct, [140,-160,-160,-160] )
 
-AgendaSet( surface_rtprop_agenda ){
+AgendaSet( iy_surface_agenda ){
   specular_losCalc
   Tensor3SetConstant( surface_reflectivity, 1, stokes_dim, stokes_dim, 0.8 )
   surfaceFlatReflectivity
+  iySurfaceRtpropCalc
 } 
 AgendaExecute( iy_surface_agenda )
 Compare( iy, iy_correct, 1e-9 )
@@ -160,10 +160,11 @@ MatrixSet( iy_correct, [140,0,0,0] )
 GriddedField6Create( r_gfield6 ) 
 ReadXML( r_gfield6, "r_field_2angles.xml" )
 
-AgendaSet( surface_rtprop_agenda ){
+AgendaSet( iy_surface_agenda ){
   specular_losCalc
   surface_reflectivityFromGriddedField6( r_field=r_gfield6 )
   surfaceFlatReflectivity
+  iySurfaceRtpropCalc
 } 
 AgendaExecute( iy_surface_agenda )
 Compare( iy, iy_correct, 1e-9 )
@@ -175,20 +176,22 @@ complex_refr_indexConstant(
   refr_index_real    = 3.0,
   refr_index_imag    = 0 )
 
-AgendaSet( surface_rtprop_agenda ){
+AgendaSet( iy_surface_agenda ){
   specular_losCalc
   surfaceFlatRefractiveIndex
+  iySurfaceRtpropCalc
 } 
 AgendaExecute( iy_surface_agenda )
 Copy( iy_correct, iy )
 
 GriddedField5Create( r_gfield5 ) 
 ReadXML( r_gfield5, "complex_n_field.xml" )
-AgendaSet( surface_rtprop_agenda ){
+AgendaSet( iy_surface_agenda ){
   specular_losCalc
   surface_complex_refr_indexFromGriddedField5( 
     complex_refr_index_field = r_gfield5 )
   surfaceFlatRefractiveIndex
+  iySurfaceRtpropCalc
 } 
 AgendaExecute( iy_surface_agenda )
 Compare( iy, iy_correct, 1e-9 )

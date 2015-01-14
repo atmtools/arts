@@ -6012,6 +6012,38 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "iySurfaceRtpropCalc" ),
+        DESCRIPTION
+        (
+         "Applies *surface_los*, *surface_rmatrix* and *surface_emission*.\n"
+         "\n"
+         "This method is designed to be part of *iy_surface_agenda* and\n"
+         "should be mandatory when using methods describing the surface\n"
+         "radiative transfer properties by *surface_los*, *surface_rmatrix*\n"
+         "and *surface_emission*. The task of this method is to apply these\n"
+         "three WSVs to obtain the upwelling radiation from the surface.\n"
+         "This upwelling radiation is the sum of surface emission and\n"
+         "reflected downwelling radiation. The later part is calculated\n"
+         "by calling *iy_main_agenda*. See further AUG.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "iy", "diy_dx" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "surface_los", "surface_rmatrix", "surface_emission",
+            "iy_transmission", "jacobian_do", "atmosphere_dim", "t_field", 
+            "z_field", "vmr_field", "cloudbox_on", "stokes_dim", "f_grid", 
+            "rtp_pos", "rtp_los", "rte_pos2", "iy_unit", "iy_main_agenda"
+          ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "iyTransmissionStandard" ),
         DESCRIPTION
         (
@@ -11270,9 +11302,11 @@ void define_md_data_raw()
          "Creates variables to mimic specular reflection by a (flat) surface\n"
          "where *surface_scalar_reflectivity* is specified.\n"
          "\n"
-         "The method can only be used for *stokes_dim* equal to 1. Local\n"
-         "thermodynamic equilibrium is assumed, which corresponds to that\n"
-         "reflectivity and emissivity add up to 1.\n"
+         "The method is formerly only correct when *stokes_dim* is equal\n"
+         "to 1, but the method runs also for higher values of *stokes_dim*.\n"
+         "The Q, U and V Stokes elements for both emitted and reflected parts\n"
+         "are then zero. Local thermodynamic equilibrium is assumed, which\n"
+         "corresponds to that reflectivity and emissivity add up to 1.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "surface_los", "surface_rmatrix", "surface_emission" ),

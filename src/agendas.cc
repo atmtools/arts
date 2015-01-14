@@ -728,6 +728,66 @@ void define_agenda_data()
 
   agenda_data.push_back
     (AgRecord
+     ( NAME( "surface_type2_agenda" ),
+       DESCRIPTION
+       (
+        "Agenda for radiative properties of surface type 1.\n"
+        "\n"
+        "See further *surface_type0_agenda*.\n"
+        ),
+       OUTPUT( "iy", "diy_dx" ),
+       INPUT( "iy_unit", "iy_transmission", "cloudbox_on", "jacobian_do", 
+              "t_field", "z_field", "vmr_field", "f_grid","iy_main_agenda", 
+              "rtp_pos", "rtp_los", "rte_pos2", "surface_type_aux"
+              )));
+
+  agenda_data.push_back
+    (AgRecord
+     ( NAME( "surface_type3_agenda" ),
+       DESCRIPTION
+       (
+        "Agenda for radiative properties of surface type 1.\n"
+        "\n"
+        "See further *surface_type0_agenda*.\n"
+        ),
+       OUTPUT( "iy", "diy_dx" ),
+       INPUT( "iy_unit", "iy_transmission", "cloudbox_on", "jacobian_do", 
+              "t_field", "z_field", "vmr_field", "f_grid","iy_main_agenda", 
+              "rtp_pos", "rtp_los", "rte_pos2", "surface_type_aux"
+              )));
+
+  agenda_data.push_back
+    (AgRecord
+     ( NAME( "surface_type4_agenda" ),
+       DESCRIPTION
+       (
+        "Agenda for radiative properties of surface type 1.\n"
+        "\n"
+        "See further *surface_type0_agenda*.\n"
+        ),
+       OUTPUT( "iy", "diy_dx" ),
+       INPUT( "iy_unit", "iy_transmission", "cloudbox_on", "jacobian_do", 
+              "t_field", "z_field", "vmr_field", "f_grid","iy_main_agenda", 
+              "rtp_pos", "rtp_los", "rte_pos2", "surface_type_aux"
+              )));
+
+  agenda_data.push_back
+    (AgRecord
+     ( NAME( "surface_type5_agenda" ),
+       DESCRIPTION
+       (
+        "Agenda for radiative properties of surface type 1.\n"
+        "\n"
+        "See further *surface_type0_agenda*.\n"
+        ),
+       OUTPUT( "iy", "diy_dx" ),
+       INPUT( "iy_unit", "iy_transmission", "cloudbox_on", "jacobian_do", 
+              "t_field", "z_field", "vmr_field", "f_grid","iy_main_agenda", 
+              "rtp_pos", "rtp_los", "rte_pos2", "surface_type_aux"
+              )));
+
+  agenda_data.push_back
+    (AgRecord
      ( NAME( "test_agenda" ),
        DESCRIPTION
        (
