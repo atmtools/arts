@@ -3391,12 +3391,6 @@ void doit_i_fieldSetFromdoit_i_field1D_spectrum(
   assert(scat_za_grid[scat_za_grid.nelem()-1]>90.);
   while (scat_za_grid[first_upwell] < 90.)
     first_upwell++;
-  /*
-  doit_i_field(0,0,0,joker,0,joker) =
-    scat_i_p(f_index,0,0,0,joker,0,joker);
-  doit_i_field(np-1,0,0,joker,0,joker) =
-    scat_i_p(f_index,1,0,0,joker,0,joker);
-    */
   // (1) upwelling at lower boundary
   doit_i_field(0,0,0,Range(first_upwell,scat_za_grid.nelem()-first_upwell),0,joker) =
     scat_i_p(f_index,0,0,0,Range(first_upwell,scat_za_grid.nelem()-first_upwell),0,joker);

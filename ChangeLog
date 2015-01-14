@@ -2,6 +2,13 @@
 
 	* arts-2-3-114
 
+	* controlfiles/artscomponents/doit/TestDOITprecalcInit.arts:
+	Use correct DOIT initial guess input file.
+
+2015-01-14  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-3-114
+
 	* Bugfix in first-guess DOIT field setting: the radiation incident on
 	the cloudbox boundaries shall not be set from the first guess, but from
 	the (potentially modified) clearsky incoming field.

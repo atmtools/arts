@@ -298,8 +298,7 @@ DoitGetIncoming
 #WriteXML( in=scat_i_p )
 
 # read in precalculated in-cloudbox radition field to be used as first guess
-ReadXML( out=doit_i_field1D_spectrum, filename="TestDOIT.doit_i_field1D_spectrum.xml" )
-#ReadXML( out=doit_i_field1D_spectrum, filename="doit_i_field1D_spectrumREFERENCE_DOIT.xml" )
+ReadXML( out=doit_i_field1D_spectrum, filename="doit_i_field1D_spectrumREFERENCE_DOIT.xml" )
 
 # Executes doit_mono_agenda for all frequencies
 DoitCalc
