@@ -110,6 +110,177 @@ void FastemStandAlone(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void InterpGriddedField2ToPosition(
+          Numeric&         outvalue,
+    const Index&           atmosphere_dim,
+    const Vector&          lat_grid,
+    const Vector&          lat_true,
+    const Vector&          lon_true,
+    const Vector&          rtp_pos,
+    const GriddedField2&   gfield2,
+    const Verbosity& )
+{
+  // Set expected order of grids
+  Index gfield_latID = 0;
+  Index gfield_lonID = 1;
+
+  // Basic checks and sizes
+  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
+  chk_latlon_true( atmosphere_dim, lat_grid, lat_true, lon_true );
+  chk_rte_pos( atmosphere_dim, rtp_pos );
+  gfield2.checksize_strict();
+  //
+  chk_griddedfield_gridname( gfield2, gfield_latID, "Latitude" );
+  chk_griddedfield_gridname( gfield2, gfield_lonID, "Longitude" );
+  //
+  const Index nlat  = gfield2.data.nrows();
+  const Index nlon  = gfield2.data.ncols();
+  //
+  if( nlat < 2  ||  nlon < 2 )
+    {
+      ostringstream os;
+      os << "The data in *gfield2* must span a geographical region. That is,\n"
+         << "the latitude and longitude grids must have a length >= 2.";
+    } 
+
+  const Vector& GFlat = gfield2.get_numeric_grid(gfield_latID);
+  const Vector& GFlon = gfield2.get_numeric_grid(gfield_lonID);
+
+  // Determine true geographical position
+  Vector lat(1), lon(1);
+  pos2true_latlon( lat[0], lon[0], atmosphere_dim, lat_grid, lat_true, 
+                                                           lon_true, rtp_pos );
+
+  // Ensure correct coverage of lon grid
+  Vector lon_shifted;
+  lon_shiftgrid( lon_shifted, GFlon, lon[0] );
+
+  // Check if lat/lon we need are actually covered
+  chk_if_in_range( "rtp_pos.lat", lat[0], GFlat[0], GFlat[nlat-1] );
+  chk_if_in_range( "rtp_pos.lon", lon[0], lon_shifted[0], 
+                                          lon_shifted[nlon-1] );
+
+  // Interpolate in lat and lon
+  //
+  GridPos gp_lat, gp_lon;
+  gridpos( gp_lat, GFlat, lat[0] );
+  gridpos( gp_lon, lon_shifted, lon[0] );
+  Vector itw(4);
+  interpweights( itw, gp_lat, gp_lon );
+  outvalue = interp( itw, gfield2.data, gp_lat, gp_lon );
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void InterpSurfaceFieldToPosition(
+          Numeric&   outvalue,
+    const Index&     atmosphere_dim,
+    const Vector&    lat_grid,
+    const Vector&    lon_grid,
+    const Vector&    rtp_pos,
+    const Matrix&    z_surface,
+    const Matrix&    field,
+    const Verbosity& verbosity)
+{
+  // Input checks (dummy p_grid)
+  chk_atm_grids( atmosphere_dim, Vector(2,2,-1), lat_grid, lon_grid );
+  chk_atm_surface( "input argument *field*", field, atmosphere_dim, lat_grid, 
+                                                                    lon_grid );
+  chk_rte_pos( atmosphere_dim, rtp_pos );
+  //
+  const Numeric zmax = max( z_surface );
+  const Numeric zmin = min( z_surface );
+  const Numeric dzok = 1;
+  if( rtp_pos[0] < zmin-dzok || rtp_pos[0] > zmax+dzok )
+    {
+      ostringstream os;
+      os << "The given position does not match *z_surface*.\nThe altitude in "
+         << "*rtp_pos* is " << rtp_pos[0]/1e3 << " km.\n"
+         << "The altitude range covered by *z_surface* is [" << zmin/1e3 
+         <<  "," << zmax/1e3 << "] km.\n"
+         << "One possible mistake is to mix up *rtp_pos* and *rte_los*.";
+      throw runtime_error( os.str() );
+    }
+
+  if( atmosphere_dim == 1 )
+    { outvalue = field(0,0); }
+  else
+    {      
+      chk_interpolation_grids( "Latitude interpolation", lat_grid, rtp_pos[1] );
+      GridPos gp_lat, gp_lon;
+      gridpos( gp_lat, lat_grid, rtp_pos[1] );
+      if( atmosphere_dim == 3 )
+        { 
+          chk_interpolation_grids( "Longitude interpolation", lon_grid, 
+                                                              rtp_pos[2] );
+          gridpos( gp_lon, lon_grid, rtp_pos[2] );
+        }
+      //
+      outvalue = interp_atmsurface_by_gp( atmosphere_dim, field, gp_lat, 
+                                                                 gp_lon );
+    }
+  
+  // Interpolate
+  CREATE_OUT3;
+  out3 << "    Result = " << outvalue << "\n";
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void iyFromSelectedSurfaceTypeAgenda(
+          Workspace&        ws,
+          Matrix&           iy,
+          ArrayOfTensor3&   diy_dx,  
+    const String&           iy_unit,  
+    const Tensor3&          iy_transmission,
+    const Index&            cloudbox_on,
+    const Index&            jacobian_do,
+    const Tensor3&          t_field,
+    const Tensor3&          z_field,
+    const Tensor4&          vmr_field,
+    const Vector&           f_grid,
+    const Agenda&           iy_main_agenda,
+    const Vector&           rtp_pos,
+    const Vector&           rtp_los,
+    const Vector&           rte_pos2,
+    const Agenda&           surface_type0_agenda,
+    const Agenda&           surface_type1_agenda,
+    const Index&            surface_type,
+    const Numeric&          surface_type_aux,
+    const Verbosity& )
+{
+  if( surface_type == 0 )
+    {
+      chk_not_empty( "surface_type0_agenda", surface_type0_agenda );
+      surface_type0_agendaExecute( ws, iy, diy_dx, 
+                                   iy_unit, iy_transmission, cloudbox_on,
+                                   jacobian_do, t_field, z_field, vmr_field,
+                                   f_grid, iy_main_agenda, rtp_pos, rtp_los, 
+                                   rte_pos2, surface_type_aux,
+                                   surface_type0_agenda );
+    }
+  else if( surface_type == 1 )
+    {
+      chk_not_empty( "surface_type1_agenda", surface_type1_agenda );
+      surface_type1_agendaExecute( ws, iy, diy_dx, 
+                                   iy_unit, iy_transmission, cloudbox_on,
+                                   jacobian_do, t_field, z_field, vmr_field,
+                                   f_grid, iy_main_agenda, rtp_pos, rtp_los, 
+                                   rte_pos2, surface_type_aux,
+                                   surface_type1_agenda );
+    }
+  else
+    {
+      throw runtime_error( "Unknown selection of *surface_type*. This must "
+                           "be an intmeger between 0 and 1." );
+    }
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void iyWaterSurfaceFastem(
           Workspace&        ws,
           Matrix&           iy,
@@ -268,126 +439,6 @@ void iyWaterSurfaceFastem(
             }
         }
     }
-}
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void InterpGriddedField2ToPosition(
-          Numeric&         outvalue,
-    const Index&           atmosphere_dim,
-    const Vector&          lat_grid,
-    const Vector&          lat_true,
-    const Vector&          lon_true,
-    const Vector&          rtp_pos,
-    const GriddedField2&   gfield2,
-    const Verbosity& )
-{
-  // Set expected order of grids
-  Index gfield_latID = 0;
-  Index gfield_lonID = 1;
-
-  // Basic checks and sizes
-  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
-  chk_latlon_true( atmosphere_dim, lat_grid, lat_true, lon_true );
-  chk_rte_pos( atmosphere_dim, rtp_pos );
-  gfield2.checksize_strict();
-  //
-  chk_griddedfield_gridname( gfield2, gfield_latID, "Latitude" );
-  chk_griddedfield_gridname( gfield2, gfield_lonID, "Longitude" );
-  //
-  const Index nlat  = gfield2.data.nrows();
-  const Index nlon  = gfield2.data.ncols();
-  //
-  if( nlat < 2  ||  nlon < 2 )
-    {
-      ostringstream os;
-      os << "The data in *complex_refr_index_field* must span a geographical "
-         << "region. That is,\nthe latitude and longitude grids must have a "
-         << "length >= 2.";
-    } 
-
-  const Vector& GFlat = gfield2.get_numeric_grid(gfield_latID);
-  const Vector& GFlon = gfield2.get_numeric_grid(gfield_lonID);
-
-  // Determine true geographical position
-  Vector lat(1), lon(1);
-  pos2true_latlon( lat[0], lon[0], atmosphere_dim, lat_grid, lat_true, 
-                                                           lon_true, rtp_pos );
-
-  // Ensure correct coverage of lon grid
-  Vector lon_shifted;
-  lon_shiftgrid( lon_shifted, GFlon, lon[0] );
-
-  // Check if lat/lon we need are actually covered
-  chk_if_in_range( "rtp_pos.lat", lat[0], GFlat[0], GFlat[nlat-1] );
-  chk_if_in_range( "rtp_pos.lon", lon[0], lon_shifted[0], 
-                                          lon_shifted[nlon-1] );
-
-  // Interpolate in lat and lon
-  //
-  GridPos gp_lat, gp_lon;
-  gridpos( gp_lat, GFlat, lat[0] );
-  gridpos( gp_lon, lon_shifted, lon[0] );
-  Vector itw(4);
-  interpweights( itw, gp_lat, gp_lon );
-  outvalue = interp( itw, gfield2.data, gp_lat, gp_lon );
-}
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void InterpSurfaceFieldToPosition(
-          Numeric&   outvalue,
-    const Index&     atmosphere_dim,
-    const Vector&    lat_grid,
-    const Vector&    lon_grid,
-    const Vector&    rtp_pos,
-    const Matrix&    z_surface,
-    const Matrix&    field,
-    const Verbosity& verbosity)
-{
-  // Input checks (dummy p_grid)
-  chk_atm_grids( atmosphere_dim, Vector(2,2,-1), lat_grid, lon_grid );
-  chk_atm_surface( "input argument *field*", field, atmosphere_dim, lat_grid, 
-                                                                    lon_grid );
-  chk_rte_pos( atmosphere_dim, rtp_pos );
-  //
-  const Numeric zmax = max( z_surface );
-  const Numeric zmin = min( z_surface );
-  const Numeric dzok = 1;
-  if( rtp_pos[0] < zmin-dzok || rtp_pos[0] > zmax+dzok )
-    {
-      ostringstream os;
-      os << "The given position does not match *z_surface*.\nThe altitude in "
-         << "*rtp_pos* is " << rtp_pos[0]/1e3 << " km.\n"
-         << "The altitude range covered by *z_surface* is [" << zmin/1e3 
-         <<  "," << zmax/1e3 << "] km.\n"
-         << "One possible mistake is to mix up *rtp_pos* and *rte_los*.";
-      throw runtime_error( os.str() );
-    }
-
-  if( atmosphere_dim == 1 )
-    { outvalue = field(0,0); }
-  else
-    {      
-      chk_interpolation_grids( "Latitude interpolation", lat_grid, rtp_pos[1] );
-      GridPos gp_lat, gp_lon;
-      gridpos( gp_lat, lat_grid, rtp_pos[1] );
-      if( atmosphere_dim == 3 )
-        { 
-          chk_interpolation_grids( "Longitude interpolation", lon_grid, 
-                                                              rtp_pos[2] );
-          gridpos( gp_lon, lon_grid, rtp_pos[2] );
-        }
-      //
-      outvalue = interp_atmsurface_by_gp( atmosphere_dim, field, gp_lat, 
-                                                                 gp_lon );
-    }
-  
-  // Interpolate
-  CREATE_OUT3;
-  out3 << "    Result = " << outvalue << "\n";
 }
 
 
@@ -1325,4 +1376,82 @@ void surface_scalar_reflectivityFromGriddedField4(
       interp( surface_scalar_reflectivity, itw, r_f, gp );
     }     
 }
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void surface_typeInterpTypeMask(
+          Index&           surface_type,
+          Numeric&         surface_type_aux,
+    const Index&           atmosphere_dim,
+    const Vector&          lat_grid,
+    const Vector&          lat_true,
+    const Vector&          lon_true,
+    const Vector&          rtp_pos,
+    const GriddedField2&   surface_type_mask,
+    const Verbosity& )
+{
+  // Set expected order of grids
+  Index gfield_latID = 0;
+  Index gfield_lonID = 1;
+
+  // Basic checks and sizes
+  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
+  chk_latlon_true( atmosphere_dim, lat_grid, lat_true, lon_true );
+  chk_rte_pos( atmosphere_dim, rtp_pos );
+  surface_type_mask.checksize_strict();
+  //
+  chk_griddedfield_gridname( surface_type_mask, gfield_latID, "Latitude" );
+  chk_griddedfield_gridname( surface_type_mask, gfield_lonID, "Longitude" );
+  //
+  const Index nlat  = surface_type_mask.data.nrows();
+  const Index nlon  = surface_type_mask.data.ncols();
+  //
+  if( nlat < 2  ||  nlon < 2 )
+    {
+      ostringstream os;
+      os << "The data in *surface_type_mask* must span a geographical "
+         << "region. That is,\nthe latitude and longitude grids must have a "
+         << "length >= 2.";
+    } 
+
+  const Vector& GFlat = surface_type_mask.get_numeric_grid(gfield_latID);
+  const Vector& GFlon = surface_type_mask.get_numeric_grid(gfield_lonID);
+
+  // Determine true geographical position
+  Vector lat(1), lon(1);
+  pos2true_latlon( lat[0], lon[0], atmosphere_dim, lat_grid, lat_true, 
+                                                           lon_true, rtp_pos );
+
+  // Ensure correct coverage of lon grid
+  Vector lon_shifted;
+  lon_shiftgrid( lon_shifted, GFlon, lon[0] );
+
+  // Check if lat/lon we need are actually covered
+  chk_if_in_range( "rtp_pos.lat", lat[0], GFlat[0], GFlat[nlat-1] );
+  chk_if_in_range( "rtp_pos.lon", lon[0], lon_shifted[0], 
+                                          lon_shifted[nlon-1] );
+
+  // Use grid positions to find closest point
+  GridPos gp_lat, gp_lon;
+  gridpos( gp_lat, GFlat, lat[0] );
+  gridpos( gp_lon, lon_shifted, lon[0] );
+
+  // Extract closest point
+  Index ilat, ilon;
+  if( gp_lat.fd[0] < 0.5 )
+    { ilat = gp_lat.idx; }
+  else
+    { ilat = gp_lat.idx + 1; }
+  if( gp_lon.fd[0] < 0.5 )
+    { ilon = gp_lon.idx; }
+  else
+    { ilon = gp_lon.idx + 1; }
+  //
+  surface_type = (Index) floor( surface_type_mask.data(ilat,ilon) );
+  surface_type_aux = surface_type_mask.data(ilat,ilon) - Numeric(surface_type);
+}
+
+
+
 

@@ -690,6 +690,44 @@ void define_agenda_data()
 
   agenda_data.push_back
     (AgRecord
+     ( NAME( "surface_type0_agenda" ),
+       DESCRIPTION
+       (
+        "Agenda for radiative properties of surface type 0.\n"
+        "\n"
+        "This is the first agenda in a set of agendas. Each of these agendas\n"
+        "shall treat the radiative properties of a surface type. The task\n"
+        "of these agendas match directly *iy_surface_agenda*. That is, it\n"
+        "should be possible to copy the content of these agendas to\n"
+        "*iy_surface_agenda*. This with one exception, these agendas\n"
+        "have one additional input: *surface_type_aux*.\n"
+        "\n"
+        "See *surface_type_mask* for comments on the surface type coding\n"
+        "scheme.\n"
+        ),
+       OUTPUT( "iy", "diy_dx" ),
+       INPUT( "iy_unit", "iy_transmission", "cloudbox_on", "jacobian_do", 
+              "t_field", "z_field", "vmr_field", "f_grid","iy_main_agenda", 
+              "rtp_pos", "rtp_los", "rte_pos2", "surface_type_aux"
+              )));
+
+  agenda_data.push_back
+    (AgRecord
+     ( NAME( "surface_type1_agenda" ),
+       DESCRIPTION
+       (
+        "Agenda for radiative properties of surface type 1.\n"
+        "\n"
+        "See further *surface_type0_agenda*.\n"
+        ),
+       OUTPUT( "iy", "diy_dx" ),
+       INPUT( "iy_unit", "iy_transmission", "cloudbox_on", "jacobian_do", 
+              "t_field", "z_field", "vmr_field", "f_grid","iy_main_agenda", 
+              "rtp_pos", "rtp_los", "rte_pos2", "surface_type_aux"
+              )));
+
+  agenda_data.push_back
+    (AgRecord
      ( NAME( "test_agenda" ),
        DESCRIPTION
        (

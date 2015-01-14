@@ -5573,6 +5573,34 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "iyFromSelectedSurfaceTypeAgenda" ),
+        DESCRIPTION
+        (
+         "Switch between the different *surface_typeX_agenda*.\n"
+         "\n"
+         "This method simply calls the agenda matching *surface_type* and\n"
+         "returns the results. That is, if surface_type=X, the agenda with\n"
+         "name surface_typeX_agenda is called.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "iy", "diy_dx" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN(  "iy_unit", "iy_transmission", "cloudbox_on", "jacobian_do",
+             "t_field", "z_field", "vmr_field", "f_grid", "iy_main_agenda",
+             "rtp_pos", "rtp_los", "rte_pos2", 
+             "surface_type0_agenda", "surface_type1_agenda",
+             "surface_type", "surface_type_aux"
+          ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "iyFOS" ),
         DESCRIPTION
         (
@@ -5806,50 +5834,6 @@ void define_md_data_raw()
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "iyWaterSurfaceFastem" ),
-        DESCRIPTION
-        (
-         "Usage of FASTEM for emissivity and reflectivity o9f water surfaces.\n"
-         "\n"
-         "This method allows usage of the FASTEM model inside\n"
-         "*iy_surface_Agenda*. The aim is to use FASTEM in the exact same\n"
-         "way as done in RTTOV. For example, the transmittance for down-\n"
-         "welling radiation is considered. RTTOV os just 1D. Here 2D and 3D\n"
-         "are handled as the 1D case, the down-welling radiation is just\n"
-         "calculated for the directuon matching specular reflection.\n"
-         "\n"
-         "FASTEM is not giving complete information for reflectivity. The\n"
-         "reflectivity for U and V components is set to zero.\n"
-         "\n"
-         "The wind direction is given as the azimuth angle, counted\n"
-         "clockwise from north (i.e. an easterly wind is at 90 deg).\n"
-         "This matches the general definition of azimuth inside ARTS.\n"
-         "For 1D and 2D, the wind direction must be adjusted to match the\n"
-         "fact that the line-of-sight is locked to be at 0 deg (180 for 2D\n"
-         "in the case of a negative zenith angle). For 3D, the true wind\n"
-         "direction shall be used.\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT( "iy", "diy_dx" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "iy_transmission", "jacobian_do", "atmosphere_dim", "lat_grid",
-            "lon_grid", "t_field", "z_field", "vmr_field", "z_surface",
-            "cloudbox_on", "stokes_dim", "f_grid", "refellipsoid",
-            "rtp_pos", "rtp_los", "rte_pos2", "iy_unit", "iy_main_agenda", 
-            "blackbody_radiation_agenda", "surface_skin_t" ),
-        GIN( "salinity", "wind_speed", "wind_direction", "fastem_version" ),
-        GIN_TYPE( "Numeric", "Numeric", "Numeric", "Index" ),
-        GIN_DEFAULT( NODEF, NODEF, "0", "6" ),
-        GIN_DESC( "Salinity, 0-1. That is, 3\% is given as 0.03.",
-                  "Wind speed.",
-                  "Wind direction. See futher above.",
-                  "The version of FASTEM to use." )
         ));
 
   md_data_raw.push_back
@@ -6112,6 +6096,50 @@ void define_md_data_raw()
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "iyWaterSurfaceFastem" ),
+        DESCRIPTION
+        (
+         "Usage of FASTEM for emissivity and reflectivity o9f water surfaces.\n"
+         "\n"
+         "This method allows usage of the FASTEM model inside\n"
+         "*iy_surface_Agenda*. The aim is to use FASTEM in the exact same\n"
+         "way as done in RTTOV. For example, the transmittance for down-\n"
+         "welling radiation is considered. RTTOV os just 1D. Here 2D and 3D\n"
+         "are handled as the 1D case, the down-welling radiation is just\n"
+         "calculated for the directuon matching specular reflection.\n"
+         "\n"
+         "FASTEM is not giving complete information for reflectivity. The\n"
+         "reflectivity for U and V components is set to zero.\n"
+         "\n"
+         "The wind direction is given as the azimuth angle, counted\n"
+         "clockwise from north (i.e. an easterly wind is at 90 deg).\n"
+         "This matches the general definition of azimuth inside ARTS.\n"
+         "For 1D and 2D, the wind direction must be adjusted to match the\n"
+         "fact that the line-of-sight is locked to be at 0 deg (180 for 2D\n"
+         "in the case of a negative zenith angle). For 3D, the true wind\n"
+         "direction shall be used.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "iy", "diy_dx" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "iy_transmission", "jacobian_do", "atmosphere_dim", "lat_grid",
+            "lon_grid", "t_field", "z_field", "vmr_field", "z_surface",
+            "cloudbox_on", "stokes_dim", "f_grid", "refellipsoid",
+            "rtp_pos", "rtp_los", "rte_pos2", "iy_unit", "iy_main_agenda", 
+            "blackbody_radiation_agenda", "surface_skin_t" ),
+        GIN( "salinity", "wind_speed", "wind_direction", "fastem_version" ),
+        GIN_TYPE( "Numeric", "Numeric", "Numeric", "Index" ),
+        GIN_DEFAULT( NODEF, NODEF, "0", "6" ),
+        GIN_DESC( "Salinity, 0-1. That is, 3\% is given as 0.03.",
+                  "Wind speed.",
+                  "Wind direction. See futher above.",
+                  "The version of FASTEM to use." )
         ));
 
   md_data_raw.push_back
@@ -11444,6 +11472,36 @@ void define_md_data_raw()
         GIN_DESC( "A field of scalar surface reflectivities" )
         ));
 
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME( "surface_typeInterpTypeMask" ),
+        DESCRIPTION
+        (
+         "Closest neighbour interpolation of surface type mask.\n" 
+         "\n" 
+         "The method determines the surface type at the position of concern\n"
+         "(*rtp_pos*) from the provided type mask (*surface_type_mask*).\n" 
+         "The closest point in the mask is selected. The surface type\n"
+         "is set to the integer part of the value at the found point, while\n" 
+         "*surface_type_aux* is set to the reminder. For example, if the\n" 
+         "mask value at closest point is 2.23, *surface_type* is set to 2\n" 
+         "*surface_type_aux* becomes 0.23.\n" 
+         "\n" 
+         "The altitude in *rtp_pos* is ignored.\n" 
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "surface_type", "surface_type_aux" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "atmosphere_dim", "lat_grid", "lat_true", "lon_true", "rtp_pos",
+            "surface_type_mask" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+  
   md_data_raw.push_back     
     ( MdRecord
       ( NAME( "TangentPointExtract" ),

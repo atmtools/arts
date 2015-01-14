@@ -4410,6 +4410,77 @@ void Workspace::define_wsv_data()
        ),
       GROUP( "Vector" )));
 
+   wsv_data.push_back
+   (WsvRecord
+    ( NAME( "surface_type" ),
+      DESCRIPTION
+      (
+       "Local surface type value.\n"
+       "\n"
+       "See *surface_type_mask* for details.\n"
+       ),
+      GROUP( "Index" )));
+
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "surface_type0_agenda" ),
+      DESCRIPTION
+      (
+       "See agendas.cc.\n"
+       ),
+      GROUP( "Agenda" )));
+    
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "surface_type1_agenda" ),
+      DESCRIPTION
+      (
+       "See agendas.cc.\n"
+       ),
+      GROUP( "Agenda" )));
+    
+   wsv_data.push_back
+   (WsvRecord
+    ( NAME( "surface_type_aux" ),
+      DESCRIPTION
+      (
+       "Auxiliary variable to *surface_type*.\n"
+       "\n"
+       "See *surface_type_mask* for details.\n"
+       ),
+      GROUP( "Numeric" )));
+
+   wsv_data.push_back
+   (WsvRecord
+    ( NAME( "surface_type_mask" ),
+      DESCRIPTION
+      (
+       "Classification of the surface using a type coding.\n"
+       "\n"
+       "This variable gives a description of the surface using a type class\n"
+       "coding. A common term for such a variable is \"surface mask\".\n"
+       "\n"
+       "The mask is a latitude and longtide field. The mask values are\n"
+       "floating numbers, where the integer part is the type and the reminder\n"
+       "can be used to provide auxilary information. In terms of the local\n"
+       "variables, the mask values equal *sensor_type* + *sensor_type_aux*.\n"
+       "\n"
+       "There is no fixed type coding, it is up to the user to set up\n"
+       "a consistent system. The critical point is to the agendas\n"
+       "matching each surface type, that are denoted as surface_typeX_agenda\n"
+       "where X is the *surface_type* index.\n"
+       "\n"
+       "The surface type can be any integer (>=0) for which a corresponding\n" 
+       "agenda exists.\n"
+       "\n"
+       "Dimensions: \n"
+       "   GriddedField2:\n"
+       "      Vector Latitude [N_lat]\n"
+       "      Vector Longitude [N_lon]\n"
+       "      Matrix data [N_lat][N_lon]\n"
+       ),
+      GROUP( "GriddedField2" )));
+
   wsv_data.push_back
    (WsvRecord
     ( NAME( "test_agenda" ),
