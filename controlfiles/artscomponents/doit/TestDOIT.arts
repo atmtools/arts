@@ -1,6 +1,6 @@
 #DEFINITIONS:  -*-sh-*-
 #
-# filename: simpleDOIT.arts
+# filename: TestDOIT.arts
 #
 # Demonstration of a DOIT scattering calculation
 #
@@ -268,9 +268,8 @@ AgendaSet( doit_conv_test_agenda ){
   # If you want to investigat several iteration fields, for example 
   # to investigate the convergence behavior, you can use
   # the following method:
-  #DoitWriteIterationFields( doit_iteration_counter, doit_i_field ){
-  #  iterations = [2, 4]
-  #}
+  DoitWriteIterationFields( iterations = [0] )
+  Print( doit_iteration_counter, 0 )
 }
 
 AgendaSet( iy_cloudbox_agenda ){
@@ -295,13 +294,16 @@ DoitInit
 
 # Calculate incoming radiation field at cloudbox boundary 
 DoitGetIncoming
+#WriteXML( in=scat_i_p )
 
 # Executes doit_mono_agenda for all frequencies
 DoitCalc
 # Writing out the radition field solution from inside cloudbox for
 # initialization of perturbed pnd_field calculation from non-clearsky first
 # guess
-WriteXML( in=doit_i_field1D_spectrum )
+#WriteXML( in=doit_i_field1D_spectrum, filename="doit_i_field1D_spectrumREFERENCE_DOIT.xml" )
+#WriteXML( in=doit_i_field1D_spectrum )
+WriteXML( in=scat_i_p )
 
 # Calculate RT from cloudbox boundary to the sensor
 #

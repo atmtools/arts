@@ -269,10 +269,8 @@ AgendaSet( doit_conv_test_agenda ){
   # If you want to investigat several iteration fields, for example 
   # to investigate the convergence behavior, you can use
   # the following method:
-  #DoitWriteIterationFields( doit_iteration_counter, doit_i_field ){
-  #  iterations = [2, 4]
-  #}
-  #Print( doit_iteration_counter, 0 )
+  DoitWriteIterationFields( iterations = [0] )
+  Print( doit_iteration_counter, 0 )
 }
 
 AgendaSet( iy_cloudbox_agenda ){
@@ -295,13 +293,18 @@ sensor_checkedCalc
 # Initialize Doit variables
 DoitInit
 
+# Calculate incoming radiation field at cloudbox boundary 
+DoitGetIncoming
+#WriteXML( in=scat_i_p )
+
 # read in precalculated in-cloudbox radition field to be used as first guess
 ReadXML( out=doit_i_field1D_spectrum, filename="TestDOIT.doit_i_field1D_spectrum.xml" )
+#ReadXML( out=doit_i_field1D_spectrum, filename="doit_i_field1D_spectrumREFERENCE_DOIT.xml" )
 
 # Executes doit_mono_agenda for all frequencies
 DoitCalc
-#WriteXML( in=doit_i_field1D_spectrum )
-#WriteXML( in=scat_i_p )
+WriteXML( in=doit_i_field1D_spectrum )
+WriteXML( in=scat_i_p )
 
 # Calculate RT from cloudbox boundary to the sensor
 #

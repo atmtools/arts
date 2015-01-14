@@ -3947,19 +3947,22 @@ void define_md_data_raw()
         (
          "Sets the initial cloudbox intensity field from doit_i_field1D_spectrum.\n"
          "\n"
-         "This method sets the (monochromatic) first guess radiation field in\n"
-         "the cloudbox from a precalculated *doit_i_field1D_spectrum*, e.g.\n"
-         "from the solution of a similar atmospheric scenario. The dimensions\n"
-         "of *doit_i_field1D_Spectrum* have to be consistent with the DOIT\n"
-         "setup in terms of frequencies, pressure levels inside the\n"
+         "This method sets the (monochromatic) first guess radiation field\n"
+         "inside the cloudbox from a precalculated *doit_i_field1D_spectrum*,\n"
+         "e.g., from the solution of a similar atmospheric scenario. The\n"
+         "dimensions of *doit_i_field1D_Spectrum* have to be consistent with\n"
+         "the DOIT setup in terms of frequencies, pressure levels inside the\n"
          "cloudbox, polar angles used as well as the stokes dimension.\n"
+         "Incoming field on the cloudbox boundaries is adapted to the actual\n"
+         "clearsky incoming field as, e.g., calculated by *DoitGetIncoming*.\n"
          ),
         AUTHORS( "Jana Mendrok" ),
         OUT( "doit_i_field" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "doit_i_field1D_spectrum", "scat_za_grid", "f_grid", "f_index",
+        IN( "doit_i_field1D_spectrum", "scat_i_p", "scat_za_grid",
+            "f_grid", "f_index",
             "atmosphere_dim", "stokes_dim", "cloudbox_limits" ),
         GIN(),
         GIN_TYPE(),
@@ -3976,7 +3979,7 @@ void define_md_data_raw()
          "\n"
          "This method uses a linear 1D/3D interpolation scheme to obtain the\n"
          "radiation field on all grid points inside the cloud box from the\n"
-         "clear sky field on the cloud box boundary. This radiation field\n"
+         "clear sky field on the cloudbox boundary. This radiation field\n"
          "is taken as the first guess radiation field in the DOIT module.\n"
          "\n"
          "Set the *all_frequencies* to 1 if the clearsky field shall be used\n"

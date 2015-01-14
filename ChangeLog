@@ -1,3 +1,29 @@
+2015-01-14  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-3-114
+
+	* Bugfix in first-guess DOIT field setting: the radiation incident on
+	the cloudbox boundaries shall not be set from the first guess, but from
+	the (potentially modified) clearsky incoming field.
+
+	* src/m_doit.cc, methods.cc (doit_i_fieldSetFromdoit_i_field1D_spectrum):
+	After setting doit_i_field from doit_i_field1D_spectrum, update the
+	incoming radiation streams on the boundaries according to scat_i_p/lat/lon
+	(precalculated! use e.g. DoitGetIncoming).
+
+	* controlfiles/artscomponents/doit/TestDOITprecalcInit.arts:
+	Add call of DoitGetIncoming to derive scat_i_p/lat/lon now also required
+	for non-clear initial guess from doit_i_fieldSetFromdoit_i_field1D_spectrum.
+
+	* controlfiles/artscomponents/doit/TestDOIT.doit_i_field1D_spectrum.xml:
+	Removed. Last re-added data was wrong. Also, bad idea to use a TestDOIT
+	dependent, constantly rewritten file as reference/starting point for
+	TestDOITprecalcInit.
+
+	* controlfiles/artscomponents/doit/doit_i_field1D_spectrumREFERENCE_DOIT.xml:
+	Added. New i_field data (taken from from TestDOIT, not to be overwritten
+	in future) as initial guess input to TestDOITprecalcInit.
+
 2015-01-14  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-113

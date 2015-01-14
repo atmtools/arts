@@ -3315,6 +3315,9 @@ void iyInterpPolyCloudboxField(Matrix&         iy,
 void doit_i_fieldSetFromdoit_i_field1D_spectrum(
                              Tensor6& doit_i_field,
                              const Tensor4& doit_i_field1D_spectrum,
+                             const Tensor7& scat_i_p,
+//                             const Tensor7& scat_i_lat,
+//                             const Tensor7& scat_i_lon,
                              const Vector& scat_za_grid,
                              const Vector& f_grid,
                              const Index& f_index,
@@ -3327,7 +3330,7 @@ void doit_i_fieldSetFromdoit_i_field1D_spectrum(
   if( atmosphere_dim!=1 )
     {
       ostringstream os;
-      os << "This method is only for 1D atmospheres!\n";
+      os << "This method is currently only implemented for 1D atmospheres!\n";
       throw runtime_error( os.str() );
     }
   
@@ -3378,6 +3381,28 @@ void doit_i_fieldSetFromdoit_i_field1D_spectrum(
   doit_i_field(joker,0,0,joker,0,joker) =
     doit_i_field1D_spectrum(f_index,joker,joker,joker);
 
+  // now we also have to updated cloudbox incoming (!) field - this because
+  // compared to our first guess initialization, the clearsky field around might
+  // have changed.
+  // (0) find, which scat_za_grid entries describe upwelling, which downwelling
+  // radiation.
+  Index first_upwell = 0;
+  assert(scat_za_grid[0]<90.);
+  assert(scat_za_grid[scat_za_grid.nelem()-1]>90.);
+  while (scat_za_grid[first_upwell] < 90.)
+    first_upwell++;
+  /*
+  doit_i_field(0,0,0,joker,0,joker) =
+    scat_i_p(f_index,0,0,0,joker,0,joker);
+  doit_i_field(np-1,0,0,joker,0,joker) =
+    scat_i_p(f_index,1,0,0,joker,0,joker);
+    */
+  // (1) upwelling at lower boundary
+  doit_i_field(0,0,0,Range(first_upwell,scat_za_grid.nelem()-first_upwell),0,joker) =
+    scat_i_p(f_index,0,0,0,Range(first_upwell,scat_za_grid.nelem()-first_upwell),0,joker);
+  // (2) downwelling at lower boundary
+  doit_i_field(np-1,0,0,Range(0,first_upwell-1),0,joker) =
+    scat_i_p(f_index,1,0,0,Range(0,first_upwell-1),0,joker);
 }
 
 
