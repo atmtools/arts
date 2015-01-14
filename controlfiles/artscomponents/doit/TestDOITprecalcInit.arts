@@ -295,6 +295,9 @@ sensor_checkedCalc
 # Initialize Doit variables
 DoitInit
 
+# Calculate incoming radiation field at cloudbox boundary 
+CloudboxGetIncoming
+
 # read in precalculated in-cloudbox radition field to be used as first guess
 ReadXML( out=doit_i_field1D_spectrum, filename="TestDOIT.doit_i_field1D_spectrum.xml" )
 

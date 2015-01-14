@@ -1,3 +1,12 @@
+2015-01-14  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-2-40
+
+	* src/m_doit.cc, methods.cc (doit_i_fieldSetFromdoit_i_field1D_spectrum),
+	controlfiles/artscomponents/doit/TestDOITprecalcInit.arts:
+	Bugfix in first-guess DOIT field setting. For details see arts-2-3-114
+	ChangeLog.
+
 2015-01-13  Manfred Brath  <manfred.brath@uni-hamburg.de>
 
 	* arts-2-2-39
