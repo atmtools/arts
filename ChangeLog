@@ -1,5 +1,12 @@
 2015-01-14  Jana Mendrok  <jana.mendrok@ltu.se>
 
+	* arts-2-2-41
+
+	* src/m_doit.cc (doit_i_fieldSetFromdoit_i_field1D_spectrum):
+	Remove the next freshly introduced bug *sigh*.
+
+2015-01-14  Jana Mendrok  <jana.mendrok@ltu.se>
+
 	* arts-2-2-40
 
 	* src/m_doit.cc, methods.cc (doit_i_fieldSetFromdoit_i_field1D_spectrum),
