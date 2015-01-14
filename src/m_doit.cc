@@ -3395,8 +3395,8 @@ void doit_i_fieldSetFromdoit_i_field1D_spectrum(
   doit_i_field(0,0,0,Range(first_upwell,scat_za_grid.nelem()-first_upwell),0,joker) =
     scat_i_p(f_index,0,0,0,Range(first_upwell,scat_za_grid.nelem()-first_upwell),0,joker);
   // (2) downwelling at lower boundary
-  doit_i_field(np-1,0,0,Range(0,first_upwell-1),0,joker) =
-    scat_i_p(f_index,1,0,0,Range(0,first_upwell-1),0,joker);
+  doit_i_field(np-1,0,0,Range(0,first_upwell),0,joker) =
+    scat_i_p(f_index,1,0,0,Range(0,first_upwell),0,joker);
 }
 
 
