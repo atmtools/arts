@@ -4544,6 +4544,11 @@ void define_md_data_raw()
          "Fast Microwave Water Emissivity Model\" by Liu, Weng and English,\n"
          "I3TRGS, 2011. Note that emissivity and reflectivity do not add up\n"
          "to 1, which is the way FASTEM compensates for non-specular effects.\n"
+         "\n"
+         "FASTEM is not giving complete information for reflectivity. The\n"
+         "reflectivity for U and V components is set to zero.\n"
+         "\n"
+         "If the skin temperature is below 270 K, it is adjusted to 270 K.\n"
          ),
         AUTHORS( "Oliver Lemke, Patrick Eriksson" ),
         OUT(),
@@ -6147,9 +6152,6 @@ void define_md_data_raw()
          "are handled as the 1D case, the down-welling radiation is just\n"
          "calculated for the directuon matching specular reflection.\n"
          "\n"
-         "FASTEM is not giving complete information for reflectivity. The\n"
-         "reflectivity for U and V components is set to zero.\n"
-         "\n"
          "The wind direction is given as the azimuth angle, counted\n"
          "clockwise from north (i.e. an easterly wind is at 90 deg).\n"
          "This matches the general definition of azimuth inside ARTS.\n"
@@ -6157,6 +6159,9 @@ void define_md_data_raw()
          "fact that the line-of-sight is locked to be at 0 deg (180 for 2D\n"
          "in the case of a negative zenith angle). For 3D, the true wind\n"
          "direction shall be used.\n"
+         "\n"
+         "FASTEM is called by *FastemStandAlone* and see that WSM for further\n"
+         "comments.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "iy", "diy_dx" ),

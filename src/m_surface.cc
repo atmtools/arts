@@ -83,7 +83,7 @@ void FastemStandAlone(
   const Index nf = f_grid.nelem();
 
   assert( za >= 90  &&  za <= 180 );
-  assert( surface_skin_t > 270  &&  surface_skin_t  < 374 );
+  assert( surface_skin_t > 200  &&  surface_skin_t  < 373 );
   assert( salinity >= 0  &&  salinity < 1 );
   assert( wind_speed >= 0  &&  wind_speed < 100 );
   assert( rel_aa >= -180  &&  rel_aa <= 180 );
@@ -93,13 +93,15 @@ void FastemStandAlone(
   emissivity.resize( nf, 4 );
   reflectivity.resize( nf, 4 );
 
+  const Numeric t = max( surface_skin_t, Numeric(270) );
+
   for( Index i=0; i<nf; i++ )
     {
       assert( f_grid[i] < 100e9 );
       assert( transmittance[i] >= 0  &&  transmittance[i] <= 1 );
 
       Vector e, r;
-      fastem( e, r, f_grid[i], za, surface_skin_t, salinity, 
+      fastem( e, r, f_grid[i], za, t, salinity, 
               wind_speed, transmittance[i], rel_aa, fastem_version );
 
       emissivity(i,joker) = e;
