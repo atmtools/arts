@@ -1,0 +1,182 @@
+#DEFINITIONS:  -*-sh-*-
+#
+# Testing AtmFieldRefinePgrid.
+#
+# 1D clear sky with an initial and a refined p_grid. Based on
+# artscomponents/clearky/TestClearSky.arts.
+#
+# Author: Jana Mendrok
+
+
+Arts2 {
+
+INCLUDE "general/general.arts"
+INCLUDE "general/continua.arts"
+INCLUDE "general/agendas.arts"
+INCLUDE "general/planet_earth.arts"
+
+# Agenda for scalar gas absorption calculation
+Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
+
+# (standard) emission calculation
+Copy( iy_main_agenda, iy_main_agenda__Emission )
+
+# cosmic background radiation
+Copy( iy_space_agenda, iy_space_agenda__CosmicBackground )
+
+# standard surface agenda (i.e., make use of surface_rtprop_agenda)
+Copy( iy_surface_agenda, iy_surface_agenda__UseSurfaceRtprop )
+
+# Planck as blackbody radiation
+Copy( blackbody_radiation_agenda, blackbody_radiation_agenda__Planck )
+
+# on-the-fly absorption
+Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__OnTheFly )
+
+# sensor-only path
+Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
+
+# no refraction
+Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
+
+
+# Number of Stokes components to be computed
+#
+IndexSet( stokes_dim, 1 )
+
+# Clearsky = No scattering
+#
+cloudboxOff
+
+# No jacobian calculation
+#
+jacobianOff
+
+
+# Read a line file and a matching small frequency grid
+# ---
+ReadXML( abs_lines, "artscomponents/clearsky/abs_lines.xml" )
+VectorNLinSpace( f_grid, 5, 320e9, 322e9 )
+
+
+# Definition of species
+# ---
+abs_speciesSet( species=
+            ["H2O-SelfContStandardType, H2O-ForeignContStandardType, H2O", 
+             "N2-SelfContStandardType",
+             "O3"] )
+
+
+# Sort the line file according to species
+# ---
+abs_lines_per_speciesCreateFromLines
+
+
+# Atmospheric scenario
+# ---
+AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, 
+            "testdata/tropical" )
+
+
+# Weakly reflecting surface
+# ---
+VectorSetConstant( surface_scalar_reflectivity, 1, 0.8 )
+Copy( surface_rtprop_agenda,
+      surface_rtprop_agenda__Specular_NoPol_ReflFix_SurfTFromt_surface )
+
+# No sensor properties
+# ---
+sensorOff
+
+
+# We select here to use Rayleigh-Jean brightness temperatures
+# ---
+StringSet( iy_unit, "RJBT" )
+
+
+# Extract radiative background and optical depth as auxiliary variables
+# ---
+ArrayOfStringSet( iy_aux_vars, [ "Optical depth" ] )
+
+# Definition of sensor position and LOS
+# ---
+MatrixSetConstant( sensor_pos, 3, 1, 600e3 )
+MatrixSet( sensor_los, [ 95; 113; 135] )
+
+
+
+#########################################################################
+# initial vertical spacing
+#########################################################################
+
+# A pressure grid rougly matching 0 to 80 km, in steps of 2 km.
+# ---
+VectorNLogSpace( p_grid, 41, 1000e2, 1 )
+
+# Atmosphere and surface
+# ---
+AtmosphereSet1D
+AtmFieldsCalc
+Extract( z_surface, z_field, 0 )
+Extract( t_surface, t_field, 0 )
+
+# Perform RT calculations
+# ---
+abs_xsec_agenda_checkedCalc
+propmat_clearsky_agenda_checkedCalc
+atmfields_checkedCalc
+atmgeom_checkedCalc
+cloudbox_checkedCalc
+sensor_checkedCalc
+yCalc
+
+# Create containers for comparison data
+VectorCreate( odepth_init )
+VectorCreate( y_init )
+Extract( odepth_init, y_aux, 0 )
+Copy( y_init, y )
+#WriteXML( in=y_init )
+#WriteXML( in=odepth_init )
+
+
+#########################################################################
+# refined vertical spacing
+#########################################################################
+
+AtmFieldsRefinePgrid( p_step=0.01 )
+
+# Perform RT calculations
+# ---
+abs_xsec_agenda_checkedCalc
+propmat_clearsky_agenda_checkedCalc
+atmfields_checkedCalc
+atmgeom_checkedCalc
+cloudbox_checkedCalc
+sensor_checkedCalc
+yCalc
+
+# Create containers for comparison data
+VectorCreate( odepth_refine )
+VectorCreate( y_refine )
+Extract( odepth_refine, y_aux, 0 )
+Copy( y_refine, y )
+#WriteXML( in=y_refine )
+#WriteXML( in=odepth_refine )
+
+
+# OK?
+# ---
+VectorCreate( odepth_refineREFERENCE )
+VectorCreate( y_refineREFERENCE )
+ReadXML( out=y_refineREFERENCE )
+ReadXML( out=odepth_refineREFERENCE )
+
+Compare( y_refine, y_refineREFERENCE, 1e-2 )
+Compare( odepth_refine, odepth_refineREFERENCE, 1e-2 )
+
+Compare( y_refine, y_init, 0.5 )
+Compare( odepth_refine, odepth_init, 2. )
+
+
+} # End of Main
+ 

@@ -991,9 +991,9 @@ void define_md_data_raw()
         GIN_TYPE(    "Numeric", "Numeric", "Numeric" ),
         GIN_DEFAULT( "0.05",    "100",     "100" ),
         GIN_DESC( /* p_step */
-                  "Maximum step in log10(p[Pa]) (base 10 logarithm)."
-                  "If the pressure grid is coarser than this, additional "
-                  "points are added until each log step is smaller than this.",
+                  "Maximum step in log10(p[Pa]). If the pressure grid is "
+                  "coarser than this, additional points are added until each "
+                  "log step is smaller than this.",
                   /* t_step */
                   "The temperature variation grid step in Kelvin, "
                   "for a 2D or 3D atmosphere. For a 1D atmosphere this "
@@ -2253,8 +2253,9 @@ void define_md_data_raw()
         (
          "Refine the pressure grid in the atmospheric fields.\n"
          "\n"
-         "This method is used for absorption lookup table testing. It probably\n"
-         "has no other application.\n"
+         "This method is, e.g., used for absorption lookup table testing. It\n"
+         "can also be used to refine the *p_grid* and atmospheric fields from\n"
+         "compact state atmospheres.\n"
          "\n"
          "It adds additional vertical grid points to the atmospheric fields, by\n"
          "interpolating them in the usual ARTS way (linear in log pressure).\n"
@@ -2264,10 +2265,15 @@ void define_md_data_raw()
          "consistent with *abs_lookupSetup* and *abs_lookupSetupBatch*. (New\n"
          "points are added between the original ones, so that the spacing is\n"
          "always below p_step.)\n"
+         "\n"
+         "Atmospheric field related check WSV are reset to 0 (unchecked),\n"
+         "i.e., need the correpsonding checkedCalc methods have to be\n"
+         "performed (again) before *yCalc* or similar methods can be executed.\n"
          ),
         AUTHORS( "Stefan Buehler" ),
         OUT( "p_grid",
-             "t_field", "z_field", "vmr_field" ),
+             "t_field", "z_field", "vmr_field",
+             "atmfields_checked", "atmgeom_checked", "cloudbox_checked" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
@@ -9349,7 +9355,40 @@ void define_md_data_raw()
         GIN_DESC()
         ));
 
-  md_data_raw.push_back
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME( "p_gridRefine" ),
+        DESCRIPTION
+        (
+         "Provides refined pressure grid.\n"
+         "\n"
+         "Created new pressure grid has (log10) spacings below a given\n"
+         "threshold.\n"
+         "For safety, new grid and old grid Vectors are not allowed to be the\n"
+         "same variable (both will be needed later on for regridding of the\n"
+         "atmospheric fields), and atmospheric field related *checked WSV are\n"
+         "reset to 0 (unchecked).\n"
+         ),
+        AUTHORS( "Stefan Buehler, Jana Mendrok" ),
+        OUT( "p_grid",
+             "atmfields_checked", "atmgeom_checked", "cloudbox_checked" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN(),
+        GIN(      "p_grid_old", "p_step" ),
+        GIN_TYPE( "Vector",     "Numeric" ),
+        GIN_DEFAULT( NODEF,     NODEF ),
+        GIN_DESC( /* p_grid_old */
+                  "A copy of the current (the old) p_grid. Not allowed to be "
+                  "the same variable as the output *p_grid*.",
+                  /* p_step */
+                  "Maximum step in log10(p[Pa]). If the pressure grid is "
+                  "coarser than this, additional points are added until each "
+                  "log step is smaller than this." )
+        ));
+
+                  md_data_raw.push_back
     ( MdRecord
       ( NAME( "ReadNetCDF" ),
         DESCRIPTION

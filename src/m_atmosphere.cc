@@ -2281,13 +2281,16 @@ void AtmFieldsRefinePgrid(// WS Output:
                           Tensor3& t_field,
                           Tensor3& z_field,
                           Tensor4& vmr_field,
+                          Index& atmfields_checked,
+                          Index& atmgeom_checked,
+                          Index& cloudbox_checked,
                           // WS Input:
                           const Vector& lat_grid,
                           const Vector& lon_grid,
                           const Index& atmosphere_dim,
                           // Control Parameters:
                           const Numeric& p_step,
-                          const Verbosity&)
+                          const Verbosity& verbosity)
 {
   // Checks on input parameters:
   
@@ -2311,67 +2314,16 @@ void AtmFieldsRefinePgrid(// WS Output:
   chk_atm_field("vmr_field", vmr_field, atmosphere_dim,
                 vmr_field.nbooks(), p_grid, lat_grid, lon_grid);
 
-  // Check the keyword arguments:
-  if ( p_step <= 0  )
-    {
-      ostringstream os;
-      os << "The keyword argument p_step must be >0.";
-      throw runtime_error( os.str() );
-    }
-
-  // Ok, all input parameters seem to be reasonable.
+  Vector abs_p;
+  p_gridRefine(abs_p,
+               atmfields_checked, atmgeom_checked, cloudbox_checked,
+               p_grid, p_step, verbosity);
+  Vector log_abs_p(abs_p.nelem());
+  transform(log_abs_p, log, abs_p);
 
   // We will need the log of the pressure grid:
   Vector log_p_grid(p_grid.nelem());
   transform(log_p_grid, log, p_grid);
-
-  //  const Numeric epsilon = 0.01 * p_step; // This is the epsilon that
-  //                                         // we use for comparing p grid spacings.
-
-  // Construct abs_p
-  // ---------------
-
-  ArrayOfNumeric log_abs_p_a;  // We take log_abs_p_a as an array of
-                             // Numeric, so that we can easily 
-                             // build it up by appending new elements to the end. 
-
-  // Check whether there are pressure levels that are further apart
-  // (in log(p)) than p_step, and insert additional levels if
-  // necessary:
-
-  log_abs_p_a.push_back(log_p_grid[0]);
-
-  for (Index i=1; i<log_p_grid.nelem(); ++i)
-    {
-      const Numeric dp =  log_p_grid[i-1] - log_p_grid[i]; // The grid is descending.
-
-      const Numeric dp_by_p_step = dp/p_step;
-      //          cout << "dp_by_p_step: " << dp_by_p_step << "\n";
-
-      // How many times does p_step fit into dp?
-      const Index n = (Index) ceil(dp_by_p_step); 
-      // n is the number of intervals that we want to have in the
-      // new grid. The number of additional points to insert is
-      // n-1. But we have to insert the original point as well.
-      //          cout << n << "\n";
-
-      const Numeric ddp = dp/(Numeric)n;
-      //          cout << "ddp: " << ddp << "\n";
-
-      for (Index j=1; j<=n; ++j)
-        log_abs_p_a.push_back(log_p_grid[i-1] - (Numeric)j*ddp);          
-    }
-
-  // Copy to a proper vector, we need this also later for
-  // interpolation: 
-  Vector log_abs_p(log_abs_p_a.nelem());
-  for (Index i=0; i<log_abs_p_a.nelem(); ++i)
-    log_abs_p[i] = log_abs_p_a[i];
-
-  // Copy the new grid to abs_p, removing the log:
-  Vector abs_p(log_abs_p.nelem());
-  transform(abs_p, exp, log_abs_p);
-
 
   // We will also have to interpolate T and VMR profiles to the new
   // pressure grid. We interpolate in log(p), as usual in ARTS.
@@ -2552,6 +2504,102 @@ void p_gridDensify(
         }
     }
 }
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void p_gridRefine(// WS Output:
+                  Vector& p_grid,
+                  Index& atmfields_checked,
+                  Index& atmgeom_checked,
+                  Index& cloudbox_checked,
+                  // WS Input:
+                  const Vector& p_grid_old,
+                  // Control Parameters:
+                  const Numeric& p_step,
+                  const Verbosity&)
+{
+  // Check that p_grid and p_grid_old are not the same variable (pointing to the
+  // same memory space). this as p_grid will be overwritten, but we will need
+  // both data later on for data regridding.
+  if (&p_grid == &p_grid_old)
+    {
+      ostringstream os;
+      os << "The old and new grids (p_grid and p_grid_old) are not allowed\n"
+         << "to be identical (pointing to same memory space).\n"
+         << "But they are doing in your case.";
+      throw runtime_error( os.str() );
+    }
+
+  // as we manipoulate the overall vertical grid (but not simultaneously the
+  // atmospheric fields), we reset all atmfields related checked WSV to
+  // unchecked, forcing the user to do the checks again.
+  atmfields_checked = 0;
+  atmgeom_checked = 0;
+  cloudbox_checked = 0;
+
+  // Check the keyword argument:
+  if ( p_step <= 0  )
+    {
+      ostringstream os;
+      os << "The keyword argument p_step must be >0.";
+      throw runtime_error( os.str() );
+    }
+  // Convert p_step from log10 to ln
+  Numeric p_stepe = p_step * log(p_step)/log10(p_step);
+
+  // Now starting modification of p_grid
+
+  // We will need the log of the pressure grid:
+  Vector log_p_old(p_grid_old.nelem());
+  transform(log_p_old, log, p_grid_old);
+
+  //  const Numeric epsilon = 0.01 * p_stepe; // This is the epsilon that
+  //                                         // we use for comparing p grid spacings.
+
+  // Construct p_grid (new)
+  // ----------------------
+
+  ArrayOfNumeric log_p_new;  // We take log_p_new as an array of Numeric, so
+                             // that we can easily build it up by appending new
+                             // elements to the end.
+
+  // Check whether there are pressure levels that are further apart
+  // (in log(p)) than p_stepe, and insert additional levels if
+  // necessary:
+
+  log_p_new.push_back(log_p_old[0]);
+
+  for (Index i=1; i<log_p_old.nelem(); ++i)
+    {
+      const Numeric dp =  log_p_old[i-1] - log_p_old[i]; // The grid is descending.
+
+      const Numeric dp_by_p_step = dp/p_stepe;
+      //          cout << "dp_by_p_step: " << dp_by_p_step << "\n";
+
+      // How many times does p_stepe fit into dp?
+      const Index n = (Index) ceil(dp_by_p_step); 
+      // n is the number of intervals that we want to have in the
+      // new grid. The number of additional points to insert is
+      // n-1. But we have to insert the original point as well.
+      //          cout << n << "\n";
+
+      const Numeric ddp = dp/(Numeric)n;
+      //          cout << "ddp: " << ddp << "\n";
+
+      for (Index j=1; j<=n; ++j)
+        log_p_new.push_back(log_p_old[i-1] - (Numeric)j*ddp);          
+    }
+
+  // Copy ArrayOfNumeric to proper vector. 
+  Vector log_p(log_p_new.nelem());
+  for (Index i=0; i<log_p_new.nelem(); ++i)
+    log_p[i] = log_p_new[i];
+
+  // Copy the new grid to abs_p, removing the log:
+  p_grid.resize(log_p.nelem());
+  transform(p_grid, exp, log_p);
+} 
 
 
 

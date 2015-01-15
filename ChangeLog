@@ -1,3 +1,26 @@
+2015-01-15  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-3-118
+
+	* src/m_atmosphere.cc, methods.cc
+	(p_gridRefine): Added. WSM to calculate refined p_grid with log10
+	spacings of p below a given threshold. Mimicking the creation of a finer
+	grid as done in AtmFieldsRefinePgrid (including fix to use p_step indeed
+	for log10 spacings as said in doc, not for ln spacings).
+
+	(AtmFieldsRefinePgrid): Apply new WSM p_gridRefine for fine p_grid
+	creation.
+
+	* controlfiles/artscomponents/regrid/TestRegridFields.arts,
+	TestRegridFields.odepth_refineREFERENCE.xml,
+	TestRegridFields.y_refineREFERENCE.xml,
+	controlfiles/CMakeLists.txt:
+	Added test case for regridding of atmospheric fields (Tensor data
+	level).
+
+	* src/workspace.cc (cloudbox_checked): Updated obsolete reference to
+	*basics_checked*.
+
 2015-01-15  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-117
