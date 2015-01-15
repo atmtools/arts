@@ -97,7 +97,7 @@ void FastemStandAlone(
 
   for( Index i=0; i<nf; i++ )
     {
-      assert( f_grid[i] < 100e9 );
+      assert( f_grid[i] < 1000e9 );
       assert( transmittance[i] >= 0  &&  transmittance[i] <= 1 );
 
       Vector e, r;
