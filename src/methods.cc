@@ -5587,34 +5587,6 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "iyFromSelectedSurfaceTypeAgenda" ),
-        DESCRIPTION
-        (
-         "Switch between the different *surface_typeX_agenda*.\n"
-         "\n"
-         "This method simply calls the agenda matching *surface_type* and\n"
-         "returns the results. That is, if surface_type=X, the agenda with\n"
-         "name surface_typeX_agenda is called.\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT( "iy", "diy_dx" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN(  "iy_unit", "iy_transmission", "cloudbox_on", "jacobian_do",
-             "t_field", "z_field", "vmr_field", "f_grid", "iy_main_agenda",
-             "rtp_pos", "rtp_los", "rte_pos2", 
-             "surface_type0_agenda", "surface_type1_agenda",
-             "surface_type", "surface_type_aux"
-          ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME( "iyFOS" ),
         DESCRIPTION
         (
@@ -5992,6 +5964,35 @@ void define_md_data_raw()
         GIN_TYPE( "String" ),
         GIN_DEFAULT( NODEF ),
         GIN_DESC( "Auxiliary variable to insert as *iy*." )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "iySurfaceCallSubAgendaX" ),
+        DESCRIPTION
+        (
+         "Switch between the different *iy_surface_sub_agendaX*.\n"
+         "\n"
+         "This method simply calls the agenda matching *surface_type* and\n"
+         "returns the results. That is, if surface_type=X, the agenda with\n"
+         "name iy_surface_sub_agendaX is called.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "iy", "diy_dx" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN(  "iy_unit", "iy_transmission", "cloudbox_on", "jacobian_do",
+             "t_field", "z_field", "vmr_field", "f_grid", "iy_main_agenda",
+             "rtp_pos", "rtp_los", "rte_pos2", 
+             "iy_surface_sub_agenda0", "iy_surface_sub_agenda1", "iy_surface_sub_agenda2",
+             "iy_surface_sub_agenda3", "iy_surface_sub_agenda4", "iy_surface_sub_agenda5",
+             "surface_type", "surface_type_aux"
+          ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
         ));
 
   md_data_raw.push_back
@@ -11506,6 +11507,34 @@ void define_md_data_raw()
         GIN_TYPE( "GriddedField6" ),
         GIN_DEFAULT( NODEF ),
         GIN_DESC( "A field of surface reflectivities" )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "surface_rtpropCallSubAgendaX" ),
+        DESCRIPTION
+        (
+         "Switch between the different *surface_rtprop_sub_agendaX*.\n"
+         "\n"
+         "This method simply calls the agenda matching *surface_type* and\n"
+         "returns the results. That is, if surface_type=X, the agenda with\n"
+         "name surface_rtprop_sub_agendaX is called.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "surface_los", "surface_rmatrix", "surface_emission" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN(  "f_grid", "rtp_pos", "rtp_los", 
+             "surface_rtprop_sub_agenda0", "surface_rtprop_sub_agenda1", 
+             "surface_rtprop_sub_agenda2", "surface_rtprop_sub_agenda3", 
+             "surface_rtprop_sub_agenda4", "surface_rtprop_sub_agenda5",
+             "surface_type", "surface_type_aux"
+          ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
         ));
 
   md_data_raw.push_back

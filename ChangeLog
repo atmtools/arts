@@ -1,3 +1,32 @@
+2015-01-16  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-118
+
+	* Contrary to what I wrote in an email to the arts mailing lists,
+	surface_rtprop_agenda must stay as it is used of MC and DOIT. To
+	allow combining the surface type system and MC/DOIT, this means
+	that I instead had to introduce the surface_rtprop_sub_agenda
+	series, to have one such agenda for each iy_surface_sub_agendaX.
+
+	iy_surface_agenda and surface_rtprop_agenda remain unchanged and
+	you can use these two agendas exactly as before. The corresponding
+	agenda seriers are just needed if you want to operate with surface
+	types.
+
+	* controlfiles/general/agendas_surface_sub.arts: Dummy definition
+	of the new agenda series. No need to include this file for
+	standard calculations.
+
+	* src/m_surface.cc (iySurfaceCallSubAgendaX): Renamed, and now
+	handling X = 0 to 5. That also means that all those agendas must
+	be defined.
+
+	(surface_rtpropCallSubAgendaX): New WSM.
+
+	* src/agendas.cc: The set of surface type agendas are now called
+	iy_surface_sub_agendaX, where X is 0 to 5. Also introduced a
+	parallel set of agendas: surface_rtprop_sub_agendaX.
+
 2015-01-15  Jana Mendrok  <jana.mendrok@ltu.se>
 
 	* arts-2-3-118
@@ -21,6 +50,7 @@
 	* src/workspace.cc (cloudbox_checked): Updated obsolete reference to
 	*basics_checked*.
 
+>>>>>>> .r9147
 2015-01-15  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-117

@@ -1741,6 +1741,60 @@ void Workspace::define_wsv_data()
        GROUP( "Agenda" )));
 
   wsv_data.push_back
+    (WsvRecord
+     ( NAME( "iy_surface_sub_agenda0" ),
+      DESCRIPTION
+      (
+       "See agendas.cc.\n"
+       ),
+      GROUP( "Agenda" )));
+    
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "iy_surface_sub_agenda1" ),
+      DESCRIPTION
+      (
+       "See agendas.cc.\n"
+       ),
+      GROUP( "Agenda" )));
+    
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "iy_surface_sub_agenda2" ),
+      DESCRIPTION
+      (
+       "See agendas.cc.\n"
+       ),
+      GROUP( "Agenda" )));
+    
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "iy_surface_sub_agenda3" ),
+      DESCRIPTION
+      (
+       "See agendas.cc.\n"
+       ),
+      GROUP( "Agenda" )));
+    
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "iy_surface_sub_agenda4" ),
+      DESCRIPTION
+      (
+       "See agendas.cc.\n"
+       ),
+      GROUP( "Agenda" )));
+    
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "iy_surface_sub_agenda5" ),
+      DESCRIPTION
+      (
+       "See agendas.cc.\n"
+       ),
+      GROUP( "Agenda" )));
+    
+  wsv_data.push_back
    (WsvRecord
     ( NAME( "iy_transmission" ),
       DESCRIPTION
@@ -4351,6 +4405,60 @@ void Workspace::define_wsv_data()
         ),
        GROUP( "Agenda" )));
   
+ wsv_data.push_back
+    (WsvRecord
+     ( NAME( "surface_rtprop_sub_agenda0" ),
+       DESCRIPTION
+       (
+        "See agendas.cc.\n"
+        ),
+       GROUP( "Agenda" )));
+  
+ wsv_data.push_back
+    (WsvRecord
+     ( NAME( "surface_rtprop_sub_agenda1" ),
+       DESCRIPTION
+       (
+        "See agendas.cc.\n"
+        ),
+       GROUP( "Agenda" )));
+  
+ wsv_data.push_back
+    (WsvRecord
+     ( NAME( "surface_rtprop_sub_agenda2" ),
+       DESCRIPTION
+       (
+        "See agendas.cc.\n"
+        ),
+       GROUP( "Agenda" )));
+  
+ wsv_data.push_back
+    (WsvRecord
+     ( NAME( "surface_rtprop_sub_agenda3" ),
+       DESCRIPTION
+       (
+        "See agendas.cc.\n"
+        ),
+       GROUP( "Agenda" )));
+  
+ wsv_data.push_back
+    (WsvRecord
+     ( NAME( "surface_rtprop_sub_agenda4" ),
+       DESCRIPTION
+       (
+        "See agendas.cc.\n"
+        ),
+       GROUP( "Agenda" )));
+  
+ wsv_data.push_back
+    (WsvRecord
+     ( NAME( "surface_rtprop_sub_agenda5" ),
+       DESCRIPTION
+       (
+        "See agendas.cc.\n"
+        ),
+       GROUP( "Agenda" )));
+  
    wsv_data.push_back
    (WsvRecord
     ( NAME( "surface_skin_t" ),
@@ -4422,60 +4530,6 @@ void Workspace::define_wsv_data()
        ),
       GROUP( "Index" )));
 
-  wsv_data.push_back
-    (WsvRecord
-     ( NAME( "surface_type0_agenda" ),
-      DESCRIPTION
-      (
-       "See agendas.cc.\n"
-       ),
-      GROUP( "Agenda" )));
-    
-  wsv_data.push_back
-    (WsvRecord
-     ( NAME( "surface_type1_agenda" ),
-      DESCRIPTION
-      (
-       "See agendas.cc.\n"
-       ),
-      GROUP( "Agenda" )));
-    
-  wsv_data.push_back
-    (WsvRecord
-     ( NAME( "surface_type2_agenda" ),
-      DESCRIPTION
-      (
-       "See agendas.cc.\n"
-       ),
-      GROUP( "Agenda" )));
-    
-  wsv_data.push_back
-    (WsvRecord
-     ( NAME( "surface_type3_agenda" ),
-      DESCRIPTION
-      (
-       "See agendas.cc.\n"
-       ),
-      GROUP( "Agenda" )));
-    
-  wsv_data.push_back
-    (WsvRecord
-     ( NAME( "surface_type4_agenda" ),
-      DESCRIPTION
-      (
-       "See agendas.cc.\n"
-       ),
-      GROUP( "Agenda" )));
-    
-  wsv_data.push_back
-    (WsvRecord
-     ( NAME( "surface_type5_agenda" ),
-      DESCRIPTION
-      (
-       "See agendas.cc.\n"
-       ),
-      GROUP( "Agenda" )));
-    
    wsv_data.push_back
    (WsvRecord
     ( NAME( "surface_type_aux" ),
@@ -4504,7 +4558,7 @@ void Workspace::define_wsv_data()
        "\n"
        "There is no fixed type coding, it is up to the user to set up\n"
        "a consistent system. The critical point is to the agendas\n"
-       "matching each surface type, that are denoted as surface_typeX_agenda\n"
+       "matching each surface type, that are denoted as iy_surface_sub_agendaX\n"
        "where X is the *surface_type* index.\n"
        "\n"
        "The surface type can be any integer (>=0) for which a corresponding\n" 

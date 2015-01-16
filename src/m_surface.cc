@@ -231,7 +231,7 @@ void InterpSurfaceFieldToPosition(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void iyFromSelectedSurfaceTypeAgenda(
+void iySurfaceCallSubAgendaX(
           Workspace&        ws,
           Matrix&           iy,
           ArrayOfTensor3&   diy_dx,  
@@ -247,31 +247,69 @@ void iyFromSelectedSurfaceTypeAgenda(
     const Vector&           rtp_pos,
     const Vector&           rtp_los,
     const Vector&           rte_pos2,
-    const Agenda&           surface_type0_agenda,
-    const Agenda&           surface_type1_agenda,
+    const Agenda&           iy_surface_sub_agenda0,
+    const Agenda&           iy_surface_sub_agenda1,
+    const Agenda&           iy_surface_sub_agenda2,
+    const Agenda&           iy_surface_sub_agenda3,
+    const Agenda&           iy_surface_sub_agenda4,
+    const Agenda&           iy_surface_sub_agenda5,
     const Index&            surface_type,
     const Numeric&          surface_type_aux,
     const Verbosity& )
 {
   if( surface_type == 0 )
     {
-      chk_not_empty( "surface_type0_agenda", surface_type0_agenda );
-      surface_type0_agendaExecute( ws, iy, diy_dx, 
+      iy_surface_sub_agenda0Execute( ws, iy, diy_dx, 
                                    iy_unit, iy_transmission, cloudbox_on,
                                    jacobian_do, t_field, z_field, vmr_field,
                                    f_grid, iy_main_agenda, rtp_pos, rtp_los, 
                                    rte_pos2, surface_type_aux,
-                                   surface_type0_agenda );
+                                   iy_surface_sub_agenda0 );
     }
   else if( surface_type == 1 )
     {
-      chk_not_empty( "surface_type1_agenda", surface_type1_agenda );
-      surface_type1_agendaExecute( ws, iy, diy_dx, 
+      iy_surface_sub_agenda1Execute( ws, iy, diy_dx, 
                                    iy_unit, iy_transmission, cloudbox_on,
                                    jacobian_do, t_field, z_field, vmr_field,
                                    f_grid, iy_main_agenda, rtp_pos, rtp_los, 
                                    rte_pos2, surface_type_aux,
-                                   surface_type1_agenda );
+                                   iy_surface_sub_agenda1 );
+    }
+  else if( surface_type == 2 )
+    {
+      iy_surface_sub_agenda2Execute( ws, iy, diy_dx, 
+                                   iy_unit, iy_transmission, cloudbox_on,
+                                   jacobian_do, t_field, z_field, vmr_field,
+                                   f_grid, iy_main_agenda, rtp_pos, rtp_los, 
+                                   rte_pos2, surface_type_aux,
+                                   iy_surface_sub_agenda2 );
+    }
+  else if( surface_type == 3 )
+    {
+      iy_surface_sub_agenda3Execute( ws, iy, diy_dx, 
+                                   iy_unit, iy_transmission, cloudbox_on,
+                                   jacobian_do, t_field, z_field, vmr_field,
+                                   f_grid, iy_main_agenda, rtp_pos, rtp_los, 
+                                   rte_pos2, surface_type_aux,
+                                   iy_surface_sub_agenda3 );
+    }
+  else if( surface_type == 4 )
+    {
+      iy_surface_sub_agenda4Execute( ws, iy, diy_dx, 
+                                   iy_unit, iy_transmission, cloudbox_on,
+                                   jacobian_do, t_field, z_field, vmr_field,
+                                   f_grid, iy_main_agenda, rtp_pos, rtp_los, 
+                                   rte_pos2, surface_type_aux,
+                                   iy_surface_sub_agenda4 );
+    }
+  else if( surface_type == 5 )
+    {
+      iy_surface_sub_agenda5Execute( ws, iy, diy_dx, 
+                                   iy_unit, iy_transmission, cloudbox_on,
+                                   jacobian_do, t_field, z_field, vmr_field,
+                                   f_grid, iy_main_agenda, rtp_pos, rtp_los, 
+                                   rte_pos2, surface_type_aux,
+                                   iy_surface_sub_agenda5 );
     }
   else
     {
@@ -1566,6 +1604,73 @@ void surface_typeInterpTypeMask(
   surface_type = (Index) floor( surface_type_mask.data(ilat,ilon) );
   surface_type_aux = surface_type_mask.data(ilat,ilon) - Numeric(surface_type);
 }
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void surface_rtpropCallSubAgendaX(
+          Workspace&        ws,
+          Matrix&           surface_los,
+          Tensor4&          surface_rmatrix,
+          Matrix&           surface_emission,
+    const Vector&           f_grid,
+    const Vector&           rtp_pos,
+    const Vector&           rtp_los,
+    const Agenda&           surface_rtprop_sub_agenda0,
+    const Agenda&           surface_rtprop_sub_agenda1,
+    const Agenda&           surface_rtprop_sub_agenda2,
+    const Agenda&           surface_rtprop_sub_agenda3,
+    const Agenda&           surface_rtprop_sub_agenda4,
+    const Agenda&           surface_rtprop_sub_agenda5,
+    const Index&            surface_type,
+    const Numeric&          surface_type_aux,
+    const Verbosity& )
+{
+  if( surface_type == 0 )
+    {
+      surface_rtprop_sub_agenda0Execute( ws, surface_emission, surface_los, surface_rmatrix,
+                                         f_grid, rtp_pos, rtp_los,
+                                         surface_type_aux, surface_rtprop_sub_agenda0 );
+    }
+  else if( surface_type == 1 )
+    {
+      surface_rtprop_sub_agenda1Execute( ws, surface_emission, surface_los, surface_rmatrix,
+                                         f_grid, rtp_pos, rtp_los,
+                                         surface_type_aux, surface_rtprop_sub_agenda1 );
+    }
+  else if( surface_type == 2 )
+    {
+      surface_rtprop_sub_agenda2Execute( ws, surface_emission, surface_los, surface_rmatrix,
+                                         f_grid, rtp_pos, rtp_los,
+                                         surface_type_aux, surface_rtprop_sub_agenda2 );
+    }
+  else if( surface_type == 3 )
+    {
+      surface_rtprop_sub_agenda3Execute( ws, surface_emission, surface_los, surface_rmatrix,
+                                         f_grid, rtp_pos, rtp_los,
+                                         surface_type_aux, surface_rtprop_sub_agenda3 );
+    }
+  else if( surface_type == 4 )
+    {
+      surface_rtprop_sub_agenda4Execute( ws, surface_emission, surface_los, surface_rmatrix,
+                                         f_grid, rtp_pos, rtp_los,
+                                         surface_type_aux, surface_rtprop_sub_agenda4 );
+    }
+  else if( surface_type == 5 )
+    {
+      surface_rtprop_sub_agenda5Execute( ws, surface_emission, surface_los, surface_rmatrix,
+                                         f_grid, rtp_pos, rtp_los,
+                                         surface_type_aux, surface_rtprop_sub_agenda5 );
+    }
+  else
+    {
+      throw runtime_error( "Unknown selection of *surface_type*. This must "
+                           "be an intmeger between 0 and 1." );
+    }
+}
+
+
+
 
 
 
