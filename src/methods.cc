@@ -10626,8 +10626,9 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "mblock_za_grid", "met_mm_backend", "met_mm_polarisation", "met_mm_antenna",
-            "stokes_dim", "sensor_los", "iy_unit" ),
+        IN( "atmosphere_dim", "stokes_dim", "sensor_los", "iy_unit", "antenna_los", 
+            "met_mm_backend", "met_mm_polarisation", "met_mm_antenna"
+             ),
         GIN( "freq_spacing", "freq_number", "freq_merge_threshold",
              "use_antenna" ),
         GIN_TYPE(    "Numeric", "ArrayOfIndex", "Numeric", "Index" ),

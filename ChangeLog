@@ -1,3 +1,15 @@
+2015-01-17  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-119
+
+	* controlfiles/instruments/amsu/amsub_metmm.arts: Now using
+	antenna_los.
+
+	* src/m_sensor.cc (sensor_responseBackendMetMM): atmosphere_dim
+	now checked, and only 1D allowed at this point. The set of input
+	relative angles now specified by antenna_los. mblock_za_grid now
+	only output. This for better consistency with other sensor methods.
+
 2015-01-16  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-118

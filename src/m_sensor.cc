@@ -1262,34 +1262,37 @@ void sensor_responseBackendFrequencySwitching(Sparse&         sensor_response,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void sensor_responseBackendMetMM(// WS Output:
-                                 Vector& f_grid,
-                                 Index& antenna_dim,
-                                 Vector& mblock_za_grid,
-                                 Vector& mblock_aa_grid,
-                                 Sparse& sensor_response,
-                                 Vector& sensor_response_f,
-                                 ArrayOfIndex& sensor_response_pol,
-                                 Vector& sensor_response_za,
-                                 Vector& sensor_response_aa,
-                                 Vector& sensor_response_f_grid,
-                                 ArrayOfIndex& sensor_response_pol_grid,
-                                 Vector& sensor_response_za_grid,
-                                 Vector& sensor_response_aa_grid,
-                                 Index& sensor_norm,
-                                 // WS Input:
-                                 const Matrix& mm_back, /* met_mm_backend */
-                                 const ArrayOfString& mm_pol, /* met_mm_polarisation */
-                                 const Vector& /* mm_ant */, /* met_mm_antenna */
-                                 const Index& stokes_dim,
-                                 const Matrix& sensor_los,
-                                 const String& iy_unit,
-                                 // Control Parameters:
-                                 const Numeric& freq_spacing,
-                                 const ArrayOfIndex& freq_number,
-                                 const Numeric& freq_merge_threshold,
-                                 const Index& use_antenna,
-                                 const Verbosity& verbosity)
+void sensor_responseBackendMetMM(
+   // WS Output:
+          Vector&          f_grid,
+          Index&           antenna_dim,
+          Vector&          mblock_za_grid,
+          Vector&          mblock_aa_grid,
+          Sparse&          sensor_response,
+          Vector&          sensor_response_f,
+          ArrayOfIndex&    sensor_response_pol,
+          Vector&          sensor_response_za,
+          Vector&          sensor_response_aa,
+          Vector&          sensor_response_f_grid,
+          ArrayOfIndex&    sensor_response_pol_grid,
+          Vector&          sensor_response_za_grid,
+          Vector&          sensor_response_aa_grid,
+          Index&           sensor_norm,
+    // WS Input:
+    const Index&           atmosphere_dim,
+    const Index&           stokes_dim,
+    const Matrix&          sensor_los,
+    const String&          iy_unit,
+    const Matrix&          antenna_los,
+    const Matrix&          mm_back, /* met_mm_backend */
+    const ArrayOfString&   mm_pol, /* met_mm_polarisation */
+    const Vector&                  /* mm_ant */, /* met_mm_antenna */
+    // Control Parameters:
+    const Numeric&         freq_spacing,
+    const ArrayOfIndex&    freq_number,
+    const Numeric&         freq_merge_threshold,
+    const Index&           use_antenna,
+    const Verbosity&       verbosity )
 {
     CREATE_OUT1;
     CREATE_OUT2;
@@ -1300,23 +1303,29 @@ void sensor_responseBackendMetMM(// WS Output:
 
     const Index nchannels = mm_back.nrows();
 
+    if (atmosphere_dim != 1)
+      throw std::runtime_error("This method only supports 1D atmospheres.");
+
     if (freq_spacing <= 0)
-        throw std::runtime_error("*freq_spacing must be > 0.");
+      throw std::runtime_error("*freq_spacing must be > 0.");
 
     if (freq_number.nelem() != 1 && freq_number.nelem() != nchannels)
-        throw std::runtime_error("Length of *freq_number* vector must be either 1 or correspond\n"
-                                 "to the number of rows in *met_mm_backend*.");
+      throw std::runtime_error(
+         "Length of *freq_number* vector must be either 1 or correspond\n"
+         "to the number of rows in *met_mm_backend*.");
 
     if (freq_merge_threshold > 10.)
-        throw std::runtime_error("The *freq_merge_threshold* is only meant to merge frequencies\n"
-                                 "that are basically identical and only differ slightly due to\n"
-                                 "numerical inaccuracies. Setting it to >10Hz is not reasonable.");
+        throw std::runtime_error(
+            "The *freq_merge_threshold* is only meant to merge frequencies\n"
+            "that are basically identical and only differ slightly due to\n"
+            "numerical inaccuracies. Setting it to >10Hz is not reasonable.");
 
-    if (mblock_za_grid.nelem() == 0)
-        throw std::runtime_error("*mblock_za_grid* is empty.");
+    if (antenna_los.nrows() == 0)
+        throw std::runtime_error("*antenna_los* is empty.");
+    
+    if (antenna_los.ncols() != 1)
+        throw std::runtime_error("*antenna_los* must have a single column.");
 
-    if (mblock_aa_grid.nelem() != 0)
-        throw std::runtime_error("*mblock_aa_grid* must be empty.");
 
     if (stokes_dim > 1)
     {
@@ -1504,8 +1513,8 @@ void sensor_responseBackendMetMM(// WS Output:
     }
 
     // Construct complete sensor_response matrix
-    sensor_response = Sparse(nchannels * mblock_za_grid.nelem(),
-                             num_f * stokes_dim * mblock_za_grid.nelem());
+    sensor_response = Sparse(nchannels * antenna_los.nrows(),
+                             num_f * stokes_dim * antenna_los.nrows());
 
     sensor_response_pol_grid.resize(1);
     sensor_response_pol_grid[0] = 1;
@@ -1524,11 +1533,12 @@ void sensor_responseBackendMetMM(// WS Output:
         Sparse H_pol;
         Sparse sensor_response_tmp;
 
-        for (Index iza = 0; iza < mblock_za_grid.nelem(); iza++)
+        for (Index iza = 0; iza < antenna_los.nrows(); iza++)
         {
             sensor_response_tmp = Sparse(nchannels, sensor_response_single.ncols());
             met_mm_polarisation_hmatrix(H_pol, mm_pol,
-                                        sensor_los(0, 0) + mblock_za_grid[iza], stokes_dim, iy_unit);
+                                        sensor_los(0, 0) + antenna_los(iza,0), 
+                                        stokes_dim, iy_unit);
 
             mult(sensor_response_tmp, H_pol, sensor_response_single);
             for (Index r = 0; r < sensor_response_tmp.nrows(); r++)
@@ -1545,7 +1555,7 @@ void sensor_responseBackendMetMM(// WS Output:
     else
     {
         // No polarisation
-        for (Index iza = 0; iza < mblock_za_grid.nelem(); iza++)
+        for (Index iza = 0; iza < antenna_los.nrows(); iza++)
         {
             for (Index r = 0; r < sensor_response_single.nrows(); r++)
                 for (Index c = 0; c < sensor_response_single.ncols(); c++)
@@ -1566,6 +1576,10 @@ void sensor_responseBackendMetMM(// WS Output:
         // FIXME: Do something smart here
         throw std::runtime_error("The antenna hasn't arrived yet.");
     }
+
+    // mblock angle grids
+    mblock_za_grid = antenna_los(joker,0);
+    mblock_aa_grid = Vector(0);
 
     // Set sensor response aux variables
     sensor_response_za_grid = mblock_za_grid;

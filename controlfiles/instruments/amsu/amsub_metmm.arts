@@ -77,10 +77,11 @@ MatrixSetConstant( sensor_los, 1, 1, 180 )
 # Scan. You can instead set it here to a single value if you want to 
 # calculate only for one viewing angle.
 
-ReadXML( mblock_za_grid, "amsub.mblock_za_grid.xml" )
+# 
+#ReadXML( mblock_za_grid, "amsub.mblock_za_grid.xml" )
 
 # For speed reasons, just calculate one angle
-VectorSet( mblock_za_grid, [ -0.5 ] )
+MatrixSet( antenna_los, [ -0.5 ] )
 
 
 # Sensor setup
