@@ -665,27 +665,20 @@ void sensor_checkedCalc(
    const Matrix&                     sensor_pos,
    const Matrix&                     sensor_los,
    const Matrix&                     transmitter_pos,
-   const Vector&                     mblock_za_grid,
-   const Vector&                     mblock_aa_grid,
-   const Index&                      antenna_dim,
+   const Matrix&                     mblock_dlos_grid,
    const Sparse&                     sensor_response,
    const Vector&                     sensor_response_f,
    const ArrayOfIndex&               sensor_response_pol,
-   const Vector&                     sensor_response_za,
-   const Vector&                     sensor_response_aa,
+   const Matrix&                     sensor_response_dlos,
    const Verbosity& )
 {
 
   // Some sizes
   const Index   nf      = f_grid.nelem();
-  const Index   nza     = mblock_za_grid.nelem();
-        Index   naa     = mblock_aa_grid.nelem();   
-  if( antenna_dim == 1 )  
-    { naa = 1; }
+  const Index   nlos    = mblock_dlos_grid.nrows();
   const Index   n1y     = sensor_response.nrows();
   const Index   nmblock = sensor_pos.nrows();
-  const Index   niyb    = nf * nza * naa * stokes_dim;
-
+  const Index   niyb    = nf * nlos * stokes_dim;
 
   // Sensor position and LOS.
   //
@@ -734,29 +727,18 @@ void sensor_checkedCalc(
                              "2 for 1D/2D or 3 columns for 3D." );
     }
 
-  // Antenna
+  // mblock_dlos_grid
   //
-  chk_if_in_range( "antenna_dim", antenna_dim, 1, 2 );
-  //
-  if( nza == 0 )
-    throw runtime_error( "The measurement block zenith angle grid is empty." );
-  chk_if_increasing( "mblock_za_grid", mblock_za_grid );
-  //
-  if( antenna_dim == 1 )
+  if( mblock_dlos_grid.nrows() == 0 )
+    throw runtime_error( "*mblock_dlos_grid* is empty." );
+  if( mblock_dlos_grid.ncols() > 2 )
+    throw runtime_error( 
+                  "The maximum number of columns in *mblock_dlos_grid* is two." );
+  if( atmosphere_dim < 3 )
     {
-      if( mblock_aa_grid.nelem() != 0 )
+      if( mblock_dlos_grid.ncols() != 1 )
         throw runtime_error( 
-          "For antenna_dim = 1, the azimuthal angle grid must be empty." );
-    }
-  else
-    {
-      if( atmosphere_dim < 3 )
-        throw runtime_error( "2D antennas (antenna_dim=2) can only be "
-                                                 "used with 3D atmospheres." );
-      if( mblock_aa_grid.nelem() == 0 )
-        throw runtime_error(
-                      "The measurement block azimuthal angle grid is empty." );
-      chk_if_increasing( "mblock_aa_grid", mblock_aa_grid );
+            "For 1D and 2D *mblock_dlos_grid* must have exactly one column." );
     }
 
   // Sensor
@@ -773,25 +755,17 @@ void sensor_checkedCalc(
 
   // Sensor aux variables
   //
-  if( antenna_dim==1 && sensor_response_aa.nelem() )
-    throw runtime_error( "If *antenna_dim* is 1, *sensor_response_aa* must "
-                         "be empty." );
-
   if( n1y != sensor_response_f.nelem()  || n1y != sensor_response_pol.nelem() ||
-      n1y != sensor_response_za.nelem() || 
-      ( antenna_dim==2 && n1y != sensor_response_aa.nelem() ) )
+      n1y != sensor_response_dlos.nrows() )
     {
       ostringstream os;
       os << "Sensor auxiliary variables do not have the correct size.\n"
          << "The following variables should all have same size:\n"
-         << "length of y for one block    : " << n1y << "\n"
-         << "sensor_response_f.nelem()    : " << sensor_response_f.nelem()
-         << "\nsensor_response_pol.nelem(): " << sensor_response_pol.nelem()
-         << "\nsensor_response_za.nelem() : " << sensor_response_za.nelem() 
+         << "length of y for one block     : " << n1y << "\n"
+         << "sensor_response_f.nelem()     : " << sensor_response_f.nelem()
+         << "\nsensor_response_pol.nelem() : " << sensor_response_pol.nelem()
+         << "\nsensor_response_dlos.nrows(): " << sensor_response_dlos.nrows() 
          << "\n";
-      if( antenna_dim == 2 )
-        { os << "sensor_response_aa.nelem() : " << sensor_response_aa.nelem() 
-             << "\n"; }
       throw runtime_error( os.str() );
     }
 

@@ -51,7 +51,7 @@
 void antenna1d_matrix(      
            Sparse&   H,
       const Index&   antenna_dim,
-   ConstMatrixView   antenna_los,
+   ConstVectorView   antenna_dza,
     const GriddedField4&   antenna_response,
    ConstVectorView   za_grid,
    ConstVectorView   f_grid,
@@ -107,13 +107,10 @@ void met_mm_polarisation_hmatrix(Sparse& H,
 void sensor_aux_vectors(
                Vector&   sensor_response_f,
          ArrayOfIndex&   sensor_response_pol,
-               Vector&   sensor_response_za,
-               Vector&   sensor_response_aa,
+               Matrix&   sensor_response_dlos,
        ConstVectorView   sensor_response_f_grid,
    const ArrayOfIndex&   sensor_response_pol_grid,
-       ConstVectorView   sensor_response_za_grid,
-       ConstVectorView   sensor_response_aa_grid,
-           const Index   za_aa_independent );
+       ConstMatrixView   sensor_response_dlos_grid );
 
 void sensor_integration_vector(
         VectorView   h,

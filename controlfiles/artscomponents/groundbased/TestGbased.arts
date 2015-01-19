@@ -228,7 +228,10 @@ NumericCreate( za_negative )
 Copy( za_negative, za )
 NumericScale( za_negative, za_negative, -1 )
 
-VectorNLinSpace( mblock_za_grid, 2, za_negative, 0 )
+VectorCreate( za_vector )
+VectorNLinSpace( za_vector, 2, za_negative, 0 )
+Matrix1ColFromVector( mblock_dlos_grid, za_vector )
+
 sensor_responseInit
 sensor_responseBeamSwitching
 sensor_responseBackend
@@ -248,10 +251,10 @@ NumericScale( f1, f1, -1 )
 AntennaOff
 sensor_responseInit
 sensor_responseBackendFrequencySwitching( sensor_response, sensor_response_f,
-     sensor_response_pol, sensor_response_za, sensor_response_aa, 
-     sensor_response_f_grid, sensor_response_pol_grid, sensor_response_za_grid,
-     sensor_response_aa_grid, f_backend, backend_channel_response, sensor_norm,
-     f1, f_switch )
+     sensor_response_pol, sensor_response_dlos, 
+     sensor_response_f_grid, sensor_response_pol_grid, 
+     sensor_response_dlos_grid, f_backend, backend_channel_response, 
+     sensor_norm, f1, f_switch )
 
 sensor_checkedCalc
 yCalc

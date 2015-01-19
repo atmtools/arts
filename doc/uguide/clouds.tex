@@ -39,12 +39,13 @@ requirements. The following section describes in detail the
 
 The number density field, \wsvindex{pnd\_field}, contains the number densities
 of all scattering elements at all grid points within the cloudbox. Section
-\ref{sec:clouds:size_distr} describes how to realize different kinds of size distributions in the
-ARTS frame by defining appropriate particle number density fields.
-\wsvindex{pnd\_field} can be read in from externally prepared data files or be
-derived from mass density of flux fields provided to the model. Section
-\ref{sec:clouds:implement} below describes the first. The latter can be done
-using \wsmindex{pnd\_fieldSetup} (\FIXME: document here in AUG!).
+\ref{sec:clouds:size_distr} describes how to realize different kinds of size
+distributions in the ARTS frame by defining appropriate particle number density
+fields. \wsvindex{pnd\_field} can be read in from externally prepared data
+files or be derived from mass density of flux fields provided to the model.
+Section \ref{sec:clouds:implement} below describes the first. The latter can be
+done using \wsmindex{pnd\_fieldCalcFromscat\_speciesFields} (\FIXME: document
+here in AUG!).
 
 
 \section{\textindex{Single scattering properties}}
@@ -571,10 +572,10 @@ has to make sure that the order of the filenames containing the single
 scattering data corresponds to the order of the particle number
 density fields in \wsvindex{pnd\_field\_raw}.
 After reading the data the workspace variable \wsvindex{pnd\_field} is
-calculated using \wsmindex{pnd\_fieldCalc}: 
+calculated using \wsmindex{pnd\_fieldCalcFrompnd\_field\_raw}: 
 \begin{code}
 # Calculate the particle number density field
-pnd_fieldCalc
+pnd_fieldCalcFrompnd_field_raw
 \end{code}
 
 The definition of the single scattering data along with the

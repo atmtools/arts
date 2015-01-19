@@ -252,11 +252,11 @@ jacobianAddFreqStretch( jacobian_quantities, jacobian_agenda, f_grid,
     sensor_pos, sensor_time, 0, 50e3 )
 
 jacobianAddPolyfit( jacobian_quantities, jacobian_agenda, 
-    sensor_response_pol_grid, sensor_response_za_grid, sensor_pos, 
+    sensor_response_pol_grid, sensor_response_dlos_grid, sensor_pos, 
     1, 0, 0, 0 )
 
 jacobianAddSinefit( jacobian_quantities, jacobian_agenda, 
-    sensor_response_pol_grid, sensor_response_za_grid, sensor_pos, 
+    sensor_response_pol_grid, sensor_response_dlos_grid, sensor_pos, 
     [200e6,40e6], 0, 0, 0 )
 
 jacobianAddWind( jacobian_quantities, jacobian_agenda, atmosphere_dim, 

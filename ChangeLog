@@ -1,3 +1,57 @@
+2015-01-19  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-120
+
+	* Many changes around the files. Not all details written down. The
+	overall aim was to increase the flexibility and consistency of how
+	LOS values are handled. A main driver was to go away from a
+	rectangular mblock za-aa grid.
+
+	All tests run (including test on uguide!), but there could still
+	be bugs from all these changes. Tell me if you get strange
+	results.
+
+	Most changes should not affect standard usage. The most noticable
+	changes are:
+
+	* mblock_za_grid is now renamed to mblock_dlos_grid and is now a
+	matrix. As long as 1D antennas are used, all you need is to convert
+	mblock_za_grid to a single column matrix.
+
+	* AntennaSet1D is removed. Replace this WSM with
+	IndexSet(antenna_dim,1).
+
+	* src/(agendas.cc m_checked.cc m_jacobian.cc m_rte.cc m_sensor.cc
+	methods.cc rte.cc rte.h sensor.cc sensor.h workspace.cc): Affected
+	source files.
+
+	* controlfiles/../(TestFgrid.arts TestGbased.arts
+	TestRteCalcMC.arts TestStokesRotation.arts TestWfuns.arts
+	amsub_metmm.arts odinsmr_501.arts odinsmr_501_1D.arts
+	odinsmr_544.arts): Affected control files.
+
+	* doc/uguide: Updated email addres for Stefan in start pages of
+	the docs. Updated copyright years. Fixed references to renamed WSV
+	and WSM. Mainly the ones listed below, but also some on the
+	scattering side.
+
+	* Renamed + modified WSVs:
+	antenna_los             -> antenna_dlos
+	mblock_za_grid          -> mblock_dlos_grid
+	sensor_response_za_grid -> sensor_response_dlos_grid
+	sensor_response_za      -> sensor_response_dlos
+
+	Removed WSVs:
+	mblock_aa_grid
+	sensor_response_aa_grid
+	sensor_response_aa
+
+	Modified WSVs:
+	stokes_rotation is now a vector (before a matrix)
+
+	* src/m_sensor.cc (AntennaSet1D,AntennaSet2D): Removed. Now just
+	setting antenna_dim=1/2.
+
 2015-01-17  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-119

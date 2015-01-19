@@ -182,11 +182,12 @@ WriteXML( output_file_format, ye )
 Copy( f_grid, x1 )
 
 FlagOn( sensor_norm )
+AntennaOff
 sensor_responseInit
 sensor_responseFillFgrid( sensor_response, sensor_response_f, 
-   sensor_response_pol, sensor_response_za, sensor_response_aa, 
-   sensor_response_f_grid, sensor_response_pol_grid, sensor_response_za_grid, 
-   sensor_response_aa_grid, 3, 2 )
+   sensor_response_pol, sensor_response_dlos, 
+   sensor_response_f_grid, sensor_response_pol_grid, 
+   sensor_response_dlos_grid, 3, 2 )
 sensor_checkedCalc
 yCalc
 WriteXML( output_file_format, sensor_response_f_grid, "TestFgrid.x3.xml" )
@@ -194,9 +195,9 @@ WriteXML( output_file_format, y, "TestFgrid.y3.xml" )
 
 sensor_responseInit
 sensor_responseFillFgrid( sensor_response, sensor_response_f, 
-   sensor_response_pol, sensor_response_za, sensor_response_aa, 
-   sensor_response_f_grid, sensor_response_pol_grid, sensor_response_za_grid, 
-   sensor_response_aa_grid, 5, 4 )
+   sensor_response_pol, sensor_response_dlos, 
+   sensor_response_f_grid, sensor_response_pol_grid,
+   sensor_response_dlos_grid, 5, 4 )
 sensor_checkedCalc
 yCalc
 WriteXML( output_file_format, sensor_response_f_grid, 

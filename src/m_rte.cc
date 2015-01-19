@@ -1494,14 +1494,11 @@ void yCalc_mblock_loop_body(
    const Matrix&                     sensor_pos,
    const Matrix&                     sensor_los,
    const Matrix&                     transmitter_pos,
-   const Vector&                     mblock_za_grid,
-   const Vector&                     mblock_aa_grid,
-   const Index&                      antenna_dim,
+   const Matrix&                     mblock_dlos_grid,
    const Sparse&                     sensor_response,
    const Vector&                     sensor_response_f,
    const ArrayOfIndex&               sensor_response_pol,
-   const Vector&                     sensor_response_za,
-   const Vector&                     sensor_response_aa,
+   const Matrix&                     sensor_response_dlos,
    const String&                     iy_unit,   
    const Agenda&                     iy_main_agenda,
    const Agenda&                     jacobian_agenda,
@@ -1524,7 +1521,7 @@ void yCalc_mblock_loop_body(
         iyb_calc(ws, iyb, iyb_aux_array[mblock_index], diyb_dx,
                  mblock_index, atmosphere_dim, t_field, z_field, vmr_field,
                  cloudbox_on, stokes_dim, f_grid, sensor_pos, sensor_los,
-                 transmitter_pos, mblock_za_grid, mblock_aa_grid, antenna_dim,
+                 transmitter_pos, mblock_dlos_grid, 
                  iy_unit, iy_main_agenda, j_analytical_do, jacobian_quantities,
                  jacobian_indices, iy_aux_vars, verbosity);
 
@@ -1542,18 +1539,15 @@ void yCalc_mblock_loop_body(
         // Fill information variables
         //
         for( Index i=0; i<n1y; i++ )
-        {
-            y_f[row0+i]         = sensor_response_f[i];
-            y_pol[row0+i]       = sensor_response_pol[i];
-            y_pos(row0+i,joker) = sensor_pos(mblock_index,joker);
-            y_los(row0+i,0)     = sensor_los(mblock_index,0) +
-            sensor_response_za[i];
-            if( sensor_response_aa.nelem() )
-            {
-                y_los(row0+i,1) = sensor_los(mblock_index,0) +
-                sensor_response_aa[i];
-            }
-        }
+          {
+            y_f[row0+i]          = sensor_response_f[i];
+            y_pol[row0+i]        = sensor_response_pol[i];
+            y_pos(row0+i,joker)  = sensor_pos(mblock_index,joker);
+            y_los(row0+i,joker)  = sensor_los(mblock_index,joker);
+            y_los(row0+i,0)     += sensor_response_dlos(i,0);
+            if( sensor_response_dlos.ncols() > 1 )
+              { y_los(row0+i,1) += sensor_response_dlos(i,1); }
+          }
 
         // Apply sensor response matrix on diyb_dx, and put into jacobian
         // (that is, analytical jacobian part)
@@ -1609,14 +1603,11 @@ void yCalc(
    const Matrix&                     sensor_pos,
    const Matrix&                     sensor_los,
    const Matrix&                     transmitter_pos,
-   const Vector&                     mblock_za_grid,
-   const Vector&                     mblock_aa_grid,
-   const Index&                      antenna_dim,
+   const Matrix&                     mblock_dlos_grid,
    const Sparse&                     sensor_response,
    const Vector&                     sensor_response_f,
    const ArrayOfIndex&               sensor_response_pol,
-   const Vector&                     sensor_response_za,
-   const Vector&                     sensor_response_aa,
+   const Matrix&                     sensor_response_dlos,
    const String&                     iy_unit,   
    const Agenda&                     iy_main_agenda,
    const Agenda&                     jacobian_agenda,
@@ -1654,13 +1645,10 @@ void yCalc(
 
   // Some sizes
   const Index   nf      = f_grid.nelem();
-  const Index   nza     = mblock_za_grid.nelem();
-        Index   naa     = mblock_aa_grid.nelem();   
-  if( antenna_dim == 1 )  
-    { naa = 1; }
+  const Index   nlos    = mblock_dlos_grid.nrows();
   const Index   n1y     = sensor_response.nrows();
   const Index   nmblock = sensor_pos.nrows();
-  const Index   niyb    = nf * nza * naa * stokes_dim;
+  const Index   niyb    = nf * nlos * stokes_dim;
 
 
   //---------------------------------------------------------------------------
@@ -1705,7 +1693,7 @@ void yCalc(
   bool failed = false;
 
   if (nmblock >= arts_omp_get_max_threads()
-      || (nf <= nmblock && nmblock >= nza))
+      || (nf <= nmblock && nmblock >= nlos))
   {
       out3 << "  Parallelizing mblock loop (" << nmblock << " iterations)\n";
 
@@ -1722,46 +1710,18 @@ firstprivate(l_ws, l_jacobian_agenda, l_iy_main_agenda)
           // Skip remaining iterations if an error occurred
           if (failed) continue;
 
-          yCalc_mblock_loop_body(failed,
-                                 fail_msg,
-                                 iyb_aux_array,
-                                 l_ws,
-                                 y,
-                                 y_f,
-                                 y_pol,
-                                 y_pos,
-                                 y_los,
-                                 jacobian,
-                                 atmosphere_dim,
-                                 t_field,
-                                 z_field,
-                                 vmr_field,
-                                 cloudbox_on,
-                                 stokes_dim,
-                                 f_grid,
-                                 sensor_pos,
-                                 sensor_los,
-                                 transmitter_pos,
-                                 mblock_za_grid,
-                                 mblock_aa_grid,
-                                 antenna_dim,
-                                 sensor_response,
-                                 sensor_response_f,
-                                 sensor_response_pol,
-                                 sensor_response_za,
-                                 sensor_response_aa,
-                                 iy_unit,
-                                 l_iy_main_agenda,
-                                 l_jacobian_agenda,
-                                 jacobian_do,
-                                 jacobian_quantities,
-                                 jacobian_indices,
-                                 iy_aux_vars,
-                                 verbosity,
-                                 mblock_index,
-                                 n1y,
-                                 j_analytical_do);
-          
+          yCalc_mblock_loop_body( failed, fail_msg, iyb_aux_array, l_ws,
+                                  y, y_f, y_pol, y_pos, y_los, jacobian,
+                                  atmosphere_dim, t_field, z_field, vmr_field,
+                                  cloudbox_on, stokes_dim, f_grid, 
+                                  sensor_pos, sensor_los, transmitter_pos,
+                                  mblock_dlos_grid, sensor_response,
+                                  sensor_response_f, sensor_response_pol,
+                                  sensor_response_dlos, iy_unit,
+                                  l_iy_main_agenda, l_jacobian_agenda,
+                                  jacobian_do, jacobian_quantities,
+                                  jacobian_indices, iy_aux_vars, verbosity,
+                                  mblock_index, n1y, j_analytical_do );          
       }  // End mblock loop
   }
   else
@@ -1773,46 +1733,18 @@ firstprivate(l_ws, l_jacobian_agenda, l_iy_main_agenda)
           // Skip remaining iterations if an error occurred
           if (failed) continue;
 
-          yCalc_mblock_loop_body(failed,
-                                 fail_msg,
-                                 iyb_aux_array,
-                                 ws,
-                                 y,
-                                 y_f,
-                                 y_pol,
-                                 y_pos,
-                                 y_los,
-                                 jacobian,
-                                 atmosphere_dim,
-                                 t_field,
-                                 z_field,
-                                 vmr_field,
-                                 cloudbox_on,
-                                 stokes_dim,
-                                 f_grid,
-                                 sensor_pos,
-                                 sensor_los,
-                                 transmitter_pos,
-                                 mblock_za_grid,
-                                 mblock_aa_grid,
-                                 antenna_dim,
-                                 sensor_response,
-                                 sensor_response_f,
-                                 sensor_response_pol,
-                                 sensor_response_za,
-                                 sensor_response_aa,
-                                 iy_unit,
-                                 iy_main_agenda,
-                                 jacobian_agenda,
-                                 jacobian_do,
-                                 jacobian_quantities,
-                                 jacobian_indices,
-                                 iy_aux_vars,
-                                 verbosity,
-                                 mblock_index,
-                                 n1y,
-                                 j_analytical_do);
-          
+          yCalc_mblock_loop_body( failed, fail_msg, iyb_aux_array, ws,
+                                  y, y_f, y_pol, y_pos, y_los, jacobian,
+                                  atmosphere_dim, t_field, z_field, vmr_field,
+                                  cloudbox_on, stokes_dim, f_grid, 
+                                  sensor_pos, sensor_los, transmitter_pos,
+                                  mblock_dlos_grid, sensor_response,
+                                  sensor_response_f, sensor_response_pol,
+                                  sensor_response_dlos, iy_unit,
+                                  iy_main_agenda, jacobian_agenda,
+                                  jacobian_do, jacobian_quantities,
+                                  jacobian_indices, iy_aux_vars, verbosity,
+                                  mblock_index, n1y, j_analytical_do ); 
       }  // End mblock loop
   }
 
@@ -1883,14 +1815,11 @@ void yCalcAppend(
    const Matrix&                     sensor_pos,
    const Matrix&                     sensor_los,
    const Matrix&                     transmitter_pos,
-   const Vector&                     mblock_za_grid,
-   const Vector&                     mblock_aa_grid,
-   const Index&                      antenna_dim,
+   const Matrix&                     mblock_dlos_grid,
    const Sparse&                     sensor_response,
    const Vector&                     sensor_response_f,
    const ArrayOfIndex&               sensor_response_pol,
-   const Vector&                     sensor_response_za,
-   const Vector&                     sensor_response_aa,
+   const Matrix&                     sensor_response_dlos,
    const String&                     iy_unit,   
    const Agenda&                     iy_main_agenda,
    const Agenda&                     jacobian_agenda,
@@ -1938,9 +1867,9 @@ void yCalcAppend(
          atmfields_checked, atmgeom_checked, atmosphere_dim, t_field,
          z_field, vmr_field, cloudbox_on, cloudbox_checked, sensor_checked,
          stokes_dim, f_grid, sensor_pos, sensor_los, transmitter_pos,
-         mblock_za_grid, mblock_aa_grid, antenna_dim, sensor_response,
-         sensor_response_f, sensor_response_pol, sensor_response_za, 
-         sensor_response_aa, iy_unit, iy_main_agenda, 
+         mblock_dlos_grid, sensor_response,
+         sensor_response_f, sensor_response_pol, sensor_response_dlos, 
+         iy_unit, iy_main_agenda, 
          jacobian_agenda, jacobian_do, jacobian_quantities, jacobian_indices, 
          iy_aux_vars, verbosity );
 

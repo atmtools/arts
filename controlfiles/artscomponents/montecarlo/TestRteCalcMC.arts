@@ -88,13 +88,13 @@ Matrix1RowFromVector( sensor_los, rte_los )
 
 IndexSet( stokes_dim, 4 )
 
-AntennaSet1D
+IndexSet( antenna_dim, 1 )
 #
-VectorSet( mblock_za_grid, [
- -0.2,-0.02,0.00,0.02,0.20
-] )
+VectorCreate( za_grid )
+VectorSet( za_grid, [-0.2,-0.02,0.00,0.02,0.20 ] )
+Matrix1ColFromVector( mblock_dlos_grid, za_grid )
 #
-MatrixSetConstant( antenna_los, 1, 1, 0 )
+MatrixSetConstant( antenna_dlos, 1, 1, 0 )
 
 # An antenna pattern from Odin-SMR is used here
 ReadXML( antenna_response, "antenna.SM_AC2ab.875ms.xml" )

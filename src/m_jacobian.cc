@@ -326,9 +326,7 @@ void jacobianCalcAbsSpeciesPerturbations(
   const Matrix&                     sensor_pos,
   const Matrix&                     sensor_los,
   const Matrix&                     transmitter_pos,
-  const Vector&                     mblock_za_grid,
-  const Vector&                     mblock_aa_grid,
-  const Index&                      antenna_dim,
+  const Matrix&                     mblock_dlos_grid,
   const Sparse&                     sensor_response,
   const String&                     iy_unit,  
   const Agenda&                     iy_main_agenda,
@@ -504,8 +502,8 @@ void jacobianCalcAbsSpeciesPerturbations(
               iyb_calc( ws, iybp, dummy3, dummy4, mblock_index, 
                         atmosphere_dim, t_field, z_field, vmr_p, cloudbox_on, 
                         stokes_dim, f_grid, sensor_pos, sensor_los, 
-                        transmitter_pos, mblock_za_grid, 
-                        mblock_aa_grid, antenna_dim, iy_unit, iy_main_agenda, 
+                        transmitter_pos, mblock_dlos_grid, 
+                        iy_unit, iy_main_agenda, 
                         0, ArrayOfRetrievalQuantity(), 
                         ArrayOfArrayOfIndex(), ArrayOfString(), verbosity );
               //
@@ -633,9 +631,7 @@ void jacobianCalcFreqShift(
   const Index&                     stokes_dim,
   const Vector&                    f_grid,
   const Matrix&                    sensor_los,
-  const Vector&                    mblock_za_grid,
-  const Vector&                    mblock_aa_grid,
-  const Index&                     antenna_dim,
+  const Matrix&                    mblock_dlos_grid,
   const Sparse&                    sensor_response,
   const Vector&                    sensor_time,
   const ArrayOfRetrievalQuantity&  jacobian_quantities,
@@ -679,12 +675,9 @@ void jacobianCalcFreqShift(
   const Index    n1y = sensor_response.nrows(); 
         Vector   dy( n1y );
   {
-    const Index   nf2      = f_grid.nelem();
-    const Index   nza2     = mblock_za_grid.nelem();
-          Index   naa2     = mblock_aa_grid.nelem();   
-    if( antenna_dim == 1 )  
-      { naa2 = 1; }
-    const Index   niyb    = nf2 * nza2 * naa2 * stokes_dim;
+    const Index   nf2   = f_grid.nelem();
+    const Index   nlos2 = mblock_dlos_grid.nrows();
+    const Index   niyb  = nf2 * nlos2 * stokes_dim;
 
     // Interpolation weights
     //
@@ -699,17 +692,14 @@ void jacobianCalcFreqShift(
     interpweights( itw, gp );
 
     // Do interpolation
-    for( Index iza=0; iza<nza2; iza++ )
+    for( Index ilos=0; ilos<nlos2; ilos++ )
       {
-        for( Index iaa=0; iaa<naa2; iaa++ )
-          {
-            const Index row0 =( iza*naa2 + iaa ) * nf2 * stokes_dim;
+        const Index row0 = ilos * nf2 * stokes_dim;
             
-            for( Index is=0; is<stokes_dim; is++ )
-              { 
-                interp( iyb2[Range(row0+is,nf2,stokes_dim)], itw, 
-                         iyb[Range(row0+is,nf2,stokes_dim)], gp );
-              }
+        for( Index is=0; is<stokes_dim; is++ )
+          { 
+            interp( iyb2[Range(row0+is,nf2,stokes_dim)], itw, 
+                    iyb[Range(row0+is,nf2,stokes_dim)], gp );
           }
       }
 
@@ -859,13 +849,11 @@ void jacobianCalcFreqStretch(
   const Index&                     stokes_dim,
   const Vector&                    f_grid,
   const Matrix&                    sensor_los,
-  const Vector&                    mblock_za_grid,
-  const Vector&                    mblock_aa_grid,
-  const Index&                     antenna_dim,
+  const Matrix&                    mblock_dlos_grid,
   const Sparse&                    sensor_response,
   const ArrayOfIndex&              sensor_response_pol_grid,
   const Vector&                    sensor_response_f_grid,
-  const Vector&                    sensor_response_za_grid,
+  const Matrix&                    sensor_response_dlos_grid,
   const Vector&                    sensor_time,
   const ArrayOfRetrievalQuantity&  jacobian_quantities,
   const ArrayOfArrayOfIndex&       jacobian_indices,
@@ -911,12 +899,9 @@ void jacobianCalcFreqStretch(
   const Index    n1y = sensor_response.nrows(); 
         Vector   dy( n1y );
   {
-    const Index   nf2      = f_grid.nelem();
-    const Index   nza2     = mblock_za_grid.nelem();
-          Index   naa2     = mblock_aa_grid.nelem();   
-    if( antenna_dim == 1 )  
-      { naa2 = 1; }
-    const Index   niyb    = nf2 * nza2 * naa2 * stokes_dim;
+    const Index   nf2   = f_grid.nelem();
+    const Index   nlos2 = mblock_dlos_grid.nrows();
+    const Index   niyb  = nf2 * nlos2 * stokes_dim;
 
     // Interpolation weights
     //
@@ -931,17 +916,14 @@ void jacobianCalcFreqStretch(
     interpweights( itw, gp );
 
     // Do interpolation
-    for( Index iza=0; iza<nza2; iza++ )
+    for( Index ilos=0; ilos<nlos2; ilos++ )
       {
-        for( Index iaa=0; iaa<naa2; iaa++ )
-          {
-            const Index row0 =( iza*naa2 + iaa ) * nf2 * stokes_dim;
+        const Index row0 = ilos * nf2 * stokes_dim;
             
-            for( Index is=0; is<stokes_dim; is++ )
-              { 
-                interp( iyb2[Range(row0+is,nf2,stokes_dim)], itw, 
-                         iyb[Range(row0+is,nf2,stokes_dim)], gp );
-              }
+        for( Index is=0; is<stokes_dim; is++ )
+          { 
+            interp( iyb2[Range(row0+is,nf2,stokes_dim)], itw, 
+                    iyb[Range(row0+is,nf2,stokes_dim)], gp );
           }
       }
 
@@ -959,9 +941,9 @@ void jacobianCalcFreqStretch(
     //
     const Index nf     = sensor_response_f_grid.nelem();
     const Index npol   = sensor_response_pol_grid.nelem();
-    const Index nza    = sensor_response_za_grid.nelem();
+    const Index nlos   = sensor_response_dlos_grid.nrows();
     //
-    for( Index l=0; l<nza; l++ )
+    for( Index l=0; l<nlos; l++ )
       {    
         for( Index f=0; f<nf; f++ )
           {
@@ -1111,18 +1093,21 @@ void jacobianCalcPointingZaInterp(
   const Index&                     stokes_dim,
   const Vector&                    f_grid,
   const Matrix&                    sensor_los,
-  const Vector&                    mblock_za_grid,
-  const Vector&                    mblock_aa_grid,
-  const Index&                     antenna_dim,
+  const Matrix&                    mblock_dlos_grid,
   const Sparse&                    sensor_response,
   const Vector&                    sensor_time,
   const ArrayOfRetrievalQuantity&  jacobian_quantities,
   const ArrayOfArrayOfIndex&       jacobian_indices,
   const Verbosity& )
 {
-  if( mblock_za_grid.nelem() < 2 )
-    throw runtime_error( "The method demands that *mblock_za_grid* has a "
-                         "length of > 1." );
+  if( mblock_dlos_grid.nrows() < 2 )
+    throw runtime_error( "The method demands that *mblock_dlos_grid* has "
+                         "more than one row." );
+
+  if( !( is_increasing( mblock_dlos_grid(joker,0) )  || 
+         is_decreasing( mblock_dlos_grid(joker,0) ) ) )
+    throw runtime_error( "The method demands that the zenith angles in "
+             "*mblock_dlos_grid* are sorted (increasing or decreasing)." );
 
   // Set some useful variables.  
   RetrievalQuantity rq;
@@ -1155,19 +1140,16 @@ void jacobianCalcPointingZaInterp(
   {
     // Sizes
     const Index   nf  = f_grid.nelem();
-    const Index   nza = mblock_za_grid.nelem();
-          Index   naa = mblock_aa_grid.nelem();   
-    if( antenna_dim == 1 )  
-      { naa = 1; }
+    const Index   nza = mblock_dlos_grid.nrows();
 
     // Shifted zenith angles
-    Vector za1 = mblock_za_grid; za1 -= rq.Perturbation();
-    Vector za2 = mblock_za_grid; za2 += rq.Perturbation();
+    Vector za1 = mblock_dlos_grid(joker,0); za1 -= rq.Perturbation();
+    Vector za2 = mblock_dlos_grid(joker,0); za2 += rq.Perturbation();
 
     // Find interpolation weights
     ArrayOfGridPos gp1(nza), gp2(nza);
-    gridpos( gp1, mblock_za_grid, za1, 1e6 );  // Note huge extrapolation!
-    gridpos( gp2, mblock_za_grid, za2, 1e6 );  // Note huge extrapolation!
+    gridpos( gp1, mblock_dlos_grid(joker,0), za1, 1e6 );  // Note huge extrapolation!
+    gridpos( gp2, mblock_dlos_grid(joker,0), za2, 1e6 );  // Note huge extrapolation!
     Matrix itw1(nza,2), itw2(nza,2);
     interpweights( itw1, gp1 );
     interpweights( itw2, gp2 );
@@ -1176,14 +1158,13 @@ void jacobianCalcPointingZaInterp(
     //
     Vector  iyb1(iyb.nelem()), iyb2(iyb.nelem());
     //
-    for( Index iaa=0; iaa<naa; iaa++ )
+    for( Index iza=0; iza<nza; iza++ )
       {
         for( Index iv=0; iv<nf; iv++ )
           {
             for( Index is=0; is<stokes_dim; is++ )
               {
-                const Range r( iaa*nza*nf*stokes_dim+iv*stokes_dim+is, 
-                               nza, nf*stokes_dim );
+                const Range r( iv*stokes_dim+is, nza, nf*stokes_dim );
                 interp( iyb1[r], itw1, iyb[r], gp1 );
                 interp( iyb2[r], itw2, iyb[r], gp2 );
               }
@@ -1250,9 +1231,7 @@ void jacobianCalcPointingZaRecalc(
   const Matrix&                    sensor_pos,
   const Matrix&                    sensor_los,
   const Matrix&                    transmitter_pos,
-  const Vector&                    mblock_za_grid,
-  const Vector&                    mblock_aa_grid,
-  const Index&                     antenna_dim,
+  const Matrix&                    mblock_dlos_grid,
   const Sparse&                    sensor_response,
   const Vector&                    sensor_time,
   const String&                    iy_unit,  
@@ -1300,8 +1279,8 @@ void jacobianCalcPointingZaRecalc(
     iyb_calc( ws, iyb2, iyb_aux, diyb_dx, mblock_index, 
               atmosphere_dim, 
               t_field, z_field, vmr_field, cloudbox_on, stokes_dim, 
-              f_grid, sensor_pos, los, transmitter_pos, mblock_za_grid, 
-              mblock_aa_grid, antenna_dim, iy_unit, iy_main_agenda,
+              f_grid, sensor_pos, los, transmitter_pos, mblock_dlos_grid, 
+              iy_unit, iy_main_agenda,
               0, ArrayOfRetrievalQuantity(), ArrayOfArrayOfIndex(),
               ArrayOfString(), verbosity );
 
@@ -1358,7 +1337,7 @@ void jacobianAddPolyfit(
         ArrayOfRetrievalQuantity&  jq,
         Agenda&                    jacobian_agenda,
   const ArrayOfIndex&              sensor_response_pol_grid,
-  const Vector&                    sensor_response_za_grid,
+  const Matrix&                    sensor_response_dlos_grid,
   const Matrix&                    sensor_pos,
   const Index&                     poly_order,
   const Index&                     no_pol_variation,
@@ -1399,7 +1378,7 @@ void jacobianAddPolyfit(
   if( no_los_variation )
     grids[2] = Vector(1,1);
   else
-    grids[2] = Vector(0,sensor_response_za_grid.nelem(),1); 
+    grids[2] = Vector(0,sensor_response_dlos_grid.nrows(),1); 
   if( no_mblock_variation )
     grids[3] = Vector(1,1);
   else
@@ -1443,7 +1422,7 @@ void jacobianCalcPolyfit(
   const Sparse&                    sensor_response,
   const ArrayOfIndex&              sensor_response_pol_grid,
   const Vector&                    sensor_response_f_grid,
-  const Vector&                    sensor_response_za_grid,
+  const Matrix&                    sensor_response_dlos_grid,
   const ArrayOfRetrievalQuantity&  jacobian_quantities,
   const ArrayOfArrayOfIndex&       jacobian_indices,
   const Index&                     poly_coeff,
@@ -1475,7 +1454,7 @@ void jacobianCalcPolyfit(
   //
   const Index nf     = sensor_response_f_grid.nelem();
   const Index npol   = sensor_response_pol_grid.nelem();
-  const Index nza    = sensor_response_za_grid.nelem();
+  const Index nlos    = sensor_response_dlos_grid.nrows();
 
   // Make a vector with values to distribute over *jacobian*
   //
@@ -1496,7 +1475,7 @@ void jacobianCalcPolyfit(
   if( n3 > 1 )
     { col4 += mblock_index*n2*n1; }
       
-  for( Index l=0; l<nza; l++ )
+  for( Index l=0; l<nlos; l++ )
     {
       const Index row3 = row4 + l*nf*npol;
       const Index col3 = col4 + l*n1;
@@ -1531,7 +1510,7 @@ void jacobianAddSinefit(
         ArrayOfRetrievalQuantity&  jq,
         Agenda&                    jacobian_agenda,
   const ArrayOfIndex&              sensor_response_pol_grid,
-  const Vector&                    sensor_response_za_grid,
+  const Matrix&                    sensor_response_dlos_grid,
   const Matrix&                    sensor_pos,
   const Vector&                    period_lengths,
   const Index&                     no_pol_variation,
@@ -1574,7 +1553,7 @@ void jacobianAddSinefit(
   if( no_los_variation )
     grids[2] = Vector(1,1);
   else
-    grids[2] = Vector(0,sensor_response_za_grid.nelem(),1); 
+    grids[2] = Vector(0,sensor_response_dlos_grid.nrows(),1); 
   if( no_mblock_variation )
     grids[3] = Vector(1,1);
   else
@@ -1618,7 +1597,7 @@ void jacobianCalcSinefit(
   const Sparse&                    sensor_response,
   const ArrayOfIndex&              sensor_response_pol_grid,
   const Vector&                    sensor_response_f_grid,
-  const Vector&                    sensor_response_za_grid,
+  const Matrix&                    sensor_response_dlos_grid,
   const ArrayOfRetrievalQuantity&  jacobian_quantities,
   const ArrayOfArrayOfIndex&       jacobian_indices,
   const Index&                     period_index,
@@ -1650,7 +1629,7 @@ void jacobianCalcSinefit(
   //
   const Index nf     = sensor_response_f_grid.nelem();
   const Index npol   = sensor_response_pol_grid.nelem();
-  const Index nza    = sensor_response_za_grid.nelem();
+  const Index nlos   = sensor_response_dlos_grid.nrows();
 
   // Make vectors with values to distribute over *jacobian*
   //
@@ -1680,7 +1659,7 @@ void jacobianCalcSinefit(
   if( n3 > 1 )
     { col4 += mblock_index*n2*n1*2; }
       
-  for( Index l=0; l<nza; l++ )
+  for( Index l=0; l<nlos; l++ )
     {
       const Index row3 = row4 + l*nf*npol;
       const Index col3 = col4 + l*n1*2;
@@ -1862,9 +1841,7 @@ void jacobianCalcTemperaturePerturbations(
   const Matrix&                     sensor_pos,
   const Matrix&                     sensor_los,
   const Matrix&                     transmitter_pos,
-  const Vector&                     mblock_za_grid,
-  const Vector&                     mblock_aa_grid,
-  const Index&                      antenna_dim,
+  const Matrix&                     mblock_dlos_grid,
   const Sparse&                     sensor_response,
   const String&                     iy_unit,  
   const Agenda&                     iy_main_agenda,
@@ -2022,8 +1999,8 @@ void jacobianCalcTemperaturePerturbations(
               iyb_calc( ws, iybp, dummy3, dummy4, mblock_index, 
                         atmosphere_dim, t_p, z, vmr_field, cloudbox_on, 
                         stokes_dim, f_grid, sensor_pos, sensor_los, 
-                        transmitter_pos, mblock_za_grid, mblock_aa_grid, 
-                        antenna_dim, iy_unit, iy_main_agenda, 
+                        transmitter_pos, mblock_dlos_grid, 
+                        iy_unit, iy_main_agenda, 
                         0, ArrayOfRetrievalQuantity(), 
                         ArrayOfArrayOfIndex(), ArrayOfString(), verbosity );
               //
@@ -2318,7 +2295,7 @@ void jacobianCalcWindAnalytical(
 //      const Vector&                     f_grid,
 //      const Index&                      stokes_dim,
 //      const Index&                      antenna_dim,
-//      const Vector&                     mblock_za_grid,
+//      const Vector&                     mblock__grid,
 //      const Vector&                     mblock_aa_grid,
 //      const Verbosity&                  verbosity)
 // {

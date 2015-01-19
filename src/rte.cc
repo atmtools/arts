@@ -1972,7 +1972,7 @@ Range get_rowindex_for_mblock(
 }
 
 
-void iyb_calc_za_loop_body(
+void iyb_calc_body(
         bool&                       failed,
         String&                     fail_msg,
         ArrayOfArrayOfTensor4&      iy_aux_array,
@@ -1990,103 +1990,94 @@ void iyb_calc_za_loop_body(
   ConstMatrixView                   sensor_pos,
   ConstMatrixView                   sensor_los,
   ConstMatrixView                   transmitter_pos,
-  ConstVectorView                   mblock_za_grid,
-  ConstVectorView                   mblock_aa_grid,
-  const Index&                      antenna_dim,
+  ConstMatrixView                   mblock_dlos_grid,
   const String&                     iy_unit,  
   const Agenda&                     iy_main_agenda,
   const Index&                      j_analytical_do,
   const ArrayOfRetrievalQuantity&   jacobian_quantities,
   const ArrayOfArrayOfIndex&        jacobian_indices,
   const ArrayOfString&              iy_aux_vars,
-  const Index&                      naa,
-  const Index&                      iza,
-  const Index&                      nf)
+  const Index&                      ilos,
+  const Index&                      nf )
 {
     // The try block here is necessary to correctly handle
     // exceptions inside the parallel region.
     try
     {
-        for( Index iaa=0; iaa<naa; iaa++ )
+      //--- LOS of interest
+      //
+      Vector los( sensor_los.ncols() );
+      //
+      los     = sensor_los( mblock_index, joker );
+      los[0] += mblock_dlos_grid(ilos,0);
+      if( mblock_dlos_grid.ncols() > 1 )
+        { map_daa( los[0], los[1], los[0], los[1],
+                   mblock_dlos_grid(ilos,1) ); }
+      else
+        { adjust_los( los, atmosphere_dim ); }
+      //--- rtp_pos 1 and 2
+      //
+      Vector rtp_pos, rtp_pos2(0);
+      //
+      rtp_pos = sensor_pos( mblock_index, joker );
+      if( transmitter_pos.nrows() )
+        { rtp_pos2 = transmitter_pos( mblock_index, joker ); }
+
+      // Calculate iy and associated variables
+      //
+      Matrix         iy;
+      ArrayOfTensor3 diy_dx;
+      Ppath          ppath;
+      Tensor3        iy_transmission(0,0,0);
+      //
+      iy_main_agendaExecute(ws, iy, iy_aux_array[ilos], ppath,
+                            diy_dx, 
+                            1, iy_unit, iy_transmission, iy_aux_vars,
+                            cloudbox_on, j_analytical_do, t_field,
+                            z_field, vmr_field, f_grid, rtp_pos, los,
+                            rtp_pos2, iy_main_agenda );
+
+      // Check that aux data can be handled and has correct size
+      for( Index q=0; q<iy_aux_array[ilos].nelem(); q++ )
         {
-            //--- LOS of interest
-            //
-            Vector los( sensor_los.ncols() );
-            //
-            los     = sensor_los( mblock_index, joker );
-            los[0] += mblock_za_grid[iza];
-            //
-            if( antenna_dim == 2 )  // map_daa handles also "adjustment"
-            { map_daa( los[0], los[1], los[0], los[1],
-                      mblock_aa_grid[iaa] ); }
-            else
-            { adjust_los( los, atmosphere_dim ); }
-
-            //--- rtp_pos 1 and 2
-            //
-            Vector rtp_pos, rtp_pos2(0);
-            //
-            rtp_pos = sensor_pos( mblock_index, joker );
-            if( transmitter_pos.nrows() )
-            { rtp_pos2 = transmitter_pos( mblock_index, joker ); }
-
-            // Calculate iy and associated variables
-            //
-            Matrix         iy;
-            ArrayOfTensor3 diy_dx;
-            Ppath          ppath;
-            Tensor3        iy_transmission(0,0,0);
-            Index          iang = iza*naa + iaa;
-            //
-            iy_main_agendaExecute(ws, iy, iy_aux_array[iang], ppath,
-                                  diy_dx, 
-                                  1, iy_unit, iy_transmission, iy_aux_vars,
-                                  cloudbox_on, j_analytical_do, t_field,
-                                  z_field, vmr_field, f_grid, rtp_pos, los,
-                                  rtp_pos2, iy_main_agenda );
-
-            // Check that aux data can be handled and has correct size
-            for( Index q=0; q<iy_aux_array[iang].nelem(); q++ )
+          if( iy_aux_array[ilos][q].ncols() != 1  ||
+              iy_aux_array[ilos][q].nrows() != 1 )
             {
-                if( iy_aux_array[iang][q].ncols() != 1  ||
-                   iy_aux_array[iang][q].nrows() != 1 )
-                {
-                    throw runtime_error( "For calculations using yCalc, "
-                                        "*iy_aux_vars* can not include\nvariables of "
-                                        "along-the-path or extinction matrix type.");
-                }
-                assert( iy_aux_array[iang][q].npages() == 1  ||
-                       iy_aux_array[iang][q].npages() == stokes_dim );
-                assert( iy_aux_array[iang][q].nbooks() == 1  ||
-                       iy_aux_array[iang][q].nbooks() == nf  );
+              throw runtime_error( "For calculations using yCalc, "
+                                   "*iy_aux_vars* can not include\nvariables of "
+                                   "along-the-path or extinction matrix type.");
             }
+          assert( iy_aux_array[ilos][q].npages() == 1  ||
+                  iy_aux_array[ilos][q].npages() == stokes_dim );
+          assert( iy_aux_array[ilos][q].nbooks() == 1  ||
+                  iy_aux_array[ilos][q].nbooks() == nf  );
+        }
 
-            // Start row in iyb etc. for present LOS
-            //
-            const Index row0 = iang * nf * stokes_dim;
+      // Start row in iyb etc. for present LOS
+      //
+      const Index row0 = ilos * nf * stokes_dim;
 
-            // Jacobian part
-            //
-            if( j_analytical_do )
-            {
-                FOR_ANALYTICAL_JACOBIANS_DO(
-                                            for( Index ip=0; ip<jacobian_indices[iq][1] -
-                                                jacobian_indices[iq][0]+1; ip++ )
+      // Jacobian part
+      //
+      if( j_analytical_do )
+        {
+          FOR_ANALYTICAL_JACOBIANS_DO(
+                                      for( Index ip=0; ip<jacobian_indices[iq][1] -
+                                             jacobian_indices[iq][0]+1; ip++ )
+                                        {
+                                          for( Index is=0; is<stokes_dim; is++ )
                                             {
-                                                for( Index is=0; is<stokes_dim; is++ )
-                                                {
-                                                    diyb_dx[iq](Range(row0+is,nf,stokes_dim),ip)=
-                                                    diy_dx[iq](ip,joker,is);
-                                                }
+                                              diyb_dx[iq](Range(row0+is,nf,stokes_dim),ip)=
+                                                diy_dx[iq](ip,joker,is);
                                             }
-                                            )
-            }
+                                        }
+                                      )
+        }
 
-            // iy : copy to iyb
-            for( Index is=0; is<stokes_dim; is++ )
-            { iyb[Range(row0+is,nf,stokes_dim)] = iy(joker,is); }
+      // iy : copy to iyb
+      for( Index is=0; is<stokes_dim; is++ )
+        { iyb[Range(row0+is,nf,stokes_dim)] = iy(joker,is); }
 
-        }  // End aa loop
     }  // End try
 
     catch (runtime_error e)
@@ -2122,9 +2113,7 @@ void iyb_calc(
   ConstMatrixView                   sensor_pos,
   ConstMatrixView                   sensor_los,
   ConstMatrixView                   transmitter_pos,
-  ConstVectorView                   mblock_za_grid,
-  ConstVectorView                   mblock_aa_grid,
-  const Index&                      antenna_dim,
+  ConstMatrixView                   mblock_dlos_grid,
   const String&                     iy_unit,  
   const Agenda&                     iy_main_agenda,
   const Index&                      j_analytical_do,
@@ -2137,11 +2126,8 @@ void iyb_calc(
 
   // Sizes
   const Index   nf   = f_grid.nelem();
-  const Index   nza  = mblock_za_grid.nelem();
-        Index   naa  = mblock_aa_grid.nelem();   
-  if( antenna_dim == 1 )  
-    { naa = 1; }
-  const Index   niyb = nf * nza * naa * stokes_dim;
+  const Index   nlos = mblock_dlos_grid.nrows();
+  const Index   niyb = nf * nlos * stokes_dim;
   // Set up size of containers for data of 1 measurement block.
   // (can not be made below due to parallalisation)
   iyb.resize( niyb );
@@ -2159,7 +2145,7 @@ void iyb_calc(
 
   // For iy_aux we don't know the number of quantities, and we have to store
   // all outout
-  ArrayOfArrayOfTensor4  iy_aux_array( nza*naa );
+  ArrayOfArrayOfTensor4  iy_aux_array( nlos );
 
   // We have to make a local copy of the Workspace and the agendas because
   // only non-reference types can be declared firstprivate in OpenMP
@@ -2168,94 +2154,50 @@ void iyb_calc(
 
   String fail_msg;
   bool failed = false;
-  if (nza >= arts_omp_get_max_threads() || nza*10 >= nf)
-  {
-      out3 << "  Parallelizing za loop (" << nza << " iterations, "
+  if (nlos >= arts_omp_get_max_threads() || nlos*10 >= nf)
+    {
+      out3 << "  Parallelizing los loop (" << nlos << " iterations, "
       << nf << " frequencies)\n";
 
       // Start of actual calculations
 #pragma omp parallel for                   \
 if (!arts_omp_in_parallel()) \
 firstprivate(l_ws, l_iy_main_agenda)
-      for( Index iza=0; iza<nza; iza++ )
-      {
+      for( Index ilos=0; ilos<nlos; ilos++ )
+        {
           // Skip remaining iterations if an error occurred
           if (failed) continue;
-
-          iyb_calc_za_loop_body(failed,
-                                fail_msg,
-                                iy_aux_array,
-                                l_ws,
-                                iyb,
-                                diyb_dx,
-                                mblock_index,
-                                atmosphere_dim,
-                                t_field,
-                                z_field,
-                                vmr_field,
-                                cloudbox_on,
-                                stokes_dim,
-                                f_grid,
-                                sensor_pos,
-                                sensor_los,
-                                transmitter_pos,
-                                mblock_za_grid,
-                                mblock_aa_grid,
-                                antenna_dim,
-                                iy_unit,
-                                l_iy_main_agenda,
-                                j_analytical_do,
-                                jacobian_quantities,
-                                jacobian_indices,
-                                iy_aux_vars,
-                                naa,
-                                iza,
-                                nf);
-
-      }  // End za loop
-  }
+          
+          iyb_calc_body( failed, fail_msg, iy_aux_array, l_ws, iyb, diyb_dx,
+                         mblock_index, atmosphere_dim, t_field, z_field,
+                         vmr_field, cloudbox_on, stokes_dim, f_grid,
+                         sensor_pos, sensor_los, transmitter_pos,
+                         mblock_dlos_grid, iy_unit, 
+                         l_iy_main_agenda, j_analytical_do, 
+                         jacobian_quantities, jacobian_indices,
+                         iy_aux_vars, ilos, nf );
+        }  // End za loop
+    }
   else
-  {
-      out3 << "  Not parallelizing za loop (" << nza << " iterations, "
+    {
+      out3 << "  Not parallelizing los loop (" << nlos << " iterations, "
       << nf << " frequencies)\n";
 
-      for( Index iza=0; iza<nza; iza++ )
-      {
+      for( Index ilos=0; ilos<nlos; ilos++ )
+        {
           // Skip remaining iterations if an error occurred
           if (failed) continue;
 
-          iyb_calc_za_loop_body(failed,
-                                fail_msg,
-                                iy_aux_array,
-                                ws,
-                                iyb,
-                                diyb_dx,
-                                mblock_index,
-                                atmosphere_dim,
-                                t_field,
-                                z_field,
-                                vmr_field,
-                                cloudbox_on,
-                                stokes_dim,
-                                f_grid,
-                                sensor_pos,
-                                sensor_los,
-                                transmitter_pos,
-                                mblock_za_grid,
-                                mblock_aa_grid,
-                                antenna_dim,
-                                iy_unit,
-                                iy_main_agenda,
-                                j_analytical_do,
-                                jacobian_quantities,
-                                jacobian_indices,
-                                iy_aux_vars,
-                                naa,
-                                iza,
-                                nf);
-
-      }  // End za loop
-  }
+          iyb_calc_body( failed, fail_msg, iy_aux_array, l_ws, iyb, diyb_dx,
+                         mblock_index, atmosphere_dim, t_field, z_field,
+                         vmr_field, cloudbox_on, stokes_dim, f_grid,
+                         sensor_pos, sensor_los, transmitter_pos,
+                         mblock_dlos_grid, iy_unit, 
+                         l_iy_main_agenda, j_analytical_do, 
+                         jacobian_quantities, jacobian_indices,
+                         iy_aux_vars, ilos, nf );
+        }  // End za loop
+    }
 
   if( failed )
     throw runtime_error("Run-time error in function: iyb_calc\n" + fail_msg);
@@ -2269,21 +2211,17 @@ firstprivate(l_ws, l_iy_main_agenda)
     {
       iyb_aux[q].resize( niyb );
       //
-      for( Index iza=0; iza<nza; iza++ )
+      for( Index ilos=0; ilos<nlos; ilos++ )
         {
-          for( Index iaa=0; iaa<naa; iaa++ )
-            {
-              const Index iang = iza*naa + iaa;
-              const Index row0 = iang * nf * stokes_dim;
-              for( Index iv=0; iv<nf; iv++ )
+          const Index row0 = ilos * nf * stokes_dim;
+          for( Index iv=0; iv<nf; iv++ )
+            { 
+              const Index row1 = row0 + iv*stokes_dim;
+              const Index i1 = min( iv, iy_aux_array[ilos][q].nbooks()-1 );
+              for( Index is=0; is<stokes_dim; is++ )
                 { 
-                  const Index row1 = row0 + iv*stokes_dim;
-                  const Index i1 = min( iv, iy_aux_array[iang][q].nbooks()-1 );
-                  for( Index is=0; is<stokes_dim; is++ )
-                    { 
-                      Index i2 = min( is, iy_aux_array[iang][q].npages()-1 );
-                      iyb_aux[q][row1+is] = iy_aux_array[iang][q](i1,i2,0,0);
-                    }
+                  Index i2 = min( is, iy_aux_array[ilos][q].npages()-1 );
+                  iyb_aux[q][row1+is] = iy_aux_array[ilos][q](i1,i2,0,0);
                 }
             }
         }

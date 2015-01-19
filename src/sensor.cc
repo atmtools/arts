@@ -67,7 +67,7 @@ extern const Index GFIELD4_AA_GRID;
 
    \param   H            The antenna transfer matrix
    \param   antenna_dim  As the WSV with the same name
-   \param   antenna_los  As the WSV with the same name
+   \param   antenna_dza  The zenith angle column of *antenna_dlos*.
    \param   antenna_response  As the WSV with the same name
    \param   za_grid      Zenith angle grid for pencil beam calculations
    \param   f_grid       Frequency grid for monochromatic calculations
@@ -84,7 +84,7 @@ void antenna1d_matrix(
 #else
       const Index&   antenna_dim _U_,
 #endif
-   ConstMatrixView   antenna_los,
+   ConstVectorView   antenna_dza,
     const GriddedField4&   antenna_response,
    ConstVectorView   za_grid,
    ConstVectorView   f_grid,
@@ -96,11 +96,10 @@ void antenna1d_matrix(
   const Index n_f  = f_grid.nelem();
 
   // Calculate number of antenna beams
-  const Index n_ant = antenna_los.nrows();
+  const Index n_ant = antenna_dza.nelem();
 
   // Asserts for variables beside antenna_response
   assert( antenna_dim == 1 );
-  assert( antenna_los.ncols() == antenna_dim );
   assert( n_za >= 2 );
   assert( n_pol >= 1 );
   assert( do_norm >= 0  &&  do_norm <= 1 );
@@ -147,7 +146,7 @@ void antenna1d_matrix(
   for( Index ia=0; ia<n_ant; ia++ )
     {
       Vector shifted_aresponse_za_grid  = aresponse_za_grid;
-             shifted_aresponse_za_grid += antenna_los(ia,0);
+             shifted_aresponse_za_grid += antenna_dza[ia];
 
       // Order of loops assumes that the antenna response more often
       // changes with frequency than for polarisation
@@ -353,7 +352,7 @@ void antenna2d_simplified(
               //
               Sparse Hza;
               //
-              antenna1d_matrix( Hza, 1, Matrix(1,1,antenna_los(il,0)), 
+              antenna1d_matrix( Hza, 1, antenna_los(il,0), 
                                          aresponse, za_grid, f_grid, n_pol, 0 );
 
               for( Index row=0; row<nfpol; row++ )
@@ -811,8 +810,8 @@ void met_mm_polarisation_hmatrix(Sparse& H,
 /*!
    Sets up the the auxiliary vectors for sensor_response.
 
-   The function assumes that all grids are common, and the aux vectors
-   are just the grids repeated.
+   The function assumes that all grids are common, and the full 
+   vectors are just the grids repeated.
 
    \param   sensor_response_f          As the WSV with same name
    \param   sensor_response_pol        As the WSV with same name
@@ -820,80 +819,46 @@ void met_mm_polarisation_hmatrix(Sparse& H,
    \param   sensor_response_aa         As the WSV with same name
    \param   sensor_response_f_grid     As the WSV with same name
    \param   sensor_response_pol_grid   As the WSV with same name
-   \param   sensor_response_za_grid    As the WSV with same name
-   \param   sensor_response_aa_grid    As the WSV with same name
-   \param   za_aa_independent          Flag to indicate that za and aa
-                                       dimensions are "perpendicular".  
-                                       This is only valid before the antenna 
-                                       response has been considered.
+   \param   sensor_response_dlos_grid  As the WSV with same name
+
    \author Patrick Eriksson
    \date   2008-06-09
 */
 void sensor_aux_vectors(
                Vector&   sensor_response_f,
          ArrayOfIndex&   sensor_response_pol,
-               Vector&   sensor_response_za,
-               Vector&   sensor_response_aa,
+               Matrix&   sensor_response_dlos,
        ConstVectorView   sensor_response_f_grid,
    const ArrayOfIndex&   sensor_response_pol_grid,
-       ConstVectorView   sensor_response_za_grid,
-       ConstVectorView   sensor_response_aa_grid,
-           const Index   za_aa_independent )
+       ConstMatrixView   sensor_response_dlos_grid )
 {
   // Sizes
-  const Index nf       = sensor_response_f_grid.nelem();
-  const Index npol     = sensor_response_pol_grid.nelem();
-  const Index nza      = sensor_response_za_grid.nelem();
-        Index naa      = sensor_response_aa_grid.nelem();
-        Index empty_aa = 0;
-  //
-  if( naa == 0 )
-    {
-      empty_aa = 1;
-      naa      = 1; 
-    }
-  if( !za_aa_independent )
-    { naa = 1; }
-  //
-  const Index n = nf * npol * nza * naa;
+  const Index nf    = sensor_response_f_grid.nelem();
+  const Index npol  = sensor_response_pol_grid.nelem();
+  const Index nlos  = sensor_response_dlos_grid.nrows();
+  const Index n     = nf * npol * nlos;
 
   // Allocate
   sensor_response_f.resize( n );
   sensor_response_pol.resize( n );
-  sensor_response_za.resize( n );
-  if( empty_aa )
-    { sensor_response_aa.resize( 0 ); }
-  else
-    { sensor_response_aa.resize( n ); }
+  sensor_response_dlos.resize( n, sensor_response_dlos_grid.ncols() );
   
   // Fill
-  for( Index iaa=0; iaa<naa; iaa++ )
+  for( Index ilos=0; ilos<nlos; ilos++ )
     {
-      const Index i1 = iaa * nza * nf * npol;
+      const Index i2 = ilos * nf * npol;
       //
-      for( Index iza=0; iza<nza; iza++ )
+      for( Index ifr=0; ifr<nf; ifr++ ) 
         {
-          const Index i2 = i1 + iza * nf * npol;
+          const Index i3 = i2 + ifr * npol;
           //
-          for( Index ifr=0; ifr<nf; ifr++ ) 
+          for( Index ip=0; ip<npol; ip++ )
             {
-              const Index i3 = i2 + ifr * npol;
+              const Index i = i3 + ip;
               //
-              for( Index ip=0; ip<npol; ip++ )
-                {
-                  const Index i = i3 + ip;
-                  //
-                  sensor_response_f[i]   = sensor_response_f_grid[ifr];
-                  sensor_response_pol[i] = sensor_response_pol_grid[ip];
-                  sensor_response_za[i]  = sensor_response_za_grid[iza];
-                  if( !empty_aa )
-                    { 
-                      if( za_aa_independent )
-                        sensor_response_aa[i] = sensor_response_aa_grid[iaa]; 
-                      else
-                        sensor_response_aa[i] = sensor_response_aa_grid[iza]; 
-                    }
-                }
+              sensor_response_f[i]   = sensor_response_f_grid[ifr];
+              sensor_response_pol[i] = sensor_response_pol_grid[ip];
+              sensor_response_dlos(i,joker) = sensor_response_dlos_grid(ilos,joker);
             }
         }
     }

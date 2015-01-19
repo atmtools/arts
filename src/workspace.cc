@@ -720,18 +720,20 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
-    ( NAME( "antenna_los" ),
+    ( NAME( "antenna_dlos" ),
       DESCRIPTION
       (
        "The relative line-of-sight of each antenna pattern.\n"
        "\n"
        "This variable describes the line-of-sight of the individual antennae\n"
-       "relative to *sensor_los*. If only one antenna is present the matrix\n"
-       "should contain a row of zero(s). The number of columns corresponds to\n"
-       "the *antenna_dim*, with the first column containing zenith angles\n"
-       "and the second azimuth angles. If each measurement block corresponds\n"
-       "to a single antenna pattern, the normal choice is to set the angle(s)\n"
-       "of this variable to zero.\n"
+       "relative to *sensor_los*. If each measurement block corresponds to\n"
+       "a single antenna pattern, the normal choice is to set the angle(s) of\n"
+       "this variable to zero.\n"
+       "\n"
+       "The first column holds the relative zenith angle. This column is\n"
+       "mandatory for all atmospheric dimensionalities. For 3D, there can\n"
+       "also be a second column, giving relative azimuth angles. If this\n"
+       "column is not present (for 3D) zero azimuth off-sets are assumed.\n"
        "\n"
        "See further the ARTS user guide (AUG). Use the index to find where\n"
        "this variable is discussed. The variable is listed as a subentry to\n"
@@ -1637,9 +1639,8 @@ void Workspace::define_wsv_data()
        "\n"
        "Unit:       W / (m^2 Hz sr) or transmission.\n"
        "\n"
-       "Dimensions: [ naa*nza*nf*stokes_dim ] where naa is length of\n"
-       "            mblock_aa_grid, za length of mblock_za_grid and nf is\n"
-       "            length of f_grid.\n"
+       "Dimensions: [ nlos*nf*stokes_dim ] where nlos is number of rows in\n"
+       "            mblock_dlos_grid, and nf is length of f_grid.\n"
        ),
       GROUP( "Vector" )));
 
@@ -2226,6 +2227,35 @@ void Workspace::define_wsv_data()
       GROUP( "Vector" )));
 
   wsv_data.push_back
+   (WsvRecord
+    ( NAME( "mblock_dlos_grid" ),
+      DESCRIPTION
+      (
+       "The set of angular pencil beam directions for each measurement block.\n"
+       "\n"
+       "The relative angles in this variable are angular off-sets with\n"
+       "respect to the angles in *sensor_los*.\n"
+       "\n"
+       "The first column holds the relative zenith angle. This column is\n"
+       "mandatory for all atmospheric dimensionalities. For 3D, there can\n"
+       "also be a second column, giving relative azimuth angles. If this\n"
+       "column is not present (for 3D) zero azimuth off-sets are assumed.\n"
+       "\n"
+       "This rule applies to all WSVs of dlos-type, while for WSVs holding\n"
+       "absolute angles (los-type, such as *sensor_los*), the second column\n"
+       "is mandatory for 3D.\n"
+       "\n"
+       "See further the ARTS user guide (AUG). Use the index to find where\n"
+       "this variable is discussed. The variable is listed as a subentry to\n"
+       "\"workspace variables\".\n"
+       "\n"
+       "Usage: Set by the user or output of antenna WSMs.\n"
+       "\n"
+       "Unit:  degrees\n"
+       ),
+      GROUP( "Matrix" )));
+
+  wsv_data.push_back
     (WsvRecord
      (NAME( "mblock_index" ),
       DESCRIPTION
@@ -2237,27 +2267,6 @@ void Workspace::define_wsv_data()
        "Usage: Used internally.\n"
        ),
       GROUP( "Index" )));
-
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "mblock_za_grid" ),
-      DESCRIPTION
-      (
-       "The zenith angle grid for each measurement block.\n"
-       "\n"
-       "This variable should normally contain the zenith grid of the\n"
-       "antenna pattern. The grid is given as an angular off-set with\n"
-       "respect to the angles in *sensor_los*.\n"
-       "\n"
-       "See further the ARTS user guide (AUG). Use the index to find where\n"
-       "this variable is discussed. The variable is listed as a subentry to\n"
-       "\"workspace variables\".\n"
-       "\n"
-       "Usage: Set by the user.\n"
-       "\n"
-       "Unit:  degrees\n"
-       ),
-      GROUP( "Vector" )));
 
   wsv_data.push_back
     (WsvRecord
@@ -3983,36 +3992,50 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
-    ( NAME( "sensor_response_aa_grid" ),
-      DESCRIPTION
-      (
-       "The azimuth angle grid associated with *sensor_response*.\n"
-       "\n"
-       "A variable for communication between sensor response WSMs. Matches\n"
-       "initially *mblock_aa_grid*, but is later adjusted according to the\n"
-       "sensor specifications. Only defined when a common grid exists. Values\n"
-       "are here not repeated as in *sensor_response_aa*\n"
-       "\n"
-       "The zenith and azimuth dimensions are joined into a single dimension\n"
-       "after the antenna. The variables *sensor_response_za_grid* and \n"
-       "*sensor_response_aa_grid* have then the same length after the antenna\n"
-       "(if antenna_dim = 2), holding data taken from the columns of \n"
-       "*antenna_los*.\n"
-       "\n"
-       "Usage: Set by sensor response methods.\n"
-       "\n"
-       "Unit:  [ degrees ]\n"
-       ),
-      GROUP( "Vector" )));
-
-  wsv_data.push_back
-   (WsvRecord
     ( NAME( "sensor_response_agenda" ),
       DESCRIPTION
       (
         "See agendas.cc.\n"
        ),
       GROUP( "Agenda" )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "sensor_response_dlos" ),
+      DESCRIPTION
+      (
+       "The relative zenith and azimuth angles associated with the output of\n"
+       "*sensor_response*.\n"
+       "\n"
+       "Definition of angles match *mblock_dlos_grid*. Works otherwise as\n"
+       "*sensor_response_f*.\n"
+       "\n"
+       "The variable shall not be set manually, it will be set together with\n"
+       "*sensor_response* by sensor response WSMs.\n"
+       "\n"
+       "Usage: Set by sensor response methods.\n"
+       "\n"
+       "Unit:  [ degrees ]\n"
+       ),
+      GROUP( "Matrix" )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "sensor_response_dlos_grid" ),
+      DESCRIPTION
+      (
+       "The zenith and azimuth angles associated with *sensor_response*.\n"
+       "\n"
+       "A variable for communication between sensor response WSMs. Matches\n"
+       "initially *mblock_dlos_grid*, but is later adjusted according to the\n"
+       "sensor specifications. Only defined when a common grid exists. Values\n"
+       "are here not repeated as in *sensor_response_dlos*\n"
+       "\n"
+       "Usage: Set by sensor response methods.\n"
+       "\n"
+       "Unit:  [ degrees ]\n"
+       ),
+      GROUP( "Matrix" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -4093,50 +4116,6 @@ void Workspace::define_wsv_data()
        "Unit:  [ - ]\n"
        ),
       GROUP( "ArrayOfIndex" )));
-
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "sensor_response_za" ),
-      DESCRIPTION
-      (
-       "The relative zenith angles associated with the output of\n"
-       "*sensor_response*.\n"
-       "\n"
-       "Definition of angle matches *mblock_za_grid*. Works otherwise as\n"
-       "*sensor_response_f*.\n"
-       "\n"
-       "The variable shall not be set manually, it will be set together with\n"
-       "*sensor_response* by sensor response WSMs.\n"
-       "\n"
-       "Usage: Set by sensor response methods.\n"
-       "\n"
-       "Unit:  [ degrees ]\n"
-       ),
-      GROUP( "Vector" )));
-
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "sensor_response_za_grid" ),
-      DESCRIPTION
-      (
-       "The zenith angle grid associated with *sensor_response*.\n"
-       "\n"
-       "A variable for communication between sensor response WSMs. Matches\n"
-       "initially *mblock_za_grid*, but is later adjusted according to the\n"
-       "sensor specifications. Only defined when a common grid exists. Values\n"
-       "are here not repeated as in *sensor_response_za*\n"
-       "\n"
-       "The zenith and azimuth dimensions are joined into a single dimension\n"
-       "after the antenna. The variables *sensor_response_za_grid* and \n"
-       "*sensor_response_aa_grid* have then the same length after the antenna\n"
-       "(if antenna_dim = 2), holding data taken from the columns of \n"
-       "*antenna_los*.\n"
-       "\n"
-       "Usage: Set by sensor response methods.\n"
-       "\n"
-       "Unit:  [ degrees ]\n"
-       ),
-      GROUP( "Vector" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -4281,23 +4260,22 @@ void Workspace::define_wsv_data()
        "applied by the *sensor_responseStokesRotation* WSM.\n"
        "\n"
        "The rotation is given as an angle for each direction. In general, the\n"
-       "number of rotations to be specified follows *sensor_response_za_grid*\n"
-       "and *sensor_response_aa_grid*. For example, if no antenna is included\n"
-       "or a 1D antenna is used, and the rotation is applied before the\n"
-       "antenna is included in *sensor_response*, there should be one angle\n"
-       "for each element of *mblock_za_grid*. After inclusion of an antenna\n" 
-       "response, the relevant number of angles is determined by\n"
-       "*antenna_los*.\n"
+       "number of rotations to be specified follows *sensor_response_dlos_grid*.\n"
+       "In more detail, if no antenna is included or a 1D antenna is used, and\n"
+       "the rotation is applied before the antenna is included in \n"
+       "*sensor_response*, there should be one angle for each row of\n"
+       "*mblock_dlos_grid*. After inclusion of an antenna response, the relevant\n" 
+       "number of angles is determined by the rows of *antenna_los*.\n"
        "\n"
        "It is assumed that the rotation is common for all frequency elements.\n"
        "\n"
        "Units: degrees\n"
        "\n"
-       "Size:  [ number of zenith angles, number of azimuth angles ]\n"
+       "Size:  [ number of directions ]\n"
        "\n"
        "Usage: Set by the user.\n"
        ),
-      GROUP( "Matrix" )));
+      GROUP( "Vector" )));
 
   wsv_data.push_back
     (WsvRecord

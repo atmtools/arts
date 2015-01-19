@@ -852,12 +852,13 @@ The Jacobian can be calculated in two manners:
 \item[interp] The Jacobian is derived from existing data, by an interpolation
   of existing data. This achieved by interpolating pencil beam data to a
   shifted zenith angle grid. This will involve some extrapolation of the data,
-  and this aspect should be considered when selecting
-  \builtindoc{mblock\_za\_grid}. The average of a positive and negative shift
+  and this aspect should be considered when selecting the zenith angles in
+  \builtindoc{mblock\_dlos\_grid}. The average of a positive and negative shift
   is determined. The shift to apply (\verb|dza|) should be smaller than the
-  minimum spacing of \builtindoc{mblock\_za\_grid} for accurate results. As
-  interpolation is a relative fast operation and a ``double-sided'' disturbance
-  is used, this option should in general be preferred.
+  minimum spacing of the zenith angles in\builtindoc{mblock\_dlos\_grid} for
+  accurate results. As interpolation is a relative fast operation and a
+  ``double-sided'' disturbance is used, this option should in general be
+  preferred.
 \end{description}
 
 

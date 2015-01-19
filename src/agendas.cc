@@ -738,7 +738,7 @@ void define_agenda_data()
         "for the present measurement block (*mblock_index*).\n"
         ),
        OUTPUT( "sensor_response", "sensor_response_f", "sensor_response_pol",
-               "sensor_response_za", "sensor_response_aa" ),
+               "sensor_response_dlos" ),
        INPUT(  "mblock_index" )));
 
  agenda_data.push_back

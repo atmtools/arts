@@ -1702,12 +1702,12 @@ void define_md_data_raw()
         DESCRIPTION
         (
          "Sets up a 1D gaussian antenna response and a matching\n"
-         "*mblock_za_grid*.\n"
+         "*mblock_dlos_grid*.\n"
          "\n"
-         "As *antenna_responseGaussian*, but alsp creates *mblock_za_grid*.\n"
+         "As *antenna_responseGaussian*, but also creates *mblock_dlos_grid*.\n"
          "For returned antenna response, see *antenna_responseGaussian*.\n"
          "\n"
-         "The length of *mblock_za_grid* is determined by *n_za_grid*.\n"
+         "The size of *mblock_dlos_grid* is determined by *n_za_grid*.\n"
          "The end points of the grid are set to be the same as for the\n"
          "antenna response. The spacing of the grid follows the magnitude of\n"
          "the response; the spacing is smaller where the response is high.\n"
@@ -1716,11 +1716,11 @@ void define_md_data_raw()
          "if the representation error of the radiance (as a function of\n"
          "zenith angle) increases linearly with the grid spacing.\n"
          "\n"
-         "The WSV *antenna_los* is set to 0.\n"
+         "The WSV *antenna_dlos* is set to [0].\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
-        OUT( "antenna_dim", "mblock_za_grid", "mblock_aa_grid", 
-             "antenna_response", "antenna_los" ),
+        OUT( "antenna_dim", "mblock_dlos_grid", 
+             "antenna_response", "antenna_dlos" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
@@ -1728,7 +1728,7 @@ void define_md_data_raw()
         GIN( "n_za_grid", "fwhm", "xwidth_si", "dx_si" ),
         GIN_TYPE( "Index", "Numeric", "Numeric", "Numeric" ),
         GIN_DEFAULT( NODEF, NODEF, "3", "0.1" ),
-        GIN_DESC( "Number of points to include in *mblock_za_grid*.",
+        GIN_DESC( "Number of points to include in *mblock_dlos_grid*.",
                   "Full width at half-maximum of antenna beam [deg].", 
                   "Half-width of response, in terms of std. dev.", 
                   "Grid spacing, in terms of std. dev." )
@@ -1742,7 +1742,7 @@ void define_md_data_raw()
          "Maps a multi-beam case to a matching pencil beam case.\n"
          "\n"
          "Cases with overlapping beams are most efficiently handled by\n"
-         "letting *antenna_los* have several rows. That is, there are\n"
+         "letting *antenna_dlos* have several rows. That is, there are\n"
          "multiple beams for each measurement block. The drawback is that\n"
          "many variables must be adjusted if the corresponding pencil beam\n"
          "spectra shall be calculated. This method makes this adjustment.\n"
@@ -1753,13 +1753,13 @@ void define_md_data_raw()
          "spectra.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
-        OUT( "sensor_pos", "sensor_los", "antenna_los", "antenna_dim", 
-             "mblock_za_grid", "mblock_aa_grid" ),
+        OUT( "sensor_pos", "sensor_los", "antenna_dlos", "antenna_dim", 
+             "mblock_dlos_grid" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "sensor_pos", "sensor_los", "antenna_los", "antenna_dim", 
-            "mblock_za_grid", "mblock_aa_grid", "atmosphere_dim" ),
+        IN( "sensor_pos", "sensor_los", "antenna_dlos", "antenna_dim", 
+            "mblock_dlos_grid", "atmosphere_dim" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -1773,62 +1773,16 @@ void define_md_data_raw()
         (
          "Sets some antenna related variables\n"
          "\n"
-         "Use this method to set *antenna_dim*, *mblock_za_grid* and\n"
-         "*mblock_aa_grid* to suitable values (1, [0] and [], respectively)\n"
-         "for cases when a sensor is included, but the antenna pattern is\n"
-         "neglected.\n"
+         "Use this method to set *antenna_dim* and *mblock_dlos_grid* to\n"
+         "suitable values (1 and [0], respectively) for cases when a\n"
+         "sensor is included, but the antenna pattern is neglected.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
-        OUT( "antenna_dim", "mblock_za_grid", "mblock_aa_grid" ),
+        OUT( "antenna_dim", "mblock_dlos_grid" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN(),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "AntennaSet1D" ),
-        DESCRIPTION
-        (
-         "Sets the antenna dimension to 1D.\n"
-         "\n"
-         "Sets *antenna_dim* to 1 and sets *mblock_aa_grid* to be empty.\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT( "antenna_dim", "mblock_aa_grid" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN(),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "AntennaSet2D" ),
-        DESCRIPTION
-        (
-         "Sets the antenna dimension to 2D.\n"
-         "\n"
-         "Sets *antenna_dim* to 2.\n"
-         "\n"
-         "It is only allowed to set *antenna_dim* to 2 when *atmosphere_dim*\n"
-         "equals 3.\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT( "antenna_dim" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "atmosphere_dim" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -6510,7 +6464,7 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "jacobian_quantities", "jacobian_agenda", 
-            "sensor_response_pol_grid", "sensor_response_za_grid", 
+            "sensor_response_pol_grid", "sensor_response_dlos_grid", 
             "sensor_pos" ),
         GIN( "poly_order", "no_pol_variation", "no_los_variation", 
              "no_mblock_variation" ),
@@ -6547,7 +6501,7 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "jacobian_quantities", "jacobian_agenda", 
-            "sensor_response_pol_grid", "sensor_response_za_grid", 
+            "sensor_response_pol_grid", "sensor_response_dlos_grid", 
             "sensor_pos" ),
         GIN( "period_lengths", "no_pol_variation", "no_los_variation", 
              "no_mblock_variation" ),
@@ -6683,8 +6637,8 @@ void define_md_data_raw()
             "mblock_index", "iyb", "yb", "atmosphere_dim", "p_grid", "lat_grid",
             "lon_grid", "t_field", "z_field", "vmr_field", "abs_species", 
             "cloudbox_on", "stokes_dim", "f_grid", 
-            "sensor_pos", "sensor_los", "transmitter_pos", "mblock_za_grid", 
-            "mblock_aa_grid", "antenna_dim", "sensor_response", "iy_unit",
+            "sensor_pos", "sensor_los", "transmitter_pos", "mblock_dlos_grid", 
+            "sensor_response", "iy_unit",
             "iy_main_agenda", "jacobian_quantities", "jacobian_indices" ),
         GIN( "species" ),
         GIN_TYPE(    "String" ),
@@ -6711,9 +6665,8 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "jacobian",
             "mblock_index", "iyb", "yb", "stokes_dim", "f_grid", "sensor_los", 
-            "mblock_za_grid", "mblock_aa_grid", "antenna_dim", 
-            "sensor_response", "sensor_time", "jacobian_quantities", 
-            "jacobian_indices" ),
+            "mblock_dlos_grid", "sensor_response", "sensor_time", 
+            "jacobian_quantities", "jacobian_indices" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -6738,9 +6691,9 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "jacobian",
             "mblock_index", "iyb", "yb", "stokes_dim", "f_grid", "sensor_los", 
-            "mblock_za_grid", "mblock_aa_grid", "antenna_dim", 
+            "mblock_dlos_grid", 
             "sensor_response", "sensor_response_pol_grid",
-            "sensor_response_f_grid", "sensor_response_za_grid",
+            "sensor_response_f_grid", "sensor_response_dlos_grid",
             "sensor_time", "jacobian_quantities", 
             "jacobian_indices" ),
         GIN(),
@@ -6773,7 +6726,7 @@ void define_md_data_raw()
             "refellipsoid", "z_surface", 
             "cloudbox_on", "cloudbox_limits", "pnd_field",
             "sensor_response", "sensor_pos", "sensor_los", "f_grid", 
-            "stokes_dim", "antenna_dim", "mblock_za_grid", "mblock_aa_grid" ),
+            "stokes_dim", "antenna_dim", "mblock_dlos_grid" ),
             GIN(),
             GIN_TYPE(),
             GIN_DEFAULT(),
@@ -6800,7 +6753,7 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "jacobian", "mblock_index", "iyb", "yb", "stokes_dim", "f_grid", 
-            "sensor_los", "mblock_za_grid", "mblock_aa_grid", "antenna_dim", 
+            "sensor_los", "mblock_dlos_grid",
             "sensor_response", "sensor_time", 
             "jacobian_quantities", "jacobian_indices" ),
         GIN(),
@@ -6829,7 +6782,7 @@ void define_md_data_raw()
         IN( "jacobian", "mblock_index", "iyb", "yb", "atmosphere_dim",
             "t_field", "z_field", "vmr_field", "cloudbox_on", "stokes_dim", 
             "f_grid", "sensor_pos", "sensor_los", "transmitter_pos", 
-            "mblock_za_grid", "mblock_aa_grid", "antenna_dim", 
+            "mblock_dlos_grid", 
             "sensor_response", "sensor_time", "iy_unit",
             "iy_main_agenda", "jacobian_quantities",
             "jacobian_indices" ),
@@ -6856,7 +6809,7 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "jacobian", "mblock_index", "iyb", "yb", "sensor_response",
             "sensor_response_pol_grid", "sensor_response_f_grid", 
-            "sensor_response_za_grid", 
+            "sensor_response_dlos_grid", 
             "jacobian_quantities", "jacobian_indices" ),
         GIN( "poly_coeff" ),
         GIN_TYPE( "Index" ),
@@ -6882,7 +6835,7 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "jacobian", "mblock_index", "iyb", "yb", "sensor_response",
             "sensor_response_pol_grid", "sensor_response_f_grid", 
-            "sensor_response_za_grid", 
+            "sensor_response_dlos_grid", 
             "jacobian_quantities", "jacobian_indices" ),
         GIN( "period_index" ),
         GIN_TYPE( "Index" ),
@@ -6937,8 +6890,8 @@ void define_md_data_raw()
             "lon_grid", "lat_true", "lon_true", "t_field", "z_field", 
             "vmr_field", "abs_species", "refellipsoid", "z_surface", 
             "cloudbox_on", "stokes_dim", "f_grid", "sensor_pos", "sensor_los", 
-            "transmitter_pos", "mblock_za_grid", "mblock_aa_grid", 
-            "antenna_dim", "sensor_response", "iy_unit", "iy_main_agenda", 
+            "transmitter_pos", "mblock_dlos_grid",
+            "sensor_response", "iy_unit", "iy_main_agenda", 
             "g0_agenda", "molarmass_dry_air", "p_hse", "z_hse_accuracy", 
             "jacobian_quantities", "jacobian_indices" ),
         GIN(),
@@ -10420,9 +10373,10 @@ void define_md_data_raw()
          "Checks consistency of the sensor variables.\n"
          "\n"
          "The following WSVs are treated: *sensor_pos*, *sensor_los*,\n"
-         "*transmitter_pos*, *mblock_za_grid*, *mblock_aa_grid*,\n"
-         "*antenna_dim*, *sensor_response*, *sensor_response_f*,\n"
-         "*sensor_response_pol*, *sensor_response_za*, *sensor_response_aa*.\n"
+         "*transmitter_pos*, *mblock_dlos_grid*, *antenna_dim*,\n"
+         "*sensor_response*, *sensor_response_f*, *sensor_response_pol*,\n"
+         "and *sensor_response_dlos*.\n"
+         "\n"
          "If any of these variables are changed, then this method shall be\n"
          "called again (no automatic check that this is fulfilled!).\n"
          "\n"
@@ -10439,9 +10393,9 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "atmosphere_dim", "stokes_dim", "f_grid", "sensor_pos",
-            "sensor_los", "transmitter_pos", "mblock_za_grid", "mblock_aa_grid",
-            "antenna_dim", "sensor_response", "sensor_response_f",
-            "sensor_response_pol", "sensor_response_za", "sensor_response_aa"),
+            "sensor_los", "transmitter_pos", "mblock_dlos_grid",
+            "sensor_response", "sensor_response_f",
+            "sensor_response_pol", "sensor_response_dlos" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -10455,19 +10409,15 @@ void define_md_data_raw()
         (
          "Sets sensor WSVs to obtain monochromatic pencil beam values.\n"
          "\n"
-         "A 1D antenna pattern is assumed. The variables are set as follows:\n"
-         "   antenna_dim             : 1.\n"
-         "   mblock_za_grid          : Length 1, value 0.\n"
-         "   mblock_aa_grid          : Empty.\n"
+         "The variables are set as follows:\n"
+         "   mblock_dlos_grid        : One row with zero(s).\n"
          "   sensor_response*        : As returned by *sensor_responseInit*.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "sensor_response", "sensor_response_f", 
-             "sensor_response_pol", "sensor_response_za",
-             "sensor_response_aa", 
+             "sensor_response_pol", "sensor_response_dlos",
              "sensor_response_f_grid", "sensor_response_pol_grid",
-             "sensor_response_za_grid", "sensor_response_aa_grid",
-             "antenna_dim", "mblock_za_grid", "mblock_aa_grid" ),
+             "sensor_response_dlos_grid", "mblock_dlos_grid" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
@@ -10491,21 +10441,21 @@ void define_md_data_raw()
          "The function handles \"multi-beam\" cases where the polarisation\n"
          "coordinate system is the same for all beams.\n"
          "\n"         
-         "See *antenna_dim*, *antenna_los* and *antenna_response* for\n"
+         "See *antenna_dim*, *antenna_dlos* and *antenna_response* for\n"
          "details on how to specify the antenna response.\n"
          ),
         AUTHORS( "Mattias Ekstrom", "Patrick Eriksson" ),
         OUT( "sensor_response", "sensor_response_f", "sensor_response_pol",
-             "sensor_response_za", "sensor_response_aa", 
-             "sensor_response_za_grid", "sensor_response_aa_grid" ),
+             "sensor_response_dlos", 
+             "sensor_response_dlos_grid" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "sensor_response", "sensor_response_f", "sensor_response_pol",
-            "sensor_response_za", "sensor_response_aa", "sensor_response_f_grid",
-            "sensor_response_pol_grid", "sensor_response_za_grid",
-            "sensor_response_aa_grid", "atmosphere_dim", "antenna_dim", 
-            "antenna_los", "antenna_response", "sensor_norm" ),
+            "sensor_response_dlos", "sensor_response_f_grid",
+            "sensor_response_pol_grid", "sensor_response_dlos_grid",
+            "atmosphere_dim", "antenna_dim", 
+            "antenna_dlos", "antenna_response", "sensor_norm" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -10527,15 +10477,15 @@ void define_md_data_raw()
          ),
         AUTHORS( "Mattias Ekstrom", "Patrick Eriksson" ),
         OUT( "sensor_response", "sensor_response_f", "sensor_response_pol",
-             "sensor_response_za", "sensor_response_aa", 
+             "sensor_response_dlos", 
              "sensor_response_f_grid" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "sensor_response", "sensor_response_f", "sensor_response_pol",
-            "sensor_response_za", "sensor_response_aa", 
+            "sensor_response_dlos",
             "sensor_response_f_grid", "sensor_response_pol_grid", 
-            "sensor_response_za_grid", "sensor_response_aa_grid",
+            "sensor_response_dlos_grid",
             "f_backend", "backend_channel_response", "sensor_norm" ),
         GIN(),
         GIN_TYPE(),
@@ -10570,15 +10520,15 @@ void define_md_data_raw()
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "sensor_response", "sensor_response_f", "sensor_response_pol",
-             "sensor_response_za", "sensor_response_aa", 
+             "sensor_response_dlos", 
              "sensor_response_f_grid" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "sensor_response", "sensor_response_f", "sensor_response_pol",
-            "sensor_response_za", "sensor_response_aa", 
+            "sensor_response_dlos",
             "sensor_response_f_grid", "sensor_response_pol_grid", 
-            "sensor_response_za_grid", "sensor_response_aa_grid",
+            "sensor_response_dlos_grid", 
             "f_backend", "backend_channel_response", "sensor_norm" ),
         GIN(    "df1", "df2" ),
         GIN_TYPE(   "Numeric", "Numeric" ),
@@ -10619,14 +10569,14 @@ void define_md_data_raw()
          "calculation to merge frequency that are supposed to be identical.\n"
          ),
         AUTHORS( "Oliver Lemke" ),
-        OUT( "f_grid", "antenna_dim", "mblock_za_grid", "mblock_aa_grid", "sensor_response",
-             "sensor_response_f", "sensor_response_pol", "sensor_response_za",
-             "sensor_response_aa", "sensor_response_f_grid", "sensor_response_pol_grid",
-             "sensor_response_za_grid", "sensor_response_aa_grid", "sensor_norm" ),
+        OUT( "f_grid", "antenna_dim", "mblock_dlos_grid", "sensor_response",
+             "sensor_response_f", "sensor_response_pol", "sensor_response_dlos",
+             "sensor_response_f_grid", "sensor_response_pol_grid",
+             "sensor_response_dlos_grid", "sensor_norm" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "atmosphere_dim", "stokes_dim", "sensor_los", "iy_unit", "antenna_los", 
+        IN( "atmosphere_dim", "stokes_dim", "sensor_los", "iy_unit", "antenna_dlos", 
             "met_mm_backend", "met_mm_polarisation", "met_mm_antenna"
              ),
         GIN( "freq_spacing", "freq_number", "freq_merge_threshold",
@@ -10659,15 +10609,14 @@ void define_md_data_raw()
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "sensor_response", "sensor_response_f", "sensor_response_pol",
-             "sensor_response_za", "sensor_response_aa", 
-             "sensor_response_za_grid", "sensor_response_aa_grid" ),
+             "sensor_response_dlos", "sensor_response_dlos_grid" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "sensor_response", "sensor_response_f", "sensor_response_pol",
-            "sensor_response_za", "sensor_response_aa",
+            "sensor_response_dlos", 
             "sensor_response_f_grid", "sensor_response_pol_grid", 
-            "sensor_response_za_grid", "sensor_response_aa_grid" ),
+            "sensor_response_dlos_grid" ),
         GIN( "w1", "w2" ),
         GIN_TYPE( "Numeric", "Numeric" ),
         GIN_DEFAULT( "-1", "1" ),
@@ -10707,15 +10656,14 @@ void define_md_data_raw()
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "sensor_response", "sensor_response_f", "sensor_response_pol",
-             "sensor_response_za", "sensor_response_aa", 
-             "sensor_response_f_grid" ),
+             "sensor_response_dlos", "sensor_response_f_grid" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "sensor_response", "sensor_response_f", "sensor_response_pol",
-            "sensor_response_za", "sensor_response_aa", 
+            "sensor_response_dlos",
             "sensor_response_f_grid", "sensor_response_pol_grid", 
-            "sensor_response_za_grid", "sensor_response_aa_grid" ),
+            "sensor_response_dlos_grid" ),
         GIN( "polyorder", "nfill" ),
         GIN_TYPE( "Index", "Index" ),
         GIN_DEFAULT( "3", "2" ),
@@ -10741,19 +10689,18 @@ void define_md_data_raw()
          "second spectrum gets weight 1 and the first weight -1 (as in\n"
          "*sensor_responseBackendFrequencySwitching*).\n"
          "\n"
-         "Output frequency grids are taken from the second spectrum..\n"
+         "Output frequency grids are taken from the second spectrum.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "sensor_response", "sensor_response_f", "sensor_response_pol",
-             "sensor_response_za", "sensor_response_aa", 
-             "sensor_response_f_grid" ),
+             "sensor_response_dlos", "sensor_response_f_grid" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "sensor_response", "sensor_response_f", "sensor_response_pol",
-            "sensor_response_za", "sensor_response_aa", 
+            "sensor_response_dlos",
             "sensor_response_f_grid", "sensor_response_pol_grid", 
-            "sensor_response_za_grid", "sensor_response_aa_grid" ),
+            "sensor_response_dlos_grid" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -10803,26 +10750,23 @@ void define_md_data_raw()
          "\n"
          "The variables are set as follows:\n"
          "   sensor_response : Identity matrix, with size matching *f_grid*,\n"
-         "                     *stokes_dim* *mblock_za_grid* and\n"
-         "                     *mblock_aa_grid*.\n"
+         "                     *stokes_dim* and *mblock_dlos_grid*.\n"
          "   sensor_response_f       : Repeated values of *f_grid*.\n"
          "   sensor_response_pol     : Data matching *stokes_dim*.\n"
-         "   sensor_response_za      : Repeated values of *mblock_za_grid*.\n"
-         "   sensor_response_aa      : Repeated values of *mblock_aa_grid*.\n"
+         "   sensor_response_dlos    : Repeated values of *mblock_dlos_grid*.\n"
          "   sensor_response_f_grid  : Equal to *f_grid*.\n"
          "   sensor_response_pol_grid: Set to 1:*stokes_dim*.\n"
-         "   sensor_response_za_grid : Equal to *mblock_za_grid*.\n"
-         "   sensor_response_aa_grid : Equal to *mblock_aa_grid*.\n"
+         "   sensor_response_dlos_grid : Equal to *mblock_dlos_grid*.\n"
          ),
         AUTHORS( "Mattias Ekstrom", "Patrick Eriksson" ),
         OUT( "sensor_response", "sensor_response_f", "sensor_response_pol", 
-             "sensor_response_za", "sensor_response_aa", 
+             "sensor_response_dlos", 
              "sensor_response_f_grid", "sensor_response_pol_grid",
-             "sensor_response_za_grid", "sensor_response_aa_grid" ),
+             "sensor_response_dlos_grid" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "f_grid", "mblock_za_grid", "mblock_aa_grid", "antenna_dim",
+        IN( "f_grid", "mblock_dlos_grid", "antenna_dim",
             "atmosphere_dim", "stokes_dim", "sensor_norm" ),
         GIN(),
         GIN_TYPE(),
@@ -10848,15 +10792,14 @@ void define_md_data_raw()
          ),
         AUTHORS( "Mattias Ekstrom", "Patrick Eriksson" ),
         OUT( "sensor_response", "sensor_response_f", "sensor_response_pol",
-             "sensor_response_za", "sensor_response_aa", 
-             "sensor_response_f_grid" ),
+             "sensor_response_dlos", "sensor_response_f_grid" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "sensor_response", "sensor_response_f", "sensor_response_pol",
-            "sensor_response_za", "sensor_response_aa", "sensor_response_f_grid",
-            "sensor_response_pol_grid", "sensor_response_za_grid",
-            "sensor_response_aa_grid", "lo", "sideband_response", "sensor_norm" ),
+            "sensor_response_dlos", "sensor_response_f_grid",
+            "sensor_response_pol_grid", "sensor_response_dlos_grid",
+            "lo", "sideband_response", "sensor_norm" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -10883,15 +10826,14 @@ void define_md_data_raw()
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "sensor_response", "sensor_response_f", "sensor_response_pol",
-             "sensor_response_za", "sensor_response_aa", 
-             "sensor_response_f_grid" ),
+             "sensor_response_dlos", "sensor_response_f_grid" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "sensor_response", "sensor_response_f", "sensor_response_pol",
-            "sensor_response_za", "sensor_response_aa", 
+            "sensor_response_dlos",
             "sensor_response_f_grid", "sensor_response_pol_grid", 
-            "sensor_response_za_grid", "sensor_response_aa_grid",
+            "sensor_response_dlos_grid", 
             "lo_multi", "sideband_response_multi", 
             "sideband_mode_multi", "f_backend_multi",
             "backend_channel_response_multi", "sensor_norm" ),
@@ -10930,15 +10872,14 @@ void define_md_data_raw()
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "sensor_response", "sensor_response_f", "sensor_response_pol",
-             "sensor_response_za", "sensor_response_aa", 
-             "sensor_response_pol_grid" ),
+             "sensor_response_dlos", "sensor_response_pol_grid" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "sensor_response", "sensor_response_f", "sensor_response_pol",
-            "sensor_response_za", "sensor_response_aa", "sensor_response_f_grid",
-            "sensor_response_pol_grid", "sensor_response_za_grid",
-            "sensor_response_aa_grid", "stokes_dim", "iy_unit", "sensor_pol" ),
+            "sensor_response_dlos", "sensor_response_f_grid",
+            "sensor_response_pol_grid", "sensor_response_dlos_grid",
+            "stokes_dim", "iy_unit", "sensor_pol" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -10967,8 +10908,8 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "sensor_response", "sensor_response_f_grid",
-            "sensor_response_pol_grid", "sensor_response_za_grid",
-            "sensor_response_aa_grid", "stokes_dim", "stokes_rotation" ),
+            "sensor_response_pol_grid", "sensor_response_dlos_grid",
+            "stokes_dim", "stokes_rotation" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -10997,17 +10938,14 @@ void define_md_data_raw()
         AUTHORS( "Stefan Buehler" ),
         OUT( "f_grid", 
          "antenna_dim", 
-         "mblock_za_grid", 
-         "mblock_aa_grid",
+         "mblock_dlos_grid", 
          "sensor_response", 
          "sensor_response_f", 
          "sensor_response_pol", 
-         "sensor_response_za", 
-         "sensor_response_aa", 
+         "sensor_response_dlos", 
          "sensor_response_f_grid", 
          "sensor_response_pol_grid", 
-         "sensor_response_za_grid", 
-         "sensor_response_aa_grid", 
+         "sensor_response_dlos_grid", 
          "sensor_norm"
         ),
         GOUT(),
@@ -11050,17 +10988,14 @@ void define_md_data_raw()
         AUTHORS( "Oscar Isoz" ),
         OUT( "f_grid", 
           "antenna_dim", 
-          "mblock_za_grid", 
-          "mblock_aa_grid",
+          "mblock_dlos_grid", 
           "sensor_response", 
           "sensor_response_f", 
           "sensor_response_pol", 
-          "sensor_response_za", 
-          "sensor_response_aa", 
+          "sensor_response_dlos", 
           "sensor_response_f_grid", 
           "sensor_response_pol_grid", 
-          "sensor_response_za_grid", 
-          "sensor_response_aa_grid", 
+          "sensor_response_dlos_grid", 
           "sensor_norm"
           ),
         GOUT(),
@@ -11075,59 +11010,6 @@ void define_md_data_raw()
         GIN_DESC( "Desired grid spacing in Hz." )
         ));
   
-
-        /* Not yet updated
-     md_data_raw.push_back
-     ( MdRecord
-     ( NAME( "sensor_responsePolarisation" ),
-     DESCRIPTION
-     (
-     "Adds polarisation to the response matrix.\n"
-     "\n"
-     "The output polarisations are given by matrix *sensor_pol*.\n"
-     ),
-     AUTHORS( "Mattias Ekstrom" ),
-     OUT( "sensor_response", "sensor_response_pol" ),
-     GOUT(),
-     GOUT_TYPE(),
-     GOUT_DESC(),
-     IN( "sensor_pol", "sensor_response_za", "sensor_response_aa",
-     "sensor_response_f", "stokes_dim" ),
-     GIN(),
-     GIN_TYPE(),
-     GIN_DEFAULT(),
-     GIN_DESC()
-     ));
-  */
-
-  /* Not yet updated
-     md_data_raw.push_back
-     ( MdRecord
-     ( NAME( "sensor_responseRotation" ),
-     DESCRIPTION
-     (
-     "Adds rotation to the response matrix.\n"
-     "\n"
-     "The rotations are given by *sensor_rot* combined with *antenna_los*.\n"
-     "The rotations are performed within each measurement block for the\n"
-     "individual antennae.\n"
-     "\n"
-     "If used this method has to be run after the antenna response\n"
-     "function and prior to sensor_responsePolarisation.\n"
-     ),
-     AUTHORS( "Mattias Ekstrom" ),
-     OUT( "sensor_response" ),
-     GOUT(),
-     GOUT_TYPE(),
-     GOUT_DESC(),
-     IN( "sensor_rot", "antenna_los", "antenna_dim", "stokes_dim",
-     "sensor_response_f", "sensor_response_za" ),
-     GIN(),
-     GIN_TYPE(),
-     GIN_DEFAULT(),
-     GIN_DESC()
-     ));
-  */
 
   md_data_raw.push_back
     ( MdRecord
@@ -11144,18 +11026,16 @@ void define_md_data_raw()
         OUT( "sensor_response",
              "sensor_response_f",
              "sensor_response_pol",
-             "sensor_response_za",
-             "sensor_response_aa", 
+             "sensor_response_dlos",
              "sensor_response_f_grid"),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "sensor_response", "sensor_response_f", "sensor_response_pol",
-            "sensor_response_za", "sensor_response_aa", 
+            "sensor_response_dlos",
             "sensor_response_f_grid", "sensor_response_pol_grid", 
-            "sensor_response_za_grid", "sensor_response_aa_grid",
-            "wmrf_weights",
-            "f_backend" ),
+            "sensor_response_dlos_grid",
+            "wmrf_weights", "f_backend" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -13000,9 +12880,9 @@ void define_md_data_raw()
             "atmosphere_dim", "t_field", "z_field", 
             "vmr_field", "cloudbox_on", "cloudbox_checked", "sensor_checked", 
             "stokes_dim", "f_grid", "sensor_pos", "sensor_los",
-            "transmitter_pos", "mblock_za_grid", "mblock_aa_grid",
-            "antenna_dim", "sensor_response", "sensor_response_f",
-            "sensor_response_pol", "sensor_response_za", "sensor_response_aa",
+            "transmitter_pos", "mblock_dlos_grid",
+            "sensor_response", "sensor_response_f",
+            "sensor_response_pol", "sensor_response_dlos",
             "iy_unit", "iy_main_agenda", "jacobian_agenda", "jacobian_do", 
             "jacobian_quantities", "jacobian_indices", "iy_aux_vars" ),
         GIN(),
@@ -13063,9 +12943,9 @@ void define_md_data_raw()
             "atmosphere_dim", "t_field", "z_field", 
             "vmr_field", "cloudbox_on", "cloudbox_checked", "sensor_checked", 
             "stokes_dim", "f_grid", "sensor_pos", "sensor_los",
-            "transmitter_pos", "mblock_za_grid", "mblock_aa_grid",
-            "antenna_dim", "sensor_response", "sensor_response_f",
-            "sensor_response_pol", "sensor_response_za", "sensor_response_aa",
+            "transmitter_pos", "mblock_dlos_grid",
+            "sensor_response", "sensor_response_f",
+            "sensor_response_pol", "sensor_response_dlos",
             "iy_unit", "iy_main_agenda", "jacobian_agenda", "jacobian_do", 
             "jacobian_quantities", "jacobian_indices", "iy_aux_vars" ),
         GIN( "jacobian_quantities_copy", "jacobian_indices_copy", 
