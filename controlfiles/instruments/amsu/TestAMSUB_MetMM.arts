@@ -15,7 +15,7 @@ Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
 AtmosphereSet1D
 IndexSet( stokes_dim, 1 )
 
-# be aware, that amsub.arts as is only works for 1D and stokes_dim=1
+# be aware, that amsub.arts as is only works for 1D
 INCLUDE "amsub_metmm.arts"
 
 INCLUDE "TestAMSU_MetMM_generic.arts"

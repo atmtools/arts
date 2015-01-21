@@ -1198,7 +1198,7 @@ void sensor_responseBackendMetMM(
     const ArrayOfString&   mm_pol, /* met_mm_polarisation */
     const Vector&                  /* mm_ant */, /* met_mm_antenna */
     // Control Parameters:
-    const Numeric&         freq_spacing,
+    const Vector&          freq_spacing,
     const ArrayOfIndex&    freq_number,
     const Numeric&         freq_merge_threshold,
     const Index&           use_antenna,
@@ -1216,12 +1216,14 @@ void sensor_responseBackendMetMM(
     if (atmosphere_dim != 1)
       throw std::runtime_error("This method only supports 1D atmospheres.");
 
-    if (freq_spacing <= 0)
-      throw std::runtime_error("*freq_spacing must be > 0.");
+    if (freq_spacing.nelem() != 1 && freq_spacing.nelem() != nchannels)
+      throw std::runtime_error(
+         "Length of *freq_spacing* vector must be either 1 or correspond\n"
+         "to the number of rows in *met_mm_backend*.");
 
     if (freq_number.nelem() != 1 && freq_number.nelem() != nchannels)
       throw std::runtime_error(
-         "Length of *freq_number* vector must be either 1 or correspond\n"
+         "Length of *freq_number* array must be either 1 or correspond\n"
          "to the number of rows in *met_mm_backend*.");
 
     if (freq_merge_threshold > 10.)
@@ -1273,6 +1275,10 @@ void sensor_responseBackendMetMM(
         const Numeric bandwidth = mm_back(ch, 3);
 
         Index this_fnumber = (freq_number.nelem() == 1) ? freq_number[0] : freq_number[ch];
+        Numeric this_spacing = (freq_spacing.nelem() == 1) ? freq_spacing[0] : freq_spacing[ch];
+
+        if (this_spacing <= 0)
+            throw std::runtime_error("*freq_spacing must be > 0.");
 
         if (this_fnumber == 0)
         {
@@ -1283,7 +1289,7 @@ void sensor_responseBackendMetMM(
         }
 
         // Determine the frequency grid for this channel
-        if (this_fnumber == 1 && bandwidth <= freq_spacing)
+        if (this_fnumber == 1 && bandwidth <= this_spacing)
         {
             band_frequencies.resize(1);
             band_frequencies[0] = bandwidth / 2.;
@@ -1292,11 +1298,11 @@ void sensor_responseBackendMetMM(
         {
             // Use freq_spacing if freq_number is -1, otherwise use the finer spacing of the two
             if (this_fnumber == -1 || this_fnumber == 1
-                || bandwidth / (Numeric)this_fnumber > freq_spacing)
+                || bandwidth / (Numeric)this_fnumber > this_spacing)
             {
                 // Adjust the number of frequencies so that they are at least
                 // as fine as freq_spacing and cover the band evenly
-                this_fnumber = (Index)ceil(bandwidth / freq_spacing);
+                this_fnumber = (Index)ceil(bandwidth / this_spacing);
             }
 
             const Numeric bin_width = 0.5 * bandwidth / (Numeric)this_fnumber;

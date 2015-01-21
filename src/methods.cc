@@ -10552,7 +10552,9 @@ void define_md_data_raw()
          "the *met_mm_backend*.\n"
          "\n"
          "You have to specify the desired spacing in Hz using the keyword *freq_spacing*,\n"
-         "which has a default value of 100 MHz.\n"
+         "which has a default value of 100 MHz. You can pass a *Vector* with one element to\n"
+         "apply the same spacing to all channels or pass a spacing value for each channel\n"
+         "separately.\n"
          "\n"
          "Optionally, *freq_number* can be set to specify the mininum number of frequencies\n"
          "per passband for each channel. The frequencies are placed equally spaced\n"
@@ -10583,8 +10585,8 @@ void define_md_data_raw()
              ),
         GIN( "freq_spacing", "freq_number", "freq_merge_threshold",
              "use_antenna" ),
-        GIN_TYPE(    "Numeric", "ArrayOfIndex", "Numeric", "Index" ),
-        GIN_DEFAULT( ".1e9",    "[-1]",         "1",       "0" ),
+        GIN_TYPE(    "Vector", "ArrayOfIndex", "Numeric", "Index" ),
+        GIN_DEFAULT( "[.1e9]", "[-1]",         "1",       "0" ),
         GIN_DESC( "Desired grid spacing in Hz.",
                   "Number of frequencies per passband for each channel.",
                   "Merge frequencies that are closer than this value in Hz.",

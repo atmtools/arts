@@ -1,5 +1,16 @@
 2015-01-21  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-3-122
+
+	* src/m_sensor.cc (sensor_responseBackendMetMM), methods.cc:
+
+	Turn freq_spacing into a Vector to behave the same as freq_number.
+
+	* controlfiles/instruments/amsu/amsub_metmm.arts,
+	controlfiles/instruments/amsu/TestAMSUB_MetMM.arts: Adapted.
+
+2015-01-21  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-3-121
 
 	* src/m_select.h, src/methods.cc:

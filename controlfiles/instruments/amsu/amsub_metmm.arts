@@ -104,7 +104,7 @@ ArrayOfStringSet( met_mm_polarisation, ["AMSU-V",
 
 VectorSet( met_mm_antenna, [] )
 
-sensor_responseBackendMetMM(freq_spacing=.1e9,
+sensor_responseBackendMetMM(freq_spacing=[.1e9],
 		            freq_number=[12])
 
 WriteXML("ascii", sensor_response)
