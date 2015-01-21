@@ -1194,27 +1194,26 @@ void sensor_responseBackendMetMM(
     const Matrix&          sensor_los,
     const String&          iy_unit,
     const Matrix&          antenna_dlos,
-    const Matrix&          mm_back, /* met_mm_backend */
-    const ArrayOfString&   mm_pol, /* met_mm_polarisation */
-    const Vector&                  /* mm_ant */, /* met_mm_antenna */
+    const Matrix&          mm_back,      /* met_mm_backend */
+    const ArrayOfString&   mm_pol,       /* met_mm_polarisation */
+    const Vector&,                        /* met_mm_antenna */
     // Control Parameters:
     const Vector&          freq_spacing,
     const ArrayOfIndex&    freq_number,
     const Numeric&         freq_merge_threshold,
     const Index&           use_antenna,
+    const Index&           mirror_dza,
     const Verbosity&       verbosity )
 {
     CREATE_OUT1;
     CREATE_OUT2;
 
     chk_if_bool("use_antenna", use_antenna);
+    chk_if_bool("mirror_dza", mirror_dza);
 
     chk_met_mm_backend(mm_back);
 
     const Index nchannels = mm_back.nrows();
-
-    if (atmosphere_dim != 1)
-      throw std::runtime_error("This method only supports 1D atmospheres.");
 
     if (freq_spacing.nelem() != 1 && freq_spacing.nelem() != nchannels)
       throw std::runtime_error(
@@ -1232,28 +1231,38 @@ void sensor_responseBackendMetMM(
             "that are basically identical and only differ slightly due to\n"
             "numerical inaccuracies. Setting it to >10Hz is not reasonable.");
 
+    if ( !( atmosphere_dim == 1  || atmosphere_dim == 3 ) )
+      throw std::runtime_error("This method only supports 1D and 3D atmospheres.");
+
     if (antenna_dlos.nrows() == 0)
         throw std::runtime_error("*antenna_dlos* is empty.");
     
     if (antenna_dlos.ncols() != 1)
         throw std::runtime_error("*antenna_dlos* must have a single column.");
 
-
-    if (stokes_dim > 1)
+    // All sensor_los zenith angles must be 0
+    for (Index ilos = 0; ilos < sensor_los.nrows(); ilos++)
     {
-        // All sensor line of sights must be equal when calculation polarization.
-        for (Index ilos = 1; ilos < sensor_los.nrows(); ilos++)
-        {
-            if (sensor_los(ilos, 0) != sensor_los(ilos-1, 0))
-            {
-                ostringstream os;
-                os << "All elements of *sensor_los* must be the same for *stokes_dim* > 1\n";
-                os << "sensor_los[" << ilos-1 << ", 0] = " << sensor_los(ilos-1, 0) << "\n";
-                os << "sensor_los[" << ilos   << ", 0] = " << sensor_los(ilos,   0) << "\n";
-                throw std::runtime_error(os.str());
-            }
-        }
+      if (sensor_los(ilos,0) != 180)
+      {
+        ostringstream os;
+        os << "All values in first column of *sensor_los* must be equal to 180,\n";
+        os << "but: sensor_los[" << ilos   << ", 0] = " << sensor_los(ilos,0) << "\n";
+        throw std::runtime_error(os.str());
+      }
     }
+
+    // Copy, and possibly extend antenna_dlos
+    Matrix antenna_dlos_local;
+    if( atmosphere_dim == 1 )
+      { antenna_dlos_local = antenna_dlos; }
+    else
+      {
+        antenna_dlos_local.resize( antenna_dlos.nrows(), 2 );
+        antenna_dlos_local(joker,0) = antenna_dlos(joker,0);
+        antenna_dlos_local(joker,1) = 0;
+      }
+    
 
     // Setup frequency grid
     //--------------------------------------------------
@@ -1429,8 +1438,8 @@ void sensor_responseBackendMetMM(
     }
 
     // Construct complete sensor_response matrix
-    sensor_response = Sparse( nchannels * antenna_dlos.nrows(),
-                              num_f * stokes_dim * antenna_dlos.nrows());
+    sensor_response = Sparse( nchannels * antenna_dlos_local.nrows(),
+                              num_f * stokes_dim * antenna_dlos_local.nrows());
 
     sensor_response_pol_grid.resize(1);
     sensor_response_pol_grid[0] = 1;
@@ -1449,11 +1458,11 @@ void sensor_responseBackendMetMM(
         Sparse H_pol;
         Sparse sensor_response_tmp;
 
-        for (Index iza = 0; iza < antenna_dlos.nrows(); iza++)
+        for (Index iza = 0; iza < antenna_dlos_local.nrows(); iza++)
         {
             sensor_response_tmp = Sparse(nchannels, sensor_response_single.ncols());
             met_mm_polarisation_hmatrix(H_pol, mm_pol,
-                                        sensor_los(0, 0) + antenna_dlos(iza,0), 
+                                        sensor_los(0, 0) + antenna_dlos_local(iza,0), 
                                         stokes_dim, iy_unit);
 
             mult(sensor_response_tmp, H_pol, sensor_response_single);
@@ -1471,7 +1480,7 @@ void sensor_responseBackendMetMM(
     else
     {
         // No polarisation
-        for (Index iza = 0; iza < antenna_dlos.nrows(); iza++)
+        for (Index iza = 0; iza < antenna_dlos_local.nrows(); iza++)
         {
             for (Index r = 0; r < sensor_response_single.nrows(); r++)
                 for (Index c = 0; c < sensor_response_single.ncols(); c++)
@@ -1494,7 +1503,7 @@ void sensor_responseBackendMetMM(
     }
 
     // mblock angle grids
-    mblock_dlos_grid = antenna_dlos;
+    mblock_dlos_grid = antenna_dlos_local;
 
     // Set sensor response aux variables
     sensor_response_dlos_grid = mblock_dlos_grid;

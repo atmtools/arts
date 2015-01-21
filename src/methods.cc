@@ -10571,7 +10571,30 @@ void define_md_data_raw()
          "generated *f_grid* are merged together. This value should be left at the default\n"
          "value. This is only meant to compensate for numerical inaccuracies in the frequency\n"
          "calculation to merge frequency that are supposed to be identical.\n"
-         ),
+         "\n"
+         "Each scan sequence is treated as a measurement block. *sensor_pos* is\n"
+         "set in standard way. The number of rows in *sensor_pos* deterines the\n"
+         "number of scan sequences that wil be simulated. On the other hand,\n"
+         "*sensor_los* is handled in a special way. All zenith angles must be set\n"
+         "to 180 deg. For 3D, the given azimuth angles are taken as the direction\n"
+         "of scanning, where the azimuth angle is defined with respect to North\n"
+         "in standard manner. For example, if the scanning happens to move from\n"
+         "SW to NE, the azimuth angle should be set to 45 deg. The angles of the\n"
+         "scanning sequence are taken from *antenna_dlos*. This WSV is here only\n"
+         "allowed to have a single column, holding relative zenith angles. For\n"
+         "3D, the azimuth angles in *antenna_dlos* are hard-coded to zero. As\n"
+         "zenith angles in *sensor_los* are locked to 180, *antenna_dlos*\n"
+         "effectively holds nadir angles. These angles can be both positive or\n"
+         "negative, where the recommnded choice is to operate with negative\n"
+         "to end up with final zenith angles between 0 and 180 deg.\n"
+         "\n"
+         "The method does not support 2D atmospheres (across-track scanning is\n"
+         "inconsistent with 2D). For simpler switching between 1D and 3D,\n"
+         "the argument *mirror_dza* is at hand. It can only be used for 3D.\n"
+         "If set to true, the zenith angles in *antenna_dlos* are mapped\n"
+         "to also cover the other side of the swath and the simulations will\n"
+         "cover both sides of the swath.\n"
+           ),
         AUTHORS( "Oliver Lemke" ),
         OUT( "f_grid", "antenna_dim", "mblock_dlos_grid", "sensor_response",
              "sensor_response_f", "sensor_response_pol", "sensor_response_dlos",
@@ -10584,13 +10607,14 @@ void define_md_data_raw()
             "met_mm_backend", "met_mm_polarisation", "met_mm_antenna"
              ),
         GIN( "freq_spacing", "freq_number", "freq_merge_threshold",
-             "use_antenna" ),
-        GIN_TYPE(    "Vector", "ArrayOfIndex", "Numeric", "Index" ),
-        GIN_DEFAULT( "[.1e9]", "[-1]",         "1",       "0" ),
+             "use_antenna", "mirror_dza" ),
+        GIN_TYPE(    "Vector", "ArrayOfIndex", "Numeric", "Index", "Index" ),
+        GIN_DEFAULT( "[.1e9]", "[-1]",         "1",       "0",     "1" ),
         GIN_DESC( "Desired grid spacing in Hz.",
                   "Number of frequencies per passband for each channel.",
                   "Merge frequencies that are closer than this value in Hz.",
-                  "Flag to enable (1) or disable (0) antenna." )
+                  "Flag to enable (1) or disable (0) antenna.",
+                  "Flag to include second part of swath (only 3D, see above)." )
         ));
   
   md_data_raw.push_back

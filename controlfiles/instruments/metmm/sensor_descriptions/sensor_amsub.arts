@@ -15,13 +15,6 @@ Arts2 {
 # Sensor characteristics based on KLM User's Guide at
 # http://www.ncdc.noaa.gov/oa/pod-guide/ncdc/docs/klm/html/c3/sec3-4.htm
 
-# Definition of sensor position and LOS
-# ---
-MatrixSetConstant( sensor_pos, 1, 1, 850e3 )
-
-# Nadir looking direction of the sensor
-MatrixSetConstant( sensor_los, 1, 1, 180 )
-
 # Viewing angles
 # There are 45 different angles, corresponding to one side of the AMSU-B Scan.
 MatrixSet(

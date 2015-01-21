@@ -65,6 +65,13 @@ abs_lines_per_speciesCreateFromLines
 # 3. Sensor:
 #-----------
 
+# Definition of sensor position and LOS
+# ---
+MatrixSetConstant( sensor_pos, 1, 1, 850e3 )
+
+# Nadir looking direction of the sensor
+MatrixSetConstant( sensor_los, 1, 1, 180 )
+
 # Channels we want to calculate. Note, zero-based indexing!
 ArrayOfIndexCreate( channels )
 ArrayOfIndexSet( channels, [ -1 ] )

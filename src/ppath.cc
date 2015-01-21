@@ -580,7 +580,7 @@ void map_daa(
        const Numeric&  aa0,
        const Numeric&  aa_grid )
 {
-  assert( abs( aa_grid ) <= 5 );
+  assert( abs( aa_grid ) <= 180 );
 
   Vector  xyz(3);
   Vector  vrot(3);

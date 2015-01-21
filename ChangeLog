@@ -1,9 +1,27 @@
+2015-01-21  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-124
+
+	* src/m_sensor.cc (sensor_responseBackendMetMM): Expanded built.in
+	do text. Added checks of input. For example, za in sensor_los must
+	now be 180 deg. Started to work on simpler handling of 3D.
+
+	* controlfiles/instruments/amsu/amsub_metmm.arts: The settings
+	removed below are now found here.
+
+	* controlfiles/instruments/metmm/sensor_descriptions/sensor_amsub.arts:
+	Removed setting of sensor_pos and sensor_los. 
+
+	* src/ppath.cc (map_daa): The aa_grid value was limited to [-5,5].
+	Don't understand why; the algorithm should work for any angle. Now
+	limited to [-180,180].
+
 2015-01-21  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-123
 
 	* controlfiles/instruments/metmm:
-	
+
 	Created directory for new sensor setups.
 
 	The proposed subdirectory structure is:
@@ -31,7 +49,7 @@
 
 	Corrected viewing angles for MHS. They were the same as AMSU-B, but
 	they are actually slightly different.
-	
+
 2015-01-21  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-122
