@@ -10337,6 +10337,8 @@ void define_md_data_raw()
          "This works also for higher dimensional objects, where the selection is\n"
          "always performed in the first dimension.\n"
          "\n"
+         "If needleindexes is set to [-1], all elements are copied."
+         "\n"
          "For example:\n"
          "\n"
          "Select(y,x,[0,3])\n"

@@ -49,6 +49,13 @@ void Select(// WS Generic Output:
   // variable.
   Array<T> dummy( needleind.nelem() );
 
+  // If needleind only contains -1 as the only element, copy the whole thing
+  if (needleind.nelem() == 1 && needleind[0] == -1)
+    {
+      needles = haystack;
+      return;
+    }
+
   for( Index i = 0; i < needleind.nelem(); i++)
     {
       if (haystack.nelem() <= needleind[i])
@@ -57,6 +64,13 @@ void Select(// WS Generic Output:
           os << "The input vector only has " << haystack.nelem()
             << " elements. But one of the needle indexes is "
             << needleind[i] << "." << endl;
+          os << "The indexes must be between 0 and " << haystack.nelem() - 1;
+          throw runtime_error (os.str());
+        }
+      else if (needleind[i] < 0)
+        {
+          ostringstream os;
+          os << "One of the needle indexes is " << needleind[i] << "." << endl;
           os << "The indexes must be between 0 and " << haystack.nelem() - 1;
           throw runtime_error (os.str());
         }
@@ -81,6 +95,13 @@ void Select(// WS Generic Output:
   // variable.
   Vector dummy( needleind.nelem() );
 
+  // If needleind only contains -1 as the only element, copy the whole thing
+  if (needleind.nelem() == 1 && needleind[0] == -1)
+    {
+      needles = haystack;
+      return;
+    }
+
   for( Index i = 0; i < needleind.nelem(); i++)
     {
       if (haystack.nelem() <= needleind[i])
@@ -89,6 +110,13 @@ void Select(// WS Generic Output:
           os << "The input vector only has " << haystack.nelem()
             << " elements. But one of the needle indexes is "
             << needleind[i] << "." << endl;
+          os << "The indexes must be between 0 and " << haystack.nelem() - 1;
+          throw runtime_error (os.str());
+        }
+      else if (needleind[i] < 0)
+        {
+          ostringstream os;
+          os << "One of the needle indexes is " << needleind[i] << "." << endl;
           os << "The indexes must be between 0 and " << haystack.nelem() - 1;
           throw runtime_error (os.str());
         }
@@ -113,6 +141,13 @@ void Select(// WS Generic Output:
   // variable.
   Matrix dummy( needleind.nelem(), haystack.ncols() );
 
+  // If needleind only contains -1 as the only element, copy the whole thing
+  if (needleind.nelem() == 1 && needleind[0] == -1)
+    {
+      needles = haystack;
+      return;
+    }
+
   for( Index i = 0; i < needleind.nelem(); i++)
     {
       if (haystack.nrows() <= needleind[i])
@@ -121,6 +156,13 @@ void Select(// WS Generic Output:
           os << "The input matrix only has " << haystack.nrows()
             << " rows. But one of the needle indexes is "
             << needleind[i] << "." << endl;
+          os << "The indexes must be between 0 and " << haystack.nrows() - 1;
+          throw runtime_error (os.str());
+        }
+      else if (needleind[i] < 0)
+        {
+          ostringstream os;
+          os << "One of the needle indexes is " << needleind[i] << "." << endl;
           os << "The indexes must be between 0 and " << haystack.nrows() - 1;
           throw runtime_error (os.str());
         }
@@ -147,6 +189,13 @@ void Select(// WS Generic Output:
   // variable.
   Sparse dummy( needleind.nelem(), haystack.ncols() );
 
+  // If needleind only contains -1 as the only element, copy the whole thing
+  if (needleind.nelem() == 1 && needleind[0] == -1)
+    {
+      needles = haystack;
+      return;
+    }
+
   for( Index i = 0; i < needleind.nelem(); i++)
     {
       if (haystack.nrows() <= needleind[i])
@@ -155,6 +204,13 @@ void Select(// WS Generic Output:
           os << "The input matrix only has " << haystack.nrows()
             << " rows. But one of the needle indexes is "
             << needleind[i] << "." << endl;
+          os << "The indexes must be between 0 and " << haystack.nrows() - 1;
+          throw runtime_error (os.str());
+        }
+      else if (needleind[i] < 0)
+        {
+          ostringstream os;
+          os << "One of the needle indexes is " << needleind[i] << "." << endl;
           os << "The indexes must be between 0 and " << haystack.nrows() - 1;
           throw runtime_error (os.str());
         }

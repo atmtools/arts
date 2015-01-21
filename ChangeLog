@@ -1,3 +1,13 @@
+2015-01-21  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-121
+
+	* src/m_select.h, src/methods.cc:
+
+	Add [-1] as special case for needleindexes to select all elements.
+	Throw runtime error instead of asserting if needleindexes contains
+	negative elements (except for the special case of course).
+
 2015-01-19  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-120
