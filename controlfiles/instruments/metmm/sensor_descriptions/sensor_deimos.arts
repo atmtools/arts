@@ -1,0 +1,67 @@
+#DEFINITIONS:  -*-sh-*-
+
+# ARTS sensor description for Deimos simulations
+#
+# This expects the following workspace variables to exist and to be set:
+# 
+# channels    (ArrayOfIndex) Which channels you want.
+#                            Note that this array uses zero-based ARTS
+#                            indexing. It can be set to [-1] to select all
+#                            channels.
+# viewing_angles (ArrayOfIndex) Which views you want.
+
+Arts2 {
+
+# Viewing angles
+# FIXME!!!
+MatrixSet(
+        antenna_dlos,
+        [
+        ] )
+
+Select( antenna_dlos, antenna_dlos, viewing_angles )
+
+# Sensor response setup
+# ---
+
+MatrixSet(
+        met_mm_backend,
+        # all frequencies are in Hz 
+        # CenterFreq, Offset1, Offset2, Bandwidth; #ARTS channel index
+        #                                             (Instrument channel)
+        [
+        23.8e9,       0.07e9,  0.0e6,   127e6 ;    #0 (1, V only)
+        23.8e9,       0.07e9,  0.0e6,   127e6 ;    #1 (1, H only)
+        50.1e9,       0.08e9,  0.0e6,    82e6 ;    #2 (2, V only)
+        50.1e9,       0.08e9,  0.0e6,    82e6      #3 (2, H only)
+        ] )
+
+ArrayOfStringSet(
+        met_mm_polarisation,
+        [
+        "ISMAR-V", #0 (1, V only)
+        "ISMAR-H", #1 (1, H only)
+        "ISMAR-V", #2 (2, V only)
+        "ISMAR-H"  #3 (2, H only)
+        ])
+
+VectorSet( met_mm_antenna, [] )
+
+ArrayOfIndexCreate( met_mm_freq_number )
+ArrayOfIndexSet(
+        met_mm_freq_number,
+        [
+        12, #0 (1, V only)
+        12, #1 (1, H only)
+        12, #2 (2, V only)
+        12  #3 (2, H only)
+        ] )
+
+Select( met_mm_backend,      met_mm_backend,      channels )
+Select( met_mm_polarisation, met_mm_polarisation, channels )
+Select( met_mm_freq_number,  met_mm_freq_number,  channels )
+
+sensor_responseBackendMetMM( freq_spacing=[1e9],
+		             freq_number=met_mm_freq_number )
+}
+

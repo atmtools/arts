@@ -1,5 +1,39 @@
 2015-01-21  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-3-123
+
+	* controlfiles/instruments/metmm:
+	
+	Created directory for new sensor setups.
+
+	The proposed subdirectory structure is:
+
+	metmm/sensor_descriptions/
+	metmm/test_cases/
+	metmm/clearsky_batch/
+	metmm/cloudy_batch/
+	metmm/spectroscopy/
+	metmm/zeeman/
+
+	* controlfiles/instruments/metmm/sensor_descriptions/
+	{sensor_amsua.arts, sensor_amsub.arts, sensor_deimos.arts,
+	sensor_ismar.arts, sensor_marss.arts, sensor_mhs.arts}:
+
+	Added sensor descriptions for AMSU-A, AMSU-B, MHS, ISMAR, DEIMOS,
+	MARSS. TODO: Add viewing angles for I, D and M. Add HIRS, AVHRR...
+
+	* controlfiles/instruments/amsu/amsub_metmm.arts:
+
+	Adapted to use the new sensor description. Also shows how to select
+	a subset of channels and viewing angles for the calculation.
+
+	* controlfiles/instruments/mhs/mhs.sensor_los.xml:
+
+	Corrected viewing angles for MHS. They were the same as AMSU-B, but
+	they are actually slightly different.
+	
+2015-01-21  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-3-122
 
 	* src/m_sensor.cc (sensor_responseBackendMetMM), methods.cc:

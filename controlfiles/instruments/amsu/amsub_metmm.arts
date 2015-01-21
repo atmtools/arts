@@ -65,47 +65,18 @@ abs_lines_per_speciesCreateFromLines
 # 3. Sensor:
 #-----------
 
-# Definition of sensor position and LOS
-# ---
-MatrixSetConstant( sensor_pos, 1, 1, 850e3 )
+# Channels we want to calculate. Note, zero-based indexing!
+ArrayOfIndexCreate( channels )
+ArrayOfIndexSet( channels, [ -1 ] )
 
-# Nadir looking direction of the sensor
-MatrixSetConstant( sensor_los, 1, 1, 180 )
+ArrayOfIndexCreate( viewing_angles )
+# This would select all viewing angles
+#ArrayOfIndexSet( viewing_angles, [ -1 ] )
+# For speed reasons, we just calculate one angle
+ArrayOfIndexSet( viewing_angles, [ 44 ] )
 
-# Viewing angles
-# There are 45 different angles, corresponding to one side of the AMSU-B
-# Scan. You can instead set it here to a single value if you want to 
-# calculate only for one viewing angle.
+INCLUDE "instruments/metmm/sensor_descriptions/sensor_amsub.arts"
 
-# The file should be changed to hold a 1 col matrix!?
-# ReadXML( mblock_dlos_grid, "amsub.mblock_za_grid.xml" )
-
-
-# For speed reasons, just calculate one angle
-MatrixSet( antenna_dlos, [ -0.5 ] )
-
-
-# Sensor setup
-# ---
-
-MatrixSet( met_mm_backend,
-           [  89.00e9, 0.90e9, 0., 1000e6 ;
-      	     150.00e9, 0.90e9, 0., 1000e6 ;
-      	     183.31e9, 1.00e9, 0., 500e6 ;
-      	     183.31e9, 3.00e9, 0., 1000e6 ;
-      	     183.31e9, 7.00e9, 0., 2000e6 ] )
-
-ArrayOfStringSet( met_mm_polarisation, ["AMSU-V",
-                                        "AMSU-V",
-                                        "AMSU-V",
-                                        "AMSU-V",
-                                        "AMSU-V",
-                                        "AMSU-V"])
-
-VectorSet( met_mm_antenna, [] )
-
-sensor_responseBackendMetMM(freq_spacing=[.1e9],
-		            freq_number=[12])
 
 WriteXML("ascii", sensor_response)
 WriteXML("ascii", f_grid)

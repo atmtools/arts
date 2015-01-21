@@ -1,0 +1,73 @@
+#DEFINITIONS:  -*-sh-*-
+
+# ARTS sensor description for MARSS simulations
+#
+# This expects the following workspace variables to exist and to be set:
+# 
+# channels    (ArrayOfIndex) Which channels you want.
+#                            Note that this array uses zero-based ARTS
+#                            indexing. It can be set to [-1] to select all
+#                            channels.
+# viewing_angles (ArrayOfIndex) Which views you want.
+
+Arts2 {
+
+# Viewing angles
+# FIXME!!!
+MatrixSet(
+        antenna_dlos,
+        [
+        ] )
+
+Select( antenna_dlos, antenna_dlos, viewing_angles )
+
+# Sensor response setup
+# ---
+
+MatrixSet(
+        met_mm_backend,
+        # all frequencies are in Hz 
+        # CenterFreq, Offset1, Offset2, Bandwidth; #ARTS channel index
+        #                                             (Instrument channel)
+        [
+         88.992e9,    1.075e9, 0.0,      650e6 ;   #0 (1, V only)
+         88.992e9,    1.075e9, 0.0,      650e6 ;   #1 (1, H only)
+        157.05e9,     2.600e9, 0.0,     2600e6 ;   #2 (2, V only)
+        157.05e9,     2.600e9, 0.0,     2600e6 ;   #3 (2, H only)
+        183.31e9,     0.975e9, 0.0,      450e6 ;   #4 (3)
+        183.31e9,     3.000e9, 0.0,     1000e6 ;   #5 (4)
+        183.31e9,     7.000e9, 0.0,     2000e6     #6 (5)
+           ] )
+
+ArrayOfStringSet( met_mm_polarisation, [ "ISMAR-V", #0 (1, V only)
+                                         "ISMAR-H", #1 (1, H only)
+                                         "ISMAR-V", #2 (2, V only)
+                                         "ISMAR-H", #3 (2, H only)
+                                         "ISMAR-H", #4 (3)
+                                         "ISMAR-H", #5 (4)
+                                         "ISMAR-H"  #6 (5)
+                                       ])
+
+VectorSet( met_mm_antenna, [] )
+
+ArrayOfIndexCreate( met_mm_freq_number )
+ArrayOfIndexSet(
+        met_mm_freq_number,
+        [
+        12, #0 (1, V only)
+        12, #1 (1, H only)
+        12, #2 (2, V only)
+        12, #3 (2, H only)
+        12, #4 (3)
+        12, #5 (4)
+        12  #6 (5)
+        ]
+
+Select( met_mm_backend,      met_mm_backend,      channels )
+Select( met_mm_polarisation, met_mm_polarisation, channels )
+Select( met_mm_freq_number,  met_mm_freq_number,  channels )
+
+sensor_responseBackendMetMM( freq_spacing=[1e9],
+		             freq_number=met_mm_freq_number )
+}
+
