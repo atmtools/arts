@@ -151,6 +151,17 @@ NumericSet( ppath_lmax, 10e3 )
 NumericSet( ppath_lraytrace, 1e3 )
 
 
+
+#
+# Geo-positioning
+#
+# Default is to leave the geo-pos undefined
+AgendaSet( geo_pos_agenda ){
+  Ignore( ppath )
+  VectorSet( geo_pos, [] )
+}
+
+
 #
 # MC
 #

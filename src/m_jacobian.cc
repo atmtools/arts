@@ -330,6 +330,7 @@ void jacobianCalcAbsSpeciesPerturbations(
   const Sparse&                     sensor_response,
   const String&                     iy_unit,  
   const Agenda&                     iy_main_agenda,
+  const Agenda&                     geo_pos_agenda,
   const ArrayOfRetrievalQuantity&   jacobian_quantities,
   const ArrayOfArrayOfIndex&        jacobian_indices,
   const String&                     species,
@@ -504,7 +505,7 @@ void jacobianCalcAbsSpeciesPerturbations(
                         atmosphere_dim, t_field, z_field, vmr_p, cloudbox_on, 
                         stokes_dim, f_grid, sensor_pos, sensor_los, 
                         transmitter_pos, mblock_dlos_grid, 
-                        iy_unit, iy_main_agenda, 
+                        iy_unit, iy_main_agenda, geo_pos_agenda,
                         0, ArrayOfRetrievalQuantity(), 
                         ArrayOfArrayOfIndex(), ArrayOfString(), verbosity );
               //
@@ -1237,6 +1238,7 @@ void jacobianCalcPointingZaRecalc(
   const Vector&                    sensor_time,
   const String&                    iy_unit,  
   const Agenda&                    iy_main_agenda,
+  const Agenda&                    geo_pos_agenda,
   const ArrayOfRetrievalQuantity&  jacobian_quantities,
   const ArrayOfArrayOfIndex&       jacobian_indices,
   const Verbosity&                 verbosity )
@@ -1282,7 +1284,7 @@ void jacobianCalcPointingZaRecalc(
               mblock_index, atmosphere_dim, 
               t_field, z_field, vmr_field, cloudbox_on, stokes_dim, 
               f_grid, sensor_pos, los, transmitter_pos, mblock_dlos_grid, 
-              iy_unit, iy_main_agenda,
+              iy_unit, iy_main_agenda, geo_pos_agenda,
               0, ArrayOfRetrievalQuantity(), ArrayOfArrayOfIndex(),
               ArrayOfString(), verbosity );
 
@@ -1847,6 +1849,7 @@ void jacobianCalcTemperaturePerturbations(
   const Sparse&                     sensor_response,
   const String&                     iy_unit,  
   const Agenda&                     iy_main_agenda,
+  const Agenda&                     geo_pos_agenda,
   const Agenda&                     g0_agenda,
   const Numeric&                    molarmass_dry_air,
   const Numeric&                    p_hse,
@@ -2003,7 +2006,7 @@ void jacobianCalcTemperaturePerturbations(
                         atmosphere_dim, t_p, z, vmr_field, cloudbox_on, 
                         stokes_dim, f_grid, sensor_pos, sensor_los, 
                         transmitter_pos, mblock_dlos_grid, 
-                        iy_unit, iy_main_agenda, 
+                        iy_unit, iy_main_agenda, geo_pos_agenda,
                         0, ArrayOfRetrievalQuantity(), 
                         ArrayOfArrayOfIndex(), ArrayOfString(), verbosity );
               //

@@ -4916,6 +4916,52 @@ void define_md_data_raw()
         GIN_DESC()
         ));
 
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME( "geo_posEndOfPpath" ),
+        DESCRIPTION
+        (
+         "Set geo-position based on *ppath*.\n"
+         "\n"
+         "The geo-position is set to the position of the last point\n"
+         "of the present propagation path. This will be the surface,\n"
+         "top-of-the atmosphere or cloudbox position, depending of\n"
+         "observation geometry and if the cloudbox is active.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "geo_pos" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "ppath" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME( "geo_posLowestAltitudeOfPpath" ),
+        DESCRIPTION
+        (
+         "Set geo-position based on *ppath*.\n"
+         "\n"
+         "The geo-position is set to the position of the last point\n"
+         "of the present propagation path having the lowest altitude.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "geo_pos" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "ppath" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "GriddedFieldLatLonExpand" ),
@@ -6639,7 +6685,8 @@ void define_md_data_raw()
             "cloudbox_on", "stokes_dim", "f_grid", 
             "sensor_pos", "sensor_los", "transmitter_pos", "mblock_dlos_grid", 
             "sensor_response", "iy_unit",
-            "iy_main_agenda", "jacobian_quantities", "jacobian_indices" ),
+            "iy_main_agenda", "geo_pos_agenda", 
+            "jacobian_quantities", "jacobian_indices" ),
         GIN( "species" ),
         GIN_TYPE(    "String" ),
         GIN_DEFAULT( NODEF ),
@@ -6784,8 +6831,8 @@ void define_md_data_raw()
             "f_grid", "sensor_pos", "sensor_los", "transmitter_pos", 
             "mblock_dlos_grid", 
             "sensor_response", "sensor_time", "iy_unit",
-            "iy_main_agenda", "jacobian_quantities",
-            "jacobian_indices" ),
+            "iy_main_agenda", "geo_pos_agenda",
+            "jacobian_quantities", "jacobian_indices" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -6891,7 +6938,7 @@ void define_md_data_raw()
             "vmr_field", "abs_species", "refellipsoid", "z_surface", 
             "cloudbox_on", "stokes_dim", "f_grid", "sensor_pos", "sensor_los", 
             "transmitter_pos", "mblock_dlos_grid",
-            "sensor_response", "iy_unit", "iy_main_agenda", 
+            "sensor_response", "iy_unit", "iy_main_agenda", "geo_pos_agenda",
             "g0_agenda", "molarmass_dry_air", "p_hse", "z_hse_accuracy", 
             "jacobian_quantities", "jacobian_indices" ),
         GIN(),
@@ -12911,7 +12958,8 @@ void define_md_data_raw()
             "transmitter_pos", "mblock_dlos_grid",
             "sensor_response", "sensor_response_f",
             "sensor_response_pol", "sensor_response_dlos",
-            "iy_unit", "iy_main_agenda", "jacobian_agenda", "jacobian_do", 
+            "iy_unit", "iy_main_agenda", "geo_pos_agenda",
+            "jacobian_agenda", "jacobian_do", 
             "jacobian_quantities", "jacobian_indices", "iy_aux_vars" ),
         GIN(),
         GIN_TYPE(),
@@ -12974,7 +13022,8 @@ void define_md_data_raw()
             "transmitter_pos", "mblock_dlos_grid",
             "sensor_response", "sensor_response_f",
             "sensor_response_pol", "sensor_response_dlos",
-            "iy_unit", "iy_main_agenda", "jacobian_agenda", "jacobian_do", 
+            "iy_unit", "iy_main_agenda", "geo_pos_agenda",
+            "jacobian_agenda", "jacobian_do", 
             "jacobian_quantities", "jacobian_indices", "iy_aux_vars" ),
         GIN( "jacobian_quantities_copy", "jacobian_indices_copy", 
              "append_instrument_wfs" ),

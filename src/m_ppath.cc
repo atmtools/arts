@@ -66,6 +66,41 @@ extern const Numeric DEG2RAD;
   ===========================================================================*/
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void geo_posEndOfPpath(      
+          Vector&         geo_pos,
+    const Ppath&          ppath,
+    const Verbosity&      verbosity )
+{
+  geo_pos = ppath.pos(ppath.np-1,joker);
+
+  CREATE_OUT2;  
+  out2 << "  Sets geo-position to:\n" << geo_pos;
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void geo_posLowestAltitudeOfPpath(      
+          Vector&         geo_pos,
+    const Ppath&          ppath,
+    const Verbosity&      verbosity )
+{
+  // Take first point of ppath as first guess
+  geo_pos = ppath.pos(0,joker);
+  
+  for( Index i=1; i<ppath.np; i++ )
+    {
+      if( ppath.pos(i,0) < geo_pos[0] )
+         geo_pos = ppath.pos(i,joker);
+    }
+
+  CREATE_OUT2;  
+  out2 << "  Sets geo-position to:\n" << geo_pos;
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void ppathCalc(      
           Workspace&      ws,
           Ppath&          ppath,

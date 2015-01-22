@@ -1977,6 +1977,7 @@ void iyb_calc_body(
         String&                     fail_msg,
         ArrayOfArrayOfTensor4&      iy_aux_array,
         Workspace&                  ws,
+        Ppath&                      ppath,
         Vector&                     iyb,
         ArrayOfMatrix&              diyb_dx,
   const Index&                      mblock_index,
@@ -2027,7 +2028,6 @@ void iyb_calc_body(
       //
       Matrix         iy;
       ArrayOfTensor3 diy_dx;
-      Ppath          ppath;
       Tensor3        iy_transmission(0,0,0);
       //
       iy_main_agendaExecute(ws, iy, iy_aux_array[ilos], ppath,
@@ -2102,7 +2102,7 @@ void iyb_calc(
         Vector&                     iyb,
         ArrayOfVector&              iyb_aux,
         ArrayOfMatrix&              diyb_dx,
-        Matrix&                     geo_pos,
+        Matrix&                     geo_pos_matrix,
   const Index&                      mblock_index,
   const Index&                      atmosphere_dim,
   ConstTensor3View                  t_field,
@@ -2117,6 +2117,7 @@ void iyb_calc(
   ConstMatrixView                   mblock_dlos_grid,
   const String&                     iy_unit,  
   const Agenda&                     iy_main_agenda,
+  const Agenda&                     geo_pos_agenda,
   const Index&                      j_analytical_do,
   const ArrayOfRetrievalQuantity&   jacobian_quantities,
   const ArrayOfArrayOfIndex&        jacobian_indices,
@@ -2132,8 +2133,6 @@ void iyb_calc(
   // Set up size of containers for data of 1 measurement block.
   // (can not be made below due to parallalisation)
   iyb.resize( niyb );
-  geo_pos.resize( nlos, atmosphere_dim );
-  geo_pos = -99999;
   //
   if( j_analytical_do )
     {
@@ -2145,6 +2144,9 @@ void iyb_calc(
     }
   else
     { diyb_dx.resize( 0 ); }
+  // Assume that geo_pos_agenda returns empty geo_pos.
+  geo_pos_matrix.resize( nlos, atmosphere_dim );
+  geo_pos_matrix = -99999;
 
   // For iy_aux we don't know the number of quantities, and we have to store
   // all outout
@@ -2154,6 +2156,7 @@ void iyb_calc(
   // only non-reference types can be declared firstprivate in OpenMP
   Workspace l_ws (ws);
   Agenda l_iy_main_agenda (iy_main_agenda);
+  Agenda l_geo_pos_agenda (geo_pos_agenda);
 
   String fail_msg;
   bool failed = false;
@@ -2165,13 +2168,15 @@ void iyb_calc(
       // Start of actual calculations
 #pragma omp parallel for                   \
 if (!arts_omp_in_parallel()) \
-firstprivate(l_ws, l_iy_main_agenda)
+firstprivate(l_ws, l_iy_main_agenda, l_geo_pos_agenda)
       for( Index ilos=0; ilos<nlos; ilos++ )
         {
           // Skip remaining iterations if an error occurred
           if (failed) continue;
           
-          iyb_calc_body( failed, fail_msg, iy_aux_array, l_ws, iyb, diyb_dx,
+          Ppath ppath;
+          iyb_calc_body( failed, fail_msg, iy_aux_array, l_ws,
+                         ppath, iyb, diyb_dx,
                          mblock_index, atmosphere_dim, t_field, z_field,
                          vmr_field, cloudbox_on, stokes_dim, f_grid,
                          sensor_pos, sensor_los, transmitter_pos,
@@ -2179,6 +2184,19 @@ firstprivate(l_ws, l_iy_main_agenda)
                          l_iy_main_agenda, j_analytical_do, 
                          jacobian_quantities, jacobian_indices,
                          iy_aux_vars, ilos, nf );
+
+          // Note that this code is found in two places inside the function
+          Vector geo_pos;
+          geo_pos_agendaExecute( ws, geo_pos, ppath, l_geo_pos_agenda );
+          if( geo_pos.nelem() )
+            {
+              if( geo_pos.nelem() != atmosphere_dim )
+                throw runtime_error( "Wrong size of *geo_pos* obtained "
+                  "from *geo_pos_agenda*.\nThe length of *geo_pos* must "
+                  "be zero or equal to *atmosphere_dim*." );
+                
+              geo_pos_matrix(ilos,joker) = geo_pos;
+            }
         }  
     }
   else
@@ -2191,7 +2209,9 @@ firstprivate(l_ws, l_iy_main_agenda)
           // Skip remaining iterations if an error occurred
           if (failed) continue;
 
-          iyb_calc_body( failed, fail_msg, iy_aux_array, l_ws, iyb, diyb_dx,
+          Ppath ppath;
+          iyb_calc_body( failed, fail_msg, iy_aux_array, l_ws, 
+                         ppath, iyb, diyb_dx,
                          mblock_index, atmosphere_dim, t_field, z_field,
                          vmr_field, cloudbox_on, stokes_dim, f_grid,
                          sensor_pos, sensor_los, transmitter_pos,
@@ -2199,6 +2219,19 @@ firstprivate(l_ws, l_iy_main_agenda)
                          l_iy_main_agenda, j_analytical_do, 
                          jacobian_quantities, jacobian_indices,
                          iy_aux_vars, ilos, nf );
+
+          // Note that this code is found in two places inside the function
+          Vector geo_pos;
+          geo_pos_agendaExecute( ws, geo_pos, ppath, l_geo_pos_agenda );
+          if( geo_pos.nelem() )
+            {
+              if( geo_pos.nelem() != atmosphere_dim )
+                throw runtime_error( "Wrong size of *geo_pos* obtained "
+                  "from *geo_pos_agenda*.\nThe length of *geo_pos* must "
+                  "be zero or equal to *atmosphere_dim*." );
+                
+              geo_pos_matrix(ilos,joker) = geo_pos;
+            }
         }  
     }
 

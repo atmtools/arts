@@ -1502,6 +1502,7 @@ void yCalc_mblock_loop_body(
    const Matrix&                     sensor_response_dlos,
    const String&                     iy_unit,   
    const Agenda&                     iy_main_agenda,
+   const Agenda&                     geo_pos_agenda,
    const Agenda&                     jacobian_agenda,
    const Index&                      jacobian_do,
    const ArrayOfRetrievalQuantity&   jacobian_quantities,
@@ -1518,13 +1519,14 @@ void yCalc_mblock_loop_body(
         //
         Vector          iyb, iyb_error, yb(n1y);
         ArrayOfMatrix   diyb_dx;
-        Matrix          geo_pos;
+        Matrix          geo_pos_matrix;
         //
-        iyb_calc(ws, iyb, iyb_aux_array[mblock_index], diyb_dx, geo_pos,
+        iyb_calc(ws, iyb, iyb_aux_array[mblock_index], diyb_dx, geo_pos_matrix,
                  mblock_index, atmosphere_dim, t_field, z_field, vmr_field,
                  cloudbox_on, stokes_dim, f_grid, sensor_pos, sensor_los,
                  transmitter_pos, mblock_dlos_grid, 
-                 iy_unit, iy_main_agenda, j_analytical_do, jacobian_quantities,
+                 iy_unit, iy_main_agenda, geo_pos_agenda,
+                 j_analytical_do, jacobian_quantities,
                  jacobian_indices, iy_aux_vars, verbosity);
 
 
@@ -1574,22 +1576,21 @@ void yCalc_mblock_loop_body(
 
 
         // Handle geo-positioning
-        if( geo_pos(0,0) > -99900 )  // No data are flagged with -99999
+        if( geo_pos_matrix(0,0) > -99900 )  // No data are flagged with -99999
           {
             // Find bore sigtht direction be proping sensor_response
             const Index   nf   = f_grid.nelem();
             const Index   nlos = mblock_dlos_grid.nrows();
             const Index   niyb = nf * nlos * stokes_dim;
-            const Index   ntot = yb.nelem();
-            ArrayOfIndex i_of_max( ntot );
-            Vector max_contr( ntot, -99999 );
+            ArrayOfIndex i_of_max( n1y );
+            Vector max_contr( n1y, -99999 );
             for( Index ilos=0; ilos<nlos; ilos++ )
               {
                 Vector itry( niyb, 0 );
                 itry[Range(ilos*nf*stokes_dim,nf*stokes_dim)] = 1;
-                Vector ytry( ntot );
+                Vector ytry( n1y );
                 mult( ytry, sensor_response, itry );
-                for( Index i=0; i<ntot; i++ )
+                for( Index i=0; i<n1y; i++ )
                   {
                     if( ytry[i] > max_contr[i] )
                       {
@@ -1598,9 +1599,9 @@ void yCalc_mblock_loop_body(
                       }
                   }
               }
-            // Extract geo_pos for found bore-sights
-            for( Index i=0; i<ntot; i++ )
-              { y_geo(i,joker) = geo_pos(i_of_max[i],joker); }
+            // Extract geo_pos_matrix for found bore-sights
+            for( Index i=0; i<n1y; i++ )
+              { y_geo(row0+i,joker) = geo_pos_matrix(i_of_max[i],joker); }
           }
     }
 
@@ -1645,6 +1646,7 @@ void yCalc(
    const Matrix&                     sensor_response_dlos,
    const String&                     iy_unit,   
    const Agenda&                     iy_main_agenda,
+   const Agenda&                     geo_pos_agenda,
    const Agenda&                     jacobian_agenda,
    const Index&                      jacobian_do,
    const ArrayOfRetrievalQuantity&   jacobian_quantities,
@@ -1739,9 +1741,10 @@ void yCalc(
       Workspace l_ws (ws);
       Agenda l_jacobian_agenda (jacobian_agenda);
       Agenda l_iy_main_agenda (iy_main_agenda);
+      Agenda l_geo_pos_agenda (geo_pos_agenda);
 
 #pragma omp parallel for                         \
-firstprivate(l_ws, l_jacobian_agenda, l_iy_main_agenda)
+  firstprivate(l_ws, l_jacobian_agenda, l_iy_main_agenda, l_geo_pos_agenda)
       for( Index mblock_index=0; mblock_index<nmblock; mblock_index++ )
       {
           // Skip remaining iterations if an error occurred
@@ -1755,7 +1758,8 @@ firstprivate(l_ws, l_jacobian_agenda, l_iy_main_agenda)
                                   mblock_dlos_grid, sensor_response,
                                   sensor_response_f, sensor_response_pol,
                                   sensor_response_dlos, iy_unit,
-                                  l_iy_main_agenda, l_jacobian_agenda,
+                                  l_iy_main_agenda, l_geo_pos_agenda,
+                                  l_jacobian_agenda,
                                   jacobian_do, jacobian_quantities,
                                   jacobian_indices, iy_aux_vars, verbosity,
                                   mblock_index, n1y, j_analytical_do );          
@@ -1778,7 +1782,8 @@ firstprivate(l_ws, l_jacobian_agenda, l_iy_main_agenda)
                                   mblock_dlos_grid, sensor_response,
                                   sensor_response_f, sensor_response_pol,
                                   sensor_response_dlos, iy_unit,
-                                  iy_main_agenda, jacobian_agenda,
+                                  iy_main_agenda, geo_pos_agenda,
+                                  jacobian_agenda,
                                   jacobian_do, jacobian_quantities,
                                   jacobian_indices, iy_aux_vars, verbosity,
                                   mblock_index, n1y, j_analytical_do ); 
@@ -1860,6 +1865,7 @@ void yCalcAppend(
    const Matrix&                     sensor_response_dlos,
    const String&                     iy_unit,   
    const Agenda&                     iy_main_agenda,
+   const Agenda&                     geo_pos_agenda,
    const Agenda&                     jacobian_agenda,
    const Index&                      jacobian_do,
    const ArrayOfString&              iy_aux_vars,
@@ -1909,7 +1915,7 @@ void yCalcAppend(
          stokes_dim, f_grid, sensor_pos, sensor_los, transmitter_pos,
          mblock_dlos_grid, sensor_response,
          sensor_response_f, sensor_response_pol, sensor_response_dlos, 
-         iy_unit, iy_main_agenda, 
+         iy_unit, iy_main_agenda, geo_pos_agenda, 
          jacobian_agenda, jacobian_do, jacobian_quantities, jacobian_indices, 
          iy_aux_vars, verbosity );
 

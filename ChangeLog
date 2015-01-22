@@ -1,3 +1,46 @@
+2015-01-22  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-127
+
+	* A system to geo-position the data in place, but should for
+	the moment just be seen as a test feature. Anyhow:
+
+	Adding geo-positioning is achived by setting geo_pos_agenda. For a
+	downward-looking operational sensors, this should be the standard
+	choice:
+
+	AgendaSet( geo_pos_agenda ){
+	  geo_posEndOfPpath
+	}
+
+	The final geo-pos is returned as y_geo. Works for all
+	atmosphere_dim, but of course most useful for 3D.
+
+	Commemnts: There is no actual description of the bore-sight for
+	calculations with antenna. The bore-sight is instead determined by
+	probing the sensor response matrix, which results in a bit of
+	calculation burden to achieve the geo-positioning. How well this
+	works for cases with an antenna pattern applied has not yet
+	tested.
+
+	* src/m_ppath.cc (geo_posEndOfPpath,geo_posLowestAltitudeOfPpath):
+	The new WSMs, to be used inside geo_pos_agenda.
+
+	* controlfiles/general/general.arts: Added definition of
+	geo_pos_agenda. This version set geo_pos to be empty.
+
+	* src/m_jacobian.cc (jacobianCalcAbsSpeciesPerturbations)
+	(jacobianCalcPointingZaRecalc)
+	(jacobianCalcTemperaturePerturbations): Added geo_pos_agenda and
+	adopted call of iyb_calc.
+
+	* src/rte.cc (iyb_calc): Added geo_pos_agenda. It is here that it
+	is actually called.
+	(iyb_calc_body): Added ppath as output argument.
+
+	* src/m_rte.cc (yCalcAppend, yCalc): Added geo_pos_agenda and
+	adopted call of iyb_calc.
+
 2015-01-22  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-126
