@@ -2102,6 +2102,7 @@ void iyb_calc(
         Vector&                     iyb,
         ArrayOfVector&              iyb_aux,
         ArrayOfMatrix&              diyb_dx,
+        Matrix&                     geo_pos,
   const Index&                      mblock_index,
   const Index&                      atmosphere_dim,
   ConstTensor3View                  t_field,
@@ -2131,6 +2132,8 @@ void iyb_calc(
   // Set up size of containers for data of 1 measurement block.
   // (can not be made below due to parallalisation)
   iyb.resize( niyb );
+  geo_pos.resize( nlos, atmosphere_dim );
+  geo_pos = -99999;
   //
   if( j_analytical_do )
     {
@@ -2176,7 +2179,7 @@ firstprivate(l_ws, l_iy_main_agenda)
                          l_iy_main_agenda, j_analytical_do, 
                          jacobian_quantities, jacobian_indices,
                          iy_aux_vars, ilos, nf );
-        }  // End za loop
+        }  
     }
   else
     {
@@ -2196,7 +2199,7 @@ firstprivate(l_ws, l_iy_main_agenda)
                          l_iy_main_agenda, j_analytical_do, 
                          jacobian_quantities, jacobian_indices,
                          iy_aux_vars, ilos, nf );
-        }  // End za loop
+        }  
     }
 
   if( failed )

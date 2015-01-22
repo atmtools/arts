@@ -1483,6 +1483,7 @@ void yCalc_mblock_loop_body(
          ArrayOfIndex&               y_pol,
          Matrix&                     y_pos,
          Matrix&                     y_los,
+         Matrix&                     y_geo,
          Matrix&                     jacobian,
    const Index&                      atmosphere_dim,
    const Tensor3&                    t_field,
@@ -1517,8 +1518,9 @@ void yCalc_mblock_loop_body(
         //
         Vector          iyb, iyb_error, yb(n1y);
         ArrayOfMatrix   diyb_dx;
+        Matrix          geo_pos;
         //
-        iyb_calc(ws, iyb, iyb_aux_array[mblock_index], diyb_dx,
+        iyb_calc(ws, iyb, iyb_aux_array[mblock_index], diyb_dx, geo_pos,
                  mblock_index, atmosphere_dim, t_field, z_field, vmr_field,
                  cloudbox_on, stokes_dim, f_grid, sensor_pos, sensor_los,
                  transmitter_pos, mblock_dlos_grid, 
@@ -1548,7 +1550,7 @@ void yCalc_mblock_loop_body(
             if( sensor_response_dlos.ncols() > 1 )
               { y_los(row0+i,1) += sensor_response_dlos(i,1); }
           }
-
+        
         // Apply sensor response matrix on diyb_dx, and put into jacobian
         // (that is, analytical jacobian part)
         //
@@ -1569,7 +1571,39 @@ void yCalc_mblock_loop_body(
             jacobian_agendaExecute( ws, jacobian, mblock_index, iyb, yb,
                                     jacobian_agenda );
         }
+
+
+        // Handle geo-positioning
+        if( geo_pos(0,0) > -99900 )  // No data are flagged with -99999
+          {
+            // Find bore sigtht direction be proping sensor_response
+            const Index   nf   = f_grid.nelem();
+            const Index   nlos = mblock_dlos_grid.nrows();
+            const Index   niyb = nf * nlos * stokes_dim;
+            const Index   ntot = yb.nelem();
+            ArrayOfIndex i_of_max( ntot );
+            Vector max_contr( ntot, -99999 );
+            for( Index ilos=0; ilos<nlos; ilos++ )
+              {
+                Vector itry( niyb, 0 );
+                itry[Range(ilos*nf*stokes_dim,nf*stokes_dim)] = 1;
+                Vector ytry( ntot );
+                mult( ytry, sensor_response, itry );
+                for( Index i=0; i<ntot; i++ )
+                  {
+                    if( ytry[i] > max_contr[i] )
+                      {
+                        max_contr[i] = ytry[i];
+                        i_of_max[i] = ilos;
+                      }
+                  }
+              }
+            // Extract geo_pos for found bore-sights
+            for( Index i=0; i<ntot; i++ )
+              { y_geo(i,joker) = geo_pos(i_of_max[i],joker); }
+          }
     }
+
     catch (runtime_error e)
     {
 #pragma omp critical (yCalc_fail)
@@ -1588,6 +1622,7 @@ void yCalc(
          Matrix&                     y_pos,
          Matrix&                     y_los,
          ArrayOfVector&              y_aux,
+         Matrix&                     y_geo,
          Matrix&                     jacobian,
    const Index&                      atmfields_checked,
    const Index&                      atmgeom_checked,
@@ -1662,6 +1697,8 @@ void yCalc(
   y_pol.resize( nmblock*n1y );
   y_pos.resize( nmblock*n1y, sensor_pos.ncols() );
   y_los.resize( nmblock*n1y, sensor_los.ncols() );
+  y_geo.resize( nmblock*n1y, atmosphere_dim );
+  y_geo = -99999;   // Will be replaced if relavant data are provided (*geo_pos*)
 
   // For y_aux we don't know the number of quantities, and we need to 
   // store all output
@@ -1711,7 +1748,7 @@ firstprivate(l_ws, l_jacobian_agenda, l_iy_main_agenda)
           if (failed) continue;
 
           yCalc_mblock_loop_body( failed, fail_msg, iyb_aux_array, l_ws,
-                                  y, y_f, y_pol, y_pos, y_los, jacobian,
+                                  y, y_f, y_pol, y_pos, y_los, y_geo, jacobian,
                                   atmosphere_dim, t_field, z_field, vmr_field,
                                   cloudbox_on, stokes_dim, f_grid, 
                                   sensor_pos, sensor_los, transmitter_pos,
@@ -1734,7 +1771,7 @@ firstprivate(l_ws, l_jacobian_agenda, l_iy_main_agenda)
           if (failed) continue;
 
           yCalc_mblock_loop_body( failed, fail_msg, iyb_aux_array, ws,
-                                  y, y_f, y_pol, y_pos, y_los, jacobian,
+                                  y, y_f, y_pol, y_pos, y_los, y_geo, jacobian,
                                   atmosphere_dim, t_field, z_field, vmr_field,
                                   cloudbox_on, stokes_dim, f_grid, 
                                   sensor_pos, sensor_los, transmitter_pos,
@@ -1798,6 +1835,7 @@ void yCalcAppend(
          Matrix&                     y_pos,
          Matrix&                     y_los,
          ArrayOfVector&              y_aux,
+         Matrix&                     y_geo,
          Matrix&                     jacobian,
          ArrayOfRetrievalQuantity&   jacobian_quantities,
          ArrayOfArrayOfIndex&        jacobian_indices,
@@ -1843,6 +1881,8 @@ void yCalcAppend(
     throw runtime_error( "Sizes of input *y* and *y_pos* are inconsistent." );
   if( y_los.nrows() != n1 )
     throw runtime_error( "Sizes of input *y* and *y_los* are inconsistent." );
+  if( y_geo.nrows() != n1 )
+    throw runtime_error( "Sizes of input *y* and *y_geo* are inconsistent." );
   if( jacobian_do )
     {
       nrq1 = jacobian_quantities1.nelem();
@@ -1859,11 +1899,11 @@ void yCalcAppend(
   // Calculate new measurement
   //
   Vector        y2, y_f2;
-  Matrix        y_pos2, y_los2, jacobian2;
+  Matrix        y_pos2, y_los2, y_geo2, jacobian2;
   ArrayOfIndex  y_pol2;
   ArrayOfVector y_aux2;
   //
-  yCalc( ws, y2, y_f2, y_pol2, y_pos2, y_los2, y_aux2, jacobian2,
+  yCalc( ws, y2, y_f2, y_pol2, y_pos2, y_los2, y_aux2, y_geo2, jacobian2,
          atmfields_checked, atmgeom_checked, atmosphere_dim, t_field,
          z_field, vmr_field, cloudbox_on, cloudbox_checked, sensor_checked,
          stokes_dim, f_grid, sensor_pos, sensor_los, transmitter_pos,
@@ -1879,7 +1919,7 @@ void yCalcAppend(
           "Different number of columns in *y_pos* between the measurements." );
   if( y_los.ncols() != y_los2.ncols() )
     throw runtime_error( 
-          "Different number of columns in *y_pos* between the measurements." );
+          "Different number of columns in *y_los* between the measurements." );
   
 
   // y and y_XXX
@@ -1889,7 +1929,7 @@ void yCalcAppend(
   {
     // Make copy of old measurement
     const Vector        y1=y, y_f1=y_f;
-    const Matrix        y_pos1=y_pos, y_los1=y_los;
+    const Matrix        y_pos1=y_pos, y_los1=y_los, y_geo1=y_geo;
     const ArrayOfIndex  y_pol1=y_pol;
     const ArrayOfVector y_aux1=y_aux;
     //
@@ -1904,6 +1944,9 @@ void yCalcAppend(
     //
     y_los.resize( n1+n2, y_los1.ncols() );
     y_los(Range(0,n1),joker) = y_los1;   y_los(Range(n1,n2),joker) = y_los2; 
+    //
+    y_geo.resize( n1+n2, y_geo1.ncols() );
+    y_geo(Range(0,n1),joker) = y_geo1;   y_geo(Range(n1,n2),joker) = y_geo2; 
     //
     y_pol.resize( n1+n2 );
     for( Index i=0; i<n1; i++ )

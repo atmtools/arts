@@ -1,3 +1,31 @@
+2015-01-22  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-125
+
+	* Work in progress!:
+
+	Trying to add a feature for geo-positioning.
+
+	The MetMM part now throws an error if stokes_dim > 1, as the
+	results are worng (probably just a factor of 2 to fix).
+
+	* src/m_jacobian.cc: Adopted all calls of iyb_calc.
+
+	* src/rte.cc (iyb_calc): Added handling of geo_pos.
+
+	* src/m_rte.cc (yCalc, yCalcAppend): Added handling of y_geo, here
+	and in sub-functions.
+
+	* src/agendas.cc: Added geo_pos_agenda.
+
+	* src/workspace.cc: Added geo_pos and y_geo.
+
+	* src/rte.cc (iyb_calc): Removed some outdated comments.
+
+	* src/m_sensor.cc (sensor_responseBackendMetMM):  The mirror_dza
+	feature now working. Noticed that results incorrect for
+	stokes_dim > 1. Not yet solved and just added an error if used.
+
 2015-01-21  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-124
@@ -10,7 +38,7 @@
 	removed below are now found here.
 
 	* controlfiles/instruments/metmm/sensor_descriptions/sensor_amsub.arts:
-	Removed setting of sensor_pos and sensor_los. 
+	Removed setting of sensor_pos and sensor_los.
 
 	* src/ppath.cc (map_daa): The aa_grid value was limited to [-5,5].
 	Don't understand why; the algorithm should work for any angle. Now

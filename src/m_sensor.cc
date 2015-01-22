@@ -1235,10 +1235,10 @@ void sensor_responseBackendMetMM(
       throw std::runtime_error("This method only supports 1D and 3D atmospheres.");
 
     if (antenna_dlos.nrows() == 0)
-        throw std::runtime_error("*antenna_dlos* is empty.");
+      throw std::runtime_error("*antenna_dlos* is empty.");
     
     if (antenna_dlos.ncols() != 1)
-        throw std::runtime_error("*antenna_dlos* must have a single column.");
+      throw std::runtime_error("*antenna_dlos* must have a single column.");
 
     // All sensor_los zenith angles must be 0
     for (Index ilos = 0; ilos < sensor_los.nrows(); ilos++)
@@ -1252,17 +1252,44 @@ void sensor_responseBackendMetMM(
       }
     }
 
+
     // Copy, and possibly extend antenna_dlos
     Matrix antenna_dlos_local;
-    if( atmosphere_dim == 1 )
-      { antenna_dlos_local = antenna_dlos; }
-    else
+
+    // Mirror?
+    if ( mirror_dza )
       {
-        antenna_dlos_local.resize( antenna_dlos.nrows(), 2 );
-        antenna_dlos_local(joker,0) = antenna_dlos(joker,0);
-        antenna_dlos_local(joker,1) = 0;
+        if( atmosphere_dim != 3 )
+          throw std::runtime_error("*mirror_dza* only makes sense in 3D.");
+        // We don't want to duplicate zero!
+        const Index n = antenna_dlos.nrows(); 
+        Index nnew = 0;
+        for( Index i=0; i<n; i++ )
+          { if( antenna_dlos(i,0) != 0 )
+              { nnew += 1; }
+          }
+        antenna_dlos_local.resize( n+nnew, 1 );
+        antenna_dlos_local(Range(0,n),0) = antenna_dlos(joker,0);
+        Index pos = n;
+        for( Index i=n-1; i>=0; i-- )
+          { if( antenna_dlos(i,0) != 0 )
+              { 
+                antenna_dlos_local(pos,0) = -antenna_dlos(i,0);
+                pos += 1; 
+              }
+          }
       }
-    
+    else
+      { antenna_dlos_local = antenna_dlos; }
+
+    // Add azimuth angles?
+    if( atmosphere_dim == 3 )
+      {
+        Matrix acopy = antenna_dlos_local;
+        antenna_dlos_local.resize( acopy.nrows(), 2 );
+        antenna_dlos_local(joker,0) = acopy(joker,0);
+        antenna_dlos_local(joker,1) = 0;
+      }    
 
     // Setup frequency grid
     //--------------------------------------------------
@@ -1446,6 +1473,7 @@ void sensor_responseBackendMetMM(
 
     if (stokes_dim > 1)
     {
+      throw runtime_error( "stokes > 1 not yet properly handled.\n" );
         // With polarisation
         if (mm_pol.nelem() != nchannels)
         {
@@ -1464,7 +1492,6 @@ void sensor_responseBackendMetMM(
             met_mm_polarisation_hmatrix(H_pol, mm_pol,
                                         sensor_los(0, 0) + antenna_dlos_local(iza,0), 
                                         stokes_dim, iy_unit);
-
             mult(sensor_response_tmp, H_pol, sensor_response_single);
             for (Index r = 0; r < sensor_response_tmp.nrows(); r++)
                 for (Index c = 0; c < sensor_response_tmp.ncols(); c++)

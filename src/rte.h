@@ -276,6 +276,7 @@ void iyb_calc(
         Vector&                     iyb,
         ArrayOfVector&              iyb_aux,
         ArrayOfMatrix&              diyb_dx,
+        Matrix&                     geo_pos,
   const Index&                      imblock,
   const Index&                      atmosphere_dim,
   ConstTensor3View                  t_field,

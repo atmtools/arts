@@ -291,6 +291,20 @@ void define_agenda_data()
 
   agenda_data.push_back
     (AgRecord
+     ( NAME( "geo_pos_agenda" ),
+       DESCRIPTION
+       (
+        "Geo-positioning of a pencil beam calculattion.\n"
+        "\n"
+        "The task of this agenda is to set *geo_pos*. The standard choices are\n"
+        "to set that WSV to be empty or select a position along the propagation\n"
+        "path (described by *ppath*).\n"
+        ),
+       OUTPUT( "geo_pos" ),
+       INPUT( "ppath" )));
+
+  agenda_data.push_back
+    (AgRecord
      ( NAME( "g0_agenda" ),
        DESCRIPTION
        (

@@ -1557,6 +1557,29 @@ void Workspace::define_wsv_data()
   
   wsv_data.push_back
     (WsvRecord
+     (NAME( "geo_pos" ),
+      DESCRIPTION
+      (
+       "Geo-position of a measurement.\n"
+       "\n"
+       "This definition of the elements of this vector follows *sensor_pos*.\n"
+       "\n"
+       "However, an empty vectopr is allowed for *geo_pos*, then flagging that\n"
+       "no geo-positioning has been performed.\n"
+       ),
+      GROUP( "Vector" )));
+
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "geo_pos_agenda" ),
+      DESCRIPTION
+      (
+        "See agendas.cc.\n"
+       ),
+      GROUP( "Agenda" )));
+
+  wsv_data.push_back
+    (WsvRecord
      (NAME( "g0" ),
       DESCRIPTION
       (
@@ -4927,6 +4950,23 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
+    ( NAME( "y_geo" ),
+      DESCRIPTION
+      (
+       "The geo-positioning associated with *y*.\n"
+       "\n"
+       "Definition of positions matches *sensor_pos* (such as first column\n"
+       "holds the altitude). Data are provided for each element of *y*.\n"
+       "\n"
+       "All elements of *yGeo* are set to -99999 if *geo_pos_agenda* sets\n"
+       "*geo_pos* to be empty, to flag that no data have been provided.\n"
+       "\n"
+       "Unit:  [ m, deg, deg ]\n"
+        ),
+      GROUP( "Matrix" )));
+
+  wsv_data.push_back
+   (WsvRecord
     ( NAME( "y_los" ),
       DESCRIPTION
       (
@@ -4978,7 +5018,7 @@ void Workspace::define_wsv_data()
        "Usage: Output from radiative transfer calculations considering\n"
        "       sensor response.\n"
        "\n"
-       "Unit:  [ degrees, degrees ]\n"
+       "Unit:  [ m, deg, deg ]\n"
         ),
       GROUP( "Matrix" )));
 
