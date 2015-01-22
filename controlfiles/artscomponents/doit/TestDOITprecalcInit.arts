@@ -95,12 +95,12 @@ MatrixSetConstant( z_surface, 1, 1, 500 )
 # - surface reflectivity from Liebe model
 # - surface skin temperature interpolated from atmospheric t_field
 #
+VectorCreate( n_t_grid )
 AgendaSet( surface_rtprop_agenda ){
   specular_losCalc
   InterpAtmFieldToPosition( 
     out   = surface_skin_t, 
     field = t_field )
-  VectorCreate( n_t_grid )
   VectorSetConstant( n_t_grid, 1, surface_skin_t )
   complex_refr_indexWaterLiebe93( 
     complex_refr_index = surface_complex_refr_index,

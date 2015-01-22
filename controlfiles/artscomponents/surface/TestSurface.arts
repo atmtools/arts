@@ -56,8 +56,8 @@ AgendaSet( iy_main_agenda ){
   MatrixScale( iy, iy, 100 )
 } 
 
+IndexCreate( nf )
 AgendaSet( blackbody_radiation_agenda ){
-  IndexCreate( nf )
   nelemGet( nf, f_grid )
   VectorSetConstant( blackbody_radiation, nf, rtp_temperature )
 }

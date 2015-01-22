@@ -51,7 +51,7 @@ private:
 
     void parse_main();
 
-    void parse_agenda(Agenda& tasklist);
+    void parse_agenda(Agenda& tasklist, const String& agenda_name);
 
     void parse_method(Index&         id,
                       ArrayOfIndex&  output,

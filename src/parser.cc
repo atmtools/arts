@@ -371,7 +371,7 @@ void ArtsParser::parse_main()
           
     \author Stefan Buehler
 */
-void ArtsParser::parse_agenda( Agenda& tasklist )
+void ArtsParser::parse_agenda( Agenda& tasklist, const String& agenda_name )
 {
     CREATE_OUT2;
     CREATE_OUT3;
@@ -469,6 +469,17 @@ void ArtsParser::parse_agenda( Agenda& tasklist )
                     mname.find ("Create") == mname.length() - 6 &&
                     get_wsv_group_id(mname.substr(0, mname.length() - 6)) != -1)
                 {
+                    if (agenda_name != "Arts2")
+                    {
+                        ostringstream os;
+                        os << mname << " cannot be called inside an agenda.\n"
+                        << "All workspace variables are global and must be created at the top level.";
+                        throw ParseError (os.str(),
+                                          msource.File(),
+                                          msource.Line(),
+                                          msource.Column());
+                        throw std::runtime_error("Not allowerd here");
+                    }
                     using global_data::MdMap;
                     using global_data::wsv_group_names;
                     String method_name = "Delete_sg_" + wsv_group_names[Workspace::wsv_data[output[0]].Group()];
@@ -615,7 +626,7 @@ void ArtsParser::parse_method(Index&         id,
         {
             out3 << "- " << mdd->Name() << "\n";
             out3 << "{\n";
-            parse_agenda(tasks);
+            parse_agenda(tasks, methodname);
             out3 << "}\n";
         }
 
