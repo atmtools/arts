@@ -1,3 +1,31 @@
+2015-01-23  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-134
+
+	* AgendaExecute bug fix part 3/2. ;-)
+
+	* src/agenda_class.cc:
+
+	(Agenda::is_input): The check for WSVs used as inputs by agendas passed
+	as generic inputs was overly ambitious. A recursive check of the
+	methods inside the agenda is not needed. It actually causes false
+	errors depending on the order of initialization of agendas. Only the
+	interface variables of the agenda should be checked.
+	Fixes bug reported by Patrick.
+
+	(Agenda::set_outputs_to_push_and_dup): Instead of having one special
+	case for the output variables of AgendaExecute, treat all Agendas
+	passed as generic input the same way.
+
+	* controlfiles/CMakeLists.txt,
+	controlfiles/artscomponents/agendas/TestAgendaExecute.arts:
+
+	Added test case for agenda scoping.
+
+	* src/cloudbox.cc (pnd_fieldMGD_LWC, pnd_fieldMGD_IWC):
+
+	Remove unused variable min_rho.
+
 2015-01-23  Manfred Brath  <manfred.brath@uni-hamburg.de>
 
 	* arts-2-3-133

@@ -2095,7 +2095,6 @@ void pnd_fieldMGD_LWC (Tensor4View pnd_field,
     Vector mass ( N_se, 0.0 );
     Vector rho ( N_se, 0.0 );
     Numeric mean_rho;
-    Numeric min_rho;
     Numeric max_rho;
     Numeric delta_rho;
     Vector pnd ( N_se, 0.0 );
@@ -2145,7 +2144,6 @@ void pnd_fieldMGD_LWC (Tensor4View pnd_field,
     
     
     // checking if the particles have the same density
-    min_rho=min(rho);
     max_rho=max(rho);
     delta_rho=(max_rho-min(rho))/max_rho;
     
@@ -2266,7 +2264,6 @@ void pnd_fieldMGD_IWC (Tensor4View pnd_field,
     Vector mass( N_se, 0.0 );
     Vector rho( N_se, 0.0 );
     Numeric mean_rho;
-    Numeric min_rho;
     Numeric max_rho;
     Numeric delta_rho;
     Vector pnd( N_se, 0.0 );
@@ -2316,7 +2313,6 @@ void pnd_fieldMGD_IWC (Tensor4View pnd_field,
     
     
     // checking if the particles have the same density
-    min_rho=min(rho);
     max_rho=max(rho);
     delta_rho=(max_rho-min(rho))/max_rho;
     

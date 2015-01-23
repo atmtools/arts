@@ -292,6 +292,7 @@ void Agenda::set_outputs_to_push_and_dup(const Verbosity& verbosity)
   using global_data::AgendaMap;
   using global_data::agenda_data;
   using global_data::MdMap;
+  using global_data::WsvGroupMap;
 
   set<Index> inputs;
   set<Index> outputs;
@@ -299,7 +300,7 @@ void Agenda::set_outputs_to_push_and_dup(const Verbosity& verbosity)
   set<Index> outs2dup;
 
   const Index DeleteIndex = MdMap.find("Delete")->second;
-  const Index AgendaExecuteIndex = MdMap.find("AgendaExecute")->second;
+  const Index WsvAgendaGroupIndex = WsvGroupMap.find("Agenda")->second;
 
   for (Array<MRecord>::const_iterator method = mml.begin();
        method != mml.end(); method++)
@@ -327,15 +328,18 @@ void Agenda::set_outputs_to_push_and_dup(const Verbosity& verbosity)
           souts.insert(gins.begin(), gins.end());
         }
 
-      /* Special case: For the AgendaExecute WSM it is necessary
-         for proper scoping to also add the output variables of the
-         executed agenda to our output variable list.
+      /* Special case: For WSMs that have generic inputs of type Agenda
+         it is necessary for proper scoping to also add the output variables of the
+         agenda to our output variable list.
        */
-      else if (method->Id() == AgendaExecuteIndex)
+      for (Index j = 0; j < md_data[method->Id()].GInType().nelem(); j++)
         {
-          const String& agenda_name = Workspace::wsv_data[gins[0]].Name();
-          const ArrayOfIndex& agouts = agenda_data[AgendaMap.find(agenda_name)->second].Out();
-          souts.insert(agouts.begin(), agouts.end());
+          if (md_data[method->Id()].GInType()[j] == WsvAgendaGroupIndex)
+            {
+              const String& agenda_name = Workspace::wsv_data[gins[j]].Name();
+              const ArrayOfIndex& agouts = agenda_data[AgendaMap.find(agenda_name)->second].Out();
+              souts.insert(agouts.begin(), agouts.end());
+            }
         }
 
       // Collect input WSVs
@@ -491,16 +495,18 @@ void Agenda::set_outputs_to_push_and_dup(const Verbosity& verbosity)
 
   \return True if var is an input variable of this agenda.
 */
-bool Agenda::is_input(Workspace& ws, Index var) const
+bool Agenda::is_input(Workspace&, Index var) const
 {
   // Make global method data visible:
   using global_data::md_data;
   using global_data::wsv_group_names;
   using global_data::WsvGroupMap;
+  using global_data::AgendaMap;
+  using global_data::agenda_data;
 
-  // Make sure that var is the index of a valid method:
+  // Make sure that var is the index of a valid WSV:
   assert(0 <= var);
-  assert(var < md_data.nelem());
+  assert(var < Workspace::wsv_data.nelem());
 
   // Determine the index of WsvGroup Agenda
   const Index WsvAgendaGroupIndex = WsvGroupMap.find("Agenda")->second;
@@ -531,23 +537,23 @@ bool Agenda::is_input(Workspace& ws, Index var) const
           {
             if (var == input[j]) return true;
           }
+
+        // If a General Input variable of this method (e.g. AgendaExecute)
+        // is of type Agenda, check this Agenda's interface variables for matches
+        for (Index j = 0; j < md_data[this_method.Id()].GInType().nelem(); j++)
+          {
+            if (md_data[this_method.Id()].GInType()[j] == WsvAgendaGroupIndex)
+              {
+                const String& agenda_name = Workspace::wsv_data[input[j]].Name();
+                const ArrayOfIndex& agins = agenda_data[AgendaMap.find(agenda_name)->second].In();
+
+                for (Index k = 0; k < agins.nelem(); ++k)
+                  {
+                    if (var == agins[k]) return true;
+                  }
+              }
+          }
       }
-
-      // If a General Input variable of this method (e.g. AgendaExecute)
-      // is of type Agenda, check its input recursively for matches
-      for (Index j = 0; j < md_data[this_method.Id()].GInType().nelem(); j++)
-        {
-          if (md_data[this_method.Id()].GInType()[j] == WsvAgendaGroupIndex)
-            {
-              Agenda* AgendaFromGeneralInput =
-                (Agenda*)ws[this_method.In()[j]];
-
-              if ((*AgendaFromGeneralInput).is_input(ws, var))
-                {
-                  return true;
-                }
-            }
-        }
     }
 
   // Ok, that means var is no input at all.
