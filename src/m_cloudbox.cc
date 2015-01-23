@@ -1418,7 +1418,7 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
                      const ArrayOfIndex& cloudbox_limits,
                      const Tensor4& scat_species_mass_density_field,
                      const Tensor4& scat_species_mass_flux_field,
-                     const Tensor4& /* scat_species_number_density_field */,
+                     const Tensor4& scat_species_number_density_field,
                      const Tensor3& t_field,
                      const ArrayOfArrayOfScatteringMetaData& scat_meta,
                      const ArrayOfString& scat_species,
@@ -1649,6 +1649,164 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
                         verbosity);
     }
       
+      //---- pnd_field calculations for S2M_LWC ----------------------------
+    else if ( psd_param == "S2M_LWC" )
+    {
+        psd = "S2M_LWC";
+        //cout << psd << "\n";
+        
+        //check for expected scattering species field name
+        if ( partfield_name != "LWC" )
+        {
+            out1 << "WARNING! The scattering species field name is unequal"
+            << "'LWC'.\n"
+            << psd << " should only be applied to liquid cloud water.\n";
+        }
+        
+        pnd_fieldS2M (pnd_field,
+                        scat_species_mass_density_field ( i_ss, joker, joker, joker ),
+                        scat_species_number_density_field ( i_ss, joker, joker, joker ),
+                        limits,
+                        scat_meta,
+                        i_ss,
+                        scat_species[i_ss],
+                        delim,
+                        psd,
+                        verbosity);
+    }
+      
+      //---- pnd_field calculations for S2M_IWC ----------------------------
+    else if ( psd_param == "S2M_IWC" )
+    {
+        psd = "S2M_IWC";
+        //cout << psd << "\n";
+        
+        //check for expected scattering species field name
+        if ( partfield_name != "IWC" )
+        {
+            out1 << "WARNING! The scattering species field name is unequal"
+            << "'IWC'.\n"
+            << psd << " should only be applied to cloud ice.\n";
+        }
+        
+        pnd_fieldS2M (pnd_field,
+                      scat_species_mass_density_field ( i_ss, joker, joker, joker ),
+                      scat_species_number_density_field ( i_ss, joker, joker, joker ),
+                      limits,
+                      scat_meta,
+                      i_ss,
+                      scat_species[i_ss],
+                      delim,
+                      psd,
+                      verbosity);
+    }
+    
+      //---- pnd_field calculations for S2M_RWC ----------------------------
+    else if ( psd_param == "S2M_RWC" )
+    {
+        psd = "S2M_RWC";
+        //cout << psd << "\n";
+        
+        //check for expected scattering species field name
+        if ( partfield_name != "Rain" && partfield_name != "RWC")
+        {
+            out1 << "WARNING! The scattering species field name is unequal"
+            << "'Rain' or 'RWC'.\n"
+            << psd << " should only be applied to precipitating liquid water\n";
+        }
+        
+        pnd_fieldS2M (pnd_field,
+                      scat_species_mass_density_field ( i_ss, joker, joker, joker ),
+                      scat_species_number_density_field ( i_ss, joker, joker, joker ),
+                      limits,
+                      scat_meta,
+                      i_ss,
+                      scat_species[i_ss],
+                      delim,
+                      psd,
+                      verbosity);
+    }
+      
+      
+      //---- pnd_field calculations for S2M_SWC ----------------------------
+    else if ( psd_param == "S2M_SWC" )
+    {
+        psd = "S2M_SWC";
+        //cout << psd << "\n";
+        
+        //check for expected scattering species field name
+        if ( partfield_name != "Snow" && partfield_name != "SWC")
+        {
+            out1 << "WARNING! The scattering species field name is unequal"
+            << "'SWC' or 'Snow'.\n"
+            << psd << " should only be applied to snow\n";
+        }
+        
+        pnd_fieldS2M (pnd_field,
+                      scat_species_mass_density_field ( i_ss, joker, joker, joker ),
+                      scat_species_number_density_field ( i_ss, joker, joker, joker ),
+                      limits,
+                      scat_meta,
+                      i_ss,
+                      scat_species[i_ss],
+                      delim,
+                      psd,
+                      verbosity);
+    }
+      
+      
+      //---- pnd_field calculations for S2M_GWC ----------------------------
+    else if ( psd_param == "S2M_GWC" )
+    {
+        psd = "S2M_GWC";
+        //cout << psd << "\n";
+        
+        //check for expected scattering species field name
+        if ( partfield_name != "Snow" && partfield_name != "GWC")
+        {
+            out1 << "WARNING! The scattering species field name is unequal"
+            << "'GWC' or 'Graupel'.\n"
+            << psd << " should only be applied to graupel\n";
+        }
+        
+        pnd_fieldS2M (pnd_field,
+                      scat_species_mass_density_field ( i_ss, joker, joker, joker ),
+                      scat_species_number_density_field ( i_ss, joker, joker, joker ),
+                      limits,
+                      scat_meta,
+                      i_ss,
+                      scat_species[i_ss],
+                      delim,
+                      psd,
+                      verbosity);
+    }
+      
+      //---- pnd_field calculations for S2M_HWC ----------------------------
+    else if ( psd_param == "S2M_HWC" )
+    {
+        psd = "S2M_HWC";
+        //cout << psd << "\n";
+        
+        //check for expected scattering species field name
+        if ( partfield_name != "Hail" && partfield_name != "HWC")
+        {
+            out1 << "WARNING! The scattering species field name is unequal"
+            << "'HWC' or 'Hail'.\n"
+            << psd << " should only be applied to hail\n";
+        }
+        
+        pnd_fieldS2M (pnd_field,
+                      scat_species_mass_density_field ( i_ss, joker, joker, joker ),
+                      scat_species_number_density_field ( i_ss, joker, joker, joker ),
+                      limits,
+                      scat_meta,
+                      i_ss,
+                      scat_species[i_ss],
+                      delim,
+                      psd,
+                      verbosity);
+    }
+      
       //---- pnd_field calculations for MGD_LWC ----------------------------
     else if ( psd_param == "MGD_LWC" )
     {
@@ -1853,6 +2011,27 @@ void dNdD_F07ML (//WS Output:
         // calculate particle size distribution with MH97
         // [# m^-3 m^-1]
         dNdD[i] = IWCtopnd_F07ML(diameter_max[i], t, SWC, alpha, beta) ;
+    }
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void dNdD_S2M (//WS Output:
+                 Vector& dNdD,
+                 //WS Input:
+               const Vector& mass,
+               const Numeric& N_tot,
+               const Numeric& M,
+               const String& psd_type,
+               const Verbosity&)
+{
+    Index n_se = mass.nelem();
+    dNdD.resize(n_se);
+    
+    for ( Index i=0; i<n_se; i++ )
+    {
+        // calculate particle size distribution with S2M
+        // [# m^-3 kg^-1]
+        dNdD[i] = WCtopnd_S2M(mass[i], N_tot, M, psd_type) ;
     }
 }
 

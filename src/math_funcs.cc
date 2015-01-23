@@ -563,6 +563,47 @@ Numeric lgamma_func(Numeric xx)
 }
 
 
+//! Generalized Modified Gamma Distribution
+/*! Returns number density per unit of 'x' as function of 'x'.
+ 
+ \return  dN Number density as function of x.
+ \param   x       Numeric
+ \param   N0      Numeric, Scaling parameter
+ \param   Lambda  Numeric, Shape parameter
+ \param   mu      Numeric, Shape parameter
+ \param   gamma   Numeric, Shape parameter
+ 
+ \author Manfred Brath
+ \date   2015-01-19
+ */
+
+
+Numeric mod_gamma_dist(Numeric x,
+                       Numeric N0,
+                       Numeric Lambda,
+                       Numeric mu,
+                       Numeric gamma)
+{
+    Numeric dN;
+    
+    if (x > 0. && N0 > 0. && Lambda >0. && (mu+1)/gamma > 0.)
+    {
+        
+        //Distribution function
+        dN=N0*pow(x ,mu)*exp(-Lambda*pow(x,gamma));
+        
+        return dN;
+    }
+    else
+    {
+        ostringstream os;
+        os << "At least one argument is zero or negative.\n"
+        << "(mu+1)/gamma is zero or negative.\n"
+        << "Modified gamma ditribution can not be calculated.\n";
+        throw runtime_error(os.str());
+    }
+}
+
 
 //! unitl
 /*!

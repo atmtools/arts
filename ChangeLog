@@ -1,3 +1,20 @@
+2015-01-23  Manfred Brath  <manfred.brath@uni-hamburg.de>
+
+	* arts-2-3-133
+
+	* src/cloudbox.{h,cc} (pnd_fieldS2M, WCtopnd_S2M), 
+	src/m_cloudbox.cc (pnd_fieldSetup): 
+	
+	Added two moment scheme distributions.
+	
+	* src/m_cloudbox.cc (dNdD_S2M),
+	src/methods.cc: 
+	
+	Added new WSMs for the new distributions.
+	
+	* src/math_func.{h,cc} (mod_gamma_dist): Added generalized 
+	modified gamma distribution 
+
 2015-01-23  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-132

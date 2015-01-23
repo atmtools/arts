@@ -82,6 +82,12 @@ Numeric gamma_func(Numeric xx);
 
 Numeric lgamma_func(Numeric xx);
 
+Numeric mod_gamma_dist(Numeric x,
+                       Numeric N0,
+                       Numeric Lambda,
+                       Numeric mu,
+                       Numeric gamma);
+
 void unitl( Vector& x );
 
 #endif  // math_funcs_h

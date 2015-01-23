@@ -158,6 +158,17 @@ void pnd_fieldF07ML (Tensor4View pnd_field,
                      const String& delim,
                      const Verbosity& verbosity);
 
+void pnd_fieldS2M (Tensor4View pnd_field,
+                   const Tensor3& WC_field,
+                   const Tensor3& N_field,
+                   const ArrayOfIndex& limits,
+                   const ArrayOfArrayOfScatteringMetaData& scat_meta,
+                   const Index& scat_species,
+                   const String& part_string,
+                   const String& delim,
+                   const string& psd_type,
+                   const Verbosity& verbosity);
+
 void pnd_fieldMGD_LWC (Tensor4View pnd_field,
                        const Tensor3& LWC_field,
                        const ArrayOfIndex& limits,
@@ -220,6 +231,11 @@ Numeric IWCtopnd_F07TR ( const Numeric d, const Numeric t,
 Numeric IWCtopnd_F07ML ( const Numeric d, const Numeric t,
                         const Numeric swc,const Numeric alpha,
                         const Numeric beta );
+
+Numeric WCtopnd_S2M (const Numeric mass,
+                     const Numeric N_tot,
+                     const Numeric M,
+                     const string psd_type);
 
 Numeric LWCtopnd_MGD_LWC ( const Numeric d, const Numeric m, const Numeric lwc);
 

@@ -1917,6 +1917,149 @@ void pnd_fieldF07ML (Tensor4View pnd_field,
 }
 
 
+/*! Calculates the particle number density field according
+ *  to the two moment scheme of Axel Seifert, that is used the ICON model.
+ *  Important, depending on the hydrometeor type, there is a lower and a upper
+ *  boundary for valid particle mass. For masses below and above these boundary
+ *  the number density is set to zero but the mass is conserved.
+ 
+ \param pnd_field Particle number density field
+ \param WC_field  mass content field [kg/m3]
+ \param N_field Total Number density field [1/m^3]
+ \\param limits pnd_field boundaries (indices in p, lat, lon)
+ \param scat_meta_array particle meta data for particles
+ \param scat_data_start start index for particles handled by this distribution
+ \param npart number of particles handled by this distribution
+ \param part_string part_species tag for profile/distribution handled here
+ \param delim Delimiter string of *part_species* elements
+ \param psd_type string with a tag defining the (hydrometeor) scheme
+ 
+ \author Manfred Brath (parts of the function is based on pnd_H11 (of J. Mendrok & D. Kreyling))
+ \date 2015-01-19
+ 
+ */
+void pnd_fieldS2M (Tensor4View pnd_field,
+                     const Tensor3& WC_field,
+                     const Tensor3& N_field,
+                     const ArrayOfIndex& limits,
+                     const ArrayOfArrayOfScatteringMetaData& scat_meta,
+                     const Index& scat_species,
+                     const String& part_string,
+                     const String& delim,
+                     const string& psd_type,
+                     const Verbosity& verbosity)
+{
+    const Index N_se = scat_meta[scat_species].nelem();
+    const Index scat_data_start = FlattenedIndex(scat_meta, scat_species);
+    ArrayOfIndex intarr;
+    Vector mass_unsorted ( N_se, 0.0 );
+    Vector mass ( N_se, 0.0 );
+    Vector pnd ( N_se, 0.0 );
+    Vector dNdD ( N_se, 0.0 );
+    String partfield_name;
+    
+    
+
+    
+    
+    //split String and copy to ArrayOfString
+    parse_partfield_name( partfield_name, part_string, delim);
+    
+    for ( Index i=0; i < N_se; i++ )
+    {
+        if ( isnan(scat_meta[scat_species][i].mass) )
+        {
+            ostringstream os;
+            os << "Use of size distribution S2M (as requested for\n"
+            << "scattering species #" << scat_species << ")\n"
+            << "requires knowledge of scattering element mass.\n"
+            << "But mass is not given for scattering elements #"
+            << i << "!";
+            throw runtime_error( os.str() );
+        }
+        mass_unsorted[i] = ( scat_meta[scat_species][i].mass );
+    }
+    get_sorted_indexes(intarr, mass_unsorted);
+    
+    // extract scattering meta data
+    for ( Index i=0; i< N_se; i++ )
+    {
+        mass[i] = scat_meta[scat_species][intarr[i]].mass; // [kg]
+    }
+    
+   
+    
+    if (mass.nelem() > 0)
+        // diameter_max.nelem()=0 implies no selected scattering element for the respective
+        // scattering species field. should not occur anymore.
+    {
+        // itertation over all atm. levels
+        for ( Index p=limits[0]; p<limits[1]; p++ )
+        {
+            for ( Index lat=limits[2]; lat<limits[3]; lat++ )
+            {
+                for ( Index lon=limits[4]; lon<limits[5]; lon++ )
+                {
+                    // S2M requires mass density. If not set, abort calculation.
+                    if ( isnan(WC_field ( p, lat, lon )) )
+                    {
+                        ostringstream os;
+                        os << "Size distribution S2M requires knowledge of mass "
+                        << "density of hydrometeors.\n"
+                        << "At grid point (" << p << ", " << lat << ", " << lon
+                        << ") in (p,lat,lon) a NaN value is encountered, "
+                        << "i.e. mass density is unknown.";
+                        throw runtime_error( os.str() );
+                    }
+                    
+                    // A valid IWC value encountered (here, we can also handle negative
+                    // values!). Calculating dNdD.
+                    else if (WC_field ( p, lat, lon ) != 0.)
+                    {
+                        // iteration over all given size bins
+                        for ( Index i=0; i<mass.nelem(); i++ ) //loop over number of scattering elements
+                        {
+                            // calculate particle size distribution for H11
+                            // [# m^-3 m^-1]
+                            dNdD[i] = WCtopnd_S2M( mass[i], N_field ( p, lat, lon ),
+                                                     WC_field ( p, lat, lon ),
+                                                     psd_type);
+                        }
+                        // scale pnds by scale width
+                        if (mass.nelem() > 1)
+                            scale_pnd( pnd, mass, dNdD ); //[# m^-3]
+                        else
+                            pnd = dNdD;
+                        
+                        // calculate proper scaling of pnd sum from real IWC and apply
+                        chk_pndsum ( pnd, WC_field ( p,lat,lon ), mass,
+                                    p, lat, lon, partfield_name, verbosity );
+                        
+                        // writing pnd vector to wsv pnd_field
+                        for ( Index i =0; i< N_se; i++ )
+                        {
+                            pnd_field ( intarr[i]+scat_data_start, p-limits[0],
+                                       lat-limits[2], lon-limits[4] ) = pnd[i];
+                        }
+                    }
+                    
+                    // for IWC==0, we just set pnd_field=0
+                    else
+                    {
+                        for ( Index i = 0; i< N_se; i++ )
+                        {
+                            pnd_field ( intarr[i]+scat_data_start, p-limits[0],
+                                       lat-limits[2], lon-limits[4] ) = 0.;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+
 /*! Calculates the particle number density field for Cloud liquid water according 
  * to the modified gamma distribution for cloud water inside Geer and Baordo (2014),
  * see table A1
@@ -3233,6 +3376,119 @@ Numeric LWCtopnd (const Numeric lwc, //[kg/m^3]
 
   if (isnan(dNdr)) dNdr = 0.0;
 	return dNdr;
+}
+
+/*! Calculates the particle number density field according
+ *  to the two moment scheme of Axel Seifert, that is used the ICON model.
+ *  One call of this function calculates one particle number density.
+ *  Important, depending on the hydrometeor type, there is a lower and a upper
+ *  boundary for valid particle mass. For masses below and above these boundary
+ *  the number density is set to zero. Within this function the mass is NOT 
+ *  conserved.
+ 
+ \return dN particle number density per diameter interval [#/m3/m]
+ 
+ \param mass   Mass of scattering particle [kg]
+ \param N_tot  Total number of particles (0th moment) [#/m3/m/kg^mu]
+ \param M      Total mass concentration of Particles (1st moment) [kg/m^3]
+ \param psd_type string with a tag defining the (hydrometeor) scheme
+
+ 
+ \author Manfred Brath
+ \date 2015-01-19
+ 
+ */
+Numeric WCtopnd_S2M (const Numeric mass,
+                     const Numeric N_tot,
+                     const Numeric M,
+                     const string psd_type)
+{
+    Numeric dN;
+    Numeric N0;
+    Numeric Lambda;
+    Numeric arg1;
+    Numeric arg2;
+    Numeric temp;
+    Numeric mu;
+    Numeric gamma;
+    Numeric xmin;
+    Numeric xmax;
+    
+    
+    // Get the coefficients for the right hydrometeor
+    if ( psd_type == "S2M_IWC" ) //Cloud ice water
+    {
+        mu=0.;
+        gamma=1./3.;
+        xmin=1e-12;
+        xmax=1e-5;
+    }
+    else if ( psd_type == "S2M_RWC" ) //Rain
+    {
+        mu=0.;
+        gamma=1./3.;
+        xmin=2.6e-10;
+        xmax=3e-6;
+    }
+    else if ( psd_type == "S2M_SWC" ) //Snow
+    {
+        mu=0;
+        gamma=1./2.;
+        xmin=1e-10;
+        xmax=2e-5;
+    }
+    else if ( psd_type == "S2M_GWC" ) //Graupel
+    {
+        mu=1;
+        gamma=1./3.;
+        xmin=1e-9;
+        xmax=5e-4;
+    }
+    else if ( psd_type == "S2M_HWC" ) //Hail
+    {
+        mu=1;
+        gamma=1./3.;
+        xmin=2.6e-10;
+        xmax=5e-4;
+    }
+    else   //"S2M_LWC" Cloud liquid water
+    {
+        mu=1;
+        gamma=1;
+        xmin=4.2e-15;
+        xmax=2.6e-10;
+    }
+    
+    
+    //Calculate Number density only, if mass is between xmin and xmax
+    if (xmin<mass && mass<xmax)
+    {
+    
+        //arguments for Gamma function
+        arg2=(mu+2)/gamma;
+        arg1=(mu+1)/gamma;
+        
+        
+        temp=N_tot/M*gamma_func(arg2)/gamma_func(arg1);
+        
+        //Lambda (parameter for modified gamma distribution)
+        Lambda=pow(temp, gamma);
+        
+        //N0
+        N0=N_tot*gamma/gamma_func(arg1)*pow(Lambda, arg1);
+        
+        //Distribution function
+        dN=mod_gamma_dist(mass, N0,Lambda, mu, gamma);
+        
+        if (isnan(dN)) dN = 0.0;
+    }
+    else
+    {
+        dN=0;
+    }
+    
+    
+    return dN;
 }
 
 /*! Calculates the particle number density field for Cloud liquid water according
