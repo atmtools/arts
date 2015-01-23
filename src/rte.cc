@@ -2190,17 +2190,25 @@ firstprivate(l_ws, l_iy_main_agenda, l_geo_pos_agenda)
 
           // Note that this code is found in two places inside the function
           Vector geo_pos;
-          geo_pos_agendaExecute( l_ws, geo_pos, ppath, l_geo_pos_agenda );
-          if( geo_pos.nelem() )
-            {
-              if( geo_pos.nelem() != atmosphere_dim )
-                throw runtime_error( "Wrong size of *geo_pos* obtained "
-                  "from *geo_pos_agenda*.\nThe length of *geo_pos* must "
-                  "be zero or equal to *atmosphere_dim*." );
-                
-              geo_pos_matrix(ilos,joker) = geo_pos;
-            }
-        }  
+          try
+          {
+              geo_pos_agendaExecute( l_ws, geo_pos, ppath, l_geo_pos_agenda );
+              if( geo_pos.nelem() )
+                {
+                  if( geo_pos.nelem() != atmosphere_dim )
+                      throw runtime_error( "Wrong size of *geo_pos* obtained "
+                                          "from *geo_pos_agenda*.\nThe length of *geo_pos* must "
+                                          "be zero or equal to *atmosphere_dim*." );
+
+                  geo_pos_matrix(ilos,joker) = geo_pos;
+                }
+          }
+          catch (runtime_error e)
+          {
+#pragma omp critical (iyb_calc_fail)
+              { fail_msg = e.what(); failed = true; }
+          }
+        }
     }
   else
     {
@@ -2228,17 +2236,25 @@ firstprivate(l_ws, l_iy_main_agenda, l_geo_pos_agenda)
 
           // Note that this code is found in two places inside the function
           Vector geo_pos;
-          geo_pos_agendaExecute( l_ws, geo_pos, ppath, l_geo_pos_agenda );
-          if( geo_pos.nelem() )
-            {
-              if( geo_pos.nelem() != atmosphere_dim )
-                throw runtime_error( "Wrong size of *geo_pos* obtained "
-                  "from *geo_pos_agenda*.\nThe length of *geo_pos* must "
-                  "be zero or equal to *atmosphere_dim*." );
-                
-              geo_pos_matrix(ilos,joker) = geo_pos;
-            }
-        }  
+          try
+          {
+              geo_pos_agendaExecute( l_ws, geo_pos, ppath, l_geo_pos_agenda );
+              if( geo_pos.nelem() )
+                {
+                  if( geo_pos.nelem() != atmosphere_dim )
+                      throw runtime_error( "Wrong size of *geo_pos* obtained "
+                                          "from *geo_pos_agenda*.\nThe length of *geo_pos* must "
+                                          "be zero or equal to *atmosphere_dim*." );
+
+                  geo_pos_matrix(ilos,joker) = geo_pos;
+                }
+          }
+          catch (runtime_error e)
+          {
+#pragma omp critical (iyb_calc_fail)
+              { fail_msg = e.what(); failed = true; }
+          }
+        }
     }
 
   if( failed )
