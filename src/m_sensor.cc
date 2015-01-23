@@ -1243,11 +1243,12 @@ void sensor_responseBackendMetMM(
     // All sensor_los zenith angles must be 0
     for (Index ilos = 0; ilos < sensor_los.nrows(); ilos++)
     {
-      if (sensor_los(ilos,0) != 180)
+      if ( sensor_los(ilos,0) > 180  ||  sensor_los(ilos,0) < 180 )
       {
         ostringstream os;
-        os << "All values in first column of *sensor_los* must be equal to 180,\n";
-        os << "but: sensor_los[" << ilos   << ", 0] = " << sensor_los(ilos,0) << "\n";
+        os << "All values in first column of *sensor_los* must be close to 180,\n"
+           << "but: sensor_los[" << ilos   << ", 0] = " << sensor_los(ilos,0) << "\n"
+           << "and the allowed range is only [180,180].";
         throw std::runtime_error(os.str());
       }
     }
@@ -1473,7 +1474,6 @@ void sensor_responseBackendMetMM(
 
     if (stokes_dim > 1)
     {
-      throw runtime_error( "stokes > 1 not yet properly handled.\n" );
         // With polarisation
         if (mm_pol.nelem() != nchannels)
         {

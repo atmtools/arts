@@ -1,3 +1,18 @@
+2015-01-23  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-130
+
+	* src/m_sensor.cc (sensor_responseBackendMetMM): stokes_dim > 1
+	again accepted. Seems to work, but there is a big potential for
+	problems here. As it is now, iy_unit must be set to its final
+	value before calling this WSM. If it is reset afterwards, there
+	could be an error of a factor 2. This is associated with
+	calibration and all this needs a revision! Leave as it is for the
+	moment.
+
+	* src/rte.cc (iyb_calc): Used ws instead of l_ws when calling
+	geo_pos_agenda, that caused intermittent failures.
+
 2015-01-23  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-129

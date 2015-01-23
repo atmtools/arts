@@ -2187,7 +2187,7 @@ firstprivate(l_ws, l_iy_main_agenda, l_geo_pos_agenda)
 
           // Note that this code is found in two places inside the function
           Vector geo_pos;
-          geo_pos_agendaExecute( ws, geo_pos, ppath, l_geo_pos_agenda );
+          geo_pos_agendaExecute( l_ws, geo_pos, ppath, l_geo_pos_agenda );
           if( geo_pos.nelem() )
             {
               if( geo_pos.nelem() != atmosphere_dim )
@@ -2222,7 +2222,7 @@ firstprivate(l_ws, l_iy_main_agenda, l_geo_pos_agenda)
 
           // Note that this code is found in two places inside the function
           Vector geo_pos;
-          geo_pos_agendaExecute( ws, geo_pos, ppath, l_geo_pos_agenda );
+          geo_pos_agendaExecute( l_ws, geo_pos, ppath, l_geo_pos_agenda );
           if( geo_pos.nelem() )
             {
               if( geo_pos.nelem() != atmosphere_dim )
