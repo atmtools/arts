@@ -1,3 +1,21 @@
+2015-01-23  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-129
+
+	AgendaExecute bug fix part 2/2. Scoping for AgendaExecute should now
+	work properly.
+
+	* src/agenda_class.cc:
+
+	(Agenda::set_outputs_to_push_and_dup):
+
+	If the Agenda contains an AgendaExecute call, also collect the outputs
+	of that agenda for proper scoping.
+
+	(Agenda::is_input): Cosmetics. Use WsvGroupMap to find the Agenda index.
+
+	* src/m_agenda.cc (AgendaExecuteExclusive): Call AgendaExecute.
+
 2015-01-22  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-128
@@ -8,7 +26,7 @@
 
 	Partial fix for severe bug in AgendaExecute. It did not apply any
 	scoping. This means that all workspace variables that were modified
-	in the executed agenda where leaked into the global scope. Now only
+	in the executed agenda were leaked into the global scope. Now only
 	variables explicitly defined as output are passed back (but still leak
 	into global scope, will be fixed in part 2).
 

@@ -91,7 +91,7 @@ void AgendaExecuteExclusive(Workspace& ws,
     out3 << "  Manual, exclusive agenda execution\n";
     
     #pragma omp critical(AgendaExecuteExclusive_region)
-    this_agenda.execute(ws);
+    AgendaExecute(ws, this_agenda, verbosity);
 }
 
 

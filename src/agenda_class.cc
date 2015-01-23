@@ -289,11 +289,17 @@ void Agenda::execute(Workspace& ws) const
 void Agenda::set_outputs_to_push_and_dup(const Verbosity& verbosity)
 {
   using global_data::md_data;
+  using global_data::AgendaMap;
+  using global_data::agenda_data;
+  using global_data::MdMap;
 
   set<Index> inputs;
   set<Index> outputs;
   set<Index> outs2push;
   set<Index> outs2dup;
+
+  const Index DeleteIndex = MdMap.find("Delete")->second;
+  const Index AgendaExecuteIndex = MdMap.find("AgendaExecute")->second;
 
   for (Array<MRecord>::const_iterator method = mml.begin();
        method != mml.end(); method++)
@@ -316,9 +322,20 @@ void Agenda::set_outputs_to_push_and_dup(const Verbosity& verbosity)
        * of output variables to force a duplication of those variables.
        * It avoids deleting variables outside the agenda's scope.
        */
-      if (md_data[method->Id()].Name() == "Delete")
+      if (method->Id() == DeleteIndex)
         {
           souts.insert(gins.begin(), gins.end());
+        }
+
+      /* Special case: For the AgendaExecute WSM it is necessary
+         for proper scoping to also add the output variables of the
+         executed agenda to our output variable list.
+       */
+      else if (method->Id() == AgendaExecuteIndex)
+        {
+          const String& agenda_name = Workspace::wsv_data[gins[0]].Name();
+          const ArrayOfIndex& agouts = agenda_data[AgendaMap.find(agenda_name)->second].Out();
+          souts.insert(agouts.begin(), agouts.end());
         }
 
       // Collect input WSVs
@@ -343,9 +360,6 @@ void Agenda::set_outputs_to_push_and_dup(const Verbosity& verbosity)
                  outs2dup.begin(), outs2dup.end(),
                  insert_iterator< set<Index> >(outs2push,
                                                outs2push.begin()));
-
-  using global_data::AgendaMap;
-  using global_data::agenda_data;
 
   const AgRecord& agr = agenda_data[AgendaMap.find(name())->second];
   const ArrayOfIndex& aout = agr.Out();
@@ -482,18 +496,14 @@ bool Agenda::is_input(Workspace& ws, Index var) const
   // Make global method data visible:
   using global_data::md_data;
   using global_data::wsv_group_names;
+  using global_data::WsvGroupMap;
 
   // Make sure that var is the index of a valid method:
   assert(0 <= var);
   assert(var < md_data.nelem());
 
   // Determine the index of WsvGroup Agenda
-  Index WsvAgendaGroupIndex = 0;
-  for (Index i = 0; !WsvAgendaGroupIndex && i < wsv_group_names.nelem(); i++)
-    {
-      if (wsv_group_names[i] == "Agenda")
-        WsvAgendaGroupIndex = i;
-    }
+  const Index WsvAgendaGroupIndex = WsvGroupMap.find("Agenda")->second;
 
   // Loop all methods in this agenda:
   for (Index i = 0; i < nelem(); ++i)
