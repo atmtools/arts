@@ -1,3 +1,25 @@
+2015-01-22  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-128
+
+	AgendaExecute bug fix part 1/2
+
+	* src/m_agenda.cc (AgendaExecute):
+
+	Partial fix for severe bug in AgendaExecute. It did not apply any
+	scoping. This means that all workspace variables that were modified
+	in the executed agenda where leaked into the global scope. Now only
+	variables explicitly defined as output are passed back (but still leak
+	into global scope, will be fixed in part 2).
+
+	* src/agenda_class.{cc,h} (find_unused_variables):
+
+	Remove unused function.
+
+	* controlfiles/instruments/metmm/sensor_descriptions/sensor_amsua.arts:
+
+	Remove duplicate met_mm_polarisation initialization. Thanks Alex!
+
 2015-01-22  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-127

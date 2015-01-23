@@ -614,44 +614,6 @@ String Agenda::name() const
   return mname;
 }
 
-void Agenda::find_unused_variables()
-{
-  using global_data::md_data;
-
-  MdRecord tmd;
-
-  ArrayOfIndex in_vars;
-  ArrayOfIndex out_vars;
-  Array<MRecord>::iterator mr = mml.end();
-  do
-    {
-      mr--;
-      cout << md_data[mr->Id()].Name() << ": ";
-      cout << mr->In() << endl;
-
-      if (md_data[mr->Id()].Name() == "AgendaExecute")
-        {
-          cout << "AgendaExecute" << endl;
-        }
-      else
-        {
-          for (ArrayOfIndex::const_iterator it = mr->In().begin();
-               it != mr->In().end(); it++)
-            if (find(in_vars.begin(), in_vars.end(), *it) == in_vars.end())
-              in_vars.push_back(*it);
-
-          for (ArrayOfIndex::const_iterator it = mr->Out().begin();
-               it != mr->Out().end(); it++)
-            if (find(out_vars.begin(), out_vars.end(), *it) == out_vars.end())
-              out_vars.push_back(*it);
-        }
-    }
-  while (mr != mml.begin());
-
-  cout << "In : " << in_vars << endl;
-  cout << "Out: " << out_vars << endl;
-}
-
 
 //! Check if method is in Agenda.
 /*!

@@ -37,9 +37,48 @@ void AgendaExecute(Workspace& ws,
                    const Agenda& this_agenda,
                    const Verbosity& verbosity)
 {
-  CREATE_OUT3;
-  out3 << "  Manual agenda execution\n";
-  this_agenda.execute(ws);
+    CREATE_OUT3;
+    out3 << "  Manual agenda execution\n";
+
+    assert(this_agenda.checked());
+
+    const ArrayOfIndex& outputs_to_push = this_agenda.get_output2push();
+    const ArrayOfIndex& outputs_to_dup = this_agenda.get_output2dup();
+
+    for (ArrayOfIndex::const_iterator it = outputs_to_push.begin ();
+         it != outputs_to_push.end (); it++)
+    {
+        if (ws.is_initialized(*it))
+            ws.duplicate (*it);
+        else
+            ws.push_uninitialized (*it, NULL);
+    }
+
+    for (ArrayOfIndex::const_iterator it = outputs_to_dup.begin ();
+         it != outputs_to_dup.end (); it++)
+    { ws.duplicate (*it); }
+
+    String agenda_error_msg;
+    bool agenda_failed = false;
+
+    try {
+        this_agenda.execute (ws);
+    } catch (runtime_error e) {
+        ostringstream os;
+        os << "Run-time error in agenda: "
+        << this_agenda.name() << '\n' << e.what();
+        agenda_failed = true;
+        agenda_error_msg = os.str();
+    }
+    for (ArrayOfIndex::const_iterator it = outputs_to_push.begin ();
+         it != outputs_to_push.end (); it++)
+    { ws.pop_free (*it); }
+
+    for (ArrayOfIndex::const_iterator it = outputs_to_dup.begin ();
+         it != outputs_to_dup.end (); it++)
+    { ws.pop_free (*it); }
+
+    if (agenda_failed) throw runtime_error (agenda_error_msg);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
