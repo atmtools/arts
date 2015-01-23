@@ -1,5 +1,26 @@
 2015-01-23  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-3-131
+
+	* src/m_sensor.cc (sensor_responseBackendMetMM): Softened the
+	demand of za in sensor_los. This angle can now be inside
+	[160,180], to allow some handling of cases where the central
+	position of the scanning is not a at nadir, due to non-nominal
+	pitch and roll. This solution should be sufficient for 1D. For 3D,
+	a total general treatment of pitch+roll would require more
+	variables. The present solution is only totally accurate when the
+	scan centre position has moved exactly in the direction of the
+	corresponding azimuth angle. If the scan centre position is at
+	some other azimuth, you simulation will be performed an OK zenith
+	angle, but the azimuth will be wrong. This also means that the
+	geo-positioning will be incorrect.
+
+	* src/rte.cc (iyb_calc): Added if (failed) continue before calling
+	geo_pos_agenda. The call of geo_pos_agenda should probably be
+	inside a try/catch.
+
+2015-01-23  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-3-130
 
 	* src/m_sensor.cc (sensor_responseBackendMetMM): stokes_dim > 1

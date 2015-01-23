@@ -2184,6 +2184,9 @@ firstprivate(l_ws, l_iy_main_agenda, l_geo_pos_agenda)
                          l_iy_main_agenda, j_analytical_do, 
                          jacobian_quantities, jacobian_indices,
                          iy_aux_vars, ilos, nf );
+          
+          // Skip remaining iterations if an error occurred
+          if (failed) continue;
 
           // Note that this code is found in two places inside the function
           Vector geo_pos;
@@ -2219,6 +2222,9 @@ firstprivate(l_ws, l_iy_main_agenda, l_geo_pos_agenda)
                          l_iy_main_agenda, j_analytical_do, 
                          jacobian_quantities, jacobian_indices,
                          iy_aux_vars, ilos, nf );
+
+          // Skip remaining iterations if an error occurred
+          if (failed) continue;
 
           // Note that this code is found in two places inside the function
           Vector geo_pos;
