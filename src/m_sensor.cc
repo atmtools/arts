@@ -1489,9 +1489,8 @@ void sensor_responseBackendMetMM(
         for (Index iza = 0; iza < antenna_dlos_local.nrows(); iza++)
         {
             sensor_response_tmp = Sparse(nchannels, sensor_response_single.ncols());
-            met_mm_polarisation_hmatrix(H_pol, mm_pol,
-                                        sensor_los(0, 0) + antenna_dlos_local(iza,0), 
-                                        stokes_dim, iy_unit);
+            met_mm_polarisation_hmatrix( H_pol, mm_pol, antenna_dlos_local(iza,0), 
+                                         stokes_dim, iy_unit );
             mult(sensor_response_tmp, H_pol, sensor_response_single);
             for (Index r = 0; r < sensor_response_tmp.nrows(); r++)
                 for (Index c = 0; c < sensor_response_tmp.ncols(); c++)

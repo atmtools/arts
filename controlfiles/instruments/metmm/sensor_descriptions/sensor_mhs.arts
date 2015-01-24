@@ -71,7 +71,7 @@ MatrixSet(
          -3.888889; #41
          -2.777778; #42
          -1.666667; #43
-         -0.555556; #44 (nadir)
+         -0.555556  #44 (nadir)
         ] )
 
 Select( antenna_dlos, antenna_dlos, viewing_angles )
@@ -85,11 +85,11 @@ MatrixSet(
         # CenterFreq, Offset1, Offset2, Bandwidth; #ARTS channel index
         #                                             (Instrument channel)
         [
-         89.000e9,    0.70e9,  0.,      1400e6 ;   #0 (H1)
-        157.000e9,    0.70e9,  0.,      1400e6 ;   #1 (H2)
-        183.311e9,    1.00e9,  0.,       500e6 ;   #2 (H3)
-        183.311e9,    3.00e9,  0.,      1000e6 ;   #3 (H4)
-        190.311e9,    0.55e9,  0.,      1100e6     #4 (H5)
+         89.000e9,    0.,      0.,    2800e6 ;   #0 (H1)
+        157.000e9,    0.,      0.,    2800e6 ;   #1 (H2)
+        183.311e9,    1.00e9,  0.,     500e6 ;   #2 (H3)
+        183.311e9,    3.00e9,  0.,    1000e6 ;   #3 (H4)
+        190.311e9,    0.,      0.,    2200e6     #4 (H5)
         ] )
 
 ArrayOfStringSet(

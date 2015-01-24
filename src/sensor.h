@@ -100,7 +100,7 @@ void mueller_rotation(
 
 void met_mm_polarisation_hmatrix(Sparse& H,
                                  const ArrayOfString& pol,
-                                 const Numeric za,
+                                 const Numeric dza,
                                  const Index stokes_dim,
                                  const String& iy_unit);
 

@@ -662,13 +662,13 @@ void mueller_rotation(
 
  \param[out] H          Polarisation matrix
  \param[in]  mm_pol     Instrument channel polarisations
- \param[in]  za         Zenith angle
+ \param[in]  dza        Zenith angle, from reference direction
  \param[in]  stokes_dim Workspace variable
  \param[in]  iy_unit    Workspace variable
  */
 void met_mm_polarisation_hmatrix(Sparse& H,
                                  const ArrayOfString& mm_pol,
-                                 const Numeric za,
+                                 const Numeric dza,
                                  const Index stokes_dim,
                                  const String& iy_unit)
 {
@@ -768,14 +768,15 @@ void met_mm_polarisation_hmatrix(Sparse& H,
           Sparse Hrot( stokes_dim, stokes_dim );
           if (rot[i] == "AMSU")
           {
-            // Here we mimic AMSU-A (at least my guees how it should be)
-            mueller_rotation( Hrot, stokes_dim, 180-abs(za) );
+            // No idea about the sign. Not important if U=0,
+            // but matter for U != 0.
+            mueller_rotation( Hrot, stokes_dim, abs(dza) );
           }
           else if (rot[i] == "ISMAR")
           {
-            // Here we mimic ISMAR (so far it is just a guess for the sign
-            // of the rotation, 127=180-53)
-            mueller_rotation( Hrot, stokes_dim, abs(za)-127 );
+            // No rotation at -53 (= forward direction). But no idea about the
+            // sign, as for AMSU above 
+            mueller_rotation( Hrot, stokes_dim, dza+53 );
           }
           else
           {

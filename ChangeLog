@@ -1,3 +1,23 @@
+2015-01-24  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-135
+
+	* controlfiles/instruments/metmm/sensor_descriptions/sensor_mhs.arts:
+	Removed ; after last line in antenna_dlos. Existing settings
+	caused an error as band touched at LO. Changed these band to have
+	0 offset and doubled bandwidth, following the treatment of e.g.
+	channel 15 of AMSU-A.
+
+	* src/sensor.cc (met_mm_polarisation_hmatrix): Changed to take dza
+	as input. This as the rotation depends on the angle with respect
+	to the platform reference direction, and not absolute za.
+
+	The sign of the rotation angle is so far just a guess, for all
+	instruments. The sign does not matter as long as U=0.
+
+	* src/m_sensor.cc (sensor_responseBackendMetMM): Adopted call of
+	met_mm_polarisation_hmatrix.
+
 2015-01-23  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-134
