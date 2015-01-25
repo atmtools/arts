@@ -1529,7 +1529,6 @@ void yCalc_mblock_loop_body(
                  j_analytical_do, jacobian_quantities,
                  jacobian_indices, iy_aux_vars, verbosity);
 
-
         // Apply sensor response matrix on iyb, and put into y
         //
         const Range rowind = get_rowindex_for_mblock(sensor_response,
@@ -1587,7 +1586,7 @@ void yCalc_mblock_loop_body(
             for( Index ilos=0; ilos<nlos; ilos++ )
               {
                 Vector itry( niyb, 0 );
-                itry[Range(ilos*nf*stokes_dim,nf*stokes_dim)] = 1;
+                itry[Range(ilos*nf*stokes_dim,nf,stokes_dim)] = 1;
                 Vector ytry( n1y );
                 mult( ytry, sensor_response, itry );
                 for( Index i=0; i<n1y; i++ )
@@ -1595,10 +1594,11 @@ void yCalc_mblock_loop_body(
                     if( ytry[i] > max_contr[i] )
                       {
                         max_contr[i] = ytry[i];
-                        i_of_max[i] = ilos;
+                        i_of_max[i]  = ilos;
                       }
                   }
               }
+
             // Extract geo_pos_matrix for found bore-sights
             for( Index i=0; i<n1y; i++ )
               { y_geo(row0+i,joker) = geo_pos_matrix(i_of_max[i],joker); }
