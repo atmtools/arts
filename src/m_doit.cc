@@ -1615,51 +1615,35 @@ void DoitInit(//WS Output
   scat_za_index = 0;
   scat_aa_index = 0;
   
-  
+  const Index Nf = f_grid.nelem();
+  const Index Np_cloud = cloudbox_limits[1] - cloudbox_limits[0] + 1;
+  const Index Nza = scat_za_grid.nelem();
+  const Index Ns = stokes_dim;
+
   // Resize and initialize radiation field in the cloudbox
   if (atmosphere_dim == 1)
     {
-      doit_i_field.resize((cloudbox_limits[1] - cloudbox_limits[0]) +1,
-                     1, 
-                     1,
-                     scat_za_grid.nelem(), 
-                     1,
-                     stokes_dim);
-      
-      doit_scat_field.resize((cloudbox_limits[1] - cloudbox_limits[0]) +1,
-                        1, 
-                        1,
-                        scat_za_grid.nelem(), 
-                        1,
-                        stokes_dim);
-      doit_i_field1D_spectrum.resize(f_grid.nelem(),
-                        (cloudbox_limits[1] - cloudbox_limits[0]) +1,
-                        scat_za_grid.nelem(), 
-                        stokes_dim);
-      scat_i_p.resize(f_grid.nelem(), 2, 1, 1,
-                      scat_za_grid.nelem(), 1, stokes_dim);
-      scat_i_lat.resize(f_grid.nelem(),
-                      (cloudbox_limits[1]-cloudbox_limits[0])+1, 2, 0,
-                      scat_za_grid.nelem(), 1, stokes_dim);
-      scat_i_lon.resize(f_grid.nelem(),
-                      (cloudbox_limits[1]-cloudbox_limits[0])+1, 0, 2,
-                      scat_za_grid.nelem(), 1, stokes_dim);
+      doit_i_field.resize(    Np_cloud, 1, 1, Nza, 1, Ns );
+      doit_scat_field.resize( Np_cloud, 1, 1, Nza, 1, Ns );
+
+      doit_i_field1D_spectrum.resize( Nf, Np_cloud, Nza, Ns );
+
+      scat_i_p.resize(   Nf, 2, 1, 1, Nza, 1, Ns );
+      scat_i_lat.resize(  0, 0, 0, 0,   0, 0,  0 );
+      scat_i_lon.resize(  0, 0, 0, 0,   0, 0,  0 );
     }
   else if (atmosphere_dim == 3)
     {
-      doit_i_field.resize((cloudbox_limits[1] - cloudbox_limits[0]) +1,
-                     (cloudbox_limits[3] - cloudbox_limits[2]) +1, 
-                     (cloudbox_limits[5] - cloudbox_limits[4]) +1,
-                     scat_za_grid.nelem(), 
-                     scat_aa_grid.nelem(),
-                     stokes_dim);
-      
-      doit_scat_field.resize((cloudbox_limits[1] - cloudbox_limits[0]) +1,
-                        (cloudbox_limits[3] - cloudbox_limits[2]) +1, 
-                        (cloudbox_limits[5] - cloudbox_limits[4]) +1,
-                        scat_za_grid.nelem(), 
-                        scat_aa_grid.nelem(),
-                        stokes_dim);
+      const Index Nlat_cloud = cloudbox_limits[3] - cloudbox_limits[2] + 1;
+      const Index Nlon_cloud = cloudbox_limits[5] - cloudbox_limits[4] + 1;
+      const Index Naa = scat_aa_grid.nelem();
+
+      doit_i_field.resize(    Np_cloud, Nlat_cloud, Nlon_cloud, Nza, Naa, Ns );
+      doit_scat_field.resize( Np_cloud, Nlat_cloud, Nlon_cloud, Nza, Naa, Ns );
+
+      scat_i_p.resize(   Nf,        2, Nlat_cloud, Nlon_cloud, Nza, Naa, Ns );
+      scat_i_lat.resize( Nf, Np_cloud,          2, Nlon_cloud, Nza, Naa, Ns );
+      scat_i_lon.resize( Nf, Np_cloud, Nlat_cloud,          2, Nza, Naa, Ns );
     }
   else 
     {
@@ -2677,11 +2661,6 @@ void DoitCloudboxFieldPut(//WS Output:
                         N_aa,
                         stokes_dim));
 
-      // Resize interface variables:
-      scat_i_p.resize(N_f, 2, N_lat, N_lon, N_za, N_aa, stokes_dim);
-      scat_i_lat.resize(N_f, N_p, 2, N_lon, N_za, N_aa, stokes_dim);
-      scat_i_lon.resize(N_f, N_p, N_lat, 2, N_za, N_aa, stokes_dim);
- 
       for (Index za = 0; za < N_za; za++)
         {
           for (Index aa = 0; aa < N_aa; aa++)
@@ -2814,7 +2793,6 @@ void DoitGetIncoming(
   Index  Nf       = f_grid.nelem();
   Index  Np_cloud = cloudbox_limits[1] - cloudbox_limits[0] + 1;
   Index  Nza      = scat_za_grid.nelem();
-  Index  Ni       = stokes_dim;
   Matrix iy;
   Ppath  ppath;
 
@@ -2829,11 +2807,6 @@ void DoitGetIncoming(
 
   if( atmosphere_dim == 1 )
     {
-      // Resize interface variables:
-      scat_i_p.resize( Nf, 2, 1, 1, Nza, 1, Ni );
-      scat_i_lat.resize( 0, 0, 0, 0, 0, 0, 0 );
-      scat_i_lon.resize( 0, 0, 0, 0, 0, 0, 0 );
-
       //Define the variables for position and direction.
       Vector   los(1), pos(1);
 
@@ -2906,11 +2879,6 @@ void DoitGetIncoming(
       Vector aa_grid(Naa);
       for(Index i = 0; i<Naa; i++)
         aa_grid[i] = scat_aa_grid[i] - 180;
-
-      // Resize interface variables:
-      scat_i_p.resize( Nf, 2, Nlat_cloud, Nlon_cloud, Nza, Naa, Ni );
-      scat_i_lat.resize( Nf, Np_cloud, 2, Nlon_cloud, Nza, Naa, Ni );
-      scat_i_lon.resize( Nf, Np_cloud, Nlat_cloud, 2, Nza, Naa, Ni );
 
       // Define the variables for position and direction.
       Vector   los(2), pos(3);
@@ -3105,13 +3073,11 @@ void DoitGetIncoming1DAtm(
   // iy_unit hard.coded to "1" here
   const String iy_unit = "1";
 
-  Index  Nf       = f_grid.nelem();
   Index  Np_cloud = cloudbox_limits[1] - cloudbox_limits[0] + 1;
   Index  Nlat_cloud = cloudbox_limits[3] - cloudbox_limits[2] + 1;
   Index  Nlon_cloud = cloudbox_limits[5] - cloudbox_limits[4] + 1;
   Index  Nza      = scat_za_grid.nelem();
   Index  Naa      = scat_aa_grid.nelem();
-  Index  Ni       = stokes_dim;
   Matrix iy;
   Ppath  ppath;
 
@@ -3142,11 +3108,6 @@ void DoitGetIncoming1DAtm(
   // one azimuth angle.
   Index aa_index = 0;
 
-  // Resize interface variables:
-  scat_i_p.resize(Nf, 2, Nlat_cloud, Nlon_cloud, Nza, Naa, Ni);
-  scat_i_lat.resize(Nf, Np_cloud, 2, Nlon_cloud, Nza, Naa, Ni);
-  scat_i_lon.resize(Nf, Np_cloud, Nlat_cloud, 2, Nza, Naa, Ni);
-  
   // Define the variables for position and direction.
   Vector   los(2), pos(3);
 
@@ -3377,7 +3338,6 @@ void doit_i_fieldSetFromdoit_i_field1D_spectrum(
     }
 
   // now copy data to doit_i_field
-  doit_i_field.resize(np,1,1,nza,1,stokes_dim);
   doit_i_field(joker,0,0,joker,0,joker) =
     doit_i_field1D_spectrum(f_index,joker,joker,joker);
 
@@ -3445,15 +3405,6 @@ void doit_i_fieldSetClearsky(Tensor6& doit_i_field,
          Index N_i = scat_i_p.ncols();
          
          //1. interpolation - pressure grid
-         
-         doit_i_field.resize((cloudbox_limits[1]- cloudbox_limits[0])+1,
-                             1,
-                             1,
-                             N_za,
-                             N_aa,
-                             N_i);
-         
-         doit_i_field = 0.;
          
          /*the old grid is having only two elements, corresponding to the 
            cloudbox_limits and the new grid have elements corresponding to
@@ -3589,17 +3540,6 @@ void doit_i_fieldSetClearsky(Tensor6& doit_i_field,
       }
     
       //1. interpolation - pressure grid, latitude grid and longitude grid
-    
- 
-      //doit_i_field
-      doit_i_field.resize((cloudbox_limits[1]- cloudbox_limits[0])+1, 
-                          (cloudbox_limits[3]- cloudbox_limits[2])+1,
-                          (cloudbox_limits[5]- cloudbox_limits[4])+1,
-                          N_za, 
-                          N_aa,
-                          N_i);
-    
-
     
       ArrayOfGridPos p_gp((cloudbox_limits[1]- cloudbox_limits[0])+1);
       ArrayOfGridPos lat_gp((cloudbox_limits[3]- cloudbox_limits[2])+1);
@@ -3781,7 +3721,6 @@ void doit_i_fieldSetConst(//WS Output:
   // required interface is scat_i_p.
   Index N_za = scat_i_p.npages();
   Index N_aa = scat_i_p.nrows();
-  Index N_i = stokes_dim; 
   Index Np_cloud = cloudbox_limits[1] - cloudbox_limits[0] + 1;
   Index Nlat_cloud = cloudbox_limits[3] - cloudbox_limits[2] + 1;
   Index Nlon_cloud = cloudbox_limits[5] - cloudbox_limits[4] + 1;
@@ -3810,11 +3749,6 @@ void doit_i_fieldSetConst(//WS Output:
     {
       out3 << "  atm_dim = 1\n"; 
       
-    // Define the size of doit_i_field.
-    doit_i_field.resize((cloudbox_limits[1] - cloudbox_limits[0])+1, 1, 1,  N_za,
-                   1, N_i);
-    doit_i_field = 0.;
-
     // Loop over all zenith angle directions.
     for (Index za_index = 0; za_index < N_za; za_index++)
       {
@@ -3853,15 +3787,6 @@ void doit_i_fieldSetConst(//WS Output:
 
       
       out3 << "atm_dim = 3\n";      
-      doit_i_field.resize((cloudbox_limits[1]- cloudbox_limits[0])+1, 
-                     (cloudbox_limits[3]- cloudbox_limits[2])+1,
-                     (cloudbox_limits[5]- cloudbox_limits[4])+1,
-                     N_za, 
-                     N_aa,
-                     N_i);
-      
-      doit_i_field = 0.;
-      
 
       // Loop over all directions:
       for (Index za_index = 0; za_index < N_za; za_index++)

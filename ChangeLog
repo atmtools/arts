@@ -1,3 +1,33 @@
+2015-01-26  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-137
+
+	* Cleanup of initialization of DOIT WSVs before starting work
+	on doit_i_field changes.
+
+	* src/m_doit.cc:
+
+	(DoitInit): Add initialization of scat_i_* for 3D. Introduce some
+	helper variables for frequently used dimension sizes for readability.
+
+	(DoitCloudboxFieldPut, DoitGetIncoming, DoitGetIncoming1DAtm):
+
+	Remove resizing of scat_i_*, it's now in DoitInit.
+
+	(doit_i_fieldSetClearsky, doit_i_fieldSetConst,
+	doit_i_fieldSetFromdoit_i_field1D_spectrum):
+	Remove doit_i_field resizing, because it is already done in DoitInit.
+
+	* src/methods.cc:
+
+	Change variables that are initialized in DoitInit and were defined as
+	output-only in DoitCalc, DoitCloudboxFieldPut, doit_i_fieldSetConst,
+	doit_i_fieldSetFromdoit_i_field1D_spectrum and DoitGetIncoming to
+	input+output. Otherwise their initialization in DoitInit
+	has no effect. Output-only variables are resized to 0 before they're
+	passed to a workspace method.  The code worked anyway because they were
+	resized again in the respective functions.
+
 2015-01-25  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-136
