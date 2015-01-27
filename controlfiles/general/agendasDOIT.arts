@@ -90,19 +90,16 @@ AgendaSet( opt_prop_part_agenda ){
 # --------------------
 AgendaSet( doit_conv_test_agenda ){
   # Give limits for all Stokes components in BT:
-  doit_conv_flagAbsBT( doit_conv_flag, doit_iteration_counter, doit_i_field,
-                       doit_i_field_old, f_grid, f_index,
-                       #[0.1, 0.01, 0.01, 0.01] ) # for stokes dim 4
-                       [0.1]) # for stokes dim 1
+  doit_conv_flagAbsBT( #epsilon=[0.1, 0.01, 0.01, 0.01] ) # for stokes dim 4
+                       epsilon=[0.1]) # for stokes dim 1
 
   # Alternative: Give limits in radiances
-  #doit_conv_flagAbs( doit_conv_flag, doit_iteration_counter, doit_i_field,
-  #                   doit_i_field_old, [0.1e-15, 0.1e-18, 0.1e-18, 0.1e-18] )
+  #doit_conv_flagAbs( epsilon=[0.1e-15, 0.1e-18, 0.1e-18, 0.1e-18] )
   #
   # If you want to investigate several iteration fields, for example 
   # to investigate the convergence behavior, you can use
   # the following method:
-  #DoitWriteIterationFields( doit_iteration_counter, doit_i_field, [2, 4])
+  #DoitWriteIterationFields( iterations=[2, 4])
   #}
 
 }

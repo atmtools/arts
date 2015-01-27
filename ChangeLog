@@ -1,3 +1,55 @@
+2015-01-27  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-138
+
+	* Work in progress. Adding frequency dimension to doit_i_field.
+
+	* src/agendas.cc, src/doit.{cc,h}, src/m_doit.cc, src/methods.cc,
+	src/workspace.cc:
+
+	Change doit_i_field from Tensor6 to Tensor7.
+
+	Add WSV doit_i_field_mono. This replaces doit_i_field in all internal
+	DOIT methods whereas doit_i_field is output of DoitCalc.
+	Also rename doit_i_field_old to doit_i_field_old_mono.
+	Affected WSMs:
+		DoitCloudboxFieldPut,
+		doit_conv_flag*,
+		doit_scat_fieldCalc,
+		doit_scat_fieldCalcLimb,
+		DoitWriteIterationFields,
+		doit_za_grid_optCalc.
+		doit_i_fieldIterate,
+		doit_i_fieldSetFromdoit_i_field1D_spectrum,
+		doit_i_fieldSetClearsky,
+		doit_i_fieldSetConst,
+		doit_i_fieldUpdate*.
+		Note: The names of the last 5 WSMs have intentionally not been
+		changed to doit_i_field_mono* yet.
+	Affected agendas:
+		doit_conv_test_agenda,
+		doit_mono_agenda,
+		doit_scat_field_agenda,
+		doit_rte_agenda.
+	Affected internal functions:
+		cloud_ppath_update1D_noseq,
+		cloud_ppath_update3D,
+		cloud_RT_no_background,
+		cloud_RT_surface,
+		interp_cloud_coeff1D,
+		cloud_ppath_update1D_planeparallel,
+		doit_scat_fieldNormalize.
+	
+	* controlfiles/artscomponents/doit/TestDOIT.arts,
+	controlfiles/artscomponents/doit/TestDOITprecalcInit.arts,
+	controlfiles/artscomponents/doitbatch/TestDOITBatch.arts,
+	controlfiles/general/agendasDOIT.arts:
+
+	Change doit_i_field to doit_i_field_mono at appropriate places.
+
+	Remove explicit WSM input to doit_conv_flagAbs and use keywords
+	instead.
+
 2015-01-26  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-137

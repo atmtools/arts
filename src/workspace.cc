@@ -1196,6 +1196,31 @@ void Workspace::define_wsv_data()
       (
        "Radiation field.\n" 
        "\n"
+       "This variable is used to store the radiation field \n"
+       "inside the cloudbox which is found by an iterative solution (DOIT).\n"
+       "Refer to AUG for further information.\n"
+       "\n"
+       "Usage: Method output. \n"    
+       "\n"
+       "Unit: W / (m^2 Hz sr) for each Stokes component.\n"
+       "\n"
+       "Size: [Nf,"
+       "       (cloudbox_limits[1] - cloudbox_limits[0]) +1, \n"
+       "       (cloudbox_limits[3] - cloudbox_limits[2]) +1, \n"
+       "       (cloudbox_limits[5] - cloudbox_limits[4]) +1, \n"
+       "        N_za, N_aa, N_i ]\n"
+       "\n"
+       "Note: For 1D, the size of the azimuth angle dimension (N_aa) is always 1.\n"
+       ),
+       GROUP( "Tensor7" )));
+
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "doit_i_field_mono" ),
+      DESCRIPTION
+      (
+       "Radiation field.\n" 
+       "\n"
        "This variable is used to store the monochromatic radiation field \n"
        "inside the cloudbox which is found by an iterative solution (DOIT).\n"
        "Refer to AUG for further information.\n"
@@ -1259,7 +1284,7 @@ void Workspace::define_wsv_data()
  
  wsv_data.push_back
    (WsvRecord
-    ( NAME( "doit_i_field_old" ),
+    ( NAME( "doit_i_field_mono_old" ),
       DESCRIPTION
       (
        "Intensity field inside the cloudbox.\n"

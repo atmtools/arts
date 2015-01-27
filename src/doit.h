@@ -98,13 +98,13 @@ void cloud_ppath_update1D(Workspace& ws,
 
 void cloud_ppath_update1D_noseq(Workspace& ws,
                                 // Input and output
-                                Tensor6View doit_i_field,
+                                Tensor6View doit_i_field_mono,
                                 // ppath_step_agenda:
                                 const Index& p_index,
                                 const Index& scat_za_index,
                                 ConstVectorView scat_za_grid,
                                 const ArrayOfIndex& cloudbox_limits,
-                                ConstTensor6View doit_i_field_old,
+                                ConstTensor6View doit_i_field_mono_old,
                                 ConstTensor6View doit_scat_field,
                                 // Calculate scalar gas absorption:
                                 const Agenda& propmat_clearsky_agenda,
@@ -129,7 +129,7 @@ void cloud_ppath_update1D_noseq(Workspace& ws,
                                 const Verbosity& verbosity);
 
 void cloud_ppath_update1D_planeparallel(Workspace& ws,
-                                        Tensor6View i_field,
+                                        Tensor6View doit_i_field_mono,
                                         // ppath_step_agenda:
                                         const Index& p_index,
                                         const Index& scat_za_index,
@@ -154,7 +154,7 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
                                         const Verbosity& verbosity);
 
 void cloud_ppath_update3D(Workspace& ws,
-                          Tensor6View doit_i_field,
+                          Tensor6View doit_i_field_mono,
                           // ppath_step_agenda:
                           const Index& p_index,
                           const Index& lat_index,
@@ -190,7 +190,7 @@ void cloud_ppath_update3D(Workspace& ws,
 
 void cloud_RT_no_background(Workspace& ws,
                             //Output
-                            Tensor6View doit_i_field,
+                            Tensor6View doit_i_field_mono,
                             // Input
                             const Agenda& propmat_clearsky_agenda,
                             const Ppath& ppath_step, 
@@ -199,7 +199,7 @@ void cloud_RT_no_background(Workspace& ws,
                             ConstTensor3View ext_mat_int,
                             ConstMatrixView abs_vec_int,
                             ConstMatrixView sca_vec_int,
-                            ConstMatrixView doit_i_field_int,
+                            ConstMatrixView doit_i_field_mono_int,
                             ConstVectorView p_int,
                             const ArrayOfIndex& cloudbox_limits,
                             ConstVectorView f_grid,
@@ -213,7 +213,7 @@ void cloud_RT_no_background(Workspace& ws,
 
 void cloud_RT_surface(Workspace& ws,
                       //Output
-                      Tensor6View doit_i_field,
+                      Tensor6View doit_i_field_mono,
                       //Input
                       const Agenda& surface_rtprop_agenda,
                       ConstVectorView f_grid,
@@ -229,7 +229,7 @@ void interp_cloud_coeff1D(//Output
                           Tensor3View ext_mat_int,
                           MatrixView abs_vec_int,
                           MatrixView sca_vec_int,
-                          MatrixView doit_i_field_int,
+                          MatrixView doit_i_field_mono_int,
                           VectorView t_int, 
                           MatrixView vmr_list_int,
                           VectorView p_int,
@@ -237,7 +237,7 @@ void interp_cloud_coeff1D(//Output
                           ConstTensor5View ext_mat_field, 
                           ConstTensor4View abs_vec_field,
                           ConstTensor6View doit_scat_field,
-                          ConstTensor6View doit_i_field,
+                          ConstTensor6View doit_i_field_mono,
                           ConstTensor3View t_field, 
                           ConstTensor4View vmr_field, 
                           ConstVectorView p_grid,
@@ -279,7 +279,7 @@ void iy_interp_cloudbox_field(Matrix&               iy,
 
 void doit_scat_fieldNormalize(Workspace& ws,
                               Tensor6& doit_scat_field,
-                              const Tensor6& doit_i_field,
+                              const Tensor6& doit_i_field_mono,
                               const ArrayOfIndex& cloudbox_limits,
                               const Agenda& spt_calc_agenda,
                               const Index& atmosphere_dim,

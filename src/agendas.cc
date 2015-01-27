@@ -142,7 +142,7 @@ void define_agenda_data()
         ),
        OUTPUT( "doit_conv_flag", "doit_iteration_counter" ),
        INPUT(  "doit_conv_flag", "doit_iteration_counter",
-               "doit_i_field", "doit_i_field_old" )));
+               "doit_i_field_mono", "doit_i_field_mono_old" )));
 
   agenda_data.push_back
     (AgRecord
@@ -165,9 +165,9 @@ void define_agenda_data()
        "See the ArtsWiki page UsingArtsDoit and the online documentation\n"
        "for more information about the methods.\n"
         ),
-       OUTPUT( "doit_i_field", "scat_i_p", "scat_i_lat", "scat_i_lon", 
+       OUTPUT( "doit_i_field_mono", "scat_i_p", "scat_i_lat", "scat_i_lon",
                "doit_i_field1D_spectrum"),
-       INPUT("doit_i_field", "f_grid", "f_index",
+       INPUT("doit_i_field_mono", "f_grid", "f_index",
              "scat_i_p", "scat_i_lat", "scat_i_lon", "doit_i_field1D_spectrum")));
             
  agenda_data.push_back
@@ -194,7 +194,7 @@ void define_agenda_data()
         "  is much faster than *doit_scat_fieldCalc*. \n"
         ),
         OUTPUT( "doit_scat_field" ),
-        INPUT(  "doit_scat_field", "doit_i_field")));
+        INPUT(  "doit_scat_field", "doit_i_field_mono")));
 
  agenda_data.push_back
     (AgRecord
@@ -225,8 +225,8 @@ void define_agenda_data()
         "be used for test cases.\n"
         "*doit_i_fieldUpdate{1,3}D*: Old function.\n"
         ),
-        OUTPUT( "doit_i_field" ),
-       INPUT(   "doit_i_field", "doit_scat_field" )));
+        OUTPUT( "doit_i_field_mono" ),
+       INPUT(   "doit_i_field_mono", "doit_scat_field" )));
  
   agenda_data.push_back
     (AgRecord

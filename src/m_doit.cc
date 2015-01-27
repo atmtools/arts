@@ -123,9 +123,9 @@ void DoitAngularGridsSet(// WS Output:
 void doit_conv_flagAbs(//WS Input and Output:
                        Index& doit_conv_flag,
                        Index& doit_iteration_counter,
-                       Tensor6& doit_i_field,
+                       Tensor6& doit_i_field_mono,
                        // WS Input:
-                       const Tensor6& doit_i_field_old,
+                       const Tensor6& doit_i_field_mono_old,
                        // Keyword:
                        const Vector& epsilon,
                        const Index& max_iterations,
@@ -141,12 +141,12 @@ void doit_conv_flagAbs(//WS Input and Output:
                         "WSM is not used correctly. *doit_conv_flagAbs* should\n"
                         "be used only in *doit_conv_test_agenda*\n");
   
-  const Index N_p = doit_i_field.nvitrines();
-  const Index N_lat = doit_i_field.nshelves();
-  const Index N_lon = doit_i_field.nbooks();
-  const Index N_za = doit_i_field.npages();
-  const Index N_aa = doit_i_field.nrows();
-  const Index stokes_dim = doit_i_field.ncols();
+  const Index N_p = doit_i_field_mono.nvitrines();
+  const Index N_lat = doit_i_field_mono.nshelves();
+  const Index N_lon = doit_i_field_mono.nbooks();
+  const Index N_za = doit_i_field_mono.npages();
+  const Index N_aa = doit_i_field_mono.nrows();
+  const Index stokes_dim = doit_i_field_mono.ncols();
   
   // Check keyword "epsilon":
   if ( epsilon.nelem() != stokes_dim )
@@ -158,7 +158,7 @@ void doit_conv_flagAbs(//WS Input and Output:
                         );
 
   // Check if doit_i_field and doit_i_field_old have the same dimensions:
-  if(!is_size( doit_i_field_old, 
+  if(!is_size( doit_i_field_mono_old, 
                   N_p, N_lat, N_lon, N_za, N_aa, stokes_dim))
     throw runtime_error("The fields (Tensor6) *doit_i_field* and \n"
                         "*doit_i_field_old* which are compared in the \n"
@@ -190,7 +190,7 @@ void doit_conv_flagAbs(//WS Input and Output:
 //          throw runtime_error( os.str() );
           out1 << "Warning in DOIT calculation (output set to NaN):\n"
                << out.str();
-          doit_i_field = NAN;
+          doit_i_field_mono = NAN;
           doit_conv_flag = 1;
         }
       else
@@ -218,10 +218,10 @@ void doit_conv_flagAbs(//WS Input and Output:
                              stokes_dim; stokes_index ++) 
                         {
                           Numeric diff =
-                             (doit_i_field(p_index, lat_index, lon_index, 
+                             (doit_i_field_mono(p_index, lat_index, lon_index, 
                                                scat_za_index, scat_aa_index, 
                                                stokes_index) -
-                              doit_i_field_old(p_index, lat_index, 
+                              doit_i_field_mono_old(p_index, lat_index, 
                                                lon_index, scat_za_index,
                                                scat_aa_index, 
                                                stokes_index ));
@@ -254,9 +254,9 @@ void doit_conv_flagAbs(//WS Input and Output:
 void doit_conv_flagAbsBT(//WS Input and Output:
                          Index& doit_conv_flag,
                          Index& doit_iteration_counter,
-                         Tensor6& doit_i_field,
+                         Tensor6& doit_i_field_mono,
                          // WS Input:
-                         const Tensor6& doit_i_field_old,
+                         const Tensor6& doit_i_field_mono_old,
                          const Vector& f_grid,
                          const Index& f_index, 
                          // Keyword:
@@ -275,12 +275,12 @@ void doit_conv_flagAbsBT(//WS Input and Output:
                         "WSM is not used correctly. *doit_conv_flagAbs* should\n"
                         "be used only in *doit_conv_test_agenda*\n");
   
-  const Index N_p = doit_i_field.nvitrines();
-  const Index N_lat = doit_i_field.nshelves();
-  const Index N_lon = doit_i_field.nbooks();
-  const Index N_za = doit_i_field.npages();
-  const Index N_aa = doit_i_field.nrows();
-  const Index stokes_dim = doit_i_field.ncols();
+  const Index N_p = doit_i_field_mono.nvitrines();
+  const Index N_lat = doit_i_field_mono.nshelves();
+  const Index N_lon = doit_i_field_mono.nbooks();
+  const Index N_za = doit_i_field_mono.npages();
+  const Index N_aa = doit_i_field_mono.nrows();
+  const Index stokes_dim = doit_i_field_mono.ncols();
   
   // Check keyword "epsilon":
   if ( epsilon.nelem() != stokes_dim )
@@ -292,7 +292,7 @@ void doit_conv_flagAbsBT(//WS Input and Output:
                         );
   
   // Check if doit_i_field and doit_i_field_old have the same dimensions:
-  if(!is_size( doit_i_field_old, 
+  if(!is_size( doit_i_field_mono_old, 
                N_p, N_lat, N_lon, N_za, N_aa, stokes_dim))
     throw runtime_error("The fields (Tensor6) *doit_i_field* and \n"
                         "*doit_i_field_old* which are compared in the \n"
@@ -335,7 +335,7 @@ void doit_conv_flagAbsBT(//WS Input and Output:
 //          throw runtime_error( os.str() );
           out1 << "Warning in DOIT calculation (output set to NaN):\n"
                << out.str();
-          doit_i_field = NAN;
+          doit_i_field_mono = NAN;
           doit_conv_flag = 1;
         }
       else
@@ -363,10 +363,10 @@ void doit_conv_flagAbsBT(//WS Input and Output:
                              stokes_dim; stokes_index ++) 
                         {
                           Numeric diff =
-                            doit_i_field(p_index, lat_index, lon_index,
+                            doit_i_field_mono(p_index, lat_index, lon_index,
                                           scat_za_index, scat_aa_index, 
                                           stokes_index) -
-                                  doit_i_field_old(p_index, lat_index, 
+                                  doit_i_field_mono_old(p_index, lat_index,
                                               lon_index, scat_za_index,
                                               scat_aa_index, 
                                               stokes_index );
@@ -398,9 +398,9 @@ void doit_conv_flagAbsBT(//WS Input and Output:
 void doit_conv_flagLsq(//WS Output:
                        Index& doit_conv_flag,
                        Index& doit_iteration_counter,
-                       Tensor6& doit_i_field,
+                       Tensor6& doit_i_field_mono,
                        // WS Input:
-                       const Tensor6& doit_i_field_old,
+                       const Tensor6& doit_i_field_mono_old,
                        const Vector& f_grid,
                        const Index& f_index,
                        // Keyword:
@@ -419,12 +419,12 @@ void doit_conv_flagLsq(//WS Output:
                         "WSM is not used correctly. *doit_conv_flagAbs* should\n"
                         "be used only in *doit_conv_test_agenda*\n");
  
-  const Index N_p = doit_i_field.nvitrines();
-  const Index N_lat = doit_i_field.nshelves();
-  const Index N_lon = doit_i_field.nbooks();
-  const Index N_za = doit_i_field.npages();
-  const Index N_aa = doit_i_field.nrows();
-  const Index stokes_dim = doit_i_field.ncols();
+  const Index N_p = doit_i_field_mono.nvitrines();
+  const Index N_lat = doit_i_field_mono.nshelves();
+  const Index N_lon = doit_i_field_mono.nbooks();
+  const Index N_za = doit_i_field_mono.npages();
+  const Index N_aa = doit_i_field_mono.nrows();
+  const Index stokes_dim = doit_i_field_mono.ncols();
   
   // Check keyword "epsilon":
   if ( epsilon.nelem() != stokes_dim )
@@ -436,7 +436,7 @@ void doit_conv_flagLsq(//WS Output:
                         );
 
   // Check if doit_i_field and doit_i_field_old have the same dimensions:
-  if(!is_size( doit_i_field_old, 
+  if(!is_size( doit_i_field_mono_old, 
                N_p, N_lat, N_lon, N_za, N_aa, stokes_dim))
     throw runtime_error("The fields (Tensor6) *doit_i_field* and \n"
                         "*doit_i_field_old* which are compared in the \n"
@@ -478,7 +478,7 @@ void doit_conv_flagLsq(//WS Output:
 //          throw runtime_error( os.str() );
           out1 << "Warning in DOIT calculation (output set to NaN):\n"
                << out.str();
-          doit_i_field = NAN;
+          doit_i_field_mono = NAN;
           doit_conv_flag = 1;
         }
       else
@@ -510,10 +510,10 @@ void doit_conv_flagLsq(//WS Output:
                         {
                           lqs[i] 
                             += pow(
-                                   doit_i_field(p_index, lat_index, 
+                                   doit_i_field_mono(p_index, lat_index, 
                                                 lon_index, 
                                            scat_za_index, scat_aa_index, i) -
-                                   doit_i_field_old(p_index, lat_index, 
+                                   doit_i_field_mono_old(p_index, lat_index, 
                                                lon_index, scat_za_index,
                                                scat_aa_index, i) 
                                    , 2);
@@ -541,7 +541,7 @@ void doit_conv_flagLsq(//WS Output:
 /* Workspace method: Doxygen documentation will be auto-generated */
 void doit_i_fieldIterate(Workspace& ws,
                          // WS Input and Output:
-                         Tensor6& doit_i_field,
+                         Tensor6& doit_i_field_mono,
                          // WS Input:  
                          const Agenda& doit_scat_field_agenda,
                          const Agenda& doit_rte_agenda,
@@ -560,16 +560,16 @@ void doit_i_fieldIterate(Workspace& ws,
   //variables
   //-----------End of checks-------------------------------------- 
 
-  Tensor6 doit_i_field_old_local;
+  Tensor6 doit_i_field_mono_old_local;
   Index doit_conv_flag_local;
   Index doit_iteration_counter_local;
 
   // Resize and initialize doit_scat_field,
   // which  has the same dimensions as doit_i_field
   Tensor6 doit_scat_field_local
-    (doit_i_field.nvitrines(), doit_i_field.nshelves(),
-     doit_i_field.nbooks(), doit_i_field.npages(),
-     doit_i_field.nrows(), doit_i_field.ncols(), 0.);
+    (doit_i_field_mono.nvitrines(), doit_i_field_mono.nshelves(),
+     doit_i_field_mono.nbooks(), doit_i_field_mono.npages(),
+     doit_i_field_mono.nrows(), doit_i_field_mono.ncols(), 0.);
 
   doit_conv_flag_local = 0;
   doit_iteration_counter_local = 0;
@@ -577,26 +577,26 @@ void doit_i_fieldIterate(Workspace& ws,
   while(doit_conv_flag_local == 0) {
     
     // 1. Copy doit_i_field to doit_i_field_old.
-    doit_i_field_old_local = doit_i_field;
+    doit_i_field_mono_old_local = doit_i_field_mono;
     
     // 2.Calculate scattered field vector for all points in the cloudbox.
-    
+
     // Calculate the scattered field.
     out2 << "  Execute doit_scat_field_agenda. \n";
     doit_scat_field_agendaExecute(ws, doit_scat_field_local,
-                                  doit_i_field,
+                                  doit_i_field_mono,
                                   doit_scat_field_agenda);
 
     // Update doit_i_field.
     out2 << "  Execute doit_rte_agenda. \n";
-    doit_rte_agendaExecute(ws, doit_i_field, doit_scat_field_local,
+    doit_rte_agendaExecute(ws, doit_i_field_mono, doit_scat_field_local,
                            doit_rte_agenda);
 
     //Convergence test.
     doit_conv_test_agendaExecute(ws, doit_conv_flag_local,
                                  doit_iteration_counter_local,
-                                 doit_i_field,
-                                 doit_i_field_old_local,
+                                 doit_i_field_mono,
+                                 doit_i_field_mono_old_local,
                                  doit_conv_test_agenda);
 
   }//end of while loop, convergence is reached.
@@ -607,7 +607,7 @@ void doit_i_fieldIterate(Workspace& ws,
 void
 doit_i_fieldUpdate1D(Workspace& ws,
                      // WS Input and Output:
-                     Tensor6& doit_i_field,
+                     Tensor6& doit_i_field_mono,
                      // WS Input:
                      const Tensor6& doit_scat_field,
                      const ArrayOfIndex& cloudbox_limits,
@@ -689,7 +689,7 @@ doit_i_fieldUpdate1D(Workspace& ws,
 
 
   // These variables are calculated internally, so assertions should be o.k.
-  assert( is_size( doit_i_field, 
+  assert( is_size( doit_i_field_mono, 
                    (cloudbox_limits[1] - cloudbox_limits[0]) + 1, 1, 1, 
                    N_scat_za, 1, stokes_dim));
   
@@ -720,7 +720,7 @@ doit_i_fieldUpdate1D(Workspace& ws,
   Tensor4 abs_vec_field(cloudbox_limits[1] - cloudbox_limits[0] + 1, 1, 1,
                         stokes_dim, 0.);
 
-  Tensor6 doit_i_field_old(doit_i_field);
+  Tensor6 doit_i_field_old(doit_i_field_mono);
 
   //Only dummy variable:
   Index scat_aa_index_local = 0; 
@@ -749,7 +749,7 @@ doit_i_fieldUpdate1D(Workspace& ws,
         {
           if ( (p_index!=0) || (scat_za_grid[scat_za_index_local] <= 90.))
             {
-              cloud_ppath_update1D_noseq(ws, doit_i_field,
+              cloud_ppath_update1D_noseq(ws, doit_i_field_mono,
                                      p_index, scat_za_index_local, 
                                      scat_za_grid,
                                      cloudbox_limits, doit_i_field_old, 
@@ -771,7 +771,7 @@ doit_i_fieldUpdate1D(Workspace& ws,
 void
 doit_i_fieldUpdateSeq1D(Workspace& ws,
                         // WS Input and Output:
-                        Tensor6& doit_i_field,
+                        Tensor6& doit_i_field_mono,
                         Tensor6& doit_scat_field,
                         // WS Input:
                         const ArrayOfIndex& cloudbox_limits,
@@ -857,7 +857,7 @@ doit_i_fieldUpdateSeq1D(Workspace& ws,
   
   
   // These variables are calculated internally, so assertions should be o.k.
-  assert( is_size( doit_i_field, 
+  assert( is_size( doit_i_field_mono, 
                    (cloudbox_limits[1] - cloudbox_limits[0]) + 1, 1, 1, 
                    N_scat_za, 1, stokes_dim));
   
@@ -913,7 +913,7 @@ doit_i_fieldUpdateSeq1D(Workspace& ws,
       Tensor4 si, sei, si_corr;
       doit_scat_fieldNormalize(ws,
                                doit_scat_field,
-                               doit_i_field,
+                               doit_i_field_mono,
                                cloudbox_limits,
                                spt_calc_agenda,
                                1,
@@ -957,7 +957,7 @@ doit_i_fieldUpdateSeq1D(Workspace& ws,
           for(Index p_index = cloudbox_limits[1]-1; p_index
                 >= cloudbox_limits[0]; p_index --)
             {
-              cloud_ppath_update1D(ws, doit_i_field,
+              cloud_ppath_update1D(ws, doit_i_field_mono,
                                    p_index, scat_za_index_local, scat_za_grid,
                                    cloudbox_limits, doit_scat_field,
                                    propmat_clearsky_agenda, vmr_field,
@@ -977,7 +977,7 @@ doit_i_fieldUpdateSeq1D(Workspace& ws,
           for(Index p_index = cloudbox_limits[0]+1; p_index
                 <= cloudbox_limits[1]; p_index ++)
             {
-              cloud_ppath_update1D(ws, doit_i_field,
+              cloud_ppath_update1D(ws, doit_i_field_mono,
                                    p_index, scat_za_index_local, scat_za_grid,
                                    cloudbox_limits, doit_scat_field,
                                    propmat_clearsky_agenda, vmr_field,
@@ -1004,7 +1004,7 @@ doit_i_fieldUpdateSeq1D(Workspace& ws,
         while (!conv_flag && limb_it < 10)
         {
           limb_it++;
-          doit_i_field_limb = doit_i_field(joker, 0, 0, scat_za_index_local, 0, joker);
+          doit_i_field_limb = doit_i_field_mono(joker, 0, 0, scat_za_index_local, 0, joker);
           for(Index p_index = cloudbox_limits[0];
               p_index <= cloudbox_limits[1]; p_index ++)
           {
@@ -1014,7 +1014,7 @@ doit_i_fieldUpdateSeq1D(Workspace& ws,
             // gives an error for such cases.
             if (p_index != 0)
             {
-              cloud_ppath_update1D(ws, doit_i_field,
+              cloud_ppath_update1D(ws, doit_i_field_mono,
                                    p_index, scat_za_index_local,
                                    scat_za_grid,
                                    cloudbox_limits, doit_scat_field,
@@ -1031,13 +1031,13 @@ doit_i_fieldUpdateSeq1D(Workspace& ws,
 
           conv_flag = true;
           for (Index p_index = 0;
-               conv_flag && p_index < doit_i_field.nvitrines(); p_index++)
+               conv_flag && p_index < doit_i_field_mono.nvitrines(); p_index++)
           {
             for (Index stokes_index = 0;
                  conv_flag && stokes_index < stokes_dim; stokes_index ++)
             {
               Numeric diff =
-              doit_i_field(p_index, 0, 0, scat_za_index_local, 0, stokes_index)
+              doit_i_field_mono(p_index, 0, 0, scat_za_index_local, 0, stokes_index)
               - doit_i_field_limb(p_index, stokes_index);
 
               // If the absolute difference of the components
@@ -1063,7 +1063,7 @@ doit_i_fieldUpdateSeq1D(Workspace& ws,
 void
 doit_i_fieldUpdateSeq3D(Workspace& ws,
                         // WS Output and Input:
-                        Tensor6& doit_i_field,
+                        Tensor6& doit_i_field_mono,
                         // WS Input:
                         const Tensor6& doit_scat_field,
                         const ArrayOfIndex& cloudbox_limits,
@@ -1153,7 +1153,7 @@ doit_i_fieldUpdateSeq3D(Workspace& ws,
   assert(stokes_dim > 0 || stokes_dim < 5); 
   
   // These variables are calculated internally, so assertions should be o.k.
-  assert( is_size( doit_i_field, 
+  assert( is_size( doit_i_field_mono, 
                    (cloudbox_limits[1] - cloudbox_limits[0]) + 1,
                    (cloudbox_limits[3] - cloudbox_limits[2]) + 1, 
                    (cloudbox_limits[5] - cloudbox_limits[4]) + 1,
@@ -1245,7 +1245,7 @@ doit_i_fieldUpdateSeq3D(Workspace& ws,
                       for(Index lon_index = lon_low; lon_index <= lon_up; 
                           lon_index ++)
                         {
-                          cloud_ppath_update3D(ws, doit_i_field,
+                          cloud_ppath_update3D(ws, doit_i_field_mono,
                                                p_index, lat_index, 
                                                lon_index, scat_za_index, 
                                                scat_aa_index, scat_za_grid, 
@@ -1277,7 +1277,7 @@ doit_i_fieldUpdateSeq3D(Workspace& ws,
                       for(Index lon_index = lon_low; lon_index <= lon_up; 
                           lon_index ++)
                         {
-                          cloud_ppath_update3D(ws, doit_i_field,
+                          cloud_ppath_update3D(ws, doit_i_field_mono,
                                                p_index, lat_index, 
                                                lon_index, scat_za_index, 
                                                scat_aa_index, scat_za_grid, 
@@ -1321,7 +1321,7 @@ doit_i_fieldUpdateSeq3D(Workspace& ws,
                           for(Index lon_index = lon_low; lon_index <= lon_up; 
                               lon_index ++)
                             {
-                              cloud_ppath_update3D(ws, doit_i_field,
+                              cloud_ppath_update3D(ws, doit_i_field_mono,
                                                    p_index, 
                                                    lat_index, 
                                                    lon_index, scat_za_index, 
@@ -1349,8 +1349,8 @@ doit_i_fieldUpdateSeq3D(Workspace& ws,
         } //  Closes loop over aa_grid.
     }// Closes loop over scat_za_grid.
 
-  doit_i_field(joker, joker, joker, joker, 0, joker) = 
-    doit_i_field(joker, joker, joker, joker, N_scat_aa-1, joker);
+  doit_i_field_mono(joker, joker, joker, joker, 0, joker) = 
+    doit_i_field_mono(joker, joker, joker, joker, N_scat_aa-1, joker);
   
 }
 
@@ -1359,7 +1359,7 @@ doit_i_fieldUpdateSeq3D(Workspace& ws,
 void
 doit_i_fieldUpdateSeq1DPP(Workspace& ws,
                           // WS Output:
-                          Tensor6& doit_i_field,
+                          Tensor6& doit_i_field_mono,
                           // spt_calc_agenda:
                           Index& scat_za_index ,
                           // WS Input:
@@ -1399,7 +1399,7 @@ doit_i_fieldUpdateSeq1DPP(Workspace& ws,
                         "The dimension of stokes vector must be"
                         "1,2,3, or 4");
   
-  assert( is_size( doit_i_field, 
+  assert( is_size( doit_i_field_mono, 
                       (cloudbox_limits[1] - cloudbox_limits[0]) + 1,
                       1, 
                       1,
@@ -1478,7 +1478,7 @@ doit_i_fieldUpdateSeq1DPP(Workspace& ws,
           for(Index p_index = cloudbox_limits[1] -1; p_index
                 >= cloudbox_limits[0]; p_index --)
             {
-              cloud_ppath_update1D_planeparallel(ws, doit_i_field,
+              cloud_ppath_update1D_planeparallel(ws, doit_i_field_mono,
                                                  p_index, scat_za_index,
                                                  scat_za_grid,
                                                  cloudbox_limits,
@@ -1501,7 +1501,7 @@ doit_i_fieldUpdateSeq1DPP(Workspace& ws,
           for(Index p_index = cloudbox_limits[0]+1; p_index
                 <= cloudbox_limits[1]; p_index ++)
             {
-              cloud_ppath_update1D_planeparallel(ws, doit_i_field,
+              cloud_ppath_update1D_planeparallel(ws, doit_i_field_mono,
                                                  p_index, scat_za_index,
                                                  scat_za_grid,
                                                  cloudbox_limits,
@@ -1529,7 +1529,7 @@ void DoitInit(//WS Output
               Index& scat_za_index,
               Index& scat_aa_index,
               Tensor6& doit_scat_field,
-              Tensor6& doit_i_field,
+              Tensor7& doit_i_field,
               Tensor4& doit_i_field1D_spectrum,
               Tensor7& scat_i_p,
               Tensor7& scat_i_lat,
@@ -1623,8 +1623,8 @@ void DoitInit(//WS Output
   // Resize and initialize radiation field in the cloudbox
   if (atmosphere_dim == 1)
     {
-      doit_i_field.resize(    Np_cloud, 1, 1, Nza, 1, Ns );
-      doit_scat_field.resize( Np_cloud, 1, 1, Nza, 1, Ns );
+      doit_i_field.resize( Nf, Np_cloud, 1, 1, Nza, 1, Ns );
+      doit_scat_field.resize(  Np_cloud, 1, 1, Nza, 1, Ns );
 
       doit_i_field1D_spectrum.resize( Nf, Np_cloud, Nza, Ns );
 
@@ -1638,8 +1638,8 @@ void DoitInit(//WS Output
       const Index Nlon_cloud = cloudbox_limits[5] - cloudbox_limits[4] + 1;
       const Index Naa = scat_aa_grid.nelem();
 
-      doit_i_field.resize(    Np_cloud, Nlat_cloud, Nlon_cloud, Nza, Naa, Ns );
-      doit_scat_field.resize( Np_cloud, Nlat_cloud, Nlon_cloud, Nza, Naa, Ns );
+      doit_i_field.resize( Nf, Np_cloud, Nlat_cloud, Nlon_cloud, Nza, Naa, Ns );
+      doit_scat_field.resize(  Np_cloud, Nlat_cloud, Nlon_cloud, Nza, Naa, Ns );
 
       scat_i_p.resize(   Nf,        2, Nlat_cloud, Nlon_cloud, Nza, Naa, Ns );
       scat_i_lat.resize( Nf, Np_cloud,          2, Nlon_cloud, Nza, Naa, Ns );
@@ -1667,7 +1667,7 @@ void DoitInit(//WS Output
 /* Workspace method: Doxygen documentation will be auto-generated */
 void DoitWriteIterationFields(//WS input 
                               const Index& doit_iteration_counter,
-                              const Tensor6& doit_i_field,
+                              const Tensor6& doit_i_field_mono,
                               //Keyword:
                               const ArrayOfIndex& iterations,
                               const Verbosity& verbosity)
@@ -1685,7 +1685,7 @@ void DoitWriteIterationFields(//WS input
   if( iterations[0] == 0 )
     {
       xml_write_to_file("doit_iteration_" + os.str() + ".xml",
-                        doit_i_field, FILE_TYPE_ASCII, 0, verbosity);
+                        doit_i_field_mono, FILE_TYPE_ASCII, 0, verbosity);
     }
   
   // Only the iterations given by the keyword are written to a file
@@ -1695,7 +1695,7 @@ void DoitWriteIterationFields(//WS input
         {
           if (doit_iteration_counter == iterations[i])
             xml_write_to_file("doit_iteration_" + os.str() + ".xml", 
-                              doit_i_field, FILE_TYPE_ASCII, 0, verbosity);
+                              doit_i_field_mono, FILE_TYPE_ASCII, 0, verbosity);
         }
     }
 }
@@ -1708,7 +1708,7 @@ doit_scat_fieldCalc(Workspace& ws,
                     Tensor6& doit_scat_field,
                     //WS Input:
                     const Agenda& pha_mat_spt_agenda,
-                    const Tensor6& doit_i_field,
+                    const Tensor6& doit_i_field_mono,
                     const Tensor4& pnd_field,
                     const Tensor3& t_field,
                     const Index& atmosphere_dim,
@@ -1753,7 +1753,7 @@ doit_scat_fieldCalc(Workspace& ws,
   // (*doit_scat_field*)
   if (atmosphere_dim == 1)
     {
-      assert( is_size(doit_i_field, 
+      assert( is_size(doit_i_field_mono, 
                       (cloudbox_limits[1] - cloudbox_limits[0]) +1,
                       1, 1, Nza, 1, stokes_dim));
       assert( is_size(doit_scat_field, 
@@ -1762,7 +1762,7 @@ doit_scat_fieldCalc(Workspace& ws,
     }
   else if (atmosphere_dim == 3)
     {
-      assert ( is_size( doit_i_field, 
+      assert ( is_size( doit_i_field_mono, 
                         (cloudbox_limits[1] - cloudbox_limits[0]) +1,
                         (cloudbox_limits[3] - cloudbox_limits[2]) +1, 
                         (cloudbox_limits[5] - cloudbox_limits[4]) +1,
@@ -1873,7 +1873,7 @@ doit_scat_fieldCalc(Workspace& ws,
                             {
                               product_field(za_in, aa_in, i) +=
                                 pha_mat_local(za_in, aa_in, i, j) * 
-                                doit_i_field(p_index, 0, 0, za_in, 0, j);
+                                doit_i_field_mono(p_index, 0, 0, za_in, 0, j);
                           }
                       }
                       
@@ -1961,7 +1961,7 @@ doit_scat_fieldCalc(Workspace& ws,
                                           product_field(za_in, aa_in, i) +=
                                             pha_mat_local
                                             (za_in, aa_in, i, j) * 
-                                            doit_i_field(p_index, lat_index, 
+                                            doit_i_field_mono(p_index, lat_index, 
                                                          lon_index, 
                                                          scat_za_index_local,
                                                          scat_aa_index_local,
@@ -2008,7 +2008,7 @@ doit_scat_fieldCalcLimb(Workspace& ws,
                         Tensor6& doit_scat_field,
                         //WS Input:
                         const Agenda& pha_mat_spt_agenda,
-                        const Tensor6& doit_i_field,
+                        const Tensor6& doit_i_field_mono,
                         const Tensor4& pnd_field,
                         const Tensor3& t_field,
                         const Index& atmosphere_dim,
@@ -2053,7 +2053,7 @@ doit_scat_fieldCalcLimb(Workspace& ws,
   // (*doit_scat_field*)
   if (atmosphere_dim == 1)
     {
-      assert( is_size(doit_i_field, 
+      assert( is_size(doit_i_field_mono, 
                       (cloudbox_limits[1] - cloudbox_limits[0]) +1,
                       1, 1, Nza, 1, stokes_dim));
       assert( is_size(doit_scat_field, 
@@ -2062,7 +2062,7 @@ doit_scat_fieldCalcLimb(Workspace& ws,
     }
   else if (atmosphere_dim == 3)
     {
-      assert ( is_size( doit_i_field, 
+      assert ( is_size( doit_i_field_mono, 
                         (cloudbox_limits[1] - cloudbox_limits[0]) +1,
                         (cloudbox_limits[3] - cloudbox_limits[2]) +1, 
                         (cloudbox_limits[5] - cloudbox_limits[4]) +1,
@@ -2166,7 +2166,7 @@ doit_scat_fieldCalcLimb(Workspace& ws,
               if (doit_za_interp == 0)
                 {
                   interp(doit_i_field_int(joker, i), itw_za_i, 
-                         doit_i_field(p_index, 0, 0, joker, 0, i), gp_za_i);
+                         doit_i_field_mono(p_index, 0, 0, joker, 0, i), gp_za_i);
                 } 
               else if (doit_za_interp == 1)
                 {
@@ -2175,7 +2175,7 @@ doit_scat_fieldCalcLimb(Workspace& ws,
                     {
                       doit_i_field_int(za, i) = 
                         interp_poly(scat_za_grid, 
-                                     doit_i_field(p_index, 0, 0, joker, 0, i),
+                                     doit_i_field_mono(p_index, 0, 0, joker, 0, i),
                                      za_grid[za],
                                      gp_za_i[za]);
                     }
@@ -2305,7 +2305,7 @@ doit_scat_fieldCalcLimb(Workspace& ws,
                     for (Index i = 0; i < stokes_dim; i++)
                       {
                         interp(doit_i_field_int(joker, i), itw_za_i, 
-                               doit_i_field(p_index, lat_index, lon_index,
+                               doit_i_field_mono(p_index, lat_index, lon_index,
                                        joker, scat_aa_index_local, i), gp_za_i);
                       }       
                     
@@ -2401,7 +2401,7 @@ doit_scat_fieldCalcLimb(Workspace& ws,
 void doit_za_grid_optCalc(//WS Output
                           Vector& doit_za_grid_opt,
                           // WS Input:
-                          const Tensor6& doit_i_field,
+                          const Tensor6& doit_i_field_mono,
                           const Vector& scat_za_grid,
                           const Index& doit_za_interp,
                           //Keywords:
@@ -2414,11 +2414,11 @@ void doit_za_grid_optCalc(//WS Output
   // Here it is checked whether doit_i_field is 1D and whether it is 
   // consistent with scat_za_grid. The number of pressure levels and the 
   // number of stokes components does not matter. 
-  chk_size("doit_i_field", doit_i_field, 
-           doit_i_field.nvitrines() , 1, 1, scat_za_grid.nelem(), 1,
-           doit_i_field.ncols());
+  chk_size("doit_i_field", doit_i_field_mono, 
+           doit_i_field_mono.nvitrines() , 1, 1, scat_za_grid.nelem(), 1,
+           doit_i_field_mono.ncols());
   
-  if(doit_i_field.ncols()<1 || doit_i_field.ncols()>4)
+  if(doit_i_field_mono.ncols()<1 || doit_i_field_mono.ncols()>4)
     throw runtime_error("The last dimension of *doit_i_field* corresponds\n"
                         "to the Stokes dimension, therefore the number of\n"
                         "columns in *doit_i_field* must be a number between\n"
@@ -2446,7 +2446,7 @@ void doit_za_grid_optCalc(//WS Output
   
   // Optimize zenith angle grid. 
   za_gridOpt(doit_za_grid_opt, doit_i_field_opt_mat,
-             scat_za_grid, doit_i_field, acc,
+             scat_za_grid, doit_i_field_mono, acc,
              doit_za_interp);
 }
 
@@ -2481,7 +2481,7 @@ void doit_za_interpSet(Index& doit_za_interp,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void DoitCalc(
          Workspace& ws,
-         Tensor6&   doit_i_field,
+         Tensor7&   doit_i_field,
          Tensor7&   scat_i_p, 
          Tensor7&   scat_i_lat, 
          Tensor7&   scat_i_lon,
@@ -2549,9 +2549,13 @@ void DoitCalc(
       os << "Frequency: " << f_grid[f_index]/1e9 <<" GHz \n" ;
       out2 << os.str();
 
-      doit_mono_agendaExecute(l_ws, doit_i_field, scat_i_p, scat_i_lat,
+      Tensor6 doit_i_field_mono_local = doit_i_field(f_index, joker, joker, joker, joker, joker, joker);
+      doit_mono_agendaExecute(l_ws,
+                              doit_i_field_mono_local,
+                              scat_i_p, scat_i_lat,
                               scat_i_lon, doit_i_field1D_spectrum,
                               f_grid, f_index, l_doit_mono_agenda);
+      doit_i_field(f_index, joker, joker, joker, joker, joker, joker) = doit_i_field_mono_local;
     }
 }
 
@@ -2563,7 +2567,7 @@ void DoitCloudboxFieldPut(//WS Output:
                           Tensor7& scat_i_lon,
                           Tensor4& doit_i_field1D_spectrum,
                           //WS Input:
-                          const Tensor6& doit_i_field,
+                          const Tensor6& doit_i_field_mono,
                           const Vector& f_grid,
                           const Index& f_index,
                           const Vector& p_grid,
@@ -2610,7 +2614,7 @@ void DoitCloudboxFieldPut(//WS Output:
   if(atmosphere_dim == 1)
     {
       // Check size of doit_i_field.
-      assert ( is_size( doit_i_field, 
+      assert ( is_size( doit_i_field_mono, 
                         (cloudbox_limits[1] - cloudbox_limits[0]) + 1,
                         1, 
                         1,
@@ -2629,16 +2633,16 @@ void DoitCloudboxFieldPut(//WS Output:
               //doit_i_field at lower boundary
               scat_i_p(f_index, 0, 0, 0,
                        za, 0, i) = 
-                doit_i_field(0, 0, 0, za, 0, i);
+                doit_i_field_mono(0, 0, 0, za, 0, i);
               //doit_i_field at upper boundary
               scat_i_p(f_index, 1, 0, 0,
                        za, 0, i) = 
-              doit_i_field(cloudbox_limits[1] - cloudbox_limits[0],
+              doit_i_field_mono(cloudbox_limits[1] - cloudbox_limits[0],
                        0, 0, za, 0, i); 
 
               // full 1D spectrum
               doit_i_field1D_spectrum(f_index, joker, za, i) = 
-                       doit_i_field(joker, 0, 0, za, 0, i);
+                       doit_i_field_mono(joker, 0, 0, za, 0, i);
 
             }//end stokes_dim
         }//end za loop
@@ -2653,7 +2657,7 @@ void DoitCloudboxFieldPut(//WS Output:
       Index N_lon = cloudbox_limits[5] - cloudbox_limits[4] + 1;
       
       // Check size of doit_i_field.
-      assert ( is_size( doit_i_field, 
+      assert ( is_size( doit_i_field_mono, 
                         cloudbox_limits[1] - cloudbox_limits[0] + 1,
                         N_lat,
                         N_lon,
@@ -2677,11 +2681,11 @@ void DoitCloudboxFieldPut(//WS Output:
                           //doit_i_field at lower boundary
                           scat_i_p(f_index, 0, lat, lon,
                                    za, aa, i) = 
-                            doit_i_field(0, lat, lon, za, aa, i);
+                            doit_i_field_mono(0, lat, lon, za, aa, i);
                           //doit_i_field at upper boundary
                           scat_i_p(f_index, 1, lat, lon,
                                    za, aa, i) = 
-                            doit_i_field(cloudbox_limits[1]-cloudbox_limits[0],
+                            doit_i_field_mono(cloudbox_limits[1]-cloudbox_limits[0],
                                     lat, lon, za, aa, i);
                         }
                     }
@@ -2695,11 +2699,11 @@ void DoitCloudboxFieldPut(//WS Output:
                           //doit_i_field at lower boundary
                           scat_i_lat(f_index, p, 0, lon,
                                      za, aa, i) = 
-                            doit_i_field(p, 0, lon, za, aa, i);
+                            doit_i_field_mono(p, 0, lon, za, aa, i);
                           //doit_i_field at upper boundary
                           scat_i_lat(f_index, p, 1, lon,
                                      za, aa, i) = 
-                            doit_i_field(p, cloudbox_limits[3]-
+                            doit_i_field_mono(p, cloudbox_limits[3]-
                                     cloudbox_limits[2],
                                     lon, za, aa, i);
                         }
@@ -2710,11 +2714,11 @@ void DoitCloudboxFieldPut(//WS Output:
                           //doit_i_field at lower boundary
                           scat_i_lon(f_index, p, lat, 0,
                                      za, aa, i) = 
-                            doit_i_field(p, lat, 0, za, aa, i);
+                            doit_i_field_mono(p, lat, 0, za, aa, i);
                           //doit_i_field at upper boundary
                           scat_i_lon(f_index, p, lat, 1,
                                      za, aa, i) = 
-                            doit_i_field(p, lat, cloudbox_limits[5]-
+                            doit_i_field_mono(p, lat, cloudbox_limits[5]-
                                     cloudbox_limits[4], za, aa, i);
                         } 
                     }
@@ -3274,7 +3278,7 @@ void iyInterpPolyCloudboxField(Matrix&         iy,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void doit_i_fieldSetFromdoit_i_field1D_spectrum(
-                             Tensor6& doit_i_field,
+                             Tensor6& doit_i_field_mono,
                              const Tensor4& doit_i_field1D_spectrum,
                              const Tensor7& scat_i_p,
 //                             const Tensor7& scat_i_lat,
@@ -3338,7 +3342,7 @@ void doit_i_fieldSetFromdoit_i_field1D_spectrum(
     }
 
   // now copy data to doit_i_field
-  doit_i_field(joker,0,0,joker,0,joker) =
+  doit_i_field_mono(joker,0,0,joker,0,joker) =
     doit_i_field1D_spectrum(f_index,joker,joker,joker);
 
   // now we also have to updated cloudbox incoming (!) field - this because
@@ -3352,16 +3356,16 @@ void doit_i_fieldSetFromdoit_i_field1D_spectrum(
   while (scat_za_grid[first_upwell] < 90.)
     first_upwell++;
   // (1) upwelling at lower boundary
-  doit_i_field(0,0,0,Range(first_upwell,scat_za_grid.nelem()-first_upwell),0,joker) =
+  doit_i_field_mono(0,0,0,Range(first_upwell,scat_za_grid.nelem()-first_upwell),0,joker) =
     scat_i_p(f_index,0,0,0,Range(first_upwell,scat_za_grid.nelem()-first_upwell),0,joker);
   // (2) downwelling at lower boundary
-  doit_i_field(np-1,0,0,Range(0,first_upwell),0,joker) =
+  doit_i_field_mono(np-1,0,0,Range(0,first_upwell),0,joker) =
     scat_i_p(f_index,1,0,0,Range(0,first_upwell),0,joker);
 }
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void doit_i_fieldSetClearsky(Tensor6& doit_i_field,
+void doit_i_fieldSetClearsky(Tensor6& doit_i_field_mono,
                              const Tensor7& scat_i_p,
                              const Tensor7& scat_i_lat,
                              const Tensor7& scat_i_lon,
@@ -3431,7 +3435,7 @@ void doit_i_fieldSetClearsky(Tensor6& doit_i_field,
                  for (Index i = 0 ; i < N_i ; ++ i)
                    {
                      
-                     VectorView target_field = doit_i_field(Range(joker),
+                     VectorView target_field = doit_i_field_mono(Range(joker),
                                                             0,
                                                             0,
                                                             za_index,
@@ -3457,10 +3461,10 @@ void doit_i_fieldSetClearsky(Tensor6& doit_i_field,
        }
        else{// no interpolation is required for other frequencies,
          // but the boundary needs to be set correctly.
-         doit_i_field(0, 0, 0, Range(joker), Range(joker), Range(joker))=
+         doit_i_field_mono(0, 0, 0, Range(joker), Range(joker), Range(joker))=
            scat_i_p(f_index, 0, 0, 0, Range(joker), Range(joker),
                     Range(joker));
-           doit_i_field(doit_i_field.nvitrines()-1, 0, 0, Range(joker), 
+           doit_i_field_mono(doit_i_field_mono.nvitrines()-1, 0, 0, Range(joker), 
                         Range(joker), Range(joker))=
              scat_i_p(f_index, 1, 0, 0, Range(joker), Range(joker),
                       Range(joker));
@@ -3595,7 +3599,7 @@ void doit_i_fieldSetClearsky(Tensor6& doit_i_field,
                       for (Index i = 0 ; i < N_i ; ++ i)
                         {
                         
-                          VectorView target_field = doit_i_field(Range(joker),
+                          VectorView target_field = doit_i_field_mono(Range(joker),
                                                                  lat_index,
                                                                  lon_index,
                                                                  za_index,
@@ -3634,7 +3638,7 @@ void doit_i_fieldSetClearsky(Tensor6& doit_i_field,
                       for (Index i = 0 ; i < N_i ; ++ i)
                         {
                           
-                          VectorView target_field = doit_i_field
+                          VectorView target_field = doit_i_field_mono
                             (p_index, Range(joker), lon_index,
                              za_index, aa_index, i);
                         
@@ -3666,7 +3670,7 @@ void doit_i_fieldSetClearsky(Tensor6& doit_i_field,
                       for (Index i = 0 ; i < N_i ; ++ i)
                         {
                         
-                          VectorView target_field = doit_i_field(p_index,
+                          VectorView target_field = doit_i_field_mono(p_index,
                                                                  lat_index,
                                                                  Range(joker),
                                                                  za_index,
@@ -3697,7 +3701,7 @@ void doit_i_fieldSetClearsky(Tensor6& doit_i_field,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void doit_i_fieldSetConst(//WS Output:
-                          Tensor6& doit_i_field,
+                          Tensor6& doit_i_field_mono,
                           //WS Input:
                           const Tensor7& scat_i_p,
                           const Tensor7& scat_i_lat,
@@ -3755,16 +3759,16 @@ void doit_i_fieldSetConst(//WS Output:
         for (Index i = 0; i < stokes_dim; i++)
           { 
             //set the value for the upper boundary
-            doit_i_field(cloudbox_limits[1]-cloudbox_limits[0], 0, 0, za_index,
+            doit_i_field_mono(cloudbox_limits[1]-cloudbox_limits[0], 0, 0, za_index,
                     0, i) = 
           scat_i_p(0, 1, 0, 0, za_index, 0, i);
             //set the value for the lower boundary 
-            doit_i_field(0, 0, 0, za_index, 0, i) =  
+            doit_i_field_mono(0, 0, 0, za_index, 0, i) =  
           scat_i_p(0, 0, 0, 0, za_index, 0, i);
             for (Index scat_p_index = 1; scat_p_index < cloudbox_limits[1] - 
                    cloudbox_limits[0]; scat_p_index++ )
               // The field inside the cloudbox is set to some arbitrary value.
-              doit_i_field(scat_p_index, 0, 0, za_index, 0, i) =  doit_i_field_values[i];
+              doit_i_field_mono(scat_p_index, 0, 0, za_index, 0, i) =  doit_i_field_values[i];
           }    
       }
     }
@@ -3804,7 +3808,7 @@ void doit_i_fieldSetConst(//WS Output:
                              lon_index <= cloudbox_limits[5]; lon_index++)
                           {
                             //set the value for the upper pressure boundary
-                            doit_i_field(cloudbox_limits[1]-cloudbox_limits[0], 
+                            doit_i_field_mono(cloudbox_limits[1]-cloudbox_limits[0], 
                                     lat_index-cloudbox_limits[2],
                                     lon_index-cloudbox_limits[4],
                                     za_index, aa_index, i) = 
@@ -3812,7 +3816,7 @@ void doit_i_fieldSetConst(//WS Output:
                                        lon_index-cloudbox_limits[4],
                                        za_index, aa_index, i);
                             //set the value for the lower pressure boundary 
-                            doit_i_field(0, lat_index-cloudbox_limits[2],
+                            doit_i_field_mono(0, lat_index-cloudbox_limits[2],
                                     lon_index-cloudbox_limits[4],
                                     za_index, aa_index, i) =  
                               scat_i_p(0, 0, lat_index-cloudbox_limits[2],
@@ -3830,7 +3834,7 @@ void doit_i_fieldSetConst(//WS Output:
                              lon_index <= cloudbox_limits[5]; lon_index++)
                           {
                             // first boundary
-                            doit_i_field(p_index-cloudbox_limits[0], 
+                            doit_i_field_mono(p_index-cloudbox_limits[0], 
                                     cloudbox_limits[3]-cloudbox_limits[2],
                                     lon_index-cloudbox_limits[4],
                                     za_index, aa_index, i) = 
@@ -3838,7 +3842,7 @@ void doit_i_fieldSetConst(//WS Output:
                                          1, lon_index-cloudbox_limits[4],
                                          za_index, aa_index, i);
                             // second boundary
-                            doit_i_field(p_index-cloudbox_limits[0], 0, 
+                            doit_i_field_mono(p_index-cloudbox_limits[0], 0, 
                                     lon_index-cloudbox_limits[4], 
                                     za_index, aa_index, i) =  
                               scat_i_lat(0, p_index-cloudbox_limits[0], 0,
@@ -3851,7 +3855,7 @@ void doit_i_fieldSetConst(//WS Output:
                              lat_index <= cloudbox_limits[3]; lat_index++)
                           {
                             // first boundary
-                            doit_i_field(p_index-cloudbox_limits[0],
+                            doit_i_field_mono(p_index-cloudbox_limits[0],
                                     lat_index-cloudbox_limits[2],
                                     cloudbox_limits[5]-cloudbox_limits[4],
                                     za_index, aa_index, i) = 
@@ -3859,7 +3863,7 @@ void doit_i_fieldSetConst(//WS Output:
                                          lat_index-cloudbox_limits[2], 1,
                                          za_index, aa_index, i);
                             // second boundary
-                            doit_i_field(p_index-cloudbox_limits[0],  
+                            doit_i_field_mono(p_index-cloudbox_limits[0],  
                                     lat_index-cloudbox_limits[2],
                                     0, 
                                     za_index, aa_index, i) =  
@@ -3884,7 +3888,7 @@ void doit_i_fieldSetConst(//WS Output:
                                 lon_index < cloudbox_limits[5];
                                 lon_index++)
                              {
-                               doit_i_field(p_index-cloudbox_limits[0],
+                               doit_i_field_mono(p_index-cloudbox_limits[0],
                                        lat_index-cloudbox_limits[2],
                                        lon_index-cloudbox_limits[4],
                                        za_index, aa_index, i) =  
