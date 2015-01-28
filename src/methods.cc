@@ -4549,9 +4549,15 @@ void define_md_data_raw()
          "to 1, which is the way FASTEM compensates for non-specular effects.\n"
          "\n"
          "FASTEM is not giving complete information for reflectivity. The\n"
-         "reflectivity for U and V components is set to zero.\n"
+         "reflectivity for U and V components is simply set to zero.\n"
          "\n"
          "If the skin temperature is below 270 K, it is adjusted to 270 K.\n"
+         "\n"
+         "FASTEM returns unphysical values for propagation close to the\n"
+         "horizon, here emissivity and reflectivity can be outside [0,1].\n"
+         "If either emissivity or reflectivity is below/above 0/1, it is\n"
+         "set to 0/1, and the other value is set to 1/0. That is, e+r=1\n"
+         "is enforced. These problems start about 15 degrees from the horizon.\n"
          ),
         AUTHORS( "Oliver Lemke, Patrick Eriksson" ),
         OUT(),
@@ -6211,7 +6217,7 @@ void define_md_data_raw()
          "direction shall be used.\n"
          "\n"
          "FASTEM is called by *FastemStandAlone* and see that WSM for further\n"
-         "comments.\n"
+         "comments on variables and limitations.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "iy", "diy_dx" ),

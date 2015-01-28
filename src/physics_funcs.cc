@@ -185,7 +185,7 @@ Numeric invplanck(
   {
       ostringstream os;
       os << "Conversion to Planck brightness temperature failed: Radiance must be >= 0.\n"
-      << "r = " << i;
+      << "Provided radiance = " << i;
       throw runtime_error(os.str());
   }
 

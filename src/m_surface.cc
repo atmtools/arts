@@ -107,6 +107,23 @@ void FastemStandAlone(
       emissivity(i,joker) = e;
       reflectivity(i,joker) = r;
     }
+
+  // FASTEM does not work close to the horizon (at least v6). Make sure values
+  // are inside [0,1]. Then seems best to make sure that e+r=1.
+  for( Index i=0; i<nf; i++ )
+    {
+      for( Index s=0; s<2; s++ )
+        {
+          if( emissivity(i,s) > 1 )
+            { emissivity(i,s) = 1;    reflectivity(i,s) = 0; }
+          if( emissivity(i,s) < 0 )
+            { emissivity(i,s) = 0;    reflectivity(i,s) = 1; }
+          if( reflectivity(i,s) > 1 )
+            { emissivity(i,s) = 0;    reflectivity(i,s) = 1; }
+          if( reflectivity(i,s) < 0 )
+            { emissivity(i,s) = 1;    reflectivity(i,s) = 0; }
+        }
+    }
 }
 
 
