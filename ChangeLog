@@ -1,5 +1,13 @@
 2015-01-28  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-3-141
+
+	* controlfiles/artscomponents/doit/yREFERENCE_DOITsensorInsideCloudbox.xml:
+
+	Forgot to add reference file in last commit.
+
+2015-01-28  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-3-140
 
 	* src/doit.{cc,h} (iy_interp_cloudbox_field),
