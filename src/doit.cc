@@ -2066,10 +2066,7 @@ void za_gridOpt(//Output:
    See WSM *iyInterpCloudboxField*.
 
    \param iy                Out: As the WSV with same name.
-   \param scat_i_p          In: As the WSV with same name.
-   \param scat_i_lat        In: As the WSV with same name.
-   \param scat_i_lon        In: As the WSV with same name.
-   \param doit_i_field1D_spectrum In: As the WSV with same name.
+   \param doit_i_field      In: As the WSV with same name.
    \param rte_gp_p          In: As the WSV with same name.
    \param rte_gp_lat        In: As the WSV with same name.
    \param rte_gp_lon        In: As the WSV with same name.
@@ -2092,10 +2089,7 @@ void za_gridOpt(//Output:
    \date 2004-09-29
 */
 void iy_interp_cloudbox_field(Matrix&               iy,
-                              const Tensor7&        scat_i_p,
-                              const Tensor7&        scat_i_lat,
-                              const Tensor7&        scat_i_lon,
-                              const Tensor4&        doit_i_field1D_spectrum, 
+                              const Tensor7&        doit_i_field,
                               const GridPos&        rte_gp_p,
                               const GridPos&        rte_gp_lat,
                               const GridPos&        rte_gp_lon,
@@ -2134,7 +2128,7 @@ void iy_interp_cloudbox_field(Matrix&               iy,
   if( interpmeth == "polynomial"  &&  atmosphere_dim != 1  )
     throw runtime_error( "Polynomial interpolation method is only available "
                          "for *atmosphere_dim* = 1." );
-  if( scat_i_p.nlibraries() != f_grid.nelem() )
+  if( doit_i_field.nlibraries() != f_grid.nelem() )
     throw runtime_error( "Inconsistency in size between f_grid and scat_i_p! "
          "(This method does not yet handle dispersion type calculations.)" );
   //---------------------------------------------------------------------------
@@ -2203,6 +2197,8 @@ void iy_interp_cloudbox_field(Matrix&               iy,
                  "Given position has been found to be outside the cloudbox." );
     }
 
+  const Index border_index = border ? doit_i_field.nvitrines()-1 : 0;
+
   //- Sizes
   const Index   nf  = f_grid.nelem();
   DEBUG_ONLY (const Index   np  = cloudbox_limits[1] - cloudbox_limits[0] + 1);
@@ -2226,8 +2222,8 @@ void iy_interp_cloudbox_field(Matrix&               iy,
         {
           assert(atmosphere_dim == 1);
           
-          // *doit_i_field1D_spectra* is normally calculated internally:
-          assert( is_size(doit_i_field1D_spectrum, nf, np, nza, stokes_dim) );
+          // *doit_i_field* is normally calculated internally:
+          assert( is_size(doit_i_field, nf, np, 1, 1, nza, 1, stokes_dim) );
           
           out3 << "    Interpolating outgoing field:\n";
           out3 << "       zenith_angle: " << rte_los[0] << "\n";
@@ -2266,7 +2262,7 @@ void iy_interp_cloudbox_field(Matrix&               iy,
                       for (Index i_za = 0; i_za < nza; i_za++)
                         {
                           iy_p[i_za] = interp
-                          (itw_p, doit_i_field1D_spectrum(iv, joker, i_za, is),
+                          (itw_p, doit_i_field(iv, joker, 0, 0, i_za, 0, is),
                              gp_p);
                         }
                       iy(iv,is) = interp( itw_za, iy_p, gp_za);
@@ -2282,7 +2278,7 @@ void iy_interp_cloudbox_field(Matrix&               iy,
                       for (Index i_za = 0; i_za < nza; i_za++)
                         {
                           iy_p[i_za] = interp
-                          (itw_p, doit_i_field1D_spectrum(iv, joker, i_za, is),
+                          (itw_p, doit_i_field(iv, joker, 0, 0, i_za, 0, is),
                              gp_p);
                         }
                       iy(iv,is) =  interp_poly( scat_za_grid, iy_p, rte_los[0],
@@ -2325,13 +2321,13 @@ void iy_interp_cloudbox_field(Matrix&               iy,
                     {
                       //                      cout << scat_i_p(iv,border,0,0,gp.idx,0,is)/
                       //                              scat_i_p(iv,border,0,0,gp.idx+1,0,is) << "\n";
-                      if( scat_i_p(iv,border,0,0,gp.idx,0,is)/
-                          scat_i_p(iv,border,0,0,gp.idx+1,0,is) > 1/maxratio &&
-                          scat_i_p(iv,border,0,0,gp.idx,0,is)/
-                          scat_i_p(iv,border,0,0,gp.idx+1,0,is) < maxratio )
+                      if( doit_i_field(iv,border_index,0,0,gp.idx,0,is)/
+                          doit_i_field(iv,border_index,0,0,gp.idx+1,0,is) > 1/maxratio &&
+                          doit_i_field(iv,border_index,0,0,gp.idx,0,is)/
+                          doit_i_field(iv,border_index,0,0,gp.idx+1,0,is) < maxratio )
                         {
                           iy(iv,is) = interp( itw, 
-                                              scat_i_p( iv, border, 0, 0, joker, 0, is ),
+                                              doit_i_field( iv, border_index, 0, 0, joker, 0, is ),
                                               gp );
                         }
                       else
@@ -2346,8 +2342,8 @@ void iy_interp_cloudbox_field(Matrix&               iy,
                              << "angels " << scat_za_grid[gp.idx] << " and "
                              << scat_za_grid[gp.idx+1] << "deg for frequency"
                              << "#" << iv << ", where radiances are "
-                             << scat_i_p(iv,border,0,0,gp.idx,0,0)
-                             << " and " << scat_i_p(iv,border,0,0,gp.idx+1,0,0)
+                             << doit_i_field(iv,border_index,0,0,gp.idx,0,0)
+                             << " and " << doit_i_field(iv,border_index,0,0,gp.idx+1,0,0)
                              << " W/(sr m2 Hz).";
                           throw runtime_error(os.str());
                         }
@@ -2358,7 +2354,7 @@ void iy_interp_cloudbox_field(Matrix&               iy,
                   for(Index iv = 0; iv < nf; iv++ )
                     {
                       iy(iv,is) = interp( itw, 
-                                          scat_i_p( iv, border, 0, 0, joker, 0, is ),
+                                          doit_i_field( iv, border_index, 0, 0, joker, 0, is ),
                                           gp );
                     }                  
                 }
@@ -2371,7 +2367,7 @@ void iy_interp_cloudbox_field(Matrix&               iy,
               for(Index iv = 0; iv < nf; iv++ )
                 {
                   iy(iv,is) = interp_poly( scat_za_grid, 
-                       scat_i_p( iv, border, 0, 0, joker, 0, is ) , rte_los[0],
+                       doit_i_field( iv, border_index, 0, 0, joker, 0, is ) , rte_los[0],
                                             gp );
                 }
             }
@@ -2383,15 +2379,8 @@ void iy_interp_cloudbox_field(Matrix&               iy,
     {
       // Use asserts to check *scat_i_XXX* as these variables should to 99% be
       // calculated internally, and thus make it possible to avoid this check.
-      assert ( is_size( scat_i_p, nf, 2, scat_i_p.nshelves(), 
-                        scat_i_p.nbooks(), scat_za_grid.nelem(), 
-                        scat_aa_grid.nelem(), stokes_dim ));
-
-      assert ( is_size( scat_i_lat, nf, scat_i_lat.nvitrines(), 2, 
-                        scat_i_p.nbooks(), scat_za_grid.nelem(), 
-                        scat_aa_grid.nelem(), stokes_dim ));
-      assert ( is_size( scat_i_lon, nf, scat_i_lat.nvitrines(), 
-                        scat_i_p.nshelves(), 2, scat_za_grid.nelem(), 
+      assert ( is_size( doit_i_field, nf, doit_i_field.nvitrines(), doit_i_field.nshelves(),
+                        doit_i_field.nbooks(), scat_za_grid.nelem(),
                         scat_aa_grid.nelem(), stokes_dim ));
 
       out3 << "    Interpolating outgoing field:\n";
@@ -2429,7 +2418,7 @@ void iy_interp_cloudbox_field(Matrix&               iy,
               for(Index iv = 0; iv < nf; iv++ )
                 {
                   iy(iv,is) = interp( itw, 
-                        scat_i_p( iv, border, joker, joker, joker, joker, is ),
+                        doit_i_field( iv, border_index, joker, joker, joker, joker, is ),
                                       cb_gp_lat, cb_gp_lon, gp_za, gp_aa );
                 }
             }
@@ -2457,7 +2446,7 @@ void iy_interp_cloudbox_field(Matrix&               iy,
               for(Index iv = 0; iv < nf; iv++ )
                 {
                   iy(iv,is) = interp( itw, 
-                    scat_i_lat( iv, joker, border-2, joker, joker, joker, is ),
+                    doit_i_field( iv, joker, border_index-2, joker, joker, joker, is ),
                                       cb_gp_p, cb_gp_lon, gp_za, gp_aa );
                 }
             }
@@ -2485,7 +2474,7 @@ void iy_interp_cloudbox_field(Matrix&               iy,
               for(Index iv = 0; iv < nf; iv++ )
                 {
                   iy(iv,is) = interp( itw, 
-                     scat_i_lon( iv, joker, joker, border-4, joker, joker, is ),
+                     doit_i_field( iv, joker, joker, border_index-4, joker, joker, is ),
                                       cb_gp_p, cb_gp_lat, gp_za, gp_aa );
                 }
             }

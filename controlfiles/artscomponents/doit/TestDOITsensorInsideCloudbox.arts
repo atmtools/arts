@@ -1,0 +1,32 @@
+#DEFINITIONS:  -*-sh-*-
+#
+# Demonstration of a DOIT scattering calculation
+#
+# Author: Oliver Lemke
+# 
+# This controlfile does the same calculation as TestDOIT,
+# except that the sensor is positioned inside the cloudbox.
+#
+
+Arts2 {
+
+INCLUDE "doit_setup.arts"
+
+# Sensor altitude from earth surface
+nelemGet( nelem, vector_1 )
+#VectorSetConstant( vector_2, nelem, 95000.1 )
+VectorSetConstant( vector_2, nelem, 10000. )
+Matrix1ColFromVector( sensor_pos, vector_2 )
+
+INCLUDE "doit_calc.arts"
+
+#WriteXML( in=y )
+
+#==================check==========================
+
+VectorCreate(yREFERENCE)
+ReadXML( yREFERENCE, "yREFERENCE_DOITsensorInsideCloudbox.xml" )
+Compare( y, yREFERENCE, 1e-2 )
+
+} # End of Main
+ 

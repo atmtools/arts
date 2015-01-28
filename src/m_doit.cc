@@ -2482,7 +2482,7 @@ void doit_za_interpSet(Index& doit_za_interp,
 void DoitCalc(
          Workspace& ws,
          Tensor7&   doit_i_field,
-         Tensor7&   scat_i_p, 
+         Tensor7&   scat_i_p,
          Tensor7&   scat_i_lat, 
          Tensor7&   scat_i_lon,
          Tensor4&   doit_i_field1D_spectrum,
@@ -3190,10 +3190,7 @@ void DoitGetIncoming1DAtm(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void iyInterpCloudboxField(Matrix&         iy,
-                           const Tensor7&  scat_i_p,
-                           const Tensor7&  scat_i_lat,
-                           const Tensor7&  scat_i_lon,
-                           const Tensor4&  doit_i_field1D_spectrum,
+                           const Tensor7&  doit_i_field,
                            const Vector&   rte_pos,
                            const Vector&   rte_los,
                            const Index&    jacobian_do,
@@ -3223,8 +3220,8 @@ void iyInterpCloudboxField(Matrix&         iy,
                    p_grid, lat_grid, lon_grid, z_field, rte_pos );
 
   // iy
-  iy_interp_cloudbox_field( iy, scat_i_p, scat_i_lat, scat_i_lon, 
-                            doit_i_field1D_spectrum, gp_p, gp_lat, gp_lon, 
+  iy_interp_cloudbox_field( iy, doit_i_field,
+                            gp_p, gp_lat, gp_lon,
                             rte_los, cloudbox_on, 
                             cloudbox_limits, atmosphere_dim, stokes_dim, 
                             scat_za_grid, scat_aa_grid, f_grid, "linear",
@@ -3235,10 +3232,7 @@ void iyInterpCloudboxField(Matrix&         iy,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void iyInterpPolyCloudboxField(Matrix&         iy,
-                               const Tensor7&  scat_i_p,
-                               const Tensor7&  scat_i_lat,
-                               const Tensor7&  scat_i_lon,
-                               const Tensor4&  doit_i_field1D_spectrum,      
+                               const Tensor7&  doit_i_field,
                                const Vector&   rte_pos,
                                const Vector&   rte_los,
                                const Index&    jacobian_do,
@@ -3266,8 +3260,8 @@ void iyInterpPolyCloudboxField(Matrix&         iy,
                    p_grid, lat_grid, lon_grid, z_field, rte_pos );
 
   // iy
-  iy_interp_cloudbox_field( iy, scat_i_p, scat_i_lat, scat_i_lon, 
-                            doit_i_field1D_spectrum, gp_p, gp_lat, gp_lon, 
+  iy_interp_cloudbox_field( iy, doit_i_field, 
+                            gp_p, gp_lat, gp_lon,
                             rte_los, cloudbox_on, cloudbox_limits, 
                             atmosphere_dim, stokes_dim, 
                             scat_za_grid, scat_aa_grid, f_grid, "polynomial",

@@ -5729,17 +5729,14 @@ void define_md_data_raw()
          "interpolation is used for all dimensions.\n"
          "\n"
          "The intensity field on the cloux box boundaries is provided by\n"
-         "*scat_i_p/lat/lon* and these variables are interpolated if the\n"
-         "given position is at any boundary.\n"
-         "\n"
-         "Interpolation of the internal field is not yet possible.\n"
+         "*doit_i_field* and interpolated if the given position is at any boundary.\n"
          ),
         AUTHORS( "Claudia Emde" ),
         OUT( "iy" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "scat_i_p", "scat_i_lat", "scat_i_lon", "doit_i_field1D_spectrum",
+        IN( "doit_i_field",
             "rtp_pos", "rtp_los", "jacobian_do","cloudbox_on", 
             "cloudbox_limits", "atmosphere_dim", "p_grid", "lat_grid",
             "lon_grid", "z_field", "stokes_dim", 
@@ -5766,7 +5763,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "scat_i_p", "scat_i_lat", "scat_i_lon", "doit_i_field1D_spectrum",
+        IN( "doit_i_field",
             "rtp_pos", "rtp_los", "jacobian_do", "cloudbox_on", 
             "cloudbox_limits", "atmosphere_dim", "p_grid", "lat_grid",
             "lon_grid", "z_field", "stokes_dim", "scat_za_grid", 

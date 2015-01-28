@@ -64,6 +64,7 @@ arts_test_run_ctlfile(fast artscomponents/doit/TestDOIT.arts)
 arts_test_run_ctlfile(fast artscomponents/doit/TestDOITprecalcInit.arts)
 arts_test_ctlfile_depends(fast.artscomponents.doit.TestDOITprecalcInit
                           fast.artscomponents.doit.TestDOIT)
+arts_test_run_ctlfile(fast artscomponents/doit/TestDOITsensorInsideCloudbox.arts)
 arts_test_run_ctlfile(slow artscomponents/doitbatch/TestDOITBatch.arts)
 
 arts_test_run_ctlfile(fast artscomponents/montecarlo/TestMonteCarloDataPrepare.arts)

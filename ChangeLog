@@ -1,3 +1,28 @@
+2015-01-28  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-140
+
+	* src/doit.{cc,h} (iy_interp_cloudbox_field),
+	src/m_doit.cc, src/methods.cc
+	(iyInterpCloudboxField, iyInterpPolyCloudboxField):
+
+	Replace scat_i_p, scat_i_lat, scat_i_lon, doit_i_field1D_spectrum by
+	doit_i_field.
+
+	* controlfiles/artscomponents/doit/TestDOIT.arts,
+	controlfiles/artscomponents/doit/TestDOITprecalcInit.arts:
+
+	Cleanup test cases by moving repeated parts to doit_setup.arts and
+	doit_calc.arts include files.
+
+	* controlfiles/artscomponents/doit/doit_calc.arts,
+	controlfiles/artscomponents/doit/doit_setup.arts: Added.
+
+	* controlfiles/artscomponents/doit/TestDOITsensorInsideCloudbox.arts,
+	controlfiles/CMakeLists.txt:
+
+	Add test case with sensor inside the cloudbox.
+
 2015-01-28  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-139

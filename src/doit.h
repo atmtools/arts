@@ -257,10 +257,7 @@ void za_gridOpt(//Output:
                 const Index& scat_za_interp);
 
 void iy_interp_cloudbox_field(Matrix&               iy,
-                              const Tensor7&        scat_i_p,
-                              const Tensor7&        scat_i_lat,
-                              const Tensor7&        scat_i_lon,
-                              const Tensor4&        doit_i_field1D_spectrum, 
+                              const Tensor7&        doit_i_field,
                               const GridPos&        rte_gp_p,
                               const GridPos&        rte_gp_lat,
                               const GridPos&        rte_gp_lon,
