@@ -32,14 +32,14 @@ jacobianOff
 # --------------
 # This example is only monochromatic. Note: The frequency must be contained
 # in the gas absorption lookup table.  
-VectorSet(f_grid, [230e9])
+VectorSet(f_grid, [229.5e9])
  
 
 # Pressure grid
-ReadXML( p_grid, "../doit/p_grid.xml" )
+ReadXML( p_grid, "testdata/testdoit_p_grid.xml" )
 
 # Definition of species
-abs_speciesSet( species=["H2O", "N2", "O2"] )
+abs_speciesSet( species=["H2O-PWR98", "O2-PWR93", "N2-SelfContStandardType"] )
 
 # Atmospheric profiles
 AtmRawRead( basename="testdata/tropical" )
@@ -50,8 +50,8 @@ AtmRawRead( basename="testdata/tropical" )
 abs_lookupInit
 
 # Lookup tables can be computed using the MATLAB (please contact Stefan)
-ReadXML( abs_lookup, "../doit/gas_abs_lookup.xml" )
-   	
+ReadXML( abs_lookup, "testdata/testdoit_gas_abs_lookup.xml" )	
+
 abs_lookupAdapt
 
 # absorption from LUT
@@ -117,9 +117,11 @@ cloudboxSetDisort
 # Only one particle type is added in this example
 # Note that you must use p20 data, because disort only works with this
 # format. 
-ParticleTypeAdd( filename_scat_data="scat_data_disort.xml",
-                 filename_pnd_field="../doit/pnd_field_1D.xml" )
-scat_dataCheck( threshold=5e-3 )
+ParticleTypeAdd( filename_scat_data="testdata/testdoit_p30f229-231T214-225r100NP-1ar1_5ice.xml",
+                 filename_pnd_field="testdata/testdoit_pnd_field_1D.xml" )
+ParticleTypeAdd( filename_scat_data="testdata/testdoit_p30f229-231T214-225r100NP-1ar1_5ice.xml",
+                 filename_pnd_field="testdata/testdoit_pnd_field_1D.xml" )
+scat_dataCheck
 pnd_fieldCalcFrompnd_field_raw
 
 cloudbox_checkedCalc
@@ -150,7 +152,7 @@ AgendaSet( opt_prop_part_agenda ){
 }
 	
 AgendaSet(iy_cloudbox_agenda){
-    iyInterpCloudboxField
+    iyInterpCloudboxField(rigorous=0)
     }
 
 

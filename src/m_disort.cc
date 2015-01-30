@@ -75,12 +75,9 @@ void cloudboxSetDisort(//WS Output
 #ifdef ENABLE_DISORT
 void DisortCalc(Workspace& ws,
                       // WS Output:
-                      Tensor7& scat_i_p,
-                      Tensor7& scat_i_lat,
-                      Tensor7& scat_i_lon,
-                      Index& f_index, 
+                      Tensor7& doit_i_field,
+                      Index& f_index,
                       ArrayOfArrayOfSingleScatteringData& scat_data_mono,
-                      Tensor4& doit_i_field1D_spectrum,
                       // WS Input
                       const Index&     atmfields_checked,
                       const Index&     atmgeom_checked,
@@ -141,20 +138,8 @@ void DisortCalc(Workspace& ws,
     throw runtime_error("The cloudbox is not set correctly for DISORT.\n"
                         "Please use *cloudboxSetDisort*. \n");
 
-  scat_i_p.resize(f_grid.nelem(), 2, 1, 1, 
-                  scat_za_grid.nelem(), 1, 1);
-
-  scat_i_p = 0.;
-
-  doit_i_field1D_spectrum.resize(f_grid.nelem(), pnd_field.npages(), 
-                                 scat_za_grid.nelem(), 1); 
- 
-  doit_i_field1D_spectrum= 0; 
-  // Scat_i_lat, lon ---> only dummies, not used further 
-  scat_i_lat.resize(1,1,1,1,1,1,1);
-  scat_i_lat = 0.;
-  scat_i_lon.resize(1,1,1,1,1,1,1);
-  scat_i_lon = 0.; 
+  doit_i_field.resize(f_grid.nelem(), pnd_field.npages(), 1, 1, scat_za_grid.nelem(), 1, 1);
+  doit_i_field = 0.;
 
   // Input variables for DISORT
   // Optical depth of layers
@@ -325,17 +310,20 @@ void DisortCalc(Workspace& ws,
               trnmed.get_c_array());
 
             cout << "intensity " << uu << endl; 
-      
-      
+
+        // FIXME: There seems to be an inconsistency here
+        // pnd_field.npages is 106, but nlyr 105
+        cout << "nlyr " << nlyr << endl;
+        cout << "pnd_field.npages() " << pnd_field.npages() << endl;
       for(Index j = 0; j<numu; j++)
         {
           for(Index k = 0; k< nlyr; k++)
-            doit_i_field1D_spectrum(f_index, k+1, j, 0) = 
+            doit_i_field(f_index, k+1, 0, 0, j, 0, 0) =
               uu(0,nlyr-k-1,j);
           
-          scat_i_p(f_index, 0, 0, 0, j, 0, 0) = 
+          doit_i_field(f_index, 0, 0, 0, j, 0, 0) =
             uu(0, nlyr-1, j );
-          scat_i_p(f_index, 1, 0, 0, j, 0, 0) = 
+          doit_i_field(f_index, pnd_field.npages()-1, 0, 0, j, 0, 0) =
             uu(0, 0, j);
         }
     }
@@ -345,11 +333,8 @@ void DisortCalc(Workspace& ws,
 void DisortCalc(Workspace&,
                       // WS Output:
                       Tensor7&,
-                      Tensor7&,
-                      Tensor7&,
                       Index&,
                       ArrayOfArrayOfSingleScatteringData&,
-                      Tensor4&,
                       // WS Input
                       const Index&,
                       const Index&,

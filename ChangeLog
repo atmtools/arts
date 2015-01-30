@@ -1,5 +1,62 @@
 2015-01-30  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-3-143
+
+	* This commit completely removes the old internal DOIT communication
+	variables scat_i_* and doit_i_field1D_spectrum.
+
+	* CHANGES-2.3: List changes that need controlfiles to be adapted.
+
+	* src/methods.cc, src/doit.cc, src/m_doit.cc:
+
+	Remove obsolete scat_i_* and doit_i_field1D_spectrum variables and
+	replace them with doit_i_field/doit_i_field_mono in all DOIT methods.
+
+	(doit_i_fieldSetFromdoit_i_field1D_spectrum):
+
+	Replace doit_i_field1D_spectrum by generic input Tensor7
+	doit_i_field_spectrum. (Temporary fix, this method will be changed
+	further soon)
+
+	(DoitCloudboxFieldPut): Removed. Not needed anymore.
+
+	* src/m_disort.cc (DisortCalc):
+
+	Replace scat_i_* and doit_i_field1D_spectrum with doit_i_field.
+
+	* src/agendas.cc:
+
+	Remove scat_i_* and doit_i_field1D_spectrum from doit_mono_agenda.
+
+	* controlfiles/artscomponents/doit/TestDOITprecalcInit.arts:
+
+	Create variable doit_i_field_ref and read it from file. Replaces the
+	former WSV doit_i_field1D_spectrum.
+
+	* controlfiles/artscomponents/doit/doit_calc.arts:
+
+	Remove scat_i_p and doit_i_field1D_spectrum.
+
+	* controlfiles/artscomponents/doit/doit_setup.arts,
+	controlfiles/general/agendasDOIT.arts:
+
+	Remove obsolete DoitCloudboxFieldPut.
+
+	* doc/uguide/scattering.tex: Remove paragraph about scat_i_* WSVs.
+
+	* controlfiles/artscomponents/doit/doit_i_fieldREFERENCE_DOIT.xml:
+	
+	Renamed from doit_i_field1D_spectrumREFERENCE_DOIT.xml and changed to
+	Tensor7 by adding the missing dimensions with size 1 without touching
+	the original values.
+
+	* controlfiles/artscomponents/disort/TestDISORT.arts:
+
+	Adapt for changes in ARTS to make it run again. Had to set rigorous to
+	0 in iyInterpCloudboxField. Didn't look further into the problem.
+
+2015-01-30  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-3-142
 
 	* controlfiles/artscomponents/doit/TestDOITprecalcInit.arts:

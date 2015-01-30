@@ -23,8 +23,6 @@ AgendaSet( doit_mono_agenda ){
   # Perform iterations: 1. scattering integral. 2. RT calculations with 
   # fixed scattering integral field, 3. convergence test 
   doit_i_fieldIterate
-  # Put solution into interface for clearsky calculation   
-  DoitCloudboxFieldPut
   # Write the radiation field inside the cloudbox:
   # WriteXML( output_file_format, doit_i_field )
 }

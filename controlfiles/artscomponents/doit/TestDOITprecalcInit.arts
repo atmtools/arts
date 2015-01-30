@@ -11,6 +11,8 @@
 
 Arts2 {
 
+Tensor7Create( doit_i_field_ref )
+
 INCLUDE "doit_setup.arts"
 
 # Perturbing the pnd_field by 1%
@@ -22,20 +24,15 @@ Tensor4Scale( out=pnd_field, in=pnd_field, value=1.01 )
 # Input: incoming field on the cloudbox boundary
 # Ouput: the scattered field on the cloudbox boundary
 AgendaSet( doit_mono_agenda ){
-  Ignore(scat_i_lat)
-  Ignore(scat_i_lon)
   # Prepare scattering data for DOIT calculation (Optimized method):
   DoitScatteringDataPrepare
   # Alternative method (needs less memory):
   #scat_data_monoCalc
-  # Set first guess field:		
-  doit_i_fieldSetFromdoit_i_field1D_spectrum
   #WriteXMLIndexed( in=doit_i_field_mono, file_index=f_index )
+  doit_i_fieldSetFromdoit_i_field1D_spectrum(doit_i_field_spectrum=doit_i_field_ref)
   # Perform iterations: 1. scattering integral. 2. RT calculations with 
   # fixed scattering integral field, 3. convergence test 
   doit_i_fieldIterate
-  # Put solution into interface for clearsky calculation   
-  DoitCloudboxFieldPut
   # Write the radiation field inside the cloudbox:
   #WriteXMLIndexed( in=doit_i_field_mono, file_index=f_index )
 }
@@ -51,10 +48,11 @@ sensor_checkedCalc
 # Initialize Doit variables
 DoitInit
 
-ReadXML(doit_i_field1D_spectrum, "doit_i_field1D_spectrumREFERENCE_DOIT.xml")
-
 # Calculate incoming radiation field at cloudbox boundary 
 DoitGetIncoming
+
+ReadXML(doit_i_field_ref, "doit_i_fieldREFERENCE_DOIT.xml")
+
 
 # Executes doit_mono_agenda for all frequencies
 DoitCalc

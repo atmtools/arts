@@ -2129,7 +2129,7 @@ void iy_interp_cloudbox_field(Matrix&               iy,
     throw runtime_error( "Polynomial interpolation method is only available "
                          "for *atmosphere_dim* = 1." );
   if( doit_i_field.nlibraries() != f_grid.nelem() )
-    throw runtime_error( "Inconsistency in size between f_grid and scat_i_p! "
+    throw runtime_error( "Inconsistency in size between f_grid and doit_i_field! "
          "(This method does not yet handle dispersion type calculations.)" );
   //---------------------------------------------------------------------------
 
@@ -2319,8 +2319,6 @@ void iy_interp_cloudbox_field(Matrix&               iy,
                 {
                   for(Index iv = 0; iv < nf; iv++ )
                     {
-                      //                      cout << scat_i_p(iv,border,0,0,gp.idx,0,is)/
-                      //                              scat_i_p(iv,border,0,0,gp.idx+1,0,is) << "\n";
                       if( doit_i_field(iv,border_index,0,0,gp.idx,0,is)/
                           doit_i_field(iv,border_index,0,0,gp.idx+1,0,is) > 1/maxratio &&
                           doit_i_field(iv,border_index,0,0,gp.idx,0,is)/

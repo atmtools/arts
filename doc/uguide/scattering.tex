@@ -121,8 +121,6 @@ AgendaSet( doit_mono_agenda ){
  # Perform iterations: 1. scattering integral. 2. RT calculations with 
  #   fixed scattering integral field, 3. convergence test 
    doit_i_fieldIterate
- # Put solution into interface for clearsky calculation   
-   DoitCloudboxFieldPut
  }		
 \end{code}
 The first method \wsmindex{DoitScatteringDataPrepare} prepares the single
@@ -158,17 +156,6 @@ integral (requires agendas \wsaindex{spt\_calc\_agenda},
 \end{itemize}
 For details on the agendas involved see Section
 \ref{sec:scattering:doit_iterate_agendas}.
-
-After convergence is obtained the radiation field has to be stored in an
-interface variable that creates the link between the scattering solver solution
-and the evaluation of the radiative transfer equation. This is done by the
-workspace method \wsmindex{DoitCloudboxFieldPut}.
- The radiation field at the boundary of the cloudbox is
-stored in the interface variable \wsvindex{scat\_i\_p}.  
-\wsvindex{doit\_i\_field1D\_spectrum} is used as interface
-variable storing the cloudbox radiation field. In contrast to
-\wsvindex{doit\_i\_field} the interface variables include an additional
-dimension for the frequency.
 
 \subsection{Agendas used in \wsmindex{doit\_i\_fieldIterate}}
 \label{sec:scattering:doit_iterate_agendas}

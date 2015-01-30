@@ -2836,7 +2836,7 @@ void define_md_data_raw()
          "The method performs monochromatic pencil beam calculations for\n"
          "all grid positions on the cloudbox boundary, and all directions\n"
          "given by scattering angle grids (*scat_za/aa_grid*). Found radiances\n"
-         "are stored in *scat_i_p/lat/lon* which can be used as boundary\n"
+         "are stored in *doit_i_field* which can be used as boundary\n"
          "conditions when scattering inside the cloud box is solved by the\n"
          "DOIT method.\n"
          "\n"
@@ -2845,11 +2845,11 @@ void define_md_data_raw()
          "after yCalc).\n"
          ),
         AUTHORS( "Sreerekha T.R.", "Claudia Emde" ),
-        OUT( "scat_i_p", "scat_i_lat", "scat_i_lon" ),
+        OUT( "doit_i_field" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "scat_i_p", "scat_i_lat", "scat_i_lon",
+        IN( "doit_i_field",
             "atmfields_checked", "atmgeom_checked", "cloudbox_checked",
             "doit_is_initialized", "iy_main_agenda",
             "atmosphere_dim", "lat_grid", "lon_grid",
@@ -2880,11 +2880,11 @@ void define_md_data_raw()
          "This method can only be used for 3D cases.\n"
          ),
         AUTHORS( "Sreerekha T.R.", "Claudia Emde" ),
-        OUT( "scat_i_p", "scat_i_lat", "scat_i_lon", "cloudbox_on" ),
+        OUT( "doit_i_field", "cloudbox_on" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "scat_i_p", "scat_i_lat", "scat_i_lon",
+        IN( "doit_i_field",
             "atmfields_checked", "atmgeom_checked", "cloudbox_checked",
             "doit_is_initialized", "iy_main_agenda", "atmosphere_dim", 
             "lat_grid", "lon_grid", "z_field", "t_field", "vmr_field",
@@ -3747,38 +3747,6 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "DoitCloudboxFieldPut" ),
-        DESCRIPTION
-        (
-         "Method for the DOIT communication between cloudbox and clearsky.\n"
-         "\n"
-         "This method puts the scattered radiation field into the interface\n"
-         "variables between the cloudbox and the clearsky, which are\n"
-         "*scat_i_p*, *scat_i_lat* and *scat_i_lon*.\n"
-         "\n"
-         "The best way to calculate spectra including the influence of\n" 
-         "scattering is to set up the *doit_mono_agenda* where this method\n"
-         "can be included.\n"
-         ),
-        AUTHORS( "Claudia Emde" ),
-        OUT( "scat_i_p", "scat_i_lat", "scat_i_lon",
-             "doit_i_field1D_spectrum" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "scat_i_p", "scat_i_lat", "scat_i_lon",
-            "doit_i_field1D_spectrum", "doit_i_field_mono",
-            "f_grid", "f_index", "p_grid", "lat_grid", "lon_grid",
-            "scat_za_grid", "scat_aa_grid", "stokes_dim",
-            "atmosphere_dim", "cloudbox_limits" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back     
-    ( MdRecord
       ( NAME( "doit_conv_flagAbs" ),
         DESCRIPTION
         (
@@ -3895,9 +3863,7 @@ void define_md_data_raw()
         AUTHORS( "Claudia Emde" ),
         OUT( "scat_p_index", "scat_lat_index", "scat_lon_index", 
              "scat_za_index", "scat_aa_index", "doit_scat_field",
-             "doit_i_field", "doit_i_field1D_spectrum",
-             "scat_i_p", "scat_i_lat", "scat_i_lon", 
-             "doit_is_initialized" ),
+             "doit_i_field", "doit_i_field1D_spectrum", "doit_is_initialized" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
@@ -3963,13 +3929,13 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "doit_i_field_mono", "doit_i_field1D_spectrum", "scat_i_p", "scat_za_grid",
+        IN( "doit_i_field_mono", "scat_za_grid",
             "f_grid", "f_index",
             "atmosphere_dim", "stokes_dim", "cloudbox_limits" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
+        GIN( "doit_i_field_spectrum" ),
+        GIN_TYPE( "Tensor7" ),
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC( "Precalculated radiation field" )
         ));
 
   md_data_raw.push_back
@@ -3995,7 +3961,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "doit_i_field_mono", "scat_i_p", "scat_i_lat", "scat_i_lon", "f_grid",
+        IN( "doit_i_field_mono",
             "f_index", "p_grid", "lat_grid", "lon_grid", 
             "cloudbox_limits", "atmosphere_dim" ),
         GIN( "all_frequencies" ),
@@ -4022,7 +3988,7 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "doit_i_field_mono",
-            "scat_i_p", "scat_i_lat", "scat_i_lon", "p_grid", "lat_grid",
+            "p_grid", "lat_grid",
             "lon_grid", 
             "cloudbox_limits", "atmosphere_dim", "stokes_dim" ),
         GIN( "value" ),
@@ -10049,8 +10015,8 @@ void define_md_data_raw()
          "Calls DISORT RT solver from ARTS.\n"
          ),
         AUTHORS( "Claudia Emde" ),
-        OUT( "scat_i_p", "scat_i_lat", "scat_i_lon", 
-             "f_index", "scat_data_mono", "doit_i_field1D_spectrum" ),
+        OUT( "doit_i_field",
+             "f_index", "scat_data_mono" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
@@ -10075,23 +10041,16 @@ void define_md_data_raw()
          "\n"
          "This method executes *doit_mono_agenda* for each frequency\n"
          "in *f_grid*. The output is the radiation field inside the cloudbox\n"
-         "(*doit_i_field*) and on the cloudbox boundary (*scat_i_p* (1D),\n"
-         "*scat_i_lat* and *scat_i_lon* (3D)).\n"
+         "(*doit_i_field*).\n"
          ),
         AUTHORS( "Claudia Emde" ),
-        OUT( "doit_i_field", 
-             "scat_i_p", "scat_i_lat", "scat_i_lon",
-             "doit_i_field1D_spectrum" ),
+        OUT( "doit_i_field" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "doit_i_field",
-            "scat_i_p", "scat_i_lat", "scat_i_lon",
-            "doit_i_field1D_spectrum",
             "atmfields_checked", "atmgeom_checked",
             "cloudbox_checked", "cloudbox_on", "f_grid", 
-            "scat_i_p", "scat_i_lat", "scat_i_lon",
-            "doit_i_field1D_spectrum",
             "doit_mono_agenda", "doit_is_initialized" ),
         GIN(),
         GIN_TYPE(),

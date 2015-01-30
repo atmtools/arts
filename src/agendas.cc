@@ -165,10 +165,8 @@ void define_agenda_data()
        "See the ArtsWiki page UsingArtsDoit and the online documentation\n"
        "for more information about the methods.\n"
         ),
-       OUTPUT( "doit_i_field_mono", "scat_i_p", "scat_i_lat", "scat_i_lon",
-               "doit_i_field1D_spectrum"),
-       INPUT("doit_i_field_mono", "f_grid", "f_index",
-             "scat_i_p", "scat_i_lat", "scat_i_lon", "doit_i_field1D_spectrum")));
+       OUTPUT( "doit_i_field_mono" ),
+       INPUT( "doit_i_field_mono", "f_grid", "f_index" )));
             
  agenda_data.push_back
     (AgRecord
