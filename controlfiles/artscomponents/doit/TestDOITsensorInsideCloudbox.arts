@@ -26,7 +26,7 @@ INCLUDE "doit_calc.arts"
 
 VectorCreate(yREFERENCE)
 ReadXML( yREFERENCE, "yREFERENCE_DOITsensorInsideCloudbox.xml" )
-Compare( y, yREFERENCE, 1e-2 )
+Compare( y, yREFERENCE, 1e-6 )
 
 } # End of Main
  

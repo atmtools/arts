@@ -1,3 +1,19 @@
+2015-01-30  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-142
+
+	* controlfiles/artscomponents/doit/TestDOITprecalcInit.arts:
+
+	Vastly tighten the required precision for the reference comparison.
+	Even though I screwed up the test case by not reading the radiation
+	field from file (essentially using a zero field), it was still
+	succeeding.
+
+	* controlfiles/artscomponents/doit/TestDOIT.arts,
+	controlfiles/artscomponents/doit/TestDOITsensorInsideCloudbox.arts:
+
+	Same tightening in precision for reference comparison.
+
 2015-01-28  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-141

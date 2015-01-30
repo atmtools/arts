@@ -19,7 +19,7 @@ WriteXML( in=y )
 
 VectorCreate(yREFERENCE)
 ReadXML( yREFERENCE, "yREFERENCE_DOIT.xml" )
-Compare( y, yREFERENCE, 1e-2 )
+Compare( y, yREFERENCE, 1e-6 )
 
 } # End of Main
  
