@@ -2202,10 +2202,37 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "AtmFieldPRegrid" ),
+        DESCRIPTION
+        (
+         "Interpolates the input field along the pressure dimension from\n"
+         "*p_grid_old* to to *p_grid_new*.\n"
+         "\n"
+         "Extrapolation is allowed within the common 0.5grid-step margin.\n"
+         "in and out fields can be the same variable.\n"
+         ),
+        AUTHORS( "Jana Mendrok" ),
+        OUT(),
+        GOUT( "out" ),
+        GOUT_TYPE( "Tensor3, Tensor4" ),
+        GOUT_DESC( "Regridded atmospheric field." ),
+        IN(),
+        GIN( "in", "p_grid_new", "p_grid_old", "interp_order" ),
+        GIN_TYPE( "Tensor3, Tensor4",
+                  "Vector", "Vector", "Index" ),
+        GIN_DEFAULT( NODEF, NODEF, NODEF, "1" ),
+        GIN_DESC( "Input atmospheric field.",
+                  "Pressure grid to regrid to", "Pressure grid of input field",
+                  "Interpolation order." )
+        ));
+    
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "AtmFieldsRefinePgrid" ),
         DESCRIPTION
         (
-         "Refine the pressure grid in the atmospheric fields.\n"
+         "Refines the pressure grid and regrids the clearsky atmospheric\n"
+         "fields accordingly.\n"
          "\n"
          "This method is, e.g., used for absorption lookup table testing. It\n"
          "can also be used to refine the *p_grid* and atmospheric fields from\n"
@@ -2215,14 +2242,17 @@ void define_md_data_raw()
          "interpolating them in the usual ARTS way (linear in log pressure).\n"
          "\n"
          "How fine the new grid will be is determined by the keyword parameter\n"
-         "p_step. The definition of p_step, and the interpolation behavior, is\n"
-         "consistent with *abs_lookupSetup* and *abs_lookupSetupBatch*. (New\n"
-         "points are added between the original ones, so that the spacing is\n"
-         "always below p_step.)\n"
+         "p_step. The definition of p_step, and the default interpolation\n"
+         "behavior, is consistent with *abs_lookupSetup* and\n"
+         "*abs_lookupSetupBatch* (new points are added between the original\n"
+         "ones, so that the spacing is always below p_step.)\n"
+         "\n"
+         "Internally, *AtmFieldsRefinePgrid* applies *p_gridRefine* and\n"
+         "*AtmFieldPRegrid* to the clearsky atmospheric fields (T, z, vmr).\n"
          "\n"
          "Atmospheric field related check WSV are reset to 0 (unchecked),\n"
-         "i.e., need the correpsonding checkedCalc methods have to be\n"
-         "performed (again) before *yCalc* or similar methods can be executed.\n"
+         "i.e., the corresponding checkedCalc methods have to be performed\n"
+         "(again) before *yCalc* or similar methods can be executed.\n"
          ),
         AUTHORS( "Stefan Buehler" ),
         OUT( "p_grid",
@@ -2233,12 +2263,13 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "p_grid", "lat_grid", "lon_grid",
             "t_field", "z_field", "vmr_field", "atmosphere_dim" ),
-        GIN( "p_step" ),
-        GIN_TYPE(    "Numeric" ),
-        GIN_DEFAULT( NODEF ),
+        GIN(         "p_step",  "interp_order" ),
+        GIN_TYPE(    "Numeric", "Index" ),
+        GIN_DEFAULT( NODEF,     "1" ),
         GIN_DESC("Maximum step in log(p[Pa]) (natural logarithm, as always). If\n"
                  "the pressure grid is coarser than this, additional points\n"
-                 "are added until each log step is smaller than this.\n")
+                 "are added until each log step is smaller than this.\n",
+                 "Interpolation order." )
         ));
 
   md_data_raw.push_back
@@ -3137,8 +3168,10 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN(),
         GIN( "var1", "var2", "maxabsdiff", "error_message" ),
-        GIN_TYPE( "Numeric, Vector, Matrix, Tensor3, Tensor7, ArrayOfVector, ArrayOfMatrix, GriddedField3",
-                  "Numeric, Vector, Matrix, Tensor3, Tensor7, ArrayOfVector, ArrayOfMatrix, GriddedField3",
+        GIN_TYPE( "Numeric, Vector, Matrix, Tensor3, Tensor4, Tensor7,"
+                  "ArrayOfVector, ArrayOfMatrix, GriddedField3",
+                  "Numeric, Vector, Matrix, Tensor3, Tensor4, Tensor7,"
+                  "ArrayOfVector, ArrayOfMatrix, GriddedField3",
                   "Numeric", "String" ),
         GIN_DEFAULT( NODEF, NODEF, "", "" ),
         GIN_DESC( "A first variable", "A second variable", 
@@ -9314,22 +9347,32 @@ void define_md_data_raw()
          "\n"
          "The method includes new values in *p_grid*. For each intermediate\n"
          "pressure range, *nfill* points are added. That is, setting *nfill*\n"
-         "to zero returns an unmodified *p_grid*. The number of elements of\n"
-         "the new *p_grid* is (n0-1)*(1+nfill)+1, where n0 is the original\n"
-         "length.\n"
+         "to zero returns an unmodified copy of *p_grid_old*. The number of\n"
+         "elements of the new *p_grid* is (n0-1)*(1+nfill)+1, where n0 is the\n"
+         "length of *p_grid_old*.\n"
          "\n"
          "The new points are distributed equidistant in log(p).\n"         
+         "\n"
+         "For safety, new grid and old grid Vectors are not allowed to be the\n"
+         "same variable (both will be needed later on for regridding of the\n"
+         "atmospheric fields), and atmospheric field related *checked WSV are\n"
+         "reset to 0 (unchecked).\n"
          ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT( "p_grid" ),
+        AUTHORS( "Patrick Eriksson, Jana Mendrok" ),
+        OUT( "p_grid",
+             "atmfields_checked", "atmgeom_checked", "cloudbox_checked" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "p_grid" ),
-        GIN(         "nfill" ),
-        GIN_TYPE(    "Index" ),
-        GIN_DEFAULT( "-1" ),
-        GIN_DESC( "Number of points to add between adjacent pressure points."
+        IN(),
+        GIN(      "p_grid_old", "nfill" ),
+        GIN_TYPE( "Vector",     "Index" ),
+        GIN_DEFAULT( NODEF,     "-1" ),
+        GIN_DESC( /* p_grid_old */
+                  "A copy of the current (the old) p_grid. Not allowed to be "
+                  "the same variable as the output *p_grid*.",
+                  /* nfill */
+                  "Number of points to add between adjacent pressure points."
                   "The default value (-1) results in an error." )
         ));
 
@@ -9383,6 +9426,7 @@ void define_md_data_raw()
          "\n"
          "Created new pressure grid has (log10) spacings below a given\n"
          "threshold.\n"
+         "\n"
          "For safety, new grid and old grid Vectors are not allowed to be the\n"
          "same variable (both will be needed later on for regridding of the\n"
          "atmospheric fields), and atmospheric field related *checked WSV are\n"

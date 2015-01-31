@@ -111,7 +111,9 @@ MatrixSet( sensor_los, [ 95; 113; 135] )
 
 # A pressure grid rougly matching 0 to 80 km, in steps of 2 km.
 # ---
-VectorNLogSpace( p_grid, 41, 1000e2, 1 )
+VectorCreate( p_init )
+VectorNLogSpace( p_init, 41, 1000e2, 1 )
+Copy( p_grid, p_init )
 
 # Atmosphere and surface
 # ---
@@ -140,10 +142,21 @@ Copy( y_init, y )
 
 
 #########################################################################
-# refined vertical spacing
+# refined vertical spacing I: all clearsky fields in one WSM
 #########################################################################
 
 AtmFieldsRefinePgrid( p_step=0.01 )
+
+VectorCreate( p_ref )
+Tensor3Create( z_ref )
+Tensor3Create( t_ref )
+Tensor4Create( vmr_ref )
+Copy( p_ref, p_grid )
+#WriteXML( in=p_ref )
+Copy( z_ref, z_field )
+#WriteXML( in=z_ref )
+Copy( t_ref, t_field )
+Copy( vmr_ref, vmr_field )
 
 # Perform RT calculations
 # ---
@@ -176,6 +189,51 @@ Compare( odepth_refine, odepth_refineREFERENCE, 1e-2 )
 
 Compare( y_refine, y_init, 0.5 )
 Compare( odepth_refine, odepth_init, 2. )
+
+
+#########################################################################
+# refined vertical spacing II: all fields separately
+#########################################################################
+
+# need to recreate the original fields
+Copy( p_grid, p_init )
+AtmFieldsCalc
+
+VectorCreate( p_grid_old )
+Copy( p_grid_old, p_grid )
+
+p_gridRefine( p_grid_old=p_grid_old, p_step=0.01 )
+#WriteXML( in=p_grid )
+Compare( p_grid, p_ref, 1e-10 )
+
+AtmFieldPRegrid( out=z_field, in=z_field, p_grid_new=p_grid, p_grid_old=p_grid_old )
+#WriteXML( in=z_field )
+Compare( z_field, z_ref, 1e-6 )
+AtmFieldPRegrid( out=t_field, in=t_field, p_grid_new=p_grid, p_grid_old=p_grid_old )
+Compare( t_field, t_ref, 1e-6 )
+AtmFieldPRegrid( out=vmr_field, in=vmr_field, p_grid_new=p_grid, p_grid_old=p_grid_old )
+Compare( vmr_field, vmr_ref, 1e-12 )
+
+# Perform RT calculations
+# ---
+abs_xsec_agenda_checkedCalc
+propmat_clearsky_agenda_checkedCalc
+atmfields_checkedCalc
+atmgeom_checkedCalc
+cloudbox_checkedCalc
+sensor_checkedCalc
+yCalc
+
+# Create containers for comparison data
+VectorCreate( odepth_refineII )
+VectorCreate( y_refineII )
+Extract( odepth_refineII, y_aux, 0 )
+Copy( y_refineII, y )
+#WriteXML( in=y_refineII )
+#WriteXML( in=odepth_refineII )
+
+Compare( y_refineII, y_refine, 1e-6 )
+Compare( odepth_refineII, odepth_refine, 1e-6 )
 
 
 } # End of Main

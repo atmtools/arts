@@ -138,6 +138,171 @@ void atm_fields_compactExpand(GriddedField4& af,
   === The functions (in alphabetical order)
   ===========================================================================*/
 
+//! Calculate grid positions and interpolations weights for AtmFieldPRegrid
+/*
+ This helper function is used by all AtmFieldPRegrid WSMs to do the common
+ calculation of the grid positions and interpolation weights for pressures.
+ It is an adaptation of GriddedFieldPRegridHelper for Tensors instead of
+ GriddedFields.
+
+ \param[out]    ing_min       Index in the new grid with first value covered
+                              by the old grid.
+ \param[out]    ing_max       Index in the new grid with last value covered
+                              by the old grid.
+ \param[out]    gp_p          Pressure grid positions
+ \param[out]    itw           Interpolation weights
+ \param[in]     p_grid_out    New pressure grid
+ \param[in]     p_grid_in     Old pressure grid
+ \param[in]     interp_order  Interpolation order
+ \param[in]     verbosity     Verbosity levels
+ */
+void AtmFieldPRegridHelper(Index& ing_min,
+                           Index& ing_max,
+                           ArrayOfGridPosPoly& gp_p,
+                           Matrix& itw,
+                           ConstVectorView p_grid_out,
+                           ConstVectorView p_grid_in,
+                           const Index& interp_order,
+                           const Verbosity& verbosity)
+{
+    CREATE_OUT2;
+
+    out2 << "  Interpolation order: " << interp_order << "\n";
+
+    ing_min = 0;
+    ing_max = p_grid_out.nelem()-1;
+    chk_interpolation_pgrids("Atmospheric field to p_grid_out",
+                             p_grid_in,  p_grid_out, interp_order);
+
+    Index nelem_in_range = ing_max - ing_min + 1;
+
+    // Calculate grid positions:
+    if (nelem_in_range>0)
+      {
+        gp_p.resize(nelem_in_range);
+        p2gridpos_poly(gp_p, p_grid_in, p_grid_out[Range(ing_min, nelem_in_range)],
+                       interp_order);
+
+        // Interpolation weights:
+        itw.resize(nelem_in_range, interp_order+1);
+        interpweights(itw, gp_p);
+      }
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void AtmFieldPRegrid(// WS Generic Output:
+                     Tensor3& atmtensor_out,
+                     // WS Generic Input:
+                     const Tensor3& atmtensor_in_orig,
+                     const Vector& p_grid_new,
+                     const Vector& p_grid_old,
+                     const Index& interp_order,
+                     const Verbosity& verbosity)
+{
+    // check that p_grid_old is the p_grid associated with atmtensor_in_orig. we can
+    // only check for consistent size with p_grid_old.
+    if (atmtensor_in_orig.npages() != p_grid_old.nelem())
+      {
+        ostringstream os;
+        os << "p_grid_old is supposed to be the p_grid associated with the "
+           << "atmospheric field.\n"
+           << "However, it is not as their sizes are inconsistent.\n"; 
+        throw runtime_error(os.str());
+      }
+
+    const Tensor3* atmtensor_in_pnt;
+    Tensor3 atmtensor_in_copy;
+
+    if (&atmtensor_in_orig == &atmtensor_out)
+    {
+        atmtensor_in_copy = atmtensor_in_orig;
+        atmtensor_in_pnt = &atmtensor_in_copy;
+    }
+    else
+        atmtensor_in_pnt = &atmtensor_in_orig;
+
+    const Tensor3 &atmtensor_in = *atmtensor_in_pnt;
+
+    // Resize output tensor
+    atmtensor_out.resize(p_grid_new.nelem(), atmtensor_in.nrows(), atmtensor_in.ncols());
+
+    ArrayOfGridPosPoly gp_p;
+    Matrix itw;
+
+    Index ing_min, ing_max;
+
+    AtmFieldPRegridHelper(ing_min, ing_max, gp_p, itw, 
+                          p_grid_new, p_grid_old,
+                          interp_order, verbosity);
+
+    // Interpolate:
+    if ( (ing_max - ing_min < 0) || (ing_max - ing_min + 1 != p_grid_new.nelem()) )
+      {
+        ostringstream os;
+        os << "New grid seems not to be sufficiently covered by old grid.\n"; 
+        throw runtime_error(os.str());
+      }
+
+    for (Index i = 0; i < atmtensor_in.nrows(); i++)
+        for (Index j = 0; j < atmtensor_in.ncols(); j++)
+            interp(atmtensor_out(joker, i, j),
+                   itw, atmtensor_in(joker, i, j), gp_p);
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void AtmFieldPRegrid(// WS Generic Output:
+                     Tensor4& atmtensor_out,
+                     // WS Generic Input:
+                     const Tensor4& atmtensor_in_orig,
+                     const Vector& p_grid_new,
+                     const Vector& p_grid_old,
+                     const Index& interp_order,
+                     const Verbosity& verbosity)
+{
+    const Tensor4* atmtensor_in_pnt;
+    Tensor4 atmtensor_in_copy;
+
+    if (&atmtensor_in_orig == &atmtensor_out)
+    {
+        atmtensor_in_copy = atmtensor_in_orig;
+        atmtensor_in_pnt = &atmtensor_in_copy;
+    }
+    else
+        atmtensor_in_pnt = &atmtensor_in_orig;
+
+    const Tensor4 &atmtensor_in = *atmtensor_in_pnt;
+
+    // Resize output tensor
+    atmtensor_out.resize(atmtensor_in.nbooks(), p_grid_new.nelem(),
+                         atmtensor_in.nrows(), atmtensor_in.ncols());
+
+    ArrayOfGridPosPoly gp_p;
+    Matrix itw;
+
+    Index ing_min, ing_max;
+
+    AtmFieldPRegridHelper(ing_min, ing_max, gp_p, itw, 
+                          p_grid_new, p_grid_old,
+                          interp_order, verbosity);
+
+    // Interpolate:
+    if ( (ing_max - ing_min < 0) || (ing_max - ing_min + 1 != p_grid_new.nelem()) )
+      {
+        ostringstream os;
+        os << "New grid seems not to be sufficiently covered by old grid.\n"; 
+        throw runtime_error(os.str());
+      }
+
+    for (Index b = 0; b <  atmtensor_in.nbooks(); b++)
+        for (Index i = 0; i <  atmtensor_in.nrows(); i++)
+            for (Index j = 0; j <  atmtensor_in.ncols(); j++)
+                interp(atmtensor_out(b, joker, i, j),
+                       itw,  atmtensor_in(b, joker, i, j), gp_p);
+}
+
+
 //! Check for correct grid dimensions
 /*
  Helper function for FieldFromGriddedField functions to ensure correct
@@ -483,8 +648,8 @@ void GriddedFieldLatLonExpand(// WS Generic Output:
 
 //! Calculate grid positions and interpolations weights for GriddedFieldPRegrid
 /*
- This helper function is used by all GriddedFieldLatLonRegrid WSMs to do the common
- calculation of the grid positions and interpolation weights for latitudes and longitudes.
+ This helper function is used by all GriddedFieldPRegrid WSMs to do the common
+ calculation of the grid positions and interpolation weights for pressures.
 
  \param[out]    ing_min       Index in the new grid with first value covered
                               by the old grid.
@@ -2290,6 +2455,7 @@ void AtmFieldsRefinePgrid(// WS Output:
                           const Index& atmosphere_dim,
                           // Control Parameters:
                           const Numeric& p_step,
+                          const Index& interp_order,
                           const Verbosity& verbosity)
 {
   // Checks on input parameters:
@@ -2314,69 +2480,17 @@ void AtmFieldsRefinePgrid(// WS Output:
   chk_atm_field("vmr_field", vmr_field, atmosphere_dim,
                 vmr_field.nbooks(), p_grid, lat_grid, lon_grid);
 
-  Vector abs_p;
-  p_gridRefine(abs_p,
+  // Move original p_grid to p_old, freeing p_grid for the refined one.
+  Vector p_old;
+  p_old = p_grid;
+
+  p_gridRefine(p_grid,
                atmfields_checked, atmgeom_checked, cloudbox_checked,
-               p_grid, p_step, verbosity);
-  Vector log_abs_p(abs_p.nelem());
-  transform(log_abs_p, log, abs_p);
+               p_old, p_step, verbosity);
 
-  // We will need the log of the pressure grid:
-  Vector log_p_grid(p_grid.nelem());
-  transform(log_p_grid, log, p_grid);
-
-  // We will also have to interpolate T and VMR profiles to the new
-  // pressure grid. We interpolate in log(p), as usual in ARTS.
-
-  // Grid positions:
-  ArrayOfGridPos gp(log_abs_p.nelem());
-  gridpos(gp, log_p_grid, log_abs_p);
-
-  // Interpolation weights:
-  Matrix itw(gp.nelem(),2);
-  interpweights(itw,gp);
-
-  // Extent of latitude and longitude grids:
-  Index nlat = lat_grid.nelem();
-  Index nlon = lon_grid.nelem();
-
-  // This here is needed so that the method works for 1D and 2D
-  // atmospheres as well, not just for 3D:
-  if (0 == nlat) nlat = 1;
-  if (0 == nlon) nlon = 1;  
-
-  // Define variables for output fields:
-  Tensor3 abs_t(log_abs_p.nelem(), nlat, nlon);
-  Tensor3 abs_z(log_abs_p.nelem(), nlat, nlon);
-  Tensor4 abs_vmr(vmr_field.nbooks(),
-                  log_abs_p.nelem(), nlat, nlon);
-
-  for (Index ilat=0; ilat<nlat; ++ilat)
-    for (Index ilon=0; ilon<nlon; ++ilon)
-      {
-        interp(abs_t(joker, ilat, ilon),
-               itw,
-               t_field(joker, ilat, ilon),
-               gp);
-
-        interp(abs_z(joker, ilat, ilon),
-               itw,
-               z_field(joker, ilat, ilon),
-               gp);
-
-        for (Index ivmr=0; ivmr<vmr_field.nbooks(); ++ivmr)
-          interp(abs_vmr(ivmr, joker, ilat, ilon),
-                 itw,
-                 vmr_field(ivmr, joker, ilat, ilon),
-                 gp);
-      }
-
-
-  // Copy back the new fields to p_grid, t_field, z_field, vmr_field:
-  p_grid    = abs_p;
-  t_field   = abs_t;
-  z_field   = abs_z; 
-  vmr_field = abs_vmr;
+  AtmFieldPRegrid(z_field, z_field, p_grid, p_old, interp_order, verbosity);
+  AtmFieldPRegrid(t_field, t_field, p_grid, p_old, interp_order, verbosity);
+  AtmFieldPRegrid(vmr_field, vmr_field, p_grid, p_old, interp_order, verbosity);
 }
 
 
@@ -2472,30 +2586,54 @@ void InterpAtmFieldToPosition(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void p_gridDensify(
-        Vector& p_grid,
-  const Index&  nfill,
-  const Verbosity& verbosity )
+void p_gridDensify(// WS Output:
+                   Vector& p_grid,
+                   Index& atmfields_checked,
+                   Index& atmgeom_checked,
+                   Index& cloudbox_checked,
+                   // WS Input:
+                   const Vector& p_grid_old,
+                   // Control Parameters:
+                   const Index&  nfill,
+                   const Verbosity& verbosity )
 {
+  // Check that p_grid and p_grid_old are not the same variable (pointing to the
+  // same memory space). this as p_grid will be overwritten, but we will need
+  // both data later on for data regridding.
+  if (&p_grid == &p_grid_old)
+    {
+      ostringstream os;
+      os << "The old and new grids (p_grid and p_grid_old) are not allowed\n"
+         << "to be identical (pointing to same memory space).\n"
+         << "But they are doing in your case.";
+      throw runtime_error( os.str() );
+    }
+
+  // as we manipoulate the overall vertical grid (but not simultaneously the
+  // atmospheric fields), we reset all atmfields related checked WSV to
+  // unchecked, forcing the user to do the checks again.
+  atmfields_checked = 0;
+  atmgeom_checked = 0;
+  cloudbox_checked = 0;
+
+  // Check the keyword argument:
   if( nfill < 0 ) 
     { throw runtime_error( "Argument *nfill* must be >= 0." ); }
 
   // Nothing to do if nfill=0
   if( nfill > 0 )
     {
-      // Make copy of _pgrid and allocate new size
-      const Vector p0( p_grid);
-      const Index n0 = p0.nelem();
-      //
+      // Allocate new size for p_grid
+      const Index n0 = p_grid_old.nelem();
       p_grid.resize( (n0-1)*(1+nfill) + 1 );
 
       Index iout = 0;
-      p_grid[0] = p0[0];
+      p_grid[0] = p_grid_old[0];
 
       for( Index i=1; i<n0; i++ )
         {
           Vector pnew;
-          VectorNLogSpace( pnew, 2+nfill, p0[i-1], p0[i], verbosity );
+          VectorNLogSpace( pnew, 2+nfill, p_grid_old[i-1], p_grid_old[i], verbosity );
           for( Index j=1; j<nfill+2; j++ )
             {
               iout += 1;
@@ -2516,7 +2654,7 @@ void p_gridRefine(// WS Output:
                   // WS Input:
                   const Vector& p_grid_old,
                   // Control Parameters:
-                  const Numeric& p_step,
+                  const Numeric& p_step10,
                   const Verbosity&)
 {
   // Check that p_grid and p_grid_old are not the same variable (pointing to the
@@ -2539,14 +2677,17 @@ void p_gridRefine(// WS Output:
   cloudbox_checked = 0;
 
   // Check the keyword argument:
-  if ( p_step <= 0  )
+  if ( p_step10 <= 0  )
     {
       ostringstream os;
       os << "The keyword argument p_step must be >0.";
       throw runtime_error( os.str() );
     }
-  // Convert p_step from log10 to ln
-  Numeric p_stepe = p_step * log(p_step)/log10(p_step);
+
+  // For consistency with other code around arts (e.g., correlation
+  // lengths in atmlab), p_step is given as log10(p[Pa]). However, we
+  // convert it here to the natural log:
+  const Numeric p_step = log(pow(10.0, p_step10));
 
   // Now starting modification of p_grid
 
@@ -2554,7 +2695,7 @@ void p_gridRefine(// WS Output:
   Vector log_p_old(p_grid_old.nelem());
   transform(log_p_old, log, p_grid_old);
 
-  //  const Numeric epsilon = 0.01 * p_stepe; // This is the epsilon that
+  //  const Numeric epsilon = 0.01 * p_step; // This is the epsilon that
   //                                         // we use for comparing p grid spacings.
 
   // Construct p_grid (new)
@@ -2565,7 +2706,7 @@ void p_gridRefine(// WS Output:
                              // elements to the end.
 
   // Check whether there are pressure levels that are further apart
-  // (in log(p)) than p_stepe, and insert additional levels if
+  // (in log(p)) than p_step, and insert additional levels if
   // necessary:
 
   log_p_new.push_back(log_p_old[0]);
@@ -2574,10 +2715,10 @@ void p_gridRefine(// WS Output:
     {
       const Numeric dp =  log_p_old[i-1] - log_p_old[i]; // The grid is descending.
 
-      const Numeric dp_by_p_step = dp/p_stepe;
+      const Numeric dp_by_p_step = dp/p_step;
       //          cout << "dp_by_p_step: " << dp_by_p_step << "\n";
 
-      // How many times does p_stepe fit into dp?
+      // How many times does p_step fit into dp?
       const Index n = (Index) ceil(dp_by_p_step); 
       // n is the number of intervals that we want to have in the
       // new grid. The number of additional points to insert is

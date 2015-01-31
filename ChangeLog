@@ -1,3 +1,32 @@
+2015-01-31  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-3-144
+
+	* src/m_atmosphere.cc
+
+	(AtmFieldPRegrid, AtmFieldPRegridHelper): Added. Method(s) to regrid
+	non-raw atmospheric fields in pressure. Available for Tensor3 and
+	Tensor4. Following the strategy of GriddedFieldPRegrid.
+
+	(AtmFieldsRefinePgrid): Use AtmFieldPRegrid for z_field, t_field, and
+	vmr_field regridding.
+
+	(p_gridDensify): Modify behaviour to be consistent with p_gridRefine
+	assuming we modify an in-use p_grid, i.e. set the respective check
+	variables to 0 (unchecked) and do not allow to overwrite p_grid in
+	place, but keep the old p_prid.
+
+	(p_gridRefine): Use some log10->ln conversion of p_step as in
+	abs_lookupSetup.
+
+	* src/m_basic_types.cc (Compare): Added variant for Tensor4.
+
+	* src/methods.cc: Modified according to changes above.
+
+	* controlfiles/artscomponents/regrid/TestRegridFields.arts:
+	Extended with test of individual regridding of (clearsky) atmospheric
+	fields, ensuring consistency with AtmFieldsRefinePgrid.
+
 2015-01-30  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-143

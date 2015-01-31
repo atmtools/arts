@@ -1320,6 +1320,60 @@ void Compare(const Tensor3&   var1,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void Compare(const Tensor4&   var1,
+             const Tensor4&   var2,
+             const Numeric&   maxabsdiff,
+             const String&    error_message,
+             const String&    var1name,
+             const String&    var2name,
+             const String&,
+             const String&,
+             const Verbosity& verbosity)
+{
+    const Index ncols = var1.ncols();
+    const Index nrows = var1.nrows();
+    const Index npages = var1.npages();
+    const Index nbooks = var1.nbooks();
+    
+    if(var2.ncols() != ncols   ||
+       var2.nrows() != nrows  ||
+       var2.npages() != npages ||
+       var2.nbooks() != nbooks )
+    {
+      ostringstream os;
+      os << var1name << " and " << var2name << " do not have the same size.";
+      throw runtime_error(os.str());
+    }
+    
+    Numeric maxdiff = 0.0;
+    
+    for( Index c=0; c<ncols; c++ )
+        for( Index r=0; r<nrows; r++ )
+            for( Index p=0; p<npages; p++ )
+                for( Index b=0; b<nbooks; b++ )
+              {
+                const Numeric diff = var1(b,p,r,c) - var2(b,p,r,c);
+                if( abs(diff) > abs(maxdiff) )
+                  { maxdiff = diff; }
+              }
+    
+    if( abs(maxdiff) > maxabsdiff )
+      {
+        ostringstream os;
+        os << var1name << "-" << var2name << " FAILED!\n";
+        if (error_message.length()) os << error_message << "\n";
+        os << "Max allowed deviation set to : " << maxabsdiff << endl
+           << "but the tensors deviate with: " << maxdiff << endl;
+        throw runtime_error(os.str());
+      }
+    
+    CREATE_OUT2;
+    out2 << "   " << var1name << "-" << var2name
+         << " OK (maximum difference = " << maxdiff << ").\n";
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void Compare(const Tensor7&   var1,
              const Tensor7&   var2,
              const Numeric&   maxabsdiff,
