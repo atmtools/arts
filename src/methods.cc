@@ -6042,6 +6042,50 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "iySurfaceFastem" ),
+        DESCRIPTION
+        (
+         "Usage of FASTEM for emissivity and reflectivity of water surfaces.\n"
+         "\n"
+         "This method allows usage of the FASTEM model inside\n"
+         "*iy_surface_agenda*. The aim is to use FASTEM in the exact same\n"
+         "way as done in RTTOV. For example, the transmittance for down-\n"
+         "welling radiation is considered. RTTOV os just 1D. Here 2D and 3D\n"
+         "are handled as the 1D case, the down-welling radiation is just\n"
+         "calculated for the directuon matching specular reflection.\n"
+         "\n"
+         "The wind direction is given as the azimuth angle, counted\n"
+         "clockwise from north (i.e. an easterly wind is at 90 deg).\n"
+         "This matches the general definition of azimuth inside ARTS.\n"
+         "For 1D and 2D, the wind direction must be adjusted to match the\n"
+         "fact that the line-of-sight is locked to be at 0 deg (180 for 2D\n"
+         "in the case of a negative zenith angle). For 3D, the true wind\n"
+         "direction shall be used.\n"
+         "\n"
+         "FASTEM is called by *FastemStandAlone* and see that WSM for further\n"
+         "comments on variables and limitations.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "iy", "diy_dx" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "iy_transmission", "jacobian_do", "atmosphere_dim", "lat_grid",
+            "lon_grid", "t_field", "z_field", "vmr_field", "z_surface",
+            "cloudbox_on", "stokes_dim", "f_grid", "refellipsoid",
+            "rtp_pos", "rtp_los", "rte_pos2", "iy_unit", "iy_main_agenda", 
+            "blackbody_radiation_agenda", "surface_skin_t" ),
+        GIN( "salinity", "wind_speed", "wind_direction", "fastem_version" ),
+        GIN_TYPE( "Numeric", "Numeric", "Numeric", "Index" ),
+        GIN_DEFAULT( NODEF, NODEF, "0", "6" ),
+        GIN_DESC( "Salinity, 0-1. That is, 3\% is given as 0.03.",
+                  "Wind speed.",
+                  "Wind direction. See further above.",
+                  "The version of FASTEM to use." )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "iySurfaceRtpropAgenda" ),
         DESCRIPTION
         (
@@ -6188,50 +6232,6 @@ void define_md_data_raw()
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "iyWaterSurfaceFastem" ),
-        DESCRIPTION
-        (
-         "Usage of FASTEM for emissivity and reflectivity o9f water surfaces.\n"
-         "\n"
-         "This method allows usage of the FASTEM model inside\n"
-         "*iy_surface_Agenda*. The aim is to use FASTEM in the exact same\n"
-         "way as done in RTTOV. For example, the transmittance for down-\n"
-         "welling radiation is considered. RTTOV os just 1D. Here 2D and 3D\n"
-         "are handled as the 1D case, the down-welling radiation is just\n"
-         "calculated for the directuon matching specular reflection.\n"
-         "\n"
-         "The wind direction is given as the azimuth angle, counted\n"
-         "clockwise from north (i.e. an easterly wind is at 90 deg).\n"
-         "This matches the general definition of azimuth inside ARTS.\n"
-         "For 1D and 2D, the wind direction must be adjusted to match the\n"
-         "fact that the line-of-sight is locked to be at 0 deg (180 for 2D\n"
-         "in the case of a negative zenith angle). For 3D, the true wind\n"
-         "direction shall be used.\n"
-         "\n"
-         "FASTEM is called by *FastemStandAlone* and see that WSM for further\n"
-         "comments on variables and limitations.\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT( "iy", "diy_dx" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "iy_transmission", "jacobian_do", "atmosphere_dim", "lat_grid",
-            "lon_grid", "t_field", "z_field", "vmr_field", "z_surface",
-            "cloudbox_on", "stokes_dim", "f_grid", "refellipsoid",
-            "rtp_pos", "rtp_los", "rte_pos2", "iy_unit", "iy_main_agenda", 
-            "blackbody_radiation_agenda", "surface_skin_t" ),
-        GIN( "salinity", "wind_speed", "wind_direction", "fastem_version" ),
-        GIN_TYPE( "Numeric", "Numeric", "Numeric", "Index" ),
-        GIN_DEFAULT( NODEF, NODEF, "0", "6" ),
-        GIN_DESC( "Salinity, 0-1. That is, 3\% is given as 0.03.",
-                  "Wind speed.",
-                  "Wind direction. See futher above.",
-                  "The version of FASTEM to use." )
         ));
 
   md_data_raw.push_back
@@ -11295,6 +11295,48 @@ void define_md_data_raw()
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "surfaceFastem" ),
+        DESCRIPTION
+        (
+         "Usage of FASTEM together with MC and DOIT.\n"
+         "\n"
+         "The recommended way to use FASTEM is by *iySurfaceFastem*, but that\n"
+         "is not always possible, such as when using MC and DOIT. This is the\n"
+         "case as those scattering methods use *surface_rtprop_agenda*,\n"
+         "while *iySurfaceFastem* fits with *iy_surface_agenda*. This WSM solves\n"
+         "this by allowing FASTEM to be used inside *surface_rtprop_agenda*.\n"
+         "\n"
+         "However, FASTEM is here used in an approximative way. For a correct\n"
+         "usage of FASTEM, the atmospheric transmittance shall be calculated\n"
+         "for the position and direction of concern, but this is not possible\n"
+         "together with DOIT and MC. Instead, the transmittance is an input\n"
+         "to the method, and must either be pre-calculated or set to a\n"
+         "representative value.\n"
+         "\n"
+         "See *iySurfaceFastem*, for further details on the special input\n"
+         "arguments.\n"         
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "surface_los", "surface_rmatrix", "surface_emission" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "atmosphere_dim", "stokes_dim", "f_grid", "rtp_pos", "rtp_los",
+            "blackbody_radiation_agenda", "specular_los", "surface_skin_t" ),
+        GIN( "salinity", "wind_speed", "wind_direction", "transmittance",
+             "fastem_version" ),
+        GIN_TYPE( "Numeric", "Numeric", "Numeric", "Vector", "Index" ),
+        GIN_DEFAULT( NODEF, NODEF, "0", NODEF, "6" ),
+        GIN_DESC( "Salinity, 0-1. That is, 3\% is given as 0.03.",
+                  "Wind speed.",
+                  "Wind direction. See futher above.",
+                  "Transmittance along path of downwelling radiation. A vector "
+                  "with the same length as *f_grid*.",
+                  "The version of FASTEM to use." )
         ));
 
   md_data_raw.push_back

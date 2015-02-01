@@ -1,3 +1,17 @@
+2015-02-01  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-145
+
+	* Added a WSM to allow using FASTEM with MC and DOIT.
+
+	* src/m_surface.cc (specular_losCalc): Added some input checks.
+
+	(surfaceFastem): New. A Fastem method fitting surface_rtprop_agenda.
+
+	(iySurfaceFastem): Removed Water from name, to get this WSM starts
+	like other iySurfaceXxxx WSMs. Large part of the code moved to
+	surfaceFastem, and that method is instead called.
+
 2015-01-31  Jana Mendrok  <jana.mendrok@ltu.se>
 
 	* arts-2-3-144

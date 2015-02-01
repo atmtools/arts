@@ -338,7 +338,7 @@ void iySurfaceCallSubAgendaX(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void iyWaterSurfaceFastem(
+void iySurfaceFastem(
           Workspace&        ws,
           Matrix&           iy,
           ArrayOfTensor3&   diy_dx,  
@@ -368,105 +368,48 @@ void iyWaterSurfaceFastem(
     const Index&            fastem_version,
     const Verbosity&        verbosity )
 {
-  // Input checks
-  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
-  chk_rte_pos( atmosphere_dim, rtp_pos );
-  chk_rte_los( atmosphere_dim, rtp_los );
-  chk_if_in_range( "salinity", salinity, 0, 1 );
-  chk_if_in_range( "wind_speed", wind_speed, 0, 100 );
-  chk_if_in_range( "wind_direction", wind_direction, -180, 180 );
-
-  const Index nf = f_grid.nelem();
+  // Most obvious input checks are performed in specular_losCalc and the Fastem WSM
 
   // Obtian radiance and transmission for specular direction
-  Vector transmittance( nf );
-  {
-    // Determine specular direction
-    Vector specular_los, surface_normal;  
-    specular_losCalc( specular_los, surface_normal, rtp_pos, rtp_los, 
-                      atmosphere_dim, lat_grid, lon_grid, refellipsoid, 
-                      z_surface, verbosity );
-    
-    // Use iy_aux to get optical depth for downwelling radiation.
-    ArrayOfString    iy_aux_vars(1); iy_aux_vars[0] = "Optical depth";
-    
-    // Note that iy_transmission used here lacks surface R. Fixed below.
-    ArrayOfTensor4   iy_aux;
-    Ppath            ppath;
-    iy_main_agendaExecute( ws, iy, iy_aux, ppath, diy_dx, 0, iy_unit, 
-                           iy_transmission, iy_aux_vars, 
-                           cloudbox_on, jacobian_do, t_field, 
-                           z_field, vmr_field, f_grid, rtp_pos, 
-                           specular_los, rte_pos2, iy_main_agenda );
-
-    // Convert tau to transmissions
-    for( Index i=0; i<nf; i++ )
-      { transmittance[i] = exp( -iy_aux[0](i,0,0,0) ); }
-  }
-
-  // Determine relative azimuth 
-  //
-  // According to email from James Hocking, UkMet:
-  // All azimuth angles are defined as being measured clockwise from north
-  // (i.e. if the projection onto the Earth's surface of the view path lies due
-  // north the azimuth angle is 0 and if it lies due east the azimuth angle is
-  // 90 degrees). The relative azimuth is the wind direction (azimuth) angle
-  // minus the satellite azimuth angle.
-  Numeric rel_azimuth = wind_direction; // Always true for 1D
-  if( atmosphere_dim == 2  &&  rtp_los[0] < 0 )
-    {
-      rel_azimuth -= 180;
-      resolve_lon( rel_azimuth, -180, 180 );
-    }
-  else if( atmosphere_dim == 3 )
-    { 
-      rel_azimuth -= rtp_los[1];
-      resolve_lon( rel_azimuth, -180, 180 );      
-    }
-
-  // Call FASTEM
-  Matrix emissivity, reflectivity;
-  FastemStandAlone(  emissivity, reflectivity, f_grid, surface_skin_t, 
-                     abs(rtp_los[0]), salinity, wind_speed, rel_azimuth, 
-                     transmittance, fastem_version, verbosity );
-
-  // Surface emission
-  //
-  Vector b;
-  blackbody_radiation_agendaExecute( ws, b, surface_skin_t, f_grid, 
-                                     blackbody_radiation_agenda );  
-  //
-  Matrix surface_emission( nf, stokes_dim );
-  for( Index i=0; i<nf; i++ )
-    {
-      // I
-      surface_emission(i,0) = b[i] * 0.5 * ( emissivity(i,0) + 
-                                             emissivity(i,1) ); 
-      // Q
-      if( stokes_dim >= 2 )
-        { surface_emission(i,1) = b[i] * 0.5 * ( emissivity(i,0) - 
-                                                 emissivity(i,1) ); }
-      // U and V
-      for( Index j=2; j<stokes_dim; j++ )
-        { surface_emission(i,j) = b[i] * emissivity(i,j); }
-    }
   
-  // Surface reflectivity matrix
+  // Determine specular direction
+  Vector specular_los, surface_normal;  
+  specular_losCalc( specular_los, surface_normal, rtp_pos, rtp_los, 
+                    atmosphere_dim, lat_grid, lon_grid, refellipsoid, 
+                    z_surface, verbosity );
+    
+  // Use iy_aux to get optical depth for downwelling radiation.
+  ArrayOfString    iy_aux_vars(1); iy_aux_vars[0] = "Optical depth";
+    
+  // Calculate iy for downwelling radiation
+  // Note that iy_transmission used here lacks surface R. Fixed below.
   //
-  Tensor4 surface_rmatrix( 1, nf, stokes_dim, stokes_dim );
-  surface_rmatrix = 0.0;
+  const Index            nf = f_grid.nelem();
+        Vector           transmittance( nf );
+        ArrayOfTensor4   iy_aux;
+        Ppath            ppath;
+  //
+  iy_main_agendaExecute( ws, iy, iy_aux, ppath, diy_dx, 0, iy_unit, 
+                         iy_transmission, iy_aux_vars, 
+                         cloudbox_on, jacobian_do, t_field, 
+                         z_field, vmr_field, f_grid, rtp_pos, 
+                         specular_los, rte_pos2, iy_main_agenda );
+
+  // Convert tau to transmissions
   for( Index i=0; i<nf; i++ )
-    {
-      surface_rmatrix(0,i,0,0) = 0.5 * ( reflectivity(i,0) +
-                                         reflectivity(i,1) ); 
-      if( stokes_dim >= 2 )
-        {
-          surface_rmatrix(0,i,0,1) = 0.5 * ( reflectivity(i,0) -
-                                             reflectivity(i,1) ); ;
-          surface_rmatrix(0,i,1,0) = surface_rmatrix(0,i,0,1);
-          surface_rmatrix(0,i,1,1) = surface_rmatrix(0,i,0,0);
-        }
-    }  
+    { transmittance[i] = exp( -iy_aux[0](i,0,0,0) ); }
+
+  // Call Fastem by surface_RTprop version
+  //
+  Matrix    surface_los;
+  Tensor4   surface_rmatrix;
+  Matrix    surface_emission;
+  //
+  surfaceFastem( ws, surface_los, surface_rmatrix, surface_emission, 
+                 atmosphere_dim, stokes_dim, f_grid, rtp_pos, rtp_los, 
+                 blackbody_radiation_agenda, specular_los, surface_skin_t, 
+                 salinity, wind_speed, wind_direction, transmittance, 
+                 fastem_version, verbosity );
 
   // Add up
   //
@@ -743,6 +686,10 @@ void specular_losCalc(
    const Matrix&   z_surface, 
    const Verbosity&)
 {
+  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
+  chk_rte_pos( atmosphere_dim, rtp_pos );
+  chk_rte_los( atmosphere_dim, rtp_los );
+
   surface_normal.resize( max( Index(1), atmosphere_dim-1 ) );
   specular_los.resize( max( Index(1), atmosphere_dim-1 ) );
 
@@ -847,6 +794,108 @@ void surfaceBlackbody(
       for( Index is=1; is<stokes_dim; is++ )
         { surface_emission(iv,is) = 0; } 
    }
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void surfaceFastem(
+          Workspace&        ws,
+          Matrix&           surface_los,
+          Tensor4&          surface_rmatrix,
+          Matrix&           surface_emission,
+    const Index&            atmosphere_dim,
+    const Index&            stokes_dim,
+    const Vector&           f_grid,
+    const Vector&           rtp_pos,
+    const Vector&           rtp_los,
+    const Agenda&           blackbody_radiation_agenda,
+    const Vector&           specular_los,
+    const Numeric&          surface_skin_t,
+    const Numeric&          salinity,
+    const Numeric&          wind_speed,
+    const Numeric&          wind_direction,
+    const Vector&           transmittance,
+    const Index&            fastem_version,
+    const Verbosity&        verbosity )
+{
+  // Input checks
+  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
+  chk_rte_pos( atmosphere_dim, rtp_pos );
+  chk_rte_los( atmosphere_dim, rtp_los );
+  chk_if_in_range( "salinity", salinity, 0, 1 );
+  chk_if_in_range( "wind_speed", wind_speed, 0, 100 );
+  chk_if_in_range( "wind_direction", wind_direction, -180, 180 );
+
+  const Index nf = f_grid.nelem();
+
+  // Determine relative azimuth 
+  //
+  // According to email from James Hocking, UkMet:
+  // All azimuth angles are defined as being measured clockwise from north
+  // (i.e. if the projection onto the Earth's surface of the view path lies due
+  // north the azimuth angle is 0 and if it lies due east the azimuth angle is
+  // 90 degrees). The relative azimuth is the wind direction (azimuth) angle
+  // minus the satellite azimuth angle.
+  Numeric rel_azimuth = wind_direction; // Always true for 1D
+  if( atmosphere_dim == 2  &&  rtp_los[0] < 0 )
+    {
+      rel_azimuth -= 180;
+      resolve_lon( rel_azimuth, -180, 180 );
+    }
+  else if( atmosphere_dim == 3 )
+    { 
+      rel_azimuth -= rtp_los[1];
+      resolve_lon( rel_azimuth, -180, 180 );      
+    }
+
+  // Call FASTEM
+  Matrix emissivity, reflectivity;
+  FastemStandAlone(  emissivity, reflectivity, f_grid, surface_skin_t, 
+                     abs(rtp_los[0]), salinity, wind_speed, rel_azimuth, 
+                     transmittance, fastem_version, verbosity );
+
+  // Set surface_los
+  surface_los.resize( 1, specular_los.nelem() );
+  surface_los(0,joker) = specular_los;
+
+  // Surface emission
+  //
+  Vector b;
+  blackbody_radiation_agendaExecute( ws, b, surface_skin_t, f_grid, 
+                                     blackbody_radiation_agenda );  
+  //
+  surface_emission.resize( nf, stokes_dim );
+  for( Index i=0; i<nf; i++ )
+    {
+      // I
+      surface_emission(i,0) = b[i] * 0.5 * ( emissivity(i,0) + 
+                                             emissivity(i,1) ); 
+      // Q
+      if( stokes_dim >= 2 )
+        { surface_emission(i,1) = b[i] * 0.5 * ( emissivity(i,0) - 
+                                                 emissivity(i,1) ); }
+      // U and V
+      for( Index j=2; j<stokes_dim; j++ )
+        { surface_emission(i,j) = b[i] * emissivity(i,j); }
+    }
+  
+  // Surface reflectivity matrix
+  //
+  surface_rmatrix.resize( 1, nf, stokes_dim, stokes_dim );
+  surface_rmatrix = 0.0;
+  for( Index i=0; i<nf; i++ )
+    {
+      surface_rmatrix(0,i,0,0) = 0.5 * ( reflectivity(i,0) +
+                                         reflectivity(i,1) ); 
+      if( stokes_dim >= 2 )
+        {
+          surface_rmatrix(0,i,0,1) = 0.5 * ( reflectivity(i,0) -
+                                             reflectivity(i,1) ); ;
+          surface_rmatrix(0,i,1,0) = surface_rmatrix(0,i,0,1);
+          surface_rmatrix(0,i,1,1) = surface_rmatrix(0,i,0,0);
+        }
+    }  
 }
 
 
