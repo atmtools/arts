@@ -70,7 +70,8 @@ WriteXML( in=y )
 
 VectorCreate(yREFERENCE)
 ReadXML( yREFERENCE, "yREFERENCE_DOITprecalcInit.xml" )
-Compare( y, yREFERENCE, 1e-6 )
+Compare( y, yREFERENCE, 2e-1 )
 
 } # End of Main
  
+
