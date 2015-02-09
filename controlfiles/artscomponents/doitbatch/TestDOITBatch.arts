@@ -154,11 +154,11 @@ scat_speciesSet(scat_species,
 # Read SingelScatteringData and ScatteringMetaData
 #-------------------------------------------------
 ScatteringParticleTypeAndMetaRead (scat_data, scat_meta, f_grid, 
-    "SingleScatteringFile_H2Oliquid.xml",
-    "ScatteringMetaFile_H2Oliquid.xml")
+    "testdata/SingleScatteringFile_H2Oliquid.xml",
+    "testdata/ScatteringMetaFile_H2Oliquid.xml")
 ScatteringParticleTypeAndMetaRead (scat_data, scat_meta, f_grid, 
-    "SingleScatteringFile_H2Oice.xml",
-    "ScatteringMetaFile_H2Oice.xml")
+    "testdata/SingleScatteringFile_H2Oice.xml",
+    "testdata/ScatteringMetaFile_H2Oice.xml")
 
 # Selection/filerting of particles according to *scat_species*
 #------------------------------------------------------------
