@@ -3592,7 +3592,7 @@ void chk_pndsum (Vector& pnd,
                  const Verbosity& verbosity)
 
 {
-  CREATE_OUT1;
+  CREATE_OUT2;
   
   if ( xwc == 0.0 )
     {
@@ -3634,6 +3634,7 @@ void chk_pndsum (Vector& pnd,
       // give warning if deviations are more than 10%
       if ( error > 1.10 || error < 0.90 )
         {
+          CREATE_OUT1;
           out1<< "WARNING: in WSM chk_pndsum in pnd_fieldCalcFromscat_speciesFields!\n" 
               << "The deviation of the sum of nodes in the particle size distribution\n"
               << "to the initial input mass density (IWC/LWC) is larger than 10%!\n"
