@@ -129,15 +129,13 @@ void cloudboxSetAutomatically (// WS Output:
   cloudbox_limits.resize ( atmosphere_dim*2 );
 
   // Variables
-  Index i, j, k, l;
-  Index np = scat_species_mass_density_field.npages();
   Index p1;
   if ( cloudbox_margin == -1 )
     {
       cloudbox_limits[0] = 0;
-      i = p1 = 0;
+      p1 = 0;
     }
-  else p1 = np-1;
+  else p1 = scat_species_mass_density_field.npages()-1;
   Index p2 = 0;
 
   // OLE: Commented out until code that uses it at the end of this function is commented back in
@@ -152,178 +150,106 @@ void cloudboxSetAutomatically (// WS Output:
 //      Index lon2 = 0;
 //    }
 
-  // initialize flag, telling if all selected *scat_species_XX_field* entries are
-  // zero(false) or not(true)
-  bool x = false; 
+  bool not_empty_any=false;
+  bool not_empty_md=true;
+  bool not_empty_mf=true;
+  bool not_empty_nd=true;
+
+  Index nss=0;
+
+  if (scat_species_mass_density_field.nbooks() == 0)
+    not_empty_md = 0;
+  else
+    nss = scat_species_mass_density_field.nbooks();
+
+  if (scat_species_mass_flux_field.nbooks() == 0)
+    not_empty_mf = 0;
+  else if (nss!=0)
+    {
+      if (nss!=scat_species_mass_flux_field.nbooks())
+        {
+          ostringstream os;
+          os << "Inconsistent number of scattering elements in\n"
+             << "scat_species_mass_density_field and "
+             << "scat_species_mass_flux_field.";
+          throw runtime_error( os.str() );
+        }
+     }
+  else
+    nss = scat_species_mass_flux_field.nbooks();
+
+  if (scat_species_number_density_field.nbooks() == 0)
+    not_empty_nd = 0;
+  else if (nss!=0)
+    {
+      if (nss!=scat_species_number_density_field.nbooks())
+        {
+          ostringstream os;
+          os << "Inconsistent number of scattering elements in\n"
+             << "scat_species_number_density_field and "
+             << "scat_species_mass_density/flux_field.";
+          throw runtime_error( os.str() );
+        }
+     }
+  else
+    nss = scat_species_mass_flux_field.nbooks();
+
 
   //--------- Start loop over scattering species ------------------------------
-  for ( l=0; l<scat_species_mass_density_field.nbooks(); l++ )
+  for ( Index l=0; l<nss; l++ )
   {
-    bool not_empty_any;
-    bool not_empty_md;
-    bool not_empty_mf;
-    bool not_empty_nd;
+    //cout << "for scatt species #" << l << ":\n";
+    bool not_empty;
 
     //not_empty is set to true, if a single value of scat_species_XX_field
     //is unequal zero (and not NaN), i.e. if we actually have some amount of
     //these scattering species in the atmosphere.
-    chk_scat_species_field ( not_empty_md,
-                             scat_species_mass_density_field ( l, joker, joker, joker ),
-                             "scat_species_mass_density_field",
-                             atmosphere_dim, p_grid, lat_grid, lon_grid );
-    chk_scat_species_field ( not_empty_mf,
-                             scat_species_mass_flux_field ( l, joker, joker, joker ),
-                             "scat_species_mass_flux_field",
-                             atmosphere_dim, p_grid, lat_grid, lon_grid );
-    chk_scat_species_field ( not_empty_nd,
-                             scat_species_number_density_field ( l, joker, joker, joker ),
-                             "scat_species_number_density_field",
-                             atmosphere_dim, p_grid, lat_grid, lon_grid );
-    not_empty_any = not_empty_md || not_empty_mf || not_empty_nd;
-    /*
-    cout << "for scatt species #" << l << ":\n";
-    cout << "particles in mass density field: " << not_empty_md << "\n";
-    cout << "particles in mass flux field: " << not_empty_mf << "\n";
-    cout << "particles in number density field: " << not_empty_nd << "\n";
-    cout << "particles in any field: " << not_empty_any << "\n";
-    */
-
-    //-----------Start setting cloudbox limits----------------------------------
-    if ( not_empty_any )
+    if (not_empty_md)
     {
-      //cout << "entering detailed search as particles where found.\n"
-      //     << "current lower and limits: " << p1 << " and " << p2 << "\n";
-
-      //scat_species_*_*_field unequal zero -> x is true
-      x = true;
-
-      if ( atmosphere_dim == 1 )
+      chk_scat_species_field ( not_empty,
+                               scat_species_mass_density_field ( l, joker, joker, joker ),
+                               "scat_species_mass_density_field",
+                               atmosphere_dim, p_grid, lat_grid, lon_grid );
+      //if particles found, enter detailed search
+      if (not_empty)
       {
-        // scattering species profiles
-        ConstVectorView md_prof = scat_species_mass_density_field ( l, joker, 0 , 0 );
-        ConstVectorView mf_prof = scat_species_mass_flux_field ( l, joker, 0 , 0 );
-        ConstVectorView nd_prof = scat_species_number_density_field ( l, joker, 0 , 0 );
-
-        // find lower cloudbox_limit to surface if margin != -1 (cloudbox not
-        // forced to reach down to surface)
-        if ( cloudbox_margin != -1 )
-        {
-          // find index of first pressure level where hydromet_field is
-          // unequal 0, starting from the surface
-          for ( i=0; i<p1; i++ )
-          {
-            //cout << "for lower limit checking level #" << i << "\n";
-
-            // if any of the scat species fields contains a non-zero, non-NaN
-            // value at this atm level we found a potential lower limit value
-            if ( (md_prof[i] != 0.0 && !isnan(md_prof[i])) ||
-                 (mf_prof[i] != 0.0 && !isnan(mf_prof[i])) ||
-                 (nd_prof[i] != 0.0 && !isnan(nd_prof[i])) )
-            {
-              //cout << "found particles\n";
-
-              // check if p1 is the lowest index in all selected
-              // scattering species fields
-              if ( p1 > i )
-              {
-                p1 = i;
-                cout << "new lower limit at level #" << p1 << "\n";
-              }
-              break;
-            }
-          }
-
-        }
-        // find index of highest pressure level, where scat_species_mass_density_field is
-        // unequal 0, starting from top of the atmosphere
-        for ( j=np-1; j>=max(i,p2); j-- )
-        {
-          //cout << "for upper limit checking level #" << j << "\n";
-
-          // if any of the scat species fields contains a non-zero, non-NaN
-          // value at this atm level we found a potential lower limit value
-          if ( (md_prof[j] != 0.0 && !isnan(md_prof[j])) ||
-               (mf_prof[j] != 0.0 && !isnan(mf_prof[j])) ||
-               (nd_prof[j] != 0.0 && !isnan(nd_prof[j])) )
-          {
-            //cout << "found particles\n";
-
-            // check if p2 is the highest index in all selected
-            // scattering species fields
-            if ( p2 < j )
-            {
-              p2 = j;
-              //cout << "new upper limit at level #" << p2 << "\n";
-            }
-            break;
-          }
-        }
-
+        not_empty_any=true;
+        find_cloudlimits(p1, p2, scat_species_mass_density_field ( l, joker, joker, joker ),
+                         atmosphere_dim, cloudbox_margin);
       }
+      //cout << "particles in mass density field: " << not_empty << "\n";
     }
 
-    /*  //NOT WORKING YET
-      // Latitude limits
-      else if ( atmosphere_dim == 2 )
+    if (not_empty_mf)
+    {
+      chk_scat_species_field ( not_empty,
+                               scat_species_mass_flux_field ( l, joker, joker, joker ),
+                               "scat_species_mass_flux_field",
+                               atmosphere_dim, p_grid, lat_grid, lon_grid );
+      if (not_empty)
       {
-        MatrixView hydro_lat = hydromet_field ( nhyd, joker, joker, 0 );
-
-        for ( i=0; i<hydro_lat.nrows(); i++ )
-        {
-          for ( j=0; j<hydro_lat.ncols(); j++ )
-          {
-            if ( hydro_lat[i,j] != 0.0 )
-            {
-
-              if ( lat1 <= j ) lat1 =j;
-              //cloudbox_limits[2] = lat1;
-              //break;
-            }
-
-          }
-          if ( p1 <= i )    p1 = i;
-        }
-
-        for ( k=hydro_lat.nelem()-1; k>=i; k-- )
-        {
-          if ( hydro_lat[k] != 0.0 )
-          {
-            lat2 = k;
-            cloudbox_limits[3] = lat2;
-            break;
-
-          }
-
-        }
+        not_empty_any=true;
+        find_cloudlimits(p1, p2, scat_species_mass_flux_field ( l, joker, joker, joker ),
+                         atmosphere_dim, cloudbox_margin);
       }
+      //cout << "particles in mass flux field: " << not_empty << "\n";
+    }
 
-      // Longitude limits
-      if ( atmosphere_dim == 3 )
+    if (not_empty_nd)
+    {
+      chk_scat_species_field ( not_empty,
+                               scat_species_number_density_field ( l, joker, joker, joker ),
+                               "scat_species_number_density_field",
+                               atmosphere_dim, p_grid, lat_grid, lon_grid );
+      if (not_empty)
       {
-        Tensor3View hydro_lon = hydromet_field ( nhyd, joker, joker, joker );
-
-        for ( i=0; i<hydro_lon.nelem(); i++ )
-        {
-          if ( hydro_lon[i] != 0.0 )
-          {
-            lon1 = i;
-            cloudbox_limits[4] = lon1;
-            break;
-          }
-
-        }
-        for ( j=hydro_lon.nelem()-1; j>=i; j-- )
-        {
-          if ( hydro_lon[j] != 0.0 )
-          {
-            lon2 = j;
-            cloudbox_limits[5] = lon2;
-            break;
-
-          }
-
-
-}*/
+        not_empty_any=true;
+        find_cloudlimits(p1, p2, scat_species_number_density_field ( l, joker, joker, joker ),
+                         atmosphere_dim, cloudbox_margin);
+      }
+      //cout << "particles in number density field: " << not_empty << "\n";
+    }
+    //cout << "particles in any field: " << not_empty_any << "\n";
   }
 
   // decrease lower cb limit by one to ensure that linear interpolation of 
@@ -336,7 +262,7 @@ void cloudboxSetAutomatically (// WS Output:
   // alter lower cloudbox_limit by cloudbox_margin, using barometric
   // height formula
   p_margin1 = barometric_heightformula ( p_grid[p1], cloudbox_margin );
-  k = 0;
+  Index k = 0;
   while ( p_grid[k+1] >= p_margin1 && k+1 < p_grid.nelem() ) k++;
   cloudbox_limits[0]= k;
 
@@ -357,7 +283,7 @@ void cloudboxSetAutomatically (// WS Output:
 
   // check if all selected scattering species fields are zero at each level,
   // than switch cloudbox off, skipping scattering calculations
-  if ( !x )
+  if ( !not_empty_any )
   {
     CREATE_OUT0;
     //cloudboxOff ( cloudbox_on, cloudbox_limits, iy_cloudbox_agenda );
@@ -1425,13 +1351,16 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
                      const String& delim,
                      const Verbosity& verbosity)
 {
-  CREATE_OUT1;
+  CREATE_OUT2;
 
   // Cloudbox on/off?
   if ( !cloudbox_on )
   {
     /* Must initialise pnd_field anyway; but empty */
     pnd_field.resize(0, 0, 0, 0);
+
+    CREATE_OUT0;
+    out0 << "  Cloudbox is off, pnd_field is set to empty.\n";
     return;
   }
 
@@ -1519,9 +1448,10 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
         //cout << psd << "\n";
 
         //check for expected scattering species field name
-        if ( partfield_name != "IWC" )
+        if ( partfield_name != "IWC" && partfield_name != "CIW" )
         {
-            out1 << "WARNING! The scattering species field name is unequal 'IWC'.\n"
+            out2 << "WARNING! Unexpected scattering species field name ("
+                 << partfield_name << ") for distribution " << psd << ".\n"
                  << psd << " should should only be applied to cloud"
                  << " ice.\n";
         }
@@ -1541,10 +1471,11 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
         //cout << psd << "\n";
 
         //check for expected scattering species field name
-        if ( partfield_name != "IWC" && partfield_name != "Snow")
+        if ( partfield_name != "IWC" && partfield_name != "CIW"
+            && partfield_name != "Snow" && partfield_name != "SWC" )
         {
-            out1 << "WARNING! The scattering species field name is unequal"
-                 << "'IWC' or 'Snow'.\n"
+            out2 << "WARNING! Unexpected scattering species field name ("
+                 << partfield_name << ") for distribution " << psd << ".\n"
                  << psd << " should only be applied to cloud or precipitating"
                  << " ice.\n";
         }
@@ -1564,10 +1495,11 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
         //cout << psd << "\n";
 
         //check for expected scattering species field name
-        if ( partfield_name != "IWC" && partfield_name != "Snow")
+        if ( partfield_name != "IWC" && partfield_name != "CIW"
+            && partfield_name != "Snow" && partfield_name != "SWC"  )
         {
-            out1 << "WARNING! The scattering species field name is unequal"
-                 << "'IWC' and 'Snow'.\n"
+            out2 << "WARNING! Unexpected scattering species field name ("
+                 << partfield_name << ") for distribution " << psd << ".\n"
                  << psd << " should only be applied to cloud or precipitating"
                  << " ice.\n";
         }
@@ -1587,10 +1519,11 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
         //cout << psd << "\n";
 
         //check for expected scattering species field name
-        if ( partfield_name != "IWC" && partfield_name != "Snow")
+        if ( partfield_name != "IWC" && partfield_name != "CIW"
+            && partfield_name != "Snow" && partfield_name != "SWC"  )
         {
-            out1 << "WARNING! The scattering species field name is unequal"
-                 << "'IWC' and 'Snow'.\n"
+            out2 << "WARNING! Unexpected scattering species field name ("
+                 << partfield_name << ") for distribution " << psd << ".\n"
                  << psd << " should only be applied to cloud or precipitating"
                  << " ice.\n";
         }
@@ -1610,10 +1543,11 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
         //cout << psd << "\n";
         
         //check for expected scattering species field name
-        if ( partfield_name != "IWC" && partfield_name != "Snow" && partfield_name != "SWC")
+        if ( partfield_name != "IWC" && partfield_name != "CIW"
+            && partfield_name != "Snow" && partfield_name != "SWC")
         {
-            out1 << "WARNING! The scattering species field name is unequal"
-            << "'IWC','Snow' or 'Snow'.\n"
+            out2 << "WARNING! Unexpected scattering species field name ("
+                 << partfield_name << ") for distribution " << psd << ".\n"
             << psd << " should only be applied to cloud or precipitating"
             << " ice.\n";
         }
@@ -1633,10 +1567,11 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
         //cout << psd << "\n";
         
         //check for expected scattering species field name
-        if ( partfield_name != "IWC" && partfield_name != "Snow" && partfield_name != "SWC")
+        if ( partfield_name != "IWC" && partfield_name != "CIW"
+            && partfield_name != "Snow" && partfield_name != "SWC")
         {
-            out1 << "WARNING! The scattering species field name is unequal"
-            << "'IWC','Snow' or 'Snow'.\n"
+            out2 << "WARNING! Unexpected scattering species field name ("
+                 << partfield_name << ") for distribution " << psd << ".\n"
             << psd << " should only be applied to cloud or precipitating"
             << " ice.\n";
         }
@@ -1656,10 +1591,10 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
         //cout << psd << "\n";
         
         //check for expected scattering species field name
-        if ( partfield_name != "LWC" )
+        if ( partfield_name != "LWC" && partfield_name != "CLW" )
         {
-            out1 << "WARNING! The scattering species field name is unequal"
-            << "'LWC'.\n"
+            out2 << "WARNING! Unexpected scattering species field name ("
+                 << partfield_name << ") for distribution " << psd << ".\n"
             << psd << " should only be applied to liquid cloud water.\n";
         }
         
@@ -1682,10 +1617,10 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
         //cout << psd << "\n";
         
         //check for expected scattering species field name
-        if ( partfield_name != "IWC" )
+        if ( partfield_name != "IWC" && partfield_name != "CIW" )
         {
-            out1 << "WARNING! The scattering species field name is unequal"
-            << "'IWC'.\n"
+            out2 << "WARNING! Unexpected scattering species field name ("
+                 << partfield_name << ") for distribution " << psd << ".\n"
             << psd << " should only be applied to cloud ice.\n";
         }
         
@@ -1710,8 +1645,8 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
         //check for expected scattering species field name
         if ( partfield_name != "Rain" && partfield_name != "RWC")
         {
-            out1 << "WARNING! The scattering species field name is unequal"
-            << "'Rain' or 'RWC'.\n"
+            out2 << "WARNING! Unexpected scattering species field name ("
+                 << partfield_name << ") for distribution " << psd << ".\n"
             << psd << " should only be applied to precipitating liquid water\n";
         }
         
@@ -1737,8 +1672,8 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
         //check for expected scattering species field name
         if ( partfield_name != "Snow" && partfield_name != "SWC")
         {
-            out1 << "WARNING! The scattering species field name is unequal"
-            << "'SWC' or 'Snow'.\n"
+            out2 << "WARNING! Unexpected scattering species field name ("
+                 << partfield_name << ") for distribution " << psd << ".\n"
             << psd << " should only be applied to snow\n";
         }
         
@@ -1762,10 +1697,10 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
         //cout << psd << "\n";
         
         //check for expected scattering species field name
-        if ( partfield_name != "Snow" && partfield_name != "GWC")
+        if ( partfield_name != "Graupel" && partfield_name != "GWC")
         {
-            out1 << "WARNING! The scattering species field name is unequal"
-            << "'GWC' or 'Graupel'.\n"
+            out2 << "WARNING! Unexpected scattering species field name ("
+                 << partfield_name << ") for distribution " << psd << ".\n"
             << psd << " should only be applied to graupel\n";
         }
         
@@ -1790,8 +1725,8 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
         //check for expected scattering species field name
         if ( partfield_name != "Hail" && partfield_name != "HWC")
         {
-            out1 << "WARNING! The scattering species field name is unequal"
-            << "'HWC' or 'Hail'.\n"
+            out2 << "WARNING! Unexpected scattering species field name ("
+                 << partfield_name << ") for distribution " << psd << ".\n"
             << psd << " should only be applied to hail\n";
         }
         
@@ -1814,10 +1749,10 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
         //cout << psd << "\n";
         
         //check for expected scattering species field name
-        if ( partfield_name != "LWC" )
+        if ( partfield_name != "LWC" && partfield_name != "CLW" )
         {
-            out1 << "WARNING! The scattering species field name is unequal"
-            << "'LWC'.\n"
+            out2 << "WARNING! Unexpected scattering species field name ("
+                 << partfield_name << ") for distribution " << psd << ".\n"
             << psd << " should only be applied to liquid cloud water.\n";
         }
         
@@ -1836,10 +1771,10 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
         //cout << psd << "\n";
         
         //check for expected scattering species field name
-        if ( partfield_name != "IWC" )
+        if ( partfield_name != "IWC" && partfield_name != "CIW" )
         {
-            out1 << "WARNING! The scattering species field name is unequal"
-            << "'IWC'.\n"
+            out2 << "WARNING! Unexpected scattering species field name ("
+                 << partfield_name << ") for distribution " << psd << ".\n"
             << psd << " should only be applied to cloud ice.\n";
         }
         
@@ -1858,10 +1793,11 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
         //cout << psd << "\n";
 
         //check for expected scattering species field name
-        if ( partfield_name != "Rain" && partfield_name != "Snow")
+        if ( partfield_name != "Rain" && partfield_name != "Snow"
+            && partfield_name != "RR" && partfield_name != "SR" )
         {
-            out1 << "WARNING! The scattering species field name is unequal"
-                 << "'Rain' and 'Snow'.\n"
+            out2 << "WARNING! Unexpected scattering species field name ("
+                 << partfield_name << ") for distribution " << psd << ".\n"
                  << psd << " should only be applied to liquid or frozen"
                  << " precipitation.\n";
         }
@@ -1882,9 +1818,10 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
         //cout << psd << "\n";
 
         //check for expected scattering species field name
-        if ( partfield_name != "LWC")
+        if ( partfield_name != "LWC" && partfield_name != "CLW" )
         {
-            out1 << "WARNING! The scattering species field name is unequal 'LWC'.\n"
+            out2 << "WARNING! Unexpected scattering species field name ("
+                 << partfield_name << ") for distribution " << psd << ".\n"
                  << psd << " should should only be applied to liquid or frozen"
                  << " precipitation.\n";
         }

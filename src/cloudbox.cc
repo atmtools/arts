@@ -57,82 +57,6 @@ extern const Numeric DENSITY_OF_WATER;
 
 
 
-//! Check whether field of a specific scattering species zero everywhere.
-/*!
-  \return empty_flag        flag whether all field entries are zero
-  \param scat_species_field scattering species field (e.g. mass density,
-                             mass flux, total number density)
-  \param fieldname          name of scattering species field (just for info)
-  \param dim                the atmosphere dimension 
-  \param p_grid             pressure grid of current atmosphere
-  \param lat_grid           latitude grid of current atmosphere
-  \param lon_grid           longitude grid of current atmosphere
-
-  \author Daniel Kreyling
-  \date   2011-01-27
-*/  
-void chk_scat_species_field(bool& empty_flag,
-                            const Tensor3& scat_species_field, 
-                            const String& fieldname,
-                            const Index&  dim,	
-                            const Vector& p_grid,
-                            const Vector& lat_grid,
-                            const Vector& lon_grid)
-{
-  
-  // check p
-  if ( scat_species_field.npages() != p_grid.nelem()) {
-    
-      ostringstream os;
-      os << "The size of *p_grid* (" << p_grid.nelem()
-         << ") is unequal the number of pages of *" << fieldname << "* ("
-         << scat_species_field.npages() << ").";
-      throw runtime_error(os.str() );
-  }
-  
-  // check lat
-  if(dim >= 2 )
-  {
-    if ( scat_species_field.nrows() != lat_grid.nelem()) {
-    
-      ostringstream os;
-      os << "The size of *lat_grid* (" << lat_grid.nelem()
-         << ") is unequal the number of rows of *" << fieldname << "* ("
-         << scat_species_field.nrows() << ").";
-      throw runtime_error(os.str() );
-      
-    }
-  }
-  
-  // check lon
-  if(dim == 3 )
-  {
-    if ( scat_species_field.ncols() != lon_grid.nelem()) {
-    
-      ostringstream os;
-      os << "The size of *lon_grid* (" << lon_grid.nelem()
-         << ") is unequal the number of columns of *" << fieldname << "* ("
-         << scat_species_field.ncols() << ").";
-      throw runtime_error(os.str() );
-      
-    }
-  }
-  
-  empty_flag = false;
-  // set empty_flag to true if a single value of hydromet_field is unequal zero    
-    for (Index j=0; j<scat_species_field.npages(); j++) {
-      for (Index k=0; k<scat_species_field.nrows(); k++) {
-	    for (Index l=0; l<scat_species_field.ncols(); l++) {
-	      if ( scat_species_field(j,k,l) != 0.0 &&
-            !isnan(scat_species_field(j,k,l)) ) empty_flag = true;
-//	      if ( scat_species_field(j,k,l) != 0.0 ) empty_flag = true;
-	}
-      }
-    }  
-}
-
-
-
 //! Check whether particle number density is zero at a specified pressure level
 /*!
   \param i_p Pressure index
@@ -3710,7 +3634,6 @@ void chk_pndsum (Vector& pnd,
       // give warning if deviations are more than 10%
       if ( error > 1.10 || error < 0.90 )
         {
-          CREATE_OUT1;
           out1<< "WARNING: in WSM chk_pndsum in pnd_fieldCalcFromscat_speciesFields!\n" 
               << "The deviation of the sum of nodes in the particle size distribution\n"
               << "to the initial input mass density (IWC/LWC) is larger than 10%!\n"
@@ -3724,6 +3647,232 @@ void chk_pndsum (Vector& pnd,
 }
 
 
+
+//! Check whether field of a specific scattering species zero everywhere.
+/*!
+  \return empty_flag        flag whether all field entries are zero
+  \param scat_species_field scattering species field (e.g. mass density,
+                             mass flux, total number density)
+  \param fieldname          name of scattering species field (just for info)
+  \param dim                the atmosphere dimension 
+  \param p_grid             pressure grid of current atmosphere
+  \param lat_grid           latitude grid of current atmosphere
+  \param lon_grid           longitude grid of current atmosphere
+
+  \author Daniel Kreyling
+  \date   2011-01-27
+*/  
+void chk_scat_species_field(bool& empty_flag,
+                            const Tensor3& scat_species_field, 
+                            const String& fieldname,
+                            const Index&  dim,	
+                            const Vector& p_grid,
+                            const Vector& lat_grid,
+                            const Vector& lon_grid)
+{
+  
+  // check p
+  if ( scat_species_field.npages() != p_grid.nelem()) {
+    
+      ostringstream os;
+      os << "The size of *p_grid* (" << p_grid.nelem()
+         << ") is unequal the number of pages of *" << fieldname << "* ("
+         << scat_species_field.npages() << ").";
+      throw runtime_error(os.str() );
+  }
+  
+  // check lat
+  if(dim >= 2 )
+  {
+    if ( scat_species_field.nrows() != lat_grid.nelem()) {
+    
+      ostringstream os;
+      os << "The size of *lat_grid* (" << lat_grid.nelem()
+         << ") is unequal the number of rows of *" << fieldname << "* ("
+         << scat_species_field.nrows() << ").";
+      throw runtime_error(os.str() );
+      
+    }
+  }
+  
+  // check lon
+  if(dim == 3 )
+  {
+    if ( scat_species_field.ncols() != lon_grid.nelem()) {
+    
+      ostringstream os;
+      os << "The size of *lon_grid* (" << lon_grid.nelem()
+         << ") is unequal the number of columns of *" << fieldname << "* ("
+         << scat_species_field.ncols() << ").";
+      throw runtime_error(os.str() );
+      
+    }
+  }
+  
+  empty_flag = false;
+  // set empty_flag to true if a single value of hydromet_field is unequal zero    
+  for (Index j=0; j<scat_species_field.npages(); j++) {
+    for (Index k=0; k<scat_species_field.nrows(); k++) {
+	    for (Index l=0; l<scat_species_field.ncols(); l++) {
+	      if ( scat_species_field(j,k,l) != 0.0 &&
+            !isnan(scat_species_field(j,k,l)) ) empty_flag = true;
+//	      if ( scat_species_field(j,k,l) != 0.0 ) empty_flag = true;
+	}
+      }
+    }  
+}
+
+
+//! Determine uppermost and lowermost cloudy level for one scat_species_*_*_field.
+/*!
+  \return lower              lowermost level containing scattering particles
+  \retrun upper              uppermost level containing scattering particles
+  \param  scat_species_field scattering species field (e.g. mass density, mass
+                              flux, total number density)
+  \param  atmosphere_dim     the atmosphere dimension
+  \param  cloudbox_margin    flag whether to determine lowermost level or set to
+                              surface
+
+  \author Daniel Kreyling, Jana Mendrok
+  \date   2015-02-09
+*/  
+void find_cloudlimits(Index&          lower,
+                      Index&          upper,
+                      const Tensor3&  scat_species_field,
+                      const Index&    atmosphere_dim,
+                      const Numeric&  cloudbox_margin)
+{
+  if ( atmosphere_dim == 1 )
+  {
+    // scattering species profiles
+    ConstVectorView ss_prof = scat_species_field ( joker, 0 , 0 );
+
+    Index i;
+
+    // find lower cloudbox_limit to surface if margin != -1 (cloudbox not
+    // forced to reach down to surface)
+    if ( cloudbox_margin != -1 )
+    {
+      // find index of first pressure level where hydromet_field is
+      // unequal 0, starting from the surface
+      for ( i=0; i<lower; i++ )
+      {
+        //cout << "for lower limit checking level #" << i << "\n";
+
+        // if any of the scat species fields contains a non-zero, non-NaN
+        // value at this atm level we found a potential lower limit value
+        if ( ss_prof[i] != 0.0 && !isnan(ss_prof[i]) )
+        {
+          //cout << "found particles\n";
+
+          // check if lower is the lowest index in all selected
+          // scattering species fields
+          if ( lower > i )
+          {
+            lower = i;
+            //cout << "new lower limit at level #" << lower << "\n";
+          }
+          break;
+        }
+      }
+
+    }
+
+    // find index of highest pressure level, where scat_species_mass_density_field is
+    // unequal 0, starting from top of the atmosphere
+    for ( Index j=scat_species_field.npages()-1; j>=max(i,upper); j-- )
+    {
+      //cout << "for upper limit checking level #" << j << "\n";
+
+      // if any of the scat species fields contains a non-zero, non-NaN
+      // value at this atm level we found a potential lower limit value
+      if ( ss_prof[j] != 0.0 && !isnan(ss_prof[j]) )
+      {
+        //cout << "found particles\n";
+
+        // check if upper is the highest index in all selected
+        // scattering species fields
+        if ( upper < j )
+        {
+          upper = j;
+          //cout << "new upper limit at level #" << upper << "\n";
+        }
+        break;
+      }
+    }
+  }
+
+  else
+  {
+    ostringstream os;
+    os << "Not yet available for 2D and 3D cases.";
+    throw runtime_error( os.str() );
+  }
+
+    /*  //NOT WORKING YET
+      // Latitude limits
+      else if ( atmosphere_dim == 2 )
+      {
+        MatrixView hydro_lat = hydromet_field ( nhyd, joker, joker, 0 );
+
+        for ( i=0; i<hydro_lat.nrows(); i++ )
+        {
+          for ( j=0; j<hydro_lat.ncols(); j++ )
+          {
+            if ( hydro_lat[i,j] != 0.0 )
+            {
+
+              if ( lat1 <= j ) lat1 =j;
+              //cloudbox_limits[2] = lat1;
+              //break;
+            }
+
+          }
+          if ( lower <= i )    lower = i;
+        }
+
+        for ( k=hydro_lat.nelem()-1; k>=i; k-- )
+        {
+          if ( hydro_lat[k] != 0.0 )
+          {
+            lat2 = k;
+            cloudbox_limits[3] = lat2;
+            break;
+
+          }
+
+        }
+      }
+
+      // Longitude limits
+      if ( atmosphere_dim == 3 )
+      {
+        Tensor3View hydro_lon = hydromet_field ( nhyd, joker, joker, joker );
+
+        for ( i=0; i<hydro_lon.nelem(); i++ )
+        {
+          if ( hydro_lon[i] != 0.0 )
+          {
+            lon1 = i;
+            cloudbox_limits[4] = lon1;
+            break;
+          }
+
+        }
+        for ( j=hydro_lon.nelem()-1; j>=i; j-- )
+        {
+          if ( hydro_lon[j] != 0.0 )
+          {
+            lon2 = j;
+            cloudbox_limits[5] = lon2;
+            break;
+
+          }
+}*/
+  
+}
+  
+ 
 
 /*! Parse atm_field_compact fieldname for species type
 

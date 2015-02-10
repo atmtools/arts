@@ -1,3 +1,18 @@
+2015-02-10  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-3-148
+
+	* src/m_cloudbox.cc (cloudboxSetAutomatically):
+	Fix handling of non-set (empty) scat_species_*_*_field. Like for winds,
+	empty fields should be valid, too (at least here).
+
+	(pnd_fieldCalcFromscat_speciesFields): Downgraded all warning message on
+	expected scattering species names to level2.
+
+	* src/cloudbox.[cc,h] (find_cloudlimits):
+	Moved this functionality to a subroutine, so we can reuse it per
+	scat_species_*_*_field.
+
 2015-02-09  Jana Mendrok  <jana.mendrok@ltu.se>
 
 	* arts-2-3-147
