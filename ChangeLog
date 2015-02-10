@@ -1,5 +1,12 @@
 2015-02-10  Jana Mendrok  <jana.mendrok@ltu.se>
 
+	* arts-2-3-149
+
+	* src/cloudbox.[cc,h] (chk_pndsum): Fixed bug introduced with last commit.
+
+
+2015-02-10  Jana Mendrok  <jana.mendrok@ltu.se>
+
 	* arts-2-3-148
 
 	* src/m_cloudbox.cc (cloudboxSetAutomatically):

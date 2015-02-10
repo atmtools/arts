@@ -3592,7 +3592,7 @@ void chk_pndsum (Vector& pnd,
                  const Verbosity& verbosity)
 
 {
-  CREATE_OUT2;
+  CREATE_OUT1;
   
   if ( xwc == 0.0 )
     {
