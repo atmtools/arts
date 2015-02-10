@@ -3724,15 +3724,18 @@ void chk_scat_species_field(bool& empty_flag,
 }
 
 
-//! Determine uppermost and lowermost cloudy level for one scat_species_*_*_field.
+//! Adjust uppermost and lowermost cloudy level for one scat_species_*_*_field.
 /*!
-  \return lower              lowermost level containing scattering particles
-  \retrun upper              uppermost level containing scattering particles
-  \param  scat_species_field scattering species field (e.g. mass density, mass
-                              flux, total number density)
-  \param  atmosphere_dim     the atmosphere dimension
-  \param  cloudbox_margin    flag whether to determine lowermost level or set to
-                              surface
+
+  lower and upper levels have to be preinitialized before calling this function.
+ 
+  \param[in,out] lower              lowermost level containing scattering particles
+  \param[in,out] upper              uppermost level containing scattering particles
+  \param[in]     scat_species_field scattering species field (e.g. mass density, mass
+                                    flux, total number density)
+  \param[in]     atmosphere_dim     the atmosphere dimension
+  \param[in]     cloudbox_margin    flag whether to determine lowermost level or set to
+                                    surface
 
   \author Daniel Kreyling, Jana Mendrok
   \date   2015-02-09
@@ -3748,7 +3751,7 @@ void find_cloudlimits(Index&          lower,
     // scattering species profiles
     ConstVectorView ss_prof = scat_species_field ( joker, 0 , 0 );
 
-    Index i;
+    Index i = 0;
 
     // find lower cloudbox_limit to surface if margin != -1 (cloudbox not
     // forced to reach down to surface)
