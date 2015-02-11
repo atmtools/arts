@@ -1,3 +1,32 @@
+2015-02-11  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-3-152
+
+	* controlfiles/artscomponents/doitbatch/TestDOITBatch.arts,
+	TestDOITBatch.ybatch.ref.xml:
+	Added rain to considered scat_species. In order to test non-zero setting
+	for other than scat_species_mass_density_field fields. yref data adapted
+	accordingly.
+
+	* controlfiles/artscomponents/doit/TestDOITFromIndividualFields.arts:
+	Added. A test/demo case for cloudy calcs with pnd_field from hydrometeor
+	profiles from non-compact atmosphere.
+	The setup is a bit complicated. In future, I might add cloud-equivalents
+	to AtmRawRead and AtmFieldsCalc. But for now this is sufficient, I think.
+
+	* controlfiles/CMakeLists.txt: Above test case added.
+
+	* controlfiles/testdata/chevallierl91_all_extract_wbackground_scenario0.*.xml:
+	Added. A one-file-per-component atmosphere with hydrometeor profiles
+	used in test case above. Scenario is taken from (hence identical to) the
+	0.th case in chevallierl91_all_extract.xml with N2 and O2 added.
+
+	* controlfiles/testdata/empty_profile.xml:
+	Added. An empty atmospheric field covering pressure range sufficient for
+	full Earth atmo. Needed for test case above.
+
+	* a couple of svn ignore settings.
+
 2015-02-10  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-151

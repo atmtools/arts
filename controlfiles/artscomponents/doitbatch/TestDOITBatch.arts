@@ -1,7 +1,7 @@
 #DEFINITIONS:  -*-sh-*-
 
 #This control file handles a DOIT batch calculation with ARTS internal
-#pnd_field calculations. Four atmospheres from Chevallier91L
+#pnd_field calculations. Six selected atmospheres from Chevallier91L
 #data are used for atmospheric input. No sensor characteristics 
 #are applied. Only two frequencies and two line of sights are used,
 #for calculation time reasons.
@@ -147,9 +147,11 @@ Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__LookUpTable )
 
 # Definition of particle species
 #--------------------------------
-scat_speciesSet(scat_species,
-                ["LWC-H98_STCO-0.1-2000",
-                 "IWC-MH97-0.1-2000"])
+scat_speciesSet(scat_species, [
+                "LWC-H98_STCO-0.1-2000",
+                "IWC-MH97-0.1-2000",
+                "RR-MP48-*-*"
+])
 
 # Read SingelScatteringData and ScatteringMetaData
 #-------------------------------------------------
@@ -159,6 +161,9 @@ ScatteringParticleTypeAndMetaRead (scat_data, scat_meta, f_grid,
 ScatteringParticleTypeAndMetaRead (scat_data, scat_meta, f_grid, 
     "testdata/SingleScatteringFile_H2Oice.xml",
     "testdata/ScatteringMetaFile_H2Oice.xml")
+ScatteringParticleTypeAndMetaRead (scat_data, scat_meta, f_grid, 
+    "testdata/SingleScatteringFile_H2Oliquid.xml",
+    "testdata/ScatteringMetaFile_H2Oliquid.xml")
 
 # Selection/filerting of particles according to *scat_species*
 #------------------------------------------------------------
@@ -217,6 +222,9 @@ AgendaSet( ybatch_calc_agenda ){
   # Unrealistic (small) values in massdensity_field will be set to zero
   scat_species_fieldCleanup (scat_species_mass_density_field,
                              scat_species_mass_density_field,
+                             1e-15)
+  scat_species_fieldCleanup (scat_species_mass_flux_field,
+                             scat_species_mass_flux_field,
                              1e-15)
   #WriteXMLIndexed (output_file_format, ybatch_index, scat_species_mass_density_field)
 
