@@ -1,5 +1,14 @@
 2015-02-11  Jana Mendrok  <jana.mendrok@ltu.se>
 
+	* arts-2-3-153
+
+	* doc/uguide/development.tex: Added "how to add a PSD".
+
+	* src/m_cloudbox.cc (pnd_fieldCalcFromscat_speciesFields):
+	Add reference to ADG in adding-another-PSD comment.
+
+2015-02-11  Jana Mendrok  <jana.mendrok@ltu.se>
+
 	* arts-2-3-152
 
 	* controlfiles/artscomponents/doitbatch/TestDOITBatch.arts,
