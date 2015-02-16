@@ -1,3 +1,21 @@
+2015-02-11  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-154
+
+	* Unfinished work. A start to get 2D antennas back, but not got
+	time to finish the work. That is, 2D antennas are not working for
+	the moment. But wanted to commmit the small improvements done.
+
+	* src/m_sensor.cc (sensor_responseAntenna): One grid sorting error
+	resulted in assert, now proper error given.
+
+	(antenna_responseGaussian): The function can now generate also a
+	simple 2D antenna pattern.
+
+	* src/sensor.cc (antenna1d_matrix): Improved comments.
+
+	(antenna2d_simplified): Now inactive.
+
 2015-02-11  Jana Mendrok  <jana.mendrok@ltu.se>
 
 	* arts-2-3-153

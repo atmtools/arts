@@ -1717,6 +1717,8 @@ void define_md_data_raw()
          "zenith angle) increases linearly with the grid spacing.\n"
          "\n"
          "The WSV *antenna_dlos* is set to [0].\n"
+         "\n"
+         "The antenna repsonse is not normalised.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "antenna_dim", "mblock_dlos_grid", 
@@ -1809,6 +1811,11 @@ void define_md_data_raw()
          "xwidth_si=3, about 99% is covered. If xwidth_si/dx_si is not\n"
          "an integer, the end points of the grid are kept and the spacing\n"
          "of the grid is reduced (ie. spacing is equal or smaller *dx_si*).\n"
+         "\n"
+         "If the 2D option is selected (*do_2d*), a circular antenna is\n"
+         "assumed and the response is any direction follows the 1D case.\n"
+         "\n"
+         "The antenna repsonse is not normalised.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "antenna_response" ),
@@ -1816,12 +1823,13 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( ),
-        GIN( "fwhm", "xwidth_si", "dx_si" ),
-        GIN_TYPE( "Numeric", "Numeric", "Numeric" ),
-        GIN_DEFAULT( NODEF, "3", "0.1" ),
+        GIN( "fwhm", "xwidth_si", "dx_si", "do_2d" ),
+        GIN_TYPE( "Numeric", "Numeric", "Numeric", "Index" ),
+        GIN_DEFAULT( NODEF, "3", "0.1", "0" ),
         GIN_DESC( "Full width at half-maximum", 
                   "Half-width of response, in terms of std. dev.", 
-                  "Grid spacing, in terms of std. dev." )
+                  "Grid spacing, in terms of std. dev.",
+                  "Set to 1 to create a 2D antenna pattern." )
         ));
 
   md_data_raw.push_back
@@ -1851,6 +1859,8 @@ void define_md_data_raw()
          "(*dx_si*) is set for the highest frequency. This ensures that both\n"
          "the width and spacing are equal or better than *xwidth_si* and\n"
          "*dx_si*, respectively, for all frequencies.\n"
+         "\n"
+         "The antenna repsonse is not normalised.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "antenna_response" ),
@@ -10550,6 +10560,13 @@ void define_md_data_raw()
          "\n"         
          "See *antenna_dim*, *antenna_dlos* and *antenna_response* for\n"
          "details on how to specify the antenna response.\n"
+         "\n"
+         "One dimensional antenna patterns are handled as other response\n"
+         "functions (i.e. piece-wise linear), while 2D antenna patterns are\n"
+         "so far handled in a simplified manner. For 2D, the antenna pattern\n"
+         "is simply sampled at the points specified by *mblock_dlos_grid*\n"
+         "and each pencil beam direction is considered to represent the same\n"
+         "size in terms of solid beam.\n"
          ),
         AUTHORS( "Mattias Ekstrom", "Patrick Eriksson" ),
         OUT( "sensor_response", "sensor_response_f", "sensor_response_pol",

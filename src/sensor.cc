@@ -91,7 +91,7 @@ void antenna1d_matrix(
        const Index   n_pol,
        const Index   do_norm )
 {
-  // Number of input za and frequency angles
+  // Number of input pencil beam directions and frequency
   const Index n_za = za_grid.nelem();
   const Index n_f  = f_grid.nelem();
 
@@ -165,8 +165,8 @@ void antenna1d_matrix(
               //
               Index new_antenna = 1; 
               //
-              if( n_ar_f > 1 )
-                {
+              if( n_ar_f > 1 )  // If multiple freqs in response, new interpolation
+                {               // for each freq and pol
                   // Interpolation (do this in "green way")
                   ArrayOfGridPos gp_f( 1 ), gp_za(n_ar_za);
                   gridpos( gp_f, aresponse_f_grid, Vector(1,f_grid[f]) );
@@ -178,8 +178,8 @@ void antenna1d_matrix(
                          antenna_response.data(ip,joker,joker,0), gp_f, gp_za );
                   aresponse = aresponse_matrix(0,joker);
                 }
-              else if( pol_step )   // Response changes with polarisation
-                {
+              else if( pol_step )   // Response changes with polarisation,
+                {                   // but not frequency
                   aresponse = antenna_response.data(ip,0,joker,0);
                 }
               else if( f == 0 )  // Same response for all f and polarisations
@@ -218,6 +218,8 @@ void antenna1d_matrix(
 
 
 
+// An old version of the function above
+
 //! antenna2d_simplified
 /*!
   A first function for setting up the response matrix for 2D antenna cases.
@@ -244,6 +246,7 @@ void antenna1d_matrix(
    \author Patrick Eriksson
    \date   2009-09-16
 */
+/*
 void antenna2d_simplified(      
            Sparse&   H,
 #ifndef NDEBUG
@@ -381,7 +384,7 @@ void antenna2d_simplified(
 
     } // antenna_los loop
 }
-
+*/
 
 
 //! gaussian_response_autogrid

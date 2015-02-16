@@ -57,6 +57,7 @@
 #include "auto_md.h"
 
 extern const Numeric PI;
+extern const Numeric NAT_LOG_2;
 extern const Numeric DEG2RAD;
 extern const Numeric RAD2DEG;
 extern const Index GFIELD1_F_GRID;
@@ -91,7 +92,7 @@ void AntennaConstantGaussian1D(
   antenna_dlos.resize(1,1);
   antenna_dlos(0,0) = 0.0;
 
-  antenna_responseGaussian( r, fwhm, xwidth_si, dx_si, verbosity );
+  antenna_responseGaussian( r, fwhm, xwidth_si, dx_si, 0, verbosity );
 
   // za grid for response
   ConstVectorView r_za_grid =  r.get_numeric_grid(GFIELD4_ZA_GRID);
@@ -219,6 +220,7 @@ void antenna_responseGaussian(GriddedField4&   r,
                               const Numeric&   fwhm,
                               const Numeric&   xwidth_si,
                               const Numeric&   dx_si,
+                              const Index&     do_2d,
                               const Verbosity&)
 {
   if( dx_si > xwidth_si )
@@ -238,12 +240,33 @@ void antenna_responseGaussian(GriddedField4&   r,
   r.set_grid_name( 2, "Zenith angle" );
   r.set_grid( 2, x );
 
-  r.set_grid_name( 3, "Azimuth angle" );
-  r.set_grid( 3, Vector(1,0) );
+  if( !do_2d )
+    {
+      r.set_grid_name( 3, "Azimuth angle" );
+      r.set_grid( 3, Vector(1,0) );
 
-  const Index n = y.nelem();
-  r.data.resize( 1, 1, n, 1 );
-  r.data(0,0,joker,0) = y;
+      const Index n = y.nelem();
+      r.data.resize( 1, 1, n, 1 );
+      r.data(0,0,joker,0) = y;
+    }
+  else
+    {
+      r.set_grid_name( 3, "Azimuth angle" );
+      r.set_grid( 3, x );
+
+      const Index n = y.nelem();
+      r.data.resize( 1, 1, n, n );
+
+      // The code below follows the function *gaussian_response*
+      const Numeric si = fwhm / ( 2 * sqrt( 2 * NAT_LOG_2 ) );
+      const Numeric a = 1 / ( si * sqrt( 2 * PI ) );
+
+      for( Index z=0; z<n; z++ )
+        {
+          for( Index b=0; b<n; b++ )
+            { r.data(0,0,z,b) = a * exp( -0.5 * pow(sqrt(x[z]*x[z]+x[b]*x[b])/si,2.0) ); }
+        }
+    }
 }
 
 
@@ -779,7 +802,7 @@ void sensor_responseAntenna(
       error_found = true;
     }
 
-  // Check of antenna_los
+  // Basic checks of antenna_dlos
   if( nlos == 0 )
     throw runtime_error( "*antenna_dlos* is empty." );
   if( antenna_dlos.ncols() < 1  ||  antenna_dlos.ncols() > 2 )
@@ -789,12 +812,6 @@ void sensor_responseAntenna(
               "*antenna_dlos* can only have two columns for 3D atmosphers." );
 
   // We allow angles in antenna_los to be unsorted
-
-  // Extract antenna dza and daa angles (daa set to zero if not defined) . 
-  Vector antenna_dza = antenna_dlos(joker,0);
-  Vector antenna_daa( antenna_dlos.nrows(), 0 );
-  if( antenna_dlos.ncols() == 2 )
-    { antenna_daa = antenna_dlos(joker,1); }
 
   // Checks of antenna_response polarisation dimension
   //
@@ -808,7 +825,6 @@ void sensor_responseAntenna(
          << "*stokes_dim* or *sensor_pol*).\n";
       error_found = true;
     }
-
 
   // Checks of antenna_response frequency dimension
   //
@@ -855,31 +871,6 @@ void sensor_responseAntenna(
       os << "The zenith angle grid of *antenna_response* must have >= 2 values.\n";
       error_found = true;
     }
-  //
-  // Check if the za relative grid is outside sensor_response_dlos_grid.
-  //
-  Numeric za_dlow  = 0.0;
-  Numeric za_dhigh = 0.0;
-  //
-  za_dlow = min(antenna_dza) + aresponse_za_grid[0] -
-                                        min(sensor_response_dlos_grid(joker,0));
-  za_dhigh = max(sensor_response_dlos_grid(joker,0)) - 
-                                 ( max(antenna_dza) + last(aresponse_za_grid) );
-  //
-  if( za_dlow < 0 ) 
-    {
-      os << "The WSV zenith angle part of *sensor_response_dlos_grid* is too narrow.\n"
-         << "It should be expanded with "<<-za_dlow<<" deg in the lower end.\n"
-         << "This change should be probably applied to *mblock_dlos_grid*.\n";
-      error_found = true;
-    }
-  if( za_dhigh < 0 ) 
-    {
-      os << "The WSV zenith angle part of *sensor_response_dlos_grid* is too narrow.\n"
-         << "It should be expanded with "<<-za_dhigh<<" deg in the upper end.\n"
-         << "This change should be probably applied to *mblock_dlos_grid*.\n";
-      error_found = true;
-    }
 
   // Checks of antenna_response aa dimension
   //
@@ -905,12 +896,51 @@ void sensor_responseAntenna(
              << "values.\n";
           error_found = true;
         }
-      // Check if the relative grid added to the antena_los aa angles
-      // outside sensor_response_aa_grid.
-      //
-      throw runtime_error( "2D antennas not yet updated." );
-  }
+    }
 
+  // Check of angular grids. These checks differ with antenna_dim
+  if( antenna_dim == 1 )
+    {
+      if( !( is_increasing(sensor_response_dlos_grid(joker,0)) || 
+             is_decreasing(sensor_response_dlos_grid(joker,0)) ) )
+        {
+          os << "For 1D antennas, the zenith angles in *sensor_response_dlos_grid*\n"
+             << "must be sorted, either in increasing or decreasing order.\n"
+             << "The original problem is probably found in *mblock_dlos_grid*.\n";
+          error_found = true;
+        }
+
+      else
+        {
+          // Check if the za relative grid is outside sensor_response_dlos_grid.
+          Numeric za_dlow  = 0.0;
+          Numeric za_dhigh = 0.0;
+          //
+          za_dlow = antenna_dlos(0,0) + aresponse_za_grid[0] -
+                                        min(sensor_response_dlos_grid(joker,0));
+          za_dhigh = max(sensor_response_dlos_grid(joker,0)) - 
+                                 ( last(antenna_dlos(joker,0)) + last(aresponse_za_grid) );
+          //
+          if( za_dlow < 0 ) 
+            {
+              os << "The WSV zenith angle part of *sensor_response_dlos_grid* is too narrow.\n"
+                 << "It should be expanded with "<<-za_dlow<<" deg in the lower end.\n"
+                 << "This change should be probably applied to *mblock_dlos_grid*.\n";
+              error_found = true;
+            }
+          if( za_dhigh < 0 ) 
+            {
+              os << "The WSV zenith angle part of *sensor_response_dlos_grid* is too narrow.\n"
+                 << "It should be expanded with "<<-za_dhigh<<" deg in the upper end.\n"
+                 << "This change should be probably applied to *mblock_dlos_grid*.\n";
+              error_found = true;
+            }
+        }
+    }
+  else
+    {
+      throw runtime_error( "2D antennas not yet updated." );
+    }
 
   // If errors where found throw runtime_error with the collected error
   // message.
@@ -926,13 +956,15 @@ void sensor_responseAntenna(
   Sparse hantenna;
   //
   if( antenna_dim == 1 )
-    antenna1d_matrix( hantenna, antenna_dim, antenna_dza, 
+    antenna1d_matrix( hantenna, antenna_dim, antenna_dlos(joker,0), 
                       antenna_response, sensor_response_dlos_grid(joker,0), 
                       sensor_response_f_grid, npol, sensor_norm );
   else
-    antenna2d_simplified( hantenna, antenna_dim, antenna_dlos, antenna_response,
-                          sensor_response_dlos(joker,0), sensor_response_dlos(joker,1), 
-                          sensor_response_f_grid, npol, sensor_norm ); 
+    {    
+      //antenna2d_simplified( hantenna, antenna_dlos, antenna_response,
+      //                  sensor_response_dlos,
+      //                  sensor_response_f_grid, npol, sensor_norm ); 
+    }
 
   // Here we need a temporary sparse that is copy of the sensor_response
   // sparse matrix. We need it since the multiplication function can not
@@ -1196,7 +1228,7 @@ void sensor_responseBackendMetMM(
     const Matrix&          antenna_dlos,
     const Matrix&          mm_back,      /* met_mm_backend */
     const ArrayOfString&   mm_pol,       /* met_mm_polarisation */
-    const Vector&,                        /* met_mm_antenna */
+    const Vector&          mm_ant,       /* met_mm_antenna */
     // Control Parameters:
     const Vector&          freq_spacing,
     const ArrayOfIndex&    freq_number,
@@ -1214,6 +1246,11 @@ void sensor_responseBackendMetMM(
     chk_met_mm_backend(mm_back);
 
     const Index nchannels = mm_back.nrows();
+
+    if (mm_ant.nelem() != nchannels)
+      throw std::runtime_error(
+         "Length of *met_mm_antenna* vector must match the number of rows\n"
+         "in *met_mm_backend*.");
 
     if (freq_spacing.nelem() != 1 && freq_spacing.nelem() != nchannels)
       throw std::runtime_error(
