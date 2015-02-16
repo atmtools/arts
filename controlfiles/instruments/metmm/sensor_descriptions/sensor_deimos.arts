@@ -19,7 +19,6 @@ MatrixSet(
         [
         ] )
 
-Select( antenna_dlos, antenna_dlos, viewing_angles )
 
 # Sensor response setup
 # ---
@@ -57,11 +56,14 @@ ArrayOfIndexSet(
         12  #3 (2, H only)
         ] )
 
+
+
+Select( antenna_dlos,        antenna_dlos,        viewing_angles )
 Select( met_mm_backend,      met_mm_backend,      channels )
 Select( met_mm_polarisation, met_mm_polarisation, channels )
 Select( met_mm_freq_number,  met_mm_freq_number,  channels )
 
-sensor_responseBackendMetMM( freq_spacing=[1e9],
-		             freq_number=met_mm_freq_number )
+sensor_responseBackendMetMM( freq_spacing = [1e9],
+		                      freq_number = met_mm_freq_number )
 }
 

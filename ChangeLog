@@ -1,3 +1,12 @@
+2015-02-16  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-155
+
+	* controlfiles/instruments/metmm/sensor_descriptions/sensor_*.arts:
+	Checked all files that sensor_pos and sensor_los are not set,
+	which still was the case in some cases. All Select calls now at
+	end of files.
+
 2015-02-11  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-154
