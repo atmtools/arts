@@ -10725,7 +10725,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "atmosphere_dim", "stokes_dim", "sensor_los", "iy_unit", "antenna_dlos", 
+        IN( "atmosphere_dim", "stokes_dim", "iy_unit", "antenna_dlos", 
             "met_mm_backend", "met_mm_polarisation", "met_mm_antenna"
              ),
         GIN( "freq_spacing", "freq_number", "freq_merge_threshold",

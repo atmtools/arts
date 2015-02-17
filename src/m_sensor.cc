@@ -747,6 +747,27 @@ void f_gridFromSensorHIRS(// WS Output:
 }
 
 
+/* Just a start on seperating 1D and 2D antennas
+void antenna_helper(
+    const Sparse&         sensor_response,
+    const Vector&         sensor_response_f,
+    const ArrayOfIndex&   sensor_response_pol,
+    const Matrix&         sensor_response_dlos,
+    const Matrix&         sensor_response_dlos_grid,
+    const Vector&         sensor_response_f_grid,
+    const ArrayOfIndex&   sensor_response_pol_grid,
+    const Index&          atmosphere_dim,
+    const Matrix&         antenna_dlos,
+    const GriddedField4&  antenna_response,
+    const Index&          sensor_norm,
+    const Verbosity&      verbosity)
+{
+
+}
+*/
+
+
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void sensor_responseAntenna(
           Sparse&         sensor_response,
@@ -760,11 +781,27 @@ void sensor_responseAntenna(
     const Index&          antenna_dim,
     const Matrix&         antenna_dlos,
     const GriddedField4&  antenna_response,
-    const Index&   sensor_norm,
-    const Verbosity& verbosity)
+    const Index&          sensor_norm,
+    const Verbosity&      verbosity)
 {
   CREATE_OUT3;
   
+  // Check if input antenna pattern is 1D
+  /* Just a start on seperating 1D and 2D antennas
+  {
+    ConstVectorView aresponse_aa_grid = 
+                             antenna_response.get_numeric_grid(GFIELD4_AA_GRID);
+
+    if( aresponse_aa_grid.nelem() != 1 )
+      {
+        throw runtime_error( "This method assumes a 1D antenne pattern.\n" 
+                             "This means that the azimuthal dimension of\n"
+                             "*antenna_response* must have size 1 and this\n"
+                             "is not the case.\n" );
+      }
+  }
+  */
+
   // Basic checks
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
   chk_if_in_range( "antenna_dim",    antenna_dim,    1, 2 );
@@ -1223,7 +1260,6 @@ void sensor_responseBackendMetMM(
     // WS Input:
     const Index&           atmosphere_dim,
     const Index&           stokes_dim,
-    const Matrix&          sensor_los,
     const String&          iy_unit,
     const Matrix&          antenna_dlos,
     const Matrix&          mm_back,      /* met_mm_backend */
@@ -1247,10 +1283,10 @@ void sensor_responseBackendMetMM(
 
     const Index nchannels = mm_back.nrows();
 
-    if (mm_ant.nelem() != nchannels)
+    if (mm_ant.nelem())
       throw std::runtime_error(
-         "Length of *met_mm_antenna* vector must match the number of rows\n"
-         "in *met_mm_backend*.");
+         "So far inclusion of antenna pattern is NOT supported and\n"
+         "*met_mm_antenna* must be empty.\n" );
 
     if (freq_spacing.nelem() != 1 && freq_spacing.nelem() != nchannels)
       throw std::runtime_error(
@@ -1271,24 +1307,12 @@ void sensor_responseBackendMetMM(
     if ( !( atmosphere_dim == 1  || atmosphere_dim == 3 ) )
       throw std::runtime_error("This method only supports 1D and 3D atmospheres.");
 
-    if (antenna_dlos.nrows() == 0)
+    if (antenna_dlos.nrows() == 0 ||  antenna_dlos.ncols() == 0)
       throw std::runtime_error("*antenna_dlos* is empty.");
     
-    if (antenna_dlos.ncols() != 1)
-      throw std::runtime_error("*antenna_dlos* must have a single column.");
-
-    // All sensor_los zenith angles must be 0
-    for (Index ilos = 0; ilos < sensor_los.nrows(); ilos++)
-    {
-      if ( sensor_los(ilos,0) > 180  ||  sensor_los(ilos,0) < 160 )
-      {
-        ostringstream os;
-        os << "All values in first column of *sensor_los* must be close to 180,\n"
-           << "but: sensor_los[" << ilos   << ", 0] = " << sensor_los(ilos,0) << "\n"
-           << "and the allowed range is only [160,180].";
-        throw std::runtime_error(os.str());
-      }
-    }
+    if (antenna_dlos.ncols() > 2)
+      throw std::runtime_error("The maximum number of columns in *antenna_dlos*" 
+                               "is two.");
 
 
     // Copy, and possibly extend antenna_dlos
@@ -1297,6 +1321,9 @@ void sensor_responseBackendMetMM(
     // Mirror?
     if ( mirror_dza )
       {
+        if (antenna_dlos.ncols() > 1)
+          throw std::runtime_error("With *mirror_dza* set to true, *antenna_dlos*" 
+                               "is only allowed to have a single column.");
         if( atmosphere_dim != 3 )
           throw std::runtime_error("*mirror_dza* only makes sense in 3D.");
         // We don't want to duplicate zero!
@@ -1320,14 +1347,6 @@ void sensor_responseBackendMetMM(
     else
       { antenna_dlos_local = antenna_dlos; }
 
-    // Add azimuth angles?
-    if( atmosphere_dim == 3 )
-      {
-        Matrix acopy = antenna_dlos_local;
-        antenna_dlos_local.resize( acopy.nrows(), 2 );
-        antenna_dlos_local(joker,0) = acopy(joker,0);
-        antenna_dlos_local(joker,1) = 0;
-      }    
 
     // Setup frequency grid
     //--------------------------------------------------

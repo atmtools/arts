@@ -1,3 +1,12 @@
+2015-02-17  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-156
+
+	* src/m_sensor.cc (sensor_responseBackendMetMM): Check of
+	met_mm_antenna was wrong. Removed check of sensor_los, to allow
+	that sensor_los can be set after calling this method. Started
+	revision on how azimuth angles are handled.
+
 2015-02-16  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-155
