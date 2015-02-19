@@ -3374,8 +3374,8 @@ void doit_i_fieldSetFromdoit_i_field1D_spectrum(
     doit_i_field1D_spectrum(f_index,joker,joker,joker);
 
   // now we also have to updated cloudbox incoming (!) field - this because
-  // compared to our first guess initialization, the clearsky field around might
-  // have changed.
+  // compared to our first guess initialization, the clearsky field around (or
+  // the surface state) might have changed.
   // (0) find, which scat_za_grid entries describe upwelling, which downwelling
   // radiation.
   Index first_upwell = 0;
@@ -3386,7 +3386,7 @@ void doit_i_fieldSetFromdoit_i_field1D_spectrum(
   // (1) upwelling at lower boundary
   doit_i_field(0,0,0,Range(first_upwell,scat_za_grid.nelem()-first_upwell),0,joker) =
     scat_i_p(f_index,0,0,0,Range(first_upwell,scat_za_grid.nelem()-first_upwell),0,joker);
-  // (2) downwelling at lower boundary
+  // (2) downwelling at upper boundary
   doit_i_field(np-1,0,0,Range(0,first_upwell),0,joker) =
     scat_i_p(f_index,1,0,0,Range(0,first_upwell),0,joker);
 }

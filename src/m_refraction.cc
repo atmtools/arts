@@ -102,9 +102,9 @@ void refr_index_airFreeElectrons(
       if( edensity > 0 )
         {
           // Check that lowest frequency not too low
-          // Limit at 100 GHz follows Hartmann and Leitinger, Range errors due
+          // Limit at 100 MHz follows Hartmann and Leitinger, Range errors due
           // to ionospheric and tropospheric effects for signal frequencies
-          // above 100 HMHz, Bull. Goed., 1984.
+          // above 100 MHz, Bull. Goed., 1984.
           if( f_grid[0] < 100e6 )
             {
               throw runtime_error( "All frequencies must be >= 100 MHz, but "

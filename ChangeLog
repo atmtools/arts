@@ -1,3 +1,14 @@
+2015-02-19  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-2-42
+
+	* doc/uguide/references.bib: Added a missing reference.
+
+	* src/m_doit.cc (doit_i_fieldSetFromdoit_i_field1D_spectrum),
+	m_refraction.cc(refr_index_airFreeElectrons): Bug fixes in comments.
+
+	* doc/uguide/refr_index_theory.tex: Spellfix.
+
 2015-01-14  Jana Mendrok  <jana.mendrok@ltu.se>
 
 	* arts-2-2-41
