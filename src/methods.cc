@@ -4979,7 +4979,7 @@ void define_md_data_raw()
       ( NAME( "geo_posEndOfPpath" ),
         DESCRIPTION
         (
-         "Set geo-position based on *ppath*.\n"
+         "Sets geo-position based on *ppath*.\n"
          "\n"
          "The geo-position is set to the position of the last point\n"
          "of the present propagation path. This will be the surface,\n"
@@ -5003,7 +5003,7 @@ void define_md_data_raw()
       ( NAME( "geo_posLowestAltitudeOfPpath" ),
         DESCRIPTION
         (
-         "Set geo-position based on *ppath*.\n"
+         "Sets geo-position based on *ppath*.\n"
          "\n"
          "The geo-position is set to the position of the last point\n"
          "of the present propagation path having the lowest altitude.\n"
@@ -5018,6 +5018,31 @@ void define_md_data_raw()
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
+        ));
+
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME( "geo_posWherePpathPassesZref" ),
+        DESCRIPTION
+        (
+         "Sets geo-position based on *ppath*.\n"
+         "\n"
+         "The geo-position is set to the position where the propagation\n"
+         "path passes the reference altitude. If this altitude is passes\n"
+         "more than once, the passing closest to the sensor is selected.\n"
+         "If the reference altitude is not passed at all, *geo*pos* is\n"
+         "set to -999.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "geo_pos" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "ppath" ),
+        GIN( "z_ref" ),
+        GIN_TYPE( "Numeric" ),
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC( "Reference altitude." )
         ));
 
   md_data_raw.push_back

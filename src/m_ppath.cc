@@ -101,6 +101,56 @@ void geo_posLowestAltitudeOfPpath(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void geo_posWherePpathPassesZref(
+          Vector&         geo_pos,
+    const Ppath&          ppath,
+    const Numeric&        z_ref,
+    const Verbosity&      verbosity )
+{
+  geo_pos.resize( ppath.pos.ncols() );
+
+  bool  found = false;
+  Index ihit  = 0;
+  bool  above = false;
+
+  if( ppath.pos(0,0) >= z_ref )
+    { above = true; }
+  
+  while( !found && ihit<ppath.np-1 )
+    {
+      ihit += 1;
+      if( above  &&  ppath.pos(ihit,0) < z_ref )
+        { found = true; }
+      else if( !above  &&  ppath.pos(ihit,0) >= z_ref )
+        { found = true; }
+    }
+
+  if( found )
+    {
+      geo_pos[0] = z_ref;
+
+      if( geo_pos.nelem() > 1 )
+        {
+          // Make a simple linear interpolation to determine lat and lon
+          const Numeric w = ( z_ref - ppath.pos(ihit-1,0) ) /
+            ( ppath.pos(ihit,0) - ppath.pos(ihit-1,0) );
+          geo_pos[1] = w * ppath.pos(ihit,1) + 
+            (1-w) * ppath.pos(ihit-1,1);
+          if( geo_pos.nelem() > 2 )
+            { geo_pos[2] = w * ppath.pos(ihit,2) + 
+                (1-w) * ppath.pos(ihit-1,2); }
+        }
+    }
+  else
+    { geo_pos = -999; }
+
+  CREATE_OUT2;  
+  out2 << "  Sets geo-position to:\n" << geo_pos;
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void ppathCalc(      
           Workspace&      ws,
           Ppath&          ppath,
