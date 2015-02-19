@@ -142,7 +142,7 @@ void geo_posWherePpathPassesZref(
         }
     }
   else
-    { geo_pos = -999; }
+    { geo_pos = NAN; }
 
   CREATE_OUT2;  
   out2 << "  Sets geo-position to:\n" << geo_pos;

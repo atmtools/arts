@@ -5031,7 +5031,7 @@ void define_md_data_raw()
          "path passes the reference altitude. If this altitude is passes\n"
          "more than once, the passing closest to the sensor is selected.\n"
          "If the reference altitude is not passed at all, *geo*pos* is\n"
-         "set to -999.\n"
+         "set to NaN.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "geo_pos" ),

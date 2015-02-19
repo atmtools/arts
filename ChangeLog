@@ -1,5 +1,12 @@
 2015-02-19  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-3-158
+
+	* src/m_ppath.cc (geo_posWherePpathPassesZref): If altitude not
+	passed, goe_pos now set to NaN.
+
+2015-02-19  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-3-157
 
 	* src/m_ppath.cc (geo_posWherePpathPassesZref): New WSM for geo
