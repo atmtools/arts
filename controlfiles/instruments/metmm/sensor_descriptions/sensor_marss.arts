@@ -13,11 +13,31 @@
 Arts2 {
 
 # Viewing angles
-# FIXME!!!
 MatrixSet(
         antenna_dlos,
         [
+        -180.00; #0
+        -170.00; #1  
+        -160.00; #2
+        -150.00; #3  
+        -140.00; #4   
+         -90.00; #5   
+         -40.00; #6   
+         -30.00; #7   
+         -20.00; #8   
+         -10.00; #9     
+           0.00; #10 (nadir)   
+          10.00; #11    
+          20.00; #12    
+          30.00; #13    
+          40.00; #14    
+          90.00; #15   
+         140.00; #16   
+         150.00; #17   
+         160.00; #18   
+         170.00  #19
         ] )
+
 
 
 # Sensor response setup
@@ -28,22 +48,18 @@ MatrixSet(
         # CenterFreq, Offset1, Offset2, Bandwidth; #ARTS channel index
         #                                             (Instrument channel)
         [
-         88.992e9,    1.075e9, 0.0,      650e6 ;   #0 (1, V only)
-         88.992e9,    1.075e9, 0.0,      650e6 ;   #1 (1, H only)
-        157.05e9,     2.600e9, 0.0,     2600e6 ;   #2 (2, V only)
-        157.05e9,     2.600e9, 0.0,     2600e6 ;   #3 (2, H only)
-        183.31e9,     0.975e9, 0.0,      450e6 ;   #4 (3)
-        183.31e9,     3.000e9, 0.0,     1000e6 ;   #5 (4)
-        183.31e9,     7.000e9, 0.0,     2000e6     #6 (5)
+         88.992e9,     1.075e9, 0.0,      650e6 ;   #0 (1)
+        157.075e9,     2.600e9, 0.0,     2600e6 ;   #1 (2)
+        183.248e9,     0.975e9, 0.0,      450e6 ;   #2 (3)
+        183.248e9,     3.000e9, 0.0,     1000e6 ;   #3 (4)
+        183.248e9,     7.000e9, 0.0,     2000e6     #4 (5)
            ] )
 
-ArrayOfStringSet( met_mm_polarisation, [ "ISMAR-V", #0 (1, V only)
-                                         "ISMAR-H", #1 (1, H only)
-                                         "ISMAR-V", #2 (2, V only)
-                                         "ISMAR-H", #3 (2, H only)
-                                         "ISMAR-H", #4 (3)
-                                         "ISMAR-H", #5 (4)
-                                         "ISMAR-H"  #6 (5)
+ArrayOfStringSet( met_mm_polarisation, [ "MARSS-V", #0 (1)
+                                         "MARSS-H", #1 (2)
+                                         "MARSS-H", #2 (3)
+                                         "MARSS-H", #3 (4)
+                                         "MARSS-H"  #4 (5)
                                        ])
 
 VectorSet( met_mm_antenna, [] )
@@ -52,15 +68,12 @@ ArrayOfIndexCreate( met_mm_freq_number )
 ArrayOfIndexSet(
         met_mm_freq_number,
         [
-        12, #0 (1, V only)
-        12, #1 (1, H only)
-        12, #2 (2, V only)
-        12, #3 (2, H only)
-        12, #4 (3)
-        12, #5 (4)
-        12  #6 (5)
-        ]
-
+        12, #0 (1)
+        12, #1 (2)
+        12, #2 (3)
+        12, #3 (4)
+        12, #4 (5)
+        ])
 
 Select( antenna_dlos,        antenna_dlos,        viewing_angles )
 Select( met_mm_backend,      met_mm_backend,      channels )
