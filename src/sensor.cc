@@ -709,6 +709,16 @@ void met_mm_polarisation_hmatrix(Sparse& H,
             rot[i] = "ISMAR";
             pol[i] = "V";
         }
+        else if (mm_pol[i] == "MARSS-H")
+        {
+            rot[i] = "MARSS";
+            pol[i] = "H";
+        }
+        else if (mm_pol[i] == "MARSS-V")
+        {
+            rot[i] = "MARSS";
+            pol[i] = "V";
+        }
         else if (mm_pol[i] == "H"   || mm_pol[i] == "V"   || 
                  mm_pol[i] == "LHC" || mm_pol[i] == "RHC" )
         {
@@ -779,7 +789,17 @@ void met_mm_polarisation_hmatrix(Sparse& H,
           {
             // No rotation at -53 (= forward direction). But no idea about the
             // sign, as for AMSU above 
-            mueller_rotation( Hrot, stokes_dim, dza+53 );
+            mueller_rotation( Hrot, stokes_dim, dza+50 );
+          }
+          else if (rot[i] == "MARSS")
+          {
+            // MARSS special, as 48 deg between different polarisation (not 90,
+            // as for ISMAR. This is best interpretation of information
+            // from Stuart. Should be double-checked with him at some point. 
+            if( pol[i] == "H" )
+              { mueller_rotation( Hrot, stokes_dim, dza+42 ); }
+            else
+              { mueller_rotation( Hrot, stokes_dim, dza ); }
           }
           else
           {

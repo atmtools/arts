@@ -1,9 +1,23 @@
+2015-02-23  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+        * arts-2-3-160
+
+	* src/sensor.cc (met_mm_polarisation_hmatrix): MARSS is now art
+	least formally handled. Polarisation part needs to be confirmed.
+
+	* controlfiles/instruments/metmm/sensor_descriptions/sensor_deimos.arts:
+	You will not get an error if using it, saying that the file is
+	not finalised.
+
+	* src/m_rte.cc (yCalc): Default for geo pos is now NaN. That is, this
+	* src/rte.cc (iyb_calc): is what you get don't define geo_pos_agenda.
+
 2015-02-20  Bengt Rydberg  <bengt.rydberg@molflow.com>
 
         * arts-2-3-159
 
         * controlfiles/instruments/metmm/sensor_descriptions/sensor_ismar.arts:
-         updated        
+         updated
 
         * controlfiles/instruments/metmm/sensor_descriptions/sensor_marss.arts:
          updated

@@ -12,6 +12,8 @@
 
 Arts2 {
 
+Error( "The MetMM file for DEIMOS is not yet finalised!!!" )
+
 # Viewing angles
 # FIXME!!!
 MatrixSet(

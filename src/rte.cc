@@ -2146,7 +2146,7 @@ void iyb_calc(
     { diyb_dx.resize( 0 ); }
   // Assume that geo_pos_agenda returns empty geo_pos.
   geo_pos_matrix.resize( nlos, atmosphere_dim );
-  geo_pos_matrix = -99999;
+  geo_pos_matrix = NAN;
 
   // For iy_aux we don't know the number of quantities, and we have to store
   // all outout
