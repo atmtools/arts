@@ -1523,14 +1523,8 @@ doit_i_fieldUpdateSeq1DPP(Workspace& ws,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void DoitInit(//WS Output
-              Index& scat_p_index,
-              Index& scat_lat_index,
-              Index& scat_lon_index,
-              Index& scat_za_index,
-              Index& scat_aa_index,
               Tensor6& doit_scat_field,
               Tensor7& doit_i_field,
-              Tensor4& doit_i_field1D_spectrum,
               Index& doit_is_initialized,
               // WS Input
               const Index& stokes_dim,
@@ -1583,7 +1577,7 @@ void DoitInit(//WS Output
   {
     CREATE_OUT1;
     out1 << "Warning: doit_za_grid_size is very large which means that the \n"
-         << "calculation will be very slow. The recommended value is 19.\n";
+         << "calculation will be very slow.\n";
   }
   
   if ( cloudbox_limits.nelem()!= 2*atmosphere_dim )
@@ -1603,15 +1597,6 @@ void DoitInit(//WS Output
 
   //------------- end of checks ---------------------------------------
   
-  
-  // Initialize indices
-
-  scat_p_index = 0;
-  scat_lat_index = 0;
-  scat_lon_index = 0;
-  scat_za_index = 0;
-  scat_aa_index = 0;
-  
   const Index Nf = f_grid.nelem();
   const Index Np_cloud = cloudbox_limits[1] - cloudbox_limits[0] + 1;
   const Index Nza = scat_za_grid.nelem();
@@ -1622,8 +1607,6 @@ void DoitInit(//WS Output
     {
       doit_i_field.resize( Nf, Np_cloud, 1, 1, Nza, 1, Ns );
       doit_scat_field.resize(  Np_cloud, 1, 1, Nza, 1, Ns );
-
-      doit_i_field1D_spectrum.resize( Nf, Np_cloud, Nza, Ns );
     }
   else if (atmosphere_dim == 3)
     {
@@ -1645,7 +1628,6 @@ void DoitInit(//WS Output
   
   doit_i_field = 0.;
   doit_scat_field = 0.;
-  doit_i_field1D_spectrum = 0.;
   doit_is_initialized = 1;
 }
 
@@ -3083,15 +3065,16 @@ void iyInterpPolyCloudboxField(Matrix&         iy,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void doit_i_fieldSetFromdoit_i_field1D_spectrum(
+void doit_i_fieldSetFromPrecalcdoit_i_field(
                              Tensor6& doit_i_field_mono,
+                             const Tensor7& doit_i_field,
                              const Vector& scat_za_grid,
                              const Vector& f_grid,
                              const Index& f_index,
                              const Index& atmosphere_dim,
                              const Index& stokes_dim,
                              const ArrayOfIndex& cloudbox_limits,
-                             const Tensor7& doit_i_field_spectrum,
+                             const Tensor7& doit_i_field_precalc,
                              const Verbosity& ) //verbosity)
 {
   // this is only for 1D atmo!
@@ -3102,51 +3085,51 @@ void doit_i_fieldSetFromdoit_i_field1D_spectrum(
       throw runtime_error( os.str() );
     }
   
-  // check dimensions of doit_i_field1D_spectrum
+  // check dimensions of doit_i_field_precalc
   Index nf = f_grid.nelem();
   Index nza = scat_za_grid.nelem();
   Index np = cloudbox_limits[1] - cloudbox_limits[0] +1;
 
-  if( nf!=doit_i_field_spectrum.nlibraries() )
+  if( nf!=doit_i_field_precalc.nlibraries() )
     {
       ostringstream os;
-      os << "doit_i_field1D_spectrum has wrong size in frequency dimension.\n"
-         << nf << " frequency points are expected, but doit_i_field_spectrum "
-         << "contains " << doit_i_field_spectrum.nlibraries()
+      os << "doit_i_field_precalc has wrong size in frequency dimension.\n"
+         << nf << " frequency points are expected, but doit_i_field_precalc "
+         << "contains " << doit_i_field_precalc.nlibraries()
          << "frequency points.\n";
       throw runtime_error( os.str() );
     }
-  if( np!=doit_i_field_spectrum.nvitrines() )
+  if( np!=doit_i_field_precalc.nvitrines() )
     {
       ostringstream os;
-      os << "doit_i_field1D_spectrum has wrong size in pressure level dimension.\n"
-         << np << " pressure levels expected, but doit_i_field_spectrum "
-         << "contains " << doit_i_field_spectrum.nvitrines()
+      os << "doit_i_field_precalc has wrong size in pressure level dimension.\n"
+         << np << " pressure levels expected, but doit_i_field_precalc "
+         << "contains " << doit_i_field_precalc.nvitrines()
          << "pressure levels.\n";
       throw runtime_error( os.str() );
     }
-  if( nza!=doit_i_field_spectrum.npages() )
+  if( nza!=doit_i_field_precalc.npages() )
     {
       ostringstream os;
-      os << "doit_i_field1D_spectrum has wrong size in polar angle dimension.\n"
-         << nza << " angles expected, but doit_i_field_spectrum "
-         << "contains " << doit_i_field_spectrum.npages()
+      os << "doit_i_field_precalc has wrong size in polar angle dimension.\n"
+         << nza << " angles expected, but doit_i_field_precalc "
+         << "contains " << doit_i_field_precalc.npages()
          << "angles.\n";
       throw runtime_error( os.str() );
     }
-  if( stokes_dim!=doit_i_field_spectrum.ncols() )
+  if( stokes_dim!=doit_i_field_precalc.ncols() )
     {
       ostringstream os;
-      os << "doit_i_field1D_spectrum has wrong stokes dimension.\n"
+      os << "doit_i_field_precalc has wrong stokes dimension.\n"
          << "Dimension " << stokes_dim
-         << " expected, but doit_i_field_spectrum is dimesnion "
-         << doit_i_field_spectrum.ncols() << ".\n";
+         << " expected, but doit_i_field_precalc is dimesnion "
+         << doit_i_field_precalc.ncols() << ".\n";
       throw runtime_error( os.str() );
     }
 
-  // now copy data to doit_i_field
+  // copy initial guess data from doit_i_field_precalc to doit_i_field_mono
   doit_i_field_mono(joker,0,0,joker,0,joker) =
-    doit_i_field_spectrum(f_index,joker,0,0,joker,0,joker);
+    doit_i_field_precalc(f_index,joker,0,0,joker,0,joker);
 
   // now we also have to updated cloudbox incoming (!) field - this because
   // compared to our first guess initialization, the clearsky field around might
@@ -3160,10 +3143,10 @@ void doit_i_fieldSetFromdoit_i_field1D_spectrum(
     first_upwell++;
   // (1) upwelling at lower boundary
   doit_i_field_mono(0,0,0,Range(first_upwell,scat_za_grid.nelem()-first_upwell),0,joker) =
-    doit_i_field_spectrum(f_index,0,0,0,Range(first_upwell,scat_za_grid.nelem()-first_upwell),0,joker);
+    doit_i_field(f_index,0,0,0,Range(first_upwell,scat_za_grid.nelem()-first_upwell),0,joker);
   // (2) downwelling at lower boundary
   doit_i_field_mono(np-1,0,0,Range(0,first_upwell),0,joker) =
-    doit_i_field_spectrum(f_index,doit_i_field_spectrum.nvitrines()-1,0,0,Range(0,first_upwell),0,joker);
+    doit_i_field(f_index,doit_i_field.nvitrines()-1,0,0,Range(0,first_upwell),0,joker);
 }
 
 

@@ -3904,9 +3904,7 @@ void define_md_data_raw()
          "before *DoitGetIncoming*.\n"
          ),
         AUTHORS( "Claudia Emde" ),
-        OUT( "scat_p_index", "scat_lat_index", "scat_lon_index", 
-             "scat_za_index", "scat_aa_index", "doit_scat_field",
-             "doit_i_field", "doit_i_field1D_spectrum", "doit_is_initialized" ),
+        OUT( "doit_scat_field", "doit_i_field", "doit_is_initialized" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
@@ -3953,13 +3951,13 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "doit_i_fieldSetFromdoit_i_field1D_spectrum" ),
+      ( NAME( "doit_i_fieldSetFromPrecalcdoit_i_field" ),
         DESCRIPTION
         (
-         "Sets the initial cloudbox intensity field from doit_i_field1D_spectrum.\n"
+         "Sets the initial cloudbox intensity field from a precalculated field.\n"
          "\n"
          "This method sets the (monochromatic) first guess radiation field\n"
-         "inside the cloudbox from a precalculated *doit_i_field1D_spectrum*,\n"
+         "inside the cloudbox from a precalculated *doit_i_field1D_precalc*,\n"
          "e.g., from the solution of a similar atmospheric scenario. The\n"
          "dimensions of *doit_i_field1D_Spectrum* have to be consistent with\n"
          "the DOIT setup in terms of frequencies, pressure levels inside the\n"
@@ -3972,13 +3970,13 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "doit_i_field_mono", "scat_za_grid",
+        IN( "doit_i_field_mono", "doit_i_field", "scat_za_grid",
             "f_grid", "f_index",
             "atmosphere_dim", "stokes_dim", "cloudbox_limits" ),
-        GIN( "doit_i_field_spectrum" ),
+        GIN( "doit_i_field_precalc" ),
         GIN_TYPE( "Tensor7" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC( "Precalculated radiation field" )
+        GIN_DESC( "Precalculated radiation field (of type *doit_i_field*)" )
         ));
 
   md_data_raw.push_back

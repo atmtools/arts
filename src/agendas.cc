@@ -262,6 +262,32 @@ void define_agenda_data()
        INPUT( "rte_pos", "fos_angles", "fos_n", "fos_i" )));
   */
 
+  agenda_data.push_back
+    (AgRecord
+     ( NAME( "g0_agenda" ),
+       DESCRIPTION
+       (
+        "Calculation of the gravity at zero altitude.\n"
+        "\n"
+        "Returns *g0* for given geographical position.\n"
+        ),
+       OUTPUT( "g0" ),
+       INPUT( "lat", "lon" )));
+
+  agenda_data.push_back
+    (AgRecord
+     ( NAME( "geo_pos_agenda" ),
+       DESCRIPTION
+       (
+        "Geo-positioning of a pencil beam calculation.\n"
+        "\n"
+        "The task of this agenda is to set *geo_pos*. The standard choices are\n"
+        "to set that WSV to be empty or select a position along the propagation\n"
+        "path (described by *ppath*).\n"
+        ),
+       OUTPUT( "geo_pos" ),
+       INPUT( "ppath" )));
+
 //   agenda_data.push_back
 //     (AgRecord
 //      ( NAME( "geomag_los_calc_agenda" ),
@@ -286,32 +312,6 @@ void define_agenda_data()
 //           ),
 //        OUTPUT( "geomag_los" ),
 //        INPUT(  )));
-
-  agenda_data.push_back
-    (AgRecord
-     ( NAME( "geo_pos_agenda" ),
-       DESCRIPTION
-       (
-        "Geo-positioning of a pencil beam calculattion.\n"
-        "\n"
-        "The task of this agenda is to set *geo_pos*. The standard choices are\n"
-        "to set that WSV to be empty or select a position along the propagation\n"
-        "path (described by *ppath*).\n"
-        ),
-       OUTPUT( "geo_pos" ),
-       INPUT( "ppath" )));
-
-  agenda_data.push_back
-    (AgRecord
-     ( NAME( "g0_agenda" ),
-       DESCRIPTION
-       (
-        "Calculation of the gravity at zero altitude.\n"
-        "\n"
-        "Returns *g0* for given geographical position.\n"
-        ),
-       OUTPUT( "g0" ),
-       INPUT( "lat", "lon" )));
 
   agenda_data.push_back
     (AgRecord
@@ -522,7 +522,7 @@ void define_agenda_data()
      ( NAME( "iy_transmitter_agenda" ),
        DESCRIPTION
        (
-        "Transmitted signal.\n"
+        "Transmitter signal.\n"
         "\n"
         "This agenda describes the signal at the start of the propagation\n"
         "path for calculations of transmission type. That is, the agenda\n"
@@ -543,7 +543,7 @@ void define_agenda_data()
         "Pure numerical Jacobian calculations.\n"
         "\n"
         "Parts of the Jacobian matrix can be determined by (semi-)analytical\n"
-        "expressions, while other parts are calculated in apure numerical\n"
+        "expressions, while other parts are calculated in a pure numerical\n"
         "manner (by perturbations). This agenda describes the calculations to\n"
         "be performed in the later case.\n"
         "\n"

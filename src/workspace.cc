@@ -667,7 +667,7 @@ void Workspace::define_wsv_data()
      ( NAME( "abs_xsec_agenda" ),
       DESCRIPTION
       (
-       "See agendas.cc.\n"
+       "Agenda to calculate scalar gas absorption cross sections.\n"
        ),
       GROUP( "Agenda" )));
     
@@ -1023,7 +1023,7 @@ void Workspace::define_wsv_data()
      ( NAME( "blackbody_radiation_agenda" ),
        DESCRIPTION
        (
-        "See agendas.cc.\n"
+        "Agenda deriving *blackbody_radiation*.\n"
         ),
        GROUP( "Agenda" )));
 
@@ -1185,7 +1185,7 @@ void Workspace::define_wsv_data()
     ( NAME( "doit_conv_test_agenda" ),
       DESCRIPTION
       (
-        "See agendas.cc.\n"
+        "Agenda executing the DOIT convergence test.\n"
        ),
       GROUP( "Agenda" )));
 
@@ -1262,28 +1262,6 @@ void Workspace::define_wsv_data()
 
  wsv_data.push_back
    (WsvRecord
-    ( NAME( "doit_i_field1D_spectrum" ),
-      DESCRIPTION
-      (
-       "Radiation field for the whole frequency spectrum. \n"
-       "\n"
-       "This variable holds the radiation field. In contrast to \n"
-       "*doit_i_field* this variable has an additional freqeuncy \n"
-       "dimension. This variable is only used for 1D DOIT \n"
-       "calculations.\n"
-       "\n"
-       "Usage: Output of *DoitCloudboxFieldPut*\n"
-       "\n"
-       "Unit: W / (m^2 Hz sr)\n"
-       "\n"
-        "Size: [N_f \n"
-       "       (cloudbox_limits[1] - cloudbox_limits[0]) +1, \n"
-       "        N_za, N_aa, N_i ]\n"
-       ),
-      GROUP( "Tensor4" )));
- 
- wsv_data.push_back
-   (WsvRecord
     ( NAME( "doit_i_field_mono_old" ),
       DESCRIPTION
       (
@@ -1335,7 +1313,7 @@ void Workspace::define_wsv_data()
     ( NAME( "doit_mono_agenda" ),
       DESCRIPTION
       (
-        "See agendas.cc.\n"
+       "Agenda performing monochromatic DOIT calculation.\n"
        ),
       GROUP( "Agenda" )));
  
@@ -1344,7 +1322,7 @@ void Workspace::define_wsv_data()
     ( NAME( "doit_rte_agenda" ),
       DESCRIPTION
       (
-       "See agendas.cc.\n"
+        "Agenda performing the DOIT cloudbox radiative transfer update.\n"
        ),
       GROUP( "Agenda" ))); 
 
@@ -1353,7 +1331,7 @@ void Workspace::define_wsv_data()
     ( NAME( "doit_scat_field_agenda" ),
       DESCRIPTION
       (
-        "See agendas.cc.\n"
+        "Agenda calculating the scattering integral field in DOIT.\n"
        ),
       GROUP( "Agenda" ))); 
 
@@ -1481,7 +1459,7 @@ void Workspace::define_wsv_data()
     ( NAME( "forloop_agenda" ),
       DESCRIPTION
       (
-        "See agendas.cc.\n"
+        "Agenda performing a for loop.\n"
        ),
       GROUP( "Agenda" )));
   
@@ -1502,7 +1480,7 @@ void Workspace::define_wsv_data()
      ( NAME( "fos_iyin_za_angles" ),
        DESCRIPTION
        (
-        "So far just testing of FOS ..."
+        "So far just testing of FOS ...\n"
         ),
         GROUP( "Vector" )));
 
@@ -1511,7 +1489,7 @@ void Workspace::define_wsv_data()
      ( NAME( "fos_scatint_angles" ),
        DESCRIPTION
        (
-        "So far just testing of FOS ..."
+        "So far just testing of FOS ...\n"
         ),
         GROUP( "Matrix" )));
 
@@ -1594,15 +1572,6 @@ void Workspace::define_wsv_data()
        ),
       GROUP( "Vector" )));
 
- wsv_data.push_back
-   (WsvRecord
-    ( NAME( "geo_pos_agenda" ),
-      DESCRIPTION
-      (
-        "See agendas.cc.\n"
-       ),
-      GROUP( "Agenda" )));
-
   wsv_data.push_back
     (WsvRecord
      (NAME( "g0" ),
@@ -1620,9 +1589,18 @@ void Workspace::define_wsv_data()
      ( NAME( "g0_agenda" ),
        DESCRIPTION
        (
-        "See agendas.cc.\n"
+        "Agenda providing the gravity constant.\n"
         ),
        GROUP( "Agenda" )));
+
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "geo_pos_agenda" ),
+      DESCRIPTION
+      (
+        "Agenda deriving the geo-position of a pencil beam calculation.\n"
+       ),
+      GROUP( "Agenda" )));
 
     wsv_data.push_back
     (WsvRecord
@@ -1749,7 +1727,7 @@ void Workspace::define_wsv_data()
      ( NAME( "iy_cloudbox_agenda" ),
        DESCRIPTION
        (
-        "See agendas.cc.\n"
+        "Agenda deriving the intensity at boundary or interior of the cloudbox.\n"
         ),
        GROUP( "Agenda" )));
 
@@ -1758,7 +1736,7 @@ void Workspace::define_wsv_data()
      ( NAME( "iy_main_agenda" ),
        DESCRIPTION
        (
-        "See agendas.cc.\n"
+        "Agenda calculating the single monochromatic pencil beam spectrum.\n"
         ),
        GROUP( "Agenda" )));
 
@@ -1767,7 +1745,7 @@ void Workspace::define_wsv_data()
      ( NAME( "iy_space_agenda" ),
        DESCRIPTION
        (
-        "See agendas.cc.\n"
+        "Agenda providing the downwelling radiation at the top of the atmosphere.\n"
         ),
        GROUP( "Agenda" )));
 
@@ -1776,7 +1754,7 @@ void Workspace::define_wsv_data()
      ( NAME( "iy_sub_agenda" ),
        DESCRIPTION
        (
-        "See agendas.cc.\n"
+        "Sub-agenda to *iy_main_agenda*.\n"
         ),
        GROUP( "Agenda" )));
 
@@ -1785,7 +1763,7 @@ void Workspace::define_wsv_data()
      ( NAME( "iy_surface_agenda" ),
        DESCRIPTION
        (
-        "See agendas.cc.\n"
+        "Agenda providing the upwelling radiation from the surface.\n"
         ),
        GROUP( "Agenda" )));
 
@@ -1794,7 +1772,7 @@ void Workspace::define_wsv_data()
      ( NAME( "iy_surface_sub_agenda0" ),
       DESCRIPTION
       (
-       "See agendas.cc.\n"
+       "Agenda for radiative properties of surface type 0.\n"
        ),
       GROUP( "Agenda" )));
     
@@ -1803,7 +1781,7 @@ void Workspace::define_wsv_data()
      ( NAME( "iy_surface_sub_agenda1" ),
       DESCRIPTION
       (
-       "See agendas.cc.\n"
+       "Agenda for radiative properties of surface type 1.\n"
        ),
       GROUP( "Agenda" )));
     
@@ -1812,7 +1790,7 @@ void Workspace::define_wsv_data()
      ( NAME( "iy_surface_sub_agenda2" ),
       DESCRIPTION
       (
-       "See agendas.cc.\n"
+       "Agenda for radiative properties of surface type 2.\n"
        ),
       GROUP( "Agenda" )));
     
@@ -1821,7 +1799,7 @@ void Workspace::define_wsv_data()
      ( NAME( "iy_surface_sub_agenda3" ),
       DESCRIPTION
       (
-       "See agendas.cc.\n"
+       "Agenda for radiative properties of surface type 3.\n"
        ),
       GROUP( "Agenda" )));
     
@@ -1830,7 +1808,7 @@ void Workspace::define_wsv_data()
      ( NAME( "iy_surface_sub_agenda4" ),
       DESCRIPTION
       (
-       "See agendas.cc.\n"
+       "Agenda for radiative properties of surface type 4.\n"
        ),
       GROUP( "Agenda" )));
     
@@ -1839,7 +1817,7 @@ void Workspace::define_wsv_data()
      ( NAME( "iy_surface_sub_agenda5" ),
       DESCRIPTION
       (
-       "See agendas.cc.\n"
+       "Agenda for radiative properties of surface type 5.\n"
        ),
       GROUP( "Agenda" )));
     
@@ -1871,7 +1849,7 @@ void Workspace::define_wsv_data()
      ( NAME( "iy_transmitter_agenda" ),
        DESCRIPTION
        (
-        "See agendas.cc.\n"
+        "Agenda providing a transmitter signal.\n"
         ),
        GROUP( "Agenda" )));
 
@@ -1915,7 +1893,7 @@ void Workspace::define_wsv_data()
     ( NAME( "jacobian_agenda" ),
       DESCRIPTION
       (
-        "See agendas.cc.\n"
+        "Pure numerical Jacobian calculation agenda.\n"
        ),
       GROUP( "Agenda" )));
 
@@ -1937,7 +1915,7 @@ void Workspace::define_wsv_data()
     ( NAME( "jacobian_indices" ),
       DESCRIPTION
       (
-       "First and last column index in *jacobian* for each retrieval quantity."
+       "First and last column index in *jacobian* for each retrieval quantity.\n"
        "\n"
        "This variable tells which part of *jacobian* that corresponds to \n"
        "each jacobian quantity.\n"
@@ -2249,7 +2227,7 @@ void Workspace::define_wsv_data()
     ( NAME( "main_agenda" ),
       DESCRIPTION
       (
-        "See agendas.cc.\n"
+        "Agenda corresponding to the entire controlfile.\n"
        ),
       GROUP( "Agenda" )));
    
@@ -2452,7 +2430,7 @@ void Workspace::define_wsv_data()
        "The antenna beam width for meteorological millimeter instruments.\n"
        "\n"
        "This Vector must match the number and order of channels in\n"
-       "*met_mm_backend*."
+       "*met_mm_backend*.\n"
        "\n"
        "Usage: Set by the user.\n"
        "\n"
@@ -2533,7 +2511,7 @@ void Workspace::define_wsv_data()
     ( NAME( "met_profile_calc_agenda" ),
       DESCRIPTION
       (
-        "See agendas.cc.\n"
+        "Agenda for metoffice profile calculations.\n"
        ),
       GROUP( "Agenda" )));
 
@@ -2628,7 +2606,8 @@ void Workspace::define_wsv_data()
     ( NAME( "opt_prop_part_agenda" ),
       DESCRIPTION
       (
-        "See agendas.cc.\n"
+        "Agenda calculating the optical properties of scattering elements at\n"
+        "a given atmospheric grid point.\n"
        ),
       GROUP( "Agenda" )));
 
@@ -2729,7 +2708,7 @@ void Workspace::define_wsv_data()
     ( NAME( "pha_mat_spt_agenda" ),
       DESCRIPTION
       (
-        "See agendas.cc.\n"
+        "Agenda calculates the phase matrix for individual scattering elements.\n"
        ),
       GROUP( "Agenda" ))); 
 
@@ -2856,7 +2835,7 @@ void Workspace::define_wsv_data()
     ( NAME( "ppath_agenda" ),
       DESCRIPTION
       (
-        "See agendas.cc.\n"
+        "Agenda calculating complete propagation paths.\n"
        ),
       GROUP( "Agenda" )));
 
@@ -2928,7 +2907,7 @@ void Workspace::define_wsv_data()
     ( NAME( "ppath_step_agenda" ),
       DESCRIPTION
       (
-        "See agendas.cc.\n"
+        "Agenda calculating a propagation path step.\n"
        ),
       GROUP( "Agenda" )));
 
@@ -2956,7 +2935,7 @@ void Workspace::define_wsv_data()
     ( NAME( "propmat_clearsky_agenda" ),
       DESCRIPTION
       (
-        "See agendas.cc.\n"
+        "Agenda calculating the absorption coefficient matrices.\n"
        ),
       GROUP( "Agenda" )));
 
@@ -3073,7 +3052,7 @@ void Workspace::define_wsv_data()
     ( NAME( "refr_index_air_agenda" ),
       DESCRIPTION
       (
-        "See agendas.cc.\n"
+        "Agenda calculating the refractive index of air.\n"
        ),
       GROUP( "Agenda" )));
 
@@ -3389,7 +3368,7 @@ void Workspace::define_wsv_data()
          "scattering species. *scat_data* entries can be derived from\n"
          "precalculated data files using the methods *ParticleTypeAdd*,\n"
          "*ParticleTypeAddAll*, or *ScatteringParticleTypeAndMetaRead* or\n" 
-         "can be calculated using *scat_data_singleTmatrix*."
+         "can be calculated using *scat_data_singleTmatrix*.\n"
          "\n"
          "This may be used in combination with *scat_meta*\n"
          "\n"
@@ -3584,7 +3563,7 @@ void Workspace::define_wsv_data()
          "\n"
          "Dimensions: [scattering species][scattering elements]"
          "\n"
-         "For more details, see also *scat_meta_single*."
+         "For more details, see also *scat_meta_single*.\n"
         ),
         GROUP( "ArrayOfArrayOfScatteringMetaData" ))); 
 
@@ -3957,7 +3936,7 @@ void Workspace::define_wsv_data()
     ( NAME( "sensor_response_agenda" ),
       DESCRIPTION
       (
-        "See agendas.cc.\n"
+        "Agenda providing the sensor response data for a measurement block.\n"
        ),
       GROUP( "Agenda" )));
 
@@ -4194,7 +4173,7 @@ void Workspace::define_wsv_data()
     ( NAME( "spt_calc_agenda" ),
       DESCRIPTION
       (
-        "See agendas.cc.\n"
+        "Agenda calculating single scattering properties from the amplitude matrix.\n"
        ),
       GROUP( "Agenda" )));
 
@@ -4328,7 +4307,7 @@ void Workspace::define_wsv_data()
         "See specific methods generating *surface_rmatrix* and the user guide\n"
         "for more information.\n"
         "\n"
-        "Usage:      Input to methods for *surface_rtprop_agenda*."
+        "Usage:      Input to methods for *surface_rtprop_agenda*.\n"
         "\n"
         "Units:      -\n"
         "\n"
@@ -4341,7 +4320,7 @@ void Workspace::define_wsv_data()
      ( NAME( "surface_rtprop_agenda" ),
        DESCRIPTION
        (
-        "See agendas.cc.\n"
+        "Agenda providing radiative properties of the surface.\n"
         ),
        GROUP( "Agenda" )));
   
@@ -4350,7 +4329,7 @@ void Workspace::define_wsv_data()
      ( NAME( "surface_rtprop_sub_agenda0" ),
        DESCRIPTION
        (
-        "See agendas.cc.\n"
+        "Agenda providing radiative properties of surface type 0.\n"
         ),
        GROUP( "Agenda" )));
   
@@ -4359,7 +4338,7 @@ void Workspace::define_wsv_data()
      ( NAME( "surface_rtprop_sub_agenda1" ),
        DESCRIPTION
        (
-        "See agendas.cc.\n"
+        "Agenda providing radiative properties of surface type 1.\n"
         ),
        GROUP( "Agenda" )));
   
@@ -4368,7 +4347,7 @@ void Workspace::define_wsv_data()
      ( NAME( "surface_rtprop_sub_agenda2" ),
        DESCRIPTION
        (
-        "See agendas.cc.\n"
+        "Agenda providing radiative properties of surface type 2.\n"
         ),
        GROUP( "Agenda" )));
   
@@ -4377,7 +4356,7 @@ void Workspace::define_wsv_data()
      ( NAME( "surface_rtprop_sub_agenda3" ),
        DESCRIPTION
        (
-        "See agendas.cc.\n"
+        "Agenda providing radiative properties of surface type 3.\n"
         ),
        GROUP( "Agenda" )));
   
@@ -4386,7 +4365,7 @@ void Workspace::define_wsv_data()
      ( NAME( "surface_rtprop_sub_agenda4" ),
        DESCRIPTION
        (
-        "See agendas.cc.\n"
+        "Agenda providing radiative properties of surface type 4.\n"
         ),
        GROUP( "Agenda" )));
   
@@ -4395,7 +4374,7 @@ void Workspace::define_wsv_data()
      ( NAME( "surface_rtprop_sub_agenda5" ),
        DESCRIPTION
        (
-        "See agendas.cc.\n"
+        "Agenda providing radiative properties of surface type 5.\n"
         ),
        GROUP( "Agenda" )));
   
@@ -4517,7 +4496,7 @@ void Workspace::define_wsv_data()
     ( NAME( "test_agenda" ),
      DESCRIPTION
      (
-      "See agendas.cc.\n"
+      "A dummy agenda for testing purposes.\n"
      ),
      GROUP( "Agenda" )));
   
@@ -5015,7 +4994,7 @@ void Workspace::define_wsv_data()
     ( NAME( "ybatch_calc_agenda" ),
       DESCRIPTION
       (
-        "See agendas.cc.\n"
+        "Agenda defining the calculations to perform for each batch case.\n"
        ),
       GROUP( "Agenda" )));
 

@@ -1,6 +1,35 @@
+2015-02-24  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-3-161
+
+	* src/m_doit.cc
+	(doit_i_fieldSetFromPrecalcdoit_i_field): WSM and GIN name adapted.
+	Added doit_i_field as input, since we also need the incoming clearsky
+	here (previously provided by scat_i_p; now this info is directly put
+	into doit_i_field by DoitGetIncoming).
+
+	(DoitInit): Removed obsolete initialization variables.
+
+	* src/methods.cc: Adapted to changes above. Removed any	references to
+	doit_i_field1D_spectrum.
+
+	* src/workspace.cc: Removed doit_i_field1D_spectrum. Added docstring to
+	all agenda definitions (refering to agendas.cc in online-doc is ugly.
+	the general user shouldn't be pointed to source code.).
+
+	* src/agendas.cc: Spell fixes.
+
+	* controlfiles/artscomponents/doit/TestDOITprecalcInit.arts:
+	Adapted to doit_i_fieldSetFrom* changes above.
+
+	* doc/uguide/refr_index_theory.tex, absorption.tex:
+	Minor bug and spell fixes.
+
+	* doc/uguide/references.bib: Missing reference added.
+
 2015-02-23  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
-        * arts-2-3-160
+	* arts-2-3-160
 
 	* src/sensor.cc (met_mm_polarisation_hmatrix): MARSS is now art
 	least formally handled. Polarisation part needs to be confirmed.
@@ -14,13 +43,13 @@
 
 2015-02-20  Bengt Rydberg  <bengt.rydberg@molflow.com>
 
-        * arts-2-3-159
+	* arts-2-3-159
 
-        * controlfiles/instruments/metmm/sensor_descriptions/sensor_ismar.arts:
-         updated
+	* controlfiles/instruments/metmm/sensor_descriptions/sensor_ismar.arts:
+	updated
 
-        * controlfiles/instruments/metmm/sensor_descriptions/sensor_marss.arts:
-         updated
+	* controlfiles/instruments/metmm/sensor_descriptions/sensor_marss.arts:
+	updated
 
 2015-02-19  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
