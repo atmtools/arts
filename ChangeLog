@@ -1,3 +1,28 @@
+2015-02-24  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-162
+
+	* The documentation of ARTS is inconsistent on the definition of
+	the V Stokes element. Ch 5 seems to deviate here. AUG and the
+	ARTS-2 paper seems to be consistent with Mishchenko et al. [2002].
+	This reviewed together with Richard.
+
+	This confusion had slipped into the definition given for
+	sensor_pol and the associated stokes2pol internal function, and
+	then also affecting MetMM.
+
+	* CHANGES-2.3: Added comment on this commit.
+
+	* doc/uguide/polarization.tex: Added text in two places, warning
+	about the confusion around the V element.
+
+	* src/sensor.cc (stokes2pol): Changed place on LHC and RHC.
+
+	(met_mm_polarisation_hmatrix): Same here.
+
+	* src/workspace.cc: Changed place of LHC and RHC in description of
+	sensor_pol.
+
 2015-02-24  Jana Mendrok  <jana.mendrok@ltu.se>
 
 	* arts-2-3-161

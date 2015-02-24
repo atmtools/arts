@@ -748,9 +748,9 @@ void met_mm_polarisation_hmatrix(Sparse& H,
         { ipv = 4; }
         else if( pol[i] == "H" )
         { ipv = 5; }
-        else if( pol[i] == "RHC" )  // Right hand circular
-        { ipv = 8; }
         else if( pol[i] == "LHC" )  // Left hand circular
+        { ipv = 8; }
+        else if( pol[i] == "RHC" )  // Right hand circular
         { ipv = 9; }
         else
         { assert( 0 ); }
@@ -1401,8 +1401,8 @@ void stokes2pol(
   s2p[5] = MakeVector( nv, -nv );         // Ih
   s2p[6] = MakeVector( nv, 0, nv );       // I+45
   s2p[7] = MakeVector( nv, 0, -nv );      // I-45
-  s2p[8] = MakeVector( nv, 0, 0, nv );    // Irhc
-  s2p[9] = MakeVector( nv, 0, 0, -nv );   // Ilhc
+  s2p[8] = MakeVector( nv, 0, 0, nv );    // Ilhc
+  s2p[9] = MakeVector( nv, 0, 0, -nv );   // Irhc
 }
 
 

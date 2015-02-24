@@ -35,14 +35,18 @@
 \newcommand{\mi}  {\ensuremath{\mathrm{i}}}
 
 
-The present version of ARTS implements the radiative transfer equation
-in tensor form, i.e., for the 4 components of the Stokes vector, not
-just for its first component, the intensity or radiance.
-This means that the model can include polarisation dependence in
-absorption or scattering processes.
-It is therefore necessary to give some details on the polarisation of
-radiation, the definition of
-the Stokes parameters, and the definition of antenna polarisation.
+The present version of ARTS implements the radiative transfer equation in
+tensor form, i.e., for the 4 components of the Stokes vector, not just for its
+first component, the intensity or radiance. This means that the model can
+include polarisation dependence in absorption or scattering processes. It is
+therefore necessary to give some details on the polarisation of radiation, the
+definition of the Stokes parameters, and the definition of antenna
+polarisation.\\
+
+\noindent {\color{red} This section could need to be revised. At least there is
+  an inconsisteny regarding the V-element between this section and what is
+  written elsewhere. In this section V is said to be righ-hand minus left-hand
+  circular polarisation, while elsewehere it is the opposite.}
 
 
 \section{Polarisation directions}
@@ -678,6 +682,10 @@ left-circular& $I$ &   0     &    0   &  $-I$ \\ \hline
 \end{tabular}
 \end{center}
 
+\noindent {\color{red} As mentioned, this deviates from what is written
+  elsewhere. In other parts V is defined as to be left-hand minus right-hand
+  circular polarisation, which appears to be consistent with \citet{Mishchenko:02},
+  see their page 23.}
 
 
 \section{Partial polarisation}

@@ -25,7 +25,7 @@ General
   complete in-cloudbox field instead of (or in addition to) deriving it from
   clearsky incoming radiation.
 
-- *Create WSMs are not allowed to be called inside Agendas anymore. Avoids
+- Create WSMs are not allowed to be called inside Agendas anymore. Avoids
   confusion because variables are always global indendent of where they are
   created.
 
@@ -33,6 +33,12 @@ General
 
 - WSM doit_i_fieldSetFromdoit_i_field1D_spectrum now takes a generic Tensor7
   (stored doit_i_field) instead of the remove WSV doit_i_field1D_spectrum.
+
+- Polarisation index coding of left- and right hand circular polarisation
+  changed. See on-line doc of sensor_pol for present coding. Before the wrong
+  polarisation nwas obtained when using the sensor part to extract the V Stokes
+  element.
+
 
 NAME CHANGES-2.3
 ================
