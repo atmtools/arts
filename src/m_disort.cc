@@ -99,6 +99,16 @@ void DisortCalc(Workspace& ws,
                       const Verbosity& verbosity)
 {
   CREATE_OUT1;
+  CREATE_OUT0;
+
+    std::ostringstream warn;
+  warn << "  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
+  warn << "  WARNING: Disort should currently not be used!\n";
+  warn << "           This method exists for development purposes only and will\n";
+  warn << "           give wrong results\n";
+  warn << "  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
+
+    out0 << warn.str();
 
   if( atmfields_checked != 1 )
     throw runtime_error( "The atmospheric fields must be flagged to have "
@@ -328,8 +338,12 @@ void DisortCalc(Workspace& ws,
         }
     }
   delete [] prnt;
-    
-#else
+
+  out0 << warn.str();
+}
+
+#else /* ENABLE_DISORT */
+
 void DisortCalc(Workspace&,
                       // WS Output:
                       Tensor7&,
@@ -356,9 +370,8 @@ void DisortCalc(Workspace&,
                       const Verbosity&)
 {
   throw runtime_error ("This version of ARTS was compiled without DISORT support.");
-#endif /* ENABLE_DISORT */
-  
 }
+#endif /* ENABLE_DISORT */
 
 
  
