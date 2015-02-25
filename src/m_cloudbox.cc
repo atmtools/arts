@@ -61,6 +61,8 @@
 #include "math_funcs.h"
 #include "physics_funcs.h"
 #include "sorting.h"
+#include "file.h"
+#include "parameters.h"
 
 extern const Index GFIELD3_P_GRID;
 extern const Index GFIELD3_LAT_GRID;
@@ -827,7 +829,9 @@ void ScatteringParticleTypeAndMetaRead (//WS Output:
                                         const Verbosity& verbosity)
 {
   CREATE_OUT3;
-  
+
+  extern Parameters parameters;
+
   //--- Reading the data ---------------------------------------------------
   ArrayOfString data_files;
   ArrayOfString meta_data_files;
@@ -837,35 +841,71 @@ void ScatteringParticleTypeAndMetaRead (//WS Output:
 
   // single scattering data read to temporary ArrayOfSingleScatteringData
   xml_read_from_file ( filename_scat_data, data_files, verbosity );
-  arr_ssd.resize ( data_files.nelem() );
 
-  for ( Index i = 0; i<data_files.nelem(); i++ )
-  {
-    out3 << "  Read single scattering data\n";
-    xml_read_from_file ( data_files[i], arr_ssd[i], verbosity );
+  String fullpath;
+  String datadir;
 
-    chk_scat_data ( arr_ssd[i],
-                                 data_files[i], f_grid,
-                                 verbosity );
+  // The reading has to be in a critical region to avoid possible side effects
+  // because we are temporarily modifying the global data search path
+#pragma omp critical (ScatteringParticleTypeAndMetaRead)
+    {
+        // Temporarily add the location of filename_scat_data to the data search path to
+        // enable relative paths
+        fullpath = filename_scat_data;
+        find_xml_file(fullpath, verbosity);
+        get_dirname(datadir, fullpath);
+        if (datadir.nelem())
+            parameters.datapath.push_back (datadir);
 
-  }
+        arr_ssd.resize ( data_files.nelem() );
 
-  // scattering meta data read to temporary ArrayOfScatteringMetaData
-  xml_read_from_file ( filename_scat_meta_data, meta_data_files, verbosity );
-  arr_smd.resize ( meta_data_files.nelem() );
+        for ( Index i = 0; i<data_files.nelem(); i++ )
+        {
+            out3 << "  Read single scattering data\n";
+            xml_read_from_file ( data_files[i], arr_ssd[i], verbosity );
 
-  for ( Index i = 0; i<meta_data_files.nelem(); i++ )
-  {
+            chk_scat_data ( arr_ssd[i],
+                           data_files[i], f_grid,
+                           verbosity );
 
-    out3 << "  Read scattering meta data\n";
-    xml_read_from_file ( meta_data_files[i], arr_smd[i], verbosity );
+        }
 
-    //FIXME: currently nothing is done in chk_scattering_meta_data!
-    chk_scattering_meta_data ( arr_smd[i],
-                               meta_data_files[i], verbosity );
+        // Remove filename_scat_data location from search path again
+        if (datadir.nelem())
+            parameters.datapath.pop_back();
 
-  }
-  
+        // scattering meta data read to temporary ArrayOfScatteringMetaData
+        xml_read_from_file ( filename_scat_meta_data, meta_data_files, verbosity );
+
+        // Temporarily add the location of filename_scat_meta_data to the data search path to
+        // enable relative paths
+        fullpath = filename_scat_meta_data;
+        find_xml_file(fullpath, verbosity);
+        get_dirname(datadir, fullpath);
+
+        if (datadir.nelem())
+            parameters.datapath.push_back (datadir);
+
+        arr_smd.resize ( meta_data_files.nelem() );
+
+        for ( Index i = 0; i<meta_data_files.nelem(); i++ )
+        {
+
+            out3 << "  Read scattering meta data\n";
+            xml_read_from_file ( meta_data_files[i], arr_smd[i], verbosity );
+            
+            //FIXME: currently nothing is done in chk_scattering_meta_data!
+            chk_scattering_meta_data ( arr_smd[i],
+                                      meta_data_files[i], verbosity );
+            
+        }
+        
+        // Remove scat meta data from search path again
+        if (datadir.nelem())
+            parameters.datapath.pop_back();
+        
+    } // pragma omp critical
+
   // check if arrays have same size
   chk_scattering_data ( arr_ssd,
                         arr_smd, verbosity );
