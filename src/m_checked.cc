@@ -348,8 +348,9 @@ void cloudbox_checkedCalc(
    const ArrayOfIndex&   cloudbox_limits,
    const Tensor4&        pnd_field,
    const ArrayOfArrayOfSingleScatteringData& scat_data,
-   const Matrix&         particle_masses,
+   const ArrayOfString&  scat_species,
    const ArrayOfArrayOfSpeciesTag& abs_species,
+   const Matrix&         particle_masses,
    const Verbosity&)
 {
   // Demanded space between cloudbox and lat and lon edges [degrees]
@@ -511,7 +512,22 @@ void cloudbox_checkedCalc(
             }
         }
 
-      // pnd_field
+      // Check consistency of scat_species and scat_data (only if scat_species
+      // is set at all, i.e., only for cases were pnd_fields have been calculated
+      // from hydrometeor fields)
+      if( scat_species.nelem()>0 )
+        // here we have scat_species defined at all
+        if( scat_species.nelem() != scat_data.nelem() )
+          {
+            ostringstream os;
+            os << "Number of scattering species specified by scat_species does\n"
+               << "not agree with number of scattering species in scat_data:\n"
+               << "scat_species has " << scat_species.nelem()
+               << " entries, while scat_data has " << scat_data.nelem() << ".";
+            throw runtime_error ( os.str() );
+          }
+
+      // Check pnd_field
       //
       const Index np = TotalNumberOfElements(scat_data);
       // Dummy variables to mimic grids of correct size

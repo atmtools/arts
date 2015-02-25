@@ -934,8 +934,9 @@ void ScatteringParticlesSelect (//WS Output:
   if ( nspecies != scat_data.nelem() || nspecies != scat_meta.nelem() )
     {
       ostringstream os;
-      os << "Number of scattering species as specified by scat_species does\n"
-         << "not agree that contained in scat_data or scat_meta:\n"
+      os << "Number of scattering species specified by scat_species does\n"
+         << "not agree with number of scattering species in\n"
+         << "scat_data or scat_meta:\n"
          << "scat_species has " << nspecies << " entries, while scat_data has "
          << scat_data.nelem() << " and scat_meta has " << scat_meta.nelem()
          << ".";
@@ -1053,7 +1054,7 @@ void particle_massesFromMetaDataSingleCategory(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void particle_massesFromMetaDataAndScat_species
+void particle_massesFromMetaData
                         (//WS Output:
                          Matrix& particle_masses,
                          // WS Input:
@@ -1403,6 +1404,17 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
     out0 << "  Cloudbox is off, pnd_field is set to empty.\n";
     return;
   }
+
+  // Check consistency of scat_species and scat_data
+  if ( scat_species.nelem() != scat_meta.nelem() )
+    {
+      ostringstream os;
+      os << "Number of scattering species specified by scat_species does\n"
+         << "not agree with number of scattering species in scat_meta:\n"
+         << "scat_species has " << scat_species.nelem()
+         << " entries, while scat_meta has " << scat_meta.nelem() << ".";
+      throw runtime_error ( os.str() );
+    }
 
   // ------- set pnd_field boundaries to cloudbox boundaries -------------------
   //set pnd_field boundaries

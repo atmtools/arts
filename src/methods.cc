@@ -3127,8 +3127,8 @@ void define_md_data_raw()
          "Checks consistency between cloudbox and scattering element variables.\n"
          "\n"
          "The following WSVs are treated: *cloudbox_on*, *cloudbox_limits*,\n"
-         "*pnd_field*, *scat_data*, *particle_masses* and\n"
-         "wind_u/v/w_field.\n"
+         "*pnd_field*, *scat_data*, *scat_species*, *abs_species*,\n"
+         "*particle_masses* and wind_u/v/w_field.\n"
          "\n"
          "If any of these variables is changed, then this method shall be\n"
          "called again (no automatic check that this is fulfilled!).\n"
@@ -3149,8 +3149,9 @@ void define_md_data_raw()
         IN( "atmfields_checked", "atmosphere_dim", "p_grid", "lat_grid", 
             "lon_grid", "z_field", "z_surface",
             "wind_u_field", "wind_v_field", "wind_w_field", 
-            "cloudbox_on", "cloudbox_limits", "pnd_field", "scat_data",
-            "particle_masses", "abs_species" ),
+            "cloudbox_on", "cloudbox_limits", "pnd_field",
+            "scat_data", "scat_species",
+            "abs_species", "particle_masses" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -8150,7 +8151,7 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "particle_massesFromMetaDataAndScat_species" ),
+      ( NAME( "particle_massesFromMetaData" ),
         DESCRIPTION
         (
          "Derives *particle_masses* from *scat_meta*.\n"
@@ -8161,10 +8162,10 @@ void define_md_data_raw()
          "from external sources using *ParticleTypeAdd* and\n"
          "*pnd_fieldCalcFrompnd_field_raw*).\n"
          "It extracts the mass information of the scattering elements from\n"
-         "*scat_meta*. Different entries in *scat_species* are taken as\n"
-         "different categories of particle_masses, i.e., the resulting\n"
-         "*particle_masses* matrix will contain as many columns as entries\n"
-         "exist in *scat_species*.\n"
+         "*scat_meta*. Each scattering species is taken as a separate\n"
+         "category of particle_masses, i.e., the resulting\n"
+         "*particle_masses* matrix will contain as many columns as\n"
+         "scattering species are present in *scat_meta*.\n"
          ),
         AUTHORS( "Jana Mendrok" ),
         OUT( "particle_masses" ),

@@ -1538,7 +1538,7 @@ void pnd_fieldF07TR (Tensor4View pnd_field,
         if ( isnan(scat_meta[scat_species][i].diameter_max) )
         {
             ostringstream os;
-            os << "Use of size distribution H11 (as requested for\n"
+            os << "Use of size distribution F07 (as requested for\n"
             << "scattering species #" << scat_species << ")\n"
             << "requires knowledge of scattering element maximum diameter.\n"
             << "But maximum diameter is not given for scattering elements #"
@@ -1557,7 +1557,7 @@ void pnd_fieldF07TR (Tensor4View pnd_field,
         if ( isnan(scat_meta[scat_species][intarr[i]].mass) )
         {
             ostringstream os;
-            os << "Use of size distribution H11 (as requested for\n"
+            os << "Use of size distribution F07 (as requested for\n"
             << "scattering species #" << scat_species << ")\n"
             << "requires knowledge of scattering element mass.\n"
             << "But mass is not given for scattering elements #"
@@ -1608,7 +1608,7 @@ void pnd_fieldF07TR (Tensor4View pnd_field,
                     if ( isnan(SWC_field ( p, lat, lon )) )
                     {
                         ostringstream os;
-                        os << "Size distribution H11 requires knowledge of mass "
+                        os << "Size distribution F07 requires knowledge of mass "
                         << "density of atmospheric ice.\n"
                         << "At grid point (" << p << ", " << lat << ", " << lon
                         << ") in (p,lat,lon) a NaN value is encountered, "
@@ -1717,7 +1717,7 @@ void pnd_fieldF07ML (Tensor4View pnd_field,
         if ( isnan(scat_meta[scat_species][i].diameter_max) )
         {
             ostringstream os;
-            os << "Use of size distribution H11 (as requested for\n"
+            os << "Use of size distribution F07 (as requested for\n"
             << "scattering species #" << scat_species << ")\n"
             << "requires knowledge of scattering element maximum diameter.\n"
             << "But maximum diameter is not given for scattering elements #"
@@ -1736,7 +1736,7 @@ void pnd_fieldF07ML (Tensor4View pnd_field,
         if ( isnan(scat_meta[scat_species][intarr[i]].mass) )
         {
             ostringstream os;
-            os << "Use of size distribution H11 (as requested for\n"
+            os << "Use of size distribution F07 (as requested for\n"
             << "scattering species #" << scat_species << ")\n"
             << "requires knowledge of scattering element mass.\n"
             << "But mass is not given for scattering elements #"
@@ -1787,7 +1787,7 @@ void pnd_fieldF07ML (Tensor4View pnd_field,
                     if ( isnan(SWC_field ( p, lat, lon )) )
                     {
                         ostringstream os;
-                        os << "Size distribution H11 requires knowledge of mass "
+                        os << "Size distribution F07 requires knowledge of mass "
                         << "density of atmospheric ice.\n"
                         << "At grid point (" << p << ", " << lat << ", " << lon
                         << ") in (p,lat,lon) a NaN value is encountered, "
@@ -2074,9 +2074,9 @@ void pnd_fieldMGD_LWC (Tensor4View pnd_field,
     if (delta_rho >= 0.1)
     {
         ostringstream os;
-        os << "MGD_IWC is valid only for particles with the same\n"
+        os << "MGD_LWC is valid only for particles with the same or\n"
         "at least almost the same density. The difference between\n"
-        " maximum and minimum density must be lower than 10 percent.\n"
+        "maximum and minimum density must be lower than 10 percent.\n"
         "Your difference is  " << delta_rho << ".\n"
         "Check your scattering particles";
         throw runtime_error( os.str() );
@@ -2204,7 +2204,7 @@ void pnd_fieldMGD_IWC (Tensor4View pnd_field,
         if ( isnan(scat_meta[scat_species][i].diameter_max) )
         {
             ostringstream os;
-            os << "Use of size distribution MGD_WC (as requested for\n"
+            os << "Use of size distribution MGD_IWC (as requested for\n"
             << "scattering species #" << scat_species << ")\n"
             << "requires knowledge of scattering element volume equivalent diameter.\n"
             << "But volume equivalent diameter is not given for scattering elements #"
@@ -2640,7 +2640,7 @@ void pnd_fieldH98 (Tensor4View pnd_field,
             if ( isnan(LWC_field ( p, lat, lon )) )
               {
                 ostringstream os;
-                os << "Size distribution H98_STCO requires knowledge of mass "
+                os << "Size distribution H98 requires knowledge of mass "
                    << "density of atmospheric liquid water.\n"
                    << "At grid point (" << p << ", " << lat << ", " << lon
                    << ") in (p,lat,lon) a NaN value is encountered, "

@@ -1626,8 +1626,8 @@ void DoitInit(//WS Output
                           );
     }
   
-  doit_i_field = 0.;
-  doit_scat_field = 0.;
+  doit_i_field = NAN;
+  doit_scat_field = NAN;
   doit_is_initialized = 1;
 }
 

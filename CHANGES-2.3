@@ -4,7 +4,7 @@ Key features
 
 General
 =======
-- new format of scattering meta data (see online doc of scat_meta_single)
+- New format of scattering meta data (see online doc of scat_meta_single).
 
 - Cleaner separation of scattering data of the different scattering species:
   scat_data and scat_meta now organized as ArrayOfArrayOfSingleScattering/MetaData
@@ -15,15 +15,25 @@ General
   sorting scattering data into ArrayOfArray...). Size range selection changed to
   diameter based selection instead of radius based.
 
-- default input format for compact batch atmospheres changed from ArrayOfMatrix
+- massdensity_field diversified into scat_species_mass_density_field,
+  scat_species_mass_flux_field, scat_species_number_density_field to allow for
+  multi-moment schemes.
+
+- Default input format for compact batch atmospheres changed from ArrayOfMatrix
   to ArrayOfGriddedField. Selection of fields from input data now purely on the
   basis of abs_species and scat_species definitions.
 
+- Changed tagging mechanism of field_names in
+  batch_atm_fields_compactFromArrayOfMatrix. Now absorption species and
+  scattering species related fields have to be marked as such. Scattering
+  species fields additionally require a tag to indicate the type of field (mass
+  density, mass flux, number density).
+
 - DoitInit required to be called before DoitGetIncoming.
 
-- Doit's first guess field now can be initialized with a (precalculated)
-  complete in-cloudbox field instead of (or in addition to) deriving it from
-  clearsky incoming radiation.
+- Doit's first guess field can now be initialized with a (precalculated)
+  complete in-cloudbox field providing an alternative to deriving it from
+  the clearsky fields.
 
 - Create WSMs are not allowed to be called inside Agendas anymore. Avoids
   confusion because variables are always global indendent of where they are
@@ -50,4 +60,9 @@ NAME CHANGES-2.3
 - scat_data_array -> scat_data
 - scat_meta_array -> scat_meta
 - CloudboxGetIncoming -> DoitGetIncoming
-
+- ScatteringDoit -> DoitCalc
+- doit_i_fieldSetFromdoit_i_field1D_spectrum -> doit_i_fieldSetFromPrecalcdoit_i_field
+- Massdensity_cleanup -> scat_species_fieldCleanup
+- pnd_fieldSetup -> pnd_fieldCalcFromscat_speciesFields
+- pnd_fieldCalc -> pnd_fieldCalcFrompnd_field_raw
+- particle_massesFromMetaDataAndScat_species -> particle_massesFromMetaData

@@ -1,3 +1,26 @@
+2015-02-25  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-3-165
+
+	* src/m_doit.cc (DoitInit): Initialize fields with NaN instead of 0.
+
+	* src/m_cloudbox.cc (particle_massesFromMetaData): Renamed from
+	particle_massesFromMetaDataAndScat_species as scat_species is not used
+	anymore.
+	(ScatteringParticlesSelect): Improved error message.
+
+	* src/cloudbox.cc (pnd_fieldXX): Corrected a couple of error messages.
+
+	* src/m_checked.cc (cloudbox_checkedCalc): Added consitency check of
+	scat_species and scat_data sizes. We can not just rely on
+	ScatteringParticlesSelect for that as ScatteringParticlesSelect is not
+	mandatory to execute.
+
+	* src/methods.cc: Adapted for changes of cloudbox_checkedCalc and
+	particle_massesFromMetaData.
+
+	* CHANGES-2.3: Updated.
+
 2015-02-25  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-164
