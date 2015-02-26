@@ -3065,12 +3065,10 @@ void iyInterpPolyCloudboxField(Matrix&         iy,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void doit_i_fieldSetFromPrecalcdoit_i_field(
-                             Tensor6& doit_i_field_mono,
-                             const Tensor7& doit_i_field,
+void doit_i_fieldSetFromPrecalc(
+                             Tensor7& doit_i_field,
                              const Vector& scat_za_grid,
                              const Vector& f_grid,
-                             const Index& f_index,
                              const Index& atmosphere_dim,
                              const Index& stokes_dim,
                              const ArrayOfIndex& cloudbox_limits,
@@ -3127,26 +3125,32 @@ void doit_i_fieldSetFromPrecalcdoit_i_field(
       throw runtime_error( os.str() );
     }
 
-  // copy initial guess data from doit_i_field_precalc to doit_i_field_mono
-  doit_i_field_mono(joker,0,0,joker,0,joker) =
-    doit_i_field_precalc(f_index,joker,0,0,joker,0,joker);
 
-  // now we also have to updated cloudbox incoming (!) field - this because
+  // We have to update cloudbox incoming (!) field - this is because
   // compared to our first guess initialization, the clearsky field around might
   // have changed.
-  // (0) find, which scat_za_grid entries describe upwelling, which downwelling
-  // radiation.
+
+  // Find which scat_za_grid entries describe upwelling, which downwelling radiation.
   Index first_upwell = 0;
   assert(scat_za_grid[0]<90.);
   assert(scat_za_grid[scat_za_grid.nelem()-1]>90.);
   while (scat_za_grid[first_upwell] < 90.)
     first_upwell++;
-  // (1) upwelling at lower boundary
-  doit_i_field_mono(0,0,0,Range(first_upwell,scat_za_grid.nelem()-first_upwell),0,joker) =
-    doit_i_field(f_index,0,0,0,Range(first_upwell,scat_za_grid.nelem()-first_upwell),0,joker);
-  // (2) downwelling at lower boundary
-  doit_i_field_mono(np-1,0,0,Range(0,first_upwell),0,joker) =
-    doit_i_field(f_index,doit_i_field.nvitrines()-1,0,0,Range(0,first_upwell),0,joker);
+
+  Range downwell(0, first_upwell);
+  Range upwell(first_upwell, scat_za_grid.nelem() - first_upwell);
+
+  // Copy only downwelling radiation at lower boundary from precalc field
+  doit_i_field          (joker, 0, 0, 0, downwell, 0, joker) =
+    doit_i_field_precalc(joker, 0, 0, 0, downwell, 0, joker);
+
+  // Copy only upwelling radiation at upper boundary from precalc field
+  doit_i_field          (joker, np-1, 0, 0, upwell, 0, joker) =
+    doit_i_field_precalc(joker, np-1, 0, 0, upwell, 0, joker);
+
+  // Copy everything inside the field
+  doit_i_field          (joker, Range(1, np-2), 0, 0, joker, 0, joker) =
+    doit_i_field_precalc(joker, Range(1, np-2), 0, 0, joker, 0, joker);
 }
 
 

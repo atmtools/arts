@@ -41,8 +41,8 @@ General
 
 - WSM DoitCloudboxFieldPut removed, not needed anymore.
 
-- WSM doit_i_fieldSetFromdoit_i_field1D_spectrum now takes a generic Tensor7
-  (stored doit_i_field) instead of the remove WSV doit_i_field1D_spectrum.
+- WSM doit_i_fieldSetFromPrecalc now takes a generic Tensor7
+  (stored doit_i_field) instead of the removed WSV doit_i_field1D_spectrum.
 
 - Polarisation index coding of left- and right hand circular polarisation
   changed. See on-line doc of sensor_pol for present coding. Before the wrong
@@ -61,7 +61,7 @@ NAME CHANGES-2.3
 - scat_meta_array -> scat_meta
 - CloudboxGetIncoming -> DoitGetIncoming
 - ScatteringDoit -> DoitCalc
-- doit_i_fieldSetFromdoit_i_field1D_spectrum -> doit_i_fieldSetFromPrecalcdoit_i_field
+- doit_i_fieldSetFromdoit_i_field1D_spectrum -> doit_i_fieldSetFromPrecalc
 - Massdensity_cleanup -> scat_species_fieldCleanup
 - pnd_fieldSetup -> pnd_fieldCalcFromscat_speciesFields
 - pnd_fieldCalc -> pnd_fieldCalcFrompnd_field_raw

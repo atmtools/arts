@@ -1,3 +1,21 @@
+2015-02-26  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-166
+
+	* src/m_doit.cc (doit_i_fieldSetFromPrecalc), src/methods.cc:
+
+	Adjusted function to operate the full doit_i_field instead of
+	doit_i_field_mono. The method must now be called directly after
+	DoitGetIncoming instead of inside the doit_mono_agenda.
+
+	Renamed from doit_i_fieldSetFromPrecalcdoit_i_field.
+
+	* controlfiles/artscomponents/doit/TestDOITprecalcInit.arts:
+
+	Initialize from precalculated field outside of doit_mono_agenda.
+
+	* CHANGES-2.3: Updated.
+
 2015-02-25  Jana Mendrok  <jana.mendrok@ltu.se>
 
 	* arts-2-3-165

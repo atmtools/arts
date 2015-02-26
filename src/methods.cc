@@ -3952,7 +3952,7 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "doit_i_fieldSetFromPrecalcdoit_i_field" ),
+      ( NAME( "doit_i_fieldSetFromPrecalc" ),
         DESCRIPTION
         (
          "Sets the initial cloudbox intensity field from a precalculated field.\n"
@@ -3967,12 +3967,11 @@ void define_md_data_raw()
          "clearsky incoming field as, e.g., calculated by *DoitGetIncoming*.\n"
          ),
         AUTHORS( "Jana Mendrok" ),
-        OUT( "doit_i_field_mono" ),
+        OUT( "doit_i_field" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "doit_i_field_mono", "doit_i_field", "scat_za_grid",
-            "f_grid", "f_index",
+        IN( "doit_i_field", "scat_za_grid", "f_grid",
             "atmosphere_dim", "stokes_dim", "cloudbox_limits" ),
         GIN( "doit_i_field_precalc" ),
         GIN_TYPE( "Tensor7" ),
