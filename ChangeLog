@@ -1,5 +1,22 @@
 2015-02-26  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-3-167
+
+	* src/m_doit.cc (doit_i_field_monoIterate), src/methods.cc:
+
+	Add check for NaNs in doit_i_field_mono to catch initialization errors.
+	Renamed from doit_i_fieldIterate.
+
+	* controlfiles/artscomponents/doit/TestDOITprecalcInit.arts,
+	controlfiles/artscomponents/doit/doit_setup.arts,
+	controlfiles/general/agendasDOIT.arts:
+
+	Updated for doit_i_field_monoIterate name change.
+
+	* CHANGES-2.3: Updated.
+
+2015-02-26  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-3-166
 
 	* src/m_doit.cc (doit_i_fieldSetFromPrecalc), src/methods.cc:

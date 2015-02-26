@@ -3920,7 +3920,7 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "doit_i_fieldIterate" ),
+      ( NAME( "doit_i_field_monoIterate" ),
         DESCRIPTION
         (
          "Iterative solution of the VRTE (DOIT method).\n"

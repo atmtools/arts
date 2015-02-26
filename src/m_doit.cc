@@ -539,14 +539,14 @@ void doit_conv_flagLsq(//WS Output:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void doit_i_fieldIterate(Workspace& ws,
-                         // WS Input and Output:
-                         Tensor6& doit_i_field_mono,
-                         // WS Input:  
-                         const Agenda& doit_scat_field_agenda,
-                         const Agenda& doit_rte_agenda,
-                         const Agenda& doit_conv_test_agenda,
-                         const Verbosity& verbosity)
+void doit_i_field_monoIterate(Workspace& ws,
+                              // WS Input and Output:
+                              Tensor6& doit_i_field_mono,
+                              // WS Input:
+                              const Agenda& doit_scat_field_agenda,
+                              const Agenda& doit_rte_agenda,
+                              const Agenda& doit_conv_test_agenda,
+                              const Verbosity& verbosity)
 {
   CREATE_OUT2;
   
@@ -554,8 +554,19 @@ void doit_i_fieldIterate(Workspace& ws,
   chk_not_empty( "doit_scat_field_agenda", doit_scat_field_agenda);
   chk_not_empty( "doit_rte_agenda", doit_rte_agenda);
   chk_not_empty( "doit_conv_test_agenda", doit_conv_test_agenda);
-  
-  //doit_i_field can not be checked here, because there is no way
+
+  for (Index v = 0; v < doit_i_field_mono.nvitrines(); v++)
+    for (Index s = 0; s < doit_i_field_mono.nshelves(); s++)
+      for (Index b = 0; b < doit_i_field_mono.nbooks(); b++)
+        for (Index p = 0; p < doit_i_field_mono.npages(); p++)
+          for (Index r = 0; r < doit_i_field_mono.nrows(); r++)
+            for (Index c = 0; c < doit_i_field_mono.ncols(); c++)
+              if (isnan(doit_i_field_mono(v, s, b, p, r, c)))
+                throw std::runtime_error(
+                  "*doit_i_field_mono* contains at least one NaN value.\n"
+                  "This indicates an improper initialization of *doit_i_field*.");
+
+  //doit_i_field_mono can not be further checked here, because there is no way
   //to find out the size without including a lot more interface 
   //variables
   //-----------End of checks-------------------------------------- 
