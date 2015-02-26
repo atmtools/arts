@@ -4129,7 +4129,7 @@ void define_md_data_raw()
             "surface_rtprop_agenda", "doit_za_interp" ),
         GIN( "normalize", "norm_error_threshold", "norm_debug" ),
         GIN_TYPE( "Index", "Numeric", "Index" ),
-        GIN_DEFAULT( "0", "0.05", "0" ),
+        GIN_DEFAULT( "1", "1.0", "0" ),
         GIN_DESC( "Apply normalization to scattered field.",
                   "Error threshold for scattered field correction factor.",
                   "Debugging flag. Set to 1 to output normalization factor to out0.")

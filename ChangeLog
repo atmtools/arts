@@ -1,5 +1,18 @@
 2015-02-26  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-3-169
+
+	* src/methods.cc:
+
+	Turn on normalize by default for doit_i_fieldUpdateSeq1D with a
+	threshold of 1.0.
+
+	* controlfiles/artscomponents/doitbatch/TestDOITBatch.ybatch.ref.xml:
+
+	Updated for slightly different results after turning on normalization.
+
+2015-02-26  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-3-168
 
 	* src/m_doit.cc (doit_i_fieldSetClearsky), src/methods.cc:
