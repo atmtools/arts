@@ -127,7 +127,7 @@ void define_agenda_data()
        (
         "Compute the convergence test.\n"
         "\n"
-        "The method *doit_i_fieldIterate* solves the VRTE iteratively."
+        "The method *doit_i_field_monoIterate* solves the VRTE iteratively."
         "This method requires \n"
         "a convergence test. The user can choose different convergence tests\n"
         "which are to be defined in this agenda.\n"
@@ -153,16 +153,14 @@ void define_agenda_data()
        "\n"
        "This agenda includes for example the following methods:\n"
        "   1. *DoitScatteringDataPrepare* \n"
-       "   2. *doit_i_fieldSetClearsky* \n"
-       "   3. *doit_i_fieldIterate*\n"
-       "   4. *DoitCloudboxFieldPut*\n"
+       "   2. *doit_i_field_monoIterate*\n"
        "\n"
        "The result of the agenda is the radiation field inside the \n"
        "cloudbox and on the cloudbox boundary, which can be used \n"
        "as radiative background for a clearsky radiative transfer \n"
        "calculation. \n"
        "\n"
-       "See the ArtsWiki page UsingArtsDoit and the online documentation\n"
+       "See the Arts online documentation\n"
        "for more information about the methods.\n"
         ),
        OUTPUT( "doit_i_field_mono" ),

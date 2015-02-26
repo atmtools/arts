@@ -18,8 +18,6 @@ AgendaSet( doit_mono_agenda ){
   # Alternative method:
   # no optimization of scattering angle grids (needs less memory):
   #scat_data_monoCalc
-  # Set first guess field:		
-  doit_i_fieldSetClearsky
   # Perform iterations: 1. scattering integral. 2. RT calculations with 
   # fixed scattering integral field, 3. convergence test 
   doit_i_field_monoIterate

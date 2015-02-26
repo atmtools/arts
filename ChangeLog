@@ -1,5 +1,50 @@
 2015-02-26  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-3-168
+
+	* src/m_doit.cc (doit_i_fieldSetClearsky), src/methods.cc:
+
+	(doit_i_fieldSetClearsky): Operate on the whole doit_i_field instead
+	of just doit_i_field_mono. This means it has to be called outside of
+	the doit_mono_agenda now, after DoitGetIncoming.
+
+	(doit_i_field_monoSetConst):
+
+	Renamed from doit_i_fieldSetConst. Although initialization should be
+	done now outside of the doit_mono_agenda, I left this method in because
+	it can be useful for testing.
+
+	(doit_i_fieldSetConst):
+
+	Added. Internally uses doit_i_field_monoSetConst to set the whole
+	doit_i_field.
+
+	* controlfiles/general/agendasDOIT.arts,
+	controlfiles/artscomponents/doit/doit_setup.arts,
+
+	Remove doit_i_fieldSetClearsky from doit_mono_agenda.
+
+	* controlfiles/artscomponents/doit/TestDOITFromIndividualFields.arts,
+	controlfiles/artscomponents/doit/doit_calc.arts,
+	controlfiles/artscomponents/doitbatch/TestDOITBatch.arts,
+	controlfiles/planetary_toolbox/demos/passive/DemoScat_DOIT_1D.arts:
+
+	Add doit_i_fieldSetClearsky.
+
+	* doc/uguide/scattering.tex, src/methods.cc:
+
+	Corrected remaining occurrences of doit_i_fieldIterate.
+
+	Updated documentation about Doit initialization. Corrected call order,
+	first DoitInit, then DoitGetIncoming. Moved doit_i_fieldSetClearsky
+	documentation to the initialization part.
+
+	* src/agendas.cc: Updated docs for doit_mono_agenda.
+
+	* CHANGES-2.3: Updated.
+
+2015-02-26  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-3-167
 
 	* src/m_doit.cc (doit_i_field_monoIterate), src/methods.cc:

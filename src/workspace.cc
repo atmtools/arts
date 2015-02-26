@@ -1172,7 +1172,7 @@ void Workspace::define_wsv_data()
        "Flag for the convergence test.\n"
        "\n"
        "This variable is initialized with 0 inside the method \n"
-       "*doit_i_fieldIterate*.\n"
+       "*doit_i_field_monoIterate*.\n"
        "If after an iteration the convergence test is fulfilled, 1 is \n"
        "assigned which means that the iteration is completed. \n"
        "\n"

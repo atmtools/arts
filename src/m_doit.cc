@@ -3166,8 +3166,7 @@ void doit_i_fieldSetFromPrecalc(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void doit_i_fieldSetClearsky(Tensor6& doit_i_field_mono,
-                             const Index& f_index,
+void doit_i_fieldSetClearsky(Tensor7& doit_i_field,
                              const Vector& p_grid,
                              const Vector& lat_grid,
                              const Vector& lon_grid,
@@ -3177,265 +3176,280 @@ void doit_i_fieldSetClearsky(Tensor6& doit_i_field_mono,
                              const Index& all_frequencies,
                              const Verbosity& verbosity)
 {
-  CREATE_OUT2;
-  
-  out2 << "  Interpolate boundary clearsky field to obtain the initial field.\n";
-  
-  // Initial field only needs to be calculated from clearsky field for the 
-  // first frequency. For the next frequencies the solution field from the 
-  // previous frequencies is used. 
-  if(atmosphere_dim == 1)
+    CREATE_OUT2;
+
+    out2 << "  Interpolate boundary clearsky field to obtain the initial field.\n";
+
+    // Initial field only needs to be calculated from clearsky field for the
+    // first frequency. For the next frequencies the solution field from the
+    // previous frequencies is used.
+    if(atmosphere_dim == 1)
     {
-       if(f_index == 0 || all_frequencies == true){
-         Index N_za = doit_i_field_mono.npages() ;
-         Index N_aa = doit_i_field_mono.nrows();
-         Index N_i = doit_i_field_mono.ncols();
-         
-         //1. interpolation - pressure grid
-         
-         /*the old grid is having only two elements, corresponding to the 
-           cloudbox_limits and the new grid have elements corresponding to
-           all grid points inside the cloudbox plus the cloud_box_limits*/
-         
-         ArrayOfGridPos p_gp((cloudbox_limits[1]- cloudbox_limits[0])+1);
-         
-         p2gridpos(p_gp,
-                   p_grid[Range(cloudbox_limits[0], 
-                                2,
-                                (cloudbox_limits[1]- cloudbox_limits[0]))],
-                   p_grid[Range(cloudbox_limits[0], 
-                                (cloudbox_limits[1]- cloudbox_limits[0])+1)]);
-         
-         Matrix itw((cloudbox_limits[1]- cloudbox_limits[0])+1, 2);
-         interpweights ( itw, p_gp );
+        const Index nf = all_frequencies?doit_i_field.nlibraries():1;
 
-         Tensor6 scat_i_p( 2, 1, 1, N_za, 1, N_i );
-           scat_i_p(0, joker, joker, joker, joker, joker) = doit_i_field_mono(0, joker, joker,
-                                                                              joker, joker, joker);
-           scat_i_p(1, joker, joker, joker, joker, joker) = doit_i_field_mono(doit_i_field_mono.nvitrines()-1,
-                                                                              joker, joker, joker, joker, joker);
+        for (Index f_index = 0; f_index < nf; f_index++)
+        {
+            Index N_za = doit_i_field.npages() ;
+            Index N_aa = doit_i_field.nrows();
+            Index N_i = doit_i_field.ncols();
 
-         
-         for (Index za_index = 0; za_index < N_za ; ++ za_index)
-           {
-             for (Index aa_index = 0; aa_index < N_aa ; ++ aa_index)
-               {
-                 for (Index i = 0 ; i < N_i ; ++ i)
-                   {
-                     
-                     VectorView target_field = doit_i_field_mono(Range(joker),
-                                                            0,
-                                                            0,
-                                                            za_index,
-                                                            aa_index,
-                                                            i);
-                     
-                     ConstVectorView source_field = scat_i_p(
-                                                             Range(joker),    
-                                                             0,
-                                                             0,
-                                                             za_index,
-                                                             aa_index,
-                                                             i);
-                     
-                     interp(target_field,
-                            itw,
-                            source_field,
-                            p_gp);
-                   }
-                 
-               }
-           }
-       }
+            //1. interpolation - pressure grid
+
+            /*the old grid is having only two elements, corresponding to the
+             cloudbox_limits and the new grid have elements corresponding to
+             all grid points inside the cloudbox plus the cloud_box_limits*/
+
+            ArrayOfGridPos p_gp((cloudbox_limits[1]- cloudbox_limits[0])+1);
+
+            p2gridpos(p_gp,
+                      p_grid[Range(cloudbox_limits[0],
+                                   2,
+                                   (cloudbox_limits[1]- cloudbox_limits[0]))],
+                      p_grid[Range(cloudbox_limits[0],
+                                   (cloudbox_limits[1]- cloudbox_limits[0])+1)]);
+
+            Matrix itw((cloudbox_limits[1]- cloudbox_limits[0])+1, 2);
+            interpweights ( itw, p_gp );
+
+            Tensor6 scat_i_p( 2, 1, 1, N_za, 1, N_i );
+            scat_i_p(0, joker, joker, joker, joker, joker) = doit_i_field(f_index, 0, joker, joker,
+                                                                          joker, joker, joker);
+            scat_i_p(1, joker, joker, joker, joker, joker) = doit_i_field(f_index, doit_i_field.nvitrines()-1,
+                                                                          joker, joker, joker, joker, joker);
+
+
+            for (Index za_index = 0; za_index < N_za ; ++ za_index)
+            {
+                for (Index aa_index = 0; aa_index < N_aa ; ++ aa_index)
+                {
+                    for (Index i = 0 ; i < N_i ; ++ i)
+                    {
+
+                        VectorView target_field = doit_i_field(f_index,
+                                                               Range(joker),
+                                                               0,
+                                                               0,
+                                                               za_index,
+                                                               aa_index,
+                                                               i);
+
+                        ConstVectorView source_field = scat_i_p(
+                                                                Range(joker),
+                                                                0,
+                                                                0,
+                                                                za_index,
+                                                                aa_index,
+                                                                i);
+
+                        interp(target_field,
+                               itw,
+                               source_field,
+                               p_gp);
+                    }
+
+                }
+            }
+        }
     }
-  else if(atmosphere_dim == 3)
+    else if(atmosphere_dim == 3)
     {
-      if (all_frequencies == false)
-        throw runtime_error("Error in doit_i_fieldSetClearsky: For 3D "
-                            "all_frequencies option is not implemented \n");
+        if (all_frequencies == false)
+            throw runtime_error("Error in doit_i_fieldSetClearsky: For 3D "
+                                "all_frequencies option is not implemented \n");
 
-      Index N_p = doit_i_field_mono.nvitrines();
-      Index N_lat = doit_i_field_mono.nshelves();
-      Index N_lon = doit_i_field_mono.nbooks();
-      Index N_za = doit_i_field_mono.npages();
-      Index N_aa = doit_i_field_mono.nrows();
-      Index N_i = doit_i_field_mono.ncols();
-
-      Tensor6 scat_i_p( 2, N_lat, N_lon, N_za, N_aa, N_i );
-      scat_i_p(0, joker, joker, joker, joker, joker) = doit_i_field_mono(0, joker, joker,
-                                                                         joker, joker, joker);
-      scat_i_p(1, joker, joker, joker, joker, joker) = doit_i_field_mono(N_p-1, joker, joker,
-                                                                         joker, joker, joker);
-
-      Tensor6 scat_i_lat( N_p, 2, N_lon, N_za, N_aa, N_i );
-      scat_i_lat(joker, 0, joker, joker, joker, joker) = doit_i_field_mono(joker, 0, joker,
-                                                                         joker, joker, joker);
-      scat_i_lat(joker, 1, joker, joker, joker, joker) = doit_i_field_mono(joker, N_lat-1, joker,
-                                                                         joker, joker, joker);
-
-      Tensor6 scat_i_lon( N_p, N_lat, 2, N_za, N_aa, N_i );
-      scat_i_lon(joker, joker, 0, joker, joker, joker) = doit_i_field_mono(joker, joker, 0,
-                                                                           joker, joker, joker);
-      scat_i_lon(joker, joker, 1, joker, joker, joker) = doit_i_field_mono(joker, joker, N_lon-1,
-                                                                           joker, joker, joker);
-
-//1. interpolation - pressure grid, latitude grid and longitude grid
-    
-      ArrayOfGridPos p_gp((cloudbox_limits[1]- cloudbox_limits[0])+1);
-      ArrayOfGridPos lat_gp((cloudbox_limits[3]- cloudbox_limits[2])+1);
-      ArrayOfGridPos lon_gp((cloudbox_limits[5]- cloudbox_limits[4])+1);
-
-      /*the old grid is having only two elements, corresponding to the 
-        cloudbox_limits and the new grid have elements corresponding to
-        all grid points inside the cloudbox plus the cloud_box_limits*/
-    
-      p2gridpos(p_gp,
-                p_grid[Range(cloudbox_limits[0], 
-                             2,
-                             (cloudbox_limits[1]- cloudbox_limits[0]))],
-                p_grid[Range(cloudbox_limits[0], 
-                             (cloudbox_limits[1]- cloudbox_limits[0])+1)]);
-      gridpos(lat_gp,
-              lat_grid[Range(cloudbox_limits[2], 
-                             2,
-                             (cloudbox_limits[3]- cloudbox_limits[2]))],
-              lat_grid[Range(cloudbox_limits[2], 
-                             (cloudbox_limits[3]- cloudbox_limits[2])+1)]);
-      gridpos(lon_gp,
-              lon_grid[Range(cloudbox_limits[4], 
-                             2,
-                             (cloudbox_limits[5]- cloudbox_limits[4]))],
-              lon_grid[Range(cloudbox_limits[4], 
-                             (cloudbox_limits[5]- cloudbox_limits[4])+1)]);
-
-
-      //interpolation weights corresponding to pressure, latitude and 
-      //longitude grids.
-
-      Matrix itw_p((cloudbox_limits[1]- cloudbox_limits[0])+1, 2);
-      Matrix itw_lat((cloudbox_limits[3]- cloudbox_limits[2])+1, 2);
-      Matrix itw_lon((cloudbox_limits[5]- cloudbox_limits[4])+1, 2);
-
-      interpweights ( itw_p, p_gp );
-      interpweights ( itw_lat, lat_gp );
-      interpweights ( itw_lon, lon_gp );
-
-      // interpolation - pressure grid
-      for (Index lat_index = 0; 
-           lat_index <= (cloudbox_limits[3]-cloudbox_limits[2]); ++ lat_index)
+        for (Index f_index = 0; f_index < doit_i_field.nvitrines(); f_index++)
         {
-          for (Index lon_index = 0; 
-               lon_index <= (cloudbox_limits[5]-cloudbox_limits[4]);
-               ++ lon_index)
+            Index N_p = doit_i_field.nvitrines();
+            Index N_lat = doit_i_field.nshelves();
+            Index N_lon = doit_i_field.nbooks();
+            Index N_za = doit_i_field.npages();
+            Index N_aa = doit_i_field.nrows();
+            Index N_i = doit_i_field.ncols();
+
+            Tensor6 scat_i_p( 2, N_lat, N_lon, N_za, N_aa, N_i );
+            scat_i_p(0, joker, joker, joker, joker, joker) = doit_i_field(f_index,
+                                                                          0, joker, joker,
+                                                                          joker, joker, joker);
+            scat_i_p(1, joker, joker, joker, joker, joker) = doit_i_field(f_index,
+                                                                          N_p-1, joker, joker,
+                                                                          joker, joker, joker);
+
+            Tensor6 scat_i_lat( N_p, 2, N_lon, N_za, N_aa, N_i );
+            scat_i_lat(joker, 0, joker, joker, joker, joker) = doit_i_field(f_index,
+                                                                            joker, 0, joker,
+                                                                            joker, joker, joker);
+            scat_i_lat(joker, 1, joker, joker, joker, joker) = doit_i_field(f_index,
+                                                                            joker, N_lat-1, joker,
+                                                                            joker, joker, joker);
+
+            Tensor6 scat_i_lon( N_p, N_lat, 2, N_za, N_aa, N_i );
+            scat_i_lon(joker, joker, 0, joker, joker, joker) = doit_i_field(f_index,
+                                                                            joker, joker, 0,
+                                                                            joker, joker, joker);
+            scat_i_lon(joker, joker, 1, joker, joker, joker) = doit_i_field(f_index,
+                                                                            joker, joker, N_lon-1,
+                                                                            joker, joker, joker);
+
+            //1. interpolation - pressure grid, latitude grid and longitude grid
+
+            ArrayOfGridPos p_gp((cloudbox_limits[1]- cloudbox_limits[0])+1);
+            ArrayOfGridPos lat_gp((cloudbox_limits[3]- cloudbox_limits[2])+1);
+            ArrayOfGridPos lon_gp((cloudbox_limits[5]- cloudbox_limits[4])+1);
+
+            /*the old grid is having only two elements, corresponding to the
+             cloudbox_limits and the new grid have elements corresponding to
+             all grid points inside the cloudbox plus the cloud_box_limits*/
+
+            p2gridpos(p_gp,
+                      p_grid[Range(cloudbox_limits[0],
+                                   2,
+                                   (cloudbox_limits[1]- cloudbox_limits[0]))],
+                      p_grid[Range(cloudbox_limits[0],
+                                   (cloudbox_limits[1]- cloudbox_limits[0])+1)]);
+            gridpos(lat_gp,
+                    lat_grid[Range(cloudbox_limits[2],
+                                   2,
+                                   (cloudbox_limits[3]- cloudbox_limits[2]))],
+                    lat_grid[Range(cloudbox_limits[2],
+                                   (cloudbox_limits[3]- cloudbox_limits[2])+1)]);
+            gridpos(lon_gp,
+                    lon_grid[Range(cloudbox_limits[4],
+                                   2,
+                                   (cloudbox_limits[5]- cloudbox_limits[4]))],
+                    lon_grid[Range(cloudbox_limits[4],
+                                   (cloudbox_limits[5]- cloudbox_limits[4])+1)]);
+
+
+            //interpolation weights corresponding to pressure, latitude and
+            //longitude grids.
+
+            Matrix itw_p((cloudbox_limits[1]- cloudbox_limits[0])+1, 2);
+            Matrix itw_lat((cloudbox_limits[3]- cloudbox_limits[2])+1, 2);
+            Matrix itw_lon((cloudbox_limits[5]- cloudbox_limits[4])+1, 2);
+
+            interpweights ( itw_p, p_gp );
+            interpweights ( itw_lat, lat_gp );
+            interpweights ( itw_lon, lon_gp );
+
+            // interpolation - pressure grid
+            for (Index lat_index = 0;
+                 lat_index <= (cloudbox_limits[3]-cloudbox_limits[2]); ++ lat_index)
             {
-              for (Index za_index = 0; za_index < N_za ; ++ za_index)
+                for (Index lon_index = 0;
+                     lon_index <= (cloudbox_limits[5]-cloudbox_limits[4]);
+                     ++ lon_index)
                 {
-                  for (Index aa_index = 0; aa_index < N_aa ; ++ aa_index)
+                    for (Index za_index = 0; za_index < N_za ; ++ za_index)
                     {
-                      for (Index i = 0 ; i < N_i ; ++ i)
+                        for (Index aa_index = 0; aa_index < N_aa ; ++ aa_index)
                         {
-                        
-                          VectorView target_field = doit_i_field_mono(Range(joker),
-                                                                 lat_index,
-                                                                 lon_index,
-                                                                 za_index,
-                                                                 aa_index,
-                                                                 i);
-                        
-                          ConstVectorView source_field = scat_i_p(Range(joker),
-                                                                  lat_index,
-                                                                  lon_index,
-                                                                  za_index,
-                                                                  aa_index,
-                                                                  i);
-                        
-                          interp(target_field,
-                                 itw_p,
-                                 source_field,
-                                 p_gp);
+                            for (Index i = 0 ; i < N_i ; ++ i)
+                            {
+
+                                VectorView target_field = doit_i_field(f_index,
+                                                                       Range(joker),
+                                                                       lat_index,
+                                                                       lon_index,
+                                                                       za_index,
+                                                                       aa_index,
+                                                                       i);
+
+                                ConstVectorView source_field = scat_i_p(Range(joker),
+                                                                        lat_index,
+                                                                        lon_index,
+                                                                        za_index,
+                                                                        aa_index,
+                                                                        i);
+
+                                interp(target_field,
+                                       itw_p,
+                                       source_field,
+                                       p_gp);
+                            }
                         }
                     }
                 }
-            } 
-        }
-      //interpolation latitude
-      for (Index p_index = 0; 
-           p_index <= (cloudbox_limits[1]-cloudbox_limits[0]) ; ++ p_index)
-        {
-          for (Index lon_index = 0; 
-               lon_index <= (cloudbox_limits[5]-cloudbox_limits[4]) ;
-               ++ lon_index)
+            }
+            //interpolation latitude
+            for (Index p_index = 0;
+                 p_index <= (cloudbox_limits[1]-cloudbox_limits[0]) ; ++ p_index)
             {
-              for (Index za_index = 0; za_index < N_za ; ++ za_index)
+                for (Index lon_index = 0;
+                     lon_index <= (cloudbox_limits[5]-cloudbox_limits[4]) ;
+                     ++ lon_index)
                 {
-                  for (Index aa_index = 0; aa_index < N_aa ; ++ aa_index)
+                    for (Index za_index = 0; za_index < N_za ; ++ za_index)
                     {
-                      for (Index i = 0 ; i < N_i ; ++ i)
+                        for (Index aa_index = 0; aa_index < N_aa ; ++ aa_index)
                         {
-                          
-                          VectorView target_field = doit_i_field_mono
-                            (p_index, Range(joker), lon_index,
-                             za_index, aa_index, i);
-                        
-                          ConstVectorView source_field = scat_i_lat
-                            (p_index, Range(joker),
-                             lon_index, za_index, aa_index, i);
-                        
-                          interp(target_field,
-                                 itw_lat,
-                                 source_field,
-                                 lat_gp);
+                            for (Index i = 0 ; i < N_i ; ++ i)
+                            {
+
+                                VectorView target_field = doit_i_field
+                                (f_index,
+                                 p_index, Range(joker), lon_index,
+                                 za_index, aa_index, i);
+
+                                ConstVectorView source_field = scat_i_lat
+                                (p_index, Range(joker),
+                                 lon_index, za_index, aa_index, i);
+
+                                interp(target_field,
+                                       itw_lat,
+                                       source_field,
+                                       lat_gp);
+                            }
                         }
                     }
                 }
-            } 
-        }
-      //interpolation -longitude
-      for (Index p_index = 0; 
-           p_index <= (cloudbox_limits[1]-cloudbox_limits[0]); ++ p_index)
-        {
-          for (Index lat_index = 0; 
-               lat_index <= (cloudbox_limits[3]-cloudbox_limits[2]);
-               ++ lat_index)
+            }
+            //interpolation -longitude
+            for (Index p_index = 0;
+                 p_index <= (cloudbox_limits[1]-cloudbox_limits[0]); ++ p_index)
             {
-              for (Index za_index = 0; za_index < N_za ; ++ za_index)
+                for (Index lat_index = 0;
+                     lat_index <= (cloudbox_limits[3]-cloudbox_limits[2]);
+                     ++ lat_index)
                 {
-                  for (Index aa_index = 0; aa_index < N_aa ; ++ aa_index)
+                    for (Index za_index = 0; za_index < N_za ; ++ za_index)
                     {
-                      for (Index i = 0 ; i < N_i ; ++ i)
+                        for (Index aa_index = 0; aa_index < N_aa ; ++ aa_index)
                         {
-                        
-                          VectorView target_field = doit_i_field_mono(p_index,
-                                                                 lat_index,
-                                                                 Range(joker),
-                                                                 za_index,
-                                                                 aa_index,
-                                                                 i);
-                        
-                          ConstVectorView source_field = scat_i_lon(p_index,
-                                                                    lat_index,
-                                                                    Range(joker),
-                                                                    za_index,
-                                                                    aa_index,
-                                                                    i);
-                        
-                          interp(target_field,
-                                 itw_lon,
-                                 source_field,
-                                 lon_gp);
+                            for (Index i = 0 ; i < N_i ; ++ i)
+                            {
+
+                                VectorView target_field = doit_i_field(f_index,
+                                                                       p_index,
+                                                                       lat_index,
+                                                                       Range(joker),
+                                                                       za_index,
+                                                                       aa_index,
+                                                                       i);
+
+                                ConstVectorView source_field = scat_i_lon(p_index,
+                                                                          lat_index,
+                                                                          Range(joker),
+                                                                          za_index,
+                                                                          aa_index,
+                                                                          i);
+
+                                interp(target_field,
+                                       itw_lon,
+                                       source_field,
+                                       lon_gp);
+                            }
                         }
                     }
-                }
-            } 
-        }
-      //end of interpolation
-    }//ends atmosphere_dim = 3
+                } 
+            } //end of interpolation
+        } // end of frequency loop
+    } //ends atmosphere_dim = 3
 }
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void doit_i_fieldSetConst(//WS Output:
-                          Tensor6& doit_i_field_mono,
+                          Tensor7& doit_i_field,
                           //WS Input:
                           const Vector& p_grid,
                           const Vector& lat_grid,
@@ -3443,9 +3457,49 @@ void doit_i_fieldSetConst(//WS Output:
                           const ArrayOfIndex& cloudbox_limits,
                           const Index& atmosphere_dim,
                           const Index& stokes_dim,
-                          // Keyword       
+                          // Keyword
                           const Vector& doit_i_field_values,
                           const Verbosity& verbosity)
+{
+    CREATE_OUT2;
+
+    Tensor6 doit_i_field_mono(doit_i_field.nvitrines(),
+                              doit_i_field.nshelves(),
+                              doit_i_field.nbooks(),
+                              doit_i_field.npages(),
+                              doit_i_field.nrows(),
+                              doit_i_field.ncols());
+
+    for (Index f_index = 0; f_index < doit_i_field.nlibraries(); f_index++)
+    {
+        doit_i_field_mono = doit_i_field(f_index, joker, joker, joker, joker, joker, joker);
+        doit_i_field_monoSetConst(doit_i_field_mono,
+                                  p_grid,
+                                  lat_grid,
+                                  lon_grid,
+                                  cloudbox_limits,
+                                  atmosphere_dim,
+                                  stokes_dim,
+                                  doit_i_field_values,
+                                  verbosity);
+        doit_i_field(f_index, joker, joker, joker, joker, joker, joker) = doit_i_field_mono;
+    }
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void doit_i_field_monoSetConst(//WS Output:
+                               Tensor6& doit_i_field_mono,
+                               //WS Input:
+                               const Vector& p_grid,
+                               const Vector& lat_grid,
+                               const Vector& lon_grid,
+                               const ArrayOfIndex& cloudbox_limits,
+                               const Index& atmosphere_dim,
+                               const Index& stokes_dim,
+                               // Keyword
+                               const Vector& doit_i_field_values,
+                               const Verbosity& verbosity)
 {
   CREATE_OUT2;
   CREATE_OUT3;
@@ -3544,6 +3598,5 @@ void doit_i_fieldSetConst(//WS Output:
                 } // stokes loop
             } // aa_grid loop
         } // za_grid loop
-       
     } // atmosphere dim = 3
 }

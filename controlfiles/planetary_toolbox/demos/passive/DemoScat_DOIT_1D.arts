@@ -228,6 +228,7 @@ Copy( strtmp, iy_unit )
 StringSet( iy_unit, "1" )
 DoitInit
 DoitGetIncoming( maxratio=DOITinterpol_ratio )
+doit_i_fieldSetClearsky
 DoitCalc
 
 # and the (clearsky) RT calc

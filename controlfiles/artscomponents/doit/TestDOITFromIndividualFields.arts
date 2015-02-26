@@ -286,6 +286,9 @@ DoitInit
 # Calculate incoming radiation field on cloudbox boundaries
 DoitGetIncoming
 
+# Set first guess field
+doit_i_fieldSetClearsky
+
 # Executes doit_mono_agenda for all frequencies
 DoitCalc
 

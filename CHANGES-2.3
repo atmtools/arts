@@ -31,9 +31,13 @@ General
 
 - DoitInit required to be called before DoitGetIncoming.
 
-- Doit's first guess field can now be initialized with a (precalculated)
+- DOIT's first guess field can now be initialized with a (precalculated)
   complete in-cloudbox field providing an alternative to deriving it from
   the clearsky fields.
+
+- Initialization of the first guess field is now done outside of
+  doit_mono_agenda. The order is DoitInit, DoitGetIncoming and then the
+  initializiation (e.g. doit_i_fieldSetClearsky or doit_i_fieldSetFromPrecalc)
 
 - Create WSMs are not allowed to be called inside Agendas anymore. Avoids
   confusion because variables are always global indendent of where they are

@@ -44,17 +44,26 @@ workspace methods and variables please refer also to the online documentation
 \section{DOIT frame}
 \label{sec:scattering:frame}
 
-As a first step for a DOIT calculation we have to calculate the
+The first step for a DOIT calculation is the initialization of variables
+required for a DOIT calculation using \wsmindex{DoitInit}:
+\begin{code}
+DoitInit
+\end{code}
+As the next step we have to calculate the
 incoming field on the boundary of the cloudbox. This is done using the
 workspace method \wsmindex{DoitGetIncoming}:
 \begin{code}
 DoitGetIncoming
 \end{code}
-The next step is the initialization of variables required for a DOIT
-calculation using \wsmindex{DoitInit}:
+The method \wsmindex{doit\_i\_fieldSetClearsky} interpolates the
+incoming radiation field on all points inside the cloudbox to obtain
+the initial field (\wsvindex{doit\_i\_field}) for the DOIT calculation. 
+As a test one can alternatively start with a constant radiation field
+using the method \wsmindex{doit\_i\_fieldSetConst}. 
 \begin{code}
-DoitInit
+doit_i_fieldSetClearsky
 \end{code}
+
 The grid discretization plays a very significant role in discrete
 ordinate methods. In spherical geometry the zenith angular grid is of
 particular importance (cf. \theory, Section \ref{T-sec:doit:grid_opt_interp}). 
@@ -116,11 +125,9 @@ AgendaSet( doit_mono_agenda ){
    DoitScatteringDataPrepare
  # Alternative method (needs less memory):
  # scat_data_monoCalc
- # Set first guess field:		
-   doit_i_fieldSetClearsky
  # Perform iterations: 1. scattering integral. 2. RT calculations with 
  #   fixed scattering integral field, 3. convergence test 
-   doit_i_fieldIterate
+   doit_i_field_monoIterate
  }		
 \end{code}
 The first method \wsmindex{DoitScatteringDataPrepare} prepares the single
@@ -135,14 +142,8 @@ calculation it is recommended to use
 \wsmindex{DoitScatteringDataPrepare} because it is much more
 efficient. 
 
-The method \wsmindex{doit\_i\_fieldSetClearsky} interpolates the
-incoming radiation field on all points inside the cloudbox to obtain
-the initial field (\wsvindex{doit\_i\_field}) for the DOIT calculation. 
-As a test one can alternatively start with a constant radiation field
-using the method \wsmindex{doit\_i\_fieldSetConst}. 
-
 The iteration is performed in the method
-\wsmindex{doit\_i\_fieldIterate}, which includes
+\wsmindex{doit\_i\_field\_monoIterate}, which includes
 \begin{itemize}
 \item the calculation of the scattering integral field
 \wsvindex{doit\_scat\_field} (requires agendas \wsaindex{pha\_mat\_spt\_agenda}
@@ -157,10 +158,10 @@ integral (requires agendas \wsaindex{spt\_calc\_agenda},
 For details on the agendas involved see Section
 \ref{sec:scattering:doit_iterate_agendas}.
 
-\subsection{Agendas used in \wsmindex{doit\_i\_fieldIterate}}
+\subsection{Agendas used in \wsmindex{doit\_i\_field\_monoIterate}}
 \label{sec:scattering:doit_iterate_agendas}
 There are several methods which can be used in
-\wsmindex{doit\_i\_fieldIterate}, for instance for the calculation of
+\wsmindex{doit\_i\_field\_monoIterate}, for instance for the calculation of
 the scattering integral. The methods are selected in the control-file by
 defining several agendas.
 
@@ -244,7 +245,7 @@ radiative transfer equation. How they are calculated is specified in
 already interpolated on the frequency of the monochromatic
 calculation. This requirement is fulfilled when
 \wsmindex{DoitScatteringDataPrepare} or \wsmindex{scat\_data\_monoCalc}
-is executed before \wsmindex{doit\_i\_fieldIterate} (see
+is executed before \wsmindex{doit\_i\_field\_monoIterate} (see
 Section \ref{sec:scattering:doit_main_agenda}). The work space method
 \wsmindex{ext\_matAddPart} and \wsmindex{abs\_vecAddPart} are used to
 extract the absorption vector \wsvindex{abs\_vec} and extinction

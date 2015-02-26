@@ -3998,12 +3998,12 @@ void define_md_data_raw()
          "used.\n"
          ),
         AUTHORS( "Sreerekha T.R. and Claudia Emde" ),
-        OUT( "doit_i_field_mono" ),
+        OUT( "doit_i_field" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "doit_i_field_mono",
-            "f_index", "p_grid", "lat_grid", "lon_grid", 
+        IN( "doit_i_field",
+            "p_grid", "lat_grid", "lon_grid",
             "cloudbox_limits", "atmosphere_dim" ),
         GIN( "all_frequencies" ),
         GIN_TYPE( "Index" ),
@@ -4013,7 +4013,7 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "doit_i_fieldSetConst" ),
+      ( NAME( "doit_i_field_monoSetConst" ),
         DESCRIPTION
         (
          "This method sets the initial field inside the cloudbox to a\n"
@@ -4029,6 +4029,34 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "doit_i_field_mono",
+            "p_grid", "lat_grid",
+            "lon_grid", 
+            "cloudbox_limits", "atmosphere_dim", "stokes_dim" ),
+        GIN( "value" ),
+        GIN_TYPE(    "Vector" ),
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC( "A vector containing 4 elements with the value of the "
+                  "initial field for each Stokes dimension."
+                  )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "doit_i_fieldSetConst" ),
+        DESCRIPTION
+        (
+         "This method sets the initial field inside the cloudbox to a\n"
+         "constant value.\n"
+         "\n"
+         "The user can specify a value for each Stokes dimension in the\n"
+         "control file by *value*.\n"
+         ),
+        AUTHORS( "Claudia Emde" ),
+        OUT( "doit_i_field" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "doit_i_field",
             "p_grid", "lat_grid",
             "lon_grid", 
             "cloudbox_limits", "atmosphere_dim", "stokes_dim" ),
