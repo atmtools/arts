@@ -68,7 +68,7 @@ AgendaSet( doit_rte_agenda ){
   #doit_i_fieldUpdateSeq3D
 
   # Sequential update for 1D with normalizing the scattered field:
-  doit_i_fieldUpdateSeq1D( normalize=1, norm_error_threshold=1 )
+  doit_i_fieldUpdateSeq1D
 }
 
 # Calculate opticle properties of particles and add particle absorption

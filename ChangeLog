@@ -1,3 +1,17 @@
+2015-02-26  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-2-43
+
+	* src/methods.cc:
+
+	Turn on normalize by default for doit_i_fieldUpdateSeq1D with a
+	threshold of 1.0.
+
+	* controlfiles/general/agendasDOIT.arts:
+
+	Remove explicit normalize and threshold arguments to
+	doit_i_fieldUpdateSeq1D as they are now the defaults anyway.
+
 2015-02-19  Jana Mendrok  <jana.mendrok@ltu.se>
 
 	* arts-2-2-42
