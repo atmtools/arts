@@ -1,3 +1,13 @@
+2015-02-27  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-2-44
+
+	* src/m_doit.cc (doit_i_fieldSetFromdoit_i_field1D_spectrum):
+	Set upwelling at lower boundary from precalc field if lower boundary is
+	at surface (actually, implementation: at lowest atm pressure level).
+
+	* doc/uguide/absorption.tex: Grammar fix.
+
 2015-02-26  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-2-43

@@ -3383,12 +3383,13 @@ void doit_i_fieldSetFromdoit_i_field1D_spectrum(
   assert(scat_za_grid[scat_za_grid.nelem()-1]>90.);
   while (scat_za_grid[first_upwell] < 90.)
     first_upwell++;
-  // (1) upwelling at lower boundary
-  doit_i_field(0,0,0,Range(first_upwell,scat_za_grid.nelem()-first_upwell),0,joker) =
-    scat_i_p(f_index,0,0,0,Range(first_upwell,scat_za_grid.nelem()-first_upwell),0,joker);
-  // (2) downwelling at upper boundary
+  // (1) downwelling at upper boundary
   doit_i_field(np-1,0,0,Range(0,first_upwell),0,joker) =
     scat_i_p(f_index,1,0,0,Range(0,first_upwell),0,joker);
+  // (2) upwelling at lower boundary - but not if lower boundary == surface
+  if( cloudbox_limits[0] != 0 )
+    doit_i_field(0,0,0,Range(first_upwell,scat_za_grid.nelem()-first_upwell),0,joker) =
+      scat_i_p(f_index,0,0,0,Range(first_upwell,scat_za_grid.nelem()-first_upwell),0,joker);
 }
 
 
