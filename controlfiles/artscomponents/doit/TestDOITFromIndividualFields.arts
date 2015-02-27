@@ -8,6 +8,9 @@
 # (folder doitbatch). Therefore, results are checked against the TestDoitBatch
 # reference results for that scenario. Also, the absorption lookup table from
 # doitbatch is applied.
+#
+# Author: Jana Mendrok
+# 
 
 Arts2 {
 

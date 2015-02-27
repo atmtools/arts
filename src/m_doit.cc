@@ -3151,17 +3151,32 @@ void doit_i_fieldSetFromPrecalc(
   Range downwell(0, first_upwell);
   Range upwell(first_upwell, scat_za_grid.nelem() - first_upwell);
 
-  // Copy only downwelling radiation at lower boundary from precalc field
-  doit_i_field          (joker, 0, 0, 0, downwell, 0, joker) =
-    doit_i_field_precalc(joker, 0, 0, 0, downwell, 0, joker);
-
-  // Copy only upwelling radiation at upper boundary from precalc field
-  doit_i_field          (joker, np-1, 0, 0, upwell, 0, joker) =
-    doit_i_field_precalc(joker, np-1, 0, 0, upwell, 0, joker);
-
   // Copy everything inside the field
   doit_i_field          (joker, Range(1, np-2), 0, 0, joker, 0, joker) =
     doit_i_field_precalc(joker, Range(1, np-2), 0, 0, joker, 0, joker);
+
+  // At boundaries we need to be a bit careful. We shouldn't overwrite the
+  // boundary conditions.
+
+  // Copy only upwelling radiation at upper boundary from precalc field
+  // (Downwelling is "boundary condition" and has been set by DoitGetIncoming)
+  doit_i_field          (joker, np-1, 0, 0, upwell, 0, joker) =
+    doit_i_field_precalc(joker, np-1, 0, 0, upwell, 0, joker);
+
+  if( cloudbox_limits[0]!=0 )
+      // Copy only downwelling radiation at lower boundary from precalc field
+      // (Upwelling is "boundary condition" and has been set by DoitGetIncoming)
+      doit_i_field          (joker, 0, 0, 0, downwell, 0, joker) =
+        doit_i_field_precalc(joker, 0, 0, 0, downwell, 0, joker);
+  else
+      // Copy all directions at lower boundary from precalc field
+      // (when lower boundary at surface, the upwelling field is fixed "boundary
+      // condition", but part of the field getting iteratively updated according
+      // to the cloudbox-dependent surface reflection contribution)
+      doit_i_field          (joker, 0, 0, 0, joker, 0, joker) =
+        doit_i_field_precalc(joker, 0, 0, 0, joker, 0, joker);
+
+
 }
 
 

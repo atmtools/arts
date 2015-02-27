@@ -48,6 +48,7 @@ public:
   /** Default constructor. Needed by make_array. */
   RetrievalQuantity() : mmaintag(),
                         msubtag(),
+                        msubsubtag(),
                         mmode(),
                         manalytical(-1),
                         mperturbation(0.),
@@ -58,12 +59,14 @@ public:
   /** Constructor that sets the values. */
   RetrievalQuantity(const String&             maintag,
                     const String&             subtag,
+                    const String&             subsubtag,
                     const String&             mode,
                     const Index&              analytical,
                     const Numeric&            perturbation,
                     const ArrayOfVector&      grids ) :
     mmaintag(maintag),
     msubtag(subtag),
+    msubsubtag(subsubtag),
     mmode(mode),
     manalytical(analytical),
     mperturbation(perturbation),
@@ -78,6 +81,9 @@ public:
   /** Subtag. Eg. for gas species: O3, ClO. */
   const String& Subtag() const { return msubtag; }
   void Subtag( const String& st ) { msubtag = st; }
+  /** SubSubtag. Eg. for scat species fields: mass_density, mass_flux, ... */
+  const String& SubSubtag() const { return msubsubtag; }
+  void SubSubtag( const String& sst ) { msubsubtag = sst; }
   /** Calculation mode. Eg. "abs", "rel", "vmr" and "nd". */
   const String& Mode() const { return mmode; }
   void Mode( const String& m ) { mmode = m; }
@@ -95,6 +101,7 @@ private:
 
   String mmaintag;
   String msubtag;
+  String msubsubtag;
   String mmode;
   Index manalytical;
   Numeric mperturbation;

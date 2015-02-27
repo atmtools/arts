@@ -1154,6 +1154,7 @@ void xml_read_from_stream(istream& is_xml,
   ArtsXMLTag     tag(verbosity);
   String         maintag;
   String         subtag;
+  String         subsubtag;
   String         mode;
   Index          analytical;
   Numeric        perturbation;
@@ -1164,6 +1165,7 @@ void xml_read_from_stream(istream& is_xml,
 
   xml_read_from_stream(is_xml, maintag, pbifs, verbosity);
   xml_read_from_stream(is_xml, subtag, pbifs, verbosity);
+  xml_read_from_stream(is_xml, subsubtag, pbifs, verbosity);
   xml_read_from_stream(is_xml, mode, pbifs, verbosity);
   xml_read_from_stream(is_xml, analytical, pbifs, verbosity);
   xml_read_from_stream(is_xml, perturbation, pbifs, verbosity);
@@ -1172,8 +1174,8 @@ void xml_read_from_stream(istream& is_xml,
   tag.read_from_stream(is_xml);
   tag.check_name("/RetrievalQuantity");
 
-  rq = RetrievalQuantity(maintag, subtag, mode, analytical, perturbation,
-                         grids);
+  rq = RetrievalQuantity(maintag, subtag, subsubtag, mode, analytical,
+                         perturbation, grids);
 }
 
 
@@ -1199,6 +1201,7 @@ void xml_write_to_stream(ostream& os_xml,
 
   xml_write_to_stream(os_xml, rq.MainTag(), pbofs, "MainTag", verbosity);
   xml_write_to_stream(os_xml, rq.Subtag(), pbofs, "Subtag", verbosity);
+  xml_write_to_stream(os_xml, rq.SubSubtag(), pbofs, "SubSubtag", verbosity);
   xml_write_to_stream(os_xml, rq.Mode(), pbofs, "Mode", verbosity);
   xml_write_to_stream(os_xml, rq.Analytical(), pbofs, "Analytical", verbosity);
   xml_write_to_stream(os_xml, rq.Perturbation(), pbofs, "Perturbation", verbosity);

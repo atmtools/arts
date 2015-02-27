@@ -3,11 +3,11 @@
 # Demonstration of a DOIT scattering calculation initialized from a previous
 # solution instead of the clearsky field.
 #
-# Author: Jana Mendrok
-# 
 # Compared to TestDOIT the pnd_field is slightly varied and
 # DOIT is initialized by the solution of TestDOIT.
 #
+# Author: Jana Mendrok
+# 
 
 Arts2 {
 

@@ -153,7 +153,7 @@ scat_speciesSet(scat_species, [
                 "RR-MP48-*-*"
 ])
 
-# Read SingelScatteringData and ScatteringMetaData
+# Read SingleScatteringData and ScatteringMetaData
 #-------------------------------------------------
 ScatteringParticleTypeAndMetaRead (scat_data, scat_meta, f_grid, 
     "testdata/SingleScatteringFile_H2Oliquid.xml",
@@ -165,8 +165,8 @@ ScatteringParticleTypeAndMetaRead (scat_data, scat_meta, f_grid,
     "testdata/SingleScatteringFile_H2Oliquid.xml",
     "testdata/ScatteringMetaFile_H2Oliquid.xml")
 
-# Selection/filerting of particles according to *scat_species*
-#------------------------------------------------------------
+# Selection/filterting of particles according to *scat_species*
+#--------------------------------------------------------------
 ScatteringParticlesSelect
 scat_dataCheck
 
@@ -215,11 +215,11 @@ AgendaSet( ybatch_calc_agenda ){
     ybatch_index
   )
 
-  # Split up *atm_fields_compact_all* to
+  # Split up *atm_fields_compact* to
   # generate p_grid, t_field, z_field, massdensity_field, vmr_field:
   AtmFieldsFromCompact
 
-  # Unrealistic (small) values in massdensity_field will be set to zero
+  # Unrealistic (small) values in scat_species_*_*_fields set to zero
   scat_species_fieldCleanup (scat_species_mass_density_field,
                              scat_species_mass_density_field,
                              1e-15)

@@ -7137,10 +7137,10 @@ void define_md_data_raw()
         (
          "Makes mandatory initialisation of some jacobian variables.\n"
          "\n"
-         "Some jacobian WSVs must be initilised even if no such calculations\n"
+         "Some jacobian WSVs must be initialised even if no such calculations\n"
          "will be performed and this is handled with this method. That is,\n"
          "this method must be called when no jacobians will be calculated.\n"
-         "Sets *jacobian_on* to 0.\n"
+         "Sets *jacobian_do* to 0.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "jacobian_do", "jacobian_agenda", "jacobian_quantities", 

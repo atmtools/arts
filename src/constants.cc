@@ -361,6 +361,7 @@ extern const Index GFIELD4_AA_GRID = 3;
   ===========================================================================*/
 
 extern const String ABSSPECIES_MAINTAG  = "Absorption species";
+extern const String SCATSPECIES_MAINTAG = "Scattering species";
 
 extern const String FREQUENCY_MAINTAG   = "Frequency";
 extern const String FREQUENCY_SUBTAG_0  = "Shift";
