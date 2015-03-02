@@ -299,7 +299,9 @@ void Agenda::set_outputs_to_push_and_dup(const Verbosity& verbosity)
   set<Index> outs2push;
   set<Index> outs2dup;
 
-  const Index DeleteIndex = MdMap.find("Delete")->second;
+  const Index WsmAgendaExecuteIndex = MdMap.find("AgendaExecute")->second;
+  const Index WsmAgendaExecuteExclIndex = MdMap.find("AgendaExecuteExclusive")->second;
+  const Index WsmDeleteIndex = MdMap.find("Delete")->second;
   const Index WsvAgendaGroupIndex = WsvGroupMap.find("Agenda")->second;
 
   for (Array<MRecord>::const_iterator method = mml.begin();
@@ -323,22 +325,29 @@ void Agenda::set_outputs_to_push_and_dup(const Verbosity& verbosity)
        * of output variables to force a duplication of those variables.
        * It avoids deleting variables outside the agenda's scope.
        */
-      if (method->Id() == DeleteIndex)
+      if (method->Id() == WsmDeleteIndex)
         {
           souts.insert(gins.begin(), gins.end());
         }
 
-      /* Special case: For WSMs that have generic inputs of type Agenda
+      /* Special case: For WSMs that execute generic input Agendas
          it is necessary for proper scoping to also add the output variables of the
          agenda to our output variable list.
        */
-      for (Index j = 0; j < md_data[method->Id()].GInType().nelem(); j++)
+      if (method->Id() == WsmAgendaExecuteIndex
+          || method->Id() == WsmAgendaExecuteExclIndex)
         {
-          if (md_data[method->Id()].GInType()[j] == WsvAgendaGroupIndex)
+          for (Index j = 0; j < md_data[method->Id()].GInType().nelem(); j++)
             {
-              const String& agenda_name = Workspace::wsv_data[gins[j]].Name();
-              const ArrayOfIndex& agouts = agenda_data[AgendaMap.find(agenda_name)->second].Out();
-              souts.insert(agouts.begin(), agouts.end());
+              if (md_data[method->Id()].GInType()[j] == WsvAgendaGroupIndex)
+                {
+                  const String& agenda_name = Workspace::wsv_data[gins[j]].Name();
+                  const map<String, Index>::const_iterator agenda_it = AgendaMap.find(agenda_name);
+                  // The executed agenda must not be a user created agenda
+                  assert(agenda_it != AgendaMap.end());
+                  const ArrayOfIndex& agouts = agenda_data[agenda_it->second].Out();
+                  souts.insert(agouts.begin(), agouts.end());
+                }
             }
         }
 
