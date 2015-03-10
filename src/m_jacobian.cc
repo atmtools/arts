@@ -50,6 +50,7 @@
 #include "jacobian.h"
 #include "physics_funcs.h"
 #include "rte.h"
+#include "m_xml.h"
 
 extern const Numeric PI;
 
@@ -62,6 +63,7 @@ extern const String POINTING_SUBTAG_A;
 extern const String POINTING_CALCMODE_A;
 extern const String POINTING_CALCMODE_B;
 extern const String POLYFIT_MAINTAG;
+extern const String SCATSPECIES_MAINTAG;
 extern const String SINEFIT_MAINTAG;
 extern const String TEMPERATURE_MAINTAG;
 extern const String WIND_MAINTAG;
@@ -2114,6 +2116,529 @@ void jacobianCalcWindAnalytical(
 }
 
 
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void jacobianDoit(//WS Output:
+                  Workspace& ws,
+                  Matrix& jacobian,
+                  // data that is passed to WSMs via the workspace
+                  Tensor7& doit_i_field,
+                  Tensor4& scat_species_mass_density_field,
+                  Tensor4& scat_species_mass_flux_field,
+                  Tensor4& scat_species_number_density_field,
+                  Tensor4& vmr_field,
+                  Tensor3& t_field,
+                  // WS Input:
+                  const ArrayOfRetrievalQuantity& jacobian_quantities,
+                  const ArrayOfArrayOfIndex& jacobian_indices,
+                  const ArrayOfArrayOfSpeciesTag& abs_species,
+                  const ArrayOfString& scat_species,
+                  const Vector& p_grid,
+                  const Index& atmosphere_dim,
+                  const ArrayOfIndex& cloudbox_limits,
+                  // input required for DoitCalc
+                  const Index& atmfields_checked,
+                  const Index& atmgeom_checked,
+                  const Index& cloudbox_checked,
+                  const Index& cloudbox_on,
+                  const Vector& f_grid,
+                  const Agenda& doit_mono_agenda,
+                  const Index& doit_is_initialized,
+                  // input required for yCalc
+                  const Tensor3& z_field,
+                  const Index& sensor_checked,
+                  const Index& stokes_dim,
+                  const Matrix& sensor_pos,
+                  const Matrix& sensor_los,
+                  const Matrix& transmitter_pos,
+                  const Matrix& mblock_dlos_grid,
+                  const Sparse& sensor_response,
+                  const Vector& sensor_response_f,
+                  const ArrayOfIndex& sensor_response_pol,
+                  const Matrix& sensor_response_dlos,
+                  const String& iy_unit,   
+                  const Agenda& iy_main_agenda,
+                  const Agenda& geo_pos_agenda,
+                  const Agenda& jacobian_agenda,
+                  const Index& jacobian_do,
+                  const ArrayOfString& iy_aux_vars,
+                  // Keywords:
+                  const Index& ScatteringMergeParticle_do,
+                  const Verbosity& verbosity)
+{
+
+  if( jacobian_do != 0 )
+      throw std::runtime_error(
+            "Currently not possible to comine clearksy and DOIT Jacobians.");
+
+  if( jacobian_quantities.nelem()<1 )
+    {
+      ostringstream os;
+      os << "No Jacobian quantities specified for DOIT Jacobian calculation.\n"
+         << "Did you accidentially call jacobianOff after "
+         << "jacobainDoitAddSpecies?";
+      throw runtime_error(os.str());
+    }
+
+  if( atmosphere_dim != 1 )
+      throw std::runtime_error(
+            "DOIT Jacobians currently only work with a 1D atmosphere.");
+
+  // Prepare common settings for all DOIT calculations
+
+  // 1) set doit_conv_test_agenda
+  // 2) set doit_mono_agenda
+  // not here. both have to be set correctly in the controlfile, before calling
+  // jacobianDoit
+
+  // yCalc will use doit_i_field via the workspace (by iyInterpCloudboxField
+  // usually used in iy_cloudbox_agenda, passed to iyEmissionStandard). that is,
+  // we will need to set doit_i_field, too. so we need to store the first guess
+  // field in a container to pas it back as first guess for each DoitCalc
+  Numeric ivalue;
+  Numeric rvalue;
+  Tensor7 doit_i_field_ref = doit_i_field;
+/*
+  rvalue =
+    doit_i_field(0,doit_i_field.nvitrines()-1,0,0,doit_i_field.npages()-1,0,0);
+  cout << "ToCb zenith ref=" << rvalue << "\n";
+*/
+
+  DoitCalc( ws, doit_i_field,
+            atmfields_checked, atmgeom_checked, cloudbox_checked,
+            cloudbox_on, f_grid, doit_mono_agenda, doit_is_initialized,
+            verbosity );
+/*
+  ivalue =
+    doit_i_field(0,doit_i_field.nvitrines()-1,0,0,doit_i_field.npages()-1,0,0);
+  cout << "ToCb zenith reiterate=" << ivalue << " (d=" << ivalue-rvalue << ")\n";
+  WriteXML( "ascii", doit_i_field, "ifield_reiterated.xml", 0, "doit_i_field",
+           "", "", verbosity );
+*/
+
+  Vector y0, vec_dummy;
+  ArrayOfIndex aoi_dummy;
+  Matrix mat_dummy1, mat_dummy2, mat_dummy3, mat_dummy4;
+  ArrayOfVector aov_dummy;
+  yCalc( ws, y0,
+         vec_dummy, aoi_dummy, mat_dummy1, mat_dummy2, aov_dummy,
+         mat_dummy3, mat_dummy4,
+         atmgeom_checked, atmfields_checked, atmosphere_dim,
+         t_field, z_field, vmr_field, cloudbox_on,
+         cloudbox_checked, sensor_checked, stokes_dim, f_grid,
+         sensor_pos, sensor_los, transmitter_pos, mblock_dlos_grid,
+         sensor_response, sensor_response_f, sensor_response_pol,
+         sensor_response_dlos, iy_unit, iy_main_agenda, geo_pos_agenda,
+         jacobian_agenda, jacobian_do, jacobian_quantities, jacobian_indices,
+         iy_aux_vars, verbosity );
+/*
+  cout << "y reiterate=" << y0 << "\n";
+  WriteXML( "ascii", y0, "y_reiterated.xml", 0, "y0", "", "", verbosity );
+*/
+
+
+  ////// Now we start with the perturbations runs
+  // per perturbation species and perturbation level we need to:
+  // 1) perturb atmo
+  // 2) DoitCalc
+  // 3) yCalc
+  // 4) Calculate jacobian = (y-y0)/perturbation and append to jacobian matrix
+
+  // We need to safe the reference fields. This because we use DoitCalc, which
+  // accesses the atmospheric state through the workspace. I.e., we
+  // have to overwrite the workspace fields with the perturbed fields, then for
+  // the next perurbation level and/or species reset them to original state.
+  // This sounds like a lot of back-and-forth copying. Can we do this in a
+  // better way?
+  //
+  // OLIVER???
+  //
+  // the clearsky counterpart handles this by not calling yCalc (though, this
+  // has the atm state fields has explicit input...), but instead using
+  // iyb_calc, the core method of yCalc.
+  Tensor4 vmr_field_ref = vmr_field;
+  Tensor3 t_field_ref = t_field;
+
+
+  // Set some useful variables. 
+  RetrievalQuantity jq;
+  Index it=0;
+  Index lstart, lend, pertmode;
+
+  // as long as we limit the perturbation to within cloudbox and provide a
+  // ready-made doit_i_field (were we do not modify the clear incoming part
+  // again), we can only perturb until the last level below the upper
+  // cloudbox limit (cause else we also modify the outside-cloudbox state,
+  // i.e., we'd need a new clear incoming calc).
+  lend = cloudbox_limits[1];
+  // this also applies for lower limit, IF lower limit is not on the
+  // surface.
+  if( cloudbox_limits[0]==0 )
+    lstart = 0;
+  else
+    lstart = cloudbox_limits[0]+1;
+  Index np = lend-lstart;
+
+  // for now we do the perturbations for ALL species on ALL the p-levels within
+  // the cloudbox.
+  // however, for making it easier adaptable to specific retrieval grids, we use
+  // the same basic strategy using ArrayOfGridPos as for clearsky perturbation
+  // jacobians (see jacobianCalcAbsSpeciesPerturbations in m_jacobians.cc)
+  
+  //ArrayOfGridPos p_gp;
+  //Vector jg_p = p_grid[Range(lstart,lend-lstart)]; // using correct extend?
+                                                   // lend should NOT be included
+  //Index np   = jg_p.nelem();
+  //get_perturbation_gridpos( p_gp, p_grid, jg_p, true );
+
+  // As long as not yet handled by jacobianInit/jacobianClose, we need to
+  // properly size jacobian here.
+  jacobian.resize(y0.nelem(), jacobian_quantities.nelem()*np);
+
+  // loop over all perturbation species (aka jacobian quantities)
+  for( Index iq=0; iq<jacobian_quantities.nelem(); iq++ )
+    {
+      jq = jacobian_quantities[iq];
+      Index si;
+
+
+      // check if iterator 'it' is consistent with jacobian_indices entry of the
+      // species
+      //assert( it == jacobian_indices[iq][0] );
+
+      // Check if a relative pertubation is used or not, this information is needed
+      //by the methods 'perturbation_field_?d'.
+      if( jq.Mode()=="rel" )
+        pertmode = 0;
+      else 
+        pertmode = 1;
+
+      // check if perturbation species is valid. and extract the actual field we
+      // are going to perturb.
+      // first determine, which species type:
+      if( jq.MainTag() == ABSSPECIES_MAINTAG )
+        {
+          // Find VMR field for this species. 
+          ArrayOfSpeciesTag tags;
+          array_species_tag_from_string( tags, jq.Subtag() );
+          si = chk_contains( "species", abs_species, tags );
+        }
+      else if( jq.MainTag() == SCATSPECIES_MAINTAG )
+        {
+          ostringstream os;
+          os << "Oops. Scatterig species perturbations not yet available.";
+          throw runtime_error(os.str());
+        }
+      else if( jq.MainTag() != TEMPERATURE_MAINTAG )
+        {
+          ostringstream os;
+          os << jq.MainTag() << " is an unknown Doit jacobian species.\n"
+             << "Use jacobianDoitAddSpecies to properly set up cloudy-sky "
+             << "jacobians.";
+          throw runtime_error(os.str());
+        }
+
+      // loop over all perturbation levels
+      for( Index il=lstart; il<lend; il++ )
+        {
+/* use this if we once allow arbitrary perturbation grids.
+   if so, correct for last-point outdrag
+          Range p_range   = Range(0,0);
+          get_perturbation_range( p_range, il, j_p );
+          Tensor3 pertfield;
+
+          if( jq.MainTag() == ABSSPECIES_MAINTAG )
+            {
+              pertfield = vmr_field(si,joker,joker,joker);
+            }
+          else if( jq.MainTag() == SCATSPECIES_MAINTAG )
+            {
+              ostringstream os;
+              os << "Oops. Scatterig species perturbations not yet available.";
+              throw runtime_error(os.str());
+            }
+          else //temperature
+            {
+              pertfield = t_field;
+              WriteXMLIndexed( "ascii", il, t_field, "tfield",
+                          "tfield", "", verbosity );
+            }
+
+          perturbation_field_1d( pertfield(joker, 0, 0), 
+                                 p_gp, jg_p.nelem()+2, p_range, //extend correct?
+                                 jq.Perturbation(), pertmode );
+
+          // pasting pertured field back into the calculation field
+          if( jq.MainTag() == ABSSPECIES_MAINTAG )
+            {
+              vmr_field(si,joker,joker,joker) = pertfield;
+            }
+          else if( jq.MainTag() == SCATSPECIES_MAINTAG )
+            {
+              ostringstream os;
+              os << "Oops. Scattering species perturbations not yet available.";
+              throw runtime_error(os.str());
+            }
+          else //temperature
+            {
+              t_field = pertfield;
+              WriteXMLIndexed( "ascii", il, t_field, "pert_tfield",
+                          "tfield", "", verbosity );
+            }
+*/
+          if( jq.MainTag() == ABSSPECIES_MAINTAG )
+            {
+              if( pertmode )
+                vmr_field(si,il,joker,joker) += jq.Perturbation();
+              else
+                vmr_field(si,il,joker,joker) *= jq.Perturbation();
+            }
+          else if( jq.MainTag() == SCATSPECIES_MAINTAG )
+            {
+              ostringstream os;
+              os << "Oops. Scattering species perturbations not yet available.";
+              throw runtime_error(os.str());
+            }
+          else //temperature
+            {
+              t_field(il,joker,joker) += jq.Perturbation();
+            }
+
+          doit_i_field = doit_i_field_ref;
+          DoitCalc( ws, doit_i_field,
+                    atmfields_checked, atmgeom_checked, cloudbox_checked,
+                    cloudbox_on, f_grid, doit_mono_agenda, doit_is_initialized,
+                    verbosity );
+/*
+          ivalue =
+            doit_i_field(0,doit_i_field.nvitrines()-1,0,0,doit_i_field.npages()-1,0,0);
+          cout << "ToCb zenith distlevel#" << il << "=" << ivalue
+               << " (d=" << ivalue-rvalue << ")\n";
+          WriteXMLIndexed( "ascii", iq*np+il, doit_i_field, "ifield",
+                          "doit_i_field", "", verbosity );
+*/
+
+          Vector y;
+          yCalc( ws, y,
+                 vec_dummy, aoi_dummy, mat_dummy1, mat_dummy2, aov_dummy,
+                 mat_dummy3, mat_dummy4,
+                 atmgeom_checked, atmfields_checked, atmosphere_dim,
+                 t_field, z_field, vmr_field, cloudbox_on,
+                 cloudbox_checked, sensor_checked, stokes_dim, f_grid,
+                 sensor_pos, sensor_los, transmitter_pos, mblock_dlos_grid,
+                 sensor_response, sensor_response_f, sensor_response_pol,
+                 sensor_response_dlos, iy_unit, iy_main_agenda, geo_pos_agenda,
+                 jacobian_agenda, jacobian_do, jacobian_quantities, jacobian_indices,
+                 iy_aux_vars, verbosity );
+/*
+          cout << "y perturb=" << y << " (d=" << y[0]-y0[0] << ")\n";
+          WriteXMLIndexed( "ascii", iq*np+il, y, "y", "y", "", verbosity );
+*/
+
+          Vector dydx(y.nelem());
+          // what about this if perturbation is relative? how done in clearsky
+          // perturbation jacobians? branch here?
+          for( Index i=0; i<y.nelem(); i++ )
+            {
+              dydx = (y[i]-y0[i]) / jq.Perturbation();
+            }
+
+          jacobian(joker,it) = dydx;
+          it++;
+
+          // we need to restore the original atm fields again for to start from
+          // original field again for next perturbation level (or species)
+          if( jq.MainTag() == ABSSPECIES_MAINTAG )
+            {
+              vmr_field(si,joker,joker,joker) = vmr_field_ref(si,joker,joker,joker);
+            }
+          else if( jq.MainTag() == SCATSPECIES_MAINTAG )
+            {
+              ostringstream os;
+              os << "Oops. Scatterig species perturbations not yet available.";
+              throw runtime_error(os.str());
+            }
+          else //temperature
+            {
+              t_field = t_field_ref;
+            }
+        }
+    }
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void jacobianDoitAddSpecies(//WS Output:
+//                            Workspace&  ws _U_,
+                            ArrayOfRetrievalQuantity& jacobian_quantities,
+//                            Agenda& jacobian_agenda,
+                            // WS Input:
+                            // Keywords:
+                            const String& species,
+                            const String& mode, //abs or rel
+                            const Numeric& dx,
+                            const Verbosity& verbosity)
+{
+  // Create the new retrieval quantity
+  RetrievalQuantity rq;
+
+  ArrayOfString strarr;
+  // would rather like '-' as a delimiter.but for abs_species we need everything
+  // except strarr[0] to go into the Subtag (e.g. for H20-PWR98 in abs_species,
+  // Subtag must contain the PWR98 part. just H2O is not enough unless
+  // abs_species contains H2O or H2O-*-*-*.).
+  species.split( strarr, "." );
+
+  if( strarr.size()>0 )
+    {
+      //first entry need to be "t", "abs_species" or "scat_species"
+      if( strarr[0]=="T" || strarr[0]=="t" )
+        {
+          // Check that temperature is not already included in the jacobian.
+          for( Index it=0; it<jacobian_quantities.nelem(); it++ )
+            {
+              if( jacobian_quantities[it].MainTag() == TEMPERATURE_MAINTAG )
+                {
+                  ostringstream os;
+                  os << "Temperature is already included in *jacobian_quantities*.";
+                  throw runtime_error(os.str());
+                }
+            }
+
+          // Only abs perturbances allowed for temperature
+          if( mode != "abs" )
+            {
+              ostringstream os;
+              os << "Only absolute perturbances (mode='abs') allowed for "
+                 << "temperature jacobians.";
+              throw runtime_error(os.str());
+            }
+
+          // consider HSE on/off here? if so, do by subtag (see
+          // jacobianAddTemperature)
+          rq.MainTag( TEMPERATURE_MAINTAG );
+          rq.Mode( "abs" );
+          rq.Perturbation( dx );
+        }
+
+      else if( strarr[0]=="abs_species" )
+        {
+          if( strarr.size()>1 )
+            {
+              // Check that this species is not already included in the jacobian.
+              for( Index it=0; it<jacobian_quantities.nelem(); it++ )
+                {
+                  if( jacobian_quantities[it].MainTag() == ABSSPECIES_MAINTAG  && 
+                      jacobian_quantities[it].Subtag() == strarr[1] )
+                    {
+                      ostringstream os;
+                      os << "The gas species:\n" << strarr[1] << " is already "
+                         << "included in *jacobian_quantities*.";
+                      throw runtime_error(os.str());
+                    }
+                }
+            }
+          else
+            {
+              ostringstream os;
+              os << "No species tag for absorption given.";
+              throw runtime_error(os.str());
+            }
+
+          if( mode != "abs" && mode != "rel" )
+            {
+              ostringstream os;
+              os << mode << " is not a valid perturbation mode. Only 'abs' "
+                 << " and 'rel' allowed.";
+              throw runtime_error(os.str());
+            }
+
+          rq.MainTag( ABSSPECIES_MAINTAG );
+          rq.Subtag( strarr[1] );
+          rq.Mode( mode );
+          rq.Perturbation( dx );
+        }
+
+      else if( strarr[0]=="scat_species" )
+        {
+          if( strarr.size()>1 )
+            {
+              if( strarr.size()>2 )
+                {
+                  if( strarr[2] == "mass_density" || strarr[2] == "mass_flux" ||
+                      strarr[2] == "number_density" )
+                    {
+                      // Check that this species&field combi is not already
+                      // included in the jacobian.
+                      for( Index it=0; it<jacobian_quantities.nelem(); it++ )
+                        {
+                          if( jacobian_quantities[it].MainTag() == SCATSPECIES_MAINTAG  && 
+                              jacobian_quantities[it].Subtag() == strarr[1] &&
+                              jacobian_quantities[it].SubSubtag()  == strarr[2])
+                            {
+                              ostringstream os;
+                              os << "The " << strarr[2] << " field of "
+                                 << "scattering species " << strarr[1] << "\n"
+                                 << "is already included in "
+                                 << "*jacobian_quantities*.";
+                              throw runtime_error(os.str());
+                            }
+                        }
+                    }
+                  else
+                    {
+                      ostringstream os;
+                      os << strarr[2] << " is not a valid scattering species "
+                         << "field tag";
+                      throw runtime_error(os.str());
+                    }
+                }
+              else
+                {
+                  ostringstream os;
+                  os << "No field tag for scattering species given.";
+                  throw runtime_error(os.str());
+                }
+            }
+          else
+            {
+              ostringstream os;
+              os << "No species tag for scattering species given.";
+              throw runtime_error(os.str());
+            }
+
+          if( mode != "abs" && mode != "rel" )
+            {
+              ostringstream os;
+              os << mode << " is not a valid perturbation mode. Only 'abs' "
+                 << " and 'rel' allowed.";
+              throw runtime_error(os.str());
+            }
+
+          rq.MainTag( SCATSPECIES_MAINTAG );
+          rq.Subtag( strarr[1] );
+          rq.SubSubtag( strarr[2] );
+          rq.Mode( mode );
+          rq.Perturbation( dx );
+        }
+      else
+        {
+          ostringstream os;
+          os << strarr << " is not a valid jacobianDOIT species.";
+          throw runtime_error(os.str());
+        }
+    }
+  else
+    {
+      ostringstream os;
+      os << "No species string given.";
+      throw runtime_error(os.str());
+    }
+
+  // Add it to the *jacobian_quantities*
+  jacobian_quantities.push_back( rq );
+ 
+}
 
 
 

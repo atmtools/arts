@@ -1,3 +1,15 @@
+2015-03-10  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-3-172
+
+	* First implementations for DoitJacobian. Work in progress!
+
+	* src/m_jacobian.cc:
+	(JacobianDoit): Added. Main WSM for cloudy-sky Jacobians using Doit.
+
+	(jacobianDoitAddSpecies): Added. WSM to set up Jacobian species for
+	JacobianDoit case.
+
 2015-03-02  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-171

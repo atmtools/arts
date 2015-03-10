@@ -7106,6 +7106,79 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "jacobianDoit" ),
+        DESCRIPTION
+        (
+         "Performs Jacobian calculations in cloudy-sky conditions using DOIT.\n"
+         "\n"
+         "Only 1D calculations using perturbation method are possible.\n"
+         "\n"
+         "More info\n"
+        ),
+        AUTHORS( "Jana Mendrok", "Patrick Eriksson" ),
+        OUT( "jacobian",
+             "doit_i_field",
+             "scat_species_mass_density_field", "scat_species_mass_flux_field",
+             "scat_species_number_density_field", "vmr_field", "t_field" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "doit_i_field",
+            "scat_species_mass_density_field", "scat_species_mass_flux_field",
+            "scat_species_number_density_field", "vmr_field", "t_field",
+            "jacobian_quantities", "jacobian_indices",
+            "abs_species", "scat_species",
+            "p_grid", "atmosphere_dim", "cloudbox_limits",
+            "atmfields_checked", "atmgeom_checked", "cloudbox_checked",
+            "cloudbox_on", "f_grid", "doit_mono_agenda", "doit_is_initialized",
+            "z_field", "sensor_checked", "stokes_dim", 
+            "sensor_pos", "sensor_los", "transmitter_pos", "mblock_dlos_grid",
+            "sensor_response", "sensor_response_f",
+            "sensor_response_pol", "sensor_response_dlos",
+            "iy_unit", "iy_main_agenda", "geo_pos_agenda",
+            "jacobian_agenda", "jacobian_do", "iy_aux_vars" ),
+        GIN( "ScatteringMergeParticle_do" ),
+        GIN_TYPE( "Index" ),
+        GIN_DEFAULT( "0" ),
+        GIN_DESC( "Flag whether to execute *ScatteringMergeParticle* on "
+                  "perturbed *pnd_field*" 
+                  )
+        ));
+         
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "jacobianDoitAddSpecies" ),
+        DESCRIPTION
+        (
+         "Includes a jacobian species for Doit jacobian calculations.\n"
+         "\n"
+         "...Explain multi-level tag system...\n"
+         "\n"
+         "Only pure numerical perturbations are available with perturbation\n"
+         "size specified by the user.\n"
+         "\n"
+         "The retrieval unit can be \"abs\" or \"rel\" (the latter not if\n"
+         "species is temperature). Units of absolute perturbations are\n"
+         "identical to units of the field (i.e. VMR for *vmr_field*, kg/m3\n"
+         "for mass densities, 1/m3 for number densities etc.).\n"
+         ),
+        AUTHORS( "Jana Mendrok", "Patrick Eriksson" ),
+        OUT( "jacobian_quantities" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "jacobian_quantities" ),
+        GIN( "species", "unit", "dx" ),
+        GIN_TYPE( "String", "String", "Numeric" ),
+        GIN_DEFAULT( NODEF, "abs", "1e-6" ),
+        GIN_DESC( "The species tag of the retrieval quantity. See above.",
+                  "Retrieval unit. See above.",
+                  "Size of perturbation." 
+                  )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "jacobianInit" ),
         DESCRIPTION
         (
