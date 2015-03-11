@@ -1,3 +1,26 @@
+2015-03-11  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-3-173
+
+	* Next iteration of Doit Jacobians
+
+	* src/m_jacobian.cc
+	(jacobianDoit): Fixing issue of T-perturbations affecting (inArts-
+	calculated) pnd_field by always recalculating pnd_field within the
+	perturbation loop (unless pnd_field hasn't been inArts-calculated
+	anyways). Added scat_speciesXXfield perturbation capabilities (untested
+	so far).
+
+	(jacobianDoitAddSpecies): Fixme reminder added.
+
+	* src/methods.cc (jacobianDoit): Adapted interface parameters.
+
+	* src/make_array.h: Extended array definition to allow longer WSM
+	parameter lists.
+
+	* src/methods_aux.cc (MdRecord::MdRecord): Some more helpful output info
+	when something wrong with WSM interface parameters.
+
 2015-03-10  Jana Mendrok  <jana.mendrok@ltu.se>
 
 	* arts-2-3-172
@@ -5,7 +28,7 @@
 	* First implementations for DoitJacobian. Work in progress!
 
 	* src/m_jacobian.cc:
-	(JacobianDoit): Added. Main WSM for cloudy-sky Jacobians using Doit.
+	(jacobianDoit): Added. Main WSM for cloudy-sky Jacobians using Doit.
 
 	(jacobianDoitAddSpecies): Added. WSM to set up Jacobian species for
 	JacobianDoit case.

@@ -7115,20 +7115,23 @@ void define_md_data_raw()
          "\n"
          "More info\n"
         ),
-        AUTHORS( "Jana Mendrok", "Patrick Eriksson" ),
+        AUTHORS( "Jana Mendrok" ),
         OUT( "jacobian",
              "doit_i_field",
              "scat_species_mass_density_field", "scat_species_mass_flux_field",
-             "scat_species_number_density_field", "vmr_field", "t_field" ),
+             "scat_species_number_density_field",
+             "pnd_field", "vmr_field", "t_field", "scat_data" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "doit_i_field",
             "scat_species_mass_density_field", "scat_species_mass_flux_field",
-            "scat_species_number_density_field", "vmr_field", "t_field",
+            "scat_species_number_density_field",
+            "pnd_field", "vmr_field", "t_field", "scat_data",
             "jacobian_quantities", "jacobian_indices",
             "abs_species", "scat_species",
             "p_grid", "atmosphere_dim", "cloudbox_limits",
+            "scat_meta", "z_surface",
             "atmfields_checked", "atmgeom_checked", "cloudbox_checked",
             "cloudbox_on", "f_grid", "doit_mono_agenda", "doit_is_initialized",
             "z_field", "sensor_checked", "stokes_dim", 
@@ -7137,11 +7140,13 @@ void define_md_data_raw()
             "sensor_response_pol", "sensor_response_dlos",
             "iy_unit", "iy_main_agenda", "geo_pos_agenda",
             "jacobian_agenda", "jacobian_do", "iy_aux_vars" ),
-        GIN( "ScatteringMergeParticle_do" ),
-        GIN_TYPE( "Index" ),
-        GIN_DEFAULT( "0" ),
+        GIN( "ScatteringMergeParticle_do", "scat_species_delim", "debug" ),
+        GIN_TYPE( "Index", "String", "Index" ),
+        GIN_DEFAULT( "0", "-", "1" ),
         GIN_DESC( "Flag whether to execute *ScatteringMergeParticle* on "
-                  "perturbed *pnd_field*" 
+                  "perturbed *pnd_field*",
+                  "*scat_species* delimiter string",
+                  "Debug flag (dumps some additional output to files)"
                   )
         ));
          
@@ -7162,7 +7167,7 @@ void define_md_data_raw()
          "identical to units of the field (i.e. VMR for *vmr_field*, kg/m3\n"
          "for mass densities, 1/m3 for number densities etc.).\n"
          ),
-        AUTHORS( "Jana Mendrok", "Patrick Eriksson" ),
+        AUTHORS( "Jana Mendrok" ),
         OUT( "jacobian_quantities" ),
         GOUT(),
         GOUT_TYPE(),

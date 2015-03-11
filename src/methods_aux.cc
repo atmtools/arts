@@ -119,8 +119,9 @@ MdRecord::MdRecord(const char                   name[],
       if (moutput[j] == -1)
         {
           ostringstream os;
-          os << "Unknown WSV " << output[j] << " for output "
-            << "in WSM " << mname;
+          os << "Unknown WSV " << output[j]
+             << " for output (parameter #" << j << ") "
+             << "in WSM " << mname;
           throw runtime_error( os.str() );
         }
     }
@@ -132,8 +133,9 @@ MdRecord::MdRecord(const char                   name[],
       if (minput[j] == -1)
         {
           ostringstream os;
-          os << "Unknown WSV " << input[j] << " for input "
-            << "in WSM " << mname;
+          os << "Unknown WSV " << input[j]
+             << " for input (parameter #" << j << ") "
+             << "in WSM " << mname;
           throw runtime_error( os.str() );
         }
     }

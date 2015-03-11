@@ -44,6 +44,7 @@
 #include "arts.h"
 #include "auto_md.h"
 #include "check_input.h"
+#include "cloudbox.h"
 #include "math_funcs.h"
 #include "messages.h"
 #include "interpolation_poly.h"
@@ -2126,8 +2127,10 @@ void jacobianDoit(//WS Output:
                   Tensor4& scat_species_mass_density_field,
                   Tensor4& scat_species_mass_flux_field,
                   Tensor4& scat_species_number_density_field,
+                  Tensor4& pnd_field,
                   Tensor4& vmr_field,
                   Tensor3& t_field,
+                  ArrayOfArrayOfSingleScatteringData& scat_data,
                   // WS Input:
                   const ArrayOfRetrievalQuantity& jacobian_quantities,
                   const ArrayOfArrayOfIndex& jacobian_indices,
@@ -2136,6 +2139,10 @@ void jacobianDoit(//WS Output:
                   const Vector& p_grid,
                   const Index& atmosphere_dim,
                   const ArrayOfIndex& cloudbox_limits,
+                  // input required for pnd_fieldCalcFromscat_speciesFields
+                  const ArrayOfArrayOfScatteringMetaData& scat_meta,
+                  // input required for ScatteringMergeParticles1D
+                  const Matrix& z_surface,
                   // input required for DoitCalc
                   const Index& atmfields_checked,
                   const Index& atmgeom_checked,
@@ -2164,6 +2171,8 @@ void jacobianDoit(//WS Output:
                   const ArrayOfString& iy_aux_vars,
                   // Keywords:
                   const Index& ScatteringMergeParticle_do,
+                  const String& delim,
+                  const Index& debug,
                   const Verbosity& verbosity)
 {
 
@@ -2195,14 +2204,66 @@ void jacobianDoit(//WS Output:
   // usually used in iy_cloudbox_agenda, passed to iyEmissionStandard). that is,
   // we will need to set doit_i_field, too. so we need to store the first guess
   // field in a container to pas it back as first guess for each DoitCalc
-  Numeric ivalue;
-  Numeric rvalue;
   Tensor7 doit_i_field_ref = doit_i_field;
+
 /*
   rvalue =
     doit_i_field(0,doit_i_field.nvitrines()-1,0,0,doit_i_field.npages()-1,0,0);
   cout << "ToCb zenith ref=" << rvalue << "\n";
 */
+
+  // for pnd_field recalculations, we need the original scat_data, not the
+  // possibly merged one!
+  // let's first check, whether scat_data is the original by comparing extend to
+  // scat_meta extend (or likely. we can't be 100% sure).
+  if( scat_data.nelem()!=scat_meta.nelem() ||
+      scat_data[0].nelem()!=scat_meta[0].nelem() ||
+      TotalNumberOfElements(scat_data)!=TotalNumberOfElements(scat_meta)  )
+    {
+      ostringstream os;
+      os << "Size of scat_data and scat_meta not consistent.\n"
+         << "Pass unmerged scat_data into JacobianDoit!";
+      throw runtime_error(os.str());
+    }
+  // but, we need the pnd_fields corresponding to scat_data (i.e., if scat_data
+  // is unmerged, we also need unmerged pnd_field for proper DoitCalc.
+  // alternatively, we could calculate the original pnd_field again. that would
+  // maybe be the better, because safer option...).
+  // check, that we have that.
+  if( TotalNumberOfElements(scat_data)!=pnd_field.nbooks() )
+    {
+      ostringstream os;
+      os << "Size of scat_data and pnd_field not consistent.\n"
+         << "Pass unmerged pnd_field into JacobianDoit!";
+      throw runtime_error(os.str());
+    }
+
+  if( debug )
+    {
+      WriteXML( "ascii", pnd_field, "pnd_field_ref", 0, "pnd_field", "",
+                "", verbosity );
+      WriteXML( "ascii", scat_data, "scat_data_ref", 0, "scat_data", "",
+                "", verbosity );
+    }
+
+  // if we are going to merge (i.e. to modify the scat_data), we need to keep
+  // the original one. also, if we merging for the perturbations, we merge here,
+  // too.
+  ArrayOfArrayOfSingleScatteringData scat_data_ref;
+  if( ScatteringMergeParticle_do )
+    {
+      scat_data_ref=scat_data;
+      ScatteringMergeParticles1D(	pnd_field, scat_data, atmosphere_dim,
+                                  cloudbox_on, cloudbox_limits, t_field, z_field,
+                                  z_surface, cloudbox_checked, verbosity );
+      if( debug )
+        {
+          WriteXML( "ascii", pnd_field, "pnd_field_refmerged", 0, "pnd_field",
+                    "", "", verbosity );
+          WriteXML( "ascii", scat_data, "scat_data_refmerged", 0, "scat_data",
+                    "", "", verbosity );
+        }
+    }
 
   DoitCalc( ws, doit_i_field,
             atmfields_checked, atmgeom_checked, cloudbox_checked,
@@ -2236,7 +2297,6 @@ void jacobianDoit(//WS Output:
   WriteXML( "ascii", y0, "y_reiterated.xml", 0, "y0", "", "", verbosity );
 */
 
-
   ////// Now we start with the perturbations runs
   // per perturbation species and perturbation level we need to:
   // 1) perturb atmo
@@ -2258,6 +2318,9 @@ void jacobianDoit(//WS Output:
   // iyb_calc, the core method of yCalc.
   Tensor4 vmr_field_ref = vmr_field;
   Tensor3 t_field_ref = t_field;
+  Tensor4 scat_species_mass_density_field_ref = scat_species_mass_density_field;
+  Tensor4 scat_species_mass_flux_field_ref = scat_species_mass_flux_field;
+  Tensor4 scat_species_number_density_field_ref = scat_species_number_density_field;
 
 
   // Set some useful variables. 
@@ -2299,7 +2362,7 @@ void jacobianDoit(//WS Output:
   for( Index iq=0; iq<jacobian_quantities.nelem(); iq++ )
     {
       jq = jacobian_quantities[iq];
-      Index si;
+      Index si=-1;
 
 
       // check if iterator 'it' is consistent with jacobian_indices entry of the
@@ -2325,9 +2388,51 @@ void jacobianDoit(//WS Output:
         }
       else if( jq.MainTag() == SCATSPECIES_MAINTAG )
         {
-          ostringstream os;
-          os << "Oops. Scatterig species perturbations not yet available.";
-          throw runtime_error(os.str());
+          // we know, it's a scat_species. so, next we need to check, which
+          // scat_species (or hydrometeor type) it is. for that, we need to
+          // compare to scat_species entries.
+          Index i=-1;
+          while( i<scat_species.nelem() && si<0 )
+            {
+              i++;
+              String scat_species_name;
+              parse_partfield_name( scat_species_name, scat_species[i], delim);
+              if( scat_species_name == jq.Subtag() )
+                  si = i;
+            }
+          if( si<0 )
+            {
+              ostringstream os;
+              os << "scat_species does not contain " << jq.Subtag();
+              throw runtime_error(os.str());
+            }
+          // whether a generally valid field has been selected was checked in
+          // jacobianDoitAddSpecies. it's left to check, whether this field
+          // contains valid values. 0 is perfectly valid. NaN is not.
+          // Since this check is done within pnd_fieldCalcFromscat_speciesFields
+          // by the pnd_fieldX methods. so, we skip that here.
+          // Would also be good to check, whether the perturbed field is actually
+          // applied by the PSD selected for this scat_species. However,
+          // currently there is no way to check this (as we have no info here,
+          // which PSD requires which field).
+          // FIXME: check that to be perturbed field is of non-zero size (if no
+          // scat_species has any entry, we don't set the scat_speciesXXfield at
+          // all).
+          // FIXME: we could add that check in the pnd_fieldX methods and give a
+          // warning there (we can't throw error there as we currently can't
+          // circumvent the extraction of fields from compact data. as for doing
+          // this, we'd also need the info what fields are required for selected
+          // PSD). or to allow for an error here (and/or to exclude extraction
+          // of not needed fields in AtmFieldsFromCompact), we could built up an
+          // internal variable that holds that information.
+          // FIXME: when using basic atm fields instead of compact atmos, we
+          // currently use dummy empty profiles in place of non-existing data,
+          // i.e. set the fields to 0. when fixing the above (throwing error,
+          // when non-NaN data provided for un-used fields), we need an
+          // alternative way to buffer the non-existing data (if NaN is
+          // interpolable (check!), the we can read NaN instead of 0 fields. but
+          // maybe a proper WSM for setting the fields from non-compact data is
+          // nicer...
         }
       else if( jq.MainTag() != TEMPERATURE_MAINTAG )
         {
@@ -2395,28 +2500,118 @@ void jacobianDoit(//WS Output:
             }
           else if( jq.MainTag() == SCATSPECIES_MAINTAG )
             {
-              ostringstream os;
-              os << "Oops. Scattering species perturbations not yet available.";
-              throw runtime_error(os.str());
+              if( jq.SubSubtag() == "mass_density" )
+                {
+                  if( pertmode )
+                    {
+                      scat_species_mass_density_field(si,il,joker,joker)
+                        += jq.Perturbation();
+                    }
+                  else
+                    {
+                      scat_species_mass_density_field(si,il,joker,joker)
+                        *= jq.Perturbation();
+                    }
+                }
+              else if( jq.SubSubtag() == "mass_flux" )
+                {
+                  if( pertmode )
+                    {
+                      scat_species_mass_flux_field(si,il,joker,joker)
+                        += jq.Perturbation();
+                    }
+                  else
+                    {
+                      scat_species_mass_flux_field(si,il,joker,joker)
+                        *= jq.Perturbation();
+                    }
+                }
+              else if( jq.SubSubtag() == "number_density" )
+                {
+                  if( pertmode )
+                    {
+                      scat_species_number_density_field(si,il,joker,joker)
+                        += jq.Perturbation();
+                    }
+                  else
+                    {
+                      scat_species_number_density_field(si,il,joker,joker)
+                        *= jq.Perturbation();
+                    }
+                }
             }
           else //temperature
             {
               t_field(il,joker,joker) += jq.Perturbation();
             }
 
+          // unless pnd_field is NOT calculated inside ARTS, we have to
+          // recalculate it. not only for scat_speciesXXfield perturbances. the
+          // latter as also other parameters could effect the pnd_field. for
+          // example, atmospheric temperature.
+          // not straight forward, how we can check for whether pnd_field is
+          // from external. but a good guess is that then scat_speciesXXfields
+          // are not required, i.e. are likely empty. so, if not empty (here:
+          // sized 0!), we try to recalculate them.
+          if( scat_species_mass_density_field.npages()!=0 ||
+              scat_species_mass_flux_field.npages()!=0 ||
+              scat_species_number_density_field.npages()!=0 )
+            {
+              pnd_fieldCalcFromscat_speciesFields(
+                pnd_field, atmosphere_dim, cloudbox_on, cloudbox_limits,
+                scat_species_mass_density_field, scat_species_mass_flux_field,
+                scat_species_number_density_field, t_field, scat_meta,
+                scat_species, delim, verbosity );
+              if( debug )
+                {
+                  WriteXMLIndexed( "ascii", iq*np+il, pnd_field,
+                                   "pnd_field_perturbed", "pnd_field", "",
+                                   verbosity );
+                }
+              if( ScatteringMergeParticle_do )
+                {
+                  scat_data=scat_data_ref;
+                  ScatteringMergeParticles1D(	pnd_field, scat_data,
+                    atmosphere_dim, cloudbox_on, cloudbox_limits, t_field,
+                    z_field, z_surface, cloudbox_checked, verbosity );
+                  if( debug )
+                    {
+                      WriteXMLIndexed( "ascii", iq*np+il, scat_data,
+                                       "scat_data_mergeperturbed", "scat_data", "",
+                                       verbosity );
+                      WriteXMLIndexed( "ascii", iq*np+il, pnd_field,
+                                       "pnd_field_mergeperturbed", "pnd_field", "",
+                                       verbosity );
+                    }
+                }
+            }
+
+          if( debug )
+            {
+              WriteXMLIndexed( "ascii", iq*np+il, scat_data,
+                               "scat_data_final", "scat_data", "",
+                               verbosity );
+              WriteXMLIndexed( "ascii", iq*np+il, pnd_field,
+                               "pnd_field_final", "pnd_field", "",
+                               verbosity );
+            }
           doit_i_field = doit_i_field_ref;
           DoitCalc( ws, doit_i_field,
                     atmfields_checked, atmgeom_checked, cloudbox_checked,
                     cloudbox_on, f_grid, doit_mono_agenda, doit_is_initialized,
                     verbosity );
+          if( debug )
+            {
 /*
-          ivalue =
-            doit_i_field(0,doit_i_field.nvitrines()-1,0,0,doit_i_field.npages()-1,0,0);
-          cout << "ToCb zenith distlevel#" << il << "=" << ivalue
-               << " (d=" << ivalue-rvalue << ")\n";
-          WriteXMLIndexed( "ascii", iq*np+il, doit_i_field, "ifield",
-                          "doit_i_field", "", verbosity );
+              ivalue =
+                doit_i_field(0,doit_i_field.nvitrines()-1,0,0,doit_i_field.npages()-1,0,0);
+              cout << "ToCb zenith distlevel#" << il << "=" << ivalue
+                   << " (d=" << ivalue-rvalue << ")\n";
 */
+              WriteXMLIndexed( "ascii", iq*np+il, doit_i_field,
+                               "ifield_perturbed", "doit_i_field", "",
+                                verbosity );
+            }
 
           Vector y;
           yCalc( ws, y,
@@ -2430,10 +2625,14 @@ void jacobianDoit(//WS Output:
                  sensor_response_dlos, iy_unit, iy_main_agenda, geo_pos_agenda,
                  jacobian_agenda, jacobian_do, jacobian_quantities, jacobian_indices,
                  iy_aux_vars, verbosity );
+
+          if( debug )
+            {
 /*
-          cout << "y perturb=" << y << " (d=" << y[0]-y0[0] << ")\n";
-          WriteXMLIndexed( "ascii", iq*np+il, y, "y", "y", "", verbosity );
+              cout << "y perturb=" << y << " (d=" << y[0]-y0[0] << ")\n";
 */
+              WriteXMLIndexed( "ascii", iq*np+il, y, "y", "y", "", verbosity );
+            }
 
           Vector dydx(y.nelem());
           // what about this if perturbation is relative? how done in clearsky
@@ -2446,6 +2645,12 @@ void jacobianDoit(//WS Output:
           jacobian(joker,it) = dydx;
           it++;
 
+          if( debug )
+            {
+              // to have info on the jacobians already along the way...
+              WriteXML( "ascii", jacobian, "jacobian", 0, "jacobian", "", "",
+                         verbosity );
+            }
           // we need to restore the original atm fields again for to start from
           // original field again for next perturbation level (or species)
           if( jq.MainTag() == ABSSPECIES_MAINTAG )
@@ -2454,9 +2659,12 @@ void jacobianDoit(//WS Output:
             }
           else if( jq.MainTag() == SCATSPECIES_MAINTAG )
             {
-              ostringstream os;
-              os << "Oops. Scatterig species perturbations not yet available.";
-              throw runtime_error(os.str());
+              scat_species_mass_density_field(si,joker,joker,joker) =
+                scat_species_mass_density_field_ref(si,joker,joker,joker);
+              scat_species_mass_flux_field(si,joker,joker,joker) =
+                scat_species_mass_flux_field_ref(si,joker,joker,joker);
+              scat_species_number_density_field(si,joker,joker,joker) =
+                scat_species_number_density_field_ref(si,joker,joker,joker);
             }
           else //temperature
             {
@@ -2565,6 +2773,8 @@ void jacobianDoitAddSpecies(//WS Output:
             {
               if( strarr.size()>2 )
                 {
+                  // FIXME: we should also allow pnd_field (all? single scatt
+                  // elements?)
                   if( strarr[2] == "mass_density" || strarr[2] == "mass_flux" ||
                       strarr[2] == "number_density" )
                     {
