@@ -12226,14 +12226,13 @@ void define_md_data_raw()
         GIN( "robust" ),
         GIN_TYPE(    "Index" ),
         GIN_DEFAULT( "0" ),
-        GIN_DESC(
-                 "A flag with value 1 or 0. If set to one, the batch\n"
-                 "calculation will continue, even if individual jobs\n"
-                 "fail. In that case, a warning message is written to\n"
-                 "screen and file (out1 output stream), and ybatch for the\n"
-                 "failed job is set to -1. The robust behavior does only work\n"
-                 "properly if your control file is run single threaded.\n"
-                 "Set \"--numthreads 1\". See \"arts --help\"."
+        GIN_DESC( "A flag with value 1 or 0. If set to one, the batch\n"
+                  "calculation will continue, even if individual jobs fail. In\n"
+                  "that case, a warning message is written to screen and file\n"
+                  "(out1 output stream), and the *y* Vector entry for the\n"
+                  "failed job in *ybatch* is left empty. The robust behavior\n"
+                  "does only work properly if your control file is run single\n"
+                  "threaded. Set \"--numthreads 1\". See \"arts --help\"."
                  )
         ));
 

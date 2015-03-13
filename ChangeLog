@@ -1,3 +1,10 @@
+2015-03-13  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-2-45
+
+	* src/methods.cc (ybatchCalc): Fix built-in doc of robust: doesn't set
+	-1 values anymore, but empty vectors.
+
 2015-02-27  Jana Mendrok  <jana.mendrok@ltu.se>
 
 	* arts-2-2-44
