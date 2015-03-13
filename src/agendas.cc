@@ -640,7 +640,7 @@ void define_agenda_data()
         "Calculates the phase matrix for individual scattering elements.\n"
         "\n"
         "Different options are possible for the usage of this agenda: \n"
-        "*pha_mat_sptFromData* or *pha_mat_sptDOITOpt*. \n"
+        "*pha_mat_sptFromData* or *pha_mat_sptFromDataDOITOpt*. \n"
         ),
        OUTPUT( "pha_mat_spt"),
        INPUT( "pha_mat_spt", "scat_za_index", "scat_lat_index", "scat_lon_index",

@@ -5,6 +5,9 @@
 #data are used for atmospheric input. No sensor characteristics 
 #are applied. Only two frequencies and two line of sights are used,
 #for calculation time reasons.
+#
+# Author: Daniel Kreyling
+# 
 
 Arts2 {
 

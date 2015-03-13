@@ -7116,7 +7116,7 @@ void define_md_data_raw()
          "More info\n"
         ),
         AUTHORS( "Jana Mendrok" ),
-        OUT( "jacobian",
+        OUT( "y", "jacobian",
              "doit_i_field",
              "scat_species_mass_density_field", "scat_species_mass_flux_field",
              "scat_species_number_density_field",
@@ -7140,13 +7140,16 @@ void define_md_data_raw()
             "sensor_response_pol", "sensor_response_dlos",
             "iy_unit", "iy_main_agenda", "geo_pos_agenda",
             "jacobian_agenda", "jacobian_do", "iy_aux_vars" ),
-        GIN( "ScatteringMergeParticle_do", "scat_species_delim", "debug" ),
-        GIN_TYPE( "Index", "String", "Index" ),
-        GIN_DEFAULT( "0", "-", "1" ),
-        GIN_DESC( "Flag whether to execute *ScatteringMergeParticle* on "
-                  "perturbed *pnd_field*",
-                  "*scat_species* delimiter string",
-                  "Debug flag (dumps some additional output to files)"
+        GIN( "robust", "ScatteringMergeParticle_do", "debug", "scat_species_delim" ),
+        GIN_TYPE( "Index",        "Index",           "Index", "String" ),
+        GIN_DEFAULT(  "1",            "0",               "0", "-" ),
+        GIN_DESC( "Flag (0=no,1=yes) whether to continue perturbation "
+                  "calculations, even if individual calculations fail. When set"
+                  "robust, respective entries in *jacobian* are set to NaN.",
+                  "Flag (0=no,1=yes) whether to execute "
+                  "*ScatteringMergeParticle1D* on perturbed *pnd_field*",
+                  "Debug flag (dumps some additional output to files)",
+                  "*scat_species* delimiter string"
                   )
         ));
          
@@ -13072,14 +13075,13 @@ void define_md_data_raw()
         GIN( "robust" ),
         GIN_TYPE(    "Index" ),
         GIN_DEFAULT( "0" ),
-        GIN_DESC(
-                 "A flag with value 1 or 0. If set to one, the batch\n"
-                 "calculation will continue, even if individual jobs\n"
-                 "fail. In that case, a warning message is written to\n"
-                 "screen and file (out1 output stream), and ybatch for the\n"
-                 "failed job is set to -1. The robust behavior does only work\n"
-                 "properly if your control file is run single threaded.\n"
-                 "Set \"--numthreads 1\". See \"arts --help\"."
+        GIN_DESC( "A flag with value 1 or 0. If set to one, the batch\n"
+                  "calculation will continue, even if individual jobs fail. In\n"
+                  "that case, a warning message is written to screen and file\n"
+                  "(out1 output stream), and the *y* Vector entry for the\n"
+                  "failed job in *ybatch* is left empty. The robust behavior\n"
+                  "does only work properly if your control file is run single\n"
+                  "threaded. Set \"--numthreads 1\". See \"arts --help\"."
                  )
         ));
 

@@ -314,6 +314,7 @@ void doit_conv_flagAbsBT(//WS Input and Output:
   doit_iteration_counter +=1;
   out2 << "  Number of DOIT iteration: " << doit_iteration_counter << "\n";
 
+  //Numeric max_diff_bt = 0.;
   if (doit_iteration_counter > max_iterations)
     {
       ostringstream out;
@@ -373,12 +374,17 @@ void doit_conv_flagAbsBT(//WS Input and Output:
                           
                           // If the absolute difference of the components
                           // is larger than the pre-defined values, return
-                          // to *doit_i_fieldIterarte* and do next iteration
+                          // to *doit_i_fieldIterate* and do next iteration
                           Numeric diff_bt = invrayjean(diff, f_grid[f_index]);
+  //                        if( abs(diff_bt) > max_diff_bt )
+  //                          max_diff_bt = abs(diff_bt);
                           if( abs(diff_bt) > epsilon[stokes_index])
                             {
                               out1 << "BT difference: " << diff_bt
                                     << " in stokes dim " << stokes_index << "\n";
+  //                            cout << "max BT difference in iteration #"
+  //                                 << doit_iteration_counter << ": "
+  //                                 << max_diff_bt << "\n";
                               return;
                             }
                         }// End loop stokes_dom.
@@ -388,6 +394,8 @@ void doit_conv_flagAbsBT(//WS Input and Output:
         }// End loop lat_grid.
     } // End p_grid.
   
+  //cout << "max BT difference in iteration #" << doit_iteration_counter
+  //     << ": " << max_diff_bt << "\n";
   // Convergence test has been successful, doit_conv_flag can be set to 1.
   doit_conv_flag = 1;
     }

@@ -2121,6 +2121,7 @@ void jacobianCalcWindAnalytical(
 /* Workspace method: Doxygen documentation will be auto-generated */
 void jacobianDoit(//WS Output:
                   Workspace& ws,
+                  Vector& y0,
                   Matrix& jacobian,
                   // data that is passed to WSMs via the workspace
                   Tensor7& doit_i_field,
@@ -2170,15 +2171,33 @@ void jacobianDoit(//WS Output:
                   const Index& jacobian_do,
                   const ArrayOfString& iy_aux_vars,
                   // Keywords:
+                  const Index& robust,
                   const Index& ScatteringMergeParticle_do,
-                  const String& delim,
                   const Index& debug,
+                  const String& delim,
                   const Verbosity& verbosity)
 {
+/*
+  // FIXME:
+   2)- consistency of clearsky and cloudy jacobian setups: settinng of
+   jacobian_indices! use of jacobianOff, jacobianInit, jacobianClose.
+     - test (and adapt if necessary) for no-inARTS calculated pnd_fields
+   1)- built-in documentation!
+     - extend output: y_aux(?)
+     - add some diagnostics: is input doit_i_field (and corresponding y0_1st)
+     suffiently converged? check whether |y0_1st-y0_niter| << |ypert_niter-y0_niter|
+     - check & disallow perturbations on scat_speciesXXfield that are not used
+   3)- allow (a) smaller perturbation range in p
+             (b) extend allowed perturbation range to outside cloudbox
+             (c) arbitrary (in-cloudbox) p-levels
+     - allow clearsky and cloudy jacobians in parallel
+     - ...
+*/
+  CREATE_OUTS;
 
   if( jacobian_do != 0 )
       throw std::runtime_error(
-            "Currently not possible to comine clearksy and DOIT Jacobians.");
+            "Currently not possible to combine clearksy and DOIT Jacobians.");
 
   if( jacobian_quantities.nelem()<1 )
     {
@@ -2193,24 +2212,15 @@ void jacobianDoit(//WS Output:
       throw std::runtime_error(
             "DOIT Jacobians currently only work with a 1D atmosphere.");
 
-  // Prepare common settings for all DOIT calculations
+  ArrayOfString fail_msg;
+  bool do_abort = false;
 
-  // 1) set doit_conv_test_agenda
-  // 2) set doit_mono_agenda
-  // not here. both have to be set correctly in the controlfile, before calling
-  // jacobianDoit
 
   // yCalc will use doit_i_field via the workspace (by iyInterpCloudboxField
   // usually used in iy_cloudbox_agenda, passed to iyEmissionStandard). that is,
   // we will need to set doit_i_field, too. so we need to store the first guess
   // field in a container to pas it back as first guess for each DoitCalc
   Tensor7 doit_i_field_ref = doit_i_field;
-
-/*
-  rvalue =
-    doit_i_field(0,doit_i_field.nvitrines()-1,0,0,doit_i_field.npages()-1,0,0);
-  cout << "ToCb zenith ref=" << rvalue << "\n";
-*/
 
   // for pnd_field recalculations, we need the original scat_data, not the
   // possibly merged one!
@@ -2246,6 +2256,11 @@ void jacobianDoit(//WS Output:
                 "", verbosity );
     }
 
+
+  ////// Calculation of reference case
+  // We do a fixed number of iterations on top of the first-guess field from
+  // outside to be consistent with the perturbation calculations.
+
   // if we are going to merge (i.e. to modify the scat_data), we need to keep
   // the original one. also, if we merging for the perturbations, we merge here,
   // too.
@@ -2269,15 +2284,8 @@ void jacobianDoit(//WS Output:
             atmfields_checked, atmgeom_checked, cloudbox_checked,
             cloudbox_on, f_grid, doit_mono_agenda, doit_is_initialized,
             verbosity );
-/*
-  ivalue =
-    doit_i_field(0,doit_i_field.nvitrines()-1,0,0,doit_i_field.npages()-1,0,0);
-  cout << "ToCb zenith reiterate=" << ivalue << " (d=" << ivalue-rvalue << ")\n";
-  WriteXML( "ascii", doit_i_field, "ifield_reiterated.xml", 0, "doit_i_field",
-           "", "", verbosity );
-*/
 
-  Vector y0, vec_dummy;
+  Vector vec_dummy;
   ArrayOfIndex aoi_dummy;
   Matrix mat_dummy1, mat_dummy2, mat_dummy3, mat_dummy4;
   ArrayOfVector aov_dummy;
@@ -2292,14 +2300,12 @@ void jacobianDoit(//WS Output:
          sensor_response_dlos, iy_unit, iy_main_agenda, geo_pos_agenda,
          jacobian_agenda, jacobian_do, jacobian_quantities, jacobian_indices,
          iy_aux_vars, verbosity );
-/*
-  cout << "y reiterate=" << y0 << "\n";
-  WriteXML( "ascii", y0, "y_reiterated.xml", 0, "y0", "", "", verbosity );
-*/
+
 
   ////// Now we start with the perturbations runs
   // per perturbation species and perturbation level we need to:
   // 1) perturb atmo
+  // 1a) recalculated pnd_field for perturbed atmosphere
   // 2) DoitCalc
   // 3) yCalc
   // 4) Calculate jacobian = (y-y0)/perturbation and append to jacobian matrix
@@ -2312,10 +2318,6 @@ void jacobianDoit(//WS Output:
   // better way?
   //
   // OLIVER???
-  //
-  // the clearsky counterpart handles this by not calling yCalc (though, this
-  // has the atm state fields has explicit input...), but instead using
-  // iyb_calc, the core method of yCalc.
   Tensor4 vmr_field_ref = vmr_field;
   Tensor3 t_field_ref = t_field;
   Tensor4 scat_species_mass_density_field_ref = scat_species_mass_density_field;
@@ -2327,6 +2329,7 @@ void jacobianDoit(//WS Output:
   RetrievalQuantity jq;
   Index it=0;
   Index lstart, lend, pertmode;
+  String speciesname;
 
   // as long as we limit the perturbation to within cloudbox and provide a
   // ready-made doit_i_field (were we do not modify the clear incoming part
@@ -2347,6 +2350,9 @@ void jacobianDoit(//WS Output:
   // however, for making it easier adaptable to specific retrieval grids, we use
   // the same basic strategy using ArrayOfGridPos as for clearsky perturbation
   // jacobians (see jacobianCalcAbsSpeciesPerturbations in m_jacobians.cc)
+  // ok, didn't work on first try. using the easy version (loop over
+  // p_grid-levels) now. adapt to clearsky-equivalent use later on (when we
+  // allow retrieval/perturbation grids different from the given p_grid)...
   
   //ArrayOfGridPos p_gp;
   //Vector jg_p = p_grid[Range(lstart,lend-lstart)]; // using correct extend?
@@ -2357,10 +2363,13 @@ void jacobianDoit(//WS Output:
   // As long as not yet handled by jacobianInit/jacobianClose, we need to
   // properly size jacobian here.
   jacobian.resize(y0.nelem(), jacobian_quantities.nelem()*np);
+  jacobian = NAN;
 
   // loop over all perturbation species (aka jacobian quantities)
   for( Index iq=0; iq<jacobian_quantities.nelem(); iq++ )
     {
+      if (do_abort) continue;
+
       jq = jacobian_quantities[iq];
       Index si=-1;
 
@@ -2385,20 +2394,21 @@ void jacobianDoit(//WS Output:
           ArrayOfSpeciesTag tags;
           array_species_tag_from_string( tags, jq.Subtag() );
           si = chk_contains( "species", abs_species, tags );
+          speciesname = jq.MainTag()+'.'+jq.Subtag();
         }
       else if( jq.MainTag() == SCATSPECIES_MAINTAG )
         {
           // we know, it's a scat_species. so, next we need to check, which
           // scat_species (or hydrometeor type) it is. for that, we need to
           // compare to scat_species entries.
-          Index i=-1;
+          Index i=0;
           while( i<scat_species.nelem() && si<0 )
             {
-              i++;
               String scat_species_name;
-              parse_partfield_name( scat_species_name, scat_species[i], delim);
+              parse_partfield_name(scat_species_name, scat_species[i], delim);
               if( scat_species_name == jq.Subtag() )
                   si = i;
+              i++;
             }
           if( si<0 )
             {
@@ -2433,8 +2443,13 @@ void jacobianDoit(//WS Output:
           // interpolable (check!), the we can read NaN instead of 0 fields. but
           // maybe a proper WSM for setting the fields from non-compact data is
           // nicer...
+          speciesname = jq.MainTag()+'.'+jq.Subtag()+'.'+jq.SubSubtag();
         }
-      else if( jq.MainTag() != TEMPERATURE_MAINTAG )
+      else if( jq.MainTag() == TEMPERATURE_MAINTAG )
+        {
+          speciesname = jq.MainTag();
+        }
+      else
         {
           ostringstream os;
           os << jq.MainTag() << " is an unknown Doit jacobian species.\n"
@@ -2446,8 +2461,10 @@ void jacobianDoit(//WS Output:
       // loop over all perturbation levels
       for( Index il=lstart; il<lend; il++ )
         {
-/* use this if we once allow arbitrary perturbation grids.
-   if so, correct for last-point outdrag
+          if (do_abort) continue;
+/*
+          //use this if we once allow arbitrary perturbation grids. if so,
+          //correct for last-point outdrag.
           Range p_range   = Range(0,0);
           get_perturbation_range( p_range, il, j_p );
           Tensor3 pertfield;
@@ -2545,104 +2562,128 @@ void jacobianDoit(//WS Output:
               t_field(il,joker,joker) += jq.Perturbation();
             }
 
-          // unless pnd_field is NOT calculated inside ARTS, we have to
-          // recalculate it. not only for scat_speciesXXfield perturbances. the
-          // latter as also other parameters could effect the pnd_field. for
-          // example, atmospheric temperature.
-          // not straight forward, how we can check for whether pnd_field is
-          // from external. but a good guess is that then scat_speciesXXfields
-          // are not required, i.e. are likely empty. so, if not empty (here:
-          // sized 0!), we try to recalculate them.
-          if( scat_species_mass_density_field.npages()!=0 ||
-              scat_species_mass_flux_field.npages()!=0 ||
-              scat_species_number_density_field.npages()!=0 )
-            {
-              pnd_fieldCalcFromscat_speciesFields(
-                pnd_field, atmosphere_dim, cloudbox_on, cloudbox_limits,
-                scat_species_mass_density_field, scat_species_mass_flux_field,
-                scat_species_number_density_field, t_field, scat_meta,
-                scat_species, delim, verbosity );
-              if( debug )
-                {
-                  WriteXMLIndexed( "ascii", iq*np+il, pnd_field,
-                                   "pnd_field_perturbed", "pnd_field", "",
-                                   verbosity );
-                }
-              if( ScatteringMergeParticle_do )
-                {
-                  scat_data=scat_data_ref;
-                  ScatteringMergeParticles1D(	pnd_field, scat_data,
-                    atmosphere_dim, cloudbox_on, cloudbox_limits, t_field,
-                    z_field, z_surface, cloudbox_checked, verbosity );
-                  if( debug )
-                    {
-                      WriteXMLIndexed( "ascii", iq*np+il, scat_data,
-                                       "scat_data_mergeperturbed", "scat_data", "",
-                                       verbosity );
-                      WriteXMLIndexed( "ascii", iq*np+il, pnd_field,
-                                       "pnd_field_mergeperturbed", "pnd_field", "",
-                                       verbosity );
-                    }
-                }
-            }
+          try
+          {
+            // unless pnd_field is NOT calculated inside ARTS, we have to
+            // recalculate it. not only for scat_speciesXXfield perturbances. the
+            // latter as also other parameters could effect the pnd_field. for
+            // example, atmospheric temperature.
+            // not straight forward, how we can check for whether pnd_field is
+            // from external. but a good guess is that then scat_speciesXXfields
+            // are not required, i.e. are likely empty. so, if not empty (here:
+            // sized 0!), we try to recalculate them.
+            if( scat_species_mass_density_field.npages()!=0 ||
+                scat_species_mass_flux_field.npages()!=0 ||
+                scat_species_number_density_field.npages()!=0 )
+              {
+                pnd_fieldCalcFromscat_speciesFields(
+                  pnd_field, atmosphere_dim, cloudbox_on, cloudbox_limits,
+                  scat_species_mass_density_field, scat_species_mass_flux_field,
+                  scat_species_number_density_field, t_field, scat_meta,
+                  scat_species, delim, verbosity );
+                if( debug )
+                  {
+                    WriteXMLIndexed( "ascii", iq*np+il, pnd_field,
+                                     "pnd_field_perturbed", "pnd_field", "",
+                                     verbosity );
+                  }
+                if( ScatteringMergeParticle_do )
+                  {
+                    scat_data=scat_data_ref;
+                    ScatteringMergeParticles1D(	pnd_field, scat_data,
+                      atmosphere_dim, cloudbox_on, cloudbox_limits, t_field,
+                      z_field, z_surface, cloudbox_checked, verbosity );
+                    if( debug )
+                      {
+                        WriteXMLIndexed( "ascii", iq*np+il, scat_data,
+                                         "scat_data_mergeperturbed", "scat_data", "",
+                                         verbosity );
+                        WriteXMLIndexed( "ascii", iq*np+il, pnd_field,
+                                         "pnd_field_mergeperturbed", "pnd_field", "",
+                                         verbosity );
+                      }
+                  }
+              }
 
-          if( debug )
-            {
-              WriteXMLIndexed( "ascii", iq*np+il, scat_data,
-                               "scat_data_final", "scat_data", "",
-                               verbosity );
-              WriteXMLIndexed( "ascii", iq*np+il, pnd_field,
-                               "pnd_field_final", "pnd_field", "",
-                               verbosity );
-            }
-          doit_i_field = doit_i_field_ref;
-          DoitCalc( ws, doit_i_field,
-                    atmfields_checked, atmgeom_checked, cloudbox_checked,
-                    cloudbox_on, f_grid, doit_mono_agenda, doit_is_initialized,
-                    verbosity );
-          if( debug )
-            {
-/*
-              ivalue =
-                doit_i_field(0,doit_i_field.nvitrines()-1,0,0,doit_i_field.npages()-1,0,0);
-              cout << "ToCb zenith distlevel#" << il << "=" << ivalue
-                   << " (d=" << ivalue-rvalue << ")\n";
-*/
-              WriteXMLIndexed( "ascii", iq*np+il, doit_i_field,
-                               "ifield_perturbed", "doit_i_field", "",
-                                verbosity );
-            }
+            if( debug )
+              {
+                WriteXMLIndexed( "ascii", iq*np+il, scat_data,
+                                 "scat_data_final", "scat_data", "",
+                                  verbosity );
+                WriteXMLIndexed( "ascii", iq*np+il, pnd_field,
+                                 "pnd_field_final", "pnd_field", "",
+                                 verbosity );
+              }
+            doit_i_field = doit_i_field_ref;
+            DoitCalc( ws, doit_i_field,
+                      atmfields_checked, atmgeom_checked, cloudbox_checked,
+                      cloudbox_on, f_grid, doit_mono_agenda, doit_is_initialized,
+                      verbosity );
+            if( debug )
+              {
+                WriteXMLIndexed( "ascii", iq*np+il, doit_i_field,
+                                 "ifield_perturbed", "doit_i_field", "",
+                                  verbosity );
+              }
 
-          Vector y;
-          yCalc( ws, y,
-                 vec_dummy, aoi_dummy, mat_dummy1, mat_dummy2, aov_dummy,
-                 mat_dummy3, mat_dummy4,
-                 atmgeom_checked, atmfields_checked, atmosphere_dim,
-                 t_field, z_field, vmr_field, cloudbox_on,
-                 cloudbox_checked, sensor_checked, stokes_dim, f_grid,
-                 sensor_pos, sensor_los, transmitter_pos, mblock_dlos_grid,
-                 sensor_response, sensor_response_f, sensor_response_pol,
-                 sensor_response_dlos, iy_unit, iy_main_agenda, geo_pos_agenda,
-                 jacobian_agenda, jacobian_do, jacobian_quantities, jacobian_indices,
-                 iy_aux_vars, verbosity );
+            Vector y;
+            yCalc( ws, y,
+                   vec_dummy, aoi_dummy, mat_dummy1, mat_dummy2, aov_dummy,
+                   mat_dummy3, mat_dummy4,
+                   atmgeom_checked, atmfields_checked, atmosphere_dim,
+                   t_field, z_field, vmr_field, cloudbox_on,
+                   cloudbox_checked, sensor_checked, stokes_dim, f_grid,
+                   sensor_pos, sensor_los, transmitter_pos, mblock_dlos_grid,
+                   sensor_response, sensor_response_f, sensor_response_pol,
+                   sensor_response_dlos, iy_unit, iy_main_agenda, geo_pos_agenda,
+                   jacobian_agenda, jacobian_do, jacobian_quantities, jacobian_indices,
+                   iy_aux_vars, verbosity );
 
-          if( debug )
+            if( debug )
+              {
+                WriteXMLIndexed( "ascii", iq*np+il, y, "y", "y", "", verbosity );
+              }
+
+            Vector dydx(y.nelem());
+            // what about this if perturbation is relative? how done in clearsky
+            // perturbation jacobians? branch here?
+            for( Index i=0; i<y.nelem(); i++ )
+              {
+                dydx = (y[i]-y0[i]) / jq.Perturbation();
+              }
+
+            jacobian(joker,it) = dydx;
+          }
+          catch (runtime_error e)
+          {
+            if( robust )
             {
-/*
-              cout << "y perturb=" << y << " (d=" << y[0]-y0[0] << ")\n";
-*/
-              WriteXMLIndexed( "ascii", iq*np+il, y, "y", "y", "", verbosity );
+              // Don't fail full calc if one of the perturbation calcs went
+              // wrong.
+              ostringstream os;
+              os << "WARNING! Jacobian calculation for " << speciesname
+                 << " at level " << il << " failed.\n"
+                 << "jacobian matrix will contain NaN for this job.\n"
+                 << "The runtime error produced was:\n"
+                 << e.what() << "\n";
+              out0 << os.str();
             }
-
-          Vector dydx(y.nelem());
-          // what about this if perturbation is relative? how done in clearsky
-          // perturbation jacobians? branch here?
-          for( Index i=0; i<y.nelem(); i++ )
+            else
             {
-              dydx = (y[i]-y0[i]) / jq.Perturbation();
+              // The user wants the batch job to fail if one of the
+              // jobs goes wrong.
+              do_abort = true;
+              ostringstream os;
+              os << "Jacobian calculation for " << speciesname
+                 << " at level " << il << " failed. Aborting...\n";
+              out1 << os.str();
             }
+            ostringstream os;
+            os << "Run-time error at jacobianDoit species " << speciesname
+               << ", level " << il << ": \n" << e.what();
+            fail_msg.push_back(os.str());
+          }
 
-          jacobian(joker,it) = dydx;
           it++;
 
           if( debug )
@@ -2671,6 +2712,21 @@ void jacobianDoit(//WS Output:
               t_field = t_field_ref;
             }
         }
+    }
+
+  if (fail_msg.nelem())
+    {
+      ostringstream os;
+
+      if (!do_abort) os << "\nError messages from failed jacobianDoit cases:\n";
+      for (ArrayOfString::const_iterator cit = fail_msg.begin();
+           cit != fail_msg.end(); cit++)
+          os << *cit << '\n';
+
+      if (do_abort)
+          throw runtime_error(os.str());
+      else
+          out0 << os.str();
     }
 }
 

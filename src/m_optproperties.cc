@@ -91,9 +91,7 @@ void pha_mat_sptFromData( // Output:
   
   out3 << "Calculate *pha_mat_spt* from database\n";
 
-  const Index N_hm = scat_data.nelem();
   const Index stokes_dim = pha_mat_spt.ncols();
-
   if (stokes_dim > 4 || stokes_dim < 1){
     throw runtime_error("The dimension of the stokes vector \n"
                         "must be 1,2,3 or 4");
@@ -101,9 +99,20 @@ void pha_mat_sptFromData( // Output:
 
   // Determine total number of scattering elements
   const Index N_se_total = TotalNumberOfElements(scat_data);
-
+  if( N_se_total != pnd_field.nbooks() )
+    {
+      ostringstream os;
+      os << "Total number of scattering elements in scat_data(_mono) "
+         << "inconsistent with size of pnd_field.";
+      throw runtime_error(os.str());
+    }
+  // as pha_mat_spt is typically initiallized from pnd_field, this theoretically
+  // checks the same as the runtime_error above. Still, we keep it to be on the
+  // save side.
   assert( pha_mat_spt.nshelves() == N_se_total );
   
+  const Index N_hm = scat_data.nelem();
+
   // Phase matrix in laboratory coordinate system. Dimensions:
   // [frequency, za_inc, aa_inc, stokes_dim, stokes_dim]
   Tensor5 pha_mat_data_int;
@@ -212,6 +221,18 @@ void pha_mat_sptFromDataDOITOpt(// Output:
 {
   const Index N_se_total = TotalNumberOfElements(scat_data_mono);
 
+  if( N_se_total != pnd_field.nbooks() )
+    {
+      ostringstream os;
+      os << "Total number of scattering elements in scat_data(_mono) "
+         << "inconsistent with size of pnd_field.";
+      throw runtime_error(os.str());
+    }
+  // as pha_mat_spt is typically initiallized from pnd_field, this theoretically
+  // checks the same as the runtime_error above. Still, we keep it to be on the
+  // save side.
+  assert( pha_mat_spt.nshelves() == N_se_total );
+
   // atmosphere_dim = 3
   if (pnd_field.ncols() > 1)
     {
@@ -255,8 +276,6 @@ void pha_mat_sptFromDataDOITOpt(// Output:
                         "must be 1,2,3 or 4");
   }
   
-  assert( pha_mat_spt.nshelves() == N_se_total );
-
   GridPos T_gp;
   Vector itw(2);
   
@@ -1474,16 +1493,23 @@ void pha_mat_sptFromMonoData(// Output:
   nlinspace(za_grid, 0, 180, doit_za_grid_size); 
 
   const Index N_se_total = TotalNumberOfElements(scat_data_mono);
+  if( N_se_total != pnd_field.nbooks() )
+    {
+      ostringstream os;
+      os << "Total number of scattering elements in scat_data(_mono) "
+         << "inconsistent with size of pnd_field.";
+      throw runtime_error(os.str());
+    }
+  // as pha_mat_spt is typically initiallized from pnd_field, this theoretically
+  // checks the same as the runtime_error above. Still, we keep it to be on the
+  // save side.
+  assert( pha_mat_spt.nshelves() == N_se_total );
+
   const Index stokes_dim = pha_mat_spt.ncols();
-
- 
-
   if (stokes_dim > 4 || stokes_dim < 1){
     throw runtime_error("The dimension of the stokes vector \n"
                         "must be 1,2,3 or 4");
   }
-  
-  assert( pha_mat_spt.nshelves() == N_se_total );
   
   GridPos T_gp;
   Vector itw(2);

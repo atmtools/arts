@@ -1,3 +1,34 @@
+2015-03-13  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-3-174
+
+	A first sufficiently stable and testes Doit Jacobians version.
+
+	* src/m_jacobian.cc (jacobianDoit):
+	Added y of non-perturbed case as output. Added a robust option to avoid
+	complete fail e.g. for for partly unphysical perturbations. Added a
+	FIXME list. Fixed bug in presence check of perturbed scat_species.
+
+	* src/m_optproperties.cc (pha_mat_sptFrom*):
+	Added check that scat_data_mono and pnd_field extends are consistent.
+
+	* src/m_doit.cc (doit_conv_flagAbsBT): Spellfix.
+
+	* src/methods.cc: Adaption to jacobianDoit interface changes. Fixed doc
+	of ybatchCalc robust option.
+
+	* src/agendas.cc: Fix of pha_mat_spt_agenda doc.
+
+	* controlfiles/artscomponents/wfuns/TestDoitJacobians.arts,
+	ybatchREFERENCE_DoitJacobians.xml,
+	ybatch_jacobiansREFERENCE_DoitJacobians.xml:
+	Added. Cloudy Jacobians test case and reference data.
+
+	* controlfiles/CMakeLists.txt: Added TestDoitJacobians to check list.
+
+	* controlfiles/artscomponents/doitbatch/TestDOITBatch.arts:
+	Added author info.
+
 2015-03-11  Jana Mendrok  <jana.mendrok@ltu.se>
 
 	* arts-2-3-173

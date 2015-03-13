@@ -128,6 +128,8 @@ if (ARTS_XML_DATA_DIR)
   arts_test_run_ctlfile(slow artscomponents/linemixing/TestLineMixingAndZeeman_50_to_70_GHz.arts)
   arts_test_run_ctlfile(slow artscomponents/linemixing/TestLineMixingAndZeemanPreCalc_50_to_70_GHz.arts)
   
+  arts_test_run_ctlfile(slow artscomponents/wfuns/TestDoitJacobians.arts)
+
   ###############################
   ### testing XML Data itself ###
   arts_test_run_ctlfile(xmldata artscomponents/arts-xml-data/TestAtmScen_Mars.arts)
