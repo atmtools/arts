@@ -9329,7 +9329,7 @@ void CKD_mt_250_co2 (MatrixView          pxsec,
 // at 2385 cm-1, the 'bandhead' of v3. Clough et al., presentation at EGU 2007
 
   
-    if ( (I1J >= 1196.0e0) && (I1J <= 1220.0e0) )
+    if ( (I1J >= 1196) && (I1J <= 1220) )
       {
         FCO2 = pow( (Tave/246.0e0), tdep_bandhead[I1J-1196] ) * FCO2;
       }

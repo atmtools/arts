@@ -1,3 +1,29 @@
+2015-03-16  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-175
+
+	* src/methods.cc (ybatchCalc): Corrected documentation on robust
+	option. It does work with numthreads>1. Thanks jana!
+
+	* src/workspace_ng.cc (Workspace::del):
+
+	Remove spurious &. Second condition in if statement always evaluated to
+	true. No practical impact though.
+
+	* Satisfy some complaints from the static analyzer:
+
+	* src/file.cc (double_istream::parse_on_fail): Initialize variable.
+
+	* src/gzstream.cc (gzstreambuf::underflow): Add assertion.
+
+	* src/continua.cc (CKD_mt_250_co2):
+
+	Compare int variable I1J to int value instead of float.
+
+	* src/absorption.cc (SpeciesAuxData::ReadFromStream):
+
+	Add initialization of variable.
+
 2015-03-13  Jana Mendrok  <jana.mendrok@ltu.se>
 
 	* arts-2-3-174

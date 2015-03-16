@@ -27,6 +27,7 @@
 // ============================================================================
 
 #include <cstring>  // for memcpy
+#include <cassert>
 #include "gzstream.h"
 
 #ifdef GZSTREAM_NAMESPACE
@@ -81,6 +82,7 @@ int gzstreambuf::underflow() { // used for input buffer only
     if ( ! (mode & std::ios::in) || ! opened)
         return EOF;
     // Josuttis' implementation of inbuf
+    assert(gptr() != NULL);
     int n_putback = (int)(gptr() - eback());
     if ( n_putback > 4)
         n_putback = 4;

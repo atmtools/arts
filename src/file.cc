@@ -650,7 +650,7 @@ double_istream::parse_on_fail (double& x, bool neg) {
     const char *exp[] = { "", "inf", "Inf", "nan", "NaN" };
     const char *e = exp[0];
     int l = 0;
-    char inf[4];
+    char inf[4] = "\0\0\0";
     char *c = inf;
     if (neg) *c++ = '-';
     in.clear();

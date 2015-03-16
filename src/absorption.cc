@@ -227,7 +227,7 @@ bool SpeciesAuxData::ReadFromStream(String& artsid, istream& is, Index nparams, 
         // Extract accuracies:
         try
         {
-            Numeric p;
+            Numeric p = NAN;
             for (Index ip = 0; ip < nparams; ip++)
             {
                 icecream >> double_imanip() >> p;

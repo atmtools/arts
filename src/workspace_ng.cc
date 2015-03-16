@@ -77,7 +77,7 @@ void Workspace::del (Index i)
 {
   WsvStruct *wsvs = ws[i].top ();
 
-  if (wsvs &&& wsvs->wsv)
+  if (wsvs && wsvs->wsv)
     {
       wsmh.deallocate (wsv_data[i].Group(), wsvs->wsv);
       wsvs->wsv = NULL;

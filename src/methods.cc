@@ -13079,9 +13079,7 @@ void define_md_data_raw()
                   "calculation will continue, even if individual jobs fail. In\n"
                   "that case, a warning message is written to screen and file\n"
                   "(out1 output stream), and the *y* Vector entry for the\n"
-                  "failed job in *ybatch* is left empty. The robust behavior\n"
-                  "does only work properly if your control file is run single\n"
-                  "threaded. Set \"--numthreads 1\". See \"arts --help\"."
+                  "failed job in *ybatch* is left empty."
                  )
         ));
 
