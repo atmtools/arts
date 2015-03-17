@@ -1,5 +1,28 @@
 2015-03-17  Richard Larsson  <ric.larsson@gmail.com>
 
+	* arts-2-3-177
+	
+	* src/cia.{cc,h}:  Added append CIARecord functionality to CIARecord.
+	
+	* src/m_cia.cc:  Added direct reading of individual CIARecord HITRAN file function.
+	Added Append abs_cia_data with CIARecord functionality.  Added Clobber 
+	abs_cia_data with CIARecord functionality.  All just copy-paste of previously
+	internal functions.  Usecase:  We want to change between CIA models to allow He-H2 and
+	H2-H2 below 600 GHz for JUICE SWI comparison.  HITRAN provides two separate models.
+	Original CIA is only for above 600 GHz.  
+	
+	Testing required.  By reading arts-xml-data CIA file,  printing it, clobbing it with 
+	below 600 GHz data, printing the changed abs_cia_data, then reclobbing with above 
+	600 GHz model, and printing again.  Output in the end is not identical to as before.
+	
+	Consider this a beta run.
+	
+	* src/methods.cc:  Plumbing.
+	
+	* src/groups.cc:  CIARecord now visible from controlfile.
+	
+2015-03-17  Richard Larsson  <ric.larsson@gmail.com>
+
 	* arts-2-3-176
 	
 	* controlfiles/general/moon_io.arts:  Added Io standard moon.  Will add

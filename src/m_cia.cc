@@ -199,6 +199,67 @@ void abs_xsec_per_speciesAddCIA(// WS Output:
     }
 }
 
+/* Workspace method: Doxygen documentation will be auto-generated */
+void CIARecordReadFromFile(// WS GOutput:
+                           CIARecord& cia_record,
+                           // WS Input
+                           const Verbosity& verbosity,
+                           // WS GInput:
+                           const String& species_tag,
+                           const String& filepath)
+{
+    SpeciesTag species(species_tag);
+    
+    if(species.Type() != SpeciesTag::TYPE_CIA )
+    {
+        ostringstream os;
+        os << "Invalid species tag " << species_tag << ".\n"
+        << "This is not recognized as a CIA type.\n";
+        throw std::runtime_error(os.str());
+    }
+    
+    cia_record.SetSpecies(species.Species(),species.CIASecond());
+    cia_record.ReadFromCIA(filepath, verbosity);
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_cia_dataAppendCIARecord(// WS Output:
+                                 ArrayOfCIARecord& abs_cia_data,
+                                 // WS GInput:
+                                 const CIARecord& cia_record,
+                                 // WS Input:
+                                 const Verbosity&)
+{
+    Index cia_index = cia_get_index(abs_cia_data,
+                                    cia_record.Species(0),
+                                    cia_record.Species(1));
+    if(cia_index==-1)
+        abs_cia_data.push_back(cia_record);
+    else
+        abs_cia_data[cia_index].AppendDataset(cia_record);
+        
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_cia_dataClobberWithCIARecord(// WS Output:
+                                      ArrayOfCIARecord& abs_cia_data,
+                                      // WS GInput:
+                                      const CIARecord& cia_record,
+                                      // WS Input:
+                                      const Verbosity&)
+{
+    Index cia_index = cia_get_index(abs_cia_data,
+                                    cia_record.Species(0),
+                                    cia_record.Species(1));
+    if(cia_index==-1)
+        abs_cia_data.push_back(cia_record);
+    else
+        abs_cia_data[cia_index]=cia_record;
+    
+}
+
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_cia_dataReadFromCIA(// WS Output:

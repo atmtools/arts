@@ -532,6 +532,15 @@ void CIARecord::AppendDataset(const Vector& freq,
 }
 
 
+/** Append other CIARecord to this. */
+void CIARecord::AppendDataset(const CIARecord& c2)
+{
+    for(Index ii=0;ii<c2.DatasetCount();ii++)
+    {
+        mdata.push_back(c2.Dataset(ii));
+    }
+}
+
 //! Output operator for CIARecord
 /*!
  Outputs the grids for the given CIARecord.

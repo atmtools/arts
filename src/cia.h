@@ -223,6 +223,10 @@ public:
                                      CIARecord& cr,
                                      bifstream *pbifs,
                                      const Verbosity& verbosity);
+    
+    
+    /** Append other CIARecord to this. */
+    void AppendDataset(const CIARecord& c2);
 
 private:
 

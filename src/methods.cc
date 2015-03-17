@@ -2796,6 +2796,52 @@ void define_md_data_raw()
         GIN_DESC()
         ));
     
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "abs_cia_dataAppendCIARecord" ),
+      DESCRIPTION
+      (
+          "Takes CIARecord as input and appends the results in the appropriate place.\n"
+          "\n"
+          "If CIARecord has same species as species in *abs_cia_data*, then the array\n"
+          "position is used to append all of the CIARecord into the array.  If species\n"
+          "in CIARecord are not in *abs_cia_data*, the CIARecord is pushed back.\n"
+      ),
+      AUTHORS( "Richard Larsson" ),
+      OUT( "abs_cia_data" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( ),
+      GIN( "cia_record" ),
+      GIN_TYPE( "CIARecord" ),
+      GIN_DEFAULT( NODEF ),
+      GIN_DESC( "CIA record to append to *abs_cia_data*." )
+    ));
+    
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "abs_cia_dataClobberWithCIARecord" ),
+      DESCRIPTION
+      (
+          "Takes CIARecord as input and overwrites the results in the appropriate place.\n"
+          "\n"
+          "If CIARecord has same species as species in *abs_cia_data*, then the array\n"
+          "position is changed to the input CIARecord.  If species in CIARecord are not\n"
+          "in *abs_cia_data*, the CIARecord is pushed back.\n"
+      ),
+      AUTHORS( "Richard Larsson" ),
+      OUT( "abs_cia_data" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( ),
+      GIN( "cia_record" ),
+      GIN_TYPE( "CIARecord" ),
+      GIN_DEFAULT( NODEF ),
+      GIN_DESC( "CIA record to clobber into *abs_cia_data*." )
+    ));
+    
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "abs_cia_dataReadFromCIA" ),
@@ -2866,6 +2912,26 @@ void define_md_data_raw()
                   "Array of CIA tags to view, e.g. [ \"N2-N2\", \"H2-H2\" ]" )
         ));
 
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "CIARecordReadFromFile" ),
+      DESCRIPTION
+      (
+          "Reads CIARecord from Hitran-style file.\n"
+      ),
+      AUTHORS( "Richard Larsson" ),
+      OUT(),
+      GOUT("cia_record"),
+      GOUT_TYPE("CIARecord"),
+      GOUT_DESC("CIARecord type variable for input and output."),
+      IN("verbosity"),
+      GIN( "species_tag", "filepath" ),
+      GIN_TYPE( "String", "String" ),
+      GIN_DEFAULT( NODEF, NODEF ),
+      GIN_DESC( "SpeciesTag string",
+                "Path to the CIA catalog directory.")
+    ));
+    
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "DoitGetIncoming" ),
