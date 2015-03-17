@@ -1760,16 +1760,16 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                                     t,
                                     gamma,
                                     deltaf_pressure,
-                                    cutoff,
+                                    -1,
                                     DV,
                                     Y, 
                                     G, 
                                     f_grid.nelem(), 
                                     tmp[0].Ind_ls(), 
-                                    ind_lsn, 
+                                    tmp[0].Ind_lsn(), 
                                     abs_lines[ii].Species(), 
                                     abs_lines[ii].Isotopologue(), 
-                                    cutoff!=-1,
+                                    -1!=-1,
                                     1);
             }
             

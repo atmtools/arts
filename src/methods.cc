@@ -4999,6 +4999,27 @@ void define_md_data_raw()
         GIN_DEFAULT(),
         GIN_DESC()
         ));
+    
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME( "g0Io" ),
+        DESCRIPTION
+        (
+         "Gravity at zero altitude on Io.\n"
+         "\n"
+         "Numeric from Wikipedia.\n"
+         ),
+        AUTHORS( "Richard Larsson" ),
+        OUT( "g0" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN(),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
 
   md_data_raw.push_back     
     ( MdRecord
@@ -9784,7 +9805,32 @@ void define_md_data_raw()
         GIN_DEFAULT( NODEF, NODEF ),
         GIN_DESC( "Latitude.", "Azimuth angle." )
         ));
-
+    
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "refellipsoidIo" ),
+        DESCRIPTION
+        (
+         "Io reference ellipsoids.\n"
+         "\n"
+         "The reference ellipsoid (*refellipsoid*) is set to model Io,\n"
+         "folowing different models. The options are:\n"
+         "\n"
+         "   \"Sphere\" : A spherical planet. The radius is taken from\n"
+         "      report of the IAU/IAG Working Group.\n"
+         ),
+        AUTHORS( "Richard Larsson" ),
+        OUT( "refellipsoid" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN(  ),
+        GIN( "model" ),
+        GIN_TYPE(    "String" ),
+        GIN_DEFAULT( "Sphere" ),
+        GIN_DESC( "Model ellipsoid to use. Options listed above." )
+        ));
+    
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "refellipsoidJupiter" ),

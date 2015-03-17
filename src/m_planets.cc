@@ -110,6 +110,14 @@ void g0Venus(
   g0 = 8.870;
 }
 
+/* Workspace method: Doxygen documentation will be auto-generated */
+void g0Io(            
+         Numeric&   g0,
+   const Verbosity& )
+{
+  // value via Wikipedia
+  g0 = 1.796;
+}
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -216,6 +224,24 @@ void refellipsoidMoon(
     throw runtime_error( "Unknown selection for input argument *model*." );
 }
 
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void refellipsoidIo(            
+         Vector&    refellipsoid,
+   const String&    model,
+   const Verbosity& )
+{
+  refellipsoid.resize(2);
+
+  if( model == "Sphere" )
+    { 
+      refellipsoid[0] = 1821.6e3;  // From Wikipedia (and http://ssd.jpl.nasa.gov/?sat_phys_par)
+      refellipsoid[1] = 0;
+    }
+
+  else
+    throw std::runtime_error( "Unknown selection for input argument *model*." );
+}
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
