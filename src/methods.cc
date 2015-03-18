@@ -2798,14 +2798,15 @@ void define_md_data_raw()
     
     md_data_raw.push_back
     ( MdRecord
-    ( NAME( "abs_cia_dataAppendCIARecord" ),
+    ( NAME( "abs_cia_dataAddCIARecord" ),
       DESCRIPTION
       (
           "Takes CIARecord as input and appends the results in the appropriate place.\n"
           "\n"
           "If CIARecord has same species as species in *abs_cia_data*, then the array\n"
-          "position is used to append all of the CIARecord into the array.  If species\n"
-          "in CIARecord are not in *abs_cia_data*, the CIARecord is pushed back.\n"
+          "position is used to append all of the CIARecord into the array.  If clobber\n"
+          "evaluates as true, cia_record overwrites the appropriate *abs_cia_data*.  If\n"
+          "species in cia_record are not in *abs_cia_data*, the CIARecord is pushed back.\n"
       ),
       AUTHORS( "Richard Larsson" ),
       OUT( "abs_cia_data" ),
@@ -2813,33 +2814,11 @@ void define_md_data_raw()
       GOUT_TYPE(),
       GOUT_DESC(),
       IN( ),
-      GIN( "cia_record" ),
-      GIN_TYPE( "CIARecord" ),
-      GIN_DEFAULT( NODEF ),
-      GIN_DESC( "CIA record to append to *abs_cia_data*." )
-    ));
-    
-    md_data_raw.push_back
-    ( MdRecord
-    ( NAME( "abs_cia_dataClobberWithCIARecord" ),
-      DESCRIPTION
-      (
-          "Takes CIARecord as input and overwrites the results in the appropriate place.\n"
-          "\n"
-          "If CIARecord has same species as species in *abs_cia_data*, then the array\n"
-          "position is changed to the input CIARecord.  If species in CIARecord are not\n"
-          "in *abs_cia_data*, the CIARecord is pushed back.\n"
-      ),
-      AUTHORS( "Richard Larsson" ),
-      OUT( "abs_cia_data" ),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN( ),
-      GIN( "cia_record" ),
-      GIN_TYPE( "CIARecord" ),
-      GIN_DEFAULT( NODEF ),
-      GIN_DESC( "CIA record to clobber into *abs_cia_data*." )
+      GIN( "cia_record", "clobber" ),
+      GIN_TYPE( "CIARecord", "Index" ),
+      GIN_DEFAULT( NODEF, "0" ),
+      GIN_DESC( "CIA record to append to *abs_cia_data*.",
+                "If true, the new input clobbers the old cia data."   )
     ));
     
   md_data_raw.push_back

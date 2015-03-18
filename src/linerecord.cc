@@ -3109,6 +3109,15 @@ bool LineRecord::ReadFromArtscat4Stream(istream& is, const Verbosity& verbosity)
       // only read the n and j for Zeeman species, but we don't have that
       // information here
 
+      if (species_data[mspecies].Name() == "SO")
+      {
+          // Note that atoi converts *** to 0.
+          mquantum_numbers.SetUpper(QN_N, mupper_n = atoi(mquantum_numbers_str.substr(0,3).c_str()));
+          mquantum_numbers.SetLower(QN_N, mlower_n = atoi(mquantum_numbers_str.substr(6,3).c_str()));
+          mquantum_numbers.SetUpper(QN_J, mupper_j = atoi(mquantum_numbers_str.substr(3,3).c_str()));
+          mquantum_numbers.SetLower(QN_J, mlower_j = atoi(mquantum_numbers_str.substr(9,3).c_str()));
+      }
+      
       if (mquantum_numbers_str.nelem() >= 25)
       {
           if (species_data[mspecies].Name() == "O2")

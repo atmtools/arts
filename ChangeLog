@@ -1,3 +1,15 @@
+2015-03-18  Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-3-178
+	
+	* src/m_cia.cc:  Changed two functions to a single function with GIN option of 
+	clobbing new CIARecord instead of adding.  By Oliver's suggestion.
+	
+	* src/methods.cc:  Plumbing.
+	
+	* src/linerecord.cc:  SO reading of quantum numbers added so as to allow Zeeman
+	effect calculations on SO (application is Io).
+
 2015-03-17  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-3-177
