@@ -1397,7 +1397,7 @@ void define_md_data_raw()
          "\n"
          "Example\n"
          "\n"
-         "species = [ \"N2-N2-0, N2-N2-1\" ]\n"
+         "species = [ \"N2-CIA-N2-0, N2-CIA-N2-1\" ]\n"
          ),
         AUTHORS( "Stefan Buehler" ),
         OUT( "abs_species", "abs_xsec_agenda_checked", "propmat_clearsky_agenda_checked" ),
