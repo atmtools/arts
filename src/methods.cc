@@ -7186,9 +7186,39 @@ void define_md_data_raw()
         (
          "Performs Jacobian calculations in cloudy-sky conditions using DOIT.\n"
          "\n"
-         "Only 1D calculations using perturbation method are possible.\n"
+         "It calculates Jacobians using perturbation method for species and\n"
+         "perturbations defined by *jacobianDoitAddSpecies*. Allowed species\n"
+         "are temperature, all absorption species, and scattering species\n"
+         "fields (so far: mass and number density, mass flux). Perturbations\n"
+         "are so far done on all levels within the cloudbox (i.e. no\n"
+         "selection of perturbation pressure grid or range).\n"
          "\n"
-         "More info\n"
+         "The method requires a first guess *doit_i_field* as input. which\n"
+         "should have been derived from the unperturbed atmosphere case.\n"
+         "Internally, the DOIT calculation of the unperturbed case and\n"
+         "calculations for each perturbation are performed starting from the\n"
+         "first guess field. For consistency of the calculations, it is\n"
+         "suggested to perform the same, fixed number of iterations for the\n"
+         "unperturbed and perturbation calculations. To achieve this, the\n"
+         "user has to reset the *doit_conv_test_agenda* before calling\n"
+         "*jacobianDoit* setting the desired number of *max_iterations* and a\n"
+         "high-accuracy convergence limit *epsilon*.\n"
+         "\n"
+         "Only 1D calculations using perturbation method are possible.\n"
+         "Clearsky and cloudysky Jacobians can currently not be calculated\n"
+         "simulatneously.\n"
+         "\n"
+         "Attention: If ScatteringMergeParticle1D is used (in the calculation\n"
+         "of the first guess field outside this WSM or by\n"
+         "*ScatteringMergeParticle_do*=1 inside this WSM), the original,\n"
+         "unmerged *scat_data* and *pnd_field* need to be copied back into\n"
+         "the respective WSV and passed into this WSM (It is not sufficient\n"
+         "to pass a copied version! Data needs to reside in the WSVs\n"
+         "*scat_data* and *pnd_field*!)."
+         "\n"
+         "Developer note: All output WSV except *y* and *jacobian* are no\n"
+         "real output, but had to be defined as such in order to allow\n"
+         "internal modification of the data.\n"
         ),
         AUTHORS( "Jana Mendrok" ),
         OUT( "y", "jacobian",
@@ -7233,17 +7263,34 @@ void define_md_data_raw()
       ( NAME( "jacobianDoitAddSpecies" ),
         DESCRIPTION
         (
-         "Includes a jacobian species for Doit jacobian calculations.\n"
+         "Includes a jacobian species for *jacobianDoit* calculations.\n"
          "\n"
-         "...Explain multi-level tag system...\n"
+         "Allowed species categories are temperature, absorption species, and\n"
+         "scattering species. Depending on the species category, species tags\n"
+         "consist of up to three parts, separated by a '.':\n"
+         "Part 1 is the category identifier:\n"
+         "  - 'T' for temperature,\n"
+         "  - 'abs_species' for an absorption species,\n"
+         "  - 'scat_species' for a scattering species.\n"
+         "Part 2 is the species identifier (not used for category temperature):\n"
+         "  - for an absorption species: the *abs_species* tag of the species\n"
+         "    (including the absmodel or isotopologue part of the\n"
+         "    *abs_species* tag!)\n"
+         "  - for a scattering species: the scattering species name as\n"
+         "    occuring in *scat_species*\n"
+         "Part 3 is only required for scattering species perturbations:\n"
+         "  - the field identifier for the scat_species_XX_field to be\n"
+         "    perturbed (i.e. mass_density, mass_flux, or number_density)\n"
+         "  Note: Currently there is no check, whether the perturbed\n"
+         "  scattering species field is used at all by the microphysics\n"
+         "  parametrization of the respective scattering species.\n"
          "\n"
-         "Only pure numerical perturbations are available with perturbation\n"
-         "size specified by the user.\n"
-         "\n"
-         "The retrieval unit can be \"abs\" or \"rel\" (the latter not if\n"
-         "species is temperature). Units of absolute perturbations are\n"
-         "identical to units of the field (i.e. VMR for *vmr_field*, kg/m3\n"
-         "for mass densities, 1/m3 for number densities etc.).\n"
+         "Only pure numerical perturbations are available. The perturbation\n"
+         "size is specified by the user. The perturbation unit can be \"abs\"\n"
+         "or \"rel\" (the latter not if category is temperature). Units of\n"
+         "absolute perturbations are identical to units of the field (i.e.,\n"
+         "VMR for *vmr_field*, kg/m3 for mass densities, kg/s/m2 for mass\n"
+         "fluxes, 1/m3 for number densities etc.).\n"
          ),
         AUTHORS( "Jana Mendrok" ),
         OUT( "jacobian_quantities" ),
@@ -7255,7 +7302,7 @@ void define_md_data_raw()
         GIN_TYPE( "String", "String", "Numeric" ),
         GIN_DEFAULT( NODEF, "abs", "1e-6" ),
         GIN_DESC( "The species tag of the retrieval quantity. See above.",
-                  "Retrieval unit. See above.",
+                  "Perturbation unit. See above.",
                   "Size of perturbation." 
                   )
         ));

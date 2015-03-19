@@ -280,9 +280,6 @@ atmgeom_checkedCalc
 cloudbox_checkedCalc  
 sensor_checkedCalc
 
-# No unit conversion at this stage
-StringSet( iy_unit, "1" )
-
 # Initialize Doit variables
 DoitInit
 

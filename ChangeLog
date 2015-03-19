@@ -1,3 +1,14 @@
+2015-03-19  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-3-183
+
+	* src/methods.cc (jacobianDoit, jacobianDoitAddSpecies):
+	Proper built-in doc.
+
+	* controlfiles/artscomponents/doit/TestDOITFromIndividualFields.arts,
+	controlfiles/artscomponents/doitbatch/TestDOITBatch.arts:
+	iy_unit="1" setting no required for DoitCalc anymore. Removed.
+
 2015-03-19  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-3-182
