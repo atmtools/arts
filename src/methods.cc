@@ -1389,6 +1389,15 @@ void define_md_data_raw()
          "   different results: as \"O3\" already selects all O3 transitions,\n"
          "   no lines will remain to be selected by the\n"
          "   \"O3-666-500e9-501e9, O3-686\" tag.\n"
+         "\n"
+         "For CIA species the tag consists of the two involved species and\n"
+         "a dataset index. CIA species can be defined for multiple regions\n"
+         "The dataset index determines which region to use from the corresponding\n"
+         "CIARecord in *abs_cia_data*.\n"
+         "\n"
+         "Example\n"
+         "\n"
+         "species = [ \"N2-N2-0, N2-N2-1\" ]\n"
          ),
         AUTHORS( "Stefan Buehler" ),
         OUT( "abs_species", "abs_xsec_agenda_checked", "propmat_clearsky_agenda_checked" ),

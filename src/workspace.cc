@@ -135,7 +135,7 @@ void Workspace::define_wsv_data()
        "for this species (there could be for example both N2-N2 and N2-H2) in\n"
        "the same species.\n"
        "\n"
-       "FIXME: Somewhere there should be a description of the CIA tag system.\n"
+       "The CIA *abs_species* tags are described in *abs_speciesSet*.\n"
        "\n"
        "Each individual CIARecord holds the complete information from one\n"
        "HITRAN CIA file. For the given pair of molecules A HITRAN CIA data\n"
