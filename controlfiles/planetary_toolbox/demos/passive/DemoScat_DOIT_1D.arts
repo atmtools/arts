@@ -91,7 +91,7 @@ IndexSet( Naa, 37 )
 #  directions. This an issue particularly in thin atmospheres, where the
 #  hemispheric gradient is huge.
 # Internal default: 100
-NumericSet( DOITinterpol_ratio, 100 )
+NumericSet( DOITinterpol_ratio, 1e3 )
 
 
 # ---
@@ -224,8 +224,6 @@ propmat_clearsky_agenda_checkedCalc
 
 # calculate scattered field inside cloudbox
 #####
-Copy( strtmp, iy_unit )
-StringSet( iy_unit, "1" )
 DoitInit
 DoitGetIncoming( maxratio=DOITinterpol_ratio )
 doit_i_fieldSetClearsky
@@ -241,7 +239,6 @@ AgendaSet( forloop_agenda_angles )
   rte_losSet( za=za, aa=za )
   Print( rte_los, 0 )
   iyCalc
-  iyApplyUnit( iy_unit=strtmp )
   WriteXMLIndexed( in=iy, file_index=forloop_index )
   WriteXMLIndexed( in=iy_aux, file_index=forloop_index )
 }

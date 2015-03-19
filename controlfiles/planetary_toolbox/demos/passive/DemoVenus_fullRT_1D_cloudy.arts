@@ -261,7 +261,7 @@ INCLUDE "planetary_toolbox/demos/common/DemoVenusSurface1D.arts"
 #
 # NOTEs:
 #  - Does not work with surface anywhere else than on lowest considered
-#     atmospheric level (p_grid[0]), i.e., Case A2 of DemoMarsSurface1D.arts
+#     atmospheric level (p_grid[0]), i.e., Case A2 of DemoVenusSurface1D.arts
 #     with IndexSet( surface_level, 0 )
 #  - Does NOT work with Lambertian reflecting surface.
 #  - Does NOT work with winds.

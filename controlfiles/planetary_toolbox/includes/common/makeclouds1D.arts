@@ -41,7 +41,14 @@ Extract( pmin_cb, p_grid, itmp )
 cloudboxSetManually( p1=pmax, p2=pmin,
                      lat1=0, lat2=0, lon1=0, lon2=0 )
 pnd_fieldCalcFrompnd_field_raw( zeropadding=1 )
-cloudboxSetAutomatically( scat_species_mass_density_field=pnd_field )
+
+# cloudboxSetAutomatically typically works on scat_Species_fields. To make it
+#  work with pnd_field, we need to pass some empty dummy fields in instead.
+Tensor4Create( t4tmp )
+Touch( t4tmp )
+cloudboxSetAutomatically( scat_species_mass_density_field=pnd_field,
+                          scat_species_mass_flux_field=t4tmp,
+                          scat_species_number_density_field=t4tmp )
 pnd_fieldCalcFrompnd_field_raw( zeropadding=1 )
 
 # finally, we clean up the dummy files (not completely, though, as deleting

@@ -720,7 +720,7 @@ void ParticleTypeAddAll (//WS Output:
   {
 
     out2 << "  Read single scattering data\n";
-    xml_read_from_file ( data_files[i], scat_data[i], verbosity );
+    xml_read_from_file ( data_files[i], scat_data[0][i], verbosity );
 
     chk_scat_data ( scat_data[0][i],
                                  data_files[i], f_grid,

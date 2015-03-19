@@ -90,6 +90,7 @@ AgendaSet( iy_main_agenda ){
 }
 AgendaSet( iy_sub_agenda ){
   Ignore( rte_los )
+  Ignore( iy_unit )
   iyRadioLink
 }
 
