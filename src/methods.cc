@@ -2916,7 +2916,7 @@ void define_md_data_raw()
       GIN( "species_tag", "filepath" ),
       GIN_TYPE( "String", "String" ),
       GIN_DEFAULT( NODEF, NODEF ),
-      GIN_DESC( "SpeciesTag string",
+      GIN_DESC( "SpeciesTag string for CIA species.  See *abs_speciesSet* for correct format.",
                 "Path to the CIA catalog directory.")
     ));
     
