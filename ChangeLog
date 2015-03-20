@@ -1,3 +1,11 @@
+2015-03-20  Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-3-185
+	
+	* src/m_linerecord.cc:  Added as a way to collect methods to change the LineRecord.
+	Presently only function is (abs_lines_per_speciesShiftFrequency), which shifts the
+	freqeuncy of all lines in abs_lines_per_species by input frequency_shift.
+
 2015-03-19  Jana Mendrok  <jana.mendrok@ltu.se>
 
 	* arts-2-3-184

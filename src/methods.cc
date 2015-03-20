@@ -822,6 +822,25 @@ void define_md_data_raw()
         GIN_DESC()
         ));
 
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "abs_lines_per_speciesShiftFrequency" ),
+      DESCRIPTION
+      (
+       "Simple function to shift line center of all lines in *abs_lines_per_species*.\n"
+      ),
+      AUTHORS( "Richard Larsson" ),
+      OUT( "abs_lines_per_species" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "abs_lines_per_species" ),
+      GIN( "frequency_shift" ),
+      GIN_TYPE( "Numeric" ),
+      GIN_DEFAULT( "0" ),
+      GIN_DESC( "Frequency to shift line centers [Hz]." )
+    ));
+    
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "abs_lines_per_speciesWriteToSplitArtscat" ),
@@ -2822,7 +2841,7 @@ void define_md_data_raw()
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN( ),
+      IN( "abs_cia_data" ),
       GIN( "cia_record", "clobber" ),
       GIN_TYPE( "CIARecord", "Index" ),
       GIN_DEFAULT( NODEF, "0" ),
