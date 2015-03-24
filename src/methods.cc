@@ -664,6 +664,27 @@ void define_md_data_raw()
                  "Minimum frequency for lines to read [Hz].",
                  "Maximum frequency for lines to read [Hz]." )
     ));
+    
+  md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "abs_linesShiftFrequency" ),
+      DESCRIPTION
+      (
+          "Simple function to shift line center of all lines in *abs_lines*.\n"
+          "\n"
+          "The new frequencies are the old frequencies plus the input frequency shift.\n"
+      ),
+      AUTHORS( "Richard Larsson" ),
+      OUT( "abs_lines" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "abs_lines" ),
+      GIN( "frequency_shift" ),
+      GIN_TYPE( "Numeric" ),
+      GIN_DEFAULT( "0" ),
+      GIN_DESC( "Frequency to shift line centers [Hz]." )
+    ));
   
   md_data_raw.push_back
     ( MdRecord
@@ -798,7 +819,29 @@ void define_md_data_raw()
                   "Minimum frequency for lines to read [Hz].",
                   "Maximum frequency for lines to read [Hz]." )
         ));
-
+    
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "abs_lines_per_speciesRelativeLineStrengthShift" ),
+      DESCRIPTION
+      (
+          "Simple function to shift line strength of all lines in *abs_lines_per_species*.\n"
+          "\n"
+          "The new line strengths are the old line strengths times (one plus relative\n"
+          "line strength shift).\n"
+      ),
+      AUTHORS( "Richard Larsson" ),
+      OUT( "abs_lines_per_species" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "abs_lines_per_species" ),
+      GIN( "relative_line_strength_shift" ),
+      GIN_TYPE( "Numeric" ),
+      GIN_DEFAULT( "0" ),
+      GIN_DESC( "Relative change in line strengths." )
+    ));
+    
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "abs_lines_per_speciesSetEmpty" ),
@@ -828,6 +871,8 @@ void define_md_data_raw()
       DESCRIPTION
       (
        "Simple function to shift line center of all lines in *abs_lines_per_species*.\n"
+       "\n"
+       "The new frequencies are the old frequencies plus the input frequency shift.\n"
       ),
       AUTHORS( "Richard Larsson" ),
       OUT( "abs_lines_per_species" ),

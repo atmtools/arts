@@ -1,3 +1,14 @@
+2015-03-24  Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-3-186
+	
+	Beta code.  Do not use yet, behavior is not as predicted.
+	
+	* src/m_linemixing.cc:  Added abs_linesShiftFrequency and 
+	abs_lines_per_speciesRelativeLineStrengthShift to do what their names suggest.
+	
+	* src/ methods.cc:  Plumbing.
+	
 2015-03-20  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-3-185

@@ -23,6 +23,20 @@
 #include "auto_md.h"
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void abs_linesShiftFrequency(ArrayOfLineRecord& abs_lines, const Numeric& freqeuncy_shift, const Verbosity&)
+{
+    // Catch use case that is not a use case
+    if(abs_lines.nelem()==0)
+        throw std::runtime_error("*abs_lines_per_species* is empty.  Is shifting frequency really intended?");
+    
+    for(Index jj=0;jj<abs_lines.nelem();jj++)
+    {
+        abs_lines[jj].setF(abs_lines[jj].F()+freqeuncy_shift);
+    }
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void abs_lines_per_speciesShiftFrequency(ArrayOfArrayOfLineRecord& abs_lines_per_species, const Numeric& freqeuncy_shift, const Verbosity&)
 {
     
@@ -32,6 +46,27 @@ void abs_lines_per_speciesShiftFrequency(ArrayOfArrayOfLineRecord& abs_lines_per
     
     // Simply shift all lines from their original frequency by input *freqeuncy_shift*.
     for(Index ii=0;ii<abs_lines_per_species.nelem();ii++)
+    {
+        // Get a reference to the current list of lines to save typing:
+        ArrayOfLineRecord& ll = abs_lines_per_species[ii];
+        for(Index jj=0;jj<ll.nelem();jj++)
+        {
+            ll[jj].setF(ll[jj].F()+freqeuncy_shift);
+        }
+    }
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_lines_per_speciesRelativeLineStrengthShift(ArrayOfArrayOfLineRecord& abs_lines_per_species, const Numeric& relative_line_strength_shift, const Verbosity&)
+{
+    
+    // Catch use case that is not a use case
+    if(abs_lines_per_species.nelem()==0)
+        throw std::runtime_error("*abs_lines_per_species* is empty.  Is shifting line strength really intended?");
+    
+    // Simply rescale all lines from their original line strength by input *relative_line_strength_shift*.
+    for(Index ii=0;ii<abs_lines_per_species.nelem();ii++)
         for(Index jj=0;jj<abs_lines_per_species[ii].nelem();jj++)
-            abs_lines_per_species[ii][jj].setF(abs_lines_per_species[ii][jj].F()+freqeuncy_shift);
+            abs_lines_per_species[ii][jj].setI0(abs_lines_per_species[ii][jj].I0()*(1.0+relative_line_strength_shift));
 }
