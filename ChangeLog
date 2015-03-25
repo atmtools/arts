@@ -1,3 +1,17 @@
+2015-03-25  Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-3-187
+	
+	WARNING!  This update break controlfiles.  WARNING!
+	
+	* src/methods.cc:  Renamed ZeemanLineRecordPreCalc to
+	zeeman_linerecord_precalcCreateFromLines.  (Also did plumbing for stuff seen below.)
+	
+	* src/m_linerecord.cc:  added (abs_linesRelativeLineStrengthShift) to
+	work on *abs_lines*.
+	
+	* src/m_zeeman.cc:  Changed name of function shown at top.
+
 2015-03-24  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-3-186

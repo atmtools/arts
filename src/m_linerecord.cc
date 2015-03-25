@@ -27,11 +27,28 @@ void abs_linesShiftFrequency(ArrayOfLineRecord& abs_lines, const Numeric& freqeu
 {
     // Catch use case that is not a use case
     if(abs_lines.nelem()==0)
-        throw std::runtime_error("*abs_lines_per_species* is empty.  Is shifting frequency really intended?");
+        throw std::runtime_error("*abs_lines* is empty.  Is shifting frequency really intended?");
     
+    // Shift all line center frequencies
     for(Index jj=0;jj<abs_lines.nelem();jj++)
     {
         abs_lines[jj].setF(abs_lines[jj].F()+freqeuncy_shift);
+    }
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_linesRelativeLineStrengthShift(ArrayOfLineRecord& abs_lines, const Numeric& relative_line_strength_shift, const Verbosity&)
+{
+    
+    // Catch use case that is not a use case
+    if(abs_lines.nelem()==0)
+        throw std::runtime_error("*abs_lines* is empty.  Is shifting line strength really intended?");
+    
+    // Rescale all line strengths
+    for(Index jj=0;jj<abs_lines.nelem();jj++)
+    {
+        abs_lines[jj].setI0(abs_lines[jj].I0()*(1.0+relative_line_strength_shift));
     }
 }
 
@@ -67,6 +84,12 @@ void abs_lines_per_speciesRelativeLineStrengthShift(ArrayOfArrayOfLineRecord& ab
     
     // Simply rescale all lines from their original line strength by input *relative_line_strength_shift*.
     for(Index ii=0;ii<abs_lines_per_species.nelem();ii++)
-        for(Index jj=0;jj<abs_lines_per_species[ii].nelem();jj++)
-            abs_lines_per_species[ii][jj].setI0(abs_lines_per_species[ii][jj].I0()*(1.0+relative_line_strength_shift));
+    {
+        // Get a reference to the current list of lines to save typing:
+        ArrayOfLineRecord& ll = abs_lines_per_species[ii];
+        for(Index jj=0;jj<ll.nelem();jj++)
+        {
+            ll[jj].setI0(ll[jj].I0()*(1.0+relative_line_strength_shift));
+        }
+    }
 }

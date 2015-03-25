@@ -135,7 +135,7 @@ atmfields_checkedCalc
 atmgeom_checkedCalc
 cloudbox_checkedCalc
 sensor_checkedCalc
-ZeemanLineRecordPreCalc
+zeeman_linerecord_precalcCreateFromLines
 yCalc
 
 # OK?
@@ -150,7 +150,7 @@ Compare( y, yREFERENCE, 1e-2 )
 ReadXML(lm_o2,"spectroscopy/LineMixing/1st_order/o2_v1_0_band_40-120_GHz.xml.gz")
 line_mixing_dataMatch(species_tag="O2-Z-LM-66",line_mixing_tag="L2",line_mixing_records=lm_o2)
 
-ZeemanLineRecordPreCalc
+zeeman_linerecord_precalcCreateFromLines
 yCalc
 
 WriteXML( "ascii", y, "yLineMixingAndZeeman_50_to_70_GHz-1ST.xml")

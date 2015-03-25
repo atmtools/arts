@@ -137,11 +137,11 @@ void propmat_clearskyAddZeeman(Tensor4& propmat_clearsky,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void ZeemanLineRecordPreCalc( ArrayOfArrayOfLineRecord& zeeman_linerecord_precalc,
-                              const ArrayOfArrayOfSpeciesTag& abs_species,
-                              const ArrayOfArrayOfLineRecord& abs_lines_per_species,
-                              const SpeciesAuxData& isotopologue_quantum,
-                              const Verbosity& verbosity)
+void zeeman_linerecord_precalcCreateFromLines( ArrayOfArrayOfLineRecord& zeeman_linerecord_precalc,
+                                               const ArrayOfArrayOfSpeciesTag& abs_species,
+                                               const ArrayOfArrayOfLineRecord& abs_lines_per_species,
+                                               const SpeciesAuxData& isotopologue_quantum,
+                                               const Verbosity& verbosity)
 {
   CREATE_OUT3;
   
@@ -213,6 +213,8 @@ void propmat_clearskyAddZeemanFromPreCalc(Tensor4& propmat_clearsky,
       throw std::runtime_error("*atmosphere_dim* must be 3.  Zeeman Effect is only implemented for 3D geometry.");
   if( ppath_los.nelem() != 2 )
       throw std::runtime_error("*ppath_los* is not set correctly.");
+  if( zeeman_linerecord_precalc.nelem() % 3 != 0 )
+      throw std::runtime_error("Length of *zeeman_linerecord_precalc* must be multiple of 3 for polarization states.  It is not.");
   }// End   TEST(s)
 
   Vector R_path_los;

@@ -667,6 +667,28 @@ void define_md_data_raw()
     
   md_data_raw.push_back
     ( MdRecord
+    ( NAME( "abs_linesRelativeLineStrengthShift" ),
+      DESCRIPTION
+      (
+          "Simple function to shift line strength of all lines in *abs_lines*.\n"
+          "\n"
+          "The new line strengths are the old line strengths times (one plus relative\n"
+          "line strength shift).\n"
+      ),
+      AUTHORS( "Richard Larsson" ),
+      OUT( "abs_lines" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "abs_lines" ),
+      GIN( "relative_line_strength_shift" ),
+      GIN_TYPE( "Numeric" ),
+      GIN_DEFAULT( "0" ),
+      GIN_DESC( "Relative change in line strengths." )
+    ));
+    
+  md_data_raw.push_back
+    ( MdRecord
     ( NAME( "abs_linesShiftFrequency" ),
       DESCRIPTION
       (
@@ -13639,7 +13661,7 @@ void define_md_data_raw()
     
     md_data_raw.push_back
     ( MdRecord
-      ( NAME( "ZeemanLineRecordPreCalc" ),
+    ( NAME( "zeeman_linerecord_precalcCreateFromLines" ),
         DESCRIPTION
         (
          "Creates a Zeeman ArrayOfArrayOfLineRecord prior to atmospheric looping.\n"
