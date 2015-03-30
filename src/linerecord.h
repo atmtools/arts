@@ -34,6 +34,7 @@
 #include "matpackI.h"
 #include "quantum.h"
 #include "linemixingdata.h"
+#include "linerecord_partitionfunctiondata.h"
 #include "pressurebroadeningdata.h"
 
 /* Forward declaration of classes */
@@ -561,6 +562,11 @@ public:
   /** Line Mixing data */
   const LineMixingData& LineMixing() const { return mlinemixingdata; }
   void SetLineMixingData(const LineMixingData input) { mlinemixingdata=input; }
+  
+  /** Partition Function Data */
+  const PartitionFunctionData& PartitionFunction() const { return mpartitionfunctiondata; }
+  void SetPartitionFunctionData(const PartitionFunctionData input) { mpartitionfunctiondata=input; }
+  void GetPartitionFunctionData(Numeric& partition, const Numeric& atm_t) const;
   
   /** Pressure Broadening Data */
   const PressureBroadeningData& PressureBroadening() const { return mpressurebroadeningdata; }
@@ -1138,6 +1144,9 @@ private:
   
   /** Line Mixing Data */
   LineMixingData mlinemixingdata;
+  
+  /** Partition Function Data */
+  PartitionFunctionData mpartitionfunctiondata;
   
   /** Pressure Broadening Data */
   PressureBroadeningData mpressurebroadeningdata;

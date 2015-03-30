@@ -1,3 +1,43 @@
+2015-03-30  Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-3-188
+	
+	Structural changes to high level Artscat5 and to low level absorption 
+	scheme.  Partition function is now calculated in a slightly altered
+	manner.  This new way should make it much easier to add individual
+	partitions to lines, making it cleaner to interact with low level
+	abbsorption schemes.
+	
+	The work is mostly preparatory at this stage for the additions of 
+	simple NLTE calculations within ARTS in the near future but is presently
+	only capable of doing what has been done before with partition data
+	being built-in.  That said, the scheme already allows the user to specify 
+	input an Artscat5 file with specialized coefficients for different 
+	temperature schemes, making it useful for planetary applications when 
+	todday's 150-350 K is not the best idea.
+	
+	* src/CMakeLists.txt:  Added linerecord_partitionfunctiondata.cc.
+	
+	* src/absorption.cc:  Changed so partition function is calculated in
+	linerecord_partitionfunctiondata rather than directly through abs_species.
+	
+	* src/linerecord.cc:  Added tag "PF" for partition function data from
+	Artscat5 file format.  This acts similarly to "LM" and "QN" and "PB".
+	FIXME: Not certain about the write-back to XML file feature.
+	Finally added GetPartitionFunctionData through which partition is 
+	calculated.
+	
+	* src/linerecord.h:  Includes linerecord_partitionfunctiondata.h and 
+	has a PartitionFunctionData variable with a few methods of interaction
+	similar to how LineMixingData works.
+	
+	*  src/linerecord_partitionfunctiondata.{h,cc}:  Added.  Deals with
+	partition function data per line.  Defaults to built-in when no data is given.
+	Note that it can presently only do exactly what built in is doing with coefficients
+	and nothing more.  The structure is so that it should be clean to extend this in
+	the future.  I am presently waiting for NLTE data where a pressure grid is gridded
+	to a vibrational temperature.  This will be added when the data is understood.
+
 2015-03-25  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-3-187

@@ -224,6 +224,7 @@ add_library (artscore STATIC
   parameters.cc
   parser.cc
   partition_function_data.cc
+  linerecord_partitionfunctiondata.cc
   physics_funcs.cc
   poly_roots.cc
   ppath.cc

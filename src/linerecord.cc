@@ -3405,6 +3405,29 @@ bool LineRecord::ReadFromArtscat5Stream(istream& is, const Verbosity& verbosity)
                     mlinemixingdata.SetDataFromVectorWithKnownType(lmd);
                     icecream >> token;
                 }
+                else if (token == "PF")
+                {
+                    icecream >> token;
+                    mpartitionfunctiondata.StorageTag2SetType(token);
+
+                    icecream >> nelem;
+                    std::cout<< nelem<<std::endl;
+                    mpartitionfunctiondata.SetNelem(nelem);
+                    std::cout<< mpartitionfunctiondata.GetNelem()<<std::endl;
+                    Vector lmd(nelem);
+                    for (Index l = 0; l < nelem; l++)
+                    {
+                        icecream >> double_imanip() >> lmd[l];
+                        if (!icecream)
+                        {
+                            ostringstream os;
+                            os << "Error parsing partition function data element " << l+1;
+                            throw std::runtime_error(os.str());
+                        }
+                    }
+                    mpartitionfunctiondata.SetDataFromVectorWithKnownType(lmd);
+                    icecream >> token;
+                }
                 else
                 {
                     ostringstream os;
@@ -3590,7 +3613,23 @@ ostream& operator<< (ostream& os, const LineRecord& lr)
               }
 
           }
+          
+          // Write Partition Function Data
+          {
+              const PartitionFunctionData& pf = lr.PartitionFunction();
+              if (pf.Type() != PartitionFunctionData::PF_NONE)
+              {
+                  Vector partingdata;
+                  pf.GetVectorFromData(partingdata);
+                  if (partingdata.nelem() > 0)
+                  {
+                      ls << " PF " << pf.Type2StorageTag();
+					  ls << " " << pf.GetNelem();
+                      ls << " " << partingdata;
+                  }
+              }
 
+          }
 
           os << ls.str();
 
@@ -3645,4 +3684,11 @@ bool find_matching_lines(ArrayOfIndex& matches,
     if (!matches.nelem()) ret = false;
 
     return ret;
+}
+
+
+void LineRecord::GetPartitionFunctionData(Numeric& partition, const Numeric& atm_t) const
+{
+  if( mpartitionfunctiondata.GetPartitionFunctionDataParams(partition, mti0, atm_t) )
+    partition = IsotopologueData().CalculatePartitionFctRatio(mti0, atm_t);
 }

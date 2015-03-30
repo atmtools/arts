@@ -858,12 +858,14 @@ firstprivate(ls_attenuation, ls_phase, fac, f_local, aux)
                     try
                     {
                         const LineRecord& l_l = abs_lines[l];
-                        Numeric gamma,deltaf;
+                        Numeric gamma=0, deltaf=0, partition=1;
                         l_l.PressureBroadening().GetPressureBroadeningParams(gamma,deltaf,
                                                                              l_l.Ti0()/t_i,p_i,
                                                                              p_partial,this_species,h2o_index,
                                                                              broad_spec_locations,
                                                                              vmrs,verbosity);
+                        
+                        l_l.GetPartitionFunctionData(partition, t_i);
                         
                         xsec_single_line(xsec_accum_attenuation(arts_omp_get_thread_num(),joker),
                                          xsec_accum_phase(arts_omp_get_thread_num(),joker),
@@ -876,7 +878,7 @@ firstprivate(ls_attenuation, ls_phase, fac, f_local, aux)
                                          f_grid,
                                          l_l.F(),
                                          l_l.I0(),
-                                         l_l.IsotopologueData().CalculatePartitionFctRatio(l_l.Ti0(),t_i),
+                                         partition,
                                          l_l.IsotopologueData().Mass(),
                                          l_l.Elow(),
                                          l_l.Ti0(),
@@ -1137,12 +1139,12 @@ void xsec_single_line(VectorView xsec_accum_attenuation,
     {
         
         // Calculate the line shape:
-        global_data::lineshape_data[ind_ls].Function()(attenuation,phase,
-                                                       aux,F0,gamma,sigma,
+        global_data::lineshape_data[ind_ls].Function()(attenuation, phase,
+                                                       aux, F0, gamma, sigma,
                                                        f_local[Range(i_f_min,nfls)]);
         
         // Calculate the chosen normalization factor:
-        global_data::lineshape_norm_data[ind_lsn].Function()(fac,F0,
+        global_data::lineshape_norm_data[ind_lsn].Function()(fac, F0,
                                                              f_local[Range(i_f_min,nfls)],
                                                              temperature);
         
@@ -1691,7 +1693,7 @@ firstprivate(attenuation, phase, fac, f_local, aux)
         for(Index ii=0; ii<abs_lines.nelem();ii++)
         {
             // Pressure broadening parameters
-            Numeric gamma=0, deltaf_pressure=0; // Set to zero since case with 0 exist
+            Numeric gamma=0, deltaf_pressure=0, partition=1; // Set to zero since case with 0 exist
             abs_lines[ii].PressureBroadening().GetPressureBroadeningParams(gamma,deltaf_pressure,
                                                                             abs_lines[ii].Ti0()/t,p,
                                                                             p_partial,this_species,h2o_index,
@@ -1701,6 +1703,8 @@ firstprivate(attenuation, phase, fac, f_local, aux)
             // Line mixing parameters
             Numeric Y=0,DV=0,G=0; // Set to zero since case with 0 exist
             abs_lines[ii].LineMixing().GetLineMixingParams( Y,  G,  DV,  t, p, lm_p_lim, 1);
+            
+            abs_lines[ii].GetPartitionFunctionData(partition, t);
             
             // Still an ugly case with non-resonant line near 0 frequency, since this is actually a band...
             if( LineMixingData::LM_LBLRTM_O2NonResonant != abs_lines[ii].LineMixing().Type() )
@@ -1716,7 +1720,7 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                                     f_grid, 
                                     abs_lines[ii].F()+(precalc_zeeman?Z_DF[ii]:0), // Since vector is 0-length if no Zeeman pre-calculations
                                     abs_lines[ii].I0(), 
-                                    abs_lines[ii].IsotopologueData().CalculatePartitionFctRatio(abs_lines[ii].Ti0(),t), 
+                                    partition, 
                                     abs_lines[ii].IsotopologueData().Mass(),
                                     abs_lines[ii].Elow(), 
                                     abs_lines[ii].Ti0(), 
@@ -1753,7 +1757,7 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                                     f_grid, 
                                     abs_lines[ii].F()+(precalc_zeeman?Z_DF[ii]:0), // Since vector is 0-length if no Zeeman pre-calculations 
                                     abs_lines[ii].I0(), 
-                                    abs_lines[ii].IsotopologueData().CalculatePartitionFctRatio(abs_lines[ii].Ti0(),t), 
+                                    partition, 
                                     abs_lines[ii].IsotopologueData().Mass(),
                                     abs_lines[ii].Elow(), 
                                     abs_lines[ii].Ti0(), 
