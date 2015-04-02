@@ -340,7 +340,7 @@ frequency regions of interest. For atmospheric pressures $\gamma_L$ is
 much greater and because of that, of experimental
 significance in contrast to $\gamma$.\\
 Elaborating the model of Lorentz, van Vleck and Weisskopf made a
-correction to it \citep{vanvleck:45},particularly for the microwave
+correction to it \citep{vanvleck:45}, particularly for the microwave
 region:
 \begin{equation}\label{eq:abs_theory:vvw}
  F_{VVW} (\nu)=\left(\frac{\nu}{\nu_0}\right)^2\frac{\gamma_L}{\pi}
@@ -407,6 +407,17 @@ throughout the thermal infrared spectral range, but there the mirror
 line at negative frequency is negligible anyway, because it is so far
 away.
 
+For some applications, it is necessary to calculate not only the real
+part of the Lorentzian, but also its imaginary part is required. Such
+cases includes, e.g., Zeeman effect calculations and line mixing 
+calculations.  The Lorentzian that retains its imaginary parts is written
+\begin{equation}
+  F'_L(\nu)=\frac{1}{\pi}\frac{1}{\nu-\nu_0-i\gamma_L},
+\end{equation}
+where we want to make sure the reader notes that $F_L(\nu)=\Re\left[F'_L(\nu)\right]$.
+When generalized to deal with both high and low pressure conditions, 
+this turns into the Faddeeva function $F_F(\nu)$.  Again, the reader
+should not that $F_V(\nu)=\Re\left[F_F(\nu)\right]$.
 
 \subsubsection{Partition functions}
 
@@ -537,7 +548,26 @@ and for a {\it{spherical}} top, using the current notation of
 Q_r = \frac{5.34\times 10^6}{\sigma}\left(\frac{T^3}{A^3}\right)^{1/2}
 \end{equation}
 
-\subsubsection{The Zeeman Effect for O$_2$}
+\subsubsection{Line mixing}
+
+Line mixing is an effect where the line shape of multiple lines must be described as one
+band shape.  In effect, the Lorentzian pressure broadening is only valid when the relaxation
+matrix \citep[see, e.g., equation 9 of][]{ben-reuven66:_impact_pr}, is near diagonal.
+If the relaxation matrix is not diagonal, either the full matrix expression for the 
+line shape must be used, or perturbation theory applied to find out the effect per line.
+In ARTS, we have no way presently to use the full matrix expression. Instead we rely on the 
+perturbation methods explained by, e.g., \citet{smith81_jcp_absorption}.
+
+In such a perturbation method, the line shape per line is simply altered as
+\begin{equation}
+  F'(\nu) = (1-iy_{\mathrm{lm}}p+ig_{\mathrm{lm}}p^2)F(\nu-\delta\nu_{\mathrm{lm}}p^2),
+  \label{eq:abs:lm:2ndorder}
+\end{equation}
+where $y_{\mathrm{lm}}$ is a first order correction term, and $g_{\mathrm{lm}}$ and 
+$\delta\nu_{\mathrm{lm}}$ are second order corrections.  Note that $F(\nu)$ must contain
+the imaginary part of the Lorentzian for the equation above to make sense.
+
+\subsubsection{The Zeeman effect for O$_2$}
 
 The Zeeman effect implementation in ARTS is described by \citet{larsson14:_treatment_jqsrt}.
 
@@ -672,6 +702,29 @@ The coding conventions are species specific. The definitions are given in file
 the first incarnation of an ARTSCAT-4 type spectroscopic catalog from the
 \shortcode{arts-xml-data} package.
 
+\paragraph*{The ARTSCAT-5 line format is:}
+\begin{code}
+
+Col  Variable                        Label    Unit
+--------------------------------------------------
+ 0   `@'                             ENTRY       -
+ 1   molecule & isotopologue tag      NAME       -
+ 2   center frequency                    F      Hz
+ 3   line intensity                     I0  Hz*m^2
+ 4   reference temperature              T0       K
+ 5   lower state energy               ELOW       J
+ 6   Einstein A-coefficient              A     1/s 
+ 7   Upper state stat. weight      G_upper       -
+ 8   Lower state stat. weight      G_lower       -
+9-N  Tag system followed by data         -       -
+
+\end{code}
+Parameters 0-8 must be present. Parameter 9 contains coded tags for various applications.
+These tags and their implications are discussed throughout
+the ARTS documentation.  The present tags are LM for
+line mixing, PB for pressure broadening, PF for partition
+function, and QN for quantum numbers.
+
 \subsection{Pressure broadening and shift calculation}
 
 The pressure broadened line width $\gamma_L$ (see Equations
@@ -729,7 +782,8 @@ NSELF,
 \\
 \hline
 \end{tabularx}
-\caption{Pressure broadening and pressure shift input variables for different ARTSCAT versions.}
+\caption{Pressure broadening and pressure shift input variables for ARTSCAT-3 and ARTSCAT-4. ARTSCAT-5 
+inputs depends on the tag system, and is presented in the text.}
 \label{tab:abs_theory:pb_inputs}
 \end{table}
 
@@ -822,6 +876,111 @@ give unexpected results in the presence of drastically different VMRs
 that belong to the same molecular species, because in that case it makes a
 difference which of the VMR is selected for broadening.
 
+\subsubsection{ARTSCAT-5 pressure broadening}
+The ARTSCAT-5 pressure broadening format is determined by its pressure broadening tag.
+The pressure broadening tag is \verb|PB| and it is followed by one of \verb|N2|, 
+\verb|AP|, or \verb|WA|.  
+
+\paragraph*{If} the subtag is \verb|N2| for air broadening, 
+the following 10 data parameters are identical to ARTSCAT-3 parameters.
+In order they should be given as: SGAM, NSELF, AGAM, NAIR, PSF, DSGAM, DNSELF, DAGAM, DNAIR, and DPSF.
+The pressure broadening then proceeds as specified by the ARTSCAT-3 method above.
+
+\paragraph*{If} the subtag is \verb|AP| for Agnes Perrin Broadening,
+the following 20 data parameters are identical to, 
+and in order of, columns 9-28 of ARTSCAT-4 line format. The pressure broadening  calculations
+follow the ARTSCAT-4 method above.
+
+\paragraph*{If} if the subtag is \verb|WA| for water and air broadening, there are 9 data 
+parameters to follow.  These are a mixture of parameters from ARTSCAT-3 and ARTSCAT-4.
+The parameters are: SGAM, NSELF, SPSF, %FIXME:  Is it it even valid to have self pressure shift?  I only have it in for the symmetry of the data format.
+AGAM, NAIR, APSF, GAMMA\_H2O, N\_H2O, and DELTA\_H2O.
+The only new variables are SPSF and APSF, which are PSF but for self and air, respectively.
+
+If there is no water in the atmosphere, or if the pressure effects on a water
+line is being calculated, this method is identical to air broadening or ARTSCAT-3.
+However, if water is present and the line is not a water line, pressure broadening is calculated as
+\begin{eqnarray}
+  \gamma_L &=& x_\mathrm{self} \; p \; \mathrm{SGAM} \; 
+             \left(
+             \frac{\mathrm{T0}}{T}
+             \right)^{\mathrm{NSELF}} \nonumber \\
+           & &
+           x_\mathrm{water} \; p \; \mathrm{GAMMA\_H2O} \; 
+             \left(
+             \frac{\mathrm{T0}}{T}
+             \right)^{\mathrm{N\_H2O}} \nonumber \\
+           & &
+             + \; (1-x_\mathrm{self}-x_\mathrm{water}) \; p \; \mathrm{AGAM} \; 
+             \left(
+             \frac{\mathrm{T0}}{T}
+             \right)^{\mathrm{NAIR}} \;,
+\end{eqnarray}
+and the pressure shift is calculated as
+\begin{eqnarray}
+  \gamma_L &=& x_\mathrm{self} \; p \; \mathrm{SPSF} \; 
+             \left(
+             \frac{\mathrm{T0}}{T}
+             \right)^{(0.25 + 1.5 * \mathrm{NSELF})} \nonumber \\
+           & &
+           x_\mathrm{water} \; p \; \mathrm{DELTA\_H2O} \; 
+             \left(
+             \frac{\mathrm{T0}}{T}
+             \right)^{(0.25 + 1.5 * \mathrm{N\_H2O})} \nonumber \\
+           & &
+             + \; (1-x_\mathrm{self}-x_\mathrm{water}) \; p \; \mathrm{APSF} \; 
+             \left(
+             \frac{\mathrm{T0}}{T}
+             \right)^{(0.25 + 1.5 * \mathrm{NAIR})} \;,
+\end{eqnarray}
+where all variables are defined as in Table \ref{tab:abs_theory:pb_inputs}. 
+
+\subsubsection{ARTSCAT-5 line mixing}
+The ARTSCAT-5 line mixing is determined by its line mixing tag \verb|LM|.  If
+\verb|LM| it is assumed there are no line mixing parameters, so no calculations
+are performed.  If \verb|LM| is given, it must be followed by one of \verb|LL|, 
+%\verb|NR|, 
+\verb|L1|, or \verb|L2|.
+Below follows the calculations performed to calculate the line mixing
+parameters for equation~\ref{eq:abs:lm:2ndorder} depending on method.
+
+\paragraph*{If} the subtag is \verb|LL| for LBLRTM line mixing,
+the following 12 data parameters are a 4-vector temperature grid,
+a 4-vector gridded $y_{\mathrm{lm}}$, and a 4-vector gridded
+$g_{\mathrm{lm}}$.  The value $\delta\nu_{\mathrm{lm}}$ is set to nil,
+and the value to be used for the other two are interpolated to the atmospheric temperature.
+
+\paragraph*{If} the subtag is \verb|L1| for first order line mixing styled as by \citet{tretyakov05:_60-ghz_jms},
+the following 3 data parameters are in order the reference temperature of the measurement $T_{\mathrm{lm}}$, the value of $y_{\mathrm{lm}}$
+at the reference temperature $y'_{\mathrm{lm}}(T_{\mathrm{lm}})$, and a temperature dependency exponent $n_{y_{\mathrm{lm}}}$.  
+The values of $\delta\nu_{\mathrm{lm}}$ and $g_{\mathrm{lm}}$ are set to nil, and
+\begin{equation}
+  y_{\mathrm{lm}} =  y'_{\mathrm{lm}}(T_{\mathrm{lm}})\left(\frac{T_{\mathrm{lm}}}{T}\right)^{n_{y_{\mathrm{lm}}}}
+\end{equation}
+at each calculation of the line shape. 
+
+\paragraph*{If} the subtag is \verb|L2| for second order line mixing styled as by \citet{makarov11:_60-ghz_jqsrt},
+the following 9 data parameters are in order
+the first order first correction term at the reference temperature $y'_{\mathrm{lm}}(T_{\mathrm{lm}})$, 
+the first order second correction term  at the reference temperature $y''_{\mathrm{lm}}(T_{\mathrm{lm}})$,
+the second order first absolute correction term at the reference temperature $g'_{\mathrm{lm}}(T_{\mathrm{lm}})$, 
+the second order second absolute correction term  at the reference temperature $g''_{\mathrm{lm}}(T_{\mathrm{lm}})$, 
+the second order first frequency correction term at the reference temperature $\delta\nu'_{\mathrm{lm}}(T_{\mathrm{lm}})$, 
+the second order second frequency correction term  at the reference temperature $\delta\nu''_{\mathrm{lm}}(T_{\mathrm{lm}})$, 
+the reference temperature $T_{\mathrm{lm}}$, 
+the first order temperature exponent $n_{y_{\mathrm{lm}}}$, 
+the second order absolute correction temperature exponent $n_{g_{\mathrm{lm}}}$, and 
+the second order frequency correction temperature exponent $n_{\delta\nu_{\mathrm{lm}}}$.
+When the line shape is calculated, the following considerations are done for each line mixing
+term:
+\begin{eqnarray}
+  y_{\mathrm{lm}}&=& \left[y'_{\mathrm{lm}}(T_{\mathrm{lm}})+y''_{\mathrm{lm}}(T_{\mathrm{lm}})\left(\frac{T_{\mathrm{lm}}}{T}-
+  1\right)\right]\left(\frac{T_{\mathrm{lm}}}{T}\right)^{n_{y_{\mathrm{lm}}}},\\
+  g_{\mathrm{lm}}&=& \left[g'_{\mathrm{lm}}(T_{\mathrm{lm}})+g''_{\mathrm{lm}}(T_{\mathrm{lm}})\left(\frac{T_{\mathrm{lm}}}{T}-
+  1\right)\right]\left(\frac{T_{\mathrm{lm}}}{T}\right)^{n_{g_{\mathrm{lm}}}},\;\mathrm{and}\\
+  \delta\nu_{\mathrm{lm}}&=& \left[\delta\nu'_{\mathrm{lm}}(T_{\mathrm{lm}})+\delta\nu''_{\mathrm{lm}}(T_{\mathrm{lm}})\left(\frac{T_{\mathrm{lm}}}{T}-
+  1\right)\right]\left(\frac{T_{\mathrm{lm}}}{T}\right)^{n_{\delta\nu_{\mathrm{lm}}}}.
+\end{eqnarray}
 
 \subsection{Species-specific data in ARTS}
 \label{sec:abs_theory:species_data}
