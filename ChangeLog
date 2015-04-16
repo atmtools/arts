@@ -1,21 +1,29 @@
+2015-04-16  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-190
+
+	* doc/uguide/faraday.tex: In equation for r, it was only \pi, but
+	should be \pi^2. Also added description of some more of the
+	variables in these equations.
+
 2015-04-02  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-3-189
-	
+
 	Everyone, I would like to hear your comments on the added documentation!
-	
+
 	* doc/uguide/absorption_theory.tex:  Added short text on Faddeeva
 	function.  It lacks references at the moment.  At the end of line
 	shape subsection, just before the partitoin function subsection.
-	
+
 	Added a short text on line mixing at the end of the spectroscopy section,
 	just before the very short Zeeman effect entry.
-	
+
 	Added Artscat-5 line format table similar to Artscat-3 and Artscat-4.
-	
+
 	Added subsubsections on Artscat-5 pressure broadening and Artscat-5
 	line mixing.  Both refer back to rpevious technical discussions.
-	
+
 	Key science question:  I have only ever looked properly and indepth 
 	at molecular oxygen. O2 has no pressure shift.  When I designed water
 	and air broadening, I added a self pressure shift parameter, mostly
