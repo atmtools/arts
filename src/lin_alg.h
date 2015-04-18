@@ -47,6 +47,11 @@ lubacksub(VectorView x,
           const ArrayOfIndex& indx);
 
 
+// Matrix inverse
+void
+inv(MatrixView Ainv,
+    ConstMatrixView A);
+
 // Exponential of a Matrix
 void 
 matrix_exp(MatrixView F,

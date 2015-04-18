@@ -28,13 +28,16 @@
 */
 
 #include <iostream>
+#include <cmath>
+#include <stdlib.h>
+#include <time.h>
 #include "lin_alg.h"
 #include "make_vector.h"
 #include "array.h"
 
 using std::cout;
 using std::endl;
-
+using std::abs;
 
 //! 
 /*! The function tests the LU-decompusition method for solving a 
@@ -249,8 +252,188 @@ void test_lusolve4D(void)
    cout <<"\n";   
 }   
 
- 
-  
+//! Fill matrix with random values.
+/*!
+  Fills the given matrix with random numbers generated using the rand()
+  from stdlib. Since rand() produces only positive integers, the results are
+  offset by -RAND_MAX/2 and casted to Numeric. Since linear systems are only
+  determined up to a scalar factor, no scaling of the values is performed.
+
+  \param[in,out] A The matrix to be filled.
+*/
+void random_fill_matrix(MatrixView A)
+{
+    Index m = A.ncols();
+    Index n = A.nrows();
+
+    for (Index i=0; i<m; i++)
+    {
+	for (Index j=0; j<n; j++)
+	{
+	    A(i,j) = ((Numeric) rand()) - ((Numeric) RAND_MAX) / 2.0;
+	}
+    }
+}
+
+//! Fill vector with random values
+/*!
+  Fills the given vector in the same way as described in random_fill_matrix.
+  \param v The vector to be filled.
+*/
+void random_fill_vector(VectorView v)
+{
+    Index n = v.nelem();
+    for (Index i = 0; i < n; i++)
+    {
+	v[i] = ((Numeric) rand()) - ((Numeric) RAND_MAX) / 2.0;
+    }
+}
+
+//! Test ludcmp and lubacksub by solving a linear system of equations.
+/*!
+  Generates a random, square (n,n)-matrix A and a length-n vector x0 and
+  solves A*x = A*x0. The maximum relative, component-wise error in abs(x0 - x)
+  is written to standard out. The numbers of tests performed is controlled by
+  the parameter ntests. If verbose == true, also A, x0 and x are written to
+  standard out.
+
+  \param[in] ntests Number of tests to be performed.
+  \param[in] dim    Dimensionality of the equation system.
+  \param[in] verbose Controls verbosity of output. If true, for each test the
+                    matrix A and the vectors x0 and x are written to standard out.
+		    Otherwise only the maximum relative error in each component of
+		    x is written out.
+  \return void
+*/
+void test_solve_linear_system(Index ntests, Index dim, bool verbose = false)
+{
+    Matrix A(dim,dim);
+    Matrix LU(dim,dim);
+    Vector x0(dim);
+    Vector x(dim);
+    Vector b(dim);
+    ArrayOfIndex indx(dim);
+
+    // initialize random seed
+    srand((unsigned int) time(0));
+
+    for (Index i = 0; i < ntests; i++)
+    {
+
+	// Generate linear system, make sure the determinant
+	// is non-zero.
+	Numeric determinant = 0.0;
+	while (determinant == 0.0)
+	{
+	    random_fill_matrix(A);
+	    determinant = det(A);
+	}
+	random_fill_vector(x0);
+	mult(b,A,x0);
+	// Solve linear system.
+
+	ludcmp(LU, indx, A);
+	lubacksub(x, LU, b, indx);
+
+	// Find maximum relative error.
+	Numeric max = 0.0;
+	for (Index j = 0; j < dim; j++)
+	{
+	    if (x0[j] != 0.0)
+	    {
+		Numeric e = abs( (x[j] - x0[j]) / x0[j] );
+		if (e > max)
+		{
+		    max = e;
+		}
+	    }
+	}
+
+	// Print results.
+	cout  << "Test " << i << ": max. rel. error: " << max << endl;
+
+	if (verbose)
+	{
+	    cout << endl;
+	    cout << "A:" << endl << A << endl << endl;
+	    cout << "x0:" << endl << x0 << endl << endl;
+	    cout << "x:" << endl << x << endl << endl;
+	    cout << "Permutation Vector:" << endl << indx << endl;
+	    cout << endl;
+	}
+    }
+}
+
+//! Test matrix inversion.
+/*!
+  Generates a random, square (n,n)-matrix A and computes its inverse Ainv and
+  I = Ainv*A. The maximum absolute error in I with respect to the identity matrix
+  is written to standard out. The number of tests performed is controlled by the
+  parameter ntests. If verbose == true, also A, Ainv and A*Ainv are written to
+  standard out.
+
+  \param[in] ntests Number of tests to be performed.
+  \param[in] dim    Size of matrix A.
+  \param[in] verbose Controls verbosity of output. If true, for each test the
+                    matrices A, Ainv and I = Ainv*A are written to standard out.
+		    Otherwise only the maximum absolute error in I = Ainv*A w.r.t.
+		    the identity matrix is written out.
+  \return void
+*/
+
+void test_inv(Index ntests, Index dim, bool verbose=false)
+{
+    Matrix A(dim,dim);
+    Matrix Ainv(dim,dim);
+    Matrix I0(dim,dim);
+    id_mat(I0);
+    Matrix I(dim,dim);
+
+    // initialize random seed
+    srand((unsigned int) time(0));
+
+    for (Index i = 0; i < ntests; i++)
+    {
+	// Generate random matrix, make sure the determinant
+	// is non-zero.
+	Numeric determinant = 0.0;
+	while (determinant == 0.0)
+	{
+	    random_fill_matrix(A);
+	    determinant = det(A);
+	}
+
+	inv(Ainv,A);
+	mult(I, Ainv, A);
+
+	// Find maximum error.
+	Numeric max = 0.0;
+
+	for (Index j = 0; j < dim; j++)
+	{
+	    for (Index k = 0; k < dim; k++)
+	    {
+		Numeric e = abs(I0(j,k) - I(j,k));
+		if (e > max)
+		{
+		    max = e;
+		}
+	    }
+	}
+	// Print results.
+	cout  << "Test " << i << ": max. abs. error: " << max << endl;
+
+	if (verbose)
+	{
+	    cout << endl;
+	    cout << "A:" << endl << A << endl << endl;
+	    cout << "Ainv:" << endl << Ainv << endl << endl;
+	    cout << "A*Ainv:" << endl << I << endl << endl;
+	}
+
+    }
+}
+
 //! Test for the matrix exponential function (4D matrix)
 /*! 
   
@@ -340,7 +523,7 @@ void test_matrix_exp3D(void)
   /*execute matrix exponential function*/
   matrix_exp(F,A,q);
 
-    
+
   cout << "\n Exponential of Matrix A";
   for( Index i = 0; i<3; i++)
     {
@@ -354,6 +537,8 @@ void test_matrix_exp3D(void)
 int main(void)
 {
   test_lusolve1D();
+  test_solve_linear_system(20,4);
+  test_inv(20,10);
   // test_matrix_exp1D();
   return(0);
 }

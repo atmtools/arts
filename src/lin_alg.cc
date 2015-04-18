@@ -1,5 +1,4 @@
 /* Copyright (C) 2002-2012 Claudia Emde <claudia.emde@dlr.de>
-                      
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
    Free Software Foundation; either version 2, or (at your option) any
@@ -111,10 +110,9 @@ void ludcmp(MatrixView LU,
             }
           d = -d;
           vv[imax] = vv[j];
-          indx[j] = imax;
-          indx[imax] =j;
          }
-     
+      indx[j] = imax;
+
       if(LU(j,j) == 0.0) LU(j,j) = TINY;
       
       if (j != dim) 
@@ -125,56 +123,95 @@ void ludcmp(MatrixView LU,
         }
     }
 }
- 
-
 
 //! LU backsubstitution
-/*! 
-  Solves a set of linear equations Ax=b. It is neccessairy to do a LU          
-  decomposition using 
-  the function ludcp before using this function.
-  
-  \param x Output: Solution vector of the equation system. 
+/*!
+  Solves a set of linear equations Ax=b. It is neccessairy to do a L
+  decomposition using the function ludcp before using this function. The
+  backsubstitution is in-place, i.e. x and b may be the same vector.
+
+  \param x Output: Solution vector of the equation system.
   \param LU Input: LU decomposition of the matrix (output of function ludcp).
   \param b  Input: Right-hand-side vector of equation system.
   \param indx Input: Pivoting information (output of function ludcp).
 */
-void lubacksub(VectorView x, 
-          ConstMatrixView LU, 
-          ConstVectorView b, 
+void lubacksub(VectorView x,
+          ConstMatrixView LU,
+          ConstVectorView b,
           const ArrayOfIndex& indx)
 {
-  Index dim = LU.nrows(); 
+  Index dim = LU.nrows();
 
   /* Check if the dimensions of the input matrix and vectors agree and if LU is a quadratic matrix.*/
   assert(is_size(LU, dim, dim));
   assert(is_size(b, dim));
   assert(is_size(indx, dim));
 
-  
-  for(Index i=0; i<dim; i++)
-     {
-       x[indx[i]] = b[i];
-     }
- 
+  x = b;
+
+  // Lower triangle
   for (Index i=0; i<dim; i++)
     {
-     Numeric sum = x[i];
-     for (Index j=0; j<=i-1; j++)
-       sum -= LU(i,j)*x[j]; 
-      x[i] = sum;
+	// Perform permutation.
+	Index ip = indx[i];
+	Numeric sum = x[ip];
+	x[ip] = x[i];
+
+	for (Index j=0; j<=i-1; j++)
+	    sum -= LU(i,j)*x[j];
+
+	x[i] = sum;
      }
 
+  // Upper triangle
   for(Index i=dim-1; i>=0; i--)
-    {
+  {
       Numeric sum = x[i];
       for (Index j=i+1; j<dim; j++)
-        sum -= LU(i,j)*x[j];
+	  sum -= LU(i,j)*x[j];
       x[i] = sum/LU(i,i);
-    }
+  }
 }
 
+//! Matrix Inverse
+/*!
+  Compute the inverse of a matrix such that I = Ainv*A = A*Ainv. Both
+  MatrixViews must be square and have the same size n. During the inversion one
+  additional n times n Matrix is allocated. The Matrix for Ainv and A views may
+  not overlap, otherwise the behaviour is undefined.
 
+  \param[out] Ainv The MatrixView to contain the inverse of A.
+  \param[in] A The matrix to be inverted.
+*/
+void inv(MatrixView Ainv,
+	 ConstMatrixView A)
+{
+    // A must be a square matrix.
+    assert(A.ncols() == A.nrows());
+
+    Index n = A.ncols();
+    Matrix id = Matrix(n,n);
+
+    // Use output matrix to store identity matrix.
+    id_mat(Ainv);
+
+    // Allocate matrix for result of LU decomposition.
+    Matrix lu = Matrix(n,n);
+    Vector b = Vector(n, 0.0);
+
+    // Perform LU decomposition.
+    ArrayOfIndex indx(n);
+    ludcmp(lu, indx, A);
+
+    // For each column x in Ainv solve the linear A*x = b_i where b_i is
+    // the ith column vector of the identity matrix.
+    for (Index i=0; i<n; i++)
+    {
+	b[i] = 1.0;
+	lubacksub(Ainv(joker,i), lu, b, indx);
+	b[i] = 0.0;
+    }
+}
 
 //! General exponential of a Matrix
 /*! 

@@ -54,7 +54,7 @@
 	
 	The work is mostly preparatory at this stage for the additions of 
 	simple NLTE calculations within ARTS in the near future but is presently
-	only capable of doing what has been done before with partition data
+	only capable of doing what has been done before with partition datan
 	being built-in.  That said, the scheme already allows the user to specify 
 	input an Artscat5 file with specialized coefficients for different 
 	temperature schemes, making it useful for planetary applications when 
