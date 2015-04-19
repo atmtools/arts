@@ -1,3 +1,31 @@
+2015-04-18  Simon Pfreundschuh <simonpf@chalmers.se>
+
+	* arts-2-3-191
+
+
+	Dear all,
+
+	This is my first commit. Maybe you could have a quick look whether
+	the code is OK style-wise.
+
+	* src/lin_alg.cc (lubacksub):
+	Fixed potential bug in the handling of the pivot vector. The previous version
+	deviated from the reference code in Numerical Recipes and produced incorrect
+	results for certain row permutations.
+	However, I am not quite sure whether the deviation from the reference
+	implementation may have had a purpose, so maybe, Claudia, you could have a
+	look at the code. The new code of course passes all relevant tests.
+
+	* src/lin_alg.cc (inv):
+	Implemented matrix inversion using LU decomposition
+
+	* src/test_linalg.cc(test_solve_linear_system)
+	Implemented randomized testing routing for the LU decomposition code, to
+	make sure the code really produced incorrect results.
+
+	* src/test_linalg.cc(test_inv)
+	Randomized testing routing for matrix inversion.
+
 2015-04-16  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-190
