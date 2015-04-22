@@ -51,6 +51,15 @@ orbit, the rotation of the observed planet will cause Doppler effects. This is
 treated in ARTS by a short-cut, the rotational movement can be translated to an
 imaginary wind by the method \wsmindex{wind\_u\_fieldIncludePlanetRotation}.
 
+This pseudo-wind, $\WindWE'$, is calculated as
+\begin{equation}
+  \WindWE' = \frac{2\pi\cos(\Lat)(\Rds+\Alt)}{t_p},
+\end{equation}
+where $\Lat$ is the latitude, $\Rds$ is the local planet radius, $\Alt$ is the
+altitude and $t_p$ is the planet's rotational period. This term is added to the
+true zonal wind speed, \WindWE. 
+
+
 
 \section{Sensor velocity}
 %==============================================================================
@@ -109,10 +118,10 @@ where \aZntAng{l}\ and \aAzmAng{l}\ are the angles of the line-of-sight.
 Finally, as the winds do not reach relativistic values, the Doppler shift can
 be calculated as
 \begin{equation}
-  \Delta\Frq = \frac{-\Wind\cos\gamma\aFrq{0}}{\speedoflight},
+  \Delta\Frq = \frac{-\Wind\aFrq{0}\cos(\gamma)}{\speedoflight},
 \end{equation}
 where \aFrq{0}\ is the rest frequency and \speedoflight\ is the speed of light.
-The core part of these calculations is implemented in the genral internal
+The core part of these calculations is implemented in the general internal
 function \funcindex{dotprod\_with\_los}. The negative sign 
 is caused by the fact the ``line-of-sight'' is the observation direction, not
 the direction of the EM waves.

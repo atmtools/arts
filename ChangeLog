@@ -1,3 +1,11 @@
+2015-04-22  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-192
+
+	* doc/uguide/winds.tex: Small change of equation for delta-nu, for
+	better clarity. And added the expression for planet rotation
+	pseudo-wind.
+
 2015-04-18  Simon Pfreundschuh <simonpf@chalmers.se>
 
 	* arts-2-3-191
