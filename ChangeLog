@@ -1,3 +1,31 @@
+2015-04-24  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-193
+
+	* src/m_doit.cc b/src/m_doit.cc (DoitWriteIterationFields),
+	src/methods.cc:
+
+	Add generic input with frequency indexes. Adapt output filename to
+	contain frequency index and iteration count. Avoids that iterations
+	from different frequencies get overwritten. Changed value to select all
+	frequencies / iterations from 0 to -1. Set default value for both.
+
+	* CHANGES-2.3: Add changes from above.
+
+	* controlfiles/artscomponents/doit/doit_setup.arts:
+
+	Adapt call of DoitWriteIterationFields.
+
+	* src/m_doit.cc (DoitCalc): Reenable parallelization of frequency loop.
+
+	* src/parser.cc:
+
+	Promoted several runtime_errors to ParseErrors to provide proper
+	location information to the user.
+
+	Better error message when default values in methods.cc for generic
+	inputs contain errors.
+
 2015-04-22  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-192

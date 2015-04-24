@@ -4443,22 +4443,29 @@ void define_md_data_raw()
          "\n"
          "The iterations to be stored are specified by *iterations*, e.g.:\n"
          "    iterations = [3, 6, 9]\n"
-         "In this case the 3rd, 6th and 9th iterations are stored in the\n"
-         "files 'doit_iteration_3.xml', 'doit_iteration_6.xml' ...\n"
+         "In this case the 3rd, 6th and 9th iterations are stored.\n"
          "If a number is larger than the total number of iterations, this\n" 
          "number is ignored. If all iterations should be stored set\n"
-         "   iterations = [0]\n"
+         "   iterations = [-1]\n"
+         "\n"
+         "The frequencies to be stored are specified by *frequencies* in the\n"
+         "same way as the iterations. The frequency index corresponds to the\n"
+         "order of frequencies in *f_grid*.\n"
+         "\n"
+         "The output files are named doit_iteration_fX_iY.xml with X being the\n"
+         "frequency index and iY the iteration counter.\n"
          ),
         AUTHORS( "Claudia Emde" ),
         OUT(),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "doit_iteration_counter", "doit_i_field_mono" ),
-        GIN( "iterations" ),
-        GIN_TYPE( "ArrayOfIndex" ),
-        GIN_DEFAULT( NODEF ),
-        GIN_DESC( "See above." )
+        IN( "doit_iteration_counter", "doit_i_field_mono", "f_index" ),
+        GIN(         "iterations",   "frequencies" ),
+        GIN_TYPE(    "ArrayOfIndex", "ArrayOfIndex" ),
+        GIN_DEFAULT( "[-1]",         "[-1]" ),
+        GIN_DESC( "Selection of iterations to store.",
+                  "Selection of frequencies to store." )
         ));
 
    md_data_raw.push_back

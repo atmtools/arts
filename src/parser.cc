@@ -238,7 +238,10 @@ void ArtsParser::parse_main()
             ostringstream os;
             os << "The outermost agenda must be Arts2!\n"
             << "(But it seems to be " << md_data[id].Name() << ".)\n";
-            throw runtime_error(os.str());
+            throw ParseError (os.str(),
+                              msource.File(),
+                              msource.Line(),
+                              msource.Column());
         }
 
         try {
@@ -429,7 +432,10 @@ void ArtsParser::parse_agenda( Agenda& tasklist, const String& agenda_name )
                 os << "File: "   << msource.File() << '\n';
                 os << "Search path was: " << current_includepath
                 << "\n";
-                throw runtime_error (os.str());
+                throw ParseError (os.str(),
+                                  msource.File(),
+                                  msource.Line(),
+                                  msource.Column());
             }
 
             include_file = matching_files[0];
@@ -478,7 +484,6 @@ void ArtsParser::parse_agenda( Agenda& tasklist, const String& agenda_name )
                                           msource.File(),
                                           msource.Line(),
                                           msource.Column());
-                        throw std::runtime_error("Not allowerd here");
                     }
                     using global_data::MdMap;
                     using global_data::wsv_group_names;
@@ -684,6 +689,11 @@ String ArtsParser::set_gin_to_default(const MdRecord*       mdd,
 
     if (mdd->GInDefault()[gin_index] != NODEF)
     {
+        ostringstream os_default_error;
+        os_default_error << "\nParse error in default value for generic input variable.\n"
+        << "This is not a user error but a bug in methods.cc.\n"
+        << "Please contact the ARTS developers.";
+
         TokVal tv;
         // Now parse the key value. This can be:
         // String, Index, Numeric, ArrayOfString, ArrayOfIndex, Vector
@@ -714,9 +724,22 @@ String ArtsParser::set_gin_to_default(const MdRecord*       mdd,
         {
             ArrayOfString v;
             String s = mdd->GInDefault()[gin_index];
-            if (!parse_stringarray_from_string(v, s))
+            try
             {
-                failed = true;
+                if (!parse_stringarray_from_string(v, s))
+                {
+                    failed = true;
+                }
+            }
+            catch (const ParseError p)
+            {
+                ostringstream os;
+                os << p.what() << os_default_error.str();
+                throw ParseError(os.str(),
+                                 p.file(),
+                                 p.line(),
+                                 p.column());
+
             }
             tv = v;
         }
@@ -724,9 +747,22 @@ String ArtsParser::set_gin_to_default(const MdRecord*       mdd,
         {
             Vector v;
             String s = mdd->GInDefault()[gin_index];
-            if (!parse_numvector_from_string(v, s))
+            try
             {
-                failed = true;
+                if (!parse_numvector_from_string(v, s))
+                {
+                    failed = true;
+                }
+            }
+            catch (const ParseError p)
+            {
+                ostringstream os;
+                os << p.what() << os_default_error.str();
+                throw ParseError(os.str(),
+                                 p.file(),
+                                 p.line(),
+                                 p.column());
+                
             }
             tv = v;
         }
@@ -734,9 +770,22 @@ String ArtsParser::set_gin_to_default(const MdRecord*       mdd,
         {
             ArrayOfIndex v;
             String s = mdd->GInDefault()[gin_index];
-            if (!parse_intvector_from_string(v, s))
+            try
             {
-                failed = true;
+                if (!parse_intvector_from_string(v, s))
+                {
+                    failed = true;
+                }
+            }
+            catch (const ParseError p)
+            {
+                ostringstream os;
+                os << p.what() << os_default_error.str();
+                throw ParseError(os.str(),
+                                 p.file(),
+                                 p.line(),
+                                 p.column());
+                
             }
             tv = v;
         }
@@ -1772,7 +1821,10 @@ void ArtsParser::tasklist_insert_set_delete(const ArrayOfIndex&  auto_vars,
                 method_name = "Delete_sg_" + wsv_group_names[Workspace::wsv_data[auto_vars[i]].Group()];
                 break;
             default:
-                throw runtime_error("Invalid method_type");
+                throw ParseError ("Invalid method type.",
+                                  msource.File(),
+                                  msource.Line(),
+                                  msource.Column());
         }
 
         mdit = MdMap.find(method_name);
@@ -2597,7 +2649,10 @@ bool ArtsParser::parse_intvector_from_string (ArrayOfIndex& res, String& str)
     // Make sure that the current character really is `[' and proceed.
     if (str[pos] != '[')
     {
-        throw runtime_error ("No opening bracket\n");
+        throw ParseError ("No opening bracket found while parsing ArrayOfIndex.",
+                          msource.File(),
+                          msource.Line(),
+                          msource.Column());
     }
     
     pos++;
@@ -2665,7 +2720,10 @@ bool ArtsParser::parse_numvector_from_string (Vector& res, String& str)
     // Make sure that the current character really is `[' and proceed.
     if (str[pos] != '[')
     {
-        throw runtime_error ("No opening bracket\n");
+        throw ParseError ("No opening bracket found while parsing Vector.",
+                          msource.File(),
+                          msource.Line(),
+                          msource.Column());
     }
     
     pos++;
@@ -2741,7 +2799,10 @@ bool ArtsParser::parse_stringarray_from_string (ArrayOfString& res, String& str)
     // Make sure that the current character really is `[' and proceed.
     if (str[pos] != '[')
     {
-        throw runtime_error ("No opening bracket\n");
+        throw ParseError ("No opening bracket found while parsing ArrayOfString.",
+                          msource.File(),
+                          msource.Line(),
+                          msource.Column());
     }
     
     pos++;
@@ -2766,7 +2827,10 @@ bool ArtsParser::parse_stringarray_from_string (ArrayOfString& res, String& str)
         
         if (str[pos] != '"')
         {
-            throw runtime_error ("Expected quotes\n");
+            throw ParseError ("Expected quotes while parsing ArrayOfString.",
+                              msource.File(),
+                              msource.Line(),
+                              msource.Column());
         }
         
         pos++;

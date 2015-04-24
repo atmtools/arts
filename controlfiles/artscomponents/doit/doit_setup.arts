@@ -251,7 +251,7 @@ AgendaSet( doit_conv_test_agenda ){
   # If you want to investigat several iteration fields, for example 
   # to investigate the convergence behavior, you can use
   # the following method:
-  DoitWriteIterationFields( iterations = [0] )
+  DoitWriteIterationFields
   Print( doit_iteration_counter, 0 )
 }
 

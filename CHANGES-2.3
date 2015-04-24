@@ -48,6 +48,11 @@ General
 - WSM doit_i_fieldSetFromPrecalc now takes a generic Tensor7
   (stored doit_i_field) instead of the removed WSV doit_i_field1D_spectrum.
 
+- WSM DoitWriteIterationFields now takes a list of frequency indexes in
+  addition to the iterations. Value to select all frequencies/iterations is now
+  -1 instead of 0. Filenames are now unique based on frequency index and iteration
+  counter.
+
 - Polarisation index coding of left- and right hand circular polarisation
   changed. See on-line doc of sensor_pol for present coding. Before the wrong
   polarisation nwas obtained when using the sensor part to extract the V Stokes

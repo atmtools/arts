@@ -1655,38 +1655,52 @@ void DoitInit(//WS Output
 void DoitWriteIterationFields(//WS input 
                               const Index& doit_iteration_counter,
                               const Tensor6& doit_i_field_mono,
+                              const Index& f_index,
                               //Keyword:
                               const ArrayOfIndex& iterations,
+                              const ArrayOfIndex& frequencies,
                               const Verbosity& verbosity)
 {
-  // Checks of doit_i_field have been done elsewhere, e.g. in
-  // scat_fieldCalc(Limb).
+    if (!frequencies.nelem() || !iterations.nelem())
+        return;
 
-  // If the number of iterations is less than a number specified in the 
-  // keyword *iterations*, this number will be ignored.
+    // If the number of iterations is less than a number specified in the
+    // keyword *iterations*, this number will be ignored.
 
-  ostringstream os;
-  os << doit_iteration_counter;
-  
-  // All iterations are written to files
-  if( iterations[0] == 0 )
+    ostringstream os;
+    os << "doit_iteration_f" << f_index << "_i" << doit_iteration_counter;
+
+    // All iterations for all frequencies are written to files
+    if( frequencies[0] == -1 && iterations[0] == -1 )
     {
-      xml_write_to_file("doit_iteration_" + os.str() + ".xml",
-                        doit_i_field_mono, FILE_TYPE_ASCII, 0, verbosity);
+        xml_write_to_file( os.str() + ".xml",
+                          doit_i_field_mono, FILE_TYPE_ASCII, 0, verbosity);
     }
-  
-  // Only the iterations given by the keyword are written to a file
-  else
+
+    for (Index j = 0; j<frequencies.nelem(); j++)
     {
-      for (Index i = 0; i<iterations.nelem(); i++)
+        if (f_index == frequencies[j] || (!j && frequencies[j] == -1))
         {
-          if (doit_iteration_counter == iterations[i])
-            xml_write_to_file("doit_iteration_" + os.str() + ".xml", 
-                              doit_i_field_mono, FILE_TYPE_ASCII, 0, verbosity);
+            // All iterations are written to files
+            if( iterations[0] == -1 )
+            {
+                xml_write_to_file( os.str() + ".xml",
+                                  doit_i_field_mono, FILE_TYPE_ASCII, 0, verbosity);
+            }
+
+            // Only the iterations given by the keyword are written to a file
+            else
+            {
+                for (Index i = 0; i<iterations.nelem(); i++)
+                {
+                    if (doit_iteration_counter == iterations[i])
+                        xml_write_to_file( os.str() + ".xml",
+                                          doit_i_field_mono, FILE_TYPE_ASCII, 0, verbosity);
+                }
+            }
         }
     }
 }
-
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void
@@ -2522,10 +2536,10 @@ void DoitCalc(
   // OMP likes simple loop end conditions, so we make a local copy here: 
   const Index nf = f_grid.nelem();
 
-/*if (nf)
+if (nf)
   #pragma omp parallel for                                    \
   if(!arts_omp_in_parallel() && nf>1)                       \
-  firstprivate(l_ws, l_doit_mono_agenda)*/
+  firstprivate(l_ws, l_doit_mono_agenda)
   for (Index f_index = 0; f_index < nf; f_index ++)
     {
       ostringstream os;
