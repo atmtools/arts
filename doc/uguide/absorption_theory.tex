@@ -577,11 +577,11 @@ The Zeeman effect implementation in ARTS is described by \citet{larsson14:_treat
 ARTS has an internal representation of spectral line data that maps
 naturally to a native catalogue format, which we will discuss
 below. This internal catalogue data exists and can be
-handled in two variants, the so-called ARTSCAT-3 and ARTSCAT-4 -- versions~3
-and 4 of the ARTS catalogue format. The spectroscopic databases commonly
+handled in two variants, the so-called ARTSCAT-3, ARTSCAT-4, and ARTSCAT-5 -- versions~3, 4, and 5
+of the ARTS catalogue format. The spectroscopic databases commonly
 used in Earth atmospheric research contain the spectroscopic parameters
 representative for Earth conditions. This regards particular the foreign
-broadened width, often called the air broadened width as it considerers
+broadened width, often called the air broadened width as it considers
 the contribution from nitrogen and oxygen that make up for the vast majority
 of gases in the Earth atmosphere, and the pressure shift. ARTSCAT-3 contains
 these ``classical'' spectroscopic parameters. ARTSCAT-4 on the other hand has
@@ -589,19 +589,20 @@ been developed with view on planetary science. That is, it holds these
 parameters separately for the different molecular species. Theoretically this
 has to list all cross-combinations of species. However, most species show only
 very low abundances and can safely be neglected. For now, the main atmospheric
-constituents of Earth, Mars, Venus, and Jupiter, namely N2, O2, H2O, CO2, H2,
-and He are considered in the database.
-It should be noted, that both line data formats can behandled simultaneously
-within one calculation (writing to file of mixed format data, however, is not
-possible).
+constituents of Earth, Mars, Venus, and Jupiter, namely N$_2$, O$_2$, H$_2$O, CO$_2$, H$_2$,
+and He are considered in the database.  ARTSCAT-5 lets you select line formats by using
+a tag system described further down in the text.
+It should be noted, that all line data formats can be handled simultaneously
+within one calculation, but that it is only possible to write out in a
+single format.
 
 Besides its own internal format, ARTS can also read several other catalogue
-formats, in particular HITRAN and JPL format. If these other catalogues are used,
-line data are converted to the internal ARTSCAT-3 representation during
+formats, in particular HITRAN, JPL, and LBLRTM formats. If these other catalogues are used,
+line data are converted to the internal ARTSCAT-3 or ARTSCAT-5 representation during
 reading. In other words, all unit conversions are done by the reading
 routines.
 
-The ARTS internal spectral line data files (both ARTSCAT-3 and -4) contain
+The ARTS internal spectral line data files contain
 an XML header and footer, and between them one entry for each spectral line.
 Each entry starts with with an `@' character. It then contains the different line
 parameters, separated by one or more blank characters. Scientific
@@ -616,7 +617,7 @@ The first column of each entry contains the species and isotopologue,
 following the naming scheme described below. Note that the intensity
 is per molecule, i.e., it does not contain the isotopologue ratio. This is
 similar to JPL, but different to HITRAN.
-The definition of the further entries differ between the two ARTSCAT
+The definition of the further entries differ between the ARTSCAT
 representations.
 
 \paragraph*{The ARTSCAT-3 line format is:}
@@ -723,7 +724,120 @@ Parameters 0-8 must be present. Parameter 9 contains coded tags for various appl
 These tags and their implications are discussed throughout
 the ARTS documentation.  The present tags are LM for
 line mixing, PB for pressure broadening, PF for partition
-function, and QN for quantum numbers.
+function, and QN for quantum numbers.  Each of these tags are followed by a subtag that lets
+ARTS know what information is contained in the line record.
+
+For the line mixing tag LM, these are the subtags and their data format
+\begin{code}    
+Subtag/col  Variable                        Label    Unit
+---------------------------------------------------------
+       NA
+        0  None                                 -       -
+---------------------------------------------------------
+       LL  LBLRTM line mixing
+        1  first reference temperature         T1       K
+        2  second reference temperature        T2       K
+        3  third reference temperature         T3       K
+        4  fourth reference temperature        T4       K
+        5  1st order LM term at T1           Y_T1    1/Pa
+        6  1st order LM term at T2           Y_T2    1/Pa
+        7  1st order LM term at T3           Y_T3    1/Pa
+        8  1st order LM term at T4           Y_T4    1/Pa
+        9  2nd order LM term at T1           G_T1  1/Pa^2
+       10  2nd order LM term at T2           G_T2  1/Pa^2
+       11  2nd order LM term at T3           G_T3  1/Pa^2
+       12  2nd order LM term at T4           G_T4  1/Pa^2
+---------------------------------------------------------
+       L1  1st order LM as found in Tretyakov et al. 2005
+        1  reference temperature             T_LM       K
+        2  1st order LM term at T_LM    Y_LM_T_LM    1/Pa
+        3  Y_T_LM temp. exponent           N_Y_LM       -
+---------------------------------------------------------
+       L1  2nd order LM as found in Makarov et al. 2011
+        1  1st order LM 1st term               Y'    1/Pa
+        2  1st order LM 2nd term              Y''    1/Pa
+        3  2nd order LM 1st absolute term      G'  1/Pa^2
+        4  2nd order LM 2nd absolute term     G''  1/Pa^2
+        5  2nd order LM 1st frequency term    DV' Hz/Pa^2
+        6  2nd order LM 2nd frequency term   DV'' Hz/Pa^2
+        7  reference temperature             T_LM       K
+        8  Y  temp. exponent                  N_Y       -
+        9  G  temp. exponent                  N_G       -
+        10 DV temp. exponent                 N_DV       -
+\end{code}
+
+For the pressure broadening tag PB, these are the subtags and their data format
+\begin{code}    
+Subtag/col  Variable                        Label    Unit
+---------------------------------------------------------
+       NA
+        0  None                                 -       -
+---------------------------------------------------------
+       N2  pressure broadening ARTSCAT-3 like
+        1  self broadened width             SGAM    Hz/Pa
+        2  SGAM temp. exponent             NSELF        -
+        3  air broadened width              AGAM    Hz/Pa
+        4  AGAM temp. exponent              NAIR        -
+        5  pressure shift of F               PSF    Hz/Pa
+        6  error for SGAM                  DSGAM        %
+        7  error for NSELF                DNSELF        %
+        8  error for AGAM                  DAGAM        %
+        9  error for NAIR                  DNAIR        %
+       10  error for PSF                    DPSF        %
+---------------------------------------------------------
+       AP  pressure broadening ARTSCAT-4 like
+        1   broadening parameter self        SGAM   Hz/Pa
+        2   broadening parameter N2      GAMMA_N2   Hz/Pa
+        3   broadening parameter O2      GAMMA_O2   Hz/Pa
+        4   broadening parameter H2O    GAMMA_H2O   Hz/Pa
+        5   broadening parameter CO2    GAMMA_CO2   Hz/Pa
+        6   broadening parameter H2      GAMMA_H2   Hz/Pa
+        7   broadening parameter He      GAMMA_He   Hz/Pa
+        8   GAM temp. exponent self         NSELF       -
+        9   GAM temp. exponent N2            N_N2       -
+       10   GAM temp. exponent O2            N_O2       -
+       11   GAM temp. exponent H2O          N_H2O       -
+       12   GAM temp. exponent CO2          N_CO2       -
+       13   GAM temp. exponent H2            N_H2       -
+       14   GAM temp. exponent He            N_He       -
+       15   F pressure shift N2          DELTA_N2   Hz/Pa
+       16   F pressure shift O2          DELTA_O2   Hz/Pa   
+       17   F pressure shift H2O        DELTA_H2O   Hz/Pa   
+       18   F pressure shift CO2        DELTA_CO2   Hz/Pa   
+       19   F pressure shift H2          DELTA_H2   Hz/Pa   
+       20   F pressure shift He          DELTA_He   Hz/Pa
+---------------------------------------------------------
+       WA  air and water pressure broadening
+        1  self broadened width             SGAM    Hz/Pa
+        2  SGAM temp. exponent             NSELF        -
+        3  pressure shift self              SPSF    Hz/Pa
+        4  air broadened width              AGAM    Hz/Pa
+        5  AGAM temp. exponent              NAIR        -
+        6  pressure shift air               APSF    Hz/Pa
+        7  water broadened width       GAMMA_H2O    Hz/Pa
+        8  GAMMA_H2O temp. exponent        N_H2O        -
+        9  pressure shift water        DELTA_H2O    Hz/Pa
+\end{code}
+
+For the partition function tag PF, which is new and is therefore still under development, these are the subtags and their data formats are
+\begin{code}
+Subtag/col  Variable                        Label    Unit
+---------------------------------------------------------
+       NA
+        0  None                                 -       -
+---------------------------------------------------------
+       CN  coefficients-based temperature dependence
+        1  number of coefficients            N          -
+      2-N  the coefficients                 CN  1/K^(N-1)
+
+\end{code}
+
+For the quantum numbers tag QN, the subtags work in a slightly different manner than for the other tagging systems.  Here UP and DO are
+used to denote upper and lower levels, respectively.  After one of these subtags, several subsubtags follow.  These subsubtags are the denotation
+we use for quantum numbers and the valid subsubtags are: "J", "M", "N", "S", "F", "Omega", "K1", "K2", "v1", "v2", and "v3". In order, these
+numbers respectively refers to total angular momentum, projection of J along the magnetic field, 
+total angular momentum without the spin, total spin, J and nuclear spin, absolute projection of J and S,
+K or Ka in HITRAN, Kb in HITRAN, first vibrational mode, second vibrational mode, and third vibrational mode.  
 
 \subsection{Pressure broadening and shift calculation}
 
@@ -876,30 +990,18 @@ give unexpected results in the presence of drastically different VMRs
 that belong to the same molecular species, because in that case it makes a
 difference which of the VMR is selected for broadening.
 
-\subsubsection{ARTSCAT-5 pressure broadening}
-The ARTSCAT-5 pressure broadening format is determined by its pressure broadening tag.
-The pressure broadening tag is \verb|PB| and it is followed by one of \verb|N2|, 
-\verb|AP|, or \verb|WA|.  
+\subsubsection{ARTSCAT-5 Pressure Broadening Tag}
+\paragraph*{If} the subtag is \verb|N2|, 
+the pressure broadening proceeds as specified by the ARTSCAT-3 method above.
 
-\paragraph*{If} the subtag is \verb|N2| for air broadening, 
-the following 10 data parameters are identical to ARTSCAT-3 parameters.
-In order they should be given as: SGAM, NSELF, AGAM, NAIR, PSF, DSGAM, DNSELF, DAGAM, DNAIR, and DPSF.
-The pressure broadening then proceeds as specified by the ARTSCAT-3 method above.
+\paragraph*{If} the subtag is \verb|AP|,
+the pressure broadening  calculations follow the ARTSCAT-4 method above.
 
-\paragraph*{If} the subtag is \verb|AP| for Agnes Perrin Broadening,
-the following 20 data parameters are identical to, 
-and in order of, columns 9-28 of ARTSCAT-4 line format. The pressure broadening  calculations
-follow the ARTSCAT-4 method above.
-
-\paragraph*{If} if the subtag is \verb|WA| for water and air broadening, there are 9 data 
-parameters to follow.  These are a mixture of parameters from ARTSCAT-3 and ARTSCAT-4.
-The parameters are: SGAM, NSELF, SPSF, %FIXME:  Is it it even valid to have self pressure shift?  I only have it in for the symmetry of the data format.
-AGAM, NAIR, APSF, GAMMA\_H2O, N\_H2O, and DELTA\_H2O.
-The only new variables are SPSF and APSF, which are PSF but for self and air, respectively.
-
-If there is no water in the atmosphere, or if the pressure effects on a water
-line is being calculated, this method is identical to air broadening or ARTSCAT-3.
-However, if water is present and the line is not a water line, pressure broadening is calculated as
+\paragraph*{If} if the subtag is \verb|WA|, one of two things happens:
+1) If there is no water in the atmosphere, or if the pressure effects on a water
+line is being calculated, the method behaves identical to air broadening or ARTSCAT-3.
+2) If water is present and the line is not a water line, pressure broadening 
+is calculated as follows for the atmospheric temperature $T$
 \begin{eqnarray}
   \gamma_L &=& x_\mathrm{self} \; p \; \mathrm{SGAM} \; 
              \left(
@@ -918,7 +1020,7 @@ However, if water is present and the line is not a water line, pressure broadeni
 \end{eqnarray}
 and the pressure shift is calculated as
 \begin{eqnarray}
-  \gamma_L &=& x_\mathrm{self} \; p \; \mathrm{SPSF} \; 
+  \Delta \nu &=& x_\mathrm{self} \; p \; \mathrm{SPSF} \; 
              \left(
              \frac{\mathrm{T0}}{T}
              \right)^{(0.25 + 1.5 * \mathrm{NSELF})} \nonumber \\
@@ -931,47 +1033,23 @@ and the pressure shift is calculated as
              + \; (1-x_\mathrm{self}-x_\mathrm{water}) \; p \; \mathrm{APSF} \; 
              \left(
              \frac{\mathrm{T0}}{T}
-             \right)^{(0.25 + 1.5 * \mathrm{NAIR})} \;,
+             \right)^{(0.25 + 1.5 * \mathrm{NAIR})}.
 \end{eqnarray}
-where all variables are defined as in Table \ref{tab:abs_theory:pb_inputs}. 
 
-\subsubsection{ARTSCAT-5 line mixing}
-The ARTSCAT-5 line mixing is determined by its line mixing tag \verb|LM|.  If
-\verb|LM| it is assumed there are no line mixing parameters, so no calculations
-are performed.  If \verb|LM| is given, it must be followed by one of \verb|LL|, 
-%\verb|NR|, 
-\verb|L1|, or \verb|L2|.
-Below follows the calculations performed to calculate the line mixing
-parameters for equation~\ref{eq:abs:lm:2ndorder} depending on method.
-
+\subsubsection{ARTSCAT-5 Line Mixing Tag}
+Note that inputs of line mixing goes towards Equation~\ref{eq:abs:lm:2ndorder}.  If a subtag does not mention one of $y_{lm}$, $g_{lm}$, or $\delta\nu_{lm}$,
+then the method assumes that it is nil.
 \paragraph*{If} the subtag is \verb|LL| for LBLRTM line mixing,
-the following 12 data parameters are a 4-vector temperature grid,
-a 4-vector gridded $y_{\mathrm{lm}}$, and a 4-vector gridded
-$g_{\mathrm{lm}}$.  The value $\delta\nu_{\mathrm{lm}}$ is set to nil,
-and the value to be used for the other two are interpolated to the atmospheric temperature.
+then the values of of $y_{lm}$ and $g_{lm}$ are interpolated to their values at the atmospheric temperature.
 
-\paragraph*{If} the subtag is \verb|L1| for first order line mixing styled as by \citet{tretyakov05:_60-ghz_jms},
-the following 3 data parameters are in order the reference temperature of the measurement $T_{\mathrm{lm}}$, the value of $y_{\mathrm{lm}}$
-at the reference temperature $y'_{\mathrm{lm}}(T_{\mathrm{lm}})$, and a temperature dependency exponent $n_{y_{\mathrm{lm}}}$.  
-The values of $\delta\nu_{\mathrm{lm}}$ and $g_{\mathrm{lm}}$ are set to nil, and
+\paragraph*{If} the subtag is \verb|L1| for first order line mixing styled as by \citet{tretyakov05:_60-ghz_jms}, then
+this calculation is performed for the atmospheric temperature $T$
 \begin{equation}
-  y_{\mathrm{lm}} =  y'_{\mathrm{lm}}(T_{\mathrm{lm}})\left(\frac{T_{\mathrm{lm}}}{T}\right)^{n_{y_{\mathrm{lm}}}}
+  y_{\mathrm{lm}} =  y'_{\mathrm{lm}}(T_{\mathrm{lm}})\left(\frac{T_{\mathrm{lm}}}{T}\right)^{n_{y_{\mathrm{lm}}}}.
 \end{equation}
-at each calculation of the line shape. 
 
 \paragraph*{If} the subtag is \verb|L2| for second order line mixing styled as by \citet{makarov11:_60-ghz_jqsrt},
-the following 9 data parameters are in order
-the first order first correction term at the reference temperature $y'_{\mathrm{lm}}(T_{\mathrm{lm}})$, 
-the first order second correction term  at the reference temperature $y''_{\mathrm{lm}}(T_{\mathrm{lm}})$,
-the second order first absolute correction term at the reference temperature $g'_{\mathrm{lm}}(T_{\mathrm{lm}})$, 
-the second order second absolute correction term  at the reference temperature $g''_{\mathrm{lm}}(T_{\mathrm{lm}})$, 
-the second order first frequency correction term at the reference temperature $\delta\nu'_{\mathrm{lm}}(T_{\mathrm{lm}})$, 
-the second order second frequency correction term  at the reference temperature $\delta\nu''_{\mathrm{lm}}(T_{\mathrm{lm}})$, 
-the reference temperature $T_{\mathrm{lm}}$, 
-the first order temperature exponent $n_{y_{\mathrm{lm}}}$, 
-the second order absolute correction temperature exponent $n_{g_{\mathrm{lm}}}$, and 
-the second order frequency correction temperature exponent $n_{\delta\nu_{\mathrm{lm}}}$.
-When the line shape is calculated, the following considerations are done for each line mixing
+then the line mixing parameters are calculated as below for the atmospheric temperature $T$
 term:
 \begin{eqnarray}
   y_{\mathrm{lm}}&=& \left[y'_{\mathrm{lm}}(T_{\mathrm{lm}})+y''_{\mathrm{lm}}(T_{\mathrm{lm}})\left(\frac{T_{\mathrm{lm}}}{T}-
