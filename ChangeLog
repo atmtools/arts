@@ -1,3 +1,11 @@
+2015-04-28  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-195
+
+	* tools/vim_syntax/update_vim_arts_syntax:
+
+	Don't use '-s' option for which. Only known on BSD, not on Linux.
+	
 2015-04-28  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-3-194

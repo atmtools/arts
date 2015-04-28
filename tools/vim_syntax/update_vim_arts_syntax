@@ -8,7 +8,7 @@
 
 [[ $# -eq 1 ]] && ARTS_BIN=$1 || ARTS_BIN=arts
 
-if ! which -s $ARTS_BIN; then
+if ! which $ARTS_BIN >/dev/null; then
     echo "ERROR: $ARTS_BIN not found"
     echo "Usage: $0 [PATH_TO_ARTS_BINARY]"
     exit 1
