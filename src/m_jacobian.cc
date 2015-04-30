@@ -2649,7 +2649,7 @@ void jacobianDoit(//WS Output:
             // perturbation jacobians? branch here?
             for( Index i=0; i<y.nelem(); i++ )
               {
-                dydx = (y[i]-y0[i]) / jq.Perturbation();
+                dydx[i] = (y[i]-y0[i]) / jq.Perturbation();
               }
 
             jacobian(joker,it) = dydx;

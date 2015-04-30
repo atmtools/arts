@@ -1,3 +1,15 @@
+2015-04-30  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-196
+
+	* src/m_jacobian.cc (jacobianDoit):
+
+	Fix critical bug: In the loop where the dydx result vector is
+	calculated, the index was missing. Thus, instead of writing into the
+	right position in dydx, the whole vector was overwritten with a
+	constant value in every iteration. This resulted for, e.g., constant
+	results for all frequencies. Bug reported by Verena and Freddy.
+
 2015-04-28  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-195
