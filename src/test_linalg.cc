@@ -537,8 +537,8 @@ void test_matrix_exp3D(void)
 int main(void)
 {
   test_lusolve1D();
-  test_solve_linear_system(20,4);
-  test_inv(20,10);
+  test_solve_linear_system(20,4,true);
+  //test_inv(20,10);
   // test_matrix_exp1D();
   return(0);
 }

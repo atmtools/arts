@@ -1,6 +1,9 @@
 
 include_directories (${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}
-                     ${ZLIB_INCLUDE_DIR})
+                     ${ZLIB_INCLUDE_DIR} /usr/local/MATLAB/R2015a/extern/include)
+
+
+
 
 if (NETCDF_FOUND)
   include_directories (${NETCDF_INCLUDE_DIR})
@@ -38,6 +41,7 @@ endif (ENABLE_TMATRIX)
 if (ENABLE_REFICE)
   list (APPEND ALL_ARTS_LIBRARIES refice)
 endif (ENABLE_REFICE)
+
 
 ########### target to extract version number from ChangeLog ###############
 
@@ -220,6 +224,7 @@ add_library (artscore STATIC
   nc_io_array_types.cc
   nc_io_basic_types.cc
   nc_io_compound_types.cc
+  oem.cc
   optproperties.cc
   parameters.cc
   parser.cc
@@ -265,6 +270,7 @@ endif (ENABLE_DOCSERVER)
 
 add_library (matpack STATIC
 	complex.cc
+	lin_alg.cc
 	logic.cc
 	make_vector.cc
 	rational.cc
@@ -335,6 +341,31 @@ add_executable (test_integration
 
 target_link_libraries (test_integration matpack)
 
+########### next testcase ###############
+
+set ( MATLABDIR OFF CACHE PATH
+  "Path to the Matlab install folder on the system." )
+set ( ATMLABDIR OFF CACHE PATH
+  "Path to the Atmlab install folder on the system" )
+
+find_program( CSHFOUND csh )
+
+if ( MATLABDIR AND ATMLABDIR AND CSHFOUND )
+  add_executable (test_oem
+    oem.cc
+    test_oem.cc)
+
+  add_definitions(-DSOURCEDIR="${CMAKE_BINARY_DIR}/src")
+  add_definitions(-DATMLABDIR="${ATMLABDIR}")
+  FIND_LIBRARY(ENGVAR libeng.so ${MATLABDIR}/R2015a/bin/glnxa64)
+  FIND_LIBRARY(MXVAR libmx.so ${MATLABDIR}/R2015a/bin/glnxa64)
+  target_link_libraries (test_oem matpack ${MXVAR} ${ENGVAR})
+  FILE(MAKE_DIRECTORY test_oem_files)
+  FILE(COPY test_oem/test_oem.m test_oem/linear_forward_model.m test_oem/make_plot.m
+  test_oem/test_mult.m test_oem/test_inv.m
+  DESTINATION test_oem_files)
+
+endif ( MATLABDIR AND ATMLABDIR AND CSHFOUND )
 ########### next testcase ###############
 
 add_executable (test_omp

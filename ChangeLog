@@ -1,3 +1,58 @@
+2015-05-01  Simon Pfreundschuh  <simonpf@chalmers.se>
+
+	* arts-2-3-197
+
+	Implemented linear OEM for data retrieval. Added randomized
+	tests and benchmarks for OEM.
+
+	Using the Matlab C++ interface, the tests use the OEM implementation in
+	the atmlab package to validate the C++ implementation. I also implemented
+	benchmarks in order to see how the C++ code performs. On my computer the
+	C++ code was very slow, that means up to a factor of twenty slower.
+	Since the linear OEM uses only matrix multiplication and inversion, it
+	must be the primitive methods that are responsible for the bad performance.
+
+	Maybe you could run the benchmarks on your machines. Since we want to use
+	OEM with very large matrices, something must be done about this. I would
+	propose to use LAPACK or something a similar library. LAPACK is built on
+	BLAS whichs is also used by matlab as far as I know. The other possibility
+	would be to optimize the existing code. I would like to hear your comments
+	on that.
+
+	To build the oem_test executable run
+	cmake -DMATLABDIR=/path/to/your/MATLAB -DATMLABDIR=/path/to/your/atmlabx-x.x
+
+	Running matlab from C++ also requires the c shell to be installed on your
+	sysem.
+
+	* src/oem.cc:
+	The implementation of the linear OEM.
+
+	* src/test_oem.cc:
+	Tests and benchmarks for OEM. Starts a Matlab session and compares
+	results and execution time to the OEM implementation in the atmlab
+	package. Plots of the results are written to the test_oem_files folder
+	in the binary folder.
+
+	* src/CMakeLists.txt
+	Added executable for oem tests including handling of the external
+	dependencies on matlab and atmlab.
+
+	* src/test_oem/test_mult.m
+	Matlab script to benchmark matrix multiplication.
+
+	* src/test_oem/test_inv.m
+	Matlab script to benchmark matrix inversion.
+
+	* src/test_oem/test_oem.m
+	Matlab script to test linear oem inversion.
+
+	* src/test_oem/linear_forward_model.m
+	Matlab function representing a linear forward model.
+
+	* src/test_oem/plot_script.m
+	Matlab script to plot benchmark results.
+
 2015-04-30  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-196
