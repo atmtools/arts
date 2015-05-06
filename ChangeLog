@@ -12,6 +12,16 @@
 	  as numerical uncertainties in gs created 
 	  errors in f_grid 
 
+	* src/m_sensor.cc: (f_gridFromSensorAMSU)
+	  replaced line 506:
+	       Vector grid(fmin[i], npi, gs);
+          by:  
+	       Vector grid;
+               linspace(grid,fmin[i],fmax[i],gs);
+	  
+	  as numerical uncertainties in gs created 
+	  errors in f_grid 
+
 2015-03-13  Jana Mendrok  <jana.mendrok@ltu.se>
 
 	* arts-2-2-45
