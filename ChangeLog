@@ -1,3 +1,17 @@
+2015-05-06  Mathias Milz  <mathias.milz@ltu.se>
+
+	* arts-2-2-46
+
+	* src/m_sensor.cc: (f_gridFromSensorHIRS)
+	  replaced line 747:
+	       Vector grid(fmin[i], npi, gs);
+          by:  
+	       Vector grid;
+               linspace(grid,fmin[i],fmax[i],gs);
+	  
+	  as numerical uncertainties in gs created 
+	  errors in f_grid 
+
 2015-03-13  Jana Mendrok  <jana.mendrok@ltu.se>
 
 	* arts-2-2-45
@@ -7,7 +21,7 @@
 
 2015-02-27  Jana Mendrok  <jana.mendrok@ltu.se>
 
-	* arts-2-2-44
+	* Arts-2-2-44
 
 	* src/m_doit.cc (doit_i_fieldSetFromdoit_i_field1D_spectrum):
 	Set upwelling at lower boundary from precalc field if lower boundary is
