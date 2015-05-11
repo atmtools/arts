@@ -1,3 +1,31 @@
+2015-05-11  Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-3-198
+	
+	This update adds preliminary support for NLTE calculations.  I think
+	that much of the code present will change a whole lot before the NLTE
+	implementation is final but as far as I can tell at this point, it works.
+	Still, consider this highly experimental code before you see a few more
+	commits on this train of thought.
+	
+	* src/absorption.{cc,h}: Moved remaining line strength scaling out of 
+	xsec_single_line.  Some variable names might get updated here in the 
+	future to reflect that the changes better.
+	
+	* src/linerecord.{cc,h}: This is where line strength scaling is now
+	calculated in full.
+	
+	* src/linerecord_partitionfunctiondata.{cc,h}:  Added PF_Tv for vibrational
+	temperature calculations.  Right now, this is an ugly implementation that
+	requires input from ARTSCAT-5 of pressure grid, upper and lower energy 
+	state and upper and lower energy state's vibrational temperatures.
+	Note that negative vibrational temperatures are tagged as atmospheric 
+	temperatures.  This part still requires a lot of work to be usable but
+	it operates similar to expectations... for now.
+	
+	* CHANGES-2.3:  Added to ARTSCAT-5 that it does NLTE.  With warnings that
+	it is not well-tested and that I need to do more work on this.
+
 2015-05-01  Simon Pfreundschuh  <simonpf@chalmers.se>
 
 	* arts-2-3-197

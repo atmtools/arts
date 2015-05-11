@@ -566,7 +566,7 @@ public:
   /** Partition Function Data */
   const PartitionFunctionData& PartitionFunction() const { return mpartitionfunctiondata; }
   void SetPartitionFunctionData(const PartitionFunctionData input) { mpartitionfunctiondata=input; }
-  void GetPartitionFunctionData(Numeric& partition, const Numeric& atm_t) const;
+  void GetPartitionFunctionData(Numeric& partition, const Numeric& atm_t, const Numeric& atm_p) const;
   
   /** Pressure Broadening Data */
   const PressureBroadeningData& PressureBroadening() const { return mpressurebroadeningdata; }

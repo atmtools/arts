@@ -37,7 +37,8 @@ public:
     
     enum PF_Type {
       PF_NONE,                          // Reserved for no linerecord partition function data.  Defaults to abs_species partition function data
-      PF_Coeff                          // Reserved for coefficients method similar to default
+      PF_Coeff,                         // Reserved for coefficients method similar to default
+      PF_Tv
     };
   
     // Defining an object
@@ -49,8 +50,9 @@ public:
     const Index& GetNelem() const {return mnelem;}
     
     // Use these to return data in the format required by the line shape calculator
-    bool GetPartitionFunctionDataParams(Numeric& part, const Numeric& line_t0, const Numeric& atm_t) const;
+    Index GetPartitionFunctionDataParams(Numeric& part, const Numeric& line_t0, const Numeric& atm_t, const Numeric& atm_p, const Numeric& E_low, const Numeric& E_up) const;
     void GetCoeff(Numeric& part, const Numeric& line_t0, const Numeric& atm_t) const;
+    void GetTv(Numeric& part, const Numeric& line_t0, const Numeric& atm_t, const Numeric& atm_p, const Numeric& E_low, const Numeric& E_up) const;
     
     // Use these to read data from XML-formats
     void StorageTag2SetType(const String& input);
@@ -58,11 +60,13 @@ public:
     Index ExpectedVectorLengthFromType() const {return mnelem;}
     void SetDataFromVectorWithKnownType(const Vector& input);
     void Vector2CoeffData(const Vector& input);
+    void Vector2TvData(const Vector& input);
     void Vector2NoneData(const Vector&);
     
     // Use these to save output vector in ARTS catalog
     void GetVectorFromData(Vector& output) const;
     void CoeffData2Vector(Vector& output) const;
+    void TvData2Vector(Vector& output) const;
     String Type2StorageTag() const;
     
 private:

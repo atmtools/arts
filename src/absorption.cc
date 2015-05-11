@@ -865,7 +865,7 @@ firstprivate(ls_attenuation, ls_phase, fac, f_local, aux)
                                                                              broad_spec_locations,
                                                                              vmrs,verbosity);
                         
-                        l_l.GetPartitionFunctionData(partition, t_i);
+                        l_l.GetPartitionFunctionData(partition, t_i, p_i);
                         
                         xsec_single_line(xsec_accum_attenuation(arts_omp_get_thread_num(),joker),
                                          xsec_accum_phase(arts_omp_get_thread_num(),joker),
@@ -880,8 +880,6 @@ firstprivate(ls_attenuation, ls_phase, fac, f_local, aux)
                                          l_l.I0(),
                                          partition,
                                          l_l.IsotopologueData().Mass(),
-                                         l_l.Elow(),
-                                         l_l.Ti0(),
                                          t_i,
                                          gamma,
                                          deltaf,
@@ -1013,8 +1011,6 @@ void xsec_single_line(VectorView xsec_accum_attenuation,
                       Numeric intensity, 
                       const Numeric part_fct_ratio, 
                       const Numeric Isotopologue_Mass,
-                      const Numeric e_lower, 
-                      const Numeric T0, 
                       const Numeric temperature, 
                       const Numeric gamma,
                       const Numeric deltaf,
@@ -1030,8 +1026,7 @@ void xsec_single_line(VectorView xsec_accum_attenuation,
                       const bool cut, 
                       const bool calc_phase)
 {//asdasd;
- 
-    extern const Numeric PLANCK_CONST;
+    
     extern const Numeric BOLTZMAN_CONST;
     extern const Numeric AVOGADROS_NUMB;
     extern const Numeric SPEED_OF_LIGHT;
@@ -1043,7 +1038,7 @@ void xsec_single_line(VectorView xsec_accum_attenuation,
     // THIS HAS TO BE INSIDE THE LINE LOOP, BECAUSE THE CUTOFF
     // FREQUENCY IS ALWAYS PUT IN A DIFFERENT PLACE!
     
-    
+                                              
     // This will hold the actual number of frequencies to add to
     // xsec later on:
     Index nfl = nf;
@@ -1051,26 +1046,11 @@ void xsec_single_line(VectorView xsec_accum_attenuation,
     // This will hold the actual number of frequencies for the
     // call to the lineshape functions later on:
     Index nfls = nf;
-    
-    // abs_lines[l] is used several times, this construct should be
-    // faster (Oliver Lemke)
-    // const LineRecord& l_l = abs_lines[l];  // Removed in this version
-    
-    // Upper state energy:
-    const Numeric e_upper = e_lower + F0 * PLANCK_CONST;
-    
-    // Boltzmann factors
-    const Numeric nom = exp(- e_lower / ( BOLTZMAN_CONST * temperature ) ) -
-    exp(- e_upper / ( BOLTZMAN_CONST * temperature ) );
-    
-    const Numeric denom = exp(- e_lower / ( BOLTZMAN_CONST * T0 ) ) -
-    exp(- e_upper / ( BOLTZMAN_CONST * T0 ) );
-    
-    
+        
     // intensity at temperature
     // (calculate the line intensity according to the standard
     // expression given in HITRAN)
-    intensity *= part_fct_ratio * nom / denom;
+    intensity *= part_fct_ratio;// * nom / denom;
     
     
     // Apply pressure shift:
@@ -1704,7 +1684,7 @@ firstprivate(attenuation, phase, fac, f_local, aux)
             Numeric Y=0,DV=0,G=0; // Set to zero since case with 0 exist
             abs_lines[ii].LineMixing().GetLineMixingParams( Y,  G,  DV,  t, p, lm_p_lim, 1);
             
-            abs_lines[ii].GetPartitionFunctionData(partition, t);
+            abs_lines[ii].GetPartitionFunctionData(partition, t, p);
             
             // Still an ugly case with non-resonant line near 0 frequency, since this is actually a band...
             if( LineMixingData::LM_LBLRTM_O2NonResonant != abs_lines[ii].LineMixing().Type() )
@@ -1722,8 +1702,6 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                                     abs_lines[ii].I0(), 
                                     partition, 
                                     abs_lines[ii].IsotopologueData().Mass(),
-                                    abs_lines[ii].Elow(), 
-                                    abs_lines[ii].Ti0(), 
                                     t,
                                     gamma,
                                     deltaf_pressure,
@@ -1759,8 +1737,6 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                                     abs_lines[ii].I0(), 
                                     partition, 
                                     abs_lines[ii].IsotopologueData().Mass(),
-                                    abs_lines[ii].Elow(), 
-                                    abs_lines[ii].Ti0(), 
                                     t,
                                     gamma,
                                     deltaf_pressure,

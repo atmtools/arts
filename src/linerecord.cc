@@ -3411,9 +3411,7 @@ bool LineRecord::ReadFromArtscat5Stream(istream& is, const Verbosity& verbosity)
                     mpartitionfunctiondata.StorageTag2SetType(token);
 
                     icecream >> nelem;
-                    std::cout<< nelem<<std::endl;
                     mpartitionfunctiondata.SetNelem(nelem);
-                    std::cout<< mpartitionfunctiondata.GetNelem()<<std::endl;
                     Vector lmd(nelem);
                     for (Index l = 0; l < nelem; l++)
                     {
@@ -3687,8 +3685,36 @@ bool find_matching_lines(ArrayOfIndex& matches,
 }
 
 
-void LineRecord::GetPartitionFunctionData(Numeric& partition, const Numeric& atm_t) const
+void LineRecord::GetPartitionFunctionData(Numeric& scale, const Numeric& atm_t, const Numeric& atm_p) const
 {
-  if( mpartitionfunctiondata.GetPartitionFunctionDataParams(partition, mti0, atm_t) )
-    partition = IsotopologueData().CalculatePartitionFctRatio(mti0, atm_t);
+    extern const Numeric PLANCK_CONST;
+    extern const Numeric BOLTZMAN_CONST;
+    
+    // Upper state energy:
+    const Numeric meup = melow + mf * PLANCK_CONST;
+    
+    // Variable to see what else needs to be done
+    // 0:  scale is completely calculated internally
+    // 1:  scale is not calculated and therefore follows the old path
+    // 2:  scale is just the scale of exponents, not partition functions
+    const Index test = mpartitionfunctiondata.GetPartitionFunctionDataParams(scale, mti0, atm_t, atm_p, melow, meup);
+    
+  if( test == 1 ) // Nothing is done so the old method is used
+  {
+    scale = IsotopologueData().CalculatePartitionFctRatio(mti0, atm_t);
+    
+    // Boltzmann factors
+    const Numeric nom = exp(- melow / ( BOLTZMAN_CONST * atm_t ) ) -
+    exp(- meup / ( BOLTZMAN_CONST * atm_t ) );
+    
+    const Numeric denom = exp(- melow / ( BOLTZMAN_CONST * mti0 ) ) -
+    exp(- meup / ( BOLTZMAN_CONST * mti0 ) );
+    
+    scale *= nom/denom;
+  }
+  else if( test == 2 ) // Inbuilt partition functions are difficult to pass along to partitionfunctiondata
+  {
+      scale *= IsotopologueData().CalculatePartitionFctRatio(mti0, atm_t);
+  }
+  
 }
