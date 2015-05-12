@@ -250,5 +250,9 @@ ybatchCalc
 # ---
 WriteXML( "ascii", ybatch )
 
+# Compare with reference:
+ArrayOfVectorCreate( ybatch_ref )
+ReadXML( ybatch_ref, "TestHIRS.NOAA14.ybatch.ref.xml" )
+Compare( ybatch_ref, ybatch, 0.01 )
 
 }

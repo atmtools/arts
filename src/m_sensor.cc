@@ -488,7 +488,8 @@ void f_gridFromSensorAMSU(// WS Output:
       const Numeric gs = bw/npf;
       
       // Create the grid for this band:
-      Vector grid(fmin[i], npi, gs);
+      Vector grid;
+      linspace(grid, fmin[i], fmax[i], gs);
 
       out3 << "  Band range " << i << ": " << grid << "\n";
 
@@ -729,7 +730,8 @@ void f_gridFromSensorHIRS(// WS Output:
       const Numeric gs = bw/npf;
 
       // Create the grid for this band:
-      Vector grid(fmin[i], npi, gs);
+      Vector grid;
+      linspace(grid, fmin[i], fmax[i], gs);
 
       out3 << "  Band range " << i << ": " << grid << "\n";
 
