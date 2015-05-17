@@ -2118,6 +2118,10 @@ void jacobianCalcWindAnalytical(
 
 
 
+//----------------------------------------------------------------------------
+// in presence of scattering:
+//----------------------------------------------------------------------------
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void jacobianDoit(//WS Output:
                   Workspace& ws,
@@ -2262,8 +2266,8 @@ void jacobianDoit(//WS Output:
   // outside to be consistent with the perturbation calculations.
 
   // if we are going to merge (i.e. to modify the scat_data), we need to keep
-  // the original one. also, if we merging for the perturbations, we merge here,
-  // too.
+  // the original one. also, if we merge in the perturbation calculations, then
+  // we merge here as well.
   ArrayOfArrayOfSingleScatteringData scat_data_ref;
   if( ScatteringMergeParticle_do )
     {
@@ -2328,7 +2332,7 @@ void jacobianDoit(//WS Output:
   // Set some useful variables. 
   RetrievalQuantity jq;
   Index it=0;
-  Index lstart, lend, pertmode;
+  Index lstart, lend; //, pertmode;
   String speciesname;
 
   // as long as we limit the perturbation to within cloudbox and provide a
@@ -2380,10 +2384,10 @@ void jacobianDoit(//WS Output:
 
       // Check if a relative pertubation is used or not, this information is needed
       //by the methods 'perturbation_field_?d'.
-      if( jq.Mode()=="rel" )
-        pertmode = 0;
-      else 
-        pertmode = 1;
+      //if( jq.Mode()=="rel" )
+      //  pertmode = 0;
+      //else 
+      //  pertmode = 1;
 
       // check if perturbation species is valid. and extract the actual field we
       // are going to perturb.
@@ -2393,7 +2397,7 @@ void jacobianDoit(//WS Output:
           // Find VMR field for this species. 
           ArrayOfSpeciesTag tags;
           array_species_tag_from_string( tags, jq.Subtag() );
-          si = chk_contains( "species", abs_species, tags );
+          si = chk_contains( "abs_species", abs_species, tags );
           speciesname = jq.MainTag()+'.'+jq.Subtag();
         }
       else if( jq.MainTag() == SCATSPECIES_MAINTAG )
@@ -2463,8 +2467,9 @@ void jacobianDoit(//WS Output:
         {
           if (do_abort) continue;
 /*
-          //use this if we once allow arbitrary perturbation grids. if so,
-          //correct for last-point outdrag.
+          //use this if we once allow arbitrary perturbation grids. if so:
+          //- correct for last-point outdrag
+          //- check for proper use of pertmode (passed to perturbation_field_1d)
           Range p_range   = Range(0,0);
           get_perturbation_range( p_range, il, j_p );
           Tensor3 pertfield;
@@ -2510,51 +2515,84 @@ void jacobianDoit(//WS Output:
 */
           if( jq.MainTag() == ABSSPECIES_MAINTAG )
             {
-              if( pertmode )
+              if( jq.Mode() == "abs" )
                 vmr_field(si,il,joker,joker) += jq.Perturbation();
+              else if ( jq.Mode() == "rel" )
+                vmr_field(si,il,joker,joker) *= (1.+jq.Perturbation());
+              else if ( jq.Mode() == "logrel" )
+                vmr_field(si,il,joker,joker) *= pow(10.,jq.Perturbation());
               else
-                vmr_field(si,il,joker,joker) *= jq.Perturbation();
+                // we shouldn't end up here. if we do, checks for allowed
+                // retrieval modes above are incomplete.
+                assert( 0 );
             }
           else if( jq.MainTag() == SCATSPECIES_MAINTAG )
             {
               if( jq.SubSubtag() == "mass_density" )
                 {
-                  if( pertmode )
+                  if( jq.Mode() == "abs" )
                     {
                       scat_species_mass_density_field(si,il,joker,joker)
                         += jq.Perturbation();
                     }
-                  else
+                  else if ( jq.Mode() == "rel" )
                     {
                       scat_species_mass_density_field(si,il,joker,joker)
-                        *= jq.Perturbation();
+                        *= (1.+jq.Perturbation());
                     }
+                  else if ( jq.Mode() == "logrel" )
+                    {
+                      scat_species_mass_density_field(si,il,joker,joker)
+                        *= pow(10.,jq.Perturbation());
+                    }
+                  else
+                    // we shouldn't end up here. if we do, checks for allowed
+                    // retrieval modes above are incomplete.
+                    assert( 0 );
                 }
               else if( jq.SubSubtag() == "mass_flux" )
                 {
-                  if( pertmode )
+                  if( jq.Mode() == "abs" )
                     {
                       scat_species_mass_flux_field(si,il,joker,joker)
                         += jq.Perturbation();
                     }
-                  else
+                  else if ( jq.Mode() == "rel" )
                     {
                       scat_species_mass_flux_field(si,il,joker,joker)
-                        *= jq.Perturbation();
+                        *= (1.+jq.Perturbation());
                     }
+                  else if ( jq.Mode() == "logrel" )
+                    {
+                      scat_species_mass_flux_field(si,il,joker,joker)
+                        *= pow(10.,jq.Perturbation());
+                    }
+                  else
+                    // we shouldn't end up here. if we do, checks for allowed
+                    // retrieval modes above are incomplete.
+                    assert( 0 );
                 }
               else if( jq.SubSubtag() == "number_density" )
                 {
-                  if( pertmode )
+                  if( jq.Mode() == "abs" )
                     {
                       scat_species_number_density_field(si,il,joker,joker)
                         += jq.Perturbation();
                     }
-                  else
+                  else if ( jq.Mode() == "rel" )
                     {
                       scat_species_number_density_field(si,il,joker,joker)
-                        *= jq.Perturbation();
+                        *= (1.+jq.Perturbation());
                     }
+                  else if ( jq.Mode() == "logrel" )
+                    {
+                      scat_species_number_density_field(si,il,joker,joker)
+                        *= pow(10.,jq.Perturbation());
+                    }
+                  else
+                    // we shouldn't end up here. if we do, checks for allowed
+                    // retrieval modes above are incomplete.
+                    assert( 0 );
                 }
             }
           else //temperature
@@ -2645,8 +2683,10 @@ void jacobianDoit(//WS Output:
               }
 
             Vector dydx(y.nelem());
-            // what about this if perturbation is relative? how done in clearsky
-            // perturbation jacobians? branch here?
+            // FIXME: what about this if perturbation mode is rel or logrel? how
+            // done in clearsky perturbation jacobians (seems to be the exact
+            // setting as here)? branch here?
+            // CONFIRM with Patrick et al.
             for( Index i=0; i<y.nelem(); i++ )
               {
                 dydx[i] = (y[i]-y0[i]) / jq.Perturbation();
@@ -2809,11 +2849,11 @@ void jacobianDoitAddSpecies(//WS Output:
               throw runtime_error(os.str());
             }
 
-          if( mode != "abs" && mode != "rel" )
+          if( mode != "abs" && mode != "rel" && mode !="logrel" )
             {
               ostringstream os;
-              os << mode << " is not a valid perturbation mode. Only 'abs' "
-                 << " and 'rel' allowed.";
+              os << mode << " is not a valid perturbation mode. Only 'abs', "
+                 << " 'rel' and 'logrel' allowed.";
               throw runtime_error(os.str());
             }
 
@@ -2873,11 +2913,11 @@ void jacobianDoitAddSpecies(//WS Output:
               throw runtime_error(os.str());
             }
 
-          if( mode != "abs" && mode != "rel" )
+          if( mode != "abs" && mode != "rel" && mode !="logrel" )
             {
               ostringstream os;
-              os << mode << " is not a valid perturbation mode. Only 'abs' "
-                 << " and 'rel' allowed.";
+              os << mode << " is not a valid perturbation mode. Only 'abs', "
+                 << " 'rel' and 'logrel' allowed.";
               throw runtime_error(os.str());
             }
 

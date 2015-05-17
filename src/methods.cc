@@ -3008,78 +3008,6 @@ void define_md_data_raw()
     
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "DoitGetIncoming" ),
-        DESCRIPTION
-        (
-         "Calculates incoming radiation field of the cloudbox by repeated\n"
-         "radiative transfer calculations.\n"
-         "\n"
-         "The method performs monochromatic pencil beam calculations for\n"
-         "all grid positions on the cloudbox boundary, and all directions\n"
-         "given by scattering angle grids (*scat_za/aa_grid*). Found radiances\n"
-         "are stored in *doit_i_field* which can be used as boundary\n"
-         "conditions when scattering inside the cloud box is solved by the\n"
-         "DOIT method.\n"
-         "\n"
-         "Can only handle *iy_unit*=1 (intensity in terms of radiances). Other\n"
-         "output units need to be derived by unit conversion later on (e.g.\n"
-         "after yCalc).\n"
-         ),
-        AUTHORS( "Sreerekha T.R.", "Claudia Emde" ),
-        OUT( "doit_i_field" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "doit_i_field",
-            "atmfields_checked", "atmgeom_checked", "cloudbox_checked",
-            "doit_is_initialized", "iy_main_agenda",
-            "atmosphere_dim", "lat_grid", "lon_grid",
-            "z_field", "t_field", "vmr_field",
-            "cloudbox_on", "cloudbox_limits",
-            "f_grid", "stokes_dim", 
-            "blackbody_radiation_agenda",
-            "scat_za_grid", "scat_aa_grid" ),
-        GIN( "rigorous", "maxratio" ),
-        GIN_TYPE( "Index", "Numeric" ),
-        GIN_DEFAULT( "1", "100" ),
-        GIN_DESC( "Fail if incoming field is not safely interpolable.",
-                  "Maximum allowed ratio of two radiances regarded as interpolable." )
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "DoitGetIncoming1DAtm" ),
-        DESCRIPTION
-        (
-         "As *DoitGetIncoming* but assumes clear sky part to be 1D."
-         "\n"
-         "The incoming field is calculated only for one position and azimuth\n"
-         "angle for each cloud box boundary, and obtained values are used\n"
-         "for all other postions and azimuth angles. This works if a 3D\n"
-         "cloud box is put into an 1D background atmosphere.\n"
-         "\n"
-         "This method can only be used for 3D cases.\n"
-         ),
-        AUTHORS( "Sreerekha T.R.", "Claudia Emde" ),
-        OUT( "doit_i_field", "cloudbox_on" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "doit_i_field",
-            "atmfields_checked", "atmgeom_checked", "cloudbox_checked",
-            "doit_is_initialized", "iy_main_agenda", "atmosphere_dim", 
-            "lat_grid", "lon_grid", "z_field", "t_field", "vmr_field",
-            "cloudbox_on", "cloudbox_limits",
-            "f_grid", "stokes_dim", 
-            "blackbody_radiation_agenda", "scat_za_grid", "scat_aa_grid" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME( "cloudboxOff" ),
         DESCRIPTION
         (
@@ -3564,6 +3492,31 @@ void define_md_data_raw()
     
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "DisortCalc" ),
+        DESCRIPTION
+        (
+         "Calls DISORT RT solver from ARTS.\n"
+         ),
+        AUTHORS( "Claudia Emde" ),
+        OUT( "doit_i_field",
+             "f_index", "scat_data_mono" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "atmfields_checked", "atmgeom_checked",
+            "cloudbox_checked", "cloudbox_limits", "stokes_dim", 
+            "opt_prop_part_agenda", "propmat_clearsky_agenda", 
+            "spt_calc_agenda", "pnd_field", "t_field",
+            "z_field", "p_grid", "vmr_field", "scat_data", "f_grid", 
+            "scat_za_grid", "surface_emissivity_DISORT" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "dNdD_Ar_H13" ),
         DESCRIPTION
         (
@@ -3931,6 +3884,130 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "DoitCalc" ),
+        DESCRIPTION
+        (
+         "Main DOIT method.\n"
+         "\n"
+         "This method executes *doit_mono_agenda* for each frequency\n"
+         "in *f_grid*. The output is the radiation field inside the cloudbox\n"
+         "(*doit_i_field*).\n"
+         ),
+        AUTHORS( "Claudia Emde" ),
+        OUT( "doit_i_field" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "doit_i_field",
+            "atmfields_checked", "atmgeom_checked",
+            "cloudbox_checked", "cloudbox_on", "f_grid", 
+            "doit_mono_agenda", "doit_is_initialized" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+    
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "DoitGetIncoming" ),
+        DESCRIPTION
+        (
+         "Calculates incoming radiation field of the cloudbox by repeated\n"
+         "radiative transfer calculations.\n"
+         "\n"
+         "The method performs monochromatic pencil beam calculations for\n"
+         "all grid positions on the cloudbox boundary, and all directions\n"
+         "given by scattering angle grids (*scat_za/aa_grid*). Found radiances\n"
+         "are stored in *doit_i_field* which can be used as boundary\n"
+         "conditions when scattering inside the cloud box is solved by the\n"
+         "DOIT method.\n"
+         "\n"
+         "Can only handle *iy_unit*=1 (intensity in terms of radiances). Other\n"
+         "output units need to be derived by unit conversion later on (e.g.\n"
+         "after yCalc).\n"
+         ),
+        AUTHORS( "Sreerekha T.R.", "Claudia Emde" ),
+        OUT( "doit_i_field" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "doit_i_field",
+            "atmfields_checked", "atmgeom_checked", "cloudbox_checked",
+            "doit_is_initialized", "iy_main_agenda",
+            "atmosphere_dim", "lat_grid", "lon_grid",
+            "z_field", "t_field", "vmr_field",
+            "cloudbox_on", "cloudbox_limits",
+            "f_grid", "stokes_dim", 
+            "blackbody_radiation_agenda",
+            "scat_za_grid", "scat_aa_grid" ),
+        GIN( "rigorous", "maxratio" ),
+        GIN_TYPE( "Index", "Numeric" ),
+        GIN_DEFAULT( "1", "100" ),
+        GIN_DESC( "Fail if incoming field is not safely interpolable.",
+                  "Maximum allowed ratio of two radiances regarded as interpolable." )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "DoitGetIncoming1DAtm" ),
+        DESCRIPTION
+        (
+         "As *DoitGetIncoming* but assumes clear sky part to be 1D."
+         "\n"
+         "The incoming field is calculated only for one position and azimuth\n"
+         "angle for each cloud box boundary, and obtained values are used\n"
+         "for all other postions and azimuth angles. This works if a 3D\n"
+         "cloud box is put into an 1D background atmosphere.\n"
+         "\n"
+         "This method can only be used for 3D cases.\n"
+         ),
+        AUTHORS( "Sreerekha T.R.", "Claudia Emde" ),
+        OUT( "doit_i_field", "cloudbox_on" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "doit_i_field",
+            "atmfields_checked", "atmgeom_checked", "cloudbox_checked",
+            "doit_is_initialized", "iy_main_agenda", "atmosphere_dim", 
+            "lat_grid", "lon_grid", "z_field", "t_field", "vmr_field",
+            "cloudbox_on", "cloudbox_limits",
+            "f_grid", "stokes_dim", 
+            "blackbody_radiation_agenda", "scat_za_grid", "scat_aa_grid" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "DoitInit" ),
+        DESCRIPTION
+        (
+         "Initialises variables for DOIT scattering calculations.\n"
+         "\n"
+         "Note that multi-dimensional output variables (Tensors, specifically)\n"
+         "are zero-initialized. That is, this methods needs to be called\n"
+         "BEFORE other WSMs that provide input to *ScatteringDOIT*, e.g.\n"
+         "before *DoitGetIncoming*.\n"
+         ),
+        AUTHORS( "Claudia Emde" ),
+        OUT( "doit_scat_field", "doit_i_field", "doit_is_initialized" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "stokes_dim", "atmosphere_dim", "f_grid",
+            "scat_za_grid", "scat_aa_grid",
+            "doit_za_grid_size", "cloudbox_on", "cloudbox_limits", "scat_data" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "doit_conv_flagAbs" ),
         DESCRIPTION
         (
@@ -4032,32 +4109,6 @@ void define_md_data_raw()
                   )
         ));
   
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "DoitInit" ),
-        DESCRIPTION
-        (
-         "Initialises variables for DOIT scattering calculations.\n"
-         "\n"
-         "Note that multi-dimensional output variables (Tensors, specifically)\n"
-         "are zero-initialized. That is, this methods needs to be called\n"
-         "BEFORE other WSMs that provide input to *ScatteringDOIT*, e.g.\n"
-         "before *DoitGetIncoming*.\n"
-         ),
-        AUTHORS( "Claudia Emde" ),
-        OUT( "doit_scat_field", "doit_i_field", "doit_is_initialized" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "stokes_dim", "atmosphere_dim", "f_grid",
-            "scat_za_grid", "scat_aa_grid",
-            "doit_za_grid_size", "cloudbox_on", "cloudbox_limits", "scat_data" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "doit_i_field_monoIterate" ),
@@ -5083,6 +5134,27 @@ void define_md_data_raw()
 
   md_data_raw.push_back     
     ( MdRecord
+      ( NAME( "g0Io" ),
+        DESCRIPTION
+        (
+         "Gravity at zero altitude on Io.\n"
+         "\n"
+         "Numeric from Wikipedia.\n"
+         ),
+        AUTHORS( "Richard Larsson" ),
+        OUT( "g0" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN(),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back     
+    ( MdRecord
       ( NAME( "g0Jupiter" ),
         DESCRIPTION
         (
@@ -5147,27 +5219,6 @@ void define_md_data_raw()
         GIN_DESC()
         ));
     
-  md_data_raw.push_back     
-    ( MdRecord
-      ( NAME( "g0Io" ),
-        DESCRIPTION
-        (
-         "Gravity at zero altitude on Io.\n"
-         "\n"
-         "Numeric from Wikipedia.\n"
-         ),
-        AUTHORS( "Richard Larsson" ),
-        OUT( "g0" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN(),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
   md_data_raw.push_back     
     ( MdRecord
       ( NAME( "geo_posEndOfPpath" ),
@@ -7379,11 +7430,13 @@ void define_md_data_raw()
          "  parametrization of the respective scattering species.\n"
          "\n"
          "Only pure numerical perturbations are available. The perturbation\n"
-         "size is specified by the user. The perturbation unit can be \"abs\"\n"
-         "or \"rel\" (the latter not if category is temperature). Units of\n"
-         "absolute perturbations are identical to units of the field (i.e.,\n"
-         "VMR for *vmr_field*, kg/m3 for mass densities, kg/s/m2 for mass\n"
-         "fluxes, 1/m3 for number densities etc.).\n"
+         "size is specified by the user. The perturbation unit can be \"abs\",\n"
+         "\"rel\" and \"logrel\" (the latter two not allowed if category is\n"
+         "temperature), where \"logrel\" performs a perturbation in\n"
+         "logarithmic space (base 10). Units of absolute perturbations are\n"
+         "identical to units of the field (i.e., VMR for *vmr_field*, kg/m3\n"
+         "for mass densities, kg/s/m2 for mass fluxes, 1/m3 for number\n"
+         "densities etc.).\n"
          ),
         AUTHORS( "Jana Mendrok" ),
         OUT( "jacobian_quantities" ),
@@ -8504,92 +8557,6 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "scat_speciesInit" ),
-        DESCRIPTION
-        (
-         "Initializes empty *scat_species* array.\n"
-         ),
-        AUTHORS( "Daniel Kreyling" ),
-        OUT( "scat_species" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN(),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-    
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "scat_speciesSet" ),
-        DESCRIPTION
-        (
-         "Sets the WSV *scat_species*."
-         "\n"
-         "With this function, the user specifies settings for the \n"
-         "particle number density calculations by *pnd_fieldCalcFromscat_speciesFields*.\n"
-         "The input is an ArrayOfString that needs to be in a specific format.\n"
-         "For details, see WSV *scat_species*.\n"
-         "\n"         
-         "*Example:*  ['IWC-MH97-0.1-200', 'LWC-H98_STCO-0.1-50']\n"
-         ),
-        AUTHORS( "Daniel Kreyling" ),
-        OUT( "scat_species" ),
-        GOUT( ),
-        GOUT_TYPE( ),
-        GOUT_DESC( ),
-        IN(),
-        GIN( "scat_tags", "delim" ),
-        GIN_TYPE(  "ArrayOfString", "String" ),
-        GIN_DEFAULT( NODEF, "-" ),
-        GIN_DESC("Array of pnd calculation parameters.",
-                 "Delimiter string of *scat_species* elements." )
-        ));
-
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "scat_species_fieldCleanup" ),
-        DESCRIPTION
-        (
-         "Removes unrealistically small or erroneous data from scat_species\n"
-         "fields\n"
-         "\n"
-         "This WSM checks if the input scat_species field\n"
-         "(*scat_species_mass_density_field*, *scat_species_mass_flux_field*,\n"
-         "*scat_species_number_density_field*) contains values smaller than\n"
-         "the given *threshold*. In this case, these values will be set to\n"
-         "zero.\n"
-         "\n"
-         "The method should be applied if the scat_species fields contain\n"
-         "unrealistically small or erroneous data (NWP/GCM model data, e.g.\n"
-         "from theChevallierl_91l sets, often contain very small or even\n"
-         "negative values, which are numerical artefacts rather than physical\n"
-         "values.)\n"
-         "It needs to be applied separately per scat_species field that shall\n"
-         "be handled. This allows to use different thresholds for the\n"
-         "different types of fields.\n"
-         "\n"
-         "*scat_species_fieldCleanup* shall be called after generation of the\n"
-         "atmopheric fields.\n"
-         ),
-        AUTHORS( "Daniel Kreyling" ),
-        OUT(),
-        GOUT( "scat_species_field_out" ),
-        GOUT_TYPE( "Tensor4" ),
-        GOUT_DESC( "A scattering species field, e.g. *scat_species_mass_density_field*" ),
-        IN(),
-        GIN(         "scat_species_field_in", "threshold" ),
-        GIN_TYPE(    "Tensor4",               "Numeric" ),
-        GIN_DEFAULT( NODEF,                   NODEF ),
-        GIN_DESC( "A scattering species field, e.g. *scat_species_mass_density_field*" ,
-                  "Threshold below which the *scat_species_field* values are set to zero." )
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME( "ParticleTypeAdd" ),
         DESCRIPTION
         (
@@ -8816,6 +8783,37 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "pndFromdNdD" ),
+        DESCRIPTION
+        (
+        "Calculates pnds from given dNdD.\n"
+        "\n"
+        "The method mimics what happens inside *pnd_fieldCalcFromscat_speciesFields*,\n"
+        "but for a single size distribution. It is supposed to be used with\n"
+        "the *dNdD* methods.\n"
+        ),
+        AUTHORS( "Jana Mendrok" ),
+        OUT(),
+        GOUT( "pnd" ),
+        GOUT_TYPE( "Vector" ),
+        GOUT_DESC( "The pnd vector (pnd as function of particle size)" ),
+        IN(),
+        GIN(         "dNdD",   "diameter", "total_content", "scatelem_content" ),
+        GIN_TYPE(    "Vector", "Vector",   "Numeric",       "Vector" ),
+        GIN_DEFAULT( NODEF, NODEF, NODEF, NODEF ),
+        GIN_DESC(    "Size distribution number density",
+                     "Size of the particles (the same as used in deriving dNdD",
+                     "Material content that should be contained in the"
+                     "distribution. E.g., Mass density, mass flux, total number"
+                     "density. If dNdD was derived from a content-dependent PSD,"
+                     "then this value should correspond to the one used there.",
+                     "Material content of each particle (scattering element)."
+                     "Needs to be the same content type as the total content"
+                     "above." )
+        ));
+ 
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "pnd_fieldCalcFrompnd_field_raw" ),
         DESCRIPTION
         ( "Interpolation of particle number density fields to calculation grid\n"
@@ -8966,37 +8964,6 @@ void define_md_data_raw()
         GIN_DESC()
         ));
 
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "pndFromdNdD" ),
-        DESCRIPTION
-        (
-        "Calculates pnds from given dNdD.\n"
-        "\n"
-        "The method mimics what happens inside *pnd_fieldCalcFromscat_speciesFields*,\n"
-        "but for a single size distribution. It is supposed to be used with\n"
-        "the *dNdD* methods.\n"
-        ),
-        AUTHORS( "Jana Mendrok" ),
-        OUT(),
-        GOUT( "pnd" ),
-        GOUT_TYPE( "Vector" ),
-        GOUT_DESC( "The pnd vector (pnd as function of particle size)" ),
-        IN(),
-        GIN(         "dNdD",   "diameter", "total_content", "scatelem_content" ),
-        GIN_TYPE(    "Vector", "Vector",   "Numeric",       "Vector" ),
-        GIN_DEFAULT( NODEF, NODEF, NODEF, NODEF ),
-        GIN_DESC(    "Size distribution number density",
-                     "Size of the particles (the same as used in deriving dNdD",
-                     "Material content that should be contained in the"
-                     "distribution. E.g., Mass density, mass flux, total number"
-                     "density. If dNdD was derived from a content-dependent PSD,"
-                     "then this value should correspond to the one used there.",
-                     "Material content of each particle (scattering element)."
-                     "Needs to be the same content type as the total content"
-                     "above." )
-        ));
- 
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "ppathCalc" ),
@@ -10435,57 +10402,6 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "DisortCalc" ),
-        DESCRIPTION
-        (
-         "Calls DISORT RT solver from ARTS.\n"
-         ),
-        AUTHORS( "Claudia Emde" ),
-        OUT( "doit_i_field",
-             "f_index", "scat_data_mono" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "atmfields_checked", "atmgeom_checked",
-            "cloudbox_checked", "cloudbox_limits", "stokes_dim", 
-            "opt_prop_part_agenda", "propmat_clearsky_agenda", 
-            "spt_calc_agenda", "pnd_field", "t_field",
-            "z_field", "p_grid", "vmr_field", "scat_data", "f_grid", 
-            "scat_za_grid", "surface_emissivity_DISORT" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "DoitCalc" ),
-        DESCRIPTION
-        (
-         "Main DOIT method.\n"
-         "\n"
-         "This method executes *doit_mono_agenda* for each frequency\n"
-         "in *f_grid*. The output is the radiation field inside the cloudbox\n"
-         "(*doit_i_field*).\n"
-         ),
-        AUTHORS( "Claudia Emde" ),
-        OUT( "doit_i_field" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "doit_i_field",
-            "atmfields_checked", "atmgeom_checked",
-            "cloudbox_checked", "cloudbox_on", "f_grid", 
-            "doit_mono_agenda", "doit_is_initialized" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-    
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME( "ScatteringMergeParticles1D" ),
         DESCRIPTION
         (
@@ -10813,6 +10729,92 @@ void define_md_data_raw()
         ));
 */
   
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "scat_speciesInit" ),
+        DESCRIPTION
+        (
+         "Initializes empty *scat_species* array.\n"
+         ),
+        AUTHORS( "Daniel Kreyling" ),
+        OUT( "scat_species" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN(),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+    
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "scat_speciesSet" ),
+        DESCRIPTION
+        (
+         "Sets the WSV *scat_species*."
+         "\n"
+         "With this function, the user specifies settings for the \n"
+         "particle number density calculations by *pnd_fieldCalcFromscat_speciesFields*.\n"
+         "The input is an ArrayOfString that needs to be in a specific format.\n"
+         "For details, see WSV *scat_species*.\n"
+         "\n"         
+         "*Example:*  ['IWC-MH97-0.1-200', 'LWC-H98_STCO-0.1-50']\n"
+         ),
+        AUTHORS( "Daniel Kreyling" ),
+        OUT( "scat_species" ),
+        GOUT( ),
+        GOUT_TYPE( ),
+        GOUT_DESC( ),
+        IN(),
+        GIN( "scat_tags", "delim" ),
+        GIN_TYPE(  "ArrayOfString", "String" ),
+        GIN_DEFAULT( NODEF, "-" ),
+        GIN_DESC("Array of pnd calculation parameters.",
+                 "Delimiter string of *scat_species* elements." )
+        ));
+
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "scat_species_fieldCleanup" ),
+        DESCRIPTION
+        (
+         "Removes unrealistically small or erroneous data from scat_species\n"
+         "fields\n"
+         "\n"
+         "This WSM checks if the input scat_species field\n"
+         "(*scat_species_mass_density_field*, *scat_species_mass_flux_field*,\n"
+         "*scat_species_number_density_field*) contains values smaller than\n"
+         "the given *threshold*. In this case, these values will be set to\n"
+         "zero.\n"
+         "\n"
+         "The method should be applied if the scat_species fields contain\n"
+         "unrealistically small or erroneous data (NWP/GCM model data, e.g.\n"
+         "from theChevallierl_91l sets, often contain very small or even\n"
+         "negative values, which are numerical artefacts rather than physical\n"
+         "values.)\n"
+         "It needs to be applied separately per scat_species field that shall\n"
+         "be handled. This allows to use different thresholds for the\n"
+         "different types of fields.\n"
+         "\n"
+         "*scat_species_fieldCleanup* shall be called after generation of the\n"
+         "atmopheric fields.\n"
+         ),
+        AUTHORS( "Daniel Kreyling" ),
+        OUT(),
+        GOUT( "scat_species_field_out" ),
+        GOUT_TYPE( "Tensor4" ),
+        GOUT_DESC( "A scattering species field, e.g. *scat_species_mass_density_field*" ),
+        IN(),
+        GIN(         "scat_species_field_in", "threshold" ),
+        GIN_TYPE(    "Tensor4",               "Numeric" ),
+        GIN_DEFAULT( NODEF,                   NODEF ),
+        GIN_DESC( "A scattering species field, e.g. *scat_species_mass_density_field*" ,
+                  "Threshold below which the *scat_species_field* values are set to zero." )
+        ));
+
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "Select" ),
@@ -13013,6 +13015,34 @@ void define_md_data_raw()
         GIN_DESC(    "Screen verbosity level")
         ));
 
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "wind_u_fieldIncludePlanetRotation" ),
+        DESCRIPTION
+        (
+         "Maps the planet's rotation to an imaginary wind.\n"
+         "\n"
+         "This method is of relevance if the observation platform is not\n"
+         "following the planet's rotation, and Doppler effects must be\n"
+         "considered. Examples include full disk observations from another\n"
+         "planet or a satellite not in orbit of the observed planet.\n"
+         "\n"
+         "The rotation of the planet is not causing any Doppler shift for\n"
+         "1D and 2D simulations, and the method can only be used for 3D.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "wind_u_field" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "wind_u_field", "atmosphere_dim", "p_grid", "lat_grid", "lon_grid",
+            "refellipsoid", "z_field", "planet_rotation_period" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
   md_data_raw.push_back     
     ( MdRecord
       ( NAME( "WMRFSelectChannels" ),
@@ -13595,34 +13625,6 @@ void define_md_data_raw()
         GIN_TYPE( "Numeric" ),
         GIN_DEFAULT( NODEF ),
         GIN_DESC(    "Selected frequency resolution." )
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "wind_u_fieldIncludePlanetRotation" ),
-        DESCRIPTION
-        (
-         "Maps the planet's rotation to an imaginary wind.\n"
-         "\n"
-         "This method is of relevance if the observation platform is not\n"
-         "following the planet's rotation, and Doppler effects must be\n"
-         "considered. Examples include full disk observations from another\n"
-         "planet or a satellite not in orbit of the observed planet.\n"
-         "\n"
-         "The rotation of the planet is not causing any Doppler shift for\n"
-         "1D and 2D simulations, and the method can only be used for 3D.\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT( "wind_u_field" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "wind_u_field", "atmosphere_dim", "p_grid", "lat_grid", "lon_grid",
-            "refellipsoid", "z_field", "planet_rotation_period" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
         ));
 
   md_data_raw.push_back
