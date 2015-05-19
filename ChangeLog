@@ -1,3 +1,37 @@
+2015-05-19 Simon Pfreundschuh <simonpf@student.chalmers.se>
+	* arts-2-3-202
+
+	Implemented multiplication using BLAS.
+
+	* src/blas.h
+	Added a header file for the declarations of the external BLAS functions.
+
+	* src/CMakeLists
+	Linked matpack library to BLAS library. The BLAS library is detected
+	automatically or can be set using the BLASDIR variable.
+
+	* src/matpackI.h
+	Added mult_general method for the original multiplication
+	implementation that works on all matrices.
+
+	* src/matpackI.cc
+	Implemented multiplication using the dgemm_ routine for matrix
+	multiplication from the BLAS library.
+	Renamed the original implementation to mult_general which is used
+	as fallback if the matrix operands are not continuous.
+
+	* src/test_matpack
+	Added test case to test the new matrix multiplication implementation
+	against the old.
+
+	* src/test_oem
+	Adapted benchmark_mult to benchmark both multiplication methods.
+
+	* src/test_utils.*
+	File that contains functions that are useful for testing, such as
+	computation of errors and generation of random data.
+
+
 2015-05-17  Jana Mendrok  <jana.mendrok@ltu.se>
 
 	* arts-2-3-201

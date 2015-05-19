@@ -283,6 +283,18 @@ add_library (matpack STATIC
 	matpackVII.cc
 	)
 
+set ( BLASDIR OFF CACHE PATH
+  "Path to the BLAS library." )
+
+if ( NOT BLASDIR )
+  find_package(BLAS)
+  if ( BLAS_FOUND )
+    list( GET BLAS_LIBRARIES 0 BLASDIR)
+  endif ( BLAS_FOUND )
+endif (NOT BLASDIR)
+
+target_link_libraries( matpack ${BLASDIR} )
+
 ########### next target ###############
 
 add_library (methods STATIC
@@ -291,6 +303,12 @@ add_library (methods STATIC
 	methods.cc
 	methods_aux.cc
 	groups.cc
+	)
+
+########### next target ###############
+
+add_library (test_utils STATIC
+        test_utils.cc
 	)
 
 ########### testcases ###############
@@ -359,7 +377,7 @@ if ( MATLABDIR AND ATMLABDIR AND CSHFOUND )
   add_definitions(-DATMLABDIR="${ATMLABDIR}")
   FIND_LIBRARY(ENGVAR libeng.so ${MATLABDIR}/R2015a/bin/glnxa64)
   FIND_LIBRARY(MXVAR libmx.so ${MATLABDIR}/R2015a/bin/glnxa64)
-  target_link_libraries (test_oem matpack ${MXVAR} ${ENGVAR})
+  target_link_libraries (test_oem matpack test_utils ${MXVAR} ${ENGVAR})
   FILE(MAKE_DIRECTORY test_oem_files)
   FILE(COPY test_oem/test_oem.m test_oem/linear_forward_model.m test_oem/make_plot.m
   test_oem/test_mult.m test_oem/test_inv.m
@@ -387,7 +405,7 @@ target_link_libraries (test_tensor matpack)
 
 add_executable (test_matpack describe.h describe.cc
                 wigner_functions.cc test_matpack.cc)
-target_link_libraries (test_matpack matpack)
+target_link_libraries (test_matpack matpack test_utils)
 
 ########### next testcase ###############
 

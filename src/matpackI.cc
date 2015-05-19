@@ -22,14 +22,16 @@
    \date   2001-09-15
 */
 
+#include "blas.h"
 #include <cstring>
 #include <cmath>
 #include "matpackI.h"
 #include "exceptions.h"
 
-using std::setw;
+using std::cout;
+using std::endl;
 using std::runtime_error;
-
+using std::setw;
 
 // Define the global joker object:
 extern const Joker joker = Joker();
@@ -1472,7 +1474,7 @@ Matrix::Matrix() :
 Matrix::Matrix(Index r, Index c) :
   MatrixView( new Numeric[r*c],
              Range(0,r,c),
-             Range(0,c))
+	     Range(0,c))
 {
   // Nothing to do here.
 }
@@ -1684,15 +1686,144 @@ void mult( VectorView y,
 }
 
 
-/** Matrix multiplication. A = B*C. Note that the order is different
-    from MTL, output comes first! Dimensions of A, B, and C must
-    match. No memory reallocation takes place, only the data is
-    copied. Using this function on overlapping MatrixViews belonging
-    to the same Matrix will lead to unpredictable results. In
-    particular, this means that A and B must not be the same matrix! */
+//! Matrix multiplication using BLAS.
+/*!
+  Performs the matrix multiplication A = B * C. The dimensions must match, i.e.
+  A must be a m times n matrix, B a m times k matrix and C a k times c matrix.
+  No memory reallocation takes place, only the data is copied. Using this function
+  on overlapping MatrixViews belonging to the same Matrix will lead to unpredictable
+  results. In particular, this means that A and B must not be the same matrix!
+
+  If the memory layout allows it, the multiplication is performed using BLAS'
+  _dgemm, which leads to a significant speed up of the operation. To be compatible
+  with BLAS the matrix views A, B and C must satisfy:
+
+  - A must have column or row stride 1
+  - B must have column or row stride 1
+  - C must have column stride 1
+
+  That means that A and B can be ConstMatrixView objects corresponding to
+  transposed/non-transposed submatrices of a matrix, that are continuous along their
+  first/second dimension. C must correspond to a non-transposed submatrix of a
+  matrix, that is continuous along its second dimension.
+
+  \param[in,out] A The matrix A, that will hold the result of the multiplication.
+  \param[in] B The matrix B
+  \param[in] C The matrix C
+*/
 void mult( MatrixView A,
-                  const ConstMatrixView& B,
-                  const ConstMatrixView& C )
+	   const ConstMatrixView& B,
+	   const ConstMatrixView& C )
+{
+
+    // Check dimensions:
+    assert( A.nrows() == B.nrows() );
+    assert( A.ncols() == C.ncols() );
+    assert( B.ncols() == C.nrows() );
+
+    // Catch trivial case if one of the matrices is empty.
+    if ( (B.nrows() == 0) || (B.ncols() == 0) || (C.ncols() == 0) )
+	return;
+
+    // Matrices B and C must be continuous in at least on dimension,  C
+    // must be continuous along the second dimension.
+    if ( ((B.mrr.get_stride() == 1) || (B.mcr.get_stride() == 1)) &&
+	 ((C.mrr.get_stride() == 1) || (C.mcr.get_stride() == 1)) &&
+	 (A.mcr.get_stride() == 1) )
+    {
+	// BLAST uses column-major order while arts uses row-major order.
+	// Hence instead of C = A * B we compute C^T = A^T * B^T!
+
+	int k, m, n;
+
+	k = (int) B.ncols();
+	m = (int) C.ncols();
+	n = (int) B.nrows();
+
+	// Note also the clash in nomenclature: BLAST uses C = A * B while
+	// arts uses A = B * C. Taking into accout this and the difference in
+	// memory layouts, we need to map the MatrixViews A, B and C to the BLAS
+	// arguments as follows:
+	// A (arts) -> C (BLAS)
+	// B (arts) -> B (BLAS)
+	// C (arts) -> A (BLAS)
+
+	// Char indicating whether A (BLAS) or B (BLAS) should be transposed.
+	char transa, transb;
+	// Sizes of the matrices along the direction in which they are
+	// traversed.
+	int lda, ldb, ldc;
+
+	// Check if C (arts) is transposed.
+	if (C.mrr.get_stride() == 1)
+	{
+	    transa = 'T';
+	    lda = (int) C.mcr.get_stride();
+	} else {
+	    transa = 'N';
+	    lda = (int) C.mrr.get_stride();
+	}
+
+        // Check if B (arts) is transposed.
+	if (B.mrr.get_stride() == 1)
+	{
+	    transb = 'T';
+	    ldb = (int) B.mcr.get_stride();
+	} else {
+	    transb = 'N';
+	    ldb = (int) B.mrr.get_stride();
+	}
+
+	// In the case B (arts) has only one column, column and row stride are 1.
+	// We therefore need to set ldb to k, since dgemm_ requires lda to be at
+	// least k / m if A is non-transposed / transposed.
+	if ( (B.mcr.get_stride() == 1) && (B.mrr.get_stride() == 1) )
+	{
+	    transb = 'N';
+	    ldb = k;
+	}
+
+	// The same holds for C (arts).
+	if ( (C.mcr.get_stride() == 1) && (C.mrr.get_stride() == 1) )
+	{
+	    transb = 'N';
+	    lda = k;
+	}
+
+	ldc = (int) A.mrr.get_stride();
+	double alpha = 1.0, beta = 0.0;
+
+	dgemm_( & transa,
+		& transb,
+		& m,
+		& n,
+		& k,
+		& alpha,
+		C.mdata + C.mrr.get_start() + C.mcr.get_start(),
+		& lda,
+		B.mdata + B.mrr.get_start() + B.mcr.get_start(),
+		& ldb,
+		& beta,
+		A.mdata + A.mrr.get_start() + A.mcr.get_start(),
+		& ldc );
+
+    } else {
+	mult_general( A, B, C );
+    }
+}
+
+//! General matrix multiplication.
+/*!
+  This is the fallback matrix multiplication which works for all
+  ConstMatrixView objects.
+
+  \param[in,out] A The matrix A, that will hold the result of the multiplication.
+  \param[in] B The matrix B
+  \param[in] C The matrix C
+*/
+void mult_general( MatrixView A,
+		   const ConstMatrixView& B,
+		   const ConstMatrixView& C )
 {
   // Check dimensions:
   assert( A.nrows() == B.nrows() );

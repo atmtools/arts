@@ -340,7 +340,7 @@ public:
   friend int poly_root_solve (Matrix& roots, Vector& coeffs);
   friend void mult (VectorView, const ConstMatrixView&,
                     const ConstVectorView&);
-  
+
   // A special constructor, that allows to make a ConstVectorView of a scalar.
   ConstVectorView(const Numeric& a);
 
@@ -648,6 +648,9 @@ public:
   friend int poly_root_solve (Matrix& roots, Vector& coeffs);
   friend void mult (VectorView, const ConstMatrixView&,
                     const ConstVectorView&);
+  friend void mult (MatrixView,
+		    const ConstMatrixView&,
+                    const ConstMatrixView&);
 
 protected:
   // Constructors:
@@ -767,6 +770,9 @@ public:
   friend class Tensor7View;
   friend ConstMatrixView transpose(ConstMatrixView m);
   friend MatrixView transpose(MatrixView m);
+  friend void mult (MatrixView,
+		    const ConstMatrixView&,
+                    const ConstMatrixView&);
 
 protected:
   // Constructors:
@@ -837,6 +843,10 @@ void mult( VectorView y,
 void mult( MatrixView A,
            const ConstMatrixView& B,
            const ConstMatrixView& C );
+
+void mult_general( MatrixView A,
+		   const ConstMatrixView& B,
+		   const ConstMatrixView& C );
 
 void cross3(VectorView c,
             const ConstVectorView& a,

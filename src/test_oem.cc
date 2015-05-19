@@ -10,13 +10,14 @@
 #include <cmath>
 #include "engine.h"
 #include <fstream>
-#include "lin_alg.h"
 #include <iostream>
 #include <iomanip>
+#include "lin_alg.h"
 #include "matrix.h"
 #include "oem.h"
 #include <stdlib.h>
 #include <string>
+#include "test_utils.h"
 #include <time.h>
 #include "unistd.h"
 
@@ -30,66 +31,6 @@ using std::string;
 
 string source_dir = SOURCEDIR;
 string atmlab_dir = ATMLABDIR;
-
-//! Fill matrix with random values.
-/*!
-
-Fills the given matrix with integer values in the range [0, range] or
-[-range, range], if positive is true.
-
-  \param[out] A The matrix to be filled.
-  \param[in] range The range of the values to fill the matrix with.
-  \param positive If true the matrix is filled with values from the interval
-                  [0,range], otherwise the values are taken from the interval
-		  [-range, range].
-*/
-void random_fill_matrix( MatrixView A,
-			 Index range = RAND_MAX,
-			 bool positive = true )
-{
-    Index m = A.nrows();
-    Index n = A.ncols();
-
-    for (Index i=0; i<m; i++)
-    {
-	for (Index j=0; j<n; j++)
-	{
-	    if (positive)
-	    {
-		A(i,j) = (Numeric) (rand() % range);
-	    } else {
-		A(i,j) = (Numeric) (rand() % (2 * range) - range);
-	    }
-	}
-    }
-}
-
-//! Fill vector with random values.
-/*!
-
-  Fills the given vector with random integer values from the range [0, range], or,
-  if positive is set to true, from the range [-range, range].
-
-  \param[out] v The vector to be filled.
-  \param[in] range The range from which the values are taken.
-  \param[in] positive If true, the values are taken from the interval [0, range],
-                      otherwise from the range [-range, range].
-*/
-void random_fill_vector( VectorView v,
-			 Index range = RAND_MAX,
-			 bool positive = true )
-{
-    Index n = v.nelem();
-    for (Index i = 0; i < n; i++)
-    {
-	if ( positive )
-	{
-	    v[i] = (Numeric) (rand() % range);
-	} else {
-	    v[i] = (Numeric) (rand() % (2 * range) - range);
-	}
-    }
-}
 
 //! Write matrix to text file.
 /*!
@@ -139,45 +80,6 @@ void write_matrix( ConstMatrixView A,
     ofs.close();
 }
 
-//! Fill matrix with the given value.
-/*!
-
-  \param[in,out] A The matrix to be filled.
-  \param[in] value The value to fill the matrix with.
-*/
-void fill_matrix( MatrixView A,
-		  Numeric value )
-{
-
-    Index m = A.nrows();
-    Index n = A.ncols();
-
-    for (Index i=0; i<m; i++)
-    {
-	for (Index j=0; j<n; j++)
-	{
-	    A( i, j ) = value;
-	}
-    }
-}
-
-//! Fill vector with the given value.
-/*!
-
-  \param[in,out] v The vector to be filled.
-  \param[in] value The value to fill the vector with.
-*/
-void fill_vector( VectorView v,
-		  Numeric value )
-{
-    Index n = v.nelem();
-
-    for ( Index i=0; i<n; i++)
-    {
-	v[i] = value;
-    }
-}
-
 //! Generate test data for linear OEM retrieval.
 /*!
   Fills the given matrices and vectors needed for the linear OEM retrieval
@@ -201,8 +103,8 @@ void generate_test_data( VectorView y,
 			 MatrixView Se,
 			 MatrixView Sa)
 {
-    random_fill_vector( y, 10 );
-    random_fill_vector( xa, 10 );
+    random_fill_vector( y, 10, false );
+    random_fill_vector( xa, 10, false );
     random_fill_matrix( K, 10, false );
 
     random_fill_matrix( Se, 10, false);
@@ -210,48 +112,6 @@ void generate_test_data( VectorView y,
 
     random_fill_matrix( Sa, 10, false);
     Sa *= 0.1;
-}
-
-//! Maximum element-wise error of two vectors.
-/*!
-  If relative is true, the maximum element-wise error is computed.
-  Otherwise the absolute error is computed.
-
-  \param[in] v1 The first vector.
-  \param[in] v2 The reference vector used to normalize the relative error.
-  \param relative If true the relative error is computed, otherwise the absolute
-                  error is computed.
-
-  \return The maximum relative or absolute element-wise error.
-*/
-Numeric max_error_vector( ConstVectorView v1,
-			  ConstVectorView v2,
-			  bool relative = true )
-{
-    Index n = min( v1.nelem(), v2.nelem() );
-    Numeric max = 0.0, err = 0.0;
-    for ( Index i = 0; i < n; i++ )
-    {
-	err = 0.0;
-
-	if (relative)
-	{
-
-	    if (v2[i] != 0.0)
-	    {
-		err = abs( v2[i] - v1[i] ) / abs( v2[i] );
-	    }
-
-	} else {
-
-	    err = abs( v2[i] - v1[i] );
-
-	}
-
-	if (err > max)
-	    max = err;
-    }
-    return err;
 }
 
 //! Run test script in matlab.
@@ -405,30 +265,38 @@ void benchmark_inv( Engine* eng,
     Index n = n0;
 
     ofstream ofs( "times_inv.txt", ofstream::out );
-    ofs << "#" << setw(4) << "n" << setw(10) << "C++";
-    ofs << setw(10) << "Matlab" << endl;
+    ofs << "#" << setw(4) << "n" << setw(10) << "BLAS";
+    ofs << setw(10) << "arts" << setw(10) << "Matlab" << endl;
 
     cout << endl << "N TIMES N MATRIX INVERSION" << endl << endl;
-    cout << setw(5) << "n" << setw(10) << "C++" << setw(10);
-    cout << "Matlab" << endl;
+    cout << setw(5) << "n" << setw(10) << "BLAS" << setw(10);
+    cout << setw(10) << "arts" << setw(10) << "Matlab" << endl;
 
     for ( Index i = 0; i < ntests; i++ )
     {
 	Matrix A(n,n), B(n,n);
 
-	random_fill_matrix( A, 100 );
+	random_fill_matrix( A, 100, false );
 	write_matrix( A, "A_t.txt");
 
-	Index t, t1, t2, t_m;
+	Index t, t1, t2, t_blas, t1_blas, t2_blas, t_m;
 
 	t1 = clock();
-	inv( B, A );
+	mult_general( B, A, A );
 	t2 = clock();
 	t = (t2 - t1) * 1000 / CLOCKS_PER_SEC;
+
+	t1_blas = clock();
+	mult( B, A, A );
+	t2_blas = clock();
+	t_blas = (t2_blas - t1_blas) * 1000 / CLOCKS_PER_SEC;
+
 	t_m = run_test_matlab( eng, "test_inv.m" );
 
-	ofs << setw(5) << n << setw(10) << t << setw(10) << t_m << endl;
-	cout << setw(5) << n << setw(10) << t << setw(10) << t_m << endl;
+	ofs << setw(5) << n << setw(10) << t_blas << setw(10);
+	ofs << t << setw(10) << t_m << endl;
+	cout << setw(5) << n << setw(10) << t_blas << setw(10);
+	cout << t << setw(10) << t_m << endl;
 
 	n += step;
     }
@@ -463,30 +331,38 @@ void benchmark_mult( Engine* eng,
     Index n = n0;
 
     ofstream ofs( "times_mult.txt", ofstream::out );
-    ofs << "#" << setw(4) << "n" << setw(10) << "Matlab";
-    ofs << setw(10) << "C++" << endl;
+    ofs << "#" << setw(4) << "n" << setw(10) << "BLAS";
+    ofs << setw(10) << "arts" << setw(10) << "Matlab" << endl;
 
     cout << endl << "N TIMES N MATRIX MULTIPLICATION" << endl << endl;
-    cout << setw(5) << "n" << setw(10) << "C++" << setw(10);
-    cout << "Matlab" << endl;
+    cout << setw(5) << "n" << setw(10) << "BLAS" << setw(10);
+    cout << setw(10) << "arts" << setw(10) << "Matlab" << endl;
 
     for ( Index i = 0; i < ntests; i++ )
     {
 	Matrix A(n,n), B(n,n);
 
-	random_fill_matrix( A, 100 );
+	random_fill_matrix( A, 100, false );
 	write_matrix( A, "A_t.txt");
 
-	Index t, t1, t2, t_m;
+	Index t, t1, t2, t_blas, t1_blas, t2_blas, t_m;
 
 	t1 = clock();
-	mult( B, A, A );
+	mult_general( B, A, A );
 	t2 = clock();
 	t = (t2 - t1) * 1000 / CLOCKS_PER_SEC;
+
+	t1_blas = clock();
+	mult( B, A, A );
+	t2_blas = clock();
+	t_blas = (t2_blas - t1_blas) * 1000 / CLOCKS_PER_SEC;
+
 	t_m = run_test_matlab( eng, "test_mult.m" );
 
-	ofs << setw(5) << n << setw(10) << t << setw(10) << t_m << endl;
-	cout << setw(5) << n << setw(10) << t << setw(10) << t_m << endl;
+	ofs << setw(5) << n << setw(10) << t_blas << setw(10) << t << setw(10);
+	ofs << t_m << endl;
+	cout << setw(5) << n << setw(10) << t_blas << setw(10) << t << setw(10);
+	cout << t_m << endl;
 
 	n += step;
     }
@@ -552,7 +428,7 @@ void benchmark_linear_oem( Engine* eng,
 
 	ofs << setw(5) << n << setw(10) << t << setw(10) << t_m << endl;
 	cout << setw(5) << n << setw(10) << t << setw(10) << t_m;
-	cout << setw(20) << max_error_vector( x, x_m ) << endl;
+	cout << setw(20) << max_error( x, x_m, true ) << endl;
 
 	n += step;
     }
@@ -597,7 +473,7 @@ void test_linear_oem( Engine* eng,
 	write_vector( x, "x_t.txt" );
 
 	run_oem_matlab( x_m, eng );
-	cout << max_error_vector( x, x_m ) << endl;
+	cout << max_error( x, x_m, true ) << endl;
     }
 }
 
@@ -609,9 +485,9 @@ int main()
     setup_test_environment( eng );
 
     // Run tests and benchmarks.
-    benchmark_inv( eng, 100, 1000, 10);
-    benchmark_mult( eng, 100, 1000, 10);
-    benchmark_linear_oem( eng, 100, 1000, 10);
+    // benchmark_inv( eng, 100, 1000, 10);
+    benchmark_mult( eng, 100, 500, 10);
+    // benchmark_linear_oem( eng, 100, 1000, 10);
 
     // Tidy up test environment.
     tidy_up_test_environment( eng );

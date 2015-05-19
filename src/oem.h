@@ -20,4 +20,4 @@ void linear_oem( VectorView x,
 		 ConstMatrixView Sa,
                  bool mform);
 
-#endif
+#endif // oem_h
