@@ -7433,10 +7433,15 @@ void define_md_data_raw()
          "size is specified by the user. The perturbation unit can be \"abs\",\n"
          "\"rel\" and \"logrel\" (the latter two not allowed if category is\n"
          "temperature), where \"logrel\" performs a perturbation in\n"
-         "logarithmic space (base 10). Units of absolute perturbations are\n"
-         "identical to units of the field (i.e., VMR for *vmr_field*, kg/m3\n"
-         "for mass densities, kg/s/m2 for mass fluxes, 1/m3 for number\n"
-         "densities etc.).\n"
+         "logarithmic space (retrieval quantity is ln(x/xref), i.e. the\n"
+         "logarithm of the relative parameter, but \"logrel\" can as well be\n"
+         "used for ln(x) retrievals as perturbations as well as jacobians will\n"
+         "have essentially identical values for equal perturbation values dx.\n"
+         "\n"
+         "Units of absolute perturbations are identical to units of the field\n"
+         "(i.e., VMR for *vmr_field*, kg/m3 for mass densities, kg/s/m2 for\n"
+         "mass fluxes, 1/m3 for number densities etc.). \"rel\" and\n"
+         "\"logrel\" perturbations are unitless.\n"
          ),
         AUTHORS( "Jana Mendrok" ),
         OUT( "jacobian_quantities" ),

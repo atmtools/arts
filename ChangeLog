@@ -1,5 +1,13 @@
 2015-05-17  Jana Mendrok  <jana.mendrok@ltu.se>
 
+	* arts-2-3-201
+
+	* src/m_jacobian.cc, methods.cc:
+	Changed DoitJacobian "logrel" option to use natural logarithm.
+	Documentation adapted accordingly.
+
+2015-05-17  Jana Mendrok  <jana.mendrok@ltu.se>
+
 	* arts-2-3-200
 
 	* src/m_jacobian.cc (jacobianDoit):

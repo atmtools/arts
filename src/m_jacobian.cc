@@ -2520,7 +2520,7 @@ void jacobianDoit(//WS Output:
               else if ( jq.Mode() == "rel" )
                 vmr_field(si,il,joker,joker) *= (1.+jq.Perturbation());
               else if ( jq.Mode() == "logrel" )
-                vmr_field(si,il,joker,joker) *= pow(10.,jq.Perturbation());
+                vmr_field(si,il,joker,joker) *= exp(jq.Perturbation());
               else
                 // we shouldn't end up here. if we do, checks for allowed
                 // retrieval modes above are incomplete.
@@ -2543,7 +2543,7 @@ void jacobianDoit(//WS Output:
                   else if ( jq.Mode() == "logrel" )
                     {
                       scat_species_mass_density_field(si,il,joker,joker)
-                        *= pow(10.,jq.Perturbation());
+                        *= exp(jq.Perturbation());
                     }
                   else
                     // we shouldn't end up here. if we do, checks for allowed
@@ -2565,7 +2565,7 @@ void jacobianDoit(//WS Output:
                   else if ( jq.Mode() == "logrel" )
                     {
                       scat_species_mass_flux_field(si,il,joker,joker)
-                        *= pow(10.,jq.Perturbation());
+                        *= exp(jq.Perturbation());
                     }
                   else
                     // we shouldn't end up here. if we do, checks for allowed
@@ -2587,7 +2587,7 @@ void jacobianDoit(//WS Output:
                   else if ( jq.Mode() == "logrel" )
                     {
                       scat_species_number_density_field(si,il,joker,joker)
-                        *= pow(10.,jq.Perturbation());
+                        *= exp(jq.Perturbation());
                     }
                   else
                     // we shouldn't end up here. if we do, checks for allowed
