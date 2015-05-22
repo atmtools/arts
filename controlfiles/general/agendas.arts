@@ -289,7 +289,7 @@ AgendaSet( abs_xsec_agenda__withCIA ){
 
 
 ###
-# With CIA and sufficient temperture extrapolation
+# With CIA and sufficient temperature extrapolation
 #
 AgendaCreate( abs_xsec_agenda__withCIAextraT )
 AgendaSet( abs_xsec_agenda__withCIAextraT ){

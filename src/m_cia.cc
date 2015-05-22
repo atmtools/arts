@@ -202,11 +202,11 @@ void abs_xsec_per_speciesAddCIA(// WS Output:
 /* Workspace method: Doxygen documentation will be auto-generated */
 void CIARecordReadFromFile(// WS GOutput:
                            CIARecord& cia_record,
-                           // WS Input
-                           const Verbosity& verbosity,
-                           // WS GInput:
+                           // WS Generic Input:
                            const String& species_tag,
-                           const String& filepath)
+                           const String& filename,
+                           // Verbosity object:
+                           const Verbosity& verbosity)
 {
     SpeciesTag species(species_tag);
     
@@ -219,7 +219,7 @@ void CIARecordReadFromFile(// WS GOutput:
     }
     
     cia_record.SetSpecies(species.Species(),species.CIASecond());
-    cia_record.ReadFromCIA(filepath, verbosity);
+    cia_record.ReadFromCIA(filename, verbosity);
 }
 
 

@@ -1,3 +1,12 @@
+2015-05-2  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-3-203
+
+	* src/m_jacobian.cc, methods.cc:
+	Abandoned "logrel" perturbation option (back to "abs" and "rel" only as
+	"rel" is very similar to "log" and "logrel" regarding the perturbation
+	part).
+
 2015-05-19 Simon Pfreundschuh <simonpf@student.chalmers.se>
 	* arts-2-3-202
 
@@ -1562,7 +1571,7 @@
 	amsub_metmm.arts odinsmr_501.arts odinsmr_501_1D.arts
 	odinsmr_544.arts): Affected control files.
 
-	* doc/uguide: Updated email addres for Stefan in start pages of
+	* doc/uguide: Updated email address for Stefan in start pages of
 	the docs. Updated copyright years. Fixed references to renamed WSV
 	and WSM. Mainly the ones listed below, but also some on the
 	scattering side.

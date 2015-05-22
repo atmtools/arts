@@ -2068,7 +2068,6 @@ void sensor_responseMixer(
          << "frequency grid. It must be within the *sensor_response_f_grid*.\n";
       error_found = true;
     }
-  cout << "c\n";
 
   // Checks of sideband_response, partly in combination with lo
   if( sbresponse_f_grid.nelem() != sideband_response.data.nelem() )

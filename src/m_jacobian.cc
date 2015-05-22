@@ -2183,15 +2183,14 @@ void jacobianDoit(//WS Output:
 {
 /*
   // FIXME:
-   2)- consistency of clearsky and cloudy jacobian setups: settinng of
-   jacobian_indices! use of jacobianOff, jacobianInit, jacobianClose.
+   1)- consistency of clearsky and cloudy jacobian setups: setting of
+       jacobian_indices! use of jacobianOff, jacobianInit, jacobianClose.
      - test (and adapt if necessary) for no-inARTS calculated pnd_fields
-   1)- built-in documentation!
      - extend output: y_aux(?)
      - add some diagnostics: is input doit_i_field (and corresponding y0_1st)
      suffiently converged? check whether |y0_1st-y0_niter| << |ypert_niter-y0_niter|
      - check & disallow perturbations on scat_speciesXXfield that are not used
-   3)- allow (a) smaller perturbation range in p
+   2)- allow (a) smaller perturbation range in p
              (b) extend allowed perturbation range to outside cloudbox
              (c) arbitrary (in-cloudbox) p-levels
      - allow clearsky and cloudy jacobians in parallel
@@ -2519,8 +2518,8 @@ void jacobianDoit(//WS Output:
                 vmr_field(si,il,joker,joker) += jq.Perturbation();
               else if ( jq.Mode() == "rel" )
                 vmr_field(si,il,joker,joker) *= (1.+jq.Perturbation());
-              else if ( jq.Mode() == "logrel" )
-                vmr_field(si,il,joker,joker) *= exp(jq.Perturbation());
+//              else if ( jq.Mode() == "logrel" )
+//                vmr_field(si,il,joker,joker) *= exp(jq.Perturbation());
               else
                 // we shouldn't end up here. if we do, checks for allowed
                 // retrieval modes above are incomplete.
@@ -2540,11 +2539,11 @@ void jacobianDoit(//WS Output:
                       scat_species_mass_density_field(si,il,joker,joker)
                         *= (1.+jq.Perturbation());
                     }
-                  else if ( jq.Mode() == "logrel" )
-                    {
-                      scat_species_mass_density_field(si,il,joker,joker)
-                        *= exp(jq.Perturbation());
-                    }
+//                  else if ( jq.Mode() == "logrel" )
+//                    {
+//                      scat_species_mass_density_field(si,il,joker,joker)
+//                        *= exp(jq.Perturbation());
+//                    }
                   else
                     // we shouldn't end up here. if we do, checks for allowed
                     // retrieval modes above are incomplete.
@@ -2562,11 +2561,11 @@ void jacobianDoit(//WS Output:
                       scat_species_mass_flux_field(si,il,joker,joker)
                         *= (1.+jq.Perturbation());
                     }
-                  else if ( jq.Mode() == "logrel" )
-                    {
-                      scat_species_mass_flux_field(si,il,joker,joker)
-                        *= exp(jq.Perturbation());
-                    }
+//                  else if ( jq.Mode() == "logrel" )
+//                    {
+//                      scat_species_mass_flux_field(si,il,joker,joker)
+//                        *= exp(jq.Perturbation());
+//                    }
                   else
                     // we shouldn't end up here. if we do, checks for allowed
                     // retrieval modes above are incomplete.
@@ -2584,11 +2583,11 @@ void jacobianDoit(//WS Output:
                       scat_species_number_density_field(si,il,joker,joker)
                         *= (1.+jq.Perturbation());
                     }
-                  else if ( jq.Mode() == "logrel" )
-                    {
-                      scat_species_number_density_field(si,il,joker,joker)
-                        *= exp(jq.Perturbation());
-                    }
+//                  else if ( jq.Mode() == "logrel" )
+//                    {
+//                      scat_species_number_density_field(si,il,joker,joker)
+//                        *= exp(jq.Perturbation());
+//                    }
                   else
                     // we shouldn't end up here. if we do, checks for allowed
                     // retrieval modes above are incomplete.
@@ -2683,10 +2682,6 @@ void jacobianDoit(//WS Output:
               }
 
             Vector dydx(y.nelem());
-            // FIXME: what about this if perturbation mode is rel or logrel? how
-            // done in clearsky perturbation jacobians (seems to be the exact
-            // setting as here)? branch here?
-            // CONFIRM with Patrick et al.
             for( Index i=0; i<y.nelem(); i++ )
               {
                 dydx[i] = (y[i]-y0[i]) / jq.Perturbation();
@@ -2849,11 +2844,13 @@ void jacobianDoitAddSpecies(//WS Output:
               throw runtime_error(os.str());
             }
 
-          if( mode != "abs" && mode != "rel" && mode !="logrel" )
+//          if( mode != "abs" && mode != "rel" && mode !="logrel" )
+          if( mode != "abs" && mode != "rel" )
             {
               ostringstream os;
-              os << mode << " is not a valid perturbation mode. Only 'abs', "
-                 << " 'rel' and 'logrel' allowed.";
+              os << mode << " is not a valid perturbation mode. "
+//                 << "Only 'abs', 'rel' and 'logrel' allowed.";
+                 << "Only 'abs' and 'rel' allowed.";
               throw runtime_error(os.str());
             }
 
@@ -2913,11 +2910,13 @@ void jacobianDoitAddSpecies(//WS Output:
               throw runtime_error(os.str());
             }
 
-          if( mode != "abs" && mode != "rel" && mode !="logrel" )
+//          if( mode != "abs" && mode != "rel" && mode !="logrel" )
+          if( mode != "abs" && mode != "rel" )
             {
               ostringstream os;
-              os << mode << " is not a valid perturbation mode. Only 'abs', "
-                 << " 'rel' and 'logrel' allowed.";
+              os << mode << " is not a valid perturbation mode. "
+//                 << "Only 'abs', 'rel' and 'logrel' allowed.";
+                 << "Only 'abs' and 'rel' allowed.";
               throw runtime_error(os.str());
             }
 

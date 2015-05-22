@@ -362,7 +362,7 @@ void define_md_data_raw()
          "\n"
          "forefactor:\n"
          "   no_norm:                  1\n"
-         "   Rosenkranz_quadratic:     (f/f0)^2*h*f/(2k*T)/sinh(h*f/(2k*T))\n"
+         "   Rosenkranz_quadratic:     (f/f0)^2 * h*f/(2k*T)/sinh(h*f/(2k*T))\n"
          "   VVH:                      (f*tanh(h*f/(2k*T))) / (f0*tanh(h*f0/(2k*T)))\n"
          "\n"
          "cutoff:\n"
@@ -841,7 +841,7 @@ void define_md_data_raw()
                   "Minimum frequency for lines to read [Hz].",
                   "Maximum frequency for lines to read [Hz]." )
         ));
-    
+
     md_data_raw.push_back
     ( MdRecord
     ( NAME( "abs_lines_per_speciesRelativeLineStrengthShift" ),
@@ -2986,25 +2986,26 @@ void define_md_data_raw()
                   "Array of CIA tags to view, e.g. [ \"N2-N2\", \"H2-H2\" ]" )
         ));
 
-    md_data_raw.push_back
+  md_data_raw.push_back
     ( MdRecord
-    ( NAME( "CIARecordReadFromFile" ),
-      DESCRIPTION
-      (
-          "Reads CIARecord from Hitran-style file.\n"
-      ),
-      AUTHORS( "Richard Larsson" ),
-      OUT(),
-      GOUT("cia_record"),
-      GOUT_TYPE("CIARecord"),
-      GOUT_DESC("CIARecord type variable for input and output."),
-      IN("verbosity"),
-      GIN( "species_tag", "filepath" ),
-      GIN_TYPE( "String", "String" ),
-      GIN_DEFAULT( NODEF, NODEF ),
-      GIN_DESC( "SpeciesTag string for CIA species.  See *abs_speciesSet* for correct format.",
-                "Path to the CIA catalog directory.")
-    ));
+      ( NAME( "CIARecordReadFromFile" ),
+        DESCRIPTION
+        (
+         "Reads CIARecord from Hitran-style file.\n"
+         ),
+        AUTHORS( "Richard Larsson" ),
+        OUT(),
+        GOUT( "cia_record" ),
+        GOUT_TYPE( "CIARecord" ),
+        GOUT_DESC( "CIARecord type variable for input and output." ),
+        IN(),
+        GIN( "species_tag", "filename" ),
+        GIN_TYPE( "String", "String" ),
+        GIN_DEFAULT( NODEF, NODEF ),
+        GIN_DESC( "SpeciesTag string to associate with this CIARecord. See "
+                  "*abs_speciesSet* for correct format.",
+                  "Filename of HITRAN CIA data file.")
+        ));
     
   md_data_raw.push_back
     ( MdRecord
@@ -7430,18 +7431,15 @@ void define_md_data_raw()
          "  parametrization of the respective scattering species.\n"
          "\n"
          "Only pure numerical perturbations are available. The perturbation\n"
-         "size is specified by the user. The perturbation unit can be \"abs\",\n"
-         "\"rel\" and \"logrel\" (the latter two not allowed if category is\n"
-         "temperature), where \"logrel\" performs a perturbation in\n"
-         "logarithmic space (retrieval quantity is ln(x/xref), i.e. the\n"
-         "logarithm of the relative parameter, but \"logrel\" can as well be\n"
-         "used for ln(x) retrievals as perturbations as well as jacobians will\n"
-         "have essentially identical values for equal perturbation values dx.\n"
+         "size is specified by the user. The perturbation unit can be \"abs\"\n"
+         "or \"rel\" (the latter one not allowed if category is temperature).\n"
+         "Note that \"rel\" perturbations can also be used for log scale\n"
+         "retrievals.\n"
          "\n"
          "Units of absolute perturbations are identical to units of the field\n"
          "(i.e., VMR for *vmr_field*, kg/m3 for mass densities, kg/s/m2 for\n"
-         "mass fluxes, 1/m3 for number densities etc.). \"rel\" and\n"
-         "\"logrel\" perturbations are unitless.\n"
+         "mass fluxes, 1/m3 for number densities etc.), \"rel\" perturbations\n"
+         "are unitless.\n"
          ),
         AUTHORS( "Jana Mendrok" ),
         OUT( "jacobian_quantities" ),
