@@ -1484,9 +1484,13 @@ void define_md_data_raw()
          "Example\n"
          "\n"
          "species = [ \"N2-CIA-N2-0, N2-CIA-N2-1\" ]\n"
+         "\n"
+         "*abs_xsec_agenda_checked* and *propmat_clearsky_agenda_checked*\n"
+         "are set to be false.\n"
          ),
         AUTHORS( "Stefan Buehler" ),
-        OUT( "abs_species", "abs_xsec_agenda_checked", "propmat_clearsky_agenda_checked" ),
+        OUT( "abs_species", "abs_xsec_agenda_checked", 
+             "propmat_clearsky_agenda_checked" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
@@ -6625,8 +6629,6 @@ void define_md_data_raw()
          "   \"vmr\"    : Volume mixing ratio.\n"
          "   \"nd\"     : Number density.\n"
          "   \"rel\"    : Relative unit (e.g. 1.1 means 10% more of the gas).\n"
-         "   \"logrel\" : The retrieval is performed with the logarithm of\n"
-         "                the \"rel\" option.\n"
          "\n"
          "For perturbation calculations the size of the perturbation is set\n"
          "by the user. The unit for the perturbation is the same as for the\n"

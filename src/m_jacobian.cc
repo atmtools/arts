@@ -241,11 +241,11 @@ void jacobianAddAbsSpecies(
       throw runtime_error(os.str());
     }
   
-  // Check that mode is either "vmr", "nd" or "rel" with or without prefix log
-  if( mode != "vmr" && mode != "nd" && mode != "rel" && mode != "logrel" )
+  // Check that mode is either "vmr", "nd" or "rel" 
+  if( mode != "vmr" && mode != "nd" && mode != "rel" )
     {
       throw runtime_error( "The retrieval mode can only be \"vmr\", \"nd\" "
-                                                    "\"rel\" or \"logrel\"." );
+                                                               "or \"rel\"." );
     }
 
   // If nd, check that not temmperature is retrieved
@@ -2518,8 +2518,6 @@ void jacobianDoit(//WS Output:
                 vmr_field(si,il,joker,joker) += jq.Perturbation();
               else if ( jq.Mode() == "rel" )
                 vmr_field(si,il,joker,joker) *= (1.+jq.Perturbation());
-//              else if ( jq.Mode() == "logrel" )
-//                vmr_field(si,il,joker,joker) *= exp(jq.Perturbation());
               else
                 // we shouldn't end up here. if we do, checks for allowed
                 // retrieval modes above are incomplete.
@@ -2539,11 +2537,6 @@ void jacobianDoit(//WS Output:
                       scat_species_mass_density_field(si,il,joker,joker)
                         *= (1.+jq.Perturbation());
                     }
-//                  else if ( jq.Mode() == "logrel" )
-//                    {
-//                      scat_species_mass_density_field(si,il,joker,joker)
-//                        *= exp(jq.Perturbation());
-//                    }
                   else
                     // we shouldn't end up here. if we do, checks for allowed
                     // retrieval modes above are incomplete.
@@ -2561,11 +2554,6 @@ void jacobianDoit(//WS Output:
                       scat_species_mass_flux_field(si,il,joker,joker)
                         *= (1.+jq.Perturbation());
                     }
-//                  else if ( jq.Mode() == "logrel" )
-//                    {
-//                      scat_species_mass_flux_field(si,il,joker,joker)
-//                        *= exp(jq.Perturbation());
-//                    }
                   else
                     // we shouldn't end up here. if we do, checks for allowed
                     // retrieval modes above are incomplete.
@@ -2583,11 +2571,6 @@ void jacobianDoit(//WS Output:
                       scat_species_number_density_field(si,il,joker,joker)
                         *= (1.+jq.Perturbation());
                     }
-//                  else if ( jq.Mode() == "logrel" )
-//                    {
-//                      scat_species_number_density_field(si,il,joker,joker)
-//                        *= exp(jq.Perturbation());
-//                    }
                   else
                     // we shouldn't end up here. if we do, checks for allowed
                     // retrieval modes above are incomplete.
@@ -2844,12 +2827,10 @@ void jacobianDoitAddSpecies(//WS Output:
               throw runtime_error(os.str());
             }
 
-//          if( mode != "abs" && mode != "rel" && mode !="logrel" )
           if( mode != "abs" && mode != "rel" )
             {
               ostringstream os;
               os << mode << " is not a valid perturbation mode. "
-//                 << "Only 'abs', 'rel' and 'logrel' allowed.";
                  << "Only 'abs' and 'rel' allowed.";
               throw runtime_error(os.str());
             }
@@ -2910,12 +2891,10 @@ void jacobianDoitAddSpecies(//WS Output:
               throw runtime_error(os.str());
             }
 
-//          if( mode != "abs" && mode != "rel" && mode !="logrel" )
           if( mode != "abs" && mode != "rel" )
             {
               ostringstream os;
               os << mode << " is not a valid perturbation mode. "
-//                 << "Only 'abs', 'rel' and 'logrel' allowed.";
                  << "Only 'abs' and 'rel' allowed.";
               throw runtime_error(os.str());
             }
