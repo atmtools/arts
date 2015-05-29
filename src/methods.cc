@@ -1677,7 +1677,32 @@ void define_md_data_raw()
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-        ));
+      ));
+    
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "abs_xsec_per_speciesInitWithSource" ),
+      DESCRIPTION
+      (
+          "Initialize *abs_xsec_per_species* and *src_xsec_per_species*.\n"
+          "\n"
+          "The initialization is\n"
+          "necessary, because methods *abs_xsec_per_speciesAddLines*\n"
+          "and *abs_xsec_per_speciesAddConts* just add to *abs_xsec_per_species*.\n"
+          "The size is determined from *abs_species*.\n"
+      ),
+      AUTHORS( "Stefan Buehler" ),
+      OUT( "abs_xsec_per_species", "src_xsec_per_species" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "abs_species", "abs_species_active", "f_grid", "abs_p",
+          "abs_xsec_agenda_checked" ),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()
+    ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -9558,6 +9583,32 @@ void define_md_data_raw()
         GIN_DEFAULT(),
         GIN_DESC()
         ));
+    
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "propmat_clearskyInitWithSource" ),
+      DESCRIPTION
+      (
+          "Initialize *propmat_clearsky* and *propmat_source_clearsky*.\n"
+          "\n"
+          "This method must be used inside *propmat_clearsky_agenda* and then\n"
+          "be called first.\n"
+      ),
+      AUTHORS( "Oliver Lemke, Richard Larsson" ),
+      OUT( "propmat_clearsky", "propmat_source_clearsky" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "abs_species",
+          "f_grid",
+          "stokes_dim",
+          "propmat_clearsky_agenda_checked"
+      ),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()
+    ));
     
   md_data_raw.push_back
     ( MdRecord

@@ -1,5 +1,35 @@
 2015-05-29  Richard Larsson  <ric.larsson@gmail.com>
 
+	* arts-2-3-206
+	
+	Fix some bugs in the previous commit.  Added initialization schemes for 
+	propmat_clearsky and abs_xsec_per_species that makes propmat_source_clearsky 
+	and src_xsec_per_species same as their older counterparts.
+	
+	When changeing agendas.cc to initialize with the new initilization schemes 
+	(since they should not change the older parts), then these errors remain:
+	
+	35 - arts.ctlfile.fast.artscomponents.montecarlo.TestMonteCarloDataPrepare (OTHER_FAULT)
+	39 - arts.ctlfile.fast.instruments.amsu.TestAMSUB_fast (OTHER_FAULT)
+	40 - arts.ctlfile.fast.instruments.ici.TestICI_fast (OTHER_FAULT)
+	41 - arts.ctlfile.fast.instruments.mhs.TestMHS_fast (OTHER_FAULT)
+	
+	I tried fixing the montecarlo error but the program exits with "everything is fine",
+	even though it reportedly fails.  Same thing for the AMSUB testcase.
+	So I am confused by these errors and gave up.
+	
+	* src/absorption.cc:  Actually sends NLTE ratios into xsec_single_line now.
+	
+	* src/m_abs.cc:  Fix some error handling.
+	
+	* src/methods.cc:  The new methods are called propmat_clearskyInitWithSource and
+	abs_xsec_per_speciesInitWithSource.
+	
+	* src/montecarl.cc:  Left minimal formatting improvements around after giving 
+	up on the real problem.
+
+2015-05-29  Richard Larsson  <ric.larsson@gmail.com>
+
 	* arts-2-3-205
 	
 	This update adds the source function propagation matrix as output.  

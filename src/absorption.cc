@@ -907,7 +907,10 @@ firstprivate(ls_attenuation, ls_phase, fac, f_local, aux)
                                          f_grid,
                                          l_l.F(),
                                          l_l.I0(),
-                                         partition_ratio,boltzmann_ratio,0,0,
+                                         partition_ratio,
+                                         boltzmann_ratio,
+                                         abs_nlte_ratio,
+                                         src_nlte_ratio,
                                          l_l.IsotopologueData().Mass(),
                                          t_i,
                                          gamma,
@@ -941,6 +944,10 @@ firstprivate(ls_attenuation, ls_phase, fac, f_local, aux)
                 for (Index j=0; j<xsec_accum_attenuation.nrows(); ++j)
                 {
                     xsec_i_attenuation += xsec_accum_attenuation(j, Range(joker));
+                    if(calc_src)
+                        {
+                            xsec_i_source += xsec_accum_source(j, Range(joker));
+                        }
                 }
                 
                 if (calc_phase)
@@ -1774,7 +1781,9 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                                     abs_lines[ii].F()+(precalc_zeeman?Z_DF[ii]:0), // Since vector is 0-length if no Zeeman pre-calculations
                                     abs_lines[ii].I0(), 
                                     partition_ratio, 
-                                    boltzmann_ratio,0,0,
+                                    boltzmann_ratio,
+                                    abs_nlte_ratio,
+                                    src_nlte_ratio,
                                     abs_lines[ii].IsotopologueData().Mass(),
                                     t,
                                     gamma,
@@ -1811,8 +1820,10 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                                     f_grid, 
                                     abs_lines[ii].F()+(precalc_zeeman?Z_DF[ii]:0), // Since vector is 0-length if no Zeeman pre-calculations 
                                     abs_lines[ii].I0(), 
-                                    partition_ratio, 
-                                    boltzmann_ratio,0,0,
+                                    partition_ratio,
+                                    boltzmann_ratio,
+                                    abs_nlte_ratio,
+                                    src_nlte_ratio,
                                     abs_lines[ii].IsotopologueData().Mass(),
                                     t,
                                     gamma,
