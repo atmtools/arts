@@ -1,5 +1,19 @@
 2015-05-29  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-3-208
+
+	* controlfiles/general/agendas.arts:
+
+	Replaced by richard's new version that caused crashes. See fix below.
+
+	* src/m_abs_lookup.cc (abs_lookupCalc):
+
+	Define src_xsec_per_species as private in OpenMP loop. Otherwise random
+	crashes appear because the same variable is resized by different
+	threads at the same time.
+
+2015-05-29  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-3-207
 	
 	* src/absorption.cc (xsec_single_line, xsec_species_linemixing_wrapper):

@@ -397,10 +397,10 @@ void abs_lookupCalc(// Workspace reference:
           // function. Anyway, shared is the correct setting for
           // abs_lookup, so there is no problem.
 
-#pragma omp parallel for                                   \
-  if (!arts_omp_in_parallel()                               \
-      && these_t_pert_nelem >= arts_omp_get_max_threads())  \
-  private(this_t, abs_xsec_per_species)                    \
+#pragma omp parallel for                                      \
+  if (!arts_omp_in_parallel()                                 \
+      && these_t_pert_nelem >= arts_omp_get_max_threads())    \
+  private(this_t, abs_xsec_per_species, src_xsec_per_species) \
   firstprivate(l_ws, l_abs_xsec_agenda)
           for ( Index j=0; j<these_t_pert_nelem; ++j )
             {
