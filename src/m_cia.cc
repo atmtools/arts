@@ -41,6 +41,7 @@ extern const Numeric SPEED_OF_LIGHT;
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_xsec_per_speciesAddCIA(// WS Output:
                                 ArrayOfMatrix& abs_xsec_per_species,
+                                ArrayOfMatrix& src_xsec_per_species,
                                 // WS Input:
                                 const ArrayOfArrayOfSpeciesTag& abs_species,
                                 const ArrayOfIndex& abs_species_active,
@@ -128,6 +129,7 @@ void abs_xsec_per_speciesAddCIA(// WS Output:
 
             const CIARecord& this_cia = abs_cia_data[this_cia_index];
             Matrix&          this_xsec = abs_xsec_per_species[i];
+            Matrix&      this_src_xsec = src_xsec_per_species[i];
 
             if (out2.sufficient_priority())
               {
@@ -193,6 +195,8 @@ void abs_xsec_per_speciesAddCIA(// WS Output:
                 
                 // Add to result variable:
                 this_xsec(joker,ip) += xsec_temp;
+                if( this_src_xsec.ncols()!=0 && this_src_xsec.nrows()!=0 )
+                  this_src_xsec(joker,ip) += xsec_temp;
               }
             
           }

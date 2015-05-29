@@ -25,8 +25,6 @@ USA. */
 
 #include "linerecord_partitionfunctiondata.h"
 #include <cmath>
-#include "interpolation.h"
-#include "interpolation_poly.h"
 #include "check_input.h"
 
 
@@ -37,30 +35,13 @@ USA. */
 
 Index PartitionFunctionData::GetPartitionFunctionDataParams(Numeric& part, 
                                                             const Numeric& line_t0, 
-                                                            const Numeric& atm_t,
-                                                            const Numeric& atm_p,
-                                                            const Numeric& E_low,
-                                                            const Numeric& E_up) const
+                                                            const Numeric& atm_t) const
 {
-    extern const Numeric BOLTZMAN_CONST;
-    
     if(mtype == PF_NONE) // The standard case
         return 1;
     else if(mtype == PF_Coeff) // The Coefficient case
     {
         GetCoeff(part, line_t0, atm_t);
-        // Boltzmann factors
-        const Numeric nom = exp(- E_low / ( BOLTZMAN_CONST * atm_t ) ) -
-        exp(- E_up / ( BOLTZMAN_CONST * atm_t ) );
-        
-        const Numeric denom = exp(- E_low / ( BOLTZMAN_CONST * line_t0 ) ) -
-        exp(- E_up / ( BOLTZMAN_CONST * line_t0 ) );
-        part *= nom/denom;
-    }
-    else if(mtype == PF_Tv) // The Vibrational temperature case
-    {
-        GetTv(part, line_t0, atm_t, atm_p, E_low, E_up);
-        return 2;
     }
     else
         throw std::runtime_error("You are trying to store a partition function type that is unknown to ARTS.\n");
@@ -91,49 +72,49 @@ void PartitionFunctionData::GetCoeff(Numeric& part, const Numeric& line_t0, cons
 
 
 //Similar to old partition functionality.
-void PartitionFunctionData::GetTv(Numeric& part, const Numeric& line_t0, const Numeric& atm_t, const Numeric& atm_p, const Numeric& E_low, const Numeric& E_up) const
-{    
-    extern const Numeric BOLTZMAN_CONST;
-    
-    const Numeric& Ev_low      = mdata[0][0];
-    const Numeric& Ev_up       = mdata[0][1];
-    const Vector&  p_grid      = mdata[1];
-    const Vector&  tv_low_grid = mdata[2];
-    const Vector&  tv_up_grid  = mdata[3];
-    
-    const Vector P0(1,atm_p);
-    Vector tmp1(1),tmp2(1);
-    
-    // Interpolation variables
-    ArrayOfGridPosPoly gp(1);
-    
-    Matrix itw;
-    itw.resize(gp.nelem(),2);
-    chk_interpolation_grids("Partition function NLTE pressure interpolation",
-                            p_grid,
-                            P0,
-                            1);
-    
-    // Interpolation variale determination
-    gridpos_poly(gp, p_grid, P0, 1);
-    interpweights(itw, gp);
-    
-    // Interpolated values
-    interp(tmp1, itw, tv_low_grid, gp);
-    interp(tmp2, itw, tv_up_grid, gp);
-    
-    // Set temperatures but if the temperature is negative this is a flag for setting temperature to atmospheric temperature
-    const Numeric& Tv_low = tmp1[0]<0?atm_t:tmp1[0];
-    const Numeric& Tv_up  = tmp2[0]<0?atm_t:tmp2[0];
-    
-    const Numeric denom = exp(- E_low / ( BOLTZMAN_CONST * line_t0 ) ) -
-    exp(- E_up / ( BOLTZMAN_CONST * line_t0 ) );
-    
-    const Numeric nom = exp(-Ev_low / ( BOLTZMAN_CONST * Tv_low ) ) * exp(- (E_low-Ev_low) / ( BOLTZMAN_CONST * atm_t ) ) -
-    exp(-Ev_up / ( BOLTZMAN_CONST * Tv_up ) ) * exp(- (E_up-Ev_up) / ( BOLTZMAN_CONST * atm_t ) );
-    
-    part = nom/denom;
-}
+// void PartitionFunctionData::GetTv(Numeric& part, const Numeric& line_t0, const Numeric& atm_t, const Numeric& atm_p, const Numeric& E_low, const Numeric& E_up) const
+// {    
+//     extern const Numeric BOLTZMAN_CONST;
+//     
+//     const Numeric& Ev_low      = mdata[0][0];
+//     const Numeric& Ev_up       = mdata[0][1];
+//     const Vector&  p_grid      = mdata[1];
+//     const Vector&  tv_low_grid = mdata[2];
+//     const Vector&  tv_up_grid  = mdata[3];
+//     
+//     const Vector P0(1,atm_p);
+//     Vector tmp1(1),tmp2(1);
+//     
+//     // Interpolation variables
+//     ArrayOfGridPosPoly gp(1);
+//     
+//     Matrix itw;
+//     itw.resize(gp.nelem(),2);
+//     chk_interpolation_grids("Partition function NLTE pressure interpolation",
+//                             p_grid,
+//                             P0,
+//                             1);
+//     
+//     // Interpolation variale determination
+//     gridpos_poly(gp, p_grid, P0, 1);
+//     interpweights(itw, gp);
+//     
+//     // Interpolated values
+//     interp(tmp1, itw, tv_low_grid, gp);
+//     interp(tmp2, itw, tv_up_grid, gp);
+//     
+//     // Set temperatures but if the temperature is negative this is a flag for setting temperature to atmospheric temperature
+//     const Numeric& Tv_low = tmp1[0]<0?atm_t:tmp1[0];
+//     const Numeric& Tv_up  = tmp2[0]<0?atm_t:tmp2[0];
+//     
+//     const Numeric denom = exp(- E_low / ( BOLTZMAN_CONST * line_t0 ) ) -
+//     exp(- E_up / ( BOLTZMAN_CONST * line_t0 ) );
+//     
+//     const Numeric nom = exp(-Ev_low / ( BOLTZMAN_CONST * Tv_low ) ) * exp(- (E_low-Ev_low) / ( BOLTZMAN_CONST * atm_t ) ) -
+//     exp(-Ev_up / ( BOLTZMAN_CONST * Tv_up ) ) * exp(- (E_up-Ev_up) / ( BOLTZMAN_CONST * atm_t ) );
+//     
+//     part = nom/denom;
+// }
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -149,8 +130,6 @@ void PartitionFunctionData::SetDataFromVectorWithKnownType(const Vector& input)
       Vector2NoneData(input);
   else if(mtype == PF_Coeff) // The Coefficient case
       Vector2CoeffData(input);
-  else if(mtype == PF_Tv) // The Vibrational Temperature case
-      Vector2TvData(input);
   else
     throw std::runtime_error("You are trying to store a partition function type that is unknown to ARTS.\n");
 }
@@ -171,37 +150,37 @@ void PartitionFunctionData::Vector2CoeffData(const Vector& input)
       mdata[0] = input;
 }
 
-// This will convert the read vector to the Coefficient data format
-void PartitionFunctionData::Vector2TvData(const Vector& input)
-{
-    assert(mtype == PF_Tv); 
-    
-    if(input.nelem() != ExpectedVectorLengthFromType())
-    {
-        throw std::runtime_error("The partition function data vector is not of the right length for vibrational temperature case.\n");
-    }
-    
-    mdata.resize(4);
-    
-    // The vibrational energy levels
-    mdata[0].resize(2);
-    mdata[0][0] = input[0]; // Lower vibrational energy level
-    mdata[0][1] = input[1]; // Upper vibrational energy level
-    
-    
-    mdata[1].resize((mnelem-2)/3);//Pressure Grid
-    mdata[2].resize((mnelem-2)/3);//Tv low Grid
-    mdata[3].resize((mnelem-2)/3);//Tv up Grid
-    
-    // Loop and insert values in the right spot
-    for(Index ii=0;ii<(mnelem-2)/3; ii++)
-    {
-        mdata[1][ii] = input[2+ii];
-        mdata[2][ii] = input[2+ii+(mnelem-2)/3];
-        mdata[3][ii] = input[2+ii+(mnelem-2)/3*2];
-    }
-    
-}
+// // This will convert the read vector to the Coefficient data format
+// void PartitionFunctionData::Vector2TvData(const Vector& input)
+// {
+//     assert(mtype == PF_Tv); 
+//     
+//     if(input.nelem() != ExpectedVectorLengthFromType())
+//     {
+//         throw std::runtime_error("The partition function data vector is not of the right length for vibrational temperature case.\n");
+//     }
+//     
+//     mdata.resize(4);
+//     
+//     // The vibrational energy levels
+//     mdata[0].resize(2);
+//     mdata[0][0] = input[0]; // Lower vibrational energy level
+//     mdata[0][1] = input[1]; // Upper vibrational energy level
+//     
+//     
+//     mdata[1].resize((mnelem-2)/3);//Pressure Grid
+//     mdata[2].resize((mnelem-2)/3);//Tv low Grid
+//     mdata[3].resize((mnelem-2)/3);//Tv up Grid
+//     
+//     // Loop and insert values in the right spot
+//     for(Index ii=0;ii<(mnelem-2)/3; ii++)
+//     {
+//         mdata[1][ii] = input[2+ii];
+//         mdata[2][ii] = input[2+ii+(mnelem-2)/3];
+//         mdata[3][ii] = input[2+ii+(mnelem-2)/3*2];
+//     }
+//     
+// }
 
 
 // This will convert the read vector to the none data format
@@ -220,8 +199,6 @@ void PartitionFunctionData::StorageTag2SetType(const String& input)
     mtype = PF_NONE;
   else if(input == "CN") // The Coefficient case
     mtype = PF_Coeff;
-  else if(input == "TV") // The Vibrational Temperature case
-      mtype = PF_Tv;
   else
     throw std::runtime_error("You are trying to read a partition function type that is unknown to ARTS.\n");
 }
@@ -238,27 +215,24 @@ void PartitionFunctionData::CoeffData2Vector(Vector& output) const
 
 
 // This will convert the Tv data format to a vector for storage
-void PartitionFunctionData::TvData2Vector(Vector& output) const
-{
-    assert(mtype==PF_Tv);
-    output.resize(ExpectedVectorLengthFromType());
-    assert(output.nelem()==mnelem);
-    
-    // First two values are for vibrational energy levels
-    output[0]=mdata[0][0];
-    output[1]=mdata[0][1];
-    
-    // Loop and insert values in the right spot
-    for(Index ii=0;ii<(mnelem-2)/3; ii++)
-    {
-        output[2+ii]                = mdata[1][ii];
-        output[2+ii+(mnelem-2)/3]   = mdata[2][ii];
-        output[2+ii+(mnelem-2)/3*2] = mdata[3][ii];
-    }
-    
-    
-
-}
+// void PartitionFunctionData::TvData2Vector(Vector& output) const
+// {
+//     assert(mtype==PF_Tv);
+//     output.resize(ExpectedVectorLengthFromType());
+//     assert(output.nelem()==mnelem);
+//     
+//     // First two values are for vibrational energy levels
+//     output[0]=mdata[0][0];
+//     output[1]=mdata[0][1];
+//     
+//     // Loop and insert values in the right spot
+//     for(Index ii=0;ii<(mnelem-2)/3; ii++)
+//     {
+//         output[2+ii]                = mdata[1][ii];
+//         output[2+ii+(mnelem-2)/3]   = mdata[2][ii];
+//         output[2+ii+(mnelem-2)/3*2] = mdata[3][ii];
+//     }
+// }
 
 void PartitionFunctionData::GetVectorFromData(Vector& output) const
 {
@@ -266,8 +240,6 @@ void PartitionFunctionData::GetVectorFromData(Vector& output) const
         output.resize(0);
     else if(mtype == PF_Coeff) // The Coefficient case
         CoeffData2Vector(output);
-    else if(mtype == PF_Tv) // The Vibrational Temperature case
-        TvData2Vector(output);
     else
         throw std::runtime_error("You are trying to store a partition function type that is unknown to ARTS.\n");
 }
@@ -283,8 +255,6 @@ String PartitionFunctionData::Type2StorageTag() const
     output = "NA";
   else if(mtype == PF_Coeff) // The Coefficient case
     output = "CN"; 
-  else if(mtype == PF_Tv) // The Vibrational Temperature case
-    output = "TV"; 
   else
     throw std::runtime_error("You are trying to store a partition function type that is unknown to ARTS.\n");
   return output;

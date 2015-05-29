@@ -155,8 +155,10 @@ void dtauc_ssalbCalc(Workspace& ws,
     const Vector rtp_mag_dummy(3,0);
     const Vector ppath_los_dummy;
 
+    Tensor4 src_dummy; //FIXME: do this right
     propmat_clearsky_agendaExecute(ws,
                                   propmat_clearsky_local,
+				  src_dummy,
                                   f_mono,  // monochromatic calculation
                                   rtp_mag_dummy,ppath_los_dummy,
                                   rtp_pressure_local, 

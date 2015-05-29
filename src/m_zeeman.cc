@@ -20,25 +20,26 @@
 #include "zeeman.h"
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void propmat_clearskyAddZeeman(Tensor4& propmat_clearsky,
-        const Vector& f_grid,
-        const ArrayOfArrayOfSpeciesTag& abs_species,
-        const ArrayOfArrayOfLineRecord& abs_lines_per_species,
-        const ArrayOfLineshapeSpec& abs_lineshape,
-        const SpeciesAuxData& isotopologue_ratios,
-        const SpeciesAuxData& isotopologue_quantum,
-        const Numeric& rtp_pressure,
-        const Numeric& rtp_temperature,
-        const Numeric& lm_p_lim,
-        const Vector& rtp_vmr,
-        const Vector& rtp_mag,
-        const Vector& ppath_los,
-        const Index& atmosphere_dim,
-        const Index& manual_zeeman_tag,
-        const Numeric& manual_zeeman_magnetic_field_strength,
-        const Numeric& manual_zeeman_theta,
-        const Numeric& manual_zeeman_eta,
-        const Verbosity& verbosity)
+void propmat_clearskyAddZeeman( Tensor4& propmat_clearsky,
+			        Tensor4& propmat_source_clearsky,
+				const Vector& f_grid,
+				const ArrayOfArrayOfSpeciesTag& abs_species,
+				const ArrayOfArrayOfLineRecord& abs_lines_per_species,
+				const ArrayOfLineshapeSpec& abs_lineshape,
+				const SpeciesAuxData& isotopologue_ratios,
+				const SpeciesAuxData& isotopologue_quantum,
+				const Numeric& rtp_pressure,
+				const Numeric& rtp_temperature,
+				const Numeric& lm_p_lim,
+				const Vector& rtp_vmr,
+				const Vector& rtp_mag,
+				const Vector& ppath_los,
+				const Index& atmosphere_dim,
+				const Index& manual_zeeman_tag,
+				const Numeric& manual_zeeman_magnetic_field_strength,
+				const Numeric& manual_zeeman_theta,
+				const Numeric& manual_zeeman_eta,
+				const Verbosity& verbosity)
 {
   CREATE_OUT3;
 
@@ -46,6 +47,7 @@ void propmat_clearskyAddZeeman(Tensor4& propmat_clearsky,
   // we want to calculate
   checkIsotopologueRatios(abs_species, isotopologue_ratios);
 
+  bool do_src = true;
   {// Begin TEST(s)
   if (abs_species.nelem() != abs_lines_per_species.nelem())
       throw std::runtime_error("Dimension of *abs_species* and *abs_lines_per_species* don't match.");
@@ -63,6 +65,22 @@ void propmat_clearskyAddZeeman(Tensor4& propmat_clearsky,
       throw std::runtime_error("*atmosphere_dim* must be 3.  Zeeman Effect is only implemented for 3D geometry.");
   if( ppath_los.nelem() != 2 )
       throw std::runtime_error("*ppath_los* is not set correctly.");
+  if( propmat_source_clearsky.ncols()  != 4 )
+    if( propmat_source_clearsky.ncols()  != 0 ) 
+      throw std::runtime_error("Zeeman Effect is only implemented for source Stokes dimension 4 or 0.");
+  if( propmat_source_clearsky.nrows()  != 4 )
+    if( propmat_source_clearsky.nrows()  != 0 ) 
+      throw std::runtime_error("Zeeman Effect is only implemented for source Stokes dimension 4 or 0.");
+  if( propmat_source_clearsky.npages() != f_grid.nelem() )
+    if( propmat_source_clearsky.npages() != 0 ) 
+      throw std::runtime_error("Frequency dimension of *propmat_source_clearsky* not equal to length of *f_grid* or 0.");
+  if( propmat_source_clearsky.nbooks() != abs_species.nelem() )
+  {
+    if( propmat_source_clearsky.nbooks() != 0 )
+      throw std::runtime_error("Species dimension of *propmat_clearsky* not equal to length of *abs_species* or 0.");
+    else
+      do_src = false; // Note that test is here beacuse it makes things easier.
+  }
   }// End   TEST(s)
 
   Vector R_path_los;
@@ -106,6 +124,9 @@ void propmat_clearskyAddZeeman(Tensor4& propmat_clearsky,
 
   // holder variable
   Tensor3 part_abs_mat(f_grid.nelem(), 4, 4);
+  Tensor3 part_src_mat(f_grid.nelem(), 4, 4);
+  if( !do_src )
+      part_src_mat.resize(0,0,0);
   Index zeeman_ind =0; // This is necessary for more than 1 Zeeman species
   
   for(Index II = 0; II<abs_species.nelem(); II++)
@@ -114,22 +135,28 @@ void propmat_clearskyAddZeeman(Tensor4& propmat_clearsky,
     if(!is_zeeman(abs_species[II])) continue;
     
     // Add Pi contribution to final propmat_clearsky
-    xsec_species_line_mixing_wrapper_with_zeeman( part_abs_mat, abs_species, abs_lineshape,
+    xsec_species_line_mixing_wrapper_with_zeeman( part_abs_mat, part_src_mat, abs_species, abs_lineshape,
                                                   aoaol[zeeman_ind+1], Vector(), isotopologue_ratios,
                                                   abs_vmrs, abs_p, abs_t, f_grid, lm_p_lim, theta, eta, 0, II, verbosity );
     propmat_clearsky(II, joker, joker, joker) += part_abs_mat;
+    if( do_src )
+      propmat_source_clearsky(II, joker, joker, joker) += part_src_mat;
 
     // Add Sigma minus contribution to final propmat_clearsky
-    xsec_species_line_mixing_wrapper_with_zeeman( part_abs_mat, abs_species, abs_lineshape,
+    xsec_species_line_mixing_wrapper_with_zeeman( part_abs_mat, part_src_mat, abs_species, abs_lineshape,
                                                   aoaol[zeeman_ind+0], Vector(), isotopologue_ratios,  
                                                   abs_vmrs, abs_p, abs_t, f_grid, lm_p_lim, theta, eta, -1, II, verbosity );
     propmat_clearsky(II, joker, joker, joker) += part_abs_mat;
+    if( do_src )
+      propmat_source_clearsky(II, joker, joker, joker) += part_src_mat;
 
     // Add Sigma plus contribution to final propmat_clearsky
-    xsec_species_line_mixing_wrapper_with_zeeman( part_abs_mat, abs_species, abs_lineshape,
+    xsec_species_line_mixing_wrapper_with_zeeman( part_abs_mat, part_src_mat, abs_species, abs_lineshape,
                                                   aoaol[zeeman_ind+2],Vector(), isotopologue_ratios,
                                                   abs_vmrs, abs_p, abs_t, f_grid, lm_p_lim, theta, eta, 1, II, verbosity );
     propmat_clearsky(II, joker, joker, joker) += part_abs_mat;
+    if( do_src )
+      propmat_source_clearsky(II, joker, joker, joker) += part_src_mat;
     
     zeeman_ind +=3;
   }
@@ -171,6 +198,7 @@ void zeeman_linerecord_precalcCreateFromLines( ArrayOfArrayOfLineRecord& zeeman_
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void propmat_clearskyAddZeemanFromPreCalc(Tensor4& propmat_clearsky,
+					  Tensor4& propmat_source_clearsky,
                                           const ArrayOfArrayOfLineRecord& zeeman_linerecord_precalc,
                                           const Vector& f_grid,
                                           const ArrayOfArrayOfSpeciesTag& abs_species,
@@ -196,6 +224,7 @@ void propmat_clearskyAddZeemanFromPreCalc(Tensor4& propmat_clearsky,
   // we want to calculate
   checkIsotopologueRatios(abs_species, isotopologue_ratios);
 
+  bool do_src = true;
   {// Begin TEST(s)
   if (abs_species.nelem() == 0)
       throw std::runtime_error("No Zeeman species have been defined.");
@@ -215,6 +244,22 @@ void propmat_clearskyAddZeemanFromPreCalc(Tensor4& propmat_clearsky,
       throw std::runtime_error("*ppath_los* is not set correctly.");
   if( zeeman_linerecord_precalc.nelem() % 3 != 0 )
       throw std::runtime_error("Length of *zeeman_linerecord_precalc* must be multiple of 3 for polarization states.  It is not.");
+  if( propmat_source_clearsky.ncols()  != 4 )
+    if( propmat_source_clearsky.ncols()  != 0 ) 
+      throw std::runtime_error("Zeeman Effect is only implemented for source Stokes dimension 4 or 0.");
+  if( propmat_source_clearsky.nrows()  != 4 )
+    if( propmat_source_clearsky.nrows()  != 0 ) 
+      throw std::runtime_error("Zeeman Effect is only implemented for source Stokes dimension 4 or 0.");
+  if( propmat_source_clearsky.npages() != f_grid.nelem() )
+    if( propmat_source_clearsky.npages() != 0 ) 
+      throw std::runtime_error("Frequency dimension of *propmat_source_clearsky* not equal to length of *f_grid* or 0.");
+  if( propmat_source_clearsky.nbooks() != abs_species.nelem() )
+  {
+    if( propmat_source_clearsky.nbooks() != 0 )
+      throw std::runtime_error("Species dimension of *propmat_clearsky* not equal to length of *abs_species* or 0.");
+    else
+      do_src = false; // Note that test is here beacuse it makes things easier.
+  }
   }// End   TEST(s)
 
   Vector R_path_los;
@@ -280,6 +325,9 @@ void propmat_clearskyAddZeemanFromPreCalc(Tensor4& propmat_clearsky,
   
   // holder variable
   Tensor3 part_abs_mat(f_grid.nelem(), 4, 4);
+  Tensor3 part_src_mat(f_grid.nelem(), 4, 4);
+  if( !do_src )
+      part_src_mat.resize(0,0,0);
   Index zeeman_ind =0; // This is necessary for more than 1 Zeeman species
   
   for(Index II = 0; II<abs_species.nelem(); II++)
@@ -288,25 +336,31 @@ void propmat_clearskyAddZeemanFromPreCalc(Tensor4& propmat_clearsky,
     if(!is_zeeman(abs_species[II])) continue;
     
     // Add Pi contribution to final propmat_clearsky
-    xsec_species_line_mixing_wrapper_with_zeeman( part_abs_mat, abs_species, abs_lineshape,
+    xsec_species_line_mixing_wrapper_with_zeeman( part_abs_mat, part_src_mat, abs_species, abs_lineshape,
                                                   zeeman_linerecord_precalc[zeeman_ind+1], FreqShift[zeeman_ind+1], 
                                                   isotopologue_ratios, abs_vmrs, abs_p, abs_t, f_grid, lm_p_lim,
                                                   theta, eta, 0, II, verbosity );
     propmat_clearsky(II, joker, joker, joker) += part_abs_mat;
+    if( do_src )
+      propmat_source_clearsky(II, joker, joker, joker) += part_src_mat;
 
     // Add Sigma minus contribution to final propmat_clearsky
-    xsec_species_line_mixing_wrapper_with_zeeman( part_abs_mat, abs_species, abs_lineshape,
+    xsec_species_line_mixing_wrapper_with_zeeman( part_abs_mat, part_src_mat, abs_species, abs_lineshape,
                                                   zeeman_linerecord_precalc[zeeman_ind+0], FreqShift[zeeman_ind+0], 
                                                   isotopologue_ratios, abs_vmrs, abs_p, abs_t, f_grid, lm_p_lim,
                                                   theta, eta, -1, II, verbosity );
     propmat_clearsky(II, joker, joker, joker) += part_abs_mat;
+    if( do_src )
+      propmat_source_clearsky(II, joker, joker, joker) += part_src_mat;
 
     // Add Sigma plus contribution to final propmat_clearsky
-    xsec_species_line_mixing_wrapper_with_zeeman( part_abs_mat, abs_species, abs_lineshape,
+    xsec_species_line_mixing_wrapper_with_zeeman( part_abs_mat, part_src_mat, abs_species, abs_lineshape,
                                                   zeeman_linerecord_precalc[zeeman_ind+2], FreqShift[zeeman_ind+2],
                                                   isotopologue_ratios, abs_vmrs, abs_p, abs_t, f_grid, lm_p_lim,
                                                   theta, eta, 1, II, verbosity );
     propmat_clearsky(II, joker, joker, joker) += part_abs_mat;
+    if( do_src )
+      propmat_source_clearsky(II, joker, joker, joker) += part_src_mat;
     
     zeeman_ind +=3;
   }

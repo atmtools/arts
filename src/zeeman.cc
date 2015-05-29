@@ -296,6 +296,7 @@ Numeric frequency_change_casea(const Rational& omega, const Rational& m, const R
 
 void xsec_species_line_mixing_wrapper_with_zeeman(  
         Tensor3View part_abs_mat, 
+	Tensor3View part_src_mat,
         const ArrayOfArrayOfSpeciesTag& abs_species, 
         const ArrayOfLineshapeSpec& abs_lineshape, 
         const ArrayOfLineRecord& lr,
@@ -314,36 +315,57 @@ void xsec_species_line_mixing_wrapper_with_zeeman(
 {
     assert( part_abs_mat.npages() == f_grid.nelem() && part_abs_mat.ncols() == 4 && part_abs_mat.nrows() == 4 );
     
+    bool do_src = true;
+    if( part_src_mat.ncols() == 0 && part_src_mat.nrows() == 0 && part_src_mat.npages() == 0)
+      do_src = false;
+    
     Matrix A(f_grid.nelem(), 1, 0.);
     Matrix B(f_grid.nelem(), 1, 0.);
+    Matrix C(f_grid.nelem(), 1, 0.);
     
     
     for ( Index i=0; i<abs_species[this_species].nelem(); ++i )
     {
-        Matrix attenuation(f_grid.nelem(), 1, 0.), phase(f_grid.nelem(), 1, 0.);;
+        Matrix attenuation(f_grid.nelem(), 1, 0.), source(f_grid.nelem(), 1, 0.), phase(f_grid.nelem(), 1, 0.); 
+	
+        if( ! do_src )
+	  source.resize(0, 0);
 
-        xsec_species_line_mixing_wrapper( attenuation, phase,
+        xsec_species_line_mixing_wrapper( attenuation, source, phase,
                 f_grid, abs_p, abs_t, abs_vmrs, abs_species, this_species, lr, Zeeman_DF,
                 abs_lineshape[i].Ind_ls(), abs_lineshape[i].Ind_lsn(), lm_p_lim, abs_lineshape[i].Cutoff(),
                 isotopologue_ratios, verbosity ); // Now in cross section
 
         attenuation *= abs_vmrs(this_species, 0) * number_density( abs_p[0],abs_t[0]); // Now in absorption coef.
+	
+        if( do_src )
+	  source *= abs_vmrs(this_species, 0) * number_density( abs_p[0],abs_t[0]); // Now in absorption coef.
+          
         phase *= abs_vmrs(this_species, 0) * number_density( abs_p[0],abs_t[0]); // Now in absorption coef.
         phase *= 2; // phase matrix is twice as large according to sources.
 
         A += attenuation;
-        B += phase;
+        if(do_src)
+          B += source;
+        C += phase;
     }
     Matrix  K_a(4,4), K_b(4,4);
     attenuation_matrix(K_a, theta*DEG2RAD, eta*DEG2RAD, DM);
     phase_matrix(K_b, theta*DEG2RAD, eta*DEG2RAD, DM);
 
-    Tensor3 temp_part_abs_mat=part_abs_mat;
-    mult(part_abs_mat,A(joker,0), K_a);// Resets part_abs_mat
-    mult(temp_part_abs_mat,B(joker,0), K_b);
+    Tensor3 temp_part_mat=part_abs_mat;
+    mult(part_abs_mat,A(joker,0), K_a);// Resets part_mat
+    mult(temp_part_mat,C(joker,0), K_b);
 
-    part_abs_mat+=temp_part_abs_mat;
+    part_abs_mat+=temp_part_mat;
 
+    if( do_src )
+    {
+      temp_part_mat=part_src_mat;
+      mult(part_src_mat,B(joker,0), K_a);// source needs no phase so only K_a
+
+      part_src_mat+=temp_part_mat;
+    }
 }
 
 

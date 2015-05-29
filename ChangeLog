@@ -1,3 +1,100 @@
+2015-05-29  Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-3-205
+	
+	This update adds the source function propagation matrix as output.  
+	This separate source function is required for NLTE capabilities.
+	It is quite a touchy update for several files.  The absorption part
+	should work identically to as it did before.  I still need to perform
+	more tests to say when the source function behaves in a sane manner.
+	
+	In particular, more error catchers must be added.
+
+	* src/absorption.{cc,h}: xsec_source added to xsec_species output. It
+	is tested that this Matrix behaves the same as xsec_attenuation or
+	that it is 0-sized.  The latter means no direct source calculations,
+	and the former means there are direct source calculations.
+	xsec_species_line_mixing_wrapper also returns the source in the same
+	way.
+	
+	xsec_single_line now takes different inputs than before, and one of
+	these is the boolean calc_src to calculate the source.  There is
+	presently no way to use this feature, since I temporarily have 
+	disabled it due to NLTE temperature fields not being available yet.
+	
+	* src/agendas.cc:  Added "propmat_source_clearsky" as output of
+	"propmat_clearsky_genda" and added "src_xsec_per_species" as
+	output of "abs_xsec_agenda".
+	
+	* src/linerecord.{cc,h}:  All line strength scaling are now gathered
+	in LineRecord::GetLineScalingData.  The function follows Futbolin
+	approach and outputs both nlte scalars as well as partition function
+	and Boltzmann factors.
+	
+	* src/linerecord_partitionfunctiondata.{cc,h}: Are under reconstruction.
+	Will change quite a lot soon.
+	
+	* src/m_abs.cc:  Added src_coef, src_coef_per_species, and 
+	src_xsec_per_species to coefCalcFromXsec.  Mimics the abs equivalent
+	behavior when of the right size.
+	
+	abs_xsec_per_speciesInit inits src_xsec_per_species to a zero matrix
+	with the same tag-length as abs_xsec_per_species.  Init at other size 
+	than zero needs to be handled somehow still.
+	
+	abs_xsec_per_speciesAddLines calls xsec_species with 
+	src_xsec_per_species.
+	
+	abs_xsec_per_speciesAddConts mirrors src_xsec_per_species behavior to
+	abs_xsec_per_species behavior if matrix is non-0-length.
+	
+	propmat_clearskyAddFromAbsCoefPerSpecies takes src_coef_per_species and
+	inserts to propmat_source_clearsky if propmat_source_clearsky is 
+	non-empty.
+	
+	propmat_clearskyAddParticles mirrors propmat_source_clearsky to 
+	propmat_clearsky behavior if propmat_source_clearsky is non-empty.
+	
+	propmat_clearskyAddOnTheFly executes all of the abs_xsec_agenda with
+	source-related inputs. 
+	
+	propmat_clearskyForceNegativeToZero  mirrors propmat_source_clearsky to 
+	propmat_clearsky behavior if propmat_source_clearsky is non-empty.
+	
+	propmat_clearskyZero and propmat_clearskyAddFaraday are ignored so if 
+	these are your only input you will have to touch propmat_source_clearsky.
+	
+	* controlfiles/artscomponents/stokesrot/TestStokesRotation.arts:
+	Added Touch( propmat_source_clearsky ).
+	
+	* src/m_abs_lookup.cc:  Has been mostly ignored.
+	
+	propmat_clearskyAddFromLookup adds the absorption to propmat_source_clearsky.
+	Note that this means that lookup cannot handle source being different from 
+	absorption.
+	
+	* src/m_cia.cc: abs_xsec_per_speciesAddCIA mirors what happens in 
+	absorption to source if src_xsec_per_species is initialized.
+	
+	* src/m_zeeman.cc:  Mirrors to propmat_source_clearsky except for
+	what happens inside xsec_species_line_mixing_wrapper, which can 
+	diverge the two.  Offers a polarized source function if initialized.
+	propmat_clearskyAddZeeman and propmat_clearskyAddZeemanFromPreCalc
+	behave qualitatively the same now as before.
+	
+	* src/zeeman.{cc,h}: xsec_species_line_mixing_wrapper_with_zeeman
+	deals with the detailed handling of source function for Zeeman
+	calculations
+	
+	* src/methods.cc:  Changed those mentioned in this now very long text.
+	
+	* src/workspace.cc: Added propmat_source_clearsky, src_xsec_per_species,
+	src_coef, and src_coef_per_species.  Might have to update the text for
+	these.
+	
+	* src/disort.cc,doit.cc,montecarlo.cc,rte.cc: 
+	All have dummy propmat_source_clearsky variables for now.
+
 2015-05-25  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-204

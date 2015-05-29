@@ -47,6 +47,7 @@ AgendaSet( propmat_clearsky_agenda ){
   Ignore( rtp_pressure )
   Ignore( rtp_temperature )
   Ignore( rtp_vmr )
+  Touch( propmat_source_clearsky )
   propmat_clearskyZero
 }
 #

@@ -1455,9 +1455,12 @@ void AbsInputFromAtmFields (// WS Output:
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_coefCalcFromXsec(// WS Output:
                           Matrix&              abs_coef,
+                          Matrix&              src_coef,
                           ArrayOfMatrix&       abs_coef_per_species,
+                          ArrayOfMatrix&       src_coef_per_species,
                           // WS Input:         
                           const ArrayOfMatrix& abs_xsec_per_species,
+                          const ArrayOfMatrix& src_xsec_per_species,
                           const Matrix&        abs_vmrs,
                           const Vector&        abs_p,
                           const Vector&        abs_t,
@@ -1498,8 +1501,15 @@ void abs_coefCalcFromXsec(// WS Output:
   // be equal to one of the abs_xsec_per_species enries.
   abs_coef.resize( abs_xsec_per_species[0].nrows(), abs_xsec_per_species[0].ncols() );
   abs_coef = 0;                      // Matpack can set all elements like this.
-
+  
+  const bool do_src = src_coef.nrows()!=0 &&src_coef.ncols()!=0;
+  src_coef.resize( src_xsec_per_species[0].nrows(), src_xsec_per_species[0].ncols() );
+  if(do_src)
+    src_coef = 0;
+  
   abs_coef_per_species.resize( abs_xsec_per_species.nelem() );
+  if(do_src)
+    src_coef_per_species.resize( src_xsec_per_species.nelem() );
 
   out3 << "  Computing abs_coef and abs_coef_per_species from abs_xsec_per_species.\n";
   // Loop through all tag groups
@@ -1510,6 +1520,11 @@ void abs_coefCalcFromXsec(// WS Output:
       // Make this element of abs_xsec_per_species the right size:
       abs_coef_per_species[i].resize( abs_xsec_per_species[i].nrows(), abs_xsec_per_species[i].ncols() );
       abs_coef_per_species[i] = 0;        // Initialize all elements to 0.
+      if(do_src)
+      {
+        src_coef_per_species[i].resize( src_xsec_per_species[i].nrows(), src_xsec_per_species[i].ncols() );
+        src_coef_per_species[i] = 0;        // Initialize all elements to 0.
+      }
 
       // Loop through all altitudes
       for ( Index j=0; j<abs_xsec_per_species[i].ncols(); j++)
@@ -1521,12 +1536,17 @@ void abs_coefCalcFromXsec(// WS Output:
           for ( Index k=0; k<abs_xsec_per_species[i].nrows(); k++)
             {
               abs_coef_per_species[i](k,j) = abs_xsec_per_species[i](k,j) * n * abs_vmrs(i,j);
+              if(do_src)
+                src_coef_per_species[i](k,j) = src_xsec_per_species[i](k,j) * n * abs_vmrs(i,j);
+              
             }
         }
 
       // Add up to the total absorption:
       abs_coef += abs_coef_per_species[i];     // In Matpack you can use the +=
                                                // operator to do elementwise addition.
+      if(do_src)
+        src_coef += src_coef_per_species[i];
     }
 }
 
@@ -1535,6 +1555,7 @@ void abs_coefCalcFromXsec(// WS Output:
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_xsec_per_speciesInit(// WS Output:
                               ArrayOfMatrix&   abs_xsec_per_species,
+                              ArrayOfMatrix&   src_xsec_per_species,
                               // WS Input:
                               const ArrayOfArrayOfSpeciesTag& tgs,
                               const ArrayOfIndex& abs_species_active,
@@ -1566,6 +1587,7 @@ void abs_xsec_per_speciesInit(// WS Output:
   // Initialize abs_xsec_per_species. The array dimension of abs_xsec_per_species
   // is the same as that of abs_lines_per_species.
   abs_xsec_per_species.resize( tgs.nelem() );
+  src_xsec_per_species.resize( tgs.nelem() ); 
 
   // Loop abs_xsec_per_species and make each matrix the right size,
   // initializing to zero.
@@ -1585,6 +1607,7 @@ void abs_xsec_per_speciesInit(// WS Output:
       // Make this element of abs_xsec_per_species the right size:
       abs_xsec_per_species[i].resize( f_grid.nelem(), abs_p.nelem() );
       abs_xsec_per_species[i] = 0;       // Matpack can set all elements like this.
+      src_xsec_per_species[i].resize(0, 0); // FIXME: This must be fixed how to do at some point soon
     }
 
   ostringstream os;
@@ -1598,6 +1621,7 @@ void abs_xsec_per_speciesInit(// WS Output:
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_xsec_per_speciesAddLines(// WS Output:
                                   ArrayOfMatrix&                   abs_xsec_per_species,
+				  ArrayOfMatrix&                   src_xsec_per_species,
                                   // WS Input:             
                                   const ArrayOfArrayOfSpeciesTag&  tgs,
                                   const ArrayOfIndex& abs_species_active,
@@ -1815,6 +1839,7 @@ void abs_xsec_per_speciesAddLines(// WS Output:
                                    abs_xsec_per_species[i].ncols(),
                                    0.);
                 xsec_species(abs_xsec_per_species[i],
+			     src_xsec_per_species[i],
                              dummy_phase,
                              f_grid,
                              abs_p,
@@ -1835,6 +1860,7 @@ void abs_xsec_per_speciesAddLines(// WS Output:
                                    abs_xsec_per_species[i].ncols(),
                                    0.);
                 xsec_species_line_mixing_wrapper(abs_xsec_per_species[i],
+						 src_xsec_per_species[i],
                                                  dummy_phase,
                                                  f_grid,
                                                  abs_p,
@@ -1872,6 +1898,7 @@ void abs_xsec_per_speciesAddLines(// WS Output:
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_xsec_per_speciesAddConts(// WS Output:
                                   ArrayOfMatrix&                   abs_xsec_per_species,
+                                  ArrayOfMatrix&                   src_xsec_per_species,
                                   // WS Input:             
                                   const ArrayOfArrayOfSpeciesTag&  tgs,
                                   const ArrayOfIndex& abs_species_active,
@@ -2051,6 +2078,19 @@ void abs_xsec_per_speciesAddConts(// WS Output:
                                       abs_o2,
                                       abs_vmrs(i,Range(joker)),
                                       verbosity );
+                  if(src_xsec_per_species[i].nrows()&&src_xsec_per_species[i].ncols())
+                    xsec_continuum_tag( src_xsec_per_species[i],
+                                      name,
+                                      abs_cont_parameters[n],
+                                      abs_cont_models[n], 
+                                      f_grid,
+                                      abs_p,
+                                      abs_t,
+                                      abs_n2,
+                                      abs_h2o,
+                                      abs_o2,
+                                      abs_vmrs(i,Range(joker)),
+                                      verbosity );
                   // Calling this function with a row of Matrix abs_vmrs
                   // is possible because it uses Views.
                 }
@@ -2112,8 +2152,10 @@ void abs_cont_descriptionAppend(// WS Output:
 /* Workspace method: Doxygen documentation will be auto-generated */
 void propmat_clearskyAddFromAbsCoefPerSpecies(// WS Output:
                                Tensor4&       propmat_clearsky,
+                               Tensor4&       propmat_source_clearsky,
                                // WS Input:
                                const ArrayOfMatrix& abs_coef_per_species,
+                               const ArrayOfMatrix& src_coef_per_species,
                                const Verbosity&)
 {
   // propmat_clearsky has format
@@ -2181,6 +2223,10 @@ void propmat_clearskyAddFromAbsCoefPerSpecies(// WS Output:
   for ( Index si=0; si<n_species; ++si )
     for ( Index ii=0; ii<stokes_dim; ++ii )
       propmat_clearsky(si,joker,ii, ii) += abs_coef_per_species[si](joker,0);
+  if(propmat_source_clearsky.nbooks()!=0 && propmat_source_clearsky.npages()!=0 && propmat_source_clearsky.nrows()!=0 && propmat_source_clearsky.ncols()!=0)
+    for ( Index si=0; si<n_species; ++si )
+      for ( Index ii=0; ii<stokes_dim; ++ii )
+        propmat_source_clearsky(si,joker,ii, ii) += src_coef_per_species[si](joker,0);
 
 }
 
@@ -2188,6 +2234,7 @@ void propmat_clearskyAddFromAbsCoefPerSpecies(// WS Output:
 /* Workspace method: Doxygen documentation will be auto-generated */
 void propmat_clearskyInit(//WS Output
                              Tensor4&                        propmat_clearsky,
+			     Tensor4&                        propmat_source_clearsky,
                              //WS Input
                              const ArrayOfArrayOfSpeciesTag& abs_species,
                              const Vector&                   f_grid,
@@ -2196,6 +2243,10 @@ void propmat_clearskyInit(//WS Output
                              const Verbosity&                
                             )
 {
+  // Dummy initialization
+  propmat_source_clearsky.resize(0,0,0,0);
+  
+  
     if (!propmat_clearsky_agenda_checked)
         throw runtime_error("You must call *propmat_clearsky_agenda_checkedCalc* before calling this method.");
 
@@ -2295,6 +2346,7 @@ void propmat_clearskyAddFaraday(
 void propmat_clearskyAddParticles(
                                     // WS Output:
                                     Tensor4& propmat_clearsky,
+                                    Tensor4& propmat_source_clearsky,
                                     // WS Input:
                                     const Index& stokes_dim,
                                     const Index& atmosphere_dim,
@@ -2405,10 +2457,16 @@ void propmat_clearskyAddParticles(
                       // propmat_clearsky, which is of extinction matrix type
                       ext_matFromabs_vec(propmat_clearsky(sp,iv,joker,joker),
                                          pnd_abs_vec, stokes_dim);
+                      if(propmat_source_clearsky.nbooks()&&propmat_source_clearsky.npages()&&propmat_source_clearsky.nrows()&&propmat_source_clearsky.ncols())
+                        ext_matFromabs_vec(propmat_source_clearsky(sp,iv,joker,joker),
+                                         pnd_abs_vec, stokes_dim);
                     }
                   else
                     {
                       propmat_clearsky(sp,iv,joker,joker) = pnd_ext_mat;
+                      if(propmat_source_clearsky.nbooks()&&propmat_source_clearsky.npages()&&propmat_source_clearsky.nrows()&&propmat_source_clearsky.ncols())
+                        propmat_source_clearsky(sp,iv,joker,joker) = pnd_ext_mat;
+
                     }
                 }
               sp++;
@@ -2431,6 +2489,7 @@ void propmat_clearskyAddOnTheFly(// Workspace reference:
                                     Workspace& ws,
                                     // WS Output:
                                     Tensor4& propmat_clearsky,
+				    Tensor4& propmat_source_clearsky,
                                     // WS Input:
                                     const Vector& f_grid,
                                     const ArrayOfArrayOfSpeciesTag& abs_species,
@@ -2452,8 +2511,8 @@ void propmat_clearskyAddOnTheFly(// Workspace reference:
   // Output of abs_h2oSet:
   Vector          abs_h2o;
   // Output of abs_coefCalc:
-  Matrix                         abs_coef;
-  ArrayOfMatrix                  abs_coef_per_species;
+  Matrix                         abs_coef, src_coef;
+  ArrayOfMatrix                  abs_coef_per_species, src_coef_per_species;
     
   AbsInputFromRteScalars(abs_p,
                          abs_t,
@@ -2465,16 +2524,17 @@ void propmat_clearskyAddOnTheFly(// Workspace reference:
   
   // Absorption cross sections per tag group.
   ArrayOfMatrix abs_xsec_per_species;
+  ArrayOfMatrix src_xsec_per_species;
 
   // Make all species active:
   ArrayOfIndex abs_species_active(abs_species.nelem());
   for (Index i=0; i<abs_species.nelem(); ++i)
     abs_species_active[i] = i;
   
-  
   // Call agenda to calculate absorption:
   abs_xsec_agendaExecute(ws,
                          abs_xsec_per_species,
+			 src_xsec_per_species,
                          abs_species,
                          abs_species_active,
                          f_grid,
@@ -2484,14 +2544,14 @@ void propmat_clearskyAddOnTheFly(// Workspace reference:
                          abs_xsec_agenda);
 
   // Calculate absorption coefficients from cross sections:
-  abs_coefCalcFromXsec(abs_coef, abs_coef_per_species,
-                       abs_xsec_per_species,
+  abs_coefCalcFromXsec(abs_coef, src_coef, abs_coef_per_species,  src_coef_per_species,
+                       abs_xsec_per_species,src_xsec_per_species,
                        abs_vmrs, abs_p, abs_t, verbosity);
   
   
   // Now add abs_coef_per_species to propmat_clearsky:
-  propmat_clearskyAddFromAbsCoefPerSpecies(propmat_clearsky,
-                                              abs_coef_per_species,
+  propmat_clearskyAddFromAbsCoefPerSpecies(propmat_clearsky,propmat_source_clearsky,
+                                              abs_coef_per_species, src_coef_per_species,
                                               verbosity);
 }
 
@@ -2511,12 +2571,17 @@ void propmat_clearskyZero(
 /* Workspace method: Doxygen documentation will be auto-generated */
 void propmat_clearskyForceNegativeToZero(
     Tensor4&    propmat_clearsky,
+    Tensor4&    propmat_source_clearsky,
     const Verbosity& )
 {
     for(Index ii=0;ii<propmat_clearsky.nbooks();ii++)
         for(Index jj=0;jj<propmat_clearsky.npages();jj++)
             if(propmat_clearsky(ii,jj,0,0)<0)
                 propmat_clearsky(ii,jj,joker,joker) = 0;
+    for(Index ii=0;ii<propmat_source_clearsky.nbooks();ii++)
+        for(Index jj=0;jj<propmat_source_clearsky.npages();jj++)
+            if(propmat_source_clearsky(ii,jj,0,0)<0)
+                propmat_source_clearsky(ii,jj,joker,joker) = 0;
 }
 
 

@@ -108,7 +108,8 @@ void clear_rt_vars_at_gp(Workspace&          ws,
   const Vector ppath_los_dummy;
   
   //calcualte absorption coefficient
-  propmat_clearsky_agendaExecute(ws, local_propmat_clearsky,
+  Tensor4 src_dummy; //FIXME: do this right
+  propmat_clearsky_agendaExecute(ws, local_propmat_clearsky,src_dummy,
                                  Vector(1, f_mono), rtp_mag_dummy,
                                  ppath_los_dummy,p_vec[0],
                                  temperature, vmr_mat(joker, 0),
@@ -186,7 +187,8 @@ void cloudy_rt_vars_at_gp(Workspace&           ws,
   const Vector ppath_los_dummy;
   
   //rtp_vmr    = vmr_ppath(joker,0);
-  propmat_clearsky_agendaExecute(ws, local_propmat_clearsky,
+  Tensor4 src_dummy; //FIXME: do this right
+  propmat_clearsky_agendaExecute(ws, local_propmat_clearsky,src_dummy,
                                  Vector(1, f_mono), rtp_mag_dummy,
                                  ppath_los_dummy,p_ppath[0],
                                  temperature,vmr_ppath(joker, 0),

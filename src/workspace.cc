@@ -2929,6 +2929,27 @@ void Workspace::define_wsv_data()
        "Unit: 1/m\n"
        ),
       GROUP( "Tensor4" )));
+    
+    wsv_data.push_back
+    (WsvRecord
+    ( NAME( "propmat_source_clearsky" ),
+      DESCRIPTION
+      (
+       "This contains the absorption coefficients for one point in the\n"
+       "atmosphere (one set of pressure, temperature, magnetic field, and\n"
+       "VMR values). This keeps the source function.\n"
+       "\n"
+       "There are two distinct cases:\n"
+       "\n"
+       "Case a:    For all frequencies and all species:\n"
+       "Dimension: [ abs_species, f_grid, stokes_dim, stokes_dim ]\n"
+       "\n"
+       "Case b:    For a single frequency for all species:\n"
+       "Dimension: [ abs_species, 1, stokes_dim, stokes_dim]\n"
+       "\n"
+       "Unit: 1/m\n"
+       ),
+      GROUP( "Tensor4" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -4187,7 +4208,61 @@ void Workspace::define_wsv_data()
        "Usage:      Set by the user.\n"
        ),
       GROUP( "Index" )));
+   
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "src_xsec_per_species" ),
+       DESCRIPTION
+       (
+        "Absorption cross sections for the source function for NLTE calculations.\n"
+        "\n"
+        "This variable contains absorption cross section xsec individually for\n"
+        "each tag group. The Array contains one matrix for each tag group, the\n"
+        "matrix format is the same as that of abs_coef.\n"
+        "\n"
+        "Dimensions: [abs_species](f_grid, abs_p), or\n"
+	"                         (0, 0)"
+        "\n"
+        "Unit:       m^2 (alpha = xsec * n * VMR),\n"
+        "            where n is total density.\n"
+        ),
+       GROUP( "ArrayOfMatrix" )));
 
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "src_coef" ),
+       DESCRIPTION
+       (
+        "The matrix of total scalar absorption coefficients for source.\n"
+        "\n"
+        "Contains the gas absorption summed over all species as a function of\n"
+        "*f_grid* and *abs_p*, i.e., for a single atmospheric profile.\n"
+        "\n"
+        "This variable is not used explicitly in a standard calculation, where\n"
+        "absorption comes from the lookup table *abs_lookup*. However, it is\n"
+        "useful for testing the methods that actually calculate line-by-line\n"
+        "absorption, which have this variable as output. These methods are\n"
+        "called internally by the method *abs_lookupCalc*, which generates\n"
+        "the lookup table.\n"
+        "\n"
+        "Dimensions: [f_grid, abs_p]\n"
+        "\n"
+        "Unit: 1/m\n"
+        ),
+      GROUP( "Matrix" )));
+
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "src_coef_per_species" ),
+       DESCRIPTION
+       (
+        "Scalar absorption coefficients individually per tag group.\n"
+        "\n"
+        "The Array contains one matrix of absorption coefficients for each\n"
+        "tag group, where the matrix format is the same as that of *src_coef*\n"
+        ),
+       GROUP( "ArrayOfMatrix" )));
+    
   wsv_data.push_back
    (WsvRecord
     ( NAME( "stokes_rotation" ),

@@ -618,6 +618,7 @@ void calc_gamma_and_deltaf_artscat4(Numeric& gamma,
 
 */
 void xsec_species( MatrixView               xsec_attenuation,
+		   MatrixView               xsec_source,
                    MatrixView               xsec_phase,
                    ConstVectorView          f_grid,
                    ConstVectorView          abs_p,
@@ -751,6 +752,30 @@ void xsec_species( MatrixView               xsec_attenuation,
         throw std::runtime_error(os.str());
     }
     
+    // Check that the dimension of xsec source is [f_grid.nelem(), abs_p.nelem()]:
+    bool calc_src;
+    if ( xsec_source.nrows() != nf || xsec_source.ncols() != np )
+    {
+      if( xsec_source.nrows() != 0 || xsec_source.ncols() != 0 )
+      {
+        std::ostringstream os;
+        os << "Variable xsec must have dimensions [f_grid.nelem(),abs_p.nelem()] or [0,0].\n"
+           << "[xsec_source.nrows(),xsec_source.ncols()] = [" << xsec_source.nrows()
+           << ", " << xsec_source.ncols() << "]\n"
+           << "f_grid.nelem() = " << nf << '\n'
+           << "abs_p.nelem() = " << np;
+        throw std::runtime_error(os.str());
+      }
+      else 
+      {
+	calc_src = false;
+      }
+    }
+    else
+    {
+      calc_src = true;
+    }
+    
     if ( xsec_phase.nrows() != nf || xsec_phase.ncols() != np )
     {
         std::ostringstream os;
@@ -809,6 +834,7 @@ firstprivate(ls_attenuation, ls_phase, fac, f_local, aux)
             // Watch out! This is output, we have to be careful not to
             // introduce race conditions when writing to it.
             VectorView xsec_i_attenuation = xsec_attenuation(Range(joker),i);
+	    VectorView xsec_i_source = calc_src ? xsec_source(Range(joker),i) : Vector(0);
             VectorView xsec_i_phase = xsec_phase(Range(joker),i);
             
             
@@ -832,6 +858,7 @@ firstprivate(ls_attenuation, ls_phase, fac, f_local, aux)
                 n_lbl_threads = arts_omp_get_max_threads();
             }
             Matrix xsec_accum_attenuation(n_lbl_threads, xsec_i_attenuation.nelem(), 0);
+	    Matrix xsec_accum_source(n_lbl_threads, xsec_i_attenuation.nelem(), 0);
             Matrix xsec_accum_phase(n_lbl_threads, xsec_i_phase.nelem(), 0);
             
             ConstVectorView vmrs = all_vmrs(joker,i);
@@ -858,16 +885,18 @@ firstprivate(ls_attenuation, ls_phase, fac, f_local, aux)
                     try
                     {
                         const LineRecord& l_l = abs_lines[l];
-                        Numeric gamma=0, deltaf=0, partition=1;
+                        Numeric gamma=0, deltaf=0, partition_ratio,boltzmann_ratio, abs_nlte_ratio, src_nlte_ratio;
                         l_l.PressureBroadening().GetPressureBroadeningParams(gamma,deltaf,
                                                                              l_l.Ti0()/t_i,p_i,
                                                                              p_partial,this_species,h2o_index,
                                                                              broad_spec_locations,
                                                                              vmrs,verbosity);
                         
-                        l_l.GetPartitionFunctionData(partition, t_i, p_i);
+                        l_l.GetLineScalingData(partition_ratio, boltzmann_ratio, abs_nlte_ratio, src_nlte_ratio, 
+                                               t_i, -1, -1, -1, -1);
                         
                         xsec_single_line(xsec_accum_attenuation(arts_omp_get_thread_num(),joker),
+					 xsec_accum_source(arts_omp_get_thread_num(),joker),
                                          xsec_accum_phase(arts_omp_get_thread_num(),joker),
                                          ls_attenuation,
                                          ls_phase,
@@ -878,7 +907,7 @@ firstprivate(ls_attenuation, ls_phase, fac, f_local, aux)
                                          f_grid,
                                          l_l.F(),
                                          l_l.I0(),
-                                         partition,
+                                         partition_ratio,boltzmann_ratio,0,0,
                                          l_l.IsotopologueData().Mass(),
                                          t_i,
                                          gamma,
@@ -893,7 +922,8 @@ firstprivate(ls_attenuation, ls_phase, fac, f_local, aux)
                                          l_l.Species(),
                                          l_l.Isotopologue(),
                                          cut,
-                                         calc_phase);
+                                         calc_phase,
+                                         calc_src);
                         
                     } // end of try block
                     catch (runtime_error e)
@@ -999,6 +1029,7 @@ firstprivate(ls_attenuation, ls_phase, fac, f_local, aux)
    
 */
 void xsec_single_line(VectorView xsec_accum_attenuation, 
+		      VectorView xsec_accum_source, 
                       VectorView xsec_accum_phase, 
                       Vector& attenuation, 
                       Vector& phase,
@@ -1009,7 +1040,10 @@ void xsec_single_line(VectorView xsec_accum_attenuation,
                       const Vector& f_grid, 
                       Numeric F0, 
                       Numeric intensity, 
-                      const Numeric part_fct_ratio, 
+                      const Numeric part_fct_ratio,  
+                      const Numeric boltzmann_ratio,
+                      const Numeric abs_nlte_ratio,
+                      const Numeric src_nlte_ratio,
                       const Numeric Isotopologue_Mass,
                       const Numeric temperature, 
                       const Numeric gamma,
@@ -1023,8 +1057,9 @@ void xsec_single_line(VectorView xsec_accum_attenuation,
                       const Index ind_lsn,  
                       const Index LineRecord_Species, 
                       const Index LineRecord_Isotopologue, 
-                      const bool cut, 
-                      const bool calc_phase)
+                      const bool calc_cut, 
+                      const bool calc_phase,
+                      const bool calc_src)
 {//asdasd;
     
     extern const Numeric BOLTZMAN_CONST;
@@ -1050,8 +1085,7 @@ void xsec_single_line(VectorView xsec_accum_attenuation,
     // intensity at temperature
     // (calculate the line intensity according to the standard
     // expression given in HITRAN)
-    intensity *= part_fct_ratio;// * nom / denom;
-    
+    intensity *= part_fct_ratio * boltzmann_ratio;
     
     // Apply pressure shift:
     F0 += deltaf + LM_DF;
@@ -1067,7 +1101,7 @@ void xsec_single_line(VectorView xsec_accum_attenuation,
     Index i_f_max = nf-1;
     
     // cutoff ?
-    if ( cut )
+    if ( calc_cut )
     {
         // Check whether we have elements in ls that can be
         // ignored at lower frequencies of f_grid.
@@ -1135,6 +1169,7 @@ void xsec_single_line(VectorView xsec_accum_attenuation,
         // Get a handle on the range of xsec that we want to change.
         // We use nfl here, which could be one less than nfls.
         VectorView this_xsec_attenuation      = xsec_accum_attenuation[Range(i_f_min,nfl)];
+	VectorView this_xsec_source           = calc_src ? xsec_accum_source[Range(i_f_min,nfl)] : Vector(0);
         VectorView this_xsec_phase            = xsec_accum_phase[Range(i_f_min,nfl)];
         
         // Get handles on the range of ls and fac that we need.
@@ -1147,7 +1182,7 @@ void xsec_single_line(VectorView xsec_accum_attenuation,
         {
             // Apply line mixing to both cutoff and other values
             this_ls_attenuation*=1+LM_G;
-            if(cut)
+            if(calc_cut)
                 attenuation[nfls-1]*=1+LM_G;
         }
         if(LM_Y!=0)
@@ -1156,12 +1191,12 @@ void xsec_single_line(VectorView xsec_accum_attenuation,
             Vector tmp = this_ls_phase;
             tmp *= LM_Y;
             this_ls_attenuation+=tmp;
-            if(cut)
+            if(calc_cut)
                 attenuation[nfls-1]+=phase[nfls-1]*LM_Y;
         }
         
         // cutoff ?
-        if ( cut )
+        if ( calc_cut )
         {
             // Subtract baseline for cutoff frequency
             // The index nfls-1 should be exactly the index pointing
@@ -1184,8 +1219,7 @@ void xsec_single_line(VectorView xsec_accum_attenuation,
             
             //                const Numeric factors = n * intensity * l_l.IsotopologueData().Abundance();
             //                    const Numeric factors = intensity * l_l.IsotopologueData().Abundance();
-            const Numeric factors = intensity
-            * isotopologue_ratios.getParam(
+            const Numeric factors = isotopologue_ratios.getParam(
                                            LineRecord_Species,
                                            LineRecord_Isotopologue, 0);
             
@@ -1196,8 +1230,18 @@ void xsec_single_line(VectorView xsec_accum_attenuation,
             // to this_xsec.
             
             this_ls_attenuation *= this_fac;
-            this_ls_attenuation *= factors;
-            this_xsec_attenuation += this_ls_attenuation;
+	    if(calc_src)
+	    {
+	      this_ls_attenuation *= factors * intensity * abs_nlte_ratio;
+	      this_xsec_attenuation += this_ls_attenuation;
+	      this_ls_attenuation *= src_nlte_ratio/abs_nlte_ratio;
+	      this_xsec_source += this_ls_attenuation; // note that the multiplication above solves 
+	    }
+	    else
+	    {
+	      this_ls_attenuation *= factors * intensity;
+	      this_xsec_attenuation += this_ls_attenuation;
+	    }
             
             if (calc_phase)
             {
@@ -1505,6 +1549,8 @@ ostream& operator<< (ostream &os, const LineshapeSpec& lsspec)
  *  
  *  \retval xsec_attenuation    Cross section of one tag group. This is now the
  *                              true attenuation cross section in units of m^2.
+ *  \retval xsec_source         Cross section of one tag group. This is now the
+ *                              true source cross section in units of m^2.
  *  \retval xsec_phase          Cross section of one tag group. This is now the
  *                              true phase cross section in units of m^2.
  *  \param f_grid               Frequency grid.
@@ -1524,6 +1570,7 @@ ostream& operator<< (ostream &os, const LineshapeSpec& lsspec)
  * 
  */
 void xsec_species_line_mixing_wrapper(  MatrixView               xsec_attenuation,
+					MatrixView               xsec_source,
                                         MatrixView               xsec_phase,
                                         ConstVectorView          f_grid,
                                         ConstVectorView          abs_p,
@@ -1630,6 +1677,30 @@ void xsec_species_line_mixing_wrapper(  MatrixView               xsec_attenuatio
         throw std::runtime_error(os.str());
     }
     
+    // Check that the dimension of xsec source is [f_grid.nelem(), abs_p.nelem()]:
+    bool calc_src;
+    if ( xsec_source.nrows() != f_grid.nelem() || xsec_source.ncols() != abs_p.nelem() )
+    {
+      if( xsec_source.nrows() != 0 || xsec_source.ncols() != 0 )
+      {
+        std::ostringstream os;
+        os << "Variable xsec must have dimensions [f_grid.nelem(),abs_p.nelem()] or [0,0].\n"
+           << "[xsec_source.nrows(),xsec_source.ncols()] = [" << xsec_source.nrows()
+           << ", " << xsec_source.ncols() << "]\n"
+           << "f_grid.nelem() = " << f_grid.nelem() << '\n'
+           << "abs_p.nelem() = " << abs_p.nelem();
+        throw std::runtime_error(os.str());
+      }
+      else 
+      {
+	calc_src = 0;
+      }
+    }
+    else
+    {
+      calc_src = 1;
+    }
+    
     if ( xsec_phase.nrows() != f_grid.nelem() || xsec_phase.ncols() != abs_p.nelem() )
     {
         std::ostringstream os;
@@ -1673,7 +1744,7 @@ firstprivate(attenuation, phase, fac, f_local, aux)
         for(Index ii=0; ii<abs_lines.nelem();ii++)
         {
             // Pressure broadening parameters
-            Numeric gamma=0, deltaf_pressure=0, partition=1; // Set to zero since case with 0 exist
+            Numeric gamma=0, deltaf_pressure=0, partition_ratio,boltzmann_ratio, abs_nlte_ratio, src_nlte_ratio; // Set to zero since case with 0 exist
             abs_lines[ii].PressureBroadening().GetPressureBroadeningParams(gamma,deltaf_pressure,
                                                                             abs_lines[ii].Ti0()/t,p,
                                                                             p_partial,this_species,h2o_index,
@@ -1684,12 +1755,14 @@ firstprivate(attenuation, phase, fac, f_local, aux)
             Numeric Y=0,DV=0,G=0; // Set to zero since case with 0 exist
             abs_lines[ii].LineMixing().GetLineMixingParams( Y,  G,  DV,  t, p, lm_p_lim, 1);
             
-            abs_lines[ii].GetPartitionFunctionData(partition, t, p);
+            abs_lines[ii].GetLineScalingData(partition_ratio,boltzmann_ratio, abs_nlte_ratio, src_nlte_ratio, 
+                                             t, -1, -1, -1, -1);
             
             // Still an ugly case with non-resonant line near 0 frequency, since this is actually a band...
             if( LineMixingData::LM_LBLRTM_O2NonResonant != abs_lines[ii].LineMixing().Type() )
             {
                 xsec_single_line(   xsec_attenuation(joker,jj), 
+				    calc_src?xsec_source(joker,jj):Vector(0),
                                     xsec_phase(joker,jj), 
                                     attenuation, 
                                     phase,
@@ -1700,7 +1773,8 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                                     f_grid, 
                                     abs_lines[ii].F()+(precalc_zeeman?Z_DF[ii]:0), // Since vector is 0-length if no Zeeman pre-calculations
                                     abs_lines[ii].I0(), 
-                                    partition, 
+                                    partition_ratio, 
+                                    boltzmann_ratio,0,0,
                                     abs_lines[ii].IsotopologueData().Mass(),
                                     t,
                                     gamma,
@@ -1715,7 +1789,8 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                                     abs_lines[ii].Species(), 
                                     abs_lines[ii].Isotopologue(), 
                                     cutoff!=-1,
-                                    1);
+                                    1,
+				    calc_src);
             }
             else
             {
@@ -1725,6 +1800,7 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                 abs_lineshapeDefine( tmp, "O2NonResonant", "no_norm", -1, verbosity );
                 
                 xsec_single_line(   xsec_attenuation(joker,jj), 
+				    calc_src?xsec_source(joker,jj):Vector(0),
                                     xsec_phase(joker,jj), 
                                     attenuation, 
                                     phase,
@@ -1735,7 +1811,8 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                                     f_grid, 
                                     abs_lines[ii].F()+(precalc_zeeman?Z_DF[ii]:0), // Since vector is 0-length if no Zeeman pre-calculations 
                                     abs_lines[ii].I0(), 
-                                    partition, 
+                                    partition_ratio, 
+                                    boltzmann_ratio,0,0,
                                     abs_lines[ii].IsotopologueData().Mass(),
                                     t,
                                     gamma,
@@ -1750,7 +1827,8 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                                     abs_lines[ii].Species(), 
                                     abs_lines[ii].Isotopologue(), 
                                     -1!=-1,
-                                    1);
+                                    1,
+				    calc_src);
             }
             
         }

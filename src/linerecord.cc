@@ -3685,36 +3685,74 @@ bool find_matching_lines(ArrayOfIndex& matches,
 }
 
 
-void LineRecord::GetPartitionFunctionData(Numeric& scale, const Numeric& atm_t, const Numeric& atm_p) const
+/*!
+ *  Calculates the line strength scaling parameters for cross section calculations.
+ * 
+ *  The only atmospheric input is the temperature.  The line knows its energy and
+ *  its reference temperature.  If a custom PF tag was applied, take that route,
+ *  otherwise the partition function defaults to inbuilt partition function data.
+ *  If atm_tv* are non-negative, then the non-LTE population levels are calculated.
+ *  (This only works for rotational LTE at this point in time.)  The non-LTE implemnation
+ *  has heritage from the FUTBOLIN implementation.
+ *  
+ * 
+ *  \param  partition_ratio      Out:    The partition ratio to atmospheric temperature (LTE)
+ *  \param  boltzmann_ratio      Out:    The boltzmann ratio to atmospheric temperature (LTE)
+ *  \param  abs_nlte_ratio       Out:    The relative extra absorption due to NLTE effects
+ *  \param  src_nlte_ratio       Out:    The relative extra source due to NLTE effects
+ *  \param  atm_t                In:     The path point atmospheric temperature
+ *  \param  atm_tv_low           In:     The path point vibrational temperature of lower level
+ *  \param  atm_tv_upp           In:     The path point vibrational temperature of upper level
+ *  \param  vib_ev_low           In:     The line's lower level vibrational energy
+ *  \param  vib_ev_upp           In:     The line's upper level vibrational energy
+ * 
+ *  \author Richard Larsson
+ *  \date   2015-05-28
+ */
+void LineRecord::GetLineScalingData(Numeric& partition_ratio, 
+				    Numeric& boltzmann_ratio, 
+				    Numeric& abs_nlte_ratio, 
+				    Numeric& src_nlte_ratio, 
+                                    const Numeric& atm_t, 
+				    const Numeric& atm_tv_low, 
+				    const Numeric& atm_tv_upp, 
+				    const Numeric& vib_ev_low, 
+				    const Numeric& vib_ev_upp) const
 {
+    // Physical constants
     extern const Numeric PLANCK_CONST;
     extern const Numeric BOLTZMAN_CONST;
     
-    // Upper state energy:
-    const Numeric meup = melow + mf * PLANCK_CONST;
+    // 1:  partition_ratio is not calculated and therefore follows the old path
+    if( 1 == mpartitionfunctiondata.GetPartitionFunctionDataParams(partition_ratio, mti0, atm_t) )
+      partition_ratio = IsotopologueData().CalculatePartitionFctRatio(mti0, atm_t);
+
+    // Following Futbolin's division into two parts for the Boltzmann ratio
+    const Numeric gamma = exp( - PLANCK_CONST * mf / ( BOLTZMAN_CONST * atm_t ) );
+    const Numeric gamma_ref = exp( - PLANCK_CONST * mf / ( BOLTZMAN_CONST * mti0 ) );
+
+    const Numeric se = (1.-gamma)/(1.-gamma_ref); // Stimulated emission
+    const Numeric sb = exp( melow / BOLTZMAN_CONST * (atm_t-mti0)/(atm_t*mti0) );  // Boltzmann level
+
+    boltzmann_ratio = sb*se;
     
-    // Variable to see what else needs to be done
-    // 0:  scale is completely calculated internally
-    // 1:  scale is not calculated and therefore follows the old path
-    // 2:  scale is just the scale of exponents, not partition functions
-    const Index test = mpartitionfunctiondata.GetPartitionFunctionDataParams(scale, mti0, atm_t, atm_p, melow, meup);
-    
-  if( test == 1 ) // Nothing is done so the old method is used
-  {
-    scale = IsotopologueData().CalculatePartitionFctRatio(mti0, atm_t);
-    
-    // Boltzmann factors
-    const Numeric nom = exp(- melow / ( BOLTZMAN_CONST * atm_t ) ) -
-    exp(- meup / ( BOLTZMAN_CONST * atm_t ) );
-    
-    const Numeric denom = exp(- melow / ( BOLTZMAN_CONST * mti0 ) ) -
-    exp(- meup / ( BOLTZMAN_CONST * mti0 ) );
-    
-    scale *= nom/denom;
-  }
-  else if( test == 2 ) // Inbuilt partition functions are difficult to pass along to partitionfunctiondata
-  {
-      scale *= IsotopologueData().CalculatePartitionFctRatio(mti0, atm_t);
-  }
+    // r_low and r_upp are ratios for the population level compared to LTE conditions
+    Numeric r_low, r_upp;
+    if( atm_tv_low > 1e-4 *atm_t ) // where 1e-4 is considered a small number so that the multiplication in the denominator does not reach zero
+      r_low = exp( - vib_ev_low * (atm_t-atm_tv_low) / (atm_t*atm_tv_low) );
+    else if( atm_tv_low >= 0.0 )
+      r_low = 0.0;
+    else
+      r_low = 1.0;
+
+    if( atm_tv_upp > 1e-4 *atm_t ) // where 1e-4 is considered a small number so that the multiplication in the denominator does not reach zero
+      r_upp = exp( - vib_ev_upp * (atm_t-atm_tv_upp) / (atm_t*atm_tv_upp) );
+    else if( atm_tv_upp >= 0.0 )
+      r_upp = 0.0;
+    else
+      r_upp = 1.0;
+
+    abs_nlte_ratio = (r_low - r_upp * gamma ) / ( 1 - gamma );
+    src_nlte_ratio = r_upp;
   
 }

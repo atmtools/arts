@@ -98,7 +98,7 @@ void abs_lookupCalc(// Workspace reference:
   Matrix these_abs_coef;
 
   // Absorption cross sections per tag group. 
-  ArrayOfMatrix abs_xsec_per_species;
+  ArrayOfMatrix abs_xsec_per_species, src_xsec_per_species;
 
 
   // 2. Determine various important sizes:
@@ -433,7 +433,7 @@ void abs_lookupCalc(// Workspace reference:
                   
                   // Call agenda to calculate absorption:
                   abs_xsec_agendaExecute(l_ws,
-                                         abs_xsec_per_species,
+                                         abs_xsec_per_species, src_xsec_per_species,
                                          abs_species,
                                          abs_species_active,
                                          f_grid,
@@ -2044,6 +2044,7 @@ void abs_lookupAdapt( GasAbsLookup&                   abs_lookup,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void propmat_clearskyAddFromLookup( Tensor4&       propmat_clearsky,
+                                    Tensor4&       propmat_source_clearsky,
                                       const GasAbsLookup& abs_lookup,
                                       const Index&        abs_lookup_is_adapted,
                                       const Index&        abs_p_interp_order,
@@ -2104,6 +2105,9 @@ void propmat_clearskyAddFromLookup( Tensor4&       propmat_clearsky,
       {
         propmat_clearsky(joker,joker,ii, ii) += abs_scalar_gas;
       }
+    if(propmat_source_clearsky.nbooks()!=0 && propmat_source_clearsky.npages()!=0 && propmat_source_clearsky.nrows()!=0 && propmat_source_clearsky.ncols()!=0)
+      for(Index ii = 0; ii < stokes_dim; ii++)
+        propmat_source_clearsky(joker,joker,ii, ii) += abs_scalar_gas;
     
 }
 
@@ -2138,7 +2142,7 @@ void propmat_clearsky_fieldCalc( Workspace& ws,
     throw runtime_error( "The atmospheric fields must be flagged to have "
                          "passed a consistency check (atmfields_checked=1)." );
 
-    Tensor4  abs;
+    Tensor4  abs, src;
     Vector  a_vmr_list;
 
     // Get the number of species from the leading dimension of vmr_field:
@@ -2203,7 +2207,7 @@ void propmat_clearsky_fieldCalc( Workspace& ws,
 if (!arts_omp_in_parallel()                        \
 && n_pressures >= arts_omp_get_max_threads())  \
 firstprivate(l_ws, l_abs_agenda, this_f_grid)     \
-private(abs, a_vmr_list)
+private(abs,src, a_vmr_list)
         for ( Index ipr=0; ipr<n_pressures; ++ipr )         // Pressure:  ipr
         {
             // Skip remaining iterations if an error occurred
@@ -2252,9 +2256,9 @@ private(abs, a_vmr_list)
 
                         // Execute agenda to calculate local absorption.
                         // Agenda input:  f_index, a_pressure, a_temperature, a_vmr_list
-                        // Agenda output: abs
+                        // Agenda output: abs, src
                         propmat_clearsky_agendaExecute(l_ws,
-                                                       abs,
+                                                       abs,src,
                                                        this_f_grid,
                                                        this_rtp_mag, los,
                                                        a_pressure,
@@ -2435,10 +2439,12 @@ Numeric calc_lookup_error(// Parameters for lookup table:
   
   // Variable to hold result of absorption calculation:
   Tensor4 propmat_clearsky;
+  Tensor4 propmat_source_clearsky;
   Index propmat_clearsky_checked = 1; // FIXME: OLE: Properly pass this through?
 
   // Initialize propmat_clearsky:
   propmat_clearskyInit(propmat_clearsky,
+		       propmat_source_clearsky,
                           al.species,
                           al.f_grid,
                           1,                 // Stokes dimension
@@ -2448,6 +2454,7 @@ Numeric calc_lookup_error(// Parameters for lookup table:
   // Add result of LBL calculation to propmat_clearsky:
   propmat_clearskyAddOnTheFly(ws,
                                  propmat_clearsky,
+				 propmat_source_clearsky,
                                  al.f_grid,
                                  al.species,
                                  local_p,

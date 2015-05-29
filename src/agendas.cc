@@ -71,7 +71,7 @@ void define_agenda_data()
         "The include file 'agendas.arts' predefines some possible agendas\n"
         "that can be used here.\n"
         ),
-       OUTPUT( "propmat_clearsky" ),
+       OUTPUT( "propmat_clearsky", "propmat_source_clearsky" ),
        INPUT(  "f_grid", "rtp_mag", "rtp_los", "rtp_pressure", 
                "rtp_temperature", "rtp_vmr" )));
   
@@ -100,7 +100,7 @@ void define_agenda_data()
        "The include file 'agendas.arts' predefines a number of agendas that\n"
        "should be useful for most users.\n"
        ),
-      OUTPUT( "abs_xsec_per_species" ),
+      OUTPUT( "abs_xsec_per_species", "src_xsec_per_species" ),
       INPUT(  "abs_species", "abs_species_active",
               "f_grid", "abs_p", "abs_t", "abs_vmrs" )));
 

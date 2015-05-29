@@ -1424,14 +1424,16 @@ void get_ppath_abs(
         Vector rtp_vmr(0);
         if( nabs )
           {
-            propmat_clearsky_agendaExecute( l_ws, propmat_clearsky, 
+	    Tensor4 src_dummy; //FIXME: do this right
+            propmat_clearsky_agendaExecute( l_ws, propmat_clearsky, src_dummy,
                ppath_f(joker,ip), ppath_mag(joker,ip), ppath.los(ip,joker), 
                ppath_p[ip], ppath_t[ip], ppath_vmr(joker,ip),
                l_propmat_clearsky_agenda );
           }
         else
           {
-            propmat_clearsky_agendaExecute( l_ws, propmat_clearsky, 
+	    Tensor4 src_dummy; //FIXME: do this right
+            propmat_clearsky_agendaExecute( l_ws, propmat_clearsky, src_dummy,
                ppath_f(joker,ip), ppath_mag(joker,ip), ppath.los(ip,joker), 
                ppath_p[ip], ppath_t[ip], Vector(0), l_propmat_clearsky_agenda );
           }
