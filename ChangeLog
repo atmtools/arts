@@ -1,3 +1,14 @@
+2015-05-29  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-207
+	
+	* src/absorption.cc (xsec_single_line, xsec_species_linemixing_wrapper):
+
+	Create a non-const empty Vector variable to fix error.
+	This is necessary because objects that are created inline are constant!
+
+	All tests succeed again.
+
 2015-05-29  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-3-206

@@ -834,7 +834,8 @@ firstprivate(ls_attenuation, ls_phase, fac, f_local, aux)
             // Watch out! This is output, we have to be careful not to
             // introduce race conditions when writing to it.
             VectorView xsec_i_attenuation = xsec_attenuation(Range(joker),i);
-	    VectorView xsec_i_source = calc_src ? xsec_source(Range(joker),i) : Vector(0);
+            Vector empty_vector;
+	    VectorView xsec_i_source = calc_src ? xsec_source(Range(joker),i) : empty_vector;
             VectorView xsec_i_phase = xsec_phase(Range(joker),i);
             
             
@@ -1176,7 +1177,8 @@ void xsec_single_line(VectorView xsec_accum_attenuation,
         // Get a handle on the range of xsec that we want to change.
         // We use nfl here, which could be one less than nfls.
         VectorView this_xsec_attenuation      = xsec_accum_attenuation[Range(i_f_min,nfl)];
-	VectorView this_xsec_source           = calc_src ? xsec_accum_source[Range(i_f_min,nfl)] : Vector(0);
+        Vector empty_vector;
+	    VectorView this_xsec_source           = calc_src ? xsec_accum_source[Range(i_f_min,nfl)] : empty_vector;
         VectorView this_xsec_phase            = xsec_accum_phase[Range(i_f_min,nfl)];
         
         // Get handles on the range of ls and fac that we need.
@@ -1768,8 +1770,9 @@ firstprivate(attenuation, phase, fac, f_local, aux)
             // Still an ugly case with non-resonant line near 0 frequency, since this is actually a band...
             if( LineMixingData::LM_LBLRTM_O2NonResonant != abs_lines[ii].LineMixing().Type() )
             {
+                Vector empty_vector;
                 xsec_single_line(   xsec_attenuation(joker,jj), 
-				    calc_src?xsec_source(joker,jj):Vector(0),
+				    calc_src?xsec_source(joker,jj):empty_vector,
                                     xsec_phase(joker,jj), 
                                     attenuation, 
                                     phase,
