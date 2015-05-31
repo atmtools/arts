@@ -357,9 +357,10 @@ void iyRadioLink(
   Vector       ppath_p, ppath_t;
   Matrix       ppath_vmr, ppath_pnd, ppath_mag, ppath_wind, ppath_f;
   Tensor5      abs_per_species;
-  Tensor4      ppath_abs, trans_partial, trans_cumulat, pnd_ext_mat;
+  Tensor4      ppath_ext, trans_partial, trans_cumulat, pnd_ext_mat;
+  Tensor3      dummy_ppath_abs;
   Vector       scalar_tau;
-  ArrayOfIndex clear2cloudbox;
+  ArrayOfIndex clear2cloudbox, dummy_lte;
   //
   if( np > 1 )
     {
@@ -370,7 +371,7 @@ void iyRadioLink(
                          mag_u_field, mag_v_field, mag_w_field );      
       get_ppath_f(       ppath_f, ppath, f_grid,  atmosphere_dim, 
                          rte_alonglos_v, ppath_wind );
-      get_ppath_abs(     ws, ppath_abs, abs_per_species,
+      get_ppath_pmat(    ws, ppath_ext, dummy_ppath_abs, dummy_lte, abs_per_species,
                          propmat_clearsky_agenda, ppath, 
                          ppath_p, ppath_t, ppath_vmr, ppath_f, 
                          ppath_mag, f_grid, stokes_dim, iaps );
@@ -378,7 +379,7 @@ void iyRadioLink(
         { 
           ArrayOfArrayOfIndex  extmat_case;          
           get_ppath_trans(  trans_partial, extmat_case, trans_cumulat,
-                            scalar_tau, ppath, ppath_abs, f_grid, stokes_dim );
+                            scalar_tau, ppath, ppath_ext, f_grid, stokes_dim );
         }
       else
         {
@@ -391,7 +392,7 @@ void iyRadioLink(
                             ppath_f, atmosphere_dim, cloudbox_limits, pnd_field,
                             use_mean_scat_data, scat_data, verbosity );
           get_ppath_trans2( trans_partial, extmat_case, trans_cumulat, 
-                            scalar_tau, ppath, ppath_abs, f_grid, stokes_dim, 
+                            scalar_tau, ppath, ppath_ext, f_grid, stokes_dim, 
                             clear2cloudbox, pnd_ext_mat );
         }
     }
@@ -425,7 +426,7 @@ void iyRadioLink(
             for( Index is1=0; is1<ns; is1++ ){
               for( Index is2=0; is2<ns; is2++ ){
                 iy_aux[auxAbsSum](iv,is1,is2,np-1) = 
-                                            ppath_abs(iv,is1,is2,np-1); } } } }
+                                            ppath_ext(iv,is1,is2,np-1); } } } }
       for( Index j=0; j<auxAbsSpecies.nelem(); j++ )
         { for( Index iv=0; iv<nf; iv++ ) {
             for( Index is1=0; is1<stokes_dim; is1++ ){
@@ -513,7 +514,7 @@ void iyRadioLink(
                 for( Index is1=0; is1<ns; is1++ ){
                   for( Index is2=0; is2<ns; is2++ ){
                     iy_aux[auxAbsSum](iv,is1,is2,ip) = 
-                                               ppath_abs(iv,is1,is2,ip); } } } }
+                                               ppath_ext(iv,is1,is2,ip); } } } }
           for( Index j=0; j<auxAbsSpecies.nelem(); j++ )
             { for( Index iv=0; iv<nf; iv++ ) {
                 for( Index is1=0; is1<stokes_dim; is1++ ){
@@ -938,9 +939,10 @@ void iyTransmissionStandard(
   Vector              ppath_p, ppath_t;
   Matrix              ppath_vmr, ppath_pnd, ppath_wind, ppath_mag, ppath_f;
   Tensor5             abs_per_species;
-  Tensor4             ppath_abs, trans_partial, trans_cumulat, pnd_ext_mat;
+  Tensor4             ppath_ext, trans_partial, trans_cumulat, pnd_ext_mat;
+  Tensor3             dummy_ppath_abs;
   Vector              scalar_tau;
-  ArrayOfIndex        clear2cloudbox;
+  ArrayOfIndex        clear2cloudbox, dummy_lte;
   ArrayOfArrayOfIndex extmat_case;          
   //
   if( np > 1 )
@@ -952,14 +954,14 @@ void iyTransmissionStandard(
                          mag_u_field, mag_v_field, mag_w_field );      
       get_ppath_f(       ppath_f, ppath, f_grid,  atmosphere_dim, 
                          rte_alonglos_v, ppath_wind );
-      get_ppath_abs(     ws, ppath_abs, abs_per_species, 
+      get_ppath_pmat(    ws, ppath_ext, dummy_ppath_abs, dummy_lte, abs_per_species, 
                          propmat_clearsky_agenda, ppath, 
                          ppath_p, ppath_t, ppath_vmr, ppath_f, 
                          ppath_mag, f_grid, stokes_dim, iaps );
       if( !cloudbox_on )
         { 
           get_ppath_trans( trans_partial, extmat_case, trans_cumulat, 
-                           scalar_tau, ppath, ppath_abs, f_grid, stokes_dim );
+                           scalar_tau, ppath, ppath_ext, f_grid, stokes_dim );
         }
       else
         {
@@ -971,7 +973,7 @@ void iyTransmissionStandard(
                             atmosphere_dim, cloudbox_limits, pnd_field, 
                             use_mean_scat_data, scat_data, verbosity );
           get_ppath_trans2( trans_partial, extmat_case, trans_cumulat, 
-                            scalar_tau, ppath, ppath_abs, f_grid, stokes_dim, 
+                            scalar_tau, ppath, ppath_ext, f_grid, stokes_dim, 
                             clear2cloudbox, pnd_ext_mat );
         }
     }
@@ -1028,10 +1030,11 @@ void iyTransmissionStandard(
                 { 
                   Tensor5 dummy_abs_per_species;
                   Vector t2 = ppath_t;   t2 += dt;
-                  get_ppath_abs( ws, ppath_at2, dummy_abs_per_species,
-                                 propmat_clearsky_agenda, ppath, ppath_p,
-                                 t2, ppath_vmr, ppath_f, ppath_mag, f_grid, 
-                                 stokes_dim, ArrayOfIndex(0) );
+                  get_ppath_pmat( ws, ppath_at2, dummy_ppath_abs, 
+                                  dummy_lte, dummy_abs_per_species,
+                                  propmat_clearsky_agenda, ppath, ppath_p,
+                                  t2, ppath_vmr, ppath_f, ppath_mag, f_grid, 
+                                  stokes_dim, ArrayOfIndex(0) );
                 }
               else if( jac_wind_i[iq] )
                 {
@@ -1039,34 +1042,37 @@ void iyTransmissionStandard(
                     {
                       Tensor5 dummy_abs_per_species;
                       Matrix f2, w2 = ppath_wind;   w2(0,joker) += dw;
-                      get_ppath_f(   f2, ppath, f_grid,  atmosphere_dim, 
-                                     rte_alonglos_v, w2 );
-                      get_ppath_abs( ws, ppath_awu, dummy_abs_per_species,
-                                     propmat_clearsky_agenda, ppath, ppath_p, 
-                                     ppath_t, ppath_vmr, f2, ppath_mag, f_grid,
-                                     stokes_dim, ArrayOfIndex(0) );
+                      get_ppath_f(    f2, ppath, f_grid,  atmosphere_dim, 
+                                      rte_alonglos_v, w2 );
+                      get_ppath_pmat( ws, ppath_awu, dummy_ppath_abs, 
+                                      dummy_lte, dummy_abs_per_species,
+                                      propmat_clearsky_agenda, ppath, ppath_p, 
+                                      ppath_t, ppath_vmr, f2, ppath_mag, f_grid,
+                                      stokes_dim, ArrayOfIndex(0) );
                     }
                   else if( jac_wind_i[iq] == 2 )
                     {
                       Tensor5 dummy_abs_per_species;
                       Matrix f2, w2 = ppath_wind;   w2(1,joker) += dw;
-                      get_ppath_f(   f2, ppath, f_grid,  atmosphere_dim, 
-                                     rte_alonglos_v, w2 );
-                      get_ppath_abs( ws, ppath_awv, dummy_abs_per_species,
-                                     propmat_clearsky_agenda, ppath, ppath_p, 
-                                     ppath_t, ppath_vmr, f2, ppath_mag, f_grid,
-                                     stokes_dim, ArrayOfIndex(0) );
+                      get_ppath_f(    f2, ppath, f_grid,  atmosphere_dim, 
+                                      rte_alonglos_v, w2 );
+                      get_ppath_pmat( ws, ppath_awv, dummy_ppath_abs, 
+                                      dummy_lte, dummy_abs_per_species,
+                                      propmat_clearsky_agenda, ppath, ppath_p, 
+                                      ppath_t, ppath_vmr, f2, ppath_mag, f_grid,
+                                      stokes_dim, ArrayOfIndex(0) );
                     }
                   else if( jac_wind_i[iq] == 3 )
                     {
                       Tensor5 dummy_abs_per_species;
                       Matrix f2, w2 = ppath_wind;   w2(2,joker) += dw;
-                      get_ppath_f(   f2, ppath, f_grid,  atmosphere_dim, 
-                                     rte_alonglos_v, w2 );
-                      get_ppath_abs( ws, ppath_aww, dummy_abs_per_species,
-                                     propmat_clearsky_agenda, ppath, ppath_p, 
-                                     ppath_t, ppath_vmr, f2, ppath_mag, f_grid,
-                                     stokes_dim, ArrayOfIndex(0) );
+                      get_ppath_f(    f2, ppath, f_grid,  atmosphere_dim, 
+                                      rte_alonglos_v, w2 );
+                      get_ppath_pmat( ws, ppath_aww, dummy_ppath_abs, 
+                                      dummy_lte, dummy_abs_per_species,
+                                      propmat_clearsky_agenda, ppath, ppath_p, 
+                                      ppath_t, ppath_vmr, f2, ppath_mag, f_grid,
+                                      stokes_dim, ArrayOfIndex(0) );
                     }
                 }
             }
@@ -1090,7 +1096,7 @@ void iyTransmissionStandard(
             for( Index is1=0; is1<ns; is1++ ){
               for( Index is2=0; is2<ns; is2++ ){
                 iy_aux[auxAbsSum](iv,is1,is2,np-1) = 
-                                             ppath_abs(iv,is1,is2,np-1); } } } }
+                                             ppath_ext(iv,is1,is2,np-1); } } } }
       for( Index j=0; j<auxAbsSpecies.nelem(); j++ )
         { for( Index iv=0; iv<nf; iv++ ) {
             for( Index is1=0; is1<stokes_dim; is1++ ){
@@ -1189,8 +1195,8 @@ void iyTransmissionStandard(
                                     for( Index is2=0; is2<ns; is2++ ) {
                                       ext_mat(is1,is2) = 0.5 * ( dd *
                                        abs_per_species(iiaps,iv,is1,is2,ip  ) +
-                                                  ppath_abs(iv,is1,is2,ip) +
-                                                  ppath_abs(iv,is1,is2,ip+1) );
+                                                  ppath_ext(iv,is1,is2,ip) +
+                                                  ppath_ext(iv,is1,is2,ip+1) );
                                     } }
                                   ext2trans( dtdx, extmat_case[ip][iv], 
                                              ext_mat, ppath.lstep[ip] ); 
@@ -1211,8 +1217,8 @@ void iyTransmissionStandard(
                                     for( Index is2=0; is2<ns; is2++ ) {
                                       ext_mat(is1,is2) = 0.5 * ( dd *
                                        abs_per_species(iiaps,iv,is1,is2,ip+1) +
-                                                  ppath_abs(iv,is1,is2,ip) +
-                                                  ppath_abs(iv,is1,is2,ip+1) );
+                                                  ppath_ext(iv,is1,is2,ip) +
+                                                  ppath_ext(iv,is1,is2,ip+1) );
                                     } }
                                   ext2trans( dtdx, extmat_case[ip][iv], 
                                              ext_mat, ppath.lstep[ip] ); 
@@ -1248,10 +1254,10 @@ void iyTransmissionStandard(
                                 {
                                   const Numeric dkdx1 = (1/dw) * ( 
                                                    (*ppath_awx)(iv,0,0,ip  ) -
-                                                      ppath_abs(iv,0,0,ip  ) );
+                                                      ppath_ext(iv,0,0,ip  ) );
                                   const Numeric dkdx2 = (1/dw) * ( 
                                                    (*ppath_awx)(iv,0,0,ip+1) -
-                                                      ppath_abs(iv,0,0,ip+1) );
+                                                      ppath_ext(iv,0,0,ip+1) );
                                   const Numeric x = -0.5 * ppath.lstep[ip] * 
                                                  trans_cumulat(iv,0,0,ip+1);
                                   for( Index is=0; is<ns; is++ )
@@ -1272,7 +1278,7 @@ void iyTransmissionStandard(
                                     for( Index is2=0; is2<ns; is2++ ) {
                                       ext_mat(is1,is2) = 0.5 * (
                                                (*ppath_awx)(iv,is1,is2,ip  ) +
-                                                  ppath_abs(iv,is1,is2,ip+1) );
+                                                  ppath_ext(iv,is1,is2,ip+1) );
                                     } }
                                   ext2trans( dtdx, extmat_case[ip][iv], 
                                              ext_mat, ppath.lstep[ip] ); 
@@ -1292,7 +1298,7 @@ void iyTransmissionStandard(
                                   for( Index is1=0; is1<ns; is1++ ) {
                                     for( Index is2=0; is2<ns; is2++ ) {
                                       ext_mat(is1,is2) = 0.5 * (
-                                                  ppath_abs(iv,is1,is2,ip  ) +
+                                                  ppath_ext(iv,is1,is2,ip  ) +
                                                (*ppath_awx)(iv,is1,is2,ip+1) );
                                     } }
                                   ext2trans( dtdx, extmat_case[ip][iv], 
@@ -1321,10 +1327,10 @@ void iyTransmissionStandard(
                                 {
                                   const Numeric dkdt1 = 1/dt * (
                                                       ppath_at2(iv,0,0,ip  ) -
-                                                      ppath_abs(iv,0,0,ip  ) );
+                                                      ppath_ext(iv,0,0,ip  ) );
                                   const Numeric dkdt2 = 1/dt * (
                                                       ppath_at2(iv,0,0,ip+1) - 
-                                                      ppath_abs(iv,0,0,ip+1) );
+                                                      ppath_ext(iv,0,0,ip+1) );
                                   const Numeric x = -0.5 * ppath.lstep[ip] * 
                                                  trans_cumulat(iv,0,0,ip+1);
                                   for( Index is=0; is<ns; is++ )
@@ -1339,8 +1345,8 @@ void iyTransmissionStandard(
                                                                      "HSE on" )
                                     {
                                       const Numeric kbar = 0.5 * ( 
-                                                      ppath_abs(iv,0,0,ip  ) +
-                                                      ppath_abs(iv,0,0,ip+1) );
+                                                      ppath_ext(iv,0,0,ip  ) +
+                                                      ppath_ext(iv,0,0,ip+1) );
                                       for( Index is=0; is<ns; is++ )
                                         { 
                                           const Numeric z = x * iy(iv,is);
@@ -1361,7 +1367,7 @@ void iyTransmissionStandard(
                                     for( Index is2=0; is2<ns; is2++ ) {
                                       ext_mat(is1,is2) = 0.5 * (
                                                   ppath_at2(iv,is1,is2,ip  ) +
-                                                  ppath_abs(iv,is1,is2,ip+1) );
+                                                  ppath_ext(iv,is1,is2,ip+1) );
                                     } }
                                   ext2trans( dtdx, extmat_case[ip][iv], 
                                              ext_mat, ppath.lstep[ip] ); 
@@ -1381,7 +1387,7 @@ void iyTransmissionStandard(
                                   for( Index is1=0; is1<ns; is1++ ) {
                                     for( Index is2=0; is2<ns; is2++ ) {
                                       ext_mat(is1,is2) = 0.5 * (
-                                                  ppath_abs(iv,is1,is2,ip  ) +
+                                                  ppath_ext(iv,is1,is2,ip  ) +
                                                   ppath_at2(iv,is1,is2,ip+1) );
                                     } }
                                   ext2trans( dtdx, extmat_case[ip][iv], 
@@ -1404,8 +1410,8 @@ void iyTransmissionStandard(
                                       for( Index is1=0; is1<ns; is1++ ) {
                                         for( Index is2=0; is2<ns; is2++ ) {
                                           ext_mat(is1,is2) = 0.5 * (
-                                                   ppath_abs(iv,is1,is2,ip  ) +
-                                                   ppath_abs(iv,is1,is2,ip+1) );
+                                                   ppath_ext(iv,is1,is2,ip  ) +
+                                                   ppath_ext(iv,is1,is2,ip+1) );
                                         } }
                                       // dl for disturbed tbar
                                       const Numeric tbar = 0.5 * (
@@ -1486,7 +1492,7 @@ void iyTransmissionStandard(
                 for( Index is1=0; is1<ns; is1++ ){
                   for( Index is2=0; is2<ns; is2++ ){
                     iy_aux[auxAbsSum](iv,is1,is2,ip) = 
-                                               ppath_abs(iv,is1,is2,ip); } } } }
+                                               ppath_ext(iv,is1,is2,ip); } } } }
           for( Index j=0; j<auxAbsSpecies.nelem(); j++ )
             { for( Index iv=0; iv<nf; iv++ ) {
                 for( Index is1=0; is1<stokes_dim; is1++ ){

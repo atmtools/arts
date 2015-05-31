@@ -126,11 +126,14 @@ Numeric dotprod_with_los(
   const Index&      atmosphere_dim );
 
 void emission_rtstep(
-          Matrix&      iy,
-    const Index&       stokes_dim,
-    ConstVectorView    bbar,
-       ArrayOfIndex&   extmat_case,
-    ConstTensor3View   t );
+          Matrix&         iy,
+    const Index&          stokes_dim,
+    ConstVectorView       bbar,
+    const ArrayOfIndex&   extmat_case,
+    ConstTensor3View      t,
+    const bool&           nonlte,
+    ConstTensor3View      extbar,
+    ConstMatrixView       absbar );
 
 void ext2trans(
          MatrixView   trans_mat,
@@ -192,9 +195,11 @@ void get_ppath_atmvars(
   ConstTensor3View   mag_v_field,
   ConstTensor3View   mag_w_field );
 
-void get_ppath_abs( 
+void get_ppath_pmat( 
         Workspace&      ws,
-        Tensor4&        ppath_abs,
+        Tensor4&        ppath_ext,
+        Tensor3&        ppath_abs,
+        ArrayOfIndex&   lte,
         Tensor5&        abs_per_species,
   const Agenda&         propmat_clearsky_agenda,
   const Ppath&          ppath,
@@ -246,7 +251,7 @@ void get_ppath_trans(
         Tensor4&               trans_cumulat,
         Vector&                scalar_tau,
   const Ppath&                 ppath,
-  ConstTensor4View&            ppath_abs,
+  ConstTensor4View&            ppath_ext,
   ConstVectorView              f_grid, 
   const Index&                 stokes_dim );
 
@@ -256,7 +261,7 @@ void get_ppath_trans2(
         Tensor4&               trans_cumulat,
         Vector&                scalar_tau,
   const Ppath&                 ppath,
-  ConstTensor4View&            ppath_abs,
+  ConstTensor4View&            ppath_ext,
   ConstVectorView              f_grid, 
   const Index&                 stokes_dim,
   const ArrayOfIndex&          clear2cloudbox,

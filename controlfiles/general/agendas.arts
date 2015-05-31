@@ -201,7 +201,7 @@ AgendaCreate( propmat_clearsky_agenda__OnTheFly )
 AgendaSet( propmat_clearsky_agenda__OnTheFly ){
   Ignore(rtp_mag)
   Ignore(rtp_los)
-  propmat_clearskyInitWithSource
+  propmat_clearskyInit
   propmat_clearskyAddOnTheFly
 }
 
@@ -210,7 +210,7 @@ AgendaSet( propmat_clearsky_agenda__OnTheFly ){
 #
 AgendaCreate( propmat_clearsky_agenda__OnTheFly_Zeeman )
 AgendaSet( propmat_clearsky_agenda__OnTheFly_Zeeman ){
-  propmat_clearskyInitWithSource
+  propmat_clearskyInit
   propmat_clearskyAddOnTheFly
   propmat_clearskyAddZeeman
 }
@@ -220,7 +220,7 @@ AgendaSet( propmat_clearsky_agenda__OnTheFly_Zeeman ){
 #
 AgendaCreate( propmat_clearsky_agenda__OnTheFly_ZeemanPreCalc )
 AgendaSet( propmat_clearsky_agenda__OnTheFly_ZeemanPreCalc ){
-  propmat_clearskyInitWithSource
+  propmat_clearskyInit
   propmat_clearskyAddOnTheFly
   propmat_clearskyAddZeemanFromPreCalc
 }
@@ -230,7 +230,7 @@ AgendaSet( propmat_clearsky_agenda__OnTheFly_ZeemanPreCalc ){
 #
 AgendaCreate( propmat_clearsky_agenda__OnTheFly_Faraday )
 AgendaSet( propmat_clearsky_agenda__OnTheFly_Faraday ){
-  propmat_clearskyInitWithSource
+  propmat_clearskyInit
   propmat_clearskyAddOnTheFly
   propmat_clearskyAddFaraday
 }
@@ -243,7 +243,7 @@ AgendaCreate( propmat_clearsky_agenda__LookUpTable )
 AgendaSet( propmat_clearsky_agenda__LookUpTable ){
   Ignore(rtp_mag)
   Ignore(rtp_los)
-  propmat_clearskyInitWithSource
+  propmat_clearskyInit
   propmat_clearskyAddFromLookup
 }
 
@@ -253,7 +253,7 @@ AgendaSet( propmat_clearsky_agenda__LookUpTable ){
 # 
 AgendaCreate( propmat_clearsky_agenda__LookUpTable_Zeeman )
 AgendaSet( propmat_clearsky_agenda__LookUpTable_Zeeman ){
-  propmat_clearskyInitWithSource
+  propmat_clearskyInit
   propmat_clearskyAddFromLookup
   propmat_clearskyAddZeeman
 }
@@ -271,7 +271,7 @@ FlagOff( abs_xsec_agenda_checked )
 #
 AgendaCreate( abs_xsec_agenda__noCIA )
 AgendaSet( abs_xsec_agenda__noCIA ){
-  abs_xsec_per_speciesInitWithSource
+  abs_xsec_per_speciesInit
   abs_xsec_per_speciesAddLines
   abs_xsec_per_speciesAddConts
 }
@@ -281,7 +281,7 @@ AgendaSet( abs_xsec_agenda__noCIA ){
 #
 AgendaCreate( abs_xsec_agenda__withCIA )
 AgendaSet( abs_xsec_agenda__withCIA ){
-  abs_xsec_per_speciesInitWithSource
+  abs_xsec_per_speciesInit
   abs_xsec_per_speciesAddLines
   abs_xsec_per_speciesAddConts
   abs_xsec_per_speciesAddCIA
@@ -293,7 +293,7 @@ AgendaSet( abs_xsec_agenda__withCIA ){
 #
 AgendaCreate( abs_xsec_agenda__withCIAextraT )
 AgendaSet( abs_xsec_agenda__withCIAextraT ){
-  abs_xsec_per_speciesInitWithSource
+  abs_xsec_per_speciesInit
   abs_xsec_per_speciesAddLines
   abs_xsec_per_speciesAddConts
   abs_xsec_per_speciesAddCIA( T_extrapolfac=6. )

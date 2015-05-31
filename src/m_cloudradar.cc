@@ -210,10 +210,11 @@ void iyCloudRadar(
   //
   Vector    ppath_p, ppath_t;
   Matrix    ppath_vmr, ppath_pnd, ppath_wind, ppath_mag, ppath_f;
-  Tensor4   ppath_abs, trans_partial, trans_cumulat, pnd_ext_mat;
+  Tensor3   dummy_ppath_abs;
+  Tensor4   ppath_ext, trans_partial, trans_cumulat, pnd_ext_mat;
   Tensor5   dummy_abs_per_species;
   Vector    scalar_tau;
-  ArrayOfIndex clear2cloudbox;
+  ArrayOfIndex clear2cloudbox, dummy_lte;
   Array<ArrayOfArrayOfSingleScatteringData> scat_data_single;
   //
   if( np > 1 )
@@ -225,7 +226,8 @@ void iyCloudRadar(
                          mag_u_field, mag_v_field, mag_w_field );
       get_ppath_f(       ppath_f, ppath, f_grid,  atmosphere_dim, 
                          rte_alonglos_v, ppath_wind );
-      get_ppath_abs(     ws, ppath_abs, dummy_abs_per_species, 
+      get_ppath_pmat(    ws, ppath_ext, dummy_ppath_abs, dummy_lte, 
+                         dummy_abs_per_species, 
                          propmat_clearsky_agenda, ppath, 
                          ppath_p, ppath_t, ppath_vmr, ppath_f, ppath_mag,
                          f_grid, stokes_dim, ArrayOfIndex(0) );
@@ -233,7 +235,7 @@ void iyCloudRadar(
         { 
           ArrayOfArrayOfIndex  extmat_case;
           get_ppath_trans( trans_partial, extmat_case, trans_cumulat, 
-                           scalar_tau, ppath, ppath_abs, f_grid, stokes_dim );
+                           scalar_tau, ppath, ppath_ext, f_grid, stokes_dim );
         }
       else
         {
@@ -246,7 +248,7 @@ void iyCloudRadar(
                             atmosphere_dim, cloudbox_limits, pnd_field, 
                             use_mean_scat_data, scat_data, verbosity );
           get_ppath_trans2( trans_partial, extmat_case, trans_cumulat, scalar_tau, 
-                            ppath, ppath_abs, f_grid, stokes_dim, 
+                            ppath, ppath_ext, f_grid, stokes_dim, 
                             clear2cloudbox, pnd_ext_mat );
         }
     }

@@ -1,3 +1,34 @@
+2015-05-31  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-209
+
+	* Work in progress ...
+
+	* controlfiles/general/agendas.arts: Reverted template definitions
+	of propmat_clearsky_agenda. Now propmat_clearskyInit used agian.
+
+	* src/m_rte.cc (iyEmissionStandard): Adopted to changes in
+	get_ppath_pmat and emission_rtstep. Code in place for calculation
+	of spectra, but not for jacobians. The combination non-LTE and
+	jacobians results in an error.
+
+	* src/m_fos.cc (fos): Basic adoption to changes in get_ppath_pmat
+	and emission_rtstep. So far just an error if there is any non-LTE
+	point.
+
+	* src/rte.cc (emission_rtstep): Extended to also have input
+	arguments for non-LTE situations. But no code yet added for non_LTE.
+
+	* src/m_cloudradar.cc (iyCloudRadar):
+	* src/m_transmitter.cc (iyRadioLink, iyTransmissionStandard):
+	Updated to changes in get_ppath_pmat. All should be ready here as
+	the methods do not operate with emission.
+
+	* src/rte.cc (get_ppath_abs): Renamed
+
+	* src/rte.cc (get_ppath_pmat): New name of function above. Two
+	output arguments added, to handle introduction of propmat_source_clearsky.
+
 2015-05-29  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-208
@@ -15,7 +46,7 @@
 2015-05-29  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-207
-	
+
 	* src/absorption.cc (xsec_single_line, xsec_species_linemixing_wrapper):
 
 	Create a non-const empty Vector variable to fix error.

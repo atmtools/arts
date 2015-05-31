@@ -803,7 +803,12 @@ Numeric dotprod_with_los(
 /*!
     Radiative transfer over a step, with emission.
 
-    In scalar notation, this is done: iy = iy*t + bbar*(1-t)
+    With LTE, in vector notation: iy = t*iy + (1-t)*B,
+
+    and with non-LTE, in vector notation: iy = t*iy + (1-t)*inv(extbar)*Abar*B
+    
+    where B=[bbar 0 0 0]', and absbar is first column of Abar (remaining
+    columns do not matter):
 
     The calculations are done differently for extmat_case 1 and 2/3.
 
@@ -815,16 +820,22 @@ Numeric dotprod_with_los(
     \param   extmat_case  In: As returned by get_ppath_trans, but just for the
                               frequency of cocncern.
     \param   t            In: Transmission matrix of the step.
+    \param   nonlte       In: 0 if LTE applies, otherwise 1.
+    \parem   extbar       In: Average extinction matrix. Totally ignored if lte=1.
+    \parem   absbar       In: Average absorption. Totally ignored if lte=1.
 
     \author Patrick Eriksson 
-    \date   2013-04-19
+    \date   2013-04-19 (non-lte added 2015-05-31)
 */
 void emission_rtstep(
-          Matrix&      iy,
-    const Index&       stokes_dim,
-    ConstVectorView    bbar,
-       ArrayOfIndex&   extmat_case,
-    ConstTensor3View   t )
+          Matrix&         iy,
+    const Index&          stokes_dim,
+    ConstVectorView       bbar,
+    const ArrayOfIndex&   extmat_case,
+    ConstTensor3View      t,
+    const bool&           nonlte,
+    ConstTensor3View      extbar,
+    ConstMatrixView       absbar )
 {
   const Index nf = bbar.nelem();
 
@@ -832,42 +843,58 @@ void emission_rtstep(
   assert( t.npages() == nf );
   assert( extmat_case.nelem() == nf );
 
-  // Spectrum at end of ppath step 
-  if( stokes_dim == 1 )
+  //
+  // LTE
+  //
+  if( !nonlte )
     {
-      for( Index iv=0; iv<nf; iv++ )  
-        { iy(iv,0) = iy(iv,0) * t(iv,0,0) + bbar[iv] * ( 1 - t(iv,0,0) ); }
-    }
+      
+      // LTE, scalar case
+      if( stokes_dim == 1 )
+        {
+          for( Index iv=0; iv<nf; iv++ )  
+            { iy(iv,0) = iy(iv,0) * t(iv,0,0) + bbar[iv] * ( 1 - t(iv,0,0) ); }
+        }
 
-  else
-    {
+      // LTE, vector cases
+      else
+        {
 #pragma omp parallel for      \
   if (!arts_omp_in_parallel()  \
       && nf >= arts_omp_get_max_threads())
-      for( Index iv=0; iv<nf; iv++ )
-        {
-          assert( extmat_case[iv]>=1 && extmat_case[iv]<=3 );
-          // Unpolarised absorption:
-          if( extmat_case[iv] == 1 )
+          for( Index iv=0; iv<nf; iv++ )
             {
-              iy(iv,0) = iy(iv,0) * t(iv,0,0) + bbar[iv] * ( 1 - t(iv,0,0) );
-              for( Index is=1; is<stokes_dim; is++ )
-                { iy(iv,is) = iy(iv,is) * t(iv,is,is); }
-            }
-          // The general case:
-          else
-            {
-              // Transmitted term
-              Vector tt(stokes_dim);
-              mult( tt, t(iv,joker,joker), iy(iv,joker));
-              // Add emission, first Stokes element
-              iy(iv,0) = tt[0] + bbar[iv] * ( 1 - t(iv,0,0) );
-              // Remaining Stokes elements
-              for( Index i=1; i<stokes_dim; i++ )
-                { iy(iv,i) = tt[i] - bbar[iv] * t(iv,i,0); }
-                      
+              assert( extmat_case[iv]>=1 && extmat_case[iv]<=3 );
+              // Unpolarised absorption:
+              if( extmat_case[iv] == 1 )
+                {
+                  iy(iv,0) = iy(iv,0) * t(iv,0,0) + bbar[iv] * ( 1 - t(iv,0,0) );
+                  for( Index is=1; is<stokes_dim; is++ )
+                    { iy(iv,is) = iy(iv,is) * t(iv,is,is); }
+                }
+              // The general case:
+              else
+                {
+                  // Transmitted term
+                  Vector tt(stokes_dim);
+                  mult( tt, t(iv,joker,joker), iy(iv,joker));
+                  // Add emission, first Stokes element
+                  iy(iv,0) = tt[0] + bbar[iv] * ( 1 - t(iv,0,0) );
+                  // Remaining Stokes elements
+                  for( Index i=1; i<stokes_dim; i++ )
+                    { iy(iv,i) = tt[i] - bbar[iv] * t(iv,i,0); }
+                }
             }
         }
+    }  // If LTE
+
+
+  //
+  // Non-LTE
+  //
+  else
+    {
+      throw runtime_error( "Non-LTE not yet handled." );
     }
 }
 
@@ -1323,21 +1350,30 @@ void get_ppath_atmvars(
 
 
 
-//! get_ppath_abs
+//! get_ppath_pmat
 /*!
-    Determines the "clearsky" absorption along a propagation path.
+    Determines the "clearsky" propagation matrices along a propagation path.
+    The output arguments are:
 
-    *ppath_abs* returns the summed absorption and has dimensions
-       [ frequency, stokes, stokes, ppath point ]
+    *ppath_ext* returns the summed extinction (propmat_clearsky) and has
+       dimensions [ frequency, stokes, stokes, ppath point ].
 
-    *abs_per_species* can hold absorption for individual species. The
-    species to include ar selected by *ispecies*. For example, to store first
-    and third species in abs_per_species, set ispecies to [0][2].
+    *ppath_abs* returns the summed source relevant absorption
+       (propmat_source_clearsky) and has dimensions [ frequency, stokes, ppath
+       point ]. Where lte=1, the data are identical to matching data in
+       *ppath_ext*.
 
-    The output variables are sized inside the function. The dimension order is 
-       [ absorption species, frequency, stokes, stokes, ppath point ]
+    *lte* flags if LTE is valid or not, at each path point. This variable is
+       set to 1 if *propmat_clearsky_agenda* returns an empty
+       *propmat_source_clearsky*. Otherwise zero.
+
+    *abs_per_species* can hold absorption for individual species. The species
+      to include are selected by *ispecies*. For example, to store first and
+      third species in abs_per_species, set ispecies to [0][2]. The dimensions
+      are [ absorption species, frequency, stokes, stokes, ppath point ].
 
     \param   ws                  Out: The workspace
+    \param   ppath_ext           Out: Summed extinction at each ppath point
     \param   ppath_abs           Out: Summed absorption at each ppath point
     \param   abs_per_species     Out: Absorption for "ispecies"
     \param   propmat_clearsky_agenda As the WSV.    
@@ -1354,9 +1390,11 @@ void get_ppath_atmvars(
     \author Patrick Eriksson 
     \date   2012-08-15
 */
-void get_ppath_abs( 
+void get_ppath_pmat( 
         Workspace&      ws,
-        Tensor4&        ppath_abs,
+        Tensor4&        ppath_ext,
+        Tensor3&        ppath_abs,
+        ArrayOfIndex&   lte,
         Tensor5&        abs_per_species,
   const Agenda&         propmat_clearsky_agenda,
   const Ppath&          ppath,
@@ -1383,17 +1421,20 @@ void get_ppath_abs(
       }
   )
 
-  // Size variable
+  // Size variables
+  //
   try 
     {
-      ppath_abs.resize( nf, stokes_dim, stokes_dim, np ); 
+      ppath_ext.resize( nf, stokes_dim, stokes_dim, np ); 
+      ppath_abs.resize( nf, stokes_dim, np );   // We start by assuming non-LTE
+      lte.resize( np );
       abs_per_species.resize( nisp, nf, stokes_dim, stokes_dim, np ); 
     } 
   catch (std::bad_alloc x) 
     {
       ostringstream os;
-      os << "Run-time error in function: get_ppath_abs" << endl
-         << "Memory allocation failed for ppath_abs("
+      os << "Run-time error in function: get_ppath_ext" << endl
+         << "Memory allocation failed for ppath_ext("
          << nabs << ", " << nf << ", " << stokes_dim << ", "
          << stokes_dim << ", " << np << ")" << endl;
       throw runtime_error(os.str());
@@ -1418,27 +1459,27 @@ void get_ppath_abs(
 
       // Call agenda
       //
-      Tensor4  propmat_clearsky;
+      Tensor4  propmat_clearsky, propmat_source_clearsky;
       //
       try {
         Vector rtp_vmr(0);
         if( nabs )
           {
-	    Tensor4 src_dummy; //FIXME: do this right
-            propmat_clearsky_agendaExecute( l_ws, propmat_clearsky, src_dummy,
+            propmat_clearsky_agendaExecute( 
+               l_ws, propmat_clearsky, propmat_source_clearsky,
                ppath_f(joker,ip), ppath_mag(joker,ip), ppath.los(ip,joker), 
                ppath_p[ip], ppath_t[ip], ppath_vmr(joker,ip),
                l_propmat_clearsky_agenda );
           }
         else
           {
-	    Tensor4 src_dummy; //FIXME: do this right
-            propmat_clearsky_agendaExecute( l_ws, propmat_clearsky, src_dummy,
+            propmat_clearsky_agendaExecute( 
+               l_ws, propmat_clearsky, propmat_source_clearsky,
                ppath_f(joker,ip), ppath_mag(joker,ip), ppath.los(ip,joker), 
                ppath_p[ip], ppath_t[ip], Vector(0), l_propmat_clearsky_agenda );
           }
       } catch (runtime_error e) {
-#pragma omp critical (get_ppath_abs_fail)
+#pragma omp critical (get_ppath_ext_fail)
           { failed = true; fail_msg = e.what();}
       }
 
@@ -1449,14 +1490,14 @@ void get_ppath_abs(
           assert( propmat_clearsky.nrows() == stokes_dim );
           assert( propmat_clearsky.npages() == nf );
           assert( propmat_clearsky.nbooks() == max(nabs,Index(1)) );
-
+              
           for( Index i1=0; i1<nf; i1++ )
             {
               for( Index i2=0; i2<stokes_dim; i2++ )
                 {
                   for( Index i3=0; i3<stokes_dim; i3++ )
                     {
-                      ppath_abs(i1,i2,i3,ip) = propmat_clearsky(joker,i1,i2,i3).sum();
+                      ppath_ext(i1,i2,i3,ip) = propmat_clearsky(joker,i1,i2,i3).sum();
 
                       for( Index ia=0; ia<nisp; ia++ )
                         {
@@ -1467,11 +1508,37 @@ void get_ppath_abs(
                     }
                 }
             }
+
+          // Point with LTE
+          if( propmat_source_clearsky.ncols() == 0 )
+            {
+              assert( propmat_source_clearsky.nrows() == 0 );
+              assert( propmat_source_clearsky.npages() == 0 );
+              assert( propmat_source_clearsky.nbooks() == 0 );
+              lte[ip] = 1;
+              ppath_abs(joker,joker,ip) = ppath_ext(joker,joker,0,ip);
+            }
+          // Non-LTE point
+          else
+            {
+              assert( propmat_source_clearsky.ncols() == stokes_dim );
+              assert( propmat_source_clearsky.nrows() == stokes_dim );
+              assert( propmat_source_clearsky.npages() == nf );
+              assert( propmat_source_clearsky.nbooks() == max(nabs,Index(1)) );
+              lte[ip] = 0;
+              for( Index i1=0; i1<nf; i1++ )
+                {
+                  for( Index i2=0; i2<stokes_dim; i2++ )
+                    { 
+                      ppath_abs(i1,i2,ip) = propmat_source_clearsky(joker,i1,i2,0).sum();
+                    }
+                }
+            }
         }
     }
 
     if (failed)
-        throw runtime_error(fail_msg);
+      throw runtime_error(fail_msg);
 }
 
 
@@ -1768,7 +1835,7 @@ void get_ppath_f(
     \param   trans_cumulat  Out: Transmission to each path point.
     \param   scalar_tau     Out: Total (scalar) optical thickness of path
     \param   ppath          As the WSV.    
-    \param   ppath_abs      See get_ppath_abs.
+    \param   ppath_ext      See get_ppath_ext.
     \param   f_grid         As the WSV.    
     \param   stokes_dim     As the WSV.
 
@@ -1781,7 +1848,7 @@ void get_ppath_trans(
         Tensor4&               trans_cumulat,
         Vector&                scalar_tau,
   const Ppath&                 ppath,
-  ConstTensor4View&            ppath_abs,
+  ConstTensor4View&            ppath_ext,
   ConstVectorView              f_grid, 
   const Index&                 stokes_dim )
 {
@@ -1821,8 +1888,8 @@ void get_ppath_trans(
               Matrix ext_mat(stokes_dim,stokes_dim);
               for( Index is1=0; is1<stokes_dim; is1++ ) {
                 for( Index is2=0; is2<stokes_dim; is2++ ) {
-                  ext_mat(is1,is2) = 0.5 * ( ppath_abs(iv,is1,is2,ip-1) + 
-                                             ppath_abs(iv,is1,is2,ip  ) );
+                  ext_mat(is1,is2) = 0.5 * ( ppath_ext(iv,is1,is2,ip-1) + 
+                                             ppath_ext(iv,is1,is2,ip  ) );
                 } }
               scalar_tau[iv] += ppath.lstep[ip-1] * ext_mat(0,0); 
               extmat_case[ip-1][iv] = 0;
@@ -1852,7 +1919,7 @@ void get_ppath_trans(
     \param   trans_cumulat    Out: Transmission to each path point.
     \param   scalar_tau       Out: Total (scalar) optical thickness of path
     \param   ppath            As the WSV.    
-    \param   ppath_abs        See get_ppath_abs.
+    \param   ppath_ext        See get_ppath_ext.
     \param   f_grid           As the WSV.    
     \param   stokes_dim       As the WSV.
     \param   clear2cloudbox   See get_ppath_ext.
@@ -1867,7 +1934,7 @@ void get_ppath_trans2(
         Tensor4&               trans_cumulat,
         Vector&                scalar_tau,
   const Ppath&                 ppath,
-  ConstTensor4View&            ppath_abs,
+  ConstTensor4View&            ppath_ext,
   ConstVectorView              f_grid, 
   const Index&                 stokes_dim,
   const ArrayOfIndex&          clear2cloudbox,
@@ -1903,7 +1970,7 @@ void get_ppath_trans2(
             {
               for( Index is1=0; is1<stokes_dim; is1++ ) {
                 for( Index is2=0; is2<stokes_dim; is2++ ) {
-                  extsum_this(iv,is1,is2) = ppath_abs(iv,is1,is2,ip);
+                  extsum_this(iv,is1,is2) = ppath_ext(iv,is1,is2,ip);
                 } } 
               id_mat( trans_cumulat(iv,joker,joker,ip) );
             }
@@ -1929,7 +1996,7 @@ void get_ppath_trans2(
               Matrix ext_mat(stokes_dim,stokes_dim);  // -1*tau
               for( Index is1=0; is1<stokes_dim; is1++ ) {
                 for( Index is2=0; is2<stokes_dim; is2++ ) {
-                  extsum_this(iv,is1,is2) = ppath_abs(iv,is1,is2,ip);
+                  extsum_this(iv,is1,is2) = ppath_ext(iv,is1,is2,ip);
                   if( ic >= 0 )
                     { extsum_this(iv,is1,is2) += pnd_ext_mat(iv,is1,is2,ic); }
 

@@ -371,11 +371,13 @@ void iyEmissionStandard(
   Vector    ppath_p, ppath_t;
   Matrix    ppath_vmr, ppath_wind, ppath_mag, ppath_f;
   // Attenuation vars
-  Tensor4   ppath_abs;
+  Tensor4   ppath_ext;
   Tensor5   abs_per_species;
   Tensor4   trans_partial, trans_cumulat;
+  Tensor3   ppath_abs;
   Matrix    ppath_blackrad;
   Vector    scalar_tau;
+  ArrayOfIndex   lte;
   ArrayOfArrayOfIndex  extmat_case;          
   //
   if( np > 1 )
@@ -387,12 +389,12 @@ void iyEmissionStandard(
                           mag_u_field, mag_v_field, mag_w_field );      
       get_ppath_f(        ppath_f, ppath, f_grid,  atmosphere_dim, 
                           rte_alonglos_v, ppath_wind );
-      get_ppath_abs(      ws, ppath_abs, abs_per_species,
+      get_ppath_pmat(     ws, ppath_ext, ppath_abs, lte, abs_per_species,
                           propmat_clearsky_agenda, ppath, 
                           ppath_p, ppath_t, ppath_vmr, ppath_f, 
                           ppath_mag, f_grid, stokes_dim, iaps );
       get_ppath_trans(    trans_partial, extmat_case, trans_cumulat, 
-                          scalar_tau, ppath, ppath_abs, f_grid, stokes_dim );
+                          scalar_tau, ppath, ppath_ext, f_grid, stokes_dim );
       get_ppath_blackrad( ws, ppath_blackrad, blackbody_radiation_agenda, 
                           ppath, ppath_t, ppath_f );
     }
@@ -473,11 +475,14 @@ void iyEmissionStandard(
               if( jac_is_t[iq] ) 
                 { 
                   Tensor5 dummy_abs_per_species;
+                  Tensor3 dummy_ppath_abs;
+                  ArrayOfIndex dummy_lte;
                   Vector t2 = ppath_t;   t2 += dt;
-                  get_ppath_abs( ws, ppath_at2, dummy_abs_per_species,
-                                 propmat_clearsky_agenda, ppath, ppath_p,
-                                 t2, ppath_vmr, ppath_f, ppath_mag, f_grid, 
-                                 stokes_dim, ArrayOfIndex(0) );
+                  get_ppath_pmat( ws, ppath_at2, dummy_ppath_abs, 
+                                  dummy_lte, dummy_abs_per_species,
+                                  propmat_clearsky_agenda, ppath, ppath_p,
+                                  t2, ppath_vmr, ppath_f, ppath_mag, f_grid, 
+                                  stokes_dim, ArrayOfIndex(0) );
                   get_ppath_blackrad( ws, ppath_bt2, blackbody_radiation_agenda,
                                       ppath, t2, ppath_f );
                 }
@@ -486,35 +491,44 @@ void iyEmissionStandard(
                   if( jac_wind_i[iq] == 1 )
                     {
                       Tensor5 dummy_abs_per_species;
+                      Tensor3 dummy_ppath_abs;
+                      ArrayOfIndex dummy_lte;
                       Matrix f2, w2 = ppath_wind;   w2(0,joker) += dw;
-                      get_ppath_f(   f2, ppath, f_grid,  atmosphere_dim, 
-                                     rte_alonglos_v, w2 );
-                      get_ppath_abs( ws, ppath_awu, dummy_abs_per_species,
-                                     propmat_clearsky_agenda, ppath, ppath_p, 
-                                     ppath_t, ppath_vmr, f2, ppath_mag, f_grid,
-                                     stokes_dim, ArrayOfIndex(0) );
+                      get_ppath_f(    f2, ppath, f_grid,  atmosphere_dim, 
+                                      rte_alonglos_v, w2 );
+                      get_ppath_pmat( ws, ppath_awu, dummy_ppath_abs, 
+                                      dummy_lte, dummy_abs_per_species,
+                                      propmat_clearsky_agenda, ppath, ppath_p, 
+                                      ppath_t, ppath_vmr, f2, ppath_mag, f_grid,
+                                      stokes_dim, ArrayOfIndex(0) );
                     }
                   else if( jac_wind_i[iq] == 2 )
                     {
                       Tensor5 dummy_abs_per_species;
+                      Tensor3 dummy_ppath_abs;
+                      ArrayOfIndex dummy_lte;
                       Matrix f2, w2 = ppath_wind;   w2(1,joker) += dw;
-                      get_ppath_f(   f2, ppath, f_grid,  atmosphere_dim, 
-                                     rte_alonglos_v, w2 );
-                      get_ppath_abs( ws, ppath_awv, dummy_abs_per_species,
-                                     propmat_clearsky_agenda, ppath, ppath_p, 
-                                     ppath_t, ppath_vmr, f2, ppath_mag, f_grid,
-                                     stokes_dim, ArrayOfIndex(0) );
+                      get_ppath_f(    f2, ppath, f_grid,  atmosphere_dim, 
+                                      rte_alonglos_v, w2 );
+                      get_ppath_pmat( ws, ppath_awv, dummy_ppath_abs, 
+                                      dummy_lte, dummy_abs_per_species,
+                                      propmat_clearsky_agenda, ppath, ppath_p, 
+                                      ppath_t, ppath_vmr, f2, ppath_mag, f_grid,
+                                      stokes_dim, ArrayOfIndex(0) );
                     }
                   else if( jac_wind_i[iq] == 3 )
                     {
                       Tensor5 dummy_abs_per_species;
+                      Tensor3 dummy_ppath_abs;
+                      ArrayOfIndex dummy_lte;
                       Matrix f2, w2 = ppath_wind;   w2(2,joker) += dw;
-                      get_ppath_f(   f2, ppath, f_grid,  atmosphere_dim, 
-                                     rte_alonglos_v, w2 );
-                      get_ppath_abs( ws, ppath_aww, dummy_abs_per_species,
-                                     propmat_clearsky_agenda, ppath, ppath_p, 
-                                     ppath_t, ppath_vmr, f2, ppath_mag, f_grid,
-                                     stokes_dim, ArrayOfIndex(0) );
+                      get_ppath_f(    f2, ppath, f_grid,  atmosphere_dim, 
+                                      rte_alonglos_v, w2 );
+                      get_ppath_pmat( ws, ppath_aww, dummy_ppath_abs, 
+                                      dummy_lte, dummy_abs_per_species,
+                                      propmat_clearsky_agenda, ppath, ppath_p, 
+                                      ppath_t, ppath_vmr, f2, ppath_mag, f_grid,
+                                      stokes_dim, ArrayOfIndex(0) );
                     }
                 }
             }
@@ -538,7 +552,7 @@ void iyEmissionStandard(
             for( Index is1=0; is1<ns; is1++ ){
               for( Index is2=0; is2<ns; is2++ ){
                 iy_aux[auxAbsSum](iv,is1,is2,np-1) = 
-                                             ppath_abs(iv,is1,is2,np-1); } } } }
+                                             ppath_ext(iv,is1,is2,np-1); } } } }
       for( Index j=0; j<auxAbsSpecies.nelem(); j++ )
         { for( Index iv=0; iv<nf; iv++ ) {
             for( Index is1=0; is1<ns; is1++ ){
@@ -559,6 +573,34 @@ void iyEmissionStandard(
           for( Index iv=0; iv<nf; iv++ )  
             { bbar[iv] = 0.5 * ( ppath_blackrad(iv,ip) +
                                  ppath_blackrad(iv,ip+1) ); }
+
+          // Extra variables for non-LTE
+          //
+          const bool nonlte = lte[ip]==0 || lte[ip+1]==0; 
+          //
+          Matrix absbar(0,0);
+          Tensor3 extbar(0,0,0);
+          //
+          if( nonlte )
+            {
+              if( jacobian_do )
+                throw runtime_error( "iyEmissionStandard can so far not handle "
+                                     "non-LTE together with Jacobians." );
+
+              absbar.resize( nf, stokes_dim );
+              extbar.resize( nf, stokes_dim, stokes_dim );
+              for( Index iv=0; iv<nf; iv++ )  
+                { 
+                  for( Index is1=0; is1<stokes_dim; is1++ )  
+                    {
+                      absbar(iv,is1) = ppath_abs(iv,is1,ip) + ppath_abs(iv,is1,ip+1); 
+                      for( Index is2=0; is2<stokes_dim; is2++ )  
+                        { extbar(iv,is1,is2) = ppath_ext(iv,is1,is2,ip) + 
+                                               ppath_ext(iv,is1,is2,ip+1); }
+                    }
+                }
+              
+            }
 
           //### jacobian part #################################################
           if( j_analytical_do )
@@ -634,8 +676,8 @@ void iyEmissionStandard(
                                     for( Index is2=0; is2<ns; is2++ ) {
                                       ext_mat(is1,is2) = 0.5 * ( dd *
                                        abs_per_species(iiaps,iv,is1,is2,ip  ) +
-                                                  ppath_abs(iv,is1,is2,ip) +
-                                                  ppath_abs(iv,is1,is2,ip+1) );
+                                                  ppath_ext(iv,is1,is2,ip) +
+                                                  ppath_ext(iv,is1,is2,ip+1) );
                                     } }
                                   ext2trans( dtdx, extmat_case[ip][iv], 
                                              ext_mat, ppath.lstep[ip] ); 
@@ -656,8 +698,8 @@ void iyEmissionStandard(
                                     for( Index is2=0; is2<ns; is2++ ) {
                                       ext_mat(is1,is2) = 0.5 * ( dd *
                                        abs_per_species(iiaps,iv,is1,is2,ip+1) +
-                                                  ppath_abs(iv,is1,is2,ip) +
-                                                  ppath_abs(iv,is1,is2,ip+1) );
+                                                  ppath_ext(iv,is1,is2,ip) +
+                                                  ppath_ext(iv,is1,is2,ip+1) );
                                     } }
                                   ext2trans( dtdx, extmat_case[ip][iv], 
                                              ext_mat, ppath.lstep[ip] ); 
@@ -693,10 +735,10 @@ void iyEmissionStandard(
                                 {
                                   const Numeric dkdx1 = (1/dw) * ( 
                                                    (*ppath_awx)(iv,0,0,ip  ) -
-                                                      ppath_abs(iv,0,0,ip  ) );
+                                                      ppath_ext(iv,0,0,ip  ) );
                                   const Numeric dkdx2 = (1/dw) * ( 
                                                    (*ppath_awx)(iv,0,0,ip+1) -
-                                                      ppath_abs(iv,0,0,ip+1) );
+                                                      ppath_ext(iv,0,0,ip+1) );
                                   const Numeric x = -0.5 * ppath.lstep[ip] * 
                                                  trans_cumulat(iv,0,0,ip+1);
                                   const Numeric y = x * sibi(iv,0);
@@ -722,7 +764,7 @@ void iyEmissionStandard(
                                     for( Index is2=0; is2<ns; is2++ ) {
                                       ext_mat(is1,is2) = 0.5 * (
                                                (*ppath_awx)(iv,is1,is2,ip  ) +
-                                                  ppath_abs(iv,is1,is2,ip+1) );
+                                                  ppath_ext(iv,is1,is2,ip+1) );
                                     } }
                                   ext2trans( dtdx, extmat_case[ip][iv], 
                                              ext_mat, ppath.lstep[ip] ); 
@@ -742,7 +784,7 @@ void iyEmissionStandard(
                                   for( Index is1=0; is1<ns; is1++ ) {
                                     for( Index is2=0; is2<ns; is2++ ) {
                                       ext_mat(is1,is2) = 0.5 * (
-                                                  ppath_abs(iv,is1,is2,ip  ) +
+                                                  ppath_ext(iv,is1,is2,ip  ) +
                                                (*ppath_awx)(iv,is1,is2,ip+1) );
                                     } }
                                   ext2trans( dtdx, extmat_case[ip][iv], 
@@ -771,10 +813,10 @@ void iyEmissionStandard(
                                 {
                                   const Numeric dkdt1 = 1/dt * (
                                                       ppath_at2(iv,0,0,ip  ) -
-                                                      ppath_abs(iv,0,0,ip  ) );
+                                                      ppath_ext(iv,0,0,ip  ) );
                                   const Numeric dkdt2 = 1/dt * (
                                                       ppath_at2(iv,0,0,ip+1) - 
-                                                      ppath_abs(iv,0,0,ip+1) );
+                                                      ppath_ext(iv,0,0,ip+1) );
                                   const Numeric x = -0.5 * ppath.lstep[ip] * 
                                                  trans_cumulat(iv,0,0,ip+1);
                                   const Numeric y = x * sibi(iv,0);
@@ -807,8 +849,8 @@ void iyEmissionStandard(
                                     {
                                       // Stokes 1:
                                       const Numeric kbar = 0.5 * ( 
-                                                      ppath_abs(iv,0,0,ip  ) +
-                                                      ppath_abs(iv,0,0,ip+1) );
+                                                      ppath_ext(iv,0,0,ip  ) +
+                                                      ppath_ext(iv,0,0,ip+1) );
                                       diy_dpath[iq](ip  ,iv,0) += y * kbar /
                                                                   ppath_t[ip];
                                       diy_dpath[iq](ip+1,iv,0) += y * kbar /
@@ -834,7 +876,7 @@ void iyEmissionStandard(
                                     for( Index is2=0; is2<ns; is2++ ) {
                                       ext_mat(is1,is2) = 0.5 * (
                                                   ppath_at2(iv,is1,is2,ip  ) +
-                                                  ppath_abs(iv,is1,is2,ip+1) );
+                                                  ppath_ext(iv,is1,is2,ip+1) );
                                     } }
                                   ext2trans( dtdx, extmat_case[ip][iv], 
                                              ext_mat, ppath.lstep[ip] ); 
@@ -854,7 +896,7 @@ void iyEmissionStandard(
                                   for( Index is1=0; is1<ns; is1++ ) {
                                     for( Index is2=0; is2<ns; is2++ ) {
                                       ext_mat(is1,is2) = 0.5 * (
-                                                  ppath_abs(iv,is1,is2,ip  ) +
+                                                  ppath_ext(iv,is1,is2,ip  ) +
                                                   ppath_at2(iv,is1,is2,ip+1) );
                                     } }
                                   ext2trans( dtdx, extmat_case[ip][iv], 
@@ -898,8 +940,8 @@ void iyEmissionStandard(
                                       for( Index is1=0; is1<ns; is1++ ) {
                                         for( Index is2=0; is2<ns; is2++ ) {
                                           ext_mat(is1,is2) = 0.5 * (
-                                                   ppath_abs(iv,is1,is2,ip  ) +
-                                                   ppath_abs(iv,is1,is2,ip+1) );
+                                                   ppath_ext(iv,is1,is2,ip  ) +
+                                                   ppath_ext(iv,is1,is2,ip+1) );
                                         } }
                                       // dl for disturbed tbar
                                       const Numeric tbar = 0.5 * (
@@ -939,7 +981,8 @@ void iyEmissionStandard(
 
           // Spectrum at end of ppath step 
           emission_rtstep( iy, stokes_dim, bbar, extmat_case[ip],
-                           trans_partial(joker,joker,joker,ip) );
+                           trans_partial(joker,joker,joker,ip),
+                           nonlte, extbar, absbar );
 
 
           //=== iy_aux part ===================================================
@@ -958,7 +1001,7 @@ void iyEmissionStandard(
                 for( Index is1=0; is1<ns; is1++ ){
                   for( Index is2=0; is2<ns; is2++ ){
                     iy_aux[auxAbsSum](iv,is1,is2,ip) = 
-                                               ppath_abs(iv,is1,is2,ip); } } } }
+                                               ppath_ext(iv,is1,is2,ip); } } } }
           for( Index j=0; j<auxAbsSpecies.nelem(); j++ )
             { for( Index iv=0; iv<nf; iv++ ) {
                 for( Index is1=0; is1<ns; is1++ ){
