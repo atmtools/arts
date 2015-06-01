@@ -848,12 +848,11 @@ void emission_rtstep(
   //
   if( !nonlte )
     {
-      
       // LTE, scalar case
       if( stokes_dim == 1 )
         {
           for( Index iv=0; iv<nf; iv++ )  
-            { iy(iv,0) = iy(iv,0) * t(iv,0,0) + bbar[iv] * ( 1 - t(iv,0,0) ); }
+            { iy(iv,0) = t(iv,0,0) * iy(iv,0) + ( 1 - t(iv,0,0) ) * bbar[iv]; }
         }
 
       // LTE, vector cases
@@ -868,21 +867,21 @@ void emission_rtstep(
               // Unpolarised absorption:
               if( extmat_case[iv] == 1 )
                 {
-                  iy(iv,0) = iy(iv,0) * t(iv,0,0) + bbar[iv] * ( 1 - t(iv,0,0) );
+                  iy(iv,0) = t(iv,0,0) * iy(iv,0) + ( 1 - t(iv,0,0) ) * bbar[iv];
                   for( Index is=1; is<stokes_dim; is++ )
-                    { iy(iv,is) = iy(iv,is) * t(iv,is,is); }
+                    { iy(iv,is) = t(iv,is,is) * iy(iv,is); }
                 }
               // The general case:
               else
                 {
                   // Transmitted term
                   Vector tt(stokes_dim);
-                  mult( tt, t(iv,joker,joker), iy(iv,joker));
+                  mult( tt, t(iv,joker,joker), iy(iv,joker) );
                   // Add emission, first Stokes element
-                  iy(iv,0) = tt[0] + bbar[iv] * ( 1 - t(iv,0,0) );
+                  iy(iv,0) = tt[0] + ( 1 - t(iv,0,0) ) * bbar[iv];
                   // Remaining Stokes elements
                   for( Index i=1; i<stokes_dim; i++ )
-                    { iy(iv,i) = tt[i] - bbar[iv] * t(iv,i,0); }
+                    { iy(iv,i) = tt[i] - t(iv,i,0) * bbar[iv]; }
                 }
             }
         }
@@ -895,6 +894,55 @@ void emission_rtstep(
   else
     {
       throw runtime_error( "Non-LTE not yet handled." );
+      assert( extbar.ncols() == stokes_dim  &&  extbar.nrows() == stokes_dim ); 
+      assert( extbar.npages() == nf );
+      assert( absbar.ncols() == stokes_dim  &&  absbar.nrows() == nf ); 
+
+      // non-LTE, scalar case
+      if( stokes_dim == 1 )
+        {
+          for( Index iv=0; iv<nf; iv++ )  
+            { iy(iv,0) = t(iv,0,0) * iy(iv,0) + ( 1 - t(iv,0,0) ) * 
+                                ( absbar(iv,0) / extbar(iv,0,0) ) * bbar[iv]; }
+        }
+
+      // non-LTE, vector cases
+      else
+        {
+#pragma omp parallel for      \
+  if (!arts_omp_in_parallel()  \
+      && nf >= arts_omp_get_max_threads())
+          for( Index iv=0; iv<nf; iv++ )
+            {
+              assert( extmat_case[iv]>=1 && extmat_case[iv]<=3 );
+              // Unpolarised absorption:
+              if( extmat_case[iv] == 1 )
+                {
+                  iy(iv,0) = t(iv,0,0) * iy(iv,0) + ( 1 - t(iv,0,0) ) * 
+                                    ( absbar(iv,0) / extbar(iv,0,0) ) * bbar[iv];
+                  for( Index is=1; is<stokes_dim; is++ )
+                    { iy(iv,is) = t(iv,is,is) * iy(iv,is); }
+                }
+              // The general case:
+              else
+                {
+                  // Transmitted term
+                  Vector tt(stokes_dim);
+                  mult( tt, t(iv,joker,joker), iy(iv,joker) );
+                  // Inverse of extinction matrix
+                  Matrix extinv(stokes_dim,stokes_dim);
+                  inv ( extinv, extbar(iv,joker,joker) );
+                  // Create product between absvec and  bbar
+                  Vector kb = absbar(iv,joker);
+                  //kb *= bbar;
+                  // Calculate emission contribution and sum up
+                  Vector ev(stokes_dim);
+                  mult( ev, extinv, kb );
+                  for( Index i=0; i<stokes_dim; i++ )
+                    { iy(iv,i) = tt[i] + ev[i]; }
+                }
+            }
+        }
     }
 }
 

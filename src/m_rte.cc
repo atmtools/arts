@@ -1582,7 +1582,7 @@ void yCalc_mblock_loop_body(
         //
         y[rowind] = yb;  // *yb* also used below, as input to jacobian_agenda
 
-        // Fill information variables
+        // Fill information variables.
         //
         for( Index i=0; i<n1y; i++ )
           {

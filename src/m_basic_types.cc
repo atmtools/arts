@@ -1155,7 +1155,30 @@ void Compare(const Numeric&   var1,
              const String&,
              const Verbosity& verbosity)
 {
-  const Numeric maxdiff = var1-var2;
+  Numeric maxdiff = var1-var2;
+
+  if( isnan(var1)  ||  isnan(var2) )
+    {
+      if( isnan(var1)  &&  isnan(var2) )
+        { maxdiff = 0; }
+      else if( isnan(var1) )
+        {
+          ostringstream os;
+          os << "Nan found in " << var1name << ", but there is no "
+             << "NaN at same position in " << var2name << ".\nThis "
+             << "is not allowed.";
+          throw runtime_error(os.str());
+        }
+      else 
+        {
+          ostringstream os;
+          os << "Nan found in " << var2name << ", but there is no "
+             << "NaN at same position in " << var1name << ".\nThis "
+             << "is not allowed.";
+          throw runtime_error(os.str());
+        }
+    }      
+
   if( abs(maxdiff) > maxabsdiff )
   {
     ostringstream os;
@@ -1196,12 +1219,35 @@ void Compare(const Vector&    var1,
   Numeric maxdiff = 0.0;
   for( Index i=0; i <n; i++ )
     {
-      const Numeric diff = var1[i] - var2[i];
+      Numeric diff = var1[i] - var2[i];
+
+      if( isnan(var1[i])  ||  isnan(var2[i]) )
+        {
+          if( isnan(var1[i])  &&  isnan(var2[i]) )
+            { diff = 0; }
+          else if( isnan(var1[i]) )
+            {
+              ostringstream os;
+              os << "Nan found in " << var1name << ", but there is no "
+                 << "NaN at same position in " << var2name << ".\nThis "
+                 << "is not allowed.";
+              throw runtime_error(os.str());
+            }
+          else 
+            {
+              ostringstream os;
+              os << "Nan found in " << var2name << ", but there is no "
+                 << "NaN at same position in " << var1name << ".\nThis "
+                 << "is not allowed.";
+              throw runtime_error(os.str());
+            }
+        }      
+
       if( abs(diff) > abs(maxdiff) )
       { maxdiff = diff; }
     }
     
-  if( abs(maxdiff) > maxabsdiff )
+  if( isnan(maxdiff)  ||  abs(maxdiff) > maxabsdiff )
   {
     ostringstream os;
     os << var1name << "-" << var2name << " FAILED!\n";
@@ -1246,7 +1292,30 @@ void Compare(const Matrix&    var1,
     { 
       for( Index c=0; c<ncols; c++ )
         {
-          const Numeric diff = var1(r,c) - var2(r,c);
+          Numeric diff = var1(r,c) - var2(r,c);
+
+          if( isnan(var1(r,c))  ||  isnan(var2(r,c)) )
+            {
+              if( isnan(var1(r,c))  &&  isnan(var2(r,c)) )
+                { diff = 0; }
+              else if( isnan(var1(r,c)) )
+                {
+                  ostringstream os;
+                  os << "Nan found in " << var1name << ", but there is no "
+                     << "NaN at same position in " << var2name << ".\nThis "
+                     << "is not allowed.";
+                  throw runtime_error(os.str());
+                }
+              else 
+                {
+                  ostringstream os;
+                  os << "Nan found in " << var2name << ", but there is no "
+                     << "NaN at same position in " << var1name << ".\nThis "
+                     << "is not allowed.";
+                  throw runtime_error(os.str());
+                }
+            }      
+
           if( abs(diff) > abs(maxdiff) )
             { maxdiff = diff; }
         }
@@ -1298,7 +1367,30 @@ void Compare(const Tensor3&   var1,
         for( Index r=0; r<nrows; r++ )
             for( Index p=0; p<npages; p++ )
               {
-                const Numeric diff = var1(p,r,c) - var2(p,r,c);
+                Numeric diff = var1(p,r,c) - var2(p,r,c);
+
+                if( isnan(var1(p,r,c))  ||  isnan(var2(p,r,c)) )
+                  {
+                    if( isnan(var1(p,r,c))  &&  isnan(var2(p,r,c)) )
+                      { diff = 0; }
+                    else if( isnan(var1(p,r,c)) )
+                      {
+                        ostringstream os;
+                        os << "Nan found in " << var1name << ", but there is no "
+                           << "NaN at same position in " << var2name << ".\nThis "
+                           << "is not allowed.";
+                        throw runtime_error(os.str());
+                      }
+                    else 
+                      {
+                        ostringstream os;
+                        os << "Nan found in " << var2name << ", but there is no "
+                           << "NaN at same position in " << var1name << ".\nThis "
+                           << "is not allowed.";
+                        throw runtime_error(os.str());
+                      }
+                  }      
+
                 if( abs(diff) > abs(maxdiff) )
                   { maxdiff = diff; }
               }
@@ -1352,7 +1444,30 @@ void Compare(const Tensor4&   var1,
             for( Index p=0; p<npages; p++ )
                 for( Index b=0; b<nbooks; b++ )
               {
-                const Numeric diff = var1(b,p,r,c) - var2(b,p,r,c);
+                Numeric diff = var1(b,p,r,c) - var2(b,p,r,c);
+
+                if( isnan(var1(b,p,r,c))  ||  isnan(var2(b,p,r,c)) )
+                  {
+                    if( isnan(var1(b,p,r,c))  &&  isnan(var2(b,p,r,c)) )
+                      { diff = 0; }
+                    else if( isnan(var1(b,p,r,c)) )
+                      {
+                        ostringstream os;
+                        os << "Nan found in " << var1name << ", but there is no "
+                           << "NaN at same position in " << var2name << ".\nThis "
+                           << "is not allowed.";
+                        throw runtime_error(os.str());
+                      }
+                    else 
+                      {
+                        ostringstream os;
+                        os << "Nan found in " << var2name << ", but there is no "
+                           << "NaN at same position in " << var1name << ".\nThis "
+                           << "is not allowed.";
+                        throw runtime_error(os.str());
+                      }
+                  }      
+
                 if( abs(diff) > abs(maxdiff) )
                   { maxdiff = diff; }
               }
@@ -1415,12 +1530,34 @@ void Compare(const Tensor7&   var1,
                         for( Index v=0; v<nvitrines; v++ )
                             for( Index l=0; l<nlibraries; l++ )
             {
-              const Numeric diff = var1(l,v,s,b,p,r,c) - var2(l,v,s,b,p,r,c);
+              Numeric diff = var1(l,v,s,b,p,r,c) - var2(l,v,s,b,p,r,c);
+
+              if( isnan(var1(l,v,s,b,p,r,c))  ||  isnan(var2(l,v,s,b,p,r,c)) )
+                {
+                  if( isnan(var1(l,v,s,b,p,r,c))  &&  isnan(var2(l,v,s,b,p,r,c)) )
+                    { diff = 0; }
+                  else if( isnan(var1(l,v,s,b,p,r,c)) )
+                    {
+                      ostringstream os;
+                      os << "Nan found in " << var1name << ", but there is no "
+                         << "NaN at same position in " << var2name << ".\nThis "
+                         << "is not allowed.";
+                      throw runtime_error(os.str());
+                    }
+                  else 
+                    {
+                      ostringstream os;
+                      os << "Nan found in " << var2name << ", but there is no "
+                         << "NaN at same position in " << var1name << ".\nThis "
+                         << "is not allowed.";
+                      throw runtime_error(os.str());
+                    }
+                }      
+
               if( abs(diff) > abs(maxdiff) )
                 { maxdiff = diff; }
             }
 
-    
     if( abs(maxdiff) > maxabsdiff )
       {
         ostringstream os;

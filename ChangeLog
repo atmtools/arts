@@ -1,10 +1,21 @@
+2015-06-01  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-213
+
+	* src/m_basic_types.cc (Compare): NaNs now handled. NaN compared
+	to NaN is allowed. This gives a zero difference. But NaN compared
+	to any other value results in an error.
+
+	* src/rte.cc (emission_rtstep): Some code added for non-LTE (but
+	it is not complete).
+
 2015-06-01 Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-3-212
-	
+
 	* src/lineshapes.cc:  Added VVW factor ff / f0f0 to normalization.
 	Needed for comparison with other models.
-	
+
 2015-06-01  Jana Mendrok  <jana.mendrok@ltu.se>
 
 	* arts-2-3-211
@@ -19,13 +30,13 @@
 2015-06-01 Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-3-210
-	
+
 	* src/absorption.cc:  Fix to a horrible bug in the phase calculations
 	that I introduced with one of my previous commits.  FIXME:  I need to
 	design a test that catches this error if I or someone else 
 	messes up the code again.  Problem:  phase matrix gives bad values
 	but all Zeeman tests succeed.
-	
+
 2015-05-31  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-209
