@@ -360,12 +360,7 @@ void xsec_species_line_mixing_wrapper_with_zeeman(
     part_abs_mat+=temp_part_mat;
 
     if( do_src )
-    {
-      temp_part_mat=part_src_mat;
-      mult(part_src_mat,B(joker,0), K_a);// source needs no phase so only K_a
-
-      part_src_mat+=temp_part_mat;
-    }
+      mult(part_src_mat,B(joker,0), K_a);// No phase for source matrix
 }
 
 

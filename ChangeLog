@@ -1,3 +1,15 @@
+2015-06-01 Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-3-215
+
+	* src/zeeman.cc:  Fixed bug reported by Patrick about source 
+	functions.  For now the only test that fails when WithSource
+	is active in Init is ycalcappend.TestYCalcAppend.  Note that
+	this does not mean that most tests even use the source.
+	
+	Big fixme remaining:  The agenda checking must change so that
+	we enforce InitWithSource in both the relevant agendas.
+
 2015-06-01  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-214
