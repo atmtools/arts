@@ -893,7 +893,7 @@ void emission_rtstep(
   //
   else
     {
-      throw runtime_error( "Non-LTE not yet handled." );
+      //throw runtime_error( "Non-LTE not yet handled." );
       assert( extbar.ncols() == stokes_dim  &&  extbar.nrows() == stokes_dim ); 
       assert( extbar.npages() == nf );
       assert( absbar.ncols() == stokes_dim  &&  absbar.nrows() == nf ); 
@@ -915,7 +915,7 @@ void emission_rtstep(
           for( Index iv=0; iv<nf; iv++ )
             {
               assert( extmat_case[iv]>=1 && extmat_case[iv]<=3 );
-              // Unpolarised absorption:
+              // Unpolarised extinction:
               if( extmat_case[iv] == 1 )
                 {
                   iy(iv,0) = t(iv,0,0) * iy(iv,0) + ( 1 - t(iv,0,0) ) * 
@@ -934,12 +934,16 @@ void emission_rtstep(
                   inv ( extinv, extbar(iv,joker,joker) );
                   // Create product between absvec and  bbar
                   Vector kb = absbar(iv,joker);
-                  //kb *= bbar;
-                  // Calculate emission contribution and sum up
+                  kb *= bbar[iv];
+                  // Multiplicate with extinv
                   Vector ev(stokes_dim);
                   mult( ev, extinv, kb );
+                  // Multiplicate with transmission
+                  Vector et(stokes_dim);
+                  mult( et, t(iv,joker,joker), ev );
+                  // Sum up, using that (I-T)*ev = ev - et
                   for( Index i=0; i<stokes_dim; i++ )
-                    { iy(iv,i) = tt[i] + ev[i]; }
+                    { iy(iv,i) = tt[i] + ev[i] - et[i]; }
                 }
             }
         }
@@ -1563,6 +1567,7 @@ void get_ppath_pmat(
               assert( propmat_source_clearsky.nrows() == 0 );
               assert( propmat_source_clearsky.npages() == 0 );
               assert( propmat_source_clearsky.nbooks() == 0 );
+              //
               lte[ip] = 1;
               ppath_abs(joker,joker,ip) = ppath_ext(joker,joker,0,ip);
             }
@@ -1573,6 +1578,7 @@ void get_ppath_pmat(
               assert( propmat_source_clearsky.nrows() == stokes_dim );
               assert( propmat_source_clearsky.npages() == nf );
               assert( propmat_source_clearsky.nbooks() == max(nabs,Index(1)) );
+              //
               lte[ip] = 0;
               for( Index i1=0; i1<nf; i1++ )
                 {

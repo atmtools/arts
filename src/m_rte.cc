@@ -593,10 +593,12 @@ void iyEmissionStandard(
                 { 
                   for( Index is1=0; is1<stokes_dim; is1++ )  
                     {
-                      absbar(iv,is1) = ppath_abs(iv,is1,ip) + ppath_abs(iv,is1,ip+1); 
+                      absbar(iv,is1) = 0.5 * ( ppath_abs(iv,is1,ip) + 
+                                               ppath_abs(iv,is1,ip+1) );
                       for( Index is2=0; is2<stokes_dim; is2++ )  
-                        { extbar(iv,is1,is2) = ppath_ext(iv,is1,is2,ip) + 
-                                               ppath_ext(iv,is1,is2,ip+1); }
+                        { extbar(iv,is1,is2) = 0.5 * ( 
+                                               ppath_ext(iv,is1,is2,ip) + 
+                                               ppath_ext(iv,is1,is2,ip+1) ); }
                     }
                 }
               

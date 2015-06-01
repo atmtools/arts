@@ -1,5 +1,15 @@
 2015-06-01  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-3-214
+
+	* src/m_rte.cc (iyEmissionStandard): Had missed the factor 0.5
+	when calculating absbar and extbar.
+
+	* src/rte.cc (emission_rtstep): Complete code for non-LTE now in
+	place. But lack proper tests to be totally sure that all OK.
+
+2015-06-01  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-3-213
 
 	* src/m_basic_types.cc (Compare): NaNs now handled. NaN compared
