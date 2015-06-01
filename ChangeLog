@@ -1,3 +1,13 @@
+2015-06-01  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-3-211
+
+	* src/m_jacobian.cc (jacobianDoitAddSpecies):
+	Disallow negative or zero perturbations.
+
+	* src/math_funcs.cc (mod_gamma_dist):
+	Remove misleading comment from error message.
+
 2015-06-01 Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-3-210
@@ -207,7 +217,7 @@
 	to completly remove logrel from the code. To get a clean start if
 	it will ever get back.
 
-2015-05-2  Jana Mendrok  <jana.mendrok@ltu.se>
+2015-05-22  Jana Mendrok  <jana.mendrok@ltu.se>
 
 	* arts-2-3-203
 

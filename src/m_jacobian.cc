@@ -2443,7 +2443,7 @@ void jacobianDoit(//WS Output:
           // i.e. set the fields to 0. when fixing the above (throwing error,
           // when non-NaN data provided for un-used fields), we need an
           // alternative way to buffer the non-existing data (if NaN is
-          // interpolable (check!), the we can read NaN instead of 0 fields. but
+          // interpolable (check!), then we can read NaN instead of 0 fields. but
           // maybe a proper WSM for setting the fields from non-compact data is
           // nicer...
           speciesname = jq.MainTag()+'.'+jq.Subtag()+'.'+jq.SubSubtag();
@@ -2763,6 +2763,15 @@ void jacobianDoitAddSpecies(//WS Output:
 {
   // Create the new retrieval quantity
   RetrievalQuantity rq;
+
+  // We don't allow zero or negative perturbations.
+  if( dx<=0. )
+    {
+      ostringstream os;
+      os << "Perturbations must be >0.\n"
+         << "For " << species << " yours is " << dx << ".";
+      throw runtime_error(os.str());
+    }
 
   ArrayOfString strarr;
   // would rather like '-' as a delimiter.but for abs_species we need everything

@@ -598,8 +598,8 @@ Numeric mod_gamma_dist(Numeric x,
     {
         ostringstream os;
         os << "At least one argument is zero or negative.\n"
-        << "(mu+1)/gamma is zero or negative.\n"
-        << "Modified gamma ditribution can not be calculated.\n";
+//        << "(mu+1)/gamma is zero or negative.\n"
+        << "Modified gamma distribution can not be calculated.\n";
         throw runtime_error(os.str());
     }
 }
