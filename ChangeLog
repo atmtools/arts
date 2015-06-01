@@ -1,3 +1,10 @@
+2015-06-01 Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-3-212
+	
+	* src/lineshapes.cc:  Added VVW factor ff / f0f0 to normalization.
+	Needed for comparison with other models.
+	
 2015-06-01  Jana Mendrok  <jana.mendrok@ltu.se>
 
 	* arts-2-3-211
@@ -7,6 +14,7 @@
 
 	* src/math_funcs.cc (mod_gamma_dist):
 	Remove misleading comment from error message.
+
 
 2015-06-01 Richard Larsson  <ric.larsson@gmail.com>
 

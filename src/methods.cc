@@ -364,6 +364,7 @@ void define_md_data_raw()
          "   no_norm:                  1\n"
          "   Rosenkranz_quadratic:     (f/f0)^2 * h*f/(2k*T)/sinh(h*f/(2k*T))\n"
          "   VVH:                      (f*tanh(h*f/(2k*T))) / (f0*tanh(h*f0/(2k*T)))\n"
+         "   VVW:                      (f*f) / (f0*f0)\n"
          "\n"
          "cutoff:\n"
          "    -1:                      no cutoff\n"

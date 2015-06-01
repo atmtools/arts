@@ -1958,7 +1958,37 @@ void lineshape_norm_VVH(Vector&         fac,
     }
 }
 
-
+/*!  Van Vleck Weiskopf normalization factor of the lineshape function
+ * with (f*f) / (f0*f0). The
+ * denominator is a result of catalogue intensities. See P. Rayer, The
+ * VVH and VVW Spectral Functions, Atmospheric Millimeter and
+ * Sub-Millimeter Wave Radiative Transfer Modeling II, Editors:
+ * P. Eriksson, S. Buehler, Berichte aus derm Institut fuer
+ * Umweltphysik, Band 4, 2001.
+ * 
+ *   \retval fac    Normalization factor to the lineshape function.
+ *   \param  f0     Line center frequency.
+ *   \param  f_grid The frequency grid.
+ *   \param  T      Temperature
+ * 
+ *   \author Axel von Engeln 2003-07-28 */
+void lineshape_norm_VVW(Vector&         fac,
+                        const Numeric   f0,
+                        ConstVectorView f_grid,
+                        const Numeric   _U_)
+{
+    
+    const Index nf = f_grid.nelem();
+    
+    // denominator is constant for the loop
+    const Numeric denom = abs(f0) * abs(f0);
+    
+    for ( Index i=0; i<nf; ++i )
+    {
+        fac[i] = f_grid[i] * f_grid[i] /
+        denom;
+    }
+}
 
 
 //------------------------------------------------------------------------
@@ -2107,4 +2137,10 @@ void define_lineshape_norm_data()
       "             (f*tanh(h*f/(2*k*T))) / (f0*tanh(h*f0/(2*k*T))).\n"
       "             The denominator is a result of catalogue intensities.",
       lineshape_norm_VVH));
+    
+    lineshape_norm_data.push_back
+    (LineshapeNormRecord
+    ("VVW",
+     "Van Vleck Weiskopf normalization of the lineshape with (f*f) / (f0*f0).\n",
+     lineshape_norm_VVW));
 }
