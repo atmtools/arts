@@ -1,3 +1,13 @@
+2015-06-01 Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-3-210
+	
+	* src/absorption.cc:  Fix to a horrible bug in the phase calculations
+	that I introduced with one of my previous commits.  FIXME:  I need to
+	design a test that catches this error if I or someone else 
+	messes up the code again.  Problem:  phase matrix gives bad values
+	but all Zeeman tests succeed.
+	
 2015-05-31  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-209

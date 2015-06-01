@@ -1245,19 +1245,26 @@ void xsec_single_line(VectorView xsec_accum_attenuation,
 	      this_xsec_attenuation += this_ls_attenuation;
 	      this_ls_attenuation *= src_nlte_ratio/abs_nlte_ratio;
 	      this_xsec_source += this_ls_attenuation; // note that the multiplication above solves 
+	      
+	      if (calc_phase)
+              {
+                  this_ls_phase *= this_fac;
+                  this_ls_phase *= factors * intensity * abs_nlte_ratio; // Is this right?  
+                  this_xsec_phase += this_ls_phase;
+              }
 	    }
 	    else
 	    {
 	      this_ls_attenuation *= factors * intensity;
 	      this_xsec_attenuation += this_ls_attenuation;
+              
+              if (calc_phase)
+              {
+                  this_ls_phase *= this_fac;
+                  this_ls_phase *= factors*intensity;
+                  this_xsec_phase += this_ls_phase;
+              }
 	    }
-            
-            if (calc_phase)
-            {
-                this_ls_phase *= this_fac;
-                this_ls_phase *= factors;
-                this_xsec_phase += this_ls_phase;
-            }
         }
     }
 }
