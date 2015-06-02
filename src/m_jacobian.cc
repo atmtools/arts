@@ -2464,7 +2464,11 @@ void jacobianDoit(//WS Output:
       // loop over all perturbation levels
       for( Index il=lstart; il<lend; il++ )
         {
+          out2 << "handling level #" << il << " of pert species " << speciesname
+               << "\n";
+
           if (do_abort) continue;
+          bool do_doit = true;
 /*
           //use this if we once allow arbitrary perturbation grids. if so:
           //- correct for last-point outdrag
@@ -2517,7 +2521,10 @@ void jacobianDoit(//WS Output:
               if( jq.Mode() == "abs" )
                 vmr_field(si,il,joker,joker) += jq.Perturbation();
               else if ( jq.Mode() == "rel" )
-                vmr_field(si,il,joker,joker) *= (1.+jq.Perturbation());
+                if (vmr_field(si,il,0,0)==0.)
+                  do_doit = false;
+                else
+                  vmr_field(si,il,joker,joker) *= (1.+jq.Perturbation());
               else
                 // we shouldn't end up here. if we do, checks for allowed
                 // retrieval modes above are incomplete.
@@ -2534,8 +2541,14 @@ void jacobianDoit(//WS Output:
                     }
                   else if ( jq.Mode() == "rel" )
                     {
-                      scat_species_mass_density_field(si,il,joker,joker)
-                        *= (1.+jq.Perturbation());
+                      // ATTENTION: in case ever allowing other than 1D, all
+                      // these checks (in the rel branch) needs to be updated to
+                      // check whether ALL lat/lon entries are 0.
+                      if (scat_species_mass_density_field(si,il,0,0)==0.)
+                        do_doit = false;
+                      else
+                        scat_species_mass_density_field(si,il,joker,joker)
+                          *= (1.+jq.Perturbation());
                     }
                   else
                     // we shouldn't end up here. if we do, checks for allowed
@@ -2551,8 +2564,11 @@ void jacobianDoit(//WS Output:
                     }
                   else if ( jq.Mode() == "rel" )
                     {
-                      scat_species_mass_flux_field(si,il,joker,joker)
-                        *= (1.+jq.Perturbation());
+                      if (scat_species_mass_flux_field(si,il,0,0)==0.)
+                        do_doit = false;
+                      else
+                        scat_species_mass_flux_field(si,il,joker,joker)
+                          *= (1.+jq.Perturbation());
                     }
                   else
                     // we shouldn't end up here. if we do, checks for allowed
@@ -2568,8 +2584,11 @@ void jacobianDoit(//WS Output:
                     }
                   else if ( jq.Mode() == "rel" )
                     {
-                      scat_species_number_density_field(si,il,joker,joker)
-                        *= (1.+jq.Perturbation());
+                      if (scat_species_number_density_field(si,il,0,0)==0.)
+                        do_doit = false;
+                      else
+                        scat_species_number_density_field(si,il,joker,joker)
+                          *= (1.+jq.Perturbation());
                     }
                   else
                     // we shouldn't end up here. if we do, checks for allowed
@@ -2582,152 +2601,166 @@ void jacobianDoit(//WS Output:
               t_field(il,joker,joker) += jq.Perturbation();
             }
 
-          try
+          if ( do_doit )
           {
-            // unless pnd_field is NOT calculated inside ARTS, we have to
-            // recalculate it. not only for scat_speciesXXfield perturbances. the
-            // latter as also other parameters could effect the pnd_field. for
-            // example, atmospheric temperature.
-            // not straight forward, how we can check for whether pnd_field is
-            // from external. but a good guess is that then scat_speciesXXfields
-            // are not required, i.e. are likely empty. so, if not empty (here:
-            // sized 0!), we try to recalculate them.
-            if( scat_species_mass_density_field.npages()!=0 ||
-                scat_species_mass_flux_field.npages()!=0 ||
-                scat_species_number_density_field.npages()!=0 )
-              {
-                pnd_fieldCalcFromscat_speciesFields(
-                  pnd_field, atmosphere_dim, cloudbox_on, cloudbox_limits,
-                  scat_species_mass_density_field, scat_species_mass_flux_field,
-                  scat_species_number_density_field, t_field, scat_meta,
-                  scat_species, delim, verbosity );
-                if( debug )
-                  {
-                    WriteXMLIndexed( "ascii", iq*np+il, pnd_field,
-                                     "pnd_field_perturbed", "pnd_field", "",
-                                     verbosity );
-                  }
-                if( ScatteringMergeParticle_do )
-                  {
-                    scat_data=scat_data_ref;
-                    ScatteringMergeParticles1D(	pnd_field, scat_data,
-                      atmosphere_dim, cloudbox_on, cloudbox_limits, t_field,
-                      z_field, z_surface, cloudbox_checked, verbosity );
-                    if( debug )
-                      {
-                        WriteXMLIndexed( "ascii", iq*np+il, scat_data,
-                                         "scat_data_mergeperturbed", "scat_data", "",
-                                         verbosity );
-                        WriteXMLIndexed( "ascii", iq*np+il, pnd_field,
-                                         "pnd_field_mergeperturbed", "pnd_field", "",
-                                         verbosity );
-                      }
-                  }
-              }
+            try
+            {
+              // unless pnd_field is NOT calculated inside ARTS, we have to
+              // recalculate it. not only for scat_speciesXXfield perturbances. the
+              // latter as also other parameters could effect the pnd_field. for
+              // example, atmospheric temperature.
+              // not straight forward, how we can check for whether pnd_field is
+              // from external. but a good guess is that then scat_speciesXXfields
+              // are not required, i.e. are likely empty. so, if not empty (here:
+              // sized 0!), we try to recalculate them.
+              if( scat_species_mass_density_field.npages()!=0 ||
+                  scat_species_mass_flux_field.npages()!=0 ||
+                  scat_species_number_density_field.npages()!=0 )
+                {
+                  pnd_fieldCalcFromscat_speciesFields(
+                    pnd_field, atmosphere_dim, cloudbox_on, cloudbox_limits,
+                    scat_species_mass_density_field, scat_species_mass_flux_field,
+                    scat_species_number_density_field, t_field, scat_meta,
+                    scat_species, delim, verbosity );
+                  if( debug )
+                    {
+                      WriteXMLIndexed( "ascii", iq*np+il, pnd_field,
+                                       "pnd_field_perturbed", "pnd_field", "",
+                                       verbosity );
+                    }
+                  if( ScatteringMergeParticle_do )
+                    {
+                      scat_data=scat_data_ref;
+                      ScatteringMergeParticles1D(	pnd_field, scat_data,
+                        atmosphere_dim, cloudbox_on, cloudbox_limits, t_field,
+                        z_field, z_surface, cloudbox_checked, verbosity );
+                      if( debug )
+                        {
+                          WriteXMLIndexed( "ascii", iq*np+il, scat_data,
+                                           "scat_data_mergeperturbed", "scat_data", "",
+                                           verbosity );
+                          WriteXMLIndexed( "ascii", iq*np+il, pnd_field,
+                                           "pnd_field_mergeperturbed", "pnd_field", "",
+                                           verbosity );
+                        }
+                    }
+                }
 
-            if( debug )
-              {
-                WriteXMLIndexed( "ascii", iq*np+il, scat_data,
-                                 "scat_data_final", "scat_data", "",
-                                  verbosity );
-                WriteXMLIndexed( "ascii", iq*np+il, pnd_field,
-                                 "pnd_field_final", "pnd_field", "",
-                                 verbosity );
-              }
-            doit_i_field = doit_i_field_ref;
-            DoitCalc( ws, doit_i_field,
-                      atmfields_checked, atmgeom_checked, cloudbox_checked,
-                      cloudbox_on, f_grid, doit_mono_agenda, doit_is_initialized,
-                      verbosity );
-            if( debug )
-              {
-                WriteXMLIndexed( "ascii", iq*np+il, doit_i_field,
-                                 "ifield_perturbed", "doit_i_field", "",
-                                  verbosity );
-              }
+              if( debug )
+                {
+                  WriteXMLIndexed( "ascii", iq*np+il, scat_data,
+                                   "scat_data_final", "scat_data", "",
+                                    verbosity );
+                  WriteXMLIndexed( "ascii", iq*np+il, pnd_field,
+                                   "pnd_field_final", "pnd_field", "",
+                                   verbosity );
+                }
+              doit_i_field = doit_i_field_ref;
+              DoitCalc( ws, doit_i_field,
+                        atmfields_checked, atmgeom_checked, cloudbox_checked,
+                        cloudbox_on, f_grid, doit_mono_agenda, doit_is_initialized,
+                        verbosity );
+              if( debug )
+                {
+                  WriteXMLIndexed( "ascii", iq*np+il, doit_i_field,
+                                   "ifield_perturbed", "doit_i_field", "",
+                                    verbosity );
+                }
 
-            Vector y;
-            yCalc( ws, y,
-                   vec_dummy, aoi_dummy, mat_dummy1, mat_dummy2, aov_dummy,
-                   mat_dummy3, mat_dummy4,
-                   atmgeom_checked, atmfields_checked, atmosphere_dim,
-                   t_field, z_field, vmr_field, cloudbox_on,
-                   cloudbox_checked, sensor_checked, stokes_dim, f_grid,
-                   sensor_pos, sensor_los, transmitter_pos, mblock_dlos_grid,
-                   sensor_response, sensor_response_f, sensor_response_pol,
-                   sensor_response_dlos, iy_unit, iy_main_agenda, geo_pos_agenda,
-                   jacobian_agenda, jacobian_do, jacobian_quantities, jacobian_indices,
-                   iy_aux_vars, verbosity );
+              Vector y;
+              yCalc( ws, y,
+                     vec_dummy, aoi_dummy, mat_dummy1, mat_dummy2, aov_dummy,
+                     mat_dummy3, mat_dummy4,
+                     atmgeom_checked, atmfields_checked, atmosphere_dim,
+                     t_field, z_field, vmr_field, cloudbox_on,
+                     cloudbox_checked, sensor_checked, stokes_dim, f_grid,
+                     sensor_pos, sensor_los, transmitter_pos, mblock_dlos_grid,
+                     sensor_response, sensor_response_f, sensor_response_pol,
+                     sensor_response_dlos, iy_unit, iy_main_agenda, geo_pos_agenda,
+                     jacobian_agenda, jacobian_do, jacobian_quantities, jacobian_indices,
+                     iy_aux_vars, verbosity );
 
-            if( debug )
+              if( debug )
+                {
+                  WriteXMLIndexed( "ascii", iq*np+il, y, "y", "y", "", verbosity );
+                }
+
+              Vector dydx(y0.nelem());
+              for( Index i=0; i<y0.nelem(); i++ )
+                {
+                  dydx[i] = (y[i]-y0[i]) / jq.Perturbation();
+                }
+
+              jacobian(joker,it) = dydx;
+            }
+            catch (runtime_error e)
+            {
+              if( robust )
               {
-                WriteXMLIndexed( "ascii", iq*np+il, y, "y", "y", "", verbosity );
+                // Don't fail full calc if one of the perturbation calcs went
+                // wrong.
+                ostringstream os;
+                os << "WARNING! Jacobian calculation for " << speciesname
+                   << " at level " << il << " failed.\n"
+                   << "jacobian matrix will contain NaN for this job.\n"
+                   << "The runtime error produced was:\n"
+                   << e.what() << "\n";
+                out0 << os.str();
               }
-
-            Vector dydx(y.nelem());
-            for( Index i=0; i<y.nelem(); i++ )
+              else
               {
-                dydx[i] = (y[i]-y0[i]) / jq.Perturbation();
+                // The user wants the batch job to fail if one of the
+                // jobs goes wrong.
+                do_abort = true;
+                ostringstream os;
+                os << "Jacobian calculation for " << speciesname
+                   << " at level " << il << " failed. Aborting...\n";
+                out1 << os.str();
               }
+              ostringstream os;
+              os << "Run-time error at jacobianDoit species " << speciesname
+                 << ", level " << il << ": \n" << e.what();
+              fail_msg.push_back(os.str());
+            }
 
+            it++;
+
+            // we need to restore the original atm fields again for to start from
+            // original field again for next perturbation level (or species)
+            if( jq.MainTag() == ABSSPECIES_MAINTAG )
+              {
+                vmr_field(si,joker,joker,joker) = vmr_field_ref(si,joker,joker,joker);
+              }
+            else if( jq.MainTag() == SCATSPECIES_MAINTAG )
+              {
+                scat_species_mass_density_field(si,joker,joker,joker) =
+                  scat_species_mass_density_field_ref(si,joker,joker,joker);
+                scat_species_mass_flux_field(si,joker,joker,joker) =
+                  scat_species_mass_flux_field_ref(si,joker,joker,joker);
+                scat_species_number_density_field(si,joker,joker,joker) =
+                  scat_species_number_density_field_ref(si,joker,joker,joker);
+              }
+            else //temperature
+              {
+                t_field = t_field_ref;
+              }
+          }
+          else
+          {
+            Vector dydx(y0.nelem());
+            for( Index i=0; i<y0.nelem(); i++ )
+              {
+                dydx[i] = 0.;
+              }
             jacobian(joker,it) = dydx;
+            it++;
           }
-          catch (runtime_error e)
-          {
-            if( robust )
-            {
-              // Don't fail full calc if one of the perturbation calcs went
-              // wrong.
-              ostringstream os;
-              os << "WARNING! Jacobian calculation for " << speciesname
-                 << " at level " << il << " failed.\n"
-                 << "jacobian matrix will contain NaN for this job.\n"
-                 << "The runtime error produced was:\n"
-                 << e.what() << "\n";
-              out0 << os.str();
-            }
-            else
-            {
-              // The user wants the batch job to fail if one of the
-              // jobs goes wrong.
-              do_abort = true;
-              ostringstream os;
-              os << "Jacobian calculation for " << speciesname
-                 << " at level " << il << " failed. Aborting...\n";
-              out1 << os.str();
-            }
-            ostringstream os;
-            os << "Run-time error at jacobianDoit species " << speciesname
-               << ", level " << il << ": \n" << e.what();
-            fail_msg.push_back(os.str());
-          }
-
-          it++;
 
           if( debug )
             {
               // to have info on the jacobians already along the way...
               WriteXML( "ascii", jacobian, "jacobian", 0, "jacobian", "", "",
                          verbosity );
-            }
-          // we need to restore the original atm fields again for to start from
-          // original field again for next perturbation level (or species)
-          if( jq.MainTag() == ABSSPECIES_MAINTAG )
-            {
-              vmr_field(si,joker,joker,joker) = vmr_field_ref(si,joker,joker,joker);
-            }
-          else if( jq.MainTag() == SCATSPECIES_MAINTAG )
-            {
-              scat_species_mass_density_field(si,joker,joker,joker) =
-                scat_species_mass_density_field_ref(si,joker,joker,joker);
-              scat_species_mass_flux_field(si,joker,joker,joker) =
-                scat_species_mass_flux_field_ref(si,joker,joker,joker);
-              scat_species_number_density_field(si,joker,joker,joker) =
-                scat_species_number_density_field_ref(si,joker,joker,joker);
-            }
-          else //temperature
-            {
-              t_field = t_field_ref;
             }
         }
     }
