@@ -162,6 +162,12 @@ void iyCalc(
                          cloudbox_on, 0, t_field, 
                          z_field, vmr_field, f_grid, rte_pos, rte_los, rte_pos2,
                          iy_main_agenda );
+  
+  // Assert that no NaNs (should suffice to check first stokes element)
+  DEBUG_ONLY(
+    for( Index i=0; i<iy.nrows(); i++ )
+      { assert( !isnan(iy(i,0) ) ); }
+  )  
 }
 
 
@@ -1588,13 +1594,15 @@ void yCalc_mblock_loop_body(
         //
         for( Index i=0; i<n1y; i++ )
           {
-            y_f[row0+i]          = sensor_response_f[i];
-            y_pol[row0+i]        = sensor_response_pol[i];
-            y_pos(row0+i,joker)  = sensor_pos(mblock_index,joker);
-            y_los(row0+i,joker)  = sensor_los(mblock_index,joker);
-            y_los(row0+i,0)     += sensor_response_dlos(i,0);
+            const Index ii = row0 + i; 
+            assert( !isnan( y[ii] ) );
+            y_f[ii]          = sensor_response_f[i];
+            y_pol[ii]        = sensor_response_pol[i];
+            y_pos(ii,joker)  = sensor_pos(mblock_index,joker);
+            y_los(ii,joker)  = sensor_los(mblock_index,joker);
+            y_los(ii,0)     += sensor_response_dlos(i,0);
             if( sensor_response_dlos.ncols() > 1 )
-              { y_los(row0+i,1) += sensor_response_dlos(i,1); }
+              { y_los(ii,1) += sensor_response_dlos(i,1); }
           }
         
         // Apply sensor response matrix on diyb_dx, and put into jacobian
