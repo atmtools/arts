@@ -163,11 +163,12 @@ void iyCalc(
                          z_field, vmr_field, f_grid, rte_pos, rte_los, rte_pos2,
                          iy_main_agenda );
   
-  // Assert that no NaNs (should suffice to check first stokes element)
-  DEBUG_ONLY(
-    for( Index i=0; i<iy.nrows(); i++ )
-      { assert( !isnan(iy(i,0) ) ); }
-  )  
+  // Don't allow NaNs (should suffice to check first stokes element)
+  for( Index i=0; i<iy.nrows(); i++ )
+    { 
+      if( isnan(iy(i,0) ) )
+        throw runtime_error( "One or several NaNs found in *iy*." );
+    }
 }
 
 
@@ -1590,12 +1591,13 @@ void yCalc_mblock_loop_body(
         //
         y[rowind] = yb;  // *yb* also used below, as input to jacobian_agenda
 
-        // Fill information variables.
+        // Fill information variables. And search for NaNs in *y*.
         //
         for( Index i=0; i<n1y; i++ )
           {
             const Index ii = row0 + i; 
-            assert( !isnan( y[ii] ) );
+            if( isnan(y[ii] ) )
+              throw runtime_error( "One or several NaNs found in *y*." );
             y_f[ii]          = sensor_response_f[i];
             y_pol[ii]        = sensor_response_pol[i];
             y_pos(ii,joker)  = sensor_pos(mblock_index,joker);
