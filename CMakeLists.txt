@@ -140,6 +140,12 @@ endif (HAVE_SYS_TYPES_H AND HAVE_UNISTD_H AND HAVE_SYS_STAT_H AND HAVE_CTIME
 include (FindZLIB)
 set (ENABLE_ZLIB ${ZLIB_FOUND})
 
+########## BLAS support #########
+include (FindBLAS)
+if (NOT BLAS_FOUND)
+  message (FATAL_ERROR "No BLAS library found. Please install it.")
+endif (NOT BLAS_FOUND)
+
 ########## NetCDF support #########
 include (FindNetCDF)
 
@@ -147,6 +153,8 @@ include (FindNetCDF)
 if (NOT NO_OPENMP AND NOT CMAKE_GENERATOR STREQUAL "Xcode")
   include (FindOpenMP)
 endif (NOT NO_OPENMP AND NOT CMAKE_GENERATOR STREQUAL "Xcode")
+
+########## NetCDF support #########
 
 ########### Docserver support ##########
 

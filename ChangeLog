@@ -1,3 +1,17 @@
+2015-06-03  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-219
+
+	* src/CMakeLists.txt, CMakeLists.txt:
+
+	Fix bug in BLAS detection reported by jana. Cmake did not fail when
+	the required BLAS library wasn't found. Instead compilation failed
+	trying to link against -lOFF.
+	Moved code from src/ to toplevel CMakeLists.txt file and changed
+	detection code to be consistent with other libraries.
+
+	* README: Added blas to required dependencies.
+
 2015-06-02  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-218

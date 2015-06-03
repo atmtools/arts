@@ -1,6 +1,8 @@
 
 include_directories (${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}
-                     ${ZLIB_INCLUDE_DIR} /usr/local/MATLAB/R2015a/extern/include)
+                     ${ZLIB_INCLUDE_DIR}
+                     ${BLAS_INCLUDE_DIR}
+                     /usr/local/MATLAB/R2015a/extern/include)
 
 
 
@@ -283,17 +285,7 @@ add_library (matpack STATIC
 	matpackVII.cc
 	)
 
-set ( BLASDIR OFF CACHE PATH
-  "Path to the BLAS library." )
-
-if ( NOT BLASDIR )
-  find_package(BLAS)
-  if ( BLAS_FOUND )
-    list( GET BLAS_LIBRARIES 0 BLASDIR)
-  endif ( BLAS_FOUND )
-endif (NOT BLASDIR)
-
-target_link_libraries( matpack ${BLASDIR} )
+target_link_libraries( matpack ${BLAS_LIBRARIES} )
 
 ########### next target ###############
 
