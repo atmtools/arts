@@ -1,3 +1,13 @@
+2015-06-04  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-220
+
+	* CMakeLists.txt:
+
+	Added workaround for detection of BLAS. Older cmake versions require
+	fortran to be enabled for the FindBLAS macro to work. Therefore, for
+	cmake < 2.8.8, fortran language support is now automatically turned on.
+
 2015-06-03  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-219
