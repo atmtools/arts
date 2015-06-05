@@ -1,5 +1,13 @@
 2015-06-05  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-3-223
+
+	* src/linerecord.cc (ReadFromArtscat5Stream):
+
+	Fix parsing bug introduced in arts-2-3-221.
+
+2015-06-05  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-3-222
 
 	* src/groups.cc (define_wsv_group_names): Sort groups alphabetically.

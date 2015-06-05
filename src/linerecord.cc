@@ -3367,12 +3367,13 @@ bool LineRecord::ReadFromArtscat5Stream(istream& is, const Verbosity& verbosity)
                         icecream >> r;
                         mquantum_numbers.Upper().Set(token, r);
                         icecream >> token;
+                        if (token == "LO") break;
                     }
 
-                    if (token != "LO")
+                    if (!is || token != "LO")
                     {
-                        ostringstream os;
-                        os << "Unknown quantum number tag: " << token;
+                        std::ostringstream os;
+                        os << "Error in catalog. Lower quantum number tag 'LO' not found.";
                         throw std::runtime_error(os.str());
                     }
 
