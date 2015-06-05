@@ -2141,7 +2141,7 @@ void jacobianDoit(//WS Output:
                   const ArrayOfArrayOfIndex& jacobian_indices,
                   const ArrayOfArrayOfSpeciesTag& abs_species,
                   const ArrayOfString& scat_species,
-                  const Vector& p_grid,
+                  const Vector& /* p_grid */,
                   const Index& atmosphere_dim,
                   const ArrayOfIndex& cloudbox_limits,
                   // input required for pnd_fieldCalcFromscat_speciesFields
@@ -2792,7 +2792,7 @@ void jacobianDoitAddSpecies(//WS Output:
                             const String& species,
                             const String& mode, //abs or rel
                             const Numeric& dx,
-                            const Verbosity& verbosity)
+                            const Verbosity& /* verbosity */)
 {
   // Create the new retrieval quantity
   RetrievalQuantity rq;

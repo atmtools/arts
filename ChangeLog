@@ -1,5 +1,17 @@
 2015-06-05  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-3-222
+
+	* src/groups.cc (define_wsv_group_names): Sort groups alphabetically.
+
+	* src/m_jacobian.cc (jacobianDoitAddSpecies, jacobianDoit):
+
+	Comment out names of unused arguments to silence compiler warning.
+
+	* ChangeLog: Fix typo in previous entry.
+
+2015-06-05  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-3-221
 
 	* src/quantum.{cc,h}: Implementation of new class QuantumIdentifier.
@@ -11,7 +23,7 @@
 	Added new WSV groups QuantumIdentifier and ArrayOfQuantumIdentifier and
 	XML read/write support.
 
-	* src/linerecord.cc (ReadFromArtscat4Stream):
+	* src/linerecord.cc (ReadFromArtscat5Stream):
 
 	Better error detection when parsing quantum numbers.
 
