@@ -1407,6 +1407,85 @@ void xml_write_to_stream(ostream&             os_xml,
 }
 
 
+//=== ArrayOfQuantumIdentifier ================================================
+
+//! Reads ArrayOfQuantumIdentifier from XML input stream
+/*!
+  \param is_xml  XML Input stream
+  \param aqtag   ArrayOfQuantumIdentifier return value
+  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
+*/
+void xml_read_from_stream(istream&           is_xml,
+                          ArrayOfQuantumIdentifier& aqtag,
+                          bifstream*         pbifs,
+                          const Verbosity&   verbosity)
+{
+  ArtsXMLTag tag(verbosity);
+  Index nelem;
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("Array");
+  tag.check_attribute("type", "QuantumIdentifier");
+
+  tag.get_attribute_value("nelem", nelem);
+  aqtag.resize(nelem);
+
+  Index n;
+  try
+    {
+      for (n = 0; n < nelem; n++)
+        xml_read_from_stream(is_xml, aqtag[n], pbifs, verbosity);
+    }
+  catch (runtime_error e)
+    {
+      ostringstream os;
+      os << "Error reading ArrayOfQuantumIdentifier: "
+         << "\n Element: " << n
+         << "\n" << e.what();
+      throw runtime_error(os.str());
+    }
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("/Array");
+}
+
+
+//! Writes ArrayOfQuantumIdentifier to XML output stream
+/*!
+  \param os_xml  XML Output stream
+  \param aqtag   ArrayOfQuantumIdentifier
+  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
+  \param name    Optional name attribute
+*/
+void xml_write_to_stream(ostream&                 os_xml,
+                         const ArrayOfQuantumIdentifier& aqtag,
+                         bofstream*               pbofs,
+                         const String&            name,
+                         const Verbosity&         verbosity)
+{
+  ArtsXMLTag open_tag(verbosity);
+  ArtsXMLTag close_tag(verbosity);
+
+  open_tag.set_name("Array");
+  if (name.length())
+    open_tag.add_attribute("name", name);
+
+  open_tag.add_attribute("type", "QuantumIdentifier");
+  open_tag.add_attribute("nelem", aqtag.nelem());
+
+  open_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+
+  for (Index n = 0; n < aqtag.nelem(); n++)
+    xml_write_to_stream(os_xml, aqtag[n], pbofs, "", verbosity);
+
+  close_tag.set_name("/Array");
+  close_tag.write_to_stream(os_xml);
+
+  os_xml << '\n';
+}
+
+
 //=== ArrayOfRetrievalQuantity =======================================
 
 //! Reads ArrayOfRetrievalQuantity from XML input stream

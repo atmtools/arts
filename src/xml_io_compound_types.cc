@@ -974,6 +974,71 @@ void xml_write_to_stream(ostream& os_xml,
 }
 
 
+//=== QuantumIdentifier =========================================
+
+//! Reads QuantumIdentifier from XML input stream
+/*!
+  \param is_xml  XML Input stream
+  \param qi      QuantumIdentifier return value
+  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
+*/
+void xml_read_from_stream(istream& is_xml,
+                          QuantumIdentifier& qi,
+                          bifstream* pbifs _U_,
+                          const Verbosity& verbosity)
+{
+    ArtsXMLTag tag(verbosity);
+
+    tag.read_from_stream(is_xml);
+    tag.check_name("QuantumIdentifier");
+
+    try
+    {
+        String qi_str;
+        parse_xml_tag_content_as_string(is_xml, qi_str);
+        qi.SetFromString(qi_str);
+    }
+    catch (runtime_error e)
+    {
+        ostringstream os;
+        os << "Error reading QuantumIdentifier: "
+        << "\n" << e.what();
+        throw runtime_error(os.str());
+    }
+
+    tag.read_from_stream(is_xml);
+    tag.check_name("/QuantumIdentifier");
+}
+
+
+//! Writes QuantumIdentifier to XML output stream
+/*!
+  \param os_xml  XML Output stream
+  \param qi      QuantumIdentifier
+  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
+  \param name    Optional name attribute
+*/
+void xml_write_to_stream(ostream& os_xml,
+                         const QuantumIdentifier& qi,
+                         bofstream* pbofs _U_,
+                         const String& name, const Verbosity& verbosity)
+{
+    ArtsXMLTag open_tag(verbosity);
+    ArtsXMLTag close_tag(verbosity);
+
+    open_tag.set_name("QuantumIdentifier");
+    if (name.length())
+        open_tag.add_attribute("name", name);
+    open_tag.write_to_stream(os_xml);
+
+    os_xml << qi;
+
+    close_tag.set_name("/QuantumIdentifier");
+    close_tag.write_to_stream(os_xml);
+    os_xml << endl;
+}
+
+
 //=== QuantumNumberRecord =========================================
 
 //! Reads QuantumNumberRecord from XML input stream

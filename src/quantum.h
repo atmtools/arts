@@ -31,6 +31,7 @@
 #include "matpack.h"
 #include "rational.h"
 #include "mystring.h"
+#include "array.h"
 
 
 //! Enum for Quantum Numbers used for indexing
@@ -173,14 +174,91 @@ private:
 };
 
 
+//! Class to identify and match lines by their quantum numbers
+/*!
+ Describes either a transition or an energy level and can be used
+ to find matching lines.
+ 
+ For transitions, the QI contains upper and lower quantum numbers.
+ For energy levels, it only holds one set of quantum numbers which
+ are then matched against the upper and lower qns of the lines.
+ 
+ File format:
+ 
+ Transition:   SPECIES_NAME-ISOTOPE TR UP QUANTUMNUMBERS LO QUANTUMNUMBERS
+ Energy level: SPECIES_NAME-ISOTOPE EN QUANTUMNUMBERS
+ 
+ H2O-161 TR UP J 0/1 v1 2/3 LO J 1/1 v2 1/2
+ H2O-161 EN J 0/1 v1 2/3
+
+*/
+class QuantumIdentifier
+{
+public:
+    //! Identify lines by transition or energy level
+    typedef enum {
+        TRANSITION,
+        ENERGY_LEVEL
+    } QType;
+
+    typedef Array<QuantumNumbers> QuantumMatchCriteria;
+
+    static const Index TRANSITION_UPPER_INDEX = 0;
+    static const Index TRANSITION_LOWER_INDEX = 1;
+    static const Index ENERGY_LEVEL_INDEX = 0;
+
+    void SetType(const QuantumIdentifier::QType qt)
+    {
+        mqtype = qt;
+        switch (qt) {
+            case QuantumIdentifier::TRANSITION:
+                mqm.resize(2);
+                break;
+            case QuantumIdentifier::ENERGY_LEVEL:
+                mqm.resize(1);
+                break;
+            default:
+                break;
+        }
+    }
+
+    void SetSpecies(const Index &sp) { mspecies = sp; }
+    void SetIsotopologue(const Index &iso) { miso = iso; }
+    void SetTransition(const QuantumNumbers q1, const QuantumNumbers q2);
+    void SetEnergyLevel(const QuantumNumbers q);
+    void SetFromString(String str);
+
+    QType Type() const { return mqtype; }
+    String TypeStr() const;
+    Index Species() const { return mspecies; }
+    Index Isotopologue() const { return miso; }
+    const QuantumMatchCriteria& QuantumMatch() const { return mqm; }
+    QuantumMatchCriteria& QuantumMatch() { return mqm; }
+
+private:
+    QType mqtype;
+    Index mspecies;
+    Index miso;
+    QuantumMatchCriteria mqm;
+};
+
+
+typedef Array<QuantumIdentifier> ArrayOfQuantumIdentifier;
+
+
 //! Check for valid quantum number name
 bool IsValidQuantumNumberName(String name);
 
+//! Throws runtime error if quantum number name is invalid
+void ThrowIfQuantumNumberNameInvalid(String name);
 
 std::istream& operator>>(std::istream& is, QuantumNumbers& qn);
 std::ostream& operator<<(std::ostream& os, const QuantumNumbers& qn);
 
 std::ostream& operator<<(std::ostream& os, const QuantumNumberRecord& qr);
+
+std::istream& operator>>(std::istream& is, QuantumIdentifier& qi);
+std::ostream& operator<<(std::ostream& os, const QuantumIdentifier& qi);
 
 #endif
 

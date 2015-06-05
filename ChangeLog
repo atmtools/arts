@@ -1,3 +1,23 @@
+2015-06-05  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-221
+
+	* src/quantum.{cc,h}: Implementation of new class QuantumIdentifier.
+
+	* src/groups.cc, src/xml_io_array_types.cc,
+	src/xml_io_compound_types.cc, src/xml_io_instantiation.h,
+	src/xml_io_types.h:
+
+	Added new WSV groups QuantumIdentifier and ArrayOfQuantumIdentifier and
+	XML read/write support.
+
+	* src/linerecord.cc (ReadFromArtscat4Stream):
+
+	Better error detection when parsing quantum numbers.
+
+	* src/xml_io_private.h, src/xml_io.cc
+	(parse_xml_tag_content_as_string): Added.
+
 2015-06-04  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-220

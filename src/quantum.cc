@@ -22,9 +22,10 @@
     \author Oliver Lemke
 */
 
-#include "quantum.h"
-
 #include <stdexcept>
+#include "quantum.h"
+#include "global_data.h"
+#include "absorption.h"
 
 
 bool QuantumNumbers::Compare(const QuantumNumbers& qn) const
@@ -73,6 +74,15 @@ if (name == #ID) valid = true
     return valid;
 }
 
+void ThrowIfQuantumNumberNameInvalid(String name)
+{
+    if (!IsValidQuantumNumberName(name))
+    {
+        ostringstream os;
+        os << "Invalid quantum number: " << name;
+        throw std::runtime_error(os.str());
+    }
+}
 
 std::istream& operator>>(std::istream& is, QuantumNumbers& qn)
 {
@@ -107,6 +117,7 @@ std::istream& operator>>(std::istream& is, QuantumNumbers& qn)
     return is;
 }
 
+
 std::ostream& operator<<(std::ostream& os, const QuantumNumbers& qn)
 {
     bool first = true;
@@ -131,10 +142,182 @@ std::ostream& operator<<(std::ostream& os, const QuantumNumbers& qn)
     return os;
 }
 
+
+String QuantumIdentifier::TypeStr() const {
+    String t;
+    switch (mqtype) {
+        case QuantumIdentifier::TRANSITION:
+            t = "TR";
+            break;
+        case QuantumIdentifier::ENERGY_LEVEL:
+            t = "EN";
+            break;
+        default:
+            assert(0);
+            break;
+    }
+    return t;
+}
+
+
+void QuantumIdentifier::SetTransition(const QuantumNumbers q1, const QuantumNumbers q2)
+{
+    mqtype = QuantumIdentifier::TRANSITION;
+    mqm.resize(2);
+    mqm[TRANSITION_UPPER_INDEX] = q1;
+    mqm[TRANSITION_LOWER_INDEX] = q2;
+}
+
+
+void QuantumIdentifier::SetEnergyLevel(const QuantumNumbers q)
+{
+    mqtype = QuantumIdentifier::ENERGY_LEVEL;
+    mqm.resize(1);
+    mqm[ENERGY_LEVEL_INDEX] = q;
+}
+
+
+void QuantumIdentifier::SetFromString(String str)
+{
+    // Global species lookup data:
+    using global_data::species_data;
+
+    // We need a species index sorted by Arts identifier. Keep this in a
+    // static variable, so that we have to do this only once.  The ARTS
+    // species index is ArtsMap[<Arts String>].
+    static map<String, SpecIsoMap> ArtsMap;
+
+    // Remember if this stuff has already been initialized:
+    static bool hinit = false;
+
+    if ( !hinit )
+    {
+        for ( Index i=0; i<species_data.nelem(); ++i )
+        {
+            const SpeciesRecord& sr = species_data[i];
+
+            for ( Index j=0; j<sr.Isotopologue().nelem(); ++j)
+            {
+                SpecIsoMap indicies(i,j);
+                String buf = sr.Name()+"-"+sr.Isotopologue()[j].Name();
+
+                ArtsMap[buf] = indicies;
+            }
+        }
+        hinit = true;
+    }
+
+    std::istringstream is(str);
+    String token;
+
+    is >> token;
+
+    // ok, now for the cool index map:
+    // is this arts identifier valid?
+    const map<String, SpecIsoMap>::const_iterator i = ArtsMap.find(token);
+    if ( i == ArtsMap.end() )
+    {
+        ostringstream os;
+        os << "ARTS Tag: " << token << " is unknown.";
+        throw runtime_error(os.str());
+    }
+
+    SpecIsoMap id = i->second;
+    SetSpecies(id.Speciesindex());
+    SetIsotopologue(id.Isotopologueindex());
+
+    is >> token;
+    if (token == "TR")
+    {
+        SetType(QuantumIdentifier::TRANSITION);
+        is >> token;
+        if (token != "UP")
+        {
+            std::ostringstream os;
+            os << "Expected 'UP', but got: " << token;
+            throw std::runtime_error(os.str());
+        }
+
+        is >> token;
+        Rational r;
+        while (is)
+        {
+            ThrowIfQuantumNumberNameInvalid(token);
+            is >> r;
+            QuantumMatch()[QuantumIdentifier::TRANSITION_UPPER_INDEX].Set(token, r);
+            is >> token;
+            if (token == "LO") break;
+        }
+
+        if (!is)
+        {
+            std::ostringstream os;
+            os << "Premature end of data, expected 'LO'.";
+            throw std::runtime_error(os.str());
+        }
+        is >> token;
+        while (is)
+        {
+            ThrowIfQuantumNumberNameInvalid(token);
+            is >> r;
+            QuantumMatch()[QuantumIdentifier::TRANSITION_LOWER_INDEX].Set(token, r);
+            is >> token;
+        }
+    }
+    else if (token == "EN")
+    {
+        SetType(QuantumIdentifier::ENERGY_LEVEL);
+
+        is >> token;
+        Rational r;
+        while (is)
+        {
+            ThrowIfQuantumNumberNameInvalid(token);
+            is >> r;
+            QuantumMatch()[QuantumIdentifier::TRANSITION_UPPER_INDEX].Set(token, r);
+            is >> token;
+        }
+    }
+    else
+    {
+        std::ostringstream os;
+        os << "Error parsing QuantumIdentifier. Expected TR or EN, but got: " << token << "\n"
+        << "QI: " << str;
+        throw std::runtime_error(os.str());
+    }
+}
+
+
 std::ostream& operator<<(std::ostream& os, const QuantumNumberRecord& qr)
 {
     os << "Upper: " << qr.Upper() << " ";
     os << "Lower: " << qr.Lower();
+
+    return os;
+}
+
+
+std::ostream& operator<<(std::ostream& os, const QuantumIdentifier& qi)
+{
+    using global_data::species_data;
+
+    os << species_data[qi.Species()].Name() << "-"
+    << species_data[qi.Species()].Isotopologue()[qi.Isotopologue()].Name()
+    << " ";
+
+    if (qi.Type() == QuantumIdentifier::TRANSITION)
+    {
+        os << "TR UP " << qi.QuantumMatch()[QuantumIdentifier::TRANSITION_UPPER_INDEX];
+        os << " LO " << qi.QuantumMatch()[QuantumIdentifier::TRANSITION_LOWER_INDEX];
+    }
+    else if (qi.Type() == QuantumIdentifier::ENERGY_LEVEL)
+    {
+        os << "EN " << qi.QuantumMatch()[QuantumIdentifier::ENERGY_LEVEL_INDEX];
+    }
+    else
+    {
+        assert(0);
+    }
 
     return os;
 }

@@ -815,6 +815,26 @@ void xml_set_stream_precision(ostream& os)
 }
 
 
+//! Get the content of an xml tag as a string
+void parse_xml_tag_content_as_string(std::istream& is_xml, String& content)
+{
+    char dummy;
+
+    content = "";
+    dummy = (char)is_xml.peek();
+    while (is_xml && dummy != '<')
+    {
+        is_xml.get(dummy);
+        content += dummy;
+        dummy = (char)is_xml.peek();
+    }
+
+    if (!is_xml)
+        throw std::runtime_error("Unexpected end of file.");
+}
+
+
+
 ////////////////////////////////////////////////////////////////////////////
 //   Generic IO routines for XML files
 ////////////////////////////////////////////////////////////////////////////

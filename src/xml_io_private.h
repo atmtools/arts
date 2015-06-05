@@ -127,5 +127,6 @@ void xml_write_footer_to_stream(ostream& os, const Verbosity& verbosity);
 
 void xml_set_stream_precision(ostream& os);
 
+void parse_xml_tag_content_as_string(std::istream& is_xml, String& content);
 
 #endif  /* xml_io_private_h */
