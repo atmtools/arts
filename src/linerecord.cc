@@ -3645,49 +3645,6 @@ ostream& operator<< (ostream& os, const LineRecord& lr)
 }
 
 
-//======================================================================
-//         Functions for searches inside the line catalog
-//======================================================================
-
-
-bool find_matching_lines(ArrayOfIndex& matches,
-                         const ArrayOfLineRecord& abs_lines,
-                         const Index species,
-                         const Index isotopologue,
-                         const QuantumNumberRecord qr,
-                         const LineMatchingCriteria match_criteria)
-{
-    bool ret = true;
-    matches.resize(0);
-    matches.reserve(100);
-
-    for (Index l = 0; l < abs_lines.nelem(); l++)
-    {
-        const LineRecord& this_line = abs_lines[l];
-
-        if ((species == -1 || this_line.Species() == species)
-            && (isotopologue == -1 || this_line.Isotopologue() == isotopologue)
-            && qr.Lower().Compare(this_line.QuantumNumbers().Lower())
-            && qr.Upper().Compare(this_line.QuantumNumbers().Upper()))
-        {
-            matches.push_back(l);
-
-            if (match_criteria == LINE_MATCH_FIRST)
-                break;
-            if (match_criteria == LINE_MATCH_UNIQUE && matches.nelem() > 1)
-            {
-                ret = false;
-                break;
-            }
-        }
-    }
-
-    if (!matches.nelem()) ret = false;
-
-    return ret;
-}
-
-
 /*!
  *  Calculates the line strength scaling parameters for cross section calculations.
  * 
@@ -3758,4 +3715,111 @@ void LineRecord::GetLineScalingData(Numeric& partition_ratio,
     abs_nlte_ratio = (r_low - r_upp * gamma ) / ( 1 - gamma );
     src_nlte_ratio = r_upp;
   
+}
+
+
+//======================================================================
+//         Functions for searches inside the line catalog
+//======================================================================
+
+
+bool find_matching_lines(ArrayOfIndex& matches,
+                         const ArrayOfLineRecord& abs_lines,
+                         const Index species,
+                         const Index isotopologue,
+                         const QuantumNumberRecord qr,
+                         const LineMatchingCriteria match_criteria)
+{
+    bool ret = true;
+    matches.resize(0);
+    matches.reserve(100);
+
+    for (Index l = 0; l < abs_lines.nelem(); l++)
+    {
+        const LineRecord& this_line = abs_lines[l];
+
+        if ((species == -1 || this_line.Species() == species)
+            && (isotopologue == -1 || this_line.Isotopologue() == isotopologue)
+            && qr.Lower().Compare(this_line.QuantumNumbers().Lower())
+            && qr.Upper().Compare(this_line.QuantumNumbers().Upper()))
+        {
+            matches.push_back(l);
+
+            if (match_criteria == LINE_MATCH_FIRST)
+                break;
+            if (match_criteria == LINE_MATCH_UNIQUE && matches.nelem() > 1)
+            {
+                ret = false;
+                break;
+            }
+        }
+    }
+
+    if (!matches.nelem()) ret = false;
+
+    return ret;
+}
+
+
+void match_lines_by_quantum_identifier(ArrayOfIndex& matches,
+                                       ArrayOfQuantumMatchInfo& match_info,
+                                       const QuantumIdentifier& qi,
+                                       const ArrayOfLineRecord& abs_lines)
+{
+    ArrayOfQuantumMatchInfo aqmi(2);
+    QuantumMatchInfo qmi;
+    matches.resize(0);
+    matches.reserve(100);
+    match_info.resize(0);
+    match_info.reserve(100);
+    if (qi.Type() == QuantumIdentifier::ENERGY_LEVEL)
+    {
+        for (Index i = 0; i < abs_lines.nelem(); i++)
+        {
+            const LineRecord& this_line = abs_lines[i];
+            if (this_line.Species() == qi.Species()
+                && this_line.Isotopologue() == qi.Isotopologue())
+            {
+                // Matching by energy level means that upper OR lower quantum numbers
+                // must match
+                this_line.QuantumNumbers().Upper().CompareDetailed
+                (qmi.Upper(), qi.QuantumMatch()[QuantumIdentifier::ENERGY_LEVEL_INDEX]);
+                this_line.QuantumNumbers().Lower().CompareDetailed
+                (qmi.Lower(), qi.QuantumMatch()[QuantumIdentifier::ENERGY_LEVEL_INDEX]);
+
+                if (qmi.Upper() || qmi.Lower())
+                {
+                    match_info.push_back(qmi);
+                    matches.push_back(i);
+                }
+            }
+        }
+    }
+    else if (qi.Type() == QuantumIdentifier::TRANSITION)
+        {
+            for (Index i = 0; i < abs_lines.nelem(); i++)
+            {
+                const LineRecord& this_line = abs_lines[i];
+                if (this_line.Species() == qi.Species()
+                    && this_line.Isotopologue() == qi.Isotopologue())
+                {
+                    // Matching by transition means that upper AND lower quantum numbers
+                    // must match
+                    this_line.QuantumNumbers().Upper().CompareDetailed
+                    (qmi.Upper(), qi.QuantumMatch()[QuantumIdentifier::TRANSITION_UPPER_INDEX]);
+                    this_line.QuantumNumbers().Lower().CompareDetailed
+                    (qmi.Lower(), qi.QuantumMatch()[QuantumIdentifier::TRANSITION_LOWER_INDEX]);
+
+                    if (qmi.Upper() && qmi.Lower())
+                    {
+                        match_info.push_back(qmi);
+                        matches.push_back(i);
+                    }
+                }
+            }
+        }
+    else
+    {
+        assert(0);
+    }
 }

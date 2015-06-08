@@ -1203,4 +1203,9 @@ bool find_matching_lines(ArrayOfIndex& matches,
                          const QuantumNumberRecord qr,
                          const LineMatchingCriteria match_criteria = LINE_MATCH_ALL);
 
+void match_lines_by_quantum_identifier(ArrayOfIndex& matches,
+                                       ArrayOfQuantumMatchInfo& match_info,
+                                       const QuantumIdentifier& qi,
+                                       const ArrayOfLineRecord& abs_lines);
+
 #endif // linerecord_h

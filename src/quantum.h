@@ -57,6 +57,35 @@ typedef enum {
 } QuantumIds;
 
 
+//! Enum for details about matched quantum numbers.
+typedef enum {
+    QMI_NONE = 0,
+    QMI_FULL = 1,
+    QMI_PARTIAL = 2,
+} QuantumMatchInfoEnum;
+
+
+//! Class that holds details for matching info on upper and lower quantum numbers.
+class QuantumMatchInfo
+{
+public:
+    void SetUpper(const QuantumMatchInfoEnum qmie) { mupper = qmie; }
+    void SetLower(const QuantumMatchInfoEnum qmie) { mlower = qmie; }
+
+    const QuantumMatchInfoEnum& Upper() const { return mupper; }
+    const QuantumMatchInfoEnum& Lower() const { return mlower; }
+
+    QuantumMatchInfoEnum& Upper() { return mupper; }
+    QuantumMatchInfoEnum& Lower() { return mlower; }
+
+private:
+    QuantumMatchInfoEnum mupper;
+    QuantumMatchInfoEnum mlower;
+};
+
+typedef Array<QuantumMatchInfo> ArrayOfQuantumMatchInfo;
+
+
 //! Container class for Quantum Numbers
 class QuantumNumbers
 {
@@ -132,6 +161,8 @@ if (name == #ID) this->Set(QN_ ## ID, r)
      \returns True for match
      */
     bool Compare(const QuantumNumbers& qn) const;
+
+    bool CompareDetailed(QuantumMatchInfoEnum& imatch, const QuantumNumbers& qn) const;
 
 private:
     QuantumContainer mqnumbers;

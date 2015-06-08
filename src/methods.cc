@@ -12454,11 +12454,11 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN(),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
+        IN("abs_lines_per_species"),
+        GIN("aqi"),
+        GIN_TYPE("ArrayOfQuantumIdentifier"),
+        GIN_DEFAULT(NODEF),
+        GIN_DESC("")
         ));
 
   md_data_raw.push_back

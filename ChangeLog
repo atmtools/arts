@@ -1,3 +1,24 @@
+2015-06-08  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-224
+
+	* src/quantum.{cc,h}:
+
+	(QuantumNumbers::CompareDetailed): Added matching function that also
+	returns details about the match (partial or full match).
+
+	(QuantumMatchInfo): Class to hold information about how the quantum
+	numbers matched (full or fartial match for now).
+
+	* src/linerecord.{cc,h} (match_lines_by_quantum_identifier):
+
+	New function to find matching lines by QuantumIdentifier.
+
+	* src/methods.cc, src/m_general.cc (Test):
+
+	Modified test method to show an example on how to use line matching by
+	QuantumIdentifier.
+
 2015-06-05  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-223

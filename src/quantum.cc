@@ -53,6 +53,43 @@ bool QuantumNumbers::Compare(const QuantumNumbers& qn) const
 }
 
 
+bool QuantumNumbers::CompareDetailed(QuantumMatchInfoEnum& imatch, const QuantumNumbers& qn) const
+{
+    const QuantumContainer& qnumbers2 = qn.GetNumbers();
+
+    bool match = true;
+
+    Index qnri = 0;
+
+    imatch = QMI_FULL;
+
+    // Compare all quantum numbers in mqnumbers and qnumbers2
+    while (match && qnri != QN_FINAL_ENTRY)
+    {
+        // If one of the two numbers is undefined, it is considered as
+        // a match.
+        if (   (!mqnumbers[qnri].isUndefined() && qnumbers2[qnri].isUndefined())
+            || (mqnumbers[qnri].isUndefined() && !qnumbers2[qnri].isUndefined()))
+        {
+            imatch = QMI_PARTIAL;
+        }
+        else  if (!mqnumbers[qnri].isUndefined()
+                  && !qnumbers2[qnri].isUndefined()
+                  && mqnumbers[qnri] != qnumbers2[qnri])
+        {
+            match = false;
+            imatch = QMI_PARTIAL;
+        }
+
+        qnri++;
+    }
+
+    if (!match) imatch = QMI_NONE;
+
+    return match;
+}
+
+
 bool IsValidQuantumNumberName(String name)
 {
     bool valid = false;
