@@ -265,8 +265,7 @@ AgendaSet( forloop_agenda_atmcase ){
   Append( basename, atmcase )
 
   abs_speciesSet( species=basespecies )
-  AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw,
-              abs_species, basename )
+  AtmRawRead( basename = basename )
   abs_speciesAdd( species=addspecies )
   Delete( addvmr )
   Touch( addvmr )
@@ -289,6 +288,7 @@ AgendaSet( forloop_agenda_atmcase ){
 
   # and now the dusty calcs
   AgendaSet(iy_main_agenda){
+  Ignore(t_nlte_field)
     iyFOS(fos_n=0)
   }
   Copy( forloop_agenda, forloop_agenda_particles )

@@ -70,8 +70,7 @@ AgendaSet( forloop_agenda ){
   abs_speciesDefineAllInScenario( basename=atmcase )
   #WriteXMLIndexed( "ascii", forloop_index,
   #                 abs_species, "TestAtmScen_Venus_allInScen.abs_species" )
-  AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw,
-              abs_species, atmcase )
+  AtmRawRead( basename = atmcase )
 
   # adding species or variants that do not follow the general naming convention
   abs_speciesAdd( species=["H2O-162"] )

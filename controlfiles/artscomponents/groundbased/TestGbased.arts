@@ -100,8 +100,7 @@ AtmosphereSet1D
 # A pressure grid rougly matching 0 to 80 km in 500 m steps.
 VectorNLogSpace( p_grid, 160, 1.013e5, 1 )
 
-AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, 
-                                  "testdata/tropical" )
+AtmRawRead( basename = "testdata/tropical" )
 AtmFieldsCalc
 
 

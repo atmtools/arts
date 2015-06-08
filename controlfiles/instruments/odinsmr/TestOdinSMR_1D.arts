@@ -61,7 +61,7 @@ Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
 VectorNLogSpace( p_grid, 321, 1000e2, 1 )
 
 # Atmospheric profiles here taken from Fascod
-AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, "testdata/tropical" )
+AtmRawRead( basename = "testdata/tropical" )
 #
 AtmFieldsCalc
 

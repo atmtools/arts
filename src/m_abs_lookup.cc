@@ -116,6 +116,7 @@ void abs_lookupCalc(// Workspace reference:
   Vector abs_h2o(n_p_grid);
   Vector this_t;                // Has same dimension, but is
                                 // initialized by assignment later.
+  const Matrix this_t_nlte_dummy;
 
   // Species list, lines, and line shapes, all with only 1 element:
   ArrayOfArrayOfSpeciesTag this_species(1);
@@ -439,6 +440,7 @@ void abs_lookupCalc(// Workspace reference:
                                          f_grid,
                                          abs_p,
                                          this_t,
+                                         this_t_nlte_dummy,
                                          these_all_vmrs,
                                          l_abs_xsec_agenda);
                   
@@ -2159,6 +2161,8 @@ void propmat_clearsky_fieldCalc( Workspace& ws,
 
     // Number of longitude grid points (must be at least one):
     const Index n_longitudes = max( Index(1), lon_grid.nelem() );
+    
+    const ArrayOfTensor3 t_field_nlte_dummy(0);
 
 
     // Check that doppler is empty or matches p_grid
@@ -2237,6 +2241,11 @@ private(abs,src, a_vmr_list)
                         Numeric a_temperature = t_field( ipr, ila, ilo );
                         a_vmr_list    = vmr_field( Range(joker),
                                                   ipr, ila, ilo );
+                        
+                        //For not this is a zero length thing
+                        Vector a_temperature_nlte(t_field_nlte_dummy.nelem());
+                        for(Index inlte=0; inlte<t_field_nlte_dummy.nelem(); inlte++)
+                          a_temperature_nlte[inlte] = t_field_nlte_dummy[inlte](ipr,ila,ilo);
 
 
                         Vector this_rtp_mag(3, 0.);
@@ -2262,7 +2271,9 @@ private(abs,src, a_vmr_list)
                                                        this_f_grid,
                                                        this_rtp_mag, los,
                                                        a_pressure,
-                                                       a_temperature, a_vmr_list,
+                                                       a_temperature, 
+                                                       a_temperature_nlte,
+                                                       a_vmr_list,
                                                        l_abs_agenda);
 
                         // Verify, that the number of elements in abs matrix is
@@ -2391,6 +2402,7 @@ Numeric calc_lookup_error(// Parameters for lookup table:
   // advantage. (I guess the LBL calculation is expensive enough to
   // make the extra time of allocation here insignificant.)
   Matrix sga_tab;       // Absorption, dimension [n_species,n_f_grid]:
+  const Vector local_t_nlte_dummy;
 
   // Do lookup table first:
 
@@ -2459,6 +2471,7 @@ Numeric calc_lookup_error(// Parameters for lookup table:
                                  al.species,
                                  local_p,
                                  local_t,
+                                 local_t_nlte_dummy,
                                  local_vmrs,
                                  abs_xsec_agenda,
                                  verbosity);

@@ -58,8 +58,7 @@ VectorLinSpace( f_grid, fstart, fend, fspace )
 VectorNLogSpace( p_grid, 31, 1000e2, 0.1 )
 
 # read and grid-prepare atmospheric data
-AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw,
-            abs_species, atmcase )
+AtmRawRead( basename = atmcase )
 AtmFieldsCalc
 atmfields_checkedCalc
 

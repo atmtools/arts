@@ -1128,6 +1128,7 @@ void get_iy(
          Matrix&      iy,
    ConstTensor3View   t_field,
    ConstTensor3View   z_field,
+   ConstTensor4View   t_nlte_field,
    ConstTensor4View   vmr_field,
    const Index&       cloudbox_on,
    ConstVectorView    f_grid,
@@ -1145,7 +1146,7 @@ void get_iy(
   iy_main_agendaExecute( ws, iy, iy_aux, ppath, diy_dx, 
                          1, iy_unit, iy_transmission, 
                          ArrayOfString(0), cloudbox_on, 0, t_field, z_field,
-                         vmr_field, f_grid, rte_pos, rte_los, rte_pos2,
+                         t_nlte_field, vmr_field, f_grid, rte_pos, rte_los, rte_pos2,
                          iy_main_agenda );
 }
 
@@ -1318,6 +1319,7 @@ void get_iy_of_background(
 void get_ppath_atmvars( 
         Vector&      ppath_p, 
         Vector&      ppath_t, 
+        Matrix&      ppath_t_nlte,
         Matrix&      ppath_vmr, 
         Matrix&      ppath_wind, 
         Matrix&      ppath_mag,
@@ -1325,6 +1327,7 @@ void get_ppath_atmvars(
   const Index&       atmosphere_dim,
   ConstVectorView    p_grid,
   ConstTensor3View   t_field,
+  ConstTensor4View   t_nlte_field,
   ConstTensor4View   vmr_field,
   ConstTensor3View   wind_u_field,
   ConstTensor3View   wind_v_field,
@@ -1358,6 +1361,19 @@ void get_ppath_atmvars(
                               ppath.gp_p, ppath.gp_lat, ppath.gp_lon, 
                               itw_field );
     }
+    
+  // NLTE temperatures
+  const Index nnlte = t_nlte_field.nbooks();
+  if( nnlte )
+    ppath_t_nlte.resize(nnlte, np);
+  else 
+    ppath_t_nlte.resize(0,0);
+  for( Index itnlte=0; itnlte<nnlte;itnlte++ )
+  {
+    interp_atmfield_by_itw( ppath_t_nlte(itnlte, joker),  atmosphere_dim, 
+                            t_nlte_field( itnlte, joker, joker, joker ), 
+                            ppath.gp_p, ppath.gp_lat, ppath.gp_lon, itw_field );
+  }
 
   // Winds:
   ppath_wind.resize(3,np);
@@ -1452,6 +1468,7 @@ void get_ppath_pmat(
   const Ppath&          ppath,
   ConstVectorView       ppath_p, 
   ConstVectorView       ppath_t, 
+  ConstMatrixView       ppath_t_nlte, 
   ConstMatrixView       ppath_vmr, 
   ConstMatrixView       ppath_f, 
   ConstMatrixView       ppath_mag,
@@ -1520,7 +1537,7 @@ void get_ppath_pmat(
             propmat_clearsky_agendaExecute( 
                l_ws, propmat_clearsky, propmat_source_clearsky,
                ppath_f(joker,ip), ppath_mag(joker,ip), ppath.los(ip,joker), 
-               ppath_p[ip], ppath_t[ip], ppath_vmr(joker,ip),
+               ppath_p[ip], ppath_t[ip], (ppath_t_nlte.nrows()&&ppath_t_nlte.nrows())?ppath_t_nlte(joker,ip):Vector(0), ppath_vmr(joker,ip),
                l_propmat_clearsky_agenda );
           }
         else
@@ -1528,7 +1545,7 @@ void get_ppath_pmat(
             propmat_clearsky_agendaExecute( 
                l_ws, propmat_clearsky, propmat_source_clearsky,
                ppath_f(joker,ip), ppath_mag(joker,ip), ppath.los(ip,joker), 
-               ppath_p[ip], ppath_t[ip], Vector(0), l_propmat_clearsky_agenda );
+               ppath_p[ip], ppath_t[ip], (ppath_t_nlte.nrows()&&ppath_t_nlte.nrows())?ppath_t_nlte(joker,ip):Vector(0), Vector(0), l_propmat_clearsky_agenda );
           }
       } catch (runtime_error e) {
 #pragma omp critical (get_ppath_ext_fail)
@@ -2107,6 +2124,7 @@ void iyb_calc_body(
   const Index&                      atmosphere_dim,
   ConstTensor3View                  t_field,
   ConstTensor3View                  z_field,
+  ConstTensor4View                  t_nlte_field,
   ConstTensor4View                  vmr_field,
   const Index&                      cloudbox_on,
   const Index&                      stokes_dim,
@@ -2156,8 +2174,8 @@ void iyb_calc_body(
       iy_main_agendaExecute(ws, iy, iy_aux_array[ilos], ppath,
                             diy_dx, 
                             1, iy_unit, iy_transmission, iy_aux_vars,
-                            cloudbox_on, j_analytical_do, t_field,
-                            z_field, vmr_field, f_grid, rtp_pos, los,
+                            cloudbox_on, j_analytical_do, t_field, z_field,
+                            t_nlte_field, vmr_field, f_grid, rtp_pos, los,
                             rtp_pos2, iy_main_agenda );
 
       // Check that aux data can be handled and has correct size
@@ -2230,6 +2248,7 @@ void iyb_calc(
   const Index&                      atmosphere_dim,
   ConstTensor3View                  t_field,
   ConstTensor3View                  z_field,
+  ConstTensor4View                  t_nlte_field,
   ConstTensor4View                  vmr_field,
   const Index&                      cloudbox_on,
   const Index&                      stokes_dim,
@@ -2301,7 +2320,7 @@ firstprivate(l_ws, l_iy_main_agenda, l_geo_pos_agenda)
           iyb_calc_body( failed, fail_msg, iy_aux_array, l_ws,
                          ppath, iyb, diyb_dx,
                          mblock_index, atmosphere_dim, t_field, z_field,
-                         vmr_field, cloudbox_on, stokes_dim, f_grid,
+                         t_nlte_field, vmr_field, cloudbox_on, stokes_dim, f_grid,
                          sensor_pos, sensor_los, transmitter_pos,
                          mblock_dlos_grid, iy_unit, 
                          l_iy_main_agenda, j_analytical_do, 
@@ -2347,7 +2366,7 @@ firstprivate(l_ws, l_iy_main_agenda, l_geo_pos_agenda)
           iyb_calc_body( failed, fail_msg, iy_aux_array, l_ws, 
                          ppath, iyb, diyb_dx,
                          mblock_index, atmosphere_dim, t_field, z_field,
-                         vmr_field, cloudbox_on, stokes_dim, f_grid,
+                         t_nlte_field, vmr_field, cloudbox_on, stokes_dim, f_grid,
                          sensor_pos, sensor_los, transmitter_pos,
                          mblock_dlos_grid, iy_unit, 
                          l_iy_main_agenda, j_analytical_do, 

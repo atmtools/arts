@@ -70,8 +70,7 @@ AgendaSet( forloop_agenda_solar ){
   abs_speciesDefineAllInScenario( basename=basename )
   #WriteXMLIndexed( "ascii", forloop_index,
   #                 abs_species, "TestAtmScen_Mars_allInScen.abs_species" )
-  AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw,
-              abs_species, basename )
+  AtmRawRead( basename = basename )
 
   # adding species or variants that do not follow the general naming convention
   abs_speciesAdd( species=["CH4"] )

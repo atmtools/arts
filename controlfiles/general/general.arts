@@ -174,5 +174,11 @@ IndexSet( mc_min_iter, 100 )
 # Limit to pressure is passed on as a constant numeric.  Default:  No limit
 NumericSet(lm_p_lim,0)
 
+
+#
+# Non-LTE temperature field
+#
+# Initializes the t_nlte_field so that Agendas work.  Defaults to LTE
+Tensor4SetConstant(t_nlte_field, 0, 0, 0, 0, -1.0)
 }
 

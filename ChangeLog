@@ -1,3 +1,164 @@
+2015-06-08 Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-3-225
+	
+	WARNING:  This update breaks controlfiles that use AtmRawRead
+	wit static parameters.  It also breaks controlfiles that specifies their
+	own propmat_clearsky_agenda, abs_xsec_agenda, and iy_main_agenda.
+	
+	To fix, Ignore() the workspace in the error of the agendas, and 
+	switch to the new way to use AtmRawRead, i.e.,
+	AtmRawRead(basename = basename).  Alternatively, you can 
+	t_nlte_field_raw in the documented position to continue using the old 
+	static call.
+	
+	As is, this code passes the full checks.
+	
+	The intrusive change is necessary because we must pass the non-LTE 
+	temperatures along to the absorption agenda in a sane manner (my own
+	method is not to use for mass adoption).
+	
+	* controlfiles/{artscomponents,planetary_toolbox,instruments}/*:
+	Changed AtmRawRead to only give the basename, and to ignoring 
+	the agenda variables where special agendas are defined.
+	
+	* controlfiles/general/agendas.arts: Automatically ignore 
+	t_nlte_field in unaffected iy_main_agenda.
+	
+	* controlfiles/general/general.arts:  Defines t_nlte_field as 0-sized.
+	
+	* src/absorption.{cc,h}: (xsec_species) takes abs_t_nlte.
+	This is passed along as a vector to the line strength scaling function.
+	(xsec_species_line_mixing_wrapper) also takes abs_t_nlte and treats it
+	the same as does (xsec_species).
+	
+	* src/agendas.cc:  rtp_temperature_nlte is passed to propmat_clearsky_agenda,
+	abs_t_nlte is passed to abs_xsec_agenda, and t_nlte_field is passed to
+	iy_main_agenda.
+	
+	* src/disort.cc: (dtauc_ssalbCalc) calls propmat_clearsky_agendaExecute
+	with a dummy rtp_temperature_nlte.
+	
+	* src/doit.cc: (cloud_RT_no_background) calls propmat_clearsky_agendaExecute
+	with a dummy rtp_temperature_nlte. (cloud_ppath_update1D_planeparallel) calls
+	propmat_clearsky_agendaExecute twice with a dummy rtp_temperature_nlte.
+	
+	* src/linerecord.{cc,h}:  Fixed small bug with O2 quantum numbers.  O2 only has
+	v1 regardless of ARTSCAT-4 reporting 3 v-numbers.
+	Also changing (GetLineScalingData) since we need to treat this in another 
+	way than before.  This function is still in transition... so it produces a
+	warning that will be removed as soon as we have better quantum number reading
+	available for HITRAN.
+	
+	* src/m_abs.cc: (AbsInputFromRteScalars) now also works on abs_t_nlte and 
+	rtp_temperature_nlte.  (abs_xsec_per_speciesAddLine) now takes abs_t_nlte
+	as input so that abs_t_nlte can be passed to (xsec_species) or 
+	(xsec_species_line_mixing_wrapper).  (propmat_clearskyAddOnTheFly) Now
+	takes rtp_temperature_nlte and converts it to abs_t_nlte through
+	(AbsInputFromRteScalars) to pass abs_t_nlte along to
+	abs_xsec_agendaExecute.
+	
+	* src/m_abs_lookup.cc: (abs_lookupCalc) now passes a dummy this_t_nlte
+	variable to abs_xsec_agendaExecute.  (propmat_clearsky_fieldCalc) now 
+	passes a dummy rtp_temperature_nlte to propmat_clearsky_agendaExecute.
+	Most infrastructure is already in place to have the propmat_field calculated 
+	using the non-LTE temperatures.  (calc_lookup_error) passes a dummy
+	rtp_temperature_nlte to (propmat_clearskyAddOnTheFly).
+	
+	* src/m_atmosphere.cc: (AtmFieldsCalc) now takes t_nlte_field_raw to
+	compute t_nlte_field.  Optional behaviour can be set using 
+	nlte_when_negative (see documentation).  The non-LTE interpolation
+	follows closely the implementation of the VMR interpolation, using the 
+	same functions except when nlte_when_negative is given.
+	(AtmFieldsCalcExpand1D) behaves the same as (AtmFieldsCalc).
+	(AtmRawRead) must now set t_nlte_field_raw to zero-size for other functions
+	to behave as expected.  This breaks a lot of controlfiles using the 
+	static variable passings to AtmRawRead.  (AtmWithNLTERawRead) is new 
+	identical to (AtmRawRead) except that it expects there to be a 
+	$BASENAME.t_nlte.xml file in the basename directory.  And that this file
+	should contain the non-LTE state of the atmosphere.  The functionality of
+	(AtmWithNLTERawRead) could still change to also require $BASENAME.qi.xml
+	for quantum identifiers and even $BASENAME.ev.xml for state energies, but me 
+	and Oliver are still in discussions on how to implement this in the best way,
+	
+	* src/m_cloudradar.cc: (iyCloudRadar) Now creates a dummy t_nlte_field to
+	pass along to (get_ppath_atmvars) so that ppath_t_nlte can be set.
+	ppath_t_nlte is then passed to (get_ppath_pmat).  (yCloudRadar) creates a 
+	dummy t_nlte_field to pass into iy_main_agendaExecute.
+	
+	* src/m_doit.cc: (DoitGetIncoming) creates a dummy t_nlte_field to pass into
+	(get_iy).  (DoitGetIncoming1DAtm) mimics the above.
+	
+	* src/m_fos.cc:  (fos) mimics (iyCloudRadar).
+	
+	* src/m_jacobian.cc:  (jacobianCalcAbsSpeciesPerturbations) creates
+	a dummy t_nlte_field to send into (iyb_calc).
+	(jacobianCalcTemperaturePerturbations) does the same as above.
+	(jacobianDoit) sends a dummy t_nlte_field to (yCalc) twice.
+	
+	* src/m_rte.cc: (iyCalc) takes t_nlte_field as input to execute
+	iy_main_agendaExecute.  (iyEmissionStandard) also takes t_nlte_field
+	as input to calculate ppath_t_nlte, which is used in (get_ppath_pmat).
+	(yCalc_mblock_loop_body) also takes t_nlte_field as input to pass into
+	(iyb_calc).  (yCalc) takes t_nlte_field as input to pass into 
+	(yCalc_mblock_loop_body) twice.  (yCalcAppend) also takes t_nlte_field
+	as input to pass into (yCalc).
+	
+	* src/m_surface.cc:  (iySurfaceFastem) creates a dummy t_nlte_field to
+	pass to iy_main_agendaExecute. (iySurfaceRtpropAgenda) and 
+	(iySurfaceRtpropCalc) behaves the same.
+	
+	* src/m_transmitter.cc:  (iyRadioLink) mimics (iyCloudRadar).
+	(iyTransmissionStandar) mimics (iyCloudRadar) as well but passes
+	the dummy t_nlte_field to more get_ppath_pmat.
+	
+	* src/m_zeeman.cc:  (propmat_clearskyAddZeeman) takes rtp_temperature_nlte
+	as input, turns it into a Matrix in AbsInputFromRteScalars, and 
+	pass it along to (xsec_species_line_mixing_wrapper_with_zeeman).
+	(propmat_clearskyAddZeemanFromPreCalc) mimics the above.
+	
+	* src/methods.cc:  (AtmWithNLTERawRead) is new and behavior explained 
+	above.  The methods that have been changed otherwise are:
+	AbsInputFromRteScalars,
+	abs_xsec_per_speciesAddLines,
+	AtmFieldsCalc,
+	AtmFieldsCalcExpand1D,
+	AtmRawRead,
+	iyCalc,
+	iyEmissionStandard,
+	propmat_clearskyAddOnTheFly,
+	propmat_clearskyAddZeeman,
+	propmat_clearskyAddZeemanFromPreCalc,
+	yCalc, and
+	yCalcAppend.
+	
+	* src/montecarlo.cc: (clear_rt_vars_at_gp) sends a dummy 
+	rtp_temperature_nlte into propmat_clearsky_agendaExecute.
+	(loudy_rt_vars_at_gp) does the same.
+	
+	* src/rte.{cc.h}: get_iy has t_nlte_field as input to pass into 
+	iy_main_agendaExecute.  (get_ppath_atmvars) outputs ppath_t_nlte
+	from t_nlte_field that has been interpolated per nlte energy level
+	into a matrix similar to ppath_vmr.  (get_ppath_pmat) now takes
+	ppath_t_nlte as input to pass it into propmat_clearsky_agendaExecute
+	if there are levels available.  (iyb_calc_body) now takes t_nlte_field
+	as input to pass it into iy_main_agendaExecute.  (iyb_calc) also takes 
+	t_nlte_field as input to pass this into (iyb_calc_body).
+	
+	* src/zeeman.{cc,h}:  (xsec_species_line_mixing_wrapper_with_zeeman) takes
+	abs_t_nlte and pass it into (xsec_species_line_mixing_wrapper).
+	
+	* src/workspace.cc: abs_t_nlte is new.  It behaves as the VMR equivalent
+	and has size of nlte levels and p_grid, or 0. This will likely change to the size
+	of an ArrayOfQuantumIdentifier -with_some_name- in the near future.
+	rtp_temperature_nlte is also new.  This also behaves the same as its VMR 
+	equivalent.  Size is nlte levels or zero.  t_nlte_field is also new.
+	It has size [NLTE levels, p_grid, lat_grid, lon_grid ] or zero.
+	t_nlte_field_raw is also new.  It has size [NLTE levels][N_p, N_lat, N_lon].
+	All of the above behaves as the VMR equivalent but can be size zero when NLTE
+	is not wanted.  Also, instead of size from species, size is from the number
+	of non-LTE levels.
+
 2015-06-08  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-224

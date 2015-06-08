@@ -623,6 +623,7 @@ void xsec_species( MatrixView               xsec_attenuation,
                    ConstVectorView          f_grid,
                    ConstVectorView          abs_p,
                    ConstVectorView          abs_t,
+                   ConstMatrixView          abs_t_nlte,
                    ConstMatrixView          all_vmrs,
                    const ArrayOfArrayOfSpeciesTag& abs_species,
                    const Index              this_species,
@@ -814,9 +815,13 @@ firstprivate(ls_attenuation, ls_phase, fac, f_local, aux)
         {
             if (failed) continue;
             
+            // holder when things can be empty
+            Vector empty_vector;
+            
             // Store input profile variables, this is perhaps slightly faster.
             const Numeric p_i       = abs_p[i];
             const Numeric t_i       = abs_t[i];
+            ConstVectorView t_nlte_i  = calc_src ? abs_t_nlte(joker,i):empty_vector;
             const Numeric vmr_i     = all_vmrs(this_species,i);
             
             //out3 << "  p = " << p_i << " Pa\n";
@@ -834,7 +839,6 @@ firstprivate(ls_attenuation, ls_phase, fac, f_local, aux)
             // Watch out! This is output, we have to be careful not to
             // introduce race conditions when writing to it.
             VectorView xsec_i_attenuation = xsec_attenuation(Range(joker),i);
-            Vector empty_vector;
 	    VectorView xsec_i_source = calc_src ? xsec_source(Range(joker),i) : empty_vector;
             VectorView xsec_i_phase = xsec_phase(Range(joker),i);
             
@@ -894,7 +898,7 @@ firstprivate(ls_attenuation, ls_phase, fac, f_local, aux)
                                                                              vmrs,verbosity);
                         
                         l_l.GetLineScalingData(partition_ratio, boltzmann_ratio, abs_nlte_ratio, src_nlte_ratio, 
-                                               t_i, -1, -1, -1, -1);
+                                               t_i, t_nlte_i);
                         
                         xsec_single_line(xsec_accum_attenuation(arts_omp_get_thread_num(),joker),
 					 xsec_accum_source(arts_omp_get_thread_num(),joker),
@@ -1591,6 +1595,7 @@ void xsec_species_line_mixing_wrapper(  MatrixView               xsec_attenuatio
                                         ConstVectorView          f_grid,
                                         ConstVectorView          abs_p,
                                         ConstVectorView          abs_t,
+                                        ConstMatrixView          abs_t_nlte,
                                         ConstMatrixView          all_vmrs,
                                         const ArrayOfArrayOfSpeciesTag& abs_species,
                                         const Index              this_species,
@@ -1751,8 +1756,10 @@ if (!arts_omp_in_parallel())    \
 firstprivate(attenuation, phase, fac, f_local, aux)
     for(Index jj=0; jj<abs_p.nelem();jj++)
     {
+      Vector empty_vector;
         const Numeric& t=abs_t[jj];
         const Numeric& p=abs_p[jj];
+        ConstVectorView t_nlte = calc_src?abs_t_nlte(joker, jj):empty_vector;
         ConstVectorView vmrs = all_vmrs(joker,jj);
         
         const Numeric p_partial = p * vmrs[this_species];
@@ -1772,12 +1779,11 @@ firstprivate(attenuation, phase, fac, f_local, aux)
             abs_lines[ii].LineMixing().GetLineMixingParams( Y,  G,  DV,  t, p, lm_p_lim, 1);
             
             abs_lines[ii].GetLineScalingData(partition_ratio,boltzmann_ratio, abs_nlte_ratio, src_nlte_ratio, 
-                                             t, -1, -1, -1, -1);
+                                             t, t_nlte);
             
             // Still an ugly case with non-resonant line near 0 frequency, since this is actually a band...
             if( LineMixingData::LM_LBLRTM_O2NonResonant != abs_lines[ii].LineMixing().Type() )
             {
-                Vector empty_vector;
                 xsec_single_line(   xsec_attenuation(joker,jj), 
 				    calc_src?xsec_source(joker,jj):empty_vector,
                                     xsec_phase(joker,jj), 

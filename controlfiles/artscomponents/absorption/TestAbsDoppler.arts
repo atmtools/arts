@@ -57,7 +57,7 @@ AtmosphereSet1D
 VectorNLogSpace( p_grid, 10, 100000, 10 )
  
 # Atmospheric profiles
-AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, "testdata/tropical" )
+AtmRawRead( basename = "testdata/tropical" )
 
 # Now interpolate all the raw atmospheric input onto the pressure 
 # grid and create the atmospheric variables `t_field', `z_field', `vmr_field'

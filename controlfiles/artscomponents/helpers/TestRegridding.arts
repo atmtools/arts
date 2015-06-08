@@ -50,8 +50,7 @@ Tensor3Create( t3tmp )
 
 abs_speciesSet( species=["CH4", "H2O", "O2", "N2"] )
 # get atm scenario raw data
-AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw,
-            abs_species, atmcase )
+AtmRawRead( basename = atmcase )
 
 # for testing and demonstration purposes, we manually expand 1D atmosphere first
 # to 3D then regrid back to 1D

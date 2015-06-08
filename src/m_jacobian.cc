@@ -392,6 +392,7 @@ void jacobianCalcAbsSpeciesPerturbations(
   Index j_p   = jg[0].nelem();
   Index j_lat = 1;
   Index j_lon = 1;
+  const Tensor4 t_nlte_field_dummy;
   //
   get_perturbation_gridpos( p_gp, p_grid, jg[0], true );
   //
@@ -505,7 +506,8 @@ void jacobianCalcAbsSpeciesPerturbations(
               Matrix        dummy5;
               //
               iyb_calc( ws, iybp, dummy3, dummy4, dummy5, mblock_index, 
-                        atmosphere_dim, t_field, z_field, vmr_p, cloudbox_on, 
+                        atmosphere_dim, t_field, z_field, t_nlte_field_dummy,
+                        vmr_p, cloudbox_on, 
                         stokes_dim, f_grid, sensor_pos, sensor_los, 
                         transmitter_pos, mblock_dlos_grid, 
                         iy_unit, iy_main_agenda, geo_pos_agenda,
@@ -1269,6 +1271,7 @@ void jacobianCalcPointingZaRecalc(
                 "There is no such pointing retrieval quantity defined.\n" );
     }
 
+    const Tensor4 t_nlte_field_dummy;
 
   // Get "dy", by calling iyb_calc with shifted sensor_los.
   //
@@ -1285,7 +1288,7 @@ void jacobianCalcPointingZaRecalc(
 
     iyb_calc( ws, iyb2, iyb_aux, diyb_dx, geo_pos, 
               mblock_index, atmosphere_dim, 
-              t_field, z_field, vmr_field, cloudbox_on, stokes_dim, 
+              t_field, z_field, t_nlte_field_dummy, vmr_field, cloudbox_on, stokes_dim, 
               f_grid, sensor_pos, los, transmitter_pos, mblock_dlos_grid, 
               iy_unit, iy_main_agenda, geo_pos_agenda,
               0, ArrayOfRetrievalQuantity(), ArrayOfArrayOfIndex(),
@@ -1923,6 +1926,7 @@ void jacobianCalcTemperaturePerturbations(
 
   // Local copy of z_field. 
   Tensor3 z = z_field;
+  const Tensor4 t_nlte_p_dummy;
 
   // Loop through the retrieval grid and calculate perturbation effect
   //
@@ -2006,7 +2010,8 @@ void jacobianCalcTemperaturePerturbations(
               Matrix        dummy5;
               //
               iyb_calc( ws, iybp, dummy3, dummy4, dummy5, mblock_index, 
-                        atmosphere_dim, t_p, z, vmr_field, cloudbox_on, 
+                        atmosphere_dim, t_p, z, t_nlte_p_dummy,
+                        vmr_field, cloudbox_on, 
                         stokes_dim, f_grid, sensor_pos, sensor_los, 
                         transmitter_pos, mblock_dlos_grid, 
                         iy_unit, iy_main_agenda, geo_pos_agenda,
@@ -2292,11 +2297,12 @@ void jacobianDoit(//WS Output:
   ArrayOfIndex aoi_dummy;
   Matrix mat_dummy1, mat_dummy2, mat_dummy3, mat_dummy4;
   ArrayOfVector aov_dummy;
+  const Tensor4 t_nlte_field_dummy;
   yCalc( ws, y0,
          vec_dummy, aoi_dummy, mat_dummy1, mat_dummy2, aov_dummy,
          mat_dummy3, mat_dummy4,
          atmgeom_checked, atmfields_checked, atmosphere_dim,
-         t_field, z_field, vmr_field, cloudbox_on,
+         t_field, z_field, t_nlte_field_dummy, vmr_field, cloudbox_on,
          cloudbox_checked, sensor_checked, stokes_dim, f_grid,
          sensor_pos, sensor_los, transmitter_pos, mblock_dlos_grid,
          sensor_response, sensor_response_f, sensor_response_pol,
@@ -2672,7 +2678,7 @@ void jacobianDoit(//WS Output:
                      vec_dummy, aoi_dummy, mat_dummy1, mat_dummy2, aov_dummy,
                      mat_dummy3, mat_dummy4,
                      atmgeom_checked, atmfields_checked, atmosphere_dim,
-                     t_field, z_field, vmr_field, cloudbox_on,
+                     t_field, z_field, t_nlte_field_dummy, vmr_field, cloudbox_on,
                      cloudbox_checked, sensor_checked, stokes_dim, f_grid,
                      sensor_pos, sensor_los, transmitter_pos, mblock_dlos_grid,
                      sensor_response, sensor_response_f, sensor_response_pol,

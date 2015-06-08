@@ -104,6 +104,7 @@ AgendaSet( propmat_clearsky_agenda )
 {
   Ignore(rtp_mag)
   Ignore(rtp_los)
+  Ignore(rtp_temperature_nlte)
   propmat_clearskyInit
   propmat_clearskyAddFromLookup
   propmat_clearskyAddParticles

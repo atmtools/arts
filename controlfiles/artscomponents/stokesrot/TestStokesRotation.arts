@@ -47,14 +47,14 @@ AgendaSet( propmat_clearsky_agenda ){
   Ignore( rtp_pressure )
   Ignore( rtp_temperature )
   Ignore( rtp_vmr )
+  Ignore( rtp_temperature_nlte )
   Touch( propmat_source_clearsky )
   propmat_clearskyZero
 }
 #
 AtmosphereSet1D
 VectorNLogSpace( p_grid, 2, 1013e2, 100e2 )
-AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, 
-            "testdata/tropical" )
+AtmRawRead( basename = "testdata/tropical" )
 AtmFieldsCalc
 Extract( z_surface, z_field, 0 )
 Extract( t_surface, t_field, 0 )

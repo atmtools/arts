@@ -86,6 +86,7 @@ NumericSet( ppath_lraytrace, 500 )
 # Here we consider dispersion (overkill if not ionopshere included)
 #
 AgendaSet( iy_main_agenda ){
+  Ignore(t_nlte_field)
   iyLoopFrequencies
 }
 AgendaSet( iy_sub_agenda ){

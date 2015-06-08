@@ -131,7 +131,8 @@ void dtauc_ssalbCalc(Workspace& ws,
    }
 
  
- 
+ const Vector  rtp_temperature_nlte_local_dummy(0);
+
  // Calculate layer averaged single scattering albedo and optical depth
  for (Index i = 0; i < Np_cloud-1; i++)
    {
@@ -163,6 +164,7 @@ void dtauc_ssalbCalc(Workspace& ws,
                                   rtp_mag_dummy,ppath_los_dummy,
                                   rtp_pressure_local, 
                                   rtp_temperature_local, 
+                                  rtp_temperature_nlte_local_dummy,
                                   rtp_vmr_local,
                                   propmat_clearsky_agenda);  
 

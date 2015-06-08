@@ -61,8 +61,7 @@ IndexCreate( np )
 IndexSet( np, 180 )
 VectorNLogSpace( p_grid, np, 1.013e5, 0.5 )
 
-AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, 
-                                  "testdata/tropical" )
+AtmRawRead( basename = "testdata/tropical" )
 
 
 

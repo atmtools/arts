@@ -55,8 +55,7 @@ MatrixSetConstant( z_surface, 1, 1, 0 )
 
 
 # Neutral atmosphere, up to about 95 km
-AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, 
-            "testdata/tropical" )
+AtmRawRead( basename = "testdata/tropical" )
 
 # Tempature and z also covering the ionosphere
 #

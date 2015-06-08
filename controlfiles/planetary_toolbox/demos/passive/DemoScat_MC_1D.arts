@@ -126,6 +126,7 @@ Copy( iy_surface_agenda, iy_surface_agenda__UseSurfaceRtprop )
 #####
 AgendaSet(iy_main_agenda){
    Ignore( rte_pos2 )
+   Ignore(t_nlte_field)
    iyMC
    Touch ( ppath )
 }

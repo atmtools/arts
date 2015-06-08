@@ -264,8 +264,7 @@ AgendaSet( forloop_agenda_dust ){
   Append( basename, atmcase )
   #Print( basename, 0 )
 
-  AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw,
-              abs_species, basename )
+  AtmRawRead( basename = basename )
 
   # now derive common p_grid and regrid atm fields to this
   p_gridFromZRaw(	p_grid, z_field_raw, 0 )
@@ -277,6 +276,7 @@ AgendaSet( forloop_agenda_dust ){
 
   # and now the dusty calcs
   AgendaSet(iy_main_agenda){
+  Ignore(t_nlte_field)
     iyFOS(fos_n=0)
   }
   Copy( forloop_agenda, forloop_agenda_particles )

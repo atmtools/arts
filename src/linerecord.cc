@@ -3131,17 +3131,7 @@ bool LineRecord::ReadFromArtscat4Stream(istream& is, const Verbosity& verbosity)
                   else
                       v[vi] = -1;
               }
-
-              if (v[0] > -1)
-              {
-                  mquantum_numbers.SetUpper(QN_v3, v[0]);
-                  mquantum_numbers.SetLower(QN_v3, v[0]);
-              }
-              if (v[1] > -1)
-              {
-                  mquantum_numbers.SetUpper(QN_v2, v[1]);
-                  mquantum_numbers.SetLower(QN_v2, v[1]);
-              }
+              
               if (v[2] > -1)
               {
                   mquantum_numbers.SetUpper(QN_v1, v[2]);
@@ -3674,10 +3664,7 @@ void LineRecord::GetLineScalingData(Numeric& partition_ratio,
 				    Numeric& abs_nlte_ratio, 
 				    Numeric& src_nlte_ratio, 
                                     const Numeric& atm_t, 
-				    const Numeric& atm_tv_low, 
-				    const Numeric& atm_tv_upp, 
-				    const Numeric& vib_ev_low, 
-				    const Numeric& vib_ev_upp) const
+				    ConstVectorView atm_t_nlte) const
 {
     // Physical constants
     extern const Numeric PLANCK_CONST;
@@ -3697,23 +3684,23 @@ void LineRecord::GetLineScalingData(Numeric& partition_ratio,
     boltzmann_ratio = sb*se;
     
     // r_low and r_upp are ratios for the population level compared to LTE conditions
-    Numeric r_low, r_upp;
-    if( atm_tv_low > 1e-4 *atm_t ) // where 1e-4 is considered a small number so that the multiplication in the denominator does not reach zero
-      r_low = exp( - vib_ev_low * (atm_t-atm_tv_low) / (atm_t*atm_tv_low) );
-    else if( atm_tv_low >= 0.0 )
-      r_low = 0.0;
-    else
-      r_low = 1.0;
+//     Numeric r_low, r_upp;
+//     if( atm_tv_low > 1e-4 *atm_t ) // where 1e-4 is considered a small number so that the multiplication in the denominator does not reach zero
+//       r_low = exp( - vib_ev_low * (atm_t-atm_tv_low) / (atm_t*atm_tv_low) );
+//     else if( atm_tv_low >= 0.0 )
+//       r_low = 0.0;
+//     else
+//       r_low = 1.0;
+// 
+//     if( atm_tv_upp > 1e-4 *atm_t ) // where 1e-4 is considered a small number so that the multiplication in the denominator does not reach zero
+//       r_upp = exp( - vib_ev_upp * (atm_t-atm_tv_upp) / (atm_t*atm_tv_upp) );
+//     else if( atm_tv_upp >= 0.0 )
+//       r_upp = 0.0;
+//     else
+//       r_upp = 1.0;
 
-    if( atm_tv_upp > 1e-4 *atm_t ) // where 1e-4 is considered a small number so that the multiplication in the denominator does not reach zero
-      r_upp = exp( - vib_ev_upp * (atm_t-atm_tv_upp) / (atm_t*atm_tv_upp) );
-    else if( atm_tv_upp >= 0.0 )
-      r_upp = 0.0;
-    else
-      r_upp = 1.0;
-
-    abs_nlte_ratio = (r_low - r_upp * gamma ) / ( 1 - gamma );
-    src_nlte_ratio = r_upp;
+    abs_nlte_ratio = 1.0;//(r_low - r_upp * gamma ) / ( 1 - gamma );
+    src_nlte_ratio = 1.0;//r_upp;
   
 }
 

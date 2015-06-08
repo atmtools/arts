@@ -209,19 +209,20 @@ void iyCloudRadar(
   // Get atmospheric and RT quantities for each ppath point/step
   //
   Vector    ppath_p, ppath_t;
-  Matrix    ppath_vmr, ppath_pnd, ppath_wind, ppath_mag, ppath_f;
+  Matrix    ppath_vmr, ppath_pnd, ppath_wind, ppath_mag, ppath_f, ppath_t_nlte;
   Tensor3   dummy_ppath_abs;
   Tensor4   ppath_ext, trans_partial, trans_cumulat, pnd_ext_mat;
   Tensor5   dummy_abs_per_species;
   Vector    scalar_tau;
   ArrayOfIndex clear2cloudbox, dummy_lte;
   Array<ArrayOfArrayOfSingleScatteringData> scat_data_single;
+  const Tensor4 t_nlte_field_dummy;
   //
   if( np > 1 )
     {
-      get_ppath_atmvars( ppath_p, ppath_t, ppath_vmr,
+      get_ppath_atmvars( ppath_p, ppath_t, ppath_t_nlte, ppath_vmr,
                          ppath_wind, ppath_mag, 
-                         ppath, atmosphere_dim, p_grid, t_field, vmr_field,
+                         ppath, atmosphere_dim, p_grid, t_field, t_nlte_field_dummy, vmr_field,
                          wind_u_field, wind_v_field, wind_w_field,
                          mag_u_field, mag_v_field, mag_w_field );
       get_ppath_f(       ppath_f, ppath, f_grid,  atmosphere_dim, 
@@ -229,7 +230,7 @@ void iyCloudRadar(
       get_ppath_pmat(    ws, ppath_ext, dummy_ppath_abs, dummy_lte, 
                          dummy_abs_per_species, 
                          propmat_clearsky_agenda, ppath, 
-                         ppath_p, ppath_t, ppath_vmr, ppath_f, ppath_mag,
+                         ppath_p, ppath_t, ppath_t_nlte, ppath_vmr, ppath_f, ppath_mag,
                          f_grid, stokes_dim, ArrayOfIndex(0) );
       if( !cloudbox_on )
         { 
@@ -453,6 +454,8 @@ void yCloudRadar(
   // Conversion from Stokes to sensor_pol
   ArrayOfVector   s2p;
   stokes2pol( s2p, 0.5 );
+  
+  const Tensor4 t_nlte_field_dummy;
 
   ArrayOfIndex npolcum(nf+1); npolcum[0]=0;
   for( Index i=0; i<nf; i++ )
@@ -495,7 +498,7 @@ void yCloudRadar(
       iy_main_agendaExecute( ws, iy, iy_aux, ppath, diy_dx, 
                              1, iy_unit, iy_transmission, 
                              iy_aux_vars, cloudbox_on, 0, t_field, z_field, 
-                             vmr_field, f_grid, 
+                             t_nlte_field_dummy, vmr_field, f_grid, 
                              sensor_pos(p,joker), sensor_los(p,joker), 
                              rte_pos2, iy_main_agenda );
 

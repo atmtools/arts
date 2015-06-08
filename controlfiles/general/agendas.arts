@@ -32,6 +32,7 @@ AgendaSet( iy_main_agenda__Emission ){
 AgendaCreate( iy_main_agenda__Transmission )
 AgendaSet( iy_main_agenda__Transmission ){
   Ignore( iy_unit )
+  Ignore( t_nlte_field )
   iyTransmissionStandard
 }
 
@@ -39,6 +40,7 @@ AgendaSet( iy_main_agenda__Transmission ){
 AgendaCreate( iy_main_agenda__ScattMC )
 AgendaSet( iy_main_agenda__ScattMC ){
   Ignore( rte_pos2 )
+  Ignore( t_nlte_field )
   iyMC
   Touch( ppath )
 }
@@ -48,6 +50,7 @@ AgendaCreate( iy_main_agenda__Radiolink )
 AgendaSet( iy_main_agenda__Radiolink ){
   Ignore( iy_unit )
   Ignore( rte_los )
+  Ignore( t_nlte_field )
   iyRadioLink
 }
 
@@ -243,6 +246,7 @@ AgendaCreate( propmat_clearsky_agenda__LookUpTable )
 AgendaSet( propmat_clearsky_agenda__LookUpTable ){
   Ignore(rtp_mag)
   Ignore(rtp_los)
+  Ignore(rtp_temperature_nlte)
   propmat_clearskyInit
   propmat_clearskyAddFromLookup
 }

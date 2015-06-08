@@ -605,6 +605,24 @@ void Workspace::define_wsv_data()
        ),
       GROUP( "Vector" )));
 
+  wsv_data.push_back
+    (WsvRecord
+    ( NAME( "abs_t_nlte" ),
+      DESCRIPTION
+      (
+       "List of NLTE temperatures to be used for the calculation of absorption\n"
+       "coefficients.\n"
+       "\n"
+       "In contrast to the global *t_nlte_field*, this is just a matrix. Any\n"
+       "absorption method should check that the columns of this vector is the\n"
+       "same as that of *abs_p*\n"
+       "\n"
+       "Dimension: [nlte_temperatures, p_grid] or [ 0, 0 ]\n"
+       "\n"
+       "Unit: K\n"
+       ),
+      GROUP( "Matrix" )));
+    
  wsv_data.push_back
     (WsvRecord
     ( NAME( "abs_vec" ),
@@ -3318,6 +3336,26 @@ void Workspace::define_wsv_data()
        "Units: [ K ]\n"
        ),
       GROUP( "Numeric" )));
+   
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "rtp_temperature_nlte" ),
+      DESCRIPTION
+      (
+       "NLTE Temperature at a radiative transfer point.\n"
+       "\n"
+       "This vector variable can hold the NLTE temperature. It is intended\n"
+       "mainly for communication with various methods and agendas, such as\n"
+       "methods and agendas calculating absorption coefficients.\n"
+       "The WSV is used as input to methods and agendas calculating radiative\n"
+       "properties for a given conditions.\n"
+       "\n"
+       "Usage: Communication variable.\n"
+       "\n"
+       "Units: [ K ]\n"
+       "Size:  [ n of NLTE levels ] or [ 0 ]\n"
+       ),
+      GROUP( "Vector" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -4639,6 +4677,32 @@ void Workspace::define_wsv_data()
        "Dimensions: [ p_grid, lat_grid, lon_grid ]\n"
        ),
       GROUP( "Tensor3" )));
+   
+   wsv_data.push_back
+   (WsvRecord
+    ( NAME( "t_nlte_field" ),
+      DESCRIPTION
+      (
+       "The field of NLTE temperatures.\n"
+       "\n"
+       "This variable gives the NLTE temperature at each crossing of\n"
+       "the pressure, latitude and longitude grids.  The size of the\n"
+       "array is the number of NLTE levels in all molecules.\n"
+       "\n"
+       "The temperature for a point between the grid crossings is obtained \n"
+       "by (multi-)linear interpolation of the *t_field*.\n"
+       "\n"
+       "See further the ARTS user guide (AUG). Use the index to find where\n"
+       "this variable is discussed. The variable is listed as a subentry to\n"
+       "\"workspace variables\".\n"
+       "\n"
+       "Usage:      Output of *AtmFieldsCalc*.\n"
+       "\n"
+       "Unit:       K\n"
+       "\n"
+       "Dimensions: [ NLTE levels, p_grid, lat_grid, lon_grid ] or [ 0, 0, 0, 0 ]\n"
+       ),
+      GROUP( "Tensor4" )));
 
  wsv_data.push_back
    (WsvRecord
@@ -4666,6 +4730,34 @@ void Workspace::define_wsv_data()
        ),
       GROUP( "GriddedField3" )));
 
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "t_nlte_field_raw" ),
+      (
+       "Raw data for NLTE temperatures.\n"
+       "\n"
+       "This variable gives the NLTE temperature as stored in the \n"
+       "database for the atmospheric scenarios.\n"
+       "\n"
+       "See further the ARTS user guide (AUG). Use the index to find where\n"
+       "this variable is discussed. The variable is listed as a subentry to\n"
+       "\"workspace variables\".\n"
+       "\n"
+       "Usage: Set by the user by choosing a climatology.\n"
+       "\n"
+       "Unit:  K\n"
+       "\n"
+       "Size   ArrayOfGriddedField3 \n "
+       "array:\n"
+       "       [NLTE levels] or [ 0 ]\n"
+       "fields:\n"
+       "       [N_p] \n"
+       "       [N_lat] \n"
+       "       [N_lon] \n"
+       "       [N_p, N_lat, N_lon] \n"
+       ),
+      GROUP( "ArrayOfGriddedField3" )));
+   
   wsv_data.push_back
    (WsvRecord
     ( NAME( "t_surface" ),

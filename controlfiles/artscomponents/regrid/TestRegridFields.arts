@@ -74,8 +74,7 @@ abs_lines_per_speciesCreateFromLines
 
 # Atmospheric scenario
 # ---
-AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, 
-            "testdata/tropical" )
+AtmRawRead( basename = "testdata/tropical" )
 
 
 # Weakly reflecting surface

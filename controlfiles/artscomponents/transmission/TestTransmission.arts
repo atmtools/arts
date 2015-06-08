@@ -66,8 +66,7 @@ abs_lines_per_speciesSetEmpty
 
 # Atmospheric profiles
 # 
-AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, 
-            "testdata/tropical" )
+AtmRawRead( basename = "testdata/tropical" )
 #
 AtmFieldsCalcExpand1D
 
@@ -160,6 +159,7 @@ Copy( iy0, iy )
 
 
 AgendaSet( iy_main_agenda ){
+Ignore( t_nlte_field )
   iyLoopFrequencies
 }
 

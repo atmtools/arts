@@ -9,6 +9,7 @@ AgendaCreate( propmat_clearsky_agenda__OnTheFly )
 AgendaSet( propmat_clearsky_agenda__OnTheFly ){
   Ignore( rtp_mag )
   Ignore( rtp_los )
+  Ignore( rtp_temperature_nlte )
   propmat_clearskyInit
   propmat_clearskyAddOnTheFly
 }

@@ -355,25 +355,26 @@ void iyRadioLink(
   // Get atmospheric and attenuation quantities for each ppath point/step
   //
   Vector       ppath_p, ppath_t;
-  Matrix       ppath_vmr, ppath_pnd, ppath_mag, ppath_wind, ppath_f;
+  Matrix       ppath_vmr, ppath_pnd, ppath_mag, ppath_wind, ppath_f, ppath_t_nlte;
   Tensor5      abs_per_species;
   Tensor4      ppath_ext, trans_partial, trans_cumulat, pnd_ext_mat;
   Tensor3      dummy_ppath_abs;
   Vector       scalar_tau;
   ArrayOfIndex clear2cloudbox, dummy_lte;
+  const Tensor4 t_nlte_field_dummy;
   //
   if( np > 1 )
     {
-      get_ppath_atmvars( ppath_p, ppath_t, ppath_vmr,
+      get_ppath_atmvars( ppath_p, ppath_t, ppath_t_nlte, ppath_vmr,
                          ppath_wind, ppath_mag, 
-                         ppath, atmosphere_dim, p_grid, t_field, vmr_field,
+                         ppath, atmosphere_dim, p_grid, t_field, t_nlte_field_dummy, vmr_field,
                          wind_u_field, wind_v_field, wind_w_field,
                          mag_u_field, mag_v_field, mag_w_field );      
       get_ppath_f(       ppath_f, ppath, f_grid,  atmosphere_dim, 
                          rte_alonglos_v, ppath_wind );
       get_ppath_pmat(    ws, ppath_ext, dummy_ppath_abs, dummy_lte, abs_per_species,
                          propmat_clearsky_agenda, ppath, 
-                         ppath_p, ppath_t, ppath_vmr, ppath_f, 
+                         ppath_p, ppath_t, ppath_t_nlte, ppath_vmr, ppath_f, 
                          ppath_mag, f_grid, stokes_dim, iaps );
       if( !cloudbox_on )
         { 
@@ -937,26 +938,27 @@ void iyTransmissionStandard(
   // Get atmospheric and RT quantities for each ppath point/step
   //
   Vector              ppath_p, ppath_t;
-  Matrix              ppath_vmr, ppath_pnd, ppath_wind, ppath_mag, ppath_f;
+  Matrix              ppath_vmr, ppath_pnd, ppath_wind, ppath_mag, ppath_f, ppath_t_nlte;
   Tensor5             abs_per_species;
   Tensor4             ppath_ext, trans_partial, trans_cumulat, pnd_ext_mat;
   Tensor3             dummy_ppath_abs;
   Vector              scalar_tau;
   ArrayOfIndex        clear2cloudbox, dummy_lte;
-  ArrayOfArrayOfIndex extmat_case;          
+  ArrayOfArrayOfIndex extmat_case;   
+  const Tensor4 t_nlte_field_dummy;       
   //
   if( np > 1 )
     {
-      get_ppath_atmvars( ppath_p, ppath_t, ppath_vmr,
+      get_ppath_atmvars( ppath_p, ppath_t, ppath_t_nlte, ppath_vmr,
                          ppath_wind, ppath_mag, 
-                         ppath, atmosphere_dim, p_grid, t_field, vmr_field,
+                         ppath, atmosphere_dim, p_grid, t_field, t_nlte_field_dummy, vmr_field,
                          wind_u_field, wind_v_field, wind_w_field,
                          mag_u_field, mag_v_field, mag_w_field );      
       get_ppath_f(       ppath_f, ppath, f_grid,  atmosphere_dim, 
                          rte_alonglos_v, ppath_wind );
       get_ppath_pmat(    ws, ppath_ext, dummy_ppath_abs, dummy_lte, abs_per_species, 
                          propmat_clearsky_agenda, ppath, 
-                         ppath_p, ppath_t, ppath_vmr, ppath_f, 
+                         ppath_p, ppath_t, ppath_t_nlte, ppath_vmr, ppath_f, 
                          ppath_mag, f_grid, stokes_dim, iaps );
       if( !cloudbox_on )
         { 
@@ -1033,7 +1035,7 @@ void iyTransmissionStandard(
                   get_ppath_pmat( ws, ppath_at2, dummy_ppath_abs, 
                                   dummy_lte, dummy_abs_per_species,
                                   propmat_clearsky_agenda, ppath, ppath_p,
-                                  t2, ppath_vmr, ppath_f, ppath_mag, f_grid, 
+                                  t2, ppath_t_nlte, ppath_vmr, ppath_f, ppath_mag, f_grid, 
                                   stokes_dim, ArrayOfIndex(0) );
                 }
               else if( jac_wind_i[iq] )
@@ -1047,7 +1049,7 @@ void iyTransmissionStandard(
                       get_ppath_pmat( ws, ppath_awu, dummy_ppath_abs, 
                                       dummy_lte, dummy_abs_per_species,
                                       propmat_clearsky_agenda, ppath, ppath_p, 
-                                      ppath_t, ppath_vmr, f2, ppath_mag, f_grid,
+                                      ppath_t, ppath_t_nlte, ppath_vmr, f2, ppath_mag, f_grid,
                                       stokes_dim, ArrayOfIndex(0) );
                     }
                   else if( jac_wind_i[iq] == 2 )
@@ -1059,7 +1061,7 @@ void iyTransmissionStandard(
                       get_ppath_pmat( ws, ppath_awv, dummy_ppath_abs, 
                                       dummy_lte, dummy_abs_per_species,
                                       propmat_clearsky_agenda, ppath, ppath_p, 
-                                      ppath_t, ppath_vmr, f2, ppath_mag, f_grid,
+                                      ppath_t, ppath_t_nlte, ppath_vmr, f2, ppath_mag, f_grid,
                                       stokes_dim, ArrayOfIndex(0) );
                     }
                   else if( jac_wind_i[iq] == 3 )
@@ -1071,7 +1073,7 @@ void iyTransmissionStandard(
                       get_ppath_pmat( ws, ppath_aww, dummy_ppath_abs, 
                                       dummy_lte, dummy_abs_per_species,
                                       propmat_clearsky_agenda, ppath, ppath_p, 
-                                      ppath_t, ppath_vmr, f2, ppath_mag, f_grid,
+                                      ppath_t, ppath_t_nlte, ppath_vmr, f2, ppath_mag, f_grid,
                                       stokes_dim, ArrayOfIndex(0) );
                     }
                 }

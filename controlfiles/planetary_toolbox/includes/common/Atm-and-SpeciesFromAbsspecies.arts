@@ -8,7 +8,6 @@ Arts2{
 abs_speciesSet( species=aostrtmp )
 
 # get atmospheric data
-AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw,
-            abs_species, atmcase )
+AtmRawRead( basename = atmcase )
 
 }

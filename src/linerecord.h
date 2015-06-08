@@ -566,8 +566,9 @@ public:
   /** Partition Function Data */
   const PartitionFunctionData& PartitionFunction() const { return mpartitionfunctiondata; }
   void SetPartitionFunctionData(const PartitionFunctionData input) { mpartitionfunctiondata=input; }
-  void GetLineScalingData(Numeric& partition_ratio, Numeric& boltzmann_ratio, Numeric& abs_nlte_ratio, Numeric& src_nlte_ratio, 
-                          const Numeric& atm_t, const Numeric& atm_tv_low, const Numeric& atm_tv_upp, const Numeric& vib_ev_low, const Numeric& vib_ev_upp) const;
+  void GetLineScalingData(Numeric& partition_ratio, Numeric& boltzmann_ratio, 
+                          Numeric& abs_nlte_ratio, Numeric& src_nlte_ratio, 
+                          const Numeric& atm_t, ConstVectorView atm_t_nlte) const;
   
   /** Pressure Broadening Data */
   const PressureBroadeningData& PressureBroadening() const { return mpressurebroadeningdata; }

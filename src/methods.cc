@@ -215,11 +215,11 @@ void define_md_data_raw()
          "parameters to *propmat_clearsky_agenda*.\n"
          ),
         AUTHORS( "Stefan Buehler" ),
-        OUT( "abs_p", "abs_t", "abs_vmrs" ),
+        OUT( "abs_p", "abs_t", "abs_t_nlte", "abs_vmrs" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "rtp_pressure", "rtp_temperature", "rtp_vmr" ),
+        IN( "rtp_pressure", "rtp_temperature", "rtp_temperature_nlte", "rtp_vmr" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -1646,7 +1646,7 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "abs_xsec_per_species", "src_xsec_per_species", "abs_species", "abs_species_active",
-            "f_grid", "abs_p", "abs_t", "lm_p_lim",
+            "f_grid", "abs_p", "abs_t", "abs_t_nlte", "lm_p_lim",
             "abs_vmrs", "abs_lines_per_species", "abs_lineshape",
             "isotopologue_ratios"),
         GIN(),
@@ -2258,18 +2258,19 @@ void define_md_data_raw()
          "above 1.\n"
          ),
         AUTHORS( "Claudia Emde", "Stefan Buehler" ),
-        OUT( "t_field", "z_field", "vmr_field" ),
+        OUT( "t_field", "z_field", "vmr_field", "t_nlte_field" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "p_grid", "lat_grid", "lon_grid", "t_field_raw", "z_field_raw", 
-            "vmr_field_raw", "atmosphere_dim" ),
-        GIN( "interp_order", "vmr_zeropadding", "vmr_nonegative" ),
-        GIN_TYPE( "Index", "Index", "Index" ),
-        GIN_DEFAULT( "1", "0", "0" ),
+            "vmr_field_raw", "t_nlte_field_raw", "atmosphere_dim" ),
+        GIN( "interp_order", "vmr_zeropadding", "vmr_nonegative", "nlte_when_negative" ),
+        GIN_TYPE( "Index", "Index", "Index", "Index" ),
+        GIN_DEFAULT( "1", "0", "0", "0" ),
         GIN_DESC( "Interpolation order (1=linear interpolation).",
                 "Pad VMRs with zeroes to fit the pressure grid if necessary.", 
-                "If set to 1, negative VMRs are set to 0." )
+                "If set to 1, negative VMRs are set to 0.",
+                "-1: Skip step. 0: Negative is 0. Else: Negative is t.")
         ));
 
   md_data_raw.push_back
@@ -2290,18 +2291,19 @@ void define_md_data_raw()
          "ellipsoid is set to be a sphere.\n"
          ),
         AUTHORS( "Patrick Eriksson", "Claudia Emde", "Stefan Buehler" ),
-        OUT( "t_field", "z_field", "vmr_field" ),
+        OUT( "t_field", "z_field", "vmr_field", "t_nlte_field" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "p_grid", "lat_grid", "lon_grid", "t_field_raw", "z_field_raw", 
-            "vmr_field_raw", "atmosphere_dim" ),
-        GIN( "interp_order", "vmr_zeropadding", "vmr_nonegative" ),
-        GIN_TYPE( "Index", "Index", "Index" ),
-        GIN_DEFAULT( "1", "0", "0" ),
+            "vmr_field_raw", "t_nlte_field_raw", "atmosphere_dim" ),
+        GIN( "interp_order", "vmr_zeropadding", "vmr_nonegative", "nlte_when_negative" ),
+        GIN_TYPE( "Index", "Index", "Index", "Index" ),
+        GIN_DEFAULT( "1", "0", "0", "0" ),
         GIN_DESC( "Interpolation order (1=linear interpolation).",
                 "Pad VMRs with zeroes to fit the pressure grid if necessary.", 
-                "If set to 1, negative VMRs are set to 0." )
+                "If set to 1, negative VMRs are set to 0.",
+                "-1: Skip step. 0: Negative is 0. Else: Negative is t." )
         ));
 
   md_data_raw.push_back
@@ -2731,7 +2733,45 @@ void define_md_data_raw()
          "species, the same profile will be used.\n"
          ),
         AUTHORS( "Claudia Emde" ),
-        OUT( "t_field_raw", "z_field_raw", "vmr_field_raw" ),
+        OUT( "t_field_raw", "z_field_raw", "vmr_field_raw", "t_nlte_field_raw" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "abs_species" ),
+        GIN( "basename" ),
+        GIN_TYPE( "String" ),
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC( "Name of scenario, probably including the full path. For "
+                  "example: \"/smiles_local/arts-data/atmosphere/fascod/"
+                  "tropical\"" )
+        ));
+    
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "AtmWithNLTERawRead" ),
+        DESCRIPTION
+        (
+         "Reads atmospheric data from a scenario.\n"
+         "\n"
+         "An atmospheric scenario includes the following data for each\n"
+         "position (pressure, latitude, longitude) in the atmosphere:\n"
+         "   1. temperature field\n"
+         "   2. the corresponding altitude field\n"
+         "   3. vmr fields for the gaseous species\n"
+         "The data is stored in different files. This methods reads all\n"
+         "files and creates the variables *t_field_raw*, *z_field_raw* and\n"
+         "*vmr_field_raw*.\n"
+         "\n"
+         "Files in a scenarios should be named matching the pattern of:\n"
+         "tropical.H2O.xml\n"
+         "\n"
+         "The files can be anywhere, but they must be all in the same\n"
+         "directory, selected by 'basename'. The files are chosen by the\n"
+         "species name. If you have more than one tag group for the same\n"
+         "species, the same profile will be used.\n"
+         ),
+        AUTHORS( "Claudia Emde" ),
+        OUT( "t_field_raw", "z_field_raw", "vmr_field_raw", "t_nlte_field_raw" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
@@ -5747,7 +5787,7 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "atmgeom_checked", "atmfields_checked", 
             "iy_aux_vars", "f_grid", "t_field", 
-            "z_field", "vmr_field", "cloudbox_on", "cloudbox_checked", 
+            "z_field", "t_nlte_field", "vmr_field", "cloudbox_on", "cloudbox_checked", 
             "rte_pos", "rte_los", "rte_pos2", "iy_unit", "iy_main_agenda" ),
         GIN(),
         GIN_TYPE(),
@@ -5928,7 +5968,7 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "stokes_dim", "f_grid", "atmosphere_dim", "p_grid", "z_field",
-            "t_field", "vmr_field", "abs_species", 
+            "t_field", "t_nlte_field", "vmr_field", "abs_species", 
             "wind_u_field", "wind_v_field", "wind_w_field", "mag_u_field",
             "mag_v_field", "mag_w_field", 
             "cloudbox_on", "iy_unit", "iy_aux_vars", "jacobian_do", 
@@ -9395,7 +9435,7 @@ void define_md_data_raw()
         IN( "propmat_clearsky", "propmat_source_clearsky",
             "f_grid",
             "abs_species",
-            "rtp_pressure", "rtp_temperature", "rtp_vmr",
+            "rtp_pressure", "rtp_temperature", "rtp_temperature_nlte", "rtp_vmr",
             "abs_xsec_agenda"
            ),
         GIN(),
@@ -9514,7 +9554,7 @@ void define_md_data_raw()
            "abs_lineshape",
            "isotopologue_ratios",
            "isotopologue_quantum",
-           "rtp_pressure", "rtp_temperature", "lm_p_lim", "rtp_vmr",
+           "rtp_pressure", "rtp_temperature", "lm_p_lim", "rtp_temperature_nlte", "rtp_vmr",
            "rtp_mag", "rtp_los", "atmosphere_dim"),
         GIN("manual_zeeman_tag","manual_zeeman_magnetic_field_strength",
             "manual_zeeman_theta","manual_zeeman_eta"),
@@ -9549,7 +9589,7 @@ void define_md_data_raw()
            "abs_lineshape",
            "isotopologue_ratios",
            "isotopologue_quantum",
-           "rtp_pressure", "rtp_temperature", "lm_p_lim", "rtp_vmr",
+           "rtp_pressure", "rtp_temperature", "lm_p_lim", "rtp_temperature_nlte", "rtp_vmr",
            "rtp_mag", "rtp_los", "atmosphere_dim"),
         GIN("manual_zeeman_tag","manual_zeeman_magnetic_field_strength",
             "manual_zeeman_theta","manual_zeeman_eta"),
@@ -13527,7 +13567,7 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "atmgeom_checked", "atmfields_checked", 
-            "atmosphere_dim", "t_field", "z_field", 
+            "atmosphere_dim", "t_field", "z_field", "t_nlte_field",
             "vmr_field", "cloudbox_on", "cloudbox_checked", "sensor_checked", 
             "stokes_dim", "f_grid", "sensor_pos", "sensor_los",
             "transmitter_pos", "mblock_dlos_grid",
@@ -13591,7 +13631,7 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "y", "y_f", "y_pol", "y_pos", "y_los", "y_aux", "y_geo", "jacobian",
             "atmgeom_checked", "atmfields_checked", 
-            "atmosphere_dim", "t_field", "z_field", 
+            "atmosphere_dim", "t_field", "z_field", "t_nlte_field",
             "vmr_field", "cloudbox_on", "cloudbox_checked", "sensor_checked", 
             "stokes_dim", "f_grid", "sensor_pos", "sensor_los",
             "transmitter_pos", "mblock_dlos_grid",

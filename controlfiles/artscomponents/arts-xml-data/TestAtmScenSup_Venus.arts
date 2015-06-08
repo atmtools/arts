@@ -149,8 +149,7 @@ AgendaSet( forloop_agenda_scen ){
 
   # we manually select a minumim set of basic atm data (main atm constituents)
   abs_speciesSet( species=["CO2"] )
-  AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw,
-              abs_species, atmcase )
+  AtmRawRead( basename = atmcase )
   p_gridFromZRaw(	p_grid, z_field_raw, 0 )
   AtmFieldsCalc( vmr_zeropadding=1 )
 

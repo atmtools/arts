@@ -129,6 +129,7 @@ void iyCalc(
    const Vector&           f_grid,
    const Tensor3&          t_field,
    const Tensor3&          z_field,
+   const Tensor4&          t_nlte_field,
    const Tensor4&          vmr_field,
    const Index&            cloudbox_on,
    const Index&            cloudbox_checked,
@@ -160,7 +161,8 @@ void iyCalc(
   iy_main_agendaExecute( ws, iy, iy_aux, ppath, diy_dx, 
                          1, iy_unit, iy_transmission, iy_aux_vars, 
                          cloudbox_on, 0, t_field, 
-                         z_field, vmr_field, f_grid, rte_pos, rte_los, rte_pos2,
+                         z_field, t_nlte_field, vmr_field,
+                         f_grid, rte_pos, rte_los, rte_pos2,
                          iy_main_agenda );
   
   // Don't allow NaNs (should suffice to check first stokes element)
@@ -188,6 +190,7 @@ void iyEmissionStandard(
    const Vector&                     p_grid,
    const Tensor3&                    z_field,
    const Tensor3&                    t_field,
+   const Tensor4&                    t_nlte_field,
    const Tensor4&                    vmr_field,
    const ArrayOfArrayOfSpeciesTag&   abs_species,
    const Tensor3&                    wind_u_field,
@@ -376,7 +379,7 @@ void iyEmissionStandard(
   //
   // "atmvars"
   Vector    ppath_p, ppath_t;
-  Matrix    ppath_vmr, ppath_wind, ppath_mag, ppath_f;
+  Matrix    ppath_vmr, ppath_wind, ppath_mag, ppath_f, ppath_t_nlte;
   // Attenuation vars
   Tensor4   ppath_ext;
   Tensor5   abs_per_species;
@@ -389,16 +392,16 @@ void iyEmissionStandard(
   //
   if( np > 1 )
     {
-      get_ppath_atmvars(  ppath_p, ppath_t, ppath_vmr,
+      get_ppath_atmvars(  ppath_p, ppath_t, ppath_t_nlte, ppath_vmr,
                           ppath_wind, ppath_mag, 
-                          ppath, atmosphere_dim, p_grid, t_field, vmr_field,
+                          ppath, atmosphere_dim, p_grid, t_field, t_nlte_field, vmr_field,
                           wind_u_field, wind_v_field, wind_w_field,
                           mag_u_field, mag_v_field, mag_w_field );      
       get_ppath_f(        ppath_f, ppath, f_grid,  atmosphere_dim, 
                           rte_alonglos_v, ppath_wind );
       get_ppath_pmat(     ws, ppath_ext, ppath_abs, lte, abs_per_species,
                           propmat_clearsky_agenda, ppath, 
-                          ppath_p, ppath_t, ppath_vmr, ppath_f, 
+                          ppath_p, ppath_t, ppath_t_nlte, ppath_vmr, ppath_f, 
                           ppath_mag, f_grid, stokes_dim, iaps );
       get_ppath_trans(    trans_partial, extmat_case, trans_cumulat, 
                           scalar_tau, ppath, ppath_ext, f_grid, stokes_dim );
@@ -488,7 +491,7 @@ void iyEmissionStandard(
                   get_ppath_pmat( ws, ppath_at2, dummy_ppath_abs, 
                                   dummy_lte, dummy_abs_per_species,
                                   propmat_clearsky_agenda, ppath, ppath_p,
-                                  t2, ppath_vmr, ppath_f, ppath_mag, f_grid, 
+                                  t2, ppath_t_nlte, ppath_vmr, ppath_f, ppath_mag, f_grid, 
                                   stokes_dim, ArrayOfIndex(0) );
                   get_ppath_blackrad( ws, ppath_bt2, blackbody_radiation_agenda,
                                       ppath, t2, ppath_f );
@@ -506,7 +509,7 @@ void iyEmissionStandard(
                       get_ppath_pmat( ws, ppath_awu, dummy_ppath_abs, 
                                       dummy_lte, dummy_abs_per_species,
                                       propmat_clearsky_agenda, ppath, ppath_p, 
-                                      ppath_t, ppath_vmr, f2, ppath_mag, f_grid,
+                                      ppath_t, ppath_t_nlte, ppath_vmr, f2, ppath_mag, f_grid,
                                       stokes_dim, ArrayOfIndex(0) );
                     }
                   else if( jac_wind_i[iq] == 2 )
@@ -520,7 +523,7 @@ void iyEmissionStandard(
                       get_ppath_pmat( ws, ppath_awv, dummy_ppath_abs, 
                                       dummy_lte, dummy_abs_per_species,
                                       propmat_clearsky_agenda, ppath, ppath_p, 
-                                      ppath_t, ppath_vmr, f2, ppath_mag, f_grid,
+                                      ppath_t, ppath_t_nlte, ppath_vmr, f2, ppath_mag, f_grid,
                                       stokes_dim, ArrayOfIndex(0) );
                     }
                   else if( jac_wind_i[iq] == 3 )
@@ -534,7 +537,7 @@ void iyEmissionStandard(
                       get_ppath_pmat( ws, ppath_aww, dummy_ppath_abs, 
                                       dummy_lte, dummy_abs_per_species,
                                       propmat_clearsky_agenda, ppath, ppath_p, 
-                                      ppath_t, ppath_vmr, f2, ppath_mag, f_grid,
+                                      ppath_t, ppath_t_nlte, ppath_vmr, f2, ppath_mag, f_grid,
                                       stokes_dim, ArrayOfIndex(0) );
                     }
                 }
@@ -1540,6 +1543,7 @@ void yCalc_mblock_loop_body(
    const Index&                      atmosphere_dim,
    const Tensor3&                    t_field,
    const Tensor3&                    z_field,
+   const Tensor4&                    t_nlte_field,
    const Tensor4&                    vmr_field,
    const Index&                      cloudbox_on,
    const Index&                      stokes_dim,
@@ -1574,7 +1578,7 @@ void yCalc_mblock_loop_body(
         Matrix          geo_pos_matrix;
         //
         iyb_calc(ws, iyb, iyb_aux_array[mblock_index], diyb_dx, geo_pos_matrix,
-                 mblock_index, atmosphere_dim, t_field, z_field, vmr_field,
+                 mblock_index, atmosphere_dim, t_field, z_field, t_nlte_field, vmr_field,
                  cloudbox_on, stokes_dim, f_grid, sensor_pos, sensor_los,
                  transmitter_pos, mblock_dlos_grid, 
                  iy_unit, iy_main_agenda, geo_pos_agenda,
@@ -1685,6 +1689,7 @@ void yCalc(
    const Index&                      atmosphere_dim,
    const Tensor3&                    t_field,
    const Tensor3&                    z_field,
+   const Tensor4&                    t_nlte_field,
    const Tensor4&                    vmr_field,
    const Index&                      cloudbox_on,
    const Index&                      cloudbox_checked,
@@ -1807,7 +1812,8 @@ void yCalc(
 
           yCalc_mblock_loop_body( failed, fail_msg, iyb_aux_array, l_ws,
                                   y, y_f, y_pol, y_pos, y_los, y_geo, jacobian,
-                                  atmosphere_dim, t_field, z_field, vmr_field,
+                                  atmosphere_dim, t_field, z_field,
+                                  t_nlte_field, vmr_field,
                                   cloudbox_on, stokes_dim, f_grid, 
                                   sensor_pos, sensor_los, transmitter_pos,
                                   mblock_dlos_grid, sensor_response,
@@ -1831,7 +1837,8 @@ void yCalc(
 
           yCalc_mblock_loop_body( failed, fail_msg, iyb_aux_array, ws,
                                   y, y_f, y_pol, y_pos, y_los, y_geo, jacobian,
-                                  atmosphere_dim, t_field, z_field, vmr_field,
+                                  atmosphere_dim, t_field, z_field,
+                                  t_nlte_field,  vmr_field,
                                   cloudbox_on, stokes_dim, f_grid, 
                                   sensor_pos, sensor_los, transmitter_pos,
                                   mblock_dlos_grid, sensor_response,
@@ -1904,6 +1911,7 @@ void yCalcAppend(
    const Index&                      atmosphere_dim,
    const Tensor3&                    t_field,
    const Tensor3&                    z_field,
+   const Tensor4&                    t_nlte_field,
    const Tensor4&                    vmr_field,
    const Index&                      cloudbox_on,
    const Index&                      cloudbox_checked,
@@ -1966,7 +1974,7 @@ void yCalcAppend(
   //
   yCalc( ws, y2, y_f2, y_pol2, y_pos2, y_los2, y_aux2, y_geo2, jacobian2,
          atmfields_checked, atmgeom_checked, atmosphere_dim, t_field,
-         z_field, vmr_field, cloudbox_on, cloudbox_checked, sensor_checked,
+         z_field, t_nlte_field, vmr_field, cloudbox_on, cloudbox_checked, sensor_checked,
          stokes_dim, f_grid, sensor_pos, sensor_los, transmitter_pos,
          mblock_dlos_grid, sensor_response,
          sensor_response_f, sensor_response_pol, sensor_response_dlos, 

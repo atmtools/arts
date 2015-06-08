@@ -61,8 +61,7 @@ StringCreate( casefull )
 abs_speciesSet( species=["CO2"] )
 Copy( casefull, basename )
 Append( casefull, atmcase )
-AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw,
-            abs_species, casefull )
+AtmRawRead( basename =  casefull )
 p_gridFromZRaw(	p_grid, z_field_raw, 0 )
 
 

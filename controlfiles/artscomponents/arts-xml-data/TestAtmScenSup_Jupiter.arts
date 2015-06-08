@@ -108,8 +108,7 @@ Extract( basename, basecasearray, 0 )
 abs_speciesSet( species=["H2", "He"] )
 
 # get atm scenario raw data
-AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw,
-            abs_species, basename )
+AtmRawRead( basename = basename )
 
 #####
 # A-1) p_grid initialized from given altitude grid

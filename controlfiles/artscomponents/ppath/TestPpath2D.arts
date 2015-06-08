@@ -41,8 +41,7 @@ abs_speciesSet( species=["H2O"] )
 
 # Read a 1D atmospheric case and expand to *atmosphere_dim*
 #
-AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, 
-            "testdata/tropical" )
+AtmRawRead( basename = "testdata/tropical" )
 AtmFieldsCalcExpand1D
 
 

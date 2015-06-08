@@ -31,6 +31,7 @@ void propmat_clearskyAddZeeman( Tensor4& propmat_clearsky,
 				const Numeric& rtp_pressure,
 				const Numeric& rtp_temperature,
 				const Numeric& lm_p_lim,
+                                const Vector& rtp_temperature_nlte,
 				const Vector& rtp_vmr,
 				const Vector& rtp_mag,
 				const Vector& ppath_los,
@@ -87,10 +88,10 @@ void propmat_clearskyAddZeeman( Tensor4& propmat_clearsky,
   mirror_los(R_path_los, ppath_los, atmosphere_dim);
 
   // Using the standard scalar absorption functions to get physics parameters,
-  Vector abs_p, abs_t; Matrix abs_vmrs;
-  AbsInputFromRteScalars( abs_p, abs_t, abs_vmrs,                        // Output
-          rtp_pressure, rtp_temperature, rtp_vmr,  //Input
-          verbosity);                                  // Verbose!
+  Vector abs_p, abs_t; Matrix abs_vmrs, abs_t_nlte;
+  AbsInputFromRteScalars( abs_p, abs_t, abs_t_nlte, abs_vmrs,            // Output
+          rtp_pressure, rtp_temperature, rtp_temperature_nlte, rtp_vmr,  //Input
+          verbosity);                                                    // Verbose!
 
   // FOR LOG:  Loss of speed when mag == 0
   // Set the magnetic parameters...
@@ -136,7 +137,7 @@ void propmat_clearskyAddZeeman( Tensor4& propmat_clearsky,
     
     // Add Pi contribution to final propmat_clearsky
     xsec_species_line_mixing_wrapper_with_zeeman( part_abs_mat, part_src_mat, abs_species, abs_lineshape,
-                                                  aoaol[zeeman_ind+1], Vector(), isotopologue_ratios,
+                                                  aoaol[zeeman_ind+1], Vector(), isotopologue_ratios, abs_t_nlte,
                                                   abs_vmrs, abs_p, abs_t, f_grid, lm_p_lim, theta, eta, 0, II, verbosity );
     propmat_clearsky(II, joker, joker, joker) += part_abs_mat;
     if( do_src )
@@ -144,7 +145,7 @@ void propmat_clearskyAddZeeman( Tensor4& propmat_clearsky,
 
     // Add Sigma minus contribution to final propmat_clearsky
     xsec_species_line_mixing_wrapper_with_zeeman( part_abs_mat, part_src_mat, abs_species, abs_lineshape,
-                                                  aoaol[zeeman_ind+0], Vector(), isotopologue_ratios,  
+                                                  aoaol[zeeman_ind+0], Vector(), isotopologue_ratios, abs_t_nlte,  
                                                   abs_vmrs, abs_p, abs_t, f_grid, lm_p_lim, theta, eta, -1, II, verbosity );
     propmat_clearsky(II, joker, joker, joker) += part_abs_mat;
     if( do_src )
@@ -152,7 +153,7 @@ void propmat_clearskyAddZeeman( Tensor4& propmat_clearsky,
 
     // Add Sigma plus contribution to final propmat_clearsky
     xsec_species_line_mixing_wrapper_with_zeeman( part_abs_mat, part_src_mat, abs_species, abs_lineshape,
-                                                  aoaol[zeeman_ind+2],Vector(), isotopologue_ratios,
+                                                  aoaol[zeeman_ind+2],Vector(), isotopologue_ratios, abs_t_nlte,
                                                   abs_vmrs, abs_p, abs_t, f_grid, lm_p_lim, theta, eta, 1, II, verbosity );
     propmat_clearsky(II, joker, joker, joker) += part_abs_mat;
     if( do_src )
@@ -208,6 +209,7 @@ void propmat_clearskyAddZeemanFromPreCalc(Tensor4& propmat_clearsky,
                                           const Numeric& rtp_pressure,
                                           const Numeric& rtp_temperature,
                                           const Numeric& lm_p_lim,
+                                          const Vector& rtp_temperature_nlte,
                                           const Vector& rtp_vmr,
                                           const Vector& rtp_mag,
                                           const Vector& ppath_los,
@@ -266,10 +268,10 @@ void propmat_clearskyAddZeemanFromPreCalc(Tensor4& propmat_clearsky,
   mirror_los(R_path_los, ppath_los, atmosphere_dim);
 
   // Using the standard scalar absorption functions to get physics parameters,
-  Vector abs_p, abs_t; Matrix abs_vmrs;
-  AbsInputFromRteScalars( abs_p, abs_t, abs_vmrs,                        // Output
-          rtp_pressure, rtp_temperature, rtp_vmr,  //Input
-          verbosity);                                  // Verbose!
+  Vector abs_p, abs_t; Matrix abs_vmrs, abs_t_nlte;
+  AbsInputFromRteScalars( abs_p, abs_t, abs_t_nlte, abs_vmrs,           // Output
+          rtp_pressure, rtp_temperature, rtp_temperature_nlte, rtp_vmr, //Input
+          verbosity);                                                   // Verbose!
 
   // FOR LOG:  Loss of speed when mag == 0
   // Set the magnetic parameters...
@@ -338,7 +340,7 @@ void propmat_clearskyAddZeemanFromPreCalc(Tensor4& propmat_clearsky,
     // Add Pi contribution to final propmat_clearsky
     xsec_species_line_mixing_wrapper_with_zeeman( part_abs_mat, part_src_mat, abs_species, abs_lineshape,
                                                   zeeman_linerecord_precalc[zeeman_ind+1], FreqShift[zeeman_ind+1], 
-                                                  isotopologue_ratios, abs_vmrs, abs_p, abs_t, f_grid, lm_p_lim,
+                                                  isotopologue_ratios, abs_t_nlte, abs_vmrs, abs_p, abs_t, f_grid, lm_p_lim,
                                                   theta, eta, 0, II, verbosity );
     propmat_clearsky(II, joker, joker, joker) += part_abs_mat;
     if( do_src )
@@ -347,7 +349,7 @@ void propmat_clearskyAddZeemanFromPreCalc(Tensor4& propmat_clearsky,
     // Add Sigma minus contribution to final propmat_clearsky
     xsec_species_line_mixing_wrapper_with_zeeman( part_abs_mat, part_src_mat, abs_species, abs_lineshape,
                                                   zeeman_linerecord_precalc[zeeman_ind+0], FreqShift[zeeman_ind+0], 
-                                                  isotopologue_ratios, abs_vmrs, abs_p, abs_t, f_grid, lm_p_lim,
+                                                  isotopologue_ratios, abs_t_nlte, abs_vmrs, abs_p, abs_t, f_grid, lm_p_lim,
                                                   theta, eta, -1, II, verbosity );
     propmat_clearsky(II, joker, joker, joker) += part_abs_mat;
     if( do_src )
@@ -356,7 +358,7 @@ void propmat_clearskyAddZeemanFromPreCalc(Tensor4& propmat_clearsky,
     // Add Sigma plus contribution to final propmat_clearsky
     xsec_species_line_mixing_wrapper_with_zeeman( part_abs_mat, part_src_mat, abs_species, abs_lineshape,
                                                   zeeman_linerecord_precalc[zeeman_ind+2], FreqShift[zeeman_ind+2],
-                                                  isotopologue_ratios, abs_vmrs, abs_p, abs_t, f_grid, lm_p_lim,
+                                                  isotopologue_ratios, abs_t_nlte, abs_vmrs, abs_p, abs_t, f_grid, lm_p_lim,
                                                   theta, eta, 1, II, verbosity );
     propmat_clearsky(II, joker, joker, joker) += part_abs_mat;
     if( do_src )

@@ -55,12 +55,11 @@ AtmosphereSet1D
 
 # Atmospheric profiles
 # 
-AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, 
-            "testdata/tropical" )
+AtmRawRead( basename = "testdata/tropical" )
 #
-AtmFieldsCalc( t_field, z_field, vmr_field, p_grid, 
+AtmFieldsCalc( t_field, z_field, vmr_field, t_nlte_field, p_grid, 
                lat_grid, lon_grid, t_field_raw, z_field_raw, 
-               vmr_field_raw, atmosphere_dim, 3 )
+               vmr_field_raw, t_nlte_field_raw, atmosphere_dim, 3 )
 
 
 # Surface altitude
@@ -106,6 +105,7 @@ AgendaSet( iy_transmitter_agenda ){
 AgendaSet( iy_main_agenda ){
   Ignore( iy_unit )
   Ignore( rte_los )
+  Ignore( t_nlte_field )
   iyRadioLink( defocus_method = 2 ) 
 }
 

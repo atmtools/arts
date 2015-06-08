@@ -131,8 +131,7 @@ Matrix1ColFromVector( sensor_los, za )
 # Pressure grid rougly matching 0 to 80 km.
 VectorNLogSpace( p_grid, 41, 1000e2, 1 )
 
-AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, 
-            "planets/Earth/Fascod/tropical/tropical" )
+AtmRawRead( basename = "planets/Earth/Fascod/tropical/tropical" )
 AtmFieldsCalc
 Extract( z_surface, z_field, 0 )
 
@@ -158,8 +157,7 @@ Matrix1ColFromVector( sensor_los, za )
 # Pressure grid rougly matching 0 to 80 km.
 VectorNLogSpace( p_grid, 41, 765, 0.08 )
 
-AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, 
-            "planets/Mars/MPS/Mars.Ls0.day.dust-medium/Mars.Ls0.day.dust-medium.sol-avg/Mars.Ls0.day.dust-medium.sol-avg" )
+AtmRawRead( basename = "planets/Mars/MPS/Mars.Ls0.day.dust-medium/Mars.Ls0.day.dust-medium.sol-avg/Mars.Ls0.day.dust-medium.sol-avg" )
 AtmFieldsCalc
 Extract( z_surface, z_field, 0 )
 
@@ -185,8 +183,7 @@ Matrix1ColFromVector( sensor_los, za )
 # Pressure grid rougly matching 0 to 80 km.
 VectorNLogSpace( p_grid, 41, 9.2e6, 4.9e2 )
 
-AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, 
-            "planets/Venus/MPS/Venus.vira.day/Venus.vira.day" )
+AtmRawRead( basename = "planets/Venus/MPS/Venus.vira.day/Venus.vira.day" )
 AtmFieldsCalc( vmr_zeropadding=1 )
 Extract( z_surface, z_field, 0 )
 
@@ -212,8 +209,7 @@ Matrix1ColFromVector( sensor_los, za )
 # Pressure grid rougly matching 0 to 80 km.
 VectorNLogSpace( p_grid, 41, 1.0e5, 1.8e3 )
 
-AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, 
-            "planets/Jupiter/MPS/Jupiter.mean/Jupiter.mean" )
+AtmRawRead( basename = "planets/Jupiter/MPS/Jupiter.mean/Jupiter.mean" )
 AtmFieldsCalc( vmr_zeropadding=1 )
 Extract( z_surface, z_field, 0 )
 

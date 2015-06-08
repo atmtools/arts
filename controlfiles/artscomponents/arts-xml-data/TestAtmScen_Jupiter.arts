@@ -51,8 +51,7 @@ abs_speciesDefineAllInScenario( basename=atmcase )
 #WriteXML( "ascii", abs_species, "TestAtmScen_Jupiter_allInScen.abs_species.xml" )
 
 # get atm scenario raw data
-AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw,
-            abs_species, atmcase )
+AtmRawRead( basename = atmcase )
 
 # adding species or variants that do not follow the general naming convention
 abs_speciesAdd( species=["CH4-212"] )

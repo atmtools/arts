@@ -2622,6 +2622,7 @@ void DoitGetIncoming(
   Index  Nza      = scat_za_grid.nelem();
   Matrix iy;
   Ppath  ppath;
+  const Tensor4 t_nlte_field_dummy;
 
   //--- Check input ----------------------------------------------------------
   if( !(atmosphere_dim == 1  ||  atmosphere_dim == 3) )
@@ -2647,7 +2648,7 @@ void DoitGetIncoming(
           // doing the first angle separately for allowing dy between 2 angles
           // in the loop
           los[0] =  scat_za_grid[0];
-          get_iy( ws, iy, t_field, z_field, vmr_field, 0, f_grid, pos, los, 
+          get_iy( ws, iy, t_field, z_field, t_nlte_field_dummy, vmr_field, 0, f_grid, pos, los, 
                   Vector(0), iy_unit, iy_main_agenda );
           doit_i_field( joker, boundary_index, 0, 0, 0, 0, joker ) = iy;
 
@@ -2655,7 +2656,7 @@ void DoitGetIncoming(
             {
               los[0] =  scat_za_grid[scat_za_index];
 
-              get_iy( ws, iy, t_field, z_field, vmr_field, 0, f_grid, pos, los, 
+              get_iy( ws, iy, t_field, z_field, t_nlte_field_dummy, vmr_field, 0, f_grid, pos, los, 
                       Vector(0), iy_unit, iy_main_agenda );
 
               doit_i_field( joker, boundary_index, 0, 0, scat_za_index, 0, joker ) = iy;
@@ -2743,7 +2744,8 @@ void DoitGetIncoming(
                                 scat_za_index != (Nza-1) )  ||  
                                 scat_aa_index == 0 )
                             {
-                              get_iy( ws, iy, t_field, z_field, vmr_field, 0, 
+                              get_iy( ws, iy, t_field, z_field, t_nlte_field_dummy, 
+                                      vmr_field, 0, 
                                       f_grid, pos, los, Vector(0), 
                                       iy_unit, iy_main_agenda );
                             }
@@ -2785,7 +2787,8 @@ void DoitGetIncoming(
                                 scat_za_index != (Nza-1) )  ||  
                                 scat_aa_index == 0 )
                             {
-                              get_iy( ws, iy, t_field, z_field, vmr_field, 0, 
+                              get_iy( ws, iy, t_field, z_field, t_nlte_field_dummy,
+                                      vmr_field, 0, 
                                       f_grid, pos, los, Vector(0), 
                                       iy_unit, iy_main_agenda );
                             }
@@ -2827,7 +2830,8 @@ void DoitGetIncoming(
                                 scat_za_index != (Nza-1) )  ||  
                                 scat_aa_index == 0 )
                             {
-                              get_iy( ws, iy, t_field, z_field, vmr_field, 0, 
+                              get_iy( ws, iy, t_field, z_field, t_nlte_field_dummy,
+                                      vmr_field, 0, 
                                       f_grid, pos, los, Vector(0), 
                                       iy_unit, iy_main_agenda );
                             }
@@ -2909,6 +2913,7 @@ void DoitGetIncoming1DAtm(
   Index  Naa      = scat_aa_grid.nelem();
   Matrix iy;
   Ppath  ppath;
+  const Tensor4 t_nlte_field_dummy;
 
   //--- Check input ----------------------------------------------------------
   if( atmosphere_dim != 3 )
@@ -2955,7 +2960,8 @@ void DoitGetIncoming1DAtm(
         {
           los[0] = scat_za_grid[scat_za_index];
 
-          get_iy( ws, iy, t_field, z_field, vmr_field, 0, f_grid, pos, los, 
+          get_iy( ws, iy, t_field, z_field, t_nlte_field_dummy, 
+                  vmr_field, 0, f_grid, pos, los, 
                   Vector(0), iy_unit, iy_main_agenda );
           
           for (Index aa = 0; aa < Naa; aa ++)

@@ -47,6 +47,7 @@ AgendaSet( iy_main_agenda ){
   Ignore( cloudbox_on ) 
   Ignore( jacobian_do )
   Ignore( t_field ) 
+  Ignore( t_nlte_field ) 
   Ignore( z_field ) 
   Ignore( vmr_field ) 
   Touch( iy_aux )

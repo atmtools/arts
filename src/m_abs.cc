@@ -73,10 +73,12 @@ extern const Numeric VACUUM_PERMITTIVITY;
 void AbsInputFromRteScalars(// WS Output:
                             Vector&        abs_p,
                             Vector&        abs_t,
+                            Matrix&        abs_t_nlte,
                             Matrix&        abs_vmrs,
                             // WS Input:
                             const Numeric& rtp_pressure,
                             const Numeric& rtp_temperature,
+                            const Vector&  rtp_temperature_nlte,
                             const Vector&  rtp_vmr,
                             const Verbosity&)
 {
@@ -87,6 +89,10 @@ void AbsInputFromRteScalars(// WS Output:
   // Prepare abs_t:
   abs_t.resize(1);
   abs_t = rtp_temperature;
+  
+  // Prepare abs_t_nlte:
+  abs_t_nlte.resize(rtp_temperature_nlte.nelem(),1);
+  abs_t_nlte = rtp_temperature_nlte;
 
   // Prepare abs_vmrs:
   abs_vmrs.resize(rtp_vmr.nelem(),1);
@@ -1700,6 +1706,7 @@ void abs_xsec_per_speciesAddLines(// WS Output:
                                   const Vector&                    f_grid,
                                   const Vector&                    abs_p,
                                   const Vector&                    abs_t,
+                                  const Matrix&                    abs_t_nlte,
                                   const Numeric&                   lm_p_lim,
                                   const Matrix&                    abs_vmrs,
                                   const ArrayOfArrayOfLineRecord&  abs_lines_per_species,
@@ -1916,6 +1923,7 @@ void abs_xsec_per_speciesAddLines(// WS Output:
                              f_grid,
                              abs_p,
                              abs_t,
+                             abs_t_nlte,
                              abs_vmrs,
                              tgs,
                              i,
@@ -1937,6 +1945,7 @@ void abs_xsec_per_speciesAddLines(// WS Output:
                                                  f_grid,
                                                  abs_p,
                                                  abs_t,
+                                                 abs_t_nlte,
                                                  abs_vmrs,
                                                  tgs,
                                                  i,
@@ -2603,6 +2612,7 @@ void propmat_clearskyAddOnTheFly(// Workspace reference:
                                     const ArrayOfArrayOfSpeciesTag& abs_species,
                                     const Numeric& rtp_pressure,
                                     const Numeric& rtp_temperature,
+                                    const Vector& rtp_temperature_nlte,
                                     const Vector& rtp_vmr,
                                     const Agenda& abs_xsec_agenda,
                                     // Verbosity object:
@@ -2615,6 +2625,7 @@ void propmat_clearskyAddOnTheFly(// Workspace reference:
   // Output of AbsInputFromRteScalars:
   Vector        abs_p;
   Vector        abs_t;
+  Matrix        abs_t_nlte;
   Matrix        abs_vmrs;
   // Output of abs_h2oSet:
   Vector          abs_h2o;
@@ -2624,9 +2635,11 @@ void propmat_clearskyAddOnTheFly(// Workspace reference:
     
   AbsInputFromRteScalars(abs_p,
                          abs_t,
+                         abs_t_nlte,
                          abs_vmrs,
                          rtp_pressure,
                          rtp_temperature,
+                         rtp_temperature_nlte,
                          rtp_vmr,
                          verbosity);
   
@@ -2648,6 +2661,7 @@ void propmat_clearskyAddOnTheFly(// Workspace reference:
                          f_grid,
                          abs_p,
                          abs_t,
+                         abs_t_nlte,
                          abs_vmrs,
                          abs_xsec_agenda);
   

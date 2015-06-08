@@ -163,8 +163,7 @@ Append( casefull, caseext )
 Append( casefull, atmcase )
 #Print( casefull, 0 )
 
-AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw,
-            abs_species, casefull )
+AtmRawRead( basename = casefull )
 p_gridFromZRaw(	p_grid, z_field_raw, 0 )
 
 
@@ -298,8 +297,7 @@ AgendaSet( forloop_agenda_dust ){
   Append( basename, atmcase )
   Append( basename, caseext )
   Append( basename, atmcase )
-  AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw,
-              abs_species, basename )
+  AtmRawRead( basename =  basename )
 
   p_gridFromZRaw( p_grid, z_field_raw, 0 )
   AtmFieldsCalcExpand1D
