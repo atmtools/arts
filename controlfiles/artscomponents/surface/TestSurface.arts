@@ -30,6 +30,7 @@ Touch( iy_unit )
 Touch( t_field )
 Touch( z_field )
 Touch( vmr_field )
+Touch( t_nlte_field )
 Touch( iy_transmission )
 
 

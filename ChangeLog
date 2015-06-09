@@ -1,3 +1,24 @@
+2015-06-09 Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-3-231
+	
+	Reverting some files by Patrick's advice.
+	
+	* src/agendas.cc: Reverting iy_main_agenda to not take 
+	t_nlte_field. Changed all other code back to previous executing 
+	style.
+	
+	* controlfiles/artscomponents/surface/TestSurface.arts:
+	Now touch t_nlte_field.
+	
+	* src/m_cloudradar.cc,src/m_doit.cc,src/m_jacobian.cc,
+	src/m_rte.cc,src/m_surface.cc:  No more dummy t_nlte_field.
+	
+	* src/methods.cc:  No t_nlte_field in yCalc and iyCalc.
+	
+	* src/rte.{cc,h}:  So get_iy, iyb_calc, and iyb_calc_body
+	no longer has t_nlte_field as input.
+
 2015-06-09  Jana Mendrok  <jana.mendrok@ltu.se>
 
 	* arts-2-3-230

@@ -454,8 +454,6 @@ void yCloudRadar(
   // Conversion from Stokes to sensor_pol
   ArrayOfVector   s2p;
   stokes2pol( s2p, 0.5 );
-  
-  const Tensor4 t_nlte_field_dummy;
 
   ArrayOfIndex npolcum(nf+1); npolcum[0]=0;
   for( Index i=0; i<nf; i++ )
@@ -498,7 +496,7 @@ void yCloudRadar(
       iy_main_agendaExecute( ws, iy, iy_aux, ppath, diy_dx, 
                              1, iy_unit, iy_transmission, 
                              iy_aux_vars, cloudbox_on, 0, t_field, z_field, 
-                             t_nlte_field_dummy, vmr_field, f_grid, 
+                             vmr_field, f_grid, 
                              sensor_pos(p,joker), sensor_los(p,joker), 
                              rte_pos2, iy_main_agenda );
 

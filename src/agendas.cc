@@ -355,7 +355,7 @@ void define_agenda_data()
         ),
        OUTPUT( "iy", "iy_aux", "ppath", "diy_dx" ),
        INPUT( "iy_agenda_call1", "iy_unit", "iy_transmission", "iy_aux_vars",
-              "cloudbox_on", "jacobian_do", "t_field", "z_field", "t_nlte_field", "vmr_field", 
+              "cloudbox_on", "jacobian_do", "t_field", "z_field", "vmr_field", 
               "f_grid", "rte_pos", "rte_los", "rte_pos2" )));  
 
   agenda_data.push_back

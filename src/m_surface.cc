@@ -388,12 +388,11 @@ void iySurfaceFastem(
         Vector           transmittance( nf );
         ArrayOfTensor4   iy_aux;
         Ppath            ppath;
-  const Tensor4 t_nlte_field_dummy;
   //
   iy_main_agendaExecute( ws, iy, iy_aux, ppath, diy_dx, 0, iy_unit, 
                          iy_transmission, iy_aux_vars, 
                          cloudbox_on, jacobian_do, t_field, 
-                         z_field, t_nlte_field_dummy, vmr_field, f_grid, rtp_pos, 
+                         z_field, vmr_field, f_grid, rtp_pos, 
                          specular_los, rte_pos2, iy_main_agenda );
 
   // Convert tau to transmissions
@@ -469,8 +468,6 @@ void iySurfaceRtpropAgenda(
   chk_rte_pos( atmosphere_dim, rtp_pos );
   chk_rte_los( atmosphere_dim, rtp_los );
 
-  const Tensor4 t_nlte_field_dummy;
-  
   // Call *surface_rtprop_agenda*
   Matrix    surface_los;
   Tensor4   surface_rmatrix;
@@ -537,7 +534,7 @@ void iySurfaceRtpropAgenda(
             iy_main_agendaExecute( ws, iy, iy_aux, ppath, diy_dx, 0, iy_unit, 
                                    iy_trans_new, ArrayOfString(0), 
                                    cloudbox_on, jacobian_do, t_field, 
-                                   z_field, t_nlte_field_dummy, vmr_field, f_grid, rtp_pos, 
+                                   z_field, vmr_field, f_grid, rtp_pos, 
                                    los, rte_pos2, iy_main_agenda );
           }
 
@@ -595,7 +592,6 @@ void iySurfaceRtpropCalc(
   // Check provided surface rtprop variables
   const Index   nlos = surface_los.nrows();
   const Index   nf   = f_grid.nelem();
-  const Tensor4 t_nlte_field_dummy;
   //
   if( nlos )   // if 0, blackbody ground and not all checks are needed
     {
@@ -650,7 +646,7 @@ void iySurfaceRtpropCalc(
             iy_main_agendaExecute( ws, iy, iy_aux, ppath, diy_dx, 0, iy_unit, 
                                    iy_trans_new, ArrayOfString(0), 
                                    cloudbox_on, jacobian_do, t_field, 
-                                   z_field, t_nlte_field_dummy, vmr_field, f_grid, rtp_pos, 
+                                   z_field, vmr_field, f_grid, rtp_pos, 
                                    los, rte_pos2, iy_main_agenda );
           }
 
