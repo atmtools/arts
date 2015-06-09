@@ -1,3 +1,14 @@
+2015-06-09  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-226
+
+	* src/linerecord.cc (ReadFromArtscat5Stream):
+
+	Don't throw a runtime error for invalid lower quantum numbers. The
+	invalid number could be the next tag. If it isn't, an error is thrown
+	anyway in the next step when it's parsed as a tag. Fixed bug reported
+	by Richard.
+
 2015-06-08 Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-3-225

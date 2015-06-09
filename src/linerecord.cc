@@ -3368,9 +3368,8 @@ bool LineRecord::ReadFromArtscat5Stream(istream& is, const Verbosity& verbosity)
                     }
 
                     icecream >> token;
-                    while (icecream)
+                    while (icecream && IsValidQuantumNumberName(token))
                     {
-                        ThrowIfQuantumNumberNameInvalid(token);
                         icecream >> r;
                         mquantum_numbers.Lower().Set(token, r);
                         icecream >> token;
