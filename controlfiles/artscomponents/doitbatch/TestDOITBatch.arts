@@ -250,10 +250,6 @@ AgendaSet( ybatch_calc_agenda ){
   # Particle Number Density calculations
   # ------------------------------------
   pnd_fieldCalcFromscat_speciesFields
-  #pnd_fieldCalcFromscat_speciesFields(
-  #    pnd_field, atmosphere_dim, cloudbox_on, cloudbox_limits, 
-  #    massdensity_field, t_field, scat_meta, scat_species, 
-  #    scat_data_per_scat_species )
   
   #Write indexed pnd_fields to sub-folder for each atmosphere
   #WriteXMLIndexed (output_file_format, ybatch_index, pnd_field)

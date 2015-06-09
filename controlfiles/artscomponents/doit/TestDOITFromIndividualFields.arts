@@ -218,7 +218,7 @@ scat_species_fieldCleanup (scat_species_mass_flux_field,
 # Read SingleScatteringData and ScatteringMetaData
 #-------------------------------------------------
 ArrayOfStringCreate( scat_data_files )
-ReadXML( scat_data_files, "testdata/SingleScatteringFile_H2Oliquid.xml" )
+#ReadXML( scat_data_files, "testdata/SingleScatteringFile_H2Oliquid.xml" )
 ScatteringParticleTypeAndMetaRead ( scat_data_files=[
  "testdata/scatData/MieAtmlab_Liquid_0.4um.xml.gz",
  "testdata/scatData/MieAtmlab_Liquid_0.9um.xml.gz",

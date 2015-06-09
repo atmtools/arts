@@ -849,7 +849,6 @@ void ScatteringParticleTypeAndMetaRead (//WS Output:
       ArrayOfString strarr;
       scat_data_files[i].split ( strarr, ".xml" );
       String scat_meta_file = strarr[0]+".meta.xml";
-      cout << "looking for " << scat_meta_file << "\n";
 
       out3 << "  Read scattering meta data\n";
       xml_read_from_file ( scat_meta_file, arr_smd[i], verbosity );
