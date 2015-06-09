@@ -1,3 +1,12 @@
+2015-06-09  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-228
+
+	* controlfiles/artscomponents/arts-xml-data/TestSurf_Earth.arts,
+	controlfiles/artscomponents/helpers/TestRegridding.arts:
+
+	Adapt ERA40 path for restructured arts-xml-data.
+
 2015-06-09  Jana Mendrok  <jana.mendrok@ltu.se>
 
 	* arts-2-3-227
