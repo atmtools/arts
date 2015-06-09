@@ -1819,10 +1819,10 @@ firstprivate(attenuation, phase, fac, f_local, aux)
             }
             else
             {
-                //FIXME:  Make sure this is as intended.  no_norm is not known.  So I will 
-                // use the same as the user defines.
+                //The below follows from Debye lineshape approximating half of VVH lineshape
                 ArrayOfLineshapeSpec tmp;
-                abs_lineshapeDefine( tmp, "O2NonResonant", "no_norm", -1, verbosity );
+                abs_lineshapeDefine( tmp, "Faddeeva_Algorithm_916", "VVH", 
+                                     -1, verbosity );
                 
                 xsec_single_line(   xsec_attenuation(joker,jj), 
 				    calc_src?xsec_source(joker,jj):Vector(0),
@@ -1844,16 +1844,16 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                                     t,
                                     gamma,
                                     deltaf_pressure,
-                                    -1,
+                                    cutoff,
                                     DV,
                                     Y, 
-                                    G, 
+                                    G, // Non-resonant lineshape is half VVH --- this scales
                                     f_grid.nelem(), 
                                     tmp[0].Ind_ls(), 
                                     tmp[0].Ind_lsn(), 
                                     abs_lines[ii].Species(), 
                                     abs_lines[ii].Isotopologue(), 
-                                    -1!=-1,
+                                    cutoff!=-1,
                                     1,
 				    calc_src);
             }

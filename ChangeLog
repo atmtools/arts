@@ -1,3 +1,20 @@
+2015-06-09 Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-3-229
+	
+	* src/absorption.cc:  Changed how non-resonant O2 is handled.
+	Now the method follows from the Debye lineshape approximating
+	VVW/2 line shape.
+	
+	* src/linemixingdata.{cc,h}:  Adapted tag.  This could break
+	old Artscat5 files but the physics is better.  LM NR -0.5
+	now adapts VVW line shape to VVW/2 for the non-resonant
+	line/band of AER's catalog.
+	
+	* src/lineshapes.cc:  Added comment that the lineshape for
+	O2 non-resonant is not used and should not be used.  Should
+	it be removed?
+
 2015-06-09  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-228

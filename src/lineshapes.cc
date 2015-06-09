@@ -1805,7 +1805,7 @@ void hui_etal_1978_lineshape( Vector&         ls_attenuation,
 
 
 
-/*! The O2 non-resonant line shape.
+/*! The O2 non-resonant line shape.  Should be VVW/2 so do not use this call...
 
     \retval ls_attenuation              The shape function.
     \retval ls_phase                    The shape function.

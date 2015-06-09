@@ -38,7 +38,7 @@ void LineMixingData::GetLineMixingParams(Numeric& Y, Numeric& G, Numeric& DV, co
     else if(mtype == LM_LBLRTM) // The LBLRTM case
         GetLBLRTM(Y,G,Temperature,Pressure,Pressure_Limit,order);
     else if(mtype == LM_LBLRTM_O2NonResonant) // The LBLRTM case
-        GetLBLRTM_O2NonResonant(Y,G,Temperature,Pressure,Pressure_Limit,order); // Note that they only act like Y and G
+        GetLBLRTM_O2NonResonant(G); // Note that they only act like Y and G
     else if(mtype == LM_2NDORDER) // The 2nd order case
         Get2ndOrder(Y,G,DV,Temperature,Pressure,Pressure_Limit);
     else if(mtype == LM_1STORDER) // The 1st order case
@@ -92,45 +92,13 @@ void LineMixingData::GetLBLRTM(Numeric& Y, Numeric& G, const Numeric& Temperatur
 }
 
 
-void LineMixingData::GetLBLRTM_O2NonResonant(Numeric& Gamma1, Numeric& Gamma2, const Numeric& Temperature, const Numeric& Pressure, const Numeric& Pressure_Limit, const Index& order=1) const
+void LineMixingData::GetLBLRTM_O2NonResonant(Numeric& G) const
 {
       assert( mtype == LM_LBLRTM_O2NonResonant );
-      assert(mdata.nelem() == 3);
-      assert(mdata[0].nelem() == 4 && mdata[1].nelem() == 4 && mdata[2].nelem() == 4);
+      assert(mdata.nelem() == 1);
+      assert(mdata[0].nelem() == 1);
      
-      if(Pressure>Pressure_Limit)
-      {
-        // Helper to understand the following interpolation
-        const Vector& t = mdata[0];
-        const Vector& g1 = mdata[1];
-        const Vector& g2 = mdata[2];
-        
-        const Vector T0(1,Temperature);
-        Vector tmp(1);
-        
-        // Interpolation variables
-        ArrayOfGridPosPoly gp(1);
-        
-        Matrix itw;
-        itw.resize(gp.nelem(),order+1);
-        
-        chk_interpolation_grids("Line mixing data O2 non-resonant temperature interpolation",
-                                t,
-                                T0,
-                                order);
-
-        // Interpolation variale determination
-        gridpos_poly(gp, t, T0, order);
-        interpweights(itw, gp);
-        
-        // Interpolated values
-        interp(tmp, itw, g1, gp);
-        Gamma1 = tmp[0] * Pressure;
-        interp(tmp,itw, g2, gp);
-        Gamma2 = tmp[0] * Pressure * Pressure;
-      }
-      else
-        Gamma1=Gamma2=0;
+      G = mdata[0][0];
 }
 
 
@@ -207,8 +175,8 @@ Index LineMixingData::ExpectedVectorLengthFromType()
     return 0;
   else if(mtype == LM_LBLRTM) // The LBLRTM case
     return 12;
-  else if(mtype == LM_LBLRTM_O2NonResonant) // The LBLRTM case
-    return 12;
+  else if(mtype == LM_LBLRTM_O2NonResonant) // Nonresonant is just a tag
+    return 1;
   else if(mtype == LM_2NDORDER) // The 2nd order case
     return 10;
   else if(mtype == LM_1STORDER) // The 2nd order case
@@ -264,29 +232,9 @@ void LineMixingData::Vector2LBLRTM_O2NonResonantData(const Vector& input)
           throw std::runtime_error("The line mixing data vector is not of the right length for LBLRTM non-resonant.\n");
       }
       
-      // Then this is a three-long ArrayOfVector
-      mdata.resize(3);
-      
-      // This is supposed to be the temperature vector
-      mdata[0].resize(4);
+      mdata.resize(1);
+      mdata[0].resize(1);
       mdata[0][0] = input[0];
-      mdata[0][1] = input[1];
-      mdata[0][2] = input[2];
-      mdata[0][3] = input[3];
-      
-      // This is supposed to be the gamma1-vector
-      mdata[1].resize(4);
-      mdata[1][0] = input[4];
-      mdata[1][1] = input[5];
-      mdata[1][2] = input[6];
-      mdata[1][3] = input[7];
-      
-      // This is supposed to be the gamma2-vector
-      mdata[2].resize(4);
-      mdata[2][0] = input[8];
-      mdata[2][1] = input[9];
-      mdata[2][2] = input[10];
-      mdata[2][3] = input[11];
 }
 
 
@@ -404,25 +352,8 @@ void LineMixingData::LBLRTMData2Vector(Vector& output) const
 // This will convert the LBLRTM data format to a vector for storage
 void LineMixingData::LBLRTM_O2NonResonantData2Vector(Vector& output) const
 {
-      output.resize(12);
-      
-      // This is the T-vector
-      output[0]  = mdata[0][0];
-      output[1]  = mdata[0][1];
-      output[2]  = mdata[0][2];
-      output[3]  = mdata[0][3];
-      
-      // This is the gamma1-vector
-      output[4]  = mdata[1][0];
-      output[5]  = mdata[1][1];
-      output[6]  = mdata[1][2];
-      output[7]  = mdata[1][3];
-      
-      // This is the gamma2-vector
-      output[8]  = mdata[2][0];
-      output[9]  = mdata[2][1];
-      output[10] = mdata[2][2];
-      output[11] = mdata[2][3];
+      output.resize(1);
+      output[0]=mdata[0][0];
 }
 
 

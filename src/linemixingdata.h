@@ -58,7 +58,7 @@ public:
     void Get2ndOrder(Numeric& Y, Numeric& G, Numeric& DV, const Numeric& Temperature, const Numeric& Pressure, const Numeric& Pressure_Limit) const;
     void Get1stOrder(Numeric& Y, const Numeric& Temperature, const Numeric& Pressure, const Numeric& Pressure_Limit) const;
     void GetLBLRTM(Numeric& Y, Numeric& G, const Numeric& Temperature, const Numeric& Pressure, const Numeric& Pressure_Limit, const Index& order) const; 
-    void GetLBLRTM_O2NonResonant(Numeric& Gamma1, Numeric& Gamma2, const Numeric& Temperature, const Numeric& Pressure, const Numeric& Pressure_Limit, const Index& order) const;
+    void GetLBLRTM_O2NonResonant(Numeric& G) const;
     
     // Use these to insert the data in the required format from catalog readings
     void SetLBLRTMFromTheirCatalog(const Vector& t, const Vector& y, const Vector& g) 
