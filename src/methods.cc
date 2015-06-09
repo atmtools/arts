@@ -10578,11 +10578,11 @@ void define_md_data_raw()
         (
          "Reads single scattering data and scattering meta data.\n"
          "\n"
-         "This method's input needs two XML-files, one containing an array \n"
-         "of path/filenames (*ArrayOfString*) of single scattering data and the \n"
-         "corresponding path/filenames to scattering meta data.\n"
-         "For each single scattering file, there needs to be exactly one\n"
-         "scattering meta data file.\n"
+         "This method takes a string array as input containing the location\n"
+         "(path and filename) of the single scattering data. Location of\n"
+         "corresponding scattering meta data is derived applying a naming\n"
+         "convention: ending '.xml*' is replaced by '.meta.xml' (search for\n"
+         "zipped files is done automatically).\n"
          "\n"
          "All scattering elements read in one call of the method are assigned\n"
          "to one and the same scattering species. That is, reading in data for\n"
@@ -10598,18 +10598,16 @@ void define_md_data_raw()
          "The order of the filenames for the single scattering data files has to\n"
          "exactly correspond to the order of the scattering meta data files.\n"
          ),
-        AUTHORS( "Daniel Kreyling" ),
+        AUTHORS( "Daniel Kreyling, Oliver Lemke, Jana Mendrok" ),
         OUT( "scat_data", "scat_meta" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "f_grid" ),
-        GIN(         "filename_scat_data", "filename_scat_meta_data" ),
-        GIN_TYPE(    "String",             "String"             ),
-        GIN_DEFAULT( NODEF,                NODEF                ),
-        GIN_DESC( "Name of file containing the single scattering data file names.",
-                  "Name of file containing the scattering meta data file names." 
-                  )
+        GIN(         "scat_data_files" ),
+        GIN_TYPE(    "ArrayOfString" ),
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC( "Array of single scattering data file names." )
         ));
 
   md_data_raw.push_back

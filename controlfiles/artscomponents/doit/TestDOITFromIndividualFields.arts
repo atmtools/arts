@@ -217,15 +217,17 @@ scat_species_fieldCleanup (scat_species_mass_flux_field,
 
 # Read SingleScatteringData and ScatteringMetaData
 #-------------------------------------------------
-ScatteringParticleTypeAndMetaRead (scat_data, scat_meta, f_grid, 
-    "testdata/SingleScatteringFile_H2Oliquid.xml",
-    "testdata/ScatteringMetaFile_H2Oliquid.xml")
-ScatteringParticleTypeAndMetaRead (scat_data, scat_meta, f_grid, 
-    "testdata/SingleScatteringFile_H2Oice.xml",
-    "testdata/ScatteringMetaFile_H2Oice.xml")
-ScatteringParticleTypeAndMetaRead (scat_data, scat_meta, f_grid, 
-    "testdata/SingleScatteringFile_H2Oliquid.xml",
-    "testdata/ScatteringMetaFile_H2Oliquid.xml")
+ArrayOfStringCreate( scat_data_files )
+ReadXML( scat_data_files, "testdata/SingleScatteringFile_H2Oliquid.xml" )
+ScatteringParticleTypeAndMetaRead ( scat_data_files=[
+ "testdata/scatData/MieAtmlab_Liquid_0.4um.xml.gz",
+ "testdata/scatData/MieAtmlab_Liquid_0.9um.xml.gz",
+ "testdata/scatData/MieAtmlab_Liquid_32.4um.xml.gz",
+ "testdata/scatData/MieAtmlab_Liquid_72.9um.xml.gz"] )
+ReadXML( scat_data_files, "testdata/SingleScatteringFile_H2Oice.xml" )
+ScatteringParticleTypeAndMetaRead ( scat_data_files=scat_data_files )
+ReadXML( scat_data_files, "testdata/SingleScatteringFile_H2Oliquid.xml" )
+ScatteringParticleTypeAndMetaRead ( scat_data_files=scat_data_files )
 
 # Selection/filerting of particles according to *scat_species*
 #------------------------------------------------------------

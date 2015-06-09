@@ -70,15 +70,13 @@ scat_speciesSet(scat_tags=[
 #                    "SR-F07TR-*-*"
 ])
 
-ScatteringParticleTypeAndMetaRead (scat_data, scat_meta, f_grid, 
-    "scattering/H2O_liquid/SingleScatteringFile_allH2Oliquid.xml",
-    "scattering/H2O_liquid/ScatteringMetaFile_allH2Oliquid.xml")
-ScatteringParticleTypeAndMetaRead (scat_data, scat_meta, f_grid, 
-    "scattering/H2O_ice/SingleScatteringFile_allH2Oice.xml",
-    "scattering/H2O_ice/ScatteringMetaFile_allH2Oice.xml")
-ScatteringParticleTypeAndMetaRead (scat_data, scat_meta, f_grid, 
-    "scattering/H2O_liquid/SingleScatteringFile_allH2Oliquid.xml",
-    "scattering/H2O_liquid/ScatteringMetaFile_allH2Oliquid.xml")
+ArrayOfStringCreate( scat_data_files )
+ReadXML( scat_data_files, "scattering/H2O_liquid/SingleScatteringFile_allH2Oliquid.xml" )
+ScatteringParticleTypeAndMetaRead ( scat_data_files=scat_data_files )
+ReadXML( scat_data_files, "scattering/H2O_ice/SingleScatteringFile_allH2Oice.xml" )
+ScatteringParticleTypeAndMetaRead ( scat_data_files=scat_data_files )
+ReadXML( scat_data_files, "scattering/H2O_liquid/SingleScatteringFile_allH2Oliquid.xml" )
+ScatteringParticleTypeAndMetaRead ( scat_data_files=scat_data_files )
 ScatteringParticlesSelect
 
 

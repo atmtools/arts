@@ -824,87 +824,41 @@ void ScatteringParticleTypeAndMetaRead (//WS Output:
                                         ArrayOfArrayOfScatteringMetaData& scat_meta,
                                         const Vector& f_grid,
                                         // Keywords:
-                                        const String& filename_scat_data,
-                                        const String& filename_scat_meta_data,
+                                        const ArrayOfString& scat_data_files,
                                         const Verbosity& verbosity)
 {
   CREATE_OUT3;
 
-  extern Parameters parameters;
-
   //--- Reading the data ---------------------------------------------------
-  ArrayOfString data_files;
-  ArrayOfString meta_data_files;
-
   ArrayOfSingleScatteringData arr_ssd;
   ArrayOfScatteringMetaData arr_smd;
 
-  // single scattering data read to temporary ArrayOfSingleScatteringData
-  xml_read_from_file ( filename_scat_data, data_files, verbosity );
+  arr_ssd.resize ( scat_data_files.nelem() );
+  arr_smd.resize ( scat_data_files.nelem() );
 
-  String fullpath;
-  String datadir;
-
-  // The reading has to be in a critical region to avoid possible side effects
-  // because we are temporarily modifying the global data search path
-#pragma omp critical (ScatteringParticleTypeAndMetaRead)
+  for ( Index i = 0; i<scat_data_files.nelem(); i++ )
     {
-        // Temporarily add the location of filename_scat_data to the data search path to
-        // enable relative paths
-        fullpath = filename_scat_data;
-        find_xml_file(fullpath, verbosity);
-        get_dirname(datadir, fullpath);
-        if (datadir.nelem())
-            parameters.datapath.push_back (datadir);
+      out3 << "  Read single scattering data\n";
+      xml_read_from_file ( scat_data_files[i], arr_ssd[i], verbosity );
 
-        arr_ssd.resize ( data_files.nelem() );
+      chk_scat_data ( arr_ssd[i],
+                      scat_data_files[i], f_grid,
+                      verbosity );
 
-        for ( Index i = 0; i<data_files.nelem(); i++ )
-        {
-            out3 << "  Read single scattering data\n";
-            xml_read_from_file ( data_files[i], arr_ssd[i], verbosity );
+      // make meta data name from scat data name
+      ArrayOfString strarr;
+      scat_data_files[i].split ( strarr, ".xml" );
+      String scat_meta_file = strarr[0]+".meta.xml";
+      cout << "looking for " << scat_meta_file << "\n";
 
-            chk_scat_data ( arr_ssd[i],
-                           data_files[i], f_grid,
-                           verbosity );
-
-        }
-
-        // Remove filename_scat_data location from search path again
-        if (datadir.nelem())
-            parameters.datapath.pop_back();
-
-        // scattering meta data read to temporary ArrayOfScatteringMetaData
-        xml_read_from_file ( filename_scat_meta_data, meta_data_files, verbosity );
-
-        // Temporarily add the location of filename_scat_meta_data to the data search path to
-        // enable relative paths
-        fullpath = filename_scat_meta_data;
-        find_xml_file(fullpath, verbosity);
-        get_dirname(datadir, fullpath);
-
-        if (datadir.nelem())
-            parameters.datapath.push_back (datadir);
-
-        arr_smd.resize ( meta_data_files.nelem() );
-
-        for ( Index i = 0; i<meta_data_files.nelem(); i++ )
-        {
-
-            out3 << "  Read scattering meta data\n";
-            xml_read_from_file ( meta_data_files[i], arr_smd[i], verbosity );
+      out3 << "  Read scattering meta data\n";
+      xml_read_from_file ( scat_meta_file, arr_smd[i], verbosity );
             
-            //FIXME: currently nothing is done in chk_scattering_meta_data!
-            chk_scattering_meta_data ( arr_smd[i],
-                                      meta_data_files[i], verbosity );
+      //FIXME: currently nothing is done in chk_scattering_meta_data!
+      chk_scattering_meta_data ( arr_smd[i],
+                                 scat_meta_file, verbosity );
             
-        }
-        
-        // Remove scat meta data from search path again
-        if (datadir.nelem())
-            parameters.datapath.pop_back();
-        
-    } // pragma omp critical
+    }
 
   // check if arrays have same size
   chk_scattering_data ( arr_ssd,

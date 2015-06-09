@@ -1,3 +1,23 @@
+2015-06-09  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-3-227
+
+	* m_cloudbox.cc, methods.cc (ScatteringParticleTypeAndMetaRead):
+	Pass scat_data locations as ArrayOfString instead of in a file. Derive
+	meta data location from scat_data location applying naming convention
+	scat_data: */*.xml* -> scat_meta: */*.meta.xml*.
+
+	* controlfiles/artscomponents/doit/TestDOITFromIndividualFields.arts,
+	controlfiles/artscomponents/doitbatch/TestDOITBatch.arts,
+	controlfiles/artscomponents/wfuns/TestDoitJacobians.arts:
+	Adapted to ScatteringParticleTypeAndMetaRead changes.
+
+	* controlfiles/testdata/ScatteringMetaFile_H2Oliquid.xml,
+	SingleScatteringFile_H2Oice.xml, ScatteringMetaFile_H2Oice.xml,
+	SingleScatteringFile_H2Oliquid.xml:
+	Adapt for ScatteringParticleTypeAndMetaRead changes (we can't build
+	relative paths from the file-of-files anymore).
+
 2015-06-09  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-226

@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <arts format="ascii" version="1">
 <Array type="String" nelem="4">
-<String>"scatData/P20FromHong_ShapePlate_Dmax0010um.meta.xml.gz"</String>
-<String>"scatData/P20FromHong_ShapePlate_Dmax0050um.meta.xml.gz"</String>
-<String>"scatData/P20FromHong_ShapePlate_Dmax0250um.meta.xml.gz"</String>
-<String>"scatData/P20FromHong_ShapePlate_Dmax1000um.meta.xml.gz"</String>
+<String>"testdata/scatData/P20FromHong_ShapePlate_Dmax0010um.meta.xml.gz"</String>
+<String>"testdata/scatData/P20FromHong_ShapePlate_Dmax0050um.meta.xml.gz"</String>
+<String>"testdata/scatData/P20FromHong_ShapePlate_Dmax0250um.meta.xml.gz"</String>
+<String>"testdata/scatData/P20FromHong_ShapePlate_Dmax1000um.meta.xml.gz"</String>
 </Array>
 </arts>
