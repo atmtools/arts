@@ -42,17 +42,33 @@
  to handle the added numbers.
  */
 typedef enum {
-    QN_J=0,         // Total
-    QN_M,           // Projection of J
-    QN_N,           // Total-Spin
-    QN_S,           // Electronic spin
-    QN_F,           // Total + nuclear spin
-    QN_Omega,       // Absolute of projection of total + projection of spin
-    QN_K1,          // Either K or Ka in HITRAN (This is a projection of J along one axis)
-    QN_K2,          // Either Kb in HITRAN (This is a projection of J along another axis)
+    QN_J=0,         // Total angular momentum
+    QN_dJ,          // Delta total angular momentum
+    QN_M,           // Projection of J along magnetic field
+    QN_N,           // J minus spin
+    QN_dN,          // Delta J minus spin
+    QN_S,           // Spin angular momentum (from electrons) NOTE: S_global for HITRAN S
+    QN_F,           // J + nuclear spin
+    QN_K,           //(This is a projection of J along one axis)
+    QN_Ka,          //(This is a projection of J along one axis)
+    QN_Kc,          //(This is a projection of J along another axis)
+    QN_Omega,       // This is an absolute projection of J and S
+    QN_i,           //(Is related to Omega)
+    QN_Sym,         // Symmetry expression
     QN_v1,          // Vibrational mode 1
     QN_v2,          // Vibrational mode 2
+    QN_l2,          // Vibrational angular momentum associated with v2
     QN_v3,          // Vibrational mode 3
+    QN_v4,          // Vibrational mode 4
+    QN_v5,          // Vibrational mode 5
+    QN_v6,          // Vibrational mode 6
+    QN_l,           // The absolute sum of l_j for v_j
+    QN_pm,          // Symmetry type for l=0
+    QN_r,           // Rank of the level within a set of the same vibrational symmetry
+    QN_S_global,    // Symmetry of the level
+    QN_X,           // Electronic state
+    QN_n_global,    // Torosional quanta
+    QN_C,           // Another symmetry expression
     QN_FINAL_ENTRY  // We need this to determine the number of elements in this enum
 } QuantumIds;
 
@@ -121,15 +137,31 @@ public:
 if (name == #ID) this->Set(QN_ ## ID, r)
 
         INPUT_QUANTUM(J);
+        else INPUT_QUANTUM(dJ);
+        else INPUT_QUANTUM(M);
         else INPUT_QUANTUM(N);
+        else INPUT_QUANTUM(dN);
         else INPUT_QUANTUM(S);
         else INPUT_QUANTUM(F);
+        else INPUT_QUANTUM(K);
+        else INPUT_QUANTUM(Ka);
+        else INPUT_QUANTUM(Kc);
         else INPUT_QUANTUM(Omega);
-        else INPUT_QUANTUM(K1);
-        else INPUT_QUANTUM(K2);
+        else INPUT_QUANTUM(i);
         else INPUT_QUANTUM(v1);
         else INPUT_QUANTUM(v2);
+        else INPUT_QUANTUM(l2);
         else INPUT_QUANTUM(v3);
+        else INPUT_QUANTUM(v4);
+        else INPUT_QUANTUM(v5);
+        else INPUT_QUANTUM(v6);
+        else INPUT_QUANTUM(l);
+        else INPUT_QUANTUM(pm);
+        else INPUT_QUANTUM(r);
+        else INPUT_QUANTUM(S_global);
+        else INPUT_QUANTUM(X);
+        else INPUT_QUANTUM(n_global);
+        else INPUT_QUANTUM(C);
         else
         {
             std::ostringstream os;

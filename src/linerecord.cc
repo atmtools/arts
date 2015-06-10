@@ -1641,10 +1641,10 @@ bool LineRecord::ReadFromHitran2004Stream(istream& is, const Verbosity& verbosit
             // The J will be undefined and we fail at another stage.
           }
           
-          mquantum_numbers.SetLower(QN_K1, atoi(mlower_lquanta.substr(3, 3).c_str()));
-          mquantum_numbers.SetUpper(QN_K1, atoi(mupper_lquanta.substr(3, 3).c_str()));
-          mquantum_numbers.SetLower(QN_K2, atoi(mlower_lquanta.substr(6, 3).c_str()));
-          mquantum_numbers.SetUpper(QN_K2, atoi(mupper_lquanta.substr(6, 3).c_str()));
+          mquantum_numbers.SetLower(QN_Ka, atoi(mlower_lquanta.substr(3, 3).c_str()));
+          mquantum_numbers.SetUpper(QN_Ka, atoi(mupper_lquanta.substr(3, 3).c_str()));
+          mquantum_numbers.SetLower(QN_Kc, atoi(mlower_lquanta.substr(6, 3).c_str()));
+          mquantum_numbers.SetUpper(QN_Kc, atoi(mupper_lquanta.substr(6, 3).c_str()));
           
       }
       else if(species_data[mspecies].Name()=="NO"||species_data[mspecies].Name()=="ClO")

@@ -97,16 +97,32 @@ bool IsValidQuantumNumberName(String name)
 #define INPUT_QUANTUM(ID) \
 if (name == #ID) valid = true
 
-    INPUT_QUANTUM(J);
-    else INPUT_QUANTUM(N);
-    else INPUT_QUANTUM(S);
-    else INPUT_QUANTUM(F);
-    else INPUT_QUANTUM(Omega);
-    else INPUT_QUANTUM(K1);
-    else INPUT_QUANTUM(K2);
-    else INPUT_QUANTUM(v1);
-    else INPUT_QUANTUM(v2);
-    else INPUT_QUANTUM(v3);
+        INPUT_QUANTUM(J);
+        else INPUT_QUANTUM(dJ);
+        else INPUT_QUANTUM(M);
+        else INPUT_QUANTUM(N);
+        else INPUT_QUANTUM(dN);
+        else INPUT_QUANTUM(S);
+        else INPUT_QUANTUM(F);
+        else INPUT_QUANTUM(K);
+        else INPUT_QUANTUM(Ka);
+        else INPUT_QUANTUM(Kc);
+        else INPUT_QUANTUM(Omega);
+        else INPUT_QUANTUM(i);
+        else INPUT_QUANTUM(v1);
+        else INPUT_QUANTUM(v2);
+        else INPUT_QUANTUM(l2);
+        else INPUT_QUANTUM(v3);
+        else INPUT_QUANTUM(v4);
+        else INPUT_QUANTUM(v5);
+        else INPUT_QUANTUM(v6);
+        else INPUT_QUANTUM(l);
+        else INPUT_QUANTUM(pm);
+        else INPUT_QUANTUM(r);
+        else INPUT_QUANTUM(S_global);
+        else INPUT_QUANTUM(X);
+        else INPUT_QUANTUM(n_global);
+        else INPUT_QUANTUM(C);
 #undef INPUT_QUANTUM
     return valid;
 }
@@ -132,16 +148,32 @@ std::istream& operator>>(std::istream& is, QuantumNumbers& qn)
 #define INPUT_QUANTUM(ID) \
     if (name == #ID) qn.Set(QN_ ## ID, r)
 
-    INPUT_QUANTUM(J);
-    else INPUT_QUANTUM(N);
-    else INPUT_QUANTUM(S);
-    else INPUT_QUANTUM(F);
-    else INPUT_QUANTUM(Omega);
-    else INPUT_QUANTUM(K1);
-    else INPUT_QUANTUM(K2);
-    else INPUT_QUANTUM(v1);
-    else INPUT_QUANTUM(v2);
-    else INPUT_QUANTUM(v3);
+        INPUT_QUANTUM(J);
+        else INPUT_QUANTUM(dJ);
+        else INPUT_QUANTUM(M);
+        else INPUT_QUANTUM(N);
+        else INPUT_QUANTUM(dN);
+        else INPUT_QUANTUM(S);
+        else INPUT_QUANTUM(F);
+        else INPUT_QUANTUM(K);
+        else INPUT_QUANTUM(Ka);
+        else INPUT_QUANTUM(Kc);
+        else INPUT_QUANTUM(Omega);
+        else INPUT_QUANTUM(i);
+        else INPUT_QUANTUM(v1);
+        else INPUT_QUANTUM(v2);
+        else INPUT_QUANTUM(l2);
+        else INPUT_QUANTUM(v3);
+        else INPUT_QUANTUM(v4);
+        else INPUT_QUANTUM(v5);
+        else INPUT_QUANTUM(v6);
+        else INPUT_QUANTUM(l);
+        else INPUT_QUANTUM(pm);
+        else INPUT_QUANTUM(r);
+        else INPUT_QUANTUM(S_global);
+        else INPUT_QUANTUM(X);
+        else INPUT_QUANTUM(n_global);
+        else INPUT_QUANTUM(C);
     else
     {
         std::ostringstream os;
@@ -163,16 +195,32 @@ std::ostream& operator<<(std::ostream& os, const QuantumNumbers& qn)
     if (!qn[QN_ ## ID].isUndefined()) \
       { if (!first) os << " "; first = false; os << #ID << " " << qn[QN_ ## ID]; }
 
-    OUTPUT_QUANTUM(J);
-    OUTPUT_QUANTUM(N);
-    OUTPUT_QUANTUM(S);
-    OUTPUT_QUANTUM(F);
-    OUTPUT_QUANTUM(Omega);
-    OUTPUT_QUANTUM(K1);
-    OUTPUT_QUANTUM(K2);
-    OUTPUT_QUANTUM(v1);
-    OUTPUT_QUANTUM(v2);
-    OUTPUT_QUANTUM(v3);
+        OUTPUT_QUANTUM(J);
+        OUTPUT_QUANTUM(dJ);
+        OUTPUT_QUANTUM(M);
+        OUTPUT_QUANTUM(N);
+        OUTPUT_QUANTUM(dN);
+        OUTPUT_QUANTUM(S);
+        OUTPUT_QUANTUM(F);
+        OUTPUT_QUANTUM(K);
+        OUTPUT_QUANTUM(Ka);
+        OUTPUT_QUANTUM(Kc);
+        OUTPUT_QUANTUM(Omega);
+        OUTPUT_QUANTUM(i);
+        OUTPUT_QUANTUM(v1);
+        OUTPUT_QUANTUM(v2);
+        OUTPUT_QUANTUM(l2);
+        OUTPUT_QUANTUM(v3);
+        OUTPUT_QUANTUM(v4);
+        OUTPUT_QUANTUM(v5);
+        OUTPUT_QUANTUM(v6);
+        OUTPUT_QUANTUM(l);
+        OUTPUT_QUANTUM(pm);
+        OUTPUT_QUANTUM(r);
+        OUTPUT_QUANTUM(S_global);
+        OUTPUT_QUANTUM(X);
+        OUTPUT_QUANTUM(n_global);
+        OUTPUT_QUANTUM(C);
 
 #undef OUTPUT_QUANTUM
 
