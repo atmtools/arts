@@ -3656,20 +3656,17 @@ ostream& operator<< (ostream& os, const LineRecord& lr)
  *  \param  abs_nlte_ratio       Out:    The relative extra absorption due to NLTE effects
  *  \param  src_nlte_ratio       Out:    The relative extra source due to NLTE effects
  *  \param  atm_t                In:     The path point atmospheric temperature
- *  \param  atm_tv_low           In:     The path point vibrational temperature of lower level
- *  \param  atm_tv_upp           In:     The path point vibrational temperature of upper level
- *  \param  vib_ev_low           In:     The line's lower level vibrational energy
- *  \param  vib_ev_upp           In:     The line's upper level vibrational energy
+ *  \param  atm_t_nlte           In:     Vector of NLTE temperatures.  The line knows which ones belong to it.
  * 
  *  \author Richard Larsson
  *  \date   2015-05-28
  */
 void LineRecord::GetLineScalingData(Numeric& partition_ratio, 
-				    Numeric& boltzmann_ratio, 
-				    Numeric& abs_nlte_ratio, 
-				    Numeric& src_nlte_ratio, 
+                                    Numeric& boltzmann_ratio, 
+                                    Numeric& abs_nlte_ratio, 
+                                    Numeric& src_nlte_ratio, 
                                     const Numeric& atm_t, 
-				    ConstVectorView atm_t_nlte) const
+                                    ConstVectorView atm_t_nlte) const
 {
     // Physical constants
     extern const Numeric PLANCK_CONST;
@@ -3679,33 +3676,41 @@ void LineRecord::GetLineScalingData(Numeric& partition_ratio,
     if( 1 == mpartitionfunctiondata.GetPartitionFunctionDataParams(partition_ratio, mti0, atm_t) )
       partition_ratio = IsotopologueData().CalculatePartitionFctRatio(mti0, atm_t);
 
-    // Following Futbolin's division into two parts for the Boltzmann ratio
+    // Following Futbolin's division into two parts for the Boltzmann ratio because
+    // gamma is also used for the NLTE part later on
     const Numeric gamma = exp( - PLANCK_CONST * mf / ( BOLTZMAN_CONST * atm_t ) );
     const Numeric gamma_ref = exp( - PLANCK_CONST * mf / ( BOLTZMAN_CONST * mti0 ) );
-
-    const Numeric se = (1.-gamma)/(1.-gamma_ref); // Stimulated emission
-    const Numeric sb = exp( melow / BOLTZMAN_CONST * (atm_t-mti0)/(atm_t*mti0) );  // Boltzmann level
+    
+    // Stimulated emission
+    const Numeric se = (1.-gamma)/(1.-gamma_ref);
+    
+    // Boltzmann level
+    const Numeric sb = exp( melow / BOLTZMAN_CONST * (atm_t-mti0)/(atm_t*mti0) );
 
     boltzmann_ratio = sb*se;
     
-    // r_low and r_upp are ratios for the population level compared to LTE conditions
-//     Numeric r_low, r_upp;
-//     if( atm_tv_low > 1e-4 *atm_t ) // where 1e-4 is considered a small number so that the multiplication in the denominator does not reach zero
-//       r_low = exp( - vib_ev_low * (atm_t-atm_tv_low) / (atm_t*atm_tv_low) );
-//     else if( atm_tv_low >= 0.0 )
-//       r_low = 0.0;
-//     else
-//       r_low = 1.0;
-// 
-//     if( atm_tv_upp > 1e-4 *atm_t ) // where 1e-4 is considered a small number so that the multiplication in the denominator does not reach zero
-//       r_upp = exp( - vib_ev_upp * (atm_t-atm_tv_upp) / (atm_t*atm_tv_upp) );
-//     else if( atm_tv_upp >= 0.0 )
-//       r_upp = 0.0;
-//     else
-//       r_upp = 1.0;
+    // Test the NLTE
+    const Numeric& atm_tv_low = mevlow_index<0?-1.0:atm_t_nlte[mevlow_index];
+    const Numeric& atm_tv_upp = mevupp_index<0?-1.0:atm_t_nlte[mevupp_index];
+    
+    //r_low and r_upp are ratios for the population level compared to LTE conditions
+    Numeric r_low, r_upp;
+    if( atm_tv_low > 1e-4 *atm_t ) // where 1e-4 is considered a small number so that the multiplication in the denominator does not reach zero
+      r_low = exp( - mevlow * (atm_t-atm_tv_low) / (atm_t*atm_tv_low) );
+    else if( atm_tv_low >= 0.0 )
+      r_low = 0.0;
+    else
+      r_low = 1.0;
 
-    abs_nlte_ratio = 1.0;//(r_low - r_upp * gamma ) / ( 1 - gamma );
-    src_nlte_ratio = 1.0;//r_upp;
+    if( atm_tv_upp > 1e-4 *atm_t ) // where 1e-4 is considered a small number so that the multiplication in the denominator does not reach zero
+      r_upp = exp( - mevupp * (atm_t-atm_tv_upp) / (atm_t*atm_tv_upp) );
+    else if( atm_tv_upp >= 0.0 )
+      r_upp = 0.0;
+    else
+      r_upp = 1.0;
+
+    abs_nlte_ratio = (r_low - r_upp * gamma ) / ( 1 - gamma );
+    src_nlte_ratio = r_upp;
   
 }
 

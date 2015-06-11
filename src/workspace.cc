@@ -2533,6 +2533,33 @@ void Workspace::define_wsv_data()
        ),
       GROUP( "Agenda" )));
 
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "nlte_checked" ),
+      DESCRIPTION
+      (
+       "OK-flag for NLTE related variables.\n"
+       "\n"
+       "This variable flags that NLTE variables are defined in a formally\n"
+       "and practically correct way.\n"
+       ""
+       "\n"
+       "Shall be set by *nlte_checkedCalc*. See that WSM for treated WSVs.\n"
+       "Only the value 1 is taken as OK.\n"
+       ),
+      GROUP( "Index" )));
+   
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "nlte_quantum_identifiers" ),
+      DESCRIPTION
+      (
+        "An array of non-lte quantum identifiers.\n"
+        "Used to match abs_lines_per_species to NLTE\n"
+        "temperatures.\n"
+       ),
+      GROUP( "ArrayOfQuantumIdentifier" )));
+   
  wsv_data.push_back
    (WsvRecord
     ( NAME( "nelem" ),

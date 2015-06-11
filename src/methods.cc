@@ -780,7 +780,37 @@ void define_md_data_raw()
         GIN_DEFAULT(),
         GIN_DESC()
         ));
+    
 
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "abs_lines_per_speciesMatchNLTEQuantumIdentifiers" ),
+        DESCRIPTION
+        (
+         "Takes the quantum identifers for NLTE temperatures and matches it to\n"
+         "lines in abs_lines_per_species.  abs_species must be set and is used\n"
+         "to speed up calculations.  After the function is done,  all affected\n"
+         "lines in abs_line_per_species will have a tag to the relevant quantum\n"
+         "identification.\n"
+         "\n"
+         "If vibrational_energies is input it must match nlte_quantum_identifiers\n"
+         "in length.  The vibrational energies of the affected lines will then be\n"
+         "set by the function.  Otherwise, it is assumed the vibrational energies\n"
+         "are set by another method.\n"
+         ),
+        AUTHORS( "Richard Larsson" ),
+        OUT( "abs_lines_per_species" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "nlte_quantum_identifiers", "abs_species" ),
+        GIN("vibrational_energies"),
+        GIN_TYPE("Vector"),
+        GIN_DEFAULT(NODEF),
+        GIN_DESC("Vector of vibrational energies")
+        ));
+
+    
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "abs_lines_per_speciesReadFromCatalogues" ),
@@ -2733,7 +2763,7 @@ void define_md_data_raw()
          "species, the same profile will be used.\n"
          ),
         AUTHORS( "Claudia Emde" ),
-        OUT( "t_field_raw", "z_field_raw", "vmr_field_raw", "t_nlte_field_raw" ),
+        OUT( "t_field_raw", "z_field_raw", "vmr_field_raw", "t_nlte_field_raw", "nlte_quantum_identifiers" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
@@ -2758,9 +2788,9 @@ void define_md_data_raw()
          "   1. temperature field\n"
          "   2. the corresponding altitude field\n"
          "   3. vmr fields for the gaseous species\n"
-         "The data is stored in different files. This methods reads all\n"
-         "files and creates the variables *t_field_raw*, *z_field_raw* and\n"
-         "*vmr_field_raw*.\n"
+         "The data is stored in different files. This method reads all\n"
+         "files and creates the variables *t_field_raw*, *z_field_raw*,\n"
+         "*vmr_field_raw*, *t_nlte_field_raw*, and *nlte_quantum_identifiers*.\n"
          "\n"
          "Files in a scenarios should be named matching the pattern of:\n"
          "tropical.H2O.xml\n"
@@ -2771,7 +2801,7 @@ void define_md_data_raw()
          "species, the same profile will be used.\n"
          ),
         AUTHORS( "Claudia Emde" ),
-        OUT( "t_field_raw", "z_field_raw", "vmr_field_raw", "t_nlte_field_raw" ),
+        OUT( "t_field_raw", "z_field_raw", "vmr_field_raw", "t_nlte_field_raw", "nlte_quantum_identifiers" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
@@ -8446,6 +8476,44 @@ void define_md_data_raw()
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         USES_TEMPLATES( true  )
+        ));
+    
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "nlte_checkedCalc" ),
+        DESCRIPTION
+        (
+         "Checks consistency of the nlte variables.\n"
+         "\n"
+         "The main test is that the source initialization of both\n"
+         "*propmat_clearsky_agenda* and *abs_xsec_agenda* is done consistently.\n"
+         "\n"
+         "As follows from how the agendas are defined, there are tests of the size\n"
+         "of *t_nlte_field*, taking the pragmatic look that you are only allowed to\n"
+         "do source calculations if *t_nlte_field* is of non-zero size.  The atmospheric\n"
+         "field test is then performed on *t_nlte_field*, where the book dimension should\n"
+         "have the size of *nlte_quantum_identifiers*.\n"
+         "\n"
+         "The most expensive test makes sure that the vibrational energies are set\n"
+         "properly for all lines.  They are initialized as -1.0, and if the non-LTE-\n"
+         "affected energy level still has a negative vibrational energy, then the\n"
+         "check is returned as a runtime_error.\n"
+         "\n"
+         "If any test fails, there is an error. Otherwise, *nlte_checked*\n"
+         "is set to 1.\n"
+         ),
+        AUTHORS( "Richard Larsson" ),
+        OUT( "nlte_checked" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "t_nlte_field", "nlte_quantum_identifiers", "abs_lines_per_species", 
+            "p_grid", "lat_grid", "lon_grid", "atmosphere_dim",
+            "propmat_clearsky_agenda", "abs_xsec_agenda" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
         ));
 
   md_data_raw.push_back

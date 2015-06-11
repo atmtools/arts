@@ -211,6 +211,10 @@ public:
       mi0      (0.     ),
       mti0     (0.     ),
       melow    (0.     ),
+      mevlow(-1.0),
+      mevlow_index(-1),
+      mevupp(-1.0),
+      mevupp_index(-1),
       //magam    (0.     ),
       //msgam    (0.     ),
       //mnair    (0.     ),
@@ -268,6 +272,10 @@ public:
       mi0      (i0         ),
       mti0     (ti0        ),
       melow    (elow       ),
+      mevlow(-1.0),
+      mevlow_index(-1),
+      mevupp(-1.0),
+      mevupp_index(-1),
       //magam    (agam       ),
       //msgam    (sgam       ),
       //mnair    (nair       ),
@@ -378,9 +386,20 @@ public:
   /** Reference temperature for I0 in <b> K</b>: */
   Numeric Ti0() const   { return mti0; }
 
-  /** Lower state energy in <b> cm^-1</b>: */
+  /** Lower state energy in <b> cm^-1</b>: */ //FIXME: really in cm-1 still?
   Numeric Elow() const  { return melow; }
-
+  
+  /** Lower state vibrational energy in <b> cm^-1</b>: */ //FIXME: really in cm-1 still?
+  Numeric Evlow() const  { return mevlow; }
+  void SetEvlow(Numeric evlow) {mevlow = evlow;}
+  Index EvlowIndex() const  { return mevlow_index; }
+  void SetEvlowIndex(Index evlow_index) {mevlow_index = evlow_index;}
+  /** Upper state vibrational energy in <b> cm^-1</b>: */ //FIXME: really in cm-1 still?
+  Numeric Evupp() const  { return mevupp; }
+  void SetEvupp(Numeric evupp) {mevupp = evupp;}
+  Index EvuppIndex() const  { return mevupp_index; }
+  void SetEvuppIndex(Index evupp_index) {mevupp_index = evupp_index;}
+  
   /** Air broadened width in <b> Hz/Pa</b>: */
   Numeric Agam() const  { return mpressurebroadeningdata.AirBroadeningAgam(); }
 
@@ -1023,6 +1042,16 @@ private:
   Numeric mti0;
   // Lower state energy in cm^-1:
   Numeric melow;
+  
+  // Lower state vibrational energy in cm^-1:
+  Numeric mevlow;
+  // Lower state vibrational energy index:
+  Index mevlow_index;
+  // Upper state vibrational energy in cm^-1:
+  Numeric mevupp;
+  // Upper state vibrational energy index:
+  Index mevupp_index;
+  
   // Air broadened width in Hz/Pa:
   //Numeric magam;
   // Self broadened width in Hz/Pa:

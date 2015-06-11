@@ -1,3 +1,49 @@
+2015-06-11 Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-3-234
+	
+	This update brings the required user space availability to the low level
+	NLTE variables.  At the moment, this requires using Artscat5 to
+	set relevant quantum numbers for the mathing functions to work,
+	or to use HITRAN for those species that have quantum number reading.
+	
+	The new parser from Oliver will be used to read more quantum numbers
+	for more species directly from HITRAN in a few updates.
+	
+	I will add a test case and documentation when I am more certain we 
+	are doing things the right way.
+	
+	* src/linerecord.cc:  The previously inactivated NLTE part is now 
+	active again in (GetLineScalingData).  If no NLTE information is
+	available to the line, then it will behave as if using atmospheric
+	temperatures.
+	
+	* src/linerecord.h:  Added four line state parameters for NLTE.
+	These are used in (GetLineScalingData) and set externally.
+	
+	* src/lineshapes.cc:  Minor fixes to make formatting work with
+	my IDE for (faddeeva_algorithm_916).
+	
+	* src/m_atmospheres.cc:  Made nlte_quantum_identifiers a default
+	output for (AtmRawRead) and (AtmWithNLTERawRead).
+	(AtmWithNLTERawRead) throws a quandary if nlte_quantum_identifiers
+	and t_nlte_field_raw are not of the same size.
+	
+	* src/m_checked.cc:  Added a, for now, non-default test of the NLTE
+	setup.  This will catch errors in source function definitions in
+	the two relevant agendas.  Not run by default for now.
+	
+	*  src/m_linerecord.cc: Added function to make lines aware of their
+	NLTE data.  (abs_lines_per_speciesMatchNLTEQuantumIdentifiers) can
+	also set the vibrational energies of the lines as a GIN.  This is 
+	presently the only way to set vibrational energies.
+	
+	* src/methods.cc:  Modified: AtmWithNLTERawRead and AtmRawRead.
+	Added: abs_lines_per_speciesMatchNLTEQuantumIdentifiers and
+	nlte_checkedCalc.
+	
+	* src/workspace.cc:  Added: nlte_checked and nlte_quantum_identifiers.
+
 2015-06-11  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-233

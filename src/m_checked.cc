@@ -788,3 +788,129 @@ void sensor_checkedCalc(
   // If here, all OK
   sensor_checked = 1;
 }
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void nlte_checkedCalc(
+   Workspace&,
+   Index&                           nlte_checked,
+   const Tensor4&                   t_nlte_field,
+   const ArrayOfQuantumIdentifier&  nlte_quantum_identifiers,
+   const ArrayOfArrayOfLineRecord&  abs_lines_per_species,
+   const Vector&                    p_grid,
+   const Vector&                    lat_grid,
+   const Vector&                    lon_grid,
+   const Index&                     atmosphere_dim,
+   const Agenda&                    propmat_clearsky_agenda,
+   const Agenda&                    abs_xsec_agenda,
+   const Verbosity& )
+{
+  
+  // The initialization of the agendas determines the expected status of t_nlte_field.
+  bool t_nlte_field_is_0_sized;
+  
+  // Both agendas must allow for source calculations.
+  if(propmat_clearsky_agenda.has_method("propmat_clearskyInit") && abs_xsec_agenda.has_method("abs_xsec_agendaInit"))
+    t_nlte_field_is_0_sized=true;
+  else if(propmat_clearsky_agenda.has_method("propmat_clearskyInitWithSource") && abs_xsec_agenda.has_method("abs_xsec_agendaInitWithSource"))
+    t_nlte_field_is_0_sized=false;
+  else
+  {
+    ostringstream os;
+    os << "Both *propmat_clearsky_agenda* and *abs_xsec_agenda*\n"
+       << "must be initialized with or without source calculations.\n"
+       << "Use either both *propmat_clearskyInit* and *abs_xsec_agendaInit*, or both \n"
+       << "*propmat_clearskyInitWithSource* and *abs_xsec_agendaInitWithSource*.\n";
+    throw std::runtime_error(os.str());
+  }
+  
+  // If t_nlte_field is expected to be empty but is not empty, throw a fit.
+  if(t_nlte_field.nbooks()|t_nlte_field.npages()|t_nlte_field.nrows()|t_nlte_field.ncols())
+    if(t_nlte_field_is_0_sized)
+    {
+      ostringstream os;
+      os << "The dimesions of *t_nlte_field* is expected to be nil from\n"
+         << "the agenda settings.  Yet, *t_nlte_field* is not size nil.\n"
+         << "It is instead of size [ "<<t_nlte_field.nbooks()<<", "<<t_nlte_field.npages()<<", "
+         <<t_nlte_field.nrows()<<", "<<t_nlte_field.ncols()<<" ].\n"
+         << "Please check the agenda settings and how *t_nlte_field* is set.\n";
+      throw std::runtime_error(os.str());
+    }
+    
+  // Likewise, if t_nlte_field is not expected to be empty but is empty, throw a fit
+  if (!(t_nlte_field.nbooks()|t_nlte_field.npages()|t_nlte_field.nrows()|t_nlte_field.ncols()))
+    if(!t_nlte_field_is_0_sized)
+    {
+      ostringstream os;
+      os << "The dimesions of *t_nlte_field* is expected to be larger than nil from\n"
+         << "the agenda settings.  Yet, *t_nlte_field* is size nil.\n"
+         << "It is of size [ "<<t_nlte_field.nbooks()<<", "<<t_nlte_field.npages()<<", "
+         <<t_nlte_field.nrows()<<", "<<t_nlte_field.ncols()<<" ].\n"
+         << "Please check the agenda settings and how *t_nlte_field* is set.\n";
+      throw std::runtime_error(os.str());
+    }
+  
+  
+  if(!t_nlte_field_is_0_sized)
+  {
+    // Do NLTE version of atmfields_checkedCalc.  Also tests that nlte_quantum_identifiers and t_nlte_field belong together.
+    chk_atm_field( "t_nlte_field", t_nlte_field, atmosphere_dim, nlte_quantum_identifiers.nelem(),
+                                                    p_grid, lat_grid, lon_grid );
+    
+    bool any_nlte_lines;
+    
+    // This check is expensive but necessary for sanity of calculations
+    for(Index ii = 0; ii<abs_lines_per_species.nelem(); ii++ )
+      for(Index jj = 0; jj<abs_lines_per_species[ii].nelem(); jj++ )
+      {
+        const LineRecord& lr = abs_lines_per_species[ii][jj];
+        
+        // This number indicates the NLTE position for the lower state
+        if(lr.EvlowIndex()!=-1)
+        {
+          if(lr.Evlow()<0.) // The vibrational energy must be above 0
+          {
+            ostringstream os;
+            os << "Unset/negative vibrational energy for a state that is indexed as NLTE"
+              << "in the line:\n" << lr 
+              << "\nPlease set the vibrational energy to a positive Numeric using available\n"
+              << "methods.\n";
+              throw std::runtime_error(os.str());
+          }
+          else // Everything looks fine and we have an NLTE level!
+            any_nlte_lines=true;
+        }
+          
+        // This number indicates the NLTE position for the upper state
+        if(lr.EvuppIndex()!=-1)
+        {
+          if(lr.Evupp()<0.) // The vibrational energy must be above 0
+          {
+            ostringstream os;
+            os << "Unset/negative vibrational energy for a state that is indexed as NLTE"
+              << "in the line:\n" << lr 
+              << "\nPlease set the vibrational energy to a positive Numeric using available\n"
+              << "methods.\n";
+              throw std::runtime_error(os.str());
+          }
+          else // Everything looks fine and we have an NLTE level!
+            any_nlte_lines=true;
+        }
+      }
+    
+    // We do not accept that the user sets the code to NLTE and then runs it without NLTE.
+    // Users wishing to do so should set nlte_checked manually.
+    if(!any_nlte_lines)
+    {
+      ostringstream os;
+      os << "There are no NLTE levels in the set of lines that you are calculating.\n"
+        <<  "Please set nlte_checked manually if you wish to ignore this error.\n";
+      throw std::runtime_error(os.str());
+    }
+    
+  }
+  
+  // All checks have passed!
+  nlte_checked = 1;
+  
+}

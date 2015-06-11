@@ -2584,6 +2584,7 @@ void AtmRawRead(//WS Output:
                 GriddedField3&        z_field_raw,
                 ArrayOfGriddedField3& vmr_field_raw,
                 ArrayOfGriddedField3& t_nlte_field_raw,
+                ArrayOfQuantumIdentifier& nlte_quantum_identifiers,
                 //WS Input:
                 const ArrayOfArrayOfSpeciesTag& abs_species,
                 //Keyword:
@@ -2635,6 +2636,7 @@ void AtmRawRead(//WS Output:
     
     // NLTE is ignored by doing this
     t_nlte_field_raw.resize(0);
+    nlte_quantum_identifiers.resize(0);
 }
   
 
@@ -2644,6 +2646,7 @@ void AtmWithNLTERawRead(//WS Output:
                         GriddedField3&        z_field_raw,
                         ArrayOfGriddedField3& vmr_field_raw,
                         ArrayOfGriddedField3& t_nlte_field_raw,
+                        ArrayOfQuantumIdentifier& nlte_quantum_identifiers,
                         //WS Input:
                         const ArrayOfArrayOfSpeciesTag& abs_species,
                         //Keyword:
@@ -2693,11 +2696,27 @@ void AtmWithNLTERawRead(//WS Output:
            << " profile read from file: " << file_name << "\n";
     }
 
-  // Read each temperature field:
+  // Read each nlte temperature field:
   file_name = tmp_basename + "t_nlte.xml";
   xml_read_from_file( file_name, t_nlte_field_raw, verbosity);
   
   out3 << "NLTE temperature fieldarray read from file: " << file_name << "\n";  
+  
+  // Read each nlte identifier field:
+  file_name = tmp_basename + "qi.xml";
+  xml_read_from_file( file_name, nlte_quantum_identifiers, verbosity);
+  
+  out3 << "NLTE identifier array read from file: " << file_name << "\n";
+  
+  if(t_nlte_field_raw.nelem()!=nlte_quantum_identifiers.nelem())
+  {
+    ostringstream os;
+    os << "The quantum identifers and the NLTE temperature fields\n"
+       << "are of different lengths.  This should not be the case.\n"
+       << "please check the qi.xml and t_nlte.xml files under\n"
+       << basename << std::endl << "to correct this error.\n";
+       throw std::runtime_error( os.str() );
+  }
 }
   
 

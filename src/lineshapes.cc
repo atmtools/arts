@@ -1698,7 +1698,7 @@ void lineshape_CO2_drayson(Vector&         ls_attenuation,
  */ 
 void faddeeva_algorithm_916(    Vector&         ls_attenuation,
                                 Vector&         ls_phase,
-                                Vector&         x _U_,
+                                Vector&,
                                 const Numeric   f0,
                                 const Numeric   gamma,
                                 const Numeric   sigma,
