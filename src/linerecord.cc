@@ -27,6 +27,7 @@
 #include <cfloat>
 #include "linerecord.h"
 #include "absorption.h"
+#include "quantum_parser_hitran.h"
 
 #include "global_data.h"
 
@@ -1543,6 +1544,9 @@ bool LineRecord::ReadFromHitran2004Stream(istream& is, const Verbosity& verbosit
   // Set the accuracies using the definition of HITRAN
   // indices. If some are missing, they are set to -1.
 
+  static QuantumParserHITRAN2004 quantum_parser;
+  const String qstr = line.substr(0,15*4);
+
   // Upper state global quanta
   {
     mupper_gquanta = line.substr(0,15);
@@ -1571,50 +1575,52 @@ bool LineRecord::ReadFromHitran2004Stream(istream& is, const Verbosity& verbosit
     extract(ell,line,15);
   }
 
+
   // Assign the local quantum numbers.
   if (mlower_lquanta.nelem() == 15)
   {
-      Index DN = 0, DJ = 0;
       if(species_data[mspecies].Name() == "O2")
       {
-        mlower_n = atoi(mlower_lquanta.substr(2, 3).c_str());
-        mlower_j = atoi(mlower_lquanta.substr(6, 3).c_str());
-        DJ =  -  mlower_lquanta.compare(5, 1, "Q");
-        DN =  -  mlower_lquanta.compare(1, 1, "Q");
-        mupper_n = mlower_n - DN;
-        mupper_j = mlower_j - DJ;
-
-        mquantum_numbers.SetLower(QN_N, mlower_n);
-        mquantum_numbers.SetLower(QN_J, mlower_j);
-        mquantum_numbers.SetUpper(QN_N, mlower_n - DN);
-        mquantum_numbers.SetUpper(QN_J, mlower_j - DJ);
-        mquantum_numbers.SetLower(QN_v1, atoi(mlower_gquanta.substr(13, 2).c_str()));
-        mquantum_numbers.SetUpper(QN_v1, atoi(mupper_gquanta.substr(13, 2).c_str()));
-
-        // Parse lower local quanta F
-        String qnf = mlower_lquanta.substr(9, 5);
-        qnf.trim();
-        if (qnf.nelem())
-        {
-          ArrayOfString as;
-          qnf.split(as, ".");
-          if (as.nelem() == 2)
-          {
-            Index nom;
-            char* endptr;
-
-            nom = strtol(as[0].c_str(), &endptr, 10);
-            if (endptr != as[0].c_str()+as[0].nelem())
-                throw std::runtime_error("Error parsing quantum number F");
-
-            if (as[1] == "5")
-                mquantum_numbers.SetLower(QN_F, Rational(nom * 2 + 1, 2));
-            else if (as[1] == "0")
-                mquantum_numbers.SetLower(QN_F, nom);
-            else
-                throw std::runtime_error("Error parsing quantum number F");
-          }
-        }
+          quantum_parser.Parse(mquantum_numbers, qstr, mspecies);
+//        Index DN = 0, DJ = 0;
+//        mlower_n = atoi(mlower_lquanta.substr(2, 3).c_str());
+//        mlower_j = atoi(mlower_lquanta.substr(6, 3).c_str());
+//        DJ =  -  mlower_lquanta.compare(5, 1, "Q");
+//        DN =  -  mlower_lquanta.compare(1, 1, "Q");
+//        mupper_n = mlower_n - DN;
+//        mupper_j = mlower_j - DJ;
+//
+//        mquantum_numbers.SetLower(QN_N, mlower_n);
+//        mquantum_numbers.SetLower(QN_J, mlower_j);
+//        mquantum_numbers.SetUpper(QN_N, mlower_n - DN);
+//        mquantum_numbers.SetUpper(QN_J, mlower_j - DJ);
+//        mquantum_numbers.SetLower(QN_v1, atoi(mlower_gquanta.substr(13, 2).c_str()));
+//        mquantum_numbers.SetUpper(QN_v1, atoi(mupper_gquanta.substr(13, 2).c_str()));
+//
+//        // Parse lower local quanta F
+//        String qnf = mlower_lquanta.substr(9, 5);
+//        qnf.trim();
+//        if (qnf.nelem())
+//        {
+//          ArrayOfString as;
+//          qnf.split(as, ".");
+//          if (as.nelem() == 2)
+//          {
+//            Index nom;
+//            char* endptr;
+//
+//            nom = strtol(as[0].c_str(), &endptr, 10);
+//            if (endptr != as[0].c_str()+as[0].nelem())
+//                throw std::runtime_error("Error parsing quantum number F");
+//
+//            if (as[1] == "5")
+//                mquantum_numbers.SetLower(QN_F, Rational(nom * 2 + 1, 2));
+//            else if (as[1] == "0")
+//                mquantum_numbers.SetLower(QN_F, nom);
+//            else
+//                throw std::runtime_error("Error parsing quantum number F");
+//          }
+//        }
       }
       else if(species_data[mspecies].Name() == "NO2" || species_data[mspecies].Name() == "HO2")
       {

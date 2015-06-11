@@ -237,6 +237,7 @@ add_library (artscore STATIC
   ppath.cc
   pressurebroadeningdata.cc
   quantum.cc
+  quantum_parser_hitran.cc
   rational.cc
   refraction.cc
   rng.cc

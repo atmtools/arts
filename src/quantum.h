@@ -54,6 +54,7 @@ typedef enum {
     QN_Kc,          //(This is a projection of J along another axis)
     QN_Omega,       // This is an absolute projection of J and S
     QN_i,           //(Is related to Omega)
+    QN_alpha,       // Alpha from HITRAN // FIXME richard
     QN_Sym,         // Symmetry expression
     QN_v1,          // Vibrational mode 1
     QN_v2,          // Vibrational mode 2
@@ -148,6 +149,7 @@ if (name == #ID) this->Set(QN_ ## ID, r)
         else INPUT_QUANTUM(Kc);
         else INPUT_QUANTUM(Omega);
         else INPUT_QUANTUM(i);
+        else INPUT_QUANTUM(alpha);
         else INPUT_QUANTUM(v1);
         else INPUT_QUANTUM(v2);
         else INPUT_QUANTUM(l2);

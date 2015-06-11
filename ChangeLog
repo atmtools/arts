@@ -1,3 +1,27 @@
+2015-06-11  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-233
+
+	* New quantum number parser. Work in progress.
+	Only O2 is supported right now.
+
+	* src/quantum_parser.h, src/quantum_parser_hitran.{cc,h}:
+
+	Implemented new parser to replace the quantum number parsing code in
+	LineRecord::ReadFromHitran2004Stream with a more generic version.
+
+	* src/CMakeLists.txt: Add quantum parser cc files.
+
+	* src/array.h (Array<base>::push_back_n):
+
+	Add convenience function to add the same element several times.
+
+	* src/linerecord.cc (LineRecord::ReadFromHitran2004Stream):
+
+	Use the new parser for O2 quantum numbers.
+
+	* src/quantum.{cc,h}: Added QN_alpha.
+
 2015-06-10 Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-3-232

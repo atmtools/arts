@@ -120,8 +120,11 @@ public:
   Index nelem() const;
 
   // Index operators:
-  const base& operator[](Index n) const;
-  base& operator[](Index n);
+  const base& operator[](const Index n) const;
+  base& operator[](const Index n);
+
+  // Helper functions
+  void push_back_n(const base& elem, const Index n);
 };
 
 
@@ -183,7 +186,7 @@ inline Index Array<base>::nelem() const
 /** Constant index operator. We redifine this here so that we can have
     range checking by assert. */
 template<class base>
-inline const base& Array<base>::operator[](Index n) const
+inline const base& Array<base>::operator[](const Index n) const
 {
   assert(0<=n);
   assert(n<nelem());
@@ -193,11 +196,19 @@ inline const base& Array<base>::operator[](Index n) const
 /** Non-constant index operator. We redefine this here so that we can
     have range checking by assert. */
 template<class base>
-inline base& Array<base>::operator[](Index n)
+inline base& Array<base>::operator[](const Index n)
 {
   assert(0<=n);
   assert(n<nelem());
   return std::vector<base>::operator[](n);
+}
+
+/** Append element n times */
+template<class base>
+inline void Array<base>::push_back_n(const base& elem, const Index n)
+{
+    for (Index i = 0; i < n; i++)
+        std::vector<base>::push_back(elem);
 }
 
 
