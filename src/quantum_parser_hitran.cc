@@ -46,6 +46,7 @@ void parse_f51_hitran(Rational& qn, String& s, const Index species);
 
 // Postprocessing functions for calculation of implicit quantum numbers
 void postprocess_group1_hitran(QuantumNumberRecord& qnr, const Index species);
+void postprocess_group2_hitran(QuantumNumberRecord& qnr, const Index species);
 void postprocess_group5_hitran(QuantumNumberRecord& qnr, const Index species);
 void postprocess_group6_hitran(QuantumNumberRecord& qnr, const Index species);
 
@@ -286,6 +287,9 @@ QuantumParserHITRAN2004::QuantumParserHITRAN2004()
     SetClassGroup("NO2", CI_CLASS6, GI_GROUP1);
     SetClassGroup("NO",  CI_CLASS3, GI_GROUP6);
     SetClassGroup("O2",  CI_CLASS2, GI_GROUP5);
+    SetClassGroup("CO2", CI_CLASS5, GI_GROUP2);
+    SetClassGroup("H2O", CI_CLASS6, GI_GROUP1);
+    SetClassGroup("O3" , CI_CLASS6, GI_GROUP1);
 
 #undef SKIP_X_SPACES
 
@@ -332,6 +336,7 @@ void QuantumParserHITRAN2004::Parse(QuantumNumberRecord& qnr,
     switch (qgroup)
     {
         case GI_GROUP1: postprocess_group1_hitran(qnr, species); break;
+        case GI_GROUP2: postprocess_group2_hitran(qnr, species); break;
         case GI_GROUP5: postprocess_group5_hitran(qnr, species); break;
         case GI_GROUP6: postprocess_group6_hitran(qnr, species); break;
         default: break;
@@ -582,6 +587,15 @@ void postprocess_group1_hitran(QuantumNumberRecord& qnr, const Index species)
         qnr.SetUpper(QN_Sym, RATIONAL_UNDEFINED);
         qnr.SetLower(QN_Sym, RATIONAL_UNDEFINED);
     }
+}
+
+
+void postprocess_group2_hitran(QuantumNumberRecord& qnr, const Index /* species */)
+{
+    qnr.SetUpper(QN_J, qnr.Lower(QN_J) - qnr.Lower(QN_dJ));
+
+    // We don't need dN and dJ after this point
+    qnr.SetLower(QN_dJ, RATIONAL_UNDEFINED);
 }
 
 

@@ -792,7 +792,7 @@ void sensor_checkedCalc(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void nlte_checkedCalc(
-   Workspace&,
+   Workspace& /*ws*/,
    Index&                           nlte_checked,
    const Tensor4&                   t_nlte_field,
    const ArrayOfQuantumIdentifier&  nlte_quantum_identifiers,
@@ -810,9 +810,11 @@ void nlte_checkedCalc(
   bool t_nlte_field_is_0_sized;
   
   // Both agendas must allow for source calculations.
-  if(propmat_clearsky_agenda.has_method("propmat_clearskyInit") && abs_xsec_agenda.has_method("abs_xsec_agendaInit"))
+  if(propmat_clearsky_agenda.has_method("propmat_clearskyInit") && 
+    abs_xsec_agenda.has_method("abs_xsec_agendaInit"))
     t_nlte_field_is_0_sized=true;
-  else if(propmat_clearsky_agenda.has_method("propmat_clearskyInitWithSource") && abs_xsec_agenda.has_method("abs_xsec_agendaInitWithSource"))
+  else if(propmat_clearsky_agenda.has_method("propmat_clearskyInitWithSource") && 
+    abs_xsec_agenda.has_method("abs_xsec_agendaInitWithSource"))
     t_nlte_field_is_0_sized=false;
   else
   {
@@ -825,7 +827,8 @@ void nlte_checkedCalc(
   }
   
   // If t_nlte_field is expected to be empty but is not empty, throw a fit.
-  if(t_nlte_field.nbooks()|t_nlte_field.npages()|t_nlte_field.nrows()|t_nlte_field.ncols())
+  if(t_nlte_field.nbooks()||t_nlte_field.npages()||
+    t_nlte_field.nrows()||t_nlte_field.ncols())
     if(t_nlte_field_is_0_sized)
     {
       ostringstream os;
@@ -838,7 +841,8 @@ void nlte_checkedCalc(
     }
     
   // Likewise, if t_nlte_field is not expected to be empty but is empty, throw a fit
-  if (!(t_nlte_field.nbooks()|t_nlte_field.npages()|t_nlte_field.nrows()|t_nlte_field.ncols()))
+  if (!(t_nlte_field.nbooks()||t_nlte_field.npages()||
+    t_nlte_field.nrows()||t_nlte_field.ncols()))
     if(!t_nlte_field_is_0_sized)
     {
       ostringstream os;
@@ -908,6 +912,57 @@ void nlte_checkedCalc(
       throw std::runtime_error(os.str());
     }
     
+  }
+  else
+  {
+        bool any_nlte_lines;
+    
+    // This check is expensive but necessary for sanity of calculations
+    for(Index ii = 0; ii<abs_lines_per_species.nelem(); ii++ )
+      for(Index jj = 0; jj<abs_lines_per_species[ii].nelem(); jj++ )
+      {
+        const LineRecord& lr = abs_lines_per_species[ii][jj];
+        
+        // This number indicates the NLTE position for the lower state
+        if(lr.EvlowIndex()!=-1)
+        {
+          if(lr.Evlow()<0.) // The vibrational energy must be above 0
+          {
+            ostringstream os;
+            os << "Unset/negative vibrational energy for a state that is indexed as NLTE"
+              << "in the line:\n" << lr 
+              << "\nPlease set the vibrational energy to a positive Numeric using available\n"
+              << "methods.\n";
+              throw std::runtime_error(os.str());
+          }
+          else // Everything looks fine and we have an NLTE level!
+            any_nlte_lines=true;
+        }
+          
+        // This number indicates the NLTE position for the upper state
+        if(lr.EvuppIndex()!=-1)
+        {
+          if(lr.Evupp()<0.) // The vibrational energy must be above 0
+          {
+            ostringstream os;
+            os << "Unset/negative vibrational energy for a state that is indexed as NLTE"
+              << "in the line:\n" << lr 
+              << "\nPlease set the vibrational energy to a positive Numeric using available\n"
+              << "methods.\n";
+              throw std::runtime_error(os.str());
+          }
+          else // Everything looks fine and we have an NLTE level!
+            any_nlte_lines=true;
+        }
+      }
+      
+      if(any_nlte_lines)
+    {
+      ostringstream os;
+      os << "There are NLTE levels in the set of lines that you are calculating.\n"
+        <<  "This does not work with a 0-sized *t_nlte_field*.\n";
+      throw std::runtime_error(os.str());
+    }
   }
   
   // All checks have passed!

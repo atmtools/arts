@@ -1,3 +1,15 @@
+2015-06-12 Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-3-236
+	
+	* src/m_checked.cc:  Added test for LTE case to ensure that overflow
+	does not occur in low level functionality (nlte_checkedCalc).
+	
+	* src/quantum_parser_hitran.cc:  Added quantum parsing to CO2, H2O,
+	and O3.  Their quantum numbers should now be read properly, except for
+	the local "Sym" field of CO2.  We are still debating how to set "Sym"-
+	fields consistently.
+
 2015-06-11  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-235
