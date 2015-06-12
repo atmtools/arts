@@ -1624,190 +1624,192 @@ bool LineRecord::ReadFromHitran2004Stream(istream& is, const Verbosity& verbosit
       }
       else if(species_data[mspecies].Name() == "NO2" || species_data[mspecies].Name() == "HO2")
       {
-          mlower_n = atoi(mlower_lquanta.substr(0, 3).c_str());
-          mupper_n = atoi(mupper_lquanta.substr(0, 3).c_str());
-          mquantum_numbers.SetUpper(QN_N, mupper_n);
-          mquantum_numbers.SetLower(QN_N, mlower_n);
-          
-          if (mupper_lquanta[14] == '+')
-            mquantum_numbers.SetUpper(QN_J,mupper_n+Rational(1,2));
-          else if (mupper_lquanta[14] == '-')
-            mquantum_numbers.SetUpper(QN_J,mupper_n-Rational(1,2));
-          else
-          { 
-            // The J will be undefined and we fail at another stage.
-          }
-          
-          if (mlower_lquanta[14] == '+')
-              mquantum_numbers.SetLower(QN_J,mlower_n+Rational(1,2));
-          else if (mlower_lquanta[14] == '-')
-              mquantum_numbers.SetLower(QN_J,mlower_n-Rational(1,2));
-          else
-          { 
-            // The J will be undefined and we fail at another stage.
-          }
-          
-          mquantum_numbers.SetLower(QN_Ka, atoi(mlower_lquanta.substr(3, 3).c_str()));
-          mquantum_numbers.SetUpper(QN_Ka, atoi(mupper_lquanta.substr(3, 3).c_str()));
-          mquantum_numbers.SetLower(QN_Kc, atoi(mlower_lquanta.substr(6, 3).c_str()));
-          mquantum_numbers.SetUpper(QN_Kc, atoi(mupper_lquanta.substr(6, 3).c_str()));
-          
+          quantum_parser.Parse(mquantum_numbers, qstr, mspecies);
+//          mlower_n = atoi(mlower_lquanta.substr(0, 3).c_str());
+//          mupper_n = atoi(mupper_lquanta.substr(0, 3).c_str());
+//          mquantum_numbers.SetUpper(QN_N, mupper_n);
+//          mquantum_numbers.SetLower(QN_N, mlower_n);
+//          
+//          if (mupper_lquanta[14] == '+')
+//            mquantum_numbers.SetUpper(QN_J,mupper_n+Rational(1,2));
+//          else if (mupper_lquanta[14] == '-')
+//            mquantum_numbers.SetUpper(QN_J,mupper_n-Rational(1,2));
+//          else
+//          { 
+//            // The J will be undefined and we fail at another stage.
+//          }
+//          
+//          if (mlower_lquanta[14] == '+')
+//              mquantum_numbers.SetLower(QN_J,mlower_n+Rational(1,2));
+//          else if (mlower_lquanta[14] == '-')
+//              mquantum_numbers.SetLower(QN_J,mlower_n-Rational(1,2));
+//          else
+//          { 
+//            // The J will be undefined and we fail at another stage.
+//          }
+//          
+//          mquantum_numbers.SetLower(QN_Ka, atoi(mlower_lquanta.substr(3, 3).c_str()));
+//          mquantum_numbers.SetUpper(QN_Ka, atoi(mupper_lquanta.substr(3, 3).c_str()));
+//          mquantum_numbers.SetLower(QN_Kc, atoi(mlower_lquanta.substr(6, 3).c_str()));
+//          mquantum_numbers.SetUpper(QN_Kc, atoi(mupper_lquanta.substr(6, 3).c_str()));
+
       }
       else if(species_data[mspecies].Name()=="NO"||species_data[mspecies].Name()=="ClO")
       {
-        String qnf;
-        
-        // Parse upper local quanta J
-        qnf = mlower_lquanta.substr(4, 5);
-        qnf.trim();
-        if (qnf.nelem())
-        {
-            ArrayOfString as;
-            qnf.split(as, ".");
-            if (as.nelem() == 2)
-            {
-                Index nom;
-                char* endptr;
-                
-                nom = strtol(as[0].c_str(), &endptr, 10) + mlower_lquanta.compare(3,1,"Q");
-                if (endptr != as[0].c_str()+as[0].nelem())
-                    throw std::runtime_error("Error parsing quantum number J");
-                
-                if (as[1] == "5")
-                    mquantum_numbers.SetUpper(QN_J, Rational(nom * 2 + 1 , 2));
-                else if (as[1] == "0")
-                    mquantum_numbers.SetUpper(QN_J, nom);
-                else
-                    throw std::runtime_error("Error parsing quantum number J");
-            }
-        }
-        
-        // Parse lower local quanta J
-        qnf = mlower_lquanta.substr(4, 5);
-        qnf.trim();
-        if (qnf.nelem())
-        {
-            ArrayOfString as;
-            qnf.split(as, ".");
-            if (as.nelem() == 2)
-            {
-                Index nom;
-                char* endptr;
-                
-                nom = strtol(as[0].c_str(), &endptr, 10);
-                if (endptr != as[0].c_str()+as[0].nelem())
-                    throw std::runtime_error("Error parsing quantum number J");
-                
-                if (as[1] == "5")
-                    mquantum_numbers.SetLower(QN_J, Rational(nom * 2 + 1, 2));
-                else if (as[1] == "0")
-                    mquantum_numbers.SetLower(QN_J, nom);
-                else
-                    throw std::runtime_error("Error parsing quantum number J");
-            }
-        }
-        
-        // Parse lower local quanta F
-        qnf = mlower_lquanta.substr(10, 5);
-        qnf.trim();
-        if (qnf.nelem())
-        {
-            ArrayOfString as;
-            qnf.split(as, ".");
-            if (as.nelem() == 2)
-            {
-                Index nom;
-                char* endptr;
-                
-                nom = strtol(as[0].c_str(), &endptr, 10);
-                if (endptr != as[0].c_str()+as[0].nelem())
-                    throw std::runtime_error("Error parsing quantum number F");
-                
-                if (as[1] == "5")
-                    mquantum_numbers.SetLower(QN_F, Rational(nom * 2 + 1, 2));
-                else if (as[1] == "0")
-                    mquantum_numbers.SetLower(QN_F, nom);
-                else
-                    throw std::runtime_error("Error parsing quantum number F");
-            }
-        }
-        
-        // Parse upper local quanta F
-        qnf = mupper_lquanta.substr(10, 5);
-        qnf.trim();
-        if (qnf.nelem())
-        {
-            ArrayOfString as;
-            qnf.split(as, ".");
-            if (as.nelem() == 2)
-            {
-                Index nom;
-                char* endptr;
-                
-                nom = strtol(as[0].c_str(), &endptr, 10);
-                if (endptr != as[0].c_str()+as[0].nelem())
-                    throw std::runtime_error("Error parsing quantum number F");
-                
-                if (as[1] == "5")
-                    mquantum_numbers.SetUpper(QN_F, Rational(nom * 2 + 1, 2));
-                else if (as[1] == "0")
-                    mquantum_numbers.SetUpper(QN_F, nom);
-                else
-                    throw std::runtime_error("Error parsing quantum number F");
-            }
-        }  
-        
-        // Parse upper global quanta Omega
-        qnf=mupper_gquanta.substr(8,3);
-        qnf.trim();
-        if (qnf.nelem())
-        {
-            ArrayOfString as;
-            qnf.split(as, "/");
-            if (as.nelem() == 2)
-            {
-                Index nom,denom;
-                char* endptr;
-                
-                nom = strtol(as[0].c_str(), &endptr, 10);
-                if (endptr != as[0].c_str()+as[0].nelem())
-                    throw std::runtime_error("Error parsing nominator quantum number Omega");
-                denom = strtol(as[1].c_str(), &endptr, 10);
-                if (endptr != as[1].c_str()+as[1].nelem())
-                    throw std::runtime_error("Error parsing denominator quantum number Omega");
-                mquantum_numbers.SetUpper(QN_Omega, Rational(nom,denom));
-                if( nom == 3 && species_data[mspecies].Name()=="NO" )//This might also be true for ClO, but that is hidden in HITRAN, it might be the opposite order of the plus-minus for ClO
-                    mquantum_numbers.SetUpper(QN_N, mquantum_numbers.Upper(QN_J)+Rational(1,2));
-                else if( nom == 1 && species_data[mspecies].Name()=="NO" )//This might also be true for ClO, but that is hidden in HITRAN, it might be the opposite order of the plus-minus for ClO
-                    mquantum_numbers.SetUpper(QN_N, mquantum_numbers.Upper(QN_J)-Rational(1,2));
-            }
-        }  
-        
-        // Parse lower global quanta Omega
-        qnf=mlower_gquanta.substr(8,3);
-        qnf.trim();
-        if (qnf.nelem())
-        {
-            ArrayOfString as;
-            qnf.split(as, "/");
-            if (as.nelem() == 2)
-            {
-                Index nom,denom;
-                char* endptr;
-                
-                nom = strtol(as[0].c_str(), &endptr, 10);
-                if (endptr != as[0].c_str()+as[0].nelem())
-                    throw std::runtime_error("Error parsing nominator quantum number Omega");
-                denom = strtol(as[1].c_str(), &endptr, 10);
-                if (endptr != as[1].c_str()+as[1].nelem())
-                    throw std::runtime_error("Error parsing denominator quantum number Omega");
-                mquantum_numbers.SetLower(QN_Omega, Rational(nom,denom));
-                if( nom == 3 && species_data[mspecies].Name()=="NO" )//This might also be true for ClO, but that is hidden in HITRAN, it might be the opposite order of the plus-minus for ClO
-                    mquantum_numbers.SetLower(QN_N, mquantum_numbers.Lower(QN_J)+Rational(1,2));
-                else if( nom == 1 && species_data[mspecies].Name()=="NO" )//This might also be true for ClO, but that is hidden in HITRAN, it might be the opposite order of the plus-minus for ClO
-                    mquantum_numbers.SetLower(QN_N, mquantum_numbers.Lower(QN_J)-Rational(1,2));
-            }
-        }   
+          quantum_parser.Parse(mquantum_numbers, qstr, mspecies);
+//        String qnf;
+//        
+//        // Parse upper local quanta J
+//        qnf = mlower_lquanta.substr(4, 5);
+//        qnf.trim();
+//        if (qnf.nelem())
+//        {
+//            ArrayOfString as;
+//            qnf.split(as, ".");
+//            if (as.nelem() == 2)
+//            {
+//                Index nom;
+//                char* endptr;
+//                
+//                nom = strtol(as[0].c_str(), &endptr, 10) + mlower_lquanta.compare(3,1,"Q");
+//                if (endptr != as[0].c_str()+as[0].nelem())
+//                    throw std::runtime_error("Error parsing quantum number J");
+//                
+//                if (as[1] == "5")
+//                    mquantum_numbers.SetUpper(QN_J, Rational(nom * 2 + 1 , 2));
+//                else if (as[1] == "0")
+//                    mquantum_numbers.SetUpper(QN_J, nom);
+//                else
+//                    throw std::runtime_error("Error parsing quantum number J");
+//            }
+//        }
+//        
+//        // Parse lower local quanta J
+//        qnf = mlower_lquanta.substr(4, 5);
+//        qnf.trim();
+//        if (qnf.nelem())
+//        {
+//            ArrayOfString as;
+//            qnf.split(as, ".");
+//            if (as.nelem() == 2)
+//            {
+//                Index nom;
+//                char* endptr;
+//                
+//                nom = strtol(as[0].c_str(), &endptr, 10);
+//                if (endptr != as[0].c_str()+as[0].nelem())
+//                    throw std::runtime_error("Error parsing quantum number J");
+//                
+//                if (as[1] == "5")
+//                    mquantum_numbers.SetLower(QN_J, Rational(nom * 2 + 1, 2));
+//                else if (as[1] == "0")
+//                    mquantum_numbers.SetLower(QN_J, nom);
+//                else
+//                    throw std::runtime_error("Error parsing quantum number J");
+//            }
+//        }
+//        
+//        // Parse lower local quanta F
+//        qnf = mlower_lquanta.substr(10, 5);
+//        qnf.trim();
+//        if (qnf.nelem())
+//        {
+//            ArrayOfString as;
+//            qnf.split(as, ".");
+//            if (as.nelem() == 2)
+//            {
+//                Index nom;
+//                char* endptr;
+//                
+//                nom = strtol(as[0].c_str(), &endptr, 10);
+//                if (endptr != as[0].c_str()+as[0].nelem())
+//                    throw std::runtime_error("Error parsing quantum number F");
+//                
+//                if (as[1] == "5")
+//                    mquantum_numbers.SetLower(QN_F, Rational(nom * 2 + 1, 2));
+//                else if (as[1] == "0")
+//                    mquantum_numbers.SetLower(QN_F, nom);
+//                else
+//                    throw std::runtime_error("Error parsing quantum number F");
+//            }
+//        }
+//        
+//        // Parse upper local quanta F
+//        qnf = mupper_lquanta.substr(10, 5);
+//        qnf.trim();
+//        if (qnf.nelem())
+//        {
+//            ArrayOfString as;
+//            qnf.split(as, ".");
+//            if (as.nelem() == 2)
+//            {
+//                Index nom;
+//                char* endptr;
+//                
+//                nom = strtol(as[0].c_str(), &endptr, 10);
+//                if (endptr != as[0].c_str()+as[0].nelem())
+//                    throw std::runtime_error("Error parsing quantum number F");
+//                
+//                if (as[1] == "5")
+//                    mquantum_numbers.SetUpper(QN_F, Rational(nom * 2 + 1, 2));
+//                else if (as[1] == "0")
+//                    mquantum_numbers.SetUpper(QN_F, nom);
+//                else
+//                    throw std::runtime_error("Error parsing quantum number F");
+//            }
+//        }  
+//        
+//        // Parse upper global quanta Omega
+//        qnf=mupper_gquanta.substr(8,3);
+//        qnf.trim();
+//        if (qnf.nelem())
+//        {
+//            ArrayOfString as;
+//            qnf.split(as, "/");
+//            if (as.nelem() == 2)
+//            {
+//                Index nom,denom;
+//                char* endptr;
+//                
+//                nom = strtol(as[0].c_str(), &endptr, 10);
+//                if (endptr != as[0].c_str()+as[0].nelem())
+//                    throw std::runtime_error("Error parsing nominator quantum number Omega");
+//                denom = strtol(as[1].c_str(), &endptr, 10);
+//                if (endptr != as[1].c_str()+as[1].nelem())
+//                    throw std::runtime_error("Error parsing denominator quantum number Omega");
+//                mquantum_numbers.SetUpper(QN_Omega, Rational(nom,denom));
+//                if( nom == 3 && species_data[mspecies].Name()=="NO" )//This might also be true for ClO, but that is hidden in HITRAN, it might be the opposite order of the plus-minus for ClO
+//                    mquantum_numbers.SetUpper(QN_N, mquantum_numbers.Upper(QN_J)+Rational(1,2));
+//                else if( nom == 1 && species_data[mspecies].Name()=="NO" )//This might also be true for ClO, but that is hidden in HITRAN, it might be the opposite order of the plus-minus for ClO
+//                    mquantum_numbers.SetUpper(QN_N, mquantum_numbers.Upper(QN_J)-Rational(1,2));
+//            }
+//        }  
+//        
+//        // Parse lower global quanta Omega
+//        qnf=mlower_gquanta.substr(8,3);
+//        qnf.trim();
+//        if (qnf.nelem())
+//        {
+//            ArrayOfString as;
+//            qnf.split(as, "/");
+//            if (as.nelem() == 2)
+//            {
+//                Index nom,denom;
+//                char* endptr;
+//                
+//                nom = strtol(as[0].c_str(), &endptr, 10);
+//                if (endptr != as[0].c_str()+as[0].nelem())
+//                    throw std::runtime_error("Error parsing nominator quantum number Omega");
+//                denom = strtol(as[1].c_str(), &endptr, 10);
+//                if (endptr != as[1].c_str()+as[1].nelem())
+//                    throw std::runtime_error("Error parsing denominator quantum number Omega");
+//                mquantum_numbers.SetLower(QN_Omega, Rational(nom,denom));
+//                if( nom == 3 && species_data[mspecies].Name()=="NO" )//This might also be true for ClO, but that is hidden in HITRAN, it might be the opposite order of the plus-minus for ClO
+//                    mquantum_numbers.SetLower(QN_N, mquantum_numbers.Lower(QN_J)+Rational(1,2));
+//                else if( nom == 1 && species_data[mspecies].Name()=="NO" )//This might also be true for ClO, but that is hidden in HITRAN, it might be the opposite order of the plus-minus for ClO
+//                    mquantum_numbers.SetLower(QN_N, mquantum_numbers.Lower(QN_J)-Rational(1,2));
+//            }
+//        }   
       }
       else if(species_data[mspecies].Name()=="OH")
       {
@@ -1958,6 +1960,8 @@ bool LineRecord::ReadFromHitran2004Stream(istream& is, const Verbosity& verbosit
               }
           }
       }
+      else quantum_parser.Parse(mquantum_numbers, qstr, mspecies);
+
   }
 
   // Accuracy index for frequency

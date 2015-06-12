@@ -29,20 +29,25 @@
 
 
 // Parsing functions for fields
-void parse_space(Rational& qn, String& s);
-void parse_a1_hitran(Rational& qn, String& s);
-void parse_a1_br_hitran(Rational& qn, String& s);
-void parse_a2_hitran(Rational& qn, String& s);
-void parse_a3_hitran(Rational& qn, String& s);
-void parse_a4_hitran(Rational& qn, String& s);
-void parse_a5_hitran(Rational& qn, String& s);
-void parse_i1_hitran(Rational& qn, String& s);
-void parse_i2_hitran(Rational& qn, String& s);
-void parse_i3_hitran(Rational& qn, String& s);
-void parse_f51_hitran(Rational& qn, String& s);
+void parse_space(Rational& qn, String& s, const Index species);
+void parse_a1_br_hitran(Rational& qn, String& s, const Index species);
+void parse_a1_pm_hitran(Rational& qn, String& s, const Index species);
+void parse_a1_sym_hitran(Rational& qn, String& s, const Index species);
+void parse_a1_s_hitran(Rational& qn, String& s, const Index species);
+void parse_a1_x_hitran(Rational& qn, String& s, const Index species);
+void parse_a2_hitran(Rational& qn, String& s, const Index species);
+void parse_a3_hitran(Rational& qn, String& s, const Index species);
+void parse_a4_hitran(Rational& qn, String& s, const Index species);
+void parse_a5_hitran(Rational& qn, String& s, const Index species);
+void parse_i1_hitran(Rational& qn, String& s, const Index species);
+void parse_i2_hitran(Rational& qn, String& s, const Index species);
+void parse_i3_hitran(Rational& qn, String& s, const Index species);
+void parse_f51_hitran(Rational& qn, String& s, const Index species);
 
 // Postprocessing functions for calculation of implicit quantum numbers
+void postprocess_group1_hitran(QuantumNumberRecord& qnr, const Index species);
 void postprocess_group5_hitran(QuantumNumberRecord& qnr, const Index species);
+void postprocess_group6_hitran(QuantumNumberRecord& qnr, const Index species);
 
 
 
@@ -67,7 +72,7 @@ QuantumParserHITRAN2004::QuantumParserHITRAN2004()
     {
         Array<QuantumFieldDescription>& this_class = mclass[CI_CLASS2];
         SKIP_X_SPACES(this_class, 12);
-        this_class.push_back(QuantumFieldDescription(QN_X,  parse_a1_hitran));
+        this_class.push_back(QuantumFieldDescription(QN_X,  parse_a1_x_hitran));
         this_class.push_back(QuantumFieldDescription(QN_v1, parse_i2_hitran));
     }
 
@@ -75,8 +80,8 @@ QuantumParserHITRAN2004::QuantumParserHITRAN2004()
     {
         Array<QuantumFieldDescription>& this_class = mclass[CI_CLASS3];
         SKIP_X_SPACES(this_class, 7);
-        this_class.push_back(QuantumFieldDescription(QN_X,  parse_a1_hitran));
-        this_class.push_back(QuantumFieldDescription(QN_i,  parse_a3_hitran));
+        this_class.push_back(QuantumFieldDescription(QN_X,     parse_a1_x_hitran));
+        this_class.push_back(QuantumFieldDescription(QN_Omega, parse_a3_hitran));
         SKIP_X_SPACES(this_class, 2);
         this_class.push_back(QuantumFieldDescription(QN_v1, parse_i2_hitran));
     }
@@ -120,9 +125,9 @@ QuantumParserHITRAN2004::QuantumParserHITRAN2004()
         this_class.push_back(QuantumFieldDescription(QN_v4, parse_i2_hitran));
         this_class.push_back(QuantumFieldDescription(QN_v5, parse_i2_hitran));
         this_class.push_back(QuantumFieldDescription(QN_l,  parse_i2_hitran));
-        this_class.push_back(QuantumFieldDescription(QN_pm, parse_a1_hitran));
+        this_class.push_back(QuantumFieldDescription(QN_pm, parse_a1_pm_hitran));
         this_class.push_back(QuantumFieldDescription(QN_r,  parse_i1_hitran));
-        this_class.push_back(QuantumFieldDescription(QN_S_global, parse_a1_hitran));
+        this_class.push_back(QuantumFieldDescription(QN_S_global, parse_a1_s_hitran));
     }
 
     // Class 8
@@ -168,19 +173,19 @@ QuantumParserHITRAN2004::QuantumParserHITRAN2004()
     {
         Array<QuantumFieldDescription>& this_group = mgroup[GI_GROUP1].upper;
         this_group.push_back(QuantumFieldDescription(QN_J,   parse_i3_hitran));
-        this_group.push_back(QuantumFieldDescription(QN_K,   parse_i3_hitran));
+        this_group.push_back(QuantumFieldDescription(QN_Ka,  parse_i3_hitran));
         this_group.push_back(QuantumFieldDescription(QN_Kc,  parse_i3_hitran));
         this_group.push_back(QuantumFieldDescription(QN_F,   parse_a5_hitran));
-        this_group.push_back(QuantumFieldDescription(QN_Sym, parse_a1_hitran));
+        this_group.push_back(QuantumFieldDescription(QN_Sym, parse_a1_sym_hitran));
     }
 
     {
         Array<QuantumFieldDescription>& this_group = mgroup[GI_GROUP1].lower;
         this_group.push_back(QuantumFieldDescription(QN_J,   parse_i3_hitran));
-        this_group.push_back(QuantumFieldDescription(QN_K,   parse_i3_hitran));
+        this_group.push_back(QuantumFieldDescription(QN_Ka,   parse_i3_hitran));
         this_group.push_back(QuantumFieldDescription(QN_Kc,  parse_i3_hitran));
         this_group.push_back(QuantumFieldDescription(QN_F,   parse_a5_hitran));
-        this_group.push_back(QuantumFieldDescription(QN_Sym, parse_a1_hitran));
+        this_group.push_back(QuantumFieldDescription(QN_Sym, parse_a1_sym_hitran));
     }
 
     // Group 2
@@ -193,9 +198,9 @@ QuantumParserHITRAN2004::QuantumParserHITRAN2004()
     {
         Array<QuantumFieldDescription>& this_group = mgroup[GI_GROUP2].lower;
         SKIP_X_SPACES(this_group, 5);
-        this_group.push_back(QuantumFieldDescription(QN_dJ,  parse_a1_hitran));
+        this_group.push_back(QuantumFieldDescription(QN_dJ,  parse_a1_br_hitran));
         this_group.push_back(QuantumFieldDescription(QN_J,   parse_i3_hitran));
-        this_group.push_back(QuantumFieldDescription(QN_Sym, parse_a1_hitran));
+        this_group.push_back(QuantumFieldDescription(QN_Sym, parse_a1_sym_hitran));
         this_group.push_back(QuantumFieldDescription(QN_F,   parse_a5_hitran));
     }
 
@@ -225,7 +230,7 @@ QuantumParserHITRAN2004::QuantumParserHITRAN2004()
         this_group.push_back(QuantumFieldDescription(QN_K,   parse_i3_hitran));
         this_group.push_back(QuantumFieldDescription(QN_l,   parse_i2_hitran));
         this_group.push_back(QuantumFieldDescription(QN_C,   parse_a2_hitran));
-        this_group.push_back(QuantumFieldDescription(QN_Sym, parse_a1_hitran));
+        this_group.push_back(QuantumFieldDescription(QN_Sym, parse_a1_sym_hitran));
         this_group.push_back(QuantumFieldDescription(QN_F,   parse_a4_hitran));
     }
 
@@ -235,7 +240,7 @@ QuantumParserHITRAN2004::QuantumParserHITRAN2004()
         this_group.push_back(QuantumFieldDescription(QN_K,   parse_i3_hitran));
         this_group.push_back(QuantumFieldDescription(QN_l,   parse_i2_hitran));
         this_group.push_back(QuantumFieldDescription(QN_C,   parse_a2_hitran));
-        this_group.push_back(QuantumFieldDescription(QN_Sym, parse_a1_hitran));
+        this_group.push_back(QuantumFieldDescription(QN_Sym, parse_a1_sym_hitran));
         this_group.push_back(QuantumFieldDescription(QN_F,   parse_a4_hitran));
     }
 
@@ -254,7 +259,7 @@ QuantumParserHITRAN2004::QuantumParserHITRAN2004()
         this_group.push_back(QuantumFieldDescription(QN_dJ,  parse_a1_br_hitran));
         this_group.push_back(QuantumFieldDescription(QN_J,   parse_i3_hitran));
         this_group.push_back(QuantumFieldDescription(QN_F,   parse_a5_hitran));
-        this_group.push_back(QuantumFieldDescription(QN_Sym, parse_a1_hitran));
+        this_group.push_back(QuantumFieldDescription(QN_Sym, parse_a1_sym_hitran));
     }
 
     // Group 6
@@ -267,16 +272,20 @@ QuantumParserHITRAN2004::QuantumParserHITRAN2004()
     {
         Array<QuantumFieldDescription>& this_group = mgroup[GI_GROUP6].lower;
         SKIP_X_SPACES(this_group, 3);
-        this_group.push_back(QuantumFieldDescription(QN_dJ,  parse_a1_hitran));
+        this_group.push_back(QuantumFieldDescription(QN_dJ,  parse_a1_br_hitran));
         this_group.push_back(QuantumFieldDescription(QN_J,   parse_f51_hitran));
-        this_group.push_back(QuantumFieldDescription(QN_Sym, parse_a1_hitran));
+        this_group.push_back(QuantumFieldDescription(QN_Sym, parse_a1_sym_hitran));
         this_group.push_back(QuantumFieldDescription(QN_F,   parse_a5_hitran));
     }
 
     mspecies.resize(species_data.nelem());
 
-//    SetClassGroup("H2O", CI_CLASS6, GI_GROUP1);
-    SetClassGroup("O2", CI_CLASS2, GI_GROUP5);
+    SetClassGroup("ClO", CI_CLASS3, GI_GROUP6);
+    SetClassGroup("H2O", CI_CLASS6, GI_GROUP1);
+    SetClassGroup("HO2", CI_CLASS6, GI_GROUP1);
+    SetClassGroup("NO2", CI_CLASS6, GI_GROUP1);
+    SetClassGroup("NO",  CI_CLASS3, GI_GROUP6);
+    SetClassGroup("O2",  CI_CLASS2, GI_GROUP5);
 
 #undef SKIP_X_SPACES
 
@@ -299,29 +308,34 @@ void QuantumParserHITRAN2004::Parse(QuantumNumberRecord& qnr,
     qstr = quantum_string.substr(0,15);
     for (Index i = 0; i < mclass[qclass].nelem(); i++)
     {
-        mclass[qclass][i].Parse(qnr.Upper(), qstr);
+        mclass[qclass][i].Parse(qnr.Upper(), qstr, species);
     }
 
     qstr = quantum_string.substr(15, 15);
     for (Index i = 0; i < mclass[qclass].nelem(); i++)
     {
-        mclass[qclass][i].Parse(qnr.Lower(), qstr);
+        mclass[qclass][i].Parse(qnr.Lower(), qstr, species);
     }
 
     qstr = quantum_string.substr(30, 15);
     for (Index i = 0; i < mgroup[qgroup].upper.nelem(); i++)
     {
-        mgroup[qgroup].upper[i].Parse(qnr.Upper(), qstr);
+        mgroup[qgroup].upper[i].Parse(qnr.Upper(), qstr, species);
     }
 
     qstr = quantum_string.substr(45, 15);
     for (Index i = 0; i < mgroup[qgroup].lower.nelem(); i++)
     {
-        mgroup[qgroup].lower[i].Parse(qnr.Lower(), qstr);
+        mgroup[qgroup].lower[i].Parse(qnr.Lower(), qstr, species);
     }
 
-    if (qgroup == GI_GROUP5)
-        postprocess_group5_hitran(qnr, species);
+    switch (qgroup)
+    {
+        case GI_GROUP1: postprocess_group1_hitran(qnr, species); break;
+        case GI_GROUP5: postprocess_group5_hitran(qnr, species); break;
+        case GI_GROUP6: postprocess_group6_hitran(qnr, species); break;
+        default: break;
+    }
 }
 
 
@@ -339,21 +353,14 @@ void QuantumParserHITRAN2004::SetClassGroup(const String& species_name,
 /// Parsing functions
 /////////////////////
 
-void parse_space(Rational& qn, String& s)
+void parse_space(Rational& qn, String& s, const Index /* species */)
 {
     s.erase(0, 1);
     qn = RATIONAL_UNDEFINED;
 }
 
 
-void parse_a1_hitran(Rational& qn, String& s)
-{
-    s.erase(0, 1);
-    qn = RATIONAL_UNDEFINED;
-}
-
-
-void parse_a1_br_hitran(Rational& qn, String& s)
+void parse_a1_br_hitran(Rational& qn, String& s, const Index /* species */)
 {
     qn = 'Q' - s[0];
     if (qn > 2)
@@ -362,28 +369,90 @@ void parse_a1_br_hitran(Rational& qn, String& s)
 }
 
 
-void parse_a2_hitran(Rational& qn, String& s)
+void parse_a1_pm_hitran(Rational& qn, String& s, const Index /* species */)
 {
+    // FIXME: How to handle plus/minus?
+    s.erase(0, 1);
+    qn = RATIONAL_UNDEFINED;
+}
+
+
+void parse_a1_sym_hitran(Rational& qn, String& s, const Index species)
+{
+    qn = RATIONAL_UNDEFINED;
+    const char ch = s[0];
+
+     if ((ch == '+' || ch == '-')
+         && (species == species_index_from_species_name("HO2")
+             || species == species_index_from_species_name("NO2")))
+    {
+        if (ch == '+')
+            qn = Rational(1, 2);
+        else if (ch == '-')
+            qn = Rational(-1 , 2);
+        else
+            throw std::runtime_error("Error parsing quantum number Sym");
+    }
+    else if ((ch == 'd' || ch == 'q')
+             && (species == species_index_from_species_name("O2")
+                 || species == species_index_from_species_name("N2")))
+    {
+        // FIXME: How to deal with symmetry parameter?
+    }
+    else if (ch == 'e' || ch == 'f')
+    {
+        // FIXME: How to handle linedoubling values?
+    }
+    else if (ch == '+' || ch == '-')
+    {
+        // FIXME: How to handle symmetry parameter?
+    }
+    else if (ch != ' ')
+        throw std::runtime_error("Error parsing quantum number Sym");
+
+    s.erase(0, 1);
+}
+
+
+void parse_a1_s_hitran(Rational& qn, String& s, const Index /* species */)
+{
+    // FIXME: How to handle S?
+    s.erase(0, 1);
+    qn = RATIONAL_UNDEFINED;
+}
+
+
+void parse_a1_x_hitran(Rational& qn, String& s, const Index /* species */)
+{
+    // FIXME: How to handle X?
+    s.erase(0, 1);
+    qn = RATIONAL_UNDEFINED;
+}
+
+
+void parse_a2_hitran(Rational& qn, String& s, const Index /* species */)
+{
+    // FIXME OLE
     s.erase(0, 2);
     qn = RATIONAL_UNDEFINED;
 }
 
 
-void parse_a3_hitran(Rational& qn, String& s)
+void parse_a3_hitran(Rational& qn, String& s, const Index /* species */)
 {
-    s.erase(0, 3);
-    qn = RATIONAL_UNDEFINED;
+    extract(qn, s, 3);
 }
 
 
-void parse_a4_hitran(Rational& qn, String& s)
+void parse_a4_hitran(Rational& qn, String& s, const Index /* species */)
 {
+    // FIXME OLE
     s.erase(0, 4);
     qn = RATIONAL_UNDEFINED;
 }
 
 
-void parse_a5_hitran(Rational& qn, String& s)
+void parse_a5_hitran(Rational& qn, String& s, const Index /* species */)
 {
     String qnf = s.substr(0, 5);
     qn = RATIONAL_UNDEFINED;
@@ -418,7 +487,7 @@ void parse_a5_hitran(Rational& qn, String& s)
 }
 
 
-void parse_i1_hitran(Rational& qn, String& s)
+void parse_i1_hitran(Rational& qn, String& s, const Index /* species */)
 {
     Index i;
     extract(i, s, 1);
@@ -426,16 +495,15 @@ void parse_i1_hitran(Rational& qn, String& s)
 }
 
 
-void parse_i2_hitran(Rational& qn, String& s)
+void parse_i2_hitran(Rational& qn, String& s, const Index /* species */)
 {
     Index i;
     extract(i, s, 2);
-    cout << s.substr(0, 2);
     qn = i;
 }
 
 
-void parse_i3_hitran(Rational& qn, String& s)
+void parse_i3_hitran(Rational& qn, String& s, const Index species)
 {
     Index i;
     extract(i, s, 3);
@@ -443,10 +511,50 @@ void parse_i3_hitran(Rational& qn, String& s)
 }
 
 
-void parse_f51_hitran(Rational& qn, String& s)
+void parse_f51_hitran(Rational& qn, String& s, const Index /* species */)
 {
-    s.erase(0, 7);
+    String qnf = s.substr(0, 5);
     qn = RATIONAL_UNDEFINED;
+
+    qnf.trim();
+    if (qnf.nelem())
+    {
+        ArrayOfString as;
+        qnf.split(as, ".");
+        if (as.nelem() == 2)
+        {
+            Index nom;
+            char* endptr;
+
+            nom = strtol(as[0].c_str(), &endptr, 10);
+            if (endptr != as[0].c_str()+as[0].nelem())
+            {
+                throw std::runtime_error("Error parsing quantum number of type F5.1");
+            }
+
+            if (as[1] == "5")
+                qn = Rational(nom * 2 + 1, 2);
+            else if (as[1] == "0")
+                qn = nom;
+            else
+            {
+                throw std::runtime_error("Error parsing quantum number of type F5.1");
+            }
+            s.erase(0, 5);
+        }
+        else
+        {
+            bool valid_num = true;
+            for (Index i = 0; valid_num && i < qnf.nelem(); i++)
+                if (qnf[i] < '0' || qnf[i] > '9')
+                    valid_num = false;
+            if (!valid_num)
+                throw std::runtime_error("Error parsing quantum number of type F5.1");
+
+            Index q;
+            extract(q, s, qnf.nelem());
+        }
+    }
 }
 
 
@@ -455,6 +563,28 @@ void parse_f51_hitran(Rational& qn, String& s)
 /// Post-processing functions
 /////////////////////////////
 
+void postprocess_group1_hitran(QuantumNumberRecord& qnr, const Index species)
+{
+    if (species == species_index_from_species_name("HO2")
+        || species == species_index_from_species_name("NO2"))
+    {
+        // For these species, N is stored in field J, so we copy it here
+        // to the correct quantum number
+        qnr.SetUpper(QN_N, qnr.Upper(QN_J));
+        qnr.SetLower(QN_N, qnr.Lower(QN_J));
+        // Now we can calculate the correct J by using the Symmetry quantum
+        // number. However, it does not represent Symmetry for these
+        // species, but +1/2 or -1/2
+        qnr.SetUpper(QN_J, qnr.Upper(QN_N) + qnr.Upper(QN_Sym));
+        qnr.SetLower(QN_J, qnr.Lower(QN_N) + qnr.Lower(QN_Sym));
+
+        // We don't need Sym after this point
+        qnr.SetUpper(QN_Sym, RATIONAL_UNDEFINED);
+        qnr.SetLower(QN_Sym, RATIONAL_UNDEFINED);
+    }
+}
+
+
 void postprocess_group5_hitran(QuantumNumberRecord& qnr, const Index /* species */)
 {
     qnr.SetUpper(QN_N, qnr.Lower(QN_N) - qnr.Lower(QN_dN));
@@ -462,5 +592,29 @@ void postprocess_group5_hitran(QuantumNumberRecord& qnr, const Index /* species 
 
     // We don't need dN and dJ after this point
     qnr.SetLower(QN_dN, RATIONAL_UNDEFINED);
+    qnr.SetLower(QN_dJ, RATIONAL_UNDEFINED);
+}
+
+
+void postprocess_group6_hitran(QuantumNumberRecord& qnr, const Index species)
+{
+    qnr.SetUpper(QN_J, qnr.Lower(QN_J) - qnr.Lower(QN_dJ));
+
+    if (species == species_index_from_species_name("NO"))
+    {
+        // This might also be true for ClO, but that is hidden in HITRAN,
+        // it might be the opposite order of the plus-minus for ClO
+        if (qnr.Upper(QN_Omega).Nom() == 3)
+            qnr.SetUpper(QN_N, qnr.Upper(QN_J) + Rational(1,2));
+        else if (qnr.Upper(QN_Omega).Nom() == 1)
+            qnr.SetUpper(QN_N, qnr.Upper(QN_J) - Rational(1,2));
+
+        if (qnr.Lower(QN_Omega).Nom() == 3)
+            qnr.SetLower(QN_N, qnr.Upper(QN_J) + Rational(1,2));
+        else if (qnr.Lower(QN_Omega).Nom() == 1)
+            qnr.SetLower(QN_N, qnr.Upper(QN_J) - Rational(1,2));
+    }
+
+    // We don't need dJ after this point
     qnr.SetLower(QN_dJ, RATIONAL_UNDEFINED);
 }

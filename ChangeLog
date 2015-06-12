@@ -1,3 +1,18 @@
+2015-06-11  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-235
+
+	* src/quantum_parser.h, src/quantum_parser_hitran.cc:
+
+	Added species argument to parsing functions to cover species dependent
+	special cases in catalog format.
+
+	Added support for NO2, HO2, NO, ClO.
+
+	* src/linerecord.cc (LineRecord::ReadFromHitran2004Stream):
+
+	Use quantum parser instead of the old code for the added species.
+
 2015-06-11 Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-3-234
