@@ -81,7 +81,9 @@ private:
         GI_GROUP4,
         GI_GROUP5,
         GI_GROUP6,
-        GI_FINAL
+        GI_GROUP6OH,
+        GI_FINAL,
+        GI_UNDEFINED
     } GroupIds;
 
     typedef struct {

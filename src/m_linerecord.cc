@@ -127,7 +127,7 @@ void abs_lines_per_speciesMatchNLTEQuantumIdentifiers(ArrayOfArrayOfLineRecord& 
         {
           
             // Skip this species if qi is not part of the species represented by this abs_lines
-            if(!abs_species[s][0].Species()==nlte_quantum_identifiers[qi].Species())
+            if(abs_species[s][0].Species() != nlte_quantum_identifiers[qi].Species())
               continue;
             
             ArrayOfLineRecord& species_lines = abs_lines_per_species[s];

@@ -1,3 +1,29 @@
+2015-06-12  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-237
+
+	* src/quantum_parser_hitran.{cc,h}:
+
+	Added support for OH.
+
+	Added special case for group 6 for OH (GI_GROUP6OH) because the catalog
+	format is different for this molecule than for others.
+
+	Set group 6 to undefined for NO, ClO, OH and don't parse it due to undetermined format
+	issue of the catalog that need further investigation. We compile a list
+	with these issues to ask to the HITRAN guys.
+
+	(postprocess_group6oh_hitran): Added.
+
+	* src/linerecord.cc (LineRecord::ReadFromHitran2004Stream):
+
+	Remove old quantum number parsing code. All molecules that were
+	supported by the old code are now covered by the new quantum parser.
+
+	* src/m_linerecord.cc (abs_lines_per_speciesMatchNLTEQuantumIdentifiers):
+
+	Use proper != comparison operator instead of (!X == Y).
+
 2015-06-12 Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-3-236
