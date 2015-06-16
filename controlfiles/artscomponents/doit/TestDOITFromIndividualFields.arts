@@ -139,6 +139,7 @@ abs_lookupAdapt
 # absorption from LUT
 Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__LookUpTable )
 propmat_clearsky_agenda_checkedCalc
+FlagOn( nlte_checked )
 
 
 

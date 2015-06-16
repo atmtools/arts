@@ -203,6 +203,7 @@ AgendaSet( ybatch_calc_agenda ){
   cloudbox_checkedCalc
   sensor_checkedCalc
   propmat_clearsky_agenda_checkedCalc
+  FlagOn( nlte_checked )
 
   # when doing no ScatteringMergeParticles1D (neither here, nor in
   # jacobianDoit!), you can comment out this complete block

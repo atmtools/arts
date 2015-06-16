@@ -55,6 +55,7 @@ MatrixSetConstant( z_surface, nrows, ncols, 500.0 )
 WriteXML( output_file_format, z_surface )
 
 abs_xsec_agenda_checkedCalc
+FlagOn( nlte_checked )
 atmfields_checkedCalc
 
 abs_lookupSetup

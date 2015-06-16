@@ -1,3 +1,93 @@
+2015-06-16 Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-3-238
+	
+	WARNING:  This update breaks your controlfiles.  It adds a test for
+	NLTE compatibility mode for the setups.  If you run AtmRawRead in the
+	past, and you have abs_lines_per_species, abs_xsec_agenda, and 
+	propmat_clearsky_agenda defined, you should apply nlte_checkedCalc
+	before calling either of the previous agendas.  If you do not call
+	AtmRawRead or have not defined abs_lines_per_species, you must
+	either manually set nlte_checked using FlagOn( nlte_checked ) to
+	call these agendas, or you should define t_nlte_field and 
+	nlte_quantum_identifiers as zero-sized variables and call 
+	nlte_checkedCalc.  
+	
+	In the controlfiles included with ARTS FlagOn( nlte_checked ) is
+	used to flag NLTE as safe in those files that are affected.  It is
+	recommended to use the other approach whenever possible, and run the
+	full nlte_checkedCalc.
+	
+	* src/linerecord.cc:  Fixed bug in NLTE code.  Forgot to divide
+	energy by Boltzmann's constant.
+	
+	* src/m_abs.cc, src/methods.cc:  abs_xsec_per_speciesInit, 
+	abs_xsec_per_speciesInitWithSource, propmat_clearskyInit, and 
+	propmat_clearskyInitWithSource now demands that nlte_checked is true.
+	
+	* src/m_abs_lookup.cc:  In manual Init-call the nlte_checked is set to
+	one, as this is how propmat_clearsky_agenda_checked is handeled.
+	
+	* src/m_checked.cc:  Ironed out some bugs in the checking routine.
+	
+	* src/m_linerecord.cc:  Added strict uniqueness check to 
+	abs_lines_per_speciesMatchNLTEQuantumIdentifiers so no
+	QuantumIdentifier is overwriting another QuantumIdentifier.
+	
+	* These files have FlagOn( nlte_checked ):
+	controlfiles/artscomponents/absorption/TestAbs.arts
+	controlfiles/artscomponents/absorption/TestAbsParticle.arts
+	controlfiles/artscomponents/arts-xml-data/TestClouds_Mars.arts
+	controlfiles/artscomponents/arts-xml-data/TestClouds_Venus.arts
+	controlfiles/artscomponents/cia/TestCIA.arts
+	controlfiles/artscomponents/doit/TestDOITFromIndividualFields.arts
+	controlfiles/artscomponents/doitbatch/TestDOITBatch.arts
+	controlfiles/artscomponents/faraday/TestFaradayRotation.arts
+	controlfiles/artscomponents/groundbased/TestGbased.arts
+	controlfiles/artscomponents/montecarlo/TestMonteCarloDataPrepare.arts
+	controlfiles/artscomponents/montecarlo/TestMonteCarloGeneral.arts
+	controlfiles/artscomponents/montecarlo/TestMonteCarloGeneralGaussian.arts
+	controlfiles/artscomponents/montecarlo/TestRteCalcMC.arts
+	controlfiles/artscomponents/wfuns/TestDoitJacobians.arts
+	controlfiles/instruments/amsu/TestAMSU_MetMM_generic.arts
+	controlfiles/instruments/amsu/TestAMSU_generic.arts
+	controlfiles/instruments/hirs/TestHIRS.arts
+	controlfiles/instruments/ici/TestICI_fast.arts
+	controlfiles/instruments/mhs/TestMHS_generic.arts
+	controlfiles/instruments/odinsmr/TestOdinSMR.arts
+	
+	* These files have nlte_checkedCalc:
+	controlfiles/artscomponents/absorption/TestAbsDoppler.arts
+	controlfiles/artscomponents/absorption/TestCompareArtscat3And4.arts
+	controlfiles/artscomponents/absorption/TestIsoRatios.arts
+	controlfiles/artscomponents/arts-xml-data/TestPlanetIsoRatios.arts
+	controlfiles/artscomponents/arts-xml-data/TestSpectro_core.arts
+	controlfiles/artscomponents/arts-xml-data/TestSurf_Earth.arts
+	controlfiles/artscomponents/arts-xml-data/TestSurf_Mars.arts
+	controlfiles/artscomponents/arts-xml-data/TestSurf_Venus.arts
+	controlfiles/artscomponents/cia/TestRTwithCIA.arts
+	controlfiles/artscomponents/clearsky/TestClearSky.arts
+	controlfiles/artscomponents/clearsky/TestClearSky2.arts
+	controlfiles/artscomponents/doit/TestDOITprecalcInit.arts
+	controlfiles/artscomponents/doit/doit_calc.arts
+	controlfiles/artscomponents/groundbased/TestFgrid.arts
+	controlfiles/artscomponents/groundbased/TestWinds.arts
+	controlfiles/artscomponents/linemixing/TestLineMixing.arts
+	controlfiles/artscomponents/linemixing/TestLineMixingAndZeeman.arts
+	controlfiles/artscomponents/linemixing/TestLineMixingAndZeemanPreCalc_50_to_70_GHz.arts
+	controlfiles/artscomponents/linemixing/TestLineMixingAndZeeman_50_to_70_GHz.arts
+	controlfiles/artscomponents/pencilbeam/TestPencilBeam.arts
+	controlfiles/artscomponents/radiolink/TestRadioLink.arts
+	controlfiles/artscomponents/radiolink/TestRadioLink2.arts
+	controlfiles/artscomponents/radiolink/TestRadioOccultation.arts
+	controlfiles/artscomponents/regrid/TestRegridFields.arts
+	controlfiles/artscomponents/transmission/TestTransmission.arts
+	controlfiles/artscomponents/wfuns/TestWfuns.arts
+	controlfiles/artscomponents/ycalcappend/TestYCalcAppend.arts
+	controlfiles/artscomponents/zeeman/TestZeeman.arts
+	controlfiles/artscomponents/zeeman/TestZeemanPreCalc.arts
+	controlfiles/instruments/odinsmr/TestOdinSMR_1D.arts
+
 2015-06-12  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-237

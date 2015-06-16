@@ -199,6 +199,7 @@ FieldFromGriddedField( z_surface, p_grid, lat_grid, lon_grid, gf2tmp )
 
 abs_xsec_agenda_checkedCalc
 propmat_clearsky_agenda_checkedCalc
+nlte_checkedCalc
 atmfields_checkedCalc
 atmgeom_checkedCalc
 

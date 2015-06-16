@@ -39,6 +39,7 @@ AgendaSet( doit_mono_agenda ){
 
 # DOIT calculation
 propmat_clearsky_agenda_checkedCalc
+nlte_checkedCalc
 atmfields_checkedCalc
 atmgeom_checkedCalc
 cloudbox_checkedCalc

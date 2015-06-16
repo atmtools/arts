@@ -116,6 +116,7 @@ abs_speciesSet( abs_species=abs_nls, species=[] )
 VectorSet( abs_nls_pert, [] )
 VectorSet( abs_t_pert, [] )
 abs_xsec_agenda_checkedCalc
+FlagOn( nlte_checked )
 abs_lookupCalc
 
 # absorption from LUT

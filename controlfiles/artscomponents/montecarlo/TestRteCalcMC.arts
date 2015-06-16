@@ -73,6 +73,7 @@ Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__LookUpTable )
 
 abs_xsec_agenda_checkedCalc
 propmat_clearsky_agenda_checkedCalc
+FlagOn( nlte_checked )
 
 #### Define viewing position and line of sight #########################
 

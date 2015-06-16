@@ -80,6 +80,7 @@ abs_lookupSetupBatch
 # Create the lookup table
 # ---
 abs_xsec_agenda_checkedCalc
+FlagOn( nlte_checked )
 abs_lookupCalc
 
 # Test (and print) lookup table accuracy

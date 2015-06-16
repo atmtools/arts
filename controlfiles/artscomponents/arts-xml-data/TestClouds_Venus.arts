@@ -165,6 +165,7 @@ abs_lookupSetupWide( p_min=pmin, p_max=1e7,
                      t_min=140., t_max=740.,
                      h2o_min=0.0, h2o_max=4e-5 )
 abs_xsec_agenda_checkedCalc
+FlagOn( nlte_checked )
 abs_lookupCalc
 abs_lookupAdapt
 

@@ -42,6 +42,8 @@ Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
 # no refraction
 Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
 
+# absorption from LUT
+Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__LookUpTable )
 
 # Possibility to change considered species
 # For example
@@ -91,10 +93,9 @@ VectorSet( abs_nls_pert, [] )
 VectorSet( abs_t_pert, [] )
 
 abs_xsec_agenda_checkedCalc
+nlte_checkedCalc
 abs_lookupCalc
 
-# absorption from LUT
-Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__LookUpTable )
 
 
 

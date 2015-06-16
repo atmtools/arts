@@ -149,7 +149,7 @@ NumericSet( impact_parREFERENCE, 6.38905e+06 )
 
 abs_xsec_agenda_checkedCalc
 propmat_clearsky_agenda_checkedCalc
-
+nlte_checkedCalc
 
 # Calculate and check iy
 #

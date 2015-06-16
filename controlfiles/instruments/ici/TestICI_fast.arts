@@ -122,6 +122,7 @@ abs_lookupSetupBatch
 # Create the lookup table
 # ---
 abs_xsec_agenda_checkedCalc
+FlagOn( nlte_checked )
 abs_lookupCalc
 
 # Set propmat_clearsky_agenda to use lookup table

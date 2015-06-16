@@ -1703,7 +1703,7 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "abs_species", "abs_species_active", "f_grid", "abs_p",
-            "abs_xsec_agenda_checked" ),
+            "abs_xsec_agenda_checked", "nlte_checked" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -1728,7 +1728,7 @@ void define_md_data_raw()
       GOUT_TYPE(),
       GOUT_DESC(),
       IN( "abs_species", "abs_species_active", "f_grid", "abs_p",
-          "abs_xsec_agenda_checked" ),
+          "abs_xsec_agenda_checked", "nlte_checked" ),
       GIN(),
       GIN_TYPE(),
       GIN_DEFAULT(),
@@ -9685,7 +9685,8 @@ void define_md_data_raw()
         IN( "abs_species",
             "f_grid",
             "stokes_dim",
-            "propmat_clearsky_agenda_checked"
+            "propmat_clearsky_agenda_checked",
+            "nlte_checked"
         ),
         GIN(),
         GIN_TYPE(),
@@ -9711,7 +9712,8 @@ void define_md_data_raw()
       IN( "abs_species",
           "f_grid",
           "stokes_dim",
-          "propmat_clearsky_agenda_checked"
+          "propmat_clearsky_agenda_checked",
+          "nlte_checked"
       ),
       GIN(),
       GIN_TYPE(),

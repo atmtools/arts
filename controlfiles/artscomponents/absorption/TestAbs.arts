@@ -82,6 +82,7 @@ VectorSet( abs_nls_pert, [] )
 #VectorNLogSpace( abs_nls_pert, 5, 0.01, 10 )
 
 abs_xsec_agenda_checkedCalc
+FlagOn( nlte_checked )
 abs_lookupCalc
 
 # Optionally write these to files:

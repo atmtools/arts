@@ -1573,6 +1573,7 @@ void abs_xsec_per_speciesInit(// WS Output:
                               const Vector&    f_grid,
                               const Vector&    abs_p,
                               const Index&     abs_xsec_agenda_checked,
+                              const Index&     nlte_checked,
                               const Verbosity& verbosity
                               )
 {
@@ -1580,6 +1581,8 @@ void abs_xsec_per_speciesInit(// WS Output:
 
   if (!abs_xsec_agenda_checked)
     throw runtime_error("You must call *abs_xsec_agenda_checkedCalc* before calling this method.");
+  if (!nlte_checked)
+    throw runtime_error("You must call *nlte_checkedCalc* before calling this method.");
 
   // We need to check that abs_species_active doesn't have more elements than
   // abs_species (abs_xsec_agenda_checkedCalc doesn't know abs_species_active.
@@ -1639,6 +1642,7 @@ const ArrayOfIndex& abs_species_active,
 const Vector&    f_grid,
 const Vector&    abs_p,
 const Index&     abs_xsec_agenda_checked,
+const Index&     nlte_checked,
 const Verbosity& verbosity
 )
 {
@@ -1647,6 +1651,8 @@ const Verbosity& verbosity
     if (!abs_xsec_agenda_checked)
         throw runtime_error("You must call *abs_xsec_agenda_checkedCalc* before calling this method.");
     
+    if (!nlte_checked)
+      throw runtime_error("You must call *nlte_checkedCalc* before calling this method.");
     // We need to check that abs_species_active doesn't have more elements than
     // abs_species (abs_xsec_agenda_checkedCalc doesn't know abs_species_active.
     // Usually we come here through an agenda call, where abs_species_active has
@@ -2321,6 +2327,7 @@ void propmat_clearskyInit(//WS Output
                              const Vector&                   f_grid,
                              const Index&                    stokes_dim,
                              const Index&                    propmat_clearsky_agenda_checked,
+                             const Index&                    nlte_checked,
                              const Verbosity&                
                             )
 {
@@ -2331,6 +2338,9 @@ void propmat_clearskyInit(//WS Output
     if (!propmat_clearsky_agenda_checked)
         throw runtime_error("You must call *propmat_clearsky_agenda_checkedCalc* before calling this method.");
 
+    if (!nlte_checked)
+        throw runtime_error("You must call *nlte_checkedCalc* before calling this method.");
+    
     Index nf = f_grid.nelem();
     
     if(abs_species.nelem() > 0 )
@@ -2359,11 +2369,15 @@ const ArrayOfArrayOfSpeciesTag& abs_species,
 const Vector&                   f_grid,
 const Index&                    stokes_dim,
 const Index&                    propmat_clearsky_agenda_checked,
+const Index&                    nlte_checked,
 const Verbosity&                
 )
 {
     if (!propmat_clearsky_agenda_checked)
         throw runtime_error("You must call *propmat_clearsky_agenda_checkedCalc* before calling this method.");
+    
+    if (!nlte_checked)
+        throw runtime_error("You must call *nlte_checkedCalc* before calling this method.");
     
     Index nf = f_grid.nelem();
     

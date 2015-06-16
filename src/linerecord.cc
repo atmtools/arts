@@ -3314,14 +3314,14 @@ void LineRecord::GetLineScalingData(Numeric& partition_ratio,
     //r_low and r_upp are ratios for the population level compared to LTE conditions
     Numeric r_low, r_upp;
     if( atm_tv_low > 1e-4 *atm_t ) // where 1e-4 is considered a small number so that the multiplication in the denominator does not reach zero
-      r_low = exp( - mevlow * (atm_t-atm_tv_low) / (atm_t*atm_tv_low) );
+      r_low = exp( - mevlow / BOLTZMAN_CONST * (atm_t-atm_tv_low) / (atm_t*atm_tv_low) );
     else if( atm_tv_low >= 0.0 )
       r_low = 0.0;
     else
       r_low = 1.0;
 
     if( atm_tv_upp > 1e-4 *atm_t ) // where 1e-4 is considered a small number so that the multiplication in the denominator does not reach zero
-      r_upp = exp( - mevupp * (atm_t-atm_tv_upp) / (atm_t*atm_tv_upp) );
+      r_upp = exp( - mevupp / BOLTZMAN_CONST * (atm_t-atm_tv_upp) / (atm_t*atm_tv_upp) );
     else if( atm_tv_upp >= 0.0 )
       r_upp = 0.0;
     else

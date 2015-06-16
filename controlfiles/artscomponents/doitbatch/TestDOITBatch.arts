@@ -292,6 +292,7 @@ nelemGet( ybatch_n, batch_atm_fields_compact )
 # If settings are changed, especially if the input atmospheres are altered 
 # or exchanged, the robust option in *ybatchCalc* should be used.
 propmat_clearsky_agenda_checkedCalc
+FlagOn( nlte_checked )
 ybatchCalc
 
 # Call *ybatchCalc* robust:

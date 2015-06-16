@@ -146,29 +146,77 @@ void abs_lines_per_speciesMatchNLTEQuantumIdentifiers(ArrayOfArrayOfLineRecord& 
                 {
                     case QMI_NONE:    break;
                     case QMI_FULL:    
-                      lr.SetEvuppIndex(qi); 
-                      if(do_ev) 
-                        lr.SetEvupp(vibrational_energies[qi]);
+                      if(lr.EvuppIndex()==-1)
+                      {
+                        lr.SetEvuppIndex(qi); 
+                        if(do_ev) 
+                          lr.SetEvupp(vibrational_energies[qi]);
+                      }
+                      else
+                      {
+                        ostringstream os;
+                        os << "The linerecord:\n"<<lr<<"\nhad the energy state level of "<<
+                        "this quantum identifier:\n"<<nlte_quantum_identifiers[qi]<<
+                        "\nset twice by the input quantum identifiers.  All levels must "<<
+                        "point at a unique state. " << qi;
+                        throw std::runtime_error(os.str());
+                      }
                       break;
                     case QMI_PARTIAL: 
-                      lr.SetEvuppIndex(qi);
-                      if(do_ev) 
-                        lr.SetEvupp(vibrational_energies[qi]);
+                      if(lr.EvuppIndex()==-1)
+                      { 
+                        lr.SetEvuppIndex(qi);
+                        if(do_ev) 
+                          lr.SetEvupp(vibrational_energies[qi]);
+                      }
+                      else
+                      {
+                        ostringstream os;
+                        os << "The linerecord:\n"<<lr<<"\nhad the energy state level of "<<
+                        "this quantum identifier:\n"<<nlte_quantum_identifiers[qi]<<
+                        "\nset twice by the input quantum identifiers.  All levels must "<<
+                        "point at a unique state. " << qi;
+                        throw std::runtime_error(os.str());
+                      }
                       break;
                 }
                 switch (match_info[i].Lower())
                 {
                     case QMI_NONE:    break;
                     case QMI_FULL:    
-                      lr.SetEvlowIndex(qi);
-                      if(do_ev) 
-                        lr.SetEvlow(vibrational_energies[qi]);
-                      break;;
+                      if(lr.EvlowIndex()==-1)
+                      {
+                        lr.SetEvlowIndex(qi);
+                        if(do_ev) 
+                          lr.SetEvlow(vibrational_energies[qi]);
+                      }
+                      else
+                      {
+                        ostringstream os;
+                        os << "The linerecord:\n"<<lr<<"\nhad the energy state level of "<<
+                        "this quantum identifier:\n"<<nlte_quantum_identifiers[qi]<<
+                        "\nset twice by the input quantum identifiers.  All levels must "<<
+                        "point at a unique state. " << qi;
+                        throw std::runtime_error(os.str());
+                      }
+                      break;
                     case QMI_PARTIAL: 
-                      lr.SetEvlowIndex(qi);
-                      if(do_ev) 
-                        lr.SetEvlow(vibrational_energies[qi]);
-                      break;;
+                      if(lr.EvlowIndex()==-1)
+                      {
+                        lr.SetEvlowIndex(qi);
+                        if(do_ev) 
+                          lr.SetEvlow(vibrational_energies[qi]);
+                      }
+                      else
+                      {
+                        ostringstream os;
+                        os << "The linerecord:\n"<<lr<<"\nhad the energy state level of "<<
+                        "this quantum identifier:\n"<<nlte_quantum_identifiers[qi]<<
+                        "\nset twice by the input quantum identifiers.  All levels must "<<
+                        "point at a unique state. " << qi;
+                        throw std::runtime_error(os.str());
+                      }
+                      break;
                 }
             }
         }

@@ -75,6 +75,7 @@ abs_lines_per_speciesCreateFromLines
 abs_lookupSetup
 #WriteXML( "ascii", abs_p )
 abs_xsec_agenda_checkedCalc
+nlte_checkedCalc
 abs_lookupCalc
 StringSet( outname, "ARTS3-from-HITRAN08_LUT_" )
 Append( outname, ext )
@@ -94,6 +95,7 @@ abs_lines_per_speciesCreateFromLines
 # create the LUT
 abs_lookupSetup
 abs_xsec_agenda_checkedCalc
+nlte_checkedCalc
 abs_lookupCalc
 StringSet( outname, "ARTS4-from-HITRAN08_LUT_" )
 Append( outname, ext )
@@ -112,6 +114,7 @@ abs_lines_per_speciesCreateFromLines
 # create the LUT
 abs_lookupSetup
 abs_xsec_agenda_checkedCalc
+nlte_checkedCalc
 abs_lookupCalc
 StringSet( outname, "Perrin_LUT_" )
 Append( outname, ext )

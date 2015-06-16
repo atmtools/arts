@@ -1,6 +1,7 @@
 Arts2 {
 
 propmat_clearsky_agenda_checkedCalc
+nlte_checkedCalc
 atmfields_checkedCalc
 atmgeom_checkedCalc
 cloudbox_checkedCalc
