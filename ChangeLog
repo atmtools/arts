@@ -1,3 +1,17 @@
+2015-06-16  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-2-47
+
+	* controlfiles/artscomponents/absorption/IsoRatios_H2O[orig,mani].xml:
+	Updated N2 iso ratios to state of built-in data (which had changed by
+	2014-04-07). Fixes broken TestIsoRatio.arts case.
+
+	* controlfiles/artscomponents/arts-xml-data/TestPlanetIsoRatios.arts,
+	TestPlanetIsoRatios.[Venus,Mars,Jupiter].y_reference.xml:
+	Apply Compare. Reference data for PlanetIso case added.
+
+	* doc/uguide/absorption_theory.tex, absorption.tex: Spell/Grammar fixes.
+
 2015-05-06  Mathias Milz  <mathias.milz@ltu.se>
 
 	* arts-2-2-46
@@ -5,9 +19,9 @@
 	* src/m_sensor.cc: (f_gridFromSensorHIRS)
 	  replaced line 747:
 	       Vector grid(fmin[i], npi, gs);
-          by:  
+	  by:  
 	       Vector grid;
-               linspace(grid,fmin[i],fmax[i],gs);
+	       linspace(grid,fmin[i],fmax[i],gs);
 	  
 	  as numerical uncertainties in gs created 
 	  errors in f_grid 
@@ -15,9 +29,9 @@
 	* src/m_sensor.cc: (f_gridFromSensorAMSU)
 	  replaced line 506:
 	       Vector grid(fmin[i], npi, gs);
-          by:  
+	  by:  
 	       Vector grid;
-               linspace(grid,fmin[i],fmax[i],gs);
+	       linspace(grid,fmin[i],fmax[i],gs);
 	  
 	  as numerical uncertainties in gs created 
 	  errors in f_grid 

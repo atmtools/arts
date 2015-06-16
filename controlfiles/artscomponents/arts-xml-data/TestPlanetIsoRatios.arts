@@ -135,18 +135,25 @@ Compare( yA, yB, 1e-20 )
 #  the different planets (isotopologue data from toolbox data collection)
 #######
 
+VectorCreate( yREFERENCE )
 
 ReadXML( isotopologue_ratios, "planets/Venus/isotopratio_Venus" )
 yCalc
-#WriteXML( "ascii", y, "y.IsoRatios_Venus.xml" )
+#WriteXML( in=y, filename="TestPlanetIsoRatios.Venus.y_reference.xml" )
+ReadXML( out=yREFERENCE, filename="TestPlanetIsoRatios.Venus.y_reference.xml" )
+Compare( yREFERENCE, y, 1e-12 )
 
 ReadXML( isotopologue_ratios, "planets/Mars/isotopratio_Mars" )
 yCalc
-#WriteXML( "ascii", y, "y.IsoRatios_Mars.xml" )
+#WriteXML( in=y, filename="TestPlanetIsoRatios.Mars.y_reference.xml" )
+ReadXML( out=yREFERENCE, filename="TestPlanetIsoRatios.Mars.y_reference.xml" )
+Compare( y, yREFERENCE, 1e-12 )
 
 ReadXML( isotopologue_ratios, "planets/Jupiter/isotopratio_Jupiter" )
 yCalc
-#WriteXML( "ascii", y, "y.IsoRatios_Jupiter.xml" )
+#WriteXML( in=y, filename="TestPlanetIsoRatios.Jupiter.y_reference.xml" )
+ReadXML( out=yREFERENCE, filename="TestPlanetIsoRatios.Jupiter.y_reference.xml" )
+Compare( y, yREFERENCE, 1e-12 )
 
 }
 
