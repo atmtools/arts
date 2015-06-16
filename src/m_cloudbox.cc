@@ -2057,8 +2057,32 @@ void dNdD_MP48 (//WS Output:
               //WS Input:
               const Vector& diameter_melted_equivalent,
               const Numeric& PR,
+              const String& PRunit,
+              const Numeric& rho,
               const Verbosity&)
 {
+  Numeric tPR;
+  if (PRunit == "mm/h")
+    tPR = PR;
+  else if ( (PRunit == "SI") || (PRunit == "kg/m2/s") )
+    {
+      if (rho<=0.)
+        {
+          ostringstream os;
+          os << "Precipitation unit " << PRunit
+             << " requires valid material density (rho>0).\n"
+             << "Yours is rho=" << rho << "kg/m3.\n";
+          throw runtime_error ( os.str() );
+        }
+      tPR = PR * (3.6e6/rho);
+    }
+  else
+    {
+      ostringstream os;
+      os << "Precipitation unit '" << PRunit << "' unknown.\n";
+      throw runtime_error ( os.str() );
+    }
+
   Index n_se = diameter_melted_equivalent.nelem();
   dNdD.resize(n_se);
 
@@ -2067,7 +2091,7 @@ void dNdD_MP48 (//WS Output:
     {
       // calculate particle size distribution with MP48
       // output: [# m^-3 m^-1]
-      dNdD[i] = PRtopnd_MP48 ( PR, diameter_melted_equivalent[i]);
+      dNdD[i] = PRtopnd_MP48 ( tPR, diameter_melted_equivalent[i]);
     }
 }
 

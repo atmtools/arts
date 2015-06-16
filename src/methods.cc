@@ -3637,7 +3637,8 @@ void define_md_data_raw()
         OUT(),
         GOUT( "dNdD", "Ar" ),
         GOUT_TYPE( "Vector", "Vector" ),
-        GOUT_DESC( "size distribution number density", "area ratio distribution" ),
+        GOUT_DESC( "size distribution number density [#/m3/m]",
+                   "area ratio distribution" ),
         IN(),
         GIN( "Dmax", "t" ),
         GIN_TYPE( "Vector", "Numeric" ),
@@ -3669,7 +3670,7 @@ void define_md_data_raw()
         OUT(),
         GOUT( "dNdD" ),
         GOUT_TYPE( "Vector" ),
-        GOUT_DESC( "size distribution number density" ),
+        GOUT_DESC( "size distribution number density [#/m3/m]" ),
         IN(),
         GIN( "Dmax", "t" ),
         GIN_TYPE( "Vector", "Numeric" ),
@@ -3690,15 +3691,12 @@ void define_md_data_raw()
          "distribution implemented here is for cloud liquid water,\n"
          "specifically for continental stratus. The parametrization is over\n"
          "diameter of spherical droplets.\n"
-         "\n"
-         "Provides number density normalized to the given liquid water\n"
-         "content [kg/m3].\n"
          ),
         AUTHORS( "Jana Mendrok" ),
         OUT(),
         GOUT( "dNdD" ),
         GOUT_TYPE( "Vector" ),
-        GOUT_DESC( "size distribution number density" ),
+        GOUT_DESC( "size distribution number density [#/m3/m]" ),
         IN(),
         GIN( "diameter_volume_equivalent", "LWC" ),
         GIN_TYPE( "Vector", "Numeric" ),
@@ -3723,15 +3721,12 @@ void define_md_data_raw()
          "and Heymsfield (1997) additionally provide uncertainties of the\n"
          "distribution's parameters, which can be used here to create\n"
          "perturbed distributions (set *noisy* to 1).\n"
-         "\n"
-         "Provides number density normalized to the given ice water content\n"
-         "[kg/m3].\n"
          ),
         AUTHORS( "Jana Mendrok" ),
         OUT(),
         GOUT( "dNdD" ),
         GOUT_TYPE( "Vector" ),
-        GOUT_DESC( "size distribution number density" ),
+        GOUT_DESC( "size distribution number density [#/m3/m]" ),
         IN(),
         GIN( "diameter_mass_equivalent", "IWC", "t", "noisy" ),
         GIN_TYPE( "Vector", "Numeric", "Numeric", "Index" ),
@@ -3755,15 +3750,12 @@ void define_md_data_raw()
        "tropics. Parametrization is in snow water or ice water content (SWC,\n"
        "IWC) and ambient atmospheric temperature over particle size in terms\n"
        "of maximum diameter.\n"
-       "\n"
-       "Provides number density normalized to the given snow/ice water\n"
-       "content [kg/m3].\n"
        ),
       AUTHORS( "Manfred Brath" ),
       OUT(),
       GOUT( "dNdD" ),
       GOUT_TYPE( "Vector" ),
-      GOUT_DESC( "size distribution number density" ),
+      GOUT_DESC( "size distribution number density [#/m3/m]" ),
       IN(),
       GIN( "diameter_max", "SWC", "t", "alpha", "beta" ),
       GIN_TYPE( "Vector", "Numeric", "Numeric", "Numeric", "Numeric" ),
@@ -3788,15 +3780,12 @@ void define_md_data_raw()
        "mid-latitudes. Parametrization is in snow water or ice water content\n"
        "(SWC, IWC) and ambient atmospheric temperature over particle size in\n"
        "terms of maximum diameter.\n"
-       "\n"
-       "Provides number density normalized to the given snow/ice water\n"
-       "content [kg/m3].\n"
        ),
       AUTHORS( "Manfred Brath" ),
       OUT(),
       GOUT( "dNdD" ),
       GOUT_TYPE( "Vector" ),
-      GOUT_DESC( "size distribution number density" ),
+      GOUT_DESC( "size distribution number density [#/m3/m]" ),
       IN(),
       GIN( "diameter_max", "SWC", "t", "alpha", "beta" ),
       GIN_TYPE( "Vector", "Numeric", "Numeric", "Numeric", "Numeric" ),
@@ -3815,11 +3804,11 @@ void define_md_data_raw()
       (
        "Calculation of particle size distribution (dN/dm) following\n"
        "the two moment scheme of Axel Seifert that is used in the ICON model.\n"
+       "\n"
        "A wrapper to internal particle size distribution calculation. The Seifert two\n"
        "moment scheme is a parametrization for 6 different hydrometeors in total number\n"
        "density  (zeroth moment) and the mass concentration (first moment) as function\n"
-       "of the  particle mass. Provides number density, normalized to the given mass\n"
-       "content.\n"
+       "of the  particle mass.\n"
        "Important, depending on the hydrometeor type, there is a lower and a upper\n"
        "boundary for valid particle mass. For masses below and above these boundary\n"
        "the number density is set to zero. Within this function the mass is NOT\n"
@@ -3836,7 +3825,7 @@ void define_md_data_raw()
       OUT(),
       GOUT( "dNdD" ),
       GOUT_TYPE( "Vector" ),
-      GOUT_DESC( "size distribution number density" ),
+      GOUT_DESC( "size distribution number density [#/m3/m]" ),
       IN(),
       GIN( "mass", "N_tot", "M", "psd_type" ),
       GIN_TYPE( "Vector", "Numeric", "Numeric", "String" ),
@@ -3861,15 +3850,12 @@ void define_md_data_raw()
        "modified gamma distribution with the coefficients of\n"
        " Geer and Baordo (2014). It assumes spherical particles of constant\n"
        "density.\n"
-       "\n"
-       "Provides number density normalized to the given liquid water content\n"
-       "[kg/m3].\n"
        ),
       AUTHORS( "Manfred Brath" ),
       OUT(),
       GOUT( "dNdD" ),
       GOUT_TYPE( "Vector" ),
-      GOUT_DESC( "size distribution number density" ),
+      GOUT_DESC( "size distribution number density [#/m3/m]" ),
       IN(),
       GIN( "diameter_volume_equ", "rho", "LWC"),
       GIN_TYPE( "Vector", "Numeric", "Numeric" ),
@@ -3894,22 +3880,19 @@ void define_md_data_raw()
        "modified gamma distribution with the coefficients of\n"
        " Geer and Baordo (2014). It assumes spherical particles of constant\n"
        "density.\n"
-       "\n"
-       "Provides number density normalized to the given ice water content\n"
-       "[kg/m3].\n"
        ),
       AUTHORS( "Manfred Brath" ),
       OUT(),
       GOUT( "dNdD" ),
       GOUT_TYPE( "Vector" ),
-      GOUT_DESC( "size distribution number density" ),
+      GOUT_DESC( "size distribution number density [#/m3/m]" ),
       IN(),
       GIN( "diameter_volume_equ","rho","IWC"),
       GIN_TYPE( "Vector","Numeric","Numeric" ),
       GIN_DEFAULT( NODEF, NODEF, NODEF ),
       GIN_DESC( "Volume equivalent diameter of the particles [m]",
-               "Density of the particles [kg/m^3]",
-               "Atmospheric ice water content [kg/m3]")
+                "Density of the particles [kg/m^3]",
+                "Atmospheric ice water content [kg/m3]")
       ));
     
   md_data_raw.push_back
@@ -3926,20 +3909,25 @@ void define_md_data_raw()
          "precipitation rate (PR) over particle size, here taken in terms of\n"
          "melted equivalent sphere diameter.\n"
          "\n"
-         "Provides number density normalized to the given precipitation rate\n"
-         "[kg/m2/s].\n"
+         "Precipitation rate can be given in different units, indicated by\n"
+         "*PRunit*. Allowed are: 'mm/h' and 'kg/m2/s' and 'SI', where the\n"
+         "latter two are equivalent. The latter two also require\n"
+         "specification of *density* assuming a constant or mean density over\n"
+         "all particle sizes.\n"
          ),
         AUTHORS( "Jana Mendrok" ),
         OUT(),
         GOUT( "dNdD" ),
         GOUT_TYPE( "Vector" ),
-        GOUT_DESC( "size distribution number density" ),
+        GOUT_DESC( "size distribution number density [#/m3/m]" ),
         IN(),
-        GIN( "diameter_melted_equivalent", "PR" ),
-        GIN_TYPE( "Vector", "Numeric" ),
-        GIN_DEFAULT( NODEF, NODEF ),
+        GIN( "diameter_melted_equivalent", "PR", "PRunit", "density" ),
+        GIN_TYPE( "Vector", "Numeric", "String", "Numeric" ),
+        GIN_DEFAULT( NODEF, NODEF, "SI", NODEF ),
         GIN_DESC( "Melted equivalent sphere diameter of the particles [m]",
-                  "Precipitation rate [mm/h]" )
+                  "Precipitation rate [mm/h or kg/m2/s]",
+                  "Precipitation rate unit",
+                  "Material density [kg/m3] (required if PRunit!='mm/h')" )
         ));  
     
   md_data_raw.push_back

@@ -1,3 +1,23 @@
+2015-06-16  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-3-239
+
+	* src/cloudbox.cc
+	(pnd_fieldMP48): Modified to be consistent with dNdD_MP48, now both
+	applying PRtopnd_MP48. Improved mean density estimation initialization.
+
+	(PRtopnd_MP48): Fixed bug in distribution parameter setting.
+
+	* src/m_cloudbox.cc (dNdD_MP48): Introduced choice of input unit.
+	Mimicking unit conversion done in pnd_fieldMP48 as far as possible.
+
+	* src/methods.cc
+	(dNdD_MP48): Adapted to interface changes due to unit conversion change
+	above. Corrected documentation.
+
+	(dNdD_*): Removed misleading info in explanation. Added unit info to
+	output parameter descriptor.
+
 2015-06-16 Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-3-238

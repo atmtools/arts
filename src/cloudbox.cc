@@ -2436,12 +2436,12 @@ void pnd_fieldMP48 (Tensor4View pnd_field,
             {
               Index n_it = 0;
 
-              // initializing for proper start of while loop
-              lambda = 0.;
-              rho_mean = 0.;
+              // initializing for proper start of while loop.
+              rho_mean = 0.; //this has to be off the real value in order to go
+                             //into while loop
               mass_total = mass.sum();
-              vol_total = 1.;
-              while (abs( rho_mean/(mass_total/vol_total)-1.)>1e-2)
+              vol_total = vol.sum();
+              while (abs( rho_mean/(mass_total/vol_total)-1.)>1e-3)
               // did bulk mean density change?
               {
                 if (n_it>10)
@@ -2468,11 +2468,7 @@ void pnd_fieldMP48 (Tensor4View pnd_field,
                 {
                     // calculate particle size distribution with MP48
                     // output: [# m^-3 m^-1]
-                    //dNdD[i] = PRtopnd_MP48 ( tPR, diameter_melted_equivalent[i]);
-                    // too much a hassle to have a separate function. so we do
-                    // the calculation directly here.
-                    dNdD[i] = N0 * exp(-lambda*diameter_melted_equivalent[i]);
-                    //dNdD2[i] = dNdD[i] * vol[i] * rho[i];
+                    dNdD[i] = PRtopnd_MP48 ( tPR, diameter_melted_equivalent[i]);
                 }
 
                 // scale pnds by bin width
@@ -2508,7 +2504,7 @@ void pnd_fieldMP48 (Tensor4View pnd_field,
               }
             }
 
-            // MP48 requires mass flux (actually, it's preci rate. but we can
+            // MP48 requires mass flux (actually, it's precip rate. but we can
             // convert these). If not set, abort calculation.
             else if ( isnan(PR_field ( p, lat, lon )) )
               {
@@ -3513,8 +3509,9 @@ Numeric PRtopnd_MP48 (const Numeric PR,
     return 0.0;
   }
 
-  Numeric N0 = 0.08*1e-2; // [#/cm3/cm] converted to [#/m3/um]
-  Numeric lambda = 41.*1e2*pow(PR,-0.21); // [1/cm] converted to [1/m] to fit diameter_melted_equivalent[m]
+  Numeric N0 = 0.08*1e8; // [#/cm3/cm] converted to [#/m3/m]
+  Numeric lambda = 41.*1e2*pow(PR,-0.21); // [1/cm] converted to [1/m] to fit
+                                          // diameter_melted_equivalent [m]
 
   Numeric n = N0*exp(-lambda*diameter_melted_equivalent);
   return n;
