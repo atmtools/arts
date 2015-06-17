@@ -1,3 +1,19 @@
+2015-06-17  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-3-240
+
+	* adapted ARTS-XML-DATA-2-2-3 equivalent changes:
+
+	* controlfiles/artscomponents/absorption/IsoRatios_H2O[orig,mani].xml:
+	Updated N2 iso ratios to state of built-in data (which had changed by
+	2014-04-07). Fixes broken TestIsoRatio.arts case.
+
+	* controlfiles/artscomponents/arts-xml-data/TestPlanetIsoRatios.arts,
+	TestPlanetIsoRatios.[Venus,Mars,Jupiter].y_reference.xml:
+	Apply Compare. Reference data for PlanetIso case added.
+
+	* doc/uguide/absorption_theory.tex, absorption.tex: Spell/Grammar fixes.
+
 2015-06-16  Jana Mendrok  <jana.mendrok@ltu.se>
 
 	* arts-2-3-239
@@ -108,6 +124,7 @@
 	controlfiles/artscomponents/zeeman/TestZeemanPreCalc.arts
 	controlfiles/instruments/odinsmr/TestOdinSMR_1D.arts
 
+>>>>>>> .r9330
 2015-06-12  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-237

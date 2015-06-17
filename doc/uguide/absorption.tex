@@ -81,7 +81,8 @@ therefore more suitable for storing in a lookup table.
 
 Some processes create polarized absorption, which is described by a
 4$\times$4 matrix, in ARTS called propagation matrix
-(\wsvindex{propmat\_clearsky}, already introduced in Section \ref{sec:rteq}).  This variable is used by the ARTS RT
+(\wsvindex{propmat\_clearsky}, already introduced in Section \ref{sec:rteq}).
+This variable is used by the ARTS RT
 functions to describe absorption.  In the absence of polarizing
 effects it is simply equal to $\AbsCoef \IdnMtr_4$, where $\IdnMtr_4$
 is the 4$\times$4 identity matrix. 
@@ -548,7 +549,7 @@ higher level methods, such as \wsmindex{propmat\_clearskyAddOnTheFly} and
 \subsection{Collision-induced absorption}
 \label{sec:absorption:cia}
 
-Collisions of molecules centro-symmetric molecules, e.g., \chem{O_2},
+Collisions of centro-symmetric molecules, e.g., \chem{O_2},
 \chem{N_2}, \chem{H_2}, \chem{CO_2}, and \chem{CH_4}, possessing no permanent
 electric dipole create a transient dipole, which causes so-called collision-induced
 absorption (CIA). Absorption strength of CIA is characterized by its dependency
