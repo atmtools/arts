@@ -1,3 +1,11 @@
+2015-06-17  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-243
+
+	* controlfiles/general/general.arts: Added a temporary solution,
+	to get qarts to work without a lot of hazzle:
+	Touch( nlte_quantum_identifiers )
+
 2015-06-17  Jana Mendrok  <jana.mendrok@ltu.se>
 
 	* arts-2-3-242

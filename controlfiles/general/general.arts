@@ -180,5 +180,10 @@ NumericSet(lm_p_lim,0)
 #
 # Initializes the t_nlte_field so that Agendas work.  Defaults to LTE
 Tensor4SetConstant(t_nlte_field, 0, 0, 0, 0, -1.0)
-}
 
+
+# A temporary solution:
+#
+Touch( nlte_quantum_identifiers )
+
+}
