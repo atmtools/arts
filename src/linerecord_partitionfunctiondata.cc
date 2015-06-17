@@ -249,8 +249,7 @@ void PartitionFunctionData::GetVectorFromData(Vector& output) const
 String PartitionFunctionData::Type2StorageTag() const
 {
   String output;
-  output.resize(2); // ARTS format specify that this is the size of the tag
-  
+
   if(mtype == PF_NONE) // The standard case
     output = "NA";
   else if(mtype == PF_Coeff) // The Coefficient case

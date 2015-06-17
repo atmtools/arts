@@ -1,3 +1,49 @@
+2015-06-17  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-241
+
+	* This code was provided by Richard and committed by me after
+	fixing the bug mentioned further down in my changes:
+
+	* src/linerecord.h (SetElow): Added.
+
+	* src/methods.cc, src/m_linerecord.cc
+	(abs_linesReplaceWithLines,
+	abs_linesReplaceParameterWithLinesParameter):
+
+	Added methods to replace line data. The lines are matched by quantum
+	numbers.
+
+	* My changes:
+
+	* src/pressurebroadeningdata.cc
+	(PressureBroadeningData::GetVectorFromData):
+
+	Fix bug in indexing for PB_AIR_AND_WATER_BROADENING that left
+	uninitialized values.
+
+	* src/linerecord_partitionfunctiondata.cc
+	(PartitionFunctionData::Type2StorageTag):
+
+	Remove string resize statement that has no effect.
+
+	* src/linerecord.h (SetPartitionFunctionData, SetLineMixingData,
+	SetPressureBroadeningData):
+
+	Pass function arguments by reference to avoid unnecessary copying of
+	objects.
+
+	* m_linerecord.cc (abs_linesReplaceParameterWithLinesParameter):
+
+	Change type of lr inside loop to a const reference to avoid unnecessary
+	copying of line records.
+
+	* src/m_linerecord.cc (abs_linesReplaceWithLines,
+	abs_linesReplaceParameterWithLinesParameter):
+
+	Define ostringstream only where needed because it is expensive to
+	create.
+
 2015-06-17  Jana Mendrok  <jana.mendrok@ltu.se>
 
 	* arts-2-3-240

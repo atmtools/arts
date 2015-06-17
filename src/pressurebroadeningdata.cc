@@ -437,13 +437,13 @@ void PressureBroadeningData::GetVectorFromData(Vector& output) const
         output[1]=mdata[0][1];
         output[2]=mdata[0][2];
         
-        output[0]=mdata[1][0];
-        output[1]=mdata[1][1];
-        output[2]=mdata[1][2];
+        output[3]=mdata[1][0];
+        output[4]=mdata[1][1];
+        output[5]=mdata[1][2];
         
-        output[0]=mdata[2][0];
-        output[1]=mdata[2][1];
-        output[2]=mdata[2][2];
+        output[6]=mdata[2][0];
+        output[7]=mdata[2][1];
+        output[8]=mdata[2][2];
     }
     else if(mtype == PB_PERRIN_BROADENING) // 2 Numerics and 3 Vectors of 6-length
     {

@@ -690,6 +690,56 @@ void define_md_data_raw()
     
   md_data_raw.push_back
     ( MdRecord
+    ( NAME( "abs_linesReplaceWithLines" ),
+      DESCRIPTION
+      (
+          "Replace all lines in *abs_lines* that match with lines in replacement_lines.\n"
+          "\n"
+          "All lines in replacement_lines must match to a single line in *abs_lines*.\n"
+      ),
+      AUTHORS( "Richard Larsson" ),
+      OUT( "abs_lines" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "abs_lines" ),
+      GIN( "replacement_lines" ),
+      GIN_TYPE( "ArrayOfLineRecord" ),
+      GIN_DEFAULT( NODEF ),
+      GIN_DESC( "Line-array that replace lines in *abs_lines*." )
+    ));
+    
+  md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "abs_linesReplaceParameterWithLinesParameter" ),
+      DESCRIPTION
+      (
+          "Replace parameter of all lines in *abs_lines* that match with lines in replacement_lines.\n"
+          "Only works for:\n"
+          "parameter_name = \"Central Frequency\"\n"
+          "parameter_name = \"Line Strength\"\n"
+          "parameter_name = \"Pressure Broadening\"\n"
+          "parameter_name = \"Line Mixing\"\n"
+          "parameter_name = \"Lower State Energy\"\n"
+          "\n"
+          "All lines in replacement_lines must match to a single line in *abs_lines*.\n"
+      ),
+      AUTHORS( "Richard Larsson" ),
+      OUT( "abs_lines" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "abs_lines" ),
+      GIN( "replacement_lines" , "parameter_name"),
+      GIN_TYPE( "ArrayOfLineRecord", "String" ),
+      GIN_DEFAULT( NODEF, NODEF ),
+      GIN_DESC( "Line-array that replace lines in *abs_lines*.",
+                "Name of parameter to be replaced"
+      )
+    ));
+    
+  md_data_raw.push_back
+    ( MdRecord
     ( NAME( "abs_linesShiftFrequency" ),
       DESCRIPTION
       (

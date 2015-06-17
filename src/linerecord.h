@@ -388,6 +388,7 @@ public:
 
   /** Lower state energy in <b> cm^-1</b>: */ //FIXME: really in cm-1 still?
   Numeric Elow() const  { return melow; }
+  void SetElow( Numeric new_melow ) { melow = new_melow; }
   
   /** Lower state vibrational energy in <b> cm^-1</b>: */ //FIXME: really in cm-1 still?
   Numeric Evlow() const  { return mevlow; }
@@ -580,18 +581,18 @@ public:
   
   /** Line Mixing data */
   const LineMixingData& LineMixing() const { return mlinemixingdata; }
-  void SetLineMixingData(const LineMixingData input) { mlinemixingdata=input; }
+  void SetLineMixingData(const LineMixingData& input) { mlinemixingdata=input; }
   
   /** Partition Function Data */
   const PartitionFunctionData& PartitionFunction() const { return mpartitionfunctiondata; }
-  void SetPartitionFunctionData(const PartitionFunctionData input) { mpartitionfunctiondata=input; }
+  void SetPartitionFunctionData(const PartitionFunctionData& input) { mpartitionfunctiondata=input; }
   void GetLineScalingData(Numeric& partition_ratio, Numeric& boltzmann_ratio, 
                           Numeric& abs_nlte_ratio, Numeric& src_nlte_ratio, 
                           const Numeric& atm_t, ConstVectorView atm_t_nlte) const;
   
   /** Pressure Broadening Data */
   const PressureBroadeningData& PressureBroadening() const { return mpressurebroadeningdata; }
-  void SetPressureBroadeningData(const PressureBroadeningData input) { mpressurebroadeningdata=input; }
+  void SetPressureBroadeningData(const PressureBroadeningData& input) { mpressurebroadeningdata=input; }
         
 
   /** Indices of different broadening species in Gamma_foreign, 

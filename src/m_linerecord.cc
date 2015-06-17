@@ -222,3 +222,187 @@ void abs_lines_per_speciesMatchNLTEQuantumIdentifiers(ArrayOfArrayOfLineRecord& 
         }
     }
 }
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_linesReplaceWithLines(ArrayOfLineRecord& abs_lines, 
+                               const ArrayOfLineRecord& replacement_lines, 
+                               const Verbosity&)
+{
+  
+  if(replacement_lines.nelem()==0)
+    throw std::runtime_error("replacement_lines is empty.\n");
+  
+  ArrayOfIndex matches;
+  ArrayOfQuantumMatchInfo match_info;
+
+  for (Index ri = 0; ri < replacement_lines.nelem(); ri++)
+  {
+    QuantumIdentifier QI;
+    QI.SetSpecies(replacement_lines[ri].Species());
+    QI.SetIsotopologue(replacement_lines[ri].Isotopologue());
+    QI.SetTransition(replacement_lines[ri].QuantumNumbers().Upper(),replacement_lines[ri].QuantumNumbers().Lower());
+    
+    
+    // Run internal mathcing routine
+    match_lines_by_quantum_identifier(matches, match_info, QI, abs_lines);
+    
+    // We demand that things are formatted the right way and that there are not multiple matches.
+    if( matches.nelem()>1 )
+    { 
+      ostringstream os;
+      os << "Multiple matches in comparison.  Something is wrong!\n"
+         << "Line is:\n" << replacement_lines[ri]<<std::endl;
+      throw std::runtime_error(os.str());
+    }
+    else if( matches.nelem()==0 )
+      { 
+        ostringstream os;
+        os << "No match found!  Make sure your replacement lines and abs_lines have the same quantum numbers definition.\n"
+         << "Line is:\n" << replacement_lines[ri]<<std::endl;
+        throw std::runtime_error(os.str());
+    }
+    
+    LineRecord& lr_old = abs_lines[matches[0]];
+    
+    // If any of the levels match partially or fully set the right quantum number
+    switch (match_info[0].Upper())
+    {
+      case QMI_NONE:
+        {
+        ostringstream os;
+        os << "There are no quantum numbers in your replacement ines so they match to abs_lines.\n"
+           << "replacement_line:\n"<<replacement_lines[ri]<<"\nabs_line:\n"<<lr_old<<std::endl;
+        throw std::runtime_error(os.str());
+        break;
+        }
+      case QMI_PARTIAL:
+        {
+        ostringstream os;
+        os << "Your replacement lines are only partially defined so they match to the abs_lines.\n"
+           << "replacement_line:\n"<<replacement_lines[ri]<<"\nabs_line:\n"<<lr_old<<std::endl;
+        throw std::runtime_error(os.str());
+        break;
+        }
+      case QMI_FULL:
+        {
+        lr_old = replacement_lines[ri];
+        break;
+        }
+    }
+  }
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_linesReplaceParameterWithLinesParameter(ArrayOfLineRecord& abs_lines, 
+                                                 const ArrayOfLineRecord& replacement_lines, 
+                                                 const String& parameter_name,
+                                                 const Verbosity&)
+{
+  
+  Index parameter_switch = -1;
+  
+  if(parameter_name.nelem()==0)
+    throw std::runtime_error("parameter_name is empty.\n");
+  if(replacement_lines.nelem()==0)
+    throw std::runtime_error("replacement_lines is empty.\n");
+  else if(parameter_name == "Central Frequency")
+    parameter_switch = 0;
+  else if(parameter_name == "Line Strength")
+    parameter_switch = 1;
+  else if(parameter_name == "Pressure Broadening")
+    parameter_switch = 2;
+  else if(parameter_name == "Line Mixing")
+    parameter_switch = 3;
+  else if(parameter_name == "Lower State Energy")
+    parameter_switch = 4;
+  
+  
+  ArrayOfIndex matches;
+  ArrayOfQuantumMatchInfo match_info;
+
+  for (Index ri = 0; ri < replacement_lines.nelem(); ri++)
+  {
+    const LineRecord& lr = replacement_lines[ri];
+    QuantumIdentifier QI;
+    QI.SetSpecies(lr.Species());
+    QI.SetIsotopologue(lr.Isotopologue());
+    QI.SetTransition(lr.QuantumNumbers().Upper(),lr.QuantumNumbers().Lower());
+    
+    
+
+    // Run internal mathcing routine
+    match_lines_by_quantum_identifier(matches, match_info, QI, abs_lines);
+    
+    // We demand that things are formatted the right way and that there are not multiple matches.
+    if( matches.nelem()>1 )
+    { 
+      ostringstream os;
+      os << "Multiple matches in comparison.  Something is wrong!\n"
+         << "Line is:\n" << lr<<std::endl;
+      throw std::runtime_error(os.str());
+    }
+    else if( matches.nelem()==0 )
+      { 
+        ostringstream os;
+        os << "No match found!  Make sure your replacement lines and abs_lines have the same quantum numbers definition.\n"
+         << "Line is:\n" << lr<<std::endl;
+        throw std::runtime_error(os.str());
+    }
+    
+    LineRecord& lr_old = abs_lines[matches[0]];
+    
+    // If any of the levels match partially or fully set the right quantum number
+    switch (match_info[0].Upper())
+    {
+      case QMI_NONE:
+        {
+        ostringstream os;
+        os << "There are no quantum numbers in your replacement ines so they match to abs_lines.\n"
+           << "replacement_line:\n"<<lr<<"\nabs_line:\n"<<lr_old<<std::endl;
+        throw std::runtime_error(os.str());
+        break;
+        }
+      case QMI_PARTIAL:
+        {
+        ostringstream os;
+        os << "Your replacement lines are only partially defined so they match to the abs_lines.\n"
+           << "replacement_line:\n"<<lr<<"\nabs_line:\n"<<lr_old<<std::endl;
+        throw std::runtime_error(os.str());
+        break;
+        }
+      case QMI_FULL:
+        switch (parameter_switch)
+        {
+          case 0: //"Central Frequency":
+            lr_old.setF(lr.F());
+            break;
+          case 1: //"Line Strength":
+            lr_old.setI0(lr.I0());
+            break;
+          case 2: //"Pressure Broadening":
+            lr_old.SetPressureBroadeningData(lr.PressureBroadening());
+            break;
+          case 3: //"Line Mixing":
+            lr_old.SetLineMixingData(lr.LineMixing());
+            break;
+          case 4: //"Lower State Energy":
+            lr_old.SetElow(lr.Elow());
+            break;
+          default:
+          {
+            ostringstream os;
+            os << "Usupported paramter_name\n" << parameter_name
+               << "\nSee method description for supported parameter names.\n";
+            throw std::runtime_error(os.str());
+            break;
+          }
+            
+        }
+        break;
+    }
+  }
+}
