@@ -81,7 +81,8 @@ therefore more suitable for storing in a lookup table.
 
 Some processes create polarized absorption, which is described by a
 4$\times$4 matrix, in ARTS called propagation matrix
-(\wsvindex{propmat\_clearsky}, already introduced in Section \ref{sec:rteq}).  This variable is used by the ARTS RT
+(\wsvindex{propmat\_clearsky}, already introduced in Section \ref{sec:rteq}).
+This variable is used by the ARTS RT
 functions to describe absorption.  In the absence of polarizing
 effects it is simply equal to $\AbsCoef \IdnMtr_4$, where $\IdnMtr_4$
 is the 4$\times$4 identity matrix. 
@@ -827,7 +828,8 @@ standard temperature for corrections [K],
 first order phase temperature correction exponential term [-],
 second order absorption temperature correction exponential term [-], and
 second order line-center temperature correction exponential term [-].
-The format of the vector is fixed according to necessary information found in \citet{makarov11:_60-ghz_jqsrt},
+The format of the vector is fixed according to necessary information found in
+\citet{makarov11:_60-ghz_jqsrt},
 the naming scheme of the variables above can also be understood from the same work.
 
 First order line mixing, as per the MPM/PWR complete oxygen models, 
@@ -891,7 +893,7 @@ hydrometeors in the Earth atmosphere, but also clouds, dust and the like for
 other planets is available from the \shortcode{arts-xml-data} package.
 It is appealing to apply this data in non-scattering calculations (e.g. at low
 frequencies, where the scattering contribution is negligible) in a consistent
-manner. ARTS method for that is \wsmindex{propmat\_clearskyAddParticles} and
+manner. The ARTS method for that is \wsmindex{propmat\_clearskyAddParticles} and
 its application is described in the following.
 
 % how to setup
@@ -939,7 +941,8 @@ parallel results in a runtime error.
 
 See the built-in documentation of the individual methods for further
 information. 
-%For usage examples, check \fileindex{controlfiles/artscomponents/...} that is part of the ARTS distribution.
+%For usage examples, check \fileindex{controlfiles/artscomponents/...} that is
+%part of the ARTS distribution.
 \FIXME{add a usage example to \fileindex{controlfiles/artscomponents}}.
 
 
