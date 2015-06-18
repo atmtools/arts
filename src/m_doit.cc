@@ -300,7 +300,7 @@ void doit_conv_flagAbsBT(//WS Input and Output:
 
   // Frequency grid
   //
-  if( f_grid.nelem() == 0 )
+  if( f_grid.empty() )
     throw runtime_error( "The frequency grid is empty." );
   chk_if_increasing( "f_grid", f_grid );
 
@@ -452,7 +452,7 @@ void doit_conv_flagLsq(//WS Output:
   
   // Frequency grid
   //
-  if( f_grid.nelem() == 0 )
+  if( f_grid.empty() )
     throw runtime_error( "The frequency grid is empty." );
   chk_if_increasing( "f_grid", f_grid );
 
@@ -690,7 +690,7 @@ doit_i_fieldUpdate1D(Workspace& ws,
   
   // Frequency grid
   //
-  if( f_grid.nelem() == 0 )
+  if( f_grid.empty() )
     throw runtime_error( "The frequency grid is empty." );
   chk_if_increasing( "f_grid", f_grid );
   
@@ -858,7 +858,7 @@ doit_i_fieldUpdateSeq1D(Workspace& ws,
   
   // Frequency grid
   //
-  if( f_grid.nelem() == 0 )
+  if( f_grid.empty() )
     throw runtime_error( "The frequency grid is empty." );
   chk_if_increasing( "f_grid", f_grid );
   
@@ -1155,7 +1155,7 @@ doit_i_fieldUpdateSeq3D(Workspace& ws,
   
   // Frequency grid
   //
-  if( f_grid.nelem() == 0 )
+  if( f_grid.empty() )
     throw runtime_error( "The frequency grid is empty." );
   chk_if_increasing( "f_grid", f_grid );
   
@@ -1606,7 +1606,7 @@ void DoitInit(//WS Output
                         "atmospheric dimensions. So its dimension must"
                         "be 2 x *atmosphere_dim*");
 
-  if ( scat_data.nelem() == 0 )
+  if ( scat_data.empty() )
     throw runtime_error(
                          "No scattering data files have been added.\n"
                          "Please use the WSM *ParticleTypeAdd* or \n"
@@ -2514,7 +2514,7 @@ void DoitCalc(
 
   // Frequency grid
   //
-  if( f_grid.nelem() == 0 )
+  if( f_grid.empty() )
     throw runtime_error( "The frequency grid is empty." );
   chk_if_increasing( "f_grid", f_grid );
 

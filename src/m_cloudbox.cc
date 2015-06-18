@@ -159,12 +159,12 @@ void cloudboxSetAutomatically (// WS Output:
 
   Index nss=0;
 
-  if (scat_species_mass_density_field.nbooks() == 0)
+  if (scat_species_mass_density_field.empty())
     not_empty_md = 0;
   else
     nss = scat_species_mass_density_field.nbooks();
 
-  if (scat_species_mass_flux_field.nbooks() == 0)
+  if (scat_species_mass_flux_field.empty())
     not_empty_mf = 0;
   else if (nss!=0)
     {
@@ -180,7 +180,7 @@ void cloudboxSetAutomatically (// WS Output:
   else
     nss = scat_species_mass_flux_field.nbooks();
 
-  if (scat_species_number_density_field.nbooks() == 0)
+  if (scat_species_number_density_field.empty())
     not_empty_nd = 0;
   else if (nss!=0)
     {
@@ -635,7 +635,7 @@ void ParticleTypeAdd( //WS Output:
   //chk_atm_grids( atmosphere_dim, p_grid, lat_grid, lon_grid );
 
   // Frequency grid
-  if( f_grid.nelem() == 0 )
+  if( f_grid.empty() )
     throw runtime_error( "The frequency grid is empty." );
   chk_if_increasing( "f_grid", f_grid );
   
@@ -705,7 +705,7 @@ void ParticleTypeAddAll (//WS Output:
   //chk_atm_grids ( atmosphere_dim, p_grid, lat_grid, lon_grid );
 
   // Frequency grid
-  if ( f_grid.nelem() == 0 )
+  if ( f_grid.empty() )
     throw runtime_error ( "The frequency grid is empty." );
   chk_if_increasing ( "f_grid", f_grid );
 
@@ -763,7 +763,7 @@ void ParticleType2abs_speciesAdd( //WS Output:
   //chk_atm_grids( atmosphere_dim, p_grid, lat_grid, lon_grid );
 
   // Frequency grid
-  if( f_grid.nelem() == 0 )
+  if( f_grid.empty() )
     throw runtime_error( "The frequency grid is empty." );
   chk_if_increasing( "f_grid", f_grid );
   
@@ -1048,7 +1048,7 @@ void pnd_fieldCalcFrompnd_field_raw(//WS Output:
   //
   // Particle number density data
   // 
-  if (pnd_field_raw.nelem() == 0)
+  if (pnd_field_raw.empty())
   {
     ostringstream os;
     os << "No particle number density data given. Please use WSMs\n"
@@ -1059,7 +1059,7 @@ void pnd_fieldCalcFrompnd_field_raw(//WS Output:
   
   chk_atm_grids( atmosphere_dim, p_grid, lat_grid, lon_grid );
   ArrayOfIndex cloudbox_limits_tmp;
-  /*if ( cloudbox_limits.nelem()== 0 )
+  /*if ( cloudbox_limits.empty() )
     {
       //If no limits set, the cloud(box) is supposed to cover the
       //complete atmosphere. This particularly to facilitate use of

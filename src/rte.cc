@@ -1578,12 +1578,8 @@ void get_ppath_pmat(
             }
 
           // Point with LTE
-          if( propmat_source_clearsky.ncols() == 0 )
+          if( propmat_source_clearsky.empty() )
             {
-              assert( propmat_source_clearsky.nrows() == 0 );
-              assert( propmat_source_clearsky.npages() == 0 );
-              assert( propmat_source_clearsky.nbooks() == 0 );
-              //
               lte[ip] = 1;
               ppath_abs(joker,joker,ip) = ppath_ext(joker,joker,0,ip);
             }

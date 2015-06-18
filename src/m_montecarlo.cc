@@ -323,7 +323,7 @@ void MCGeneral(Workspace&            ws,
                               "The method handles only specular reflections." );
 
               //deal with blackbody case
-              if( local_surface_los.nrows() == 0 )
+              if( local_surface_los.empty() )
                 {
                   mult( vector1, evol_op, local_surface_emission(0,joker) );
                   mult( I_i, Q, vector1);

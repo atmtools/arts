@@ -94,20 +94,19 @@ void jacobianClose(
   const Verbosity&                 verbosity )
 {
   // Make sure that the array is not empty
-  if( jacobian_quantities.nelem() == 0 )
+  if( jacobian_quantities.empty() )
     throw runtime_error(
           "No retrieval quantities has been added to *jacobian_quantities*." );
 
   // Check that sensor_pol and sensor_response has been initialised
-  if( sensor_pos.nrows() == 0 )
+  if( sensor_pos.empty() )
     {
       ostringstream os;
-      os << "The number of rows in *sensor_pos* is zero, i.e. no measurement\n"
-         << "blocks has been defined. This has to be done before calling\n"
-         << "jacobianClose.";
+      os << "*sensor_pos* is empty, i.e. no measurement blocks has been "
+         << "defined.\nThis has to be done before calling jacobianClose.";
       throw runtime_error(os.str());
     }
-  if( sensor_response.nrows() == 0 )
+  if( sensor_response.empty() )
     {
       ostringstream os;
       os << "The sensor has either to be defined or turned off before calling\n"

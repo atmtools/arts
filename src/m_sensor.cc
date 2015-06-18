@@ -158,7 +158,7 @@ void AntennaMultiBeamsToPencilBeams(
       throw runtime_error(
                        "If *antenna_dim* is 2, *atmosphere_dim* must be 3." );
     }
-  if( nant == 0 )
+  if( antenna_dlos.empty() )
     throw runtime_error( "*antenna_dlos* is empty." );
   if( antenna_dlos.ncols() < 1  ||  antenna_dlos.ncols() > 2 )
     throw runtime_error( "*antenna_dlos* must have one or 2 columns." );
@@ -842,7 +842,7 @@ void sensor_responseAntenna(
     }
 
   // Basic checks of antenna_dlos
-  if( nlos == 0 )
+  if( antenna_dlos.empty() )
     throw runtime_error( "*antenna_dlos* is empty." );
   if( antenna_dlos.ncols() < 1  ||  antenna_dlos.ncols() > 2 )
     throw runtime_error( "*antenna_dlos* must have one or 2 columns." );
@@ -1309,7 +1309,7 @@ void sensor_responseBackendMetMM(
     if ( !( atmosphere_dim == 1  || atmosphere_dim == 3 ) )
       throw std::runtime_error("This method only supports 1D and 3D atmospheres.");
 
-    if (antenna_dlos.nrows() == 0 ||  antenna_dlos.ncols() == 0)
+    if (antenna_dlos.empty())
       throw std::runtime_error("*antenna_dlos* is empty.");
     
     if (antenna_dlos.ncols() > 2)
@@ -1941,7 +1941,7 @@ void sensor_responseInit(
   chk_if_bool(     "sensor_norm", sensor_norm       );
 
   // mblock_dlos_grid
-  if( mblock_dlos_grid.nrows() == 0 )
+  if( mblock_dlos_grid.empty() )
     throw runtime_error( "*mblock_dlos_grid* is empty." );
   if( mblock_dlos_grid.ncols() > 2 )
     throw runtime_error( 

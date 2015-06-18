@@ -323,11 +323,11 @@ void FieldFromGriddedFieldCheckLatLonHelper(const Vector& lat_grid,
     chk_griddedfield_gridname(gfield, ilat, "Latitude");
     chk_griddedfield_gridname(gfield, ilon, "Longitude");
 
-    if (lon_grid.nelem() == 0)
+    if (lon_grid.empty())
     {
         chk_size("gfield.lon_grid", gfield.get_numeric_grid(ilon), 1);
 
-        if (lat_grid.nelem() == 0)
+        if (lat_grid.empty())
             chk_size("gfield.lat_grid", gfield.get_numeric_grid(ilat), 1);
         else
             chk_if_equal("lat_grid", "gfield.lat_grid", lat_grid, gfield.get_numeric_grid(ilat));

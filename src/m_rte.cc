@@ -1717,7 +1717,7 @@ void yCalc(
   //
   chk_if_in_range( "stokes_dim", stokes_dim, 1, 4 );
   //
-  if ( f_grid.nelem() == 0 )
+  if ( f_grid.empty() )
     { throw runtime_error ( "The frequency grid is empty." ); }
   chk_if_increasing ( "f_grid", f_grid );
   if( f_grid[0] <= 0) 
@@ -1936,7 +1936,7 @@ void yCalcAppend(
   // Some initial checks of old measurement
   const Index n1   = y.nelem();
         Index nrq1 = 0; 
-  if( n1 == 0 )
+  if( y.empty() )
     throw runtime_error( "Input *y* is empty. Use *yCalc*" );
   if( y_f.nelem() != n1 )
     throw runtime_error( "Lengths of input *y* and *y_f* are inconsistent." );

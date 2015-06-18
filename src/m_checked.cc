@@ -745,7 +745,7 @@ void sensor_checkedCalc(
 
   // mblock_dlos_grid
   //
-  if( mblock_dlos_grid.nrows() == 0 )
+  if( mblock_dlos_grid.empty() )
     throw runtime_error( "*mblock_dlos_grid* is empty." );
   if( mblock_dlos_grid.ncols() > 2 )
     throw runtime_error( 

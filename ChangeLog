@@ -1,3 +1,27 @@
+2015-06-18  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-246
+
+	* Added usage of .empty() in functions listed below. This is just
+	what I found by a quick search for == 0 in the files considered.
+	.empty() should likely be used at many more places. But this I
+	leave for others / the future.
+
+	* src/m_doit.cc (doit_conv_flagAbsBT, doit_conv_flagLsq)
+	(doit_i_fieldUpdate1D, doit_i_fieldUpdateSeq1D, DoitInit)
+	(DoitCalc):
+	* src/m_checked.cc (sensor_checkedCalc):
+	* src/m_cloudbox.cc (cloudboxSetAutomatically, ParticleTypeAdd)
+	(ParticleType2abs_speciesAdd, pnd_fieldCalcFrompnd_field_raw):
+	* src/m_atmosphere.cc (FieldFromGriddedFieldCheckLatLonHelper):
+	* src/m_montecarlo.cc (MCGeneral):
+	* src/m_rte.cc (yCalcAppend, yCalc):
+	* src/m_sensor.cc (sensor_responseAntenna)
+	(AntennaMultiBeamsToPencilBeams, sensor_responseBackendMetMM)
+	(sensor_responseInit):
+	* src/m_jacobian.cc (jacobianClose):
+	* src/rte.cc (get_ppath_pmat):
+
 2015-06-18  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-245
@@ -12,7 +36,7 @@
 2015-06-18 Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-3-244
-	
+
 	* src/methods.cc:  Added text to better describe line matching
 	functions.  Suggested by Patrick.
 
