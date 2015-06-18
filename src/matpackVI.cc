@@ -28,6 +28,18 @@
 // Functions for ConstTensor6View:
 // ------------------------------
 
+//! Check if variable is empty.
+/*!
+ \param[in]  x The variable to check.
+ \return True if the size of any dimension of x is 0.
+ */
+bool ConstTensor6View::empty() const
+{
+    return (nvitrines() == 0 || nshelves() == 0
+            || nbooks() == 0 || npages() == 0
+            || nrows() == 0 || ncols() == 0);
+}
+
 /** Returns the number of vitrines. */
 Index ConstTensor6View::nvitrines() const
 {

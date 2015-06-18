@@ -141,6 +141,9 @@ class Tensor4;
 class ConstTensor4View {
 public:
   // Member functions:
+
+  bool empty() const;
+
   Index nbooks() const;
   Index npages() const;
   Index nrows()  const;

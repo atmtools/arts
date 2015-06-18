@@ -170,6 +170,12 @@ Range::Range(const Range& p, const Range& n) :
 // Functions for ConstVectorView:
 // ------------------------------
 
+//! Returns true if variable size is zero.
+bool ConstVectorView::empty() const
+{
+    return (nelem() == 0);
+}
+
 /** Returns the number of elements.  The names `size' and `length'
     are already used by STL functions returning size_t. To avoid
     confusion we choose the name `nelem'. This is also more
@@ -829,6 +835,12 @@ Vector::~Vector()
 
 // Functions for ConstMatrixView:
 // ------------------------------
+
+//! Returns true if variable size is zero.
+bool ConstMatrixView::empty() const
+{
+    return (nrows() == 0 || ncols() == 0);
+}
 
 /** Returns the number of rows. */
 Index ConstMatrixView::nrows() const

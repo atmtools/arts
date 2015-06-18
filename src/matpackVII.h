@@ -162,6 +162,7 @@ which also allocates storage. */
 class ConstTensor7View {
 public:
   // Member functions:
+  bool empty() const;
   Index nlibraries() const;
   Index nvitrines()  const;
   Index nshelves()   const;

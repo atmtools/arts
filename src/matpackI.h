@@ -295,6 +295,7 @@ public:
   typedef ConstIterator1D const_iterator;
 
   // Member functions:
+  bool empty() const;
   Index nelem() const;
   Numeric sum() const;
 
@@ -599,6 +600,7 @@ public:
   typedef ConstIterator2D const_iterator;
 
   // Member functions:
+  bool empty() const;
   Index nrows() const;
   Index ncols() const;
 

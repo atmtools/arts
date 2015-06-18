@@ -159,6 +159,7 @@ class Tensor6;
 class ConstTensor6View {
 public:
   // Member functions:
+  bool empty() const;
   Index nvitrines() const;
   Index nshelves()  const;
   Index nbooks()    const;

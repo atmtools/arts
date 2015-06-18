@@ -152,6 +152,7 @@ class Tensor5;
 class ConstTensor5View {
 public:
   // Member functions:
+  bool empty() const;
   Index nshelves() const;
   Index nbooks()   const;
   Index npages()   const;

@@ -52,7 +52,13 @@ using std::setw;
 // Simple member Functions
 // ----------------
 
-//! Returns the number of rows. 
+//! Returns true if variable size is zero.
+bool Sparse::empty() const
+{
+    return (nrows() == 0 || ncols() == 0);
+}
+
+//! Returns the number of rows.
 Index Sparse::nrows() const
 {
   return mrr;

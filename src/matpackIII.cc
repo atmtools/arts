@@ -31,6 +31,16 @@ using std::runtime_error;
 // Functions for ConstTensor3View:
 // ------------------------------
 
+//! Check if variable is empty.
+/*!
+ \param[in]  x The variable to check.
+ \return True if the size of any dimension of x is 0.
+ */
+bool ConstTensor3View::empty() const
+{
+    return (npages() == 0 || nrows() == 0 || ncols() == 0);
+}
+
 /** Const index operator for subrange. We have to also account for the
     case, that *this is already a subrange of a Tensor3. This allows
     correct recursive behavior.  */

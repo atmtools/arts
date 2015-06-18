@@ -139,6 +139,9 @@ class Tensor3;
 class ConstTensor3View {
 public:
   // Member functions:
+
+  bool empty() const;
+
   /** Returns the number of pages. */
   Index npages() const { return mpr.mextent; }
 

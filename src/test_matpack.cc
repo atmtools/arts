@@ -1151,6 +1151,80 @@ void test_matrix_multiplication()
 
 }
 
+//! Check if the empty function is working correctly
+void test_empty()
+{
+    {
+        cout << "Array" << endl;
+        ArrayOfIndex v;
+        v.resize(0); cout << v.empty() << endl;
+        v.resize(1); cout << v.empty() << endl;
+    }
+    {
+        cout << "Vector" << endl;
+        Vector v;
+        v.resize(0); cout << v.empty() << endl;
+        v.resize(1); cout << v.empty() << endl;
+    }
+    {
+        cout << "Matrix" << endl;
+        Matrix v;
+        v.resize(0,1); cout << v.empty() << endl;
+        v.resize(1,0); cout << v.empty() << endl;
+        v.resize(1,1); cout << v.empty() << endl;
+    }
+    {
+        cout << "Tensor3" << endl;
+        Tensor3 v;
+        v.resize(0,1,1); cout << v.empty() << endl;
+        v.resize(1,0,1); cout << v.empty() << endl;
+        v.resize(1,1,0); cout << v.empty() << endl;
+        v.resize(1,1,1); cout << v.empty() << endl;
+    }
+    {
+        cout << "Tensor4" << endl;
+        Tensor4 v;
+        v.resize(0,1,1,1); cout << v.empty() << endl;
+        v.resize(1,0,1,1); cout << v.empty() << endl;
+        v.resize(1,1,0,1); cout << v.empty() << endl;
+        v.resize(1,1,1,0); cout << v.empty() << endl;
+        v.resize(1,1,1,1); cout << v.empty() << endl;
+    }
+    {
+        cout << "Tensor5" << endl;
+        Tensor5 v;
+        v.resize(0,1,1,1,1); cout << v.empty() << endl;
+        v.resize(1,0,1,1,1); cout << v.empty() << endl;
+        v.resize(1,1,0,1,1); cout << v.empty() << endl;
+        v.resize(1,1,1,0,1); cout << v.empty() << endl;
+        v.resize(1,1,1,1,0); cout << v.empty() << endl;
+        v.resize(1,1,1,1,1); cout << v.empty() << endl;
+    }
+    {
+        cout << "Tensor6" << endl;
+        Tensor6 v;
+        v.resize(0,1,1,1,1,1); cout << v.empty() << endl;
+        v.resize(1,0,1,1,1,1); cout << v.empty() << endl;
+        v.resize(1,1,0,1,1,1); cout << v.empty() << endl;
+        v.resize(1,1,1,0,1,1); cout << v.empty() << endl;
+        v.resize(1,1,1,1,0,1); cout << v.empty() << endl;
+        v.resize(1,1,1,1,1,0); cout << v.empty() << endl;
+        v.resize(1,1,1,1,1,1); cout << v.empty() << endl;
+    }
+    {
+        cout << "Tensor7" << endl;
+        Tensor7 v;
+        v.resize(0,1,1,1,1,1,1); cout << v.empty() << endl;
+        v.resize(1,0,1,1,1,1,1); cout << v.empty() << endl;
+        v.resize(1,1,0,1,1,1,1); cout << v.empty() << endl;
+        v.resize(1,1,1,0,1,1,1); cout << v.empty() << endl;
+        v.resize(1,1,1,1,0,1,1); cout << v.empty() << endl;
+        v.resize(1,1,1,1,1,0,1); cout << v.empty() << endl;
+        v.resize(1,1,1,1,1,1,0); cout << v.empty() << endl;
+        v.resize(1,1,1,1,1,1,1); cout << v.empty() << endl;
+    }
+}
+
 int main()
 {
 //   test1();
@@ -1201,6 +1275,7 @@ int main()
 //    test45();
 
     //srand( time(NULL) );
-    test_matrix_multiplication();
+    //test_matrix_multiplication();
+    test_empty();
     return 1;
 }

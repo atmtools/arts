@@ -59,6 +59,16 @@ const ConstTensor3View& ConstIterator4D::operator*() const
 // Functions for ConstTensor4View:
 // ------------------------------
 
+//! Check if variable is empty.
+/*!
+ \param[in]  x The variable to check.
+ \return True if the size of any dimension of x is 0.
+ */
+bool ConstTensor4View::empty() const
+{
+    return (nbooks() == 0 || npages() == 0 || nrows() == 0 || ncols() == 0);
+}
+
 /** Returns the number of books. */
 Index ConstTensor4View::nbooks() const
 {

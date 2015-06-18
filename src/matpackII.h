@@ -68,6 +68,7 @@ public:
   void resize(Index r, Index c);
 
   // Member functions:
+  bool empty() const;
   Index nrows() const;
   Index ncols() const;
   Index nnz()   const;
