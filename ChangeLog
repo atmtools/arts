@@ -1,5 +1,16 @@
 2015-06-18  Jana Mendrok  <jana.mendrok@ltu.se>
 
+	* arts-2-3-249
+
+	* controlfiles/artscomponents/clearsky//TestBatch.arts,
+	TestBatch.ybatch.ref.xml: Added. A clear-sky batch test case/example
+	including lookup table calculation.
+
+	* controlfiles/CMakeLists.txt: Added the above. Moved AbsParticle test
+	to category 'slow'.
+
+2015-06-18  Jana Mendrok  <jana.mendrok@ltu.se>
+
 	* arts-2-3-248
 
 	* controlfiles/artscomponents/arts-xml-data/

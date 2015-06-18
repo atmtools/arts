@@ -28,7 +28,7 @@ arts_test_run_ctlfile(fast
                       artscomponents/absorption/TestAbsDoppler.arts)
 arts_test_run_ctlfile(fast 
                       artscomponents/absorption/TestCompareArtscat3And4.arts)
-arts_test_run_ctlfile(fast
+arts_test_run_ctlfile(slow
                       artscomponents/absorption/TestAbsParticle.arts)
 arts_test_run_ctlfile(slow artscomponents/absorption/TestIsoRatios.arts)
 
@@ -42,6 +42,7 @@ arts_test_run_ctlfile(fast artscomponents/pencilbeam/TestPencilBeam.arts)
 
 arts_test_run_ctlfile(fast artscomponents/clearsky/TestClearSky.arts)
 arts_test_run_ctlfile(slow artscomponents/clearsky/TestClearSky2.arts)
+arts_test_run_ctlfile(slow artscomponents/clearsky/TestBatch.arts)
 
 arts_test_run_ctlfile(fast artscomponents/stokesrot/TestStokesRotation.arts)
 
