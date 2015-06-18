@@ -696,6 +696,12 @@ void define_md_data_raw()
           "Replace all lines in *abs_lines* that match with lines in replacement_lines.\n"
           "\n"
           "All lines in replacement_lines must match to a single line in *abs_lines*.\n"
+          "\n"
+          "NB: The matching is done on basis of quantum numbers.  This means that if the ARTS\n"
+          "catalog format or ARTS reading routine do not support the quantum numbers required\n"
+          "for the matching to be unique, then this function fails.  We try to accomodate all\n"
+          "species and all catalogs, but formats and definitions are plentiful, so species are\n"
+          "added as they are needed.\n"
       ),
       AUTHORS( "Richard Larsson" ),
       OUT( "abs_lines" ),
@@ -723,6 +729,12 @@ void define_md_data_raw()
           "parameter_name = \"Lower State Energy\"\n"
           "\n"
           "All lines in replacement_lines must match to a single line in *abs_lines*.\n"
+          "\n"
+          "NB: The matching is done on basis of quantum numbers.  This means that if the ARTS\n"
+          "catalog format or ARTS reading routine do not support the quantum numbers required\n"
+          "for the matching to be unique, then this function fails.  We try to accomodate all\n"
+          "species and all catalogs, but formats and definitions are plentiful, so species are\n"
+          "added as they are needed.\n"
       ),
       AUTHORS( "Richard Larsson" ),
       OUT( "abs_lines" ),
