@@ -150,6 +150,7 @@ if (name == #ID) this->Set(QN_ ## ID, r)
         else INPUT_QUANTUM(Omega);
         else INPUT_QUANTUM(i);
         else INPUT_QUANTUM(alpha);
+        else INPUT_QUANTUM(Sym);
         else INPUT_QUANTUM(v1);
         else INPUT_QUANTUM(v2);
         else INPUT_QUANTUM(l2);

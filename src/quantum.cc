@@ -110,6 +110,7 @@ if (name == #ID) valid = true
         else INPUT_QUANTUM(Omega);
         else INPUT_QUANTUM(i);
         else INPUT_QUANTUM(alpha);
+        else INPUT_QUANTUM(Sym);
         else INPUT_QUANTUM(v1);
         else INPUT_QUANTUM(v2);
         else INPUT_QUANTUM(l2);
@@ -162,6 +163,7 @@ std::istream& operator>>(std::istream& is, QuantumNumbers& qn)
         else INPUT_QUANTUM(Omega);
         else INPUT_QUANTUM(i);
         else INPUT_QUANTUM(alpha);
+        else INPUT_QUANTUM(Sym);
         else INPUT_QUANTUM(v1);
         else INPUT_QUANTUM(v2);
         else INPUT_QUANTUM(l2);
@@ -210,6 +212,7 @@ std::ostream& operator<<(std::ostream& os, const QuantumNumbers& qn)
         OUTPUT_QUANTUM(Omega);
         OUTPUT_QUANTUM(i);
         OUTPUT_QUANTUM(alpha);
+        OUTPUT_QUANTUM(Sym);
         OUTPUT_QUANTUM(v1);
         OUTPUT_QUANTUM(v2);
         OUTPUT_QUANTUM(l2);

@@ -1,3 +1,21 @@
+2015-06-18  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-247
+
+	* src/quantum_parser_hitran.cc:
+
+	(parse_a1_sym_hitran): Ignore 'g' for O2 (only appears for lines
+	between 30 and 990 kHz). This appears to be another undocumented case.
+	The HITRAN documentation only describes 'd' and 'q' as possible values
+	for O2. Reported by Mathias.
+
+	(parse_a1_br_hitran): Allow letters up to 4 clicks away from Q.
+
+	* src/quantum.{cc,h} (operator<<, operator>>, Set,
+	IsValidQuantumNumberName):
+
+	Added missing quantum number 'Sym'.
+
 2015-06-18  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-246

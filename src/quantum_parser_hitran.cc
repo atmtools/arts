@@ -394,7 +394,7 @@ void parse_space(Rational& qn, String& s, const Index /* species */)
 void parse_a1_br_hitran(Rational& qn, String& s, const Index /* species */)
 {
     qn = 'Q' - s[0];
-    if (qn > 2)
+    if (qn > 4)
         throw std::runtime_error("Error parsing quantum number Br");
     s.erase(0, 1);
 }
@@ -429,6 +429,11 @@ void parse_a1_sym_hitran(Rational& qn, String& s, const Index species)
                  || species == species_index_from_species_name("N2")))
     {
         // FIXME: How to deal with symmetry parameter?
+    }
+    else if (ch =='g'
+             && species == species_index_from_species_name("O2"))
+    {
+        // FIXME: What does 'g' mean? Docs only talk about d and q for O2
     }
     else if (ch == 'e' || ch == 'f')
     {
