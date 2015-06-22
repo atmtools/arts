@@ -306,6 +306,18 @@ void nlteSetByQuantumIdentifiers(Index& nlte_do,
             throw std::runtime_error(os.str());
         }
     }
+    
+    // All energies must be positive
+    for(Index ii=0; ii< vibrational_energies.nelem();ii++)
+      if(vibrational_energies[ii]<0)
+        {
+          ostringstream os;
+          os << "Some of your vibrational energy levels are negative.  They should be positive.\n"
+             << "Your vibrational levels are:\n" <<vibrational_energies;
+          throw std::runtime_error(os.str());
+        }
+        
+    
 
     ArrayOfIndex matches;
     ArrayOfQuantumMatchInfo match_info;

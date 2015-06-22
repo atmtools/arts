@@ -3283,7 +3283,8 @@ void LineRecord::GetLineScalingData(Numeric& partition_ratio,
                                     Numeric& boltzmann_ratio, 
                                     Numeric& abs_nlte_ratio, 
                                     Numeric& src_nlte_ratio, 
-                                    const Numeric& atm_t, 
+                                    const Numeric& atm_t,
+                                    const bool&    do_nlte,
                                     ConstVectorView atm_t_nlte) const
 {
     // Physical constants
@@ -3307,29 +3308,31 @@ void LineRecord::GetLineScalingData(Numeric& partition_ratio,
 
     boltzmann_ratio = sb*se;
     
-    // Test the NLTE
-    const Numeric& atm_tv_low = mevlow_index<0?-1.0:atm_t_nlte[mevlow_index];
-    const Numeric& atm_tv_upp = mevupp_index<0?-1.0:atm_t_nlte[mevupp_index];
-    
-    //r_low and r_upp are ratios for the population level compared to LTE conditions
-    Numeric r_low, r_upp;
-    if( atm_tv_low > 1e-4 *atm_t ) // where 1e-4 is considered a small number so that the multiplication in the denominator does not reach zero
-      r_low = exp( - mevlow / BOLTZMAN_CONST * (atm_t-atm_tv_low) / (atm_t*atm_tv_low) );
-    else if( atm_tv_low >= 0.0 )
-      r_low = 0.0;
-    else
-      r_low = 1.0;
+    if(do_nlte)
+    {
+      // Test the NLTE of the line
+      const Numeric& atm_tv_low = mevlow_index<0?-1.0:atm_t_nlte[mevlow_index];
+      const Numeric& atm_tv_upp = mevupp_index<0?-1.0:atm_t_nlte[mevupp_index];
+      
+      //r_low and r_upp are ratios for the population level compared to LTE conditions
+      Numeric r_low, r_upp;
+      if( atm_tv_low > 1e-4 *atm_t ) // where 1e-4 is considered a small number so that the multiplication in the denominator does not reach zero
+        r_low = exp( - mevlow / BOLTZMAN_CONST * (atm_t-atm_tv_low) / (atm_t*atm_tv_low) );
+      else if( atm_tv_low >= 0.0 )
+        r_low = 0.0;
+      else
+        r_low = 1.0;
 
-    if( atm_tv_upp > 1e-4 *atm_t ) // where 1e-4 is considered a small number so that the multiplication in the denominator does not reach zero
-      r_upp = exp( - mevupp / BOLTZMAN_CONST * (atm_t-atm_tv_upp) / (atm_t*atm_tv_upp) );
-    else if( atm_tv_upp >= 0.0 )
-      r_upp = 0.0;
-    else
-      r_upp = 1.0;
+      if( atm_tv_upp > 1e-4 *atm_t ) // where 1e-4 is considered a small number so that the multiplication in the denominator does not reach zero
+        r_upp = exp( - mevupp / BOLTZMAN_CONST * (atm_t-atm_tv_upp) / (atm_t*atm_tv_upp) );
+      else if( atm_tv_upp >= 0.0 )
+        r_upp = 0.0;
+      else
+        r_upp = 1.0;
 
-    abs_nlte_ratio = (r_low - r_upp * gamma ) / ( 1 - gamma );
-    src_nlte_ratio = r_upp;
-  
+      abs_nlte_ratio = (r_low - r_upp * gamma ) / ( 1 - gamma );
+      src_nlte_ratio = r_upp;
+    }
 }
 
 

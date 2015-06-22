@@ -898,7 +898,7 @@ firstprivate(ls_attenuation, ls_phase, fac, f_local, aux)
                                                                              vmrs,verbosity);
                         
                         l_l.GetLineScalingData(partition_ratio, boltzmann_ratio, abs_nlte_ratio, src_nlte_ratio, 
-                                               t_i, t_nlte_i);
+                                               t_i, calc_src, t_nlte_i);
                         
                         xsec_single_line(xsec_accum_attenuation(arts_omp_get_thread_num(),joker),
 					 xsec_accum_source(arts_omp_get_thread_num(),joker),
@@ -1779,7 +1779,7 @@ firstprivate(attenuation, phase, fac, f_local, aux)
             abs_lines[ii].LineMixing().GetLineMixingParams( Y,  G,  DV,  t, p, lm_p_lim, 1);
             
             abs_lines[ii].GetLineScalingData(partition_ratio,boltzmann_ratio, abs_nlte_ratio, src_nlte_ratio, 
-                                             t, t_nlte);
+                                             t, calc_src, t_nlte);
             
             // Still an ugly case with non-resonant line near 0 frequency, since this is actually a band...
             if( LineMixingData::LM_LBLRTM_O2NonResonant != abs_lines[ii].LineMixing().Type() )

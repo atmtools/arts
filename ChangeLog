@@ -1,3 +1,18 @@
+2015-06-22  Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-3-251
+	
+	Added a few tests to reduce assertion risk for people trying 
+	to trigger NLTE assertions.  With these additions, it should
+	not be possible to trigger assertion errors anymore.
+	
+	* src/m_linerecord.cc:  Tests that vibrational energies are larger
+	than 0.
+	
+	* src/linerecord.{cc,h}:  Line scaling now depends on NLTE condition
+	to stop people from setting up NLTE condititions and then turning them
+	off again to find an assertion.
+
 2015-06-22  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-250
