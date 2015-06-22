@@ -1,3 +1,57 @@
+2015-06-22  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-250
+
+	* Changed how to setup nlte calculations.
+
+	Similar to jacobians, sensor and cloudbox, there is one method to turn
+	NLTE calculation off (nlteOff). It resizes NLTE data structure to empty
+	and sets the new WSV flag ntle_do to 0.
+
+	NLTE calculations are enabled by setting up the input data and then
+	calling nlteSetByQuantumIdentifiers. This method also sets the new
+	WSV flag nlte_do to 1. There will be more nlteSet* methods in the
+	future.
+
+	* controlfiles/general/general.arts:
+
+	Replace Tensor4SetConstant for t_nlte_field and Touch
+	nlte_quantum_identifiers by nlteOff.
+
+	Eventually, ntlteOff should be removed from here and added to all
+	controlfiles. This would be consistent with sensorOff, cloudboxOff and
+	jacobianOff.
+
+	* src/workspace.cc: Add new flag nlte_do.
+
+	* src/methods.cc, src/m_checked.cc (nlteOff):
+
+	New WSM to turn NLTE calculations off.
+
+	* src/m_linerecord.cc (nlteSetByQuantumIdentifiers), src/methods.cc:
+
+	Renamed from abs_lines_per_speciesMatchNLTEQuantumIdentifiers. Added
+	call to new chk_nlte function.
+
+	* src/m_abs_lookup.cc (calc_lookup_error),
+	src/m_abs.cc (abs_xsec_per_speciesInit):
+
+	nlte_checked -> nlte_do
+
+	* src/check_input.{cc,h} (chk_nlte),
+	src/m_checked.cc (ntle_checkedCalc):
+
+	Former WSM ntle_checkedCalc moved from m_checked to check_input and
+	adapted.
+
+	* controlfiles/artscomponents/**/*.arts,
+	controlfiles/instruments/odinsmr/TestOdinSMR.arts,
+	controlfiles/instruments/odinsmr/TestOdinSMR_1D.arts:
+
+	Remove nlte_checkedCalc.
+
+	* src/absorption.cc (xsec_species_line_mixing_wrapper): Ident.
+
 2015-06-18  Jana Mendrok  <jana.mendrok@ltu.se>
 
 	* arts-2-3-249

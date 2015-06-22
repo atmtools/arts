@@ -2452,7 +2452,7 @@ Numeric calc_lookup_error(// Parameters for lookup table:
   // Variable to hold result of absorption calculation:
   Tensor4 propmat_clearsky;
   Tensor4 propmat_source_clearsky;
-  Index propmat_clearsky_checked = 1, nlte_checked = 1; // FIXME: OLE: Properly pass this through?
+  Index propmat_clearsky_checked = 1, nlte_do = 0; // FIXME: OLE: Properly pass this through?
 
   // Initialize propmat_clearsky:
   propmat_clearskyInit(propmat_clearsky,
@@ -2461,7 +2461,7 @@ Numeric calc_lookup_error(// Parameters for lookup table:
                           al.f_grid,
                           1,                 // Stokes dimension
                           propmat_clearsky_checked,
-                          nlte_checked,
+                          nlte_do,
                           verbosity);
     
   // Add result of LBL calculation to propmat_clearsky:

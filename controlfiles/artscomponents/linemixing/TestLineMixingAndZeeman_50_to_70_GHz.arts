@@ -130,7 +130,6 @@ abs_lineshapeDefine( abs_lineshape, "Faddeeva_Algorithm_916", "VVH", -1 )
 # ---
 abs_xsec_agenda_checkedCalc
 propmat_clearsky_agenda_checkedCalc
-nlte_checkedCalc
 atmfields_checkedCalc
 atmgeom_checkedCalc
 cloudbox_checkedCalc

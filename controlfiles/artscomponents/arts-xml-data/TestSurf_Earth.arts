@@ -167,7 +167,6 @@ ReadXML( lsmask, casefull )
 
 abs_xsec_agenda_checkedCalc
 propmat_clearsky_agenda_checkedCalc
-nlte_checkedCalc
 
 # now we need to do some RT calc in order to APPLY the reflectivity data
 cloudbox_checkedCalc

@@ -95,136 +95,6 @@ void abs_lines_per_speciesRelativeLineStrengthShift(ArrayOfArrayOfLineRecord& ab
 }
 
 
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void abs_lines_per_speciesMatchNLTEQuantumIdentifiers(ArrayOfArrayOfLineRecord& abs_lines_per_species, 
-                                                      const ArrayOfQuantumIdentifier& nlte_quantum_identifiers, 
-                                                      const ArrayOfArrayOfSpeciesTag& abs_species,
-                                                      const Vector& vibrational_energies,
-                                                      const Verbosity&)
-{
-  
-  const bool do_ev = vibrational_energies.nelem();
-  
-  if(do_ev)
-  {
-    if( vibrational_energies.nelem()!=nlte_quantum_identifiers.nelem() )
-    {
-      ostringstream os;
-      os << "Your vibrational energy levels vector is not the same size as\n"
-         << "your *nlte_quantum_identifiers* array.  These must be the same\n"
-         << "size and the content should match.\n";
-      throw std::runtime_error(os.str());
-    }
-  }
-  
-    ArrayOfIndex matches;
-    ArrayOfQuantumMatchInfo match_info;
-
-    for (Index qi = 0; qi < nlte_quantum_identifiers.nelem(); qi++)
-    {
-        for (Index s = 0; s < abs_lines_per_species.nelem(); s++)
-        {
-          
-            // Skip this species if qi is not part of the species represented by this abs_lines
-            if(abs_species[s][0].Species() != nlte_quantum_identifiers[qi].Species())
-              continue;
-            
-            ArrayOfLineRecord& species_lines = abs_lines_per_species[s];
-            
-            // Run internal mathcing routine
-            match_lines_by_quantum_identifier(matches, match_info, nlte_quantum_identifiers[qi], species_lines);
-
-            // Use info about mathced lines to tag the relevant parameter
-            for (Index i = 0; i < matches.nelem(); i++)
-            {
-                // For each line record
-                LineRecord& lr = species_lines[matches[i]];
-                
-                // If any of the levels match partially or fully set the right quantum number
-                switch (match_info[i].Upper())
-                {
-                    case QMI_NONE:    break;
-                    case QMI_FULL:    
-                      if(lr.EvuppIndex()==-1)
-                      {
-                        lr.SetEvuppIndex(qi); 
-                        if(do_ev) 
-                          lr.SetEvupp(vibrational_energies[qi]);
-                      }
-                      else
-                      {
-                        ostringstream os;
-                        os << "The linerecord:\n"<<lr<<"\nhad the energy state level of "<<
-                        "this quantum identifier:\n"<<nlte_quantum_identifiers[qi]<<
-                        "\nset twice by the input quantum identifiers.  All levels must "<<
-                        "point at a unique state. " << qi;
-                        throw std::runtime_error(os.str());
-                      }
-                      break;
-                    case QMI_PARTIAL: 
-                      if(lr.EvuppIndex()==-1)
-                      { 
-                        lr.SetEvuppIndex(qi);
-                        if(do_ev) 
-                          lr.SetEvupp(vibrational_energies[qi]);
-                      }
-                      else
-                      {
-                        ostringstream os;
-                        os << "The linerecord:\n"<<lr<<"\nhad the energy state level of "<<
-                        "this quantum identifier:\n"<<nlte_quantum_identifiers[qi]<<
-                        "\nset twice by the input quantum identifiers.  All levels must "<<
-                        "point at a unique state. " << qi;
-                        throw std::runtime_error(os.str());
-                      }
-                      break;
-                }
-                switch (match_info[i].Lower())
-                {
-                    case QMI_NONE:    break;
-                    case QMI_FULL:    
-                      if(lr.EvlowIndex()==-1)
-                      {
-                        lr.SetEvlowIndex(qi);
-                        if(do_ev) 
-                          lr.SetEvlow(vibrational_energies[qi]);
-                      }
-                      else
-                      {
-                        ostringstream os;
-                        os << "The linerecord:\n"<<lr<<"\nhad the energy state level of "<<
-                        "this quantum identifier:\n"<<nlte_quantum_identifiers[qi]<<
-                        "\nset twice by the input quantum identifiers.  All levels must "<<
-                        "point at a unique state. " << qi;
-                        throw std::runtime_error(os.str());
-                      }
-                      break;
-                    case QMI_PARTIAL: 
-                      if(lr.EvlowIndex()==-1)
-                      {
-                        lr.SetEvlowIndex(qi);
-                        if(do_ev) 
-                          lr.SetEvlow(vibrational_energies[qi]);
-                      }
-                      else
-                      {
-                        ostringstream os;
-                        os << "The linerecord:\n"<<lr<<"\nhad the energy state level of "<<
-                        "this quantum identifier:\n"<<nlte_quantum_identifiers[qi]<<
-                        "\nset twice by the input quantum identifiers.  All levels must "<<
-                        "point at a unique state. " << qi;
-                        throw std::runtime_error(os.str());
-                      }
-                      break;
-                }
-            }
-        }
-    }
-}
-
-
-
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_linesReplaceWithLines(ArrayOfLineRecord& abs_lines, 
                                const ArrayOfLineRecord& replacement_lines, 
@@ -405,4 +275,142 @@ void abs_linesReplaceParameterWithLinesParameter(ArrayOfLineRecord& abs_lines,
         break;
     }
   }
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void nlteSetByQuantumIdentifiers(Index& nlte_do,
+                                 ArrayOfArrayOfLineRecord& abs_lines_per_species,
+                                 const ArrayOfQuantumIdentifier& nlte_quantum_identifiers,
+                                 const ArrayOfArrayOfSpeciesTag& abs_species,
+                                 const Tensor4&                   t_nlte_field,
+                                 const Vector&                    p_grid,
+                                 const Vector&                    lat_grid,
+                                 const Vector&                    lon_grid,
+                                 const Index&                     atmosphere_dim,
+                                 const Vector& vibrational_energies,
+                                 const Verbosity&)
+{
+    nlte_do = 1;
+
+    const bool do_ev = vibrational_energies.nelem();
+
+    if(do_ev)
+    {
+        if( vibrational_energies.nelem()!=nlte_quantum_identifiers.nelem() )
+        {
+            ostringstream os;
+            os << "Your vibrational energy levels vector is not the same size as\n"
+            << "your *nlte_quantum_identifiers* array.  These must be the same\n"
+            << "size and the content should match.\n";
+            throw std::runtime_error(os.str());
+        }
+    }
+
+    ArrayOfIndex matches;
+    ArrayOfQuantumMatchInfo match_info;
+
+    for (Index qi = 0; qi < nlte_quantum_identifiers.nelem(); qi++)
+    {
+        for (Index s = 0; s < abs_lines_per_species.nelem(); s++)
+        {
+
+            // Skip this species if qi is not part of the species represented by this abs_lines
+            if(abs_species[s][0].Species() != nlte_quantum_identifiers[qi].Species())
+                continue;
+
+            ArrayOfLineRecord& species_lines = abs_lines_per_species[s];
+
+            // Run internal mathcing routine
+            match_lines_by_quantum_identifier(matches, match_info, nlte_quantum_identifiers[qi], species_lines);
+
+            // Use info about mathced lines to tag the relevant parameter
+            for (Index i = 0; i < matches.nelem(); i++)
+            {
+                // For each line record
+                LineRecord& lr = species_lines[matches[i]];
+
+                // If any of the levels match partially or fully set the right quantum number
+                switch (match_info[i].Upper())
+                {
+                    case QMI_NONE:    break;
+                    case QMI_FULL:
+                        if(lr.EvuppIndex()==-1)
+                        {
+                            lr.SetEvuppIndex(qi);
+                            if(do_ev)
+                                lr.SetEvupp(vibrational_energies[qi]);
+                        }
+                        else
+                        {
+                            ostringstream os;
+                            os << "The linerecord:\n"<<lr<<"\nhad the energy state level of "<<
+                            "this quantum identifier:\n"<<nlte_quantum_identifiers[qi]<<
+                            "\nset twice by the input quantum identifiers.  All levels must "<<
+                            "point at a unique state. " << qi;
+                            throw std::runtime_error(os.str());
+                        }
+                        break;
+                    case QMI_PARTIAL:
+                        if(lr.EvuppIndex()==-1)
+                        {
+                            lr.SetEvuppIndex(qi);
+                            if(do_ev)
+                                lr.SetEvupp(vibrational_energies[qi]);
+                        }
+                        else
+                        {
+                            ostringstream os;
+                            os << "The linerecord:\n"<<lr<<"\nhad the energy state level of "<<
+                            "this quantum identifier:\n"<<nlte_quantum_identifiers[qi]<<
+                            "\nset twice by the input quantum identifiers.  All levels must "<<
+                            "point at a unique state. " << qi;
+                            throw std::runtime_error(os.str());
+                        }
+                        break;
+                }
+                switch (match_info[i].Lower())
+                {
+                    case QMI_NONE:    break;
+                    case QMI_FULL:
+                        if(lr.EvlowIndex()==-1)
+                        {
+                            lr.SetEvlowIndex(qi);
+                            if(do_ev)
+                                lr.SetEvlow(vibrational_energies[qi]);
+                        }
+                        else
+                        {
+                            ostringstream os;
+                            os << "The linerecord:\n"<<lr<<"\nhad the energy state level of "<<
+                            "this quantum identifier:\n"<<nlte_quantum_identifiers[qi]<<
+                            "\nset twice by the input quantum identifiers.  All levels must "<<
+                            "point at a unique state. " << qi;
+                            throw std::runtime_error(os.str());
+                        }
+                        break;
+                    case QMI_PARTIAL:
+                        if(lr.EvlowIndex()==-1)
+                        {
+                            lr.SetEvlowIndex(qi);
+                            if(do_ev)
+                                lr.SetEvlow(vibrational_energies[qi]);
+                        }
+                        else
+                        {
+                            ostringstream os;
+                            os << "The linerecord:\n"<<lr<<"\nhad the energy state level of "<<
+                            "this quantum identifier:\n"<<nlte_quantum_identifiers[qi]<<
+                            "\nset twice by the input quantum identifiers.  All levels must "<<
+                            "point at a unique state. " << qi;
+                            throw std::runtime_error(os.str());
+                        }
+                        break;
+                }
+            }
+        }
+    }
+    
+    chk_nlte(t_nlte_field, nlte_quantum_identifiers, abs_lines_per_species,
+             p_grid, lat_grid, lon_grid, atmosphere_dim);
 }

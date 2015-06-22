@@ -1573,7 +1573,7 @@ void abs_xsec_per_speciesInit(// WS Output:
                               const Vector&    f_grid,
                               const Vector&    abs_p,
                               const Index&     abs_xsec_agenda_checked,
-                              const Index&     nlte_checked,
+                              const Index&     nlte_do,
                               const Verbosity& verbosity
                               )
 {
@@ -1581,8 +1581,6 @@ void abs_xsec_per_speciesInit(// WS Output:
 
   if (!abs_xsec_agenda_checked)
     throw runtime_error("You must call *abs_xsec_agenda_checkedCalc* before calling this method.");
-  if (!nlte_checked)
-    throw runtime_error("You must call *nlte_checkedCalc* before calling this method.");
 
   // We need to check that abs_species_active doesn't have more elements than
   // abs_species (abs_xsec_agenda_checkedCalc doesn't know abs_species_active.
@@ -1621,7 +1619,15 @@ void abs_xsec_per_speciesInit(// WS Output:
       // Make this element of abs_xsec_per_species the right size:
       abs_xsec_per_species[i].resize( f_grid.nelem(), abs_p.nelem() );
       abs_xsec_per_species[i] = 0;       // Matpack can set all elements like this.
-      src_xsec_per_species[i].resize(0, 0);
+      if (nlte_do)
+      {
+          src_xsec_per_species[i].resize( f_grid.nelem(), abs_p.nelem() );
+          src_xsec_per_species[i] = 0;
+      }
+      else
+      {
+          src_xsec_per_species[i].resize(0, 0);
+      }
     }
 
   ostringstream os;
@@ -1629,76 +1635,6 @@ void abs_xsec_per_speciesInit(// WS Output:
      << "  Number of frequencies        : " << f_grid.nelem() << "\n"
      << "  Number of pressure levels    : " << abs_p.nelem() << "\n";
   out3 << os.str();
-}
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void abs_xsec_per_speciesInitWithSource(// WS Output:
-ArrayOfMatrix&   abs_xsec_per_species,
-ArrayOfMatrix&   src_xsec_per_species,
-// WS Input:
-const ArrayOfArrayOfSpeciesTag& tgs,
-const ArrayOfIndex& abs_species_active,
-const Vector&    f_grid,
-const Vector&    abs_p,
-const Index&     abs_xsec_agenda_checked,
-const Index&     nlte_checked,
-const Verbosity& verbosity
-)
-{
-    CREATE_OUT3;
-    
-    if (!abs_xsec_agenda_checked)
-        throw runtime_error("You must call *abs_xsec_agenda_checkedCalc* before calling this method.");
-    
-    if (!nlte_checked)
-      throw runtime_error("You must call *nlte_checkedCalc* before calling this method.");
-    // We need to check that abs_species_active doesn't have more elements than
-    // abs_species (abs_xsec_agenda_checkedCalc doesn't know abs_species_active.
-    // Usually we come here through an agenda call, where abs_species_active has
-    // been properly created somewhere internally. But we might get here by
-    // direct call, and then need to be safe!).
-    if ( tgs.nelem() < abs_species_active.nelem() )
-    {
-        ostringstream os;
-        os << "abs_species_active (n=" << abs_species_active.nelem()
-        << ") not allowed to have more elements than abs_species (n="
-        << tgs.nelem() << ")!\n";
-        throw runtime_error(os.str());
-    }
-    
-    // Initialize abs_xsec_per_species. The array dimension of abs_xsec_per_species
-    // is the same as that of abs_lines_per_species.
-    abs_xsec_per_species.resize( tgs.nelem() );
-    src_xsec_per_species.resize( tgs.nelem() ); 
-    
-    // Loop abs_xsec_per_species and make each matrix the right size,
-    // initializing to zero.
-    // But skip inactive species, loop only over the active ones.
-    for ( Index ii=0; ii<abs_species_active.nelem(); ++ii )
-    {
-        const Index i = abs_species_active[ii];
-        // Check that abs_species_active index is not higher than the number
-        // of species
-        if (i >= tgs.nelem())
-        {
-            ostringstream os;
-            os << "*abs_species_active* contains an invalid species index.\n"
-            << "Species index must be between 0 and " << tgs.nelem()-1;
-            throw std::runtime_error(os.str());
-        }
-        // Make this element of abs_xsec_per_species the right size:
-        abs_xsec_per_species[i].resize( f_grid.nelem(), abs_p.nelem() );
-        abs_xsec_per_species[i] = 0;       // Matpack can set all elements like this.
-        src_xsec_per_species[i].resize( f_grid.nelem(), abs_p.nelem() );
-        src_xsec_per_species[i] = 0;
-    }
-    
-    ostringstream os;
-    os << "  Initialized abs_xsec_per_species.\n"
-    << "  Number of frequencies        : " << f_grid.nelem() << "\n"
-    << "  Number of pressure levels    : " << abs_p.nelem() << "\n";
-    out3 << os.str();
 }
 
 
@@ -1924,7 +1860,7 @@ void abs_xsec_per_speciesAddLines(// WS Output:
                                    abs_xsec_per_species[i].ncols(),
                                    0.);
                 xsec_species(abs_xsec_per_species[i],
-			     src_xsec_per_species[i],
+                             src_xsec_per_species[i],
                              dummy_phase,
                              f_grid,
                              abs_p,
@@ -1946,7 +1882,7 @@ void abs_xsec_per_speciesAddLines(// WS Output:
                                    abs_xsec_per_species[i].ncols(),
                                    0.);
                 xsec_species_line_mixing_wrapper(abs_xsec_per_species[i],
-						 src_xsec_per_species[i],
+                                                 src_xsec_per_species[i],
                                                  dummy_phase,
                                                  f_grid,
                                                  abs_p,
@@ -2321,26 +2257,19 @@ void propmat_clearskyAddFromAbsCoefPerSpecies(// WS Output:
 /* Workspace method: Doxygen documentation will be auto-generated */
 void propmat_clearskyInit(//WS Output
                              Tensor4&                        propmat_clearsky,
-			     Tensor4&                        propmat_source_clearsky,
+                             Tensor4&                        propmat_source_clearsky,
                              //WS Input
                              const ArrayOfArrayOfSpeciesTag& abs_species,
                              const Vector&                   f_grid,
                              const Index&                    stokes_dim,
                              const Index&                    propmat_clearsky_agenda_checked,
-                             const Index&                    nlte_checked,
-                             const Verbosity&                
+                             const Index&                    nlte_do,
+                             const Verbosity&
                             )
 {
-  // Dummy initialization
-  propmat_source_clearsky.resize(0,0,0,0);
-  
-  
     if (!propmat_clearsky_agenda_checked)
         throw runtime_error("You must call *propmat_clearsky_agenda_checkedCalc* before calling this method.");
 
-    if (!nlte_checked)
-        throw runtime_error("You must call *nlte_checkedCalc* before calling this method.");
-    
     Index nf = f_grid.nelem();
     
     if(abs_species.nelem() > 0 )
@@ -2351,46 +2280,15 @@ void propmat_clearskyInit(//WS Output
             {
                 propmat_clearsky.resize(abs_species.nelem(),nf, stokes_dim, stokes_dim);
                 propmat_clearsky = 0;
-            }
-            else throw  runtime_error("stokes_dim = 0");
-        }
-        else throw runtime_error("nf = 0");
-    }
-    else throw runtime_error("abs_species.nelem() = 0");
-}
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void propmat_clearskyInitWithSource(//WS Output
-Tensor4&                        propmat_clearsky,
-Tensor4&                        propmat_source_clearsky,
-//WS Input
-const ArrayOfArrayOfSpeciesTag& abs_species,
-const Vector&                   f_grid,
-const Index&                    stokes_dim,
-const Index&                    propmat_clearsky_agenda_checked,
-const Index&                    nlte_checked,
-const Verbosity&                
-)
-{
-    if (!propmat_clearsky_agenda_checked)
-        throw runtime_error("You must call *propmat_clearsky_agenda_checkedCalc* before calling this method.");
-    
-    if (!nlte_checked)
-        throw runtime_error("You must call *nlte_checkedCalc* before calling this method.");
-    
-    Index nf = f_grid.nelem();
-    
-    if(abs_species.nelem() > 0 )
-    {
-        if(nf > 0)
-        {
-            if(stokes_dim > 0)
-            {
-                propmat_clearsky.resize(abs_species.nelem(),nf, stokes_dim, stokes_dim);
-                propmat_clearsky = 0;
-                propmat_source_clearsky.resize(abs_species.nelem(),nf, stokes_dim, stokes_dim);
-                propmat_source_clearsky = 0;
+                if (nlte_do)
+                {
+                    propmat_source_clearsky.resize(abs_species.nelem(),nf, stokes_dim, stokes_dim);
+                    propmat_source_clearsky = 0;
+                }
+                else
+                {
+                    propmat_source_clearsky.resize(0,0,0,0);
+                }
             }
             else throw  runtime_error("stokes_dim = 0");
         }

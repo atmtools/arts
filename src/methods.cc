@@ -846,35 +846,6 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "abs_lines_per_speciesMatchNLTEQuantumIdentifiers" ),
-        DESCRIPTION
-        (
-         "Takes the quantum identifers for NLTE temperatures and matches it to\n"
-         "lines in abs_lines_per_species.  abs_species must be set and is used\n"
-         "to speed up calculations.  After the function is done,  all affected\n"
-         "lines in abs_line_per_species will have a tag to the relevant quantum\n"
-         "identification.\n"
-         "\n"
-         "If vibrational_energies is input it must match nlte_quantum_identifiers\n"
-         "in length.  The vibrational energies of the affected lines will then be\n"
-         "set by the function.  Otherwise, it is assumed the vibrational energies\n"
-         "are set by another method.\n"
-         ),
-        AUTHORS( "Richard Larsson" ),
-        OUT( "abs_lines_per_species" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "nlte_quantum_identifiers", "abs_species" ),
-        GIN("vibrational_energies"),
-        GIN_TYPE("Vector"),
-        GIN_DEFAULT(NODEF),
-        GIN_DESC("Vector of vibrational energies")
-        ));
-
-    
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME( "abs_lines_per_speciesReadFromCatalogues" ),
         DESCRIPTION
         (
@@ -1765,38 +1736,13 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "abs_species", "abs_species_active", "f_grid", "abs_p",
-            "abs_xsec_agenda_checked", "nlte_checked" ),
+            "abs_xsec_agenda_checked", "nlte_do" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
       ));
     
-    md_data_raw.push_back
-    ( MdRecord
-    ( NAME( "abs_xsec_per_speciesInitWithSource" ),
-      DESCRIPTION
-      (
-          "Initialize *abs_xsec_per_species* and *src_xsec_per_species*.\n"
-          "\n"
-          "The initialization is\n"
-          "necessary, because methods *abs_xsec_per_speciesAddLines*\n"
-          "and *abs_xsec_per_speciesAddConts* just add to *abs_xsec_per_species*.\n"
-          "The size is determined from *abs_species*.\n"
-      ),
-      AUTHORS( "Stefan Buehler" ),
-      OUT( "abs_xsec_per_species", "src_xsec_per_species" ),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN( "abs_species", "abs_species_active", "f_grid", "abs_p",
-          "abs_xsec_agenda_checked", "nlte_checked" ),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()
-    ));
-
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "AgendaAppend" ),
@@ -8530,40 +8476,56 @@ void define_md_data_raw()
     
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "nlte_checkedCalc" ),
+      ( NAME( "nlteOff" ),
         DESCRIPTION
         (
-         "Checks consistency of the nlte variables.\n"
+         "Disable Non-LTE calculations.\n"
          "\n"
-         "The main test is that the source initialization of both\n"
-         "*propmat_clearsky_agenda* and *abs_xsec_agenda* is done consistently.\n"
-         "\n"
-         "As follows from how the agendas are defined, there are tests of the size\n"
-         "of *t_nlte_field*, taking the pragmatic look that you are only allowed to\n"
-         "do source calculations if *t_nlte_field* is of non-zero size.  The atmospheric\n"
-         "field test is then performed on *t_nlte_field*, where the book dimension should\n"
-         "have the size of *nlte_quantum_identifiers*.\n"
-         "\n"
-         "The most expensive test makes sure that the vibrational energies are set\n"
-         "properly for all lines.  They are initialized as -1.0, and if the non-LTE-\n"
-         "affected energy level still has a negative vibrational energy, then the\n"
-         "check is returned as a runtime_error.\n"
-         "\n"
-         "If any test fails, there is an error. Otherwise, *nlte_checked*\n"
-         "is set to 1.\n"
+         "The variables are set as follows:\n"
+         "   t_nlte_field             : Empty.\n"
+         "   nlte_quantum_identifiers : Empty.\n"
          ),
-        AUTHORS( "Richard Larsson" ),
-        OUT( "nlte_checked" ),
+        AUTHORS( "Oliver Lemke" ),
+        OUT( "nlte_do", "t_nlte_field", "nlte_quantum_identifiers" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "t_nlte_field", "nlte_quantum_identifiers", "abs_lines_per_species", 
-            "p_grid", "lat_grid", "lon_grid", "atmosphere_dim",
-            "propmat_clearsky_agenda", "abs_xsec_agenda" ),
+        IN( ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "nlteSetByQuantumIdentifiers" ),
+        DESCRIPTION
+        (
+         "Turns on NTLE calculations.\n"
+         "\n"
+         "Takes the quantum identifers for NLTE temperatures and matches it to\n"
+         "lines in abs_lines_per_species.  abs_species must be set and is used\n"
+         "to speed up calculations.  After the function is done,  all affected\n"
+         "lines in abs_line_per_species will have a tag to the relevant quantum\n"
+         "identification.\n"
+         "\n"
+         "If vibrational_energies is input it must match nlte_quantum_identifiers\n"
+         "in length.  The vibrational energies of the affected lines will then be\n"
+         "set by the function.  Otherwise, it is assumed the vibrational energies\n"
+         "are set by another method.\n"
+         ),
+        AUTHORS( "Richard Larsson" ),
+        OUT( "nlte_do", "abs_lines_per_species" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "nlte_quantum_identifiers", "abs_species", "t_nlte_field", "p_grid",
+            "lat_grid", "lon_grid", "atmosphere_dim"),
+        GIN("vibrational_energies"),
+        GIN_TYPE("Vector"),
+        GIN_DEFAULT(NODEF),
+        GIN_DESC("Vector of vibrational energies")
         ));
 
   md_data_raw.push_back
@@ -9736,40 +9698,13 @@ void define_md_data_raw()
             "f_grid",
             "stokes_dim",
             "propmat_clearsky_agenda_checked",
-            "nlte_checked"
+            "nlte_do"
         ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
         ));
-    
-    md_data_raw.push_back
-    ( MdRecord
-    ( NAME( "propmat_clearskyInitWithSource" ),
-      DESCRIPTION
-      (
-          "Initialize *propmat_clearsky* and *propmat_source_clearsky*.\n"
-          "\n"
-          "This method must be used inside *propmat_clearsky_agenda* and then\n"
-          "be called first.\n"
-      ),
-      AUTHORS( "Oliver Lemke, Richard Larsson" ),
-      OUT( "propmat_clearsky", "propmat_source_clearsky" ),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN( "abs_species",
-          "f_grid",
-          "stokes_dim",
-          "propmat_clearsky_agenda_checked",
-          "nlte_checked"
-      ),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()
-    ));
     
   md_data_raw.push_back
     ( MdRecord

@@ -1590,7 +1590,7 @@ ostream& operator<< (ostream &os, const LineshapeSpec& lsspec)
  * 
  */
 void xsec_species_line_mixing_wrapper(  MatrixView               xsec_attenuation,
-					MatrixView               xsec_source,
+                                        MatrixView               xsec_source,
                                         MatrixView               xsec_phase,
                                         ConstVectorView          f_grid,
                                         ConstVectorView          abs_p,

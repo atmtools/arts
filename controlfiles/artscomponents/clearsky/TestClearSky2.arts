@@ -112,7 +112,6 @@ VectorSet( rte_pos2, [] )     # A dummy value
 # ---
 abs_xsec_agenda_checkedCalc
 propmat_clearsky_agenda_checkedCalc
-nlte_checkedCalc
 atmfields_checkedCalc
 atmgeom_checkedCalc
 cloudbox_checkedCalc

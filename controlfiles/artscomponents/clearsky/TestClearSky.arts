@@ -82,7 +82,6 @@ abs_speciesSet( species=
 # ---
 abs_lines_per_speciesCreateFromLines
 
-
 # Atmospheric scenario
 # ---
 AtmRawRead( basename = "testdata/tropical" )
@@ -132,7 +131,6 @@ MatrixSet( sensor_los, [ 95; 113; 135] )
 # ---
 abs_xsec_agenda_checkedCalc
 propmat_clearsky_agenda_checkedCalc
-nlte_checkedCalc
 atmfields_checkedCalc
 atmgeom_checkedCalc
 cloudbox_checkedCalc

@@ -47,6 +47,7 @@
 #include "matpackVII.h"
 #include "mystring.h"
 #include "gridded_fields.h"
+#include "linerecord.h"
 //#include <cfloat>
 
 
@@ -406,5 +407,13 @@ bool chk_if_std_blackbody_agenda(
    const Agenda&      blackbody_radiation_agenda );
 
 void chk_met_mm_backend(const Matrix& bdsp);
+
+void chk_nlte(const Tensor4&                   t_nlte_field,
+              const ArrayOfQuantumIdentifier&  nlte_quantum_identifiers,
+              const ArrayOfArrayOfLineRecord&  abs_lines_per_species,
+              const Vector&                    p_grid,
+              const Vector&                    lat_grid,
+              const Vector&                    lon_grid,
+              const Index&                     atmosphere_dim);
 
 #endif  // checkinput_h

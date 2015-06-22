@@ -2648,6 +2648,15 @@ void Workspace::define_wsv_data()
 
    wsv_data.push_back
    (WsvRecord
+    ( NAME( "nlte_do" ),
+      DESCRIPTION
+      (
+       "Flag to perform Non-LTE calculations.\n"
+       ),
+      GROUP( "Index" )));
+
+   wsv_data.push_back
+   (WsvRecord
     ( NAME( "opt_prop_part_agenda" ),
       DESCRIPTION
       (

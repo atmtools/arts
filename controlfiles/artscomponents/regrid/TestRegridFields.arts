@@ -125,7 +125,6 @@ Extract( t_surface, t_field, 0 )
 # ---
 abs_xsec_agenda_checkedCalc
 propmat_clearsky_agenda_checkedCalc
-nlte_checkedCalc
 atmfields_checkedCalc
 atmgeom_checkedCalc
 cloudbox_checkedCalc
@@ -162,7 +161,6 @@ Copy( vmr_ref, vmr_field )
 # ---
 abs_xsec_agenda_checkedCalc
 propmat_clearsky_agenda_checkedCalc
-nlte_checkedCalc
 atmfields_checkedCalc
 atmgeom_checkedCalc
 cloudbox_checkedCalc
@@ -219,7 +217,6 @@ Compare( vmr_field, vmr_ref, 1e-12 )
 # ---
 abs_xsec_agenda_checkedCalc
 propmat_clearsky_agenda_checkedCalc
-nlte_checkedCalc
 atmfields_checkedCalc
 atmgeom_checkedCalc
 cloudbox_checkedCalc
