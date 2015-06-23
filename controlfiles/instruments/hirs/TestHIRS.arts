@@ -147,7 +147,7 @@ abs_lookupSetupBatch
 # Create the lookup table
 # ---
 abs_xsec_agenda_checkedCalc
-FlagOn( nlte_checked )
+
 abs_lookupCalc
 
 #WriteXML("binary", abs_lookup)

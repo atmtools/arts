@@ -7483,7 +7483,7 @@ void define_md_data_raw()
             "sensor_response", "sensor_response_f",
             "sensor_response_pol", "sensor_response_dlos",
             "iy_unit", "iy_main_agenda", "geo_pos_agenda",
-            "jacobian_agenda", "jacobian_do", "iy_aux_vars" ),
+            "jacobian_agenda", "jacobianDoit_do", "iy_aux_vars" ),
         GIN( "robust", "ScatteringMergeParticle_do", "debug", "scat_species_delim" ),
         GIN_TYPE( "Index",        "Index",           "Index", "String" ),
         GIN_DEFAULT(  "1",            "0",               "0", "-" ),
@@ -7540,7 +7540,9 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "jacobian_quantities" ),
+        IN( "jacobian_quantities", "jacobian_do", "cloudbox_checked",
+            "atmosphere_dim", "p_grid", "lat_grid", "lon_grid",
+            "cloudbox_limits" ),
         GIN( "species", "unit", "dx" ),
         GIN_TYPE( "String", "String", "Numeric" ),
         GIN_DEFAULT( NODEF, "abs", "1e-6" ),
@@ -7548,6 +7550,31 @@ void define_md_data_raw()
                   "Perturbation unit. See above.",
                   "Size of perturbation." 
                   )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "jacobianDoitClose" ),
+        DESCRIPTION
+        (
+         "Cloudy-sky (Doit) Jacobian equivalent to *jacobianClose*.\n"
+         "\n"
+         "Derives *jacobian_indices*, sets *jacobianDoit_do* to 1 and checks\n"
+         "that clearsky Jacobians are off (*jacobian_do*=0).\n"
+         "\n"
+         "Retrieval quantities should not be added after a call to this WSM.\n"
+         "No calculations are performed here.\n"
+         ),
+        AUTHORS( "Mattias Ekstrom, Jana Mendrok" ),
+        OUT( "jacobianDoit_do", "jacobian_indices" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "jacobian_do", "jacobian_quantities" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
         ));
 
   md_data_raw.push_back
@@ -7583,14 +7610,16 @@ void define_md_data_raw()
         (
          "Makes mandatory initialisation of some jacobian variables.\n"
          "\n"
-         "Some jacobian WSVs must be initialised even if no such calculations\n"
-         "will be performed and this is handled with this method. That is,\n"
-         "this method must be called when no jacobians will be calculated.\n"
-         "Sets *jacobian_do* to 0.\n"
+         "Some clear-sky jacobian WSVs must be initialised even if no such\n"
+         "calculations will be performed.  This is handled with this method.\n"
+         "That is, this method must be called when no clear-sky jacobians\n"
+         "will be calculated (even if cloudy-sky jacobians are calculated!).\n"
+         "\n"
+         "Sets *jacobian_do* and *jacobianDoit_do* to 0.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
-        OUT( "jacobian_do", "jacobian_agenda", "jacobian_quantities", 
-             "jacobian_indices" ),
+        OUT( "jacobian_do", "jacobianDoit_do", "jacobian_agenda",
+             "jacobian_quantities", "jacobian_indices" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),

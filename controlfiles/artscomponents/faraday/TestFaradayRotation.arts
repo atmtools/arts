@@ -186,7 +186,7 @@ ArrayOfStringSet( iy_aux_vars, [
 #
 abs_xsec_agenda_checkedCalc
 propmat_clearsky_agenda_checkedCalc
-FlagOn( nlte_checked )
+
 yCalc
 
 

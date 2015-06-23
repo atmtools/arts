@@ -1,3 +1,39 @@
+2015-06-23  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-3-253
+
+	* src/m_jacobian.cc
+	(jacobianDoitAddSpecies, jacobianDoitClose, jacobianDoit):
+	Set and make use of jacobian_indices. Additionally, jacobian_quantities
+	now also provides the retrieval/perturbation grids consistently with
+	jacobian_quantities in clearsky jacobian case. Avoid clearsky/cloudy
+	jacobian conflicts by throwing error if jacobian_do is 1.
+
+	(jacobianOff): Added jacobianDoit_do, also set to 0.
+
+	* src/methods.cc, controlfiles/artscomponents/wfuns/TestDoitJacobians.arts:
+	Adapted to changes above.
+
+	* src/workspace.cc, src/check_input.cc,
+	controlfiles/instruments/ici/TestICI_fast.arts,
+	controlfiles/instruments/amsu/TestAMSU_MetMM_generic.arts, TestAMSU_generic.arts,
+	controlfiles/instruments/hirs/TestHIRS.arts,
+	controlfiles/instruments/mhs/TestMHS_generic.arts,
+	controlfiles/artscomponents/doitbatch/TestDOITBatch.arts,
+	controlfiles/artscomponents/wfuns/TestDoitJacobians.arts, TestWfuns.arts,
+	controlfiles/artscomponents/montecarlo/TestMonteCarloGeneral.arts, 
+	  TestMonteCarloDataPrepare.arts, TestMonteCarloGeneralGaussian.arts,
+	  TestRteCalcMC.arts,
+	controlfiles/artscomponents/faraday/TestFaradayRotation.arts
+	controlfiles/artscomponents/clearsky/TestBatch.arts
+	controlfiles/artscomponents/arts-xml-data/TestClouds_Venus.arts, 
+	  TestClouds_Mars.arts,
+	controlfiles/artscomponents/absorption/TestAbs.arts, TestAbsParticle.arts,
+	controlfiles/artscomponents/cia/TestCIA.arts,
+	controlfiles/artscomponents/groundbased/TestGbased.arts,
+	controlfiles/artscomponents/doit/TestDOITFromIndividualFields.arts:
+	Removed spurious leftovers of nlte_checked.
+
 2015-06-23  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-3-252

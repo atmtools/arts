@@ -136,6 +136,7 @@ jacobianAddAbsSpecies( jacobian_quantities, jacobian_agenda,
     retrieval_grid, lat_grid, lon_grid, 
     "O3", "analytical", "rel", 0.01 )
 jacobianClose
+WriteXML( in=jacobian_quantities )
 yCalc
 Copy( Ja, jacobian )
 

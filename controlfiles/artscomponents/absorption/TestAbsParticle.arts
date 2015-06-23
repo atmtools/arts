@@ -175,7 +175,7 @@ cloudbox_checkedCalc
 sensor_checkedCalc
 abs_xsec_agenda_checkedCalc
 propmat_clearsky_agenda_checkedCalc
-FlagOn( nlte_checked )
+
 
 #WriteXML( in=abs_species )
 StringSet( iy_unit, "RJBT" )

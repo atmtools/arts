@@ -2361,12 +2361,11 @@ void chk_nlte(const Tensor4&                   t_nlte_field,
         }
 
     // We do not accept that the user sets the code to NLTE and then runs it without NLTE.
-    // Users wishing to do so should set nlte_checked manually.
     if(!any_nlte_lines)
     {
         ostringstream os;
-        os << "There are no NLTE levels in the set of lines that you are calculating.\n"
-        <<  "Please set nlte_checked manually if you wish to ignore this error.\n";
+        os << "There are no NLTE levels in the set of lines that you are "
+           << "calculating.";
         throw std::runtime_error(os.str());
     }
 }

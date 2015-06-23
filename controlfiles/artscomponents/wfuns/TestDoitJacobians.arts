@@ -122,23 +122,11 @@ AgendaSet( doit_mono_agenda ){
   doit_i_field_monoIterate
 }
 
-# if you want to have DOIT jacobians, this need to be done, but BEFORE the
-# jacobianDoitAddSpecies!
-jacobianOff
-
 
 
 ######################################################################################
 # Set Jacobian parameters.
 # -----------------------
-
-# DOIT Jacobians to calculate
-#jacobianDoitAddSpecies( species="T", unit="abs", dx=1. )
-#jacobianDoitAddSpecies( species="abs_species.H2O-PWR98", unit="abs", dx=1e-6 )
-#jacobianDoitAddSpecies( species="scat_species.LWC.mass_density", unit="abs", dx=1e-6 )
-#jacobianDoitAddSpecies( species="scat_species.IWC.mass_density", unit="abs", dx=1e-6 )
-jacobianDoitAddSpecies( species="scat_species.RR.mass_flux", unit="abs", dx=1e-6 )
-
 
 # Set epsilon for reference run of DOIT (give limits for all Stokes components)
 VectorSet( doit_epsilon_ref, [0.001] )
@@ -203,10 +191,30 @@ AgendaSet( ybatch_calc_agenda ){
   cloudbox_checkedCalc
   sensor_checkedCalc
   propmat_clearsky_agenda_checkedCalc
-  FlagOn( nlte_checked )
+
+######################################################################################
+# Case specific Jacobian settings
+# -------------------------------
+
+  # if you want to have DOIT jacobians, this need to be done, but BEFORE the
+  # jacobianDoitAddSpecies!
+  # it's used here also the (re)initialize the jacobian WSV for each batch
+  # calculation (for example, retrieval grids might be different).
+  jacobianOff
+
+  # DOIT Jacobians to calculate
+  #jacobianDoitAddSpecies( species="T", unit="abs", dx=1. )
+  #jacobianDoitAddSpecies( species="abs_species.H2O-PWR98", unit="abs", dx=1e-6 )
+  #jacobianDoitAddSpecies( species="scat_species.LWC.mass_density", unit="abs", dx=1e-6 )
+  #jacobianDoitAddSpecies( species="scat_species.IWC.mass_density", unit="abs", dx=1e-6 )
+  jacobianDoitAddSpecies( species="scat_species.RR.mass_flux", unit="abs", dx=1e-6 )
+  jacobianDoitClose
+  #WriteXMLIndexed( in=jacobian_quantities, file_index=ybatch_index )
+  #WriteXMLIndexed( in=jacobian_indices, file_index=ybatch_index )
+######################################################################################
 
   # when doing no ScatteringMergeParticles1D (neither here, nor in
-  # jacobianDoit!), you can comment out this complete block
+  # jacobianDoit!), comment out this complete block
   Copy( scat_data_orig, scat_data )
   Copy( pnd_field_orig, pnd_field )
   ScatteringMergeParticles1D
@@ -243,17 +251,19 @@ ybatchCalc #( robust=1 )
 
 # Store results:
 # ---
-#WriteXML( "ascii", jacobian_quantities )
-# jacobian_indices not yet implemented for Doit Jacobians
-#WriteXML( "ascii", jacobian_indices )
 
 # for non-batch cases
 #WriteXML( "zascii", y )
 #WriteXML( "zascii", jacobian )
+#WriteXML( "ascii", jacobian_quantities )
+#WriteXML( "ascii", jacobian_indices )
 
 # for batch cases
-#WriteXML( "zascii", ybatch )
-#WriteXML( "zascii", ybatch_jacobians )
+WriteXML( "zascii", ybatch )
+WriteXML( "zascii", ybatch_jacobians )
+# note: jacobian_quantities and jacobian_indices are not part of ybatchCalc
+# output and are (or can be) specific to each batch case. hence, they should be
+# written out within the ybatch agenda, e.g. using WriteXMLIndexed.
 
 
 
@@ -268,6 +278,6 @@ Compare( ybatch, ybatch_ref, 1e-3 )
 ArrayOfMatrixCreate( ybatch_jacobians_ref )
 ReadXML( ybatch_jacobians_ref, "ybatch_jacobiansREFERENCE_DoitJacobians.xml" )
 
-Compare( ybatch_jacobians, ybatch_jacobians_ref, 1. )
+Compare( ybatch_jacobians, ybatch_jacobians_ref, 1e-4 )
 
 }

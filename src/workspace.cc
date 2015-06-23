@@ -1920,11 +1920,26 @@ void Workspace::define_wsv_data()
     ( NAME( "jacobian_do" ),
       DESCRIPTION
       (
-       "Flag to activate jacobian calculations.\n"
+       "Flag to activate (clear-sky) Jacobian calculations.\n"
        "\n"
-       "If this variable is set to 0, no jacobian calculations will be\n"
-       "even if such calculations have been set-up (through the jacobianAddXxx\n"
-       "methods).\n"
+       "If this variable is set to 0, no Jacobian calculations will be done,\n"
+       "even if such calculations have been set-up (through the\n"
+       "jacobianAddXxx methods).\n"
+       "\n"
+       "Needs to be 0 if cloudy-sky (Doit) Jacobians shall be calculated.\n"
+      ),
+      GROUP( "Index" )));
+
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "jacobianDoit_do" ),
+      DESCRIPTION
+      (
+       "Flag to activate cloudy-sky (Doit) Jacobian calculations.\n"
+       "\n"
+       "If set to 0, no cloudy-sky Jacobian calculations will be performed\n"
+       "(even if jacobian species have been set through\n"
+       "*jacobianDoitAddSpecies*)\n"
       ),
       GROUP( "Index" )));
 
@@ -1949,7 +1964,7 @@ void Workspace::define_wsv_data()
       (
        "The retrieval quantities in the Jacobian matrix.\n"
        "\n"
-       "An array of retrieval quantities for which the jacobians are\n"
+       "An array of retrieval quantities for which the Jacobians are\n"
        "calculated.\n"
        "\n"
        "Usage: Quantities are added by the jacobianAdd WSMs.\n"
@@ -2533,22 +2548,6 @@ void Workspace::define_wsv_data()
        ),
       GROUP( "Agenda" )));
 
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "nlte_checked" ),
-      DESCRIPTION
-      (
-       "OK-flag for NLTE related variables.\n"
-       "\n"
-       "This variable flags that NLTE variables are defined in a formally\n"
-       "and practically correct way.\n"
-       ""
-       "\n"
-       "Shall be set by *nlte_checkedCalc*. See that WSM for treated WSVs.\n"
-       "Only the value 1 is taken as OK.\n"
-       ),
-      GROUP( "Index" )));
-   
  wsv_data.push_back
    (WsvRecord
     ( NAME( "nlte_quantum_identifiers" ),

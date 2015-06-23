@@ -122,7 +122,7 @@ abs_lines_per_speciesCreateFromLines
 abs_lookupSetupBatch   	
 
 abs_xsec_agenda_checkedCalc
-FlagOn(nlte_checked)
+
 abs_lookupCalc
 
 abs_lookupAdapt

@@ -160,14 +160,16 @@ void jacobianInit(
 /* Workspace method: Doxygen documentation will be auto-generated */
 void jacobianOff(
         Index&                     jacobian_do,
+        Index&                     jacobianDoit_do,
         Agenda&                    jacobian_agenda,
         ArrayOfRetrievalQuantity&  jacobian_quantities, 
         ArrayOfArrayOfIndex&       jacobian_indices,
   const Verbosity&                 verbosity )
 {
   jacobian_do = 0;
+  jacobianDoit_do = 0;
   jacobianInit( jacobian_quantities, jacobian_indices, jacobian_agenda, 
-                                                                   verbosity );
+                verbosity );
 }
 
 
@@ -2172,7 +2174,7 @@ void jacobianDoit(//WS Output:
                   const Agenda& iy_main_agenda,
                   const Agenda& geo_pos_agenda,
                   const Agenda& jacobian_agenda,
-                  const Index& jacobian_do,
+                  const Index& jacobianDoit_do,
                   const ArrayOfString& iy_aux_vars,
                   // Keywords:
                   const Index& robust,
@@ -2183,14 +2185,19 @@ void jacobianDoit(//WS Output:
 {
 /*
   // FIXME:
-   1)- consistency of clearsky and cloudy jacobian setups: setting of
-       jacobian_indices! use of jacobianOff, jacobianInit, jacobianClose.
-     - test (and adapt if necessary) for no-inARTS calculated pnd_fields
+   1)- use jacobian_quantities.grids in perturbation level loops (currently
+        relies on identiy between cloudbox_limits herein and when
+        jacobianDoitAddSpecies was called
+   2)- check functionality for non-comapct cases (use
+        doit/TestDOITFromIndividualFields.arts as start)
+       generally, improve handling of non-compact cases, which is currently done
+        by an ugly workaround. not a JacobianDoit issues, though.
+   3)- test (and adapt if necessary) for no-inARTS calculated pnd_fields
      - extend output: y_aux(?)
      - add some diagnostics: is input doit_i_field (and corresponding y0_1st)
-     suffiently converged? check whether |y0_1st-y0_niter| << |ypert_niter-y0_niter|
+        suffiently converged? check whether |y0_1st-y0_niter| << |ypert_niter-y0_niter|
      - check & disallow perturbations on scat_speciesXXfield that are not used
-   2)- allow (a) smaller perturbation range in p
+   4)- allow (a) smaller perturbation range in p
              (b) extend allowed perturbation range to outside cloudbox
              (c) arbitrary (in-cloudbox) p-levels
      - allow clearsky and cloudy jacobians in parallel
@@ -2198,18 +2205,13 @@ void jacobianDoit(//WS Output:
 */
   CREATE_OUTS;
 
-  if( jacobian_do != 0 )
+  if( jacobianDoit_do == 0 )
       throw std::runtime_error(
-            "Currently not possible to combine clearksy and DOIT Jacobians.");
+            "Doit Jacobians not switched on (use jacobianDoitClose).");
 
-  if( jacobian_quantities.nelem()<1 )
-    {
-      ostringstream os;
-      os << "No Jacobian quantities specified for DOIT Jacobian calculation.\n"
-         << "Did you accidentially call jacobianOff after "
-         << "jacobainDoitAddSpecies?";
-      throw runtime_error(os.str());
-    }
+  if( jacobian_quantities.empty() )
+      throw std::runtime_error(
+            "No Jacobian quantities specified for DOIT Jacobian calculation.");
 
   if( atmosphere_dim != 1 )
       throw std::runtime_error(
@@ -2301,7 +2303,7 @@ void jacobianDoit(//WS Output:
          sensor_pos, sensor_los, transmitter_pos, mblock_dlos_grid,
          sensor_response, sensor_response_f, sensor_response_pol,
          sensor_response_dlos, iy_unit, iy_main_agenda, geo_pos_agenda,
-         jacobian_agenda, jacobian_do, jacobian_quantities, jacobian_indices,
+         jacobian_agenda, 0, jacobian_quantities, jacobian_indices,
          iy_aux_vars, verbosity );
 
 
@@ -2363,9 +2365,10 @@ void jacobianDoit(//WS Output:
   //Index np   = jg_p.nelem();
   //get_perturbation_gridpos( p_gp, p_grid, jg_p, true );
 
-  // As long as not yet handled by jacobianInit/jacobianClose, we need to
-  // properly size jacobian here.
-  jacobian.resize(y0.nelem(), jacobian_quantities.nelem()*np);
+  // Initialize jacobian matrix
+  //jacobian.resize(y0.nelem(), jacobian_quantities.nelem()*np);
+  jacobian.resize(y0.nelem(),
+                  jacobian_indices[jacobian_indices.nelem()-1][1]+1);
   jacobian = NAN;
 
   // loop over all perturbation species (aka jacobian quantities)
@@ -2423,12 +2426,12 @@ void jacobianDoit(//WS Output:
           // jacobianDoitAddSpecies. it's left to check, whether this field
           // contains valid values. 0 is perfectly valid. NaN is not.
           // Since this check is done within pnd_fieldCalcFromscat_speciesFields
-          // by the pnd_fieldX methods. so, we skip that here.
+          // by the pnd_fieldX methods, we skip that here.
           // Would also be good to check, whether the perturbed field is actually
           // applied by the PSD selected for this scat_species. However,
           // currently there is no way to check this (as we have no info here,
           // which PSD requires which field).
-          // FIXME: check that to be perturbed field is of non-zero size (if no
+          // FIXME: check that to-be-perturbed field is of non-zero size (if no
           // scat_species has any entry, we don't set the scat_speciesXXfield at
           // all).
           // FIXME: we could add that check in the pnd_fieldX methods and give a
@@ -2677,7 +2680,7 @@ void jacobianDoit(//WS Output:
                      sensor_pos, sensor_los, transmitter_pos, mblock_dlos_grid,
                      sensor_response, sensor_response_f, sensor_response_pol,
                      sensor_response_dlos, iy_unit, iy_main_agenda, geo_pos_agenda,
-                     jacobian_agenda, jacobian_do, jacobian_quantities, jacobian_indices,
+                     jacobian_agenda, 0, jacobian_quantities, jacobian_indices,
                      iy_aux_vars, verbosity );
 
               if( debug )
@@ -2783,17 +2786,77 @@ void jacobianDoit(//WS Output:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void jacobianDoitClose(
+        Index&                     jacobianDoit_do,
+        ArrayOfArrayOfIndex&       jacobian_indices,
+  const Index&                     jacobian_do,
+  const ArrayOfRetrievalQuantity&  jacobian_quantities,
+  const Verbosity&                 /* verbosity */ )
+{
+  // Make sure we're not trying to do both clearsky and cloudy Jacobians
+  if( jacobian_do != 0 )
+    throw runtime_error(
+          "Currently not possible to combine clearksy and DOIT Jacobians.");
+
+  // Make sure that the array is not empty
+  if( jacobian_quantities.empty() )
+    throw runtime_error(
+          "No retrieval quantities has been added to *jacobian_quantities*." );
+
+  // Loop over retrieval quantities, set JacobianIndices
+  Index ncols = 0;
+  //
+  for( Index it=0; it<jacobian_quantities.nelem(); it++ )
+    {
+      // Store start jacobian index
+      ArrayOfIndex indices(2);
+      indices[0] = ncols;
+
+      // Count total number of field points, i.e. product of grid lengths
+      Index cols = 1;
+      ArrayOfVector grids = jacobian_quantities[it].Grids();
+      for( Index jt=0; jt<grids.nelem(); jt++ )
+        { cols *= grids[jt].nelem(); }
+
+      // Store stop index
+      indices[1] = ncols + cols - 1;
+      jacobian_indices.push_back( indices );
+
+      ncols += cols;
+    }
+  
+  jacobianDoit_do = 1;
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void jacobianDoitAddSpecies(//WS Output:
-//                            Workspace&  ws _U_,
                             ArrayOfRetrievalQuantity& jacobian_quantities,
-//                            Agenda& jacobian_agenda,
                             // WS Input:
+                            const Index& jacobian_do,
+                            const Index& cloudbox_checked,
+                            const Index& atmosphere_dim,
+                            const Vector& p_grid,
+                            const Vector& lat_grid,
+                            const Vector& lon_grid,
+                            const ArrayOfIndex& cloudbox_limits,
                             // Keywords:
                             const String& species,
                             const String& mode, //abs or rel
                             const Numeric& dx,
                             const Verbosity& /* verbosity */)
 {
+  // Make sure we're not trying to do both clearsky and cloudy Jacobians
+  if( jacobian_do != 0 )
+    throw runtime_error(
+          "Currently not possible to combine clearksy and DOIT Jacobians.");
+
+  // Make sure the atmospheric grids and cloudbox are already defined
+  if( cloudbox_checked != 1 )
+    throw runtime_error(
+          "You must call *cloudbox_checkedCalc* before this method.");
+
   // Create the new retrieval quantity
   RetrievalQuantity rq;
 
@@ -2960,6 +3023,41 @@ void jacobianDoitAddSpecies(//WS Output:
       os << "No species string given.";
       throw runtime_error(os.str());
     }
+
+  // Perturbations are done over the cloudbox. But not on the outermost grid
+  // points (as this would also imply value changes outside the box, through the
+  // linear interpolation between gridpoints. and we don't allow this since we
+  // don't yet allow incoming field modifications!).
+  ArrayOfVector grids(atmosphere_dim);
+  Vector rq_p_grid(0), rq_lat_grid(0), rq_lon_grid(0);
+
+  if( cloudbox_limits[0]==0 )
+    rq_p_grid = p_grid[ Range(cloudbox_limits[0],
+                              cloudbox_limits[1]-cloudbox_limits[0]) ];
+  else
+    rq_p_grid = p_grid[ Range(cloudbox_limits[0]+1,
+                              cloudbox_limits[1]-cloudbox_limits[0]) ];
+
+  if( atmosphere_dim>1 )
+    {
+      rq_lat_grid = lat_grid[ Range(cloudbox_limits[2]+1,
+                                    cloudbox_limits[3]-cloudbox_limits[2] ) ];
+      if( atmosphere_dim>2 )
+          rq_lon_grid = lon_grid[ Range(cloudbox_limits[4]+1,
+                                        cloudbox_limits[5]-cloudbox_limits[4]) ];
+    }
+
+  {
+    ostringstream os;
+    if( !check_retrieval_grids( grids, os, p_grid, lat_grid, lon_grid,
+                                rq_p_grid, rq_lat_grid, rq_lon_grid,
+                                "retrieval pressure grid", 
+                                "retrieval latitude grid", 
+                                "retrievallongitude_grid", 
+                                atmosphere_dim ) )
+    throw runtime_error(os.str());
+  }
+  rq.Grids( grids );
 
   // Add it to the *jacobian_quantities*
   jacobian_quantities.push_back( rq );
