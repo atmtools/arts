@@ -2173,12 +2173,74 @@ void abs_cont_descriptionAppend(// WS Output:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void nlte_sourceFromTemperatureAndSrcCoefPerSpecies(// WS Output:
+                                                    Tensor3&       nlte_source,
+                                                    // WS Input:
+                                                    const ArrayOfMatrix& src_coef_per_species,
+                                                    const Vector&        f_grid,
+                                                    const Numeric&       rtp_temperature,
+                                                    const Verbosity&     verbosity)
+{
+  // nlte_source has format
+  // [ abs_species, f_grid, stokes_dim ].
+  // src_coef_per_species has format ArrayOfMatrix (over species),
+  // where for each species the matrix has format [f_grid, abs_p].
+  
+  Index n_species = src_coef_per_species.nelem(); // # species
+
+  if (0==n_species)
+    {
+      ostringstream os;
+      os << "Must have at least one species.";
+      throw runtime_error(os.str());
+    }
+
+  Index n_f       = src_coef_per_species[0].nrows(); // # frequencies
+
+  // # pressures must be 1:
+  if (1!=src_coef_per_species[0].ncols())
+    {
+      ostringstream os;
+      os << "Must have exactly one pressure.";
+      throw runtime_error(os.str());
+    }
+  
+  // Check species dimension of propmat_clearsky
+  if ( nlte_source.npages()!=n_species )
+  {
+    ostringstream os;
+    os << "Species dimension of propmat_clearsky does not\n"
+       << "match src_coef_per_species.";
+    throw std::runtime_error( os.str() );
+  }
+  
+  // Check frequency dimension of propmat_clearsky
+  if ( nlte_source.nrows()!=n_f )
+  {
+    ostringstream os;
+    os << "Frequency dimension of propmat_clearsky does not\n"
+       << "match abs_coef_per_species.";
+    throw runtime_error( os.str() );
+  }
+  
+  // Blackbody radiation is the LTE source
+  Vector B; // tmp is used in lower loop, it is initialized only once
+  blackbody_radiationPlanck(B, f_grid, rtp_temperature, verbosity);
+  
+  for ( Index si=0; si<n_species; ++si )
+  {
+    Vector tmp = B;
+    tmp*=src_coef_per_species[si](joker,0);
+    nlte_source(si,joker, 0) += tmp;
+  }
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void propmat_clearskyAddFromAbsCoefPerSpecies(// WS Output:
                                Tensor4&       propmat_clearsky,
-                               Tensor4&       propmat_source_clearsky,
                                // WS Input:
                                const ArrayOfMatrix& abs_coef_per_species,
-                               const ArrayOfMatrix& src_coef_per_species,
                                const Verbosity&)
 {
   // propmat_clearsky has format
@@ -2246,10 +2308,6 @@ void propmat_clearskyAddFromAbsCoefPerSpecies(// WS Output:
   for ( Index si=0; si<n_species; ++si )
     for ( Index ii=0; ii<stokes_dim; ++ii )
       propmat_clearsky(si,joker,ii, ii) += abs_coef_per_species[si](joker,0);
-  if(propmat_source_clearsky.nbooks()!=0 && propmat_source_clearsky.npages()!=0 && propmat_source_clearsky.nrows()!=0 && propmat_source_clearsky.ncols()!=0)
-    for ( Index si=0; si<n_species; ++si )
-      for ( Index ii=0; ii<stokes_dim; ++ii )
-        propmat_source_clearsky(si,joker,ii, ii) += src_coef_per_species[si](joker,0);
 
 }
 
@@ -2257,7 +2315,7 @@ void propmat_clearskyAddFromAbsCoefPerSpecies(// WS Output:
 /* Workspace method: Doxygen documentation will be auto-generated */
 void propmat_clearskyInit(//WS Output
                              Tensor4&                        propmat_clearsky,
-                             Tensor4&                        propmat_source_clearsky,
+                             Tensor3&                        nlte_source,
                              //WS Input
                              const ArrayOfArrayOfSpeciesTag& abs_species,
                              const Vector&                   f_grid,
@@ -2282,12 +2340,12 @@ void propmat_clearskyInit(//WS Output
                 propmat_clearsky = 0;
                 if (nlte_do)
                 {
-                    propmat_source_clearsky.resize(abs_species.nelem(),nf, stokes_dim, stokes_dim);
-                    propmat_source_clearsky = 0;
+                    nlte_source.resize(abs_species.nelem(), nf, stokes_dim);
+                    nlte_source = 0;
                 }
                 else
                 {
-                    propmat_source_clearsky.resize(0,0,0,0);
+                    nlte_source.resize(0,0,0);
                 }
             }
             else throw  runtime_error("stokes_dim = 0");
@@ -2375,7 +2433,6 @@ void propmat_clearskyAddFaraday(
 void propmat_clearskyAddParticles(
                                     // WS Output:
                                     Tensor4& propmat_clearsky,
-                                    Tensor4& propmat_source_clearsky,
                                     // WS Input:
                                     const Index& stokes_dim,
                                     const Index& atmosphere_dim,
@@ -2486,15 +2543,10 @@ void propmat_clearskyAddParticles(
                       // propmat_clearsky, which is of extinction matrix type
                       ext_matFromabs_vec(propmat_clearsky(sp,iv,joker,joker),
                                          pnd_abs_vec, stokes_dim);
-                      if(propmat_source_clearsky.nbooks()&&propmat_source_clearsky.npages()&&propmat_source_clearsky.nrows()&&propmat_source_clearsky.ncols())
-                        ext_matFromabs_vec(propmat_source_clearsky(sp,iv,joker,joker),
-                                         pnd_abs_vec, stokes_dim);
                     }
                   else
                     {
                       propmat_clearsky(sp,iv,joker,joker) = pnd_ext_mat;
-                      if(propmat_source_clearsky.nbooks()&&propmat_source_clearsky.npages()&&propmat_source_clearsky.nrows()&&propmat_source_clearsky.ncols())
-                        propmat_source_clearsky(sp,iv,joker,joker) = pnd_ext_mat;
 
                     }
                 }
@@ -2518,7 +2570,7 @@ void propmat_clearskyAddOnTheFly(// Workspace reference:
                                     Workspace& ws,
                                     // WS Output:
                                     Tensor4& propmat_clearsky,
-				    Tensor4& propmat_source_clearsky,
+                                    Tensor3& nlte_source,
                                     // WS Input:
                                     const Vector& f_grid,
                                     const ArrayOfArrayOfSpeciesTag& abs_species,
@@ -2584,10 +2636,11 @@ void propmat_clearskyAddOnTheFly(// Workspace reference:
   
   
   // Now add abs_coef_per_species to propmat_clearsky:
-  propmat_clearskyAddFromAbsCoefPerSpecies(propmat_clearsky,propmat_source_clearsky,
-                                              abs_coef_per_species, src_coef_per_species,
-                                              verbosity);
+  propmat_clearskyAddFromAbsCoefPerSpecies(propmat_clearsky, abs_coef_per_species, verbosity);
   
+  // Now turn nlte_source from absorption into a proper source function
+  if(! nlte_source.empty())
+    nlte_sourceFromTemperatureAndSrcCoefPerSpecies(nlte_source, src_coef_per_species, f_grid, rtp_temperature, verbosity);
 }
 
 
@@ -2606,17 +2659,12 @@ void propmat_clearskyZero(
 /* Workspace method: Doxygen documentation will be auto-generated */
 void propmat_clearskyForceNegativeToZero(
     Tensor4&    propmat_clearsky,
-    Tensor4&    propmat_source_clearsky,
     const Verbosity& )
 {
     for(Index ii=0;ii<propmat_clearsky.nbooks();ii++)
         for(Index jj=0;jj<propmat_clearsky.npages();jj++)
             if(propmat_clearsky(ii,jj,0,0)<0)
                 propmat_clearsky(ii,jj,joker,joker) = 0;
-    for(Index ii=0;ii<propmat_source_clearsky.nbooks();ii++)
-        for(Index jj=0;jj<propmat_source_clearsky.npages();jj++)
-            if(propmat_source_clearsky(ii,jj,0,0)<0)
-                propmat_source_clearsky(ii,jj,joker,joker) = 0;
 }
 
 

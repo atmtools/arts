@@ -358,7 +358,7 @@ void iyRadioLink(
   Matrix       ppath_vmr, ppath_pnd, ppath_mag, ppath_wind, ppath_f, ppath_t_nlte;
   Tensor5      abs_per_species;
   Tensor4      ppath_ext, trans_partial, trans_cumulat, pnd_ext_mat;
-  Tensor3      dummy_ppath_abs;
+  Tensor3      dummy_ppath_nlte_source;
   Vector       scalar_tau;
   ArrayOfIndex clear2cloudbox, dummy_lte;
   const Tensor4 t_nlte_field_dummy;
@@ -372,7 +372,7 @@ void iyRadioLink(
                          mag_u_field, mag_v_field, mag_w_field );      
       get_ppath_f(       ppath_f, ppath, f_grid,  atmosphere_dim, 
                          rte_alonglos_v, ppath_wind );
-      get_ppath_pmat(    ws, ppath_ext, dummy_ppath_abs, dummy_lte, abs_per_species,
+      get_ppath_pmat(    ws, ppath_ext, dummy_ppath_nlte_source, dummy_lte, abs_per_species,
                          propmat_clearsky_agenda, ppath, 
                          ppath_p, ppath_t, ppath_t_nlte, ppath_vmr, ppath_f, 
                          ppath_mag, f_grid, stokes_dim, iaps );
@@ -941,7 +941,7 @@ void iyTransmissionStandard(
   Matrix              ppath_vmr, ppath_pnd, ppath_wind, ppath_mag, ppath_f, ppath_t_nlte;
   Tensor5             abs_per_species;
   Tensor4             ppath_ext, trans_partial, trans_cumulat, pnd_ext_mat;
-  Tensor3             dummy_ppath_abs;
+  Tensor3             dummy_ppath_nlte_source;
   Vector              scalar_tau;
   ArrayOfIndex        clear2cloudbox, dummy_lte;
   ArrayOfArrayOfIndex extmat_case;   
@@ -956,7 +956,7 @@ void iyTransmissionStandard(
                          mag_u_field, mag_v_field, mag_w_field );      
       get_ppath_f(       ppath_f, ppath, f_grid,  atmosphere_dim, 
                          rte_alonglos_v, ppath_wind );
-      get_ppath_pmat(    ws, ppath_ext, dummy_ppath_abs, dummy_lte, abs_per_species, 
+      get_ppath_pmat(    ws, ppath_ext, dummy_ppath_nlte_source, dummy_lte, abs_per_species, 
                          propmat_clearsky_agenda, ppath, 
                          ppath_p, ppath_t, ppath_t_nlte, ppath_vmr, ppath_f, 
                          ppath_mag, f_grid, stokes_dim, iaps );
@@ -1032,7 +1032,7 @@ void iyTransmissionStandard(
                 { 
                   Tensor5 dummy_abs_per_species;
                   Vector t2 = ppath_t;   t2 += dt;
-                  get_ppath_pmat( ws, ppath_at2, dummy_ppath_abs, 
+                  get_ppath_pmat( ws, ppath_at2, dummy_ppath_nlte_source,
                                   dummy_lte, dummy_abs_per_species,
                                   propmat_clearsky_agenda, ppath, ppath_p,
                                   t2, ppath_t_nlte, ppath_vmr, ppath_f, ppath_mag, f_grid, 
@@ -1046,7 +1046,7 @@ void iyTransmissionStandard(
                       Matrix f2, w2 = ppath_wind;   w2(0,joker) += dw;
                       get_ppath_f(    f2, ppath, f_grid,  atmosphere_dim, 
                                       rte_alonglos_v, w2 );
-                      get_ppath_pmat( ws, ppath_awu, dummy_ppath_abs, 
+                      get_ppath_pmat( ws, ppath_awu, dummy_ppath_nlte_source,
                                       dummy_lte, dummy_abs_per_species,
                                       propmat_clearsky_agenda, ppath, ppath_p, 
                                       ppath_t, ppath_t_nlte, ppath_vmr, f2, ppath_mag, f_grid,
@@ -1058,7 +1058,7 @@ void iyTransmissionStandard(
                       Matrix f2, w2 = ppath_wind;   w2(1,joker) += dw;
                       get_ppath_f(    f2, ppath, f_grid,  atmosphere_dim, 
                                       rte_alonglos_v, w2 );
-                      get_ppath_pmat( ws, ppath_awv, dummy_ppath_abs, 
+                      get_ppath_pmat( ws, ppath_awv, dummy_ppath_nlte_source,
                                       dummy_lte, dummy_abs_per_species,
                                       propmat_clearsky_agenda, ppath, ppath_p, 
                                       ppath_t, ppath_t_nlte, ppath_vmr, f2, ppath_mag, f_grid,
@@ -1070,7 +1070,7 @@ void iyTransmissionStandard(
                       Matrix f2, w2 = ppath_wind;   w2(2,joker) += dw;
                       get_ppath_f(    f2, ppath, f_grid,  atmosphere_dim, 
                                       rte_alonglos_v, w2 );
-                      get_ppath_pmat( ws, ppath_aww, dummy_ppath_abs, 
+                      get_ppath_pmat( ws, ppath_aww, dummy_ppath_nlte_source,
                                       dummy_lte, dummy_abs_per_species,
                                       propmat_clearsky_agenda, ppath, ppath_p, 
                                       ppath_t, ppath_t_nlte, ppath_vmr, f2, ppath_mag, f_grid,

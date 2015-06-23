@@ -52,7 +52,7 @@ Numeric frequency_change_casea(const Rational& omega, const Rational& m, const R
 
 void xsec_species_line_mixing_wrapper_with_zeeman(  
         Tensor3View part_abs_mat, 
-	Tensor3View part_src_mat,
+        MatrixView part_nlte_source,
         const ArrayOfArrayOfSpeciesTag& abs_species, 
         const ArrayOfLineshapeSpec& abs_lineshape, 
         const ArrayOfLineRecord& lr, 

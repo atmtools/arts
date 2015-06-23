@@ -2654,6 +2654,19 @@ void Workspace::define_wsv_data()
        "Flag to perform Non-LTE calculations.\n"
        ),
       GROUP( "Index" )));
+    
+   wsv_data.push_back
+   (WsvRecord
+    ( NAME( "nlte_source" ),
+      DESCRIPTION
+      (
+       "Variable to contain the additional source function due to NLTE effects.\n"
+       "\n"
+       "Dimensions are either\n"
+       "[length(abs_species), length(f_grid), stokes_dim], or [0, 0, 0],\n"
+       "where the latter should be true when LTE calculations are performed.\n"
+       ),
+      GROUP( "Tensor3" )));
 
    wsv_data.push_back
    (WsvRecord
@@ -2983,28 +2996,7 @@ void Workspace::define_wsv_data()
        "Unit: 1/m\n"
        ),
       GROUP( "Tensor4" )));
-    
-    wsv_data.push_back
-    (WsvRecord
-    ( NAME( "propmat_source_clearsky" ),
-      DESCRIPTION
-      (
-       "This contains the absorption coefficients for one point in the\n"
-       "atmosphere (one set of pressure, temperature, magnetic field, and\n"
-       "VMR values). This keeps the source function.\n"
-       "\n"
-       "There are two distinct cases:\n"
-       "\n"
-       "Case a:    For all frequencies and all species:\n"
-       "Dimension: [ abs_species, f_grid, stokes_dim, stokes_dim ]\n"
-       "\n"
-       "Case b:    For a single frequency for all species:\n"
-       "Dimension: [ abs_species, 1, stokes_dim, stokes_dim]\n"
-       "\n"
-       "Unit: 1/m\n"
-       ),
-      GROUP( "Tensor4" )));
-
+  
   wsv_data.push_back
    (WsvRecord
     ( NAME( "propmat_clearsky_agenda" ),

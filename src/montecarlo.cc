@@ -75,8 +75,8 @@ void clear_rt_vars_at_gp(Workspace&          ws,
   
   //local versions of workspace variables
   Matrix  local_abs_vec;
-  Tensor3 local_ext_mat;
-  Tensor4 local_propmat_clearsky, local_src_dummy;
+  Tensor3 local_ext_mat, local_nlte_source_dummy;
+  Tensor4 local_propmat_clearsky;
   ao_gp_p[0]=gp_p;
   ao_gp_lat[0]=gp_lat;
   ao_gp_lon[0]=gp_lon;
@@ -109,7 +109,7 @@ void clear_rt_vars_at_gp(Workspace&          ws,
   const Vector temperature_nlte_dummy(0);
   
   //calcualte absorption coefficient
-  propmat_clearsky_agendaExecute(ws, local_propmat_clearsky, local_src_dummy,
+  propmat_clearsky_agendaExecute(ws, local_propmat_clearsky,local_nlte_source_dummy,
                                  Vector(1, f_mono), rtp_mag_dummy,
                                  ppath_los_dummy,p_vec[0],
                                  temperature, temperature_nlte_dummy,
@@ -170,7 +170,8 @@ void cloudy_rt_vars_at_gp(Workspace&           ws,
   Numeric scat_za,scat_aa;
 
   //local versions of workspace variables
-  Tensor4 local_propmat_clearsky, local_src_dummy;
+  Tensor4 local_propmat_clearsky;
+  Tensor3 local_nlte_source_dummy;
   Matrix  local_abs_vec;
   Tensor3 local_ext_mat;
 
@@ -189,7 +190,7 @@ void cloudy_rt_vars_at_gp(Workspace&           ws,
   const Vector ppath_los_dummy;
   
   //rtp_vmr    = vmr_ppath(joker,0);
-  propmat_clearsky_agendaExecute(ws, local_propmat_clearsky,local_src_dummy,
+  propmat_clearsky_agendaExecute(ws, local_propmat_clearsky,local_nlte_source_dummy,
                                  Vector(1, f_mono), rtp_mag_dummy,
                                  ppath_los_dummy,p_ppath[0],
                                  temperature, temperature_nlte_dummy,

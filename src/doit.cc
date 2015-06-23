@@ -1069,8 +1069,8 @@ void cloud_RT_no_background(Workspace& ws,
       const Vector rtp_mag_dummy(3,0);
       const Vector ppath_los_dummy;
       
-      Tensor4 src_dummy; //FIXME: do this right
-      propmat_clearsky_agendaExecute( ws, cur_propmat_clearsky,src_dummy,
+      Tensor3 nlte_dummy; //FIXME: do this right
+      propmat_clearsky_agendaExecute( ws, cur_propmat_clearsky,nlte_dummy,
                                     f_grid[Range(f_index, 1)],
                                     rtp_mag_dummy, ppath_los_dummy,
                                     p_int[k], 
@@ -1538,8 +1538,8 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
               const Vector rtp_mag_dummy(3,0);
               const Vector ppath_los_dummy;
 
-	      Tensor4 src_dummy; //FIXME: do this right
-              propmat_clearsky_agendaExecute(ws, propmat_clearsky, src_dummy,
+	      Tensor3 nlte_dummy; //FIXME: do this right
+              propmat_clearsky_agendaExecute(ws, propmat_clearsky, nlte_dummy,
                                                 f_grid[Range(f_index, 1)],
                                                 rtp_mag_dummy,ppath_los_dummy,
                                                 rtp_pressure,
@@ -1655,8 +1655,8 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
                 
               const Vector rtp_mag_dummy(3,0);
               const Vector ppath_los_dummy;
-              Tensor4 src_dummy; //FIXME: do this right
-              propmat_clearsky_agendaExecute( ws, propmat_clearsky,src_dummy,
+              Tensor3 nlte_dummy; //FIXME: do this right
+              propmat_clearsky_agendaExecute( ws, propmat_clearsky,nlte_dummy,
                                             f_grid[Range(f_index, 1)],
                                             rtp_mag_dummy,ppath_los_dummy,
                                             rtp_pressure, 

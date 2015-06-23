@@ -259,7 +259,7 @@ void fos(
   Matrix       ppath_blackrad;
   Tensor5      abs_per_species;
   Tensor4      ppath_ext, trans_partial, trans_cumulat, pnd_ext_mat;
-  Tensor3      pnd_abs_vec, ppath_abs;
+  Tensor3      pnd_abs_vec, ppath_nlte_source;
   Vector       scalar_tau;
   ArrayOfIndex clear2cloudbox, lte;
   const Tensor4 t_nlte_field_dummy;
@@ -276,7 +276,7 @@ void fos(
                           mag_u_field, mag_v_field, mag_w_field );
       get_ppath_f(        ppath_f, ppath, f_grid,  atmosphere_dim, 
                           rte_alonglos_v, ppath_wind );
-      get_ppath_pmat(     ws, ppath_ext, ppath_abs, lte, abs_per_species,
+      get_ppath_pmat(     ws, ppath_ext, ppath_nlte_source, lte, abs_per_species,
                           propmat_clearsky_agenda, ppath, 
                           ppath_p, ppath_t, ppath_t_nlte, ppath_vmr, ppath_f, 
                           ppath_mag, f_grid, stokes_dim, iaps );
@@ -406,7 +406,7 @@ void fos(
 
       // Dummy variables for non-LTE
       const bool nonlte = false;
-      const Matrix absbar_dummy(0,0);
+      const Matrix sourcebar_dummy(0,0);
       const Tensor3 extbar_dummy(0,0,0);
 
       // Loop ppath steps
@@ -432,7 +432,7 @@ void fos(
                 {
                   emission_rtstep( iy, stokes_dim, bbar, extmat_case[ip],
                                    trans_partial(joker,joker,joker,ip),
-                                   nonlte, extbar_dummy, absbar_dummy );
+                                   nonlte, extbar_dummy, sourcebar_dummy );
                 }
 
               else  // We want to include particle absorption, but not
@@ -469,7 +469,7 @@ void fos(
                                 
                   // Perform RT
                   emission_rtstep( iy, stokes_dim, bbar, extmat_cas2, t,
-                                   nonlte, extbar_dummy, absbar_dummy );
+                                   nonlte, extbar_dummy, sourcebar_dummy );
                 }
             }
           
@@ -488,7 +488,7 @@ void fos(
                   // Perform RT
                   emission_rtstep( iy, stokes_dim, bbar, extmat_case[ip],
                                    trans_partial(joker,joker,joker,ip),
-                                   nonlte, extbar_dummy, absbar_dummy );
+                                   nonlte, extbar_dummy, sourcebar_dummy );
 
                   // Scattering source term at ip is zero:
                   ssource0 = 0;

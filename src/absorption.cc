@@ -1247,7 +1247,7 @@ void xsec_single_line(VectorView xsec_accum_attenuation,
 	    {
 	      this_ls_attenuation *= factors * intensity * abs_nlte_ratio;
 	      this_xsec_attenuation += this_ls_attenuation;
-	      this_ls_attenuation *= src_nlte_ratio/abs_nlte_ratio;
+	      this_ls_attenuation *= ( src_nlte_ratio/abs_nlte_ratio - 1.0 );//Only retain the additional source term for NLTE calculations
 	      this_xsec_source += this_ls_attenuation; // note that the multiplication above solves 
 	      
 	      if (calc_phase)

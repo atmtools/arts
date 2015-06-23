@@ -133,7 +133,7 @@ void emission_rtstep(
     ConstTensor3View      t,
     const bool&           nonlte,
     ConstTensor3View      extbar,
-    ConstMatrixView       absbar );
+    ConstMatrixView       sourcebar );
 
 void ext2trans(
          MatrixView   trans_mat,
@@ -200,7 +200,7 @@ void get_ppath_atmvars(
 void get_ppath_pmat( 
         Workspace&      ws,
         Tensor4&        ppath_ext,
-        Tensor3&        ppath_abs,
+        Tensor3&        ppath_nlte_source,
         ArrayOfIndex&   lte,
         Tensor5&        abs_per_species,
   const Agenda&         propmat_clearsky_agenda,

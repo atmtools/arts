@@ -383,7 +383,7 @@ void iyEmissionStandard(
   Tensor4   ppath_ext;
   Tensor5   abs_per_species;
   Tensor4   trans_partial, trans_cumulat;
-  Tensor3   ppath_abs;
+  Tensor3   ppath_nlte_source;
   Matrix    ppath_blackrad;
   Vector    scalar_tau;
   ArrayOfIndex   lte;
@@ -398,7 +398,7 @@ void iyEmissionStandard(
                           mag_u_field, mag_v_field, mag_w_field );      
       get_ppath_f(        ppath_f, ppath, f_grid,  atmosphere_dim, 
                           rte_alonglos_v, ppath_wind );
-      get_ppath_pmat(     ws, ppath_ext, ppath_abs, lte, abs_per_species,
+      get_ppath_pmat(     ws, ppath_ext, ppath_nlte_source, lte, abs_per_species,
                           propmat_clearsky_agenda, ppath, 
                           ppath_p, ppath_t, ppath_t_nlte, ppath_vmr, ppath_f, 
                           ppath_mag, f_grid, stokes_dim, iaps );
@@ -484,10 +484,10 @@ void iyEmissionStandard(
               if( jac_is_t[iq] ) 
                 { 
                   Tensor5 dummy_abs_per_species;
-                  Tensor3 dummy_ppath_abs;
+                  Tensor3 dummy_ppath_nlte_source;
                   ArrayOfIndex dummy_lte;
                   Vector t2 = ppath_t;   t2 += dt;
-                  get_ppath_pmat( ws, ppath_at2, dummy_ppath_abs, 
+                  get_ppath_pmat( ws, ppath_at2, dummy_ppath_nlte_source,
                                   dummy_lte, dummy_abs_per_species,
                                   propmat_clearsky_agenda, ppath, ppath_p,
                                   t2, ppath_t_nlte, ppath_vmr, ppath_f, ppath_mag, f_grid, 
@@ -500,12 +500,12 @@ void iyEmissionStandard(
                   if( jac_wind_i[iq] == 1 )
                     {
                       Tensor5 dummy_abs_per_species;
-                      Tensor3 dummy_ppath_abs;
+                      Tensor3 dummy_ppath_nlte_source;
                       ArrayOfIndex dummy_lte;
                       Matrix f2, w2 = ppath_wind;   w2(0,joker) += dw;
                       get_ppath_f(    f2, ppath, f_grid,  atmosphere_dim, 
                                       rte_alonglos_v, w2 );
-                      get_ppath_pmat( ws, ppath_awu, dummy_ppath_abs, 
+                      get_ppath_pmat( ws, ppath_awu, dummy_ppath_nlte_source,
                                       dummy_lte, dummy_abs_per_species,
                                       propmat_clearsky_agenda, ppath, ppath_p, 
                                       ppath_t, ppath_t_nlte, ppath_vmr, f2, ppath_mag, f_grid,
@@ -514,12 +514,12 @@ void iyEmissionStandard(
                   else if( jac_wind_i[iq] == 2 )
                     {
                       Tensor5 dummy_abs_per_species;
-                      Tensor3 dummy_ppath_abs;
+                      Tensor3 dummy_ppath_nlte_source;
                       ArrayOfIndex dummy_lte;
                       Matrix f2, w2 = ppath_wind;   w2(1,joker) += dw;
                       get_ppath_f(    f2, ppath, f_grid,  atmosphere_dim, 
                                       rte_alonglos_v, w2 );
-                      get_ppath_pmat( ws, ppath_awv, dummy_ppath_abs, 
+                      get_ppath_pmat( ws, ppath_awv, dummy_ppath_nlte_source,
                                       dummy_lte, dummy_abs_per_species,
                                       propmat_clearsky_agenda, ppath, ppath_p, 
                                       ppath_t, ppath_t_nlte, ppath_vmr, f2, ppath_mag, f_grid,
@@ -528,12 +528,12 @@ void iyEmissionStandard(
                   else if( jac_wind_i[iq] == 3 )
                     {
                       Tensor5 dummy_abs_per_species;
-                      Tensor3 dummy_ppath_abs;
+                      Tensor3 dummy_ppath_nlte_source;
                       ArrayOfIndex dummy_lte;
                       Matrix f2, w2 = ppath_wind;   w2(2,joker) += dw;
                       get_ppath_f(    f2, ppath, f_grid,  atmosphere_dim, 
                                       rte_alonglos_v, w2 );
-                      get_ppath_pmat( ws, ppath_aww, dummy_ppath_abs, 
+                      get_ppath_pmat( ws, ppath_aww, dummy_ppath_nlte_source,
                                       dummy_lte, dummy_abs_per_species,
                                       propmat_clearsky_agenda, ppath, ppath_p, 
                                       ppath_t, ppath_t_nlte, ppath_vmr, f2, ppath_mag, f_grid,
@@ -587,7 +587,7 @@ void iyEmissionStandard(
           //
           const bool nonlte = lte[ip]==0 || lte[ip+1]==0; 
           //
-          Matrix absbar(0,0);
+          Matrix sourcebar(0,0);
           Tensor3 extbar(0,0,0);
           //
           if( nonlte )
@@ -595,15 +595,15 @@ void iyEmissionStandard(
               if( jacobian_do )
                 throw runtime_error( "iyEmissionStandard can so far not handle "
                                      "non-LTE together with Jacobians." );
-
-              absbar.resize( nf, stokes_dim );
+              
+              sourcebar.resize( nf, stokes_dim );
               extbar.resize( nf, stokes_dim, stokes_dim );
               for( Index iv=0; iv<nf; iv++ )  
                 { 
                   for( Index is1=0; is1<stokes_dim; is1++ )  
                     {
-                      absbar(iv,is1) = 0.5 * ( ppath_abs(iv,is1,ip) + 
-                                               ppath_abs(iv,is1,ip+1) );
+                      sourcebar(iv,is1) = 0.5 * ( ppath_nlte_source(iv,is1,ip) + 
+                                                  ppath_nlte_source(iv,is1,ip+1) );
                       for( Index is2=0; is2<stokes_dim; is2++ )  
                         { extbar(iv,is1,is2) = 0.5 * ( 
                                                ppath_ext(iv,is1,is2,ip) + 
@@ -993,7 +993,7 @@ void iyEmissionStandard(
           // Spectrum at end of ppath step 
           emission_rtstep( iy, stokes_dim, bbar, extmat_case[ip],
                            trans_partial(joker,joker,joker,ip),
-                           nonlte, extbar, absbar );
+                           nonlte, extbar, sourcebar );
 
 
           //=== iy_aux part ===================================================

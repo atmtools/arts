@@ -805,10 +805,10 @@ Numeric dotprod_with_los(
 
     With LTE, in vector notation: iy = t*iy + (1-t)*B,
 
-    and with non-LTE, in vector notation: iy = t*iy + (1-t)*inv(extbar)*Abar*B
+    and with non-LTE, in vector notation: iy = t*iy + (1-t)*B + (1-t)inv(extbar)*(Abar-extbar)*B
     
-    where B=[bbar 0 0 0]', and absbar is first column of Abar (remaining
-    columns do not matter):
+    where Jn = (Abar-extbar)*B is the non-LTE part of the source function as input through sourcebar,
+    i.e., iy = t*iy + (1-t)* ( B + inv(extbar)*Jn )
 
     The calculations are done differently for extmat_case 1 and 2/3.
 
@@ -822,7 +822,7 @@ Numeric dotprod_with_los(
     \param   t            In: Transmission matrix of the step.
     \param   nonlte       In: 0 if LTE applies, otherwise 1.
     \parem   extbar       In: Average extinction matrix. Totally ignored if lte=1.
-    \parem   absbar       In: Average absorption. Totally ignored if lte=1.
+    \parem   sourcebar    In: Average non-LTE source. Totally ignored if lte=1.
 
     \author Patrick Eriksson 
     \date   2013-04-19 (non-lte added 2015-05-31)
@@ -835,7 +835,7 @@ void emission_rtstep(
     ConstTensor3View      t,
     const bool&           nonlte,
     ConstTensor3View      extbar,
-    ConstMatrixView       absbar )
+    ConstMatrixView       sourcebar )
 {
   const Index nf = bbar.nelem();
 
@@ -896,14 +896,14 @@ void emission_rtstep(
       //throw runtime_error( "Non-LTE not yet handled." );
       assert( extbar.ncols() == stokes_dim  &&  extbar.nrows() == stokes_dim ); 
       assert( extbar.npages() == nf );
-      assert( absbar.ncols() == stokes_dim  &&  absbar.nrows() == nf ); 
+      assert( sourcebar.ncols() == stokes_dim  &&  sourcebar.nrows() == nf ); 
 
       // non-LTE, scalar case
       if( stokes_dim == 1 )
         {
           for( Index iv=0; iv<nf; iv++ )  
-            { iy(iv,0) = t(iv,0,0) * iy(iv,0) + ( 1 - t(iv,0,0) ) * 
-                                ( absbar(iv,0) / extbar(iv,0,0) ) * bbar[iv]; }
+            { iy(iv,0) = t(iv,0,0) * iy(iv,0) + ( 1 - t(iv,0,0) ) * ( bbar[iv] +
+                                sourcebar(iv,0) / extbar(iv,0,0) ); }
         }
 
       // non-LTE, vector cases
@@ -918,8 +918,8 @@ void emission_rtstep(
               // Unpolarised extinction:
               if( extmat_case[iv] == 1 )
                 {
-                  iy(iv,0) = t(iv,0,0) * iy(iv,0) + ( 1 - t(iv,0,0) ) * 
-                                    ( absbar(iv,0) / extbar(iv,0,0) ) * bbar[iv];
+                  iy(iv,0) = t(iv,0,0) * iy(iv,0) + ( 1 - t(iv,0,0) ) * ( bbar[iv] +
+                                     sourcebar(iv,0) / extbar(iv,0,0) );
                   for( Index is=1; is<stokes_dim; is++ )
                     { iy(iv,is) = t(iv,is,is) * iy(iv,is); }
                 }
@@ -932,18 +932,15 @@ void emission_rtstep(
                   // Inverse of extinction matrix
                   Matrix extinv(stokes_dim,stokes_dim);
                   inv ( extinv, extbar(iv,joker,joker) );
-                  // Create product between absvec and  bbar
-                  Vector kb = absbar(iv,joker);
-                  kb *= bbar[iv];
                   // Multiplicate with extinv
-                  Vector ev(stokes_dim);
-                  mult( ev, extinv, kb );
-                  // Multiplicate with transmission
-                  Vector et(stokes_dim);
-                  mult( et, t(iv,joker,joker), ev );
-                  // Sum up, using that (I-T)*ev = ev - et
-                  for( Index i=0; i<stokes_dim; i++ )
-                    { iy(iv,i) = tt[i] + ev[i] - et[i]; }
+                  Vector J_n(stokes_dim);
+                  mult( J_n, extinv, sourcebar(iv, joker) );
+                  
+                  // Add emission, first Stokes element
+                  iy(iv,0) = tt[0] + ( 1 - t(iv,0,0) ) * ( bbar[iv] + J_n[0] );
+                  // Remaining Stokes elements
+                  for( Index i=1; i<stokes_dim; i++ )
+                    { iy(iv,i) = tt[i] - t(iv,i,0) * ( bbar[iv] + J_n[i] ); }
                 }
             }
         }
@@ -1442,6 +1439,7 @@ void get_ppath_atmvars(
     \param   ws                  Out: The workspace
     \param   ppath_ext           Out: Summed extinction at each ppath point
     \param   ppath_abs           Out: Summed absorption at each ppath point
+    \param   ppath_nlte_source   Out: Summed nlte source at each ppath point
     \param   abs_per_species     Out: Absorption for "ispecies"
     \param   propmat_clearsky_agenda As the WSV.    
     \param   ppath               As the WSV.    
@@ -1460,7 +1458,7 @@ void get_ppath_atmvars(
 void get_ppath_pmat( 
         Workspace&      ws,
         Tensor4&        ppath_ext,
-        Tensor3&        ppath_abs,
+        Tensor3&        ppath_nlte_source,
         ArrayOfIndex&   lte,
         Tensor5&        abs_per_species,
   const Agenda&         propmat_clearsky_agenda,
@@ -1494,7 +1492,7 @@ void get_ppath_pmat(
   try 
     {
       ppath_ext.resize( nf, stokes_dim, stokes_dim, np ); 
-      ppath_abs.resize( nf, stokes_dim, np );   // We start by assuming non-LTE
+      ppath_nlte_source.resize( nf, stokes_dim, np );   // We start by assuming non-LTE
       lte.resize( np );
       abs_per_species.resize( nisp, nf, stokes_dim, stokes_dim, np ); 
     } 
@@ -1527,14 +1525,15 @@ void get_ppath_pmat(
 
       // Call agenda
       //
-      Tensor4  propmat_clearsky, propmat_source_clearsky;
+      Tensor4  propmat_clearsky;
+      Tensor3  nlte_source;
       //
       try {
         Vector rtp_vmr(0);
         if( nabs )
           {
             propmat_clearsky_agendaExecute( 
-               l_ws, propmat_clearsky, propmat_source_clearsky,
+               l_ws, propmat_clearsky, nlte_source,
                ppath_f(joker,ip), ppath_mag(joker,ip), ppath.los(ip,joker), 
                ppath_p[ip], ppath_t[ip], (ppath_t_nlte.nrows()&&ppath_t_nlte.nrows())?ppath_t_nlte(joker,ip):Vector(0), ppath_vmr(joker,ip),
                l_propmat_clearsky_agenda );
@@ -1542,7 +1541,7 @@ void get_ppath_pmat(
         else
           {
             propmat_clearsky_agendaExecute( 
-               l_ws, propmat_clearsky, propmat_source_clearsky,
+               l_ws, propmat_clearsky, nlte_source,
                ppath_f(joker,ip), ppath_mag(joker,ip), ppath.los(ip,joker), 
                ppath_p[ip], ppath_t[ip], (ppath_t_nlte.nrows()&&ppath_t_nlte.nrows())?ppath_t_nlte(joker,ip):Vector(0), Vector(0), l_propmat_clearsky_agenda );
           }
@@ -1578,25 +1577,24 @@ void get_ppath_pmat(
             }
 
           // Point with LTE
-          if( propmat_source_clearsky.empty() )
+          if( nlte_source.empty() )
             {
               lte[ip] = 1;
-              ppath_abs(joker,joker,ip) = ppath_ext(joker,joker,0,ip);
+              ppath_nlte_source(joker,joker,ip) = 0;
             }
           // Non-LTE point
           else
             {
-              assert( propmat_source_clearsky.ncols() == stokes_dim );
-              assert( propmat_source_clearsky.nrows() == stokes_dim );
-              assert( propmat_source_clearsky.npages() == nf );
-              assert( propmat_source_clearsky.nbooks() == max(nabs,Index(1)) );
+              assert( nlte_source.ncols() == stokes_dim );
+              assert( nlte_source.nrows() == nf );
+              assert( nlte_source.npages() == max(nabs,Index(1)) );
               //
               lte[ip] = 0;
               for( Index i1=0; i1<nf; i1++ )
                 {
                   for( Index i2=0; i2<stokes_dim; i2++ )
                     { 
-                      ppath_abs(i1,i2,ip) = propmat_source_clearsky(joker,i1,i2,0).sum();
+                      ppath_nlte_source(i1,i2,ip) = nlte_source(joker,i1,i2).sum();
                     }
                 }
             }

@@ -71,7 +71,7 @@ void define_agenda_data()
         "The include file 'agendas.arts' predefines some possible agendas\n"
         "that can be used here.\n"
         ),
-       OUTPUT( "propmat_clearsky", "propmat_source_clearsky" ),
+       OUTPUT( "propmat_clearsky", "nlte_source" ),
        INPUT(  "f_grid", "rtp_mag", "rtp_los", "rtp_pressure", 
                "rtp_temperature", "rtp_temperature_nlte", "rtp_vmr" )));
   

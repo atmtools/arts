@@ -8474,6 +8474,26 @@ void define_md_data_raw()
         USES_TEMPLATES( true  )
         ));
     
+   md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "nlte_sourceFromTemperatureAndSrcCoefPerSpecies" ),
+        DESCRIPTION
+        (
+         "Turn NLTE absorption per species into the source function by multiplying\n"
+         "NLTE absorption per species with the LTEPlanck source function.\n"
+         ),
+        AUTHORS( "Richard Larsson" ),
+        OUT( "nlte_source" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "src_coef_per_species", "f_grid", "rtp_temperature" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+    
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "nlteOff" ),
@@ -9425,11 +9445,11 @@ void define_md_data_raw()
          "prior content of *propmat_clearsky*, but adds to it.\n"
          ),
         AUTHORS( "Stefan Buehler" ),
-        OUT( "propmat_clearsky", "propmat_source_clearsky" ),
+        OUT( "propmat_clearsky" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "propmat_clearsky", "propmat_source_clearsky", "abs_coef_per_species", "src_coef_per_species" ),
+        IN( "propmat_clearsky", "abs_coef_per_species" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -9474,11 +9494,11 @@ void define_md_data_raw()
          "See also: *propmat_clearskyAddOnTheFly*.\n"
          ),
         AUTHORS( "Stefan Buehler, Richard Larsson" ),
-        OUT( "propmat_clearsky", "propmat_source_clearsky" ),
+        OUT( "propmat_clearsky" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "propmat_clearsky", "propmat_source_clearsky", "abs_lookup", "abs_lookup_is_adapted",
+        IN( "propmat_clearsky", "abs_lookup", "abs_lookup_is_adapted",
             "abs_p_interp_order", "abs_t_interp_order", "abs_nls_interp_order",
             "abs_f_interp_order", "f_grid",
             "rtp_pressure", "rtp_temperature", "rtp_vmr" ),
@@ -9508,11 +9528,11 @@ void define_md_data_raw()
          "of pressure, temperature, and VMR values.\n"
          ),
         AUTHORS( "Stefan Buehler, Richard Larsson" ),
-        OUT( "propmat_clearsky", "propmat_source_clearsky" ),
+        OUT( "propmat_clearsky", "nlte_source" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "propmat_clearsky", "propmat_source_clearsky",
+        IN( "propmat_clearsky", "nlte_source",
             "f_grid",
             "abs_species",
             "rtp_pressure", "rtp_temperature", "rtp_temperature_nlte", "rtp_vmr",
@@ -9571,11 +9591,11 @@ void define_md_data_raw()
          "but adds further contributions.\n"
          ),
         AUTHORS( "Jana Mendrok" ),
-        OUT( "propmat_clearsky", "propmat_source_clearsky" ),
+        OUT( "propmat_clearsky" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "propmat_clearsky", "propmat_source_clearsky", "stokes_dim", "atmosphere_dim",
+        IN( "propmat_clearsky", "stokes_dim", "atmosphere_dim",
             "f_grid", "abs_species",
             "rtp_vmr", "rtp_los", "rtp_temperature", "scat_data" ),
         GIN(         "use_abs_as_ext" ),
@@ -9622,12 +9642,12 @@ void define_md_data_raw()
         "in Tesla.\n"
          ),
         AUTHORS( "Richard Larsson" ),
-        OUT("propmat_clearsky","propmat_source_clearsky"),
+        OUT("propmat_clearsky", "nlte_source"),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN("propmat_clearsky",
-	   "propmat_source_clearsky",
+           "nlte_source",
            "f_grid",
            "abs_species",
            "abs_lines_per_species",
@@ -9657,12 +9677,12 @@ void define_md_data_raw()
         "The other inputs are similar as for *propmat_clearskyAddZeeman*.\n"
          ),
         AUTHORS( "Richard Larsson" ),
-        OUT("propmat_clearsky","propmat_source_clearsky"),
+        OUT("propmat_clearsky", "nlte_source"),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN("propmat_clearsky",
-	   "propmat_source_clearsky",
+           "nlte_source",
            "zeeman_linerecord_precalc",
            "f_grid",
            "abs_species",
@@ -9684,13 +9704,13 @@ void define_md_data_raw()
       ( NAME( "propmat_clearskyInit" ),
         DESCRIPTION
         (
-         "Initialize *propmat_clearsky*.\n"
+         "Initialize *propmat_clearsky* and *nlte_source*.\n"
          "\n"
          "This method must be used inside *propmat_clearsky_agenda* and then\n"
          "be called first.\n"
          ),
         AUTHORS( "Oliver Lemke, Richard Larsson" ),
-        OUT( "propmat_clearsky", "propmat_source_clearsky" ),
+        OUT( "propmat_clearsky",  "nlte_source" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
@@ -9742,11 +9762,11 @@ void define_md_data_raw()
            "Use this method just if you know what you are doing!\n"
           ),
           AUTHORS( "Richard Larsson" ),
-          OUT("propmat_clearsky", "propmat_source_clearsky"),
+          OUT("propmat_clearsky"),
           GOUT(),
           GOUT_TYPE(),
           GOUT_DESC(),
-          IN("propmat_clearsky", "propmat_source_clearsky"),
+          IN("propmat_clearsky"),
           GIN(),
           GIN_TYPE(),
           GIN_DEFAULT(),

@@ -296,7 +296,7 @@ Numeric frequency_change_casea(const Rational& omega, const Rational& m, const R
 
 void xsec_species_line_mixing_wrapper_with_zeeman(  
         Tensor3View part_abs_mat, 
-	Tensor3View part_src_mat,
+        MatrixView part_nlte_source,
         const ArrayOfArrayOfSpeciesTag& abs_species, 
         const ArrayOfLineshapeSpec& abs_lineshape, 
         const ArrayOfLineRecord& lr,
@@ -316,9 +316,7 @@ void xsec_species_line_mixing_wrapper_with_zeeman(
 {
     assert( part_abs_mat.npages() == f_grid.nelem() && part_abs_mat.ncols() == 4 && part_abs_mat.nrows() == 4 );
     
-    bool do_src = true;
-    if( part_src_mat.ncols() == 0 && part_src_mat.nrows() == 0 && part_src_mat.npages() == 0)
-      do_src = false;
+    bool do_src =  !part_nlte_source.empty();
     
     Matrix A(f_grid.nelem(), 1, 0.);
     Matrix B(f_grid.nelem(), 1, 0.);
@@ -359,9 +357,19 @@ void xsec_species_line_mixing_wrapper_with_zeeman(
     mult(temp_part_mat,C(joker,0), K_b);
 
     part_abs_mat+=temp_part_mat;
-
+  
     if( do_src )
-      mult(part_src_mat,B(joker,0), K_a);// No phase for source matrix
+    {
+      // Blackbody radiation is the LTE source
+      Vector planck_B; // tmp is used in lower loop, it is initialized only once
+      blackbody_radiationPlanck(planck_B, f_grid, abs_t[0], verbosity);
+      
+      for(Index ii=0;ii<4;ii++)
+      {
+        part_nlte_source(joker,ii)  =  planck_B;
+        part_nlte_source(joker,ii) *= K_a(0,ii);
+      }
+    }
 }
 
 

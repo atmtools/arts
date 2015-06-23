@@ -1,3 +1,71 @@
+2015-06-23  Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-3-252
+	
+	Updated non-LTE formalism in ARTS to fit with Patrick's suggestion to
+	only return the difference between LTE and non-LTE source term.
+	
+	That is, instead of doing dy/ds = - K*y + E*B, we now assume that
+	dy/ds = - K*y + K*B + J_n for the radiative transfer.  In this equation,
+	J_n = (E-K)*B, and it is returned from propmat_clearsky_agenda when
+	nlte_do is true.  As a consequence of these changes 
+	propmat_source_clearsky has been removed from workspace and all functions
+	that previously had to return it so that E would be complete for all 
+	absorption cases.  (This also saves some time, since, e.g., continua
+	will no longer have to add onto E, since its non-LTE contribution is
+	nil, its J_n contribution is also nil.)
+	
+	One negative consequence of this update is that it also formally changes
+	a behavior of m_rte.cc.  Previously, E was pressure level-averaged for a
+	layer in m_rte.cc so that E_bar was (E'+E'')/2, where E_bar is the 
+	average and E' and E'' is the E of two adjacent levels.  This E_bar was 
+	multiplied by Planck's function in emission_rtstep, and Planck's function 
+	was also averaged over two levels so B_bar = (B'+B'')/2.  Thus we had
+	(E'B'+E'B''+E''B'+E''B'')/4 as the second term of the first equation
+	above.  Now, since J_n is returned per level, 
+	J_n_bar = ([E'B'-K'B'+E''B''-K''B'')/2, and since K*B is averaged as
+	before, i.e., K_bar*B_bar = (K'B'+K'B''+K''B'+K''B'')/4, we end up with
+	K_bar*B_bar+J_n_bar = (2E'B'-K'B'+K'B''+2E''B''-K''B'+K''B'')/4.
+	
+	The difference above is of course very small when K or B remains 
+	fairly close to K_bar or B_bar, respectively, but is nevertheless there
+	and I do not know how to deal with it.  Nor do I know if the previous
+	formalism was better or worse than present formalism for our layer
+	formations.  I suspect that the ideal solution is to force both of these
+	definitions of K*B+J_n to be similar in the pathing somehow, so as to
+	ensure that the atmospheric absorption is not misscalculated, but this
+	is not part of the present update.
+	
+	* controlfiles/artscomponents/stokesrot/TestStokesRotation.arts:
+	Now touches nlte_source instead of propmat_source_clearsky.
+	
+	* src/absorption.cc:  xsec_single_line now returns source cross-section
+	as source non-LTE ratio minus absorption non-LTE ratio times the LTE 
+	cross-section, instead of, as it did before, the source non-LTE ratio
+	times the LTE cross-section.
+	
+	* src/agendas.cc: propmat_source_clearsky is replaced by nlte_source in
+	propmat_clearsky_agenda.
+	
+	* src/m_abs.cc: nlte_sourceFromTemperatureAndSrcCoefPerSpecies added.
+	This function multiplies the coefficients with the Planck function.
+	Removed source from propmat_clearskyAddFromAbsCoefPerSpecies. 
+	Removed source calculations from all workspace methods that do not 
+	need it.
+	
+	* src/{m_,}zeeman.{cc,h}: Changed to the new behavior.
+	
+	* src/rte.{cc,h}: Changed emission_rtstep to take sourcebar as input.
+	Behavior inside should be identical but as above, averaging is done 
+	elsewhere now. get_ppath_pmat returns ppath_nlte_source instead of 
+	ppath_abs.  Same size of both variabels.
+	
+	* src/m_rte.cc:  This is where averaging now happends over J_n instead of
+	over E, causing the concern raised above.  In iyEmissionStandard.
+	
+	Remaining unlisted files all comply with changes mentioned.  Basically,
+	a few names have changed.  That is all.
+
 2015-06-22  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-3-251
