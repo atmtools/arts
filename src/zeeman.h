@@ -127,4 +127,4 @@ void create_Zeeman_linerecordarrays(ArrayOfArrayOfLineRecord& aoaol,
                                     const Index&DO_M,
                                     const Verbosity& verbosity);
 
-void set_part_isotopolouge_constants(Index& hund,Numeric& GS,const SpeciesAuxData& isotopologue_quantum,const LineRecord& temp_LR);
+void set_part_isotopologue_constants(Index& hund,Numeric& GS,const SpeciesAuxData& isotopologue_quantum,const LineRecord& temp_LR);

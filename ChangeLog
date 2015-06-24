@@ -1,3 +1,28 @@
+2015-06-24  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-254
+
+	* src/absorption.{cc,h} (SpeciesAuxData):
+
+	Change internal implementation to make it possible to store more
+	complex auxiliary data. Each isotopologue can now be associated with
+	an ArrayOfGriddedField1. Preparation to store partition functions
+	externally.
+
+	* src/xml_io_compound_types.cc:
+
+	Adapt the read/write routines for SpeciesAuxData. Format version
+	increased to 2. Old format 1 data can still be read and converted to
+	version 2.
+
+	* src/zeeman.cc (set_quantum_numbers, set_part_isotopolouge_constants):
+
+	Adapted for changes in SpeciesAuxData.
+
+	* src/m_zeeman.cc, src/zeeman.{cc,h} (set_part_isotopologue_constants):
+
+	Fix typo in function name.
+	
 2015-06-23  Jana Mendrok  <jana.mendrok@ltu.se>
 
 	* arts-2-3-253

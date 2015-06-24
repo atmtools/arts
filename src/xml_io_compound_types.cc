@@ -1538,47 +1538,89 @@ void xml_read_from_stream(istream&           is_xml,
     tag.read_from_stream(is_xml);
     tag.check_name("SpeciesAuxData");
 
-    tag.get_attribute_value("nelem", nelem);
-    tag.get_attribute_value("nparam", nparam);
-
     Index version;
     tag.get_attribute_value("version", version);
 
-    if (version != 1)
+    if (version == 1)
     {
-        ostringstream os;
-        os << "Unknown SpeciesAuxData version " << version;
-        throw runtime_error(os.str());
-    }
+        tag.get_attribute_value("nelem", nelem);
+        tag.get_attribute_value("nparam", nparam);
 
-    Index n = 0;
-    try
-    {
-        ArrayOfString artstags;
-        sad.initParams(nparam);
-        for (n = 0; n < nelem; n++)
+        Index n = 0;
+        try
         {
-            String artstag;
-            sad.ReadFromStream(artstag, is_xml, nparam, verbosity);
-
-            if (find_first(artstags, artstag) == -1)
-                artstags.push_back(artstag);
-            else
+            ArrayOfString artstags;
+            sad.InitFromSpeciesData();
+            for (n = 0; n < nelem; n++)
             {
-                ostringstream os;
-                os << "SpeciesAuxData for " << artstag << " already defined.\n"
-                << "Duplicates are not allowed in input file.";
-                throw runtime_error(os.str());
+                String artstag;
+                sad.ReadFromStream(artstag, is_xml, nparam, verbosity);
+
+                if (find_first(artstags, artstag) == -1)
+                    artstags.push_back(artstag);
+                else
+                {
+                    ostringstream os;
+                    os << "SpeciesAuxData for " << artstag << " already defined.\n"
+                    << "Duplicates are not allowed in input file.";
+                    throw runtime_error(os.str());
+                }
             }
         }
+        catch (runtime_error e)
+        {
+            ostringstream os;
+            os << "Error reading SpeciesAuxData: "
+            << "\n Element: " << n
+            << "\n" << e.what();
+            throw runtime_error(os.str());
+        }
     }
-    catch (runtime_error e)
+    else if (version == 2)
+    {
+        tag.get_attribute_value("nelem", nelem);
+        Index n = 0;
+        try
+        {
+            ArrayOfString artstags;
+            sad.InitFromSpeciesData();
+            for (n = 0; n < nelem; n++)
+            {
+                String artstag;
+                String auxtype;
+                ArrayOfGriddedField1 auxdata;
+
+                xml_read_from_stream(is_xml, artstag, pbifs, verbosity);
+                xml_read_from_stream(is_xml, auxtype, pbifs, verbosity);
+                xml_read_from_stream(is_xml, auxdata, pbifs, verbosity);
+
+                sad.setParam(artstag, auxtype, auxdata);
+
+                if (find_first(artstags, artstag) == -1)
+                    artstags.push_back(artstag);
+                else
+                {
+                    ostringstream os;
+                    os << "SpeciesAuxData for " << artstag << " already defined.\n"
+                    << "Duplicates are not allowed in input file.";
+                    throw runtime_error(os.str());
+                }
+            }
+        }
+        catch (runtime_error e)
+        {
+            ostringstream os;
+            os << "Error reading SpeciesAuxData: "
+            << "\n Element: " << n
+            << "\n" << e.what();
+            throw runtime_error(os.str());
+        }
+    }
+    else
     {
         ostringstream os;
-        os << "Error reading SpeciesAuxData: "
-        << "\n Element: " << n
-        << "\n" << e.what();
-        throw runtime_error(os.str());
+        os << "Unsupported SpeciesAuxData version number: " << version << ", expected 1 or 2.";
+        throw std::runtime_error(os.str());
     }
 
     tag.read_from_stream(is_xml);
@@ -1606,34 +1648,37 @@ void xml_write_to_stream(ostream&                 os_xml,
     ArtsXMLTag close_tag(verbosity);
 
     Index nelem = 0;
-    for (ArrayOfMatrix::const_iterator isp = sad.getParams().begin();
-         isp != sad.getParams().end();
-         isp++)
-        nelem += isp->nrows();
+    for (Index isp = 0; isp < sad.nspecies(); isp++)
+        for (Index iso = 0; iso < sad.nisotopologues(isp); iso++)
+            if (sad.getParam(isp, iso).nelem())
+                nelem++;
 
     open_tag.set_name("SpeciesAuxData");
     if (name.length())
         open_tag.add_attribute("name", name);
-    if (sad.getParams().nelem() && sad.getParams()[0].nrows())
-    {
-        open_tag.add_attribute("version", 1);
-        open_tag.add_attribute("nelem", nelem);
-        open_tag.add_attribute("nparam", sad.getParams()[0].ncols());
-    }
+
+    open_tag.add_attribute("version", 2);
+    open_tag.add_attribute("nelem", nelem);
+
     open_tag.write_to_stream(os_xml);
     os_xml << '\n';
 
     xml_set_stream_precision(os_xml);
-    const ArrayOfMatrix& params = sad.getParams();
-    for (Index isp = 0; isp < params.nelem(); isp++)
+
+    for (Index isp = 0; isp < sad.nspecies(); isp++)
     {
-        String species = species_data[isp].Name();
-        for (Index iiso = 0; iiso < params[isp].nrows(); iiso++)
+        const String spname = species_data[isp].Name();
+        for (Index iso = 0; iso < sad.nisotopologues(isp); iso++)
         {
-            os_xml << "@ " << species << "-" << species_data[isp].Isotopologue()[iiso].Name();
-            for (Index ip = 0; ip < params[isp].ncols(); ip++)
-                os_xml << " " << params[isp](iiso, ip);
-            os_xml << '\n';
+            if (sad.getParam(isp, iso).nelem())
+            {
+                const String artstag =
+                spname + "-" + species_data[isp].Isotopologue()[iso].Name();
+
+                xml_write_to_stream(os_xml, artstag, pbofs, "", verbosity);
+                xml_write_to_stream(os_xml, sad.getTypeString(isp, iso), pbofs, "", verbosity);
+                xml_write_to_stream(os_xml, sad.getParam(isp, iso), pbofs, "", verbosity);
+            }
         }
     }
 

@@ -465,7 +465,7 @@ void set_quantum_numbers(Rational& Main,
   {
       Main  = temp_LR.QuantumNumbers().Lower(QN_N);
       DMain = (Main - temp_LR.QuantumNumbers().Upper(QN_N)).toIndex();
-      S = isotopologue_quantum.getParam(temp_LR.Species(), temp_LR.Isotopologue(), 1);
+      S = isotopologue_quantum.getParam(temp_LR.Species(), temp_LR.Isotopologue())[0].data[1];
   }
   
   if(DO_M!=0)
@@ -570,7 +570,7 @@ void create_Zeeman_linerecordarrays(
           for (Index ii = 0; ii< abs_lines_per_species[II].nelem(); ii++)
           {
                   
-                  set_part_isotopolouge_constants(hund,GS,isotopologue_quantum,abs_lines_per_species[II][ii]);
+                  set_part_isotopologue_constants(hund,GS,isotopologue_quantum,abs_lines_per_species[II][ii]);
                   // local LineRecord
                   LineRecord temp_LR = abs_lines_per_species[II][ii];
                   Numeric RS_sum     = 0; //Sum relative strength (which ought be close to one by the end)
@@ -730,8 +730,8 @@ void create_Zeeman_linerecordarrays(
 }
 
 
-void set_part_isotopolouge_constants(Index& hund,Numeric& GS,const SpeciesAuxData& isotopologue_quantum,const LineRecord& temp_LR)
+void set_part_isotopologue_constants(Index& hund,Numeric& GS,const SpeciesAuxData& isotopologue_quantum,const LineRecord& temp_LR)
 {
-  hund = (Index) isotopologue_quantum.getParam(temp_LR.Species(), temp_LR.Isotopologue(), 2);
-  GS   = isotopologue_quantum.getParam(temp_LR.Species(), temp_LR.Isotopologue(), 0); 
+  hund = (Index) isotopologue_quantum.getParam(temp_LR.Species(), temp_LR.Isotopologue())[0].data[2];
+  GS   = isotopologue_quantum.getParam(temp_LR.Species(), temp_LR.Isotopologue())[0].data[0];
 }

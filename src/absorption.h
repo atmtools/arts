@@ -38,6 +38,7 @@
 #include "abs_species_tags.h"
 #include "linerecord.h"
 #include "linemixingrecord.h"
+#include "gridded_fields.h"
 
 
 /** The type that is used to store pointers to lineshape
@@ -435,37 +436,73 @@ private:
 };
 
 
+/** Mapping of species auxiliary type names to SpeciesAuxData::AuxType enum */
+static const char *SpeciesAuxTypeNames[] = {
+    "NONE",
+    "ISORATIO",
+    "ISOQUANTUM"
+};
+
+
 /** Auxiliary data for isotopologues */
 class SpeciesAuxData
 {
 public:
-    /** Default constructor. */
-    SpeciesAuxData() : mparams() { }
+    typedef enum
+    {
+        PT_NONE,
+        PT_ISOTOPOLOGUE_RATIO,
+        PT_ISOTOPOLOGUE_QUANTUM,
+        PT_FINAL_ENTRY
+    } AuxType;
 
-    /** Resize according to builtin isotopologues in species data. */
-    void initParams(Index nparams);
+    typedef Array<Array<AuxType> > ArrayOfArrayOfAuxType;
+    typedef Array<GriddedField1> AuxData;
+    typedef Array<Array<AuxData> > ArrayOfArrayOfAuxData;
+
+    /** Default constructor. */
+    SpeciesAuxData() { };
+
+    void InitFromSpeciesData();
 
     /** Get single parameter value. */
-    Numeric getParam(Index species, Index isotopologue, Index col) const
-    {
-        return mparams[species](isotopologue, col);
-    }
+    AuxType getType(Index species, Index isotopologue) const;
 
-    /** Set parameter. */
-    void setParam(Index species, Index isotopologue, Index col, Numeric v)
-    {
-        mparams[species](isotopologue, col) = v;
-    }
+    /** Returns number of species. */
+    Index nspecies() const { return mparams.nelem(); };
+
+    /** Returns number of isotopologues for a certain species. */
+    Index nisotopologues(const Index species) const { return mparams[species].nelem(); };
 
     /** Return a constant reference to the parameters. */
-    const ArrayOfMatrix& getParams() const { return mparams; }
+    const ArrayOfGriddedField1& getParam(const Index species, const Index isotopologue) const;
 
-    /** Read parameters from input stream. */
+    /** Return a parameter type as string. */
+    String getTypeString(const Index species, const Index isotopologue) const;
+
+    /** Set parameter. */
+    void setParam(const Index species,
+                  const Index isotopologue,
+                  const AuxType auxtype,
+                  const ArrayOfGriddedField1& auxdata);
+
+    /** Set parameter by ARTS tag. */
+    void setParam(const String& artstag,
+                  const String& auxtype,
+                  const ArrayOfGriddedField1& auxdata);
+
+    /** Return a constant reference to the parameter types. */
+    const AuxType& getParamType(const Index species,
+                                const Index isotopologue) const
+    { return mparam_type[species][isotopologue]; }
+
+    /** Read parameters from input stream (only for version 1 format). */
     bool ReadFromStream(String& artsid, istream& is, Index nparams,
                         const Verbosity& verbosity);
 
 private:
-    ArrayOfMatrix mparams;
+    ArrayOfArrayOfAuxData mparams;
+    ArrayOfArrayOfAuxType mparam_type;
 };
 
 

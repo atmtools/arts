@@ -286,7 +286,7 @@ void propmat_clearskyAddZeemanFromPreCalc(Tensor4& propmat_clearsky,
     {
       
       // Set necessary parameters from isotopologue_quantum
-      set_part_isotopolouge_constants(hund,GS,isotopologue_quantum,zeeman_linerecord_precalc[II][JJ]);
+      set_part_isotopologue_constants(hund,GS,isotopologue_quantum,zeeman_linerecord_precalc[II][JJ]);
       
       // Set quantum numbers
       set_quantum_numbers(Main,DMain,J,DJ,M,DM,S,zeeman_linerecord_precalc[II][JJ],hund,isotopologue_quantum,1,1,1);

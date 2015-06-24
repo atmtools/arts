@@ -90,17 +90,117 @@ temperature ) const
 }
 
 
-void SpeciesAuxData::initParams(Index nparams)
+void SpeciesAuxData::InitFromSpeciesData()
 {
     using global_data::species_data;
 
     mparams.resize(species_data.nelem());
+    mparam_type.resize(species_data.nelem());
 
     for (Index isp = 0; isp < species_data.nelem(); isp++)
     {
-        mparams[isp].resize(species_data[isp].Isotopologue().nelem(), nparams);
-        mparams[isp] = NAN;
+        const Index niso = species_data[isp].Isotopologue().nelem();
+        mparams[isp].resize(niso);
+        mparam_type[isp].resize(niso);
+        for (Index iso = 0; iso < niso; iso++)
+        {
+            mparams[isp][iso].resize(0);
+            mparam_type[isp][iso] = SpeciesAuxData::PT_NONE;
+        }
     }
+}
+
+
+void SpeciesAuxData::setParam(const Index species,
+                              const Index isotopologue,
+                              const AuxType auxtype,
+                              const ArrayOfGriddedField1& auxdata)
+{
+    mparam_type[species][isotopologue] = auxtype;
+    mparams[species][isotopologue] = auxdata;
+}
+
+
+void SpeciesAuxData::setParam(const String& artstag,
+                              const String& auxtype,
+                              const ArrayOfGriddedField1& auxdata)
+{
+    // Global species lookup data:
+    using global_data::species_data;
+
+    // We need a species index sorted by Arts identifier. Keep this in a
+    // static variable, so that we have to do this only once.  The ARTS
+    // species index is ArtsMap[<Arts String>].
+    static map<String, SpecIsoMap> ArtsMap;
+
+    // Remember if this stuff has already been initialized:
+    static bool hinit = false;
+
+    if ( !hinit )
+    {
+        for ( Index i=0; i<species_data.nelem(); ++i )
+        {
+            const SpeciesRecord& sr = species_data[i];
+            for ( Index j=0; j<sr.Isotopologue().nelem(); ++j)
+            {
+                SpecIsoMap indicies(i,j);
+                String buf = sr.Name()+"-"+sr.Isotopologue()[j].Name();
+                ArtsMap[buf] = indicies;
+            }
+        }
+        hinit = true;
+    }
+
+    Index species;
+    Index isotopologue;
+
+    // ok, now for the cool index map:
+    // is this arts identifier valid?
+    const map<String, SpecIsoMap>::const_iterator i = ArtsMap.find(artstag);
+    if ( i == ArtsMap.end() )
+    {
+        ostringstream os;
+        os << "ARTS Tag: " << artstag << " is unknown.";
+        throw runtime_error(os.str());
+    }
+
+    SpecIsoMap id = i->second;
+
+    // Set mspecies:
+    species = id.Speciesindex();
+
+    // Set misotopologue:
+    isotopologue = id.Isotopologueindex();
+
+    Index this_auxtype = 0;
+
+    while (this_auxtype < PT_FINAL_ENTRY && auxtype != SpeciesAuxTypeNames[this_auxtype])
+        this_auxtype++;
+
+    if (this_auxtype != PT_FINAL_ENTRY)
+    {
+        setParam(species, isotopologue, (AuxType)this_auxtype, auxdata);
+    }
+    else
+    {
+        ostringstream os;
+        os << "Unknown SpeciesAuxData type: " << auxtype;
+        std::runtime_error(os.str());
+    }
+}
+
+
+const ArrayOfGriddedField1& SpeciesAuxData::getParam(const Index species,
+                                                     const Index isotopologue) const
+{
+    return mparams[species][isotopologue];
+}
+
+
+String SpeciesAuxData::getTypeString(const Index species, const Index isotopologue) const
+{
+    assert(mparam_type[species][isotopologue] < PT_FINAL_ENTRY);
+    return SpeciesAuxTypeNames[mparam_type[species][isotopologue]];
 }
 
 
@@ -223,16 +323,28 @@ bool SpeciesAuxData::ReadFromStream(String& artsid, istream& is, Index nparams, 
         // Set misotopologue:
         misotopologue = id.Isotopologueindex();
 
-        Matrix& params = mparams[mspecies];
+        ArrayOfGriddedField1 ratios;
+        ratios.resize(1);
         // Extract accuracies:
         try
         {
             Numeric p = NAN;
+            std::vector<Numeric> aux;
             for (Index ip = 0; ip < nparams; ip++)
             {
                 icecream >> double_imanip() >> p;
-                params(misotopologue, ip) = p;
+                aux.push_back(p);
             }
+
+            Vector grid;
+            if (aux.size() > 1)
+                nlinspace(grid, 1, aux.size(), aux.size());
+            else
+                grid = Vector(1, .1);
+
+            ratios[0].set_grid(0, grid);
+            ratios[0].data = aux;
+            mparams[mspecies][misotopologue] = ratios;
         }
         catch (runtime_error)
         {
@@ -251,10 +363,10 @@ void checkIsotopologueRatios(const ArrayOfArrayOfSpeciesTag& abs_species,
     using global_data::species_data;
     
     // Check total number of species:
-    if (species_data.nelem() != isoratios.getParams().nelem())
+    if (species_data.nelem() != isoratios.nspecies())
       {
         ostringstream os;
-        os << "Number of species in SpeciesAuxData (" << isoratios.getParams().nelem()
+        os << "Number of species in SpeciesAuxData (" << isoratios.nspecies()
         << "does not fit builtin species data (" << species_data.nelem() << ").";
         throw runtime_error(os.str());
       }
@@ -273,13 +385,13 @@ void checkIsotopologueRatios(const ArrayOfArrayOfSpeciesTag& abs_species,
         const SpeciesRecord& this_sd = species_data[sp];
      
         // Check number of isotopologues:
-        if (this_sd.Isotopologue().nelem() != isoratios.getParams()[sp].nrows())
+        if (this_sd.Isotopologue().nelem() != isoratios.nisotopologues(sp))
           {
             ostringstream os;
             os << "Incorrect number of isotopologues in isotopologue data.\n"
             << "Species: " << this_sd.Name() << ".\n"
             << "Number of isotopes in SpeciesAuxData ("
-            << isoratios.getParams()[i].nrows() << ") "
+            << isoratios.nisotopologues(sp) << ") "
             << "does not fit builtin species data (" << this_sd.Isotopologue().nelem() << ").";
             throw runtime_error(os.str());
           }
@@ -289,14 +401,14 @@ void checkIsotopologueRatios(const ArrayOfArrayOfSpeciesTag& abs_species,
             // For "real" species (not representing continau) the isotopologue
             // ratio must not be NAN or below zero.
             if (!this_sd.Isotopologue()[iso].isContinuum()) {
-                if (isnan(isoratios.getParam(sp, iso, 0)) ||
-                    isoratios.getParam(sp, iso, 0) < 0.) {
+                if (isnan(isoratios.getParam(sp, iso)[0].data[0]) ||
+                    isoratios.getParam(sp, iso)[0].data[0] < 0.) {
                     
                     ostringstream os;
                     os << "Invalid isotopologue ratio.\n"
                     << "Species: " << this_sd.Name() << "-"
                     << this_sd.Isotopologue()[iso].Name() << "\n"
-                    << "Ratio:   " << isoratios.getParam(sp, iso, 0);
+                    << "Ratio:   " << isoratios.getParam(sp, iso)[0].data[0];
                     throw runtime_error(os.str());
                 }
             }
@@ -309,12 +421,22 @@ void fillSpeciesAuxDataWithIsotopologueRatiosFromSpeciesData(SpeciesAuxData& sad
 {
     using global_data::species_data;
 
-    sad.initParams(1);
+    sad.InitFromSpeciesData();
+
+    Vector grid(1, 1.);
+    ArrayOfGriddedField1 ratios;
+    ratios.resize(1);
+    ratios[0].set_name("IsoRatios");
+    ratios[0].set_grid_name(0, "Index");
+    ratios[0].set_grid(0, grid);
+    ratios[0].resize(1);
 
     for (Index isp = 0; isp < species_data.nelem(); isp++)
         for (Index iiso = 0; iiso < species_data[isp].Isotopologue().nelem(); iiso++)
         {
-            sad.setParam(isp, iiso, 0, species_data[isp].Isotopologue()[iiso].Abundance());
+            ratios[0].data[0] = species_data[isp].Isotopologue()[iiso].Abundance();
+            sad.setParam(isp, iiso,
+                         SpeciesAuxData::PT_ISOTOPOLOGUE_RATIO, ratios);
         }
 }
 
@@ -345,8 +467,20 @@ ostream& operator<< (ostream& os, const SpeciesRecord& sr)
       
 ostream& operator<< (ostream& os, const SpeciesAuxData& sad)
 {
-  os << sad.getParams();
-  return os;
+    using global_data::species_data;
+    for (Index sp = 0; sp < sad.nspecies(); sp++)
+    {
+        for (Index iso = 0; iso < sad.nisotopologues(sp); iso++)
+        {
+            os << species_name_from_species_index(sp) << "-"
+            << global_data::species_data[sp].Isotopologue()[iso].Name();
+            os << " " << sad.getTypeString(sp, iso) << std::endl;
+            for (Index ip = 0; ip < sad.getParam(sp, iso).nelem(); ip++)
+                os << "AuxData " << ip << " " << sad.getParam(sp, iso) << std::endl;
+        }
+    }
+
+    return os;
 }
 
 
@@ -1234,7 +1368,7 @@ void xsec_single_line(VectorView xsec_accum_attenuation,
             //                    const Numeric factors = intensity * l_l.IsotopologueData().Abundance();
             const Numeric factors = isotopologue_ratios.getParam(
                                            LineRecord_Species,
-                                           LineRecord_Isotopologue, 0);
+                                           LineRecord_Isotopologue)[0].data[0];
             
             // We have to do:
             // xsec(j,i) += factors * ls[j] * fac[j];
@@ -2474,7 +2608,7 @@ void xsec_species_old_unused( MatrixView               xsec_attenuation,
                                         //                const Numeric factors = n * intensity * l_l.IsotopologueData().Abundance();
                                         //                    const Numeric factors = intensity * l_l.IsotopologueData().Abundance();
                                         const Numeric factors = intensity
-                                        * isotopologue_ratios.getParam(l_l.Species(), l_l.Isotopologue(), 0);
+                                        * isotopologue_ratios.getParam(l_l.Species(), l_l.Isotopologue())[0].data[0];
                                         
                                         // We have to do:
                                         // xsec(j,i) += factors * ls[j] * fac[j];
