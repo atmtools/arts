@@ -302,6 +302,7 @@ void xsec_species_line_mixing_wrapper_with_zeeman(
         const ArrayOfLineRecord& lr,
         const Vector& Zeeman_DF,
         const SpeciesAuxData& isotopologue_ratios, 
+        const SpeciesAuxData& partition_functions, 
         const Matrix& abs_t_nlte,
         const Matrix& abs_vmrs, 
         const Vector& abs_p,
@@ -333,7 +334,7 @@ void xsec_species_line_mixing_wrapper_with_zeeman(
         xsec_species_line_mixing_wrapper( attenuation, source, phase,
                 f_grid, abs_p, abs_t, abs_t_nlte, abs_vmrs, abs_species, this_species, lr, Zeeman_DF,
                 abs_lineshape[i].Ind_ls(), abs_lineshape[i].Ind_lsn(), lm_p_lim, abs_lineshape[i].Cutoff(),
-                isotopologue_ratios, verbosity ); // Now in cross section
+                isotopologue_ratios, partition_functions, verbosity ); // Now in cross section
 
         attenuation *= abs_vmrs(this_species, 0) * number_density( abs_p[0],abs_t[0]); // Now in absorption coef.
 	

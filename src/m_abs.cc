@@ -1654,6 +1654,7 @@ void abs_xsec_per_speciesAddLines(// WS Output:
                                   const ArrayOfArrayOfLineRecord&  abs_lines_per_species,
                                   const ArrayOfLineshapeSpec&      abs_lineshape,
                                   const SpeciesAuxData&            isotopologue_ratios,
+                                  const SpeciesAuxData&            partition_functions,
                                   const Verbosity&                 verbosity)
 {
   CREATE_OUT3;
@@ -1874,6 +1875,7 @@ void abs_xsec_per_speciesAddLines(// WS Output:
                              ls.Ind_lsn(),
                              ls.Cutoff(),
                              isotopologue_ratios,
+                             partition_functions,
                              verbosity );
             }
           else
@@ -1898,6 +1900,7 @@ void abs_xsec_per_speciesAddLines(// WS Output:
                                                  lm_p_lim,
                                                  ls.Cutoff(),
                                                  isotopologue_ratios,
+                                                 partition_functions,
                                                  verbosity);
             }
           // Note that we call xsec_species with a row of abs_vmrs,

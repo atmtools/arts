@@ -312,15 +312,15 @@ public:
         {
           case PF_FROMCOEFF:
             qcoeff_at_t_ref =
-            CalculatePartitionFctAtTempFromCoeff( reference_temperature );
+            CalculatePartitionFctAtTempFromCoeff_OldUnused( reference_temperature );
             qtemp =
-            CalculatePartitionFctAtTempFromCoeff( actual_temperature    );
+            CalculatePartitionFctAtTempFromCoeff_OldUnused( actual_temperature    );
             break;
           case PF_FROMTEMP:
               qcoeff_at_t_ref =
-              CalculatePartitionFctAtTempFromData( actual_temperature    );
+              CalculatePartitionFctAtTempFromData_OldUnused( reference_temperature    );
               qtemp =
-              CalculatePartitionFctAtTempFromData( actual_temperature    );
+              CalculatePartitionFctAtTempFromData_OldUnused( actual_temperature    );
               break;
           default:
               throw runtime_error("The partition functions are incorrect.\n");
@@ -355,8 +355,8 @@ private:
 
   // calculate the partition fct at a certain temperature
   // this is only the prototyping
-  Numeric CalculatePartitionFctAtTempFromCoeff( Numeric temperature ) const;
-  Numeric CalculatePartitionFctAtTempFromData( Numeric temperature ) const;
+  Numeric CalculatePartitionFctAtTempFromCoeff_OldUnused( Numeric temperature ) const;
+  Numeric CalculatePartitionFctAtTempFromData_OldUnused( Numeric temperature ) const;
 
   String mname;
   Numeric mabundance;
@@ -576,6 +576,7 @@ void xsec_species(    MatrixView               xsec_attenuation,
 		      const Index              ind_lsn,
 		      const Numeric            cutoff,
 		      const SpeciesAuxData&    isotopologue_ratios,
+                      const SpeciesAuxData&    partition_functions,
 		      const Verbosity&         verbosity );
 
 
@@ -587,7 +588,6 @@ void xsec_single_line(VectorView xsec_accum_attenuation,
                       Vector& fac, 
                       Vector& f_local, 
                       Vector& aux, 
-                      const SpeciesAuxData& isotopologue_ratios,
                       const Vector& f_grid, 
                       Numeric F0, 
                       Numeric intensity, 
@@ -595,6 +595,7 @@ void xsec_single_line(VectorView xsec_accum_attenuation,
                       const Numeric boltzmann_ratio, 
                       const Numeric abs_nlte_ratio, 
                       const Numeric src_nlte_ratio,
+                      const Numeric Isotopologue_Ratio,
                       const Numeric Isotopologue_Mass,
                       const Numeric temperature, 
                       const Numeric gamma,
@@ -606,8 +607,6 @@ void xsec_single_line(VectorView xsec_accum_attenuation,
                       const Index nf, 
                       const Index ind_ls, 
                       const Index ind_lsn,  
-                      const Index LineRecord_Species, 
-                      const Index LineRecord_Isotopologue, 
                       const bool calc_cut, 
                       const bool calc_phase,
                       const bool calc_nlte);
@@ -630,6 +629,7 @@ void xsec_species_line_mixing_wrapper(      MatrixView               xsec_attenu
                                             const Numeric            cutoff,
                                             const Numeric            lm_p_lim,
                                             const SpeciesAuxData&    isotopologue_ratios,
+                                            const SpeciesAuxData&    partition_functions,
                                             const Verbosity&         verbosity );
 
 

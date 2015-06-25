@@ -185,6 +185,7 @@ add_library (artscore STATIC
   linemixingrecord.cc
   linemixingdata.cc
   linerecord.cc
+  linescaling.cc
   lineshapes.cc
   m_abs.cc
   m_abs_lookup.cc

@@ -180,4 +180,8 @@ NumericSet(lm_p_lim,0)
 #
 nlteOff
 
+#
+# Use built-in Partition functions per default
+#
+partition_functionsInitFromBuiltin
 }

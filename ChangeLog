@@ -1,3 +1,60 @@
+2015-06-25  Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-3-258
+	
+	Now the externalized partition functions can be used by everyone.
+	Note that there is probably a bug presently that makes the calculations
+	very slow.  I.e., make check with built-in takes one quarter the time
+	as using the grided data.  Therre might be a copy-bug 
+	in either (CalculatePartitionFctFromData) or in the calls to 
+	(CalculatePartitionFctFromData) and (CalculatePartitionFctFromCoeff).
+	That or the interpolation is very slow.
+	
+	This is quite a significant update, because with TIPS data instead
+	of built-in data two fast test fail for deviating from the minimal allowed
+	error.  These tests are: 
+	arts.ctlfile.fast.artscomponents.clearsky.TestClearSky
+	arts.ctlfile.fast.artscomponents.groundbased.TestWinds
+	Clearsky has limit at 0.01 K and is 1% above this. Wind has limit
+	at 0.0001 K but is 1100% above this in the test.  So the new partition
+	funtions makes about 0.01 K difference to built-in.  I did not investigate
+	why yet.
+	
+	Will make check so that the eternal partition function is valid for 
+	the provided atmospheric temperature field.  By Jana's advice, the check 
+	should allow us to forcefully calculate with a bad partition function,
+	and I agree since it gives errors of only 0.01 K for the fast testcases,
+	and we mostly care about larger errors.
+	
+	FIXME remaining: PF tag in Artscat5 (for easy playing with partition
+	functions) does not work for now.
+	
+	* controlfiles/general/general.arts: 
+	Calls partition_functionsInitFromBuiltin.  If you do not include
+	general.arts, your controlfile will now fail.
+	
+	* src/CMakeLists.txt: Added linescaling.cc to handle scaling calculations.
+	I wanted this part of LineRecord but this seems impossible since
+	SpeciesAuxData is in absorption.h and linerecord.h is a dependency of
+	absorption.h.
+	
+	* src/absorption.{cc,h}:  Appended old partition calculation functions to
+	_OldUnused.  These should be removed at some point. partition_functions
+	is now passed along to xsec_species and xsec_species_line_mixing_wrapper.
+	GetLineScalingData moved from LineRecord to linescaling.cc so absorption.cc
+	depends on linescaling.h.
+	
+	I also changed xsec_single_line so the numeric isotopic ratio is passed
+	on instead of the SpeciesAuxData variable since I found that part strange.
+	
+	* src/linerecord.{h,cc}: Moved GetLineScalingData from linerecord.
+	
+	* src/linescaling.{cc,h}: New files.  To keep line scaling data separated
+	from absorption.cc.
+	
+	* src/m_abs.cc, src/m_zeeman.cc, src/methods.cc, src/zeeman.{cc,h}:
+	All pass partition_functions onto linescaling.
+
 2015-06-25  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-257

@@ -45,6 +45,7 @@
 #include "interpolation_poly.h"
 #include "linemixingdata.h"
 #include "make_vector.h"
+#include "linescaling.h"
 
 #include "global_data.h"
 
@@ -67,7 +68,7 @@ std::map<String, Index> SpeciesMap;
 // member fct of isotopologuerecord, calculates the partition fct at the
 // given temperature  from the partition fct coefficients (3rd order
 // polynomial in temperature)
-Numeric IsotopologueRecord::CalculatePartitionFctAtTempFromCoeff( Numeric
+Numeric IsotopologueRecord::CalculatePartitionFctAtTempFromCoeff_OldUnused( Numeric
                                                     temperature ) const
 {
   Numeric result = 0.;
@@ -90,7 +91,7 @@ Numeric IsotopologueRecord::CalculatePartitionFctAtTempFromCoeff( Numeric
 // member fct of isotopologuerecord, calculates the partition fct at the
 // given temperature  from the partition fct coefficients (3rd order
 // polynomial in temperature)
-Numeric IsotopologueRecord::CalculatePartitionFctAtTempFromData( Numeric
+Numeric IsotopologueRecord::CalculatePartitionFctAtTempFromData_OldUnused( Numeric
 temperature ) const
 {
     GridPosPoly gp;
@@ -833,6 +834,7 @@ void xsec_species( MatrixView               xsec_attenuation,
                    const Index              ind_lsn,
                    const Numeric            cutoff,
                    const SpeciesAuxData&    isotopologue_ratios,
+                   const SpeciesAuxData&    partition_functions,
                    const Verbosity&         verbosity )
 {
     // Make lineshape and species lookup data visible:
@@ -1098,8 +1100,23 @@ firstprivate(ls_attenuation, ls_phase, fac, f_local, aux)
                                                                              broad_spec_locations,
                                                                              vmrs,verbosity);
                         
-                        l_l.GetLineScalingData(partition_ratio, boltzmann_ratio, abs_nlte_ratio, src_nlte_ratio, 
-                                               t_i, calc_src, t_nlte_i);
+                                               
+                        GetLineScalingData(partition_ratio, 
+                                           boltzmann_ratio, 
+                                           abs_nlte_ratio, 
+                                           src_nlte_ratio, 
+                                           partition_functions.getParamType(l_l.Species(), l_l.Isotopologue()),
+                                           partition_functions.getParam(l_l.Species(), l_l.Isotopologue()),
+                                           t_i,
+                                           l_l.Ti0(),
+                                           l_l.F(),
+                                           l_l.Elow(),
+                                           calc_src,
+                                           l_l.Evlow(),
+                                           l_l.Evupp(),
+                                           l_l.EvlowIndex(),
+                                           l_l.EvuppIndex(),
+                                           t_nlte_i);
                         
                         xsec_single_line(xsec_accum_attenuation(arts_omp_get_thread_num(),joker),
 					 xsec_accum_source(arts_omp_get_thread_num(),joker),
@@ -1109,7 +1126,6 @@ firstprivate(ls_attenuation, ls_phase, fac, f_local, aux)
                                          fac,
                                          f_local,
                                          aux,
-                                         isotopologue_ratios,
                                          f_grid,
                                          l_l.F(),
                                          l_l.I0(),
@@ -1117,6 +1133,7 @@ firstprivate(ls_attenuation, ls_phase, fac, f_local, aux)
                                          boltzmann_ratio,
                                          abs_nlte_ratio,
                                          src_nlte_ratio,
+                                         isotopologue_ratios.getParam(l_l.Species(),l_l.Isotopologue())[0].data[0],
                                          l_l.IsotopologueData().Mass(),
                                          t_i,
                                          gamma,
@@ -1128,8 +1145,6 @@ firstprivate(ls_attenuation, ls_phase, fac, f_local, aux)
                                          nf,
                                          ind_ls,
                                          ind_lsn,
-                                         l_l.Species(),
-                                         l_l.Isotopologue(),
                                          cut,
                                          calc_phase,
                                          calc_src);
@@ -1249,7 +1264,6 @@ void xsec_single_line(VectorView xsec_accum_attenuation,
                       Vector& fac, 
                       Vector& f_local, 
                       Vector& aux, 
-                      const SpeciesAuxData& isotopologue_ratios,
                       const Vector& f_grid, 
                       Numeric F0, 
                       Numeric intensity, 
@@ -1257,6 +1271,7 @@ void xsec_single_line(VectorView xsec_accum_attenuation,
                       const Numeric boltzmann_ratio,
                       const Numeric abs_nlte_ratio,
                       const Numeric src_nlte_ratio,
+                      const Numeric Isotopologue_Ratio,
                       const Numeric Isotopologue_Mass,
                       const Numeric temperature, 
                       const Numeric gamma,
@@ -1268,8 +1283,6 @@ void xsec_single_line(VectorView xsec_accum_attenuation,
                       const Index nf, 
                       const Index ind_ls, 
                       const Index ind_lsn,  
-                      const Index LineRecord_Species, 
-                      const Index LineRecord_Isotopologue, 
                       const bool calc_cut, 
                       const bool calc_phase,
                       const bool calc_src)
@@ -1421,32 +1434,11 @@ void xsec_single_line(VectorView xsec_accum_attenuation,
         
         // Add line to xsec.
         {
-            // To make the loop a bit faster, precompute all constant
-            // factors. These are:
-            // 1. Total number density of the air. --> Not
-            //    anymore, we now to real cross-sections
-            // 2. Line intensity.
-            // 3. Isotopologue ratio.
-            //
-            // The isotopologue ratio must be applied here, since we are
-            // summing up lines belonging to different isotopologues.
-            
-            //                const Numeric factors = n * intensity * l_l.IsotopologueData().Abundance();
-            //                    const Numeric factors = intensity * l_l.IsotopologueData().Abundance();
-            const Numeric factors = isotopologue_ratios.getParam(
-                                           LineRecord_Species,
-                                           LineRecord_Isotopologue)[0].data[0];
-            
-            // We have to do:
-            // xsec(j,i) += factors * ls[j] * fac[j];
-            //
-            // We use ls as a dummy to compute the product, then add it
-            // to this_xsec.
             
             this_ls_attenuation *= this_fac;
 	    if(calc_src)
 	    {
-	      this_ls_attenuation *= factors * intensity * abs_nlte_ratio;
+	      this_ls_attenuation *= Isotopologue_Ratio * intensity * abs_nlte_ratio;
 	      this_xsec_attenuation += this_ls_attenuation;
 	      this_ls_attenuation *= ( src_nlte_ratio/abs_nlte_ratio - 1.0 );//Only retain the additional source term for NLTE calculations
 	      this_xsec_source += this_ls_attenuation; // note that the multiplication above solves 
@@ -1454,19 +1446,19 @@ void xsec_single_line(VectorView xsec_accum_attenuation,
 	      if (calc_phase)
               {
                   this_ls_phase *= this_fac;
-                  this_ls_phase *= factors * intensity * abs_nlte_ratio; // Is this right?  
+                  this_ls_phase *= Isotopologue_Ratio * intensity * abs_nlte_ratio; // Is this right?  
                   this_xsec_phase += this_ls_phase;
               }
 	    }
 	    else
 	    {
-	      this_ls_attenuation *= factors * intensity;
+	      this_ls_attenuation *= Isotopologue_Ratio * intensity;
 	      this_xsec_attenuation += this_ls_attenuation;
               
               if (calc_phase)
               {
                   this_ls_phase *= this_fac;
-                  this_ls_phase *= factors*intensity;
+                  this_ls_phase *= Isotopologue_Ratio * intensity;
                   this_xsec_phase += this_ls_phase;
               }
 	    }
@@ -1807,6 +1799,7 @@ void xsec_species_line_mixing_wrapper(  MatrixView               xsec_attenuatio
                                         const Numeric            lm_p_lim,
                                         const Numeric            cutoff,
                                         const SpeciesAuxData&    isotopologue_ratios,
+                                        const SpeciesAuxData&    partition_functions,
                                         const Verbosity&         verbosity )
 {
     // Must have the phase
@@ -1979,8 +1972,22 @@ firstprivate(attenuation, phase, fac, f_local, aux)
             Numeric Y=0,DV=0,G=0; // Set to zero since case with 0 exist
             abs_lines[ii].LineMixing().GetLineMixingParams( Y,  G,  DV,  t, p, lm_p_lim, 1);
             
-            abs_lines[ii].GetLineScalingData(partition_ratio,boltzmann_ratio, abs_nlte_ratio, src_nlte_ratio, 
-                                             t, calc_src, t_nlte);
+            GetLineScalingData( partition_ratio, 
+                                boltzmann_ratio, 
+                                abs_nlte_ratio, 
+                                src_nlte_ratio, 
+                                partition_functions.getParamType(abs_lines[ii].Species(), abs_lines[ii].Isotopologue()),
+                                partition_functions.getParam(abs_lines[ii].Species(), abs_lines[ii].Isotopologue()),
+                                t,
+                                abs_lines[ii].Ti0(),
+                                abs_lines[ii].F(),
+                                abs_lines[ii].Elow(),
+                                calc_src,
+                                abs_lines[ii].Evlow(),
+                                abs_lines[ii].Evupp(),
+                                abs_lines[ii].EvlowIndex(),
+                                abs_lines[ii].EvuppIndex(),
+                                t_nlte);
             
             // Still an ugly case with non-resonant line near 0 frequency, since this is actually a band...
             if( LineMixingData::LM_LBLRTM_O2NonResonant != abs_lines[ii].LineMixing().Type() )
@@ -1993,7 +2000,6 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                                     fac, 
                                     f_local, 
                                     aux, 
-                                    isotopologue_ratios,
                                     f_grid, 
                                     abs_lines[ii].F()+(precalc_zeeman?Z_DF[ii]:0), // Since vector is 0-length if no Zeeman pre-calculations
                                     abs_lines[ii].I0(), 
@@ -2001,6 +2007,7 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                                     boltzmann_ratio,
                                     abs_nlte_ratio,
                                     src_nlte_ratio,
+                                    isotopologue_ratios.getParam(abs_lines[ii].Species(),abs_lines[ii].Isotopologue())[0].data[0],
                                     abs_lines[ii].IsotopologueData().Mass(),
                                     t,
                                     gamma,
@@ -2012,8 +2019,6 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                                     f_grid.nelem(), 
                                     ind_ls, 
                                     ind_lsn, 
-                                    abs_lines[ii].Species(), 
-                                    abs_lines[ii].Isotopologue(), 
                                     cutoff!=-1,
                                     1,
 				    calc_src);
@@ -2033,7 +2038,6 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                                     fac, 
                                     f_local, 
                                     aux, 
-                                    isotopologue_ratios,
                                     f_grid, 
                                     abs_lines[ii].F()+(precalc_zeeman?Z_DF[ii]:0), // Since vector is 0-length if no Zeeman pre-calculations 
                                     abs_lines[ii].I0(), 
@@ -2041,6 +2045,7 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                                     boltzmann_ratio,
                                     abs_nlte_ratio,
                                     src_nlte_ratio,
+                                    isotopologue_ratios.getParam(abs_lines[ii].Species(),abs_lines[ii].Isotopologue())[0].data[0],
                                     abs_lines[ii].IsotopologueData().Mass(),
                                     t,
                                     gamma,
@@ -2052,8 +2057,6 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                                     f_grid.nelem(), 
                                     tmp[0].Ind_ls(), 
                                     tmp[0].Ind_lsn(), 
-                                    abs_lines[ii].Species(), 
-                                    abs_lines[ii].Isotopologue(), 
                                     cutoff!=-1,
                                     1,
 				    calc_src);
