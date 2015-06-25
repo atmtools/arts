@@ -116,7 +116,7 @@ void SpeciesAuxData::InitFromSpeciesData()
         for (Index iso = 0; iso < niso; iso++)
         {
             mparams[isp][iso].resize(0);
-            mparam_type[isp][iso] = SpeciesAuxData::PT_NONE;
+            mparam_type[isp][iso] = SpeciesAuxData::AT_NONE;
         }
     }
 }
@@ -185,10 +185,10 @@ void SpeciesAuxData::setParam(const String& artstag,
 
     Index this_auxtype = 0;
 
-    while (this_auxtype < PT_FINAL_ENTRY && auxtype != SpeciesAuxTypeNames[this_auxtype])
+    while (this_auxtype < AT_FINAL_ENTRY && auxtype != SpeciesAuxTypeNames[this_auxtype])
         this_auxtype++;
 
-    if (this_auxtype != PT_FINAL_ENTRY)
+    if (this_auxtype != AT_FINAL_ENTRY)
     {
         setParam(species, isotopologue, (AuxType)this_auxtype, auxdata);
     }
@@ -210,7 +210,7 @@ const ArrayOfGriddedField1& SpeciesAuxData::getParam(const Index species,
 
 String SpeciesAuxData::getTypeString(const Index species, const Index isotopologue) const
 {
-    assert(mparam_type[species][isotopologue] < PT_FINAL_ENTRY);
+    assert(mparam_type[species][isotopologue] < AT_FINAL_ENTRY);
     return SpeciesAuxTypeNames[mparam_type[species][isotopologue]];
 }
 
@@ -443,12 +443,68 @@ void fillSpeciesAuxDataWithIsotopologueRatiosFromSpeciesData(SpeciesAuxData& sad
     ratios[0].resize(1);
 
     for (Index isp = 0; isp < species_data.nelem(); isp++)
+    {
         for (Index iiso = 0; iiso < species_data[isp].Isotopologue().nelem(); iiso++)
         {
             ratios[0].data[0] = species_data[isp].Isotopologue()[iiso].Abundance();
             sad.setParam(isp, iiso,
-                         SpeciesAuxData::PT_ISOTOPOLOGUE_RATIO, ratios);
+                         SpeciesAuxData::AT_ISOTOPOLOGUE_RATIO, ratios);
         }
+    }
+}
+
+
+void fillSpeciesAuxDataWithPartitionFunctionsFromSpeciesData(SpeciesAuxData& sad)
+{
+    using global_data::species_data;
+
+    sad.InitFromSpeciesData();
+
+    ArrayOfGriddedField1 pfuncs;
+    pfuncs.resize(2);
+    pfuncs[0].set_name("PartitionFunction");
+    pfuncs[0].set_grid_name(0, "Coeff");
+    pfuncs[1].set_grid_name(0, "Temperature");
+
+    ArrayOfString tgrid;
+    tgrid.resize(2);
+    tgrid[0] = "Tlower";
+    tgrid[1] = "Tupper";
+
+    for (Index isp = 0; isp < species_data.nelem(); isp++)
+    {
+        for (Index iiso = 0; iiso < species_data[isp].Isotopologue().nelem(); iiso++)
+        {
+            Vector grid;
+            const Vector& coeffs = species_data[isp].Isotopologue()[iiso].GetCoeff();
+
+            assert(coeffs.nelem() >= 2);
+
+            nlinspace(grid, 0, (Numeric)coeffs.nelem()-1., coeffs.nelem());
+            pfuncs[0].set_grid(0, grid);
+            pfuncs[0].data = coeffs;
+
+            const Vector& temp_range = species_data[isp].Isotopologue()[iiso].GetCoeffGrid();
+
+            // Temperature data should either contain two Ts, lower and upper value of
+            // the valid range or be empty
+            assert(temp_range.nelem() == 0 || temp_range.nelem() == 2);
+
+            if (temp_range.nelem() == 2)
+            {
+                pfuncs[1].set_grid(0, tgrid);
+                pfuncs[1].data = temp_range;
+            }
+            else
+            {
+                pfuncs[1].resize(0);
+                pfuncs[1].set_grid(0, ArrayOfString());
+            }
+
+            sad.setParam(isp, iiso,
+                         SpeciesAuxData::AT_PARTITIONFUNCTION_COEFF, pfuncs);
+        }
+    }
 }
 
 

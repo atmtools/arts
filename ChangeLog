@@ -1,3 +1,36 @@
+2015-06-25  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-257
+	
+	* More work towards better partition functions handling. Goal is to be
+	able to load them from a file just like isotopologue ratios. Work in
+	progress.
+
+	* src/workspace.cc: Add WSV partition_functions.
+
+	* src/methods.cc, m_abs.cc:
+
+	Add WSM partition_functionsInitFromBuiltin.
+
+	* src/absorption.{cc,h}:
+	
+	(fillSpeciesAuxDataWithPartitionFunctionsFromSpeciesData): Added.
+
+	(SpeciesAuxData::AuxType): Change enum prefix from PT_ to AT_.
+
+	(IsotopologueRecord): Add member functions to get access to
+	coefficients, the corresponding grid and the type.
+
+	* src/partition_function_data.cc:
+
+	(define_partition_species_data): Add missing continua SelfContHo66 and
+	ForeignContHo66 to CO2.
+
+	(next_species): Renamed from spec for clarity. Add doc string.
+
+	* CMakeLists.txt: Add -Wno-strict-overflow if available. Silences
+	unhelpful warning appearing only on some GCC versions.
+
 2015-06-25  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-3-256

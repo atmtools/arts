@@ -2676,6 +2676,14 @@ void isotopologue_ratiosInitFromBuiltin(SpeciesAuxData& isotopologue_ratios,
 }
 
 
+/* Workspace method: Doxygen documentation will be auto-generated */
+void partition_functionsInitFromBuiltin(SpeciesAuxData& partition_functions,
+                                        const Verbosity&)
+{
+    fillSpeciesAuxDataWithPartitionFunctionsFromSpeciesData(partition_functions);
+}
+
+
 #ifdef ENABLE_NETCDF
 /* Workspace method: Doxygen documentation will be auto-generated */
 /* Included by Claudia Emde, 20100707 */

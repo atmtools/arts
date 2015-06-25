@@ -8877,6 +8877,26 @@ void define_md_data_raw()
  
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "partition_functionsInitFromBuiltin" ),
+        DESCRIPTION
+        (
+         "Initialize partition functions with default values from built-in\n"
+         "species data.\n"
+         ),
+        AUTHORS( "Oliver Lemke" ),
+        OUT( "partition_functions" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN(),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "pha_matCalc" ),
         DESCRIPTION
         (

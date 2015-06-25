@@ -2724,6 +2724,16 @@ void Workspace::define_wsv_data()
       GROUP( "Matrix" )));
     
     wsv_data.push_back
+    (WsvRecord
+     ( NAME( "partition_functions" ),
+       DESCRIPTION
+       (
+        "Partition functions. This variable can be set to default values by\n"
+        "calling *partition_functionsInitFromBuiltin*\n"
+        ),
+       GROUP( "SpeciesAuxData" )));
+
+    wsv_data.push_back
    (WsvRecord
     ( NAME( "pha_mat" ),
       DESCRIPTION

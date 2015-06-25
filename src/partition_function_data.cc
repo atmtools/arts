@@ -174,10 +174,12 @@ extern Array<SpeciesRecord> species_data;
   \date 2003-11-12
   */
 
-void spec(Array<SpeciesRecord>::iterator& is,
+//! Advance iterators to first isotopologue of next species.
+void next_species(Array<SpeciesRecord>::iterator& is,
           Array<IsotopologueRecord>::iterator& ii,
           String name);
 
+//! Initialize isotopologue and move iterator to next one.
 void iso(Array<IsotopologueRecord>::iterator& ii,
          String name,
          const ArrayOfNumeric& coeff,
@@ -200,7 +202,7 @@ void define_partition_species_data()
   // present, so that the consistency check between species_data and
   // partition_function_data is successful.
   //
-  spec(it_species, it_isotopologue, "H2O");
+  next_species(it_species, it_isotopologue, "H2O");
   //                    Name            c0              c1              c2              c3
   //                    |               |               |               |               |
 iso(it_isotopologue,	"161" ,	Qcoeff(-6.065594e+00,  2.907027e-01,  1.246245e-03,  -5.606119e-07 ), IsotopologueRecord::PF_FROMCOEFF);
@@ -235,7 +237,7 @@ iso(it_isotopologue,	"262" ,	Qcoeff(-3.572493e+01,  1.652500e+00,  7.633309e-03,
 
   // CO2
   // Coeff: 1 1 1 1 1 1 1 1 1 1 1
-  spec(it_species, it_isotopologue, "CO2");
+  next_species(it_species, it_isotopologue, "CO2");
   //                    Name            c0              c1              c2              c3
   //                    |               |               |               |               |
 iso(it_isotopologue,	"626" ,	Qcoeff(-1.720718e+00,  9.669217e-01,  -8.277298e-04,  2.891070e-06 ), IsotopologueRecord::PF_FROMCOEFF);  
@@ -249,17 +251,19 @@ iso(it_isotopologue,	"728" ,	Qcoeff(-2.087791e+01,  1.266486e+01,  -1.091287e-02
 iso(it_isotopologue,	"727" ,	Qcoeff(-6.008949e+01,  3.692019e+01,  -3.164016e-02,  1.120452e-04 ), IsotopologueRecord::PF_FROMCOEFF);
 iso(it_isotopologue,	"838" , Qcoeff(-1.381515e+00,  2.142230e+00,  -1.790555e-03,  6.861265e-06 ), IsotopologueRecord::PF_FROMCOEFF);
 iso(it_isotopologue,	"837" , Qcoeff(-1.713863e+01,  2.498987e+01,  -2.084202e-02,  7.949796e-05 ), IsotopologueRecord::PF_FROMCOEFF);
-  iso(it_isotopologue,       "CKD241",           Qcoeff( 0        ,0              ,0              ,0          ), IsotopologueRecord::PF_FROMCOEFF);
-  iso(it_isotopologue,       "CKDMT100",         Qcoeff( 0        ,0              ,0              ,0          ), IsotopologueRecord::PF_FROMCOEFF);
-  iso(it_isotopologue,       "CKDMT252",         Qcoeff( 0        ,0              ,0              ,0          ), IsotopologueRecord::PF_FROMCOEFF);
-  iso(it_isotopologue,       "SelfContPWR93",    Qcoeff( 0        ,0              ,0              ,0          ), IsotopologueRecord::PF_FROMCOEFF);
-  iso(it_isotopologue,       "ForeignContPWR93", Qcoeff( 0        ,0              ,0              ,0          ), IsotopologueRecord::PF_FROMCOEFF);
+iso(it_isotopologue,       "CKD241",           Qcoeff( 0        ,0              ,0              ,0          ), IsotopologueRecord::PF_FROMCOEFF);
+iso(it_isotopologue,       "CKDMT100",         Qcoeff( 0        ,0              ,0              ,0          ), IsotopologueRecord::PF_FROMCOEFF);
+iso(it_isotopologue,       "CKDMT252",         Qcoeff( 0        ,0              ,0              ,0          ), IsotopologueRecord::PF_FROMCOEFF);
+iso(it_isotopologue,       "SelfContPWR93",    Qcoeff( 0        ,0              ,0              ,0          ), IsotopologueRecord::PF_FROMCOEFF);
+iso(it_isotopologue,       "ForeignContPWR93", Qcoeff( 0        ,0              ,0              ,0          ), IsotopologueRecord::PF_FROMCOEFF);
+iso(it_isotopologue,       "SelfContHo66",     Qcoeff( 0        ,0              ,0              ,0          ), IsotopologueRecord::PF_FROMCOEFF);
+iso(it_isotopologue,       "ForeignContHo66",  Qcoeff( 0        ,0              ,0              ,0          ), IsotopologueRecord::PF_FROMCOEFF);
 
 
 
   // O3
   // Coeff: 1 1 1 1 1
-  spec(it_species, it_isotopologue, "O3");
+  next_species(it_species, it_isotopologue, "O3");
   //                    Name            c0              c1              c2              c3
   //                    |               |               |               |               |
 iso(it_isotopologue,	"666" ,	Qcoeff(-2.773214e+02,  8.175293e+00,  6.892651e-03,  2.842028e-05 ), IsotopologueRecord::PF_FROMCOEFF);  
@@ -272,7 +276,7 @@ iso(it_isotopologue,	"676" ,	Qcoeff(-1.735693e+03,  5.072998e+01,  3.877763e-02,
 
   // N2O
   // Coeff: 1 1 1 1 1
-  spec(it_species, it_isotopologue, "N2O");
+  next_species(it_species, it_isotopologue, "N2O");
   //                    Name            c0              c1              c2              c3
   //                    |               |               |               |               |
 iso(it_isotopologue,	"446" ,	Qcoeff(3.478254e+01,  1.530195e+01,  -1.120080e-02,  5.472145e-05 ), IsotopologueRecord::PF_FROMCOEFF);  
@@ -284,7 +288,7 @@ iso(it_isotopologue,	"447" ,	Qcoeff(2.050163e+02,  9.473303e+01,  -7.029656e-02,
 
   // CO
   // Coeff: 1 1 1 1 1 1
-  spec(it_species, it_isotopologue, "CO");
+  next_species(it_species, it_isotopologue, "CO");
   //                    Name            c0              c1              c2              c3
   //                    |               |               |               |               |
 iso(it_isotopologue,	"26" ,  Qcoeff(3.243148e-01,  3.601229e-01,  1.538205e-06,  2.385704e-09 ), IsotopologueRecord::PF_FROMCOEFF);  
@@ -296,7 +300,7 @@ iso(it_isotopologue,	"37" ,	Qcoeff(3.990599e+00,  4.641927e+00,  2.855732e-05,  
 
   // CH4
   // Coeff: 1 1 1 1
-  spec(it_species, it_isotopologue, "CH4");
+  next_species(it_species, it_isotopologue, "CH4");
   //                    Name            c0              c1              c2              c3
   //                    |               |               |               |               |
 iso(it_isotopologue,	"211" ,	Qcoeff(-3.640461e+01,  1.202398e+00,  3.005684e-03,  2.911372e-07 ), IsotopologueRecord::PF_FROMCOEFF);  
@@ -308,7 +312,7 @@ iso(it_isotopologue,	"312" , Qcoeff(-6.843285e+02,  2.100812e+01,  3.970636e-02,
 
   // O2
   // Coeff: 1 1 1
-  spec(it_species, it_isotopologue, "O2");
+  next_species(it_species, it_isotopologue, "O2");
   //                    Name            c0              c1              c2              c3
   //                    |               |               |               |               |
 iso(it_isotopologue,	"66" ,	Qcoeff( 4.016432e-01,  7.315888e-01,  -3.313678e-05,  6.642877e-08 ), IsotopologueRecord::PF_FROMCOEFF);  
@@ -333,7 +337,7 @@ iso(it_isotopologue,	"67" ,	Qcoeff(-2.757545e+01,  9.118689e+00,  -7.483006e-04,
 
   // NO
   // Coeff: 1 1 1
-  spec(it_species, it_isotopologue, "NO");
+  next_species(it_species, it_isotopologue, "NO");
   //                    Name            c0              c1              c2              c3
   //                    |               |               |               |               |
 iso(it_isotopologue,	"46" ,	Qcoeff(-5.824308e+01,  3.025484e+00,  4.976571e-03,  -5.060093e-06 ), IsotopologueRecord::PF_FROMCOEFF);  
@@ -342,7 +346,7 @@ iso(it_isotopologue,	"48" ,	Qcoeff(-6.255837e+01,  3.205744e+00,  5.176248e-03, 
 
   // SO2
   // Coeff: 1 1 2 2
-  spec(it_species, it_isotopologue, "SO2");
+  next_species(it_species, it_isotopologue, "SO2");
   //                    Name            c0              c1              c2              c3
   //                    |               |               |               |               |
 iso(it_isotopologue,	"626" ,	Qcoeff(-3.406710e+02,  1.214516e+01,  1.995262e-02,  5.157669e-05 ), IsotopologueRecord::PF_FROMCOEFF);  
@@ -354,7 +358,7 @@ iso(it_isotopologue,  "628" , Qcoeff(   3.1299E+02,    6.6372E+00,    1.5485E-01
 
   // NO2
   // Coeff: 1
-  spec(it_species, it_isotopologue, "NO2");
+  next_species(it_species, it_isotopologue, "NO2");
   //                    Name            c0              c1              c2              c3
   //                    |               |               |               |               |
 iso(it_isotopologue,	"646" ,	Qcoeff(-8.761726e+02,  2.829842e+01,  5.398242e-02,  5.194329e-05 ), IsotopologueRecord::PF_FROMCOEFF);   
@@ -363,7 +367,7 @@ iso(it_isotopologue,	"646" ,	Qcoeff(-8.761726e+02,  2.829842e+01,  5.398242e-02,
 
   // NH3
   // Coeff: 1 1 2
-  spec(it_species, it_isotopologue, "NH3");
+  next_species(it_species, it_isotopologue, "NH3");
   //                    Name            c0              c1              c2              c3
   //                    |               |               |               |               |
 iso(it_isotopologue,	"4111" ,	Qcoeff(-9.698124e+01,  3.402711e+00,  8.958578e-03,  1.157044e-06 ), IsotopologueRecord::PF_FROMCOEFF);  
@@ -373,7 +377,7 @@ iso(it_isotopologue,  "4112" ,	Qcoeff( 9.278991e+00,  4.053839e+00,  3.148529e-0
 
   // HNO3
   // Coeff: 1 0
-  spec(it_species, it_isotopologue, "HNO3");
+  next_species(it_species, it_isotopologue, "HNO3");
   //                    Name            c0              c1              c2              c3
   //                    |               |               |               |               |
 iso(it_isotopologue,  "146" ,	 Qcoeff(-3.402033e+04,  7.965238e+02,  -2.403160e+00,  8.593868e-03 ), IsotopologueRecord::PF_FROMCOEFF);
@@ -382,7 +386,7 @@ iso(it_isotopologue,  "156" ,  Qcoeff(-3.402033e+04,  7.965238e+02,  -2.403160e+
 
   // OH
   // Coeff: 1 1 1
-  spec(it_species, it_isotopologue, "OH");
+  next_species(it_species, it_isotopologue, "OH");
   //                    Name            c0              c1              c2              c3
   //                    |               |               |               |               |
 iso(it_isotopologue,	"61" ,	Qcoeff(6.198722e+00,  1.870893e-01,  3.099551e-04,  -3.229806e-07 ), IsotopologueRecord::PF_FROMCOEFF);  
@@ -392,7 +396,7 @@ iso(it_isotopologue,	"62" ,	Qcoeff(4.103720e+00,  5.095633e-01,  8.899807e-04,  
 
   // HF
   // Coeff: 1 2
-  spec(it_species, it_isotopologue, "HF");
+  next_species(it_species, it_isotopologue, "HF");
   //                    Name            c0              c1              c2              c3
   //                    |               |               |               |               |
 iso(it_isotopologue,	"19" ,	Qcoeff(1.472238e+00,  1.343685e-01,  3.150221e-06,  -2.120225e-09 ), IsotopologueRecord::PF_FROMCOEFF);  
@@ -401,7 +405,7 @@ iso(it_isotopologue,	"29" ,	Qcoeff(3.375585e-01,  6.403473e-02,  3.134983e-07,  
 
   // HCl
   // Coeff: 1 1 2 2
-  spec(it_species, it_isotopologue, "HCl");
+  next_species(it_species, it_isotopologue, "HCl");
   //                    Name            c0              c1              c2              c3
   //                    |               |               |               |               |
 iso(it_isotopologue,	"15" ,	Qcoeff(2.729314e+00,  5.328097e-01,  8.234868e-07,  5.619026e-09 ), IsotopologueRecord::PF_FROMCOEFF);  
@@ -413,7 +417,7 @@ iso(it_isotopologue,	"27" ,	Qcoeff(1.359929e+00,  5.170804e-01,  3.358101e-06, -
 
   // HBr
   // Coeff: 1 1 0 0
-  spec(it_species, it_isotopologue, "HBr");
+  next_species(it_species, it_isotopologue, "HBr");
   //                    Name            c0              c1              c2              c3
   //                    |               |               |               |               |
 iso(it_isotopologue,  "19" ,	Qcoeff(2.936148e+00,  6.629899e-01,  1.604872e-05,  -1.593934e-08 ), IsotopologueRecord::PF_FROMCOEFF);  
@@ -424,7 +428,7 @@ iso(it_isotopologue,  "21" ,	Qcoeff(2.875136e+00,  6.637710e-01,  1.449833e-05, 
 
   // HI
   // Coeff: 1 0
-  spec(it_species, it_isotopologue, "HI");
+  next_species(it_species, it_isotopologue, "HI");
   //                    Name            c0              c1              c2              c3
   //                    |               |               |               |               |
 iso(it_isotopologue,	"17" ,	Qcoeff(4.226561e+00,  1.295818e+00,  1.611346e-05,  -7.882228e-09 ), IsotopologueRecord::PF_FROMCOEFF);  
@@ -433,7 +437,7 @@ iso(it_isotopologue,  "27" ,  Qcoeff(4.226561e+00,  1.295818e+00,  1.611346e-05,
 
   // ClO
   // Coeff: 1 1
-  spec(it_species, it_isotopologue, "ClO");
+  next_species(it_species, it_isotopologue, "ClO");
   //                    Name            c0              c1              c2              c3
   //                    |               |               |               |               |
 iso(it_isotopologue,	"56" ,	Qcoeff(1.290486e+02,  6.369550e+00,  1.441861e-02, -1.211120e-07 ), IsotopologueRecord::PF_FROMCOEFF);  
@@ -442,7 +446,7 @@ iso(it_isotopologue,	"76" ,	Qcoeff(1.306461e+02,  6.492672e+00,  1.457301e-02,  
 
   // OCS
   // Coeff: 1 1 1 1 1
-  spec(it_species, it_isotopologue, "OCS");
+  next_species(it_species, it_isotopologue, "OCS");
   //                    Name            c0              c1              c2              c3
   //                    |               |               |               |               |
 iso(it_isotopologue,	"622" ,	Qcoeff(1.199103e+01,  3.484349e+00,  -3.172632e-03,  1.757090e-05 ), IsotopologueRecord::PF_FROMCOEFF);  
@@ -454,7 +458,7 @@ iso(it_isotopologue,	"822" ,	Qcoeff(1.444298e+01,  3.686311e+00,  -3.307686e-03,
 
   // H2CO
   // Coeff: 1 1 1 2 2
- spec(it_species, it_isotopologue, "H2CO");
+ next_species(it_species, it_isotopologue, "H2CO");
   //                    Name            c0              c1              c2              c3
   //                    |               |               |               |               |
 iso(it_isotopologue,	"1126" ,	Qcoeff(-1.734031e+02,  5.682345e+00,  1.504875e-02,  7.509330e-07 ), IsotopologueRecord::PF_FROMCOEFF);  
@@ -467,7 +471,7 @@ iso(it_isotopologue,	"2226" ,	Qcoeff(-2.847116e+02,  1.672849e+01,  8.661739e-02
 
   // HOCl
   // Coeff: 1 1
-  spec(it_species, it_isotopologue, "HOCl");
+  next_species(it_species, it_isotopologue, "HOCl");
   //                    Name            c0              c1              c2              c3
   //                    |               |               |               |               |
 iso(it_isotopologue,	"165" ,	Qcoeff(-1.219223e+03,  3.989396e+01,  7.529869e-02,  8.046020e-05 ), IsotopologueRecord::PF_FROMCOEFF);  
@@ -476,7 +480,7 @@ iso(it_isotopologue,	"167" ,	Qcoeff(-1.215084e+03,  4.025848e+01,  7.807742e-02,
 
   // N2
   // Coeff: 1 0
-  spec(it_species, it_isotopologue, "N2");
+  next_species(it_species, it_isotopologue, "N2");
   //                    Name            c0              c1              c2              c3
   //                    |               |               |               |               |
 iso(it_isotopologue,	"44" ,	Qcoeff(1.704255e+00,  1.562748e+00,  2.437406e-05,  -1.677703e-08 ), IsotopologueRecord::PF_FROMCOEFF);  
@@ -494,7 +498,7 @@ iso(it_isotopologue,  "45" ,  Qcoeff(1.704255e+00,  1.562748e+00,  2.437406e-05,
 
   // HCN
   // Coeff: 1 1 1 2
-  spec(it_species, it_isotopologue, "HCN");
+  next_species(it_species, it_isotopologue, "HCN");
   //                    Name            c0              c1              c2              c3
   //                    |               |               |               |               |
 iso(it_isotopologue,	"124" ,	Qcoeff(-5.935227e+00,  3.077616e+00,  -2.476330e-03,  7.991253e-06 ), IsotopologueRecord::PF_FROMCOEFF);  
@@ -506,7 +510,7 @@ iso(it_isotopologue,	"224" ,	Qcoeff( 6.626957e+01,  8.670873e-01,   3.148000e-03
 
   // CH3Cl
   // Coeff: 1 1
-  spec(it_species, it_isotopologue, "CH3Cl");
+  next_species(it_species, it_isotopologue, "CH3Cl");
   //                    Name            c0              c1              c2              c3
   //                    |               |               |               |               |
 iso(it_isotopologue,	"215" ,	Qcoeff(-1.140936e+04,  3.073757e+02,  4.383730e-02,  1.249421e-03 ), IsotopologueRecord::PF_FROMCOEFF);  
@@ -516,7 +520,7 @@ iso(it_isotopologue,	"217" ,	Qcoeff(-1.159736e+04,  3.123035e+02,  4.438509e-02,
 
   // H2O2
   // Coeff: 1
-  spec(it_species, it_isotopologue, "H2O2");
+  next_species(it_species, it_isotopologue, "H2O2");
   //                    Name            c0              c1              c2              c3
   //                    |               |               |               |               |
 iso(it_isotopologue,	"1661" ,	Qcoeff(-3.865211e+02,  1.286868e+01,  3.910416e-02,  1.145394e-04 ), IsotopologueRecord::PF_FROMCOEFF);  
@@ -526,7 +530,7 @@ iso(it_isotopologue,	"1661" ,	Qcoeff(-3.865211e+02,  1.286868e+01,  3.910416e-02
 
   // C2H2
   // Coeff: 1 1 1
-  spec(it_species, it_isotopologue, "C2H2");
+  next_species(it_species, it_isotopologue, "C2H2");
   //                    Name            c0              c1              c2              c3
   //                    |               |               |               |               |
 iso(it_isotopologue,	"1221" ,	Qcoeff(-8.684002e+00,  1.453883e+00,  -2.597724e-03,  8.482153e-06 ), IsotopologueRecord::PF_FROMCOEFF); 
@@ -538,7 +542,7 @@ iso(it_isotopologue,	"1222" ,  Qcoeff(-2.311093e+01,  4.993367e+00,  -9.428896e-
 
   // C2H6
   // Coeff: 1 1
-  spec(it_species, it_isotopologue, "C2H6");
+  next_species(it_species, it_isotopologue, "C2H6");
   //                    Name            c0              c1              c2              c3
   //                    |               |               |               |               |
 iso(it_isotopologue,	"1221" ,	Qcoeff(-9.118157e+03,  2.088364e+02,  -4.404385e-01,  2.188428e-03 ), IsotopologueRecord::PF_FROMCOEFF); 
@@ -548,7 +552,7 @@ iso(it_isotopologue,	"1231" ,  Qcoeff(-4.632309e+03,  1.062931e+02,  -2.234063e-
 
   // PH3
   // Coeff: 1
-  spec(it_species, it_isotopologue, "PH3");
+  next_species(it_species, it_isotopologue, "PH3");
   //                    Name            c0              c1              c2              c3
   //                    |               |               |               |               |
 iso(it_isotopologue,	"1111" ,  Qcoeff(-2.426409e+02,  7.338384e+00,  1.131674e-02,  1.261873e-05 ), IsotopologueRecord::PF_FROMCOEFF);
@@ -557,7 +561,7 @@ iso(it_isotopologue,	"1111" ,  Qcoeff(-2.426409e+02,  7.338384e+00,  1.131674e-0
 
   // COF2
   // Coeff: 1 0
-  spec(it_species, it_isotopologue, "COF2");
+  next_species(it_species, it_isotopologue, "COF2");
   //                    Name            c0              c1              c2              c3
   //                    |               |               |               |               |
 iso(it_isotopologue,  "269" , Qcoeff(-8.322642e+03,  2.144407e+02,  -3.498616e-01,  1.755888e-03 ), IsotopologueRecord::PF_FROMCOEFF); 
@@ -567,7 +571,7 @@ iso(it_isotopologue,  "369" , Qcoeff(-8.322642e+03,  2.144407e+02,  -3.498616e-0
 
   // SF6
   // Coeff: 1
-  spec(it_species, it_isotopologue, "SF6");
+  next_species(it_species, it_isotopologue, "SF6");
   //                    Name            c0              c1              c2              c3
   //                    |               |               |               |               |
 iso(it_isotopologue,	"29" ,	Qcoeff(-1.668432e+06,  2.850128e+04,  -1.561230e+02,  3.288986e-01 ), IsotopologueRecord::PF_FROMCOEFF); 
@@ -576,7 +580,7 @@ iso(it_isotopologue,	"29" ,	Qcoeff(-1.668432e+06,  2.850128e+04,  -1.561230e+02,
 
   // H2S
   // Coeff: 1 1 1 2
-  spec(it_species, it_isotopologue, "H2S");
+  next_species(it_species, it_isotopologue, "H2S");
   //                    Name            c0              c1              c2              c3
   //                    |               |               |               |               |
 
@@ -588,7 +592,7 @@ iso(it_isotopologue,	"122" ,	Qcoeff(-1.512671e+01,  6.851018e-01,  3.158080e-03,
 
   // HCOOH
   // Coeff: 1 2 2 2
-  spec(it_species, it_isotopologue, "HCOOH");
+  next_species(it_species, it_isotopologue, "HCOOH");
   //                    Name            c0              c1              c2              c3
   //                    |               |               |               |               |
 iso(it_isotopologue,	"1261" ,	Qcoeff(-4.370811e+03,  1.141311e+02, -1.217474e-01,  7.859656e-04 ), IsotopologueRecord::PF_FROMCOEFF); 
@@ -601,7 +605,7 @@ iso(it_isotopologue,	"1262" ,	Qcoeff( 8.193393e+02,  2.222546e+00,  1.070970e-01
 
   // HO2
   // Coeff: 1
-  spec(it_species, it_isotopologue, "HO2");
+  next_species(it_species, it_isotopologue, "HO2");
   //                    Name            c0              c1              c2              c3
   //                    |               |               |               |               |
 iso(it_isotopologue,	"166" ,	Qcoeff(-2.341264e+02,  8.164256e+00,  2.506193e-02,  -3.012599e-06 ), IsotopologueRecord::PF_FROMCOEFF);  
@@ -610,7 +614,7 @@ iso(it_isotopologue,	"166" ,	Qcoeff(-2.341264e+02,  8.164256e+00,  2.506193e-02,
 
   // O
   // Coeff: 2
-  spec(it_species, it_isotopologue, "O");
+  next_species(it_species, it_isotopologue, "O");
   //                    Name            c0              c1              c2              c3
   //                    |               |               |               |               |
 iso(it_isotopologue,  "6" ,    Qcoeff(4.956057e+00,  8.070975e-05,  4.987684e-05,  -1.028970e-07 ), IsotopologueRecord::PF_FROMCOEFF);  
@@ -619,7 +623,7 @@ iso(it_isotopologue,  "6" ,    Qcoeff(4.956057e+00,  8.070975e-05,  4.987684e-05
 
   // ClONO2
   // Coeff: 1 1
-  spec(it_species, it_isotopologue, "ClONO2");
+  next_species(it_species, it_isotopologue, "ClONO2");
   //                    Name            c0              c1              c2              c3
   //                    |               |               |               |               |
 iso(it_isotopologue,	"5646" ,	Qcoeff(-2.052890e+06,  3.638094e+04,  -1.995279e+02,  5.224687e-01 ), IsotopologueRecord::PF_FROMCOEFF); 
@@ -629,7 +633,7 @@ iso(it_isotopologue,	"7646" ,	Qcoeff(-2.104484e+06,  3.729925e+04,  -2.045781e+0
 
   // NO+
   // Coeff: 1
-  spec(it_species, it_isotopologue, "NO+");
+  next_species(it_species, it_isotopologue, "NO+");
   //                    Name            c0              c1              c2              c3
   //                    |               |               |               |               |
 iso(it_isotopologue,	"46" ,	Qcoeff(1.125969e+00,  1.047028e+00,  1.174546e-05,  -1.519278e-08 ), IsotopologueRecord::PF_FROMCOEFF); 
@@ -638,7 +642,7 @@ iso(it_isotopologue,	"46" ,	Qcoeff(1.125969e+00,  1.047028e+00,  1.174546e-05,  
 
   // OClO
   // Coeff: 2 2
-  spec(it_species, it_isotopologue, "OClO");
+  next_species(it_species, it_isotopologue, "OClO");
   //                    Name            c0              c1              c2              c3
   //                    |               |               |               |               |
 iso(it_isotopologue,	"656" ,	Qcoeff(-1.617389e+03,  6.991068e+01,  5.003075e-01,  -1.442758e-04 ), IsotopologueRecord::PF_FROMCOEFF); 
@@ -648,7 +652,7 @@ iso(it_isotopologue,	"676" ,	Qcoeff( 7.964396e+02,  4.768587e+01,  5.283347e-01,
 
   // BrO
   // Coeff: 3 3
-  spec(it_species, it_isotopologue, "BrO");
+  next_species(it_species, it_isotopologue, "BrO");
   //                    Name            c0              c1              c2              c3
   //                    |               |               |               |               |
 iso(it_isotopologue,	"96" ,	Qcoeff(-4.084622e+01,  1.427999e+01,  -1.011647e-02,  2.783630e-05 ), IsotopologueRecord::PF_FROMCOEFF);  
@@ -658,7 +662,7 @@ iso(it_isotopologue,	"16" ,	Qcoeff(-4.118468e+01,  1.434034e+01,  -1.016302e-02,
 
   // H2SO4
   // Coeff: 2
-  spec(it_species, it_isotopologue, "H2SO4");
+  next_species(it_species, it_isotopologue, "H2SO4");
   //                    Name            c0              c1              c2              c3
   //                    |               |               |               |               |
 iso(it_isotopologue,	"126" ,	Qcoeff(-5.913199e+03,  2.485770e+02,  1.140269e+00,  -5.679165e-04 ), IsotopologueRecord::PF_FROMCOEFF); 
@@ -667,7 +671,7 @@ iso(it_isotopologue,	"126" ,	Qcoeff(-5.913199e+03,  2.485770e+02,  1.140269e+00,
 
   // Cl2O2
   // Coeff: 2 2
-  spec(it_species, it_isotopologue, "Cl2O2");
+  next_species(it_species, it_isotopologue, "Cl2O2");
   //                    Name            c0              c1              c2              c3
   //                    |               |               |               |               |
 iso(it_isotopologue,	"565" ,	Qcoeff(6.215326e+05,  -7.121447e+03,  2.784834e+01,  2.147458e-02 ), IsotopologueRecord::PF_FROMCOEFF);
@@ -676,7 +680,7 @@ iso(it_isotopologue,	"765" ,	Qcoeff(6.399192e+05,  -7.332314e+03,  2.866224e+01,
 
   // HOBr
   // Coeff: 1 1
-  spec(it_species, it_isotopologue, "HOBr");
+  next_species(it_species, it_isotopologue, "HOBr");
   //                    Name            c0              c1              c2              c3
   //                    |               |               |               |               |
 iso(it_isotopologue,	"169" ,	Qcoeff(-1.665575e+03,  5.687767e+01,  9.982304e-02,  1.705212e-04 ), IsotopologueRecord::PF_FROMCOEFF);  
@@ -686,7 +690,7 @@ iso(it_isotopologue,	"161" ,	Qcoeff(-1.631140e+03,  5.625451e+01,  1.012339e-01,
 
   // C2H4
   // Coeff: 1 1
-  spec(it_species, it_isotopologue, "C2H4");
+  next_species(it_species, it_isotopologue, "C2H4");
   //                    Name            c0              c1              c2              c3
   //                    |               |               |               |               |
 iso(it_isotopologue,	"221" ,	Qcoeff(-1.379496e+03,  3.408740e+01,  -2.321387e-02,  1.682474e-04 ), IsotopologueRecord::PF_FROMCOEFF);  
@@ -696,7 +700,7 @@ iso(it_isotopologue,	"231" ,	Qcoeff(-5.653328e+03,  1.396050e+02,  -9.531910e-02
 
   // CH3OH
   // Coeff: 2
-  spec(it_species, it_isotopologue, "CH3OH");
+  next_species(it_species, it_isotopologue, "CH3OH");
   //                    Name            c0              c1              c2              c3
   //                    |               |               |               |               |
 iso(it_isotopologue,	"2161" ,  Qcoeff(-6.340560e+01,  5.621709e+00,  6.341163e-02,  8.161605e-05 ), IsotopologueRecord::PF_FROMCOEFF);
@@ -706,7 +710,7 @@ iso(it_isotopologue,	"2161" ,  Qcoeff(-6.340560e+01,  5.621709e+00,  6.341163e-0
 
   // CH3Br
   // Coeff: 1 1
-  spec(it_species, it_isotopologue, "CH3Br");
+  next_species(it_species, it_isotopologue, "CH3Br");
   //                    Name            c0              c1              c2              c3
   //                    |               |               |               |               |
 iso(it_isotopologue,	"219" , Qcoeff(-8.148814e+03,  2.215010e+02,  -5.238478e-02,  1.165145e-03 ), IsotopologueRecord::PF_FROMCOEFF);
@@ -724,7 +728,7 @@ iso(it_isotopologue,	"211" , Qcoeff(-8.174189e+03,  2.222574e+02,  -5.242739e-02
   // functions, though. Hence HITRAN/TIPS data is used for the isotopologue(s)
   // with existing HITRAN line data (=2124), but others are still taken from
   // JPL.
-  spec(it_species, it_isotopologue, "CH3CN");
+  next_species(it_species, it_isotopologue, "CH3CN");
   //                    Name                    c0              c1              c2              c3
   //                    |                       |               |               |               |
 //iso(it_isotopologue,	"211124" ,	Qcoeff( 1.706820e+03,  1.093287e+00,  4.255850e-01,  3.367172e-05 ), IsotopologueRecord::PF_FROMCOEFF);// !JPL!
@@ -741,7 +745,7 @@ iso(it_isotopologue,	"211224" ,	Qcoeff(-3.483734e+02,  1.464417e+01,  6.717486e-
 
   // CF4
   // Coeff: 1
-  spec(it_species, it_isotopologue, "CF4");
+  next_species(it_species, it_isotopologue, "CF4");
   //                    Name            c0              c1              c2              c3
   //                    |               |               |               |               |
 iso(it_isotopologue,	"29" ,  Qcoeff(-8.012791e+03,  2.723081e+02,  -7.099708e-01,  4.276032e-03 ), IsotopologueRecord::PF_FROMCOEFF);
@@ -750,7 +754,7 @@ iso(it_isotopologue,	"29" ,  Qcoeff(-8.012791e+03,  2.723081e+02,  -7.099708e-01
 
   // HC3N
   // Coeff: 1 1 1 1 1 1
-  spec(it_species, it_isotopologue, "HC3N");
+  next_species(it_species, it_isotopologue, "HC3N");
   //                    Name            c0              c1              c2              c3
   //                    |               |               |               |               |
 iso(it_isotopologue,	"12224" , Qcoeff(-6.064268e+03,  1.310762e+02,  -6.450667e-01,  1.872277e-03 ), IsotopologueRecord::PF_FROMCOEFF);
@@ -764,7 +768,7 @@ iso(it_isotopologue,	"22224" , Qcoeff(-1.403953e+04,  2.856169e+02,  -1.492360e+
 
   // CS
   // Coeff: 1 1 1 1
-  spec(it_species, it_isotopologue, "CS");
+  next_species(it_species, it_isotopologue, "CS");
   //                    Name            c0              c1              c2              c3
   //                    |               |               |               |               |
 iso(it_isotopologue,	"22" ,  Qcoeff(-1.173849e+00,  8.763750e-01,  -1.348835e-04,  2.778616e-07 ), IsotopologueRecord::PF_FROMCOEFF);
@@ -776,7 +780,7 @@ iso(it_isotopologue,	"23" ,  Qcoeff(-4.804427e+00,  3.534610e+00,  -5.409610e-04
 
   // HNC
   // Coeff: 2 2 2 2
-  spec(it_species, it_isotopologue, "HNC");
+  next_species(it_species, it_isotopologue, "HNC");
   //                    Name            c0              c1              c2              c3
   //                    |               |               |               |               |
 iso(it_isotopologue,	"142" ,	Qcoeff(3.333499e-01,  4.595243e-01,  1.502307e-06,  2.413631e-13 ), IsotopologueRecord::PF_FROMCOEFF); 
@@ -788,7 +792,7 @@ iso(it_isotopologue,	"242" ,	Qcoeff(2.865158e-01,  5.465990e-01,  2.142689e-07, 
 
   // SO
   // Coeff: 1 1 1
-  spec(it_species, it_isotopologue, "SO");
+  next_species(it_species, it_isotopologue, "SO");
   //                    Name            c0              c1              c2              c3
   //                    |               |               |               |               |
 iso(it_isotopologue,	"26" ,  Qcoeff(-2.590097e+01,  3.010850e+00,  -6.619843e-04,  1.377253e-06 ), IsotopologueRecord::PF_FROMCOEFF);
@@ -816,7 +820,7 @@ iso(it_isotopologue,	"28" ,  Qcoeff(-2.913675e+01,  3.263819e+00,  -8.018822e-04
   // http://webbook.nist.gov/chemistry/vib-ser.html. With this corrections, the
   // polynomial fit is even worse, yealding deviations of QT/QT[300K] >50% at
   // T<100K ~50%).
-  spec(it_species, it_isotopologue, "C3H8");
+  next_species(it_species, it_isotopologue, "C3H8");
   //                    Name            c0              c1              c2              c3
   //                    |               |               |               |               |
 iso(it_isotopologue,	"21" ,  Qcoeff(-1.826371e+04,  1.397636e+03, -3.770229e+00,  5.692114e-02), IsotopologueRecord::PF_FROMCOEFF); // w/out extra vib
@@ -827,7 +831,7 @@ iso(it_isotopologue,	"21" ,  Qcoeff(-1.826371e+04,  1.397636e+03, -3.770229e+00,
 
   // H2
   // Coeff: 1 1
-  spec(it_species, it_isotopologue, "H2");
+  next_species(it_species, it_isotopologue, "H2");
   //                    Name            c0              c1              c2              c3
   //                    |               |               |               |               |
 iso(it_isotopologue,	"11" ,  Qcoeff(-5.989204e-01,  3.716024e-02, -4.849594e-05,  5.867598e-08 ), IsotopologueRecord::PF_FROMCOEFF);
@@ -841,7 +845,7 @@ iso(it_isotopologue,	"12" ,  Qcoeff( 2.575211e+00,  8.914624e-02,  1.491752e-05,
   // calculation, just as equivalent entry to species_data. Nevertheless, we
   // want to avoid negative values (this would throw a runtime error), instead
   // we set the partition function to a constant, positive value.
-  spec(it_species, it_isotopologue, "H");
+  next_species(it_species, it_isotopologue, "H");
   //                    Name            c0              c1              c2              c3
   //                    |               |               |               |               |
 iso(it_isotopologue,	"1" ,  Qcoeff( 1.0000E+00     ,0.0000E+00     ,0.0000E+00     ,0.0000E+00 ), IsotopologueRecord::PF_FROMCOEFF);
@@ -854,7 +858,7 @@ iso(it_isotopologue,	"1" ,  Qcoeff( 1.0000E+00     ,0.0000E+00     ,0.0000E+00  
   // calculation, just as equivalent entry to species_data. Nevertheless, we
   // want to avoid negative values (this would throw a runtime error), instead
   // we set the partition function to a constant, positive value.
-  spec(it_species, it_isotopologue, "He");
+  next_species(it_species, it_isotopologue, "He");
   //                    Name            c0              c1              c2              c3
   //                    |               |               |               |               |
 iso(it_isotopologue,	"4" ,  Qcoeff( 1.0000E+00     ,0.0000E+00     ,0.0000E+00     ,0.0000E+00 ), IsotopologueRecord::PF_FROMCOEFF);
@@ -867,7 +871,7 @@ iso(it_isotopologue,	"4" ,  Qcoeff( 1.0000E+00     ,0.0000E+00     ,0.0000E+00  
   // calculation, just as equivalent entry to species_data. Nevertheless, we
   // want to avoid negative values (this would throw a runtime error), instead
   // we set the partition function to a constant, positive value.
-  spec(it_species, it_isotopologue, "Ar");
+  next_species(it_species, it_isotopologue, "Ar");
   //                    Name            c0              c1              c2              c3
   //                    |               |               |               |               |
 iso(it_isotopologue,	"8" ,  Qcoeff( 1.0000E+00     ,0.0000E+00     ,0.0000E+00     ,0.0000E+00 ), IsotopologueRecord::PF_FROMCOEFF);
@@ -875,7 +879,7 @@ iso(it_isotopologue,	"8" ,  Qcoeff( 1.0000E+00     ,0.0000E+00     ,0.0000E+00  
   // C4H2
   // Coeff: 0
   // Guessed to be linear. Q=T.
-  spec(it_species, it_isotopologue, "C4H2");
+  next_species(it_species, it_isotopologue, "C4H2");
   //                    Name            c0              c1              c2              c3
   //                    |               |               |               |               |
 iso(it_isotopologue,  "2211" ,  Qcoeff( 0.0000E+00     ,1.0000E+00     ,0.0000E+00     ,0.0000E+00 ), IsotopologueRecord::PF_FROMCOEFF);
@@ -883,7 +887,7 @@ iso(it_isotopologue,  "2211" ,  Qcoeff( 0.0000E+00     ,1.0000E+00     ,0.0000E+
   // SO3
   // Coeff: 0
   // Guessed to be non-linear. Q= T^1.5.
-  spec(it_species, it_isotopologue, "SO3");
+  next_species(it_species, it_isotopologue, "SO3");
   //                    Name            c0              c1              c2              c3
   //                    |               |               |               |               |
 iso(it_isotopologue,  "26" ,  Qcoeff(   -76.2339,  6.95356,  1.30510e-07,  -1.17068e-11 ), IsotopologueRecord::PF_FROMCOEFF);
@@ -891,30 +895,30 @@ iso(it_isotopologue,  "26" ,  Qcoeff(   -76.2339,  6.95356,  1.30510e-07,  -1.17
 
   // liquid cloud particles
   // Coeff:       1      1
-  spec(it_species, it_isotopologue, "liquidcloud");
+  next_species(it_species, it_isotopologue, "liquidcloud");
   //                    Name            c0              c1              c2              c3
   //                    |               |               |               |               |
   iso(it_isotopologue,       "MPM93", Qcoeff( 0      ,0              ,0              ,0  ), IsotopologueRecord::PF_FROMCOEFF);
 
   // ice cloud particles
   // Coeff:       1      1
-  spec(it_species, it_isotopologue, "icecloud");
+  next_species(it_species, it_isotopologue, "icecloud");
   //                    Name            c0              c1              c2              c3
   //                    |               |               |               |               |
   iso(it_isotopologue,       "MPM93",Qcoeff( 0              ,0               ,0              ,0  ), IsotopologueRecord::PF_FROMCOEFF);
 
   // rain particles
   // Coeff:       1      1
-  spec(it_species, it_isotopologue, "rain");
+  next_species(it_species, it_isotopologue, "rain");
   //                    Name            c0              c1              c2              c3
   //                    |               |               |               |               |
   iso(it_isotopologue,       "MPM93",Qcoeff( 0              ,0               ,0              ,0  ), IsotopologueRecord::PF_FROMCOEFF);
 
   // free_electrons: skip iso setting
-  spec(it_species, it_isotopologue, "free_electrons");
+  next_species(it_species, it_isotopologue, "free_electrons");
 
   // particles (to be derived from scat_data and pnd_field): skip iso setting
-  spec(it_species, it_isotopologue, "particles");
+  next_species(it_species, it_isotopologue, "particles");
 
 
   // Ensure that we took care of all species
@@ -922,9 +926,9 @@ iso(it_isotopologue,  "26" ,  Qcoeff(   -76.2339,  6.95356,  1.30510e-07,  -1.17
 }
 
 
-void spec(Array<SpeciesRecord>::iterator& is,
-          Array<IsotopologueRecord>::iterator& ii,
-          String name _U_)
+void next_species(Array<SpeciesRecord>::iterator& is,
+                  Array<IsotopologueRecord>::iterator& ii,
+                  String name _U_)
 {
   assert( name == is->Name());
 

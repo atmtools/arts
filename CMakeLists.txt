@@ -195,6 +195,7 @@ else (CMAKE_GENERATOR STREQUAL "Xcode")
   ARTS_ADD_COMPILER_FLAG (Wno-sign-conversion)
   ARTS_ADD_COMPILER_FLAG (Wno-unknown-pragmas)
   ARTS_ADD_COMPILER_FLAG (Wno-return-type-c-linkage)
+  ARTS_ADD_COMPILER_FLAG (Wno-strict-overflow)
 endif (CMAKE_GENERATOR STREQUAL "Xcode")
 
 if (CMAKE_COMPILER_IS_INTELCXX)

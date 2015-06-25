@@ -274,6 +274,15 @@ public:
    */
   bool isContinuum() const { return mname.length() && !isdigit(mname[0]); }
 
+  //! Return the partition function coefficients.
+  const Vector& GetCoeff() const { return mqcoeff; }
+
+  //! Return the partition function coefficients.
+  const Vector& GetCoeffGrid() const { return mqcoeffgrid; }
+
+  //! Return the partition function coefficient types.
+  Index GetCoeffType() const { return mqcoefftype; }
+    
   void SetPartitionFctCoeff( const ArrayOfNumeric& qcoeff, const Index& qcoefftype )
   {
     mqcoeff = qcoeff;
@@ -442,13 +451,13 @@ class SpeciesAuxData
 public:
     typedef enum
     {
-        PT_NONE,
-        PT_ISOTOPOLOGUE_RATIO,
-        PT_ISOTOPOLOGUE_QUANTUM,
-        PT_PARTITIONFUNCTION_TFIELD,
-        PT_PARTITIONFUNCTION_COEFF,
-        PT_PARTITIONFUNCTION_COEFF_VIBROT,
-        PT_FINAL_ENTRY
+        AT_NONE,
+        AT_ISOTOPOLOGUE_RATIO,
+        AT_ISOTOPOLOGUE_QUANTUM,
+        AT_PARTITIONFUNCTION_TFIELD,
+        AT_PARTITIONFUNCTION_COEFF,
+        AT_PARTITIONFUNCTION_COEFF_VIBROT,
+        AT_FINAL_ENTRY
     } AuxType;
 
     typedef Array<Array<AuxType> > ArrayOfArrayOfAuxType;
@@ -507,6 +516,9 @@ void checkIsotopologueRatios(const ArrayOfArrayOfSpeciesTag& abs_species,
 
 /** Fill SpeciesAuxData with default isotopologue ratios from species data. */
 void fillSpeciesAuxDataWithIsotopologueRatiosFromSpeciesData(SpeciesAuxData& sad);
+
+/** Fill SpeciesAuxData with default partition functions from species data. */
+void fillSpeciesAuxDataWithPartitionFunctionsFromSpeciesData(SpeciesAuxData& sad);
 
 
 // is needed to map jpl tags/arts identifier to the species/isotopologue data within arts
