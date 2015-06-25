@@ -49,6 +49,14 @@
 #include "global_data.h"
 
 
+/** Mapping of species auxiliary type names to SpeciesAuxData::AuxType enum */
+static const char *SpeciesAuxTypeNames[] = {
+    "NONE",
+    "ISORATIO",
+    "ISOQUANTUM"
+};
+
+
 /** The map associated with species_data. */
 std::map<String, Index> SpeciesMap;
 
@@ -338,7 +346,7 @@ bool SpeciesAuxData::ReadFromStream(String& artsid, istream& is, Index nparams, 
 
             Vector grid;
             if (aux.size() > 1)
-                nlinspace(grid, 1, aux.size(), aux.size());
+                nlinspace(grid, 1, (Numeric)aux.size(), aux.size());
             else
                 grid = Vector(1, .1);
 

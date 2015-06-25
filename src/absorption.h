@@ -436,14 +436,6 @@ private:
 };
 
 
-/** Mapping of species auxiliary type names to SpeciesAuxData::AuxType enum */
-static const char *SpeciesAuxTypeNames[] = {
-    "NONE",
-    "ISORATIO",
-    "ISOQUANTUM"
-};
-
-
 /** Auxiliary data for isotopologues */
 class SpeciesAuxData
 {
