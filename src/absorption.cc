@@ -52,8 +52,11 @@
 /** Mapping of species auxiliary type names to SpeciesAuxData::AuxType enum */
 static const char *SpeciesAuxTypeNames[] = {
     "NONE",
-    "ISORATIO",
-    "ISOQUANTUM"
+    "ISORATIO",   //Built-in type
+    "ISOQUANTUM",
+    "PART_TFIELD",
+    "PART_COEFF", //Built-in type
+    "PART_COEFF_VIBROT"
 };
 
 
