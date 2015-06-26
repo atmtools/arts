@@ -2114,6 +2114,7 @@ void propmat_clearskyAddFromLookup( Tensor4&       propmat_clearsky,
 void propmat_clearsky_fieldCalc( Workspace& ws,
                                 // WS Output:
                                 Tensor7& propmat_clearsky_field,
+                                Tensor6& nlte_source_field,
                                 // WS Input:
                                 const Index&   atmfields_checked,
                                 const Vector&  f_grid,
@@ -2123,6 +2124,7 @@ void propmat_clearsky_fieldCalc( Workspace& ws,
                                 const Vector&  lon_grid,
                                 const Tensor3& t_field,
                                 const Tensor4& vmr_field,
+                                const Tensor4& t_nlte_field,
                                 const Tensor3& mag_u_field,
                                 const Tensor3& mag_v_field,
                                 const Tensor3& mag_w_field,
@@ -2143,6 +2145,7 @@ void propmat_clearsky_fieldCalc( Workspace& ws,
     Tensor4  abs;
     Tensor3  nlte;
     Vector  a_vmr_list;
+    Vector  a_t_nlte_list;
 
     // Get the number of species from the leading dimension of vmr_field:
     const Index n_species = vmr_field.nbooks();
@@ -2159,9 +2162,6 @@ void propmat_clearsky_fieldCalc( Workspace& ws,
     // Number of longitude grid points (must be at least one):
     const Index n_longitudes = max( Index(1), lon_grid.nelem() );
     
-    const ArrayOfTensor3 t_field_nlte_dummy(0);
-
-
     // Check that doppler is empty or matches p_grid
     if (0!=doppler.nelem() && p_grid.nelem()!=doppler.nelem())
     {
@@ -2175,12 +2175,14 @@ void propmat_clearsky_fieldCalc( Workspace& ws,
     // The dimension in lat and lon must be at least one, even if these
     // grids are empty.
     out2
-    << "  Creating field with dimensions:\n"
-    << "    " << n_species << "    gas species,\n"
-    << "    " << n_frequencies << "     frequencies,\n"
-    << "    " << n_pressures << "  pressures,\n"
-    << "    " << n_latitudes << "  latitudes,\n"
-    << "    " << n_longitudes << " longitudes.\n";
+    << "  Creating propmat field with dimensions:\n"
+    << "    " << n_species << "   gas species,\n"
+    << "    " << n_frequencies << "   frequencies,\n"
+    << "    " << stokes_dim << "   stokes dimension,\n"
+    << "    " << stokes_dim << "   stokes dimension,\n"
+    << "    " << n_pressures << "   pressures,\n"
+    << "    " << n_latitudes << "   latitudes,\n"
+    << "    " << n_longitudes << "   longitudes.\n";
 
     propmat_clearsky_field.resize(n_species,
                                   n_frequencies,
@@ -2189,8 +2191,36 @@ void propmat_clearsky_fieldCalc( Workspace& ws,
                                   n_pressures,
                                   n_latitudes,
                                   n_longitudes);
-
-
+    if(t_nlte_field.empty())
+    {
+      out2
+      << "  Creating source field with dimensions:\n"
+      << "    " << n_species << "   gas species,\n"
+      << "    " << n_frequencies << "   frequencies,\n"
+      << "    " << stokes_dim << "   stokes dimension,\n"
+      << "    " << n_pressures << "   pressures,\n"
+      << "    " << n_latitudes << "   latitudes,\n"
+      << "    " << n_longitudes << "   longitudes.\n";
+      nlte_source_field.resize(n_species,
+                               n_frequencies,
+                               stokes_dim,
+                               n_pressures,
+                               n_latitudes,
+                               n_longitudes);
+    }
+    else
+    {
+      out2
+      << "  Creating source field with dimensions:\n"
+      << "    " << 0 << "   gas species,\n"
+      << "    " << 0 << "   frequencies,\n"
+      << "    " << 0 << "   stokes dimension,\n"
+      << "    " << 0 << "   pressures,\n"
+      << "    " << 0 << "   latitudes,\n"
+      << "    " << 0 << "   longitudes.\n";
+      nlte_source_field.resize(0,0,0,0,0,0);
+    }
+    
     // We have to make a local copy of the Workspace and the agendas because
     // only non-reference types can be declared firstprivate in OpenMP
     Workspace l_ws (ws);
@@ -2236,14 +2266,11 @@ private(abs, nlte, a_vmr_list)
                     for ( Index ilo=0; ilo<n_longitudes; ++ilo ) // Longitude: ilo
                     {
                         Numeric a_temperature = t_field( ipr, ila, ilo );
-                        a_vmr_list    = vmr_field( Range(joker),
-                                                  ipr, ila, ilo );
-                        
-                        //For not this is a zero length thing
-                        Vector a_temperature_nlte(t_field_nlte_dummy.nelem());
-                        for(Index inlte=0; inlte<t_field_nlte_dummy.nelem(); inlte++)
-                          a_temperature_nlte[inlte] = t_field_nlte_dummy[inlte](ipr,ila,ilo);
-
+                        a_vmr_list    = vmr_field(    Range(joker),
+                                                      ipr, ila, ilo );
+                        if(!t_nlte_field.empty())
+                          a_t_nlte_list = t_nlte_field( Range(joker),
+                                                        ipr, ila, ilo );
 
                         Vector this_rtp_mag(3, 0.);
 
@@ -2269,7 +2296,7 @@ private(abs, nlte, a_vmr_list)
                                                        this_rtp_mag, los,
                                                        a_pressure,
                                                        a_temperature, 
-                                                       a_temperature_nlte,
+                                                       a_t_nlte_list,
                                                        a_vmr_list,
                                                        l_abs_agenda);
 
@@ -2319,6 +2346,12 @@ private(abs, nlte, a_vmr_list)
                                                joker,
                                                joker,
                                                ipr, ila, ilo ) = abs ;
+                        if(!t_nlte_field.empty())
+                          nlte_source_field(joker,
+                                            joker,
+                                            joker,
+                                            ipr, ila, ilo ) = nlte ;//If some are NLTE and others not, this will be bad.
+                                            
                         
                     }
             }

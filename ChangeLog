@@ -1,11 +1,23 @@
 2015-06-25  Richard Larsson  <ric.larsson@gmail.com>
 
+	* arts-2-3-260
+	
+	* src/m_abs_lookup.cc (propmat_clearsky_fieldCalc): now properly returns a
+	Tensor6 nlte_source_field.  If t_nlte_field.empty() is false the field is
+	one stokes_dim smaller than propmat_clearsky_field.  If 
+	t_nlte_field.empty() is true, so is nlte_source_field.empty().
+	
+	* src/workspace.cc, src/methods.cc: Variable creation and function
+	redefinition.
+
+2015-06-25  Richard Larsson  <ric.larsson@gmail.com>
+
 	* arts-2-3-258
 	
 	Now the externalized partition functions can be used by everyone.
 	Note that there is probably a bug presently that makes the calculations
 	very slow.  I.e., make check with built-in takes one quarter the time
-	as using the grided data.  Therre might be a copy-bug 
+	as using the gridded data.  There might be a copy-bug 
 	in either (CalculatePartitionFctFromData) or in the calls to 
 	(CalculatePartitionFctFromData) and (CalculatePartitionFctFromCoeff).
 	That or the interpolation is very slow.
@@ -17,7 +29,7 @@
 	arts.ctlfile.fast.artscomponents.groundbased.TestWinds
 	Clearsky has limit at 0.01 K and is 1% above this. Wind has limit
 	at 0.0001 K but is 1100% above this in the test.  So the new partition
-	funtions makes about 0.01 K difference to built-in.  I did not investigate
+	functions makes about 0.01 K difference to built-in.  I did not investigate
 	why yet.
 	
 	Will make check so that the eternal partition function is valid for 

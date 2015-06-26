@@ -2669,6 +2669,20 @@ void Workspace::define_wsv_data()
 
    wsv_data.push_back
    (WsvRecord
+    ( NAME( "nlte_source_field" ),
+      DESCRIPTION
+      (
+       "Analog to *propmat_clearsky_field* for *propmat_clearsky*, but for.\n"
+       "the *nlte_source* variable.\n"
+       "\n"
+       "Unit:       1/m\n"
+       "\n"
+       "Dimensions: [species, f_grid, *stokes_dim*, p_grid, lat_grid, lon_grid]\n"
+       ),
+      GROUP( "Tensor6" )));
+   
+   wsv_data.push_back
+   (WsvRecord
     ( NAME( "opt_prop_part_agenda" ),
       DESCRIPTION
       (
