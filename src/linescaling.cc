@@ -50,7 +50,9 @@
  *  \author Richard Larsson
  *  \date   2015-05-28
  */
-void GetLineScalingData(Numeric& partition_ratio, 
+void GetLineScalingData(Numeric& q_t,
+                        Numeric& q_ref,
+                        Numeric& partition_ratio, 
                         Numeric& boltzmann_ratio, 
                         Numeric& abs_nlte_ratio, 
                         Numeric& src_nlte_ratio, 
@@ -76,26 +78,27 @@ void GetLineScalingData(Numeric& partition_ratio,
     //partition_ratio = IsotopologueData().CalculatePartitionFctRatio(line_t, atm_t);
     partition_ratio=1;
     
-    Numeric q_ref, q_t;
-    
-    switch(partition_type)
+    if(q_t<0 || q_ref<0)
     {
-      case SpeciesAuxData::AT_PARTITIONFUNCTION_COEFF:
-        CalculatePartitionFctFromCoeff(q_ref, q_t, line_t, atm_t,
-                                       partition_data[0].data);
-        break;
-      case SpeciesAuxData::AT_PARTITIONFUNCTION_COEFF_VIBROT:
-        throw std::runtime_error("The vib-rotational partition functions specified by your user input is not yet implemented in ARTS.\n");
-        break;
-      case SpeciesAuxData::AT_PARTITIONFUNCTION_TFIELD:
-        CalculatePartitionFctFromData(q_ref, q_t, line_t, atm_t,
-                                      partition_data[0].get_numeric_grid(0),
-                                      partition_data[0].data, 
-                                      1);
-        break;
-      default:
-        throw std::runtime_error("Unknown partition type requested.\n");
-        break;
+      switch(partition_type)
+      {
+        case SpeciesAuxData::AT_PARTITIONFUNCTION_COEFF:
+          CalculatePartitionFctFromCoeff(q_ref, q_t, line_t, atm_t,
+                                         partition_data[0].data);
+          break;
+        case SpeciesAuxData::AT_PARTITIONFUNCTION_COEFF_VIBROT:
+          throw std::runtime_error("The vib-rotational partition functions specified by your user input is not yet implemented in ARTS.\n");
+          break;
+        case SpeciesAuxData::AT_PARTITIONFUNCTION_TFIELD:
+          CalculatePartitionFctFromData(q_ref, q_t, line_t, atm_t,
+                                        partition_data[0].get_numeric_grid(0),
+                                        partition_data[0].data, 
+                                        1);
+          break;
+        default:
+          throw std::runtime_error("Unknown partition type requested.\n");
+          break;
+      }
     }
     
     partition_ratio = q_ref/q_t;

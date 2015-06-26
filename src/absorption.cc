@@ -1069,6 +1069,11 @@ firstprivate(ls_attenuation, ls_phase, fac, f_local, aux)
 	    Matrix xsec_accum_source(n_lbl_threads, xsec_i_attenuation.nelem(), 0);
             Matrix xsec_accum_phase(n_lbl_threads, xsec_i_phase.nelem(), 0);
             
+            // Simple caching of partition function to avoid recalculating things.
+            Numeric qt_cache=-1, qref_cache=-1;
+            Index iso_cache = - 1;
+            Numeric line_t_cache = - 1;
+            
             ConstVectorView vmrs = all_vmrs(joker,i);
             
             // Loop all lines:
@@ -1076,7 +1081,7 @@ firstprivate(ls_attenuation, ls_phase, fac, f_local, aux)
 #pragma omp parallel for                   \
 if (!arts_omp_in_parallel()               \
 && nl >= arts_omp_get_max_threads())  \
-firstprivate(ls_attenuation, ls_phase, fac, f_local, aux)
+firstprivate(ls_attenuation, ls_phase, fac, f_local, aux, qt_cache, qref_cache, iso_cache, line_t_cache)
                 for ( Index l=0; l< nl; ++l )
                 {
                     // Skip remaining iterations if an error occurred
@@ -1100,8 +1105,16 @@ firstprivate(ls_attenuation, ls_phase, fac, f_local, aux)
                                                                              broad_spec_locations,
                                                                              vmrs,verbosity);
                         
-                                               
-                        GetLineScalingData(partition_ratio, 
+                        if(iso_cache!=l_l.Isotopologue() || line_t_cache != l_l.Ti0())
+                        {
+                          iso_cache = l_l.Isotopologue();
+                          line_t_cache = l_l.Ti0();
+                          qref_cache=-1;// no need to reset qt since it is done internally.
+                        }
+                        
+                        GetLineScalingData(qt_cache,
+                                           qref_cache,
+                                           partition_ratio, 
                                            boltzmann_ratio, 
                                            abs_nlte_ratio, 
                                            src_nlte_ratio, 
@@ -1928,7 +1941,6 @@ void xsec_species_line_mixing_wrapper(  MatrixView               xsec_attenuatio
     }
     
     //Helper var 
-    ArrayOfIndex tmp_none_mixed_lines_index;
     Vector attenuation(f_grid.nelem()+1),
     phase(f_grid.nelem()+1),
     aux(f_grid.nelem()+1),
@@ -1956,6 +1968,11 @@ firstprivate(attenuation, phase, fac, f_local, aux)
         ConstVectorView t_nlte = calc_src?abs_t_nlte(joker, jj):empty_vector;
         ConstVectorView vmrs = all_vmrs(joker,jj);
         
+        // Simple caching of partition function to avoid recalculating things.
+        Numeric qt_cache=-1, qref_cache=-1;
+        Index iso_cache=-1;
+        Numeric line_t_cache=-1;
+        
         const Numeric p_partial = p * vmrs[this_species];
         
         for(Index ii=0; ii<abs_lines.nelem();ii++)
@@ -1972,7 +1989,16 @@ firstprivate(attenuation, phase, fac, f_local, aux)
             Numeric Y=0,DV=0,G=0; // Set to zero since case with 0 exist
             abs_lines[ii].LineMixing().GetLineMixingParams( Y,  G,  DV,  t, p, lm_p_lim, 1);
             
-            GetLineScalingData( partition_ratio, 
+            if(iso_cache!=abs_lines[ii].Isotopologue() || line_t_cache != abs_lines[ii].Ti0())
+            {
+              iso_cache = abs_lines[ii].Isotopologue();
+              line_t_cache = abs_lines[ii].Ti0();
+              qref_cache=-1;// no need to reset qt since it is done internally below
+            }
+            
+            GetLineScalingData( qt_cache,
+                                qref_cache,
+                                partition_ratio, 
                                 boltzmann_ratio, 
                                 abs_nlte_ratio, 
                                 src_nlte_ratio, 

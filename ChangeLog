@@ -1,3 +1,14 @@
+2015-06-26  Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-3-264
+	
+	* src/linescaling.{cc,h}: Now does not calculate partition function
+	if Q(T) or Q(T0) are defined.
+	
+	* src/absorption.cc:  Now employs a simple buffer for the partition
+	functions,  Only if isotope or line temperatures changes between lines
+	at a pressure level will the partition function be recalculated.
+
 2015-06-26  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-263

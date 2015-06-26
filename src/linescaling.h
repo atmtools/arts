@@ -19,7 +19,9 @@
 #include "absorption.h"
 
 
-void GetLineScalingData(Numeric& partition_ratio, 
+void GetLineScalingData(Numeric& q_t, 
+                        Numeric& q_ref,
+                        Numeric& partition_ratio, 
                         Numeric& boltzmann_ratio, 
                         Numeric& abs_nlte_ratio, 
                         Numeric& src_nlte_ratio, 
