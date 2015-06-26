@@ -41,6 +41,7 @@ arts_test_run_ctlfile(fast artscomponents/ppath/TestPpath3D.arts)
 arts_test_run_ctlfile(fast artscomponents/pencilbeam/TestPencilBeam.arts)
 
 arts_test_run_ctlfile(fast artscomponents/clearsky/TestClearSky.arts)
+arts_test_run_ctlfile(fast artscomponents/clearsky/TestClearSkyTips.arts)
 arts_test_run_ctlfile(slow artscomponents/clearsky/TestClearSky2.arts)
 arts_test_run_ctlfile(slow artscomponents/clearsky/TestBatch.arts)
 
@@ -57,7 +58,7 @@ arts_test_run_ctlfile(fast artscomponents/transmission/TestTransmission.arts)
 
 arts_test_run_ctlfile(fast artscomponents/faraday/TestFaradayRotation.arts)
 
-arts_test_run_ctlfile(fast artscomponents/radiolink/TestRadioLink.arts)
+arts_test_run_ctlfile(slow artscomponents/radiolink/TestRadioLink.arts)
 arts_test_run_ctlfile(fast artscomponents/radiolink/TestRadioLink2.arts)
 arts_test_run_ctlfile(slow artscomponents/radiolink/TestRadioOccultation.arts)
 

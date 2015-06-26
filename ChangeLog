@@ -1,3 +1,22 @@
+2015-06-26  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-261
+
+	* Comment on Richard previous commit: The slowdown when using TIPS data
+	is due to an assertion in the interpolation routines. It calls
+	is_increasing which has a large impact on performance (long vector
+	checked in every iteration inside xsec_species).
+
+	With a release build (cd build; cmake -DCMAKE_BUILD_TYPE=Release .), it
+	is only marginally slower than using the builtin coeffs.
+
+	* controlfiles/CMakeLists.txt,
+	controlfiles/artscomponents/clearsky/TestClearSkyTips.arts:
+
+	Add test case for TIPS.
+
+	Move artscomponents/radiolink/TestRadioLink.arts to slow tests.
+
 2015-06-25  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-3-260
