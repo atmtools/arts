@@ -80,7 +80,7 @@ const Numeric   RTOL = 1e-3;
 
 // As RTOL but for latitudes and longitudes.
 //
-const Numeric   LATLONTOL = 1e-8;
+DEBUG_ONLY(const Numeric   LATLONTOL = 1e-8;)
 
 
 // Accuarcy for length comparisons.

@@ -743,7 +743,7 @@ void met_mm_polarisation_hmatrix(Sparse& H,
     for( Index i=0; i<nch; i++ )
     {
         // See stokes2pol for index order used in pv
-        Index ipv;
+        Index ipv = -1;
         if( pol[i] == "V" )
         { ipv = 4; }
         else if( pol[i] == "H" )

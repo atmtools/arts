@@ -385,7 +385,7 @@ void opt_prop_sptFromData(// Output and Input:
                         "must be 1,2,3 or 4");
   }
 
-  const Index N_se_total = TotalNumberOfElements(scat_data);
+  DEBUG_ONLY(const Index N_se_total = TotalNumberOfElements(scat_data);)
   assert( ext_mat_spt.npages() == N_se_total );
   assert( abs_vec_spt.nrows() == N_se_total );
 
@@ -1340,7 +1340,7 @@ void opt_prop_sptFromMonoData(// Output and Input:
                               const Index& scat_lon_index,
                               const Verbosity& verbosity)
 {
-  const Index N_se_total = TotalNumberOfElements(scat_data_mono);
+  DEBUG_ONLY(const Index N_se_total = TotalNumberOfElements(scat_data_mono);)
   const Index stokes_dim = ext_mat_spt.ncols();
   const Numeric za_sca = scat_za_grid[scat_za_index];
   const Numeric aa_sca = scat_aa_grid[scat_aa_index];

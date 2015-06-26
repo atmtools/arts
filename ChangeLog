@@ -1,5 +1,16 @@
 2015-06-26  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-3-263
+
+	* src/continua.cc, src/interpolation.cc, src/interpolation_poly.cc,
+	src/m_jacobian.cc, src/m_optproperties.cc, src/ppath.cc, src/sensor.cc:
+
+	Use the DEBUG_ONLY(...) macro around variable definitions and argument
+	names that are only used in assertions. Avoids unused variable warnings
+	in release build.
+
+2015-06-26  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-3-262
 
 	* controlfiles/CMakeLists.txt: Move TIPS clear sky test to xmldata.

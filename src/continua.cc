@@ -11004,7 +11004,7 @@ void CKD_mt_250_o2_vis (MatrixView          pxsec,
                      ConstVectorView     f_grid,
                      ConstVectorView     abs_p,
                      ConstVectorView     abs_t,
-                     ConstVectorView     vmr,
+                     ConstVectorView     DEBUG_ONLY(vmr),
                      const Verbosity& verbosity)
 {
   CREATE_OUT3;

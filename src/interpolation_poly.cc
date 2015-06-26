@@ -103,7 +103,7 @@ Index IMIN(Index a, Index b)
   what we have really *are* interpolation weights, and not something
   else. 
 */
-const Numeric sum_check_epsilon = 1e-6;
+DEBUG_ONLY(const Numeric sum_check_epsilon = 1e-6;)
 
 //! Set up grid positions for higher order interpolation.
 /*!
