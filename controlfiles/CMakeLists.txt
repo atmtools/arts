@@ -41,7 +41,6 @@ arts_test_run_ctlfile(fast artscomponents/ppath/TestPpath3D.arts)
 arts_test_run_ctlfile(fast artscomponents/pencilbeam/TestPencilBeam.arts)
 
 arts_test_run_ctlfile(fast artscomponents/clearsky/TestClearSky.arts)
-arts_test_run_ctlfile(fast artscomponents/clearsky/TestClearSkyTips.arts)
 arts_test_run_ctlfile(slow artscomponents/clearsky/TestClearSky2.arts)
 arts_test_run_ctlfile(slow artscomponents/clearsky/TestBatch.arts)
 
@@ -142,6 +141,8 @@ if (ARTS_XML_DATA_DIR)
   arts_test_run_ctlfile(xmldata artscomponents/arts-xml-data/TestAtmScenSup_Mars.arts)
   arts_test_run_ctlfile(xmldata artscomponents/arts-xml-data/TestAtmScenSup_Venus.arts)
   arts_test_run_ctlfile(xmldata artscomponents/arts-xml-data/TestAtmScenSup_Jupiter.arts)
+
+  arts_test_run_ctlfile(xmldata artscomponents/clearsky/TestClearSkyTips.arts)
 
   arts_test_run_ctlfile(xmldata artscomponents/arts-xml-data/TestClouds_Mars.arts)
   arts_test_run_ctlfile(xmldata artscomponents/arts-xml-data/TestClouds_Venus.arts)

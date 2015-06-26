@@ -1,5 +1,11 @@
 2015-06-26  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-3-262
+
+	* controlfiles/CMakeLists.txt: Move TIPS clear sky test to xmldata.
+
+2015-06-26  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-3-261
 
 	* Comment on Richard previous commit: The slowdown when using TIPS data
