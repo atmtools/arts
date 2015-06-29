@@ -2486,11 +2486,12 @@ void define_md_data_raw()
         IN( "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "abs_species",
             "t_field", "vmr_field", "wind_u_field", "wind_v_field",
             "wind_w_field", "mag_u_field", "mag_v_field", "mag_w_field",
-            "abs_f_interp_order" ),
-        GIN(  "negative_vmr_ok" ),
-        GIN_TYPE( "Index" ),
-        GIN_DEFAULT( "0" ),
-        GIN_DESC("Boolean for demanding vmr_field > 0 or not.")
+            "partition_functions", "abs_f_interp_order" ),
+        GIN(  "negative_vmr_ok", "bad_partition_functions_ok" ),
+        GIN_TYPE( "Index", "Index" ),
+        GIN_DEFAULT( "0", "0" ),
+        GIN_DESC("Boolean for demanding vmr_field > 0 or not.",
+                 "Boolean for not demanding partition function defined inside t_nlte_field range.")
         ));
 
   md_data_raw.push_back

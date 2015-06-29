@@ -138,7 +138,7 @@ ReadXML( ri_surface, casefull )
 
 abs_xsec_agenda_checkedCalc
 propmat_clearsky_agenda_checkedCalc
-atmfields_checkedCalc
+atmfields_checkedCalc( bad_partition_functions_ok = 1 )
 atmgeom_checkedCalc
 
 # now we need to do some RT calc in order to APPLY the reflectivity data

@@ -283,9 +283,10 @@ public:
   //! Return the partition function coefficient types.
   Index GetCoeffType() const { return mqcoefftype; }
     
-  void SetPartitionFctCoeff( const ArrayOfNumeric& qcoeff, const Index& qcoefftype )
+  void SetPartitionFctCoeff( const ArrayOfNumeric& qcoeff, const ArrayOfNumeric& temp_range,const Index& qcoefftype )
   {
     mqcoeff = qcoeff;
+    mqcoeffgrid = temp_range;
     mqcoefftype = qcoefftype;
   }
 

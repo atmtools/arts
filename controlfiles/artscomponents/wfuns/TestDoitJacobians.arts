@@ -187,7 +187,7 @@ AgendaSet( ybatch_calc_agenda ){
 
   # Consistency checks
   atmgeom_checkedCalc
-  atmfields_checkedCalc
+  atmfields_checkedCalc( bad_partition_functions_ok = 1 )
   cloudbox_checkedCalc
   sensor_checkedCalc
   propmat_clearsky_agenda_checkedCalc

@@ -150,7 +150,7 @@ AgendaSet( forloop_agenda ){
   p_gridFromZRaw(	p_grid, z_field_raw, 0 )
   AtmFieldsCalc( vmr_zeropadding=1 )
 
-  atmfields_checkedCalc
+  atmfields_checkedCalc( bad_partition_functions_ok = 1 )
   #WriteXML( "ascii", p_grid )
   #WriteXML( "ascii", z_field )
   #WriteXML( "ascii", t_field )

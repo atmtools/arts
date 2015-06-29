@@ -255,7 +255,7 @@ AgendaSet( ybatch_calc_agenda ){
   #WriteXMLIndexed (output_file_format, ybatch_index, pnd_field)
 
   # Consistency checks
-  atmfields_checkedCalc
+  atmfields_checkedCalc( bad_partition_functions_ok = 1 )
   atmgeom_checkedCalc
   cloudbox_checkedCalc  
   sensor_checkedCalc

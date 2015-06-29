@@ -127,8 +127,10 @@ void atmfields_checkedCalc(
    const Tensor3&   mag_u_field,
    const Tensor3&   mag_v_field,
    const Tensor3&   mag_w_field,
+   const SpeciesAuxData& partition_functions,
    const Index&     abs_f_interp_order,
    const Index&     negative_vmr_ok,
+   const Index&     bad_partition_functions_ok,
    const Verbosity&)
 {
   // Consistency between dim, grids and atmospheric fields/surfaces
@@ -239,7 +241,97 @@ void atmfields_checkedCalc(
                                                    p_grid, lat_grid, lon_grid);
         }
     }
-
+  
+  if(partition_functions.nspecies())
+  {
+    // Partition functions have partition functions and finding their temperature limits?
+    Numeric min_T = 0, max_T =1e6;//1 MK is max tested 
+    for(Index ii=0; ii<partition_functions.nspecies();ii++)
+      for(Index jj=0; jj<partition_functions.nisotopologues(ii);jj++)
+      {
+        ArrayOfGriddedField1 part_fun;
+        switch(partition_functions.getParamType(ii,jj))
+        {
+          case SpeciesAuxData::AT_PARTITIONFUNCTION_COEFF: 
+            part_fun = partition_functions.getParam(ii,jj);
+            if( part_fun.nelem()==2 )
+            {
+              if( part_fun[1].data.nelem()==2 && part_fun[0].data.nelem()>1 )
+              {
+                if(part_fun[1].data[0]>min_T)
+                  min_T=part_fun[1].data[0];
+                if(part_fun[1].data[1]<max_T)
+                  max_T=part_fun[1].data[1];
+              }
+              else
+                throw std::runtime_error("Bad coefficient parameter in partition_function.\n");
+            }
+            else
+              throw std::runtime_error("Bad coefficient parameter in partition_function.\n");
+            break;
+          
+          case SpeciesAuxData::AT_PARTITIONFUNCTION_COEFF_VIBROT: 
+            part_fun = partition_functions.getParam(ii,jj);
+            if( part_fun.nelem()==3 )
+            {
+              if( part_fun[2].data.nelem()==2 && part_fun[1].data.nelem()>1 && part_fun[0].data.nelem()>1 )
+              {
+                if(part_fun[2].data[0]>min_T)
+                  min_T=part_fun[2].data[0];
+                if(part_fun[2].data[1]<max_T)
+                  max_T=part_fun[2].data[1];
+              }
+              else
+                throw std::runtime_error("Bad coefficient parameter in partition_function.\n");
+            }
+            else
+              throw std::runtime_error("Bad coefficient parameter in partition_function.\n");
+            break;
+            
+          case SpeciesAuxData::AT_PARTITIONFUNCTION_TFIELD: 
+            part_fun = partition_functions.getParam(ii,jj);
+            if( part_fun.nelem()==1 )
+            {
+              if( part_fun[0].data.nelem()>1 )
+              {
+                if(part_fun[0].get_numeric_grid(0)[0]>min_T)
+                  min_T=part_fun[0].get_numeric_grid(0)[0];
+                if(part_fun[0].get_numeric_grid(0)[part_fun[0].data.nelem()-1]<max_T)
+                  max_T=part_fun[0].get_numeric_grid(0)[part_fun[0].data.nelem()-1];
+              }
+              else
+                throw std::runtime_error("Bad t_field parameter in partition_function.\n");
+            }
+            else
+              throw std::runtime_error("Bad t_field parameter in partition_function.\n");
+            break;
+            
+          default:
+            throw std::runtime_error("Bad parameter type in partition_functions.\n");
+            break;
+        }
+      }
+      
+    // Check that partition functions are OK if not explicitly turned off
+    if(!bad_partition_functions_ok)
+    {
+      for(Index ii=0;ii<t_field.npages();ii++)
+        for(Index jj=0;jj<t_field.nrows();jj++)
+          for(Index kk=0;kk<t_field.ncols();kk++)
+          {
+            if(min_T>t_field(ii,jj,kk)||max_T<t_field(ii,jj,kk))
+            {
+              ostringstream os;
+              os << "There are bad partition functions in your setup.\n"
+                << "Minimum temperature for defined partition functions is: "<<min_T 
+                << " K.\nMaximum temperature for defined partition functions is: "<<max_T 
+                << " K\nThere is a t_field entry of "<<t_field(ii,jj,kk)<<" K.\n";
+              throw std::runtime_error(os.str());
+            }
+          }
+    }
+  }
+  
   // If here, all OK
   atmfields_checked = 1;
 }

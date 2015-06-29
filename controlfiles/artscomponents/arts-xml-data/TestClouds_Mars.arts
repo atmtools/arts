@@ -223,7 +223,7 @@ AgendaSet( forloop_agenda_particles ){
   #scat_data_rawCheck
   pnd_fieldCalcFrompnd_field_raw( zeropadding=1 )
 
-  atmfields_checkedCalc
+  atmfields_checkedCalc( bad_partition_functions_ok = 1 )
   atmgeom_checkedCalc
   cloudbox_checkedCalc
   sensor_checkedCalc

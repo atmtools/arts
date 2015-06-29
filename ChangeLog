@@ -1,3 +1,70 @@
+2015-06-29  Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-3-265
+	
+	Warning:  This update breaks controlfiles that are using bad 
+	partition functions.  To keep using bad partition functions,
+	set bad_partition_functions_ok = 1 in atmfield_checkedCalc.
+	By "bad" partition function, I mean a partition function that
+	is only defined for other temperatures than those that t_field
+	contain.
+	
+	The test on partition functions should ideally be in the 
+	abs_xsec_agenda_checkedCalc, but we have too many definitions of
+	the temperature fields for various agendas that rtp_temperature
+	and abs_t are not always defined when iy_main_agenda is called,
+	so it is only through iy_main_agenda that the temperature can
+	be tested.  The user can thus find themselves having fully calculated
+	abs_lookup but getting a runtime_error when they then try to use this
+	lookup through iy_main_agenda.  So there is some waste of time.
+	
+	* These controlfiles were using bad partition functions:
+	controlfiles/artscomponents/arts-xml-data/TestAtmScenSup_Jupiter.arts
+	controlfiles/artscomponents/arts-xml-data/TestAtmScenSup_Mars.arts
+	controlfiles/artscomponents/arts-xml-data/TestAtmScenSup_Venus.arts
+	controlfiles/artscomponents/arts-xml-data/TestAtmScen_Jupiter.arts
+	controlfiles/artscomponents/arts-xml-data/TestAtmScen_Mars.arts
+	controlfiles/artscomponents/arts-xml-data/TestAtmScen_Venus.arts
+	controlfiles/artscomponents/arts-xml-data/TestClouds_Mars.arts
+	controlfiles/artscomponents/arts-xml-data/TestClouds_Venus.arts
+	controlfiles/artscomponents/arts-xml-data/TestSurf_Mars.arts
+	controlfiles/artscomponents/arts-xml-data/TestSurf_Venus.arts
+	controlfiles/artscomponents/clearsky/TestBatch.arts
+	controlfiles/artscomponents/doitbatch/TestDOITBatch.arts
+	controlfiles/artscomponents/ppath/TestRefractPlanets.arts
+	controlfiles/artscomponents/wfuns/TestDoitJacobians.arts
+	controlfiles/instruments/hirs/TestHIRS.arts
+	In the first ten, I recommend using the TIPS function at some point
+	after updating, so that the scenarios are actually calculating the 
+	correct line scaling.  The latter five are a few degrees outside the
+	defined temperature limits.
+	
+	* src/absorption.h (SetPartitionFctCoeff):  Now also sets a temperature
+	range in built-in so that the interpreter reading the built-in can set
+	the temperature range properly.
+	
+	* src/partition_function_data.cc:  Every call to iso() now also sets a
+	temperature range.  The temperature range is (150.0, 300.0) for all
+	partition functions.  This can of course be updated if anyone shows that
+	the temperature range of some species is greater than suggested.  The 
+	range was suggested by Jana after some tests she has done.  Note that
+	the range cannot be much different, since using TIPS instead of built-in
+	produced errors of 0.01 K as stated in a previous commit.
+	
+	* src/methodds.cc:  Plumbing.
+	
+	* src/m_checked.cc (atmfields_checkedCalc):  Now takes 
+	partition_functions as input.  Also takes a flag, 
+	bad_partition_functions_ok, for ignoring when partition_functions
+	does not cover the t_field range.  The test is simple: first of all,
+	the size of each variable inside partition_functions is checked to see
+	if it complies with its type of data.  Then the temparure max of min 
+	and min of max of the partition functions are found.  Then, if the flag
+	is as per default, we test that min of max and max of min temperatures
+	cover t_field.  N.B., that a hard limit of 1 MK is set as the minimum
+	min of max temperature.  So if, for whatever reason, higher temperatures
+	are needed, then this limit must be changed.
+
 2015-06-26  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-3-264

@@ -88,7 +88,7 @@ AgendaSet( forloop_agenda_Ne ){
   # eventually, extract the data Tensor from the regridded GriddedField
   FieldFromGriddedField( edensity_field, p_grid, lat_grid, lon_grid, gf3tmp )
 
-  atmfields_checkedCalc
+  atmfields_checkedCalc( bad_partition_functions_ok = 1 )
   atmgeom_checkedCalc
   #WriteXML( "ascii", p_grid )
   #WriteXML( "ascii", z_field )
@@ -227,7 +227,7 @@ GriddedFieldLatLonRegrid( gf3tmp, lat_true, lon_true, gf3tmp, interp_order )
 FieldFromGriddedField( mag_w_field, p_grid, lat_grid, lon_grid, gf3tmp )
 
 
-atmfields_checkedCalc
+atmfields_checkedCalc( bad_partition_functions_ok = 1 )
 atmgeom_checkedCalc
 
 #WriteXML( "ascii", mag_u_field )
@@ -300,7 +300,7 @@ GriddedFieldLatLonRegrid( gf3tmp, lat_grid, lon_grid, gf3tmp, interp_order )
 # last, extract the data Tensor from the regridded GriddedField
 FieldFromGriddedField( mag_w_field, p_grid, lat_grid, lon_grid, gf3tmp )
 
-atmfields_checkedCalc
+atmfields_checkedCalc( bad_partition_functions_ok = 1 )
 atmgeom_checkedCalc
 
 #####
@@ -326,7 +326,7 @@ GriddedFieldLatLonRegrid( gf3tmp, lat_grid, lon_grid, gf3tmp, interp_order )
 # last, extract the data Tensor from the regridded GriddedField
 FieldFromGriddedField( wind_u_field, p_grid, lat_grid, lon_grid, gf3tmp )
 
-atmfields_checkedCalc
+atmfields_checkedCalc( bad_partition_functions_ok = 1 )
 atmgeom_checkedCalc
 
 
@@ -344,7 +344,7 @@ GriddedFieldLatLonRegrid( gf3tmp, lat_grid, lon_grid, gf3tmp, interp_order )
 # last, extract the data Tensor from the regridded GriddedField
 FieldFromGriddedField( wind_u_field, p_grid, lat_grid, lon_grid, gf3tmp )
 
-atmfields_checkedCalc
+atmfields_checkedCalc( bad_partition_functions_ok = 1 )
 atmgeom_checkedCalc
 #WriteXML( "ascii", wind_u_field )
 #WriteXML( "ascii", wind_v_field )
