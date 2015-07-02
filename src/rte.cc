@@ -821,8 +821,8 @@ Numeric dotprod_with_los(
                               frequency of cocncern.
     \param   t            In: Transmission matrix of the step.
     \param   nonlte       In: 0 if LTE applies, otherwise 1.
-    \parem   extbar       In: Average extinction matrix. Totally ignored if lte=1.
-    \parem   sourcebar    In: Average non-LTE source. Totally ignored if lte=1.
+    \param   extbar       In: Average extinction matrix. Totally ignored if nonlte=0.
+    \param   sourcebar    In: Average non-LTE source. Totally ignored if nonlte=0.
 
     \author Patrick Eriksson 
     \date   2013-04-19 (non-lte added 2015-05-31)
@@ -1958,8 +1958,8 @@ void get_ppath_trans(
               scalar_tau[iv] += ppath.lstep[ip-1] * ext_mat(0,0); 
               extmat_case[ip-1][iv] = 0;
               ext2trans( trans_partial(iv,joker,joker,ip-1), 
-                         extmat_case[ip-1][iv], ext_mat, ppath.lstep[ip-1] ); 
-              
+                         extmat_case[ip-1][iv], ext_mat, ppath.lstep[ip-1] );
+
               // Cumulative transmission
               // (note that multiplication below depends on ppath loop order)
               mult( trans_cumulat(iv,joker,joker,ip), 

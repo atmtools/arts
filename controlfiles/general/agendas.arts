@@ -219,7 +219,7 @@ AgendaSet( propmat_clearsky_agenda__OnTheFly_Zeeman ){
 }
 
 ###
-# "on-the-fly" absorption with Zeeman; requres precalculations
+# "on-the-fly" absorption with Zeeman; requires precalculations
 #
 AgendaCreate( propmat_clearsky_agenda__OnTheFly_ZeemanPreCalc )
 AgendaSet( propmat_clearsky_agenda__OnTheFly_ZeemanPreCalc ){

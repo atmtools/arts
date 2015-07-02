@@ -390,6 +390,7 @@ extern const Numeric LOG10_EULER_NUMBER;
 extern const Numeric NAT_LOG_TEN;
 extern const Numeric PI;
 extern const Numeric SPEED_OF_LIGHT;
+extern const Numeric DENSITY_OF_WATER;
 
 // numerical constants specific defined for the file continua.cc
 
@@ -15536,7 +15537,7 @@ void MPM93IceCrystalAbs (MatrixView        pxsec,
    \param    abs_p          predefined pressure grid        [Pa]
    \param    abs_t          predefined temperature grid     [K]
    \param    vmr            rain rate vector (i.e. vertical profile),
-                            (valid range: 0-150) [mm/h]
+                            (valid range: 0-0.42) [kg/m2/s]
 
    \note     Except for  model 'user' the input parameters CEin, CAin, and CBin
              are neglected (model dominates over parameters).<br>
@@ -15559,7 +15560,7 @@ void MPM93RainExt (MatrixView         pxsec,
                    ConstVectorView    f_grid, // frequency vector
                    ConstVectorView    abs_p,  // pressure vector
                    ConstVectorView    abs_t _U_,  // temperature vector
-                   ConstVectorView    vmr,    // rain rate profile [mm/h]
+                   ConstVectorView    vmr,    // rain rate profile [kg/m2/s]
                    const Verbosity& verbosity)
 {
   CREATE_OUT3;
@@ -15600,7 +15601,10 @@ void MPM93RainExt (MatrixView         pxsec,
   << " CE = " << CE << "\n"
   << " CA = " << CA << "\n"
   << " CB = " << CB << "\n";
+  // ---------------------------------------------------------------------------------------
 
+  // conversion factor to convert input SI-units [kg/m2/s] to [mm/h]
+  const Numeric convfac=3.6e6/DENSITY_OF_WATER;
 
   const Numeric low_lim_rr  =  0.000;   // lower limit of allowed rain rate  [mm/h]
   const Numeric high_lim_rr = 150.000;  // upper limit of allowed rain rate  [mm/h]
@@ -15633,8 +15637,13 @@ void MPM93RainExt (MatrixView         pxsec,
       // FIXME Numeric b_rain;
       // FIXME Numeric ext_rain;
 
+      const Numeric vmri = vmr[i] * convfac;
+
       // Check limits of rain rate ("vmr") [mm/h]
-      if ( (vmr[i] >= low_lim_rr) && (vmr[i] < high_lim_rr) )
+      if ( vmr[i]==0. )
+          pxsec(joker,i) += 0.;
+
+      else if ( (vmri >= low_lim_rr) && (vmri < high_lim_rr) )
   {
     // Loop frequency:
     for ( Index s=0; s<n_f; ++s )
@@ -15643,7 +15652,7 @@ void MPM93RainExt (MatrixView         pxsec,
         // own power law fit to their Laws-Parsons-Low data;
         // for rain rate > 25 mm/h, take C. Melsheimer's power law fit
         // to Olsen et al.'s Laws-Parson-High data
-        if ( vmr[i] <= 25 )
+        if ( vmri <= 25 )
     {
       // power law coeff. Ga and exponent Ea for a, piecewise:
       if ( f_grid[s] <= 2.9e9 )
@@ -15670,8 +15679,9 @@ void MPM93RainExt (MatrixView         pxsec,
         {
           ostringstream os;
           os << "ERROR in MPM93RainExt:\n"
-       << " frequency (valid range 0-1000 GHz):" << f_grid[s]*Hz_to_GHz << "\n"
-       << " ==> no calculation performed!\n";
+             << " frequency (valid range 0-1000 GHz):"
+             << f_grid[s]*Hz_to_GHz << "\n"
+             << " ==> no calculation performed!\n";
           throw runtime_error(os.str());
         }
       // power law coeff. Gb and exponent Eb for b, piecewise:
@@ -15699,13 +15709,14 @@ void MPM93RainExt (MatrixView         pxsec,
         {
           ostringstream os;
           os << "ERROR in MPM93RainExt:\n"
-       << " frequency (valid range 0-1000 GHz):" << f_grid[s]*Hz_to_GHz << "\n"
-       << " ==> no calculation performed!\n";
+             << " frequency (valid range 0-1000 GHz):"
+             << f_grid[s]*Hz_to_GHz << "\n"
+             << " ==> no calculation performed!\n";
           throw runtime_error(os.str());
         }
 
     }
-        else if (vmr[i] > 25)
+        else if (vmri > 25)
     {
       // power law coeff. Ga and exponent Ea for a, piecewise:
       if ( f_grid[s] <= 4.9e9 )
@@ -15737,8 +15748,9 @@ void MPM93RainExt (MatrixView         pxsec,
         {
           ostringstream os;
           os << "ERROR in MPM93RainExt:\n"
-       << " frequency (valid range for rain rate > 25mm/h: 0-100 GHz):" << f_grid[s]*Hz_to_GHz << "\n"
-       << " ==> no calculation performed!\n";
+             << " frequency (valid range for rain rate > 25mm/h: 0-100 GHz):"
+             << f_grid[s]*Hz_to_GHz << "\n"
+             << " ==> no calculation performed!\n";
           throw runtime_error(os.str());
         }
       // power law coeff. Gb and exponent Eb for b, piecewise:
@@ -15771,8 +15783,9 @@ void MPM93RainExt (MatrixView         pxsec,
         {
           ostringstream os;
           os << "ERROR in MPM93RainExt:\n"
-       << " frequency (valid range for rain rate > 25mm/h: 0-100 GHz):" << f_grid[s]*Hz_to_GHz << "\n"
-       << " ==> no calculation performed!\n";
+             << " frequency (valid range for rain rate > 25mm/h: 0-100 GHz):"
+             << f_grid[s]*Hz_to_GHz << "\n"
+             << " ==> no calculation performed!\n";
           throw runtime_error(os.str());
         }
     }
@@ -15782,20 +15795,21 @@ void MPM93RainExt (MatrixView         pxsec,
         Numeric b_rain = Gb * pow((f_grid[s]*Hz_to_GHz),Eb);
         // Extinction coefficient [dB/km], with scaling
         // parameters CA and CB
-        Numeric ext_rain = CA * a_rain * pow(vmr[i],(CB*b_rain));
+        Numeric ext_rain = CA * a_rain * pow(vmri,(CB*b_rain));
         // rain extinction cross section [1/m]
         // The vmr will be multiplied at the stage of extinction
         // calculation: ext = vmr * pxsec.
         // pxsec = ext/vmr [1/m] but MPM93 is in [dB/km] --> conversion necessary
-        pxsec(s,i) += CE * dB_km_to_1_m * ext_rain / vmr[i];
+        pxsec(s,i) += CE * dB_km_to_1_m * ext_rain / vmri;
       }
   } else
     {
-      if ( (vmr[i] < low_lim_rr) || (vmr[i] > high_lim_rr) )
+      if ( (vmri < low_lim_rr) || (vmri > high_lim_rr) )
         {
     ostringstream os;
     os << "ERROR in MPM93RainExt:\n"
-       << " rain rate (valid range 0.00-150.00 mm/h):" << vmr[i] << "\n"
+       << " rain rate (valid range 0.00-150.00 mm/h):" << vmr[i] << " kg/m2/s ("
+       << vmri << " mm/h)\n"
        << " ==> no calculation performed!\n";
     throw runtime_error(os.str());
         }
@@ -20115,10 +20129,10 @@ void xsec_continuum_tag (MatrixView             xsec,
       //     f_grid        : [Hz]
       //     abs_p         : [Pa]
       //     abs_t         : [K]
-      //     vmr           : [mm/h]
+      //     vmr           : [kg/m2/s]
       //
       // rain parameters:
-      // rain rate                         range: 0-150 mm/h
+      // rain rate                         range: 0-150 mm/h (=0-0.42 kg/m2/s)
       //
       // valid atmospheric condition:
       // temperature      : (preferably above 273 K...)
@@ -20129,9 +20143,9 @@ void xsec_continuum_tag (MatrixView             xsec,
           out3 << "MPM93 rain extinction model " << name << " is running with \n"
                << "user defined parameters according to model " << model << ".\n";
           MPM93RainExt(pxsec,
-                       parameters[0],     // scaling factror
-                       parameters[1],     // scaling factror
-                       parameters[2],     // scaling factror
+                       parameters[0],     // scaling factor
+                       parameters[1],     // scaling factor
+                       parameters[2],     // scaling factor
                        model,             // model option
                        f_grid,
                        abs_p,
@@ -20152,9 +20166,9 @@ void xsec_continuum_tag (MatrixView             xsec,
           out3 << "MPM93 rain extinction model " << name << " running with \n"
                << "the parameter for model " << model << ".\n";
           MPM93RainExt(pxsec,
-                       0.000,       // scaling factror
-                       0.000,       // scaling factror
-                       0.000,       // scaling factror
+                       0.000,       // scaling factor
+                       0.000,       // scaling factor
+                       0.000,       // scaling factor
                        model,       // model option
                        f_grid,
                        abs_p,

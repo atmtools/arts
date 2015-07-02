@@ -545,7 +545,7 @@ void GasAbsLookup::Adapt( const ArrayOfArrayOfSpeciesTag& current_species,
   interpolation goes also over H2O VMR.
 
   All input parameters 
-  must be in the range coverd by the table. Violation will result in a
+  must be in the range covered by the table. Violation will result in a
   runtime error. Those checks are here, because they are a bit
   difficult to make outside, due to the irregularity of the
   grids. Otherwise there are no runtime checks in this function, only

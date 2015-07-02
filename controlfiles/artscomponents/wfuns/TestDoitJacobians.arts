@@ -259,8 +259,8 @@ ybatchCalc #( robust=1 )
 #WriteXML( "ascii", jacobian_indices )
 
 # for batch cases
-WriteXML( "zascii", ybatch )
-WriteXML( "zascii", ybatch_jacobians )
+#WriteXML( "zascii", ybatch )
+#WriteXML( "zascii", ybatch_jacobians )
 # note: jacobian_quantities and jacobian_indices are not part of ybatchCalc
 # output and are (or can be) specific to each batch case. hence, they should be
 # written out within the ybatch agenda, e.g. using WriteXMLIndexed.

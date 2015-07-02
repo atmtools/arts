@@ -2600,6 +2600,35 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "atm_fields_compactCleanup" ),
+        DESCRIPTION
+        (
+         "Removes unrealistically small or erroneous data from\n"
+         "*atm_fields_compact* (or other GriddedField4 data)\n"
+         "\n"
+         "This WSM checks if the data in *atm_fields_compact* contains\n"
+         "values smaller than the given *threshold*. In this case, these\n"
+         "values will be set to zero.\n"
+         "\n"
+         "The method should be applied if *atm_fields_compact* contains\n"
+         "unrealistically small or erroneous data (NWP/GCM model data\n"
+         "occassionally contains negative values, which are numerical\n"
+         "artefacts rather than physical values.)\n"
+         ),
+        AUTHORS( "Jana Mendrok" ),
+        OUT( "atm_fields_compact" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "atm_fields_compact" ),
+        GIN(         "threshold" ),
+        GIN_TYPE(    "Numeric" ),
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC( "Threshold below which *atm_fields_compact* values are set to zero." )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "atm_fields_compactFromMatrix" ),
         DESCRIPTION
         (
@@ -2928,6 +2957,35 @@ void define_md_data_raw()
         GIN_DESC( "Name of additional atmospheric field. Use, e.g., vmr_ch4 for methane VMR",
                   "Value of additional atmospheric field.",
                   "0 = Append to the end, 1 = insert at the beginning.")
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "batch_atm_fields_compactCleanup" ),
+        DESCRIPTION
+        (
+         "Removes unrealistically small or erroneous data from each data field\n"
+         "of *batch_atm_fields_compact* (or other AerrayOfGriddedField4 data)\n"
+         "\n"
+         "This WSM checks if the data in *batch_atm_fields_compact* contains\n"
+         "values smaller than the given *threshold*. In this case, these\n"
+         "values will be set to zero.\n"
+         "\n"
+         "The method should be applied if *batch_atm_fields_compact* contains\n"
+         "unrealistically small or erroneous data (NWP/GCM model data\n"
+         "occassionally contains negative values, which are numerical\n"
+         "artefacts rather than physical values.)\n"
+         ),
+        AUTHORS( "Jana Mendrok" ),
+        OUT( "batch_atm_fields_compact" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "batch_atm_fields_compact" ),
+        GIN(         "threshold" ),
+        GIN_TYPE(    "Numeric" ),
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC( "Threshold below which *atm_fields_compact* values are set to zero." )
         ));
 
   md_data_raw.push_back

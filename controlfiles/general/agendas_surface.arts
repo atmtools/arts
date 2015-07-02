@@ -34,6 +34,15 @@ AgendaSet( surface_rtprop_agenda__Blackbody_SurfTFix ){
   surfaceBlackbody
 } 
 
+# - surface skin temperature interpolated from t_surface
+#
+AgendaCreate( surface_rtprop_agenda__Blackbody_SurfTFromt_surface )
+AgendaSet( surface_rtprop_agenda__Blackbody_SurfTFromt_surface ){
+  Ignore( rtp_los )
+  InterpSurfaceFieldToPosition( out=surface_skin_t, field=t_surface )
+  surfaceBlackbody
+} 
+
 # - surface skin temperature interpolated from atmospheric t_field
 #
 AgendaCreate( surface_rtprop_agenda__Blackbody_SurfTFromt_field )

@@ -1,3 +1,29 @@
+2015-07-02  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-3-266
+
+	* src/continua.cc (MPM93RainExt):
+	Catch vmr/rainrate=0. case (bugfix). Change from mm/h input to kg/m2/s
+	to be consistent with scattering species methods.
+
+	* src/m_abs_lookup.cc (find_nonlinear_continua):
+	Added liquidcloud as linear species. Disallow icecloud and rain
+	abs_species in lookup table calculations.
+
+	* src/m_atmosphere.cc, methods.cc (batch_/atm_fields_compactCleanup):
+	Added. scat_species_fieldCleanup equivalent working directly on the
+	compact atmospheres (GF4 and ArrayOfGF4). Useful, when LWC/IWC shall be
+	used with hydrometeor continuum abs_species.
+
+	* controlfiles/general/agendas_surface.arts:
+	Added skin temperature from t_surface variant for blackbody.
+
+	* controlfiles/general/agendas.arts,
+	src/rte.cc (emission_rtstep), src/gas_abs_lookup.cc,
+	src/m_jacobian.cc (jacobianDoit),
+	controlfiles/artscomponents/wfuns/TestDoitJacobians.arts:
+	Spell fixes and other minor changes.
+
 2015-06-29  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-3-265

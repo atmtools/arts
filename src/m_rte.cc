@@ -990,7 +990,7 @@ void iyEmissionStandard(
           //###################################################################
 
 
-          // Spectrum at end of ppath step 
+          // Spectrum at end of ppath step
           emission_rtstep( iy, stokes_dim, bbar, extmat_case[ip],
                            trans_partial(joker,joker,joker,ip),
                            nonlte, extbar, sourcebar );

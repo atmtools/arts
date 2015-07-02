@@ -1619,6 +1619,31 @@ void atm_fields_compactAddSpecies(// WS Output:
 }
 
 
+// Workspace method, doxygen header is auto-generated
+// 2015-06-30 Jana Mendrok
+void atm_fields_compactCleanup (//WS Output:
+                          GriddedField4& atm_fields_compact,
+                          //WS Input:
+                          const Numeric& threshold,
+                          const Verbosity&)
+{
+  assert(atm_fields_compact.checksize());
+  Tensor4View afd=atm_fields_compact.data;
+
+  // Check that the data tensor does not contain realistically low (e.g.
+  // negative) values. Values smaller than threshold will be set to 0).
+  // Ignore T and z, though.
+  for ( Index i=0; i<afd.nbooks(); i++ )
+    if( atm_fields_compact.get_string_grid(GFIELD4_FIELD_NAMES)[i] != "T" &&
+        atm_fields_compact.get_string_grid(GFIELD4_FIELD_NAMES)[i] != "z" )
+      for ( Index j=0; j<afd.npages(); j++ )
+        for ( Index k=0; k<afd.nrows(); k++ )
+          for ( Index l=0; l<afd.ncols(); l++ )
+            if ( afd ( i,j,k,l ) < threshold ) 
+              afd ( i,j,k,l ) = 0.0;
+}
+
+
 
 // Workspace method, doxygen header is auto-generated
 // 2011-05-11 Gerrit Holl
@@ -1671,6 +1696,22 @@ void batch_atm_fields_compactAddSpecies(// WS Output:
 
     if (failed) throw runtime_error(fail_msg);
 }
+
+// Workspace method, doxygen header is auto-generated
+// 2015-06-30 Jana Mendrok
+void batch_atm_fields_compactCleanup (//WS Output:
+                          ArrayOfGriddedField4& batch_atm_fields_compact,
+                          //WS Input:
+                          const Numeric& threshold,
+                          const Verbosity& verbosity)
+{
+    for (Index i=0; i<batch_atm_fields_compact.nelem(); i++)
+    {
+        atm_fields_compactCleanup(batch_atm_fields_compact[i], threshold, verbosity );
+    }
+}
+
+
 
 // Workspace method, doxygen header is auto-generated.
 void batch_atm_fields_compactFromArrayOfMatrix(// WS Output:

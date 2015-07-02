@@ -559,7 +559,8 @@ void find_nonlinear_continua(ArrayOfIndex& cont,
                        "O2-v1v"==thisname.substr(0,6) ||
                        "H2-CIA"==thisname.substr(0,6) ||
                        "He-CIA"==thisname.substr(0,6) ||
-                       "CH4-CIA"==thisname.substr(0,7) )
+                       "CH4-CIA"==thisname.substr(0,7) ||
+                       "liquidcloud-"==thisname.substr(0,12) )
                     {
                       out3 << " --> not added.\n";
                       break;
@@ -573,12 +574,26 @@ void find_nonlinear_continua(ArrayOfIndex& cont,
                       break;                      
                     }
 
+                  // 3. abs_species tags that are NOT allowed in LUT
+                  // calculations
+                  if ( "icecloud-"==thisname.substr(0,9) ||
+                       "rain-"==thisname.substr(0,5) )
+                    {
+                      ostringstream os;
+                      os << "Tag " << thisname << " not allowed in absorption "
+                         << "lookup tables.";
+                      throw runtime_error( os.str() );
+                    }
+
                   // If we get here, then the tag was neither in the
                   // posivitive nor in the negative list. We through a
                   // runtime error.
                   out3 << " --> unknown.\n";
-                  throw runtime_error("I don't know whether this tag uses h2o_abs or not.\n"
-                                      "Cannot set abs_nls automatically.");
+                  ostringstream os;
+                  os << "Unknown whether tag " << thisname
+                     << " is a nonlinear species (i.e. uses h2o_abs) or not.\n"
+                     << "Cannot set abs_nls automatically.";
+                  throw runtime_error( os.str() );
             }
         }
     }
@@ -2083,7 +2098,7 @@ void propmat_clearskyAddFromLookup( Tensor4&       propmat_clearsky,
                        f_grid,
                        extpolfac);
  
-       
+
     // Now add to the right place in the absorption matrix.
     
     Index nr, nc, stokes_dim;

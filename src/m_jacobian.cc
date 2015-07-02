@@ -2187,7 +2187,7 @@ void jacobianDoit(//WS Output:
   // FIXME:
    1)- use jacobian_quantities.grids in perturbation level loops (currently
         relies on identiy between cloudbox_limits herein and when
-        jacobianDoitAddSpecies was called
+        jacobianDoitAddSpecies was called)
    2)- check functionality for non-comapct cases (use
         doit/TestDOITFromIndividualFields.arts as start)
        generally, improve handling of non-compact cases, which is currently done
