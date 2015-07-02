@@ -1,6 +1,12 @@
+2015-07-02  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-2-49
+
+	* src/continua.cc (MPM93RainExt): Catch vmr/rainrate=0. case (bugfix).
+
 2015-06-18  Jana Mendrok  <jana.mendrok@ltu.se>
 
-	* arts-2-3-48
+	* arts-2-2-48
 
 	* controlfiles/artscomponents/arts-xml-data/
 	TestPlanetIsoRatios.[Venus,Mars,Jupiter].y_reference.xml:

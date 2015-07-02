@@ -15634,7 +15634,10 @@ void MPM93RainExt (MatrixView         pxsec,
       // FIXME Numeric ext_rain;
 
       // Check limits of rain rate ("vmr") [mm/h]
-      if ( (vmr[i] >= low_lim_rr) && (vmr[i] < high_lim_rr) )
+      if ( vmr[i]==0. )
+          pxsec(joker,i) += 0.;
+
+      else if ( (vmr[i] >= low_lim_rr) && (vmr[i] < high_lim_rr) )
   {
     // Loop frequency:
     for ( Index s=0; s<n_f; ++s )
