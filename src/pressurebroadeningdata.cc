@@ -31,8 +31,12 @@
 //////////////////////////////////////////
 
 // Get broadening
-void PressureBroadeningData::GetPressureBroadeningParams(Numeric& gamma,
-                                                         Numeric& deltaf,
+void PressureBroadeningData::GetPressureBroadeningParams(Numeric& gamma_0,
+                                                         Numeric& gamma_2,
+                                                         Numeric& eta,
+                                                         Numeric& df_0,
+                                                         Numeric& df_2,
+                                                         Numeric& f_VC,
                                                          const Numeric& theta,
                                                          const Numeric& pressure,
                                                          const Numeric& self_pressure,
@@ -48,15 +52,27 @@ void PressureBroadeningData::GetPressureBroadeningParams(Numeric& gamma,
             // Note that this is oftentimes not wanted, but a valid case at low pressures
             break;
         case PB_AIR_BROADENING:
-            GetAirBroadening(gamma, deltaf, theta, pressure, self_pressure);
+            GetAirBroadening(gamma_0, df_0, theta, pressure, self_pressure);
+            gamma_2 = 0.;
+            eta     = 1.;
+            df_2    = 0.;
+            f_VC    = 0.;
             break;
         case PB_AIR_AND_WATER_BROADENING:
-            GetAirAndWaterBroadening(gamma, deltaf, theta, pressure, self_pressure, 
+            GetAirAndWaterBroadening(gamma_0, df_0, theta, pressure, self_pressure, 
                                      this_species, h2o_species, vmrs, verbosity);
+            gamma_2 = 0.;
+            eta     = 1.;
+            df_2    = 0.;
+            f_VC    = 0.;
             break;
         case PB_PERRIN_BROADENING:
-            GetPerrinBroadening(gamma, deltaf, theta, pressure, self_pressure,
+            GetPerrinBroadening(gamma_0, df_0, theta, pressure, self_pressure,
                                 this_species, broad_spec_locations, vmrs, verbosity);
+            gamma_2 = 0.;
+            eta     = 1.;
+            df_2    = 0.;
+            f_VC    = 0.;
             break;
         default:
             throw std::runtime_error("You have defined an unknown broadening mechanism.\n");

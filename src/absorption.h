@@ -49,6 +49,11 @@ typedef void (*lsf_type)(Vector&,
                          const Numeric,
                          const Numeric,
                          const Numeric,
+                         const Numeric,
+                         const Numeric,
+                         const Numeric,
+                         const Numeric,
+                         const Numeric,
                          ConstVectorView);
 
 /** Lineshape related information. There is one LineshapeRecord for
@@ -581,36 +586,49 @@ void xsec_species(    MatrixView               xsec_attenuation,
 		      const Verbosity&         verbosity );
 
 
-void xsec_single_line(VectorView xsec_accum_attenuation,
-		      VectorView xsec_accum_source,
+void xsec_single_line(// Output:
+                      VectorView xsec_accum_attenuation, 
+                      VectorView xsec_accum_source, 
                       VectorView xsec_accum_phase, 
+                      // Helper variables
                       Vector& attenuation, 
                       Vector& phase,
                       Vector& fac, 
-                      Vector& f_local, 
                       Vector& aux, 
+                      // Frequency grid:
+                      Vector& f_local, 
                       const Vector& f_grid, 
+                      const Index nf, 
+                      const Numeric cutoff,
                       Numeric F0, 
+                      // Line strength:
                       Numeric intensity, 
-                      const Numeric part_fct_ratio, 
-                      const Numeric boltzmann_ratio, 
-                      const Numeric abs_nlte_ratio, 
+                      const Numeric part_fct_ratio,  
+                      const Numeric boltzmann_ratio,
+                      const Numeric abs_nlte_ratio,
                       const Numeric src_nlte_ratio,
                       const Numeric Isotopologue_Ratio,
-                      const Numeric Isotopologue_Mass,
+                      // Atmospheric state
                       const Numeric temperature, 
-                      const Numeric gamma,
-                      const Numeric deltaf,
-                      const Numeric cutoff,
-                      const Numeric LM_DF,
-                      const Numeric LM_Y, 
-                      const Numeric LM_G, 
-                      const Index nf, 
+                      // Line shape:
                       const Index ind_ls, 
                       const Index ind_lsn,  
+                      // Line broadening:
+                      const Numeric gamma_0,
+                      const Numeric gamma_2,
+                      const Numeric eta,
+                      const Numeric df_0,
+                      const Numeric df_2,
+                      const Numeric sigma,
+                      const Numeric f_VC,
+                      // Line mixing
+                      const Numeric LM_DF,
+                      const Numeric LM_Y, 
+                      const Numeric LM_G,
+                      // Feature flags
                       const bool calc_cut, 
                       const bool calc_phase,
-                      const bool calc_nlte);
+                      const bool calc_src);
 
 
 void xsec_species_line_mixing_wrapper(      MatrixView               xsec_attenuation,

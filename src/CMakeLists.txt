@@ -210,6 +210,7 @@ add_library (artscore STATIC
   m_physics.cc
   m_planets.cc
   m_ppath.cc
+  m_radiation_field.cc
   m_refraction.cc
   m_rte.cc
   m_sensor.cc

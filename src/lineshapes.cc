@@ -62,7 +62,12 @@ void lineshape_no_shape(  Vector&         ls_attenuation _U_,
                           Vector&         X _U_,
                           const Numeric   f0 _U_,
                           const Numeric   gamma _U_,
+                          const Numeric,
+                          const Numeric,
+                          const Numeric,
+                          const Numeric,
                           const Numeric   sigma _U_,
+                          const Numeric,
                           ConstVectorView f_grid _U_)
 {
   // This function should never be called so throw an error here: 
@@ -88,7 +93,12 @@ void lineshape_lorentz(Vector&         ls_attenuation,
                        Vector&         X _U_,
                        const Numeric   f0,
                        const Numeric   gamma,
+                       const Numeric,
+                       const Numeric,
+                       const Numeric,
+                       const Numeric,
                        const Numeric   sigma _U_,
+                       const Numeric,
                        ConstVectorView f_grid)
 {
   const Index nf = f_grid.nelem();
@@ -125,7 +135,12 @@ void lineshape_doppler(Vector&         ls_attenuation,
                        Vector&         x _U_,
                        const Numeric   f0,
                        const Numeric   gamma _U_,
+                       const Numeric,
+                       const Numeric,
+                       const Numeric,
+                       const Numeric,
                        const Numeric   sigma,
+                       const Numeric,
                        ConstVectorView f_grid)
 {
   const Index nf = f_grid.nelem();
@@ -238,7 +253,12 @@ void lineshape_voigt_kuntz6(Vector&         ls_attenuation,
                             Vector&         x,
                             const Numeric   f0,
                             const Numeric   gamma,
+                            const Numeric,
+                            const Numeric,
+                            const Numeric,
+                            const Numeric,
                             const Numeric   sigma,
+                            const Numeric,
                             ConstVectorView f_grid)
 
 {
@@ -652,7 +672,12 @@ void lineshape_voigt_kuntz3(Vector&         ls_attenuation,
                             Vector&         x,
                             const Numeric   f0,
                             const Numeric   gamma,
+                            const Numeric,
+                            const Numeric,
+                            const Numeric,
+                            const Numeric,
                             const Numeric   sigma,
+                            const Numeric,
                             ConstVectorView f_grid)
 
 {
@@ -1026,7 +1051,12 @@ void lineshape_voigt_kuntz4(Vector&         ls_attenuation,
                             Vector&         x,
                             const Numeric   f0,
                             const Numeric   gamma,
+                            const Numeric,
+                            const Numeric,
+                            const Numeric,
+                            const Numeric,
                             const Numeric   sigma,
+                            const Numeric,
                             ConstVectorView f_grid)
 {
   const Index nf = f_grid.nelem();
@@ -1410,7 +1440,12 @@ void lineshape_voigt_drayson(Vector&         ls_attenuation,
                              Vector&         x,
                              const Numeric   f0,
                              const Numeric   gamma,
+                             const Numeric,
+                             const Numeric,
+                             const Numeric,
+                             const Numeric,
                              const Numeric   sigma,
+                             const Numeric,
                              ConstVectorView f_grid)
 
 {
@@ -1609,7 +1644,12 @@ void lineshape_CO2_lorentz(Vector&         ls_attenuation,
                            Vector&         X _U_,
                            const Numeric   f0,
                            const Numeric   gamma,
+                           const Numeric,
+                           const Numeric,
+                           const Numeric,
+                           const Numeric,
                            const Numeric   sigma _U_,
+                           const Numeric,
                            ConstVectorView f_grid)
 {
   const Index nf = f_grid.nelem();
@@ -1653,10 +1693,15 @@ void lineshape_CO2_drayson(Vector&         ls_attenuation,
                            Vector&         X,
                            const Numeric   f0,
                            const Numeric   gamma,
+                           const Numeric,
+                           const Numeric,
+                           const Numeric,
+                           const Numeric,
                            const Numeric   sigma,
+                           const Numeric,
                            ConstVectorView f_grid)
 {
-    lineshape_voigt_drayson(  ls_attenuation, ls_phase, X, f0, gamma, sigma, f_grid );
+    lineshape_voigt_drayson(  ls_attenuation, ls_phase, X, f0, gamma,0.,1.,0.,0., sigma, 0., f_grid );
 
   const Index nf = f_grid.nelem();
   for ( Index i=0; i<nf; ++i )
@@ -1687,7 +1732,6 @@ void lineshape_CO2_drayson(Vector&         ls_attenuation,
 
   \retval ls_attenuation        The shape function.
   \retval ls_phase              The phase shape function.
-  \retval xvector               Auxillary parameter to store frequency grid.
   \param  f0                    Line center frequency.
   \param  gamma                 The pressure broadening parameter.
   \param  sigma                 The Doppler broadening parameter.
@@ -1701,7 +1745,12 @@ void faddeeva_algorithm_916(    Vector&         ls_attenuation,
                                 Vector&,
                                 const Numeric   f0,
                                 const Numeric   gamma,
+                                const Numeric,
+                                const Numeric,
+                                const Numeric,
+                                const Numeric,
                                 const Numeric   sigma,
+                                const Numeric,
                                 ConstVectorView f_grid)
 
 {
@@ -1765,7 +1814,12 @@ void hui_etal_1978_lineshape( Vector&         ls_attenuation,
                               Vector&         xvector,
                               const Numeric   f0,
                               const Numeric   gamma,
+                              const Numeric,
+                              const Numeric,
+                              const Numeric,
+                              const Numeric,
                               const Numeric   sigma,
+                              const Numeric,
                               ConstVectorView f_grid)
 
 {
@@ -1804,6 +1858,145 @@ void hui_etal_1978_lineshape( Vector&         ls_attenuation,
 }
 
 
+/*! Hartmann-Tran line shape. Based on
+    [1] Ngo NH, Lisak D, Tran H, Hartmann J-M. An isolated line-shape model
+    to go beyond the Voigt profile in spectroscopic databases and radiative 
+    transfer codes. J Quant Radiat Transfer 2013;129:89-100.                
+    [2] Tran H, Ngo NH, Hartmann J-M. Efficient computation of some speed-dependent 
+    isolated line profiles. J Quant Radiat Transfer 2013;129:199-203.
+    
+    but using the work by:
+    D. Forthomme, M.J. Cich, S. Twagirayezu, G.E. Hall, T.J. Sears
+    Application of the Hartmann–Tran profile to precise
+    experimental data sets of 12C2H2
+    for its mathematical clarity in explaining how the profile works.
+      
+    N.B.  Input is not handled properly yet but assumed standrd where nothing is known.
+    This is indicated by all numerics set to constants at the start of the code.
+    
+  \retval ls_attenuation        The shape function.
+  \retval ls_phase              The phase shape function.
+  \param  f0                    Line center frequency.
+  \param  gamma_0               The pressure broadening parameter.
+  \param  gamma_2               The pressure broadening speed dependent parameter.
+  \param  eta                   A correlation value.
+  \param  df_0                  The pressure frequency shift parameter.
+  \param  df_2                  The pressure frequency shift speed-dependent parameter.
+  \param  gamma_D               The Doppler broadening parameter.
+  \param  f_VC                  Collisional frequency parameter
+  \param  f_grid                The frequency grid.
+
+  \author Richard Larsson 2015-07-02
+
+ */ 
+void hartmann_tran_lineshape(   Vector&         ls_attenuation,
+                                Vector&         ls_phase,
+                                Vector&,
+                                const Numeric   f0,
+                                const Numeric   gamma_0,
+                                const Numeric   gamma_2,//untested
+                                const Numeric   eta,//untested
+                                const Numeric   df_0,//untested
+                                const Numeric   df_2,//untested
+                                const Numeric   gamma_D,
+                                const Numeric   f_VC,//untested
+                                ConstVectorView f_grid)
+
+{
+  // N.B. f_VC is the only non-scaled variable in the reference document.  
+  // If given as something other than cm-1 it might behave strange.  Still not tested,
+  // just a future "fixme".  The others are probably OK, but I am very unsure on this 
+  // as well.
+  
+  // Constants
+  extern const Numeric PI;
+  extern const Numeric SPEED_OF_LIGHT;
+  
+  // Direct pressure term
+  const std::complex<Numeric> c_0(gamma_0, df_0);
+  // Indirect pressure term
+  const std::complex<Numeric> c_2(gamma_2, df_2);
+  
+  // Constant c_0 helper
+  const std::complex<Numeric> c_0_tilde = (1.-eta)*(c_0-1.5*c_2)+f_VC;
+  
+  // Constant c_2 helper
+  const std::complex<Numeric> c_2_tilde = (1.-eta)*c_2;
+  
+  // Average speed of molecule
+  const Numeric v_a0 = SPEED_OF_LIGHT * gamma_D / f0;
+  
+  // Speed of molecules * Line frequency / speed of light
+  const Numeric speed_freq_div_c = v_a0 * f0 / SPEED_OF_LIGHT;
+  
+  // Speed of molecules * speed of light / line frequency
+  const Numeric speed_c_div_freq = v_a0 * SPEED_OF_LIGHT / f0;
+  
+  // Constant sqrt(pi)
+  const Numeric sqrtPI =  sqrt(PI);
+  
+  for(Index nf = 0; nf<f_grid.nelem(); nf++)
+  {
+    // This means the other formalism is wrong
+    if( c_2 == 0. || eta == 1. )
+    {
+      // Z_minus is now defined as
+      const std::complex<Numeric> Z_minus = (std::complex<Numeric>(0.,1.)*(f0-f_grid[nf]) + c_0_tilde)/speed_freq_div_c;
+      
+      // w(i*Z_minus)
+      const std::complex<Numeric> w =  Faddeeva::w(std::complex<Numeric>(0.,1.)*Z_minus);
+      
+      // A(f)
+      const std::complex<Numeric> A =  w * sqrtPI/speed_freq_div_c;
+      
+      // B(f) [N.B. test on c_2 to save some calculation time]
+      const std::complex<Numeric> B =  c_2==0.?0.:sqrtPI * speed_c_div_freq * ((std::complex<Numeric>(1.,0.)-Z_minus*Z_minus)*w+Z_minus/sqrtPI);
+      
+      // Hartmann-Tran line shape
+      const std::complex<Numeric> HTP = 1./PI * A / ( std::complex<Numeric>(1.,0.) - (f_VC -eta * (c_0-1.5*c_2))*A + (eta*c_2/v_a0/v_a0)*B);
+      
+      // Output
+      ls_attenuation[nf] = HTP.real();
+      ls_phase[nf] = HTP.imag();
+    }
+    else // This cannot happen before we fix our input!
+    {
+      // X variable
+      const std::complex<Numeric> X = (std::complex<Numeric>(0.,1.)*(f0-f_grid[nf])+c_0_tilde )/c_2_tilde;
+      
+      // Y variable
+      const std::complex<Numeric> sqrtY = speed_freq_div_c/2./c_2_tilde;
+      
+      // plus
+      const std::complex<Numeric> Z_plus  = sqrt(X+sqrtY*sqrtY)+sqrtY;
+      
+      // Z_minus
+      const std::complex<Numeric> Z_minus = sqrt(X+sqrtY*sqrtY)-sqrtY;
+      
+      // w(i*Z_minus)
+      const std::complex<Numeric> w_plus  =  Faddeeva::w(Z_plus);
+      
+      // w(i*Z_minus)
+      const std::complex<Numeric> w_minus =  Faddeeva::w(Z_minus);
+      
+      // A
+      const std::complex<Numeric> A = sqrtPI/speed_freq_div_c * (w_minus-w_plus);
+      
+      // B
+      const std::complex<Numeric> B = v_a0*v_a0/c_2_tilde/c_2_tilde *(-1.+
+                                      sqrtPI/2./sqrtY*(1.-Z_minus*Z_minus)*w_minus -
+                                      sqrtPI/2./sqrtY*(1.-Z_plus*Z_plus)*w_plus);
+      
+      // Hartmann-Tran line shape
+      const std::complex<Numeric> HTP = 1./PI * A / ( std::complex<Numeric>(1.,0.) - (f_VC -eta * (c_0-1.5*c_2))*A + (eta*c_2/v_a0/v_a0)*B);
+      
+      // Output
+      ls_attenuation[nf] = HTP.real();
+      ls_phase[nf] = HTP.imag();
+    }
+  }
+}
+
 
 /*! The O2 non-resonant line shape.  Should be VVW/2 so do not use this call...
 
@@ -1822,7 +2015,12 @@ void lineshape_o2nonresonant( Vector&         ls_attenuation,
                               Vector&         X _U_,
                               const Numeric   f0,
                               const Numeric   gamma,
+                              const Numeric,
+                              const Numeric,
+                              const Numeric,
+                              const Numeric,
                               const Numeric   sigma _U_,
+                              const Numeric,
                               ConstVectorView f_grid)
 {
   const Index nf = f_grid.nelem();
@@ -2090,6 +2288,12 @@ void define_lineshape_data()
     "v' is a Doppler weighted freqeuncy parameter and a is a Doppler weighted  \n"
     "pressure parameter.",
     faddeeva_algorithm_916, PHASE));
+
+    lineshape_data.push_back
+    (LineshapeRecord
+    ("Hartmann-Tran",
+    "Line shape is considered as described by the Hartmann-Tran profile.",
+    hartmann_tran_lineshape, PHASE));
     
     lineshape_data.push_back
     (LineshapeRecord

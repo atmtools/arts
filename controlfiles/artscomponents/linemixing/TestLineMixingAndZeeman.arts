@@ -152,5 +152,14 @@ yCalc
 WriteXML( "ascii", y, "yLineMixingAndZeeman.xml")
 ReadXML( yREFERENCE, "yREFERENCE_LineMixingAndZeeman.xml" )
 Compare( y, yREFERENCE, 1e-2 )
+
+abs_lineshapeDefine( abs_lineshape, "Hartmann-Tran", "VVH", -1 )
+yCalc
+
+# OK?
+# ---
+WriteXML( "ascii", y, "yLineMixingAndZeeman.xml")
+ReadXML( yREFERENCE, "yREFERENCE_LineMixingAndZeeman.xml" )
+Compare( y, yREFERENCE, 1e-2 )
 } # End of Main
  

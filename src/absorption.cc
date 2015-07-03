@@ -840,6 +840,12 @@ void xsec_species( MatrixView               xsec_attenuation,
     // Make lineshape and species lookup data visible:
     using global_data::lineshape_data;
     
+    extern const Numeric BOLTZMAN_CONST;
+    extern const Numeric AVOGADROS_NUMB;
+    extern const Numeric SPEED_OF_LIGHT;
+    static const Numeric doppler_const = sqrt(2.0 * BOLTZMAN_CONST *
+                                              AVOGADROS_NUMB) / SPEED_OF_LIGHT;    
+    
     // dimension of f_grid, abs_lines
     const Index nf = f_grid.nelem();
     const Index nl = abs_lines.nelem();
@@ -1098,13 +1104,16 @@ firstprivate(ls_attenuation, ls_phase, fac, f_local, aux, qt_cache, qref_cache, 
                     try
                     {
                         const LineRecord& l_l = abs_lines[l];
-                        Numeric gamma=0, deltaf=0, partition_ratio,boltzmann_ratio, abs_nlte_ratio, src_nlte_ratio;
-                        l_l.PressureBroadening().GetPressureBroadeningParams(gamma,deltaf,
+                        
+                        // Prepare pressure broadening parameters
+                        Numeric gamma_0,gamma_2,eta,df_0,df_2,f_VC;
+                        l_l.PressureBroadening().GetPressureBroadeningParams(gamma_0,gamma_2,eta,df_0,df_2,f_VC,
                                                                              l_l.Ti0()/t_i,p_i,
                                                                              p_partial,this_species,h2o_index,
                                                                              broad_spec_locations,
                                                                              vmrs,verbosity);
                         
+                        // Check the chache is the tempearture of the line and the isotope is the same to avoid recalculating the partition sum
                         if(iso_cache!=l_l.Isotopologue() || line_t_cache != l_l.Ti0())
                         {
                           iso_cache = l_l.Isotopologue();
@@ -1112,6 +1121,8 @@ firstprivate(ls_attenuation, ls_phase, fac, f_local, aux, qt_cache, qref_cache, 
                           qref_cache=-1;// no need to reset qt since it is done internally.
                         }
                         
+                        // Prepare line strength scaling
+                        Numeric partition_ratio, boltzmann_ratio, abs_nlte_ratio, src_nlte_ratio;
                         GetLineScalingData(qt_cache,
                                            qref_cache,
                                            partition_ratio, 
@@ -1130,34 +1141,51 @@ firstprivate(ls_attenuation, ls_phase, fac, f_local, aux, qt_cache, qref_cache, 
                                            l_l.EvlowIndex(),
                                            l_l.EvuppIndex(),
                                            t_nlte_i);
+                       
+                        // Dopple broadening
+                        const Numeric sigma = l_l.F() * doppler_const *sqrt( t_i / l_l.IsotopologueData().Mass());
                         
-                        xsec_single_line(xsec_accum_attenuation(arts_omp_get_thread_num(),joker),
-					 xsec_accum_source(arts_omp_get_thread_num(),joker),
+                        // Calculate line cross section
+                        xsec_single_line(// OUTPUT
+                                         xsec_accum_attenuation(arts_omp_get_thread_num(),joker),
+                                         xsec_accum_source(arts_omp_get_thread_num(),joker),
                                          xsec_accum_phase(arts_omp_get_thread_num(),joker),
+                                         // HELPER:
                                          ls_attenuation,
                                          ls_phase,
                                          fac,
-                                         f_local,
                                          aux,
+                                         // FREQUENCY
+                                         f_local,
                                          f_grid,
+                                         nf,
+                                         cutoff,
                                          l_l.F(),
+                                         // LINE STRENGTH
                                          l_l.I0(),
                                          partition_ratio,
                                          boltzmann_ratio,
                                          abs_nlte_ratio,
                                          src_nlte_ratio,
                                          isotopologue_ratios.getParam(l_l.Species(),l_l.Isotopologue())[0].data[0],
-                                         l_l.IsotopologueData().Mass(),
+                                         // ATMOSPHERIC TEMPERATURE
                                          t_i,
-                                         gamma,
-                                         deltaf,
-                                         cutoff,
-                                         0,
-                                         0,
-                                         0,
-                                         nf,
+                                         // LINE SHAPE
                                          ind_ls,
                                          ind_lsn,
+                                         // LINE BROADENING
+                                         gamma_0,
+                                         gamma_2,
+                                         eta,
+                                         df_0,
+                                         df_2,
+                                         sigma,
+                                         f_VC,
+                                         // LINE MIXING
+                                         0,
+                                         0,
+                                         0,
+                                         // FEATURE FLAGS
                                          cut,
                                          calc_phase,
                                          calc_src);
@@ -1205,49 +1233,41 @@ firstprivate(ls_attenuation, ls_phase, fac, f_local, aux, qt_cache, qref_cache, 
    \retval xsec_accum_attenuation   Cross section of one tag group. This is now the
                                     true absorption cross section in units of m^2.
                                     It has inputs of all previously calculated lines.
+   \retval xsec_accum_source        Deviation of line cross section from LTE cross-section
    \retval xsec_accum_phase         Cross section of one tag group. This is now the
                                     true dispersion cross section in units of m^2.
                                     It has inputs of all previously calculated lines.
    \retval attenuation              Input only to increase speed.  Holds attenuation internally.
    \retval phase                    Input only to increase speed.  Holds phase internally.
    \retval fac                      Input only to increase speed.  Holds lineshape factor internally.
-   \retval f_local                  Input only to increase speed.  Holds f_grid internally.
    \retval aux                      Input only to increase speed.  Holds f_grid factor internally.
-   \param isotopologue_ratios       Isotopologue ratios.const ArrayOfIndex& broad_spec_locations,
+   \retval f_local                  Input only to increase speed.  Holds f_grid internally.
    \param f_grid,                   Frequency grid
-   \param vmrs,                     Gas volume mixing ratios [nspecies].
-   \param Gamma_foreign,            Foreign line pressure broadening
-   \param N_foreign,                Foregin line temperature exponent
-   \param Delta_foreign,            Foreign line pressure shift
+   \param nf,                       Number of frequencies to calculate
+   \param cutoff,                   Lineshape cutoff.
    \param F0,                       Line center
    \param intensity,                Line intensity
-   \param part_fct_ratio,           Partition function ratio
-   \param Isotopologue_Mass,        Mass of isotopologue
-   \param e_lower,                  Line lower energy state
-   \param T0,                       Line reference temperature
-   \param Sgam,                     Line self broadening
-   \param Nself,                    Line self temperature exponent
-   \param Tgam,                     Line pressure broadening reference temperature
-   \param Agam,                     Line air broadening
-   \param Nair,                     Line air temperature exponent
-   \param Psf,                      Line air pressure shift
+   \param part_fct_ratio            Ratio of partition sums to atmospheric temperature
+   \param boltzmann_ratio           Ratio of Boltzmann statistics to atmospheric temperature
+   \param abs_nlte_ratio            Ratio of absorption intensity to LTE
+   \param src_nlte_ratio            Ratio of emission intesity to LTE
+   \param Isotopologue_Ratio,       Ratio of the isotopologue in the atmosphere
    \param temperature,              Atmospheric temperature
-   \param pressure,                 Atmospheric pressure
-   \param p_partial,                Molecular pressure of line
-   \param cutoff,                   Lineshape cutoff.
+   \param ind_ls,                   Index to lineshape function.
+   \param ind_lsn,                  Index to lineshape norm.
+   \param gamma_0,                  Line pressure broadening
+   \param gamma_2,                  Speed-dependent line pressure broadening
+   \param eta,                      Correlation of pressure broadening parameters
+   \param df_0,                     Line pressure shift
+   \param df_2,                     Speed-dependent line pressure shift
+   \param sigma,                    Doppler broadening
+   \param f_VC,                     Collisional frequency limit
    \param LM_DF,                    Line mixing frequency shift
    \param LM_Y,                     Line mixing dispersion dependency
    \param LM_G,                     Line mixing added attenuation
-   \param this_species,             Index of the current species in abs_species.
-   \param nf,                       Number of frequencies to calculate
-   \param ind_ls,                   Index to lineshape function.
-   \param ind_lsn,                  Index to lineshape norm.
-   \param LineRecord_Version,       Line data version (for pressure broadening scheme)
-   \param LineRecord_Species,       Line data species number
-   \param LineRecord_Isotopologue,  Line data isotopologue identifier
-   \param quadratic_lineshape,      Is line shape quadratic?
    \param cut,                      Is cutoff applied?
    \param calc_phase,               Is dispersion calculated?
+   \param calc_src,                 Is source calculated?
  
    \author Stefan Buehler and Axel von Engeln
    \date   2001-01-11 
@@ -1269,43 +1289,50 @@ firstprivate(ls_attenuation, ls_phase, fac, f_local, aux, qt_cache, qref_cache, 
    \date   2014-10-29
    
 */
-void xsec_single_line(VectorView xsec_accum_attenuation, 
-		      VectorView xsec_accum_source, 
+void xsec_single_line(// Output:
+                      VectorView xsec_accum_attenuation, 
+                      VectorView xsec_accum_source, 
                       VectorView xsec_accum_phase, 
+                      // Helper variables
                       Vector& attenuation, 
                       Vector& phase,
                       Vector& fac, 
-                      Vector& f_local, 
                       Vector& aux, 
+                      // Frequency grid:
+                      Vector& f_local, 
                       const Vector& f_grid, 
+                      const Index nf, 
+                      const Numeric cutoff,
                       Numeric F0, 
+                      // Line strength:
                       Numeric intensity, 
                       const Numeric part_fct_ratio,  
                       const Numeric boltzmann_ratio,
                       const Numeric abs_nlte_ratio,
                       const Numeric src_nlte_ratio,
                       const Numeric Isotopologue_Ratio,
-                      const Numeric Isotopologue_Mass,
+                      // Atmospheric state
                       const Numeric temperature, 
-                      const Numeric gamma,
-                      const Numeric deltaf,
-                      const Numeric cutoff,
-                      const Numeric LM_DF,
-                      const Numeric LM_Y, 
-                      const Numeric LM_G, 
-                      const Index nf, 
+                      // Line shape:
                       const Index ind_ls, 
                       const Index ind_lsn,  
+                      // Line broadening:
+                      const Numeric gamma_0,
+                      const Numeric gamma_2,
+                      const Numeric eta,
+                      const Numeric df_0,
+                      const Numeric df_2,
+                      const Numeric sigma,
+                      const Numeric f_VC,
+                      // Line mixing
+                      const Numeric LM_DF,
+                      const Numeric LM_Y, 
+                      const Numeric LM_G,
+                      // Feature flags
                       const bool calc_cut, 
                       const bool calc_phase,
                       const bool calc_src)
-{//asdasd;
-    
-    extern const Numeric BOLTZMAN_CONST;
-    extern const Numeric AVOGADROS_NUMB;
-    extern const Numeric SPEED_OF_LIGHT;
-    static const Numeric doppler_const = sqrt(2.0 * BOLTZMAN_CONST *
-                                              AVOGADROS_NUMB) / SPEED_OF_LIGHT;
+{
     
     // Copy f_grid to the beginning of f_local. There is one
     // element left at the end of f_local.
@@ -1327,12 +1354,7 @@ void xsec_single_line(VectorView xsec_accum_attenuation,
     intensity *= part_fct_ratio * boltzmann_ratio;
     
     // Apply pressure shift:
-    F0 += deltaf + LM_DF;
-    
-    // 3. Doppler broadening without the sqrt(ln(2)) factor, which
-    // seems to be redundant.
-    const Numeric sigma = F0 * doppler_const *
-    sqrt( temperature / Isotopologue_Mass);
+    F0 += df_0 + LM_DF;// FIXME:  This is probably not compatible with HTP line shape
     
     // Indices pointing at begin/end frequencies of f_grid or at
     // the elements that have to be calculated in case of cutoff
@@ -1393,8 +1415,8 @@ void xsec_single_line(VectorView xsec_accum_attenuation,
         
         // Calculate the line shape:
         global_data::lineshape_data[ind_ls].Function()(attenuation, phase,
-                                                       aux, F0, gamma, sigma,
-                                                       f_local[Range(i_f_min,nfls)]);
+                                                       aux, F0, gamma_0, gamma_2, eta, 0.,//FIXME:  This 0. should be df_0 but how to deal with cutoff and F0 is not solved?
+                                                       df_2, sigma, f_VC, f_local[Range(i_f_min,nfls)]);
         
         // Calculate the chosen normalization factor:
         global_data::lineshape_norm_data[ind_lsn].Function()(fac, F0,
@@ -1826,6 +1848,12 @@ void xsec_species_line_mixing_wrapper(  MatrixView               xsec_attenuatio
         throw std::runtime_error(os.str());
     }
     
+    extern const Numeric BOLTZMAN_CONST;
+    extern const Numeric AVOGADROS_NUMB;
+    extern const Numeric SPEED_OF_LIGHT;
+    static const Numeric doppler_const = sqrt(2.0 * BOLTZMAN_CONST *
+                                              AVOGADROS_NUMB) / SPEED_OF_LIGHT;
+    
     bool precalc_zeeman;
     if(Z_DF.nelem()==0)
         precalc_zeeman=false;
@@ -1978,8 +2006,9 @@ firstprivate(attenuation, phase, fac, f_local, aux)
         for(Index ii=0; ii<abs_lines.nelem();ii++)
         {
             // Pressure broadening parameters
-            Numeric gamma=0, deltaf_pressure=0, partition_ratio,boltzmann_ratio, abs_nlte_ratio, src_nlte_ratio; // Set to zero since case with 0 exist
-            abs_lines[ii].PressureBroadening().GetPressureBroadeningParams(gamma,deltaf_pressure,
+            // Prepare pressure broadening parameters
+                        Numeric gamma_0,gamma_2,eta,df_0,df_2,f_VC;
+                        abs_lines[ii].PressureBroadening().GetPressureBroadeningParams(gamma_0,gamma_2,eta,df_0,df_2,f_VC,
                                                                             abs_lines[ii].Ti0()/t,p,
                                                                             p_partial,this_species,h2o_index,
                                                                             broad_spec_locations,
@@ -1989,6 +2018,7 @@ firstprivate(attenuation, phase, fac, f_local, aux)
             Numeric Y=0,DV=0,G=0; // Set to zero since case with 0 exist
             abs_lines[ii].LineMixing().GetLineMixingParams( Y,  G,  DV,  t, p, lm_p_lim, 1);
             
+            // Check the chache is the tempearture of the line and the isotope is the same to avoid recalculating the partition sum
             if(iso_cache!=abs_lines[ii].Isotopologue() || line_t_cache != abs_lines[ii].Ti0())
             {
               iso_cache = abs_lines[ii].Isotopologue();
@@ -1996,6 +2026,8 @@ firstprivate(attenuation, phase, fac, f_local, aux)
               qref_cache=-1;// no need to reset qt since it is done internally below
             }
             
+            // Prepare line strength scaling
+            Numeric partition_ratio, boltzmann_ratio, abs_nlte_ratio, src_nlte_ratio;
             GetLineScalingData( qt_cache,
                                 qref_cache,
                                 partition_ratio, 
@@ -2015,36 +2047,53 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                                 abs_lines[ii].EvuppIndex(),
                                 t_nlte);
             
+            // Dopple broadening
+            const Numeric sigma = abs_lines[ii].F() * doppler_const *sqrt( t / abs_lines[ii].IsotopologueData().Mass());
+            
+            // Time to calculate the line cross section
             // Still an ugly case with non-resonant line near 0 frequency, since this is actually a band...
             if( LineMixingData::LM_LBLRTM_O2NonResonant != abs_lines[ii].LineMixing().Type() )
             {
-                xsec_single_line(   xsec_attenuation(joker,jj), 
-				    calc_src?xsec_source(joker,jj):empty_vector,
+                xsec_single_line(   // OUTPUT   
+                                    xsec_attenuation(joker,jj), 
+                                    calc_src?xsec_source(joker,jj):empty_vector,
                                     xsec_phase(joker,jj), 
+                                    // HELPER
                                     attenuation, 
                                     phase,
                                     fac, 
-                                    f_local, 
                                     aux, 
+                                    // FREQUENCY
+                                    f_local, 
                                     f_grid, 
+                                    f_grid.nelem(), 
+                                    cutoff,
                                     abs_lines[ii].F()+(precalc_zeeman?Z_DF[ii]:0), // Since vector is 0-length if no Zeeman pre-calculations
+                                    // LINE STRENGTH
                                     abs_lines[ii].I0(), 
                                     partition_ratio, 
                                     boltzmann_ratio,
                                     abs_nlte_ratio,
                                     src_nlte_ratio,
                                     isotopologue_ratios.getParam(abs_lines[ii].Species(),abs_lines[ii].Isotopologue())[0].data[0],
-                                    abs_lines[ii].IsotopologueData().Mass(),
+                                    // ATMOSPHERIC TEMPERATURE
                                     t,
-                                    gamma,
-                                    deltaf_pressure,
-                                    cutoff,
+                                    // LINE SHAPE
+                                    ind_ls, 
+                                    ind_lsn,
+                                    // LINE BROADENING
+                                    gamma_0,
+                                    gamma_2,
+                                    eta,
+                                    df_0,
+                                    df_2,
+                                    sigma,
+                                    f_VC,
+                                    // LINE MIXING
                                     DV,
                                     Y, 
                                     G, 
-                                    f_grid.nelem(), 
-                                    ind_ls, 
-                                    ind_lsn, 
+                                    // FEATURE FLAGS
                                     cutoff!=-1,
                                     1,
 				    calc_src);
@@ -2055,37 +2104,50 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                 ArrayOfLineshapeSpec tmp;
                 abs_lineshapeDefine( tmp, "Faddeeva_Algorithm_916", "VVH", 
                                      -1, verbosity );
-                
-                xsec_single_line(   xsec_attenuation(joker,jj), 
-				    calc_src?xsec_source(joker,jj):Vector(0),
+                 
+                xsec_single_line(    // OUTPUT   
+                                    xsec_attenuation(joker,jj), 
+                                    calc_src?xsec_source(joker,jj):empty_vector,
                                     xsec_phase(joker,jj), 
+                                    // HELPER
                                     attenuation, 
                                     phase,
                                     fac, 
-                                    f_local, 
                                     aux, 
+                                    // FREQUENCY
+                                    f_local, 
                                     f_grid, 
-                                    abs_lines[ii].F()+(precalc_zeeman?Z_DF[ii]:0), // Since vector is 0-length if no Zeeman pre-calculations 
+                                    f_grid.nelem(), 
+                                    cutoff,
+                                    abs_lines[ii].F()+(precalc_zeeman?Z_DF[ii]:0), // Since vector is 0-length if no Zeeman pre-calculations
+                                    // LINE STRENGTH
                                     abs_lines[ii].I0(), 
-                                    partition_ratio,
+                                    partition_ratio, 
                                     boltzmann_ratio,
                                     abs_nlte_ratio,
                                     src_nlte_ratio,
                                     isotopologue_ratios.getParam(abs_lines[ii].Species(),abs_lines[ii].Isotopologue())[0].data[0],
-                                    abs_lines[ii].IsotopologueData().Mass(),
+                                    // ATMOSPHERIC TEMPERATURE
                                     t,
-                                    gamma,
-                                    deltaf_pressure,
-                                    cutoff,
+                                    // LINE SHAPE
+                                    tmp[0].Ind_ls(), 
+                                    tmp[0].Ind_lsn(),
+                                    // LINE BROADENING
+                                    gamma_0,
+                                    gamma_2,
+                                    eta,
+                                    df_0,
+                                    df_2,
+                                    sigma,
+                                    f_VC,
+                                    // LINE MIXING
                                     DV,
                                     Y, 
-                                    G, // Non-resonant lineshape is half VVH --- this scales
-                                    f_grid.nelem(), 
-                                    tmp[0].Ind_ls(), 
-                                    tmp[0].Ind_lsn(), 
+                                    G, 
+                                    // FEATURE FLAGS
                                     cutoff!=-1,
                                     1,
-				    calc_src);
+                                    calc_src);
             }
             
         }
@@ -2659,7 +2721,7 @@ void xsec_species_old_unused( MatrixView               xsec_attenuation,
                                     
                                     // Calculate the line shape:
                                     lineshape_data[ind_ls].Function()(ls_attenuation,ls_phase,
-                                                                      aux,F0,gamma,sigma,
+                                                                      aux,F0,gamma,0.,1.,0.,0.,sigma,0.,
                                                                       f_local[Range(i_f_min,nfls)]);
                                     
                                     // Calculate the chosen normalization factor:

@@ -222,8 +222,12 @@ public:
       \param vmrs  volume mixing ratio of all species
       \param verbosity  output command used for warnings.
       */
-     void GetPressureBroadeningParams(Numeric& gamma,
-                                      Numeric& deltaf,
+     void GetPressureBroadeningParams(Numeric& gamma_0,
+                                      Numeric& gamma_2,
+                                      Numeric& eta,
+                                      Numeric& df_0,
+                                      Numeric& df_2,
+                                      Numeric& f_VC,
                                       const Numeric& theta,
                                       const Numeric& pressure,
                                       const Numeric& self_pressure,

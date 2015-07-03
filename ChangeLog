@@ -1,3 +1,49 @@
+2015-07-03  Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-3-267
+	
+	Added Hartmann-Tran line shape.  Also added radiation_field
+	variable and a method to calculate it.
+	
+	* controlfiles/*:  Added "Hartmann-Tran" as a line shape call
+	where both Hui and Faddeeva where already in use for a third
+	test.
+	
+	* src/CMakeLists.txt:  Added m_radiation_field.cc.
+	
+	* src/absorption.{cc,h}:  Moved sigma calculations outside of 
+	xsec_single_line.  This so that all line broadening parameters
+	are sent in to xsec_single_line as one block, making it easier
+	to get an overview of the broadening scheme.  Also changed
+	layout of call to xsec_single_line so that parameters that are
+	related to one-another are close-by in the call.  Added five
+	broadening parameters we did not have before, and renamed
+	deltaf to df_0 and gamma to gamma_0.  All broadening parameters
+	are: gamma_0, gamma_2, eta, df_0, df_2, sigma, f_VC, which are
+	the Hartmann-Tran inputs for speed-dependent and collisional 
+	broadenings.  Note that we presently cannot input these parameters
+	since I have yet to add this as a feature of Artscat5, though adding
+	this should be a trivial task once data is available.
+	
+	Added several code comments to make the code easier to follow.
+	
+	* src/lineshapes.cc:  All line shape functions now take 8 Numerics
+	as input.  This is so that the Hartmann-Tran line shape can work
+	properly.  Note that it is only tested for default inputs, where
+	behaves like faddeeva_algorithm_916.  I need to find some test 
+	case to ensure that the implementation is correct for the full 
+	calculations.
+	
+	* src/m_radiation_field.cc, methods.cc, workspace.cc:
+	Added the radiation field calculations (planned to be used for 
+	internal calculations of t_nlte, but the full code is not 
+	yet ready).
+	
+	* src/pressurebroadeningdata.{cc,h}:  Now returns 7 of the line
+	broadening terms.  Behavior is identical to before by setting
+	pressure broadening terms unknown by Voigt to their canceling
+	values.
+
 2015-07-02  Jana Mendrok  <jana.mendrok@ltu.se>
 
 	* arts-2-3-266

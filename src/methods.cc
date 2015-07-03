@@ -10058,8 +10058,37 @@ void define_md_data_raw()
                   "coarser than this, additional points are added until each "
                   "log step is smaller than this." )
         ));
+    
+ md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "radiation_fieldCalcFromiyCalc" ),
+        DESCRIPTION
+        (
+         "Calculates *radiation_field* using *iyCalc* for all combinations of the\n"
+         "input zenith angle coordinates and azimuth angle coordinates.\n"
+         "\n"
+         "Only accepts full spherical coverage over Zenith [0, 180] but accepts\n"
+         "single azimuth angle as spherical symmetry.  With aa_coord.nelem()>1,\n"
+         "aa_cord must be defined on [-180, 180].\n"
+         "\n"
+         "Output *iy* is defined as the integration of those angles divided by 4PI.\n"
+         ),
+        AUTHORS( "Richard Larsson" ),
+        OUT( "iy", "radiation_field" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "atmgeom_checked", "atmfields_checked", 
+            "f_grid", "t_field", "z_field", "vmr_field", 
+            "cloudbox_on", "cloudbox_checked", "stokes_dim",
+            "rte_pos", "iy_unit", "iy_main_agenda" ),
+        GIN("za_coords", "aa_coords"),
+        GIN_TYPE("Vector", "Vector"),
+        GIN_DEFAULT(NODEF, NODEF),
+        GIN_DESC("Zenith angle coordinates [0,180]", "Azimuth angle coordinates [-180,180]")
+        ));
 
-                  md_data_raw.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME( "ReadNetCDF" ),
         DESCRIPTION

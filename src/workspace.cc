@@ -3102,6 +3102,17 @@ void Workspace::define_wsv_data()
        "Unit:  Pa\n"
        ),
       GROUP( "Numeric" )));
+   
+  wsv_data.push_back
+    (WsvRecord
+    ( NAME( "radiation_field" ),
+      DESCRIPTION
+      (
+       "The spherical radiation field at a single position.\n"
+       "\n"
+       "Grids: [Zenith angle, Azimuth Angle, *f_grid*, *stokes_dim*]\n"
+       ),
+      GROUP( "GriddedField4" )));
 
   wsv_data.push_back
     (WsvRecord
