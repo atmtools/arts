@@ -1,3 +1,14 @@
+2015-08-05  Gerrit Holl  <g.holl@reading.ac.uk>
+
+	* arts-2-2-50
+
+	* doc/uguide/common.tex, doc/uguide/concept.tex:
+
+	- Update docserver links to Hamburg server
+
+	- Link to stable docserver rather than trunk docserver, as this is the
+	stable branch.
+
 2015-07-02  Jana Mendrok  <jana.mendrok@ltu.se>
 
 	* arts-2-2-49
