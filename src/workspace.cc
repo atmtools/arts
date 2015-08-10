@@ -4477,9 +4477,17 @@ void Workspace::define_wsv_data()
       (
        "ARTS verbosity.\n"
        "\n"
-       "!!! UNDER CONSTRUCTION !!! Currently unused\n"
+       "The verbosity variable is implicitly passed to all workspace methods.\n"
+       "It can be used to dynamically control the reporting level during\n"
+       "runtime.\n"
        "\n"
-       "Usage:      Set by user.\n"
+       "Usage:    Set by user.\n"
+       "\n"
+       "See also: *verbosityInit*\n"
+       "          *verbositySet*\n"
+       "          *verbositySetAgenda*\n"
+       "          *verbositySetScreen*\n"
+       "          *verbositySetFile*\n"
        ),
       GROUP( "Verbosity" )));
 

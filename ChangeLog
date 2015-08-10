@@ -1,3 +1,9 @@
+2015-08-10  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-2-51
+
+	* src/workspace.cc: Update docs for verbosity WSM.
+
 2015-08-05  Gerrit Holl  <g.holl@reading.ac.uk>
 
 	* arts-2-2-50
