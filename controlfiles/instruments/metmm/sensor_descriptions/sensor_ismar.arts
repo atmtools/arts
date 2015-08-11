@@ -73,8 +73,8 @@ ArrayOfStringSet(
         "ISMAR-V", #2 
         "ISMAR-V", #3 
         "ISMAR-V", #4 
-        "ISMAR-V", #5 
-        "ISMAR-H", #6 
+        "ISMAR-H", #5 
+        "ISMAR-V", #6 
         "ISMAR-V", #7 
         "ISMAR-V", #8 
         "ISMAR-V", #9 
@@ -85,8 +85,8 @@ ArrayOfStringSet(
         "ISMAR-V", #14
         "ISMAR-V", #15
         "ISMAR-V", #16
-        "ISMAR-V", #17
-        "ISMAR-H", #18
+        "ISMAR-H", #17
+        "ISMAR-V", #18
         "?",       #19
         "?"        #20
         ])

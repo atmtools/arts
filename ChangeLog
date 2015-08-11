@@ -2,7 +2,21 @@
 
 	* arts-2-3-269
 
-	* A small restructuring in met-mm. I have seperated the definition
+	* controlfiles/instruments/metmm/sensor_descriptions/sensor_marss.arts:
+	* controlfiles/instruments/metmm/sensor_descriptions/sensor_ismar.arts:
+	Changed met_mm_freq_number to be 7 for all channels. Should be OK
+	in most cases, while 12 should be unnecessary high.
+
+	* controlfiles/instruments/metmm/sensor_descriptions/sensor_ismar.arts:
+	Changed order between H and V for 243 and 664 GHz, to follow
+	changed order in L1b file. And new order is better, H before V
+	which is the alphabetical order.
+
+2015-08-11  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-269
+
+	* A small restructuring in met-mm. I have separated the definition
 	and the application of the settings. This to make things more
 	modular, e.g. to allow that the basic settings can be extracted
 	without doing any calculations. Instead of
