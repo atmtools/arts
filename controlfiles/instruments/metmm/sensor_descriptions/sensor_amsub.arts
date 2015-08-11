@@ -2,13 +2,13 @@
 
 # ARTS sensor description for AMSU-B simulations
 #
-# This expects the following workspace variables to exist and to be set:
-# 
-# channels    (ArrayOfIndex) Which channels you want.
-#                            Note that this array uses zero-based ARTS
-#                            indexing. It can be set to [-1] to select all
-#                            channels.
-# viewing_angles (ArrayOfIndex) Which views you want.
+# The following variables are set:
+#
+#    antenna_dlos
+#    met_mm_backend
+#    met_mm_polarisation
+#    met_mm_freq_number
+#    met_mm_antenna
 
 Arts2 {
 
@@ -109,14 +109,5 @@ ArrayOfIndexSet(
         12  #4 (20)
         ] )
 
-
-
-Select( antenna_dlos,        antenna_dlos,        viewing_angles )
-Select( met_mm_backend,      met_mm_backend,      channels )
-Select( met_mm_polarisation, met_mm_polarisation, channels )
-Select( met_mm_freq_number,  met_mm_freq_number,  channels )
-
-sensor_responseBackendMetMM( freq_spacing = [1e9],
-		                      freq_number = met_mm_freq_number )
 }
 

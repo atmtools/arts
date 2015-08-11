@@ -2,13 +2,13 @@
 
 # ARTS sensor description for ISMAR simulations
 #
-# This expects the following workspace variables to exist and to be set:
-# 
-# channels    (ArrayOfIndex) Which channels you want.
-#                            Note that this array uses zero-based ARTS
-#                            indexing. It can be set to [-1] to select all
-#                            channels.
-# viewing_angles (ArrayOfIndex) Which views you want.
+# The following variables are set:
+#
+#    antenna_dlos
+#    met_mm_backend
+#    met_mm_polarisation
+#    met_mm_freq_number
+#    met_mm_antenna
 
 Arts2 {
 
@@ -42,41 +42,53 @@ MatrixSet(
         # CenterFreq, Offset1, Offset2, Bandwidth; #ARTS channel index
         #                                             (Instrument channel)
         [
-        118.7503e9,   1.10e9,  0.0e6,    400e6 ;   #0 (1)
-        118.7503e9,   1.50e9,  0.0e6,    400e6 ;   #1 (2)
-        118.7503e9,   2.10e9,  0.0e6,    800e6 ;   #2 (3)
-        118.7503e9,   3.00e9,  0.0e6,   1000e6 ;   #3 (4)
-        118.7503e9,   5.00e9,  0.0e6,   2000e6 ;   #4 (5)
-        243.2000e9,   2.50e9,  0.0e6,   3000e6 ;   #5 (6, V only)
-        243.2000e9,   2.50e9,  0.0e6,   3000e6 ;   #6 (6, H only)
-        325.1500e9,   1.50e9,  0.0e6,   1600e6 ;   #7 (7)
-        325.1500e9,   3.50e9,  0.0e6,   2400e6 ;   #8 (8)
-        325.1500e9,   9.50e9,  0.0e6,   3000e6 ;   #9 (9)
-        448.0000e9,   1.40e9,  0.0e6,   1200e6 ;   #10 (10)
-        448.0000e9,   3.00e9,  0.0e6,   2000e6 ;   #11 (11)
-        448.0000e9,   7.20e9,  0.0e6,   3000e6 ;   #12 (12)
-        664.0000e9,   4.20e9,  0.0e6,   3000e6 ;   #13 (13, V only)
-        664.0000e9,   4.20e9,  0.0e6,   3000e6 ;   #14 (13, H only)
+        118.7503e9,   1.10e9,  0.0e6,    400e6 ;   #0 
+        118.7503e9,   1.50e9,  0.0e6,    400e6 ;   #1 
+        118.7503e9,   2.10e9,  0.0e6,    800e6 ;   #2 
+        118.7503e9,   3.00e9,  0.0e6,   1000e6 ;   #3 
+        118.7503e9,   5.00e9,  0.0e6,   2000e6 ;   #4 
+        243.2000e9,   2.50e9,  0.0e6,   3000e6 ;   #5 
+        243.2000e9,   2.50e9,  0.0e6,   3000e6 ;   #6 
+        325.1500e9,   1.50e9,  0.0e6,   1600e6 ;   #7 
+        325.1500e9,   3.50e9,  0.0e6,   2400e6 ;   #8 
+        325.1500e9,   9.50e9,  0.0e6,   3000e6 ;   #9 
+        424.0000e9,       -1,     -1,       -1 ;   #10 Not yet implemented
+        424.0000e9,       -1,     -1,       -1 ;   #11 Not yet implemented
+        424.0000e9,       -1,     -1,       -1 ;   #12 Not yet implemented
+        424.0000e9,       -1,     -1,       -1 ;   #13 Not yet implemented
+        448.0000e9,   1.40e9,  0.0e6,   1200e6 ;   #14
+        448.0000e9,   3.00e9,  0.0e6,   2000e6 ;   #15
+        448.0000e9,   7.20e9,  0.0e6,   3000e6 ;   #16
+        664.0000e9,   4.20e9,  0.0e6,   3000e6 ;   #17
+        664.0000e9,   4.20e9,  0.0e6,   3000e6 ;   #18
+        874.0000e9,       -1,     -1,       -1 ;   #19 Not yet implemented
+        874.0000e9,       -1,     -1,       -1     #20 Not yet implemented
         ] )
 
 ArrayOfStringSet(
         met_mm_polarisation,
         [
-        "ISMAR-V", #0 (1)
-        "ISMAR-V", #1 (2)
-        "ISMAR-V", #2 (3)
-        "ISMAR-V", #3 (4)
-        "ISMAR-V", #4 (5)
-        "ISMAR-V", #5 (6, V only)
-        "ISMAR-H", #6 (6, H only)
-        "ISMAR-V", #7 (7)
-        "ISMAR-V", #8 (8)
-        "ISMAR-V", #9 (9)
-        "ISMAR-V", #10 (10)
-        "ISMAR-V", #11 (11)
-        "ISMAR-V", #12 (12)
-        "ISMAR-V", #13 (13, V only)
-        "ISMAR-H", #14 (13, H only)
+        "ISMAR-V", #0 
+        "ISMAR-V", #1 
+        "ISMAR-V", #2 
+        "ISMAR-V", #3 
+        "ISMAR-V", #4 
+        "ISMAR-V", #5 
+        "ISMAR-H", #6 
+        "ISMAR-V", #7 
+        "ISMAR-V", #8 
+        "ISMAR-V", #9 
+        "?",       #10
+        "?",       #11
+        "?",       #12
+        "?",       #13
+        "ISMAR-V", #14
+        "ISMAR-V", #15
+        "ISMAR-V", #16
+        "ISMAR-V", #17
+        "ISMAR-H", #18
+        "?",       #19
+        "?"        #20
         ])
 
 # Antenna is not supported for now
@@ -86,33 +98,27 @@ ArrayOfIndexCreate( met_mm_freq_number )
 ArrayOfIndexSet(
         met_mm_freq_number,
         [
-        12, #0 (1)
-        12, #1 (2)
-        12, #2 (3)
-        12, #3 (4)
-        12, #4 (5)
-        12, #5 (6, V only)
-        12, #6 (6, H only)
-        12, #7 (7)
-        12, #8 (8)
-        12, #9 (9)
-        12, #10 (10)
-        12, #11 (11)
-        12, #12 (12)
-        12, #13 (13, V only)
-        12, #14 (13, H only)
+        7, #0 
+        7, #1 
+        7, #2 
+        7, #3 
+        7, #4 
+        7, #5 
+        7, #6 
+        7, #7 
+        7, #8 
+        7, #9 
+        7, #10
+        7, #11
+        7, #12
+        7, #13
+        7, #14
+        7, #15
+        7, #16
+        7, #17
+        7, #18
+        7, #19
+        7  #20
         ] )
-
-
-
-Select( antenna_dlos,        antenna_dlos,        viewing_angles )
-Select( met_mm_backend,      met_mm_backend,      channels )
-Select( met_mm_polarisation, met_mm_polarisation, channels )
-Select( met_mm_antenna,      met_mm_antenna,      channels )
-Select( met_mm_freq_number,  met_mm_freq_number,  channels )
-
-sensor_responseBackendMetMM( freq_spacing = [1e9],
-		                      freq_number = metmm_freq_number )
-
 }
 

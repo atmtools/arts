@@ -1,3 +1,34 @@
+2015-08-11  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-269
+
+	* A small restructuring in met-mm. I have seperated the definition
+	and the application of the settings. This to make things more
+	modular, e.g. to allow that the basic settings can be extracted
+	without doing any calculations. Instead of
+
+	  INCLUDE "instruments/metmm/sensor_descriptions/sensor_mhs.arts"
+
+	you must now do
+
+	  INCLUDE "instruments/metmm/sensor_descriptions/sensor_mhs.arts"
+	  INCLUDE "instruments/metmm/sensor_descriptions/apply_metmm.arts"
+
+	* controlfiles/instruments/metmm/sensor_descriptions/apply_metmm.arts: New.
+
+	* controlfiles/instruments/metmm/sensor_descriptions/sensor_ismar.arts:
+	This file was not up to date. Not used by anybody!? In addition,
+	added dummy data for 424 and 874 channels as they are in place in
+	the ISMAR L1b datafiles, and then to get same channel index in
+	both places. Adopted to apply_metmm.arts.
+
+	* controlfiles/instruments/metmm/sensor_descriptions/sensor_mhs.arts:
+	* controlfiles/instruments/metmm/sensor_descriptions/sensor_marss.arts:
+	* controlfiles/instruments/metmm/sensor_descriptions/sensor_deimos.arts:
+	* controlfiles/instruments/metmm/sensor_descriptions/sensor_amsub.arts:
+	* controlfiles/instruments/metmm/sensor_descriptions/sensor_amsua.arts:
+	Modified to fit with apply_metmm.arts.
+
 2015-08-10  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-268
