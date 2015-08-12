@@ -138,8 +138,22 @@ WriteXML (//WS Input:
                          "  zascii: Zipped XML output\n"
                          "  binary: XML + binary output");
 
+    String errmsg;
+
 #pragma omp critical(WriteXML_critical_region)
-    xml_write_to_file (filename, v, ftype, no_clobber, verbosity);
+    try
+    {
+        xml_write_to_file (filename, v, ftype, no_clobber, verbosity);
+    }
+    catch (std::runtime_error e)
+    {
+        errmsg = e.what();
+    }
+
+    if (errmsg.length())
+    {
+        throw std::runtime_error(errmsg);
+    }
 }
 
 

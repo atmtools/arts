@@ -1,3 +1,17 @@
+2015-08-12  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-2-52
+
+	* src/m_xml.h (WriteXML):
+
+	Intercept exceptions crossing the critical region border. Fixes bug
+	reported by gerrit in trac ticket #127.
+
+	* src/xml_io.cc (xml_open_output_file):
+
+	Catch file.open exceptions more broadly as different compilers throw
+	different types of exception for the same error.
+
 2015-08-10  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-2-51

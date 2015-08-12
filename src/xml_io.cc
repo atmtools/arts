@@ -414,7 +414,7 @@ void xml_open_output_file(ofstream& file, const String& name)
     {
       file.open(name.c_str());
     }
-  catch (ios::failure)
+    catch (std::exception)
     {
       ostringstream os;
       os << "Cannot open output file: " << name << '\n'
