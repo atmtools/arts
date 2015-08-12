@@ -1,6 +1,22 @@
+2015-08-12  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-271
+
+	* ChangeLog: Fix version number continuity.
+
+	* src/m_xml.h (WriteXML):
+
+	Intercept exceptions crossing the critical region border. Fixes bug
+	reported by gerrit in trac ticket #127.
+
+	* src/xml_io.cc (xml_open_output_file):
+
+	Catch file.open exceptions more broadly as different compilers throw
+	different types of exception for the same error.
+
 2015-08-11  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
-	* arts-2-3-269
+	* arts-2-3-270
 
 	* controlfiles/instruments/metmm/sensor_descriptions/sensor_marss.arts:
 	* controlfiles/instruments/metmm/sensor_descriptions/sensor_ismar.arts:
