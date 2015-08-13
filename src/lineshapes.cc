@@ -114,7 +114,47 @@ void lineshape_lorentz(Vector&         ls_attenuation,
   for ( Index i=0; i<nf; ++i )
     {
       ls_attenuation[i] =  fac / ( (f_grid[i]-f0) * (f_grid[i]-f0) + gamma2 );
-      ls_phase[i] = ( (f_grid[i]-f0) * (f_grid[i]-f0) + gamma2 ) * (f_grid[i]-f0) / PI ;
+      ls_phase[i] = (f_grid[i]-f0) / PI / ( (f_grid[i]-f0) * (f_grid[i]-f0) + gamma2 );
+    }
+}
+
+/*! The Mirrored Lorentz line shape. This is a quick and dirty implementation.
+ * 
+ *   \retval ls_attenuation              The shape function.
+ *   \param  f0                          Line center frequency.
+ *   \param  gamma                       The pressure broadening parameter.
+ *   \param  sigma                       The Doppler broadening parameter. (Not used.)
+ *   \param  f_grid                      The frequency grid.
+ * 
+ *   \author Ricahrd Larsson
+ *   \date 2000-06-16 */
+void lineshape_mirrored_lorentz(Vector&         ls_attenuation,
+                                Vector&         ls_phase,
+                                Vector&,
+                                const Numeric   f0,
+                                const Numeric   gamma,
+                                const Numeric,
+                                const Numeric,
+                                const Numeric,
+                                const Numeric,
+                                const Numeric,
+                                const Numeric,
+                                ConstVectorView f_grid)
+{
+    const Index nf = f_grid.nelem();
+    
+    // PI:
+    extern const Numeric PI;
+    
+    //  assert( ls.nelem() == nf );
+    
+    Numeric gamma2 = gamma * gamma;
+    Numeric fac = gamma/PI;
+    
+    for ( Index i=0; i<nf; ++i )
+    {
+        ls_attenuation[i] =  fac / ( (f_grid[i]-f0) * (f_grid[i]-f0) + gamma2 ) + fac / ( (f_grid[i]+f0) * (f_grid[i]+f0) + gamma2 );
+        ls_phase[i] = (f_grid[i]-f0) / PI / ( (f_grid[i]-f0) * (f_grid[i]-f0) + gamma2 ) + (f_grid[i]+f0) / PI / ( (f_grid[i]+f0) * (f_grid[i]+f0) + gamma2 );//uncertain on this part
     }
 }
 
@@ -2220,6 +2260,12 @@ void define_lineshape_data()
      ("Lorentz",
       "The Lorentz line shape.",
       lineshape_lorentz, PHASE));
+    
+    lineshape_data.push_back
+    (LineshapeRecord
+    ("Mirrored Lorentz",
+     "The mirrored Lorentz line shape.",
+     lineshape_mirrored_lorentz, PHASE));
 
   lineshape_data.push_back
     (LineshapeRecord

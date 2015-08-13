@@ -48,9 +48,9 @@ void radiation_fieldCalcFromiyCalc(Workspace&              ws,
   extern const Numeric DEG2RAD, PI;
   
   // Test input
-  if(!za_coords.nelem()>1)
+  if(za_coords.nelem()<2)
     throw std::runtime_error("za_coords must contain at least two elements.\n");
-  if(!aa_coords.nelem()>0)
+  if(aa_coords.nelem()<1)
     throw std::runtime_error("aa_coords must contain at least one element.\n");
   if(!(za_coords[0]==0. && za_coords[za_coords.nelem()-1]==180.))
     throw std::runtime_error("First and last coords in za_coords must be 0 and 180, respectively.\n");
