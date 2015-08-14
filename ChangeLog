@@ -1,3 +1,13 @@
+2015-08-14  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-3-273
+
+	* src/m_optproperties.cc (scat_dataCheck): Polished error message, being
+	consistent with current scat_data format.
+
+	* src/methods.cc (doit_i_fieldSetFromPrecalc): Polishing documentation
+	(no doit_i_field1D_Spectrum existing anymore).
+
 2015-08-13  Richard Larsson <ric.larsson@gmail.com>
 
 	* arts-2-3-272

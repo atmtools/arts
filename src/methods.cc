@@ -4302,12 +4302,13 @@ void define_md_data_raw()
       ( NAME( "doit_i_fieldSetFromPrecalc" ),
         DESCRIPTION
         (
-         "Sets the initial cloudbox intensity field from a precalculated field.\n"
+         "Sets the initial cloudbox intensity field *doit_i_field* from a\n"
+         "precalculated field.\n"
          "\n"
          "This method sets the (monochromatic) first guess radiation field\n"
-         "inside the cloudbox from a precalculated *doit_i_field1D_precalc*,\n"
+         "inside the cloudbox from a precalculated *doit_i_field_precalc*,\n"
          "e.g., from the solution of a similar atmospheric scenario. The\n"
-         "dimensions of *doit_i_field1D_Spectrum* have to be consistent with\n"
+         "dimensions of *doit_i_field_precalc* have to be consistent with\n"
          "the DOIT setup in terms of frequencies, pressure levels inside the\n"
          "cloudbox, polar angles used as well as the stokes dimension.\n"
          "Incoming field on the cloudbox boundaries is adapted to the actual\n"

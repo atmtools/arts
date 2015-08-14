@@ -976,7 +976,7 @@ void scat_dataCheck(//Input:
 {
     CREATE_OUT2;
 
-/* JM121024: we do not really need to write the scatt_data to file again. we
+/* JM121024: we do not really need to write the scat_data to file again. we
              usually have just read them in a couple of commands before!?
              if wanted/needed for debug cases, just uncomment the 2 lines below */
 //  xml_write_to_file("SingleScatteringData", scat_data, FILE_TYPE_ASCII,
@@ -984,10 +984,11 @@ void scat_dataCheck(//Input:
 
     const Index N_hm = scat_data.nelem();
 
-    // Loop over the included scattering elements
+    // Loop over the included scattering species
     for (Index i_ss = 0; i_ss < N_hm; i_ss++)
     {
 
+        out2 << " scattering species " << i_ss << "\n";
         const Index N_se = scat_data[i_ss].nelem();
 
         // Loop over the included scattering elements
@@ -1039,7 +1040,8 @@ void scat_dataCheck(//Input:
                                 os << "  Deviations in scat_data too large:\n"
                                 << "  scat dev [%] " << 1e2*Csca/Csca_data-1e2
                                 << " at albedo of " << Csca_data/Cext_data << "\n"
-                                << "  Check entry for scattering element " << i_se << " at "
+                                << "  Check entry for scattering element " << i_se
+                                << " of scattering species " << i_ss << " at "
                                 << f << ".frequency and " << t << ".temperature!\n";
                                 throw runtime_error( os.str() );
                             }
