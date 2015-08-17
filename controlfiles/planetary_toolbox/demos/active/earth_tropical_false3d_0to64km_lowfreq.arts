@@ -30,7 +30,7 @@ Extract( z_surface, z_field, 0 )
 
 Extract( p_hse, p_grid, 0 )
 NumericSet( z_hse_accuracy, 0.1 )
-atmfields_checkedCalc
+atmfields_checkedCalc( bad_partition_functions_ok=bad_partition_functions_ok )
 z_fieldFromHSE
 
 

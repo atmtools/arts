@@ -313,6 +313,9 @@ add_custom_target(check
 add_custom_target(check-xmldata
   COMMAND ${CMAKE_CTEST_COMMAND} ${CTEST_MISC_OPTIONS} --output-on-failure ${CTEST_JOBS} -R '\(.xmldata.\)' DEPENDS arts)
 
+add_custom_target(check-planettoolbox
+  COMMAND ${CMAKE_CTEST_COMMAND} ${CTEST_MISC_OPTIONS} --output-on-failure ${CTEST_JOBS} -R '\(.planettoolbox.\)' DEPENDS arts)
+
 add_custom_target(check-all
   COMMAND ${CMAKE_CTEST_COMMAND} ${CTEST_MISC_OPTIONS} --output-on-failure ${CTEST_JOBS} -E '\(.nocheck.\)' DEPENDS arts)
 

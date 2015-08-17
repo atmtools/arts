@@ -48,7 +48,6 @@ StringSet( pndtmp, "tmp1.xml" )
 StringSet( poptmp, "tmp2.xml" )
 
 ArrayOfIndexCreate( typesinlayerarray )
-ArrayOfStringCreate( ssdfiles )
 
 # Loop agenda to get pnd & ssd data of all modes in a cloud layer
 AgendaCreate( modeloop_agenda )

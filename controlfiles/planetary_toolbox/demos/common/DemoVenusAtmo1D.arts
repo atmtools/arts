@@ -26,8 +26,10 @@
 # and END USER SETTINGS. The rest of the file shall not be modified,           #
 # particularly settings marked with 'do NOT modify'.                           #
 #                                                                              #
-# This template makes use of the following include files                       #
+# Files to be included before this file:                                       #
 #   includes/common/createvars.arts                                            #
+#                                                                              #
+# This template makes use of the following include files                       #
 #   includes/venus/atmo_venus.arts                                             #
 #   includes/venus/getatmo_venus.arts                                          #
 #   includes/common/getgrids_1D.arts                                           #
@@ -38,14 +40,6 @@
 ################################################################################
 
 Arts2 {
-
-# do NOT modify
-# prepare some variable containers we will need for later INCLUDE file executions
-# this include has to appear at the beginning. DO NOT include it more than ONCE
-# in a full ARTS run (if you include the template file in another controlfile,
-# e.g., more than once, you (might) have to move the following include to the
-# calling controlfile).
-INCLUDE "planetary_toolbox/includes/common/createvars.arts"
 
 # do NOT modify
 # set up name arrays and the like for selections

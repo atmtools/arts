@@ -31,7 +31,8 @@ Arts2 {
 
 # forth, we get the pnd field and and single scattering data in their respective
 #  WSVs pnd_field_raw and scat_data.
-ParticleTypeAddAll( filelist_scat_data=poptmp, filename_pnd_fieldarray=pndtmp )
+ReadXML( out=ssdfiles, filename=poptmp )
+ParticleTypeAddAll( scat_data_files=ssdfiles, pnd_fieldarray_file=pndtmp )
 scat_dataCheck
 
 Extract( pmax_cb, p_grid, 0 )

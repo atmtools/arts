@@ -8850,26 +8850,27 @@ void define_md_data_raw()
          "\n"
          "The WSV *pnd_field_raw* containing particle number densities for all\n"
          "scattering species can be generated outside ARTS, for example by using\n"
-         "PyARTS. This method needs as input an XML-file containing an array of\n"
-         "filenames (ArrayOfString) of single scattering data and a file\n"
-         "containing the corresponding *pnd_field_raw*. In contrast to the\n"
-         "scattering data, all corresponding pnd-fields are stored in a single\n"
-         "XML-file containing an ArrayofGriddedField3.\n"
+         "PyARTS. This method needs as input an ArrayOfString holding the\n"
+         "filenames of the single scattering data for each scattering element\n"
+         "and a file containing the corresponding *pnd_field_raw*. In contrast\n"
+         "to the scattering data, the pnd-fields are stored in a single\n"
+         "XML-file containing an ArrayofGriddedField3, i.e. holding the\n"
+         "pnd-field data of all scattering elements.\n"
          "\n"
          "Important note:\n"
          "The order of the filenames for the scattering data files has to\n"
          "correspond to the order of the pnd-fields, stored in the variable\n"
          "*pnd_field_raw*.\n"
          ),
-        AUTHORS( "Claudia Emde" ),
+        AUTHORS( "Claudia Emde, Jana Mendrok" ),
         OUT( "scat_data", "pnd_field_raw" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "atmosphere_dim", "f_grid" ),
-        GIN(         "filelist_scat_data", "filename_pnd_fieldarray" ),
-        GIN_TYPE(    "String",             "String"             ),
-        GIN_DEFAULT( NODEF,                NODEF                ),
+        GIN(         "scat_data_files", "pnd_fieldarray_file" ),
+        GIN_TYPE(    "ArrayOfString",   "String"              ),
+        GIN_DEFAULT( NODEF,             NODEF                 ),
         GIN_DESC( "Name of file with array of single scattering data filenames.",
                   "Name of file holding the correspnding array of pnd_field data." 
                   )

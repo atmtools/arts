@@ -140,7 +140,7 @@ ReadXML( iy_reference,
 
 Compare( iy, 
          iy_reference, 
-         1e-10, 
+         1e-08, 
 	 "Brightness temperature with CIA N2 continuum differs from reference calculation" )
 
 }

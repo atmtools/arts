@@ -692,7 +692,7 @@ void ParticleTypeAddAll (//WS Output:
 //                         const Vector& lat_grid,
 //                         const Vector& lon_grid,
                          // Keywords:
-                         const String& filelist_scat_data,
+                         const ArrayOfString& scat_data_files,
                          const String& pnd_fieldarray_file,
                          const Verbosity& verbosity)
 {
@@ -711,19 +711,17 @@ void ParticleTypeAddAll (//WS Output:
 
 
   //--- Reading the data ---------------------------------------------------
-  ArrayOfString data_files;
-  xml_read_from_file ( filelist_scat_data, data_files, verbosity );
   scat_data.resize(1);
-  scat_data[0].resize ( data_files.nelem() );
+  scat_data[0].resize ( scat_data_files.nelem() );
 
-  for ( Index i = 0; i<data_files.nelem(); i++ )
+  for ( Index i = 0; i<scat_data_files.nelem(); i++ )
   {
 
     out2 << "  Read single scattering data\n";
-    xml_read_from_file ( data_files[i], scat_data[0][i], verbosity );
+    xml_read_from_file ( scat_data_files[i], scat_data[0][i], verbosity );
 
     chk_scat_data ( scat_data[0][i],
-                                 data_files[i], f_grid,
+                                 scat_data_files[i], f_grid,
                                  verbosity );
 
   }

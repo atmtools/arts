@@ -77,6 +77,7 @@
 #   demos/passive/DemoScat_DOIT_1D.arts                                        #
 #   demos/passive/DemoScat_MC_1D.arts                                          #
 #   demos/passive/DemoScat_FOS_1D.arts                                         #
+#   includes/common/createvars.arts                                            #
 #   includes/common/makegeometry1D_unrefracted.arts                            #
 #   includes/common/makegeometry1D_refracted-air_effectivetanh.arts            #
 #   includes/common/makegeometry1D_refracted-air_geometrictanh.arts            #
@@ -97,6 +98,12 @@ INCLUDE "general/planet_mars.arts"
 
 
 # do NOT modify
+# prepare some variable containers we will need for later INCLUDE file executions.
+# this INCLUDE has to appear at the beginning. DO NOT include it more than ONCE
+# in a full ARTS run.
+INCLUDE "planetary_toolbox/includes/common/createvars.arts"
+
+# do NOT modify
 NumericCreate( obsh )
 VectorCreate( tanh )
 VectorCreate( viewang )
@@ -115,6 +122,12 @@ WriteXML( in=f_grid )
 
 # number of Stokes parameters to consider ( 1: scalarRT, 4: fully polarised )
 IndexSet( stokes_dim, 4 )
+
+# ok to use extrapolation of partition functions (i.e. fitting range of
+#  partition function paameterization does not cover the actual atmospheric
+#  temperatures)?
+# ( 0: not ok, 1: ok )
+IndexSet( bad_partition_functions_ok, 1 )
 
 
 # ---

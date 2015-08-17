@@ -74,6 +74,7 @@
 # for details):                                                                #
 #   demos/common/DemoMarsAtmo3D.arts                                           #
 #   demos/common/DemoMarsSurface3D.arts                                        #
+#   includes/common/createvars.arts                                            #
 #   includes/common/makegeometry1D_unrefracted.arts                            #
 #   includes/common/makegeometry1D_refracted-air_effectivetanh.arts            #
 #   includes/common/makegeometry1D_refracted-air_geometrictanh.arts            #
@@ -92,6 +93,12 @@ INCLUDE "general/continua.arts"
 INCLUDE "general/agendas.arts"
 INCLUDE "general/planet_mars.arts"
 
+
+# do NOT modify
+# prepare some variable containers we will need for later INCLUDE file executions.
+# this INCLUDE has to appear at the beginning. DO NOT include it more than ONCE
+# in a full ARTS run.
+INCLUDE "planetary_toolbox/includes/common/createvars.arts"
 
 # do NOT modify
 NumericCreate( obsh )
@@ -116,6 +123,12 @@ VectorLinSpace( f_grid, 595.07e9, 595.09e9, 100e3 )
 
 # number of Stokes parameters to consider ( 1: scalarRT, 4: fully polarised )
 IndexSet( stokes_dim, 1 )
+
+# ok to use extrapolation of partition functions (i.e. fitting range of
+#  partition function paameterization does not cover the actual atmospheric
+#  temperatures)?
+# ( 0: not ok, 1: ok )
+IndexSet( bad_partition_functions_ok, 1 )
 
 
 # ---
@@ -355,7 +368,7 @@ cloudboxOff
 
 # the checks necessary for full RT calc
 #####
-atmfields_checkedCalc
+atmfields_checkedCalc( bad_partition_functions_ok=bad_partition_functions_ok )
 atmgeom_checkedCalc
 cloudbox_checkedCalc
 propmat_clearsky_agenda_checkedCalc 

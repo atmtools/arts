@@ -22,6 +22,12 @@
 # and END USER SETTINGS. The rest of the file shall not be modified,           #
 # particularly settings marked with 'do NOT modify'.                           #
 #                                                                              #
+# Files to be included before this file:                                       #
+#   demos/common/DemoMarsAtmo1D.arts      for atmospheric scenario selection   #
+#                                                                              #
+# It requires the following input:                                             #
+#   f_grid            as the WSV                                               #
+#                                                                              #
 # This template makes use of the following include files                       #
 #   includes/mars/cloudsatmo_mars.arts                                         #
 #   includes/mars/getclouds_mars.arts                                          #

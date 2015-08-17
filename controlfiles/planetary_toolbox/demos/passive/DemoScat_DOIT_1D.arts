@@ -22,14 +22,15 @@
 #   t_field           as the WSV                                               #
 #   vmr_field         as the WSV                                               #
 #   pnd_field         as the WSV                                               #
-#   scat_data   as the WSV                                               #
+#   scat_data         as the WSV                                               #
 #   cloudbox_on       as the WSV                                               #
 #   cloudbox_limits   as the WSV                                               #
 #   abs_species       as the WSV                                               #
 #   z_surface         as the WSV                                               #
 #   t_surface         as the WSV                                               #
 #   rte_pos           as the WSV                                               #
-#   allzang           (Vector)       Sensor viewing angles                     #
+#   allzang                     (Vector)  Sensor viewing angles                #
+#   bad_partition_functions_ok  (Index)   Partition function handling flag     #
 #                                                                              #
 # It provides following OUTPUT (written to file):                              #
 #   iy         as the WSV                                                      #
@@ -217,7 +218,7 @@ jacobianOff
 
 # the checks necessary for full RT calc
 #####
-atmfields_checkedCalc
+atmfields_checkedCalc( bad_partition_functions_ok=bad_partition_functions_ok )
 atmgeom_checkedCalc
 cloudbox_checkedCalc
 propmat_clearsky_agenda_checkedCalc 

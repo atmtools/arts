@@ -23,6 +23,7 @@
 #   p/lat/lon_grid            as the WSV                                       #
 #   t/z/vmr_field             as the WSV                                       #
 #   abs_p/t/nls_interp_order  as the WSVs                                      #
+#   bad_partition_functions_ok  (Index)   Partition function handling flag     #
 #                                                                              #
 # It provides following output (in parentheses: side products):                #
 #   abs_lookup                as the WSV                                       #
@@ -59,7 +60,7 @@ abs_linesReadFromSplitArtscat( basename="spectroscopy/Perrin/", fmin=0, fmax=4e1
 abs_lines_per_speciesCreateFromLines
 
 abs_xsec_agenda_checkedCalc
-atmfields_checkedCalc
+atmfields_checkedCalc( bad_partition_functions_ok=bad_partition_functions_ok )
 abs_lookupSetup
 abs_lookupCalc
 

@@ -53,6 +53,9 @@ ReadXML( raw3, "testdata/ne_iri_solmax_spring_12UTC_0latlon.xml" )
 Append( vmr_field_raw, raw3 )
 
 
+# here, we do LTE only so far, but need to initialize NLTE t-field accordingly
+Touch( t_nlte_field_raw )
+
 # Interpolate to p_grid (VMR is "zero padded")
 AtmFieldsCalcExpand1D( vmr_zeropadding=1 )
 
@@ -62,7 +65,7 @@ Extract( z_surface, z_field, 0 )
 # Apply HSE
 Extract( p_hse, p_grid, 0 )
 NumericSet( z_hse_accuracy, 0.1 )
-atmfields_checkedCalc
+atmfields_checkedCalc( bad_partition_functions_ok=bad_partition_functions_ok )
 z_fieldFromHSE
 
 # Magnetic field, u-component

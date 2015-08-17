@@ -54,7 +54,6 @@ StringSet( poptmp, "tmp2.xml" )
 IndexCreate( RIcase )
 ArrayOfIndexCreate( cloudcase )
 ArrayOfIndexCreate( cloudcasearray )
-ArrayOfStringCreate( ssdfiles )
 
 
 # Loop agenda to get pnd & ssd data of all modes in a cloud layer

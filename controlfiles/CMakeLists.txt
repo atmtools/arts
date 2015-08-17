@@ -115,22 +115,6 @@ arts_test_run_ctlfile(slow instruments/hirs/TestHIRS.arts)
 
 if (ARTS_XML_DATA_DIR)
 
-  ###########################################
-  ### cases USING data from arts-xml-data ###
-  arts_test_run_ctlfile(fast artscomponents/helpers/TestRegridding.arts)
-  arts_test_run_ctlfile(fast artscomponents/helpers/TestGridsExtract.arts)
-
-  arts_test_run_ctlfile(fast artscomponents/ppath/TestRefractPlanets.arts)
-
-  arts_test_run_ctlfile(fast artscomponents/zeeman/TestZeeman.arts)
-  arts_test_run_ctlfile(fast artscomponents/zeeman/TestZeemanPreCalc.arts)
-  arts_test_run_ctlfile(fast artscomponents/linemixing/TestLineMixingAndZeeman.arts)
-  arts_test_run_ctlfile(fast artscomponents/linemixing/TestLineMixing.arts)
-  arts_test_run_ctlfile(slow artscomponents/linemixing/TestLineMixingAndZeeman_50_to_70_GHz.arts)
-  arts_test_run_ctlfile(slow artscomponents/linemixing/TestLineMixingAndZeemanPreCalc_50_to_70_GHz.arts)
-  
-  arts_test_run_ctlfile(slow artscomponents/wfuns/TestDoitJacobians.arts)
-
   ###############################
   ### testing XML Data itself ###
   arts_test_run_ctlfile(xmldata artscomponents/arts-xml-data/TestAtmScen_Mars.arts)
@@ -156,6 +140,33 @@ if (ARTS_XML_DATA_DIR)
   arts_test_run_ctlfile(xmldata artscomponents/cia/TestCIA.arts)
 
   arts_test_run_ctlfile(xmldata artscomponents/cia/TestRTwithCIA.arts)
+
+  ###########################################
+  ### cases USING data from arts-xml-data ###
+  arts_test_run_ctlfile(fast artscomponents/helpers/TestRegridding.arts)
+  arts_test_run_ctlfile(fast artscomponents/helpers/TestGridsExtract.arts)
+
+  arts_test_run_ctlfile(fast artscomponents/ppath/TestRefractPlanets.arts)
+
+  arts_test_run_ctlfile(fast artscomponents/zeeman/TestZeeman.arts)
+  arts_test_run_ctlfile(fast artscomponents/zeeman/TestZeemanPreCalc.arts)
+  arts_test_run_ctlfile(fast artscomponents/linemixing/TestLineMixingAndZeeman.arts)
+  arts_test_run_ctlfile(fast artscomponents/linemixing/TestLineMixing.arts)
+  arts_test_run_ctlfile(slow artscomponents/linemixing/TestLineMixingAndZeeman_50_to_70_GHz.arts)
+  arts_test_run_ctlfile(slow artscomponents/linemixing/TestLineMixingAndZeemanPreCalc_50_to_70_GHz.arts)
+  
+  arts_test_run_ctlfile(slow artscomponents/wfuns/TestDoitJacobians.arts)
+
+  ##################################
+  ### planet toolbox demos cases ###
+  arts_test_run_ctlfile(planettoolbox planetary_toolbox/demos/active/DemoLinkBudget.arts)
+
+  #arts_test_run_ctlfile(planettoolbox planetary_toolbox/demos/passive/DemoJupiter_fullRT_1D_clearsky.arts)
+  #arts_test_run_ctlfile(planettoolbox planetary_toolbox/demos/passive/DemoMars_fullRT_1D_clearsky.arts)
+  #arts_test_run_ctlfile(planettoolbox planetary_toolbox/demos/passive/DemoMars_fullRT_3D_clearsky.arts)
+  arts_test_run_ctlfile(planettoolbox planetary_toolbox/demos/passive/DemoMars_fullRT_1D_cloudy.arts)
+  arts_test_run_ctlfile(planettoolbox planetary_toolbox/demos/passive/DemoVenus_fullRT_1D_clearsky.arts)
+  #arts_test_run_ctlfile(planettoolbox planetary_toolbox/demos/passive/DemoVenus_fullRT_1D_cloudy.arts)
 
 endif (ARTS_XML_DATA_DIR)
 

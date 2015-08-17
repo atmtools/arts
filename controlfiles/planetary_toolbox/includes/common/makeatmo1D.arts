@@ -26,6 +26,9 @@
 
 Arts2 {
 
+# here, we do LTE only so far, but need to initialize NLTE t-field accordingly
+Touch( t_nlte_field_raw )
+
 # this brings z_, t_, and vmr_field_raw to p_grid
 AtmFieldsCalc( interp_order=interp_order, vmr_zeropadding=vmr_zeropad )
 

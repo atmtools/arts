@@ -1,3 +1,59 @@
+2015-08-17  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-3-274
+
+	Modified ParticleTypeAddAll for consistent behaviour with
+	ScatteringParticleTypeAndMetaRead.
+	Adapted test cases for above change as well as for further previous ARTS
+	changes (partition functions: arts-2-3-265, LTE: arts-2-3-225).
+
+	* src/m_cloudbox.cc, methods.cc (ParticleTypeAddAll):
+	Adapt for consistency with ScatteringParticleTypeAndMetaRead: Pass list
+	of filenames (ArrayOfString) for scat_data input instead of name of file
+	containing the filenames.
+
+	* controlfiles/planetary_toolbox/includes/common/makeclouds1D.arts:
+	Adapted to ParticleTypeAddAll changes.
+
+	* controlfiles/planetary_toolbox/includes/common/make-and-use-absLUT.arts,
+	controlfiles/planetary_toolbox/includes/common/make-and-use-absLUT_1Dfor3D.arts,
+	controlfiles/planetary_toolbox/demos/passive/DemoScat_[DOIT,FOS,MC]_1D.arts,
+	controlfiles/planetary_toolbox/demos/passive/DemoMars_fullRT_1D_clearsky.arts,
+	controlfiles/planetary_toolbox/demos/passive/DemoMars_fullRT_1D_cloudy.arts,
+	controlfiles/planetary_toolbox/demos/passive/DemoMars_fullRT_3D_clearsky.arts,
+	controlfiles/planetary_toolbox/demos/passive/DemoVenus_fullRT_1D_clearsky.arts,
+	controlfiles/planetary_toolbox/demos/passive/DemoVenus_fullRT_1D_cloudy.arts,
+	controlfiles/planetary_toolbox/demos/passive/DemoJupiter_fullRT_1D_clearsky.arts,
+	controlfiles/planetary_toolbox/demos/active/earth_tropical_false3d_0to[64,1000]km_lowfreq.arts,
+	controlfiles/planetary_toolbox/demos/active/DemoLinkBudget.arts:
+	Adapted for changes in partition function handling.
+
+	* controlfiles/planetary_toolbox/includes/common/makeatmo[1,3]D.arts,
+	controlfiles/planetary_toolbox/demos/active/earth_tropical_false3d_0to1000km_lowfreq.arts:
+	Adapted for LTE related changes in atmfield input.
+
+	* controlfiles/planetary_toolbox/includes/common/createvars.arts,
+	controlfiles/planetary_toolbox/includes/mars/getclouds_mars.arts,
+	controlfiles/planetary_toolbox/includes/venus/getclouds_venus.arts,
+	controlfiles/planetary_toolbox/demos/common/DemoMarsAtmo[1,3]D.arts,
+	controlfiles/planetary_toolbox/demos/common/DemoMarsClouds1D.arts,
+	controlfiles/planetary_toolbox/demos/common/DemoMarsSurface[1,3]D.arts,
+	controlfiles/planetary_toolbox/demos/common/DemoVenusAtmo[1,3]D.arts,
+	controlfiles/planetary_toolbox/demos/common/DemoVenusSurface1D.arts,
+	controlfiles/planetary_toolbox/demos/common/DemoJupiterAtmo[1,3]D.arts:
+	Minor rearrangements of planet toolbox file organisation. Improved header info.
+
+	* CMakeLists.txt, controlfiles/CMakeLists.txt:
+	Added planet toolbox test cases (else toolbox demos keep breaking undetectedly)
+	and target planettoolbox.
+
+	* controlfiles/instruments/amsu/amsub_metmm.arts:
+	Fixed broken testcase: apply apply_metmm.arts required by reorganisation
+	in arts-2-3-269.
+
+	* controlfiles/artscomponents/cia/TestRTwithCIA.arts:
+	Fixed broken testcase: slightly raised error margin.
+
 2015-08-14  Jana Mendrok  <jana.mendrok@ltu.se>
 
 	* arts-2-3-273

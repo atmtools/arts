@@ -39,6 +39,7 @@ NumericCreate( pmax_cb )
 NumericCreate( pmin_cb )
 StringCreate( pndstr )
 StringCreate( ssdstr )
+ArrayOfStringCreate( ssdfiles )
 
 StringCreate( strtmp )
 StringCreate( Btmp )
@@ -51,6 +52,8 @@ IndexCreate( itmp )
 ArrayOfIndexCreate( aoitmp )
 GriddedField3Create( gf3tmp )
 ArrayOfGriddedField3Create( aogf3tmp )
+
+IndexCreate( bad_partition_functions_ok )
 
 GriddedField3Create( wind_u_raw )
 GriddedField3Create( wind_v_raw )

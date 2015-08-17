@@ -29,10 +29,13 @@
 #      - subCASE e: Specular surface with surface refractive index             #
 #                    (global/regional) field from file                         #
 #                                                                              #
+# Files to be included before this file:                                       #
+#   ../controlfiles/general/agendas.arts  for agenda predefinitions            #
+#   includes/common/createvars.arts       for creating required variable       #
+#                                          containers                          #
+#   demos/common/DemoVenusAtmo1D.arts     for atmospheric scenario selection   #
+#                                                                              #
 # It requires the following input:                                             #
-#   agendas.arts           for agenda predefinitions                           #
-#   DemoVenusAtmo1D.arts   for atmospheric scenario selection and some         #
-#                           variables created in createvars.arts therein       #
 #   p/lat/lon_grid         as the WSVs                                         #
 #   t_field                as the WSV                                          #
 #                                                                              #

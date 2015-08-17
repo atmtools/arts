@@ -5,10 +5,11 @@
 #                                                                              #
 ################################################################################
 #                                                                              #
-# This is a template file for deriving Venusn (atmospheric) data from the      #
+# This is a template file for deriving Venusian (atmospheric) data from the    #
 # arts-xml-data package and convert it to the common spatial grids             #
-# (p_grid), such that they can be applied in radiative transfer calculations.  #
-# It is for a 1D atmosphere (for 3D use DemoVenusAtmo3D.arts instead).         #
+# (p/lat/lon_grid), such that they can be applied in radiative transfer        #
+# calculations.                                                                #
+# It is for a 3D atmosphere (for 1D use DemoVenusAtmo1D.arts instead).         #
 #                                                                              #
 # It provides following output:                                                #
 #   atmosphere_dim    as the WSV                                               #
@@ -23,13 +24,15 @@
 #                                                                              #
 # The user is supposed to select (atmospheric case, species to include) from   #
 # lists. Details of setting rules are given at the place of the settings.      #
-# list. Details of setting rules are given at the place of the settings.       #                                                                              #
+#                                                                              #
 # Selections and settings to be done are between the flags START USER SETTINGS #
 # and END USER SETTINGS. The rest of the file shall not be modified,           #
 # particularly settings marked with 'do NOT modify'.                           #
 #                                                                              #
-# This template makes use of the following include files                       #
+# Files to be included before this file:                                       #
 #   includes/common/createvars.arts                                            #
+#                                                                              #
+# This template makes use of the following include files                       #
 #   includes/venus/atmo_venus.arts                                             #
 #   includes/venus/getatmo_venus.arts                                          #
 #   includes/common/getgrids_3Dsimple.arts                                     #
@@ -40,14 +43,6 @@
 ################################################################################
 
 Arts2 {
-
-# do NOT modify
-# prepare some variable containers we will need for later INCLUDE file executions
-# this include has to appear at the beginning. DO NOT include it more than ONCE
-# in a full ARTS run (if you include the template file in another controlfile,
-# e.g., more than once, you (might) have to move the following include to the
-# calling controlfile).
-INCLUDE "planetary_toolbox/includes/common/createvars.arts"
 
 # do NOT modify
 # set up name arrays and the like for selections
@@ -66,6 +61,8 @@ NumericCreate( latmin )
 NumericCreate( latmax )
 NumericCreate( lonmin )
 NumericCreate( lonmax )
+IndexCreate( nlat )
+IndexCreate( nlon )
 IndexCreate( auxfield_zeropad )
 IndexCreate( vmr_zeropad )
 IndexCreate( interp_order )
@@ -116,6 +113,19 @@ NumericSet( latmin, -90 )
 NumericSet( latmax, 90 )
 NumericSet( lonmin, -30 )
 NumericSet( lonmax, 270 )
+
+# Define number of points in lat/lon grids
+# ---
+# Minimum: nlat = nlon = 2
+# Minimum is perfectly sufficient for homogeneous fields, but problematic when
+#  fields have some structure.
+# NOTE: The lat/lon grids with this spacing will also be applied for the
+#  surface. That is, use more than the minimum spacing if the surface fields
+#  are inhomogeneous (which is true for surface refractive index for Venus;
+#  finest spacing there is 5deg in lat, 20deg in lon, which corresponds to
+#  nlat = 37, nlon = 19 for a global grid).
+IndexSet( nlat, 37 )
+IndexSet( nlon, 16 )
 
 #===========================================
 

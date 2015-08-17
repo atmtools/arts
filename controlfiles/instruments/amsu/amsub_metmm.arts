@@ -83,7 +83,7 @@ ArrayOfIndexCreate( viewing_angles )
 ArrayOfIndexSet( viewing_angles, [ 44 ] )
 
 INCLUDE "instruments/metmm/sensor_descriptions/sensor_amsub.arts"
-
+INCLUDE "instruments/metmm/sensor_descriptions/apply_metmm.arts"
 
 WriteXML("ascii", sensor_response)
 WriteXML("ascii", f_grid)

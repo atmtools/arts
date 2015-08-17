@@ -22,14 +22,15 @@
 #   t_field           as the WSV                                               #
 #   vmr_field         as the WSV                                               #
 #   pnd_field         as the WSV                                               #
-#   scat_data   as the WSV                                               #
+#   scat_data         as the WSV                                               #
 #   cloudbox_on       as the WSV                                               #
 #   cloudbox_limits   as the WSV                                               #
 #   abs_species       as the WSV                                               #
 #   z_surface         as the WSV                                               #
 #   t_surface         as the WSV                                               #
 #   rte_pos           as the WSV                                               #
-#   allzang           (Vector)       Sensor viewing angles                     #
+#   allzang                     (Vector)  Sensor viewing angles                #
+#   bad_partition_functions_ok  (Index)   Partition function handling flag     #
 #                                                                              #
 # It provides following OUTPUT (written to file):                              #
 #   iy         as the WSV                                                      #
@@ -72,7 +73,7 @@ IndexCreate( nlon )
 # Statistical error of solution [W / (m2 sr Hz)]
 # Note: dTb_planck=0.1K roughly correspond to 5e-22, 5e-20, 5e-18 W/(m2 sr Hz)
 #  at 5, 50, and 500GHz, respectively.
-NumericSet(mc_std_err, 5e-22)
+NumericSet(mc_std_err, 5e-21)
 
 # Maximum run time of solver (per monochromatic frequency)
 IndexSet(mc_max_time, -1)
@@ -92,8 +93,8 @@ IndexSet(mc_max_iter, 250000)
 #  abs_species (clearsky calculations in Venus have at maximum 19 abs_species
 #  entries, i.e. highest valid index is 18).
 # NOTE: Only use "PND, type Y" up to the number of entries in scat_data.
-#  Particle calculations have at maximum 10 particle entries, i.e., highest
-#  valid index is 9).
+#  Planet toolbox particle calculations have at maximum 10 particle entries,
+#  i.e., highest valid index is 9).
 # ---
 
 ArrayOfStringSet( iy_aux_vars,
@@ -180,7 +181,7 @@ jacobianOff
 
 # the checks necessary for full RT calc
 #####
-atmfields_checkedCalc
+atmfields_checkedCalc( bad_partition_functions_ok=bad_partition_functions_ok )
 atmgeom_checkedCalc
 cloudbox_checkedCalc
 propmat_clearsky_agenda_checkedCalc 

@@ -25,6 +25,7 @@
 #   p_grid                    as the WSV                                       #
 #   t/z/vmr_field_raw         as the WSV                                       #
 #   abs_p/t/nls_interp_order  as the WSVs                                      #
+#   bad_partition_functions_ok  (Index)   Partition function handling flag     #
 #                                                                              #
 # It provides following output (in parentheses: side products):                #
 #   abs_lookup                as the WSV                                       #
@@ -76,13 +77,14 @@ AtmFieldsCalc( t_field=t_1D, z_field=z_1D, vmr_field=vmr_1D,
 atmfields_checkedCalc( atmosphere_dim=atmdim_1D, lat_grid=lat_1D, lon_grid=lon_1D,
                        t_field=t_1D, vmr_field=vmr_1D,
                        wind_u_field=fdummy, wind_v_field=fdummy, wind_w_field=fdummy,
-                       mag_u_field=fdummy, mag_v_field=fdummy, mag_w_field=fdummy )
+                       mag_u_field=fdummy, mag_v_field=fdummy, mag_w_field=fdummy,
+                       bad_partition_functions_ok=bad_partition_functions_ok )
 abs_xsec_agenda_checkedCalc
 abs_lookupSetup( atmosphere_dim=atmdim_1D, t_field=t_1D, vmr_field=vmr_1D )
 abs_lookupCalc
 
 #abs_xsec_agenda_checkedCalc
-#atmfields_checkedCalc
+#atmfields_checkedCalc( bad_partition_functions_ok=bad_partition_functions_ok )
 #abs_lookupSetup
 #abs_lookupCalc
 
