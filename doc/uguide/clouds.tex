@@ -534,43 +534,39 @@ region:
 # Initialisation
 ParticleTypeInit
 # Only one scattering element is added in this example 
-ParticleTypeAdd( scat_data, pnd_field_raw,
+ScatElementsPndAndScatAdd( scat_data, pnd_field_raw,
                  atmosphere_dim, f_grid,
-                 "ssd_sphere_50um_macroscopically_isotropic.xml",
-                 "pnd_sphere_50um_macroscopically_isotropic.xml" )
+                 ["ssd_sphere_50um_macroscopically_isotropic.xml",
+                  "ssd_cylinder_30um_horizontally_aligned.xml"],
+                 ["pnd_sphere_50um_macroscopically_isotropic.xml",
+                  "pnd_cylinder_30um_horizontally_aligned.xml"] )
 \end{code}
-In the workspace method \wsmindex{ParticleTypeAdd} the single
-scattering properties for one scattering element are read. The
-generic input \shortcode{filename\_scat\_data} must be set to
-the filename of a datafile containing the single scattering data (class
-\typeindex{SingleScatteringData}) in xml-format. The generic input
-\shortcode{filename\_pnd\_field} must contain the filename of the
-corresponding particle number density field in xml-format (class
-\typeindex{GField3}). If the cloud is composed of several
-different scattering elements \wsmindex{ParticleTypeAdd} can be used
-repeatedly for all scattering elements, for instance to the
-randomly oriented spherical particles from above one could add horizontally aligned
-cylindrical particles:
-\begin{code}
-ParticleTypeAdd( scat_data, pnd_field_raw,
-                 atmosphere_dim, f_grid,
-                 "ssd_cylinder_30um_horizontally_aligned.xml",
-                 "pnd_cylinder_30um_horizontally_aligned.xml" )
-\end{code}
+In the workspace method \wsmindex{ScatElementsPndAndScatAdd} the single
+scattering properties for individual (one or more) scattering elements are read
+and the scattering element data is appended to the last defined scattering
+species.
+The generic input \shortcode{scat\_data\_filenames} holds the list of filenames
+of the datafiles containing the single scattering data per scattering element
+(class \typeindex{SingleScatteringData}) in xml-format. The generic input
+\shortcode{pnd\_field\_files} holds the list of filenames of the
+corresponding particle number density fields in xml-format (class
+\typeindex{GField3}). Adding multiple scattering element instances can be done
+at once as demonstrated in the above example, where two elements, a sphere and
+and a horizontally aligned cylindrical particle, are added.
+
 Alternatively it is possible to use the method
-\wsmindex{ParticleTypeAddAll}, which is convenient to generate a size
-distribution using several size bins. In this case one needs to define
-one scattering element for each size bin. If the num,ber of size bins is large,
-the control file
-becomes very lengthy when using \wsmindex{ParticleTypeAdd}
-repeatedly. \wsmindex{ParticleTypeAddAll} requires as input an array
-of string including the filenames of the single scattering data files for all
-individual scattering elements
-and the variable \wsvindex{pnd\_field\_raw} which includes the particle
-number density fields for all scattering elements at once. Using this function, one
-has to make sure that the order of the filenames containing the single
-scattering data corresponds to the order of the particle number
-density fields in \wsvindex{pnd\_field\_raw}.
+\wsmindex{ScatSpeciesPndAndScatAdd}. It is, e.g., convenient to generate a size
+distribution using several size bins, where each scattering element constitutes
+one size bin. \wsmindex{ScatSpeciesPndAndScatAdd} creates a new scattering
+species and adds all data of all covered scattering elements to this species. It
+requires as input an array of string including the filenames of the single
+scattering data files for all individual scattering elements and the name of the
+data file holding the complete variable \wsvindex{pnd\_field\_raw}, i.e., the
+particle number density fields for all scattering elements at once. Using this
+function, one has to make sure that the order of the filenames containing the
+single scattering data corresponds to the order of the particle number density
+fields in \wsvindex{pnd\_field\_raw}.
+
 After reading the data the workspace variable \wsvindex{pnd\_field} is
 calculated using \wsmindex{pnd\_fieldCalcFrompnd\_field\_raw}: 
 \begin{code}

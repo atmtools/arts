@@ -1,3 +1,59 @@
+2015-08-18  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-3-275
+
+	Renaming of ParticleType* and ScatteringParticle* WSM and change of
+	behaviour of some of these WSM for consistency with scat-species/scat-element
+	scheme.
+
+	* src/m_cloudbox.cc
+	(ScatSpeciesInit): Renamed from ParticleTypeInit. Merged with
+	scat_speciesInit and scat_metaInit.
+
+	(ScatSpeciesScatAndMetaRead, ScatElementsSelect): Renamed from
+	ScatteringParticleTypeAndMetaRead and ScatteringParticlesSelect,
+	respectively.
+
+	(ScatSpeciesPndAndScatAdd): Renamed from  ParticleTypeAddAll. Modified to
+	append data as new scattering species.
+
+	(ScatElementsPndAndScatAdd): Renamed from ParticleTypeAdd. Adapted to
+	handle multiple scattering elements at once (using file lists equivalent
+	to ScatSpeciesScatAndMetaRead).
+
+	(ScatElementsToabs_speciesAdd): Renamed from ParticleType2abs_speciesAdd.
+	Adapted to handle multiple scattering elements at once (similar to
+	ScatElementsPndAndScatAdd).
+
+	(scat_speciesInit): Removed.
+
+	* src/m_cloudproperties.cc (ScatSpeciesMerge):
+	Renamed from ScatteringMergeParticles1D.
+
+	* src/m_tmatrix.cc (scat_metaInit): Removed.
+
+	* src/methods.cc, m_jacobians (jacobianDoit):
+	Adaptation according to name/interface/behaviour changes above.
+
+	* controlfiles/planetary_toolbox/includes/mars/getclouds_mars.arts,
+	controlfiles/planetary_toolbox/includes/common/makeclouds1D.arts,
+	controlfiles/planetary_toolbox/includes/venus/getclouds_venus.arts,
+	controlfiles/artscomponents/arts-xml-data/TestClouds_Venus.arts,
+	controlfiles/artscomponents/arts-xml-data/TestClouds_Mars.arts,
+	controlfiles/artscomponents/absorption/TestAbsParticle.arts,
+	controlfiles/artscomponents/doit/doit_setup.arts,
+	controlfiles/artscomponents/doit/TestDOITFromIndividualFields.arts,
+	controlfiles/artscomponents/doitbatch/TestDOITBatch.arts,
+	controlfiles/artscomponents/wfuns/TestDoitJacobians.arts,
+	controlfiles/artscomponents/montecarlo/TestMonteCarloDataPrepare.arts,
+	controlfiles/artscomponents/disort/TestDISORT.arts:
+	Adapted according to above changes.
+
+	* doc/uguide/clouds.tex, absorption.tex: Scattering particle related
+	text adapted according to above changes.
+
+	* CMakeLists.txt: Fixed bug (exclude planettoolbox tag from 'check' tag).
+
 2015-08-17  Jana Mendrok  <jana.mendrok@ltu.se>
 
 	* arts-2-3-274

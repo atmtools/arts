@@ -1012,16 +1012,16 @@ corresponding concentration field has to be added to \builtindoc{vmr\_field},
 and 3) its single scattering data have to be added to
 \wsvindex{scat\_data}. This can be done each-by-each using
 \builtindoc{ReadXML} and \builtindoc{Append} methods, but a dedicated method
-\wsmindex{ParticleType2abs\_speciesAdd} is available performing these three
-steps for one scattering element at once. \wsmindex{ParticleType2abs\_speciesAdd}
+\wsmindex{ScatElementsToabs\_speciesAdd} is available performing these three
+steps for one scattering element at once. \wsmindex{ScatElementsToabs\_speciesAdd}
 adds the raw number density field to \builtindoc{vmr\_field\_raw}, i.e., the raw
 concentration fields can be converted to internal atmospheric grids together
 with the gas concentration fields using, e.g., \builtindoc{AtmFieldsCalc}.
 Single scattering data of all individual scattering elements is added to one and
 the same scattering species, specifically to the last one of these in the
 \builtindoc{scat\_data} array.
-Note that \wsmindex{ParticleType2abs\_speciesAdd} is essentially doing the same
-as \builtindoc{ParticleTypeAdd}, but for non-scattering instead for
+Note that \wsmindex{ScatElementsToabs\_speciesAdd} is essentially doing the same
+as \builtindoc{ScatElementsPndAndScatAdd}, but for non-scattering instead for
 scattering-in-cloudbox cases (where in non-scattering setups the concentration
 data is stored together with gas concentrations in \builtindoc{vmr\_field},
 while for scattering setups it is stored separately in

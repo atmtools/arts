@@ -567,14 +567,6 @@ void scat_species_fieldCleanup (//WS Output:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void scat_speciesInit (ArrayOfString&  scat_species,
-                       const Verbosity&)
-{
-  scat_species.resize ( 0 );
-}
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
 void scat_speciesSet (// WS Generic Output:
                       ArrayOfString&  scat_species,
                       // Control Parameters:
@@ -601,18 +593,22 @@ void scat_speciesSet (// WS Generic Output:
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void ParticleTypeInit (//WS Output:
+void ScatSpeciesInit (//WS Output:
+                       ArrayOfString& scat_species,
                        ArrayOfArrayOfSingleScatteringData& scat_data,
+                       ArrayOfArrayOfScatteringMetaData& scat_meta,
                        ArrayOfGriddedField3& pnd_field_raw,
                        const Verbosity&)
 {
+  scat_species.resize ( 0 );
   scat_data.resize(0);
+  scat_meta.resize(0);
   pnd_field_raw.resize(0);
 }
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void ParticleTypeAdd( //WS Output:
+void ScatElementsPndAndScatAdd( //WS Output:
                      ArrayOfArrayOfSingleScatteringData& scat_data,
                      ArrayOfGriddedField3&  pnd_field_raw,
                      // WS Input (needed for checking the datafiles):
@@ -622,8 +618,8 @@ void ParticleTypeAdd( //WS Output:
 //                     const Vector& lat_grid,
 //                     const Vector& lon_grid,
                      // Keywords:
-                     const String& scat_data_file,
-                     const String& pnd_field_file,
+                     const ArrayOfString& scat_data_files,
+                     const ArrayOfString& pnd_field_files,
                      const Verbosity& verbosity)
 {
   CREATE_OUT2;
@@ -642,6 +638,14 @@ void ParticleTypeAdd( //WS Output:
 
   //--- Reading the data ---------------------------------------------------
 
+  if ( scat_data_files.nelem()!=pnd_field_files.nelem() )
+    {
+      ostringstream os;
+      os << "Number of elements in scat_data and pnd_field filelists is"
+         << "inconsistent.";
+      throw runtime_error ( os.str() );
+    }
+
   Index last_species = scat_data.nelem()-1;
   if (last_species == -1)
   {
@@ -649,40 +653,45 @@ void ParticleTypeAdd( //WS Output:
       last_species = 0;
   }
 
-  // Append *scat_data* and *pnd_field_raw* with empty Arrays of Tensors.
+  // Create empty dummy elements to append to *scat_data* and *pnd_field_raw*.
   SingleScatteringData scat_data_single;
-  scat_data[last_species].push_back(scat_data_single);
-  
   GriddedField3 pnd_field_data;
-  pnd_field_raw.push_back(pnd_field_data);
-  
-  out2 << "  Read single scattering data\n";
-  xml_read_from_file(scat_data_file,
-                     scat_data[last_species][scat_data[last_species].nelem()-1],
-                     verbosity);
 
-  chk_scat_data(scat_data[last_species][scat_data[last_species].nelem()-1],
-                             scat_data_file, f_grid, verbosity);       
-  
-  out2 << "  Read particle number density field\n";
-  if (pnd_field_file.nelem() < 1)
-  {
-    CREATE_OUT1;
-    out1 << "Warning: No pnd_field_file specified. Ignored. \n";
-  }
-  else
+  for ( Index i = 0; i<scat_data_files.nelem(); i++ )
     {
-      xml_read_from_file(pnd_field_file, pnd_field_raw[pnd_field_raw.nelem()-1],
+      // Append *scat_data* and *pnd_field_raw* with empty Arrays of Tensors.
+      scat_data[last_species].push_back(scat_data_single);
+      pnd_field_raw.push_back(pnd_field_data);
+  
+      out2 << "  Read single scattering data\n";
+      xml_read_from_file(scat_data_files[i],
+                         scat_data[last_species][scat_data[last_species].nelem()-1],
                          verbosity);
+
+      chk_scat_data(scat_data[last_species][scat_data[last_species].nelem()-1],
+                    scat_data_files[i], f_grid, verbosity);       
+  
+      out2 << "  Read particle number density field\n";
+      if (pnd_field_files[i].nelem() < 1)
+      {
+        CREATE_OUT1;
+        out1 << "Warning: No pnd_field_file specified. Ignored here,\n"
+             << "but user HAS TO add that later on!. \n";
+      }
+      else
+      {
+        xml_read_from_file(pnd_field_files[i],
+                           pnd_field_raw[pnd_field_raw.nelem()-1], verbosity);
       
-      chk_pnd_data(pnd_field_raw[pnd_field_raw.nelem()-1],
-                   pnd_field_file, atmosphere_dim, verbosity);
+        chk_pnd_data(pnd_field_raw[pnd_field_raw.nelem()-1],
+                     pnd_field_files[i], atmosphere_dim, verbosity);
+      }
     }
 }
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void ParticleTypeAddAll (//WS Output:
+void ScatSpeciesPndAndScatAdd (//WS Output:
                          ArrayOfArrayOfSingleScatteringData& scat_data,
                          ArrayOfGriddedField3&  pnd_field_raw,
                          // WS Input(needed for checking the datafiles):
@@ -711,31 +720,45 @@ void ParticleTypeAddAll (//WS Output:
 
 
   //--- Reading the data ---------------------------------------------------
-  scat_data.resize(1);
-  scat_data[0].resize ( scat_data_files.nelem() );
+  ArrayOfSingleScatteringData arr_ssd;
+  arr_ssd.resize ( scat_data_files.nelem() );
 
   for ( Index i = 0; i<scat_data_files.nelem(); i++ )
   {
 
     out2 << "  Read single scattering data\n";
-    xml_read_from_file ( scat_data_files[i], scat_data[0][i], verbosity );
+    xml_read_from_file ( scat_data_files[i], arr_ssd[i], verbosity );
 
-    chk_scat_data ( scat_data[0][i],
+    chk_scat_data ( arr_ssd[i],
                                  scat_data_files[i], f_grid,
                                  verbosity );
 
   }
 
-  out2 << "  Read particle number density data \n";
-  xml_read_from_file ( pnd_fieldarray_file, pnd_field_raw, verbosity );
+  // append as new scattering species
+  if ( scat_data.nelem()==0 )
+    {
+      scat_data.resize(1);
+      scat_data[0] = arr_ssd;
+    }
+  else
+    scat_data.push_back(arr_ssd);
 
-  chk_pnd_raw_data ( pnd_field_raw,
+  out2 << "  Read particle number density data \n";
+  ArrayOfGriddedField3  pnd_tmp;
+  xml_read_from_file ( pnd_fieldarray_file, pnd_tmp, verbosity );
+
+  chk_pnd_raw_data ( pnd_tmp,
                      pnd_fieldarray_file, atmosphere_dim, verbosity);
+
+  // append to pnd_field_raw
+  for ( Index i = 0; i<pnd_tmp.nelem(); ++i)
+    pnd_field_raw.push_back(pnd_tmp[i]);
 }
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void ParticleType2abs_speciesAdd( //WS Output:
+void ScatElementsToabs_speciesAdd( //WS Output:
                      ArrayOfArrayOfSingleScatteringData& scat_data,
                      ArrayOfGriddedField3& vmr_field_raw,
                      ArrayOfArrayOfSpeciesTag& abs_species,
@@ -748,8 +771,8 @@ void ParticleType2abs_speciesAdd( //WS Output:
 //                     const Vector& lat_grid,
 //                     const Vector& lon_grid,
                      // Keywords:
-                     const String& scat_data_file,
-                     const String& pnd_field_file,
+                     const ArrayOfString& scat_data_files,
+                     const ArrayOfString& pnd_field_files,
                      const Verbosity& verbosity)
 {
   CREATE_OUT2;
@@ -768,6 +791,14 @@ void ParticleType2abs_speciesAdd( //WS Output:
 
   //--- Reading the data ---------------------------------------------------
 
+  if ( scat_data_files.nelem()!=pnd_field_files.nelem() )
+    {
+      ostringstream os;
+      os << "Number of elements in scat_data and pnd_field filelists is"
+         << "inconsistent.";
+      throw runtime_error ( os.str() );
+    }
+
   Index last_species = scat_data.nelem()-1;
   if (last_species == -1)
   {
@@ -775,55 +806,58 @@ void ParticleType2abs_speciesAdd( //WS Output:
       last_species = 0;
   }
 
-  // Append *scat_data* and *pnd_field_raw* with empty Arrays of Tensors.
+  // Create empty dummy elements to append to *scat_data* and *pnd_field_raw*.
   SingleScatteringData scat_data_single;
-  scat_data[last_species].push_back(scat_data_single);
-  
-  out2 << "  Read single scattering data\n";
-  xml_read_from_file(scat_data_file,
-                     scat_data[last_species][scat_data[last_species].nelem()-1],
-                     verbosity);
+  GriddedField3 pnd_field_data;
+  ArrayOfString species(1);
+  species[0] = "particles";
 
-  chk_scat_data(scat_data[last_species][scat_data[last_species].nelem()-1],
-                             scat_data_file, f_grid, verbosity);       
-  
-  out2 << "  Read particle number density field\n";
-  if (pnd_field_file.nelem() < 1)
-  {
-    CREATE_OUT1;
-    out1 << "Warning: No pnd_field_file specified. Ignored here,\n"
-         << "but user HAS TO add that later on!\n";
-  }
-  else
+  for ( Index i = 0; i<scat_data_files.nelem(); i++ )
     {
-      GriddedField3 pnd_field_data;
+      // Append *scat_data* and *pnd_field_raw* with empty Arrays of Tensors.
+      scat_data[last_species].push_back(scat_data_single);
       vmr_field_raw.push_back(pnd_field_data);
-  
-      xml_read_from_file(pnd_field_file, vmr_field_raw[vmr_field_raw.nelem()-1],
+
+      out2 << "  Read single scattering data\n";
+      xml_read_from_file(scat_data_files[i],
+                         scat_data[last_species][scat_data[last_species].nelem()-1],
                          verbosity);
+
+      chk_scat_data(scat_data[last_species][scat_data[last_species].nelem()-1],
+                    scat_data_files[i], f_grid, verbosity);       
+  
+      out2 << "  Read particle number density field\n";
+      if (pnd_field_files[i].nelem() < 1)
+      {
+        CREATE_OUT1;
+        out1 << "Warning: No pnd_field_file specified. Ignored here,\n"
+             << "but user HAS TO add that later on!\n";
+      }
+      else
+      {
+        xml_read_from_file(pnd_field_files[i],
+                           vmr_field_raw[vmr_field_raw.nelem()-1], verbosity);
       
-      chk_pnd_data(vmr_field_raw[vmr_field_raw.nelem()-1],
-                   pnd_field_file, atmosphere_dim, verbosity);
+        chk_pnd_data(vmr_field_raw[vmr_field_raw.nelem()-1],
+                     pnd_field_files[i], atmosphere_dim, verbosity);
+      }
+
+      out2 << "  Append 'particle' field to abs_species\n";
+      abs_speciesAdd( abs_species,
+                      propmat_clearsky_agenda_checked, abs_xsec_agenda_checked,
+                      species, verbosity );
     }
-
-  out2 << "  Append 'particle' field to abs_species\n";
-  ArrayOfString species;
-  species.push_back("particles");
-
-  abs_speciesAdd( abs_species,
-                  propmat_clearsky_agenda_checked, abs_xsec_agenda_checked,
-                  species, verbosity );
 }
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void ScatteringParticleTypeAndMetaRead (//WS Output:
-                                        ArrayOfArrayOfSingleScatteringData& scat_data,
-                                        ArrayOfArrayOfScatteringMetaData& scat_meta,
-                                        const Vector& f_grid,
-                                        // Keywords:
-                                        const ArrayOfString& scat_data_files,
-                                        const Verbosity& verbosity)
+void ScatSpeciesScatAndMetaRead (//WS Output:
+                                 ArrayOfArrayOfSingleScatteringData& scat_data,
+                                 ArrayOfArrayOfScatteringMetaData& scat_meta,
+                                 const Vector& f_grid,
+                                 // Keywords:
+                                 const ArrayOfString& scat_data_files,
+                                 const Verbosity& verbosity)
 {
   CREATE_OUT3;
 
@@ -868,13 +902,13 @@ void ScatteringParticleTypeAndMetaRead (//WS Output:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void ScatteringParticlesSelect (//WS Output:
-                                ArrayOfArrayOfSingleScatteringData& scat_data,
-                                ArrayOfArrayOfScatteringMetaData& scat_meta,
-                                // WS Input:
-                                const ArrayOfString& scat_species,
-                                const String& delim,
-                                const Verbosity& verbosity)
+void ScatElementsSelect (//WS Output:
+                         ArrayOfArrayOfSingleScatteringData& scat_data,
+                         ArrayOfArrayOfScatteringMetaData& scat_meta,
+                         // WS Input:
+                         const ArrayOfString& scat_species,
+                         const String& delim,
+                         const Verbosity& verbosity)
 { 
   CREATE_OUT1;
   CREATE_OUT3;

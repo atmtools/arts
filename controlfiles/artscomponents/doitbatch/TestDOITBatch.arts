@@ -160,15 +160,15 @@ scat_speciesSet(scat_species, [
 #-------------------------------------------------
 ArrayOfStringCreate( scat_data_files )
 ReadXML( scat_data_files, "testdata/SingleScatteringFile_H2Oliquid.xml" )
-ScatteringParticleTypeAndMetaRead ( scat_data_files=scat_data_files )
+ScatSpeciesScatAndMetaRead ( scat_data_files=scat_data_files )
 ReadXML( scat_data_files, "testdata/SingleScatteringFile_H2Oice.xml" )
-ScatteringParticleTypeAndMetaRead ( scat_data_files=scat_data_files )
+ScatSpeciesScatAndMetaRead ( scat_data_files=scat_data_files )
 ReadXML( scat_data_files, "testdata/SingleScatteringFile_H2Oliquid.xml" )
-ScatteringParticleTypeAndMetaRead ( scat_data_files=scat_data_files )
+ScatSpeciesScatAndMetaRead ( scat_data_files=scat_data_files )
 
 # Selection/filterting of particles according to *scat_species*
 #--------------------------------------------------------------
-ScatteringParticlesSelect
+ScatElementsSelect
 scat_dataCheck
 
 # 7.AGENDAS--------------------------------------------------------------

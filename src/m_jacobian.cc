@@ -2148,7 +2148,7 @@ void jacobianDoit(//WS Output:
                   const ArrayOfIndex& cloudbox_limits,
                   // input required for pnd_fieldCalcFromscat_speciesFields
                   const ArrayOfArrayOfScatteringMetaData& scat_meta,
-                  // input required for ScatteringMergeParticles1D
+                  // input required for ScatSpeciesMerge
                   const Matrix& z_surface,
                   // input required for DoitCalc
                   const Index& atmfields_checked,
@@ -2178,7 +2178,7 @@ void jacobianDoit(//WS Output:
                   const ArrayOfString& iy_aux_vars,
                   // Keywords:
                   const Index& robust,
-                  const Index& ScatteringMergeParticle_do,
+                  const Index& ScatSpeciesMerge_do,
                   const Index& debug,
                   const String& delim,
                   const Verbosity& verbosity)
@@ -2270,12 +2270,12 @@ void jacobianDoit(//WS Output:
   // the original one. also, if we merge in the perturbation calculations, then
   // we merge here as well.
   ArrayOfArrayOfSingleScatteringData scat_data_ref;
-  if( ScatteringMergeParticle_do )
+  if( ScatSpeciesMerge_do )
     {
       scat_data_ref=scat_data;
-      ScatteringMergeParticles1D(	pnd_field, scat_data, atmosphere_dim,
-                                  cloudbox_on, cloudbox_limits, t_field, z_field,
-                                  z_surface, cloudbox_checked, verbosity );
+      ScatSpeciesMerge(	pnd_field, scat_data, atmosphere_dim,
+                        cloudbox_on, cloudbox_limits, t_field, z_field,
+                        z_surface, cloudbox_checked, verbosity );
       if( debug )
         {
           WriteXML( "ascii", pnd_field, "pnd_field_refmerged", 0, "pnd_field",
@@ -2631,12 +2631,13 @@ void jacobianDoit(//WS Output:
                                        "pnd_field_perturbed", "pnd_field", "",
                                        verbosity );
                     }
-                  if( ScatteringMergeParticle_do )
+                  if( ScatSpeciesMerge_do )
                     {
                       scat_data=scat_data_ref;
-                      ScatteringMergeParticles1D(	pnd_field, scat_data,
-                        atmosphere_dim, cloudbox_on, cloudbox_limits, t_field,
-                        z_field, z_surface, cloudbox_checked, verbosity );
+                      ScatSpeciesMerge(	pnd_field, scat_data, atmosphere_dim,
+                                        cloudbox_on, cloudbox_limits, t_field,
+                                        z_field, z_surface, cloudbox_checked,
+                                        verbosity );
                       if( debug )
                         {
                           WriteXMLIndexed( "ascii", iq*np+il, scat_data,

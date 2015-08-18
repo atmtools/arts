@@ -31,9 +31,9 @@
 #   pnd_field_raw                    as the WSV                                #
 #   ssdfiles       (ArrayOfString)   List of files containing the single       #
 #                                     scattering data for each particle type.  #
-#                                     The file containing this data serves as  #
-#                                     input parameter filelist_scat_data of    #
-#                                     WSM ParticleTypeAddAll.                  #
+#                                     The list serves as input parameter       #
+#                                     scat_data_files to WSM                   #
+#                                     ScatSpeciesPndAndScatAdd.                #
 # Names of the temporary files are passed into makeclouds1D.arts by the String #
 # variables                                                                    #
 #   pndtmp                           for pnd_field_raw file                    #
@@ -130,7 +130,7 @@ Print( infostr )
 # now, we construct the name for the specific data files one-by-one, read the
 #  pnd field data and construct pnd_field_raw (array of pnd fields), and store
 #  the ssd file names as array in a file. This in order to later use
-#  ParticleTypeAddAll to actually get the respective data into the pnd_field_raw
+#  ScatSpeciesPndAndScatAdd to actually get the respective data into the pnd_field_raw
 #  and scat_data ARTS WSV. Compared to directly putting the individual pnd
 #  field and single scattering data array entries into the WSV one-by-one, this
 #  is advantageous as (1) we do not need to read & write the scat_data

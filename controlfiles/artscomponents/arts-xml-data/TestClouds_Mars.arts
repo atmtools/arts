@@ -87,7 +87,7 @@ ArrayOfStringSet( solarcasearray, [".sol-avg"] )
 
 
 # case unspecific cloud specification (the pndfields are specific. however, we
-# need them for ParticleTypeAddAll. so we use a dummy version, which we will
+# need them for ScatElementsPndAndScatAdd. so we use a dummy version, which we will
 # overwrite later on.
 StringCreate( cloudpath )
 StringCreate( ssdname )
@@ -96,6 +96,7 @@ StringCreate( psdname )
 StringCreate( psdprofname )
 ArrayOfStringCreate( pndcasearray )
 ArrayOfStringCreate( ssdcasearray )
+ArrayOfStringCreate( assd )
 
 StringSet( cloudpath, "planets/Mars/SAT/" )
 ArrayOfStringSet( pndcasearray, [
@@ -215,10 +216,10 @@ AgendaSet( forloop_agenda_particles ){
   #Print( pndname, 0 )
   Extract( psdname, ssdcasearray, forloop_index )
   Append( ssdname, psdname )
-  #Print( ssdname, 0 )
-  ParticleTypeInit
-  ParticleTypeAdd( filename_scat_data=ssdname,
-                   filename_pnd_field="" )
+  Append( assd, ssdname )
+  #Print( assd, 0 )
+  ScatSpeciesInit
+  ScatElementsPndAndScatAdd( scat_data_files=assd, pnd_field_files=[""] )
   ReadXML( pnd_field_raw, pndname )
   #scat_data_rawCheck
   pnd_fieldCalcFrompnd_field_raw( zeropadding=1 )

@@ -243,15 +243,6 @@ void TMatrixTest(const Verbosity& verbosity)
 
 
 
-void scat_metaInit(// WS Output:
-                   ArrayOfArrayOfScatteringMetaData& scat_meta,
-                   //WS Input
-                   const Verbosity&)
-{
-    scat_meta.resize(0);
-}
-
-
 //-----------------------------------
 
                  

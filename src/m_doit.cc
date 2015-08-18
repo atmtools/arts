@@ -3102,6 +3102,47 @@ void iyInterpPolyCloudboxField(Matrix&         iy,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+/*void doit_i_fieldInterpolate(// WS Generic Output:
+                             Tensor7& doit_i_field_out,
+                             // WS Generic Input:
+                             const Tensor7& doit_i_field_in,
+                             const Vector& p_grid_out,
+                             const Vector& p_grid_in,
+                             const Vector& scat_za_grid_out,
+                             const Vector& scat_za_grid_in,
+                             const ArrayOfIndex& cloudbox_limits,
+                             const Index boundary_do,
+                             const Verbosity& ) //verbosity)
+//p_grid, za_grid (aa_grid not as naa for 1D==1)
+// za_grid_new has to include 0 and 180.
+// p_grid 
+//so far no f_grid
+//
+// for running doit with successively refining grids, it might be better to do
+// this on doit_i_field_mono. so we should probably extract a monochrome variant
+// for a WSM that does all the regridding/interpolation and doit solution.
+{
+  // this is only for 1D atmo (we check lat/lon dimensions and azimuth ange
+  // dimension to be of extend 1)
+  if( doit_i_field_in.nshelves()!=1 || doit_i_field_in.nvitrines()!=1 ||
+      doit_i_field_in.nrows()!=1 )
+    {
+      ostringstream os;
+      os << "This method is currently only implemented for 1D atmospheres!";
+      throw runtime_error( os.str() );
+    }
+  
+  // rudimentary check that cloudbox_limits are consistent with p_grid
+  if( cloudbox_limits[1]>p_grid_in.nelem() )
+    {
+      ostringstream os;
+      os << "cloudbox_limits inconsistent with ";
+      throw runtime_error( os.str() );
+    }
+}
+*/
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void doit_i_fieldSetFromPrecalc(
                              Tensor7& doit_i_field,
                              const Vector& scat_za_grid,

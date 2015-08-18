@@ -108,7 +108,7 @@ sensor_checkedCalc
 # Specification of cloud
 # -----------------------
     
-ParticleTypeInit
+ScatSpeciesInit
 
 # Special DISORT function, because cloudbox needs to be extended over the 
 # ehole atmosphere
@@ -117,10 +117,11 @@ cloudboxSetDisort
 # Only one particle type is added in this example
 # Note that you must use p20 data, because disort only works with this
 # format. 
-ParticleTypeAdd( filename_scat_data="testdata/testdoit_p30f229-231T214-225r100NP-1ar1_5ice.xml",
-                 filename_pnd_field="testdata/testdoit_pnd_field_1D.xml" )
-ParticleTypeAdd( filename_scat_data="testdata/testdoit_p30f229-231T214-225r100NP-1ar1_5ice.xml",
-                 filename_pnd_field="testdata/testdoit_pnd_field_1D.xml" )
+ScatElementsPndAndScatAdd(
+  scat_data_files=["testdata/testdoit_p30f229-231T214-225r100NP-1ar1_5ice.xml",
+                   "testdata/testdoit_p30f229-231T214-225r100NP-1ar1_5ice.xml"],
+  pnd_field_files=["testdata/testdoit_pnd_field_1D.xml",
+                   "testdata/testdoit_pnd_field_1D.xml"] )
 scat_dataCheck
 pnd_fieldCalcFrompnd_field_raw
 

@@ -7507,9 +7507,9 @@ void define_md_data_raw()
          "Clearsky and cloudysky Jacobians can currently not be calculated\n"
          "simulatneously.\n"
          "\n"
-         "Attention: If ScatteringMergeParticle1D is used (in the calculation\n"
+         "Attention: If *ScatSpeciesMerge* is used (in the calculation\n"
          "of the first guess field outside this WSM or by\n"
-         "*ScatteringMergeParticle_do*=1 inside this WSM), the original,\n"
+         "*ScatSpeciesMerge_do*=1 inside this WSM), the original,\n"
          "unmerged *scat_data* and *pnd_field* need to be copied back into\n"
          "the respective WSV and passed into this WSM (It is not sufficient\n"
          "to pass a copied version! Data needs to reside in the WSVs\n"
@@ -7544,14 +7544,14 @@ void define_md_data_raw()
             "sensor_response_pol", "sensor_response_dlos",
             "iy_unit", "iy_main_agenda", "geo_pos_agenda",
             "jacobian_agenda", "jacobianDoit_do", "iy_aux_vars" ),
-        GIN( "robust", "ScatteringMergeParticle_do", "debug", "scat_species_delim" ),
+        GIN( "robust", "ScatSpeciesMerge_do", "debug", "scat_species_delim" ),
         GIN_TYPE( "Index",        "Index",           "Index", "String" ),
         GIN_DEFAULT(  "1",            "0",               "0", "-" ),
         GIN_DESC( "Flag (0=no,1=yes) whether to continue perturbation "
                   "calculations, even if individual calculations fail. When set"
                   "robust, respective entries in *jacobian* are set to NaN.",
-                  "Flag (0=no,1=yes) whether to execute "
-                  "*ScatteringMergeParticle1D* on perturbed *pnd_field*",
+                  "Flag (0=no,1=yes) whether to execute *ScatSpeciesMerge* on "
+                  "perturbed *pnd_field*",
                   "Debug flag (dumps some additional output to files)",
                   "*scat_species* delimiter string"
                   )
@@ -8795,7 +8795,7 @@ void define_md_data_raw()
          "This method is supposed to be used to derive *particle_masses*\n"
          "when *pnd_field* is internally calculated using\n"
          "*pnd_fieldCalcFromscat_speciesFields* (in contrast to reading it\n"
-         "from external sources using *ParticleTypeAdd* and\n"
+         "from external sources using *ScatElementsPndAndScatAdd* and\n"
          "*pnd_fieldCalcFrompnd_field_raw*).\n"
          "It extracts the mass information of the scattering elements from\n"
          "*scat_meta*. Each scattering species is taken as a separate\n"
@@ -8815,127 +8815,6 @@ void define_md_data_raw()
         GIN_DESC()
         ));
 
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "ParticleTypeAdd" ),
-        DESCRIPTION
-        (
-         "Reads single scattering data and corresonding particle number\n"
-         "density fields.\n"
-         "\n"
-         "The methods reads the specified files and appends the obtained data\n"
-         "to *scat_data* and *pnd_field_raw*.\n"
-         ),
-        AUTHORS( "Claudia Emde" ),
-        OUT( "scat_data", "pnd_field_raw" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "atmosphere_dim", "f_grid" ),
-        GIN(         "filename_scat_data", "filename_pnd_field" ),
-        GIN_TYPE(    "String",             "String"             ),
-        GIN_DEFAULT( NODEF,                NODEF                ),
-        GIN_DESC( "Name of single scattering data file.",
-                  "Name of the corresponding pnd_field file." 
-                  )
-        ));
-
- 
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "ParticleTypeAddAll" ),
-        DESCRIPTION
-        (
-         "Reads single scattering data and particle number densities.\n"
-         "\n"
-         "The WSV *pnd_field_raw* containing particle number densities for all\n"
-         "scattering species can be generated outside ARTS, for example by using\n"
-         "PyARTS. This method needs as input an ArrayOfString holding the\n"
-         "filenames of the single scattering data for each scattering element\n"
-         "and a file containing the corresponding *pnd_field_raw*. In contrast\n"
-         "to the scattering data, the pnd-fields are stored in a single\n"
-         "XML-file containing an ArrayofGriddedField3, i.e. holding the\n"
-         "pnd-field data of all scattering elements.\n"
-         "\n"
-         "Important note:\n"
-         "The order of the filenames for the scattering data files has to\n"
-         "correspond to the order of the pnd-fields, stored in the variable\n"
-         "*pnd_field_raw*.\n"
-         ),
-        AUTHORS( "Claudia Emde, Jana Mendrok" ),
-        OUT( "scat_data", "pnd_field_raw" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "atmosphere_dim", "f_grid" ),
-        GIN(         "scat_data_files", "pnd_fieldarray_file" ),
-        GIN_TYPE(    "ArrayOfString",   "String"              ),
-        GIN_DEFAULT( NODEF,             NODEF                 ),
-        GIN_DESC( "Name of file with array of single scattering data filenames.",
-                  "Name of file holding the correspnding array of pnd_field data." 
-                  )
-        ));
-
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "ParticleTypeInit" ),
-        DESCRIPTION
-        (
-         "Initializes *scat_data* and *pnd_field_raw*.\n"
-         "\n"
-         "This method initializes variables that will hold the optical\n"
-         "properties of the scattering elements (*scat_data*) and the\n"
-         "particle number distribution (*pnd_field_raw*).\n"
-         "\n"
-         "This method has to be executed before executing e.g.\n"
-         "*ParticleTypeAdd*.\n"
-         ),
-        AUTHORS( "Claudia Emde" ),
-        OUT( "scat_data", "pnd_field_raw" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN(),
-        GIN(), 
-        GIN_TYPE(), 
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "ParticleType2abs_speciesAdd" ),
-        DESCRIPTION
-        (
-         "Appends an instance of species 'particles' to *abs_species* including\n"
-         "reading single scattering data and corresponding pnd field.\n"
-         "\n"
-         "The methods reads the specified single scattering and pnd_field\n"
-         "data (of a single scattering element) and appends the obtained data\n"
-         "to *scat_data* (appending to its last scattering species) and\n"
-         "*vmr_field_raw*. It also appends one instance of species 'particles'\n"
-         "to *abs_species*.\n"
-         ),
-        AUTHORS( "Jana Mendrok" ),
-        OUT( "scat_data", "vmr_field_raw", "abs_species",
-             "propmat_clearsky_agenda_checked", "abs_xsec_agenda_checked" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "vmr_field_raw", "abs_species",
-            "propmat_clearsky_agenda_checked", "abs_xsec_agenda_checked",
-            "atmosphere_dim", "f_grid" ),
-        GIN(         "filename_scat_data", "filename_pnd_field" ),
-        GIN_TYPE(    "String",             "String"             ),
-        GIN_DEFAULT( NODEF,                NODEF                ),
-        GIN_DESC( "Name of single scattering data file.",
-                  "Name of the corresponding pnd_field file." 
-                  )
-        ));
-
- 
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "partition_functionsInitFromBuiltin" ),
@@ -9200,7 +9079,7 @@ void define_md_data_raw()
          "the *scat_species* tags.\n"
          "Moreover, the order of *scat_species* tags has to fit the order of\n"
          "scattering species in the *scat_meta* array, i.e.,\n"
-         "*ScatteringParticleTypeAndMetaRead* with the respective scattering\n"
+         "*ScatSpeciesScatAndMetaRead* with the respective scattering\n"
          "data and meta data files has to be applied in the right order!\n"
          ),
         AUTHORS( "Daniel Kreyling, Jana Mendrok" ),
@@ -9689,12 +9568,13 @@ void define_md_data_raw()
          "exhibit directional dependent absorption properties, which is taken\n"
          "into account by this method."
          "\n"
-         "*ParticleType2abs_speciesAdd* can be used to add all required\n"
-         "settings/data for a single scattering element type at once, i.e. a\n"
+         "*ScatElementsToabs_speciesAdd* can be used to add all required\n"
+         "settings/data for individual scattering elements at once, i.e. a\n"
          " 'particles' tag to *abs_species*, a set of single scattering data to\n"
          "*scat_data* and a number density field to *vmr_field_raw*\n"
          "(*vmr_field* is derived applying AtmFieldsCalc once VMRs for all\n"
-         "*abs_species* have been added).\n"
+         "*abs_species* have been added) is appended for each scattering\n"
+         "element.\n"
          "\n"
          "Like all 'propmat_clearskyAdd*' methods, the method is additive,\n"
          "i.e., does not overwrite the propagation matrix *propmat_clearsky*,\n"
@@ -10717,7 +10597,122 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "ScatteringMergeParticles1D" ),
+      ( NAME( "ScatElementsPndAndScatAdd" ),
+        DESCRIPTION
+        (
+         "Adds single scattering data and particle number density for\n"
+         "individual scattering elements.\n"
+         "\n"
+         "The methods reads the specified files and appends the obtained data\n"
+         "to *scat_data* and *pnd_field_raw*. Scattering data is appended to\n"
+         "the current last existing scattering species in *scat_data*.\n"
+         ),
+        AUTHORS( "Claudia Emde, Jana Mendrok" ),
+        OUT( "scat_data", "pnd_field_raw" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "atmosphere_dim", "f_grid" ),
+        GIN(         "scat_data_files", "pnd_field_files" ),
+        GIN_TYPE(    "ArrayOfString",   "ArrayOfString"   ),
+        GIN_DEFAULT( NODEF,             NODEF             ),
+        GIN_DESC( "List of names of single scattering data files.",
+                  "List of names of the corresponding pnd_field files." 
+                  )
+        ));
+
+ 
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "ScatElementsSelect" ),
+        DESCRIPTION
+        (
+         "Selects data of *scat_data* of the scattering elements that\n"
+         "according to *scat_species* shall be considered in the scattering\n"
+         "calculation.\n"
+         "\n"
+         "Selection is controlled by *scat_species* settings and done regarding\n"
+         "particle size (in terms of volume equivalent diameter). Each\n"
+         "scattering species in *scat_meta* is searched for scattering elements\n"
+         "that fulfill the selection criteria of the corresponding\n"
+         "*scat_species* entry.\n"
+         ),
+        AUTHORS( "Daniel Kreyling, Oliver Lemke, Jana Mendrok" ),
+        OUT( "scat_data", "scat_meta" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "scat_data", "scat_meta", "scat_species" ),
+        GIN( "delim" ),
+        GIN_TYPE( "String" ),
+        GIN_DEFAULT( "-" ),
+        GIN_DESC( "Delimiter string of *scat_species* elements." )
+         ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "ScatElementsToabs_speciesAdd" ),
+        DESCRIPTION
+        (
+         "Appends scattering elements to *abs_species* including reading\n"
+         "single scattering data and corresponding pnd field.\n"
+         "\n"
+         "The methods reads the specified single scattering and pnd_field\n"
+         "data of individual scattering elements and appends the obtained data\n"
+         "to *scat_data* (appending to its last scattering species) and\n"
+         "*vmr_field_raw*. Per scattering element, it also appends one\n"
+         "instance of species 'particles' to *abs_species*.\n"
+         ),
+        AUTHORS( "Jana Mendrok" ),
+        OUT( "scat_data", "vmr_field_raw", "abs_species",
+             "propmat_clearsky_agenda_checked", "abs_xsec_agenda_checked" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "vmr_field_raw", "abs_species",
+            "propmat_clearsky_agenda_checked", "abs_xsec_agenda_checked",
+            "atmosphere_dim", "f_grid" ),
+        GIN(         "scat_data_files", "pnd_field_files" ),
+        GIN_TYPE(    "ArrayOfString",   "ArrayOfString"   ),
+        GIN_DEFAULT( NODEF,             NODEF             ),
+        GIN_DESC( "List of names of single scattering data files.",
+                  "List of names of the corresponding pnd_field files." 
+                  )
+        ));
+
+ 
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "ScatSpeciesInit" ),
+        DESCRIPTION
+        (
+         "Initializes the scattering species related data variables.\n"
+         "\n"
+         "This method initializes the *scat_species* WSV, the variable that\n"
+         "will hold the optical properties of the scattering elements\n"
+         "(*scat_data*) as well as the variables that can hold the raw\n"
+         "particle number distributions (*pnd_field_raw*) and the meta\n"
+         "information on the scattering elements (*scat_meta*).\n"
+         "\n"
+         "This method has to be executed before WSM reading/adding to the\n"
+         "said variable, e.g. before *ScatSpeciesPndAndScatAdd*.\n"
+         ),
+        AUTHORS( "Jana Mendrok" ),
+        OUT( "scat_species", "scat_data", "scat_meta", "pnd_field_raw" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN(),
+        GIN(), 
+        GIN_TYPE(), 
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "ScatSpeciesMerge" ),
         DESCRIPTION
         (
          "Merges single scattering data of all scattering elements into one\n"
@@ -10762,37 +10757,51 @@ void define_md_data_raw()
     
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "ScatteringParticlesSelect" ),
+      ( NAME( "ScatSpeciesPndAndScatAdd" ),
         DESCRIPTION
         (
-         "Selects data of *scat_data* of the scattering elements that\n"
-         "according to *scat_species* shall be considered in the scattering\n"
-         "calculation.\n"
+         "Adds single scattering data and particle number densities for one\n"
+         "scattering species.\n"
          "\n"
-         "Selection is controlled by *scat_species* settings and done regarding\n"
-         "particle size (in terms of volume equivalent diameter). Each\n"
-         "scattering species in *scat_meta* is searched for scattering elements\n"
-         "that fulfill the selection criteria of the corresponding\n"
-         "*scat_species* entry.\n"
+         "The WSV *pnd_field_raw* containing particle number densities for\n"
+         "all scattering species can be generated outside ARTS, for example\n"
+         "by using PyARTS or atmlab. This method reads this data as well as\n"
+         "its corresponding single scattering data, which is added as a new\n"
+         "scattering species to *scat_data*.\n"
+         "This method needs as input an ArrayOfString holding the filenames\n"
+         "of the single scattering data for each scattering element and a\n"
+         "file containing the corresponding *pnd_field_raw*. In contrast to\n"
+         "the scattering data, the pnd-fields are stored in a single XML-file\n"
+         "containing an ArrayofGriddedField3, i.e. holding the pnd-field data\n"
+         "of all scattering elements.\n"
+         "\n"
+         "Important note:\n"
+         "The order of the filenames for the scattering data files has to\n"
+         "correspond to the order of the pnd-fields, stored in the variable\n"
+         "*pnd_field_raw*.\n"
          ),
-        AUTHORS( "Daniel Kreyling, Oliver Lemke, Jana Mendrok" ),
-        OUT( "scat_data", "scat_meta" ),
+        AUTHORS( "Claudia Emde, Jana Mendrok" ),
+        OUT( "scat_data", "pnd_field_raw" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "scat_data", "scat_meta", "scat_species" ),
-        GIN( "delim" ),
-        GIN_TYPE( "String" ),
-        GIN_DEFAULT( "-" ),
-        GIN_DESC( "Delimiter string of *scat_species* elements." )
-         ));
+        IN( "atmosphere_dim", "f_grid" ),
+        GIN(         "scat_data_files", "pnd_fieldarray_file" ),
+        GIN_TYPE(    "ArrayOfString",   "String"              ),
+        GIN_DEFAULT( NODEF,             NODEF                 ),
+        GIN_DESC( "Array of names of files containing the single scattering data.",
+                  "Name of file holding the corresponding array of pnd_field data." 
+                  )
+        ));
+
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "ScatteringParticleTypeAndMetaRead" ),
+      ( NAME( "ScatSpeciesScatAndMetaRead" ),
         DESCRIPTION
         (
-         "Reads single scattering data and scattering meta data.\n"
+         "Reads single scattering data and scattering meta data for one\n"
+         "scattering species.\n"
          "\n"
          "This method takes a string array as input containing the location\n"
          "(path and filename) of the single scattering data. Location of\n"
@@ -10803,14 +10812,14 @@ void define_md_data_raw()
          "All scattering elements read in one call of the method are assigned\n"
          "to one and the same scattering species. That is, reading in data for\n"
          "a bunch of scattering species can be realized by multiple call of\n"
-         "this method. Assignement to scattering species is in the order of the\n"
+         "this method. Assignment to scattering species is in the order of the\n"
          "calls (i.e., first method call reads data for first *scat_species*\n"
          "entry, second call for second scat_species entry and so on).\n"
          "Note that no two scattering elements of the same scattering species\n"
          "are allowed to be equal in size; this will result in an error in\n"
          "*pnd_fieldCalcFromscat_speciesFields*\n"
          "\n"
-         "Very important note:\n"
+         "Important note:\n"
          "The order of the filenames for the single scattering data files has to\n"
          "exactly correspond to the order of the scattering meta data files.\n"
          ),
@@ -10938,25 +10947,6 @@ void define_md_data_raw()
   
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "scat_metaInit" ),
-        DESCRIPTION
-        (
-         "Initializes the workspace variable *scat_meta*.\n"
-         ),
-        AUTHORS( "Johan Strandgren" ),
-        OUT("scat_meta"),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN(),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME( "scat_data_monoCalc" ),
         DESCRIPTION
         (
@@ -11042,25 +11032,6 @@ void define_md_data_raw()
         ));
 */
   
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "scat_speciesInit" ),
-        DESCRIPTION
-        (
-         "Initializes empty *scat_species* array.\n"
-         ),
-        AUTHORS( "Daniel Kreyling" ),
-        OUT( "scat_species" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN(),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-    
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "scat_speciesSet" ),
