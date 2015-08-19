@@ -204,8 +204,10 @@ FieldFromGriddedField( out=scat_species_mass_density_field, in=mass_density_raw 
 GriddedFieldPRegrid( out=mass_flux_raw, in=mass_flux_raw, zeropadding=1 )
 FieldFromGriddedField( out=scat_species_mass_flux_field, in=mass_flux_raw )
 
-#and we need to initialize number_density as empty
+#and we need to initialize as empty the unused scattering species fields
+# (number_density and mean mass).
 Touch( scat_species_number_density_field )
+Touch( scat_species_mean_mass_field )
 
 # Unrealistic (small) values in massdensity_field will be set to zero
 scat_species_fieldCleanup (scat_species_mass_density_field,

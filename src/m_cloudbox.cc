@@ -109,6 +109,7 @@ void cloudboxSetAutomatically (// WS Output:
                                const Tensor4&  scat_species_mass_density_field,
                                const Tensor4&  scat_species_mass_flux_field,
                                const Tensor4&  scat_species_number_density_field,
+                               const Tensor4&  scat_species_mean_mass_field,
                                // Control Parameters
                                const Numeric&  cloudbox_margin,
                                const Verbosity& verbosity)
@@ -156,6 +157,7 @@ void cloudboxSetAutomatically (// WS Output:
   bool not_empty_md=true;
   bool not_empty_mf=true;
   bool not_empty_nd=true;
+  bool not_empty_mm=true;
 
   Index nss=0;
 
@@ -172,8 +174,8 @@ void cloudboxSetAutomatically (// WS Output:
         {
           ostringstream os;
           os << "Inconsistent number of scattering elements in\n"
-             << "scat_species_mass_density_field and "
-             << "scat_species_mass_flux_field.";
+             << "scat_species_mass_flux_field compared to other\n"
+             << "scat.species fields.";
           throw runtime_error( os.str() );
         }
      }
@@ -188,13 +190,29 @@ void cloudboxSetAutomatically (// WS Output:
         {
           ostringstream os;
           os << "Inconsistent number of scattering elements in\n"
-             << "scat_species_number_density_field and "
-             << "scat_species_mass_density/flux_field.";
+             << "scat_species_number_density_field compared to other\n"
+             << "scat.species fields.";
           throw runtime_error( os.str() );
         }
      }
   else
     nss = scat_species_mass_flux_field.nbooks();
+
+  if (scat_species_mean_mass_field.empty())
+    not_empty_mm = 0;
+  else if (nss!=0)
+    {
+      if (nss!=scat_species_mean_mass_field.nbooks())
+        {
+          ostringstream os;
+          os << "Inconsistent number of scattering elements in\n"
+             << "scat_species_mean_mass_field compared to other\n"
+             << "scat.species fields.";
+          throw runtime_error( os.str() );
+        }
+     }
+  else
+    nss = scat_species_mean_mass_field.nbooks();
 
 
   //--------- Start loop over scattering species ------------------------------
@@ -250,6 +268,21 @@ void cloudboxSetAutomatically (// WS Output:
                          atmosphere_dim, cloudbox_margin);
       }
       //cout << "particles in number density field: " << not_empty << "\n";
+    }
+
+    if (not_empty_mm)
+    {
+      chk_scat_species_field ( not_empty,
+                               scat_species_mean_mass_field ( l, joker, joker, joker ),
+                               "scat_species_mean_mass_field",
+                               atmosphere_dim, p_grid, lat_grid, lon_grid );
+      if (not_empty)
+      {
+        not_empty_any=true;
+        find_cloudlimits(p1, p2, scat_species_mean_mass_field ( l, joker, joker, joker ),
+                         atmosphere_dim, cloudbox_margin);
+      }
+      //cout << "particles in mean mass field: " << not_empty << "\n";
     }
     //cout << "particles in any field: " << not_empty_any << "\n";
   }
@@ -1371,6 +1404,7 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
                      const Tensor4& scat_species_mass_density_field,
                      const Tensor4& scat_species_mass_flux_field,
                      const Tensor4& scat_species_number_density_field,
+                     const Tensor4& scat_species_mean_mass_field,
                      const Tensor3& t_field,
                      const ArrayOfArrayOfScatteringMetaData& scat_meta,
                      const ArrayOfString& scat_species,

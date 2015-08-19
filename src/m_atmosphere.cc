@@ -1807,6 +1807,7 @@ void AtmFieldsFromCompact(// WS Output:
                           Tensor4& scat_species_mass_density_field,
                           Tensor4& scat_species_mass_flux_field,
                           Tensor4& scat_species_number_density_field,
+                          Tensor4& scat_species_mean_mass_field,
                           // WS Input:
                           const ArrayOfArrayOfSpeciesTag& abs_species,
                           const ArrayOfString& scat_species,
@@ -1967,6 +1968,8 @@ void AtmFieldsFromCompact(// WS Output:
   scat_species_mass_flux_field = NAN;
   scat_species_number_density_field.resize(nsp,np,nlat,nlon);
   scat_species_number_density_field = NAN;
+  scat_species_mean_mass_field.resize(nsp,np,nlat,nlon);
+  scat_species_mean_mass_field = NAN;
 
   // to be on safe said (avoiding overwriting of fields), we separately monitor
   // found status of the individual fields possible per scat_species (we check
@@ -1975,10 +1978,12 @@ void AtmFieldsFromCompact(// WS Output:
   bool found_md;
   bool found_mf;
   bool found_nd;
+  bool found_mm;
 
   const String md="mass_density";
   const String mf="mass_flux";
   const String nd="number_density";
+  const String mm="mean_mass";
 
   for (Index j=0; j<nsp; ++j)
     {
@@ -1988,6 +1993,7 @@ void AtmFieldsFromCompact(// WS Output:
       found_md = false;
       found_mf = false;
       found_nd = false;
+      found_mm = false;
       Index i = 0;
       String species_type;
       String species_name;
@@ -2026,6 +2032,12 @@ void AtmFieldsFromCompact(// WS Output:
                       scat_species_number_density_field(j,Range(joker),Range(joker),Range(joker))
                         = c.data(i,Range(joker),Range(joker),Range(joker));
                     }
+                  else if (!found_mm && scat_type==mm)
+                    {
+                      found_mm=true;
+                      scat_species_mean_mass_field(j,Range(joker),Range(joker),Range(joker))
+                        = c.data(i,Range(joker),Range(joker),Range(joker));
+                    }
                   else
                     {
                       ostringstream os;
@@ -2037,12 +2049,12 @@ void AtmFieldsFromCompact(// WS Output:
             }
           // if all possible scat_species fields have been filled, we don't need
           // to check the rest any longer.
-          if (found_md && found_mf && found_nd) found=true;
+          if (found_md && found_mf && found_nd && found_mm) found=true;
           i++;
         }
       // did we find at least one of the possible scat_species fields for this
       // scat species?
-      found = (found_md || found_mf || found_nd);
+      found = (found_md || found_mf || found_nd || found_mm);
       if (!found)
         {
           ostringstream os;

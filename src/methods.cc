@@ -2702,7 +2702,7 @@ void define_md_data_raw()
         AUTHORS( "Jana Mendrok" ),
         OUT( "p_grid", "lat_grid", "lon_grid", "t_field", "z_field", "vmr_field",
              "scat_species_mass_density_field", "scat_species_mass_flux_field",
-             "scat_species_number_density_field" ),
+             "scat_species_number_density_field", "scat_species_mean_mass_field" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
@@ -3224,7 +3224,7 @@ void define_md_data_raw()
          "is then copied to *cloudbox_limits*.\n"
          "Following scattering species fields are checked:\n"
          "*scat_species_mass_density_field*, *scat_species_mass_flux_field*,\n"
-         " and *scat_species_number_density_field*.\n"
+         "*scat_species_number_density_field*, *scat_species_mean_mass_field*.\n"
          "\n"
          "Additionaly the lower cloudbox_limit is altered by *cloudbox_margin*.\n"
          "The margin is given as a height difference in meters and transformed\n"
@@ -3244,7 +3244,7 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "atmosphere_dim", "p_grid", "lat_grid", "lon_grid",
             "scat_species_mass_density_field", "scat_species_mass_flux_field",
-            "scat_species_number_density_field" ),
+            "scat_species_number_density_field", "scat_species_mean_mass_field" ),
         GIN( "cloudbox_margin" ),
         GIN_TYPE( "Numeric" ),
         GIN_DEFAULT( "-1" ),
@@ -7523,14 +7523,14 @@ void define_md_data_raw()
         OUT( "y", "jacobian",
              "doit_i_field",
              "scat_species_mass_density_field", "scat_species_mass_flux_field",
-             "scat_species_number_density_field",
+             "scat_species_number_density_field", "scat_species_mean_mass_field",
              "pnd_field", "vmr_field", "t_field", "scat_data" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "doit_i_field",
             "scat_species_mass_density_field", "scat_species_mass_flux_field",
-            "scat_species_number_density_field",
+            "scat_species_number_density_field", "scat_species_mean_mass_field",
             "pnd_field", "vmr_field", "t_field", "scat_data",
             "jacobian_quantities", "jacobian_indices",
             "abs_species", "scat_species",
@@ -7579,7 +7579,8 @@ void define_md_data_raw()
          "    occuring in *scat_species*\n"
          "Part 3 is only required for scattering species perturbations:\n"
          "  - the field identifier for the scat_species_XX_field to be\n"
-         "    perturbed (i.e. mass_density, mass_flux, or number_density)\n"
+         "    perturbed (i.e., mass_density, mass_flux, number_density, or\n"
+         "    mean_mass)\n"
          "  Note: Currently there is no check, whether the perturbed\n"
          "  scattering species field is used at all by the microphysics\n"
          "  parametrization of the respective scattering species.\n"
@@ -9074,9 +9075,9 @@ void define_md_data_raw()
          "\n"
          "NOTE: The number and order of the scattering species in the\n"
          "scattering species fields (*scat_species_mass_density_field*,\n"
-         "*scat_species_mass_flux_field*, and\n"
-         "*scat_species_number_density_field*) has to fit number and order of\n"
-         "the *scat_species* tags.\n"
+         "*scat_species_mass_flux_field*, *scat_species_number_density_field*,\n"
+         "*scat_species_mean_mass_field*) has to fit number and order of the\n"
+         "*scat_species* tags.\n"
          "Moreover, the order of *scat_species* tags has to fit the order of\n"
          "scattering species in the *scat_meta* array, i.e.,\n"
          "*ScatSpeciesScatAndMetaRead* with the respective scattering\n"
@@ -9089,7 +9090,7 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "atmosphere_dim","cloudbox_on", "cloudbox_limits",
             "scat_species_mass_density_field", "scat_species_mass_flux_field",
-            "scat_species_number_density_field",
+            "scat_species_number_density_field", "scat_species_mean_mass_field",
             "t_field", "scat_meta", "scat_species" ),
         GIN( "delim" ),
         GIN_TYPE( "String" ),
@@ -11069,9 +11070,9 @@ void define_md_data_raw()
          "\n"
          "This WSM checks if the input scat_species field\n"
          "(*scat_species_mass_density_field*, *scat_species_mass_flux_field*,\n"
-         "*scat_species_number_density_field*) contains values smaller than\n"
-         "the given *threshold*. In this case, these values will be set to\n"
-         "zero.\n"
+         "*scat_species_number_density_field*, *scat_species_mean_mass_field*)\n"
+         "contains values smaller than the given *threshold*. In this case,\n"
+         "these values will be set to zero.\n"
          "\n"
          "The method should be applied if the scat_species fields contain\n"
          "unrealistically small or erroneous data (NWP/GCM model data, e.g.\n"

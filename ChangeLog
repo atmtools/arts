@@ -1,3 +1,18 @@
+2015-08-19  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-3-277
+
+	* src/workspace.cc, src/methods.cc,
+	src/m_cloudbox.cc (cloudboxSetAutomatically, pnd_fieldCalcFromscat_speciesFields)
+	src/m_atmosphere.cc (AtmFieldsFromCompact), 
+	src/m_jacobian.cc (jacobianDoit):
+	Introduced new scat.species field mean_mass. Handled identically to all
+	other atmospheric scat.species fields.
+
+	* controlfiles/artscomponents/doit/TestDOITFromIndividualFields.arts,
+	controlfiles/planetary_toolbox/demos/passive/DemoMars_fullRT_1D_cloudy.arts:
+	Adapted to scat_species_mean_mass_field introduction.
+
 2015-08-19  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-276

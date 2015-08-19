@@ -2134,6 +2134,7 @@ void jacobianDoit(//WS Output:
                   Tensor4& scat_species_mass_density_field,
                   Tensor4& scat_species_mass_flux_field,
                   Tensor4& scat_species_number_density_field,
+                  Tensor4& scat_species_mean_mass_field,
                   Tensor4& pnd_field,
                   Tensor4& vmr_field,
                   Tensor3& t_field,
@@ -2328,6 +2329,7 @@ void jacobianDoit(//WS Output:
   Tensor4 scat_species_mass_density_field_ref = scat_species_mass_density_field;
   Tensor4 scat_species_mass_flux_field_ref = scat_species_mass_flux_field;
   Tensor4 scat_species_number_density_field_ref = scat_species_number_density_field;
+  Tensor4 scat_species_mean_mass_field_ref = scat_species_mean_mass_field;
 
 
   // Set some useful variables. 
@@ -2598,6 +2600,26 @@ void jacobianDoit(//WS Output:
                     // retrieval modes above are incomplete.
                     assert( 0 );
                 }
+              else if( jq.SubSubtag() == "mean_mass" )
+                {
+                  if( jq.Mode() == "abs" )
+                    {
+                      scat_species_mean_mass_field(si,il,joker,joker)
+                        += jq.Perturbation();
+                    }
+                  else if ( jq.Mode() == "rel" )
+                    {
+                      if (scat_species_mean_mass_field(si,il,0,0)==0.)
+                        do_doit = false;
+                      else
+                        scat_species_mean_mass_field(si,il,joker,joker)
+                          *= (1.+jq.Perturbation());
+                    }
+                  else
+                    // we shouldn't end up here. if we do, checks for allowed
+                    // retrieval modes above are incomplete.
+                    assert( 0 );
+                }
             }
           else //temperature
             {
@@ -2609,22 +2631,23 @@ void jacobianDoit(//WS Output:
             try
             {
               // unless pnd_field is NOT calculated inside ARTS, we have to
-              // recalculate it. not only for scat_speciesXXfield perturbances. the
-              // latter as also other parameters could effect the pnd_field. for
-              // example, atmospheric temperature.
+              // recalculate it. not only for scat_speciesXXfield perturbances.
+              // this since also other parameters could effect the pnd_field,
+              // e.g., atmospheric temperature.
               // not straight forward, how we can check for whether pnd_field is
               // from external. but a good guess is that then scat_speciesXXfields
               // are not required, i.e. are likely empty. so, if not empty (here:
               // sized 0!), we try to recalculate them.
               if( scat_species_mass_density_field.npages()!=0 ||
                   scat_species_mass_flux_field.npages()!=0 ||
-                  scat_species_number_density_field.npages()!=0 )
+                  scat_species_number_density_field.npages()!=0 ||
+                  scat_species_mean_mass_field.npages()!=0 )
                 {
                   pnd_fieldCalcFromscat_speciesFields(
                     pnd_field, atmosphere_dim, cloudbox_on, cloudbox_limits,
                     scat_species_mass_density_field, scat_species_mass_flux_field,
-                    scat_species_number_density_field, t_field, scat_meta,
-                    scat_species, delim, verbosity );
+                    scat_species_number_density_field, scat_species_mean_mass_field,
+                    t_field, scat_meta, scat_species, delim, verbosity );
                   if( debug )
                     {
                       WriteXMLIndexed( "ascii", iq*np+il, pnd_field,
@@ -2743,6 +2766,8 @@ void jacobianDoit(//WS Output:
                   scat_species_mass_flux_field_ref(si,joker,joker,joker);
                 scat_species_number_density_field(si,joker,joker,joker) =
                   scat_species_number_density_field_ref(si,joker,joker,joker);
+                scat_species_mean_mass_field(si,joker,joker,joker) =
+                  scat_species_mean_mass_field_ref(si,joker,joker,joker);
               }
             else //temperature
               {
@@ -2956,7 +2981,7 @@ void jacobianDoitAddSpecies(//WS Output:
                   // FIXME: we should also allow pnd_field (all? single scatt
                   // elements?)
                   if( strarr[2] == "mass_density" || strarr[2] == "mass_flux" ||
-                      strarr[2] == "number_density" )
+                      strarr[2] == "mean_mass" || strarr[2] == "number_density" )
                     {
                       // Check that this species&field combi is not already
                       // included in the jacobian.

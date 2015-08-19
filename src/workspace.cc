@@ -914,7 +914,7 @@ void Workspace::define_wsv_data()
        "2) field type:\n"
        "   This has to be given for scattering species only, indicating the\n"
        "   type of the scattering species fields, i.e. 'mass_density',\n"
-       "   'mass_flux', or 'number_density'.\n"
+       "   'mass_flux', 'number_density', 'mean_mass'.\n"
        "Dashes ('-') serve as delimiter, separating the elements of each\n"
        "field name tag.\n"
        "\n"
@@ -3745,8 +3745,8 @@ void Workspace::define_wsv_data()
        "\n"
        "The field holds mass densities (mass content), e.g. provided by\n"
        "NWP/GCM model data like the Chevallier91L data set. Further\n"
-       "scattering species fields are hold by *scat_species_mass_flux_field*\n"
-       "and *scat_species_number_density_field*.\n"
+       "scattering species fields are hold by *scat_species_mass_flux_field*,\n"
+       "*scat_species_number_density_field*, *scat_species_mean_mass_field*.\n"
        "\n"
        "Possible future changes:\n"
        "*scat_species_mass_density_field_raw* might be needed containing the\n"
@@ -3769,12 +3769,33 @@ void Workspace::define_wsv_data()
        "\n"
        "The field holds mass fluxes, e.g. provided by NWP/GCM model data like\n"
        "the Chevallier91L data set. Further scattering species fields are\n"
-       "hold by *scat_species_mass_density_field* and\n"
-       "*scat_species_number_density_field*.\n"
+       "hold by *scat_species_mass_density_field*,\n"
+       "*scat_species_number_density_field*, *scat_species_mean_mass_field*.\n"
        "\n"
        "Usage:      Set by the user.\n"
        "\n"
        "Unit:       [kg/m2/s]\n"
+       "\n"
+       "Dimension:  [number of scattering species, p_grid, lat_grid, lon_grid]\n"
+       ),
+      GROUP( "Tensor4" ))); 
+    
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "scat_species_mean_mass_field" ),
+      DESCRIPTION
+      (
+       "The mean mass field of atmospheric scattering species.\n"
+       "\n"
+       "The field holds mean masses (equivalent to mass density/number\n"
+       "density), e.g. derived from parameters provided by NWP/GCM model data\n"
+       "like the Chevallier91L data set. Further scattering species fields are\n"
+       "hold by *scat_species_mass_density_field*,\n"
+       "*scat_species_mass_flux_field*, *scat_species_number_density_field*.\n"
+       "\n"
+       "Usage:      Set by the user.\n"
+       "\n"
+       "Unit:       [kg]\n"
        "\n"
        "Dimension:  [number of scattering species, p_grid, lat_grid, lon_grid]\n"
        ),
@@ -3789,8 +3810,8 @@ void Workspace::define_wsv_data()
        "\n"
        "The field holds particle number densities, e.g. provided by NWP/GCM\n"
        "model data like the Chevallier91L data set. Further scattering\n"
-       "species fields are hold by *scat_species_mass_density_field* and\n"
-       "*scat_species_mass_flux_field*.\n"
+       "species fields are hold by *scat_species_mass_density_field*,\n"
+       "*scat_species_mass_flux_field*, *scat_species_mean_mass_field*.\n"
        "\n"
        "Usage:      Set by the user.\n"
        "\n"

@@ -50,7 +50,8 @@ Tensor4Create( t4tmp )
 Touch( t4tmp )
 cloudboxSetAutomatically( scat_species_mass_density_field=pnd_field,
                           scat_species_mass_flux_field=t4tmp,
-                          scat_species_number_density_field=t4tmp )
+                          scat_species_number_density_field=t4tmp,
+                          scat_species_mean_mass_field=t4tmp )
 pnd_fieldCalcFrompnd_field_raw( zeropadding=1 )
 
 # finally, we clean up the dummy files (not completely, though, as deleting
