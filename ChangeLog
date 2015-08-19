@@ -2,6 +2,22 @@
 
 	* arts-2-3-277
 
+	* src/methods.cc (ScatElementsPndAndScatAdd, 
+	ScatElementsToabs_speciesAdd, ScatSpeciesPndAndScatAdd,
+	ScatSpeciesScatAndMetaRead):
+	Added all append-to-WSV as input parameters.
+
+	* ontrolfiles/artscomponents/doit/TestDOITFromIndividualFields.arts,
+	controlfiles/artscomponents/doitbatch/TestDOITBatch.arts,
+	controlfiles/artscomponents/wfuns/TestDoitJacobians.arts:
+	Properly initialize scatt related variables (using ScatSpeciesInit).
+
+	* workspace.cc (scat_species): Doc bug fix.
+
+2015-08-19  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-3-277
+
 	* src/workspace.cc, src/methods.cc,
 	src/m_cloudbox.cc (cloudboxSetAutomatically, pnd_fieldCalcFromscat_speciesFields)
 	src/m_atmosphere.cc (AtmFieldsFromCompact), 

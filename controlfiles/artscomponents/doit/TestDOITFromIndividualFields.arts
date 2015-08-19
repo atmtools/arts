@@ -160,7 +160,7 @@ Extract( t_surface, t_field, 0 )
 
 # 6. Specification of cloud----------------------------------------------
 # -----------------------------------------------------------------------
-
+ScatSpeciesInit
 
 # Definition of particle species
 #--------------------------------

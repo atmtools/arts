@@ -147,6 +147,7 @@ Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__LookUpTable )
 
 # 6.Specification of cloud-----------------------------------------------
 # -----------------------------------------------------------------------
+ScatSpeciesInit
 
 # Definition of particle species
 #--------------------------------

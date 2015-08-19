@@ -63,6 +63,8 @@ abs_lookupAdapt
 Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__LookUpTable )
 
 
+ScatSpeciesInit
+
 scat_speciesSet(scat_tags=[
                     "LWC-MGD_LWC-0.1-2000",
                     "IWC-MGD_IWC-0.1-2000",

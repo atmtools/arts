@@ -3732,7 +3732,7 @@ void Workspace::define_wsv_data()
        "  will be considered) and the symbol '*' can be used as a wildcard\n"
        "  (selecting all scattering elements at the respective size end).\n"
        "\n"
-       "Example: [''IWC-MH97-2-1000'', ''LWC-HM98_STCO-0.1-10'', ...]\n"
+       "Example: [''IWC-MH97-2-1000'', ''LWC-H98_STCO-0.1-10'', ...]\n"
        ),
       GROUP( "ArrayOfString" )));
 
