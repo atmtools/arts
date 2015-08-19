@@ -165,9 +165,9 @@ ScatSpeciesInit
 # Definition of particle species
 #--------------------------------
 scat_speciesSet(scat_species, [
-                "LWC-H98_STCO-0.1-2000",
-                "IWC-MH97-0.1-2000",
-                "RR-MP48-*-*"
+                "LWC-H98_STCO",
+                "IWC-MH97",
+                "RR-MP48"
 ])
 
 # Preparing the cloud field data
@@ -234,7 +234,8 @@ ScatSpeciesScatAndMetaRead ( scat_data_files=scat_data_files )
 
 # Selection/filerting of particles according to *scat_species*
 #------------------------------------------------------------
-ScatElementsSelect
+ScatElementsSelect( species="LWC", sizeparam="diameter_volume_equ", sizemin=0.1e-6, sizemax=2000e-6 )
+ScatElementsSelect( species="IWC", sizeparam="diameter_volume_equ", sizemin=0.1e-6, sizemax=2000e-6 )
 scat_dataCheck
 
 

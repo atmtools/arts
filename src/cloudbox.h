@@ -295,10 +295,5 @@ void parse_psd_param (String& psd_param,
                       const String& part_string,
                       const String& delim);
 
-void parse_part_size (Numeric& sizemin,
-                      Numeric& sizemax,
-                      const String& part_string,
-                      const String& delim);
-
 #endif //cloudbox_h
 

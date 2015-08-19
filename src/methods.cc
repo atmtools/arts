@@ -10627,15 +10627,16 @@ void define_md_data_raw()
       ( NAME( "ScatElementsSelect" ),
         DESCRIPTION
         (
-         "Selects data of *scat_data* of the scattering elements that\n"
-         "according to *scat_species* shall be considered in the scattering\n"
-         "calculation.\n"
+         "Allows to limit considered scattering elements according to size.\n"
          "\n"
-         "Selection is controlled by *scat_species* settings and done regarding\n"
-         "particle size (in terms of volume equivalent diameter). Each\n"
-         "scattering species in *scat_meta* is searched for scattering elements\n"
-         "that fulfill the selection criteria of the corresponding\n"
-         "*scat_species* entry.\n"
+         "Scattering elements of a specified scattering species are removed\n"
+         "from *scat_data* and *scat_meta*, i.e. removed from further\n"
+         "calculations, if their particle size exceeds the specified limits.\n"
+         "Specification of the scattering species is done by name matching the\n"
+         "scattering species name part of *scat_species* tag.\n"
+         "As size parameter, all size parameters reported by the meta data\n"
+         "can be used (see *scat_meta_single* for offered parameters and\n"
+         "their naming).\n"
          ),
         AUTHORS( "Daniel Kreyling, Oliver Lemke, Jana Mendrok" ),
         OUT( "scat_data", "scat_meta" ),
@@ -10643,10 +10644,19 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "scat_data", "scat_meta", "scat_species" ),
-        GIN( "delim" ),
-        GIN_TYPE( "String" ),
-        GIN_DEFAULT( "-" ),
-        GIN_DESC( "Delimiter string of *scat_species* elements." )
+        GIN(         "species", "sizeparam", "sizemin", "sizemax", "tolerance",
+             "delim" ),
+        GIN_TYPE(    "String",  "String",    "Numeric", "Numeric", "Numeric",
+             "String" ),
+        GIN_DEFAULT( NODEF,     NODEF,       "0.",      "-1.",     "1e-6",
+             "-" ),
+        GIN_DESC( "Species on which to apply size selection.",
+                  "Size parameter to apply for size selection.",
+                  "Minimum size [m] of the scattering elements to consider",
+                  "Maximum size [m] of the scattering elements to consider (if "
+                   "negative, no max. limitation is applied).",
+                  "Relative numerical tolerance of size limit values.",
+                  "Delimiter string of *scat_species* elements." )
          ));
 
   md_data_raw.push_back

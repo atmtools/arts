@@ -408,44 +408,19 @@ void chk_scat_species (
                       )
 {
   ArrayOfString strarr;
-  Numeric sizeval;
+  Index nelem=2;
 
   for ( Index k=0; k<scat_species.nelem(); k++ )
     {
       scat_species[k].split ( strarr, delim );
-      if ( strarr.nelem() > 4 )
+      if ( strarr.nelem() > nelem )
         {     
           ostringstream os;
-          os << "Individual strings in scat_species can only contain up to 4\n"
-             << "elements, but entry #" << k << " contains the following "
+          os << "Individual strings in scat_species can only contain up to "
+             << nelem << " elements,\n"
+             << "but entry #" << k << " contains the following "
              << strarr.nelem() << ":\n" << strarr << "\n";
           throw runtime_error ( os.str() );
-        }
-
-      if ( strarr.nelem() > 2 && strarr[2] != "*" )
-        {
-          istringstream os1 ( strarr[3] );
-          os1 >> sizeval;
-          if (os1.fail())
-            {
-              ostringstream os;
-              os << "Sizemin specification can only be a number or wildcard ('*')"
-                 << ", but is '" << strarr[2] << "'\n";
-              throw runtime_error ( os.str() );
-            }
-        }
-
-      if ( strarr.nelem() > 3 && strarr[3] != "*" )
-        {
-          istringstream os1 ( strarr[3] );
-          os1 >> sizeval;
-          if (os1.fail())
-            {
-              ostringstream os;
-              os << "Sizemax specification can only be a number or wildcard ('*')"
-                 << ", but is '" << strarr[3] << "'\n";
-              throw runtime_error ( os.str() );
-            }
         }
     }
 }
@@ -4053,52 +4028,5 @@ void parse_psd_param (//WS Output:
       psd_param = strarr[1];
   else
       psd_param = "";
-}
-
-
-/*! Splitting scat_species string and parse min and max particle size
-	\param  sizemin     minimum size of particles to consider (size parameter
-                      might depend on the calling method)
-	\param  sizemax     maximum size of particles to consider
-	\param  part_string scattering species tag from *scat_species*
-  \param  delim       delimiter string of *scat_species* elements
-  
-  \author Daniel Kreyling
-  \date 2011-02-21
-
-*/
-void parse_part_size (//WS Output:
-                      Numeric& sizemin,
-                      Numeric& sizemax,
-                      // WS Input:
-                      const String& part_string,
-                      const String& delim)
-{
-  ArrayOfString strarr;
-
-  // split scat_species string at delim and write to ArrayOfString
-  part_string.split ( strarr, delim );
-  
-  // convert String for size range, into Numeric
-  // 1. third entry is minimum particle size
-  if ( strarr.nelem() < 3 || strarr[2] == "*" )
-  {
-    sizemin = 0.;
-  }
-  else
-  {
-    istringstream os1 ( strarr[2] );
-    os1 >> sizemin;
-  }
-  // 2. fourth entry is maximum particle size
-  if ( strarr.nelem() < 4 || strarr[3] == "*" )
-  {
-    sizemax = -1.;
-  }
-  else
-  {
-    istringstream os2 ( strarr[3] );
-    os2 >> sizemax;
-  }
 }
 

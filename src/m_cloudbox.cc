@@ -940,13 +940,14 @@ void ScatElementsSelect (//WS Output:
                          ArrayOfArrayOfScatteringMetaData& scat_meta,
                          // WS Input:
                          const ArrayOfString& scat_species,
+                         const String& species,
+                         const String& sizeparam,
+                         const Numeric& sizemin,
+                         const Numeric& sizemax,
+                         const Numeric& tolerance,
                          const String& delim,
-                         const Verbosity& verbosity)
+                         const Verbosity& )
 { 
-  CREATE_OUT1;
-  CREATE_OUT3;
-  //--- Adjusting data to user specified input (scat_species)-------------------
-
   // first check that sizes of scat_species and scat_data/scat_meta agree
   Index nspecies = scat_species.nelem();
   if ( nspecies != scat_data.nelem() || nspecies != scat_meta.nelem() )
@@ -962,67 +963,99 @@ void ScatElementsSelect (//WS Output:
     }
 
   // create temporary containers for selected elements
-  ArrayOfArrayOfSingleScatteringData scat_data_tmp;
-  ArrayOfArrayOfScatteringMetaData scat_meta_tmp;
-  scat_data_tmp.resize(scat_species.nelem());
-  scat_meta_tmp.resize(scat_species.nelem());
+  ArrayOfSingleScatteringData scat_data_tmp;
+  ArrayOfScatteringMetaData scat_meta_tmp;
 
-  // loop over array of scat_species--------------------------------------------
-  // no more sorting by material tag. only left to select scattering elements
-  // within specified size range (in terms of volume equiv diameter).
-  for ( Index i_ss=0; i_ss<nspecies; i_ss++ )
-  {
-   
-    String partfield_name;
-    Numeric sizemin;
-    Numeric sizemax;
-    const Numeric tolerance = 1e-6;
-
-    //split scat_species string and copy values to parameter
-    parse_partfield_name( partfield_name, scat_species[i_ss], delim);
-    parse_part_size(sizemin, sizemax, scat_species[i_ss], delim);
+  String partfield_name;
+  //find the species to handleL: compare 'species' to 'partfield' part of
+  //scat_species tags
+  Index i_ss=-1;
+  for ( Index i=0; i<scat_species.nelem(); i++ )
+    {
+      parse_partfield_name( partfield_name, scat_species[i], delim);
+      if ( partfield_name==species )
+        i_ss=i;
+    }
+  if ( i_ss<0 )
+    {
+      ostringstream os;
+      os << "Scattering species " << species << " not found among scat_species.";
+      throw runtime_error ( os.str() );
+    }
 
   // choosing the specified SingleScatteringData and ScatteringMetaData
+  if ( sizeparam=="diameter_max" )
     for ( Index i_se=0; i_se<scat_meta[i_ss].nelem(); i_se++ )
-      {
-        // scattering element volume equivalent diameter is extracted from the
-        // scattering element's meta data and checked whether it's within size
-        // selected range (sizemax < 0 check follows from wildcard usage and
-        // means consider all sizes on the upper end)
-        if ( scat_meta[i_ss][i_se].diameter_volume_equ*1e6 > sizemin-sizemin*tolerance &&
-             ( sizemax+sizemax*tolerance > scat_meta[i_ss][i_se].diameter_volume_equ*1e6 ||
-               sizemax < 0. ) )
-          {
-            // copy selected scattering element to temp arrays
-            scat_data_tmp[i_ss].push_back(scat_data[i_ss][i_se]);
-            scat_meta_tmp[i_ss].push_back(scat_meta[i_ss][i_se]);
-          }
+    {
+      // scattering element diameter is extracted from the
+      // scattering element's meta data and checked whether it's within size
+      // selected range (sizemax < 0 check follows from wildcard usage and
+      // means consider all sizes on the upper end)
+      if ( scat_meta[i_ss][i_se].diameter_max > sizemin-sizemin*tolerance &&
+           ( sizemax+sizemax*tolerance > scat_meta[i_ss][i_se].diameter_max ||
+             sizemax < 0. ) )
+        {
+          // copy selected scattering element to temp arrays
+          scat_data_tmp.push_back(scat_data[i_ss][i_se]);
+          scat_meta_tmp.push_back(scat_meta[i_ss][i_se]);
+        }
+    }
+  else if ( sizeparam=="diameter_volume_equ" )
+    for ( Index i_se=0; i_se<scat_meta[i_ss].nelem(); i_se++ )
+    {
+      if ( scat_meta[i_ss][i_se].diameter_volume_equ
+             > sizemin-sizemin*tolerance &&
+           ( sizemax+sizemax*tolerance
+               > scat_meta[i_ss][i_se].diameter_volume_equ ||
+             sizemax < 0. ) )
+        {
+          // copy selected scattering element to temp arrays
+          scat_data_tmp.push_back(scat_data[i_ss][i_se]);
+          scat_meta_tmp.push_back(scat_meta[i_ss][i_se]);
+        }
+    }
+  else if ( sizeparam=="diameter_area_equ_aerodynamical" )
+    for ( Index i_se=0; i_se<scat_meta[i_ss].nelem(); i_se++ )
+    {
+      if ( scat_meta[i_ss][i_se].diameter_area_equ_aerodynamical
+             > sizemin-sizemin*tolerance &&
+           ( sizemax+sizemax*tolerance
+               > scat_meta[i_ss][i_se].diameter_area_equ_aerodynamical ||
+             sizemax < 0. ) )
+        {
+          // copy selected scattering element to temp arrays
+          scat_data_tmp.push_back(scat_data[i_ss][i_se]);
+          scat_meta_tmp.push_back(scat_meta[i_ss][i_se]);
+        }
+    }
+  else
+    {
+      ostringstream os;
+      os << "Size parameter " << sizeparam << "is unknown.";
+      throw runtime_error ( os.str() );
+    }
+
+  // To use a particle species field without associated scattering element
+  // data poses a high risk of accidentially neglecting these species. That's
+  // unlikely what the user intends. Hence throw error.
+  if (scat_meta_tmp.nelem()<1)
+    {
+      ostringstream os;
+      os << "For scattering species " << species << " no scattering "
+         << "element matching the requested size range found.\n"
+         << "Check scat_data and scat_meta input as well as your size limit "
+         << "selection!";
+      throw runtime_error ( os.str() );
       }
 
-    // To use a particle species field without associated scattering element
-    // data poses a high risk of accidentially neglecting these species. That's
-    // unlikely what the user intends. Hence throw error.
-    if (scat_meta_tmp[i_ss].nelem()<1)
-      {
-        ostringstream os;
-        os << "For scattering species " << partfield_name << " no scattering "
-           << "element matching the requested size range found.\n"
-           << "Check scat_data and scat_meta input as well as the scat_species "
-           << "definition!";
-        throw runtime_error ( os.str() );
-      }
-  }
+  scat_meta[i_ss] = scat_meta_tmp;
+  scat_data[i_ss] = scat_data_tmp;
 
-  // check if array is empty. should only apply when scat_species is empty,
-  // hence just post a warning, don't throw error.
-  if ( !TotalNumberOfElements(scat_meta_tmp) )
-  {
-    out1 << "WARNING! No scattering elements selected.\n"
-         << "Continuing without any selected scattering elements.\n";
-  }
+  // check if array is empty. should never apply (since we checked the re-worked
+  // data before and that error should also catch cases that are empty from the
+  // beginning).
+  assert ( TotalNumberOfElements(scat_meta) );
 
-  scat_meta = scat_meta_tmp;
-  scat_data = scat_data_tmp;
 }
 
 
@@ -1404,7 +1437,7 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
                      const Tensor4& scat_species_mass_density_field,
                      const Tensor4& scat_species_mass_flux_field,
                      const Tensor4& scat_species_number_density_field,
-                     const Tensor4& scat_species_mean_mass_field,
+                     const Tensor4& scat_species_mean_mass_field _U_,
                      const Tensor3& t_field,
                      const ArrayOfArrayOfScatteringMetaData& scat_meta,
                      const ArrayOfString& scat_species,

@@ -66,10 +66,10 @@ Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__LookUpTable )
 ScatSpeciesInit
 
 scat_speciesSet(scat_tags=[
-                    "LWC-MGD_LWC-0.1-2000",
-                    "IWC-MGD_IWC-0.1-2000",
-                    "RR-MP48-*-*"
-#                    "SR-F07TR-*-*"
+                    "LWC-MGD_LWC",
+                    "IWC-MGD_IWC",
+                    "RR-MP48"
+#                    "SR-F07TR"
 ])
 
 ArrayOfStringCreate( scat_data_files )
@@ -79,7 +79,12 @@ ReadXML( scat_data_files, "scattering/H2O_ice/SingleScatteringFile_allH2Oice.xml
 ScatSpeciesScatAndMetaRead ( scat_data_files=scat_data_files )
 ReadXML( scat_data_files, "scattering/H2O_liquid/SingleScatteringFile_allH2Oliquid.xml" )
 ScatSpeciesScatAndMetaRead ( scat_data_files=scat_data_files )
-ScatElementsSelect
+ScatElementsSelect( species="LWC", sizeparam="diameter_volume_equ",
+                    sizemin=0.1e-6, sizemax=2000e-6 )
+ScatElementsSelect( species="IWC", sizeparam="diameter_volume_equ",
+                    sizemin=0.1e-6, sizemax=2000e-6 )
+#ScatElementsSelect( species="RR", sizeparam="diameter_volume_equ" )
+#ScatElementsSelect( species="SR", sizeparam="diameter_volume_equ" )
 
 
 doit_za_interpSet( doit_za_interp, atmosphere_dim, "linear" )

@@ -1,5 +1,27 @@
 2015-08-19  Jana Mendrok  <jana.mendrok@ltu.se>
 
+	* arts-2-3-278
+
+	Scattering species size selection removed from scat_species tag. Now
+	solely controlled and done by WSM ScatElementsSelect
+
+	* src/m_cloudbox.cc, methods.cc (ScatElementsSelect):
+	Modified behaviour/scope of the WSM. Now doing size selection per one
+	scattering species a time, size limits specified directly here, size
+	parameter selectable.
+
+	* src/workspace.cc, src/cloudbox.[cc,h]:
+	Removed size limit part from scat_species tags and corresponding
+	scat_species parsing method.
+
+	* controlfiles/artscomponents/doit/TestDOITFromIndividualFields.arts,
+	controlfiles/artscomponents/doitbatch/TestDOITBatch.arts,
+	controlfiles/artscomponents/wfuns/TestDoitJacobians.arts:
+	Adapted to modified behaviour/scope of ScatElementsSelect and
+	scat_species.
+
+2015-08-19  Jana Mendrok  <jana.mendrok@ltu.se>
+
 	* arts-2-3-277
 
 	* src/methods.cc (ScatElementsPndAndScatAdd, 
