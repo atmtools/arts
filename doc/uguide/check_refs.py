@@ -21,11 +21,11 @@ class ArtsWorkspace:
         self.groups = self.parse_arts_list(["-g", "all"])
 
     def parse_arts_list(self, arts_arg):
-        return [l[2:]
+        return [l[2:].decode()
                 for l in
                 sp.Popen([self.arts_exe] + arts_arg,
                          stdout=sp.PIPE).communicate()[0].splitlines()
-                if l[0:2] == '- ']
+                if l[0:2] == b'- ']
 
 
 def check_tex_file(ws, filename):
