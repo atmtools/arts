@@ -1,3 +1,15 @@
+2015-08-20  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-279
+
+	* src/make_auto_md_cc.cc:
+
+	Extend clearing of output-only variables before WSM calls from
+	matpack types to all WSV groups. Simplify code by using the default
+	constructor to initialize objects. Numerics are initialized with NaN,
+	Index with -1. This is only done in Debug configurations.
+	Closes trac ticket #129.
+
 2015-08-19  Jana Mendrok  <jana.mendrok@ltu.se>
 
 	* arts-2-3-278

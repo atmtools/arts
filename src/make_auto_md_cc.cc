@@ -190,16 +190,6 @@ int main()
           // Erase all Output only variables to uncover if they are
           // misused as Input variables
 #ifndef NDEBUG
-#define DUMMY_ELEMS 0
-#define DUMMY_COLS DUMMY_ELEMS
-#define DUMMY_ROWS DUMMY_ELEMS
-#define DUMMY_PAGES DUMMY_ELEMS
-#define DUMMY_BOOKS DUMMY_ELEMS
-#define DUMMY_SHELVES DUMMY_ELEMS
-#define DUMMY_VITRINES DUMMY_ELEMS
-#define DUMMY_LIBRARIES DUMMY_ELEMS
-
-
         // Determine indexes of variables in vo that are only use as output
         ArrayOfIndex voutonly; // Output only
         for (Index k=0; k<vo.nelem(); ++k)
@@ -215,6 +205,8 @@ int main()
             if (output_only) voutonly.push_back(k);
         }
 
+        // Set builtin-type variables to a certain value,
+        // initialize objects with their default constructor
         for (Index j=0; j < voutonly.nelem(); j++)
           {
             ostringstream docstr;
@@ -226,56 +218,14 @@ int main()
               initstr << " = NAN;";
             else if (gname == "Index")
               initstr << " = -1;";
-            else if (gname == "Vector")
-              initstr << ".resize(" << DUMMY_ELEMS << ");";
-            else if (gname == "Matrix")
-              initstr << ".resize(" << DUMMY_ROWS << ","
-                                    << DUMMY_COLS << ");";
-            else if (gname == "Tensor3")
-              initstr << ".resize("
-                << DUMMY_PAGES << ","
-                << DUMMY_ROWS  << ","
-                << DUMMY_COLS  << ");";
-            else if (gname == "Tensor4")
-                initstr << ".resize("
-                << DUMMY_BOOKS << ","
-                << DUMMY_PAGES << ","
-                << DUMMY_ROWS  << ","
-                << DUMMY_COLS  << ");";
-            else if (gname == "Tensor5")
-                initstr << ".resize("
-                << DUMMY_SHELVES << ","
-                << DUMMY_BOOKS << ","
-                << DUMMY_PAGES << ","
-                << DUMMY_ROWS  << ","
-                << DUMMY_COLS  << ");";
-            else if (gname == "Tensor6")
-                initstr << ".resize("
-                << DUMMY_VITRINES << ","
-                << DUMMY_SHELVES << ","
-                << DUMMY_BOOKS << ","
-                << DUMMY_PAGES << ","
-                << DUMMY_ROWS  << ","
-                << DUMMY_COLS  << ");";
-            else if (gname == "Tensor7")
-                initstr << ".resize("
-                << DUMMY_LIBRARIES << ","
-                << DUMMY_VITRINES << ","
-                << DUMMY_SHELVES << ","
-                << DUMMY_BOOKS << ","
-                << DUMMY_PAGES << ","
-                << DUMMY_ROWS  << ","
-                << DUMMY_COLS  << ");";
+            else
+              initstr << " = " << gname << "();";
 
-            if (initstr.str().length())
-            {
-              ofs << "  (*(("
-              << wsv_group_names[wsv_data[vo[voutonly[j]]].Group()]
+            ofs << "  (*(("
+                << wsv_group_names[wsv_data[vo[voutonly[j]]].Group()]
                 << " *)ws[mr.Out()[" << voutonly[j]
                 << "]]))" << initstr.str();
-            }
             ofs << docstr.str();
-            
           }
 #endif /* NDEBUG */
 
