@@ -43,8 +43,8 @@ Arts2 {
 #StringSet( tmpformat, "ascii" )
 StringSet( tmpformat, "binary" )
 
-StringSet( vmrtmp, "tmp1.xml" )
-StringSet( abstmp, "tmp2.xml" )
+StringSet( vmrtmp, "vmrtmp_venus.xml" )
+StringSet( abstmp, "abstmp_venus.xml" )
 
 
 # Get data for abs_species, where filenames do follow the basic convention

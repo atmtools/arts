@@ -1,3 +1,15 @@
+2015-08-21  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-281
+
+	* controlfiles/planetary_toolbox/includes/jupiter/getatmo_jupiter.arts,
+	controlfiles/planetary_toolbox/includes/mars/getatmo_mars.arts,
+	controlfiles/planetary_toolbox/includes/venus/getatmo_venus.arts:
+
+	Use different names for temporary files for each planet. Otherwise
+	test cases fail randomly if executed in parallel and one test case
+	overwrites the tmp file of the other.
+
 2015-08-20  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-280

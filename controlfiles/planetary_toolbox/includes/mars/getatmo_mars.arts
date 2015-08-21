@@ -46,8 +46,8 @@ Arts2 {
 # We will need to dummy-store some data in files to be able to export data from
 # forloops. So we create some dummy names. 
 StringSet( tmpformat, "binary" )
-StringSet( vmrtmp, "tmp1.xml" )
-StringSet( abstmp, "tmp2.xml" )
+StringSet( vmrtmp, "vmrtmp_mars.xml" )
+StringSet( abstmp, "abstmp_mars.xml" )
 
 
 # Get data for abs_species, where filenames do follow the basic convention
