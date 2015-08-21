@@ -1,3 +1,12 @@
+2015-08-21  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-283
+
+	* src/m_ppath.cc (geo_posEndOfPpath)
+	(geo_posLowestAltitudeOfPpath, geo_posWherePpathPassesZref): Did
+	not work for 1D. The pseudo-latitude kept inside ppath was
+	incorrectly included.
+
 2015-08-21  Richard Larsson <ric.larsson@gmail.com>
 
 	* arts-2-3-282

@@ -71,7 +71,7 @@ void geo_posEndOfPpath(
     const Ppath&          ppath,
     const Verbosity&      verbosity )
 {
-  geo_pos = ppath.pos(ppath.np-1,joker);
+  geo_pos = ppath.pos(ppath.np-1,Range(0,ppath.dim));
 
   CREATE_OUT2;  
   out2 << "  Sets geo-position to:\n" << geo_pos;
@@ -86,12 +86,12 @@ void geo_posLowestAltitudeOfPpath(
     const Verbosity&      verbosity )
 {
   // Take first point of ppath as first guess
-  geo_pos = ppath.pos(0,joker);
+  geo_pos = ppath.pos(0,Range(0,ppath.dim));
   
   for( Index i=1; i<ppath.np; i++ )
     {
       if( ppath.pos(i,0) < geo_pos[0] )
-         geo_pos = ppath.pos(i,joker);
+         geo_pos = ppath.pos(i,Range(0,ppath.dim));
     }
 
   CREATE_OUT2;  
@@ -107,7 +107,7 @@ void geo_posWherePpathPassesZref(
     const Numeric&        z_ref,
     const Verbosity&      verbosity )
 {
-  geo_pos.resize( ppath.pos.ncols() );
+  geo_pos.resize( ppath.dim );
 
   bool  found = false;
   Index ihit  = 0;
