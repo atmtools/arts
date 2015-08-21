@@ -2018,7 +2018,7 @@ firstprivate(attenuation, phase, fac, f_local, aux)
             Numeric Y=0,DV=0,G=0; // Set to zero since case with 0 exist
             abs_lines[ii].LineMixing().GetLineMixingParams( Y,  G,  DV,  t, p, lm_p_lim, 1);
             
-            // Check the chache is the tempearture of the line and the isotope is the same to avoid recalculating the partition sum
+            // Check the cache is the temperature of the line and the isotope is the same to avoid recalculating the partition sum
             if(iso_cache!=abs_lines[ii].Isotopologue() || line_t_cache != abs_lines[ii].Ti0())
             {
               iso_cache = abs_lines[ii].Isotopologue();
@@ -2047,7 +2047,7 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                                 abs_lines[ii].EvuppIndex(),
                                 t_nlte);
             
-            // Dopple broadening
+            // Doppler broadening
             const Numeric sigma = abs_lines[ii].F() * doppler_const *sqrt( t / abs_lines[ii].IsotopologueData().Mass());
             
             // Time to calculate the line cross section

@@ -42,6 +42,12 @@ void phase_matrix(MatrixView K, const Numeric& theta, const Numeric& eta, const 
 
 void attenuation_matrix(MatrixView K, const Numeric& theta, const Numeric& eta, const Index& DM);
 
+void dphase_matrix_dtheta(MatrixView dK, const Numeric& theta, const Numeric& eta, const Index& DM);
+void dphase_matrix_deta(  MatrixView dK, const Numeric& theta, const Numeric& eta, const Index& DM);
+
+void dattenuation_matrix_dtheta(MatrixView dK, const Numeric& theta, const Numeric& eta, const Index& DM);
+void dattenuation_matrix_deta(  MatrixView dK, const Numeric& theta, const Numeric& eta, const Index& DM);
+
 Numeric gs_caseb(const Numeric& N, const Numeric& J, const Numeric& S, const Numeric& GS);
 Numeric gs_casea(const Numeric& Omega, const Numeric& J, const Numeric& Sigma, const Numeric& GS);
 

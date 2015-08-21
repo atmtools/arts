@@ -58,6 +58,14 @@ matrix_exp(MatrixView F,
            ConstMatrixView A, 
            const Index& q=10);
 
+// Exponential of a Matrix
+void 
+matrix_exp_dmatrix_exp(MatrixView F,
+                       MatrixView dF,
+                       ConstMatrixView A, 
+                       ConstMatrixView dA, 
+                       const Index& q=10);
+
 
 // Maximum absolute row sum norm 
 Numeric 

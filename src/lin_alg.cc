@@ -302,6 +302,153 @@ void matrix_exp(
 }
 
 
+//! General exponential of a Matrix with their derivatives
+/*! 
+ * 
+ * The exponential of a matrix is computed using the Pade-Approximation. The
+ * method is decribed in: Golub, G. H. and C. F. Van Loan, Matrix Computation,
+ * p. 384, Johns Hopkins University Press, 1983.
+ * 
+ * The extension of Pade-Approximation to the derivative is explained by 
+ * Lubomír Brančík, MATLAB PROGRAMS FOR MATRIX EXPONENTIAL FUNCTION 
+ * DERIVATIVE EVALUATION, 2008
+ * 
+ * The Pade-approximation is applied on all cases. If a faster option can be
+ * applied has to be checked before calling the function.
+ * 
+ * \param F Output: The matrix exponential of A (Has to be initialized before
+ * calling the function.
+ * \param dF Output: The derivative  of the matrix exponential of A (Has to be initialized before
+ * calling the function.
+ * \param A Input:  arbitrary square matrix
+ * \param dA Input: derivative of arbitrary square matrix
+ * \param q Input: Parameter for the accuracy of the computation
+ */
+void matrix_exp_dmatrix_exp(
+    MatrixView      F,
+    MatrixView      dF,
+    ConstMatrixView A,
+    ConstMatrixView dA,
+    const Index&          q )
+{
+    const Index n = A.ncols();
+    
+    /* Check if A and F are a quadratic and of the same dimension. */
+    assert( is_size(A,n,n) );
+    assert( is_size(F,n,n) );
+    assert( is_size(dA,n,n) );
+    assert( is_size(dF,n,n) );
+    
+    // This is the definition of how to scale
+    Numeric A_norm_inf, e;
+    A_norm_inf = norm_inf(A);
+    e = 1. +  floor(1./log(2.)*log(A_norm_inf));
+    Numeric r = (e+1.)>0.?(e+1.):0., pow2rm1=1./pow(2,r);
+    
+    // A and dA are scaled
+    Matrix M=A, dM=dA;
+    M  *= pow2rm1;
+    dM *= pow2rm1;
+    
+    // These variables will hold the multiplication calculations
+    Matrix X(n,n), Y(n,n);
+    X =  M;
+    Y = dM;
+    
+    // cX = c*M
+    // cY = c*dM
+    Matrix cX=X, cY=Y;
+    Numeric c = 0.5;
+    cX*=c;
+    cY*=c;
+    
+    Matrix D(n,n), dD(n,n);
+    // F = I + c*M
+    id_mat(F); F+=cX; 
+    
+    // dF = c*dM;
+    dF =  cY;
+    
+    //D = I -c*M
+    id_mat(D); D-=cX; 
+    
+    // dD = -c*dM
+    dD =  cY; dD*=-1.;
+    
+    // NOTE: MATLAB paper sets q = 6 but we allow other numbers
+    
+    Matrix tmp1(n,n), tmp2(n,n);
+    
+    for(Index k=2; k<=q; k++)
+    { 
+        c *= (Numeric)(q-k+1)/(Numeric)((k)*(2*q-k+1));
+        
+        // Y = dM*X + M*Y
+        mult(tmp1, dM, X);
+        mult(tmp2, M, Y);
+        Y = tmp1; Y+= tmp2;
+        
+        // X=M*X
+        mult(tmp1, M, X);
+        X = tmp1;
+        
+        //cX = c*X
+        cX=X; cX*=c;
+        
+        // cY = c*Y
+        cY=Y; cY*=c;
+        
+        // F = F + cX
+        F  += cX;
+        
+        // dF = dF + cY
+        dF += cY;
+        
+        if(k%2==0)//For even numbers, add.  
+        {
+            // D = D + cX
+            D+=cX; 
+            
+            // dD = dD + cY
+            dD+=cY;
+        }
+        else//For odd numbers, subtract
+        {
+            // D = D - cX
+            D-=cX; 
+            
+            // dD = dD - cY
+            dD-=cY;
+        }
+    }
+    
+    // D^-1
+    inv(tmp1,D);
+    
+    // F = D\F, or D^-1*F
+    mult(tmp2,tmp1,F);
+    F = tmp2;
+    
+    //dF = D \ (dF - dF*F), or D^-1 * (dF - dF*F)
+    mult(tmp2, dD, F);// dF * F
+    dF-=tmp2;// dF - dF * F
+    mult(tmp2,tmp1,dF);
+    dF=tmp2;
+    
+    for(Index k=1; k<=r; k++)
+    {
+        // dF=F*dF+dF*F
+        mult(tmp1,F,dF);//F*dF
+        mult(tmp2,dF,F);//dF*F
+        dF=tmp1;dF+=tmp2;
+        
+        // F=F*F
+        mult(tmp1,F,F);
+        F=tmp1;
+    }
+}
+
+
 //! Maximum absolute row sum norm 
 /*! 
   This function returns the maximum absolute row sum norm of a 

@@ -1,3 +1,31 @@
+2015-08-21  Richard Larsson <ric.larsson@gmail.com>
+
+	* arts-2-3-282
+	
+	* src/absorption.cc:  Fixed a typo.
+	
+	The rest is just a preparation.  No code has been changed, but some 
+	functions that we have yet to decide necessary have been added.
+	
+	* src/lin_alg.Pcc,h}:  Added matrix_exp_dmatrix_exp as a method for 
+	outputting the matrix exponent and its derivative at once.  Tested
+	as a temporary replacement for matrix_exp and the results are identical.
+	I have yet to test that the derivative is OK. The function is also based
+	on Pade Approximation.
+	
+	* src/zeeman.{cc,h}: Added partial derivatives with respect to the angles.
+	I am still unsure if there are easier ways to calculate this.  E.g.,
+	exp(LKL^-1)=Lexp(K)L^-1, and L is the only eta variable, so the partial 
+	derivative might be easier than partial derivative of all angles.
+	Nevertheless, the code is unused for now.  I just need it to check with
+	matrix_exp_dmatrix_exp that the dmatrix_exp part is doing a decent job.
+	
+	Suggestion:  We should agree on a naming scheme for functions and variables
+	that can have a direct partial derivatives with respect to some variable(s).
+	This should of course only happen if we decide to try the analytical route.
+	If so, some clear structure for the multiples of partials required could be
+	useful.
+
 2015-08-21  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-281

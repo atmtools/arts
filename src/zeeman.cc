@@ -22,7 +22,7 @@
 
 
 /*!
- *  Defines the phase of the propagation matrix as derived by the author.
+ *  Defines the phase of the propagation matrix.
  *  Read Larsson et al. (2013) for an explanation.
  * 
  *  \param  K       Out:    The rotation extinction matrix.
@@ -67,15 +67,15 @@ void phase_matrix(MatrixView K, const Numeric& theta, const Numeric& eta, const 
             K(2,0) =   0;  K(2,1) =           0;  K(2,2) =           0;  K(2,3) =   S2T * CE2;
             K(3,0) =   0;  K(3,1) =   S2T * SE2;  K(3,2) = - S2T * CE2;  K(3,3) =           0;
             break;
-        default: // Nil matrix since this should not be called.
-            K=0;
+        default:
+            throw std::runtime_error("Impossible Delta M to phase matrix");
             break;
     };
 };
 
 
 /*!
- *  Defines the attenuation of the propagation matrix as derived by the author.
+ *  Defines the attenuation of the propagation matrix.
  *  Read Larsson et al. (2013) for an explanation.
  * 
  *  \param  K       Out:    The rotation extinction matrix.
@@ -92,7 +92,6 @@ void attenuation_matrix(MatrixView K, const Numeric& theta, const Numeric& eta, 
 {
     assert(K.nrows() == 4 );
     assert(K.ncols() == 4 );
-    
     
     const Numeric 
     S2T  = sin(theta)*sin(theta),  
@@ -121,11 +120,212 @@ void attenuation_matrix(MatrixView K, const Numeric& theta, const Numeric& eta, 
             K(2,0) = - S2T * SE2;  K(2,1) =           0;  K(2,2) =         S2T;  K(2,3) =         0;
             K(3,0) =           0;  K(3,1) =           0;  K(3,2) =           0;  K(3,3) =       S2T;
             break;
-        default: // Unity matrix in attenuation
-            K(0,0) = 1;            K(0,1) =           0;  K(0,2) =           0;  K(0,3) =         0;
-            K(1,0) = 0;            K(1,1) =           1;  K(1,2) =           0;  K(1,3) =         0;
-            K(2,0) = 0;            K(2,1) =           0;  K(2,2) =           1;  K(2,3) =         0;
-            K(3,0) = 0;            K(3,1) =           0;  K(3,2) =           0;  K(3,3) =         1;
+        default:
+            throw std::runtime_error("Impossible Delta M to attenuation matrix");
+            break;
+    };
+};
+
+
+/*!
+ *  Defines the derivative of the phase of the propagation matrix with regards to theta
+ * 
+ *  \param  dK      Out:    The rotation extinction matrix derivative with regards to theta.
+ *  \param  theta   In:     Angle between the magnetic field and the
+ *                          propagation path. In radians.
+ *  \param  eta     In:     Angle to rotate planar polarization clockwise to
+ *                          fit the general coordinate system. In radians.
+ *  \param  DM      In:     Change in the secondary rotational quantum number.
+ * 
+ *  \author Richard Larsson
+ *  \date   2015-08-14
+ */
+void dphase_matrix_dtheta(MatrixView dK, const Numeric& theta, const Numeric& eta, const Index& DM)
+{
+    assert(dK.nrows() == 4 );
+    assert(dK.ncols() == 4 );
+    
+    const Numeric 
+    ST   = sin(theta),
+    CTST = sin(theta)*cos(theta), 
+    CE2  = cos(2*eta), 
+    SE2  = sin(2*eta);
+    
+    
+    switch( DM )
+    {
+        case -1: // Transitions anti-parallel to the magnetic field
+            dK(0,0) =   0;  dK(0,1) =                0;  dK(0,2) =                0;  dK(0,3) =                0;
+            dK(1,0) =   0;  dK(1,1) =                0;  dK(1,2) =         - 2 * ST;  dK(1,3) =   2 * CTST * SE2;
+            dK(2,0) =   0;  dK(2,1) =           2 * ST;  dK(2,2) =                0;  dK(2,3) = - 2 * CTST * CE2;
+            dK(3,0) =   0;  dK(3,1) = - 2 * CTST * SE2;  dK(3,2) =   2 * CTST * CE2;  dK(3,3) =                0;
+            break;
+        case  1: // Transitions parallel to the magnetic field
+            dK(0,0) =   0;  dK(0,1) =                0;  dK(0,2) =                0;  dK(0,3) =                0;
+            dK(1,0) =   0;  dK(1,1) =                0;  dK(1,2) =           2 * ST;  dK(1,3) =   2 * CTST * SE2;
+            dK(2,0) =   0;  dK(2,1) =        -  2 * ST;  dK(2,2) =                0;  dK(2,3) = - 2 * CTST * CE2;
+            dK(3,0) =   0;  dK(3,1) = - 2 * CTST * SE2;  dK(3,2) =   2 * CTST * CE2;  dK(3,3) =                0;
+            break;
+        case  0:// Transitions perpendicular to the magnetic field
+            dK(0,0) =   0;  dK(0,1) =                0;  dK(0,2) =                0;  dK(0,3) =                0;
+            dK(1,0) =   0;  dK(1,1) =                0;  dK(1,2) =                0;  dK(1,3) = - 2 * CTST * SE2;
+            dK(2,0) =   0;  dK(2,1) =                0;  dK(2,2) =                0;  dK(2,3) =   2 * CTST * CE2;
+            dK(3,0) =   0;  dK(3,1) =   2 * CTST * SE2;  dK(3,2) = - 2 * CTST * CE2;  dK(3,3) =                0;
+            break;
+        default:
+            throw std::runtime_error("Impossible Delta M to phase matrix");
+            break;
+    };
+};
+
+
+/*!
+ *  Defines the derivative of the phase of the propagation matrix with regards to eta
+ * 
+ *  \param  dK      Out:    The rotation extinction matrix derivative with regards to eta.
+ *  \param  theta   In:     Angle between the magnetic field and the
+ *                          propagation path. In radians.
+ *  \param  eta     In:     Angle to rotate planar polarization clockwise to
+ *                          fit the general coordinate system. In radians.
+ *  \param  DM      In:     Change in the secondary rotational quantum number.
+ * 
+ *  \author Richard Larsson
+ *  \date   2015-08-14
+ */
+void dphase_matrix_deta(MatrixView dK, const Numeric& theta, const Numeric& eta, const Index& DM)
+{
+    assert(dK.nrows() == 4 );
+    assert(dK.ncols() == 4 );
+    
+    const Numeric 
+    S2T = sin(theta)*sin(theta),  
+    CE2 = cos(2*eta),
+    SE2 = sin(2*eta);
+    
+    
+    switch( DM )
+    {
+        case -1: // Transitions anti-parallel to the magnetic field
+            dK(0,0) =   0;  dK(0,1) =               0;  dK(0,2) =               0;  dK(0,3) =               0;
+            dK(1,0) =   0;  dK(1,1) =               0;  dK(1,2) =               0;  dK(1,3) =   2 * S2T * CE2;
+            dK(2,0) =   0;  dK(2,1) =               0;  dK(2,2) =               0;  dK(2,3) =   2 * S2T * SE2;
+            dK(3,0) =   0;  dK(3,1) = - 2 * S2T * CE2;  dK(3,2) = - 2 * S2T * SE2;  dK(3,3) =               0;
+            break;
+        case  1: // Transitions parallel to the magnetic field
+            dK(0,0) =   0;  dK(0,1) =               0;  dK(0,2) =               0;  dK(0,3) =               0;
+            dK(1,0) =   0;  dK(1,1) =               0;  dK(1,2) =               0;  dK(1,3) =   2 * S2T * CE2;
+            dK(2,0) =   0;  dK(2,1) =               0;  dK(2,2) =               0;  dK(2,3) =   2 * S2T * SE2;
+            dK(3,0) =   0;  dK(3,1) = - 2 * S2T * CE2;  dK(3,2) = - 2 * S2T * SE2;  dK(3,3) =               0;
+            break;
+        case  0:// Transitions perpendicular to the magnetic field
+            dK(0,0) =   0;  dK(0,1) =               0;  dK(0,2) =               0;  dK(0,3) =               0;
+            dK(1,0) =   0;  dK(1,1) =               0;  dK(1,2) =               0;  dK(1,3) = - 2 * S2T * CE2;
+            dK(2,0) =   0;  dK(2,1) =               0;  dK(2,2) =               0;  dK(2,3) = - 2 * S2T * SE2;
+            dK(3,0) =   0;  dK(3,1) =   2 * S2T * CE2;  dK(3,2) =   2 * S2T * SE2;  dK(3,3) =               0;
+            break;
+        default:
+            throw std::runtime_error("Impossible Delta M to phase matrix");
+            break;
+    };
+};
+
+
+/*!
+ *  Defines the derivative of the attenuation of the propagation matrix with regards to theta.
+ * 
+ *  \param  dK      Out:    The rotation extinction matrix derivative with regards to theta.
+ *  \param  theta   In:     Angle between the magnetic field and the
+ *                          propagation path. In radians.
+ *  \param  eta     In:     Angle to rotate planar polarization clockwise to
+ *                          fit the general coordinate system. In radians.
+ *  \param  DM      In:     Change in the secondary rotational quantum number.
+ * 
+ *  \author Richard Larsson
+ *  \date   2015-08-14
+ */
+void dattenuation_matrix_dtheta(MatrixView dK, const Numeric& theta, const Numeric& eta, const Index& DM)
+{
+    assert(dK.nrows() == 4 );
+    assert(dK.ncols() == 4 );
+    
+    const Numeric 
+    CTST = cos(theta)*sin(theta), 
+    ST   = sin(theta),
+    CE2  = cos(2*eta), 
+    SE2  = sin(2*eta);
+    
+    switch( DM )
+    {
+        case -1: // Transitions anti-parallel to the magnetic field
+            dK(0,0) =       - 2 * CTST;  dK(0,1) =   2 * CTST * CE2;  dK(0,2) =   2 * CTST * SE2;  dK(0,3) =   - 2 * ST;
+            dK(1,0) =   2 * CTST * CE2;  dK(1,1) =       - 2 * CTST;  dK(1,2) =                0;  dK(1,3) =          0;
+            dK(2,0) =   2 * CTST * SE2;  dK(2,1) =                0;  dK(2,2) =       - 2 * CTST;  dK(2,3) =          0;
+            dK(3,0) =         - 2 * ST;  dK(3,1) =                0;  dK(3,2) =                0;  dK(3,3) = - 2 * CTST;
+            break;
+        case  1: // Transitions parallel to the magnetic field
+            dK(0,0) =       - 2 * CTST;  dK(0,1) =   2 * CTST * CE2;  dK(0,2) =   2 * CTST * SE2;  dK(0,3) =     2 * ST;
+            dK(1,0) =   2 * CTST * CE2;  dK(1,1) =       - 2 * CTST;  dK(1,2) =                0;  dK(1,3) =          0;
+            dK(2,0) =   2 * CTST * SE2;  dK(2,1) =                0;  dK(2,2) =       - 2 * CTST;  dK(2,3) =          0;
+            dK(3,0) =           2 * ST;  dK(3,1) =                0;  dK(3,2) =                0;  dK(3,3) = - 2 * CTST;
+            break;
+        case  0: // Transitions perpendicular to the magnetic field
+            dK(0,0) =         2 * CTST;  dK(0,1) = - 2 * CTST * CE2;  dK(0,2) = - 2 * CTST * SE2;  dK(0,3) =          0;
+            dK(1,0) = - 2 * CTST * CE2;  dK(1,1) =         2 * CTST;  dK(1,2) =                0;  dK(1,3) =          0;
+            dK(2,0) = - 2 * CTST * SE2;  dK(2,1) =                0;  dK(2,2) =         2 * CTST;  dK(2,3) =          0;
+            dK(3,0) =                0;  dK(3,1) =                0;  dK(3,2) =                0;  dK(3,3) =   2 * CTST;
+            break;
+        default:
+            throw std::runtime_error("Impossible Delta M to attenuation matrix");
+            break;
+    };
+};
+
+
+/*!
+ *  Defines the derivative of the attenuation of the propagation matrix with regards to eta.
+ * 
+ *  \param  dK      Out:    The rotation extinction matrix derivative with regards to eta.
+ *  \param  theta   In:     Angle between the magnetic field and the
+ *                          propagation path. In radians.
+ *  \param  eta     In:     Angle to rotate planar polarization clockwise to
+ *                          fit the general coordinate system. In radians.
+ *  \param  DM      In:     Change in the secondary rotational quantum number.
+ * 
+ *  \author Richard Larsson
+ *  \date   2015-08-14
+ */
+void dattenuation_matrix_deta(MatrixView dK, const Numeric& theta, const Numeric& eta, const Index& DM)
+{
+    assert(dK.nrows() == 4 );
+    assert(dK.ncols() == 4 );
+    
+    const Numeric
+    SE2 = sin(2*eta),
+    CE2 = cos(2*eta),
+    ST2 = sin(theta)*sin(theta);
+    
+    switch( DM )
+    {
+        case -1: // Transitions anti-parallel to the magnetic field
+            dK(0,0) =               0;  dK(0,1) = - 2 * ST2 * SE2;  dK(0,2) =   2 * ST2 * CE2;  dK(0,3) =   0;
+            dK(1,0) = - 2 * ST2 * SE2;  dK(1,1) =               0;  dK(1,2) =               0;  dK(1,3) =   0;
+            dK(2,0) =   2 * ST2 * CE2;  dK(2,1) =               0;  dK(2,2) =               0;  dK(2,3) =   0;
+            dK(3,0) =               0;  dK(3,1) =               0;  dK(3,2) =               0;  dK(3,3) =   0;
+            break;
+        case  1: // Transitions parallel to the magnetic field
+            dK(0,0) =               0;  dK(0,1) = - 2 * ST2 * SE2;  dK(0,2) =   2 * ST2 * CE2;  dK(0,3) =   0;
+            dK(1,0) = - 2 * ST2 * SE2;  dK(1,1) =               0;  dK(1,2) =               0;  dK(1,3) =   0;
+            dK(2,0) =   2 * ST2 * CE2;  dK(2,1) =               0;  dK(2,2) =               0;  dK(2,3) =   0;
+            dK(3,0) =               0;  dK(3,1) =               0;  dK(3,2) =               0;  dK(3,3) =   0;
+            break;
+        case  0: // Transitions perpendicular to the magnetic field
+            dK(0,0) =               0;  dK(0,1) =   2 * ST2 * SE2;  dK(0,2) = - 2 * ST2 * CE2;  dK(0,3) =   0;
+            dK(1,0) =   2 * ST2 * SE2;  dK(1,1) =               0;  dK(1,2) =               0;  dK(1,3) =   0;
+            dK(2,0) = - 2 * ST2 * CE2;  dK(2,1) =               0;  dK(2,2) =               0;  dK(2,3) =   0;
+            dK(3,0) =               0;  dK(3,1) =               0;  dK(3,2) =               0;  dK(3,3) =   0;
+            break;
+        default:
+            throw std::runtime_error("Impossible Delta M to attenuation matrix");
             break;
     };
 };
@@ -551,7 +751,7 @@ void create_Zeeman_linerecordarrays(
           // If the species isn't Zeeman, look at the next species
           if(!is_zeeman(abs_species[II])) continue;
 
-          aoaol.push_back(ArrayOfLineRecord()); // First is neative
+          aoaol.push_back(ArrayOfLineRecord()); // First is negative
           aoaol.push_back(ArrayOfLineRecord()); // Second is 0
           aoaol.push_back(ArrayOfLineRecord()); // Third is positive
 
