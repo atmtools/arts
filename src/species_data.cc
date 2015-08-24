@@ -1193,7 +1193,8 @@ void define_basic_species_data()
         ISOTOPOLOGUES
         (//   Name,     Isotop. Ratio,       Mass,         MY-tag, HI-tag, JPL-tag
          //             |                    |             |       |       |
-         REC( "MPM93"   ,NAN                ,NAN          ,-1     ,-1     ,TAGS())
+         REC( "MPM93"   ,NAN                ,NAN          ,-1     ,-1     ,TAGS()),
+         REC( "ELL07"   ,NAN                ,NAN          ,-1     ,-1     ,TAGS())
          ) ) );
 
   // You also have to change the entry in the file

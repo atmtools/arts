@@ -330,6 +330,14 @@
       Propagation Panel,<br> Palma de Mallorca, Spain, 1993, May 17-21
       <a href="ftp://ftp.its.bldrdoc.gov/pub/mpm93/">(WWW access)</a>.
    </li>
+   <li><b>Suspended water droplet (liquidcloud-ELL07)</b>
+      absorption parameterization from ELL07 model<br>
+      W. J. Ellison <br>
+      <i>Permittivity of Pure Water, at Standard Atmospheric Pressure, over the
+      Frequency Range 0-25 THz and Temperature Range 0-100C</i>,<br>
+      J. Phys. Chem. Ref. Data, Vol. 36, No. 1, 2007
+   </li
+
    <li><b>Ice crystal absorption (icecloud-MPM93)</b> parameterization from MPM93 model<br>
       H. J. Liebe and G. A. Hufford and M. G. Cotton,<br>
       <i>Propagation modeling of moist air and suspended water/ice
@@ -15355,6 +15363,193 @@ void MPM93WaterDropletAbs (MatrixView         pxsec,
     }
 
 }
+
+
+//
+// #################################################################################
+//! ELL07WaterDropletAbs
+/*!
+   \param[out] pxsec        cross section (absorption/volume mixing ratio) of
+                            water clouds according to ELL07 [1/m]
+   \param    model          allows choice of
+                            pre-defined parameters of specific models (see note below).
+   \param    f_grid         predefined frequency grid       [Hz]
+   \param    abs_p          predefined pressure grid        [Pa]
+   \param    abs_t          predefined temperature grid     [K]
+   \param    vmr            suspended water droplet density profile (valid range: 0-0.001) [kg/m³]
+
+   \note     Allowed models: 'ELL07'.
+             See the user guide for detailed explanations.
+
+   \remark   Reference: W. J. Ellison, <br>
+            <i>Permittivity of Pure Water, at Standard Atmospheric Pressure, over the
+             Frequency Range 0-25 THz and Temperature Range 0-100C</i>,<br>
+             J. Phys. Chem. Ref. Data, Vol. 36, No. 1, 2007
+
+   \author Stuart Fox
+   \date 2015-06-03
+ */
+
+void ELL07WaterDropletAbs (MatrixView         pxsec,
+                           const String&      model,  // model
+                           ConstVectorView    f_grid, // frequency vector
+                           ConstVectorView    abs_p,  // pressure vector
+                           ConstVectorView    abs_t,  // temperature vector
+                           ConstVectorView    vmr,    // suspended water droplet density vector
+                           const Verbosity& verbosity)
+{
+    CREATE_OUT3;
+    if (model != "ELL07")
+    {
+        ostringstream os;
+        os << "liquidcloud-ELL07: ERROR! Wrong model values given.\n"
+        << "Valid models are: 'ELL07'" << '\n';
+        throw runtime_error(os.str());
+    }
+    out3  << "liquidcloud-ELL07: (model=" << model << ") parameter values in use";
+
+
+    const Numeric m = 1.00e3; // specific weight of the droplet,  fixed value:  1.00e3 kg/m3
+    const Numeric low_lim_den  =  0.000;   // lower limit of suspended droplet particle density vector [kg/m3]
+    const Numeric high_lim_den = 10.00e-3; // upper limit of suspended droplet particle density vector [kg/m3]
+
+    const Index n_p = abs_p.nelem();  // Number of pressure levels
+    const Index n_f = f_grid.nelem();  // Number of frequencies
+
+    // ELL07 model parameters - table 2 in Ellison (2007)
+    const Numeric a1=79.23882;
+    const Numeric a2=3.815866;
+    const Numeric a3=1.634967;
+    const Numeric tc=133.1383;
+    const Numeric b1=0.004300598;
+    const Numeric b2=0.01117295;
+    const Numeric b3=0.006841548;
+    const Numeric c1=1.382264e-13;
+    const Numeric c2=3.510354e-16;
+    const Numeric c3=6.30035e-15;
+    const Numeric d1=652.7648;
+    const Numeric d2=1249.533;
+    const Numeric d3=405.5169;
+    const Numeric p0=0.8379692;
+    const Numeric p1=-0.006118594;
+    const Numeric p2=-0.000012936798;
+    const Numeric p3=4235901000000.0;
+    const Numeric p4=-14260880000.0;
+    const Numeric p5=273815700.0;
+    const Numeric p6=-1246943.0;
+    const Numeric p7=9.618642e-14;
+    const Numeric p8=1.795786e-16;
+    const Numeric p9=-9.310017E-18;
+    const Numeric p10=1.655473e-19;
+    const Numeric p11=0.6165532;
+    const Numeric p12=0.007238532;
+    const Numeric p13=-0.00009523366;
+    const Numeric p14=15983170000000.0;
+    const Numeric p15=-74413570000.0;
+    const Numeric p16=497448000.0;
+    const Numeric p17=2.882476e-14;
+    const Numeric p18=-3.142118e-16;
+    const Numeric p19=3.528051e-18;
+
+    // Check that dimensions of abs_p, abs_t, and vmr agree:
+    assert ( n_p==abs_t.nelem() );
+    assert ( n_p==vmr.nelem()   );
+
+    // Check that dimensions of pxsec are consistent with n_f
+    // and n_p. It should be [n_f,n_p]:
+    assert ( n_f==pxsec.nrows() );
+    assert ( n_p==pxsec.ncols() );
+
+    // Loop pressure/temperature:
+    for ( Index i=0; i<n_p; ++i )
+    {
+        // water vapor saturation pressure over liquid water [Pa]
+        // Numeric es       = WVSatPressureLiquidWater(abs_t[i]);
+        // water vapor partial pressure [Pa]
+        // Numeric e        = abs_p[i] * vmr[i];
+        // relative humidity [1]
+        // Numeric RH       = e / es;
+
+        // Check limits of suspended water droplet density ("vmr") [kg/m³]
+        if ( (vmr[i] >= low_lim_den) && (vmr[i] <= high_lim_den) )
+        {
+            // Temperature in celsius
+            Numeric t_cels = abs_t[i]-273.15;
+            // static permittivity
+            Numeric epsilon_s = 87.9144-0.404399*t_cels-9.58726e-4*pow(t_cels,(Numeric)2.) -
+            1.32802e-6*pow(t_cels,(Numeric)3.);
+            // Model parameters
+            Numeric delta1=a1*exp(-b1*t_cels);
+            Numeric delta2=a2*exp(-b2*t_cels);
+            Numeric delta3=a3*exp(-b3*t_cels);
+            Numeric tau1=c1*exp(d1/(t_cels+tc));
+            Numeric tau2=c2*exp(d2/(t_cels+tc));
+            Numeric tau3=c3*exp(d3/(t_cels+tc));
+            Numeric delta4=p0 + p1*t_cels + p2*pow(t_cels, (Numeric)2.);
+            Numeric f0=p3 + p4*t_cels + p5*pow(t_cels, (Numeric)2.) + p6*pow(t_cels, (Numeric)3.);
+            Numeric tau4=p7+p8*t_cels + p9*pow(t_cels, (Numeric)2.) + p10*pow(t_cels, (Numeric)3.);
+            Numeric delta5=p11 + p12*t_cels + p13*pow(t_cels, (Numeric)2.);
+            Numeric f1=p14 + p15*t_cels + p16*pow(t_cels, (Numeric)2.);
+            Numeric tau5=p17 + p18*t_cels + p19*pow(t_cels, (Numeric)2.);
+
+            // Loop frequency:
+            for ( Index s=0; s<n_f; ++s )
+            {
+                // real part of the complex permittivity of water (triple-debye + 2 resonances)
+                Numeric Reepsilon  = epsilon_s - pow(((Numeric)2.*PI*f_grid[s]),(Numeric)2.)*
+                (pow(tau1,(Numeric)2.)*delta1/((Numeric)1.+pow((Numeric)2.*PI*f_grid[s]*tau1, (Numeric)2.)) +
+                 pow(tau2,(Numeric)2.)*delta2/((Numeric)1.+pow((Numeric)2.*PI*f_grid[s]*tau2, (Numeric)2.)) +
+                 pow(tau3,(Numeric)2.)*delta3/((Numeric)1.+pow((Numeric)2.*PI*f_grid[s]*tau3, (Numeric)2.))) -
+                pow((Numeric)2.*PI*tau4,(Numeric)2.)*delta4/(Numeric)2.*(f_grid[s]*(f0+f_grid[s]) /
+                                                                         ((Numeric)1.+pow((Numeric)2.*PI*tau4*(f0+f_grid[s]),(Numeric)2.)) -
+                                                                         f_grid[s]*(f0-f_grid[s]) /
+                                                                         ((Numeric)1.+pow((Numeric)2.*PI*tau4*(f0-f_grid[s]),(Numeric)2.))) -
+                pow((Numeric)2.*PI*tau5,(Numeric)2.)*delta5/(Numeric)2.*(f_grid[s]*(f1+f_grid[s]) /
+                                                                         ((Numeric)1.+pow((Numeric)2.*PI*tau5*(f1+f_grid[s]),(Numeric)2.)) -
+                                                                         f_grid[s]*(f1-f_grid[s]) /
+                                                                         ((Numeric)1.+pow((Numeric)2.*PI*tau5*(f1-f_grid[s]),(Numeric)2.)));
+                // imaginary part of the complex permittivity of water (triple-debye + 2 resonances)
+                Numeric Imepsilon  = 2*PI*f_grid[s]*(tau1*delta1/((Numeric)1.+pow((Numeric)2.*PI*f_grid[s]*tau1, (Numeric)2.)) +
+                                                     tau2*delta2/((Numeric)1.+pow((Numeric)2.*PI*f_grid[s]*tau2, (Numeric)2.)) +
+                                                     tau3*delta3/((Numeric)1.+pow((Numeric)2.*PI*f_grid[s]*tau3, (Numeric)2.))) +
+                PI*f_grid[s]*tau4*delta4*((Numeric)1./((Numeric)1.+pow((Numeric)2.*PI*tau4*(f0+f_grid[s]),(Numeric)2.)) +
+                                          (Numeric)1./((Numeric)1.+pow((Numeric)2.*PI*tau4*(f0-f_grid[s]),(Numeric)2.))) +
+                PI*f_grid[s]*tau5*delta5*((Numeric)1./((Numeric)1.+pow((Numeric)2.*PI*tau5*(f1+f_grid[s]),(Numeric)2.)) +
+                                          (Numeric)1./((Numeric)1.+pow((Numeric)2.*PI*tau5*(f1-f_grid[s]),(Numeric)2.)));
+
+                // the imaginary part of the complex refractivity of suspended liquid water particle [ppm]
+                // In MPM93 w is in g/m³ and m is in g/cm³. Because of the units used in arts,
+                // a factor of 1.000e6 must be multiplied with the ratio (w/m):
+                // MPM93: (w/m)_MPM93  in   (g/m³)/(g/cm³)
+                // arts:  (w/m)_arts   in  (kg/m³)/(kg/m³)
+                // =====> (w/m)_MPM93   =   1.0e6 * (w/m)_arts
+                // the factor of 1.0e6 is included below in pxsec calculation.
+                Numeric ImNw = 1.500 / m *
+                ( 3.000 * Imepsilon
+                 / ( pow((Reepsilon+(Numeric)2.000),(Numeric)2.)
+                    + pow(Imepsilon,(Numeric)2.) ) );
+                // liquid water particle absorption cross section [1/m]
+                // The vmr of H2O will be multiplied at the stage of absorption
+                // calculation: abs = vmr * pxsec.
+                // pxsec = abs/vmr [1/m] but MPM93 is in [dB/km] --> conversion necessary
+                pxsec(s,i) += 1.000e6 * dB_km_to_1_m * 0.1820 * (f_grid[s]*Hz_to_GHz) * ImNw;
+            }
+        }
+        else
+        {
+            if ( (vmr[i] < low_lim_den) || (vmr[i] > high_lim_den) )
+            {
+                ostringstream os;
+                os << "ERROR in ELL07WaterDropletAbs:\n"
+                << " suspended water droplet density (valid range 0.00-10.00e-3 kg/m3):" << vmr[i] << "\n"
+                << " ==> no calculation performed!\n";
+                throw runtime_error(os.str());
+            }
+        }
+    }
+    
+}
+
 //
 // #################################################################################
 //! MPM93IceCrystalAbs
@@ -16147,6 +16342,7 @@ void xsec_continuum_tag (MatrixView             xsec,
      *CONTAGMODINFO*   CO2-SelfContPWR93:       Rosenkranz, user
      *CONTAGMODINFO*   CO2-ForeignContPWR93:    Rosenkranz, user
      *CONTAGMODINFO*   liquidcloud-MPM93:       MPM93, user
+     *CONTAGMODINFO*   liquidcloud-ELL07:       ELL07
      *CONTAGMODINFO*   icecloud-MPM93:          MPM93, user
      *CONTAGMODINFO*   rain-MPM93:              MPM93, user
      ----------------------------------------------------------------------------------------------------
@@ -20023,6 +20219,64 @@ void xsec_continuum_tag (MatrixView             xsec,
              << "Please see the arts user guide chapter 4.\n";
           throw runtime_error(os.str());
         }
+    }
+    // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    // ============= cloud and fog absorption from ELL07 ==================================
+  else if ( "liquidcloud-ELL07"==name )
+    {
+      // Suspended water droplet absorption parameterization from ELL07 model
+      // W. J. Ellison 
+      // "Permittivity of Pure Water, at Standard Atmospheric Pressure, over the
+      //  Frequency Range 0-25 THz and Temperature Range 0-100C"
+      // J. Phys. Chem. Ref. Data, Vol. 36, No. 1, 2007
+
+      // specific continuum parameters and units:
+      //  OUTPUT
+      //     pxsec          : [1/m],
+      //  INPUT
+      //     model        : [1]
+      //     f_grid        : [Hz]
+      //     abs_p         : [Pa]
+      //     abs_t         : [K]
+      //     vmr           : [1]
+      //
+      // liquid water droplet parameters:
+      // suspended water droplet density   range: 0-10 g/m³
+      // specific droplet weight           value:    1 g/cm³
+      //
+      // valid atmospheric condition:
+      // temperature      : 233 to 323 K
+      // relative humidity:   1 to 100 %
+      //
+      if ( (model == "ELL07") && (parameters.nelem() == 0) ) // --------------------
+        {
+          out3 << "ELL07 liquid water cloud absorption model " << name << " running with \n"
+          << "the parameters for model " << model << ".\n";
+          ELL07WaterDropletAbs(pxsec,
+                               model,  // model option
+                               f_grid,
+                               abs_p,
+                               abs_t,
+                               vmr,
+                               verbosity);
+        }
+      else if ( (model == "ELL07") && (parameters.nelem() != 0) ) // --------------------
+        {
+          ostringstream os;
+          os << "ERROR: ELL07 liquid water cloud absorption model " << name << " requires NO input\n"
+             << "parameters for the model " << model << ",\n"
+             << "but you specified " << parameters.nelem() << " parameters.\n"
+             << "This ambiguity can not be solved by arts.\n"
+             << "Please see the arts user guide chapter 4.\n";
+          throw runtime_error(os.str());
+        }
+      else
+	{
+	  ostringstream os;
+	  os << "ERROR: ELL07 liquid water cloud absorption model " << name 
+	     << " has no model " << model << "\n";
+	  throw runtime_error(os.str());
+	}
     }
   // ============= ice particle absorption from MPM93 ===================================
   else if ( "icecloud-MPM93"==name )

@@ -900,6 +900,7 @@ iso(it_isotopologue,  "26" ,  Qcoeff(   -76.2339,  6.95356,  1.30510e-07,  -1.17
   //                    Name            c0              c1              c2              c3
   //                    |               |               |               |               |
   iso(it_isotopologue,       "MPM93", Qcoeff( 0      ,0              ,0              ,0  ), Qcoeff(150.0, 300.0), IsotopologueRecord::PF_FROMCOEFF);
+  iso(it_isotopologue,       "ELL07", Qcoeff( 0      ,0              ,0              ,0  ), Qcoeff(150.0, 300.0), IsotopologueRecord::PF_FROMCOEFF);
 
   // ice cloud particles
   // Coeff:       1      1

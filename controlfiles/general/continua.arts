@@ -189,6 +189,10 @@ abs_cont_descriptionAppend( tagname="CO2-CKDMT252",
 abs_cont_descriptionAppend( tagname="liquidcloud-MPM93",
                             model="MPM93" )
 
+# Ellison liquid cloud (2007)
+abs_cont_descriptionAppend( tagname="liquidcloud-ELL07",
+                            model="ELL07" )
+
 # Rosenkranz ice cloud
 abs_cont_descriptionAppend( tagname="icecloud-MPM93",
                             model="MPM93" )

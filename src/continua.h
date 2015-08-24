@@ -619,6 +619,14 @@ void MPM93RainExt (MatrixView        xsec,       // calculated x-section
                    ConstVectorView   vmr,        // rain rate vector, 
                    const Verbosity& verbosity);
 
+void ELL07WaterDropletAbs (MatrixView       xsec,     // calculatd x-section
+                           const String&    model,    // model option
+                           ConstVectorView  f_grid,   // frequency vector
+                           ConstVectorView  abs_p,    // pressure vector
+                           ConstVectorView  abs_t,    // temperature vector
+                           ConstVectorView  vmr,      // suspended water droplet density vector
+                           const Verbosity& verbosity);
+
 //////////////////////////////////////////////////////////////////////////// 
 // help functions
 //////////////////////////////////////////////////////////////////////////// 
