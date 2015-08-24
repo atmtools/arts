@@ -1,5 +1,18 @@
 2015-08-24  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-3-286
+
+	* src/methods.cc:
+
+	Add verbosity as input to verbosityInit and verbositySet. Usually, init
+	functions only produce output. Verbosity is a special case because
+	the workspace engine sets a flag in the Verbosity object whether we're
+	inside the main agenda or not. This partial initialization has to be
+	preserved when calling verbosityInit/Set. Problem became visible
+	because of the changes in arts-2-3-279. Bug reported by Patrick.
+
+2015-08-24  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-3-285
 
 	* doc/uguide/check_refs.py:
