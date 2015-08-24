@@ -1,5 +1,13 @@
 2015-08-24  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-3-285
+
+	* doc/uguide/check_refs.py:
+
+	Fix the py3k fix. It wasn't working properly on all configurations.
+
+2015-08-24  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-3-284
 
 	* controlfiles/general/continua.arts, src/continua.{cc,h},

@@ -12,6 +12,9 @@ import glob
 import re
 import subprocess as sp
 
+if sys.version_info < (3,):
+    from io import open
+
 
 class ArtsWorkspace:
     def __init__(self, bindir):
@@ -39,7 +42,7 @@ def check_tex_file(ws, filename):
     wags = []
     builtins = []
 
-    f = open(filename)
+    f = open(filename, 'r', encoding='utf-8')
     for line in f:
         l += 1
         binmatches = rebuiltin.findall(line)
