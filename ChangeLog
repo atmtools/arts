@@ -1,3 +1,16 @@
+2015-08-25  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-3-287
+
+	* src/continua.cc: Corrected validity range values for MPM93 cloud
+	absorption continua.
+
+	* src/m_abs_lookup.cc (find_nonlinear_species):
+	Be more specific in setting liquidcloud continua as linear abs species.
+
+	* src/workspace.cc (iy_unit):
+	Give some examples on the radiative methods meant.
+
 2015-08-24  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-286

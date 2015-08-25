@@ -1881,7 +1881,8 @@ void Workspace::define_wsv_data()
         "This variable allows that the unit of the output radiance/intensity\n"
         "is changed. The possible choices differ between the radiative\n"
         "methods, including not considering the variable at all.\n"
-        "Accordingly, for details see the radiative method you have selected.\n"
+        "Accordingly, for details see the radiative method you have selected\n"
+        "(e.g., *iyEmissionStandard*, *iyMC*, *iyCloudRadar* and the like).\n"
         ),
        GROUP( "String" )));
   

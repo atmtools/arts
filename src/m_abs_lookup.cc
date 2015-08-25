@@ -560,7 +560,8 @@ void find_nonlinear_continua(ArrayOfIndex& cont,
                        "H2-CIA"==thisname.substr(0,6) ||
                        "He-CIA"==thisname.substr(0,6) ||
                        "CH4-CIA"==thisname.substr(0,7) ||
-                       "liquidcloud-"==thisname.substr(0,12) )
+                       "liquidcloud-MPM93"==thisname.substr(0,17) ||
+                       "liquidcloud-ELL07"==thisname.substr(0,17) )
                     {
                       out3 << " --> not added.\n";
                       break;

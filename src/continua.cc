@@ -15203,7 +15203,8 @@ void Ho66_CO2_foreign_continuum (MatrixView          pxsec,
    \param    f_grid         predefined frequency grid       [Hz]
    \param    abs_p          predefined pressure grid        [Pa]
    \param    abs_t          predefined temperature grid     [K]
-   \param    vmr            suspended water droplet density profile (valid range: 0-0.001) [kg/m³]
+   \param    vmr            suspended water droplet density profile [kg/m³]
+                            (valid range (Tab.1 of reference): 0-0.005)
 
    \note     Except for  model 'user' the input parameters CCin, CGin, and CEin
              are neglected (model dominates over parameters).<br>
@@ -15274,7 +15275,7 @@ void MPM93WaterDropletAbs (MatrixView         pxsec,
 
   const Numeric m = 1.00e3; // specific weight of the droplet,  fixed value:  1.00e3 kg/m3
   const Numeric low_lim_den  =  0.000;   // lower limit of suspended droplet particle density vector [kg/m3]
-  const Numeric high_lim_den = 10.00e-3; // upper limit of suspended droplet particle density vector [kg/m3]
+  const Numeric high_lim_den = 5.00e-3; // upper limit of suspended droplet particle density vector [kg/m3]
 
   const Index n_p = abs_p.nelem();  // Number of pressure levels
   const Index n_f = f_grid.nelem();  // Number of frequencies
@@ -15355,7 +15356,7 @@ void MPM93WaterDropletAbs (MatrixView         pxsec,
         {
     ostringstream os;
     os << "ERROR in MPM93WaterDropletAbs:\n"
-       << " suspended water droplet density (valid range 0.00-10.00e-3 kg/m3):" << vmr[i] << "\n"
+       << " suspended water droplet density (valid range 0.00-5.00e-3 kg/m3):" << vmr[i] << "\n"
        << " ==> no calculation performed!\n";
     throw runtime_error(os.str());
         }
@@ -15376,7 +15377,8 @@ void MPM93WaterDropletAbs (MatrixView         pxsec,
    \param    f_grid         predefined frequency grid       [Hz]
    \param    abs_p          predefined pressure grid        [Pa]
    \param    abs_t          predefined temperature grid     [K]
-   \param    vmr            suspended water droplet density profile (valid range: 0-0.001) [kg/m³]
+   \param    vmr            suspended water droplet density profile [kg/m³]
+                            (valid range (Tab.1 of MPM93): 0-0.005)
 
    \note     Allowed models: 'ELL07'.
              See the user guide for detailed explanations.
@@ -15411,7 +15413,7 @@ void ELL07WaterDropletAbs (MatrixView         pxsec,
 
     const Numeric m = 1.00e3; // specific weight of the droplet,  fixed value:  1.00e3 kg/m3
     const Numeric low_lim_den  =  0.000;   // lower limit of suspended droplet particle density vector [kg/m3]
-    const Numeric high_lim_den = 10.00e-3; // upper limit of suspended droplet particle density vector [kg/m3]
+    const Numeric high_lim_den = 5.00e-3; // upper limit of suspended droplet particle density vector [kg/m3]
 
     const Index n_p = abs_p.nelem();  // Number of pressure levels
     const Index n_f = f_grid.nelem();  // Number of frequencies
@@ -15541,7 +15543,7 @@ void ELL07WaterDropletAbs (MatrixView         pxsec,
             {
                 ostringstream os;
                 os << "ERROR in ELL07WaterDropletAbs:\n"
-                << " suspended water droplet density (valid range 0.00-10.00e-3 kg/m3):" << vmr[i] << "\n"
+                << " suspended water droplet density (valid range 0.00-5.00e-3 kg/m3):" << vmr[i] << "\n"
                 << " ==> no calculation performed!\n";
                 throw runtime_error(os.str());
             }
@@ -15567,7 +15569,8 @@ void ELL07WaterDropletAbs (MatrixView         pxsec,
    \param    f_grid         predefined frequency grid       [Hz]
    \param    abs_p          predefined pressure grid        [Pa]
    \param    abs_t          predefined temperature grid     [K]
-   \param    vmr            suspended water droplet density profile (valid range: 0-0.001) [kg/m³]
+   \param    vmr            suspended water droplet density profile [kg/m³]
+                            (valid range (Tab.1 of reference): 0-0.001)
 
    \note     Except for  model 'user' the input parameters CCin, CAin, and CBin
              are neglected (model dominates over parameters).<br>
@@ -15593,7 +15596,7 @@ void MPM93IceCrystalAbs (MatrixView        pxsec,
                          ConstVectorView   abs_p,  // pressure vector
                          ConstVectorView   abs_t,  // temperature vector
                          ConstVectorView   vmr,    // suspended ice particle density vector,
-                                                   // valid range: 0-10.0e-3 kg/m³
+                                                   // valid range: 0-1.0e-3 kg/m³
                          const Verbosity& verbosity)
 {
   CREATE_OUT3;
@@ -15639,7 +15642,7 @@ void MPM93IceCrystalAbs (MatrixView        pxsec,
 
   const Numeric m = 0.916e3;  // specific weight of ice particles,  fixed value:   0.916e3 kg/m³
   const Numeric low_lim_den  =  0.000;   // lower limit of suspended ice particle density vector [kg/m³]
-  const Numeric high_lim_den = 10.00e-3; // lower limit of suspended ice particle density vector [kg/m³]
+  const Numeric high_lim_den = 1.00e-3; // lower limit of suspended ice particle density vector [kg/m³]
 
   const Index n_p = abs_p.nelem();  // Number of pressure levels
   const Index n_f = f_grid.nelem();  // Number of frequencies
@@ -15708,7 +15711,7 @@ void MPM93IceCrystalAbs (MatrixView        pxsec,
         {
     ostringstream os;
     os << "ERROR in MPM93IceCrystalAbs:\n"
-       << " suspended ice particle density (valid range: 0-10.0e-3 kg/m3):" << vmr[i] << "\n"
+       << " suspended ice particle density (valid range: 0-1.0e-3 kg/m3):" << vmr[i] << "\n"
        << " ==> no calculation performed!\n";
     throw runtime_error(os.str());
         }
@@ -15731,8 +15734,8 @@ void MPM93IceCrystalAbs (MatrixView        pxsec,
    \param    f_grid         predefined frequency grid       [Hz]
    \param    abs_p          predefined pressure grid        [Pa]
    \param    abs_t          predefined temperature grid     [K]
-   \param    vmr            rain rate vector (i.e. vertical profile),
-                            (valid range: 0-0.42) [kg/m2/s]
+   \param    vmr            rain rate vector (i.e. vertical profile) [kg/m2/s]
+                            (valid range: 0-0.42) 
 
    \note     Except for  model 'user' the input parameters CEin, CAin, and CBin
              are neglected (model dominates over parameters).<br>
