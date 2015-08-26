@@ -2491,7 +2491,7 @@ void define_md_data_raw()
         GIN_TYPE( "Index", "Index" ),
         GIN_DEFAULT( "0", "0" ),
         GIN_DESC("Boolean for demanding vmr_field > 0 or not.",
-                 "Boolean for not demanding partition function defined inside t_nlte_field range.")
+                 "Boolean for not demanding partition function defined inside *t_field* range.")
         ));
 
   md_data_raw.push_back

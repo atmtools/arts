@@ -1,3 +1,11 @@
+2015-08-26  Richard Larsson <ric.larsson@gmail.com>
+
+	* arts-2-3-288
+	
+	* src/methods.cc:  Fixed typo.  Partition functions do not (yet) have to
+	be checked agains t_nlte_field but rather to t_field.  Patrick, thank 
+	you for noticing this error.
+
 2015-08-25  Jana Mendrok  <jana.mendrok@ltu.se>
 
 	* arts-2-3-287
