@@ -1,3 +1,33 @@
+2015-08-27  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-291
+
+	* src/m_abs.cc (abs_linesReadFromHitran): A small correction of
+	error message, added 1 to the line
+        << "run 'cmake -DWITH_HITRAN2008=1 ..' and recompile arts";
+
+	* A change to make things more flexible in the met mm part.
+	freq_number is now set in the instrument file. It was before
+	hard-coded to 1 GHz in apply_metmm.arts.
+
+	* controlfiles/instruments/metmm/sensor_descriptions/apply_metmm.arts:
+	See above.
+
+	* controlfiles/instruments/metmm/sensor_descriptions/sensor_ismar.arts:
+	* controlfiles/instruments/metmm/sensor_descriptions/sensor_deimos.arts:
+	* controlfiles/instruments/metmm/sensor_descriptions/sensor_marss.arts:
+	Adopted with met_mm_freq_spacing set to 10 GHz. met_mm_freq_number
+	changed back to 12, to match the files below. Tests indicate that
+	this number is actually needed, for upward looking views, as some
+	bands include ozone lines. While for downward, a value of 2 or 3
+	could suffice.
+
+	* controlfiles/instruments/metmm/sensor_descriptions/sensor_mhs.arts:
+	* controlfiles/instruments/metmm/sensor_descriptions/sensor_amsub.arts:
+	* controlfiles/instruments/metmm/sensor_descriptions/sensor_amsua.arts:
+	Adopted with met_mm_freq_spacing set to 1 GHz. This maintains the
+	performance for these instruments.
+
 2015-08-27  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-290

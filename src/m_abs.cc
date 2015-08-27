@@ -319,7 +319,7 @@ void abs_linesReadFromHitran(// WS Output:
         os << "'" << filename << "'\n"
         << "does not appear to be a HITRAN 2012 catalogue. The catalog filename\n"
         << "must start with HITRAN2012. If you intend to use a HITRAN 2008 catalog\n"
-        << "run 'cmake -DWITH_HITRAN2008 ..' and recompile arts";
+        << "run 'cmake -DWITH_HITRAN2008=1 ..' and recompile arts";
         throw std::runtime_error(os.str());
     }
 #endif

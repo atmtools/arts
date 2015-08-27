@@ -68,12 +68,15 @@ ArrayOfIndexCreate( met_mm_freq_number )
 ArrayOfIndexSet(
         met_mm_freq_number,
         [
-        7, #0 (1)
-        7, #1 (2)
-        7, #2 (3)
-        7, #3 (4)
-        7  #4 (5)
+        12, #0 (1)
+        12, #1 (2)
+        12, #2 (3)
+        12, #3 (4)
+        12  #4 (5)
         ])
+
+VectorCreate( met_mm_freq_spacing )
+VectorSetConstant( met_mm_freq_spacing, 5, 10e9 )
 
 }
 

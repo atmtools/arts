@@ -109,5 +109,8 @@ ArrayOfIndexSet(
         12  #4 (20)
         ] )
 
+VectorCreate( met_mm_freq_spacing )
+VectorSetConstant( met_mm_freq_spacing, 5, 1e9 )
+
 }
 

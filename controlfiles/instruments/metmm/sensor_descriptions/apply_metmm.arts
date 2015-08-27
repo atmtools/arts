@@ -17,8 +17,9 @@ Select( antenna_dlos,        antenna_dlos,        viewing_angles )
 Select( met_mm_backend,      met_mm_backend,      channels )
 Select( met_mm_polarisation, met_mm_polarisation, channels )
 Select( met_mm_freq_number,  met_mm_freq_number,  channels )
+Select( met_mm_freq_spacing, met_mm_freq_spacing, channels )
 
-sensor_responseBackendMetMM( freq_spacing = [1e9],
+sensor_responseBackendMetMM( freq_spacing = met_mm_freq_spacing,
 		                      freq_number = met_mm_freq_number )
 }
 

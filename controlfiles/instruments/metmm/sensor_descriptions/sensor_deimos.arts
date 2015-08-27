@@ -58,5 +58,8 @@ ArrayOfIndexSet(
         12  #3 (2, H only)
         ] )
 
+VectorCreate( met_mm_freq_spacing )
+VectorSetConstant( met_mm_freq_spacing, 4, 1e9 )
+
 }
 
