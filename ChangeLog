@@ -1,3 +1,11 @@
+2015-08-27  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-289
+
+	* arts/controlfiles/instruments/ismar: Removed this folder. The
+	MetMM system should be used for ISMAR, MARSS and DEIMOS. The files
+	were anyhow not up to date and caused some confusion.
+
 2015-08-26  Richard Larsson <ric.larsson@gmail.com>
 
 	* arts-2-3-288
