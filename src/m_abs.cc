@@ -203,27 +203,37 @@ void abs_linesReadFromHitran(// WS Output:
     
     String filename_lower = filename;
     filename_lower.tolower();
+    ArrayOfString splitted_fname;
+    filename_lower.split(splitted_fname, "/");
+    if (splitted_fname.nelem())
+    {
+        filename_lower = splitted_fname[splitted_fname.nelem()-1];
+    }
+    else
+    {
+        throw std::runtime_error("Catalog filename is empty");
+    }
 #ifdef USE_HITRAN2008
-    if (filename_lower.nelem() < 12
-        || (filename_lower.substr(filename_lower.nelem()-12, 12) != "hitran08.par"
-            && filename_lower.substr(filename_lower.nelem()-12, 12) != "hitran04.par"))
+    if (filename_lower.nelem() < 8
+        || (filename_lower.substr(0, 8) != "hitran08"
+            && filename_lower.substr(0, 8) != "hitran04"))
     {
         ostringstream os;
         os << "'" << filename << "'\n"
-        << "does not appear to be a HITRAN 2008 catalogue. The catalog\n"
-        << "must be named HITRAN08.par. This version of arts was compiled with\n"
+        << "does not appear to be a HITRAN 2008 catalogue. The catalog filename\n"
+        << "name must start with HITRAN08. This version of arts was compiled with\n"
         << "support only for HITRAN 2008. To switch back to the latest HITRAN\n"
         << "run 'cmake -DWITH_HITRAN2008=0 ..' and recompile arts";
         throw std::runtime_error(os.str());
     }
 #else
-    if (filename_lower.nelem() < 14
-        || filename_lower.substr(filename_lower.nelem()-14, 14) != "hitran2012.par")
+    if (filename_lower.nelem() < 10
+        || filename_lower.substr(0, 10) != "hitran2012")
     {
         ostringstream os;
         os << "'" << filename << "'\n"
-        << "does not appear to be a HITRAN 2012 catalogue. The catalog\n"
-        << "must be named HITRAN2012.par. If you intend to use a HITRAN 2008 catalog\n"
+        << "does not appear to be a HITRAN 2012 catalogue. The catalog filename\n"
+        << "must start with HITRAN2012. If you intend to use a HITRAN 2008 catalog\n"
         << "run 'cmake -DWITH_HITRAN2008 ..' and recompile arts";
         throw std::runtime_error(os.str());
     }
