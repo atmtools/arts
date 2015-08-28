@@ -68,6 +68,7 @@ extern const String SCATSPECIES_MAINTAG;
 extern const String SINEFIT_MAINTAG;
 extern const String TEMPERATURE_MAINTAG;
 extern const String WIND_MAINTAG;
+extern const String MAGFIELD_MAINTAG;
 
 
 
@@ -2087,7 +2088,7 @@ void jacobianAddWind(
   if( component != "u"  &&  component != "v"  &&  component != "w" )
     {
       throw runtime_error(   
-          "The selection for *component* can only be \"u\", \"u\" or \"w\"." );
+          "The selection for *component* can only be \"u\", \"v\" or \"w\"." );
     }
 
   // Create the new retrieval quantity
@@ -2108,6 +2109,92 @@ void jacobianAddWind(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void jacobianCalcWindAnalytical(
+        Matrix&     jacobian _U_,
+  const Index&      mblock_index _U_,
+  const Vector&     iyb _U_,
+  const Vector&     yb _U_,
+  const Verbosity& )
+{
+  /* Nothing to do here for the analytical case, this function just exists
+   to satisfy the required inputs and outputs of the jacobian_agenda */
+}
+
+
+
+//----------------------------------------------------------------------------
+// Magnetic field:
+//----------------------------------------------------------------------------
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void jacobianAddMagField(
+        Workspace&                  ws _U_,
+        ArrayOfRetrievalQuantity&   jq,
+        Agenda&                     jacobian_agenda,
+  const Index&                      atmosphere_dim,
+  const Vector&                     p_grid,
+  const Vector&                     lat_grid,
+  const Vector&                     lon_grid,
+  const Vector&                     rq_p_grid,
+  const Vector&                     rq_lat_grid,
+  const Vector&                     rq_lon_grid,
+  const String&                     component,
+  const Verbosity&                  verbosity )
+{
+  CREATE_OUT2;
+  CREATE_OUT3;
+  
+  // Check that this species is not already included in the jacobian.
+  for( Index it=0; it<jq.nelem(); it++ )
+    {
+      if( jq[it].MainTag() == MAGFIELD_MAINTAG  && 
+          jq[it].Subtag()  == component )
+        {
+          ostringstream os;
+          os << "The magnetic field component:\n" << component << "\nis already "
+             << "included in *jacobian_quantities*.";
+          throw runtime_error(os.str());
+        }
+    }
+
+  // Check retrieval grids, here we just check the length of the grids
+  // vs. the atmosphere dimension
+  ArrayOfVector grids(atmosphere_dim);
+  {
+    ostringstream os;
+    if( !check_retrieval_grids( grids, os, p_grid, lat_grid, lon_grid,
+                                rq_p_grid, rq_lat_grid, rq_lon_grid,
+                                "retrieval pressure grid", 
+                                "retrieval latitude grid", 
+                                "retrievallongitude_grid", 
+                                atmosphere_dim ) )
+    throw runtime_error(os.str());
+  }
+  
+    // Check that component is either "u", "v" or "w"
+  if( component != "u"  &&  component != "v"  &&  component != "w" )
+    {
+      throw runtime_error(   
+          "The selection for *component* can only be \"u\", \"v\" or \"w\"." );
+    }
+
+  // Create the new retrieval quantity
+  RetrievalQuantity rq;
+  rq.MainTag( MAGFIELD_MAINTAG );
+  rq.Subtag( component );
+  rq.Analytical( 1 );
+  rq.Grids( grids );
+
+  // Add it to the *jacobian_quantities*
+  jq.push_back( rq );
+  
+  // Add gas species method to the jacobian agenda
+  jacobian_agenda.append( "jacobianCalcMagFieldAnalytical", TokVal() );
+}                    
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void jacobianCalcMagFieldAnalytical(
         Matrix&     jacobian _U_,
   const Index&      mblock_index _U_,
   const Vector&     iyb _U_,

@@ -33,6 +33,7 @@
 extern const String  ABSSPECIES_MAINTAG;
 extern const String  TEMPERATURE_MAINTAG;
 extern const String  WIND_MAINTAG;
+extern const String  MAGFIELD_MAINTAG;
 
 
 ostream& operator << (ostream& os, const RetrievalQuantity& ot)
@@ -293,6 +294,7 @@ void get_pointers_for_analytical_jacobians(
          ArrayOfIndex&               abs_species_i, 
          ArrayOfIndex&               is_t,
          ArrayOfIndex&               wind_i,
+         ArrayOfIndex&               magfield_i,
    const ArrayOfRetrievalQuantity&   jacobian_quantities,
    const ArrayOfArrayOfSpeciesTag&   abs_species )
 {
@@ -318,6 +320,15 @@ void get_pointers_for_analytical_jacobians(
         // Map u, v and w to 1, 2 and 3, respectively
         char c = jacobian_quantities[iq].Subtag()[0];
         wind_i[iq] = Index( c ) - 116;
+      }
+    else
+      { wind_i[iq] = 0; }
+    //
+    if( jacobian_quantities[iq].MainTag() == MAGFIELD_MAINTAG )
+      {
+        // Map u, v and w to 1, 2 and 3, respectively
+        char c = jacobian_quantities[iq].Subtag()[0];
+        magfield_i[iq] = Index( c ) - 116;
       }
     else
       { wind_i[iq] = 0; }

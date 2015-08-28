@@ -244,7 +244,7 @@ void iyEmissionStandard(
   //
   Index j_analytical_do = 0;
   ArrayOfTensor3  diy_dpath; 
-  ArrayOfIndex    jac_species_i(0), jac_is_t(0), jac_wind_i(0); 
+  ArrayOfIndex    jac_species_i(0), jac_is_t(0), jac_wind_i(0), jac_mag_i(0); 
   //
   if( jacobian_do ) { FOR_ANALYTICAL_JACOBIANS_DO( j_analytical_do = 1; ) }
   //
@@ -255,14 +255,16 @@ void iyEmissionStandard(
       diy_dpath.resize( nq ); 
       jac_species_i.resize( nq ); 
       jac_is_t.resize( nq ); 
-      jac_wind_i.resize( nq ); 
-      //
+      jac_wind_i.resize( nq );  
+      jac_mag_i.resize( nq ); 
+     //
       FOR_ANALYTICAL_JACOBIANS_DO( 
         diy_dpath[iq].resize( np, nf, ns ); 
         diy_dpath[iq] = 0.0;
       )
       get_pointers_for_analytical_jacobians( jac_species_i, jac_is_t, 
-                              jac_wind_i, jacobian_quantities, abs_species );
+                                             jac_wind_i, jac_mag_i, 
+                                             jacobian_quantities, abs_species );
       if( iy_agenda_call1 )
         {
           diy_dx.resize( nq ); 
@@ -478,9 +480,10 @@ void iyEmissionStandard(
         { 
           // Determine if temperature is among the analytical jac. quantities.
           // If yes, get emission and absorption for disturbed temperature
-          // Same for wind, but disturb only absorption
+          // Same for wind and mag. field, but disturb only absorption
           for( Index iq=0; iq<jac_is_t.nelem(); iq++ )
             { 
+              // Temperatures
               if( jac_is_t[iq] ) 
                 { 
                   Tensor5 dummy_abs_per_species;
@@ -490,11 +493,13 @@ void iyEmissionStandard(
                   get_ppath_pmat( ws, ppath_at2, dummy_ppath_nlte_source,
                                   dummy_lte, dummy_abs_per_species,
                                   propmat_clearsky_agenda, ppath, ppath_p,
-                                  t2, ppath_t_nlte, ppath_vmr, ppath_f, ppath_mag, f_grid, 
+                                  t2, ppath_t_nlte, ppath_vmr, ppath_f,
+                                  ppath_mag, f_grid, 
                                   stokes_dim, ArrayOfIndex(0) );
                   get_ppath_blackrad( ws, ppath_bt2, blackbody_radiation_agenda,
                                       ppath, t2, ppath_f );
                 }
+              // Winds
               else if( jac_wind_i[iq] )
                 {
                   if( jac_wind_i[iq] == 1 )
@@ -508,7 +513,8 @@ void iyEmissionStandard(
                       get_ppath_pmat( ws, ppath_awu, dummy_ppath_nlte_source,
                                       dummy_lte, dummy_abs_per_species,
                                       propmat_clearsky_agenda, ppath, ppath_p, 
-                                      ppath_t, ppath_t_nlte, ppath_vmr, f2, ppath_mag, f_grid,
+                                      ppath_t, ppath_t_nlte, ppath_vmr, f2, 
+                                      ppath_mag, f_grid,
                                       stokes_dim, ArrayOfIndex(0) );
                     }
                   else if( jac_wind_i[iq] == 2 )
@@ -522,7 +528,8 @@ void iyEmissionStandard(
                       get_ppath_pmat( ws, ppath_awv, dummy_ppath_nlte_source,
                                       dummy_lte, dummy_abs_per_species,
                                       propmat_clearsky_agenda, ppath, ppath_p, 
-                                      ppath_t, ppath_t_nlte, ppath_vmr, f2, ppath_mag, f_grid,
+                                      ppath_t, ppath_t_nlte, ppath_vmr, f2, 
+                                      ppath_mag, f_grid,
                                       stokes_dim, ArrayOfIndex(0) );
                     }
                   else if( jac_wind_i[iq] == 3 )
@@ -536,7 +543,48 @@ void iyEmissionStandard(
                       get_ppath_pmat( ws, ppath_aww, dummy_ppath_nlte_source,
                                       dummy_lte, dummy_abs_per_species,
                                       propmat_clearsky_agenda, ppath, ppath_p, 
-                                      ppath_t, ppath_t_nlte, ppath_vmr, f2, ppath_mag, f_grid,
+                                      ppath_t, ppath_t_nlte, ppath_vmr, f2, 
+                                      ppath_mag, f_grid,
+                                      stokes_dim, ArrayOfIndex(0) );
+                    }
+                }
+              // Magnetic field
+              else if( jac_mag_i[iq] )
+                {
+                  if( jac_mag_i[iq] == 1 )
+                    {
+                      Tensor5 dummy_abs_per_species;
+                      Tensor3 dummy_ppath_nlte_source;
+                      ArrayOfIndex dummy_lte;
+                      get_ppath_pmat( ws, ppath_awu, dummy_ppath_nlte_source,
+                                      dummy_lte, dummy_abs_per_species,
+                                      propmat_clearsky_agenda, ppath, ppath_p, 
+                                      ppath_t, ppath_t_nlte, ppath_vmr, f_grid, 
+                                      ppath_mag, f_grid,
+                                      stokes_dim, ArrayOfIndex(0) );
+                    }
+                  else if( jac_mag_i[iq] == 2 )
+                    {
+                      Tensor5 dummy_abs_per_species;
+                      Tensor3 dummy_ppath_nlte_source;
+                      ArrayOfIndex dummy_lte;
+                      get_ppath_pmat( ws, ppath_awv, dummy_ppath_nlte_source,
+                                      dummy_lte, dummy_abs_per_species,
+                                      propmat_clearsky_agenda, ppath, ppath_p, 
+                                      ppath_t, ppath_t_nlte, ppath_vmr, f_grid, 
+                                      ppath_mag, f_grid,
+                                      stokes_dim, ArrayOfIndex(0) );
+                    }
+                  else if( jac_mag_i[iq] == 3 )
+                    {
+                      Tensor5 dummy_abs_per_species;
+                      Tensor3 dummy_ppath_nlte_source;
+                      ArrayOfIndex dummy_lte;
+                      get_ppath_pmat( ws, ppath_aww, dummy_ppath_nlte_source,
+                                      dummy_lte, dummy_abs_per_species,
+                                      propmat_clearsky_agenda, ppath, ppath_p, 
+                                      ppath_t, ppath_t_nlte, ppath_vmr, f_grid, 
+                                      ppath_mag, f_grid,
                                       stokes_dim, ArrayOfIndex(0) );
                     }
                 }

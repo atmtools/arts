@@ -734,7 +734,7 @@ void iyTransmissionStandard(
   //
   Index j_analytical_do = 0;
   ArrayOfTensor3  diy_dpath; 
-  ArrayOfIndex    jac_species_i(0), jac_is_t(0), jac_wind_i(0); 
+  ArrayOfIndex    jac_species_i(0), jac_is_t(0), jac_wind_i(0), jac_mag_i(0); 
   //
   if( jacobian_do ) { FOR_ANALYTICAL_JACOBIANS_DO( j_analytical_do = 1; ) }
   //
@@ -746,13 +746,15 @@ void iyTransmissionStandard(
       jac_species_i.resize( nq ); 
       jac_is_t.resize( nq ); 
       jac_wind_i.resize( nq ); 
+      jac_mag_i.resize( nq ); 
       //
       FOR_ANALYTICAL_JACOBIANS_DO( 
         diy_dpath[iq].resize( np, nf, ns ); 
         diy_dpath[iq] = 0.0;
       )
       get_pointers_for_analytical_jacobians( jac_species_i, jac_is_t, 
-                              jac_wind_i, jacobian_quantities, abs_species );
+                                             jac_wind_i, jac_mag_i, 
+                                             jacobian_quantities, abs_species );
       if( iy_agenda_call1 )
         {
           diy_dx.resize( nq ); 

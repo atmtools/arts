@@ -7045,6 +7045,38 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "jacobianAddMagField" ),
+        DESCRIPTION
+        (
+         "Includes one magnetic field component in the Jacobian.\n"
+         "\n"
+         "The method follows the pattern of other Jacobian methods. The\n"
+         "calculations can only be performed by analytic expressions.\n"
+         "\n"
+         "The magnetic field components are retrieved separately, and,\n"
+         "hence, the argument *component* can be \"u\", \"v\" or \"w\". \n"
+         "\n"
+         "This Jacobian quantity is so far only supported by *iyEmissionStandard*.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "jacobian_quantities", "jacobian_agenda" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "jacobian_quantities", "jacobian_agenda", 
+            "atmosphere_dim", "p_grid", "lat_grid", "lon_grid" ),
+        GIN( "g1", "g2", "g3", "component" ),
+        GIN_TYPE( "Vector", "Vector", "Vector", "String" ),
+        GIN_DEFAULT( NODEF, NODEF, NODEF, "v" ),
+        GIN_DESC( "Pressure retrieval grid.",
+                  "Latitude retrieval grid.",
+                  "Longitude retreival grid.",
+                  "Magnetic field component to retrieve"
+                  )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "jacobianAddTemperature" ),
         DESCRIPTION
         (
@@ -7097,9 +7129,8 @@ void define_md_data_raw()
          "The method follows the pattern of other Jacobian methods. The\n"
          "calculations can only be performed by analytic expressions.\n"
          "\n"
-         "As mentioned, the wind components are assumed to be retrieved\n"
-         "separately, and, hence, the argument *component* can be \"u\",\n"
-         "\"v\" or \"w\". \n"
+         "The wind field components are retrieved separately, and,\n"
+         "hence, the argument *component* can be \"u\", \"v\" or \"w\". \n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "jacobian_quantities", "jacobian_agenda" ),
@@ -7228,6 +7259,32 @@ void define_md_data_raw()
         GIN_DEFAULT(),
         GIN_DESC()
         ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "jacobianCalcMagFieldAnalytical" ),
+        DESCRIPTION
+        (
+         "This function doesn't do anything. It just exists to satisfy\n"
+         "the input and output requirement of the *jacobian_agenda*.\n"
+         "\n"
+         "This function is added to *jacobian_agenda* by\n"
+         "jacobianAddMagField and should normally not be called\n"
+         "by the user.\n"
+         ),
+        AUTHORS( "Oliver Lemke" ),
+        OUT( "jacobian" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "jacobian",
+            "mblock_index", "iyb", "yb" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
 
  /*
            md_data_raw.push_back
