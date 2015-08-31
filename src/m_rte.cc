@@ -471,9 +471,9 @@ void iyEmissionStandard(
       // "temperature flag" (for analytical jacobians).
       //
       //
-      const Numeric   dt = 0.1;    // Temperature disturbance, K
-      const Numeric   dw = 5;      // Wind disturbance, m/s
-      const Numeric   dm = 1e-6;   // Magnetic field disturbance, T
+      const Numeric   dt = 0.1;     // Temperature disturbance, K
+      const Numeric   dw = 5;       // Wind disturbance, m/s
+      const Numeric   dm = 0.1e-6;  // Magnetic field disturbance, T
             Tensor4   ppath_ext_dt, ppath_ext_dwu, ppath_ext_dwv, ppath_ext_dww;
             Tensor4   ppath_ext_dmu, ppath_ext_dmv, ppath_ext_dmw;
             Matrix    ppath_blackrad_dt;
