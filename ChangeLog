@@ -1,3 +1,12 @@
+2015-08-31  Richard Larsson <ric.larsson@gmail.com>
+
+	* arts-2-3-294
+	
+	* src/zeeman.cc:  Added test that removed a 0-div-0 error when the 
+	magnetic field is set to zero vectors.  Bug reported by Patrick to
+	give all NaNs in the propagation matrix (due to angle being NaNs
+	in the Zeeman code).
+	
 2015-08-31  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-293

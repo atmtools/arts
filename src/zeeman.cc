@@ -592,6 +592,11 @@ void set_magnetic_parameters(Numeric& H_mag,
     eta   = manual_zeeman_eta;
     theta = manual_zeeman_theta;
   }
+  else if(H_mag==0.0)
+  {
+      eta = 0.0;
+      theta = 0.0;
+  }
   else
   { // Getting angles from coordinate system
     Vector H(3);
