@@ -1019,9 +1019,11 @@ void iyTransmissionStandard(
       // at each ppath point. And find matching abs_species-index and 
       // "temperature flag" (for analytical jacobians).
       //
-      const Numeric   dt = 0.1;
-      const Numeric   dw = 5;
-            Tensor4   ppath_ext_dt, ppath_awu, ppath_awv, ppath_aww;
+      const Numeric   dt = 0.1;     // Temperature disturbance, K
+      const Numeric   dw = 5;       // Wind disturbance, m/s
+      const Numeric   dm = 0.1e-6;  // Magnetic field disturbance, T
+            Tensor4   ppath_ext_dt;
+            ArrayOfTensor4 ppath_ext_dw(3), ppath_ext_dm(3);
       //
       if( j_analytical_do )
         { 
@@ -1042,6 +1044,18 @@ void iyTransmissionStandard(
                 }
               else if( jac_wind_i[iq] )
                 {
+                  Tensor5 dummy_abs_per_species;
+                  Matrix f2, w2 = ppath_wind;   w2(jac_wind_i[iq]-1,joker) += dw;
+                  get_ppath_f(    f2, ppath, f_grid,  atmosphere_dim, 
+                                  rte_alonglos_v, w2 );
+                  get_ppath_pmat( ws, ppath_ext_dw[jac_wind_i[iq]-1], 
+                                  dummy_ppath_nlte_source,
+                                  dummy_lte, dummy_abs_per_species,
+                                  propmat_clearsky_agenda, ppath, ppath_p, 
+                                  ppath_t, ppath_t_nlte, ppath_vmr, f2, 
+                                  ppath_mag, f_grid,
+                                  stokes_dim, ArrayOfIndex(0) );
+                  /*
                   if( jac_wind_i[iq] == 1 )
                     {
                       Tensor5 dummy_abs_per_species;
@@ -1078,6 +1092,20 @@ void iyTransmissionStandard(
                                       ppath_t, ppath_t_nlte, ppath_vmr, f2, ppath_mag, f_grid,
                                       stokes_dim, ArrayOfIndex(0) );
                     }
+                  */
+                }
+              // Magnetic field
+              else if( jac_mag_i[iq] )
+                {
+                  Tensor5 dummy_abs_per_species;
+                  Matrix m2 = ppath_mag;   m2(jac_mag_i[iq]-1,joker) += dm;
+                  get_ppath_pmat( ws, ppath_ext_dm[jac_mag_i[iq]-1], 
+                                  dummy_ppath_nlte_source,
+                                  dummy_lte, dummy_abs_per_species,
+                                  propmat_clearsky_agenda, ppath, ppath_p, 
+                                  ppath_t, ppath_t_nlte, ppath_vmr, ppath_f, 
+                                  m2, f_grid,
+                                  stokes_dim, ArrayOfIndex(0) );
                 }
             }
         }
@@ -1240,27 +1268,34 @@ void iyTransmissionStandard(
                             }
                         }
 
-                      //- Winds -----------------------------------------------
-                      else if( jac_wind_i[iq] )
+                      //- Winds and magnetic field -----------------------------------
+                      else if( jac_wind_i[iq] || jac_mag_i[iq] )
                         {
                           for( Index iv=0; iv<nf; iv++ )
                             {
-                              // Pick out disturbed absorption to use. 
-                              // V-component is first guess.
-                              Tensor4* ppath_awx = &ppath_awv;
+                              // Create pointer to disturbed extinction to use
+                              // Wind v-component is first guess.
+                              Tensor4* ppath_ext2 = &ppath_ext_dw[1];
+                              Numeric dd = dw;
                               if( jac_wind_i[iq] == 1 )
-                                { ppath_awx = &ppath_awu; }
+                                { ppath_ext2 = &ppath_ext_dw[0]; }
                               else if( jac_wind_i[iq] == 3 )
-                                { ppath_awx = &ppath_aww; }
+                                { ppath_ext2 = &ppath_ext_dw[2]; }
+                              else if( jac_mag_i[iq] == 1 )
+                                { ppath_ext2 = &ppath_ext_dm[0]; dd = dm; }
+                              else if( jac_mag_i[iq] == 2 )
+                                { ppath_ext2 = &ppath_ext_dm[1]; dd = dm; }
+                              else if( jac_mag_i[iq] == 3 )
+                                { ppath_ext2 = &ppath_ext_dm[2]; dd = dm; }
 
                               // Diagonal transmission matrix
                               if( extmat_case[ip][iv] == 1 )
                                 {
-                                  const Numeric dkdx1 = (1/dw) * ( 
-                                                   (*ppath_awx)(iv,0,0,ip  ) -
+                                  const Numeric dkdx1 = (1/dd) * ( 
+                                                   (*ppath_ext2)(iv,0,0,ip  ) -
                                                       ppath_ext(iv,0,0,ip  ) );
-                                  const Numeric dkdx2 = (1/dw) * ( 
-                                                   (*ppath_awx)(iv,0,0,ip+1) -
+                                  const Numeric dkdx2 = (1/dd) * ( 
+                                                   (*ppath_ext2)(iv,0,0,ip+1) -
                                                       ppath_ext(iv,0,0,ip+1) );
                                   const Numeric x = -0.5 * ppath.lstep[ip] * 
                                                  trans_cumulat(iv,0,0,ip+1);
@@ -1281,14 +1316,14 @@ void iyTransmissionStandard(
                                   for( Index is1=0; is1<ns; is1++ ) {
                                     for( Index is2=0; is2<ns; is2++ ) {
                                       ext_mat(is1,is2) = 0.5 * (
-                                               (*ppath_awx)(iv,is1,is2,ip  ) +
+                                               (*ppath_ext2)(iv,is1,is2,ip  ) +
                                                   ppath_ext(iv,is1,is2,ip+1) );
                                     } }
                                   ext2trans( dtdx, extmat_case[ip][iv], 
                                              ext_mat, ppath.lstep[ip] ); 
                                   for( Index is1=0; is1<ns; is1++ ) {
                                     for( Index is2=0; is2<ns; is2++ ) {
-                                      dtdx(is1,is2) = (1/dw) * 
+                                      dtdx(is1,is2) = (1/dd) * 
                                               ( dtdx(is1,is2) -
                                                 trans_partial(iv,is1,is2,ip) );
                                     } }
@@ -1303,13 +1338,13 @@ void iyTransmissionStandard(
                                     for( Index is2=0; is2<ns; is2++ ) {
                                       ext_mat(is1,is2) = 0.5 * (
                                                   ppath_ext(iv,is1,is2,ip  ) +
-                                               (*ppath_awx)(iv,is1,is2,ip+1) );
+                                               (*ppath_ext2)(iv,is1,is2,ip+1) );
                                     } }
                                   ext2trans( dtdx, extmat_case[ip][iv], 
                                              ext_mat, ppath.lstep[ip] ); 
                                   for( Index is1=0; is1<ns; is1++ ) {
                                     for( Index is2=0; is2<ns; is2++ ) {
-                                      dtdx(is1,is2) = (1/dw) * 
+                                      dtdx(is1,is2) = (1/dd) * 
                                               ( dtdx(is1,is2) -
                                                 trans_partial(iv,is1,is2,ip) );
                                     } }

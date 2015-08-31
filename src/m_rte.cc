@@ -474,8 +474,8 @@ void iyEmissionStandard(
       const Numeric   dt = 0.1;     // Temperature disturbance, K
       const Numeric   dw = 5;       // Wind disturbance, m/s
       const Numeric   dm = 0.1e-6;  // Magnetic field disturbance, T
-            Tensor4   ppath_ext_dt, ppath_ext_dwu, ppath_ext_dwv, ppath_ext_dww;
-            Tensor4   ppath_ext_dmu, ppath_ext_dmv, ppath_ext_dmw;
+            Tensor4   ppath_ext_dt;
+            ArrayOfTensor4 ppath_ext_dw(3), ppath_ext_dm(3);
             Matrix    ppath_blackrad_dt;
       //
       if( j_analytical_do )
@@ -504,94 +504,34 @@ void iyEmissionStandard(
               // Winds
               else if( jac_wind_i[iq] )
                 {
-                  if( jac_wind_i[iq] == 1 )
-                    {
-                      Tensor5 dummy_abs_per_species;
-                      Tensor3 dummy_ppath_nlte_source;
-                      ArrayOfIndex dummy_lte;
-                      Matrix f2, w2 = ppath_wind;   w2(0,joker) += dw;
-                      get_ppath_f(    f2, ppath, f_grid,  atmosphere_dim, 
-                                      rte_alonglos_v, w2 );
-                      get_ppath_pmat( ws, ppath_ext_dwu, dummy_ppath_nlte_source,
-                                      dummy_lte, dummy_abs_per_species,
-                                      propmat_clearsky_agenda, ppath, ppath_p, 
-                                      ppath_t, ppath_t_nlte, ppath_vmr, f2, 
-                                      ppath_mag, f_grid,
-                                      stokes_dim, ArrayOfIndex(0) );
-                    }
-                  else if( jac_wind_i[iq] == 2 )
-                    {
-                      Tensor5 dummy_abs_per_species;
-                      Tensor3 dummy_ppath_nlte_source;
-                      ArrayOfIndex dummy_lte;
-                      Matrix f2, w2 = ppath_wind;   w2(1,joker) += dw;
-                      get_ppath_f(    f2, ppath, f_grid,  atmosphere_dim, 
-                                      rte_alonglos_v, w2 );
-                      get_ppath_pmat( ws, ppath_ext_dwv, dummy_ppath_nlte_source,
-                                      dummy_lte, dummy_abs_per_species,
-                                      propmat_clearsky_agenda, ppath, ppath_p, 
-                                      ppath_t, ppath_t_nlte, ppath_vmr, f2, 
-                                      ppath_mag, f_grid,
-                                      stokes_dim, ArrayOfIndex(0) );
-                    }
-                  else if( jac_wind_i[iq] == 3 )
-                    {
-                      Tensor5 dummy_abs_per_species;
-                      Tensor3 dummy_ppath_nlte_source;
-                      ArrayOfIndex dummy_lte;
-                      Matrix f2, w2 = ppath_wind;   w2(2,joker) += dw;
-                      get_ppath_f(    f2, ppath, f_grid,  atmosphere_dim, 
-                                      rte_alonglos_v, w2 );
-                      get_ppath_pmat( ws, ppath_ext_dww, dummy_ppath_nlte_source,
-                                      dummy_lte, dummy_abs_per_species,
-                                      propmat_clearsky_agenda, ppath, ppath_p, 
-                                      ppath_t, ppath_t_nlte, ppath_vmr, f2, 
-                                      ppath_mag, f_grid,
-                                      stokes_dim, ArrayOfIndex(0) );
-                    }
+                  Tensor5 dummy_abs_per_species;
+                  Tensor3 dummy_ppath_nlte_source;
+                  ArrayOfIndex dummy_lte;
+                  Matrix f2, w2 = ppath_wind;   w2(jac_wind_i[iq]-1,joker) += dw;
+                  get_ppath_f(    f2, ppath, f_grid,  atmosphere_dim, 
+                                  rte_alonglos_v, w2 );
+                  get_ppath_pmat( ws, ppath_ext_dw[jac_wind_i[iq]-1], 
+                                  dummy_ppath_nlte_source,
+                                  dummy_lte, dummy_abs_per_species,
+                                  propmat_clearsky_agenda, ppath, ppath_p, 
+                                  ppath_t, ppath_t_nlte, ppath_vmr, f2, 
+                                  ppath_mag, f_grid,
+                                  stokes_dim, ArrayOfIndex(0) );
                 }
               // Magnetic field
               else if( jac_mag_i[iq] )
                 {
-                  if( jac_mag_i[iq] == 1 )
-                    {
-                      Tensor5 dummy_abs_per_species;
-                      Tensor3 dummy_ppath_nlte_source;
-                      ArrayOfIndex dummy_lte;
-                      Matrix m2 = ppath_mag;   m2(0,joker) += dm;
-                      get_ppath_pmat( ws, ppath_ext_dmu, dummy_ppath_nlte_source,
-                                      dummy_lte, dummy_abs_per_species,
-                                      propmat_clearsky_agenda, ppath, ppath_p, 
-                                      ppath_t, ppath_t_nlte, ppath_vmr, ppath_f, 
-                                      m2, f_grid,
-                                      stokes_dim, ArrayOfIndex(0) );
-                    }
-                  else if( jac_mag_i[iq] == 2 )
-                    {
-                      Tensor5 dummy_abs_per_species;
-                      Tensor3 dummy_ppath_nlte_source;
-                      ArrayOfIndex dummy_lte;
-                      Matrix m2 = ppath_mag;   m2(1,joker) += dm;
-                      get_ppath_pmat( ws, ppath_ext_dmv, dummy_ppath_nlte_source,
-                                      dummy_lte, dummy_abs_per_species,
-                                      propmat_clearsky_agenda, ppath, ppath_p, 
-                                      ppath_t, ppath_t_nlte, ppath_vmr, ppath_f,
-                                      m2, f_grid,
-                                      stokes_dim, ArrayOfIndex(0) );
-                    }
-                  else if( jac_mag_i[iq] == 3 )
-                    {
-                      Tensor5 dummy_abs_per_species;
-                      Tensor3 dummy_ppath_nlte_source;
-                      ArrayOfIndex dummy_lte;
-                      Matrix m2 = ppath_mag;   m2(2,joker) += dm;
-                      get_ppath_pmat( ws, ppath_ext_dmw, dummy_ppath_nlte_source,
-                                      dummy_lte, dummy_abs_per_species,
-                                      propmat_clearsky_agenda, ppath, ppath_p, 
-                                      ppath_t, ppath_t_nlte, ppath_vmr, ppath_f,
-                                      m2, f_grid,
-                                      stokes_dim, ArrayOfIndex(0) );
-                    }
+                  Tensor5 dummy_abs_per_species;
+                  Tensor3 dummy_ppath_nlte_source;
+                  ArrayOfIndex dummy_lte;
+                  Matrix m2 = ppath_mag;   m2(jac_mag_i[iq]-1,joker) += dm;
+                  get_ppath_pmat( ws, ppath_ext_dm[jac_mag_i[iq]-1], 
+                                  dummy_ppath_nlte_source,
+                                  dummy_lte, dummy_abs_per_species,
+                                  propmat_clearsky_agenda, ppath, ppath_p, 
+                                  ppath_t, ppath_t_nlte, ppath_vmr, ppath_f, 
+                                  m2, f_grid,
+                                  stokes_dim, ArrayOfIndex(0) );
                 }
             }
         }
@@ -785,19 +725,19 @@ void iyEmissionStandard(
                           for( Index iv=0; iv<nf; iv++ )
                             {
                               // Create pointer to disturbed extinction to use
-                              // Wind w-component is first guess.
-                              Tensor4* ppath_ext2 = &ppath_ext_dwv;
+                              // Wind v-component is first guess.
+                              Tensor4* ppath_ext2 = &ppath_ext_dw[1];
                               Numeric dd = dw;
                               if( jac_wind_i[iq] == 1 )
-                                { ppath_ext2 = &ppath_ext_dwu; }
+                                { ppath_ext2 = &ppath_ext_dw[0]; }
                               else if( jac_wind_i[iq] == 3 )
-                                { ppath_ext2 = &ppath_ext_dww; }
+                                { ppath_ext2 = &ppath_ext_dw[2]; }
                               else if( jac_mag_i[iq] == 1 )
-                                { ppath_ext2 = &ppath_ext_dmu; dd = dm; }
+                                { ppath_ext2 = &ppath_ext_dm[0]; dd = dm; }
                               else if( jac_mag_i[iq] == 2 )
-                                { ppath_ext2 = &ppath_ext_dmv; dd = dm; }
+                                { ppath_ext2 = &ppath_ext_dm[1]; dd = dm; }
                               else if( jac_mag_i[iq] == 3 )
-                                { ppath_ext2 = &ppath_ext_dmw; dd = dm; }
+                                { ppath_ext2 = &ppath_ext_dm[2]; dd = dm; }
 
                               // Diagonal transmission matrix
                               if( extmat_case[ip][iv] == 1 )
