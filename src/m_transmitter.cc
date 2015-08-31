@@ -1021,7 +1021,7 @@ void iyTransmissionStandard(
       //
       const Numeric   dt = 0.1;
       const Numeric   dw = 5;
-            Tensor4   ppath_at2, ppath_awu, ppath_awv, ppath_aww;
+            Tensor4   ppath_ext_dt, ppath_awu, ppath_awv, ppath_aww;
       //
       if( j_analytical_do )
         { 
@@ -1034,7 +1034,7 @@ void iyTransmissionStandard(
                 { 
                   Tensor5 dummy_abs_per_species;
                   Vector t2 = ppath_t;   t2 += dt;
-                  get_ppath_pmat( ws, ppath_at2, dummy_ppath_nlte_source,
+                  get_ppath_pmat( ws, ppath_ext_dt, dummy_ppath_nlte_source,
                                   dummy_lte, dummy_abs_per_species,
                                   propmat_clearsky_agenda, ppath, ppath_p,
                                   t2, ppath_t_nlte, ppath_vmr, ppath_f, ppath_mag, f_grid, 
@@ -1330,10 +1330,10 @@ void iyTransmissionStandard(
                               if( extmat_case[ip][iv] == 1 )
                                 {
                                   const Numeric dkdt1 = 1/dt * (
-                                                      ppath_at2(iv,0,0,ip  ) -
+                                                      ppath_ext_dt(iv,0,0,ip  ) -
                                                       ppath_ext(iv,0,0,ip  ) );
                                   const Numeric dkdt2 = 1/dt * (
-                                                      ppath_at2(iv,0,0,ip+1) - 
+                                                      ppath_ext_dt(iv,0,0,ip+1) - 
                                                       ppath_ext(iv,0,0,ip+1) );
                                   const Numeric x = -0.5 * ppath.lstep[ip] * 
                                                  trans_cumulat(iv,0,0,ip+1);
@@ -1370,7 +1370,7 @@ void iyTransmissionStandard(
                                   for( Index is1=0; is1<ns; is1++ ) {
                                     for( Index is2=0; is2<ns; is2++ ) {
                                       ext_mat(is1,is2) = 0.5 * (
-                                                  ppath_at2(iv,is1,is2,ip  ) +
+                                                  ppath_ext_dt(iv,is1,is2,ip  ) +
                                                   ppath_ext(iv,is1,is2,ip+1) );
                                     } }
                                   ext2trans( dtdx, extmat_case[ip][iv], 
@@ -1392,7 +1392,7 @@ void iyTransmissionStandard(
                                     for( Index is2=0; is2<ns; is2++ ) {
                                       ext_mat(is1,is2) = 0.5 * (
                                                   ppath_ext(iv,is1,is2,ip  ) +
-                                                  ppath_at2(iv,is1,is2,ip+1) );
+                                                  ppath_ext_dt(iv,is1,is2,ip+1) );
                                     } }
                                   ext2trans( dtdx, extmat_case[ip][iv], 
                                              ext_mat, ppath.lstep[ip] ); 

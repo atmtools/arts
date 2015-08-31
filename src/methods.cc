@@ -2720,9 +2720,8 @@ void define_md_data_raw()
         (
          "Sets the atmospheric dimension to 1D.\n"
          "\n"
-         "Sets *atmosphere_dim* to 1 and gives some variables dummy values.\n"
-         "\n"
-         "The latitude and longitude grids are set to be empty.\n"
+         "Sets *atmosphere_dim* to 1, and the latitude and longitude grids\n"
+         "are set to be empty.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "atmosphere_dim", "lat_grid", "lon_grid" ),
@@ -2763,9 +2762,12 @@ void define_md_data_raw()
         DESCRIPTION
         (
          "Sets the atmospheric dimension to 3D.\n"
+         "\n"
+         "Sets *atmosphere_dim* to 3, and *lat_true* and *lon_true* are\n"
+         "set to be empty.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
-        OUT( "atmosphere_dim" ),
+        OUT( "atmosphere_dim", "lat_true", "lon_true" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),

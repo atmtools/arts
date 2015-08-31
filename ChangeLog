@@ -1,3 +1,16 @@
+2015-08-31  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-293
+
+	* src/m_atmosphere.cc (AtmosphereSet3D): The method now also sets
+	lat_true and lon_true, to be empty. This matches how the 1D method
+	sets lat_grid and lon_grid to be empty.
+
+	* src/jacobian.cc (get_pointers_for_analytical_jacobians):
+	* src/m_transmitter.cc (iyTransmissionStandard):
+	* src/m_rte.cc (iyEmissionStandard): Continued work magnetic field
+	as jacobian quantity. Should be finished but no proper testing yet.
+
 2015-08-28  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-292

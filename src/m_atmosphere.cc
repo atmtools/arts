@@ -2108,6 +2108,8 @@ void AtmosphereSet2D(// WS Output:
 /* Workspace method: Doxygen documentation will be auto-generated */
 void AtmosphereSet3D(// WS Output:
                      Index&    atmosphere_dim,
+                     Vector&   lat_true,
+                     Vector&   lon_true,
                      const Verbosity& verbosity)
 {
   CREATE_OUT2;
@@ -2117,6 +2119,8 @@ void AtmosphereSet3D(// WS Output:
   out3 << "    atmosphere_dim = 3\n";
   
   atmosphere_dim = 3;
+  lat_true.resize(0);
+  lon_true.resize(0);
 }
 
 

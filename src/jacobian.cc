@@ -331,7 +331,7 @@ void get_pointers_for_analytical_jacobians(
         magfield_i[iq] = Index( c ) - 116;
       }
     else
-      { wind_i[iq] = 0; }
+      { magfield_i[iq] = 0; }
   )
 }
 
