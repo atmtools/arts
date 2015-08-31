@@ -37,7 +37,7 @@
 #include "methods.h"
 #include "ppath.h"
 #include "agenda_class.h"
-
+#include "abs_species_tags.h"
 
 
 /** Contains the data for one retrieval quantity.

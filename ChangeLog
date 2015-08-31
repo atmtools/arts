@@ -1,3 +1,11 @@
+2015-08-31  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-295
+
+	* src/jacobian.h:
+
+	Include abs_species_tags.h for ArrayOfArrayOfSpeciesTag.
+
 2015-08-31  Richard Larsson <ric.larsson@gmail.com>
 
 	* arts-2-3-294
