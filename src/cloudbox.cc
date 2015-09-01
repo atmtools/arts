@@ -1845,7 +1845,6 @@ void pnd_fieldS2M (Tensor4View pnd_field,
                      const Index& scat_species,
                      const String& part_string,
                      const String& delim,
-                     const string& psd_type,
                      const Verbosity& verbosity)
 {
     const Index N_se = scat_meta[scat_species].nelem();
@@ -1856,13 +1855,49 @@ void pnd_fieldS2M (Tensor4View pnd_field,
     Vector pnd ( N_se, 0.0 );
     Vector dNdD ( N_se, 0.0 );
     String partfield_name;
-    
-    
-
+    String psd_str;
+    String psd_param;
+    bool logic_M;
+    Numeric N_tot;
+    ArrayOfString substrings;
     
     
     //split String and copy to ArrayOfString
     parse_partfield_name( partfield_name, part_string, delim);
+    parse_psd_param( psd_param, part_string, delim);
+    
+    // Check if N_field should be handled as number density field
+    // or as mean particle mass field
+    psd_param.split(substrings,"_");
+    
+    if (substrings.size()==3)
+    {
+        // case: N_field is mean particle mass
+        if (substrings[2] == "M")
+        {
+            psd_str=psd_param.substr(0,psd_param.length()-2);
+
+            logic_M=true;
+        }
+        else
+        {
+            ostringstream os;
+            os << "You use a wrong tag! The last substring of the tag\n"
+            << "has to be an uppercase M";
+            throw runtime_error( os.str() );
+        }
+    }
+    // case: N_fied is total number density
+    else
+    {
+        logic_M=false;
+        psd_str=psd_param;
+    }
+    
+    
+    
+    
+    
     
     for ( Index i=0; i < N_se; i++ )
     {
@@ -1900,49 +1935,95 @@ void pnd_fieldS2M (Tensor4View pnd_field,
                 for ( Index lon=limits[4]; lon<limits[5]; lon++ )
                 {
                     // S2M requires mass density. If not set, abort calculation.
-                    if ( isnan(WC_field ( p, lat, lon )) )
+                    if ( isnan(WC_field ( p, lat, lon )) || isnan(N_field ( p, lat, lon )))
                     {
-                        ostringstream os;
-                        os << "Size distribution S2M requires knowledge of mass "
-                        << "density of hydrometeors.\n"
-                        << "At grid point (" << p << ", " << lat << ", " << lon
-                        << ") in (p,lat,lon) a NaN value is encountered, "
-                        << "i.e. mass density is unknown.";
-                        throw runtime_error( os.str() );
+                        if (logic_M)
+                        {
+                            ostringstream os;
+                            os << "Size distribution S2M requires knowledge of mass "
+                            << "concentration of hydrometeors and mean particle mass.\n"
+                            << "At grid point (" << p << ", " << lat << ", " << lon
+                            << ") in (p,lat,lon) a NaN value is encountered, "
+                            << "i.e. mass concentration amd/or mean particle mass is unknown.";
+                            throw runtime_error( os.str() );
+                        }
+                        else
+                        {
+                            ostringstream os;
+                            os << "Size distribution S2M requires knowledge of mass "
+                            << "concentration of hydrometeors and number density.\n"
+                            << "At grid point (" << p << ", " << lat << ", " << lon
+                            << ") in (p,lat,lon) a NaN value is encountered, "
+                            << "i.e. mass concentration amd/or mean particle mass is unknown.";
+                            throw runtime_error( os.str() );
+                        }
                     }
                     
                     // A valid IWC value encountered (here, we can also handle negative
                     // values!). Calculating dNdD.
-                    else if (WC_field ( p, lat, lon ) != 0.)
+                    else if (WC_field ( p, lat, lon ) != 0. && N_field ( p, lat, lon ) != 0.)
                     {
+                        
+                        if (logic_M)
+                        {
+                            //case: N_field is mean particle mass
+                            N_tot=WC_field ( p, lat, lon )/N_field ( p, lat, lon );
+                        }
+                        else
+                        {
+                            //case: N_fied is total number density
+                            N_tot=N_field ( p, lat, lon );
+                        }
+                            
+                        
+                        
                         // iteration over all given size bins
                         for ( Index i=0; i<mass.nelem(); i++ ) //loop over number of scattering elements
                         {
                             // calculate particle size distribution for H11
                             // [# m^-3 m^-1]
-                            dNdD[i] = WCtopnd_S2M( mass[i], N_field ( p, lat, lon ),
+                            dNdD[i] = WCtopnd_S2M( mass[i], N_tot,
                                                      WC_field ( p, lat, lon ),
-                                                     psd_type);
+                                                     psd_str);
                         }
-                        // scale pnds by scale width
-                        if (mass.nelem() > 1)
-                            scale_pnd( pnd, mass, dNdD ); //[# m^-3]
-                        else
-                            pnd = dNdD;
                         
-                        // calculate proper scaling of pnd sum from real IWC and apply
-                        chk_pndsum ( pnd, WC_field ( p,lat,lon ), mass,
-                                    p, lat, lon, partfield_name, verbosity );
-                        
-                        // writing pnd vector to wsv pnd_field
-                        for ( Index i =0; i< N_se; i++ )
+                        // sometimes there is possibility if WC_field is very small
+                        // but still greater than zero and N_tot is large that dNdD
+                        // could be zero
+                        if (dNdD.sum()==0)
                         {
-                            pnd_field ( intarr[i]+scat_data_start, p-limits[0],
-                                       lat-limits[2], lon-limits[4] ) = pnd[i];
+                            
+                            for ( Index i = 0; i< N_se; i++ )
+                            {
+                                pnd_field ( intarr[i]+scat_data_start, p-limits[0],
+                                           lat-limits[2], lon-limits[4] ) = 0.;
+                            }
+                        }
+                        else
+                        {
+                        
+                            // scale pnds by scale width
+                            if (mass.nelem() > 1)
+                                scale_pnd( pnd, mass, dNdD ); //[# m^-3]
+                            else
+                                pnd = dNdD;
+                            
+                           
+                            
+                            // calculate proper scaling of pnd sum from real IWC and apply
+                            chk_pndsum ( pnd, WC_field ( p,lat,lon ), mass,
+                                        p, lat, lon, partfield_name, verbosity );
+                            
+                            // writing pnd vector to wsv pnd_field
+                            for ( Index i =0; i< N_se; i++ )
+                            {
+                                pnd_field ( intarr[i]+scat_data_start, p-limits[0],
+                                           lat-limits[2], lon-limits[4] ) = pnd[i];
+                            }
                         }
                     }
                     
-                    // for IWC==0, we just set pnd_field=0
+                    // if either WC_field or N_field is zero, we just set pnd_field=0
                     else
                     {
                         for ( Index i = 0; i< N_se; i++ )
@@ -3292,7 +3373,7 @@ Numeric LWCtopnd (const Numeric lwc, //[kg/m^3]
 Numeric WCtopnd_S2M (const Numeric mass,
                      const Numeric N_tot,
                      const Numeric M,
-                     const string psd_type)
+                     const String psd_type)
 {
     Numeric dN;
     Numeric N0;
@@ -3342,13 +3423,21 @@ Numeric WCtopnd_S2M (const Numeric mass,
         xmin=2.6e-10;
         xmax=5e-4;
     }
-    else   //"S2M_LWC" Cloud liquid water
+    else if ( psd_type == "S2M_LWC" ) //Cloud liquid water
     {
         mu=1;
         gamma=1;
         xmin=4.2e-15;
         xmax=2.6e-10;
     }
+    else
+    {
+        ostringstream os;
+        os << "You use a wrong tag! ";
+        throw runtime_error( os.str() );
+    }
+
+    
     
     
     //Calculate Number density only, if mass is between xmin and xmax

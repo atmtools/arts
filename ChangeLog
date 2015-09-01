@@ -1,3 +1,18 @@
+2015-09-01  Manfred Brath  <manfred.brath@uni-hamburg.de>
+
+	* arts-2-3-299
+
+	* src/cloudbox.{h,cc} (pnd_fieldS2M), 
+	src/m_cloudbox.cc (pnd_fieldCalcFromscat_speciesFields): 
+	
+	Added two moment scheme distributions that uses scat_species_mean_mass_field 
+	Removed redundant string variable "psd"
+	
+	* src/m_cloudbox.cc (dNdD_S2M_M),
+	src/methods.cc: 
+	
+	Added new WSMs for the new distributions.
+
 2015-09-01  Simon Pfreundschuh  <simonpf@chalmers.se>
 
 	* arts-2-3-298

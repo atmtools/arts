@@ -166,7 +166,6 @@ void pnd_fieldS2M (Tensor4View pnd_field,
                    const Index& scat_species,
                    const String& part_string,
                    const String& delim,
-                   const string& psd_type,
                    const Verbosity& verbosity);
 
 void pnd_fieldMGD_LWC (Tensor4View pnd_field,
@@ -235,7 +234,7 @@ Numeric IWCtopnd_F07ML ( const Numeric d, const Numeric t,
 Numeric WCtopnd_S2M (const Numeric mass,
                      const Numeric N_tot,
                      const Numeric M,
-                     const string psd_type);
+                     const String psd_type);
 
 Numeric LWCtopnd_MGD_LWC ( const Numeric d, const Numeric m, const Numeric lwc);
 

@@ -3899,8 +3899,48 @@ void define_md_data_raw()
       GIN( "mass", "N_tot", "M", "psd_type" ),
       GIN_TYPE( "Vector", "Numeric", "Numeric", "String" ),
       GIN_DEFAULT( NODEF, NODEF, NODEF, "S2M_LWC" ),
-      GIN_DESC( "Mass of particles [kg]",
+      GIN_DESC( "Mass of each particle [kg]",
                "Total number density [1/m3]",
+               "Mass concentration [kg/m^3]",
+               "Type of particle size distribution (hydrometeor type)")
+      ));
+
+    md_data_raw.push_back
+    ( MdRecord
+     ( NAME( "dNdD_S2M_M" ),
+      DESCRIPTION
+      (
+       "Calculation of particle size distribution (dN/dm) following\n"
+       "the two moment scheme of Axel Seifert that is used in the ICON model.\n"
+       "\n"
+       "A wrapper to internal particle size distribution calculation. The Seifert two\n"
+       "moment scheme is originally a parametrization for 6 different hydrometeors in total number\n"
+       "density  (zeroth moment) and the mass concentration (first moment) as function\n"
+       "of the  particle mass. Here it is changed to a parametrization in \n"
+       "mean particle mass and the mass concentration\n"
+       "Important, depending on the hydrometeor type, there is a lower and a upper\n"
+       "boundary for valid particle mass. For masses below and above these boundary\n"
+       "the number density is set to zero. Within this function the mass is NOT\n"
+       "conserved.\n"
+       "The 6 hydrometeors are:\n"
+       "'S2M_LWC' - cloud liquid water\n"
+       "'S2M_IWC' - cloud ice water\n"
+       "'S2M_RWC' - rain\n"
+       "'S2M_SWC' - snow\n"
+       "'S2M_GWC' - graupel\n"
+       "'S2M_HWC' - hail\n"
+       ),
+      AUTHORS( "Manfred Brath" ),
+      OUT(),
+      GOUT( "dNdD" ),
+      GOUT_TYPE( "Vector" ),
+      GOUT_DESC( "size distribution number density [#/m3/m]" ),
+      IN(),
+      GIN( "mass", "mean_mass", "M", "psd_type" ),
+      GIN_TYPE( "Vector", "Numeric", "Numeric", "String" ),
+      GIN_DEFAULT( NODEF, NODEF, NODEF, "S2M_LWC" ),
+      GIN_DESC( "Mass of each particle [kg]",
+               "Mean particle mass [kg]",
                "Mass concentration [kg/m^3]",
                "Type of particle size distribution (hydrometeor type)")
       ));
@@ -9114,23 +9154,29 @@ void define_md_data_raw()
          "The following PSDs are available (for further information check\n"
          "their corresponding distribution WSM):\n"
          "\n"
-         "Tag       PSD WSM       fields(s) used         Target         Notes\n"
-         "MH97      *dNdD_MH97*     mass density         cloud ice\n"
-         "H11       *dNdD_H11*      mass density         cloud ice\n"
-         "H13       *dNdD_Ar_H13*   mass density         cloud ice      neglects shape information\n"
-         "H13Shape  *dNdD_Ar_H13*   mass density         cloud ice\n"
-         "MGD_IWC   *dNdD_MGD_IWC*  mass density         cloud ice      fixed modified gamma psd\n"
-         "S2M_IWC   *dNdD_S2M*      number/mass density  cloud ice      two moment scheme psd\n"
-         "F07TR     *dNdD_F07TR*    mass density         snow           for tropics\n"
-         "F07ML     *dNdD_F07ML*    mass density         snow           for mid latitudes\n"
-         "S2M_SWC   *dNdD_S2M*      number/mass density  snow           two moment scheme psd\n"
-         "MP48      *dNdD_MP48*     mass flux            precipitation  rain in particular\n"
-         "S2M_RWC   *dNdD_S2M*      number/mass density  rain           two moment scheme psd\n"
-         "H98_STCO  *dNdD_H98*      mass density         cloud liquid   specifically continental stratus\n"
-         "MGD_LWC   *dNdD_MGD_LWC*  mass density         cloud liquid   fixed modified gamma psd\n"
-         "S2M_LWC   *dNdD_S2M*      number/mass density  cloud liquid   two moment scheme psd\n"
-         "S2M_GWC   *dNdD_S2M*      number/mass density  graupel        two moment scheme psd\n"
-         "S2M_HWC   *dNdD_S2M*      number/mass density  hail           two moment scheme psd\n"
+         "Tag       PSD WSM       fields(s) used           Target         Notes\n"
+         "MH97      *dNdD_MH97*     mass density           cloud ice\n"
+         "H11       *dNdD_H11*      mass density           cloud ice\n"
+         "H13       *dNdD_Ar_H13*   mass density           cloud ice      neglects shape information\n"
+         "H13Shape  *dNdD_Ar_H13*   mass density           cloud ice\n"
+         "MGD_IWC   *dNdD_MGD_IWC*  mass density           cloud ice      fixed modified gamma psd\n"
+         "S2M_IWC   *dNdD_S2M*      number/mass density    cloud ice      two moment scheme psd\n"
+         "S2M_IWC_M *dNdD_S2M_M*    mean mass/mass density cloud ice      two moment scheme psd\n"
+         "F07TR     *dNdD_F07TR*    mass density           snow           for tropics\n"
+         "F07ML     *dNdD_F07ML*    mass density           snow           for mid latitudes\n"
+         "S2M_SWC   *dNdD_S2M*      number/mass density    snow           two moment scheme psd\n"
+         "S2M_SWC_M *dNdD_S2M_M*    mean mass/mass density snow           two moment scheme psd\n"
+         "MP48      *dNdD_MP48*     mass flux              precipitation  rain in particular\n"
+         "S2M_RWC   *dNdD_S2M*      number/mass density    rain           two moment scheme psd\n"
+         "S2M_RWC_M *dNdD_S2M_M*    mean mass/mass density rain           two moment scheme psd\n"
+         "H98_STCO  *dNdD_H98*      mass density           cloud liquid   specifically continental stratus\n"
+         "MGD_LWC   *dNdD_MGD_LWC*  mass density           cloud liquid   fixed modified gamma psd\n"
+         "S2M_LWC   *dNdD_S2M*      number/mass density    cloud liquid   two moment scheme psd\n"
+         "S2M_LWC_M *dNdD_S2M_M*    mean mass/mass density cloud liquid   two moment scheme psd\n"
+         "S2M_GWC   *dNdD_S2M*      number/mass density    graupel        two moment scheme psd\n"
+         "S2M_GWC_M *dNdD_S2M_M*    mean mass/mass density graupel        two moment scheme psd\n"
+         "S2M_HWC   *dNdD_S2M*      number/mass density    hail           two moment scheme psd\n"
+         "S2M_HWC_M *dNdD_S2M_M*    mean mass/mass density hail           two moment scheme psd\n"
          "\n"
          "NOTE: The number and order of the scattering species in the\n"
          "scattering species fields (*scat_species_mass_density_field*,\n"
@@ -9142,7 +9188,7 @@ void define_md_data_raw()
          "*ScatSpeciesScatAndMetaRead* with the respective scattering\n"
          "data and meta data files has to be applied in the right order!\n"
          ),
-        AUTHORS( "Daniel Kreyling, Jana Mendrok" ),
+        AUTHORS( "Daniel Kreyling, Jana Mendrok, Manfred Brath" ),
         OUT( "pnd_field"),
         GOUT(),
         GOUT_TYPE(),

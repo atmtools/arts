@@ -1550,15 +1550,13 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
     //---- pnd_field calculations for MH97 -------------------------------
     if ( psd_param.substr(0,4) == "MH97" )
     {
-        psd = "MH97";
-        //cout << psd << "\n";
 
         //check for expected scattering species field name
         if ( partfield_name != "IWC" && partfield_name != "CIW" )
         {
             out2 << "WARNING! Unexpected scattering species field name ("
-                 << partfield_name << ") for distribution " << psd << ".\n"
-                 << psd << " should should only be applied to cloud"
+                 << partfield_name << ") for distribution " << psd_param << ".\n"
+                 << psd_param << " should should only be applied to cloud"
                  << " ice.\n";
         }
 
@@ -1573,16 +1571,14 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
     //---- pnd_field calculations for H11 ----------------------------
     else if ( psd_param == "H11" )
     {
-        psd = "H11";
-        //cout << psd << "\n";
 
         //check for expected scattering species field name
         if ( partfield_name != "IWC" && partfield_name != "CIW"
             && partfield_name != "Snow" && partfield_name != "SWC" )
         {
             out2 << "WARNING! Unexpected scattering species field name ("
-                 << partfield_name << ") for distribution " << psd << ".\n"
-                 << psd << " should only be applied to cloud or precipitating"
+                 << partfield_name << ") for distribution " << psd_param << ".\n"
+                 << psd_param << " should only be applied to cloud or precipitating"
                  << " ice.\n";
         }
 
@@ -1597,16 +1593,14 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
     //---- pnd_field calculations for H13 ----------------------------
     else if ( psd_param == "H13" )
     {
-        psd = "H13";
-        //cout << psd << "\n";
 
         //check for expected scattering species field name
         if ( partfield_name != "IWC" && partfield_name != "CIW"
             && partfield_name != "Snow" && partfield_name != "SWC"  )
         {
             out2 << "WARNING! Unexpected scattering species field name ("
-                 << partfield_name << ") for distribution " << psd << ".\n"
-                 << psd << " should only be applied to cloud or precipitating"
+                 << partfield_name << ") for distribution " << psd_param << ".\n"
+                 << psd_param << " should only be applied to cloud or precipitating"
                  << " ice.\n";
         }
 
@@ -1621,16 +1615,14 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
 //---- pnd_field calculations for H13Shape ----------------------------
     else if ( psd_param == "H13Shape" )
     {
-        psd = "H13Shape";
-        //cout << psd << "\n";
 
         //check for expected scattering species field name
         if ( partfield_name != "IWC" && partfield_name != "CIW"
             && partfield_name != "Snow" && partfield_name != "SWC"  )
         {
             out2 << "WARNING! Unexpected scattering species field name ("
-                 << partfield_name << ") for distribution " << psd << ".\n"
-                 << psd << " should only be applied to cloud or precipitating"
+                 << partfield_name << ") for distribution " << psd_param << ".\n"
+                 << psd_param << " should only be applied to cloud or precipitating"
                  << " ice.\n";
         }
 
@@ -1645,16 +1637,14 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
     //---- pnd_field calculations for F07TR ----------------------------
     else if ( psd_param == "F07TR" )
     {
-        psd = "F07TR";
-        //cout << psd << "\n";
         
         //check for expected scattering species field name
         if ( partfield_name != "IWC" && partfield_name != "CIW"
             && partfield_name != "Snow" && partfield_name != "SWC")
         {
             out2 << "WARNING! Unexpected scattering species field name ("
-                 << partfield_name << ") for distribution " << psd << ".\n"
-            << psd << " should only be applied to cloud or precipitating"
+                 << partfield_name << ") for distribution " << psd_param << ".\n"
+            << psd_param << " should only be applied to cloud or precipitating"
             << " ice.\n";
         }
         
@@ -1669,16 +1659,14 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
       //---- pnd_field calculations for F07ML ----------------------------
     else if ( psd_param == "F07ML" )
     {
-        psd = "F07ML";
-        //cout << psd << "\n";
         
         //check for expected scattering species field name
         if ( partfield_name != "IWC" && partfield_name != "CIW"
             && partfield_name != "Snow" && partfield_name != "SWC")
         {
             out2 << "WARNING! Unexpected scattering species field name ("
-                 << partfield_name << ") for distribution " << psd << ".\n"
-            << psd << " should only be applied to cloud or precipitating"
+                 << partfield_name << ") for distribution " << psd_param << ".\n"
+            << psd_param << " should only be applied to cloud or precipitating"
             << " ice.\n";
         }
         
@@ -1693,15 +1681,13 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
       //---- pnd_field calculations for S2M_LWC ----------------------------
     else if ( psd_param == "S2M_LWC" )
     {
-        psd = "S2M_LWC";
-        //cout << psd << "\n";
         
         //check for expected scattering species field name
         if ( partfield_name != "LWC" && partfield_name != "CLW" )
         {
             out2 << "WARNING! Unexpected scattering species field name ("
-                 << partfield_name << ") for distribution " << psd << ".\n"
-            << psd << " should only be applied to liquid cloud water.\n";
+                 << partfield_name << ") for distribution " << psd_param << ".\n"
+            << psd_param << " should only be applied to liquid cloud water.\n";
         }
         
         pnd_fieldS2M (pnd_field,
@@ -1712,22 +1698,42 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
                         i_ss,
                         scat_species[i_ss],
                         delim,
-                        psd,
                         verbosity);
+    }
+      
+      //---- pnd_field calculations for S2M_LWC_M ----------------------------
+    else if ( psd_param == "S2M_LWC_M" )
+    {
+        
+        //check for expected scattering species field name
+        if ( partfield_name != "LWC" && partfield_name != "CLW" )
+        {
+            out2 << "WARNING! Unexpected scattering species field name ("
+            << partfield_name << ") for distribution " << psd_param << ".\n"
+            << psd_param << " should only be applied to liquid cloud water.\n";
+        }
+        
+        pnd_fieldS2M (pnd_field,
+                      scat_species_mass_density_field ( i_ss, joker, joker, joker ),
+                      scat_species_mean_mass_field ( i_ss, joker, joker, joker ),
+                      limits,
+                      scat_meta,
+                      i_ss,
+                      scat_species[i_ss],
+                      delim,
+                      verbosity);
     }
       
       //---- pnd_field calculations for S2M_IWC ----------------------------
     else if ( psd_param == "S2M_IWC" )
     {
-        psd = "S2M_IWC";
-        //cout << psd << "\n";
         
         //check for expected scattering species field name
         if ( partfield_name != "IWC" && partfield_name != "CIW" )
         {
             out2 << "WARNING! Unexpected scattering species field name ("
-                 << partfield_name << ") for distribution " << psd << ".\n"
-            << psd << " should only be applied to cloud ice.\n";
+                 << partfield_name << ") for distribution " << psd_param<< ".\n"
+            << psd_param << " should only be applied to cloud ice.\n";
         }
         
         pnd_fieldS2M (pnd_field,
@@ -1738,22 +1744,41 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
                       i_ss,
                       scat_species[i_ss],
                       delim,
-                      psd,
                       verbosity);
     }
-    
+      //---- pnd_field calculations for S2M_IWC_M ----------------------------
+    else if ( psd_param == "S2M_IWC_M" )
+    {
+        
+        //check for expected scattering species field name
+        if ( partfield_name != "IWC" && partfield_name != "CIW" )
+        {
+            out2 << "WARNING! Unexpected scattering species field name ("
+            << partfield_name << ") for distribution " << psd_param << ".\n"
+            << psd_param << " should only be applied to cloud ice.\n";
+        }
+        
+        pnd_fieldS2M (pnd_field,
+                      scat_species_mass_density_field ( i_ss, joker, joker, joker ),
+                      scat_species_mean_mass_field ( i_ss, joker, joker, joker ),
+                      limits,
+                      scat_meta,
+                      i_ss,
+                      scat_species[i_ss],
+                      delim,
+                      verbosity);
+    }
+      
       //---- pnd_field calculations for S2M_RWC ----------------------------
     else if ( psd_param == "S2M_RWC" )
     {
-        psd = "S2M_RWC";
-        //cout << psd << "\n";
         
         //check for expected scattering species field name
         if ( partfield_name != "Rain" && partfield_name != "RWC")
         {
             out2 << "WARNING! Unexpected scattering species field name ("
-                 << partfield_name << ") for distribution " << psd << ".\n"
-            << psd << " should only be applied to precipitating liquid water\n";
+                 << partfield_name << ") for distribution " << psd_param << ".\n"
+            << psd_param << " should only be applied to precipitating liquid water\n";
         }
         
         pnd_fieldS2M (pnd_field,
@@ -1764,23 +1789,42 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
                       i_ss,
                       scat_species[i_ss],
                       delim,
-                      psd,
                       verbosity);
     }
       
+      //---- pnd_field calculations for S2M_RWC_M ----------------------------
+    else if ( psd_param == "S2M_RWC_M" )
+    {
+        
+        //check for expected scattering species field name
+        if ( partfield_name != "Rain" && partfield_name != "RWC")
+        {
+            out2 << "WARNING! Unexpected scattering species field name ("
+            << partfield_name << ") for distribution " << psd_param << ".\n"
+            << psd_param << " should only be applied to precipitating liquid water\n";
+        }
+        
+        pnd_fieldS2M (pnd_field,
+                      scat_species_mass_density_field ( i_ss, joker, joker, joker ),
+                      scat_species_mean_mass_field ( i_ss, joker, joker, joker ),
+                      limits,
+                      scat_meta,
+                      i_ss,
+                      scat_species[i_ss],
+                      delim,
+                      verbosity);
+    }
       
       //---- pnd_field calculations for S2M_SWC ----------------------------
     else if ( psd_param == "S2M_SWC" )
     {
-        psd = "S2M_SWC";
-        //cout << psd << "\n";
         
         //check for expected scattering species field name
         if ( partfield_name != "Snow" && partfield_name != "SWC")
         {
             out2 << "WARNING! Unexpected scattering species field name ("
-                 << partfield_name << ") for distribution " << psd << ".\n"
-            << psd << " should only be applied to snow\n";
+                 << partfield_name << ") for distribution " << psd_param << ".\n"
+            << psd_param << " should only be applied to snow\n";
         }
         
         pnd_fieldS2M (pnd_field,
@@ -1791,23 +1835,42 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
                       i_ss,
                       scat_species[i_ss],
                       delim,
-                      psd,
                       verbosity);
     }
-      
+
+      //---- pnd_field calculations for S2M_SWC_M ----------------------------
+    else if ( psd_param == "S2M_SWC_M" )
+    {
+        
+        //check for expected scattering species field name
+        if ( partfield_name != "Snow" && partfield_name != "SWC")
+        {
+            out2 << "WARNING! Unexpected scattering species field name ("
+            << partfield_name << ") for distribution " << psd_param << ".\n"
+            << psd_param << " should only be applied to snow\n";
+        }
+        
+        pnd_fieldS2M (pnd_field,
+                      scat_species_mass_density_field ( i_ss, joker, joker, joker ),
+                      scat_species_mean_mass_field ( i_ss, joker, joker, joker ),
+                      limits,
+                      scat_meta,
+                      i_ss,
+                      scat_species[i_ss],
+                      delim,
+                      verbosity);
+    }
       
       //---- pnd_field calculations for S2M_GWC ----------------------------
     else if ( psd_param == "S2M_GWC" )
     {
-        psd = "S2M_GWC";
-        //cout << psd << "\n";
         
         //check for expected scattering species field name
         if ( partfield_name != "Graupel" && partfield_name != "GWC")
         {
             out2 << "WARNING! Unexpected scattering species field name ("
-                 << partfield_name << ") for distribution " << psd << ".\n"
-            << psd << " should only be applied to graupel\n";
+                 << partfield_name << ") for distribution " << psd_param << ".\n"
+            << psd_param << " should only be applied to graupel\n";
         }
         
         pnd_fieldS2M (pnd_field,
@@ -1818,22 +1881,42 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
                       i_ss,
                       scat_species[i_ss],
                       delim,
-                      psd,
+                      verbosity);
+    }
+      
+      //---- pnd_field calculations for S2M_GWC_M ----------------------------
+    else if ( psd_param == "S2M_GWC_M" )
+    {
+        
+        //check for expected scattering species field name
+        if ( partfield_name != "Graupel" && partfield_name != "GWC")
+        {
+            out2 << "WARNING! Unexpected scattering species field name ("
+            << partfield_name << ") for distribution " << psd_param << ".\n"
+            << psd_param << " should only be applied to graupel\n";
+        }
+        
+        pnd_fieldS2M (pnd_field,
+                      scat_species_mass_density_field ( i_ss, joker, joker, joker ),
+                      scat_species_mean_mass_field ( i_ss, joker, joker, joker ),
+                      limits,
+                      scat_meta,
+                      i_ss,
+                      scat_species[i_ss],
+                      delim,
                       verbosity);
     }
       
       //---- pnd_field calculations for S2M_HWC ----------------------------
     else if ( psd_param == "S2M_HWC" )
     {
-        psd = "S2M_HWC";
-        //cout << psd << "\n";
         
         //check for expected scattering species field name
         if ( partfield_name != "Hail" && partfield_name != "HWC")
         {
             out2 << "WARNING! Unexpected scattering species field name ("
-                 << partfield_name << ") for distribution " << psd << ".\n"
-            << psd << " should only be applied to hail\n";
+                 << partfield_name << ") for distribution " << psd_param << ".\n"
+            << psd_param << " should only be applied to hail\n";
         }
         
         pnd_fieldS2M (pnd_field,
@@ -1844,22 +1927,42 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
                       i_ss,
                       scat_species[i_ss],
                       delim,
-                      psd,
+                      verbosity);
+    }
+      
+      //---- pnd_field calculations for S2M_HWC_M ----------------------------
+    else if ( psd_param == "S2M_HWC_M" )
+    {
+        
+        //check for expected scattering species field name
+        if ( partfield_name != "Hail" && partfield_name != "HWC")
+        {
+            out2 << "WARNING! Unexpected scattering species field name ("
+            << partfield_name << ") for distribution " << psd_param << ".\n"
+            << psd_param << " should only be applied to hail\n";
+        }
+        
+        pnd_fieldS2M (pnd_field,
+                      scat_species_mass_density_field ( i_ss, joker, joker, joker ),
+                      scat_species_mean_mass_field ( i_ss, joker, joker, joker ),
+                      limits,
+                      scat_meta,
+                      i_ss,
+                      scat_species[i_ss],
+                      delim,
                       verbosity);
     }
       
       //---- pnd_field calculations for MGD_LWC ----------------------------
     else if ( psd_param == "MGD_LWC" )
     {
-        psd = "MGD_LWC";
-        //cout << psd << "\n";
         
         //check for expected scattering species field name
         if ( partfield_name != "LWC" && partfield_name != "CLW" )
         {
             out2 << "WARNING! Unexpected scattering species field name ("
-                 << partfield_name << ") for distribution " << psd << ".\n"
-            << psd << " should only be applied to liquid cloud water.\n";
+                 << partfield_name << ") for distribution " << psd_param << ".\n"
+            << psd_param << " should only be applied to liquid cloud water.\n";
         }
         
         pnd_fieldMGD_LWC (pnd_field,
@@ -1873,15 +1976,13 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
       //---- pnd_field calculations for MGD_LWC ----------------------------
     else if ( psd_param == "MGD_IWC" )
     {
-        psd = "MGD_IWC";
-        //cout << psd << "\n";
         
         //check for expected scattering species field name
         if ( partfield_name != "IWC" && partfield_name != "CIW" )
         {
             out2 << "WARNING! Unexpected scattering species field name ("
-                 << partfield_name << ") for distribution " << psd << ".\n"
-            << psd << " should only be applied to cloud ice.\n";
+                 << partfield_name << ") for distribution " << psd_param << ".\n"
+            << psd_param << " should only be applied to cloud ice.\n";
         }
         
         pnd_fieldMGD_IWC (pnd_field,
@@ -1895,16 +1996,14 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
     //---- pnd_field calculations for MP48 -------------------------------
     else if ( psd_param == "MP48" )
     {
-        psd = "MP48";
-        //cout << psd << "\n";
 
         //check for expected scattering species field name
         if ( partfield_name != "Rain" && partfield_name != "Snow"
             && partfield_name != "RR" && partfield_name != "SR" )
         {
             out2 << "WARNING! Unexpected scattering species field name ("
-                 << partfield_name << ") for distribution " << psd << ".\n"
-                 << psd << " should only be applied to liquid or frozen"
+                 << partfield_name << ") for distribution " << psd_param << ".\n"
+                 << psd_param << " should only be applied to liquid or frozen"
                  << " precipitation.\n";
         }
 
@@ -1920,15 +2019,13 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
     //      (parameters from Hess98, Stratus continental)
     else if ( psd_param == "H98_STCO" || psd_param == "STCO" || psd_param == "liquid" )
     {
-        psd = "H98_STCO";
-        //cout << psd << "\n";
 
         //check for expected scattering species field name
         if ( partfield_name != "LWC" && partfield_name != "CLW" )
         {
             out2 << "WARNING! Unexpected scattering species field name ("
-                 << partfield_name << ") for distribution " << psd << ".\n"
-                 << psd << " should should only be applied to liquid or frozen"
+                 << partfield_name << ") for distribution " << psd_param << ".\n"
+                 << psd_param << " should should only be applied to liquid or frozen"
                  << " precipitation.\n";
         }
 
@@ -2075,6 +2172,33 @@ void dNdD_S2M (//WS Output:
                const String& psd_type,
                const Verbosity&)
 {
+    Index n_se = mass.nelem();
+    dNdD.resize(n_se);
+    
+    for ( Index i=0; i<n_se; i++ )
+    {
+        // calculate particle size distribution with S2M
+        // [# m^-3 kg^-1]
+        dNdD[i] = WCtopnd_S2M(mass[i], N_tot, M, psd_type) ;
+    }
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void dNdD_S2M_M (//WS Output:
+               Vector& dNdD,
+               //WS Input:
+               const Vector& mass,
+               const Numeric& mean_mass,
+               const Numeric& M,
+               const String& psd_type,
+               const Verbosity&)
+{
+    Numeric N_tot;
+
+    // Calculate the total number density from mass density M and the
+    // mean particle mass
+    N_tot=M/mean_mass;
+    
     Index n_se = mass.nelem();
     dNdD.resize(n_se);
     
