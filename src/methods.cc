@@ -5176,6 +5176,65 @@ void define_md_data_raw()
         GIN_DESC("Kayser wavenumber [cm^-1]" )
         ));
     
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "f_gridFromabs_linesSet" ),
+      DESCRIPTION
+      (
+          "Sets *f_grid* to a frequency grid determined by the available lines.\n"
+          "Can set either from full catalog or from single line entry.\n"
+          "\n"
+          "If line_nr is below zero, then all lines are used.  If above, then the line"
+          "in order of appearance in *abs_lines* is used.  Warning: there can be a lot\n"
+          "of lines in *abs_lines*.\n"
+          "\n"
+          "The frequency grid is decided from the line's frequency plus/minus half_width,\n"
+          "and the number of frequency bins between these limits is determined by nr_f_per_line.\n"
+          "\n"
+          "Note that frequencies below 0 Hz are not allowed by test, and that overlaps of\n"
+          "half widths (when all lines are selected) is also not allowed.\n"
+      ),
+      AUTHORS( "Richard Larsson" ),
+      OUT( "f_grid" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "abs_lines" ),
+      GIN("half_width","nr_f_per_line","line_nr"),
+      GIN_TYPE("Numeric","Index","Index"),
+      GIN_DEFAULT("1","0","-1"),
+      GIN_DESC("Half width in Hz",
+               "Number of frequency bins from F0-half_width to F0+half_width",
+               "Index of line (0 is first; if negative then all lines are used)")
+    ));
+    
+  md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "f_gridFromabs_lines_per_speciesSetFromSpeciesTag" ),
+      DESCRIPTION
+      (
+          "Sets *f_grid* to a frequency grid determined by the lines in a SpeciesTag.\n"
+          "\n"
+          "The frequency grid is decided from the line's frequency plus/minus half_width,\n"
+          "and the number of frequency bins between these limits is determined by nr_f_per_line.\n"
+          "\n"
+          "Note that frequencies below 0 Hz are not allowed by test, and that overlaps of\n"
+          "half widths is also not allowed.\n"
+      ),
+      AUTHORS( "Richard Larsson" ),
+      OUT( "f_grid" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "abs_lines_per_species", "abs_species" ),
+      GIN("half_width","nr_f_per_line","species_tag"),
+      GIN_TYPE("Numeric","Index","String"),
+      GIN_DEFAULT("1","0",""),
+      GIN_DESC("Half width in Hz",
+               "Number of frequency bins from F0-half_width to F0+half_width",
+               "Species tag as found in *abs_species*")
+    ));
+    
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "f_gridFromGasAbsLookup" ),

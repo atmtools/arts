@@ -1,3 +1,10 @@
+2015-09-31  Richard Larsson <ric.larsson@gmail.com>
+
+	* arts-2-3-294
+	
+	* src/m_linerecord.cc:  Added simple explorative setup scripts for f_grid
+	that are based on the lines in the line database.
+
 2015-09-01  Manfred Brath  <manfred.brath@uni-hamburg.de>
 
 	* arts-2-3-299

@@ -426,3 +426,98 @@ void nlteSetByQuantumIdentifiers(Index& nlte_do,
     chk_nlte(t_nlte_field, nlte_quantum_identifiers, abs_lines_per_species,
              p_grid, lat_grid, lon_grid, atmosphere_dim);
 }
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void f_gridFromabs_linesSet(Vector& f_grid,
+                            const ArrayOfLineRecord& abs_lines,
+                            const Numeric&           half_width,
+                            const Index&             nr_f_per_line,
+                            const Index&             line_nr,
+                            const Verbosity&         verbosity)
+{
+    CREATE_OUT2;
+    
+    const Index lines = abs_lines.nelem();
+    
+    if(line_nr<0)
+        f_grid.resize(lines*nr_f_per_line);
+    else
+        f_grid.resize(nr_f_per_line);
+    
+    out2 << "  Creating f_grid vector of length "<<f_grid.nelem();
+    
+    if(lines == 0)
+        throw std::runtime_error("You need at least one line to run this code.\n");
+    if(line_nr>=lines)
+        throw std::runtime_error("You specified a line number that is outside the range of abs_lines.\n");
+    if(nr_f_per_line<1)
+        throw std::runtime_error("You need more than 0 frequencies per line to execute this function.\n");
+    
+    // Helper variable to ensure that there are no overlaps
+    Numeric f_max = 0.0;
+    
+    if(line_nr>=0) // there is a line, then set frequency for a single line
+    {
+        if((abs_lines[line_nr].F()-half_width)<f_max)
+            throw std::runtime_error("Frequencies below 0 Hz are not supported by this function.\n");
+        VectorNLinSpace(f_grid,nr_f_per_line,abs_lines[line_nr].F()-half_width,abs_lines[line_nr].F()+half_width,verbosity);
+    }
+    else // if there are many lines, then set frequency from the many lines
+    {
+        Vector tmp;
+        for(Index ii=0;ii<lines;ii++)
+        {
+            if((abs_lines[ii].F()-half_width)<f_max)
+                throw std::runtime_error("Frequency overlaps are not supported by this function.\n");
+            else
+                f_max = abs_lines[ii].F()+half_width;
+            VectorNLinSpace(tmp,nr_f_per_line,abs_lines[ii].F()-half_width,abs_lines[ii].F()+half_width,verbosity);
+            f_grid[Range(ii*nr_f_per_line,nr_f_per_line)]=tmp;
+        }
+    }
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void f_gridFromabs_lines_per_speciesSetFromSpeciesTag(Vector& f_grid,
+                                                      const ArrayOfArrayOfLineRecord& abs_lines_per_species,
+                                                      const ArrayOfArrayOfSpeciesTag& abs_lines,
+                                                      const Numeric&                  half_width,
+                                                      const Index&                    nr_f_per_line,
+                                                      const String&                   species_tag,
+                                                      const Verbosity&                verbosity)
+{
+    CREATE_OUT2;
+    
+    if(species_tag == "")
+        throw std::runtime_error("You need at least tag in this code.\n");
+    
+    ArrayOfSpeciesTag st;
+    array_species_tag_from_string(st,species_tag);
+    
+    for(Index ii=0; ii<abs_lines.nelem(); ii++)
+    {
+        bool test = false;
+        if(abs_lines[ii].nelem()==st.nelem())
+        {
+            for(Index jj=0;  jj<st.nelem(); jj++)
+            {
+                if(st[jj]==abs_lines[ii][jj])
+                    test=true;
+                else
+                {
+                    test=false;
+                    break;
+                }
+            }
+            if(test)
+            {
+                f_gridFromabs_linesSet(f_grid,abs_lines_per_species[ii],half_width,nr_f_per_line,-1,verbosity);
+                return;
+            }
+        }
+    }
+    
+    throw std::runtime_error("No frequency set for the given species_tag.\n");
+}
