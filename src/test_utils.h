@@ -44,14 +44,14 @@ public:
 Rand( rand_type lo,
       rand_type hi ) : low( lo ), range( hi - lo )
     {
-	srand( rand() );
+        srand( rand() );
     }
 
     rand_type operator ()() const
     {
-	rand_type r = (rand_type) ( ((Numeric) rand()) /
-				    ((Numeric) RAND_MAX) * (Numeric) range );
-	return  low + r;
+        rand_type r = (rand_type) ( ((Numeric) rand()) /
+                                    ((Numeric) RAND_MAX) * (Numeric) range );
+        return  low + r;
     }
 
 /** Random Index class.
@@ -71,15 +71,15 @@ public:
 Rand( Index lo,
       Index hi ) : low( lo ), range( hi - lo )
     {
-	// Avoid negative ranges.
-	if (hi <= lo)
-	    range = 0;
-	srand( rand() );
+        // Avoid negative ranges.
+        if (hi <= lo)
+            range = 0;
+        srand( rand() );
     }
 
     Index operator ()() const
     {
-	return  low + rand() % (range + 1);
+        return  low + rand() % (range + 1);
     }
 
 private:
@@ -90,31 +90,36 @@ private:
 
 // Fill matrix with random values.
 void random_fill_matrix( MatrixView A,
-			 Numeric range,
+                         Numeric range,
                          bool positive );
+
+// Fill matrix with random values symmetrically.
+void random_fill_matrix_symmetric( MatrixView A,
+                                   Numeric range,
+                                   bool positive );
 
 // Fill vector with random values.
 void random_fill_vector( VectorView A,
-			 Numeric range,
+                         Numeric range,
                          bool positive );
 
 
 // Pick random submatrix.
 MatrixView random_submatrix( MatrixView A,
-			     Index m,
-			     Index n );
+                             Index m,
+                             Index n );
 
 // Generate random range in the range [0, n - 1]
 Range random_range( Index n );
 
 // Maximum element-wise error of two matrices.
 Numeric max_error( ConstMatrixView A1,
-		   ConstMatrixView A2,
-		   bool relative );
+                   ConstMatrixView A2,
+                   bool relative );
 
 // Maximum element-wise error of two matrices.
 Numeric max_error( ConstVectorView v1,
-		   ConstVectorView v2,
-		   bool relative );
+                   ConstVectorView v2,
+                   bool relative );
 
 #endif // test_utils_h

@@ -46,6 +46,10 @@ lubacksub(VectorView x,
           ConstVectorView b,
           const ArrayOfIndex& indx);
 
+// Solve linear system
+void solve( VectorView x,
+            ConstMatrixView A,
+            ConstVectorView b );
 
 // Matrix inverse
 void

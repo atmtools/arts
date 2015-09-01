@@ -1,3 +1,45 @@
+2015-09-01  Simon Pfreundschuh  <simonpf@chalmers.se>
+
+	* arts-2-3-298
+
+	* src/lin_alg.* (solve): Added convenience wrapper for the solution of
+	linear systems.
+
+	* src/oem.h (Forward Model): Interface class for forward models.
+
+	* src/oem.cc (oem_gauss_newton): Implemented Gauss-Newton method
+	for non-linear inverse problems.
+
+	* src/oem.cc (oem_gauss_newtom_n_form): Implemented N-form of the
+	Gauss-Newton method.
+
+	* src/oem.cc (oem_gauss_newtom_m_form): Implemented M-form of the
+	Gauss-Newton method.
+
+	* src/oem.cc (oem_levenberg_marquardt): Implemented Levenberg-Marquardt
+	method for non-linear inverse problems.
+
+	* src/oem_test.cc (test_oem_gauss_newton): Randomized testing of
+	the oem_gauss_newton, oem_gauss_newton_n_form and oem_gauss_newton_m_form
+	functions.
+
+	* src/oem_test.cc (test_oem_levenberg_marquardt): Randomized testing
+	of the oem_levenberg_marquardt function.
+
+	* src/test_utils.* (random_fill_matrix_symmetric): Added function to
+	generate random, symmetric matrices.
+
+	* src/oem_test/forward_model.m: Matlab function to represent a forward
+	model.
+
+	* src/oem_test/test_oem_gauss_newton.m: Matlab script for testing of the
+	Gauss-Newton method.
+
+	* src/oem_test/test_oem_levenberg_marquardt.m: Matlab script for testing
+	of the Levenberg-Marquardt method.
+
+	* src/CMakeLists.txt: Added new Matlab scripts to copy directive.
+
 2015-08-31  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-297

@@ -32,6 +32,103 @@ using std::string;
 string source_dir = SOURCEDIR;
 string atmlab_dir = ATMLABDIR;
 
+// Forward declarations.
+
+void write_matrix( ConstMatrixView A, const char* fname );
+
+//! Quadratic Forward Model
+/*!
+  Test class for the ForwardModel class as defined in oem.h. Implements
+  a quadratic length-m vector valued function in n variables. The function
+  is represented by a set of m-hessians and a Jacobian. On construction those
+  are set to random matrices to test the non-linear OEM methods.
+ */
+class QuadraticModel : public ForwardModel
+{
+public:
+
+    //! Constructor.
+    /*!
+      Construct a random quadratic model. Allocates the necessary space
+      and fille the Jacobian with values in the range [-10,10] and the Hessians
+      in the range [0,0.1]. Also writes all matrices to text files for the
+      communication with the Matlab process.
+
+      \param[in] m_ The dimension of the measurement space.
+      \param[in] n_ The dimension of the state space.
+    */
+    QuadraticModel( Index m_, Index n_ )
+        {
+
+            m = m_;
+            n = n_;
+            char fname[40];
+
+            Jacobian = Matrix(m, n, 0);
+            Hessians = new Matrix[m];
+            random_fill_matrix( Jacobian, 1.0, false );
+            sprintf( fname, "J_t.txt" );
+            write_matrix( Jacobian, fname );
+
+            for ( Index i = 0; i < m; i++ )
+            {
+                Hessians[i] = Matrix( n, n, 0 );
+                random_fill_matrix_symmetric( Hessians[i], 1.0, true );
+                sprintf( fname, "H_%d_t.txt", (int) i);
+                write_matrix( Hessians[i], fname );
+            }
+
+        }
+
+    //! Destructor.
+    ~QuadraticModel()
+        {
+            delete [] Hessians;
+        }
+
+    //! Virtual function of the FowardModel class.
+    void evaluate_jacobian( VectorView yi,
+                            MatrixView Ki,
+                            ConstVectorView xi )
+        {
+
+            for ( Index i = 0; i < m; i++ )
+            {
+                mult( Ki( i, Joker()), Hessians[i], xi );
+            }
+
+            Ki *= 0.5;
+            Ki += Jacobian;
+            mult( yi, Ki, xi );
+
+        }
+
+    //! Virtual function of the FowardModel class.
+    void evaluate( VectorView yi,
+                   ConstVectorView xi )
+        {
+
+            Matrix Ki( m,n );
+
+            for ( Index i = 0; i < n; i++ )
+            {
+                mult( Ki( i, Joker()), Hessians[i], xi );
+            }
+
+            Ki *= 0.5;
+            Ki += Jacobian;
+            mult( yi, Ki, xi );
+
+        }
+
+private:
+
+    Index m,n;
+    Matrix Jacobian;
+    Matrix* Hessians;
+
+};
+
 //! Write matrix to text file.
 /*!
 
@@ -41,7 +138,7 @@ string atmlab_dir = ATMLABDIR;
   \param[in] filename The name of the file to write to.
 */
 void write_matrix( ConstMatrixView A,
-		   const char* filename )
+                   const char* filename )
 {
 
     Index m = A.nrows();
@@ -51,12 +148,12 @@ void write_matrix( ConstMatrixView A,
 
     for (Index i = 0; i < m; i++)
     {
-	for (Index j = 0; j < (n - 1); j++)
-	{
-	    ofs << A(i,j) << " ";
-	}
-	ofs << A( i, n - 1 );
-	ofs << endl;
+        for (Index j = 0; j < (n - 1); j++)
+        {
+            ofs << std::setprecision(40) << A(i,j) << " ";
+        }
+        ofs << A( i, n - 1 );
+        ofs << endl;
     }
     ofs.close();
 }
@@ -67,7 +164,7 @@ void write_matrix( ConstMatrixView A,
   \param[in] v The vector to write.
   \param[in] filename The name of the file to write to.
 */void write_vector( ConstVectorView v,
-		   const char* filename )
+                   const char* filename )
 {
     Index n = v.nelem();
 
@@ -75,7 +172,7 @@ void write_matrix( ConstMatrixView A,
 
     for ( Index i=0; i<n; i++)
     {
-	ofs << v[i] << endl;
+        ofs << std::setprecision(20) << v[i] << endl;
     }
     ofs.close();
 }
@@ -93,25 +190,39 @@ void write_matrix( ConstMatrixView A,
            range [-10, 10].
   \param Se The covariance matrix for observation uncertainties. Filled with
             random values in the range [-1, 1] (Scaled down from the range
-	    [-10, 10]).
+            [-10, 10]).
   \param Sa The covariance matrix for a priori uncertainties. Filled with random
             values in the range [-1, 1] (Scaled down from the range [-10, 10]).
 */
 void generate_test_data( VectorView y,
-			 VectorView xa,
-			 MatrixView K,
-			 MatrixView Se,
-			 MatrixView Sa)
+                         VectorView xa,
+                         MatrixView Se,
+                         MatrixView Sa )
 {
+
     random_fill_vector( y, 10, false );
     random_fill_vector( xa, 10, false );
+
+    random_fill_matrix_symmetric( Se, 0.1, false);
+    //id_mat( Se );
+    //Se *= 0.1;
+
+    random_fill_matrix_symmetric( Sa, 0.1, false);
+    //id_mat( Sa );
+    //Sa *= 0.1;
+
+}
+
+//! Generate linear forward model.
+/*!
+
+  Fills the given matrix K with random values in the range [-10,10].
+
+  \param[in,out] K The matrix representing the forward model.
+*/
+void generate_linear_model( MatrixView K )
+{
     random_fill_matrix( K, 10, false );
-
-    random_fill_matrix( Se, 10, false);
-    Se *= 0.1;
-
-    random_fill_matrix( Sa, 10, false);
-    Sa *= 0.1;
 }
 
 //! Run test script in matlab.
@@ -143,35 +254,36 @@ Index run_test_matlab( Engine* eng,
 
 }
 
-//! Run linear OEM in matlab.
+//! Run test script in matlab and return result vector.
 /*!
-  Runs the oem function from the atmlab package. Runs the external matlab
-  script "test_oem.m". The test data is read from the text files "y.txt",
-  "x_a.txt", "K.txt", "Se.txt", "Sa.txt" from the current directory. Writes
-  the results into the provided vector. Returns the execution time measured
-  in matlab with the 'cputime' function.
+  Runs the oem function from the atmlab package. Runs the given external matlab
+  script. The results of the computation are read from the Matlab workspace
+  variables x and t and returned in the x vector argument and the return value.
 
   \param[out] x Vector to write the results of the retrieval to.
   \param[in] eng Pointer to the matlab engine that manages the running Matlab
                  session.
+  \param[in] filename Name of the test script to be run.
 
   \return Execution time of oem in matlab in ms.
 */
 Index run_oem_matlab( VectorView x,
-		      Engine* eng )
+                      Engine* eng,
+                      string filename )
 {
     Index n = x.nelem(), time;
     mxArray *x_m, *t;
 
     // Run test.
-    engEvalString( eng, "run('test_oem')");
+    string cmd = "run('" + filename + "');";
+    engEvalString( eng, cmd.c_str() );
 
     // Read out results.
     x_m = engGetVariable( eng, "x" );
 
     for ( Index i = 0; i < n; i++ )
     {
-	x[i] = ((Numeric*) mxGetData( x_m ))[i];
+        x[i] = ((Numeric*) mxGetData( x_m ))[i];
     }
 
     // Get execution time from matlab.
@@ -217,7 +329,7 @@ void setup_test_environment( Engine * &eng )
                       'times_mult.txt' or 'times_linear.txt'.
 */
 void run_plot_script( Engine *eng,
-		      string filename,
+                      string filename,
                       string title )
 {
 
@@ -257,9 +369,9 @@ void tidy_up_test_environment( Engine *eng)
                     of the matrix is linearly increased from n0 to n1.
 */
 void benchmark_inv( Engine* eng,
-		    Index n0,
-		    Index n1,
-		    Index ntests )
+                    Index n0,
+                    Index n1,
+                    Index ntests )
 {
     Index step = (n1 - n0) / (ntests - 1);
     Index n = n0;
@@ -274,31 +386,31 @@ void benchmark_inv( Engine* eng,
 
     for ( Index i = 0; i < ntests; i++ )
     {
-	Matrix A(n,n), B(n,n);
+        Matrix A(n,n), B(n,n);
 
-	random_fill_matrix( A, 100, false );
-	write_matrix( A, "A_t.txt");
+        random_fill_matrix( A, 100, false );
+        write_matrix( A, "A_t.txt");
 
-	Index t, t1, t2, t_blas, t1_blas, t2_blas, t_m;
+        Index t, t1, t2, t_blas, t1_blas, t2_blas, t_m;
 
-	t1 = clock();
-	mult_general( B, A, A );
-	t2 = clock();
-	t = (t2 - t1) * 1000 / CLOCKS_PER_SEC;
+        t1 = clock();
+        inv( B, A );
+        t2 = clock();
+        t = (t2 - t1) * 1000 / CLOCKS_PER_SEC;
 
-	t1_blas = clock();
-	mult( B, A, A );
-	t2_blas = clock();
-	t_blas = (t2_blas - t1_blas) * 1000 / CLOCKS_PER_SEC;
+        t1_blas = clock();
+        inv( B, A );
+        t2_blas = clock();
+        t_blas = (t2_blas - t1_blas) * 1000 / CLOCKS_PER_SEC;
 
-	t_m = run_test_matlab( eng, "test_inv.m" );
+        t_m = run_test_matlab( eng, "test_inv.m" );
 
-	ofs << setw(5) << n << setw(10) << t_blas << setw(10);
-	ofs << t << setw(10) << t_m << endl;
-	cout << setw(5) << n << setw(10) << t_blas << setw(10);
-	cout << t << setw(10) << t_m << endl;
+        ofs << setw(5) << n << setw(10) << t_blas << setw(10);
+        ofs << t << setw(10) << t_m << endl;
+        cout << setw(5) << n << setw(10) << t_blas << setw(10);
+        cout << t << setw(10) << t_m << endl;
 
-	n += step;
+        n += step;
     }
     cout << endl << endl;
 
@@ -323,9 +435,9 @@ void benchmark_inv( Engine* eng,
                     of the matrix is linearly increased from n0 to n1.
 */
 void benchmark_mult( Engine* eng,
-		     Index n0,
-		     Index n1,
-		     Index ntests )
+                     Index n0,
+                     Index n1,
+                     Index ntests )
 {
     Index step = (n1 - n0) / (ntests - 1);
     Index n = n0;
@@ -340,31 +452,31 @@ void benchmark_mult( Engine* eng,
 
     for ( Index i = 0; i < ntests; i++ )
     {
-	Matrix A(n,n), B(n,n);
+        Matrix A(n,n), B(n,n);
 
-	random_fill_matrix( A, 100, false );
-	write_matrix( A, "A_t.txt");
+        random_fill_matrix( A, 100, false );
+        write_matrix( A, "A_t.txt");
 
-	Index t, t1, t2, t_blas, t1_blas, t2_blas, t_m;
+        Index t, t1, t2, t_blas, t1_blas, t2_blas, t_m;
 
-	t1 = clock();
-	mult_general( B, A, A );
-	t2 = clock();
-	t = (t2 - t1) * 1000 / CLOCKS_PER_SEC;
+        t1 = clock();
+        mult_general( B, A, A );
+        t2 = clock();
+        t = (t2 - t1) * 1000 / CLOCKS_PER_SEC;
 
-	t1_blas = clock();
-	mult( B, A, A );
-	t2_blas = clock();
-	t_blas = (t2_blas - t1_blas) * 1000 / CLOCKS_PER_SEC;
+        t1_blas = clock();
+        mult( B, A, A );
+        t2_blas = clock();
+        t_blas = (t2_blas - t1_blas) * 1000 / CLOCKS_PER_SEC;
 
-	t_m = run_test_matlab( eng, "test_mult.m" );
+        t_m = run_test_matlab( eng, "test_mult.m" );
 
-	ofs << setw(5) << n << setw(10) << t_blas << setw(10) << t << setw(10);
-	ofs << t_m << endl;
-	cout << setw(5) << n << setw(10) << t_blas << setw(10) << t << setw(10);
-	cout << t_m << endl;
+        ofs << setw(5) << n << setw(10) << t_blas << setw(10) << t << setw(10);
+        ofs << t_m << endl;
+        cout << setw(5) << n << setw(10) << t_blas << setw(10) << t << setw(10);
+        cout << t_m << endl;
 
-	n += step;
+        n += step;
     }
     cout << endl << endl;
 
@@ -386,10 +498,10 @@ void benchmark_mult( Engine* eng,
   \param n1 Final size for the K matrix.
   \param ntests Number of tests to be performed.
 */
-void benchmark_linear_oem( Engine* eng,
-			   Index n0,
-			   Index n1,
-			   Index ntests )
+void benchmark_oem_linear( Engine* eng,
+                           Index n0,
+                           Index n1,
+                           Index ntests )
 {
     Index step = (n1 - n0) / (ntests - 1);
     Index n = n0;
@@ -407,30 +519,32 @@ void benchmark_linear_oem( Engine* eng,
     // Run tests.
     for ( Index i = 0; i < ntests; i++ )
     {
-	Vector x(n), x_m(n), y(n), xa(n);
-	Matrix K(n,n), Se(n,n), Sa(n,n);
+        Vector x(n), x_m(n), y(n), xa(n);
+        Matrix K(n,n), Se(n,n), Sa(n,n);
 
-	generate_test_data( y, xa, K, Se, Sa );
+        generate_test_data( y, xa, Se, Sa );
+        generate_linear_model( K );
 
-	write_vector( xa, "xa_t.txt" );
-	write_vector( y, "y_t.txt" );
-	write_matrix( K, "K_t.txt" );
-	write_matrix( Se, "Se_t.txt" );
-	write_matrix( Sa, "Sa_t.txt" );
+        write_vector( xa, "xa_t.txt" );
+        write_vector( y, "y_t.txt" );
+        write_matrix( K, "K_t.txt" );
+        write_matrix( Se, "Se_t.txt" );
+        write_matrix( Sa, "Sa_t.txt" );
 
-	Index t, t1, t2, t_m;
+        Index t, t1, t2, t_m;
 
-	t1 = clock();
-	linear_oem( x, y, xa, K, Se, Sa, false );
-	t2 = clock();
-	t = (t2 - t1) * 1000 / CLOCKS_PER_SEC;
-	t_m = run_oem_matlab( x_m, eng );
+        t1 = clock();
+        oem_linear( x, y, xa, K, Se, Sa, true );
+        t2 = clock();
+        t = (t2 - t1) * 1000 / CLOCKS_PER_SEC;
+        t_m = run_oem_matlab( x_m, eng, "test_oem" );
 
-	ofs << setw(5) << n << setw(10) << t << setw(10) << t_m << endl;
-	cout << setw(5) << n << setw(10) << t << setw(10) << t_m;
-	cout << setw(20) << max_error( x, x_m, true ) << endl;
+        ofs << setw(5) << n << setw(10) << t << setw(10) << 42; // Dummy column
+        ofs << setw(10) << t_m << endl;
+        cout << setw(5) << n << setw(10) << t << setw(10) << t_m;
+        cout << setw(20) << max_error( x, x_m, true ) << endl;
 
-	n += step;
+        n += step;
     }
     cout << endl << endl;
 
@@ -450,44 +564,160 @@ void benchmark_linear_oem( Engine* eng,
   \param[in] n Size of the state space.
   \param[in] ntests Number of tests to be performed.
 */
-void test_linear_oem( Engine* eng,
-		      Index m,
-		      Index n,
-		      Index ntests )
+void test_oem_linear( Engine* eng,
+                      Index m,
+                      Index n,
+                      Index ntests )
 {
     Vector x(n), x_m(n), y(m), xa(n);
     Matrix K(m,n), Se(m,m), Sa(n,n);
 
+    cout << "Testing linear OEM: m = " << m << ", n = ";
+    cout << n << ", ntests = " << ntests << endl;
+
     // Run tests.
     for ( Index i = 0; i < ntests; i++ )
     {
-	generate_test_data( y, xa, K, Se, Sa );
+        generate_test_data( y, xa, Se, Sa );
+        generate_linear_model( K );
 
-	write_vector( xa, "xa_t.txt" );
-	write_vector( y, "y_t.txt" );
-	write_matrix( K, "K_t.txt" );
-	write_matrix( Se, "Se_t.txt" );
-	write_matrix( Sa, "Sa_t.txt" );
+        write_vector( xa, "xa_t.txt" );
+        write_vector( y, "y_t.txt" );
+        write_matrix( K, "K_t.txt" );
+        write_matrix( Se, "Se_t.txt" );
+        write_matrix( Sa, "Sa_t.txt" );
 
-	linear_oem( x, y, xa, K, Se, Sa, true );
-	write_vector( x, "x_t.txt" );
+        oem_linear( x, y, xa, K, Se, Sa, true );
+        run_oem_matlab( x_m, eng, "test_oem" );
 
-	run_oem_matlab( x_m, eng );
-	cout << max_error( x, x_m, true ) << endl;
+        cout << "Test " << i+1 << ": " << max_error( x, x_m, true ) << endl;
     }
+    cout << endl;
 }
+
+//! Test non-linear OEM
+/*!
+  Test the non-linear OEM functions using the Gauss-Newton method using a random
+  quadratic model. Performs ntest numbers of test with a state space of
+  dimension n and a measurement space of dimension m. Test each iteration method
+  and compares the result to the Matlab result. The maximum relative error is
+  printed to stdout.
+
+  \param eng The Matlba engine handle.
+  \param m  The dimension of the measurement space space.
+  \param n  The dimension of the state space.
+  \param ntests The number of tests to perform.
+*/
+void test_oem_gauss_newton( Engine *eng,
+                            Index m,
+                            Index n,
+                            Index ntests )
+{
+    Vector y0(m), y(m), x_standard(n), x_nform(n), x_mform(n), x_m(n), xa(n);
+    Matrix Se(m,m), Sa(n,n);
+
+    cout << "Testing Gauss-Newton OEM: m = " << m << ", n = ";
+    cout << n << ", ntests = " << ntests << endl;
+
+    // Run tests.
+    for ( Index i = 0; i < ntests; i++ )
+    {
+        QuadraticModel K(m,n);
+        generate_test_data( y0, xa, Se, Sa );
+        x_standard = y0;
+        K.evaluate( y0, x_standard );
+
+        write_vector( xa, "xa_t.txt" );
+        write_vector( y0, "y_t.txt" );
+        write_matrix( Se, "Se_t.txt" );
+        write_matrix( Sa, "Sa_t.txt" );
+
+        oem_gauss_newton( x_standard, y0, xa, K, Se, Sa, 1e-10, 1000 );
+        oem_gauss_newton_n_form( x_nform, y0, xa, K, Se, Sa, 1e-10, 1000 );
+        oem_gauss_newton_m_form( x_mform, y0, xa, K, Se, Sa, 1e-10, 1000 );
+
+        run_oem_matlab( x_m, eng, "test_oem_gauss_newton" );
+
+        cout << "Test " << i+1 << ": " << endl;
+        cout << "\t" << max_error( x_standard, x_m, true ) << endl;
+        cout << "\t" << max_error( x_nform, x_standard, true ) << endl;
+        cout << "\t" <<  max_error( x_mform, x_standard, true ) << endl;
+    }
+    cout << endl;
+}
+
+//! Test non-linear OEM
+/*!
+  Test the non-linear OEM function using Levenberg-Marquardt method with a random
+  quadratic model. Performs ntest numbers of tests with a state space of
+  dimension n and a measurement space of dimension m. Test each iteration method
+  and compares the result to the Matlab result. The maximum relative error is
+  printed to stdout.
+
+  \param eng The Matlba engine handle.
+  \param m  The dimension of the measurement space space.
+  \param n  The dimension of the state space.
+  \param ntests The number of tests to perform.
+*/
+void test_oem_levenberg_marquardt( Engine *eng,
+                                   Index m,
+                                   Index n,
+                                   Index ntests )
+{
+    Vector y0(m), y(m), x(n), x_m(n), xa(n);
+    Matrix Se(m,m), Sa(n,n);
+
+    cout << "Testing Levenberg-Marquardt OEM: m = " << m << ", n = ";
+    cout << n << ", ntests = " << ntests << endl;
+
+    // Run tests.
+    for ( Index i = 0; i < ntests; i++ )
+    {
+        QuadraticModel K(m,n);
+        generate_test_data( y0, xa, Se, Sa );
+        x = y0;
+        K.evaluate( y0, x );
+
+        write_vector( xa, "xa_t.txt" );
+        write_vector( y0, "y_t.txt" );
+        write_matrix( Se, "Se_t.txt" );
+        write_matrix( Sa, "Sa_t.txt" );
+
+        Numeric gamma_start = 4.0;
+        Numeric gamma_max = 100.0;
+        Numeric gamma_scale_dec = 2.0;
+        Numeric gamma_scale_inc = 3.0;
+        Numeric gamma_threshold = 1.0;
+        oem_levenberg_marquardt( x, y0, xa, K, Se, Sa, 1e-5, 1000,
+                                 gamma_start,
+                                 gamma_scale_dec,
+                                 gamma_scale_inc,
+                                 gamma_max,
+                                 gamma_threshold );
+        run_oem_matlab( x_m, eng, "test_oem_levenberg_marquardt" );
+
+        cout << "Test " << i+1 << ": " << max_error( x, x_m, true ) << endl;
+    }
+    cout << endl;
+}
+
 
 int main()
 {
 
-    // Set up the test environment.
+    //Set up the test environment.
     Engine * eng;
     setup_test_environment( eng );
 
     // Run tests and benchmarks.
-    // benchmark_inv( eng, 100, 1000, 10);
-    benchmark_mult( eng, 100, 500, 10);
-    // benchmark_linear_oem( eng, 100, 1000, 10);
+    test_oem_linear( eng, 100, 100, 10 );
+    test_oem_gauss_newton( eng, 100, 100, 10 );
+    test_oem_levenberg_marquardt( eng, 100, 100, 10 );
+
+    //benchmark_inv( eng, 100, 2000, 16);
+    //benchmark_mult( eng, 100, 2000, 16);
+    //test_oem_linear( eng, 200, 200, 5 );
+    //benchmark_oem_linear( eng, 100, 2000, 16);
 
     // Tidy up test environment.
     tidy_up_test_environment( eng );

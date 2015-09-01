@@ -375,7 +375,8 @@ if ( MATLABDIR AND ATMLABDIR AND CSHFOUND )
   target_link_libraries (test_oem matpack test_utils ${MXVAR} ${ENGVAR})
   FILE(MAKE_DIRECTORY test_oem_files)
   FILE(COPY test_oem/test_oem.m test_oem/linear_forward_model.m test_oem/make_plot.m
-  test_oem/test_mult.m test_oem/test_inv.m
+  test_oem/test_mult.m test_oem/forward_model.m test_oem/test_oem_gauss_newton.m
+  test_oem/test_oem_levenberg_marquardt.m test_oem/test_inv.m
   DESTINATION test_oem_files)
 
 endif ( MATLABDIR AND ATMLABDIR AND CSHFOUND )

@@ -39,26 +39,35 @@ is set to false.
   \param[in] range The range of the values to draw the values from.
   \param[in] positive If true the matrix is filled with values from the interval
                   [0,range], otherwise the values are taken from the interval
-		  [-range, range].
+                  [-range, range].
 */
 void random_fill_matrix( MatrixView A,
-			 Numeric range,
-			 bool positive )
+                         Numeric range,
+                         bool positive )
 {
     Index m = A.nrows();
     Index n = A.ncols();
 
-    Rand<Numeric> rand( positive ? -range : 0 , range );
+    Rand<Numeric> rand( positive ? 0 : - range , range );
 
-    for (Index i=0; i<m; i++)
+    for (Index i = 0; i<m; i++)
     {
-	for (Index j=0; j<n; j++)
-	{
+        for (Index j = 0; j<n; j++)
+        {
 
-	    A( i, j ) = (Numeric) rand();
+            A( i, j ) = (Numeric) rand();
 
-	}
+        }
     }
+}
+
+void random_fill_matrix_symmetric( MatrixView A,
+                                   Numeric range,
+                                   bool positive )
+{
+    random_fill_matrix( A, range, positive);
+    Matrix M( A );
+    A += transpose( M );
 }
 
 //! Fill vector with random values.
@@ -74,22 +83,17 @@ void random_fill_matrix( MatrixView A,
                       otherwise from the range [-range, range].
 */
 void random_fill_vector( VectorView v,
-			 Numeric range,
-			 bool positive )
+                         Numeric range,
+                         bool positive )
 {
 
     Index n = v.nelem();
 
-    Rand<Numeric> rand( positive ? -range : 0 , range );
+    Rand<Numeric> rand( positive ? 0 : - range , range );
 
     for (Index i = 0; i < n; i++)
     {
-	if ( positive )
-	{
-
-	    v[i] = rand();
-
-	}
+        v[i] = rand();
     }
 }
 
@@ -105,8 +109,8 @@ void random_fill_vector( VectorView v,
   \return ConstMatrixView corresponding to a randomly chosen m-by-n submatrix.
 */
 MatrixView random_submatrix( MatrixView A,
-			     int m,
-			     int n )
+                             int m,
+                             int n )
 {
     Index m0( A.nrows() ), n0( A.ncols() );
     assert( (0 <= m) && (m <= m0) );
@@ -137,8 +141,8 @@ Range random_range( Index n )
     Index s = 0;
     if ( 0 <= (n - e - 1) )
     {
-	Rand<Index> start( 0, n - e - 1 );
-	s = start();
+        Rand<Index> start( 0, n - e - 1 );
+        s = start();
     }
     return Range( s, e );
 }
@@ -156,8 +160,8 @@ Range random_range( Index n )
   \return The maximum relative or absolute element-wise error.
 */
 Numeric max_error( ConstVectorView v1,
-		   ConstVectorView v2,
-		   bool relative )
+                   ConstVectorView v2,
+                   bool relative )
 {
 
     Index n = min( v1.nelem(), v2.nelem() );
@@ -167,26 +171,26 @@ Numeric max_error( ConstVectorView v1,
     for ( Index i = 0; i < n; i++ )
     {
 
-	err = 0.0;
+        err = 0.0;
 
-	if ( relative )
-	{
+        if ( relative )
+        {
 
-	    if ( v2[i] != 0.0 )
-	    {
-		err = abs( ( v2[i] - v1[i] ) / v2[i] );
-	    }
+            if ( v2[i] != 0.0 )
+            {
+                err = abs( ( v2[i] - v1[i] ) / v2[i] );
+            }
 
-	} else {
+        } else {
 
-	    err = abs( v2[i] - v2[i] );
+            err = abs( v2[i] - v2[i] );
 
-	}
+        }
 
-	if (err > max)
-	{
-	    max = err;
-	}
+        if (err > max)
+        {
+            max = err;
+        }
     }
     return err;
 }
@@ -204,8 +208,8 @@ Numeric max_error( ConstVectorView v1,
   \return The maximum relative or absolute element-wise error.
 */
 Numeric max_error( ConstMatrixView A1,
-		   ConstMatrixView A2,
-		   bool relative )
+                   ConstMatrixView A2,
+                   bool relative )
 {
 
     Index m = min( A1.nrows(), A2.nrows() );
@@ -216,31 +220,28 @@ Numeric max_error( ConstMatrixView A1,
     for ( Index i = 0; i < m; i++ )
     {
 
-	for ( Index j = 0; j < n; j++ )
-	{
+        for ( Index j = 0; j < n; j++ )
+        {
 
-	    err = 0.0;
+            err = 0.0;
 
-	    // cout.precision(20);
-	    // cout << A1(i,j) << " : " <<  A2(i,j) << endl;
+            if ( relative )
+            {
 
-	    if ( relative )
-	    {
+                if ( A2(i,j) != 0.0 )
+                {
+                    err = abs( ( A2(i,j) - A1(i,j) ) / A2(i,j) );
+                }
 
-		if ( A2(i,j) != 0.0 )
-		{
-		    err = abs( ( A2(i,j) - A1(i,j) ) / A2(i,j) );
-		}
+            } else {
+                err = A2(i, j) - A1(i, j);
+            }
 
-	    } else {
-		err = A2(i, j) - A1(i, j);
-	    }
-
-	    if (err > max)
-	    {
-		max = err;
-	    }
-	}
+            if (err > max)
+            {
+                max = err;
+            }
+        }
     }
 
     return max;

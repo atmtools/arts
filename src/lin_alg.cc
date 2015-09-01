@@ -173,6 +173,38 @@ void lubacksub(VectorView x,
   }
 }
 
+//! Solve linear system.
+/*!
+  Solves the linear system A*x = b for a general matrix A. For the solution of
+  the system an additional n-times-n matrix and a size-n index vector are
+  allocated.
+
+  \param x The solution vector x.
+  \param A The matrix A defining the system.
+  \param b The vector b.
+*/
+void solve( VectorView x,
+            ConstMatrixView A,
+            ConstVectorView b )
+{
+    Index n = A.ncols();
+
+    // Check dimensions of the system.
+    assert( n == A.nrows() );
+    assert( n == x.nelem() );
+    assert( n == b.nelem() );
+
+    // Allocate matrix and index vector for the LU decomposition.
+    Matrix LU = Matrix(n,n);
+    ArrayOfIndex indx(n);
+
+    // Perform LU decomposition.
+    ludcmp(LU, indx, A);
+
+    // Solve the system using backsubstitution.
+    lubacksub( x, LU, b, indx );
+}
+
 //! Matrix Inverse
 /*!
   Compute the inverse of a matrix such that I = Ainv*A = A*Ainv. Both
