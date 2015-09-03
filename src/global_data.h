@@ -22,6 +22,9 @@
   \author Oliver Lemke
   \date 2013-04-25 */
 
+#ifndef global_data_h
+#define global_data_h
+
 #include <map>
 #include "array.h"
 #include "methods.h"
@@ -118,3 +121,5 @@ extern const Array<LineshapeRecord> lineshape_data;
 extern const Array<LineshapeNormRecord> lineshape_norm_data;
 
 } /* namespace global_data */
+
+#endif /* global_data_h */

@@ -1,3 +1,14 @@
+2015-09-03  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-295
+
+	* src/global_data.h: Add missing ifdef.
+
+	* src/optproperties.cc (pha_mat_labCalc):
+
+	Avoid warning about shadowing a global variable on some compilers by
+	renaming ANGTOL to ANGTOL_RAD. Reported by Richard.
+
 2015-09-31  Richard Larsson <ric.larsson@gmail.com>
 
 	* arts-2-3-294

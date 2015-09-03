@@ -785,7 +785,7 @@ void pha_mat_labCalc(//Output:
     //
     // Several cases have to be considered:
     //
-    const Numeric ANGTOL = 1e-6; //CPD: this constant is used to adjust zenith angles 
+    const Numeric ANGTOL_RAD = 1e-6; //CPD: this constant is used to adjust zenith angles 
                                //close to 0 and PI.  This is also used to avoid
                                //float == float statements.  
 
@@ -831,22 +831,22 @@ void pha_mat_labCalc(//Output:
 
        // In these cases we have to take limiting values.
  
-       if (za_inc_rad < ANGTOL)
+       if (za_inc_rad < ANGTOL_RAD)
          {
            sigma1 = PI + aa_sca_rad - aa_inc_rad;
            sigma2 = 0;
          }
-       else if (za_inc_rad > PI-ANGTOL)
+       else if (za_inc_rad > PI-ANGTOL_RAD)
          {
            sigma1 = aa_sca_rad - aa_inc_rad;
            sigma2 = PI; 
          }
-       else if (za_sca_rad < ANGTOL)
+       else if (za_sca_rad < ANGTOL_RAD)
          {
            sigma1 = 0;
            sigma2 = PI + aa_sca_rad - aa_inc_rad;
          }
-       else if (za_sca_rad > PI - ANGTOL)
+       else if (za_sca_rad > PI - ANGTOL_RAD)
          {
            sigma1 = PI;
            sigma2 = aa_sca_rad - aa_inc_rad; 
@@ -865,13 +865,13 @@ void pha_mat_labCalc(//Output:
            // Numerical problems can appear for values close to 1 or -1      
            if ( isnan(sigma1) || isnan(sigma2) )
              {
-               if ( abs(s1 - 1) < ANGTOL)
+               if ( abs(s1 - 1) < ANGTOL_RAD)
                  sigma1 = 0;
-               if ( abs(s1 + 1) < ANGTOL)
+               if ( abs(s1 + 1) < ANGTOL_RAD)
                  sigma1 = PI;
-               if ( abs(s2 - 1) < ANGTOL)
+               if ( abs(s2 - 1) < ANGTOL_RAD)
                  sigma2 = 0;
-               if ( abs(s2 + 1) < ANGTOL)
+               if ( abs(s2 + 1) < ANGTOL_RAD)
                  sigma2 = PI;
              }
          }
