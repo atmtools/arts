@@ -516,16 +516,17 @@ of the gas abundance:
 \item[nd] Number density. The WF corresponds here to that one molecule is added.
 \item[rel] Relative/fractional change. In a perfectly linear case, the WF
   corresponds here to that the gas amount is doubled.
-\item[logrel] This option returns the same WFs as ``rel'', but is included to
-  flag that the natural logarithm of the ``rel'' unit is retrieved.
+%\item[logrel] This option returns the same WFs as ``rel'', but is included to
+%  flag that the natural logarithm of the ``rel'' unit is retrieved.
 \end{description}
-For the ``rel'' and ``logrel'' options it is important to note that ARTS
+For the ``rel'' option it is important to note that ARTS
 calculate the WFs with respect to the given state, ARTS does not know anything
 about the actual reference state for which the ``rel'' unit is valid (where
 normally the a priori state is selected). For iterative inversions, a rescaling
 of the WFs provided by ARTS is likely needed, to make the WFs valid with
-respect to the (original) reference state. For the assumption made inside ARTS,
-the WFs for ``rel'' and ``logrel'' are identical.
+respect to the (original) reference state. 
+%For the assumption made inside ARTS,
+%the WFs for ``rel'' and ``logrel'' are identical.
 
 A second main consideration is to select the retrieval grids. For analytical
 calculations there are no other selections to be made. 
@@ -599,8 +600,10 @@ is then
 %
 So far, the term $\PartD\aTrnMat{i}/\PartD\aSttElm{i}$ is only estimated by
 performing a small perturbation, of the absorption associated with the species
-to be retrieved.
+to be retrieved.\\
 
+\noindent
+{\it Note that the text below is just brainstorming for potential future improvements.}
 However, there exists a potential to use an analytical expression, as discussed
 below, but this is left for future consideration. The relationship between
 \aSttElm{i}\ and the propagation matrix of the path step can be written as
