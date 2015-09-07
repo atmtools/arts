@@ -1,0 +1,33 @@
+#!/bin/bash
+#
+# This file sets up environment variables for ARTS
+#
+# Call this script with 'source arts_init.sh'
+
+ARTS_LOCATION=
+ARTS_XML_DATA_LOCATION=
+ATMLAB_LOCATION=
+
+########################################
+# Don't change anything below this line
+
+if [[  $_ != $0 ]]; then
+    echo "ERROR: Use 'source arts_init.sh'"
+    exit 1
+fi
+
+if [[ -z $ARTS_LOCATION \
+      || -z $ARTS_XML_DATA_LOCATION \
+      || -z $ATMLAB_LOCATION ]]
+then
+        echo "ERROR: Edit this script and set the paths properly."
+        return
+fi
+
+PATH="${ARTS_LOCATION}/arts-2.2/build/src/:$PATH"
+ARTS_DATA_PATH="${ARTS_XML_DATA_LOCATION}"
+MATLABPATH="${ATMLAB_LOCATION}/atmlab/"
+
+export PATH ARTS_DATA_PATH MATLABPATH
+
+alias matlab='matlab -r atmlab_init'

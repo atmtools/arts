@@ -18,5 +18,5 @@ install (FILES ${CMAKE_CURRENT_BINARY_DIR}/index.html
 
 add_subdirectory (doxygen)
 add_subdirectory (uguide)
-
+add_subdirectory (classroom_excercises_solutions)
 

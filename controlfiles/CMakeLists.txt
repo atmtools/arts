@@ -5,6 +5,14 @@ add_custom_command(
   )
 add_custom_target (clean-cfiles DEPENDS clean-cfiles-cmd)
 
+add_custom_command(
+  OUTPUT mkdir-arts-results-cmd
+  COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/results
+  )
+add_custom_target (mkdir-arts-results DEPENDS mkdir-arts-results-cmd)
+
+
+
 set (ARTS_CONTROLFILE_DIR share/arts/controlfiles)
 
 install (DIRECTORY artscomponents
@@ -142,6 +150,14 @@ if (ARTS_XML_DATA_DIR)
   arts_test_run_ctlfile(xmldata artscomponents/cia/TestCIA.arts)
 
   arts_test_run_ctlfile(xmldata artscomponents/cia/TestRTwithCIA.arts)
+
+  ############################
+  ### Classroom excercises ###
+  arts_test_run_ctlfile(classroom classroom_exercises/exe1_absorption/absorption.arts)
+  arts_test_run_ctlfile(classroom classroom_exercises/exe2_rtcalc/rtcalc.arts)
+  arts_test_run_ctlfile(classroom classroom_exercises/exe3_jacobian/jacobian.arts)
+  # Commented out due to dependency on HITRAN
+  #arts_test_run_ctlfile(classroom classroom_exercises/exe4_olr/olr.arts)
 
 endif (ARTS_XML_DATA_DIR)
 

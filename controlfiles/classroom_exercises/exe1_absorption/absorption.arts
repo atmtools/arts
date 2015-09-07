@@ -1,0 +1,76 @@
+#DEFINITIONS:  -*-sh-*-
+#
+# ARTS controlfile for calculating absorption cross sections. 
+# created 2014-07-08
+
+Arts2 {
+
+INCLUDE "general/general.arts"
+INCLUDE "general/continua.arts"
+INCLUDE "general/agendas.arts"
+
+# Agenda for scalar gas absorption calculation
+Copy( abs_xsec_agenda, abs_xsec_agenda__noCIA )
+
+# ----------------< Defining absorption species >-------------------------------
+#                   ----------------------------
+
+# Select the molecule you are interested in:
+abs_speciesSet( species=["N2O"] )
+ArrayOfIndexSet(abs_species_active,[0])
+
+# Line catalogue: Perrin or HITRAN
+abs_linesReadFromSplitArtscat(abs_lines, abs_species, "spectroscopy/Perrin/",10e9, 2000e9)
+#abs_linesReadFromHitran(abs_lines,"/scratch/uni/u237/data/catalogue/hitran/hitran2012/HITRAN2012.par",10e9,2000e9 )
+abs_lines_per_speciesCreateFromLines
+
+# Set the lineshape function for all calculated tags
+abs_lineshapeDefine(
+    shape               = "Lorentz" ,
+    forefactor 		= "quadratic" ,
+    cutoff              = -1 )
+
+# ----------------< Atmospheric settings >--------------------------------------
+#                  ----------------------
+
+# Dimensionality of the atmosphere
+AtmosphereSet1D
+
+# Setting the pressure, temperature and vmr 
+# pressure in [Pa]
+NumericSet(rtp_pressure, 800e2)
+
+# temperature in [K]
+NumericSet(rtp_temperature, 300)
+
+# volume mixing ratio (VMR), units differ between the elements, can be VMR, kg/m3 or #/m3
+VectorSet(rtp_vmr, [1])
+
+AbsInputFromRteScalars
+
+## Create a frequency grid
+VectorNLinSpace(f_grid, 10000, 10e+9, 2000e+9)
+
+# isotop
+isotopologue_ratiosInitFromBuiltin(isotopologue_ratios )
+
+line_mixing_dataInit
+
+# ----------------< Calculating abs cross sections >----------------------------
+#                  -------------------------------                
+abs_xsec_agenda_checkedCalc
+abs_xsec_per_speciesInit
+abs_xsec_per_speciesAddLines
+
+
+# ----------------< Writing Output >--------------------------------------------
+#                  ----------------
+
+WriteXML ( "ascii", abs_xsec_per_species, "results/abs_xsec_per_species.xml" )
+WriteXML ( "ascii", f_grid, "results/f_grid.xml" )
+WriteXML ( "ascii", abs_species, "results/species.xml" )
+WriteXML ( "ascii", rtp_pressure, "results/press.xml" )
+WriteXML ( "ascii", rtp_temperature, "results/temp.xml" )
+
+}
+# end

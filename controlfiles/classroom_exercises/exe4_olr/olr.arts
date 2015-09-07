@@ -1,0 +1,156 @@
+#DEFINITIONS:  -*-sh-*-
+#
+# ARTS control file that calculates outgoing longwave radiation (olr) for a midlatitude summer atmosphere. 
+
+
+
+Arts2 {
+
+INCLUDE "general/general.arts"
+INCLUDE "general/continua.arts"
+INCLUDE "general/agendas.arts"
+INCLUDE "general/planet_earth.arts"
+
+# Agenda for scalar gas absorption calculation
+Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
+
+# (standard) emission calculation
+Copy( iy_main_agenda, iy_main_agenda__Emission )
+
+# cosmic background radiation
+Copy( iy_space_agenda, iy_space_agenda__CosmicBackground )
+
+# standard surface agenda (i.e., make use of surface_rtprop_agenda)
+Copy( iy_surface_agenda, iy_surface_agenda__UseSurfaceRtprop )
+
+# Planck as blackbody radiation
+Copy( blackbody_radiation_agenda, blackbody_radiation_agenda__Planck )
+
+# on-the-fly absorption
+Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__OnTheFly )
+
+# sensor-only path
+Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
+
+# no refraction
+Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
+
+
+# Number of Stokes components to be computed
+#
+IndexSet( stokes_dim, 1 )
+
+# Clearsky = No scattering
+#
+cloudboxOff
+
+# No jacobian calculation
+#
+jacobianOff
+
+#
+# Set atmospheric composition
+#
+StringCreate(scene)
+StringSet(scene, "")
+#StringSet(scene, "_+T")
+#StringSet(scene, "_+CO2")
+StringSet(scene, "_+H2O")
+
+
+# Definition of species
+# ---
+abs_speciesSet( species=
+            ["H2O, H2O-SelfContCKDMT250, H2O-ForeignContCKDMT250", 
+             "CO2, CO2-CKDMT250"] )
+
+# Read a line file and a matching small frequency grid
+
+abs_linesReadFromHitran(abs_lines,
+            "HITRAN2012.par",
+            #"/scratch/uni/u237/data/catalogue/hitran/hitran2012/HITRAN2012.par",
+             0,80e12)
+
+
+# Sort the line file according to species
+# ---
+abs_lines_per_speciesCreateFromLines
+
+# Set the lineshape function for all calculated tags
+abs_lineshapeDefine(
+    shape               = "Voigt_Kuntz6" ,
+    forefactor 		= "VVH" ,
+    cutoff              = 750e9 )
+
+
+# Atmospheric scenario for midlatitude summer
+# ---
+StringCreate(scenedir)
+StringSet(scenedir, "./midlatitude-summer")
+StringCreate(scenepostfix)
+StringSet(scenepostfix, "/midlatitude-summer")
+Append(scenedir, scene)
+Append(scenedir, scenepostfix)
+AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, 
+            scenedir )
+
+p_gridFromZRaw(p_grid, z_field_raw,0)
+
+
+# Weakly reflecting surface
+# ---
+VectorSetConstant( surface_scalar_reflectivity, 1, 0.6 )
+Copy( surface_rtprop_agenda,
+      surface_rtprop_agenda__Specular_NoPol_ReflFix_SurfTFromt_surface )
+
+
+# Create a frequency grid
+VectorNLinSpace(f_grid, 1000, 1, 75e+12)
+
+
+# No sensor properties
+# ---
+sensorOff
+
+# Atmosphere and surface
+# ---
+AtmosphereSet1D
+AtmFieldsCalc
+Extract( z_surface, z_field, 0 )
+Extract( t_surface, t_field, 0 )
+
+# !! Change atmospheric parameters !!
+
+# Output radiance not converted
+# ---
+StringSet( iy_unit, "1" )
+
+# Create vector container for the radiance at each point along the path ("iy")
+ VectorCreate( radiance )
+
+# Definition of sensor position and LOS
+# ---
+ MatrixSet( sensor_pos, [100e3] )	# sensor in z = 10 km
+ MatrixSet( sensor_los, [ 180] )		# zenith angle 0�. looking up
+
+# Perform RT calculations
+# ---
+ abs_xsec_agenda_checkedCalc
+ propmat_clearsky_agenda_checkedCalc
+ atmfields_checkedCalc
+ atmgeom_checkedCalc
+ cloudbox_checkedCalc
+ sensor_checkedCalc
+ yCalc
+
+# writing output
+# ---
+#Extract( radiance, y_aux, 0 )
+WriteXML( "ascii", y, "./results/olr.xml" )
+WriteXML( "ascii", t_surface, "./results/t_surface.xml" )
+WriteXML( "ascii", f_grid, "./results/f_grid.xml" )
+WriteXML( "ascii", scene, "./results/scene.xml")
+
+
+} # End of Main
+ 

@@ -1,0 +1,171 @@
+#DEFINITIONS:  -*-sh-*-
+#
+# This control file demonstrates a simple ARTS 1D clear sky calculation.
+# Calculation of brightness temperature and optical depth as an auxilary variable is included. 
+#
+# You can choose different species and change the sensor position and sensor line of soght (los)
+
+Arts2 {
+
+INCLUDE "general/general.arts"
+INCLUDE "general/continua.arts"
+INCLUDE "general/agendas.arts"
+INCLUDE "general/planet_earth.arts"
+
+# Agenda for scalar gas absorption calculation
+Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
+
+# (standard) emission calculation
+Copy( iy_main_agenda, iy_main_agenda__Emission )
+
+# cosmic background radiation
+Copy( iy_space_agenda, iy_space_agenda__CosmicBackground )
+
+# standard surface agenda (i.e., make use of surface_rtprop_agenda)
+Copy( iy_surface_agenda, iy_surface_agenda__UseSurfaceRtprop )
+
+# Planck as blackbody radiation
+Copy( blackbody_radiation_agenda, blackbody_radiation_agenda__Planck )
+
+# on-the-fly absorption
+Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__OnTheFly )
+
+# sensor-only path
+Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
+
+# no refraction
+Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
+
+# Number of Stokes components to be computed
+#
+IndexSet( stokes_dim, 1 )
+
+# Clearsky = No scattering
+#
+cloudboxOff
+
+
+
+#########################################################################
+
+# A pressure grid rougly matching 0 to 80 km, in steps of 2 km.
+# ---
+VectorNLogSpace( p_grid, 200, 1013e2, 10 )
+
+
+# Definition of species:
+# you can take out and add again one of the species to see what effect it has on radiative transfer in the atmosphere. 
+# ---
+abs_speciesSet( species=
+            ["N2",
+             "O2",
+             "H2O"] )
+
+
+# Read a line file and a matching small frequency grid
+# ---
+abs_linesReadFromSplitArtscat(abs_lines, abs_species, "spectroscopy/Perrin/",150e9, 200e9)
+#abs_linesReadFromHitran(abs_lines,"/scratch/uni/u237/data/catalogue/hitran/hitran2012/HITRAN2012.par",10e9,250e9 )
+
+# Sort the line file according to species
+# ---
+abs_lines_per_speciesCreateFromLines
+
+# Atmospheric scenario
+# ---
+AtmRawRead(t_field_raw, z_field_raw, vmr_field_raw, abs_species, "planets/Earth/Fascod/midlatitude-summer/midlatitude-summer")
+
+# Non reflecting surface
+# ---
+VectorSetConstant( surface_scalar_reflectivity, 1, 0.4 )
+Copy( surface_rtprop_agenda, surface_rtprop_agenda__Specular_NoPol_ReflFix_SurfTFromt_surface )
+
+# Create a frequency grid
+VectorNLinSpace(f_grid, 200, 150e+9, 200e+9)
+
+# No sensor properties
+# ---
+sensorOff
+
+
+# We select here to use Planck brightness temperatures
+# ---
+StringSet( iy_unit, "PlanckBT" )
+
+
+# Extract optical depth as auxiliary variables
+# ---
+ArrayOfStringSet( iy_aux_vars, [ "Pressure", "Absorption, summed"] )
+
+# Create vector container for the optical depth
+VectorCreate( odepth )
+
+
+#########################################################################
+
+# Atmosphere and surface
+# ---
+AtmosphereSet1D
+AtmFieldsCalc
+Extract( z_surface, z_field, 0 )
+Extract( t_surface, t_field, 0 )
+
+# Definition of sensor position and line of sight (LOS)
+# ---
+ VectorSet( rte_pos, [800e3])	# 10e3 for sensor in z = 10 km
+ MatrixSet( sensor_pos, [800e3])
+ MatrixSet( sensor_los, [180] )
+ VectorSet( rte_los, [180] )		# zenith angle 	0�. looking up
+#							180� looking nadir
+ VectorSet( rte_pos2, [] )
+ MatrixSet( sensor_description_amsu,
+           [  89.00e9, 0.90e9, 1000e6 ;
+      	     150.00e9, 0.90e9, 1000e6 ;
+      	     183.31e9, 1.00e9,  500e6 ;
+      	     183.31e9, 3.00e9, 1000e6 ;
+      	     183.31e9, 7.00e9, 2000e6 ] )
+#sensor_responseSimpleAMSU
+sensorOff
+#Jacobian calculation
+# ---
+jacobianInit
+VectorCreate(g1)
+VectorCreate(g2)
+VectorCreate(g3)
+
+jacobianAddAbsSpecies( 	jacobian_quantities, jacobian_agenda, atmosphere_dim,
+	p_grid, lat_grid, lon_grid, p_grid, lat_grid, lon_grid, "H2O")
+# jacobianAddAbsSpecies( 	jacobian_quantities, jacobian_agenda, atmosphere_dim,
+# 	p_grid, lat_grid, lon_grid, p_grid, lat_grid, lon_grid, "O2")
+jacobianClose
+#jacobianCalcAbsSpeciesAnalytical
+
+# Perform RT calculations
+# ---
+ abs_xsec_agenda_checkedCalc
+ propmat_clearsky_agenda_checkedCalc
+ atmfields_checkedCalc
+ atmgeom_checkedCalc
+ cloudbox_checkedCalc
+ sensor_checkedCalc
+ iyCalc
+ WriteXML( "ascii", iy_aux, "results/iy_aux.xml" )
+ArrayOfStringSet( iy_aux_vars, [ "Optical depth"] ) 
+ yCalc
+
+
+
+
+# Write output
+# ---
+ #Extract( odepth, y_aux, 0 )
+ #Extract( abs, y_aux, 1 )
+ WriteXML( "ascii", iy, "results/bt.xml" )
+ WriteXML( "ascii", f_grid, "results/f_grid.xml" )
+ WriteXML( "ascii", abs_species, "results/species.xml" )
+ WriteXML( "ascii", y_aux, "results/y_aux.xml" )
+ WriteXML( "ascii", jacobian, "results/jacobian.xml" )
+ WriteXML( "ascii", z_field, "results/z_field.xml" )
+
+} # End of Main
+ 
