@@ -1596,6 +1596,14 @@ void find_effective_channel_boundaries(// Output:
     }
   }
 
+  if (!numPB)
+  {
+      throw std::runtime_error("No passbands found.\n"
+                               "*backend_channel_response* must be zero around the passbands.\n"
+                               "backend_channel_response.data = [0, >0, >0, 0]\n"
+                               "Borders between passbands are identified as [...0,0...]");
+  }
+
   Vector fmin_pb(numPB);
   Vector fmax_pb(numPB);
   Index pbIdx = 0;
