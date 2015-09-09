@@ -1,5 +1,39 @@
 2015-09-09  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-3-300
+
+	* Backported from arts-2.2. Adapted controlfiles.
+
+	* controlfiles/classroom_exercises/:
+
+	Added exercises. Controlfiles, matlab scripts and assignments provided
+	by Theresa Lang.
+
+	* doc/classroom_excercises_solutions:
+
+	Added solutions for exercises. Provided by Theresa Lang.
+
+	* doc/CMakeLists.txt: Added solutions subdir.
+
+	* controlfiles/CMakeLists.txt:
+
+	Add exercises as tests.
+
+	Add custom target mkdir-arts-results as the exercises require an
+	'results' folder to be present.
+
+	* cmake/modules/ArtsBuildTexDoc.cmake:
+
+	Add macro ARTS_ADD_SIMPLE_TEX_DOC. Used to compile exercise solutions.
+
+	* CMakeLists.txt:
+
+	Add exercises to check-xmldata. Also add special target check-classroom.
+
+	Add mkdir-arts-results as a dependency for both targets.
+
+2015-09-09  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-3-299
 
 	Warning: You have to adapt your controlfiles if you're using a custom
