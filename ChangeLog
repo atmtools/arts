@@ -1,3 +1,47 @@
+2015-09-09  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-299
+
+	Warning: You have to adapt your controlfiles if you're using a custom
+	iy_main_agenda that calls iyRadioLink, iyMC or iyLoopFrequencies.
+	-> Add Ignore(diy_dx) to iy_main_agenda
+
+	* src/agendas.cc, src/methods.cc:
+
+	Jacobian calculations that relied on recursive calls of the
+	iy_main_agenda didn't work since arts-2-3-279. diy_dx was defined as
+	an output-only variable and only initialized on the first
+	call of iy_main_agenda. In recursive calls the output variable is
+	resetted by the workspace engine and hence empty.
+
+	Fixed by adding diy_dx as input to all agendas and methods that can
+	call iy_main_agenda recursively:
+
+	iy_main_agenda, iy_space_agenda, iy_surface_agenda,
+	iy_surface_sub_agenda[0-5].
+
+	iyEmissionStandard, iyFOS, iySurfaceCallSubAgendaX, iySurfaceFastem,
+	iySurfaceRtpropAgenda, iySurfaceRtpropCalc, iyTransmissionStandard.
+
+	* controlfiles/general/agendas.arts:
+
+	Ignore diy_dx in iy_main_agenda__ScattMC and iy_main_agenda__Radiolink.
+
+	* controlfiles/artscomponents/transmission/TestTransmission.arts,
+	controlfiles/artscomponents/radiolink/TestRadioOccultation.arts,
+	controlfiles/artscomponents/radiolink/TestRadioLink.arts,
+	controlfiles/artscomponents/radiolink/TestRadioLink2.arts,
+
+	Ignore diy_dx in iy_main_agenda.
+
+	* controlfiles/planetary_toolbox/demos/active/DemoLinkBudget.arts:
+
+	Ignore diy_dx in iy_main_agenda and iy_sub_agenda.
+
+	* controlfiles/artscomponents/surface/TestSurface.arts:
+
+	Ignore/Touch diy_dx.
+
 2015-09-09  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-298

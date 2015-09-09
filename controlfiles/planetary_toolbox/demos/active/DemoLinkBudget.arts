@@ -97,11 +97,13 @@ NumericSet( ppath_lraytrace, 500 )
 #
 AgendaSet( iy_main_agenda ){
   Ignore(t_nlte_field)
+  Ignore(diy_dx)
   iyLoopFrequencies
 }
 AgendaSet( iy_sub_agenda ){
   Ignore( rte_los )
   Ignore( iy_unit )
+  Ignore( diy_dx )
   iyRadioLink
 }
 

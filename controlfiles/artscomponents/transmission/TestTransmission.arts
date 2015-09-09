@@ -159,7 +159,8 @@ Copy( iy0, iy )
 
 
 AgendaSet( iy_main_agenda ){
-Ignore( t_nlte_field )
+  Ignore( t_nlte_field )
+  Ignore( diy_dx )
   iyLoopFrequencies
 }
 

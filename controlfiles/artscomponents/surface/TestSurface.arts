@@ -32,6 +32,7 @@ Touch( z_field )
 Touch( vmr_field )
 Touch( t_nlte_field )
 Touch( iy_transmission )
+Touch( diy_dx )
 
 
 #
@@ -51,6 +52,7 @@ AgendaSet( iy_main_agenda ){
   Ignore( t_nlte_field ) 
   Ignore( z_field ) 
   Ignore( vmr_field ) 
+  Ignore( diy_dx )
   Touch( iy_aux )
   Touch( ppath )
   Touch( diy_dx )

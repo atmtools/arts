@@ -108,6 +108,7 @@ AgendaSet( iy_main_agenda ){
   Ignore( iy_unit )
   Ignore( rte_los )
   Ignore( t_nlte_field )
+  Ignore( diy_dx )
   iyRadioLink
 }
 
