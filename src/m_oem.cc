@@ -56,10 +56,13 @@ extern const String ABSSPECIES_MAINTAG;
   ===========================================================================*/
 
 
-//! Determines grid positions for regridding of atmospheric fields
+//! Determines grid positions for regridding of atmospheric fields to retrieval
+//  grids 
 /*!
   The grid positions arrays are sized inside the function. gp_lat is given
   length 0 for atmosphere_dim=1 etc.
+
+  This regridding uses extpolfac=0.
 
   \param[out] gp_p                 Pressure grid positions.
   \param[out] gp_lat               Latitude grid positions.
@@ -73,7 +76,7 @@ extern const String ABSSPECIES_MAINTAG;
   \author Patrick Eriksson 
   \date   2015-09-09
 */
-void get_gp_for_jq_grids( 
+void get_gp_atmgrids_to_rq( 
          ArrayOfGridPos&      gp_p,
          ArrayOfGridPos&      gp_lat,
          ArrayOfGridPos&      gp_lon,
@@ -105,7 +108,80 @@ void get_gp_for_jq_grids(
 
 
 
-//! Sets up xa for inversion methods.
+//! Determines grid positions for regridding of atmospheric fields to retrieval
+//  grids 
+/*!
+  The grid positions arrays are sized inside the function. gp_lat is given
+  length 0 for atmosphere_dim=1 etc.
+
+  This regridding uses extpolfac=Inf (where Inf is a very large value).
+
+  Note that the length output arguments (n_p etc.) are for the retrieval grids
+  (not the length of grid positions arrays). n-Lat is set to 1 for
+  atmosphere_dim=1 etc.
+
+  \param[out] gp_p                 Pressure grid positions.
+  \param[out] gp_lat               Latitude grid positions.
+  \param[out] gp_lon               Longitude grid positions.
+  \param[out] n_p                  Length of retrieval pressure grid.
+  \param[out] n_lat                Length of retrieval lataitude grid.
+  \param[out] n_lon                Length of retrieval longitude grid.
+  \param[in]  rq                   Retrieval quantity structure.
+  \param[in]  atmosphere_dim       As the WSV with same name.
+  \param[in]  p_grid               As the WSV with same name.
+  \param[in]  lat_grid             As the WSV with same name.
+  \param[in]  lon_grid             As the WSV with same name.
+
+  \author Patrick Eriksson 
+  \date   2015-09-09
+*/
+void get_gp_rq_to_atmgrids( 
+         ArrayOfGridPos&      gp_p,
+         ArrayOfGridPos&      gp_lat,
+         ArrayOfGridPos&      gp_lon,
+         Index&               n_p,
+         Index&               n_lat,
+         Index&               n_lon,
+   const RetrievalQuantity&   rq,
+   const Index&               atmosphere_dim,
+   const Vector&              p_grid,
+   const Vector&              lat_grid,
+   const Vector&              lon_grid )
+{
+  const Numeric inf_proxy = 99e99;
+
+  gp_p.resize( p_grid.nelem() );
+  p2gridpos( gp_p, rq.Grids()[0], p_grid, inf_proxy );  
+  n_p = rq.Grids()[0].nelem();
+
+  if( atmosphere_dim >= 2 )
+    {
+      gp_lat.resize( lat_grid.nelem() );
+      gridpos( gp_lat, rq.Grids()[1], lat_grid, inf_proxy );  
+      n_lat = rq.Grids()[1].nelem();
+    }
+  else
+    { 
+      gp_lat.resize(0); 
+      n_lat = 1;
+    }
+  //
+  if( atmosphere_dim >= 3 )
+    {
+      gp_lon.resize( lon_grid.nelem() );
+      gridpos( gp_lon, rq.Grids()[2], lon_grid, inf_proxy );  
+      n_lon = rq.Grids()[2].nelem();
+    }
+  else
+    { 
+      gp_lon.resize(0); 
+      n_lon = 1;
+    }
+}
+
+
+
+//! Creates xa for inversion methods.
 /*!
   The function analyses jacobian_quantities and jacobian_indices to creat xa.
 
@@ -135,24 +211,26 @@ void setup_xa(
    const Tensor4&                    vmr_field,
    const ArrayOfArrayOfSpeciesTag&   abs_species )
 {
+  // Sizes
   const Index nq = jq.nelem();
-
+  //
   xa.resize( ji[nq-1][1]+1 );
 
+  // Loop retrieval quantities and fill *xa*
   for( Index q=0; q<jq.nelem(); q++ )
     {
       // Index range of this retrieval quantity
       const Index np = ji[q][1] - ji[q][0] + 1;
       Range ind( ji[q][0], np );
 
-      // Index position of species
-      ArrayOfSpeciesTag  atag;
-      array_species_tag_from_string( atag, jq[q].Subtag() );
-      const Index isp = chk_contains( "abs_species", abs_species, atag );
-
       // Abs species
       if( jq[q].MainTag() == ABSSPECIES_MAINTAG )
         {
+          // Index position of species
+          ArrayOfSpeciesTag  atag;
+          array_species_tag_from_string( atag, jq[q].Subtag() );
+          const Index isp = chk_contains( "abs_species", abs_species, atag );
+
           if( jq[q].Mode() == "rel" )
             {
               // This one is simple, just a vector of ones
@@ -162,8 +240,8 @@ void setup_xa(
             {
               // Here we need to interpolate *vmr_field*
               ArrayOfGridPos gp_p, gp_lat, gp_lon;
-              get_gp_for_jq_grids( gp_p, gp_lat, gp_lon, jq[q], atmosphere_dim,
-                                   p_grid, lat_grid, lon_grid );
+              get_gp_atmgrids_to_rq( gp_p, gp_lat, gp_lon, jq[q], atmosphere_dim,
+                                     p_grid, lat_grid, lon_grid );
               Tensor3 vmr_x(gp_p.nelem(),gp_lat.nelem(),gp_lon.nelem());
               regrid_atmfield_by_gp( vmr_x, atmosphere_dim, 
                                      vmr_field(isp,joker,joker,joker), 
@@ -174,8 +252,8 @@ void setup_xa(
             {
               // Here we need to interpolate both *vmr_field* and *t_field*
               ArrayOfGridPos gp_p, gp_lat, gp_lon;
-              get_gp_for_jq_grids( gp_p, gp_lat, gp_lon, jq[q], atmosphere_dim,
-                                   p_grid, lat_grid, lon_grid );
+              get_gp_atmgrids_to_rq( gp_p, gp_lat, gp_lon, jq[q], atmosphere_dim,
+                                     p_grid, lat_grid, lon_grid );
               Tensor3 vmr_x(gp_p.nelem(),gp_lat.nelem(),gp_lon.nelem());
               Tensor3 t_x(gp_p.nelem(),gp_lat.nelem(),gp_lon.nelem());
               regrid_atmfield_by_gp( vmr_x, atmosphere_dim, 
@@ -183,20 +261,16 @@ void setup_xa(
                                      gp_p, gp_lat, gp_lon );
               regrid_atmfield_by_gp( t_x, atmosphere_dim,  t_field,
                                      gp_p, gp_lat, gp_lon );
-              // Calculate number density
+              // Calculate number density for species (vmr*nd_tot)
               Index i = 0;
               for( Index i3=0; i3<=vmr_x.ncols(); i3++ )
-                {
-                  for( Index i2=0; i2<=vmr_x.nrows(); i2++ )
-                    {
-                      for( Index i1=0; i1<=vmr_x.npages(); i1++ )
-                        {
+                { for( Index i2=0; i2<=vmr_x.nrows(); i2++ )
+                    { for( Index i1=0; i1<=vmr_x.npages(); i1++ )
+                        { 
                           xa[ji[q][0]+i] = vmr_x(i1,i2,i3) *
                             number_density( jq[q].Grids()[0][i1], t_x(i1,i2,i3) );
                           i += 1;
-                        }
-                    }
-                }
+                }   }   }
             }
           else
             { assert(0); }
@@ -209,7 +283,6 @@ void setup_xa(
           throw runtime_error(os.str());
         }
     }
-
 }
 
 
@@ -217,6 +290,114 @@ void setup_xa(
 /*===========================================================================
   === Workspace methods 
   ===========================================================================*/
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+/*
+void x2arts_std(
+         Tensor4&                    vmr_field,
+         Tensor3&                    t_field,
+   const Vector&                     x,
+   const ArrayOfRetrievalQuantity&   jq,
+   const ArrayOfArrayOfIndex&        ji,
+   const Index&                      atmosphere_dim,
+   const Vector&                     p_grid,
+   const Vector&                     lat_grid,
+   const Vector&                     lon_grid,
+   const ArrayOfArrayOfSpeciesTag&   abs_species,
+   const Verbosity&)
+{
+  // Main sizes
+  const Index nq = jq.nelem();
+
+  // Check input
+  if( x.nelem() != ji[nq-1][1]+1 ) 
+    throw runtime_error( "Length of *x* does not match information in "
+                         "*jacobian_quantities*.");
+
+  // Note that when this method is called, vmr_field and other output variables
+  // have original values, i.e. matching the a priori state.
+
+  // Loop retrieval quantities and fill *xa*
+  for( Index q=0; q<jq.nelem(); q++ )
+    {
+      // Index range of this retrieval quantity
+      const Index np = ji[q][1] - ji[q][0] + 1;
+      Range ind( ji[q][0], np );
+
+      // Abs species
+      if( jq[q].MainTag() == ABSSPECIES_MAINTAG )
+        {
+          // Index position of species
+          ArrayOfSpeciesTag  atag;
+          array_species_tag_from_string( atag, jq[q].Subtag() );
+          const Index isp = chk_contains( "abs_species", abs_species, atag );
+
+          // Determine grid positions for interpolation from retrieval grids back
+          // to atmospheric grids
+          ArrayOfGridPos gp_p, gp_lat, gp_lon;
+          Index          n_p, n_lat, n_lon;
+          get_gp_rq_to_atmgrids( gp_p, gp_lat, gp_lon, n_p, n_lat, n_lon,
+                                 jq[q], atmosphere_dim, p_grid, lat_grid, lon_grid );
+          //
+          if( jq[q].Mode() == "rel" )
+            {
+              // Find multiplicate factor for elements in vmr_field
+              const Tensor3 fac_x( n_p, n_lat, n_lon );
+              reshape( fac_x, x[ind], fac_x.npages(), fac_x.nrows(), fac_x.ncols() ); 
+              const Tensor3 factor( vmr_field.npages(), vmr_field.nrows(),
+                                                        vmr_field.ncols() );
+              regrid_atmfield_by_gp( factor, atmosphere_dim, fac_x,
+                                     gp_p, gp_lat, gp_lon );
+              for( Index i3=0; i3<=vmr__field.ncols(); i3++ )
+                { for( Index i2=0; i2<=vmr_field.nrows(); i2++ )
+                    { for( Index i1=0; i1<=vmr_field.npages(); i1++ )
+                        { 
+                          vmr_field(isp,i1,i2,i3) *= factor(i1,i2,i3); 
+                }   }   }
+            }
+          else if( jq[q].Mode() == "vmr" )
+            {
+              // Here we just need to map back state x
+              const Tensor3 vmr_x( n_p, n_lat, n_lon );
+              reshape( vmr_x, x[ind], vmr_x.npages(), vmr_x.nrows(), vmr_x.ncols() ); 
+              const Tensor3 vmr( vmr_field.npages(), vmr_field.nrows(),
+                                                     vmr_field.ncols() );
+              regrid_atmfield_by_gp( vmr, atmosphere_dim, vmr_x,
+                                     gp_p, gp_lat, gp_lon );
+              vmr_field(isp,joker,joker,joker) = vmr;
+            }
+          else if( jq[q].Mode() == "nd" )
+            {
+              const Tensor3 nd_x( n_p, n_lat, n_lon );
+              reshape( nd_x, x[ind], nd_x.npages(), nd_x.nrows(), nd_x.ncols() ); 
+              const Tensor3 nd( vmr_field.npages(), vmr_field.nrows(),
+                                                    vmr_field.ncols() );
+              regrid_atmfield_by_gp( nd, atmosphere_dim, nd_x,
+                                     gp_p, gp_lat, gp_lon );
+              // Calculate vmr for species (=nd/nd_tot)
+              Index i = 0;
+              for( Index i3=0; i3<=vmr__field.ncols(); i3++ )
+                { for( Index i2=0; i2<=vmr_field.nrows(); i2++ )
+                    { for( Index i1=0; i1<=vmr_field.npages(); i1++ )
+                        { 
+                          vmr_field(isp,i1,i2,i3) = nd(i1,i2,i3) /
+                            number_density( p_grid[i1], t_field(i1,i2,i3) );
+                }   }   }
+            }
+          else
+            { assert(0); }
+        }
+      else
+        {
+          ostringstream os;
+          os << "Found a retrieval quantity that is not yet handled by\n"
+             << "internal retrievals: " << jq[q].MainTag() << endl;
+          throw runtime_error(os.str());
+        }
+    }  
+}
+*/
+
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void oem(
@@ -275,6 +456,9 @@ void oem(
   // Create xa
   setup_xa( xa, jacobian_quantities, jacobian_indices, atmosphere_dim,
             p_grid, lat_grid, lon_grid, t_field, vmr_field, abs_species );
+
+  // Calculate spectrum and Jacobian for a priori state
+  
 
   // So far dummy x and yf
   x = xa;
