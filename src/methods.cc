@@ -8020,6 +8020,32 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "MatrixIdentity" ),
+        DESCRIPTION
+        (
+         "Returns an identity matrix.\n"
+         "\n"
+         "The size if the matrix created is n x n. Default is to return a\n"
+         "true identity matrix (I), but you can also select another value\n"
+         "along the diagonal be setting *value*. That is, the output is\n"
+         "value*I.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT(),
+        GOUT(      "out"   ),
+        GOUT_TYPE( "Matrix" ),
+        GOUT_DESC( "Output matrix" ),
+        IN(),
+        GIN(         "n"    , "value"   ),
+        GIN_TYPE(    "Index", "Numeric" ),
+        GIN_DEFAULT( NODEF   , "1"     ),
+        GIN_DESC( "Size of the matrix",
+                  "The value along the diagonal." 
+                  )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "MatrixMatrixMultiply" ),
         DESCRIPTION
         (
@@ -8794,6 +8820,36 @@ void define_md_data_raw()
         GIN_TYPE("Vector"),
         GIN_DEFAULT(NODEF),
         GIN_DESC("Vector of vibrational energies")
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "oem" ),
+        DESCRIPTION
+        (
+         "Inversion by the so called optimal estimation method (OEM).\n"
+         "\n"
+         "Work in progress ...\n"
+         "\n"
+         "The following types of iteration methods can be selected:\n"
+         "  \"li\": A linear problem is assumed and no iterations are performed.\n"
+         "  \"gn\": Gauss-Newton.\n"
+         "  \"ml\": Marquardt-Levenberg.\n"
+         "\n"
+         "For Marquardt-Levenberg ...\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "x", "xa", "yf" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "y", "covmat_sx", "covmat_so", "jacobian_quantities", "jacobian_indices", 
+            "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "t_field", 
+            "vmr_field", "abs_species" ),
+        GIN( "method", "start_ga" ),
+        GIN_TYPE( "String", "Numeric" ),
+        GIN_DEFAULT( "gn", "-1"),
+        GIN_DESC( "Iteration method.", "Start value of ga for ML." )
         ));
 
   md_data_raw.push_back

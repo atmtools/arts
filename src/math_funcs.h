@@ -37,6 +37,7 @@
 #define math_funcs_h
 
 #include "matpackI.h"
+#include "matpackIII.h"
 
 Numeric fac(const Index n);
 
@@ -89,5 +90,8 @@ Numeric mod_gamma_dist(Numeric x,
                        Numeric gamma);
 
 void unitl( Vector& x );
+
+void flat( VectorView x, ConstMatrixView X );
+void flat( VectorView x, ConstTensor3View X );
 
 #endif  // math_funcs_h

@@ -26,7 +26,7 @@
   non-general character. The total general interpolation routines are
   found in interpolation.cc. 
 
-  - Interpolation of atmospheric/surface fields: 
+  - Point(s) interpolation of atmospheric/surface fields: 
 
   These interpolation functions interpolate a atmospheric/surface fields
   to a set of points, such as the points of a propagation path. That is,
@@ -45,6 +45,12 @@
   of *z_field*.
 
 
+  - Regridding of atmospheric/surface fields: 
+
+  These functions interpolate from one set of atmospheric grids to a new 
+  set of grids.
+
+
   - Conversion of geometric altitudes to pressure values: 
 
   To convert a geometric altitude to a pressure results in an
@@ -53,9 +59,7 @@
   These functions have names ending with "2p", for example itw2p.
 
 
-  - Various functions connected to the atmospheric fields:
-
-  - Interpolation of Gridded fields of specialö types:
+  - Interpolation of Gridded fields of special types:
 */
 
 #include <cmath>
@@ -71,7 +75,7 @@
 
 
 /*===========================================================================
-  === Interpolation functions for atmospheric grids and fields
+  === Point interpolation functions for atmospheric grids and fields
   ===========================================================================*/
 
 //! interp_atmfield_gp2itw
@@ -527,6 +531,67 @@ Numeric interp_atmsurface_by_gp(
 
   return x[0];
 }
+
+
+
+
+
+/*===========================================================================
+  === Regridding
+  ===========================================================================*/
+
+//! Regrids an atmospheric field, for precalculated grid positions
+/*!
+  The function adopts automatically to *atmosphere_dim*. Grid positions not
+  used are ignored, i.e. gp_lat is ignored for atmosphere_dim=1 etc.
+
+  \param[out] field_new        Field after interpolation.
+  \param[in]  atmosphere_dim   As the WSV with same name.
+  \param[in]  field_old        Field to be interpolated.
+  \param[in]  gp_p             Pressure grid positions.
+  \param[in]  gp_lat           Latitude grid positions.
+  \param[in]  gp_lon           Longitude grid positions.
+
+  \author Patrick Eriksson 
+  \date   2015-09-09
+*/
+void regrid_atmfield_by_gp( 
+         Tensor3&          field_new, 
+   const Index&            atmosphere_dim, 
+   ConstTensor3View        field_old, 
+   const ArrayOfGridPos&   gp_p,
+   const ArrayOfGridPos&   gp_lat,
+   const ArrayOfGridPos&   gp_lon )
+{
+  const Index n1 = gp_p.nelem();
+
+  if( atmosphere_dim == 1 )
+    {
+      field_new.resize( n1, 1, 1 );
+      Matrix itw( n1, 2 );
+      interpweights( itw, gp_p );
+      interp( field_new(joker,0,0), itw, field_old(joker,0,0), gp_p ); 
+    }
+  else if( atmosphere_dim == 2 )
+    {
+      const Index n2 = gp_lat.nelem();
+      field_new.resize( n1, n2, 1 );
+      Tensor3 itw( n1, n2, 2 );
+      interpweights( itw, gp_p, gp_lat );
+      interp( field_new(joker,joker,0), itw, field_old(joker,joker,0), gp_p, gp_lat ); 
+    }
+  else if( atmosphere_dim == 2 )
+    {
+      const Index n2 = gp_lat.nelem();
+      const Index n3 = gp_lon.nelem();
+      field_new.resize( n1, n2, n3 );
+      Tensor4 itw( n1, n2, n3, 2 );
+      interpweights( itw, gp_p, gp_lat, gp_lon );
+      interp( field_new, itw, field_old, gp_p, gp_lat, gp_lon ); 
+    }
+}
+
+
 
 
 

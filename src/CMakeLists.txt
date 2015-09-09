@@ -206,6 +206,7 @@ add_library (artscore STATIC
   m_linemixing.cc
   m_linerecord.cc
   m_montecarlo.cc
+  m_oem.cc
   m_optproperties.cc
   m_physics.cc
   m_planets.cc

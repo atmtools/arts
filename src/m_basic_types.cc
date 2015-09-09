@@ -61,6 +61,7 @@
 #include "make_array.h"
 #include "math_funcs.h"
 #include "messages.h"
+#include "lin_alg.h"
 #include "logic.h"
 #include "sorting.h"
 #include "gridded_fields.h"
@@ -334,6 +335,19 @@ void Matrix3RowFromVectors(// WS Generic Output:
   m( 1, joker ) = v2;
   m( 2, joker ) = v3;
 
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void MatrixIdentity(Matrix&   out,
+                 const Index&   n,
+                 const Numeric&  value,
+                 const Verbosity&)
+{
+  out.resize(n,n);
+  id_mat( out );
+  if( value != 1 )
+    { out *= value; }
 }
 
 

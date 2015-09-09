@@ -44,6 +44,7 @@
 #include "math_funcs.h"
 #include "logic.h"
 #include "mystring.h"
+
 extern const Numeric DEG2RAD;
 extern const Numeric PI;
 
@@ -623,5 +624,70 @@ void unitl( Vector& x )
   const Numeric l = sqrt(x*x);
   for(Index i=0; i<x.nelem(); i++ )
     x[i] /= l;
+}
+
+
+
+//! flat
+/*!
+    Flattens a matrix to a vector
+
+    The matrix is read from front, i.e. rows are looped first. 
+    In Matlab this equals x=X(:):
+
+    \param[out] x   The vector. Should already be sized
+    \param[in]  X   The matrix.
+
+    \author Patrick Eriksson
+    \date   2015-09-09
+*/
+void flat( VectorView x, ConstMatrixView X )
+{
+  assert( x.nelem() == X.nrows()*X.ncols() );
+
+  Index i = 0; 
+
+  for( Index c=0; c<X.ncols(); c++ )
+    {
+      for( Index r=0; r<X.nrows(); r++ )
+        { 
+          x[i] = X(r,c);
+          i += 1;
+        }
+    }
+}
+
+
+
+//! flat
+/*!
+    Converts Tensor3 to a vector
+
+    The matrix is read from front, i.e. pages are looped first, followed by rows. 
+    In Matlab this equals x=X(:):
+
+    \param[out] x   The vector. Should already be sized
+    \param[in]  X   The tensor.
+
+    \author Patrick Eriksson
+    \date   2015-09-09
+*/
+void flat( VectorView x, ConstTensor3View X )
+{
+  assert( x.nelem() == X.nrows()*X.ncols()*X.npages() );
+
+  Index i = 0; 
+
+  for( Index p=0; p<X.npages(); p++ )
+    {
+      for( Index c=0; c<X.ncols(); c++ )
+        {
+          for( Index r=0; r<X.nrows(); r++ )
+            { 
+              x[i] = X(p,r,c);
+              i += 1;
+            }
+        }
+    }
 }
         

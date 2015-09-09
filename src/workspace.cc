@@ -1164,6 +1164,38 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
+    ( NAME( "covmat_so" ),
+      DESCRIPTION
+      (
+       "Covariance matrix for observation uncertainties.\n"
+       "\n"
+       "This matrix describes the uncertainty of the measurement vector (*y*).\n"
+       "\n"
+       "Usage:      Used by inversion methods.\n"
+       "\n"
+       "Dimensions: \n"
+       "     [ y, y ]\n"
+       ),
+      GROUP( "Matrix" )));
+ 
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "covmat_sx" ),
+      DESCRIPTION
+      (
+       "Covariance matrix for a priori uncertainty.\n"
+       "\n"
+       "This matrix describes the uncertainty of the elements in *x*.\n"
+       "\n"
+       "Usage:      Used by inversion methods.\n"
+       "\n"
+       "Dimensions: \n"
+       "     [ x, x ]\n"
+       ),
+      GROUP( "Matrix" )));
+
+  wsv_data.push_back
+   (WsvRecord
     ( NAME( "diy_dx" ),
       DESCRIPTION
       (
@@ -1619,6 +1651,15 @@ void Workspace::define_wsv_data()
         "Agenda deriving the geo-position of a pencil beam calculation.\n"
        ),
       GROUP( "Agenda" )));
+
+ wsv_data.push_back
+    (WsvRecord
+     ( NAME( "inversion_iterate_agenda" ),
+       DESCRIPTION
+       (
+        "Agenda recalculating spectra and Jacobian for iterative inversion methods.\n"
+        ),
+       GROUP( "Agenda" )));
 
     wsv_data.push_back
     (WsvRecord
@@ -5063,13 +5104,44 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
+    ( NAME( "x" ),
+      DESCRIPTION
+      (
+       "The state vector.\n"
+       "\n"
+       "This WSV matches directly the x-vector in the formalism by C.D. Rodgers.\n"
+       "\n"
+       "Usage: Used by inversion methods.\n"
+       "\n"
+       "Unit:  Varies, follows unit of selected retrieval quantities.\n"
+       ),
+      GROUP( "Vector" )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "xa" ),
+      DESCRIPTION
+      (
+       "The a priori state vector.\n"
+       "\n"
+       "This WSV matches directly the x_a-vector in the formalism by C.D. Rodgers.\n"
+       "\n"
+       "Usage: Used by inversion methods.\n"
+       "\n"
+       "Unit:  Varies, follows unit of selected retrieval quantities.\n"
+       ),
+      GROUP( "Vector" )));
+
+  wsv_data.push_back
+   (WsvRecord
     ( NAME( "y" ),
       DESCRIPTION
       (
        "The measurement vector.\n"
        "\n"
        "This vector holds radiances averaged in frequency and spatially,\n"
-       "and can contain many spectra appended. \n"
+       "and can contain many spectra appended. That is, this WSV matches\n"
+       "directly the y-vector in the formalism by C.D. Rodgers.\n"
        "\n"
        "Usage: Output from radiative transfer calculations considering\n"
        "       sensor response.\n"
@@ -5114,6 +5186,8 @@ void Workspace::define_wsv_data()
        "set-up and number of measurement blocks, this can be a copy of\n"
        "*sensor_response_f*, sveral copies of this vector appended, or some\n"
        "other frequenices.\n"
+       "\n"
+       "Don't confuse this variable with *yf*.\n"
        "\n"
        "Usage: Output from radiative transfer calculations considering\n"
        "       sensor response.\n"
@@ -5314,6 +5388,22 @@ void Workspace::define_wsv_data()
        "Usage: Input to *ybatchCalc*.\n"
        ),
       GROUP( "Index" )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "yf" ),
+      DESCRIPTION
+      (
+       "A fitted measurement vector.\n"
+       "\n"
+       "This WSV is the measurement vector matching the retrieved state, i.e.\n"
+       "the spectrum of the fit.\n"
+       "\n"
+       "Don't confuse this variable with *y_f*.\n"
+       "\n"
+       "Usage: Output from inversion methods.\n"
+       ),
+      GROUP( "Vector" )));
 
   wsv_data.push_back
    (WsvRecord

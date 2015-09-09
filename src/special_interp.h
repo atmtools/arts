@@ -106,6 +106,14 @@ Numeric interp_atmsurface_by_gp(
         const GridPos&          gp_lat,
         const GridPos&          gp_lon );
 
+void regrid_atmfield_by_gp( 
+         Tensor3&          field_new, 
+   const Index&            atmosphere_dim, 
+   ConstTensor3View        field_old, 
+   const ArrayOfGridPos&   gp_p,
+   const ArrayOfGridPos&   gp_lat,
+   const ArrayOfGridPos&   gp_lon );
+
 void itw2p(
               VectorView       p_values,
         ConstVectorView        p_grid,

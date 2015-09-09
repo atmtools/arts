@@ -313,6 +313,17 @@ void define_agenda_data()
 
   agenda_data.push_back
     (AgRecord
+     ( NAME( "inversion_iterate_agenda" ),
+       DESCRIPTION
+       (
+        "So far just testing ...\n"
+        ),
+       OUTPUT( "y", "jacobian" ),
+       INPUT( "x", "jacobian_quantities", "jacobian_indices", 
+              "vmr_field", "t_field" )));
+
+  agenda_data.push_back
+    (AgRecord
      ( NAME( "iy_cloudbox_agenda" ),
        DESCRIPTION
        (

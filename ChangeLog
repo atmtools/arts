@@ -1,3 +1,28 @@
+2015-09-09  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-298
+
+	* src/m_oem.cc (get_gp_for_jq_grids):
+	(setup_xa): Internal help functions.
+
+	(oem): Started.
+
+	* src/special_interp.cc (regrid_atmfield_by_gp): New.
+
+	* src/math_funcs.cc (flat): Mimics matlab's x=X(:). Exists for
+	matrix and Tensor3.
+
+	* src/m_basic_types.cc (MatrixIdentity): New WSM.
+
+	* src/agendas.cc (define_agenda_data): Added
+	*inversion_iterate_agenda*, *covmat_so*, *covmat_sx* and *yf* and *xa*.
+
+	* src/workspace.cc (define_wsv_data): Added *x*.
+
+	* src/CMakeLists.txt: Added m_oem.cc.
+
+	* src/m_oem.cc: Started this file.
+
 2015-09-08  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-297
@@ -12,7 +37,7 @@
 	* arts-2-3-296
 
 	* doc/uguide/wfuns.tex (subsection{Common practicalities}):
-	Removed comments arouind logrel, as this optioon has been removed.
+	Removed comments around logrel, as this optioon has been removed.
 	(subsubsection{General case}): Added comment making clear that the
 	bulk of the text are just notes for possible future changes.
 
