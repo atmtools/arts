@@ -7255,6 +7255,33 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "jacobianAdjustAfterIteration" ),
+        DESCRIPTION
+        (
+         "Applies adjustments of *jacobian* needed for iterative inversions.\n"
+         "\n"
+         "So far there is only one adjustment to be done. If any absorption\n"
+         "species uses the \"rel\" unit, this method must be part of\n"
+         "*inversion_iterate_agenda*. \n"
+         "\n"
+         "For linear inversions or retrieval set-ups not involving the case above,\n"
+         "there is no need to include this method (but you can still include it\n"
+         "without causing any error, the calculations will just be a bit slower).\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "jacobian" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "jacobian", "jacobian_quantities", "jacobian_indices", "x" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "jacobianCalcAbsSpeciesAnalytical" ),
         DESCRIPTION
         (
@@ -8842,7 +8869,7 @@ void define_md_data_raw()
          "For Marquardt-Levenberg ...\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
-        OUT( "x", "xa", "yf", "jacobian" ),
+        OUT( "x", "xa", "yf", "jacobian", "dxdy" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
@@ -8851,10 +8878,13 @@ void define_md_data_raw()
             "inversion_iterate_agenda",
             "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "t_field", 
             "vmr_field", "abs_species" ),
-        GIN( "method", "start_ga" ),
-        GIN_TYPE( "String", "Numeric" ),
-        GIN_DEFAULT( "gn", "-1"),
-        GIN_DESC( "Iteration method.", "Start value of ga for ML." )
+        GIN( "method", "start_ga", "empty_out_matrices" ),
+        GIN_TYPE( "String", "Numeric", "Index" ),
+        GIN_DEFAULT( "gn", "-1", "0" ),
+        GIN_DESC( "Iteration method.", 
+                  "Start value of ga for ML.",
+                  "Set to 1 if you don't want/need *jacobian* and *dydx*. That "
+                  "is, these matrices are then returned as empty to save memory." )
         ));
 
   md_data_raw.push_back

@@ -1,5 +1,21 @@
 2015-09-10  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-3-305
+
+	* Now things are prepared for "zero order" inversions, i.e. just
+	returning data matching a priori / zero measurement response.
+	Retrieval quantities handled so far are just abs. species and
+	temperature, but all details should be in place, such as allowing
+	length 1 grids.
+
+	* src/m_oem.cc (oem): Extended.
+
+	* src/workspace.cc: Added dxdy.
+
+	* src/m_jacobian.cc (jacobianAdjustAfterIteration): New.
+
+2015-09-10  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-3-304
 
 	* src/m_oem.cc: Work all over the file to make use of new functions

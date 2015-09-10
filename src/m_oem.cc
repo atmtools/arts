@@ -457,6 +457,7 @@ void oem(
          Vector&                     xa,
          Vector&                     yf,
          Matrix&                     jacobian,
+         Matrix&                     dxdy,
    const Vector&                     y,
    const Matrix&                     Sx,
    const Matrix&                     So,
@@ -473,6 +474,7 @@ void oem(
    const ArrayOfArrayOfSpeciesTag&   abs_species,
    const String&                     method,
    const Numeric&                    start_ga,
+   const Index&                      empty_out_matrices,
    const Verbosity& )
 {
   // Main sizes
@@ -495,8 +497,8 @@ void oem(
     throw runtime_error( "Different number of elements in *jacobian_quantities* "
                          "and *jacobian_indices*." );
   if( jacobian_indices[nq-1][1]+1 != n )
-    throw runtime_error( "Size of *Sx* and last value in *jacobian_indices* " 
-                         "do not agree." );
+    throw runtime_error( "Size of *Sx* do not agree with Jacobian information " 
+                         "(*jacobian_indices*)." );
   if( !( method == "li"  ||  method == "gn"  ||  method == "ml" ) )  
     throw runtime_error( "Valid options for *method* are \"nl\", \"gn\" and " 
                          "\"ml\"." );
@@ -524,9 +526,22 @@ void oem(
     // just want to calculate yf (but not jacobian).
     Index j_do = jacobian_do;   
 
-    inversion_iterate_agendaExecute( ws, yf, jacobian, j_do,jacobian_quantities,
+    inversion_iterate_agendaExecute( ws, yf, jacobian, j_do, jacobian_quantities,
                                      jacobian_indices, x, vmr_field, t_field, 
                                      inversion_iterate_agenda );
   }
 
+  // Make inversion ...
+  //
+  // So far we just create a dummy dxdy, matching zero measurement response
+  dxdy.resize(n,m); 
+  dxdy = 0;
+
+
+  // Shall empty jacobian and dxdy be returned
+  if( empty_out_matrices )
+    {
+      jacobian.resize(0,0); 
+      dxdy.resize(0,0); 
+    }
 }

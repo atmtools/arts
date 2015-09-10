@@ -1447,6 +1447,20 @@ void Workspace::define_wsv_data()
        ),
       GROUP( "Index" )));
 
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "dxdy" ),
+      DESCRIPTION
+      (
+       "Contribution functyion (or gain) matrix.\n"
+       "\n"
+       "This matrix is the particla derivative of the retrieved state vector\n"
+       "with respect to the measurement vector (*y*).\n"
+       "\n"
+       "Usage: Used and set by inversion methods. \n"
+       ),
+      GROUP( "Matrix" )));
+
   wsv_data.push_back
     (WsvRecord
      ( NAME( "ext_mat" ),
