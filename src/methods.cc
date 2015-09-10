@@ -7190,7 +7190,10 @@ void define_md_data_raw()
          "neglects refraction totally, but considers the local effect of HSE.\n"
          "The later should be accaptable for observations around zenith and\n"
          "nadir. There is no warning if the method is applied incorrectly, \n"
-         "with respect to these issues.\n"
+         "with respect to these issues. Note that the argument *hse* of this\n"
+         "WSM only refers to the Jacobian calculation, if the model and/or\n"
+         "retrieved atmosphere actually fulfils HSE or not is governed in\n"
+         "other manners.\n"
          "\n"
          "The calculations (both options) assume that gas species are defined\n"
          "in VMR (a change in temperature then changes the number density). \n"
@@ -8843,7 +8846,8 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "y", "covmat_sx", "covmat_so", "jacobian_quantities", "jacobian_indices", 
+        IN( "y", "covmat_sx", "covmat_so", 
+            "jacobian_do", "jacobian_quantities", "jacobian_indices", 
             "inversion_iterate_agenda",
             "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "t_field", 
             "vmr_field", "abs_species" ),

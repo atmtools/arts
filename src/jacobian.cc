@@ -51,7 +51,6 @@ ostream& operator << (ostream& os, const RetrievalQuantity& ot)
   === Help sub-functions to handle analytical jacobians (in alphabetical order)
   ===========================================================================*/
 
-
 //! diy_from_path_to_rgrids
 /*!
     Maps jacobian data for points along the propagation path, to
@@ -67,7 +66,7 @@ ostream& operator << (ostream& os, const RetrievalQuantity& ot)
     \author Patrick Eriksson 
     \date   2009-10-08
 */
-// Small help functions, to make the code below cleaner
+// Small help function, to make the code below cleaner
 void from_dpath_to_dx(
         MatrixView   diy_dx,
    ConstMatrixView   diy_dq,
@@ -77,34 +76,6 @@ void from_dpath_to_dx(
     { 
       for( Index icol=0; icol<diy_dx.ncols(); icol++ )
         { diy_dx(irow,icol) += w * diy_dq(irow,icol); }
-    }
-}
-void gp4length1grid( ArrayOfGridPos&   gp )
-{
-  for( Index i=0; i<gp.nelem(); i++ )
-    { 
-      gp[i].idx   = 0;
-      gp[i].fd[0] = 0; 
-      gp[i].fd[1] = 1; 
-    }
-}
-// Kept as a local function as long as just used here.
-// We trust here gridpos, and "extrapolation points" are identified simply
-// by a fd outside [0,1].
-void add_extrap( ArrayOfGridPos&   gp )
-{
-  for( Index i=0; i<gp.nelem(); i++ )
-    { 
-      if( gp[i].fd[0] < 0 ) 
-        {  
-          gp[i].fd[0] = 0; 
-          gp[i].fd[1] = 1; 
-        }
-      else if( gp[i].fd[0] > 1 ) 
-        {  
-          gp[i].fd[0] = 1; 
-          gp[i].fd[1] = 0; 
-        }
     }
 }
 //
@@ -128,7 +99,7 @@ void diy_from_path_to_rgrids(
       if( nr1 > 1 )
         {
           p2gridpos( gp_p, jacobian_quantity.Grids()[0], ppath_p, extpolfac );
-          add_extrap( gp_p );
+          jacobian_type_extrapol( gp_p );
         }
       else
         { gp4length1grid( gp_p ); }        
@@ -144,7 +115,7 @@ void diy_from_path_to_rgrids(
             {
               gridpos( gp_lat, jacobian_quantity.Grids()[1], 
                        ppath.pos(joker,1), extpolfac );
-              add_extrap( gp_lat );
+              jacobian_type_extrapol( gp_lat );
             }
           else
             { gp4length1grid( gp_lat ); }
@@ -159,7 +130,7 @@ void diy_from_path_to_rgrids(
             {          
               gridpos( gp_lon, jacobian_quantity.Grids()[2], 
                        ppath.pos(joker,2), extpolfac );
-              add_extrap( gp_lon );
+              jacobian_type_extrapol( gp_lon );
             }
           else
             { gp4length1grid( gp_lon ); }
@@ -653,6 +624,40 @@ void get_perturbation_range(       Range& range,
 
 }
 
+
+
+//! Adopts grid postions to extrapolation used for jacobians
+/*!
+  The standard interpolation scheme applies a linear extrapolation, while for
+  the jacobians the extrapolation can be seen as a "closest" interpolation.
+  That is, for points outisde the covered grid, the value at closest end point
+  is taken. And here extrapolation to +-Inf is allowed.
+
+  This function modifies grid positions to jacobaina extrapolation approach.
+  For efficiency, the input grid positions are not asserted at all, and
+  "extrapolation points" are identified simply  by a fd outside [0,1].
+
+  \param[in/out] gp   Array of grid positions.
+
+  \author Patrick Eriksson 
+  \date   2015-09-10
+*/
+void jacobian_type_extrapol( ArrayOfGridPos&   gp )
+{
+  for( Index i=0; i<gp.nelem(); i++ )
+    { 
+      if( gp[i].fd[0] < 0 ) 
+        {  
+          gp[i].fd[0] = 0; 
+          gp[i].fd[1] = 1; 
+        }
+      else if( gp[i].fd[0] > 1 ) 
+        {  
+          gp[i].fd[0] = 1; 
+          gp[i].fd[1] = 0; 
+        }
+    }
+}
 
 
 //! Calculate the 1D perturbation for a relative perturbation.

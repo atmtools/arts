@@ -49,6 +49,7 @@
 #include "physics_funcs.h"
 
 extern const String ABSSPECIES_MAINTAG;
+extern const String TEMPERATURE_MAINTAG;
 
 
 /*===========================================================================
@@ -148,17 +149,31 @@ void get_gp_rq_to_atmgrids(
    const Vector&              lat_grid,
    const Vector&              lon_grid )
 {
-  const Numeric inf_proxy = 99e99;
+  // We want here an extrapolation to infinity -> 
+  //                                        extremly high extrapolation factor
+  const Numeric inf_proxy = 1.0e99;
 
   gp_p.resize( p_grid.nelem() );
-  p2gridpos( gp_p, rq.Grids()[0], p_grid, inf_proxy );  
   n_p = rq.Grids()[0].nelem();
+  if( n_p > 1 )
+    { 
+      p2gridpos( gp_p, rq.Grids()[0], p_grid, inf_proxy ); 
+      jacobian_type_extrapol( gp_p );
+    }
+  else
+    { gp4length1grid( gp_p ); }        
 
   if( atmosphere_dim >= 2 )
     {
       gp_lat.resize( lat_grid.nelem() );
-      gridpos( gp_lat, rq.Grids()[1], lat_grid, inf_proxy );  
       n_lat = rq.Grids()[1].nelem();
+      if( n_lat > 1 )
+        { 
+          gridpos( gp_lat, rq.Grids()[1], lat_grid, inf_proxy );  
+          jacobian_type_extrapol( gp_lat );
+        }
+      else
+        { gp4length1grid( gp_lat ); }        
     }
   else
     { 
@@ -169,8 +184,14 @@ void get_gp_rq_to_atmgrids(
   if( atmosphere_dim >= 3 )
     {
       gp_lon.resize( lon_grid.nelem() );
-      gridpos( gp_lon, rq.Grids()[2], lon_grid, inf_proxy );  
       n_lon = rq.Grids()[2].nelem();
+      if( n_lon > 1 )
+        { 
+          gridpos( gp_lon, rq.Grids()[2], lon_grid, inf_proxy ); 
+          jacobian_type_extrapol( gp_lon );
+        }
+      else
+        { gp4length1grid( gp_lon ); }        
     }
   else
     { 
@@ -224,7 +245,20 @@ void setup_xa(
       Range ind( ji[q][0], np );
 
       // Abs species
-      if( jq[q].MainTag() == ABSSPECIES_MAINTAG )
+      if( jq[q].MainTag() == TEMPERATURE_MAINTAG )
+        {
+          // Here we need to interpolate *vmr_field*
+          ArrayOfGridPos gp_p, gp_lat, gp_lon;
+          get_gp_atmgrids_to_rq( gp_p, gp_lat, gp_lon, jq[q], atmosphere_dim,
+                                 p_grid, lat_grid, lon_grid );
+          Tensor3 t_x(gp_p.nelem(),gp_lat.nelem(),gp_lon.nelem());
+          regrid_atmfield_by_gp( t_x, atmosphere_dim, t_field(joker,joker,joker), 
+                                 gp_p, gp_lat, gp_lon );
+          flat( xa[ind], t_x );
+        }
+
+      // Abs species
+      else if( jq[q].MainTag() == ABSSPECIES_MAINTAG )
         {
           // Index position of species
           ArrayOfSpeciesTag  atag;
@@ -324,7 +358,26 @@ void x2arts_std(
       Range ind( ji[q][0], np );
 
       // Abs species
-      if( jq[q].MainTag() == ABSSPECIES_MAINTAG )
+      if( jq[q].MainTag() == TEMPERATURE_MAINTAG )
+        {
+          // Determine grid positions for interpolation from retrieval grids back
+          // to atmospheric grids
+          ArrayOfGridPos gp_p, gp_lat, gp_lon;
+          Index          n_p, n_lat, n_lon;
+          get_gp_rq_to_atmgrids( gp_p, gp_lat, gp_lon, n_p, n_lat, n_lon,
+                                 jq[q], atmosphere_dim, p_grid, lat_grid, lon_grid );
+
+          // Map values in x back to t_field
+          Tensor3 t_x( n_p, n_lat, n_lon );
+          reshape( t_x, x[ind] ); 
+          Tensor3 t( t_field.npages(), t_field.nrows(), t_field.ncols() );
+          regrid_atmfield_by_gp( t, atmosphere_dim, t_x,
+                                 gp_p, gp_lat, gp_lon );
+          t_field = t;
+        }
+
+      // Abs species
+      else if( jq[q].MainTag() == ABSSPECIES_MAINTAG )
         {
           // Index position of species
           ArrayOfSpeciesTag  atag;
@@ -407,6 +460,7 @@ void oem(
    const Vector&                     y,
    const Matrix&                     Sx,
    const Matrix&                     So,
+   const Index&                      jacobian_do,
    const ArrayOfRetrievalQuantity&   jacobian_quantities,
    const ArrayOfArrayOfIndex&        jacobian_indices,
    const Agenda&                     inversion_iterate_agenda,
@@ -427,6 +481,10 @@ void oem(
   const Index nq = jacobian_quantities.nelem();
 
   // Check input
+  if( !jacobian_do )
+    throw runtime_error( "Jacobian calculations must be turned on (but jacobian_do=0)." );
+  if( !nq )
+    throw runtime_error( "Jacobian quantities are empty, no inversion to do!." );
   if( Sx.ncols() != n )
     throw runtime_error( "*covmat_sx* must be a square matrix." );
   if( So.ncols() != So.nrows() )
@@ -437,7 +495,7 @@ void oem(
     throw runtime_error( "Different number of elements in *jacobian_quantities* "
                          "and *jacobian_indices*." );
   if( jacobian_indices[nq-1][1]+1 != n )
-    throw runtime_error( "Length of *x* and last value in *jacobian_indices* ." 
+    throw runtime_error( "Size of *Sx* and last value in *jacobian_indices* " 
                          "do not agree." );
   if( !( method == "li"  ||  method == "gn"  ||  method == "ml" ) )  
     throw runtime_error( "Valid options for *method* are \"nl\", \"gn\" and " 
@@ -461,9 +519,14 @@ void oem(
   x = xa;
 
   // Calculate spectrum and Jacobian for a priori state
-  inversion_iterate_agendaExecute( ws, yf, jacobian, jacobian_quantities,
-                                   jacobian_indices, x, vmr_field, t_field, 
-                                   inversion_iterate_agenda );
+  {
+    // Use local version of jacobian_do, to prepare for that in some cases we
+    // just want to calculate yf (but not jacobian).
+    Index j_do = jacobian_do;   
 
+    inversion_iterate_agendaExecute( ws, yf, jacobian, j_do,jacobian_quantities,
+                                     jacobian_indices, x, vmr_field, t_field, 
+                                     inversion_iterate_agenda );
+  }
 
 }

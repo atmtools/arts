@@ -179,6 +179,8 @@ void get_pointers_for_analytical_jacobians(
    const ArrayOfRetrievalQuantity&   jacobian_quantities,
    const ArrayOfArrayOfSpeciesTag&   abs_species );
 
+void jacobian_type_extrapol( ArrayOfGridPos&   gp );
+
 void perturbation_field_1d(       VectorView      field,
                             const ArrayOfGridPos& p_gp,
                             const Index&          p_pert_n,

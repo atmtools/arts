@@ -250,21 +250,6 @@ void jacobianAddAbsSpecies(
                                                                "or \"rel\"." );
     }
 
-  // If nd, check that not temmperature is retrieved
-  if( mode == "nd" )
-    {  
-      for (Index it=0; it<jq.nelem(); it++)
-        {
-          if( jq[it].MainTag() == TEMPERATURE_MAINTAG )
-            {
-              ostringstream os;
-              os << 
-             "Retrieval of temperature and number densities can not be mixed.";
-              throw runtime_error(os.str());
-            }
-        }
-    }
-
   // Create the new retrieval quantity
   RetrievalQuantity rq;
   rq.MainTag( ABSSPECIES_MAINTAG );
@@ -1735,8 +1720,9 @@ void jacobianAddTemperature(
       if( jq[it].MainTag() == ABSSPECIES_MAINTAG  &&  jq[it].Mode() == "nd"  )
         {
           ostringstream os;
-          os << 
-             "Retrieval of temperature and number densities can not be mixed.";
+          os << "If you want to retrieve number density (\"nd\") for some\n"
+                "species, you need to include temperature as retrieval\n"
+                "quantity before that species.";
           throw runtime_error(os.str());
         }
     }

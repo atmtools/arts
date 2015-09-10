@@ -685,6 +685,29 @@ void gridpos_upperend_check(
 }
 
 
+//! Grid position matching a grid of length 1
+/*!
+  The function sets *gp* to the expected values if there would exist a grid of
+  length 1.
+
+  Grids of length 1 are normally not allowed, but the jacobian part makes use
+  of such grids to flag a completely flat field in the diemsnion of concern. 
+
+  \param[in/out] gp   A grid positions.
+
+  \author Patrick Eriksson 
+  \date   2015-09-10
+*/
+void gp4length1grid( ArrayOfGridPos&   gp )
+{
+  for( Index i=0; i<gp.nelem(); i++ )
+    { 
+      gp[i].idx   = 0;
+      gp[i].fd[0] = 0; 
+      gp[i].fd[1] = 1; 
+    }
+}
+
 
 //! is_gridpos_at_index_i
 /*!

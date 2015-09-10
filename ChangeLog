@@ -1,3 +1,33 @@
+2015-09-10  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-304
+
+	* src/m_oem.cc: Work all over the file to make use of new functions
+	listed below. Added temperature as treated retrieval quantity.
+	Length 1 retrieval grids are now handled.
+
+	* src/methods.cc: Added comment around scope of the hse argument.
+
+	* src/m_jacobian.cc (jacobianAddAbsSpecies)
+	(jacobianAddTemperature): Changed cross-checks between nd and t
+	retrievals. It is now allowed to mix these two things, as long as
+	temperature is included as retrieval quantity before the species
+	using nd. The code to calculate Jacobians does not cover all
+	details of this mix of retrieval quantities, but this should not
+	have any practical consequences. With the demanded order, things
+	get at least right when mapping a iteration state back to t_field
+	and vmr_field.
+
+	* src/agendas.cc (define_agenda_data): Added jacobian_do as input to
+	inversion_iterate_agenda. And changed back to have y as output.
+
+	* src/interpolation.cc (gp4length1grid): This was before an
+	internal help function in jacobian.cc, now polished and moved to this
+	file..
+
+	* src/jacobian.cc (jacobian_type_extrapol): This was before an
+	internal help function, now polished and included in jacobian.h.
+
 2015-09-10  Jana Mendrok  <jana.mendrok@ltu.se>
 
 	* arts-2-3-303

@@ -317,9 +317,11 @@ void define_agenda_data()
        DESCRIPTION
        (
         "So far just testing ...\n"
+        "\n"
+        "Discuss *y* vs *yf*. \n"
         ),
-       OUTPUT( "yf", "jacobian" ),
-       INPUT( "jacobian_quantities", "jacobian_indices", "x", 
+       OUTPUT( "y", "jacobian" ),
+       INPUT( "jacobian_do", "jacobian_quantities", "jacobian_indices", "x", 
               "vmr_field", "t_field" )));
 
   agenda_data.push_back

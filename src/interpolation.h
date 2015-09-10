@@ -123,6 +123,8 @@ void gridpos_upperend_check(
         ArrayOfGridPos&   gp,
   const Index&            ie );
 
+void gp4length1grid( ArrayOfGridPos&   gp );
+
 bool is_gridpos_at_index_i(  
        const GridPos&   gp,
        const Index&     i,
