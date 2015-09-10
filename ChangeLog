@@ -1,3 +1,13 @@
+2015-09-10  Simon Pfreundschuh <simonpf@chalmers.se>
+
+	* arts-2-3-305
+
+	* src/matpackI.* (ConstMatrixView::diagonal): Added function returning
+	ConstVectorView of matrix diagonal.
+
+	* src/test_matpack.cc (test_diagonal): Added test function for
+	diagonal() function.
+
 2015-09-10  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-305

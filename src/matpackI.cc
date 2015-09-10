@@ -909,6 +909,23 @@ ConstIterator2D ConstMatrixView::end() const
                           mrr.mstride );
 }
 
+//! Matrix diagonal as vector.
+/*!
+  Returns a ConstMatrixView on the diagonal entries of the matrix. For a given
+  (n,m) matrix M the diagonal vector v is the vector of length min{n,m} with entries
+
+       v[i] = M(i,i)
+
+  \return The diagonal vector v.
+*/
+ConstVectorView ConstMatrixView::diagonal() const
+{
+    Index n = std::min( mrr.mextent, mcr.mextent );
+    return ConstVectorView( mdata + mrr.mstart + mcr.mstart,
+                            Range( 0, n, mrr.mstride + mcr.mstride ) );
+}
+
+
 /** Default constructor. This is necessary, so that we can have a
     default constructor for derived classes. */
 ConstMatrixView::ConstMatrixView() :

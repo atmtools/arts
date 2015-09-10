@@ -634,6 +634,9 @@ public:
   ConstIterator2D begin() const;
   ConstIterator2D end() const;
 
+  // View on diagonal vector
+  ConstVectorView diagonal() const;
+
   //! Destructor
   virtual ~ConstMatrixView() {}
 

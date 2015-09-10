@@ -953,6 +953,62 @@ ArrayOfIndex J;J=MakeArray<Index>(0, 2, 2, 4, 4, 6, 6, 8, 8, 10, 10, 12, 12, 14,
     
 }
 
+//! Test diagonal vector.
+/*!
+  Generates ntest random (m,n)-matrices and checks if the returned diagonal
+  vector has the same entries as the diagonal. Also test transposed matrices
+  and submatrices of the generated matrix.
+
+  \param[in] ntests Number of tests to run.
+  \return True if all tests were passed, false otherwise.
+*/
+bool test_diagonal( Index ntests )
+{
+    Rand<Index> rand( 1, 100 );
+
+    Index n_diag;
+
+    bool pass = true;
+
+    for ( Index i = 0; i < ntests; i++ )
+    {
+        Matrix A( rand(), rand() );
+        n_diag = std::min( A.ncols(), A.nrows() );
+
+        ConstMatrixView AT = transpose(A);
+        ConstMatrixView B = A;
+        if  (n_diag > 3)
+        {
+            B =  A( Range(1, Joker() ,2), Range(1, Joker() ,2) );
+        }
+
+        ConstVectorView v( A.diagonal() );
+        ConstVectorView vt( AT.diagonal() );
+        ConstVectorView vb( B.diagonal() );
+
+        random_fill_matrix( A, 10, true );
+
+        for ( Index j = 0; j < n_diag; j++ )
+        {
+            pass = pass && ( v[j] == A(j,j) );
+            pass = pass && ( vt[j] == AT(j,j) );
+
+            if ( j < vb.nelem() )
+                pass = pass && ( vb[j] == B(j,j) );
+
+        }
+        cout << endl;
+    }
+
+    if (pass)
+        cout << "test diagonal: Passed all tests." << endl;
+    else
+        cout << "test diagonal: Failed." << endl;
+
+    return pass;
+}
+
+
 //! Perform matrix multiplication test.
 /*!
   Creates to random m times k matrix A and a random k times n matrix
@@ -974,90 +1030,90 @@ ArrayOfIndex J;J=MakeArray<Index>(0, 2, 2, 4, 4, 6, 6, 8, 8, 10, 10, 12, 12, 14,
   \return The maximum element-wise, relative error that occured in the tests.
 */
 Numeric matrix_mult( Index k,
-		     Index m,
-		     Index n,
-		     Index ntests,
-		     Index nsubtests,
-		     bool verbose )
+                     Index m,
+                     Index n,
+                     Index ntests,
+                     Index nsubtests,
+                     bool verbose )
 {
     Numeric err_max = 0;
     Matrix A( m, k), B( k, n), C( m, n), C_ref( m, n );
 
     for ( Index i = 0; i < ntests; i++ )
     {
-	random_fill_matrix( A, 1000, false );
-	random_fill_matrix( B, 1000, false );
+        random_fill_matrix( A, 1000, false );
+        random_fill_matrix( B, 1000, false );
 
-	if (verbose)
-	{
-	    cout.precision(15);
-	    cout << "MATRIX MULTIPLICATION: m = " << m << ", k = " << k;
-	    cout << ", n = " << n << endl;
-	}
+        if (verbose)
+        {
+            cout.precision(15);
+            cout << "MATRIX MULTIPLICATION: m = " << m << ", k = " << k;
+            cout << ", n = " << n << endl;
+        }
 
-	// A * B
+        // A * B
 
-	random_fill_matrix( C, 10, false );
-	random_fill_matrix( C_ref, 10, false );
+        random_fill_matrix( C, 10, false );
+        random_fill_matrix( C_ref, 10, false );
 
-	mult( C, A, B );
-	mult_general( C_ref, A, B );
+        mult( C, A, B );
+        mult_general( C_ref, A, B );
 
-	Numeric err_mul = max_error( C, C_ref, true );
-	if (err_mul > err_max)
-	    err_max = err_mul;
+        Numeric err_mul = max_error( C, C_ref, true );
+        if (err_mul > err_max)
+            err_max = err_mul;
 
 
-	if (verbose)
-	{
-	    cout << "\t" <<  "A * B: max. rel. err = " << err_mul << endl;
-	}
+        if (verbose)
+        {
+            cout << "\t" <<  "A * B: max. rel. err = " << err_mul << endl;
+        }
 
-	// A^T * B
+        // A^T * B
 
-	Matrix AT( k, m );
-	random_fill_matrix( AT, 100.0, false );
+        Matrix AT( k, m );
+        random_fill_matrix( AT, 100.0, false );
 
-	mult( C, transpose(AT), B );
-	mult_general( C_ref, transpose(AT), B );
-	Numeric err_trans1 = max_error( C, C_ref, true );
-	if (err_trans1 > err_max)
-	    err_max = err_trans1;
+        mult( C, transpose(AT), B );
+        mult_general( C_ref, transpose(AT), B );
+        Numeric err_trans1 = max_error( C, C_ref, true );
+        if (err_trans1 > err_max)
+            err_max = err_trans1;
 
-	if (verbose)
-	{
-	    cout << "\t" <<  "A^T * B: max. rel. err = " << err_trans1 << endl;
-	}
+        if (verbose)
+        {
+            cout << "\t" <<  "A^T * B: max. rel. err = " << err_trans1 << endl;
+        }
 
-	// A * B^T
+        // A * B^T
 
-	Matrix BT( n, k );
-	random_fill_matrix( BT, 100.0, false );
+        Matrix BT( n, k );
+        random_fill_matrix( BT, 100.0, false );
 
-	mult( C, A, transpose(BT) );
-	mult_general( C_ref, A, transpose(BT) );
-	Numeric err_trans2 = max_error( C, C_ref, true );
-	if (err_trans2 > err_max)
-	    err_max = err_trans2;
+        mult( C, A, transpose(BT) );
+        mult_general( C_ref, A, transpose(BT) );
+        Numeric err_trans2 = max_error( C, C_ref, true );
+        if (err_trans2 > err_max)
+            err_max = err_trans2;
 
-	if (verbose)
-	{
-	    cout << "\t" <<  "A * B^T: max. rel. err = " << err_trans2 << endl;
-	}
+        if (verbose)
+        {
+            cout << "\t" <<  "A * B^T: max. rel. err = " << err_trans2 << endl;
+        }
 
-	// A^T * B^T
+        // A^T * B^T
 
-	mult( C, transpose(AT), transpose(BT) );
-	mult_general( C_ref, transpose(AT), transpose(BT) );
-	Numeric err_trans3 = max_error( C, C_ref, true );
-	if (err_trans3 > err_max)
-	    err_max = err_trans3;
+        mult( C, transpose(AT), transpose(BT) );
+        mult_general( C_ref, transpose(AT), transpose(BT) );
+        Numeric err_trans3 = max_error( C, C_ref, true );
+        if (err_trans3 > err_max)
+            err_max = err_trans3;
 
-	if (verbose)
-	{
-	    cout << "\t" <<  "A^T * B^T: max. rel. err = " << err_trans3 << endl;
-	    cout << endl;
-	}
+        if (verbose)
+        {
+            cout << "\t" <<  "A^T * B^T: max. rel. err = " << err_trans3 << endl;
+            cout << endl;
+        }
     }
 
     // Multiplication of submatrices.
@@ -1065,35 +1121,35 @@ Numeric matrix_mult( Index k,
 
     for ( Index i = 0; i < nsubtests - 1; i++ )
     {
-	Index k1( k_rand() ), m1( m_rand() ), n1( n_rand() );
+        Index k1( k_rand() ), m1( m_rand() ), n1( n_rand() );
 
-	Range r1( random_range( m1 ) );
-	Range r2( random_range( k1 ) );
-	Range r3( random_range( n1 ) );
+        Range r1( random_range( m1 ) );
+        Range r2( random_range( k1 ) );
+        Range r3( random_range( n1 ) );
 
-	MatrixView C_sub( C( r1, r3  ) );
-	MatrixView C_sub_ref( C_ref( r1, r3  ) );
+        MatrixView C_sub( C( r1, r3  ) );
+        MatrixView C_sub_ref( C_ref( r1, r3  ) );
 
-	ConstMatrixView A_sub( A( r1, r2 ) );
-	ConstMatrixView B_sub( B( r2, r3 ) );
+        ConstMatrixView A_sub( A( r1, r2 ) );
+        ConstMatrixView B_sub( B( r2, r3 ) );
 
-	mult( C_sub, A_sub, B_sub );
-	mult_general( C_sub_ref, A_sub, B_sub );
+        mult( C_sub, A_sub, B_sub );
+        mult_general( C_sub_ref, A_sub, B_sub );
 
-	Numeric err = max_error( C_sub, C_sub_ref, true );
-	if (err > err_max)
-	    err_max = err;
+        Numeric err = max_error( C_sub, C_sub_ref, true );
+        if (err > err_max)
+            err_max = err;
 
-	if (verbose)
-	{
-	    cout << "\t" <<  "Submatrix multiplication: max. rel. err = " << err;
-	    cout << endl;
-	}
+        if (verbose)
+        {
+            cout << "\t" <<  "Submatrix multiplication: max. rel. err = " << err;
+            cout << endl;
+        }
     }
 
     if (verbose)
     {
-	cout << endl;
+        cout << endl;
     }
 
     return err_max;
@@ -1122,32 +1178,32 @@ void test_matrix_multiplication()
     // k = 1, m = 1, n = 1.
     err = matrix_mult( 1, 1, 1, 10, 0, true);
     if (err > max_err)
-	err = max_err;
+        err = max_err;
 
     // k = 10, m = 1, n = 1.
     err = matrix_mult( 10, 1, 1, 20, 20, true);
     if (err > max_err)
-	err = max_err;
+        err = max_err;
 
     // k = 100, m = 100, n = 100.
     err = matrix_mult( 200, 200, 200, 20, 20, true);
     if (err > max_err)
-	err = max_err;
+        err = max_err;
 
     // k = 10, m = 100, n = 10.
     err = matrix_mult( 10, 100, 10, 20, 20, true);
     if (err > max_err)
-	err = max_err;
+        err = max_err;
 
     // k = 10, m = 100, n = 100.
     err = matrix_mult( 10, 100, 100, 20, 20, true);
     if (err > max_err)
-	err = max_err;
+        err = max_err;
 
     // k = 100, m = 100, n = 100, 100 submatrix multiplications.
     err = matrix_mult( 100, 100, 100, 0, 100, true);
     if (err > max_err)
-	err = max_err;
+        err = max_err;
 
 }
 
@@ -1276,6 +1332,7 @@ int main()
 
     //srand( time(NULL) );
     //test_matrix_multiplication();
+    test_diagonal( 100 );
     test_empty();
     return 1;
 }
