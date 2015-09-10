@@ -2776,6 +2776,23 @@ Numeric IWCtopnd_MH97 ( const Numeric iwc,
     return 0.0;
   }
 
+  // convert m to microns
+  Numeric dmass = diameter_mass_equivalent * 1e6;
+  //convert T from Kelvin to Celsius
+  Numeric T = t-273.15;
+
+  // abort if T is too high
+  if ( t>280. )
+    {
+      ostringstream os;
+      os << "Temperatures above 280K not allowed by MH97.\n"
+         << "Yours is " << t << "K.";
+      throw runtime_error ( os.str() );
+    }
+  // allow some margin on T>0C (but use T=0C for PSD calc)
+  else if ( T>0. )
+    T = 0.;
+
   //[kg/m3] -> [g/m3] as used by parameterisation
   Numeric ciwc = iwc*1e3;
   Numeric cdensity = DENSITY_OF_ICE*1e3;
@@ -2821,12 +2838,7 @@ Numeric IWCtopnd_MH97 ( const Numeric iwc,
   Numeric dNdD2;
   Numeric dNdD;
 
-  // convert m to microns
-  Numeric dmass = diameter_mass_equivalent * 1e6;
-  //convert T from Kelvin to Celsius
-  Numeric T = t-273.15;
   //split IWC in IWCs100 and IWCl100
-
   // determine iwc<100um and iwc>100um
   Numeric a=0.252+sig_a; //g/m^3
   Numeric b1=0.837+sig_b1;

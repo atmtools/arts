@@ -2134,7 +2134,7 @@ void dNdD_F07TR (//WS Output:
     
     for ( Index i=0; i<n_se; i++ )
     {
-        // calculate particle size distribution with MH97
+        // calculate particle size distribution with F07TR
         // [# m^-3 m^-1]
         dNdD[i] = IWCtopnd_F07TR(diameter_max[i], t, SWC, alpha, beta) ;
     }
@@ -2156,7 +2156,7 @@ void dNdD_F07ML (//WS Output:
     
     for ( Index i=0; i<n_se; i++ )
     {
-        // calculate particle size distribution with MH97
+        // calculate particle size distribution with F07ML
         // [# m^-3 m^-1]
         dNdD[i] = IWCtopnd_F07ML(diameter_max[i], t, SWC, alpha, beta) ;
     }
@@ -2225,7 +2225,7 @@ void dNdD_MGD_LWC (//WS Output:
     
     for ( Index i=0; i<n_se; i++ )
     {
-        // calculate particle size distribution with MH97
+        // calculate particle size distribution with ModGamma for liquid
         // [# m^-3 m^-1]
         dNdD[i] = LWCtopnd_MGD_LWC( diameter_volume_equ[i],rho ,LWC );
     }
@@ -2245,7 +2245,7 @@ void dNdD_MGD_IWC (//WS Output:
     
     for ( Index i=0; i<n_se; i++ )
     {
-        // calculate particle size distribution with MH97
+        // calculate particle size distribution with ModGamma for ice
         // [# m^-3 m^-1]
         dNdD[i] = IWCtopnd_MGD_IWC( diameter_volume_equ[i],rho,IWC );
     }

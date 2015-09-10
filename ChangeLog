@@ -1,3 +1,16 @@
+2015-09-10  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-3-303
+
+	* src/cloudbox.cc (IWCtopnd_MH97): Use same T-margin as introduced in
+	atmlab-2-3-116 (I couldn't find a T check in ARTS' MH97 at all :-/ ).
+	Seems more practical than disallowing any T>0C.
+
+	* src/m_cloudbox.cc (dNdD_*): Fixed a couple of comments.
+
+	* src/methods.cc, src/workspace.cc: Couplke of spell fixes and
+	previously overlooked adaptations to changed WSM names.
+
 2015-09-10  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-302
@@ -297,7 +310,7 @@
 
 	* src/m_abs.cc (abs_linesReadFromHitran): A small correction of
 	error message, added 1 to the line
-        << "run 'cmake -DWITH_HITRAN2008=1 ..' and recompile arts";
+	<< "run 'cmake -DWITH_HITRAN2008=1 ..' and recompile arts";
 
 	* A change to make things more flexible in the met mm part.
 	freq_number is now set in the instrument file. It was before
