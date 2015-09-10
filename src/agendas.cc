@@ -318,8 +318,8 @@ void define_agenda_data()
        (
         "So far just testing ...\n"
         ),
-       OUTPUT( "y", "jacobian" ),
-       INPUT( "x", "jacobian_quantities", "jacobian_indices", 
+       OUTPUT( "yf", "jacobian" ),
+       INPUT( "jacobian_quantities", "jacobian_indices", "x", 
               "vmr_field", "t_field" )));
 
   agenda_data.push_back

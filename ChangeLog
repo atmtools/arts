@@ -1,3 +1,16 @@
+2015-09-10  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-302
+
+	* src/math_funcs.cc (reshape): New, exists for Vector to Matrix or
+	Tensor3.
+
+	* src/m_oem.cc (x2arts_std): Now active, but just a start.
+	(oem): A few more lines.
+
+	* src/agendas.cc (define_agenda_data): y changed to yf for
+	inversion_iterate_agenda.
+
 2015-09-09  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-301

@@ -94,4 +94,7 @@ void unitl( Vector& x );
 void flat( VectorView x, ConstMatrixView X );
 void flat( VectorView x, ConstTensor3View X );
 
+void reshape( MatrixView X, ConstVectorView x );
+void reshape( Tensor3View X, ConstVectorView x );
+
 #endif  // math_funcs_h

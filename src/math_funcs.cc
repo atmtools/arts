@@ -633,7 +633,7 @@ void unitl( Vector& x )
     Flattens a matrix to a vector
 
     The matrix is read from front, i.e. rows are looped first. 
-    In Matlab this equals x=X(:):
+    In Matlab this equals x=X(:).
 
     \param[out] x   The vector. Should already be sized
     \param[in]  X   The matrix.
@@ -664,7 +664,7 @@ void flat( VectorView x, ConstMatrixView X )
     Converts Tensor3 to a vector
 
     The matrix is read from front, i.e. pages are looped first, followed by rows. 
-    In Matlab this equals x=X(:):
+    In Matlab this equals x=X(:).
 
     \param[out] x   The vector. Should already be sized
     \param[in]  X   The tensor.
@@ -687,6 +687,71 @@ void flat( VectorView x, ConstTensor3View X )
               x[i] = X(p,r,c);
               i += 1;
             }
+        }
+    }
+}
+
+
+
+//! reshape
+/*!
+    Converts vector to Tensor3
+
+    The tensor is filled from front, i.e. pages are looped first, followed by rows. 
+    In Matlab this equals X = reshape( x, [ X.npages(), X.nrows(), X.ncols() ]
+
+    \param[out] X   The tensor. Should already be sized
+    \param[in]  x   The vector.
+
+    \author Patrick Eriksson
+    \date   2015-09-10
+*/
+void reshape( Tensor3View X, ConstVectorView x )
+{
+  assert( x.nelem() == X.nrows()*X.ncols()*X.npages() );
+
+  Index i = 0; 
+
+  for( Index p=0; p<X.npages(); p++ )
+    {
+      for( Index c=0; c<X.ncols(); c++ )
+        {
+          for( Index r=0; r<X.nrows(); r++ )
+            { 
+              X(p,r,c) = x[i];
+              i += 1;
+            }
+        }
+    }
+}
+
+
+
+//! reshape
+/*!
+    Converts vector to Matrix
+
+    The matrix is filled from front, i.e. rows are looped first, followed by cols. 
+    In Matlab this equals X = reshape( x, [ X.nrows(), X.ncols() ]
+
+    \param[out] X   The matrix. Should already be sized
+    \param[in]  x   The vector.
+
+    \author Patrick Eriksson
+    \date   2015-09-10
+*/
+void reshape( MatrixView X, ConstVectorView x )
+{
+  assert( x.nelem() == X.nrows()*X.ncols() );
+
+  Index i = 0; 
+
+  for( Index c=0; c<X.ncols(); c++ )
+    {
+      for( Index r=0; r<X.nrows(); r++ )
+        { 
+          X(r,c) = x[i];
+          i += 1;
         }
     }
 }

@@ -292,13 +292,12 @@ void setup_xa(
   ===========================================================================*/
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-/*
 void x2arts_std(
          Tensor4&                    vmr_field,
          Tensor3&                    t_field,
-   const Vector&                     x,
    const ArrayOfRetrievalQuantity&   jq,
    const ArrayOfArrayOfIndex&        ji,
+   const Vector&                     x,
    const Index&                      atmosphere_dim,
    const Vector&                     p_grid,
    const Vector&                     lat_grid,
@@ -342,13 +341,13 @@ void x2arts_std(
           if( jq[q].Mode() == "rel" )
             {
               // Find multiplicate factor for elements in vmr_field
-              const Tensor3 fac_x( n_p, n_lat, n_lon );
-              reshape( fac_x, x[ind], fac_x.npages(), fac_x.nrows(), fac_x.ncols() ); 
-              const Tensor3 factor( vmr_field.npages(), vmr_field.nrows(),
-                                                        vmr_field.ncols() );
+              Tensor3 fac_x( n_p, n_lat, n_lon );
+              reshape( fac_x, x[ind] ); 
+              Tensor3 factor( vmr_field.npages(), vmr_field.nrows(),
+                                                  vmr_field.ncols() );
               regrid_atmfield_by_gp( factor, atmosphere_dim, fac_x,
                                      gp_p, gp_lat, gp_lon );
-              for( Index i3=0; i3<=vmr__field.ncols(); i3++ )
+              for( Index i3=0; i3<=vmr_field.ncols(); i3++ )
                 { for( Index i2=0; i2<=vmr_field.nrows(); i2++ )
                     { for( Index i1=0; i1<=vmr_field.npages(); i1++ )
                         { 
@@ -358,25 +357,24 @@ void x2arts_std(
           else if( jq[q].Mode() == "vmr" )
             {
               // Here we just need to map back state x
-              const Tensor3 vmr_x( n_p, n_lat, n_lon );
-              reshape( vmr_x, x[ind], vmr_x.npages(), vmr_x.nrows(), vmr_x.ncols() ); 
-              const Tensor3 vmr( vmr_field.npages(), vmr_field.nrows(),
-                                                     vmr_field.ncols() );
+              Tensor3 vmr_x( n_p, n_lat, n_lon );
+              reshape( vmr_x, x[ind] ); 
+              Tensor3 vmr( vmr_field.npages(), vmr_field.nrows(),
+                                               vmr_field.ncols() );
               regrid_atmfield_by_gp( vmr, atmosphere_dim, vmr_x,
                                      gp_p, gp_lat, gp_lon );
               vmr_field(isp,joker,joker,joker) = vmr;
             }
           else if( jq[q].Mode() == "nd" )
             {
-              const Tensor3 nd_x( n_p, n_lat, n_lon );
-              reshape( nd_x, x[ind], nd_x.npages(), nd_x.nrows(), nd_x.ncols() ); 
-              const Tensor3 nd( vmr_field.npages(), vmr_field.nrows(),
-                                                    vmr_field.ncols() );
+              Tensor3 nd_x( n_p, n_lat, n_lon );
+              reshape( nd_x, x[ind] ); 
+              Tensor3 nd( vmr_field.npages(), vmr_field.nrows(),
+                                              vmr_field.ncols() );
               regrid_atmfield_by_gp( nd, atmosphere_dim, nd_x,
                                      gp_p, gp_lat, gp_lon );
               // Calculate vmr for species (=nd/nd_tot)
-              Index i = 0;
-              for( Index i3=0; i3<=vmr__field.ncols(); i3++ )
+              for( Index i3=0; i3<=vmr_field.ncols(); i3++ )
                 { for( Index i2=0; i2<=vmr_field.nrows(); i2++ )
                     { for( Index i1=0; i1<=vmr_field.npages(); i1++ )
                         { 
@@ -396,19 +394,22 @@ void x2arts_std(
         }
     }  
 }
-*/
+
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void oem(
+         Workspace&                  ws,
          Vector&                     x,
          Vector&                     xa,
          Vector&                     yf,
+         Matrix&                     jacobian,
    const Vector&                     y,
    const Matrix&                     Sx,
    const Matrix&                     So,
    const ArrayOfRetrievalQuantity&   jacobian_quantities,
    const ArrayOfArrayOfIndex&        jacobian_indices,
+   const Agenda&                     inversion_iterate_agenda,
    const Index&                      atmosphere_dim,
    const Vector&                     p_grid,
    const Vector&                     lat_grid,
@@ -418,7 +419,7 @@ void oem(
    const ArrayOfArrayOfSpeciesTag&   abs_species,
    const String&                     method,
    const Numeric&                    start_ga,
-   const Verbosity&)
+   const Verbosity& )
 {
   // Main sizes
   const Index n = Sx.nrows();
@@ -453,15 +454,16 @@ void oem(
     throw runtime_error( "Only 1D is handled so far." );
     
 
-  // Create xa
+  // Create xa and init x
   setup_xa( xa, jacobian_quantities, jacobian_indices, atmosphere_dim,
             p_grid, lat_grid, lon_grid, t_field, vmr_field, abs_species );
+  //
+  x = xa;
 
   // Calculate spectrum and Jacobian for a priori state
-  
+  inversion_iterate_agendaExecute( ws, yf, jacobian, jacobian_quantities,
+                                   jacobian_indices, x, vmr_field, t_field, 
+                                   inversion_iterate_agenda );
 
-  // So far dummy x and yf
-  x = xa;
-  yf.resize(m);
-  yf = 0;
+
 }
