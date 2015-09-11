@@ -1,6 +1,14 @@
+2015-09-11  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-307
+
+	* src/m_oem.cc: Some minor polishing.
+
+	* src/workspace.cc (define_wsv_data): Fixed spelling for dxdy.
+
 2015-09-10  Simon Pfreundschuh <simonpf@chalmers.se>
 
-	* arts-2-3-305
+	* arts-2-3-306
 
 	* src/matpackI.* (ConstMatrixView::diagonal): Added function returning
 	ConstVectorView of matrix diagonal.

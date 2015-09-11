@@ -508,11 +508,8 @@ void oem(
       if( start_ga < 0 )
         throw runtime_error( "*start_ga must be >= 0." );
     }
+  //--- End of checks ---------------------------------------------------------------
 
-  // Temporary limitations
-  if( atmosphere_dim > 1 )
-    throw runtime_error( "Only 1D is handled so far." );
-    
 
   // Create xa and init x
   setup_xa( xa, jacobian_quantities, jacobian_indices, atmosphere_dim,

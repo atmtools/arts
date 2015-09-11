@@ -1452,9 +1452,9 @@ void Workspace::define_wsv_data()
     ( NAME( "dxdy" ),
       DESCRIPTION
       (
-       "Contribution functyion (or gain) matrix.\n"
+       "Contribution function (or gain) matrix.\n"
        "\n"
-       "This matrix is the particla derivative of the retrieved state vector\n"
+       "This matrix is the partial derivative of the retrieved state vector\n"
        "with respect to the measurement vector (*y*).\n"
        "\n"
        "Usage: Used and set by inversion methods. \n"
