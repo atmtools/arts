@@ -119,6 +119,8 @@ arts_test_run_ctlfile(slow instruments/mhs/TestMHS.arts)
 
 arts_test_run_ctlfile(slow instruments/hirs/TestHIRS.arts)
 
+arts_test_run_ctlfile(slow instruments/metmm/TestMetMM.arts)
+
 #arts_test_run_ctlfile(slow instruments/avhrr/TestAVHRR.arts)
 
 if (ARTS_XML_DATA_DIR)

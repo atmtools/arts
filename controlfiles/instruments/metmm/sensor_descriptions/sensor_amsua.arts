@@ -1,112 +1,181 @@
 #DEFINITIONS:  -*-sh-*-
 
-# ARTS sensor description for AMSUA simulations
+# ARTS sensor description for AMSU-A simulations
 #
-# The following variables are set:
-#
-#    antenna_dlos
-#    met_mm_backend
-#    met_mm_polarisation
-#    met_mm_freq_number
-#    met_mm_antenna
-
-Arts2 {
+# This expects the following workspace variables to exist and to be set:
+# 
+# channels    (ArrayOfIndex) Which channels you want.
+#                            Note that this array uses zero-based ARTS
+#                            indexing. It can be set to [-1] to select all
+#                            channels.
+# viewing_angles (ArrayOfIndex) Which views you want.
+# met_mm_accuracy (ArrayOfIndex) 
 
 # Sensor characteristics based on KLM User's Guide at
 # http://www.ncdc.noaa.gov/oa/pod-guide/ncdc/docs/klm/html/c3/sec3-3.htm
 
-
 # Viewing angles
 # There are 15 different angles, corresponding to one side of the AMSU-A scan.
-MatrixSet(
-        antenna_dlos,
-        [
-        -48.330000; #0 (off-nadir)
-        -44.996897; #1
-        -41.663793; #2
-        -38.330690; #3
-        -34.997586; #4
-        -31.664483; #5
-        -28.331379; #6
-        -24.998276; #7
-        -21.665172; #8
-        -18.332069; #9
-        -14.998966; #10
-        -11.665862; #11
-         -8.332759; #12
-         -4.999655; #13
-         -1.666552  #14 (nadir)
-        ] )
+Arts2{
+    MatrixSet(
+            antenna_dlos,
+            [
+            -48.330000; #0 (off-nadir)
+            -44.996897; #1
+            -41.663793; #2
+            -38.330690; #3
+            -34.997586; #4
+            -31.664483; #5
+            -28.331379; #6
+            -24.998276; #7
+            -21.665172; #8
+            -18.332069; #9
+            -14.998966; #10
+            -11.665862; #11
+             -8.332759; #12
+             -4.999655; #13
+             -1.666552  #14 (nadir)
+            ] )
+    
+    # Sensor response setup
+    # ---
+    
+    MatrixSet(
+            met_mm_backend,
+            # all frequencies are in Hz 
+            # CenterFreq,   Offset1, Offset2, Bandwidth; #ARTS channel index
+            #                                                (Instrument channel)
+            [
+            23.8e9,           0.0e6,  0.0e6,  270e6;     #0  (1)
+            31.4e9,           0.0e6,  0.0e6,  180e6;     #1  (2)
+            50.3e9,           0.0e6,  0.0e6,  180e6;     #2  (3)
+            52.8e9,           0.0e6,  0.0e6,  400e6;     #3  (4)
+            53.596115e9,    115.0e6,  0.0e6,  170e6;     #4  (5)
+            54.400e9,         0.0e6,  0.0e6,  400e6;     #5  (6)
+            54.940e9,         0.0e6,  0.0e6,  400e6;     #6  (7)
+            55.50e9,          0.0e6,  0.0e6,  330e6;     #7  (8)
+            57.290344e9,      0.0e6,  0.0e6,  330e6;     #8  (9)
+            57.290344e9,    217.0e6,  0.0e6,   78e6;     #9  (10)
+            57.290344e9,    322.2e6, 48.0e6,   36e6;     #10 (11)
+            57.290344e9,    322.2e6, 22.0e6,   16e6;     #11 (12)
+            57.290344e9,    322.2e6, 10.0e6,    8e6;     #12 (13)
+            57.290344e9,    322.2e6,  4.5e6,    3e6;     #13 (14)
+            89.0e9,           0.0e9,  0.0e6, 2000e6      #14 (15)
+            ] )
+    
+    ArrayOfStringSet(
+            met_mm_polarisation,
+            [
+            "AMSU-V", #0  (1)
+            "AMSU-V", #1  (2)
+            "AMSU-V", #2  (3)
+            "AMSU-V", #3  (4)
+            "AMSU-H", #4  (5)
+            "AMSU-H", #5  (6)
+            "AMSU-V", #6  (7)
+            "AMSU-H", #7  (8)
+            "AMSU-H", #8  (9)
+            "AMSU-H", #9  (10)
+            "AMSU-H", #10 (11)
+            "AMSU-H", #11 (12)
+            "AMSU-H", #12 (13)
+            "AMSU-H", #13 (14)
+            "AMSU-V"  #14 (15)
+            ] )
+    
+    # Antenna is not supported for now
+    VectorSet( met_mm_antenna, [] )
 
+    # How many monochromatic frequencies to simulate the channel
+    ArrayOfArrayOfIndexCreate( met_mm_available_accuracies )
 
-# Sensor response setup
-# ---
-MatrixSet(
-        met_mm_backend,
-	# all frequencies are in Hz 
-        # CenterFreq,   Offset1, Offset2, Bandwidth; #ARTS channel index
-        #                                                (Instrument channel)
-        [
-        23.8e9,           0.0e6,  0.0e6,  270e6;     #0  (1)
-        31.4e9,           0.0e6,  0.0e6,  180e6;     #1  (2)
-        50.3e9,           0.0e6,  0.0e6,  180e6;     #2  (3)
-        52.8e9,           0.0e6,  0.0e6,  400e6;     #3  (4)
-        53.596115e9,    115.0e6,  0.0e6,  170e6;     #4  (5)
-        54.400e9,         0.0e6,  0.0e6,  400e6;     #5  (6)
-        54.940e9,         0.0e6,  0.0e6,  400e6;     #6  (7)
-        55.50e9,          0.0e6,  0.0e6,  330e6;     #7  (8)
-        57.290344e9,      0.0e6,  0.0e6,  330e6;     #8  (9)
-        57.290344e9,    217.0e6,  0.0e6,   78e6;     #9  (10)
-        57.290344e9,    322.2e6, 48.0e6,   36e6;     #10 (11)
-        57.290344e9,    322.2e6, 22.0e6,   16e6;     #11 (12)
-        57.290344e9,    322.2e6, 10.0e6,    8e6;     #12 (13)
-        57.290344e9,    322.2e6,  4.5e6,    3e6;     #13 (14)
-        89.0e9,           0.0e9,  0.0e6, 2000e6      #14 (15)
-        ] )
+    ArrayOfIndexCreate( freq_number_tmp )
 
-ArrayOfStringSet(
-        met_mm_polarisation,
-        [
-        "AMSU-V", #0  (1)
-        "AMSU-V", #1  (2)
-        "AMSU-V", #2  (3)
-        "AMSU-V", #3  (4)
-        "AMSU-H", #4  (5)
-        "AMSU-H", #5  (6)
-        "AMSU-V", #6  (7)
-        "AMSU-H", #7  (8)
-        "AMSU-H", #8  (9)
-        "AMSU-H", #9  (10)
-        "AMSU-H", #10 (11)
-        "AMSU-H", #11 (12)
-        "AMSU-H", #12 (13)
-        "AMSU-H", #13 (14)
-        "AMSU-V"  #14 (15)
-        ] )
+    # Number of frequencies for first accuracy (fast)
+    ArrayOfIndexSet(freq_number_tmp,
+    [1, #0 (1)
+    1,  #1 (2)
+    1,  #2 (3)
+    1,  #3 (4)
+    1,  #4 (5)
+    1,  #5 (6)
+    1,  #6 (7)
+    1,  #7 (8)
+    1,  #8 (9)
+    1,  #9 (10)
+    1,  #10 (11)
+    1,  #11 (12)
+    1,  #12 (13)
+    1,  #13 (14)
+    1   #14 (15)
+    ] )
 
-# Antenna is not supported for now
-VectorSet( met_mm_antenna, [] )
+Append(met_mm_available_accuracies, freq_number_tmp)
+
+# Number of frequencies for second accuracy (normal)
+ArrayOfIndexSet(freq_number_tmp,
+   [1, #0 (1)
+    1,  #1 (2)
+    1,  #2 (3)
+    3,  #3 (4)
+    3,  #4 (5)
+    5,  #5 (6)
+    5,  #6 (7)
+    4,  #7 (8)
+    4,  #8 (9)
+    3,  #9 (10)
+    3,  #10 (11)
+    3,  #11 (12)
+    4,  #12 (13)
+    2,  #13 (14)
+    1   #14 (15)
+    ] )
+Append(met_mm_available_accuracies, freq_number_tmp)
+
+# Number of frequencies for third accuracy (high)
+ArrayOfIndexSet(freq_number_tmp,
+   [1,   #0 (1)
+    1,   #1 (2)
+    1,   #2 (3)
+    8,   #3 (4)
+    8,   #4 (5)
+    16,  #5 (6)
+    15,  #6 (7)
+    11,  #7 (8)
+    13,  #8 (9)
+    9,   #9 (10)
+    9,   #10 (11)
+    9,   #11 (12)
+    11,  #12 (13)
+    6,   #13 (14)
+    1    #14 (15)
+    ] )
+Append(met_mm_available_accuracies, freq_number_tmp)
+
+# Number of frequencies for fourth accuracy (reference)
+ArrayOfIndexSet(freq_number_tmp,
+   [6,   #0 (1)
+    1,   #1 (2)
+    3,   #2 (3)
+    23,  #3 (4)
+    24,  #4 (5)
+    44,  #5 (6)
+    43,  #6 (7)
+    34,  #7 (8)
+    38,  #8 (9)
+    26,  #9 (10)
+    26,  #10 (11)
+    27,  #11 (12)
+    31,  #12 (13)
+    17,  #13 (14)
+    4    #14 (15)
+    ] )
+Append(met_mm_available_accuracies, freq_number_tmp)
+
+Delete(freq_number_tmp)
 
 ArrayOfIndexCreate( met_mm_freq_number )
-ArrayOfIndexSet(
-        met_mm_freq_number,
-        [
-        12, #0  (1)
-        12, #1  (2)
-        12, #2  (3)
-        12, #3  (4)
-        12, #4  (5)
-        12, #5  (6)
-        12, #6  (7)
-        12, #7  (8)
-        12, #8  (9)
-        12, #9  (10)
-        12, #10 (11)
-        12, #11 (12)
-        12, #12 (13)
-        12, #13 (14)
-        12  #14 (15)
-        ] )
+Extract(met_mm_freq_number, met_mm_available_accuracies, met_mm_accuracy)
 
 VectorCreate( met_mm_freq_spacing )
 VectorSetConstant( met_mm_freq_spacing, 15, 1e9 )

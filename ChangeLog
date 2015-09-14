@@ -1,3 +1,35 @@
+2015-09-14  Alex Bobryshev <oleksandr.bobryshev@uni-hamburg.de>
+
+	* arts-2-3-308
+
+	* Setup for microwave sensors (for now it is 
+	fully consistent with AMSU-A and AMSU-B sensors. Added switch-variable
+	met_mm_accuracy to select the number of monochromatic
+	calculations to simulate these sensors.
+
+	* controlfiles/CMakeLists.txt: Add TestMetMM to slow tests.
+
+	* controlfiles/instruments/metmm/TestMetMM.arts:  Main controlfile
+
+	* controlfiles/instuments/metmm/common_metmm.arts:
+
+	Common agendas for metmm sensors.
+
+	* controlfiles/instruments/metmm/abs_lines_metmm.xml.gz:
+
+	HITRAN2012 5 to 600 GHz for H20, O2, N2 and O3.
+
+	* controlfiles/instruments/metmm/ybatchREFERENCE.xml:
+
+	Reference file for AMSU-B outermost viewing angle for all channels
+	based on Garand profiles.
+
+	* controlfiles/instruments/metmm/sensor_descriptions/sensor_amsua.arts
+	* controlfiles/instruments/metmm/sensor_descriptions/sensor_amsub.arts:
+
+	Add matrix met_mm_available_accuracies, with selected number of 
+	frequencies per channel.
+
 2015-09-11  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-307

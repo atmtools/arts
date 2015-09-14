@@ -1,0 +1,44 @@
+###
+# Included by TestMetMM.arts
+    
+Arts2{  
+    output_file_formatSetZippedAscii
+        
+    # 1. General
+    # modify the maximum propagation step, from the default to 250 m :
+    NumericSet( ppath_lmax, 250 )
+    
+    # Agenda for scalar gas absorption calculation
+    Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
+
+    # Surface
+    Copy( surface_rtprop_agenda,
+    surface_rtprop_agenda__Specular_NoPol_ReflFix_SurfTFromt_surface )
+    
+    # (standard) emission calculation
+    Copy( iy_main_agenda, iy_main_agenda__Emission )
+    
+    # cosmic background radiation
+    Copy( iy_space_agenda, iy_space_agenda__CosmicBackground )
+    
+    # standard surface agenda (i.e., make use of surface_rtprop_agenda)
+    Copy( iy_surface_agenda, iy_surface_agenda__UseSurfaceRtprop )
+    
+    # Planck as blackbody radiation
+    Copy( blackbody_radiation_agenda, blackbody_radiation_agenda__Planck )
+    
+    # sensor-only path
+    Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
+    
+    # no refraction
+    Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
+
+    # 2. Absorption lookup table
+    abs_lookupSetupBatch
+    abs_xsec_agenda_checkedCalc
+    abs_lookupCalc
+    
+    # Set propmat_clearsky_agenda to use lookup table
+    Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__LookUpTable )
+    
+}

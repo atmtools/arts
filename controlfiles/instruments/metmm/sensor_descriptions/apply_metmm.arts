@@ -20,6 +20,6 @@ Select( met_mm_freq_number,  met_mm_freq_number,  channels )
 Select( met_mm_freq_spacing, met_mm_freq_spacing, channels )
 
 sensor_responseBackendMetMM( freq_spacing = met_mm_freq_spacing,
-		                      freq_number = met_mm_freq_number )
+		             freq_number = met_mm_freq_number )
 }
 

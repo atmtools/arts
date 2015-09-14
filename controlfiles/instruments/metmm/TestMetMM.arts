@@ -1,0 +1,140 @@
+Arts2 {
+
+INCLUDE "general/general.arts"
+INCLUDE "general/continua.arts"
+INCLUDE "general/agendas.arts"
+INCLUDE "general/planet_earth.arts"
+
+# Basic settings of simulation
+    AtmosphereSet1D
+    IndexSet( stokes_dim, 1 )
+    StringSet( iy_unit, "PlanckBT" )
+
+# Selecting the channels and viewing angles of sensor
+    ArrayOfIndexCreate(channels)
+    ArrayOfIndexCreate(viewing_angles)
+
+    ArrayOfIndexSet(channels, [-1])
+    #ArrayOfIndexSet(viewing_angles, [-1]) # Pick all viewing angles
+
+    # For testing, only calculate one viewing angle
+    ArrayOfIndexSet(viewing_angles, [0])
+
+# Definition of sensor position
+    MatrixSetConstant( sensor_pos, 1, 1, 850e3 )
+# Definition of sensor LOS (180 is Nadir looking direction of the sensor)
+    MatrixSetConstant( sensor_los, 1, 1, 180 )
+
+# This index selects the number of frequencies to be used
+# from the available accuracies. This is set by the user in the main controlfile
+# Must be documented here:
+# N  Accuracy   Speed
+# 0: fast 	    very-very fast
+# 1: normal	    fast
+# 2: high	    slow
+# 3: reference	extremely slow
+    IndexCreate(met_mm_accuracy)
+    IndexSet(met_mm_accuracy, 1)
+# ====================================================================
+
+# Spectroscopy
+    ArrayOfLineshapeSpecCreate( abs_lineshapeDefine )
+    abs_lineshapeDefine( abs_lineshapeDefine, "Voigt_Kuntz6", "VVH", 750e9 )
+    
+    abs_speciesSet( species=[ "H2O, H2O-SelfContCKDMT252, H2O-ForeignContCKDMT252",
+                              "O2, O2-CIAfunCKDMT100",
+                              "N2,  N2-CIAfunCKDMT252, N2-CIArotCKDMT252",
+                              "O3" ] )      
+
+    # Read HITRAN catalog:
+    #abs_linesReadFromHitran( abs_lines,
+    #                         "/scratch/uni/u237/data/catalogue/hitran/hitran2012_140407/HITRAN2012.par",
+    #                         5e9,
+    #                         600e9 )
+    ReadXML( abs_lines, "abs_lines_metmm.xml.gz" )
+    abs_lines_per_speciesCreateFromLines
+    #WriteXML( "zascii", abs_lines, "abs_lines_metmm.xml.gz" )
+
+
+# ====================================================================
+
+# Set surface reflectivity
+# Reflectivity = 0.4; emissivity = 0.6
+    VectorSetConstant( surface_scalar_reflectivity, 1, 0.4 )
+
+# Atmospheric profiles
+    ReadXML( batch_atm_fields_compact, "testdata/garand_profiles.xml.gz" )
+
+# add constant profiles for O2 and N2
+    batch_atm_fields_compactAddConstant( name="abs_species-O2", value=0.2095 )
+    batch_atm_fields_compactAddConstant( name="abs_species-N2", value=0.7808 )
+# ====================================================================
+
+# Sensor characteristics
+# Change the filename to switch sensors.
+    INCLUDE "sensor_descriptions/sensor_amsub.arts"
+
+    INCLUDE "sensor_descriptions/apply_metmm.arts"
+
+# Common microwave sensor settings
+    INCLUDE "common_metmm.arts"
+# ====================================================================
+
+# Setting the agenda for batch calculation 
+# Garand profiles have 42 different. We will make RT calculations for all of them.
+    AgendaSet( ybatch_calc_agenda ){
+  
+# Extract the atmospheric profiles for this case:
+    Extract(
+    atm_fields_compact, 
+    batch_atm_fields_compact, 
+    ybatch_index
+    )
+
+# Split up *atm_fields_compact* to
+# generate p_grid, t_field, z_field, vmr_field:
+    AtmFieldsFromCompact
+
+# Optionally set Jacobian parameters.
+    jacobianOff
+
+# No scattering
+    cloudboxOff
+
+# get some surface properties from corresponding atmospheric fields
+    Extract( z_surface, z_field, 0 )
+    Extract( t_surface, t_field, 0 )
+
+# Checks
+    atmfields_checkedCalc( bad_partition_functions_ok = 1 )
+    atmgeom_checkedCalc
+    cloudbox_checkedCalc
+    sensor_checkedCalc
+# This performs monochromatic RT calculation
+    yCalc
+}
+
+# How many simulations do we want to perform?
+# All atmospheres, or manually set the number (uncomment IndexSet line)
+    nelemGet( ybatch_n, batch_atm_fields_compact )
+    #IndexSet(ybatch_n, 1)
+# ====================================================================
+
+# Execute the batch calculations:
+# First check, then execute the batch RT calculations
+    propmat_clearsky_agenda_checkedCalc
+    ybatchCalc
+# ====================================================================
+
+# Store results
+    WriteXML( "ascii", ybatch )
+    WriteXML( "ascii", f_grid )
+    
+# Verify results
+ArrayOfVectorCreate( ybatch_ref )
+ReadXML( ybatch_ref, "ybatchREFERENCE.xml" )
+
+Compare( ybatch, ybatch_ref, 0.01,
+         "Total BT should be close to the reference values")
+
+}    
