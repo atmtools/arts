@@ -1,3 +1,10 @@
+2015-09-15 Simon Pfreundschuh <simonpf@chalmers.se>
+
+	* arts-2-3-309
+
+	* src/m_oem.cc Added wrapper class for agenda execution and
+	calls to OEM methods.
+
 2015-09-14  Alex Bobryshev <oleksandr.bobryshev@uni-hamburg.de>
 
 	* arts-2-3-308

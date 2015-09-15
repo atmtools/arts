@@ -47,6 +47,7 @@
 #include "auto_md.h"
 #include "math_funcs.h"
 #include "physics_funcs.h"
+#include "oem.h"
 
 extern const String ABSSPECIES_MAINTAG;
 extern const String TEMPERATURE_MAINTAG;
@@ -56,9 +57,88 @@ extern const String TEMPERATURE_MAINTAG;
   === Help functions 
   ===========================================================================*/
 
+//! Wrapper class for forward model.
+/*!
+  Wrapper class for the inversion_iterate_agendaExecute function to implement
+  the forward model interface used by the non-linear oem function in oem.cc.
+  The object is constructed with the pointers to the variables used as arguments
+  for the function and then simply forwards the calls made to
+  ForwardModel::evaluate() and ForwardModel::evaluate_jacobian() to
+  inversion_iterate_agendaExecute.
+
+ */
+class AgendaWrapper : public ForwardModel
+{
+    Workspace *ws;
+    Matrix *jacobian;
+    const ArrayOfRetrievalQuantity *jacobian_quantities;
+    const ArrayOfArrayOfIndex *jacobian_indices;
+    const Tensor4 *vmr_field;
+    const Tensor3 *t_field;
+    const Agenda *inversion_iterate_agenda;
+public:
+    AgendaWrapper( Workspace *ws_,
+                   Matrix *jacobian_,
+                   const ArrayOfRetrievalQuantity *jacobian_quantities_,
+                   const ArrayOfArrayOfIndex *jacobian_indices_,
+                   const Tensor4 *vmr_field_,
+                   const Tensor3 *t_field_,
+                   const Agenda* inversion_iterate_agenda_) :
+        ws( ws_ ), jacobian( jacobian_),
+        jacobian_quantities( jacobian_quantities_ ),
+        jacobian_indices( jacobian_indices_ ), vmr_field( vmr_field_ ),
+        t_field( t_field_ ), inversion_iterate_agenda( inversion_iterate_agenda_ )
+        {}
+
+//! Evaluate forward model and compute Jacobian.
+/*!
+
+  Forwards the call to evaluate_jacobian() and evaluate() that is made by
+  Gauss-Newton and Levenberg-Marquardt OEM methods using the variables pointed
+  to by the pointers provided to the constructor as arguments.
+
+  \param[out] y The measurement vector y = K(x) for the current state vector x
+  as computed by the forward model.
+  \param[out] J The Jacobian Ki=d/dx(K(x)) of the forward model.
+  \param[in] x The current state vector x.
+*/
+    void evaluate_jacobian( VectorView yi,
+                            MatrixView Ki,
+                            ConstVectorView xi )
+        {
+            inversion_iterate_agendaExecute( *ws,
+                                             dynamic_cast<Vector&>( yi ),
+                                             dynamic_cast<Matrix&>( Ki ),
+                                             1, *jacobian_quantities,
+                                             *jacobian_indices, xi,
+                                             *vmr_field, *t_field,
+                                             *inversion_iterate_agenda );
+        }
+
+//! Evaluate forward model.
+/*!
+
+  Forwards the call to evaluate that is made by Gauss-Newton and
+  Levenberg-Marquardt OEM methods to the function pointers provided.
+
+  \param[out] y The measurement vector y = K(x) for the current state vector x.
+  \param[in] x The current state vector x.
+*/
+    void evaluate( VectorView yi,
+                   ConstVectorView xi )
+        {
+            inversion_iterate_agendaExecute( *ws,
+                                             dynamic_cast<Vector&>( yi ),
+                                             *jacobian, 0,
+                                             *jacobian_quantities,
+                                             *jacobian_indices, xi,
+                                             *vmr_field, *t_field,
+                                             *inversion_iterate_agenda );
+        }
+};
 
 //! Determines grid positions for regridding of atmospheric fields to retrieval
-//  grids 
+//  grids
 /*!
   The grid positions arrays are sized inside the function. gp_lat is given
   length 0 for atmosphere_dim=1 etc.
@@ -503,12 +583,14 @@ void oem(
     throw runtime_error( "Valid options for *method* are \"nl\", \"gn\" and " 
                          "\"ml\"." );
   // Special checks for ML
-  if( method == "ml" )  
+  if( method == "ml" )
     {
       if( start_ga < 0 )
         throw runtime_error( "*start_ga must be >= 0." );
     }
   //--- End of checks ---------------------------------------------------------------
+
+
 
 
   // Create xa and init x
@@ -521,15 +603,36 @@ void oem(
   {
     // Use local version of jacobian_do, to prepare for that in some cases we
     // just want to calculate yf (but not jacobian).
-    Index j_do = jacobian_do;   
+    Index j_do = jacobian_do;
 
     inversion_iterate_agendaExecute( ws, yf, jacobian, j_do, jacobian_quantities,
                                      jacobian_indices, x, vmr_field, t_field, 
                                      inversion_iterate_agenda );
   }
 
-  // Make inversion ...
-  //
+  AgendaWrapper aw( &ws, &jacobian, &jacobian_quantities,
+                    &jacobian_indices, &vmr_field, &t_field,
+                    &inversion_iterate_agenda );
+
+  if (method == "li")
+  {
+      oem_linear( x, y, xa, jacobian, So, Sx, false );
+  }
+  else if (method == "gn")
+  {
+      oem_gauss_newton( x, y, xa, aw, So, Sx, 10e-5, 1000 );
+  }
+  else if (method == "lm")
+  {
+      Numeric gamma_max = 100.0;
+      Numeric gamma_scale_dec = 2.0;
+      Numeric gamma_scale_inc = 3.0;
+      Numeric gamma_threshold = 1.0;
+      oem_levenberg_marquardt( x, y, xa, aw, So, Sx, 10e-5, 1000,
+                               start_ga, gamma_scale_dec, gamma_scale_inc,
+                               gamma_max, gamma_threshold );
+  }
+
   // So far we just create a dummy dxdy, matching zero measurement response
   dxdy.resize(n,m); 
   dxdy = 0;
