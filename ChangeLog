@@ -1,3 +1,11 @@
+2015-09-17  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-310
+
+	* src/m_oem.cc (oem): Some changes around the gin arguments. Most
+	importantly, introduced yf_linear to trigger that the actual yf is
+	calculated.
+
 2015-09-15 Simon Pfreundschuh <simonpf@chalmers.se>
 
 	* arts-2-3-309

@@ -8861,12 +8861,26 @@ void define_md_data_raw()
          "\n"
          "Work in progress ...\n"
          "\n"
-         "The following types of iteration methods can be selected:\n"
-         "  \"li\": A linear problem is assumed and no iterations are performed.\n"
-         "  \"gn\": Gauss-Newton.\n"
-         "  \"ml\": Marquardt-Levenberg.\n"
+         "Description of the various local settings:\n"
          "\n"
-         "For Marquardt-Levenberg ...\n"
+         "*method*: \n"
+         "  \"li\": A linear problem is assumed and no iterations are performed.\n"
+         "  \"gn\": Non-linear, with Gauss-Newton iteration scheme.\n"
+         "  \"ml\": Non-linear, with Marquardt-Levenberg (ML) iteration scheme.\n"
+         "\n"
+         "*yf_linear*: \n"
+         "  In linear inversions, a fit is assumed after one iteration and\n"
+         "  *yf* is not calculated automatically. With this flag set to 1, the\n"
+         "  actual *yf* is calculated, as well as that the *jacobian* is re-\n"
+         "  calculated. With the flag set to 0, the *yf* and *jacobian* correspond\n"
+         "  to the a priori state.\n"
+         "\n"
+         "*ga_start*:\n"
+         "   Start value of gamma for ML iterations.\n"
+         "\n"
+         "*clear matrices*: \n"
+         "   With this flag set to 1, *jacobian* and *dxdy* are returned as empty\n"
+         "   matrices.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "x", "xa", "yf", "jacobian", "dxdy" ),
@@ -8878,13 +8892,14 @@ void define_md_data_raw()
             "inversion_iterate_agenda",
             "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "t_field", 
             "vmr_field", "abs_species" ),
-        GIN( "method", "start_ga", "empty_out_matrices" ),
-        GIN_TYPE( "String", "Numeric", "Index" ),
-        GIN_DEFAULT( "gn", "-1", "0" ),
-        GIN_DESC( "Iteration method.", 
-                  "Start value of ga for ML.",
-                  "Set to 1 if you don't want/need *jacobian* and *dydx*. That "
-                  "is, these matrices are then returned as empty to save memory." )
+        GIN( "method", "yf_linear", "start_ga", "clear_matrices" ),
+        GIN_TYPE( "String", "Index", "Numeric", "Index" ),
+        GIN_DEFAULT( NODEF, "1", "-1", "0" ),
+        GIN_DESC( "Iteration method. See further above.", 
+                  "Calculation of *yf* in the linear case. See further above.",
+                  "Start value of ga for ML. See further above.",
+                  "Set to 1 if you don't need *jacobian* and *dydx*. See "
+                  "further above." )
         ));
 
   md_data_raw.push_back

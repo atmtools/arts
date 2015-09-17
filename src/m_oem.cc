@@ -553,8 +553,9 @@ void oem(
    const Tensor4&                    vmr_field,
    const ArrayOfArrayOfSpeciesTag&   abs_species,
    const String&                     method,
+   const Index&                      yf_linear,
    const Numeric&                    start_ga,
-   const Index&                      empty_out_matrices,
+   const Index&                      clear_matrices,
    const Verbosity& )
 {
   // Main sizes
@@ -600,15 +601,9 @@ void oem(
   x = xa;
 
   // Calculate spectrum and Jacobian for a priori state
-  {
-    // Use local version of jacobian_do, to prepare for that in some cases we
-    // just want to calculate yf (but not jacobian).
-    Index j_do = jacobian_do;
-
-    inversion_iterate_agendaExecute( ws, yf, jacobian, j_do, jacobian_quantities,
-                                     jacobian_indices, x, vmr_field, t_field, 
-                                     inversion_iterate_agenda );
-  }
+  inversion_iterate_agendaExecute( ws, yf, jacobian, 1, jacobian_quantities,
+                                   jacobian_indices, x, vmr_field, t_field, 
+                                   inversion_iterate_agenda );
 
   AgendaWrapper aw( &ws, &jacobian, &jacobian_quantities,
                     &jacobian_indices, &vmr_field, &t_field,
@@ -617,11 +612,20 @@ void oem(
   if (method == "li")
   {
       oem_linear( x, y, xa, jacobian, So, Sx, false );
+
+      if( yf_linear )
+      {
+        inversion_iterate_agendaExecute( ws, yf, jacobian, 1, jacobian_quantities,
+                                         jacobian_indices, x, vmr_field, t_field, 
+                                         inversion_iterate_agenda );
+      }
   }
+
   else if (method == "gn")
   {
       oem_gauss_newton( x, y, xa, aw, So, Sx, 10e-5, 1000 );
   }
+
   else if (method == "lm")
   {
       Numeric gamma_max = 100.0;
@@ -639,7 +643,7 @@ void oem(
 
 
   // Shall empty jacobian and dxdy be returned
-  if( empty_out_matrices )
+  if( clear_matrices )
     {
       jacobian.resize(0,0); 
       dxdy.resize(0,0); 
