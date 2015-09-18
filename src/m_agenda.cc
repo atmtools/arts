@@ -24,6 +24,7 @@
 */
 
 #include <map>
+#include <algorithm>
 #include "agenda_class.h"
 #include "messages.h"
 #include "wsv_aux.h"
@@ -52,8 +53,14 @@ void AgendaExecute(Workspace& ws,
     // Duplicate input-only arguments of the agenda as they might be
     // changed inside the agenda.
     const ArrayOfIndex& ain = agr.In();
-    for (ArrayOfIndex::const_iterator it = ain.begin ();
-         it != ain.end (); it++)
+    const ArrayOfIndex& aout = agr.Out();
+    set<Index> in_only;
+    set_difference(ain.begin(), ain.end(),
+                   aout.begin(), aout.end(),
+                   insert_iterator< set<Index> >(in_only,
+                                                 in_only.begin()));
+    for (set<Index>::const_iterator it = in_only.begin ();
+         it != in_only.end (); it++)
     { ws.duplicate (*it); }
 
     const ArrayOfIndex& outputs_to_push = this_agenda.get_output2push();
@@ -92,8 +99,8 @@ void AgendaExecute(Workspace& ws,
          it != outputs_to_dup.end (); it++)
     { ws.pop_free (*it); }
 
-    for (ArrayOfIndex::const_iterator it = ain.begin ();
-         it != ain.end (); it++)
+    for (set<Index>::const_iterator it = in_only.begin ();
+         it != in_only.end (); it++)
     { ws.pop_free (*it); }
 
     if (agenda_failed) throw runtime_error (agenda_error_msg);
