@@ -1,3 +1,17 @@
+2015-09-18  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-311
+
+	* src/m_agenda.cc (AgendaExecute):
+
+	Fix bug in scoping for WSVs that are defined as input of the agenda but
+	changed by WSMs inside it. Their new values wrongly leaked into the
+	caller's scope. Reported by Patrick.
+
+	* controlfiles/artscomponents/agendas/TestAgendaExecute.arts:
+
+	Add check for above case.
+
 2015-09-17  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-310

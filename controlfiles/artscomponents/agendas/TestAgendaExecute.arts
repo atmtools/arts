@@ -9,10 +9,11 @@ AgendaSet( test_agenda ){
 AgendaSet( g0_agenda ){
     Ignore(lat)
     Ignore(lon)
+    NumericSet(lat, -1)
     NumericSet(g0, 20.)
 }
 
-Touch(lat)
+NumericSet(lat, 0)
 Touch(lon)
 
 NumericCreate(ref)
@@ -35,6 +36,10 @@ Compare(g0, ref, 0., "Error in Agenda Scoping")
 AgendaExecuteExclusive( g0_agenda )
 NumericSet(ref, 20.)
 Compare(g0, ref, 0., "Error in Agenda Scoping")
+
+AgendaExecuteExclusive( g0_agenda )
+NumericSet(ref, 0)
+Compare(lat, ref, 0., "Error in Agenda Scoping")
 
 }
 

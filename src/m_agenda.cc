@@ -29,6 +29,7 @@
 #include "wsv_aux.h"
 #include "agenda_record.h"
 #include "workspace_ng.h"
+#include "global_data.h"
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -40,7 +41,20 @@ void AgendaExecute(Workspace& ws,
     CREATE_OUT3;
     out3 << "  Manual agenda execution\n";
 
+    using global_data::AgendaMap;
+    using global_data::agenda_data;
+
     assert(this_agenda.checked());
+
+    const AgRecord& agr =
+    agenda_data[AgendaMap.find (this_agenda.name ())->second];
+
+    // Duplicate input-only arguments of the agenda as they might be
+    // changed inside the agenda.
+    const ArrayOfIndex& ain = agr.In();
+    for (ArrayOfIndex::const_iterator it = ain.begin ();
+         it != ain.end (); it++)
+    { ws.duplicate (*it); }
 
     const ArrayOfIndex& outputs_to_push = this_agenda.get_output2push();
     const ArrayOfIndex& outputs_to_dup = this_agenda.get_output2dup();
@@ -76,6 +90,10 @@ void AgendaExecute(Workspace& ws,
 
     for (ArrayOfIndex::const_iterator it = outputs_to_dup.begin ();
          it != outputs_to_dup.end (); it++)
+    { ws.pop_free (*it); }
+
+    for (ArrayOfIndex::const_iterator it = ain.begin ();
+         it != ain.end (); it++)
     { ws.pop_free (*it); }
 
     if (agenda_failed) throw runtime_error (agenda_error_msg);
