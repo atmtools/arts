@@ -106,7 +106,7 @@ public:
                             MatrixView Ki,
                             ConstVectorView xi )
         {
-            inversion_iterate_agendaExecute( *ws,
+            inversion_iterate_agenda_oldExecute( *ws,
                                              dynamic_cast<Vector&>( yi ),
                                              dynamic_cast<Matrix&>( Ki ),
                                              1, *jacobian_quantities,
@@ -127,7 +127,7 @@ public:
     void evaluate( VectorView yi,
                    ConstVectorView xi )
         {
-            inversion_iterate_agendaExecute( *ws,
+            inversion_iterate_agenda_oldExecute( *ws,
                                              dynamic_cast<Vector&>( yi ),
                                              *jacobian, 0,
                                              *jacobian_quantities,
@@ -545,6 +545,7 @@ void oem(
    const ArrayOfRetrievalQuantity&   jacobian_quantities,
    const ArrayOfArrayOfIndex&        jacobian_indices,
    const Agenda&                     inversion_iterate_agenda,
+   const Agenda&                     inversion_iterate_agenda_old,
    const Index&                      atmosphere_dim,
    const Vector&                     p_grid,
    const Vector&                     lat_grid,
@@ -601,13 +602,12 @@ void oem(
   x = xa;
 
   // Calculate spectrum and Jacobian for a priori state
-  inversion_iterate_agendaExecute( ws, yf, jacobian, 1, jacobian_quantities,
-                                   jacobian_indices, x, vmr_field, t_field, 
+  inversion_iterate_agendaExecute( ws, yf, jacobian, x, 1,
                                    inversion_iterate_agenda );
 
   AgendaWrapper aw( &ws, &jacobian, &jacobian_quantities,
                     &jacobian_indices, &vmr_field, &t_field,
-                    &inversion_iterate_agenda );
+                    &inversion_iterate_agenda_old );
 
   if (method == "li")
   {
@@ -615,8 +615,7 @@ void oem(
 
       if( yf_linear )
       {
-        inversion_iterate_agendaExecute( ws, yf, jacobian, 1, jacobian_quantities,
-                                         jacobian_indices, x, vmr_field, t_field, 
+        inversion_iterate_agendaExecute( ws, yf, jacobian, x, 1,
                                          inversion_iterate_agenda );
       }
   }

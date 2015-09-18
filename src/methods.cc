@@ -8889,7 +8889,7 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "y", "covmat_sx", "covmat_so", 
             "jacobian_do", "jacobian_quantities", "jacobian_indices", 
-            "inversion_iterate_agenda",
+            "inversion_iterate_agenda", "inversion_iterate_agenda_old",
             "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "t_field", 
             "vmr_field", "abs_species" ),
         GIN( "method", "yf_linear", "start_ga", "clear_matrices" ),
