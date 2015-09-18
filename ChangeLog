@@ -1,5 +1,15 @@
 2015-09-18  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-3-314
+
+	* controlfiles/instruments/amsu/amsub_metmm.arts:
+
+	Fix testcase TestAMSUB_MetMM by adding met_mm_accuracy and setting it
+	to high (2). This folder should be removed once the TestMetMM cases are
+	settled.
+
+2015-09-18  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-3-313
 
 	* src/m_agenda.cc (AgendaExecute):
