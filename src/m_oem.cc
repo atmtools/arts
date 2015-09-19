@@ -611,7 +611,7 @@ void oem(
 
   if (method == "li")
   {
-      oem_linear( x, y, xa, jacobian, So, Sx, false );
+      oem_linear_mform( x, y, yf, xa, jacobian, So, Sx, dxdy );
 
       if( yf_linear )
       {
@@ -622,7 +622,8 @@ void oem(
 
   else if (method == "gn")
   {
-      oem_gauss_newton( x, y, xa, aw, So, Sx, 10e-5, 1000 );
+      oem_gauss_newton( x, y, yf, xa, aw, So, Sx, jacobian,
+                        dxdy, 10e-5, 1000, true );
   }
 
   else if (method == "lm")
@@ -631,9 +632,10 @@ void oem(
       Numeric gamma_scale_dec = 2.0;
       Numeric gamma_scale_inc = 3.0;
       Numeric gamma_threshold = 1.0;
-      oem_levenberg_marquardt( x, y, xa, aw, So, Sx, 10e-5, 1000,
-                               start_ga, gamma_scale_dec, gamma_scale_inc,
-                               gamma_max, gamma_threshold );
+      oem_levenberg_marquardt( x, y, yf, xa, aw, So, Sx, jacobian, dxdy,
+                               10e-5, 1000, start_ga, gamma_scale_dec,
+                               gamma_scale_inc, gamma_max, gamma_threshold,
+                               true );
   }
 
   // So far we just create a dummy dxdy, matching zero measurement response

@@ -7,37 +7,49 @@
 */
 
 #include "arts.h"
+#include <iostream>
 #include "lin_alg.h"
-#include "oem.h"
 #include "stdlib.h"
 #include "math.h"
+#include "oem.h"
 
-//! Linear OEM.
+using std::ostream;
+using std::endl;
+using std::setw;
+using std::scientific;
+using std::fixed;
+
+//! Linear OEM, n-form.
 /*!
 
 Computes the inverse of a linear forward model by computing the MAP
 solution as described in Rodgers, Inverse Methods for Atmospheric Sounding,
-p. 67. In particular, the m-form (eq. (4.6)) is used, i.e. the inversion is
-performed for a m times m matrix.
+p. 67. This function uses the n-form (eq. (4.3)) which requires the solution
+of a linear system of equations of size n-times-n.
 
-For the execution a n times m matrix, 2 m times matrices and two vectors with
-m and n elements respectively are allocated. The given Matrix and Vector views
-may not overlap.
+Requires the inverses of the covariance matrices for the state and measurement
+vector to be provided as arguments.
+
+For the execution two n-times-m matrices, 2 n-times-n matrices and two vectors
+with m and n elements, respectively, are allocated. The given Matrix and Vector
+views may not overlap.
 
   \param[out] x The optimal, estimated state vector consisting of n elements.
   \param[in] y The measurement vector consisting of m elements.
+  \param[out] y_out The  fitted measurement vector.
   \param[in] xa The mean a priori state vector
   \param[in] K The weighting function (m,n)-matrix
   \param[in] Se The measurement error covariance (m,m)-matrix
   \param[in] Sa The a priori covariance (n,n)-matrix
 */
-void oem_linear( VectorView x,
-                 ConstVectorView y,
-                 ConstVectorView xa,
-                 ConstMatrixView K,
-                 ConstMatrixView Se,
-                 ConstMatrixView Sa,
-                 bool mform )
+void oem_linear_nform( VectorView x,
+                       ConstVectorView y,
+                       VectorView y_out,
+                       ConstVectorView xa,
+                       ConstMatrixView K,
+                       ConstMatrixView SeInv,
+                       ConstMatrixView SaInv,
+                       MatrixView G )
 {
 
     Index m = K.nrows();
@@ -48,59 +60,155 @@ void oem_linear( VectorView x,
     assert( xa.nelem() == n );
     assert( y.nelem() == m );
 
-    assert( (Se.ncols() == m) && (Se.nrows() == m) );
-    assert( (Sa.ncols() == n) && (Sa.nrows() == n) );
+    assert( (SeInv.ncols() == m) && (SeInv.nrows() == m) );
+    assert( (SaInv.ncols() == n) && (SaInv.nrows() == n) );
+    assert( (G.ncols() == n) && (G.nrows() == m) );
 
+    // n-form (eq. (4.4)).
+    Matrix tmp_nm(n,m), tmp_nm2(n,m), tmp_nn(n,n), tmp_nn2(n,n);
+    ArrayOfIndex indx(n);
+    Vector tmp_n(n), tmp_n2(n), tmp_m(m);
 
+    mult( tmp_nm, transpose(K), SeInv );
+    mult( tmp_nn, tmp_nm, K); // tmp_nn = K^T S_e^{-1} K
+    tmp_nn += SaInv;
 
-    if ( !mform )
-    {
+    mult( tmp_n, tmp_nm, y);
+    mult( tmp_n2, SaInv, xa );
+    tmp_n += tmp_n2;
 
-        // n-form (eq. (4.4)).
-        Matrix SeInv(m,m);
-        Matrix tmp_nm(n,m), tmp_nm2(n,m), tmp_nn(n,n), tmp_nn2(n,n);
-        ArrayOfIndex indx(n);
-        Vector tmp_n(n), tmp_m(m);
+    solve( x, tmp_nn, tmp_n );
 
-        id_mat(tmp_nn2); // tmp_nn2 = I
-        inv( SeInv, Se );
+    // Compute fitted measurement vector.
+    mult( y_out, K, x );
 
-        mult( tmp_nm, transpose(K), SeInv );
-        mult( tmp_nm2, Sa, tmp_nm ); // tmp_nm2 = S_a K^T S_e^(-1)
-        mult( tmp_nn, tmp_nm2, K);
-        tmp_nn2 += tmp_nn;
-
-        mult( tmp_n, tmp_nm2, y);
-        tmp_n += xa;
-
-        // Use LU decomposition instead of inversion to save lots of time.
-        ludcmp( tmp_nn, indx, tmp_nn2 );
-        lubacksub( x, tmp_nn, tmp_n, indx );
-
-    } else {
-
-        // m-form (eq. (4.6)).
-        Matrix tmp_nm(n,m);
-        Matrix tmp_mm(m,m);
-        Vector tmp_m(m), tmp_n(n);
-
-        mult( tmp_nm, Sa, transpose(K) ); // tmp_nm = S_a * K^T
-        mult( tmp_mm, K, tmp_nm);
-        tmp_mm += Se;
-
-        mult( tmp_m, K, xa);
-        tmp_m *= (-1.0);
-        tmp_m += y;          // tmp_m = y - K*x_a
-
-        solve( x, tmp_mm, tmp_m);
-        mult( tmp_m, tmp_nm, x );
-
-        x = tmp_m;
-        x += xa;
-    }
+    // Compute Gain matrix.
+    inv( tmp_nn2, tmp_nn );
+    mult( G, tmp_nn2, tmp_nm );
 }
 
-//! Non-linear OEM using Gauss-Newton method.
+
+//! Linear OEM, m-form.
+/*!
+
+Computes the inverse of a linear forward model by computing the MAP
+solution as described in Rodgers, Inverse Methods for Atmospheric Sounding,
+p. 67. This function uses the m-form ( Eq. (4.6) ) which requires the solution
+of a linear system of equations of size m-times-m.
+
+For the execution two n-times-m matrices, 2 n-times-n matrices and two vectors
+with m and n elements, respectively, are allocated. The given Matrix and Vector
+views may not overlap.
+
+  \param[out] x The optimal, estimated state vector consisting of n elements.
+  \param[in] y The measurement vector consisting of m elements.
+  \param[out] y_out The  fitted measurement vector.
+  \param[in] xa The mean a priori state vector.
+  \param[in] K The weighting function (m,n)-matrix.
+  \param[in] Se The measurement error covariance (m,m)-matrix.
+  \param[in] Sa The a priori covariance (n,n)-matrix.
+  \param[out] G The gain matrix.
+*/
+void oem_linear_mform( VectorView x,
+                       ConstVectorView y,
+                       VectorView y_out,
+                       ConstVectorView xa,
+                       ConstMatrixView K,
+                       ConstMatrixView Se,
+                       ConstMatrixView Sa,
+                       MatrixView G )
+{
+    Index m = K.nrows();
+    Index n = K.ncols();
+
+    // Check dimensions for consistency.
+    assert( x.nelem() == n );
+    assert( xa.nelem() == n );
+    assert( y.nelem() == m );
+
+    assert( (Se.ncols() == m) && (Se.nrows() == m) );
+    assert( (Sa.ncols() == n) && (Sa.nrows() == n) );
+    assert( (G.ncols() == n) && (G.nrows() == m) );
+
+    // m-form (eq. (4.6)).
+    Matrix tmp_nm(n,m);
+    Matrix tmp_mm(m,m), tmp_mm2(m,m);
+    Vector tmp_m(m), tmp_n(n);
+
+    mult( tmp_nm, Sa, transpose(K) ); // tmp_nm = S_a * K^T
+    mult( tmp_mm, K, tmp_nm);
+    tmp_mm += Se;
+
+    mult( tmp_m, K, xa);
+    tmp_m *= (-1.0);
+    tmp_m += y;          // tmp_m = y - K*x_a
+
+    solve( x, tmp_mm, tmp_m);
+    mult( tmp_m, tmp_nm, x );
+
+    x = tmp_m;
+    x += xa;
+
+    // Compute fitted measurement vector.
+    mult( y_out, K, x );
+
+    // Compute gain matrix.
+    inv( tmp_mm2, tmp_mm );
+    mult( G, tmp_nm, tmp_mm2 );
+
+}
+
+// Forward declaration of log functions.
+void log_init_lm( ostream& stream,
+                  Numeric tol,
+                  Index maxIter );
+
+void log_gamma_step_lm( ostream& stream,
+                        Numeric cost,
+                        Numeric cost_x,
+                        Numeric cost_y,
+                        Numeric gamma );
+
+void log_step_lm( ostream& stream,
+                  Index step_number,
+                  Numeric cost,
+                  Numeric cost_x,
+                  Numeric cost_y,
+                  Numeric gamma,
+                  Numeric chi2 );
+
+void log_finalize_lm( ostream& stream,
+                      bool converged,
+                      Numeric cost,
+                      Numeric cost_x,
+                      Numeric cost_y,
+                      Numeric gamma,
+                      Numeric gamma_max,
+                      Index niter,
+                      Index maxIter );
+
+
+void log_init_gn( ostream& stream,
+                  Numeric tol,
+                  Index maxIter );
+
+void log_step_gn( ostream& stream,
+                  Index step_number,
+                  Numeric cost,
+                  Numeric cost_x,
+                  Numeric cost_y,
+                  Numeric di2 );
+
+void log_finalize_gn( ostream& stream,
+                      bool converged,
+                      Numeric cost,
+                      Numeric cost_x,
+                      Numeric cost_y,
+                      Index iter,
+                      Index maxIter );
+
+
+//! Gauss-Newton non-linear OEM using precomputed inverses, n-form.
 /*!
   Computes the optimal nonlinear inverse of a given forward model using the
   Gauss-Newton method as given in eq. (5.8) in Rodgers book. The forward model
@@ -109,41 +217,52 @@ void oem_linear( VectorView x,
   tolerance is scaled by the problem size n. If the method doesn't converge it
   abords after the given maximum number of iterations.
 
-  During the execution, space for up to 6 additional matrices and vectors is
-  allocated. The given Matrix and Vector views should not overlap.
+  During execution two additional n-times-m and one n-times-n matrix is
+  allocated. In addition to that space for 4 length-n vectors and two length-m
+  vectors is allocated. The given Matrix and Vector views must
+  not overlap.
 
   \param[out] x The optimal inverse x.
   \param[in] y The measurement vector containing m measurements.
+  \param[out] y_out The fitted measurement vector containing m measurements.
   \param[in] xa The size-n a-priori state vector.
   \param[in] K The ForwardModel representing the forward model to invert.
-  \param[in] Se The measurement error covariance (m,m)-matrix
-  \param[in] Sa The a priori covariance (n,n)-matrix
+  \param[in] SeInv The inverse of the measurement error covariance (m,m)-matrix
+  \param[in] SaInv The inverse of the a priori covariance (n,n)-matrix
   \param[in] tol The convergence criterium before scaling by the problem size.
-  \param maxIter Tha maximum number of iterations in case of no convergence.
+  \param[in] maxIter Tha maximum number of iterations in case of no convergence.
+  \param[in] verbose If true, log message are printed to stdout.
 
   \return True if the method has converged, false otherwise.
 */
 bool oem_gauss_newton( VectorView x,
                        ConstVectorView y,
+                       VectorView y_out,
                        ConstVectorView xa,
                        ForwardModel &K,
-                       ConstMatrixView Se,
-                       ConstMatrixView Sa,
+                       ConstMatrixView SeInv,
+                       ConstMatrixView SaInv,
+                       MatrixView J,
+                       MatrixView G,
                        Numeric tol,
-                       Index maxIter )
+                       Index maxIter,
+                       bool verbose )
 {
 
     Index n(x.nelem()), m(y.nelem());
     Numeric di2;
-    Matrix Ki(m,n), KiTSeInv(n,m), KiTSeInvKi(n,n), SeInv(m,m), SaInv(n,n);
-    Vector xi(n), yi(m), tm(m), tn1(n), tn2(n), dx(n);
+    Matrix Ki(m,n), KiTSeInv(n,m), KiTSeInvKi(n,n), KiTSeInvKi2(n,n);
+    Vector xi(n), yi(m), tm1(m), tm2(m), tn1(n), tn2(n), dx(n);
+
+    Numeric cost_x, cost_y;
+    cost_x = 0.0; cost_y = 0.0;
 
     Index iter = 0;
     bool converged = false;
 
-    // Compute matrix inverses.
-    inv(SeInv, Se);
-    inv(SaInv, Sa);
+    // Initialize log output.
+    if (verbose)
+        log_init_gn( cout, tol, maxIter );
 
     // Set the starting vector.
     x = xa;
@@ -157,16 +276,16 @@ bool oem_gauss_newton( VectorView x,
         mult( KiTSeInvKi, KiTSeInv, Ki );
         KiTSeInvKi += SaInv;
 
-        // tm = K_i(x_i - x_a)
+        // tm1 = K_i(x_i - x_a)
 
         tn1 = x;
         tn1 -= xa;
         mult( tn2, SaInv, tn1 );
 
-        tm = y;
-        tm -= yi;
+        tm1 = y;
+        tm1 -= yi;
         // tn1 = K_i^T * S_e^{-1} * (y - F(x_i))
-        mult( tn1, KiTSeInv, tm );
+        mult( tn1, KiTSeInv, tm1 );
 
         // This vector is used to test for convergence later.
         // See eqn. (5.31).
@@ -185,7 +304,34 @@ bool oem_gauss_newton( VectorView x,
         // Increase convergence counter and check for convergence.
         iter++;
 
+        // Compute cost function contributions.
+        tn1 = xa;
+        tn1 -= x;
+        mult( tn2, SaInv, tn1 );
+        cost_x = tn2*tn1;
+        cost_x /= (Numeric) m;
+
+        mult( tm2, SeInv, tm1 );
+        cost_y = tm1*tm2;
+        cost_y /= (Numeric) m;
+
+        // Print log.
+        if ( verbose )
+            log_step_gn( cout, iter, cost_x + cost_y, cost_x, cost_y, di2 );
     }
+
+    // Compute fitted measurement vector and jacobian.
+    K.evaluate_jacobian( y_out, J, x );
+
+    // Compute gain matrix.
+
+    inv( KiTSeInvKi2, KiTSeInvKi );
+    mult( G, KiTSeInvKi2, KiTSeInv );
+
+    // Finalize log output.
+    if ( verbose )
+        log_finalize_gn( cout, converged, cost_x + cost_y,
+                         cost_x, cost_y, iter, maxIter );
 
     return converged;
 
@@ -372,6 +518,35 @@ bool oem_gauss_newton_n_form( VectorView x,
     return converged;
 }
 
+// Forward declaration of log functions.
+void log_init_lm( ostream& stream,
+                  Numeric tol,
+                  Index maxIter );
+
+void log_gamma_step_lm( ostream& stream,
+                        Numeric cost,
+                        Numeric cost_x,
+                        Numeric cost_y,
+                        Numeric gamma );
+
+void log_step_lm( ostream& stream,
+                  Index step_number,
+                  Numeric cost,
+                  Numeric cost_x,
+                  Numeric cost_y,
+                  Numeric gamma,
+                  Numeric chi2 );
+
+void log_finalize_lm( ostream& stream,
+                      bool converged,
+                      Numeric cost,
+                      Numeric cost_x,
+                      Numeric cost_y,
+                      Numeric gamma,
+                      Numeric gamma_max,
+                      Index niter,
+                      Index maxIter );
+
 //! Non-linear OEM using Levenberg-Marquardt method.
 /*!
   Inverts a given non-linear forward model using the Levenberg-Marquardt method.
@@ -381,7 +556,7 @@ bool oem_gauss_newton_n_form( VectorView x,
   oem_gauss_newton().
 
   The start value for gamma is given by the parameter gamma_start. If a new x
-  value is found, gamma is decreased by a factor gamma_scale_dec. If the cost
+  value is found, gamma is decreased by a factor gamma_scale_dec. If the ost
   is increased, gamma is increased by a factor gamma_scale_inc. If gamma falls
   below gamma_threshold, it is set to zero. If no lower cost can be obtained
   with gamma = 0, gamma is set to 1. If gamma becomes larger than gamma_max and
@@ -411,31 +586,34 @@ bool oem_gauss_newton_n_form( VectorView x,
 */
 bool oem_levenberg_marquardt( VectorView x,
                               ConstVectorView y,
+                              VectorView y_out,
                               ConstVectorView xa,
                               ForwardModel &K,
-                              ConstMatrixView Se,
-                              ConstMatrixView Sa,
+                              ConstMatrixView SeInv,
+                              ConstMatrixView SaInv,
+                              MatrixView J,
+                              MatrixView G,
                               Numeric tol,
                               Index maxIter,
                               Numeric gamma_start,
                               Numeric gamma_scale_dec,
                               Numeric gamma_scale_inc,
                               Numeric gamma_max,
-                              Numeric gamma_threshold )
+                              Numeric gamma_threshold,
+                              bool verbose )
 {
 
     Index n( x.nelem() ), m( y.nelem() );
-    Numeric di2, cost, cost_old, gamma;
+    Numeric di2, cost, cost_old, cost_x, cost_y, gamma;
+    cost = 0.0; cost_x = 0.0; cost_y = 0.0;
 
     Vector xnew(n), yi(m);
     Vector tm(m), tn1(n), tn2(n), tn3(n), dx(n);
     Matrix Ki(m,n);
-    Matrix SeInv(m,m), SaInv(n,n);
     Matrix KiTSeInv(n,m), KiTSeInvKi(n,n), KiTSeInvKi2(n,n);
 
-    // Compute frequently used Matrix inverses.
-    inv(SeInv, Se);
-    inv(SaInv, Sa);
+    if ( verbose )
+        log_init_lm( cout, tol, maxIter );
 
     // Set starting vector.
     x = xa;
@@ -468,7 +646,9 @@ bool oem_levenberg_marquardt( VectorView x,
         if (iter == 0)
         {
             mult( yi, SeInv, tm );
-            cost_old = tm * yi;
+            cost_y = tm * yi;
+            cost_y /= (Numeric) m;
+            cost_old = cost_y;
         }
 
         bool found_x = false;
@@ -492,12 +672,15 @@ bool oem_levenberg_marquardt( VectorView x,
             tm = y;
             tm -= yi;
             mult( yi, SeInv, tm );
-            cost = tm*yi;
+            cost_y = tm*yi;
+            cost_y /= (Numeric) m;
 
             tn2 = xnew;
             tn2 -= xa;
             mult( tn3, SaInv, tn2 );
-            cost += tn3 * tn2;
+            cost_x = tn3 * tn2;
+            cost_x /= (Numeric) m;
+            cost = cost_x + cost_y;
 
             // If cost has decreased, keep new x and
             // scale gamma.
@@ -535,6 +718,10 @@ bool oem_levenberg_marquardt( VectorView x,
                         break;
                     }
                 }
+
+                if ( verbose )
+                    log_gamma_step_lm( cout, cost, cost_x, cost_y, gamma );
+
             }
         }
 
@@ -542,12 +729,242 @@ bool oem_levenberg_marquardt( VectorView x,
         iter++;
 
         di2 = dx * tn1;
-        if ( di2 <= tol * (Numeric) n )
+        di2 /= (Numeric) n;
+        if ( di2 <= tol )
         {
             converged = true;
         }
 
+        if ( verbose )
+            log_step_lm( cout, iter, cost, cost_x, cost_y, gamma, di2 );
+
     }
 
+    // Compute fitted measurement vector and jacobian.
+    K.evaluate_jacobian( y_out, J, x );
+
+    // Compute gain matrix.
+
+    inv( KiTSeInvKi2, KiTSeInvKi );
+    mult( G, KiTSeInvKi2, KiTSeInv );
+
+    if ( verbose )
+        log_finalize_lm( cout, converged, cost, cost_x, cost_y,
+                         gamma, gamma_max, iter, maxIter );
     return converged;
+}
+
+void separator( ostream& stream,
+                Index length )
+{
+    for (Index i = 0; i < length; i++)
+        stream << "-";
+    stream << endl;
+}
+
+//! Initial log message, Gauss-Newton
+/*!
+
+  \param[in] stream Stream to print message to.
+  \param[in] tol Tolerance.
+  \param[in] maxIter Maximum Iterations.
+*/
+void log_init_gn( ostream& stream,
+                  Numeric tol,
+                  Index maxIter )
+{
+    stream << endl << endl;
+    stream << "Starting OEM iteration: " << endl << endl;
+    stream << "\t Method: Gauss-Newton" << endl;
+    stream << "\t Tolerance: " << tol << endl;
+    stream << "\t Max. iterations: " << maxIter << endl << endl;
+    separator( stream, 75 );
+    stream << setw(6) << "Step";
+    stream << setw(15) << "     Chi^2      ";
+    stream << setw(15) << "     Chi^2_x    ";
+    stream << setw(15) << "     Chi^2_y    ";
+    stream << setw(15) << "     d_i^2     ";
+    stream << endl;
+    separator( stream, 66 );
+}
+
+//! Step log message, Gauss-Newton
+/*!
+
+  \param[in] stream Stream to print message to.
+  \param[in] step_number Current step number.
+  \param[in] cost Current value of cost function.
+  \param[in] cost_x x-component of current cost function value.
+  \param[in] cost_y y-component of current cost function value.
+  \param[in] di2 Convergence criterion.
+*/
+void log_step_gn( ostream& stream,
+                  Index step_number,
+                  Numeric cost,
+                  Numeric cost_x,
+                  Numeric cost_y,
+                  Numeric di2 )
+{
+    stream << setw(6) << step_number;
+    stream << scientific;
+    stream << setw(15) << cost;
+    stream << setw(15) << cost_x;
+    stream << setw(15) << cost_y;
+    stream << setw(15) << di2;
+    stream << endl;
+}
+
+//! Final log message, Gauss-Newton
+/*!
+
+  \param[in] stream Stream to print message to.
+  \param[in] converged converged flag.
+  \param[in] cost Value of cost function.
+  \param[in] cost_x x-component of cost function.
+  \param[in] cost_y y-component of cost function.
+  \param[in] iter Final step number.
+  \param[in] maxIter  Maximum step number.
+*/
+void log_finalize_gn( ostream& stream,
+                      bool converged,
+                      Numeric cost,
+                      Numeric cost_x,
+                      Numeric cost_y,
+                      Index iter,
+                      Index maxIter )
+{
+    separator( stream, 75 );
+    stream << endl << "Finished Gauss-Newton iterations:" << endl;
+    if ( converged )
+        stream << "\t Converged: YES" << endl;
+    else if ( iter == maxIter )
+    {
+        stream << "\t Converged: NO" << endl;
+        stream << "\t Iteration aborted because maximum no. of iterations was reached.";
+    }
+    stream << endl;
+
+    stream << "\t Chi^2: " << cost << endl;
+    stream << "\t Chi^2_x: " << cost_x << endl;
+    stream << "\t Chi^2_y: " << cost_y << endl;
+    stream << endl << endl << endl;
+}
+
+//! Initial log message, Levenberg-Marquardt
+/*!
+
+  \param[in] stream Stream to print message to.
+  \param[in] tol Tolerance.
+  \param[in] maxIter Maximum Iterations.
+*/
+void log_init_lm( ostream& stream,
+                  Numeric tol,
+                  Index maxIter )
+{
+    stream << endl << endl;
+    stream << "Starting OEM iteration: " << endl << endl;
+    stream << "\t Method: Levenberg-Marquardt " << endl;
+    stream << "\t Tolerance: " << tol << endl;
+    stream << "\t Max. iterations: " << maxIter << endl << endl;
+    separator( stream, 75 );
+    stream << setw(6) << "Step";
+    stream << setw(15) << "     Chi^2      ";
+    stream << setw(15) << "     Chi^2_x    ";
+    stream << setw(15) << "     Chi^2_y    ";
+    stream << setw(9) << "  gamma  ";
+    stream << setw(15) << "     d_i^2     ";
+    stream << endl;
+    separator( stream, 75 );
+}
+
+void log_gamma_step_lm( ostream& stream,
+                        Numeric cost,
+                        Numeric cost_x,
+                        Numeric cost_y,
+                        Numeric gamma )
+{
+    stream << setw(6) << "";
+    stream << scientific;
+    stream << setw(15) << cost;
+    stream << setw(15) << cost_x;
+    stream << setw(15) << cost_y;
+    stream.unsetf(ios_base::floatfield);
+    stream << setw(9) << gamma;
+    stream << endl;
+}
+
+//! Step log message, Levenberg-Marquardt
+/*!
+
+  \param[in] stream Stream to print message to.
+  \param[in] step_number Current step number.
+  \param[in] cost Current value of cost function.
+  \param[in] cost_x x-component of current cost function value.
+  \param[in] cost_y y-component of current cost function value.
+  \param[in] gamma Current gamma value.
+  \param[in] di2 Convergence criterion.
+*/
+void log_step_lm( ostream& stream,
+                  Index step_number,
+                  Numeric cost,
+                  Numeric cost_x,
+                  Numeric cost_y,
+                  Numeric gamma,
+                  Numeric di2 )
+{
+    stream << setw(6) << step_number;
+    stream << scientific;
+    stream << setw(15) << cost;
+    stream << setw(15) << cost_x;
+    stream << setw(15) << cost_y;
+    stream.unsetf(ios_base::floatfield);
+    stream << setw(9) << gamma;
+    stream << scientific;
+    stream << setw(15) << di2;
+    stream << endl;
+}
+
+//! Final log message, Levenberg-Marquardt
+/*!
+
+  \param[in] stream Stream to print message to.
+  \param[in] converged converged flag.
+  \param[in] cost Value of cost function.
+  \param[in] cost_x x-component of cost function.
+  \param[in] cost_y y-component of cost function.
+  \param[in] gamma Final gamma value.
+  \param[in] gamma_max Maximum gamma value.
+  \param[in] iter Final step number.
+  \param[in] maxIter  Maximum step number.
+*/
+void log_finalize_lm( ostream& stream,
+                      bool converged,
+                      Numeric cost,
+                      Numeric cost_x,
+                      Numeric cost_y,
+                      Numeric gamma,
+                      Numeric gamma_max,
+                      Index iter,
+                      Index maxIter )
+{
+    separator( stream, 75 );
+    stream << endl << "Finished Levenberg-Marquardt iterations:" << endl;
+    if ( converged )
+        stream << "\t Converged: YES" << endl;
+    else if ( gamma == gamma_max )
+    {
+        stream << "\t Converged: NO" << endl;
+        stream << "\t Iteration aborted because gamma > gamma_max.";
+    }
+    else if ( iter == maxIter )
+    {
+        stream << "\t Converged: NO" << endl;
+        stream << "\t Iteration aborted because maximum no. of iterations was reached.";
+    }
+    stream << endl;
+
+    stream << "\t Chi^2: " << cost << endl;
+    stream << "\t Chi^2_x: " << cost_x << endl;
+    stream << "\t Chi^2_y: " << cost_y << endl;
+    stream << endl << endl << endl;
 }

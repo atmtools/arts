@@ -1,3 +1,17 @@
+2015-09-19  Simon Pfreundschuh <simonpf@chalmers.se>
+
+	* arts-2-3-315
+
+	* src/oem.*
+	Modified OEM functions to accept inverses of covariance matrices,
+	added log output to iterative methods, added computation of gain
+	matrix and returning of fitted measurement vector.
+
+	* src/test_oem.*
+	Adapted oem function calls to changed function interfaces.
+
+	*src/m_oem.cc
+	Adapted oem function calls to updated function interfaces.
 2015-09-18  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-314

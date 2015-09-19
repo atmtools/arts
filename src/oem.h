@@ -32,23 +32,38 @@ public:
 };
 
 // Optimal estimation method for linear models.
-void oem_linear( VectorView x,
-                 ConstVectorView y,
-                 ConstVectorView xa,
-                 ConstMatrixView K,
-                 ConstMatrixView Se,
-                 ConstMatrixView Sa,
-                 bool mform);
+void oem_linear_nform( VectorView x,
+                       ConstVectorView y,
+                       VectorView y_out,
+                       ConstVectorView xa,
+                       ConstMatrixView K,
+                       ConstMatrixView SeInv,
+                       ConstMatrixView SaInv,
+                       MatrixView G );
+
+// Optimal estimation method for linear models.
+void oem_linear_mform( VectorView x,
+                       ConstVectorView y,
+                       VectorView y_out,
+                       ConstVectorView xa,
+                       ConstMatrixView K,
+                       ConstMatrixView Se,
+                       ConstMatrixView Sa,
+                       MatrixView G );
 
 // Optimal estimation for non-linear models using Gauss-Newton method.
 bool oem_gauss_newton( VectorView x,
                        ConstVectorView y,
+                       VectorView y_out,
                        ConstVectorView xa,
                        ForwardModel& K,
-                       ConstMatrixView Se,
-                       ConstMatrixView Sa,
+                       ConstMatrixView SeInv,
+                       ConstMatrixView SaInv,
+                       MatrixView J,
+                       MatrixView G,
                        Numeric tol,
-                       Index maxiter );
+                       Index maxiter,
+                       bool verbose );
 
 // Optimal estimation for non-linear models using Gauss-Newton method.
 bool oem_gauss_newton_n_form( VectorView x,
@@ -73,16 +88,20 @@ bool oem_gauss_newton_m_form( VectorView x,
 // Optimal estimation for non-linear models using Levenberg-Marquardt method.
 bool oem_levenberg_marquardt( VectorView x,
                               ConstVectorView y,
+                              VectorView y_out,
                               ConstVectorView xa,
                               ForwardModel &K,
                               ConstMatrixView Se,
                               ConstMatrixView Sa,
+                              MatrixView J,
+                              MatrixView G,
                               Numeric tol,
                               Index maxIter,
                               Numeric gamma_start,
                               Numeric gamma_scale_dec,
                               Numeric gamma_scale_inc,
                               Numeric gamma_max,
-                              Numeric gamma_threshold );
+                              Numeric gamma_threshold,
+                              bool verbose );
 
 #endif // oem_h
