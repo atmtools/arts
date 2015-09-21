@@ -1644,6 +1644,33 @@ void atm_fields_compactCleanup (//WS Output:
 }
 
 
+// Workspace method, doxygen header is auto-generated
+void atm_fields_compactCreateFromField( // WS Output:
+                                        GriddedField4& atm_fields_compact,
+                                        // WS Generic Input:
+                                        const String& name,
+                                        const GriddedField3& field,
+                                        const Verbosity&)
+{
+    assert(field.checksize());
+    
+    ConstVectorView sp_p_grid = field.get_numeric_grid(GFIELD3_P_GRID);
+    ConstVectorView sp_lat_grid = field.get_numeric_grid(GFIELD3_LAT_GRID);
+    ConstVectorView sp_lon_grid = field.get_numeric_grid(GFIELD3_LON_GRID);
+    ArrayOfString   sp_name_grid(1);
+    sp_name_grid[0] = name;
+    
+    atm_fields_compact.set_grid(0,sp_name_grid);
+    atm_fields_compact.set_grid(1,sp_p_grid);
+    atm_fields_compact.set_grid(2,sp_lat_grid);
+    atm_fields_compact.set_grid(3,sp_lon_grid);
+    
+    atm_fields_compact.data.resize(1,sp_p_grid.nelem(),sp_lat_grid.nelem(),sp_lon_grid.nelem());
+    
+    atm_fields_compact.data(0,joker,joker,joker) = field.data;
+}
+
+
 
 // Workspace method, doxygen header is auto-generated
 // 2011-05-11 Gerrit Holl

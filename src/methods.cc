@@ -2626,6 +2626,29 @@ void define_md_data_raw()
         GIN_DEFAULT( NODEF ),
         GIN_DESC( "Threshold below which *atm_fields_compact* values are set to zero." )
         ));
+    
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "atm_fields_compactCreateFromField" ),
+      DESCRIPTION
+      (
+          "Initiates *atm_fields_compact* from a field.\n"
+          "\n"
+          "*atm_fields_compact* will have the same size and grids as the GriddedField3,\n"
+          "but with one dimension as length 1.\n"
+      ),
+      AUTHORS( "Richard Larsson" ),
+      OUT( "atm_fields_compact" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( ),
+      GIN(         "name",   "field"),
+      GIN_TYPE(    "String", "GriddedField3"),
+      GIN_DEFAULT( NODEF,    NODEF),
+      GIN_DESC( "Name atmospheric field.",
+                "The atmospheric field.")
+    ));
 
   md_data_raw.push_back
     ( MdRecord
