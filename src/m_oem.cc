@@ -70,24 +70,29 @@ extern const String TEMPERATURE_MAINTAG;
 class AgendaWrapper : public ForwardModel
 {
     Workspace *ws;
-    Matrix *jacobian;
-    const ArrayOfRetrievalQuantity *jacobian_quantities;
-    const ArrayOfArrayOfIndex *jacobian_indices;
-    const Tensor4 *vmr_field;
-    const Tensor3 *t_field;
+    MatrixView *jacobian;
     const Agenda *inversion_iterate_agenda;
 public:
+
+//! Create inversion_iterate_agendaExecute wrapper.
+/*!
+  Initializes the wrapper object for the inversion_iterate_agendaExecute
+  method. The object forwards the evaluate() and evaluate_jacobian() calls
+  made by the iterative OEM methods to inversion_iterate_agendaExecute using
+  the arguments provided to the constructor.
+
+  \param ws_ Pointer to the workspace argument of the agenda execution function.
+  function.
+  \param inversion_iterate_agenda_ Pointer to the x argument of the agenda
+  execution function.
+
+*/
     AgendaWrapper( Workspace *ws_,
-                   Matrix *jacobian_,
-                   const ArrayOfRetrievalQuantity *jacobian_quantities_,
-                   const ArrayOfArrayOfIndex *jacobian_indices_,
-                   const Tensor4 *vmr_field_,
-                   const Tensor3 *t_field_,
-                   const Agenda* inversion_iterate_agenda_) :
-        ws( ws_ ), jacobian( jacobian_),
-        jacobian_quantities( jacobian_quantities_ ),
-        jacobian_indices( jacobian_indices_ ), vmr_field( vmr_field_ ),
-        t_field( t_field_ ), inversion_iterate_agenda( inversion_iterate_agenda_ )
+                   MatrixView *jacobian_,
+                   const Agenda *inversion_iterate_agenda_ ) :
+        ws( ws_ ),
+        jacobian( jacobian_ ),
+        inversion_iterate_agenda( inversion_iterate_agenda_ )
         {}
 
 //! Evaluate forward model and compute Jacobian.
@@ -104,14 +109,13 @@ public:
 */
     void evaluate_jacobian( VectorView yi,
                             MatrixView Ki,
-                            ConstVectorView xi )
+                            const ConstVectorView xi )
         {
-            inversion_iterate_agenda_oldExecute( *ws,
-                                             dynamic_cast<Vector&>( yi ),
-                                             dynamic_cast<Matrix&>( Ki ),
-                                             1, *jacobian_quantities,
-                                             *jacobian_indices, xi,
-                                             *vmr_field, *t_field,
+            inversion_iterate_agendaExecute( *ws,
+                                             dynamic_cast<Vector&>(yi),
+                                             dynamic_cast<Matrix&>(Ki),
+                                             xi,
+                                             1,
                                              *inversion_iterate_agenda );
         }
 
@@ -125,14 +129,13 @@ public:
   \param[in] x The current state vector x.
 */
     void evaluate( VectorView yi,
-                   ConstVectorView xi )
+                   const ConstVectorView xi )
         {
-            inversion_iterate_agenda_oldExecute( *ws,
+            inversion_iterate_agendaExecute( *ws,
                                              dynamic_cast<Vector&>( yi ),
-                                             *jacobian, 0,
-                                             *jacobian_quantities,
-                                             *jacobian_indices, xi,
-                                             *vmr_field, *t_field,
+                                             dynamic_cast<Matrix&>( *jacobian ),
+                                             xi,
+                                             0,
                                              *inversion_iterate_agenda );
         }
 };
@@ -449,7 +452,7 @@ void x2arts_std(
 
           // Map values in x back to t_field
           Tensor3 t_x( n_p, n_lat, n_lon );
-          reshape( t_x, x[ind] ); 
+          reshape( t_x, x[ind] );
           Tensor3 t( t_field.npages(), t_field.nrows(), t_field.ncols() );
           regrid_atmfield_by_gp( t, atmosphere_dim, t_x,
                                  gp_p, gp_lat, gp_lon );
@@ -525,7 +528,7 @@ void x2arts_std(
              << "internal retrievals: " << jq[q].MainTag() << endl;
           throw runtime_error(os.str());
         }
-    }  
+    }
 }
 
 
@@ -545,7 +548,6 @@ void oem(
    const ArrayOfRetrievalQuantity&   jacobian_quantities,
    const ArrayOfArrayOfIndex&        jacobian_indices,
    const Agenda&                     inversion_iterate_agenda,
-   const Agenda&                     inversion_iterate_agenda_old,
    const Index&                      atmosphere_dim,
    const Vector&                     p_grid,
    const Vector&                     lat_grid,
@@ -605,9 +607,7 @@ void oem(
   inversion_iterate_agendaExecute( ws, yf, jacobian, x, 1,
                                    inversion_iterate_agenda );
 
-  AgendaWrapper aw( &ws, &jacobian, &jacobian_quantities,
-                    &jacobian_indices, &vmr_field, &t_field,
-                    &inversion_iterate_agenda_old );
+  AgendaWrapper aw( &ws, &jacobian, &inversion_iterate_agenda );
 
   if (method == "li")
   {

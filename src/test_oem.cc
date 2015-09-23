@@ -520,8 +520,9 @@ void benchmark_oem_linear( Engine* eng,
     // Run tests.
     for ( Index i = 0; i < ntests; i++ )
     {
-        Vector x_nform(n), x_mform(n), x_m(n), y(n), y_out(n), xa(n);
-        Matrix K(n,n), Se(n,n), Sa(n,n), G_nform(n,n), G_mform(n,n);
+        Vector x_nform(n), x_mform(n), x_m(n), y(n), yf(n), xa(n);
+        Matrix K(n,n), Se(n,n), Sa(n,n), SeInv(n,n), SaInv(n,n), G_nform(n,n),
+               G_mform(n,n);
 
         generate_test_data( y, xa, Se, Sa );
         generate_linear_model( K );
@@ -534,19 +535,26 @@ void benchmark_oem_linear( Engine* eng,
 
         Index t, t1, t2, t_m;
 
-        oem_linear_mform( x_nform, y, y_out, xa, K, Se, Sa, G_mform);
+        inv( SeInv, Se );
+        inv( SaInv, Sa );
+
+        // n-form
         t1 = clock();
-        oem_linear_nform( x_mform, y, y_out, xa, K, Se, Sa, G_nform);
+        mult( yf, K, xa );
+        oem_linear_nform( x_mform, y, yf, xa, K, SeInv, SaInv, G_nform);
         t2 = clock();
         t = (t2 - t1) * 1000 / CLOCKS_PER_SEC;
+
+        // m-form
+        mult( yf, K, xa );
+        oem_linear_mform( x_nform, y, yf, xa, K, Se, Sa, G_mform);
+
+        // Matlab
         t_m = run_oem_matlab( x_m, eng, "test_oem" );
 
         ofs << setw(5) << n << setw(10) << t << setw(10) << 42; // Dummy column
         ofs << setw(10) << t_m << endl;
         cout << setw(5) << n << setw(10) << t << setw(10) << t_m;
-        cout << setw(15) << "n-form: " << max_error( x_nform, x_m, true ) << endl;
-        cout << setw(15) << "m-form: " << max_error( x_mform, x_m, true ) << endl;
-        cout << setw(15) << "Gain matrix: " << max_error( G_nform, G_mform, true );
         cout << endl << endl;
 
         n += step;
@@ -574,7 +582,7 @@ void test_oem_linear( Engine* eng,
                       Index n,
                       Index ntests )
 {
-    Vector x_nform(n), x_mform(n), x_m(n), y(n), y_out(n), xa(n);
+    Vector x_nform(n), x_mform(n), x_m(n), y(n), yf(n), xa(n);
     Matrix K(n,n), Se(n,n), Sa(n,n), G_nform(n,n), G_mform(n,n);
 
     cout << "Testing linear OEM: m = " << m << ", n = ";
@@ -592,18 +600,23 @@ void test_oem_linear( Engine* eng,
         write_matrix( Se, "Se_t.txt" );
         write_matrix( Sa, "Sa_t.txt" );
 
-        oem_linear_mform( x_nform, y, y_out, xa, K, Se, Sa, G_mform);
-        oem_linear_nform( x_mform, y, y_out, xa, K, Se, Sa, G_nform);
+        // m-form
+        mult( yf, K, xa );
+        oem_linear_mform( x_mform, y, yf, xa, K, Se, Sa, G_mform);
+
+        // n-form
+        mult( yf, K, xa );
+        oem_linear_nform( x_nform, y, yf, xa, K, Se, Sa, G_nform);
+
+        // Matlab
         run_oem_matlab( x_m, eng, "test_oem" );
 
         cout << "Test " << i+1 << ": " << endl;
         cout << "\t" << setw(15) << "n-form: ";
-
         cout << max_error( x_nform, x_m, true ) << endl;
         cout << "\t" << setw(15) << "m-form: ";
         cout << max_error( x_mform, x_m, true ) << endl;
         cout << "\t" << setw(15) << "Gain matrix: ";
-
         cout << max_error( G_nform, G_mform, true );
         cout << endl << endl;
 
@@ -686,7 +699,7 @@ void test_oem_levenberg_marquardt( Engine *eng,
                                    Index n,
                                    Index ntests )
 {
-    Vector y0(m), y(m), y_out(m), x(n), x_m(n), xa(n);
+    Vector y0(m), y(m), yf(m), x(n), x_m(n), xa(n);
     Matrix Se(m,m), Sa(n,n), SeInv(m,m), SaInv(n,n), G(n,m), J(m,n);
 
     cout << "Testing Levenberg-Marquardt OEM: m = " << m << ", n = ";
@@ -713,7 +726,7 @@ void test_oem_levenberg_marquardt( Engine *eng,
         Numeric gamma_scale_dec = 2.0;
         Numeric gamma_scale_inc = 3.0;
         Numeric gamma_threshold = 1.0;
-        oem_levenberg_marquardt( x, y0, y_out, xa, K, SeInv, SaInv,
+        oem_levenberg_marquardt( x, y0, yf, xa, K, SeInv, SaInv,
                                  J, G, 1e-5, 1000,
                                  gamma_start,
                                  gamma_scale_dec,
@@ -737,8 +750,8 @@ int main()
     setup_test_environment( eng );
 
     // Run tests and benchmarks.
-    //test_oem_linear( eng, 100, 100, 10 );
-    test_oem_gauss_newton( eng, 100, 100, 10 );
+    test_oem_linear( eng, 10, 10, 10 );
+    //test_oem_gauss_newton( eng, 100, 100, 10 );
     //test_oem_levenberg_marquardt( eng, 100, 100, 10 );
 
     //benchmark_inv( eng, 100, 2000, 16);

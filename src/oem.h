@@ -34,7 +34,7 @@ public:
 // Optimal estimation method for linear models.
 void oem_linear_nform( VectorView x,
                        ConstVectorView y,
-                       VectorView y_out,
+                       VectorView yf,
                        ConstVectorView xa,
                        ConstMatrixView K,
                        ConstMatrixView SeInv,

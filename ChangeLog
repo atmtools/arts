@@ -1,3 +1,25 @@
+2015-09-19  Simon Pfreundschuh <simonpf@chalmers.se>
+
+	* arts-2-3-317
+
+	* src/oem.*:
+
+	Added linearization around given (xa,yf) and removed unnecessary
+	matrix-vector multiplications.
+
+	* src/m_oem.cc:
+
+	Adapted AgendaWrapper to new agenda execution function and removed
+	old one.
+
+	* src/methods.cc
+
+	Removed old agenda argument.
+
+	* src/test_oem.cc
+
+	Adapted oem function calls to changed function interfaces.
+
 2015-09-21  Richard Larsson <ric.larsson@gmail.com>
 
 	* arts-2-3-316
@@ -20,6 +42,7 @@
 
 	*src/m_oem.cc
 	Adapted oem function calls to updated function interfaces.
+
 2015-09-18  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-314
