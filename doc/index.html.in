@@ -1,13 +1,13 @@
-<!-- 	!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	ALLWAYS EDIT THE index.html.in FILE, NEVER THE index.html FILE!
-	!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! -->
-
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!DOCTYPE html>
 <html>
+<!-- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      ALWAYS EDIT THE index.html.in FILE, NEVER THE index.html FILE!
+     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! -->
+
   <head>
     <meta name="generator" content="S. A. Buehler">
     <meta name="description" content="A summary of the documentation that is distributed together with the ARTS package">
-    <meta name="keywords" content="Bremen, limb sounding, microwave, millimeter, sub-millimeter, radiative transfer, ARTS, ESTEC studies, MAS, millimeterwave atmospheric sounder, SMILES, JEM SMILES, GRAS, retrieval, inversion, spectroscopy, satellite, ozone">
+    <meta name="keywords" content="limb sounding, microwave, millimeter, sub-millimeter, radiative transfer, ARTS, ESTEC studies, MAS, millimeterwave atmospheric sounder, SMILES, JEM SMILES, GRAS, retrieval, inversion, spectroscopy, satellite, ozone">
     <title>ARTS Documentation</title>
     <link rel="stylesheet" href="arts.css" type="text/css" title="ARTS Style">
   </head>
@@ -41,7 +41,8 @@
 
     <h2>Example ARTS control files</h2>
 
-    <p> Have a look at the control files in the subdirectories in <code>arts/tests/</code>.
+    <p> Have a look at the control files in the subdirectories in
+    <code>arts/controlfiles/</code>.
 
   </body>
 </html>

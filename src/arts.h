@@ -34,7 +34,7 @@
 
 /** \mainpage
 
-    <center><img src="arts-splash.gif" alt="ARTS"></center>
+    <center><img src="arts-splash.png" alt="ARTS"></center>
 
     <h2>What is ARTS?</h2>
 

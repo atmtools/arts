@@ -1,3 +1,15 @@
+2015-09-24  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-318
+
+	* doc/arts-splash.gif: Removed.
+
+	* doc/arts-splash.png: Added. s/System/Simulator/
+
+	* doc/index.html.in: Updated.
+
+	* doc/doxygen/CMakeLists.txt, src/arts.h: Use updated png splash.
+
 2015-09-23  Simon Pfreundschuh <simonpf@chalmers.se>
 
 	* arts-2-3-317

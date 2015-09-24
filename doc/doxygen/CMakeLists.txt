@@ -15,7 +15,7 @@ add_custom_command (
   COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile > doxygen.log
   #COMMAND ${CMAKE_COMMAND} -E make_directory html
   COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                           ${CMAKE_CURRENT_SOURCE_DIR}/../arts-splash.gif html/
+                           ${CMAKE_CURRENT_SOURCE_DIR}/../arts-splash.png html/
   COMMAND ${CMAKE_COMMAND} -E touch doxified
   COMMAND ${CMAKE_COMMAND} -E echo "Done."
   DEPENDS Doxyfile ${CMAKE_BINARY_DIR}/auto_version.txt ${CMAKE_SOURCE_DIR}/src/*.h ${CMAKE_SOURCE_DIR}/src/*.cc
