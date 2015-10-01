@@ -1666,18 +1666,37 @@ void Workspace::define_wsv_data()
        ),
       GROUP( "Agenda" )));
 
- wsv_data.push_back
-    (WsvRecord
-     ( NAME( "inversion_iterate_agenda" ),
-       DESCRIPTION
-       (
-        "Agenda recalculating spectra and Jacobian for iterative inversion methods.\n"
-        ),
-       GROUP( "Agenda" )));
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "invcovmat_so" ),
+      DESCRIPTION
+      (
+       "The inverse of the covariance matrix for observation uncertainties.\n"
+       "\n"
+       "Usage:      Used by inversion methods.\n"
+       "\n"
+       "Dimensions: \n"
+       "     [ y, y ]\n"
+       ),
+      GROUP( "Matrix" )));
+ 
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "invcovmat_sx" ),
+      DESCRIPTION
+      (
+       "The inverse of the covariance matrix for a priori uncertainty.\n"
+       "\n"
+       "Usage:      Used by inversion methods.\n"
+       "\n"
+       "Dimensions: \n"
+       "     [ x, x ]\n"
+       ),
+      GROUP( "Matrix" )));
 
  wsv_data.push_back
     (WsvRecord
-     ( NAME( "inversion_iterate_agenda_old" ),
+     ( NAME( "inversion_iterate_agenda" ),
        DESCRIPTION
        (
         "Agenda recalculating spectra and Jacobian for iterative inversion methods.\n"

@@ -542,8 +542,8 @@ void oem(
          Matrix&                     jacobian,
          Matrix&                     dxdy,
    const Vector&                     y,
-   const Matrix&                     Sx,
-   const Matrix&                     So,
+   const Matrix&                     Sx_inv,
+   const Matrix&                     So_inv,
    const Index&                      jacobian_do,
    const ArrayOfRetrievalQuantity&   jacobian_quantities,
    const ArrayOfArrayOfIndex&        jacobian_indices,
@@ -562,7 +562,7 @@ void oem(
    const Verbosity& )
 {
   // Main sizes
-  const Index n = Sx.nrows();
+  const Index n = Sx_inv.nrows();
   const Index m = y.nelem();
   const Index nq = jacobian_quantities.nelem();
 
@@ -571,11 +571,11 @@ void oem(
     throw runtime_error( "Jacobian calculations must be turned on (but jacobian_do=0)." );
   if( !nq )
     throw runtime_error( "Jacobian quantities are empty, no inversion to do!." );
-  if( Sx.ncols() != n )
-    throw runtime_error( "*covmat_sx* must be a square matrix." );
-  if( So.ncols() != So.nrows() )
-    throw runtime_error( "*covmat_so* must be a square matrix." );
-  if( So.ncols() != m )
+  if( Sx_inv.ncols() != n )
+    throw runtime_error( "*invcovmat_sx* must be a square matrix." );
+  if( So_inv.ncols() != So_inv.nrows() )
+    throw runtime_error( "*invcovmat_so* must be a square matrix." );
+  if( So_inv.ncols() != m )
     throw runtime_error( "Inconsistency in size between *y* and *covmat_so*." );
   if( jacobian_indices.nelem() != nq )
     throw runtime_error( "Different number of elements in *jacobian_quantities* "
@@ -600,18 +600,16 @@ void oem(
   // Create xa and init x
   setup_xa( xa, jacobian_quantities, jacobian_indices, atmosphere_dim,
             p_grid, lat_grid, lon_grid, t_field, vmr_field, abs_species );
-  //
-  x = xa;
 
   // Calculate spectrum and Jacobian for a priori state
-  inversion_iterate_agendaExecute( ws, yf, jacobian, x, 1,
+  inversion_iterate_agendaExecute( ws, yf, jacobian, xa, 1,
                                    inversion_iterate_agenda );
 
   AgendaWrapper aw( &ws, &jacobian, &inversion_iterate_agenda );
 
   if (method == "li")
   {
-      oem_linear_mform( x, y, yf, xa, jacobian, So, Sx, dxdy );
+    oem_linear_nform( x, dxdy, xa, yf, y, jacobian, So_inv, Sx_inv );
 
       if( yf_linear )
       {
@@ -622,7 +620,7 @@ void oem(
 
   else if (method == "gn")
   {
-      oem_gauss_newton( x, y, yf, xa, aw, So, Sx, jacobian,
+      oem_gauss_newton( x, y, yf, xa, aw, So_inv, Sx_inv, jacobian,
                         dxdy, 10e-5, 1000, true );
   }
 
@@ -632,15 +630,11 @@ void oem(
       Numeric gamma_scale_dec = 2.0;
       Numeric gamma_scale_inc = 3.0;
       Numeric gamma_threshold = 1.0;
-      oem_levenberg_marquardt( x, y, yf, xa, aw, So, Sx, jacobian, dxdy,
+      oem_levenberg_marquardt( x, y, yf, xa, aw, So_inv, Sx_inv, jacobian, dxdy,
                                10e-5, 1000, start_ga, gamma_scale_dec,
                                gamma_scale_inc, gamma_max, gamma_threshold,
                                true );
   }
-
-  // So far we just create a dummy dxdy, matching zero measurement response
-  dxdy.resize(n,m); 
-  dxdy = 0;
 
 
   // Shall empty jacobian and dxdy be returned

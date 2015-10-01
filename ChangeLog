@@ -1,3 +1,20 @@
+2015-10-01  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-319
+
+	* src/oem.cc (oem_linear_nform): Changed order of input, following
+	arts standard. yf now not updated inside the function. x and G
+	now given their size inside function.
+
+	* src/oem.cc: Changed order of input also for other oem functions.
+
+	* src/m_oem.cc (oem): Some dummy code removed. Adopted to change
+	of oem intyernal functions.
+
+	* src/workspace.cc: Added invcovmat_sx and invcovmat_s0.
+
+	* src/agendas.cc: Removed inversion_agenda_old.
+
 2015-09-24  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-318

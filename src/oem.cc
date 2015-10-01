@@ -30,40 +30,34 @@ of a linear system of equations of size n-times-n.
 Requires the inverses of the covariance matrices for the state and measurement
 vector to be provided as arguments.
 
-For the execution 1 n-times-m matrices, 2 n-times-n matrices and a vector with
- m elements are allocated. The given Matrix and Vector views may not overlap.
-
   \param[out] x The optimal, estimated state vector consisting of n elements.
+  \param[out] G The gain matrix. 
+  \param[in] xa The a priori state vector
+  \param[in] yf The value of the forward model at a priori.
   \param[in] y The measurement vector consisting of m elements.
-  \param[in,out] yf On input yf should contain the value of the forward model
-  at the linearization point. On output yf should contain the fitted measurement
-  vector.
-  \param[in] xa The mean a priori state vector
   \param[in] K The weighting function (m,n)-matrix
   \param[in] Se The measurement error covariance (m,m)-matrix
   \param[in] Sa The a priori covariance (n,n)-matrix
 */
-void oem_linear_nform( VectorView x,
-                       ConstVectorView y,
-                       VectorView yf,
+void oem_linear_nform( Vector& x,
+                       Matrix& G,
                        ConstVectorView xa,
+                       ConstVectorView yf,
+                       ConstVectorView y,
                        ConstMatrixView K,
                        ConstMatrixView SeInv,
-                       ConstMatrixView SaInv,
-                       MatrixView G )
+                       ConstMatrixView SaInv )
 {
 
     Index m = K.nrows();
     Index n = K.ncols();
 
     // Check dimensions for consistency.
-    assert( x.nelem() == n );
     assert( xa.nelem() == n );
     assert( y.nelem() == m );
 
     assert( (SeInv.ncols() == m) && (SeInv.nrows() == m) );
     assert( (SaInv.ncols() == n) && (SaInv.nrows() == n) );
-    assert( (G.ncols() == n) && (G.nrows() == m) );
 
     // n-form (eq. (4.4)).
     Matrix tmp_nm(n,m), tmp_nn(n,n), tmp_nn2(n,n);
@@ -76,16 +70,14 @@ void oem_linear_nform( VectorView x,
 
     // Compute Gain matrix.
     inv( tmp_nn2, tmp_nn );
+    G.resize( n, m );
     mult( G, tmp_nn2, tmp_nm );
 
+    // Compute x
     tmp_m = y;
     tmp_m -= yf;
+    x.resize( n );
     mult( x, G, tmp_m );
-
-    // Compute fitted measurement vector.
-    mult( tmp_m, G, x );
-    yf += tmp_m;
-
     x += xa;
 }
 
@@ -113,13 +105,13 @@ elements are allocated. The given Matrix and Vector views may not overlap.
   \param[out] G The gain matrix.
 */
 void oem_linear_mform( VectorView x,
-                       ConstVectorView y,
-                       VectorView yf,
+                       MatrixView G,
                        ConstVectorView xa,
+                       ConstVectorView yf,
+                       ConstVectorView y,
                        ConstMatrixView K,
                        ConstMatrixView Se,
-                       ConstMatrixView Sa,
-                       MatrixView G )
+                       ConstMatrixView Sa )
 {
     Index m = K.nrows();
     Index n = K.ncols();
@@ -131,7 +123,6 @@ void oem_linear_mform( VectorView x,
 
     assert( (Se.ncols() == m) && (Se.nrows() == m) );
     assert( (Sa.ncols() == n) && (Sa.nrows() == n) );
-    assert( (G.ncols() == n) && (G.nrows() == m) );
 
     // m-form (eq. (4.6)).
     Matrix tmp_nm(n,m);
@@ -149,10 +140,6 @@ void oem_linear_mform( VectorView x,
     tmp_m = y;
     tmp_m -= yf;
     mult( x, G, tmp_m );
-
-    // Compute fitted measurement vector.
-    mult( tmp_m, K, x );
-    yf += tmp_m;
 
     x += xa;
 }

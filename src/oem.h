@@ -32,24 +32,24 @@ public:
 };
 
 // Optimal estimation method for linear models.
-void oem_linear_nform( VectorView x,
-                       ConstVectorView y,
-                       VectorView yf,
+void oem_linear_nform( Vector& x,
+                       Matrix& G,
                        ConstVectorView xa,
+                       ConstVectorView yf,
+                       ConstVectorView y,
                        ConstMatrixView K,
                        ConstMatrixView SeInv,
-                       ConstMatrixView SaInv,
-                       MatrixView G );
+                       ConstMatrixView SaInv );
 
 // Optimal estimation method for linear models.
 void oem_linear_mform( VectorView x,
-                       ConstVectorView y,
-                       VectorView y_out,
+                       MatrixView G,
                        ConstVectorView xa,
+                       ConstVectorView yf,
+                       ConstVectorView y,
                        ConstMatrixView K,
                        ConstMatrixView Se,
-                       ConstMatrixView Sa,
-                       MatrixView G );
+                       ConstMatrixView Sa );
 
 // Optimal estimation for non-linear models using Gauss-Newton method.
 bool oem_gauss_newton( VectorView x,

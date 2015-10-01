@@ -325,19 +325,6 @@ void define_agenda_data()
 
   agenda_data.push_back
     (AgRecord
-     ( NAME( "inversion_iterate_agenda_old" ),
-       DESCRIPTION
-       (
-        "So far just testing ...\n"
-        "\n"
-        "Discuss *y* vs *yf*. \n"
-        ),
-       OUTPUT( "y", "jacobian" ),
-       INPUT( "jacobian_do", "jacobian_quantities", "jacobian_indices", "x", 
-              "vmr_field", "t_field" )));
-
-  agenda_data.push_back
-    (AgRecord
      ( NAME( "iy_cloudbox_agenda" ),
        DESCRIPTION
        (

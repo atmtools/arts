@@ -8910,7 +8910,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "y", "covmat_sx", "covmat_so",
+        IN( "y", "invcovmat_sx", "invcovmat_so",
             "jacobian_do", "jacobian_quantities", "jacobian_indices",
             "inversion_iterate_agenda", "atmosphere_dim", "p_grid",
             "lat_grid", "lon_grid", "t_field", "vmr_field", "abs_species" ),
