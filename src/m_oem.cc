@@ -107,9 +107,9 @@ public:
   \param[out] J The Jacobian Ki=d/dx(K(x)) of the forward model.
   \param[in] x The current state vector x.
 */
-    void evaluate_jacobian( VectorView yi,
-                            MatrixView Ki,
-                            const ConstVectorView xi )
+    void evaluate_jacobian( VectorView &yi,
+                            MatrixView &Ki,
+                            const ConstVectorView &xi )
         {
             inversion_iterate_agendaExecute( *ws,
                                              dynamic_cast<Vector&>(yi),
@@ -128,8 +128,8 @@ public:
   \param[out] y The measurement vector y = K(x) for the current state vector x.
   \param[in] x The current state vector x.
 */
-    void evaluate( VectorView yi,
-                   const ConstVectorView xi )
+    void evaluate( VectorView &yi,
+                   const ConstVectorView &xi )
         {
             inversion_iterate_agendaExecute( *ws,
                                              dynamic_cast<Vector&>( yi ),
@@ -583,9 +583,9 @@ void oem(
   if( jacobian_indices[nq-1][1]+1 != n )
     throw runtime_error( "Size of *Sx* do not agree with Jacobian information " 
                          "(*jacobian_indices*)." );
-  if( !( method == "li"  ||  method == "gn"  ||  method == "ml" ) )  
+  if( !( method == "li"  ||  method == "gn"  ||  method == "ml" || method == "lm" ) )  
     throw runtime_error( "Valid options for *method* are \"nl\", \"gn\" and " 
-                         "\"ml\"." );
+                         "\"ml\" or \"lm\"." );
   // Special checks for ML
   if( method == "ml" )
     {
@@ -620,18 +620,17 @@ void oem(
 
   else if (method == "gn")
   {
-      oem_gauss_newton( x, y, yf, xa, aw, So_inv, Sx_inv, jacobian,
-                        dxdy, 10e-5, 1000, true );
+      oem_gauss_newton( x, yf, dxdy, jacobian,  y, xa, So_inv, Sx_inv, aw,
+                        10e-5, 1000, true );
   }
-
-  else if (method == "lm")
+  else if ( (method == "lm") || (method == "ml") )
   {
       Numeric gamma_max = 100.0;
       Numeric gamma_scale_dec = 2.0;
       Numeric gamma_scale_inc = 3.0;
       Numeric gamma_threshold = 1.0;
-      oem_levenberg_marquardt( x, y, yf, xa, aw, So_inv, Sx_inv, jacobian, dxdy,
-                               10e-5, 1000, start_ga, gamma_scale_dec,
+      oem_levenberg_marquardt( x, yf, dxdy, jacobian, y, xa, So_inv, Sx_inv, aw,
+                               10e-3, 1000, start_ga, gamma_scale_dec,
                                gamma_scale_inc, gamma_max, gamma_threshold,
                                true );
   }
@@ -640,7 +639,7 @@ void oem(
   // Shall empty jacobian and dxdy be returned
   if( clear_matrices )
     {
-      jacobian.resize(0,0); 
-      dxdy.resize(0,0); 
+      jacobian.resize(0,0);
+      dxdy.resize(0,0);
     }
 }

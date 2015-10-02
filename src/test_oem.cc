@@ -73,7 +73,7 @@ public:
             for ( Index i = 0; i < m; i++ )
             {
                 Hessians[i] = Matrix( n, n, 0 );
-                if (i == 0)
+                if (i < 5)
                     random_fill_matrix_symmetric( Hessians[i], 1.0, true );
                 sprintf( fname, "H_%d_t.txt", (int) i);
                 write_matrix( Hessians[i], fname );
@@ -88,9 +88,9 @@ public:
         }
 
     //! Virtual function of the FowardModel class.
-    void evaluate_jacobian( VectorView yi,
-                            MatrixView Ki,
-                            ConstVectorView xi )
+    void evaluate_jacobian( VectorView &yi,
+                            MatrixView &Ki,
+                            const ConstVectorView &xi )
         {
 
             for ( Index i = 0; i < m; i++ )
@@ -105,8 +105,8 @@ public:
         }
 
     //! Virtual function of the FowardModel class.
-    void evaluate( VectorView yi,
-                   ConstVectorView xi )
+    void evaluate( VectorView& yi,
+                   const ConstVectorView& xi )
         {
 
             Matrix Ki( m,n );
@@ -541,13 +541,13 @@ void benchmark_oem_linear( Engine* eng,
         // n-form
         t1 = clock();
         mult( yf, K, xa );
-        oem_linear_nform( x_mform, y, yf, xa, K, SeInv, SaInv, G_nform);
+        oem_linear_nform( x_nform, G_nform, xa, yf, y, K, SeInv, SaInv );
         t2 = clock();
         t = (t2 - t1) * 1000 / CLOCKS_PER_SEC;
 
         // m-form
         mult( yf, K, xa );
-        oem_linear_mform( x_nform, y, yf, xa, K, Se, Sa, G_mform);
+        oem_linear_mform( x_mform, G_mform, xa, yf, y, K, Se, Sa );
 
         // Matlab
         t_m = run_oem_matlab( x_m, eng, "test_oem" );
@@ -583,7 +583,8 @@ void test_oem_linear( Engine* eng,
                       Index ntests )
 {
     Vector x_nform(n), x_mform(n), x_m(n), y(n), yf(n), xa(n);
-    Matrix K(n,n), Se(n,n), Sa(n,n), G_nform(n,n), G_mform(n,n);
+    Matrix K(n,n), Se(n,n), Sa(n,n), G_nform(n,n), G_mform(n,n),
+        SeInv(n,n), SaInv(n,n);
 
     cout << "Testing linear OEM: m = " << m << ", n = ";
     cout << n << ", ntests = " << ntests << endl;
@@ -594,6 +595,9 @@ void test_oem_linear( Engine* eng,
         generate_test_data( y, xa, Se, Sa );
         generate_linear_model( K );
 
+        inv( SeInv, Se );
+        inv( SaInv, Sa );
+
         write_vector( xa, "xa_t.txt" );
         write_vector( y, "y_t.txt" );
         write_matrix( K, "K_t.txt" );
@@ -602,11 +606,11 @@ void test_oem_linear( Engine* eng,
 
         // m-form
         mult( yf, K, xa );
-        oem_linear_mform( x_mform, y, yf, xa, K, Se, Sa, G_mform);
+        oem_linear_mform( x_mform, G_mform, xa, yf, y, K, Se, Sa );
 
         // n-form
         mult( yf, K, xa );
-        oem_linear_nform( x_nform, y, yf, xa, K, Se, Sa, G_nform);
+        oem_linear_nform( x_nform, G_nform, xa, yf, y, K, SeInv, SaInv );
 
         // Matlab
         run_oem_matlab( x_m, eng, "test_oem" );
@@ -664,8 +668,9 @@ void test_oem_gauss_newton( Engine *eng,
         write_matrix( Se, "Se_t.txt" );
         write_matrix( Sa, "Sa_t.txt" );
 
-        oem_gauss_newton( x_standard, y0, y, xa, K, SeInv, SaInv,
-                          J, G, 1e-5, 100, true );
+        oem_gauss_newton( x_standard, y, G, J, y0, xa, SeInv, SaInv, K,
+                          1e-5, 100, true );
+        cout << "vec:" << x_standard << endl;
         oem_gauss_newton_n_form( x_nform, y0, xa, K, SeInv, SaInv,
                                  1e-5, 100 );
         oem_gauss_newton_m_form( x_mform, y0, xa, K, SeInv, SaInv,
@@ -726,8 +731,8 @@ void test_oem_levenberg_marquardt( Engine *eng,
         Numeric gamma_scale_dec = 2.0;
         Numeric gamma_scale_inc = 3.0;
         Numeric gamma_threshold = 1.0;
-        oem_levenberg_marquardt( x, y0, yf, xa, K, SeInv, SaInv,
-                                 J, G, 1e-5, 1000,
+        oem_levenberg_marquardt( x, yf, J, G, y0, xa, SeInv, SaInv, K,
+                                 1e-5, 1000,
                                  gamma_start,
                                  gamma_scale_dec,
                                  gamma_scale_inc,
@@ -751,8 +756,8 @@ int main()
 
     // Run tests and benchmarks.
     test_oem_linear( eng, 10, 10, 10 );
-    //test_oem_gauss_newton( eng, 100, 100, 10 );
-    //test_oem_levenberg_marquardt( eng, 100, 100, 10 );
+    test_oem_gauss_newton( eng, 100, 100, 10 );
+    test_oem_levenberg_marquardt( eng, 100, 100, 10 );
 
     //benchmark_inv( eng, 100, 2000, 16);
     //benchmark_mult( eng, 100, 2000, 16);

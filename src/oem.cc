@@ -31,7 +31,7 @@ Requires the inverses of the covariance matrices for the state and measurement
 vector to be provided as arguments.
 
   \param[out] x The optimal, estimated state vector consisting of n elements.
-  \param[out] G The gain matrix. 
+  \param[out] G The gain matrix.
   \param[in] xa The a priori state vector
   \param[in] yf The value of the forward model at a priori.
   \param[in] y The measurement vector consisting of m elements.
@@ -204,41 +204,43 @@ void log_finalize_gn( ostream& stream,
   abords after the given maximum number of iterations.
 
   During execution two additional n-times-m and one n-times-n matrix is
-  allocated. In addition to that space for 4 length-n vectors and two length-m
-  vectors is allocated. The given Matrix and Vector views must
-  not overlap.
+  allocated. In addition to that, space for 4 length-n vectors and two length-m
+  vectors is allocated. The given Matrix and Vector views may not overlap.
 
   \param[out] x The optimal inverse x.
-  \param[in] y The measurement vector containing m measurements.
-  \param[out] yf The fitted measurement vector containing m measurements.
+  \param[out] yf The fitted measurement vector from the second-last GN iteration.
+  \param[out] G The gain matrix.
+  \param[out] J The jacobian as computed in the second-last GN iteration.
+  \param[in] y The length-m, input measurement vector.
   \param[in] xa The size-n a-priori state vector.
-  \param[in] K The ForwardModel representing the forward model to invert.
   \param[in] SeInv The inverse of the measurement error covariance (m,m)-matrix
   \param[in] SaInv The inverse of the a priori covariance (n,n)-matrix
+  \param[in] K The ForwardModel representing the forward model to invert.
   \param[in] tol The convergence criterium before scaling by the problem size.
   \param[in] maxIter Tha maximum number of iterations in case of no convergence.
   \param[in] verbose If true, log message are printed to stdout.
 
   \return True if the method has converged, false otherwise.
 */
-bool oem_gauss_newton( VectorView x,
+bool oem_gauss_newton( Vector& x,
+                       Vector& yf,
+                       Matrix& G,
+                       Matrix& J,
                        ConstVectorView y,
-                       VectorView yf,
                        ConstVectorView xa,
-                       ForwardModel &K,
                        ConstMatrixView SeInv,
                        ConstMatrixView SaInv,
-                       MatrixView J,
-                       MatrixView G,
+                       ForwardModel &K,
                        Numeric tol,
                        Index maxIter,
                        bool verbose )
 {
 
-    Index n(x.nelem()), m(y.nelem());
+    Index n(xa.nelem()), m(y.nelem());
     Numeric di2;
-    Matrix Ki(m,n), KiTSeInv(n,m), KiTSeInvKi(n,n), KiTSeInvKi2(n,n);
-    Vector xi(n), yi(m), tm1(m), tm2(m), tn1(n), tn2(n), dx(n);
+    // Following Rodgers' notation, we use Ki for the notation: J = Ki
+    Matrix KiTSeInv(n,m), KiTSeInvKi(n,n), KiTSeInvKi2(n,n);
+    Vector tm1(m), tm2(m), tn1(n), tn2(n), dx(n);
 
     Numeric cost_x, cost_y;
     cost_x = 0.0; cost_y = 0.0;
@@ -251,15 +253,16 @@ bool oem_gauss_newton( VectorView x,
         log_init_gn( cout, tol, maxIter );
 
     // Set the starting vector.
+    x.resize( n );
     x = xa;
 
     while ( (!converged) && (iter < maxIter) )
     {
         // Compute Jacobian and y_i.
-        K.evaluate_jacobian( yi, Ki, x);
+        K.evaluate_jacobian( yf, J, x);
 
-        mult( KiTSeInv, transpose(Ki), SeInv );
-        mult( KiTSeInvKi, KiTSeInv, Ki );
+        mult( KiTSeInv, transpose(J), SeInv );
+        mult( KiTSeInvKi, KiTSeInv, J );
         KiTSeInvKi += SaInv;
 
         // tm1 = K_i(x_i - x_a)
@@ -269,7 +272,7 @@ bool oem_gauss_newton( VectorView x,
         mult( tn2, SaInv, tn1 );
 
         tm1 = y;
-        tm1 -= yi;
+        tm1 -= yf;
         // tn1 = K_i^T * S_e^{-1} * (y - F(x_i))
         mult( tn1, KiTSeInv, tm1 );
 
@@ -312,6 +315,7 @@ bool oem_gauss_newton( VectorView x,
     // Compute gain matrix.
 
     inv( KiTSeInvKi2, KiTSeInvKi );
+    G.resize( n, m );
     mult( G, KiTSeInvKi2, KiTSeInv );
 
     // Finalize log output.
@@ -547,38 +551,44 @@ void log_finalize_lm( ostream& stream,
   below gamma_threshold, it is set to zero. If no lower cost can be obtained
   with gamma = 0, gamma is set to 1. If gamma becomes larger than gamma_max and
   the cost can not be reduced, the iteration is stopped.
-  During the execution, space for up to 6 additional matrices and vectors is
-  allocated. The given Matrix and Vector views should not overlap.
+
+  During the execution, space for two n-times-n and one n-times-m matrices is
+  allocated as well as space for 5 length-n vectors and two length-m vectors.
 
   \param[out] x The optimal estimator of the state vector.
-  \param[in] y The measurement vector.
-  \param xa The a priori state vector.
-  \param K A forward model object implementing the FowardModel class.
-  \param Se The covariance matrix of the measurement error.
-  \param Sa The covariance matrix of the a prioi error.
-  \param tol The convergence criterion before scaling by the problem size.
-  \param maxIter The maximum number of iteration before abortion.
-  \param gamma_start The start value of the gamma factor.
-  \param gamma_scale_dec The factor to decrease gamma by if the cost function
+  \param[out] yf The fitted state vector as computed in the second-last LM
+  iteration.
+  \param[out] G The gain matrix.
+  \param[out] J The jacobian as computed in the second-last LM iteration.
+  \param[in] y The size-m input measurement vector.
+  \param[in] xa The size-n a priori state vector.
+  \param[in] K A forward model object implementing the FowardModel class.
+  \param[in] Se The covariance matrix of the measurement error.
+  \param[in] Sa The covariance matrix of the a priori error.
+  \param[in] tol The normalized convergence criterion.
+  \param[in] maxIter The maximum number of iterations before abortion.
+  \param[in] gamma_start The start value of the gamma factor.
+  \param[in] gamma_scale_dec The factor to decrease gamma by if the cost function
   was descreased.
-  \param gamma_scale_inc The factor to increase gamma by if the cost function
+  \param[in] gamma_scale_inc The factor to increase gamma by if the cost function
   could not be decreased.
-  \param gamma_max The maximum gamma value. If gamma == gamma_max and the cost
+  \param[in] gamma_max The maximum gamma value. If gamma == gamma_max and the cost
   function can not be decreased, the iteration is aborted.
-  \param gamma_threshold The minimum value that gamma can take on before it is
+  \param[in] gamma_threshold The minimum value that gamma can take on before it is
   set to zero.
+  \param[in] verbose If true, log messages are printed to stdout.
 
   \return True if the method has converged, false otherwise.
 */
-bool oem_levenberg_marquardt( VectorView x,
+bool oem_levenberg_marquardt( Vector& x,
+                              Vector& yf,
+                              Matrix& G,
+                              Matrix& J,
                               ConstVectorView y,
-                              VectorView yf,
                               ConstVectorView xa,
-                              ForwardModel &K,
                               ConstMatrixView SeInv,
                               ConstMatrixView SaInv,
-                              MatrixView J,
-                              MatrixView G,
+                              ForwardModel &K,
                               Numeric tol,
                               Index maxIter,
                               Numeric gamma_start,
@@ -589,19 +599,19 @@ bool oem_levenberg_marquardt( VectorView x,
                               bool verbose )
 {
 
-    Index n( x.nelem() ), m( y.nelem() );
+    Index n( xa.nelem() ), m( y.nelem() );
     Numeric di2, cost, cost_old, cost_x, cost_y, gamma;
     cost = 0.0; cost_x = 0.0; cost_y = 0.0;
 
     Vector xnew(n), yi(m);
     Vector tm(m), tn1(n), tn2(n), tn3(n), dx(n);
-    Matrix Ki(m,n);
     Matrix KiTSeInv(n,m), KiTSeInvKi(n,n), KiTSeInvKi2(n,n);
 
     if ( verbose )
         log_init_lm( cout, tol, maxIter );
 
     // Set starting vector.
+    x.resize( n );
     x = xa;
 
     gamma = gamma_start;
@@ -613,10 +623,10 @@ bool oem_levenberg_marquardt( VectorView x,
     while ( (!converged) && (iter < maxIter) )
     {
         // Compute Jacobian and y_i.
-        K.evaluate_jacobian( yi, Ki, x);
+        K.evaluate_jacobian( yi, J, x);
 
-        mult( KiTSeInv, transpose(Ki), SeInv );
-        mult( KiTSeInvKi, KiTSeInv, Ki );
+        mult( KiTSeInv, transpose(J), SeInv );
+        mult( KiTSeInvKi, KiTSeInv, J );
 
         tn1 = x;
         tn1 -= xa;
@@ -716,6 +726,7 @@ bool oem_levenberg_marquardt( VectorView x,
 
         di2 = dx * tn1;
         di2 /= (Numeric) n;
+
         if ( di2 <= tol )
         {
             converged = true;
@@ -731,7 +742,9 @@ bool oem_levenberg_marquardt( VectorView x,
 
     // Compute gain matrix.
 
+    KiTSeInvKi += SaInv;
     inv( KiTSeInvKi2, KiTSeInvKi );
+    G.resize( n,m );
     mult( G, KiTSeInvKi2, KiTSeInv );
 
     if ( verbose )
@@ -764,14 +777,14 @@ void log_init_gn( ostream& stream,
     stream << "\t Method: Gauss-Newton" << endl;
     stream << "\t Tolerance: " << tol << endl;
     stream << "\t Max. iterations: " << maxIter << endl << endl;
-    separator( stream, 75 );
+    separator( stream, 68 );
     stream << setw(6) << "Step";
     stream << setw(15) << "     Chi^2      ";
     stream << setw(15) << "     Chi^2_x    ";
     stream << setw(15) << "     Chi^2_y    ";
     stream << setw(15) << "     d_i^2     ";
     stream << endl;
-    separator( stream, 66 );
+    separator( stream, 68 );
 }
 
 //! Step log message, Gauss-Newton

@@ -1,3 +1,18 @@
+2015-10-02 Simon Pfreundschuh <simonpf@chalmers.se> 
+
+	* arts-2-3-320
+
+	* src/oem.* (oem_gauss_newton, oem_levenberg_marquardt): Adapted
+	interface and corrected computation of fitted state vector and gain
+	matrix.
+
+	* src/m_oem.cc (oem): Adapted function calls to oem_gauss_newton and
+	oem_levenberg_marquardt.
+
+	* src/test_oem.cc (test_oem_linear, test_oem_gauss_newton, test_levenberg_marquardt):
+	Adapted function calls to oem_linear_nform, oem_gauss_newton and
+	oem_levenberg_marquardt.
+
 2015-10-01  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-319

@@ -24,11 +24,11 @@ public:
 //! Return a linearization, evaluate the forward model at the given point xi
 //  and write the results into Ki and yi, respectively.
 
-    virtual void evaluate_jacobian (  VectorView yi,
-                                      MatrixView Ki,
-                                      ConstVectorView xi ) = 0;
-    virtual void evaluate ( VectorView yi,
-                            ConstVectorView xi ) = 0;
+    virtual void evaluate_jacobian (  VectorView &yi,
+                                      MatrixView &Ki,
+                                      const ConstVectorView &xi ) = 0;
+    virtual void evaluate ( VectorView &yi,
+                            const ConstVectorView &xi ) = 0;
 };
 
 // Optimal estimation method for linear models.
@@ -52,15 +52,15 @@ void oem_linear_mform( VectorView x,
                        ConstMatrixView Sa );
 
 // Optimal estimation for non-linear models using Gauss-Newton method.
-bool oem_gauss_newton( VectorView x,
+bool oem_gauss_newton( Vector& x,
+                       Vector& yf,
+                       Matrix& G,
+                       Matrix& J,
                        ConstVectorView y,
-                       VectorView y_out,
                        ConstVectorView xa,
-                       ForwardModel& K,
                        ConstMatrixView SeInv,
                        ConstMatrixView SaInv,
-                       MatrixView J,
-                       MatrixView G,
+                       ForwardModel& K,
                        Numeric tol,
                        Index maxiter,
                        bool verbose );
@@ -86,15 +86,15 @@ bool oem_gauss_newton_m_form( VectorView x,
                               Index maxiter );
 
 // Optimal estimation for non-linear models using Levenberg-Marquardt method.
-bool oem_levenberg_marquardt( VectorView x,
+bool oem_levenberg_marquardt( Vector &x,
+                              Vector &yf,
+                              Matrix &G,
+                              Matrix &J,
                               ConstVectorView y,
-                              VectorView y_out,
                               ConstVectorView xa,
+                              ConstMatrixView SeInv,
+                              ConstMatrixView SaInv,
                               ForwardModel &K,
-                              ConstMatrixView Se,
-                              ConstMatrixView Sa,
-                              MatrixView J,
-                              MatrixView G,
                               Numeric tol,
                               Index maxIter,
                               Numeric gamma_start,
