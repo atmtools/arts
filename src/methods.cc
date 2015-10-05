@@ -8884,44 +8884,92 @@ void define_md_data_raw()
          "\n"
          "Work in progress ...\n"
          "\n"
-         "Description of the various local settings:\n"
+         "The cost function to minimise, including a normalisation with length"
+         "of *y*, is:\n"
+         "   cost = cost_y + cost_x\n"
+         "where\n"
+         "   cost_y = 1/m * [y-yf]' * covmat_so_inv * [y-yf]\n"
+         "   cost_x = 1/m * [x-xa]' * covmat_sx_inv * [x-xa]\n"
          "\n"
-         "*method*: \n"
-         "  \"li\": A linear problem is assumed and no iterations are performed.\n"
+         "The change in state vector between two iterations is calculated as\n"
+         "   dx = ???\n"
+         "\n"
+         "Description of the special input arguments:\n"
+         "\n"
+         "*method*\n"
+         "  \"li\": A linear problem is assumed and a single iteration is performed.\n"
          "  \"gn\": Non-linear, with Gauss-Newton iteration scheme.\n"
          "  \"ml\": Non-linear, with Marquardt-Levenberg (ML) iteration scheme.\n"
-         "\n"
-         "*yf_linear*: \n"
-         "  In linear inversions, a fit is assumed after one iteration and\n"
-         "  *yf* is not calculated automatically. With this flag set to 1, the\n"
-         "  actual *yf* is calculated, as well as that the *jacobian* is re-\n"
-         "  calculated. With the flag set to 0, the *yf* and *jacobian* correspond\n"
-         "  to the a priori state.\n"
-         "\n"
-         "*ga_start*:\n"
-         "   Start value of gamma for ML iterations.\n"
-         "\n"
-         "*clear matrices*: \n"
+         "*max_start_cost*\n"
+         "  No inversion is done if the cost matching the a priori state is above\n"
+         "  this value. If set to a negative value, all values are accepted.\n"
+         "  This argument also controls if the start cost is calculated. If\n"
+         "  set to <= 0, the start cost in *oem_diagnostics* is set to NaN\n"
+         "  when using \"li\" and \"gn\".\n"
+         "*sx_norm*\n"
+         "  Flag controlling a normalisation that is required in some cases due\n"
+         "  to limited numerical precision. The normalisation is based on\n"
+         "  *covmat_sx_inv*. The options are 0 = no normalisation, 1 = always\n"
+         "  apply normalisation, and 2 = automatically determine if normalisation\n"
+         "  is needed.\n"
+         "*max_iter*\n"
+         "  Maximum number of iterations to perform. No effect for \"li\".\n"
+         "*stop_dx*\n"
+         "  Iteration stop criterion. The iterations stops when the change in\n"
+         "  *x* between the successive iterations is smaller than this value.\n"
+         "  See definition of dx above.\n"
+         "*ml_ga_settings*\n"
+         "  Settings controlling the gamma factor, part of the \"ML\" method.\n"
+         "  This is a vector of length 6, having the elements (0-based index):\n"
+         "    0: Start value.\n"
+         "    1: Fractional decrease after succesfull iteration..\n"
+         "    2: Fractional increase after unsuccessful iteration.\n"
+         "    3: Maximum allowed value. If the value is passed, the inversion\n"
+         "       is halted.\n"
+         "    4: Lower treshold. If the threshold is passed, gamma is set to zero.\n"
+         "       If gamma must be increased from zero, gamma is set to this value.\n"
+         "    5: Gamma limit. This is an additional stop criterion. Convergence\n"
+         "       is not considered until there has been one succesful iteration\n"
+         "       having a gamma <= this value.\n"
+         "*exact_j*\n"
+         "  Flag to trigger that *jacobian* matches exactly the final value of *x*.\n" 
+         "  If this variable is set to zero, *jacobian* matches the second to last\n"
+         "  state\n"
+         "*clear matrices*\n"
          "   With this flag set to 1, *jacobian* and *dxdy* are returned as empty\n"
          "   matrices.\n"
+         "*display_progress*\n"
+         "   Controls if there is any screen output. The overall reporrt level\n"
+         "   is ignored by this WSM. If output is selected, this triggers that\n"
+         "   the cost function is calculated (independent of other choices).\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
-        OUT( "x", "xa", "yf", "jacobian", "dxdy" ),
+        OUT( "x", "xa", "yf", "jacobian", "dxdy", "oem_diagnostics", "ml_ga_history" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "y", "invcovmat_sx", "invcovmat_so",
+        IN( "y", "covmat_sx_inv", "covmat_so_inv",
             "jacobian_do", "jacobian_quantities", "jacobian_indices",
             "inversion_iterate_agenda", "atmosphere_dim", "p_grid",
             "lat_grid", "lon_grid", "t_field", "vmr_field", "abs_species" ),
-        GIN( "method", "yf_linear", "start_ga", "clear_matrices" ),
-        GIN_TYPE( "String", "Index", "Numeric", "Index" ),
-        GIN_DEFAULT( NODEF, "1", "-1", "0" ),
-        GIN_DESC( "Iteration method. See further above.",
-                  "Calculation of *yf* in the linear case. See further above.",
-                  "Start value of ga for ML. See further above.",
-                  "Set to 1 if you don't need *jacobian* and *dydx*. See "
-                  "further above." )
+        GIN( "method", "max_start_cost", "sx_norm", "max_iter", "stop_dx", 
+             "ml_ga_settings", "exact_j", "clear_matrices", 
+             "display_progress" ),
+        GIN_TYPE( "String", "Numeric", "Index", "Index", "Numeric", 
+                  "Vector", "Index", "Index", "Index" ),
+        GIN_DEFAULT( NODEF, "Inf", "1", "10", "0.01", 
+                     "[-1]", "1", "0", "0" ),
+        GIN_DESC( "Iteration method. For this and all options below, see "
+                  "further above.",
+                  "Maximum allowed value of cost function at start.",
+                  "Normalisation of Sx.",
+                  "Maximum number of iterations.",
+                  "Stop criterion for iterative inversions.",
+                  "Settings associated with the ga factor of the ML method.",
+                  "Evaluation of *jacobian* at exact end results.",
+                  "An option to save memory.",
+                  "Flag to control if inversion diagnostics shall be printed "
+                  "on the screen.")
         ));
 
   md_data_raw.push_back

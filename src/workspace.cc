@@ -1180,12 +1180,40 @@ void Workspace::define_wsv_data()
  
   wsv_data.push_back
    (WsvRecord
+    ( NAME( "covmat_so_inv" ),
+      DESCRIPTION
+      (
+       "The inverse of the covariance matrix for observation uncertainties.\n"
+       "\n"
+       "Usage:      Used by inversion methods.\n"
+       "\n"
+       "Dimensions: \n"
+       "     [ y, y ]\n"
+       ),
+      GROUP( "Matrix" )));
+ 
+  wsv_data.push_back
+   (WsvRecord
     ( NAME( "covmat_sx" ),
       DESCRIPTION
       (
        "Covariance matrix for a priori uncertainty.\n"
        "\n"
        "This matrix describes the uncertainty of the elements in *x*.\n"
+       "\n"
+       "Usage:      Used by inversion methods.\n"
+       "\n"
+       "Dimensions: \n"
+       "     [ x, x ]\n"
+       ),
+      GROUP( "Matrix" )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "covmat_sx_inv" ),
+      DESCRIPTION
+      (
+       "The inverse of the covariance matrix for a priori uncertainty.\n"
        "\n"
        "Usage:      Used by inversion methods.\n"
        "\n"
@@ -1665,34 +1693,6 @@ void Workspace::define_wsv_data()
         "Agenda deriving the geo-position of a pencil beam calculation.\n"
        ),
       GROUP( "Agenda" )));
-
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "invcovmat_so" ),
-      DESCRIPTION
-      (
-       "The inverse of the covariance matrix for observation uncertainties.\n"
-       "\n"
-       "Usage:      Used by inversion methods.\n"
-       "\n"
-       "Dimensions: \n"
-       "     [ y, y ]\n"
-       ),
-      GROUP( "Matrix" )));
- 
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "invcovmat_sx" ),
-      DESCRIPTION
-      (
-       "The inverse of the covariance matrix for a priori uncertainty.\n"
-       "\n"
-       "Usage:      Used by inversion methods.\n"
-       "\n"
-       "Dimensions: \n"
-       "     [ x, x ]\n"
-       ),
-      GROUP( "Matrix" )));
 
  wsv_data.push_back
     (WsvRecord
@@ -2632,6 +2632,18 @@ void Workspace::define_wsv_data()
        ),
       GROUP( "Agenda" )));
 
+   wsv_data.push_back
+   (WsvRecord
+    ( NAME( "ml_ga_history" ),
+      DESCRIPTION
+      (
+        "The series of gamma values for a Marquardt-levenberg inversion.\n"
+        "\n"
+        "The values are stored following iteration order, i.e. the first\n"
+        "is the gamma factor for the first iteration etc.\n"
+       ),
+      GROUP( "Vector" )));
+
  wsv_data.push_back
    (WsvRecord
     ( NAME( "nlte_quantum_identifiers" ),
@@ -2765,6 +2777,26 @@ void Workspace::define_wsv_data()
        ),
       GROUP( "Tensor6" )));
    
+   wsv_data.push_back
+   (WsvRecord
+    ( NAME( "oem_diagnostics" ),
+      DESCRIPTION
+      (
+        "Basic diagnostics of an OEM type inversion.\n"
+        "\n"
+        "This is a vector of length 5, having the elements (0-based index):\n"
+        "  0: Convergence, 0 = converged, 1 = not known, 2 = failure, and\n"
+        "     3 = too high start cost.\n"
+        "  1: Start value of cost function.\n"
+        "  2: End value of cost function.\n"
+        "  3: End value of y-part of cost function.\n"
+        "  4: Number of iterations used.\n"
+        "\n"
+        "See WSM *oem* for a definition of \"cost\". Values not calculated\n"
+        "are set to NaN.\n"
+       ),
+      GROUP( "Vector" )));
+
    wsv_data.push_back
    (WsvRecord
     ( NAME( "opt_prop_part_agenda" ),

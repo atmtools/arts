@@ -541,9 +541,11 @@ void oem(
          Vector&                     yf,
          Matrix&                     jacobian,
          Matrix&                     dxdy,
+         Vector&                     oem_diagnostics,
+         Vector&                     ml_ga_history,
    const Vector&                     y,
-   const Matrix&                     Sx_inv,
-   const Matrix&                     So_inv,
+   const Matrix&                     covmat_sx_inv,
+   const Matrix&                     covmat_so_inv,
    const Index&                      jacobian_do,
    const ArrayOfRetrievalQuantity&   jacobian_quantities,
    const ArrayOfArrayOfIndex&        jacobian_indices,
@@ -556,44 +558,64 @@ void oem(
    const Tensor4&                    vmr_field,
    const ArrayOfArrayOfSpeciesTag&   abs_species,
    const String&                     method,
-   const Index&                      yf_linear,
-   const Numeric&                    start_ga,
+   const Numeric&                    max_start_cost,
+   const Index&                      sx_norm,
+   const Index&                      max_iter,
+   const Numeric&                    stop_dx,
+   const Vector&                     ml_ga_settings,
+   const Index&                      exact_j,
    const Index&                      clear_matrices,
+   const Index&                      display_progress,
    const Verbosity& )
 {
   // Main sizes
-  const Index n = Sx_inv.nrows();
+  const Index n = covmat_sx_inv.nrows();
   const Index m = y.nelem();
   const Index nq = jacobian_quantities.nelem();
 
-  // Check input
+  // Check WSVs
   if( !jacobian_do )
     throw runtime_error( "Jacobian calculations must be turned on (but jacobian_do=0)." );
   if( !nq )
     throw runtime_error( "Jacobian quantities are empty, no inversion to do!." );
-  if( Sx_inv.ncols() != n )
-    throw runtime_error( "*invcovmat_sx* must be a square matrix." );
-  if( So_inv.ncols() != So_inv.nrows() )
-    throw runtime_error( "*invcovmat_so* must be a square matrix." );
-  if( So_inv.ncols() != m )
-    throw runtime_error( "Inconsistency in size between *y* and *covmat_so*." );
+  if( covmat_sx_inv.ncols() != n )
+    throw runtime_error( "*covmat_sx_inv* must be a square matrix." );
+  if( covmat_so_inv.ncols() != covmat_so_inv.nrows() )
+    throw runtime_error( "*covmat_so_inv* must be a square matrix." );
+  if( covmat_so_inv.ncols() != m )
+    throw runtime_error( "Inconsistency in size between *y* and *covmat_so_inv*." );
   if( jacobian_indices.nelem() != nq )
     throw runtime_error( "Different number of elements in *jacobian_quantities* "
                          "and *jacobian_indices*." );
   if( jacobian_indices[nq-1][1]+1 != n )
-    throw runtime_error( "Size of *Sx* do not agree with Jacobian information " 
-                         "(*jacobian_indices*)." );
+    throw runtime_error( "Size of *covmat_sx_inv* do not agree with Jacobian " 
+                         "information (*jacobian_indices*)." );
+  // Check GINs
   if( !( method == "li"  ||  method == "gn"  ||  method == "ml" || method == "lm" ) )  
     throw runtime_error( "Valid options for *method* are \"nl\", \"gn\" and " 
                          "\"ml\" or \"lm\"." );
-  // Special checks for ML
+  if( sx_norm < 0  ||  sx_norm > 2 )
+    throw runtime_error( "Valid options for *sx_norm* are 0, 1 and 2." );
+  if( max_iter <= 0 )
+    throw runtime_error( "The argument *stop_dx* must be > 0." );
+  if( stop_dx <= 0 )
+    throw runtime_error( "The argument *stop_dx* must be > 0." );
   if( method == "ml" )
     {
-      if( start_ga < 0 )
-        throw runtime_error( "*start_ga must be >= 0." );
+      if( ml_ga_settings.nelem() != 6 )
+        throw runtime_error( "When using \"ml\", *ml_ga_setings* must be a "
+                             "vector of length 6." );
+      if( min(ml_ga_settings) < 0 )
+        throw runtime_error( "The vector *ml_ga_setings* can not contain any "
+                             "negative value." );
     }
+  if( exact_j < 0  ||  exact_j > 1 )
+    throw runtime_error( "Valid options for *exact_j* are 0 and 1." );
+  if( clear_matrices < 0  ||  clear_matrices > 1 )
+    throw runtime_error( "Valid options for *clear_matrices* are 0 and 1." );  
+  if( display_progress < 0  ||  display_progress > 1 )
+    throw runtime_error( "Valid options for *display_progress* are 0 and 1." );  
   //--- End of checks ---------------------------------------------------------------
-
 
 
 
@@ -605,41 +627,90 @@ void oem(
   inversion_iterate_agendaExecute( ws, yf, jacobian, xa, 1,
                                    inversion_iterate_agenda );
 
-  AgendaWrapper aw( &ws, &jacobian, &inversion_iterate_agenda );
-
-  if (method == "li")
-  {
-    oem_linear_nform( x, dxdy, xa, yf, y, jacobian, So_inv, Sx_inv );
-
-      if( yf_linear )
-      {
-        inversion_iterate_agendaExecute( ws, yf, jacobian, x, 1,
-                                         inversion_iterate_agenda );
-      }
-  }
-
-  else if (method == "gn")
-  {
-      oem_gauss_newton( x, yf, dxdy, jacobian,  y, xa, So_inv, Sx_inv, aw,
-                        10e-5, 1000, true );
-  }
-  else if ( (method == "lm") || (method == "ml") )
-  {
-      Numeric gamma_max = 100.0;
-      Numeric gamma_scale_dec = 2.0;
-      Numeric gamma_scale_inc = 3.0;
-      Numeric gamma_threshold = 1.0;
-      oem_levenberg_marquardt( x, yf, dxdy, jacobian, y, xa, So_inv, Sx_inv, aw,
-                               10e-3, 1000, start_ga, gamma_scale_dec,
-                               gamma_scale_inc, gamma_max, gamma_threshold,
-                               true );
-  }
-
-
-  // Shall empty jacobian and dxdy be returned
-  if( clear_matrices )
+  // Size remaining output arguments
+  x.resize( n );
+  dxdy.resize( n, m );
+  //
+  oem_diagnostics.resize( 5 );
+  //
+  if( method == "ml" )
+    { ml_ga_history.resize( max_iter ); }
+  else
+    { ml_ga_history.resize( 0 ); }
+        
+  // Start value of cost function
+  //
+  Numeric cost_start = NAN;
+  //
+  if( method == "ml" || method == "lm" || display_progress ||  
+      max_start_cost > 0 )
     {
-      jacobian.resize(0,0);
-      dxdy.resize(0,0);
+      oem_cost_y( cost_start, y, yf, covmat_so_inv, (Numeric) m ); 
+    }
+  oem_diagnostics[1] = cost_start;
+
+  
+  // Handle cases with too large start cost
+  if( max_start_cost > 0  &&  cost_start > max_start_cost )  
+    {
+      // Flag no inversion in oem_diagnostics, and let x to be undefined 
+      oem_diagnostics[0] = 3;
+      oem_diagnostics[2] = NAN;
+      oem_diagnostics[3] = NAN;
+      oem_diagnostics[4] = NAN;
+      //
+      if( display_progress )
+        {
+          cout << "\n   No OEM inversion, too high start cost:\n" 
+               << "        Set limit : " << max_start_cost << endl
+               << "      Found value : " << cost_start << endl << endl;
+        }
+    }
+
+  // Do inversion
+  else
+    {
+      // Call selected method
+      //
+      AgendaWrapper aw( &ws, &jacobian, &inversion_iterate_agenda );
+      //
+      if (method == "li")
+        {
+          Numeric cost_y, cost_x;
+          oem_linear_nform( x, dxdy, jacobian, yf, cost_y, cost_x, 
+                            aw, xa, y, covmat_so_inv, covmat_sx_inv, 
+                            cost_start, exact_j, display_progress );
+          //
+          oem_diagnostics[0] = 1;
+          oem_diagnostics[2] = cost_y + cost_x;
+          oem_diagnostics[3] = cost_y;
+          oem_diagnostics[4] = 1;
+        }
+
+      else if (method == "gn")
+        {
+          oem_gauss_newton( x, yf, dxdy, jacobian, y, xa, covmat_so_inv,
+                            covmat_sx_inv, aw,
+                            stop_dx, max_iter, display_progress );
+        }
+      else if ( (method == "lm") || (method == "ml") )
+        {
+          Numeric gamma_start = ml_ga_settings[0];
+          Numeric gamma_max = 100.0;
+          Numeric gamma_scale_dec = 2.0;
+          Numeric gamma_scale_inc = 3.0;
+          Numeric gamma_threshold = 1.0;
+          oem_levenberg_marquardt( x, yf, dxdy, jacobian, y, xa, covmat_so_inv, covmat_sx_inv, aw,
+                                   10e-3, 1000, gamma_start, gamma_scale_dec,
+                                   gamma_scale_inc, gamma_max, gamma_threshold,
+                                   display_progress );
+        }
+
+      // Shall empty jacobian and dxdy be returned?
+      if( clear_matrices )
+        {
+          jacobian.resize(0,0);
+          dxdy.resize(0,0);
+        }
     }
 }

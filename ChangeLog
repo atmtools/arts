@@ -1,4 +1,15 @@
-2015-10-02 Simon Pfreundschuh <simonpf@chalmers.se> 
+2015-10-05  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-321
+
+	* src/oem.cc:
+	* src/m_oem.cc: Work in progress. Adding diagnostics and different
+	features to control calcualtions and reporting.
+
+	* src/workspace.cc: Renamed inverse of covariance matrices, to
+	covmat_sx_inv and covmat_so_inv.
+
+2015-10-02 Simon Pfreundschuh <simonpf@chalmers.se>
 
 	* arts-2-3-320
 

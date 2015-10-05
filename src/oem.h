@@ -31,25 +31,28 @@ public:
                             const ConstVectorView &xi ) = 0;
 };
 
+
+void oem_cost_y( Numeric& cost_y, 
+                 ConstVectorView y, 
+                 ConstVectorView yf,
+                 ConstMatrixView SeInv,
+                 const Numeric&  normfac );
+
 // Optimal estimation method for linear models.
 void oem_linear_nform( Vector& x,
                        Matrix& G,
+                       Matrix& J,
+                       Vector& yf,
+                       Numeric& cost_y, 
+                       Numeric& cost_x,
+                       ForwardModel &F,
                        ConstVectorView xa,
-                       ConstVectorView yf,
                        ConstVectorView y,
-                       ConstMatrixView K,
                        ConstMatrixView SeInv,
-                       ConstMatrixView SaInv );
-
-// Optimal estimation method for linear models.
-void oem_linear_mform( VectorView x,
-                       MatrixView G,
-                       ConstVectorView xa,
-                       ConstVectorView yf,
-                       ConstVectorView y,
-                       ConstMatrixView K,
-                       ConstMatrixView Se,
-                       ConstMatrixView Sa );
+                       ConstMatrixView SxInv,
+                       const Numeric& cost_start,
+                       const bool& exact_j,
+                       const bool& verbose );
 
 // Optimal estimation for non-linear models using Gauss-Newton method.
 bool oem_gauss_newton( Vector& x,
@@ -59,41 +62,21 @@ bool oem_gauss_newton( Vector& x,
                        ConstVectorView y,
                        ConstVectorView xa,
                        ConstMatrixView SeInv,
-                       ConstMatrixView SaInv,
+                       ConstMatrixView SxInv,
                        ForwardModel& K,
                        Numeric tol,
                        Index maxiter,
                        bool verbose );
 
-// Optimal estimation for non-linear models using Gauss-Newton method.
-bool oem_gauss_newton_n_form( VectorView x,
-                              ConstVectorView y,
-                              ConstVectorView xa,
-                              ForwardModel& K,
-                              ConstMatrixView Se,
-                              ConstMatrixView Sa,
-                              Numeric tol,
-                              Index maxiter );
-
-// Optimal estimation for non-linear models using Gauss-Newton method.
-bool oem_gauss_newton_m_form( VectorView x,
-                              ConstVectorView y,
-                              ConstVectorView xa,
-                              ForwardModel& K,
-                              ConstMatrixView Se,
-                              ConstMatrixView Sa,
-                              Numeric tol,
-                              Index maxiter );
-
 // Optimal estimation for non-linear models using Levenberg-Marquardt method.
-bool oem_levenberg_marquardt( Vector &x,
-                              Vector &yf,
-                              Matrix &G,
-                              Matrix &J,
+bool oem_levenberg_marquardt( Vector& x,
+                              Vector& yf,
+                              Matrix& G,
+                              Matrix& J,
                               ConstVectorView y,
                               ConstVectorView xa,
                               ConstMatrixView SeInv,
-                              ConstMatrixView SaInv,
+                              ConstMatrixView SxInv,
                               ForwardModel &K,
                               Numeric tol,
                               Index maxIter,
