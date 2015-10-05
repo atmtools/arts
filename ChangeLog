@@ -1,10 +1,19 @@
 2015-10-05  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-3-322
+
+	* src/m_oem.cc:
+	* src/oem.cc: Still work in progress. If you are curious, see
+	built-in for oem WSM and oem_diagnostics WSV to get an idea about
+	the plans.
+
+2015-10-05  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-3-321
 
 	* src/oem.cc:
 	* src/m_oem.cc: Work in progress. Adding diagnostics and different
-	features to control calcualtions and reporting.
+	features to control calculations and reporting.
 
 	* src/workspace.cc: Renamed inverse of covariance matrices, to
 	covmat_sx_inv and covmat_so_inv.

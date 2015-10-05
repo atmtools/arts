@@ -42,8 +42,7 @@ void separator( ostream& stream,
 void log_init_li( ostream& stream )
 {
     stream << endl;
-    stream << "Starting OEM inversion: " << endl << endl;
-    stream << "     Method: Linear" << endl << endl;
+    stream << "Starting linear OEM inversion:" << endl << endl;
     separator( stream, 52 );
     stream << setw(6) << "Step";
     stream << setw(15) << "     Chi^2     ";
@@ -106,9 +105,9 @@ void log_init_gn( ostream& stream,
 {
     stream << endl;
     stream << "Starting OEM inversion: " << endl << endl;
-    stream << "     Method: Gauss-Newton" << endl;
-    stream << "     Stop criterion: " << tol << endl;
-    stream << "     Max. iterations: " << maxIter << endl << endl;
+    stream << "\tMethod: Gauss-Newton" << endl;
+    stream << "\tStop criterion: " << tol << endl;
+    stream << "\tMax. iterations: " << maxIter << endl << endl;
     separator( stream, 67 );
     stream << setw(6) << "Step";
     stream << setw(15) << "     Chi^2     ";
@@ -158,27 +157,19 @@ void log_step_gn( ostream& stream,
 */
 void log_finalize_gn( ostream& stream,
                       bool converged,
-                      Numeric cost,
-                      Numeric cost_x,
-                      Numeric cost_y,
                       Index iter,
                       Index maxIter )
 {
     separator( stream, 67 );
-    stream << endl << "Finished Gauss-Newton iterations:" << endl;
+    stream << endl;
     if ( converged )
-        stream << "\t Converged: YES" << endl;
+        stream << "\tConverged: YES";
     else if ( iter == maxIter )
     {
-        stream << "\t Converged: NO" << endl;
-        stream << "\t Iteration aborted because maximum no. of iterations was reached.";
+        stream << "\tConverged: NO" << endl;
+        stream << "\tMaximum no. of iterations was reached.";
     }
-    stream << endl;
-
-    stream << "\t Chi^2: " << cost << endl;
-    stream << "\t Chi^2_x: " << cost_x << endl;
-    stream << "\t Chi^2_y: " << cost_y << endl;
-    stream << endl << endl << endl;
+    stream << endl << endl;
 }
 
 //! Initial log message, Levenberg-Marquardt
@@ -383,6 +374,7 @@ of a linear system of equations of size n-times-n.
 Requires the inverses of the covariance matrices for the state and measurement
 vector to be provided as arguments.
 
+  \return Convergence status, see *oem_diagnostics*
   \param[out] x The optimal, estimated state vector consisting of n elements.
   \param[out] G The gain matrix.
   \param[in] xa The a priori state vector
@@ -392,26 +384,27 @@ vector to be provided as arguments.
   \param[in] SeInv The inverse of the measurement error covariance (m,m)-matrix
   \param[in] SxInv The inverse of the a priori covariance (n,n)-matrix
 */
-void oem_linear_nform( Vector& x,
-                       Matrix& G,
-                       Matrix& J,
-                       Vector& yf,
-                       Numeric& cost_y, 
-                       Numeric& cost_x,
-                       ForwardModel &F,
-                       ConstVectorView xa,
-                       ConstVectorView y,
-                       ConstMatrixView SeInv,
-                       ConstMatrixView SxInv,
-                       const Numeric& cost_start,
-                       const bool& exact_j,
-                       const bool& verbose )
+Index oem_linear_nform( Vector& x,
+                        Matrix& G,
+                        Matrix& J,
+                        Vector& yf,
+                        Numeric& cost_y, 
+                        Numeric& cost_x,
+                        ForwardModel &F,
+                        ConstVectorView xa,
+                        ConstVectorView x_norm,
+                        ConstVectorView y,
+                        ConstMatrixView SeInv,
+                        ConstMatrixView SxInv,
+                        const Numeric& cost_start,
+                        const bool& verbose )
 {
-    Index m = J.nrows();
-    Index n = J.ncols();
+    const Index m = J.nrows();
+    const Index n = J.ncols();
 
     // Check dimensions for consistency.
     assert( xa.nelem() == n );
+    assert( x_norm.nelem() == 0  || x_norm.nelem() == n );
     assert( y.nelem() == m );
     assert( (SeInv.ncols() == m) && (SeInv.nrows() == m) );
     assert( (SxInv.ncols() == n) && (SxInv.nrows() == n) );
@@ -444,10 +437,7 @@ void oem_linear_nform( Vector& x,
 
     // Calculate yf and cost values
     //
-    if( exact_j )
-      F.evaluate_jacobian( yf, J, x );
-    else
-      F.evaluate( yf, x );
+    F.evaluate( yf, x );
     //
     oem_cost_y( cost_y, y, yf, SeInv, (Numeric) m );
     oem_cost_x( cost_x, x, xa, SxInv, (Numeric) m );
@@ -458,6 +448,9 @@ void oem_linear_nform( Vector& x,
         log_step_li( cout, 1, cost_y+cost_x, cost_x, cost_y );
         log_finalize_li( cout );
       }
+
+    // Return convergence status
+    return 1;   // Should be set to 9 if failure when calculating yf
 }
 
 
@@ -491,35 +484,51 @@ void oem_linear_nform( Vector& x,
 
   \return True if the method has converged, false otherwise.
 */
-bool oem_gauss_newton( Vector& x,
-                       Vector& yf,
-                       Matrix& G,
-                       Matrix& J,
-                       ConstVectorView y,
-                       ConstVectorView xa,
-                       ConstMatrixView SeInv,
-                       ConstMatrixView SxInv,
-                       ForwardModel &K,
-                       Numeric tol,
-                       Index maxIter,
-                       bool verbose )
+Index oem_gauss_newton( Vector& x,
+                        Matrix& G,
+                        Matrix& J,
+                        Vector& yf,
+                        Numeric& cost_y, 
+                        Numeric& cost_x,
+                        Index& iter,
+                        ForwardModel &F,
+                        ConstVectorView xa,
+                        ConstVectorView x_norm,
+                        ConstVectorView y,
+                        ConstMatrixView SeInv,
+                        ConstMatrixView SxInv,
+                        const Numeric& cost_start,
+                        const Index maxIter,
+                        const Numeric tol,
+                        const bool& verbose )
 {
+    const Index m = J.nrows();
+    const Index n = J.ncols();
 
-    Index n(xa.nelem()), m(y.nelem());
+    // Check dimensions for consistency.
+    assert( xa.nelem() == n );
+    assert( x_norm.nelem() == 0  || x_norm.nelem() == n );
+    assert( y.nelem() == m );
+    assert( (SeInv.ncols() == m) && (SeInv.nrows() == m) );
+    assert( (SxInv.ncols() == n) && (SxInv.nrows() == n) );
+
     Numeric di2;
+
     // Following Rodgers' notation, we use Ki for the notation: J = Ki
     Matrix KiTSeInv(n,m), KiTSeInvKi(n,n), KiTSeInvKi2(n,n);
     Vector tm1(m), tm2(m), tn1(n), tn2(n), dx(n);
 
-    Numeric cost_x, cost_y;
     cost_x = 0.0; cost_y = 0.0;
 
-    Index iter = 0;
+    iter = 0;
     bool converged = false;
 
     // Initialize log output.
     if (verbose)
+      {
         log_init_gn( cout, tol, maxIter );
+        log_step_gn( cout, 0, cost_start, 0, cost_start, NAN );
+      }
 
     // Set the starting vector.
     x = xa;
@@ -527,7 +536,7 @@ bool oem_gauss_newton( Vector& x,
     while ( (!converged) && (iter < maxIter) )
     {
         // Compute Jacobian and y_i.
-        K.evaluate_jacobian( yf, J, x);
+        F.evaluate_jacobian( yf, J, x);
 
         mult( KiTSeInv, transpose(J), SeInv );
         mult( KiTSeInvKi, KiTSeInv, J );
@@ -578,19 +587,20 @@ bool oem_gauss_newton( Vector& x,
     }
 
     // Compute fitted measurement vector and jacobian.
-    K.evaluate_jacobian( yf, J, x );
+    F.evaluate_jacobian( yf, J, x );
 
     // Compute gain matrix.
-
     inv( KiTSeInvKi2, KiTSeInvKi );
     mult( G, KiTSeInvKi2, KiTSeInv );
 
     // Finalize log output.
     if ( verbose )
-        log_finalize_gn( cout, converged, cost_x + cost_y,
-                         cost_x, cost_y, iter, maxIter );
+        log_finalize_gn( cout, converged, iter, maxIter );
 
-    return converged;
+    if( converged )
+      return 0;
+    else
+      return 1;      
 }
 
 

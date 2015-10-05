@@ -559,11 +559,10 @@ void oem(
    const ArrayOfArrayOfSpeciesTag&   abs_species,
    const String&                     method,
    const Numeric&                    max_start_cost,
-   const Index&                      sx_norm,
+   const Vector&                      x_norm,
    const Index&                      max_iter,
    const Numeric&                    stop_dx,
    const Vector&                     ml_ga_settings,
-   const Index&                      exact_j,
    const Index&                      clear_matrices,
    const Index&                      display_progress,
    const Verbosity& )
@@ -594,10 +593,13 @@ void oem(
   if( !( method == "li"  ||  method == "gn"  ||  method == "ml" || method == "lm" ) )  
     throw runtime_error( "Valid options for *method* are \"nl\", \"gn\" and " 
                          "\"ml\" or \"lm\"." );
-  if( sx_norm < 0  ||  sx_norm > 2 )
-    throw runtime_error( "Valid options for *sx_norm* are 0, 1 and 2." );
+  if( !( x_norm.nelem() == 0  ||  x_norm.nelem() == n ) )
+    throw runtime_error( "The vector *x_norm* must have length 0 or match "
+                         "*covmat_sx_inv*." );
+  if( x_norm.nelem() > 0  &&  min( x_norm ) )
+    throw runtime_error( "All values in *x_norm* must be > 0." );
   if( max_iter <= 0 )
-    throw runtime_error( "The argument *stop_dx* must be > 0." );
+    throw runtime_error( "The argument *max_iter* must be > 0." );
   if( stop_dx <= 0 )
     throw runtime_error( "The argument *stop_dx* must be > 0." );
   if( method == "ml" )
@@ -609,14 +611,11 @@ void oem(
         throw runtime_error( "The vector *ml_ga_setings* can not contain any "
                              "negative value." );
     }
-  if( exact_j < 0  ||  exact_j > 1 )
-    throw runtime_error( "Valid options for *exact_j* are 0 and 1." );
   if( clear_matrices < 0  ||  clear_matrices > 1 )
     throw runtime_error( "Valid options for *clear_matrices* are 0 and 1." );  
   if( display_progress < 0  ||  display_progress > 1 )
     throw runtime_error( "Valid options for *display_progress* are 0 and 1." );  
   //--- End of checks ---------------------------------------------------------------
-
 
 
   // Create xa and init x
@@ -627,17 +626,19 @@ void oem(
   inversion_iterate_agendaExecute( ws, yf, jacobian, xa, 1,
                                    inversion_iterate_agenda );
 
-  // Size remaining output arguments
-  x.resize( n );
-  dxdy.resize( n, m );
+  // Size diagnostic output and init with NaNs
   //
   oem_diagnostics.resize( 5 );
+  oem_diagnostics = NAN;
   //
   if( method == "ml" )
-    { ml_ga_history.resize( max_iter ); }
+    { 
+      ml_ga_history.resize( max_iter ); 
+      ml_ga_history = NAN;
+    }
   else
     { ml_ga_history.resize( 0 ); }
-        
+
   // Start value of cost function
   //
   Numeric cost_start = NAN;
@@ -654,10 +655,7 @@ void oem(
   if( max_start_cost > 0  &&  cost_start > max_start_cost )  
     {
       // Flag no inversion in oem_diagnostics, and let x to be undefined 
-      oem_diagnostics[0] = 3;
-      oem_diagnostics[2] = NAN;
-      oem_diagnostics[3] = NAN;
-      oem_diagnostics[4] = NAN;
+      oem_diagnostics[0] = 99;
       //
       if( display_progress )
         {
@@ -667,9 +665,14 @@ void oem(
         }
     }
 
-  // Do inversion
+
+  // Otherwise do inversion
   else
     {
+      // Size remaining output arguments
+      x.resize( n );
+      dxdy.resize( n, m );
+
       // Call selected method
       //
       AgendaWrapper aw( &ws, &jacobian, &inversion_iterate_agenda );
@@ -677,21 +680,30 @@ void oem(
       if (method == "li")
         {
           Numeric cost_y, cost_x;
-          oem_linear_nform( x, dxdy, jacobian, yf, cost_y, cost_x, 
-                            aw, xa, y, covmat_so_inv, covmat_sx_inv, 
-                            cost_start, exact_j, display_progress );
           //
-          oem_diagnostics[0] = 1;
+          oem_diagnostics[0] = (Numeric)
+            oem_linear_nform( x, dxdy, jacobian, yf, cost_y, cost_x, 
+                              aw, xa, x_norm, y, covmat_so_inv, covmat_sx_inv, 
+                              cost_start, display_progress );
+          //
           oem_diagnostics[2] = cost_y + cost_x;
           oem_diagnostics[3] = cost_y;
-          oem_diagnostics[4] = 1;
+          oem_diagnostics[4] = 1.0;
         }
 
       else if (method == "gn")
         {
-          oem_gauss_newton( x, yf, dxdy, jacobian, y, xa, covmat_so_inv,
-                            covmat_sx_inv, aw,
-                            stop_dx, max_iter, display_progress );
+          Index used_iter;
+          Numeric cost_y, cost_x;
+          //
+          oem_diagnostics[0] = (Numeric)
+            oem_gauss_newton( x, dxdy, jacobian, yf, cost_y, cost_x, used_iter,
+                              aw, xa, x_norm, y, covmat_so_inv, covmat_sx_inv, 
+                              cost_start, max_iter, stop_dx, display_progress );
+          //
+          oem_diagnostics[2] = cost_y + cost_x;
+          oem_diagnostics[3] = cost_y;
+          oem_diagnostics[4] = (Numeric) used_iter;
         }
       else if ( (method == "lm") || (method == "ml") )
         {

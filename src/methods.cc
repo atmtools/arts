@@ -8906,12 +8906,14 @@ void define_md_data_raw()
          "  This argument also controls if the start cost is calculated. If\n"
          "  set to <= 0, the start cost in *oem_diagnostics* is set to NaN\n"
          "  when using \"li\" and \"gn\".\n"
-         "*sx_norm*\n"
-         "  Flag controlling a normalisation that is required in some cases due\n"
-         "  to limited numerical precision. The normalisation is based on\n"
-         "  *covmat_sx_inv*. The options are 0 = no normalisation, 1 = always\n"
-         "  apply normalisation, and 2 = automatically determine if normalisation\n"
-         "  is needed.\n"
+         "*x_norm*\n"
+         "  A normalisation vector for *x*. A normalisation of *x* can be needed\n"
+         "  due to limited numerical precision. If this vector is set to be empty\n"
+         "  no normalisation is done (defualt case). Otherwise, this must be a\n"
+         "  vector with same length as *x*, just having values above zero.\n"
+         "  Elementwise division between *x* and *x_norm* (x./x_norm) shall give\n"
+         "  a vector where all values are in the order of unity. Maybe the best\n"
+         "  way to set *x_norm* is x_norm = sqrt( diag( Sx ) ).\n"
          "*max_iter*\n"
          "  Maximum number of iterations to perform. No effect for \"li\".\n"
          "*stop_dx*\n"
@@ -8931,10 +8933,7 @@ void define_md_data_raw()
          "    5: Gamma limit. This is an additional stop criterion. Convergence\n"
          "       is not considered until there has been one succesful iteration\n"
          "       having a gamma <= this value.\n"
-         "*exact_j*\n"
-         "  Flag to trigger that *jacobian* matches exactly the final value of *x*.\n" 
-         "  If this variable is set to zero, *jacobian* matches the second to last\n"
-         "  state\n"
+         "  The default setting triggers an error if \"ml\" is selected.\n"
          "*clear matrices*\n"
          "   With this flag set to 1, *jacobian* and *dxdy* are returned as empty\n"
          "   matrices.\n"
@@ -8952,13 +8951,12 @@ void define_md_data_raw()
             "jacobian_do", "jacobian_quantities", "jacobian_indices",
             "inversion_iterate_agenda", "atmosphere_dim", "p_grid",
             "lat_grid", "lon_grid", "t_field", "vmr_field", "abs_species" ),
-        GIN( "method", "max_start_cost", "sx_norm", "max_iter", "stop_dx", 
-             "ml_ga_settings", "exact_j", "clear_matrices", 
-             "display_progress" ),
-        GIN_TYPE( "String", "Numeric", "Index", "Index", "Numeric", 
-                  "Vector", "Index", "Index", "Index" ),
-        GIN_DEFAULT( NODEF, "Inf", "1", "10", "0.01", 
-                     "[-1]", "1", "0", "0" ),
+        GIN( "method", "max_start_cost", "x_norm", "max_iter", "stop_dx", 
+             "ml_ga_settings", "clear_matrices", "display_progress" ),
+        GIN_TYPE( "String", "Numeric", "Vector", "Index", "Numeric", 
+                  "Vector", "Index", "Index" ),
+        GIN_DEFAULT( NODEF, "Inf", "[]", "10", "0.01", 
+                     "[]", "0", "0" ),
         GIN_DESC( "Iteration method. For this and all options below, see "
                   "further above.",
                   "Maximum allowed value of cost function at start.",
@@ -8966,7 +8964,6 @@ void define_md_data_raw()
                   "Maximum number of iterations.",
                   "Stop criterion for iterative inversions.",
                   "Settings associated with the ga factor of the ML method.",
-                  "Evaluation of *jacobian* at exact end results.",
                   "An option to save memory.",
                   "Flag to control if inversion diagnostics shall be printed "
                   "on the screen.")
