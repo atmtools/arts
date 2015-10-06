@@ -1,3 +1,17 @@
+2015-10-06  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-323
+
+	* controlfiles/instruments/metmm/sensor_descriptions/apply_metmm.arts:
+	Adopted to name change below.
+
+	* src/m_sensor.cc (sensor_responseBackendMetMM): Renamed. This as
+	the method handles more sensor parts than backend.
+
+	(sensor_responseMetMM): New name of the WSM.
+
+	* src/m_sensor.cc (sensor_responseMixerBackendPrecalcWeights): Started.
+
 2015-10-05  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-322

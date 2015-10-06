@@ -1246,364 +1246,6 @@ void sensor_responseBackendFrequencySwitching(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void sensor_responseBackendMetMM(
-   // WS Output:
-          Vector&          f_grid,
-          Index&           antenna_dim,
-          Matrix&          mblock_dlos_grid,
-          Sparse&          sensor_response,
-          Vector&          sensor_response_f,
-          ArrayOfIndex&    sensor_response_pol,
-          Matrix&          sensor_response_dlos,
-          Vector&          sensor_response_f_grid,
-          ArrayOfIndex&    sensor_response_pol_grid,
-          Matrix&          sensor_response_dlos_grid,
-          Index&           sensor_norm,
-    // WS Input:
-    const Index&           atmosphere_dim,
-    const Index&           stokes_dim,
-    const String&          iy_unit,
-    const Matrix&          antenna_dlos,
-    const Matrix&          mm_back,      /* met_mm_backend */
-    const ArrayOfString&   mm_pol,       /* met_mm_polarisation */
-    const Vector&          mm_ant,       /* met_mm_antenna */
-    // Control Parameters:
-    const Vector&          freq_spacing,
-    const ArrayOfIndex&    freq_number,
-    const Numeric&         freq_merge_threshold,
-    const Index&           use_antenna,
-    const Index&           mirror_dza,
-    const Verbosity&       verbosity )
-{
-    CREATE_OUT1;
-    CREATE_OUT2;
-
-    chk_if_bool("use_antenna", use_antenna);
-    chk_if_bool("mirror_dza", mirror_dza);
-
-    chk_met_mm_backend(mm_back);
-
-    const Index nchannels = mm_back.nrows();
-
-    if (mm_ant.nelem())
-      throw std::runtime_error(
-         "So far inclusion of antenna pattern is NOT supported and\n"
-         "*met_mm_antenna* must be empty.\n" );
-
-    if (freq_spacing.nelem() != 1 && freq_spacing.nelem() != nchannels)
-      throw std::runtime_error(
-         "Length of *freq_spacing* vector must be either 1 or correspond\n"
-         "to the number of rows in *met_mm_backend*.");
-
-    if (freq_number.nelem() != 1 && freq_number.nelem() != nchannels)
-      throw std::runtime_error(
-         "Length of *freq_number* array must be either 1 or correspond\n"
-         "to the number of rows in *met_mm_backend*.");
-
-    if (freq_merge_threshold > 10.)
-        throw std::runtime_error(
-            "The *freq_merge_threshold* is only meant to merge frequencies\n"
-            "that are basically identical and only differ slightly due to\n"
-            "numerical inaccuracies. Setting it to >10Hz is not reasonable.");
-
-    if ( !( atmosphere_dim == 1  || atmosphere_dim == 3 ) )
-      throw std::runtime_error("This method only supports 1D and 3D atmospheres.");
-
-    if (antenna_dlos.empty())
-      throw std::runtime_error("*antenna_dlos* is empty.");
-    
-    if (antenna_dlos.ncols() > 2)
-      throw std::runtime_error("The maximum number of columns in *antenna_dlos*" 
-                               "is two.");
-
-
-    // Copy, and possibly extend antenna_dlos
-    Matrix antenna_dlos_local;
-
-    // Mirror?
-    if ( mirror_dza )
-      {
-        if (antenna_dlos.ncols() > 1)
-          throw std::runtime_error("With *mirror_dza* set to true, *antenna_dlos*" 
-                               "is only allowed to have a single column.");
-        if( atmosphere_dim != 3 )
-          throw std::runtime_error("*mirror_dza* only makes sense in 3D.");
-        // We don't want to duplicate zero!
-        const Index n = antenna_dlos.nrows(); 
-        Index nnew = 0;
-        for( Index i=0; i<n; i++ )
-          { if( antenna_dlos(i,0) != 0 )
-              { nnew += 1; }
-          }
-        antenna_dlos_local.resize( n+nnew, 1 );
-        antenna_dlos_local(Range(0,n),0) = antenna_dlos(joker,0);
-        Index pos = n;
-        for( Index i=n-1; i>=0; i-- )
-          { if( antenna_dlos(i,0) != 0 )
-              { 
-                antenna_dlos_local(pos,0) = -antenna_dlos(i,0);
-                pos += 1; 
-              }
-          }
-      }
-    else
-      { antenna_dlos_local = antenna_dlos; }
-
-
-    // Setup frequency grid
-    //--------------------------------------------------
-    ArrayOfNumeric all_frequencies;
-    ArrayOfIndex channel_pos_in_all_freq;
-    channel_pos_in_all_freq.resize(nchannels + 1);
-    channel_pos_in_all_freq[0] = 0;
-
-    // Create vector with frequencies for all channels
-    // and fill sensor_response_f_grid with nominal frequency for each channel
-    sensor_response_f_grid.resize(nchannels);
-    Index channel_pos_index = 0;
-    Vector band_frequencies;
-    for (Index ch = 0; ch < nchannels; ch++)
-    {
-        const Numeric lo = mm_back(ch, 0);
-        const Numeric offset1 = mm_back(ch, 1);
-        const Numeric offset2 = mm_back(ch, 2);
-        const Numeric bandwidth = mm_back(ch, 3);
-
-        Index this_fnumber = (freq_number.nelem() == 1) ? freq_number[0] : freq_number[ch];
-        Numeric this_spacing = (freq_spacing.nelem() == 1) ? freq_spacing[0] : freq_spacing[ch];
-
-        if (this_spacing <= 0)
-            throw std::runtime_error("*freq_spacing must be > 0.");
-
-        if (this_fnumber == 0)
-        {
-            ostringstream os;
-            os << "*freq_number* must be -1 or greater zero:"
-            << "freq_number[" << ch << "] = " << this_fnumber;
-            std::runtime_error(os.str());
-        }
-
-        // Determine the frequency grid for this channel
-        if (this_fnumber == 1 && bandwidth <= this_spacing)
-        {
-            band_frequencies.resize(1);
-            band_frequencies[0] = bandwidth / 2.;
-        }
-        else
-        {
-            // Use freq_spacing if freq_number is -1, otherwise use the finer spacing of the two
-            if (this_fnumber == -1 || this_fnumber == 1
-                || bandwidth / (Numeric)this_fnumber > this_spacing)
-            {
-                // Adjust the number of frequencies so that they are at least
-                // as fine as freq_spacing and cover the band evenly
-                this_fnumber = (Index)ceil(bandwidth / this_spacing);
-            }
-
-            const Numeric bin_width = 0.5 * bandwidth / (Numeric)this_fnumber;
-            nlinspace(band_frequencies, bin_width, bandwidth - bin_width, this_fnumber);
-        }
-
-        // Create frequencies for each passband
-        if (offset1 > 0.)
-        {
-
-            // 4 passbands
-            if (offset2 > 0.)
-            {
-                for (Index f = 0; f < this_fnumber; f++)
-                {
-                    const Numeric f_offset = -bandwidth / 2. + band_frequencies[f];
-                    all_frequencies.push_back(lo - offset1 - offset2 + f_offset);
-                    all_frequencies.push_back(lo - offset1 + offset2 + f_offset);
-                    all_frequencies.push_back(lo + offset1 - offset2 + f_offset);
-                    all_frequencies.push_back(lo + offset1 + offset2 + f_offset);
-                    channel_pos_index += 4;
-                }
-            }
-            // 2 passbands
-            else
-            {
-                for (Index f = 0; f < this_fnumber; f++)
-                {
-                    all_frequencies.push_back(lo - offset1 - bandwidth / 2. + band_frequencies[f]);
-                    all_frequencies.push_back(lo + offset1 - bandwidth / 2. + band_frequencies[f]);
-                    channel_pos_index += 2;
-                }
-            }
-        }
-        else
-        {
-            // 1 Passband
-            for (Index f = 0; f < this_fnumber; f++)
-            {
-                all_frequencies.push_back(lo - bandwidth / 2. + band_frequencies[f]);
-                channel_pos_index++;
-            }
-        }
-
-        sensor_response_f_grid[ch] = lo;
-        channel_pos_in_all_freq[ch+1] = channel_pos_index;
-    }
-
-    // Create frequency position vector (1...nf)
-    ArrayOfIndex frequency_indexes;
-    frequency_indexes.resize(all_frequencies.size());
-    for (size_t i = 0; i < all_frequencies.size(); i++)
-        frequency_indexes[i] = i;
-
-    // Sort frequency position vector by frequency
-    std::sort(frequency_indexes.begin(), frequency_indexes.end(),
-              CmpArrayOfNumeric(all_frequencies));
-
-    // Find number of frequencies without duplicates
-    Index num_f = 1;
-    {
-        Index f_merge_start = 0;
-        for (size_t f_index = 0; f_index < all_frequencies.size() - 1; f_index++)
-            if (all_frequencies[frequency_indexes[f_index + 1]]
-                - all_frequencies[frequency_indexes[f_merge_start]] > freq_merge_threshold)
-            {
-                num_f++;
-                f_merge_start = f_index + 1;
-            }
-    }
-
-    // Create weights vector and channel number vector
-    Vector frequency_weights(all_frequencies.size());
-    Vector channel_number(all_frequencies.size());
-    for (Index ch = 0; ch < nchannels; ch++)
-    {
-        const Range range(channel_pos_in_all_freq[ch],
-                          channel_pos_in_all_freq[ch+1] - channel_pos_in_all_freq[ch]);
-
-        frequency_weights[range] = 1. / (Numeric)(channel_pos_in_all_freq[ch+1]
-                                                  - channel_pos_in_all_freq[ch]);
-        channel_number[range] = (Numeric)ch;
-    }
-
-    // Create sensor response and f grid
-    Sparse sensor_response_single = Sparse(nchannels * stokes_dim, num_f * stokes_dim);
-    f_grid.resize(num_f);
-
-    Index target_f_index = 0;
-    size_t f_merge_start = 0;
-    for (size_t f_index = 0; f_index < frequency_indexes.size(); f_index++)
-    {
-        for (Index is = 0; is < stokes_dim; is++)
-        {
-            sensor_response_single.rw((Index)channel_number[frequency_indexes[f_index]] * stokes_dim + is,
-                               target_f_index * stokes_dim + is)
-            = frequency_weights[frequency_indexes[f_index]];
-        }
-
-        // If the next frequency is further away than the merge threshold,
-        // or we are at the last frequency, write the original frequency
-        // or the averaged frequencies into f_grid
-        if (f_index == frequency_indexes.size() - 1
-            || (all_frequencies[frequency_indexes[f_index + 1]]
-                - all_frequencies[frequency_indexes[f_merge_start]] > freq_merge_threshold))
-        {
-            if (f_merge_start < f_index)
-            {
-                Numeric f_sum = 0;
-                for (size_t merge_index = f_merge_start; merge_index <= f_index; merge_index++)
-                {
-                    f_sum += all_frequencies[frequency_indexes[merge_index]];
-                }
-                f_grid[target_f_index] = f_sum / (1. + (Numeric)(f_index - f_merge_start));
-            }
-            else
-            {
-                f_grid[target_f_index] = all_frequencies[frequency_indexes[f_index]];
-            }
-
-            target_f_index++;
-            f_merge_start = f_index + 1;
-        }
-    }
-
-    // Construct complete sensor_response matrix
-    sensor_response = Sparse( nchannels * antenna_dlos_local.nrows(),
-                              num_f * stokes_dim * antenna_dlos_local.nrows());
-
-    sensor_response_pol_grid.resize(1);
-    sensor_response_pol_grid[0] = 1;
-
-    if (stokes_dim > 1)
-    {
-        // With polarisation
-        if (mm_pol.nelem() != nchannels)
-        {
-            ostringstream os;
-            os << "Length of *met_mm_polarisation* (" << mm_pol.nelem() << ") must match\n"
-            << "number of channels in *met_mm_backend* (" << nchannels << ").";
-            throw std::runtime_error(os.str());
-        }
-
-        Sparse H_pol;
-        Sparse sensor_response_tmp;
-
-        for (Index iza = 0; iza < antenna_dlos_local.nrows(); iza++)
-        {
-            sensor_response_tmp = Sparse(nchannels, sensor_response_single.ncols());
-            met_mm_polarisation_hmatrix( H_pol, mm_pol, antenna_dlos_local(iza,0), 
-                                         stokes_dim, iy_unit );
-            mult(sensor_response_tmp, H_pol, sensor_response_single);
-            for (Index r = 0; r < sensor_response_tmp.nrows(); r++)
-                for (Index c = 0; c < sensor_response_tmp.ncols(); c++)
-                {
-                    const Numeric v = sensor_response_tmp(r, c);
-
-                    if (v != 0.)
-                        sensor_response.rw(iza * nchannels + r,
-                                           iza * num_f * stokes_dim + c) = v;
-                }
-        }
-    }
-    else
-    {
-        // No polarisation
-        for (Index iza = 0; iza < antenna_dlos_local.nrows(); iza++)
-        {
-            for (Index r = 0; r < sensor_response_single.nrows(); r++)
-                for (Index c = 0; c < sensor_response_single.ncols(); c++)
-                {
-                    const Numeric v = sensor_response_single(r, c);
-
-                    if (v != 0.)
-                        sensor_response.rw(iza * nchannels + r,
-                                           iza * num_f * stokes_dim + c) = v;
-                }
-        }
-    }
-
-    antenna_dim = 1;
-    // Setup antenna
-    if (use_antenna)
-    {
-        // FIXME: Do something smart here
-        throw std::runtime_error("The antenna hasn't arrived yet.");
-    }
-
-    // mblock angle grids
-    mblock_dlos_grid = antenna_dlos_local;
-
-    // Set sensor response aux variables
-    sensor_response_dlos_grid = mblock_dlos_grid;
-
-    // Set aux variables
-    sensor_aux_vectors( sensor_response_f, sensor_response_pol, 
-                        sensor_response_dlos, sensor_response_f_grid,  
-                        sensor_response_pol_grid, sensor_response_dlos_grid );
-    
-    sensor_norm = 0;
-
-    out2 << "  Total number of frequencies in f_grid: " << f_grid.nelem() << "\n";
-}
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
 void sensor_responseBeamSwitching(
           Sparse&         sensor_response,
           Vector&         sensor_response_f,
@@ -2160,6 +1802,170 @@ void sensor_responseMixer(
 
 
 
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void sensor_responseMixerBackendPrecalcWeights(
+          Sparse&               sensor_response,
+          Vector&               sensor_response_f,
+          ArrayOfIndex&         sensor_response_pol,
+          Matrix&               sensor_response_dlos,
+          Vector&               sensor_response_f_grid,
+    const ArrayOfIndex&         sensor_response_pol_grid,
+    const Matrix&               sensor_response_dlos_grid,
+    const Vector&               f_backend,
+    const ArrayOfIndex&         channel_index,
+    const Vector&               weights,
+    const Verbosity&            verbosity)
+{
+  CREATE_OUT3;
+  
+  // Some sizes
+  const Index nin_f  = sensor_response_f_grid.nelem();
+  const Index nout_f = f_backend.nelem();
+  const Index npol   = sensor_response_pol_grid.nelem();
+  const Index nlos   = sensor_response_dlos_grid.nrows();
+  const Index nin    = nin_f * npol * nlos;
+  const Index nout   = nout_f * npol * nlos;
+
+  // Initialise an output stream for runtime errors and a flag for errors
+  ostringstream os;
+  bool          error_found = false;
+
+  // Check that sensor_response variables are consistent in size
+  if( sensor_response_f.nelem() != nin )
+    {
+      os << "Inconsistency in size between *sensor_response_f* and the sensor\n"
+         << "grid variables (sensor_response_f_grid etc.).\n";
+      error_found = true;
+    }
+  if( sensor_response.nrows() != nin )
+    {
+      os << "The sensor block response matrix *sensor_response* does not have\n"
+         << "right size compared to the sensor grid variables\n"
+         << "(sensor_response_f_grid etc.).\n";
+      error_found = true;
+    }
+
+  // We allow f_backend to be unsorted, but must be inside sensor_response_f_grid
+  if( nout_f == 0 )
+    {
+      os << "*f_backend* is empty !!!\n";
+      error_found = true;
+    }
+  if( min(f_backend) < min(sensor_response_f_grid) )
+    {
+      os << "At least one value in *f_backend* (" << min(f_backend) 
+         << ") below range\ncovered by *sensor_response_f_grid* ("
+         << min(sensor_response_f_grid) << ").\n";
+      error_found = true;
+    }
+  if( max(f_backend) > max(sensor_response_f_grid) )
+    {
+      os << "At least one value in *f_backend* (" << max(f_backend) 
+         << ") above range\ncovered by *sensor_response_f_grid* ("
+         << max(sensor_response_f_grid) << ").\n";
+      error_found = true;
+    }
+
+  // channel_index and weights
+  if( channel_index.nelem() != nin_f )
+    {
+      os << "The lengths of *channel_index* and *sensor_response_f_grid* "
+         << "must be equal.\n";
+      error_found = true;
+    }
+  if( weights.nelem() != nin_f )
+    {
+      os << "The lengths of *channel_index* and *weights* "
+         << "must be equal.\n";
+      error_found = true;
+    }
+  {
+    Vector chs_covered(nin_f,0.0);
+    for( Index i=0; i<nin_f; i++ )
+      {
+        chs_covered[ channel_index[i] ] = 1;
+        if( channel_index[i] < 0 )
+          {
+            os << "No value in *channel_index* can be negative.\n";
+            error_found = true;
+            chs_covered = 1;     // Too avoid error also on that part
+            break;
+          }
+        if( channel_index[i] >= nout_f )
+          {
+            os << "At least one value in *channel_index* has a too high value "
+               << "(an index above length of *f_backend*).\n";
+            error_found = true;
+            chs_covered = 1;     // Too avoid error also on that part
+            break;
+          }
+      }
+    //
+    if( min( chs_covered ) < 1 )
+      {
+        os << "At least one channel has no entry in *channel_index*.\n";
+        error_found = true;
+      }
+  }
+
+  // If errors where found throw runtime_error with the collected error
+  if( error_found )
+    throw runtime_error(os.str());
+
+  // Create response matrix
+  //
+  Sparse hmb( nout, nin );
+  {  
+    // Loop output frequencies
+    for( Index ifr=0; ifr<nout_f; ifr++ ) 
+      {
+        // The summation vector for 1 polarisation and 1 viewing direction
+        Vector w1( nin_f, 0.0 );
+        for( Index i=0; i<nin_f; i++ )
+          {
+            if( channel_index[i] == ifr )
+              { w1[i] = weights[i]; }
+          }
+
+        // Loop over polarisation and spectra (viewing directions)
+        // Weights change only with frequency
+        // (this code is copied from function spectrometer_matrix)
+        for( Index sp=0; sp<nlos; sp++ ) 
+          {
+            for( Index pol=0; pol<npol; pol++ ) 
+              {
+                // Distribute the compact weight vector into a complte one
+                Vector weights_long( nin, 0.0 );
+                weights_long[Range(sp*nin_f*npol+pol,nin_f,npol)] = w1;
+            
+                // Insert temp_long into H at the correct row
+                hmb.insert_row( sp*nout_f*npol + ifr*npol + pol, weights_long );
+              }
+          }
+      }
+  }
+
+  // Here we need a temporary sparse that is copy of the sensor_response
+  // sparse matrix. We need it since the multiplication function can not
+  // take the same object as both input and output.
+  Sparse htmp = sensor_response;
+  sensor_response.resize( hmb.nrows(), htmp.ncols());
+  mult( sensor_response, hmb, htmp );
+
+  // Update sensor_response_f_grid
+  sensor_response_f_grid = f_backend;
+
+  // Set aux variables
+  sensor_aux_vectors( sensor_response_f, sensor_response_pol, 
+                      sensor_response_dlos, sensor_response_f_grid,  
+                      sensor_response_pol_grid, sensor_response_dlos_grid );
+}
+
+
+
+
+
 void sensor_responseMultiMixerBackend(
           Sparse&                      sensor_response,
           Vector&                      sensor_response_f,
@@ -2596,6 +2402,367 @@ void sensor_responseStokesRotation(
   sensor_response.resize( Htmp.nrows(), Htmp.ncols());  //Just in case!
   mult( sensor_response, H, Htmp );  
 }
+
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void sensor_responseMetMM(
+   // WS Output:
+          Vector&          f_grid,
+          Index&           antenna_dim,
+          Matrix&          mblock_dlos_grid,
+          Sparse&          sensor_response,
+          Vector&          sensor_response_f,
+          ArrayOfIndex&    sensor_response_pol,
+          Matrix&          sensor_response_dlos,
+          Vector&          sensor_response_f_grid,
+          ArrayOfIndex&    sensor_response_pol_grid,
+          Matrix&          sensor_response_dlos_grid,
+          Index&           sensor_norm,
+    // WS Input:
+    const Index&           atmosphere_dim,
+    const Index&           stokes_dim,
+    const String&          iy_unit,
+    const Matrix&          antenna_dlos,
+    const Matrix&          mm_back,      /* met_mm_backend */
+    const ArrayOfString&   mm_pol,       /* met_mm_polarisation */
+    const Vector&          mm_ant,       /* met_mm_antenna */
+    // Control Parameters:
+    const Vector&          freq_spacing,
+    const ArrayOfIndex&    freq_number,
+    const Numeric&         freq_merge_threshold,
+    const Index&           use_antenna,
+    const Index&           mirror_dza,
+    const Verbosity&       verbosity )
+{
+    CREATE_OUT1;
+    CREATE_OUT2;
+
+    chk_if_bool("use_antenna", use_antenna);
+    chk_if_bool("mirror_dza", mirror_dza);
+
+    chk_met_mm_backend(mm_back);
+
+    const Index nchannels = mm_back.nrows();
+
+    if (mm_ant.nelem())
+      throw std::runtime_error(
+         "So far inclusion of antenna pattern is NOT supported and\n"
+         "*met_mm_antenna* must be empty.\n" );
+
+    if (freq_spacing.nelem() != 1 && freq_spacing.nelem() != nchannels)
+      throw std::runtime_error(
+         "Length of *freq_spacing* vector must be either 1 or correspond\n"
+         "to the number of rows in *met_mm_backend*.");
+
+    if (freq_number.nelem() != 1 && freq_number.nelem() != nchannels)
+      throw std::runtime_error(
+         "Length of *freq_number* array must be either 1 or correspond\n"
+         "to the number of rows in *met_mm_backend*.");
+
+    if (freq_merge_threshold > 10.)
+        throw std::runtime_error(
+            "The *freq_merge_threshold* is only meant to merge frequencies\n"
+            "that are basically identical and only differ slightly due to\n"
+            "numerical inaccuracies. Setting it to >10Hz is not reasonable.");
+
+    if ( !( atmosphere_dim == 1  || atmosphere_dim == 3 ) )
+      throw std::runtime_error("This method only supports 1D and 3D atmospheres.");
+
+    if (antenna_dlos.empty())
+      throw std::runtime_error("*antenna_dlos* is empty.");
+    
+    if (antenna_dlos.ncols() > 2)
+      throw std::runtime_error("The maximum number of columns in *antenna_dlos*" 
+                               "is two.");
+
+
+    // Copy, and possibly extend antenna_dlos
+    Matrix antenna_dlos_local;
+
+    // Mirror?
+    if ( mirror_dza )
+      {
+        if (antenna_dlos.ncols() > 1)
+          throw std::runtime_error("With *mirror_dza* set to true, *antenna_dlos*" 
+                               "is only allowed to have a single column.");
+        if( atmosphere_dim != 3 )
+          throw std::runtime_error("*mirror_dza* only makes sense in 3D.");
+        // We don't want to duplicate zero!
+        const Index n = antenna_dlos.nrows(); 
+        Index nnew = 0;
+        for( Index i=0; i<n; i++ )
+          { if( antenna_dlos(i,0) != 0 )
+              { nnew += 1; }
+          }
+        antenna_dlos_local.resize( n+nnew, 1 );
+        antenna_dlos_local(Range(0,n),0) = antenna_dlos(joker,0);
+        Index pos = n;
+        for( Index i=n-1; i>=0; i-- )
+          { if( antenna_dlos(i,0) != 0 )
+              { 
+                antenna_dlos_local(pos,0) = -antenna_dlos(i,0);
+                pos += 1; 
+              }
+          }
+      }
+    else
+      { antenna_dlos_local = antenna_dlos; }
+
+
+    // Setup frequency grid
+    //--------------------------------------------------
+    ArrayOfNumeric all_frequencies;
+    ArrayOfIndex channel_pos_in_all_freq;
+    channel_pos_in_all_freq.resize(nchannels + 1);
+    channel_pos_in_all_freq[0] = 0;
+
+    // Create vector with frequencies for all channels
+    // and fill sensor_response_f_grid with nominal frequency for each channel
+    sensor_response_f_grid.resize(nchannels);
+    Index channel_pos_index = 0;
+    Vector band_frequencies;
+    for (Index ch = 0; ch < nchannels; ch++)
+    {
+        const Numeric lo = mm_back(ch, 0);
+        const Numeric offset1 = mm_back(ch, 1);
+        const Numeric offset2 = mm_back(ch, 2);
+        const Numeric bandwidth = mm_back(ch, 3);
+
+        Index this_fnumber = (freq_number.nelem() == 1) ? freq_number[0] : freq_number[ch];
+        Numeric this_spacing = (freq_spacing.nelem() == 1) ? freq_spacing[0] : freq_spacing[ch];
+
+        if (this_spacing <= 0)
+            throw std::runtime_error("*freq_spacing must be > 0.");
+
+        if (this_fnumber == 0)
+        {
+            ostringstream os;
+            os << "*freq_number* must be -1 or greater zero:"
+            << "freq_number[" << ch << "] = " << this_fnumber;
+            std::runtime_error(os.str());
+        }
+
+        // Determine the frequency grid for this channel
+        if (this_fnumber == 1 && bandwidth <= this_spacing)
+        {
+            band_frequencies.resize(1);
+            band_frequencies[0] = bandwidth / 2.;
+        }
+        else
+        {
+            // Use freq_spacing if freq_number is -1, otherwise use the finer spacing of the two
+            if (this_fnumber == -1 || this_fnumber == 1
+                || bandwidth / (Numeric)this_fnumber > this_spacing)
+            {
+                // Adjust the number of frequencies so that they are at least
+                // as fine as freq_spacing and cover the band evenly
+                this_fnumber = (Index)ceil(bandwidth / this_spacing);
+            }
+
+            const Numeric bin_width = 0.5 * bandwidth / (Numeric)this_fnumber;
+            nlinspace(band_frequencies, bin_width, bandwidth - bin_width, this_fnumber);
+        }
+
+        // Create frequencies for each passband
+        if (offset1 > 0.)
+        {
+
+            // 4 passbands
+            if (offset2 > 0.)
+            {
+                for (Index f = 0; f < this_fnumber; f++)
+                {
+                    const Numeric f_offset = -bandwidth / 2. + band_frequencies[f];
+                    all_frequencies.push_back(lo - offset1 - offset2 + f_offset);
+                    all_frequencies.push_back(lo - offset1 + offset2 + f_offset);
+                    all_frequencies.push_back(lo + offset1 - offset2 + f_offset);
+                    all_frequencies.push_back(lo + offset1 + offset2 + f_offset);
+                    channel_pos_index += 4;
+                }
+            }
+            // 2 passbands
+            else
+            {
+                for (Index f = 0; f < this_fnumber; f++)
+                {
+                    all_frequencies.push_back(lo - offset1 - bandwidth / 2. + band_frequencies[f]);
+                    all_frequencies.push_back(lo + offset1 - bandwidth / 2. + band_frequencies[f]);
+                    channel_pos_index += 2;
+                }
+            }
+        }
+        else
+        {
+            // 1 Passband
+            for (Index f = 0; f < this_fnumber; f++)
+            {
+                all_frequencies.push_back(lo - bandwidth / 2. + band_frequencies[f]);
+                channel_pos_index++;
+            }
+        }
+
+        sensor_response_f_grid[ch] = lo;
+        channel_pos_in_all_freq[ch+1] = channel_pos_index;
+    }
+
+    // Create frequency position vector (1...nf)
+    ArrayOfIndex frequency_indexes;
+    frequency_indexes.resize(all_frequencies.size());
+    for (size_t i = 0; i < all_frequencies.size(); i++)
+        frequency_indexes[i] = i;
+
+    // Sort frequency position vector by frequency
+    std::sort(frequency_indexes.begin(), frequency_indexes.end(),
+              CmpArrayOfNumeric(all_frequencies));
+
+    // Find number of frequencies without duplicates
+    Index num_f = 1;
+    {
+        Index f_merge_start = 0;
+        for (size_t f_index = 0; f_index < all_frequencies.size() - 1; f_index++)
+            if (all_frequencies[frequency_indexes[f_index + 1]]
+                - all_frequencies[frequency_indexes[f_merge_start]] > freq_merge_threshold)
+            {
+                num_f++;
+                f_merge_start = f_index + 1;
+            }
+    }
+
+    // Create weights vector and channel number vector
+    Vector frequency_weights(all_frequencies.size());
+    Vector channel_number(all_frequencies.size());
+    for (Index ch = 0; ch < nchannels; ch++)
+    {
+        const Range range(channel_pos_in_all_freq[ch],
+                          channel_pos_in_all_freq[ch+1] - channel_pos_in_all_freq[ch]);
+
+        frequency_weights[range] = 1. / (Numeric)(channel_pos_in_all_freq[ch+1]
+                                                  - channel_pos_in_all_freq[ch]);
+        channel_number[range] = (Numeric)ch;
+    }
+
+    // Create sensor response and f grid
+    Sparse sensor_response_single = Sparse(nchannels * stokes_dim, num_f * stokes_dim);
+    f_grid.resize(num_f);
+
+    Index target_f_index = 0;
+    size_t f_merge_start = 0;
+    for (size_t f_index = 0; f_index < frequency_indexes.size(); f_index++)
+    {
+        for (Index is = 0; is < stokes_dim; is++)
+        {
+            sensor_response_single.rw((Index)channel_number[frequency_indexes[f_index]] * stokes_dim + is,
+                               target_f_index * stokes_dim + is)
+            = frequency_weights[frequency_indexes[f_index]];
+        }
+
+        // If the next frequency is further away than the merge threshold,
+        // or we are at the last frequency, write the original frequency
+        // or the averaged frequencies into f_grid
+        if (f_index == frequency_indexes.size() - 1
+            || (all_frequencies[frequency_indexes[f_index + 1]]
+                - all_frequencies[frequency_indexes[f_merge_start]] > freq_merge_threshold))
+        {
+            if (f_merge_start < f_index)
+            {
+                Numeric f_sum = 0;
+                for (size_t merge_index = f_merge_start; merge_index <= f_index; merge_index++)
+                {
+                    f_sum += all_frequencies[frequency_indexes[merge_index]];
+                }
+                f_grid[target_f_index] = f_sum / (1. + (Numeric)(f_index - f_merge_start));
+            }
+            else
+            {
+                f_grid[target_f_index] = all_frequencies[frequency_indexes[f_index]];
+            }
+
+            target_f_index++;
+            f_merge_start = f_index + 1;
+        }
+    }
+
+    // Construct complete sensor_response matrix
+    sensor_response = Sparse( nchannels * antenna_dlos_local.nrows(),
+                              num_f * stokes_dim * antenna_dlos_local.nrows());
+
+    sensor_response_pol_grid.resize(1);
+    sensor_response_pol_grid[0] = 1;
+
+    if (stokes_dim > 1)
+    {
+        // With polarisation
+        if (mm_pol.nelem() != nchannels)
+        {
+            ostringstream os;
+            os << "Length of *met_mm_polarisation* (" << mm_pol.nelem() << ") must match\n"
+            << "number of channels in *met_mm_backend* (" << nchannels << ").";
+            throw std::runtime_error(os.str());
+        }
+
+        Sparse H_pol;
+        Sparse sensor_response_tmp;
+
+        for (Index iza = 0; iza < antenna_dlos_local.nrows(); iza++)
+        {
+            sensor_response_tmp = Sparse(nchannels, sensor_response_single.ncols());
+            met_mm_polarisation_hmatrix( H_pol, mm_pol, antenna_dlos_local(iza,0), 
+                                         stokes_dim, iy_unit );
+            mult(sensor_response_tmp, H_pol, sensor_response_single);
+            for (Index r = 0; r < sensor_response_tmp.nrows(); r++)
+                for (Index c = 0; c < sensor_response_tmp.ncols(); c++)
+                {
+                    const Numeric v = sensor_response_tmp(r, c);
+
+                    if (v != 0.)
+                        sensor_response.rw(iza * nchannels + r,
+                                           iza * num_f * stokes_dim + c) = v;
+                }
+        }
+    }
+    else
+    {
+        // No polarisation
+        for (Index iza = 0; iza < antenna_dlos_local.nrows(); iza++)
+        {
+            for (Index r = 0; r < sensor_response_single.nrows(); r++)
+                for (Index c = 0; c < sensor_response_single.ncols(); c++)
+                {
+                    const Numeric v = sensor_response_single(r, c);
+
+                    if (v != 0.)
+                        sensor_response.rw(iza * nchannels + r,
+                                           iza * num_f * stokes_dim + c) = v;
+                }
+        }
+    }
+
+    antenna_dim = 1;
+    // Setup antenna
+    if (use_antenna)
+    {
+        // FIXME: Do something smart here
+        throw std::runtime_error("The antenna hasn't arrived yet.");
+    }
+
+    // mblock angle grids
+    mblock_dlos_grid = antenna_dlos_local;
+
+    // Set sensor response aux variables
+    sensor_response_dlos_grid = mblock_dlos_grid;
+
+    // Set aux variables
+    sensor_aux_vectors( sensor_response_f, sensor_response_pol, 
+                        sensor_response_dlos, sensor_response_f_grid,  
+                        sensor_response_pol_grid, sensor_response_dlos_grid );
+    
+    sensor_norm = 0;
+
+    out2 << "  Total number of frequencies in f_grid: " << f_grid.nelem() << "\n";
+}
+
 
 
 

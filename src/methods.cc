@@ -11667,84 +11667,6 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "sensor_responseBackendMetMM" ),
-        DESCRIPTION
-        (
-         "Sensor setup for meteorological millimeter instruments.\n"
-         "\n"
-         "This method is handy if you are simulating a passband-type instrument,\n"
-         "consisting of a few discrete channels.\n"
-         "\n"
-         "The method calculates *f_grid* to match the instrument, as specified by\n"
-         "the *met_mm_backend*.\n"
-         "\n"
-         "You have to specify the desired spacing in Hz using the keyword *freq_spacing*,\n"
-         "which has a default value of 100 MHz. You can pass a *Vector* with one element to\n"
-         "apply the same spacing to all channels or pass a spacing value for each channel\n"
-         "separately.\n"
-         "Optionally, *freq_number* can be set to specify the mininum number of frequencies\n"
-         "per passband for each channel. The frequencies are placed equally spaced\n"
-         "in each passband. The minimum spacing resulting from *freq_number* and *freq_spacing*\n"
-         "will be used for the calculation. To explicitly use *freq_spacing* for a channel,\n"
-         "*freq_number* can be set to -1 for this channel.\n"
-         "\n"
-         "The number of elements in *freq_number* can either be the number of channels or 1.\n"
-         "If only one element is given, this number is used for all channels.\n"
-         "If *freq_number* is 1 and *freq_spacing* is wider than the bandwidth of the channel,\n"
-         "one frequency is placed in the middle of each passband.\n"
-         "\n"
-         "Frequencies that would be closer than *freq_merge_threshold* in the\n"
-         "generated *f_grid* are merged together. This value should be left at the default\n"
-         "value. This is only meant to compensate for numerical inaccuracies in the frequency\n"
-         "calculation to merge frequency that are supposed to be identical.\n"
-         "\n"
-         "Each scan sequence is treated as a measurement block. *sensor_pos* is\n"
-         "set in the standard way. The number of rows in *sensor_pos* determines the\n"
-         "number of scan sequences that will be simulated. On the other hand,\n"
-         "*sensor_los* is handled in a special way. All zenith angles must be set\n"
-         "to 180 deg. For 3D, the given azimuth angles are taken as the direction\n"
-         "of scanning, where the azimuth angle is defined with respect to North\n"
-         "in standard manner. For example, if the scanning happens to move from\n"
-         "SW to NE, the azimuth angle should be set to 45 deg. The angles of the\n"
-         "scanning sequence are taken from *antenna_dlos*. This WSV is here only\n"
-         "allowed to have a single column, holding relative zenith angles. For\n"
-         "3D, the azimuth angles in *antenna_dlos* are hard-coded to zero. As\n"
-         "zenith angles in *sensor_los* are locked to 180 deg, *antenna_dlos*\n"
-         "effectively holds the nadir angles. These angles can be both positive or\n"
-         "negative, where the recommended choice is to operate with negative\n"
-         "to end up with final zenith angles between 0 and 180 deg.\n"
-         "\n"
-         "The method does not support 2D atmospheres (across-track scanning is\n"
-         "inconsistent with 2D). For simpler switching between 1D and 3D,\n"
-         "the argument *mirror_dza* is at hand. It can only be used for 3D.\n"
-         "If set to true, the zenith angles in *antenna_dlos* are mapped\n"
-         "to also cover the other side of the swath and the simulations will\n"
-         "cover both sides of the swath.\n"
-           ),
-        AUTHORS( "Oliver Lemke" ),
-        OUT( "f_grid", "antenna_dim", "mblock_dlos_grid", "sensor_response",
-             "sensor_response_f", "sensor_response_pol", "sensor_response_dlos",
-             "sensor_response_f_grid", "sensor_response_pol_grid",
-             "sensor_response_dlos_grid", "sensor_norm" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "atmosphere_dim", "stokes_dim", "iy_unit", "antenna_dlos", 
-            "met_mm_backend", "met_mm_polarisation", "met_mm_antenna"
-             ),
-        GIN( "freq_spacing", "freq_number", "freq_merge_threshold",
-             "use_antenna", "mirror_dza" ),
-        GIN_TYPE(    "Vector", "ArrayOfIndex", "Numeric", "Index", "Index" ),
-        GIN_DEFAULT( "[.1e9]", "[-1]",         "1",       "0",     "0" ),
-        GIN_DESC( "Desired grid spacing in Hz.",
-                  "Number of frequencies per passband for each channel.",
-                  "Merge frequencies that are closer than this value in Hz.",
-                  "Flag to enable (1) or disable (0) antenna.",
-                  "Flag to include second part of swath (only 3D, see above)." )
-        ));
-  
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME( "sensor_responseBeamSwitching" ),
         DESCRIPTION
         (
@@ -11930,6 +11852,84 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "sensor_responseMetMM" ),
+        DESCRIPTION
+        (
+         "Sensor setup for meteorological millimeter instruments.\n"
+         "\n"
+         "This method is handy if you are simulating a passband-type instrument,\n"
+         "consisting of a few discrete channels.\n"
+         "\n"
+         "The method calculates *f_grid* to match the instrument, as specified by\n"
+         "the *met_mm_backend*.\n"
+         "\n"
+         "You have to specify the desired spacing in Hz using the keyword *freq_spacing*,\n"
+         "which has a default value of 100 MHz. You can pass a *Vector* with one element to\n"
+         "apply the same spacing to all channels or pass a spacing value for each channel\n"
+         "separately.\n"
+         "Optionally, *freq_number* can be set to specify the mininum number of frequencies\n"
+         "per passband for each channel. The frequencies are placed equally spaced\n"
+         "in each passband. The minimum spacing resulting from *freq_number* and *freq_spacing*\n"
+         "will be used for the calculation. To explicitly use *freq_spacing* for a channel,\n"
+         "*freq_number* can be set to -1 for this channel.\n"
+         "\n"
+         "The number of elements in *freq_number* can either be the number of channels or 1.\n"
+         "If only one element is given, this number is used for all channels.\n"
+         "If *freq_number* is 1 and *freq_spacing* is wider than the bandwidth of the channel,\n"
+         "one frequency is placed in the middle of each passband.\n"
+         "\n"
+         "Frequencies that would be closer than *freq_merge_threshold* in the\n"
+         "generated *f_grid* are merged together. This value should be left at the default\n"
+         "value. This is only meant to compensate for numerical inaccuracies in the frequency\n"
+         "calculation to merge frequency that are supposed to be identical.\n"
+         "\n"
+         "Each scan sequence is treated as a measurement block. *sensor_pos* is\n"
+         "set in the standard way. The number of rows in *sensor_pos* determines the\n"
+         "number of scan sequences that will be simulated. On the other hand,\n"
+         "*sensor_los* is handled in a special way. All zenith angles must be set\n"
+         "to 180 deg. For 3D, the given azimuth angles are taken as the direction\n"
+         "of scanning, where the azimuth angle is defined with respect to North\n"
+         "in standard manner. For example, if the scanning happens to move from\n"
+         "SW to NE, the azimuth angle should be set to 45 deg. The angles of the\n"
+         "scanning sequence are taken from *antenna_dlos*. This WSV is here only\n"
+         "allowed to have a single column, holding relative zenith angles. For\n"
+         "3D, the azimuth angles in *antenna_dlos* are hard-coded to zero. As\n"
+         "zenith angles in *sensor_los* are locked to 180 deg, *antenna_dlos*\n"
+         "effectively holds the nadir angles. These angles can be both positive or\n"
+         "negative, where the recommended choice is to operate with negative\n"
+         "to end up with final zenith angles between 0 and 180 deg.\n"
+         "\n"
+         "The method does not support 2D atmospheres (across-track scanning is\n"
+         "inconsistent with 2D). For simpler switching between 1D and 3D,\n"
+         "the argument *mirror_dza* is at hand. It can only be used for 3D.\n"
+         "If set to true, the zenith angles in *antenna_dlos* are mapped\n"
+         "to also cover the other side of the swath and the simulations will\n"
+         "cover both sides of the swath.\n"
+           ),
+        AUTHORS( "Oliver Lemke" ),
+        OUT( "f_grid", "antenna_dim", "mblock_dlos_grid", "sensor_response",
+             "sensor_response_f", "sensor_response_pol", "sensor_response_dlos",
+             "sensor_response_f_grid", "sensor_response_pol_grid",
+             "sensor_response_dlos_grid", "sensor_norm" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "atmosphere_dim", "stokes_dim", "iy_unit", "antenna_dlos", 
+            "met_mm_backend", "met_mm_polarisation", "met_mm_antenna"
+             ),
+        GIN( "freq_spacing", "freq_number", "freq_merge_threshold",
+             "use_antenna", "mirror_dza" ),
+        GIN_TYPE(    "Vector", "ArrayOfIndex", "Numeric", "Index", "Index" ),
+        GIN_DEFAULT( "[.1e9]", "[-1]",         "1",       "0",     "0" ),
+        GIN_DESC( "Desired grid spacing in Hz.",
+                  "Number of frequencies per passband for each channel.",
+                  "Merge frequencies that are closer than this value in Hz.",
+                  "Flag to enable (1) or disable (0) antenna.",
+                  "Flag to include second part of swath (only 3D, see above)." )
+        ));
+  
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "sensor_responseMixer" ),
         DESCRIPTION
         (
@@ -11958,6 +11958,51 @@ void define_md_data_raw()
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "sensor_responseMixerBackendPrecalcWeights" ),
+        DESCRIPTION
+        (
+         "Includes pre-calculated response covering mixer and backend.\n"
+         "\n"
+         "This method acts similar to *sensor_responseBackend*, but uses\n"
+         "pre-calculated weights. These weights can also include the effect\n"
+         "of mixer and sideband filtering.\n"
+         "\n"
+         "As usual, *f_backend* gives the frequency of the channels. This WSM\n"
+         "has no direct influence on the result, but at least representative\n"
+         "values must be set.\n"
+         "\n"
+         "The argument *channel_index* links the monochromatic frequencies with\n"
+         "the output channels. Each element of *channel_index* shall be a valid\n"
+         "channel index. If one frequency belongs to the first channel, the\n"
+         "corresponding element in *channel_index* shall be set to 0 etc.\n"
+         "This means that each monochromatic frequency can only be linked to\n"
+         "one channel.\n"
+         "\n"
+         "The argument *weights* is a vector of same length as *channel_index*,\n"
+         "simply holding the weight to be applied. No normalisation is applied.\n"
+         "One example, for a pure double-sideband instrument where each passband\n"
+         "is covered by a single monochromatic frequency, all weights shall be 0.5\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "sensor_response", "sensor_response_f", "sensor_response_pol",
+             "sensor_response_dlos", 
+             "sensor_response_f_grid" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "sensor_response", "sensor_response_f", "sensor_response_pol",
+            "sensor_response_dlos",
+            "sensor_response_f_grid", "sensor_response_pol_grid", 
+            "sensor_response_dlos_grid",
+            "f_backend" ),
+        GIN( "channel_index", "weights" ),
+        GIN_TYPE( "ArrayOfIndex", "Vector" ),
+        GIN_DEFAULT( NODEF, NODEF ),
+        GIN_DESC( "See above.", "See above." )
         ));
 
   md_data_raw.push_back
