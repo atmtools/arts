@@ -1880,8 +1880,13 @@ void sensor_responseMixerBackendPrecalcWeights(
          << "must be equal.\n";
       error_found = true;
     }
+
+  // The code below does not work for some errors, so stop here if any error above
+  if( error_found )
+    throw runtime_error(os.str());
+
   {
-    Vector chs_covered(nin_f,0.0);
+    Vector chs_covered(nout_f,0.0);
     for( Index i=0; i<nin_f; i++ )
       {
         chs_covered[ channel_index[i] ] = 1;
@@ -2373,7 +2378,7 @@ void sensor_responseStokesRotation(
     //
     for( Index ilos=0; ilos<nlos; ilos++ )
       {
-        // Rotation matrix for directuon of concern
+        // Rotation matrix for direction of concern
         mueller_rotation( Hrot, npol, stokes_rotation[ilos]  );
             
         for( Index ifr=0; ifr<nf; ifr++ ) 

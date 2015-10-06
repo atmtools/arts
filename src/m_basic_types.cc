@@ -198,6 +198,23 @@ void MatrixAddScalar(Matrix&   out,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void MatrixCopySparse(Matrix&   out,
+                     const Sparse&   in,
+                     const Verbosity&)
+{
+  // There is probably a more efficient way to do this
+  out.resize( in.nrows(), in.ncols() );
+  for( Index r=0; r<in.nrows(); r++ )
+    {
+      for( Index c=0; c<in.ncols(); c++ )
+        {
+          out(r,c) = in(r,c);
+        }
+    }
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void MatrixMatrixMultiply(// WS Generic Output:
                           Matrix& Y,
                           // WS Generic Input:

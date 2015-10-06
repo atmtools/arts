@@ -8047,6 +8047,25 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "MatrixCopySparse" ),
+        DESCRIPTION
+        (
+         "Creates a matrix by copying a variable of type Sparse.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT(),
+        GOUT(      "out"       ),
+        GOUT_TYPE( "Matrix" ),
+        GOUT_DESC( "Created (full) matrix." ),
+        IN(),
+        GIN(      "in"  ),
+        GIN_TYPE(    "Sparse" ),
+        GIN_DEFAULT( NODEF   ),
+        GIN_DESC( "The sparse matrix to be copied." )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "MatrixExtractFromTensor3" ),
         DESCRIPTION
         (
@@ -11985,8 +12004,12 @@ void define_md_data_raw()
          "The argument *weights* is a vector of same length as *channel_index*,\n"
          "simply holding the weight to be applied. No normalisation is applied.\n"
          "One example, for a pure double-sideband instrument where each passband\n"
-         "is covered by a single monochromatic frequency, all weights shall be 0.5\n"
-         ),
+         "is covered by a single monochromatic frequency, all weights shall be\n"
+         "0.5.\n"
+         "\n"
+         "Both *channel_index* and *weights* are assumed to be common for all\n" 
+         "polarisations and viewing directions.\n"
+        ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "sensor_response", "sensor_response_f", "sensor_response_pol",
              "sensor_response_dlos", 
