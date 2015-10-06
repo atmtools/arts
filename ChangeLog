@@ -1,5 +1,17 @@
 2015-10-06  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-3-325
+
+	* src/methods.cc:
+	* src/m_jacobian.cc (jacobianAddAbsSpecies):
+	* src/jacobian.cc (vmrunitscf): I had to reintroduce "logrel". Now
+	discovered that Qpack had not been working since May due to commit
+	2-3-204. To handle rel/logrel solely in Qpack would require a
+	quite complex and demanding solution. So decided to revert this
+	change.
+
+2015-10-06  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-3-324
 
 	* src/m_sensor.cc (sensor_responseMixerBackendPrecalcWeights): Now
@@ -438,7 +450,7 @@
 	* arts-2-3-296
 
 	* doc/uguide/wfuns.tex (subsection{Common practicalities}):
-	Removed comments around logrel, as this optioon has been removed.
+	Removed comments around logrel, as this option has been removed.
 	(subsubsection{General case}): Added comment making clear that the
 	bulk of the text are just notes for possible future changes.
 

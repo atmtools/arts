@@ -6905,6 +6905,8 @@ void define_md_data_raw()
          "   \"vmr\"    : Volume mixing ratio.\n"
          "   \"nd\"     : Number density.\n"
          "   \"rel\"    : Relative unit (e.g. 1.1 means 10% more of the gas).\n"
+         "   \"logrel\" : This unit is allowed only to support Qpack. This\n"
+         "                gives exactly the same result as \"rel\".\n"
          "\n"
          "For perturbation calculations the size of the perturbation is set\n"
          "by the user. The unit for the perturbation is the same as for the\n"

@@ -270,10 +270,10 @@ void jacobianAddAbsSpecies(
     }
   
   // Check that mode is either "vmr", "nd" or "rel" 
-  if( mode != "vmr" && mode != "nd" && mode != "rel" )
+  if( mode != "vmr" && mode != "nd" && mode != "rel" && mode != "logrel" )
     {
-      throw runtime_error( "The retrieval mode can only be \"vmr\", \"nd\" "
-                                                               "or \"rel\"." );
+      throw runtime_error( "The retrieval mode can only be \"vmr\", \"nd\", "
+                           "\"rel\" or \"logrel\"." );
     }
 
   // Create the new retrieval quantity
