@@ -117,6 +117,8 @@ VectorSet( abs_nls_pert, [] )
 VectorSet( abs_t_pert, [] )
 abs_xsec_agenda_checkedCalc
 
+jacobianOff
+
 abs_lookupCalc
 
 # absorption from LUT

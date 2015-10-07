@@ -1069,8 +1069,12 @@ void cloud_RT_no_background(Workspace& ws,
       const Vector rtp_mag_dummy(3,0);
       const Vector ppath_los_dummy;
       
-      Tensor3 nlte_dummy; //FIXME: do this right
-      propmat_clearsky_agendaExecute( ws, cur_propmat_clearsky,nlte_dummy,
+      Tensor3 nlte_dummy; //FIXME: do this right?
+      ArrayOfTensor3 partial_dummy; // This is right since there should be only clearsky partials
+      ArrayOfMatrix partial_source_dummy,partial_nlte_dummy; // This is right since there should be only clearsky partials
+      propmat_clearsky_agendaExecute( ws, cur_propmat_clearsky,
+                                      nlte_dummy,partial_dummy,partial_source_dummy,partial_nlte_dummy,
+                                      ArrayOfRetrievalQuantity(0),
                                     f_grid[Range(f_index, 1)],
                                     rtp_mag_dummy, ppath_los_dummy,
                                     p_int[k], 
@@ -1538,15 +1542,21 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
               const Vector rtp_mag_dummy(3,0);
               const Vector ppath_los_dummy;
 
-	      Tensor3 nlte_dummy; //FIXME: do this right
-              propmat_clearsky_agendaExecute(ws, propmat_clearsky, nlte_dummy,
-                                                f_grid[Range(f_index, 1)],
-                                                rtp_mag_dummy,ppath_los_dummy,
-                                                rtp_pressure,
-                                                rtp_temperature,
-                                                rtp_temperature_nlte_dummy,
-                                                rtp_vmr,
-                                                propmat_clearsky_agenda);
+              Tensor3 nlte_dummy; //FIXME: do this right?
+              ArrayOfTensor3 partial_dummy; // This is right since there should be only clearsky partials
+              ArrayOfMatrix partial_source_dummy,partial_nlte_dummy; // This is right since there should be only clearsky partials
+              propmat_clearsky_agendaExecute(ws, propmat_clearsky, 
+                                             nlte_dummy,partial_dummy,
+                                             partial_source_dummy,
+                                             partial_nlte_dummy,
+                                             ArrayOfRetrievalQuantity(0),
+                                             f_grid[Range(f_index, 1)],
+                                             rtp_mag_dummy,ppath_los_dummy,
+                                             rtp_pressure,
+                                             rtp_temperature,
+                                             rtp_temperature_nlte_dummy,
+                                             rtp_vmr,
+                                             propmat_clearsky_agenda);
               
               opt_prop_sum_propmat_clearsky(ext_mat, abs_vec, propmat_clearsky);
               
@@ -1655,15 +1665,21 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
                 
               const Vector rtp_mag_dummy(3,0);
               const Vector ppath_los_dummy;
-              Tensor3 nlte_dummy; //FIXME: do this right
-              propmat_clearsky_agendaExecute( ws, propmat_clearsky,nlte_dummy,
-                                            f_grid[Range(f_index, 1)],
-                                            rtp_mag_dummy,ppath_los_dummy,
-                                            rtp_pressure, 
-                                            rtp_temperature, 
-                                            rtp_temperature_nlte_dummy,
-                                            rtp_vmr,
-                                            propmat_clearsky_agenda );
+              Tensor3 nlte_dummy; //FIXME: do this right?
+              ArrayOfTensor3 partial_dummy; // This is right since there should be only clearsky partials
+              ArrayOfMatrix partial_source_dummy,partial_nlte_dummy; // This is right since there should be only clearsky partials
+              propmat_clearsky_agendaExecute( ws, propmat_clearsky,
+                                              nlte_dummy,partial_dummy,
+                                              partial_source_dummy,
+                                              partial_nlte_dummy,
+                                              ArrayOfRetrievalQuantity(0),
+                                              f_grid[Range(f_index, 1)],
+                                              rtp_mag_dummy,ppath_los_dummy,
+                                              rtp_pressure, 
+                                              rtp_temperature, 
+                                              rtp_temperature_nlte_dummy,
+                                              rtp_vmr,
+                                              propmat_clearsky_agenda );
 
               opt_prop_sum_propmat_clearsky(ext_mat, abs_vec, propmat_clearsky);
 

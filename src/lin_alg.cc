@@ -351,6 +351,402 @@ void matrix_exp(
  * \param F Output: The matrix exponential of A (Has to be initialized before
  * calling the function.
  * \param dF Output: The derivative  of the matrix exponential of A (Has to be initialized before
+ * calling the function.  Page dimension is for each derivative.
+ * \param A Input:  arbitrary square matrix.
+ * \param dA Input: derivative of A.   Page dimension is for each derivative.
+ * \param q Input: Parameter for the accuracy of the computation,  Matlab default is 6.
+ */
+void special_matrix_exp_and_dmatrix_exp_dx_for_rt(
+    MatrixView           F,
+    Tensor3View         dF_upp,
+    Tensor3View         dF_low,
+    ConstMatrixView      A,
+    ConstTensor3View    dA_upp,
+    ConstTensor3View    dA_low,
+    const Index&         q )
+{
+    const Index n_partials = dA_upp.npages();
+    
+    const Index n = A.ncols();
+    
+    /* Check if A and F are a quadratic and of the same dimension. */
+    assert( is_size(A,n,n) );
+    assert( is_size(F,n,n) );
+    assert(n_partials==dF_upp.npages());
+    assert(n_partials==dF_low.npages());
+    for(Index ii=0;ii<n_partials;ii++)
+    {
+        assert( is_size(dA_upp(ii,joker,joker),n,n) );
+        assert( is_size(dA_low(ii,joker,joker),n,n) );
+        assert( is_size(dF_upp(ii,joker,joker),n,n) );
+        assert( is_size(dF_low(ii,joker,joker),n,n) );
+    }
+    
+    // This sets up some cnstants
+    Numeric A_norm_inf, e;
+    A_norm_inf = norm_inf(A);
+    e = 1. +  floor(1./log(2.)*log(A_norm_inf));
+    Numeric r = (e+1.)>0.?(e+1.):0., pow2rm1=1./pow(2,r);
+    Numeric c = 0.5;
+    
+    // For non-derivatives
+    Matrix M=A, X(n,n), cX(n,n), D(n,n);
+    M  *= pow2rm1;
+    X   = M;
+    cX  = X;
+    cX*=c;
+    id_mat(F); F+=cX; 
+    id_mat(D); D-=cX; 
+    
+    // For derivatives
+    Tensor3 dM_upp(n_partials,n,n),dM_low(n_partials,n,n),
+    dD_upp(n_partials,n,n),dD_low(n_partials,n,n),
+    Y_upp(n_partials,n,n),Y_low(n_partials,n,n),
+    cY_upp(n_partials,n,n),cY_low(n_partials,n,n);
+    for(Index ii=0;ii<n_partials;ii++)
+    {
+        for(Index jj=0;jj<n;jj++)
+        {
+            for(Index kk=0;kk<n;kk++)
+            {
+                dM_upp(ii,jj,kk)  = dA_upp(ii,jj,kk) * pow2rm1;
+                dM_low(ii,jj,kk)  = dA_low(ii,jj,kk) * pow2rm1;
+                
+                Y_upp(ii,jj,kk)  = dM_upp(ii,jj,kk);
+                Y_low(ii,jj,kk)  = dM_low(ii,jj,kk);
+                
+                cY_upp(ii,jj,kk)  = c*Y_upp(ii,jj,kk);
+                cY_low(ii,jj,kk)  = c*Y_low(ii,jj,kk);
+                
+                dF_upp(ii,jj,kk)  = cY_upp(ii,jj,kk);
+                dF_low(ii,jj,kk)  = cY_low(ii,jj,kk);
+                
+                dD_upp(ii,jj,kk)  =-cY_upp(ii,jj,kk);
+                dD_low(ii,jj,kk)  =-cY_low(ii,jj,kk);
+            }
+        }
+    }
+    
+    // NOTE: MATLAB paper sets q = 6 but we allow other numbers
+    Matrix tmp1(n,n), tmp2(n,n),
+    tmp_low1(n,n), tmp_upp1(n,n), 
+    tmp_low2(n,n), tmp_upp2(n,n);
+    
+    for(Index k=2; k<=q; k++)
+    { 
+        c *= (Numeric)(q-k+1)/(Numeric)((k)*(2*q-k+1));
+        
+        // For partials
+        for(Index ii=0;ii<n_partials;ii++)
+        {
+            // Y = dM*X + M*Y
+            mult(tmp_upp1, dM_upp(ii,joker,joker), X);
+            mult(tmp_upp2,  M, Y_upp(ii,joker,joker));
+            mult(tmp_low1, dM_low(ii,joker,joker), X);
+            mult(tmp_low2,  M, Y_low(ii,joker,joker));
+            
+            for(Index jj=0;jj<n;jj++)
+            {
+                for(Index kk=0;kk<n;kk++)
+                {
+                    Y_upp(ii,jj,kk) = tmp_upp1(jj,kk)+tmp_upp2(jj,kk);
+                    Y_low(ii,jj,kk) = tmp_low1(jj,kk)+tmp_low2(jj,kk);
+                    
+                    // cY = c*Y
+                    cY_upp(ii,jj,kk) = c * Y_upp(ii,jj,kk);
+                    cY_low(ii,jj,kk) = c * Y_low(ii,jj,kk);
+                    
+                    // dF = dF + cY
+                    dF_upp(ii,jj,kk) += cY_upp(ii,jj,kk);
+                    dF_low(ii,jj,kk) += cY_low(ii,jj,kk);
+                    
+                    if(k%2==0)//For even numbers, add.  
+                    {
+                        // dD = dD + cY
+                        dD_upp(ii,jj,kk)+=cY_upp(ii,jj,kk);
+                        dD_low(ii,jj,kk)+=cY_low(ii,jj,kk);
+                    }
+                    else
+                    {
+                        // dD = dD - cY
+                        dD_upp(ii,jj,kk)-=cY_upp(ii,jj,kk);
+                        dD_low(ii,jj,kk)-=cY_low(ii,jj,kk);
+                    }
+                }
+            }
+        }
+        
+        //For full derivative (Note X in partials above)
+        // X=M*X
+        mult(tmp1, M, X);
+        for(Index jj=0;jj<n;jj++)
+        {
+            for(Index kk=0;kk<n;kk++)
+            {
+                X(jj,kk) = tmp1(jj,kk);
+                cX(jj,kk) = tmp1(jj,kk)*c;
+                F(jj,kk) += cX(jj,kk);
+                
+                if(k%2==0)//For even numbers, D = D + cX
+                    D(jj,kk)+=cX(jj,kk);
+                else//For odd numbers, D = D - cX
+                    D(jj,kk)-=cX(jj,kk); 
+            }
+        }
+    }
+    
+    // D^-1
+    inv(tmp1,D);
+    
+    // F = D\F, or D^-1*F
+    mult(tmp2,tmp1,F);
+    F = tmp2;
+    
+    // For partials
+    for(Index ii=0;ii<n_partials;ii++)
+    {  
+        //dF = D \ (dF - dF*F), or D^-1 * (dF - dF*F)
+        mult(tmp_upp1, dD_upp(ii,joker,joker), F);
+        mult(tmp_low1, dD_low(ii,joker,joker), F);
+        
+        for(Index jj=0;jj<n;jj++)
+        {
+            for(Index kk=0;kk<n;kk++)
+            {
+                dF_upp(ii,jj,kk)-=tmp_upp1(jj,kk);// dF - dF * F
+                dF_low(ii,jj,kk)-=tmp_low1(jj,kk);// dF - dF * F
+            }
+        }
+        
+        mult(tmp_upp2,tmp1,dF_upp(ii,joker,joker));
+        mult(tmp_low2,tmp1,dF_low(ii,joker,joker));
+        
+        for(Index jj=0;jj<n;jj++)
+        {
+            for(Index kk=0;kk<n;kk++)
+            {
+                dF_upp(ii,jj,kk)=tmp_upp2(jj,kk);
+                dF_low(ii,jj,kk)=tmp_low2(jj,kk);
+            }
+        }
+        
+    }
+    
+    for(Index k=1; k<=r; k++)
+    {
+        for(Index ii=0;ii<n_partials;ii++)
+        {  
+            // dF=F*dF+dF*F
+            mult(tmp_upp1,F,dF_upp(ii,joker,joker));//F*dF
+            mult(tmp_upp2,dF_upp(ii,joker,joker),F);//dF*F
+            mult(tmp_low1,F,dF_low(ii,joker,joker));//F*dF
+            mult(tmp_low2,dF_low(ii,joker,joker),F);//dF*F
+            
+            for(Index jj=0;jj<n;jj++)
+            {
+                for(Index kk=0;kk<n;kk++)
+                {
+                    dF_upp(ii,jj,kk)=tmp_upp1(jj,kk)+tmp_upp2(jj,kk);
+                    dF_low(ii,jj,kk)=tmp_low1(jj,kk)+tmp_low2(jj,kk);
+                }
+            }
+        }
+        
+        // F=F*F
+        mult(tmp1,F,F);
+        F=tmp1;
+    }
+}
+
+
+//! General exponential of a Matrix with their derivatives
+/*! 
+ * 
+ * The exponential of a matrix is computed using the Pade-Approximation. The
+ * method is decribed in: Golub, G. H. and C. F. Van Loan, Matrix Computation,
+ * p. 384, Johns Hopkins University Press, 1983.
+ * 
+ * The extension of Pade-Approximation to the derivative is explained by 
+ * Lubomír Brančík, MATLAB PROGRAMS FOR MATRIX EXPONENTIAL FUNCTION 
+ * DERIVATIVE EVALUATION, 2008
+ * 
+ * The Pade-approximation is applied on all cases. If a faster option can be
+ * applied has to be checked before calling the function.
+ * 
+ * \param F Output: The matrix exponential of A (Has to be initialized before
+ * calling the function.
+ * \param dF Output: The derivative  of the matrix exponential of A (Has to be initialized before
+ * calling the function.  Page dimension is for each derivative.
+ * \param A Input:  arbitrary square matrix.
+ * \param dA Input: derivative of A.   Page dimension is for each derivative.
+ * \param q Input: Parameter for the accuracy of the computation,  Matlab default is 6.
+ */
+void matrix_exp_dmatrix_exp(
+    MatrixView           F,
+    Tensor3View         dF,
+    ConstMatrixView      A,
+    ConstTensor3View    dA,
+    const Index&         q )
+{
+    const Index n_partials = dA.npages();
+    
+    const Index n = A.ncols();
+    
+    /* Check if A and F are a quadratic and of the same dimension. */
+    assert( is_size(A,n,n) );
+    assert( is_size(F,n,n) );
+    assert(n_partials==dF.npages());
+    for(Index ii=0;ii<n_partials;ii++)
+    {
+        assert( is_size(dA(ii,joker,joker),n,n) );
+        assert( is_size(dF(ii,joker,joker),n,n) );
+    }
+    
+    // This sets up some cnstants
+    Numeric A_norm_inf, e;
+    A_norm_inf = norm_inf(A);
+    e = 1. +  floor(1./log(2.)*log(A_norm_inf));
+    Numeric r = (e+1.)>0.?(e+1.):0., pow2rm1=1./pow(2,r);
+    Numeric c = 0.5;
+    
+    // For non-derivatives
+    Matrix M=A, X(n,n), cX(n,n), D(n,n);
+    M  *= pow2rm1;
+    X   = M;
+    cX  = X;
+    cX*=c;
+    id_mat(F); F+=cX; 
+    id_mat(D); D-=cX; 
+     
+    // For derivatives
+    Tensor3 dM(n_partials,n,n),Y(n_partials,n,n),cY(n_partials,n,n), dD(n_partials,n,n);
+    for(Index ii=0;ii<n_partials;ii++)
+    {
+        for(Index jj=0;jj<n;jj++)
+        {
+            for(Index kk=0;kk<n;kk++)
+            {
+                dM(ii,jj,kk)  = dA(ii,jj,kk) * pow2rm1;
+                
+                 Y(ii,jj,kk)  = dM(ii,jj,kk);
+                
+                cY(ii,jj,kk)  = c*Y(ii,jj,kk);
+                
+                dF(ii,jj,kk)  = cY(ii,jj,kk);
+                
+                dD(ii,jj,kk)  =-cY(ii,jj,kk);
+            }
+        }
+    }
+    
+    // NOTE: MATLAB paper sets q = 6 but we allow other numbers
+    
+    Matrix tmp1(n,n), tmp2(n,n);
+    
+    for(Index k=2; k<=q; k++)
+    { 
+        c *= (Numeric)(q-k+1)/(Numeric)((k)*(2*q-k+1));
+        
+        // For partials
+        for(Index ii=0;ii<n_partials;ii++)
+        {  
+            // Y = dM*X + M*Y
+            mult(tmp1, dM(ii,joker,joker), X);
+            mult(tmp2,  M,                 Y(ii,joker,joker));
+            
+            
+            for(Index jj=0;jj<n;jj++)
+                for(Index kk=0;kk<n;kk++)
+                {
+                    Y(ii,jj,kk) = tmp1(jj,kk)+tmp2(jj,kk);
+                    
+                    // cY = c*Y
+                    cY(ii,jj,kk) = c * Y(ii,jj,kk);
+                    
+                    // dF = dF + cY
+                    dF(ii,jj,kk) += cY(ii,jj,kk);
+                    
+                    if(k%2==0)//For even numbers, add.  
+                    {
+                        // dD = dD + cY
+                        dD(ii,jj,kk)+=cY(ii,jj,kk);
+                    }
+                    else
+                    {
+                        // dD = dD - cY
+                        dD(ii,jj,kk)-=cY(ii,jj,kk);
+                    }
+                }
+        }
+        
+        //For full derivative (Note X in partials above)
+        // X=M*X
+        mult(tmp1, M, X);
+        X = tmp1;
+        
+        //cX = c*X
+        cX=X; cX*=c;
+        
+        // F = F + cX
+        F  += cX;
+        
+        if(k%2==0)//For even numbers, D = D + cX
+            D+=cX;
+        else//For odd numbers, D = D - cX
+            D-=cX; 
+    }
+    
+    // D^-1
+    inv(tmp1,D);
+    
+    // F = D\F, or D^-1*F
+    mult(tmp2,tmp1,F);
+    F = tmp2;
+    
+    // For partials
+    for(Index ii=0;ii<n_partials;ii++)
+    {  
+        //dF = D \ (dF - dF*F), or D^-1 * (dF - dF*F)
+        mult(tmp2, dD(ii,joker,joker), F);// dF * F
+        dF(ii,joker,joker)-=tmp2;// dF - dF * F
+        mult(tmp2,tmp1,dF(ii,joker,joker));
+        dF(ii,joker,joker)=tmp2;
+    }
+    
+    for(Index k=1; k<=r; k++)
+    {
+        for(Index ii=0;ii<n_partials;ii++)
+        {  
+            // dF=F*dF+dF*F
+            mult(tmp1,F,dF(ii,joker,joker));//F*dF
+            mult(tmp2,dF(ii,joker,joker),F);//dF*F
+            dF(ii,joker,joker)=tmp1;dF(ii,joker,joker)+=tmp2;
+        }
+        
+        // F=F*F
+        mult(tmp1,F,F);
+        F=tmp1;
+    }
+}
+
+
+//! General exponential of a Matrix with their derivatives
+/*! 
+ * 
+ * The exponential of a matrix is computed using the Pade-Approximation. The
+ * method is decribed in: Golub, G. H. and C. F. Van Loan, Matrix Computation,
+ * p. 384, Johns Hopkins University Press, 1983.
+ * 
+ * The extension of Pade-Approximation to the derivative is explained by 
+ * Lubomír Brančík, MATLAB PROGRAMS FOR MATRIX EXPONENTIAL FUNCTION 
+ * DERIVATIVE EVALUATION, 2008
+ * 
+ * The Pade-approximation is applied on all cases. If a faster option can be
+ * applied has to be checked before calling the function.
+ * 
+ * \param F Output: The matrix exponential of A (Has to be initialized before
+ * calling the function.
+ * \param dF Output: The derivative  of the matrix exponential of A (Has to be initialized before
  * calling the function.
  * \param A Input:  arbitrary square matrix
  * \param dA Input: derivative of arbitrary square matrix
@@ -479,7 +875,6 @@ void matrix_exp_dmatrix_exp(
         F=tmp1;
     }
 }
-
 
 //! Maximum absolute row sum norm 
 /*! 

@@ -75,7 +75,20 @@ Numeric number_density(
         const Numeric&   p,
         const Numeric&   t );
 
+Numeric dnumber_density_dt(  
+        const Numeric&   p,
+        const Numeric&   t );
+
 Numeric planck( 
+        const Numeric&   f, 
+        const Numeric&   t );
+
+Numeric dplanck_dt( 
+        const Numeric&   f, 
+        const Numeric&   t );
+
+
+Numeric dplanck_df( 
         const Numeric&   f, 
         const Numeric&   t );
 

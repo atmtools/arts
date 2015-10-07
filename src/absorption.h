@@ -39,13 +39,18 @@
 #include "linerecord.h"
 #include "linemixingrecord.h"
 #include "gridded_fields.h"
+#include "partial_derivatives.h"
 
 
 /** The type that is used to store pointers to lineshape
     functions.  */
-typedef void (*lsf_type)(Vector&,
-                         Vector&,
-                         Vector&,
+typedef void (*lsf_type)(Vector&,//attenuation
+                         Vector&,//phase
+                         Vector&,//partial attenuation over frequency term
+                         Vector&,//partial phase over frequency term
+                         Vector&,//partial attenuation over pressure term
+                         Vector&,//partial phase over pressure term
+                         Vector&,//xvector helper (?)
                          const Numeric,
                          const Numeric,
                          const Numeric,
@@ -54,7 +59,37 @@ typedef void (*lsf_type)(Vector&,
                          const Numeric,
                          const Numeric,
                          const Numeric,
-                         ConstVectorView);
+                         ConstVectorView,
+                         const bool,//do phase
+                         const bool //do partial derivative
+                        );
+/**  The types that are used to store pointers to lineshape
+     functions internal derivatives.  */
+typedef void (*lsf_type_dT)(Vector&,      // dx/dT
+                            Numeric&,     // dy/dT
+                            Numeric&,     // dnorm/dT
+                            ConstVectorView,   // frequency
+                            const Numeric&,    // line center + line shifts
+                            const Numeric&,    // sigma
+                            const Numeric&,    // derivative of pressure shift with temperature
+                            const Numeric&,    // derivative of line mixing shift with temperature
+                            const Numeric&,    // derivative of sigma with temperature
+                            const Numeric&,    // gamma
+                            const Numeric&     // derivative of gamma with temperature
+);
+typedef void (*lsf_type_dF)(Numeric&,      // dx/dF
+                            const Numeric& // sigma
+);
+typedef void (*lsf_type_dgamma)(Numeric&,      // dy/dgamma
+                                const Numeric& // sigma
+);
+typedef void (*lsf_type_dH)(Numeric&,       // dx/dH
+                            const Numeric&, // sigma
+                            const Numeric&  // derivative of magnetic shift to magnetic strength
+);
+typedef void (*lsf_type_dDF)(Numeric&,      // dx/dDF
+                             const Numeric& // sigma
+);
 
 /** Lineshape related information. There is one LineshapeRecord for
     each available lineshape function.
@@ -68,32 +103,76 @@ public:
   LineshapeRecord() : mname(),
                       mdescription(),
                       mphase(),
-                      mfunction()
+                      mpartials(),
+                      mfunction(),
+                      mfunction_dT(),
+                      mfunction_dF(),
+                      mfunction_dgamma(),
+                      mfunction_dH(),
+                      mfunction_dDF()
   { /* Nothing to do here. */ }
 
-  /** Initializing constructor, used to build the lookup table. */
+  /** Initializing constructor, used to build the lookup table. No partials. */
   LineshapeRecord(const String& name,
                   const String& description,
                   lsf_type      function,
-                  const bool    phase)
+                  const bool    phase,
+                  const bool    partials)
     : mname(name),
       mdescription(description),
       mphase(phase),
+      mpartials(partials),
       mfunction(function)
+  { if(mpartials) throw std::runtime_error("Warning to developers:\n"
+      "The line shape is poorly designed since partials" 
+      "are expected but none given in the definition.\nThis will fail.\n"); }
+  /** Initializing constructor, used to build the lookup table. With partials. */
+  LineshapeRecord(const String&   name,
+                  const String&   description,
+                  lsf_type        function,
+                  lsf_type_dT     function_dT,
+                  lsf_type_dF     function_dF,
+                  lsf_type_dgamma function_dgamma,
+                  lsf_type_dH     function_dH,
+                  lsf_type_dDF    function_dDF,
+                  const bool      phase,
+                  const bool      partials)
+  : mname(name),
+  mdescription(description),
+  mphase(phase),
+  mpartials(partials),
+  mfunction(function),
+  mfunction_dT(function_dT),
+  mfunction_dF(function_dF),
+  mfunction_dgamma(function_dgamma),
+  mfunction_dH(function_dH),
+  mfunction_dDF(function_dDF)
   { /* Nothing to do here. */ }
+  
   /** Return the name of this lineshape. */
   const String&  Name()        const { return mname;        }   
   /** Return the description text. */
   const String&  Description() const { return mdescription; }
   /** Return pointer to lineshape function. */
   lsf_type Function() const { return mfunction; }
+  lsf_type_dT dInput_dT() const { return mfunction_dT; }
+  lsf_type_dF dInput_dF() const { return mfunction_dF; }
+  lsf_type_dgamma dInput_dgamma() const { return mfunction_dgamma; }
+  lsf_type_dH dInput_dH() const { return mfunction_dH; }
+  lsf_type_dDF dInput_dDF() const { return mfunction_dDF; }
   /** Returns true if lineshape function calculates phase information. */
   bool Phase() const { return mphase; }
 private:        
   String  mname;        ///< Name of the function (e.g., Lorentz).
   String  mdescription; ///< Short description.
   bool    mphase;       ///< Does this lineshape calculate phase information?
+  bool    mpartials;    ///< Does this lineshape calculate partial derivatives?
   lsf_type mfunction;   ///< Pointer to lineshape function.
+  lsf_type_dT mfunction_dT;   ///< Pointer to lineshape function derivative.
+  lsf_type_dF mfunction_dF;   ///< Pointer to lineshape function derivative.
+  lsf_type_dgamma mfunction_dgamma;   ///< Pointer to lineshape function derivative.
+  lsf_type_dH mfunction_dH;   ///< Pointer to lineshape function derivative.
+  lsf_type_dDF mfunction_dDF;   ///< Pointer to lineshape function derivative.
 
 };
 
@@ -116,16 +195,26 @@ public:
   /** Default constructor. */
   LineshapeNormRecord() : mname(),
                           mdescription(),
-                          mfunction()
+                          mfunction(),
+                          mfunction_dT(),
+                          mfunction_dF(),
+                          mfunction_dF0()
   { /* Nothing to do here. */ }
 
   /** Initializing constructor, used to build the lookup table. */
   LineshapeNormRecord(const String& name,
                       const String& description,
-                      lsnf_type      function)
+                      lsnf_type      function,
+                      lsnf_type      dfunction_dT,
+                      lsnf_type      dfunction_dF,
+                      lsnf_type      dfunction_dF0
+                     )
     : mname(name),
       mdescription(description),
-      mfunction(function)
+      mfunction(function),
+      mfunction_dT(dfunction_dT),
+      mfunction_dF(dfunction_dF),
+      mfunction_dF0(dfunction_dF0)
   { /* Nothing to do here. */ }
   /** Return the name of this lineshape. */
   const String&  Name()        const { return mname;        }   
@@ -133,10 +222,17 @@ public:
   const String&  Description() const { return mdescription; }
   /** Return pointer to lineshape normalization function. */
   lsnf_type Function() const { return mfunction; }
+  
+  lsnf_type dFunction_dT()  const { return mfunction_dT; }
+  lsnf_type dFunction_dF()  const { return mfunction_dF; }
+  lsnf_type dFunction_dF0() const { return mfunction_dF0; }
 private:        
   String  mname;        ///< Name of the function (e.g., linear).
   String  mdescription; ///< Short description.
   lsnf_type mfunction;  ///< Pointer to lineshape normalization function.
+  lsnf_type mfunction_dT;  ///< Pointer to lineshape normalization function partial derivative temperature.
+  lsnf_type mfunction_dF;  ///< Pointer to lineshape normalization function partial derivative frequency.
+  lsnf_type mfunction_dF0;  ///< Pointer to lineshape normalization function partial derivative frequency.
 };
 
 /** Lineshape related specification like which lineshape to use, the
@@ -593,6 +689,12 @@ void xsec_single_line(// Output:
                       // Helper variables
                       Vector& attenuation, 
                       Vector& phase,
+                      Vector& da_dF,
+                      Vector& dp_dF,
+                      Vector& da_dP,
+                      Vector& dp_dP,
+                      Range&  this_f_range,
+                      //Vector& dC_dT, for normalization factor
                       Vector& fac, 
                       Vector& aux, 
                       // Frequency grid:
@@ -628,12 +730,17 @@ void xsec_single_line(// Output:
                       // Feature flags
                       const bool calc_cut, 
                       const bool calc_phase,
+                      const bool calc_partials,
                       const bool calc_src);
 
 
 void xsec_species_line_mixing_wrapper(      MatrixView               xsec_attenuation,
 					    MatrixView               xsec_source,
                                             MatrixView               xsec_phase,
+                                            ArrayOfMatrix&           partial_xsec_attenuation,
+                                            ArrayOfMatrix&           partial_xsec_source,
+                                            ArrayOfMatrix&           partial_xsec_phase,
+                                            const PropmatPartialsData&  flag_partials,
                                             ConstVectorView          f_grid,
                                             ConstVectorView          abs_p,
                                             ConstVectorView          abs_t,
@@ -643,6 +750,7 @@ void xsec_species_line_mixing_wrapper(      MatrixView               xsec_attenu
                                             const Index              this_species,
                                             const ArrayOfLineRecord& abs_lines,
                                             const Vector&            Z_DF,
+                                            const Numeric            H_magnitude_Zeeman,
                                             const Index              ind_ls,
                                             const Index              ind_lsn,
                                             const Numeric            cutoff,

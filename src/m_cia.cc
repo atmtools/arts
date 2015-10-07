@@ -41,9 +41,10 @@ extern const Numeric SPEED_OF_LIGHT;
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_xsec_per_speciesAddCIA(// WS Output:
                                 ArrayOfMatrix& abs_xsec_per_species,
-                                ArrayOfMatrix& src_xsec_per_species,
+                                ArrayOfArrayOfMatrix& dabs_xsec_per_species_dx,
                                 // WS Input:
                                 const ArrayOfArrayOfSpeciesTag& abs_species,
+                                const ArrayOfRetrievalQuantity& jacobian_quantities,
                                 const ArrayOfIndex& abs_species_active,
                                 const Vector& f_grid,
                                 const Vector& abs_p,
@@ -80,6 +81,34 @@ void abs_xsec_per_speciesAddCIA(// WS Output:
       }
   }
 
+  // Jacobian overhead START
+  /* NOTE:  The calculations below are inefficient and could 
+            be made much better by using interp in Extract to
+            return the derivatives as well. */
+  const PropmatPartialsData ppd(jacobian_quantities);
+  const bool do_jac = ppd.supportsCIA();
+  const bool do_freq_jac = ppd.do_frequency();
+  const bool do_temp_jac = ppd.do_temperature();
+  Vector dfreq, dabs_t;
+  const Numeric df = ppd.Frequency_Perturbation();
+  const Numeric dt = ppd.Temperature_Perturbation();
+  if(do_freq_jac)
+  {
+      dfreq.resize(f_grid.nelem());
+      dfreq = f_grid;
+      dfreq += df;
+  }
+  if(do_temp_jac)
+  {
+      dabs_t.resize(abs_t.nelem());
+      dabs_t = abs_t;
+      dabs_t += dt;
+  }
+  // Jacobian overhead END
+  
+  // Useful if there is no Jacobian to calculate
+  ArrayOfMatrix empty;
+  
   {
     // Check that all parameters that should have the the dimension of p_grid
     // are consistent:
@@ -103,6 +132,15 @@ void abs_xsec_per_speciesAddCIA(// WS Output:
     // cross-sections before adding them (more efficient to allocate this here
     // outside of the loops)
     Vector xsec_temp(f_grid.nelem());
+    
+    // Jacobian vectors START
+    Vector dxsec_temp_dT;
+    Vector dxsec_temp_dF;
+    if(do_freq_jac)
+        dxsec_temp_dF.resize(f_grid.nelem());
+    if(do_temp_jac)
+        dxsec_temp_dT.resize(f_grid.nelem());
+    // Jacobian vectors END
     
     // Loop over CIA data sets.
     // Index i loops through the outer array (different tag groups),
@@ -129,7 +167,7 @@ void abs_xsec_per_speciesAddCIA(// WS Output:
 
             const CIARecord& this_cia = abs_cia_data[this_cia_index];
             Matrix&          this_xsec = abs_xsec_per_species[i];
-            Matrix&      this_src_xsec = src_xsec_per_species[i];
+            ArrayOfMatrix&   this_dxsec = do_jac?dabs_xsec_per_species_dx[i]:empty;
 
             if (out2.sufficient_priority())
               {
@@ -177,6 +215,14 @@ void abs_xsec_per_speciesAddCIA(// WS Output:
                     this_cia.Extract(xsec_temp, f_grid, abs_t[ip],
                                      this_species.CIADataset(),
                                      T_extrapolfac, robust, verbosity);
+                    if(do_freq_jac)
+                        this_cia.Extract(dxsec_temp_dF, dfreq, abs_t[ip],
+                                         this_species.CIADataset(),
+                                         T_extrapolfac, robust, verbosity);
+                    if(do_temp_jac)
+                        this_cia.Extract(dxsec_temp_dT, f_grid, dabs_t[ip],
+                                         this_species.CIADataset(),
+                                         T_extrapolfac, robust, verbosity);
                 } catch (runtime_error e) {
                     ostringstream os;
                     os << "Problem with CIA species " << this_species.Name() << ":\n"
@@ -191,14 +237,44 @@ void abs_xsec_per_speciesAddCIA(// WS Output:
                 
                 // Calculate number density from pressure and temperature.
                 const Numeric n = abs_vmrs(i_sec,ip) * number_density(abs_p[ip],abs_t[ip]);
-                xsec_temp *= n;
                 
-                // Add to result variable:
-                this_xsec(joker,ip) += xsec_temp;
-                if( this_src_xsec.ncols()!=0 && this_src_xsec.nrows()!=0 )
-                  this_src_xsec(joker,ip) += xsec_temp;
+                if(!do_jac)
+                {
+                    xsec_temp *= n;
+                    // Add to result variable:
+                    this_xsec(joker,ip) += xsec_temp;
+                }
+                else
+                {
+                    const Numeric dn_dT = abs_vmrs(i_sec,ip) * dnumber_density_dt(abs_p[ip],abs_t[ip]); 
+                    
+                    for(Index iv=0; iv<xsec_temp.nelem();iv++)
+                    {
+                        this_xsec(iv,ip) += n*xsec_temp[iv];
+                        for(Index iq=0; iq<ppd.nelem(); iq++)
+                        {
+                            if(ppd(iq)==JQT_frequency || ppd(iq)==JQT_wind_magnitude || ppd(iq)==JQT_wind_u || ppd(iq)==JQT_wind_v || ppd(iq)==JQT_wind_w)
+                                this_dxsec[iq](iv,ip) += n*(dxsec_temp_dF[iv]-xsec_temp[iv])/df;
+                            else if(ppd(iq)==JQT_temperature)
+                                this_dxsec[iq](iv,ip) += n*(dxsec_temp_dT[iv]-xsec_temp[iv])/dt + xsec_temp[iv]*dn_dT; 
+                            else if(ppd(iq)==JQT_VMR)
+                            {
+                                if(abs_species[i][0].Species()==ppd.species(iq) && i_sec==i)
+                                    this_dxsec[iq](iv,ip) += 2*xsec_temp[iv]/abs_vmrs(i,ip); 
+                                else if(abs_species[i][0].Species()==ppd.species(iq))
+                                    this_dxsec[iq](iv,ip) += xsec_temp[iv]/abs_vmrs(i,ip); 
+                                else if(abs_species[i_sec][0].Species()!=ppd.species(iq))
+                                    this_dxsec[iq](iv,ip) += xsec_temp[iv]/abs_vmrs(i_sec,ip); 
+                            }
+                            // Note for coef that d/dt(a*n*n) = da/dt * n1*n2 + a * dn1/dt * n2 + a * n1 * dn2/dt, 
+                            // we now output da/dt*n2 + a*dn2/dt and coef conversion then have to do 
+                            // dxsec*n1 + xsec*dn1/dt, which is what it has to do anyways, so no problems!
+                            // Also note that d/dvmr gives the factor two for the same reason when self collisions,
+                            // but no factor else-wise... (at least works with dn1/dvmr ignored in coef conversion)
+                        }
+                    }
+                }
               }
-            
           }
     }
 }

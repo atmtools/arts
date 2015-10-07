@@ -244,6 +244,27 @@ Numeric number_density(
 }
 
 
+//! dnumber_density_dT
+/*! 
+ *  Calculates the atmospheric number density derivative with temperature.
+ *  
+ *  \return     number density
+ *  \param  p   pressure
+ *  \param  t   temperature
+ *  
+ *  \author Richard Larsson 
+ *  \date   2015-09-22 
+ */
+Numeric dnumber_density_dt(  
+        const Numeric&   p,
+        const Numeric&   t )
+{
+    assert( p >= 0 );
+    assert( t > 0 );
+    return   - p / ( t * BOLTZMAN_CONST * t );
+}
+
+
 
 //! planck
 /*! 
@@ -274,6 +295,77 @@ Numeric planck(
     static const Numeric b = PLANCK_CONST / BOLTZMAN_CONST;
   
     return  ( a * f*f*f ) / ( exp( (b*f)/t ) - 1.0 );
+    }
+}
+
+
+//! dplanck_dt
+/*! 
+ * Calculates the temperature derivative of the Planck function 
+ * for a single temperature and frequency.
+ * 
+ * \return     blackbody radiation
+ * \param  f   frequency
+ * \param  t   temperature
+ * 
+ * \author Richard Larsson
+ * \date   2015-09-15 
+ */
+Numeric dplanck_dt( 
+const Numeric&   f, 
+const Numeric&   t )
+{
+    assert( t >= 0 );
+    assert( f > 0 );
+    
+    if( t == 0 )
+    { return 0; }
+    
+    else
+    {
+        static const Numeric a = 2 * PLANCK_CONST / (SPEED_OF_LIGHT*SPEED_OF_LIGHT);
+        static const Numeric b = PLANCK_CONST / BOLTZMAN_CONST;
+        
+        const Numeric exp_t = exp(b*f/t);
+        const Numeric exp_t_m1 = exp_t-1.0;
+        const Numeric f2 = f*f;
+        
+        return  a*b*f2*f2*exp_t/( t*t*exp_t_m1*exp_t_m1);
+    }
+}
+
+
+//! dplanck_df
+/*! 
+ * Calculates the frequency derivative of the Planck function 
+ * for a single temperature and frequency.
+ * 
+ * \return     blackbody radiation
+ * \param  f   frequency
+ * \param  t   temperature
+ * 
+ * \author Richard Larsson
+ * \date   2015-09-15 
+ */
+Numeric dplanck_df( 
+const Numeric&   f, 
+const Numeric&   t )
+{
+    assert( t >= 0 );
+    assert( f > 0 );
+    
+    if( t == 0 )
+    { return 0; }
+    
+    else
+    {
+        static const Numeric a = 2 * PLANCK_CONST / (SPEED_OF_LIGHT*SPEED_OF_LIGHT);
+        static const Numeric b = PLANCK_CONST / BOLTZMAN_CONST;
+        
+        const Numeric exp_t = exp(b*f/t);
+        const Numeric exp_t_m1 = exp_t-1.0;
+        
+        return  -(a*f*f*(3.0*t - 3.0*t*exp_t + b*f*exp_t))/(t*exp_t_m1*exp_t_m1);
     }
 }
 

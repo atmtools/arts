@@ -123,6 +123,8 @@ abs_lookupSetupBatch
 # ---
 abs_xsec_agenda_checkedCalc
 
+jacobianOff
+
 abs_lookupCalc
 
 # Set propmat_clearsky_agenda to use lookup table

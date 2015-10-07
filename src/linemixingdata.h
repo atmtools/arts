@@ -58,6 +58,10 @@ public:
     void Get2ndOrder(Numeric& Y, Numeric& G, Numeric& DV, const Numeric& Temperature, const Numeric& Pressure, const Numeric& Pressure_Limit) const;
     void Get1stOrder(Numeric& Y, const Numeric& Temperature, const Numeric& Pressure, const Numeric& Pressure_Limit) const;
     void GetLBLRTM(Numeric& Y, Numeric& G, const Numeric& Temperature, const Numeric& Pressure, const Numeric& Pressure_Limit, const Index& order) const; 
+    void GetLineMixingParams_dT(Numeric& dY_dT, Numeric& dG_dG, Numeric& dDV_dT, const Numeric& Temperature, const Numeric& dt, const Numeric& Pressure, const Numeric& Pressure_Limit, const Index& order) const;
+    void Get2ndOrder_dT(Numeric& dY_dT, Numeric& dG_dT, Numeric& dDV_dT, const Numeric& Temperature, const Numeric& Pressure, const Numeric& Pressure_Limit) const;
+    void Get1stOrder_dT(Numeric& dY_dT, const Numeric& Temperature, const Numeric& Pressure, const Numeric& Pressure_Limit) const;
+    void GetLBLRTM_dT(Numeric& dY_dT, Numeric& dG_dT, const Numeric& Temperature, const Numeric& dt, const Numeric& Pressure, const Numeric& Pressure_Limit, const Index& order) const;
     void GetLBLRTM_O2NonResonant(Numeric& G) const;
     
     // Use these to insert the data in the required format from catalog readings

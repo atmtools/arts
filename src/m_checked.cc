@@ -274,7 +274,7 @@ void atmfields_checkedCalc(
             part_fun = partition_functions.getParam(ii,jj);
             if( part_fun.nelem()==3 )
             {
-              if( part_fun[2].data.nelem()==2 && part_fun[1].data.nelem()>1 && part_fun[0].data.nelem()>1 )
+              if( part_fun[2].data.nelem()==2 && (part_fun[1].data.nelem()==part_fun[0].data.nelem()) )
               {
                 if(part_fun[2].data[0]>min_T)
                   min_T=part_fun[2].data[0];

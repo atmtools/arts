@@ -57,21 +57,27 @@
     \date   2001-01-16 
     \author Stefan Buehler 
 */
-void lineshape_no_shape(  Vector&         ls_attenuation _U_,
-                          Vector&         ls_phase _U_,
-                          Vector&         X _U_,
-                          const Numeric   f0 _U_,
-                          const Numeric   gamma _U_,
+void lineshape_no_shape(  Vector&,
+                          Vector&,
+                          Vector&,
+                          Vector&,
+                          Vector&,
+                          Vector&,
+                          Vector&,
                           const Numeric,
                           const Numeric,
                           const Numeric,
                           const Numeric,
-                          const Numeric   sigma _U_,
                           const Numeric,
-                          ConstVectorView f_grid _U_)
+                          const Numeric,
+                          const Numeric,
+                          const Numeric,
+                          ConstVectorView,
+                          const bool,
+                          const bool)
 {
   // This function should never be called so throw an error here: 
-  throw runtime_error("The no_shape lineshape is only a placeholder, but you tried\n"
+  throw std::runtime_error("The no_shape lineshape is only a placeholder, but you tried\n"
                       "to use it like a real lineshape.");
 }
 
@@ -90,16 +96,22 @@ void lineshape_no_shape(  Vector&         ls_attenuation _U_,
     \date 2000-06-16 */
 void lineshape_lorentz(Vector&         ls_attenuation,
                        Vector&         ls_phase,
-                       Vector&         X _U_,
+                       Vector&,        //ls_dattenuation_dfrequency_term
+                       Vector&,        //ls_dphase_dfrequency_term
+                       Vector&,        //ls_dattenuation_dpressure_term
+                       Vector&,        //ls_dphase_dpressure_term
+                       Vector&,        //X
                        const Numeric   f0,
                        const Numeric   gamma,
                        const Numeric,
                        const Numeric,
                        const Numeric,
                        const Numeric,
-                       const Numeric   sigma _U_,
+                       const Numeric,  //sigma
                        const Numeric,
-                       ConstVectorView f_grid)
+                       ConstVectorView f_grid,
+                       const bool,
+                       const bool)
 {
   const Index nf = f_grid.nelem();
 
@@ -121,15 +133,19 @@ void lineshape_lorentz(Vector&         ls_attenuation,
 /*! The Mirrored Lorentz line shape. This is a quick and dirty implementation.
  * 
  *   \retval ls_attenuation              The shape function.
+ *   \retval ls_phase                    The shape function.
  *   \param  f0                          Line center frequency.
  *   \param  gamma                       The pressure broadening parameter.
- *   \param  sigma                       The Doppler broadening parameter. (Not used.)
  *   \param  f_grid                      The frequency grid.
  * 
- *   \author Ricahrd Larsson
- *   \date 2000-06-16 */
+ *   \author Richard Larsson
+ *   \date 2015-08-13 */
 void lineshape_mirrored_lorentz(Vector&         ls_attenuation,
                                 Vector&         ls_phase,
+                                Vector&,        //ls_dattenuation_dfrequency_term
+                                Vector&,        //ls_dphase_dfrequency_term
+                                Vector&,        //ls_dattenuation_dpressure_term
+                                Vector&,        //ls_dphase_dpressure_term
                                 Vector&,
                                 const Numeric   f0,
                                 const Numeric   gamma,
@@ -139,7 +155,9 @@ void lineshape_mirrored_lorentz(Vector&         ls_attenuation,
                                 const Numeric,
                                 const Numeric,
                                 const Numeric,
-                                ConstVectorView f_grid)
+                                ConstVectorView f_grid,
+                                const bool,
+                                const bool)
 {
     const Index nf = f_grid.nelem();
     
@@ -171,17 +189,23 @@ void lineshape_mirrored_lorentz(Vector&         ls_attenuation,
     \author Axel von Engeln
     \date 2000-12-06 */
 void lineshape_doppler(Vector&         ls_attenuation,
-                       Vector&         ls_phase _U_,
-                       Vector&         x _U_,
+                       Vector&,        //ls_phase
+                       Vector&,        //ls_dattenuation_dfrequency_term
+                       Vector&,        //ls_dphase_dfrequency_term
+                       Vector&,        //ls_dattenuation_dpressure_term
+                       Vector&,        //ls_dphase_dpressure_term
+                       Vector&,        //x
                        const Numeric   f0,
-                       const Numeric   gamma _U_,
+                       const Numeric,  //gamma
                        const Numeric,
                        const Numeric,
                        const Numeric,
                        const Numeric,
                        const Numeric   sigma,
                        const Numeric,
-                       ConstVectorView f_grid)
+                       ConstVectorView f_grid,
+                       const bool,
+                       const bool)
 {
   const Index nf = f_grid.nelem();
 
@@ -289,7 +313,11 @@ long bfun6_(Numeric y, Numeric x)
     \date 2000-09-27
 */ 
 void lineshape_voigt_kuntz6(Vector&         ls_attenuation,
-                            Vector&         ls_phase _U_,
+                            Vector&,        //ls_phase
+                            Vector&,        //ls_dattenuation_dfrequency_term
+                            Vector&,        //ls_dphase_dfrequency_term
+                            Vector&,        //ls_dattenuation_dpressure_term
+                            Vector&,        //ls_dphase_dpressure_term
                             Vector&         x,
                             const Numeric   f0,
                             const Numeric   gamma,
@@ -299,7 +327,9 @@ void lineshape_voigt_kuntz6(Vector&         ls_attenuation,
                             const Numeric,
                             const Numeric   sigma,
                             const Numeric,
-                            ConstVectorView f_grid)
+                            ConstVectorView f_grid,
+                            const bool,
+                            const bool)
 
 {
   const Index nf = f_grid.nelem();
@@ -708,7 +738,11 @@ long int bfun3_(Numeric y, Numeric x)
     \author Oliver Lemke and Axel von Engeln
     \date 2000-12-07 */ 
 void lineshape_voigt_kuntz3(Vector&         ls_attenuation,
-                            Vector&         ls_phase _U_,
+                            Vector&,        //ls_phase
+                            Vector&,        //ls_dattenuation_dfrequency_term
+                            Vector&,        //ls_dphase_dfrequency_term
+                            Vector&,        //ls_dattenuation_dpressure_term
+                            Vector&,        //ls_dphase_dpressure_term
                             Vector&         x,
                             const Numeric   f0,
                             const Numeric   gamma,
@@ -718,7 +752,9 @@ void lineshape_voigt_kuntz3(Vector&         ls_attenuation,
                             const Numeric,
                             const Numeric   sigma,
                             const Numeric,
-                            ConstVectorView f_grid)
+                            ConstVectorView f_grid,
+                            const bool,
+                            const bool)
 
 {
   const Index nf = f_grid.nelem();
@@ -1087,7 +1123,11 @@ long bfun4_(Numeric y, Numeric x)
     \author Oliver Lemke and Axel von Engeln
     \date 2000-12-07 */ 
 void lineshape_voigt_kuntz4(Vector&         ls_attenuation,
-                            Vector&         ls_phase _U_,
+                            Vector&,        //ls_phase
+                            Vector&,        //ls_dattenuation_dfrequency_term
+                            Vector&,        //ls_dphase_dfrequency_term
+                            Vector&,        //ls_dattenuation_dpressure_term
+                            Vector&,        //ls_dphase_dpressure_term
                             Vector&         x,
                             const Numeric   f0,
                             const Numeric   gamma,
@@ -1097,7 +1137,9 @@ void lineshape_voigt_kuntz4(Vector&         ls_attenuation,
                             const Numeric,
                             const Numeric   sigma,
                             const Numeric,
-                            ConstVectorView f_grid)
+                            ConstVectorView f_grid,
+                            const bool,
+                            const bool)
 {
   const Index nf = f_grid.nelem();
 
@@ -1476,7 +1518,11 @@ void lineshape_voigt_kuntz4(Vector&         ls_attenuation,
 /***  ROUTINE COMPUTES THE VOIGT FUNCTION Y/PI*INTEGRAL FROM ***/
 /***   - TO + INFINITY OF EXP(-T*T)/(Y*Y+(X-T)*(X-T)) DT     ***/
 void lineshape_voigt_drayson(Vector&         ls_attenuation,
-                             Vector&         ls_phase _U_,
+                             Vector&,        //ls_phase
+                             Vector&,        //ls_dattenuation_dfrequency_term
+                             Vector&,        //ls_dphase_dfrequency_term
+                             Vector&,        //ls_dattenuation_dpressure_term
+                             Vector&,        //ls_dphase_dpressure_term
                              Vector&         x,
                              const Numeric   f0,
                              const Numeric   gamma,
@@ -1486,7 +1532,9 @@ void lineshape_voigt_drayson(Vector&         ls_attenuation,
                              const Numeric,
                              const Numeric   sigma,
                              const Numeric,
-                             ConstVectorView f_grid)
+                             ConstVectorView f_grid,
+                             const bool,
+                             const bool)
 
 {
   const Index nf = f_grid.nelem();
@@ -1671,26 +1719,30 @@ void chi_cousin(
 /*! A CO2 IR line shape.
 
     \retval ls_attenuation            The shape function.
-    \retval X             Auxillary parameter, only used in Voigt fct.
     \param  f0            Line center frequency.
     \param  gamma         The pressure broadening parameter.
-    \param  sigma         The Doppler broadening parameter. (Not used.)
     \param  f_grid        The frequency grid.
 
     \author Patrick Eriksson 
     \date 2000-09-04 */
 void lineshape_CO2_lorentz(Vector&         ls_attenuation,
-                           Vector&         ls_phase _U_,
-                           Vector&         X _U_,
+                           Vector&,        //ls_phase
+                           Vector&,        //ls_dattenuation_dfrequency_term
+                           Vector&,        //ls_dattenuation_dfrequency_term
+                           Vector&,        //ls_dphase_dpressure_term
+                           Vector&,        //ls_dphase_dpressure_term
+                           Vector&,        //X
                            const Numeric   f0,
                            const Numeric   gamma,
                            const Numeric,
                            const Numeric,
                            const Numeric,
                            const Numeric,
-                           const Numeric   sigma _U_,
+                           const Numeric,  //sigma
                            const Numeric,
-                           ConstVectorView f_grid)
+                           ConstVectorView f_grid,
+                           const bool,
+                           const bool)
 {
   const Index nf = f_grid.nelem();
 
@@ -1729,7 +1781,11 @@ void lineshape_CO2_lorentz(Vector&         ls_attenuation,
     \author Patrick Eriksson 
     \date 2000-09-04 */
 void lineshape_CO2_drayson(Vector&         ls_attenuation,
-                           Vector&         ls_phase _U_,
+                           Vector&,        //ls_phase,
+                           Vector&,        //ls_dattenuation_dfrequency_term
+                           Vector&,        //ls_dphase_dfrequency_term
+                           Vector&,        //ls_dattenuation_dpressure_term
+                           Vector&,        //ls_dphase_dpressure_term
                            Vector&         X,
                            const Numeric   f0,
                            const Numeric   gamma,
@@ -1739,9 +1795,12 @@ void lineshape_CO2_drayson(Vector&         ls_attenuation,
                            const Numeric,
                            const Numeric   sigma,
                            const Numeric,
-                           ConstVectorView f_grid)
+                           ConstVectorView f_grid,
+                           const bool,
+                           const bool)
 {
-    lineshape_voigt_drayson(  ls_attenuation, ls_phase, X, f0, gamma,0.,1.,0.,0., sigma, 0., f_grid );
+    Vector tmp(0);
+    lineshape_voigt_drayson(  ls_attenuation, tmp,tmp,tmp,tmp,tmp, X, f0, gamma,0.,1.,0.,0., sigma, 0., f_grid ,0,0);
 
   const Index nf = f_grid.nelem();
   for ( Index i=0; i<nf; ++i )
@@ -1782,6 +1841,10 @@ void lineshape_CO2_drayson(Vector&         ls_attenuation,
  */ 
 void faddeeva_algorithm_916(    Vector&         ls_attenuation,
                                 Vector&         ls_phase,
+                                Vector&         ls_dattenuation_dfrequency_term,
+                                Vector&         ls_dphase_dfrequency_term,
+                                Vector&         ls_dattenuation_dpressure_term,
+                                Vector&         ls_dphase_dpressure_term,
                                 Vector&,
                                 const Numeric   f0,
                                 const Numeric   gamma,
@@ -1791,7 +1854,9 @@ void faddeeva_algorithm_916(    Vector&         ls_attenuation,
                                 const Numeric,
                                 const Numeric   sigma,
                                 const Numeric,
-                                ConstVectorView f_grid)
+                                ConstVectorView f_grid,
+                                const bool      do_phase,
+                                const bool      do_partials)
 
 {
     const Index nf = f_grid.nelem();
@@ -1811,12 +1876,134 @@ void faddeeva_algorithm_916(    Vector&         ls_attenuation,
     // frequency in units of Doppler
     for (Index ii=0; ii<nf; ii++)
     {
-        const std::complex<Numeric> z =
-        Faddeeva::w(std::complex<Numeric>((f_grid[ii] - f0) / sigma, y));
+        const Numeric x = (f_grid[ii] - f0) / sigma;
+        const std::complex<Numeric> w =
+        Faddeeva::w(std::complex<Numeric>(x, y));
         
-        ls_attenuation[ii] = fac * z.real();
-        ls_phase[ii]       = fac * z.imag();
+        ls_attenuation[ii] = fac * w.real();
+        if(do_phase||do_partials)
+            ls_phase[ii]   = fac * w.imag();
+        if(do_partials)
+        {
+            ls_dattenuation_dfrequency_term[ii] = 2*(y*ls_phase[ii]-x*ls_attenuation[ii]);
+            ls_dattenuation_dpressure_term[ii]  = -ls_dattenuation_dfrequency_term[ii];
+            if(do_phase)
+            {
+                ls_dphase_dfrequency_term[ii] = -2*( y*ls_attenuation[ii] + x*ls_phase[ii] -
+                fac*sqrt_invPI);
+                ls_dphase_dpressure_term[ii]  = -ls_dphase_dfrequency_term[ii];
+            }
+        }
     }
+}
+
+
+// Helpers connected to Faddeeva Algorithm 916 to get internal partials.
+void faddeeva_algorithm_916_dT(Vector& dx_dT,       // Variable to multiply with ls_dattenuation_dfrequency_term and ls_dphase_dfrequency_term.
+                                         Numeric& dy_dT,       // Variable to multiply with ls_dattenuation_dpressure_term and ls_dphase_dpressure_term.
+                                         Numeric& dnorm_dT,     // Variable to multiply with ls_attenuation and ls_phase terms 
+                                         ConstVectorView f,     
+                                         const Numeric& f0,    // Note that this is NOT the line center, but the shifted center
+                                         const Numeric& sigma, 
+                                         const Numeric& dPF_dT,    // pressure shift temperature derivative
+                                         const Numeric& dDF_dT,    // line mixing shift temperature derivative
+                                         const Numeric& dsigma_dT, // derivative of sigma with temperature
+                                         const Numeric& gamma,
+                                         const Numeric& dgamma_dT) // derivative of gamma with temperature
+{
+    // Function is w(x+iy), and dw/dx and dw/dy are both known already.
+    // This function serves to find dx/dT
+    
+    // x = (f-f0) / sigma;
+    
+    // f0 contains many different terms:
+    // 1) Magnetic field splitting (not T-dependent)
+    // 2) Pressure frequency shift (T-dependent)
+    // 3) Pressure line mixing shift (T-dependent)
+    // f contains the frequency grid influenced by wind
+    // sigma is the halfwidth Doppler broadening
+    
+    // Since both denominator and nominator depends on temperature, we need to split the derivative into two terms
+    // d(f-f0)/dT * 1/sigma  and  (f-f0) * d(1/sigma)/dT
+    
+    for(Index iv=0; iv<f.nelem(); iv++)
+        dx_dT[iv] = (-dPF_dT-dDF_dT) / sigma  -  (f[iv] - f0) / (sigma*sigma) * dsigma_dT;
+    
+    // y = gamma / sigma
+    
+    // Since both denominator and nominator depends on temperature, we need to split the derivative into two terms
+    // d(gamma)/dT * 1/sigma  and  (gamma) * d(1/sigma)/dT
+    
+    dy_dT = dgamma_dT / sigma  -  gamma / (sigma*sigma) * dsigma_dT;
+    
+    // This line shape is normalization depends on temperature and is
+    dnorm_dT = - 1.0 / sigma * dsigma_dT; 
+    // NOTE: The factor is 1/sqrt(pi)/sigma, its derivative is then - 1 / sqrt(pi) / sigma^2 * dsigma_dT, but
+    //       the factor is already in the lineshape that this will be multiplied to, so
+    //       derivative divided by the factor and only the above remains!  Which should only be -1/2T for this case.
+}
+void faddeeva_algorithm_916_dF(Numeric& dx_dF,       // Variable to multiply with ls_dattenuation_dfrequency_term and ls_dphase_dfrequency_term.
+                               const Numeric& sigma)
+{
+    // Function is w(x+iy), and dw/dx and dw/dy are both known already.
+    // This function serves to find dx/dT
+    
+    // x = (f-f0) / sigma;
+    
+    dx_dF = 1.0/sigma;
+    
+    // No other terms depend on f
+}
+void faddeeva_algorithm_916_dgamma(Numeric& dy_dgamma,       // Variable to multiply with ls_dattenuation_dpressure_term and ls_dphase_dpressure_term.
+                                   const Numeric& sigma)
+{
+    // Function is w(x+iy), and dw/dx and dw/dy are both known already.
+    // This function serves to find dy/dgamma
+    
+    // y = gamma / sigma;
+    
+    dy_dgamma = 1.0/sigma;
+    
+    // No other terms depend on gamma
+}
+void faddeeva_algorithm_916_dH(Numeric& dx_dH,       // Variable to multiply with ls_dattenuation_dfrequency_term and ls_dphase_dfrequency_term.
+                                 const Numeric& sigma,
+                                 const Numeric& df0_dH)
+{
+    // Function is w(x+iy), and dw/dx and dw/dy are both known already.
+    // This function serves to find dx/dmag
+    
+    // x = (f-f0) / sigma;
+    
+    // f0 contains many different terms:
+    // 1) Magnetic field splitting (mag-dependent)
+    // 2) Pressure frequency shift (not mag-dependent)
+    // 3) Pressure line mixing shift (not mag-dependent)
+    // f contains the frequency grid influenced by wind
+    // sigma is the halfwidth Doppler broadening
+    
+    dx_dH = - df0_dH/sigma;
+    
+    // No other terms depend on mag
+}
+void faddeeva_algorithm_916_dDF(Numeric& dx_dDF,       // Variable to multiply with ls_dattenuation_dfrequency_term and ls_dphase_dfrequency_term.
+                                const Numeric& sigma)
+{
+    // Function is w(x+iy), and dw/dx and dw/dy are both known already.
+    // This function serves to find dx/dmag
+    
+    // x = (f-f0) / sigma;
+    
+    // f0 contains many different terms:
+    // 1) Magnetic field splitting (not DF-dependent)
+    // 2) Pressure frequency shift (not DF-dependent)
+    // 3) Pressure line mixing shift (DF-dependent)
+    // f contains the frequency grid influenced by wind
+    // sigma is the halfwidth Doppler broadening
+    
+    dx_dDF = - 1.0/sigma;
+    
+    // No other terms depend on mag
 }
 
 
@@ -1851,6 +2038,10 @@ void faddeeva_algorithm_916(    Vector&         ls_attenuation,
  */ 
 void hui_etal_1978_lineshape( Vector&         ls_attenuation,
                               Vector&         ls_phase,
+                              Vector&,        //ls_dattenuation_dfrequency_term
+                              Vector&,        //ls_dphase_dfrequency_term
+                              Vector&,        //ls_dattenuation_dpressure_term
+                              Vector&,        //ls_dphase_dpressure_term
                               Vector&         xvector,
                               const Numeric   f0,
                               const Numeric   gamma,
@@ -1860,7 +2051,9 @@ void hui_etal_1978_lineshape( Vector&         ls_attenuation,
                               const Numeric,
                               const Numeric   sigma,
                               const Numeric,
-                              ConstVectorView f_grid)
+                              ConstVectorView f_grid,
+                              const bool do_phase,
+                              const bool)
 
 {
     const Index nf = f_grid.nelem();
@@ -1893,7 +2086,8 @@ void hui_etal_1978_lineshape( Vector&         ls_attenuation,
         const std::complex<Numeric> C = A / B;
         
         ls_attenuation[ii] = fac * C.real();
-        ls_phase[ii]       = fac * C.imag();
+        if(do_phase)
+            ls_phase[ii]       = fac * C.imag();
     }
 }
 
@@ -1931,6 +2125,10 @@ void hui_etal_1978_lineshape( Vector&         ls_attenuation,
  */ 
 void hartmann_tran_lineshape(   Vector&         ls_attenuation,
                                 Vector&         ls_phase,
+                                Vector&,        //ls_dattenuation_dfrequency_term
+                                Vector&,        //ls_dphase_dfrequency_term
+                                Vector&,        //ls_dattenuation_dpressure_term
+                                Vector&,        //ls_dphase_dpressure_term
                                 Vector&,
                                 const Numeric   f0,
                                 const Numeric   gamma_0,
@@ -1940,7 +2138,9 @@ void hartmann_tran_lineshape(   Vector&         ls_attenuation,
                                 const Numeric   df_2,//untested
                                 const Numeric   gamma_D,
                                 const Numeric   f_VC,//untested
-                                ConstVectorView f_grid)
+                                ConstVectorView f_grid,
+                                const bool      do_phase,
+                                const bool)
 
 {
   // N.B. f_VC is the only non-scaled variable in the reference document.  
@@ -1997,7 +2197,8 @@ void hartmann_tran_lineshape(   Vector&         ls_attenuation,
       
       // Output
       ls_attenuation[nf] = HTP.real();
-      ls_phase[nf] = HTP.imag();
+      if(do_phase)
+        ls_phase[nf] = HTP.imag();
     }
     else // This cannot happen before we fix our input!
     {
@@ -2032,7 +2233,8 @@ void hartmann_tran_lineshape(   Vector&         ls_attenuation,
       
       // Output
       ls_attenuation[nf] = HTP.real();
-      ls_phase[nf] = HTP.imag();
+      if(do_phase)
+          ls_phase[nf] = HTP.imag();
     }
   }
 }
@@ -2051,17 +2253,23 @@ void hartmann_tran_lineshape(   Vector&         ls_attenuation,
     \author Richard Larsson
     \date 2014-10-02 */
 void lineshape_o2nonresonant( Vector&         ls_attenuation,
-                              Vector&         ls_phase _U_,
-                              Vector&         X _U_,
+                              Vector&,        //ls_phase _U_,
+                              Vector&,        //ls_dattenuation_dfrequency_term
+                              Vector&,        //ls_dphase_dfrequency_term
+                              Vector&,        //ls_dattenuation_dpressure_term
+                              Vector&,        //ls_dphase_dpressure_term
+                              Vector&,        //X,
                               const Numeric   f0,
                               const Numeric   gamma,
                               const Numeric,
                               const Numeric,
                               const Numeric,
                               const Numeric,
-                              const Numeric   sigma _U_,
+                              const Numeric,   //sigma
                               const Numeric,
-                              ConstVectorView f_grid)
+                              ConstVectorView f_grid,
+                              const bool,
+                              const bool)
 {
   const Index nf = f_grid.nelem();
 
@@ -2093,13 +2301,33 @@ void lineshape_o2nonresonant( Vector&         ls_attenuation,
 
     \author Axel von Engeln 30.11.2000 */
 void lineshape_norm_no_norm(Vector&         fac,
-                            const Numeric   f0 _U_,
-                            ConstVectorView f_grid _U_,
-                            const Numeric   T _U_)
+                            const Numeric,  //f0
+                            ConstVectorView,//f_grid
+                            const Numeric)  //T
 {
   fac = 1.0;
 }
-
+void lineshape_norm_no_norm_dT(Vector&         fac,
+                               const Numeric,  //f0
+                               ConstVectorView,//f_grid
+                               const Numeric)  //T
+{
+    fac = 0.0;
+}
+void lineshape_norm_no_norm_dF(Vector&         fac,
+                               const Numeric,  //f0
+                               ConstVectorView,//f_grid
+                               const Numeric)  //T
+{
+    fac = 0.0;
+}
+void lineshape_norm_no_norm_dF0(Vector&         fac,
+                                const Numeric,  //f0
+                                ConstVectorView,//f_grid
+                                const Numeric)  //T
+{
+    fac = 0.0;
+}
 
 
 /*!  Linear normalization factor of the lineshape function with f/f0.
@@ -2113,7 +2341,7 @@ void lineshape_norm_no_norm(Vector&         fac,
 void lineshape_norm_linear(Vector&         fac,
                            const Numeric   f0,
                            ConstVectorView f_grid,
-                           const Numeric   T _U_)
+                           const Numeric)  //T
 {
   const Index nf = f_grid.nelem();
 
@@ -2123,6 +2351,43 @@ void lineshape_norm_linear(Vector&         fac,
   for ( Index i=0; i<nf; ++i )
     {
       fac[i] = f_grid[i] / abs_f0;
+    }
+}
+void lineshape_norm_linear_dT(Vector&         fac,
+                             const Numeric, // f0
+                             ConstVectorView, //f_grid
+                             const Numeric)  //T
+{
+    fac = 0.0;
+}
+void lineshape_norm_linear_dF(Vector&         fac,
+                           const Numeric   f0,
+                           ConstVectorView f_grid,
+                           const Numeric)  //T
+{
+    const Index nf = f_grid.nelem();
+    
+    // Abs(f0) is constant in the loop:
+    const Numeric abs_f0 = abs(f0);
+    
+    for ( Index i=0; i<nf; ++i )
+    {
+        fac[i] = 1.0 / abs_f0;
+    }
+}
+void lineshape_norm_linear_dF0(Vector&         fac,
+                               const Numeric   f0,
+                               ConstVectorView f_grid,
+                               const Numeric)  //T
+{
+    const Index nf = f_grid.nelem();
+    
+    // Abs(f0) is constant in the loop:
+    const Numeric dabs_f0 = -f0/abs(f0)/abs(f0)/abs(f0); //-sign(f0)/abs(f0)^2 Why is this abs?
+    
+    for ( Index i=0; i<nf; ++i )
+    {
+        fac[i] = f_grid[i] * dabs_f0;
     }
 }
 
@@ -2158,6 +2423,63 @@ void lineshape_norm_quadratic_Rosenkranz(Vector&         fac,
         fac[i] = mafac * (f_grid[i] * f_grid[i]) / f0_2;
     }
 }
+void lineshape_norm_quadratic_Rosenkranz_dT(Vector&        fac,
+                                           const Numeric   f0,
+                                           ConstVectorView f_grid,
+                                           const Numeric   T)
+{
+    extern const Numeric PLANCK_CONST;
+    extern const Numeric BOLTZMAN_CONST;
+    const Numeric hf0 = PLANCK_CONST*f0, kT =T*BOLTZMAN_CONST;
+    const Numeric sinh_term=sinh((hf0)/(2*kT));
+    const Numeric cosh_term = cosh((hf0)/(2.0*kT));
+    const Numeric dmafac_dT = -(hf0*(2.0*kT*sinh_term - hf0*cosh_term))/(4.0*T*kT*kT*sinh_term*sinh_term);
+    const Index nf = f_grid.nelem();
+    // don't do this for the whole loop
+    const Numeric f0_2 = f0 * f0;
+    
+    for ( Index i=0; i<nf; ++i )
+    {
+        fac[i] = dmafac_dT * (f_grid[i] * f_grid[i]) / f0_2;
+    }
+}
+void lineshape_norm_quadratic_Rosenkranz_dF(Vector&         fac,
+                                            const Numeric   f0,
+                                            ConstVectorView f_grid,
+                                            const Numeric   T)
+{
+    extern const Numeric PLANCK_CONST;
+    extern const Numeric BOLTZMAN_CONST;
+    const Numeric mafac = (PLANCK_CONST * f0) / (2.000e0 * BOLTZMAN_CONST * T) /
+    sinh((PLANCK_CONST * f0) / (2.000e0 * BOLTZMAN_CONST * T));
+    const Index nf = f_grid.nelem();
+    // don't do this for the whole loop
+    const Numeric f0_2 = f0 * f0;
+    
+    for ( Index i=0; i<nf; ++i )
+    {
+        fac[i] = mafac * (2.0 * f_grid[i]) / f0_2;
+    }
+}
+void lineshape_norm_quadratic_Rosenkranz_dF0(Vector&         fac,
+                                             const Numeric   f0,
+                                             ConstVectorView f_grid,
+                                             const Numeric   T)
+{
+    extern const Numeric PLANCK_CONST;
+    extern const Numeric BOLTZMAN_CONST;
+    const Numeric kT = 2.0*BOLTZMAN_CONST*T;
+    const Index nf = f_grid.nelem();
+    // don't do this for the whole loop
+    const Numeric term1 = sinh((f0*PLANCK_CONST)/kT);
+    
+    const Numeric ddenom = -(PLANCK_CONST*(kT*term1 + f0*PLANCK_CONST*cosh((f0*PLANCK_CONST)/kT)))/(f0*f0*kT*kT*term1*term1);
+    
+    for ( Index i=0; i<nf; ++i )
+    {
+        fac[i] = (f_grid[i] * f_grid[i]) * ddenom;
+    }
+}
 
 /*!  Van Vleck Huber normalization factor of the lineshape function
   with (f*tanh(h*f/(2*k*T))) / (f0*tanh(h*f0/(2*k*T))). The
@@ -2178,21 +2500,92 @@ void lineshape_norm_VVH(Vector&         fac,
                         ConstVectorView f_grid,
                         const Numeric   T)
 {
-  extern const Numeric PLANCK_CONST;
-  extern const Numeric BOLTZMAN_CONST;
-
-  const Index nf = f_grid.nelem();
-
-  // 2kT is constant for the loop
-  const Numeric kT = 2.0 * BOLTZMAN_CONST * T;
-
-  // denominator is constant for the loop
-  const Numeric denom = abs(f0) * tanh( PLANCK_CONST * abs(f0) / kT );
-
-  for ( Index i=0; i<nf; ++i )
+    extern const Numeric PLANCK_CONST;
+    extern const Numeric BOLTZMAN_CONST;
+    
+    const Index nf = f_grid.nelem();
+    
+    // 2kT is constant for the loop
+    const Numeric kT = 2.0 * BOLTZMAN_CONST * T;
+    
+    // denominator is constant for the loop
+    const Numeric denom = abs(f0) * tanh( PLANCK_CONST * abs(f0) / kT );
+    
+    for ( Index i=0; i<nf; ++i )
     {
-      fac[i] = f_grid[i] * tanh( PLANCK_CONST * f_grid[i] / kT ) /
+        fac[i] = f_grid[i] * tanh( PLANCK_CONST * f_grid[i] / kT ) /
         denom;
+    }
+}
+void lineshape_norm_VVH_dT(Vector&         fac,
+                           const Numeric   f0,
+                           ConstVectorView f_grid,
+                           const Numeric   T)
+{
+    extern const Numeric PLANCK_CONST;
+    extern const Numeric BOLTZMAN_CONST;
+    
+    const Index nf = f_grid.nelem();
+    
+    // Various constants for the loop
+    const Numeric kT = BOLTZMAN_CONST * T;
+    const Numeric hf0 = PLANCK_CONST * f0;
+    const Numeric tanh_term2=tanh((hf0)/(2.0*kT));
+    const Numeric tanh_term2_squared=tanh_term2*tanh_term2;
+    
+    // denominator is constant for the loop
+    const Numeric denom1 = 2.0*T*kT*f0*tanh_term2,denom2=2.0*T*kT*tanh_term2_squared;
+    
+    for ( Index i=0; i<nf; ++i )
+    {
+        const Numeric hf = PLANCK_CONST * f_grid[i], tanh_term1=tanh((hf)/(2.0*kT)), tanh_term1_squared=tanh_term1*tanh_term1;
+        
+        fac[i] = (f_grid[i]*hf*(tanh_term1_squared - 1.0))/denom1 - (hf*tanh_term1*(tanh_term2_squared - 1.0))/denom2;
+    }
+}
+void lineshape_norm_VVH_dF(Vector&         fac,
+                           const Numeric   f0,
+                           ConstVectorView f_grid,
+                           const Numeric   T)
+{
+    extern const Numeric PLANCK_CONST;
+    extern const Numeric BOLTZMAN_CONST;
+    
+    const Index nf = f_grid.nelem();
+    
+    // Various constants for the loop
+    const Numeric kT  = BOLTZMAN_CONST * T, 
+                  hf0 = PLANCK_CONST*f0,
+                  tanh_term2=tanh((hf0)/(2.0*kT)),
+                  denom =(2*kT*f0*tanh_term2);
+    
+    for ( Index i=0; i<nf; ++i )
+    {
+        const Numeric hf = PLANCK_CONST*f_grid[i], 
+                      tanh_term1=tanh((hf)/(2.0*kT)),
+                      tanh_term1_squared=tanh_term1*tanh_term1;
+        fac[i] = (hf + 2*kT*tanh_term1 - hf*tanh_term1_squared)/denom;
+    }
+}
+void lineshape_norm_VVH_dF0(Vector&         fac,
+                            const Numeric   f0,
+                            ConstVectorView f_grid,
+                            const Numeric   T)
+{
+    extern const Numeric PLANCK_CONST;
+    extern const Numeric BOLTZMAN_CONST;
+    
+    const Index nf = f_grid.nelem();
+    
+    // 2kT is constant for the loop
+    const Numeric kT = 2.0 * BOLTZMAN_CONST * T, term1 = tanh((PLANCK_CONST*abs(f0))/kT);
+    
+    // denominator is constant for the loop
+    const Numeric ddenom = (PLANCK_CONST*f0/abs(f0)*(term1*term1 - 1))/(kT*abs(f0)*term1*term1) - f0/abs(f0)/(abs(f0)*abs(f0)*term1);
+    
+    for ( Index i=0; i<nf; ++i )
+    {
+        fac[i] = f_grid[i] * tanh( PLANCK_CONST * f_grid[i] / kT ) * ddenom;
     }
 }
 
@@ -2213,7 +2606,7 @@ void lineshape_norm_VVH(Vector&         fac,
 void lineshape_norm_VVW(Vector&         fac,
                         const Numeric   f0,
                         ConstVectorView f_grid,
-                        const Numeric   _U_)
+                        const Numeric)
 {
     
     const Index nf = f_grid.nelem();
@@ -2225,6 +2618,46 @@ void lineshape_norm_VVW(Vector&         fac,
     {
         fac[i] = f_grid[i] * f_grid[i] /
         denom;
+    }
+}
+void lineshape_norm_VVW_dT(Vector&         fac,
+                           const Numeric,//   f0,
+                           ConstVectorView,// f_grid,
+                           const Numeric)
+{
+    fac = 0.0;
+}
+void lineshape_norm_VVW_dF(Vector&         fac,
+                           const Numeric   f0,
+                           ConstVectorView f_grid,
+                           const Numeric)
+{
+    
+    const Index nf = f_grid.nelem();
+    
+    // denominator is constant for the loop
+    const Numeric denom = abs(f0) * abs(f0);
+    
+    for ( Index i=0; i<nf; ++i )
+    {
+        fac[i] = 2.0 * f_grid[i] /
+        denom;
+    }
+}
+void lineshape_norm_VVW_dF0(Vector&         fac,
+                            const Numeric   f0,
+                            ConstVectorView f_grid,
+                            const Numeric)
+{
+    
+    const Index nf = f_grid.nelem();
+    
+    // denominator is constant for the loop
+    const Numeric ddenom = -2 * f0 / abs(f0) / abs(f0) / abs(f0) / abs(f0);
+    
+    for ( Index i=0; i<nf; ++i )
+    {
+        fac[i] = f_grid[i] * f_grid[i] * ddenom;
     }
 }
 
@@ -2244,6 +2677,8 @@ void define_lineshape_data()
 
   const bool PHASE = true;
   const bool NO_PHASE = false;
+  const bool PARTIALS = true;
+  const bool NO_PARTIALS = false;
 
   // Initialize to empty, just in case.
   lineshape_data.resize(0);
@@ -2253,49 +2688,49 @@ void define_lineshape_data()
      ("no_shape",
       "This lineshape does nothing. It only exists, because formally\n"
       "you have to specify a lineshape also for continuum tags.", 
-      lineshape_no_shape, NO_PHASE));
+      lineshape_no_shape, NO_PHASE, NO_PARTIALS));
 
   lineshape_data.push_back
     (LineshapeRecord
      ("Lorentz",
       "The Lorentz line shape.",
-      lineshape_lorentz, PHASE));
+      lineshape_lorentz, PHASE, NO_PARTIALS));
     
     lineshape_data.push_back
     (LineshapeRecord
     ("Mirrored Lorentz",
      "The mirrored Lorentz line shape.",
-     lineshape_mirrored_lorentz, PHASE));
+     lineshape_mirrored_lorentz, PHASE, NO_PARTIALS));
 
   lineshape_data.push_back
     (LineshapeRecord
      ("Doppler",
       "The Doppler line shape.",
-      lineshape_doppler, NO_PHASE));
+      lineshape_doppler, NO_PHASE, NO_PARTIALS));
 
   lineshape_data.push_back
     (LineshapeRecord
      ("Voigt_Kuntz6",
       "The Voigt line shape. Approximation by Kuntz: Accuracy 2*10-6",
-      lineshape_voigt_kuntz6, NO_PHASE));
+      lineshape_voigt_kuntz6, NO_PHASE, NO_PARTIALS));
 
   lineshape_data.push_back
     (LineshapeRecord
      ("Voigt_Kuntz3",
       "The Voigt line shape. Approximation by Kuntz: Accuracy 2*10-3",
-      lineshape_voigt_kuntz3, NO_PHASE));
+      lineshape_voigt_kuntz3, NO_PHASE, NO_PARTIALS));
 
   lineshape_data.push_back
     (LineshapeRecord
      ("Voigt_Kuntz4",
       "The Voigt line shape. Approximation by Kuntz: Accuracy 2*10-4",
-      lineshape_voigt_kuntz4, NO_PHASE));
+      lineshape_voigt_kuntz4, NO_PHASE, NO_PARTIALS ));
 
   lineshape_data.push_back
     (LineshapeRecord
      ("Voigt_Drayson",
       "The Voigt line shape. Approximation by Drayson.",
-      lineshape_voigt_drayson, NO_PHASE));
+      lineshape_voigt_drayson, NO_PHASE, NO_PARTIALS));
 
   lineshape_data.push_back
     (LineshapeRecord
@@ -2310,7 +2745,7 @@ void define_lineshape_data()
       "\n"
       "NOTE: Temperature dependency is not yet included. The chi factor is\n"
       "valid for 238 K.",
-      lineshape_CO2_lorentz, NO_PHASE));
+      lineshape_CO2_lorentz, NO_PHASE, NO_PARTIALS));
 
   lineshape_data.push_back
     (LineshapeRecord
@@ -2324,7 +2759,7 @@ void define_lineshape_data()
       "\n"
       "NOTE: Temperature dependency is not yet included. The chi factor is\n"
       "valid for 238 K.",
-      lineshape_CO2_drayson, NO_PHASE));
+      lineshape_CO2_drayson, NO_PHASE, NO_PARTIALS));
 
     lineshape_data.push_back
     (LineshapeRecord
@@ -2333,26 +2768,28 @@ void define_lineshape_data()
     "Line shape is considered from w(z)=exp(-z^2)*erfc(-iz) where z=v'+ia, and \n"
     "v' is a Doppler weighted freqeuncy parameter and a is a Doppler weighted  \n"
     "pressure parameter.",
-    faddeeva_algorithm_916, PHASE));
+     faddeeva_algorithm_916,faddeeva_algorithm_916_dT,faddeeva_algorithm_916_dF,
+     faddeeva_algorithm_916_dgamma,faddeeva_algorithm_916_dH,faddeeva_algorithm_916_dDF,
+     PHASE, PARTIALS));
 
     lineshape_data.push_back
     (LineshapeRecord
     ("Hartmann-Tran",
     "Line shape is considered as described by the Hartmann-Tran profile.",
-    hartmann_tran_lineshape, PHASE));
+     hartmann_tran_lineshape, PHASE, NO_PARTIALS));
     
     lineshape_data.push_back
     (LineshapeRecord
     ("Hui_etal_1978",
     "Classic line shape.  Solving the complex error function returns both parts\n"
     "of the refractive index.",
-    hui_etal_1978_lineshape, PHASE));
+     hui_etal_1978_lineshape, PHASE, NO_PARTIALS));
     
     lineshape_data.push_back
     (LineshapeRecord
     ("O2NonResonant",
     "Special line shape.  Only use for non-resonant O2.",
-    lineshape_o2nonresonant, NO_PHASE));
+     lineshape_o2nonresonant, NO_PHASE, NO_PARTIALS));
 }
 
 /*! The lookup data for the different normalization factors to the
@@ -2372,13 +2809,15 @@ void define_lineshape_norm_data()
     (LineshapeNormRecord
      ("no_norm",
       "No normalization of the lineshape.",
-      lineshape_norm_no_norm));
+      lineshape_norm_no_norm,lineshape_norm_no_norm_dT,lineshape_norm_no_norm_dF,
+      lineshape_norm_no_norm_dF0));
 
   lineshape_norm_data.push_back
     (LineshapeNormRecord
      ("Rosenkranz_quadratic",
       "Quadratic normalization of the lineshape with (f/f0)^2*h*f0/(2*k*T)/sinh(h*f0/(2*k*T)).",
-      lineshape_norm_quadratic_Rosenkranz));
+      lineshape_norm_quadratic_Rosenkranz,lineshape_norm_quadratic_Rosenkranz_dT,
+      lineshape_norm_quadratic_Rosenkranz_dF,lineshape_norm_quadratic_Rosenkranz_dF0));
 
   lineshape_norm_data.push_back
     (LineshapeNormRecord
@@ -2386,11 +2825,11 @@ void define_lineshape_norm_data()
       "Van Vleck Huber normalization of the lineshape with\n"
       "             (f*tanh(h*f/(2*k*T))) / (f0*tanh(h*f0/(2*k*T))).\n"
       "             The denominator is a result of catalogue intensities.",
-      lineshape_norm_VVH));
+      lineshape_norm_VVH,lineshape_norm_VVH_dT,lineshape_norm_VVH_dF,lineshape_norm_VVH_dF0));
     
     lineshape_norm_data.push_back
     (LineshapeNormRecord
     ("VVW",
      "Van Vleck Weiskopf normalization of the lineshape with (f*f) / (f0*f0).\n",
-     lineshape_norm_VVW));
+     lineshape_norm_VVW,lineshape_norm_VVW_dT,lineshape_norm_VVW_dF,lineshape_norm_VVW_dF0));
 }

@@ -106,7 +106,8 @@ NumericCreate( obsh )
 VectorCreate( tanh )
 VectorCreate( viewang )
 
-
+# No Jacobian Matrix in the basic test
+jacobianOff
 
 ################################################################################
 # START USER SETTINGS - Modify settings according to you wishes                #

@@ -48,7 +48,11 @@ AgendaSet( propmat_clearsky_agenda ){
   Ignore( rtp_temperature )
   Ignore( rtp_vmr )
   Ignore( rtp_temperature_nlte )
+  Ignore(jacobian_quantities)
   Touch( nlte_source )
+  Touch( dpropmat_clearsky_dx )
+  Touch( dnlte_dx_source)
+  Touch( nlte_dsource_dx)
   propmat_clearskyZero
 }
 #

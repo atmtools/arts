@@ -22,7 +22,8 @@
 void GetLineScalingData(Numeric& q_t, 
                         Numeric& q_ref,
                         Numeric& partition_ratio, 
-                        Numeric& boltzmann_ratio, 
+                        Numeric& K1, 
+                        Numeric& K2, 
                         Numeric& abs_nlte_ratio, 
                         Numeric& src_nlte_ratio, 
                         const SpeciesAuxData::AuxType& partition_type,
@@ -38,6 +39,32 @@ void GetLineScalingData(Numeric& q_t,
                         const Index& line_evupp_index,
                         ConstVectorView atm_t_nlte);
 
+void GetLineScalingData_dT(Numeric& dq_t_dT,
+                           Numeric& dpartition_ratio_dT, 
+                           Numeric& dabs_nlte_ratio_dT, 
+                           Numeric& atm_tv_low,
+                           Numeric& atm_tv_upp,
+                           const Numeric& q_t,
+                           const Numeric& abs_nlte_ratio,  
+                           const SpeciesAuxData::AuxType& partition_type,
+                           const ArrayOfGriddedField1& partition_data,
+                           const Numeric& atm_t,
+                           const Numeric& dt,
+                           const Numeric& line_f,
+                           const bool&    do_nlte,
+                           const Numeric& line_evlow,
+                           const Numeric& line_evupp,
+                           const Index& line_evlow_index,
+                           const Index& line_evupp_index,
+                           ConstVectorView atm_t_nlte);
+
+void GetChangeInPartitionRatio(Numeric& dQ_dT, 
+                               const Numeric& q_t,
+                               const SpeciesAuxData::AuxType& partition_type,
+                               const ArrayOfGriddedField1& partition_data,
+                               const Numeric& atm_t,
+                               const Numeric& dT);
+
 void CalculatePartitionFctFromData( Numeric& q_ref, 
                                     Numeric& q_t, 
                                     const Numeric& ref, 
@@ -46,8 +73,34 @@ void CalculatePartitionFctFromData( Numeric& q_ref,
                                     ConstVectorView q_grid, 
                                     const Index& interp_order);
 
+void CalculatePartitionFctFromData_perturbed( Numeric& dQ_dT, 
+                                              const Numeric& t,
+                                              const Numeric& dT,
+                                              const Numeric& q_t,
+                                              ConstVectorView t_grid, 
+                                              ConstVectorView q_grid, 
+                                              const Index& interp_order);
+
 void CalculatePartitionFctFromCoeff(Numeric& q_ref, 
                                     Numeric& q_t, 
                                     const Numeric& ref, 
                                     const Numeric& t,
                                     ConstVectorView q_grid);
+
+void CalculatePartitionFctFromCoeff_dT(Numeric& dQ_dT, 
+                                       const Numeric& t,
+                                       ConstVectorView q_grid);
+
+void CalculatePartitionFctFromVibrotCoeff(Numeric& q_ref, 
+                                          Numeric& q_t, 
+                                          const Numeric& ref, 
+                                          const Numeric& t_vib,
+                                          const Numeric& t_rot,
+                                          ConstVectorView qvib_grid,
+                                          ConstVectorView qrot_grid);
+
+void CalculatePartitionFctFromVibrotCoeff_dT(Numeric& dQ_dT, 
+                                             const Numeric& t_vib,
+                                             const Numeric& t_rot,
+                                             ConstVectorView qvib_grid,
+                                             ConstVectorView qrot_grid);

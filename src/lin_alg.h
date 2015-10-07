@@ -30,7 +30,7 @@
 #define linalg_h
 
 
-#include "matpackI.h"
+#include "matpackIII.h"
 
 // LU decomposition
 void
@@ -62,13 +62,28 @@ matrix_exp(MatrixView F,
            ConstMatrixView A, 
            const Index& q=10);
 
-// Exponential of a Matrix
+// Exponential of a Matrix and its partial derivatives.  
+// Includes a specialized function for speedier calculations
+void special_matrix_exp_and_dmatrix_exp_dx_for_rt(MatrixView           F,
+                                                  Tensor3View         dF_upp,
+                                                  Tensor3View         dF_low,
+                                                  ConstMatrixView      A,
+                                                  ConstTensor3View    dA_upp,
+                                                  ConstTensor3View    dA_low,
+                                                  const Index&         q=10 );
 void 
 matrix_exp_dmatrix_exp(MatrixView F,
-                       MatrixView dF,
+                       Tensor3View dF,
                        ConstMatrixView A, 
-                       ConstMatrixView dA, 
+                       ConstTensor3View dA, 
                        const Index& q=10);
+void 
+matrix_exp_dmatrix_exp(
+    MatrixView      F,
+    MatrixView      dF,
+    ConstMatrixView A,
+    ConstMatrixView dA,
+    const Index&    q=10 );
 
 
 // Maximum absolute row sum norm 

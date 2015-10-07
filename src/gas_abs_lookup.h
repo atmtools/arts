@@ -76,6 +76,8 @@ public:
   const Vector& GetFgrid() const;
 
   const Vector& GetPgrid() const;
+  
+  Index GetSpeciesIndex(const Index& isp) const {return species[isp][0].Species();}
 
   // IO functions must be friends:
   friend void xml_read_from_stream( istream& is_xml,

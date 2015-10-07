@@ -77,6 +77,8 @@ void clear_rt_vars_at_gp(Workspace&          ws,
   Matrix  local_abs_vec;
   Tensor3 local_ext_mat, local_nlte_source_dummy;
   Tensor4 local_propmat_clearsky;
+  ArrayOfTensor3 local_partial_dummy; // This is right since there should be only clearsky partials
+  ArrayOfMatrix local_dnlte_dx_source_dummy,local_nlte_dsource_dx_dummy;
   ao_gp_p[0]=gp_p;
   ao_gp_lat[0]=gp_lat;
   ao_gp_lon[0]=gp_lon;
@@ -109,8 +111,8 @@ void clear_rt_vars_at_gp(Workspace&          ws,
   const Vector temperature_nlte_dummy(0);
   
   //calcualte absorption coefficient
-  propmat_clearsky_agendaExecute(ws, local_propmat_clearsky,local_nlte_source_dummy,
-                                 Vector(1, f_mono), rtp_mag_dummy,
+  propmat_clearsky_agendaExecute(ws, local_propmat_clearsky,local_nlte_source_dummy,local_partial_dummy,local_dnlte_dx_source_dummy,local_nlte_dsource_dx_dummy,
+                                 ArrayOfRetrievalQuantity(0), Vector(1, f_mono), rtp_mag_dummy,
                                  ppath_los_dummy,p_vec[0],
                                  temperature, temperature_nlte_dummy,
                                  vmr_mat(joker, 0),
@@ -170,8 +172,11 @@ void cloudy_rt_vars_at_gp(Workspace&           ws,
   Numeric scat_za,scat_aa;
 
   //local versions of workspace variables
+  ArrayOfTensor3 local_partial_dummy; // This is right since there should be only clearsky partials
+  ArrayOfMatrix local_dnlte_dx_source_dummy; // This is right since there should be only clearsky partials
+  ArrayOfMatrix local_nlte_dsource_dx_dummy; // This is right since there should be only clearsky partials
   Tensor4 local_propmat_clearsky;
-  Tensor3 local_nlte_source_dummy;
+  Tensor3 local_nlte_source_dummy;//FIXME: Do this right?
   Matrix  local_abs_vec;
   Tensor3 local_ext_mat;
 
@@ -190,7 +195,9 @@ void cloudy_rt_vars_at_gp(Workspace&           ws,
   const Vector ppath_los_dummy;
   
   //rtp_vmr    = vmr_ppath(joker,0);
-  propmat_clearsky_agendaExecute(ws, local_propmat_clearsky,local_nlte_source_dummy,
+  propmat_clearsky_agendaExecute(ws, local_propmat_clearsky,
+                                 local_nlte_source_dummy,local_partial_dummy,local_dnlte_dx_source_dummy,local_nlte_dsource_dx_dummy,
+                                 ArrayOfRetrievalQuantity(0),
                                  Vector(1, f_mono), rtp_mag_dummy,
                                  ppath_los_dummy,p_ppath[0],
                                  temperature, temperature_nlte_dummy,

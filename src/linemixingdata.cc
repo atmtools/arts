@@ -44,7 +44,23 @@ void LineMixingData::GetLineMixingParams(Numeric& Y, Numeric& G, Numeric& DV, co
     else if(mtype == LM_1STORDER) // The 1st order case
         Get1stOrder(Y,Temperature,Pressure,Pressure_Limit);
     else
-        throw std::runtime_error("You are trying to store a line mixing type that is unknown to ARTS.\n");
+        throw std::runtime_error("You are trying to return a line mixing type that is unknown to ARTS.\n");
+}
+
+
+void LineMixingData::GetLineMixingParams_dT(Numeric& dY_dT, Numeric& dG_dT, Numeric& dDV_dT, const Numeric& Temperature, const Numeric& dt, const Numeric& Pressure, const Numeric& Pressure_Limit, const Index& order=1) const
+{
+    if(mtype == LM_NONE) {} // The standard case
+    else if(mtype == LM_LBLRTM) // The LBLRTM case
+        GetLBLRTM_dT(dY_dT,dG_dT,Temperature,dt,Pressure,Pressure_Limit,order);
+    else if(mtype == LM_LBLRTM_O2NonResonant) // The LBLRTM case
+    {/*Nothing to do here but still a valid case*/}
+    else if(mtype == LM_2NDORDER) // The 2nd order case
+        Get2ndOrder_dT(dY_dT,dG_dT,dDV_dT,Temperature,Pressure,Pressure_Limit);
+    else if(mtype == LM_1STORDER) // The 1st order case
+        Get1stOrder_dT(dY_dT,Temperature,Pressure,Pressure_Limit);
+    else
+        throw std::runtime_error("You are trying to return a line mixing type that is unknown to ARTS.\n");
 }
 
 
@@ -92,6 +108,57 @@ void LineMixingData::GetLBLRTM(Numeric& Y, Numeric& G, const Numeric& Temperatur
 }
 
 
+//Note that first order is used by LBLRTM on the data we have.
+void LineMixingData::GetLBLRTM_dT(Numeric& dY_dT, Numeric& dG_dT, const Numeric& Temperature, const Numeric& dt, const Numeric& Pressure, const Numeric& Pressure_Limit, const Index& order=1) const
+{
+    assert( mtype == LM_LBLRTM );
+    assert(mdata.nelem() == 3);
+    assert(mdata[0].nelem() == 4 && mdata[1].nelem() == 4 && mdata[2].nelem() == 4);
+    
+    if(Pressure>Pressure_Limit)
+    {
+        // Helper to understand the following interpolation
+        const Vector& t = mdata[0];
+        const Vector& y = mdata[1];
+        const Vector& g = mdata[2];
+        
+        const Vector T0(1,Temperature);
+        Vector tmp1(1), tmp2(1);
+        
+        // Interpolation variables
+        ArrayOfGridPosPoly gp1(1),gp2(1);
+        
+        Matrix itw1,itw2;
+        itw1.resize(gp1.nelem(),order+1);
+        itw2.resize(gp2.nelem(),order+1);
+        
+        chk_interpolation_grids("Line mixing data temperature interpolation",
+                                t,
+                                T0,
+                                order);
+        
+        // Interpolation variale determination... FIXME: use interp to get local derivative directly...
+        gridpos_poly(gp1, t, T0, order);
+        interpweights(itw1, gp1);
+        
+        Vector t2=t;
+        t2+=dt;
+        gridpos_poly(gp2, t2, T0, order);
+        interpweights(itw2, gp2);
+        
+        // Interpolated values
+        interp(tmp1, itw1, y, gp1);
+        interp(tmp2, itw2, y, gp2);
+        dY_dT = (tmp2[0]-tmp1[0])/dt * Pressure;
+        interp(tmp1,itw1, g, gp1);
+        interp(tmp2,itw2, g, gp2);
+        dG_dT = (tmp2[0]-tmp1[0])/dt * Pressure * Pressure;
+    }
+    else
+        dY_dT=dG_dT=0;
+}
+
+
 void LineMixingData::GetLBLRTM_O2NonResonant(Numeric& G) const
 {
       assert( mtype == LM_LBLRTM_O2NonResonant );
@@ -108,6 +175,7 @@ void LineMixingData::Get2ndOrder(Numeric& Y, Numeric& G, Numeric& DV, const Nume
       assert(mdata.nelem() == 4);
       assert(mdata[0].nelem() == 1 && mdata[1].nelem() == 3 && mdata[2].nelem() == 3 && mdata[3].nelem() == 3);
       
+      
       if(Pressure>Pressure_Limit)
       {
         // Helper to understand the following interpolation
@@ -116,12 +184,44 @@ void LineMixingData::Get2ndOrder(Numeric& Y, Numeric& G, Numeric& DV, const Nume
         const Vector& g  = mdata[2];
         const Vector& dv = mdata[3];
         
-        Y  =  ( ( y[0] + y[1] * ( T0/Temperature-1. ) ) * pow( T0/Temperature, y[2] ) ) * Pressure;
-        G  =  ( ( g[0] + g[1] * ( T0/Temperature-1. ) ) * pow( T0/Temperature, g[2] ) ) * Pressure * Pressure;
-        DV  = ( ( dv[0] + dv[1] * ( T0/Temperature-1. ) ) * pow( T0/Temperature, dv[2] ) ) * Pressure * Pressure;
+        const Numeric Theta = T0/Temperature;
+        
+        Y  =  ( ( y[0] + y[1] * ( Theta-1. ) ) * pow( Theta, y[2] ) ) * Pressure;
+        G  =  ( ( g[0] + g[1] * ( Theta-1. ) ) * pow( Theta, g[2] ) ) * Pressure * Pressure;
+        DV  = ( ( dv[0] + dv[1] * ( Theta-1. ) ) * pow( Theta, dv[2] ) ) * Pressure * Pressure;
       }
       else
         Y=DV=G=0;
+}
+
+
+void LineMixingData::Get2ndOrder_dT(Numeric& dY_dT, Numeric& dG_dT, Numeric& dDV_dT, const Numeric& Temperature, const Numeric& Pressure, const Numeric& Pressure_Limit) const
+{
+    assert( mtype == LM_2NDORDER );
+    assert(mdata.nelem() == 4);
+    assert(mdata[0].nelem() == 1 && mdata[1].nelem() == 3 && mdata[2].nelem() == 3 && mdata[3].nelem() == 3);
+    
+    if(Pressure>Pressure_Limit)
+    {
+        // Helper to understand the following interpolation
+        const Numeric& T0  = mdata[0][0];
+        const Vector& y  = mdata[1];
+        const Vector& g  = mdata[2];
+        const Vector& dv = mdata[3];
+        
+        const Numeric Theta = T0/Temperature;
+        const Numeric T2 = Temperature*Temperature;
+        
+        dY_dT   = - (T0* y[1]*pow(Theta, y[2]))/T2 - (T0* y[2]*pow(Theta,( y[2] - 1))*( y[0] +  y[1]*(Theta - 1)))/T2;
+        dG_dT   = - (T0* g[1]*pow(Theta, g[2]))/T2 - (T0* g[2]*pow(Theta,( g[2] - 1))*( g[0] +  g[1]*(Theta - 1)))/T2;
+        dDV_dT  = - (T0*dv[1]*pow(Theta,dv[2]))/T2 - (T0*dv[2]*pow(Theta,(dv[2] - 1))*(dv[0] + dv[1]*(Theta - 1)))/T2;
+        
+        dY_dT*=         Pressure;
+        dG_dT*=Pressure*Pressure;
+        dDV_dT*=Pressure*Pressure;
+    }
+    else
+        dY_dT=dG_dT=dDV_dT=0;
 }
 
 
@@ -142,6 +242,29 @@ void LineMixingData::Get1stOrder(Numeric& Y, const Numeric& Temperature, const N
     }
     else
         Y=0;
+}
+
+
+void LineMixingData::Get1stOrder_dT(Numeric& dY_dT, const Numeric& Temperature, const Numeric& Pressure, const Numeric& Pressure_Limit) const
+{
+    assert( mtype == LM_1STORDER );
+    assert(mdata.nelem() == 3);
+    assert(mdata[0].nelem() == 1 && mdata[1].nelem() == 1 && mdata[2].nelem() == 1);
+    
+    if(Pressure>Pressure_Limit)
+    {
+        // Helper to understand the following interpolation
+        const Numeric& T0  = mdata[0][0];
+        const Numeric& y  = mdata[1][0];
+        const Numeric& x  = mdata[2][0];
+        
+        const Numeric Theta = T0/Temperature;
+        const Numeric T2 = Temperature*Temperature;
+        
+        dY_dT  = y * (-(T0*x*pow((Theta),(x - 1)))/T2) * Pressure;
+    }
+    else
+        dY_dT=0;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

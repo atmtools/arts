@@ -83,6 +83,8 @@ VectorSet( abs_nls_pert, [] )
 
 abs_xsec_agenda_checkedCalc
 
+jacobianOff
+
 abs_lookupCalc
 
 # Optionally write these to files:

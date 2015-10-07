@@ -38,6 +38,8 @@ Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
 Copy( surface_rtprop_agenda, surface_rtprop_agenda__Blackbody_SurfTFromt_field )
 
 
+jacobianOff
+
 StringCreate(satellite)
 ArrayOfIndexCreate(channels)
 ArrayOfIndexCreate(views)

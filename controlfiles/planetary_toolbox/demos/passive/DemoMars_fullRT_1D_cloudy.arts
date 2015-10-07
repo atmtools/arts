@@ -108,6 +108,8 @@ NumericCreate( obsh )
 VectorCreate( tanh )
 VectorCreate( viewang )
 
+# No Jacobian Matrix
+jacobianOff
 
 ################################################################################
 # START USER SETTINGS - Modify settings according to you wishes                #

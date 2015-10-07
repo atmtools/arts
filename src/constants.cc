@@ -380,3 +380,4 @@ extern const String TEMPERATURE_MAINTAG = "Atmospheric temperatures";
 extern const String WIND_MAINTAG        = "Wind";
 extern const String MAGFIELD_MAINTAG    = "Magnetic field";
 
+extern const String PROPMAT_SUBSUBTAG   = "From propagation matrix";

@@ -39,6 +39,7 @@
 #include "agenda_class.h"
 #include "abs_species_tags.h"
 
+#include "quantum.h"
 
 /** Contains the data for one retrieval quantity.
     \author Mattias Ekstrom */
@@ -52,7 +53,8 @@ public:
                         mmode(),
                         manalytical(-1),
                         mperturbation(0.),
-                        mgrids()
+                        mgrids(),
+                        mquantumidentifier()
   { /* Nothing to do here. */ }
 
 
@@ -70,7 +72,8 @@ public:
     mmode(mode),
     manalytical(analytical),
     mperturbation(perturbation),
-    mgrids(grids)
+    mgrids(grids),
+    mquantumidentifier()
   {
     // With Matpack, initialization of mgrids from grids should work correctly.
   }
@@ -84,7 +87,8 @@ public:
   /** SubSubtag. Eg. for scat species fields: mass_density, mass_flux, ... */
   const String& SubSubtag() const { return msubsubtag; }
   void SubSubtag( const String& sst ) { msubsubtag = sst; }
-  /** Calculation mode. Eg. "abs", "rel", "vmr" and "nd". */
+  /** Calculation mode. Eg. "abs", "rel", "vmr", "nd", "From propagation matrix". 
+       Note that the latter of these only supports "vmr" for abs species. */
   const String& Mode() const { return mmode; }
   void Mode( const String& m ) { mmode = m; }
   /** Boolean to make analytical calculations (if possible). */
@@ -96,6 +100,10 @@ public:
   /** Grids. Definition grids for the jacobian, eg. p, lat and lon. */
   const ArrayOfVector& Grids() const { return mgrids; }
   void Grids( const ArrayOfVector& g ) { mgrids = g; }
+  
+  /** QuantumIdentifier as necessary for matching line specific parameters to jacobian grid */
+  const QuantumIdentifier& GetQuantumIdentifier() const { return mquantumidentifier; }
+  void SetQuantumIdentifier( const QuantumIdentifier& qi ) { mquantumidentifier = qi; }
 
 private:
 
@@ -106,6 +114,7 @@ private:
   Index manalytical;
   Numeric mperturbation;
   ArrayOfVector mgrids;
+  QuantumIdentifier mquantumidentifier;
 };
 
 /** Output operator for RetrievalQuantity.
@@ -222,5 +231,25 @@ void vmrunitscf(
   const Numeric&   vmr,
   const Numeric&   p,
   const Numeric&   t );                                
+
+
+// Enum for knowing what Jacobian scheme is in-play in the m_rte.cc methods.
+enum {
+    JAC_IS_NONE=0,             // Setting to nil means that (bool)0 and (bool)N still works.
+    JAC_IS_T_SEMI_ANALYTIC,
+    JAC_IS_T_FROM_PROPMAT,
+    JAC_IS_WIND_U_SEMI_ANALYTIC,
+    JAC_IS_WIND_V_SEMI_ANALYTIC,
+    JAC_IS_WIND_W_SEMI_ANALYTIC,
+    JAC_IS_WIND_U_FROM_PROPMAT,
+    JAC_IS_WIND_V_FROM_PROPMAT,
+    JAC_IS_WIND_W_FROM_PROPMAT,
+    JAC_IS_MAG_U_SEMI_ANALYTIC,
+    JAC_IS_MAG_V_SEMI_ANALYTIC,
+    JAC_IS_MAG_W_SEMI_ANALYTIC,
+    JAC_IS_MAG_V_FROM_PROPMAT,
+    JAC_IS_MAG_U_FROM_PROPMAT,
+    JAC_IS_MAG_W_FROM_PROPMAT
+};
 
 #endif // jacobian_h

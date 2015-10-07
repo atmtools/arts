@@ -69,6 +69,7 @@ extern const String SINEFIT_MAINTAG;
 extern const String TEMPERATURE_MAINTAG;
 extern const String WIND_MAINTAG;
 extern const String MAGFIELD_MAINTAG;
+extern const String PROPMAT_SUBSUBTAG;
 
 
 
@@ -195,8 +196,8 @@ void jacobianOff(
 {
   jacobian_do = 0;
   jacobianDoit_do = 0;
-  jacobianInit( jacobian_quantities, jacobian_indices, jacobian_agenda, 
-                verbosity );
+  jacobianInit( jacobian_quantities, jacobian_indices,
+                jacobian_agenda, verbosity );
 }
 
 
@@ -209,7 +210,7 @@ void jacobianOff(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void jacobianAddAbsSpecies(
-        Workspace&                  ws _U_,
+        Workspace&,
         ArrayOfRetrievalQuantity&   jq,
         Agenda&                     jacobian_agenda,
   const Index&                      atmosphere_dim,
@@ -256,11 +257,13 @@ void jacobianAddAbsSpecies(
   }
   
   // Check that method is either "analytical" or "perturbation"
-  bool analytical;
+  Index analytical;
   if( method == "perturbation" )
     { analytical = 0; }
-  else if( method == "analytical" )
+  else if( method == "analytical")
     { analytical = 1; }
+  else if( method == "from propmat" )
+    { analytical = 2; }
   else
     {
       ostringstream os;
@@ -270,6 +273,11 @@ void jacobianAddAbsSpecies(
     }
   
   // Check that mode is either "vmr", "nd" or "rel" 
+  if(analytical==2 )
+      if(mode !="vmr")
+      {
+          throw runtime_error( "The retrieval mode can only be \"vmr\" for method \"from propmat\"." );
+      }
   if( mode != "vmr" && mode != "nd" && mode != "rel" && mode != "logrel" )
     {
       throw runtime_error( "The retrieval mode can only be \"vmr\", \"nd\", "
@@ -284,6 +292,8 @@ void jacobianAddAbsSpecies(
   rq.Analytical( analytical );
   rq.Perturbation( dx );
   rq.Grids( grids );
+  if(analytical == 2) 
+      rq.SubSubtag(PROPMAT_SUBSUBTAG);
 
   // Add it to the *jacobian_quantities*
   jq.push_back( rq );
@@ -1768,16 +1778,18 @@ void jacobianAddTemperature(
   }
   
   // Check that method is either "analytic" or "perturbation"
-  bool analytical;
+  Index analytical;
   if( method == "perturbation" )
     { analytical = 0; }
   else if( method == "analytical" )
-    { analytical = 1; }
+  { analytical = 1; }
+  else if( method == "from propmat" )
+  { analytical = 2; }
   else
     {
       ostringstream os;
       os << "The method for atmospheric temperature retrieval can only be "
-         << "\"analytical\"\n or \"perturbation\".";
+      << "\"analytical\"\n or \"perturbation\"\n or \"from propmat\".";
       throw runtime_error(os.str());
     }
 
@@ -1803,15 +1815,22 @@ void jacobianAddTemperature(
   rq.Analytical( analytical );
   rq.Perturbation( dx );
   rq.Grids( grids );
+  if(analytical == 2) 
+      rq.SubSubtag(PROPMAT_SUBSUBTAG);
 
   // Add it to the *jacobian_quantities*
   jq.push_back( rq );
 
-  if( analytical ) 
+  if( analytical == 1 ) 
     {
       out3 << "  Calculations done by semi-analytical expression.\n"; 
       jacobian_agenda.append( "jacobianCalcTemperatureAnalytical", TokVal() );
     }
+  else if( analytical == 2)
+  {
+      out3 << "  Calculations done by semi-analytical expression.\n"; 
+      jacobian_agenda.append( "jacobianCalcTemperatureFromPropmat", TokVal() );
+  }
   else
     { 
       out3 << "  Calculations done by perturbations, of size " << dx << ".\n"; 
@@ -1832,6 +1851,19 @@ void jacobianCalcTemperatureAnalytical(
 {
   /* Nothing to do here for the analytical case, this function just exists
    to satisfy the required inputs and outputs of the jacobian_agenda */
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void jacobianCalcTemperatureFromPropmat(
+          Matrix&,
+    const Index&,
+    const Vector&,
+    const Vector&,
+    const Verbosity& )
+{
+    /* Nothing to do here for the analytical case, this function just exists
+     *  to satisfy the required inputs and outputs of the jacobian_agenda */
 }
 
 

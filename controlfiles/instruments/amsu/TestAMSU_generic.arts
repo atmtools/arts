@@ -81,6 +81,8 @@ abs_lookupSetupBatch
 # ---
 abs_xsec_agenda_checkedCalc
 
+jacobianOff
+
 abs_lookupCalc
 
 # Test (and print) lookup table accuracy

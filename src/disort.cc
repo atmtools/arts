@@ -156,9 +156,13 @@ void dtauc_ssalbCalc(Workspace& ws,
     const Vector rtp_mag_dummy(3,0);
     const Vector ppath_los_dummy;
 
-    Tensor3 nlte_dummy; //FIXME: do this right
+    Tensor3 nlte_dummy; //FIXME: do this right?
+    ArrayOfTensor3 partial_dummy; // This is right since there should be only clearsky partials
+    ArrayOfMatrix partial_source_dummy,partial_nlte_dummy; // This is right since there should be only clearsky partials
     propmat_clearsky_agendaExecute(ws,
-                                  propmat_clearsky_local,nlte_dummy,
+                                   propmat_clearsky_local,
+                                   nlte_dummy,partial_dummy,partial_source_dummy,partial_nlte_dummy,
+                                   ArrayOfRetrievalQuantity(0),
                                   f_mono,  // monochromatic calculation
                                   rtp_mag_dummy,ppath_los_dummy,
                                   rtp_pressure_local, 

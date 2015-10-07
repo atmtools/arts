@@ -22,7 +22,7 @@ INCLUDE "general/agendas.arts"
 INCLUDE "general/planet_earth.arts"
 
 # Read TIPS partition functions from arts-xml-data
-ReadXML( partition_functions, "spectroscopy/PartitionSums/tips.xml" )
+ReadXML( partition_functions, "spectroscopy/PartitionSums/TIPS/tips.xml" )
 
 # Agenda for scalar gas absorption calculation
 Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)

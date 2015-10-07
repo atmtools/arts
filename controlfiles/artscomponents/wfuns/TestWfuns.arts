@@ -28,6 +28,8 @@ IndexSet( stokes_dim, 1 )
 #
 AtmosphereSet1D
 
+jacobianOff
+
 INCLUDE "instruments/odinsmr/odinsmr_501.arts"
 
 # Agenda for scalar gas absorption calculation
@@ -155,7 +157,28 @@ Copy( Jp, jacobian )
 Compare( Ja, Jp, 0.005 )
 
 
+jacobianInit
+jacobianAddAbsSpecies( jacobian_quantities, jacobian_agenda,
+    atmosphere_dim, p_grid, lat_grid, lon_grid, 
+    retrieval_grid, lat_grid, lon_grid, 
+    "O3", "analytical", "vmr", 0.01 )
+jacobianClose
+WriteXML( in=jacobian_quantities )
+yCalc
+Copy( Ja, jacobian )
 
+# Same with perturbations
+jacobianInit
+jacobianAddAbsSpecies( jacobian_quantities, jacobian_agenda,
+    atmosphere_dim, p_grid, lat_grid, lon_grid, 
+    retrieval_grid, lat_grid, lon_grid, 
+    "O3", "from propmat", "vmr", 0.01 )
+jacobianClose
+yCalc
+Copy( Jp, jacobian )
+
+# Compare
+Compare( Ja, Jp, 0.005 )
 
 
 ##############################################################################
@@ -198,7 +221,18 @@ Copy( Jp, jacobian )
 Compare( Ja, Jp, 0.001 )
 
 
+# Same with perturbations
+jacobianInit
+jacobianAddTemperature( jacobian_quantities, jacobian_agenda,
+    atmosphere_dim, p_grid, lat_grid, lon_grid, 
+    retrieval_grid, lat_grid, lon_grid, 
+    "off", "from propmat", 0.1 )
+jacobianClose
+yCalc
+Copy( Jp, jacobian )
 
+# Compare
+Compare( Ja, Jp, 0.001 )
 
 
 ##############################################################################

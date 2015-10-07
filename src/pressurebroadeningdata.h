@@ -163,6 +163,12 @@ public:
                           const Numeric& theta,
                           const Numeric& pressure,
                           const Numeric& self_pressure) const;
+    void GetAirBroadening_dT(Numeric& dgamma_dT,
+                             Numeric& ddeltaf_dT,
+                             const Numeric& T,
+                             const Numeric& T0,
+                             const Numeric& pressure,
+                             const Numeric& self_pressure) const;
 
     /**
     Air and water broadening calculations                              *
@@ -183,6 +189,16 @@ public:
                                   const Index    h2o_species,
                                   ConstVectorView vmrs,
                                   const Verbosity& verbosity) const;
+    void GetAirAndWaterBroadening_dT(Numeric& dgamma_dT,
+                                     Numeric& ddeltaf_dT,
+                                     const Numeric& T,
+                                     const Numeric& T0,
+                                     const Numeric& pressure,
+                                     const Numeric& self_pressure,
+                                     const Index    this_species,
+                                     const Index    h2o_species,
+                                     ConstVectorView vmrs,
+                                     const Verbosity& verbosity) const;
     
     /**
      Perrin broadening calculations
@@ -207,6 +223,16 @@ public:
                              const ArrayOfIndex& broad_spec_locations,
                              ConstVectorView vmrs,
                              const Verbosity& verbosity) const;
+    void GetPerrinBroadening_dT(Numeric& dgamma_dT,
+                                Numeric& ddeltaf_dT,
+                                const Numeric& T,
+                                const Numeric& T0,
+                                const Numeric& pressure,
+                                const Numeric& self_pressure,
+                                const Index    this_species,
+                                const ArrayOfIndex& broad_spec_locations,
+                                ConstVectorView vmrs,
+                                const Verbosity& verbosity) const;
     
      /**
        All broadening calculations
@@ -236,6 +262,17 @@ public:
                                       const ArrayOfIndex& broad_spec_locations,
                                       ConstVectorView vmrs,
                                       const Verbosity& verbosity) const;
+    void GetPressureBroadeningParams_dT(Numeric& dgamma_0_dT,
+                                        Numeric& ddf_0_dT,
+                                        const Numeric& T,
+                                        const Numeric& T0,
+                                        const Numeric& pressure,
+                                        const Numeric& self_pressure,
+                                        const Index    this_species,
+                                        const Index    h2o_species,
+                                        const ArrayOfIndex& broad_spec_locations,
+                                        ConstVectorView vmrs,
+                                        const Verbosity& verbosity) const;
 
     
     

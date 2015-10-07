@@ -99,6 +99,7 @@ void abs_lookupCalc(// Workspace reference:
 
   // Absorption cross sections per tag group. 
   ArrayOfMatrix abs_xsec_per_species, src_xsec_per_species;
+  ArrayOfArrayOfMatrix dabs_xsec_per_species_dx, dsrc_xsec_per_species_dx;
 
 
   // 2. Determine various important sizes:
@@ -401,7 +402,7 @@ void abs_lookupCalc(// Workspace reference:
 #pragma omp parallel for                                      \
   if (!arts_omp_in_parallel()                                 \
       && these_t_pert_nelem >= arts_omp_get_max_threads())    \
-  private(this_t, abs_xsec_per_species, src_xsec_per_species) \
+      private(this_t, abs_xsec_per_species, src_xsec_per_species, dabs_xsec_per_species_dx, dsrc_xsec_per_species_dx) \
   firstprivate(l_ws, l_abs_xsec_agenda)
           for ( Index j=0; j<these_t_pert_nelem; ++j )
             {
@@ -434,8 +435,10 @@ void abs_lookupCalc(// Workspace reference:
                   
                   // Call agenda to calculate absorption:
                   abs_xsec_agendaExecute(l_ws,
-                                         abs_xsec_per_species, src_xsec_per_species,
+                                         abs_xsec_per_species, src_xsec_per_species, 
+                                         dabs_xsec_per_species_dx, dsrc_xsec_per_species_dx,
                                          abs_species,
+                                         ArrayOfRetrievalQuantity(0),
                                          abs_species_active,
                                          f_grid,
                                          abs_p,
@@ -2062,6 +2065,7 @@ void abs_lookupAdapt( GasAbsLookup&                   abs_lookup,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void propmat_clearskyAddFromLookup( Tensor4&       propmat_clearsky,
+                                    ArrayOfTensor3& dpropmat_clearsky_dx,
                                       const GasAbsLookup& abs_lookup,
                                       const Index&        abs_lookup_is_adapted,
                                       const Index&        abs_p_interp_order,
@@ -2072,19 +2076,27 @@ void propmat_clearskyAddFromLookup( Tensor4&       propmat_clearsky,
                                       const Numeric&      a_pressure,
                                       const Numeric&      a_temperature,
                                       const Vector&       a_vmr_list,
+                                      const ArrayOfRetrievalQuantity& jacobian_quantities,
                                       const Numeric&      extpolfac,
                                       const Verbosity&    verbosity)
 {
     CREATE_OUT3;
     
     // Variables needed by abs_lookup.Extract:
-    Matrix abs_scalar_gas;
+    Matrix abs_scalar_gas, dabs_scalar_gas_df, dabs_scalar_gas_dt;
     
     // Check if the table has been adapted:
     if ( 1!=abs_lookup_is_adapted )
         throw runtime_error("Gas absorption lookup table must be adapted,\n"
                             "use method abs_lookupAdapt.");
 
+    const PropmatPartialsData ppd(jacobian_quantities);
+    const bool do_jac = ppd.supportsLookup();
+    const bool do_freq_jac = ppd.do_frequency();
+    const bool do_temp_jac = ppd.do_temperature();
+    const Numeric df = ppd.Frequency_Perturbation();
+    const Numeric dt = ppd.Temperature_Perturbation();
+        
     // The function we are going to call here is one of the few helper
     // functions that adjust the size of their output argument
     // automatically.
@@ -2098,7 +2110,35 @@ void propmat_clearskyAddFromLookup( Tensor4&       propmat_clearsky,
                        a_vmr_list,
                        f_grid,
                        extpolfac);
- 
+    if(do_freq_jac)
+    {
+        Vector dfreq = f_grid;
+        dfreq += df;
+        abs_lookup.Extract(dabs_scalar_gas_df,
+                           abs_p_interp_order,
+                           abs_t_interp_order,
+                           abs_nls_interp_order,
+                           abs_f_interp_order,
+                           a_pressure,
+                           a_temperature,
+                           a_vmr_list,
+                           dfreq,
+                           extpolfac);
+    }
+    if(do_temp_jac)
+    {
+        const Numeric dtemp = a_temperature+dt;
+        abs_lookup.Extract(dabs_scalar_gas_dt,
+                           abs_p_interp_order,
+                           abs_t_interp_order,
+                           abs_nls_interp_order,
+                           abs_f_interp_order,
+                           a_pressure,
+                           dtemp,
+                           a_vmr_list,
+                           f_grid,
+                           extpolfac);
+    }
 
     // Now add to the right place in the absorption matrix.
     
@@ -2118,11 +2158,44 @@ void propmat_clearskyAddFromLookup( Tensor4&       propmat_clearsky,
     }
     stokes_dim = nr;       // Could be nc here too, since they are the same.
     
-    for(Index ii = 0; ii < stokes_dim; ii++)
-      {
-        propmat_clearsky(joker,joker,ii, ii) += abs_scalar_gas;
-      }
-    
+    if(!do_jac)
+    {
+        for(Index ii = 0; ii < stokes_dim; ii++)
+        {
+            propmat_clearsky(joker,joker,ii, ii) += abs_scalar_gas;
+        }
+    }
+    else
+    {
+        for(Index isp = 0; isp<propmat_clearsky.nbooks();isp++)
+        {
+            for(Index iv = 0; iv<propmat_clearsky.npages();iv++)
+            {
+                for(Index ii = 0; ii < stokes_dim; ii++)
+                {
+                    propmat_clearsky(isp,iv,ii, ii) += abs_scalar_gas(isp,iv);
+                    for(Index iq=0; iq<ppd.nelem();iq++)
+                    {
+                        if(ppd(iq)==JQT_temperature)
+                        {
+                            dpropmat_clearsky_dx[iq](iv,ii,ii) += (dabs_scalar_gas_dt(isp,iv)-abs_scalar_gas(isp,iv))/dt;
+                        }
+                        else if(ppd(iq)==JQT_frequency || ppd(iq)==JQT_wind_magnitude || ppd(iq)==JQT_wind_u || ppd(iq)==JQT_wind_v || ppd(iq)==JQT_wind_w)
+                        {
+                            dpropmat_clearsky_dx[iq](iv,ii,ii) += (dabs_scalar_gas_df(isp,iv)-abs_scalar_gas(isp,iv))/df;
+                        }
+                        else if(ppd(iq)==JQT_VMR)
+                        {
+                            if(ppd.species(iq)!=abs_lookup.GetSpeciesIndex(isp)) continue;
+                            
+                            dpropmat_clearsky_dx[iq](iv,ii,ii) += abs_scalar_gas(isp,iv) /
+                            a_vmr_list[isp]; // WARNING:  If CIA in list, this scales wrong by factor 2
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 
@@ -2157,7 +2230,9 @@ void propmat_clearsky_fieldCalc( Workspace& ws,
   if( atmfields_checked != 1 )
     throw runtime_error( "The atmospheric fields must be flagged to have "
                          "passed a consistency check (atmfields_checked=1)." );
-
+    
+    ArrayOfTensor3 partial_abs;
+    ArrayOfMatrix partial_nlte_source,nlte_partial_source;// FIXME: This is not stored!
     Tensor4  abs;
     Tensor3  nlte;
     Vector  a_vmr_list;
@@ -2254,7 +2329,7 @@ void propmat_clearsky_fieldCalc( Workspace& ws,
 if (!arts_omp_in_parallel()                        \
 && n_pressures >= arts_omp_get_max_threads())  \
 firstprivate(l_ws, l_abs_agenda, this_f_grid)     \
-private(abs, nlte, a_vmr_list)
+private(abs, nlte, partial_abs, partial_nlte_source, nlte_partial_source, a_vmr_list)
         for ( Index ipr=0; ipr<n_pressures; ++ipr )         // Pressure:  ipr
         {
             // Skip remaining iterations if an error occurred
@@ -2307,7 +2382,10 @@ private(abs, nlte, a_vmr_list)
                         // Agenda input:  f_index, a_pressure, a_temperature, a_vmr_list
                         // Agenda output: abs, nlte
                         propmat_clearsky_agendaExecute(l_ws,
-                                                       abs,nlte,
+                                                       abs,nlte,partial_abs,
+                                                       partial_nlte_source,
+                                                       nlte_partial_source,
+                                                       ArrayOfRetrievalQuantity(0),
                                                        this_f_grid,
                                                        this_rtp_mag, los,
                                                        a_pressure,
@@ -2498,30 +2576,43 @@ Numeric calc_lookup_error(// Parameters for lookup table:
   // Variable to hold result of absorption calculation:
   Tensor4 propmat_clearsky;
   Tensor3 nlte_source;
+  ArrayOfTensor3 dpropmat_clearsky_dx;
+  ArrayOfMatrix dnlte_dx_source, nlte_dsource_dx;
+  ArrayOfMatrix  d;
+  const ArrayOfRetrievalQuantity jacobian_quantities(0);
   Index propmat_clearsky_checked = 1, nlte_do = 0; // FIXME: OLE: Properly pass this through?
 
   // Initialize propmat_clearsky:
-  propmat_clearskyInit(propmat_clearsky,
-                       nlte_source,
-                          al.species,
-                          al.f_grid,
-                          1,                 // Stokes dimension
-                          propmat_clearsky_checked,
-                          nlte_do,
-                          verbosity);
+  propmat_clearskyInit( propmat_clearsky,
+                        nlte_source,
+                        dpropmat_clearsky_dx,
+                        dnlte_dx_source, 
+                        nlte_dsource_dx,
+                        al.species,
+                        jacobian_quantities,
+                        al.f_grid,
+                        1,                 // Stokes dimension
+                        propmat_clearsky_checked,
+                        nlte_do,
+                        verbosity);
     
   // Add result of LBL calculation to propmat_clearsky:
-  propmat_clearskyAddOnTheFly(ws,
-                                 propmat_clearsky,
-                                 nlte_source,
-                                 al.f_grid,
-                                 al.species,
-                                 local_p,
-                                 local_t,
-                                 local_t_nlte_dummy,
-                                 local_vmrs,
-                                 abs_xsec_agenda,
-                                 verbosity);
+  propmat_clearskyAddOnTheFly(  ws,
+                                propmat_clearsky,
+                                nlte_source,
+                                dpropmat_clearsky_dx,
+                                dnlte_dx_source, 
+                                nlte_dsource_dx,
+                                al.f_grid,
+                                al.species,
+                                jacobian_quantities,
+                                local_p,
+                                local_t,
+                                local_t_nlte_dummy,
+                                local_vmrs,
+                                abs_xsec_agenda,
+                                verbosity);
+  
   // Argument 0 above is the Doppler shift (usually
   // rtp_doppler). Should be zero in this case.
 

@@ -74,6 +74,8 @@ abs_xsec_agenda_checkedCalc
 propmat_clearsky_agenda_checkedCalc
 atmfields_checkedCalc
 
+jacobianOff
+
 propmat_clearsky_fieldCalc
 
 # Write out:

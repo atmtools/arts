@@ -53,7 +53,8 @@
 void GetLineScalingData(Numeric& q_t,
                         Numeric& q_ref,
                         Numeric& partition_ratio, 
-                        Numeric& boltzmann_ratio, 
+                        Numeric& K1, 
+                        Numeric& K2, 
                         Numeric& abs_nlte_ratio, 
                         Numeric& src_nlte_ratio, 
                         const SpeciesAuxData::AuxType& partition_type,
@@ -73,10 +74,7 @@ void GetLineScalingData(Numeric& q_t,
     extern const Numeric PLANCK_CONST;
     extern const Numeric BOLTZMAN_CONST;
     
-    // 1:  partition_ratio is not calculated and therefore follows the old path
-    //if( 1 == mpartitionfunctiondata.GetPartitionFunctionDataParams(partition_ratio, line_t, atm_t) )
-    //partition_ratio = IsotopologueData().CalculatePartitionFctRatio(line_t, atm_t);
-    partition_ratio=1;
+    const bool do_rotational = false;
     
     if(q_t<0 || q_ref<0)
     {
@@ -87,7 +85,12 @@ void GetLineScalingData(Numeric& q_t,
                                          partition_data[0].data);
           break;
         case SpeciesAuxData::AT_PARTITIONFUNCTION_COEFF_VIBROT:
-          throw std::runtime_error("The vib-rotational partition functions specified by your user input is not yet implemented in ARTS.\n");
+            if(!do_rotational)
+                CalculatePartitionFctFromVibrotCoeff(q_ref, q_t, line_t, atm_t, atm_t,
+                                               partition_data[0].data,partition_data[1].data);
+            else
+                CalculatePartitionFctFromVibrotCoeff(q_ref, q_t, line_t, atm_t, /*t_rot*/ atm_t, //This must be implemented!
+                                                     partition_data[0].data,partition_data[1].data);
           break;
         case SpeciesAuxData::AT_PARTITIONFUNCTION_TFIELD:
           CalculatePartitionFctFromData(q_ref, q_t, line_t, atm_t,
@@ -99,9 +102,9 @@ void GetLineScalingData(Numeric& q_t,
           throw std::runtime_error("Unknown partition type requested.\n");
           break;
       }
+      
+      partition_ratio = q_ref/q_t;
     }
-    
-    partition_ratio = q_ref/q_t;
     
     // Following Futbolin's division into two parts for the Boltzmann ratio because
     // gamma is also used for the NLTE part later on
@@ -109,18 +112,16 @@ void GetLineScalingData(Numeric& q_t,
     const Numeric gamma_ref = exp( - PLANCK_CONST * line_f / ( BOLTZMAN_CONST * line_t ) );
     
     // Stimulated emission
-    const Numeric se = (1.-gamma)/(1.-gamma_ref);
+    K2 = (1.-gamma)/(1.-gamma_ref);
     
     // Boltzmann level
-    const Numeric sb = exp( line_elow / BOLTZMAN_CONST * (atm_t-line_t)/(atm_t*line_t) );
-
-    boltzmann_ratio = sb*se;
+    K1 = exp( line_elow / BOLTZMAN_CONST * (atm_t-line_t)/(atm_t*line_t) );
     
     if(do_nlte)
     {
-      // Test the NLTE of the line
-      const Numeric& atm_tv_low = line_evlow_index<0?-1.0:atm_t_nlte[line_evlow_index];
-      const Numeric& atm_tv_upp = line_evupp_index<0?-1.0:atm_t_nlte[line_evupp_index];
+        // Test the NLTE of the line and find if we should use atmospheric temperatures or not
+        const Numeric& atm_tv_low = line_evlow_index<0?-1.0:atm_t_nlte[line_evlow_index];
+        const Numeric& atm_tv_upp = line_evupp_index<0?-1.0:atm_t_nlte[line_evupp_index];
       
       //r_low and r_upp are ratios for the population level compared to LTE conditions
       Numeric r_low, r_upp;
@@ -138,8 +139,114 @@ void GetLineScalingData(Numeric& q_t,
       else
         r_upp = 1.0;
 
+      // Both are unity when in LTE
       abs_nlte_ratio = (r_low - r_upp * gamma ) / ( 1 - gamma );
       src_nlte_ratio = r_upp;
+    }
+}
+void GetLineScalingData_dT(Numeric& dq_t_dT,
+                           Numeric& dpartition_ratio_dT, 
+                           Numeric& dabs_nlte_ratio_dT, 
+                           Numeric& atm_tv_low,
+                           Numeric& atm_tv_upp,
+                           const Numeric& q_t,
+                           const Numeric& abs_nlte_ratio,  
+                           const SpeciesAuxData::AuxType& partition_type,
+                           const ArrayOfGriddedField1& partition_data,
+                           const Numeric& atm_t,
+                           const Numeric& dt,
+                           const Numeric& line_f,
+                           const bool&    do_nlte,
+                           const Numeric& line_evlow,
+                           const Numeric& line_evupp,
+                           const Index& line_evlow_index,
+                           const Index& line_evupp_index,
+                           ConstVectorView atm_t_nlte)
+{
+    // Physical constants
+    extern const Numeric PLANCK_CONST;
+    extern const Numeric BOLTZMAN_CONST;
+    
+    const bool do_rotational = false;
+    
+    // Test the NLTE of the line and find if we should use atmospheric temperatures or not
+    atm_tv_low = line_evlow_index<0?-1.0:atm_t_nlte[line_evlow_index];
+    atm_tv_upp = line_evupp_index<0?-1.0:atm_t_nlte[line_evupp_index];
+    
+    if(dq_t_dT<0)
+    {
+        switch(partition_type)
+        {
+            case SpeciesAuxData::AT_PARTITIONFUNCTION_COEFF:
+                CalculatePartitionFctFromCoeff_dT(dq_t_dT, atm_t,
+                                               partition_data[0].data);
+                break;
+            case SpeciesAuxData::AT_PARTITIONFUNCTION_COEFF_VIBROT:
+                if(!do_rotational)
+                    CalculatePartitionFctFromVibrotCoeff_dT(dq_t_dT, atm_t, atm_t,
+                                                         partition_data[0].data,partition_data[1].data);
+                else
+                    CalculatePartitionFctFromVibrotCoeff_dT(dq_t_dT, atm_t, /*t_rot*/ atm_t, //This must be implemented!  How...???
+                                                            partition_data[0].data,partition_data[1].data);
+                break;
+            case SpeciesAuxData::AT_PARTITIONFUNCTION_TFIELD:
+                CalculatePartitionFctFromData_perturbed(dq_t_dT, atm_t, dt, q_t,
+                                              partition_data[0].get_numeric_grid(0),
+                                              partition_data[0].data, 
+                                              1);
+                break;
+            default:
+                throw std::runtime_error("Unknown partition type requested.\n");
+                break;
+        }
+        
+        dpartition_ratio_dT = -dq_t_dT/q_t/q_t;
+    }
+    
+    // Following Futbolin's division into two parts for the Boltzmann ratio because
+    // gamma is also used for the NLTE part later on
+    const Numeric gamma = exp( - PLANCK_CONST * line_f / ( BOLTZMAN_CONST * atm_t ) );
+    const Numeric gamma_p = exp( PLANCK_CONST * line_f / ( BOLTZMAN_CONST * atm_t ) );
+    
+    if(do_nlte)
+    {   
+        //r_low and r_upp are ratios for the population level compared to LTE conditions
+        Numeric r_low, r_upp;
+        Numeric dr_low, dr_upp;
+        if( atm_tv_low > 1e-4 *atm_t ) // where 1e-4 is considered a small number so that the multiplication in the denominator does not reach zero
+        {
+            r_low = exp( - line_evlow / BOLTZMAN_CONST * (atm_t-atm_tv_low) / (atm_t*atm_tv_low) );
+            dr_low = r_low * line_evlow ;
+        }
+        else if( atm_tv_low >= 0.0 )
+        {
+            r_low = 0.0;
+            dr_low = 0.0;
+        }
+        else
+        {
+            r_low = 1.0;
+            dr_low = r_low * line_evlow  ;
+        }
+        
+        if( atm_tv_upp > 1e-4 *atm_t ) // where 1e-4 is considered a small number so that the multiplication in the denominator does not reach zero
+        {
+            r_upp = exp( - line_evupp / BOLTZMAN_CONST * (atm_t-atm_tv_upp) / (atm_t*atm_tv_upp) );
+            dr_upp = - r_upp *(line_evupp - PLANCK_CONST*line_f)*gamma;
+        }
+        else if( atm_tv_upp >= 0.0 )
+        {
+            r_upp = 0.0;
+            dr_upp = 0.0;
+        }
+        else
+        {
+            r_upp = 1.0;
+            dr_upp = - r_upp *(line_evupp - PLANCK_CONST*line_f)*gamma;
+        }
+        
+        // Both are unity when in LTE
+        dabs_nlte_ratio_dT = ((dr_upp+dr_low) / ( gamma - 1.0 ) + abs_nlte_ratio* PLANCK_CONST*line_f/(gamma_p - 1.0))/BOLTZMAN_CONST / atm_t / atm_t;
     }
 }
 
@@ -159,6 +266,24 @@ void CalculatePartitionFctFromData( Numeric& q_ref,
   interpweights(itw_ref, gp_ref );
   q_t   = interp(  itw_t,   q_grid, gp_t );
   q_ref = interp(  itw_ref, q_grid, gp_ref );
+}
+
+void CalculatePartitionFctFromData_perturbed( Numeric& dQ_dT, 
+                                              const Numeric& t,
+                                              const Numeric& dT,
+                                              const Numeric& q_t,
+                                              ConstVectorView t_grid, 
+                                              ConstVectorView q_grid, 
+                                              const Index& interp_order)
+{
+    GridPosPoly gp_t;
+    gridpos_poly( gp_t,   t_grid, t+dT,   interp_order);
+    Vector itw_t(gp_t.idx.nelem());
+    interpweights(itw_t,   gp_t );
+    const Numeric q_t2   = interp(  itw_t,   q_grid, gp_t );
+    
+    // FIXME:  Is there a way to have interp return the derivative instead?  This way always undershoots the curve...  Should we have other point-derivatives, e.g., 2-point?
+    dQ_dT = (q_t - q_t2)/dT;
 }
 
 void CalculatePartitionFctFromCoeff(Numeric& q_ref, 
@@ -185,4 +310,79 @@ void CalculatePartitionFctFromCoeff(Numeric& q_ref,
   
   q_t   = result_t;
   q_ref = result_ref;
+}
+
+void CalculatePartitionFctFromVibrotCoeff(Numeric& q_ref, 
+                                          Numeric& q_t, 
+                                          const Numeric& ref, 
+                                          const Numeric& t_vib,
+                                          const Numeric& t_rot,
+                                          ConstVectorView qvib_grid,
+                                          ConstVectorView qrot_grid)
+{
+    Numeric QvibT   = 0.;
+    Numeric QvibT_ref = 0.;
+    Numeric QrotT   = 0.;
+    Numeric QrotT_ref = 0.;
+    Numeric exponent_t_vib   = 1.;
+    Numeric exponent_ref = 1.;
+    Numeric exponent_t_rot   = 1.;
+    
+    for (Index ii = 0; ii<qvib_grid.nelem();ii++)
+    {
+        QvibT   +=   qvib_grid[ii] * exponent_t_vib;
+        QrotT   +=   qrot_grid[ii] * exponent_t_rot;
+        QvibT_ref += qvib_grid[ii] * exponent_ref;
+        QrotT_ref += qrot_grid[ii] * exponent_ref;
+        
+        exponent_t_rot   *= t_rot;
+        exponent_t_vib   *= t_vib;
+        exponent_ref *= ref;
+    }
+    
+    q_t   = QvibT*QrotT;
+    q_ref = QvibT_ref*QrotT_ref;
+}
+
+void CalculatePartitionFctFromCoeff_dT(Numeric& dQ_dT, 
+                                       const Numeric& t,
+                                       ConstVectorView q_grid)
+{
+    Numeric result_t   = 0.;
+    Numeric exponent_t = 1.;
+    
+    Vector::const_iterator it;
+    
+    for(Index ii = 1; ii<q_grid.nelem();ii++)
+    {
+        result_t   += q_grid[ii] * exponent_t * (Numeric)ii;
+        
+        exponent_t *= t;
+    }
+    
+    dQ_dT   = result_t;
+}
+
+void CalculatePartitionFctFromVibrotCoeff_dT(Numeric& dQ_dT, 
+                                             const Numeric& t_vib,
+                                             const Numeric& t_rot,
+                                             ConstVectorView qvib_grid,
+                                             ConstVectorView qrot_grid)
+{
+    Numeric dQvibT   = 0.;
+    Numeric dQrotT   = 0.;
+    Numeric exponent_t_vib   = 1.;
+    Numeric exponent_t_rot   = 1.;
+    
+    for(Index ii = 1; ii<qvib_grid.nelem();ii++)
+    {
+        dQvibT   +=   qvib_grid[ii] * exponent_t_vib*(Numeric)ii;
+        dQrotT   +=   qrot_grid[ii] * exponent_t_rot*(Numeric)ii;
+        
+        exponent_t_rot   *= t_rot;
+        exponent_t_vib   *= t_vib;
+    }
+    //FIXME:  This is wrong...
+    dQ_dT   = dQvibT*dQrotT;
+    throw std::runtime_error("Vibrot does not yet work with propmat partial derivatives.\n");
 }

@@ -1122,11 +1122,12 @@ firstprivate(ls_attenuation, ls_phase, fac, f_local, aux, qt_cache, qref_cache, 
                         }
                         
                         // Prepare line strength scaling
-                        Numeric partition_ratio, boltzmann_ratio, abs_nlte_ratio, src_nlte_ratio;
+                        Numeric partition_ratio, K1, K2, abs_nlte_ratio, src_nlte_ratio;
                         GetLineScalingData(qt_cache,
                                            qref_cache,
                                            partition_ratio, 
-                                           boltzmann_ratio, 
+                                           K1, 
+                                           K2,
                                            abs_nlte_ratio, 
                                            src_nlte_ratio, 
                                            partition_functions.getParamType(l_l.Species(), l_l.Isotopologue()),
@@ -1145,6 +1146,11 @@ firstprivate(ls_attenuation, ls_phase, fac, f_local, aux, qt_cache, qref_cache, 
                         // Dopple broadening
                         const Numeric sigma = l_l.F() * doppler_const *sqrt( t_i / l_l.IsotopologueData().Mass());
                         
+                        const bool calc_partials=0;
+                        Vector da_dF, dp_dF, da_dP, dp_dP;
+                        
+                        Range this_f_range(0,0);
+                        
                         // Calculate line cross section
                         xsec_single_line(// OUTPUT
                                          xsec_accum_attenuation(arts_omp_get_thread_num(),joker),
@@ -1153,6 +1159,11 @@ firstprivate(ls_attenuation, ls_phase, fac, f_local, aux, qt_cache, qref_cache, 
                                          // HELPER:
                                          ls_attenuation,
                                          ls_phase,
+                                         da_dF,
+                                         dp_dF,
+                                         da_dP,
+                                         dp_dP,
+                                         this_f_range,
                                          fac,
                                          aux,
                                          // FREQUENCY
@@ -1164,7 +1175,7 @@ firstprivate(ls_attenuation, ls_phase, fac, f_local, aux, qt_cache, qref_cache, 
                                          // LINE STRENGTH
                                          l_l.I0(),
                                          partition_ratio,
-                                         boltzmann_ratio,
+                                         K1*K2,
                                          abs_nlte_ratio,
                                          src_nlte_ratio,
                                          isotopologue_ratios.getParam(l_l.Species(),l_l.Isotopologue())[0].data[0],
@@ -1188,6 +1199,7 @@ firstprivate(ls_attenuation, ls_phase, fac, f_local, aux, qt_cache, qref_cache, 
                                          // FEATURE FLAGS
                                          cut,
                                          calc_phase,
+                                         calc_partials,
                                          calc_src);
                         
                     } // end of try block
@@ -1296,6 +1308,11 @@ void xsec_single_line(// Output:
                       // Helper variables
                       Vector& attenuation, 
                       Vector& phase,
+                      Vector& da_dF,
+                      Vector& dp_dF,
+                      Vector& da_dP,
+                      Vector& dp_dP,
+                      Range&  this_f_range,
                       Vector& fac, 
                       Vector& aux, 
                       // Frequency grid:
@@ -1331,6 +1348,7 @@ void xsec_single_line(// Output:
                       // Feature flags
                       const bool calc_cut, 
                       const bool calc_phase,
+                      const bool calc_partials,
                       const bool calc_src)
 {
     
@@ -1412,92 +1430,120 @@ void xsec_single_line(// Output:
     // will always be at least one, because it contains the cutoff.
     if ( nfl > 0 )
     {
+        this_f_range = Range(i_f_min,nfl);
+        Range that_f_range(i_f_min,nfls);
         
         // Calculate the line shape:
         global_data::lineshape_data[ind_ls].Function()(attenuation, phase,
-                                                       aux, F0, gamma_0, gamma_2, eta, 0.,//FIXME:  This 0. should be df_0 but how to deal with cutoff and F0 is not solved?
-                                                       df_2, sigma, f_VC, f_local[Range(i_f_min,nfls)]);
+                                                       da_dF, dp_dF, da_dP, dp_dP, //partial derivatives
+                                                       aux, F0, gamma_0, gamma_2, eta, 0.0, // FIXME: H-T ls...
+                                                       df_2, sigma, f_VC, f_local[that_f_range],
+                                                       calc_phase, calc_partials);
         
         // Calculate the chosen normalization factor:
         global_data::lineshape_norm_data[ind_lsn].Function()(fac, F0,
-                                                             f_local[Range(i_f_min,nfls)],
+                                                             f_local[that_f_range],
                                                              temperature);
         
         // Reset f_local for next loop through now that cutoff is calculated
         if( i_f_max < nf )
             f_local[i_f_max] = f_grid[i_f_max];
         
-        // Get a handle on the range of xsec that we want to change.
-        // We use nfl here, which could be one less than nfls.
-        VectorView this_xsec_attenuation      = xsec_accum_attenuation[Range(i_f_min,nfl)];
+        // Attenuation output
+        VectorView this_xsec_attenuation      = xsec_accum_attenuation[this_f_range];
+        
+        // Optional outputs
         Vector empty_vector;
-	    VectorView this_xsec_source           = calc_src ? xsec_accum_source[Range(i_f_min,nfl)] : empty_vector;
-        VectorView this_xsec_phase            = xsec_accum_phase[Range(i_f_min,nfl)];
+        VectorView this_xsec_source           = calc_src ? xsec_accum_source[this_f_range] : empty_vector;
+        VectorView this_xsec_phase            = calc_phase ? xsec_accum_phase[this_f_range] : empty_vector;
         
-        // Get handles on the range of ls and fac that we need.
-        VectorView this_ls_attenuation  = attenuation[Range(0,nfl)];
-        VectorView this_ls_phase  = phase[Range(0,nfl)];
-        VectorView this_fac = fac[Range(0,nfl)];
+        // Store cutoff values
+        const Numeric 
+        cutoff_attenuation =               calc_cut?attenuation[nfls-1]:0.0, 
+        cutoff_phase       =               calc_cut?      phase[nfls-1]:0.0,
+        cutoff_da_dF       = calc_partials?calc_cut?da_dF[nfls-1]:0.0  :0.0, 
+        cutoff_dp_dF       = calc_partials?calc_cut?dp_dF[nfls-1]:0.0  :0.0, 
+        cutoff_da_dP       = calc_partials?calc_cut?da_dP[nfls-1]:0.0  :0.0, 
+        cutoff_dp_dP       = calc_partials?calc_cut?dp_dP[nfls-1]:0.0  :0.0;
         
-        // Line Mixing
-        if(LM_G!=0)
-        {
-            // Apply line mixing to both cutoff and other values
-            this_ls_attenuation*=1+LM_G;
-            if(calc_cut)
-                attenuation[nfls-1]*=1+LM_G;
-        }
-        if(LM_Y!=0)
-        {
-            // Apply line mixing to both cutoff and other values
-            Vector tmp = this_ls_phase;
-            tmp *= LM_Y;
-            this_ls_attenuation+=tmp;
-            if(calc_cut)
-                attenuation[nfls-1]+=phase[nfls-1]*LM_Y;
-        }
+        // If one of these is non-zero, then there are line mixing calculations required
+        const bool calc_LM = LM_G!=0||LM_Y!=0;
         
-        // cutoff ?
-        if ( calc_cut )
-        {
-            // Subtract baseline for cutoff frequency
-            // The index nfls-1 should be exactly the index pointing
-            // to the value at the cutoff frequency.
-            // Subtract baseline from xsec.
-            this_ls_attenuation -= attenuation[nfls-1]; // cutoff is constant
-        }
+        // Line strength is going to be stored in attenuation to ensure the right numeric value.
+        const Numeric str_line = Isotopologue_Ratio*intensity*(calc_src?abs_nlte_ratio:1.0);
         
-        // Add line to xsec.
+        // To make this readable, we loop over the frequencies
+        for(Index jj =0; jj<this_xsec_attenuation.nelem();jj++)
         {
-            
-            this_ls_attenuation *= this_fac;
-	    if(calc_src)
-	    {
-	      this_ls_attenuation *= Isotopologue_Ratio * intensity * abs_nlte_ratio;
-	      this_xsec_attenuation += this_ls_attenuation;
-	      this_ls_attenuation *= ( src_nlte_ratio/abs_nlte_ratio - 1.0 );//Only retain the additional source term for NLTE calculations
-	      this_xsec_source += this_ls_attenuation; // note that the multiplication above solves 
-	      
-	      if (calc_phase)
-              {
-                  this_ls_phase *= this_fac;
-                  this_ls_phase *= Isotopologue_Ratio * intensity * abs_nlte_ratio; // Is this right?  
-                  this_xsec_phase += this_ls_phase;
-              }
-	    }
-	    else
-	    {
-	      this_ls_attenuation *= Isotopologue_Ratio * intensity;
-	      this_xsec_attenuation += this_ls_attenuation;
-              
-              if (calc_phase)
-              {
-                  this_ls_phase *= this_fac;
-                  this_ls_phase *= Isotopologue_Ratio * intensity;
-                  this_xsec_phase += this_ls_phase;
-              }
-	    }
-        }
+            const Numeric str_scale = fac[jj]*str_line;
+            if(jj<=nfl)
+            {   
+                // This ensures that output attenuation is the physically correct attenuation
+                if(calc_cut)
+                    attenuation[jj]-=cutoff_attenuation;
+                attenuation[jj]*=str_scale;
+                
+                // This ensures that output phase is the physically correct phase
+                if(calc_phase||calc_LM)
+                {
+                    if(calc_cut)
+                        phase[jj]-=cutoff_phase;
+                    phase[jj]*=str_scale;
+                }
+                
+                if(calc_partials)
+                {
+                    if(calc_cut)
+                    {
+                        da_dF[jj]-=cutoff_da_dF;
+                        dp_dF[jj]-=cutoff_dp_dF;
+                        da_dP[jj]-=cutoff_da_dP;
+                        dp_dP[jj]-=cutoff_dp_dP;
+                    }
+                    da_dF[jj]*=str_scale;
+                    dp_dF[jj]*=str_scale;
+                    da_dP[jj]*=str_scale;
+                    dp_dP[jj]*=str_scale;
+                }
+                
+                // Attenuation is by tradition added to total attenuation from here
+                if(calc_LM&&calc_src)
+                {
+                    const Numeric tmp =(1.+LM_G)*attenuation[jj]+LM_Y*phase[jj];
+                    this_xsec_source[jj] += ( src_nlte_ratio/abs_nlte_ratio - 1.0 ) * tmp;
+                    this_xsec_attenuation[jj] += tmp;
+                }
+                else if(calc_src)
+                {
+                    this_xsec_source[jj] += ( src_nlte_ratio/abs_nlte_ratio - 1.0 ) * attenuation[jj];
+                    this_xsec_attenuation[jj] += attenuation[jj];
+                }
+                else if(calc_LM)
+                    this_xsec_attenuation[jj] += (1.+LM_G)*attenuation[jj]+LM_Y*phase[jj];
+                else
+                    this_xsec_attenuation[jj] += attenuation[jj];
+                
+                // Phase follows the attenuation practice
+                if(calc_phase&&calc_LM)
+                    this_xsec_phase[jj] += (1.+LM_G)*phase[jj] - LM_Y*attenuation[jj];
+                else if(calc_phase)
+                    this_xsec_phase[jj] += phase[jj];
+                
+                // Partials (Assuming F(v,v0) = C*F'(v,v0), where F' is from our lineshape functions, then the below is 
+                // only the C*dF'/dt part.  The dC/dt*F' part remains to be calculated.  The CF is output as 
+                // attenuation and phase variables [NOTE: attenuation and phase are without line mixing corrections!])
+                if(calc_partials&&calc_LM)
+                {
+                    const Numeric orig_da_dF=da_dF[jj];
+                    const Numeric orig_da_dP=da_dP[jj];
+                    
+                    da_dF[jj] = (1.+LM_G)*orig_da_dF + LM_Y*dp_dF[jj];
+                    dp_dF[jj] = (1.+LM_G)*dp_dF[jj]  - LM_Y*orig_da_dF;
+                    da_dP[jj] = (1.+LM_G)*orig_da_dP + LM_Y*dp_dP[jj];
+                    dp_dP[jj] = (1.+LM_G)*dp_dP[jj]  - LM_Y*orig_da_dP;
+                }
+            }
+        }  
     }
 }
 
@@ -1820,6 +1866,10 @@ ostream& operator<< (ostream &os, const LineshapeSpec& lsspec)
 void xsec_species_line_mixing_wrapper(  MatrixView               xsec_attenuation,
                                         MatrixView               xsec_source,
                                         MatrixView               xsec_phase,
+                                        ArrayOfMatrix&           partial_xsec_attenuation,
+                                        ArrayOfMatrix&           partial_xsec_source,
+                                        ArrayOfMatrix&           partial_xsec_phase,
+                                        const PropmatPartialsData& flag_partials,
                                         ConstVectorView          f_grid,
                                         ConstVectorView          abs_p,
                                         ConstVectorView          abs_t,
@@ -1829,6 +1879,7 @@ void xsec_species_line_mixing_wrapper(  MatrixView               xsec_attenuatio
                                         const Index              this_species,
                                         const ArrayOfLineRecord& abs_lines,
                                         const Vector&            Z_DF,
+                                        const Numeric            H_magntitude_Zeeman,
                                         const Index              ind_ls,
                                         const Index              ind_lsn,
                                         const Numeric            lm_p_lim,
@@ -1844,7 +1895,7 @@ void xsec_species_line_mixing_wrapper(  MatrixView               xsec_attenuatio
         std::ostringstream os;
         os <<  "This is an error message. You are using " << lineshape_data[ind_ls].Name() <<
         ".\n"<<"This line shape does not include phase in its calculations and\nis therefore invalid for " <<
-        "line mixing or Zeeman.\n\n";
+        "line mixing, Zeeman and partial derivatives.\nYou are using one of these or you should not see this error.\n";
         throw std::runtime_error(os.str());
     }
     
@@ -1868,6 +1919,10 @@ void xsec_species_line_mixing_wrapper(  MatrixView               xsec_attenuatio
     }
     
     const bool cut = (cutoff != -1) ? true : false;
+    
+    const bool calc_partials = flag_partials.nelem();
+    
+    const bool calc_partials_phase = partial_xsec_phase.nelem()==partial_xsec_attenuation.nelem();
     
     // Check that the frequency grid is sorted in the case of lineshape
     // with cutoff. Duplicate frequency values are allowed.
@@ -1996,10 +2051,21 @@ firstprivate(attenuation, phase, fac, f_local, aux)
         ConstVectorView t_nlte = calc_src?abs_t_nlte(joker, jj):empty_vector;
         ConstVectorView vmrs = all_vmrs(joker,jj);
         
+        
+        // Setup for calculating the partial derivatives
+        Vector da_dF, dp_dF, da_dP, dp_dP;
+        if(calc_partials) //Only size them if partials are wanted
+        {
+            da_dF.resize(f_grid.nelem()+1);
+            dp_dF.resize(f_grid.nelem()+1);
+            da_dP.resize(f_grid.nelem()+1); 
+            dp_dP.resize(f_grid.nelem()+1);
+        }
+        
         // Simple caching of partition function to avoid recalculating things.
         Numeric qt_cache=-1, qref_cache=-1;
         Index iso_cache=-1;
-        Numeric line_t_cache=-1;
+        Numeric line_t_cache=-1,  dqt_dT_cache=-1.;
         
         const Numeric p_partial = p * vmrs[this_species];
         
@@ -2007,12 +2073,12 @@ firstprivate(attenuation, phase, fac, f_local, aux)
         {
             // Pressure broadening parameters
             // Prepare pressure broadening parameters
-                        Numeric gamma_0,gamma_2,eta,df_0,df_2,f_VC;
-                        abs_lines[ii].PressureBroadening().GetPressureBroadeningParams(gamma_0,gamma_2,eta,df_0,df_2,f_VC,
-                                                                            abs_lines[ii].Ti0()/t,p,
-                                                                            p_partial,this_species,h2o_index,
-                                                                            broad_spec_locations,
-                                                                            vmrs,verbosity);
+            Numeric gamma_0,gamma_2,eta,df_0,df_2,f_VC;
+            abs_lines[ii].PressureBroadening().GetPressureBroadeningParams(gamma_0,gamma_2,eta,df_0,df_2,f_VC,
+                                                                abs_lines[ii].Ti0()/t,p,
+                                                                p_partial,this_species,h2o_index,
+                                                                broad_spec_locations,
+                                                                vmrs,verbosity);
             
             // Line mixing parameters
             Numeric Y=0,DV=0,G=0; // Set to zero since case with 0 exist
@@ -2023,15 +2089,19 @@ firstprivate(attenuation, phase, fac, f_local, aux)
             {
               iso_cache = abs_lines[ii].Isotopologue();
               line_t_cache = abs_lines[ii].Ti0();
-              qref_cache=-1;// no need to reset qt since it is done internally below
+              
+              qt_cache  =-1;
+              qref_cache=-1;
+              dqt_dT_cache=-1.;
             }
             
             // Prepare line strength scaling
-            Numeric partition_ratio, boltzmann_ratio, abs_nlte_ratio, src_nlte_ratio;
+            Numeric partition_ratio, K1, K2, abs_nlte_ratio, src_nlte_ratio;
             GetLineScalingData( qt_cache,
                                 qref_cache,
                                 partition_ratio, 
-                                boltzmann_ratio, 
+                                K1, 
+                                K2,
                                 abs_nlte_ratio, 
                                 src_nlte_ratio, 
                                 partition_functions.getParamType(abs_lines[ii].Species(), abs_lines[ii].Isotopologue()),
@@ -2050,906 +2120,157 @@ firstprivate(attenuation, phase, fac, f_local, aux)
             // Doppler broadening
             const Numeric sigma = abs_lines[ii].F() * doppler_const *sqrt( t / abs_lines[ii].IsotopologueData().Mass());
             
+            Range this_f_range(0,0);
+            
             // Time to calculate the line cross section
             // Still an ugly case with non-resonant line near 0 frequency, since this is actually a band...
             if( LineMixingData::LM_LBLRTM_O2NonResonant != abs_lines[ii].LineMixing().Type() )
             {
                 xsec_single_line(   // OUTPUT   
-                                    xsec_attenuation(joker,jj), 
-                                    calc_src?xsec_source(joker,jj):empty_vector,
-                                    xsec_phase(joker,jj), 
+                                    xsec_attenuation(joker,jj), calc_src?xsec_source(joker,jj):
+                                    empty_vector,xsec_phase(joker,jj), 
                                     // HELPER
-                                    attenuation, 
-                                    phase,
-                                    fac, 
-                                    aux, 
+                                    attenuation, phase, da_dF, dp_dF, da_dP, dp_dP, this_f_range, fac, aux, 
                                     // FREQUENCY
-                                    f_local, 
-                                    f_grid, 
-                                    f_grid.nelem(), 
-                                    cutoff,
+                                    f_local,  f_grid,  f_grid.nelem(),  cutoff,
                                     abs_lines[ii].F()+(precalc_zeeman?Z_DF[ii]:0), // Since vector is 0-length if no Zeeman pre-calculations
                                     // LINE STRENGTH
-                                    abs_lines[ii].I0(), 
-                                    partition_ratio, 
-                                    boltzmann_ratio,
-                                    abs_nlte_ratio,
-                                    src_nlte_ratio,
-                                    isotopologue_ratios.getParam(abs_lines[ii].Species(),abs_lines[ii].Isotopologue())[0].data[0],
+                                    abs_lines[ii].I0(), partition_ratio, K1*K2, abs_nlte_ratio, src_nlte_ratio,
+                                    isotopologue_ratios.getParam(abs_lines[ii].Species(),
+                                                                 abs_lines[ii].Isotopologue())[0].data[0],
                                     // ATMOSPHERIC TEMPERATURE
                                     t,
                                     // LINE SHAPE
-                                    ind_ls, 
-                                    ind_lsn,
+                                    ind_ls, ind_lsn,
                                     // LINE BROADENING
-                                    gamma_0,
-                                    gamma_2,
-                                    eta,
-                                    df_0,
-                                    df_2,
-                                    sigma,
-                                    f_VC,
+                                    gamma_0, gamma_2, eta, df_0, df_2, sigma, f_VC,
                                     // LINE MIXING
-                                    DV,
-                                    Y, 
-                                    G, 
+                                    DV, Y,  G, 
                                     // FEATURE FLAGS
-                                    cutoff!=-1,
-                                    1,
-				    calc_src);
+                                    cutoff!=-1, 1, calc_partials, calc_src);
             }
             else
-            {
+            {//FIXME:  Is all of this really working?  Should I not have a VVH_that is half of VVH?
                 //The below follows from Debye lineshape approximating half of VVH lineshape
                 ArrayOfLineshapeSpec tmp;
                 abs_lineshapeDefine( tmp, "Faddeeva_Algorithm_916", "VVH", 
                                      -1, verbosity );
                  
-                xsec_single_line(    // OUTPUT   
-                                    xsec_attenuation(joker,jj), 
-                                    calc_src?xsec_source(joker,jj):empty_vector,
-                                    xsec_phase(joker,jj), 
+                xsec_single_line(   // OUTPUT   
+                                    xsec_attenuation(joker,jj), calc_src?xsec_source(joker,jj):empty_vector, xsec_phase(joker,jj), 
                                     // HELPER
-                                    attenuation, 
-                                    phase,
-                                    fac, 
-                                    aux, 
+                                    attenuation, phase, da_dF, dp_dF, da_dP, dp_dP, this_f_range, fac, aux, 
                                     // FREQUENCY
-                                    f_local, 
-                                    f_grid, 
-                                    f_grid.nelem(), 
-                                    cutoff,
-                                    abs_lines[ii].F()+(precalc_zeeman?Z_DF[ii]:0), // Since vector is 0-length if no Zeeman pre-calculations
+                                    f_local, f_grid, f_grid.nelem(), cutoff, abs_lines[ii].F()+(precalc_zeeman?Z_DF[ii]:0), // Since vector is 0-length if no Zeeman pre-calculations
                                     // LINE STRENGTH
-                                    abs_lines[ii].I0(), 
-                                    partition_ratio, 
-                                    boltzmann_ratio,
-                                    abs_nlte_ratio,
-                                    src_nlte_ratio,
-                                    isotopologue_ratios.getParam(abs_lines[ii].Species(),abs_lines[ii].Isotopologue())[0].data[0],
+                                    abs_lines[ii].I0(), partition_ratio, K1*K2, abs_nlte_ratio, src_nlte_ratio,
+                                    isotopologue_ratios.getParam(abs_lines[ii].Species(),
+                                                                 abs_lines[ii].Isotopologue())[0].data[0],
                                     // ATMOSPHERIC TEMPERATURE
                                     t,
                                     // LINE SHAPE
-                                    tmp[0].Ind_ls(), 
-                                    tmp[0].Ind_lsn(),
+                                    tmp[0].Ind_ls(), tmp[0].Ind_lsn(),
                                     // LINE BROADENING
-                                    gamma_0,
-                                    gamma_2,
-                                    eta,
-                                    df_0,
-                                    df_2,
-                                    sigma,
-                                    f_VC,
+                                    gamma_0, gamma_2, eta, df_0, df_2, sigma, f_VC,
                                     // LINE MIXING
-                                    DV,
-                                    Y, 
-                                    G, 
+                                    DV, Y, G, 
                                     // FEATURE FLAGS
-                                    cutoff!=-1,
-                                    1,
-                                    calc_src);
+                                    cutoff!=-1, 1, calc_partials, calc_src);
             }
             
-        }
-    }
-}
-
-
-/** Calculate line absorption cross sections for one tag group. All
- lines in the line list must belong to the same species. This must
- be ensured by abs_lines_per_speciesCreateFromLines, so it is only verified
- with assert. Also, the input vectors abs_p, and abs_t must all
- have the same dimension.
- 
- This is mainly a copy of abs_species which is removed now, with
- the difference that the vmrs are removed from the absorption
- coefficient calculation. (the vmr is still used for the self
- broadening)
- 
- Continua are not handled by this function, you have to call
- xsec_continuum_tag for those.
- 
- \retval xsec   Cross section of one tag group. This is now the
- true absorption cross section in units of m^2.
- \param f_grid       Frequency grid.
- \param abs_p        Pressure grid.
- \param abs_t        Temperatures associated with abs_p.
- \param all_vmrs     Gas volume mixing ratios [nspecies, np].
- \param abs_species  Species tags for all species.
- \param this_species Index of the current species in abs_species.
- \param abs_lines    The spectroscopic line list.
- \param ind_ls       Index to lineshape function.
- \param ind_lsn      Index to lineshape norm.
- \param cutoff       Lineshape cutoff.
- \param isotopologue_ratios  Isotopologue ratios.
- 
- \author Stefan Buehler and Axel von Engeln
- \date   2001-01-11
- 
- Changed from pseudo cross sections to true cross sections
- 
- \author Stefan Buehler
- \date   2007-08-08
- 
- Adapted to new Perrin line parameters, treating broadening by different
- gases explicitly
- 
- \author Stefan Buehler
- \date   2012-09-03
- 
- */
-void xsec_species_old_unused( MatrixView               xsec_attenuation,
-                              MatrixView               xsec_phase,
-                              ConstVectorView          f_grid,
-                              ConstVectorView          abs_p,
-                              ConstVectorView          abs_t,
-                              ConstMatrixView          all_vmrs,
-                              const ArrayOfArrayOfSpeciesTag& abs_species,
-                              const Index              this_species,
-                              const ArrayOfLineRecord& abs_lines,
-                              const Index              ind_ls,
-                              const Index              ind_lsn,
-                              const Numeric            cutoff,
-                              const SpeciesAuxData&    isotopologue_ratios,
-                              const Verbosity&         verbosity )
-{
-    // Make lineshape and species lookup data visible:
-    using global_data::lineshape_data;
-    using global_data::lineshape_norm_data;
-    
-    // speed of light constant
-    extern const Numeric SPEED_OF_LIGHT;
-    
-    // Boltzmann constant
-    extern const Numeric BOLTZMAN_CONST;
-    
-    // Avogadros constant
-    extern const Numeric AVOGADROS_NUMB;
-    
-    // Planck constant
-    extern const Numeric PLANCK_CONST;
-    
-    // sqrt(ln(2))
-    // extern const Numeric SQRT_NAT_LOG_2;
-    
-    // Constant within the Doppler Broadening calculation:
-    const Numeric doppler_const = sqrt( 2.0 * BOLTZMAN_CONST *
-    AVOGADROS_NUMB) / SPEED_OF_LIGHT; 
-    
-    // dimension of f_grid, abs_lines
-    const Index nf = f_grid.nelem();
-    const Index nl = abs_lines.nelem();
-    
-    // number of pressure levels:
-    const Index np = abs_p.nelem();
-    
-    // Define the vector for the line shape function and the
-    // normalization factor of the lineshape here, so that we don't need
-    // so many free store allocations.  the last element is used to
-    // calculate the value at the cutoff frequency
-    Vector ls_attenuation(nf+1);
-    Vector ls_phase(nf+1);
-    Vector fac(nf+1);
-    
-    const bool cut = (cutoff != -1) ? true : false;
-    
-    const bool calc_phase = lineshape_data[ind_ls].Phase();
-    
-    // Check that the frequency grid is sorted in the case of lineshape
-    // with cutoff. Duplicate frequency values are allowed.
-    if (cut)
-    {
-        if ( ! is_sorted( f_grid ) )
-        {
-            ostringstream os;
-            os << "If you use a lineshape function with cutoff, your\n"
-            << "frequency grid *f_grid* must be sorted.\n"
-            << "(Duplicate values are allowed.)";
-            throw std::runtime_error(os.str());
-        }
-    }
-    
-    // Check that all temperatures are non-negative
-    bool negative = false;
-    
-    for (Index i = 0; !negative && i < abs_t.nelem (); i++)
-    {
-        if (abs_t[i] < 0.)
-            negative = true;
-    }
-    
-    if (negative)
-    {
-        ostringstream os;
-        os << "abs_t contains at least one negative temperature value.\n"
-        << "This is not allowed.";
-        throw std::runtime_error(os.str());
-    }
-    
-    // We need a local copy of f_grid which is 1 element longer, because
-    // we append a possible cutoff to it.
-    // The initialization of this has to be inside the line loop!
-    Vector f_local( nf + 1 );
-    
-    // Voigt generally needs a different frequency grid. If we allocate
-    // that in the outer loop, instead of in voigt, we don't have the
-    // free store allocation at each lineshape call. Calculation is
-    // still done in the voigt routine itself, this is just an auxillary
-    // parameter, passed to lineshape. For selected lineshapes (e.g.,
-    // Rosenkranz) it is used additionally to pass parameters needed in
-    // the lineshape (e.g., overlap, ...). Consequently we have to
-    // assure that aux has a dimension not less then the number of
-    // parameters passed.
-    Index ii = (nf+1 < 10) ? 10 : nf+1;
-    Vector aux(ii);
-    
-    // Check that abs_p, abs_t, and abs_vmrs have consistent
-    // dimensions. This could be a user error, so we throw a
-    // runtime_error. 
-    
-    if ( abs_t.nelem() != np )
-    {
-        ostringstream os;
-        os << "Variable abs_t must have the same dimension as abs_p.\n"
-        << "abs_t.nelem() = " << abs_t.nelem() << '\n'
-        << "abs_p.nelem() = " << np;
-        throw std::runtime_error(os.str());
-    }
-    
-    // all_vmrs should have dimensions [nspecies, np]:
-    
-    if ( all_vmrs.ncols() != np )
-    {
-        ostringstream os;
-        os << "Number of columns of all_vmrs must match abs_p.\n"
-        << "all_vmrs.ncols() = " << all_vmrs.ncols() << '\n'
-        << "abs_p.nelem() = " << np;
-        throw std::runtime_error(os.str());
-    }
-    
-    const Index nspecies = abs_species.nelem();
-    
-    if ( all_vmrs.nrows() != nspecies)
-    {
-        ostringstream os;
-        os << "Number of rows of all_vmrs must match abs_species.\n"
-        << "all_vmrs.nrows() = " << all_vmrs.nrows() << '\n'
-        << "abs_species.nelem() = " << nspecies;
-        throw std::runtime_error(os.str());
-    }
-    
-    // With abs_h2o it is different. We do not really need this in most
-    // cases, only the Rosenkranz lineshape for oxygen uses it. There is
-    // a global (scalar) default value of -1, that we are expanding to a
-    // vector here if we find it. The Rosenkranz lineshape does a check
-    // to make sure that the value is actually set, and not the default
-    // value. 
-    //  Vector abs_h2o(np);
-    //  if ( abs_h2o_orig.nelem() == np )
-    //    {
-    //      abs_h2o = abs_h2o_orig;
-    //    }
-    //  else
-    //    {
-    //      if ( ( 1   == abs_h2o_orig.nelem()) && 
-    //           ( -.99 > abs_h2o_orig[0]) )
-    //        {
-    //          // We have found the global default value. Expand this to a
-    //          // vector with the right length, by copying -1 to all
-    //          // elements of abs_h2o.
-    //          abs_h2o = -1;         
-    //        }
-    //      else
-    //        {
-    //          ostringstream os;
-    //          os << "Variable abs_h2o must have default value -1 or the\n"
-    //             << "same dimension as abs_p.\n"
-    //             << "abs_h2o.nelem() = " << abs_h2o.nelem() << '\n'
-    //             << "abs_p.nelem() = " << np;
-    //          throw runtime_error(os.str());
-    //        }
-    //    }
-    
-    // Check that the dimension of xsec is indeed [f_grid.nelem(),
-    // abs_p.nelem()]:
-    if ( xsec_attenuation.nrows() != nf || xsec_attenuation.ncols() != np )
-    {
-        ostringstream os;
-        os << "Variable xsec must have dimensions [f_grid.nelem(),abs_p.nelem()].\n"
-        << "[xsec_attenuation.nrows(),xsec_attenuation.ncols()] = [" << xsec_attenuation.nrows()
-        << ", " << xsec_attenuation.ncols() << "]\n"
-        << "f_grid.nelem() = " << nf << '\n'
-        << "abs_p.nelem() = " << np;
-        throw std::runtime_error(os.str());
-    }
-    if ( xsec_phase.nrows() != nf || xsec_phase.ncols() != np )
-    {
-        ostringstream os;
-        os << "Variable xsec must have dimensions [f_grid.nelem(),abs_p.nelem()].\n"
-        << "[xsec_phase.nrows(),xsec_phase.ncols()] = [" << xsec_phase.nrows()
-        << ", " << xsec_phase.ncols() << "]\n"
-        << "f_grid.nelem() = " << nf << '\n'
-        << "abs_p.nelem() = " << np;
-        throw std::runtime_error(os.str());
-    } 
-    
-    // Find the location of all broadening species in abs_species. Set to -1 if
-    // not found. The length of array broad_spec_locations is the number of allowed
-    // broadening species (in ARTSCAT-4 Self, N2, O2, H2O, CO2, H2, He). The value
-    // means:
-    // -1 = not in abs_species
-    // -2 = in abs_species, but should be ignored because it is identical to Self
-    // N  = species is number N in abs_species
-    ArrayOfIndex broad_spec_locations;
-    find_broad_spec_locations(broad_spec_locations,
-                              abs_species,
-                              this_species);
-    
-    String fail_msg;
-    bool failed = false;
-    
-    // Loop all pressures:
-    if (np)
-        #pragma omp parallel for                    \
-        if (!arts_omp_in_parallel()               \
-            && np >= arts_omp_get_max_threads())  \
-            firstprivate(ls_attenuation, ls_phase, fac, f_local, aux)
-            for ( Index i=0; i<np; ++i )
-            {
-                if (failed) continue;
-                
-                // Store input profile variables, this is perhaps slightly faster.
-                const Numeric p_i       = abs_p[i];
-                const Numeric t_i       = abs_t[i];
-                const Numeric vmr_i     = all_vmrs(this_species,i);
-                
-                //out3 << "  p = " << p_i << " Pa\n";
-                
-                // Calculate total number density from pressure and temperature.
-                // n = n0*T0/p0 * p/T or n = p/kB/t, ideal gas law
-                //      const Numeric n = p_i / BOLTZMAN_CONST / t_i;
-                // This is not needed anymore, since we now calculate true cross
-                // sections, which do not contain the n.
-                
-                // For the pressure broadening, we also need the partial pressure:
-                const Numeric p_partial = p_i * vmr_i;
-                
-                // Get handle on xsec for this pressure level i.
-                // Watch out! This is output, we have to be careful not to
-                // introduce race conditions when writing to it.
-                VectorView xsec_i_attenuation = xsec_attenuation(Range(joker),i);
-                VectorView xsec_i_phase = xsec_phase(Range(joker),i);
-                
-                
-                //       if (omp_in_parallel())
-                //         cout << "omp_in_parallel: true\n";
-                //       else
-                //         cout << "omp_in_parallel: false\n";
-                
-                
-                // Prepare a variable that can be used by the individual LBL
-                // threads to add up absorption:
-                Index n_lbl_threads;
-                if (arts_omp_in_parallel())
-                {
-                    // If we already are running parallel, then the LBL loop
-                    // will not be parallelized.
-                    n_lbl_threads = 1;
-                }
-                else
-                {
-                    n_lbl_threads = arts_omp_get_max_threads();
-                }
-                Matrix xsec_accum_attenuation(n_lbl_threads, xsec_i_attenuation.nelem(), 0);
-                Matrix xsec_accum_phase(n_lbl_threads, xsec_i_phase.nelem(), 0);
-                
-                
-                // Loop all lines:
-                if (nl)
-                    #pragma omp parallel for                   \
-                    if (!arts_omp_in_parallel()               \
-                        && nl >= arts_omp_get_max_threads())  \
-                        firstprivate(ls_attenuation, ls_phase, fac, f_local, aux)
-                        for ( Index l=0; l< nl; ++l )
-                        {
-                            // Skip remaining iterations if an error occurred
-                            if (failed) continue;
-                            
-                            //           if (omp_in_parallel())
-                            //             cout << "LBL: omp_in_parallel: true\n";
-                            //           else
-                            //             cout << "LBL: omp_in_parallel: false\n";
-                            
-                            
-                            // The try block here is necessary to correctly handle
-                            // exceptions inside the parallel region. 
-                            try
-                            {
-                                // Copy f_grid to the beginning of f_local. There is one
-                                // element left at the end of f_local.  
-                                // THIS HAS TO BE INSIDE THE LINE LOOP, BECAUSE THE CUTOFF
-                                // FREQUENCY IS ALWAYS PUT IN A DIFFERENT PLACE!
-                                f_local[Range(0,nf)] = f_grid;
-                                
-                                // This will hold the actual number of frequencies to add to
-                                // xsec later on:
-                                Index nfl = nf;
-                                
-                                // This will hold the actual number of frequencies for the
-                                // call to the lineshape functions later on:
-                                Index nfls = nf;      
-                                
-                                // abs_lines[l] is used several times, this construct should be
-                                // faster (Oliver Lemke)
-                                const LineRecord& l_l = abs_lines[l];  // which line are we dealing with
-                                
-                                // Make sure that catalogue version is either 3 or 4 (no other
-                                // versions are supported yet):
-                                if ( 3!=l_l.Version() && 4!=l_l.Version() )
-                                {
-                                    ostringstream os;
-                                    os << "Unknown spectral line catalogue version (artscat-"
-                                    << l_l.Version() << ").\n"
-                                    << "Allowed are artscat-3 and artscat-4.";
-                                    throw std::runtime_error(os.str());
-                                }
-                                
-                                // Center frequency in vacuum:
-                                Numeric F0 = l_l.F();
-                                
-                                // Intensity is already in the right units (Hz*m^2). It also
-                                // includes already the isotopologue ratio. Needs only to be
-                                // coverted to the actual temperature and multiplied by total
-                                // number density and lineshape.
-                                Numeric intensity = l_l.I0();
-                                
-                                // Lower state energy is already in the right unit (Joule).
-                                Numeric e_lower = l_l.Elow();
-                                
-                                // Upper state energy:
-                                Numeric e_upper = e_lower + F0 * PLANCK_CONST;
-                                
-                                // Get the ratio of the partition function.
-                                // This will throw a runtime error if no data exists.
-                                // Important: This function needs both the reference
-                                // temperature and the actual temperature, because the
-                                // reference temperature can be different for each line,
-                                // even of the same species.
-                                Numeric part_fct_ratio =
-                                l_l.IsotopologueData().CalculatePartitionFctRatio( l_l.Ti0(),
-                                                                                   t_i );
-                                
-                                // Boltzmann factors
-                                Numeric nom = exp(- e_lower / ( BOLTZMAN_CONST * t_i ) ) - 
-                                exp(- e_upper / ( BOLTZMAN_CONST * t_i ) );
-                                
-                                Numeric denom = exp(- e_lower / ( BOLTZMAN_CONST * l_l.Ti0() ) ) - 
-                                exp(- e_upper / ( BOLTZMAN_CONST * l_l.Ti0() ) );
-                                
-                                
-                                // intensity at temperature
-                                // (calculate the line intensity according to the standard 
-                                // expression given in HITRAN)
-                                intensity *= part_fct_ratio * nom / denom;
-                                
-                                if (lineshape_norm_data[ind_lsn].Name() == "quadratic")
-                                {
-                                    // in case of the quadratic normalization factor use the 
-                                    // so called 'microwave approximation' of the line intensity 
-                                    // given by 
-                                    // P. W. Rosenkranz, Chapter 2, Eq.(2.16), in M. A. Janssen, 
-                                    // Atmospheric Remote Sensing by Microwave Radiometry, 
-                                    // John Wiley & Sons, Inc., 1993
-                                    Numeric mafac = (PLANCK_CONST * F0) / (2.000e0 * BOLTZMAN_CONST
-                                    * t_i);
-                                    intensity     = intensity * mafac / sinh(mafac);
-                                }
-                                
-                                // 2. Calculate the pressure broadened line width and the pressure
-                                // shifted center frequency.
-                                //
-                                // Here there is a difference betweeen catalogue version 4
-                                // (from ESA planetary study) and earlier catalogue versions.
-                                Numeric gamma;     // The line width.
-                                Numeric deltaf=0;    // Pressure shift.
-                                if (l_l.Version() == 4)
-                                {
-                                    calc_gamma_and_deltaf_artscat4_old_unused(gamma,
-                                                                              deltaf,
-                                                                              p_i,
-                                                                              t_i,
-                                                                              all_vmrs(joker,i),
-                                                                              this_species,
-                                                                              broad_spec_locations,
-                                                                              l_l,
-                                                                              verbosity);
-                                }
-                                else if (l_l.Version() == 3)
-                                {
-                                    //                  Numeric Tgam;
-                                    //                  Numeric Nair;
-                                    //                  Numeric Agam;
-                                    //                  Numeric Sgam;
-                                    //                  Numeric Nself;
-                                    //                  Numeric Psf;
-                                    
-                                    //              if (l_l.Version() == 3)
-                                    //              {
-                                    const Numeric Tgam = l_l.Ti0(); // FIXME: This is breaking old catalogs??
-                                    const Numeric Agam = l_l.Agam();
-                                    const Numeric Nair = l_l.Nair();
-                                    const Numeric Sgam = l_l.Sgam();
-                                    const Numeric Nself = l_l.Nself();
-                                    const Numeric Psf = l_l.Psf();
-                                    //              }
-                                    //              else
-                                    //              {
-                                    //                static bool warn = false;
-                                    //                if (!warn)
-                                    //                {
-                                    //                  CREATE_OUT0;
-                                    //                  warn = true;
-                                    //                  out0 << "  WARNING: Using artscat version 4 for calculations is currently\n"
-                                    //                       << "           just a hack and results are most likely wrong!!!\n";
-                                    //                }
-                                    //                Tgam = l_l.Tgam();
-                                    //                // Use hardcoded mixing ratios for air
-                                    //                Agam = l_l.Gamma_N2() * 0.79 + l_l.Gamma_O2() * 0.21;
-                                    //                Nair = l_l.Gam_N_N2() * 0.79 + l_l.Gam_N_O2() * 0.21;
-                                    //                Sgam = l_l.Gamma_self();
-                                    //                Nself = l_l.Gam_N_self();
-                                    //                Psf = l_l.Delta_N2() * 0.79 + l_l.Delta_O2() * 0.21;
-                                    //              }
-                                    
-                                    // Get pressure broadened line width:
-                                    // (Agam is in Hz/Pa, abs_p is in Pa, gamma is in Hz)
-                                    const Numeric theta = Tgam / t_i;
-                                    const Numeric theta_Nair = pow(theta, Nair);
-                                    
-                                    gamma =   Agam * theta_Nair  * (p_i - p_partial)
-                                    + Sgam * pow(theta, Nself) * p_partial;
-                                    
-                                    
-                                    // Pressure shift:
-                                    // The T dependence is connected to that of agam by:
-                                    // n_shift = .25 + 1.5 * n_agam
-                                    // Theta has been initialized above.
-                                    deltaf = Psf * p_i *
-                                    std::pow( theta , (Numeric).25 + (Numeric)1.5*Nair );
-                                    
-                                }
-                                else
-                                {
-                                    // There is a runtime error check for allowed artscat versions
-                                    // further up.
-                                    assert(false);
-                                }
-                                
-                                // Apply pressure shift:
-                                F0 += deltaf;
-                                
-                                // 3. Doppler broadening without the sqrt(ln(2)) factor, which
-                                // seems to be redundant.
-                                const Numeric sigma = F0 * doppler_const *
-                                sqrt( t_i / l_l.IsotopologueData().Mass());
-                                
-                                //              cout << l_l.IsotopologueData().Name() << " " << l_l.F() << " "
-                                //                   << Nair << " " << Agam << " " << Sgam << " " << Nself << endl;
-                                
-                                
-                                
-                                // Indices pointing at begin/end frequencies of f_grid or at
-                                // the elements that have to be calculated in case of cutoff
-                                Index i_f_min = 0;            
-                                Index i_f_max = nf-1;         
-                                
-                                // cutoff ?
-                                if ( cut )
-                                {
-                                    // Check whether we have elements in ls that can be
-                                    // ignored at lower frequencies of f_grid.
-                                    //
-                                    // Loop through all frequencies, finding min value and
-                                    // set all values to zero on that way.
-                                    while ( i_f_min < nf && (F0 - cutoff) > f_grid[i_f_min] )
-                                    {
-                                        //              ls[i_f_min] = 0;
-                                        ++i_f_min;
-                                    }
-                                    
-                                    
-                                    // Check whether we have elements in ls that can be
-                                    // ignored at higher frequencies of f_grid.
-                                    //
-                                    // Loop through all frequencies, finding max value and
-                                    // set all values to zero on that way.
-                                    while ( i_f_max >= 0 && (F0 + cutoff) < f_grid[i_f_max] )
-                                    {
-                                        //              ls[i_f_max] = 0;
-                                        --i_f_max;
-                                    }
-                                    
-                                    // Append the cutoff frequency to f_local:
-                                    ++i_f_max;
-                                    f_local[i_f_max] = F0 + cutoff;
-                                    
-                                    // Number of frequencies to calculate:
-                                    nfls = i_f_max - i_f_min + 1; // Add one because indices
-                                    // are pointing to first and
-                                    // last valid element. This
-                                    // is for the lineshape
-                                    // calls. 
-                                    nfl = nfls -1;              // This is for xsec.
-                                }
-                                else
-                                {
-                                    // Nothing to do here. Note that nfl and nfls are both still set to nf.
-                                }
-                                
-                                //          cout << "nf, nfl, nfls = " << nf << ", " << nfl << ", " << nfls << ".\n";
-                                
-                                // Maybe there are no frequencies left to compute?  Note that
-                                // the number that counts here is nfl, since only these are
-                                // the `real' frequencies, for which xsec is changed. nfls
-                                // will always be at least one, because it contains the cutoff.
-                                if ( nfl > 0 )
-                                {
-                                    //               cout << ls << endl
-                                    //                    << "aux / F0 / gamma / sigma" << aux << "/" << F0 << "/" << gamma << "/" << sigma << endl
-                                    //                    << f_local[Range(i_f_min,nfls)] << endl
-                                    //                    << nfls << endl;
-                                    
-                                    // Calculate the line shape:
-                                    lineshape_data[ind_ls].Function()(ls_attenuation,ls_phase,
-                                                                      aux,F0,gamma,0.,1.,0.,0.,sigma,0.,
-                                                                      f_local[Range(i_f_min,nfls)]);
-                                    
-                                    // Calculate the chosen normalization factor:
-                                    lineshape_norm_data[ind_lsn].Function()(fac,F0,
-                                                                            f_local[Range(i_f_min,nfls)],
-                                                                            t_i);
-                                    
-                                    // Get a handle on the range of xsec that we want to change.
-                                    // We use nfl here, which could be one less than nfls.
-                                    VectorView this_xsec_attenuation      = xsec_accum_attenuation(arts_omp_get_thread_num(), Range(i_f_min,nfl));
-                                    VectorView this_xsec_phase            = xsec_accum_phase(arts_omp_get_thread_num(), Range(i_f_min,nfl));
-                                    
-                                    // Get handles on the range of ls and fac that we need.
-                                    VectorView this_ls_attenuation  = ls_attenuation[Range(0,nfl)];
-                                    VectorView this_ls_phase  = ls_phase[Range(0,nfl)];
-                                    VectorView this_fac = fac[Range(0,nfl)];
-                                    
-                                    // cutoff ?
-                                    if ( cut )
-                                    {
-                                        // Subtract baseline for cutoff frequency
-                                        // The index nfls-1 should be exactly the index pointing
-                                        // to the value at the cutoff frequency.
-                                        // Subtract baseline from xsec. 
-                                        // this_xsec -= base;
-                                        this_ls_attenuation -= ls_attenuation[nfls-1];
-                                        //if (calc_phase) this_ls_phase -= ls_phase[nfls-1];  PHASE is not compatible with cutoff
-                                    }
-                                    
-                                    // Add line to xsec. 
-                                    {
-                                        // To make the loop a bit faster, precompute all constant
-                                        // factors. These are:
-                                        // 1. Total number density of the air. --> Not
-                                        //    anymore, we now to real cross-sections
-                                        // 2. Line intensity.
-                                        // 3. Isotopologue ratio.
-                                        //
-                                        // The isotopologue ratio must be applied here, since we are
-                                        // summing up lines belonging to different isotopologues.
-                                        
-                                        //                const Numeric factors = n * intensity * l_l.IsotopologueData().Abundance();
-                                        //                    const Numeric factors = intensity * l_l.IsotopologueData().Abundance();
-                                        const Numeric factors = intensity
-                                        * isotopologue_ratios.getParam(l_l.Species(), l_l.Isotopologue())[0].data[0];
-                                        
-                                        // We have to do:
-                                        // xsec(j,i) += factors * ls[j] * fac[j];
-                                        //
-                                        // We use ls as a dummy to compute the product, then add it
-                                        // to this_xsec.
-                                        
-                                        this_ls_attenuation *= this_fac;
-                                        this_ls_attenuation *= factors;
-                                        this_xsec_attenuation += this_ls_attenuation;
-                                        
-                                        if (calc_phase)
-                                        {
-                                            this_ls_phase *= this_fac;
-                                            this_ls_phase *= factors;
-                                            this_xsec_phase += this_ls_phase;
-                                        }
-                                    }
-                                }
-                                
-                            } // end of try block
-                            catch (runtime_error e)
-                            {
-                                #pragma omp critical (xsec_species_fail)
-                                { fail_msg = e.what(); failed = true; }
-                            }
-                            
-                        } // end of parallel LBL loop
-                        
-                        // Bail out if an error occurred in the LBL loop
-                        if (failed) continue;
-                        
-                        // Now we just have to add up all the rows of xsec_accum:
-                        for (Index j=0; j<xsec_accum_attenuation.nrows(); ++j)
-                        {
-                            xsec_i_attenuation += xsec_accum_attenuation(j, Range(joker));
-                        }
-                        
-                        if (calc_phase)
-                            for (Index j=0; j<xsec_accum_phase.nrows(); ++j)
-                            {
-                                xsec_i_phase += xsec_accum_phase(j, Range(joker));
-                            }
-            } // end of parallel pressure loop
             
-            if (failed) throw std::runtime_error("Run-time error in function: xsec_species\n" + fail_msg);
-            
-}
-
-
-/** Calculate line width and pressure shift for artscat4.
- * 
- *   \retval gamma Line width [Hz].
- *   \retval deltaf Pressure shift [Hz].
- *   \param  p Pressure [Pa].
- *   \param  t Temperature [K].
- *   \param  vmrs Vector of VMRs for different species [dimensionless].
- *   \param  this_species Index of current species in vmrs.
- *   \param  broad_spec_locations Has length of number of allowed broadening species
- *                                (6 in artscat-4). Gives for each species the position
- *                                in vmrs, or negative if it should be ignored. See 
- *                function find_broad_spec_locations for details.
- *   \param  l_l Spectral line data record (a single line).
- *   \param  verbosity Verbosity flag.
- * 
- *   \author Stefan Buehler
- *   \date   2012-09-05
- */
-void calc_gamma_and_deltaf_artscat4_old_unused(Numeric& gamma,
-                                               Numeric& deltaf,
-                                               const Numeric p,
-                                               const Numeric t,
-                                               ConstVectorView vmrs,
-                                               const Index this_species,
-                                               const ArrayOfIndex& broad_spec_locations,
-                                               const LineRecord& l_l,
-                                               const Verbosity& verbosity)
-{
-    CREATE_OUT2;
-    
-    // Number of broadening species:
-    const Index nbs = LineRecord::NBroadSpec();
-    assert(nbs==broad_spec_locations.nelem());
-    
-    // Theta is reference temperature divided by local temperature. Used in
-    // several place by the broadening and shift formula.
-    const Numeric theta = l_l.Ti0() / t;
-    
-    // Split total pressure in self and foreign part:
-    const Numeric p_self    = vmrs[this_species] * p;
-    const Numeric p_foreign = p-p_self;
-    
-    // Calculate sum of VMRs of all available foreign broadening species (we need this
-    // for normalization). The species "Self" will not be included in the sum!
-    Numeric broad_spec_vmr_sum = 0;
-    
-    // Gamma is the line width. We first initialize gamma with the self width
-    gamma =  l_l.Sgam() * pow(theta, l_l.Nself()) * p_self;
-    
-    // and treat foreign width separately:
-    Numeric gamma_foreign = 0;
-    
-    // There is no self shift parameter (or rather, we do not have it), so
-    // we do not need separate treatment of self and foreign for the shift:
-    deltaf = 0;
-    
-    // Add up foreign broadening species, where available:
-    for (Index i=0; i<nbs; ++i) {
-        if ( broad_spec_locations[i] < -1 ) {
-            // -2 means that this broadening species is identical to Self.
-            // Throw runtime errors if the parameters are not identical.
-            if (l_l.Gamma_foreign(i)!=l_l.Sgam() ||
-                l_l.N_foreign(i)!=l_l.Nself())
+            if(calc_partials)
             {
-                ostringstream os;
-                os << "Inconsistency in LineRecord, self broadening and line "
-                << "broadening for " << LineRecord::BroadSpecName(i) << "\n"
-                << "should be identical.\n"
-                << "LineRecord:\n"
-                << l_l;
-                throw std::runtime_error(os.str());
+                // These needs to be calculated and returned when Temperature is in list
+                Numeric dgamma_0_dT, ddf_0_dT,
+                dY_dT=0.0,dG_dT=0.0,dDV_dT=0.0,
+                dQ_dT, dabs_nlte_ratio_dT=0.0,
+                atm_tv_low, atm_tv_upp;
+                if(flag_partials.do_temperature())
+                {
+                    abs_lines[ii].LineMixing().GetLineMixingParams_dT(dY_dT, dG_dT, dDV_dT, t, flag_partials.Temperature_Perturbation(),
+                                                                      p, lm_p_lim, 1);
+                    abs_lines[ii].PressureBroadening().GetPressureBroadeningParams_dT(dgamma_0_dT,ddf_0_dT, t, 
+                                                                                      abs_lines[ii].Ti0(),p,
+                                                                                      p_partial,this_species,h2o_index,
+                                                                                      broad_spec_locations,
+                                                                                      vmrs,verbosity);
+                    GetLineScalingData_dT(dqt_dT_cache,
+                                          dQ_dT, 
+                                          dabs_nlte_ratio_dT,
+                                          atm_tv_low, 
+                                          atm_tv_upp,
+                                          qt_cache,
+                                          abs_nlte_ratio,  
+                                          partition_functions.getParamType(abs_lines[ii].Species(), abs_lines[ii].Isotopologue()),
+                                          partition_functions.getParam(abs_lines[ii].Species(), abs_lines[ii].Isotopologue()),
+                                          t,
+                                          flag_partials.Temperature_Perturbation(),
+                                          abs_lines[ii].F(),
+                                          calc_src,
+                                          abs_lines[ii].Evlow(),
+                                          abs_lines[ii].Evupp(),
+                                          abs_lines[ii].EvlowIndex(),
+                                          abs_lines[ii].EvuppIndex(),
+                                          t_nlte);
+                }
+                
+                // Gather all new partial derivative calculations in this function
+                partial_derivatives_lineshape_dependency(partial_xsec_attenuation,
+                                                        partial_xsec_phase, 
+                                                        partial_xsec_source,
+                                                        flag_partials, 
+                                                        attenuation,
+                                                        phase,
+                                                        fac,
+                                                        da_dF, 
+                                                        dp_dF, 
+                                                        da_dP, 
+                                                        dp_dP,
+                                                        f_grid,
+                                                        this_f_range,
+                                                        //Temperature
+                                                        t,
+                                                        vmrs[this_species],
+                                                        sigma,
+                                                        K2,
+                                                        abs_nlte_ratio,//K3
+                                                        dabs_nlte_ratio_dT,
+                                                        src_nlte_ratio,//K4
+                                                        // Line parameters
+                                                        abs_lines[ii].F(),
+                                                        abs_lines[ii].I0(),
+                                                        abs_lines[ii].Elow(),
+                                                        abs_lines[ii].Evlow(),
+                                                        abs_lines[ii].Evupp(),
+                                                         abs_lines[ii].EvlowIndex() > -1? t_nlte[abs_lines[ii].EvlowIndex()]:-1.0,
+                                                         abs_lines[ii].EvuppIndex() > -1? t_nlte[abs_lines[ii].EvuppIndex()]:-1.0,
+                                                        Y,
+                                                        dY_dT,
+                                                        G,
+                                                        dG_dT,
+                                                        DV,
+                                                        dDV_dT,
+                                                        abs_lines[ii].QuantumNumbers(),
+                                                        // LINE SHAPE
+                                                        ind_ls,
+                                                        ind_lsn,
+                                                        df_0,//FIXME: For Hartmann-Tran when this is included... perhaps temperature should be more ingrained in lineshape?
+                                                        ddf_0_dT,
+                                                        gamma_0,
+                                                        dgamma_0_dT,
+                                                        // Partition data parameters
+                                                        qt_cache,
+                                                        dQ_dT,
+                                                        // Magnetic variables
+                                                        precalc_zeeman?Z_DF[ii]:0,
+                                                        H_magntitude_Zeeman,
+                                                        // Programming
+                                                        jj, 
+                                                         abs_species[this_species][0].Species(),
+                                                        calc_partials_phase,
+                                                        calc_src);
             }
-        } else if ( broad_spec_locations[i] >= 0 ) {
-            
-            // Add to VMR sum:
-            broad_spec_vmr_sum += vmrs[broad_spec_locations[i]];
-            
-            // foreign broadening:
-            gamma_foreign +=  l_l.Gamma_foreign(i) * pow(theta, l_l.N_foreign(i))
-            * vmrs[broad_spec_locations[i]];
-            
-            // Pressure shift:
-            // The T dependence is connected to that of the corresponding
-            // broadening parameter by:
-            // n_shift = .25 + 1.5 * n_gamma
-            deltaf += l_l.Delta_foreign(i)
-            * pow( theta , (Numeric).25 + (Numeric)1.5*l_l.N_foreign(i) )
-            * vmrs[broad_spec_locations[i]];
         }
     }
-    
-    // Check that sum of self and all foreign VMRs is not too far from 1:
-    if ( abs(vmrs[this_species]+broad_spec_vmr_sum-1) > 0.1
-        && out2.sufficient_priority() )
-    {
-        ostringstream os;
-        os << "Warning: The total VMR of all your defined broadening\n"
-        << "species (including \"self\") is "
-        << vmrs[this_species]+broad_spec_vmr_sum
-        << ", more than 10% " << "different from 1.\n";
-        out2 << os.str();
-    }
-    
-    // Normalize foreign gamma and deltaf with the foreign VMR sum (but only if
-    // we have any foreign broadening species):
-    if (broad_spec_vmr_sum != 0.)
-    {
-        gamma_foreign /= broad_spec_vmr_sum;
-        deltaf        /= broad_spec_vmr_sum;
-    }
-    else if (p_self > 0.)
-        // If there are no foreign broadening species present, the best assumption
-        // we can make is to use gamma_self in place of gamma_foreign. for deltaf
-        // there is no equivalent solution, as we don't have a Delta_self and don't
-        // know which other Delta we should apply (in this case delta_f gets 0,
-        // which should be okayish):
-    {
-        gamma_foreign = gamma/p_self;
-    }
-    // It can happen that broad_spec_vmr_sum==0 AND p_self==0 (e.g., when p_grid
-    // exceeds the given atmosphere and zero-padding is applied). In this case,
-    // both gamma_foreign and deltaf are 0 and we leave it like that.
-    
-    // Multiply by pressure. For the width we take only the foreign pressure.
-    // This is consistent with that we have scaled with the sum of all foreign
-    // broadening VMRs. In this way we make sure that the total foreign broadening
-    // scales with the total foreign pressure.
-    gamma_foreign  *= p_foreign;
-    // For the shift we simply take the total pressure, since there is no self part.
-    deltaf *= p;
-    
-    // For the width, add foreign parts:
-    gamma += gamma_foreign;
-    
-    // That's it, we're done.
 }

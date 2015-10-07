@@ -445,15 +445,15 @@ Numeric frequency_change_caseb(const Rational& n, const Rational& m, const Ratio
     const Numeric       N_up = n.toNumeric();
     const Numeric       N_lo = N_up - (Numeric)DN;
     const Numeric       M_lo = m.toNumeric();
-    const Numeric       M_up = M_lo + (Numeric)DM; // This will probably confuse people even though it is correct. Should fix so outer loop is over M_up.
+    const Numeric       M_up = M_lo + (Numeric)DM; // This will probably confuse people even though it is correct. Should fix so outer loop is over M_up?
     const Numeric       J_up = j.toNumeric();
     const Numeric       J_lo = J_up - (Numeric)DJ;
     
     // The special case is because g_s is undefined for J=0.
     return (!(j == 0 && DJ == -1)) ? 
-    - H_mag * (M_lo) * gs_caseb(N_lo,J_lo,S,GS) / PLANCK_CONST * BOHR_MAGNETON 
+    - H_mag * (M_lo) * gs_caseb(N_lo,J_lo,S,GS) / PLANCK_CONST * BOHR_MAGNETON   // Should change this to use more general expressions...
     + H_mag * (M_up) * gs_caseb(N_up,J_up,S,GS) / PLANCK_CONST * BOHR_MAGNETON : 
-      H_mag * (M_lo) * gs_caseb(N_lo,J_lo,S,GS) / PLANCK_CONST * BOHR_MAGNETON ;
+      H_mag * (M_lo) * gs_caseb(N_lo,J_lo,S,GS) / PLANCK_CONST * BOHR_MAGNETON ; // Simple  mu·H gives factor sqrt(2)/2 larger splitting... why does this work?  Does it?  14 v. 19 kHz/µT should have been noticed by MLS by now...
 }
 
 
@@ -490,86 +490,187 @@ Numeric frequency_change_casea(const Rational& omega, const Rational& m, const R
     // This follows Berdyugina and Solnaki
     return
         H_mag * (M_up) * gs_casea(Omega_up,J_up,Sigma,GS) / PLANCK_CONST * BOHR_MAGNETON -
-        H_mag * (M_lo) * gs_casea(Omega_lo,J_lo,Sigma,GS) / PLANCK_CONST * BOHR_MAGNETON ;
+        H_mag * (M_lo) * gs_casea(Omega_lo,J_lo,Sigma,GS) / PLANCK_CONST * BOHR_MAGNETON ; // This is likely wrong and only accounts for the gl·L·H part.  Adding gs·S·H (as in caseb), is likely necessary
 }
 
 
 void xsec_species_line_mixing_wrapper_with_zeeman(  
-        Tensor3View part_abs_mat, 
-        MatrixView part_nlte_source,
-        const ArrayOfArrayOfSpeciesTag& abs_species, 
-        const ArrayOfLineshapeSpec& abs_lineshape, 
-        const ArrayOfLineRecord& lr,
-        const Vector& Zeeman_DF,
-        const SpeciesAuxData& isotopologue_ratios, 
-        const SpeciesAuxData& partition_functions, 
-        const Matrix& abs_t_nlte,
-        const Matrix& abs_vmrs, 
-        const Vector& abs_p,
-        const Vector& abs_t, 
-        const Vector& f_grid, 
-        const Numeric& lm_p_lim,
-        const Numeric& theta, 
-        const Numeric& eta, 
-        const Index& DM, 
-        const Index& this_species,
-        const Verbosity& verbosity )
+                                                Tensor4View propmat_clearsky, 
+                                                Tensor3View nlte_source,
+                                                ArrayOfTensor3& dpropmat_clearsky_dx,
+                                                ArrayOfMatrix&  dnlte_dx_source,
+                                                ArrayOfMatrix&  nlte_dsource_dx,
+                                                const ArrayOfArrayOfSpeciesTag& abs_species, 
+                                                const PropmatPartialsData& flag_partials,
+                                                const ArrayOfLineshapeSpec& abs_lineshape, 
+                                                const ArrayOfLineRecord& lr, 
+                                                const Vector&  Zeeman_DF,
+                                                const Vector&  planck_BT,
+                                                const Matrix&  dplanck_BT,
+                                                const SpeciesAuxData& isotopologue_ratios, 
+                                                const SpeciesAuxData& partition_functions,
+                                                const Matrix& abs_t_nlte, 
+                                                const Matrix& abs_vmrs, 
+                                                const Vector& abs_p,
+                                                const Vector& abs_t, 
+                                                const Vector& f_grid,
+                                                const Vector& rtp_mag,
+                                                const Vector& r_path_los,
+                                                const Numeric& lm_p_lim,
+                                                const Numeric& theta, 
+                                                const Numeric& eta, 
+                                                const Numeric& H_mag, 
+                                                const Index& DM, 
+                                                const Index& this_species,
+                                                const Verbosity& verbosity )
 {
-    assert( part_abs_mat.npages() == f_grid.nelem() && part_abs_mat.ncols() == 4 && part_abs_mat.nrows() == 4 );
     
-    bool do_src =  !part_nlte_source.empty();
+    const bool do_src  =  !nlte_source.empty();
+    const Index nq = flag_partials.nelem();
+    const Index nf = f_grid.nelem();
+    const Numeric n = abs_vmrs(this_species, 0)*number_density( abs_p[0],abs_t[0]);
+    const Numeric dn_dT = abs_vmrs(this_species, 0)*number_density( abs_p[0],abs_t[0]);
     
-    Matrix A(f_grid.nelem(), 1, 0.);
-    Matrix B(f_grid.nelem(), 1, 0.);
-    Matrix C(f_grid.nelem(), 1, 0.);
-    
-    
-    for ( Index i=0; i<abs_species[this_species].nelem(); ++i )
+    // Setting up variables
+    Matrix attenuation(nf, 1), 
+           phase(nf, 1), 
+           source(do_src?nf:0,do_src?1:0);
+        
+    ArrayOfMatrix partial_attenuation(nq), 
+                  partial_phase(nq), 
+                  partial_source(do_src?nq:0);
+    for(Index iq = 0; iq<nq; iq++)
     {
-        Matrix attenuation(f_grid.nelem(), 1, 0.), source(f_grid.nelem(), 1, 0.), phase(f_grid.nelem(), 1, 0.); 
-	
-        if( ! do_src )
-	  source.resize(0, 0);
-
-        xsec_species_line_mixing_wrapper( attenuation, source, phase,
-                f_grid, abs_p, abs_t, abs_t_nlte, abs_vmrs, abs_species, this_species, lr, Zeeman_DF,
-                abs_lineshape[i].Ind_ls(), abs_lineshape[i].Ind_lsn(), lm_p_lim, abs_lineshape[i].Cutoff(),
-                isotopologue_ratios, partition_functions, verbosity ); // Now in cross section
-
-        attenuation *= abs_vmrs(this_species, 0) * number_density( abs_p[0],abs_t[0]); // Now in absorption coef.
-	
-        if( do_src )
-	  source *= abs_vmrs(this_species, 0) * number_density( abs_p[0],abs_t[0]); // Now in absorption coef.
-          
-        phase *= abs_vmrs(this_species, 0) * number_density( abs_p[0],abs_t[0]); // Now in absorption coef.
-        phase *= 2; // phase matrix is twice as large according to sources.
-
-        A += attenuation;
-        if(do_src)
-          B += source;
-        C += phase;
+        if(flag_partials(iq)!=JQT_NOT_JQT)
+        {
+            partial_attenuation[iq].resize(nf, 1);
+            partial_phase[iq].resize(nf, 1);
+            if(do_src)
+                partial_source[iq].resize(nf, 1);
+        }
     }
+    
+    //Geometry for normal calculations
     Matrix  K_a(4,4), K_b(4,4);
     attenuation_matrix(K_a, theta*DEG2RAD, eta*DEG2RAD, DM);
     phase_matrix(K_b, theta*DEG2RAD, eta*DEG2RAD, DM);
-
-    Tensor3 temp_part_mat=part_abs_mat;
-    mult(part_abs_mat,A(joker,0), K_a);// Resets part_mat
-    mult(temp_part_mat,C(joker,0), K_b);
-
-    part_abs_mat+=temp_part_mat;
-  
-    if( do_src )
+    
+    //Geometry for derivative calculations
+    Matrix  dK_a_dtheta(4,4), dK_b_dtheta(4,4),dK_a_deta(4,4), dK_b_deta(4,4);
+    Numeric dH_du,dH_dv,dH_dw,deta_du,deta_dv,deta_dw,dtheta_du,dtheta_dv,dtheta_dw;
+    if(nq)//Simplest test
     {
-      // Blackbody radiation is the LTE source
-      Vector planck_B; // tmp is used in lower loop, it is initialized only once
-      blackbody_radiationPlanck(planck_B, f_grid, abs_t[0], verbosity);
-      
-      for(Index ii=0;ii<4;ii++)
-      {
-        part_nlte_source(joker,ii)  =  planck_B;
-        part_nlte_source(joker,ii) *= K_a(0,ii);
-      }
+        set_magnetic_parameters_derivative(dH_du,dH_dv,dH_dw,deta_du,deta_dv,deta_dw,dtheta_du,dtheta_dv,dtheta_dw,rtp_mag,r_path_los);
+        dattenuation_matrix_dtheta(dK_a_dtheta, theta*DEG2RAD, eta*DEG2RAD, DM);
+        dphase_matrix_dtheta(dK_b_dtheta, theta*DEG2RAD, eta*DEG2RAD, DM);
+        dattenuation_matrix_deta(dK_a_deta, theta*DEG2RAD, eta*DEG2RAD, DM);
+        dphase_matrix_deta(dK_b_deta, theta*DEG2RAD, eta*DEG2RAD, DM);
+    }
+    
+    for ( Index i=0; i<abs_species[this_species].nelem(); ++i )
+    {   
+        for(Index iv=0;iv<nf;iv++)
+        {
+            attenuation(iv,0)=0.;phase(iv,0)=0.;
+            if(do_src)
+                source(iv,0)=0.;
+            for(Index iq = 0; iq < nq; iq++)
+            {
+                if(flag_partials(iq)!=JQT_NOT_JQT)
+                {
+                    partial_attenuation[iq](iv,0)=0.;
+                    partial_phase[iq](iv,0)=0.;
+                    if(do_src)
+                        partial_source[iq](iv,0)=0.;
+                }
+            }
+        }
+        
+        xsec_species_line_mixing_wrapper(         attenuation,         source,         phase, 
+                                          partial_attenuation, partial_source, partial_phase, flag_partials,
+                f_grid, abs_p, abs_t, abs_t_nlte, abs_vmrs, abs_species, this_species, lr, Zeeman_DF, H_mag,
+                abs_lineshape[i].Ind_ls(), abs_lineshape[i].Ind_lsn(), lm_p_lim, abs_lineshape[i].Cutoff(),
+                isotopologue_ratios, partition_functions, verbosity ); // Now in cross section
+        
+        //Add things to the total propagation
+        for(Index iv=0;iv<nf;iv++)
+        {
+            for(Index is1 = 0;is1<4;is1++)
+            {
+                for(Index is2 = 0;is2<4;is2++)
+                {
+                    propmat_clearsky(this_species,iv,is1,is2) += (attenuation(iv,0)*K_a(is1,is2)+2.0*phase(iv,0)*K_b(is1,is2))*n;
+                    if(do_src&&is2==0)
+                        nlte_source(this_species,iv,is1) += source(iv,0)*K_a(is1,is2)*planck_BT[iv]*n;
+                    
+                    for(Index iq = 0; iq<nq; iq++)
+                    {
+                        if(flag_partials(iq)==JQT_magnetic_eta)
+                        {/* This is better to do elsewhere since exp(LKL^(-1))=Lexp(K)L^(-1) so the derivative is exp(K)*C+C*exp(K) */}
+                        else if(flag_partials(iq)==JQT_magnetic_theta)
+                        {
+                            dpropmat_clearsky_dx[iq](iv,is1,is2) += (attenuation(iv,0)*dK_a_dtheta(is1,is2)+2.0*phase(iv,0)*dK_b_dtheta(is1,is2))*n;
+                            if(do_src&&is2==0)
+                                dnlte_dx_source[iq](iv,is1) += source(iv,0)*n*dK_a_dtheta(is1,is2)*planck_BT[iv];
+                        }
+                        else if(flag_partials(iq)==JQT_magnetic_u)
+                        {
+                            dpropmat_clearsky_dx[iq](iv,is1,is2) += ((partial_attenuation[iq](iv,0)*K_a(is1,is2)+2.0*partial_phase[iq](iv,0)*K_b(is1,is2))*dH_du+
+                            (attenuation(iv,0)*dK_a_dtheta(is1,is2)+2.0*phase(iv,0)*dK_b_dtheta(is1,is2))*dtheta_du+
+                            (attenuation(iv,0)*dK_a_deta(is1,is2)+2.0*phase(iv,0)*dK_b_deta(is1,is2))*deta_du)*n;
+                            if(do_src&&is2==0)
+                                dnlte_dx_source[iq](iv,is1) += partial_source[iq](iv,0)*n*K_a(is1,is2)*planck_BT[iv];
+                        }
+                        else if(flag_partials(iq)==JQT_magnetic_v)
+                        {
+                            dpropmat_clearsky_dx[iq](iv,is1,is2) += ((partial_attenuation[iq](iv,0)*K_a(is1,is2)+2.0*partial_phase[iq](iv,0)*K_b(is1,is2))*dH_dv+
+                            (attenuation(iv,0)*dK_a_dtheta(is1,is2)+2.0*phase(iv,0)*dK_b_dtheta(is1,is2))*dtheta_dv+
+                            (attenuation(iv,0)*dK_a_deta(is1,is2)+2.0*phase(iv,0)*dK_b_deta(is1,is2))*deta_dv)*n;
+                            if(do_src&&is2==0)
+                                dnlte_dx_source[iq](iv,is1) += partial_source[iq](iv,0)*n*K_a(is1,is2)*planck_BT[iv];
+                        }
+                        else if(flag_partials(iq)==JQT_magnetic_w)
+                        {
+                            dpropmat_clearsky_dx[iq](iv,is1,is2) += ((partial_attenuation[iq](iv,0)*K_a(is1,is2)+2.0*partial_phase[iq](iv,0)*K_b(is1,is2))*dH_dw+
+                            (attenuation(iv,0)*dK_a_dtheta(is1,is2)+2.0*phase(iv,0)*dK_b_dtheta(is1,is2))*dtheta_dw+
+                            (attenuation(iv,0)*dK_a_deta(is1,is2)+2.0*phase(iv,0)*dK_b_deta(is1,is2))*deta_dw)*n;
+                            if(do_src&&is2==0)
+                                dnlte_dx_source[iq](iv,is1) += partial_source[iq](iv,0)*n*K_a(is1,is2)*planck_BT[iv];
+                        }
+                        else if(flag_partials(iq)==JQT_temperature&&do_src)
+                        {
+                            dpropmat_clearsky_dx[iq](iv,is1,is2) += (partial_attenuation[iq](iv,0)* n + attenuation(iv,0) * dn_dT) * K_a(is1,is2)
+                                                                 +   2.0*(partial_phase[iq](iv,0) * n  + phase(iv,0)      * dn_dT) * K_b(is1,is2);
+                            if(is2==0)
+                            {
+                                dnlte_dx_source[iq](iv,is1) += (partial_source[iq](iv,0)*n + source(iv,0)*dn_dT)*K_a(is1,is2)*planck_BT[iv];
+                                nlte_dsource_dx[iq](iv,is1) += source(iv,0)*n*K_a(is1,is2)*dplanck_BT(0,iv);//zeroth index is the temperature derivative
+                            }
+                        }
+                        else if(flag_partials(iq)==JQT_frequency&&do_src)
+                        {
+                            dpropmat_clearsky_dx[iq](iv,is1,is2) += (partial_attenuation[iq](iv,0)*K_a(is1,is2)+2.0*partial_phase[iq](iv,0)*K_b(is1,is2))*n;
+                            if(is2==0)
+                            {
+                                dnlte_dx_source[iq](iv,is1) += partial_source[iq](iv,0)*n*K_a(is1,is2)*planck_BT[iv];
+                                nlte_dsource_dx[iq](iv,is1) += source(iv,0)*n*K_a(is1,is2)*dplanck_BT(0,iv);//zeroth index is the temperature derivative
+                            }
+                        }
+                        else if(flag_partials(iq)==JQT_temperature)
+                        {
+                            dpropmat_clearsky_dx[iq](iv,is1,is2) += (partial_attenuation[iq](iv,0)* n + attenuation(iv,0) * dn_dT) * K_a(is1,is2)
+                                                                 +   2.0*(partial_phase[iq](iv,0) * n  + phase(iv,0)      * dn_dT) * K_b(is1,is2);
+                        }
+                        else if(flag_partials(iq)!=JQT_NOT_JQT)
+                        {
+                            dpropmat_clearsky_dx[iq](iv,is1,is2) += (partial_attenuation[iq](iv,0)*K_a(is1,is2)+2.0*partial_phase[iq](iv,0)*K_b(is1,is2))*n;
+                            if(do_src&&is2==0)
+                                dnlte_dx_source[iq](iv,is1) += partial_source[iq](iv,0)*n*K_a(is1,is2)*planck_BT[iv];
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -598,45 +699,179 @@ void set_magnetic_parameters(Numeric& H_mag,
       theta = 0.0;
   }
   else
-  { // Getting angles from coordinate system
-    Vector H(3);
-    H  = rtp_mag;
-    H /= H_mag;
-    // Direction vector of radiation
-    Numeric dx, dy, dz;
-    zaaa2cart(dx,dy,dz,r_path_los[0],r_path_los[1]);
-    // Radiation path direction as per Mishchenko.
-    Vector R_path(3);
-    R_path[0] = dx;
-    R_path[1] = dy;
-    R_path[2] = dz;
-    // Vertical polarization direction as per Mishchenko.
-    Vector e_v(3);
-    e_v[0] =  cos(r_path_los[0] * DEG2RAD) * cos(r_path_los[1] * DEG2RAD);
-    e_v[1] =  cos(r_path_los[0] * DEG2RAD) * sin(r_path_los[1] * DEG2RAD);
-    e_v[2] = -sin(r_path_los[0] * DEG2RAD);
-    // Horizontal polarization direction as per Mishchenko.
-    Vector e_h(3);
-    e_h[0] = -sin(r_path_los[1] * DEG2RAD);
-    e_h[1] =  cos(r_path_los[1] * DEG2RAD);
-    e_h[2] =  0;
-    // Get the coordinate system used by Lenoir.
-    Vector tmp(3);
-    proj(tmp, R_path, H);
-    Vector R11(3);
-    R11  = H;
-    R11 -= tmp;
-    R11 *= sqrt(R11*R11);
-    Vector R22(3);
-    cross3(R22, R11, R_path);
-    // Test if the rotation is clockwise or counterclockwise.
-    const Numeric eta_test = vector_angle(R22, e_h);
-    // Find the angle between Mishchenko vertical/horizontal and Lenoir vertical/horizontal
-    eta      = (eta_test > 90.0)?-vector_angle(R22, e_v):vector_angle(R22, e_v);
-
-    // Angle between radiation propagation and magnetic field for determining how the radiation is polarized..
-    theta = vector_angle(H, R_path);
+  { 
+    const Numeric 
+    aa=DEG2RAD*r_path_los[1], 
+    za=DEG2RAD*r_path_los[0], 
+    Bu = rtp_mag[0], 
+    Bv = rtp_mag[1], 
+    Bw = rtp_mag[2],
+    cosaa=cos(aa),
+    cosza=cos(za),
+    sinaa=sin(aa),
+    sinza=sin(za),
+    cosaa2 = cosaa*cosaa,
+    cosza2 = cosza*cosza,
+    sinza2 = sinza*sinza,
+    sinaa2 = sinaa*sinaa,
+    Bu2 = Bu*Bu,
+    Bv2 = Bv*Bv,
+    Bw2 = Bw*Bw,
+    term1=(Bu*(cosaa2*sinza2 - 1.) + Bw*cosaa*cosza*sinza + Bv*cosaa*sinaa*sinza2),
+    term2=(Bv*(sinaa2*sinza2 - 1.) + Bw*sinaa*cosza*sinza + Bu*cosaa*sinaa*sinza2),
+    term3=(Bw*(cosza2 - 1.) + Bu*cosaa*cosza*sinza + Bv*sinaa*cosza*sinza);
+    
+    //FIXME: Optimize this at some point?
+    theta = acos((Bw*cosza + Bu*cosaa*sinza + Bv*sinaa*sinza)/H_mag) * RAD2DEG;  
+    
+    const Numeric eta_test=(PI - acos(((Bu*cosaa*cosza - Bw*sinza + Bv*sinaa*cosza)*sqrt(term1*term1/(H_mag*H_mag) + term2*term2/(H_mag*H_mag) + term3*term3/(H_mag*H_mag)))/(H_mag)))*RAD2DEG;
+    
+    eta=acos(((Bv*cosaa - Bu*sinaa)*
+    sqrt(-(Bu2*cosaa2 - Bv2*cosaa2 - Bv2*cosza2 + Bw2*cosza2 - Bu2 - Bw2 + Bu*Bv*sin(2*aa) - Bu2*cosaa2*cosza2 + 
+    Bv2*cosaa2*cosza2 + 2*Bu*Bw*cosaa*cosza*sinza + 2*Bv*Bw*sinaa*cosza*sinza - 2*Bu*Bv*cosaa*sinaa*cosza2)/(H_mag*H_mag)))/H_mag)*RAD2DEG;
+    
+    // FINDME:  Why did I do this?
+    if(eta_test>90.0) eta=-eta;
+    
   }
+}
+
+
+void set_magnetic_parameters_derivative(
+                             Numeric& dH_du,
+                             Numeric& dH_dv,
+                             Numeric& dH_dw,
+                             Numeric& deta_du,
+                             Numeric& deta_dv,
+                             Numeric& deta_dw,
+                             Numeric& dtheta_du,
+                             Numeric& dtheta_dv,
+                             Numeric& dtheta_dw,
+                             ConstVectorView rtp_mag,
+                             ConstVectorView r_path_los)
+{
+    // Even with this long list of declared constants...
+    const Numeric 
+    H_mag = sqrt( rtp_mag * rtp_mag ),
+    aa=DEG2RAD*r_path_los[1], 
+    za=DEG2RAD*r_path_los[0], 
+    Bu = rtp_mag[0], 
+    Bv = rtp_mag[1], 
+    Bw = rtp_mag[2],
+    cosaa=cos(aa),
+    cos2aa=cos(2*aa),
+    cos3aa=cos(3*aa),
+    cos4aa=cos(4*aa),
+    cosza=cos(za),
+    cos2za=cos(2*za),
+    sinaa=sin(aa),
+    sin2aa=sin(2*aa),
+    sin3aa=sin(3*aa),
+    sin4aa=sin(4*aa),
+    sinza=sin(za),
+    sin2za=sin(2*za),
+    cosaa2 = cosaa*cosaa,
+    cosza2 = cosza*cosza,
+    sinza2 = sinza*sinza,
+    sinaa2 = sinaa*sinaa,
+    Bu2 = Bu*Bu,
+    Bu3 = Bu2*Bu,
+    Bu4 = Bu3*Bu,
+    Bv2 = Bv*Bv,
+    Bv3 = Bv2*Bv,
+    Bv4 = Bv3*Bv,
+    Bw2 = Bw*Bw,
+    Bw3 = Bw2*Bw,
+    Bw4 = Bw3*Bw,
+    term1=(Bu*cosaa2*sinza2 - Bu + Bw*cosaa*cosza*sinza + Bv*cosaa*sinaa*sinza2),
+    term2=(Bv*sinaa2*sinza2 - Bv + Bw*sinaa*cosza*sinza + Bu*cosaa*sinaa*sinza2),
+    term3=(Bw*cosza2 - Bw + Bu*cosaa*cosza*sinza + Bv*sinaa*cosza*sinza),
+    eta_test=(PI - acos(((Bu*cosaa*cosza - Bw*sinza + Bv*sinaa*cosza)*sqrt(term1*term1/(H_mag*H_mag) + term2*term2/(H_mag*H_mag) + term3*term3/(H_mag*H_mag)))/(H_mag)))*RAD2DEG,
+    theta_term=((Bw*cosza)/H_mag + (Bv*sin(aa)*sin(za))/H_mag + (Bu*cosaa*sinza)/H_mag),
+    a1  = Bu*Bv3,
+    a2  = Bu3*Bv,
+    a3  = Bu2*Bv2,
+    a4  = Bu2*Bw2,
+    a5  = Bv2*Bw2,
+    a6  = Bv*Bw3,
+    a7  = Bv3*Bw,
+    a8  = Bu*Bv*Bw2,
+    a9  = Bu*Bw3,
+    a10 = Bu3*Bw,
+    a15 = Bu2*Bv*Bw,
+    a16 = Bu*Bv2*Bw,
+    a17 = Bu*Bv,
+    a18 = Bv*Bw,
+    a19 = Bu*Bw;
+    
+    dH_du = rtp_mag[0]/H_mag;
+    dH_dv = rtp_mag[1]/H_mag;
+    dH_dw = rtp_mag[2]/H_mag;
+    
+    dtheta_du=(((Bu2*cosaa*sinza)/(H_mag*sqrt(H_mag)) - (cosaa*sinza)/H_mag + (Bu*Bw*cosza)/(H_mag*sqrt(H_mag)) + (Bu*Bv*sinaa*sinza)/(H_mag*sqrt(H_mag)))/sqrt(1.0 - theta_term*theta_term));
+    dtheta_dv=(dtheta_du*(-(- sinaa*sinza*Bu2 + Bv*cosaa*sinza*Bu - sinaa*sinza*Bw2 + Bv*cosza*Bw)/(cosaa*sinza*Bv2 - Bu*sinaa*sinza*Bv + cosaa*sinza*Bw2 - Bu*cosza*Bw)));
+    dtheta_dw=(dtheta_du*((cosza*Bu2 - Bw*cosaa*sinza*Bu + cosza*Bv2 - Bw*sinaa*sinza*Bv)/(cosaa*sinza*Bv2 - Bu*sinaa*sinza*Bv + cosaa*sinza*Bw2 - Bu*cosza*Bw)));
+    
+    dtheta_du*=RAD2DEG;
+    dtheta_dv*=RAD2DEG;
+    dtheta_dw*=RAD2DEG;
+    
+    //FIXME:  This is ridiculous...  Will try to shorten the number of rows when I have time
+    deta_du  = (sqrt(2)*(Bv4*sin3aa + 3*Bv4*sinaa + 2*Bw4*sinaa + 3*a1*cosaa + 3*a2*cosaa + 
+    Bv4*cos2za*sinaa - 2*Bw4*cos2za*sinaa + 3*a1*cos3aa - a2*cos3aa - Bv4*sin3aa*cos2za + 
+    3*a3*sinaa + 5*a4*sinaa + 5*a5*sinaa - a6*sin2za - a7*sin2za - 
+    3*a3*sin3aa - a4*sin3aa + a5*sin3aa + 3*a3*sin3aa*cos2za + a4*sin3aa*cos2za - 
+    a5*sin3aa*cos2za + a1*cos2za*cosaa + a2*cos2za*cosaa - 3*a1*cos3aa*cos2za + a2*cos3aa*cos2za + 
+    2*a8*cos3aa + 3*a6*cos2aa*sin2za + 3*a7*cos2aa*sin2za + a3*cos2za*sinaa + 3*a4*cos2za*sinaa - 
+    a5*cos2za*sinaa - 3*a9*sin2aa*sin2za + a10*sin2aa*sin2za - a15*sin2za - 7*a16*sin2aa*sin2za - 
+    4*a8*cos2za*cosaa - 2*a8*cos3aa*cos2za - 5*a15*cos2aa*sin2za))/(
+        sqrt((Bv2*cosaa2 - Bu2*cosaa2 + Bv2*cos2za - 
+        Bw2*cos2za + 2*Bu2 + Bv2 + Bw2 - a17*sin2aa + Bu2*cos2za*cosaa2 - Bv2*cos2za*cosaa2 - 2*a18*sin2za*sinaa - 2*a19*sin2za*cosaa + 
+        2*a17*cos2za*cosaa*sinaa)/(H_mag*H_mag))*
+        sqrt((8*Bu4*cos2aa - Bu4*cos4aa - 8*Bv4*cos2aa - Bv4*cos4aa - Bu4*cos2za - Bv4*cos2za + 
+        9*Bu4 + 9*Bv4 + 16*Bw4 + 18*a3 + 28*a4 + 28*a5 + Bu4*cos4aa*cos2za + Bv4*cos4aa*cos2za + 16*a1*sin2aa + 16*a2*sin2aa + 
+        4*a1*sin4aa - 4*a2*sin4aa + 6*a3*cos4aa + 4*a4*cos2aa - 4*a5*cos2aa - 2*a3*cos2za + 4*a4*cos2za + 4*a5*cos2za - 
+        6*a3*cos4aa*cos2za - 4*a4*cos2aa*cos2za + 4*a5*cos2aa*cos2za + 4*a10*sin2za*cosaa + 4*a7*sin2za*sinaa - 4*a1*sin4aa*cos2za + 
+        4*a2*sin4aa*cos2za - 4*a10*cos3aa*sin2za + 8*a8*sin2aa + 4*a7*sin3aa*sin2za - 12*a15*sin3aa*sin2za + 4*a16*sin2za*cosaa + 
+        4*a15*sin2za*sinaa - 8*a8*sin2aa*cos2za + 12*a16*cos3aa*sin2za)/(H_mag*H_mag*H_mag*H_mag))*(H_mag*H_mag*H_mag*H_mag*sqrt(H_mag)));
+    
+    deta_dv = deta_du*(-(3*Bu4*cosaa - Bu4*cos3aa + 2*Bw4*cosaa + Bu4*cos2za*cosaa - 2*Bw4*cos2za*cosaa + 3*a1*sinaa + 3*a2*sinaa + Bu4*cos3aa*cos2za + 
+    3*a3*cosaa + 5*a4*cosaa + 5*a5*cosaa + a1*sin3aa - 3*a2*sin3aa - a9*sin2za - a10*sin2za + 3*a3*cos3aa - 
+    a4*cos3aa + a5*cos3aa - 3*a3*cos3aa*cos2za + a4*cos3aa*cos2za - a5*cos3aa*cos2za + a1*cos2za*sinaa + 
+    a2*cos2za*sinaa + a3*cos2za*cosaa - a4*cos2za*cosaa + 3*a5*cos2za*cosaa - a1*sin3aa*cos2za + 3*a2*sin3aa*cos2za - 
+    3*a9*cos2aa*sin2za - 3*a10*cos2aa*sin2za - 2*a8*sin3aa - 3*a6*sin2aa*sin2za + a7*sin2aa*sin2za - a16*sin2za - 
+    7*a15*sin2aa*sin2za - 4*a8*cos2za*sinaa + 5*a16*cos2aa*sin2za + 2*a8*sin3aa*cos2za)/(Bv4*sin3aa + 3*Bv4*sinaa + 
+    2*Bw4*sinaa + 3*a1*cosaa + 3*a2*cosaa + Bv4*cos2za*sinaa - 2*Bw4*cos2za*sinaa + 3*a1*cos3aa - a2*cos3aa - Bv4*sin3aa*cos2za + 
+    3*a3*sinaa + 5*a4*sinaa + 5*a5*sinaa - a6*sin2za - a7*sin2za - 3*a3*sin3aa - a4*sin3aa + a5*sin3aa + 
+    3*a3*sin3aa*cos2za + a4*sin3aa*cos2za - a5*sin3aa*cos2za + a1*cos2za*cosaa + a2*cos2za*cosaa - 3*a1*cos3aa*cos2za + 
+    a2*cos3aa*cos2za + 2*a8*cos3aa + 3*a6*cos2aa*sin2za + 3*a7*cos2aa*sin2za + a3*cos2za*sinaa + 3*a4*cos2za*sinaa - 
+    a5*cos2za*sinaa - 3*a9*sin2aa*sin2za + a10*sin2aa*sin2za - a15*sin2za - 7*a16*sin2aa*sin2za - 4*a8*cos2za*cosaa - 
+    2*a8*cos3aa*cos2za - 5*a15*cos2aa*sin2za));
+    
+    deta_dw = deta_du*((2*a6*cosaa + 5*a7*cosaa - 2*a9*sinaa - 5*a10*sinaa + a7*cos3aa + a10*sin3aa - Bu4*sin2aa*sin2za + Bv4*sin2aa*sin2za + 
+    3*a4*sin2aa*sin2za - 3*a5*sin2aa*sin2za - 2*a6*cos2za*cosaa + 3*a7*cos2za*cosaa + 5*a15*cosaa + 2*a9*cos2za*sinaa - 
+    3*a10*cos2za*sinaa - 5*a16*sinaa - a7*cos3aa*cos2za - 3*a15*cos3aa + 2*a1*cos2aa*sin2za + 2*a2*cos2aa*sin2za - 
+    a10*sin3aa*cos2za - 3*a16*sin3aa + 3*a15*cos2za*cosaa - 3*a16*cos2za*sinaa + 3*a15*cos3aa*cos2za - 6*a8*cos2aa*sin2za + 
+    3*a16*sin3aa*cos2za)/(Bv4*sin3aa + 3*Bv4*sinaa + 2*Bw4*sinaa + 3*a1*cosaa + 3*a2*cosaa + Bv4*cos2za*sinaa - 2*Bw4*cos2za*sinaa + 
+    3*a1*cos3aa - a2*cos3aa - Bv4*sin3aa*cos2za + 3*a3*sinaa + 5*a4*sinaa + 5*a5*sinaa - a6*sin2za - a7*sin2za - 3*a3*sin3aa - 
+    a4*sin3aa + a5*sin3aa + 3*a3*sin3aa*cos2za + a4*sin3aa*cos2za - a5*sin3aa*cos2za + a1*cos2za*cosaa + a2*cos2za*cosaa - 
+    3*a1*cos3aa*cos2za + a2*cos3aa*cos2za + 2*a8*cos3aa + 3*a6*cos2aa*sin2za + 3*a7*cos2aa*sin2za + a3*cos2za*sinaa + 3*a4*cos2za*sinaa - 
+    a5*cos2za*sinaa - 3*a9*sin2aa*sin2za + a10*sin2aa*sin2za - a15*sin2za - 7*a16*sin2aa*sin2za - 4*a8*cos2za*cosaa - 2*a8*cos3aa*cos2za - 
+    5*a15*cos2aa*sin2za));
+    
+    //FINDME: Why did I do this?
+    if(eta_test>90.)
+    {
+        deta_du*=-RAD2DEG;
+        deta_dv*=-RAD2DEG;
+        deta_dw*=-RAD2DEG;
+    }
+    else
+    {
+        deta_du*=RAD2DEG;
+        deta_dv*=RAD2DEG;
+        deta_dw*=RAD2DEG;
+    }
 }
 
 
@@ -940,4 +1175,36 @@ void set_part_isotopologue_constants(Index& hund,Numeric& GS,const SpeciesAuxDat
 {
   hund = (Index) isotopologue_quantum.getParam(temp_LR.Species(), temp_LR.Isotopologue())[0].data[2];
   GS   = isotopologue_quantum.getParam(temp_LR.Species(), temp_LR.Isotopologue())[0].data[0];
+}
+
+
+void set_strength_partial_derivative_matrix(ArrayOfMatrix& A, ArrayOfMatrix& B, const ArrayOfRetrievalQuantity flag_partials, const Vector& f_grid)
+{
+    for(Index ii=0; ii<flag_partials.nelem(); ii++)
+    {
+        if(flag_partials[ii].MainTag() == "Zeeman" &&  flag_partials[ii].Subtag() == "Magnetic Strength" && flag_partials[ii].SubSubtag() == "From Propagation")
+        {
+            A[ii].resize(f_grid.nelem(),1);
+            B[ii].resize(f_grid.nelem(),1);
+            A[ii]=0;
+            B[ii]=0;
+            return;
+        }
+    }
+}
+
+Index part_mag_strength(const ArrayOfRetrievalQuantity& flag_partials)
+{
+    for(Index ii=0; ii<flag_partials.nelem(); ii++)
+        if(flag_partials[ii].MainTag() == "Zeeman" &&  flag_partials[ii].Subtag() == "Magnetic Strength" && flag_partials[ii].SubSubtag() == "From Propagation")
+            return ii;
+    return -1;
+}
+
+Index part_mag_theta(const ArrayOfRetrievalQuantity& flag_partials)
+{
+    for(Index ii=0; ii<flag_partials.nelem(); ii++)
+        if(flag_partials[ii].MainTag() == "Zeeman" &&  flag_partials[ii].Subtag() == "Magnetic Theta" && flag_partials[ii].SubSubtag() == "From Propagation")
+            return ii;
+        return -1;
 }

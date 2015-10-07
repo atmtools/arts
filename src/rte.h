@@ -141,6 +141,16 @@ void ext2trans(
    ConstMatrixView    ext_mat_av,
    const Numeric&     l_step );
 
+void ext2trans_and_ext2dtrans_dx(
+    MatrixView   trans_mat,
+    Tensor3View  dtrans_mat_dx_upp,
+    Tensor3View  dtrans_mat_dx_low,
+    Index&       icase,
+    ConstMatrixView    ext_mat,
+    ConstTensor3View   dext_mat_dx_upp,
+    ConstTensor3View   dext_mat_dx_low,
+    const Numeric&     lstep );
+
 void get_iy(
          Workspace&   ws,
          Matrix&      iy,
@@ -203,7 +213,9 @@ void get_ppath_pmat(
         Tensor3&        ppath_nlte_source,
         ArrayOfIndex&   lte,
         Tensor5&        abs_per_species,
+        Tensor5&        dppath_ext_dx,
   const Agenda&         propmat_clearsky_agenda,
+  const ArrayOfRetrievalQuantity& jacobian_quantities,
   const Ppath&          ppath,
   ConstVectorView       ppath_p, 
   ConstVectorView       ppath_t, 
@@ -255,6 +267,20 @@ void get_ppath_trans(
         Vector&                scalar_tau,
   const Ppath&                 ppath,
   ConstTensor4View&            ppath_ext,
+  ConstVectorView              f_grid, 
+  const Index&                 stokes_dim );
+
+void get_ppath_trans_and_dppath_trans_dx( 
+        Tensor4&               trans_partial,
+        Tensor5&               dtrans_partial_dx_from_above,
+        Tensor5&               dtrans_partial_dx_from_below,
+        ArrayOfArrayOfIndex&   extmat_case,
+        Tensor4&               trans_cumulat,
+        Vector&                scalar_tau,
+  const Ppath&                 ppath,
+  ConstTensor4View&            ppath_ext,
+  ConstTensor5View&            dppath_ext_dx,
+  const ArrayOfRetrievalQuantity& jacobian_quantities,
   ConstVectorView              f_grid, 
   const Index&                 stokes_dim );
 

@@ -1095,6 +1095,178 @@ void ext2trans(
 }
 
 
+//! 
+/*!
+ *   Converts an extinction matrix to a transmission matrix
+ * 
+ *   The function performs the calculations differently depending on the
+ *   conditions, to improve the speed. There are three cases: <br>
+ *      1. Scalar RT and/or the matrix ext_mat_av is diagonal. <br>
+ *      2. Special expression for "horizontally_aligned" case. <br>
+ *      3. The total general case.
+ * 
+ *   If the structure of *ext_mat* is known, *icase* can be set to "case index"
+ *   (1, 2 or 3) and some time is saved. This includes that no asserts are
+ *   performed on *ext_mat*.
+ * 
+ *   Otherwise, *icase* must be set to 0. *ext_mat* is then analysed and *icase*
+ *   is set by the function and is returned.
+ * 
+ *   trans_mat must be sized before calling the function.
+ * 
+ *   \param   trans_mat          Input/Output: Transmission matrix of slab.
+ *   \param   icase              Input/Output: Index giving ext_mat case.
+ *   \param   ext_mat            Input: Averaged extinction matrix.
+ *   \param   lstep              Input: The length of the RTE step.
+ * 
+ *   \author Patrick Eriksson (based on earlier version started by Claudia)
+ *   \date   2013-05-17 
+ * 
+ *   Added support for partial derivatives (copy-change of original function)
+ *   \author Richard Larsson
+ *   \date   2015-10-06
+ */
+void ext2trans_and_ext2dtrans_dx(
+    MatrixView   trans_mat,
+    Tensor3View  dtrans_mat_dx_upp,
+    Tensor3View  dtrans_mat_dx_low,
+    Index&       icase,
+    ConstMatrixView    ext_mat,
+    ConstTensor3View   dext_mat_dx_upp,
+    ConstTensor3View   dext_mat_dx_low,
+    const Numeric&     lstep )
+{
+    const Index stokes_dim = ext_mat.ncols();
+    const Index nq         = dext_mat_dx_upp.npages();
+    
+    assert( ext_mat.nrows()==stokes_dim );
+    assert( trans_mat.nrows()==stokes_dim && trans_mat.ncols()==stokes_dim );
+    
+    // Theoretically ext_mat(0,0) >= 0, but to demand this can cause problems for
+    // iterative retrievals, and the assert is skipped. Negative should be a
+    // result of negative vmr, and this issue is checked in basics_checkedCalc.
+    //assert( ext_mat(0,0) >= 0 );     
+    
+    assert( icase>=0 && icase<=3 );
+    assert( !is_singular( ext_mat ) );
+    assert( lstep >= 0 );
+    
+    // Analyse ext_mat?
+    if( icase == 0 )
+    { 
+        icase = 1;  // Start guess is diagonal
+        
+        //--- Scalar case ----------------------------------------------------------
+        if( stokes_dim == 1 )
+        {}
+        
+        //--- Vector RT ------------------------------------------------------------
+        else
+        {
+            // Check symmetries and analyse structure of exp_mat:
+            assert( ext_mat(1,1) == ext_mat(0,0) );
+            assert( ext_mat(1,0) == ext_mat(0,1) );
+            
+            if( ext_mat(1,0) != 0 )
+            { icase = 2; }
+            
+            if( stokes_dim >= 3 )
+            {     
+                assert( ext_mat(2,2) == ext_mat(0,0) );
+                assert( ext_mat(2,1) == -ext_mat(1,2) );
+                assert( ext_mat(2,0) == ext_mat(0,2) );
+                
+                if( ext_mat(2,0) != 0  ||  ext_mat(2,1) != 0 )
+                { icase = 3; }
+                
+                if( stokes_dim > 3 )  
+                {
+                    assert( ext_mat(3,3) == ext_mat(0,0) );
+                    assert( ext_mat(3,2) == -ext_mat(2,3) );
+                    assert( ext_mat(3,1) == -ext_mat(1,3) );
+                    assert( ext_mat(3,0) == ext_mat(0,3) ); 
+                    
+                    if( icase < 3 )  // if icase==3, already at most complex case
+                    {
+                        if( ext_mat(3,0) != 0  ||  ext_mat(3,1) != 0 )
+                        { icase = 3; }
+                        else if( ext_mat(3,2) != 0 )
+                        { icase = 2; }
+                    }
+                }
+            }
+        }
+    }
+    
+    
+    // Calculation options:
+    if( icase == 1 )
+    {
+        trans_mat = 0;
+        trans_mat(0,0) = exp( -ext_mat(0,0) * lstep );
+        for( Index iq =0; iq<nq; iq++ )
+        {
+            dtrans_mat_dx_upp(iq,0,0) = - trans_mat(0,0) * lstep * dext_mat_dx_upp(iq,0,0);
+            dtrans_mat_dx_low(iq,0,0) = - trans_mat(0,0) * lstep * dext_mat_dx_low(iq,0,0);
+        }
+        for( Index i=1; i<stokes_dim; i++ )
+        { trans_mat(i,i) = trans_mat(0,0); }
+    }
+    /*  Removed temporarily FIXME:  What is this, how do I use it???
+    else if( icase == 2 )
+    {
+        // Expressions below are found in "Polarization in Spectral Lines" by
+        // Landi Degl'Innocenti and Landolfi (2004).
+        const Numeric tI = exp( -ext_mat(0,0) * lstep );
+        const Numeric HQ = ext_mat(0,1) * lstep;
+        trans_mat(0,0) = tI * cosh( HQ );
+        trans_mat(1,1) = trans_mat(0,0);
+        trans_mat(1,0) = -tI * sinh( HQ );
+        trans_mat(0,1) = trans_mat(1,0);
+        if( stokes_dim >= 3 )
+        {
+            trans_mat(2,0) = 0;
+            trans_mat(2,1) = 0;
+            trans_mat(0,2) = 0;
+            trans_mat(1,2) = 0;
+            const Numeric RQ = ext_mat(2,3) * lstep;
+            trans_mat(2,2) = tI * cos( RQ );
+            if( stokes_dim > 3 )
+            {
+                trans_mat(3,0) = 0;
+                trans_mat(3,1) = 0;
+                trans_mat(0,3) = 0;
+                trans_mat(1,3) = 0;
+                trans_mat(3,3) = trans_mat(2,2);
+                trans_mat(3,2) = tI * sin( RQ );
+                trans_mat(2,3) = -trans_mat(3,2); 
+            }
+        }
+    }*/
+    else
+    {
+        Matrix ext_mat_ds(stokes_dim,stokes_dim);
+        Tensor3 dext_mat_ds_dx_upp(nq,stokes_dim,stokes_dim),dext_mat_ds_dx_low(nq,stokes_dim,stokes_dim);
+        for(Index is1=0; is1<stokes_dim; is1++ )
+        {
+            for(Index is2=0; is2<stokes_dim; is2++ )
+            {
+                ext_mat_ds(is1,is2) = - ext_mat(is1,is2)*lstep;
+                for(Index iq=0; iq<nq; iq++ )
+                {
+                    dext_mat_ds_dx_upp(iq,is1,is2) = - dext_mat_dx_upp(iq,is1,is2)*lstep;
+                    dext_mat_ds_dx_low(iq,is1,is2) = - dext_mat_dx_low(iq,is1,is2)*lstep;
+                }
+            }
+        }
+        //         
+        Index q = 10;  // index for the precision of the matrix exp function
+        //
+        special_matrix_exp_and_dmatrix_exp_dx_for_rt( trans_mat, dtrans_mat_dx_upp, dtrans_mat_dx_low,
+                                                      ext_mat_ds, dext_mat_ds_dx_upp, dext_mat_ds_dx_low, q );
+    }
+}
+
 
 
 
@@ -1461,7 +1633,9 @@ void get_ppath_pmat(
         Tensor3&        ppath_nlte_source,
         ArrayOfIndex&   lte,
         Tensor5&        abs_per_species,
+        Tensor5&        dppath_ext_dx,
   const Agenda&         propmat_clearsky_agenda,
+  const ArrayOfRetrievalQuantity& jacobian_quantities,
   const Ppath&          ppath,
   ConstVectorView       ppath_p, 
   ConstVectorView       ppath_t, 
@@ -1473,11 +1647,15 @@ void get_ppath_pmat(
   const Index&          stokes_dim,
   const ArrayOfIndex&   ispecies )
 {
+  // Helper variable
+  const PropmatPartialsData ppd(jacobian_quantities);
+    
   // Sizes
   const Index   nf   = f_grid.nelem();
   const Index   np   = ppath.np;
   const Index   nabs = ppath_vmr.nrows();
   const Index   nisp = ispecies.nelem();
+  const Index   nq   = ppd.nelem();
 
   DEBUG_ONLY(
     for( Index i=0; i<nisp; i++ )
@@ -1495,6 +1673,8 @@ void get_ppath_pmat(
       ppath_nlte_source.resize( nf, stokes_dim, np );   // We start by assuming non-LTE
       lte.resize( np );
       abs_per_species.resize( nisp, nf, stokes_dim, stokes_dim, np ); 
+      nq?dppath_ext_dx.resize(nq, nf, stokes_dim, stokes_dim, np ):
+         dppath_ext_dx.resize( 0,  0,          0,          0,  0 );
     } 
   catch (std::bad_alloc x) 
     {
@@ -1525,6 +1705,8 @@ void get_ppath_pmat(
 
       // Call agenda
       //
+      ArrayOfTensor3 dpropmat_clearsky_dx;
+      ArrayOfMatrix  dnlte_dx_source, nlte_dx_dsource_dx;
       Tensor4  propmat_clearsky;
       Tensor3  nlte_source;
       //
@@ -1533,16 +1715,16 @@ void get_ppath_pmat(
         if( nabs )
           {
             propmat_clearsky_agendaExecute( 
-               l_ws, propmat_clearsky, nlte_source,
-               ppath_f(joker,ip), ppath_mag(joker,ip), ppath.los(ip,joker), 
+            l_ws, propmat_clearsky, nlte_source, dpropmat_clearsky_dx, dnlte_dx_source, nlte_dx_dsource_dx,
+               jacobian_quantities, ppath_f(joker,ip), ppath_mag(joker,ip), ppath.los(ip,joker), 
                ppath_p[ip], ppath_t[ip], (ppath_t_nlte.nrows()&&ppath_t_nlte.nrows())?ppath_t_nlte(joker,ip):Vector(0), ppath_vmr(joker,ip),
                l_propmat_clearsky_agenda );
           }
         else
           {
             propmat_clearsky_agendaExecute( 
-               l_ws, propmat_clearsky, nlte_source,
-               ppath_f(joker,ip), ppath_mag(joker,ip), ppath.los(ip,joker), 
+            l_ws, propmat_clearsky, nlte_source, dpropmat_clearsky_dx, dnlte_dx_source, nlte_dx_dsource_dx,
+               jacobian_quantities, ppath_f(joker,ip), ppath_mag(joker,ip), ppath.los(ip,joker), 
                ppath_p[ip], ppath_t[ip], (ppath_t_nlte.nrows()&&ppath_t_nlte.nrows())?ppath_t_nlte(joker,ip):Vector(0), Vector(0), l_propmat_clearsky_agenda );
           }
       } catch (runtime_error e) {
@@ -1570,6 +1752,11 @@ void get_ppath_pmat(
                         {
                           abs_per_species(ia,i1,i2,i3,ip) = 
                                                 propmat_clearsky(ispecies[ia],i1,i2,i3);
+                        }
+                        
+                      for( Index iq=0; iq<nq; iq++ )
+                        {
+                          dppath_ext_dx(iq,i1,i2,i3,ip) = dpropmat_clearsky_dx[iq](i1,i2,i3);
                         }
                       
                     }
@@ -1600,7 +1787,7 @@ void get_ppath_pmat(
             }
         }
     }
-
+    
     if (failed)
       throw runtime_error(fail_msg);
 }
@@ -1965,6 +2152,136 @@ void get_ppath_trans(
               mult( trans_cumulat(iv,joker,joker,ip), 
                     trans_cumulat(iv,joker,joker,ip-1), 
                     trans_partial(iv,joker,joker,ip-1) );
+            }
+        }
+    }
+}
+
+
+//! get_ppath_trans
+/*!
+ *   Determines the transmission in different ways for a clear-sky RT
+ *   integration.
+ * 
+ *   The argument trans_partial holds the transmission for each propagation path
+ *   step. It has np-1 columns.
+ * 
+ *   The structure of average extinction matrix for each step is returned in
+ *   extmat_case. The dimension of this variable is [np-1,nf]. For the coding
+ *   see *ext2trans*.
+ * 
+ *   The argument trans_cumalat holds the transmission between the path point
+ *   with index 0 and each propagation path point. The transmission is valid for
+ *   the photon travelling direction. It has np columns.
+ * 
+ *   The output variables are sized inside the function. The dimension order is 
+ *      [ frequency, stokes, stokes, ppath point ]
+ * 
+ *   The scalar optical thickness is calculated in parallel.
+ * 
+ *   \param   trans_partial  Out: Transmission for each path step.
+ *   \param   dtrans_partial_dx_from_above  Out: Partial transmission for upper p-level.
+ *   \param   dtrans_partial_dx_from_below  Out: Partial transmission for lower p-level.
+ *   \param   extmat_case    Out: Corresponds to *icase* of *ext2trans*.
+ *   \param   trans_cumulat  Out: Transmission to each path point.
+ *   \param   scalar_tau     Out: Total (scalar) optical thickness of path
+ *   \param   ppath          As the WSV.    
+ *   \param   ppath_ext      See get_ppath_ext.
+ *   \param   dppath_ext_dx  See get_ppath_ext_and_dppath_ext_dx.
+ *   \param   jacobian_quantities  As the WSV.    
+ *   \param   f_grid         As the WSV.    
+ *   \param   stokes_dim     As the WSV.
+ * 
+ *   \author Patrick Eriksson 
+ *   \date   2012-08-15
+ * 
+ *   Added support for partial derivatives (copy-change of original function)
+ *   \author Richard Larsson
+ *   \date   2015-10-06
+ */
+void get_ppath_trans_and_dppath_trans_dx( 
+        Tensor4&               trans_partial,
+        Tensor5&               dtrans_partial_dx_from_above,
+        Tensor5&               dtrans_partial_dx_from_below,
+        ArrayOfArrayOfIndex&   extmat_case,
+        Tensor4&               trans_cumulat,
+        Vector&                scalar_tau,
+  const Ppath&                 ppath,
+  ConstTensor4View&            ppath_ext,
+  ConstTensor5View&            dppath_ext_dx,
+  const ArrayOfRetrievalQuantity& jacobian_quantities,
+  ConstVectorView              f_grid, 
+  const Index&                 stokes_dim )
+{
+    //Helper variable 
+    const PropmatPartialsData ppd(jacobian_quantities);
+    
+    // Sizes
+    const Index   nf = f_grid.nelem();
+    const Index   np = ppath.np;
+    const Index   nq = ppd.nelem();
+    
+    // Init variables
+    //
+    trans_partial.resize( nf, stokes_dim, stokes_dim, np-1 );
+    dtrans_partial_dx_from_above.resize( nq, nf, stokes_dim, stokes_dim, np-1 );
+    dtrans_partial_dx_from_below.resize( nq, nf, stokes_dim, stokes_dim, np-1 );
+    trans_cumulat.resize( nf, stokes_dim, stokes_dim, np );
+    //
+    extmat_case.resize(np-1);
+    for( Index i=0; i<np-1; i++ )
+    { extmat_case[i].resize(nf); }
+    //
+    scalar_tau.resize( nf );
+    scalar_tau = 0;
+    
+    // Loop ppath points (in the anti-direction of photons)  
+    //
+    for( Index ip=0; ip<np; ip++ )
+    {
+        // If first point, calculate sum of absorption and set transmission
+        // to identity matrix.
+        if( ip == 0 )
+        { 
+            for( Index iv=0; iv<nf; iv++ )
+            { id_mat( trans_cumulat(iv,joker,joker,ip) ); }
+        }
+        
+        else
+        {
+            for( Index iv=0; iv<nf; iv++ )
+            {
+                // Transmission due to absorption
+                Matrix ext_mat(stokes_dim,stokes_dim);
+                Tensor3 dext_mat_dx_from_above(nq,stokes_dim,stokes_dim),
+                        dext_mat_dx_from_below(nq,stokes_dim,stokes_dim);
+                for( Index is1=0; is1<stokes_dim; is1++ ) {
+                    for( Index is2=0; is2<stokes_dim; is2++ ) {
+                        ext_mat(is1,is2) = 0.5 * ( ppath_ext(iv,is1,is2,ip-1) + 
+                        ppath_ext(iv,is1,is2,ip  ) );
+                        for( Index iq=0; iq<nq; iq++ )
+                        {
+                            // Upper and lower level influence on the dependency at layer
+                            dext_mat_dx_from_above(iq,is1,is1) = 
+                            0.5 * dppath_ext_dx(iq,iv,is1,is2,ip);
+                            dext_mat_dx_from_below(iq,is1,is1) = 
+                            0.5 * dppath_ext_dx(iq,iv,is1,is2,ip-1);
+                    } } }
+                    scalar_tau[iv] += ppath.lstep[ip-1] * ext_mat(0,0); 
+                    extmat_case[ip-1][iv] = 0;
+                    ext2trans_and_ext2dtrans_dx( 
+                                trans_partial(iv,joker,joker,ip-1), 
+                                dtrans_partial_dx_from_above(joker, iv,joker,joker,ip-1), 
+                                dtrans_partial_dx_from_below(joker, iv,joker,joker,ip-1), 
+                                extmat_case[ip-1][iv], ext_mat, 
+                                dext_mat_dx_from_above,dext_mat_dx_from_below,
+                                ppath.lstep[ip-1] );
+                    
+                    // Cumulative transmission
+                    // (note that multiplication below depends on ppath loop order)
+                    mult( trans_cumulat(iv,joker,joker,ip), 
+                          trans_cumulat(iv,joker,joker,ip-1), 
+                          trans_partial(iv,joker,joker,ip-1) );
             }
         }
     }

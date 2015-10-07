@@ -9,6 +9,9 @@ INCLUDE "general/general.arts"
 INCLUDE "general/continua.arts"
 INCLUDE "general/agendas.arts"
 
+# We do not want to calculate the Jacobian Matrix
+jacobianOff
+
 # Agenda for scalar gas absorption calculation
 Copy( abs_xsec_agenda, abs_xsec_agenda__noCIA )
 

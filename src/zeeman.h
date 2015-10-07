@@ -30,6 +30,7 @@
 #include "matpackIII.h"
 #include "rte.h"
 #include "rational.h"
+#include "partial_derivatives.h"
 
 extern const Numeric PI;
 extern const Numeric DEG2RAD;
@@ -57,12 +58,18 @@ Numeric frequency_change_caseb(const Rational& n, const Rational& m, const Ratio
 Numeric frequency_change_casea(const Rational& omega, const Rational& m, const Rational& j, const Numeric& Sigma, const Index& DJ, const Index& DM, const Index& Domega, const Numeric& H_mag, const Numeric& GS);
 
 void xsec_species_line_mixing_wrapper_with_zeeman(  
-        Tensor3View part_abs_mat, 
-        MatrixView part_nlte_source,
+        Tensor4View propmat_clearsky, 
+        Tensor3View nlte_source,
+        ArrayOfTensor3& dpropmat_clearsky_dx,
+        ArrayOfMatrix&  dnlte_dx_source,
+        ArrayOfMatrix&  nlte_dsource_dx,
         const ArrayOfArrayOfSpeciesTag& abs_species, 
+        const PropmatPartialsData& flag_partials,
         const ArrayOfLineshapeSpec& abs_lineshape, 
         const ArrayOfLineRecord& lr, 
         const Vector&  Zeeman_DF,
+        const Vector&  planck_BT,
+        const Matrix&  dplanck_BT,
         const SpeciesAuxData& isotopologue_ratios, 
         const SpeciesAuxData& partition_functions,
         const Matrix& abs_t_nlte, 
@@ -70,9 +77,12 @@ void xsec_species_line_mixing_wrapper_with_zeeman(
         const Vector& abs_p,
         const Vector& abs_t, 
         const Vector& f_grid, 
+        const Vector& rtp_mag,
+        const Vector& r_path_los,
         const Numeric& lm_p_lim,
         const Numeric& theta, 
         const Numeric& eta, 
+        const Numeric& H_mag, 
         const Index& DM, 
         const Index& this_species,
         const Verbosity& verbosity );
@@ -86,6 +96,18 @@ void set_magnetic_parameters(Numeric& H_mag,
                              const Numeric& manual_zeeman_magnetic_field_strength,
                              ConstVectorView rtp_mag,
                              ConstVectorView r_path_los);
+
+void set_magnetic_parameters_derivative(Numeric& dH_du,
+                                        Numeric& dH_dv,
+                                        Numeric& dH_dw,
+                                        Numeric& deta_du,
+                                        Numeric& deta_dv,
+                                        Numeric& deta_dw,
+                                        Numeric& dtheta_du,
+                                        Numeric& dtheta_dv,
+                                        Numeric& dtheta_dw,
+                                        ConstVectorView rtp_mag,
+                                        ConstVectorView r_path_los);
 
 void set_quantum_numbers(Rational& Main,
                          Index& DMain,
@@ -135,3 +157,8 @@ void create_Zeeman_linerecordarrays(ArrayOfArrayOfLineRecord& aoaol,
                                     const Verbosity& verbosity);
 
 void set_part_isotopologue_constants(Index& hund,Numeric& GS,const SpeciesAuxData& isotopologue_quantum,const LineRecord& temp_LR);
+
+void set_strength_partial_derivative_matrix(ArrayOfMatrix& A, ArrayOfMatrix& B, const ArrayOfRetrievalQuantity jq, const Vector& f_grid);
+
+Index part_mag_strength(const ArrayOfRetrievalQuantity& flag_partials);
+Index part_mag_theta(const ArrayOfRetrievalQuantity& flag_partials);

@@ -58,6 +58,8 @@ abs_xsec_agenda_checkedCalc
 
 atmfields_checkedCalc
 
+jacobianOff
+
 abs_lookupSetup
 abs_lookupCalc
 WriteXML( output_file_format, abs_lookup )

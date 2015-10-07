@@ -482,7 +482,7 @@ void f_gridFromabs_linesSet(Vector& f_grid,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void f_gridFromabs_lines_per_speciesSetFromSpeciesTag(Vector& f_grid,
                                                       const ArrayOfArrayOfLineRecord& abs_lines_per_species,
-                                                      const ArrayOfArrayOfSpeciesTag& abs_lines,
+                                                      const ArrayOfArrayOfSpeciesTag& abs_species,
                                                       const Numeric&                  half_width,
                                                       const Index&                    nr_f_per_line,
                                                       const String&                   species_tag,
@@ -496,14 +496,14 @@ void f_gridFromabs_lines_per_speciesSetFromSpeciesTag(Vector& f_grid,
     ArrayOfSpeciesTag st;
     array_species_tag_from_string(st,species_tag);
     
-    for(Index ii=0; ii<abs_lines.nelem(); ii++)
+    for(Index ii=0; ii<abs_species.nelem(); ii++)
     {
         bool test = false;
-        if(abs_lines[ii].nelem()==st.nelem())
+        if(abs_species[ii].nelem()==st.nelem())
         {
             for(Index jj=0;  jj<st.nelem(); jj++)
             {
-                if(st[jj]==abs_lines[ii][jj])
+                if(st[jj]==abs_species[ii][jj])
                     test=true;
                 else
                 {

@@ -71,8 +71,8 @@ void define_agenda_data()
         "The include file 'agendas.arts' predefines some possible agendas\n"
         "that can be used here.\n"
         ),
-       OUTPUT( "propmat_clearsky", "nlte_source" ),
-       INPUT(  "f_grid", "rtp_mag", "rtp_los", "rtp_pressure", 
+       OUTPUT( "propmat_clearsky", "nlte_source", "dpropmat_clearsky_dx", "dnlte_dx_source", "nlte_dsource_dx" ),
+       INPUT(  "jacobian_quantities", "f_grid", "rtp_mag", "rtp_los", "rtp_pressure", 
                "rtp_temperature", "rtp_temperature_nlte", "rtp_vmr" )));
   
   agenda_data.push_back
@@ -100,8 +100,9 @@ void define_agenda_data()
        "The include file 'agendas.arts' predefines a number of agendas that\n"
        "should be useful for most users.\n"
        ),
-      OUTPUT( "abs_xsec_per_species", "src_xsec_per_species" ),
-      INPUT(  "abs_species", "abs_species_active",
+       OUTPUT( "abs_xsec_per_species", "src_xsec_per_species", 
+               "dabs_xsec_per_species_dx", "dsrc_xsec_per_species_dx" ),
+      INPUT(  "abs_species", "jacobian_quantities", "abs_species_active",
               "f_grid", "abs_p", "abs_t", "abs_t_nlte", "abs_vmrs" )));
 
   agenda_data.push_back

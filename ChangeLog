@@ -1,3 +1,195 @@
+2015-10-07  Richard Larsson   <ric.larsson@gmail.com>
+
+	* arts-2-3-327
+	
+	WARNING:  This breaks your controlfiles.  propmat_clearsky_agenda and 
+	abs_xsec_agenda now both depends on jacobian_quantities, so it has to
+	be initialized.  I believe that there must be some bugs in the code at 
+	present, but it is very complicated so I need some tests that are general
+	enough, which is why I submit the code as is.  There are many terms 
+	involved in the temperature partial derivatives.
+	
+	The new feature is the calculations of partial derivatives within the 
+	absorption scheme.  This partial derivative scheme interfaces with the
+	Jacobian calculations in iyEmissionStandard.  Presently, only Temperature
+	and VMR works, and it can be activated by changing the Jacobian method to 
+	"from propmat".  The code is in place to allow for all of the present
+	schemes but this remains to be tested before becoming activated.  So the 
+	descriptions below will also deal with other parameters.  There are some 
+	limitations: e.g., that VMR is the only allowed setting for Abs Species.
+	
+	Once this has been tested and seems to work I will update the documentation 
+	with the additions.
+	
+	Note that some numbers are presently perturbed (e.g., tabulated CIA values).
+	This might be changed in the future by interpolating the partial
+	derivative.  Please view this initial release as Testing, and report 
+	bugs/missing features/incompatible  behavior to me directly so these 
+	can be sorted.  The intention is to be backwards compatible but not 
+	wastefully so.  E.g., VMR is the only way to calculate Abs Species 
+	presently (though it might be possible to do so in more ways.)
+	
+	About speed:  The code is about as fast as before in performing the tests,
+	at least in Release mode.  I suspect it might be much slower under Debug 
+	mode.  Using "from propmat" instead of "analytical" makes a yCalc call
+	in average 10% faster.  I suspect the increase in speed is much more
+	noticeable if calculating other fields than temperature, since this is
+	by far the most complicated of the lot.
+	
+	* src/ CMakeLists.txt:  Added partial_derivatives.{cc,h} for internal 
+	calculations and an internal tracking class.  This is likely where most 
+	of the bugs and mistakes are located.
+	
+	* src/absorption.{cc,h}:  (xsec_single_line) now outputs partial 
+	derivatives of the line absorption.  So that these are added at
+	the right place when given cutoff, the cutoff range is also output.
+	Since this change facilitated several internal loops, I simplified
+	the code by manually looping over frequnecy rather than using built-in
+	features.  All other behavior remains as before.
+	
+	(xsec_species_line_mixing_wrapper) now also acts as a wrapper for 
+	partial calculations.  Name change?  Not yet but soon a must.
+	The reason is that partials also require the line shape to output
+	phase, or at least be able to calculate it internally.  Presently,
+	all internal partials are calculated separately from the internal
+	value.  I think it would be speedier to do more things on-the-fly,
+	so perhaps this will change later.  The bulk of internal partials
+	are calculated after the calls to (xsec_single_line).
+	
+	Old functions:  I outright removed unused code for old xsec_species, since
+	this caused headaches with other changes.
+	
+	In header file, I changed the definition of line shape and line normalizations.
+	Normalization functions all now also can return their internal partial 
+	derivativeis with respect to temperature, frequency and line frequnecy.
+	There are two options for lineshapes:  either they return partials and 
+	support deturning internal partial derivatives for temperature, frequency,
+	gamma, magnetic field strength, and line mixing frqeuency shift.  More could
+	be added, but I did not bother for now.  The other option is that the line 
+	shape do not support partials.  Warnings should be thrown when you muck 
+	about with this and make a mistake.
+	
+	* src/agendas.cc:  Added dpropmat_clearsky_dx, dnlte_dx_source, 
+	and nlte_dsource_dx as inputs to propmat_clearsky_agenda. 
+	Note that two of these remains unused.  Also added jacobian_quantities 
+	as required input to allow methods to not do wasted calculations by 
+	setting this array to size zero.  Similar changes are applied
+	to abs_xsec_agenda, but only one NLTE parials output is given,
+	since the other is from Planck function derivative.  The workspace
+	variables are called dabs_xsec_per_species_dx and 
+	dsrc_xsec_per_species_dx, though they are not "per_species".  
+	Name change?
+	
+	* src/{methods,workspace}.cc:  Plumbing for other changes.
+	
+	* src/constants.cc:  PROPMAT_SUBSUBTAG added as a retrieval string.
+	
+	* src/jacobian.{cc,h}:  Force tests of Jacobian type to follow an enum lists
+	of named integeres in (get_pointers_for_analytical_jacobians).  This allows
+	chaning types of calculations later on by name rather than by numbers.
+	Default behaviors are also kept for false statements.  Minor preparations
+	for doing line parameters Jacobians are added. There is no way to activate 
+	this code yet though.
+	
+	* src/lin_alg.cc:  Added two speedier ways to calculate the partial
+	derivative of a matrix exponent.  This speed is simply achieved by 
+	allowing to calculate several partials at once, where these partials 
+	are supplied as a Tensor3, with the size of one dimension meaning 
+	"number of partial derivatives". One of these methods should probably
+	be moved away from this file at some point since it gets its speed by
+	assuming that there are two sets of partial derivatives for a level 
+	matrix, one upper level and one lower level.  The intention is 
+	that we calculate absorption in a layer from absorption at the 
+	surrounding levels, so we have a partial influence on a layer from two 
+	levels.  In other words, dT(n)/dx(n) and dT(n)/dx(n+1) are not 
+	generally nil.
+	
+	* src/{pressurebroadeningdata,line{mixingdata,scaling}}.{cc,h}:
+	Returns partial derivvatives with temperature.
+	
+	* src/lineshapes.cc:  Lots of changes.  As said, each normalization
+	factor now returns several partial derivatives.  Only 
+	faddeeva_algorithm_916 of the actual line shapes have been adapted 
+	to return partial derivatives.
+	
+	Part of these adaptations might appear overly complicated.  The reason is
+	that Hartman-Tran lineshape is somewhat different from the rest, and I 
+	want to keep extensions to this lineshape clean.
+
+	* src/m_abs.cc:  All propmat and xsec functions have been changed to
+	either return partial derivatives (most of them) or throw warnings
+	when propmat partial derivaitves are not supported (e.g., Faraday 
+	rotation does this for now for angular parameters).  
+	Intentionally, all functions create their internal data structure 
+	for knowing to do partial derivatives, and these are strictly 
+	tested so that the partial derivative type is allowed.  
+	
+	Some of the methods get the partial derivatives from perturbations, 
+	and these perturbations are known by the internal data.  Still some 
+	silliness involved here, e.g., Wind cannot be understood inside 
+	propmat_clearsky since the  variable is external.  So Wind partials 
+	must be done as frequency  partials, and then have the internal 
+	partial of frequency to wind applied externally.  Another thing I 
+	have to fix is to allow more perturbations than one for the fields 
+	(now u,v,w must have the same perturbations).
+	
+	* src/m_abs_lookup.cc: lookup partials are calculated by perturbations.
+	
+	* src/m_zeeman.cc:  Does partial derivaitves analytically.  Only 
+	Precalc method will allow magnetic partials in the future, probably.
+	
+	* src/m_rte.cc: Setup simple interface between propmat partial 
+	derivatives and present Jacobian scheme.
+	
+	* src/m_cia.cc:  Same as above.  Note that it assumes that in conversion
+	to coefficients, there is no vmr derivative applied.  It therefores
+	returns a doubled value when both species are the same.  There is a small
+	comment justifying the equations here.  Note that both first and second
+	species VMR matters, so the scaling might look odd.  I think this might
+	have been missed by the semi-analytical calculation scheme.  Though it
+	might be me doing something wrong.
+	
+	* src/gas_abs_lookup.h:  Added function to return species number.
+	
+	* src/physics_funcs.{cc,h}:  Added simple partial derivatives for 
+	number density and Planck function.
+	
+	* src/rte.{cc,h}:  Added (ext2trans_and_ext2dtrans_dx) and 
+	(get_ppath_trans_and_dppath_trans_dx) for when propmat_clearsky 
+	partials are calculated.  Current FIXME:  How do I use the 
+	speedier Landi Degl'Innocenti and Landolfi (2004) method?
+	
+	(get_ppath_pmat) returns dppath_ex_dx and depends on 
+	jacobian_quantities.
+	
+	* src/zeeman.{cc,h}:  Changed a lot.  Added several 
+	polarization rotation matrices partial derivaitves.
+	Also changed input/output for the Zeeman method wrapper.
+	Note that some expressions are direct copies of output from
+	Matlab's symbolic toolbox, so they can be lengthy.
+	
+	* src/partial_derivatives.{h,cc}:  Added.  Change name?
+	This treats all cases of internal propmat partials for 
+	the cross-section.  It also has a class, PropmatPartialsData,
+	that is used and understood by other functions that need more
+	than just cross-section partial derivatives data.  This class
+	shall, for instance, contain all tests of whether a method is
+	eligble for calculating certain partial derivatives.  For instance,
+	abs_lookup and continuum cannot calculate line parameters but they
+	can calculate NLTE (since there is no NLTE in these models).
+	Another example is that Faraday rotation cannot be combined 
+	with Zeeman angle changes yet (has to be added manually).
+	
+	(partial_derivatives_lineshape_dependency) is the function
+	that does these calculations.  I have a PDF file available
+	that have been shown to some of the developers.  The PDF
+	tries to explain each parameter, but it is mostly a 
+	collection of mathematical expressions.  It is much more 
+	extensive than the presently available outputs suggests.
+	
+	* All others:  Changed to work around the changes above.  
+	Or insignificant changes.
+
 2015-10-07  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-326
@@ -48,6 +240,7 @@
 
 	* src/m_sensor.cc (sensor_responseMixerBackendPrecalcWeights): Started.
 
+>>>>>>> .r9485
 2015-10-05  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-322

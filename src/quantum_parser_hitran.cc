@@ -299,14 +299,13 @@ QuantumParserHITRAN2004::QuantumParserHITRAN2004()
     
     mspecies.resize(species_data.nelem());
 
+    SetClassGroup("CO2", CI_CLASS5, GI_GROUP2);
+    SetClassGroup("NO",  CI_CLASS3, GI_UNDEFINED); // GROUP6
+    SetClassGroup("O2",  CI_CLASS2, GI_GROUP5);
     SetClassGroup("ClO", CI_CLASS3, GI_UNDEFINED); // GROUP6
     SetClassGroup("H2O", CI_CLASS6, GI_GROUP1);
     SetClassGroup("HO2", CI_CLASS6, GI_GROUP1);
     SetClassGroup("NO2", CI_CLASS6, GI_GROUP1);
-    SetClassGroup("NO",  CI_CLASS3, GI_UNDEFINED); // GROUP6
-    SetClassGroup("O2",  CI_CLASS2, GI_GROUP5);
-    SetClassGroup("CO2", CI_CLASS5, GI_GROUP2);
-    SetClassGroup("H2O", CI_CLASS6, GI_GROUP1);
     SetClassGroup("O3" , CI_CLASS6, GI_GROUP1);
     SetClassGroup("OH",  CI_CLASS3, GI_UNDEFINED); // GROUP6OH
 

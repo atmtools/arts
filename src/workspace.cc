@@ -1207,6 +1207,88 @@ void Workspace::define_wsv_data()
        "     [ x, x ]\n"
        ),
       GROUP( "Matrix" )));
+   
+   wsv_data.push_back
+   (WsvRecord
+   ( NAME( "dabs_coef_dx" ),
+     DESCRIPTION
+     (
+         "The partial derivatives of the matrix of total scalar absorption coefficients.\n"
+         "\n"
+         "Contains the derivative of the gas absorption summed over all species as a function of\n"
+         "*f_grid* and *abs_p*, i.e., for a single atmospheric profile for some parameter.\n"
+         "\n"
+         "This variable is not used explicitly in a standard calculation, where\n"
+         "absorption comes from the lookup table *abs_lookup*. However, it is\n"
+         "useful for testing the methods that actually calculate line-by-line\n"
+         "absorption, which have this variable as output. These methods are\n"
+         "called internally by the method *abs_lookupCalc*, which generates\n"
+         "the lookup table.\n"
+         "\n"
+         "Dimensions: [n_quantities][f_grid, abs_p]\n"
+         "\n"
+         "Unit: 1/m/quantity\n"
+     ),
+     GROUP( "ArrayOfMatrix" )));
+   
+   wsv_data.push_back
+   (WsvRecord
+   ( NAME( "dsrc_coef_dx" ),
+     DESCRIPTION
+     (
+         "The partial derivatives of the matrix of total scalar NLTE source term.\n"
+         "\n"
+         "Contains the derivative of the NLTE source term summed over all species as a function of\n"
+         "*f_grid* and *abs_p*, i.e., for a single atmospheric profile for some parameter.\n"
+         "\n"
+         "This variable is not used explicitly in a standard calculation, where\n"
+         "absorption comes from the lookup table *abs_lookup*. However, it is\n"
+         "useful for testing the methods that actually calculate line-by-line\n"
+         "absorption, which have this variable as output. These methods are\n"
+         "called internally by the method *abs_lookupCalc*, which generates\n"
+         "the lookup table.\n"
+         "\n"
+         "Dimensions: [n_quantities][f_grid, abs_p]\n"
+         "\n"
+         "Unit: 1/m/quantity\n"
+     ),
+     GROUP( "ArrayOfMatrix" )));
+   
+   wsv_data.push_back
+   (WsvRecord
+   ( NAME( "dabs_xsec_per_species_dx" ),
+     DESCRIPTION
+     (
+         "Derivative of *abs_xsec_per_species* with respect to retrieval quantities.\n"
+         "\n"
+         "The variable gives the derivative of *abs_xsec_per_species* with respect to some\n"
+         "variables (but not all jacobian variables). Handled are only variables\n"
+         "that are involved in xsec and cannot be calculated at transmission level\n"
+         "\n"
+         "Usage:      Output of *abs_xsec_agenda*.\n"
+         "\n"
+         "Dimensions: \n"
+         "     [*abs_species*][n_quantities][*f_grid*, *abs_p* ]\n"
+     ),
+     GROUP( "ArrayOfArrayOfMatrix" )));
+   
+   wsv_data.push_back
+   (WsvRecord
+   ( NAME( "dsrc_xsec_per_species_dx" ),
+     DESCRIPTION
+     (
+         "Derivative of *src_xsec_per_species* with respect to retrieval quantities.\n"
+         "\n"
+         "The variable gives the derivative of *src_xsec_per_species* with respect to some\n"
+         "variables (but not all jacobian variables). Handled are only variables\n"
+         "that are involved in xsec and cannot be calculated at transmission level\n"
+         "\n"
+         "Usage:      Output of *abs_xsec_agenda*.\n"
+         "\n"
+         "Dimensions: \n"
+         "     [*abs_species*][n_quantities][*f_grid*, *abs_p* ]\n"
+     ),
+     GROUP( "ArrayOfArrayOfMatrix" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -1241,6 +1323,63 @@ void Workspace::define_wsv_data()
        "     [n_quantities][ n_retrieval_points, f_grid, stokes_dim ]\n"
        ),
       GROUP( "ArrayOfTensor3" )));
+   
+  wsv_data.push_back
+   (WsvRecord
+   ( NAME( "dpropmat_clearsky_dx" ),
+     DESCRIPTION
+     (
+         "This contains the partial derivative of absorption coefficients for\n"
+         "one point in the atmosphere (one set of pressure, temperature, zn"
+         "magnetic field, and VMR values) with respect to one of of the input\n"
+         "parameters.\n"
+         "\n"
+         "Dimension: [n_quantities][ f_grid, stokes_dim, stokes_dim ]\n"
+         "\n"
+         "*jacobian_quantities* should be used to set the input variable for\n"
+         "partial derivation\n"
+         "\n"
+         "Unit: 1/m/jacobian_quantity\n"
+     ),
+     GROUP( "ArrayOfTensor3" )));
+   
+   wsv_data.push_back
+   (WsvRecord
+   ( NAME( "dnlte_dx_source" ),
+     DESCRIPTION
+     (
+         "NLTE partial derivatives output is two parts:  S*dB/dx+dS/dx*B.\n"
+         "This should contain the latter term for one point in the atmosphere\n"
+         "(one set of pressure, temperature, zn magnetic field, and VMR values)\n"
+         "with respect to one of of the input parameters.\n"
+         "\n"
+         "Dimension: [n_quantities][ f_grid, stokes_dim ]\n"
+         "\n"
+         "*jacobian_quantities* should be used to set the input variable for\n"
+         "partial derivation\n"
+         "\n"
+         "Unit: 1/m/jacobian_quantity\n"
+     ),
+     GROUP( "ArrayOfMatrix" )));
+   
+   wsv_data.push_back
+   (WsvRecord
+   ( NAME( "nlte_dsource_dx" ),
+     DESCRIPTION
+     (
+         "NLTE partial derivatives output is two parts:  S*dB/dx+dS/dx*B.\n"
+         "This should contain the first term for one point in the atmosphere\n"
+         "(one set of pressure, temperature, zn magnetic field, and VMR values)\n"
+         "with respect to one of of the input parameters.\n"
+         "\n"
+         "Dimension: [n_quantities][ f_grid, stokes_dim ]\n"
+         "\n"
+         "*jacobian_quantities* should be used to set the input variable for\n"
+         "partial derivation\n"
+         "\n"
+         "Unit: 1/m/jacobian_quantity\n"
+     ),
+     GROUP( "ArrayOfMatrix" )));
 
  wsv_data.push_back
    (WsvRecord

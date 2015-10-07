@@ -34,6 +34,7 @@ extern const String  ABSSPECIES_MAINTAG;
 extern const String  TEMPERATURE_MAINTAG;
 extern const String  WIND_MAINTAG;
 extern const String  MAGFIELD_MAINTAG;
+extern const String  PROPMAT_SUBSUBTAG;
 
 
 ostream& operator << (ostream& os, const RetrievalQuantity& ot)
@@ -272,10 +273,12 @@ void get_pointers_for_analytical_jacobians(
 
   FOR_ANALYTICAL_JACOBIANS_DO( 
     //
-    if( jacobian_quantities[iq].MainTag() == TEMPERATURE_MAINTAG )
-      { is_t[iq] = 1; }
+    if( jacobian_quantities[iq].MainTag() == TEMPERATURE_MAINTAG  && jacobian_quantities[iq].SubSubtag() == PROPMAT_SUBSUBTAG  )
+      { is_t[iq] = JAC_IS_T_FROM_PROPMAT; }
+    else if( jacobian_quantities[iq].MainTag() == TEMPERATURE_MAINTAG )
+      { is_t[iq] = JAC_IS_T_SEMI_ANALYTIC; }
     else
-      { is_t[iq] = 0; }
+      { is_t[iq] = JAC_IS_NONE; }
     //
     if( jacobian_quantities[iq].MainTag() == ABSSPECIES_MAINTAG )
       {
@@ -286,23 +289,59 @@ void get_pointers_for_analytical_jacobians(
     else
       { abs_species_i[iq] = -1; }
     //
-    if( jacobian_quantities[iq].MainTag() == WIND_MAINTAG )
-      {
+    if( jacobian_quantities[iq].MainTag() == WIND_MAINTAG   && jacobian_quantities[iq].SubSubtag() == PROPMAT_SUBSUBTAG  )
+    {
         // Map u, v and w to 1, 2 and 3, respectively
         char c = jacobian_quantities[iq].Subtag()[0];
-        wind_i[iq] = Index( c ) - 116;
+        const Index test = Index( c ) - 116;
+        if( test == 1 )
+            magfield_i[iq] = JAC_IS_WIND_U_FROM_PROPMAT;
+        else if(test == 2 )
+            magfield_i[iq] = JAC_IS_WIND_V_FROM_PROPMAT;
+        else if(test == 3 )
+            magfield_i[iq] = JAC_IS_WIND_W_FROM_PROPMAT;
+    }
+    else if( jacobian_quantities[iq].MainTag() == WIND_MAINTAG )
+      {
+        // Map u, v and w to 1, 2 and 3, respectively
+          char c = jacobian_quantities[iq].Subtag()[0];
+          const Index test = Index( c ) - 116;
+          if( test == 1 )
+              magfield_i[iq] = JAC_IS_WIND_U_SEMI_ANALYTIC;
+          else if(test == 2 )
+              magfield_i[iq] = JAC_IS_WIND_V_SEMI_ANALYTIC;
+          else if(test == 3 )
+              magfield_i[iq] = JAC_IS_WIND_W_SEMI_ANALYTIC;
       }
     else
-      { wind_i[iq] = 0; }
+      { wind_i[iq] = JAC_IS_NONE; }
     //
     if( jacobian_quantities[iq].MainTag() == MAGFIELD_MAINTAG )
+    {
+        // Map u, v and w to 1, 2 and 3, respectively
+        char c = jacobian_quantities[iq].Subtag()[0];
+        const Index test = Index( c ) - 116;
+        if( test == 1 )
+            magfield_i[iq] = JAC_IS_MAG_U_FROM_PROPMAT;
+        else if(test == 2 )
+            magfield_i[iq] = JAC_IS_MAG_V_FROM_PROPMAT;
+        else if(test == 3 )
+            magfield_i[iq] = JAC_IS_MAG_W_FROM_PROPMAT;
+    }
+    else if( jacobian_quantities[iq].MainTag() == MAGFIELD_MAINTAG )
       {
         // Map u, v and w to 1, 2 and 3, respectively
         char c = jacobian_quantities[iq].Subtag()[0];
-        magfield_i[iq] = Index( c ) - 116;
+        const Index test = Index( c ) - 116;
+        if( test == 1 )
+            magfield_i[iq] = JAC_IS_MAG_U_SEMI_ANALYTIC;
+        else if(test == 2 )
+            magfield_i[iq] = JAC_IS_MAG_V_SEMI_ANALYTIC;
+        else if(test == 3 )
+            magfield_i[iq] = JAC_IS_MAG_W_SEMI_ANALYTIC;
       }
     else
-      { magfield_i[iq] = 0; }
+      { magfield_i[iq] = JAC_IS_NONE; }
   )
 }
 
