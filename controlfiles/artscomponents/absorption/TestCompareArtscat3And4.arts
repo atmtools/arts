@@ -70,7 +70,7 @@ Tensor7Create(propmat_clearsky_field_artscat4)
 Copy(propmat_clearsky_field_artscat4, propmat_clearsky_field)
 
 # Compare the two results:
-Compare( propmat_clearsky_field_artscat4, propmat_clearsky_field_artscat3, 1e-18 )
+Compare( propmat_clearsky_field_artscat4, propmat_clearsky_field_artscat3, 1e-16 )
 
 
 

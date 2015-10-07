@@ -141,13 +141,15 @@ WriteXML (//WS Input:
     String errmsg;
 
 #pragma omp critical(WriteXML_critical_region)
-    try
     {
-        xml_write_to_file (filename, v, ftype, no_clobber, verbosity);
-    }
-    catch (std::runtime_error e)
-    {
-        errmsg = e.what();
+        try
+        {
+            xml_write_to_file (filename, v, ftype, no_clobber, verbosity);
+        }
+        catch (std::runtime_error e)
+        {
+            errmsg = e.what();
+        }
     }
 
     if (errmsg.length())

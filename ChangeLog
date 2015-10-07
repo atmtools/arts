@@ -1,3 +1,18 @@
+2015-10-07  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-326
+
+	* src/m_xml.h (WriteXML):
+
+	Intel Compiler doesn't see the try...catch inside the critical region
+	as one statement. Put {} around as a fix.
+
+	* controlfiles/artscomponents/absorption/TestCompareArtscat3And4.arts:
+
+	Lowered required limit to 1e-16. 1e-18 was well below the typical
+	accuracy of 16 digits for double anyway. Test case was failing with the
+	Intel Compiler.
+
 2015-10-06  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-325
