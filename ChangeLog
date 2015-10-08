@@ -1,3 +1,12 @@
+2015-10-08  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-328
+
+	* controlfiles/artscomponents/wfuns/TestWfuns.arts: Polishing of
+	comments and accuracy limits. Switched to Faddeeva_Algorithm_916
+	line shape, to allow test of On-The-Fly. This option seems not to
+	work yet for "from propmat".
+
 2015-10-07  Richard Larsson   <ric.larsson@gmail.com>
 
 	* arts-2-3-327

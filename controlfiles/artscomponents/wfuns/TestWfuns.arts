@@ -55,6 +55,7 @@ Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
 
 # absorption from LUT
 Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__LookUpTable )
+#Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__OnTheFly )
 
 
 # ---- Atmospheric scenario --------------------------------------------------
@@ -84,6 +85,10 @@ cloudbox_checkedCalc
 # ---- Create absorption table -----------------------------------------------
 
 abs_lines_per_speciesCreateFromLines
+
+abs_lineshapeDefine( shape="Faddeeva_Algorithm_916",
+                     forefactor="VVH",
+                     cutoff=750e9 )
 
 AbsInputFromAtmFields
 abs_speciesSet( abs_species=abs_nls, species=[] )
@@ -157,6 +162,7 @@ Copy( Jp, jacobian )
 Compare( Ja, Jp, 0.005 )
 
 
+# Analytical but now using VMR
 jacobianInit
 jacobianAddAbsSpecies( jacobian_quantities, jacobian_agenda,
     atmosphere_dim, p_grid, lat_grid, lon_grid, 
@@ -167,7 +173,7 @@ WriteXML( in=jacobian_quantities )
 yCalc
 Copy( Ja, jacobian )
 
-# Same with perturbations
+# Same with "from propmat"
 jacobianInit
 jacobianAddAbsSpecies( jacobian_quantities, jacobian_agenda,
     atmosphere_dim, p_grid, lat_grid, lon_grid, 
@@ -178,7 +184,8 @@ yCalc
 Copy( Jp, jacobian )
 
 # Compare
-Compare( Ja, Jp, 0.005 )
+Compare( Ja, Jp, 1e-6 )
+
 
 
 ##############################################################################
@@ -221,7 +228,7 @@ Copy( Jp, jacobian )
 Compare( Ja, Jp, 0.001 )
 
 
-# Same with perturbations
+# Same with "from propmat"
 jacobianInit
 jacobianAddTemperature( jacobian_quantities, jacobian_agenda,
     atmosphere_dim, p_grid, lat_grid, lon_grid, 
@@ -232,7 +239,7 @@ yCalc
 Copy( Jp, jacobian )
 
 # Compare
-Compare( Ja, Jp, 0.001 )
+Compare( Ja, Jp, 1e-6 )
 
 
 ##############################################################################
