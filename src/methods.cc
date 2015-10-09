@@ -12045,21 +12045,20 @@ void define_md_data_raw()
          "has no direct influence on the result, but at least representative\n"
          "values must be set.\n"
          "\n"
-         "The argument *channel_index* links the monochromatic frequencies with\n"
-         "the output channels. Each element of *channel_index* shall be a valid\n"
-         "channel index. If one frequency belongs to the first channel, the\n"
-         "corresponding element in *channel_index* shall be set to 0 etc.\n"
-         "This means that each monochromatic frequency can only be linked to\n"
-         "one channel.\n"
+         "The argument *frequency_index* links the monochromatic frequencies with\n"
+         "the output channels. The first dimension gives the number of output.\n"
+         "channels. Each ArrayOfIndex gives the index of the values in *f_grid*\n"
+         "associated with the channels. For a pure double-sideband receiver,\n"
+         "where there is one monochromatic frequency per passband, this argument\n"
+         "coluld look like: [[0,5],[1,4],[2,3],[7,8],[7,8]].\n"
          "\n"
-         "The argument *weights* is a vector of same length as *channel_index*,\n"
-         "simply holding the weight to be applied. No normalisation is applied.\n"
-         "One example, for a pure double-sideband instrument where each passband\n"
-         "is covered by a single monochromatic frequency, all weights shall be\n"
-         "0.5.\n"
+         "The argument *frequency_weights* shall have excatly the same sizes as\n"
+         "*frequency_index*. Each element gives the weight to be assigned to\n"
+         "the associated monochromatic frequency. For the example above, all\n"
+         "elements should be 0.5.\n"
          "\n"
-         "Both *channel_index* and *weights* are assumed to be common for all\n" 
-         "polarisations and viewing directions.\n"
+         "Both *frequency_index* and *frequency_weights* are assumed to be common\n"
+         "for all viewing directions.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "sensor_response", "sensor_response_f", "sensor_response_pol",
@@ -12073,8 +12072,8 @@ void define_md_data_raw()
             "sensor_response_f_grid", "sensor_response_pol_grid", 
             "sensor_response_dlos_grid",
             "f_backend" ),
-        GIN( "channel_index", "weights" ),
-        GIN_TYPE( "ArrayOfIndex", "Vector" ),
+        GIN( "frequency_index", "frequency_weights" ),
+        GIN_TYPE( "ArrayOfArrayOfIndex", "ArrayOfVector" ),
         GIN_DEFAULT( NODEF, NODEF ),
         GIN_DESC( "See above.", "See above." )
         ));

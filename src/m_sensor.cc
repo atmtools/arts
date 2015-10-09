@@ -1813,8 +1813,8 @@ void sensor_responseMixerBackendPrecalcWeights(
     const ArrayOfIndex&         sensor_response_pol_grid,
     const Matrix&               sensor_response_dlos_grid,
     const Vector&               f_backend,
-    const ArrayOfIndex&         channel_index,
-    const Vector&               weights,
+    const ArrayOfArrayOfIndex&  frequency_index,
+    const ArrayOfVector&        frequency_weights,
     const Verbosity&            verbosity)
 {
   CREATE_OUT3;
@@ -1867,70 +1867,55 @@ void sensor_responseMixerBackendPrecalcWeights(
       error_found = true;
     }
 
-  // channel_index and weights
-  if( channel_index.nelem() != nin_f )
+  // frequency index and weights
+  if( frequency_index.nelem() != nout_f )
     {
-      os << "The lengths of *channel_index* and *sensor_response_f_grid* "
+      os << "The first size of *frequency_index* an length of *f_backend* "
          << "must be equal.\n";
       error_found = true;
     }
-  if( weights.nelem() != nin_f )
+  if( frequency_weights.nelem() != frequency_index.nelem() )
     {
-      os << "The lengths of *channel_index* and *weights* "
-         << "must be equal.\n";
+      os << "Leading sizes of *frequency_index* and *frequency_weights* differ.\n";
       error_found = true;
     }
-
-  // The code below does not work for some errors, so stop here if any error above
-  if( error_found )
-    throw runtime_error(os.str());
-
-  {
-    Vector chs_covered(nout_f,0.0);
-    for( Index i=0; i<nin_f; i++ )
-      {
-        chs_covered[ channel_index[i] ] = 1;
-        if( channel_index[i] < 0 )
-          {
-            os << "No value in *channel_index* can be negative.\n";
-            error_found = true;
-            chs_covered = 1;     // Too avoid error also on that part
-            break;
-          }
-        if( channel_index[i] >= nout_f )
-          {
-            os << "At least one value in *channel_index* has a too high value "
-               << "(an index above length of *f_backend*).\n";
-            error_found = true;
-            chs_covered = 1;     // Too avoid error also on that part
-            break;
-          }
-      }
-    //
-    if( min( chs_covered ) < 1 )
-      {
-        os << "At least one channel has no entry in *channel_index*.\n";
-        error_found = true;
-      }
-  }
+  for( Index i=0; i<nout_f; i++ )
+    {
+      if( frequency_index[i].nelem() != frequency_weights[i].nelem() )
+        {
+          os << "Mismatch in size between *frequency_index* and *frequency_weights* "
+             << "for array/vector with index " << i << ".\n";
+          error_found = true;
+        }
+      for( Index j=0; j<frequency_index[i].nelem(); j++ )
+        {
+          if( frequency_index[i][j] < 0  ||  frequency_index[i][j] >= nin_f )
+            {
+              os << "At least one value in *frequency_index* is either < 0 or "
+                 << "is too high considering length of *sensor_response_f_grid*.\n";
+              error_found = true;
+              break;
+            }
+        }
+    }
 
   // If errors where found throw runtime_error with the collected error
   if( error_found )
     throw runtime_error(os.str());
 
+
   // Create response matrix
   //
   Sparse hmb( nout, nin );
   {  
-    // Loop output frequencies
+    // Loop output channels
     for( Index ifr=0; ifr<nout_f; ifr++ ) 
       {
         // The summation vector for 1 polarisation and 1 viewing direction
         Vector w1( nin_f, 0.0 );
-        for( Index i=0; i<nin_f; i++ )
-          {
-            if( channel_index[i] == ifr )
-              { w1[i] = weights[i]; }
+        for( Index j=0; j<frequency_index[ifr].nelem(); j++ )
+          { 
+            w1[frequency_index[ifr][j]] = frequency_weights[ifr][j]; 
           }
 
         // Loop over polarisation and spectra (viewing directions)
