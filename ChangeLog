@@ -1,3 +1,11 @@
+2015-10-09  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-329
+
+	* src/m_sensor.cc (sensor_responseMixerBackendPrecalcWeights):
+	Definition of frequency - channel assocation is defined. Now more
+	general as the old way did not handle double pol channels.
+
 2015-10-08  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-328
