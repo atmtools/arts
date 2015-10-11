@@ -1986,7 +1986,7 @@ void yCalcAppend(
    const Index&                      append_instrument_wfs,
    const Verbosity&                  verbosity )
 {
-  // Some initial checks of old measurement
+  // Check consistency of data representing first measurement
   const Index n1   = y.nelem();
         Index nrq1 = 0; 
   if( y.empty() )

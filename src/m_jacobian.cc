@@ -126,7 +126,7 @@ void jacobianClose(
     throw runtime_error(
           "No retrieval quantities has been added to *jacobian_quantities*." );
 
-  // Check that sensor_pol and sensor_response has been initialised
+  // Check that sensor_pos and sensor_response has been initialised
   if( sensor_pos.empty() )
     {
       ostringstream os;

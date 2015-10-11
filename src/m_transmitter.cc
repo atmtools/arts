@@ -1602,14 +1602,14 @@ void iy_transmitterMultiplePol(
         Matrix&        iy,
   const Index&         stokes_dim,
   const Vector&        f_grid,
-  const ArrayOfIndex&  sensor_pol,
+  const ArrayOfIndex&  instrument_pol,
   const Verbosity&  )
 {
   const Index nf = f_grid.nelem();
   
-  if( sensor_pol.nelem() != nf )
+  if( instrument_pol.nelem() != nf )
     throw runtime_error( "The length of *f_grid* and the number of elements "
-                         "in *sensor_pol* must be equal." );
+                         "in *instrument_pol* must be equal." );
 
   iy.resize( nf, stokes_dim );
   iy = 0;
@@ -1619,9 +1619,9 @@ void iy_transmitterMultiplePol(
 
   for( Index i=0; i<nf; i++ )
     {
-      for( Index j=0; j<s2p[sensor_pol[i]-1].nelem(); j++ )
+      for( Index j=0; j<s2p[instrument_pol[i]-1].nelem(); j++ )
         {
-          iy(i,j) = s2p[sensor_pol[i]-1][j];
+          iy(i,j) = s2p[instrument_pol[i]-1][j];
         }
     }
 }
@@ -1633,13 +1633,13 @@ void iy_transmitterSinglePol(
         Matrix&        iy,
   const Index&         stokes_dim,
   const Vector&        f_grid,
-  const ArrayOfIndex&  sensor_pol,
+  const ArrayOfIndex&  instrument_pol,
   const Verbosity&  )
 {
   const Index nf = f_grid.nelem();
   
-  if( sensor_pol.nelem() != 1 )
-    throw runtime_error( "The number of elements in *sensor_pol* must be 1." );
+  if( instrument_pol.nelem() != 1 )
+    throw runtime_error( "The number of elements in *instrument_pol* must be 1." );
 
   iy.resize( nf, stokes_dim );
   iy = 0;
@@ -1647,9 +1647,9 @@ void iy_transmitterSinglePol(
   ArrayOfVector   s2p;
   stokes2pol( s2p, 1 );
 
-  for( Index j=0; j<s2p[sensor_pol[0]-1].nelem(); j++ )
+  for( Index j=0; j<s2p[instrument_pol[0]-1].nelem(); j++ )
     {
-      iy(0,j) = s2p[sensor_pol[0]-1][j];
+      iy(0,j) = s2p[instrument_pol[0]-1][j];
       for( Index i=1; i<nf; i++ )
         {
           iy(i,j) = iy(0,j);

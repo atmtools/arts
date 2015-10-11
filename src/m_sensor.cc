@@ -861,7 +861,7 @@ void sensor_responseAntenna(
     {
       os << "The number of polarisation in *antenna_response* must be 1 or be\n"
          << "equal to the number of polarisations used (determined by\n"
-         << "*stokes_dim* or *sensor_pol*).\n";
+         << "*stokes_dim* or *instrument_pol*).\n";
       error_found = true;
     }
 
@@ -2143,7 +2143,7 @@ void sensor_responsePolarisation(
     const Matrix&         sensor_response_dlos_grid,
     const Index&          stokes_dim,
     const String&         iy_unit,
-    const ArrayOfIndex&   sensor_pol,
+    const ArrayOfIndex&   instrument_pol,
     const Verbosity& )
 {
   // Vectors for extracting polarisation components
@@ -2156,7 +2156,7 @@ void sensor_responsePolarisation(
   stokes2pol( pv, w );
 
   // Some sizes
-  const Index nnew = sensor_pol.nelem();
+  const Index nnew = instrument_pol.nelem();
   const Index nf   = sensor_response_f_grid.nelem();
   const Index npol = sensor_response_pol_grid.nelem();
   const Index nlos = sensor_response_dlos_grid.nrows();
@@ -2190,7 +2190,7 @@ void sensor_responsePolarisation(
     }
   if( nnew == 0 )
     {
-      os << "The WSV *sensor_pol* can not be empty.\n";
+      os << "The WSV *instrument_pol* can not be empty.\n";
       error_found = true;
     }
   // If errors where found throw runtime_error with the collected error
@@ -2211,10 +2211,10 @@ void sensor_responsePolarisation(
     }
   for( Index i=0; i<nnew && !error_found; i++ )
     {
-      if( sensor_pol[i] < 1  || sensor_pol[i] > 10 )
+      if( instrument_pol[i] < 1  || instrument_pol[i] > 10 )
         {
           os << 
-             "The elements of *sensor_pol* must be inside the range [1,10].\n";
+             "The elements of *instrument_pol* must be inside the range [1,10].\n";
           error_found = true;
         }
     }
@@ -2225,7 +2225,7 @@ void sensor_responsePolarisation(
 
   for( Index i=0; i<nnew && !error_found; i++ )
     {
-      if( pv[sensor_pol[i]-1].nelem() > stokes_dim )
+      if( pv[instrument_pol[i]-1].nelem() > stokes_dim )
         {
           os << "You have selected an output polarisation that is not covered "
              << "by present value of *stokes_dim* (the later has to be "
@@ -2250,7 +2250,7 @@ void sensor_responsePolarisation(
       Index col = i*npol;
       for( Index in=0; in<nnew; in++ )
         {
-          Index p = sensor_pol[in] - 1;
+          Index p = instrument_pol[in] - 1;
           //
           for( Index iv=0; iv<pv[p].nelem(); iv++ )
             { hrow[col+iv] = pv[p][iv]; }
@@ -2270,7 +2270,7 @@ void sensor_responsePolarisation(
   mult( sensor_response, Hpol, Htmp );
 
   // Update sensor_response_pol_grid
-  sensor_response_pol_grid = sensor_pol;
+  sensor_response_pol_grid = instrument_pol;
 
   // Set aux variables
   sensor_aux_vectors( sensor_response_f, sensor_response_pol, 
@@ -3595,3 +3595,123 @@ void ySimpleSpectrometer(
   mult( y, sensor_response, iyb );
 }
 
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void yApplySensorPol(
+         Vector&                     y,
+         Vector&                     y_f,
+         ArrayOfIndex&               y_pol,
+         Matrix&                     y_pos,
+         Matrix&                     y_los,
+         ArrayOfVector&              y_aux,
+         Matrix&                     y_geo,
+         Matrix&                     jacobian,
+   const Index&                      stokes_dim,
+   const Index&                      jacobian_do,
+   const Matrix&                     sensor_pos,
+   const Matrix&                     sensor_pol,
+   const Verbosity&  )
+{
+  // Some sizes
+  const Index n1   = y.nelem();
+  const Index nm   = sensor_pol.nrows();
+  const Index nc   = sensor_pol.ncols();
+  const Index n2   = nm * nc;
+
+  // Check consistency of input data
+  if( y.empty() )
+    throw runtime_error( "Input *y* is empty. Use *yCalc*" );
+  if( y_f.nelem() != n1 )
+    throw runtime_error( "Lengths of input *y* and *y_f* are inconsistent." );
+  if( y_pol.nelem() != n1 )
+    throw runtime_error( "Lengths of input *y* and *y_pol* are inconsistent." );
+  if( y_pos.nrows() != n1 )
+    throw runtime_error( "Sizes of input *y* and *y_pos* are inconsistent." );
+  if( y_los.nrows() != n1 )
+    throw runtime_error( "Sizes of input *y* and *y_los* are inconsistent." );
+  if( y_geo.nrows() != n1 )
+    throw runtime_error( "Sizes of input *y* and *y_geo* are inconsistent." );
+  if( jacobian_do )
+    {
+      if( jacobian.nrows() != n1 )
+        throw runtime_error( "Sizes of *y* and *jacobian* are inconsistent." );
+    }
+
+  // Checks associated with the Stokes vector
+  if( stokes_dim < 3 )
+    throw runtime_error( "*stokes_dim* must be >= 3 to correctly apply a "
+                         "polarisation rotation." );
+  if( n1 < stokes_dim )
+    throw runtime_error( "Length of input *y* smaller than *stokes_dim*." );
+  for( Index i=0; i<stokes_dim; i++ )
+    {
+      if( y_pol[i] != i+1 )
+        throw runtime_error( "*y* must hold Stokes element values. Data in "
+                             "*y_pol* indicates that this is not the case." );
+    }
+
+  // Checks of sensor_pos
+  if( sensor_pos.nrows() != nm )
+    throw runtime_error( "Different number of rows in *sensor_pos* and *sensor_pol*." );
+  if( n2*stokes_dim != n1 )
+    throw runtime_error( "Number of columns in *sensor_pol* not consistent with " 
+                         "length of *y* and value of *stokes_dim*.");
+
+
+  // Make copy of all y variables and jacobian
+  const Vector        y1=y, y_f1=y_f;
+  const Matrix        y_pos1=y_pos, y_los1=y_los, y_geo1=y_geo;
+  const ArrayOfIndex  y_pol1=y_pol;
+  const ArrayOfVector y_aux1=y_aux;
+        Matrix jacobian1(0,0);
+  if( jacobian_do )
+    { jacobian1 = jacobian; }
+
+  // Resize the y variables and jacobian
+  y.resize( n2 );
+  y_f.resize( n2 );
+  y_pol.resize( n2 );
+  y_pos.resize( n2, y_pos1.ncols() );
+  y_los.resize( n2, y_los1.ncols() );
+  y_geo.resize( n2, y_geo1.ncols() );
+  for( Index a=0; a<y_aux.nelem(); a++ ) 
+    y_aux[a].resize(n2); 
+  if( jacobian_do )
+    { jacobian.resize( n2, jacobian1.ncols() ); }
+
+  for( Index r=0; r<nm; r++ )
+    {
+      for( Index c=0; c<nc; c++ )
+        {
+          const Index iout = r*nc + c;
+          const Index iin = iout * stokes_dim;
+          
+          const Numeric wq = cos( 2 * DEG2RAD * sensor_pol(r,c) );
+          const Numeric wu = sin( 2 * DEG2RAD * sensor_pol(r,c) );
+
+          // Extract radiance for polarisation angle of concern
+          y[iout] = y1[iin] + wq*y1[iin+1] + wu*y1[iin+2];
+
+          // Same operation for jacobian
+          if( jacobian_do )
+            {
+              for( Index q=0; q<jacobian.ncols(); q++ ) 
+                jacobian(iout,q) = jacobian1(iin,q) + wq*jacobian1(iin+1,q) + 
+                                                      wu*jacobian1(iin+2,q);
+            }
+
+          // Set y_pol
+          y_pol[iout] = (Index) sensor_pol(r,c);
+
+          // For the rest, copy value matching I of in-data
+          y_f[iout] = y_f1[iin];
+          y_pos(iout,joker) = y_pos1(iin,joker);
+          y_los(iout,joker) = y_los1(iin,joker);
+          y_geo(iout,joker) = y_geo1(iin,joker);
+          for( Index a=0; a<y_aux.nelem(); a++ ) 
+            y_aux[a][iout] = y_aux1[a][iin]; 
+        }
+    }
+  
+}

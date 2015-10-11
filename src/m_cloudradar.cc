@@ -404,7 +404,7 @@ void yCloudRadar(
    const Matrix&                sensor_los,
    const Index&                 sensor_checked,
    const Agenda&                iy_main_agenda,
-   const ArrayOfArrayOfIndex&   sensor_pol_array,
+   const ArrayOfArrayOfIndex&   instrument_pol_array,
    const Vector&                range_bins,
    const Verbosity& )
 {
@@ -442,8 +442,8 @@ void yCloudRadar(
   if( !is_z && min(range_bins) < 0 )
     throw runtime_error( "The vector *range_bins* is not allowed to contain "
                          "negative times." );
-  if( sensor_pol_array.nelem() != nf )
-    throw runtime_error( "The main length of *sensor_pol_array* must match "
+  if( instrument_pol_array.nelem() != nf )
+    throw runtime_error( "The main length of *instrument_pol_array* must match "
                          "the number of frequencies." );
 
 
@@ -451,18 +451,18 @@ void yCloudRadar(
   // The calculations
   //---------------------------------------------------------------------------
 
-  // Conversion from Stokes to sensor_pol
+  // Conversion from Stokes to instrument_pol
   ArrayOfVector   s2p;
   stokes2pol( s2p, 0.5 );
 
   ArrayOfIndex npolcum(nf+1); npolcum[0]=0;
   for( Index i=0; i<nf; i++ )
     { 
-      npolcum[i+1] = npolcum[i] + sensor_pol_array[i].nelem(); 
-      for( Index j=0; j<sensor_pol_array[i].nelem(); j++ )
+      npolcum[i+1] = npolcum[i] + instrument_pol_array[i].nelem(); 
+      for( Index j=0; j<instrument_pol_array[i].nelem(); j++ )
         {
-          if( s2p[sensor_pol_array[i][j]-1].nelem() > stokes_dim )
-            throw runtime_error( "Your definition of *sensor_pol_array* " 
+          if( s2p[instrument_pol_array[i][j]-1].nelem() > stokes_dim )
+            throw runtime_error( "Your definition of *instrument_pol_array* " 
                                  "requires a higher value for *stokes_dim*." );
         }
     }
@@ -564,11 +564,11 @@ void yCloudRadar(
                   // Pick out part of iy for frequency
                   Matrix I = iy( Range(iv*np,np), joker );
 
-                  for( Index ip=0; ip<sensor_pol_array[iv].nelem(); ip++ )
+                  for( Index ip=0; ip<instrument_pol_array[iv].nelem(); ip++ )
                     {
                       // Extract reflectivity for recieved polarisation
                       Vector refl( np, 0 );
-                      Vector w = s2p[sensor_pol_array[iv][ip]-1];
+                      Vector w = s2p[instrument_pol_array[iv][ip]-1];
                       for( Index i=0; i<w.nelem(); i++ )     // Note that w can
                         { for( Index j=0; j<np; j++ )        // be shorter than
                             { refl[j] += I(j,i) * w[i]; } }  // stokes_dim (and

@@ -6853,16 +6853,16 @@ void define_md_data_raw()
          "\n"
          "The method is intended to be part of *iy_transmitter_agenda*. It\n"
          "sets *iy* to describe the transmitted pulses. The polarisation\n"
-         "state is taken from *sensor_pol*, where *sensor_pol* must contain\n"
-         "an element for each frequency in *f_grid*. The transmitted pulses \n"
-         "are set to be of unit magnitude, such as [1,1,0,0].\n"
+         "state is taken from *instrument_pol*, where *instrument_pol* must\n"
+         "contain an element for each frequency in *f_grid*. The transmitted\n"
+         "pulses are set to be of unit magnitude, such as [1,1,0,0].\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "iy" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "stokes_dim", "f_grid", "sensor_pol" ),
+        IN( "stokes_dim", "f_grid", "instrument_pol" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -6878,7 +6878,7 @@ void define_md_data_raw()
          "\n"
          "The method is intended to be part of *iy_transmitter_agenda*. It\n"
          "sets *iy* to describe the transmitted pulses. The polarisation\n"
-         "state is taken from *sensor_pol*, where *sensor_pol* must contain\n"
+         "state is taken from *instrument_pol*, where *instrument_pol* must contain\n"
          "a single value. This polarisation state is applied for all\n"
          "frequencies. The transmitted pulses are set to be of unit\n"
          "magnitude, such as [1,1,0,0].\n"
@@ -6888,7 +6888,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "stokes_dim", "f_grid", "sensor_pol" ),
+        IN( "stokes_dim", "f_grid", "instrument_pol" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -12125,7 +12125,7 @@ void define_md_data_raw()
          "The default is to output the Stokes elements I, Q, U and V (up to\n" 
          "*stokes_dim*). This method allows to change the \"polarisation\" of\n"
          "the output. Polarisation components to be extracted are selected by\n"
-         "*sensor_pol*. This method can be applied at any step of the sensor\n"
+         "*instrument_pol*. This method can be applied at any step of the sensor\n"
          "matrix set-up.\n"
          "\n"
          "The method can only be applied on data for I, Q, U and V. The value\n"
@@ -12133,7 +12133,7 @@ void define_md_data_raw()
          "components. For example, I+45 requires that *stokes_dim* is at\n"
          "least 3. \n"
          "\n"
-         "See *sensor_pol* for coding of polarisation states.\n"
+         "See *instrument_pol* for coding of polarisation states.\n"
          "\n"
          "Note that the state of *iy_unit* is considered. This WSV must give\n"
          "the actual unit of the data. This as, the extraction of components\n"
@@ -12151,7 +12151,7 @@ void define_md_data_raw()
         IN( "sensor_response", "sensor_response_f", "sensor_response_pol",
             "sensor_response_dlos", "sensor_response_f_grid",
             "sensor_response_pol_grid", "sensor_response_dlos_grid",
-            "stokes_dim", "iy_unit", "sensor_pol" ),
+            "stokes_dim", "iy_unit", "instrument_pol" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -14019,6 +14019,38 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "yApplySensorPol" ),
+        DESCRIPTION
+        (
+         "Extraction of arbitrary linear polarisation.\n"
+         "\n"
+         "Thios method shall be called after *yCalc* and then applies *sensor_pol*\n"
+         "on the outout of *yCalc*. See *sensor_pol* for definition of the\n"
+         "polarisation responses. THe *sensor_response* give to *yCalc* can not\n"
+         "contain any polarisation response, it must maintain original Stokes\n"
+         "elelemnts. The value of *stokes_dim* muist be >= 3.\n"
+         "\n"
+         "The values in *sensor_pol* are applied on *y*, and *jacobian* if relevant.\n"
+         "*y_pol* is set following the values in *sensor_pol* but is rounded to\n"
+         "an integer value. Remaining data associated with *y* (e.g. y_pos) are\n"
+         "set to the value matching the first Stokes element.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "y", "y_f", "y_pol", "y_pos", "y_los", "y_aux", "y_geo",
+             "jacobian" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "y", "y_f", "y_pol", "y_pos", "y_los", "y_aux", "y_geo", "jacobian",
+            "stokes_dim", "jacobian_do", "sensor_pos", "sensor_pol" ),
+        GIN(  ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
+        GIN_DESC( )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "yApplyUnit" ),
         DESCRIPTION
         (
@@ -14336,7 +14368,7 @@ void define_md_data_raw()
          "\n"
          "The method requires additional information about the sensor,\n"
          "regarding its recieving properties. First of all, recieved\n"
-         "polarisation states are taken from *sensor_pol_array*. Note\n"
+         "polarisation states are taken from *instrument_pol_array*. Note\n"
          "that this WSV allows to define several measured polarisations\n"
          "for each transmitted siggnal. For example, it is possible to\n"
          "simulate transmission of V and measuring backsacttered V and H.\n"
@@ -14362,7 +14394,7 @@ void define_md_data_raw()
             "iy_unit", "iy_aux_vars", "stokes_dim",
             "f_grid", "t_field", "z_field", "vmr_field", "cloudbox_on", 
             "cloudbox_checked", "sensor_pos", "sensor_los", "sensor_checked",
-            "iy_main_agenda", "sensor_pol_array", "range_bins" ),
+            "iy_main_agenda", "instrument_pol_array", "range_bins" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),

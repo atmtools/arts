@@ -1369,7 +1369,7 @@ void spectrometer_matrix(
 
    y[iout] = sum( s2p[i].*iy(iin,joker)
 
-   The order of the vectors follow the coding described for sensor_pol, but
+   The order of the vectors follow the coding described for instrument_pol, but
    zero-based indexing is used here. That is, the first vector (s2p[0])
    corresponds to I.
 

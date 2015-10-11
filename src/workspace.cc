@@ -1833,6 +1833,66 @@ void Workspace::define_wsv_data()
        ),
       GROUP( "Agenda" )));
 
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "instrument_pol" ),
+      DESCRIPTION
+      (
+       "Definition of the polarisation of an instrument.\n"
+       "\n"
+       "The default for output is to give data for the selected Stokes\n"
+       "elements (1:stokes_dim). This variable defines the polarisations\n"
+       "that are actually measured (= or just what shall be outputted).\n"
+       "This variable is used as input for WSM that handles the extraction\n"
+       "of polarisation components. This in contrast to *sensor_response_pol*\n"
+       "and that are used for internal bookkeeping\n"
+       "\n"
+       "The polarisation states/components are coded as\n"
+       "   0 = Undefined.\n"
+       "   1 = I, total intensity.\n"
+       "   2 = Q, second Stokes component, Iv - Ih.\n"
+       "   3 = U, third Stokes component, I+45 - I-45.\n"
+       "   4 = V, forth Stokes component, Irc - Ilc\n"
+       "   5 = Iv, intensity of vertically polarised component.\n"
+       "   6 = Ih, intensity of horizontally polarised component.\n"
+       "   7 = I+45, intensity of +45 deg linearly polarised component.\n"
+       "   8 = I-45, intensity of -45 deg linearly polarised component.\n"
+       "   9 = Ilhc, intensity of left-hand circularly polarised component.\n"
+       "  10 = Irhc, intensity of right-hand circularly polarised component.\n"
+       "\n"
+       "See the documentation for definition of the Stokes vector and the\n"
+       "different components.\n"
+       "\n"
+       "If the instrument measures, or transmits, the vertical and horisontal\n"
+       "components, this variable shall accordingly be set to [5,6].\n"
+       "\n"
+       "The conversion to Planck-BT of components 2-4 requires that component\n"
+       "1 is kept, and is then included as first element.\n"
+       "\n"
+       "The shift from the Stokes vector can be made at any stage when of the\n"
+       "sensor response set-up. The responses used must of course be adopted\n"
+       "correspondingly. Or reversed, if the antenna response is defined for\n"
+       "Iv and Ih it could be useful to shift polarisation as first sensor\n"
+       "operation.\n"
+       "\n"
+       "Usage: Set by the user.\n"
+       ),
+      GROUP( "ArrayOfIndex" )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "instrument_pol_array" ),
+      DESCRIPTION
+      (
+       "Multiple definition of instrument polarisation.\n"
+       "\n"
+       "Defined as *instrument_pol* but used when multiple polarisations\n"
+       "are possible/required.\n"
+       "\n"
+       "Usage: Set by the user.\n"
+       ),
+      GROUP( "ArrayOfArrayOfIndex" )));
+
  wsv_data.push_back
     (WsvRecord
      ( NAME( "inversion_iterate_agenda" ),
@@ -4198,66 +4258,44 @@ void Workspace::define_wsv_data()
        ),
       GROUP( "Index" )));
 
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "sensor_pol" ),
+	wsv_data.push_back
+	(WsvRecord
+	 ( NAME( "sensor_pol" ),
       DESCRIPTION
       (
-       "Sensor polarisations.\n"
+       "A set of polarisation response angles.\n"
        "\n"
-       "The default for output is to give data for the selected Stokes\n"
-       "elements (1:stokes_dim). This variable defines the polarisations\n"
-       "that are actually measured (= or just what shall be outputted).\n"
-       "This variable is used as input for WSM that handles the extraction\n"
-       "of polarisation components. This in contrast to *sensor_response_pol*\n"
-       "and that are used for internal bookkeeping\n"
+       "The standard choice to consider the polarisation response of the\n"
+       "reciever is by *instrument_pol*, and this response becomes then part\n"
+       "of *sensor_response*. However, that choice is not possible when the\n"
+       "polartisation response changes between measurement blocks, and this\n" 
+       "variable combined with the *yApplySensorPol* offers an alternative for\n"
+       "such situations. This WSV also allows defintion of an arbitrary\n"
+       "polarisation angle.\n"
        "\n"
-       "The polarisation states/components are coded as\n"
-       "   0 = Undefined.\n"
-       "   1 = I, total intensity.\n"
-       "   2 = Q, second Stokes component, Iv - Ih.\n"
-       "   3 = U, third Stokes component, I+45 - I-45.\n"
-       "   4 = V, forth Stokes component, Irc - Ilc\n"
-       "   5 = Iv, intensity of vertically polarised component.\n"
-       "   6 = Ih, intensity of horizontally polarised component.\n"
-       "   7 = I+45, intensity of +45 deg linearly polarised component.\n"
-       "   8 = I-45, intensity of -45 deg linearly polarised component.\n"
-       "   9 = Ilhc, intensity of left-hand circularly polarised component.\n"
-       "  10 = Irhc, intensity of right-hand circularly polarised component.\n"
+       "When applying the polarisation response by *yApplySensorPol*, this\n"
+       "variable complements *sensor_pos* and *sensor_los*. This WSV matrix\n"
+       "is also a matrix, that shall have the same number of rows as the other\n"
+       "two matrices. \n"
        "\n"
-       "See the documentation for definition of the Stokes vector and the\n"
-       "different components.\n"
+       "The columns of *sensor_pol* corresponds to the channels/frequencies\n"
+       "of the receiver. Each element gives the polarisation angle. A pure\n"
+       "vertical response has the angle 0 deg, and pure horisontal 90 deg.\n"
+       "If all U values (Stokes element 3) are zero, the sign of the angle does,\n"
+       "not matter, and 0 and 180 degrees give the same result. With non-zero\n"
+       "U, the result of e.g. -45 and +45 degrees differ.\n"
        "\n"
-       "If the sensor measures the vertical and horisontal componenets, this\n"
-       "variable shall accordingly be set to [5,6].\n"
-       "\n"
-       "The conversion to Planck-BT of components 2-4 requires that component\n"
-       "1 is kept, and is then included as first element.\n"
-       "\n"
-       "The shift from the Stokes vector can be made at any stage when of the\n"
-       "sensor response set-up. The responses used must of course be adopted\n"
-       "correspondingly. Or reversed, if the antenna response is defined for\n"
-       "Iv and Ih it could be useful to shift polarisation as first sensor\n"
-       "operation.\n"
+       "Note that a receiver with a linear response is assumed. Circular\n"
+       "polarisation is not affected by any rotation.\n"
        "\n"
        "Usage: Set by the user.\n"
-       ),
-      GROUP( "ArrayOfIndex" )));
-
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "sensor_pol_array" ),
-      DESCRIPTION
-      (
-       "Multiple definition of sensor polarisation.\n"
        "\n"
-       "Defined as *sensor_pol* but used when multiple reciever polarisation\n"
-       "are possible/required.\n"
+       "Unit:  [ degrees ]\n"
        "\n"
-       "Usage: Set by the user.\n"
+       "Size:  [ number of measurement blocks, number of channels/frequencies ]\n"
        ),
-      GROUP( "ArrayOfArrayOfIndex" )));
-
+      GROUP( "Matrix" )));
+	
   wsv_data.push_back
    (WsvRecord
     ( NAME( "sensor_pos" ),
@@ -4426,7 +4464,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Works basically as *sensor_response_f*.\n"
        "\n"
-       "See *sensor_pol* for coding of polarisation states.\n"
+       "See *instrument_pol* for coding of polarisation states.\n"
        "\n"
        "The variable shall not be set manually, it will be set together with\n"
        "*sensor_response* by sensor response WSMs.\n"
@@ -4448,7 +4486,7 @@ void Workspace::define_wsv_data()
        "initially 1:stokes_dim, but can later adjusted according to the \n"
        "sensor specifications. Only defined when a common grid exists. \n"
        "\n"
-       "See *sensor_pol* for coding of polarisation states.\n"
+       "See *instrument_pol* for coding of polarisation states.\n"
        "\n"
        "Usage: Set by sensor response methods.\n"
        "\n"
@@ -5460,7 +5498,7 @@ void Workspace::define_wsv_data()
        "Data are provided for each element of *y*, following y_f, and the\n"
        "length of this variable and *y* is equal.\n"
        "\n"
-       "See *sensor_pol* for coding of polarisation components.\n"
+       "See *instrument_pol* for coding of polarisation components.\n"
        "\n"
        "Usage: Output from radiative transfer calculations considering\n"
        "       sensor response.\n"

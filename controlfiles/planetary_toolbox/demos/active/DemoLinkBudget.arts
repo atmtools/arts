@@ -49,10 +49,10 @@ NumericSet( f_bwidth, 0.1e9 )
 #
 # Transmitted polarisation
 #
-# Do 'arts -d sensor_pol' for information on the coding of polarisation states.
+# Do 'arts -d instrument_pol' for information on the coding of polarisation states.
 # For example, V and H are coded as 5 and 5, respectively.
 #
-ArrayOfIndexSet( sensor_pol, [ 5 ] )
+ArrayOfIndexSet( instrument_pol, [ 5 ] )
 
 
 #

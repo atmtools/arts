@@ -1,3 +1,37 @@
+2015-10-11  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-330
+
+	* Warning! If you have any control file including sensor_pol or
+	sensor_pol_array, you need to change that to
+	instrument_pol(_array). There is now a new WSV named sensor_pol.
+
+	* controlfiles/CMakeLists.txt: Added test below, as fast.
+
+	* controlfiles/artscomponents/stokesrot/TestSensorPol.arts: New test.
+
+	* src/m_sensor.cc (yApplySensorPol): New WSM.
+
+	* CHANGES-2.3: Added renaming of sensor_pol.
+
+	* src/m_jacobian.cc (jacobianClose): Fixed comment that
+	incorrectly referrred to sensor_pol.
+
+	* controlfiles/artscomponents/faraday/TestFaradayRotation.arts:
+	* src/m_cloudradar.cc (yCloudRadar):
+	* src/sensor.cc (stokes2pol):
+	* src/m_sensor.cc (sensor_responseAntenna)
+	(sensor_responsePolarisation):
+	* src/m_transmitter.cc (iy_transmitterMultiplePol)
+	(iy_transmitterSinglePol): Changed sensor_pol to instrument_pol.
+
+	* src/workspace.cc (define_wsv_data): Renamed existing sensor_pol
+	to instrument_pol, and sensor_pol_array to instrument_pol_array.
+	This as the variable now is used for both receivers and
+	transmitters, and this name fits better with a new WSV:
+
+	Introduced a new sensor_pol.
+
 2015-10-09  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-329

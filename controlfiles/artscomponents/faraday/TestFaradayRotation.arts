@@ -170,7 +170,7 @@ Copy( iy_main_agenda, iy_main_agenda__Transmission )
 MatrixSet( sensor_pos, [ 0 ] )
 MatrixSet( sensor_los, [ 0 ] )    
 MatrixSet( transmitter_pos, [] ) # Dummy value
-ArrayOfIndexSet( sensor_pol, [ 5 ] )
+ArrayOfIndexSet( instrument_pol, [ 5 ] )
 #
 sensorOff
 sensor_checkedCalc
