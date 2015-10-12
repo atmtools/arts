@@ -1,3 +1,16 @@
+2015-10-12  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-331
+
+	* src/m_sensor.cc (f_gridMetMM): Started.
+
+	* src/m_sensor.cc (sensor_responseMixerBackendPrecalcWeights): Now
+	using channel2fgrid_indexes and channel2fgrid_weights, replacing
+	two old GIN arguments with exacly the same functionality.
+
+	* src/workspace.cc (define_wsv_data): Introduced
+	channel2fgrid_indexes and channel2fgrid_weights.
+
 2015-10-11  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-330

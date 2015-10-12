@@ -1813,8 +1813,8 @@ void sensor_responseMixerBackendPrecalcWeights(
     const ArrayOfIndex&         sensor_response_pol_grid,
     const Matrix&               sensor_response_dlos_grid,
     const Vector&               f_backend,
-    const ArrayOfArrayOfIndex&  frequency_index,
-    const ArrayOfVector&        frequency_weights,
+    const ArrayOfArrayOfIndex&  channel2fgrid_indexes,
+    const ArrayOfVector&        channel2fgrid_weights,
     const Verbosity&            verbosity)
 {
   CREATE_OUT3;
@@ -1868,31 +1868,35 @@ void sensor_responseMixerBackendPrecalcWeights(
     }
 
   // frequency index and weights
-  if( frequency_index.nelem() != nout_f )
+  if( channel2fgrid_indexes.nelem() != nout_f )
     {
-      os << "The first size of *frequency_index* an length of *f_backend* "
+      os << "The first size of *channel2fgrid_indexes* an length of *f_backend* "
          << "must be equal.\n";
       error_found = true;
     }
-  if( frequency_weights.nelem() != frequency_index.nelem() )
+  if( channel2fgrid_weights.nelem() != channel2fgrid_indexes.nelem() )
     {
-      os << "Leading sizes of *frequency_index* and *frequency_weights* differ.\n";
+      os << "Leading sizes of *channel2fgrid_indexes* and "
+         << "*channel2fgrid_weights* differ.\n";
       error_found = true;
     }
   for( Index i=0; i<nout_f; i++ )
     {
-      if( frequency_index[i].nelem() != frequency_weights[i].nelem() )
+      if( channel2fgrid_indexes[i].nelem() != channel2fgrid_weights[i].nelem() )
         {
-          os << "Mismatch in size between *frequency_index* and *frequency_weights* "
-             << "for array/vector with index " << i << ".\n";
+          os << "Mismatch in size between *channel2fgrid_indexes* and "
+             << "*channel2fgrid_weights*, found for array/vector with "
+             << "index " << i << ".\n";
           error_found = true;
         }
-      for( Index j=0; j<frequency_index[i].nelem(); j++ )
+      for( Index j=0; j<channel2fgrid_indexes[i].nelem(); j++ )
         {
-          if( frequency_index[i][j] < 0  ||  frequency_index[i][j] >= nin_f )
+          if( channel2fgrid_indexes[i][j] < 0  ||  
+              channel2fgrid_indexes[i][j] >= nin_f )
             {
-              os << "At least one value in *frequency_index* is either < 0 or "
-                 << "is too high considering length of *sensor_response_f_grid*.\n";
+              os << "At least one value in *channel2fgrid_indexes* is either "
+                 << " < 0 or is too high considering length of "
+                 << "*sensor_response_f_grid*.\n";
               error_found = true;
               break;
             }
@@ -1913,9 +1917,9 @@ void sensor_responseMixerBackendPrecalcWeights(
       {
         // The summation vector for 1 polarisation and 1 viewing direction
         Vector w1( nin_f, 0.0 );
-        for( Index j=0; j<frequency_index[ifr].nelem(); j++ )
+        for( Index j=0; j<channel2fgrid_indexes[ifr].nelem(); j++ )
           { 
-            w1[frequency_index[ifr][j]] = frequency_weights[ifr][j]; 
+            w1[channel2fgrid_indexes[ifr][j]] = channel2fgrid_weights[ifr][j]; 
           }
 
         // Loop over polarisation and spectra (viewing directions)
@@ -3714,4 +3718,185 @@ void yApplySensorPol(
         }
     }
   
+}
+
+
+
+
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void f_gridMetMM(
+   // WS Output:
+          Vector&          f_grid,
+          Vector&          f_backend,
+    ArrayOfArrayOfIndex&   channel2fgrid_indexes,
+          ArrayOfVector&   channel2fgrid_weights,
+    // WS Input:
+    const Matrix&          mm_back,      /* met_mm_backend */
+    // Control Parameters:
+    const Vector&          freq_spacing,
+    const ArrayOfIndex&    freq_number,
+    const Verbosity&       verbosity )
+{
+  CREATE_OUT1;
+  CREATE_OUT2;
+
+  chk_met_mm_backend(mm_back);
+
+  const Index nchannels = mm_back.nrows();
+
+  if (freq_spacing.nelem() != 1 && freq_spacing.nelem() != nchannels)
+    throw std::runtime_error(
+         "Length of *freq_spacing* vector must be either 1 or correspond\n"
+         "to the number of rows in *met_mm_backend*." );
+
+  if (freq_number.nelem() != 1 && freq_number.nelem() != nchannels)
+    throw std::runtime_error(
+         "Length of *freq_number* array must be either 1 or correspond\n"
+         "to the number of rows in *met_mm_backend*.");
+
+
+  // Setup frequency grid
+  //--------------------------------------------------
+  ArrayOfNumeric all_frequencies;
+  ArrayOfIndex channel_pos_in_all_freq;
+  channel_pos_in_all_freq.resize(nchannels + 1);
+  channel_pos_in_all_freq[0] = 0;
+
+  // Create vector with frequencies for all channels
+  // and fill f_backend with nominal frequency for each channel
+  Index channel_pos_index = 0;
+  Vector band_frequencies;
+  f_backend.resize( nchannels );
+  for (Index ch = 0; ch < nchannels; ch++)
+    {
+      const Numeric lo = mm_back(ch, 0);
+      const Numeric offset1 = mm_back(ch, 1);
+      const Numeric offset2 = mm_back(ch, 2);
+      const Numeric bandwidth = mm_back(ch, 3);
+
+      Index this_fnumber = (freq_number.nelem() == 1) ? freq_number[0] : freq_number[ch];
+      Numeric this_spacing = (freq_spacing.nelem() == 1) ? freq_spacing[0] : freq_spacing[ch];
+
+      if (this_spacing <= 0)
+        throw std::runtime_error("*freq_spacing must be > 0.");
+
+      if (this_fnumber == 0)
+        {
+          ostringstream os;
+          os << "*freq_number* must be -1 or greater zero:"
+             << "freq_number[" << ch << "] = " << this_fnumber;
+          std::runtime_error(os.str());
+        }
+
+      // Determine the frequency grid for this channel
+      if (this_fnumber == 1 && bandwidth <= this_spacing)
+        {
+          band_frequencies.resize(1);
+          band_frequencies[0] = bandwidth / 2.;
+        }
+      else
+        {
+          // Use freq_spacing if freq_number is -1, otherwise use the finer spacing of the two
+          if (this_fnumber == -1 || this_fnumber == 1
+              || bandwidth / (Numeric)this_fnumber > this_spacing)
+            {
+              // Adjust the number of frequencies so that they are at least
+              // as fine as freq_spacing and cover the band evenly
+              this_fnumber = (Index)ceil(bandwidth / this_spacing);
+            }
+
+          const Numeric bin_width = 0.5 * bandwidth / (Numeric)this_fnumber;
+          nlinspace(band_frequencies, bin_width, bandwidth - bin_width, this_fnumber);
+        }
+
+      // Create frequencies for each passband
+      if (offset1 > 0.)
+        {
+
+          // 4 passbands
+          if (offset2 > 0.)
+            {
+              for (Index f = 0; f < this_fnumber; f++)
+                {
+                  const Numeric f_offset = -bandwidth / 2. + band_frequencies[f];
+                  all_frequencies.push_back(lo - offset1 - offset2 + f_offset);
+                  all_frequencies.push_back(lo - offset1 + offset2 + f_offset);
+                  all_frequencies.push_back(lo + offset1 - offset2 + f_offset);
+                  all_frequencies.push_back(lo + offset1 + offset2 + f_offset);
+                  channel_pos_index += 4;
+                }
+            }
+          // 2 passbands
+          else
+            {
+              for (Index f = 0; f < this_fnumber; f++)
+                {
+                  all_frequencies.push_back(lo - offset1 - bandwidth / 2. + band_frequencies[f]);
+                  all_frequencies.push_back(lo + offset1 - bandwidth / 2. + band_frequencies[f]);
+                  channel_pos_index += 2;
+                }
+            }
+        }
+      else
+        {
+          // 1 Passband
+          for (Index f = 0; f < this_fnumber; f++)
+            {
+              all_frequencies.push_back(lo - bandwidth / 2. + band_frequencies[f]);
+              channel_pos_index++;
+            }
+        }
+      
+      f_backend[ch] = lo;
+      channel_pos_in_all_freq[ch+1] = channel_pos_index;
+    }
+
+  // Create frequency position vector (1...nf)
+  ArrayOfIndex frequency_indexes;
+  frequency_indexes.resize(all_frequencies.size());
+  for (size_t i = 0; i < all_frequencies.size(); i++)
+    frequency_indexes[i] = i;
+
+  // Sort frequency position vector by frequency
+  std::sort(frequency_indexes.begin(), frequency_indexes.end(),
+            CmpArrayOfNumeric(all_frequencies));
+
+  // Check that we don't have some very close frequen cies
+  for (size_t f_index = 0; f_index < all_frequencies.size() - 1; f_index++)
+    {
+      if (all_frequencies[frequency_indexes[f_index + 1]]
+          - all_frequencies[frequency_indexes[f_index]] < 1e3 )
+        {
+          throw std::runtime_error(
+                    "Two frequencies with a difference < 1 kHz found." );
+        }
+  }
+
+  // Create weights vector and channel number vector
+  Vector frequency_weights(all_frequencies.size());
+  Vector channel_number(all_frequencies.size());
+  for (Index ch = 0; ch < nchannels; ch++)
+    {
+      const Range range(channel_pos_in_all_freq[ch],
+                        channel_pos_in_all_freq[ch+1] - channel_pos_in_all_freq[ch]);
+
+      frequency_weights[range] = 1. / (Numeric)(channel_pos_in_all_freq[ch+1]
+                                                - channel_pos_in_all_freq[ch]);
+      channel_number[range] = (Numeric)ch;
+    }
+
+
+  cout << all_frequencies << endl;
+  cout << frequency_indexes << endl;
+  cout << frequency_weights << endl;
+  cout << channel_number << endl;
+
+
+  // Create remaining output argumemnts
+  f_grid.resize(all_frequencies.size());
+  channel2fgrid_indexes.resize( nchannels );
+  channel2fgrid_weights.resize( nchannels );
 }

@@ -1036,7 +1036,7 @@ void Workspace::define_wsv_data()
        ),
       GROUP( "Vector" )));
 
- wsv_data.push_back
+  wsv_data.push_back
     (WsvRecord
      ( NAME( "blackbody_radiation_agenda" ),
        DESCRIPTION
@@ -1044,6 +1044,43 @@ void Workspace::define_wsv_data()
         "Agenda deriving *blackbody_radiation*.\n"
         ),
        GROUP( "Agenda" )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "channel2fgrid_indexes" ),
+      DESCRIPTION
+      (
+       "Definition of backend frequency response, link to *f_grid*.\n"
+       "\n"
+       "The WSV is used to describe the frequency response of backend channels\n"
+       "together with the accompanying WSV *channel2fgrid_weights*.\n"
+       "\n"
+       "This WSV links each channel to the elements of *f_grid*. In short it\n"
+       "lists what elements of *f_grid* that are relevant for each channel.\n"
+       "\n"
+       "More precisely, the first dimension gives the number of output channels.\n" 
+       "Each ArrayOfIndex gives the index of the values in *f_grid* associated\n" 
+       "with the channel of concern. For a pure double-sideband receiver, where\n"
+       "there is one monochromatic frequency per passband, this argument could\n"
+       "look like: [[0,5],[1,4],[2,3],[7,8],[7,8]].\n"
+       ),
+      GROUP( "ArrayOfArrayOfIndex" )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "channel2fgrid_weights" ),
+      DESCRIPTION
+      (
+       "Definition of backend frequency response, weighting of *f_grid*.\n"
+       "\n"
+       "The WSV is used to describe the frequency response of backend channels\n"
+       "together with the accompanying WSV *channel2fgrid_indexes*.\n"
+       "\n"
+       "This WSV shall have excatly the same sizes as *channels2fgrid_indexes*.\n" 
+       "Each element gives the weight to be assigned to the associated\n"
+       "monochromatic frequency. \n"
+       ),
+      GROUP( "ArrayOfVector" )));
 
   wsv_data.push_back
    (WsvRecord

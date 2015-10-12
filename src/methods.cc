@@ -11997,6 +11997,27 @@ void define_md_data_raw()
                   "Flag to enable (1) or disable (0) antenna.",
                   "Flag to include second part of swath (only 3D, see above)." )
         ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "f_gridMetMM" ),
+        DESCRIPTION
+        (
+         "xxx\n"
+           ),
+        AUTHORS( "Oliver Lemke" ),
+        OUT( "f_grid", "f_backend", "channel2fgrid_indexes", 
+             "channel2fgrid_weights" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "met_mm_backend" ),
+        GIN( "freq_spacing", "freq_number" ),
+        GIN_TYPE(    "Vector", "ArrayOfIndex" ),
+        GIN_DEFAULT( "[.1e9]", "[-1]" ),
+        GIN_DESC( "Desired grid spacing in Hz.",
+                  "Number of frequencies per passband for each channel." )
+        ));
   
   md_data_raw.push_back
     ( MdRecord
@@ -12045,17 +12066,8 @@ void define_md_data_raw()
          "has no direct influence on the result, but at least representative\n"
          "values must be set.\n"
          "\n"
-         "The argument *frequency_index* links the monochromatic frequencies with\n"
-         "the output channels. The first dimension gives the number of output.\n"
-         "channels. Each ArrayOfIndex gives the index of the values in *f_grid*\n"
-         "associated with the channels. For a pure double-sideband receiver,\n"
-         "where there is one monochromatic frequency per passband, this argument\n"
-         "coluld look like: [[0,5],[1,4],[2,3],[7,8],[7,8]].\n"
-         "\n"
-         "The argument *frequency_weights* shall have excatly the same sizes as\n"
-         "*frequency_index*. Each element gives the weight to be assigned to\n"
-         "the associated monochromatic frequency. For the example above, all\n"
-         "elements should be 0.5.\n"
+         "The frequency response is defined using *channel2fgrid_indexes* and\n"
+         "*channel2fgrid_weights*.\n"
          "\n"
          "Both *frequency_index* and *frequency_weights* are assumed to be common\n"
          "for all viewing directions.\n"
@@ -12071,11 +12083,11 @@ void define_md_data_raw()
             "sensor_response_dlos",
             "sensor_response_f_grid", "sensor_response_pol_grid", 
             "sensor_response_dlos_grid",
-            "f_backend" ),
-        GIN( "frequency_index", "frequency_weights" ),
-        GIN_TYPE( "ArrayOfArrayOfIndex", "ArrayOfVector" ),
-        GIN_DEFAULT( NODEF, NODEF ),
-        GIN_DESC( "See above.", "See above." )
+            "f_backend", "channel2fgrid_indexes", "channel2fgrid_weights" ),
+        GIN( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
+        GIN_DESC( )
         ));
 
   md_data_raw.push_back
