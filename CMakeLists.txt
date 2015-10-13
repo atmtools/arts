@@ -170,9 +170,9 @@ endif (NOT NO_DOCSERVER)
 ########### Remove NDEBUG as set by cmake >2.8.10 ##########
 if (CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
   string (REPLACE "-DNDEBUG" "" CMAKE_C_FLAGS_RELWITHDEBINFO
-          ${CMAKE_C_FLAGS_RELWITHDEBINFO})
+          "${CMAKE_C_FLAGS_RELWITHDEBINFO}")
   string (REPLACE "-DNDEBUG" "" CMAKE_CXX_FLAGS_RELWITHDEBINFO
-          ${CMAKE_CXX_FLAGS_RELWITHDEBINFO})
+          "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
 endif (CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
 
 ########### Special flags for certain compilers ##########

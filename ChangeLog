@@ -1,3 +1,9 @@
+2015-10-13  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-332
+
+	* CMakeLists.txt: Put variable in quotes to avoid error if it's empty.
+
 2015-10-12  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-331
