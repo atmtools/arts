@@ -1,3 +1,9 @@
+2015-10-13  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-333
+
+	* ChangeLog: Removed one old conflict marker.
+
 2015-10-13  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-332
@@ -310,7 +316,6 @@
 
 	* src/m_sensor.cc (sensor_responseMixerBackendPrecalcWeights): Started.
 
->>>>>>> .r9485
 2015-10-05  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-322
