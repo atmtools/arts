@@ -1,5 +1,14 @@
 2015-10-13  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-3-334
+
+	* src/m_sensor.cc (f_gridMetMM): Sets f_grid and some sensor
+	related variables based on met-mm settings. THe output fits with
+	sensor_responseMixerBackendPrecalcWeights. Finished, but not yet
+	hard tested.
+
+2015-10-13  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-3-333
 
 	* ChangeLog: Removed one old conflict marker.

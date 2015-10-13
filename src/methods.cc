@@ -5402,6 +5402,54 @@ void define_md_data_raw()
         GIN_DESC( "Desired grid spacing in Hz." )
         ));
   
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "f_gridMetMM" ),
+        DESCRIPTION
+        (
+         "Sets *f_grid* and associated variables match MetMM settings.\n"
+         "\n"
+         "The method calculates *f_grid* to match the specifications of a\n"
+         "*met_mm_backend* table and method arguments.\n"
+         "\n"
+         "You have to specify the desired spacing using the keyword *freq_spacing*.\n"
+         "You can pass a *Vector* with one element to apply the same spacing to all\n"
+         "channels or pass a spacing value for each channel separately.\n"
+         "\n"
+         "Optionally, *freq_number* can be set to specify the mininum number of\n" 
+         "frequencies per passband for each channel. The frequencies are placed\n" 
+         "equally spaced in each passband. The minimum spacing resulting from\n"
+         "*freq_number* and *freq_spacing* will be used for the calculation. To\n"
+         "explicitly use *freq_spacing* for a channel, *freq_number* can be set\n" 
+         "to -1 for this channel.\n"
+         "\n"
+         "The number of elements in *freq_number* can either be the number of\n" 
+         "channels or 1. If only one element is given, this number is used for\n"
+         "all channels. If *freq_number* is 1 and *freq_spacing* is wider than\n" 
+         "the bandwidth of the channel, one frequency is placed in the middle of\n" 
+         "each passband.\n"
+         "\n"
+         "Frequencies that would be closer than *freq_merge_threshold* in the\n"
+         "generated *f_grid* are merged together. This value should be left at\n" 
+         "the default value. This is only meant to compensate for numerical\n"
+         "inaccuracies in the frequency calculation to merge frequency that are\n"
+         "supposed to be identical.\n"
+         ),
+        AUTHORS( "Oliver Lemke", "Patrick Eriksson" ),
+        OUT( "f_grid", "f_backend", "channel2fgrid_indexes", 
+             "channel2fgrid_weights" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "met_mm_backend" ),
+        GIN( "freq_spacing", "freq_number", "freq_merge_threshold" ),
+        GIN_TYPE(    "Vector", "ArrayOfIndex", "Numeric" ),
+        GIN_DEFAULT( "[.1e9]", "[-1]", "1" ),
+        GIN_DESC( "Desired grid spacing in Hz.",
+                  "Number of frequencies per passband for each channel.",
+                  "Merge frequencies that are closer than this value in Hz." )
+        ));
+  
   md_data_raw.push_back     
     ( MdRecord
       ( NAME( "g0Earth" ),
@@ -11998,27 +12046,6 @@ void define_md_data_raw()
                   "Flag to include second part of swath (only 3D, see above)." )
         ));
 
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "f_gridMetMM" ),
-        DESCRIPTION
-        (
-         "xxx\n"
-           ),
-        AUTHORS( "Oliver Lemke" ),
-        OUT( "f_grid", "f_backend", "channel2fgrid_indexes", 
-             "channel2fgrid_weights" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "met_mm_backend" ),
-        GIN( "freq_spacing", "freq_number" ),
-        GIN_TYPE(    "Vector", "ArrayOfIndex" ),
-        GIN_DEFAULT( "[.1e9]", "[-1]" ),
-        GIN_DESC( "Desired grid spacing in Hz.",
-                  "Number of frequencies per passband for each channel." )
-        ));
-  
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "sensor_responseMixer" ),
