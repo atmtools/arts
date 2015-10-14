@@ -101,24 +101,28 @@ public:
                 {
                     mqtype[ippdq] = JQT_magnetic_magntitude;
                     mjacobian_pos[ippdq] = iq;
+                    mspecies[ippdq] = -9999;//Flag for not a species...
                     ippdq++;
                 }
                 else if(jacobian_quantities[iq].MainTag() == MAGFIELD_MAINTAG &&  jacobian_quantities[iq].Subtag() == "eta")
                 {
                     mqtype[ippdq] = JQT_magnetic_eta;
                     mjacobian_pos[ippdq] = iq;
+                    mspecies[ippdq] = -9999;//Flag for not a species...
                     ippdq++;
                 }
                 else if(jacobian_quantities[iq].MainTag() == MAGFIELD_MAINTAG &&  jacobian_quantities[iq].Subtag() == "theta")
                 {
                     mqtype[ippdq] = JQT_magnetic_theta;
                     mjacobian_pos[ippdq] = iq;
+                    mspecies[ippdq] = -9999;//Flag for not a species...
                     ippdq++;
                 }
                 else if(jacobian_quantities[iq].MainTag() == MAGFIELD_MAINTAG &&  jacobian_quantities[iq].Subtag() == "u")
                 {
                     mqtype[ippdq] = JQT_magnetic_u;  
                     mjacobian_pos[ippdq] = iq; 
+                    mspecies[ippdq] = -9999;//Flag for not a species...
                     ippdq++;
                     mmag_perturbation = jacobian_quantities[iq].Perturbation();
                 }
@@ -126,6 +130,7 @@ public:
                 {
                     mqtype[ippdq] = JQT_magnetic_v;
                     mjacobian_pos[ippdq] = iq;
+                    mspecies[ippdq] = -9999;//Flag for not a species...
                     ippdq++;
                     mmag_perturbation = jacobian_quantities[iq].Perturbation();
                 }
@@ -133,6 +138,7 @@ public:
                 {
                     mqtype[ippdq] = JQT_magnetic_w;
                     mjacobian_pos[ippdq] = iq;
+                    mspecies[ippdq] = -9999;//Flag for not a species...
                     ippdq++;
                     mmag_perturbation = jacobian_quantities[iq].Perturbation();
                 }
@@ -140,6 +146,7 @@ public:
                 {
                     mqtype[ippdq] = JQT_wind_magnitude;
                     mjacobian_pos[ippdq] = iq;
+                    mspecies[ippdq] = -9999;//Flag for not a species...
                     ippdq++;
                     mwindfreq_perturbation = jacobian_quantities[iq].Perturbation();
                 }
@@ -147,6 +154,7 @@ public:
                 {
                     mqtype[ippdq] = JQT_wind_u;
                     mjacobian_pos[ippdq] = iq;
+                    mspecies[ippdq] = -9999;//Flag for not a species...
                     ippdq++;
                     mwindfreq_perturbation = jacobian_quantities[iq].Perturbation();
                 }
@@ -154,6 +162,7 @@ public:
                 {
                     mqtype[ippdq] = JQT_wind_v;
                     mjacobian_pos[ippdq] = iq;
+                    mspecies[ippdq] = -9999;//Flag for not a species...
                     ippdq++;
                     mwindfreq_perturbation = jacobian_quantities[iq].Perturbation();
                 }
@@ -161,6 +170,7 @@ public:
                 {
                     mqtype[ippdq] = JQT_wind_w;
                     mjacobian_pos[ippdq] = iq;
+                    mspecies[ippdq] = -9999;//Flag for not a species...
                     ippdq++;
                     mwindfreq_perturbation = jacobian_quantities[iq].Perturbation();
                 }
@@ -168,6 +178,7 @@ public:
                 {
                     mqtype[ippdq] = JQT_temperature;
                     mjacobian_pos[ippdq] = iq;
+                    mspecies[ippdq] = -9999;//Flag for not a species...
                     ippdq++;
                     mcontains_temperature = true;
                     mtemp_perturbation = jacobian_quantities[iq].Perturbation();
@@ -176,6 +187,7 @@ public:
                 {
                     mqtype[ippdq] = JQT_frequency;
                     mjacobian_pos[ippdq] = iq;
+                    mspecies[ippdq] = -9999;//Flag for not a species...
                     ippdq++;
                     mfreq_perturbation = jacobian_quantities[iq].Perturbation();
                 }
@@ -185,36 +197,42 @@ public:
                     {
                         mqtype[ippdq] = JQT_line_strength;
                         mjacobian_pos[ippdq] = iq;
+                        mspecies[ippdq] = -9999;//Flag for not a species...
                         ippdq++;
                     }
                     else if(jacobian_quantities[iq].Subtag() == "Pressure Broadening Gamma")
                     {
                         mqtype[ippdq] = JQT_line_gamma;
                         mjacobian_pos[ippdq] = iq;
+                        mspecies[ippdq] = -9999;//Flag for not a species...
                         ippdq++;
                     }
                     else if(jacobian_quantities[iq].Subtag() == "Line Mixing Y")
                     {
                         mqtype[ippdq] = JQT_line_mixing_Y;
                         mjacobian_pos[ippdq] = iq;
+                        mspecies[ippdq] = -9999;//Flag for not a species...
                         ippdq++;
                     }
                     else if(jacobian_quantities[iq].Subtag() == "Line Mixing G")
                     {
                         mqtype[ippdq] = JQT_line_mixing_G;
                         mjacobian_pos[ippdq] = iq;
+                        mspecies[ippdq] = -9999;//Flag for not a species...
                         ippdq++;
                     }
                     else if(jacobian_quantities[iq].Subtag() == "Line Mixing DF")
                     {
                         mqtype[ippdq] = JQT_line_mixing_DF;
                         mjacobian_pos[ippdq] = iq;
+                        mspecies[ippdq] = -9999;//Flag for not a species...
                         ippdq++;
                     }
                     else if(jacobian_quantities[iq].Subtag() == "Vibrational Temperature")
                     {
                         mqtype[ippdq] = JQT_level_vibrational_temperature;
                         mjacobian_pos[ippdq] = iq;
+                        mspecies[ippdq] = -9999;//Flag for not a species...
                         ippdq++;
                     }
                 }
@@ -276,6 +294,20 @@ public:
         }
         return testvar;
     };
+    
+    bool supportsLBLwithoutPhase() const 
+    {
+        
+        for(Index iq=0; iq<nelem(); iq++)
+        {
+            if( mqtype[iq]!=JQT_VMR || 
+                mqtype[iq]!=JQT_line_strength ||
+                mqtype[iq]!=JQT_level_vibrational_temperature)
+                return false;
+        }
+        
+        return true;
+    }
     
     bool supportsLookup() const 
     {
@@ -366,10 +398,10 @@ public:
         return false;
     }
     
-    bool supportsPropmatClearsky() const
-    {
+    bool supportsPropmatClearsky(const Index this_species) const
+    {   
         for(Index iq=0; iq<nelem(); iq++) 
-            if(mqtype[iq]!=JQT_NOT_JQT)  // All is supported
+            if( species(iq)!=this_species )  // Species flag is just for speed
                 return true;
         return false;
     }
@@ -434,7 +466,6 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix& partials_attenuatio
                                               ConstVectorView f_grid, 
                                               const Range&    this_f_grid,
                                               const Numeric&  temperature,
-                                              const Numeric&  n_vmr,
                                               const Numeric&  sigma,
                                               const Numeric&  K2,
                                               const Numeric&  K3,
@@ -470,7 +501,6 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix& partials_attenuatio
                                               const Numeric&  H_mag_Zeeman,
                                               // Programming variables
                                               const Index&    pressure_level_index,
-                                              const Index&    this_species,
                                               const bool      do_partials_phase,
                                               const bool      do_src);
 

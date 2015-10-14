@@ -507,6 +507,7 @@ void iyEmissionStandard(
                                     t2, ppath_t_nlte, ppath_vmr, ppath_f,
                                     ppath_mag, f_grid, 
                                     stokes_dim, ArrayOfIndex(0) );
+                  // Use this method or dplanck_dt ?
                   get_ppath_blackrad( ws, ppath_blackrad_dt, blackbody_radiation_agenda,
                                       ppath, t2, ppath_f );
                 }
@@ -670,26 +671,25 @@ void iyEmissionStandard(
                               // Diagonal transmission matrix
                               if( extmat_case[ip][iv] == 1 )
                                 {
+                                  const Numeric dkdn1 = (from_propmat?
+                                    dppath_ext_dx(this_ppd_q,iv,0,0,ip):
+                                    unitscf1 * abs_per_species(iiaps,iv,0,0,ip  ));
+                                  const Numeric dkdn2 = (from_propmat?
+                                    dppath_ext_dx(this_ppd_q,iv,0,0,ip+1):
+                                    unitscf2 * abs_per_species(iiaps,iv,0,0,ip+1));
+                                    
                                   const Numeric x = -0.5 * ppath.lstep[ip] * 
                                                     trans_cumulat(iv,0,0,ip+1);
                                   const Numeric y = x * sibi(iv,0);
                                   // Stokes component 1
-                                  diy_dpath[iq](ip  ,iv,0) += y * (from_propmat?
-                                  dppath_ext_dx(this_ppd_q,iv,0,0,ip):
-                                  unitscf1 * abs_per_species(iiaps,iv,0,0,ip  ));
-                                  diy_dpath[iq](ip+1,iv,0) += y * (from_propmat?
-                                  dppath_ext_dx(this_ppd_q,iv,0,0,ip+1):
-                                  unitscf2 * abs_per_species(iiaps,iv,0,0,ip+1));
+                                  diy_dpath[iq](ip  ,iv,0) += y * dkdn1;
+                                  diy_dpath[iq](ip+1,iv,0) += y * dkdn2;
                                   // Higher stokes components
                                   for( Index is=1; is<ns; is++ )
                                     { 
                                       const Numeric z = x * iy(iv,is); 
-                                      diy_dpath[iq](ip  ,iv,is) += z * (from_propmat?
-                                      dppath_ext_dx(this_ppd_q,iv,0,0,ip):
-                                      unitscf1 * abs_per_species(iiaps,iv,0,0,ip  ));
-                                      diy_dpath[iq](ip+1,iv,is) += z * (from_propmat?
-                                      dppath_ext_dx(this_ppd_q,iv,0,0,ip+1):
-                                      unitscf2 * abs_per_species(iiaps,iv,0,0,ip+1));
+                                      diy_dpath[iq](ip  ,iv,is) += z * dkdn1;
+                                      diy_dpath[iq](ip+1,iv,is) += z * dkdn2;
                                     }
                                 }
 

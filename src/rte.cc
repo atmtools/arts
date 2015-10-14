@@ -1204,13 +1204,19 @@ void ext2trans_and_ext2dtrans_dx(
     {
         trans_mat = 0;
         trans_mat(0,0) = exp( -ext_mat(0,0) * lstep );
+        for( Index i=1; i<stokes_dim; i++ )
+        { trans_mat(i,i) = trans_mat(0,0); }
+        
         for( Index iq =0; iq<nq; iq++ )
         {
             dtrans_mat_dx_upp(iq,0,0) = - trans_mat(0,0) * lstep * dext_mat_dx_upp(iq,0,0);
             dtrans_mat_dx_low(iq,0,0) = - trans_mat(0,0) * lstep * dext_mat_dx_low(iq,0,0);
+            for( Index i=1; i<stokes_dim; i++ )
+            {
+                dtrans_mat_dx_upp(iq,i,i) = dtrans_mat_dx_upp(iq,0,0);
+                dtrans_mat_dx_low(iq,i,i) = dtrans_mat_dx_low(iq,0,0);
+            }
         }
-        for( Index i=1; i<stokes_dim; i++ )
-        { trans_mat(i,i) = trans_mat(0,0); }
     }
     /*  Removed temporarily FIXME:  What is this, how do I use it???
     else if( icase == 2 )
@@ -2224,9 +2230,10 @@ void get_ppath_trans_and_dppath_trans_dx(
     // Init variables
     //
     trans_partial.resize( nf, stokes_dim, stokes_dim, np-1 );
+    trans_cumulat.resize( nf, stokes_dim, stokes_dim, np );
+    
     dtrans_partial_dx_from_above.resize( nq, nf, stokes_dim, stokes_dim, np-1 );
     dtrans_partial_dx_from_below.resize( nq, nf, stokes_dim, stokes_dim, np-1 );
-    trans_cumulat.resize( nf, stokes_dim, stokes_dim, np );
     //
     extmat_case.resize(np-1);
     for( Index i=0; i<np-1; i++ )
@@ -2258,7 +2265,7 @@ void get_ppath_trans_and_dppath_trans_dx(
                 for( Index is1=0; is1<stokes_dim; is1++ ) {
                     for( Index is2=0; is2<stokes_dim; is2++ ) {
                         ext_mat(is1,is2) = 0.5 * ( ppath_ext(iv,is1,is2,ip-1) + 
-                        ppath_ext(iv,is1,is2,ip  ) );
+                                                   ppath_ext(iv,is1,is2,ip  ) );
                         for( Index iq=0; iq<nq; iq++ )
                         {
                             // Upper and lower level influence on the dependency at layer

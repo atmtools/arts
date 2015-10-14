@@ -1482,6 +1482,7 @@ void abs_coefCalcFromXsec(// WS Output:
                           const ArrayOfMatrix& src_xsec_per_species,
                           const ArrayOfArrayOfMatrix& dabs_xsec_per_species_dx,
                           const ArrayOfArrayOfMatrix& dsrc_xsec_per_species_dx,
+                          const ArrayOfArrayOfSpeciesTag& abs_species,
                           const ArrayOfRetrievalQuantity& jacobian_quantities,
                           const Matrix&        abs_vmrs,
                           const Vector&        abs_p,
@@ -1586,11 +1587,19 @@ void abs_coefCalcFromXsec(// WS Output:
               {
                   if(ppd(ii)==JQT_temperature)
                   {
-//                       std::cout<<i<<" "<<ii<<" "<<k<<" "<<j<<"\t";
-//                       std::cout<<dabs_xsec_per_species_dx.nelem()<<" "<<dabs_xsec_per_species_dx[i].nelem()<<" "<<dabs_xsec_per_species_dx[i][ii].nrows()<<" "<<dabs_xsec_per_species_dx[i][ii].ncols()<<j<<"\n";
-                      dabs_coef_dx[ii](k,j) += (dabs_xsec_per_species_dx[i][ii](k,j) * n + abs_xsec_per_species[i](k,j) * dn_dT) * abs_vmrs(i,j);
+                      dabs_coef_dx[ii](k,j) += (dabs_xsec_per_species_dx[i][ii](k,j) * n + 
+                      abs_xsec_per_species[i](k,j) * dn_dT) * abs_vmrs(i,j);
                       if(do_src)
-                          dsrc_coef_dx[ii](k,j) += (dsrc_xsec_per_species_dx[i][ii](k,j) * n + src_xsec_per_species[i](k,j) * dn_dT) * abs_vmrs(i,j);
+                          dsrc_coef_dx[ii](k,j) += (dsrc_xsec_per_species_dx[i][ii](k,j) * n + 
+                          src_xsec_per_species[i](k,j) * dn_dT) * abs_vmrs(i,j);
+                  }
+                  else if(ppd(ii)==JQT_VMR && ppd.species(ii) == abs_species[i][0].Species())
+                  {
+                      dabs_coef_dx[ii](k,j) += ( dabs_xsec_per_species_dx[i][ii](k,j) * abs_vmrs(i,j) +
+                      abs_xsec_per_species[i](k,j) ) * n;
+                      if(do_src)
+                          dsrc_coef_dx[ii](k,j) += ( dsrc_xsec_per_species_dx[i][ii](k,j) * abs_vmrs(i,j) +
+                          src_xsec_per_species[i](k,j) ) * n;
                   }
                   else if(ppd(ii)!=JQT_NOT_JQT)
                   {
@@ -1656,7 +1665,8 @@ void abs_xsec_per_speciesInit(// WS Output:
   
   
   const PropmatPartialsData ppd(jacobian_quantities);
-  const bool do_jac = ppd.supportsPropmatClearsky();
+  const bool do_jac = ppd.supportsPropmatClearsky(-1);//minus one is a flag for a non-species...
+  
   dabs_xsec_per_species_dx.resize(do_jac?tgs.nelem():0);
   dsrc_xsec_per_species_dx.resize(do_jac?tgs.nelem():0);
 
@@ -1785,7 +1795,6 @@ void abs_xsec_per_speciesAddLines(// WS Output:
   }  
 
   const PropmatPartialsData flag_partials(jacobian_quantities);
-  const bool do_jac = flag_partials.supportsPropmatClearsky();
   
   // Print information:
   //
@@ -1869,7 +1878,8 @@ void abs_xsec_per_speciesAddLines(// WS Output:
           // use this to look up the species name in species_data.
           using global_data::species_data;
           String species_name = species_data[ll[0].Species()].Name();
-
+          const bool do_jac = flag_partials.supportsPropmatClearsky(ll[0].Species());
+          
           // Get the name of the lineshape. For that we use the member
           // function Ind_ls() to the lineshape data ls, which returns
           // an index. With that index we can go into lineshape_data
@@ -1944,9 +1954,7 @@ void abs_xsec_per_speciesAddLines(// WS Output:
             }
             if (tgs[i][0].LineMixing() == SpeciesTag::LINE_MIXING_OFF && !do_jac )//Also add partials here so that the wrapper is more specialized still
             {
-                Matrix dummy_phase(abs_xsec_per_species[i].nrows(),
-                                   abs_xsec_per_species[i].ncols(),
-                                   0.);
+                Matrix dummy_phase;
                 xsec_species(abs_xsec_per_species[i],
                              src_xsec_per_species[i],
                              dummy_phase,
@@ -2069,6 +2077,7 @@ void abs_xsec_per_speciesAddConts(// WS Output:
   Vector dfreq, dabs_t;
   const Numeric df = ppd.Frequency_Perturbation();
   const Numeric dt = ppd.Temperature_Perturbation();
+  
   if(do_freq_jac)
   {
       dfreq.resize(f_grid.nelem());
@@ -2088,15 +2097,6 @@ void abs_xsec_per_speciesAddConts(// WS Output:
       if(do_freq_jac) jacs_df.resize(f_grid.nelem(), abs_p.nelem());
       if(do_temp_jac) jacs_dt.resize(f_grid.nelem(), abs_p.nelem());
       normal.resize(f_grid.nelem(), abs_p.nelem());
-      for(Index ii = 0; ii<normal.nrows(); ii++)
-      {
-          for(Index jj = 0; jj<normal.ncols(); jj++)
-          {
-              if(do_freq_jac) jacs_df(ii,jj) = 0.0;
-              if(do_temp_jac) jacs_dt(ii,jj) = 0.0;
-              normal(ii,jj)                  = 0.0;
-          }
-      }
   }
   // Jacobian overhead END
 
@@ -2247,37 +2247,48 @@ void abs_xsec_per_speciesAddConts(// WS Output:
                                         verbosity );
                   else // The Jacobian block
                   {
+                      // Needs a reseted block here...
+                      for(Index iv = 0; iv<f_grid.nelem(); iv++)
+                      {
+                          for(Index ip = 0; ip<abs_p.nelem(); ip++)
+                          {
+                              if(do_freq_jac) jacs_df(iv,ip) = 0.0;
+                              if(do_temp_jac) jacs_dt(iv,ip) = 0.0;
+                              normal(iv,ip)                  = 0.0;
+                          }
+                      }
+                      
                       // Normal calculations
-                      xsec_continuum_tag( normal,name,abs_cont_parameters[n],abs_cont_models[n], f_grid,abs_p,abs_t,
+                      xsec_continuum_tag( normal,name,abs_cont_parameters[n],
+                                          abs_cont_models[n], f_grid,abs_p,abs_t,
                                           abs_n2,abs_h2o,abs_o2,abs_vmrs(i,Range(joker)),verbosity );
                       
                       // Frequency calculations
                       if(do_freq_jac)
-                          xsec_continuum_tag( jacs_df,name,abs_cont_parameters[n],abs_cont_models[n], dfreq, abs_p,abs_t,
+                          xsec_continuum_tag( jacs_df,name,abs_cont_parameters[n],
+                                              abs_cont_models[n], dfreq, abs_p,abs_t,
                                               abs_n2,abs_h2o,abs_o2,abs_vmrs(i,Range(joker)),verbosity );
                       
                       //Temperature calculations
                       if(do_freq_jac)
-                          xsec_continuum_tag( jacs_dt,name,abs_cont_parameters[n],abs_cont_models[n], f_grid, abs_p,dabs_t,
+                          xsec_continuum_tag( jacs_dt,name,abs_cont_parameters[n],
+                                              abs_cont_models[n], f_grid, abs_p,dabs_t,
                                               abs_n2,abs_h2o,abs_o2,abs_vmrs(i,Range(joker)),verbosity );
-                      for(Index iv = 0; iv<normal.nrows(); iv++)
+                      for(Index iv = 0; iv<f_grid.nelem(); iv++)
                       {
-                          for(Index ip = 0; ip<normal.ncols(); ip++)
+                          for(Index ip = 0; ip<abs_p.nelem(); ip++)
                           {
                               abs_xsec_per_species[i](iv,ip) += normal(iv,ip);
                               for(Index iq=0; iq<ppd.nelem(); iq++)
                               {
-                                  if(ppd(iq)==JQT_frequency || ppd(iq)==JQT_wind_magnitude || ppd(iq)==JQT_wind_u || ppd(iq)==JQT_wind_v || ppd(iq)==JQT_wind_w)
+                                  if(ppd(iq)==JQT_frequency || 
+                                     ppd(iq)==JQT_wind_magnitude || 
+                                     ppd(iq)==JQT_wind_u || 
+                                     ppd(iq)==JQT_wind_v || 
+                                     ppd(iq)==JQT_wind_w)
                                       dabs_xsec_per_species_dx[i][iq](iv,ip) += (jacs_df(iv,ip)-normal(iv,ip))/df;
                                   else if(ppd(iq)==JQT_temperature)
                                       dabs_xsec_per_species_dx[i][iq](iv,ip) += (jacs_dt(iv,ip)-normal(iv,ip))/dt;
-                                  else if(ppd(iq)==JQT_VMR)
-                                  {
-                                      if(i!=ppd.species(iq)) continue;
-                                      
-                                      dabs_xsec_per_species_dx[i][iq](iv,ip) += normal(iv,ip)/abs_vmrs(i,ip);
-                                      // WARNING: This assumes linear scaling is a thing in the continuum... is it really so?
-                                  }
                               }
                           }
                       }
@@ -2563,7 +2574,7 @@ void propmat_clearskyInit(   //WS Output
     
     PropmatPartialsData ppd(jacobian_quantities);
     
-    if(ppd.supportsPropmatClearsky())
+    if(ppd.supportsPropmatClearsky(-1))
     {
         dpropmat_clearsky_dx.resize(ppd.nelem());
         if(nlte_do)
@@ -2954,7 +2965,8 @@ void propmat_clearskyAddOnTheFly(// Workspace reference:
   abs_coefCalcFromXsec(abs_coef, src_coef, dabs_coef_dx, dsrc_coef_dx, 
                        abs_coef_per_species,  src_coef_per_species, 
                        abs_xsec_per_species, src_xsec_per_species, 
-                       dabs_xsec_per_species_dx, dsrc_xsec_per_species_dx, jacobian_quantities,
+                       dabs_xsec_per_species_dx, dsrc_xsec_per_species_dx, 
+                       abs_species, jacobian_quantities,
                        abs_vmrs, abs_p, abs_t, verbosity);
   
   // Now add abs_coef_per_species to propmat_clearsky:

@@ -820,7 +820,7 @@ void calc_gamma_and_deltaf_artscat4(Numeric& gamma,
 
 */
 void xsec_species( MatrixView               xsec_attenuation,
-		   MatrixView               xsec_source,
+                   MatrixView               xsec_source,
                    MatrixView               xsec_phase,
                    ConstVectorView          f_grid,
                    ConstVectorView          abs_p,
@@ -837,8 +837,6 @@ void xsec_species( MatrixView               xsec_attenuation,
                    const SpeciesAuxData&    partition_functions,
                    const Verbosity&         verbosity )
 {
-    // Make lineshape and species lookup data visible:
-    using global_data::lineshape_data;
     
     extern const Numeric BOLTZMAN_CONST;
     extern const Numeric AVOGADROS_NUMB;
@@ -858,12 +856,12 @@ void xsec_species( MatrixView               xsec_attenuation,
     // so many free store allocations.  the last element is used to
     // calculate the value at the cutoff frequency
     Vector ls_attenuation(nf+1);
-    Vector ls_phase(nf+1);
+    Vector ls_phase_dummy;
     Vector fac(nf+1);
     
     const bool cut = (cutoff != -1) ? true : false;
     
-    const bool calc_phase = lineshape_data[ind_ls].Phase();
+    const bool calc_phase = 0;
     
     // Check that the frequency grid is sorted in the case of lineshape
     // with cutoff. Duplicate frequency values are allowed.
@@ -954,7 +952,7 @@ void xsec_species( MatrixView               xsec_attenuation,
     if ( xsec_attenuation.nrows() != nf || xsec_attenuation.ncols() != np )
     {
         std::ostringstream os;
-        os << "Variable xsec must have dimensions [f_grid.nelem(),abs_p.nelem()].\n"
+        os << "Variable xsec_attenuation must have dimensions [f_grid.nelem(),abs_p.nelem()].\n"
            << "[xsec_attenuation.nrows(),xsec_attenuation.ncols()] = [" << xsec_attenuation.nrows()
            << ", " << xsec_attenuation.ncols() << "]\n"
            << "f_grid.nelem() = " << nf << '\n'
@@ -969,7 +967,7 @@ void xsec_species( MatrixView               xsec_attenuation,
       if( xsec_source.nrows() != 0 || xsec_source.ncols() != 0 )
       {
         std::ostringstream os;
-        os << "Variable xsec must have dimensions [f_grid.nelem(),abs_p.nelem()] or [0,0].\n"
+        os << "Variable xsec_source must have dimensions [f_grid.nelem(),abs_p.nelem()] or [0,0].\n"
            << "[xsec_source.nrows(),xsec_source.ncols()] = [" << xsec_source.nrows()
            << ", " << xsec_source.ncols() << "]\n"
            << "f_grid.nelem() = " << nf << '\n'
@@ -986,10 +984,10 @@ void xsec_species( MatrixView               xsec_attenuation,
       calc_src = true;
     }
     
-    if ( xsec_phase.nrows() != nf || xsec_phase.ncols() != np )
+    if ( xsec_phase.nrows() != 0 || xsec_phase.ncols() != 0 )
     {
         std::ostringstream os;
-        os << "Variable xsec must have dimensions [f_grid.nelem(),abs_p.nelem()].\n"
+        os << "Variable xsec_phase must have dimensions [0,0] here.\n"
            << "[xsec_phase.nrows(),xsec_phase.ncols()] = [" << xsec_phase.nrows()
            << ", " << xsec_phase.ncols() << "]\n"
            << "f_grid.nelem() = " << nf << '\n'
@@ -1019,7 +1017,7 @@ void xsec_species( MatrixView               xsec_attenuation,
 #pragma omp parallel for                    \
 if (!arts_omp_in_parallel()               \
 && np >= arts_omp_get_max_threads())  \
-firstprivate(ls_attenuation, ls_phase, fac, f_local, aux)
+firstprivate(ls_attenuation, fac, f_local, aux)
         for ( Index i=0; i<np; ++i )
         {
             if (failed) continue;
@@ -1048,8 +1046,7 @@ firstprivate(ls_attenuation, ls_phase, fac, f_local, aux)
             // Watch out! This is output, we have to be careful not to
             // introduce race conditions when writing to it.
             VectorView xsec_i_attenuation = xsec_attenuation(Range(joker),i);
-	    VectorView xsec_i_source = calc_src ? xsec_source(Range(joker),i) : empty_vector;
-            VectorView xsec_i_phase = xsec_phase(Range(joker),i);
+            VectorView xsec_i_source = calc_src ? xsec_source(Range(joker),i) : empty_vector;
             
             
             //       if (omp_in_parallel())
@@ -1072,8 +1069,7 @@ firstprivate(ls_attenuation, ls_phase, fac, f_local, aux)
                 n_lbl_threads = arts_omp_get_max_threads();
             }
             Matrix xsec_accum_attenuation(n_lbl_threads, xsec_i_attenuation.nelem(), 0);
-	    Matrix xsec_accum_source(n_lbl_threads, xsec_i_attenuation.nelem(), 0);
-            Matrix xsec_accum_phase(n_lbl_threads, xsec_i_phase.nelem(), 0);
+            Matrix xsec_accum_source(n_lbl_threads, xsec_i_attenuation.nelem());
             
             // Simple caching of partition function to avoid recalculating things.
             Numeric qt_cache=-1, qref_cache=-1;
@@ -1087,7 +1083,7 @@ firstprivate(ls_attenuation, ls_phase, fac, f_local, aux)
 #pragma omp parallel for                   \
 if (!arts_omp_in_parallel()               \
 && nl >= arts_omp_get_max_threads())  \
-firstprivate(ls_attenuation, ls_phase, fac, f_local, aux, qt_cache, qref_cache, iso_cache, line_t_cache)
+firstprivate(ls_attenuation, fac, f_local, aux, qt_cache, qref_cache, iso_cache, line_t_cache)
                 for ( Index l=0; l< nl; ++l )
                 {
                     // Skip remaining iterations if an error occurred
@@ -1146,7 +1142,7 @@ firstprivate(ls_attenuation, ls_phase, fac, f_local, aux, qt_cache, qref_cache, 
                         // Dopple broadening
                         const Numeric sigma = l_l.F() * doppler_const *sqrt( t_i / l_l.IsotopologueData().Mass());
                         
-                        const bool calc_partials=0;
+                        const bool calc_partials=false;
                         Vector da_dF, dp_dF, da_dP, dp_dP;
                         
                         Range this_f_range(0,0);
@@ -1155,10 +1151,10 @@ firstprivate(ls_attenuation, ls_phase, fac, f_local, aux, qt_cache, qref_cache, 
                         xsec_single_line(// OUTPUT
                                          xsec_accum_attenuation(arts_omp_get_thread_num(),joker),
                                          xsec_accum_source(arts_omp_get_thread_num(),joker),
-                                         xsec_accum_phase(arts_omp_get_thread_num(),joker),
+                                         empty_vector,
                                          // HELPER:
                                          ls_attenuation,
-                                         ls_phase,
+                                         ls_phase_dummy,
                                          da_dF,
                                          dp_dF,
                                          da_dP,
@@ -1223,12 +1219,6 @@ firstprivate(ls_attenuation, ls_phase, fac, f_local, aux, qt_cache, qref_cache, 
                             xsec_i_source += xsec_accum_source(j, Range(joker));
                         }
                 }
-                
-                if (calc_phase)
-                    for (Index j=0; j<xsec_accum_phase.nrows(); ++j)
-                    {
-                        xsec_i_phase += xsec_accum_phase(j, Range(joker));
-                    }
     } // end of parallel pressure loop
     
     if (failed) throw std::runtime_error("Run-time error in function: xsec_species\n" + fail_msg);
@@ -1460,7 +1450,7 @@ void xsec_single_line(// Output:
         // Store cutoff values
         const Numeric 
         cutoff_attenuation =               calc_cut?attenuation[nfls-1]:0.0, 
-        cutoff_phase       =               calc_cut?      phase[nfls-1]:0.0,
+        cutoff_phase       =    calc_phase?calc_cut?phase[nfls-1]:0.0  :0.0,
         cutoff_da_dF       = calc_partials?calc_cut?da_dF[nfls-1]:0.0  :0.0, 
         cutoff_dp_dF       = calc_partials?calc_cut?dp_dF[nfls-1]:0.0  :0.0, 
         cutoff_da_dP       = calc_partials?calc_cut?da_dP[nfls-1]:0.0  :0.0, 
@@ -1888,14 +1878,25 @@ void xsec_species_line_mixing_wrapper(  MatrixView               xsec_attenuatio
                                         const SpeciesAuxData&    partition_functions,
                                         const Verbosity&         verbosity )
 {
-    // Must have the phase
+    
+    // Optional paths through the code...
+    const bool cut = (cutoff != -1) ? true : false;
+    const bool calc_partials = flag_partials.nelem();
+    const bool calc_partials_phase = partial_xsec_phase.nelem()==partial_xsec_attenuation.nelem();
+    const bool do_zeeman = !Z_DF.empty();
+    const bool do_lm     = abs_species[this_species][0].LineMixing() != SpeciesTag::LINE_MIXING_OFF;
+    const bool no_ls_partials = flag_partials.supportsLBLwithoutPhase();
+    
+    const bool we_need_phase = do_zeeman || do_lm || !no_ls_partials;
+    
+    // Must have the phase for two of the options
     using global_data::lineshape_data;
-    if (! lineshape_data[ind_ls].Phase())
+    if (!lineshape_data[ind_ls].Phase() && we_need_phase )
     {
         std::ostringstream os;
         os <<  "This is an error message. You are using " << lineshape_data[ind_ls].Name() <<
         ".\n"<<"This line shape does not include phase in its calculations and\nis therefore invalid for " <<
-        "line mixing, Zeeman and partial derivatives.\nYou are using one of these or you should not see this error.\n";
+        "line mixing, Zeeman effect, and certain partial derivatives.\nYou are using one of these or you should not see this error.\n";
         throw std::runtime_error(os.str());
     }
     
@@ -1917,12 +1918,6 @@ void xsec_species_line_mixing_wrapper(  MatrixView               xsec_attenuatio
         "the xsec_species_line_mixing_wrapper function.  This causes the failure.\n";
         throw std::runtime_error(os.str());
     }
-    
-    const bool cut = (cutoff != -1) ? true : false;
-    
-    const bool calc_partials = flag_partials.nelem();
-    
-    const bool calc_partials_phase = partial_xsec_phase.nelem()==partial_xsec_attenuation.nelem();
     
     // Check that the frequency grid is sorted in the case of lineshape
     // with cutoff. Duplicate frequency values are allowed.
@@ -2054,7 +2049,7 @@ firstprivate(attenuation, phase, fac, f_local, aux)
         
         // Setup for calculating the partial derivatives
         Vector da_dF, dp_dF, da_dP, dp_dP;
-        if(calc_partials) //Only size them if partials are wanted
+        if(calc_partials&&!no_ls_partials) //Only size them if partials are wanted
         {
             da_dF.resize(f_grid.nelem()+1);
             dp_dF.resize(f_grid.nelem()+1);
@@ -2147,7 +2142,7 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                                     // LINE MIXING
                                     DV, Y,  G, 
                                     // FEATURE FLAGS
-                                    cutoff!=-1, 1, calc_partials, calc_src);
+                                    cutoff>0, 1, calc_partials&&!no_ls_partials, calc_src);
             }
             else
             {//FIXME:  Is all of this really working?  Should I not have a VVH_that is half of VVH?
@@ -2175,7 +2170,7 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                                     // LINE MIXING
                                     DV, Y, G, 
                                     // FEATURE FLAGS
-                                    cutoff!=-1, 1, calc_partials, calc_src);
+                                    cutoff>0, 1, calc_partials&&!no_ls_partials, calc_src);
             }
             
             
@@ -2231,7 +2226,6 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                                                         this_f_range,
                                                         //Temperature
                                                         t,
-                                                        vmrs[this_species],
                                                         sigma,
                                                         K2,
                                                         abs_nlte_ratio,//K3
@@ -2267,7 +2261,6 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                                                         H_magntitude_Zeeman,
                                                         // Programming
                                                         jj, 
-                                                         abs_species[this_species][0].Species(),
                                                         calc_partials_phase,
                                                         calc_src);
             }

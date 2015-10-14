@@ -247,7 +247,7 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "abs_xsec_per_species", "src_xsec_per_species", 
             "dabs_xsec_per_species_dx", "dsrc_xsec_per_species_dx",
-            "jacobian_quantities", "abs_vmrs", "abs_p", "abs_t" ),
+            "abs_species", "jacobian_quantities", "abs_vmrs", "abs_p", "abs_t" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),

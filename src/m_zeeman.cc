@@ -18,6 +18,7 @@
 
 #include "auto_md.h"
 #include "zeeman.h"
+#include "global_data.h"
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void propmat_clearskyAddZeeman( Tensor4& propmat_clearsky,
@@ -52,6 +53,9 @@ void propmat_clearskyAddZeeman( Tensor4& propmat_clearsky,
   // Check that correct isotopologue ratios are defined for the species
   // we want to calculate
   checkIsotopologueRatios(abs_species, isotopologue_ratios);
+  
+  // In this particular taste of Zeeman effect calculations, we need to test if line shape data is actually true
+  using global_data::lineshape_data;
   
   bool do_src = !nlte_source.empty();
   {// Begin TEST(s)
@@ -153,6 +157,19 @@ void propmat_clearskyAddZeeman( Tensor4& propmat_clearsky,
   {
     // If the species isn't Zeeman, look at the next species
     if(!is_zeeman(abs_species[II])) continue;
+    
+    // Since this function does not know if it gives Zeeman information or not
+    for ( Index i=0; i<abs_species[II].nelem(); ++i )
+    {
+        if (!lineshape_data[abs_lineshape[i].Ind_ls()].Phase())
+        {
+            std::ostringstream os;
+            os <<  "This is an error message. You are using " << lineshape_data[II].Name() <<
+            ".\n"<<"This line shape does not include phase in its calculations and\nis therefore invalid for " <<
+            "Zeeman effect calculations.\n";
+            throw std::runtime_error(os.str());
+        }
+    }
     
     // Add Pi contribution to final propmat_clearsky
     xsec_species_line_mixing_wrapper_with_zeeman( propmat_clearsky, nlte_source, dpropmat_clearsky_dx, dnlte_dx_source, nlte_dsource_dx, 

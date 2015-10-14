@@ -2105,7 +2105,7 @@ void hui_etal_1978_lineshape( Vector&         ls_attenuation,
     experimental data sets of 12C2H2
     for its mathematical clarity in explaining how the profile works.
       
-    N.B.  Input is not handled properly yet but assumed standrd where nothing is known.
+    N.B.  Input is not handled properly yet but assumed standard where nothing is known.
     This is indicated by all numerics set to constants at the start of the code.
     
   \retval ls_attenuation        The shape function.

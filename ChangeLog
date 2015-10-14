@@ -1,3 +1,52 @@
+2015-10-14  Richard Larsson   <ric.larsson@gmail.com>
+
+	* arts-2-3-336
+	
+	VMR with "from propmat" and "analytical" now works idtentical for both lookup
+	and on-the fly in Wfun test.  Temperature still has issues in this test for 
+	on-the-fly.  Its shape looks OK but some values are way too large.  I repeat,
+	there are plenty of variables in the temperature partial derivative so I will
+	have to go through these to find if something might be wrong...
+	
+	* src/absorption.cc:  Reformat of wrapper function to allow calculations
+	even without phase functions if some jacobian quantitites are specified.
+	
+	Still remains to allow calculations with more lineshapes...
+	
+	* src/m_abs.cc:  Moved VMR partial derivatives from xsec to coef.
+	Previous version did not return dxsec_dx, but some hybrid that worked
+	once in coef.
+	
+	Fixed continua bug whereby if internal partial derivatives were 
+	calculated for more than one continua, then all failed...
+	
+	With this fix, VMR "from propmat" or "analytical" are identical
+	lest we count that CIA is also doing vmr for secondary species.
+	NOTE:  The correct VMR partial derivative have to take change in
+	pressure broadening into account but this has not been done in the
+	code.  That was also ignored before.  I am wondering whether a
+	"fast" and "full" option should be made available at some points...
+	
+	* src/m_cia.cc:  Fixed so no psuedo partial derivative is returned.
+	
+	* src/m_rte.cc:  Changed interface to look more alike between VMR and
+	temperature.
+	
+	* src/m_zeeman.cc:  Had to add test here to allow no phase in
+	absorption.cc for special cases.  I am strongly considering dropping
+	support for the non-PreCalc option for calculations of Zeeman effect.
+	It is slower and needs more special treatments than its cousin.  To no
+	known gains.
+	
+	* src/partial_derivatives.cc:  Removed VMR calculations since these
+	gave psudo xsec partial derivatives.  Started debuggin and changing
+	temperature derivatives.
+	
+	* src/partial_derivatives.h:  Added one test and refined another.
+	Added knowledge about species to all parameters, so that a flag can
+	be used when there is no species.
+	
+	
 2015-10-14  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-335
