@@ -1952,603 +1952,6 @@ void sensor_responseMixer(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void sensor_responseMixerBackendPrecalcWeights(
-          Sparse&               sensor_response,
-          Vector&               sensor_response_f,
-          ArrayOfIndex&         sensor_response_pol,
-          Matrix&               sensor_response_dlos,
-          Vector&               sensor_response_f_grid,
-    const ArrayOfIndex&         sensor_response_pol_grid,
-    const Matrix&               sensor_response_dlos_grid,
-    const Vector&               f_backend,
-    const ArrayOfArrayOfIndex&  channel2fgrid_indexes,
-    const ArrayOfVector&        channel2fgrid_weights,
-    const Verbosity&            verbosity)
-{
-  CREATE_OUT3;
-  
-  // Some sizes
-  const Index nin_f  = sensor_response_f_grid.nelem();
-  const Index nout_f = f_backend.nelem();
-  const Index npol   = sensor_response_pol_grid.nelem();
-  const Index nlos   = sensor_response_dlos_grid.nrows();
-  const Index nin    = nin_f * npol * nlos;
-  const Index nout   = nout_f * npol * nlos;
-
-  // Initialise an output stream for runtime errors and a flag for errors
-  ostringstream os;
-  bool          error_found = false;
-
-  // Check that sensor_response variables are consistent in size
-  if( sensor_response_f.nelem() != nin )
-    {
-      os << "Inconsistency in size between *sensor_response_f* and the sensor\n"
-         << "grid variables (sensor_response_f_grid etc.).\n";
-      error_found = true;
-    }
-  if( sensor_response.nrows() != nin )
-    {
-      os << "The sensor block response matrix *sensor_response* does not have\n"
-         << "right size compared to the sensor grid variables\n"
-         << "(sensor_response_f_grid etc.).\n";
-      error_found = true;
-    }
-
-  // We allow f_backend to be unsorted, but must be inside sensor_response_f_grid
-  if( nout_f == 0 )
-    {
-      os << "*f_backend* is empty !!!\n";
-      error_found = true;
-    }
-  if( min(f_backend) < min(sensor_response_f_grid) )
-    {
-      os << "At least one value in *f_backend* (" << min(f_backend) 
-         << ") below range\ncovered by *sensor_response_f_grid* ("
-         << min(sensor_response_f_grid) << ").\n";
-      error_found = true;
-    }
-  if( max(f_backend) > max(sensor_response_f_grid) )
-    {
-      os << "At least one value in *f_backend* (" << max(f_backend) 
-         << ") above range\ncovered by *sensor_response_f_grid* ("
-         << max(sensor_response_f_grid) << ").\n";
-      error_found = true;
-    }
-
-  // frequency index and weights
-  if( channel2fgrid_indexes.nelem() != nout_f )
-    {
-      os << "The first size of *channel2fgrid_indexes* an length of *f_backend* "
-         << "must be equal.\n";
-      error_found = true;
-    }
-  if( channel2fgrid_weights.nelem() != channel2fgrid_indexes.nelem() )
-    {
-      os << "Leading sizes of *channel2fgrid_indexes* and "
-         << "*channel2fgrid_weights* differ.\n";
-      error_found = true;
-    }
-  for( Index i=0; i<nout_f; i++ )
-    {
-      if( channel2fgrid_indexes[i].nelem() != channel2fgrid_weights[i].nelem() )
-        {
-          os << "Mismatch in size between *channel2fgrid_indexes* and "
-             << "*channel2fgrid_weights*, found for array/vector with "
-             << "index " << i << ".\n";
-          error_found = true;
-        }
-      for( Index j=0; j<channel2fgrid_indexes[i].nelem(); j++ )
-        {
-          if( channel2fgrid_indexes[i][j] < 0  ||  
-              channel2fgrid_indexes[i][j] >= nin_f )
-            {
-              os << "At least one value in *channel2fgrid_indexes* is either "
-                 << " < 0 or is too high considering length of "
-                 << "*sensor_response_f_grid*.\n";
-              error_found = true;
-              break;
-            }
-        }
-    }
-
-  // If errors where found throw runtime_error with the collected error
-  if( error_found )
-    throw runtime_error(os.str());
-
-
-  // Create response matrix
-  //
-  Sparse hmb( nout, nin );
-  {  
-    // Loop output channels
-    for( Index ifr=0; ifr<nout_f; ifr++ ) 
-      {
-        // The summation vector for 1 polarisation and 1 viewing direction
-        Vector w1( nin_f, 0.0 );
-        for( Index j=0; j<channel2fgrid_indexes[ifr].nelem(); j++ )
-          { 
-            w1[channel2fgrid_indexes[ifr][j]] = channel2fgrid_weights[ifr][j]; 
-          }
-
-        // Loop over polarisation and spectra (viewing directions)
-        // Weights change only with frequency
-        // (this code is copied from function spectrometer_matrix)
-        for( Index sp=0; sp<nlos; sp++ ) 
-          {
-            for( Index pol=0; pol<npol; pol++ ) 
-              {
-                // Distribute the compact weight vector into a complte one
-                Vector weights_long( nin, 0.0 );
-                weights_long[Range(sp*nin_f*npol+pol,nin_f,npol)] = w1;
-            
-                // Insert temp_long into H at the correct row
-                hmb.insert_row( sp*nout_f*npol + ifr*npol + pol, weights_long );
-              }
-          }
-      }
-  }
-
-  // Here we need a temporary sparse that is copy of the sensor_response
-  // sparse matrix. We need it since the multiplication function can not
-  // take the same object as both input and output.
-  Sparse htmp = sensor_response;
-  sensor_response.resize( hmb.nrows(), htmp.ncols());
-  mult( sensor_response, hmb, htmp );
-
-  // Update sensor_response_f_grid
-  sensor_response_f_grid = f_backend;
-
-  // Set aux variables
-  sensor_aux_vectors( sensor_response_f, sensor_response_pol, 
-                      sensor_response_dlos, sensor_response_f_grid,  
-                      sensor_response_pol_grid, sensor_response_dlos_grid );
-}
-
-
-
-
-
-void sensor_responseMultiMixerBackend(
-          Sparse&                      sensor_response,
-          Vector&                      sensor_response_f,
-          ArrayOfIndex&                sensor_response_pol,
-          Matrix&                      sensor_response_dlos,
-          Vector&                      sensor_response_f_grid,
-    const ArrayOfIndex&                sensor_response_pol_grid,
-    const Matrix&                      sensor_response_dlos_grid,
-    const Vector&                      lo_multi,
-    const ArrayOfGriddedField1&        sideband_response_multi,
-    const ArrayOfString&               sideband_mode_multi,
-    const ArrayOfVector&               f_backend_multi,
-    const ArrayOfArrayOfGriddedField1& backend_channel_response_multi,
-    const Index&                       sensor_norm,
-    const Verbosity&                   verbosity )
-{
-  // Some sizes
-  const Index nf   = sensor_response_f_grid.nelem();
-  const Index npol = sensor_response_pol_grid.nelem();
-  const Index nlos = sensor_response_dlos_grid.nrows();
-  const Index nin  = nf * npol * nlos;
-  const Index nlo  = lo_multi.nelem();
-
-  // Initialise a output stream for runtime errors and a flag for errors
-  ostringstream os;
-  bool          error_found = false;
-
-  // Check that sensor_response variables are consistent in size
-  if( sensor_response_f.nelem() != nin )
-  {
-    os << "Inconsistency in size between *sensor_response_f* and the sensor\n"
-       << "grid variables (sensor_response_f_grid etc.).\n";
-    error_found = true;
-  }
-  if( sensor_response.nrows() != nin )
-  {
-    os << "The sensor block response matrix *sensor_response* does not have\n"
-       << "right size compared to the sensor grid variables\n"
-       << "(sensor_response_f_grid etc.).\n";
-    error_found = true;
-  }
-
-  // Check that response data are consistent with respect to number of
-  // mixer/reciever chains.
-  if( sideband_response_multi.nelem() != nlo )
-  {
-    os << "Inconsistency in length between *lo_mixer* and "
-       << "*sideband_response_multi*.\n";
-    error_found = true;
-  }
-  if( sideband_mode_multi.nelem() != nlo )
-  {
-    os << "Inconsistency in length between *lo_mixer* and "
-       << "*sideband_mode_multi*.\n";
-    error_found = true;
-  }
-  if( f_backend_multi.nelem() != nlo )
-  {
-    os << "Inconsistency in length between *lo_mixer* and "
-       << "*f_backend_multi*.\n";
-    error_found = true;
-  }
-  if( backend_channel_response_multi.nelem() != nlo )
-  {
-    os << "Inconsistency in length between *lo_mixer* and "
-       << "*backend_channel_response_multi*.\n";
-    error_found = true;
-  }
-
-  // If errors where found throw runtime_error with the collected error
-  // message. Data for each mixer and reciever chain are checked below.
-  if (error_found)
-    throw runtime_error(os.str());
-
-
-  // Variables for data to be appended
-  Array<Sparse> sr;
-  ArrayOfVector srfgrid;
-  ArrayOfIndex  cumsumf(nlo+1,0);
-
-  for( Index ilo=0; ilo<nlo; ilo++ )
-    {
-      // Copies of variables that will be changed, but must be
-      // restored for next loop
-      Sparse       sr1      = sensor_response;
-      Vector       srf1     = sensor_response_f;
-      ArrayOfIndex srpol1   = sensor_response_pol;
-      Matrix       srdlos1  = sensor_response_dlos;
-      Vector       srfgrid1 = sensor_response_f_grid;
-
-      // Call single reciever methods. Try/catch for improved error message.
-      try
-        {
-          sensor_responseMixer( sr1, srf1, srpol1, srdlos1, srfgrid1,
-                                sensor_response_pol_grid,
-                                sensor_response_dlos_grid, 
-                                lo_multi[ilo], sideband_response_multi[ilo], 
-                                sensor_norm, verbosity );
-
-          sensor_responseIF2RF( srf1, srfgrid1, lo_multi[ilo], 
-                                sideband_mode_multi[ilo], verbosity );
-
-          sensor_responseBackend( sr1, srf1, srpol1, srdlos1, srfgrid1,
-                                  sensor_response_pol_grid,
-                                  sensor_response_dlos_grid, 
-                                  f_backend_multi[ilo],
-                                  backend_channel_response_multi[ilo],
-                                  sensor_norm, verbosity );
-        } 
-      catch( runtime_error e ) 
-        {
-          ostringstream os2;
-          os2 << "Error when dealing with receiver/mixer chain (1-based index) " 
-              << ilo+1 << ":\n" << e.what();
-          throw runtime_error(os2.str());
-        }
-
-      // Store in temporary arrays
-      sr.push_back( sr1 );
-      srfgrid.push_back( srfgrid1 );
-      //
-      cumsumf[ilo+1] = cumsumf[ilo] + srfgrid1.nelem();
-    }
-
-  // Append data to create sensor_response_f_grid
-  //
-  const Index  nfnew = cumsumf[nlo];
-  sensor_response_f_grid.resize( nfnew );
-  //
-  for( Index ilo=0; ilo<nlo; ilo++ )
-    {
-      for( Index i=0; i<srfgrid[ilo].nelem(); i++ )
-        {
-          sensor_response_f_grid[cumsumf[ilo]+i] = srfgrid[ilo][i];
-        }
-    }
-
-  // Append data to create total sensor_response
-  //
-  const Index  ncols    = sr[0].ncols();
-  const Index  npolnew  = sensor_response_pol_grid.nelem();
-  const Index  nfpolnew = nfnew * npolnew;
-  //
-  sensor_response.resize( nlos*nfpolnew, ncols );
-  //
-  Vector dummy( ncols, 0.0 );
-  //
-  for( Index ilo=0; ilo<nlo; ilo++ )
-    {
-      const Index nfpolthis = (cumsumf[ilo+1]-cumsumf[ilo]) * npolnew;
-
-      assert( sr[ilo].nrows() == nlos*nfpolthis );
-      assert( sr[ilo].ncols() == ncols );
-
-      for( Index ilos=0; ilos<nlos; ilos++ )
-        {
-          for( Index i=0; i<nfpolthis; i++ )
-            {
-              // "Poor mans" transfer of a row from one sparse to another 
-              for( Index ic=0; ic<ncols; ic++ )
-                { dummy[ic] = sr[ilo](ilos*nfpolthis+i,ic); }
-
-              sensor_response.insert_row( ilos*nfpolnew+cumsumf[ilo]*npolnew+i, 
-                                                                       dummy );
-            }
-        }
-    }  
-
-  // Set aux variables
-  sensor_aux_vectors( sensor_response_f, sensor_response_pol, 
-                      sensor_response_dlos, sensor_response_f_grid,  
-                      sensor_response_pol_grid, sensor_response_dlos_grid );
-}
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void sensor_responsePolarisation(
-          Sparse&         sensor_response,
-          Vector&         sensor_response_f,
-          ArrayOfIndex&   sensor_response_pol,
-          Matrix&         sensor_response_dlos,
-          ArrayOfIndex&   sensor_response_pol_grid,
-    const Vector&         sensor_response_f_grid,
-    const Matrix&         sensor_response_dlos_grid,
-    const Index&          stokes_dim,
-    const String&         iy_unit,
-    const ArrayOfIndex&   instrument_pol,
-    const Verbosity& )
-{
-  // Vectors for extracting polarisation components
-  //
-  Numeric w = 0.5;
-  if( iy_unit == "PlanckBT"  ||  iy_unit == "RJBT"  )
-    { w = 1.0; }
-  //
-  ArrayOfVector pv;
-  stokes2pol( pv, w );
-
-  // Some sizes
-  const Index nnew = instrument_pol.nelem();
-  const Index nf   = sensor_response_f_grid.nelem();
-  const Index npol = sensor_response_pol_grid.nelem();
-  const Index nlos = sensor_response_dlos_grid.nrows();
-
-  // Initialise an output stream for runtime errors and a flag for errors
-  ostringstream os;
-  bool          error_found = false;
-
-  Index nfz  = nf * nlos;
-  Index nin  = nfz *npol;       
-  
-  if( sensor_response.nrows() != nin )
-    {
-      os << "The sensor block response matrix *sensor_response* does not have\n"
-         << "right size compared to the sensor grid variables\n"
-         << "(sensor_response_f_grid etc.).\n";
-      error_found = true;
-    }
-
-  // Check that sensor_response variables are consistent in size
-  if( sensor_response_f.nelem() != nin )
-    {
-      os << "Inconsistency in size between *sensor_response_f* and the sensor\n"
-         << "grid variables (sensor_response_f_grid etc.).\n";
-      error_found = true;
-    }
-  if( npol != stokes_dim )
-    {
-      os << "Number of input polarisation does not match *stokes_dim*.\n";
-      error_found = true;
-    }
-  if( nnew == 0 )
-    {
-      os << "The WSV *instrument_pol* can not be empty.\n";
-      error_found = true;
-    }
-  // If errors where found throw runtime_error with the collected error
-  // message (before it gets too long)
-  if( error_found )
-    throw runtime_error(os.str());
-
-  // Check polarisation data more in detail
-  for( Index i=0; i<npol && !error_found; i++ )
-    {
-      if( sensor_response_pol_grid[i] != i+1 )
-        {
-          os << "The input polarisations must be I, Q, U and V (up to "
-             << "stokes_dim). It seems that input data are for other "
-             << "polarisation components.";
-          error_found = true;
-        }      
-    }
-  for( Index i=0; i<nnew && !error_found; i++ )
-    {
-      if( instrument_pol[i] < 1  || instrument_pol[i] > 10 )
-        {
-          os << 
-             "The elements of *instrument_pol* must be inside the range [1,10].\n";
-          error_found = true;
-        }
-    }
-  // If errors where found throw runtime_error with the collected error
-  // message (before it gets too long)
-  if( error_found )
-    throw runtime_error(os.str());
-
-  for( Index i=0; i<nnew && !error_found; i++ )
-    {
-      if( pv[instrument_pol[i]-1].nelem() > stokes_dim )
-        {
-          os << "You have selected an output polarisation that is not covered "
-             << "by present value of *stokes_dim* (the later has to be "
-             << "increased).";
-          error_found = true;
-        }
-    }  
-
-  // If errors where found throw runtime_error with the collected error
-  // message 
-  if( error_found )
-    throw runtime_error(os.str());
-
-  // Form H matrix representing polarisation response
-  //
-  Sparse Hpol( nfz*nnew, nin );
-  Vector hrow( nin, 0.0 );
-  Index row = 0;
-  //
-  for( Index i=0; i<nfz; i++ )
-    {
-      Index col = i*npol;
-      for( Index in=0; in<nnew; in++ )
-        {
-          Index p = instrument_pol[in] - 1;
-          //
-          for( Index iv=0; iv<pv[p].nelem(); iv++ )
-            { hrow[col+iv] = pv[p][iv]; }
-          //
-          Hpol.insert_row( row, hrow );
-          //
-          hrow = 0;
-          row += 1;
-        }
-    }
-
-  // Here we need a temporary sparse that is copy of the sensor_response
-  // sparse matrix. We need it since the multiplication function can not
-  // take the same object as both input and output.
-  Sparse Htmp = sensor_response;
-  sensor_response.resize( Hpol.nrows(), Htmp.ncols());
-  mult( sensor_response, Hpol, Htmp );
-
-  // Update sensor_response_pol_grid
-  sensor_response_pol_grid = instrument_pol;
-
-  // Set aux variables
-  sensor_aux_vectors( sensor_response_f, sensor_response_pol, 
-                      sensor_response_dlos, sensor_response_f_grid,  
-                      sensor_response_pol_grid, sensor_response_dlos_grid );
-}
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void sensor_responseStokesRotation(
-         Sparse&         sensor_response,
-   const Vector&         sensor_response_f_grid,
-   const ArrayOfIndex&   sensor_response_pol_grid,
-   const Matrix&         sensor_response_dlos_grid,
-   const Index&          stokes_dim,
-   const Vector&         stokes_rotation,
-   const Verbosity& )
-{
-  // Basic checks
-  chk_if_in_range( "stokes_dim", stokes_dim, 1, 4 );
-
-  // Some sizes
-  const Index nf   = sensor_response_f_grid.nelem();
-  const Index npol = sensor_response_pol_grid.nelem();
-  const Index nlos = sensor_response_dlos_grid.nrows();
-  const Index nin  = nf * npol * nlos;
-
-
-  //---------------------------------------------------------------------------
-  // Initialise a output stream for runtime errors and a flag for errors
-  ostringstream os;
-  bool          error_found = false;
-
-  // Check that sensor_response variables are consistent in size
-  if( sensor_response.nrows() != nin )
-    {
-      os << "The sensor block response matrix *sensor_response* does not have\n"
-         << "right size compared to the sensor grid variables\n"
-         << "(sensor_response_f_grid etc.).\n";
-      error_found = true;
-    }
-  
-  // Check special stuff for this method
-  if( stokes_dim < 3 )
-    {
-      os << "To perform a rotation of the Stokes coordinate system,\n"
-         << "*stokes_dim* must be >= 3.\n";
-      error_found = true;
-    }
-  if( stokes_rotation.nelem() != nlos )  
-    {
-      os << "Incorrect number of angles in *stokes_rotation*. The length\n"
-         << "of this matrix must match *sensor_response_dlos_grid*.\n";
-      error_found = true;
-    }
-  if( npol != stokes_dim )  
-    {
-      os << "Inconsistency detected. The length of *sensor_response_pol_grid*\n"
-         << "must be equal to *stokes_dim*, and this is not the case.\n";
-      error_found = true;
-    }
-  for( Index is=0; is<npol; is++ )
-    {
-      if( sensor_response_pol_grid[is] != is+1 )  
-      {
-        os << "For this method, the values in *sensor_response_pol_grid* must\n"
-           << "be 1,2...stokes_dim. This is not the case, indicating that\n"
-           << "some previous sensor part has that the data no longer are\n"
-           << "Stokes vectors.\n";
-        error_found = true;
-        break;
-      }
-    }
-
-  // If errors where found throw runtime_error with the collected error
-  // message.
-  if (error_found)
-    throw runtime_error(os.str());
-  //---------------------------------------------------------------------------
-
-
-  // Set up complete the H matrix for applying rotation
-  //
-  Sparse H( sensor_response.nrows(), sensor_response.ncols() );
-  {
-    Sparse Hrot( npol, npol );  // Mueller matrix for 1 Stokes vec
-    Vector row( H.ncols(), 0 );
-    Index  irow = 0;
-    //
-    for( Index ilos=0; ilos<nlos; ilos++ )
-      {
-        // Rotation matrix for direction of concern
-        mueller_rotation( Hrot, npol, stokes_rotation[ilos]  );
-            
-        for( Index ifr=0; ifr<nf; ifr++ ) 
-          {
-            for( Index ip=0; ip<npol; ip++ )
-              {
-                // Fill relevant part of row with matching (complete) row
-                // in Hrot, and instert this row in H
-                for( Index is=0; is<npol; is++ )
-                  { row[irow+is] = Hrot.ro(ip,is); }
-                H.insert_row( irow+ip, row );
-                // Re-zero row.
-                for( Index is=0; is<npol; is++ )
-                  { row[irow+is] = 0; }
-              }
-            // Update irow, i.e. jump to next frequency
-            irow += npol;
-          }
-      }
-  }
-
-  // Here we need a temporary sparse that is copy of the sensor_response
-  // sparse matrix. We need it since the multiplication function can not
-  // take the same object as both input and output.
-  Sparse Htmp = sensor_response;
-  sensor_response.resize( Htmp.nrows(), Htmp.ncols());  //Just in case!
-  mult( sensor_response, H, Htmp );  
-}
-
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
 void sensor_responseMetMM(
    // WS Output:
           Vector&          f_grid,
@@ -2903,6 +2306,793 @@ void sensor_responseMetMM(
     sensor_norm = 0;
 
     out2 << "  Total number of frequencies in f_grid: " << f_grid.nelem() << "\n";
+}
+
+
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void sensor_responseMetMM2(
+   // WS Output:
+          Index&           antenna_dim,
+          Matrix&          mblock_dlos_grid,
+          Sparse&          sensor_response,
+          Vector&          sensor_response_f,
+          ArrayOfIndex&    sensor_response_pol,
+          Matrix&          sensor_response_dlos,
+          Vector&          sensor_response_f_grid,
+          ArrayOfIndex&    sensor_response_pol_grid,
+          Matrix&          sensor_response_dlos_grid,
+          Index&           sensor_norm,
+    // WS Input:
+    const Index&           atmosphere_dim,
+    const Index&           stokes_dim,
+    const Vector&          f_grid,
+    const Vector&          f_backend,
+    const ArrayOfArrayOfIndex&   channel2fgrid_indexes,
+    const ArrayOfVector&         channel2fgrid_weights,
+    const String&          iy_unit,
+    const Matrix&          antenna_dlos,
+    const ArrayOfString&   mm_pol,       /* met_mm_polarisation */
+    const Vector&          mm_ant,       /* met_mm_antenna */
+    // Control Parameters:
+    const Index&           use_antenna,
+    const Index&           mirror_dza,
+    const Verbosity&       verbosity )
+{
+    // Input checks
+
+    chk_if_bool("use_antenna", use_antenna);
+    chk_if_bool("mirror_dza", mirror_dza);
+
+    if (mm_ant.nelem())
+      throw std::runtime_error(
+         "So far inclusion of antenna pattern is NOT supported and\n"
+         "*met_mm_antenna* must be empty.\n" );
+
+    if ( !( atmosphere_dim == 1  || atmosphere_dim == 3 ) )
+      throw std::runtime_error("This method only supports 1D and 3D atmospheres.");
+
+    if (antenna_dlos.empty())
+      throw std::runtime_error("*antenna_dlos* is empty.");
+    
+    if (antenna_dlos.ncols() > 2)
+      throw std::runtime_error("The maximum number of columns in *antenna_dlos*" 
+                               "is two.");
+
+
+    // Copy, and possibly extend antenna_dlos
+    Matrix antenna_dlos_local;
+
+    // Mirror?
+    if ( mirror_dza )
+      {
+        if (antenna_dlos.ncols() > 1)
+          throw std::runtime_error("With *mirror_dza* set to true, *antenna_dlos*" 
+                               "is only allowed to have a single column.");
+        if( atmosphere_dim != 3 )
+          throw std::runtime_error("*mirror_dza* only makes sense in 3D.");
+        // We don't want to duplicate zero!
+        const Index n = antenna_dlos.nrows(); 
+        Index nnew = 0;
+        for( Index i=0; i<n; i++ )
+          { if( antenna_dlos(i,0) != 0 )
+              { nnew += 1; }
+          }
+        antenna_dlos_local.resize( n+nnew, 1 );
+        antenna_dlos_local(Range(0,n),0) = antenna_dlos(joker,0);
+        Index pos = n;
+        for( Index i=n-1; i>=0; i-- )
+          { if( antenna_dlos(i,0) != 0 )
+              { 
+                antenna_dlos_local(pos,0) = -antenna_dlos(i,0);
+                pos += 1; 
+              }
+          }
+      }
+    else
+      { antenna_dlos_local = antenna_dlos; }
+
+
+    // No normalisation needed here, and set antenna_dim=1 as temporary solution
+    sensor_norm = 0;
+    antenna_dim = 1;
+
+    // Create sensor response for mixer+backend, matching one viewing angle
+    Sparse sensor_response_single;
+    Matrix mblock_dlos_dummy(1,1); mblock_dlos_dummy(0,0) = 0;
+    sensor_responseInit( sensor_response_single, sensor_response_f,
+                         sensor_response_pol,sensor_response_dlos,
+                         sensor_response_f_grid, sensor_response_pol_grid,
+                         sensor_response_dlos_grid,
+                         f_grid, mblock_dlos_dummy, antenna_dim, atmosphere_dim,
+                         stokes_dim, sensor_norm, verbosity );
+    sensor_responseMixerBackendPrecalcWeights( sensor_response_single,
+                         sensor_response_f, sensor_response_pol,
+                         sensor_response_dlos, sensor_response_f_grid,
+                         sensor_response_pol_grid, sensor_response_dlos_grid,
+                         f_backend, channel2fgrid_indexes,
+                         channel2fgrid_weights, verbosity );
+
+
+    // Construct complete sensor_response matrix
+    const Index num_f = f_grid.nelem();
+    const Index nchannels = f_backend.nelem();
+    sensor_response = Sparse( nchannels * antenna_dlos_local.nrows(),
+                              num_f * stokes_dim * antenna_dlos_local.nrows());
+
+    sensor_response_pol_grid.resize(1);
+    sensor_response_pol_grid[0] = 1;
+
+    if (stokes_dim > 1)
+    {
+        // With polarisation
+        if (mm_pol.nelem() != nchannels)
+        {
+            ostringstream os;
+            os << "Length of *met_mm_polarisation* (" << mm_pol.nelem() << ") must match\n"
+            << "number of channels in *met_mm_backend* (" << nchannels << ").";
+            throw std::runtime_error(os.str());
+        }
+
+        Sparse H_pol;
+        Sparse sensor_response_tmp;
+
+        for (Index iza = 0; iza < antenna_dlos_local.nrows(); iza++)
+        {
+            sensor_response_tmp = Sparse(nchannels, sensor_response_single.ncols());
+            met_mm_polarisation_hmatrix( H_pol, mm_pol, antenna_dlos_local(iza,0), 
+                                         stokes_dim, iy_unit );
+            mult(sensor_response_tmp, H_pol, sensor_response_single);
+            for (Index r = 0; r < sensor_response_tmp.nrows(); r++)
+                for (Index c = 0; c < sensor_response_tmp.ncols(); c++)
+                {
+                    const Numeric v = sensor_response_tmp(r, c);
+
+                    if (v != 0.)
+                        sensor_response.rw(iza * nchannels + r,
+                                           iza * num_f * stokes_dim + c) = v;
+                }
+        }
+    }
+    else
+    {
+        // No polarisation
+        for (Index iza = 0; iza < antenna_dlos_local.nrows(); iza++)
+        {
+            for (Index r = 0; r < sensor_response_single.nrows(); r++)
+                for (Index c = 0; c < sensor_response_single.ncols(); c++)
+                {
+                    const Numeric v = sensor_response_single(r, c);
+
+                    if (v != 0.)
+                        sensor_response.rw(iza * nchannels + r,
+                                           iza * num_f * stokes_dim + c) = v;
+                }
+        }
+    }
+
+    antenna_dim = 1;
+    // Setup antenna
+    if (use_antenna)
+    {
+        // FIXME: Do something smart here
+        throw std::runtime_error("The antenna hasn't arrived yet.");
+    }
+
+    // mblock angle grids
+    mblock_dlos_grid = antenna_dlos_local;
+
+    // Set sensor response aux variables
+    sensor_response_dlos_grid = mblock_dlos_grid;
+
+    // Set aux variables
+    sensor_aux_vectors( sensor_response_f, sensor_response_pol, 
+                        sensor_response_dlos, sensor_response_f_grid,  
+                        sensor_response_pol_grid, sensor_response_dlos_grid );
+    
+}
+
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void sensor_responseMixerBackendPrecalcWeights(
+          Sparse&               sensor_response,
+          Vector&               sensor_response_f,
+          ArrayOfIndex&         sensor_response_pol,
+          Matrix&               sensor_response_dlos,
+          Vector&               sensor_response_f_grid,
+    const ArrayOfIndex&         sensor_response_pol_grid,
+    const Matrix&               sensor_response_dlos_grid,
+    const Vector&               f_backend,
+    const ArrayOfArrayOfIndex&  channel2fgrid_indexes,
+    const ArrayOfVector&        channel2fgrid_weights,
+    const Verbosity&            verbosity)
+{
+  CREATE_OUT3;
+  
+  // Some sizes
+  const Index nin_f  = sensor_response_f_grid.nelem();
+  const Index nout_f = f_backend.nelem();
+  const Index npol   = sensor_response_pol_grid.nelem();
+  const Index nlos   = sensor_response_dlos_grid.nrows();
+  const Index nin    = nin_f * npol * nlos;
+  const Index nout   = nout_f * npol * nlos;
+
+  // Initialise an output stream for runtime errors and a flag for errors
+  ostringstream os;
+  bool          error_found = false;
+
+  // Check that sensor_response variables are consistent in size
+  if( sensor_response_f.nelem() != nin )
+    {
+      os << "Inconsistency in size between *sensor_response_f* and the sensor\n"
+         << "grid variables (sensor_response_f_grid etc.).\n";
+      error_found = true;
+    }
+  if( sensor_response.nrows() != nin )
+    {
+      os << "The sensor block response matrix *sensor_response* does not have\n"
+         << "right size compared to the sensor grid variables\n"
+         << "(sensor_response_f_grid etc.).\n";
+      error_found = true;
+    }
+
+  // We allow f_backend to be unsorted, but must be inside sensor_response_f_grid
+  if( nout_f == 0 )
+    {
+      os << "*f_backend* is empty !!!\n";
+      error_found = true;
+    }
+  if( min(f_backend) < min(sensor_response_f_grid) )
+    {
+      os << "At least one value in *f_backend* (" << min(f_backend) 
+         << ") below range\ncovered by *sensor_response_f_grid* ("
+         << min(sensor_response_f_grid) << ").\n";
+      error_found = true;
+    }
+  if( max(f_backend) > max(sensor_response_f_grid) )
+    {
+      os << "At least one value in *f_backend* (" << max(f_backend) 
+         << ") above range\ncovered by *sensor_response_f_grid* ("
+         << max(sensor_response_f_grid) << ").\n";
+      error_found = true;
+    }
+
+  // frequency index and weights
+  if( channel2fgrid_indexes.nelem() != nout_f )
+    {
+      os << "The first size of *channel2fgrid_indexes* an length of *f_backend* "
+         << "must be equal.\n";
+      error_found = true;
+    }
+  if( channel2fgrid_weights.nelem() != channel2fgrid_indexes.nelem() )
+    {
+      os << "Leading sizes of *channel2fgrid_indexes* and "
+         << "*channel2fgrid_weights* differ.\n";
+      error_found = true;
+    }
+  for( Index i=0; i<nout_f; i++ )
+    {
+      if( channel2fgrid_indexes[i].nelem() != channel2fgrid_weights[i].nelem() )
+        {
+          os << "Mismatch in size between *channel2fgrid_indexes* and "
+             << "*channel2fgrid_weights*, found for array/vector with "
+             << "index " << i << ".\n";
+          error_found = true;
+        }
+      for( Index j=0; j<channel2fgrid_indexes[i].nelem(); j++ )
+        {
+          if( channel2fgrid_indexes[i][j] < 0  ||  
+              channel2fgrid_indexes[i][j] >= nin_f )
+            {
+              os << "At least one value in *channel2fgrid_indexes* is either "
+                 << " < 0 or is too high considering length of "
+                 << "*sensor_response_f_grid*.\n";
+              error_found = true;
+              break;
+            }
+        }
+    }
+
+  // If errors where found throw runtime_error with the collected error
+  if( error_found )
+    throw runtime_error(os.str());
+
+
+  // Create response matrix
+  //
+  Sparse hmb( nout, nin );
+  {  
+    // Loop output channels
+    for( Index ifr=0; ifr<nout_f; ifr++ ) 
+      {
+        // The summation vector for 1 polarisation and 1 viewing direction
+        Vector w1( nin_f, 0.0 );
+        for( Index j=0; j<channel2fgrid_indexes[ifr].nelem(); j++ )
+          { 
+            w1[channel2fgrid_indexes[ifr][j]] = channel2fgrid_weights[ifr][j]; 
+          }
+
+        // Loop over polarisation and spectra (viewing directions)
+        // Weights change only with frequency
+        // (this code is copied from function spectrometer_matrix)
+        for( Index sp=0; sp<nlos; sp++ ) 
+          {
+            for( Index pol=0; pol<npol; pol++ ) 
+              {
+                // Distribute the compact weight vector into a complte one
+                Vector weights_long( nin, 0.0 );
+                weights_long[Range(sp*nin_f*npol+pol,nin_f,npol)] = w1;
+            
+                // Insert temp_long into H at the correct row
+                hmb.insert_row( sp*nout_f*npol + ifr*npol + pol, weights_long );
+              }
+          }
+      }
+  }
+
+  // Here we need a temporary sparse that is copy of the sensor_response
+  // sparse matrix. We need it since the multiplication function can not
+  // take the same object as both input and output.
+  Sparse htmp = sensor_response;
+  sensor_response.resize( hmb.nrows(), htmp.ncols());
+  mult( sensor_response, hmb, htmp );
+
+  // Update sensor_response_f_grid
+  sensor_response_f_grid = f_backend;
+
+  // Set aux variables
+  sensor_aux_vectors( sensor_response_f, sensor_response_pol, 
+                      sensor_response_dlos, sensor_response_f_grid,  
+                      sensor_response_pol_grid, sensor_response_dlos_grid );
+}
+
+
+
+
+
+void sensor_responseMultiMixerBackend(
+          Sparse&                      sensor_response,
+          Vector&                      sensor_response_f,
+          ArrayOfIndex&                sensor_response_pol,
+          Matrix&                      sensor_response_dlos,
+          Vector&                      sensor_response_f_grid,
+    const ArrayOfIndex&                sensor_response_pol_grid,
+    const Matrix&                      sensor_response_dlos_grid,
+    const Vector&                      lo_multi,
+    const ArrayOfGriddedField1&        sideband_response_multi,
+    const ArrayOfString&               sideband_mode_multi,
+    const ArrayOfVector&               f_backend_multi,
+    const ArrayOfArrayOfGriddedField1& backend_channel_response_multi,
+    const Index&                       sensor_norm,
+    const Verbosity&                   verbosity )
+{
+  // Some sizes
+  const Index nf   = sensor_response_f_grid.nelem();
+  const Index npol = sensor_response_pol_grid.nelem();
+  const Index nlos = sensor_response_dlos_grid.nrows();
+  const Index nin  = nf * npol * nlos;
+  const Index nlo  = lo_multi.nelem();
+
+  // Initialise a output stream for runtime errors and a flag for errors
+  ostringstream os;
+  bool          error_found = false;
+
+  // Check that sensor_response variables are consistent in size
+  if( sensor_response_f.nelem() != nin )
+  {
+    os << "Inconsistency in size between *sensor_response_f* and the sensor\n"
+       << "grid variables (sensor_response_f_grid etc.).\n";
+    error_found = true;
+  }
+  if( sensor_response.nrows() != nin )
+  {
+    os << "The sensor block response matrix *sensor_response* does not have\n"
+       << "right size compared to the sensor grid variables\n"
+       << "(sensor_response_f_grid etc.).\n";
+    error_found = true;
+  }
+
+  // Check that response data are consistent with respect to number of
+  // mixer/reciever chains.
+  if( sideband_response_multi.nelem() != nlo )
+  {
+    os << "Inconsistency in length between *lo_mixer* and "
+       << "*sideband_response_multi*.\n";
+    error_found = true;
+  }
+  if( sideband_mode_multi.nelem() != nlo )
+  {
+    os << "Inconsistency in length between *lo_mixer* and "
+       << "*sideband_mode_multi*.\n";
+    error_found = true;
+  }
+  if( f_backend_multi.nelem() != nlo )
+  {
+    os << "Inconsistency in length between *lo_mixer* and "
+       << "*f_backend_multi*.\n";
+    error_found = true;
+  }
+  if( backend_channel_response_multi.nelem() != nlo )
+  {
+    os << "Inconsistency in length between *lo_mixer* and "
+       << "*backend_channel_response_multi*.\n";
+    error_found = true;
+  }
+
+  // If errors where found throw runtime_error with the collected error
+  // message. Data for each mixer and reciever chain are checked below.
+  if (error_found)
+    throw runtime_error(os.str());
+
+
+  // Variables for data to be appended
+  Array<Sparse> sr;
+  ArrayOfVector srfgrid;
+  ArrayOfIndex  cumsumf(nlo+1,0);
+
+  for( Index ilo=0; ilo<nlo; ilo++ )
+    {
+      // Copies of variables that will be changed, but must be
+      // restored for next loop
+      Sparse       sr1      = sensor_response;
+      Vector       srf1     = sensor_response_f;
+      ArrayOfIndex srpol1   = sensor_response_pol;
+      Matrix       srdlos1  = sensor_response_dlos;
+      Vector       srfgrid1 = sensor_response_f_grid;
+
+      // Call single reciever methods. Try/catch for improved error message.
+      try
+        {
+          sensor_responseMixer( sr1, srf1, srpol1, srdlos1, srfgrid1,
+                                sensor_response_pol_grid,
+                                sensor_response_dlos_grid, 
+                                lo_multi[ilo], sideband_response_multi[ilo], 
+                                sensor_norm, verbosity );
+
+          sensor_responseIF2RF( srf1, srfgrid1, lo_multi[ilo], 
+                                sideband_mode_multi[ilo], verbosity );
+
+          sensor_responseBackend( sr1, srf1, srpol1, srdlos1, srfgrid1,
+                                  sensor_response_pol_grid,
+                                  sensor_response_dlos_grid, 
+                                  f_backend_multi[ilo],
+                                  backend_channel_response_multi[ilo],
+                                  sensor_norm, verbosity );
+        } 
+      catch( runtime_error e ) 
+        {
+          ostringstream os2;
+          os2 << "Error when dealing with receiver/mixer chain (1-based index) " 
+              << ilo+1 << ":\n" << e.what();
+          throw runtime_error(os2.str());
+        }
+
+      // Store in temporary arrays
+      sr.push_back( sr1 );
+      srfgrid.push_back( srfgrid1 );
+      //
+      cumsumf[ilo+1] = cumsumf[ilo] + srfgrid1.nelem();
+    }
+
+  // Append data to create sensor_response_f_grid
+  //
+  const Index  nfnew = cumsumf[nlo];
+  sensor_response_f_grid.resize( nfnew );
+  //
+  for( Index ilo=0; ilo<nlo; ilo++ )
+    {
+      for( Index i=0; i<srfgrid[ilo].nelem(); i++ )
+        {
+          sensor_response_f_grid[cumsumf[ilo]+i] = srfgrid[ilo][i];
+        }
+    }
+
+  // Append data to create total sensor_response
+  //
+  const Index  ncols    = sr[0].ncols();
+  const Index  npolnew  = sensor_response_pol_grid.nelem();
+  const Index  nfpolnew = nfnew * npolnew;
+  //
+  sensor_response.resize( nlos*nfpolnew, ncols );
+  //
+  Vector dummy( ncols, 0.0 );
+  //
+  for( Index ilo=0; ilo<nlo; ilo++ )
+    {
+      const Index nfpolthis = (cumsumf[ilo+1]-cumsumf[ilo]) * npolnew;
+
+      assert( sr[ilo].nrows() == nlos*nfpolthis );
+      assert( sr[ilo].ncols() == ncols );
+
+      for( Index ilos=0; ilos<nlos; ilos++ )
+        {
+          for( Index i=0; i<nfpolthis; i++ )
+            {
+              // "Poor mans" transfer of a row from one sparse to another 
+              for( Index ic=0; ic<ncols; ic++ )
+                { dummy[ic] = sr[ilo](ilos*nfpolthis+i,ic); }
+
+              sensor_response.insert_row( ilos*nfpolnew+cumsumf[ilo]*npolnew+i, 
+                                                                       dummy );
+            }
+        }
+    }  
+
+  // Set aux variables
+  sensor_aux_vectors( sensor_response_f, sensor_response_pol, 
+                      sensor_response_dlos, sensor_response_f_grid,  
+                      sensor_response_pol_grid, sensor_response_dlos_grid );
+}
+
+
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void sensor_responsePolarisation(
+          Sparse&         sensor_response,
+          Vector&         sensor_response_f,
+          ArrayOfIndex&   sensor_response_pol,
+          Matrix&         sensor_response_dlos,
+          ArrayOfIndex&   sensor_response_pol_grid,
+    const Vector&         sensor_response_f_grid,
+    const Matrix&         sensor_response_dlos_grid,
+    const Index&          stokes_dim,
+    const String&         iy_unit,
+    const ArrayOfIndex&   instrument_pol,
+    const Verbosity& )
+{
+  // Vectors for extracting polarisation components
+  //
+  Numeric w = 0.5;
+  if( iy_unit == "PlanckBT"  ||  iy_unit == "RJBT"  )
+    { w = 1.0; }
+  //
+  ArrayOfVector pv;
+  stokes2pol( pv, w );
+
+  // Some sizes
+  const Index nnew = instrument_pol.nelem();
+  const Index nf   = sensor_response_f_grid.nelem();
+  const Index npol = sensor_response_pol_grid.nelem();
+  const Index nlos = sensor_response_dlos_grid.nrows();
+
+  // Initialise an output stream for runtime errors and a flag for errors
+  ostringstream os;
+  bool          error_found = false;
+
+  Index nfz  = nf * nlos;
+  Index nin  = nfz *npol;       
+  
+  if( sensor_response.nrows() != nin )
+    {
+      os << "The sensor block response matrix *sensor_response* does not have\n"
+         << "right size compared to the sensor grid variables\n"
+         << "(sensor_response_f_grid etc.).\n";
+      error_found = true;
+    }
+
+  // Check that sensor_response variables are consistent in size
+  if( sensor_response_f.nelem() != nin )
+    {
+      os << "Inconsistency in size between *sensor_response_f* and the sensor\n"
+         << "grid variables (sensor_response_f_grid etc.).\n";
+      error_found = true;
+    }
+  if( npol != stokes_dim )
+    {
+      os << "Number of input polarisation does not match *stokes_dim*.\n";
+      error_found = true;
+    }
+  if( nnew == 0 )
+    {
+      os << "The WSV *instrument_pol* can not be empty.\n";
+      error_found = true;
+    }
+  // If errors where found throw runtime_error with the collected error
+  // message (before it gets too long)
+  if( error_found )
+    throw runtime_error(os.str());
+
+  // Check polarisation data more in detail
+  for( Index i=0; i<npol && !error_found; i++ )
+    {
+      if( sensor_response_pol_grid[i] != i+1 )
+        {
+          os << "The input polarisations must be I, Q, U and V (up to "
+             << "stokes_dim). It seems that input data are for other "
+             << "polarisation components.";
+          error_found = true;
+        }      
+    }
+  for( Index i=0; i<nnew && !error_found; i++ )
+    {
+      if( instrument_pol[i] < 1  || instrument_pol[i] > 10 )
+        {
+          os << 
+             "The elements of *instrument_pol* must be inside the range [1,10].\n";
+          error_found = true;
+        }
+    }
+  // If errors where found throw runtime_error with the collected error
+  // message (before it gets too long)
+  if( error_found )
+    throw runtime_error(os.str());
+
+  for( Index i=0; i<nnew && !error_found; i++ )
+    {
+      if( pv[instrument_pol[i]-1].nelem() > stokes_dim )
+        {
+          os << "You have selected an output polarisation that is not covered "
+             << "by present value of *stokes_dim* (the later has to be "
+             << "increased).";
+          error_found = true;
+        }
+    }  
+
+  // If errors where found throw runtime_error with the collected error
+  // message 
+  if( error_found )
+    throw runtime_error(os.str());
+
+  // Form H matrix representing polarisation response
+  //
+  Sparse Hpol( nfz*nnew, nin );
+  Vector hrow( nin, 0.0 );
+  Index row = 0;
+  //
+  for( Index i=0; i<nfz; i++ )
+    {
+      Index col = i*npol;
+      for( Index in=0; in<nnew; in++ )
+        {
+          Index p = instrument_pol[in] - 1;
+          //
+          for( Index iv=0; iv<pv[p].nelem(); iv++ )
+            { hrow[col+iv] = pv[p][iv]; }
+          //
+          Hpol.insert_row( row, hrow );
+          //
+          hrow = 0;
+          row += 1;
+        }
+    }
+
+  // Here we need a temporary sparse that is copy of the sensor_response
+  // sparse matrix. We need it since the multiplication function can not
+  // take the same object as both input and output.
+  Sparse Htmp = sensor_response;
+  sensor_response.resize( Hpol.nrows(), Htmp.ncols());
+  mult( sensor_response, Hpol, Htmp );
+
+  // Update sensor_response_pol_grid
+  sensor_response_pol_grid = instrument_pol;
+
+  // Set aux variables
+  sensor_aux_vectors( sensor_response_f, sensor_response_pol, 
+                      sensor_response_dlos, sensor_response_f_grid,  
+                      sensor_response_pol_grid, sensor_response_dlos_grid );
+}
+
+
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void sensor_responseStokesRotation(
+         Sparse&         sensor_response,
+   const Vector&         sensor_response_f_grid,
+   const ArrayOfIndex&   sensor_response_pol_grid,
+   const Matrix&         sensor_response_dlos_grid,
+   const Index&          stokes_dim,
+   const Vector&         stokes_rotation,
+   const Verbosity& )
+{
+  // Basic checks
+  chk_if_in_range( "stokes_dim", stokes_dim, 1, 4 );
+
+  // Some sizes
+  const Index nf   = sensor_response_f_grid.nelem();
+  const Index npol = sensor_response_pol_grid.nelem();
+  const Index nlos = sensor_response_dlos_grid.nrows();
+  const Index nin  = nf * npol * nlos;
+
+
+  //---------------------------------------------------------------------------
+  // Initialise a output stream for runtime errors and a flag for errors
+  ostringstream os;
+  bool          error_found = false;
+
+  // Check that sensor_response variables are consistent in size
+  if( sensor_response.nrows() != nin )
+    {
+      os << "The sensor block response matrix *sensor_response* does not have\n"
+         << "right size compared to the sensor grid variables\n"
+         << "(sensor_response_f_grid etc.).\n";
+      error_found = true;
+    }
+  
+  // Check special stuff for this method
+  if( stokes_dim < 3 )
+    {
+      os << "To perform a rotation of the Stokes coordinate system,\n"
+         << "*stokes_dim* must be >= 3.\n";
+      error_found = true;
+    }
+  if( stokes_rotation.nelem() != nlos )  
+    {
+      os << "Incorrect number of angles in *stokes_rotation*. The length\n"
+         << "of this matrix must match *sensor_response_dlos_grid*.\n";
+      error_found = true;
+    }
+  if( npol != stokes_dim )  
+    {
+      os << "Inconsistency detected. The length of *sensor_response_pol_grid*\n"
+         << "must be equal to *stokes_dim*, and this is not the case.\n";
+      error_found = true;
+    }
+  for( Index is=0; is<npol; is++ )
+    {
+      if( sensor_response_pol_grid[is] != is+1 )  
+      {
+        os << "For this method, the values in *sensor_response_pol_grid* must\n"
+           << "be 1,2...stokes_dim. This is not the case, indicating that\n"
+           << "some previous sensor part has that the data no longer are\n"
+           << "Stokes vectors.\n";
+        error_found = true;
+        break;
+      }
+    }
+
+  // If errors where found throw runtime_error with the collected error
+  // message.
+  if (error_found)
+    throw runtime_error(os.str());
+  //---------------------------------------------------------------------------
+
+
+  // Set up complete the H matrix for applying rotation
+  //
+  Sparse H( sensor_response.nrows(), sensor_response.ncols() );
+  {
+    Sparse Hrot( npol, npol );  // Mueller matrix for 1 Stokes vec
+    Vector row( H.ncols(), 0 );
+    Index  irow = 0;
+    //
+    for( Index ilos=0; ilos<nlos; ilos++ )
+      {
+        // Rotation matrix for direction of concern
+        mueller_rotation( Hrot, npol, stokes_rotation[ilos]  );
+            
+        for( Index ifr=0; ifr<nf; ifr++ ) 
+          {
+            for( Index ip=0; ip<npol; ip++ )
+              {
+                // Fill relevant part of row with matching (complete) row
+                // in Hrot, and instert this row in H
+                for( Index is=0; is<npol; is++ )
+                  { row[irow+is] = Hrot.ro(ip,is); }
+                H.insert_row( irow+ip, row );
+                // Re-zero row.
+                for( Index is=0; is<npol; is++ )
+                  { row[irow+is] = 0; }
+              }
+            // Update irow, i.e. jump to next frequency
+            irow += npol;
+          }
+      }
+  }
+
+  // Here we need a temporary sparse that is copy of the sensor_response
+  // sparse matrix. We need it since the multiplication function can not
+  // take the same object as both input and output.
+  Sparse Htmp = sensor_response;
+  sensor_response.resize( Htmp.nrows(), Htmp.ncols());  //Just in case!
+  mult( sensor_response, H, Htmp );  
 }
 
 

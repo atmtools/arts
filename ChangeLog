@@ -1,9 +1,24 @@
+2015-10-14  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-335
+
+	* controlfiles/instruments/metmm/sensor_descriptions/sensor_amsub.arts:
+	* controlfiles/instruments/metmm/sensor_descriptions/sensor_amsua.arts:
+	Corrected type of met_mm_accuracy in header text. But channels and
+	viewing_angles still listed as expected variables. The header of
+	all these files should be revised.
+
+	* src/m_sensor.cc (sensor_responseMetMM2): A version of the MetMM
+	method, where the frequency part is precalculated, by e.g. f_gridMetMM.
+
+	* src/m_basic_types.cc (Compare): Added Compare for Sparse.
+
 2015-10-13  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-334
 
 	* src/m_sensor.cc (f_gridMetMM): Sets f_grid and some sensor
-	related variables based on met-mm settings. THe output fits with
+	related variables based on met-mm settings. The output fits with
 	sensor_responseMixerBackendPrecalcWeights. Finished, but not yet
 	hard tested.
 

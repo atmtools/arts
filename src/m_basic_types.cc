@@ -1730,3 +1730,76 @@ void Compare(const GriddedField3&    var1,
             var1name, var2name, "", "", verbosity);
 }
 
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void Compare(const Sparse&    var1,
+             const Sparse&    var2,
+             const Numeric&   maxabsdiff,
+             const String&    error_message,
+             const String&    var1name,
+             const String&    var2name,
+             const String&,
+             const String&,
+             const Verbosity& verbosity)
+{
+  const Index nrows = var1.nrows();
+  const Index ncols = var1.ncols();
+
+  if( var2.nrows() != nrows  ||  var2.ncols() != ncols )
+  {
+    ostringstream os;
+    os << var1name << " (" << nrows << "," << ncols << ") and "
+       << var2name << " (" << var2.nrows() << "," << var2.ncols()
+       << ") do not have the same size.";
+    throw runtime_error(os.str());
+  }
+
+  Numeric maxdiff = 0.0;
+
+  for( Index r=0; r<nrows; r++ )
+    { 
+      for( Index c=0; c<ncols; c++ )
+        {
+          Numeric diff = var1(r,c) - var2(r,c);
+
+          if( isnan(var1(r,c))  ||  isnan(var2(r,c)) )
+            {
+              if( isnan(var1(r,c))  &&  isnan(var2(r,c)) )
+                { diff = 0; }
+              else if( isnan(var1(r,c)) )
+                {
+                  ostringstream os;
+                  os << "Nan found in " << var1name << ", but there is no "
+                     << "NaN at same position in " << var2name << ".\nThis "
+                     << "is not allowed.";
+                  throw runtime_error(os.str());
+                }
+              else 
+                {
+                  ostringstream os;
+                  os << "Nan found in " << var2name << ", but there is no "
+                     << "NaN at same position in " << var1name << ".\nThis "
+                     << "is not allowed.";
+                  throw runtime_error(os.str());
+                }
+            }      
+
+          if( abs(diff) > abs(maxdiff) )
+            { maxdiff = diff; }
+        }
+    }
+
+  if( abs(maxdiff) > maxabsdiff )
+    {
+      ostringstream os;
+      os << var1name << "-" << var2name << " FAILED!\n";
+      if (error_message.length()) os << error_message << "\n";
+      os << "Max allowed deviation set to : " << maxabsdiff << endl
+         << "but the matrices deviate with: " << maxdiff << endl;
+      throw runtime_error(os.str());
+    }
+
+  CREATE_OUT2;
+  out2 << "   " << var1name << "-" << var2name
+       << " OK (maximum difference = " << maxdiff << ").\n";
+}

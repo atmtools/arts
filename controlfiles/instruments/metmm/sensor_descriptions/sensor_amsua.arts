@@ -9,7 +9,7 @@
 #                            indexing. It can be set to [-1] to select all
 #                            channels.
 # viewing_angles (ArrayOfIndex) Which views you want.
-# met_mm_accuracy (ArrayOfIndex) 
+# met_mm_accuracy (Index)    Selection of accuracy level.
 
 # Sensor characteristics based on KLM User's Guide at
 # http://www.ncdc.noaa.gov/oa/pod-guide/ncdc/docs/klm/html/c3/sec3-3.htm

@@ -3451,9 +3451,9 @@ void define_md_data_raw()
         IN(),
         GIN( "var1", "var2", "maxabsdiff", "error_message" ),
         GIN_TYPE( "Numeric, Vector, Matrix, Tensor3, Tensor4, Tensor7,"
-                  "ArrayOfVector, ArrayOfMatrix, GriddedField3",
+                  "ArrayOfVector, ArrayOfMatrix, GriddedField3, Sparse",
                   "Numeric, Vector, Matrix, Tensor3, Tensor4, Tensor7,"
-                  "ArrayOfVector, ArrayOfMatrix, GriddedField3",
+                  "ArrayOfVector, ArrayOfMatrix, GriddedField3, Sparse",
                   "Numeric", "String" ),
         GIN_DEFAULT( NODEF, NODEF, "", "" ),
         GIN_DESC( "A first variable", "A second variable", 
@@ -12043,6 +12043,65 @@ void define_md_data_raw()
                   "Number of frequencies per passband for each channel.",
                   "Merge frequencies that are closer than this value in Hz.",
                   "Flag to enable (1) or disable (0) antenna.",
+                  "Flag to include second part of swath (only 3D, see above)." )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "sensor_responseMetMM2" ),
+        DESCRIPTION
+        (
+         "Sensor setup for meteorological millimeter instruments.\n"
+         "\n"
+         "This method is handy if you are simulating a passband-type instrument,\n"
+         "consisting of a few discrete channels.\n"
+         "\n"
+         "For flexibility, the Met-MM system is seperated in two calculation\n"
+         "steps. To fully use the system, create *f_grid* (and some associated\n"
+         "variables) by *f_gridMetMM* before calling this method. However, it is\n"
+         "possible to use this method with any *f_grid*, as long as matching\n"
+         "*f_backend*, *channel2fgrid_indexes* and *channel2fgrid_weights*\n"
+         "are provided.\n"
+         "\n"
+         "Each scan sequence is treated as a measurement block. *sensor_pos* is\n"
+         "set in the standard way. The number of rows in *sensor_pos* determines the\n"
+         "number of scan sequences that will be simulated. On the other hand,\n"
+         "*sensor_los* is handled in a special way. All zenith angles must be set\n"
+         "to 180 deg. For 3D, the given azimuth angles are taken as the direction\n"
+         "of scanning, where the azimuth angle is defined with respect to North\n"
+         "in standard manner. For example, if the scanning happens to move from\n"
+         "SW to NE, the azimuth angle should be set to 45 deg. The angles of the\n"
+         "scanning sequence are taken from *antenna_dlos*. This WSV is here only\n"
+         "allowed to have a single column, holding relative zenith angles. For\n"
+         "3D, the azimuth angles in *antenna_dlos* are hard-coded to zero. As\n"
+         "zenith angles in *sensor_los* are locked to 180 deg, *antenna_dlos*\n"
+         "effectively holds the nadir angles. These angles can be both positive or\n"
+         "negative, where the recommended choice is to operate with negative\n"
+         "to end up with final zenith angles between 0 and 180 deg.\n"
+         "\n"
+         "The method does not support 2D atmospheres (across-track scanning is\n"
+         "inconsistent with 2D). For simpler switching between 1D and 3D,\n"
+         "the argument *mirror_dza* is at hand. It can only be used for 3D.\n"
+         "If set to true, the zenith angles in *antenna_dlos* are mapped\n"
+         "to also cover the other side of the swath and the simulations will\n"
+         "cover both sides of the swath.\n"
+           ),
+        AUTHORS( "Oliver Lemke" ),
+        OUT( "antenna_dim", "mblock_dlos_grid", "sensor_response",
+             "sensor_response_f", "sensor_response_pol", "sensor_response_dlos",
+             "sensor_response_f_grid", "sensor_response_pol_grid",
+             "sensor_response_dlos_grid", "sensor_norm" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "atmosphere_dim", "stokes_dim", "f_grid", "f_backend",
+            "channel2fgrid_indexes", "channel2fgrid_weights", 
+            "iy_unit", "antenna_dlos", "met_mm_polarisation", "met_mm_antenna"
+             ),
+        GIN( "use_antenna", "mirror_dza" ),
+        GIN_TYPE(    "Index", "Index" ),
+        GIN_DEFAULT( "0",     "0" ),
+        GIN_DESC( "Flag to enable (1) or disable (0) antenna.",
                   "Flag to include second part of swath (only 3D, see above)." )
         ));
 
