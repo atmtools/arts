@@ -200,7 +200,8 @@ void GetLineScalingData_dT(Numeric& dq_t_dT,
                 break;
         }
         
-        dpartition_ratio_dT = -dq_t_dT/q_t/q_t;
+        // Note that this should scale with q_tref, but we do not need that parameter here...
+        dpartition_ratio_dT = -dq_t_dT/q_t/q_t; 
     }
     
     // Following Futbolin's division into two parts for the Boltzmann ratio because

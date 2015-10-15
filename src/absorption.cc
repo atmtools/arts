@@ -2048,13 +2048,13 @@ firstprivate(attenuation, phase, fac, f_local, aux)
         
         
         // Setup for calculating the partial derivatives
-        Vector da_dF, dp_dF, da_dP, dp_dP;
+        Vector dFa_dF, dFb_dF, dFa_dP, dFb_dP;
         if(calc_partials&&!no_ls_partials) //Only size them if partials are wanted
         {
-            da_dF.resize(f_grid.nelem()+1);
-            dp_dF.resize(f_grid.nelem()+1);
-            da_dP.resize(f_grid.nelem()+1); 
-            dp_dP.resize(f_grid.nelem()+1);
+            dFa_dF.resize(f_grid.nelem()+1);
+            dFb_dF.resize(f_grid.nelem()+1);
+            dFa_dP.resize(f_grid.nelem()+1); 
+            dFb_dP.resize(f_grid.nelem()+1);
         }
         
         // Simple caching of partition function to avoid recalculating things.
@@ -2125,7 +2125,7 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                                     xsec_attenuation(joker,jj), calc_src?xsec_source(joker,jj):
                                     empty_vector,xsec_phase(joker,jj), 
                                     // HELPER
-                                    attenuation, phase, da_dF, dp_dF, da_dP, dp_dP, this_f_range, fac, aux, 
+                                    attenuation, phase, dFa_dF, dFb_dF, dFa_dP, dFb_dP, this_f_range, fac, aux, 
                                     // FREQUENCY
                                     f_local,  f_grid,  f_grid.nelem(),  cutoff,
                                     abs_lines[ii].F()+(precalc_zeeman?Z_DF[ii]:0), // Since vector is 0-length if no Zeeman pre-calculations
@@ -2154,7 +2154,7 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                 xsec_single_line(   // OUTPUT   
                                     xsec_attenuation(joker,jj), calc_src?xsec_source(joker,jj):empty_vector, xsec_phase(joker,jj), 
                                     // HELPER
-                                    attenuation, phase, da_dF, dp_dF, da_dP, dp_dP, this_f_range, fac, aux, 
+                                    attenuation, phase, dFa_dF, dFb_dF, dFa_dP, dFb_dP, this_f_range, fac, aux, 
                                     // FREQUENCY
                                     f_local, f_grid, f_grid.nelem(), cutoff, abs_lines[ii].F()+(precalc_zeeman?Z_DF[ii]:0), // Since vector is 0-length if no Zeeman pre-calculations
                                     // LINE STRENGTH
@@ -2218,10 +2218,10 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                                                         attenuation,
                                                         phase,
                                                         fac,
-                                                        da_dF, 
-                                                        dp_dF, 
-                                                        da_dP, 
-                                                        dp_dP,
+                                                        dFa_dF, 
+                                                        dFb_dF, 
+                                                        dFa_dP, 
+                                                        dFb_dP,
                                                         f_grid,
                                                         this_f_range,
                                                         //Temperature
@@ -2254,8 +2254,8 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                                                         gamma_0,
                                                         dgamma_0_dT,
                                                         // Partition data parameters
-                                                        qt_cache,
                                                         dQ_dT,
+                                                        qt_cache,
                                                         // Magnetic variables
                                                         precalc_zeeman?Z_DF[ii]:0,
                                                         H_magntitude_Zeeman,

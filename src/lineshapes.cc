@@ -1885,13 +1885,20 @@ void faddeeva_algorithm_916(    Vector&         ls_attenuation,
             ls_phase[ii]   = fac * w.imag();
         if(do_partials)
         {
-            ls_dattenuation_dfrequency_term[ii] = 2*(y*ls_phase[ii]-x*ls_attenuation[ii]);
-            ls_dattenuation_dpressure_term[ii]  = -ls_dattenuation_dfrequency_term[ii];
+            // Give w(x+iy) = Fa + iFb, then
+            
+            // dFa/dx
+            ls_dattenuation_dfrequency_term[ii] = -2.*(y*ls_phase[ii]-x*ls_attenuation[ii]);
+            
+            // dFa/dy
+            ls_dattenuation_dpressure_term[ii]  = ls_dattenuation_dfrequency_term[ii];
             if(do_phase)
             {
-                ls_dphase_dfrequency_term[ii] = -2*( y*ls_attenuation[ii] + x*ls_phase[ii] -
-                fac*sqrt_invPI);
-                ls_dphase_dpressure_term[ii]  = -ls_dphase_dfrequency_term[ii];
+                // dFb/dx
+                ls_dphase_dfrequency_term[ii] = 2.*( y*ls_attenuation[ii] + x*ls_phase[ii] - fac*sqrt_invPI);//NOTE:  Some papers have x*ls_attenuation and y*ls_phase in last equation
+                
+                // dFb/dy
+                ls_dphase_dpressure_term[ii]  = ls_dphase_dfrequency_term[ii];
             }
         }
     }
@@ -1927,14 +1934,14 @@ void faddeeva_algorithm_916_dT(Vector& dx_dT,       // Variable to multiply with
     // d(f-f0)/dT * 1/sigma  and  (f-f0) * d(1/sigma)/dT
     
     for(Index iv=0; iv<f.nelem(); iv++)
-        dx_dT[iv] = (-dPF_dT-dDF_dT) / sigma  -  (f[iv] - f0) / (sigma*sigma) * dsigma_dT;
+        dx_dT[iv] = ( - dPF_dT - dDF_dT  -  (f[iv] - f0) / sigma * dsigma_dT ) / sigma;
     
     // y = gamma / sigma
     
     // Since both denominator and nominator depends on temperature, we need to split the derivative into two terms
     // d(gamma)/dT * 1/sigma  and  (gamma) * d(1/sigma)/dT
     
-    dy_dT = dgamma_dT / sigma  -  gamma / (sigma*sigma) * dsigma_dT;
+    dy_dT = ( dgamma_dT  -  gamma / sigma * dsigma_dT )  / sigma;
     
     // This line shape is normalization depends on temperature and is
     dnorm_dT = - 1.0 / sigma * dsigma_dT; 
@@ -2098,12 +2105,6 @@ void hui_etal_1978_lineshape( Vector&         ls_attenuation,
     transfer codes. J Quant Radiat Transfer 2013;129:89-100.                
     [2] Tran H, Ngo NH, Hartmann J-M. Efficient computation of some speed-dependent 
     isolated line profiles. J Quant Radiat Transfer 2013;129:199-203.
-    
-    but using the work by:
-    D. Forthomme, M.J. Cich, S. Twagirayezu, G.E. Hall, T.J. Sears
-    Application of the Hartmann–Tran profile to precise
-    experimental data sets of 12C2H2
-    for its mathematical clarity in explaining how the profile works.
       
     N.B.  Input is not handled properly yet but assumed standard where nothing is known.
     This is indicated by all numerics set to constants at the start of the code.

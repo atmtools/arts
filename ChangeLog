@@ -1,3 +1,24 @@
+2015-10-15  Richard Larsson   <ric.larsson@gmail.com>
+
+	* arts-2-3-337
+	
+	* src/absorption.cc:  Renamed some internal variables for easier reading.
+	
+	* src/linescaling.cc:  Added comment on partial partition function design.
+	
+	* src/lineshapes.cc:  Added comment and changed signs.  The signs here are difficult
+	to get right.
+	
+	* src/m_abs.cc:  Another bug in the continua derivatives fixed.  With this and the above
+	general shape is similar between wfuns when using on-the-fly calculations.  Differences
+	still remains...
+	
+	* src/m_cia.cc:  In fixing to not output pseudo cross-section I also removed adding the 
+	cross-section when the secondary and first species are not the same.  This is now back.
+	
+	* src/partial_derivatives.{cc,h}:  Changed some comments and names to make it easier 
+	to read.
+	
 2015-10-14  Richard Larsson   <ric.larsson@gmail.com>
 
 	* arts-2-3-336

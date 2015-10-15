@@ -1583,29 +1583,29 @@ void abs_coefCalcFromXsec(// WS Output:
               if(do_src)
                 src_coef_per_species[i](k,j) = src_xsec_per_species[i](k,j) * n * abs_vmrs(i,j);
               
-              for(Index ii=0;ii<ppd.nelem();ii++)
+              for(Index iq=0;iq<ppd.nelem();iq++)
               {
-                  if(ppd(ii)==JQT_temperature)
+                  if(ppd(iq)==JQT_temperature)
                   {
-                      dabs_coef_dx[ii](k,j) += (dabs_xsec_per_species_dx[i][ii](k,j) * n + 
+                      dabs_coef_dx[iq](k,j) += (dabs_xsec_per_species_dx[i][iq](k,j) * n + 
                       abs_xsec_per_species[i](k,j) * dn_dT) * abs_vmrs(i,j);
                       if(do_src)
-                          dsrc_coef_dx[ii](k,j) += (dsrc_xsec_per_species_dx[i][ii](k,j) * n + 
+                          dsrc_coef_dx[iq](k,j) += (dsrc_xsec_per_species_dx[i][iq](k,j) * n + 
                           src_xsec_per_species[i](k,j) * dn_dT) * abs_vmrs(i,j);
                   }
-                  else if(ppd(ii)==JQT_VMR && ppd.species(ii) == abs_species[i][0].Species())
+                  else if(ppd(iq)==JQT_VMR && ppd.species(iq) == abs_species[i][0].Species())
                   {
-                      dabs_coef_dx[ii](k,j) += ( dabs_xsec_per_species_dx[i][ii](k,j) * abs_vmrs(i,j) +
+                      dabs_coef_dx[iq](k,j) += ( dabs_xsec_per_species_dx[i][iq](k,j) * abs_vmrs(i,j) +
                       abs_xsec_per_species[i](k,j) ) * n;
                       if(do_src)
-                          dsrc_coef_dx[ii](k,j) += ( dsrc_xsec_per_species_dx[i][ii](k,j) * abs_vmrs(i,j) +
+                          dsrc_coef_dx[iq](k,j) += ( dsrc_xsec_per_species_dx[i][iq](k,j) * abs_vmrs(i,j) +
                           src_xsec_per_species[i](k,j) ) * n;
                   }
-                  else if(ppd(ii)!=JQT_NOT_JQT)
+                  else if(ppd(iq)!=JQT_NOT_JQT)
                   {
-                      dabs_coef_dx[ii](k,j) += dabs_xsec_per_species_dx[i][ii](k,j) * n * abs_vmrs(i,j);
+                      dabs_coef_dx[iq](k,j) += dabs_xsec_per_species_dx[i][iq](k,j) * n * abs_vmrs(i,j);
                       if(do_src)
-                          dsrc_coef_dx[ii](k,j) += dsrc_xsec_per_species_dx[i][ii](k,j) * n * abs_vmrs(i,j);
+                          dsrc_coef_dx[iq](k,j) += dsrc_xsec_per_species_dx[i][iq](k,j) * n * abs_vmrs(i,j);
                   }
               }
               
@@ -2081,14 +2081,14 @@ void abs_xsec_per_speciesAddConts(// WS Output:
   if(do_freq_jac)
   {
       dfreq.resize(f_grid.nelem());
-      dfreq = f_grid;
-      dfreq += df;
+      for(Index iv=0; iv<f_grid.nelem(); iv++)
+          dfreq[iv] = f_grid[iv]+df;
   }
   if(do_temp_jac)
   {
       dabs_t.resize(abs_t.nelem());
-      dabs_t = abs_t;
-      dabs_t += dt;
+      for(Index it=0; it<abs_t.nelem(); it++)
+          dabs_t[it] = abs_t[it]+dt;
   }
   
   Matrix jacs_df, jacs_dt, normal;
@@ -2270,7 +2270,7 @@ void abs_xsec_per_speciesAddConts(// WS Output:
                                               abs_n2,abs_h2o,abs_o2,abs_vmrs(i,Range(joker)),verbosity );
                       
                       //Temperature calculations
-                      if(do_freq_jac)
+                      if(do_temp_jac)
                           xsec_continuum_tag( jacs_dt,name,abs_cont_parameters[n],
                                               abs_cont_models[n], f_grid, abs_p,dabs_t,
                                               abs_n2,abs_h2o,abs_o2,abs_vmrs(i,Range(joker)),verbosity );
@@ -2286,9 +2286,9 @@ void abs_xsec_per_speciesAddConts(// WS Output:
                                      ppd(iq)==JQT_wind_u || 
                                      ppd(iq)==JQT_wind_v || 
                                      ppd(iq)==JQT_wind_w)
-                                      dabs_xsec_per_species_dx[i][iq](iv,ip) += (jacs_df(iv,ip)-normal(iv,ip))/df;
+                                      dabs_xsec_per_species_dx[i][iq](iv,ip) += (jacs_df(iv,ip)-normal(iv,ip))*(1./df);
                                   else if(ppd(iq)==JQT_temperature)
-                                      dabs_xsec_per_species_dx[i][iq](iv,ip) += (jacs_dt(iv,ip)-normal(iv,ip))/dt;
+                                      dabs_xsec_per_species_dx[i][iq](iv,ip) += (jacs_dt(iv,ip)-normal(iv,ip))*(1./dt);
                               }
                           }
                       }
