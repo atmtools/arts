@@ -1,3 +1,27 @@
+2015-10-16  Richard Larsson   <ric.larsson@gmail.com>
+
+	* arts-2-3-338
+	
+	* src/absorption.{cc,h}:  Added check for line shape having partials.
+	
+	* src/lineshapes.cc:  Changed lineshape_voigt_kuntz6 to give back numerical partial
+	derivatives.  I used this in TestWfuns and the changes makes this function agree
+	with faddeeva_algorithm_916 line shape and partial derivatives.  Note that for 
+	partial derivative calculations, faddeeva_algorithm_916 will be faster since it is
+	only looping frequency once to get partial derivative and lineshape_voigt_kuntz6
+	is looping frequency three times (recursive calls with perturbed variables).
+	
+	Also changed the helper functions so that both faddeeva_algorithm_916 and 
+	lineshape_voigt_kuntz6 get internal partial derivatives from the same source.
+	They both operate on the same principle, so this should be OK.
+	
+	Note that the temperature partial derivatives are still different between the
+	"analytical" and "from propmat" cases, and that I still do not know why.
+	
+	* src/partial_derivatives.cc:  Discovered a bug in the temperature part of the code 
+	(which did not affect the end results for the previous commit but made the new 
+	code act strange).
+
 2015-10-15  Richard Larsson   <ric.larsson@gmail.com>
 
 	* arts-2-3-337

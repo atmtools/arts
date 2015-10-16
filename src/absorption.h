@@ -162,6 +162,7 @@ public:
   lsf_type_dDF dInput_dDF() const { return mfunction_dDF; }
   /** Returns true if lineshape function calculates phase information. */
   bool Phase() const { return mphase; }
+  bool Partials() const { return mpartials; }
 private:        
   String  mname;        ///< Name of the function (e.g., Lorentz).
   String  mdescription; ///< Short description.

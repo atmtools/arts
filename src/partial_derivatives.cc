@@ -33,10 +33,10 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix&  partials_attenuati
                                               ConstVectorView CF_A,//no linemixing except DV!
                                               ConstVectorView CF_B,//no linemixing except DV!
                                               ConstVectorView C,
-                                              ConstVectorView dFa_dF,
-                                              ConstVectorView dFb_dF, 
-                                              ConstVectorView dFa_dP, 
-                                              ConstVectorView dFb_dP, 
+                                              ConstVectorView dFa_dx,
+                                              ConstVectorView dFb_dx, 
+                                              ConstVectorView dFa_dy, 
+                                              ConstVectorView dFb_dy, 
                                               ConstVectorView f_grid,
                                               const Range&    this_f_grid,
                                               const Numeric&  temperature,
@@ -120,10 +120,10 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix&  partials_attenuati
                 const Numeric ls_A= ( (1.0 + G_LM)*CF_A[iv] + Y_LM*CF_B[iv]), 
                               ls_B= ( (1.0 + G_LM)*CF_B[iv] - Y_LM*CF_A[iv]);
                 
-                this_partial_attenuation[iv] += dFa_dF[iv]*dx_dH + ls_A*dfn_dH_div_dF_dH[iv]*dF_dH/C[iv];
-                this_partial_phase[iv]       += dFb_dF[iv]*dx_dH + ls_B*dfn_dH_div_dF_dH[iv]*dF_dH/C[iv];
+                this_partial_attenuation[iv] += dFa_dx[iv]*dx_dH + ls_A*dfn_dH_div_dF_dH[iv]*dF_dH/C[iv];
+                this_partial_phase[iv]       += dFb_dx[iv]*dx_dH + ls_B*dfn_dH_div_dF_dH[iv]*dF_dH/C[iv];
                 if(do_src)
-                    this_partial_src[iv]     +=(dFa_dF[iv]*dx_dH + ls_A*dfn_dH_div_dF_dH[iv]*dF_dH/C[iv])*nlte;
+                    this_partial_src[iv]     +=(dFa_dx[iv]*dx_dH + ls_A*dfn_dH_div_dF_dH[iv]*dF_dH/C[iv])*nlte;
             }
         }
         else if(flag_partials(ii)==JQT_magnetic_theta)
@@ -156,11 +156,11 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix&  partials_attenuati
                 const Numeric ls_A= ( (1.0 + G_LM)*CF_A[iv] + Y_LM*CF_B[iv]), 
                               ls_B= ( (1.0 + G_LM)*CF_B[iv] - Y_LM*CF_A[iv]);
                 
-                this_partial_attenuation[iv]+=dfn_dF[iv]/C[iv]*ls_A+dFa_dF[iv]*dF_dF;
+                this_partial_attenuation[iv]+=dfn_dF[iv]/C[iv]*ls_A+dFa_dx[iv]*dF_dF;
                 if(do_partials_phase)
-                    this_partial_phase[iv]      +=dfn_dF[iv]/C[iv]*ls_B+dFb_dF[iv]*dF_dF;
+                    this_partial_phase[iv]      +=dfn_dF[iv]/C[iv]*ls_B+dFb_dx[iv]*dF_dF;
                 if(do_src)
-                    this_partial_src[iv]+=(dfn_dF[iv]/C[iv]*ls_A+dFa_dF[iv]*dF_dF)*nlte;
+                    this_partial_src[iv]+=(dfn_dF[iv]/C[iv]*ls_A+dFa_dx[iv]*dF_dF)*nlte;
                 
                 //NOTE:  Still missing wind term in this derivative.  Must be multiplied by cf/(c+W)^2 at some point to get this correct... As it stands though, this is the frequency derivative
                 //NOTE:  Another missing aspect is that the dW/d{u,v,w} term must also be added for those components
@@ -204,22 +204,22 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix&  partials_attenuati
                 this_partial_attenuation[iv] += 
                 (dS_dT + dfn_dT[iv]/C[iv] + dnorm_dT) * ls_A + //Line strength and factors
                 dG_LM_dT  * CF_A[iv]  + dY_LM_dT * CF_B[iv]  + //Line Mixing (absolute)
-                dF_dT[iv] * dFa_dF[iv] +                        //Frequency line shape
-                dP_dT     * dFb_dP[iv];                         //Pressure line shape
+                dF_dT[iv] * dFa_dx[iv] +                        //Frequency line shape
+                dP_dT     * dFa_dy[iv];                         //Pressure line shape
                 
                 if(do_partials_phase)// Minus signs should be here due to iFb, though this must be tested!
                     this_partial_phase[iv]   += 
                     (dS_dT + dfn_dT[iv]/C[iv] + dnorm_dT) * ls_B + //Line strength
                     dG_LM_dT  * CF_B[iv]  - dY_LM_dT * CF_A[iv]  - //Line Mixing (absolute)
-                    dF_dT[iv] * dFb_dF[iv] -                       //Frequency line shape
-                    dP_dT     * dFb_dP[iv];                        //Pressure line shape
+                    dF_dT[iv] * dFb_dx[iv] -                       //Frequency line shape
+                    dP_dT     * dFb_dy[iv];                        //Pressure line shape
                 
                 if(do_src)
                     this_partial_src[iv] += nlte * /*partial attenuation*/
                     ((dS_dT + dfn_dT[iv]/C[iv] + dnorm_dT) * ls_A  + //Line strength
                     dG_LM_dT  * CF_A[iv]   + dY_LM_dT * CF_B[iv]   + //Line Mixing (absolute)
-                    dF_dT[iv] * dFa_dF[iv]  +                         //Frequency line shape 
-                    dP_dT     * dFa_dP[iv]) +                         //Pressure line shape
+                    dF_dT[iv] * dFa_dx[iv]  +                         //Frequency line shape 
+                    dP_dT     * dFa_dy[iv]) +                         //Pressure line shape
                     ls_A/K3*(dK4-K4*dK3);                            //Source term ratio
             }
             
@@ -269,11 +269,11 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix&  partials_attenuati
             
             for(Index iv=0;iv<nv;iv++)
             {
-                this_partial_attenuation[iv] += dFa_dP[iv]*dP_dgamma;
+                this_partial_attenuation[iv] += dFa_dy[iv]*dP_dgamma;
                 if(do_partials_phase)
-                    this_partial_phase[iv]   += dFb_dP[iv]*dP_dgamma;
+                    this_partial_phase[iv]   += dFb_dy[iv]*dP_dgamma;
                 if(do_src)
-                    this_partial_src[iv]     += dFa_dP[iv]*dP_dgamma*nlte;
+                    this_partial_src[iv]     += dFa_dy[iv]*dP_dgamma*nlte;
                     
             }
             
@@ -343,11 +343,11 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix&  partials_attenuati
             for(Index iv=0;iv<nv;iv++)
             {
                 
-                this_partial_attenuation[iv] += dFa_dF[iv] * dF_dDF;
+                this_partial_attenuation[iv] += dFa_dx[iv] * dF_dDF;
                 if(do_partials_phase)
-                    this_partial_phase[iv]   += dFb_dF[iv] * dF_dDF;
+                    this_partial_phase[iv]   += dFb_dx[iv] * dF_dDF;
                 if(do_src)
-                    this_partial_src[iv]     += dFa_dF[iv] * dF_dDF * nlte;
+                    this_partial_src[iv]     += dFa_dx[iv] * dF_dDF * nlte;
             }
             
             // That's it!  Note that the output should be strongly correlated to Temperature and Pressure.

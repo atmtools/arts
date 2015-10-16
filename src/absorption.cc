@@ -1298,10 +1298,10 @@ void xsec_single_line(// Output:
                       // Helper variables
                       Vector& attenuation, 
                       Vector& phase,
-                      Vector& da_dF,
-                      Vector& dp_dF,
-                      Vector& da_dP,
-                      Vector& dp_dP,
+                      Vector& dFa_dx,
+                      Vector& dFb_dx,
+                      Vector& dFa_dy,
+                      Vector& dFb_dy,
                       Range&  this_f_range,
                       Vector& fac, 
                       Vector& aux, 
@@ -1425,7 +1425,7 @@ void xsec_single_line(// Output:
         
         // Calculate the line shape:
         global_data::lineshape_data[ind_ls].Function()(attenuation, phase,
-                                                       da_dF, dp_dF, da_dP, dp_dP, //partial derivatives
+                                                       dFa_dx, dFb_dx, dFa_dy, dFb_dy, //partial derivatives
                                                        aux, F0, gamma_0, gamma_2, eta, 0.0, // FIXME: H-T ls...
                                                        df_2, sigma, f_VC, f_local[that_f_range],
                                                        calc_phase, calc_partials);
@@ -1449,12 +1449,12 @@ void xsec_single_line(// Output:
         
         // Store cutoff values
         const Numeric 
-        cutoff_attenuation =               calc_cut?attenuation[nfls-1]:0.0, 
-        cutoff_phase       =    calc_phase?calc_cut?phase[nfls-1]:0.0  :0.0,
-        cutoff_da_dF       = calc_partials?calc_cut?da_dF[nfls-1]:0.0  :0.0, 
-        cutoff_dp_dF       = calc_partials?calc_cut?dp_dF[nfls-1]:0.0  :0.0, 
-        cutoff_da_dP       = calc_partials?calc_cut?da_dP[nfls-1]:0.0  :0.0, 
-        cutoff_dp_dP       = calc_partials?calc_cut?dp_dP[nfls-1]:0.0  :0.0;
+        cutoff_attenuation = calc_cut?attenuation[nfls-1]:0.0, 
+        cutoff_phase       = calc_phase?calc_cut?phase[nfls-1]:0.0:0.0,
+        cutoff_dFa_dx      = calc_partials?calc_cut?dFa_dx[nfls-1]:0.0:0.0, 
+        cutoff_dFb_dx      = calc_phase?calc_partials?calc_cut?dFb_dx[nfls-1]:0.0:0.0:0.0, 
+        cutoff_dFa_dy      = calc_partials?calc_cut?dFa_dy[nfls-1]:0.0:0.0, 
+        cutoff_dFb_dy      = calc_phase?calc_partials?calc_cut?dFb_dy[nfls-1]:0.0:0.0:0.0;
         
         // If one of these is non-zero, then there are line mixing calculations required
         const bool calc_LM = LM_G!=0||LM_Y!=0;
@@ -1485,15 +1485,21 @@ void xsec_single_line(// Output:
                 {
                     if(calc_cut)
                     {
-                        da_dF[jj]-=cutoff_da_dF;
-                        dp_dF[jj]-=cutoff_dp_dF;
-                        da_dP[jj]-=cutoff_da_dP;
-                        dp_dP[jj]-=cutoff_dp_dP;
+                        dFa_dx[jj]-=cutoff_dFa_dx;
+                        dFa_dy[jj]-=cutoff_dFa_dy;
+                        if(calc_phase)
+                        {
+                            dFb_dx[jj]-=cutoff_dFb_dx;
+                            dFb_dy[jj]-=cutoff_dFb_dy;
+                        }
                     }
-                    da_dF[jj]*=str_scale;
-                    dp_dF[jj]*=str_scale;
-                    da_dP[jj]*=str_scale;
-                    dp_dP[jj]*=str_scale;
+                    dFa_dx[jj]*=str_scale;
+                    dFa_dy[jj]*=str_scale;
+                    if(calc_phase)
+                    {
+                        dFb_dx[jj]*=str_scale;
+                        dFb_dy[jj]*=str_scale;
+                    }
                 }
                 
                 // Attenuation is by tradition added to total attenuation from here
@@ -1524,13 +1530,13 @@ void xsec_single_line(// Output:
                 // attenuation and phase variables [NOTE: attenuation and phase are without line mixing corrections!])
                 if(calc_partials&&calc_LM)
                 {
-                    const Numeric orig_da_dF=da_dF[jj];
-                    const Numeric orig_da_dP=da_dP[jj];
+                    const Numeric orig_dFa_dx=dFa_dx[jj];
+                    const Numeric orig_dFa_dy=dFa_dy[jj];
                     
-                    da_dF[jj] = (1.+LM_G)*orig_da_dF + LM_Y*dp_dF[jj];
-                    dp_dF[jj] = (1.+LM_G)*dp_dF[jj]  - LM_Y*orig_da_dF;
-                    da_dP[jj] = (1.+LM_G)*orig_da_dP + LM_Y*dp_dP[jj];
-                    dp_dP[jj] = (1.+LM_G)*dp_dP[jj]  - LM_Y*orig_da_dP;
+                    dFa_dx[jj] = (1.+LM_G)*orig_dFa_dx + LM_Y*dFb_dx[jj];
+                    dFb_dx[jj] = (1.+LM_G)*dFb_dx[jj]  - LM_Y*orig_dFa_dx;
+                    dFa_dy[jj] = (1.+LM_G)*orig_dFa_dy + LM_Y*dFb_dy[jj];
+                    dFb_dy[jj] = (1.+LM_G)*dFb_dy[jj]  - LM_Y*orig_dFa_dy;
                 }
             }
         }  
@@ -1887,7 +1893,8 @@ void xsec_species_line_mixing_wrapper(  MatrixView               xsec_attenuatio
     const bool do_lm     = abs_species[this_species][0].LineMixing() != SpeciesTag::LINE_MIXING_OFF;
     const bool no_ls_partials = flag_partials.supportsLBLwithoutPhase();
     
-    const bool we_need_phase = do_zeeman || do_lm || !no_ls_partials;
+    const bool we_need_phase = do_zeeman || do_lm || calc_partials_phase;
+    const bool we_need_partials =calc_partials&&!no_ls_partials;
     
     // Must have the phase for two of the options
     using global_data::lineshape_data;
@@ -1897,6 +1904,16 @@ void xsec_species_line_mixing_wrapper(  MatrixView               xsec_attenuatio
         os <<  "This is an error message. You are using " << lineshape_data[ind_ls].Name() <<
         ".\n"<<"This line shape does not include phase in its calculations and\nis therefore invalid for " <<
         "line mixing, Zeeman effect, and certain partial derivatives.\nYou are using one of these or you should not see this error.\n";
+        throw std::runtime_error(os.str());
+    }
+    
+    if(we_need_partials&&!lineshape_data[ind_ls].Partials())
+    {
+        std::ostringstream os;
+        os <<  "This is an error message. You are using " << lineshape_data[ind_ls].Name() <<".\n"
+           <<  "Your selected *jacobian_quantities* requires that the line shape returns partial\n"
+           <<  "derivatives.";
+           
         throw std::runtime_error(os.str());
     }
     
@@ -2048,13 +2065,13 @@ firstprivate(attenuation, phase, fac, f_local, aux)
         
         
         // Setup for calculating the partial derivatives
-        Vector dFa_dF, dFb_dF, dFa_dP, dFb_dP;
+        Vector dFa_dx, dFb_dx, dFa_dy, dFb_dy;
         if(calc_partials&&!no_ls_partials) //Only size them if partials are wanted
         {
-            dFa_dF.resize(f_grid.nelem()+1);
-            dFb_dF.resize(f_grid.nelem()+1);
-            dFa_dP.resize(f_grid.nelem()+1); 
-            dFb_dP.resize(f_grid.nelem()+1);
+            dFa_dx.resize(f_grid.nelem()+1);
+            dFb_dx.resize(f_grid.nelem()+1);
+            dFa_dy.resize(f_grid.nelem()+1); 
+            dFb_dy.resize(f_grid.nelem()+1);
         }
         
         // Simple caching of partition function to avoid recalculating things.
@@ -2125,7 +2142,7 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                                     xsec_attenuation(joker,jj), calc_src?xsec_source(joker,jj):
                                     empty_vector,xsec_phase(joker,jj), 
                                     // HELPER
-                                    attenuation, phase, dFa_dF, dFb_dF, dFa_dP, dFb_dP, this_f_range, fac, aux, 
+                                    attenuation, phase, dFa_dx, dFb_dx, dFa_dy, dFb_dy, this_f_range, fac, aux, 
                                     // FREQUENCY
                                     f_local,  f_grid,  f_grid.nelem(),  cutoff,
                                     abs_lines[ii].F()+(precalc_zeeman?Z_DF[ii]:0), // Since vector is 0-length if no Zeeman pre-calculations
@@ -2154,7 +2171,9 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                 xsec_single_line(   // OUTPUT   
                                     xsec_attenuation(joker,jj), calc_src?xsec_source(joker,jj):empty_vector, xsec_phase(joker,jj), 
                                     // HELPER
-                                    attenuation, phase, dFa_dF, dFb_dF, dFa_dP, dFb_dP, this_f_range, fac, aux, 
+                                    attenuation, phase, 
+                                    dFa_dx, dFb_dx, dFa_dy, dFb_dy, 
+                                    this_f_range, fac, aux, 
                                     // FREQUENCY
                                     f_local, f_grid, f_grid.nelem(), cutoff, abs_lines[ii].F()+(precalc_zeeman?Z_DF[ii]:0), // Since vector is 0-length if no Zeeman pre-calculations
                                     // LINE STRENGTH
@@ -2218,10 +2237,10 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                                                         attenuation,
                                                         phase,
                                                         fac,
-                                                        dFa_dF, 
-                                                        dFb_dF, 
-                                                        dFa_dP, 
-                                                        dFb_dP,
+                                                        dFa_dx, 
+                                                        dFb_dx, 
+                                                        dFa_dy, 
+                                                        dFb_dy,
                                                         f_grid,
                                                         this_f_range,
                                                         //Temperature

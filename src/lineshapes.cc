@@ -314,9 +314,9 @@ long bfun6_(Numeric y, Numeric x)
 */ 
 void lineshape_voigt_kuntz6(Vector&         ls_attenuation,
                             Vector&,        //ls_phase
-                            Vector&,        //ls_dattenuation_dfrequency_term
+                            Vector&         ls_dattenuation_dfrequency_term,
                             Vector&,        //ls_dphase_dfrequency_term
-                            Vector&,        //ls_dattenuation_dpressure_term
+                            Vector&         ls_dattenuation_dpressure_term,
                             Vector&,        //ls_dphase_dpressure_term
                             Vector&         x,
                             const Numeric   f0,
@@ -329,7 +329,7 @@ void lineshape_voigt_kuntz6(Vector&         ls_attenuation,
                             const Numeric,
                             ConstVectorView f_grid,
                             const bool,
-                            const bool)
+                            const bool do_partials)
 
 {
   const Index nf = f_grid.nelem();
@@ -380,6 +380,66 @@ void lineshape_voigt_kuntz6(Vector&         ls_attenuation,
   // Ratio of the Lorentz halfwidth to the Doppler halfwidth
   Numeric y = gamma / sigma;
 
+  // Helper bools
+  bool do_x=false, do_y=false;
+  
+  // Forcing 0.0001 here, or 1/10000th of relevant broadening.
+  // This is from Wfuns agreeing on less than 1e-6 with this
+  // level of perturbation (faddeeva_algorithm_916 and Voigt_Kuntz6 were compared)
+  const Numeric dx=0.0001, dy=0.0001;
+  
+  // do_partials is put here because later on x will change...
+  if(do_partials)
+  {
+      // pass variable for self-calling
+      Vector empty;
+      
+      // x = (f-f0)/sigma, so x+dx from f0+df0 means dx = - df0/sigma
+      const Numeric df0 = - dx*sigma; 
+      
+      // Use this dx to see if reasonable to calculate dFa/dx.  
+      // Too small dx and we will have constant
+      // Jacobian that are unreasonably large...
+      do_x = (f0>(-df0*10));
+      
+      if(do_x)
+      {
+          lineshape_voigt_kuntz6(ls_dattenuation_dfrequency_term,
+                                 empty,empty,empty,empty,empty,
+                                 x,
+                                 f0+df0,
+                                 gamma,
+                                 0.0,0.0,0.0,0.0,
+                                 sigma,
+                                 0.0,
+                                 f_grid,
+                                 false,false);
+      }
+      
+      // y = gamma/sigma so y+dy from gamma+dgamma means dy=dgamma/sigma
+      const Numeric dgamma = dy*sigma; 
+      
+      // Use this dy to see if reasonable to calculate dFa/dy.  
+      // Too small dy and we will have constant
+      // Jacobian that are unreasonably large
+      do_y = (y>(dy*10));
+      
+      if(do_y)
+      {
+          lineshape_voigt_kuntz6(ls_dattenuation_dpressure_term,
+                                 empty,empty,empty,empty,empty,
+                                 x,
+                                 f0,
+                                 gamma+dgamma,
+                                 0.0,0.0,0.0,0.0,
+                                 sigma,
+                                 0.0,
+                                 f_grid,
+                                 false,false);
+      }
+  }
+  
+  
   // frequency in units of Doppler 
   for (i1=0; i1< (int) nf; i1++)
     {
@@ -640,6 +700,47 @@ void lineshape_voigt_kuntz6(Vector&         ls_attenuation,
         ls_attenuation[i1-1] = c1 * (b1 + x2) / (b2 * b2 + a2 * x2);
         /* L8: */
       }
+    }
+  }
+  
+  if(do_partials)
+  {
+    // Set things right depending on if possible
+    if(do_y&&do_x)
+    {
+        for(Index iv=0; iv<nf; iv++)
+        {
+            ls_dattenuation_dfrequency_term[iv] -= ls_attenuation[iv];
+            ls_dattenuation_dfrequency_term[iv] /= -dx;
+            ls_dattenuation_dpressure_term[iv]  -=  ls_attenuation[iv];
+            ls_dattenuation_dpressure_term[iv]  /= dy;
+        }
+    }
+    else if(do_x)
+    {
+        for(Index iv=0; iv<nf; iv++)
+        {
+            ls_dattenuation_dfrequency_term[iv] -= ls_attenuation[iv];
+            ls_dattenuation_dfrequency_term[iv] /= -dx;
+            ls_dattenuation_dpressure_term[iv] = 0.0;
+        }
+    }
+    else if(do_y)
+    {
+        for(Index iv=0; iv<nf; iv++)
+        {
+            ls_dattenuation_dfrequency_term[iv] = 0.0;
+            ls_dattenuation_dpressure_term[iv]  -=  ls_attenuation[iv];
+            ls_dattenuation_dpressure_term[iv]  /= dy;
+        }
+    }
+    else
+    {
+        for(Index iv=0; iv<nf; iv++)
+        {
+            ls_dattenuation_dfrequency_term[iv] = 0.0;
+            ls_dattenuation_dpressure_term[iv] = 0.0;
+        }
     }
   }
 }
@@ -1885,38 +1986,40 @@ void faddeeva_algorithm_916(    Vector&         ls_attenuation,
             ls_phase[ii]   = fac * w.imag();
         if(do_partials)
         {
-            // Give w(x+iy) = Fa + iFb, then
+            // Derivatives are from a paper that gives w(y-ix) = Fa + iFb but our formalism use
+            // w(x+iy) = Fa + iFb.  Thus signs on Fb-derivatives are difficult...
             
             // dFa/dx
             ls_dattenuation_dfrequency_term[ii] = -2.*(y*ls_phase[ii]-x*ls_attenuation[ii]);
             
             // dFa/dy
-            ls_dattenuation_dpressure_term[ii]  = ls_dattenuation_dfrequency_term[ii];
+            ls_dattenuation_dpressure_term[ii]  = 2.*( y*ls_attenuation[ii] + x*ls_phase[ii] - fac*sqrt_invPI);
+            
             if(do_phase)
             {
                 // dFb/dx
-                ls_dphase_dfrequency_term[ii] = 2.*( y*ls_attenuation[ii] + x*ls_phase[ii] - fac*sqrt_invPI);//NOTE:  Some papers have x*ls_attenuation and y*ls_phase in last equation
+                ls_dphase_dfrequency_term[ii] = - ls_dattenuation_dpressure_term[ii];
                 
                 // dFb/dy
-                ls_dphase_dpressure_term[ii]  = ls_dphase_dfrequency_term[ii];
+                ls_dphase_dpressure_term[ii]  =   ls_dattenuation_dfrequency_term[ii];
             }
         }
     }
 }
 
 
-// Helpers connected to Faddeeva Algorithm 916 to get internal partials.
-void faddeeva_algorithm_916_dT(Vector& dx_dT,       // Variable to multiply with ls_dattenuation_dfrequency_term and ls_dphase_dfrequency_term.
-                                         Numeric& dy_dT,       // Variable to multiply with ls_dattenuation_dpressure_term and ls_dphase_dpressure_term.
-                                         Numeric& dnorm_dT,     // Variable to multiply with ls_attenuation and ls_phase terms 
-                                         ConstVectorView f,     
-                                         const Numeric& f0,    // Note that this is NOT the line center, but the shifted center
-                                         const Numeric& sigma, 
-                                         const Numeric& dPF_dT,    // pressure shift temperature derivative
-                                         const Numeric& dDF_dT,    // line mixing shift temperature derivative
-                                         const Numeric& dsigma_dT, // derivative of sigma with temperature
-                                         const Numeric& gamma,
-                                         const Numeric& dgamma_dT) // derivative of gamma with temperature
+// Helpers connected to internal partials.
+void w_x_plus_iy_dT(Vector& dx_dT,
+                    Numeric& dy_dT,
+                    Numeric& dnorm_dT,
+                    ConstVectorView f,     
+                    const Numeric& f0,    // Note that this is NOT the line center, but the shifted center
+                    const Numeric& sigma, 
+                    const Numeric& dPF_dT,    // pressure shift temperature derivative
+                    const Numeric& dDF_dT,    // line mixing shift temperature derivative
+                    const Numeric& dsigma_dT, // derivative of sigma with temperature
+                    const Numeric& gamma,
+                    const Numeric& dgamma_dT) // derivative of gamma with temperature
 {
     // Function is w(x+iy), and dw/dx and dw/dy are both known already.
     // This function serves to find dx/dT
@@ -1949,8 +2052,8 @@ void faddeeva_algorithm_916_dT(Vector& dx_dT,       // Variable to multiply with
     //       the factor is already in the lineshape that this will be multiplied to, so
     //       derivative divided by the factor and only the above remains!  Which should only be -1/2T for this case.
 }
-void faddeeva_algorithm_916_dF(Numeric& dx_dF,       // Variable to multiply with ls_dattenuation_dfrequency_term and ls_dphase_dfrequency_term.
-                               const Numeric& sigma)
+void w_x_plus_iy_dF(Numeric& dx_dF,
+                    const Numeric& sigma)
 {
     // Function is w(x+iy), and dw/dx and dw/dy are both known already.
     // This function serves to find dx/dT
@@ -1961,8 +2064,8 @@ void faddeeva_algorithm_916_dF(Numeric& dx_dF,       // Variable to multiply wit
     
     // No other terms depend on f
 }
-void faddeeva_algorithm_916_dgamma(Numeric& dy_dgamma,       // Variable to multiply with ls_dattenuation_dpressure_term and ls_dphase_dpressure_term.
-                                   const Numeric& sigma)
+void w_x_plus_iy_dgamma(Numeric& dy_dgamma,
+                        const Numeric& sigma)
 {
     // Function is w(x+iy), and dw/dx and dw/dy are both known already.
     // This function serves to find dy/dgamma
@@ -1973,9 +2076,9 @@ void faddeeva_algorithm_916_dgamma(Numeric& dy_dgamma,       // Variable to mult
     
     // No other terms depend on gamma
 }
-void faddeeva_algorithm_916_dH(Numeric& dx_dH,       // Variable to multiply with ls_dattenuation_dfrequency_term and ls_dphase_dfrequency_term.
-                                 const Numeric& sigma,
-                                 const Numeric& df0_dH)
+void w_x_plus_iy_dH(Numeric& dx_dH, 
+                    const Numeric& sigma,
+                    const Numeric& df0_dH)
 {
     // Function is w(x+iy), and dw/dx and dw/dy are both known already.
     // This function serves to find dx/dmag
@@ -1993,11 +2096,11 @@ void faddeeva_algorithm_916_dH(Numeric& dx_dH,       // Variable to multiply wit
     
     // No other terms depend on mag
 }
-void faddeeva_algorithm_916_dDF(Numeric& dx_dDF,       // Variable to multiply with ls_dattenuation_dfrequency_term and ls_dphase_dfrequency_term.
-                                const Numeric& sigma)
+void w_x_plus_iy_dDF(Numeric& dx_dDF,       
+                     const Numeric& sigma)
 {
     // Function is w(x+iy), and dw/dx and dw/dy are both known already.
-    // This function serves to find dx/dmag
+    // This function serves to find dx/dDF
     
     // x = (f-f0) / sigma;
     
@@ -2010,7 +2113,7 @@ void faddeeva_algorithm_916_dDF(Numeric& dx_dDF,       // Variable to multiply w
     
     dx_dDF = - 1.0/sigma;
     
-    // No other terms depend on mag
+    // No other terms depend on DF
 }
 
 
@@ -2713,7 +2816,13 @@ void define_lineshape_data()
     (LineshapeRecord
      ("Voigt_Kuntz6",
       "The Voigt line shape. Approximation by Kuntz: Accuracy 2*10-6",
-      lineshape_voigt_kuntz6, NO_PHASE, NO_PARTIALS));
+      lineshape_voigt_kuntz6,
+      w_x_plus_iy_dT,
+      w_x_plus_iy_dF,
+      w_x_plus_iy_dgamma,
+      w_x_plus_iy_dH,
+      w_x_plus_iy_dDF,
+      NO_PHASE, PARTIALS));
 
   lineshape_data.push_back
     (LineshapeRecord
@@ -2769,8 +2878,12 @@ void define_lineshape_data()
     "Line shape is considered from w(z)=exp(-z^2)*erfc(-iz) where z=v'+ia, and \n"
     "v' is a Doppler weighted freqeuncy parameter and a is a Doppler weighted  \n"
     "pressure parameter.",
-     faddeeva_algorithm_916,faddeeva_algorithm_916_dT,faddeeva_algorithm_916_dF,
-     faddeeva_algorithm_916_dgamma,faddeeva_algorithm_916_dH,faddeeva_algorithm_916_dDF,
+     faddeeva_algorithm_916, 
+     w_x_plus_iy_dT,
+     w_x_plus_iy_dF,
+     w_x_plus_iy_dgamma,
+     w_x_plus_iy_dH,
+     w_x_plus_iy_dDF,
      PHASE, PARTIALS));
 
     lineshape_data.push_back
