@@ -36,6 +36,60 @@ string atmlab_dir = ATMLABDIR;
 
 void write_matrix( ConstMatrixView A, const char* fname );
 
+//! Linear Forward model.
+/*!
+
+  Linear forward model class that represents an affine relationship
+  between state vector x and measurement vector y:
+
+      y = K * x + y_0
+
+  The resulting object stores a copy of the jacobian and the offset vector
+  as Matrix and Vector, respectively.
+
+*/
+class LinearModel : public ForwardModel
+{
+
+public:
+
+    /** Default Constructor */
+    LinearModel() {}
+
+    /** Construct a linear model from a given Jacobian J and offset vector
+        y0.
+
+        \param[in] J_ The Jacobian of the forward model.
+        \param[in] y0_ The constant offset of the forward model.
+    */
+    LinearModel( ConstMatrixView J_,
+                 ConstVectorView y0_ ) : J( J_ ), y0( y0_ ) {}
+
+    /** See ForwardModel class. */
+    void evaluate_jacobian( VectorView &yi,
+                            MatrixView &Ki,
+                            const ConstVectorView &xi )
+        {
+            Ki = J;
+            mult( yi, Ki, xi );
+            yi += y0;
+        }
+
+    /** See ForwardModel class. */
+    void evaluate( VectorView &yi,
+                   const ConstVectorView &xi )
+        {
+            mult( yi, J, xi );
+            yi += y0;
+        }
+
+private:
+
+    Matrix J;
+    Vector y0;
+
+};
+
 //! Quadratic Forward Model
 /*!
   Test class for the ForwardModel class as defined in oem.h. Implements
@@ -520,16 +574,21 @@ void benchmark_oem_linear( Engine* eng,
     // Run tests.
     for ( Index i = 0; i < ntests; i++ )
     {
-        Vector x_nform(n), x_mform(n), x_m(n), y(n), yf(n), xa(n);
-        Matrix K(n,n), Se(n,n), Sa(n,n), SeInv(n,n), SaInv(n,n), G_nform(n,n),
+        Numeric cost_x(0.0), cost_y(0.0);
+        Vector x_nform(n), x_mform(n), x_m(n), y(n), yf(n), xa(n), x_norm(n),
+            zero(n);
+        Matrix J(n,n), Se(n,n), Sa(n,n), SeInv(n,n), SaInv(n,n), G_nform(n,n),
                G_mform(n,n);
 
+        zero = 0.0;
+
         generate_test_data( y, xa, Se, Sa );
-        generate_linear_model( K );
+        generate_linear_model( J );
+        LinearModel K( J, zero );
 
         write_vector( xa, "xa_t.txt" );
         write_vector( y, "y_t.txt" );
-        write_matrix( K, "K_t.txt" );
+        write_matrix( J, "J_t.txt" );
         write_matrix( Se, "Se_t.txt" );
         write_matrix( Sa, "Sa_t.txt" );
 
@@ -540,14 +599,15 @@ void benchmark_oem_linear( Engine* eng,
 
         // n-form
         t1 = clock();
-        mult( yf, K, xa );
-        oem_linear_nform( x_nform, G_nform, xa, yf, y, K, SeInv, SaInv );
+        mult( yf, J, xa );
+        // oem_linear_nform( x_nform, G_nform, J, yf, cost_x, cost_y, K,
+        //                   xa, x_norm, y, SeInv, SaInv, cost_x, false );
         t2 = clock();
         t = (t2 - t1) * 1000 / CLOCKS_PER_SEC;
 
         // m-form
-        mult( yf, K, xa );
-        oem_linear_mform( x_mform, G_mform, xa, yf, y, K, Se, Sa );
+        mult( yf, J, xa );
+        // oem_linear_mform( x_mform, G_mform, xa, yf, y, J, Se, Sa );
 
         // Matlab
         t_m = run_oem_matlab( x_m, eng, "test_oem" );
@@ -582,47 +642,58 @@ void test_oem_linear( Engine* eng,
                       Index n,
                       Index ntests )
 {
-    Vector x_nform(n), x_mform(n), x_m(n), y(n), yf(n), xa(n);
-    Matrix K(n,n), Se(n,n), Sa(n,n), G_nform(n,n), G_mform(n,n),
-        SeInv(n,n), SaInv(n,n);
+    Vector x(n), x_n(n), x_g(n), x_m(n), y(n), yf(n), xa(n), zero(n), x_norm(n);
+    Matrix J(n,n), Se(n,n), Sa(n,n), SeInv(n,n), SaInv(n,n), G(n,m), G_mform(n,m);
+    LinearModel K;
+
+    zero = 0.0;
 
     cout << "Testing linear OEM: m = " << m << ", n = ";
-    cout << n << ", ntests = " << ntests << endl;
+    cout << n << ", ntests = " << ntests << endl << endl;
+
+    cout << "Test No. " << setw(15) << "Standard";
+    cout << setw(15) << "Normalized" << setw(15) << "Gain" << endl;
 
     // Run tests.
     for ( Index i = 0; i < ntests; i++ )
     {
+        generate_linear_model( J );
         generate_test_data( y, xa, Se, Sa );
-        generate_linear_model( K );
 
         inv( SeInv, Se );
         inv( SaInv, Sa );
+        LinearOEM oem( J, SeInv, xa, SaInv );
+
+        for (Index j = 0; j < n; j++ )
+        {
+            x_norm[j] = sqrt(Sa(j,j));
+        }
+
+        oem.set_x_norm( x_norm );
 
         write_vector( xa, "xa_t.txt" );
         write_vector( y, "y_t.txt" );
-        write_matrix( K, "K_t.txt" );
+        write_matrix( J, "J_t.txt" );
         write_matrix( Se, "Se_t.txt" );
         write_matrix( Sa, "Sa_t.txt" );
 
         // m-form
-        mult( yf, K, xa );
-        oem_linear_mform( x_mform, G_mform, xa, yf, y, K, Se, Sa );
+        mult( yf, J, xa );
+        oem.compute( x_g, G, y, yf );
+        oem.compute( x_n, y, yf );
+        oem.set_x_norm( x_norm );
+        oem.compute( x, y, yf );
 
-        // n-form
-        mult( yf, K, xa );
-        oem_linear_nform( x_nform, G_nform, xa, yf, y, K, SeInv, SaInv );
-
-        // Matlab
         run_oem_matlab( x_m, eng, "test_oem" );
 
-        cout << "Test " << i+1 << ": " << endl;
-        cout << "\t" << setw(15) << "n-form: ";
-        cout << max_error( x_nform, x_m, true ) << endl;
-        cout << "\t" << setw(15) << "m-form: ";
-        cout << max_error( x_mform, x_m, true ) << endl;
-        cout << "\t" << setw(15) << "Gain matrix: ";
-        cout << max_error( G_nform, G_mform, true );
-        cout << endl << endl;
+        Numeric err, err_norm, err_g;
+        err = max_error( x, x_m, true );
+        err_norm = max_error( x_n, x_m, true );
+        err_g = max_error( x_g, x_m, true );
+
+        cout << setw(8) << i+1;
+        cout << setw(15) << err << setw(15) << err_norm << setw(15) << err_g;
+        cout << endl;
 
     }
     cout << endl;
@@ -668,13 +739,13 @@ void test_oem_gauss_newton( Engine *eng,
         write_matrix( Se, "Se_t.txt" );
         write_matrix( Sa, "Sa_t.txt" );
 
-        oem_gauss_newton( x_standard, y, G, J, y0, xa, SeInv, SaInv, K,
-                          1e-5, 100, true );
+        // oem_gauss_newton( x_standard, G, J, y0, cost_y, cost_x, xa, SeInv,
+        //                   SaInv, K, 1e-5, 100, true );
         cout << "vec:" << x_standard << endl;
-        oem_gauss_newton_n_form( x_nform, y0, xa, K, SeInv, SaInv,
-                                 1e-5, 100 );
-        oem_gauss_newton_m_form( x_mform, y0, xa, K, SeInv, SaInv,
-                                 1e-5, 100 );
+        // oem_gauss_newton_n_form( x_nform, y0, xa, K, SeInv, SaInv,
+        //                          1e-5, 100 );
+        // oem_gauss_newton_m_form( x_mform, y0, xa, K, SeInv, SaInv,
+        //                          1e-5, 100 );
 
         run_oem_matlab( x_m, eng, "test_oem_gauss_newton" );
 
@@ -756,8 +827,8 @@ int main()
 
     // Run tests and benchmarks.
     test_oem_linear( eng, 10, 10, 10 );
-    test_oem_gauss_newton( eng, 100, 100, 10 );
-    test_oem_levenberg_marquardt( eng, 100, 100, 10 );
+    //test_oem_gauss_newton( eng, 100, 100, 10 );
+    //test_oem_levenberg_marquardt( eng, 100, 100, 10 );
 
     //benchmark_inv( eng, 100, 2000, 16);
     //benchmark_mult( eng, 100, 2000, 16);

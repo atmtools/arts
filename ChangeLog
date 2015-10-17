@@ -1,3 +1,14 @@
+2015-10-17  Simon Pfreundschuh  <simonpf@chalmers.se>
+
+	* arts-2-3-331
+
+	* src/oem.* Added LinearOEM class for more convenient handling of OEM
+	computations, added normalisation for covariance matrices.
+
+	* src/test_oem.cc Adapted tests to changes in OEM functions.
+
+	* src/test_oem/test_oem.m Change name of Jacobian matrix to J.
+
 2015-10-16  Richard Larsson   <ric.larsson@gmail.com>
 
 	* arts-2-3-338

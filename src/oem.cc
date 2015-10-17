@@ -9,9 +9,10 @@
 #include "arts.h"
 #include <iostream>
 #include "lin_alg.h"
-#include "stdlib.h"
+#include "logic.h"
 #include "math.h"
 #include "oem.h"
+#include "stdlib.h"
 
 using std::ostream;
 using std::endl;
@@ -309,11 +310,11 @@ void log_finalize_lm( ostream& stream,
   \param[in]  SeInv     Inverse of relevenaty covariance matrix
   \param[in]  normfac   Normalisation factor. The cost is scaled with 1/normfac
 
-  \author Patrick Eriksson 
+  \author Patrick Eriksson
   \date   2015-10-05
 */
-void oem_cost_y( Numeric& cost_y, 
-                 ConstVectorView y, 
+void oem_cost_y( Numeric& cost_y,
+                 ConstVectorView y,
                  ConstVectorView yf,
                  ConstMatrixView SeInv,
                  const Numeric&  normfac )
@@ -337,31 +338,411 @@ void oem_cost_y( Numeric& cost_y,
   \param[in]  SxInv     Inverse of relevenaty covariance matrix
   \param[in]  normfac   Normalisation factor. The cost is scaled with 1/normfac
 
-  \author Patrick Eriksson 
+  \author Patrick Eriksson
   \date   2015-10-05
 */
-void oem_cost_x( Numeric& cost_x, 
-                 ConstVectorView x, 
+void oem_cost_x( Numeric& cost_x,
+                 ConstVectorView x,
                  ConstVectorView xa,
+                 ConstVectorView x_norm,
                  ConstMatrixView SxInv,
                  const Numeric&  normfac )
 {
+
   Vector dx = x; dx -= xa;
+
+  if ( x_norm.nelem() > 0 )
+      dx /= x_norm;
+
   Vector tmp( x.nelem() );
   mult( tmp, SxInv, dx );
   cost_x = dx * tmp;
   cost_x /= normfac;
 }
 
-
-
-
 //------------------------------------------------------------------------------------
 //
-//   OEM versions using the inverse of covariance matrices
+//  Algebra Helper Functions
 //
 //------------------------------------------------------------------------------------
 
+//! Multiply matrix element-wise by outer product of vector.
+/*!
+
+  Multiplies the matrix B by the outer product b' * b of b. This is used to
+  scale the a priori covariance matrix to avoid numerical problems. The Matrices
+  A and B can be the same but shouldn't overlap in other ways.
+
+  \param[out] A The matrix B divided by b'*b.
+  \param[in] B  The matrix B to divide.
+  \param[in] b The vector used to form the outer product.
+*/
+void mult_outer( MatrixView A,
+                 ConstMatrixView B,
+                 ConstVectorView b )
+{
+    Index n;
+
+    n = b.nelem();
+
+    // A,B must be n x n.
+    assert( is_size( A, n, n ) );
+    assert( is_size( B, n, n ) );
+
+    for ( Index i = 0; i < n; i++)
+    {
+        for ( Index j = 0; j < n; j++)
+        {
+            A(i,j) = B(i,j) * b[i] * b[j];
+        }
+    }
+}
+
+//! Scale columns.
+/*!
+  Scales the columns of a matrix B by the elements of a vector b.
+
+  \param A The scaled matrix
+  \param B The matrix to scale
+  \param b The vector containing the scaling factors
+*/
+void scale_columns( MatrixView A,
+                    ConstMatrixView B,
+                    ConstVectorView b )
+{
+    Index m,n;
+
+    m = A.nrows();
+    n = A.ncols();
+
+    // A,B must be n x n.
+    assert( is_size( B, m, n ) );
+    assert( is_size( b, n ) );
+
+    for ( Index i = 0; i < n; i++)
+    {
+        for ( Index j = 0; j < n; j++)
+        {
+            A(i,j) = B(i,j) * b[j];
+        }
+    }
+}
+
+//! Scale rows.
+/*!
+  Scales the rows of a matrix B by the elements of a vector b.
+
+  \param A The scaled matrix
+  \param B The matrix to scale
+  \param b The vector containing the scaling factors
+*/
+void scale_rows( MatrixView A,
+                 ConstMatrixView B,
+                 ConstVectorView b )
+{
+    Index m,n;
+
+    m = A.nrows();
+    n = A.ncols();
+
+    // A,B must be n x n.
+    assert( is_size( B, m, n ) );
+    assert( is_size( b, n ) );
+
+    for ( Index i = 0; i < n; i++)
+    {
+        for ( Index j = 0; j < n; j++)
+        {
+            A(i,j) = B(i,j) * b[i];
+        }
+    }
+}
+
+//------------------------------------------------------------------------------------
+//
+//  Linear OEM Class
+//
+//------------------------------------------------------------------------------------
+
+//! Constructor
+/*!
+  Construct a LinearOEM instace for the computation of the optimal estimator of
+  a linear forward model described by a Jacobian J, the inverse of the measurement
+  space covariance matrix SeInv, an a priori state vector and the inverse of the
+  state space covariance matrix SxInv.
+
+  The constructor allocates the memory that is necessary for the computation of
+  the optimal estimator without the computation of the gain matrix. That is,
+  space for a n x m and a n x n matrix is allocated as well as space for a
+  vector of length n and an integer array of length n.
+
+  \param J The Jacobian
+  \param SeInv The measurement space covariance matrix
+  \param xa The a priori vector
+  \param SxInv The state space covariance matrix
+*/
+LinearOEM::LinearOEM( ConstMatrixView J_,
+                      ConstMatrixView SeInv_,
+                      ConstVectorView xa_,
+                      ConstMatrixView SxInv_ )
+    : J(J_), SeInv(SeInv_), SxInv(SxInv_), x_norm()
+{
+    n = J.ncols();
+    m = J.nrows();
+
+    assert( is_size( SeInv_, m, m ) );
+    assert( is_size( SxInv_, n, n ) );
+    assert( is_size( xa_, n ) );
+
+    SeInv = SeInv_;
+    SxInv = SxInv_;
+    xa = xa_;
+
+    matrices_set = false;
+    gain_set = false;
+    x_norm_set = false;
+    form = NFORM;
+
+    // Allocate memory for matrices.
+    LU = Matrix( n, n );
+    indx = ArrayOfIndex( n );
+    tmp_nn_1 = Matrix( n, n );
+    tmp_nm_1 = Matrix( n, m );
+    tmp_n_1 = Vector( n );
+
+}
+
+//! Set normalization vector.
+/*!
+  Sets the normalization vector that is used to scale the state space
+  covariance matrix Sx. Avoids numerical problems due to different scaling of
+  variables.
+
+  \param x_norm_ The normalization vector.
+*/
+void LinearOEM::set_x_norm( ConstVectorView x_norm_ )
+{
+    x_norm = x_norm_;
+    x_norm_set = true;
+    matrices_set = false;
+    gain_set = false;
+
+    tmp_nn_2.resize( n, n );
+    mult_outer( tmp_nn_2, SxInv, x_norm );
+}
+
+//! Return normalization vector.
+/*!
+  Returns view of the current normalization vector.
+
+  \return ConstVectorView of the current normalization vector.
+*/
+ConstVectorView LinearOEM::get_x_norm()
+{
+    return x_norm;
+}
+
+//! Compute optimal estimator.
+/*!
+
+  Compute optimal estimator x for a given measurement vector y using the n-form
+  formulation of the linear OEM problem without computing the gain matrix.
+
+  This reduced form uses only matrix-vector multiplication and solution of a
+  simple linear system of size n x n and is therefore faster than the
+  computation that uses the gain matrix.
+
+  If the computation has already been performed once for another measurement
+  vector, intermediate results can be reused and the computation only requires
+  the solution of an already QR decomposed linear system by backsubstitution.
+
+  \param x The optimal estimator.
+  \param y The measurement vector
+  \param y0 The offset vector at the linearization point.
+
+  \return Error code indicating success or failure of the computation.
+*/
+int LinearOEM::compute( Vector &x,
+                        ConstVectorView y,
+                        ConstVectorView y0 )
+{
+
+    if (!(matrices_set || gain_set))
+    {
+        mult( tmp_nm_1, transpose(J), SeInv );
+        mult( tmp_nn_1, tmp_nm_1, J);
+
+        if ( x_norm_set )
+        {
+            mult_outer( tmp_nn_1, tmp_nn_1, x_norm );
+            tmp_nn_1 += tmp_nn_2;
+            scale_rows( tmp_nm_1, tmp_nm_1, x_norm );
+        }
+        else
+        {
+            tmp_nn_1 += SxInv;
+        }
+
+        ludcmp( LU, indx, tmp_nn_1 );
+
+        if ( x_norm_set )
+
+        matrices_set = true;
+    }
+
+    tmp_m_1 = y;
+    tmp_m_1 -= y0;
+
+    if (!gain_set)
+    {
+        mult( tmp_n_1, tmp_nm_1, tmp_m_1 );
+        lubacksub( x, LU, tmp_n_1, indx);
+    }
+    else
+    {
+        mult( x, G, tmp_m_1 );
+    }
+
+    if (x_norm_set)
+        x *= x_norm;
+
+    x += xa;
+
+    return 0;
+}
+
+//! Compute optimal estimator.
+/*!
+
+  Compute optimal estimator x for a given measurement vector y using the n-form
+  formulation of the linear OEM problem with computing the gain matrix.
+
+  The computation of the Gain matrix requires two matr
+
+  If the computation has already been performed once for another measurement
+  vector, intermediate results can be reused and the computation only requires
+  the solution of an already QR decomposed linear system by backsubstitution.
+
+  \param x The optimal estimator.
+  \param y The measurement vector
+  \param y0 The offset vector at the linearization point.
+
+  \return Error code indicating success or failure of the computation.
+*/
+int LinearOEM::compute( Vector &x,
+                        MatrixView G_,
+                        ConstVectorView y,
+                        ConstVectorView y0 )
+{
+    if (!gain_set)
+        compute_gain_matrix();
+
+    compute( x, y, y0 );
+    G_ = G;
+
+    return 0;
+}
+
+void LinearOEM::compute_gain_matrix()
+{
+
+    // Assure that G has the right size.
+    G.resize( n, m );
+    tmp_nn_2.resize( n, n );
+
+    if (!(matrices_set))
+    {
+        mult( tmp_nm_1, transpose(J), SeInv );
+        mult( tmp_nn_1, tmp_nm_1, J);
+
+        if ( x_norm_set )
+        {
+            mult_outer( tmp_nn_1, tmp_nn_1, x_norm );
+            tmp_nn_1 += tmp_nn_2;
+            scale_rows( tmp_nm_1, tmp_nm_1, x_norm );
+        }
+        else
+        {
+            tmp_nn_1 += SxInv;
+        }
+
+        ludcmp( LU, indx, tmp_nn_1 );
+
+        matrices_set = true;
+    }
+
+    // Invert J^T S_e^{-1} J using the already computed LU decomposition.
+    tmp_n_1 = 0.0;
+
+    for ( Index i = 0; i < n; i++ )
+    {
+        tmp_n_1[i] = 1.0;
+        lubacksub( tmp_nn_2(joker,i), LU, tmp_n_1, indx);
+        tmp_n_1[i] = 0.0;
+    }
+
+    mult( G, tmp_nn_2, tmp_nm_1 );
+
+    if ( x_norm_set )
+    {
+        scale_rows( G, G, x_norm );
+        matrices_set = false;
+    }
+    gain_set = true;
+}
+
+//! Compute fit
+/*!
+  Compute fitted measurement vector from a given forward model and estimated
+  state vector x.
+
+  \param[out] y The fitted measurement vector y.
+  \param[in] x The estimated state vector x.
+  \param[in] F The ForwardModel instance representing the forward model.
+
+  \return Error code indicating the success of the operation.
+*/
+int LinearOEM::compute_fit( Vector &yf,
+                            const Vector &x,
+                            ForwardModel &F )
+{
+    F.evaluate( yf, x );
+    return 0;
+}
+
+//! Compute fit
+/*!
+  Compute fitted measurement vector and costs from a given forward model and
+  estimated state vector x.
+
+  \param[out] y The fitted measurement vector y.
+  \param[out] cost_x The cost part corresponding to the state vector x.
+  \param[out] cost_y The cost part corresponding to the measurement vector y.
+  \param[in] x The estimated state vector x.
+  \param[in] F The ForwardModel instance representing the forward model.
+
+  \return Error code indicating the success of the operation.
+*/
+int LinearOEM::compute_fit( Vector &yf,
+                            Numeric &cost_x,
+                            Numeric &cost_y,
+                            Vector &x,
+                            ConstVectorView y,
+                            ForwardModel &F )
+{
+    F.evaluate( yf, x );
+
+    oem_cost_y( cost_y, y, yf, SeInv, (Numeric) m);
+    oem_cost_x( cost_x, x, xa, x_norm, SeInv, (Numeric) m);
+
+    return 0;
+}
+
+//------------------------------------------------------------------------------------
+//
+//  Linear OEM
+//
+//------------------------------------------------------------------------------------
 
 //! Linear OEM, n-form.
 /*!
@@ -388,7 +769,7 @@ Index oem_linear_nform( Vector& x,
                         Matrix& G,
                         Matrix& J,
                         Vector& yf,
-                        Numeric& cost_y, 
+                        Numeric& cost_y,
                         Numeric& cost_x,
                         ForwardModel &F,
                         ConstVectorView xa,
@@ -409,6 +790,9 @@ Index oem_linear_nform( Vector& x,
     assert( (SeInv.ncols() == m) && (SeInv.nrows() == m) );
     assert( (SxInv.ncols() == n) && (SxInv.nrows() == n) );
 
+    LinearOEM oem( J, SeInv, xa, SxInv );
+    oem.set_x_norm( x_norm );
+
     // Initialize log output.
     if (verbose)
       {
@@ -416,33 +800,10 @@ Index oem_linear_nform( Vector& x,
         log_step_li( cout, 0, cost_start, 0, cost_start );
       }
 
-    // n-form (eq. (4.4)).
-    Matrix tmp_nm(n,m), tmp_nn(n,n), tmp_nn2(n,n);
-    ArrayOfIndex indx(n);
-    Vector tmp_m(m);
+    oem.compute( x, G, y, yf );
+    oem.compute_fit( yf, cost_x, cost_y, x, y, F );
 
-    mult( tmp_nm, transpose(J), SeInv );
-    mult( tmp_nn, tmp_nm, J); // tmp_nn = K^T S_e^{-1} K
-    tmp_nn += SxInv;
-
-    // Compute Gain matrix.
-    inv( tmp_nn2, tmp_nn );
-    mult( G, tmp_nn2, tmp_nm );
-
-    // Compute x
-    tmp_m = y;
-    tmp_m -= yf;
-    mult( x, G, tmp_m );
-    x += xa;
-
-    // Calculate yf and cost values
-    //
-    F.evaluate( yf, x );
-    //
-    oem_cost_y( cost_y, y, yf, SeInv, (Numeric) m );
-    oem_cost_x( cost_x, x, xa, SxInv, (Numeric) m );
-
-    // Finalise log output.
+    // Finalize log output.
     if (verbose)
       {
         log_step_li( cout, 1, cost_y+cost_x, cost_x, cost_y );
