@@ -559,7 +559,7 @@ void oem(
    const ArrayOfArrayOfSpeciesTag&   abs_species,
    const String&                     method,
    const Numeric&                    max_start_cost,
-   const Vector&                      x_norm,
+   const Vector&                     x_norm,
    const Index&                      max_iter,
    const Numeric&                    stop_dx,
    const Vector&                     ml_ga_settings,
@@ -596,7 +596,7 @@ void oem(
   if( !( x_norm.nelem() == 0  ||  x_norm.nelem() == n ) )
     throw runtime_error( "The vector *x_norm* must have length 0 or match "
                          "*covmat_sx_inv*." );
-  if( x_norm.nelem() > 0  &&  min( x_norm ) )
+  if( x_norm.nelem() > 0  &&  min( x_norm ) <= 0 )
     throw runtime_error( "All values in *x_norm* must be > 0." );
   if( max_iter <= 0 )
     throw runtime_error( "The argument *max_iter* must be > 0." );
