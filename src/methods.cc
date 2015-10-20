@@ -8586,7 +8586,8 @@ void define_md_data_raw()
           "output.\n"
           ),
         AUTHORS( "Cory Davis" ),
-        OUT( "y", "mc_iteration_count", "mc_error", "mc_points" ),
+        OUT( "y", "mc_iteration_count", "mc_error", "mc_points",
+             "mc_source_domain", "mc_scat_order" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
@@ -8600,10 +8601,12 @@ void define_md_data_raw()
             "atmfields_checked", "atmgeom_checked",
             "cloudbox_checked", "iy_unit", "mc_seed", 
             "mc_std_err", "mc_max_time", "mc_max_iter", "mc_min_iter" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
+        GIN( "l_mc_scat_order" ),
+        GIN_TYPE( "Index" ),
+        GIN_DEFAULT( "11" ),
+        GIN_DESC( "The length to be given to *mc_scat_order*. Note that "
+                  "scattering orders equal and above this value will not "
+                  "be counted." )
         ));
 
   md_data_raw.push_back     

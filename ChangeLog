@@ -1,5 +1,15 @@
 2015-10-20  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* src/m_rte.cc (iyMC): Adopted call of MCGeneral.
+
+	* src/m_montecarlo.cc (MCGeneral): Now also returns mc_scat_order
+	and mc_source_domain.
+
+	* src/workspace.cc: Added mc_scat_order and mc_source_domain, and
+	corrected the order among the WSV starting with mc_.
+
+2015-10-20  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-3-342
 
 	* src/m_oem.cc (oem): One if-statement checking x_norm was not
@@ -8,7 +18,7 @@
 2015-10-20  Richard Larsson   <ric.larsson@gmail.com>
 
 	* arts-2-3-341
-	
+
 	Now I consider the internal partial derivatives of temperature in working
 	condition.  At least for some uses.  There can always be more bugs.
 	

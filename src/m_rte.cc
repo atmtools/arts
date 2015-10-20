@@ -1363,11 +1363,13 @@ void iyMC(
         Index    mc_seed;
         MCSetSeedFromTime( mc_seed, verbosity );
 
-        Vector y, mc_error;
-        Index    mc_iteration_count;
-        Tensor3  mc_points;
+        Vector       y, mc_error;
+        Index        mc_iteration_count;
+        Tensor3      mc_points;
+        ArrayOfIndex mc_scat_order, mc_source_domain;
 
-        MCGeneral( l_ws, y, mc_iteration_count, mc_error, mc_points, mc_antenna,
+        MCGeneral( l_ws, y, mc_iteration_count, mc_error, mc_points, 
+                   mc_scat_order, mc_source_domain, mc_antenna,
                    f_grid, f_index, pos, los, stokes_dim, atmosphere_dim,
                    l_ppath_step_agenda, ppath_lraytrace, l_iy_space_agenda, 
                    l_surface_rtprop_agenda, l_propmat_clearsky_agenda, 
@@ -1376,7 +1378,7 @@ void iyMC(
                    cloudbox_on, cloudbox_limits,
                    pnd_field, scat_data_mono, 1, 1, 1, iy_unit,
                    mc_seed, mc_std_err, mc_max_time, mc_max_iter,
-                   mc_min_iter, verbosity);
+                   mc_min_iter, 1, verbosity);
           //cout << "Error: "      << mc_error << endl;
           //cout << "N photons: " << mc_iteration_count << endl;
         assert( y.nelem() == stokes_dim );

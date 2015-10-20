@@ -2688,14 +2688,87 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
     (WsvRecord
+     ( NAME( "mc_max_iter" ),
+       DESCRIPTION
+       (
+        "The maximum number of iterations allowed for Monte Carlo\n"
+        "calculations.\n"
+        "\n"
+        "Usage: Set by the user.\n"
+        ),
+       GROUP( "Index" )));
+
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "mc_max_time" ),
+       DESCRIPTION
+       (
+        "The maximum time allowed for Monte Carlo calculations.\n"
+        "\n"
+        "Usage: Set by the user.\n"
+        "\n"
+        "Unit: s\n"
+        ),
+       GROUP( "Index" )));
+
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "mc_min_iter" ),
+       DESCRIPTION
+       (
+        "The minimum number of iterations allowed for Monte Carlo\n"
+        "calculations.\n"
+        "\n"
+        "Usage: Set by the user.\n"
+        ),
+       GROUP( "Index" )));
+
+  wsv_data.push_back
+    (WsvRecord
      ( NAME( "mc_points" ),
        DESCRIPTION
        (
+        "Source to emission, position.\n"
+        "\n"
         "Counts the number of MC endpoints in each grid cell.\n"
         "\n"
         "Usage: Set by MCGeneral and other MC methods.\n"
         ),
        GROUP( "Tensor3" )));
+
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "mc_scat_order" ),
+       DESCRIPTION
+       (
+        "Number of atmospheric scattering events between emission point and sensor.\n"
+        "\n"
+        "The first element gives the number of cases with zero scattering events,\n"
+        "the second the number of single scattering cases etc.\n"
+        "\n"
+        "Scattering orders above what the variable can hold are not stored at all.\n"
+        "The number of such cases can be determined by comparing\n"
+        "*mc_iteration_count* with the sum of the elements in this array.\n"
+        "\n"
+        "Usage: Set by MCGeneral and other MC methods.\n"
+        ),
+       GROUP( "ArrayOfIndex" )));
+
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "mc_source_domain" ),
+       DESCRIPTION
+       (
+        "Source to emission, domain.\n"
+        "\n"
+        "This is an array of length 3, where the elements represent space,\n"
+        "the atmosphere and the surface, respectively. The values of the\n"
+        "array give the number of cases where the emission source was found\n"
+        "to be inside each domain.\n"
+        "\n"
+        "Usage: Set by MCGeneral and other MC methods.\n"
+        ),
+       GROUP( "ArrayOfIndex" )));
 
   wsv_data.push_back
     (WsvRecord
@@ -2719,43 +2792,6 @@ void Workspace::define_wsv_data()
         "Usage: Set by the user.\n"
         ),
        GROUP( "Numeric" )));
-
-  wsv_data.push_back
-    (WsvRecord
-     ( NAME( "mc_min_iter" ),
-       DESCRIPTION
-       (
-        "The minimum number of iterations allowed for Monte Carlo\n"
-        "calculations.\n"
-        "\n"
-        "Usage: Set by the user.\n"
-        ),
-       GROUP( "Index" )));
-
-  wsv_data.push_back
-    (WsvRecord
-     ( NAME( "mc_max_time" ),
-       DESCRIPTION
-       (
-        "The maximum time allowed for Monte Carlo calculations.\n"
-        "\n"
-        "Usage: Set by the user.\n"
-        "\n"
-        "Unit: s\n"
-        ),
-       GROUP( "Index" )));
-
-  wsv_data.push_back
-    (WsvRecord
-     ( NAME( "mc_max_iter" ),
-       DESCRIPTION
-       (
-        "The maximum number of iterations allowed for Monte Carlo\n"
-        "calculations.\n"
-        "\n"
-        "Usage: Set by the user.\n"
-        ),
-       GROUP( "Index" )));
 
   wsv_data.push_back
    (WsvRecord

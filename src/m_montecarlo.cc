@@ -105,6 +105,8 @@ void MCGeneral(Workspace&            ws,
                Index&                mc_iteration_count,
                Vector&               mc_error,
                Tensor3&              mc_points,
+               ArrayOfIndex&         mc_source_domain,
+               ArrayOfIndex&         mc_scat_order,
                const MCAntenna&      mc_antenna,
                const Vector&         f_grid,
                const Index&          f_index,
@@ -138,6 +140,7 @@ void MCGeneral(Workspace&            ws,
                const Index&          max_time,
                const Index&          max_iter,
                const Index&          min_iter,
+               const Index&          l_mc_scat_order,
                const Verbosity&      verbosity)
 {
   // Basics
@@ -161,6 +164,9 @@ void MCGeneral(Workspace&            ws,
   if( max_time < 0  &&  max_iter < 0  &&  std_err < 0 )
     throw runtime_error( "At least one of std_err, max_time, and max_iter "
                          "must be positive." );
+
+  if( l_mc_scat_order <= 0 )
+    throw runtime_error( "*l_max_scat_order* must be > 0." );
 
   if( f_index < 0 )
     throw runtime_error( "The option of f_index < 0 is not handled by this "
@@ -218,6 +224,11 @@ void MCGeneral(Workspace&            ws,
   mc_error.resize(stokes_dim);
   mc_points.resize( p_grid.nelem(), lat_grid.nelem(), lon_grid.nelem() );
   mc_points = 0;
+  mc_scat_order.resize( l_mc_scat_order );
+  mc_scat_order = 0;
+  mc_source_domain.resize( 3 );
+  mc_source_domain = 0;
+
 
   //local versions of workspace
   Matrix  local_iy(1,stokes_dim), local_surface_emission(1,stokes_dim);
@@ -256,6 +267,7 @@ void MCGeneral(Workspace&            ws,
       bool inside_cloud;
 
       mc_iteration_count += 1;
+      Index scattering_order = 0;
 
       keepgoing = true;    // indicating whether to continue tracing a photon
       oksampling = true;   // gets false if g becomes zero
@@ -307,6 +319,7 @@ void MCGeneral(Workspace&            ws,
               mult( I_i, Q, vector1 );
               I_i /= g;
               keepgoing=false; //stop here. New photon.
+              mc_source_domain[0] += 1;
             }
           else if( termination_flag == 2 )
             {
@@ -329,6 +342,7 @@ void MCGeneral(Workspace&            ws,
                   mult( I_i, Q, vector1);
                   I_i /= g;
                   keepgoing = false;
+                  mc_source_domain[2] += 1;
                 }
               else
                 //decide between reflection and emission
@@ -341,6 +355,7 @@ void MCGeneral(Workspace&            ws,
                       mult( I_i, Q, vector1 );
                       I_i /= g*(1-R11);
                       keepgoing = false;
+                      mc_source_domain[2] += 1;
                     }
                   else
                     {
@@ -372,6 +387,7 @@ void MCGeneral(Workspace&            ws,
                   emissioncontri /= (g*(1-albedo)); //yuck!
                   mult( I_i, Q, emissioncontri );
                   keepgoing = false;
+                  mc_source_domain[1] += 1;                  
                 }
               else
                 {
@@ -387,7 +403,7 @@ void MCGeneral(Workspace&            ws,
                   mult( q, evol_op, Z );
                   mult( newQ, Q, q );
                   Q = newQ;
-                  //scattering_order+=1;
+                  scattering_order += 1;
                   local_rte_los = new_rte_los;
                 }
             }
@@ -403,11 +419,15 @@ void MCGeneral(Workspace&            ws,
               emissioncontri /= g;
               mult( I_i, Q, emissioncontri );
               keepgoing = false;
+              mc_source_domain[1] += 1;                  
             }
         }  // keepgoing
 
       if( oksampling )
         {
+          if( scattering_order < l_mc_scat_order )
+            { mc_scat_order[scattering_order] += 1; }
+
           Isum += I_i;
 
           for( Index j=0; j<stokes_dim; j++ )
@@ -442,6 +462,7 @@ void MCGeneral(Workspace&            ws,
         }
     }
 }
+
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
