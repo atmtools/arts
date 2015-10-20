@@ -19,7 +19,10 @@ Select( met_mm_polarisation, met_mm_polarisation, channels )
 Select( met_mm_freq_number,  met_mm_freq_number,  channels )
 Select( met_mm_freq_spacing, met_mm_freq_spacing, channels )
 
-sensor_responseMetMM( freq_spacing = met_mm_freq_spacing,
-		               freq_number = met_mm_freq_number )
+f_gridMetMM( freq_spacing = met_mm_freq_spacing,
+              freq_number = met_mm_freq_number )
+
+sensor_responseMetMM
+
 }
 

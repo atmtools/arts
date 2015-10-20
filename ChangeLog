@@ -1,3 +1,22 @@
+2015-10-20  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-332
+
+	* controlfiles/instruments/metmm/sensor_descriptions/apply_metmm.arts:
+	Now also using f_gridMetMM.
+
+	* src/m_sensor.cc (f_gridMetMM): Typo made that npassb=4
+	effectively resulted in napssb=1.
+
+	(sensor_responseMetMM2): Renamed, see below.
+
+	(sensor_responseMetMM): Old version now replaced with new "2"
+	version.
+
+	* src/methods.cc: As above. Added me as author of
+	sensor_responseMetMM, not for these last changes but my old work
+	on mirror_dza and the polarisation sub-function.
+
 2015-10-17  Simon Pfreundschuh  <simonpf@chalmers.se>
 
 	* arts-2-3-331
