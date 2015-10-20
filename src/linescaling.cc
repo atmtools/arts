@@ -145,6 +145,7 @@ void GetLineScalingData(Numeric& q_t,
     }
 }
 void GetLineScalingData_dT(Numeric& dq_t_dT,
+                           Numeric& dK2_dT,
                            Numeric& dpartition_ratio_dT, 
                            Numeric& dabs_nlte_ratio_dT, 
                            Numeric& atm_tv_low,
@@ -154,6 +155,7 @@ void GetLineScalingData_dT(Numeric& dq_t_dT,
                            const SpeciesAuxData::AuxType& partition_type,
                            const ArrayOfGriddedField1& partition_data,
                            const Numeric& atm_t,
+                           const Numeric& line_t,
                            const Numeric& dt,
                            const Numeric& line_f,
                            const bool&    do_nlte,
@@ -201,16 +203,19 @@ void GetLineScalingData_dT(Numeric& dq_t_dT,
         }
         
         // Note that this should scale with q_tref, but we do not need that parameter here...
-        dpartition_ratio_dT = -dq_t_dT/q_t/q_t; 
+        dpartition_ratio_dT = -dq_t_dT/q_t; 
     }
     
     // Following Futbolin's division into two parts for the Boltzmann ratio because
     // gamma is also used for the NLTE part later on
     const Numeric gamma = exp( - PLANCK_CONST * line_f / ( BOLTZMAN_CONST * atm_t ) );
-    const Numeric gamma_p = exp( PLANCK_CONST * line_f / ( BOLTZMAN_CONST * atm_t ) );
+    const Numeric gamma_ref = exp( - PLANCK_CONST * line_f / ( BOLTZMAN_CONST * line_t ) );
+    dK2_dT = -line_f*PLANCK_CONST/BOLTZMAN_CONST/atm_t/atm_t * (gamma/(1.0-gamma_ref));
     
     if(do_nlte)
     {   
+        const Numeric gamma_p = 1/gamma;
+        
         //r_low and r_upp are ratios for the population level compared to LTE conditions
         Numeric r_low, r_upp;
         Numeric dr_low, dr_upp;

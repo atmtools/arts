@@ -78,6 +78,10 @@ public:
         
         mcontains_temperature = false;
         
+        mmag_perturbation  = 0.0;
+        mtemp_perturbation = 0.0;
+        mfreq_perturbation = 0.0;
+        
         mjacobian_quantities = jacobian_quantities;
         
         mqtype.resize(mreal_nelem);
@@ -468,6 +472,7 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix& partials_attenuatio
                                               const Numeric&  temperature,
                                               const Numeric&  sigma,
                                               const Numeric&  K2,
+                                              const Numeric&  dK2_dT,
                                               const Numeric&  K3,
                                               const Numeric&  dK3_dT,
                                               const Numeric&  K4,
@@ -495,7 +500,6 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix& partials_attenuatio
                                               const Numeric& dgamma_dT,
                                               // Partition data parameters
                                               const Numeric& dQ_dT,
-                                              const Numeric&  Q_T,
                                               // Magnetic variables
                                               const Numeric&  DF_Zeeman,
                                               const Numeric&  H_mag_Zeeman,

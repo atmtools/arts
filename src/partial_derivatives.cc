@@ -42,6 +42,7 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix&  partials_attenuati
                                               const Numeric&  temperature,
                                               const Numeric&  sigma,
                                               const Numeric&  K2,
+                                              const Numeric&  dK2_dT,
                                               const Numeric&  K3,
                                               const Numeric&  dK3_dT,
                                               const Numeric&  K4,
@@ -69,7 +70,6 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix&  partials_attenuati
                                               const Numeric& dgamma_dT,
                                               // Partition data parameters
                                               const Numeric&  dQ_dT,
-                                              const Numeric&  Q_T,
                                               // Magnetic variables
                                               const Numeric&  DF_Zeeman,
                                               const Numeric&  H_mag_Zeeman,
@@ -176,10 +176,10 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix&  partials_attenuati
             
             // Line strength partials... NOTE: All but dK4 are divided by original values to fit ls_A/B
             const Numeric dK1 = line_E_low/kT2; 
-            const Numeric dK2 = (1.-1./K2)*(PLANCK_CONST*line_frequency/kT2); 
+            const Numeric dK2 = dK2_dT/K2; 
             const Numeric dK3 = do_src?(dK3_dT/K3):0.0;
             const Numeric dK4 = line_E_v_upp>=0?-K4*line_E_v_upp/kT2:0.0;
-            const Numeric dS_dT = dK1+dK2+dQ_dT*Q_T+dK3; // Note that missing dn/dT is handled later
+            const Numeric dS_dT = dK1+dK2+dQ_dT+dK3; // Note that missing dn/dT is handled later
             
             // Derivative of sigma with regards to temperature
             const Numeric dsigma_dT = 0.5*sigma / temperature;

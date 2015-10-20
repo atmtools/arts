@@ -711,7 +711,7 @@ void lineshape_voigt_kuntz6(Vector&         ls_attenuation,
         for(Index iv=0; iv<nf; iv++)
         {
             ls_dattenuation_dfrequency_term[iv] -= ls_attenuation[iv];
-            ls_dattenuation_dfrequency_term[iv] /= -dx;
+            ls_dattenuation_dfrequency_term[iv] /= dx;
             ls_dattenuation_dpressure_term[iv]  -=  ls_attenuation[iv];
             ls_dattenuation_dpressure_term[iv]  /= dy;
         }
@@ -721,7 +721,7 @@ void lineshape_voigt_kuntz6(Vector&         ls_attenuation,
         for(Index iv=0; iv<nf; iv++)
         {
             ls_dattenuation_dfrequency_term[iv] -= ls_attenuation[iv];
-            ls_dattenuation_dfrequency_term[iv] /= -dx;
+            ls_dattenuation_dfrequency_term[iv] /= dx;
             ls_dattenuation_dpressure_term[iv] = 0.0;
         }
     }
@@ -1990,7 +1990,7 @@ void faddeeva_algorithm_916(    Vector&         ls_attenuation,
             // w(x+iy) = Fa + iFb.  Thus signs on Fb-derivatives are difficult...
             
             // dFa/dx
-            ls_dattenuation_dfrequency_term[ii] = -2.*(y*ls_phase[ii]-x*ls_attenuation[ii]);
+            ls_dattenuation_dfrequency_term[ii] = 2.*(y*ls_phase[ii]-x*ls_attenuation[ii]);
             
             // dFa/dy
             ls_dattenuation_dpressure_term[ii]  = 2.*( y*ls_attenuation[ii] + x*ls_phase[ii] - fac*sqrt_invPI);

@@ -1,3 +1,39 @@
+2015-10-20  Richard Larsson   <ric.larsson@gmail.com>
+
+	* arts-2-3-341
+	
+	Now I consider the internal partial derivatives of temperature in working
+	condition.  At least for some uses.  There can always be more bugs.
+	
+	Note that the test in TestWfuns still fails at 3.6105e-05 in the
+	comparison as it stands.  I am not sure why.  I suspect there could be some
+	error lingering for high altitudes.  I get 4% differences between my own
+	perturbations and partial derivatives on the line shape when pressure
+	is low (below 1 Pa) at frequencies around sigma from a line.  
+	This is of course also where we expect there to be differences if 
+	there are any, so now I am unsure if there still is a coding error or not.
+	
+	* src/CMakeLists.txt:  Added test for some of the internal partial derivatives.
+	I will likely expand this test in the future when more problems occur.
+	
+	* src/absorption.cc:  (GetLineScalingData_dT) Now outputs the derivative of the
+	stimulated emission.  Before, this caused relative errors of 1e24 (... from
+	a small value, but it was significant for the results by about 10% of the output
+	missing).
+	
+	* src/linescaling.cc:  (GetLineScalingData_dT) changed as above.  Also, dQ/dT is
+	now a pseudo output of dQ/dT * 1/Q.  This is a design decision I make quite frequently, 
+	since it lowers number of operations.  Should perhaps fix this to either be a consistent
+	"always" or "never".  The advantage of doing this is that I need to multiply dQ/dT with
+	the scaled lineshape at some point, and this scaled lineshape already incorporates Q,
+	whereas I need the value for dQ/dT instead of this Q.
+	
+	* src/lineshapes.cc:  Fixed bug included in last code-push.  The minus sign change
+	was completely wrong and just compensated for the error with the stimulated
+	emission.
+	
+	* src/test_propmat_partials.cc:  Added some tests for T-derivatives.
+
 2015-10-20  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-332

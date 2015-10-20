@@ -2198,7 +2198,7 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                 // These needs to be calculated and returned when Temperature is in list
                 Numeric dgamma_0_dT, ddf_0_dT,
                 dY_dT=0.0,dG_dT=0.0,dDV_dT=0.0,
-                dQ_dT, dabs_nlte_ratio_dT=0.0,
+                dQ_dT, dK2_dT, dabs_nlte_ratio_dT=0.0,
                 atm_tv_low, atm_tv_upp;
                 if(flag_partials.do_temperature())
                 {
@@ -2210,6 +2210,7 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                                                                                       broad_spec_locations,
                                                                                       vmrs,verbosity);
                     GetLineScalingData_dT(dqt_dT_cache,
+                                          dK2_dT,
                                           dQ_dT, 
                                           dabs_nlte_ratio_dT,
                                           atm_tv_low, 
@@ -2219,6 +2220,7 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                                           partition_functions.getParamType(abs_lines[ii].Species(), abs_lines[ii].Isotopologue()),
                                           partition_functions.getParam(abs_lines[ii].Species(), abs_lines[ii].Isotopologue()),
                                           t,
+                                          abs_lines[ii].Ti0(),
                                           flag_partials.Temperature_Perturbation(),
                                           abs_lines[ii].F(),
                                           calc_src,
@@ -2247,6 +2249,7 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                                                         t,
                                                         sigma,
                                                         K2,
+                                                        dK2_dT,
                                                         abs_nlte_ratio,//K3
                                                         dabs_nlte_ratio_dT,
                                                         src_nlte_ratio,//K4
@@ -2256,8 +2259,10 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                                                         abs_lines[ii].Elow(),
                                                         abs_lines[ii].Evlow(),
                                                         abs_lines[ii].Evupp(),
-                                                         abs_lines[ii].EvlowIndex() > -1? t_nlte[abs_lines[ii].EvlowIndex()]:-1.0,
-                                                         abs_lines[ii].EvuppIndex() > -1? t_nlte[abs_lines[ii].EvuppIndex()]:-1.0,
+                                                        abs_lines[ii].EvlowIndex() > -1?
+                                                        t_nlte[abs_lines[ii].EvlowIndex()]:-1.0,
+                                                        abs_lines[ii].EvuppIndex() > -1?
+                                                        t_nlte[abs_lines[ii].EvuppIndex()]:-1.0,
                                                         Y,
                                                         dY_dT,
                                                         G,
@@ -2274,7 +2279,6 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                                                         dgamma_0_dT,
                                                         // Partition data parameters
                                                         dQ_dT,
-                                                        qt_cache,
                                                         // Magnetic variables
                                                         precalc_zeeman?Z_DF[ii]:0,
                                                         H_magntitude_Zeeman,

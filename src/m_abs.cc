@@ -1574,7 +1574,9 @@ void abs_coefCalcFromXsec(// WS Output:
         {
           // Calculate total number density from pressure and temperature.
           const Numeric n = number_density(abs_p[j],abs_t[j]);
-          const Numeric dn_dT = dnumber_density_dt(abs_p[j],abs_t[j]); // Wasted calculations when Jacobians are not calculated... Though this is called seldom enough that it this fine?
+          const Numeric dn_dT = dnumber_density_dt(abs_p[j],abs_t[j]); 
+          // Wasted calculations when Jacobians are not calculated... 
+          // Though this is called seldom enough that it this fine?  value is -1/t*n
 
           // Loop through all frequencies
           for ( Index k=0; k<abs_xsec_per_species[i].nrows(); k++)
