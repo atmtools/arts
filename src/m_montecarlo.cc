@@ -290,9 +290,6 @@ void MCGeneral(Workspace&            ws,
                               cloudbox_limits, pnd_field, scat_data_mono, 
                               verbosity ); 
            
-          np = ppath_step.np;
-          mc_points(ppath_step.gp_p[np-1].idx,ppath_step.gp_lat[np-1].idx,
-                                              ppath_step.gp_lon[np-1].idx) += 1;
 
           // GH 2011-09-08: if the lowest layer has large
           // extent and a thick cloud, g may be 0 due to
@@ -425,6 +422,10 @@ void MCGeneral(Workspace&            ws,
 
       if( oksampling )
         {
+          // Set spome of the bookkeeping variables
+          np = ppath_step.np;
+          mc_points(ppath_step.gp_p[np-1].idx,ppath_step.gp_lat[np-1].idx,
+                                              ppath_step.gp_lon[np-1].idx) += 1;
           if( scattering_order < l_mc_scat_order )
             { mc_scat_order[scattering_order] += 1; }
 

@@ -1,4 +1,17 @@
+2015-10-21  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-344
+
+	* src/m_montecarlo.cc (MCGeneral): Filling of mc_points changed.
+	Before there was one count for each point evaluared in MCGeneral,
+	but these are not just source points, also scattering points.
+	mc_points are now just filled at the final source point, i.e. the
+	variable shows the origin point of each "photon". The overall sum
+	of mc_points now equals mc_iteration_count, before it was higher.
+
 2015-10-20  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-343
 
 	* src/m_rte.cc (iyMC): Adopted call of MCGeneral.
 
