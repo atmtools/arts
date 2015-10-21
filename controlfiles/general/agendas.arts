@@ -325,15 +325,14 @@ AgendaSet( refr_index_air_agenda__NoRefrac ){
 }
 
 ###
-# refraction parameterization from Thayer (p,T,H2O)
-# valid in microwave for Earth
+# refraction parameterization for microwaves + Earth (p,T,H2O)
 # 
-AgendaCreate( refr_index_air_agenda__GasThayer )
-AgendaSet( refr_index_air_agenda__GasThayer ){
+AgendaCreate( refr_index_air_agenda__GasMicrowaves )
+AgendaSet( refr_index_air_agenda__GasMicrowaves ){
   Ignore( f_grid )
   NumericSet( refr_index_air, 1.0 )
   NumericSet( refr_index_air_group, 1.0 )
-  refr_index_airThayer
+  refr_index_airMicrowaves
 }
 
 ###
@@ -383,13 +382,13 @@ AgendaSet( refr_index_air_agenda__GasMWgeneralAndElectrons ){
 }
 
 ###
-# Combination of Thayer + free electrons. OK for Earth and microwave.
+# Combination of Microwaves + free electrons. OK for Earth and microwave.
 # 
-AgendaCreate( refr_index_air_agenda__GasThayerAndElectrons )
-AgendaSet( refr_index_air_agenda__GasThayerAndElectrons ){
+AgendaCreate( refr_index_air_agenda__GasMicrowavesAndElectrons )
+AgendaSet( refr_index_air_agenda__GasMicrowavesAndElectrons ){
   NumericSet( refr_index_air, 1.0 )
   NumericSet( refr_index_air_group, 1.0 )
-  refr_index_airThayer
+  refr_index_airMicrowaves
   refr_index_airFreeElectrons
 }
 

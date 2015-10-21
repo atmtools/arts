@@ -1,7 +1,7 @@
 #DEFINITIONS:  -*-sh-*-
 #
 # ARTS control file for testing 1D propagation path calculations
-# with different refractive index calculation methods (None, Thayer, MWgeneral)
+# with different refractive index calculation methods (None, Microwaves, MWgeneral)
 # for the different planets (particularly dependence on atmospheric composition)
 #
 # Jana Mendrok 2013-02-25
@@ -79,8 +79,8 @@ AgendaSet( forloop_agenda ){
            "Geometric and n==1 tangent point latitude differ too much." )
 
   ###
-  # CASE 1: refracted path with n from Thayer
-  Copy( refr_index_air_agenda, refr_index_air_agenda__GasThayer )
+  # CASE 1: refracted path with n from Microwaves
+  Copy( refr_index_air_agenda, refr_index_air_agenda__GasMicrowaves )
   ppathCalc
   #WriteXMLIndexed( "ascii", forloop_index, ppath, "thayer" )
   TangentPointExtract( tan_pos=tp1 )
@@ -94,12 +94,12 @@ AgendaSet( forloop_agenda ){
   TangentPointExtract( tan_pos=tp2 )
   TangentPointPrint( level=tpoutlev )
   
-  # Print diff of Thayer and MWgeneral
+  # Print diff of Microwaves and MWgeneral
   Extract( tanh1, tp1, 0 )
   Extract( tanh2, tp2, 0 )
   NumericScale( tanh2, tanh2, -1 )
   NumericAdd( diff, tanh1, tanh2 )
-  StringSet( infostring, "Tangent altitude diff of Thayer and MWgeneral [m]: " )
+  StringSet( infostring, "Tangent altitude diff of Microwaves and MWgeneral [m]: " )
   Print( infostring, outlev )
   Print( diff, outlev )
 
@@ -107,7 +107,7 @@ AgendaSet( forloop_agenda ){
   #Extract( tanlat2, tp2, 1 )
   #NumericScale( tanlat2, tanlat2, -1 )
   #NumericAdd( diff, tanlat1, tanlat2 )
-  #StringSet( infostring, "Tangent latitude diff of Thayer and MWgeneral [deg]: " )
+  #StringSet( infostring, "Tangent latitude diff of Microwaves and MWgeneral [deg]: " )
   #Print( infostring, outlev )
   #Print( diff, outlev )
 }
@@ -117,7 +117,7 @@ AgendaSet( forloop_agenda ){
 # CASE A: Earth
 #####
 
-# Main atmospheric contributors (water vapour considered by Thayer refraction.
+# Main atmospheric contributors (water vapour considered by Microwaves refraction.
 #  However, when comparing effects of planetary composition, we don't want
 #  further confusion by H2O. so we leave it out here.)
 #abs_speciesSet( species=["H2O","N2","O2"] )

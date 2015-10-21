@@ -1,5 +1,41 @@
 2015-10-21  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-3-345
+
+	* doc/uguide/refr_index.tex (section{Gases}): Adopted, mainly
+	changed "Thayer" with "Microwaves".
+
+	* doc/uguide/refr_index_theory.tex: Commented out sub-sections on
+	Thayer and IR parameterisations, as there is nothing new in this
+	text not already said in on-line doc or AUG.
+
+	* controlfiles/artscomponents/radiolink/TestRadioOccultation.arts:
+	* controlfiles/artscomponents/radiolink/TestRadioLink2.arts:
+	* controlfiles/artscomponents/radiolink/TestRadioLink.arts:
+	Pre-defined agenda template now not used, refr_index_air_agenda
+	set with k1, k2, and k3 matching Thayer, as reference values
+	calculated using old refr_index_airThayer.
+
+	* controlfiles/artscomponents/transmission/TestTransmission.arts:
+	* controlfiles/artscomponents/ppath/TestRefractPlanets.arts:
+	* controlfiles/artscomponents/ppath/TestPpath3D.arts:
+	* controlfiles/artscomponents/ppath/TestPpath2D.arts:
+	* controlfiles/artscomponents/ppath/TestPpath1D.arts:
+	* controlfiles/planetary_toolbox/demos/active/DemoLinkBudget.arts:
+	Replaced "Thayer" with "Microwaves".
+
+	* controlfiles/general/agendas.arts: Replaced "Thayer" with
+	"Microwaves" in name of predefined agendas.
+
+	* src/m_refraction.cc (refr_index_airMicrowaves): New name of
+	method below. And default values changed. On-line doc extended,
+	including a detailed specification of source to default values. a,
+	b and c changed to k1, k2 and k3, to follow standard nomenclature.
+
+	* src/m_refraction.cc (refr_index_airThayer): Renamed, see above,
+
+2015-10-21  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-3-344
 
 	* src/m_montecarlo.cc (MCGeneral): Filling of mc_points changed.

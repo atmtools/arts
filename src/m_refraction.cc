@@ -154,16 +154,16 @@ void refr_index_airIR(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void refr_index_airThayer(
+void refr_index_airMicrowaves(
           Numeric&   refr_index_air,
           Numeric&   refr_index_air_group,
     const Numeric&   rtp_pressure,
     const Numeric&   rtp_temperature,
     const Vector&    rtp_vmr,
     const ArrayOfArrayOfSpeciesTag& abs_species,
-    const Numeric&   a,
-    const Numeric&   b,
-    const Numeric&   c,
+    const Numeric&   k1,
+    const Numeric&   k2,
+    const Numeric&   k3,
     const Verbosity& )
 {
   if( abs_species.nelem() != rtp_vmr.nelem() )
@@ -181,10 +181,8 @@ void refr_index_airThayer(
   else
     e = rtp_pressure * rtp_vmr[firstH2O];
 
-  //  const Numeric n = ( 77.6e-8 * ( rtp_pressure - e ) + 
-  //         ( 64.8e-8 + 3.776e-3 / rtp_temperature ) * e ) / rtp_temperature;
-  const Numeric n = ( a * ( rtp_pressure - e ) + 
-                    ( b + c / rtp_temperature ) * e ) / rtp_temperature;
+  const Numeric n = ( k1 * ( rtp_pressure - e ) + 
+                    ( k2 + k3 / rtp_temperature ) * e ) / rtp_temperature;
 
   refr_index_air       += n;
   refr_index_air_group += n;

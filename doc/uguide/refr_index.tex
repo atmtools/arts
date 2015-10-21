@@ -56,7 +56,7 @@ propagation paths at different frequencies.
 %
 For calculating the contribution to the refractive index from atmospheric
 gases, the following workspace methods are currently available in ARTS:
-\wsmindex{refr\_index\_airMWgeneral}, \wsmindex{refr\_index\_airThayer} and
+\wsmindex{refr\_index\_airMWgeneral}, \wsmindex{refr\_index\_airMicrowaves} and
 \wsmindex{refr\_index\_airIR}. All of them are non-dispersive, i.e.,
 monochromatic and group refractive index are identical. They are supposed to be
 applied as alternatives, not in addition to each other.
@@ -69,12 +69,12 @@ at actual pressure and temperature conditions based on the refractivity of the
 individual gases at reference conditions. Reference refractivities from
 \citet{newell65:_absolute_jap} are available for N$_2$, O$_2$, CO$_2$, H$_2$,
 and He.  Additionally, reference refractivity for H$_2$O has been derived from
-H$_2$O contribution as described by \wsmindex{refr\_index\_airThayer} (see
+H$_2$O contribution as described by \wsmindex{refr\_index\_airMicrowaves} (see
 below) for a reference temperature of $T_0$=273.15\,K\footnote{Reducing the
-\wsmindex{refr\_index\_airThayer} approach to inverse temperature
+\wsmindex{refr\_index\_airMicrowaves} approach to inverse temperature
 proportionality as applied by \wsmindex{refr\_index\_airMWgeneral} causes
 significant deviations from H$_2$O refractivity from
-\wsmindex{refr\_index\_airThayer}. However, they are smaller than when
+\wsmindex{refr\_index\_airMicrowaves}. However, they are smaller than when
 refraction by H$_2$O is not accounted for.}.
 Any mixture of these gases can be taken into account. The missing
 contribution from further gases is roughly accounted for by
@@ -83,15 +83,13 @@ volume mixing ratio of 1. More details on the applied formulas are given in
 Section~\ref{T-sec:rindex:mwgeneral} of \theory.
 %Chapter~\ref{T-sec:ppaththeory} of \theory
 
-\wsmindex{refr\_index\_airThayer} calculates the microwave ``air''
+\wsmindex{refr\_index\_airMicrowaves} calculates the microwave ``air''
 refractivity in the Earth's atmosphere taking into account refractivity of
 ``dry air'' and water vapour. All other gases are assumed to have a negligible
-contribution. More details are given in Section~\ref{T-sec:rindex:thayer} of
-\theory.
+contribution. 
 
 \wsmindex{refr\_index\_airIR} derives the infrared ``air'' refractivity in the
-Earth's atmosphere considering only refractivity of ``dry air''. More details
-are given in Section~\ref{T-sec:rindex:IR} of \theory.
+Earth's atmosphere considering only refractivity of ``dry air''. 
 
 \section{Free electrons}
  \label{sec:rindex:freee}

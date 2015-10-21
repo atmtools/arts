@@ -10881,6 +10881,52 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "refr_index_airMicrowaves" ),
+        DESCRIPTION
+        (
+         "Microwave refractive index in Earth's atmosphere.\n"
+         "\n"
+         "This method just considers pressure, temperature and water\n"
+         "vapour, which should suffice for Earth. For a more general\n"
+         "method, see *refr_index_airMWgeneral*.\n"
+         "\n"
+         "The refractivity of dry air and water vapour is added to\n"
+         "*refr_index_air*. To obtain the complete value, *refr_index_air*\n"
+         "should be set to 1 before calling this WSM. This applies also to\n"
+         "*refr_index_air_group.\n"
+         "\n"
+         "The expression used is non-dispersive. Hence, *refr_index_air*\n"
+         "and *refr_index_air_group* are identical.\n"
+         "\n"
+         "The standard expression for Earth and microwaves is used:\n"
+         "   N = k1*(P-e)/T + k2*e/T + k3*e/T^2\n"
+         "where N is refractivity, P is pressure, T is temperature and\n"
+         "e is water vapour partial pressure. The values of a, b and c can\n"
+         "be modified.\n"
+         "\n"
+         "Many different values of a, b and c can be found in the\n"
+         "literature. The default values applied here are taken from\n"
+         "Bevis et al., GPS meteorology: Mapping ..., JAMC, 1994.\n"
+         "More specifically, these value are found in Table 1, listed\n"
+         "as \"Present study\". Note that in ARTS Pa is used for pressure\n"
+         "and a, b and c must be adjusted accordingly.\n" 
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "refr_index_air", "refr_index_air_group" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "refr_index_air", "refr_index_air_group", "rtp_pressure", 
+            "rtp_temperature", "rtp_vmr", "abs_species" ),
+        GIN( "k1", "k2", "k3" ),
+        GIN_TYPE( "Numeric", "Numeric", "Numeric" ),
+        GIN_DEFAULT( "77.6e-8", "70.4e-8", "3.739e-3" ),
+        GIN_DESC( "Coefficient a, see above", "Coefficient b, see above",
+                  "Coefficient c, see above" )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "refr_index_airMWgeneral" ),
         DESCRIPTION
         (
@@ -10915,44 +10961,6 @@ void define_md_data_raw()
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "refr_index_airThayer" ),
-        DESCRIPTION
-        (
-         "Microwave refractive index due to gases in the Earth's atmosphere.\n"
-         "\n"
-         "The refractivity of dry air and water vapour is added to\n"
-         "*refr_index_air*. To obtain the complete value, *refr_index_air*\n"
-         "shoul be set to 1 before calling this WSM. This applies also to\n"
-         "*refr_index_air_group.\n"
-         "\n"
-         "The expression used is non-dispersive. Hence, *refr_index_air* and\n"
-         "*refr_index_air_group* are identical.\n"
-         "\n"
-         "The parameterisation of Thayer (Radio Science, 9, 803-807, 1974)\n"
-         "is used. The expression can be written as\n"
-         "   N = a(P-e)/T + be/T + ce/T^2\n"
-         "where N is refractivity, P is pressure, T is temperature and\n"
-         "e is water vapour partial pressure. The values of a, b and c can\n"
-         "be modified. Default values are taken from Thayer (1974).\n"
-         "Note that Thayer uses mbar for pressures, while in ARTS Pa is used\n"
-         "and a, b and c must be adjusted accordingly.\n" 
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT( "refr_index_air", "refr_index_air_group" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "refr_index_air", "refr_index_air_group", "rtp_pressure", 
-            "rtp_temperature", "rtp_vmr", "abs_species" ),
-        GIN( "a", "b", "c" ),
-        GIN_TYPE( "Numeric", "Numeric", "Numeric" ),
-        GIN_DEFAULT( "77.6e-8", "64.8e-8", "3.776e-3" ),
-        GIN_DESC( "Coefficient a, see above", "Coefficient b, see above",
-                  "Coefficient c, see above" )
         ));
 
     md_data_raw.push_back

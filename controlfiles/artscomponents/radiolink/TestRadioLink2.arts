@@ -88,7 +88,16 @@ Copy( ppath_agenda, ppath_agenda__TransmitterReceiverPath )
 
 # refracted path
 Copy( ppath_step_agenda, ppath_step_agenda__RefractedPath )
-Copy( refr_index_air_agenda, refr_index_air_agenda__GasThayer  )
+
+# The reference values are calculated with Thayer's values for k1, k2 and k3:
+AgendaSet( refr_index_air_agenda ){
+  Ignore( f_grid )
+  NumericSet( refr_index_air, 1.0 )
+  NumericSet( refr_index_air_group, 1.0 )
+  refr_index_airMicrowaves( k1=77.6e-8, k2=64.8e-8, k3=3.776e-3 )
+}
+
+
 #
 NumericSet( ppath_lmax, 10e3 )
 NumericSet( ppath_lraytrace, 100 )

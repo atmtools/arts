@@ -94,7 +94,7 @@ cloudbox_checkedCalc
 #
 # refracted path
 Copy( ppath_step_agenda, ppath_step_agenda__RefractedPath )
-Copy( refr_index_air_agenda, refr_index_air_agenda__GasThayer  )
+Copy( refr_index_air_agenda, refr_index_air_agenda__GasMicrowaves  )
 
 NumericSet( ppath_lmax, 2e3 )
 NumericSet( ppath_lraytrace, 500 )
