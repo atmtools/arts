@@ -881,16 +881,24 @@ void f_gridMetMM(
   // Determine sort order for f_grid
   const size_t nf = f_grid_unsorted.size();
   ArrayOfIndex move2index( nf );
-  //
-  for( size_t f_index = 0; f_index < nf; f_index++ )
-    {
-      for( size_t f2 = 0; f2 < nf; f2++ )
-        {
-          if( f_index != f2  &&  
-              f_grid_unsorted[f_index] > f_grid_unsorted[f2] )  
-            { move2index[f_index]++; }
-        }
-    }
+
+  // Create frequency position vector (1...nf)
+  ArrayOfIndex sorted_indices;
+  sorted_indices.resize(nf);
+  for (size_t i = 0; i < nf; i++)
+  {
+    sorted_indices[i] = i;
+  }
+
+  // Sort frequency position vector by frequency
+  std::sort(sorted_indices.begin(), sorted_indices.end(),
+            CmpArrayOfNumeric(f_grid_unsorted));
+
+  // Create vector with indices in target vector
+  for (size_t i = 0; i < nf; i++)
+  {
+      move2index[sorted_indices[i]] = i;
+  }
 
   // Create f_grid
   f_grid.resize( nf );
