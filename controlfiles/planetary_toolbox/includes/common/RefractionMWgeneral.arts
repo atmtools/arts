@@ -9,6 +9,6 @@ Arts2 {
 Copy( ppath_step_agenda, ppath_step_agenda__RefractedPath )
 
 # use microwave refractive index method for general atmospheres (from Newell&Baird)
-Copy( refr_index_agenda, refr_index_agenda__GasMWgeneral )
+Copy( refr_index_agenda, refr_index_agenda__GasMicrowavesGeneral )
 
 }

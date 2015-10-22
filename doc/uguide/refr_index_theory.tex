@@ -55,7 +55,7 @@ atmosphere commonly are empirical parameterisations.
 Below we describe the background and formulas applied for the different methods
 implemented in ARTS.
 
-\subsection{Microwave general method (\shortcode{refr\_index\_airMWgeneral)}}
+\subsection{Microwave general method (\shortcode{refr\_index\_airMicrowavesGeneral)}}
  \label{sec:rindex:mwgeneral}
 
 Apart from presenting a basic approach, \citet{newell65:_absolute_jap} also
@@ -100,12 +100,14 @@ article, $p_i$ are the partial pressures, and $T$ is temperature.
 
 In addition to reference refractivities of the five species given by
 \citet{newell65:_absolute_jap}, we have derived an equivalent value for
-\chem{H_2O} from the \chem{H_2O} contribution in the parametrization by
-\citet{thayer74_improved_rs} for a reference temperature of $T_0$=273.15\,K.
+\chem{H_2O} from the \chem{H_2O} contribution of the parametrization
+for microwave refractivity in Earth (\wsmindex{refr\_index\_airMicrowavesEarth})
+with parameters of the expression taken from \citet{bevis94:_gps_jam} and a
+reference temperature of $T_0$=273.15\,K.
 Using the ideal gas law reduces temperature dependence to inverse
-proportionality, whereas the \citet{thayer74_improved_rs} parameterization also
+proportionality, whereas the microwave Earth parameterization also
 carries an inverse quadratic dependence. This causes notable deviations from
-\chem{H_2O} refractivity as given by \citet{thayer74_improved_rs} when
+\chem{H_2O} refractivity as given by the microwave Earth parameterization when
 temperature is not close to the reference temperature applied. However, the
 deviations are significantly smaller than when refraction by \chem{H_2O} is not
 explicitly accounted for.
@@ -118,14 +120,14 @@ calculated refractivity from those five gases is normalised to a volume mixing
 ratio of 1. By adding reference refractive index data from further species -- as
 done for water vapor --, the method can easily be extended and made more complete.
 
-%\subsection{Microwave refractive index for Earth (\shortcode{refr\_index\_airMicrowaves})}
+%\subsection{Microwave refractive index for Earth (\shortcode{refr\_index\_airMicrowavesEarth})}
 % \label{sec:rindex:microwaves}
 % The microwave refractive index due to gases in the Earth’s atmosphere is
 % calculated considering so-called compressibility factors (to cover non-ideal
 % gas behaviour). The refractivity of ``dry air'' and water vapour is summed.
 % All other gases are assumed to have a negligible contribution.
 
-%\subsection{Infrared refractive index for Earth (\shortcode{refr\_index\_airIR})}
+%\subsection{Infrared refractive index for Earth (\shortcode{refr\_index\_airInfraredEarth})}
 % \label{sec:rindex:IR}
 %The infrared refractive index due to gases in the Earth's atmosphere is derived,
 %but only refractivity of ``dry air'' is considered. The formula used is

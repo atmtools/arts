@@ -327,36 +327,36 @@ AgendaSet( refr_index_air_agenda__NoRefrac ){
 ###
 # refraction parameterization for microwaves + Earth (p,T,H2O)
 # 
-AgendaCreate( refr_index_air_agenda__GasMicrowaves )
-AgendaSet( refr_index_air_agenda__GasMicrowaves ){
+AgendaCreate( refr_index_air_agenda__GasMicrowavesEarth )
+AgendaSet( refr_index_air_agenda__GasMicrowavesEarth ){
   Ignore( f_grid )
   NumericSet( refr_index_air, 1.0 )
   NumericSet( refr_index_air_group, 1.0 )
-  refr_index_airMicrowaves
+  refr_index_airMicrowavesEarth
 }
 
 ###
 # refraction parameterization 
 # valid in infrared for Earth (dry air only)
 # 
-AgendaCreate( refr_index_air_agenda__GasIREarth )
-AgendaSet( refr_index_air_agenda__GasIREarth ){
+AgendaCreate( refr_index_air_agenda__GasInfraredEarth )
+AgendaSet( refr_index_air_agenda__GasInfraredEarth ){
   Ignore( f_grid )
   NumericSet( refr_index_air, 1.0 )
   NumericSet( refr_index_air_group, 1.0 )
-  refr_index_airIR
+  refr_index_airInfraredEarth
 }
 
 ###
 # refraction parameterization from Newell&Baird (p,T; N2,O2,CO2,H2,He)
 # valid for arbitrary planetary atmospheres in microwave
 # 
-AgendaCreate( refr_index_air_agenda__GasMWgeneral )
-AgendaSet( refr_index_air_agenda__GasMWgeneral ){
+AgendaCreate( refr_index_air_agenda__GasMicrowavesGeneral )
+AgendaSet( refr_index_air_agenda__GasMicrowavesGeneral ){
   Ignore( f_grid )
   NumericSet( refr_index_air, 1.0 )
   NumericSet( refr_index_air_group, 1.0 )
-  refr_index_airMWgeneral
+  refr_index_airMicrowavesGeneral
 }
 
 ###
@@ -373,22 +373,22 @@ AgendaSet( refr_index_air_agenda__FreeElectrons ){
 # combined refraction from gases (Newell&Baird) and free electrons 
 # valid for arbitrary planetary atmospheres in microwave
 # 
-AgendaCreate( refr_index_air_agenda__GasMWgeneralAndElectrons )
-AgendaSet( refr_index_air_agenda__GasMWgeneralAndElectrons ){
+AgendaCreate( refr_index_air_agenda__GasMicrowavesGeneralAndElectrons )
+AgendaSet( refr_index_air_agenda__GasMicrowavesGeneralAndElectrons ){
   NumericSet( refr_index_air, 1.0 )
   NumericSet( refr_index_air_group, 1.0 )
-  refr_index_airMWgeneral
+  refr_index_airMicrowavesGeneral
   refr_index_airFreeElectrons
 }
 
 ###
 # Combination of Microwaves + free electrons. OK for Earth and microwave.
 # 
-AgendaCreate( refr_index_air_agenda__GasMicrowavesAndElectrons )
-AgendaSet( refr_index_air_agenda__GasMicrowavesAndElectrons ){
+AgendaCreate( refr_index_air_agenda__GasMicrowavesEarthAndElectrons )
+AgendaSet( refr_index_air_agenda__GasMicrowavesEarthAndElectrons ){
   NumericSet( refr_index_air, 1.0 )
   NumericSet( refr_index_air_group, 1.0 )
-  refr_index_airMicrowaves
+  refr_index_airMicrowavesEarth
   refr_index_airFreeElectrons
 }
 

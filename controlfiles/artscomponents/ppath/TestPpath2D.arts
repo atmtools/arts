@@ -159,7 +159,7 @@ ForLoop( forloop_agenda, 0, ilast, 1  )
 #
 Copy( ppath_step_agenda, ppath_step_agenda__RefractedPath )
 NumericSet( ppath_lraytrace, 1e3 )
-Copy( refr_index_air_agenda, refr_index_air_agenda__GasMicrowaves  )
+Copy( refr_index_air_agenda, refr_index_air_agenda__GasMicrowavesEarth  )
 
 ForLoop( forloop_agenda, 0, ilast, 1  )
 
@@ -177,7 +177,7 @@ Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
 ForLoop( forloop_agenda, 0, ilast, 1  )
 
 Copy( ppath_step_agenda, ppath_step_agenda__RefractedPath )
-Copy( refr_index_air_agenda, refr_index_air_agenda__GasMicrowaves  )
+Copy( refr_index_air_agenda, refr_index_air_agenda__GasMicrowavesEarth  )
 ForLoop( forloop_agenda, 0, ilast, 1  )
 
 }

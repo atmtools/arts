@@ -10850,14 +10850,14 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "refr_index_airIR" ),
+      ( NAME( "refr_index_airInfraredEarth" ),
         DESCRIPTION
         (
          "Calculates the IR refractive index due to gases in the\n"
          "Earth's atmosphere.\n"
          "\n"
          "Only refractivity of dry air is considered. The formula used is\n"
-         "contributed by Michael Hoefner, Forschungszentrum Karlsruhe.\n"
+         "contributed by Michael Hoepfner, Forschungszentrum Karlsruhe.\n"
          "\n"
          "The refractivity of dry air is added to *refr_index_air*. To obtain\n"
          "the complete value, *refr_index_air* should be set to 1 before\n"
@@ -10881,14 +10881,14 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "refr_index_airMicrowaves" ),
+      ( NAME( "refr_index_airMicrowavesEarth" ),
         DESCRIPTION
         (
          "Microwave refractive index in Earth's atmosphere.\n"
          "\n"
          "This method just considers pressure, temperature and water\n"
          "vapour, which should suffice for Earth. For a more general\n"
-         "method, see *refr_index_airMWgeneral*.\n"
+         "method, see *refr_index_airMicrowavesGeneral*.\n"
          "\n"
          "The refractivity of dry air and water vapour is added to\n"
          "*refr_index_air*. To obtain the complete value, *refr_index_air*\n"
@@ -10901,15 +10901,15 @@ void define_md_data_raw()
          "The standard expression for Earth and microwaves is used:\n"
          "   N = k1*(P-e)/T + k2*e/T + k3*e/T^2\n"
          "where N is refractivity, P is pressure, T is temperature and\n"
-         "e is water vapour partial pressure. The values of a, b and c can\n"
-         "be modified.\n"
+         "e is water vapour partial pressure. The values of k1, k2 and k3\n"
+         "can be modified.\n"
          "\n"
-         "Many different values of a, b and c can be found in the\n"
+         "Many different values of k1, k2 and k3 can be found in the\n"
          "literature. The default values applied here are taken from\n"
-         "Bevis et al., GPS meteorology: Mapping ..., JAMC, 1994.\n"
+         "Bevis et al., GPS meteorology: Mapping ..., JAM, 1994.\n"
          "More specifically, these value are found in Table 1, listed\n"
          "as \"Present study\". Note that in ARTS Pa is used for pressure\n"
-         "and a, b and c must be adjusted accordingly.\n" 
+         "and k1, k2 and k3 must be adjusted accordingly.\n" 
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "refr_index_air", "refr_index_air_group" ),
@@ -10927,7 +10927,7 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "refr_index_airMWgeneral" ),
+      ( NAME( "refr_index_airMicrowavesGeneral" ),
         DESCRIPTION
         (
          "Microwave refractive index due to gases in planetary atmospheres.\n"

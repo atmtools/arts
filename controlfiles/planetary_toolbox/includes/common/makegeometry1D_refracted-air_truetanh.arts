@@ -16,7 +16,7 @@
 # It performs the following actions:                                           #
 #  - sets ppath_agenda: receiver-viewingangle determined path (no transmitter) #
 #  - sets ppath_step_agenda: refracted ppath calculation                       #
-#  - sets refr_index_air_agenda: refr_index_airMWgeneral for air               #
+#  - sets refr_index_air_agenda: refr_index_airMicrowavesGeneral for air               #
 #  - calculates viewing angles from given vector of tangent altitudes          #
 #     (refracted rays will have their effective tangent altitudes at the       #
 #     altitudes set by the user)                                               #
@@ -57,8 +57,8 @@ Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
 Copy( ppath_step_agenda, ppath_step_agenda__RefractedPath )
 
 # refraction from "air"
-# (using general planet applicable method refr_index_airMWgeneral)
-Copy( refr_index_air_agenda, refr_index_air_agenda__GasMWgeneral )
+# (using general planet applicable method refr_index_airMicrowavesGeneral)
+Copy( refr_index_air_agenda, refr_index_air_agenda__GasMicrowavesGeneral )
 
 
 # DO NOT MODIFY

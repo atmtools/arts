@@ -132,7 +132,7 @@ void refr_index_airFreeElectrons(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void refr_index_airIR(
+void refr_index_airInfraredEarth(
           Numeric&   refr_index_air,
           Numeric&   refr_index_air_group,
     const Numeric&   rtp_pressure,
@@ -154,7 +154,7 @@ void refr_index_airIR(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void refr_index_airMicrowaves(
+void refr_index_airMicrowavesEarth(
           Numeric&   refr_index_air,
           Numeric&   refr_index_air_group,
     const Numeric&   rtp_pressure,
@@ -191,7 +191,7 @@ void refr_index_airMicrowaves(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void refr_index_airMWgeneral(
+void refr_index_airMicrowavesGeneral(
           Numeric&   refr_index_air,
           Numeric&   refr_index_air_group,
     const Numeric&   rtp_pressure,
@@ -227,14 +227,17 @@ void refr_index_airMWgeneral(
   ref_spec_names[5] = "H2O";
 
   // Set reference refractive indices
-  // Values from Newell and Baird, 1965 (except H2O)
+  // Values from Newell and Baird, 1965
   Vector ref_n(nrs);
   ref_n[0] =  293.81e-6;
   ref_n[1] =  266.95e-6;
   ref_n[2] =  495.16e-6;
   ref_n[3] =  135.77e-6;
   ref_n[4] =   34.51e-6;
-  ref_n[5] = 5368.37e-6; //this dervied from Thayer with T0=273.15K
+  // value for H2O from H2O contribution according to refr_index_airMicrowavesEarth
+  // at reference conditions
+  // that is: n_H2O = p_ref/T_ref * (k2 + k3/Tref)
+  ref_n[5] = 5338.89e-6;
 
 // Checks
   if( abs_species.nelem() != rtp_vmr.nelem() )

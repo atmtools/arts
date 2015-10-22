@@ -84,7 +84,7 @@ INCLUDE "general/agendas.arts"
 #
 Copy( ppath_agenda,            ppath_agenda__TransmitterReceiverPath )
 Copy( ppath_step_agenda,       ppath_step_agenda__RefractedPath      )
-Copy( refr_index_air_agenda,   refr_index_air_agenda__GasMicrowaves  )
+Copy( refr_index_air_agenda,   refr_index_air_agenda__GasMicrowavesEarth  )
 
 #
 # Radiative transfer step lengths

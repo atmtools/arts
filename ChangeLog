@@ -1,3 +1,50 @@
+2015-10-22  Jana Mendrok  <jana.mendrok@ltu.se>
+
+	* arts-2-3-347
+
+	WARNING: This breaks controlfiles.
+
+	* src/m_refraction.cc, src/methods.cc:
+	Renamed air refractive index methods for more clarity:
+	refr_index_airThayer -> refr_index_airMicrowavesEarth
+	refr_index_airMWgeneral -> refr_index_airMicrowavesGeneral
+	refr_index_airIR -> refr_index_airInfraredEarth
+
+	* src/m_refraction.cc (refr_index_airMicrowavesGeneral):
+	Adapted N_ref of H2O to changes in refr_index_airMicrowavesEarth.
+
+	* doc/uguide/refr_index.tex, doc/uguide/refr_index_theory.tex,
+	doc/uguide/references.bib:
+	Reflect name changes above. Replaced references to Thayer with reference
+	to Bevis or refr_index_airMicrowavesEarth. Added Bevis lit. reference.
+
+	* controlfiles/general/agendas.arts:
+	Renamed refr_index_air_agenda predefinitions consistently with WSM name
+	changes above.
+
+	* controlfiles/artscomponents/ppath/TestPpath1D.arts,
+	controlfiles/artscomponents/ppath/TestPpath2D.arts,
+	controlfiles/artscomponents/ppath/TestPpath3D.arts,
+	controlfiles/artscomponents/ppath/TestRefractPlanets.arts,
+	controlfiles/artscomponents/radiolink/TestRadioLink.arts,
+	controlfiles/artscomponents/radiolink/TestRadioLink2.arts,
+	controlfiles/artscomponents/radiolink/TestRadioOccultation.arts,
+	controlfiles/artscomponents/transmission/TestTransmission.arts,
+	controlfiles/planetary_toolbox/demos/active/DemoLinkBudget.arts,
+	controlfiles/planetary_toolbox/includes/common/
+	RefractionMWgeneral.arts,
+	makegeometry1D_refracted-air+electrons_geometrictanh.arts,
+	makegeometry1D_refracted-air+electrons_truetanh.arts,
+	makegeometry1D_refracted-air_geometrictanh.arts,
+	makegeometry1D_refracted-air_truetanh.arts,
+	makegeometry3D_refracted-air+electrons_geometrictanh.arts,
+	makegeometry3D_refracted-air+electrons_truetanh.arts,
+	makegeometry3D_refracted-air_geometrictanh.arts,
+	makegeometry3D_refracted-air_truetanh.arts:
+	Adapted to WSM and agenda predefinition name changes.
+
+	* CHANGES-2.3: Documenting WSM and agenda predefinition name changes.
+
 2015-10-22  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-346
@@ -13962,20 +14009,20 @@
 
 	* arts-2-1-518
 
-        * src/methods.cc (SpeciesPartitionLookupOnthefly): Added.
+	* src/methods.cc (SpeciesPartitionLookupOnthefly): Added.
 
-        * src/m_abs_lookup.cc (SpeciesPartitionLookupOnthefly): Added.
+	* src/m_abs_lookup.cc (SpeciesPartitionLookupOnthefly): Added.
 
-        * src/agendas.cc
+	* src/agendas.cc
 	(abs_xsec_agenda): Renamed from abs_xsec_per_species_agenda.
 
-        * src/workspace.cc
+	* src/workspace.cc
 	(abs_species_active): Added.
 	(abs_species_lookup): Added.
 	(abs_species_onthefly): Added.
 	(abs_xsec_agenda): Renamed from abs_xsec_per_species_agenda.
 
-        * controlfiles/general/agendas.arts
+	* controlfiles/general/agendas.arts
 	(abs_xsec_agenda): Renamed from abs_xsec_per_species_agenda.
 
 2013-02-21  Patrick Eriksson  <patrick.eriksson@chalmers.se>

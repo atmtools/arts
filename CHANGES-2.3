@@ -40,7 +40,7 @@ General
   initializiation (e.g. doit_i_fieldSetClearsky or doit_i_fieldSetFromPrecalc)
 
 - Create WSMs are not allowed to be called inside Agendas anymore. Avoids
-  confusion because variables are always global indendent of where they are
+  confusion because variables are always global independent of where they are
   created.
 
 - WSM DoitCloudboxFieldPut removed, not needed anymore.
@@ -84,3 +84,7 @@ NAME CHANGES-2.3
 - pnd_fieldSetup -> pnd_fieldCalcFromscat_speciesFields
 - pnd_fieldCalc -> pnd_fieldCalcFrompnd_field_raw
 - particle_massesFromMetaDataAndScat_species -> particle_massesFromMetaData
+- refr_index_airThayer -> refr_index_airMicrowavesEarth
+- refr_index_airMWgeneral -> refr_index_airMicrowavesGeneral
+- refr_index_airIR -> refr_index_airInfraredEarth
+- refr_index_air_agenda__* predefinition renamed according to above
