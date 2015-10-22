@@ -86,11 +86,11 @@ public:
         }
     }
 
-//! Reset intermediate results.
-/*!
-  Resets the internally stored result and forces their recomputation on the
-  next call of compute(...).
- */
+    //! Reset intermediate results.
+    /*!
+     Resets the internally stored result and forces their recomputation on the
+     next call of compute(...).
+    */
     void reset()
     {
         matrices_set = false;
@@ -142,6 +142,147 @@ private:
     Vector xa, tmp_m_1, tmp_n_1, x_norm;
 
     ArrayOfIndex indx;
+};
+
+//! Gauss-Newton OEM Class
+/*!
+
+  Class to represent non-linear OEM computation using Gauss-Newton algorithm.
+  Given a non-linear forward model described by the inverses of the measurement
+  and state covariance matrices SeInv and SxInv, the a priori vector xa and a
+  ForwardModel instance K, the class can be used to compute the Bayesian optimal
+  estimator as desribed in Rodgers book. The form used is the n-form given in
+  formula (5.8).
+
+  The GaussNewtonOEM object contains references to the matrices, vectors and the
+  forward model defining the problem, internal matrices, that are required
+  during the computation and the computation state.
+
+*/
+class GaussNewtonOEM
+{
+
+public:
+
+    // Constructor
+    GaussNewtonOEM( ConstMatrixView SeInv,
+                    ConstVectorView xa,
+                    ConstMatrixView SxInv,
+                    ForwardModel &F );
+
+    // Get and set normalization vector.
+    void set_x_norm( ConstVectorView );
+    ConstVectorView get_x_norm();
+
+   //! Set iteration maximum.
+
+   /*! Sets the number of iterations that are performed before the computation
+     is aborted. Default is 100.
+
+     \param max The new maximum number of iterations.
+   */
+    void maximum_iterations( Index max )
+    {
+        maxIter = max;
+    }
+
+    //! Get iteration maximum.
+    /*!
+      \return The currently set iteration maximum.
+    */
+    Index maximum_iterations( )
+    {
+        return maxIter;
+    }
+
+    //! Set convergence criterion.
+    /*!
+      Convergence is determined using equation (5.29) in Rodger's book. Note
+      that the provided tolerance value is scaled by n before comparing to
+      d_i^2.
+
+      \param tol_ The new convergence criterion.
+    */
+    void tolerance( Numeric tol_)
+    {
+        tol = tol_;
+    }
+
+    //! Get current convergence criterion.
+    /*!
+      \return The current convergence criterion.
+    */
+    Numeric tolerance( )
+    {
+        return tol;
+    }
+
+    //! Get number of iterations.
+    /*!
+       Returns the number of iterations performed in the latest computation
+       before abortion or the convergence criterion was met.
+
+      \return Number of iterations of the latest computation.
+    */
+    Index iterations()
+    {
+        return iter;
+    }
+
+    // Perform OEM calculation.
+    void compute( Vector &x,
+                  ConstVectorView y,
+                  bool verbose );
+
+    // Perform OEM calculation and compute gain matrix.
+    void compute( Vector &x,
+                  MatrixView G_,
+                  ConstVectorView y,
+                  bool verbose );
+
+    // Comute the fitted measurement vector.
+    Index compute_fit( Vector &yf,
+                       const Vector &x );
+
+    // Compute fitted measurement vector and evaluate cost function.
+    Index compute_fit( Vector &yf,
+                       Numeric &cost_x,
+                       Numeric &cost_y,
+                       const Vector &x,
+                       ConstVectorView y );
+
+   //! Return convergence status.
+   /*!
+     \return The convergence status
+   */
+    bool converged()
+    {
+        return conv;
+    }
+
+private:
+
+    // Hide standard constructor.
+    GaussNewtonOEM();
+
+    // Internal function for computation of gain matrix.
+    void compute_gain_matrix( Vector& x );
+
+    // References to model data.
+    ConstMatrixView SeInv, SxInv;
+    ConstVectorView xa;
+    ForwardModel &F;
+
+    // Internal state variables.
+    bool matrices_set, gain_set, x_norm_set, conv;
+    Index m, n, iter, maxIter;
+
+    Numeric tol, cost_x, cost_y;
+
+    // Internal matrices for intermediate results.
+    Matrix G, J, tmp_nm_1, tmp_nn_1, tmp_nn_2;
+    Vector dx, yi, x_norm, tmp_m_1, tmp_m_2, tmp_n_1, tmp_n_2;
+
 };
 
 void oem_cost_y( Numeric& cost_y,

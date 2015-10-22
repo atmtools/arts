@@ -127,8 +127,8 @@ public:
             for ( Index i = 0; i < m; i++ )
             {
                 Hessians[i] = Matrix( n, n, 0 );
-                if (i < 5)
-                    random_fill_matrix_symmetric( Hessians[i], 1.0, true );
+                if (i < 2)
+                    random_fill_matrix_symmetric(Hessians[i], 0.1, true);
                 sprintf( fname, "H_%d_t.txt", (int) i);
                 write_matrix( Hessians[i], fname );
             }
@@ -252,19 +252,24 @@ void write_matrix( ConstMatrixView A,
 void generate_test_data( VectorView y,
                          VectorView xa,
                          MatrixView Se,
-                         MatrixView Sa )
+                         MatrixView Sx )
 {
 
     random_fill_vector( y, 10, false );
     random_fill_vector( xa, 10, false );
 
-    //random_fill_matrix_symmetric( Se, 1.0, false);
-    id_mat( Se );
+    random_fill_matrix_symmetric( Se, 1.0, false);
+    //id_mat( Se );
     //Se *= 0.1;
 
-    //random_fill_matrix_symmetric( Sa, 1.0, false);
-    id_mat( Sa );
+    random_fill_matrix_symmetric( Sx, 1.0, false);
+    //id_mat( Sa );
     //Sa *= 0.1;
+    for ( Index i = 0; i < Se.ncols(); i++ )
+        Se(i,i) = abs(Se(i,i));
+
+    for ( Index i = 0; i < Sx.ncols(); i++ )
+        Sx(i,i) = abs(Sx(i,i));
 
 }
 
@@ -574,10 +579,9 @@ void benchmark_oem_linear( Engine* eng,
     // Run tests.
     for ( Index i = 0; i < ntests; i++ )
     {
-        Numeric cost_x(0.0), cost_y(0.0);
         Vector x_nform(n), x_mform(n), x_m(n), y(n), yf(n), xa(n), x_norm(n),
             zero(n);
-        Matrix J(n,n), Se(n,n), Sa(n,n), SeInv(n,n), SaInv(n,n), G_nform(n,n),
+        Matrix J(n,n), Se(n,n), Sa(n,n), SeInv(n,n), SxInv(n,n), G_nform(n,n),
                G_mform(n,n);
 
         zero = 0.0;
@@ -595,13 +599,13 @@ void benchmark_oem_linear( Engine* eng,
         Index t, t1, t2, t_m;
 
         inv( SeInv, Se );
-        inv( SaInv, Sa );
+        inv( SxInv, Sa );
 
         // n-form
         t1 = clock();
         mult( yf, J, xa );
         // oem_linear_nform( x_nform, G_nform, J, yf, cost_x, cost_y, K,
-        //                   xa, x_norm, y, SeInv, SaInv, cost_x, false );
+        //                   xa, x_norm, y, SeInv, SxInv, cost_x, false );
         t2 = clock();
         t = (t2 - t1) * 1000 / CLOCKS_PER_SEC;
 
@@ -643,7 +647,7 @@ void test_oem_linear( Engine* eng,
                       Index ntests )
 {
     Vector x(n), x_n(n), x_g(n), x_m(n), y(n), yf(n), xa(n), zero(n), x_norm(n);
-    Matrix J(n,n), Se(n,n), Sa(n,n), SeInv(n,n), SaInv(n,n), G(n,m), G_mform(n,m);
+    Matrix J(n,n), Se(n,n), Sa(n,n), SeInv(n,n), SxInv(n,n), G(n,m), G_mform(n,m);
     LinearModel K;
 
     zero = 0.0;
@@ -661,15 +665,13 @@ void test_oem_linear( Engine* eng,
         generate_test_data( y, xa, Se, Sa );
 
         inv( SeInv, Se );
-        inv( SaInv, Sa );
-        LinearOEM oem( J, SeInv, xa, SaInv );
+        inv( SxInv, Sa );
+        LinearOEM oem( J, SeInv, xa, SxInv );
 
         for (Index j = 0; j < n; j++ )
         {
             x_norm[j] = sqrt(Sa(j,j));
         }
-
-        oem.set_x_norm( x_norm );
 
         write_vector( xa, "xa_t.txt" );
         write_vector( y, "y_t.txt" );
@@ -679,10 +681,11 @@ void test_oem_linear( Engine* eng,
 
         // m-form
         mult( yf, J, xa );
-        oem.compute( x_g, G, y, yf );
-        oem.compute( x_n, y, yf );
+
         oem.set_x_norm( x_norm );
         oem.compute( x, y, yf );
+        oem.compute( x_g, G, y, yf );
+        oem.compute( x_n, y, yf );
 
         run_oem_matlab( x_m, eng, "test_oem" );
 
@@ -717,42 +720,50 @@ void test_oem_gauss_newton( Engine *eng,
                             Index n,
                             Index ntests )
 {
-    Vector y0(m), y(m), x_standard(n), x_nform(n), x_mform(n), x_m(n), xa(n);
-    Matrix Se(m,m), Sa(n,n), SeInv(m,m), SaInv(n,n), G(n,m), J(n,m);
+    Vector y0(m), y(m), y_m(m), x(n), x0(n), x_n(x), x_m(n), x_norm(n), xa(n);
+    Matrix Se(m,m), Sa(n,n), SeInv(m,m), SxInv(n,n), G(n,m), J(n,m);
 
     cout << "Testing Gauss-Newton OEM: m = " << m << ", n = ";
-    cout << n << ", ntests = " << ntests << endl;
+    cout << n << ", ntests = " << ntests << endl << endl;
+
+    cout << "Test No. " << setw(15) << "Standard" << setw(15) << "Normalized";
+    cout << setw(15) << "No. Iterations" << endl;
 
     // Run tests.
     for ( Index i = 0; i < ntests; i++ )
     {
         QuadraticModel K(m,n);
         generate_test_data( y0, xa, Se, Sa );
-        x_standard = y0;
-        K.evaluate( y0, x_standard );
+        x0 = xa;
+        add_noise( x0, 0.01 );
+        K.evaluate( y0, x0);
 
         inv( SeInv, Se );
-        inv( SaInv, Sa );
+        inv( SxInv, Sa );
+
+        GaussNewtonOEM oem( SeInv, xa, SxInv, K );
+
+        for (Index j = 0; j < n; j++ )
+        {
+            x_norm[j] = sqrt(abs(Sa(j,j)));
+        }
 
         write_vector( xa, "xa_t.txt" );
         write_vector( y0, "y_t.txt" );
         write_matrix( Se, "Se_t.txt" );
         write_matrix( Sa, "Sa_t.txt" );
 
-        // oem_gauss_newton( x_standard, G, J, y0, cost_y, cost_x, xa, SeInv,
-        //                   SaInv, K, 1e-5, 100, true );
-        cout << "vec:" << x_standard << endl;
-        // oem_gauss_newton_n_form( x_nform, y0, xa, K, SeInv, SaInv,
-        //                          1e-5, 100 );
-        // oem_gauss_newton_m_form( x_mform, y0, xa, K, SeInv, SaInv,
-        //                          1e-5, 100 );
-
+        oem.compute( x, y0, false );
+        oem.set_x_norm( x_norm );
+        oem.compute( x_n, y0, false );
         run_oem_matlab( x_m, eng, "test_oem_gauss_newton" );
 
-        cout << "Test " << i+1 << ": " << endl;
-        cout << "\t" << max_error( x_standard, x_m, true ) << endl;
-        cout << "\t" << max_error( x_nform, x_standard, true ) << endl;
-        cout << "\t" <<  max_error( x_mform, x_standard, true ) << endl;
+        cout << setw(9) << i+1 << setw(15);
+        cout << max_error( x, x_m, true ) << setw(15);
+        cout << max_error( x_n, x_m, true ) << setw(15);
+        cout << oem.iterations() << setw(15);
+        cout << endl;
+
     }
     cout << endl;
 }
@@ -776,7 +787,7 @@ void test_oem_levenberg_marquardt( Engine *eng,
                                    Index ntests )
 {
     Vector y0(m), y(m), yf(m), x(n), x_m(n), xa(n);
-    Matrix Se(m,m), Sa(n,n), SeInv(m,m), SaInv(n,n), G(n,m), J(m,n);
+    Matrix Se(m,m), Sa(n,n), SeInv(m,m), SxInv(n,n), G(n,m), J(m,n);
 
     cout << "Testing Levenberg-Marquardt OEM: m = " << m << ", n = ";
     cout << n << ", ntests = " << ntests << endl;
@@ -795,14 +806,14 @@ void test_oem_levenberg_marquardt( Engine *eng,
         write_matrix( Sa, "Sa_t.txt" );
 
         inv( SeInv, Se );
-        inv( SaInv, Sa );
+        inv( SxInv, Sa );
 
         Numeric gamma_start = 4.0;
         Numeric gamma_max = 100.0;
         Numeric gamma_scale_dec = 2.0;
         Numeric gamma_scale_inc = 3.0;
         Numeric gamma_threshold = 1.0;
-        oem_levenberg_marquardt( x, yf, J, G, y0, xa, SeInv, SaInv, K,
+        oem_levenberg_marquardt( x, yf, J, G, y0, xa, SeInv, SxInv, K,
                                  1e-5, 1000,
                                  gamma_start,
                                  gamma_scale_dec,
@@ -826,8 +837,8 @@ int main()
     setup_test_environment( eng );
 
     // Run tests and benchmarks.
-    test_oem_linear( eng, 10, 10, 10 );
-    //test_oem_gauss_newton( eng, 100, 100, 10 );
+    //    test_oem_linear( eng, 10, 10, 10 );
+    test_oem_gauss_newton( eng, 100, 100, 100 );
     //test_oem_levenberg_marquardt( eng, 100, 100, 10 );
 
     //benchmark_inv( eng, 100, 2000, 16);

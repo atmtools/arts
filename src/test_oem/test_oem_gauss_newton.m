@@ -19,6 +19,7 @@ f = @( q, r, x, iter ) forward_model( J, H, q, r, x, iter );
 O = oem;
 O.linear = false;
 O.itermethod = 'GN';
+O.sxnorm = true;
 t1 = cputime;
 [X,r] = oem(O, struct, [], f, Sa, Se, [], [], xa, y);
 x = X.x;

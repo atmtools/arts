@@ -1,3 +1,20 @@
+2015-10-22  Simon Pfreundschuh  <simonpf@chalmers.se>
+
+	* arts-2-3-349
+
+	* m_oem.cc Fixed AgendaWrapper to not overwrite Jacobian when only
+	evaluating the forward model.
+
+	* oem.* Introduced GaussNewtonOEM class for Gauss-Newton OEM.
+	Refactored Gauss-Newton code.
+
+	* test_oem/test_oem_gauss_newton.m Use normalization in when
+	comparing to Matlab.
+
+	* test_oem.cc Adapted test to changes in OEM interface.
+
+	* test_utils.* Added function to add noise to vector.
+
 2015-10-22  Richard Larsson   <ric.larsson@gmail.com>
 
 	* arts-2-3-348

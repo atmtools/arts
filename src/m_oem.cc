@@ -131,9 +131,10 @@ public:
     void evaluate( VectorView &yi,
                    const ConstVectorView &xi )
         {
+            Matrix dummy;
             inversion_iterate_agendaExecute( *ws,
                                              dynamic_cast<Vector&>( yi ),
-                                             dynamic_cast<Matrix&>( *jacobian ),
+                                             dummy,
                                              xi,
                                              0,
                                              *inversion_iterate_agenda );
@@ -699,7 +700,7 @@ void oem(
           oem_diagnostics[0] = (Numeric)
             oem_gauss_newton( x, dxdy, jacobian, yf, cost_y, cost_x, used_iter,
                               aw, xa, x_norm, y, covmat_so_inv, covmat_sx_inv, 
-                              cost_start, max_iter, stop_dx, display_progress );
+                              cost_start, max_iter, stop_dx, true ); //display_progress );
           //
           oem_diagnostics[2] = cost_y + cost_x;
           oem_diagnostics[3] = cost_y;

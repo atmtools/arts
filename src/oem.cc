@@ -141,7 +141,10 @@ void log_step_gn( ostream& stream,
     stream << setw(15) << cost;
     stream << setw(15) << cost_x;
     stream << setw(15) << cost_y;
-    stream << setw(15) << di2;
+    if (di2 < 0)
+        stream << setw(15) << "";
+    else
+        stream << setw(15) << di2;
     stream << endl;
 }
 
@@ -344,15 +347,11 @@ void oem_cost_y( Numeric& cost_y,
 void oem_cost_x( Numeric& cost_x,
                  ConstVectorView x,
                  ConstVectorView xa,
-                 ConstVectorView x_norm,
                  ConstMatrixView SxInv,
                  const Numeric&  normfac )
 {
 
   Vector dx = x; dx -= xa;
-
-  if ( x_norm.nelem() > 0 )
-      dx /= x_norm;
 
   Vector tmp( x.nelem() );
   mult( tmp, SxInv, dx );
@@ -494,8 +493,6 @@ LinearOEM::LinearOEM( ConstMatrixView J_,
     assert( is_size( SxInv_, n, n ) );
     assert( is_size( xa_, n ) );
 
-    SeInv = SeInv_;
-    SxInv = SxInv_;
     xa = xa_;
 
     matrices_set = false;
@@ -527,8 +524,6 @@ void LinearOEM::set_x_norm( ConstVectorView x_norm_ )
     matrices_set = false;
     gain_set = false;
 
-    tmp_nn_2.resize( n, n );
-    mult_outer( tmp_nn_2, SxInv, x_norm );
 }
 
 //! Return normalization vector.
@@ -571,21 +566,16 @@ int LinearOEM::compute( Vector &x,
     {
         mult( tmp_nm_1, transpose(J), SeInv );
         mult( tmp_nn_1, tmp_nm_1, J);
+        tmp_nn_1 += SxInv;
 
         if ( x_norm_set )
         {
             mult_outer( tmp_nn_1, tmp_nn_1, x_norm );
-            tmp_nn_1 += tmp_nn_2;
             scale_rows( tmp_nm_1, tmp_nm_1, x_norm );
-        }
-        else
-        {
-            tmp_nn_1 += SxInv;
         }
 
         ludcmp( LU, indx, tmp_nn_1 );
 
-        if ( x_norm_set )
 
         matrices_set = true;
     }
@@ -597,14 +587,14 @@ int LinearOEM::compute( Vector &x,
     {
         mult( tmp_n_1, tmp_nm_1, tmp_m_1 );
         lubacksub( x, LU, tmp_n_1, indx);
+
+        if (x_norm_set)
+            x *= x_norm;
     }
     else
     {
         mult( x, G, tmp_m_1 );
     }
-
-    if (x_norm_set)
-        x *= x_norm;
 
     x += xa;
 
@@ -654,16 +644,12 @@ void LinearOEM::compute_gain_matrix()
     {
         mult( tmp_nm_1, transpose(J), SeInv );
         mult( tmp_nn_1, tmp_nm_1, J);
+        tmp_nn_1 += SxInv;
 
         if ( x_norm_set )
         {
             mult_outer( tmp_nn_1, tmp_nn_1, x_norm );
-            tmp_nn_1 += tmp_nn_2;
             scale_rows( tmp_nm_1, tmp_nm_1, x_norm );
-        }
-        else
-        {
-            tmp_nn_1 += SxInv;
         }
 
         ludcmp( LU, indx, tmp_nn_1 );
@@ -733,7 +719,7 @@ int LinearOEM::compute_fit( Vector &yf,
     F.evaluate( yf, x );
 
     oem_cost_y( cost_y, y, yf, SeInv, (Numeric) m);
-    oem_cost_x( cost_x, x, xa, x_norm, SeInv, (Numeric) m);
+    oem_cost_x( cost_x, x, xa, SxInv, (Numeric) m);
 
     return 0;
 }
@@ -791,7 +777,9 @@ Index oem_linear_nform( Vector& x,
     assert( (SxInv.ncols() == n) && (SxInv.nrows() == n) );
 
     LinearOEM oem( J, SeInv, xa, SxInv );
-    oem.set_x_norm( x_norm );
+
+    if ( x_norm.nelem() == n )
+        oem.set_x_norm( x_norm );
 
     // Initialize log output.
     if (verbose)
@@ -810,12 +798,285 @@ Index oem_linear_nform( Vector& x,
         log_finalize_li( cout );
       }
 
+
     // Return convergence status
     return 1;   // Should be set to 9 if failure when calculating yf
 }
 
+//------------------------------------------------------------------------------------
+//
+// Gauss-Newton OEM Class
+//
+//------------------------------------------------------------------------------------
+
+//! Create GaussNewtonOEM object.
+/*!
+  Set up a non-linear Gauss-Newton OEM computation. Given the inverse
+  measurement and state covariance matrices SeInv, SxInv, the a priori
+  state vector xa and a ForwardModel instance representing the forward model,
+  this function allocates the memory required for the computation and
+  sets the default values for the computation.
+
+  Mermory for the following matrices and vectors is allocated:
+
+  - 3 [n,m] matrix
+  - 2 [n,n] matrices
+  - 2 n-element vectors
+  - 3 n-element vectors
+
+  The default values for the computation are:
+
+  maxIter = 100
+  tol = 10e-3
+
+  \param SeInv_ The inverse of the measurement covariance matrix
+  \param xa_ The a priori state vector
+  \param SxInv_  The inverse of the state covariance matrix
+  \param F_ The forward model
+*/
+GaussNewtonOEM::GaussNewtonOEM( ConstMatrixView SeInv_,
+                                ConstVectorView xa_,
+                                ConstMatrixView SxInv_,
+                                ForwardModel &F_ )
+    : SeInv(SeInv_), SxInv(SxInv_), xa(xa_), F(F_)
+{
+
+    m = SeInv_.nrows();
+    n = SxInv_.nrows();
+
+    assert( xa_.nelem() == n );
+    assert( (SeInv_.ncols() == m) && (SeInv_.nrows() == m) );
+    assert( (SxInv_.ncols() == n) && (SxInv_.nrows() == n) );
+
+    xa = xa_;
+
+    // Allocate memory for internal matrices and vectors.
+    J = Matrix(m,n);
+    G = Matrix(n,m);
+    tmp_nm_1 = Matrix(n,m);
+    tmp_nn_1 = Matrix(n,n);
+    tmp_nn_2 = Matrix(n,n);
+
+    tmp_m_1 = Vector(m);
+    tmp_m_2 = Vector(m);
+    tmp_n_1 = Vector(n);
+    tmp_n_2 = Vector(n);
+    dx = Vector(n);
+    yi = Vector(m);
+
+    // Initialize internal state variables.
+    matrices_set = false;
+    gain_set = false;
+    x_norm_set = false;
+    conv = false;
+
+    // Default iteration parameters.
+    tol = 1e-5;
+    maxIter = 100;
+}
+
+//! Set normalization vector.
+/*!
+  Set the vector used to normalize the state covariance matrix to improve
+  numerical robustness.
+
+  \param x_norm_ The normalizatoin vector.
+*/
+void GaussNewtonOEM::set_x_norm( ConstVectorView x_norm_ )
+{
+    x_norm = x_norm_;
+    x_norm_set = true;
+}
+
+//! Return current normalization vector.
+/*!
+  \return The current normalization vector
+*/
+ConstVectorView GaussNewtonOEM::get_x_norm()
+{
+    return x_norm;
+}
+
+//! Perform OEM computation.
+/*!
+  Computes the Bayesian optimal estimator for the state vector x, given a
+  measurement vector y. The computation is performed using the n-form of the
+  Gauss-Newton method as given in equation (5.8) by Rodgers.
+
+  The iteration aborts when the maximum number of iterations maxIter is reached,
+  or when the criterion (5.29) in Rodgers book is satisfied.
+
+  \param x The Bayesian optimal estimator for the measurement vector y
+  \param y The measurement vector
+  \param verbose If true, print log to standard out.
+*/
+void GaussNewtonOEM::compute( Vector &x,
+                              ConstVectorView y,
+                              bool verbose )
+{
+    Numeric di2 = -1.0;
+
+    cost_x = 0.0; cost_y = 0.0;
+    iter = 0;
+    conv = false;
 
 
+    // Set the starting vector.
+    x = xa;
+
+    while ( (!conv) && (iter < maxIter) )
+    {
+        // Compute Jacobian and y_i.
+        F.evaluate_jacobian( yi, J, x);
+
+        mult( tmp_nm_1, transpose(J), SeInv );
+        mult( tmp_nn_1, tmp_nm_1, J );
+        tmp_nn_1 += SxInv;
+
+        if (x_norm_set)
+        {
+            mult_outer( tmp_nn_1, tmp_nn_1, x_norm );
+            scale_rows( tmp_nm_1, tmp_nm_1, x_norm );
+        }
+
+        // tm1 = K_i(x_i - x_a)
+
+        tmp_n_1 = x;
+        tmp_n_1 -= xa;
+        mult( tmp_n_2, SxInv, tmp_n_1 );
+
+        if (x_norm_set)
+            tmp_n_2 *= x_norm;
+
+        tmp_m_1 = y;
+        tmp_m_1 -= yi;
+        // tmp_n_1 = K_i^T * S_e^{-1} * (y - F(x_i))
+        mult( tmp_n_1, tmp_nm_1, tmp_m_1 );
+
+        // This vector is used to test for convergence later.
+        // See eqn. (5.31).
+        tmp_n_1 -= tmp_n_2;
+
+        // Compute cost function and convergence criterion.
+        oem_cost_x( cost_x, x, xa, SxInv, (Numeric) m);
+        oem_cost_y( cost_y, y, yi, SeInv, (Numeric) m);
+
+        // Print log.
+        if ( verbose )
+            log_step_gn( cout, iter, cost_x + cost_y, cost_x, cost_y, di2 );
+
+        solve( dx, tmp_nn_1, tmp_n_1 );
+
+        if (x_norm_set)
+            dx *= x_norm;
+        x += dx;
+        iter++;
+
+        // Compute convergence criterion.
+        di2 = dx * tmp_n_1;
+
+        // If converged, stop iteration.
+        if ( di2 <= tol * (Numeric) n )
+        {
+            conv = true;
+        }
+    }
+}
+
+//! Perform OEM computation.
+/*!
+  Performs the same computations as the standard compute method and also
+  computes the gain matrix.
+
+  \param x The Bayesian optimal estimator for the measurement vector y
+  \param G_ The gain matrix
+  \param y The measurement vector
+  \param verbose If true, print log to standard out.
+*/
+void GaussNewtonOEM::compute( Vector &x,
+                              MatrixView G_,
+                              ConstVectorView y,
+                              bool verbose )
+{
+
+    compute( x, y, verbose );
+    compute_gain_matrix( x );
+    G_ = G;
+
+}
+
+//! Compute fit.
+/*!
+  Compute fit for a given estimated state vector.
+
+  \param yf The fitted measurement vector
+  \param x The estimated state vector
+
+  \return Error code indicating success or failure of the computation of
+  the fit.
+*/
+Index GaussNewtonOEM::compute_fit( Vector &yf,
+                                   const Vector &x )
+{
+    // TODO: Catch errors.
+
+    F.evaluate( yf, x );
+    return 0;
+}
+
+//! Compute fit and evaluate cost function.
+/*!
+  Compute the fitted measurement vector for a given state vector and
+  evaluate the cost function.
+
+  \param yf The fitted measurement vector
+  \param cost_x_ The x-part of the cost function value
+  \param cost_y_  The y-part of the cost function value
+  \param x The estimated state vector
+  \param y The original measurement vector
+
+  \return Error code indicating success or failure of the computation of
+  the fit.
+*/
+Index GaussNewtonOEM::compute_fit( Vector &yf,
+                                   Numeric &cost_x_,
+                                   Numeric &cost_y_,
+                                   const Vector &x,
+                                   ConstVectorView y )
+{
+    // TODO: Catch erros.
+    F.evaluate( yf, x );
+
+    oem_cost_y( cost_y_, y, yf, SeInv, (Numeric) m);
+    oem_cost_x( cost_x_, x, xa, SxInv, (Numeric) m);
+
+    return 0;
+
+}
+
+//! Compute gain matrix.
+/*!
+  Compute the gain matrix for a given state vector x.
+
+  \param x The state vector
+*/
+void GaussNewtonOEM::compute_gain_matrix( Vector& x )
+{
+    F.evaluate_jacobian( tmp_m_1, J, x);
+
+    mult( tmp_nm_1, transpose(J), SeInv );
+    mult( tmp_nn_1, tmp_nm_1, J );
+    tmp_nn_1 += SxInv;
+
+    if (x_norm_set)
+    {
+        mult_outer( tmp_nn_1, tmp_nn_1, x_norm );
+        scale_columns( tmp_nm_1, tmp_nm_1, x_norm );
+    }
+
+    inv( tmp_nn_2, tmp_nn_1 );
+    mult( G, tmp_nn_2, tmp_nm_1 );
+}
 
 //! Gauss-Newton non-linear OEM using precomputed inverses, n-form.
 /*!
@@ -849,7 +1110,7 @@ Index oem_gauss_newton( Vector& x,
                         Matrix& G,
                         Matrix& J,
                         Vector& yf,
-                        Numeric& cost_y, 
+                        Numeric& cost_y,
                         Numeric& cost_x,
                         Index& iter,
                         ForwardModel &F,
@@ -873,95 +1134,31 @@ Index oem_gauss_newton( Vector& x,
     assert( (SeInv.ncols() == m) && (SeInv.nrows() == m) );
     assert( (SxInv.ncols() == n) && (SxInv.nrows() == n) );
 
-    Numeric di2;
+    GaussNewtonOEM oem( SeInv, xa, SxInv, F);
+    oem.tolerance( tol );
+    oem.maximum_iterations( maxIter );
 
-    // Following Rodgers' notation, we use Ki for the notation: J = Ki
-    Matrix KiTSeInv(n,m), KiTSeInvKi(n,n), KiTSeInvKi2(n,n);
-    Vector tm1(m), tm2(m), tn1(n), tn2(n), dx(n);
-
-    cost_x = 0.0; cost_y = 0.0;
-
-    iter = 0;
-    bool converged = false;
+    if ( x_norm.nelem() == n )
+        oem.set_x_norm( x_norm );
 
     // Initialize log output.
     if (verbose)
       {
-        log_init_gn( cout, tol, maxIter );
-        log_step_gn( cout, 0, cost_start, 0, cost_start, NAN );
+          log_init_gn( cout, oem.tolerance(), oem.maximum_iterations() );
       }
 
-    // Set the starting vector.
-    x = xa;
-
-    while ( (!converged) && (iter < maxIter) )
-    {
-        // Compute Jacobian and y_i.
-        F.evaluate_jacobian( yf, J, x);
-
-        mult( KiTSeInv, transpose(J), SeInv );
-        mult( KiTSeInvKi, KiTSeInv, J );
-        KiTSeInvKi += SxInv;
-
-        // tm1 = K_i(x_i - x_a)
-
-        tn1 = x;
-        tn1 -= xa;
-        mult( tn2, SxInv, tn1 );
-
-        tm1 = y;
-        tm1 -= yf;
-        // tn1 = K_i^T * S_e^{-1} * (y - F(x_i))
-        mult( tn1, KiTSeInv, tm1 );
-
-        // This vector is used to test for convergence later.
-        // See eqn. (5.31).
-        tn1 -= tn2;
-
-        solve( dx, KiTSeInvKi, tn1 );
-        x += dx;
-
-        di2 = dx * tn1;
-        if ( di2 <= tol * (Numeric) n )
-        {
-            converged = true;
-        }
-
-
-        // Increase convergence counter and check for convergence.
-        iter++;
-
-        // Compute cost function contributions.
-        tn1 = xa;
-        tn1 -= x;
-        mult( tn2, SxInv, tn1 );
-        cost_x = tn2*tn1;
-        cost_x /= (Numeric) m;
-
-        mult( tm2, SeInv, tm1 );
-        cost_y = tm1*tm2;
-        cost_y /= (Numeric) m;
-
-        // Print log.
-        if ( verbose )
-            log_step_gn( cout, iter, cost_x + cost_y, cost_x, cost_y, di2 );
-    }
-
-    // Compute fitted measurement vector and jacobian.
-    F.evaluate_jacobian( yf, J, x );
-
-    // Compute gain matrix.
-    inv( KiTSeInvKi2, KiTSeInvKi );
-    mult( G, KiTSeInvKi2, KiTSeInv );
+    oem.compute( x, G, y, verbose );
+    oem.compute_fit( yf, cost_x, cost_y, x, y );
+    F.evaluate_jacobian( yf, J, x);
 
     // Finalize log output.
     if ( verbose )
-        log_finalize_gn( cout, converged, iter, maxIter );
+        log_finalize_gn( cout, oem.converged(), iter, maxIter );
 
-    if( converged )
+    if( oem.converged() )
       return 0;
     else
-      return 1;      
+      return 1;
 }
 
 
@@ -1046,9 +1243,9 @@ bool oem_levenberg_marquardt( Vector& x,
     cost_old = 0.0;
 
     Index iter = 0;
-    bool converged = false;
+    bool conv = false;
 
-    while ( (!converged) && (iter < maxIter) )
+    while ( (!conv) && (iter < maxIter) )
     {
         // Compute Jacobian and y_i.
         K.evaluate_jacobian( yi, J, x);
@@ -1157,7 +1354,7 @@ bool oem_levenberg_marquardt( Vector& x,
 
         if ( di2 <= tol )
         {
-            converged = true;
+            conv = true;
         }
 
         if ( verbose )
@@ -1175,9 +1372,9 @@ bool oem_levenberg_marquardt( Vector& x,
     mult( G, KiTSeInvKi2, KiTSeInv );
 
     if ( verbose )
-        log_finalize_lm( cout, converged, cost, cost_x, cost_y,
+        log_finalize_lm( cout, conv, cost, cost_x, cost_y,
                          gamma, gamma_max, iter, maxIter );
-    return converged;
+    return conv;
 }
 
 

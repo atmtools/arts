@@ -28,6 +28,24 @@
 
 using std::abs;
 
+//! Add noise to vector.
+/*!
+
+  \param[in,out] v The vector to add the noise to.
+  \param[in] scale Range for the generated noise given by [0,scale].
+*/
+void add_noise( VectorView v,
+                Numeric scale )
+{
+    Rand<Numeric> rand( 0, scale );
+
+    for ( Index i = 0; i < v.nelem(); i++ )
+    {
+        v[i]+= rand();
+    }
+
+}
+
 //! Fill matrix with random values.
 /*!
 

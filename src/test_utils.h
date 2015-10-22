@@ -87,6 +87,9 @@ private:
 
 };
 
+// Add noise to vector.
+void add_noise( VectorView v,
+                Numeric range );
 
 // Fill matrix with random values.
 void random_fill_matrix( MatrixView A,
