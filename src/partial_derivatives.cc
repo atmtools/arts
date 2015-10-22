@@ -210,8 +210,8 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix&  partials_attenuati
                 if(do_partials_phase)// Minus signs should be here due to iFb, though this must be tested!
                     this_partial_phase[iv]   += 
                     (dS_dT + dfn_dT[iv]/C[iv] + dnorm_dT) * ls_B + //Line strength
-                    dG_LM_dT  * CF_B[iv]  - dY_LM_dT * CF_A[iv]  - //Line Mixing (absolute)
-                    dF_dT[iv] * dFb_dx[iv] -                       //Frequency line shape
+                    dG_LM_dT  * CF_B[iv]  - dY_LM_dT * CF_A[iv]  + //Line Mixing (absolute)
+                    dF_dT[iv] * dFb_dx[iv] +                       //Frequency line shape
                     dP_dT     * dFb_dy[iv];                        //Pressure line shape
                 
                 if(do_src)

@@ -27,6 +27,8 @@
 #include "jacobian.h"
 #include "linescaling.h"
 #include "lineshapes.cc"
+#include "lin_alg.h"
+#include "rte.h"
 
 void test_pressurebroadening()
 {
@@ -180,7 +182,7 @@ void test_lineshape()
     for(Numeric p =-2;p<6;p++)
     {
         const Numeric P = pow10(p);
-        //std::cout<<"\nPressure: "<<P<<"\n";
+        //std::cout<<"\nPressure: "<<P<<" Pa. dT: "<<dT<<" K\n";
         for(Numeric T = 150; T<350; T+=20)
         {
             line.PressureBroadening().GetPressureBroadeningParams(g,tmp1,tmp2,df,tmp3,tmp4,
@@ -245,7 +247,7 @@ void test_lineshape()
                            dy_dT,
                            dnorm_dT,
                            f_grid,     
-                           line.F(),    // Note that this is NOT the line center, but the shifted center
+                           line.F(),    // Note that this is NOT the line center, but the shifted center (normally, and in our case the shift is nil)
                            sigma, 
                            df,    
                            0.0,    
@@ -253,6 +255,7 @@ void test_lineshape()
                            g,
                            dg);
             
+//             std::cout<<"Temperature: "<<T<<" K\n";
 //             for(Index iv=0;iv<5; iv++)
 //             {
 //                 std::cout<<((ls_d[iv]-ls[iv])/dT - dx_dT[iv]*dls_dx[iv] 
@@ -268,6 +271,82 @@ void test_lineshape()
     }
 }
 
+void test_matrixexp()
+{
+   // Startup
+   Matrix tmp(4,4);
+   Numeric length;
+   
+   // Below are examples from one run.
+   
+   // length for ip
+   length=8407.36;
+   //dtdx for ip
+   tmp(0,0)=1.06286e-08; tmp(0,1)=3.81257e-10; tmp(0,2)=7.23907e-10; tmp(0,3)=-5.71387e-09; 
+   tmp(1,0)=3.81268e-10; tmp(1,1)=1.06286e-08; tmp(1,2)=1.0299e-08; tmp(1,3)=4.25483e-09; 
+   tmp(2,0)=7.23901e-10; tmp(2,1)=-1.0299e-08; tmp(2,2)=1.06286e-08; tmp(2,3)=-2.24089e-09; 
+   tmp(3,0)=-5.71387e-09; tmp(3,1)=-4.25481e-09; tmp(3,2)=2.24093e-09; tmp(3,3)=1.06286e-08; 
+   const Matrix dtdx=tmp;
+   //ppath_ext for ip+1
+   tmp(0,0)=6.57435e-10; tmp(0,1)=2.38216e-11; tmp(0,2)=4.52381e-11; tmp(0,3)=-3.49977e-10; 
+   tmp(1,0)=2.38216e-11; tmp(1,1)=6.57435e-10; tmp(1,2)=6.81735e-10; tmp(1,3)=2.71398e-10; 
+   tmp(2,0)=4.52381e-11; tmp(2,1)=-6.81735e-10; tmp(2,2)=6.57435e-10; tmp(2,3)=-1.42913e-10; 
+   tmp(3,0)=-3.49977e-10; tmp(3,1)=-2.71398e-10; tmp(3,2)=1.42913e-10; tmp(3,3)=6.57435e-10; 
+   const Matrix ppath_ext_1=tmp;
+   //ppath_ext for ip
+   tmp(0,0)=2.08609e-10; tmp(0,1)=7.33668e-12; tmp(0,2)=1.39302e-11; tmp(0,3)=-1.11706e-10; 
+   tmp(1,0)=7.33668e-12; tmp(1,1)=2.08609e-10; tmp(1,2)=2.13876e-10; tmp(1,3)=8.65063e-11; 
+   tmp(2,0)=1.39302e-11; tmp(2,1)=-2.13876e-10; tmp(2,2)=2.08609e-10; tmp(2,3)=-4.55607e-11; 
+   tmp(3,0)=-1.11706e-10; tmp(3,1)=-8.65063e-11; tmp(3,2)=4.55607e-11; tmp(3,3)=2.08609e-10; 
+   const Matrix ppath_ext_0=tmp
+   ;//dppath_ext_dx for ip
+   tmp(0,0)=2.08609e-10; tmp(0,1)=7.33668e-12; tmp(0,2)=1.39302e-11; tmp(0,3)=-1.11706e-10; 
+   tmp(1,0)=7.33668e-12; tmp(1,1)=2.08609e-10; tmp(1,2)=0; tmp(1,3)=0; 
+   tmp(2,0)=1.39302e-11; tmp(2,1)=0; tmp(2,2)=2.08609e-10; tmp(2,3)=0; 
+   tmp(3,0)=-1.11706e-10; tmp(3,1)=0; tmp(3,2)=0; tmp(3,3)=2.08609e-10; 
+   const Matrix ppath_ext_0_test=tmp
+   ;//dppath_ext_dx for ip
+   tmp(0,0)=-2.53045e-12; tmp(0,1)=-9.07729e-14; tmp(0,2)=-1.72351e-13; tmp(0,3)=1.36037e-12; 
+   tmp(1,0)=-9.07729e-14; tmp(1,1)=-2.53045e-12; tmp(1,2)=-2.59077e-12; tmp(1,3)=-1.2184e-12; 
+   tmp(2,0)=-1.72351e-13; tmp(2,1)=2.59077e-12; tmp(2,2)=-2.53045e-12; tmp(2,3)=6.41701e-13; 
+   tmp(3,0)=1.36037e-12; tmp(3,1)=1.2184e-12; tmp(3,2)=-6.41701e-13; tmp(3,3)=-2.53045e-12; 
+   const Matrix dppath_ext_dx=tmp;
+   tmp(0,0)=-2.53045e-12; tmp(0,1)=-9.07729e-14; tmp(0,2)=-1.72351e-13; tmp(0,3)=1.36037e-12; 
+   tmp(1,0)=-9.07729e-14; tmp(1,1)=-2.53045e-12; tmp(1,2)=0; tmp(1,3)=0; 
+   tmp(2,0)=-1.72351e-13; tmp(2,1)=0; tmp(2,2)=-2.53045e-12; tmp(2,3)=0; 
+   tmp(3,0)=1.36037e-12; tmp(3,1)=0; tmp(3,2)=0; tmp(3,3)=-2.53045e-12; 
+   const Matrix dppath_ext_dx_test=tmp;
+   //ppath_ext_dt for ip
+   tmp(0,0)=2.08356e-10; tmp(0,1)=7.32761e-12; tmp(0,2)=1.3913e-11; tmp(0,3)=-1.1157e-10; 
+   tmp(1,0)=7.32761e-12; tmp(1,1)=2.08356e-10; tmp(1,2)=2.13631e-10; tmp(1,3)=8.64051e-11; 
+   tmp(2,0)=1.3913e-11; tmp(2,1)=-2.13631e-10; tmp(2,2)=2.08356e-10; tmp(2,3)=-4.55074e-11; 
+   tmp(3,0)=-1.1157e-10; tmp(3,1)=-8.64051e-11; tmp(3,2)=4.55074e-11; tmp(3,3)=2.08356e-10; 
+   const Matrix ppath_ext_dt=tmp;
+   //trans_partial for ip
+   tmp(0,0)=0.999996; tmp(0,1)=-1.30978e-07; tmp(0,2)=-2.48724e-07; tmp(0,3)=1.94076e-06; 
+   tmp(1,0)=-1.3098e-07; tmp(1,1)=0.999996; tmp(1,2)=-3.76485e-06; tmp(1,3)=-1.50451e-06; 
+   tmp(2,0)=-2.48723e-07; tmp(2,1)=3.76485e-06; tmp(2,2)=0.999996; tmp(2,3)=7.92277e-07; 
+   tmp(3,0)=1.94076e-06; tmp(3,1)=1.50451e-06; tmp(3,2)=-7.92283e-07; tmp(3,3)=0.999996; 
+   const Matrix trans_partial=tmp;
+   
+   
+   Matrix T(4,4),dT(4,4), A(4,4),dA(4,4);
+   
+   A=ppath_ext_0;
+   A*=-length;
+   dA=dppath_ext_dx;
+   dA*=-0.5*length;
+   matrix_exp_dmatrix_exp(T,dT,A,dA,6);
+   
+   tmp=dtdx;
+   tmp-=dT;
+   tmp/=dT;
+   
+//    std::cout<<"test:\n";
+//    std::cout<<tmp<<"\n\ndtdx:\n";
+//    Really large relative errors of almost 20%.  Still believable results since relative change is less than 1e-4 for normal cases.
+}
+
 int main()
 {
     std::cout<<"Testing Propmat Partials\n";
@@ -275,5 +354,6 @@ int main()
     test_partitionfunction();
     test_K1_and_K2();
     test_lineshape();
+    test_matrixexp();
     return 0;
 }

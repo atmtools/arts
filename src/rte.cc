@@ -1269,7 +1269,7 @@ void ext2trans_and_ext2dtrans_dx(
         Index q = 10;  // index for the precision of the matrix exp function
         //
         special_matrix_exp_and_dmatrix_exp_dx_for_rt( trans_mat, dtrans_mat_dx_upp, dtrans_mat_dx_low,
-                                                      ext_mat_ds, dext_mat_ds_dx_upp, dext_mat_ds_dx_low, q );
+                                ext_mat_ds, dext_mat_ds_dx_upp, dext_mat_ds_dx_low, q );
     }
 }
 
@@ -2269,9 +2269,9 @@ void get_ppath_trans_and_dppath_trans_dx(
                         for( Index iq=0; iq<nq; iq++ )
                         {
                             // Upper and lower level influence on the dependency at layer
-                            dext_mat_dx_from_above(iq,is1,is1) = 
+                            dext_mat_dx_from_above(iq,is1,is2) = 
                             0.5 * dppath_ext_dx(iq,iv,is1,is2,ip);
-                            dext_mat_dx_from_below(iq,is1,is1) = 
+                            dext_mat_dx_from_below(iq,is1,is2) = 
                             0.5 * dppath_ext_dx(iq,iv,is1,is2,ip-1);
                     } } }
                     scalar_tau[iv] += ppath.lstep[ip-1] * ext_mat(0,0); 
@@ -2281,7 +2281,7 @@ void get_ppath_trans_and_dppath_trans_dx(
                                 dtrans_partial_dx_from_above(joker, iv,joker,joker,ip-1), 
                                 dtrans_partial_dx_from_below(joker, iv,joker,joker,ip-1), 
                                 extmat_case[ip-1][iv], ext_mat, 
-                                dext_mat_dx_from_above,dext_mat_dx_from_below,
+                                dext_mat_dx_from_above, dext_mat_dx_from_below,
                                 ppath.lstep[ip-1] );
                     
                     // Cumulative transmission

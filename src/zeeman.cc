@@ -529,7 +529,7 @@ void xsec_species_line_mixing_wrapper_with_zeeman(
     const Index nq = flag_partials.nelem();
     const Index nf = f_grid.nelem();
     const Numeric n = abs_vmrs(this_species, 0)*number_density( abs_p[0],abs_t[0]);
-    const Numeric dn_dT = abs_vmrs(this_species, 0)*number_density( abs_p[0],abs_t[0]);
+    const Numeric dn_dT = abs_vmrs(this_species, 0)*dnumber_density_dt( abs_p[0],abs_t[0]);
     
     // Setting up variables
     Matrix attenuation(nf, 1), 
@@ -657,7 +657,7 @@ void xsec_species_line_mixing_wrapper_with_zeeman(
                             }
                         }
                         else if(flag_partials(iq)==JQT_temperature)
-                        {
+                        {   
                             dpropmat_clearsky_dx[iq](iv,is1,is2) += (partial_attenuation[iq](iv,0)* n + attenuation(iv,0) * dn_dT) * K_a(is1,is2)
                                                                  +   2.0*(partial_phase[iq](iv,0) * n  + phase(iv,0)      * dn_dT) * K_b(is1,is2);
                         }

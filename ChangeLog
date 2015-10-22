@@ -1,3 +1,26 @@
+2015-10-22  Richard Larsson   <ric.larsson@gmail.com>
+
+	* arts-2-3-348
+	
+	Fix so that Zeeman temperature derivatives work with "from propmat".
+	There was a very small bug in indexing.
+	
+	* src/partial_derivatives.cc:  Changed sign to remove rather than
+	add the phase lineshape derivatives.  This is from the notion that
+	w(z=x+iy)=F=Fa+iFb, and multiplying things with iy results in negative
+	values.  I am very much unsure where the true minus sign is supposed
+	to be, here or in the lineshape, so that the physically correct number
+	is returned.  I choose here.
+	
+	* src/rte.cc:  Fixed bug in indexing the Stokes order... this made the
+	partial derivatives of the transmission wrong.
+	
+	* src/test_propmat_partials.cc:  Added test for matrix exponent and its 
+	derivative.
+	
+	* src/zeeman.cc:  Fix so that (dnumber_density_dt) is properly called
+	where needed...
+
 2015-10-22  Jana Mendrok  <jana.mendrok@ltu.se>
 
 	* arts-2-3-347
