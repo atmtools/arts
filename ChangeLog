@@ -1,3 +1,26 @@
+2015-10-26  Simon Pfreundschuh  <simonpf@chalmers.se>
+
+	* arts-2-3-352
+
+	src/CMakeLists.txt Reverted some accidentally commited local changes.
+
+2015-10-26  Simon Pfreundschuh  <simonpf@chalmers.se>
+
+	* arts-2-3-351
+
+	* oem.* Changed GaussNewtonOEM class to NonLinearOEM class and added
+	Levenberg-Marquardt method. Refactored the available methods.
+
+	* m_oem.cc Adapted function calls to changes in OEM interface.
+
+	* test_oem.cc Adapted tests to changes in OEM interface.
+
+	* test_utils.* Added function to generate random positive semi-definite
+	matrices.
+
+	* test_oem/test_oem_levenberg_marquardt Changed matrix nomenclature
+	to Sx for the state space covariance matrix.
+
 2015-10-26  Richard Larsson   <ric.larsson@gmail.com>
 
 	* arts-2-3-350
