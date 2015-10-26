@@ -1070,6 +1070,8 @@ firstprivate(ls_attenuation, fac, f_local, aux)
             }
             Matrix xsec_accum_attenuation(n_lbl_threads, xsec_i_attenuation.nelem(), 0);
             Matrix xsec_accum_source(n_lbl_threads, xsec_i_attenuation.nelem());
+            if(calc_src)
+              xsec_accum_source=0.0;
             
             // Simple caching of partition function to avoid recalculating things.
             Numeric qt_cache=-1, qref_cache=-1;

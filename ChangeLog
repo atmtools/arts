@@ -1,3 +1,18 @@
+2015-10-26  Richard Larsson   <ric.larsson@gmail.com>
+
+	* arts-2-3-350
+	
+	While running NLTE code I realized a regression due to some 
+	of my changes.  This update fixes that.
+	
+	* src/linescaling.cc:  Do not allow 0 vibrational temperatures.
+	This can cause 1/0.0, which is not a good situation to be in.
+	Of course, very small vibrational temperatures might still
+	cause numerical issues.
+	
+	* src/absorption.cc:  In a recent change, I forgot to initialize
+	the cumulative source term as zero... this is fixed.
+
 2015-10-22  Simon Pfreundschuh  <simonpf@chalmers.se>
 
 	* arts-2-3-349

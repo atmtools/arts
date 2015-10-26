@@ -125,17 +125,17 @@ void GetLineScalingData(Numeric& q_t,
       
       //r_low and r_upp are ratios for the population level compared to LTE conditions
       Numeric r_low, r_upp;
-      if( atm_tv_low > 1e-4 *atm_t ) // where 1e-4 is considered a small number so that the multiplication in the denominator does not reach zero
+      if( atm_tv_low > 0.0 ) // where 1e-4 is considered a small number so that the multiplication in the denominator does not reach zero
         r_low = exp( - line_evlow / BOLTZMAN_CONST * (atm_t-atm_tv_low) / (atm_t*atm_tv_low) );
-      else if( atm_tv_low >= 0.0 )
-        r_low = 0.0;
+      else if(atm_tv_low == 0.0)
+        throw std::runtime_error("A line has been defined with zero vibrational temperature.\nThis is not physical.\n");
       else
         r_low = 1.0;
 
-      if( atm_tv_upp > 1e-4 *atm_t ) // where 1e-4 is considered a small number so that the multiplication in the denominator does not reach zero
+      if( atm_tv_upp > 0.0 ) // where 1e-4 is considered a small number so that the multiplication in the denominator does not reach zero
         r_upp = exp( - line_evupp / BOLTZMAN_CONST * (atm_t-atm_tv_upp) / (atm_t*atm_tv_upp) );
-      else if( atm_tv_upp >= 0.0 )
-        r_upp = 0.0;
+      else if(atm_tv_upp  == 0.0)
+        throw std::runtime_error("A line has been defined with zero vibrational temperature.\nThis is not physical.\n");
       else
         r_upp = 1.0;
 
