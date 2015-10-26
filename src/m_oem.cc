@@ -699,8 +699,8 @@ void oem(
           //
           oem_diagnostics[0] = (Numeric)
             oem_gauss_newton( x, dxdy, jacobian, yf, cost_y, cost_x, used_iter,
-                              aw, xa, x_norm, y, covmat_so_inv, covmat_sx_inv, 
-                              cost_start, max_iter, stop_dx, true ); //display_progress );
+                              aw, xa, x_norm, y, covmat_so_inv, covmat_sx_inv,
+                              max_iter, stop_dx, display_progress ); //display_progress );
           //
           oem_diagnostics[2] = cost_y + cost_x;
           oem_diagnostics[3] = cost_y;
@@ -708,15 +708,19 @@ void oem(
         }
       else if ( (method == "lm") || (method == "ml") )
         {
-          Numeric gamma_start = ml_ga_settings[0];
+          Index used_iter;
+          Numeric cost_y, cost_x;
+          //Numeric gamma_start = ml_ga_settings[0];
+          Numeric gamma_start = 4.0;
           Numeric gamma_max = 100.0;
-          Numeric gamma_scale_dec = 2.0;
-          Numeric gamma_scale_inc = 3.0;
+          Numeric gamma_decrease = 2.0;
+          Numeric gamma_increase = 3.0;
           Numeric gamma_threshold = 1.0;
-          oem_levenberg_marquardt( x, yf, dxdy, jacobian, y, xa, covmat_so_inv, covmat_sx_inv, aw,
-                                   10e-3, 1000, gamma_start, gamma_scale_dec,
-                                   gamma_scale_inc, gamma_max, gamma_threshold,
-                                   display_progress );
+          oem_levenberg_marquardt( x, dxdy, jacobian, yf, cost_y, cost_x,
+                                   used_iter, aw, xa, x_norm, y, covmat_so_inv,
+                                   covmat_sx_inv, max_iter, stop_dx,
+                                   gamma_start, gamma_decrease, gamma_increase,
+                                   gamma_max, gamma_threshold, display_progress );
         }
 
       // Shall empty jacobian and dxdy be returned?

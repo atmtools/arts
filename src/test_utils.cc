@@ -79,6 +79,15 @@ void random_fill_matrix( MatrixView A,
     }
 }
 
+//! Generate random, symmetric matrix.
+/*!
+
+  \param[out] A The matrix to be filled.
+  \param[in] range The range from which values are genereated. If positive = true
+  the values are generated from the range [0,range], otherwise from the range
+  [-range, range]
+  \param[in] positive See above.
+*/
 void random_fill_matrix_symmetric( MatrixView A,
                                    Numeric range,
                                    bool positive )
@@ -86,6 +95,27 @@ void random_fill_matrix_symmetric( MatrixView A,
     random_fill_matrix( A, range, positive);
     Matrix M( A );
     A += transpose( M );
+}
+
+//! Generate random, positive semi-definite matrix.
+/*!
+
+  Generate a random, positive semi-definite matrix by
+  randomly generating a matrix and multiplying it by its transpose.
+
+  \param[out] A The random, positive semi-definite matrix.
+  \param[in] range The range from which the random values are picked. If
+  positive == true, the values are taken from the range [0,range], otherwise
+  the are taken from the range [-range, range].
+  \param[in] positive See above.
+*/
+void random_fill_matrix_pos_semi_def( MatrixView A,
+                                      Numeric range,
+                                      bool positive )
+{
+    random_fill_matrix( A, range, positive);
+    Matrix M( A );
+    mult( A, M, transpose(M) );
 }
 
 //! Fill vector with random values.

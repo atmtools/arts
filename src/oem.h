@@ -99,28 +99,28 @@ public:
     }
 
     // Compute optimal estimator, simple method.
-    int compute( Vector &x,
-                 ConstVectorView y,
-                 ConstVectorView y0 );
+    Index compute( Vector &x,
+                   ConstVectorView y,
+                   ConstVectorView y0 );
 
     // Compute optimal estimator using the Gain matrix.
-    int compute( Vector &x,
-                 MatrixView G,
-                 ConstVectorView y,
-                 ConstVectorView y0 );
+    Index compute( Vector &x,
+                   MatrixView G,
+                   ConstVectorView y,
+                   ConstVectorView y0 );
 
     // Compute the fit of a given estimator.
-    int compute_fit( Vector &yf,
-                     const Vector &x,
-                     ForwardModel &F );
+    Index compute_fit( Vector &yf,
+                       const Vector &x,
+                       ForwardModel &F );
 
     // Compute fit and cost of a given estimator.
-    int compute_fit( Vector &yf,
-                     Numeric &cost_x,
-                     Numeric &cost_y,
-                     Vector &x,
-                     ConstVectorView y,
-                     ForwardModel &F );
+    Index compute_fit( Vector &yf,
+                       Numeric &cost_x,
+                       Numeric &cost_y,
+                       Vector &x,
+                       ConstVectorView y,
+                       ForwardModel &F );
 private:
 
     // Hide default constructor.
@@ -144,31 +144,40 @@ private:
     ArrayOfIndex indx;
 };
 
-//! Gauss-Newton OEM Class
+//! OEM Method Enum
+/*!
+  OEM method enum representing the two methods for solving non-linear inverse
+  problems, Gauss-Newton and Levenberg-Marquardt.
+
+*/
+enum OEMMethod { GAUSS_NEWTON, LEVENBERG_MARQUARDT  };
+
+//! Non-Linear OEM Class
 /*!
 
-  Class to represent non-linear OEM computation using Gauss-Newton algorithm.
-  Given a non-linear forward model described by the inverses of the measurement
-  and state covariance matrices SeInv and SxInv, the a priori vector xa and a
-  ForwardModel instance K, the class can be used to compute the Bayesian optimal
-  estimator as desribed in Rodgers book. The form used is the n-form given in
-  formula (5.8).
+  Class to represent non-linear OEM computations. Given a forward model
+  described by the inverses of the measurement and state covariance matrices
+  SeInv and SxInv, the a priori vector xa and a ForwardModel instance F, the
+  class can computes the Bayesian optimal estimator using either the
+  Gauss-Newton method or Levenber-Marquardt method, as described in Rodgers
+  book. The form used is the n-form given in formula (5.8).
 
-  The GaussNewtonOEM object contains references to the matrices, vectors and the
+  The NonLinearOEM object contains references to the matrices, vectors and the
   forward model defining the problem, internal matrices, that are required
   during the computation and the computation state.
 
 */
-class GaussNewtonOEM
+class NonLinearOEM
 {
 
 public:
 
     // Constructor
-    GaussNewtonOEM( ConstMatrixView SeInv,
-                    ConstVectorView xa,
-                    ConstMatrixView SxInv,
-                    ForwardModel &F );
+    NonLinearOEM( ConstMatrixView SeInv,
+                  ConstVectorView xa,
+                  ConstMatrixView SxInv,
+                  ForwardModel &F,
+                  OEMMethod method );
 
     // Get and set normalization vector.
     void set_x_norm( ConstVectorView );
@@ -183,7 +192,7 @@ public:
    */
     void maximum_iterations( Index max )
     {
-        maxIter = max;
+        max_iter = max;
     }
 
     //! Get iteration maximum.
@@ -192,7 +201,7 @@ public:
     */
     Index maximum_iterations( )
     {
-        return maxIter;
+        return max_iter;
     }
 
     //! Set convergence criterion.
@@ -229,16 +238,86 @@ public:
         return iter;
     }
 
+    //! Set gamma start.
+    /*!
+      The set initial gamma value.
+
+      Note: Only affects Levenberg-Marquardt method.
+
+      \param[in] ga The new gamma_start value.
+    */
+    void gamma_start( Numeric ga )
+    {
+        ga_start = ga;
+    }
+
+    //! Set gamma scaling factor.
+    /*!
+      Set the factor that is used to INCREASE gamma if no new x-value can be
+      found that decreases the cost function.
+
+      Note: Only affects Levenberg-Marquardt method.
+
+      \param[in] ga The new gamma_increase value.
+    */
+    void gamma_increase( Numeric ga )
+    {
+        ga_increase = ga;
+    }
+
+    //! Set gamma scaling factor.
+    /*!
+      Set the factor that is used to DECREASE gamma if a new x-value was found
+      found that decreases the cost function.
+
+      Note: Only affects Levenberg-Marquardt method.
+
+      \param[in] ga The new gamma_decrease value.
+    */
+    void gamma_decrease( Numeric ga )
+    {
+        ga_decrease = ga;
+    }
+
+    //! Set maximum gamma value.
+    /*!
+      Gamma is increased until it reaches gamma_max. If no new x-value can be
+      found with a current gamma of gamma_max, the iteration aborts.
+
+      Note: Only affects Levenberg-Marquardt method.
+
+      \param[in] ga The new gamma_max value.
+    */
+    void gamma_max( Numeric ga )
+    {
+        ga_max = ga;
+    }
+
+    //! Set gamma threshold value.
+    /*!
+      If gamma is decreased until it reaches the threshold, it is set to zero.
+      If the current gamma is zero and no new x-value that decreases the cost
+      function can be found gamma is set to gamma_thresh.
+
+      Note: Only affects Levenberg-Marquardt method.
+
+      \param[in] ga The new gamma_threshold value.
+    */
+    void gamma_threshold( Numeric ga )
+    {
+        ga_threshold = ga;
+    }
+
     // Perform OEM calculation.
-    void compute( Vector &x,
-                  ConstVectorView y,
-                  bool verbose );
+    Index compute( Vector &x,
+                   ConstVectorView y,
+                   bool verbose );
 
     // Perform OEM calculation and compute gain matrix.
-    void compute( Vector &x,
-                  MatrixView G_,
-                  ConstVectorView y,
-                  bool verbose );
+    Index compute( Vector &x,
+                   MatrixView G_,
+                   ConstVectorView y,
+                   bool verbose );
 
     // Comute the fitted measurement vector.
     Index compute_fit( Vector &yf,
@@ -263,10 +342,16 @@ public:
 private:
 
     // Hide standard constructor.
-    GaussNewtonOEM();
+    NonLinearOEM();
 
-    // Internal function for computation of gain matrix.
+    // Internal member functions.
     void compute_gain_matrix( Vector& x );
+    void gauss_newton( Vector &x,
+                       ConstVectorView y,
+                       bool verbose );
+    void levenberg_marquardt( Vector &x,
+                              ConstVectorView y,
+                              bool verbose );
 
     // References to model data.
     ConstMatrixView SeInv, SxInv;
@@ -274,16 +359,19 @@ private:
     ForwardModel &F;
 
     // Internal state variables.
+    OEMMethod method;
     bool matrices_set, gain_set, x_norm_set, conv;
-    Index m, n, iter, maxIter;
+    Index m, n, iter, max_iter, err;
+    Numeric ga_max, ga_start, ga_threshold, ga_decrease, ga_increase;
 
     Numeric tol, cost_x, cost_y;
 
     // Internal matrices for intermediate results.
     Matrix G, J, tmp_nm_1, tmp_nn_1, tmp_nn_2;
-    Vector dx, yi, x_norm, tmp_m_1, tmp_m_2, tmp_n_1, tmp_n_2;
+    Vector dx, yi, xnew, x_norm, tmp_m_1, tmp_m_2, tmp_n_1, tmp_n_2;
 
 };
+
 
 void oem_cost_y( Numeric& cost_y,
                  ConstVectorView y,
@@ -324,34 +412,37 @@ Index oem_gauss_newton( Vector& x,
                         Vector& yf,
                         Numeric& cost_y,
                         Numeric& cost_x,
-                        Index& used_iter,
+                        Index& iter,
                         ForwardModel &F,
                         ConstVectorView xa,
                         ConstVectorView x_norm,
                         ConstVectorView y,
                         ConstMatrixView SeInv,
                         ConstMatrixView SxInv,
-                        const Numeric& cost_start,
-                        const Index maxIter,
+                        const Index max_iter,
                         const Numeric tol,
-                        const bool& verbose );
+                        bool verbose );
 
-bool oem_levenberg_marquardt( Vector& x,
-                              Vector& yf,
-                              Matrix& G,
-                              Matrix& J,
-                              ConstVectorView y,
-                              ConstVectorView xa,
-                              ConstMatrixView SeInv,
-                              ConstMatrixView SxInv,
-                              ForwardModel &K,
-                              Numeric tol,
-                              Index maxIter,
-                              Numeric gamma_start,
-                              Numeric gamma_scale_dec,
-                              Numeric gamma_scale_inc,
-                              Numeric gamma_max,
-                              Numeric gamma_threshold,
-                              bool verbose );
+Index oem_levenberg_marquardt( Vector &x,
+                               Matrix &G,
+                               Matrix &J,
+                               Vector &yf,
+                               Numeric &cost_y,
+                               Numeric &cost_x,
+                               Index &iter,
+                               ForwardModel &F,
+                               ConstVectorView xa,
+                               ConstVectorView x_norm,
+                               ConstVectorView y,
+                               ConstMatrixView SeInv,
+                               ConstMatrixView SxInv,
+                               Index max_iter,
+                               Numeric tol,
+                               Numeric gamma_start,
+                               Numeric gamma_decrease,
+                               Numeric gamma_increase,
+                               Numeric gamma_max,
+                               Numeric gamma_threshold,
+                               bool verbose );
 
 #endif // oem_h

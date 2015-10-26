@@ -127,8 +127,7 @@ public:
             for ( Index i = 0; i < m; i++ )
             {
                 Hessians[i] = Matrix( n, n, 0 );
-                if (i < 2)
-                    random_fill_matrix_symmetric(Hessians[i], 0.1, true);
+                random_fill_matrix_pos_semi_def(Hessians[i], 1, true);
                 sprintf( fname, "H_%d_t.txt", (int) i);
                 write_matrix( Hessians[i], fname );
             }
@@ -258,18 +257,15 @@ void generate_test_data( VectorView y,
     random_fill_vector( y, 10, false );
     random_fill_vector( xa, 10, false );
 
-    random_fill_matrix_symmetric( Se, 1.0, false);
-    //id_mat( Se );
-    //Se *= 0.1;
+    random_fill_matrix( Se, 1.0, false);
+    Matrix tmp( Se );
+    // Make sure Se is positive semi-definite.
+    mult( Se, transpose( tmp ), tmp );
 
     random_fill_matrix_symmetric( Sx, 1.0, false);
-    //id_mat( Sa );
-    //Sa *= 0.1;
-    for ( Index i = 0; i < Se.ncols(); i++ )
-        Se(i,i) = abs(Se(i,i));
-
-    for ( Index i = 0; i < Sx.ncols(); i++ )
-        Sx(i,i) = abs(Sx(i,i));
+    tmp = Sx;
+    // Make sure Sx is positive semi-definite.
+    mult( Sx, transpose( tmp ), tmp );
 
 }
 
@@ -741,7 +737,7 @@ void test_oem_gauss_newton( Engine *eng,
         inv( SeInv, Se );
         inv( SxInv, Sa );
 
-        GaussNewtonOEM oem( SeInv, xa, SxInv, K );
+        NonLinearOEM oem( SeInv, xa, SxInv, K, GAUSS_NEWTON );
 
         for (Index j = 0; j < n; j++ )
         {
@@ -786,44 +782,50 @@ void test_oem_levenberg_marquardt( Engine *eng,
                                    Index n,
                                    Index ntests )
 {
-    Vector y0(m), y(m), yf(m), x(n), x_m(n), xa(n);
-    Matrix Se(m,m), Sa(n,n), SeInv(m,m), SxInv(n,n), G(n,m), J(m,n);
+    Vector y0(m), y(m), y_m(m), x(n), x0(n), x_n(x), x_m(n), x_norm(n), xa(n);
+    Matrix Se(m,m), Sx(n,n), SeInv(m,m), SxInv(n,n), G(n,m), J(n,m);
 
-    cout << "Testing Levenberg-Marquardt OEM: m = " << m << ", n = ";
-    cout << n << ", ntests = " << ntests << endl;
+    cout << "Testing Gauss-Newton OEM: m = " << m << ", n = ";
+    cout << n << ", ntests = " << ntests << endl << endl;
+
+    cout << "Test No. " << setw(15) << "Standard" << setw(15) << "Normalized";
+    cout << setw(15) << "No. Iterations" << endl;
 
     // Run tests.
     for ( Index i = 0; i < ntests; i++ )
     {
         QuadraticModel K(m,n);
-        generate_test_data( y0, xa, Se, Sa );
-        K.evaluate( y0, xa );
-        xa += 1;
+        generate_test_data( y0, xa, Se, Sx );
+        x0 = xa;
+        add_noise( x0, 0.01 );
+        K.evaluate( y0, x0);
+
+        inv( SeInv, Se );
+        inv( SxInv, Sx );
+
+        NonLinearOEM oem( SeInv, xa, SxInv, K, LEVENBERG_MARQUARDT );
+
+        for (Index j = 0; j < n; j++ )
+        {
+            x_norm[j] = sqrt(abs(Sx(j,j)));
+        }
 
         write_vector( xa, "xa_t.txt" );
         write_vector( y0, "y_t.txt" );
         write_matrix( Se, "Se_t.txt" );
-        write_matrix( Sa, "Sa_t.txt" );
+        write_matrix( Sx, "Sx_t.txt" );
 
-        inv( SeInv, Se );
-        inv( SxInv, Sa );
-
-        Numeric gamma_start = 4.0;
-        Numeric gamma_max = 100.0;
-        Numeric gamma_scale_dec = 2.0;
-        Numeric gamma_scale_inc = 3.0;
-        Numeric gamma_threshold = 1.0;
-        oem_levenberg_marquardt( x, yf, J, G, y0, xa, SeInv, SxInv, K,
-                                 1e-5, 1000,
-                                 gamma_start,
-                                 gamma_scale_dec,
-                                 gamma_scale_inc,
-                                 gamma_max,
-                                 gamma_threshold,
-                                 true );
+        oem.compute( x, y0, false );
+        oem.set_x_norm( x_norm );
+        oem.compute( x_n, y0, false );
         run_oem_matlab( x_m, eng, "test_oem_levenberg_marquardt" );
 
-        cout << "Test " << i+1 << ": " << max_error( x, x_m, true ) << endl;
+        cout << setw(9) << i+1 << setw(15);
+        cout << max_error( x, x_m, true ) << setw(15);
+        cout << max_error( x_n, x_m, true ) << setw(15);
+        cout << oem.iterations() << setw(15);
+        cout << endl;
+
     }
     cout << endl;
 }
@@ -838,8 +840,8 @@ int main()
 
     // Run tests and benchmarks.
     //    test_oem_linear( eng, 10, 10, 10 );
-    test_oem_gauss_newton( eng, 100, 100, 100 );
-    //test_oem_levenberg_marquardt( eng, 100, 100, 10 );
+    // test_oem_gauss_newton( eng, 100, 100, 100 );
+    test_oem_levenberg_marquardt( eng, 50, 50, 100 );
 
     //benchmark_inv( eng, 100, 2000, 16);
     //benchmark_mult( eng, 100, 2000, 16);

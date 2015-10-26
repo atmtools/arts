@@ -101,6 +101,10 @@ void random_fill_matrix_symmetric( MatrixView A,
                                    Numeric range,
                                    bool positive );
 
+// Generate random, positive semi-definite matrix.
+void random_fill_matrix_pos_semi_def( MatrixView A,
+                                      Numeric range,
+                                      bool positive );
 // Fill vector with random values.
 void random_fill_vector( VectorView A,
                          Numeric range,
