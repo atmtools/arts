@@ -1,3 +1,29 @@
+2015-09-14  Alex Bobryshev <oleksandr.bobryshev@uni-hamburg.de>
+
+        * arts-2-3-353
+
+        * Updates to the setup for microwave sensors. Modify the 183 GHz line
+	parameters in accordance with HITRAN2012 and Payne 2008. Add the 
+	line-mixing flag for O2. Change the cutoff for spectroscopy file to
+	700 GHz. Divide sensor description for ISMAR into two parts downward
+	and upward looking. Recalculate the ybatchREFERENCE.xml in accordance
+	with spectroscopy changes.
+
+        * controlfiles/instruments/metmm/TestMetMM.arts: Cutoff for 
+	spectroscopy is 700 GHz. Lineshape defined per species, for
+	O2 Fadeeva Algorithm.
+
+	* controlfiles/instruments/metmm/abs_lines_metmm.xml.gz: 
+	cut from HITRAN for range 5-700 GHz
+
+        * controlfiles/instruments/metmm/sensor_descriptions/
+	sensor_ismar_downward.arts
+        * controlfiles/instruments/metmm/sensor_descriptions/
+	sensor_ismar_upwards.arts:
+
+        Add matrix met_mm_available_accuracies, with selected number of
+        frequencies per channel.
+
 2015-10-26  Simon Pfreundschuh  <simonpf@chalmers.se>
 
 	* arts-2-3-352
