@@ -1828,7 +1828,7 @@ void jacobianAddTemperature(
     }
   else if( analytical == 2)
   {
-      out3 << "  Calculations done by semi-analytical expression.\n"; 
+      out3 << "  Calculations done by propagation matrix expression.\n"; 
       jacobian_agenda.append( "jacobianCalcTemperatureFromPropmat", TokVal() );
   }
   else
@@ -2096,6 +2096,8 @@ void jacobianAddWind(
   const Vector&                     rq_lat_grid,
   const Vector&                     rq_lon_grid,
   const String&                     component,
+  const String&                     method,
+  const Numeric&                    dfrequency,
   const Verbosity&                  verbosity )
 {
   CREATE_OUT2;
@@ -2114,6 +2116,20 @@ void jacobianAddWind(
         }
     }
 
+    // Check that method is either "analytic" or "perturbation"
+    Index analytical;
+    if( method == "analytical" )
+    { analytical = 1; }
+    else if( method == "from propmat" )
+    { analytical = 2; }
+    else
+    {
+        ostringstream os;
+        os << "The method for atmospheric wind retrieval can only be "
+        << "\"analytical\"\n or \"from propmat\".";
+        throw runtime_error(os.str());
+    }
+    
   // Check retrieval grids, here we just check the length of the grids
   // vs. the atmosphere dimension
   ArrayOfVector grids(atmosphere_dim);
@@ -2141,12 +2157,26 @@ void jacobianAddWind(
   rq.Subtag( component );
   rq.Analytical( 1 );
   rq.Grids( grids );
+  if(analytical == 2) 
+  {
+      rq.SubSubtag(PROPMAT_SUBSUBTAG);
+      rq.Perturbation( dfrequency );
+  }
 
   // Add it to the *jacobian_quantities*
   jq.push_back( rq );
   
-  // Add gas species method to the jacobian agenda
-  jacobian_agenda.append( "jacobianCalcWindAnalytical", TokVal() );
+  if( analytical == 1 ) 
+  {
+      out3 << "  Calculations done by semi-analytical expression.\n"; 
+      // Add gas species method to the jacobian agenda
+      jacobian_agenda.append( "jacobianCalcWindAnalytical", TokVal() );
+  }
+  else if( analytical == 2)
+  {
+      out3 << "  Calculations done by propagation matrix expression.\n"; 
+      jacobian_agenda.append( "jacobianCalcWindAnalytical", TokVal() );
+  }
 }                    
 
 

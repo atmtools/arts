@@ -795,7 +795,82 @@ Numeric dotprod_with_los(
   
   return f * ( cos(za_f) * cos(za_p) +
                sin(za_f) * sin(za_p) * cos(aa_f-aa_p) );
-}    
+}   
+
+Numeric dotprod_with_los_dWdw(
+    ConstVectorView   los, 
+    const Numeric&    u,
+    const Numeric&    v,
+    const Numeric&    w,
+    const Index&      atmosphere_dim )
+{
+    // Strength of field
+    const Numeric f = sqrt( u*u + v*v + w*w );
+    const Numeric f2 = f*f;
+    
+    // Zenith and azimuth angle for field (in radians) 
+    const Numeric aa_f = atan2( u, v );
+    
+    // Zenith and azimuth angle for photon direction (in radians)
+    Vector los_p;
+    mirror_los( los_p, los, atmosphere_dim );
+    const Numeric za_p = DEG2RAD * los_p[0];
+    const Numeric aa_p = DEG2RAD * los_p[1];
+    
+    return cos(za_p) - 
+    (cos(aa_f - aa_p)*sin(za_p) * 
+    ( 2*w/f2 - (2*w*w*w)/(f2*f2))) / (2*sqrt(1 - w*w/(f2)));
+} 
+
+Numeric dotprod_with_los_dWdu(
+    ConstVectorView   los, 
+    const Numeric&    u,
+    const Numeric&    v,
+    const Numeric&    w,
+    const Index&      atmosphere_dim )
+{
+    // Strength of field
+    const Numeric f = sqrt( u*u + v*v + w*w );
+    const Numeric f2 = f*f;
+    const Numeric  term1 = sqrt((u*u + v*v)/f2);
+    
+    // Zenith and azimuth angle for field (in radians) 
+    const Numeric aa_f = atan2( u, v );
+    
+    // Zenith and azimuth angle for photon direction (in radians)
+    Vector los_p;
+    mirror_los( los_p, los, atmosphere_dim );
+    const Numeric za_p = DEG2RAD * los_p[0];
+    const Numeric aa_p = DEG2RAD * los_p[1];
+    
+    return (u*w*w*cos(aa_f - aa_p)*sin(za_p))/(term1*f2*f2) - 
+    (v*sin(aa_f - aa_p)*sin(za_p)*term1)/(u*u + v*v);
+} 
+
+Numeric dotprod_with_los_dWdv(
+    ConstVectorView   los, 
+    const Numeric&    u,
+    const Numeric&    v,
+    const Numeric&    w,
+    const Index&      atmosphere_dim )
+{
+    // Strength of field
+    const Numeric f = sqrt( u*u + v*v + w*w );
+    const Numeric f2 = f*f;
+    const Numeric  term1 = sqrt((u*u + v*v)/f2);
+    
+    // Zenith and azimuth angle for field (in radians) 
+    const Numeric aa_f = atan2( u, v );
+    
+    // Zenith and azimuth angle for photon direction (in radians)
+    Vector los_p;
+    mirror_los( los_p, los, atmosphere_dim );
+    const Numeric za_p = DEG2RAD * los_p[0];
+    const Numeric aa_p = DEG2RAD * los_p[1];
+    
+    return (u*sin(aa_f - aa_p)*sin(za_p)*term1)/(u*u + v*v) + 
+    (v*w*w*cos(aa_f - aa_p)*sin(za_p))/(term1*f2*f2);
+} 
 
 
 
@@ -2064,6 +2139,88 @@ void get_ppath_f(
     }
 }
 
+
+//! get_ppath_f_partials
+/*!
+ *   Determines the derivative of the Doppler shifted frequencies along 
+ *   the propagation path for wind.
+ * 
+ *   ppath_doppler [ nf + np ]
+ * 
+ *   \param   ppath_f          Out: Doppler shifted f_grid
+ *   \param   ppath            Propagation path.
+ *   \param   f_grid           Original f_grid.
+ *   \param   atmosphere_dim   As the WSV.
+ *   \param   rte_alonglos_v   As the WSV.
+ *   \param   ppath_wind       See get_ppath_atmvars.
+ * 
+ *   \author Patrick Eriksson 
+ *   \date   2013-02-21
+ */
+void get_ppath_f_partials( 
+Matrix&    ppath_f_partials,
+const Index& component,
+const Ppath&     ppath,
+ConstVectorView  f_grid, 
+const Index&     atmosphere_dim,
+ConstMatrixView  ppath_wind )
+{
+    // component 0 means total speed
+    // component 1 means u speed
+    // component 2 means v speed
+    // component 3 means w speed
+    
+    // Sizes
+    const Index   nf = f_grid.nelem();
+    const Index   np = ppath.np;
+    
+    ppath_f_partials.resize(nf,np);
+    
+    // Doppler relevant velocity
+    //
+    for( Index ip=0; ip<np; ip++ )
+    {
+        // initialize
+        Numeric dv_doppler_dx=1.0;
+        
+        // Include wind
+        if( ppath_wind(1,ip) != 0  ||  ppath_wind(0,ip) != 0  ||  
+            ppath_wind(2,ip) != 0  )
+        {
+            switch( component )
+            {
+                case 0:// this is total an d is already initialized to avoid compiler warnings
+                    /*dv_doppler_dx = 1.0;*/
+                    break;
+                case 1:// this is the u-component
+                    dv_doppler_dx = dotprod_with_los_dWdu( ppath.los(ip,joker), ppath_wind(0,ip),
+                                                           ppath_wind(1,ip), ppath_wind(2,ip), atmosphere_dim );
+                    break;
+                case 2:// this is v-component
+                    dv_doppler_dx = dotprod_with_los_dWdv( ppath.los(ip,joker), ppath_wind(0,ip),
+                                                           ppath_wind(1,ip), ppath_wind(2,ip), atmosphere_dim );
+                    break;
+                case 3:// this is w-component
+                    dv_doppler_dx = dotprod_with_los_dWdw( ppath.los(ip,joker), ppath_wind(0,ip),
+                                                           ppath_wind(1,ip), ppath_wind(2,ip), atmosphere_dim );
+                    break;
+                default:
+                    throw std::runtime_error("This being seen means that there is a development bug in interactions with get_ppath_df_dW.\n");
+                    break;
+            }
+        }
+        
+        // Determine frequency grid
+        if( dv_doppler_dx == 0 )
+        { ppath_f_partials(joker,ip) = 0.0; }
+        else
+        { 
+            const Numeric a = - dv_doppler_dx / SPEED_OF_LIGHT;
+            for( Index iv=0; iv<nf; iv++ )
+            { ppath_f_partials(iv,ip) = a * f_grid[iv]; }
+        }
+    }
+}
 
 
 //! get_ppath_trans

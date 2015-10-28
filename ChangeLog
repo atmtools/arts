@@ -1,4 +1,54 @@
-2015-09-14  Alex Bobryshev <oleksandr.bobryshev@uni-hamburg.de>
+2015-10-28  Richard Larsson   <ric.larsson@gmail.com>
+
+	* arts-2-3-354
+	
+	Added support for "from propmat" for wind.  Note that relative errors
+	of orders of magnitude between this method and "analytical" occurs at
+	frequency ranges of small partial derivative values.  I think this is
+	an error in the "analytical" approach, since exactness of frequency is
+	really important for these small values.  Looking in details of the
+	plots, when the partial derivative is increasing, the "analytical"
+	method shows slightly lower values than "from propmat", and when
+	the partial derivative is decreasing in value, the "analytical" method
+	shows slightly larger values than "from propmat".  This is an effect
+	expected for numerical derivatives.  Also, this shift is why orders of 
+	magntiude large relative errors occurs.  At the zero-crossing, it is
+	such that when one of the methods show a zero-value, the other is 
+	much larger/smaller.
+	
+	That said, I think the differences between methods are negligble when it 
+	comes to inversions.  The relative errors are only large for frequency
+	ranges where sensitivity to wind is anyways practically zero, so
+	there is no information avalable anyways.
+	
+	* controlfiles/artscomponents/wfuns/TestWfuns.arts:  Added error checking 
+	for wind.
+	
+	* src/jacobian.{cc,h}: Fixed bug.  Preliminary adding
+	of absolute wind speed to potential wind jacobians.
+	
+	* src/m_jacobian.cc:  (jacobianAddWind)  This function now takes 
+	two additional arguments: "method" and "dfrequency".  It sets the runs
+	behavior according the these inputs.
+	
+	* src/m_rte.cc: (iyEmissionStandard)  Calculates the frequency to wind 
+	derivate ratio.  This is done since the f_grid seen by propmat is already
+	altered by wind so internally, in propmat calulations, only the frequency 
+	derivative can be calculated.  (Right now, there is no optimization for 
+	this so if several wind parameters are wanted, then several frequency
+	derivatives are calculated, wasting cycles.)
+	
+	* src/methods.cc:  Changed (jacobianAddWind) as above.
+	
+	* src/partial_derivatives.h: Small changes in internal checks which failed 
+	before when mixing different methods to create one jacobian.
+	
+	* src/rte.{cc,h}:  Added dotprod_with_los_dWd{u,v,w} functions.
+	
+	* src/zeeman.cc:  Fix bug where I did not support VMR calculations for 
+	Zeeman species.
+
+2015-10-28  Alex Bobryshev <oleksandr.bobryshev@uni-hamburg.de>
 
         * arts-2-3-353
 

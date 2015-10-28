@@ -661,11 +661,22 @@ void xsec_species_line_mixing_wrapper_with_zeeman(
                             dpropmat_clearsky_dx[iq](iv,is1,is2) += (partial_attenuation[iq](iv,0)* n + attenuation(iv,0) * dn_dT) * K_a(is1,is2)
                                                                  +   2.0*(partial_phase[iq](iv,0) * n  + phase(iv,0)      * dn_dT) * K_b(is1,is2);
                         }
+                        else if(flag_partials(iq)==JQT_VMR)
+                        {   
+                            //WARNING:  if VMR starts being used for p_partial derivatives, then this fails...
+                            dpropmat_clearsky_dx[iq](iv,is1,is2) += 
+                            attenuation(iv,0) * n/abs_vmrs(this_species, 0) * K_a(is1,is2)
+                            + 2.0*phase(iv,0) * n/abs_vmrs(this_species, 0) * K_b(is1,is2);
+                            if(do_src&&is2==0)
+                                dnlte_dx_source[iq](iv,is1) += 
+                                partial_source[iq](iv,0)*n*K_a(is1,is2)*planck_BT[iv]/abs_vmrs(this_species, 0);
+                        }
                         else if(flag_partials(iq)!=JQT_NOT_JQT)
                         {
                             dpropmat_clearsky_dx[iq](iv,is1,is2) += (partial_attenuation[iq](iv,0)*K_a(is1,is2)+2.0*partial_phase[iq](iv,0)*K_b(is1,is2))*n;
                             if(do_src&&is2==0)
-                                dnlte_dx_source[iq](iv,is1) += partial_source[iq](iv,0)*n*K_a(is1,is2)*planck_BT[iv];
+                                dnlte_dx_source[iq](iv,is1) += 
+                                partial_source[iq](iv,0)*n*K_a(is1,is2)*planck_BT[iv];
                         }
                     }
                 }

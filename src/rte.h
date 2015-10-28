@@ -125,6 +125,27 @@ Numeric dotprod_with_los(
   const Numeric&    w,
   const Index&      atmosphere_dim );
 
+Numeric dotprod_with_los_dWdu(
+    ConstVectorView   los, 
+    const Numeric&    u,
+    const Numeric&    v,
+    const Numeric&    w,
+    const Index&      atmosphere_dim );
+
+Numeric dotprod_with_los_dWdv(
+    ConstVectorView   los, 
+    const Numeric&    u,
+    const Numeric&    v,
+    const Numeric&    w,
+    const Index&      atmosphere_dim );
+
+Numeric dotprod_with_los_dWdw(
+    ConstVectorView   los, 
+    const Numeric&    u,
+    const Numeric&    v,
+    const Numeric&    w,
+    const Index&      atmosphere_dim );
+
 void emission_rtstep(
           Matrix&         iy,
     const Index&          stokes_dim,
@@ -259,6 +280,14 @@ void get_ppath_f(
   const Index&     atmosphere_dim,
   const Numeric&   rte_alonglos_v,
   ConstMatrixView  ppath_wind );
+
+void get_ppath_f_partials( 
+Matrix&    ppath_f_partials,
+const Index& component,
+const Ppath&     ppath,
+ConstVectorView  f_grid, 
+const Index&     atmosphere_dim,
+ConstMatrixView  ppath_wind );
 
 void get_ppath_trans( 
         Tensor4&               trans_partial,

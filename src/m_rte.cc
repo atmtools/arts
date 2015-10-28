@@ -407,6 +407,39 @@ void iyEmissionStandard(
                           propmat_clearsky_agenda, jacobian_quantities, ppath, 
                           ppath_p, ppath_t, ppath_t_nlte, ppath_vmr, ppath_f, 
                           ppath_mag, f_grid, stokes_dim, iaps );
+      
+      // Perhaps put all in a function "adapt_dppath_ext_dx"?
+      for(Index iq=0;(iq<nq)&&jacobian_do;iq++)
+        {
+            if( jac_wind_i[iq] == JAC_IS_WIND_U_FROM_PROPMAT ||
+                jac_wind_i[iq] == JAC_IS_WIND_V_FROM_PROPMAT ||
+                jac_wind_i[iq] == JAC_IS_WIND_W_FROM_PROPMAT ||
+                jac_wind_i[iq] == JAC_IS_WIND_ABS_FROM_PROPMAT )
+            {
+                Index component=-1;
+                if(jac_wind_i[iq] == JAC_IS_WIND_ABS_FROM_PROPMAT)
+                    component = 0;
+                else if(jac_wind_i[iq] == JAC_IS_WIND_U_FROM_PROPMAT)
+                    component=1;
+                else if(jac_wind_i[iq] == JAC_IS_WIND_V_FROM_PROPMAT)
+                    component=2;
+                else if(jac_wind_i[iq] == JAC_IS_WIND_W_FROM_PROPMAT)
+                    component=3;
+                else 
+                    throw std::runtime_error("To developer:  You have changed wind jacobians" 
+                    "in an incompatible manners with some other code.");
+                
+                const Index this_ppd_q = ppd.this_jq_index(iq);
+                
+                Matrix dWdx;
+                get_ppath_f_partials(dWdx, component, ppath, f_grid,  atmosphere_dim, ppath_wind );
+                
+                for(Index is1=0;is1<stokes_dim;is1++)
+                    for(Index is2=0;is2<stokes_dim;is2++)
+                        dppath_ext_dx(this_ppd_q,joker,is1,is2,joker)*=dWdx;
+            }
+        }
+      
       if(dppath_ext_dx.empty())
         get_ppath_trans(    trans_partial, extmat_case, trans_cumulat, 
                             scalar_tau, ppath, ppath_ext, f_grid, stokes_dim );
@@ -515,14 +548,25 @@ void iyEmissionStandard(
               else if( jac_wind_i[iq] == JAC_IS_WIND_U_SEMI_ANALYTIC ||
                        jac_wind_i[iq] == JAC_IS_WIND_V_SEMI_ANALYTIC ||
                        jac_wind_i[iq] == JAC_IS_WIND_W_SEMI_ANALYTIC )
-                {
+              {
+                  Index this_field=-1;
+                  if(jac_wind_i[iq] == JAC_IS_WIND_U_SEMI_ANALYTIC)
+                      this_field=0;
+                  else if(jac_wind_i[iq] == JAC_IS_WIND_V_SEMI_ANALYTIC)
+                      this_field=1;
+                  else if(jac_wind_i[iq] == JAC_IS_WIND_W_SEMI_ANALYTIC)
+                      this_field=2;
+                  else 
+                      throw std::runtime_error("To developer:  You have changed wind jacobians" 
+                      "in an incompatible manners with some other code.");
+                  
                   Tensor5 dummy_abs_per_species,dummy_dppath_ext_dx;
                   Tensor3 dummy_ppath_nlte_source;
                   ArrayOfIndex dummy_lte;
-                  Matrix f2, w2 = ppath_wind;   w2(jac_wind_i[iq]-1,joker) += dw;
+                  Matrix f2, w2 = ppath_wind;   w2(this_field,joker) += dw;
                   get_ppath_f(    f2, ppath, f_grid,  atmosphere_dim, 
                                   rte_alonglos_v, w2 );
-                  get_ppath_pmat( ws, ppath_ext_dw[jac_wind_i[iq]-1], 
+                  get_ppath_pmat( ws, ppath_ext_dw[this_field], 
                                   dummy_ppath_nlte_source,
                                   dummy_lte, dummy_abs_per_species, dummy_dppath_ext_dx,
                                   propmat_clearsky_agenda, ArrayOfRetrievalQuantity(0), ppath, ppath_p, 
@@ -535,11 +579,22 @@ void iyEmissionStandard(
                        jac_mag_i[iq] == JAC_IS_MAG_V_SEMI_ANALYTIC ||
                        jac_mag_i[iq] == JAC_IS_MAG_W_SEMI_ANALYTIC )
                 {
+                    Index this_field=-1;
+                    if(jac_wind_i[iq] == JAC_IS_MAG_U_SEMI_ANALYTIC)
+                        this_field=0;
+                    else if(jac_wind_i[iq] == JAC_IS_MAG_V_SEMI_ANALYTIC)
+                        this_field=1;
+                    else if(jac_wind_i[iq] == JAC_IS_MAG_W_SEMI_ANALYTIC)
+                        this_field=2;
+                    else 
+                        throw std::runtime_error("To developer:  You have changed magnetic jacobians" 
+                        "in an incompatible manners with some other code.");
+                    
                   Tensor5 dummy_abs_per_species, dummy_dppath_ext_dx;
                   Tensor3 dummy_ppath_nlte_source;
                   ArrayOfIndex dummy_lte;
-                  Matrix m2 = ppath_mag;   m2(jac_mag_i[iq]-1,joker) += dm;
-                  get_ppath_pmat( ws, ppath_ext_dm[jac_mag_i[iq]-1], 
+                  Matrix m2 = ppath_mag;   m2(this_field,joker) += dm;
+                  get_ppath_pmat( ws, ppath_ext_dm[this_field], 
                                   dummy_ppath_nlte_source,
                                   dummy_lte, dummy_abs_per_species, dummy_dppath_ext_dx,
                                   propmat_clearsky_agenda, ArrayOfRetrievalQuantity(0), ppath, ppath_p, 
@@ -762,30 +817,39 @@ void iyEmissionStandard(
                       //- Winds and magnetic field -----------------------------------
                       else if( jac_wind_i[iq] || jac_mag_i[iq] )
                         {
+                            bool from_propmat = jacobian_quantities[iq].SubSubtag() == PROPMAT_SUBSUBTAG;
+                            const Index this_ppd_q = from_propmat?ppd.this_jq_index(iq):-1;
+                            
                           for( Index iv=0; iv<nf; iv++ )
                             {
                               // Create pointer to disturbed extinction to use
                               // Wind v-component is first guess.
                               Tensor4* ppath_ext2 = &ppath_ext_dw[1];
                               Numeric dd = dw;
-                              if( jac_wind_i[iq] == JAC_IS_WIND_U_SEMI_ANALYTIC )
-                                { ppath_ext2 = &ppath_ext_dw[0]; }
-                              else if( jac_wind_i[iq] == JAC_IS_WIND_W_SEMI_ANALYTIC )
-                                { ppath_ext2 = &ppath_ext_dw[2]; }
-                              else if( jac_mag_i[iq] == JAC_IS_MAG_U_SEMI_ANALYTIC )
-                                { ppath_ext2 = &ppath_ext_dm[0]; dd = dm; }
-                              else if( jac_mag_i[iq] == JAC_IS_MAG_V_SEMI_ANALYTIC )
-                                { ppath_ext2 = &ppath_ext_dm[1]; dd = dm; }
-                              else if( jac_mag_i[iq] == JAC_IS_MAG_W_SEMI_ANALYTIC )
-                                { ppath_ext2 = &ppath_ext_dm[2]; dd = dm; }
-
+                              
+                              if(!from_propmat)
+                              {
+                                if( jac_wind_i[iq] == JAC_IS_WIND_U_SEMI_ANALYTIC )
+                                    { ppath_ext2 = &ppath_ext_dw[0]; }
+                                else if( jac_wind_i[iq] == JAC_IS_WIND_W_SEMI_ANALYTIC )
+                                    { ppath_ext2 = &ppath_ext_dw[2]; }
+                                else if( jac_mag_i[iq] == JAC_IS_MAG_U_SEMI_ANALYTIC )
+                                    { ppath_ext2 = &ppath_ext_dm[0]; dd = dm; }
+                                else if( jac_mag_i[iq] == JAC_IS_MAG_V_SEMI_ANALYTIC )
+                                    { ppath_ext2 = &ppath_ext_dm[1]; dd = dm; }
+                                else if( jac_mag_i[iq] == JAC_IS_MAG_W_SEMI_ANALYTIC )
+                                    { ppath_ext2 = &ppath_ext_dm[2]; dd = dm; }
+                              }
                               // Diagonal transmission matrix
                               if( extmat_case[ip][iv] == 1 )
                                 {
-                                  const Numeric dkdx1 = (1/dd) * ( 
+                                    
+                                  const Numeric dkdx1 = from_propmat?dppath_ext_dx(this_ppd_q,iv,0,0,ip):
+                                                   (1/dd) * ( 
                                                    (*ppath_ext2)(iv,0,0,ip  ) -
                                                       ppath_ext(iv,0,0,ip  ) );
-                                  const Numeric dkdx2 = (1/dd) * ( 
+                                  const Numeric dkdx2 = from_propmat?dppath_ext_dx(this_ppd_q,iv,0,0,ip+1):
+                                                   (1/dd) * ( 
                                                    (*ppath_ext2)(iv,0,0,ip+1) -
                                                       ppath_ext(iv,0,0,ip+1) );
                                   const Numeric x = -0.5 * ppath.lstep[ip] * 
@@ -806,43 +870,57 @@ void iyEmissionStandard(
                               // General case
                               else
                                 { 
-                                  // Disturb for ip
                                   Matrix ext_mat(ns,ns), dtdx(ns,ns);
                                   //
-                                  for( Index is1=0; is1<ns; is1++ ) {
-                                    for( Index is2=0; is2<ns; is2++ ) {
-                                      ext_mat(is1,is2) = 0.5 * (
-                                               (*ppath_ext2)(iv,is1,is2,ip  ) +
-                                                  ppath_ext(iv,is1,is2,ip+1) );
-                                    } }
-                                  ext2trans( dtdx, extmat_case[ip][iv], 
-                                             ext_mat, ppath.lstep[ip] ); 
-                                  for( Index is1=0; is1<ns; is1++ ) {
-                                    for( Index is2=0; is2<ns; is2++ ) {
-                                      dtdx(is1,is2) = (1/dd) * 
-                                              ( dtdx(is1,is2) -
-                                                trans_partial(iv,is1,is2,ip) );
-                                    } }
+                                  
+                                  if(!from_propmat)
+                                  {
+                                    // Disturb for ip
+                                    for( Index is1=0; is1<ns; is1++ ) {
+                                        for( Index is2=0; is2<ns; is2++ ) {
+                                        ext_mat(is1,is2) = 0.5 * (
+                                                (*ppath_ext2)(iv,is1,is2,ip  ) +
+                                                    ppath_ext(iv,is1,is2,ip+1) );
+                                        } }
+                                    ext2trans( dtdx, extmat_case[ip][iv], 
+                                                ext_mat, ppath.lstep[ip] ); 
+                                    for( Index is1=0; is1<ns; is1++ ) {
+                                        for( Index is2=0; is2<ns; is2++ ) {
+                                        dtdx(is1,is2) = (1/dd) * 
+                                                ( dtdx(is1,is2) -
+                                                    trans_partial(iv,is1,is2,ip) );
+                                        } }
+                                  }
+                                  else
+                                      dtdx = dtrans_partial_dx_below(this_ppd_q,iv,joker,joker,ip);
+                                      
                                   Vector x(ns), y(ns);
                                   mult( x, dtdx, sibi(iv,joker) );
                                   mult( y, trans_cumulat(iv,joker,joker,ip), x );
                                   diy_dpath[iq](ip,iv,joker) += y;
                                   //
-                                  // Disturb for ip+1
-                                  for( Index is1=0; is1<ns; is1++ ) {
-                                    for( Index is2=0; is2<ns; is2++ ) {
-                                      ext_mat(is1,is2) = 0.5 * (
-                                                  ppath_ext(iv,is1,is2,ip  ) +
-                                               (*ppath_ext2)(iv,is1,is2,ip+1) );
-                                    } }
-                                  ext2trans( dtdx, extmat_case[ip][iv], 
-                                             ext_mat, ppath.lstep[ip] ); 
-                                  for( Index is1=0; is1<ns; is1++ ) {
-                                    for( Index is2=0; is2<ns; is2++ ) {
-                                      dtdx(is1,is2) = (1/dd) * 
-                                              ( dtdx(is1,is2) -
-                                                trans_partial(iv,is1,is2,ip) );
-                                    } }
+                                  
+                                  if(!from_propmat)
+                                  {
+                                    // Disturb for ip+1
+                                    for( Index is1=0; is1<ns; is1++ ) {
+                                        for( Index is2=0; is2<ns; is2++ ) {
+                                        ext_mat(is1,is2) = 0.5 * (
+                                                    ppath_ext(iv,is1,is2,ip  ) +
+                                                (*ppath_ext2)(iv,is1,is2,ip+1) );
+                                        } }
+                                    ext2trans( dtdx, extmat_case[ip][iv], 
+                                                ext_mat, ppath.lstep[ip] ); 
+                                    for( Index is1=0; is1<ns; is1++ ) {
+                                        for( Index is2=0; is2<ns; is2++ ) {
+                                        dtdx(is1,is2) = (1/dd) * 
+                                                ( dtdx(is1,is2) -
+                                                    trans_partial(iv,is1,is2,ip) );
+                                        } }
+                                  }
+                                  else
+                                      dtdx = dtrans_partial_dx_above(this_ppd_q,iv,joker,joker,ip);
+                                      
                                   mult( x, dtdx, sibi(iv,joker) );
                                   mult( y, trans_cumulat(iv,joker,joker,ip), x );
                                   diy_dpath[iq](ip+1,iv,joker) += y;

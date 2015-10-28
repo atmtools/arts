@@ -7326,13 +7326,15 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "jacobian_quantities", "jacobian_agenda", 
             "atmosphere_dim", "p_grid", "lat_grid", "lon_grid" ),
-        GIN( "g1", "g2", "g3", "component" ),
-        GIN_TYPE( "Vector", "Vector", "Vector", "String" ),
-        GIN_DEFAULT( NODEF, NODEF, NODEF, "v" ),
+        GIN( "g1", "g2", "g3", "component", "method", "dfrequency" ),
+        GIN_TYPE( "Vector", "Vector", "Vector", "String", "String", "Numeric" ),
+        GIN_DEFAULT( NODEF, NODEF, NODEF, "v", "analytical", "0.1" ),
         GIN_DESC( "Pressure retrieval grid.",
                   "Latitude retrieval grid.",
                   "Longitude retreival grid.",
-                  "Wind component to retrieve"
+                  "Wind component to retrieve",
+                  "Method \"analytical\" or \"from propmat\"",
+                  "When \"from propmat\", this is the frequency perturbation"
                   )
         ));
 

@@ -101,28 +101,32 @@ public:
                     ippdq++;
                     mmag_perturbation = jacobian_quantities[iq].Perturbation();
                 }
-                else if(jacobian_quantities[iq].MainTag() == MAGFIELD_MAINTAG &&  jacobian_quantities[iq].Subtag() == "strength")
+                else if(jacobian_quantities[iq].MainTag() == MAGFIELD_MAINTAG && 
+                    jacobian_quantities[iq].Subtag() == "strength")
                 {
                     mqtype[ippdq] = JQT_magnetic_magntitude;
                     mjacobian_pos[ippdq] = iq;
                     mspecies[ippdq] = -9999;//Flag for not a species...
                     ippdq++;
                 }
-                else if(jacobian_quantities[iq].MainTag() == MAGFIELD_MAINTAG &&  jacobian_quantities[iq].Subtag() == "eta")
+                else if(jacobian_quantities[iq].MainTag() == MAGFIELD_MAINTAG && 
+                    jacobian_quantities[iq].Subtag() == "eta")
                 {
                     mqtype[ippdq] = JQT_magnetic_eta;
                     mjacobian_pos[ippdq] = iq;
                     mspecies[ippdq] = -9999;//Flag for not a species...
                     ippdq++;
                 }
-                else if(jacobian_quantities[iq].MainTag() == MAGFIELD_MAINTAG &&  jacobian_quantities[iq].Subtag() == "theta")
+                else if(jacobian_quantities[iq].MainTag() == MAGFIELD_MAINTAG && 
+                    jacobian_quantities[iq].Subtag() == "theta")
                 {
                     mqtype[ippdq] = JQT_magnetic_theta;
                     mjacobian_pos[ippdq] = iq;
                     mspecies[ippdq] = -9999;//Flag for not a species...
                     ippdq++;
                 }
-                else if(jacobian_quantities[iq].MainTag() == MAGFIELD_MAINTAG &&  jacobian_quantities[iq].Subtag() == "u")
+                else if(jacobian_quantities[iq].MainTag() == MAGFIELD_MAINTAG && 
+                    jacobian_quantities[iq].Subtag() == "u")
                 {
                     mqtype[ippdq] = JQT_magnetic_u;  
                     mjacobian_pos[ippdq] = iq; 
@@ -130,7 +134,8 @@ public:
                     ippdq++;
                     mmag_perturbation = jacobian_quantities[iq].Perturbation();
                 }
-                else if(jacobian_quantities[iq].MainTag() == MAGFIELD_MAINTAG &&  jacobian_quantities[iq].Subtag() == "v")
+                else if(jacobian_quantities[iq].MainTag() == MAGFIELD_MAINTAG && 
+                    jacobian_quantities[iq].Subtag() == "v")
                 {
                     mqtype[ippdq] = JQT_magnetic_v;
                     mjacobian_pos[ippdq] = iq;
@@ -138,7 +143,8 @@ public:
                     ippdq++;
                     mmag_perturbation = jacobian_quantities[iq].Perturbation();
                 }
-                else if(jacobian_quantities[iq].MainTag() == MAGFIELD_MAINTAG &&  jacobian_quantities[iq].Subtag() == "w")
+                else if(jacobian_quantities[iq].MainTag() == MAGFIELD_MAINTAG && 
+                    jacobian_quantities[iq].Subtag() == "w")
                 {
                     mqtype[ippdq] = JQT_magnetic_w;
                     mjacobian_pos[ippdq] = iq;
@@ -146,37 +152,41 @@ public:
                     ippdq++;
                     mmag_perturbation = jacobian_quantities[iq].Perturbation();
                 }
-                else if(jacobian_quantities[iq].MainTag() == WIND_MAINTAG &&  jacobian_quantities[iq].Subtag() == "strength")
+                else if(jacobian_quantities[iq].MainTag() == WIND_MAINTAG &&  
+                    jacobian_quantities[iq].Subtag() == "strength")
                 {
                     mqtype[ippdq] = JQT_wind_magnitude;
                     mjacobian_pos[ippdq] = iq;
                     mspecies[ippdq] = -9999;//Flag for not a species...
                     ippdq++;
-                    mwindfreq_perturbation = jacobian_quantities[iq].Perturbation();
+                    mfreq_perturbation = jacobian_quantities[iq].Perturbation();
                 }
-                else if(jacobian_quantities[iq].MainTag() == WIND_MAINTAG &&  jacobian_quantities[iq].Subtag() == "u")
+                else if(jacobian_quantities[iq].MainTag() == WIND_MAINTAG &&  
+                    jacobian_quantities[iq].Subtag() == "u")
                 {
                     mqtype[ippdq] = JQT_wind_u;
                     mjacobian_pos[ippdq] = iq;
                     mspecies[ippdq] = -9999;//Flag for not a species...
                     ippdq++;
-                    mwindfreq_perturbation = jacobian_quantities[iq].Perturbation();
+                    mfreq_perturbation = jacobian_quantities[iq].Perturbation();
                 }
-                else if(jacobian_quantities[iq].MainTag() == WIND_MAINTAG &&  jacobian_quantities[iq].Subtag() == "v")
+                else if(jacobian_quantities[iq].MainTag() == WIND_MAINTAG &&  
+                    jacobian_quantities[iq].Subtag() == "v")
                 {
                     mqtype[ippdq] = JQT_wind_v;
                     mjacobian_pos[ippdq] = iq;
                     mspecies[ippdq] = -9999;//Flag for not a species...
                     ippdq++;
-                    mwindfreq_perturbation = jacobian_quantities[iq].Perturbation();
+                    mfreq_perturbation = jacobian_quantities[iq].Perturbation();
                 }
-                else if(jacobian_quantities[iq].MainTag() == WIND_MAINTAG &&  jacobian_quantities[iq].Subtag() == "w")
+                else if(jacobian_quantities[iq].MainTag() == WIND_MAINTAG &&  
+                    jacobian_quantities[iq].Subtag() == "w")
                 {
                     mqtype[ippdq] = JQT_wind_w;
                     mjacobian_pos[ippdq] = iq;
                     mspecies[ippdq] = -9999;//Flag for not a species...
                     ippdq++;
-                    mwindfreq_perturbation = jacobian_quantities[iq].Perturbation();
+                    mfreq_perturbation = jacobian_quantities[iq].Perturbation();
                 }
                 else if(jacobian_quantities[iq].MainTag() == TEMPERATURE_MAINTAG)
                 {
@@ -252,7 +262,7 @@ public:
     const JacobianQuantityType&  operator()(const Index& iq) const {return mqtype[iq];}
     const ArrayOfRetrievalQuantity& jac() const {return mjacobian_quantities;}
     
-    Index species(Index iq) const {return mspecies[mjacobian_pos[iq]];}
+    Index species(Index iq) const { return mspecies[iq]; }
     
     bool supportsCIA() const 
     {
@@ -440,7 +450,6 @@ public:
     Numeric Temperature_Perturbation() const {return mtemp_perturbation;};   
     Numeric Magnetic_Field_Perturbation() const {return mmag_perturbation;}; 
     Numeric Frequency_Perturbation() const {return mfreq_perturbation;};      
-    Numeric Wind_Frequency_Perturbation() const {return mwindfreq_perturbation;};
     
 private:
     ArrayOfJacobianQuantityType mqtype;
@@ -450,9 +459,9 @@ private:
     Numeric                     mtemp_perturbation;
     Numeric                     mmag_perturbation;
     Numeric                     mfreq_perturbation;
-    Numeric                     mwindfreq_perturbation;
     Index                       mreal_nelem;
     bool mcontains_temperature;
+    bool mcontains_frequency_term;
 };
 
 // Generic function that will calculate all partial derivatives of the line-shape that depends on input per line
