@@ -2233,61 +2233,91 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                                           t_nlte);
                 }
                 
+                // These needs to be calculated when pressure broadening partial derivatives are needed
+                // Note that this gives plenty of wasted calculations for all lines that are not specifically
+                // requesting their individual partial derivatives...
+                Numeric gamma_dSelf=0.0, gamma_dForeign=0.0, gamma_dWater=0.0, 
+                gamma_dSelfExponent=0.0, gamma_dForeignExponent=0.0, gamma_dWaterExponent=0.0;
+                if(flag_partials.PressureBroadeningTerm(0)) // Self broadening
+                    abs_lines[ii].PressureBroadening().GetPressureBroadeningParams_dSelf(
+                        gamma_dSelf,abs_lines[ii].Ti0()/t,p_partial);
+                if(flag_partials.PressureBroadeningTerm(1)) // Foreign broadening
+                    abs_lines[ii].PressureBroadening().GetPressureBroadeningParams_dForeign(
+                        gamma_dForeign,abs_lines[ii].Ti0()/t,p,p_partial,this_species,h2o_index,vmrs);
+                if(flag_partials.PressureBroadeningTerm(2)) // Water broadening
+                    abs_lines[ii].PressureBroadening().GetPressureBroadeningParams_dWater(
+                        gamma_dWater,abs_lines[ii].Ti0()/t,p,this_species,h2o_index,vmrs,verbosity);
+                if(flag_partials.PressureBroadeningTerm(3)) // Self broadening exponent
+                    abs_lines[ii].PressureBroadening().GetPressureBroadeningParams_dSelfExponent(
+                        gamma_dSelfExponent,abs_lines[ii].Ti0()/t,p_partial);
+                if(flag_partials.PressureBroadeningTerm(4)) // Foreign broadening exponent
+                    abs_lines[ii].PressureBroadening().GetPressureBroadeningParams_dForeignExponent(
+                        gamma_dForeignExponent,abs_lines[ii].Ti0()/t,p,p_partial,this_species,h2o_index,vmrs);
+                if(flag_partials.PressureBroadeningTerm(5)) // Water broadening exponent
+                    abs_lines[ii].PressureBroadening().GetPressureBroadeningParams_dWaterExponent(
+                        gamma_dWaterExponent,abs_lines[ii].Ti0()/t,p,this_species,h2o_index,vmrs,verbosity);
+                
                 // Gather all new partial derivative calculations in this function
                 partial_derivatives_lineshape_dependency(partial_xsec_attenuation,
-                                                        partial_xsec_phase, 
-                                                        partial_xsec_source,
-                                                        flag_partials, 
-                                                        attenuation,
-                                                        phase,
-                                                        fac,
-                                                        dFa_dx, 
-                                                        dFb_dx, 
-                                                        dFa_dy, 
-                                                        dFb_dy,
-                                                        f_grid,
-                                                        this_f_range,
-                                                        //Temperature
-                                                        t,
-                                                        sigma,
-                                                        K2,
-                                                        dK2_dT,
-                                                        abs_nlte_ratio,//K3
-                                                        dabs_nlte_ratio_dT,
-                                                        src_nlte_ratio,//K4
-                                                        // Line parameters
-                                                        abs_lines[ii].F(),
-                                                        abs_lines[ii].I0(),
-                                                        abs_lines[ii].Elow(),
-                                                        abs_lines[ii].Evlow(),
-                                                        abs_lines[ii].Evupp(),
-                                                        abs_lines[ii].EvlowIndex() > -1?
-                                                        t_nlte[abs_lines[ii].EvlowIndex()]:-1.0,
-                                                        abs_lines[ii].EvuppIndex() > -1?
-                                                        t_nlte[abs_lines[ii].EvuppIndex()]:-1.0,
-                                                        Y,
-                                                        dY_dT,
-                                                        G,
-                                                        dG_dT,
-                                                        DV,
-                                                        dDV_dT,
-                                                        abs_lines[ii].QuantumNumbers(),
-                                                        // LINE SHAPE
-                                                        ind_ls,
-                                                        ind_lsn,
-                                                        df_0,//FIXME: For Hartmann-Tran when this is included... perhaps temperature should be more ingrained in lineshape?
-                                                        ddf_0_dT,
-                                                        gamma_0,
-                                                        dgamma_0_dT,
-                                                        // Partition data parameters
-                                                        dQ_dT,
-                                                        // Magnetic variables
-                                                        precalc_zeeman?Z_DF[ii]:0,
-                                                        H_magntitude_Zeeman,
-                                                        // Programming
-                                                        jj, 
-                                                        calc_partials_phase,
-                                                        calc_src);
+                                                         partial_xsec_phase, 
+                                                         partial_xsec_source,
+                                                         flag_partials, 
+                                                         attenuation,
+                                                         phase,
+                                                         fac,
+                                                         dFa_dx, 
+                                                         dFb_dx, 
+                                                         dFa_dy, 
+                                                         dFb_dy,
+                                                         f_grid,
+                                                         this_f_range,
+                                                         //Temperature
+                                                         t,
+                                                         sigma,
+                                                         K2,
+                                                         dK2_dT,
+                                                         abs_nlte_ratio,//K3
+                                                         dabs_nlte_ratio_dT,
+                                                         src_nlte_ratio,//K4
+                                                         // Line parameters
+                                                         abs_lines[ii].F(),
+                                                         abs_lines[ii].I0(),
+                                                         abs_lines[ii].Elow(),
+                                                         abs_lines[ii].Evlow(),
+                                                         abs_lines[ii].Evupp(),
+                                                         abs_lines[ii].EvlowIndex() > -1?
+                                                         t_nlte[abs_lines[ii].EvlowIndex()]:-1.0,
+                                                         abs_lines[ii].EvuppIndex() > -1?
+                                                         t_nlte[abs_lines[ii].EvuppIndex()]:-1.0,
+                                                         Y,
+                                                         dY_dT,
+                                                         G,
+                                                         dG_dT,
+                                                         DV,
+                                                         dDV_dT,
+                                                         abs_lines[ii].QuantumNumbers(),
+                                                         // LINE SHAPE
+                                                         ind_ls,
+                                                         ind_lsn,
+                                                         df_0,//FIXME: For H-T, this part is difficult
+                                                         ddf_0_dT,
+                                                         gamma_0,
+                                                         dgamma_0_dT,
+                                                         gamma_dSelf,
+                                                         gamma_dForeign,
+                                                         gamma_dWater,
+                                                         gamma_dSelfExponent,
+                                                         gamma_dForeignExponent,
+                                                         gamma_dWaterExponent,
+                                                         // Partition data parameters
+                                                         dQ_dT,
+                                                         // Magnetic variables
+                                                         precalc_zeeman?Z_DF[ii]:0,
+                                                         H_magntitude_Zeeman,
+                                                         // Programming
+                                                         jj, 
+                                                         calc_partials_phase,
+                                                         calc_src);
             }
         }
     }

@@ -79,7 +79,7 @@ void PressureBroadeningData::GetPressureBroadeningParams(Numeric& gamma_0,
     }
 }
 
-// Get broadening
+// Get temperature derivative of the broadening
 void PressureBroadeningData::GetPressureBroadeningParams_dT(Numeric& dgamma_0_dT,
                                                             Numeric& ddf_0_dT,
                                                             const Numeric& T,
@@ -113,7 +113,185 @@ void PressureBroadeningData::GetPressureBroadeningParams_dT(Numeric& dgamma_0_dT
     }
 }
 
+// Get catalog parameter derivatives:  self broadening
+void PressureBroadeningData::GetPressureBroadeningParams_dSelf(Numeric& gamma_dSelf,
+                                                               const Numeric& theta,
+                                                               const Numeric& self_pressure) const
+{
+    switch(mtype)
+    {
+        case PB_NONE:
+            // Note that this is oftentimes not wanted, but a valid case at low pressures
+            break;
+        case PB_AIR_BROADENING:
+            GetAirBroadening_dSelf(gamma_dSelf, theta, self_pressure);
+            break;
+        case PB_AIR_AND_WATER_BROADENING:
+            GetAirAndWaterBroadening_dSelf(gamma_dSelf,theta, self_pressure);
+            break;
+        case PB_PERRIN_BROADENING:
+            GetPerrinBroadening_dSelf(gamma_dSelf, theta, self_pressure);
+            break;
+        default:
+            throw std::runtime_error("You have defined an unknown broadening mechanism.\n");
+    }
+}
+
+// Get catalog parameter derivatives:  foreign broadening
+void PressureBroadeningData::GetPressureBroadeningParams_dForeign(Numeric& gamma_dForeign,
+                                                                  const Numeric& theta,
+                                                                  const Numeric& pressure,
+                                                                  const Numeric& self_pressure,
+                                                                  const Index    this_species,
+                                                                  const Index    h2o_species,
+                                                                  ConstVectorView vmrs) const
+{
+    switch(mtype)
+    {
+        case PB_NONE:
+            // Note that this is oftentimes not wanted, but a valid case at low pressures
+            break;
+        case PB_AIR_BROADENING:
+            GetAirBroadening_dForeign(gamma_dForeign, theta, pressure, self_pressure);
+            break;
+        case PB_AIR_AND_WATER_BROADENING:
+            GetAirAndWaterBroadening_dForeign(gamma_dForeign, theta, pressure, self_pressure, 
+                                            this_species, h2o_species, vmrs);
+            break;
+        case PB_PERRIN_BROADENING:
+            throw std::runtime_error("Planetary broadening calculation type does not support foreign broadening partial derivatives.\n"
+            "This is because broadening is calculated from multiple species, not from some \"foreign\" entity.\n"
+            "Please use another method to estimate pressure broadening problems.\n");
+            break;
+        default:
+            throw std::runtime_error("You have defined an unknown broadening mechanism.\n");
+    }
+}
+
+// Get catalog parameter derivatives:  water broadening
+void PressureBroadeningData::GetPressureBroadeningParams_dWater(Numeric& gamma_dWater,
+                                                                const Numeric& theta,
+                                                                const Numeric& pressure,
+                                                                const Index    this_species,
+                                                                const Index    h2o_species,
+                                                                ConstVectorView vmrs,
+                                                                const Verbosity& verbosity) const
+{
+    switch(mtype)
+    {
+        case PB_NONE:
+            // Note that this is oftentimes not wanted, but a valid case at low pressures
+            break;
+        case PB_AIR_BROADENING:
+            throw std::runtime_error("Air broadening calculation type does not support water broadening partial derivatives.\n"
+            "Please check your catalog type and input lines to ensure that you are doing what you expect.\n");
+            break;
+        case PB_AIR_AND_WATER_BROADENING:
+            GetAirAndWaterBroadening_dWater(gamma_dWater, theta, pressure, 
+                                            this_species, h2o_species, vmrs, verbosity);
+            break;
+        case PB_PERRIN_BROADENING:
+            throw std::runtime_error("Planetary broadening calculation type does not *yet* support water broadening partial derivatives.\n"
+            "Please check your catalog type and input lines to ensure that you are doing what you expect,\n"
+            "or contact developers for help implementing this feature.\n");
+            break;
+        default:
+            throw std::runtime_error("You have defined an unknown broadening mechanism.\n");
+    }
+}
+
+// Get catalog parameter derivatives:  self broadening exponent
+void PressureBroadeningData::GetPressureBroadeningParams_dSelfExponent(Numeric& gamma_dSelfExponent,
+                                                                       const Numeric& theta,
+                                                                       const Numeric& self_pressure) const
+{
+    switch(mtype)
+    {
+        case PB_NONE:
+            // Note that this is oftentimes not wanted, but a valid case at low pressures
+            break;
+        case PB_AIR_BROADENING:
+            GetAirBroadening_dSelfExponent(gamma_dSelfExponent, theta, self_pressure);
+            break;
+        case PB_AIR_AND_WATER_BROADENING:
+            GetAirAndWaterBroadening_dSelfExponent(gamma_dSelfExponent, theta, self_pressure);
+            break;
+        case PB_PERRIN_BROADENING:
+            GetPerrinBroadening_dSelfExponent(gamma_dSelfExponent, theta, self_pressure);
+            break;
+        default:
+            throw std::runtime_error("You have defined an unknown broadening mechanism.\n");
+    }
+}
+
+// Get catalog parameter derivatives:  foreign broadening exponent
+void PressureBroadeningData::GetPressureBroadeningParams_dForeignExponent(Numeric& gamma_dForeignExponent,
+                                                                          const Numeric& theta,
+                                                                          const Numeric& pressure,
+                                                                          const Numeric& self_pressure,
+                                                                          const Index    this_species,
+                                                                          const Index    h2o_species,
+                                                                          ConstVectorView vmrs) const
+{
+    
+    switch(mtype)
+    {
+        case PB_NONE:
+            // Note that this is oftentimes not wanted, but a valid case at low pressures
+            break;
+        case PB_AIR_BROADENING:
+            GetAirBroadening_dForeignExponent(gamma_dForeignExponent, theta, pressure, self_pressure);
+            break;
+        case PB_AIR_AND_WATER_BROADENING:
+            GetAirAndWaterBroadening_dForeignExponent(gamma_dForeignExponent, theta, pressure, self_pressure, 
+                                           this_species, h2o_species, vmrs);
+            break;
+        case PB_PERRIN_BROADENING:
+            throw std::runtime_error("Planetary broadening calculation type does not support foreign broadening partial derivatives.\n"
+                "This is because broadening is calculated from multiple species, not from some \"foreign\" entity.\n"
+                "Please use another method to estimate pressure broadening problems.\n");
+            break;
+        default:
+            throw std::runtime_error("You have defined an unknown broadening mechanism.\n");
+    }
+}
+
+void PressureBroadeningData::GetPressureBroadeningParams_dWaterExponent(Numeric& gamma_dWaterExponent,
+                                                                        const Numeric& theta,
+                                                                        const Numeric& pressure,
+                                                                        const Index    this_species,
+                                                                        const Index    h2o_species,
+                                                                        ConstVectorView vmrs,
+                                                                        const Verbosity& verbosity) const
+{
+    switch(mtype)
+    {
+        case PB_NONE:
+            // Note that this is oftentimes not wanted, but a valid case at low pressures
+            break;
+        case PB_AIR_BROADENING:
+            throw std::runtime_error("Air broadening calculation type does not support water broadening partial derivatives.\n"
+                "Please check your catalog type and input lines to ensure that you are doing what you expect.\n");
+            break;
+        case PB_AIR_AND_WATER_BROADENING:
+            GetAirAndWaterBroadening_dWaterExponent(gamma_dWaterExponent, theta, pressure, 
+                                           this_species, h2o_species, vmrs, verbosity);
+            break;
+        case PB_PERRIN_BROADENING:
+            throw std::runtime_error("Planetary broadening calculation type does not *yet* support water broadening partial derivatives.\n"
+            "Please check your catalog type and input lines to ensure that you are doing what you expect,\n"
+                "or contact developers for help implementing this feature.\n");
+            break;
+        default:
+            throw std::runtime_error("You have defined an unknown broadening mechanism.\n");
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////////////
 // Get air broadening
+///////////////////////////////////////////////////////////////////////////////////////
+
+// This is the broadening used by ARTSCAT-3; the "N2"-tag in ARTSCAT-5
 void PressureBroadeningData::GetAirBroadening(Numeric& gamma,
                                               Numeric& deltaf,
                                               const Numeric& theta,
@@ -128,7 +306,7 @@ void PressureBroadeningData::GetAirBroadening(Numeric& gamma,
       * pow (theta,(Numeric)0.25+(Numeric)1.5*mdata[3][0]);
 }
 
-// Get air broadening
+// This is the temperature derivative of the broadening used by ARTSCAT-3 type of broadening; the "N2"-tag in ARTSCAT-5
 void PressureBroadeningData::GetAirBroadening_dT(Numeric& dgamma_dT,
                                                  Numeric& ddeltaf_dT,
                                                  const Numeric& T,
@@ -148,8 +326,45 @@ void PressureBroadeningData::GetAirBroadening_dT(Numeric& dgamma_dT,
     * pow (theta,(Numeric)0.25+(Numeric)1.5*mdata[3][0]);
 }
 
+// This is the self broadening derivative of the broadening used by ARTSCAT-3; the "N2"-tag in ARTSCAT-5
+void PressureBroadeningData::GetAirBroadening_dSelf(Numeric& gamma_dSelf,
+                                                    const Numeric& theta,
+                                                    const Numeric& self_pressure) const
+{
+    gamma_dSelf =  pow(theta, mdata[1][0]) * self_pressure;
+}
 
-// Get air broadening
+// This is the foreign broadening derivative of the broadening used by ARTSCAT-3; the "N2"-tag in ARTSCAT-5
+void PressureBroadeningData::GetAirBroadening_dForeign(Numeric& gamma_dForeign,
+                                                    const Numeric& theta,
+                                                    const Numeric& pressure,
+                                                    const Numeric& self_pressure) const
+{
+    gamma_dForeign = pow(theta, mdata[3][0]) * (pressure-self_pressure);
+}
+
+// This is the self broadening exponent derivative of the broadening used by ARTSCAT-3; the "N2"-tag in ARTSCAT-5
+void PressureBroadeningData::GetAirBroadening_dSelfExponent(Numeric& gamma_dSelfExponent,
+                                                            const Numeric& theta,
+                                                            const Numeric& self_pressure) const
+{
+    gamma_dSelfExponent = mdata[0][0] * pow(theta,mdata[1][0]) * self_pressure * log(theta);
+}
+
+// This is the foreign broadening exponent derivative of the broadening used by ARTSCAT-3; the "N2"-tag in ARTSCAT-5
+void PressureBroadeningData::GetAirBroadening_dForeignExponent(Numeric& gamma_dForeignExponent,
+                                                               const Numeric& theta,
+                                                               const Numeric& pressure,
+                                                               const Numeric& self_pressure) const
+{
+    gamma_dForeignExponent = mdata[2][0] * pow(theta,mdata[3][0]) * (pressure-self_pressure) * log(theta);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////
+// Get air and water broadening
+///////////////////////////////////////////////////////////////////////////////////////
+
+// This is the broadening used by the "WA"-tag in ARTSCAT-5
 void PressureBroadeningData::GetAirAndWaterBroadening(Numeric& gamma,
                                                       Numeric& deltaf,
                                                       const Numeric& theta,
@@ -198,8 +413,7 @@ void PressureBroadeningData::GetAirAndWaterBroadening(Numeric& gamma,
     }
 }
 
-
-// Get air broadening
+// This is the temperature derivative of the broadening used by the "WA"-tag in ARTSCAT-5
 void PressureBroadeningData::GetAirAndWaterBroadening_dT(Numeric& dgamma_dT,
                                                          Numeric& ddeltaf_dT,
                                                          const Numeric& T,
@@ -251,8 +465,104 @@ void PressureBroadeningData::GetAirAndWaterBroadening_dT(Numeric& dgamma_dT,
     }
 }
 
+// This is the self broadening derivative of the broadening used by the "WA"-tag in ARTSCAT-5
+void PressureBroadeningData::GetAirAndWaterBroadening_dSelf(Numeric& gamma_dSelf,
+                                                      const Numeric& theta,
+                                                      const Numeric& self_pressure) const
+{
+    gamma_dSelf   =  pow(theta,mdata[0][1]) * self_pressure;
+}
 
-// Get Perrin broadening
+// This is the foreign broadening derivative of the broadening used by the "WA"-tag in ARTSCAT-5
+void PressureBroadeningData::GetAirAndWaterBroadening_dForeign(Numeric& gamma_dForeign,
+                                                               const Numeric& theta,
+                                                               const Numeric& pressure,
+                                                               const Numeric& self_pressure,
+                                                               const Index    this_species,
+                                                               const Index    h2o_species,
+                                                               ConstVectorView vmrs) const
+{
+    if(this_species==h2o_species || h2o_species==-1)    
+        gamma_dForeign = pow(theta,mdata[1][1]) * (pressure-self_pressure);
+    else
+        gamma_dForeign = pow(theta,mdata[1][1]) * (pressure-self_pressure-vmrs[h2o_species]*pressure);
+}
+
+// This is the water broadening derivative of the broadening used by the "WA"-tag in ARTSCAT-5
+void PressureBroadeningData::GetAirAndWaterBroadening_dWater(Numeric& gamma_dWater,
+                                                      const Numeric& theta,
+                                                      const Numeric& pressure,
+                                                      const Index    this_species,
+                                                      const Index    h2o_species,
+                                                      ConstVectorView vmrs,
+                                                      const Verbosity& verbosity) const
+{
+    CREATE_OUT2;
+    
+    if(this_species==h2o_species)
+        throw std::runtime_error("Use \"Self broadening\" types of derivatives rather than water broadening for water lines.\n");
+    else if(h2o_species==-1)
+    {
+        gamma_dWater = 0.0;
+        
+        out2 << "You have no H2O in species but you want the water broadening derivative.  It is thus set to zero.\n";
+    }
+    else
+        gamma_dWater = pow(theta,mdata[2][1]) * vmrs[h2o_species]*pressure;
+}
+
+// This is the self broadening exponent derivative of the broadening used by the "WA"-tag in ARTSCAT-5
+void PressureBroadeningData::GetAirAndWaterBroadening_dSelfExponent(Numeric& gamma_dSelfExponent,
+                                                                    const Numeric& theta,
+                                                                    const Numeric& self_pressure) const
+{
+    gamma_dSelfExponent =  mdata[0][0] * pow(theta,mdata[0][1]) * self_pressure * log(theta);
+}
+
+// This is the foreign broadening exponent derivative of the broadening used by the "WA"-tag in ARTSCAT-5
+void PressureBroadeningData::GetAirAndWaterBroadening_dForeignExponent(Numeric& gamma_dForeignExponent,
+                                                                       const Numeric& theta,
+                                                                       const Numeric& pressure,
+                                                                       const Numeric& self_pressure,
+                                                                       const Index    this_species,
+                                                                       const Index    h2o_species,
+                                                                       ConstVectorView vmrs) const
+{
+    if(this_species==h2o_species || h2o_species==-1)    
+        gamma_dForeignExponent = mdata[1][0]* pow(theta,mdata[1][1]) * (pressure-self_pressure) * log(theta);
+    else
+        gamma_dForeignExponent = mdata[1][0]* pow(theta,mdata[1][1]) * (pressure-self_pressure-vmrs[h2o_species]*pressure) * log(theta);
+}
+
+// This is the water broadening exponent derivative of the broadening used by the "WA"-tag in ARTSCAT-5
+void PressureBroadeningData::GetAirAndWaterBroadening_dWaterExponent(Numeric& gamma_dWaterExponent,
+                                                      const Numeric& theta,
+                                                      const Numeric& pressure,
+                                                      const Index    this_species,
+                                                      const Index    h2o_species,
+                                                      ConstVectorView vmrs,
+                                                      const Verbosity& verbosity) const
+{
+    CREATE_OUT2;
+    
+    if(this_species==h2o_species)
+        throw std::runtime_error("Use \"Self broadening\" types of derivatives rather than water broadening for water lines.\n");
+    else if(h2o_species==-1)
+    {
+        gamma_dWaterExponent = 0.0;
+        
+        out2 << "You have no H2O in species but you want the water broadening derivative.  It is thus set to zero.\n";
+    }
+    else
+        gamma_dWaterExponent = mdata[2][0] * pow(theta,mdata[2][1]) * vmrs[h2o_species]*pressure *log(theta);
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////////
+// Get all planetary broadening
+///////////////////////////////////////////////////////////////////////////////////////
+
+// This is the broadening used by ARTSCAT-4; the "AP"-tag in ARTSCAT-5
 void PressureBroadeningData::GetPerrinBroadening(Numeric& gamma,
                                                  Numeric& deltaf,
                                                  const Numeric& theta,
@@ -362,8 +672,7 @@ void PressureBroadeningData::GetPerrinBroadening(Numeric& gamma,
     // That's it, we're done.
 }
 
-
-// Get Perrin broadening
+// This is the temperature derivative of the broadening used by ARTSCAT-4; the "AP"-tag in ARTSCAT-5
 void PressureBroadeningData::GetPerrinBroadening_dT(Numeric& dgamma_dT,
                                                     Numeric& ddeltaf_dT,
                                                     const Numeric& T,
@@ -476,6 +785,21 @@ void PressureBroadeningData::GetPerrinBroadening_dT(Numeric& dgamma_dT,
     // That's it, we're done.
 }
 
+// This is the self broadening derivative of the broadening used by ARTSCAT-4; the "AP"-tag in ARTSCAT-5
+void PressureBroadeningData::GetPerrinBroadening_dSelf(Numeric& gamma_dSelf,
+                                                       const Numeric& theta,
+                                                       const Numeric& self_pressure) const
+{
+    gamma_dSelf =  pow(theta, mdata[1][0]) * self_pressure;
+}
+
+// This is the self broadening exponent derivative of the broadening used by ARTSCAT-4; the "AP"-tag in ARTSCAT-5
+void PressureBroadeningData::GetPerrinBroadening_dSelfExponent(Numeric& gamma_dSelfExponent,
+                                                               const Numeric& theta,
+                                                               const Numeric& self_pressure) const
+{
+    gamma_dSelfExponent = mdata[0][0] * pow(theta, mdata[1][0]) * self_pressure * log(theta);
+}
 
 ///////////////////////////////////////////
 //  Catalog interactions here

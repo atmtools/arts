@@ -102,8 +102,8 @@ public:
   void Grids( const ArrayOfVector& g ) { mgrids = g; }
   
   /** QuantumIdentifier as necessary for matching line specific parameters to jacobian grid */
-  const QuantumIdentifier& GetQuantumIdentifier() const { return mquantumidentifier; }
-  void SetQuantumIdentifier( const QuantumIdentifier& qi ) { mquantumidentifier = qi; }
+  const QuantumIdentifier& QuantumIdentity() const { return mquantumidentifier; }
+  void QuantumIdentity( const QuantumIdentifier& qi ) { mquantumidentifier = qi; }
 
 private:
 
@@ -250,7 +250,8 @@ enum {
     JAC_IS_MAG_W_SEMI_ANALYTIC,
     JAC_IS_MAG_V_FROM_PROPMAT,
     JAC_IS_MAG_U_FROM_PROPMAT,
-    JAC_IS_MAG_W_FROM_PROPMAT
+    JAC_IS_MAG_W_FROM_PROPMAT,
+    JAC_IS_OTHER
 };
 
 #endif // jacobian_h

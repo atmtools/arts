@@ -653,7 +653,7 @@ void xsec_species_line_mixing_wrapper_with_zeeman(
                             if(is2==0)
                             {
                                 dnlte_dx_source[iq](iv,is1) += partial_source[iq](iv,0)*n*K_a(is1,is2)*planck_BT[iv];
-                                nlte_dsource_dx[iq](iv,is1) += source(iv,0)*n*K_a(is1,is2)*dplanck_BT(0,iv);//zeroth index is the temperature derivative
+                                nlte_dsource_dx[iq](iv,is1) += source(iv,0)*n*K_a(is1,is2)*dplanck_BT(1,iv);//first index is the frequency derivative
                             }
                         }
                         else if(flag_partials(iq)==JQT_temperature)

@@ -308,6 +308,18 @@ private:
     QuantumMatchCriteria mqm;
 };
 
+inline bool operator==(const QuantumIdentifier a,const QuantumIdentifier b){
+    if(!(a.Isotopologue()==b.Isotopologue() && 
+        a.Species()==b.Species() &&
+        a.Type()==b.Type()))
+        return false;
+    
+    if(a.Type()==QuantumIdentifier::ENERGY_LEVEL)
+        return a.QuantumMatch()[a.ENERGY_LEVEL_INDEX].Compare(b.QuantumMatch()[b.ENERGY_LEVEL_INDEX]);
+    else
+        return a.QuantumMatch()[a.TRANSITION_LOWER_INDEX].Compare(b.QuantumMatch()[ b.TRANSITION_LOWER_INDEX ]) && 
+        a.QuantumMatch()[a.TRANSITION_UPPER_INDEX].Compare(b.QuantumMatch()[ b.TRANSITION_UPPER_INDEX ]) ;
+}
 
 typedef Array<QuantumIdentifier> ArrayOfQuantumIdentifier;
 

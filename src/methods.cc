@@ -6957,6 +6957,7 @@ void define_md_data_raw()
          "\n"
          "There are two possible calculation methods:\n"
          "   \"analytical\"   : (semi-)analytical expressions are used\n"
+         "   \"from propmat\" : analytical expressions are used when possible\n"
          "   \"perturbation\" : pure numerical perturbations are used\n"
          "\n"
          "The retrieval unit can be:\n"
@@ -6969,6 +6970,8 @@ void define_md_data_raw()
          "For perturbation calculations the size of the perturbation is set\n"
          "by the user. The unit for the perturbation is the same as for the\n"
          "retrieval unit.\n"
+         "\n"
+         "Only \"vmr\" works for \"from propmat\".\n"
          ),
         AUTHORS( "Mattias Ekstrom", "Patrick Eriksson" ),
         OUT( "jacobian_quantities", "jacobian_agenda" ),
@@ -6993,7 +6996,54 @@ void define_md_data_raw()
         AGENDAMETHOD(   false ),
         USES_TEMPLATES( false ),
         PASSWORKSPACE(  true  )
-        ));
+      ));
+    
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "jacobianAddCatalogParameter" ),
+      DESCRIPTION
+      (
+          "Includes a catalog parameter in the Jacobian.\n"
+          "\n"
+          "Details are given in the user guide.\n"
+          "\n"
+          "These are the supported catalog parameters:\n"
+          "   \"Reference Line Strength\"\n"
+          "   \"Pressure Broadening Gamma\"\n"
+          "   \"Pressure Broadening Reference Self Gamma\"\n"
+          "   \"Pressure Broadening Reference Foreign Gamma\"\n"
+          "   \"Pressure Broadening Reference Water Gamma\"\n"
+          "   \"Pressure Broadening Reference Self Gamma Exponent\"\n"
+          "   \"Pressure Broadening Reference Foreign Gamma Exponent\"\n"
+          "   \"Pressure Broadening Reference Water Gamma Exponent\"\n"
+          "\n"
+          "The *catalog_identity* should be able to identify one or many\n"
+          "lines in the catalog used for calculating the spectral absorption.\n"
+          "\n"
+          "Note that matching these lines might be prone to errors since\n"
+          "not all form of catalogs can return quantum identifications, and\n"
+          "there might be misidentified lines in the present reading routines.\n"
+          "By default, a zero value is returned when the line presented cannot be\n"
+          "found in the catalog.  Also, if lines change internally, like for Zeeman\n"
+          "effect, then this does not work...\n"
+      ),
+      AUTHORS( "Richard Larsson" ),
+      OUT( "jacobian_quantities", "jacobian_agenda" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "jacobian_quantities", "jacobian_agenda",
+          "atmosphere_dim", "p_grid", "lat_grid", "lon_grid" ),
+      GIN( "g1", "g2", "g3","catalog_identity","catalog_parameter" ),
+      GIN_TYPE( "Vector", "Vector", "Vector", "QuantumIdentifier", "String" ),
+      GIN_DEFAULT( NODEF, NODEF, NODEF, NODEF, "Nothing" ),
+      GIN_DESC( "Pressure retrieval grid.",
+                "Latitude retrieval grid.",
+                "Longitude retreival grid.",
+                "The catalog line matching information(s).",
+                "The catalog parameter of the retrieval quantity."
+                )
+    ));
          
   md_data_raw.push_back
     ( MdRecord

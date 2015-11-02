@@ -22,12 +22,28 @@
 
 #include "jacobian.h"
 
+// Generic parameters
 extern const String TEMPERATURE_MAINTAG;
 extern const String WIND_MAINTAG;
 extern const String MAGFIELD_MAINTAG;
 extern const String FREQUENCY_MAINTAG;
 extern const String ABSSPECIES_MAINTAG;
+
+// Main tag for this type of Jacobian calculation
 extern const String PROPMAT_SUBSUBTAG;
+
+// Catalog parameters
+extern const String CATALOGPARAMETER_MAINTAG;
+extern const String PRESSUREBROADENINGGAMMA_MODE;
+extern const String LINESTRENGTH_MODE;
+
+// Specific catalog's parameters
+extern const String SELFBROADENING_MODE;
+extern const String FOREIGNBROADENING_MODE;
+extern const String WATERBROADENING_MODE;
+extern const String SELFBROADENINGEXPONENT_MODE;
+extern const String FOREIGNBROADENINGEXPONENT_MODE;
+extern const String WATERBROADENINGEXPONENT_MODE;
 
 
 typedef enum 
@@ -48,6 +64,12 @@ typedef enum
     JQT_line_strength,
     JQT_line_center,
     JQT_line_gamma,
+    JQT_line_gamma_self,
+    JQT_line_gamma_foreign,
+    JQT_line_gamma_water,
+    JQT_line_gamma_selfexponent,
+    JQT_line_gamma_foreignexponent,
+    JQT_line_gamma_waterexponent,
     JQT_line_mixing_Y,
     JQT_line_mixing_G,
     JQT_line_mixing_DF,
@@ -87,6 +109,10 @@ public:
         mqtype.resize(mreal_nelem);
         mjacobian_pos.resize(mreal_nelem);
         mspecies.resize(mreal_nelem);
+        
+        mcontains_pressure_term.resize(6);
+        for(Index ii=0;ii<6;ii++)
+            mcontains_pressure_term[ii]=0;
         
         Index ippdq = 0;
         for(Index iq=0; iq<nq; iq++)
@@ -205,44 +231,92 @@ public:
                     ippdq++;
                     mfreq_perturbation = jacobian_quantities[iq].Perturbation();
                 }
-                else if(jacobian_quantities[iq].MainTag() == "Line Parameter")
+                else if(jacobian_quantities[iq].MainTag() == CATALOGPARAMETER_MAINTAG)
                 {
-                    if(jacobian_quantities[iq].Subtag() == "Reference Line Strength")
+                    if(jacobian_quantities[iq].Mode() == LINESTRENGTH_MODE)
                     {
                         mqtype[ippdq] = JQT_line_strength;
                         mjacobian_pos[ippdq] = iq;
                         mspecies[ippdq] = -9999;//Flag for not a species...
                         ippdq++;
                     }
-                    else if(jacobian_quantities[iq].Subtag() == "Pressure Broadening Gamma")
+                    else if(jacobian_quantities[iq].Mode() == PRESSUREBROADENINGGAMMA_MODE)
                     {
                         mqtype[ippdq] = JQT_line_gamma;
                         mjacobian_pos[ippdq] = iq;
                         mspecies[ippdq] = -9999;//Flag for not a species...
                         ippdq++;
                     }
-                    else if(jacobian_quantities[iq].Subtag() == "Line Mixing Y")
+                    else if(jacobian_quantities[iq].Mode() == SELFBROADENING_MODE)
+                    {
+                        mqtype[ippdq] = JQT_line_gamma_self;
+                        mjacobian_pos[ippdq] = iq;
+                        mspecies[ippdq] = -9999;//Flag for not a species...
+                        mcontains_pressure_term[0]=1;
+                        ippdq++;
+                    }
+                    else if(jacobian_quantities[iq].Mode() == FOREIGNBROADENING_MODE)
+                    {
+                        mqtype[ippdq] = JQT_line_gamma_foreign;
+                        mjacobian_pos[ippdq] = iq;
+                        mspecies[ippdq] = -9999;//Flag for not a species...
+                        mcontains_pressure_term[1]=1;
+                        ippdq++;
+                    }
+                    else if(jacobian_quantities[iq].Mode() == WATERBROADENING_MODE)
+                    {
+                        mqtype[ippdq] = JQT_line_gamma_water;
+                        mjacobian_pos[ippdq] = iq;
+                        mspecies[ippdq] = -9999;//Flag for not a species...
+                        mcontains_pressure_term[2]=1;
+                        ippdq++;
+                    }
+                    else if(jacobian_quantities[iq].Mode() == SELFBROADENINGEXPONENT_MODE)
+                    {
+                        mqtype[ippdq] = JQT_line_gamma_selfexponent;
+                        mjacobian_pos[ippdq] = iq;
+                        mspecies[ippdq] = -9999;//Flag for not a species...
+                        mcontains_pressure_term[3]=1;
+                        ippdq++;
+                    }
+                    else if(jacobian_quantities[iq].Mode() == FOREIGNBROADENINGEXPONENT_MODE)
+                    {
+                        mqtype[ippdq] = JQT_line_gamma_foreignexponent;
+                        mjacobian_pos[ippdq] = iq;
+                        mspecies[ippdq] = -9999;//Flag for not a species...
+                        mcontains_pressure_term[4]=1;
+                        ippdq++;
+                    }
+                    else if(jacobian_quantities[iq].Mode() == WATERBROADENINGEXPONENT_MODE)
+                    {
+                        mqtype[ippdq] = JQT_line_gamma_waterexponent;
+                        mjacobian_pos[ippdq] = iq;
+                        mspecies[ippdq] = -9999;//Flag for not a species...
+                        mcontains_pressure_term[5]=1;
+                        ippdq++;
+                    }
+                    else if(jacobian_quantities[iq].Mode() == "Line Mixing Y")
                     {
                         mqtype[ippdq] = JQT_line_mixing_Y;
                         mjacobian_pos[ippdq] = iq;
                         mspecies[ippdq] = -9999;//Flag for not a species...
                         ippdq++;
                     }
-                    else if(jacobian_quantities[iq].Subtag() == "Line Mixing G")
+                    else if(jacobian_quantities[iq].Mode() == "Line Mixing G")
                     {
                         mqtype[ippdq] = JQT_line_mixing_G;
                         mjacobian_pos[ippdq] = iq;
                         mspecies[ippdq] = -9999;//Flag for not a species...
                         ippdq++;
                     }
-                    else if(jacobian_quantities[iq].Subtag() == "Line Mixing DF")
+                    else if(jacobian_quantities[iq].Mode() == "Line Mixing DF")
                     {
                         mqtype[ippdq] = JQT_line_mixing_DF;
                         mjacobian_pos[ippdq] = iq;
                         mspecies[ippdq] = -9999;//Flag for not a species...
                         ippdq++;
                     }
-                    else if(jacobian_quantities[iq].Subtag() == "Vibrational Temperature")
+                    else if(jacobian_quantities[iq].Mode() == "Vibrational Temperature")
                     {
                         mqtype[ippdq] = JQT_level_vibrational_temperature;
                         mjacobian_pos[ippdq] = iq;
@@ -298,13 +372,19 @@ public:
                 mqtype[iq]==JQT_VMR)
                 testvar=true;
             else if(mqtype[iq]==JQT_line_center    || // We cannot know if any particular
-                    mqtype[iq]==JQT_line_gamma     || // line is in the Continuum.
+                mqtype[iq]==JQT_line_gamma     || // line is in the Continuum?
+                mqtype[iq]==JQT_line_gamma_self     || // line is in the Continuum?
+                mqtype[iq]==JQT_line_gamma_foreign     || // line is in the Continuum?
+                mqtype[iq]==JQT_line_gamma_water     || // line is in the Continuum?
+                mqtype[iq]==JQT_line_gamma_selfexponent     || // line is in the Continuum?
+                mqtype[iq]==JQT_line_gamma_foreignexponent     || // line is in the Continuum?
+                mqtype[iq]==JQT_line_gamma_waterexponent     || // line is in the Continuum?
                     mqtype[iq]==JQT_line_mixing_DF || // Did not add JQT_level_vibrational_temperature,
                     mqtype[iq]==JQT_line_mixing_G  || // since no continuum model takes NLTE into account.
                     mqtype[iq]==JQT_line_mixing_Y  || // (if they do, add this to list of unsupported Jacobians.)
                     mqtype[iq]==JQT_line_strength)
                 throw std::runtime_error("Line specific parameters are not supported while using continuum"
-                "tags.\nWe do not track what lines are in the continuum.\n");
+                " tags.\nWe do not track what lines are in the continuum.\n");
         }
         return testvar;
     };
@@ -338,7 +418,13 @@ public:
                 mqtype[iq]==JQT_VMR)
                 testvar=true;
             else if(mqtype[iq]==JQT_line_center    || // We cannot know if any particular
-                mqtype[iq]==JQT_line_gamma     || // line is in the Continuum.
+                mqtype[iq]==JQT_line_gamma     || // line is in the Continuum?
+                mqtype[iq]==JQT_line_gamma_self     || // line is in the Continuum?
+                mqtype[iq]==JQT_line_gamma_foreign     || // line is in the Continuum?
+                mqtype[iq]==JQT_line_gamma_water     || // line is in the Continuum?
+                mqtype[iq]==JQT_line_gamma_selfexponent     || // line is in the Continuum?
+                mqtype[iq]==JQT_line_gamma_foreignexponent     || // line is in the Continuum?
+                mqtype[iq]==JQT_line_gamma_waterexponent     || // line is in the Continuum?
                 mqtype[iq]==JQT_line_mixing_DF || // Did not add JQT_level_vibrational_temperature,
                 mqtype[iq]==JQT_line_mixing_G  || // since no continuum model takes NLTE into account.
                 mqtype[iq]==JQT_line_mixing_Y  || // (if they do, add this to list of unsupported Jacobians.)
@@ -429,6 +515,11 @@ public:
         return counter;
     };
     
+    bool is_this_linetype(Index& jqt_index) const
+    {
+        return mjacobian_quantities[jqt_index].MainTag()==CATALOGPARAMETER_MAINTAG;
+    }
+    
     // Note that wind and frequency means the same inside propmat_clearsky agenda.
     bool do_frequency() const
     {
@@ -449,7 +540,10 @@ public:
     // Setting default values here so that the same perturbations are used everywhere where perturbations are required
     Numeric Temperature_Perturbation() const {return mtemp_perturbation;};   
     Numeric Magnetic_Field_Perturbation() const {return mmag_perturbation;}; 
-    Numeric Frequency_Perturbation() const {return mfreq_perturbation;};      
+    Numeric Frequency_Perturbation() const {return mfreq_perturbation;};  
+
+    // Helper for pressure broadening terms
+    Index PressureBroadeningTerm(Index this_index) const {return (bool)mcontains_pressure_term[this_index];};
     
 private:
     ArrayOfJacobianQuantityType mqtype;
@@ -462,6 +556,7 @@ private:
     Index                       mreal_nelem;
     bool mcontains_temperature;
     bool mcontains_frequency_term;
+    ArrayOfIndex mcontains_pressure_term;
 };
 
 // Generic function that will calculate all partial derivatives of the line-shape that depends on input per line
@@ -507,6 +602,12 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix& partials_attenuatio
                                               const Numeric& ddf_0_dT,
                                               const Numeric& gamma,
                                               const Numeric& dgamma_dT,
+                                              const Numeric& dgamma_dSelf,
+                                              const Numeric& dgamma_dForeign,
+                                              const Numeric& dgamma_dWater,
+                                              const Numeric& dgamma_dSelfExponent,
+                                              const Numeric& dgamma_dForeignExponent,
+                                              const Numeric& dgamma_dWaterExponent,
                                               // Partition data parameters
                                               const Numeric& dQ_dT,
                                               // Magnetic variables

@@ -68,6 +68,12 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix&  partials_attenuati
                                               const Numeric& ddf_dT,
                                               const Numeric& gamma,
                                               const Numeric& dgamma_dT,
+                                              const Numeric& dgamma_dSelf,
+                                              const Numeric& dgamma_dForeign,
+                                              const Numeric& dgamma_dWater,
+                                              const Numeric& dgamma_dSelfExponent,
+                                              const Numeric& dgamma_dForeignExponent,
+                                              const Numeric& dgamma_dWaterExponent,
                                               // Partition data parameters
                                               const Numeric&  dQ_dT,
                                               // Magnetic variables
@@ -226,13 +232,13 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix&  partials_attenuati
             // Ready and done!  So complicated that I need plenty of testing!
             
         } 
-        else if(flag_partials(ii)==JQT_VMR)
+        else if(flag_partials(ii) == JQT_VMR)
         {
             // Line shape cross section does not depend on VMR.  NOTE:  Ignoring self-pressure broadening.
         }
-        else if(flag_partials(ii)==JQT_line_strength)
+        else if(flag_partials(ii) == JQT_line_strength)
         {
-            if(!line_match_line(flag_partials.jac()[ii].GetQuantumIdentifier(),qnr.Lower(),qnr.Upper()))
+            if(!line_match_line(flag_partials.jac()[ii].QuantumIdentity(),qnr.Lower(),qnr.Upper()))
                 continue;
             
             VectorView this_partial_attenuation = partials_attenuation[ii](this_f_grid, pressure_level_index);
@@ -254,10 +260,29 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix&  partials_attenuati
             
             // That's it!
         }
-        else if(flag_partials(ii)==JQT_line_gamma)// NOTE: This is for total gamma
+        else if(flag_partials(ii) == JQT_line_gamma ||
+            flag_partials(ii) == JQT_line_gamma_self ||
+            flag_partials(ii) == JQT_line_gamma_foreign ||
+            flag_partials(ii) == JQT_line_gamma_water ||
+            flag_partials(ii) == JQT_line_gamma_selfexponent ||
+            flag_partials(ii) == JQT_line_gamma_foreignexponent ||
+            flag_partials(ii) == JQT_line_gamma_waterexponent)
         {
-            if(!line_match_line(flag_partials.jac()[ii].GetQuantumIdentifier(),qnr.Lower(),qnr.Upper()))
+            if(!line_match_line(flag_partials.jac()[ii].QuantumIdentity(),qnr.Lower(),qnr.Upper()))
                 continue;
+            
+            Numeric constant = 1.0;
+            switch(flag_partials(ii))
+            {
+                case JQT_line_gamma: break;
+                case JQT_line_gamma_self: constant = dgamma_dSelf; break;
+                case JQT_line_gamma_foreign: constant = dgamma_dForeign; break;
+                case JQT_line_gamma_water: constant = dgamma_dWater; break;
+                case JQT_line_gamma_selfexponent: constant = dgamma_dSelfExponent; break;
+                case JQT_line_gamma_foreignexponent: constant = dgamma_dForeignExponent; break;
+                case JQT_line_gamma_waterexponent: constant = dgamma_dWaterExponent; break;
+                default: throw std::runtime_error("This cannot happen.  A developer has made a mistake.\n");
+            }
             
             VectorView this_partial_attenuation = partials_attenuation[ii](this_f_grid, pressure_level_index);
             VectorView this_partial_phase       = do_partials_phase?partials_phase[ii](this_f_grid, pressure_level_index):empty_vector;
@@ -269,22 +294,20 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix&  partials_attenuati
             
             for(Index iv=0;iv<nv;iv++)
             {
-                this_partial_attenuation[iv] += dFa_dy[iv]*dP_dgamma;
+                
+                this_partial_attenuation[iv] += dFa_dy[iv]*dP_dgamma * constant;
                 if(do_partials_phase)
-                    this_partial_phase[iv]   += dFb_dy[iv]*dP_dgamma;
+                    this_partial_phase[iv]   += dFb_dy[iv]*dP_dgamma * constant;
                 if(do_src)
-                    this_partial_src[iv]     += dFa_dy[iv]*dP_dgamma*nlte;
+                    this_partial_src[iv]     += dFa_dy[iv]*dP_dgamma*nlte * constant;
                     
             }
             
-            // That's it!  Note that this should be strongly correlated to VMR, Pressure and Temperature.
-            // Also note that to do the fit for the catalog gamma is somewhat different than this.
-            // If the catalog parameters are the desired outcome, then much more work remains since pressure 
-            // broadening depends on many catalog parameters
+            // That's it!
         }
         else if(flag_partials(ii)==JQT_line_mixing_Y)
         {
-            if(!line_match_line(flag_partials.jac()[ii].GetQuantumIdentifier(),qnr.Lower(),qnr.Upper()))
+            if(!line_match_line(flag_partials.jac()[ii].QuantumIdentity(),qnr.Lower(),qnr.Upper()))
                 continue;
             
             VectorView this_partial_attenuation = partials_attenuation[ii](this_f_grid, pressure_level_index);
@@ -306,7 +329,7 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix&  partials_attenuati
         }
         else if(flag_partials(ii)==JQT_line_mixing_G)
         {
-            if(!line_match_line(flag_partials.jac()[ii].GetQuantumIdentifier(),qnr.Lower(),qnr.Upper()))
+            if(!line_match_line(flag_partials.jac()[ii].QuantumIdentity(),qnr.Lower(),qnr.Upper()))
                 continue;
             
             VectorView this_partial_attenuation = partials_attenuation[ii](this_f_grid, pressure_level_index);
@@ -328,7 +351,7 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix&  partials_attenuati
         }
         else if(flag_partials(ii)==JQT_line_mixing_DF)
         {
-            if(!line_match_line(flag_partials.jac()[ii].GetQuantumIdentifier(),qnr.Lower(),qnr.Upper()))
+            if(!line_match_line(flag_partials.jac()[ii].QuantumIdentity(),qnr.Lower(),qnr.Upper()))
                 continue;
             
             VectorView this_partial_attenuation = partials_attenuation[ii](this_f_grid, pressure_level_index);
@@ -356,7 +379,7 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix&  partials_attenuati
         else if(flag_partials(ii)==JQT_level_vibrational_temperature)
         {
             bool lower, upper;
-            line_match_level(lower, upper, flag_partials.jac()[ii].GetQuantumIdentifier(), qnr.Lower(), qnr.Upper());
+            line_match_level(lower, upper, flag_partials.jac()[ii].QuantumIdentity(), qnr.Lower(), qnr.Upper());
             if(!(lower||upper))
                 continue;
             
@@ -408,8 +431,13 @@ bool line_match_line(const QuantumIdentifier& from_jac,
                      const QuantumNumbers& upper_qn)
 {
     QuantumMatchInfoEnum lower, upper;
+    
     lower_qn.CompareDetailed(lower, from_jac.QuantumMatch()[from_jac.TRANSITION_LOWER_INDEX]);
     upper_qn.CompareDetailed(upper, from_jac.QuantumMatch()[from_jac.TRANSITION_UPPER_INDEX]);
+    
+    //std::cout<<lower_qn<<" v. "<<from_jac.QuantumMatch()[from_jac.TRANSITION_LOWER_INDEX]<< " AND \n" <<upper_qn<<" v. "<<from_jac.QuantumMatch()[from_jac.TRANSITION_UPPER_INDEX]<<"\n";
+    //std::cout<<(lower==QMI_FULL)<<" "<<(upper==QMI_FULL)<<"\n";
+    
     return (lower==QMI_FULL&&upper==QMI_FULL); //Must be perfect match for this to be true.
 }
 

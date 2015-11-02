@@ -110,7 +110,7 @@ void lineshape_lorentz(Vector&         ls_attenuation,
                        const Numeric,  //sigma
                        const Numeric,
                        ConstVectorView f_grid,
-                       const bool,
+                       const bool      do_phase,
                        const bool)
 {
   const Index nf = f_grid.nelem();
@@ -122,12 +122,22 @@ void lineshape_lorentz(Vector&         ls_attenuation,
 
   Numeric gamma2 = gamma * gamma;
   Numeric fac = gamma/PI;
-
-  for ( Index i=0; i<nf; ++i )
+  
+  if(do_phase)
+  {
+    for ( Index i=0; i<nf; ++i )
     {
-      ls_attenuation[i] =  fac / ( (f_grid[i]-f0) * (f_grid[i]-f0) + gamma2 );
-      ls_phase[i] = (f_grid[i]-f0) / PI / ( (f_grid[i]-f0) * (f_grid[i]-f0) + gamma2 );
+        ls_attenuation[i] =  fac / ( (f_grid[i]-f0) * (f_grid[i]-f0) + gamma2 );
+        ls_phase[i] = (f_grid[i]-f0) / PI / ( (f_grid[i]-f0) * (f_grid[i]-f0) + gamma2 );
     }
+  }
+  else
+  {
+      for ( Index i=0; i<nf; ++i )
+      {
+          ls_attenuation[i] =  fac / ( (f_grid[i]-f0) * (f_grid[i]-f0) + gamma2 );
+      }
+  }     
 }
 
 /*! The Mirrored Lorentz line shape. This is a quick and dirty implementation.
@@ -156,7 +166,7 @@ void lineshape_mirrored_lorentz(Vector&         ls_attenuation,
                                 const Numeric,
                                 const Numeric,
                                 ConstVectorView f_grid,
-                                const bool,
+                                const bool      do_phase,
                                 const bool)
 {
     const Index nf = f_grid.nelem();
@@ -169,10 +179,20 @@ void lineshape_mirrored_lorentz(Vector&         ls_attenuation,
     Numeric gamma2 = gamma * gamma;
     Numeric fac = gamma/PI;
     
-    for ( Index i=0; i<nf; ++i )
+    if(do_phase)
     {
-        ls_attenuation[i] =  fac / ( (f_grid[i]-f0) * (f_grid[i]-f0) + gamma2 ) + fac / ( (f_grid[i]+f0) * (f_grid[i]+f0) + gamma2 );
-        ls_phase[i] = (f_grid[i]-f0) / PI / ( (f_grid[i]-f0) * (f_grid[i]-f0) + gamma2 ) + (f_grid[i]+f0) / PI / ( (f_grid[i]+f0) * (f_grid[i]+f0) + gamma2 );//uncertain on this part
+        for ( Index i=0; i<nf; ++i )
+        {
+            ls_attenuation[i] =  fac / ( (f_grid[i]-f0) * (f_grid[i]-f0) + gamma2 ) + fac / ( (f_grid[i]+f0) * (f_grid[i]+f0) + gamma2 );
+            ls_phase[i] = (f_grid[i]-f0) / PI / ( (f_grid[i]-f0) * (f_grid[i]-f0) + gamma2 ) + (f_grid[i]+f0) / PI / ( (f_grid[i]+f0) * (f_grid[i]+f0) + gamma2 );//uncertain on this part
+        }
+    }
+    else 
+    {
+        for ( Index i=0; i<nf; ++i )
+        {
+            ls_attenuation[i] =  fac / ( (f_grid[i]-f0) * (f_grid[i]-f0) + gamma2 ) + fac / ( (f_grid[i]+f0) * (f_grid[i]+f0) + gamma2 );
+        }
     }
 }
 

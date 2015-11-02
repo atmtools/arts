@@ -3647,3 +3647,117 @@ void jacobianDoitAddSpecies(//WS Output:
 
 
 
+//----------------------------------------------------------------------------
+// Catalog parameters:
+//----------------------------------------------------------------------------
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void jacobianAddCatalogParameter(
+    Workspace&,
+    ArrayOfRetrievalQuantity&   jq,
+    Agenda&                     jacobian_agenda,
+    const Index&                atmosphere_dim,
+    const Vector&               p_grid,
+    const Vector&               lat_grid,
+    const Vector&               lon_grid,
+    const Vector&               rq_p_grid,
+    const Vector&               rq_lat_grid,
+    const Vector&               rq_lon_grid,
+    const QuantumIdentifier&    catalog_identity,
+    const String&               catalog_parameter,
+    const Verbosity&            verbosity )
+{
+    CREATE_OUT3;
+    
+    // Check that this species is not already included in the jacobian.
+    for( Index it=0; it<jq.nelem(); it++ )
+    {
+        if( jq[it].MainTag() == CATALOGPARAMETER_MAINTAG  && 
+            jq[it].QuantumIdentity()  == catalog_identity && 
+            jq[it].Mode()  == catalog_parameter )
+        {
+            ostringstream os;
+            os << "The catalog identifier:\n" << catalog_identity<< "\nis already included in "
+            << "*jacobian_quantities*.";
+            throw std::runtime_error(os.str());
+        }
+    }
+    
+    // Check retrieval grids, here we just check the length of the grids
+    // vs. the atmosphere dimension
+    ArrayOfVector grids(atmosphere_dim);
+    {
+        ostringstream os;
+        if( !check_retrieval_grids( grids, os, p_grid, lat_grid, lon_grid,
+            rq_p_grid, rq_lat_grid, rq_lon_grid,
+            "retrieval pressure grid", 
+            "retrieval latitude grid", 
+            "retrievallongitude_grid", 
+            atmosphere_dim ) )
+            throw runtime_error(os.str());
+    }
+    
+    // Check catalog_parameter here
+    if(!(PRESSUREBROADENINGGAMMA_MODE==catalog_parameter ||
+        LINESTRENGTH_MODE==catalog_parameter ||
+        SELFBROADENING_MODE==catalog_parameter ||
+        FOREIGNBROADENING_MODE==catalog_parameter ||
+        WATERBROADENING_MODE==catalog_parameter ||
+        SELFBROADENINGEXPONENT_MODE==catalog_parameter ||
+        FOREIGNBROADENINGEXPONENT_MODE==catalog_parameter ||
+        WATERBROADENINGEXPONENT_MODE==catalog_parameter))
+    {
+        ostringstream os;
+        os << "You have selected:\n" << catalog_parameter << "\nas your catalog parameter. This is not supported.\n" 
+           << "Please see user guide for supported parameters.\n";
+           throw std::runtime_error(os.str());
+    }
+    
+    
+    // Create the new retrieval quantity
+    RetrievalQuantity rq;
+    rq.MainTag( CATALOGPARAMETER_MAINTAG );
+    rq.Mode( catalog_parameter );
+    rq.QuantumIdentity(catalog_identity);
+    rq.Grids( grids );
+    rq.Analytical(1);
+    rq.SubSubtag(PROPMAT_SUBSUBTAG);
+    
+    // Add it to the *jacobian_quantities*
+    jq.push_back( rq );
+    
+    out3 << "  Calculations done by propagation matrix expressions.\n"; 
+    
+    jacobian_agenda.append( "jacobianCalcAbsSpeciesAnalytical", TokVal() );
+}    
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void jacobianAddCatalogParameter(
+    Workspace&                  ws,
+    ArrayOfRetrievalQuantity&   jq,
+    Agenda&                     jacobian_agenda,
+    const Index&                atmosphere_dim,
+    const Vector&               p_grid,
+    const Vector&               lat_grid,
+    const Vector&               lon_grid,
+    const Vector&               rq_p_grid,
+    const Vector&               rq_lat_grid,
+    const Vector&               rq_lon_grid,
+    const ArrayOfQuantumIdentifier&    a_catalog_identity,
+    const String&               catalog_parameter,
+    const Verbosity&            verbosity )
+{
+    CREATE_OUT2;
+    
+    out2 << " Adding "<<a_catalog_identity.nelem()<<" expression(s) of type\n "<<catalog_parameter<< " to the Jacobian calculations.\n";
+    
+    for (Index ici = 0; ici<a_catalog_identity.nelem(); ici++)
+    {
+        jacobianAddCatalogParameter(ws,
+            jq,jacobian_agenda,
+            atmosphere_dim,p_grid,lat_grid,lon_grid,
+            rq_p_grid,rq_lat_grid,rq_lon_grid,
+            a_catalog_identity[ici],catalog_parameter,
+            verbosity );
+    }
+}  

@@ -1,3 +1,60 @@
+2015-11-02  Richard Larsson   <ric.larsson@gmail.com>
+
+	* arts-2-3-355
+	
+	Added support for line catalog parameter partial derivatives in "from propmat".
+	Added parameters are: reference line strength and several types of pressure
+	broadening parameters.  These can be activated using 
+	(jacobianAddCatalogParameter).  I am trying to be generous in throwing my errors
+	when the user tries to activate this for unsupported cases.  Note that using a 
+	non-catalog calculation (e.g., lookup table or continua), results in 
+	a warning presently.  I am wondering if this should instead result in a zero
+	term instead?  We cannot know if a line is in continuum or lookup as far as I am
+	aware.
+	
+	Some growing concerns:  The code is generously wasteful right now.  The 
+	PropmatPartialsData class is created many times despite being identical each time,
+	and some design decisions I have made could be improved significantly by moving
+	some loops and identifications of partial derivative properties outside of
+	these loops.  I would be happy to have some comments on this.  
+	
+	* src/absorption.cc: Added very bulky interface to internal line parameter
+	derivatives.  This presently wastes a lot of computing cycles.  I need a more
+	consistent way of always knowing if a line needs some calculations or not.
+	
+	* src/constants.cc:  Following other parameters, I implemented some text strings as
+	constants for identifying if a term is understandable or not.
+	
+	* src/jacobian.h:  Finally needing the QuantumIdentifier's, I renamed their interface
+	for clearer reading.
+	
+	* src/{m_jacobian.cc,methods.cc}:  Added (jacobianAddCatalogParameter).  Most 
+	tests should be clear.
+	
+	* src/m_rte.cc:  Added interface for knowing that a parameter is another jacobian
+	to iyEmissionStandard.  This is a temporary solution as we plan to move a lot of 
+	this code soon.
+	
+	* src/partial_derivatives.{cc,h}:  Added more inputs to the partial_derivatives 
+	functions.  This is getting input-heavy.  Also added tracking system for 
+	catalog parameters.
+	
+	* src/pressurebroadeningdata.{cc,h}:  Added one function per output derivative of
+	interest.  This right now means that each pressure broadening scheme might require
+	upwards to eight functions for the various outputs.  But not all.  I have gone 
+	with throwing errors generously for now.  For instance, Artscat-4 broadening
+	just says that foreign broadening is not a thing in Artscat-4, and it has no
+	replacement for foreign broadening.  The same is true for water broadening and 
+	the Artscat-3 scheme.
+	
+	* src/quantum.h:  Added (operator==) for two quantum identifiers.  Needed to ensure
+	that we do not duplicate too many things in the (jacobianAddCatalogParameter).
+	I might think of using it for line matching later on but I need some thinking on 
+	this first. (E.g., how should we enforce isoptopes being defined in the catalog 
+	matching?)
+	
+	* src/zeeman.cc:  Fixed typo.
+
 2015-10-28  Richard Larsson   <ric.larsson@gmail.com>
 
 	* arts-2-3-354

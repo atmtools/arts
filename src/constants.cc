@@ -380,4 +380,18 @@ extern const String TEMPERATURE_MAINTAG = "Atmospheric temperatures";
 extern const String WIND_MAINTAG        = "Wind";
 extern const String MAGFIELD_MAINTAG    = "Magnetic field";
 
+// New tags for only propmat jacobians
 extern const String PROPMAT_SUBSUBTAG   = "From propagation matrix";
+extern const String CATALOGPARAMETER_MAINTAG = "Catalog parameter";
+
+// Generic modes
+extern const String PRESSUREBROADENINGGAMMA_MODE = "Pressure Broadening Gamma";
+extern const String LINESTRENGTH_MODE = "Reference Line Strength";
+
+// Modes for "some" catalogs
+extern const String SELFBROADENING_MODE = "Pressure Broadening Reference Self Gamma";
+extern const String FOREIGNBROADENING_MODE = "Pressure Broadening Reference Foreign Gamma";
+extern const String WATERBROADENING_MODE = "Pressure Broadening Reference Water Gamma";
+extern const String SELFBROADENINGEXPONENT_MODE = "Pressure Broadening Reference Self Gamma Exponent";
+extern const String FOREIGNBROADENINGEXPONENT_MODE = "Pressure Broadening Reference Foreign Gamma Exponent";
+extern const String WATERBROADENINGEXPONENT_MODE = "Pressure Broadening Reference Water Gamma Exponent";

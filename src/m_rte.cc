@@ -246,7 +246,7 @@ void iyEmissionStandard(
   //
   Index j_analytical_do = 0;
   ArrayOfTensor3  diy_dpath; 
-  ArrayOfIndex    jac_species_i(0), jac_is_t(0), jac_wind_i(0), jac_mag_i(0); 
+  ArrayOfIndex    jac_species_i(0), jac_is_t(0), jac_wind_i(0), jac_mag_i(0), jac_other(0); 
   //
   if( jacobian_do ) { FOR_ANALYTICAL_JACOBIANS_DO( j_analytical_do = 1; ) }
   //
@@ -265,8 +265,12 @@ void iyEmissionStandard(
         diy_dpath[iq] = 0.0;
       )
       get_pointers_for_analytical_jacobians( jac_species_i, jac_is_t, 
-                                             jac_wind_i, jac_mag_i, 
+                                             jac_wind_i, jac_mag_i,
                                              jacobian_quantities, abs_species );
+      
+      jac_other.resize(jac_is_t.nelem());
+      FOR_ANALYTICAL_JACOBIANS_DO( jac_other[iq] = ppd.is_this_linetype(iq)?JAC_IS_OTHER:JAC_IS_NONE; )
+      
       if( iy_agenda_call1 )
         {
           diy_dx.resize( nq ); 
@@ -815,7 +819,7 @@ void iyEmissionStandard(
                         }
 
                       //- Winds and magnetic field -----------------------------------
-                      else if( jac_wind_i[iq] || jac_mag_i[iq] )
+                      else if( jac_wind_i[iq] || jac_mag_i[iq] || jac_other[iq] )
                         {
                             bool from_propmat = jacobian_quantities[iq].SubSubtag() == PROPMAT_SUBSUBTAG;
                             const Index this_ppd_q = from_propmat?ppd.this_jq_index(iq):-1;
