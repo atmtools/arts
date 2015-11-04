@@ -2084,6 +2084,18 @@ void w_x_plus_iy_dF(Numeric& dx_dF,
     
     // No other terms depend on f
 }
+void w_x_plus_iy_dF0(Numeric& dx_dF0,
+                     const Numeric& sigma)
+{
+    // Function is w(x+iy), and dw/dx and dw/dy are both known already.
+    // This function serves to find dx/dT
+    
+    // x = (f-f0) / sigma;
+    
+    dx_dF0 = -1.0/sigma;
+    
+    // No other terms depend on f
+}
 void w_x_plus_iy_dgamma(Numeric& dy_dgamma,
                         const Numeric& sigma)
 {
@@ -2839,6 +2851,7 @@ void define_lineshape_data()
       lineshape_voigt_kuntz6,
       w_x_plus_iy_dT,
       w_x_plus_iy_dF,
+      w_x_plus_iy_dF0,
       w_x_plus_iy_dgamma,
       w_x_plus_iy_dH,
       w_x_plus_iy_dDF,
@@ -2901,6 +2914,7 @@ void define_lineshape_data()
      faddeeva_algorithm_916, 
      w_x_plus_iy_dT,
      w_x_plus_iy_dF,
+     w_x_plus_iy_dF0,
      w_x_plus_iy_dgamma,
      w_x_plus_iy_dH,
      w_x_plus_iy_dDF,

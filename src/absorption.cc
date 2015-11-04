@@ -2282,6 +2282,7 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                                                          // Line parameters
                                                          abs_lines[ii].F(),
                                                          abs_lines[ii].I0(),
+                                                         abs_lines[ii].Ti0(),
                                                          abs_lines[ii].Elow(),
                                                          abs_lines[ii].Evlow(),
                                                          abs_lines[ii].Evupp(),

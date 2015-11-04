@@ -36,6 +36,7 @@ extern const String PROPMAT_SUBSUBTAG;
 extern const String CATALOGPARAMETER_MAINTAG;
 extern const String PRESSUREBROADENINGGAMMA_MODE;
 extern const String LINESTRENGTH_MODE;
+extern const String LINECENTER_MODE;
 
 // Specific catalog's parameters
 extern const String SELFBROADENING_MODE;
@@ -236,6 +237,13 @@ public:
                     if(jacobian_quantities[iq].Mode() == LINESTRENGTH_MODE)
                     {
                         mqtype[ippdq] = JQT_line_strength;
+                        mjacobian_pos[ippdq] = iq;
+                        mspecies[ippdq] = -9999;//Flag for not a species...
+                        ippdq++;
+                    }
+                    else if(jacobian_quantities[iq].Mode() == LINECENTER_MODE)
+                    {
+                        mqtype[ippdq] = JQT_line_center;
                         mjacobian_pos[ippdq] = iq;
                         mspecies[ippdq] = -9999;//Flag for not a species...
                         ippdq++;
@@ -583,6 +591,7 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix& partials_attenuatio
                                               // Line parameters
                                               const Numeric&  line_frequency,
                                               const Numeric&  line_strength,
+                                              const Numeric&  line_temperature,
                                               const Numeric&  line_E_low,
                                               const Numeric&  line_E_v_low,
                                               const Numeric&  line_E_v_upp,

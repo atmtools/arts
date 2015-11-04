@@ -80,6 +80,9 @@ typedef void (*lsf_type_dT)(Vector&,      // dx/dT
 typedef void (*lsf_type_dF)(Numeric&,      // dx/dF
                             const Numeric& // sigma
 );
+typedef void (*lsf_type_dF0)(Numeric&,      // dx/dF
+                             const Numeric& // sigma
+);
 typedef void (*lsf_type_dgamma)(Numeric&,      // dy/dgamma
                                 const Numeric& // sigma
 );
@@ -132,6 +135,7 @@ public:
                   lsf_type        function,
                   lsf_type_dT     function_dT,
                   lsf_type_dF     function_dF,
+                  lsf_type_dF0    function_dF0,
                   lsf_type_dgamma function_dgamma,
                   lsf_type_dH     function_dH,
                   lsf_type_dDF    function_dDF,
@@ -144,6 +148,7 @@ public:
   mfunction(function),
   mfunction_dT(function_dT),
   mfunction_dF(function_dF),
+  mfunction_dF0(function_dF0),
   mfunction_dgamma(function_dgamma),
   mfunction_dH(function_dH),
   mfunction_dDF(function_dDF)
@@ -157,6 +162,7 @@ public:
   lsf_type Function() const { return mfunction; }
   lsf_type_dT dInput_dT() const { return mfunction_dT; }
   lsf_type_dF dInput_dF() const { return mfunction_dF; }
+  lsf_type_dF dInput_dF0() const { return mfunction_dF0; }
   lsf_type_dgamma dInput_dgamma() const { return mfunction_dgamma; }
   lsf_type_dH dInput_dH() const { return mfunction_dH; }
   lsf_type_dDF dInput_dDF() const { return mfunction_dDF; }
@@ -171,6 +177,7 @@ private:
   lsf_type mfunction;   ///< Pointer to lineshape function.
   lsf_type_dT mfunction_dT;   ///< Pointer to lineshape function derivative.
   lsf_type_dF mfunction_dF;   ///< Pointer to lineshape function derivative.
+  lsf_type_dF0 mfunction_dF0;   ///< Pointer to lineshape function derivative.
   lsf_type_dgamma mfunction_dgamma;   ///< Pointer to lineshape function derivative.
   lsf_type_dH mfunction_dH;   ///< Pointer to lineshape function derivative.
   lsf_type_dDF mfunction_dDF;   ///< Pointer to lineshape function derivative.

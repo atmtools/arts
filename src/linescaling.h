@@ -60,6 +60,11 @@ void GetLineScalingData_dT(Numeric& dq_t_dT,
                            const Index& line_evupp_index,
                            ConstVectorView atm_t_nlte);
 
+void GetLineScalingData_dF0(Numeric& dK2_dF0, 
+                            const Numeric& atm_t,
+                            const Numeric& line_t,
+                            const Numeric& line_f);
+
 void GetChangeInPartitionRatio(Numeric& dQ_dT, 
                                const Numeric& q_t,
                                const SpeciesAuxData::AuxType& partition_type,

@@ -7019,6 +7019,7 @@ void define_md_data_raw()
           "\n"
           "The *catalog_identity* should be able to identify one or many\n"
           "lines in the catalog used for calculating the spectral absorption.\n"
+          "Note that partial matching for energy levels are allowed.\n"
           "\n"
           "Note that matching these lines might be prone to errors since\n"
           "not all form of catalogs can return quantum identifications, and\n"
@@ -7040,8 +7041,54 @@ void define_md_data_raw()
       GIN_DESC( "Pressure retrieval grid.",
                 "Latitude retrieval grid.",
                 "Longitude retreival grid.",
-                "The catalog line matching information(s).",
+                "The catalog line matching information.",
                 "The catalog parameter of the retrieval quantity."
+                )
+    ));
+    
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "jacobianAddCatalogParameters" ),
+      DESCRIPTION
+      (
+          "Calls *jacobianAddCatalogParameter* but for many identifiers.\n"
+          "and parameters.\n"
+          "\n"
+          "The parameters are added per line so the order of the resulting\n"
+          "*jacobian* for Ni identifiers and Np parameters will be:\n"
+          "  Identifier 1\n"
+          "    Parameter 1\n"
+          "    Parameter 2\n"
+          "    ...\n"
+          "    Parameter Np\n"
+          "  Identifier 2\n"
+          "    Parameter 1\n"
+          "    Parameter 2\n"
+          "    ...\n"
+          "    Parameter Np\n"
+          "  ...\n"
+          
+          "  Identifier Ni\n"
+          "    Parameter 1\n"
+          "    Parameter 2\n"
+          "    ...\n"
+          "    Parameter Np\n"
+      ),
+      AUTHORS( "Richard Larsson" ),
+      OUT( "jacobian_quantities", "jacobian_agenda" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "jacobian_quantities", "jacobian_agenda",
+          "atmosphere_dim", "p_grid", "lat_grid", "lon_grid" ),
+      GIN( "g1", "g2", "g3","catalog_identities","catalog_parameters" ),
+      GIN_TYPE( "Vector", "Vector", "Vector", "ArrayOfQuantumIdentifier", "ArrayOfString" ),
+      GIN_DEFAULT( NODEF, NODEF, NODEF, NODEF, NODEF ),
+      GIN_DESC( "Pressure retrieval grid.",
+                "Latitude retrieval grid.",
+                "Longitude retreival grid.",
+                "The catalog line matching informations.",
+                "The catalog parameters of the retrieval quantity."
                 )
     ));
          

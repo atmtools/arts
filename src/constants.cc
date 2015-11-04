@@ -387,6 +387,7 @@ extern const String CATALOGPARAMETER_MAINTAG = "Catalog parameter";
 // Generic modes
 extern const String PRESSUREBROADENINGGAMMA_MODE = "Pressure Broadening Gamma";
 extern const String LINESTRENGTH_MODE = "Reference Line Strength";
+extern const String LINECENTER_MODE = "Reference Line Center";
 
 // Modes for "some" catalogs
 extern const String SELFBROADENING_MODE = "Pressure Broadening Reference Self Gamma";

@@ -3700,6 +3700,7 @@ void jacobianAddCatalogParameter(
     // Check catalog_parameter here
     if(!(PRESSUREBROADENINGGAMMA_MODE==catalog_parameter ||
         LINESTRENGTH_MODE==catalog_parameter ||
+        LINECENTER_MODE==catalog_parameter ||
         SELFBROADENING_MODE==catalog_parameter ||
         FOREIGNBROADENING_MODE==catalog_parameter ||
         WATERBROADENING_MODE==catalog_parameter ||
@@ -3732,7 +3733,7 @@ void jacobianAddCatalogParameter(
 }    
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianAddCatalogParameter(
+void jacobianAddCatalogParameters(
     Workspace&                  ws,
     ArrayOfRetrievalQuantity&   jq,
     Agenda&                     jacobian_agenda,
@@ -3743,21 +3744,26 @@ void jacobianAddCatalogParameter(
     const Vector&               rq_p_grid,
     const Vector&               rq_lat_grid,
     const Vector&               rq_lon_grid,
-    const ArrayOfQuantumIdentifier&    a_catalog_identity,
-    const String&               catalog_parameter,
+    const ArrayOfQuantumIdentifier&    catalog_identities,
+    const ArrayOfString&               catalog_parameters,
     const Verbosity&            verbosity )
 {
     CREATE_OUT2;
     
-    out2 << " Adding "<<a_catalog_identity.nelem()<<" expression(s) of type\n "<<catalog_parameter<< " to the Jacobian calculations.\n";
+    out2 << " Adding "<<catalog_identities.nelem()*catalog_parameters.nelem()
+    <<" expression(s) to the Jacobian calculations.\n";
     
-    for (Index ici = 0; ici<a_catalog_identity.nelem(); ici++)
+    for (Index ici = 0; ici<catalog_identities.nelem(); ici++)
     {
-        jacobianAddCatalogParameter(ws,
-            jq,jacobian_agenda,
-            atmosphere_dim,p_grid,lat_grid,lon_grid,
-            rq_p_grid,rq_lat_grid,rq_lon_grid,
-            a_catalog_identity[ici],catalog_parameter,
-            verbosity );
+        for(Index icp = 0; icp<catalog_parameters.nelem(); icp++)
+        {
+            out2<<"    type: "<<catalog_parameters[icp]<<"; identifier: "<<catalog_identities[ici]<<"\n";
+            jacobianAddCatalogParameter(ws,
+                jq,jacobian_agenda,
+                atmosphere_dim,p_grid,lat_grid,lon_grid,
+                rq_p_grid,rq_lat_grid,rq_lon_grid,
+                catalog_identities[ici],catalog_parameters[icp],
+                verbosity );
+        }
     }
 }  

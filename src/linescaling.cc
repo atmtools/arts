@@ -255,6 +255,24 @@ void GetLineScalingData_dT(Numeric& dq_t_dT,
         dabs_nlte_ratio_dT = ((dr_upp+dr_low) / ( gamma - 1.0 ) + abs_nlte_ratio* PLANCK_CONST*line_f/(gamma_p - 1.0))/BOLTZMAN_CONST / atm_t / atm_t;
     }
 }
+void GetLineScalingData_dF0(
+                        Numeric& dK2_dF0, 
+                        const Numeric& atm_t,
+                        const Numeric& line_t,
+                        const Numeric& line_f)
+{
+    // Physical constants
+    extern const Numeric PLANCK_CONST;
+    extern const Numeric BOLTZMAN_CONST;
+        
+    // Following Futbolin's division into two parts for the Boltzmann ratio because
+    // gamma is also used for the NLTE part later on
+    const Numeric gamma = exp( - PLANCK_CONST * line_f / ( BOLTZMAN_CONST * atm_t ) );
+    const Numeric gamma_ref = exp( - PLANCK_CONST * line_f / ( BOLTZMAN_CONST * line_t ) );
+    
+    // Note lack of division with K2
+    dK2_dF0 = (PLANCK_CONST*gamma_ref*(gamma - 1))/(line_t*BOLTZMAN_CONST*(gamma_ref - 1)*(gamma_ref - 1)) - (PLANCK_CONST*gamma)/(atm_t*BOLTZMAN_CONST*(gamma_ref - 1));
+}
 
 void CalculatePartitionFctFromData( Numeric& q_ref, 
                                     Numeric& q_t, 

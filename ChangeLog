@@ -1,3 +1,26 @@
+2015-11-04  Richard Larsson   <ric.larsson@gmail.com>
+
+	* arts-2-3-357
+	
+	This adds the last major catalog parameter that was missing.  Remaining 
+	minor parameter is lower state energy level (which I will not add unless
+	directly requested, because I cannot imagine wanting to directly test 
+	that parameter).
+	
+	* src/{absorption.{cc,h},lineshapes.cc}: 
+	Added internal partial derivative of lineshape with regards to line 
+	frequency.
+	
+	* src/{{constants,m_jacobians}.cc,partial_derivatives.{h,cc}}:  Added
+	support for line center partial derivatives.
+	
+	* sec/methods.cc:  Added support for setting multiple line parameter
+	partial derivatives for multiple lines in one command as
+	(jacobianAddCatalogParameters).
+	
+	* src/linescaling.{h,cc}:  Added line strength scaling derivative for 
+	reference freqeuncy.
+
 2015-11-03  Simon Pfreundschuh   <simonpf@chalmers.se>
 
 	* arts-2-3-356

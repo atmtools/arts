@@ -18,6 +18,7 @@
 
 #include "partial_derivatives.h"
 #include "absorption.h"
+#include "linescaling.h"
 #include "global_data.h"
 #include "quantum.h"
 #include "arts.h"
@@ -49,6 +50,7 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix&  partials_attenuati
                                               // Line parameters
                                               const Numeric&  line_frequency,
                                               const Numeric&  line_strength,
+                                              const Numeric&  line_temperature,
                                               const Numeric&  line_E_low,
                                               const Numeric&  line_E_v_low,
                                               const Numeric&  line_E_v_upp,
@@ -236,6 +238,41 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix&  partials_attenuati
         {
             // Line shape cross section does not depend on VMR.  NOTE:  Ignoring self-pressure broadening.
         }
+        else if(flag_partials(ii)==JQT_line_center)
+        {
+            if(!line_match_line(flag_partials.jac()[ii].QuantumIdentity(),qnr.Lower(),qnr.Upper()))
+                continue;
+            
+            VectorView this_partial_attenuation = partials_attenuation[ii](this_f_grid, pressure_level_index);
+            VectorView this_partial_phase       = do_partials_phase?partials_phase[ii](this_f_grid, pressure_level_index):empty_vector;
+            VectorView this_partial_src         = do_src?partials_src[ii](this_f_grid, pressure_level_index):empty_vector;
+            
+            Numeric dK2_dF0;
+            GetLineScalingData_dF0(dK2_dF0,temperature,line_temperature, line_frequency);
+            dK2_dF0 /= K2; // to just multiply with ls_{A,B}
+            
+            Numeric dF_dF0;
+            global_data::lineshape_data[ind_ls].dInput_dF0()(dF_dF0,sigma);
+            
+            Vector dfn_dF0(nv);
+            global_data::lineshape_norm_data[ind_lsn].dFunction_dF0()(dfn_dF0, f0,
+                                                                      this_f, temperature);
+            
+            for(Index iv=0;iv<nv;iv++)
+            {
+                const Numeric ls_A= ( (1.0 + G_LM)*CF_A[iv] + Y_LM*CF_B[iv]), 
+                              ls_B= ( (1.0 + G_LM)*CF_B[iv] - Y_LM*CF_A[iv]);
+                
+                this_partial_attenuation[iv] += (dK2_dF0+dfn_dF0[iv])*ls_A + dFa_dx[iv] * dF_dF0;
+                if(do_partials_phase)
+                    this_partial_phase[iv]   += (dK2_dF0+dfn_dF0[iv])*ls_B + dFb_dx[iv] * dF_dF0;
+                if(do_src)
+                    this_partial_src[iv]     += ((dK2_dF0+dfn_dF0[iv])*ls_A + dFa_dx[iv] * dF_dF0) * nlte;
+            }
+            
+            // That's it!  Note that the output should be strongly correlated to Temperature and Pressure.
+            // Also note that to do the fit for the catalog gamma is somewhat different than this
+        }
         else if(flag_partials(ii) == JQT_line_strength)
         {
             if(!line_match_line(flag_partials.jac()[ii].QuantumIdentity(),qnr.Lower(),qnr.Upper()))
@@ -258,7 +295,7 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix&  partials_attenuati
                     
             }
             
-            // That's it!
+            // That's it!  Now to wonder if this will grow extremely large, creating an unrealistic jacobian...
         }
         else if(flag_partials(ii) == JQT_line_gamma ||
             flag_partials(ii) == JQT_line_gamma_self ||
