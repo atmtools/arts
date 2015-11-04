@@ -324,11 +324,14 @@ Index run_test_matlab( Engine* eng,
   \return Execution time of oem in matlab in ms.
 */
 Index run_oem_matlab( VectorView x,
+                      MatrixView G,
                       Engine* eng,
                       string filename )
 {
-    Index n = x.nelem(), time;
-    mxArray *x_m, *t;
+    Index n = G.nrows();
+    Index m = G.ncols();
+    Index time;
+    mxArray *x_m, *G_m, *t;
 
     // Run test.
     string cmd = "run('" + filename + "');";
@@ -336,10 +339,16 @@ Index run_oem_matlab( VectorView x,
 
     // Read out results.
     x_m = engGetVariable( eng, "x" );
+    G_m = engGetVariable( eng, "G" );
 
     for ( Index i = 0; i < n; i++ )
     {
         x[i] = ((Numeric*) mxGetData( x_m ))[i];
+
+        for (Index j = 0; j < m; j++ )
+        {
+            G(i,j) = ((Numeric*) mxGetData( G_m ))[ j*n + i];
+        }
     }
 
     // Get execution time from matlab.
@@ -578,7 +587,7 @@ void benchmark_oem_linear( Engine* eng,
         Vector x_nform(n), x_mform(n), x_m(n), y(n), yf(n), xa(n), x_norm(n),
             zero(n);
         Matrix J(n,n), Se(n,n), Sa(n,n), SeInv(n,n), SxInv(n,n), G_nform(n,n),
-               G_mform(n,n);
+            G_mform(n,n), G_m(n,n);
 
         zero = 0.0;
 
@@ -610,7 +619,7 @@ void benchmark_oem_linear( Engine* eng,
         // oem_linear_mform( x_mform, G_mform, xa, yf, y, J, Se, Sa );
 
         // Matlab
-        t_m = run_oem_matlab( x_m, eng, "test_oem" );
+        t_m = run_oem_matlab( x_m, G_m, eng, "test_oem" );
 
         ofs << setw(5) << n << setw(10) << t << setw(10) << 42; // Dummy column
         ofs << setw(10) << t_m << endl;
@@ -643,7 +652,8 @@ void test_oem_linear( Engine* eng,
                       Index ntests )
 {
     Vector x(n), x_n(n), x_g(n), x_m(n), y(n), yf(n), xa(n), zero(n), x_norm(n);
-    Matrix J(n,n), Se(n,n), Sa(n,n), SeInv(n,n), SxInv(n,n), G(n,m), G_mform(n,m);
+    Matrix J(n,n), Se(n,n), Sa(n,n), SeInv(n,n), SxInv(n,n), G(n,m), G_mform(n,m),
+        G_m(n,m);
     LinearModel K;
 
     zero = 0.0;
@@ -652,7 +662,7 @@ void test_oem_linear( Engine* eng,
     cout << n << ", ntests = " << ntests << endl << endl;
 
     cout << "Test No. " << setw(15) << "Standard";
-    cout << setw(15) << "Normalized" << setw(15) << "Gain" << endl;
+    cout << setw(15) << "Normalized" << setw(15) << "Gain Matrix" << endl;
 
     // Run tests.
     for ( Index i = 0; i < ntests; i++ )
@@ -683,12 +693,12 @@ void test_oem_linear( Engine* eng,
         oem.compute( x_g, G, y, yf );
         oem.compute( x_n, y, yf );
 
-        run_oem_matlab( x_m, eng, "test_oem" );
+        run_oem_matlab( x_m, G_m, eng, "test_oem" );
 
         Numeric err, err_norm, err_g;
         err = max_error( x, x_m, true );
         err_norm = max_error( x_n, x_m, true );
-        err_g = max_error( x_g, x_m, true );
+        err_g = max_error( G, G_m, true );
 
         cout << setw(8) << i+1;
         cout << setw(15) << err << setw(15) << err_norm << setw(15) << err_g;
@@ -717,7 +727,7 @@ void test_oem_gauss_newton( Engine *eng,
                             Index ntests )
 {
     Vector y0(m), y(m), y_m(m), x(n), x0(n), x_n(x), x_m(n), x_norm(n), xa(n);
-    Matrix Se(m,m), Sa(n,n), SeInv(m,m), SxInv(n,n), G(n,m), J(n,m);
+    Matrix Se(m,m), Sa(n,n), SeInv(m,m), SxInv(n,n), G(n,m), G_m(n,m), J(n,m);
 
     cout << "Testing Gauss-Newton OEM: m = " << m << ", n = ";
     cout << n << ", ntests = " << ntests << endl << endl;
@@ -749,10 +759,10 @@ void test_oem_gauss_newton( Engine *eng,
         write_matrix( Se, "Se_t.txt" );
         write_matrix( Sa, "Sa_t.txt" );
 
-        oem.compute( x, y0, false );
+        oem.compute( x, G, y0, false );
         oem.set_x_norm( x_norm );
         oem.compute( x_n, y0, false );
-        run_oem_matlab( x_m, eng, "test_oem_gauss_newton" );
+        run_oem_matlab( x_m, G_m, eng, "test_oem_gauss_newton" );
 
         cout << setw(9) << i+1 << setw(15);
         cout << max_error( x, x_m, true ) << setw(15);
@@ -783,7 +793,7 @@ void test_oem_levenberg_marquardt( Engine *eng,
                                    Index ntests )
 {
     Vector y0(m), y(m), y_m(m), x(n), x0(n), x_n(x), x_m(n), x_norm(n), xa(n);
-    Matrix Se(m,m), Sx(n,n), SeInv(m,m), SxInv(n,n), G(n,m), J(n,m);
+    Matrix Se(m,m), Sx(n,n), SeInv(m,m), SxInv(n,n), G(n,m), G_m(n,m), J(n,m);
 
     cout << "Testing Gauss-Newton OEM: m = " << m << ", n = ";
     cout << n << ", ntests = " << ntests << endl << endl;
@@ -818,7 +828,7 @@ void test_oem_levenberg_marquardt( Engine *eng,
         oem.compute( x, y0, false );
         oem.set_x_norm( x_norm );
         oem.compute( x_n, y0, false );
-        run_oem_matlab( x_m, eng, "test_oem_levenberg_marquardt" );
+        run_oem_matlab( x_m, G_m, eng, "test_oem_levenberg_marquardt" );
 
         cout << setw(9) << i+1 << setw(15);
         cout << max_error( x, x_m, true ) << setw(15);
@@ -839,9 +849,9 @@ int main()
     setup_test_environment( eng );
 
     // Run tests and benchmarks.
-    //    test_oem_linear( eng, 10, 10, 10 );
-    // test_oem_gauss_newton( eng, 100, 100, 100 );
-    test_oem_levenberg_marquardt( eng, 50, 50, 100 );
+    test_oem_linear( eng, 50, 50, 10 );
+    test_oem_gauss_newton( eng, 50, 50, 10 );
+    test_oem_levenberg_marquardt( eng, 50, 50, 10 );
 
     //benchmark_inv( eng, 100, 2000, 16);
     //benchmark_mult( eng, 100, 2000, 16);

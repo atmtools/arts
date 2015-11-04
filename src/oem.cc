@@ -14,6 +14,10 @@
 #include "oem.h"
 #include "stdlib.h"
 
+#ifdef OMP
+#include "omp.h"
+#endif
+
 using std::ostream;
 using std::endl;
 using std::setw;
@@ -537,6 +541,60 @@ ConstVectorView LinearOEM::get_x_norm()
     return x_norm;
 }
 
+//! Start stop watch.
+/*!
+  Starts stop watch for OEM computation. Works only if OpenMP is available.
+ */
+void LinearOEM::start_time()
+{
+    #ifdef OMP
+    runtime = 0.0;
+    time_stamp = omp_get_wtime();
+    #endif
+}
+
+//! Record time.
+/*!
+  If the stop watch is currently active, mark_time() stops the watch and adds
+  the elapsed time since the starting of the stop watch or the last call to
+  mark_time() to the measured time.
+ */
+void LinearOEM::mark_time()
+{
+    #ifdef OMP
+    if (time_stamp >= 0.0)
+    {
+        runtime += omp_get_wtime() - time_stamp;
+        time_stamp = -1.0;
+    }
+    else
+    {
+        time_stamp = omp_get_wtime();
+    }
+    #endif
+}
+
+//! Return elapsed time.
+/*!
+  Stops the stop watch if it was running and returns the current measured time.
+
+  \return The total measured time.
+*/
+Numeric LinearOEM::get_time()
+{
+    #ifdef OMP
+    if (time_stamp >= 0.0)
+    {
+        runtime += omp_get_wtime() - time_stamp;
+        time_stamp = -1.0;
+    }
+
+    return runtime;
+    #endif
+    return -1.0;
+}
+
+
 //! Compute optimal estimator.
 /*!
 
@@ -561,6 +619,9 @@ Index LinearOEM::compute( Vector &x,
                          ConstVectorView y,
                          ConstVectorView y0 )
 {
+
+    // Start stop watch.
+    start_time();
 
     if (!(matrices_set || gain_set))
     {
@@ -598,6 +659,9 @@ Index LinearOEM::compute( Vector &x,
 
     x += xa;
 
+    // Stop stop watch.
+    mark_time();
+
     return 0;
 }
 
@@ -607,7 +671,8 @@ Index LinearOEM::compute( Vector &x,
   Compute optimal estimator x for a given measurement vector y using the n-form
   formulation of the linear OEM problem with computing the gain matrix.
 
-  The computation of the Gain matrix requires two matr
+  The computation of the Gain matrix requires the allocation of an additional
+  n-times-n and a n-times-m matrices.
 
   If the computation has already been performed once for another measurement
   vector, intermediate results can be reused and the computation only requires
@@ -693,7 +758,16 @@ Index LinearOEM::compute_fit( Vector &yf,
                             const Vector &x,
                             ForwardModel &F )
 {
-    F.evaluate( yf, x );
+    try
+    {
+        F.evaluate( yf, x );
+    }
+    catch (int e)
+    {
+        err = 9;
+        return err;
+    }
+
     return 0;
 }
 
@@ -717,7 +791,15 @@ Index LinearOEM::compute_fit( Vector &yf,
                             ConstVectorView y,
                             ForwardModel &F )
 {
-    F.evaluate( yf, x );
+
+    try
+    {
+        F.evaluate( yf, x );
+    }
+    catch (int e)
+    {
+        return 9;
+    }
 
     oem_cost_y( cost_y, y, yf, SeInv, (Numeric) m);
     oem_cost_x( cost_x, x, xa, SxInv, (Numeric) m);
@@ -742,6 +824,12 @@ of a linear system of equations of size n-times-n.
 Requires the inverses of the covariance matrices for the state and measurement
 vector to be provided as arguments.
 
+The returned Index value indicates if the computation was successful or if
+an error occured. The following encoding for errors is used:
+
+    0 - Success
+    9 - ERROR: Evaluation of forward model failed.
+
   \return Convergence status, see *oem_diagnostics*
   \param[out] x The optimal, estimated state vector consisting of n elements.
   \param[out] G The gain matrix.
@@ -751,6 +839,8 @@ vector to be provided as arguments.
   \param[in] K The weighting function (m,n)-matrix
   \param[in] SeInv The inverse of the measurement error covariance (m,m)-matrix
   \param[in] SxInv The inverse of the a priori covariance (n,n)-matrix
+
+  \return Error code indicating success or failure of the method.
 */
 Index oem_linear_nform( Vector& x,
                         Matrix& G,
@@ -789,8 +879,10 @@ Index oem_linear_nform( Vector& x,
         log_step_li( cout, 0, cost_start, 0, cost_start );
       }
 
+    oem.start_time();
     oem.compute( x, G, y, yf );
     oem.compute_fit( yf, cost_x, cost_y, x, y, F );
+    Numeric runtime = oem.get_time();
 
     // Finalize log output.
     if (verbose)
@@ -799,9 +891,11 @@ Index oem_linear_nform( Vector& x,
         log_finalize_li( cout );
       }
 
+    if (runtime >= 0.0)
+        cout << "Elapsed time: " << runtime << endl << endl;
 
     // Return convergence status
-    return 1;   // Should be set to 9 if failure when calculating yf
+    return oem.get_error();
 }
 
 //------------------------------------------------------------------------------------
@@ -915,6 +1009,59 @@ ConstVectorView NonLinearOEM::get_x_norm()
     return x_norm;
 }
 
+//! Start stop watch.
+/*!
+  Starts stop watch for OEM computation. Works only if OpenMP is available.
+ */
+void NonLinearOEM::start_time()
+{
+    #ifdef OMP
+    runtime = 0.0;
+    time_stamp = omp_get_wtime();
+    #endif
+}
+
+//! Record time.
+/*!
+  If the stop watch is currently active, mark_time() stops the watch and adds
+  the elapsed time since the starting of the stop watch or the last call to
+  mark_time() to the measured time.
+ */
+void NonLinearOEM::mark_time()
+{
+    #ifdef OMP
+    if (time_stamp >= 0.0)
+    {
+        runtime += omp_get_wtime() - time_stamp;
+        time_stamp = -1.0;
+    }
+    else
+    {
+        time_stamp = omp_get_wtime();
+    }
+    #endif
+}
+
+//! Return elapsed time.
+/*!
+  Stops the stop watch if it was running and returns the current measured time.
+
+  \return The total measured time.
+*/
+Numeric NonLinearOEM::get_time()
+{
+    #ifdef OMP
+    if (time_stamp >= 0.0)
+    {
+        runtime += omp_get_wtime() - time_stamp;
+        time_stamp = -1.0;
+    }
+
+    return runtime;
+    #endif
+    return -1.0;
+}
+
 //! Perform OEM computation.
 /*!
   Computes the Bayesian optimal estimator for the state vector x, given a
@@ -924,7 +1071,7 @@ ConstVectorView NonLinearOEM::get_x_norm()
 
   The iteration aborts when the maximum number of iterations max_iter is reached,
   the criterion (5.29) in Rodgers book is satisfied or when the maximum gamma
-  value is reached (Levenberg-Marquardt).
+  value is reached lofs.com/(Levenberg-Marquardt).
 
   \param x The Bayesian optimal estimator for the measurement vector y
   \param y The measurement vector
@@ -934,6 +1081,7 @@ Index NonLinearOEM::compute( Vector &x,
                              ConstVectorView y,
                              bool verbose )
 {
+
     if (method == GAUSS_NEWTON)
     {
         gauss_newton( x, y, verbose );
@@ -998,6 +1146,8 @@ void NonLinearOEM::gauss_newton( Vector &x,
           log_init_gn( cout, tol, max_iter );
       }
 
+    // Start stop watch.
+    start_time();
 
     // Set the starting vector.
     x = xa;
@@ -1005,7 +1155,19 @@ void NonLinearOEM::gauss_newton( Vector &x,
     while ( (!conv) && (iter < max_iter) )
     {
         // Compute Jacobian and y_i.
-        F.evaluate_jacobian( yi, J, x);
+        mark_time();
+
+        try
+        {
+            F.evaluate_jacobian( yi, J, x);
+        }
+        catch (int e)
+        {
+            err = 9;
+            return void();
+        }
+
+        mark_time();
 
         mult( tmp_nm_1, transpose(J), SeInv );
         mult( tmp_nn_1, tmp_nm_1, J );
@@ -1061,6 +1223,12 @@ void NonLinearOEM::gauss_newton( Vector &x,
         }
     }
 
+    if ( iter == max_iter )
+        err = 1;
+
+    // Stop stop watch.
+    mark_time();
+
     // Finalize log output.
     if ( verbose )
         log_finalize_gn( cout, conv, iter, max_iter );
@@ -1107,18 +1275,32 @@ void NonLinearOEM::levenberg_marquardt( Vector &x,
     if ( verbose )
         log_init_lm( cout, tol, max_iter );
 
+    // Start stop watch.
+    start_time();
+
     // Set starting vector.
     x = xa;
 
     conv = false;
     iter = 0;
-    err = 1;
+    cost_x = 0.0;
+    cost_y = 0.0;
     Numeric gamma = ga_start;
 
     while ( (!conv) && (iter < max_iter) && (gamma <= ga_max) )
     {
         // Compute Jacobian and y_i.
-        F.evaluate_jacobian( yi, J, x);
+        mark_time();
+        try
+        {
+            F.evaluate_jacobian( yi, J, x);
+        }
+        catch (int e)
+        {
+            err = 9;
+            return void();
+        }
+        mark_time();
 
         mult( tmp_nm_1, transpose(J), SeInv );
         mult( tmp_nn_1, tmp_nm_1, J );
@@ -1167,7 +1349,19 @@ void NonLinearOEM::levenberg_marquardt( Vector &x,
 
             // Evaluate cost function.
 
-            F.evaluate( yi, xnew );
+            mark_time();
+
+            try
+            {
+                F.evaluate( yi, xnew );
+            }
+            catch ( int e )
+            {
+                err = 9;
+                return void();
+            }
+
+            mark_time();
 
             oem_cost_x( cost_x, xnew, xa, SxInv, (Numeric) m);
             oem_cost_y( cost_y, y, yi, SeInv, (Numeric) m);
@@ -1226,6 +1420,15 @@ void NonLinearOEM::levenberg_marquardt( Vector &x,
 
     }
 
+    if ( iter == max_iter )
+        err = 1;
+    if ( gamma >= ga_max )
+        err = 2;
+
+    // Stop stop watch.
+    mark_time();
+
+    // Final log output.
     if ( verbose )
         log_finalize_lm( cout, conv, cost, cost_x, cost_y,
                          gamma, ga_max, iter, max_iter );
@@ -1244,9 +1447,17 @@ void NonLinearOEM::levenberg_marquardt( Vector &x,
 Index NonLinearOEM::compute_fit( Vector &yf,
                                  const Vector &x )
 {
-    // TODO: Catch errors.
-    F.evaluate( yf, x );
+    try
+    {
+        F.evaluate( yf, x );
+    }
+    catch (int e)
+    {
+        err = 9;
+        return err;
+    }
     return 0;
+
 }
 
 //! Compute fit and evaluate cost function.
@@ -1269,8 +1480,16 @@ Index NonLinearOEM::compute_fit( Vector &yf,
                                  const Vector &x,
                                  ConstVectorView y )
 {
-    // TODO: Catch erros.
-    F.evaluate( yf, x );
+
+    try
+    {
+        F.evaluate( yf, x );
+    }
+    catch (int e)
+    {
+        err = 9;
+        return err;
+    }
 
     oem_cost_y( cost_y_, y, yf, SeInv, (Numeric) m);
     oem_cost_x( cost_x_, x, xa, SxInv, (Numeric) m);
@@ -1287,7 +1506,16 @@ Index NonLinearOEM::compute_fit( Vector &yf,
 */
 void NonLinearOEM::compute_gain_matrix( Vector& x )
 {
-    F.evaluate_jacobian( tmp_m_1, J, x);
+
+    try
+    {
+        F.evaluate_jacobian( tmp_m_1, J, x);
+    }
+    catch (int e)
+    {
+        err = 9;
+        return void();
+    }
 
     mult( tmp_nm_1, transpose(J), SeInv );
     mult( tmp_nn_1, tmp_nm_1, J );
@@ -1315,6 +1543,14 @@ void NonLinearOEM::compute_gain_matrix( Vector& x )
   During execution two additional n-times-m and one n-times-n matrix is
   allocated. In addition to that, space for 4 length-n vectors and two length-m
   vectors is allocated. The given Matrix and Vector views may not overlap.
+
+  The returned Index value indicates if the computation was successful or if
+  an error occured. The following encoding for errors is used:
+
+      0 - Success
+      1 - ERROR: Computation didn't converge. Maximum of iterations reached.
+      2 - ERROR: Computation didn't converge. Maximum gamma value reached.
+      9 - ERROR: Evaluation of forward model failed.
 
   \param[out] x The optimal inverse x.
   \param[out] G The gain matrix corresponding to x.
@@ -1369,16 +1605,20 @@ Index oem_gauss_newton( Vector& x,
     if ( x_norm.nelem() == n )
         oem.set_x_norm( x_norm );
 
+    oem.start_time();
     oem.compute( x, G, y, verbose );
     oem.compute_fit( yf, cost_x, cost_y, x, y );
-    F.evaluate_jacobian( yf, J, x);
+
+    J = oem.get_jacobian();
+
+    Numeric runtime = oem.get_time();
+
+    if (runtime >= 0.0)
+        cout << "Elapsed time: " << runtime << endl << endl;
 
     iter = oem.iterations();
 
-    if( oem.converged() )
-      return 0;
-    else
-      return 1;
+    return oem.get_error();
 }
 
 
@@ -1400,6 +1640,14 @@ Index oem_gauss_newton( Vector& x,
 
   During the execution, space for two n-times-n and one n-times-m matrices is
   allocated as well as space for 5 length-n vectors and two length-m vectors.
+
+  The returned Index value indicates if the computation was successful or if
+  an error occured. The following encoding for errors is used:
+
+      0 - Success
+      1 - ERROR: Computation didn't converge. Maximum of iterations reached.
+      2 - ERROR: Computation didn't converge. Maximum gamma value reached.
+      9 - ERROR: Evaluation of forward model failed.
 
   \param[out] x The optimal estimator of the state vector.
   \param[out] yf The fitted state vector as computed in the second-last LM
@@ -1424,7 +1672,7 @@ Index oem_gauss_newton( Vector& x,
   set to zero.
   \param[in] verbose If true, log messages are printed to stdout.
 
-  \return True if the method has converged, false otherwise.
+  \return Error code indicating success or failure of the method.
 */
 Index oem_levenberg_marquardt( Vector& x,
                                Matrix& G,
@@ -1471,15 +1719,19 @@ Index oem_levenberg_marquardt( Vector& x,
     if ( x_norm.nelem() == n )
         oem.set_x_norm( x_norm );
 
+    oem.start_time();
     oem.compute( x, G, y, verbose );
     oem.compute_fit( yf, cost_x, cost_y, x, y );
-    F.evaluate_jacobian( yf, J, x);
+    Numeric runtime = oem.get_time();
+
+    J = oem.get_jacobian();
+
     iter = oem.iterations();
 
-    if( oem.converged() )
-      return 0;
-    else
-      return 1;
+    if (runtime >= 0.0)
+        cout << "Elapsed time: " << runtime << endl << endl;
+
+    return oem.get_error();
 
 }
 
@@ -1697,7 +1949,6 @@ bool oem_gauss_newton_n_form( VectorView x,
 
         // Compute Jacobian and y_i.
         K.evaluate_jacobian( yi, Ki, x );
-
         mult( KiTSeInv, transpose( Ki ), SeInv );
         mult( KiTSeInvKi, KiTSeInv, Ki );
         KiTSeInvKi += SxInv;

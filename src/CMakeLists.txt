@@ -1,11 +1,7 @@
 
-include_directories (${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}
-                     ${ZLIB_INCLUDE_DIR}
-                     ${BLAS_INCLUDE_DIR}
-                     /usr/local/MATLAB/R2015a/extern/include)
-
-
-
+include_directories ( ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}
+                      ${ZLIB_INCLUDE_DIR}
+                      ${BLAS_INCLUDE_DIR} )
 
 if (NETCDF_FOUND)
   include_directories (${NETCDF_INCLUDE_DIR})
@@ -366,6 +362,8 @@ set ( ATMLABDIR OFF CACHE PATH
 find_program( CSHFOUND csh )
 
 if ( MATLABDIR AND ATMLABDIR AND CSHFOUND )
+
+  include_directories( ${MATLABDIR}/R2015a/extern/include )
   add_executable (test_oem
     oem.cc
     test_oem.cc)

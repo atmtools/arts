@@ -19,10 +19,14 @@ f = @( q, r, x, iter ) forward_model( J, H, q, r, x, iter );
 O = oem;
 O.linear = false;
 O.itermethod = 'GN';
+O.G = true;
 O.sxnorm = true;
+
 t1 = cputime;
 [X,r] = oem(O, struct, [], f, Sa, Se, [], [], xa, y);
-x = X.x;
-
 t2 = cputime;
+
+x = X.x;
+G = X.G;
+
 t = (t2 - t1) * 1000;

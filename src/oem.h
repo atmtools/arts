@@ -23,10 +23,10 @@ class ForwardModel
 {
 public:
 //! Return a linearization, evaluate the forward model at the given point xi
-//  and write the results into Ki and yi, respectively.
+//  and write the results into J and yi, respectively.
 
     virtual void evaluate_jacobian (  VectorView &yi,
-                                      MatrixView &Ki,
+                                      MatrixView &J,
                                       const ConstVectorView &xi ) = 0;
     virtual void evaluate ( VectorView &yi,
                             const ConstVectorView &xi ) = 0;
@@ -98,6 +98,21 @@ public:
         x_norm_set = false;
     }
 
+    // Timing functions.
+    void start_time();
+    void mark_time();
+    Numeric get_time();
+
+
+    //! Get error code.
+    /*!
+      \return The internal error code.
+    */
+    Index get_error()
+    {
+        return err;
+    }
+
     // Compute optimal estimator, simple method.
     Index compute( Vector &x,
                    ConstVectorView y,
@@ -137,9 +152,14 @@ private:
     ConstMatrixView J, SeInv, SxInv;
     Matrix G;
 
+    // Timing variables.
+    Numeric runtime;
+    Numeric time_stamp;
+
     // Internal matrices and vectors needed for the computations.
     Matrix tmp_nn_1, tmp_nn_2, tmp_nm_1, tmp_mn_1, LU;
     Vector xa, tmp_m_1, tmp_n_1, x_norm;
+    Index err;
 
     ArrayOfIndex indx;
 };
@@ -308,6 +328,29 @@ public:
         ga_threshold = ga;
     }
 
+    // Timing functions.
+    void start_time();
+    void mark_time();
+    Numeric get_time();
+
+    //! Get error code.
+    /*!
+      \return The internal error code.
+    */
+    Index get_error()
+    {
+        return err;
+    }
+
+    //! Get Jacobian.
+    /*!
+      \return ConstMatrixView of the Jacobian.
+    */
+    ConstMatrixView get_jacobian()
+    {
+        return J;
+    }
+
     // Perform OEM calculation.
     Index compute( Vector &x,
                    ConstVectorView y,
@@ -357,6 +400,10 @@ private:
     ConstMatrixView SeInv, SxInv;
     ConstVectorView xa;
     ForwardModel &F;
+
+    // Timing variables.
+    Numeric runtime;
+    Numeric time_stamp;
 
     // Internal state variables.
     OEMMethod method;

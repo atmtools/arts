@@ -10,9 +10,14 @@ f = @( q, r, x, iter ) linear_forward_model( J, q, r, x, iter);
 
 O = oem
 O.linear = true;
+O.G = true;
+
+% Run OEM
 t1 = cputime;
-[x,r] = oem(O, struct, [], f, Sa, Se, [], [], xa, y);
-x = x.x;
+[X,r] = oem(O, struct, [], f, Sa, Se, [], [], xa, y);
 t2 = cputime;
+
+x = X.x;
+G = X.G;
 t = (t2 - t1) * 1000;
 
