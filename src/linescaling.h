@@ -61,8 +61,13 @@ void GetLineScalingData_dT(Numeric& dq_t_dT,
                            ConstVectorView atm_t_nlte);
 
 void GetLineScalingData_dF0(Numeric& dK2_dF0, 
+                            Numeric& dabs_nlte_ratio_dF0,
                             const Numeric& atm_t,
                             const Numeric& line_t,
+                            const Numeric& atm_tv_low,
+                            const Numeric& atm_tv_upp,
+                            const Numeric& line_evlow,
+                            const Numeric& line_evupp,
                             const Numeric& line_f);
 
 void GetChangeInPartitionRatio(Numeric& dQ_dT, 

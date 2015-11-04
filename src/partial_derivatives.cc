@@ -247,9 +247,12 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix&  partials_attenuati
             VectorView this_partial_phase       = do_partials_phase?partials_phase[ii](this_f_grid, pressure_level_index):empty_vector;
             VectorView this_partial_src         = do_src?partials_src[ii](this_f_grid, pressure_level_index):empty_vector;
             
-            Numeric dK2_dF0;
-            GetLineScalingData_dF0(dK2_dF0,temperature,line_temperature, line_frequency);
+            Numeric dK2_dF0, dK3_dF0=0.0;
+            GetLineScalingData_dF0(dK2_dF0, dK3_dF0,temperature,line_temperature, line_T_v_low, line_T_v_upp, line_E_v_low, line_E_v_upp, line_frequency);
             dK2_dF0 /= K2; // to just multiply with ls_{A,B}
+            if(do_src)
+                dK3_dF0/=K3;
+            const Numeric dS_dF0 = dK2_dF0+dK3_dF0;
             
             Numeric dF_dF0;
             global_data::lineshape_data[ind_ls].dInput_dF0()(dF_dF0,sigma);
@@ -263,11 +266,11 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix&  partials_attenuati
                 const Numeric ls_A= ( (1.0 + G_LM)*CF_A[iv] + Y_LM*CF_B[iv]), 
                               ls_B= ( (1.0 + G_LM)*CF_B[iv] - Y_LM*CF_A[iv]);
                 
-                this_partial_attenuation[iv] += (dK2_dF0+dfn_dF0[iv])*ls_A + dFa_dx[iv] * dF_dF0;
+                this_partial_attenuation[iv] += (dS_dF0+dfn_dF0[iv])*ls_A + dFa_dx[iv] * dF_dF0;
                 if(do_partials_phase)
-                    this_partial_phase[iv]   += (dK2_dF0+dfn_dF0[iv])*ls_B + dFb_dx[iv] * dF_dF0;
+                    this_partial_phase[iv]   += (dS_dF0+dfn_dF0[iv])*ls_B + dFb_dx[iv] * dF_dF0;
                 if(do_src)
-                    this_partial_src[iv]     += ((dK2_dF0+dfn_dF0[iv])*ls_A + dFa_dx[iv] * dF_dF0) * nlte;
+                    this_partial_src[iv]     += ((dS_dF0+dfn_dF0[iv])*ls_A + dFa_dx[iv] * dF_dF0) * nlte - ls_A*K4/K3/K3*dK3_dF0;
             }
             
             // That's it!  Note that the output should be strongly correlated to Temperature and Pressure.

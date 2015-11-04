@@ -1,5 +1,14 @@
 2015-11-04  Richard Larsson   <ric.larsson@gmail.com>
 
+	* arts-2-3-359
+	
+	* src/{linescaling.{cc,h},partial_derivatives}.cc:  I forgot the NLTE 
+	implementation for central frequency changes.  Now added.  ARTS still
+	will throw a fit if Jacobians are used with NLTE activated, but at least
+	now it might work when properly implemented.
+
+2015-11-04  Richard Larsson   <ric.larsson@gmail.com>
+
 	* arts-2-3-358
 	
 	* src/methods.cc:  Updated description so people know how to activate

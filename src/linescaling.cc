@@ -257,8 +257,13 @@ void GetLineScalingData_dT(Numeric& dq_t_dT,
 }
 void GetLineScalingData_dF0(
                         Numeric& dK2_dF0, 
+                        Numeric& dabs_nlte_ratio_dF0,
                         const Numeric& atm_t,
                         const Numeric& line_t,
+                        const Numeric& atm_tv_low,
+                        const Numeric& atm_tv_upp,
+                        const Numeric& line_evlow,
+                        const Numeric& line_evupp,
                         const Numeric& line_f)
 {
     // Physical constants
@@ -272,6 +277,29 @@ void GetLineScalingData_dF0(
     
     // Note lack of division with K2
     dK2_dF0 = (PLANCK_CONST*gamma_ref*(gamma - 1))/(line_t*BOLTZMAN_CONST*(gamma_ref - 1)*(gamma_ref - 1)) - (PLANCK_CONST*gamma)/(atm_t*BOLTZMAN_CONST*(gamma_ref - 1));
+    
+    
+    if(atm_tv_low>0||atm_tv_upp>0)
+    {
+        
+        //r_low and r_upp are ratios for the population level compared to LTE conditions
+        Numeric r_low, r_upp;
+        if( atm_tv_low > 0.0 ) // where 1e-4 is considered a small number so that the multiplication in the denominator does not reach zero
+            r_low = exp( - line_evlow / BOLTZMAN_CONST * (atm_t-atm_tv_low) / (atm_t*atm_tv_low) );
+        else if(atm_tv_low == 0.0)
+            throw std::runtime_error("A line has been defined with zero vibrational temperature.\nThis is not physical.\n");
+        else
+            r_low = 1.0;
+        
+        if( atm_tv_upp > 0.0 ) // where 1e-4 is considered a small number so that the multiplication in the denominator does not reach zero
+            r_upp = exp( - line_evupp / BOLTZMAN_CONST * (atm_t-atm_tv_upp) / (atm_t*atm_tv_upp) );
+        else if(atm_tv_upp  == 0.0)
+            throw std::runtime_error("A line has been defined with zero vibrational temperature.\nThis is not physical.\n");
+        else
+            r_upp = 1.0;
+        
+        dabs_nlte_ratio_dF0 = -PLANCK_CONST*gamma*(r_low-r_upp)/(atm_t*BOLTZMAN_CONST*(gamma-1.0)*(gamma-1.0));
+    }
 }
 
 void CalculatePartitionFctFromData( Numeric& q_ref, 
