@@ -7009,6 +7009,7 @@ void define_md_data_raw()
           "\n"
           "These are the supported catalog parameters:\n"
           "   \"Reference Line Strength\"\n"
+          "   \"Reference Line Center\"\n"
           "   \"Pressure Broadening Gamma\"\n"
           "   \"Pressure Broadening Reference Self Gamma\"\n"
           "   \"Pressure Broadening Reference Foreign Gamma\"\n"

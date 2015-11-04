@@ -1,5 +1,12 @@
 2015-11-04  Richard Larsson   <ric.larsson@gmail.com>
 
+	* arts-2-3-358
+	
+	* src/methods.cc:  Updated description so people know how to activate
+	the variable.
+
+2015-11-04  Richard Larsson   <ric.larsson@gmail.com>
+
 	* arts-2-3-357
 	
 	This adds the last major catalog parameter that was missing.  Remaining 
