@@ -1,14 +1,15 @@
 #!/bin/bash
 # author: Lukas Kluft
-# version: 03.06.2014 
+# version: 05.11.2015
 #
 # purpose: update vim's ARTS syntax highlighting
-#
-# 2014-08-19 OLE: Add path to ARTS as input parameter
+
+# path to ARTS executable. This variable has to be set in order to run run the script
+# e.g. arts="$HOME/arts/build/src/arts"
 
 [[ $# -eq 1 ]] && ARTS_BIN=$1 || ARTS_BIN=arts
 
-if ! which $ARTS_BIN >/dev/null; then
+if ! which &> /dev/null $ARTS_BIN; then
     echo "ERROR: $ARTS_BIN not found"
     echo "Usage: $0 [PATH_TO_ARTS_BINARY]"
     exit 1
@@ -30,7 +31,7 @@ f="$HOME/.vim/syntax/arts.vim"
 cat << 'EOF' > $f
 " Vim syntax file
 " Language: ARTS
-" Maintainer: Lukas Kluft (via update_vim_arts_syntax)
+" Maintainer: via update-vim-arts-syntax script
 EOF
 
 echo \" Latest Revision: $(date) >> $f
@@ -40,7 +41,7 @@ if exists("b:current_syntax")
   finish
 endif
 
-" Mapping of ARTS types to formatting classes
+" highlighting style for different classes
 hi def link ArtsMethod Constant
 hi def link ArtsComment Comment
 hi def link ArtsVariable Structure
@@ -50,25 +51,26 @@ hi def link ArtsString Statement
 
 let b:current_syntax = "arts"
 
-" Definition of comments
+" definition of comments
 syn match ArtsComment "#.*$" 
+setlocal commentstring=#\ %s
 
-" Definition of numbers
+" definition of numbers
 syn match ArtsNumber '\W[-+]\=\d\+\(\.\d*\)\=\([eE][-+]\=\d\+\)\='
 
-" Definition of strings
+" definition of strings
 syn region ArtsString start='"' end='"'
-
 EOF
 
-echo \" Definition of Workspace methods >> $f
+echo -e \\n\" workspace methods >> $f
 $ARTS_BIN -p -m all | sed 's/^/syn keyword ArtsMethod /g' >> $f
 
-echo \" Definition of Workspace variables >> $f
+echo -e \\n\" workspace variables >> $f
 $ARTS_BIN -p -w all | sed 's/^/syn keyword ArtsVariable /g' >> $f
 
-echo \" Definition of Workspace variable groups >> $f
+echo -e \\n\" groups of variables >> $f
 $ARTS_BIN -p -g all | sed 's/^/syn keyword ArtsGroup /g' >> $f
 
 echo "Written $f"
 
+exit 0

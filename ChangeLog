@@ -1,3 +1,11 @@
+2015-11-05  Lukas Kluft  <lukas.kluft@gmail.com>
+
+	* arts-2-3-360
+
+	* tools/vim_syntax/update-vim-arts-syntax:
+
+	Set commenstring variable to properly work with commentary.vim plugin.
+
 2015-11-04  Richard Larsson   <ric.larsson@gmail.com>
 
 	* arts-2-3-359

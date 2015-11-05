@@ -2,13 +2,13 @@ Syntax highlighting in VIM for ARTS controlfiles
 ------------------------------------------------
 
 This script extracts all WSM, WSV and group names from the given arts binary
-and creates a VIM syntax file in $HOME/.vim/syntax/arts.vim . It also a file
-type detection script in $HOME/.vim/ftdetect/arts.vim
+and creates a VIM syntax file in $HOME/.vim/syntax/arts.vim . It also creates
+a file type detection script in $HOME/.vim/ftdetect/arts.vim
 
-If you arts executable is not in the search PATH, you have to call the script
+If your arts executable is not in the search PATH, you have to call the script
 with the path to arts:
 
-./update_vim_arts_syntax ~/arts/build/src/arts
+./update-vim-arts-syntax ~/arts/build/src/arts
 
 Remember to rerun the script to add new WSMs and WSVs to the syntax file after
 changes happened inside ARTS.
