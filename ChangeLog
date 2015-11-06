@@ -1,3 +1,15 @@
+2015-11-06  Richard Larsson   <ric.larsson@gmail.com>
+
+	* arts-2-3-360
+	
+	* src/{{constants,m_jacobians}.cc,partial_derivatives.{h,cc}}:  Added
+	support for line mixing partial derivatives.
+	
+	* src/{linemixingdata.{cc,h},absorption.cc}:  Added methods to calculate
+	internal partial derivatives as a function of the catalog of choice.
+	
+	* sec/methods.cc:  Updated documentation for (jacobianAddCatalogParameter).
+
 2015-11-05  Lukas Kluft  <lukas.kluft@gmail.com>
 
 	* arts-2-3-360

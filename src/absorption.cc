@@ -2257,6 +2257,17 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                     abs_lines[ii].PressureBroadening().GetPressureBroadeningParams_dWaterExponent(
                         gamma_dWaterExponent,abs_lines[ii].Ti0()/t,p,this_species,h2o_index,vmrs,verbosity);
                 
+                Numeric dY0=0., dY1=0., dYexp=0., dG0=0., dG1=0., dGexp=0., dDV0=0., dDV1=0., dDVexp=0.;
+                if(do_lm)
+                {
+                    if(flag_partials.ZerothTermLM())
+                        abs_lines[ii].LineMixing().GetLineMixingParams_dZerothOrder(dY0, dG0, dDV0, t, p, lm_p_lim);
+                    if(flag_partials.FirstTermLM())
+                        abs_lines[ii].LineMixing().GetLineMixingParams_dFirstOrder(dY1, dG1, dDV1, t, p, lm_p_lim);
+                    if(flag_partials.ExponentLM())
+                        abs_lines[ii].LineMixing().GetLineMixingParams_dFirstOrder(dYexp, dGexp, dDVexp, t, p, lm_p_lim);
+                }
+                    
                 // Gather all new partial derivative calculations in this function
                 partial_derivatives_lineshape_dependency(partial_xsec_attenuation,
                                                          partial_xsec_phase, 
@@ -2292,10 +2303,19 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                                                          t_nlte[abs_lines[ii].EvuppIndex()]:-1.0,
                                                          Y,
                                                          dY_dT,
+                                                         dY0,
+                                                         dY1,
+                                                         dYexp,
                                                          G,
                                                          dG_dT,
+                                                         dG0,
+                                                         dG1,
+                                                         dGexp,
                                                          DV,
                                                          dDV_dT,
+                                                         dDV0,
+                                                         dDV1,
+                                                         dDVexp,
                                                          abs_lines[ii].QuantumNumbers(),
                                                          // LINE SHAPE
                                                          ind_ls,

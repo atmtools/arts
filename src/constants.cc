@@ -381,18 +381,32 @@ extern const String WIND_MAINTAG        = "Wind";
 extern const String MAGFIELD_MAINTAG    = "Magnetic field";
 
 // New tags for only propmat jacobians
-extern const String PROPMAT_SUBSUBTAG   = "From propagation matrix";
-extern const String CATALOGPARAMETER_MAINTAG = "Catalog parameter";
+extern const String PROPMAT_SUBSUBTAG              = "From propagation matrix";
+extern const String CATALOGPARAMETER_MAINTAG       = "Catalog parameter";
 
 // Generic modes
-extern const String PRESSUREBROADENINGGAMMA_MODE = "Pressure Broadening Gamma";
-extern const String LINESTRENGTH_MODE = "Reference Line Strength";
-extern const String LINECENTER_MODE = "Reference Line Center";
+extern const String PRESSUREBROADENINGGAMMA_MODE   = "Pressure Broadening Gamma";
+extern const String LINESTRENGTH_MODE              = "Reference Line Strength";
+extern const String LINECENTER_MODE                = "Reference Line Center";
+extern const String LINEMIXINGY_MODE               = "Line Mixing Y";
+extern const String LINEMIXINGG_MODE               = "Line Mixing G";
+extern const String LINEMIXINGDF_MODE              = "Line Mixing DF";
 
 // Modes for "some" catalogs
-extern const String SELFBROADENING_MODE = "Pressure Broadening Reference Self Gamma";
-extern const String FOREIGNBROADENING_MODE = "Pressure Broadening Reference Foreign Gamma";
-extern const String WATERBROADENING_MODE = "Pressure Broadening Reference Water Gamma";
-extern const String SELFBROADENINGEXPONENT_MODE = "Pressure Broadening Reference Self Gamma Exponent";
+//  Pressure Broadening
+extern const String SELFBROADENING_MODE            = "Pressure Broadening Reference Self Gamma";
+extern const String FOREIGNBROADENING_MODE         = "Pressure Broadening Reference Foreign Gamma";
+extern const String WATERBROADENING_MODE           = "Pressure Broadening Reference Water Gamma";
+extern const String SELFBROADENINGEXPONENT_MODE    = "Pressure Broadening Reference Self Gamma Exponent";
 extern const String FOREIGNBROADENINGEXPONENT_MODE = "Pressure Broadening Reference Foreign Gamma Exponent";
-extern const String WATERBROADENINGEXPONENT_MODE = "Pressure Broadening Reference Water Gamma Exponent";
+extern const String WATERBROADENINGEXPONENT_MODE   = "Pressure Broadening Reference Water Gamma Exponent";
+//  Line Mixing
+extern const String LINEMIXINGY0_MODE              = "Line Mixing Reference Zeroth Term Y";
+extern const String LINEMIXINGG0_MODE              = "Line Mixing Reference Zeroth Term G";
+extern const String LINEMIXINGDF0_MODE             = "Line Mixing Reference Zeroth Term DF";
+extern const String LINEMIXINGY1_MODE              = "Line Mixing Reference First Term Y";
+extern const String LINEMIXINGG1_MODE              = "Line Mixing Reference First Term G";
+extern const String LINEMIXINGDF1_MODE             = "Line Mixing Reference First Term DF";
+extern const String LINEMIXINGYEXPONENT_MODE       = "Line Mixing Reference Y Exponent";
+extern const String LINEMIXINGGEXPONENT_MODE       = "Line Mixing Reference G Exponent";
+extern const String LINEMIXINGDFEXPONENT_MODE      = "Line Mixing Reference DF Exponent";

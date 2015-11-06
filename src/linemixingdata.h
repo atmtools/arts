@@ -55,12 +55,20 @@ public:
     
     // Use these to return data in the format required by the line shape calculator
     void GetLineMixingParams(Numeric& Y, Numeric& G, Numeric& DV, const Numeric& Temperature, const Numeric& Pressure, const Numeric& Pressure_Limit, const Index& order) const;
-    void Get2ndOrder(Numeric& Y, Numeric& G, Numeric& DV, const Numeric& Temperature, const Numeric& Pressure, const Numeric& Pressure_Limit) const;
-    void Get1stOrder(Numeric& Y, const Numeric& Temperature, const Numeric& Pressure, const Numeric& Pressure_Limit) const;
-    void GetLBLRTM(Numeric& Y, Numeric& G, const Numeric& Temperature, const Numeric& Pressure, const Numeric& Pressure_Limit, const Index& order) const; 
     void GetLineMixingParams_dT(Numeric& dY_dT, Numeric& dG_dG, Numeric& dDV_dT, const Numeric& Temperature, const Numeric& dt, const Numeric& Pressure, const Numeric& Pressure_Limit, const Index& order) const;
+    void GetLineMixingParams_dZerothOrder(Numeric& dY0, Numeric& dG0, Numeric& dDV0, const Numeric& Temperature, const Numeric& Pressure, const Numeric& Pressure_Limit) const;
+    void GetLineMixingParams_dFirstOrder(Numeric& dY1, Numeric& dG1, Numeric& dDV1, const Numeric& Temperature, const Numeric& Pressure, const Numeric& Pressure_Limit) const;
+    void GetLineMixingParams_dExponent(Numeric& dYexp, Numeric& dGexp, Numeric& dDVexp, const Numeric& Temperature, const Numeric& Pressure, const Numeric& Pressure_Limit) const;
+    void Get2ndOrder(Numeric& Y, Numeric& G, Numeric& DV, const Numeric& Temperature, const Numeric& Pressure, const Numeric& Pressure_Limit) const;
     void Get2ndOrder_dT(Numeric& dY_dT, Numeric& dG_dT, Numeric& dDV_dT, const Numeric& Temperature, const Numeric& Pressure, const Numeric& Pressure_Limit) const;
+    void Get2ndOrder_dZerothOrder(Numeric& dY0, Numeric& dG0, Numeric& dDV0, const Numeric& Temperature, const Numeric& Pressure, const Numeric& Pressure_Limit) const;
+    void Get2ndOrder_dFirstOrder(Numeric& dY1, Numeric& dG1, Numeric& dDV1, const Numeric& Temperature, const Numeric& Pressure, const Numeric& Pressure_Limit) const;
+    void Get2ndOrder_dExponent(Numeric& dYexp, Numeric& dGexp, Numeric& dDVexp, const Numeric& Temperature, const Numeric& Pressure, const Numeric& Pressure_Limit) const;
+    void Get1stOrder(Numeric& Y, const Numeric& Temperature, const Numeric& Pressure, const Numeric& Pressure_Limit) const;
     void Get1stOrder_dT(Numeric& dY_dT, const Numeric& Temperature, const Numeric& Pressure, const Numeric& Pressure_Limit) const;
+    void Get1stOrder_dZerothOrder(Numeric& dY0, const Numeric& Temperature, const Numeric& Pressure, const Numeric& Pressure_Limit) const;
+    void Get1stOrder_dExponent(Numeric& dYexp, const Numeric& Temperature, const Numeric& Pressure, const Numeric& Pressure_Limit) const;
+    void GetLBLRTM(Numeric& Y, Numeric& G, const Numeric& Temperature, const Numeric& Pressure, const Numeric& Pressure_Limit, const Index& order) const; 
     void GetLBLRTM_dT(Numeric& dY_dT, Numeric& dG_dT, const Numeric& Temperature, const Numeric& dt, const Numeric& Pressure, const Numeric& Pressure_Limit, const Index& order) const;
     void GetLBLRTM_O2NonResonant(Numeric& G) const;
     

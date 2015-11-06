@@ -34,17 +34,33 @@ extern const String PROPMAT_SUBSUBTAG;
 
 // Catalog parameters
 extern const String CATALOGPARAMETER_MAINTAG;
+
+// Generic modes
 extern const String PRESSUREBROADENINGGAMMA_MODE;
 extern const String LINESTRENGTH_MODE;
 extern const String LINECENTER_MODE;
+extern const String LINEMIXINGY_MODE;
+extern const String LINEMIXINGG_MODE;
+extern const String LINEMIXINGDF_MODE;
 
-// Specific catalog's parameters
+//  Pressure Broadening
 extern const String SELFBROADENING_MODE;
 extern const String FOREIGNBROADENING_MODE;
 extern const String WATERBROADENING_MODE;
 extern const String SELFBROADENINGEXPONENT_MODE;
 extern const String FOREIGNBROADENINGEXPONENT_MODE;
 extern const String WATERBROADENINGEXPONENT_MODE;
+
+//  Line Mixing
+extern const String LINEMIXINGY0_MODE;
+extern const String LINEMIXINGG0_MODE;
+extern const String LINEMIXINGDF0_MODE;
+extern const String LINEMIXINGY1_MODE;
+extern const String LINEMIXINGG1_MODE;
+extern const String LINEMIXINGDF1_MODE;
+extern const String LINEMIXINGYEXPONENT_MODE;
+extern const String LINEMIXINGGEXPONENT_MODE;
+extern const String LINEMIXINGDFEXPONENT_MODE;
 
 
 typedef enum 
@@ -74,6 +90,15 @@ typedef enum
     JQT_line_mixing_Y,
     JQT_line_mixing_G,
     JQT_line_mixing_DF,
+    JQT_line_mixing_Y0,
+    JQT_line_mixing_G0,
+    JQT_line_mixing_DF0,
+    JQT_line_mixing_Y1,
+    JQT_line_mixing_G1,
+    JQT_line_mixing_DF1,
+    JQT_line_mixing_Yexp,
+    JQT_line_mixing_Gexp,
+    JQT_line_mixing_DFexp,
     JQT_level_vibrational_temperature,
     JQT_NOT_JQT
 } JacobianQuantityType;
@@ -100,6 +125,10 @@ public:
         }
         
         mcontains_temperature = false;
+        mcontains_frequency_term = false;
+        mcontains_linemixing_0_term = false;
+        mcontains_linemixing_1_term = false;
+        mcontains_linemixing_exponent_term = false;
         
         mmag_perturbation  = 0.0;
         mtemp_perturbation = 0.0;
@@ -183,6 +212,7 @@ public:
                     jacobian_quantities[iq].Subtag() == "strength")
                 {
                     mqtype[ippdq] = JQT_wind_magnitude;
+                    mcontains_frequency_term = true;
                     mjacobian_pos[ippdq] = iq;
                     mspecies[ippdq] = -9999;//Flag for not a species...
                     ippdq++;
@@ -192,6 +222,7 @@ public:
                     jacobian_quantities[iq].Subtag() == "u")
                 {
                     mqtype[ippdq] = JQT_wind_u;
+                    mcontains_frequency_term = true;
                     mjacobian_pos[ippdq] = iq;
                     mspecies[ippdq] = -9999;//Flag for not a species...
                     ippdq++;
@@ -201,6 +232,7 @@ public:
                     jacobian_quantities[iq].Subtag() == "v")
                 {
                     mqtype[ippdq] = JQT_wind_v;
+                    mcontains_frequency_term = true;
                     mjacobian_pos[ippdq] = iq;
                     mspecies[ippdq] = -9999;//Flag for not a species...
                     ippdq++;
@@ -210,6 +242,7 @@ public:
                     jacobian_quantities[iq].Subtag() == "w")
                 {
                     mqtype[ippdq] = JQT_wind_w;
+                    mcontains_frequency_term = true;
                     mjacobian_pos[ippdq] = iq;
                     mspecies[ippdq] = -9999;//Flag for not a species...
                     ippdq++;
@@ -227,6 +260,7 @@ public:
                 else if(jacobian_quantities[iq].MainTag() == FREQUENCY_MAINTAG)
                 {
                     mqtype[ippdq] = JQT_frequency;
+                    mcontains_frequency_term = true;
                     mjacobian_pos[ippdq] = iq;
                     mspecies[ippdq] = -9999;//Flag for not a species...
                     ippdq++;
@@ -303,23 +337,95 @@ public:
                         mcontains_pressure_term[5]=1;
                         ippdq++;
                     }
-                    else if(jacobian_quantities[iq].Mode() == "Line Mixing Y")
+                    else if(jacobian_quantities[iq].Mode() == LINEMIXINGY_MODE)
                     {
                         mqtype[ippdq] = JQT_line_mixing_Y;
                         mjacobian_pos[ippdq] = iq;
                         mspecies[ippdq] = -9999;//Flag for not a species...
                         ippdq++;
                     }
-                    else if(jacobian_quantities[iq].Mode() == "Line Mixing G")
+                    else if(jacobian_quantities[iq].Mode() == LINEMIXINGG_MODE)
                     {
                         mqtype[ippdq] = JQT_line_mixing_G;
                         mjacobian_pos[ippdq] = iq;
                         mspecies[ippdq] = -9999;//Flag for not a species...
                         ippdq++;
                     }
-                    else if(jacobian_quantities[iq].Mode() == "Line Mixing DF")
+                    else if(jacobian_quantities[iq].Mode() == LINEMIXINGDF_MODE)
                     {
                         mqtype[ippdq] = JQT_line_mixing_DF;
+                        mjacobian_pos[ippdq] = iq;
+                        mspecies[ippdq] = -9999;//Flag for not a species...
+                        ippdq++;
+                    }
+                    else if(jacobian_quantities[iq].Mode() == LINEMIXINGY0_MODE)
+                    {
+                        mqtype[ippdq] = JQT_line_mixing_Y0;
+                        mcontains_linemixing_0_term = true;
+                        mjacobian_pos[ippdq] = iq;
+                        mspecies[ippdq] = -9999;//Flag for not a species...
+                        ippdq++;
+                    }
+                    else if(jacobian_quantities[iq].Mode() == LINEMIXINGG0_MODE)
+                    {
+                        mqtype[ippdq] = JQT_line_mixing_G0;
+                        mcontains_linemixing_0_term = true;
+                        mjacobian_pos[ippdq] = iq;
+                        mspecies[ippdq] = -9999;//Flag for not a species...
+                        ippdq++;
+                    }
+                    else if(jacobian_quantities[iq].Mode() == LINEMIXINGDF0_MODE)
+                    {
+                        mqtype[ippdq] = JQT_line_mixing_DF0;
+                        mcontains_linemixing_0_term = true;
+                        mjacobian_pos[ippdq] = iq;
+                        mspecies[ippdq] = -9999;//Flag for not a species...
+                        ippdq++;
+                    }
+                    else if(jacobian_quantities[iq].Mode() == LINEMIXINGY1_MODE)
+                    {
+                        mqtype[ippdq] = JQT_line_mixing_Y1;
+                        mcontains_linemixing_1_term = true;
+                        mjacobian_pos[ippdq] = iq;
+                        mspecies[ippdq] = -9999;//Flag for not a species...
+                        ippdq++;
+                    }
+                    else if(jacobian_quantities[iq].Mode() == LINEMIXINGG1_MODE)
+                    {
+                        mqtype[ippdq] = JQT_line_mixing_G1;
+                        mcontains_linemixing_1_term = true;
+                        mjacobian_pos[ippdq] = iq;
+                        mspecies[ippdq] = -9999;//Flag for not a species...
+                        ippdq++;
+                    }
+                    else if(jacobian_quantities[iq].Mode() == LINEMIXINGDF1_MODE)
+                    {
+                        mqtype[ippdq] = JQT_line_mixing_DF1;
+                        mcontains_linemixing_1_term = true;
+                        mjacobian_pos[ippdq] = iq;
+                        mspecies[ippdq] = -9999;//Flag for not a species...
+                        ippdq++;
+                    }
+                    else if(jacobian_quantities[iq].Mode() == LINEMIXINGYEXPONENT_MODE)
+                    {
+                        mqtype[ippdq] = JQT_line_mixing_Yexp;
+                        mcontains_linemixing_exponent_term  = true;
+                        mjacobian_pos[ippdq] = iq;
+                        mspecies[ippdq] = -9999;//Flag for not a species...
+                        ippdq++;
+                    }
+                    else if(jacobian_quantities[iq].Mode() == LINEMIXINGGEXPONENT_MODE)
+                    {
+                        mqtype[ippdq] = JQT_line_mixing_Gexp;
+                        mcontains_linemixing_exponent_term  = true;
+                        mjacobian_pos[ippdq] = iq;
+                        mspecies[ippdq] = -9999;//Flag for not a species...
+                        ippdq++;
+                    }
+                    else if(jacobian_quantities[iq].Mode() == LINEMIXINGDFEXPONENT_MODE)
+                    {
+                        mqtype[ippdq] = JQT_line_mixing_DFexp;
+                        mcontains_linemixing_exponent_term = true;
                         mjacobian_pos[ippdq] = iq;
                         mspecies[ippdq] = -9999;//Flag for not a species...
                         ippdq++;
@@ -552,6 +658,9 @@ public:
 
     // Helper for pressure broadening terms
     Index PressureBroadeningTerm(Index this_index) const {return (bool)mcontains_pressure_term[this_index];};
+    bool ZerothTermLM() const {return mcontains_linemixing_0_term;};
+    bool FirstTermLM() const {return mcontains_linemixing_1_term;};
+    bool ExponentLM() const {return mcontains_linemixing_exponent_term;};
     
 private:
     ArrayOfJacobianQuantityType mqtype;
@@ -564,6 +673,9 @@ private:
     Index                       mreal_nelem;
     bool mcontains_temperature;
     bool mcontains_frequency_term;
+    bool mcontains_linemixing_0_term;
+    bool mcontains_linemixing_1_term;
+    bool mcontains_linemixing_exponent_term;
     ArrayOfIndex mcontains_pressure_term;
 };
 
@@ -599,10 +711,19 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix& partials_attenuatio
                                               const Numeric&  line_T_v_upp,
                                               const Numeric&  Y_LM,
                                               const Numeric&  dY_LM_dT,
+                                              const Numeric&  dY_LM0,
+                                              const Numeric&  dY_LM1,
+                                              const Numeric&  dY_LMexp,
                                               const Numeric&  G_LM,
                                               const Numeric&  dG_LM_dT,
+                                              const Numeric&  dG_LM0,
+                                              const Numeric&  dG_LM1,
+                                              const Numeric&  dG_LMexp,
                                               const Numeric&  DF_LM,
                                               const Numeric&  dDF_LM_dT,
+                                              const Numeric&  dDF_LM0,
+                                              const Numeric&  dDF_LM1,
+                                              const Numeric&  dDF_LMexp,
                                               const QuantumNumberRecord&  qnr,
                                               // LINE SHAPE
                                               const Index& ind_ls,

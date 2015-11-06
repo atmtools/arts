@@ -58,10 +58,19 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix&  partials_attenuati
                                               const Numeric&  line_T_v_upp,
                                               const Numeric&  Y_LM,
                                               const Numeric&  dY_LM_dT,
+                                              const Numeric&  dY_LM0,
+                                              const Numeric&  dY_LM1,
+                                              const Numeric&  dY_LMexp,
                                               const Numeric&  G_LM,
                                               const Numeric&  dG_LM_dT,
+                                              const Numeric&  dG_LM0,
+                                              const Numeric&  dG_LM1,
+                                              const Numeric&  dG_LMexp,
                                               const Numeric&  DF_LM,
                                               const Numeric&  dDF_LM_dT,
+                                              const Numeric&  dDF_LM0,
+                                              const Numeric&  dDF_LM1,
+                                              const Numeric&  dDF_LMexp,
                                               const QuantumNumberRecord&  qnr,
                                               // LINE SHAPE
                                               const Index& ind_ls,
@@ -300,13 +309,13 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix&  partials_attenuati
             
             // That's it!  Now to wonder if this will grow extremely large, creating an unrealistic jacobian...
         }
-        else if(flag_partials(ii) == JQT_line_gamma ||
-            flag_partials(ii) == JQT_line_gamma_self ||
-            flag_partials(ii) == JQT_line_gamma_foreign ||
-            flag_partials(ii) == JQT_line_gamma_water ||
-            flag_partials(ii) == JQT_line_gamma_selfexponent ||
-            flag_partials(ii) == JQT_line_gamma_foreignexponent ||
-            flag_partials(ii) == JQT_line_gamma_waterexponent)
+        else if(flag_partials(ii) == JQT_line_gamma                 ||
+                flag_partials(ii) == JQT_line_gamma_self            ||
+                flag_partials(ii) == JQT_line_gamma_foreign         ||
+                flag_partials(ii) == JQT_line_gamma_water           ||
+                flag_partials(ii) == JQT_line_gamma_selfexponent    ||
+                flag_partials(ii) == JQT_line_gamma_foreignexponent ||
+                flag_partials(ii) == JQT_line_gamma_waterexponent)
         {
             if(!line_match_line(flag_partials.jac()[ii].QuantumIdentity(),qnr.Lower(),qnr.Upper()))
                 continue;
@@ -345,10 +354,23 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix&  partials_attenuati
             
             // That's it!
         }
-        else if(flag_partials(ii)==JQT_line_mixing_Y)
+        else if(flag_partials(ii)==JQT_line_mixing_Y  ||
+                flag_partials(ii)==JQT_line_mixing_Y0 ||
+                flag_partials(ii)==JQT_line_mixing_Y1 ||
+                flag_partials(ii)==JQT_line_mixing_Yexp)
         {
             if(!line_match_line(flag_partials.jac()[ii].QuantumIdentity(),qnr.Lower(),qnr.Upper()))
                 continue;
+            
+            Numeric constant = 1.0;
+            switch(flag_partials(ii))
+            {
+                case JQT_line_mixing_Y: break;
+                case JQT_line_mixing_Y0: constant = dY_LM0; break;
+                case JQT_line_mixing_Y1: constant = dY_LM1; break;
+                case JQT_line_mixing_Yexp: constant = dY_LMexp; break;
+                default: throw std::runtime_error("This cannot happen.  A developer has made a mistake.\n");
+            }
             
             VectorView this_partial_attenuation = partials_attenuation[ii](this_f_grid, pressure_level_index);
             VectorView this_partial_phase       = do_partials_phase?partials_phase[ii](this_f_grid, pressure_level_index):empty_vector;
@@ -357,20 +379,33 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix&  partials_attenuati
             for(Index iv=0;iv<nv;iv++)
             {
                 
-                this_partial_attenuation[iv] += CF_B[iv];
+                this_partial_attenuation[iv] += CF_B[iv] * constant;
                 if(do_partials_phase)
-                    this_partial_phase[iv]   -= CF_A[iv];
+                    this_partial_phase[iv]   -= CF_A[iv] * constant;
                 if(do_src)
-                    this_partial_src[iv]     += CF_B[iv]*nlte;
+                    this_partial_src[iv]     += CF_B[iv]*nlte * constant;
             }
             
             // That's it!  Note that this should be strongly correlated to Temperature and Pressure.
             // Also note that to do the fit for the catalog gamma is somewhat different than this
         }
-        else if(flag_partials(ii)==JQT_line_mixing_G)
+        else if(flag_partials(ii)==JQT_line_mixing_G  ||
+                flag_partials(ii)==JQT_line_mixing_G0 ||
+                flag_partials(ii)==JQT_line_mixing_G1 ||
+                flag_partials(ii)==JQT_line_mixing_Gexp)
         {
             if(!line_match_line(flag_partials.jac()[ii].QuantumIdentity(),qnr.Lower(),qnr.Upper()))
                 continue;
+            
+            Numeric constant = 1.0;
+            switch(flag_partials(ii))
+            {
+                case JQT_line_mixing_G: break;
+                case JQT_line_mixing_G0: constant = dG_LM0; break;
+                case JQT_line_mixing_G1: constant = dG_LM1; break;
+                case JQT_line_mixing_Gexp: constant = dG_LMexp; break;
+                default: throw std::runtime_error("This cannot happen.  A developer has made a mistake.\n");
+            }
             
             VectorView this_partial_attenuation = partials_attenuation[ii](this_f_grid, pressure_level_index);
             VectorView this_partial_phase       = do_partials_phase?partials_phase[ii](this_f_grid, pressure_level_index):empty_vector;
@@ -379,20 +414,33 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix&  partials_attenuati
             for(Index iv=0;iv<nv;iv++)
             {
                 
-                this_partial_attenuation[iv] += CF_A[iv];
+                this_partial_attenuation[iv] += CF_A[iv] * constant;
                 if(do_partials_phase)
-                    this_partial_phase[iv]   += CF_B[iv];
+                    this_partial_phase[iv]   += CF_B[iv] * constant;
                 if(do_src)
-                    this_partial_src[iv]     += CF_A[iv]*nlte;
+                    this_partial_src[iv]     += CF_A[iv]*nlte * constant;
             }
             
             // That's it!  Note that the output should be strongly correlated to Temperature and Pressure.
             // Also note that to do the fit for the catalog gamma is somewhat different than this
         }
-        else if(flag_partials(ii)==JQT_line_mixing_DF)
+        else if(flag_partials(ii)==JQT_line_mixing_DF  ||
+                flag_partials(ii)==JQT_line_mixing_DF0 ||
+                flag_partials(ii)==JQT_line_mixing_DF1 ||
+                flag_partials(ii)==JQT_line_mixing_DFexp)
         {
             if(!line_match_line(flag_partials.jac()[ii].QuantumIdentity(),qnr.Lower(),qnr.Upper()))
                 continue;
+            
+            Numeric constant = 1.0;
+            switch(flag_partials(ii))
+            {
+                case JQT_line_mixing_DF: break;
+                case JQT_line_mixing_DF0: constant = dDF_LM0; break;
+                case JQT_line_mixing_DF1: constant = dDF_LM1; break;
+                case JQT_line_mixing_DFexp: constant = dDF_LMexp; break;
+                default: throw std::runtime_error("This cannot happen.  A developer has made a mistake.\n");
+            }
             
             VectorView this_partial_attenuation = partials_attenuation[ii](this_f_grid, pressure_level_index);
             VectorView this_partial_phase       = do_partials_phase?partials_phase[ii](this_f_grid, pressure_level_index):empty_vector;
@@ -406,11 +454,11 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix&  partials_attenuati
             for(Index iv=0;iv<nv;iv++)
             {
                 
-                this_partial_attenuation[iv] += dFa_dx[iv] * dF_dDF;
+                this_partial_attenuation[iv] += dFa_dx[iv] * dF_dDF * constant;
                 if(do_partials_phase)
-                    this_partial_phase[iv]   += dFb_dx[iv] * dF_dDF;
+                    this_partial_phase[iv]   += dFb_dx[iv] * dF_dDF * constant;
                 if(do_src)
-                    this_partial_src[iv]     += dFa_dx[iv] * dF_dDF * nlte;
+                    this_partial_src[iv]     += dFa_dx[iv] * dF_dDF * nlte * constant;
             }
             
             // That's it!  Note that the output should be strongly correlated to Temperature and Pressure.

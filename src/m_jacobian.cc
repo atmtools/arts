@@ -72,6 +72,34 @@ extern const String MAGFIELD_MAINTAG;
 extern const String PROPMAT_SUBSUBTAG;
 
 
+// Generic modes
+extern const String PRESSUREBROADENINGGAMMA_MODE;
+extern const String LINESTRENGTH_MODE;
+extern const String LINECENTER_MODE;
+extern const String LINEMIXINGY_MODE;
+extern const String LINEMIXINGG_MODE;
+extern const String LINEMIXINGDF_MODE;
+
+// Modes for "some" catalogs
+//  Pressure Broadening
+extern const String SELFBROADENING_MODE;
+extern const String FOREIGNBROADENING_MODE;
+extern const String WATERBROADENING_MODE;
+extern const String SELFBROADENINGEXPONENT_MODE;
+extern const String FOREIGNBROADENINGEXPONENT_MODE;
+extern const String WATERBROADENINGEXPONENT_MODE;
+//  Line Mixing
+extern const String LINEMIXINGY0_MODE;
+extern const String LINEMIXINGG0_MODE;
+extern const String LINEMIXINGDF0_MODE;
+extern const String LINEMIXINGY1_MODE;
+extern const String LINEMIXINGG1_MODE;
+extern const String LINEMIXINGDF1_MODE;
+extern const String LINEMIXINGYEXPONENT_MODE;
+extern const String LINEMIXINGGEXPONENT_MODE;
+extern const String LINEMIXINGDFEXPONENT_MODE;
+
+
 
 /*===========================================================================
   === The methods, with general methods first followed by the Add/Calc method
@@ -3706,6 +3734,18 @@ void jacobianAddCatalogParameter(
         WATERBROADENING_MODE==catalog_parameter ||
         SELFBROADENINGEXPONENT_MODE==catalog_parameter ||
         FOREIGNBROADENINGEXPONENT_MODE==catalog_parameter ||
+        LINEMIXINGY_MODE==catalog_parameter ||
+        LINEMIXINGG_MODE==catalog_parameter ||
+        LINEMIXINGDF_MODE==catalog_parameter ||
+        LINEMIXINGY0_MODE==catalog_parameter ||
+        LINEMIXINGG0_MODE==catalog_parameter ||
+        LINEMIXINGDF0_MODE==catalog_parameter ||
+        LINEMIXINGY1_MODE==catalog_parameter ||
+        LINEMIXINGG1_MODE==catalog_parameter ||
+        LINEMIXINGDF1_MODE==catalog_parameter ||
+        LINEMIXINGYEXPONENT_MODE==catalog_parameter ||
+        LINEMIXINGGEXPONENT_MODE==catalog_parameter ||
+        LINEMIXINGDFEXPONENT_MODE==catalog_parameter ||
         WATERBROADENINGEXPONENT_MODE==catalog_parameter))
     {
         ostringstream os;
