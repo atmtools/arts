@@ -66,6 +66,8 @@ arts_test_run_ctlfile(fast artscomponents/transmission/TestTransmission.arts)
 
 arts_test_run_ctlfile(fast artscomponents/faraday/TestFaradayRotation.arts)
 
+arts_test_run_ctlfile(slow artscomponents/nlte/TestNLTE.arts)
+
 arts_test_run_ctlfile(slow artscomponents/radiolink/TestRadioLink.arts)
 arts_test_run_ctlfile(fast artscomponents/radiolink/TestRadioLink2.arts)
 arts_test_run_ctlfile(slow artscomponents/radiolink/TestRadioOccultation.arts)

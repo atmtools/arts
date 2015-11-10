@@ -2282,7 +2282,8 @@ void define_md_data_raw()
       ( NAME( "AtmFieldsCalc" ),
         DESCRIPTION
         (
-         "Interpolation of raw atmospheric T, z, and VMR fields to calculation grids.\n"
+         "Interpolation of raw atmospheric T, z, VMR, and NLTE T fields to\n"
+         "calculation grids.\n"
          "\n"
          "An atmospheric scenario includes the following data for each\n"
          "position (pressure, latitude, longitude) in the atmosphere:\n"
@@ -2292,12 +2293,14 @@ void define_md_data_raw()
          "This method interpolates the fields of raw data (*t_field_raw*,\n"
          "*z_field_raw*, *vmr_field_raw*) which can be stored on arbitrary\n"
          "grids to the calculation grids (*p_grid*, *lat_grid*, *lon_grid*).\n"
+         "If *t_nlte_field_raw* is empty, it is assumed to be so because LTE is\n"
+         "assumed by the user and *t_nlte_field* will be empty.\n"
          "\n"
          "Internally, *AtmFieldsCalc* applies *GriddedFieldPRegrid* and\n"
          "*GriddedFieldLatLonRegrid*. Generally, 'half-grid-step' extrapolation\n"
          "is allowed and applied. However, if *vmr_zeropadding*=1 then VMRs at\n"
          "*p_grid* levels exceeding the raw VMRs' pressure grid are set to 0\n"
-         "(applying the *zeropadding* option of *GriddedFieldPRegrid*).\n"
+         "(applying the *vmr_zeropadding* option of *GriddedFieldPRegrid*).\n"
          "\n"
          "Default is to just accept obtained VMRs. If you want to enforce\n"
          "that all VMR created are >= 0, set *vmr_nonegative* to 1. Negative\n"
@@ -2825,7 +2828,7 @@ void define_md_data_raw()
          "   3. vmr fields for the gaseous species\n"
          "The data is stored in different files. This methods reads all\n"
          "files and creates the variables *t_field_raw*, *z_field_raw* and\n"
-         "*vmr_field_raw*.\n"
+         "*vmr_field_raw*.  *t_nlte_field_raw* is set to empty.\n"
          "\n"
          "Files in a scenarios should be named matching the pattern of:\n"
          "tropical.H2O.xml\n"
@@ -2836,7 +2839,8 @@ void define_md_data_raw()
          "species, the same profile will be used.\n"
          ),
         AUTHORS( "Claudia Emde" ),
-        OUT( "t_field_raw", "z_field_raw", "vmr_field_raw", "t_nlte_field_raw", "nlte_quantum_identifiers" ),
+        OUT( "t_field_raw", "z_field_raw", "vmr_field_raw", 
+             "t_nlte_field_raw", "nlte_quantum_identifiers" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
@@ -2861,6 +2865,7 @@ void define_md_data_raw()
          "   1. temperature field\n"
          "   2. the corresponding altitude field\n"
          "   3. vmr fields for the gaseous species\n"
+         "   4. Non-LTE temperature fields and matching identifiers\n"
          "The data is stored in different files. This method reads all\n"
          "files and creates the variables *t_field_raw*, *z_field_raw*,\n"
          "*vmr_field_raw*, *t_nlte_field_raw*, and *nlte_quantum_identifiers*.\n"
@@ -2873,7 +2878,7 @@ void define_md_data_raw()
          "species name. If you have more than one tag group for the same\n"
          "species, the same profile will be used.\n"
          ),
-        AUTHORS( "Claudia Emde" ),
+        AUTHORS( "Claudia Emde", "Richard Larsson" ),
         OUT( "t_field_raw", "z_field_raw", "vmr_field_raw", "t_nlte_field_raw", "nlte_quantum_identifiers" ),
         GOUT(),
         GOUT_TYPE(),
@@ -9037,7 +9042,7 @@ void define_md_data_raw()
         DESCRIPTION
         (
          "Turn NLTE absorption per species into the source function by multiplying\n"
-         "NLTE absorption per species with the LTEPlanck source function.\n"
+         "NLTE absorption per species with the LTE Planck source function.\n"
          ),
         AUTHORS( "Richard Larsson" ),
         OUT( "nlte_source", "dnlte_dx_source", "nlte_dsource_dx" ),
@@ -9083,27 +9088,38 @@ void define_md_data_raw()
          "Turns on NTLE calculations.\n"
          "\n"
          "Takes the quantum identifers for NLTE temperatures and matches it to\n"
-         "lines in abs_lines_per_species.  abs_species must be set and is used\n"
+         "lines in *abs_lines_per_species*.  *abs_species* must be set and is used\n"
          "to speed up calculations.  After the function is done,  all affected\n"
-         "lines in abs_line_per_species will have a tag to the relevant quantum\n"
-         "identification.\n"
+         "lines in *abs_lines_per_species* will have an internal tag to the relevant\n"
+         "quantum identifier, which is a requirement for deeper code.\n"
          "\n"
-         "If vibrational_energies is input it must match nlte_quantum_identifiers\n"
+         "If vibrational_energies is input it must match *nlte_quantum_identifiers*\n"
          "in length.  The vibrational energies of the affected lines will then be\n"
          "set by the function.  Otherwise, it is assumed the vibrational energies\n"
-         "are set by another method.\n"
+         "are set by another method.  If they are not set, calculations will complain\n"
+         "later on while running deeper code.\n"
+         "\n"
+         "For now only vibrational energy states are assumed to be able to be in\n"
+         "non-LTE conditions.  The *QuantumIdentifier* for an energy state in ARTS\n"
+         "can look like:\n"
+         "\t\"CO2-626 EN v1 0/1 v2 1/1 l2 1/1 v3 0/1 r 1/1\"\n"
+         "and the matching will match ALL lines with the above.  Note then that if, e.g.,\n"
+         "the \"v1 0/1\" term was removed from the above, then ARTS will assume that\n"
+         "\"v1\" is not part of the level of energy state of interest, so lines\n"
+         "of different \"v1\" will be matched as the same state.  If a line is matched\n"
+         "to more than one energy state, errors should be thrown, but be careful.\n"
          ),
         AUTHORS( "Richard Larsson" ),
         OUT( "nlte_do", "abs_lines_per_species" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "nlte_quantum_identifiers", "abs_species", "t_nlte_field", "p_grid",
+        IN( "abs_lines_per_species", "nlte_quantum_identifiers", "abs_species", "t_nlte_field", "p_grid",
             "lat_grid", "lon_grid", "atmosphere_dim"),
         GIN("vibrational_energies"),
         GIN_TYPE("Vector"),
         GIN_DEFAULT(NODEF),
-        GIN_DESC("Vector of vibrational energies")
+        GIN_DESC("Vector of vibrational energies.  If empty, assume known vibrational energies.")
         ));
 
   md_data_raw.push_back

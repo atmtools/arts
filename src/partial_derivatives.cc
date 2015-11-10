@@ -523,9 +523,6 @@ bool line_match_line(const QuantumIdentifier& from_jac,
     lower_qn.CompareDetailed(lower, from_jac.QuantumMatch()[from_jac.TRANSITION_LOWER_INDEX]);
     upper_qn.CompareDetailed(upper, from_jac.QuantumMatch()[from_jac.TRANSITION_UPPER_INDEX]);
     
-    //std::cout<<lower_qn<<" v. "<<from_jac.QuantumMatch()[from_jac.TRANSITION_LOWER_INDEX]<< " AND \n" <<upper_qn<<" v. "<<from_jac.QuantumMatch()[from_jac.TRANSITION_UPPER_INDEX]<<"\n";
-    //std::cout<<(lower==QMI_FULL)<<" "<<(upper==QMI_FULL)<<"\n";
-    
     return (lower==QMI_FULL&&upper==QMI_FULL); //Must be perfect match for this to be true.
 }
 

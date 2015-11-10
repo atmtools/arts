@@ -1,3 +1,19 @@
+2015-11-10  Richard Larsson   <ric.larsson@gmail.com>
+
+	* arts-2-3-362
+	
+	* Files added under "controlfiles/*":  Adds simple testcase to ensure 
+	NLTE code does not break.  In slow tests. The atmosphere is not realistic.
+	May move to fast in reduced form once more tested.
+	
+	* src/methods.cc:  Fixed bug affecting DebRelease users due to an error
+	of mine from before.  Release users were not affected by
+	abs_lines_per_species being passed only as output from 
+	(nlteSetByQuantumIdentifiers).
+	
+	* Other files altered under "src/*":  Update comments on NLTE part after 
+	request by Taka and Jana.
+
 2015-11-10  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-361

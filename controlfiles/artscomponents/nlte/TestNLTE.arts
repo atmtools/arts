@@ -1,0 +1,94 @@
+Arts2 {
+
+INCLUDE "general/general.arts"
+INCLUDE "general/continua.arts"
+INCLUDE "general/agendas.arts"
+
+AgendaSet(propmat_clearsky_agenda)
+{
+Ignore(rtp_mag)
+Ignore(rtp_los)
+propmat_clearskyInit
+propmat_clearskyAddOnTheFly
+}
+
+AgendaSet(abs_xsec_agenda)
+{
+abs_xsec_per_speciesInit
+abs_xsec_per_speciesAddLines
+}
+
+Copy( iy_main_agenda, iy_main_agenda__Emission )
+Copy( iy_surface_agenda, iy_surface_agenda__UseSurfaceRtprop )
+Copy( iy_space_agenda, iy_space_agenda__CosmicBackground )
+Copy( blackbody_radiation_agenda, blackbody_radiation_agenda__Planck )
+Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
+Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
+Copy( surface_rtprop_agenda, surface_rtprop_agenda__Blackbody_SurfTFromt_field)
+
+IndexSet( stokes_dim, 1 )
+
+VectorNLogSpace( p_grid, 41, 1000e2, 1 )
+VectorNLinSpace( lat_grid, 2, -60, 60)
+VectorNLinSpace( lon_grid, 2, -30, 30)
+MatrixSet(sensor_los, [
+1.126885514276187e2,0;
+1.122589281936843e2,0;   1.118213323268050e2,0])
+MatrixSet(sensor_pos, [600e3, 0, 0;600e3,0,0;600e3,0,0])
+
+refellipsoidEarth( refellipsoid, "Sphere" )
+AtmosphereSet3D
+
+abs_speciesSet( species=["CO2-626"] )
+ 
+VectorCreate(tmp_kayser)
+VectorLinSpace( tmp_kayser, 600, 650, 0.1 )
+FrequencyFromCGSKayserWavenumber( f_grid, tmp_kayser )
+
+#WriteXML("ascii",tmp_kayser,"cm.xml")
+#WriteXML("ascii",f_grid,"f.xml")
+
+ReadXML(abs_lines_per_species,"testdata/NLTE_CO2_testlines.xml")
+isotopologue_ratiosInitFromBuiltin
+sensorOff
+cloudboxOff
+jacobianOff
+StringSet( iy_unit, "W/(m^2 m-1 sr)" )
+
+# Note that this data is not at all reliable and does not represent a real world scenario...
+AtmWithNLTERawRead(  basename = "testdata/tropical" )
+AtmFieldsCalcExpand1D
+Extract( z_surface, z_field, 0 )
+
+VectorCreate(ev)
+ReadXML(ev,"testdata/tropical.ev.xml")
+nlteSetByQuantumIdentifiers(vibrational_energies = ev)
+
+#NumericSet(ppath_lmax,5e3)
+
+abs_xsec_agenda_checkedCalc
+propmat_clearsky_agenda_checkedCalc
+atmfields_checkedCalc
+atmgeom_checkedCalc
+cloudbox_checkedCalc
+sensor_checkedCalc
+yCalc
+
+VectorCreate(test)
+ReadXML(test,"TestNLTE_NLTE_ref.xml")
+Compare(y,test,1e-15)
+
+nlteOff
+
+abs_xsec_agenda_checkedCalc
+propmat_clearsky_agenda_checkedCalc
+atmfields_checkedCalc
+atmgeom_checkedCalc
+cloudbox_checkedCalc
+sensor_checkedCalc
+yCalc
+
+ReadXML(test,"TestNLTE_LTE_ref.xml")
+Compare(y,test,1e-15)
+
+}

@@ -2922,7 +2922,7 @@ void Workspace::define_wsv_data()
       DESCRIPTION
       (
         "An array of non-lte quantum identifiers.\n"
-        "Used to match abs_lines_per_species to NLTE\n"
+        "Used to match *abs_lines_per_species* to NLTE\n"
         "temperatures.\n"
        ),
       GROUP( "ArrayOfQuantumIdentifier" )));
