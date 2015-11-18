@@ -484,12 +484,9 @@ void f_gridFromSensorAMSU(// WS Output:
       // plus 1.
       const Index   npi = (Index) npf + 1;
 
-      // What is the actual grid spacing inside the band?
-      const Numeric gs = bw/npf;
-      
       // Create the grid for this band:
       Vector grid;
-      linspace(grid, fmin[i], fmax[i], gs);
+      nlinspace(grid, fmin[i], fmax[i], npi);
 
       out3 << "  Band range " << i << ": " << grid << "\n";
 
@@ -726,12 +723,9 @@ void f_gridFromSensorHIRS(// WS Output:
       // plus 1.
       const Index   npi = (Index) npf + 1;
 
-      // What is the actual grid spacing inside the band?
-      const Numeric gs = bw/npf;
-
       // Create the grid for this band:
       Vector grid;
-      linspace(grid, fmin[i], fmax[i], gs);
+      nlinspace(grid, fmin[i], fmax[i], npi);
 
       out3 << "  Band range " << i << ": " << grid << "\n";
 
