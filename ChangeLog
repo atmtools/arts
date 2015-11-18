@@ -1,3 +1,15 @@
+2015-11-18  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-2-56
+
+	* src/m_sensor.cc (f_gridFromSensorAMSU, f_gridFromSensorHIRS):
+
+	Use nlinspace instead of linspace. The generated grid might otherwise
+	end up one value short due to numerical inaccuracies.
+	Fixes bug reported by Max Schaper.
+
+	* doc/index.html.in: Updated.
+
 2015-09-08  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-2-55
