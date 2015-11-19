@@ -1312,8 +1312,18 @@ void sensor_responseBackend(
   //
   Sparse hbackend;
   //
-  spectrometer_matrix( hbackend, f_backend, backend_channel_response,
-                       sensor_response_f_grid, npol, nlos, sensor_norm );
+  try {
+    spectrometer_matrix( hbackend, f_backend, backend_channel_response,
+                         sensor_response_f_grid, npol, nlos, sensor_norm );
+  }
+  catch (runtime_error e)
+  {
+    ostringstream os2;
+    os2 << e.what() << std::endl;
+    os2 << "Check that *sensor_response_f_grid* is inside the channel response\n"
+        << "(*backend_channel_response* + *f_backend*) for all channels. ";
+    throw runtime_error(os2.str());
+  }
 
   // Here we need a temporary sparse that is copy of the sensor_response
   // sparse matrix. We need it since the multiplication function can not
