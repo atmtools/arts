@@ -2229,7 +2229,7 @@ void jacobianCalcWindAnalytical(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void jacobianAddMagField(
-        Workspace&                  ws _U_,
+        Workspace&,
         ArrayOfRetrievalQuantity&   jq,
         Agenda&                     jacobian_agenda,
   const Index&                      atmosphere_dim,
@@ -2240,6 +2240,8 @@ void jacobianAddMagField(
   const Vector&                     rq_lat_grid,
   const Vector&                     rq_lon_grid,
   const String&                     component,
+  const String&                     method,
+  const Numeric&                    dB,
   const Verbosity&                  verbosity )
 {
   CREATE_OUT2;
@@ -2272,20 +2274,45 @@ void jacobianAddMagField(
     throw runtime_error(os.str());
   }
   
+  
+  
+  bool from_propmat;
+  if( method == "analytical")
+      from_propmat = false; 
+  else if( method == "from propmat" )
+      from_propmat = true;
+  else
+  {
+      ostringstream os;
+      os << "The method for absorption species retrieval can only be "
+      << "\"analytical\"\n or \"from propmat\".  You selected "<<method<<"\n";
+      throw std::runtime_error(os.str());
+  }
+  
     // Check that component is either "u", "v" or "w"
-  if( component != "u"  &&  component != "v"  &&  component != "w" )
+  if( (!from_propmat) && component != "u"  &&  component != "v"  &&  component != "w" )
     {
       throw runtime_error(   
           "The selection for *component* can only be \"u\", \"v\" or \"w\"." );
     }
-
+    else if( from_propmat && component != "u"  &&  component != "v"  &&  component != "w" && component != "strength"  &&  component != "eta"  &&  component != "theta")
+    {
+        throw runtime_error(   
+        "The selection for *component* can only be \"u\", \"v\" or \"w\"." );
+    }
   // Create the new retrieval quantity
   RetrievalQuantity rq;
   rq.MainTag( MAGFIELD_MAINTAG );
   rq.Subtag( component );
   rq.Analytical( 1 );
   rq.Grids( grids );
-
+  
+  if(from_propmat)
+  {
+    rq.SubSubtag(PROPMAT_SUBSUBTAG);
+    rq.Perturbation(dB);//FIXME:  This should be input
+  }
+  
   // Add it to the *jacobian_quantities*
   jq.push_back( rq );
   

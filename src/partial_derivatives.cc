@@ -111,10 +111,7 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix&  partials_attenuati
     // Loop over all jacobian_quantities, if a matching quantity is found, then apply the necessary steps to make the jacobian matrix
     for(Index ii=0; ii<flag_partials.nelem(); ii++)
     {
-        if( (flag_partials(ii)==JQT_magnetic_magntitude)   ||
-            (flag_partials(ii)==JQT_magnetic_u)            || // Note: these three 
-            (flag_partials(ii)==JQT_magnetic_v)            || // terms still need
-            (flag_partials(ii)==JQT_magnetic_w))              // two more steps!  dH/d{u,v,w}, and the angular dependency (which is actually two steps that depends on attenuation and phase, not their derivatives)
+        if( (flag_partials(ii)==JQT_magnetic_magntitude) )
         {
             VectorView this_partial_attenuation = partials_attenuation[ii](this_f_grid, pressure_level_index);
             VectorView this_partial_phase       = partials_phase[ii](this_f_grid, pressure_level_index);
@@ -136,7 +133,7 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix&  partials_attenuati
             {
                 const Numeric ls_A= ( (1.0 + G_LM)*CF_A[iv] + Y_LM*CF_B[iv]), 
                               ls_B= ( (1.0 + G_LM)*CF_B[iv] - Y_LM*CF_A[iv]);
-                
+                              
                 this_partial_attenuation[iv] += dFa_dx[iv]*dx_dH + ls_A*dfn_dH_div_dF_dH[iv]*dF_dH/C[iv];
                 this_partial_phase[iv]       += dFb_dx[iv]*dx_dH + ls_B*dfn_dH_div_dF_dH[iv]*dF_dH/C[iv];
                 if(do_src)
@@ -149,6 +146,10 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix&  partials_attenuati
         else if(flag_partials(ii)==JQT_magnetic_eta)
         {/* Pass on this.  Can be done easier in later parts of the code execution.  
             Will not require line shape partials. */}
+        else if((flag_partials(ii)==JQT_magnetic_u)            ||
+                (flag_partials(ii)==JQT_magnetic_v)            || 
+                (flag_partials(ii)==JQT_magnetic_w))
+        {/* Pass on these.  These are done by perturbation in later parts of the code execution since I found it too complicated for now.  FIXME: Richard */}
         else if((flag_partials(ii)==JQT_frequency)              || // This is ready
                 (flag_partials(ii)==JQT_wind_magnitude)         || // Note: this requires one more step! dF/dW is missing
                 (flag_partials(ii)==JQT_wind_u)                 || // Note: these three

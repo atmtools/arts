@@ -1,3 +1,30 @@
+2015-11-19  Richard Larsson   <ric.larsson@gmail.com>
+
+	* arts-2-3-364
+	
+	These are the last of the semi-analytical expressions that can now
+	be found from partial derivation of the propagation matrix.
+	
+	* src/{jacobian,m_rte}.cc:  Fixed bugs in magnetic field jacobian.
+	
+	* src/m_jacobian.cc:  Activated from_propmat magnetic jacobians in
+	(jacobianAddMagField).  For now, perturbations are used on u, v and w
+	components.  They are very complicated to get right analytically, so
+	some more thinking is needed.
+	
+	I also add analytical expressions for strength, theta, and eta 
+	components jacobians.  (I tested it and found that squared strength-jacobian
+	mostly of agrees with summed and squared u, v and w jacobians.)
+	
+	* src/methods.cc:  Changed so magnetic jacobians take some inputs.
+	
+	* src/zeeman.cc:  Changed to perturb for u, v and w magnetic jacobians.
+	Will leave it as a fixme to change these to analytical expressions later.
+	
+	* src/partial_derivatives.{cc,h}:  No magnetic calculations in the cc
+	Added bools for easily identifying what magnetic component's derivative
+	is calculated.
+
 2015-11-18  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-363

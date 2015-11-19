@@ -269,7 +269,7 @@ void iyEmissionStandard(
                                              jacobian_quantities, abs_species );
       
       jac_other.resize(jac_is_t.nelem());
-      FOR_ANALYTICAL_JACOBIANS_DO( jac_other[iq] = ppd.is_this_linetype(iq)?JAC_IS_OTHER:JAC_IS_NONE; )
+      FOR_ANALYTICAL_JACOBIANS_DO( jac_other[iq] = ppd.is_this_propmattype(iq)?JAC_IS_OTHER:JAC_IS_NONE; )
       
       if( iy_agenda_call1 )
         {
@@ -282,7 +282,6 @@ void iyEmissionStandard(
         }
     } 
   //###########################################################################
-
   
   // Set up variable with index of species where we want abs_per_species.
   // This variable can below be extended in iy_aux part.
@@ -431,7 +430,7 @@ void iyEmissionStandard(
                     component=3;
                 else 
                     throw std::runtime_error("To developer:  You have changed wind jacobians" 
-                    "in an incompatible manners with some other code.");
+                    " in\nan incompatible manners with some other code.");
                 
                 const Index this_ppd_q = ppd.this_jq_index(iq);
                 
@@ -584,11 +583,11 @@ void iyEmissionStandard(
                        jac_mag_i[iq] == JAC_IS_MAG_W_SEMI_ANALYTIC )
                 {
                     Index this_field=-1;
-                    if(jac_wind_i[iq] == JAC_IS_MAG_U_SEMI_ANALYTIC)
+                    if(jac_mag_i[iq] == JAC_IS_MAG_U_SEMI_ANALYTIC)
                         this_field=0;
-                    else if(jac_wind_i[iq] == JAC_IS_MAG_V_SEMI_ANALYTIC)
+                    else if(jac_mag_i[iq] == JAC_IS_MAG_V_SEMI_ANALYTIC)
                         this_field=1;
-                    else if(jac_wind_i[iq] == JAC_IS_MAG_W_SEMI_ANALYTIC)
+                    else if(jac_mag_i[iq] == JAC_IS_MAG_W_SEMI_ANALYTIC)
                         this_field=2;
                     else 
                         throw std::runtime_error("To developer:  You have changed magnetic jacobians" 

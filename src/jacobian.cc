@@ -289,7 +289,7 @@ void get_pointers_for_analytical_jacobians(
     else
       { abs_species_i[iq] = -1; }
     //
-    if( jacobian_quantities[iq].MainTag() == WIND_MAINTAG   && jacobian_quantities[iq].SubSubtag() == PROPMAT_SUBSUBTAG  )
+    if( jacobian_quantities[iq].MainTag() == WIND_MAINTAG && jacobian_quantities[iq].SubSubtag() == PROPMAT_SUBSUBTAG  )
     {
         // Map u, v and w to 1, 2 and 3, respectively
         char c = jacobian_quantities[iq].Subtag()[0];
@@ -318,7 +318,7 @@ void get_pointers_for_analytical_jacobians(
     else
       { wind_i[iq] = JAC_IS_NONE; }
     //
-    if( jacobian_quantities[iq].MainTag() == MAGFIELD_MAINTAG )
+    if( jacobian_quantities[iq].MainTag() == MAGFIELD_MAINTAG && jacobian_quantities[iq].SubSubtag() == PROPMAT_SUBSUBTAG )
     {
         // Map u, v and w to 1, 2 and 3, respectively
         char c = jacobian_quantities[iq].Subtag()[0];

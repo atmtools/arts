@@ -7364,24 +7364,29 @@ void define_md_data_raw()
          "calculations can only be performed by analytic expressions.\n"
          "\n"
          "The magnetic field components are retrieved separately, and,\n"
-         "hence, the argument *component* can be \"u\", \"v\" or \"w\". \n"
+         "hence, the argument *component* can be \"u\", \"v\" or \"w\" \n"
+         "for \"analytical\" method.  For \"from_propmat\" method,\n"
+         "\"u\", \"v\" and \"w\" components are available but so is also\n"
+         "\"strength\", \"eta\" and \"theta\"."
          "\n"
          "This Jacobian quantity is so far only supported by *iyEmissionStandard*.\n"
          ),
-        AUTHORS( "Patrick Eriksson" ),
+        AUTHORS( "Patrick Eriksson", "Richard Larsson" ),
         OUT( "jacobian_quantities", "jacobian_agenda" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "jacobian_quantities", "jacobian_agenda", 
             "atmosphere_dim", "p_grid", "lat_grid", "lon_grid" ),
-        GIN( "g1", "g2", "g3", "component" ),
-        GIN_TYPE( "Vector", "Vector", "Vector", "String" ),
-        GIN_DEFAULT( NODEF, NODEF, NODEF, "v" ),
+        GIN( "g1", "g2", "g3", "component", "method", "dB" ),
+        GIN_TYPE( "Vector", "Vector", "Vector", "String", "String", "Numeric" ),
+        GIN_DEFAULT( NODEF, NODEF, NODEF, "v", "analytical", "1.0e-7" ),
         GIN_DESC( "Pressure retrieval grid.",
                   "Latitude retrieval grid.",
                   "Longitude retreival grid.",
-                  "Magnetic field component to retrieve"
+                  "Magnetic field component to retrieve",
+                  "\"analytical\" or \"from propmat\"",
+                  "Magnetic field perturbation"
                   )
         ));
 

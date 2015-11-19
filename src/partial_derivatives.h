@@ -129,6 +129,12 @@ public:
         mcontains_linemixing_0_term = false;
         mcontains_linemixing_1_term = false;
         mcontains_linemixing_exponent_term = false;
+        mmagnetic_u = false;
+        mmagnetic_v = false; 
+        mmagnetic_w = false;
+        mmagnetic_abs = false;
+        mmagnetic_theta = false;
+        mmagnetic_eta = false;
         
         mmag_perturbation  = 0.0;
         mtemp_perturbation = 0.0;
@@ -161,6 +167,7 @@ public:
                     jacobian_quantities[iq].Subtag() == "strength")
                 {
                     mqtype[ippdq] = JQT_magnetic_magntitude;
+                    mmagnetic_abs = true;
                     mjacobian_pos[ippdq] = iq;
                     mspecies[ippdq] = -9999;//Flag for not a species...
                     ippdq++;
@@ -169,6 +176,7 @@ public:
                     jacobian_quantities[iq].Subtag() == "eta")
                 {
                     mqtype[ippdq] = JQT_magnetic_eta;
+                    mmagnetic_eta = true;
                     mjacobian_pos[ippdq] = iq;
                     mspecies[ippdq] = -9999;//Flag for not a species...
                     ippdq++;
@@ -177,6 +185,7 @@ public:
                     jacobian_quantities[iq].Subtag() == "theta")
                 {
                     mqtype[ippdq] = JQT_magnetic_theta;
+                    mmagnetic_theta = true;
                     mjacobian_pos[ippdq] = iq;
                     mspecies[ippdq] = -9999;//Flag for not a species...
                     ippdq++;
@@ -185,6 +194,7 @@ public:
                     jacobian_quantities[iq].Subtag() == "u")
                 {
                     mqtype[ippdq] = JQT_magnetic_u;  
+                    mmagnetic_u = true;
                     mjacobian_pos[ippdq] = iq; 
                     mspecies[ippdq] = -9999;//Flag for not a species...
                     ippdq++;
@@ -194,6 +204,7 @@ public:
                     jacobian_quantities[iq].Subtag() == "v")
                 {
                     mqtype[ippdq] = JQT_magnetic_v;
+                    mmagnetic_v = true;
                     mjacobian_pos[ippdq] = iq;
                     mspecies[ippdq] = -9999;//Flag for not a species...
                     ippdq++;
@@ -203,6 +214,7 @@ public:
                     jacobian_quantities[iq].Subtag() == "w")
                 {
                     mqtype[ippdq] = JQT_magnetic_w;
+                    mmagnetic_w = true;
                     mjacobian_pos[ippdq] = iq;
                     mspecies[ippdq] = -9999;//Flag for not a species...
                     ippdq++;
@@ -629,9 +641,13 @@ public:
         return counter;
     };
     
-    bool is_this_linetype(Index& jqt_index) const
+    bool is_this_propmattype(Index& jqt_index) const
     {
-        return mjacobian_quantities[jqt_index].MainTag()==CATALOGPARAMETER_MAINTAG;
+        const Index this_index = this_jq_index(jqt_index);
+        if(this_index==-1)
+            return mjacobian_quantities[jqt_index].MainTag()==CATALOGPARAMETER_MAINTAG;
+        return mjacobian_quantities[jqt_index].MainTag()==CATALOGPARAMETER_MAINTAG ||
+        mqtype[this_index]==JQT_magnetic_magntitude||mqtype[this_index]==JQT_magnetic_theta||mqtype[this_index]==JQT_magnetic_eta;
     }
     
     // Note that wind and frequency means the same inside propmat_clearsky agenda.
@@ -650,6 +666,14 @@ public:
                 return true;
         return false;
     }
+    
+    // Zeeman tests
+    bool do_zeeman_u() const {return mmagnetic_u;};
+    bool do_zeeman_v() const {return mmagnetic_v;};
+    bool do_zeeman_w() const {return mmagnetic_w;};
+    bool do_zeeman_abs() const {return mmagnetic_abs;};
+    bool do_zeeman_theta() const {return mmagnetic_theta;};
+    bool do_zeeman_eta() const {return mmagnetic_eta;};
     
     // Setting default values here so that the same perturbations are used everywhere where perturbations are required
     Numeric Temperature_Perturbation() const {return mtemp_perturbation;};   
@@ -676,6 +700,12 @@ private:
     bool mcontains_linemixing_0_term;
     bool mcontains_linemixing_1_term;
     bool mcontains_linemixing_exponent_term;
+    bool mmagnetic_u;
+    bool mmagnetic_v;
+    bool mmagnetic_w;
+    bool mmagnetic_abs;
+    bool mmagnetic_theta;
+    bool mmagnetic_eta;
     ArrayOfIndex mcontains_pressure_term;
 };
 
