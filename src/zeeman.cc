@@ -830,31 +830,29 @@ void set_magnetic_parameters(Numeric& H_mag,
     sinaa=sin(aa),
     sinza=sin(za),
     cosaa2 = cosaa*cosaa,
-    cosza2 = cosza*cosza,
+    //cosza2 = cosza*cosza,
     sinza2 = sinza*sinza,
     sinaa2 = sinaa*sinaa,
     Bu2 = Bu*Bu,
     Bv2 = Bv*Bv,
     Bw2 = Bw*Bw,
+    H2  = H_mag*H_mag,
     term1=(Bu*(cosaa2*sinza2 - 1.) + Bw*cosaa*cosza*sinza + Bv*cosaa*sinaa*sinza2),
     term2=(Bv*(sinaa2*sinza2 - 1.) + Bw*sinaa*cosza*sinza + Bu*cosaa*sinaa*sinza2),
-    term3=(Bw*(cosza2 - 1.) + Bu*cosaa*cosza*sinza + Bv*sinaa*cosza*sinza);
+    term3=( - Bw*sinza2            + Bu*cosaa*cosza*sinza + Bv*sinaa*cosza*sinza),
+    eta_test=(PI - acos(((Bu*cosaa*cosza - Bw*sinza + Bv*sinaa*cosza)*sqrt(term1*term1 + term2*term2 +term3*term3))/(H2)))*RAD2DEG,
+    x1 = (Bv*cosaa - Bu*sinaa),
+    x2 = -((Bu2*cosaa-Bv2*cosaa+2.0*Bu*Bv*sinaa)*cosaa*sinza2 - Bu2 - Bw2 + 2.0*Bu*Bw*cosaa*cosza*sinza + (Bw2*cosza - Bv2*cosza+ 2.0*Bv*Bw*sinaa*sinza)*cosza),
+    fx2=sqrt(x2),
+    x3 = 1.0/H2,
+    x=x1*fx2*x3;
     
-    //FIXME: Optimize this at some point?
-    theta = acos((Bw*cosza + Bu*cosaa*sinza + Bv*sinaa*sinza)/H_mag) * RAD2DEG;  
+    theta = acos((Bw*cosza + Bu*cosaa*sinza + Bv*sinaa*sinza)/H_mag) * RAD2DEG;
     
-    const Numeric eta_test=(PI - acos(((Bu*cosaa*cosza - Bw*sinza + 
-    Bv*sinaa*cosza)*sqrt(term1*term1/(H_mag*H_mag) + term2*term2/(H_mag*H_mag) +
-    term3*term3/(H_mag*H_mag)))/(H_mag)))*RAD2DEG;
-    
-    eta=acos(((Bv*cosaa - Bu*sinaa)*
-    sqrt(-(Bu2*cosaa2 - Bv2*cosaa2 - Bv2*cosza2 + Bw2*cosza2 - Bu2 - Bw2 + Bu*Bv*sin(2*aa) - 
-    Bu2*cosaa2*cosza2 + 
-    Bv2*cosaa2*cosza2 + 2*Bu*Bw*cosaa*cosza*sinza + 2*Bv*Bw*sinaa*cosza*sinza -
-    2*Bu*Bv*cosaa*sinaa*cosza2)/(H_mag*H_mag)))/H_mag)*RAD2DEG;
+    eta=acos(x)*RAD2DEG;
     
     // FINDME:  Why did I do this?
-    if(eta_test>90.0) eta=-eta;
+    if(eta_test>90.0) eta*=-1.0;
     
   }
 }

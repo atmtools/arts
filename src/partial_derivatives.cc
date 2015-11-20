@@ -90,6 +90,7 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix&  partials_attenuati
                                               // Magnetic variables
                                               const Numeric&  DF_Zeeman,
                                               const Numeric&  H_mag_Zeeman,
+                                              const bool      do_zeeman,
                                               // Programming variables
                                               const Index&    pressure_level_index,
                                               const bool      do_partials_phase,
@@ -113,13 +114,15 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix&  partials_attenuati
     {
         if( (flag_partials(ii)==JQT_magnetic_magntitude) )
         {
+            if(!do_zeeman)
+                continue;
+            else if( H_mag_Zeeman==0.0 )
+                throw std::runtime_error("Sorry, but it is not supported to get Zeeman derivative"
+                "when magnetic field is 0 T.\nIf required, let the devs know.\n");
+            
             VectorView this_partial_attenuation = partials_attenuation[ii](this_f_grid, pressure_level_index);
             VectorView this_partial_phase       = partials_phase[ii](this_f_grid, pressure_level_index);
             VectorView this_partial_src         = do_src?partials_src[ii](this_f_grid, pressure_level_index):empty_vector;
-            
-            if( H_mag_Zeeman==0.0 )
-                throw std::runtime_error("Sorry, but it is not supported to get Zeeman derivative"
-                "when magnetic field is 0 T.\nIf required, let the devs know.\n");
             
             const Numeric dF_dH = DF_Zeeman/H_mag_Zeeman;
             

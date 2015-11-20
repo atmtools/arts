@@ -1,3 +1,21 @@
+2015-11-20  Richard Larsson   <ric.larsson@gmail.com>
+
+	* arts-2-3-367
+	
+	* src/{absorption.cc,partial_derivatives.{cc,h}}:  Bug in magnetic
+	calculations when lines are not Zeeman affected.  Fixed.
+	
+	* src/{methods,m_atmosphere}.cc:  Added simplified method to read
+	magnetic fields and making their grids agree to simulation grids.
+	Did same for wind while at it.  (MagRawRead) and (WindRawRead)
+	sets wind and magnetic raw fields from basename folder.
+	(MagFieldsCalc) and (WindFieldsCalc), or (MagFieldsCalcExpand1D)
+	and (WindFieldsCalcExpand1D) can now be used to set the two
+	fields.
+	
+	* src/workspace.cc:  Added corresponding *_raw fields to the 
+	wind and magnetic fields.
+
 2015-11-20  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-366

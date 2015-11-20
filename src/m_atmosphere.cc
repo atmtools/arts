@@ -2481,6 +2481,359 @@ void AtmFieldsCalc(//WS Output:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void MagFieldsCalc( //WS Output:
+                    Tensor3& mag_u_field,
+                    Tensor3& mag_v_field,
+                    Tensor3& mag_w_field,
+                    //WS Input
+                    const Vector&         p_grid,
+                    const Vector&         lat_grid,
+                    const Vector&         lon_grid,
+                    const GriddedField3&        mag_u_field_raw,
+                    const GriddedField3&        mag_v_field_raw,
+                    const GriddedField3&        mag_w_field_raw,
+                    const Index&          atmosphere_dim,
+                    // WS Generic Input:
+                    const Index& interp_order,
+                    const Verbosity& verbosity)
+{
+    CREATE_OUT2;
+    
+    const ConstVectorView ufr_p_grid   = mag_u_field_raw.get_numeric_grid(GFIELD3_P_GRID);
+    const ConstVectorView ufr_lat_grid = mag_u_field_raw.get_numeric_grid(GFIELD3_LAT_GRID);
+    const ConstVectorView ufr_lon_grid = mag_u_field_raw.get_numeric_grid(GFIELD3_LON_GRID);
+    const ConstVectorView vfr_p_grid   = mag_v_field_raw.get_numeric_grid(GFIELD3_P_GRID);
+    const ConstVectorView vfr_lat_grid = mag_v_field_raw.get_numeric_grid(GFIELD3_LAT_GRID);
+    const ConstVectorView vfr_lon_grid = mag_v_field_raw.get_numeric_grid(GFIELD3_LON_GRID);
+    const ConstVectorView wfr_p_grid   = mag_w_field_raw.get_numeric_grid(GFIELD3_P_GRID);
+    const ConstVectorView wfr_lat_grid = mag_w_field_raw.get_numeric_grid(GFIELD3_LAT_GRID);
+    const ConstVectorView wfr_lon_grid = mag_w_field_raw.get_numeric_grid(GFIELD3_LON_GRID);
+    
+    out2 << "  Interpolation order: " << interp_order << "\n";
+    
+    // Basic checks of input variables
+    //
+    // Atmosphere
+    chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
+    chk_atm_grids( atmosphere_dim, p_grid, lat_grid, lon_grid );
+    
+    
+    //==========================================================================
+    if ( atmosphere_dim == 1)
+    {
+        if( !( ufr_lat_grid.nelem() == 1 && ufr_lon_grid.nelem() == 1 ))
+            throw std::runtime_error("Magnetic u field data has wrong dimension (2D or 3D).\n");
+        if( !( vfr_lat_grid.nelem() == 1 && vfr_lon_grid.nelem() == 1 ))
+            throw std::runtime_error("Magnetic v field data has wrong dimension (2D or 3D).\n");
+        if( !( wfr_lat_grid.nelem() == 1 && wfr_lon_grid.nelem() == 1 ))
+            throw std::runtime_error("Magnetic w field data has wrong dimension  (2D or 3D).\n");
+        
+        GriddedField3 temp_gfield3;
+        
+        GriddedFieldPRegrid(temp_gfield3, p_grid, mag_u_field_raw, interp_order, 0, verbosity);
+        mag_u_field = temp_gfield3.data;
+        
+        GriddedFieldPRegrid(temp_gfield3, p_grid, mag_v_field_raw, interp_order, 0, verbosity);
+        mag_v_field = temp_gfield3.data;
+        
+        GriddedFieldPRegrid(temp_gfield3, p_grid, mag_w_field_raw, interp_order, 0, verbosity);
+        mag_w_field = temp_gfield3.data;
+    }
+    
+    //=========================================================================
+    else if(atmosphere_dim == 2)
+    {
+        if( ufr_lat_grid.nelem() == 1 && ufr_lon_grid.nelem() == 1 )
+            throw std::runtime_error("Raw data has wrong dimension (1D). You have to use \n"
+            "MagFieldsCalcExpand1D instead of MagFieldsCalc.");
+        if( vfr_lat_grid.nelem() == 1 && vfr_lon_grid.nelem() == 1 )
+            throw std::runtime_error("Raw data has wrong dimension (1D). You have to use \n"
+            "MagFieldsCalcExpand1D instead of MagFieldsCalc.");
+        if( wfr_lat_grid.nelem() == 1 && wfr_lon_grid.nelem() == 1 )
+            throw std::runtime_error("Raw data has wrong dimension (1D). You have to use \n"
+            "MagFieldsCalcExpand1D instead of MagFieldsCalc.");
+        
+        //Resize variables
+        mag_u_field.resize(p_grid.nelem(), lat_grid.nelem(), 1);
+        mag_v_field.resize(p_grid.nelem(), lat_grid.nelem(), 1);
+        mag_w_field.resize(p_grid.nelem(), lat_grid.nelem(), 1);
+        
+        // Gridpositions:
+        ArrayOfGridPosPoly gp_p(p_grid.nelem());
+        ArrayOfGridPosPoly gp_lat(lat_grid.nelem());
+        
+        // Interpolate mag_u_field:
+        
+        // Check that interpolation grids are ok (and throw a detailed
+        // error message if not):
+        chk_interpolation_pgrids("Raw u field to p_grid, 2D case",ufr_p_grid,p_grid,interp_order);
+        chk_interpolation_grids("Raw u field to lat_grid, 2D case",ufr_lat_grid,lat_grid,interp_order);
+        
+        // Calculate grid positions:
+        p2gridpos_poly( gp_p, ufr_p_grid, p_grid, interp_order );
+        gridpos_poly( gp_lat, ufr_lat_grid, lat_grid, interp_order );
+        
+        // Interpolation weights:
+        Tensor3 itwu(p_grid.nelem(), lat_grid.nelem(), (interp_order+1)*(interp_order+1));
+        // (4 interpolation weights are required for example for linear 2D interpolation)
+        interpweights( itwu, gp_p, gp_lat);
+        
+        // Interpolate:
+        interp( mag_u_field(joker, joker, 0 ), itwu, mag_u_field_raw.data(joker, joker, 0),  gp_p, gp_lat);
+        
+        // Interpolate mag_v_field:
+        
+        // Check that interpolation grids are ok (and throw a detailed
+        // error message if not):
+        chk_interpolation_pgrids("Raw v field to p_grid, 2D case",vfr_p_grid,p_grid,interp_order);
+        chk_interpolation_grids("Raw v field to lat_grid, 2D case",vfr_lat_grid,lat_grid,interp_order);
+        
+        // Calculate grid positions:
+        p2gridpos_poly( gp_p, vfr_p_grid, p_grid, interp_order );
+        gridpos_poly( gp_lat, vfr_lat_grid, lat_grid, interp_order );
+        
+        // Interpolation weights:
+        Tensor3 itwv(p_grid.nelem(), lat_grid.nelem(), (interp_order+1)*(interp_order+1));
+        // (4 interpolation weights are required for example for linear 2D interpolation)
+        interpweights( itwv, gp_p, gp_lat);
+        
+        // Interpolate:
+        interp( mag_v_field(joker, joker, 0 ), itwv, mag_v_field_raw.data(joker, joker, 0),  gp_p, gp_lat);
+        
+        // Interpolate mag_w_field:
+        
+        // Check that interpolation grids are ok (and throw a detailed
+        // error message if not):
+        chk_interpolation_pgrids("Raw w field to p_grid, 2D case",wfr_p_grid,p_grid,interp_order);
+        chk_interpolation_grids("Raw w field to lat_grid, 2D case",wfr_lat_grid,lat_grid,interp_order);
+        
+        // Calculate grid positions:
+        p2gridpos_poly( gp_p, wfr_p_grid, p_grid, interp_order );
+        gridpos_poly( gp_lat, wfr_lat_grid, lat_grid, interp_order );
+        
+        // Interpolation weights:
+        Tensor3 itww(p_grid.nelem(), lat_grid.nelem(), (interp_order+1)*(interp_order+1));
+        // (4 interpolation weights are required for example for linear 2D interpolation)
+        interpweights( itww, gp_p, gp_lat);
+        
+        // Interpolate:
+        interp( mag_w_field(joker, joker, 0 ), itww, mag_w_field_raw.data(joker, joker, 0),  gp_p, gp_lat);
+    }
+    
+    //================================================================
+    // atmosphere_dim = 3    
+    else if(atmosphere_dim == 3)
+    {
+        if( ufr_lat_grid.nelem() == 1 && ufr_lon_grid.nelem() == 1 )
+            throw std::runtime_error("Raw data has wrong dimension. You have to use \nMagFieldsCalcExpand1D instead of MagFieldsCalc.");
+        if( vfr_lat_grid.nelem() == 1 && vfr_lon_grid.nelem() == 1 )
+            throw std::runtime_error("Raw data has wrong dimension. You have to use \nMagFieldsCalcExpand1D instead of MagFieldsCalc.");
+        if( wfr_lat_grid.nelem() == 1 && wfr_lon_grid.nelem() == 1 )
+            throw std::runtime_error("Raw data has wrong dimension. You have to use \nMagFieldsCalcExpand1D instead of MagFieldsCalc.");
+        
+        GriddedField3 temp_gfield3;
+        
+        GriddedFieldLatLonRegrid(temp_gfield3, lat_grid, lon_grid, mag_u_field_raw, interp_order, verbosity);
+        GriddedFieldPRegrid(temp_gfield3, p_grid, temp_gfield3, interp_order, 0, verbosity);
+        mag_u_field = temp_gfield3.data;
+        
+        GriddedFieldLatLonRegrid(temp_gfield3, lat_grid, lon_grid, mag_v_field_raw, interp_order, verbosity);
+        GriddedFieldPRegrid(temp_gfield3, p_grid, temp_gfield3, interp_order, 0, verbosity);
+        mag_v_field = temp_gfield3.data;
+        
+        GriddedFieldLatLonRegrid(temp_gfield3, lat_grid, lon_grid, mag_w_field_raw, interp_order, verbosity);
+        GriddedFieldPRegrid(temp_gfield3, p_grid, temp_gfield3, interp_order, 0, verbosity);
+        mag_w_field = temp_gfield3.data;
+        
+        
+    }
+    else
+    {
+        // We can never get here, since there was a runtime 
+        // error check for atmosphere_dim at the beginning.
+        assert(false);
+    }
+    
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void WindFieldsCalc(//WS Output:
+                    Tensor3& wind_u_field,
+                    Tensor3& wind_v_field,
+                    Tensor3& wind_w_field,
+                    //WS Input
+                    const Vector&         p_grid,
+                    const Vector&         lat_grid,
+                    const Vector&         lon_grid,
+                    const GriddedField3&        wind_u_field_raw,
+                    const GriddedField3&        wind_v_field_raw,
+                    const GriddedField3&        wind_w_field_raw,
+                    const Index&          atmosphere_dim,
+                    // WS Generic Input:
+                    const Index& interp_order,
+                    const Verbosity& verbosity)
+{
+    CREATE_OUT2;
+    
+    const ConstVectorView ufr_p_grid   = wind_u_field_raw.get_numeric_grid(GFIELD3_P_GRID);
+    const ConstVectorView ufr_lat_grid = wind_u_field_raw.get_numeric_grid(GFIELD3_LAT_GRID);
+    const ConstVectorView ufr_lon_grid = wind_u_field_raw.get_numeric_grid(GFIELD3_LON_GRID);
+    const ConstVectorView vfr_p_grid   = wind_v_field_raw.get_numeric_grid(GFIELD3_P_GRID);
+    const ConstVectorView vfr_lat_grid = wind_v_field_raw.get_numeric_grid(GFIELD3_LAT_GRID);
+    const ConstVectorView vfr_lon_grid = wind_v_field_raw.get_numeric_grid(GFIELD3_LON_GRID);
+    const ConstVectorView wfr_p_grid   = wind_w_field_raw.get_numeric_grid(GFIELD3_P_GRID);
+    const ConstVectorView wfr_lat_grid = wind_w_field_raw.get_numeric_grid(GFIELD3_LAT_GRID);
+    const ConstVectorView wfr_lon_grid = wind_w_field_raw.get_numeric_grid(GFIELD3_LON_GRID);
+    
+    out2 << "  Interpolation order: " << interp_order << "\n";
+    
+    // Basic checks of input variables
+    //
+    // Atmosphere
+    chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
+    chk_atm_grids( atmosphere_dim, p_grid, lat_grid, lon_grid );
+    
+    
+    //==========================================================================
+    if ( atmosphere_dim == 1)
+    {
+        if( !( ufr_lat_grid.nelem() == 1 && ufr_lon_grid.nelem() == 1 ))
+            throw std::runtime_error("Magnetic u field data has wrong dimension (2D or 3D).\n");
+        if( !( vfr_lat_grid.nelem() == 1 && vfr_lon_grid.nelem() == 1 ))
+            throw std::runtime_error("Magnetic v field data has wrong dimension (2D or 3D).\n");
+        if( !( wfr_lat_grid.nelem() == 1 && wfr_lon_grid.nelem() == 1 ))
+            throw std::runtime_error("Magnetic w field data has wrong dimension  (2D or 3D).\n");
+        
+        GriddedField3 temp_gfield3;
+        
+        GriddedFieldPRegrid(temp_gfield3, p_grid, wind_u_field_raw, interp_order, 0, verbosity);
+        wind_u_field = temp_gfield3.data;
+        
+        GriddedFieldPRegrid(temp_gfield3, p_grid, wind_v_field_raw, interp_order, 0, verbosity);
+        wind_v_field = temp_gfield3.data;
+        
+        GriddedFieldPRegrid(temp_gfield3, p_grid, wind_w_field_raw, interp_order, 0, verbosity);
+        wind_w_field = temp_gfield3.data;
+    }
+    
+    //=========================================================================
+    else if(atmosphere_dim == 2)
+    {
+        if( ufr_lat_grid.nelem() == 1 && ufr_lon_grid.nelem() == 1 )
+            throw std::runtime_error("Raw data has wrong dimension (1D). You have to use \n"
+            "WindFieldsCalcExpand1D instead of WindFieldsCalc.");
+        if( vfr_lat_grid.nelem() == 1 && vfr_lon_grid.nelem() == 1 )
+            throw std::runtime_error("Raw data has wrong dimension (1D). You have to use \n"
+            "WindFieldsCalcExpand1D instead of WindFieldsCalc.");
+        if( wfr_lat_grid.nelem() == 1 && wfr_lon_grid.nelem() == 1 )
+            throw std::runtime_error("Raw data has wrong dimension (1D). You have to use \n"
+            "WindFieldsCalcExpand1D instead of WindFieldsCalc.");
+        
+        //Resize variables
+        wind_u_field.resize(p_grid.nelem(), lat_grid.nelem(), 1);
+        wind_v_field.resize(p_grid.nelem(), lat_grid.nelem(), 1);
+        wind_w_field.resize(p_grid.nelem(), lat_grid.nelem(), 1);
+        
+        // Gridpositions:
+        ArrayOfGridPosPoly gp_p(p_grid.nelem());
+        ArrayOfGridPosPoly gp_lat(lat_grid.nelem());
+        
+        // Interpolate wind_u_field:
+        
+        // Check that interpolation grids are ok (and throw a detailed
+        // error message if not):
+        chk_interpolation_pgrids("Raw u field to p_grid, 2D case",ufr_p_grid,p_grid,interp_order);
+        chk_interpolation_grids("Raw u field to lat_grid, 2D case",ufr_lat_grid,lat_grid,interp_order);
+        
+        // Calculate grid positions:
+        p2gridpos_poly( gp_p, ufr_p_grid, p_grid, interp_order );
+        gridpos_poly( gp_lat, ufr_lat_grid, lat_grid, interp_order );
+        
+        // Interpolation weights:
+        Tensor3 itwu(p_grid.nelem(), lat_grid.nelem(), (interp_order+1)*(interp_order+1));
+        // (4 interpolation weights are required for example for linear 2D interpolation)
+        interpweights( itwu, gp_p, gp_lat);
+        
+        // Interpolate:
+        interp( wind_u_field(joker, joker, 0 ), itwu, wind_u_field_raw.data(joker, joker, 0),  gp_p, gp_lat);
+        
+        // Interpolate wind_v_field:
+        
+        // Check that interpolation grids are ok (and throw a detailed
+        // error message if not):
+        chk_interpolation_pgrids("Raw v field to p_grid, 2D case",vfr_p_grid,p_grid,interp_order);
+        chk_interpolation_grids("Raw v field to lat_grid, 2D case",vfr_lat_grid,lat_grid,interp_order);
+        
+        // Calculate grid positions:
+        p2gridpos_poly( gp_p, vfr_p_grid, p_grid, interp_order );
+        gridpos_poly( gp_lat, vfr_lat_grid, lat_grid, interp_order );
+        
+        // Interpolation weights:
+        Tensor3 itwv(p_grid.nelem(), lat_grid.nelem(), (interp_order+1)*(interp_order+1));
+        // (4 interpolation weights are required for example for linear 2D interpolation)
+        interpweights( itwv, gp_p, gp_lat);
+        
+        // Interpolate:
+        interp( wind_v_field(joker, joker, 0 ), itwv, wind_v_field_raw.data(joker, joker, 0),  gp_p, gp_lat);
+        
+        // Interpolate wind_w_field:
+        
+        // Check that interpolation grids are ok (and throw a detailed
+        // error message if not):
+        chk_interpolation_pgrids("Raw w field to p_grid, 2D case",wfr_p_grid,p_grid,interp_order);
+        chk_interpolation_grids("Raw w field to lat_grid, 2D case",wfr_lat_grid,lat_grid,interp_order);
+        
+        // Calculate grid positions:
+        p2gridpos_poly( gp_p, wfr_p_grid, p_grid, interp_order );
+        gridpos_poly( gp_lat, wfr_lat_grid, lat_grid, interp_order );
+        
+        // Interpolation weights:
+        Tensor3 itww(p_grid.nelem(), lat_grid.nelem(), (interp_order+1)*(interp_order+1));
+        // (4 interpolation weights are required for example for linear 2D interpolation)
+        interpweights( itww, gp_p, gp_lat);
+        
+        // Interpolate:
+        interp( wind_w_field(joker, joker, 0 ), itww, wind_w_field_raw.data(joker, joker, 0),  gp_p, gp_lat);
+    }
+    
+    //================================================================
+    // atmosphere_dim = 3    
+    else if(atmosphere_dim == 3)
+    {
+        if( ufr_lat_grid.nelem() == 1 && ufr_lon_grid.nelem() == 1 )
+            throw std::runtime_error("Raw data has wrong dimension. You have to use \nWindFieldsCalcExpand1D instead of WindFieldsCalc.");
+        if( vfr_lat_grid.nelem() == 1 && vfr_lon_grid.nelem() == 1 )
+            throw std::runtime_error("Raw data has wrong dimension. You have to use \nWindFieldsCalcExpand1D instead of WindFieldsCalc.");
+        if( wfr_lat_grid.nelem() == 1 && wfr_lon_grid.nelem() == 1 )
+            throw std::runtime_error("Raw data has wrong dimension. You have to use \nWindFieldsCalcExpand1D instead of WindFieldsCalc.");
+        
+        GriddedField3 temp_gfield3;
+        
+        GriddedFieldLatLonRegrid(temp_gfield3, lat_grid, lon_grid, wind_u_field_raw, interp_order, verbosity);
+        GriddedFieldPRegrid(temp_gfield3, p_grid, temp_gfield3, interp_order, 0, verbosity);
+        wind_u_field = temp_gfield3.data;
+        
+        GriddedFieldLatLonRegrid(temp_gfield3, lat_grid, lon_grid, wind_v_field_raw, interp_order, verbosity);
+        GriddedFieldPRegrid(temp_gfield3, p_grid, temp_gfield3, interp_order, 0, verbosity);
+        wind_v_field = temp_gfield3.data;
+        
+        GriddedFieldLatLonRegrid(temp_gfield3, lat_grid, lon_grid, wind_w_field_raw, interp_order, verbosity);
+        GriddedFieldPRegrid(temp_gfield3, p_grid, temp_gfield3, interp_order, 0, verbosity);
+        wind_w_field = temp_gfield3.data;
+        
+        
+    }
+    else
+    {
+        // We can never get here, since there was a runtime 
+        // error check for atmosphere_dim at the beginning.
+        assert(false);
+    }
+    
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void AtmFieldsCalcExpand1D(Tensor3&              t_field,
                            Tensor3&              z_field,
                            Tensor4&              vmr_field,
@@ -2544,6 +2897,122 @@ void AtmFieldsCalcExpand1D(Tensor3&              t_field,
                 { vmr_field(is,ip,ilat,ilon) = vmr_temp(is,ip,0,0); }
               for( Index is=0; is<t_nlte_field_raw.nelem(); is++ )
                 t_nlte_field(is,ip,ilat,ilon) = nlte_temp(is,ip,0,0);
+            }
+        }
+    }
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void MagFieldsCalcExpand1D(Tensor3&              mag_u_field,
+                           Tensor3&              mag_v_field,
+                           Tensor3&              mag_w_field,
+                           const Vector&         p_grid,
+                           const Vector&         lat_grid,
+                           const Vector&         lon_grid,
+                           const GriddedField3&  mag_u_field_raw,
+                           const GriddedField3&  mag_v_field_raw,
+                           const GriddedField3&  mag_w_field_raw,
+                           const Index&          atmosphere_dim,
+                           const Index&          interp_order,
+                           const Verbosity&      verbosity)
+{
+    chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
+    chk_atm_grids( atmosphere_dim, p_grid, lat_grid, lon_grid );
+    
+    if( atmosphere_dim == 1 )
+        throw std::runtime_error( "This function is intended for 2D and 3D. For 1D, use *MagFieldsCalc*.");
+    
+    // Make 1D interpolation using some dummy variables
+    Vector    vempty(0);
+    Tensor3   mag_u_field_temp, mag_v_field_temp, mag_w_field_temp;
+    MagFieldsCalc( mag_u_field_temp, mag_v_field_temp, mag_w_field_temp,
+                    p_grid, vempty, vempty, 
+                    mag_u_field_raw, mag_v_field_raw, mag_w_field_raw,
+                    /*atmosphere_dim = */ 1, 
+                    interp_order, verbosity);
+    
+    // Move values from the temporary tensors to the return arguments
+    const Index   np = p_grid.nelem();
+    const Index   nlat = lat_grid.nelem();
+    Index   nlon = lon_grid.nelem();
+    if( atmosphere_dim == 2 )
+    { nlon = 1; }
+    //
+    assert( mag_u_field_temp.npages() == np );
+    assert( mag_v_field_temp.npages() == np );
+    assert( mag_w_field_temp.npages() == np );
+    //
+    mag_u_field.resize( np, nlat, nlon );
+    mag_v_field.resize( np, nlat, nlon );
+    mag_w_field.resize( np, nlat, nlon );
+    
+    for( Index ilon=0; ilon<nlon; ilon++ )
+    {
+        for( Index ilat=0; ilat<nlat; ilat++ )
+        {
+            for( Index ip=0; ip<np; ip++ )
+            {
+                mag_u_field(ip,ilat,ilon) = mag_u_field_temp(ip,0,0);
+                mag_v_field(ip,ilat,ilon) = mag_v_field_temp(ip,0,0);
+                mag_w_field(ip,ilat,ilon) = mag_w_field_temp(ip,0,0);
+            }
+        }
+    }
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void WindFieldsCalcExpand1D(Tensor3&              wind_u_field,
+                            Tensor3&              wind_v_field,
+                            Tensor3&              wind_w_field,
+                            const Vector&         p_grid,
+                            const Vector&         lat_grid,
+                            const Vector&         lon_grid,
+                            const GriddedField3&  wind_u_field_raw,
+                            const GriddedField3&  wind_v_field_raw,
+                            const GriddedField3&  wind_w_field_raw,
+                            const Index&          atmosphere_dim,
+                            const Index&          interp_order,
+                            const Verbosity&      verbosity)
+{
+    chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
+    chk_atm_grids( atmosphere_dim, p_grid, lat_grid, lon_grid );
+    
+    if( atmosphere_dim == 1 )
+        throw std::runtime_error( "This function is intended for 2D and 3D. For 1D, use *WindFieldsCalc*.");
+    
+    // Make 1D interpolation using some dummy variables
+    Vector    vempty(0);
+    Tensor3   wind_u_field_temp, wind_v_field_temp, wind_w_field_temp;
+    MagFieldsCalc( wind_u_field_temp, wind_v_field_temp, wind_w_field_temp,
+                   p_grid, vempty, vempty, 
+                   wind_u_field_raw, wind_v_field_raw, wind_w_field_raw,
+                   /*atmosphere_dim = */ 1, 
+                   interp_order, verbosity);
+    
+    // Move values from the temporary tensors to the return arguments
+    const Index   np = p_grid.nelem();
+    const Index   nlat = lat_grid.nelem();
+    Index   nlon = lon_grid.nelem();
+    if( atmosphere_dim == 2 )
+    { nlon = 1; }
+    //
+    assert( wind_u_field_temp.npages() == np );
+    assert( wind_v_field_temp.npages() == np );
+    assert( wind_w_field_temp.npages() == np );
+    //
+    wind_u_field.resize( np, nlat, nlon );
+    wind_v_field.resize( np, nlat, nlon );
+    wind_w_field.resize( np, nlat, nlon );
+    
+    for( Index ilon=0; ilon<nlon; ilon++ )
+    {
+        for( Index ilat=0; ilat<nlat; ilat++ )
+        {
+            for( Index ip=0; ip<np; ip++ )
+            {
+                wind_u_field(ip,ilat,ilon) = wind_u_field_temp(ip,0,0);
+                wind_v_field(ip,ilat,ilon) = wind_v_field_temp(ip,0,0);
+                wind_w_field(ip,ilat,ilon) = wind_w_field_temp(ip,0,0);
             }
         }
     }
@@ -2721,6 +3190,76 @@ void AtmRawRead(//WS Output:
     // NLTE is ignored by doing this
     t_nlte_field_raw.resize(0);
     nlte_quantum_identifiers.resize(0);
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void MagRawRead(//WS Output:
+                GriddedField3&  mag_u_field_raw,
+                GriddedField3&  mag_v_field_raw,
+                GriddedField3&  mag_w_field_raw,
+                //Keyword:
+                const String&    basename,
+                const Verbosity& verbosity)
+{
+    CREATE_OUT3;
+    
+    String tmp_basename = basename;
+    if (basename.length() && basename[basename.length()-1] != '/')
+        tmp_basename += ".";
+    
+    // Read the temperature field:
+    String file_name = tmp_basename + "u.xml";
+    xml_read_from_file( file_name, mag_u_field_raw, verbosity);
+    
+    out3 << "Bu field read from file: " << file_name << "\n";  
+    
+    // Read the temperature field:
+    file_name = tmp_basename + "v.xml";
+    xml_read_from_file( file_name, mag_v_field_raw, verbosity);
+    
+    out3 << "Bv field read from file: " << file_name << "\n"; 
+    
+    // Read the temperature field:
+    file_name = tmp_basename + "w.xml";
+    xml_read_from_file( file_name, mag_w_field_raw, verbosity);
+    
+    out3 << "Bw field read from file: " << file_name << "\n"; 
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void WindRawRead(//WS Output:
+                 GriddedField3&  wind_u_field_raw,
+                 GriddedField3&  wind_v_field_raw,
+                 GriddedField3&  wind_w_field_raw,
+                 //Keyword:
+                 const String&    basename,
+                 const Verbosity& verbosity)
+{
+    CREATE_OUT3;
+    
+    String tmp_basename = basename;
+    if (basename.length() && basename[basename.length()-1] != '/')
+        tmp_basename += ".";
+    
+    // Read the temperature field:
+    String file_name = tmp_basename + "u.xml";
+    xml_read_from_file( file_name, wind_u_field_raw, verbosity);
+    
+    out3 << "Wind u field read from file: " << file_name << "\n";  
+    
+    // Read the temperature field:
+    file_name = tmp_basename + "v.xml";
+    xml_read_from_file( file_name, wind_v_field_raw, verbosity);
+    
+    out3 << "Wind v field read from file: " << file_name << "\n"; 
+    
+    // Read the temperature field:
+    file_name = tmp_basename + "w.xml";
+    xml_read_from_file( file_name, wind_w_field_raw, verbosity);
+    
+    out3 << "Wind w field read from file: " << file_name << "\n"; 
 }
   
 

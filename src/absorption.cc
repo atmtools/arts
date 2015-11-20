@@ -2335,6 +2335,7 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                                                          // Magnetic variables
                                                          precalc_zeeman?Z_DF[ii]:0,
                                                          H_magntitude_Zeeman,
+                                                         precalc_zeeman,
                                                          // Programming
                                                          jj, 
                                                          calc_partials_phase,

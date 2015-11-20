@@ -773,6 +773,7 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix& partials_attenuatio
                                               // Magnetic variables
                                               const Numeric&  DF_Zeeman,
                                               const Numeric&  H_mag_Zeeman,
+                                              const bool      do_zeeman,
                                               // Programming variables
                                               const Index&    pressure_level_index,
                                               const bool      do_partials_phase,

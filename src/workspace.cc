@@ -2540,6 +2540,25 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
+    ( NAME( "mag_u_field_raw" ),
+      DESCRIPTION
+      (
+       "Raw zonal component of the magnetic field.\n"
+       "\n"
+       "The East-West magnetic field component. Positive values, when\n"
+       "pointing eastward.\n"
+       "\n"       
+       "Can be set to be empty, which is interpreted as zero field strength\n"
+       "everywhere.\n"
+       "\n"
+       "Unit:       T\n"
+       "\n"
+       "Dimensions: [ p_grid, lat_grid, lon_grid ].\n"
+       ),
+      GROUP( "GriddedField3" ))); 
+
+  wsv_data.push_back
+   (WsvRecord
     ( NAME( "mag_v_field" ),
       DESCRIPTION
       (
@@ -2555,7 +2574,26 @@ void Workspace::define_wsv_data()
        "\n"
        "Dimensions: [ p_grid, lat_grid, lon_grid ]  or [ 0 0 0 ].\n"
        ),
-      GROUP( "Tensor3" ))); 
+      GROUP( "Tensor3" )));  
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "mag_v_field_raw" ),
+      DESCRIPTION
+      (
+       "Raw meridional component of the magnetic field.\n"
+       "\n"
+       "The North-South magnetic field component. Positive values, when\n"
+       "pointing northward.\n"
+       "\n"       
+       "Can be set to be empty, which is interpreted as zero field strength\n"
+       "everywhere.\n"
+       "\n"
+       "Unit:       T\n"
+       "\n"
+       "Dimensions: [ p_grid, lat_grid, lon_grid ].\n"
+       ),
+      GROUP( "GriddedField3" ))); 
 
   wsv_data.push_back
    (WsvRecord
@@ -2574,6 +2612,24 @@ void Workspace::define_wsv_data()
        "Dimensions: [ p_grid, lat_grid, lon_grid ]  or [ 0 0 0 ].\n"
        ),
       GROUP( "Tensor3" ))); 
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "mag_w_field_raw" ),
+      DESCRIPTION
+      (
+       "Raw vertical component of the magnetic field.\n"
+       "\n"
+       "Positive values, when pointing upward.\n"
+       "\n"       
+       "Can be set to be empty, which is interpreted as zero field strength\n"
+       "everywhere.\n"
+       "\n"
+       "Unit:       T\n"
+       "\n"
+       "Dimensions: [ p_grid, lat_grid, lon_grid ].\n"
+       ),
+      GROUP( "GriddedField3" ))); 
 
   wsv_data.push_back
    (WsvRecord
@@ -5350,6 +5406,26 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
+    ( NAME( "wind_u_field_raw" ),
+      DESCRIPTION
+      (
+       "Raw zonal component of the wind field.\n"
+       "\n"
+       "The East-West wind component. Air moving towards higher\n"
+       "longitudes is a positive wind. This wind causes no Doppler shift\n"
+       "for 1D and 2D simulations.\n"
+       "\n"       
+       "Can be set to be empty, which is interpreted as zero wind speed\n"
+       "everywhere.\n"
+       "\n"
+       "Unit:       m/s\n"
+       "\n"
+       "Dimensions: [ p_grid, lat_grid, lon_grid ].\n"
+       ),
+      GROUP( "GriddedField3" ))); 
+
+  wsv_data.push_back
+   (WsvRecord
     ( NAME( "wind_v_field" ),
       DESCRIPTION
       (
@@ -5369,6 +5445,25 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
+    ( NAME( "wind_v_field_raw" ),
+      DESCRIPTION
+      (
+       "Raw meridional component of the magnetic field.\n"
+       "\n"
+       "The North-South wind component. Air moving towards higher\n"
+       "latitudes is a positive wind.\n"
+       "\n"       
+       "Can be set to be empty, which is interpreted as zero wind speed\n"
+       "everywhere.\n"
+       "\n"
+       "Unit:       m/s\n"
+       "\n"
+       "Dimensions: [ p_grid, lat_grid, lon_grid ]\n"
+       ),
+      GROUP( "GriddedField3" ))); 
+
+  wsv_data.push_back
+   (WsvRecord
     ( NAME( "wind_w_field" ),
       DESCRIPTION
       (
@@ -5384,6 +5479,24 @@ void Workspace::define_wsv_data()
        "Dimensions: [ p_grid, lat_grid, lon_grid ] or [ 0 0 0 ]\n"
        ),
       GROUP( "Tensor3" ))); 
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "wind_w_field_raw" ),
+      DESCRIPTION
+      (
+       "Raw vertical wind component field.\n"
+       "\n"
+       "Upward moving air corresponds to a positive wind speed.\n"
+       "\n"       
+       "Can be set to be empty, which is interpreted as zero wind speed\n"
+       "everywhere.\n"
+       "\n"
+       "Unit:       m/s\n"
+       "\n"
+       "Dimensions: [ p_grid, lat_grid, lon_grid ]\n"
+       ),
+      GROUP( "GriddedField3" ))); 
 
   wsv_data.push_back
    (WsvRecord

@@ -2323,6 +2323,56 @@ void define_md_data_raw()
                 "If set to 1, negative VMRs are set to 0.",
                 "-1: Skip step. 0: Negative is 0. Else: Negative is t.")
         ));
+    
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "MagFieldsCalc" ),
+      DESCRIPTION
+      (
+          "Interpolation of raw magnetic fields to calculation grids.\n"
+          "Heritage from *AtmFieldsCalc*\n"
+          "\n"
+          "Internally, *MagFieldsCalc* applies *GriddedFieldPRegrid* and\n"
+          "*GriddedFieldLatLonRegrid*. Generally, 'half-grid-step' extrapolation\n"
+          "is allowed and applied.\n"
+      ),
+      AUTHORS( "Richard Larsson" ),
+      OUT( "mag_u_field", "mag_v_field", "mag_w_field" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "p_grid", "lat_grid", "lon_grid", "mag_u_field_raw", "mag_v_field_raw", 
+          "mag_w_field_raw", "atmosphere_dim" ),
+      GIN( "interp_order" ),
+      GIN_TYPE( "Index" ),
+      GIN_DEFAULT( "1" ),
+      GIN_DESC( "Interpolation order (1=linear interpolation).")
+    ));
+    
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "WindFieldsCalc" ),
+      DESCRIPTION
+      (
+          "Interpolation of raw wind fields to calculation grids.\n"
+          "Heritage from *AtmFieldsCalc*\n"
+          "\n"
+          "Internally, *WindFieldsCalc* applies *GriddedFieldPRegrid* and\n"
+          "*GriddedFieldLatLonRegrid*. Generally, 'half-grid-step' extrapolation\n"
+          "is allowed and applied.\n"
+      ),
+      AUTHORS( "Richard Larsson" ),
+      OUT( "wind_u_field", "wind_v_field", "wind_w_field" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "p_grid", "lat_grid", "lon_grid", "wind_u_field_raw", "wind_v_field_raw", 
+          "wind_w_field_raw", "atmosphere_dim" ),
+      GIN( "interp_order" ),
+      GIN_TYPE( "Index" ),
+      GIN_DEFAULT( "1" ),
+      GIN_DESC( "Interpolation order (1=linear interpolation).")
+    ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -2355,6 +2405,58 @@ void define_md_data_raw()
                 "Pad VMRs with zeroes to fit the pressure grid if necessary.", 
                 "If set to 1, negative VMRs are set to 0.",
                 "-1: Skip step. 0: Negative is 0. Else: Negative is t." )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "MagFieldsCalcExpand1D" ),
+        DESCRIPTION
+        (
+         "Interpolation of 1D raw atmospheric fields to create 2D or 3D\n"
+         "homogeneous magnetic fields.  Derived from *AtmFieldsCalcExpand1D*\n"
+         "\n"
+         "The method works as *MagFieldsCalc*, but accepts only raw 1D\n"
+         "magnetic fields. The raw data is interpolated to *p_grid* and\n"
+         "the obtained values are applied for all latitudes, and also\n"
+         "longitudes for 3D, to create a homogeneous atmosphere.\n"
+         ),
+        AUTHORS( "Richard Larsson" ),
+        OUT( "mag_u_field", "mag_v_field", "mag_w_field" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "p_grid", "lat_grid", "lon_grid", "mag_u_field_raw", "mag_v_field_raw", 
+            "mag_w_field_raw", "atmosphere_dim" ),
+        GIN( "interp_order" ),
+        GIN_TYPE( "Index" ),
+        GIN_DEFAULT( "1" ),
+        GIN_DESC( "Interpolation order (1=linear interpolation)." )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "WindFieldsCalcExpand1D" ),
+        DESCRIPTION
+        (
+         "Interpolation of 1D raw atmospheric fields to create 2D or 3D\n"
+         "homogeneous wind fields.  Derived from *AtmFieldsCalcExpand1D*\n"
+         "\n"
+         "The method works as *WindFieldsCalc*, but accepts only raw 1D\n"
+         "wind fields. The raw data is interpolated to *p_grid* and\n"
+         "the obtained values are applied for all latitudes, and also\n"
+         "longitudes for 3D, to create a homogeneous atmosphere.\n"
+         ),
+        AUTHORS( "Richard Larsson" ),
+        OUT( "wind_u_field", "wind_v_field", "wind_w_field" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "p_grid", "lat_grid", "lon_grid", "wind_u_field_raw", "wind_v_field_raw", 
+            "wind_w_field_raw", "atmosphere_dim" ),
+        GIN( "interp_order" ),
+        GIN_TYPE( "Index" ),
+        GIN_DEFAULT( "1" ),
+        GIN_DESC( "Interpolation order (1=linear interpolation)." )
         ));
 
   md_data_raw.push_back
@@ -2851,7 +2953,57 @@ void define_md_data_raw()
         GIN_DESC( "Name of scenario, probably including the full path. For "
                   "example: \"/smiles_local/arts-data/atmosphere/fascod/"
                   "tropical\"" )
-        ));
+      ));
+    
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "MagRawRead" ),
+      DESCRIPTION
+      (
+          "Reads magnetic data from a scenario.\n"
+          "\n"
+          "The files can be anywhere, but they must be all in the same\n"
+          "directory, selected by 'basename'. The files are chosen by the\n"
+          "species name. If you have more than one tag group for the same\n"
+          "species, the same profile will be used.\n"
+      ),
+      AUTHORS( "Richard Larsson" ),
+      OUT( "mag_u_field_raw", "mag_v_field_raw", "mag_w_field_raw"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( ),
+      GIN( "basename" ),
+      GIN_TYPE( "String" ),
+      GIN_DEFAULT( NODEF ),
+      GIN_DESC( "Name of scenario, probably including the full path. For "
+      "example: \"/data/magnetic_field\"" )
+    ));
+    
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "WindRawRead" ),
+      DESCRIPTION
+      (
+          "Reads wind data from a scenario.\n"
+          "\n"
+          "The files can be anywhere, but they must be all in the same\n"
+          "directory, selected by 'basename'. The files are chosen by the\n"
+          "species name. If you have more than one tag group for the same\n"
+          "species, the same profile will be used.\n"
+      ),
+      AUTHORS( "Richard Larsson" ),
+      OUT( "wind_u_field_raw", "wind_v_field_raw", "wind_w_field_raw"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( ),
+      GIN( "basename" ),
+      GIN_TYPE( "String" ),
+      GIN_DEFAULT( NODEF ),
+      GIN_DESC( "Name of scenario, probably including the full path. For "
+      "example: \"/data/wind_field\"" )
+    ));
     
   md_data_raw.push_back
     ( MdRecord
