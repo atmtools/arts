@@ -754,6 +754,36 @@ void define_md_data_raw()
       )
     ));
     
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "abs_linesChangeParameterForMatchingLines" ),
+      DESCRIPTION
+      (
+          "Change parameter of all lines in *abs_lines* that match with *QuantumIdentifier*.\n"
+          "Only works for these parameters:\n"
+          "parameter_name = \"Central Frequency\"\n"
+          "parameter_name = \"Line Strength\"\n"
+          "parameter_name = \"Pressure Broadening Self\"\n"
+          "parameter_name = \"Pressure Broadening Foreign\"\n"
+          "parameter_name = \"Lower State Energy\"\n"
+      ),
+      AUTHORS( "Richard Larsson" ),
+      OUT( "abs_lines" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "abs_lines", "abs_species" ),
+      GIN( "QI", "parameter_name", "change", "relative", "loose_matching"),
+      GIN_TYPE( "QuantumIdentifier", "String", "Numeric", "Index", "Index" ),
+      GIN_DEFAULT( NODEF, NODEF, NODEF, "0", "0" ),
+      GIN_DESC( "Information to match the line.",
+                "Name of parameter to be replaced",
+                "Value with which to change",
+                "Flag for relative change (0 is absolute change)",
+                "Flag for loose match (0 means only complete matches)"
+      )
+    ));
+    
   md_data_raw.push_back
     ( MdRecord
     ( NAME( "abs_linesShiftFrequency" ),

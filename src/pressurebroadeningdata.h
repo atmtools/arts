@@ -145,6 +145,19 @@ public:
     Numeric dSgam()  const { assert(PB_AIR_BROADENING==mtype);  return mdataerror[0][0]; }
     Numeric dNself() const { assert(PB_AIR_BROADENING==mtype);  return mdataerror[1][0]; }
     
+    //Use these to change internal variables.
+    void ChangeSelf(const Numeric& change, 
+                    const Index this_species, 
+                    const Index h2o_species, 
+                    const ArrayOfIndex& broad_spec_locations);
+    void ChangeSelfRelative(const Numeric& change, 
+                            const Index this_species, 
+                            const Index h2o_species, 
+                            const ArrayOfIndex& broad_spec_locations);
+    void ChangeForeign(const Numeric& change, 
+                       const ArrayOfIndex& broad_spec_locations);
+    void ChangeForeignRelative(const Numeric& change, 
+                               const ArrayOfIndex& broad_spec_locations);
     
     // Use these to return data in the format required by the line shape calculator
     

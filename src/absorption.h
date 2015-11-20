@@ -844,4 +844,10 @@ void abs_h2oSet(Vector&          abs_h2o,
                 const Matrix&    abs_vmrs,
                 const Verbosity&);
 
+// Declaration that was before only in absorption.cc
+
+void find_broad_spec_locations(ArrayOfIndex& broad_spec_locations,
+                               const ArrayOfArrayOfSpeciesTag& abs_species,
+                               const Index this_species);
+
 #endif // absorption_h

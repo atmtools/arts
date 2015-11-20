@@ -21,6 +21,7 @@
 //======================================================================
 
 #include "auto_md.h"
+#include "absorption.h"
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_linesShiftFrequency(ArrayOfLineRecord& abs_lines, const Numeric& freqeuncy_shift, const Verbosity&)
@@ -275,6 +276,122 @@ void abs_linesReplaceParameterWithLinesParameter(ArrayOfLineRecord& abs_lines,
         break;
     }
   }
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_linesChangeParameterForMatchingLines(ArrayOfLineRecord& abs_lines, 
+                                              const ArrayOfArrayOfSpeciesTag& abs_species,
+                                              const QuantumIdentifier& QI, 
+                                              const String& parameter_name,
+                                              const Numeric& change,
+                                              const Index& relative,
+                                              const Index& loose_matching,
+                                              const Verbosity&)
+{
+    
+    Index parameter_switch = -1;
+    
+    if(parameter_name.nelem()==0)
+        throw std::runtime_error("parameter_name is empty.\n");
+    else if(parameter_name == "Central Frequency")
+        parameter_switch = 0;
+    else if(parameter_name == "Line Strength")
+        parameter_switch = 1;
+    else if(parameter_name == "Pressure Broadening Self")
+        parameter_switch = 2;
+    else if(parameter_name == "Pressure Broadening Foreign")
+        parameter_switch = 3;
+    else if(parameter_name == "Lower State Energy")
+        parameter_switch = 4;
+    
+    ArrayOfIndex matches;
+    ArrayOfQuantumMatchInfo match_info;
+    // Run internal mathcing routine
+    match_lines_by_quantum_identifier(matches, match_info, QI, abs_lines);
+    // We demand that things are formatted the right way and that there are not multiple matches.
+    if( matches.nelem()>1 && loose_matching == 0 )
+        throw std::runtime_error("Multiple matches in comparison.  You set loose_matching to not allow this!\n");
+    else if( matches.nelem()==0 )
+        throw std::runtime_error("No match found!  Make sure your QuantumIdentifier is in abs_lines before using this function.\n(For instance, try to make sure quantum numbers are defined the same way.)\n");
+    
+    // Broadening species
+    const Index this_species = find_first_species_tg( abs_species, QI.Species() );
+    ArrayOfIndex broad_spec_locations;
+    find_broad_spec_locations(broad_spec_locations, abs_species, this_species );
+    // Water index
+    const Index h2o_index = find_first_species_tg( abs_species, species_index_from_species_name("H2O") );
+    
+    bool any=false;
+    PressureBroadeningData pb;
+    
+    for(Index mii =0; mii<matches.nelem(); mii++)
+    {
+        
+        // Skip if there are none in any of the levels
+        if(match_info[mii].Upper()==QMI_NONE||match_info[mii].Lower()==QMI_NONE)
+            continue;
+        
+        // Skip if there are any partials unless we accept loose matching
+        if((match_info[mii].Upper()==QMI_PARTIAL||match_info[mii].Lower()==QMI_PARTIAL)&&loose_matching==0)
+            continue;
+        
+        if(!any)
+            any = true;
+        
+        LineRecord& lr = abs_lines[matches[mii]];
+        
+        switch (parameter_switch)
+        {
+            case 0: //"Central Frequency":
+                if(relative==0)
+                    lr.setF(lr.F()+change);
+                else 
+                    lr.setF(lr.F()*(1.0e0+change));
+                break;
+            case 1: //"Line Strength":
+                if(relative==0)
+                    lr.setI0(lr.I0()+change);
+                else 
+                    lr.setI0(lr.I0()*(1.0e0+change));
+                break;
+            case 2: //"Pressure Broadening Self":
+                pb = lr.PressureBroadening();
+                if(relative==0)
+                    pb.ChangeSelf(change,this_species,h2o_index,broad_spec_locations);
+                else
+                    pb.ChangeSelfRelative(change,this_species,h2o_index,broad_spec_locations);
+                lr.SetPressureBroadeningData(pb);
+                break;
+            case 3: //"Pressure Broadening Foreign":
+                pb = lr.PressureBroadening();
+                if(relative==0)
+                    pb.ChangeForeign(change,broad_spec_locations);
+                else
+                    pb.ChangeForeignRelative(change,broad_spec_locations);
+                lr.SetPressureBroadeningData(pb);
+                break;
+            case 4: //"Lower State Energy":
+                if(relative==0)
+                    lr.SetElow(lr.Elow()+change);
+                else 
+                    lr.SetElow(lr.Elow()*(1.0e0+change));
+                break;
+            default:
+            {
+                ostringstream os;
+                os << "Usupported paramter_name\n" << parameter_name
+                << "\nSee method description for supported parameter names.\n";
+                throw std::runtime_error(os.str());
+                break;
+            }
+            
+        }
+        break;
+    }
+    
+    if(!any)
+        throw std::runtime_error("You have no matches.  This is not accepted as a valid use case.  (Is your matching information correct?)\n");
 }
 
 

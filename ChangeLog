@@ -1,5 +1,37 @@
 2015-11-20  Richard Larsson   <ric.larsson@gmail.com>
 
+	* arts-2-3-368
+	
+	* src/absorption.h:  Declares find_broad_spec_locations so it
+	can be used elsewhere.
+	
+	* src/{m_linerecord,methods}.cc:  Created
+	(abs_linesChangeParameterForMatchingLines) to easier perturb
+	catalog parameters.  Works on basis of QuantumIdentifier.
+	For a simple usecase define and laod from xml a QI such as
+	<?xml version="1.0"?>
+	<arts format="ascii" version="1">
+	<QuantumIdentifier>
+	O2-66 TR UP J 9/1 N 9/1 LO J 10/1 N 9/1
+	</QuantumIdentifier>
+	</arts>
+	Then calling abs_linesChangeParameterForMatchingLines(QI=QI,
+	parameter_name="Central Frequency",change=20e3) will change
+	the O2-66 9+ line frequency by 20 kHz.  Warning: If v1=1 
+	line is part of the catalog, then this matching will fail since
+	it is only a partial match.  Setting "loose_matching=1" will
+	succeed, but both v1=0 and v1=1 lines will have their frequency
+	changed in the example above.  Other "parameter_name" are 
+	available as per online documentation.  Also, if a relative
+	rather than absolute change is needed, set "relative=1" in
+	the function argument.  The parameter then changes by a 
+	factor (1+change).
+	
+	* src/pressurebroadeningdata.{cc,h}:  Added methods to perturb
+	internal pressure broadening parameters.
+
+2015-11-20  Richard Larsson   <ric.larsson@gmail.com>
+
 	* arts-2-3-367
 	
 	* src/{absorption.cc,partial_derivatives.{cc,h}}:  Bug in magnetic
