@@ -1,3 +1,17 @@
+2015-11-20  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-366
+
+	* src/m_sensor.cc (sensor_responseBackend):
+
+	The check of backend_channel_response and sensor_response_f_grid only
+	took into account the first channel in f_backend if b_c_r had only one
+	element.
+
+	* src/sensor.cc (sensor_integration_vector):
+
+	Reverted back to assertions.
+
 2015-11-19  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-365

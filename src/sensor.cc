@@ -949,22 +949,8 @@ void sensor_integration_vector(
       x_g = x_g_in; 
     }
   //
-  if (x_g[0] > xfmin)
-  {
-      std::ostringstream os;
-      os << "Smallest grid point of function g(x) must be smaller than first grid point of function f(x)" << std::endl;
-      os << "x_g[0] = " << x_g[0] << std::endl;
-      os << "x_f[0] = " << xfmin << std::endl;
-      throw std::runtime_error(os.str());
-  }
-  if (x_g[ng-1] < xfmax)
-  {
-      std::ostringstream os;
-      os << "Largest grid point of function g(x) must be larger than last grid point of function f(x)" << std::endl;
-      os << "x_g[ng-1] = " << x_g[0] << std::endl;
-      os << "x_f[nf-1] = " << xfmax << std::endl;
-      throw std::runtime_error(os.str());
-  }
+  assert( x_g[0]    <= xfmin );
+  assert( x_g[ng-1] >= xfmax );
 
   // Normalise grids so x_f covers [0,1]
   const Numeric df = xfmax - xfmin;

@@ -1255,12 +1255,14 @@ void sensor_responseBackend(
   Numeric f_dlow  = 0.0;
   Numeric f_dhigh = 0.0;
 
-  for( Index i=0; i<nrp; i++ )
+  Index freq_full = nrp > 1;
+  for( Index i=0; i<f_backend.nelem(); i++ )
     {
-      ConstVectorView bchr_f_grid =     
-                   backend_channel_response[i].get_numeric_grid(GFIELD1_F_GRID);
+      const Index irp = i * freq_full;
+      ConstVectorView bchr_f_grid =
+                   backend_channel_response[irp].get_numeric_grid(GFIELD1_F_GRID);
 
-      if( bchr_f_grid.nelem() != backend_channel_response[i].data.nelem() )
+      if( bchr_f_grid.nelem() != backend_channel_response[irp].data.nelem() )
         {
           os << "Mismatch in size of grid and data in element " << i
              << "\nof *sideband_response*.\n"; 
@@ -1269,7 +1271,7 @@ void sensor_responseBackend(
 
       if( !is_increasing( bchr_f_grid ) ) 
         {
-          os << "The frequency grid of element " << i
+          os << "The frequency grid of element " << irp
              << " in *backend_channel_response*\nis not strictly increasing.\n"; 
           error_found = true;
         }
@@ -1312,18 +1314,8 @@ void sensor_responseBackend(
   //
   Sparse hbackend;
   //
-  try {
-    spectrometer_matrix( hbackend, f_backend, backend_channel_response,
-                         sensor_response_f_grid, npol, nlos, sensor_norm );
-  }
-  catch (runtime_error e)
-  {
-    ostringstream os2;
-    os2 << e.what() << std::endl;
-    os2 << "Check that *sensor_response_f_grid* is inside the channel response\n"
-        << "(*backend_channel_response* + *f_backend*) for all channels. ";
-    throw runtime_error(os2.str());
-  }
+  spectrometer_matrix( hbackend, f_backend, backend_channel_response,
+                       sensor_response_f_grid, npol, nlos, sensor_norm );
 
   // Here we need a temporary sparse that is copy of the sensor_response
   // sparse matrix. We need it since the multiplication function can not
