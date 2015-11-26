@@ -1,3 +1,20 @@
+2015-11-26  Richard Larsson   <ric.larsson@gmail.com>
+
+	* arts-2-3-369
+	
+	Added "strength" as option for "from propmat" wind jacobians.
+	Agrees with individual components for optiomized observation
+	directions.  Speed-up setting missing:  There is no reason to
+	recalculate the dpropmat_dx for different frequency alterations.
+	
+	* src/jacobian.cc:  Key for this is set similar to how other
+	options (u,v,w) works.
+	
+	* src/m_jacobian.cc:  Fixed error handling to allow setting
+	the component.
+	
+	* src/rte.cc:  Set how to handle the individual components.
+
 2015-11-20  Richard Larsson   <ric.larsson@gmail.com>
 
 	* arts-2-3-368

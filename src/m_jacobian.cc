@@ -2173,10 +2173,15 @@ void jacobianAddWind(
   }
   
     // Check that component is either "u", "v" or "w"
-  if( component != "u"  &&  component != "v"  &&  component != "w" )
+  if( (component != "u"  &&  component != "v"  &&  component != "w") && analytical==1 )
     {
       throw runtime_error(   
-          "The selection for *component* can only be \"u\", \"v\" or \"w\"." );
+          "The selection for *component* can only be \"u\", \"v\" or \"w\" for \"analytical\"." );
+    }
+  else if( (component != "u"  &&  component != "v"  &&  component != "w"  &&  component != "strength") && analytical==2 )
+    {
+      throw std::runtime_error(   
+          "The selection for *component* can only be \"u\", \"v\", \"w\" or \"strength\" for \"from propmat\"." );
     }
 
   // Create the new retrieval quantity

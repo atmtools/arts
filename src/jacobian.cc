@@ -300,7 +300,7 @@ void get_pointers_for_analytical_jacobians(
             wind_i[iq] = JAC_IS_WIND_V_FROM_PROPMAT;
         else if(test == 3 )
             wind_i[iq] = JAC_IS_WIND_W_FROM_PROPMAT;
-        else if(test == (Index('S')-116) )
+        else if(test == (Index('s')-116) )
             wind_i[iq] = JAC_IS_WIND_ABS_FROM_PROPMAT;
     }
     else if( jacobian_quantities[iq].MainTag() == WIND_MAINTAG )

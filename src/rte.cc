@@ -2181,7 +2181,7 @@ ConstMatrixView  ppath_wind )
     for( Index ip=0; ip<np; ip++ )
     {
         // initialize
-        Numeric dv_doppler_dx=1.0;
+        Numeric dv_doppler_dx=0.0;
         
         // Include wind
         if( ppath_wind(1,ip) != 0  ||  ppath_wind(0,ip) != 0  ||  
@@ -2190,7 +2190,7 @@ ConstMatrixView  ppath_wind )
             switch( component )
             {
                 case 0:// this is total an d is already initialized to avoid compiler warnings
-                    /*dv_doppler_dx = 1.0;*/
+                    dv_doppler_dx = 1.0;
                     break;
                 case 1:// this is the u-component
                     dv_doppler_dx = dotprod_with_los_dWdu( ppath.los(ip,joker), ppath_wind(0,ip),
@@ -2211,7 +2211,7 @@ ConstMatrixView  ppath_wind )
         }
         
         // Determine frequency grid
-        if( dv_doppler_dx == 0 )
+        if( dv_doppler_dx == 0.0 )
         { ppath_f_partials(joker,ip) = 0.0; }
         else
         { 
