@@ -1,5 +1,13 @@
 2015-11-28  Simon Pfreundschuh   <simonpf@chalmers.se>
 
+	* arts-2-3-373
+
+	* src/test_matpack.cc: Added explicit conversion in test42(...) to avoid
+	warning during compilation. Also added missing return statement for
+	test_matrix_vector_multiplication().
+
+2015-11-28  Simon Pfreundschuh   <simonpf@chalmers.se>
+
 	* arts-2-3-372
 
 	* src/lin_alg.cc: Added changes that should have been in the previous

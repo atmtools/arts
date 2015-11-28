@@ -816,13 +816,13 @@ void test42()
     VectorView y = x[Range(2,4,2)];
     cout << "y: " << y << endl;
 
-    ConstMatrixView z(y);
+    ConstMatrixView z( (MatrixView) y );
     cout << "z:\n" << z << endl;
 
     cout << "Every other z:\n" << z(Range(1,2,2),joker) << endl;
 
     // Try write access also:
-    MatrixView zz(y);
+    MatrixView zz( y);
     zz(Range(1,2,2),joker) = 0;
     cout << "zz:\n" << zz << endl;
     cout << "New x: " << x << endl;
@@ -1120,6 +1120,7 @@ Numeric test_matrix_vector_multiplication( bool verbose )
     else
         cout << endl << "Matrix-Vector Multiplication: FAILED" << endl;
 
+    return max_err;
 }
 
 //! Perform matrix multiplication test.
@@ -1445,7 +1446,7 @@ int main()
 
     //srand( time(NULL) );
     test_matrix_vector_multiplication( false );
-    //test_matrix_multiplication();
+    test_matrix_multiplication();
     //test_diagonal( 100 );
     //test_empty();
 
