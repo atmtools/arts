@@ -1,5 +1,12 @@
 2015-11-28  Simon Pfreundschuh   <simonpf@chalmers.se>
 
+	* arts-2-3-372
+
+	* src/lin_alg.cc: Added changes that should have been in the previous
+	commit.
+
+2015-11-28  Simon Pfreundschuh   <simonpf@chalmers.se>
+
 	* arts-2-3-371
 	
 	* CMakeLists.txt: Removed LAPACK requirement.
