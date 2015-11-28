@@ -1,3 +1,4 @@
+
 if ("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
   message (FATAL_ERROR
 "In-source builds are not allowed. Please create a directory and run cmake "
@@ -146,10 +147,18 @@ if (${CMAKE_VERSION} VERSION_LESS "2.8.8")
   # rely on fortran being enabled to detect BLAS
   enable_language (Fortran)
 endif()
+
 include (FindBLAS)
 if (NOT BLAS_FOUND)
   message (FATAL_ERROR "No BLAS library found. Please install it.")
 endif (NOT BLAS_FOUND)
+
+########## LAPACK support #########
+
+include (FindLAPACK)
+if (NOT LAPACK_FOUND)
+  message (FATAL_ERROR "No LAPACK library found. Please install it.")
+endif (NOT LAPACK_FOUND)
 
 ########## NetCDF support #########
 include (FindNetCDF)

@@ -696,9 +696,9 @@ void test_oem_linear( Engine* eng,
         run_oem_matlab( x_m, G_m, eng, "test_oem" );
 
         Numeric err, err_norm, err_g;
-        err = max_error( x, x_m, true );
-        err_norm = max_error( x_n, x_m, true );
-        err_g = max_error( G, G_m, true );
+        err = get_maximum_error( x, x_m, true );
+        err_norm = get_maximum_error( x_n, x_m, true );
+        err_g = get_maximum_error( G, G_m, true );
 
         cout << setw(8) << i+1;
         cout << setw(15) << err << setw(15) << err_norm << setw(15) << err_g;
@@ -765,8 +765,8 @@ void test_oem_gauss_newton( Engine *eng,
         run_oem_matlab( x_m, G_m, eng, "test_oem_gauss_newton" );
 
         cout << setw(9) << i+1 << setw(15);
-        cout << max_error( x, x_m, true ) << setw(15);
-        cout << max_error( x_n, x_m, true ) << setw(15);
+        cout << get_maximum_error( x, x_m, true ) << setw(15);
+        cout << get_maximum_error( x_n, x_m, true ) << setw(15);
         cout << oem.iterations() << setw(15);
         cout << endl;
 
@@ -795,7 +795,7 @@ void test_oem_levenberg_marquardt( Engine *eng,
     Vector y0(m), y(m), y_m(m), x(n), x0(n), x_n(x), x_m(n), x_norm(n), xa(n);
     Matrix Se(m,m), Sx(n,n), SeInv(m,m), SxInv(n,n), G(n,m), G_m(n,m), J(n,m);
 
-    cout << "Testing Gauss-Newton OEM: m = " << m << ", n = ";
+    cout << "Testing Levenberg-Marquardt OEM: m = " << m << ", n = ";
     cout << n << ", ntests = " << ntests << endl << endl;
 
     cout << "Test No. " << setw(15) << "Standard" << setw(15) << "Normalized";
@@ -831,8 +831,8 @@ void test_oem_levenberg_marquardt( Engine *eng,
         run_oem_matlab( x_m, G_m, eng, "test_oem_levenberg_marquardt" );
 
         cout << setw(9) << i+1 << setw(15);
-        cout << max_error( x, x_m, true ) << setw(15);
-        cout << max_error( x_n, x_m, true ) << setw(15);
+        cout << get_maximum_error( x, x_m, true ) << setw(15);
+        cout << get_maximum_error( x_n, x_m, true ) << setw(15);
         cout << oem.iterations() << setw(15);
         cout << endl;
 
@@ -849,8 +849,8 @@ int main()
     setup_test_environment( eng );
 
     // Run tests and benchmarks.
-    test_oem_linear( eng, 50, 50, 10 );
-    test_oem_gauss_newton( eng, 50, 50, 10 );
+    //test_oem_linear( eng, 50, 50, 10 );
+    //test_oem_gauss_newton( eng, 50, 50, 10 );
     test_oem_levenberg_marquardt( eng, 50, 50, 10 );
 
     //benchmark_inv( eng, 100, 2000, 16);

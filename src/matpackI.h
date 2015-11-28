@@ -189,8 +189,8 @@ public:
   friend class Tensor7View;
   friend class Tensor7;
   friend class Sparse;
-  friend void mult (VectorView, const ConstMatrixView&,
-                    const ConstVectorView&);
+  friend void mult_general( VectorView, const ConstMatrixView&,
+                            const ConstVectorView&);
 
   /** Returns the start index of the range. */
   Index get_start () const { return mstart; }
@@ -339,8 +339,16 @@ public:
   friend class ConstTensor6View;
   friend class ConstTensor7View;
   friend int poly_root_solve (Matrix& roots, Vector& coeffs);
-  friend void mult (VectorView, const ConstMatrixView&,
-                    const ConstVectorView&);
+  friend void mult ( VectorView,
+                     const ConstMatrixView &,
+                     const ConstVectorView & );
+  friend void mult_general( VectorView,
+                            const ConstMatrixView &,
+                            const ConstVectorView & );
+  friend void lubacksub( VectorView,
+                         ConstMatrixView,
+                         ConstVectorView,
+                         const ArrayOfIndex& );
 
   // A special constructor, that allows to make a ConstVectorView of a scalar.
   ConstVectorView(const Numeric& a);
@@ -651,11 +659,27 @@ public:
   friend class ConstTensor7View;
   friend ConstMatrixView transpose(ConstMatrixView m);
   friend int poly_root_solve (Matrix& roots, Vector& coeffs);
-  friend void mult (VectorView, const ConstMatrixView&,
-                    const ConstVectorView&);
-  friend void mult (MatrixView,
-		    const ConstMatrixView&,
-                    const ConstMatrixView&);
+  friend void mult( VectorView,
+                    const ConstMatrixView&,
+                    const ConstVectorView& );
+  friend void mult( MatrixView,
+                    const ConstMatrixView&,
+                    const ConstMatrixView& );
+  friend void mult_general( VectorView,
+                            const ConstMatrixView&,
+                            const ConstVectorView& );
+  friend void mult_general( MatrixView,
+                            const ConstMatrixView&,
+                            const ConstMatrixView& );
+  friend void ludcmp( Matrix&,
+                      ArrayOfIndex&,
+                      ConstMatrixView );
+  friend void lubacksub( VectorView,
+                         ConstMatrixView,
+                         ConstVectorView,
+                         const ArrayOfIndex& );
+  friend void inv( MatrixView,
+                   ConstMatrixView );
 
 protected:
   // Constructors:
@@ -845,13 +869,17 @@ void mult( VectorView y,
            const ConstMatrixView& M,
            const ConstVectorView& x );
 
+void mult_general( MatrixView A,
+                   const ConstMatrixView &B,
+                   const ConstMatrixView &C );
+
 void mult( MatrixView A,
            const ConstMatrixView& B,
            const ConstMatrixView& C );
 
 void mult_general( MatrixView A,
-		   const ConstMatrixView& B,
-		   const ConstMatrixView& C );
+                   const ConstMatrixView& B,
+                   const ConstMatrixView& C );
 
 void cross3(VectorView c,
             const ConstVectorView& a,

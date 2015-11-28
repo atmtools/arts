@@ -1,6 +1,6 @@
 /*!
   \file   oem.h
-  \author simon <simonpf@chalmers.se>
+  \author Simon Pfreundschuh <simonpf@chalmers.se>
   \date   Fri Apr 17 16:17:54 2015
 
   \brief Optimal estimation method for retrieval.
@@ -11,6 +11,9 @@
 
 #include "logic.h"
 #include "matpackI.h"
+#include "timings.h"
+#include <string>
+#include <vector>
 
 //! The Forward Model Class
 /*!
@@ -98,12 +101,6 @@ public:
         x_norm_set = false;
     }
 
-    // Timing functions.
-    void start_time();
-    void mark_time();
-    Numeric get_time();
-
-
     //! Get error code.
     /*!
       \return The internal error code.
@@ -152,9 +149,7 @@ private:
     ConstMatrixView J, SeInv, SxInv;
     Matrix G;
 
-    // Timing variables.
-    Numeric runtime;
-    Numeric time_stamp;
+    Timings timer;
 
     // Internal matrices and vectors needed for the computations.
     Matrix tmp_nn_1, tmp_nn_2, tmp_nm_1, tmp_mn_1, LU;
@@ -328,11 +323,6 @@ public:
         ga_threshold = ga;
     }
 
-    // Timing functions.
-    void start_time();
-    void mark_time();
-    Numeric get_time();
-
     //! Get error code.
     /*!
       \return The internal error code.
@@ -401,10 +391,6 @@ private:
     ConstVectorView xa;
     ForwardModel &F;
 
-    // Timing variables.
-    Numeric runtime;
-    Numeric time_stamp;
-
     // Internal state variables.
     OEMMethod method;
     bool matrices_set, gain_set, x_norm_set, conv;
@@ -412,6 +398,8 @@ private:
     Numeric ga_max, ga_start, ga_threshold, ga_decrease, ga_increase;
 
     Numeric tol, cost_x, cost_y;
+
+    Timings timer;
 
     // Internal matrices for intermediate results.
     Matrix G, J, tmp_nm_1, tmp_nn_1, tmp_nn_2;

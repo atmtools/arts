@@ -183,7 +183,7 @@ void test4()
   //  cout << "\nB =\n" << B << "\n";
   //  cout << "\nC =\n" << C << "\n";
   cout << "\nB*C =\n" << A << "\n";
-  
+
 }
 
 void test5()
@@ -204,7 +204,7 @@ void test5()
 
   mult(transpose((MatrixView)b),transpose((MatrixView)a),M); // b^t = a^t * M
   cout << "\nb^t = a^t * M = \n" <<  transpose((MatrixView)b) << "\n";
-  
+
 }
 
 void test6()
@@ -259,7 +259,7 @@ void test10()
   // Initialization of Matrix with a vector (giving a 1 column Matrix).
 
   // At the moment doing this with a non-const Vector will result in a
-  // warning message. 
+  // warning message.
   Vector v(1,8,1);
   Matrix M((const Vector)v);
   cout << "M = " << M << "\n";
@@ -358,7 +358,7 @@ void test18()
 
 void test19()
 {
-  // There exists no explicit filling constructor of the form 
+  // There exists no explicit filling constructor of the form
   // Vector a(3,1.7).
   // But you can use the more general filling constructor with 3 arguments.
 
@@ -385,7 +385,7 @@ void test21()
       s += by_reference(s);
       s -= by_reference(s);
     }
-  cout << "s = " << s << "\n";  
+  cout << "s = " << s << "\n";
 }
 
 void test22()
@@ -578,7 +578,7 @@ void test32()
 {
   cout << "Test von X = A*X:\n";
   Matrix X(3,3),A(3,3),B(3,3);
-  
+
   for ( Index j=0; j<A.nrows(); ++j )
     for ( Index k=0; k<A.ncols(); ++k )
       {
@@ -730,7 +730,7 @@ void test37(const Index& i)
   cout.precision(12);
   //  cout.setf(ios_base::scientific,ios_base::floatfield);
   v1*=v1;
-  v2*=v2;  
+  v2*=v2;
 cout << v1 << endl;
   cout << v2 << endl;
 }
@@ -764,7 +764,7 @@ void test38 ()
 void test39 ()
 {
   Vector v1(1,5,1),v2(5);
-  
+
   v2 = v1 * 2;
   // Unfortunately, this thing compiles, but at least it gives an
   // assertion failure at runtime. I think what happens is that it
@@ -778,28 +778,28 @@ void test39 ()
 void test40()
 {
   Vector v(100);
-  
+
   v = 5;
-  
+
   cout << v << endl;
 }
 
 void test41()
 {
   const Vector v1(10, 1);
-  
+
   ConstVectorView vv = v1[Range(0, 5)];
-  
+
   cout << "Vector:     " << v1 << endl;
   cout << "VectorView: " << vv << endl;
-  
+
   try {
     vv = 2;
   } catch (runtime_error e) {
     std::cerr << e.what() << endl;
     exit(EXIT_FAILURE);
   }
-  
+
   cout << "VectorView: " << vv << endl;
   cout << "Vector:     " << v1 << endl;
 }
@@ -815,12 +815,12 @@ void test42()
 
     VectorView y = x[Range(2,4,2)];
     cout << "y: " << y << endl;
-    
+
     ConstMatrixView z(y);
     cout << "z:\n" << z << endl;
 
     cout << "Every other z:\n" << z(Range(1,2,2),joker) << endl;
-    
+
     // Try write access also:
     MatrixView zz(y);
     zz(Range(1,2,2),joker) = 0;
@@ -879,7 +879,7 @@ void test44()
     docheck(is_increasing, x, 0)
     docheck(is_decreasing, x, 0)
     docheck(is_sorted, x, 0)
-    
+
 #undef docheck
 }
 
@@ -888,12 +888,12 @@ void test45()
 {
     //Rational j1=1,j2=1,j3=1,m1=0,m2=0,m3=0;
     //std::cout << "My function " << wigner3j(j1,j2,j3,m1,m2,m3)  << std::endl;
-/*    
+/*
     ArrayOfIndex a,b;
     a=MakeArray<Index>(1,4,5);b=MakeArray<Index>(20,10,10);
     std::cout << "My factorials for nominators ["<<a<<" ] and denominators ["<<b<<" ]: " << factorials(a,b)  <<"." << std::endl;*/
-    
-/*    
+
+/*
     for(Rational L(1);L<3;L++)
     {
         std::cout << "L="<<L<<std::endl;
@@ -908,9 +908,9 @@ void test45()
         std::cout << std::endl;
     }*/
 std::cout<<pow(0,0.3)<<std::endl;
-ArrayOfIndex N;N=MakeArray<Index>(1, 1, 3, 3, 5, 5, 7, 7, 9,  9, 11, 11, 13, 13, 15, 15, 17, 17, 19, 19, 21, 21, 23, 23, 25, 25, 27, 27, 29, 29, 
+ArrayOfIndex N;N=MakeArray<Index>(1, 1, 3, 3, 5, 5, 7, 7, 9,  9, 11, 11, 13, 13, 15, 15, 17, 17, 19, 19, 21, 21, 23, 23, 25, 25, 27, 27, 29, 29,
                                   31, 31, 33, 33, 35, 35, 37, 37);
-ArrayOfIndex J;J=MakeArray<Index>(0, 2, 2, 4, 4, 6, 6, 8, 8, 10, 10, 12, 12, 14, 14, 16, 16, 18, 18, 20, 20, 22, 22, 24, 24, 26, 26, 28, 28, 30, 
+ArrayOfIndex J;J=MakeArray<Index>(0, 2, 2, 4, 4, 6, 6, 8, 8, 10, 10, 12, 12, 14, 14, 16, 16, 18, 18, 20, 20, 22, 22, 24, 24, 26, 26, 28, 28, 30,
                                   30, 32, 32, 34, 34, 36, 36, 38);
 
     for(Index II = 0; II<N.nelem(); II++)
@@ -936,21 +936,21 @@ ArrayOfIndex J;J=MakeArray<Index>(0, 2, 2, 4, 4, 6, 6, 8, 8, 10, 10, 12, 12, 14,
             }
             std::cout << " " << A;
         }
-        std::cout << std::endl;        
+        std::cout << std::endl;
     }
-    
+
     Vector d; d.resize(38);
-    
+
     for(Index II = 0; II<N.nelem(); II++)
         d[II] = wigner6j(1, 1, 1, J[II], N[II], N[II]) * pow(-1.,2.*(Numeric)N[II]) * sqrt(6*(2*N[II]+1)*(2*J[II]+1));
-    
+
     std::cout<<d<<std::endl;
-    
+
 //     for(Index a = 1; a<6; a++)
 //         for(Index b = 1; b<6; b++)
 //             for(Index c = 1; c<6; c++)
 //                     std::cout << wigner3j(a,b,c,0,0,0)<<std::endl;
-    
+
 }
 
 //! Test diagonal vector.
@@ -1008,6 +1008,119 @@ bool test_diagonal( Index ntests )
     return pass;
 }
 
+Numeric matrix_vector_mult( Index m,
+                            Index n,
+                            Index ntests,
+                            bool verbose )
+{
+
+    Numeric max_err = 0;
+    Matrix A(m,n);
+    Vector x(n), x_ref(n), y(m), y_ref(m);
+
+    Rand<Index> random_row_stride( 1, n/4 );
+    Rand<Index> random_column_stride( 1, m/4 );
+
+    for ( Index i = 0; i <  ntests; i++ )
+    {
+
+        // A * x
+
+        random_fill_matrix( A, 1000, false );
+        random_fill_vector( x, 1000, false );
+
+        mult( y, A, x );
+        mult_general( y_ref, A, x );
+
+        Numeric err_mul = get_maximum_error( y, y_ref, true );
+        if (err_mul > max_err)
+            max_err = err_mul;
+
+        if (verbose)
+        {
+            cout << "\t A * x: max. rel. error = " << err_mul << endl;
+        }
+
+        // A^T  * y
+
+        mult( x, transpose(A), y );
+        mult_general( x_ref, transpose(A), y ) ;
+
+        err_mul = get_maximum_error( x, x_ref , true );
+        if (err_mul > max_err)
+            max_err =  err_mul;
+
+        if (verbose)
+        {
+            cout << "\t A^T * x: max. rel. error = " << err_mul << endl;
+        }
+
+        // Random stride
+        Index column_stride( random_column_stride() ),
+            row_stride( random_row_stride() );
+
+        Index m_sub, n_sub;
+        m_sub = (m - 1) / row_stride + 1;
+        n_sub = (n - 1) / column_stride + 1;
+
+        mult( y[ Range(0, joker, row_stride) ],
+              A( Range(0, m_sub), Range(0, n_sub) ),
+              x[ Range(0, joker, column_stride) ] );
+        mult_general( y_ref[ Range(0, joker, row_stride) ],
+                      A( Range(0, m_sub), Range(0, n_sub) ),
+                      x[ Range(0, joker, column_stride) ] );
+
+        err_mul = get_maximum_error( y[ Range(0, joker, row_stride) ],
+                             y_ref[ Range(0, joker, row_stride) ],
+                             true );
+        if (err_mul > max_err)
+            max_err = err_mul;
+
+        if (verbose)
+        {
+            cout << "\t Random stride: max. rel. error = " << err_mul << endl << endl;
+        }
+    }
+
+    return max_err;
+}
+
+Numeric test_matrix_vector_multiplication( bool verbose )
+{
+    Numeric err, max_err;
+
+    if (verbose)
+        cout << "Matrix-Vector Multiplication: n = m = 100, ntests = 100" << endl;
+
+    max_err = matrix_vector_mult( 100, 100, 100, verbose );
+
+    if (verbose)
+    {
+        cout << endl;
+        cout << "Matrix-Vector Multiplication: n = 100, m = 20, ntests = 100" << endl;
+    }
+
+    err = matrix_vector_mult( 100, 20, 100, verbose );
+    if (err > max_err)
+        max_err = err;
+
+    if (verbose)
+    {
+        cout << endl;
+        cout << "Matrix-Vector Multiplication: n = 20, m = 100, ntests = 100" << endl;
+    }
+
+    err = matrix_vector_mult( 20, 100, 100, verbose );
+    Matrix A(20,100);
+    if (err > max_err)
+        max_err = err;
+
+    if (max_err < 1e-9)
+        cout << endl << "Matrix-Vector Multiplication: PASSED" << endl;
+    else
+        cout << endl << "Matrix-Vector Multiplication: FAILED" << endl;
+
+}
 
 //! Perform matrix multiplication test.
 /*!
@@ -1036,7 +1149,7 @@ Numeric matrix_mult( Index k,
                      Index nsubtests,
                      bool verbose )
 {
-    Numeric err_max = 0;
+    Numeric max_err = 0;
     Matrix A( m, k), B( k, n), C( m, n), C_ref( m, n );
 
     for ( Index i = 0; i < ntests; i++ )
@@ -1059,14 +1172,14 @@ Numeric matrix_mult( Index k,
         mult( C, A, B );
         mult_general( C_ref, A, B );
 
-        Numeric err_mul = max_error( C, C_ref, true );
-        if (err_mul > err_max)
-            err_max = err_mul;
+        Numeric err_mul = get_maximum_error( C, C_ref, true );
+        if (err_mul > max_err)
+            max_err = err_mul;
 
 
         if (verbose)
         {
-            cout << "\t" <<  "A * B: max. rel. err = " << err_mul << endl;
+            cout << "\t" <<  "A * B: max. rel. error = " << err_mul << endl;
         }
 
         // A^T * B
@@ -1076,9 +1189,9 @@ Numeric matrix_mult( Index k,
 
         mult( C, transpose(AT), B );
         mult_general( C_ref, transpose(AT), B );
-        Numeric err_trans1 = max_error( C, C_ref, true );
-        if (err_trans1 > err_max)
-            err_max = err_trans1;
+        Numeric err_trans1 = get_maximum_error( C, C_ref, true );
+        if (err_trans1 > max_err)
+            max_err = err_trans1;
 
         if (verbose)
         {
@@ -1092,9 +1205,9 @@ Numeric matrix_mult( Index k,
 
         mult( C, A, transpose(BT) );
         mult_general( C_ref, A, transpose(BT) );
-        Numeric err_trans2 = max_error( C, C_ref, true );
-        if (err_trans2 > err_max)
-            err_max = err_trans2;
+        Numeric err_trans2 = get_maximum_error( C, C_ref, true );
+        if (err_trans2 > max_err)
+            max_err = err_trans2;
 
         if (verbose)
         {
@@ -1105,9 +1218,9 @@ Numeric matrix_mult( Index k,
 
         mult( C, transpose(AT), transpose(BT) );
         mult_general( C_ref, transpose(AT), transpose(BT) );
-        Numeric err_trans3 = max_error( C, C_ref, true );
-        if (err_trans3 > err_max)
-            err_max = err_trans3;
+        Numeric err_trans3 = get_maximum_error( C, C_ref, true );
+        if (err_trans3 > max_err)
+            max_err = err_trans3;
 
         if (verbose)
         {
@@ -1136,9 +1249,9 @@ Numeric matrix_mult( Index k,
         mult( C_sub, A_sub, B_sub );
         mult_general( C_sub_ref, A_sub, B_sub );
 
-        Numeric err = max_error( C_sub, C_sub_ref, true );
-        if (err > err_max)
-            err_max = err;
+        Numeric err = get_maximum_error( C_sub, C_sub_ref, true );
+        if (err > max_err)
+            max_err = err;
 
         if (verbose)
         {
@@ -1152,7 +1265,7 @@ Numeric matrix_mult( Index k,
         cout << endl;
     }
 
-    return err_max;
+    return max_err;
 
 }
 
@@ -1331,8 +1444,10 @@ int main()
 //    test45();
 
     //srand( time(NULL) );
+    test_matrix_vector_multiplication( false );
     //test_matrix_multiplication();
-    test_diagonal( 100 );
-    test_empty();
+    //test_diagonal( 100 );
+    //test_empty();
+
     return 1;
 }

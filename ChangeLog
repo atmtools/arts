@@ -1,3 +1,37 @@
+2015-11-28  Simon Pfreundschuh   <simonpf@chalmers.se>
+
+	* arts-2-3-370
+	
+	* src/blas.h: Added declaration for dgemv_
+
+	* src/lapack.h: Header file with LAPACK function declarations.
+
+	* src/lin_alg.*: Changed ludcmp(...), lubacksub(...), solve(...) and
+	inv(...) to use LAPACK. This involved changing the ludcmp interface to
+	require a reference to a Matrix object to be passed instead of a
+	MatrixView.
+
+	* src/matpackI.h: Added mult(...), mult_general(...), ludcmp(...),
+	lubacksub(...) and inv(...) to the friends of the ConstMatrixView class
+
+	* src/matpackI.cc: Changed matrix vector multiplication to use BLAS.
+
+	* src/oem.*: Added more detailed timings.
+
+	* src/test_linalg.cc: Added randomized testing for solve(...) and inv(...)
+
+	* src/test_matpack.cc: Changed name of maximum_err(...) function.
+	
+	* src/test_oem.cc: Changed name of maximum_err(...) function.
+
+	* src/test_utils.cc: Changed name of maximum_err(...) function to
+	get_maximum_error(...) and added function to create random, positive
+	definite matrices.
+
+	* src/timings.*: Timings class that holds a set of timers to simplify
+	profiling.
+	
+
 2015-11-26  Richard Larsson   <ric.larsson@gmail.com>
 
 	* arts-2-3-369

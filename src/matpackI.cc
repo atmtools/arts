@@ -1503,7 +1503,7 @@ Matrix::Matrix() :
 Matrix::Matrix(Index r, Index c) :
   MatrixView( new Numeric[r*c],
              Range(0,r,c),
-	     Range(0,c))
+             Range(0,c))
 {
   // Nothing to do here.
 }
@@ -1667,19 +1667,84 @@ Numeric operator*(const ConstVectorView& a, const ConstVectorView& b)
   return res;
 }
 
-/** Matrix Vector multiplication. y = M*x. Note that the order is different
-    from MTL, output comes first! Dimensions of y, M, and x must
-    match. No memory reallocation takes place, only the data is
-    copied. Using this function on overlapping MatrixViews belonging
-    to the same Matrix will lead to unpredictable results. In
-    particular, this means that A and B must not be the same matrix!
-    The implementation here is different from the other multiplication
-    routines. It does not use iterators but a more drastic approach to gain
-    maximum performance.  */
+//! Matrix-Vector Multiplication
+/*!
+
+  Computes the Matrix-Vector product y = M * x, for a m times n matrix M, a
+  length-m vector y and a length-n vector x.
+
+  The product is computed using the dgemv_ routine from the BLAS library if
+  the matrix is contiguous in memory. If this is not the case, the mult_general
+  method is used to compute the product.
+
+  No memory is allocated for the computation and the matrix and vector views
+  may not overlap.
+
+  \param[out] y The length-m VectorView where the result is stored.
+  \param[in] M Reference to the m-times-n ConstMatrixView holding the matrix M.
+  \param[in] x Reference to the length-n ConstVectorView holding the vector x.
+*/
 void mult( VectorView y,
            const ConstMatrixView& M,
            const ConstVectorView& x )
 {
+
+    assert( y.mrange.get_extent() == M.mrr.get_extent() );
+    assert( M.mcr.get_extent() == x.mrange.get_extent() );
+    assert( (M.mcr.get_extent() != 0) && (M.mrr.get_extent() != 0));
+
+    if ((M.mcr.get_stride() == 1) || (M.mrr.get_stride() == 1))
+    {
+
+        char trans;
+        int m,n;
+        double zero = 0.0;
+        double one = 1.0;
+        int LDA, incx, incy;
+
+        if (M.mcr.get_stride() != 1)
+        {
+            trans = 'n';
+            m = (int) M.mrr.get_extent();
+            n = (int) M.mcr.get_extent();
+            LDA = (int) M.mcr.get_stride();
+        }
+        else
+        {
+            trans = 't';
+            m = (int) M.mcr.get_extent();
+            n = (int) M.mrr.get_extent();
+            LDA = (int) M.mrr.get_stride();
+        }
+
+        incx = (int) x.mrange.get_stride();
+        incy = (int) y.mrange.get_stride();
+
+        dgemv_( &trans, &m, &n, &one, M.mdata, &LDA,
+                x.mdata, &incx, &zero, y.mdata, &incy );
+
+    }
+    else
+    {
+        mult_general( y, M, x );
+    }
+
+}
+
+/** Matrix Vector multiplication. y = M*x. Note that the order is different
+    from MTL, output comes first! Dimensions of y, M, and x must
+    match. No memory reallocation takes place, only the data is
+    copied. Using this function on overlapping Matrix and VectorViews belonging
+    to the same Matrix will lead to unpredictable results.
+
+    The implementation here is different from the other multiplication
+    routines. It does not use iterators but a more drastic approach to gain
+    maximum performance.  */
+void mult_general( VectorView y,
+                   const ConstMatrixView& M,
+                   const ConstVectorView& x )
+{
+
   // Check dimensions:
   assert( y.mrange.mextent == M.mrr.mextent );
   assert( M.mcr.mextent == x.mrange.mextent );
@@ -1715,7 +1780,7 @@ void mult( VectorView y,
 }
 
 
-//! Matrix multiplication using BLAS.
+//! Matrix-Matrix Multiplication
 /*!
   Performs the matrix multiplication A = B * C. The dimensions must match, i.e.
   A must be a m times n matrix, B a m times k matrix and C a k times c matrix.
@@ -1741,8 +1806,8 @@ void mult( VectorView y,
   \param[in] C The matrix C
 */
 void mult( MatrixView A,
-	   const ConstMatrixView& B,
-	   const ConstMatrixView& C )
+           const ConstMatrixView& B,
+           const ConstMatrixView& C )
 {
 
     // Check dimensions:
@@ -1752,92 +1817,92 @@ void mult( MatrixView A,
 
     // Catch trivial case if one of the matrices is empty.
     if ( (B.nrows() == 0) || (B.ncols() == 0) || (C.ncols() == 0) )
-	return;
+        return;
 
     // Matrices B and C must be continuous in at least on dimension,  C
     // must be continuous along the second dimension.
     if ( ((B.mrr.get_stride() == 1) || (B.mcr.get_stride() == 1)) &&
-	 ((C.mrr.get_stride() == 1) || (C.mcr.get_stride() == 1)) &&
-	 (A.mcr.get_stride() == 1) )
+         ((C.mrr.get_stride() == 1) || (C.mcr.get_stride() == 1)) &&
+         (A.mcr.get_stride() == 1) )
     {
-	// BLAST uses column-major order while arts uses row-major order.
-	// Hence instead of C = A * B we compute C^T = A^T * B^T!
+        // BLAS uses column-major order while arts uses row-major order.
+        // Hence instead of C = A * B we compute C^T = A^T * B^T!
 
-	int k, m, n;
+        int k, m, n;
 
-	k = (int) B.ncols();
-	m = (int) C.ncols();
-	n = (int) B.nrows();
+        k = (int) B.ncols();
+        m = (int) C.ncols();
+        n = (int) B.nrows();
 
-	// Note also the clash in nomenclature: BLAST uses C = A * B while
-	// arts uses A = B * C. Taking into accout this and the difference in
-	// memory layouts, we need to map the MatrixViews A, B and C to the BLAS
-	// arguments as follows:
-	// A (arts) -> C (BLAS)
-	// B (arts) -> B (BLAS)
-	// C (arts) -> A (BLAS)
+        // Note also the clash in nomenclature: BLAST uses C = A * B while
+        // arts uses A = B * C. Taking into accout this and the difference in
+        // memory layouts, we need to map the MatrixViews A, B and C to the BLAS
+        // arguments as follows:
+        // A (arts) -> C (BLAS)
+        // B (arts) -> B (BLAS)
+        // C (arts) -> A (BLAS)
 
-	// Char indicating whether A (BLAS) or B (BLAS) should be transposed.
-	char transa, transb;
-	// Sizes of the matrices along the direction in which they are
-	// traversed.
-	int lda, ldb, ldc;
+        // Char indicating whether A (BLAS) or B (BLAS) should be transposed.
+        char transa, transb;
+        // Sizes of the matrices along the direction in which they are
+        // traversed.
+        int lda, ldb, ldc;
 
-	// Check if C (arts) is transposed.
-	if (C.mrr.get_stride() == 1)
-	{
-	    transa = 'T';
-	    lda = (int) C.mcr.get_stride();
-	} else {
-	    transa = 'N';
-	    lda = (int) C.mrr.get_stride();
-	}
+        // Check if C (arts) is transposed.
+        if (C.mrr.get_stride() == 1)
+        {
+            transa = 'T';
+            lda = (int) C.mcr.get_stride();
+        } else {
+            transa = 'N';
+            lda = (int) C.mrr.get_stride();
+        }
 
         // Check if B (arts) is transposed.
-	if (B.mrr.get_stride() == 1)
-	{
-	    transb = 'T';
-	    ldb = (int) B.mcr.get_stride();
-	} else {
-	    transb = 'N';
-	    ldb = (int) B.mrr.get_stride();
-	}
+        if (B.mrr.get_stride() == 1)
+        {
+            transb = 'T';
+            ldb = (int) B.mcr.get_stride();
+        } else {
+            transb = 'N';
+            ldb = (int) B.mrr.get_stride();
+        }
 
-	// In the case B (arts) has only one column, column and row stride are 1.
-	// We therefore need to set ldb to k, since dgemm_ requires lda to be at
-	// least k / m if A is non-transposed / transposed.
-	if ( (B.mcr.get_stride() == 1) && (B.mrr.get_stride() == 1) )
-	{
-	    transb = 'N';
-	    ldb = k;
-	}
+        // In the case B (arts) has only one column, column and row stride are 1.
+        // We therefore need to set ldb to k, since dgemm_ requires lda to be at
+        // least k / m if A is non-transposed / transposed.
+        if ( (B.mcr.get_stride() == 1) && (B.mrr.get_stride() == 1) )
+        {
+            transb = 'N';
+            ldb = k;
+        }
 
-	// The same holds for C (arts).
-	if ( (C.mcr.get_stride() == 1) && (C.mrr.get_stride() == 1) )
-	{
-	    transb = 'N';
-	    lda = k;
-	}
+        // The same holds for C (arts).
+        if ( (C.mcr.get_stride() == 1) && (C.mrr.get_stride() == 1) )
+        {
+            transb = 'N';
+            lda = k;
+        }
 
-	ldc = (int) A.mrr.get_stride();
-	double alpha = 1.0, beta = 0.0;
+        ldc = (int) A.mrr.get_stride();
+        double alpha = 1.0, beta = 0.0;
 
-	dgemm_( & transa,
-		& transb,
-		& m,
-		& n,
-		& k,
-		& alpha,
-		C.mdata + C.mrr.get_start() + C.mcr.get_start(),
-		& lda,
-		B.mdata + B.mrr.get_start() + B.mcr.get_start(),
-		& ldb,
-		& beta,
-		A.mdata + A.mrr.get_start() + A.mcr.get_start(),
-		& ldc );
+        dgemm_( & transa,
+                & transb,
+                & m,
+                & n,
+                & k,
+                & alpha,
+                C.mdata + C.mrr.get_start() + C.mcr.get_start(),
+                & lda,
+                B.mdata + B.mrr.get_start() + B.mcr.get_start(),
+                & ldb,
+                & beta,
+                A.mdata + A.mrr.get_start() + A.mcr.get_start(),
+                & ldc );
 
     } else {
-	mult_general( A, B, C );
+        mult_general( A, B, C );
     }
 }
 
@@ -1851,8 +1916,8 @@ void mult( MatrixView A,
   \param[in] C The matrix C
 */
 void mult_general( MatrixView A,
-		   const ConstMatrixView& B,
-		   const ConstMatrixView& C )
+                   const ConstMatrixView& B,
+                   const ConstMatrixView& C )
 {
   // Check dimensions:
   assert( A.nrows() == B.nrows() );

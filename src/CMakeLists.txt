@@ -1,7 +1,6 @@
 
 include_directories ( ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}
-                      ${ZLIB_INCLUDE_DIR}
-                      ${BLAS_INCLUDE_DIR} )
+                      ${ZLIB_INCLUDE_DIR} )
 
 if (NETCDF_FOUND)
   include_directories (${NETCDF_INCLUDE_DIR})
@@ -73,20 +72,20 @@ set_source_files_properties (species_data.cc PROPERTIES COMPILE_FLAGS "-O0")
 ########### next target ###############
 
 add_executable (make_auto_workspace_h
-	arts.cc
-	file.cc
+        arts.cc
+        file.cc
   make_auto_workspace_h.cc
-	messages.cc
-	parameters.cc
-	)
+        messages.cc
+        parameters.cc
+        )
 
 target_link_libraries (make_auto_workspace_h matpack methods)
 
 add_custom_command (
-	OUTPUT auto_workspace.h
-	COMMAND make_auto_workspace_h
-	DEPENDS make_auto_workspace_h
-	)
+        OUTPUT auto_workspace.h
+        COMMAND make_auto_workspace_h
+        DEPENDS make_auto_workspace_h
+        )
 
 add_custom_target (BuildAutoSources DEPENDS auto_workspace.h auto_md.h
                    auto_md.cc)
@@ -94,46 +93,46 @@ add_custom_target (BuildAutoSources DEPENDS auto_workspace.h auto_md.h
 ########### next target ###############
 
 add_executable (make_auto_md_h
-	agenda_record.cc
-	arts.cc
+        agenda_record.cc
+        arts.cc
   auto_workspace.h
-	file.cc
-	make_auto_md_h.cc
-	messages.cc
-	parameters.cc
-	workspace.cc
-	workspace_ng.cc
-	)
+        file.cc
+        make_auto_md_h.cc
+        messages.cc
+        parameters.cc
+        workspace.cc
+        workspace_ng.cc
+        )
 
 target_link_libraries (make_auto_md_h methods matpack)
 
 add_custom_command (
-	OUTPUT auto_md.h
-	COMMAND make_auto_md_h
-	DEPENDS make_auto_md_h
+        OUTPUT auto_md.h
+        COMMAND make_auto_md_h
+        DEPENDS make_auto_md_h
 )
 
 ########### next target ###############
 
 add_executable (make_auto_md_cc
-	agenda_record.cc
-	arts.cc
+        agenda_record.cc
+        arts.cc
   auto_workspace.h
-	file.cc
-	make_auto_md_cc.cc
-	messages.cc
-	parameters.cc
-	workspace.cc
-	workspace_ng.cc
-	)
+        file.cc
+        make_auto_md_cc.cc
+        messages.cc
+        parameters.cc
+        workspace.cc
+        workspace_ng.cc
+        )
 
 target_link_libraries (make_auto_md_cc methods matpack)
 
 add_custom_command (
-	OUTPUT auto_md.cc
-	COMMAND make_auto_md_cc
-	DEPENDS make_auto_md_cc
-	)
+        OUTPUT auto_md.cc
+        COMMAND make_auto_md_cc
+        DEPENDS make_auto_md_cc
+        )
 
 ########### next target ###############
 
@@ -144,9 +143,9 @@ if (NOT HAVE_GETOPT_H)
 endif (NOT HAVE_GETOPT_H)
 
 add_library (artscore STATIC
-	auto_md.h
-	auto_md.cc
-	auto_workspace.h
+        auto_md.h
+        auto_md.cc
+        auto_workspace.h
   ${ARTSCORE_EXTRA_SOURCES}
   abs_species_tags.cc
   absorption.cc
@@ -247,6 +246,7 @@ add_library (artscore STATIC
   special_interp.cc
   species_data.cc
   surface.cc
+  timings.cc
   tmatrix.cc
   token.cc
   workspace.cc
@@ -256,7 +256,7 @@ add_library (artscore STATIC
   xml_io_basic_types.cc
   xml_io_compound_types.cc
   zeeman.cc
-	)
+        )
 add_dependencies (artscore auto_version_h)
 
 target_link_libraries (artscore ${ZLIB_LIBRARIES})
@@ -272,37 +272,38 @@ endif (ENABLE_DOCSERVER)
 ########### next target ###############
 
 add_library (matpack STATIC
-	complex.cc
-	lin_alg.cc
-	logic.cc
-	make_vector.cc
-	rational.cc
-	matpackI.cc
-	matpackII.cc
-	matpackIII.cc
-	matpackIV.cc
-	matpackV.cc
-	matpackVI.cc
-	matpackVII.cc
-	)
+        complex.cc
+        lin_alg.cc
+        logic.cc
+        make_vector.cc
+        rational.cc
+        matpackI.cc
+        matpackII.cc
+        matpackIII.cc
+        matpackIV.cc
+        matpackV.cc
+        matpackVI.cc
+        matpackVII.cc
+        )
 
-target_link_libraries( matpack ${BLAS_LIBRARIES} )
+target_link_libraries( matpack ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES}
+    gfortran )
 
 ########### next target ###############
 
 add_library (methods STATIC
-	agendas.cc
-	agenda_record.cc
-	methods.cc
-	methods_aux.cc
-	groups.cc
-	)
+        agendas.cc
+        agenda_record.cc
+        methods.cc
+        methods_aux.cc
+        groups.cc
+        )
 
 ########### next target ###############
 
 add_library (test_utils STATIC
         test_utils.cc
-	)
+        )
 
 ########### testcases ###############
 
@@ -341,7 +342,8 @@ add_executable (test_linalg
   lin_alg.cc
   test_linalg.cc)
 
-target_link_libraries (test_linalg ${ALL_ARTS_LIBRARIES})
+target_link_libraries (test_linalg ${ALL_ARTS_LIBRARIES} ${BLAS_LIBRARIES}
+  ${LAPACK_LIBRARIES} test_utils gfortran)
 
 ########### next testcase ###############
 
@@ -363,11 +365,12 @@ find_program( CSHFOUND csh )
 
 if ( MATLABDIR AND ATMLABDIR AND CSHFOUND )
 
-  include_directories( ${MATLABDIR}/R2015a/extern/include )
   add_executable (test_oem
     oem.cc
+    timings.cc
     test_oem.cc)
 
+  include_directories( ${MATLABDIR}/R2015a/extern/include )
   add_definitions(-DSOURCEDIR="${CMAKE_BINARY_DIR}/src")
   add_definitions(-DATMLABDIR="${ATMLABDIR}")
   FIND_LIBRARY(ENGVAR libeng.so ${MATLABDIR}/R2015a/bin/glnxa64)

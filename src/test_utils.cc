@@ -97,6 +97,39 @@ void random_fill_matrix_symmetric( MatrixView A,
     A += transpose( M );
 }
 
+//! Generate random, positive definite matrix.
+/*!
+
+  Generate a random, positive definite matrix by generating
+  a positive semi-definite matrix and adding the identity matrix.
+
+  \param[out] A The random, positive definite matrix.
+  \param[in] range The range from which the random values are picked. If
+  positive == true, the values are taken from the range [0,range], otherwise
+  the are taken from the range [-range, range].
+  \param[in] positive See above.
+*/
+void random_fill_matrix_pos_def( MatrixView A,
+                                 Numeric range,
+                                 bool positive )
+{
+    Index n = A.ncols();
+
+    // Ensure that A is square.
+    assert( A.ncols() == A.nrows() );
+
+    // Generate random, pos. semi-def. Matrix
+    random_fill_matrix( A, range, positive);
+    Matrix M( A );
+    mult( A, M, transpose(M) );
+
+    // Add identity matrix.
+    for (Index i = 0; i < n; i++)
+    {
+        A(i,i) += 1.0;
+    }
+}
+
 //! Generate random, positive semi-definite matrix.
 /*!
 
@@ -207,9 +240,9 @@ Range random_range( Index n )
 
   \return The maximum relative or absolute element-wise error.
 */
-Numeric max_error( ConstVectorView v1,
-                   ConstVectorView v2,
-                   bool relative )
+Numeric get_maximum_error( ConstVectorView v1,
+                           ConstVectorView v2,
+                           bool relative )
 {
 
     Index n = min( v1.nelem(), v2.nelem() );
@@ -255,9 +288,9 @@ Numeric max_error( ConstVectorView v1,
 
   \return The maximum relative or absolute element-wise error.
 */
-Numeric max_error( ConstMatrixView A1,
-                   ConstMatrixView A2,
-                   bool relative )
+Numeric get_maximum_error( ConstMatrixView A1,
+                           ConstMatrixView A2,
+                           bool relative )
 {
 
     Index m = min( A1.nrows(), A2.nrows() );

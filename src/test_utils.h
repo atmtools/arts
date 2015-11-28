@@ -102,9 +102,15 @@ void random_fill_matrix_symmetric( MatrixView A,
                                    bool positive );
 
 // Generate random, positive semi-definite matrix.
+void random_fill_matrix_pos_def( MatrixView A,
+                                  Numeric range,
+                                  bool positive );
+
+// Generate random, positive semi-definite matrix.
 void random_fill_matrix_pos_semi_def( MatrixView A,
                                       Numeric range,
                                       bool positive );
+
 // Fill vector with random values.
 void random_fill_vector( VectorView A,
                          Numeric range,
@@ -120,13 +126,13 @@ MatrixView random_submatrix( MatrixView A,
 Range random_range( Index n );
 
 // Maximum element-wise error of two matrices.
-Numeric max_error( ConstMatrixView A1,
-                   ConstMatrixView A2,
-                   bool relative );
+Numeric get_maximum_error( ConstMatrixView A1,
+                           ConstMatrixView A2,
+                           bool relative );
 
 // Maximum element-wise error of two matrices.
-Numeric max_error( ConstVectorView v1,
-                   ConstVectorView v2,
-                   bool relative );
+Numeric get_maximum_error( ConstVectorView v1,
+                           ConstVectorView v2,
+                           bool relative );
 
 #endif // test_utils_h

@@ -541,60 +541,6 @@ ConstVectorView LinearOEM::get_x_norm()
     return x_norm;
 }
 
-//! Start stop watch.
-/*!
-  Starts stop watch for OEM computation. Works only if OpenMP is available.
- */
-void LinearOEM::start_time()
-{
-    #ifdef OMP
-    runtime = 0.0;
-    time_stamp = omp_get_wtime();
-    #endif
-}
-
-//! Record time.
-/*!
-  If the stop watch is currently active, mark_time() stops the watch and adds
-  the elapsed time since the starting of the stop watch or the last call to
-  mark_time() to the measured time.
- */
-void LinearOEM::mark_time()
-{
-    #ifdef OMP
-    if (time_stamp >= 0.0)
-    {
-        runtime += omp_get_wtime() - time_stamp;
-        time_stamp = -1.0;
-    }
-    else
-    {
-        time_stamp = omp_get_wtime();
-    }
-    #endif
-}
-
-//! Return elapsed time.
-/*!
-  Stops the stop watch if it was running and returns the current measured time.
-
-  \return The total measured time.
-*/
-Numeric LinearOEM::get_time()
-{
-    #ifdef OMP
-    if (time_stamp >= 0.0)
-    {
-        runtime += omp_get_wtime() - time_stamp;
-        time_stamp = -1.0;
-    }
-
-    return runtime;
-    #endif
-    return -1.0;
-}
-
-
 //! Compute optimal estimator.
 /*!
 
@@ -620,13 +566,21 @@ Index LinearOEM::compute( Vector &x,
                          ConstVectorView y0 )
 {
 
-    // Start stop watch.
-    start_time();
+    // Set up timers.
+    Index t1, t2, t3;
+    t1 = timer.add_timer( "State vector computation" );
+    timer.mark( t1 );
+    t2 = timer.add_timer( "Matrix multiplication");
+    t3 = timer.add_timer( "Linear system solving");
 
     if (!(matrices_set || gain_set))
     {
+
+        timer.mark( t2 );
         mult( tmp_nm_1, transpose(J), SeInv );
         mult( tmp_nn_1, tmp_nm_1, J);
+        timer.mark( t2 );
+
         tmp_nn_1 += SxInv;
 
         if ( x_norm_set )
@@ -635,8 +589,9 @@ Index LinearOEM::compute( Vector &x,
             scale_rows( tmp_nm_1, tmp_nm_1, x_norm );
         }
 
+        timer.mark( t3 );
         ludcmp( LU, indx, tmp_nn_1 );
-
+        timer.mark( t3 );
 
         matrices_set = true;
     }
@@ -647,7 +602,10 @@ Index LinearOEM::compute( Vector &x,
     if (!gain_set)
     {
         mult( tmp_n_1, tmp_nm_1, tmp_m_1 );
+
+        timer.mark( t3 );
         lubacksub( x, LU, tmp_n_1, indx);
+        timer.mark( t3 );
 
         if (x_norm_set)
             x *= x_norm;
@@ -659,8 +617,7 @@ Index LinearOEM::compute( Vector &x,
 
     x += xa;
 
-    // Stop stop watch.
-    mark_time();
+    timer.mark( t1 );
 
     return 0;
 }
@@ -702,14 +659,24 @@ Index LinearOEM::compute( Vector &x,
 void LinearOEM::compute_gain_matrix()
 {
 
+    // Setup timers.
+    Index t1, t2, t3;
+    t1 = timer.add_timer( "Gain Matrix Computation" );
+    t2 = timer.add_timer( "Matrix Matrix Mult.");
+    t3 = timer.add_timer( "Linear System" );
+    timer.mark( t1 );
+
     // Assure that G has the right size.
     G.resize( n, m );
     tmp_nn_2.resize( n, n );
 
     if (!(matrices_set))
     {
+        timer.mark( t2 );
         mult( tmp_nm_1, transpose(J), SeInv );
         mult( tmp_nn_1, tmp_nm_1, J);
+        timer.mark( t2 );
+
         tmp_nn_1 += SxInv;
 
         if ( x_norm_set )
@@ -718,7 +685,9 @@ void LinearOEM::compute_gain_matrix()
             scale_rows( tmp_nm_1, tmp_nm_1, x_norm );
         }
 
+        timer.mark( t3 );
         ludcmp( LU, indx, tmp_nn_1 );
+        timer.mark( t3 );
 
         matrices_set = true;
     }
@@ -726,14 +695,18 @@ void LinearOEM::compute_gain_matrix()
     // Invert J^T S_e^{-1} J using the already computed LU decomposition.
     tmp_n_1 = 0.0;
 
+    timer.mark( t3 );
     for ( Index i = 0; i < n; i++ )
     {
         tmp_n_1[i] = 1.0;
         lubacksub( tmp_nn_2(joker,i), LU, tmp_n_1, indx);
         tmp_n_1[i] = 0.0;
     }
+    timer.mark( t3 );
 
+    timer.mark( t2 );
     mult( G, tmp_nn_2, tmp_nm_1 );
+    timer.mark( t2 );
 
     if ( x_norm_set )
     {
@@ -741,6 +714,8 @@ void LinearOEM::compute_gain_matrix()
         matrices_set = false;
     }
     gain_set = true;
+
+    timer.mark( t1 );
 }
 
 //! Compute fit
@@ -879,10 +854,8 @@ Index oem_linear_nform( Vector& x,
         log_step_li( cout, 0, cost_start, 0, cost_start );
       }
 
-    oem.start_time();
     oem.compute( x, G, y, yf );
     oem.compute_fit( yf, cost_x, cost_y, x, y, F );
-    Numeric runtime = oem.get_time();
 
     // Finalize log output.
     if (verbose)
@@ -890,9 +863,6 @@ Index oem_linear_nform( Vector& x,
         log_step_li( cout, 1, cost_y+cost_x, cost_x, cost_y );
         log_finalize_li( cout );
       }
-
-    if (runtime >= 0.0)
-        cout << "Elapsed time: " << runtime << endl << endl;
 
     // Return convergence status
     return oem.get_error();
@@ -1009,59 +979,6 @@ ConstVectorView NonLinearOEM::get_x_norm()
     return x_norm;
 }
 
-//! Start stop watch.
-/*!
-  Starts stop watch for OEM computation. Works only if OpenMP is available.
- */
-void NonLinearOEM::start_time()
-{
-    #ifdef OMP
-    runtime = 0.0;
-    time_stamp = omp_get_wtime();
-    #endif
-}
-
-//! Record time.
-/*!
-  If the stop watch is currently active, mark_time() stops the watch and adds
-  the elapsed time since the starting of the stop watch or the last call to
-  mark_time() to the measured time.
- */
-void NonLinearOEM::mark_time()
-{
-    #ifdef OMP
-    if (time_stamp >= 0.0)
-    {
-        runtime += omp_get_wtime() - time_stamp;
-        time_stamp = -1.0;
-    }
-    else
-    {
-        time_stamp = omp_get_wtime();
-    }
-    #endif
-}
-
-//! Return elapsed time.
-/*!
-  Stops the stop watch if it was running and returns the current measured time.
-
-  \return The total measured time.
-*/
-Numeric NonLinearOEM::get_time()
-{
-    #ifdef OMP
-    if (time_stamp >= 0.0)
-    {
-        runtime += omp_get_wtime() - time_stamp;
-        time_stamp = -1.0;
-    }
-
-    return runtime;
-    #endif
-    return -1.0;
-}
-
 //! Perform OEM computation.
 /*!
   Computes the Bayesian optimal estimator for the state vector x, given a
@@ -1114,6 +1031,9 @@ Index NonLinearOEM::compute( Vector &x,
     compute_gain_matrix( x );
     G_ = G;
 
+    if (verbose)
+        cout << timer << endl;
+
     return err;
 }
 
@@ -1133,6 +1053,14 @@ void NonLinearOEM::gauss_newton( Vector &x,
                                  ConstVectorView y,
                                  bool verbose )
 {
+
+    Index t1, t2, t3, t4;
+    t1 = timer.add_timer( "Gauss-Newton Iteration" );
+    t2 = timer.add_timer( "Matrix Matrix Mult." );
+    t3 = timer.add_timer( "Linear System" );
+    t4 = timer.add_timer( "Jacobian Evaluation" );
+    timer.mark( t1 );
+
     Numeric di2 = -1.0;
 
     cost_x = 0.0; cost_y = 0.0;
@@ -1142,12 +1070,11 @@ void NonLinearOEM::gauss_newton( Vector &x,
 
     // Initialize log output.
     if (verbose)
-      {
+    {
           log_init_gn( cout, tol, max_iter );
-      }
+    }
 
     // Start stop watch.
-    start_time();
 
     // Set the starting vector.
     x = xa;
@@ -1155,8 +1082,9 @@ void NonLinearOEM::gauss_newton( Vector &x,
     while ( (!conv) && (iter < max_iter) )
     {
         // Compute Jacobian and y_i.
-        mark_time();
 
+        timer.mark( t1 );
+        timer.mark( t4 );
         try
         {
             F.evaluate_jacobian( yi, J, x);
@@ -1166,11 +1094,15 @@ void NonLinearOEM::gauss_newton( Vector &x,
             err = 9;
             return void();
         }
+        timer.mark( t1 );
+        timer.mark( t4 );
 
-        mark_time();
 
+        timer.mark( t2 );
         mult( tmp_nm_1, transpose(J), SeInv );
         mult( tmp_nn_1, tmp_nm_1, J );
+        timer.mark( t2 );
+
         tmp_nn_1 += SxInv;
 
         if (x_norm_set)
@@ -1205,7 +1137,9 @@ void NonLinearOEM::gauss_newton( Vector &x,
         if ( verbose )
             log_step_gn( cout, iter, cost_x + cost_y, cost_x, cost_y, di2 );
 
+        timer.mark( t3 );
         solve( dx, tmp_nn_1, tmp_n_1 );
+        timer.mark( t3 );
 
         if (x_norm_set)
             dx *= x_norm;
@@ -1227,7 +1161,6 @@ void NonLinearOEM::gauss_newton( Vector &x,
         err = 1;
 
     // Stop stop watch.
-    mark_time();
 
     // Finalize log output.
     if ( verbose )
@@ -1268,15 +1201,19 @@ void NonLinearOEM::levenberg_marquardt( Vector &x,
                                         ConstVectorView y,
                                         bool verbose )
 {
+    // Setup timers.
+    Index t1, t2, t3, t4;
+    t1 = timer.add_timer( "Levenberg-Marquardt Iteration" );
+    t2 = timer.add_timer( "Matrix Matrix Mult." );
+    t3 = timer.add_timer( "Linear System" );
+    t4 = timer.add_timer( "Jacobian Evaluation" );
+    timer.mark( t1 );
 
     Numeric cost_old, cost, di2;
     di2 = -1.0;
 
     if ( verbose )
         log_init_lm( cout, tol, max_iter );
-
-    // Start stop watch.
-    start_time();
 
     // Set starting vector.
     x = xa;
@@ -1290,7 +1227,8 @@ void NonLinearOEM::levenberg_marquardt( Vector &x,
     while ( (!conv) && (iter < max_iter) && (gamma <= ga_max) )
     {
         // Compute Jacobian and y_i.
-        mark_time();
+        timer.mark( t1 );
+        timer.mark( t4 );
         try
         {
             F.evaluate_jacobian( yi, J, x);
@@ -1300,10 +1238,13 @@ void NonLinearOEM::levenberg_marquardt( Vector &x,
             err = 9;
             return void();
         }
-        mark_time();
+        timer.mark( t1 );
+        timer.mark( t4 );
 
+        timer.mark(t2);
         mult( tmp_nm_1, transpose(J), SeInv );
         mult( tmp_nn_1, tmp_nm_1, J );
+        timer.mark(t2);
 
         tmp_n_1 = x;
         tmp_n_1 -= xa;
@@ -1341,7 +1282,10 @@ void NonLinearOEM::levenberg_marquardt( Vector &x,
             // This vector is used to test for convergence later.
             // See eqn. (5.31).
 
+            timer.mark( t3 );
             solve( dx, tmp_nn_2, tmp_n_1 );
+            timer.mark( t3 );
+
             if (x_norm_set)
                 dx *= x_norm;
             xnew = x;
@@ -1349,8 +1293,9 @@ void NonLinearOEM::levenberg_marquardt( Vector &x,
 
             // Evaluate cost function.
 
-            mark_time();
 
+            timer.mark(t1);
+            timer.mark(t4);
             try
             {
                 F.evaluate( yi, xnew );
@@ -1360,8 +1305,9 @@ void NonLinearOEM::levenberg_marquardt( Vector &x,
                 err = 9;
                 return void();
             }
+            timer.mark(t1);
+            timer.mark(t4);
 
-            mark_time();
 
             oem_cost_x( cost_x, xnew, xa, SxInv, (Numeric) m);
             oem_cost_y( cost_y, y, yi, SeInv, (Numeric) m);
@@ -1425,13 +1371,15 @@ void NonLinearOEM::levenberg_marquardt( Vector &x,
     if ( gamma >= ga_max )
         err = 2;
 
-    // Stop stop watch.
-    mark_time();
+    timer.mark( t1 );
 
     // Final log output.
     if ( verbose )
+    {
+        cost = cost_x + cost_y;
         log_finalize_lm( cout, conv, cost, cost_x, cost_y,
                          gamma, ga_max, iter, max_iter );
+    }
 }
 
 //! Compute fit.
@@ -1506,7 +1454,14 @@ Index NonLinearOEM::compute_fit( Vector &yf,
 */
 void NonLinearOEM::compute_gain_matrix( Vector& x )
 {
+    Index t1, t2, t3, t4;
+    t1 = timer.add_timer( "Gain Matrix Computation" );
+    t2 = timer.add_timer( "Matrix Matrix Mult." );
+    t3 = timer.add_timer( "Linear System" );
+    t4 = timer.add_timer( "Jacobian Evaluation" );
+    timer.mark( t1 );
 
+    timer.mark( t4 );
     try
     {
         F.evaluate_jacobian( tmp_m_1, J, x);
@@ -1516,9 +1471,13 @@ void NonLinearOEM::compute_gain_matrix( Vector& x )
         err = 9;
         return void();
     }
+    timer.mark( t4 );
 
+    timer.mark( t2 );
     mult( tmp_nm_1, transpose(J), SeInv );
     mult( tmp_nn_1, tmp_nm_1, J );
+    timer.mark( t2 );
+
     tmp_nn_1 += SxInv;
 
     if (x_norm_set)
@@ -1527,8 +1486,15 @@ void NonLinearOEM::compute_gain_matrix( Vector& x )
         scale_columns( tmp_nm_1, tmp_nm_1, x_norm );
     }
 
+    timer.mark( t3 );
     inv( tmp_nn_2, tmp_nn_1 );
+    timer.mark( t3 );
+
+    timer.mark( t2 );
     mult( G, tmp_nn_2, tmp_nm_1 );
+    timer.mark( t2 );
+
+    timer.mark( t1 );
 }
 
 //! Gauss-Newton non-linear OEM using precomputed inverses, n-form.
@@ -1605,16 +1571,11 @@ Index oem_gauss_newton( Vector& x,
     if ( x_norm.nelem() == n )
         oem.set_x_norm( x_norm );
 
-    oem.start_time();
     oem.compute( x, G, y, verbose );
     oem.compute_fit( yf, cost_x, cost_y, x, y );
 
     J = oem.get_jacobian();
 
-    Numeric runtime = oem.get_time();
-
-    if (runtime >= 0.0)
-        cout << "Elapsed time: " << runtime << endl << endl;
 
     iter = oem.iterations();
 
@@ -1719,17 +1680,12 @@ Index oem_levenberg_marquardt( Vector& x,
     if ( x_norm.nelem() == n )
         oem.set_x_norm( x_norm );
 
-    oem.start_time();
     oem.compute( x, G, y, verbose );
     oem.compute_fit( yf, cost_x, cost_y, x, y );
-    Numeric runtime = oem.get_time();
 
     J = oem.get_jacobian();
 
     iter = oem.iterations();
-
-    if (runtime >= 0.0)
-        cout << "Elapsed time: " << runtime << endl << endl;
 
     return oem.get_error();
 

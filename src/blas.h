@@ -41,15 +41,51 @@
   \param[in] ldc Pointer to an int variable containing the number rows of C.
  */
 extern "C" void dgemm_( char *transa,
-			char *transb,
-			int *m,
-			int *n,
-			int *k,
-			double *alpha,
-			double *A,
-			int *lda,
-			double *B,
-			int *ldb,
-			double *beta,
-			double *C,
-			int *ldc );
+                        char *transb,
+                        int *m,
+                        int *n,
+                        int *k,
+                        double *alpha,
+                        double *A,
+                        int *lda,
+                        double *B,
+                        int *ldb,
+                        double *beta,
+                        double *C,
+                        int *ldc );
+
+//! Matrix-Vector Multiplication
+/*!
+  Perform one of the matrix-vector operations
+
+      y = alpha * (A x) + beta * y
+      y = alpha * (A^T x) + beta * y
+
+  where * denotes multiplication by a scalar and A x matrix-vector
+  multiplication.
+
+  \param trans If trans points to the char 'N' or 'n', the standard
+  matrix-vector product (A x) is computed. If trans points to 'C','c','T'
+  or 't', the matrix-vector product (A^T x) is computed.
+  \param m Number of rows of the matrix A.
+  \param n Number of columns of the matrix A.
+  \param alpha The scalar alpha.
+  \param A Pointer to the matrix A.
+  \param LDA The leading dimension of A.
+  \param x Pointer to the vector x.
+  \param incx The stride of the vector x.
+  \param beta The scalar beta.
+  \param y Pointer to the vector y.
+  \param incy The stride of the vector y.
+*/
+extern "C" void dgemv_( char *trans,
+                        int *m,
+                        int *n,
+                        double *alpha,
+                        double *A,
+                        int *LDA,
+                        double *x,
+                        int *incx,
+                        double *beta,
+                        double *y,
+                        int *incy );
