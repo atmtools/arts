@@ -34,9 +34,9 @@
 
 // LU decomposition
 void
-ludcmp( Matrix &LU,
+ludcmp( Matrix &LU, 
         ArrayOfIndex& indx,
-        ConstMatrixView A );
+        ConstMatrixView A); 
 
 // LU backsubstitution
 void

@@ -52,8 +52,8 @@
   \param A Input: Matrix for which the LU decomposition is performed
 */
 void ludcmp( Matrix &LU,
-             ArrayOfIndex& indx,
-             ConstMatrixView A )
+             ArrayOfIndex& indx, 
+             ConstMatrixView A ) 
 {
 
   // Assert that A is quadratic.

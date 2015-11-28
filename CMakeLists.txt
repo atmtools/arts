@@ -153,13 +153,6 @@ if (NOT BLAS_FOUND)
   message (FATAL_ERROR "No BLAS library found. Please install it.")
 endif (NOT BLAS_FOUND)
 
-########## LAPACK support #########
-
-include (FindLAPACK)
-if (NOT LAPACK_FOUND)
-  message (FATAL_ERROR "No LAPACK library found. Please install it.")
-endif (NOT LAPACK_FOUND)
-
 ########## NetCDF support #########
 include (FindNetCDF)
 

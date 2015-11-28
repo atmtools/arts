@@ -1,7 +1,18 @@
 2015-11-28  Simon Pfreundschuh   <simonpf@chalmers.se>
 
+	* arts-2-3-371
+	
+	* CMakeLists.txt: Removed LAPACK requirement.
+
+	* src/lin_alg.*: Reverted ludcmp(...), lubacksub(...), and
+	inv(...) to not use LAPACK since Hudson build failed.
+
+2015-11-28  Simon Pfreundschuh   <simonpf@chalmers.se>
+
 	* arts-2-3-370
 	
+	* CMakeLists.txt: Added LAPACK requirement.
+
 	* src/blas.h: Added declaration for dgemv_
 
 	* src/lapack.h: Header file with LAPACK function declarations.
@@ -30,7 +41,6 @@
 
 	* src/timings.*: Timings class that holds a set of timers to simplify
 	profiling.
-	
 
 2015-11-26  Richard Larsson   <ric.larsson@gmail.com>
 
