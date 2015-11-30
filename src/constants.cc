@@ -376,6 +376,7 @@ extern const String POLYFIT_MAINTAG     = "Polynomial baseline fit";
 extern const String SINEFIT_MAINTAG     = "Sinusoidal baseline fit";
 
 extern const String TEMPERATURE_MAINTAG = "Atmospheric temperatures";
+extern const String NLTE_MAINTAG        = "NLTE temperatures";
 
 extern const String WIND_MAINTAG        = "Wind";
 extern const String MAGFIELD_MAINTAG    = "Magnetic field";

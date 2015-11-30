@@ -1715,6 +1715,7 @@ void get_ppath_pmat(
         ArrayOfIndex&   lte,
         Tensor5&        abs_per_species,
         Tensor5&        dppath_ext_dx,
+        Tensor4&        dppath_nlte_source_dx,
   const Agenda&         propmat_clearsky_agenda,
   const ArrayOfRetrievalQuantity& jacobian_quantities,
   const Ppath&          ppath,
@@ -1756,6 +1757,8 @@ void get_ppath_pmat(
       abs_per_species.resize( nisp, nf, stokes_dim, stokes_dim, np ); 
       nq?dppath_ext_dx.resize(nq, nf, stokes_dim, stokes_dim, np ):
          dppath_ext_dx.resize( 0,  0,          0,          0,  0 );
+      nq?dppath_nlte_source_dx.resize(nq, nf, stokes_dim, np):
+         dppath_nlte_source_dx.resize( 0,  0,          0,  0);
     } 
   catch (std::bad_alloc x) 
     {
@@ -1838,6 +1841,9 @@ void get_ppath_pmat(
                       for( Index iq=0; iq<nq; iq++ )
                         {
                           dppath_ext_dx(iq,i1,i2,i3,ip) = dpropmat_clearsky_dx[iq](i1,i2,i3);
+                          if(i3==0)
+                            dppath_nlte_source_dx(iq,i1,i2,ip) = //FIXME: nlte_dx_dsource_dx must be multiplied by frequency terms for wind...
+                            dnlte_dx_source[iq](i1,i2) + nlte_dx_dsource_dx[iq](i1,i2);
                         }
                       
                     }

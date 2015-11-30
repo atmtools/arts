@@ -211,7 +211,7 @@ void iyCloudRadar(
   Vector    ppath_p, ppath_t;
   Matrix    ppath_vmr, ppath_pnd, ppath_wind, ppath_mag, ppath_f, ppath_t_nlte;
   Tensor3   dummy_ppath_nlte_source;
-  Tensor4   ppath_ext, trans_partial, trans_cumulat, pnd_ext_mat;
+  Tensor4   ppath_ext, trans_partial, trans_cumulat, pnd_ext_mat, dummy_dppath_nlte_dx;
   Tensor5   dummy_abs_per_species, dummy_dppath_ext_dx;
   Vector    scalar_tau;
   ArrayOfIndex clear2cloudbox, dummy_lte;
@@ -228,7 +228,8 @@ void iyCloudRadar(
       get_ppath_f(       ppath_f, ppath, f_grid,  atmosphere_dim, 
                          rte_alonglos_v, ppath_wind );
       get_ppath_pmat(    ws, ppath_ext, dummy_ppath_nlte_source, dummy_lte, 
-                         dummy_abs_per_species, dummy_dppath_ext_dx,
+                         dummy_abs_per_species, 
+                         dummy_dppath_ext_dx, dummy_dppath_nlte_dx,
                          propmat_clearsky_agenda, ArrayOfRetrievalQuantity(0), ppath, 
                          ppath_p, ppath_t, ppath_t_nlte, ppath_vmr, ppath_f, ppath_mag,
                          f_grid, stokes_dim, ArrayOfIndex(0) );

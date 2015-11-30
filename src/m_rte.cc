@@ -389,7 +389,7 @@ void iyEmissionStandard(
   // Attenuation vars
   Tensor4   ppath_ext;
   Tensor5   abs_per_species, dppath_ext_dx, dtrans_partial_dx_above, dtrans_partial_dx_below;
-  Tensor4   trans_partial, trans_cumulat;
+  Tensor4   trans_partial, trans_cumulat, dppath_nlte_source_dx;
   Tensor3   ppath_nlte_source;
   Matrix    ppath_blackrad;
   Vector    scalar_tau;
@@ -406,7 +406,7 @@ void iyEmissionStandard(
       get_ppath_f(        ppath_f, ppath, f_grid,  atmosphere_dim, 
                           rte_alonglos_v, ppath_wind );
       get_ppath_pmat(     ws, ppath_ext, ppath_nlte_source, lte, abs_per_species, 
-                          dppath_ext_dx,
+                          dppath_ext_dx, dppath_nlte_source_dx, 
                           propmat_clearsky_agenda, jacobian_quantities, ppath, 
                           ppath_p, ppath_t, ppath_t_nlte, ppath_vmr, ppath_f, 
                           ppath_mag, f_grid, stokes_dim, iaps );
@@ -533,12 +533,14 @@ void iyEmissionStandard(
               if( jac_is_t[iq] ) 
                 { 
                   Tensor5 dummy_abs_per_species,dummy_dppath_ext_dx;
+                  Tensor4 dummy_dppath_nlte_source_dx;
                   Tensor3 dummy_ppath_nlte_source;
                   ArrayOfIndex dummy_lte;
                   Vector t2 = ppath_t;   t2 += dt;
                   if(jac_is_t[iq]==JAC_IS_T_SEMI_ANALYTIC)
                     get_ppath_pmat( ws, ppath_ext_dt, dummy_ppath_nlte_source,
-                                    dummy_lte, dummy_abs_per_species, dummy_dppath_ext_dx,
+                                    dummy_lte, dummy_abs_per_species, 
+                                    dummy_dppath_ext_dx, dummy_dppath_nlte_source_dx,
                                     propmat_clearsky_agenda, ArrayOfRetrievalQuantity(0), ppath, ppath_p,
                                     t2, ppath_t_nlte, ppath_vmr, ppath_f,
                                     ppath_mag, f_grid, 
@@ -564,6 +566,7 @@ void iyEmissionStandard(
                       "in an incompatible manners with some other code.");
                   
                   Tensor5 dummy_abs_per_species,dummy_dppath_ext_dx;
+                  Tensor4 dummy_dppath_nlte_source_dx;
                   Tensor3 dummy_ppath_nlte_source;
                   ArrayOfIndex dummy_lte;
                   Matrix f2, w2 = ppath_wind;   w2(this_field,joker) += dw;
@@ -571,7 +574,8 @@ void iyEmissionStandard(
                                   rte_alonglos_v, w2 );
                   get_ppath_pmat( ws, ppath_ext_dw[this_field], 
                                   dummy_ppath_nlte_source,
-                                  dummy_lte, dummy_abs_per_species, dummy_dppath_ext_dx,
+                                  dummy_lte, dummy_abs_per_species, 
+                                  dummy_dppath_ext_dx, dummy_dppath_nlte_source_dx,
                                   propmat_clearsky_agenda, ArrayOfRetrievalQuantity(0), ppath, ppath_p, 
                                   ppath_t, ppath_t_nlte, ppath_vmr, f2, 
                                   ppath_mag, f_grid,
@@ -594,12 +598,14 @@ void iyEmissionStandard(
                         "in an incompatible manners with some other code.");
                     
                   Tensor5 dummy_abs_per_species, dummy_dppath_ext_dx;
+                  Tensor4 dummy_dppath_nlte_source_dx;
                   Tensor3 dummy_ppath_nlte_source;
                   ArrayOfIndex dummy_lte;
                   Matrix m2 = ppath_mag;   m2(this_field,joker) += dm;
                   get_ppath_pmat( ws, ppath_ext_dm[this_field], 
                                   dummy_ppath_nlte_source,
-                                  dummy_lte, dummy_abs_per_species, dummy_dppath_ext_dx,
+                                  dummy_lte, dummy_abs_per_species, 
+                                  dummy_dppath_ext_dx, dummy_dppath_nlte_source_dx,
                                   propmat_clearsky_agenda, ArrayOfRetrievalQuantity(0), ppath, ppath_p, 
                                   ppath_t, ppath_t_nlte, ppath_vmr, ppath_f, 
                                   m2, f_grid,
@@ -680,14 +686,27 @@ void iyEmissionStandard(
 
           //### jacobian part #################################################
           if( j_analytical_do )
-            {
+            { 
               // Calculate (si-bi)
               Matrix sibi(nf,ns);
+              
+              // nlte terms
+              Matrix nlte_inv(ns,ns);
+              Vector nlte_sibi(ns,0.0);
+              
               for( Index iv=0; iv<nf; iv++ )
                 {
-                  sibi(iv,0) = iy(iv,0) - bbar[iv];
+                  if(nonlte)
+                  {
+                      inv(nlte_inv,extbar(iv,joker,joker));
+                      mult(nlte_sibi,nlte_inv,sourcebar(iv,joker));
+                  }
+                  
+                  sibi(iv,0) = iy(iv,0) - bbar[iv] - nlte_sibi[0];
                   for( Index is=1; is<ns; is++ )
-                    { sibi(iv,is) = iy(iv,is); }
+                    { 
+                        sibi(iv,is) = iy(iv,is) - nlte_sibi[is];
+                    }
                 }
 
               // Loop quantities
@@ -748,6 +767,23 @@ void iyEmissionStandard(
                                       const Numeric z = x * iy(iv,is); 
                                       diy_dpath[iq](ip  ,iv,is) += z * dkdn1;
                                       diy_dpath[iq](ip+1,iv,is) += z * dkdn2;
+                                    }
+                                    
+                                    if(nonlte)
+                                    {
+                                        const Numeric v = 0.5 * 
+                                        trans_cumulat(iv,0,0,ip) *
+                                        ( 1.0 - trans_partial(iv,0,0,ip));
+                                        
+                                        Numeric invK = 1.0/ppath_ext(iv,0,0,ip  );
+                                        diy_dpath[iq](ip  ,iv,0) += v*
+                                        (- invK*dkdn1*invK * ppath_nlte_source(iv,0,ip  ) +
+                                        invK*dppath_nlte_source_dx(this_ppd_q,iv,0,ip  ));
+                                        
+                                        invK = 1.0/ppath_ext(iv,0,0,ip+1);
+                                        diy_dpath[iq](ip+1,iv,0) += v*
+                                        (- invK*dkdn2*invK * ppath_nlte_source(iv,0,ip+1) +
+                                        invK*dppath_nlte_source_dx(this_ppd_q,iv,0,ip+1));
                                     }
                                 }
 
@@ -813,6 +849,42 @@ void iyEmissionStandard(
                                   mult( x, dtdx, sibi(iv,joker) );
                                   mult( y, trans_cumulat(iv,joker,joker,ip), x );
                                   diy_dpath[iq](ip+1,iv,joker) += y;
+                                  
+                                  if(nonlte)
+                                  {
+                                      Matrix invK(stokes_dim,stokes_dim),
+                                             mat1(stokes_dim,stokes_dim),
+                                             unit(stokes_dim,stokes_dim);
+                                      Vector vec1(stokes_dim),
+                                             vec2(stokes_dim);
+                                      
+                                      id_mat(unit);
+                                      unit-=trans_partial(iv,joker,joker,ip);
+                                      
+                                      inv(invK,ppath_ext(iv,joker,joker,ip  ));
+                                      mult(mat1,dppath_ext_dx(this_ppd_q,iv,joker,joker,ip  ),invK);
+                                      
+                                      mult(vec1,mat1,ppath_nlte_source(iv,joker,ip  ));
+                                      vec1-=dppath_nlte_source_dx(this_ppd_q,iv,joker,ip  );
+                                      vec1*=-0.5;
+                                      
+                                      mult(vec2,unit,vec1);
+                                      mult(vec1,trans_cumulat(iv,joker,joker,ip),vec2);
+                                      
+                                      diy_dpath[iq](ip  ,iv,joker) += vec1;
+                                      
+                                      inv(invK,ppath_ext(iv,joker,joker,ip+1));
+                                      mult(mat1,dppath_ext_dx(this_ppd_q,iv,joker,joker,ip+1),invK);
+                                      
+                                      mult(vec1,mat1,ppath_nlte_source(iv,joker,ip+1));
+                                      vec1-=dppath_nlte_source_dx(this_ppd_q,iv,joker,ip+1);
+                                      vec1*=-0.5;
+                                      
+                                      mult(vec2,unit,vec1);
+                                      mult(vec1,trans_cumulat(iv,joker,joker,ip),vec2);
+                                      
+                                      diy_dpath[iq](ip+1,iv,joker) += vec1;
+                                  }
                                 }
                             }
                         }
@@ -867,6 +939,23 @@ void iyEmissionStandard(
                                       const Numeric z = x * iy(iv,is); 
                                       diy_dpath[iq](ip  ,iv,is) += z * dkdx1;
                                       diy_dpath[iq](ip+1,iv,is) += z * dkdx2;
+                                    }
+                                    
+                                    if(nonlte)
+                                    {
+                                        const Numeric v = 0.5 * 
+                                        trans_cumulat(iv,0,0,ip) *
+                                        ( 1.0 - trans_partial(iv,0,0,ip));
+                                        
+                                        Numeric invK = 1.0/ppath_ext(iv,0,0,ip  );
+                                        diy_dpath[iq](ip  ,iv,0) += v*
+                                        (- invK*dkdx1*invK * ppath_nlte_source(iv,0,ip  ) +
+                                        invK*dppath_nlte_source_dx(this_ppd_q,iv,0,ip  ));
+                                        
+                                        invK = 1.0/ppath_ext(iv,0,0,ip+1);
+                                        diy_dpath[iq](ip+1,iv,0) += v*
+                                        (- invK*dkdx2*invK * ppath_nlte_source(iv,0,ip+1) +
+                                        invK*dppath_nlte_source_dx(this_ppd_q,iv,0,ip+1));
                                     }
                                 }
 
@@ -927,6 +1016,42 @@ void iyEmissionStandard(
                                   mult( x, dtdx, sibi(iv,joker) );
                                   mult( y, trans_cumulat(iv,joker,joker,ip), x );
                                   diy_dpath[iq](ip+1,iv,joker) += y;
+                                  
+                                  if(nonlte)
+                                  {
+                                      Matrix invK(stokes_dim,stokes_dim),
+                                             mat1(stokes_dim,stokes_dim),
+                                             unit(stokes_dim,stokes_dim);
+                                      Vector vec1(stokes_dim),
+                                             vec2(stokes_dim);
+                                      
+                                      id_mat(unit);
+                                      unit-=trans_partial(iv,joker,joker,ip);
+                                      
+                                      inv(invK,ppath_ext(iv,joker,joker,ip  ));
+                                      mult(mat1,dppath_ext_dx(this_ppd_q,iv,joker,joker,ip  ),invK);
+                                      
+                                      mult(vec1,mat1,ppath_nlte_source(iv,joker,ip  ));
+                                      vec1-=dppath_nlte_source_dx(this_ppd_q,iv,joker,ip  );
+                                      vec1*=-0.5;
+                                      
+                                      mult(vec2,unit,vec1);
+                                      mult(vec1,trans_cumulat(iv,joker,joker,ip),vec2);
+                                      
+                                      diy_dpath[iq](ip  ,iv,joker) += vec1;
+                                      
+                                      inv(invK,ppath_ext(iv,joker,joker,ip+1));
+                                      mult(mat1,dppath_ext_dx(this_ppd_q,iv,joker,joker,ip+1),invK);
+                                      
+                                      mult(vec1,mat1,ppath_nlte_source(iv,joker,ip+1));
+                                      vec1-=dppath_nlte_source_dx(this_ppd_q,iv,joker,ip+1);
+                                      vec1*=-0.5;
+                                      
+                                      mult(vec2,unit,vec1);
+                                      mult(vec1,trans_cumulat(iv,joker,joker,ip),vec2);
+                                      
+                                      diy_dpath[iq](ip+1,iv,joker) += vec1;
+                                  }
                                 }
                             }
                         }
@@ -973,6 +1098,20 @@ void iyEmissionStandard(
                                   diy_dpath[iq](ip+1,iv,0) += v/dt * (
                                                      ppath_blackrad_dt(iv,ip+1) -
                                                      ppath_blackrad(iv,ip+1) );
+                                  
+                                  if(nonlte)
+                                  {
+                                      Numeric invK = 1.0/ppath_ext(iv,0,0,ip  );
+                                      diy_dpath[iq](ip  ,iv,0) += v*
+                                      (- invK*dkdt1*invK * ppath_nlte_source(iv,0,ip  ) +
+                                      invK*dppath_nlte_source_dx(this_ppd_q,iv,0,ip  ));
+                                      
+                                      invK = 1.0/ppath_ext(iv,0,0,ip+1);
+                                      diy_dpath[iq](ip+1,iv,0) += v*
+                                      (- invK*dkdt2*invK * ppath_nlte_source(iv,0,ip+1) +
+                                      invK*dppath_nlte_source_dx(this_ppd_q,iv,0,ip+1));
+                                  }
+                                  
                                   // Zero for higher Stokes
                                   //
                                   // The terms associated with Delta-s:
@@ -1069,6 +1208,31 @@ void iyEmissionStandard(
                                   mult( y, trans_cumulat(iv,joker,joker,ip), 
                                                                            x );
                                   diy_dpath[iq](ip,iv,joker) += y; 
+                                  
+                                  if(nonlte)
+                                  {
+                                      Matrix invK(stokes_dim,stokes_dim),
+                                             mat1(stokes_dim,stokes_dim),
+                                             unit(stokes_dim,stokes_dim);
+                                      Vector vec1(stokes_dim),
+                                             vec2(stokes_dim);
+                                      
+                                      id_mat(unit);
+                                      unit-=trans_partial(iv,joker,joker,ip);
+                                      
+                                      inv(invK,ppath_ext(iv,joker,joker,ip  ));
+                                      mult(mat1,dppath_ext_dx(this_ppd_q,iv,joker,joker,ip  ),invK);
+                                      
+                                      mult(vec1,mat1,ppath_nlte_source(iv,joker,ip  ));
+                                      vec1-=dppath_nlte_source_dx(this_ppd_q,iv,joker,ip  );
+                                      vec1*=-0.5;
+                                      
+                                      mult(vec2,unit,vec1);
+                                      mult(vec1,trans_cumulat(iv,joker,joker,ip),vec2);
+                                      
+                                      diy_dpath[iq](ip  ,iv,joker) += vec1;
+                                  }
+                                  
                                   // Some for ip+1
                                   dbdt = 0.5/dt * ( ppath_blackrad_dt(iv,ip+1) -
                                                     ppath_blackrad(iv,ip+1) );
@@ -1076,7 +1240,33 @@ void iyEmissionStandard(
                                   for( Index is=1; is<ns; is++ ) 
                                     { x[is] = -trans_partial(iv,is,0,ip)*dbdt; }
                                   mult( y, trans_cumulat(iv,joker,joker,ip), x );
-                                  diy_dpath[iq](ip+1,iv,joker) += y; 
+                                  diy_dpath[iq](ip+1,iv,joker) += y;
+                                  
+                                  if(nonlte)
+                                  {
+                                      Matrix invK(stokes_dim,stokes_dim),
+                                             mat1(stokes_dim,stokes_dim),
+                                             unit(stokes_dim,stokes_dim);
+                                      Vector vec1(stokes_dim),
+                                             vec2(stokes_dim);
+                                      
+                                      id_mat(unit);
+                                      unit-=trans_partial(iv,joker,joker,ip);
+                                      
+                                      inv(invK,ppath_ext(iv,joker,joker,ip+1));
+                                      mult(mat1,dppath_ext_dx(this_ppd_q,iv,joker,joker,ip+1),invK);
+                                      
+                                      mult(vec1,mat1,ppath_nlte_source(iv,joker,ip+1));
+                                      vec1-=dppath_nlte_source_dx(this_ppd_q,iv,joker,ip+1);
+                                      vec1*=-0.5;
+                                      
+                                      mult(vec2,unit,vec1);
+                                      mult(vec1,trans_cumulat(iv,joker,joker,ip),vec2);
+                                      
+                                      diy_dpath[iq](ip+1,iv,joker) += vec1;
+                                  }
+                                  
+                                  
                                   //
                                   // The terms associated with Delta-s:
                                   if( jacobian_quantities[iq].Subtag() == 

@@ -235,6 +235,7 @@ void get_ppath_pmat(
         ArrayOfIndex&   lte,
         Tensor5&        abs_per_species,
         Tensor5&        dppath_ext_dx,
+        Tensor4&        dppath_nlte_source_dx,
   const Agenda&         propmat_clearsky_agenda,
   const ArrayOfRetrievalQuantity& jacobian_quantities,
   const Ppath&          ppath,

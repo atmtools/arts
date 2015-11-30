@@ -468,7 +468,7 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix&  partials_attenuati
             // That's it!  Note that the output should be strongly correlated to Temperature and Pressure.
             // Also note that to do the fit for the catalog gamma is somewhat different than this
         }
-        else if(flag_partials(ii)==JQT_level_vibrational_temperature)
+        else if(flag_partials(ii)==JQT_nlte_temperature)
         {
             bool lower, upper;
             line_match_level(lower, upper, flag_partials.jac()[ii].QuantumIdentity(), qnr.Lower(), qnr.Upper());

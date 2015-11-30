@@ -1,3 +1,43 @@
+2015-11-30  Richard Larsson   <ric.larsson@gmail.com>
+
+	* arts-2-3-375
+	
+	Added NLTE temperatures to Jacobian calculations.  Will just throw
+	an error for now.  This is fixed when we have moved some or most
+	of the jacobian calculations away from iy* functions.  (The code
+	in m_rte.cc is there so we do not miss something in the future.
+	The code has not been thouroughly tested and is not expected to
+	work without some more changes.  For instance, Wind does not work
+	now since frequency derivative of the Planck function is never 
+	multiplied with the wind/frequency derivative.)
+	
+	* rte.{cc,h}:  Now returns dppath_nlte_source_dx from get_ppath_pmat.
+	This serves as the derivative with regards to any parameter for Jn 
+	in iy = t*iy + (1-t)* ( B + inv(extbar)*Jn ) from emission_rtstep.
+	
+	* src/m_{cloudradar,fos,transmitter}.cc:  Gets dummy nlte variable.
+	
+	* src/{partial_derivatives.{cc,h},constants.cc}:  Set NLTE_MAINTAG
+	and fixed some keywording.
+	
+	* src/m_jacobian.cc:  Added jacobianAddNLTETemperature.  Will fail
+	in m_rte.cc due to now allowing NLTE in calculations with jacobian
+	yet.
+	
+	* m_rte.cc:  Changes in iyEmissionStandard.  sibi variable now 
+	calculated with nlte effects considered.  sibi is the term
+	that is multiplied with dt/dx, which means -inv(extbar)*Jn 
+	following emission_rtstep.  Also in each of the different
+	jacobian calculations, the same term of 
+	T0 (1-t) d/dx(inv(extbar)*Jn) is added, where T0 is the cumulative
+	transmission to that point.  That is with this equation
+	d/dx(inv(extbar)*Jn)=inv(extbar)(dJn/dx-dextbar/dx inv(extbar)Jn)
+	[note that order matters for matrix multiplications].  The 
+	implementation should be identical to the implementation for the 
+	B-term as has been done for temperature jacobian since before.
+	I have to add this term to all jacobians since source is a 
+	function of more inputs under NLTE.
+
 2015-11-30  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-374

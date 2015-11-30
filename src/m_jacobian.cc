@@ -67,6 +67,7 @@ extern const String POLYFIT_MAINTAG;
 extern const String SCATSPECIES_MAINTAG;
 extern const String SINEFIT_MAINTAG;
 extern const String TEMPERATURE_MAINTAG;
+extern const String NLTE_MAINTAG;
 extern const String WIND_MAINTAG;
 extern const String MAGFIELD_MAINTAG;
 extern const String PROPMAT_SUBSUBTAG;
@@ -3839,3 +3840,71 @@ void jacobianAddCatalogParameters(
         }
     }
 }  
+
+
+//----------------------------------------------------------------------------
+// NLTE temperature:
+//----------------------------------------------------------------------------
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void jacobianAddNLTETemperature(
+    Workspace&,
+    ArrayOfRetrievalQuantity&   jq,
+    Agenda&                     jacobian_agenda,
+    const Index&                atmosphere_dim,
+    const Vector&               p_grid,
+    const Vector&               lat_grid,
+    const Vector&               lon_grid,
+    const Vector&               rq_p_grid,
+    const Vector&               rq_lat_grid,
+    const Vector&               rq_lon_grid,
+    const QuantumIdentifier&    energy_level_identity,
+    const Numeric&              dT,
+    const Verbosity&            verbosity )
+{
+    CREATE_OUT3;
+    
+    // Check that this species is not already included in the jacobian.
+    for( Index it=0; it<jq.nelem(); it++ )
+    {
+        if( jq[it].MainTag() == NLTE_MAINTAG  && 
+            jq[it].QuantumIdentity()  == energy_level_identity )
+        {
+            ostringstream os;
+            os << "The NLTE identifier:\n" << energy_level_identity<< "\nis already included in "
+            << "*jacobian_quantities*.";
+            throw std::runtime_error(os.str());
+        }
+    }
+    
+    // Check retrieval grids, here we just check the length of the grids
+    // vs. the atmosphere dimension
+    ArrayOfVector grids(atmosphere_dim);
+    {
+        ostringstream os;
+        if( !check_retrieval_grids( grids, os, p_grid, lat_grid, lon_grid,
+            rq_p_grid, rq_lat_grid, rq_lon_grid,
+            "retrieval pressure grid", 
+            "retrieval latitude grid", 
+            "retrievallongitude_grid", 
+            atmosphere_dim ) )
+            throw runtime_error(os.str());
+    }
+    
+    
+    // Create the new retrieval quantity
+    RetrievalQuantity rq;
+    rq.MainTag( NLTE_MAINTAG );
+    rq.QuantumIdentity(energy_level_identity);
+    rq.Perturbation(dT);
+    rq.Grids( grids );
+    rq.Analytical(1);
+    rq.SubSubtag(PROPMAT_SUBSUBTAG);
+    
+    // Add it to the *jacobian_quantities*
+    jq.push_back( rq );
+    
+    out3 << "  Calculations done by propagation matrix expressions.\n"; 
+    
+    jacobian_agenda.append( "jacobianCalcTemperatureFromPropmat", TokVal() );
+} 

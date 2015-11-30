@@ -24,6 +24,7 @@
 
 // Generic parameters
 extern const String TEMPERATURE_MAINTAG;
+extern const String NLTE_MAINTAG;
 extern const String WIND_MAINTAG;
 extern const String MAGFIELD_MAINTAG;
 extern const String FREQUENCY_MAINTAG;
@@ -99,7 +100,7 @@ typedef enum
     JQT_line_mixing_Yexp,
     JQT_line_mixing_Gexp,
     JQT_line_mixing_DFexp,
-    JQT_level_vibrational_temperature,
+    JQT_nlte_temperature,
     JQT_NOT_JQT
 } JacobianQuantityType;
 
@@ -442,9 +443,9 @@ public:
                         mspecies[ippdq] = -9999;//Flag for not a species...
                         ippdq++;
                     }
-                    else if(jacobian_quantities[iq].Mode() == "Vibrational Temperature")
+                    else if(jacobian_quantities[iq].Mode() == NLTE_MAINTAG)
                     {
-                        mqtype[ippdq] = JQT_level_vibrational_temperature;
+                        mqtype[ippdq] = JQT_nlte_temperature;
                         mjacobian_pos[ippdq] = iq;
                         mspecies[ippdq] = -9999;//Flag for not a species...
                         ippdq++;
@@ -522,7 +523,7 @@ public:
         {
             if( mqtype[iq]!=JQT_VMR || 
                 mqtype[iq]!=JQT_line_strength ||
-                mqtype[iq]!=JQT_level_vibrational_temperature)
+                mqtype[iq]!=JQT_nlte_temperature)
                 return false;
         }
         
