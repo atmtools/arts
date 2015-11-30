@@ -13,10 +13,7 @@
 #include "math.h"
 #include "oem.h"
 #include "stdlib.h"
-
-#ifdef OMP
-#include "omp.h"
-#endif
+#include "arts_omp.h"
 
 using std::ostream;
 using std::endl;

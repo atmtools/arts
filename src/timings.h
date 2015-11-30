@@ -9,7 +9,7 @@
 #ifndef timings_h
 #define timings_h
 
-#include "omp.h"
+#include "arts_omp.h"
 #include "arts.h"
 #include <iostream>
 

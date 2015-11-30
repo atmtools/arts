@@ -286,8 +286,7 @@ add_library (matpack STATIC
         matpackVII.cc
         )
 
-target_link_libraries( matpack ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES}
-    gfortran )
+target_link_libraries( matpack ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES} )
 
 ########### next target ###############
 
