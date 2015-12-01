@@ -1,3 +1,14 @@
+2015-12-01 Simon Pfreundschuh <simonpf@chalmers.se> 
+
+	* arts-2-3-376
+
+	* CMakeLists.txt: Added LAPACK requirement
+
+	* src/CMakeLists.txt: Removed gfortran dependence for test_linalg
+
+	* lin_alg.cc: LAPACK bindings for ludcmp(...), lubacksub(...),
+	  and inv(...).
+
 2015-11-30  Richard Larsson   <ric.larsson@gmail.com>
 
 	* arts-2-3-375

@@ -342,7 +342,7 @@ add_executable (test_linalg
   test_linalg.cc)
 
 target_link_libraries (test_linalg ${ALL_ARTS_LIBRARIES} ${BLAS_LIBRARIES}
-  ${LAPACK_LIBRARIES} test_utils gfortran)
+  ${LAPACK_LIBRARIES} test_utils)
 
 ########### next testcase ###############
 
