@@ -1,5 +1,15 @@
 2015-12-01  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-3-378
+
+	* src/m_abs_lookup.cc (abs_lookupSetupBatch):
+
+	Add additional check and runtime error if pressure grids in
+	batch_atm_fields_compact are not strictly decreasing.
+	Fixes assertion failure reported by Alex.
+
+2015-12-01  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-3-377
 
 	* CMakeLists.txt: Fix warning caused by mismatching endif.

@@ -1347,11 +1347,19 @@ void abs_lookupSetupBatch(// WS Output:
   // Make an intelligent choice for the nonlinear species.
   choose_abs_nls(abs_nls, abs_species, verbosity);
 
-  // Find out maximum and minimum pressure.
+  // Find out maximum and minimum pressure and check that pressure grid is decreasing.
   Numeric maxp=batch_fields[0].get_numeric_grid(GFIELD4_P_GRID)[0];
   Numeric minp=batch_fields[0].get_numeric_grid(GFIELD4_P_GRID)[batch_fields[0].get_numeric_grid(GFIELD4_P_GRID).nelem()-1];
   for (Index i=0; i<batch_fields.nelem(); ++i)
     {
+      if (!is_decreasing(batch_fields[i].get_numeric_grid(GFIELD4_P_GRID)))
+      {
+        std::ostringstream os;
+        os << "Pressure grids must be strictly monotonically decreasing.\n";
+        os << "*batch_atm_fields_compact* at index " << i << " is not.";
+        throw runtime_error(os.str());
+      }
+
       if (maxp < batch_fields[i].get_numeric_grid(GFIELD4_P_GRID)[0])
         maxp = batch_fields[i].get_numeric_grid(GFIELD4_P_GRID)[0];
       if (minp > batch_fields[i].get_numeric_grid(GFIELD4_P_GRID)[batch_fields[i].get_numeric_grid(GFIELD4_P_GRID).nelem()-1])
