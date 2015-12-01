@@ -158,7 +158,7 @@ endif (NOT BLAS_FOUND)
 include (FindLAPACK )
 if (NOT LAPACK_FOUND)
     message (FATAL_ERROR "No LAPACK library found. Please install it.")
-endif (NOT LAPACK)
+endif (NOT LAPACK_FOUND)
 
 ########## NetCDF support #########
 include (FindNetCDF)
