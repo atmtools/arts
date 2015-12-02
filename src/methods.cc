@@ -5818,6 +5818,25 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "GetEnvironmentVariable" ),
+        DESCRIPTION
+        (
+         "Copy the contents of an environment variable to an ARTS String.\n"
+         ),
+        AUTHORS( "Oliver Lemke" ),
+        OUT(),
+        GOUT( "out" ),
+        GOUT_TYPE( "String" ),
+        GOUT_DESC( "Contents of environment variable." ),
+        IN(),
+        GIN( "in" ),
+        GIN_TYPE( "String" ),
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC( "Name of environment variable." )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "GriddedFieldLatLonExpand" ),
         DESCRIPTION
         (

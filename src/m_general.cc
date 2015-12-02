@@ -45,6 +45,7 @@
 #include "arts.h"
 
 #include <stdexcept>
+#include <cstdlib>
 #ifdef TIME_SUPPORT
 #include <unistd.h>
 #endif
@@ -516,4 +517,17 @@ void verbositySetScreen(// WS Output:
                         const Index& level)
 {
   verbosity.set_screen_verbosity(level);
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void GetEnvironmentVariable(// WS Generic Output:
+                            String& str,
+                            // WS Generic Input:
+                            const String& envvar,
+                            const Verbosity& /* verbosity */)
+{
+    char *cstr;
+    cstr = std::getenv (envvar.c_str());
+    str = cstr != NULL?String(cstr):"";
 }

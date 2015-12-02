@@ -1,3 +1,12 @@
+2015-12-02  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-379
+
+	* src/m_general.cc, src/methods.cc:
+
+	New WSM GetEnvironmentVariable. It copies the contents of an
+	environment variable to an ARTS String.
+
 2015-12-01  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-378
