@@ -922,8 +922,10 @@ void vmrunitscf(
     { x = 1 / ( vmr * number_density( p, t ) ); }
   else
     {
-      throw runtime_error( "Allowed options for gas species jacobians are "
-                           "\"rel\", \"vmr\" and \"nd\"." );
+        ostringstream os;
+        os << "Allowed options for gas species jacobians are "
+        "\"rel\", \"vmr\" and \"nd\".\nYou have selected: "<<unit<<std::endl; 
+      throw std::runtime_error( os.str() );
     }
 }
 

@@ -1282,6 +1282,8 @@ void ext2trans_and_ext2dtrans_dx(
         for( Index i=1; i<stokes_dim; i++ )
         { trans_mat(i,i) = trans_mat(0,0); }
         
+        /* This part is actually not used anywhere since the code operates from these parts being known
+         * Coded text is retained for ease of changing system.
         for( Index iq =0; iq<nq; iq++ )
         {
             dtrans_mat_dx_upp(iq,0,0) = - trans_mat(0,0) * lstep * dext_mat_dx_upp(iq,0,0);
@@ -1291,7 +1293,7 @@ void ext2trans_and_ext2dtrans_dx(
                 dtrans_mat_dx_upp(iq,i,i) = dtrans_mat_dx_upp(iq,0,0);
                 dtrans_mat_dx_low(iq,i,i) = dtrans_mat_dx_low(iq,0,0);
             }
-        }
+        }*/
     }
     /*  Removed temporarily FIXME:  What is this, how do I use it???
     else if( icase == 2 )
@@ -1841,7 +1843,7 @@ void get_ppath_pmat(
                       for( Index iq=0; iq<nq; iq++ )
                         {
                           dppath_ext_dx(iq,i1,i2,i3,ip) = dpropmat_clearsky_dx[iq](i1,i2,i3);
-                          if(i3==0)
+                          if(i3==0&&!nlte_source.empty())
                             dppath_nlte_source_dx(iq,i1,i2,ip) = //FIXME: nlte_dx_dsource_dx must be multiplied by frequency terms for wind...
                             dnlte_dx_source[iq](i1,i2) + nlte_dx_dsource_dx[iq](i1,i2);
                         }
@@ -1879,6 +1881,478 @@ void get_ppath_pmat(
       throw runtime_error(fail_msg);
 }
 
+
+//! get_ppath_pmat_and_tmat
+/*!
+ *   Determines the "clearsky" propagation matrices along a propagation path.
+ *   The output arguments are:
+ * 
+ *ppath_ext* returns the summed extinction (propmat_clearsky) and has
+ *      dimensions [ frequency, stokes, stokes, ppath point ].
+ * 
+ *ppath_abs* returns the summed source relevant absorption
+ *      (propmat_source_clearsky) and has dimensions [ frequency, stokes, ppath
+ *      point ]. Where lte=1, the data are identical to matching data in
+ *ppath_ext*.
+ * 
+ *lte* flags if LTE is valid or not, at each path point. This variable is
+ *      set to 1 if *propmat_clearsky_agenda* returns an empty
+ *propmat_source_clearsky*. Otherwise zero.
+ * 
+ *abs_per_species* can hold absorption for individual species. The species
+ *     to include are selected by *ispecies*. For example, to store first and
+ *     third species in abs_per_species, set ispecies to [0][2]. The dimensions
+ *     are [ absorption species, frequency, stokes, stokes, ppath point ].
+ * 
+ *   \param   ws                  Out: The workspace
+ *   \param   ppath_ext           Out: Summed extinction at each ppath point
+ *   \param   ppath_abs           Out: Summed absorption at each ppath point
+ *   \param   ppath_nlte_source   Out: Summed nlte source at each ppath point
+ *   \param   abs_per_species     Out: Absorption for "ispecies"
+ *   \param   propmat_clearsky_agenda As the WSV.    
+ *   \param   ppath               As the WSV.    
+ *   \param   ppath_p             Pressure for each ppath point.
+ *   \param   ppath_t             Temperature for each ppath point.
+ *   \param   ppath_vmr           VMR values for each ppath point.
+ *   \param   ppath_f             See get_ppath_f.
+ *   \param   ppath_mag           See get_ppath_atmvars.
+ *   \param   f_grid              As the WSV.    
+ *   \param   stokes_dim          As the WSV.
+ *   \param   ispecies            Index of species to store in abs_per_species
+ * 
+ *   \author Patrick Eriksson 
+ *   \date   2012-08-15
+ * 
+ *   \author Richard Larsson (adding tmat outputs so internal derivatives can be kept here)
+ *   \date   2015-12-02
+ */
+void get_ppath_pmat_and_tmat( 
+                            Workspace&      ws,
+                            Tensor4&        ppath_ext,
+                            Tensor3&        ppath_nlte_source,
+                            ArrayOfIndex&   lte,
+                            Tensor5&        abs_per_species,
+                            Tensor5&        dppath_ext_dx,
+                            Tensor4&        dppath_nlte_source_dx,
+                            Tensor4&               trans_partial,
+                            Tensor5&               dtrans_partial_dx_above,
+                            Tensor5&               dtrans_partial_dx_below,
+                            ArrayOfArrayOfIndex&   extmat_case,
+                            Tensor4&               trans_cumulat,
+                            Vector&                scalar_tau,
+                            const Agenda&         propmat_clearsky_agenda,
+                            const ArrayOfRetrievalQuantity& jacobian_quantities,
+                            const PropmatPartialsData&      ppd,
+                            const Ppath&          ppath,
+                            ConstVectorView       ppath_p, 
+                            ConstVectorView       ppath_t, 
+                            ConstMatrixView       ppath_t_nlte, 
+                            ConstMatrixView       ppath_vmr, 
+                            ConstMatrixView       ppath_f, 
+                            ConstMatrixView       ppath_mag,
+                            ConstMatrixView       ppath_wind,
+                            ConstVectorView       f_grid, 
+                            const ArrayOfIndex&   jac_species_i,
+                            const ArrayOfIndex&   jac_is_t,
+                            const ArrayOfIndex&   jac_wind_i,
+                            const ArrayOfIndex&   jac_mag_i,
+                            const ArrayOfIndex&   jac_other,
+                            const Numeric&        rte_alonglos_v,
+                            const Index&          atmosphere_dim,
+                            const Index&          stokes_dim,
+                            const bool&           jacobian_do,
+                            const ArrayOfIndex&   ispecies )
+{   
+    // Sizes
+    const Index   nf   = f_grid.nelem();
+    const Index   np   = ppath.np;
+    const Index   nabs = ppath_vmr.nrows();
+    const Index   nisp = ispecies.nelem();
+    const Index   nq   = jacobian_quantities.nelem();
+    
+    DEBUG_ONLY(
+        for( Index i=0; i<nisp; i++ )
+        {
+            assert( ispecies[i] >= 0 );
+            assert( ispecies[i] < nabs );
+        }
+    )
+    
+    // Size variables
+    //
+    try 
+    {
+        ppath_ext.resize( nf, stokes_dim, stokes_dim, np ); 
+        ppath_nlte_source.resize( nf, stokes_dim, np );   // We start by assuming non-LTE
+        lte.resize( np );
+        abs_per_species.resize( nisp, nf, stokes_dim, stokes_dim, np ); 
+        nq?dppath_ext_dx.resize(nq, nf, stokes_dim, stokes_dim, np ):
+        dppath_ext_dx.resize( 0,  0,          0,          0,  0 );
+        nq?dppath_nlte_source_dx.resize(nq, nf, stokes_dim, np):
+        dppath_nlte_source_dx.resize( 0,  0,          0,  0);
+    } 
+    catch (std::bad_alloc x) 
+    {
+        ostringstream os;
+        os << "Run-time error in function: get_ppath_ext" << std::endl
+        << "Memory allocation failed for ppath_ext("
+        << nabs << ", " << nf << ", " << stokes_dim << ", "
+        << stokes_dim << ", " << np << ")" << std::endl;
+        throw std::runtime_error(os.str());
+    }
+    
+    String fail_msg;
+    bool failed = false;
+    
+    // For Jacobians
+    ArrayOfMatrix AO_dWdx(4), AO_F2(3), dummy_amat;
+    ArrayOfTensor3 dummy_at3;
+    const Numeric dw = 5, 
+                  dt = 0.1,
+                  dm = 0.1e-6;
+    
+    // Loop ppath points
+    //
+    Workspace l_ws (ws);
+    Agenda l_propmat_clearsky_agenda (propmat_clearsky_agenda);
+    //
+    if (np)
+    {
+        // Perhaps put all in a function "adapt_dppath_ext_dx"?
+        for(Index iq=0;(iq<nq)&&jacobian_do;iq++)
+        {
+            if( jac_wind_i[iq] == JAC_IS_WIND_U_FROM_PROPMAT ||
+                jac_wind_i[iq] == JAC_IS_WIND_V_FROM_PROPMAT ||
+                jac_wind_i[iq] == JAC_IS_WIND_W_FROM_PROPMAT ||
+                jac_wind_i[iq] == JAC_IS_WIND_ABS_FROM_PROPMAT )
+            {
+                Index component=-1;
+                if(jac_wind_i[iq] == JAC_IS_WIND_ABS_FROM_PROPMAT)
+                    component = 0;
+                else if(jac_wind_i[iq] == JAC_IS_WIND_U_FROM_PROPMAT)
+                    component=1;
+                else if(jac_wind_i[iq] == JAC_IS_WIND_V_FROM_PROPMAT)
+                    component=2;
+                else if(jac_wind_i[iq] == JAC_IS_WIND_W_FROM_PROPMAT)
+                    component=3;
+                else 
+                    throw std::runtime_error("To developer:  You have changed wind jacobians" 
+                    " in\nan incompatible manners with some other code.");
+                
+                get_ppath_f_partials(AO_dWdx[component], component, ppath, f_grid,  atmosphere_dim, ppath_wind );
+            }
+            if(jac_wind_i[iq] == JAC_IS_WIND_U_SEMI_ANALYTIC ||
+               jac_wind_i[iq] == JAC_IS_WIND_V_SEMI_ANALYTIC ||
+               jac_wind_i[iq] == JAC_IS_WIND_W_SEMI_ANALYTIC )
+            {
+                Index this_field=-1;
+                if(jac_wind_i[iq] == JAC_IS_WIND_U_SEMI_ANALYTIC)
+                    this_field=0;
+                else if(jac_wind_i[iq] == JAC_IS_WIND_V_SEMI_ANALYTIC)
+                    this_field=1;
+                else if(jac_wind_i[iq] == JAC_IS_WIND_W_SEMI_ANALYTIC)
+                    this_field=2;
+                else 
+                    throw std::runtime_error("To developer:  You have changed wind jacobians" 
+                    "in an incompatible manners with some other code.");
+                
+                Matrix w2 = ppath_wind;   w2(this_field,joker) += dw;
+                get_ppath_f(    AO_F2[this_field], ppath, f_grid,  atmosphere_dim, 
+                                rte_alonglos_v, w2 );
+            }
+        }
+        
+        #pragma omp parallel for                    \
+        if (!arts_omp_in_parallel()               \
+        && np >= arts_omp_get_max_threads())  \
+        firstprivate(l_ws, l_propmat_clearsky_agenda)
+        for( Index ip=0; ip<np; ip++ )
+        {
+            if (failed) continue;
+            
+            // Call agenda
+            //
+            ArrayOfTensor3 dpropmat_clearsky_dx;
+            ArrayOfMatrix  dnlte_dx_source, nlte_dx_dsource_dx;
+            Tensor4  propmat_clearsky;
+            Tensor3  nlte_source;
+            //
+            try 
+            {
+                Vector rtp_vmr(0);
+                propmat_clearsky_agendaExecute( 
+                l_ws, propmat_clearsky, nlte_source, dpropmat_clearsky_dx, dnlte_dx_source, nlte_dx_dsource_dx,
+                jacobian_quantities, ppath_f(joker,ip), ppath_mag(joker,ip), ppath.los(ip,joker), 
+                ppath_p[ip], ppath_t[ip], 
+                (ppath_t_nlte.nrows()&&ppath_t_nlte.nrows())?ppath_t_nlte(joker,ip):Vector(0), 
+                nabs?ppath_vmr(joker,ip):Vector(0),
+                l_propmat_clearsky_agenda );
+            } 
+            catch (runtime_error e) 
+            {
+                #pragma omp critical (get_ppath_ext_fail)
+                { failed = true; fail_msg = e.what();}
+            }
+            
+            // Copy to output argument
+            if( !failed )
+            {
+                assert( propmat_clearsky.ncols() == stokes_dim );
+                assert( propmat_clearsky.nrows() == stokes_dim );
+                assert( propmat_clearsky.npages() == nf );
+                assert( propmat_clearsky.nbooks() == max(nabs,Index(1)) );
+                
+                for( Index i1=0; i1<nf; i1++ )
+                {
+                    for( Index i2=0; i2<stokes_dim; i2++ )
+                    {
+                        for( Index i3=0; i3<stokes_dim; i3++ )
+                        {
+                            ppath_ext(i1,i2,i3,ip) = propmat_clearsky(joker,i1,i2,i3).sum();
+                            
+                            for( Index ia=0; ia<nisp; ia++ )
+                            {
+                                abs_per_species(ia,i1,i2,i3,ip) = 
+                                propmat_clearsky(ispecies[ia],i1,i2,i3);
+                            }
+                        }
+                    }
+                }
+                
+                // Point with LTE
+                if( nlte_source.empty() )
+                {
+                    lte[ip] = 1;
+                    ppath_nlte_source(joker,joker,ip) = 0;
+                }
+                // Non-LTE point
+                else
+                {
+                    assert( nlte_source.ncols() == stokes_dim );
+                    assert( nlte_source.nrows() == nf );
+                    assert( nlte_source.npages() == max(nabs,Index(1)) );
+                    //
+                    lte[ip] = 0;
+                    for( Index i1=0; i1<nf; i1++ )
+                    {
+                        for( Index i2=0; i2<stokes_dim; i2++ )
+                        { 
+                            ppath_nlte_source(i1,i2,ip) = nlte_source(joker,i1,i2).sum();
+                        }
+                    }
+                }
+            
+            
+                // Jacobian part
+                Index ia=-1;
+                for(Index iq=0;iq<nq&&jacobian_do;iq++)
+                {
+                    
+                    if( jac_is_t[iq] == JAC_IS_T_SEMI_ANALYTIC ) 
+                    {
+                        Tensor4 propmat_clearsky_dt;
+                        Tensor3 nlte_source_dt;
+                        const Numeric t2 = ppath_t[ip] + dt;
+                        propmat_clearsky_agendaExecute( l_ws, 
+                                                        propmat_clearsky_dt, nlte_source_dt, dummy_at3, dummy_amat, dummy_amat,
+                                                        ArrayOfRetrievalQuantity(0), 
+                                                        ppath_f(joker,ip), ppath_mag(joker,ip), ppath.los(ip,joker), 
+                                                        ppath_p[ip], t2, 
+                                                        (ppath_t_nlte.nrows()&&ppath_t_nlte.nrows())?ppath_t_nlte(joker,ip):Vector(0), 
+                                                        nabs?ppath_vmr(joker,ip):Vector(0),
+                                                        l_propmat_clearsky_agenda );
+                        //For loops
+                        for( Index i1=0; i1<nf; i1++ ) for( Index i2=0; i2<stokes_dim; i2++ ) for( Index i3=0; i3<stokes_dim; i3++ )
+                            {
+                                dppath_ext_dx(iq,i1,i2,i3,ip) = ( propmat_clearsky_dt(joker,i1,i2,i3).sum() - propmat_clearsky(joker,i1,i2,i3).sum() ) / dt;
+                                if(!nlte_source.empty())
+                                    dppath_nlte_source_dx(iq,i1,i2,ip) = (nlte_source_dt(joker,i1,i2).sum() - nlte_source(joker,i1,i2).sum() ) / dt;
+                            }
+                        
+                    }
+                    else if( jac_wind_i[iq] == JAC_IS_WIND_U_SEMI_ANALYTIC ||
+                             jac_wind_i[iq] == JAC_IS_WIND_V_SEMI_ANALYTIC ||
+                             jac_wind_i[iq] == JAC_IS_WIND_W_SEMI_ANALYTIC ) 
+                    {
+                        Tensor4 propmat_clearsky_dw;
+                        Tensor3 nlte_source_dw;
+                        
+                        Index this_field=-1;
+                        if(jac_wind_i[iq] == JAC_IS_WIND_U_SEMI_ANALYTIC)
+                            this_field=0;
+                        else if(jac_wind_i[iq] == JAC_IS_WIND_V_SEMI_ANALYTIC)
+                            this_field=1;
+                        else if(jac_wind_i[iq] == JAC_IS_WIND_W_SEMI_ANALYTIC)
+                            this_field=2;
+                        else 
+                            throw std::runtime_error("To developer:  You have changed wind jacobians" 
+                            "in an incompatible manners with some other code.");
+                        
+                        propmat_clearsky_agendaExecute( l_ws, 
+                                                        propmat_clearsky_dw, nlte_source_dw, dummy_at3, dummy_amat, dummy_amat,
+                                                        ArrayOfRetrievalQuantity(0), 
+                                                        AO_F2[this_field](joker,ip), ppath_mag(joker,ip), ppath.los(ip,joker), 
+                                                        ppath_p[ip], ppath_t[ip], 
+                                                        (ppath_t_nlte.nrows()&&ppath_t_nlte.nrows())?ppath_t_nlte(joker,ip):Vector(0), 
+                                                        nabs?ppath_vmr(joker,ip):Vector(0),
+                                                        l_propmat_clearsky_agenda );
+                        //For loops
+                        for( Index i1=0; i1<nf; i1++ ) for( Index i2=0; i2<stokes_dim; i2++ ) for( Index i3=0; i3<stokes_dim; i3++ )
+                        {
+                            dppath_ext_dx(iq,i1,i2,i3,ip) = ( propmat_clearsky_dw(joker,i1,i2,i3).sum() - propmat_clearsky(joker,i1,i2,i3).sum() ) / dw;
+                            if(!nlte_source.empty())
+                                dppath_nlte_source_dx(iq,i1,i2,ip) = (nlte_source_dw(joker,i1,i2).sum() - nlte_source(joker,i1,i2).sum() ) / dw;
+                        }
+                        
+                    }
+                    else if( jac_mag_i[iq] == JAC_IS_MAG_U_SEMI_ANALYTIC ||
+                             jac_mag_i[iq] == JAC_IS_MAG_V_SEMI_ANALYTIC ||
+                             jac_mag_i[iq] == JAC_IS_MAG_W_SEMI_ANALYTIC )
+                    {
+                        Tensor4 propmat_clearsky_dm;
+                        Tensor3 nlte_source_dm;
+                        
+                        Index this_field=-1;
+                        if(jac_mag_i[iq] == JAC_IS_MAG_U_SEMI_ANALYTIC)
+                            this_field=0;
+                        else if(jac_mag_i[iq] == JAC_IS_MAG_V_SEMI_ANALYTIC)
+                            this_field=1;
+                        else if(jac_mag_i[iq] == JAC_IS_MAG_W_SEMI_ANALYTIC)
+                            this_field=2;
+                        else 
+                            throw std::runtime_error("To developer:  You have changed magnetic jacobians" 
+                            "in an incompatible manners with some other code.");
+                        
+                        Vector m2 = ppath_mag(joker,ip);   m2[this_field] += dm;
+                        
+                        propmat_clearsky_agendaExecute( l_ws, 
+                                                        propmat_clearsky_dm, nlte_source_dm, dummy_at3, dummy_amat, dummy_amat,
+                                                        ArrayOfRetrievalQuantity(0), 
+                                                        ppath_f(joker,ip), m2, ppath.los(ip,joker), 
+                                                        ppath_p[ip], ppath_t[ip], 
+                                                        (ppath_t_nlte.nrows()&&ppath_t_nlte.nrows())?ppath_t_nlte(joker,ip):Vector(0), 
+                                                        nabs?ppath_vmr(joker,ip):Vector(0),
+                                                        l_propmat_clearsky_agenda );
+                        //For loops
+                        for( Index i1=0; i1<nf; i1++ ) for( Index i2=0; i2<stokes_dim; i2++ )
+                        {
+                            if(!nlte_source.empty())
+                                dppath_nlte_source_dx(iq,i1,i2,ip) = (nlte_source_dm(joker,i1,i2).sum() - nlte_source(joker,i1,i2).sum() ) / dm;
+                            for( Index i3=0; i3<stokes_dim; i3++ )
+                                dppath_ext_dx(iq,i1,i2,i3,ip) = ( propmat_clearsky_dm(joker,i1,i2,i3).sum() - propmat_clearsky(joker,i1,i2,i3).sum() ) / dm;
+                        }
+                    }
+                    else if( jac_species_i[iq] > -1 && jacobian_quantities[iq].Analytical() )
+                    {
+                        ia++;//Counter for ispecies
+                        
+                        const bool from_propmat = jacobian_quantities[iq].SubSubtag() == PROPMAT_SUBSUBTAG;
+                        const Index isp = jac_species_i[iq];
+                        
+                        // Scaling factors to handle retrieval unit
+                        if(!from_propmat)
+                        {
+                            Numeric unitscf;
+                            vmrunitscf( unitscf, 
+                                        jacobian_quantities[iq].Mode(), 
+                                        ppath_vmr(isp,ip), ppath_p[ip], 
+                                        ppath_t[ip] );
+                            for( Index i1=0; i1<nf; i1++ ) for( Index i2=0; i2<stokes_dim; i2++ )
+                            {
+                                if(!nlte_source.empty())
+                                {
+                                    throw std::runtime_error("We do not support \"analytic\" jacobians for NLTE and species.\n"
+                                        "Please use \"from_propmat\".");
+                                }
+                                for( Index i3=0; i3<stokes_dim; i3++ )
+                                    dppath_ext_dx(iq,i1,i2,i3,ip) = propmat_clearsky(ispecies[ia],i1,i2,i3)*unitscf;
+                            }
+                        }
+                        else 
+                        {
+                            // the d_var_dx arrays work on ppd grid rather than on jacobian_quantities grid, so first find ppd location for iq
+                            const Index this_ppd_iq = ppd.this_jq_index(iq);
+                            
+                            for( Index i1=0; i1<nf; i1++ ) for( Index i2=0; i2<stokes_dim; i2++ )
+                            {
+                                if(!nlte_source.empty())
+                                {
+                                    dppath_nlte_source_dx(iq,i1,i2,ip) = 
+                                    dnlte_dx_source[this_ppd_iq](i1,i2) + 
+                                    nlte_dx_dsource_dx[this_ppd_iq](i1,i2);
+                                }
+                                for( Index i3=0; i3<stokes_dim; i3++ )
+                                    dppath_ext_dx(iq,i1,i2,i3,ip) = dpropmat_clearsky_dx[this_ppd_iq](i1,i2,i3);
+                            }
+                        }
+                    }
+                    else if(jac_is_t[iq]!=JAC_IS_NONE||jac_wind_i[iq]!=JAC_IS_NONE||jac_mag_i[iq]!=JAC_IS_NONE||jac_other[iq]!=JAC_IS_NONE)
+                    {
+                        Index component=-1;
+                        if(jac_wind_i[iq] == JAC_IS_WIND_ABS_FROM_PROPMAT)
+                            component = 0;
+                        else if(jac_wind_i[iq] == JAC_IS_WIND_U_FROM_PROPMAT)
+                            component=1;
+                        else if(jac_wind_i[iq] == JAC_IS_WIND_V_FROM_PROPMAT)
+                            component=2;
+                        else if(jac_wind_i[iq] == JAC_IS_WIND_W_FROM_PROPMAT)
+                            component=3;
+                        
+                        // the d_var_dx arrays work on ppd grid rather than on jacobian_quantities grid, so first find ppd location for iq
+                        const Index this_ppd_iq = ppd.this_jq_index(iq);
+                        
+                        for( Index i1=0; i1<nf; i1++ ) for( Index i2=0; i2<stokes_dim; i2++ )
+                        {
+                            if(!nlte_source.empty())
+                            {
+                                dppath_nlte_source_dx(iq,i1,i2,ip) = (
+                                dnlte_dx_source[this_ppd_iq](i1,i2) + 
+                                nlte_dx_dsource_dx[this_ppd_iq](i1,i2) ) *
+                                (component==-1?1.0:AO_dWdx[component](i1,ip));
+                            }
+                            for( Index i3=0; i3<stokes_dim; i3++ )
+                                dppath_ext_dx(iq,i1,i2,i3,ip) = dpropmat_clearsky_dx[this_ppd_iq](i1,i2,i3);
+                            
+                        }
+                    }
+                    else { /* This should only happen to things that have to be perturbed, like pointing errors.  So do nothing. */ }
+                }
+            }
+        }
+        
+        if (failed)
+            throw std::runtime_error(fail_msg);
+    }
+    
+    //ADAPT dppath_ext_dx
+    // Perhaps put all in a function "adapt_dppath_ext_dx"?
+    for(Index iq=0;(iq<nq)&&jacobian_do;iq++)
+    {
+        Index component=-1;
+        if(jac_wind_i[iq] == JAC_IS_WIND_ABS_FROM_PROPMAT)
+            component = 0;
+        else if(jac_wind_i[iq] == JAC_IS_WIND_U_FROM_PROPMAT)
+            component=1;
+        else if(jac_wind_i[iq] == JAC_IS_WIND_V_FROM_PROPMAT)
+            component=2;
+        else if(jac_wind_i[iq] == JAC_IS_WIND_W_FROM_PROPMAT)
+            component=3;
+        
+        if(component!=-1)
+            for(Index is1=0;is1<stokes_dim;is1++)
+                for(Index is2=0;is2<stokes_dim;is2++)
+                    dppath_ext_dx(iq,joker,is1,is2,joker)*=AO_dWdx[component];
+    }
+    
+    if(dppath_ext_dx.empty())
+        get_ppath_trans(    trans_partial, extmat_case, trans_cumulat, 
+                            scalar_tau, ppath, ppath_ext, f_grid, stokes_dim );
+    else
+        get_ppath_trans_and_dppath_trans_dx(
+            trans_partial, dtrans_partial_dx_above, dtrans_partial_dx_below, 
+            extmat_case, trans_cumulat, scalar_tau, ppath, ppath_ext, 
+            dppath_ext_dx, jacobian_quantities, f_grid, stokes_dim );
+}
 
 
 //! get_ppath_blackrad
@@ -2382,13 +2856,11 @@ void get_ppath_trans_and_dppath_trans_dx(
   ConstVectorView              f_grid, 
   const Index&                 stokes_dim )
 {
-    //Helper variable 
-    const PropmatPartialsData ppd(jacobian_quantities);
     
     // Sizes
     const Index   nf = f_grid.nelem();
     const Index   np = ppath.np;
-    const Index   nq = ppd.nelem();
+    const Index   nq = jacobian_quantities.nelem();
     
     // Init variables
     //

@@ -341,6 +341,7 @@ void special_matrix_exp_and_dmatrix_exp_dx_for_rt(
     assert( is_size(F,n,n) );
     assert(n_partials==dF_upp.npages());
     assert(n_partials==dF_low.npages());
+    assert(n_partials==dA_low.npages());
     for(Index ii=0;ii<n_partials;ii++)
     {
         assert( is_size(dA_upp(ii,joker,joker),n,n) );

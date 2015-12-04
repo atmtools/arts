@@ -1,3 +1,57 @@
+2015-12-04  Richard Larsson   <ric.larsson@gmail.com>
+
+	* arts-2-3-380
+	
+	For iyEmissionStandard only now...
+	Made a function (get_ppath_pmat_and_tmat) that replaces the 
+	combination of get_ppath_pmat, the wind correction and the
+	transmission matrix calculations.  It also takes over 
+	calculations of partial derivatives from iyEmissionStandard.
+	This applies not only to the partial derivatives of type
+	"from propmat" but also to "analytical" partial derivatives.
+	Patrick, I need you to check that I am not messing something
+	up here.  In particular regarding cases where the parameter
+	is perturbed might behave strange in an unintended manner.
+	
+	This all results in small changes in the behaviour of "analytical"
+	for fully polarized signals (order of magnitude, the change is on
+	a level of 1e-5 in my simple tests.).  The tests in wfun still
+	works.
+	
+	* src/jacobian.cc:  Changed an error call because it helped me
+	debug.
+	
+	* src/m_rte.cc:  get_ppath_pmat and tmat calculations replaced
+	by single function call.  Removed all calculations of shifted
+	propagation matrices.  One problem remains:  temperature 
+	derivative of the blackbody radiation is still calculated as 
+	before.  I think this should be made part of the call to
+	(get_ppath_blackrad) so we can use pure analytical derivatives.
+	
+	The Jacobian calculations are now done on the percalculated 
+	internal partial derivatives instead of estimating the internal 
+	partial derivative in the code blocks.  In essence, this means that
+	the expressions for the fields and for species absorption should 
+	be identical, so this should perhaps change to make the code cleaner.
+	Temperature still need some more treatment due to blackbody partial
+	derivative with temperature.  (Wind as well, due to blackbody 
+	frequency partial derivatives, but we did not care for that so 
+	far.)  This should perhaps be treated as an "extra" for temperature
+	as I treat NLTE in the Jacobian parts?
+	
+	* src/rte.{cc,h}:  Commented some code away since it just wasted cycles.
+	(ext2trans_and_ext2dtrans_dx)
+	
+	In (get_ppath_pmat), I forgot to test if there is nlte in the nlte
+	partial derivative calculations...
+	
+	Added (get_ppath_pmat_and_tmat) as pretty much the same as
+	(get_ppath_pmat) but connecting more parts together.
+	
+	(get_ppath_trans_and_dppath_trans_dx)  No longer has to act on
+	ppd since dppath_ext_dx should be full now.  Might introduce problems 
+	with "perturbation" calculations...
+
 2015-12-02  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-379
