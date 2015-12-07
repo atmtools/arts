@@ -1,3 +1,15 @@
+2015-12-07  Richard Larsson   <ric.larsson@gmail.com>
+
+	* arts-2-3-381
+	
+	* src/{m_linerecord,methods}.cc:  Added 
+	abs_linesSetParameterForMatchingLines to set individual line 
+	parameters for matching lines.  Also added pressure exponents 
+	to the list of supported parameters.
+	
+	* src/pressurebroadeningdata.{cc,h}:  Added some functions to
+	easier set parameters.
+
 2015-12-04  Richard Larsson   <ric.larsson@gmail.com>
 
 	* arts-2-3-380

@@ -897,7 +897,7 @@ void PressureBroadeningData::SetPerrinBroadeningFromCatalog(const Numeric& sgam,
 }
 
 ///////////////////////////////////////////
-// Change of internals fo
+// Change of internals formats
 ///////////////////////////////////////////
 
 void PressureBroadeningData::ChangeSelf(const Numeric& change, 
@@ -928,6 +928,90 @@ void PressureBroadeningData::ChangeSelf(const Numeric& change,
             throw std::runtime_error("You have defined an unknown broadening mechanism.\n");
     }
 }
+void PressureBroadeningData::ChangeSelfExponent(const Numeric& change, 
+                                                const Index this_species, 
+                                                const Index h2o_species, 
+                                                const ArrayOfIndex& broad_spec_locations)
+{
+    switch(mtype)
+    {
+        case PB_NONE:
+            // Note that this is oftentimes not wanted, but a valid case at low pressures
+            break;
+        case PB_AIR_BROADENING:
+            mdata[1][0]+=change;
+            break;
+        case PB_AIR_AND_WATER_BROADENING:
+            mdata[0][1]+=change;
+            if(this_species==h2o_species)
+                mdata[2][1]+=change;
+            break;
+        case PB_PERRIN_BROADENING:
+            mdata[1][0]+=change;
+            for(Index ii=0;ii<broad_spec_locations.nelem();ii++)
+                if(broad_spec_locations[ii]==-2)
+                    mdata[3][ii]+=change;
+            break;
+        default:
+            throw std::runtime_error("You have defined an unknown broadening mechanism.\n");
+    }
+}
+void PressureBroadeningData::SetSelf(const Numeric& new_value, 
+                                     const Index this_species, 
+                                     const Index h2o_species, 
+                                     const ArrayOfIndex& broad_spec_locations)
+{
+    switch(mtype)
+    {
+        case PB_NONE:
+            // Note that this is oftentimes not wanted, but a valid case at low pressures
+            break;
+        case PB_AIR_BROADENING:
+            mdata[0][0]=new_value;
+            break;
+        case PB_AIR_AND_WATER_BROADENING:
+            mdata[0][0]=new_value;
+            if(this_species==h2o_species)
+                mdata[2][0]=new_value;
+            break;
+        case PB_PERRIN_BROADENING:
+            mdata[0][0]=new_value;
+            for(Index ii=0;ii<broad_spec_locations.nelem();ii++)
+                if(broad_spec_locations[ii]==-2)
+                    mdata[2][ii]=new_value;
+            break;
+        default:
+            throw std::runtime_error("You have defined an unknown broadening mechanism.\n");
+    }
+}
+void PressureBroadeningData::SetSelfExponent(const Numeric& new_value, 
+                                             const Index this_species, 
+                                             const Index h2o_species, 
+                                             const ArrayOfIndex& broad_spec_locations)
+{
+    switch(mtype)
+    {
+        case PB_NONE:
+            // Note that this is oftentimes not wanted, but a valid case at low pressures
+            break;
+        case PB_AIR_BROADENING:
+            mdata[1][0]=new_value;
+            break;
+        case PB_AIR_AND_WATER_BROADENING:
+            mdata[0][1]=new_value;
+            if(this_species==h2o_species)
+                mdata[2][1]=new_value;
+            break;
+        case PB_PERRIN_BROADENING:
+            mdata[1][0]=new_value;
+            for(Index ii=0;ii<broad_spec_locations.nelem();ii++)
+                if(broad_spec_locations[ii]==-2)
+                    mdata[3][ii]=new_value;
+            break;
+        default:
+            throw std::runtime_error("You have defined an unknown broadening mechanism.\n");
+    }
+}
 void PressureBroadeningData::ChangeSelfRelative(const Numeric& change, 
                                                 const Index this_species, 
                                                 const Index h2o_species, 
@@ -951,7 +1035,35 @@ void PressureBroadeningData::ChangeSelfRelative(const Numeric& change,
             for(Index ii=0;ii<broad_spec_locations.nelem();ii++)
                 if(broad_spec_locations[ii]==-2)
                     mdata[2][ii]*=1.0e0+change;
-                break;
+            break;
+        default:
+            throw std::runtime_error("You have defined an unknown broadening mechanism.\n");
+    }
+}
+void PressureBroadeningData::ChangeSelfExponentRelative(const Numeric& change, 
+                                                        const Index this_species, 
+                                                        const Index h2o_species, 
+                                                        const ArrayOfIndex& broad_spec_locations)
+{
+    switch(mtype)
+    {
+        case PB_NONE:
+            // Note that this is oftentimes not wanted, but a valid case at low pressures
+            break;
+        case PB_AIR_BROADENING:
+            mdata[1][0]*=1.0e0+change;
+            break;
+        case PB_AIR_AND_WATER_BROADENING:
+            mdata[0][1]*=1.0e0+change;
+            if(this_species==h2o_species)
+                mdata[2][1]*=1.0e0+change;
+            break;
+        case PB_PERRIN_BROADENING:
+            mdata[1][0]*=1.0e0+change;
+            for(Index ii=0;ii<broad_spec_locations.nelem();ii++)
+                if(broad_spec_locations[ii]==-2)
+                    mdata[3][ii]*=1.0e0+change;
+            break;
         default:
             throw std::runtime_error("You have defined an unknown broadening mechanism.\n");
     }
@@ -974,7 +1086,76 @@ void PressureBroadeningData::ChangeForeign(const Numeric& change,
             for(Index ii=0;ii<broad_spec_locations.nelem();ii++)
                 if(broad_spec_locations[ii]!=-2)
                     mdata[2][ii]+=change;
-                break;
+            break;
+        default:
+            throw std::runtime_error("You have defined an unknown broadening mechanism.\n");
+    }
+}
+void PressureBroadeningData::ChangeForeignExponent(const Numeric& change, 
+                                                   const ArrayOfIndex& broad_spec_locations)
+{
+    switch(mtype)
+    {
+        case PB_NONE:
+            // Note that this is oftentimes not wanted, but a valid case at low pressures
+            break;
+        case PB_AIR_BROADENING:
+            mdata[3][0]+=change;
+            break;
+        case PB_AIR_AND_WATER_BROADENING:
+            mdata[1][1]+=change;
+            break;
+        case PB_PERRIN_BROADENING:
+            for(Index ii=0;ii<broad_spec_locations.nelem();ii++)
+                if(broad_spec_locations[ii]!=-2)
+                    mdata[3][ii]+=change;
+            break;
+        default:
+            throw std::runtime_error("You have defined an unknown broadening mechanism.\n");
+    }
+}
+void PressureBroadeningData::SetForeign(const Numeric& new_value, 
+                                        const ArrayOfIndex& broad_spec_locations)
+{
+    switch(mtype)
+    {
+        case PB_NONE:
+            // Note that this is oftentimes not wanted, but a valid case at low pressures
+            break;
+        case PB_AIR_BROADENING:
+            mdata[2][0]=new_value;
+            break;
+        case PB_AIR_AND_WATER_BROADENING:
+            mdata[1][0]=new_value;
+            break;
+        case PB_PERRIN_BROADENING:
+            for(Index ii=0;ii<broad_spec_locations.nelem();ii++)
+                if(broad_spec_locations[ii]!=-2)
+                    mdata[2][ii]=new_value;
+            break;
+        default:
+            throw std::runtime_error("You have defined an unknown broadening mechanism.\n");
+    }
+}
+void PressureBroadeningData::SetForeignExponent(const Numeric& new_value, 
+                                                const ArrayOfIndex& broad_spec_locations)
+{
+    switch(mtype)
+    {
+        case PB_NONE:
+            // Note that this is oftentimes not wanted, but a valid case at low pressures
+            break;
+        case PB_AIR_BROADENING:
+            mdata[3][0]=new_value;
+            break;
+        case PB_AIR_AND_WATER_BROADENING:
+            mdata[1][1]=new_value;
+            break;
+        case PB_PERRIN_BROADENING:
+            for(Index ii=0;ii<broad_spec_locations.nelem();ii++)
+                if(broad_spec_locations[ii]!=-2)
+                    mdata[3][ii]=new_value;
+            break;
         default:
             throw std::runtime_error("You have defined an unknown broadening mechanism.\n");
     }
@@ -997,7 +1178,31 @@ void PressureBroadeningData::ChangeForeignRelative(const Numeric& change,
             for(Index ii=0;ii<broad_spec_locations.nelem();ii++)
                 if(broad_spec_locations[ii]!=-2)
                     mdata[2][ii]*=1.0e0+change;
-                break;
+            break;
+        default:
+            throw std::runtime_error("You have defined an unknown broadening mechanism.\n");
+    }
+}
+void PressureBroadeningData::ChangeForeignExponentRelative(const Numeric& change, 
+                                                           const ArrayOfIndex& broad_spec_locations)
+{
+    switch(mtype)
+    {
+        case PB_NONE:
+            // Note that this is oftentimes not wanted, but a valid case at low pressures
+            break;
+        case PB_AIR_BROADENING:
+            mdata[3][0]*=1.0e0+change;
+            break;
+        case PB_AIR_AND_WATER_BROADENING:
+            mdata[1][1]*=1.0e0+change;
+            break;
+        case PB_PERRIN_BROADENING:
+            for(Index ii=0;ii<broad_spec_locations.nelem();ii++)
+                if(broad_spec_locations[ii]!=-2)
+
+                    mdata[3][ii]*=1.0e0+change;
+            break;
         default:
             throw std::runtime_error("You have defined an unknown broadening mechanism.\n");
     }

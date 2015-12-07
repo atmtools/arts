@@ -150,14 +150,38 @@ public:
                     const Index this_species, 
                     const Index h2o_species, 
                     const ArrayOfIndex& broad_spec_locations);
+    void ChangeSelfExponent(const Numeric& change, 
+                            const Index this_species, 
+                            const Index h2o_species, 
+                            const ArrayOfIndex& broad_spec_locations);
+    void SetSelf(const Numeric& new_value, 
+                 const Index this_species, 
+                 const Index h2o_species, 
+                 const ArrayOfIndex& broad_spec_locations);
+    void SetSelfExponent(const Numeric& new_value, 
+                         const Index this_species, 
+                         const Index h2o_species, 
+                         const ArrayOfIndex& broad_spec_locations);
     void ChangeSelfRelative(const Numeric& change, 
                             const Index this_species, 
                             const Index h2o_species, 
                             const ArrayOfIndex& broad_spec_locations);
+    void ChangeSelfExponentRelative(const Numeric& change, 
+                                    const Index this_species, 
+                                    const Index h2o_species, 
+                                    const ArrayOfIndex& broad_spec_locations);
     void ChangeForeign(const Numeric& change, 
                        const ArrayOfIndex& broad_spec_locations);
+    void ChangeForeignExponent(const Numeric& change, 
+                               const ArrayOfIndex& broad_spec_locations);
+    void SetForeign(const Numeric& new_value, 
+                    const ArrayOfIndex& broad_spec_locations);
+    void SetForeignExponent(const Numeric& new_value, 
+                            const ArrayOfIndex& broad_spec_locations);
     void ChangeForeignRelative(const Numeric& change, 
                                const ArrayOfIndex& broad_spec_locations);
+    void ChangeForeignExponentRelative(const Numeric& change, 
+                                       const ArrayOfIndex& broad_spec_locations);
     
     // Use these to return data in the format required by the line shape calculator
     
