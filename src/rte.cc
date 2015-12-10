@@ -1004,18 +1004,19 @@ void emission_rtstep(
                   // Transmitted term
                   Vector tt(stokes_dim);
                   mult( tt, t(iv,joker,joker), iy(iv,joker) );
-                  // Inverse of extinction matrix
-                  Matrix extinv(stokes_dim,stokes_dim);
-                  inv ( extinv, extbar(iv,joker,joker) );
-                  // Multiplicate with extinv
-                  Vector J_n(stokes_dim);
-                  mult( J_n, extinv, sourcebar(iv, joker) );
                   
-                  // Add emission, first Stokes element
-                  iy(iv,0) = tt[0] + ( 1 - t(iv,0,0) ) * ( bbar[iv] + J_n[0] );
-                  // Remaining Stokes elements
-                  for( Index i=1; i<stokes_dim; i++ )
-                    { iy(iv,i) = tt[i] - t(iv,i,0) * ( bbar[iv] + J_n[i] ); }
+                  // External source term  (full matrix multiplications since it can be polarized)
+                  Matrix tmp(stokes_dim,stokes_dim);
+                  Vector J_n(stokes_dim), J_bar(stokes_dim);
+                  inv ( tmp, extbar(iv,joker,joker) );          // tmp   =  1/K
+                  mult( J_n, tmp, sourcebar(iv, joker) );       // J_n   =  1/K * j_other
+                  id_mat(tmp);                                  // tmp   =  I
+                  tmp-=t( iv, joker, joker);                    // tmp   =  I-T /*Remember this later!*/
+                  mult(J_bar, tmp, J_n);                        // J_bar = (I-T)*(1/K)*j_other
+                  
+                  // Create final iy
+                  for( Index i=0; i<stokes_dim; i++ )
+                    { iy(iv,i) = tt[i] + tmp(i,0) * bbar[iv] + J_bar[i]; }
                 }
             }
         }

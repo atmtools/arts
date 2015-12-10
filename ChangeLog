@@ -1,3 +1,19 @@
+2015-12-10  Richard Larsson   <ric.larsson@gmail.com>
+
+	* arts-2-3-382
+	
+	* src/rte.cc:  Did some code review and I found that polarized NLTE
+	was treated inconsistently between (emission_rtstep) and the 
+	jacobian calculations.  It was assumed that the source term is 
+	unpolarized, solving this expression for polarized terms:
+	"iy(iv,i) = tt[i] - t(iv,i,0) * ( bbar[iv] + J_n[i] );"
+	but if J_n is polarized, the correct expression should be
+	"iy(iv,i) = tt[i] + tmp(i,0) * bbar[iv] + J_bar[i];",
+	with id_mat(tmp); tmp-=t(iv,joker,joker); and 
+	mult(J_bar, tmp, J_n);
+	
+	This is now changed in (emission_rtstep).
+
 2015-12-07  Richard Larsson   <ric.larsson@gmail.com>
 
 	* arts-2-3-381
