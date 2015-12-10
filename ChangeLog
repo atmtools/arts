@@ -1,3 +1,11 @@
+2015-12-10  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-383
+
+	* src/m_rte.cc (iyEmissionStandard): Added a table to give an
+	overview of the main internal variables, as the list now is quite
+	long. Als a few cosmetic changes
+
 2015-12-10  Richard Larsson   <ric.larsson@gmail.com>
 
 	* arts-2-3-382

@@ -237,16 +237,61 @@ void iyEmissionStandard(
   const Index ns = stokes_dim;
   const Index np = ppath.np;
   const Index nq = jacobian_quantities.nelem();
-  
-  // Helper variable
-  const PropmatPartialsData ppd(jacobian_quantities);
 
+  
+  // Brief definition of some of the internal variables (and to a start also questions)
+  //
+  // abs_per_species
+  //   The absorption for individual species. Used to fill iy_aux.
+  // auxAbsSpecies,  auxAbsIsp, auxVmrSpecies, auxVmrIsp
+  //   Coding of which iy_aux elements that cover particla absorption resp.
+  //   VMR, and the corresponding index among abs_species. Left empty if iy_aux
+  //   does not contain any quantity of concern.
+  // auxAbsSum, absPressure ...
+  //   Set to -1 if the variable of concern not is requested to be part of
+  //   iy_aux. Otherwise set to the position inside iy_aux.
+  // diy_dpath
+  //   The derivate of iy with respect to changes at the ppath points.
+  // dppath_ext_dex
+  //   ?
+  // dppath_nlte_source_dx
+  //   ? 
+  // dtrans_partial_dx_above/below
+  //   ?
+  // iaps
+  //   The index of species for which abs_per_species shall be filled. 
+  //   Q; Now also set following jac_species, but that now not used!?
+  // jac_mag_i: Works as jac_species_i, but uses JAC_IS_MAG... and JAC_IS_NONE
+  //    for coding of each element.
+  // jac_other
+  //    Q; What is this. Needed?
+  // jac_is_t
+  //    Works as jac_species_i, but uses JAC_IS_T... and JAC_IS_NONE
+  //    for coding of each element.
+  // jac_species_i
+  //   An array of length nq. Elements are the species index where a retrieval 
+  //   quantity is a species otherwise set to -1.  
+  // jac_wind_i 
+  //    Works as jac_species_i, but uses JAC_IS_WIND... and JAC_IS_NONE
+  //    for coding of each element.
+  // ppath_p, ppath_vmr, ppath_ext ...
+  //    Holds the pressure, vmr, extinction matrix etc. at each point of ppath.
+  // ppd
+  //   Q; Is this variable really needed? I don't see it being used.
+  // scalar_tau
+  //   The total optical thickness of the ppath (a scalar value).
+  // trans_cumulat, trans_partial
+  //   The transmission (as Mueller matrices) for each ppath step resp. from
+  //   the end to each point. See further *get_ppath_trans*.
+  
   //### jacobian part #########################################################
   // Initialise analytical jacobians (diy_dx and help variables)
   //
   Index j_analytical_do = 0;
   ArrayOfTensor3  diy_dpath; 
   ArrayOfIndex    jac_species_i(0), jac_is_t(0), jac_wind_i(0), jac_mag_i(0), jac_other(0); 
+  // Container for partial derivatives of propmat
+  const PropmatPartialsData ppd(jacobian_quantities);
   //
   if( jacobian_do ) { FOR_ANALYTICAL_JACOBIANS_DO( j_analytical_do = 1; ) }
   //
@@ -269,6 +314,8 @@ void iyEmissionStandard(
                                              jacobian_quantities, abs_species );
       
       jac_other.resize(jac_is_t.nelem());
+
+      // Should this be part of get_pointers_for_analytical_jacobians?
       FOR_ANALYTICAL_JACOBIANS_DO( jac_other[iq] = ppd.is_this_propmattype(iq)?JAC_IS_OTHER:JAC_IS_NONE; )
       
       if( iy_agenda_call1 )
@@ -400,28 +447,21 @@ void iyEmissionStandard(
     {
       get_ppath_atmvars(  ppath_p, ppath_t, ppath_t_nlte, ppath_vmr,
                           ppath_wind, ppath_mag, 
-                          ppath, atmosphere_dim, p_grid, t_field, t_nlte_field, vmr_field,
-                          wind_u_field, wind_v_field, wind_w_field,
+                          ppath, atmosphere_dim, p_grid, t_field, t_nlte_field, 
+                          vmr_field, wind_u_field, wind_v_field, wind_w_field,
                           mag_u_field, mag_v_field, mag_w_field );      
       get_ppath_f(        ppath_f, ppath, f_grid,  atmosphere_dim, 
                           rte_alonglos_v, ppath_wind );
-      get_ppath_pmat_and_tmat( ws, 
-                               ppath_ext,ppath_nlte_source,
-                               lte, abs_per_species,
-                               dppath_ext_dx, dppath_nlte_source_dx,
-                               trans_partial, 
+      get_ppath_pmat_and_tmat( ws, ppath_ext,ppath_nlte_source, lte, abs_per_species,
+                               dppath_ext_dx, dppath_nlte_source_dx, trans_partial, 
                                dtrans_partial_dx_above, dtrans_partial_dx_below,
-                               extmat_case, 
-                               trans_cumulat, scalar_tau,
-                               propmat_clearsky_agenda, 
-                               jacobian_quantities, ppd,
+                               extmat_case, trans_cumulat, scalar_tau,
+                               propmat_clearsky_agenda, jacobian_quantities, ppd,
                                ppath, ppath_p, ppath_t, ppath_t_nlte, ppath_vmr, 
-                               ppath_f, ppath_mag, ppath_wind,
-                               f_grid, 
+                               ppath_f, ppath_mag, ppath_wind, f_grid, 
                                jac_species_i, jac_is_t, jac_wind_i, jac_mag_i, jac_other,
                                rte_alonglos_v, atmosphere_dim, stokes_dim,
-                               jacobian_do,
-                               iaps );
+                               jacobian_do, iaps );
       get_ppath_blackrad( ws, ppath_blackrad, blackbody_radiation_agenda, 
                           ppath, ppath_t, ppath_f );
     }
@@ -579,6 +619,10 @@ void iyEmissionStandard(
           //### jacobian part #################################################
           if( j_analytical_do )
             { 
+              // The variable names used below refer largely to the
+              // nomenclature used in the "Clear-sky Jacobians" chapter in AUG.
+              // For example, si is the Stokes vector for position i.
+              
               // Calculate (si-bi)
               Matrix sibi(nf,ns);
               
