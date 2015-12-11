@@ -232,6 +232,13 @@ void vmrunitscf(
   const Numeric&   p,
   const Numeric&   t );                                
 
+void dxdvmrscf(  
+        Numeric&   x, 
+  const String&    unit, 
+  const Numeric&   vmr,
+  const Numeric&   p,
+  const Numeric&   t );
+
 
 // Enum for knowing what Jacobian scheme is in-play in the m_rte.cc methods.
 enum {

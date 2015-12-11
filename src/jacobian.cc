@@ -932,6 +932,49 @@ void vmrunitscf(
 }
 
 
+
+
+//! dxdvmrscf
+/*!
+    Scale factor for conversion of derivatives with respect to VMR.
+
+    The function finds the factor with which a partial derivative with respect
+    to gas species VMR shall be multiplicated to match the selected (jacobian)
+    unit. The function was implemented for scaling of *dpropmat_clearsky_dx*
+    but it could also be of use in other contexts.
+
+    \param   x      Out: scale factor
+    \param   unit   Unit selected.
+    \param   vmr    VMR value.
+    \param   p      Pressure
+    \param   t      Temperature.
+
+    \author Patrick Eriksson 
+    \date   2015-12-11
+*/
+void dxdvmrscf(  
+        Numeric&   x, 
+  const String&    unit, 
+  const Numeric&   vmr,
+  const Numeric&   p,
+  const Numeric&   t )
+{
+  if( unit == "rel"  ||  unit == "logrel" )
+    { x = vmr; }
+  else if( unit == "vmr" )
+    { x = 1; }
+  else if( unit == "nd" )
+    { x = 1 / number_density( p, t ); }
+  else
+    {
+        ostringstream os;
+        os << "Allowed options for gas species jacobians are "
+        "\"rel\", \"vmr\" and \"nd\".\nYou have selected: "<<unit<<std::endl; 
+      throw std::runtime_error( os.str() );
+    }
+}
+
+
 /*!
  *   The function helps to calculate the partial derivative of iy with respect
  *   to one input at one pressure.  Since one layer is influenced by two levels,

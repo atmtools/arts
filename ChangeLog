@@ -1,3 +1,11 @@
+2015-12-11  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-385
+
+	* src/jacobian.cc (dxdvmrscf): New function. Very similar to
+	*vmrunitscf* but returns the scaling factor for derivatives with
+	respect to VMR.
+
 2015-12-11  Richard Larsson   <ric.larsson@gmail.com>
 
 	* arts-2-3-384
