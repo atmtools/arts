@@ -1,3 +1,17 @@
+2015-12-11  Richard Larsson   <ric.larsson@gmail.com>
+
+	* arts-2-3-384
+	
+	* src/m_rte.cc:  Simplified iyEmissionStandard to work with one
+	general jacobian function.  Might still want to simplify it more.
+	
+	* src/jacobian.{cc,h}:  This function is (get_diydx).  It works
+	from flags sent into it.
+	
+	* src/rte.cc:  Added some comments to functions I have created/changed.
+	
+	* src/methods.cc:  Added comments to jacobianAddWind.
+
 2015-12-10  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-383

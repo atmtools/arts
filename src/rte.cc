@@ -752,9 +752,10 @@ void defocusing_sat2sat(
 
 
 
-//! dotprod_with_los
+//! dotprod_with_los{,_dWdw,_dWdv,_dWdu}
 /*!
     Calculates the dot product between a field and a LOS
+    The latter three gives the derivatives with respect to the LOS
 
     The line-of-sight shall be given as in the ppath structure (i.e. the
     viewing direction), but the dot product is calculated for the photon
@@ -1191,8 +1192,12 @@ void ext2trans(
  *   trans_mat must be sized before calling the function.
  * 
  *   \param   trans_mat          Input/Output: Transmission matrix of slab.
+ *   \param   dtrans_mat_dx_upp  Input/Output: Derivative with respect to level indexed above.
+ *   \param   dtrans_mat_dx_low  Input/Output: Derivative with respect to level indexed below.
  *   \param   icase              Input/Output: Index giving ext_mat case.
  *   \param   ext_mat            Input: Averaged extinction matrix.
+ *   \param   dext_mat_dx_upp    Input: Derivative with respect to level indexed above.
+ *   \param   dext_mat_dx_low    Input: Derivative with respect to level indexed below.
  *   \param   lstep              Input: The length of the RTE step.
  * 
  *   \author Patrick Eriksson (based on earlier version started by Claudia)
@@ -1905,21 +1910,41 @@ void get_ppath_pmat(
  *     third species in abs_per_species, set ispecies to [0][2]. The dimensions
  *     are [ absorption species, frequency, stokes, stokes, ppath point ].
  * 
- *   \param   ws                  Out: The workspace
- *   \param   ppath_ext           Out: Summed extinction at each ppath point
- *   \param   ppath_abs           Out: Summed absorption at each ppath point
- *   \param   ppath_nlte_source   Out: Summed nlte source at each ppath point
- *   \param   abs_per_species     Out: Absorption for "ispecies"
- *   \param   propmat_clearsky_agenda As the WSV.    
- *   \param   ppath               As the WSV.    
- *   \param   ppath_p             Pressure for each ppath point.
- *   \param   ppath_t             Temperature for each ppath point.
- *   \param   ppath_vmr           VMR values for each ppath point.
- *   \param   ppath_f             See get_ppath_f.
- *   \param   ppath_mag           See get_ppath_atmvars.
- *   \param   f_grid              As the WSV.    
- *   \param   stokes_dim          As the WSV.
- *   \param   ispecies            Index of species to store in abs_per_species
+ *   \param   ws                        Out: The workspace
+ *   \param   ppath_ext                 Out: Summed extinction at each ppath point
+ *   \param   ppath_nlte_source         Out: Summed nlte source at each ppath point
+ *   \param   lte                       Out: Index flag for NLTE level
+ *   \param   abs_per_species           Out: Absorption for "ispecies"
+ *   \param   dppath_ext_dx             Out: Partial derivatives of ppath_ext
+ *   \param   dppath_nlte_source_dx     Out: Partial derivatives of ppath_nlte_source
+ *   \param   trans_partial             Out: Partial transmission between two ppath points
+ *   \param   dtrans_partial_dx_above   Out: Partial derivative of trans_partial for ip+1 ppath point
+ *   \param   dtrans_partial_dx_below   Out: Partial derivative of trans_partial for ip ppath point
+ *   \param   extmat_case               Out: Index for polarization in ppath_ext
+ *   \param   trans_cumlat              Out: Cumulation of trans_partial
+ *   \param   scalar_tau                Out: Diagonal elements of ppath_ext times layer length
+ *   \param   propmat_clearsky_agenda   In:  As the WSV.    
+ *   \param   jacobian_quantities       In:  As the WSV.    
+ *   \param   ppd                       In:  propmat friendly version of jacobian_quantities.
+ *   \param   ppath                     In:  As the WSV.    
+ *   \param   ppath_p                   In:  Pressure for each ppath point.
+ *   \param   ppath_t                   In:  Temperature for each ppath point.
+ *   \param   ppath_t_nlte              In:  NLTE temperature for each ppath point.
+ *   \param   ppath_vmr                 In:  VMR values for each ppath point.
+ *   \param   ppath_f                   In:  See get_ppath_f.
+ *   \param   ppath_mag                 In:  See get_ppath_atmvars.
+ *   \param   ppath_wind                In:  See get_ppath_atmvars.
+ *   \param   f_grid                    In:  As the WSV but altered by wind.
+ *   \param   jac_species_i             In:  Flags for species Jacobian
+ *   \param   jac_is_t                  In:  Flags for temperature Jacobian
+ *   \param   jac_wind_i                In:  Flags for wind Jacobian
+ *   \param   jac_mag_i                 In:  Flags for magnetic Jacobian
+ *   \param   jac_other                 In:  Flags for other propmat Jacobian
+ *   \param   rte_alonglos_v            In:  As the WSV.
+ *   \param   atmosphere_dim            In:  As the WSV.
+ *   \param   stokes_dim                In:  As the WSV.
+ *   \param   jacobian_do               In:  As the WSV.
+ *   \param   ispecies                  In:  Index of species to store in abs_per_species
  * 
  *   \author Patrick Eriksson 
  *   \date   2012-08-15
@@ -2628,15 +2653,15 @@ void get_ppath_f(
  * 
  *   ppath_doppler [ nf + np ]
  * 
- *   \param   ppath_f          Out: Doppler shifted f_grid
- *   \param   ppath            Propagation path.
- *   \param   f_grid           Original f_grid.
- *   \param   atmosphere_dim   As the WSV.
- *   \param   rte_alonglos_v   As the WSV.
- *   \param   ppath_wind       See get_ppath_atmvars.
+ *   \param   ppath_f_partials  Out: Partial derivative of Doppler shifted f_grid with respect to...
+ *   \param   component         In:  Component of the shift for partial derivation
+ *   \param   ppath             In:  Propagation ppath.
+ *   \param   f_grid            In:  As the WSV
+ *   \param   atmosphere_dim    In:  As the WSV.
+ *   \param   ppath_wind        In:  See get_ppath_atmvars.
  * 
- *   \author Patrick Eriksson 
- *   \date   2013-02-21
+ *   \author Richard Larsson
+ *   \date   2015-12-10
  */
 void get_ppath_f_partials( 
 Matrix&    ppath_f_partials,
@@ -2802,7 +2827,7 @@ void get_ppath_trans(
 }
 
 
-//! get_ppath_trans
+//! get_ppath_trans_and_dppath_trans_dx
 /*!
  *   Determines the transmission in different ways for a clear-sky RT
  *   integration.
@@ -2823,18 +2848,18 @@ void get_ppath_trans(
  * 
  *   The scalar optical thickness is calculated in parallel.
  * 
- *   \param   trans_partial  Out: Transmission for each path step.
- *   \param   dtrans_partial_dx_from_above  Out: Partial transmission for upper p-level.
- *   \param   dtrans_partial_dx_from_below  Out: Partial transmission for lower p-level.
- *   \param   extmat_case    Out: Corresponds to *icase* of *ext2trans*.
- *   \param   trans_cumulat  Out: Transmission to each path point.
- *   \param   scalar_tau     Out: Total (scalar) optical thickness of path
- *   \param   ppath          As the WSV.    
- *   \param   ppath_ext      See get_ppath_ext.
- *   \param   dppath_ext_dx  See get_ppath_ext_and_dppath_ext_dx.
- *   \param   jacobian_quantities  As the WSV.    
- *   \param   f_grid         As the WSV.    
- *   \param   stokes_dim     As the WSV.
+ *   \param   trans_partial                     Out: Transmission for each path step.
+ *   \param   dtrans_partial_dx_from_above      Out: Partial transmission for upper p-level.
+ *   \param   dtrans_partial_dx_from_below      Out: Partial transmission for lower p-level.
+ *   \param   extmat_case                       Out: Corresponds to *icase* of *ext2trans*.
+ *   \param   trans_cumulat                     Out: Transmission to each path point.
+ *   \param   scalar_tau                        Out: Total (scalar) optical thickness of path
+ *   \param   ppath                             In:  As the WSV.    
+ *   \param   ppath_ext                         In:  See get_ppath_ext.
+ *   \param   dppath_ext_dx                     In:  See get_ppath_ext_and_dppath_ext_dx.
+ *   \param   jacobian_quantities               In:  As the WSV.    
+ *   \param   f_grid                            In:  As the WSV.    
+ *   \param   stokes_dim                        In:  As the WSV.
  * 
  *   \author Patrick Eriksson 
  *   \date   2012-08-15

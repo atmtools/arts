@@ -244,7 +244,7 @@ void iyEmissionStandard(
   // abs_per_species
   //   The absorption for individual species. Used to fill iy_aux.
   // auxAbsSpecies,  auxAbsIsp, auxVmrSpecies, auxVmrIsp
-  //   Coding of which iy_aux elements that cover particla absorption resp.
+  //   Coding of which iy_aux elements that cover particle absorption resp.
   //   VMR, and the corresponding index among abs_species. Left empty if iy_aux
   //   does not contain any quantity of concern.
   // auxAbsSum, absPressure ...
@@ -253,18 +253,24 @@ void iyEmissionStandard(
   // diy_dpath
   //   The derivate of iy with respect to changes at the ppath points.
   // dppath_ext_dex
-  //   ?
+  //   The derivatives of the extinction matrix at the ppath points.
   // dppath_nlte_source_dx
-  //   ? 
+  //   The derivatives of the NLTE source term at the ppath points.
   // dtrans_partial_dx_above/below
-  //   ?
+  //   The derivatives of the transmission matrix at the ppath points.
+  //   Below means the derivatives are from the path point itself and above
+  //   means the derivatives are from the neighboring ppath point.  Together,
+  //   Above and Below makes the layer through which the transfer is carried
+  //   out.
   // iaps
   //   The index of species for which abs_per_species shall be filled. 
-  //   Q; Now also set following jac_species, but that now not used!?
+  //   FIXME:  When more methods than VMR is present from propmat clearsky,
+  //   remove lines for jacobian definition to save memory.
   // jac_mag_i: Works as jac_species_i, but uses JAC_IS_MAG... and JAC_IS_NONE
   //    for coding of each element.
   // jac_other
-  //    Q; What is this. Needed?
+  //    Works as jac_species_i, but uses JAC_IS_OTHER... and JAC_IS_NONE
+  //    for "other" propmat derivatives
   // jac_is_t
   //    Works as jac_species_i, but uses JAC_IS_T... and JAC_IS_NONE
   //    for coding of each element.
@@ -277,20 +283,20 @@ void iyEmissionStandard(
   // ppath_p, ppath_vmr, ppath_ext ...
   //    Holds the pressure, vmr, extinction matrix etc. at each point of ppath.
   // ppd
-  //   Q; Is this variable really needed? I don't see it being used.
+  //   Flags and indexing for the jacobian_quantities that works in propmat clearsky
   // scalar_tau
   //   The total optical thickness of the ppath (a scalar value).
   // trans_cumulat, trans_partial
   //   The transmission (as Mueller matrices) for each ppath step resp. from
   //   the end to each point. See further *get_ppath_trans*.
   
-  //### jacobian part #########################################################
+  //###### jacobian part #######################################################
   // Initialise analytical jacobians (diy_dx and help variables)
   //
   Index j_analytical_do = 0;
   ArrayOfTensor3  diy_dpath; 
   ArrayOfIndex    jac_species_i(0), jac_is_t(0), jac_wind_i(0), jac_mag_i(0), jac_other(0); 
-  // Container for partial derivatives of propmat
+  // Flags for partial derivatives of propmat
   const PropmatPartialsData ppd(jacobian_quantities);
   //
   if( jacobian_do ) { FOR_ANALYTICAL_JACOBIANS_DO( j_analytical_do = 1; ) }
@@ -654,102 +660,68 @@ void iyEmissionStandard(
                       if( jac_species_i[iq] >= 0 )
                         {
                           for( Index iv=0; iv<nf; iv++ )
-                            {
-                              // Diagonal transmission matrix
-                              if( extmat_case[ip][iv] == 1 )
-                                {
-                                  const Numeric dkdn1 = dppath_ext_dx(iq,iv,0,0,ip);
-                                  const Numeric dkdn2 = dppath_ext_dx(iq,iv,0,0,ip+1);
-                                    
-                                  const Numeric x = -0.5 * ppath.lstep[ip] * 
-                                                    trans_cumulat(iv,0,0,ip+1);
-                                  const Numeric y = x * sibi(iv,0);
-                                  // Stokes component 1
-                                  diy_dpath[iq](ip  ,iv,0) += y * dkdn1;
-                                  diy_dpath[iq](ip+1,iv,0) += y * dkdn2;
-                                  // Higher stokes components
-                                  for( Index is=1; is<ns; is++ )
-                                    { 
-                                      const Numeric z = x * iy(iv,is); 
-                                      diy_dpath[iq](ip  ,iv,is) += z * dkdn1;
-                                      diy_dpath[iq](ip+1,iv,is) += z * dkdn2;
-                                    }
-                                    
-                                    if(nonlte)
-                                    {
-                                        const Numeric v = 0.5 * 
-                                        trans_cumulat(iv,0,0,ip) *
-                                        ( 1.0 - trans_partial(iv,0,0,ip));
-                                        
-                                        Numeric invK = 1.0/ppath_ext(iv,0,0,ip  );
-                                        diy_dpath[iq](ip  ,iv,0) += v*
-                                        (- invK*dkdn1*invK * ppath_nlte_source(iv,0,ip  ) +
-                                        invK*dppath_nlte_source_dx(iq,iv,0,ip  ));
-                                        
-                                        invK = 1.0/ppath_ext(iv,0,0,ip+1);
-                                        diy_dpath[iq](ip+1,iv,0) += v*
-                                        (- invK*dkdn2*invK * ppath_nlte_source(iv,0,ip+1) +
-                                        invK*dppath_nlte_source_dx(iq,iv,0,ip+1));
-                                    }
-                                }
-
-                              // General case
-                              else
-                                { 
-                                  // Size of disturbance, a relative number
-                                  Matrix ext_mat(ns,ns), dtdx(ns,ns);
-                                  
-                                  dtdx = dtrans_partial_dx_below(iq,iv,joker,joker,ip);
-                                
-                                  Vector x(ns), y(ns);
-                                  mult( x, dtdx, sibi(iv,joker) );
-                                  mult( y, trans_cumulat(iv,joker,joker,ip), x );
-                                  diy_dpath[iq](ip,iv,joker) += y;
-                                  //
-                                  
-                                  // Disturb for ip+1
-                                  dtdx = dtrans_partial_dx_above(iq,iv,joker,joker,ip);
-                                  
-                                  mult( x, dtdx, sibi(iv,joker) );
-                                  mult( y, trans_cumulat(iv,joker,joker,ip), x );
-                                  diy_dpath[iq](ip+1,iv,joker) += y;
-                                  
-                                  if(nonlte)
+                          {
+                              if(nonlte)
+                                  get_diydx( diy_dpath[iq](ip  ,iv,joker),
+                                             diy_dpath[iq](ip+1,iv,joker),
+                                             extmat_case[ip][iv],
+                                             iy(iv,joker),
+                                             sibi(iv,joker),
+                                             ppath_nlte_source(iv,joker,ip  ),
+                                             ppath_nlte_source(iv,joker,ip+1),
+                                             dppath_nlte_source_dx(iq,iv,joker,ip  ),
+                                             dppath_nlte_source_dx(iq,iv,joker,ip+1),
+                                             ppath_ext(iv,joker,joker,ip  ),
+                                             ppath_ext(iv,joker,joker,ip+1),
+                                             dppath_ext_dx(iq,iv,joker,joker,ip  ),
+                                             dppath_ext_dx(iq,iv,joker,joker,ip+1),
+                                             trans_partial(iv,joker,joker,ip),
+                                             dtrans_partial_dx_below(iq,iv,joker,joker,ip),
+                                             dtrans_partial_dx_above(iq,iv,joker,joker,ip),
+                                             trans_cumulat(iv,joker,joker,ip  ),
+                                             trans_cumulat(iv,joker,joker,ip+1),
+                                             ppath_t[ip  ],
+                                             ppath_t[ip+1],
+                                             dt,
+                                             0,
+                                             0,
+                                             ppath.lstep[ip],
+                                             stokes_dim,
+                                             false,
+                                             false,
+                                             true );
+                                  else
                                   {
-                                      Matrix invK(stokes_dim,stokes_dim),
-                                             mat1(stokes_dim,stokes_dim),
-                                             unit(stokes_dim,stokes_dim);
-                                      Vector vec1(stokes_dim),
-                                             vec2(stokes_dim);
-                                      
-                                      id_mat(unit);
-                                      unit-=trans_partial(iv,joker,joker,ip);
-                                      
-                                      inv(invK,ppath_ext(iv,joker,joker,ip  ));
-                                      mult(mat1,dppath_ext_dx(iq,iv,joker,joker,ip  ),invK);
-                                      
-                                      mult(vec1,mat1,ppath_nlte_source(iv,joker,ip  ));
-                                      vec1-=dppath_nlte_source_dx(iq,iv,joker,ip  );
-                                      vec1*=-0.5;
-                                      
-                                      mult(vec2,unit,vec1);
-                                      mult(vec1,trans_cumulat(iv,joker,joker,ip),vec2);
-                                      
-                                      diy_dpath[iq](ip  ,iv,joker) += vec1;
-                                      
-                                      inv(invK,ppath_ext(iv,joker,joker,ip+1));
-                                      mult(mat1,dppath_ext_dx(iq,iv,joker,joker,ip+1),invK);
-                                      
-                                      mult(vec1,mat1,ppath_nlte_source(iv,joker,ip+1));
-                                      vec1-=dppath_nlte_source_dx(iq,iv,joker,ip+1);
-                                      vec1*=-0.5;
-                                      
-                                      mult(vec2,unit,vec1);
-                                      mult(vec1,trans_cumulat(iv,joker,joker,ip),vec2);
-                                      
-                                      diy_dpath[iq](ip+1,iv,joker) += vec1;
+                                      const Vector dummy(0);
+                                      get_diydx( diy_dpath[iq](ip  ,iv,joker),
+                                                 diy_dpath[iq](ip+1,iv,joker),
+                                                 extmat_case[ip][iv],
+                                                 iy(iv,joker),
+                                                 sibi(iv,joker),
+                                                 dummy,
+                                                 dummy,
+                                                 dummy,
+                                                 dummy,
+                                                 ppath_ext(iv,joker,joker,ip  ),
+                                                 ppath_ext(iv,joker,joker,ip+1),
+                                                 dppath_ext_dx(iq,iv,joker,joker,ip  ),
+                                                 dppath_ext_dx(iq,iv,joker,joker,ip+1),
+                                                 trans_partial(iv,joker,joker,ip),
+                                                 dtrans_partial_dx_below(iq,iv,joker,joker,ip),
+                                                 dtrans_partial_dx_above(iq,iv,joker,joker,ip),
+                                                 trans_cumulat(iv,joker,joker,ip  ),
+                                                 trans_cumulat(iv,joker,joker,ip+1),
+                                                 ppath_t[ip  ],
+                                                 ppath_t[ip+1],
+                                                 dt,
+                                                 0,
+                                                 0,
+                                                 ppath.lstep[ip],
+                                                 stokes_dim,
+                                                 false,
+                                                 false,
+                                                 false );
                                   }
-                                }
                             }
                         }
 
@@ -758,102 +730,67 @@ void iyEmissionStandard(
                         {
                           for( Index iv=0; iv<nf; iv++ )
                             {
-                              // Diagonal transmission matrix
-                              if( extmat_case[ip][iv] == 1 )
-                                {
-                                    
-                                  const Numeric dkdx1 = dppath_ext_dx(iq,iv,0,0,ip);
-                                  const Numeric dkdx2 = dppath_ext_dx(iq,iv,0,0,ip+1);
-                                  
-                                  const Numeric x = -0.5 * ppath.lstep[ip] * 
-                                                 trans_cumulat(iv,0,0,ip+1);
-                                  const Numeric y = x * sibi(iv,0);
-                                  // Stokes component 1
-                                  diy_dpath[iq](ip  ,iv,0) += y * dkdx1;
-                                  diy_dpath[iq](ip+1,iv,0) += y * dkdx2;
-                                  // Higher stokes components
-                                  for( Index is=1; is<ns; is++ )
-                                    { 
-                                      const Numeric z = x * iy(iv,is); 
-                                      diy_dpath[iq](ip  ,iv,is) += z * dkdx1;
-                                      diy_dpath[iq](ip+1,iv,is) += z * dkdx2;
-                                    }
-                                    
-                                    if(nonlte)
+                                if(nonlte)
+                                    get_diydx( diy_dpath[iq](ip  ,iv,joker),
+                                               diy_dpath[iq](ip+1,iv,joker),
+                                               extmat_case[ip][iv],
+                                               iy(iv,joker),
+                                               sibi(iv,joker),
+                                               ppath_nlte_source(iv,joker,ip  ),
+                                               ppath_nlte_source(iv,joker,ip+1),
+                                               dppath_nlte_source_dx(iq,iv,joker,ip  ),
+                                               dppath_nlte_source_dx(iq,iv,joker,ip+1),
+                                               ppath_ext(iv,joker,joker,ip  ),
+                                               ppath_ext(iv,joker,joker,ip+1),
+                                               dppath_ext_dx(iq,iv,joker,joker,ip  ),
+                                               dppath_ext_dx(iq,iv,joker,joker,ip+1),
+                                               trans_partial(iv,joker,joker,ip),
+                                               dtrans_partial_dx_below(iq,iv,joker,joker,ip),
+                                               dtrans_partial_dx_above(iq,iv,joker,joker,ip),
+                                               trans_cumulat(iv,joker,joker,ip  ),
+                                               trans_cumulat(iv,joker,joker,ip+1),
+                                               ppath_t[ip  ],
+                                               ppath_t[ip+1],
+                                               dt,
+                                               0,
+                                               0,
+                                               ppath.lstep[ip],
+                                               stokes_dim,
+                                               false,
+                                               false,
+                                               true );
+                                    else
                                     {
-                                        const Numeric v = 0.5 * 
-                                        trans_cumulat(iv,0,0,ip) *
-                                        ( 1.0 - trans_partial(iv,0,0,ip));
-                                        
-                                        Numeric invK = 1.0/ppath_ext(iv,0,0,ip  );
-                                        diy_dpath[iq](ip  ,iv,0) += v*
-                                        (- invK*dkdx1*invK * ppath_nlte_source(iv,0,ip  ) +
-                                        invK*dppath_nlte_source_dx(iq,iv,0,ip  ));
-                                        
-                                        invK = 1.0/ppath_ext(iv,0,0,ip+1);
-                                        diy_dpath[iq](ip+1,iv,0) += v*
-                                        (- invK*dkdx2*invK * ppath_nlte_source(iv,0,ip+1) +
-                                        invK*dppath_nlte_source_dx(iq,iv,0,ip+1));
+                                        const Vector dummy(0);
+                                        get_diydx( diy_dpath[iq](ip  ,iv,joker),
+                                                   diy_dpath[iq](ip+1,iv,joker),
+                                                   extmat_case[ip][iv],
+                                                   iy(iv,joker),
+                                                   sibi(iv,joker),
+                                                   dummy,
+                                                   dummy,
+                                                   dummy,
+                                                   dummy,
+                                                   ppath_ext(iv,joker,joker,ip  ),
+                                                   ppath_ext(iv,joker,joker,ip+1),
+                                                   dppath_ext_dx(iq,iv,joker,joker,ip  ),
+                                                   dppath_ext_dx(iq,iv,joker,joker,ip+1),
+                                                   trans_partial(iv,joker,joker,ip),
+                                                   dtrans_partial_dx_below(iq,iv,joker,joker,ip),
+                                                   dtrans_partial_dx_above(iq,iv,joker,joker,ip),
+                                                   trans_cumulat(iv,joker,joker,ip  ),
+                                                   trans_cumulat(iv,joker,joker,ip+1),
+                                                   ppath_t[ip  ],
+                                                   ppath_t[ip+1],
+                                                   dt,
+                                                   0,
+                                                   0,
+                                                   ppath.lstep[ip],
+                                                   stokes_dim,
+                                                   false,
+                                                   false,
+                                                   false );
                                     }
-                                }
-
-                              // General case
-                              else
-                                { 
-                                  Matrix ext_mat(ns,ns), dtdx(ns,ns);
-                                  
-                                  // Disturb for ip
-                                  dtdx = dtrans_partial_dx_below(iq,iv,joker,joker,ip);
-                                      
-                                  Vector x(ns), y(ns);
-                                  mult( x, dtdx, sibi(iv,joker) );
-                                  mult( y, trans_cumulat(iv,joker,joker,ip), x );
-                                  diy_dpath[iq](ip,iv,joker) += y;
-                                  //
-                                  
-                                  // Disturb for ip+1
-                                  dtdx = dtrans_partial_dx_above(iq,iv,joker,joker,ip);
-                                      
-                                  mult( x, dtdx, sibi(iv,joker) );
-                                  mult( y, trans_cumulat(iv,joker,joker,ip), x );
-                                  diy_dpath[iq](ip+1,iv,joker) += y;
-                                  
-                                  if(nonlte)
-                                  {
-                                      Matrix invK(stokes_dim,stokes_dim),
-                                             mat1(stokes_dim,stokes_dim),
-                                             unit(stokes_dim,stokes_dim);
-                                      Vector vec1(stokes_dim),
-                                             vec2(stokes_dim);
-                                      
-                                      id_mat(unit);
-                                      unit-=trans_partial(iv,joker,joker,ip);
-                                      
-                                      inv(invK,ppath_ext(iv,joker,joker,ip  ));
-                                      mult(mat1,dppath_ext_dx(iq,iv,joker,joker,ip  ),invK);
-                                      
-                                      mult(vec1,mat1,ppath_nlte_source(iv,joker,ip  ));
-                                      vec1-=dppath_nlte_source_dx(iq,iv,joker,ip  );
-                                      vec1*=-0.5;
-                                      
-                                      mult(vec2,unit,vec1);
-                                      mult(vec1,trans_cumulat(iv,joker,joker,ip),vec2);
-                                      
-                                      diy_dpath[iq](ip  ,iv,joker) += vec1;
-                                      
-                                      inv(invK,ppath_ext(iv,joker,joker,ip+1));
-                                      mult(mat1,dppath_ext_dx(iq,iv,joker,joker,ip+1),invK);
-                                      
-                                      mult(vec1,mat1,ppath_nlte_source(iv,joker,ip+1));
-                                      vec1-=dppath_nlte_source_dx(iq,iv,joker,ip+1);
-                                      vec1*=-0.5;
-                                      
-                                      mult(vec2,unit,vec1);
-                                      mult(vec1,trans_cumulat(iv,joker,joker,ip),vec2);
-                                      
-                                      diy_dpath[iq](ip+1,iv,joker) += vec1;
-                                  }
-                                }
                             }
                         }
                       
@@ -861,207 +798,71 @@ void iyEmissionStandard(
                       else if( jac_is_t[iq] )
                         {
                           for( Index iv=0; iv<nf; iv++ )
-                            {
-                              // Diagonal transmission matrix
-                              if( extmat_case[ip][iv] == 1 )
-                                {
-                                  const Numeric dkdt1 = dppath_ext_dx(iq,iv,0,0,ip);
-                                  const Numeric dkdt2 = dppath_ext_dx(iq,iv,0,0,ip+1);
-                                  const Numeric x = -0.5 * ppath.lstep[ip] * 
-                                                 trans_cumulat(iv,0,0,ip+1);
-                                  const Numeric y = x * sibi(iv,0);
-                                  // Stokes 1:
-                                  diy_dpath[iq](ip  ,iv,0) += y * dkdt1;
-                                  diy_dpath[iq](ip+1,iv,0) += y * dkdt2;
-                                  // Higher Stokes
-                                  for( Index is=1; is<ns; is++ )
-                                    { 
-                                      const Numeric z = x * iy(iv,is);
-                                      diy_dpath[iq](ip  ,iv,is) += z * dkdt1;
-                                      diy_dpath[iq](ip+1,iv,is) += z * dkdt2;
-                                    }
-                                  //
-                                  // The terms associated with B-bar:
-                                  const Numeric v = 0.5 * 
-                                                trans_cumulat(iv,0,0,ip) *
-                                             ( 1.0 - trans_partial(iv,0,0,ip));
-                                  diy_dpath[iq](ip  ,iv,0) += v/dt * (
-                                                     ppath_blackrad_dt(iv,ip) -
-                                                     ppath_blackrad(iv,ip) );
-                                  diy_dpath[iq](ip+1,iv,0) += v/dt * (
-                                                     ppath_blackrad_dt(iv,ip+1) -
-                                                     ppath_blackrad(iv,ip+1) );
-                                  
-                                  if(nonlte)
-                                  {
-                                      Numeric invK = 1.0/ppath_ext(iv,0,0,ip  );
-                                      diy_dpath[iq](ip  ,iv,0) += v*
-                                      (- invK*dkdt1*invK * ppath_nlte_source(iv,0,ip  ) +
-                                      invK*dppath_nlte_source_dx(iq,iv,0,ip  ));
-                                      
-                                      invK = 1.0/ppath_ext(iv,0,0,ip+1);
-                                      diy_dpath[iq](ip+1,iv,0) += v*
-                                      (- invK*dkdt2*invK * ppath_nlte_source(iv,0,ip+1) +
-                                      invK*dppath_nlte_source_dx(iq,iv,0,ip+1));
-                                  }
-                                  
-                                  // Zero for higher Stokes
-                                  //
-                                  // The terms associated with Delta-s:
-                                  if( jacobian_quantities[iq].Subtag() == 
-                                                                     "HSE on" )
-                                    {
-                                      // Stokes 1:
-                                      const Numeric kbar = 0.5 * ( 
-                                                      ppath_ext(iv,0,0,ip  ) +
-                                                      ppath_ext(iv,0,0,ip+1) );
-                                      diy_dpath[iq](ip  ,iv,0) += y * kbar /
-                                                                  ppath_t[ip];
-                                      diy_dpath[iq](ip+1,iv,0) += y * kbar /
-                                                                 ppath_t[ip+1];
-                                      // Higher Stokes
-                                      for( Index is=1; is<ns; is++ )
-                                        { 
-                                          const Numeric z = x * iy(iv,is);
-                                          diy_dpath[iq](ip  ,iv,is) += 
-                                                      z * kbar / ppath_t[ip];
-                                          diy_dpath[iq](ip+1,iv,is) += 
-                                                      z * kbar / ppath_t[ip+1];
-                                        }
-                                    } //hse
-                                }
-                              // General case
+                          {   
+                              if(nonlte)
+                              {
+                                  get_diydx( diy_dpath[iq](ip  ,iv,joker),
+                                             diy_dpath[iq](ip+1,iv,joker),
+                                             extmat_case[ip][iv],
+                                             iy(iv,joker),
+                                             sibi(iv,joker),
+                                             ppath_nlte_source(iv,joker,ip  ),
+                                             ppath_nlte_source(iv,joker,ip+1),
+                                             dppath_nlte_source_dx(iq,iv,joker,ip  ),
+                                             dppath_nlte_source_dx(iq,iv,joker,ip+1),
+                                             ppath_ext(iv,joker,joker,ip  ),
+                                             ppath_ext(iv,joker,joker,ip+1),
+                                             dppath_ext_dx(iq,iv,joker,joker,ip  ),
+                                             dppath_ext_dx(iq,iv,joker,joker,ip+1),
+                                             trans_partial(iv,joker,joker,ip),
+                                             dtrans_partial_dx_below(iq,iv,joker,joker,ip),
+                                             dtrans_partial_dx_above(iq,iv,joker,joker,ip),
+                                             trans_cumulat(iv,joker,joker,ip  ),
+                                             trans_cumulat(iv,joker,joker,ip+1),
+                                             ppath_t[ip  ],
+                                             ppath_t[ip+1],
+                                             dt,
+                                             (ppath_blackrad_dt(iv,ip)-ppath_blackrad(iv,ip))/dt,
+                                             (ppath_blackrad_dt(iv,ip+1)-ppath_blackrad(iv,ip+1))/dt,
+                                             ppath.lstep[ip],
+                                             stokes_dim,
+                                             true,
+                                             jacobian_quantities[iq].Subtag() == "HSE on",
+                                             true );
+                              }
                               else
-                                { 
-                                  Matrix ext_mat(ns,ns), dtdx(ns,ns);
-                                  
-                                  // Disturb for ip
-                                  dtdx = dtrans_partial_dx_below(iq,iv,joker,joker,ip);
-                                  
-                                  Vector x(ns), y(ns);
-                                  mult( x, dtdx, sibi(iv,joker) );
-                                  mult( y, trans_cumulat(iv,joker,joker,ip), 
-                                                                           x );
-                                  diy_dpath[iq](ip,iv,joker) += y;
-                                  
-                                  // Disturb for ip+1
-                                  dtdx = dtrans_partial_dx_above(iq,iv,joker,joker,ip);
-                                  
-                                  mult( x, dtdx, sibi(iv,joker) );
-                                  mult( y, trans_cumulat(iv,joker,joker,ip), 
-                                                                           x );
-                                  diy_dpath[iq](ip+1,iv,joker) += y; 
-                                  //
-                                  // The terms associated with B-bar:
-                                  const Numeric v = 
-                                             ( 1.0 - trans_partial(iv,0,0,ip));
-                                  Numeric dbdt = 0.5/dt * ( ppath_blackrad_dt(iv,ip) -
-                                                       ppath_blackrad(iv,ip) );
-                                  x[0] = v * dbdt;
-                                  for( Index is=1; is<ns; is++ ) 
-                                    { x[is] = -trans_partial(iv,is,0,ip)*dbdt; }
-                                  mult( y, trans_cumulat(iv,joker,joker,ip), 
-                                                                           x );
-                                  diy_dpath[iq](ip,iv,joker) += y; 
-                                  
-                                  if(nonlte)
-                                  {
-                                      Matrix invK(stokes_dim,stokes_dim),
-                                             mat1(stokes_dim,stokes_dim),
-                                             unit(stokes_dim,stokes_dim);
-                                      Vector vec1(stokes_dim),
-                                             vec2(stokes_dim);
-                                      
-                                      id_mat(unit);
-                                      unit-=trans_partial(iv,joker,joker,ip);
-                                      
-                                      inv(invK,ppath_ext(iv,joker,joker,ip  ));
-                                      mult(mat1,dppath_ext_dx(iq,iv,joker,joker,ip  ),invK);
-                                      
-                                      mult(vec1,mat1,ppath_nlte_source(iv,joker,ip  ));
-                                      vec1-=dppath_nlte_source_dx(iq,iv,joker,ip  );
-                                      vec1*=-0.5;
-                                      
-                                      mult(vec2,unit,vec1);
-                                      mult(vec1,trans_cumulat(iv,joker,joker,ip),vec2);
-                                      
-                                      diy_dpath[iq](ip  ,iv,joker) += vec1;
-                                  }
-                                  
-                                  // Some for ip+1
-                                  dbdt = 0.5/dt * ( ppath_blackrad_dt(iv,ip+1) -
-                                                    ppath_blackrad(iv,ip+1) );
-                                  x[0] = v * dbdt;
-                                  for( Index is=1; is<ns; is++ ) 
-                                    { x[is] = -trans_partial(iv,is,0,ip)*dbdt; }
-                                  mult( y, trans_cumulat(iv,joker,joker,ip), x );
-                                  diy_dpath[iq](ip+1,iv,joker) += y;
-                                  
-                                  if(nonlte)
-                                  {
-                                      Matrix invK(stokes_dim,stokes_dim),
-                                             mat1(stokes_dim,stokes_dim),
-                                             unit(stokes_dim,stokes_dim);
-                                      Vector vec1(stokes_dim),
-                                             vec2(stokes_dim);
-                                      
-                                      id_mat(unit);
-                                      unit-=trans_partial(iv,joker,joker,ip);
-                                      
-                                      inv(invK,ppath_ext(iv,joker,joker,ip+1));
-                                      mult(mat1,dppath_ext_dx(iq,iv,joker,joker,ip+1),invK);
-                                      
-                                      mult(vec1,mat1,ppath_nlte_source(iv,joker,ip+1));
-                                      vec1-=dppath_nlte_source_dx(iq,iv,joker,ip+1);
-                                      vec1*=-0.5;
-                                      
-                                      mult(vec2,unit,vec1);
-                                      mult(vec1,trans_cumulat(iv,joker,joker,ip),vec2);
-                                      
-                                      diy_dpath[iq](ip+1,iv,joker) += vec1;
-                                  }
-                                  
-                                  
-                                  //
-                                  // The terms associated with Delta-s:
-                                  if( jacobian_quantities[iq].Subtag() == 
-                                                                     "HSE on" )
-                                    {
-                                      for( Index is1=0; is1<ns; is1++ ) {
-                                        for( Index is2=0; is2<ns; is2++ ) {
-                                          ext_mat(is1,is2) = 0.5 * (
-                                                   ppath_ext(iv,is1,is2,ip  ) +
-                                                   ppath_ext(iv,is1,is2,ip+1) );
-                                        } }
-                                      // dl for disturbed tbar
-                                      const Numeric tbar = 0.5 * (
-                                                  ppath_t[ip] + ppath_t[ip+1] );
-                                      const Numeric dl = ppath.lstep[ip] *
-                                                            ( 1 + dt/tbar );
-                                      ext2trans( dtdx, extmat_case[ip][iv], 
-                                                 ext_mat, dl ); 
-                                      for( Index is1=0; is1<ns; is1++ ) {
-                                        for( Index is2=0; is2<ns; is2++ ) {
-                                          dtdx(is1,is2) = (1/dt) * 
-                                            ( dtdx(is1,is2) -
-                                                trans_partial(iv,is1,is2,ip) );
-                                        } }
-                                      mult( x, dtdx, sibi(iv,joker) );
-                                      mult( y, trans_cumulat(iv,joker,joker,ip),
-                                                                            x );
-                                      // Contribution shared between the two
-                                      // points  and is proportional to 1/t
-                                      // See also AUG.
-                                      for( Index is=0; is<ns; is++ ) 
-                                        {
-                                          diy_dpath[iq](ip  ,iv,is) += y[is] *
-                                                    0.5 * tbar / ppath_t[ip];
-                                          diy_dpath[iq](ip+1,iv,is) += y[is] *
-                                                    0.5 * tbar / ppath_t[ip+1];
-                                        }
-                                    } // HSE
-                                } // General case
-                            } // Frequency loop 
+                              {
+                                  const Vector dummy(0);
+                                  get_diydx( diy_dpath[iq](ip  ,iv,joker),
+                                             diy_dpath[iq](ip+1,iv,joker),
+                                             extmat_case[ip][iv],
+                                             iy(iv,joker),
+                                             sibi(iv,joker),
+                                             dummy,
+                                             dummy,
+                                             dummy,
+                                             dummy,
+                                             ppath_ext(iv,joker,joker,ip  ),
+                                             ppath_ext(iv,joker,joker,ip+1),
+                                             dppath_ext_dx(iq,iv,joker,joker,ip  ),
+                                             dppath_ext_dx(iq,iv,joker,joker,ip+1),
+                                             trans_partial(iv,joker,joker,ip),
+                                             dtrans_partial_dx_below(iq,iv,joker,joker,ip),
+                                             dtrans_partial_dx_above(iq,iv,joker,joker,ip),
+                                             trans_cumulat(iv,joker,joker,ip  ),
+                                             trans_cumulat(iv,joker,joker,ip+1),
+                                             ppath_t[ip  ],
+                                             ppath_t[ip+1],
+                                             dt,
+                                             (ppath_blackrad_dt(iv,ip)-ppath_blackrad(iv,ip))/dt,
+                                             (ppath_blackrad_dt(iv,ip+1)-ppath_blackrad(iv,ip+1))/dt,
+                                             ppath.lstep[ip],
+                                             stokes_dim,
+                                             true,
+                                             jacobian_quantities[iq].Subtag() == "HSE on",
+                                             false );
+                              }
+                          } // Frequency loop 
                         } // Temperature
                     } // if this analytical
                 } // for iq

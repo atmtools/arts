@@ -7678,7 +7678,10 @@ void define_md_data_raw()
          "calculations can only be performed by analytic expressions.\n"
          "\n"
          "The wind field components are retrieved separately, and,\n"
-         "hence, the argument *component* can be \"u\", \"v\" or \"w\". \n"
+         "hence, the argument *component* can be \"u\", \"v\" or \"w\" \n"
+         "for \"analytical\" *method*.  In addition to these, *component*\n"
+         "can be \"strength\" for total wind speed partial derivation if the\n"
+         "method is \"from propmat\".\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "jacobian_quantities", "jacobian_agenda" ),
