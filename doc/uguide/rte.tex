@@ -298,7 +298,7 @@ propagation path effectively starts at the surface.
 
 This section describes how the core radiative transfer equation is solved
 practically in ARTS. As mentioned, in this chapter focus is put on emission
-measurements. Local thermodynamic equilibrium (LTE) is throughout assumed.
+measurements. 
 The equation to solve is Equation~\ref{eq:VRTE1}:
 \begin{equation}
   \frac{\DiffD\StoVec}{\DiffD \PpathLng} = \aAbsMat{a}\left[ \EmsVec- \StoVec
@@ -322,13 +322,17 @@ first Stokes element the following expression is applied (compare \theory,
 Equation~\ref{T-eq:rtetheory:layer})
 \begin{equation}
   \label{eq:fm_defs:rte_step}
-  \aStoI{i+1} = \aStoI{i}e^{-\aOth{i}} + \bar{\Planck}_i(1-e^{-\aOth{i}}),
+  \aStoI{i+1} = \aStoI{i}e^{-\aOth{i}} + \left(\bar{\Planck}_i+{\bar{j_{n,i}}}/{\bar{\AbsCoef}}\right)(1-e^{-\aOth{i}}),
 \end{equation}
 with
 \begin{eqnarray}
   \bar{\Planck}_i &=& (\Planck(\aTmp{i})+\Planck(\aTmp{i+1}))/2, \\
   \label{eq:bbarstep}
-  \aOth{i} &=& \Delta\aPpathLng{i}(\aAbsCoef{i}+\aAbsCoef{i+1})/2,  
+  \bar{\AbsCoef}&=&(\aAbsCoef{i}+\aAbsCoef{i+1})/2\\
+  \label{eq:absbar}
+  \bar{j_{n,i}}&=&(j_{n,i}+j_{n,i+1})/2\\
+  \label{eq:jnbar}
+  \aOth{i} &=& \Delta\aPpathLng{i}\bar{\AbsCoef},  
   \label{eq:taustep}
 \end{eqnarray}
 where \aStoI{i}, \aTmp{i}\ and \aAbsCoef{i}\ are the radiance, temperature and
@@ -348,13 +352,14 @@ Accordingly, the expression for the second Stokes component is
 \end{equation}
 The third and forth Stokes component are handled likewise. The expressions
 above are implemented in the workspace method \wsmindex{iyEmissionStandard},
-intended to be part of \builtindoc{iy\_main\_agenda}.
+intended to be part of \builtindoc{iy\_main\_agenda}.  The non-LTE term is
+as in Equation~\ref{eq:nlte_source}.
 
 An alternative way to perform the calculations for the first Stokes element
 would be
 \begin{equation}
   \label{eq:fm_defs:rte_alt}
-  \StoI = \sum_i \aTrn{i+1} \bar{\Planck}_i(1-e^{-\aOth{i}}),
+  \StoI = \sum_i \aTrn{i+1}  \left(\bar{\Planck}_i+{\bar{j_{n,i}}}/{\bar{\AbsCoef}}\right)(1-e^{-\aOth{i}}),
 \end{equation}
 where \StoI\ is the final intensity and \aTrn{i}\ is the transmission
 between the sensor and point $i$. This calculation approach is not used as it
@@ -373,7 +378,7 @@ matrix-vector notation is required:
 \begin{equation}
   \label{eq:fm_defs:vrte_step}
   \aStoVec{i+1} = e^{-\Delta\aPpathLng{i}\bar{\ExtMat}_i} \aStoVec{i} + 
-                  (\IdnMtr-e^{-\Delta\aPpathLng{i}\bar{\ExtMat}_i})\bar{\EmsVec}_i,
+                  (\IdnMtr-e^{-\Delta\aPpathLng{i}\bar{\ExtMat}_i})\left(\bar{\EmsVec}_i+\bar{\ExtMat}_i^{-1}\bar{\aSrcVec{n,i}}\right),
 \end{equation}
 where \IdnMtr\ is the identity matrix. The \ExtMat\ and \EmsVec\
 at point $i$ and $i+1$ are averaged (element-wise) to give $\bar{\ExtMat}$ and

@@ -652,217 +652,81 @@ void iyEmissionStandard(
                 }
 
                 
-              for( Index iq=0; iq<nq; iq++ ) 
+                for( Index iq=0; iq<nq; iq++ ) 
                 {
-                  if( jacobian_quantities[iq].Analytical() )
+                    if( jacobian_quantities[iq].Analytical() )
                     {
-                      //- Absorbing species -----------------------------------
-                      if( jac_species_i[iq] >= 0 )
+                        const Vector dummy1(0);
+                        ConstVectorView dummy2=dummy1;
+                        //- Not temperature -----------------------------------
+                        if( jac_species_i[iq] >= 0 || jac_wind_i[iq] || jac_mag_i[iq] || jac_other[iq] )
                         {
-                          for( Index iv=0; iv<nf; iv++ )
-                          {
-                              if(nonlte)
-                                  get_diydx( diy_dpath[iq](ip  ,iv,joker),
-                                             diy_dpath[iq](ip+1,iv,joker),
-                                             extmat_case[ip][iv],
-                                             iy(iv,joker),
-                                             sibi(iv,joker),
-                                             ppath_nlte_source(iv,joker,ip  ),
-                                             ppath_nlte_source(iv,joker,ip+1),
-                                             dppath_nlte_source_dx(iq,iv,joker,ip  ),
-                                             dppath_nlte_source_dx(iq,iv,joker,ip+1),
-                                             ppath_ext(iv,joker,joker,ip  ),
-                                             ppath_ext(iv,joker,joker,ip+1),
-                                             dppath_ext_dx(iq,iv,joker,joker,ip  ),
-                                             dppath_ext_dx(iq,iv,joker,joker,ip+1),
-                                             trans_partial(iv,joker,joker,ip),
-                                             dtrans_partial_dx_below(iq,iv,joker,joker,ip),
-                                             dtrans_partial_dx_above(iq,iv,joker,joker,ip),
-                                             trans_cumulat(iv,joker,joker,ip  ),
-                                             trans_cumulat(iv,joker,joker,ip+1),
-                                             ppath_t[ip  ],
-                                             ppath_t[ip+1],
-                                             dt,
-                                             0,
-                                             0,
-                                             ppath.lstep[ip],
-                                             stokes_dim,
-                                             false,
-                                             false,
-                                             true );
-                                  else
-                                  {
-                                      const Vector dummy(0);
-                                      get_diydx( diy_dpath[iq](ip  ,iv,joker),
-                                                 diy_dpath[iq](ip+1,iv,joker),
-                                                 extmat_case[ip][iv],
-                                                 iy(iv,joker),
-                                                 sibi(iv,joker),
-                                                 dummy,
-                                                 dummy,
-                                                 dummy,
-                                                 dummy,
-                                                 ppath_ext(iv,joker,joker,ip  ),
-                                                 ppath_ext(iv,joker,joker,ip+1),
-                                                 dppath_ext_dx(iq,iv,joker,joker,ip  ),
-                                                 dppath_ext_dx(iq,iv,joker,joker,ip+1),
-                                                 trans_partial(iv,joker,joker,ip),
-                                                 dtrans_partial_dx_below(iq,iv,joker,joker,ip),
-                                                 dtrans_partial_dx_above(iq,iv,joker,joker,ip),
-                                                 trans_cumulat(iv,joker,joker,ip  ),
-                                                 trans_cumulat(iv,joker,joker,ip+1),
-                                                 ppath_t[ip  ],
-                                                 ppath_t[ip+1],
-                                                 dt,
-                                                 0,
-                                                 0,
-                                                 ppath.lstep[ip],
-                                                 stokes_dim,
-                                                 false,
-                                                 false,
-                                                 false );
-                                  }
-                            }
-                        }
-
-                      //- Winds and magnetic field -----------------------------------
-                      else if( jac_wind_i[iq] || jac_mag_i[iq] || jac_other[iq] )
-                        {
-                          for( Index iv=0; iv<nf; iv++ )
+                            for( Index iv=0; iv<nf; iv++ )
                             {
-                                if(nonlte)
-                                    get_diydx( diy_dpath[iq](ip  ,iv,joker),
-                                               diy_dpath[iq](ip+1,iv,joker),
-                                               extmat_case[ip][iv],
-                                               iy(iv,joker),
-                                               sibi(iv,joker),
-                                               ppath_nlte_source(iv,joker,ip  ),
-                                               ppath_nlte_source(iv,joker,ip+1),
-                                               dppath_nlte_source_dx(iq,iv,joker,ip  ),
-                                               dppath_nlte_source_dx(iq,iv,joker,ip+1),
-                                               ppath_ext(iv,joker,joker,ip  ),
-                                               ppath_ext(iv,joker,joker,ip+1),
-                                               dppath_ext_dx(iq,iv,joker,joker,ip  ),
-                                               dppath_ext_dx(iq,iv,joker,joker,ip+1),
-                                               trans_partial(iv,joker,joker,ip),
-                                               dtrans_partial_dx_below(iq,iv,joker,joker,ip),
-                                               dtrans_partial_dx_above(iq,iv,joker,joker,ip),
-                                               trans_cumulat(iv,joker,joker,ip  ),
-                                               trans_cumulat(iv,joker,joker,ip+1),
-                                               ppath_t[ip  ],
-                                               ppath_t[ip+1],
-                                               dt,
-                                               0,
-                                               0,
-                                               ppath.lstep[ip],
-                                               stokes_dim,
-                                               false,
-                                               false,
-                                               true );
-                                    else
-                                    {
-                                        const Vector dummy(0);
-                                        get_diydx( diy_dpath[iq](ip  ,iv,joker),
-                                                   diy_dpath[iq](ip+1,iv,joker),
-                                                   extmat_case[ip][iv],
-                                                   iy(iv,joker),
-                                                   sibi(iv,joker),
-                                                   dummy,
-                                                   dummy,
-                                                   dummy,
-                                                   dummy,
-                                                   ppath_ext(iv,joker,joker,ip  ),
-                                                   ppath_ext(iv,joker,joker,ip+1),
-                                                   dppath_ext_dx(iq,iv,joker,joker,ip  ),
-                                                   dppath_ext_dx(iq,iv,joker,joker,ip+1),
-                                                   trans_partial(iv,joker,joker,ip),
-                                                   dtrans_partial_dx_below(iq,iv,joker,joker,ip),
-                                                   dtrans_partial_dx_above(iq,iv,joker,joker,ip),
-                                                   trans_cumulat(iv,joker,joker,ip  ),
-                                                   trans_cumulat(iv,joker,joker,ip+1),
-                                                   ppath_t[ip  ],
-                                                   ppath_t[ip+1],
-                                                   dt,
-                                                   0,
-                                                   0,
-                                                   ppath.lstep[ip],
-                                                   stokes_dim,
-                                                   false,
-                                                   false,
-                                                   false );
-                                    }
+                                get_diydx( diy_dpath[iq](ip  ,iv,joker),
+                                           diy_dpath[iq](ip+1,iv,joker),
+                                           extmat_case[ip][iv],
+                                           iy(iv,joker),
+                                           sibi(iv,joker),
+                                           nonlte?ppath_nlte_source(iv,joker,ip  ):dummy2,
+                                           nonlte?ppath_nlte_source(iv,joker,ip+1):dummy2,
+                                           nonlte?dppath_nlte_source_dx(iq,iv,joker,ip  ):dummy2,
+                                           nonlte?dppath_nlte_source_dx(iq,iv,joker,ip+1):dummy2,
+                                           ppath_ext(iv,joker,joker,ip  ),
+                                           ppath_ext(iv,joker,joker,ip+1),
+                                           dppath_ext_dx(iq,iv,joker,joker,ip  ),
+                                           dppath_ext_dx(iq,iv,joker,joker,ip+1),
+                                           trans_partial(iv,joker,joker,ip),
+                                           dtrans_partial_dx_below(iq,iv,joker,joker,ip),
+                                           dtrans_partial_dx_above(iq,iv,joker,joker,ip),
+                                           trans_cumulat(iv,joker,joker,ip  ),
+                                           trans_cumulat(iv,joker,joker,ip+1),
+                                           ppath_t[ip  ],
+                                           ppath_t[ip+1],
+                                           dt,
+                                           0,
+                                           0,
+                                           ppath.lstep[ip],
+                                           stokes_dim,
+                                           false,
+                                           false,
+                                           nonlte );
                             }
                         }
-                      
-                      //- Temperature -----------------------------------------
-                      else if( jac_is_t[iq] )
+                        //- Temperature -----------------------------------------
+                        else if( jac_is_t[iq] )
                         {
-                          for( Index iv=0; iv<nf; iv++ )
-                          {   
-                              if(nonlte)
-                              {
-                                  get_diydx( diy_dpath[iq](ip  ,iv,joker),
-                                             diy_dpath[iq](ip+1,iv,joker),
-                                             extmat_case[ip][iv],
-                                             iy(iv,joker),
-                                             sibi(iv,joker),
-                                             ppath_nlte_source(iv,joker,ip  ),
-                                             ppath_nlte_source(iv,joker,ip+1),
-                                             dppath_nlte_source_dx(iq,iv,joker,ip  ),
-                                             dppath_nlte_source_dx(iq,iv,joker,ip+1),
-                                             ppath_ext(iv,joker,joker,ip  ),
-                                             ppath_ext(iv,joker,joker,ip+1),
-                                             dppath_ext_dx(iq,iv,joker,joker,ip  ),
-                                             dppath_ext_dx(iq,iv,joker,joker,ip+1),
-                                             trans_partial(iv,joker,joker,ip),
-                                             dtrans_partial_dx_below(iq,iv,joker,joker,ip),
-                                             dtrans_partial_dx_above(iq,iv,joker,joker,ip),
-                                             trans_cumulat(iv,joker,joker,ip  ),
-                                             trans_cumulat(iv,joker,joker,ip+1),
-                                             ppath_t[ip  ],
-                                             ppath_t[ip+1],
-                                             dt,
-                                             (ppath_blackrad_dt(iv,ip)-ppath_blackrad(iv,ip))/dt,
-                                             (ppath_blackrad_dt(iv,ip+1)-ppath_blackrad(iv,ip+1))/dt,
-                                             ppath.lstep[ip],
-                                             stokes_dim,
-                                             true,
-                                             jacobian_quantities[iq].Subtag() == "HSE on",
-                                             true );
-                              }
-                              else
-                              {
-                                  const Vector dummy(0);
-                                  get_diydx( diy_dpath[iq](ip  ,iv,joker),
-                                             diy_dpath[iq](ip+1,iv,joker),
-                                             extmat_case[ip][iv],
-                                             iy(iv,joker),
-                                             sibi(iv,joker),
-                                             dummy,
-                                             dummy,
-                                             dummy,
-                                             dummy,
-                                             ppath_ext(iv,joker,joker,ip  ),
-                                             ppath_ext(iv,joker,joker,ip+1),
-                                             dppath_ext_dx(iq,iv,joker,joker,ip  ),
-                                             dppath_ext_dx(iq,iv,joker,joker,ip+1),
-                                             trans_partial(iv,joker,joker,ip),
-                                             dtrans_partial_dx_below(iq,iv,joker,joker,ip),
-                                             dtrans_partial_dx_above(iq,iv,joker,joker,ip),
-                                             trans_cumulat(iv,joker,joker,ip  ),
-                                             trans_cumulat(iv,joker,joker,ip+1),
-                                             ppath_t[ip  ],
-                                             ppath_t[ip+1],
-                                             dt,
-                                             (ppath_blackrad_dt(iv,ip)-ppath_blackrad(iv,ip))/dt,
-                                             (ppath_blackrad_dt(iv,ip+1)-ppath_blackrad(iv,ip+1))/dt,
-                                             ppath.lstep[ip],
-                                             stokes_dim,
-                                             true,
-                                             jacobian_quantities[iq].Subtag() == "HSE on",
-                                             false );
-                              }
-                          } // Frequency loop 
+                            for( Index iv=0; iv<nf; iv++ )
+                            {   
+                                get_diydx( diy_dpath[iq](ip  ,iv,joker),
+                                           diy_dpath[iq](ip+1,iv,joker),
+                                           extmat_case[ip][iv],
+                                           iy(iv,joker),
+                                           sibi(iv,joker),
+                                           nonlte?ppath_nlte_source(iv,joker,ip  ):dummy2,
+                                           nonlte?ppath_nlte_source(iv,joker,ip+1):dummy2,
+                                           nonlte?dppath_nlte_source_dx(iq,iv,joker,ip  ):dummy2,
+                                           nonlte?dppath_nlte_source_dx(iq,iv,joker,ip+1):dummy2,
+                                           ppath_ext(iv,joker,joker,ip  ),
+                                           ppath_ext(iv,joker,joker,ip+1),
+                                           dppath_ext_dx(iq,iv,joker,joker,ip  ),
+                                           dppath_ext_dx(iq,iv,joker,joker,ip+1),
+                                           trans_partial(iv,joker,joker,ip),
+                                           dtrans_partial_dx_below(iq,iv,joker,joker,ip),
+                                           dtrans_partial_dx_above(iq,iv,joker,joker,ip),
+                                           trans_cumulat(iv,joker,joker,ip  ),
+                                           trans_cumulat(iv,joker,joker,ip+1),
+                                           ppath_t[ip  ],
+                                           ppath_t[ip+1],
+                                           dt,
+                                           (ppath_blackrad_dt(iv,ip)-ppath_blackrad(iv,ip))/dt,
+                                           (ppath_blackrad_dt(iv,ip+1)-ppath_blackrad(iv,ip+1))/dt,
+                                           ppath.lstep[ip],
+                                           stokes_dim,
+                                           true,
+                                           jacobian_quantities[iq].Subtag() == "HSE on",
+                                           nonlte );
+                            } // Frequency loop 
                         } // Temperature
                     } // if this analytical
                 } // for iq

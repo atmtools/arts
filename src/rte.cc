@@ -2283,19 +2283,24 @@ void get_ppath_pmat_and_tmat(
                                         jacobian_quantities[iq].Mode(), 
                                         ppath_vmr(isp,ip), ppath_p[ip], 
                                         ppath_t[ip] );
+                            if(!nlte_source.empty())
+                            {
+                                throw std::runtime_error("We do not support \"analytic\" jacobians for NLTE and species.\n"
+                                    "Please use \"from_propmat\".");
+                            }
                             for( Index i1=0; i1<nf; i1++ ) for( Index i2=0; i2<stokes_dim; i2++ )
                             {
-                                if(!nlte_source.empty())
-                                {
-                                    throw std::runtime_error("We do not support \"analytic\" jacobians for NLTE and species.\n"
-                                        "Please use \"from_propmat\".");
-                                }
                                 for( Index i3=0; i3<stokes_dim; i3++ )
                                     dppath_ext_dx(iq,i1,i2,i3,ip) = propmat_clearsky(ispecies[ia],i1,i2,i3)*unitscf;
                             }
                         }
                         else 
                         {
+                            Numeric unitscf;
+                            dxdvmrscf(  unitscf, 
+                                        jacobian_quantities[iq].Mode(), 
+                                        ppath_vmr(isp,ip), ppath_p[ip], 
+                                        ppath_t[ip] );
                             // the d_var_dx arrays work on ppd grid rather than on jacobian_quantities grid, so first find ppd location for iq
                             const Index this_ppd_iq = ppd.this_jq_index(iq);
                             
@@ -2304,11 +2309,11 @@ void get_ppath_pmat_and_tmat(
                                 if(!nlte_source.empty())
                                 {
                                     dppath_nlte_source_dx(iq,i1,i2,ip) = 
-                                    dnlte_dx_source[this_ppd_iq](i1,i2) + 
-                                    nlte_dx_dsource_dx[this_ppd_iq](i1,i2);
+                                    (dnlte_dx_source[this_ppd_iq](i1,i2) + 
+                                    nlte_dx_dsource_dx[this_ppd_iq](i1,i2))*unitscf;
                                 }
                                 for( Index i3=0; i3<stokes_dim; i3++ )
-                                    dppath_ext_dx(iq,i1,i2,i3,ip) = dpropmat_clearsky_dx[this_ppd_iq](i1,i2,i3);
+                                    dppath_ext_dx(iq,i1,i2,i3,ip) = dpropmat_clearsky_dx[this_ppd_iq](i1,i2,i3)*unitscf;
                             }
                         }
                     }

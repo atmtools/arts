@@ -695,11 +695,11 @@ void xsec_species_line_mixing_wrapper_with_zeeman(
         {
             for(Index is1 = 0;is1<4;is1++)
             {
+                if(do_src)
+                    nlte_source(this_species,iv,is1) += source(iv,0)*K_a(is1,0)*planck_BT[iv]*n;
                 for(Index is2 = 0;is2<4;is2++)
                 {
                     propmat_clearsky(this_species,iv,is1,is2) += (attenuation(iv,0)*K_a(is1,is2)+2.0*phase(iv,0)*K_b(is1,is2))*n;
-                    if(do_src&&is2==0)
-                        nlte_source(this_species,iv,is1) += source(iv,0)*K_a(is1,is2)*planck_BT[iv]*n;
                     
                     for(Index iq = 0; iq<nq; iq++)
                     {

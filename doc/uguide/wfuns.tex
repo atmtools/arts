@@ -277,6 +277,8 @@ where $t$ is a scalar variable.
 The cases where \MtrStl{A}\ and \MtrStl{B}\ are commutative includes the
 situation where one of them is a scalar matrix (can be written as $a\IdnMtr$,
 i.e.\ diagonal with all non-zero elements equal).
+For other cases, the ARTS matrix exponent derivatives follows a derivation on the 
+internal workings of the Pad\'{e} approximation terms.
 
 
 
@@ -386,23 +388,23 @@ vector obtained through Eq.~\ref{eq:fm_defs:vrte_step} can be expressed as
 \begin{equation}
   \label{eq:s4J}
   \StoVec = \StoVec' + \TrnMat' \left[ \aTrnMat{i} \aStoVec{i} +
-         (\IdnMtr-\aTrnMat{i})\bar{\EmsVec}_i \right],
+         (\IdnMtr-\aTrnMat{i}) \left(\bar{\EmsVec}_i + \bar{\ExtMat}_i^{-1}\bar{\aSrcVec{n,i}}\right) \right],
 \end{equation}
 where $\StoVec'$ is the Stokes vector for all emission generated between the
 sensor and point $i+1$, $\TrnMat'$ is the transmission Mueller matrix for the
 same part of the propagation path and \aTrnMat{i} is defined in
 Eq.~\ref{eq:rte:transmat}. The quantities $\StoVec'$, $\TrnMat'$ and
 \aStoVec{i}\ are not function of \aSttElm{i}. This gives
-\begin{equation}
-  \frac{\PartD\StoVec}{\PartD\aSttElm{i}} = \TrnMat'
+\begin{eqnarray}
+  \frac{\PartD\StoVec}{\PartD\aSttElm{i}} &=& \TrnMat'
   \left[
     \frac{\PartD\aTrnMat{i}}{\PartD\aSttElm{i}}
-      \left( \aStoVec{i}-\bar{\EmsVec}_i \right) +
-    \left( \IdnMtr-\aTrnMat{i} \right) 
-      \frac{\PartD\bar{\EmsVec}_i}{\PartD\aSttElm{i}}
+      \left( \aStoVec{i}-\bar{\EmsVec}_i -\bar{\ExtMat}_i^{-1}\bar{\aSrcVec{n,i}}\right)+\right. \nonumber\\ &&\left.
+    \left( \IdnMtr-\aTrnMat{i} \right) \left(
+      \frac{\PartD\bar{\EmsVec}_i}{\PartD\aSttElm{i}}+\bar{\ExtMat}_i^{-1}\frac{\PartD\bar{\ExtMat}_i}{\PartD\aSttElm{i}}\bar{\ExtMat}_i^{-1}\bar{\aSrcVec{n,i}} + \bar{\ExtMat}_i^{-1}\frac{\PartD\bar{\aSrcVec{n,i}}}{\PartD\aSttElm{i}} \right)
   \right].
   \label{eq:wfuns:dsdxi1}
-\end{equation}
+\end{eqnarray}
 The terms $\PartD\aTrnMat{i}/\PartD\aSttElm{i}$ and
 $\PartD\bar{\EmsVec}_i/\PartD\aSttElm{i}$ are both calculated in a pure
 numerical manner, for different reasons discussed below.
@@ -450,22 +452,23 @@ The first element of \aStoVec{s}, \StoI, can be written as (cf.\
 Eq.~\ref{eq:fm_defs:rte_step})
 \begin{equation}
   \label{eq:I4J}
-  \StoI = e^{-\aOth{i}}\aStoI{i} + (1-e^{-\aOth{i}})\bar{\Planck}_i.
+  \StoI = e^{-\aOth{i}}\aStoI{i} + (1-e^{-\aOth{i}})\left(\bar{\Planck}_i+{\bar{j_{n,i}}}/{\bar{\AbsCoef}}\right).
 \end{equation}
 By again using the chain rule, the derivative of \StoI\ with respect to
 \aSttElm{i}\ can be written as
 \begin{equation}
   \frac{\PartD\StoI}{\PartD\aSttElm{i}} =
   \frac{\PartD\StoI}{\PartD\aOth{i}}\frac{\PartD\aOth{i}}{\PartD\aSttElm{i}} + 
-  \frac{\PartD\StoI}{\PartD\bar{\Planck}_i}
-  \frac{\PartD\bar{\Planck}_i}{\PartD\aSttElm{i}} = 
+  \frac{\PartD\StoI}{\PartD j_i}
+  \frac{\PartD j_i}{\PartD\aSttElm{i}} = 
    e^{-\aOth{i}}\frac{\PartD\aOth{i}}{\PartD\aSttElm{i}}
-      (\bar{\Planck}_i-\aStoI{i}) +
-  (1-e^{-\aOth{i}})\frac{\PartD\bar{\Planck}_i}{\PartD\aSttElm{i}}.
+      (j_i-\aStoI{i}) +
+  (1-e^{-\aOth{i}})\frac{\PartD j_i}{\PartD\aSttElm{i}},
   \label{eq:wfuns:dsdxi2}
 \end{equation}
+where $j_i$ is short for $\bar{\Planck}_i+{\bar{j_{n,i}}}/{\bar{\AbsCoef}}$.
 The two remaining derivatives $\PartD\aOth{i}/\PartD\aSttElm{i}$ and
-$\PartD\bar{\Planck}_i/\PartD\aSttElm{i}$
+$\PartD j_i/\PartD\aSttElm{i}$
 depend on the quantity considered, and are discussed further below.
 
 For higher Stokes components of \aStoVec{s}, or in general if emission is
@@ -540,7 +543,7 @@ shall given following the unit selected. The same value is applied for all WFs
 (which can cause practical problems \dots).
 
 
-\subsection{Analytical expressions}
+\subsection{Semi-analytical expressions}
 %
 If not made clear above, the only term that differs between the Jacobian
 quantities is $\PartD\StoVec/\PartD\aSttElm{i}$.
@@ -548,12 +551,12 @@ quantities is $\PartD\StoVec/\PartD\aSttElm{i}$.
 \subsubsection{Unpolarised absorption}
 %
 
-The term $\PartD\bar{\Planck}_i/\PartD\aSttElm{i}$ of Eq.~\ref{eq:wfuns:dsdxi2}
+The term $\PartD j_i/\PartD\aSttElm{i}$ of Eq.~\ref{eq:wfuns:dsdxi2}
 is zero and the chain rule expression reduces to
 \begin{equation}
   \frac{\PartD\StoI}{\PartD\aSttElm{i}} =
    e^{-\aOth{i}}\frac{\PartD\aOth{i}}{\PartD\aSttElm{i}}
-      (\bar{\Planck}_i-\aStoI{i})  
+      (j_i-\aStoI{i})  
 \end{equation}
 The absorption coefficient at point $i$, \aAbsCoef{i}, is here written as
 \begin{equation}
@@ -668,6 +671,20 @@ Eq.~\ref{eq:wfuns:vec:dsdxi} should be approximately correct as $\MtrStl{C}_i$
 and $\MtrStl{C}_{i+1}$ are close to identical matrices.
 
 
+\subsection{From the propagation matrix}
+
+Each time the absorption species is encountered, its influence on $\ExtMat$ 
+and $\aSrcVec{n}$ are both
+analytically derived.  Note that unlike the semi-analytical case, influence on
+the radiation by CIA with other species is also considered.  
+
+\subsubsection{Unpolarized case}
+Since everything in Equation~\ref{eq:wfuns:dsdxi2} has been calculated, the equation is directly applied.
+
+\subsubsection{General case}
+The derivatives for the transmission matrix are achieved using derivatives of the Pad\'{e} approximation.
+Since after this, everything in 
+Equation~\ref{eq:wfuns:dsdxi1} has been calculated, the equation is directly applied.
 
 \section{Winds}
 %==============================================================================
@@ -687,8 +704,10 @@ one above for absorption species. The only difference is that also the term
 $\PartD\aAbsCoef{i}/\PartD\aSttElm{i}$ is obtained in a pure numerical manner,
 by recalculating the absorption coefficient with the wind perturbed slightly.
 
-
-
+When calculating this from the propagation matrix, we just calculate the frequency
+derivative analytically and then apply the wind derivative on the ready matrix.
+Absolute wind speed influence can thus be calculated by applying the absolute wind 
+speed derivate instead of the components' derivatives.
 
 
 \section{Atmospheric temperatures}
@@ -728,7 +747,7 @@ included automatically.
 %
 Compared to atmospheric species, the expressions become here more complex as
 temperature also affects the propagation path length ($\Delta \aPpathLng{i}$)
-and the emission source term ($\bar{\Planck}_i$). Accordingly, all terms of
+and the emission source term ($j_i$). Accordingly, all terms of
 Eq.~\ref{eq:wfuns:dsdxi2} are relevant, and the expansion of
 $\PartD\aOth{i}/\PartD\aSttElm{i}$ generates additional terms
 \begin{equation}
@@ -738,8 +757,8 @@ $\PartD\aOth{i}/\PartD\aSttElm{i}$ generates additional terms
       \frac{\PartD\aAbsCoef{i}}{\PartD\aSttElm{i}} + 
       \frac{\PartD\aOth{i}}{\PartD\Delta\aPpathLng{i}}
      \frac{\PartD\Delta\aPpathLng{i}}{\PartD\aSttElm{i}}
-  \right](\bar{\Planck}_i-\aStoI{i})+
-  (1-e^{-\aOth{i}})\frac{\PartD\bar{\Planck}_i}{\PartD\aSttElm{i}}.  
+  \right](j_i-\aStoI{i})+
+  (1-e^{-\aOth{i}})\frac{\PartD j_i}{\PartD\aSttElm{i}}.  
 \end{equation}
 Terms part of expressions found above are not discussed separately here. The
 term, $\PartD\Delta\aPpathLng{i}/\PartD\aSttElm{i}$, originates in the
@@ -771,8 +790,8 @@ In summary (assuming \verb|hse| set to ``on''):
    e^{-\aOth{i}}\frac{\Delta \aPpathLng{i}}{2}\left[
       \frac{\PartD\aAbsCoef{i}}{\PartD\aSttElm{i}} + 
   \frac{\aAbsCoef{i}+\aAbsCoef{i+1}}{2\aTmp{i}}
-  \right](\bar{\Planck}_i-\aStoI{i})+
-  (1-e^{-\aOth{i}})\frac{\PartD\bar{\Planck}_i}{\PartD\aSttElm{i}}.  
+  \right](j_i-\aStoI{i})+
+  (1-e^{-\aOth{i}})\frac{\PartD j_i}{\PartD\aSttElm{i}}.  
 \end{equation}
 The derivative of the Planck function ($\PartD\Planck/\PartD\aSttElm{i}$) can
 be expressed analytically \citep{eriksson:studi:02}, but as \Planck\ is
@@ -781,8 +800,8 @@ numerical manner. For example, if the Rayleigh-Jeans approximation is for some
 reason applied ($\Planck=\Tmp$) the term is just 1.
 
 The expression for higher Stokes elements, or if emission is totally ignored,
-is obtained by setting $\bar{\Planck}_i$
-(and $\PartD\bar{\Planck}_i/\PartD\aSttElm{i}$) to zero.
+is obtained by setting $j_i$
+(and $\PartD j_i/\PartD\aSttElm{i}$) to zero.
 
 
 \subsubsection{General case}
@@ -797,9 +816,11 @@ the transmission matrix, these calculations are performed as
   \frac{\PartD\aTrnMat{i}}{\PartD\aSttElm{i}} = 
   \frac{\PartD\aTrnMat{i}}{\PartD\bar{\Tmp}}\frac{\bar{\Tmp}}{2\aTmp{i}},
 \end{displaymath}
+for the semi-analytical solution, 
 a relationship that follows from Eqs.~\ref{eq:wfuns:ddldtbar} and \ref{eq:wfuns:ddldti}.
 
-
+Again, for the analytical solution, the derivative of the Pad\'{e} approximation
+of the matrix exponent is used to get ${\PartD\aTrnMat{i}}/{\PartD\aSttElm{i}}$.
 
 \subsubsection{Hydrostatic equilibrium and limitations}
 %

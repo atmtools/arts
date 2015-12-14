@@ -190,7 +190,25 @@ Equation~\ref{eq:VRTE0} can be written as
 \end{equation}
 where \Planck\ is the Planck function (a scalar value), describing blackbody
 radiation. The related workspace variables are \wsvindex{blackbody\_radiation}
-and \wsaindex{blackbody\_radiation\_agenda}. 
+and \wsaindex{blackbody\_radiation\_agenda}.  For non-LTE, the emission vector
+is instead
+\begin{equation}
+  \label{eq:evec_withnlte1}
+  \aSrcVec{e} = \Planck\aAbsVec{s},
+\end{equation}
+where the source term \aAbsVec{s}\ contains both LTE and non-LTE effects.
+We code non-LTE not as above but with the concept of ``relative additional'' non-LTE effects.  
+This additional non-LTE effect is named \wsvindex{nlte\_source} and it has the form
+\begin{equation}
+  \label{eq:nlte_source}
+  \aSrcVec{n} = \Planck\left(\aAbsVec{s}\oslash\AbsVec-1\right).
+\end{equation}
+The idea here is that \aSrcVec{e} in Equation~\ref{eq:evec2} is never directly used
+but instead
+\begin{equation}
+  \label{eq:evec_withnlte2}
+  \aSrcVec{e} = \AbsVec\odot\left(\Planck + \aSrcVec{n}\right).
+\end{equation}
 
 The quantity \AbsVec\ is denoted as the absorption vector. For clear-sky
 calculations the absorption vector is given by \aAbsMat{a}, as in this case the
