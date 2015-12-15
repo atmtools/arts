@@ -40,8 +40,6 @@ arts_test_run_ctlfile(slow
                       artscomponents/absorption/TestAbsParticle.arts)
 arts_test_run_ctlfile(slow artscomponents/absorption/TestIsoRatios.arts)
 
-arts_test_run_ctlfile(fast artscomponents/surface/TestSurface.arts)
-
 arts_test_run_ctlfile(fast artscomponents/ppath/TestPpath1D.arts)
 arts_test_run_ctlfile(fast artscomponents/ppath/TestPpath2D.arts)
 arts_test_run_ctlfile(fast artscomponents/ppath/TestPpath3D.arts)

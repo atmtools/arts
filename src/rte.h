@@ -250,9 +250,7 @@ void get_ppath_pmat(
   const ArrayOfIndex&   ispecies );
 
 void get_ppath_blackrad( 
-        Workspace&   ws,
         Matrix&      ppath_blackrad,
-  const Agenda&      blackbody_radiation_agenda,
   const Ppath&       ppath,
   ConstVectorView    ppath_t, 
   ConstMatrixView    ppath_f );

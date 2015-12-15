@@ -49,14 +49,12 @@ void surface_calc(
         ConstMatrixView       surface_emission );
 
 void surface_specular_R_and_b(
-              Workspace&   ws,
               MatrixView   surface_rmatrix,
               VectorView   surface_emission,
         const Complex&     Rv,
         const Complex&     Rh,
         const Numeric&     f,
         const Index&       stokes_dim,
-        const Numeric&     surface_skin_t,
-        const Agenda&      blackbody_radiation_agenda );
+        const Numeric&     surface_skin_t );
 
 #endif  // surface_h

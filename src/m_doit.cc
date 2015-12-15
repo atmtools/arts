@@ -2574,7 +2574,6 @@ void DoitGetIncoming(
    const ArrayOfIndex&   cloudbox_limits,
    const Vector&   f_grid,
    const Index&    stokes_dim,
-   const Agenda&   blackbody_radiation_agenda,
    const Vector&   scat_za_grid,
    const Vector&   scat_aa_grid,
    const Index&    rigorous,
@@ -2601,18 +2600,6 @@ void DoitGetIncoming(
     throw runtime_error(
                         "Initialization method *DoitInit* has to be "
                         "put before *DoitGetIncoming*");
-
-  // DOIT requires frequency based radiance:
-  if( !chk_if_std_blackbody_agenda( ws, blackbody_radiation_agenda ) )
-    {
-      ostringstream os;
-      os << "It is assumed that you use this method together with DOIT.\n"
-         << "Usage of this method then demands that "
-         << "*blackbody_radiation_agenda* uses *blackbody_radiationPlanck* "
-         << "or a corresponding WSM.\n"
-         << "At least one of these requirements is not met.\n";
-      throw runtime_error( os.str() );
-    }
 
   // iy_unit hard.coded to "1" here
   const String iy_unit = "1";
@@ -2865,7 +2852,6 @@ void DoitGetIncoming1DAtm(
    const ArrayOfIndex&   cloudbox_limits,
    const Vector&   f_grid,
    const Index&    stokes_dim,
-   const Agenda&   blackbody_radiation_agenda,
    const Vector&   scat_za_grid,
    const Vector&   scat_aa_grid,
    const Verbosity&)
@@ -2889,18 +2875,6 @@ void DoitGetIncoming1DAtm(
     throw runtime_error(
                         "Initialization method *DoitInit* has to be "
                         "put before *DoitGetIncoming*");
-
-  // DOIT requires frequency based radiance:
-  if( !chk_if_std_blackbody_agenda( ws, blackbody_radiation_agenda ) )
-    {
-      ostringstream os;
-      os << "It is assumed that you use this method together with DOIT.\n"
-         << "Usage of this method then demands that "
-         << "*blackbody_radiation_agenda* uses *blackbody_radiationPlanck* "
-         << "or a corresponding WSM.\n"
-         << "At least one of these requirements is not met.\n";
-      throw runtime_error( os.str() );
-    }
 
   // iy_unit hard.coded to "1" here
   const String iy_unit = "1";

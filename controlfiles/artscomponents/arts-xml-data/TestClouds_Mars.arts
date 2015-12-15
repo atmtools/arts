@@ -53,7 +53,6 @@ sensorOff
 #####
 Copy( iy_main_agenda, iy_main_agenda__Emission )
 Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
-Copy( blackbody_radiation_agenda, blackbody_radiation_agenda__Planck )
 Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__LookUpTable )
 Copy( abs_xsec_agenda, abs_xsec_agenda__noCIA )
 Copy( iy_space_agenda, iy_space_agenda__CosmicBackground )

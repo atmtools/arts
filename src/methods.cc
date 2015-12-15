@@ -3285,30 +3285,6 @@ void define_md_data_raw()
                   "Constant values of additional fields.")
         ));
     
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "blackbody_radiationPlanck" ),
-        DESCRIPTION
-        (
-         "The Planck function (frequency version).\n"
-         "\n"
-         "The standard function for *blackbody_radiation_agenda*.\n"
-         "\n"
-         "The is considered as the standard version inside ARTS of the Planck\n"
-         "function. The unit of the returned data is W/(m^2 Hz sr).\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT( "blackbody_radiation" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "f_grid", "rtp_temperature" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-    
     md_data_raw.push_back
     ( MdRecord
     ( NAME( "abs_cia_dataAddCIARecord" ),
@@ -4382,11 +4358,8 @@ void define_md_data_raw()
         IN( "doit_i_field",
             "atmfields_checked", "atmgeom_checked", "cloudbox_checked",
             "doit_is_initialized", "iy_main_agenda",
-            "atmosphere_dim", "lat_grid", "lon_grid",
-            "z_field", "t_field", "vmr_field",
-            "cloudbox_on", "cloudbox_limits",
-            "f_grid", "stokes_dim", 
-            "blackbody_radiation_agenda",
+            "atmosphere_dim", "lat_grid", "lon_grid", "z_field", "t_field", 
+            "vmr_field", "cloudbox_on", "cloudbox_limits", "f_grid", "stokes_dim", 
             "scat_za_grid", "scat_aa_grid" ),
         GIN( "rigorous", "maxratio" ),
         GIN_TYPE( "Index", "Numeric" ),
@@ -4419,8 +4392,7 @@ void define_md_data_raw()
             "doit_is_initialized", "iy_main_agenda", "atmosphere_dim", 
             "lat_grid", "lon_grid", "z_field", "t_field", "vmr_field",
             "cloudbox_on", "cloudbox_limits",
-            "f_grid", "stokes_dim", 
-            "blackbody_radiation_agenda", "scat_za_grid", "scat_aa_grid" ),
+            "f_grid", "stokes_dim", "scat_za_grid", "scat_aa_grid" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -6396,14 +6368,9 @@ void define_md_data_raw()
          "the end points of each step of the propagation path. For details\n"
          "see the user guide.\n" 
          "\n"
-         "The internal radiance unit is determined by your definition of\n"
-         "blackbody radiation inside the atmospheric and surface source\n" 
-         "terms. Set *iy_unit* to \"1\" if you want this to also be the unit\n"
-         "for output radiances. If you want another output unit, you need to\n"
-         "make sure that the internal unit is [W/m2/Hz/sr] (ie. the frequency\n"
-         "version of the Planck function). The possible choices for *iy_unit*\n"
-         "are:\n"
-         " \"1\"             : No conversion.\n"
+         "The possible choices for *iy_unit* are\n"
+         " \"1\"             : No conversion, i.e. [W/(m^2 Hz sr)] (radiance per\n"
+         "                     frequency unit).\n"
          " \"RJBT\"          : Conversion to Rayleigh-Jean brightness\n"
          "                     temperature.\n"
          " \"PlanckBT\"      : Conversion to Planck brightness temperature.\n"
@@ -6411,14 +6378,8 @@ void define_md_data_raw()
          "                     wavelength unit).\n"
          " \"W/(m^2 m-1 sr)\": Conversion to [W/(m^2 m-1 sr)] (radiance per\n"
          "                     wavenumber unit).\n"
-         "\n"
-         "Please note that there is no way for ARTS to strictly check the\n"
-         "internal unit. In principle, the unit can differ between the\n"
-         "elements. The user must makes sure that any unit conversion is\n"
-         "applied correctly, and in accordance with the calibration of the\n"
-         "instrument of concern. Expressions applied and considerations for\n"
-         "the unit conversion of radiances are discussed in Sec. 5.7 of the\n"
-         "ARTS-2 article.\n"
+         "Expressions applied and considerations for the unit conversion of\n"
+         "radiances are discussed in Sec. 5.7 of the ARTS-2 article.\n"
          "\n"
          "The following auxiliary data can be obtained:\n"
          "  \"Pressure\": The pressure along the propagation path.\n"
@@ -6476,8 +6437,7 @@ void define_md_data_raw()
             "mag_v_field", "mag_w_field", 
             "cloudbox_on", "iy_unit", "iy_aux_vars", "jacobian_do", 
             "jacobian_quantities", "jacobian_indices", 
-            "ppath_agenda", "blackbody_radiation_agenda",
-            "propmat_clearsky_agenda", "iy_main_agenda", 
+            "ppath_agenda", "propmat_clearsky_agenda", "iy_main_agenda", 
             "iy_space_agenda", "iy_surface_agenda", "iy_cloudbox_agenda", 
             "iy_agenda_call1", "iy_transmission", "rte_pos", "rte_los", 
             "rte_pos2", "rte_alonglos_v", "ppath_lraytrace" ),
@@ -6554,7 +6514,7 @@ void define_md_data_raw()
             "mag_v_field", "mag_w_field", "cloudbox_on", "cloudbox_limits",
             "pnd_field", "use_mean_scat_data", "scat_data",
             "particle_masses", "iy_unit", "iy_aux_vars", "jacobian_do", 
-            "ppath_agenda", "blackbody_radiation_agenda",
+            "ppath_agenda", 
             "propmat_clearsky_agenda", "iy_main_agenda", "iy_space_agenda", 
             "iy_surface_agenda", "iy_agenda_call1", "iy_transmission", 
             "rte_pos", "rte_los", "rte_pos2", "rte_alonglos_v", "ppath_lraytrace",
@@ -6928,7 +6888,7 @@ void define_md_data_raw()
             "lon_grid", "t_field", "z_field", "vmr_field", "z_surface",
             "cloudbox_on", "stokes_dim", "f_grid", "refellipsoid",
             "rtp_pos", "rtp_los", "rte_pos2", "iy_unit", "iy_main_agenda", 
-            "blackbody_radiation_agenda", "surface_skin_t" ),
+            "surface_skin_t" ),
         GIN( "salinity", "wind_speed", "wind_direction", "fastem_version" ),
         GIN_TYPE( "Numeric", "Numeric", "Numeric", "Index" ),
         GIN_DEFAULT( NODEF, NODEF, "0", "6" ),
@@ -12836,8 +12796,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "f_grid", "stokes_dim", "surface_skin_t", 
-            "blackbody_radiation_agenda" ),
+        IN( "f_grid", "stokes_dim", "surface_skin_t" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -12873,7 +12832,7 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "atmosphere_dim", "stokes_dim", "f_grid", "rtp_pos", "rtp_los",
-            "blackbody_radiation_agenda", "specular_los", "surface_skin_t" ),
+            "specular_los", "surface_skin_t" ),
         GIN( "salinity", "wind_speed", "wind_direction", "transmittance",
              "fastem_version" ),
         GIN_TYPE( "Numeric", "Numeric", "Numeric", "Vector", "Index" ),
@@ -12909,8 +12868,7 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "f_grid", "stokes_dim", "atmosphere_dim", "rtp_los", "specular_los",
-            "surface_skin_t", "surface_complex_refr_index",
-            "blackbody_radiation_agenda" ),
+            "surface_skin_t", "surface_complex_refr_index" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -12937,8 +12895,7 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "f_grid", "stokes_dim", "atmosphere_dim", 
-            "specular_los", "surface_skin_t", "surface_reflectivity", 
-            "blackbody_radiation_agenda" ),
+            "specular_los", "surface_skin_t", "surface_reflectivity" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -12965,8 +12922,7 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "f_grid", "stokes_dim", "atmosphere_dim",
-            "specular_los", "surface_skin_t", "surface_scalar_reflectivity",
-            "blackbody_radiation_agenda" ),
+            "specular_los", "surface_skin_t", "surface_scalar_reflectivity" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -13011,8 +12967,7 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "f_grid", "stokes_dim", "atmosphere_dim", "rtp_los", 
-            "surface_skin_t", "surface_scalar_reflectivity", "lambertian_nza",
-            "blackbody_radiation_agenda" ),
+            "surface_skin_t", "surface_scalar_reflectivity", "lambertian_nza" ),
         GIN(         "za_pos"  ),
         GIN_TYPE(    "Numeric" ),
         GIN_DEFAULT( "0.5"     ),

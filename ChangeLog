@@ -1,7 +1,94 @@
+2015-12-15  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-388
+
+	* Summary: blackbody_radiation_agenda is removed.
+
+	* doc/uguide/Figs/rte/ycalc_flow.odg: Figure updated.
+
+	* doc/uguide/transmission.tex (section{Pure transmission calculations}):
+	* doc/uguide/rte_basics.tex (subsection{Emission and absorption vectors}):
+	* doc/uguide/rte.tex (subsection{Blackbody and cosmic background
+	radiation}): Updated according to removal of blackbody_radiation_agenda.
+
+	* controlfiles/artscomponents/clearsky/TestClearSkyTips.arts:
+	* controlfiles/artscomponents/clearsky/TestClearSky2.arts:
+	* controlfiles/artscomponents/clearsky/TestClearSky.arts:
+	* controlfiles/artscomponents/clearsky/TestBatch.arts:
+	* controlfiles/artscomponents/disort/TestDISORT.arts:
+	* controlfiles/artscomponents/doit/TestDOITFromIndividualFields.arts:
+	* controlfiles/artscomponents/doit/doit_setup.arts:
+	* controlfiles/artscomponents/doitbatch/TestDOITBatch.arts:
+	* controlfiles/artscomponents/groundbased/TestFgrid.arts:
+	* controlfiles/artscomponents/groundbased/TestWinds.arts:
+	* controlfiles/artscomponents/groundbased/TestGbased.arts:
+	* controlfiles/artscomponents/linemixing/TestLineMixingAndZeeman_50_to_70_GHz.arts:
+	* controlfiles/artscomponents/linemixing/TestLineMixingAndZeemanPreCalc_50_to_70_GHz.arts:
+	* controlfiles/artscomponents/linemixing/TestLineMixingAndZeeman.arts:
+	* controlfiles/artscomponents/linemixing/TestLineMixing.arts:
+	* controlfiles/artscomponents/nlte/TestNLTE.arts:
+	* controlfiles/artscomponents/montecarlo/TestMonteCarloGeneralGaussian.arts:
+	* controlfiles/artscomponents/montecarlo/TestRteCalcMC.arts:
+	* controlfiles/artscomponents/regrid/TestRegridFields.arts:
+	* controlfiles/artscomponents/stokesrot/TestStokesRotation.arts:
+	* controlfiles/artscomponents/wfuns/TestDoitJacobians.arts:
+	* controlfiles/artscomponents/wfuns/TestWfuns.arts:
+	* controlfiles/artscomponents/ycalcappend/TestYCalcAppend.arts:
+	* controlfiles/artscomponents/zeeman/TestZeemanPreCalc.arts:
+	* controlfiles/classroom_exercises/exe2_rtcalc/rtcalc.arts:
+	* controlfiles/classroom_exercises/exe4_olr/olr.arts:
+	* controlfiles/classroom_exercises/exe3_jacobian/jacobian.arts:
+	* controlfiles/instruments/amsu/TestAMSU_MetMM_generic.arts:
+	* controlfiles/instruments/hirs/TestHIRS.arts:
+	* controlfiles/instruments/ici/TestICI_fast.arts:
+	* controlfiles/instruments/metmm/common_metmm.arts:
+	* controlfiles/instruments/mhs/TestMHS_generic.arts:
+	* controlfiles/instruments/odinsmr/TestOdinSMR_1D.arts:
+	* controlfiles/artscomponents/arts-xml-data/TestSurf_Mars.arts:
+	* controlfiles/artscomponents/arts-xml-data/TestSurf_Earth.arts:
+	* controlfiles/artscomponents/arts-xml-data/TestPlanetIsoRatios.arts:
+	* controlfiles/artscomponents/arts-xml-data/TestClouds_Venus.arts:
+	* controlfiles/artscomponents/arts-xml-data/TestClouds_Mars.arts:
+	* controlfiles/artscomponents/absorption/TestIsoRatios.arts:
+	* controlfiles/artscomponents/absorption/TestAbsParticle.arts:
+	Removed declaration of blackbody_radiation_agenda.
+
+	* controlfiles/general/agendas.arts: Removed definition of
+	blackbody_radiation_agenda.
+
+	* src/m_doit.cc:
+	* src/m_fos.cc:
+	* src/rte.h:
+	* src/rte.cc (get_ppath_blackrad):
+	* src/m_rte.cc (iyEmissionStandard):
+	* src/m_surface.cc:
+	* src/surface.h:
+	* src/surface.cc (surface_specular_R_and_b): Removed everything
+	around blackbody_radiation_agenda. Instead new planck function hard-coded.
+
+	* controlfiles/CMakeLists.txt:
+	* controlfiles/artscomponents/surface: Removed this folder as this
+	test was based on the fact that blackbody_radiation could be set
+	to T.
+
+	* src/m_physics.cc (blackbody_radiationPlanck):
+	* src/check_input.cc (chk_if_std_blackbody_agenda): Removed. Now obselete.
+
+	* src/workspace.cc: Removed blackbody_radiation_agenda and
+	blackbody_radiation.
+
+	* src/agendas.cc: Removed blackbody_radiation_agenda.
+
+	* src/m_physics.cc (MatrixPlanck, MatrixCBR): Now using new
+	function below.
+
+	* src/physics_funcs.cc (planck): New version of the function,
+	handling a vector of frequencies.
+
 2015-12-14  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-387
-	
+
 	* doc/uguide/common.tex:
 
 	Add macro \artsserver with ARTS web url.

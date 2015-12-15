@@ -2403,9 +2403,7 @@ void get_ppath_pmat_and_tmat(
     \date   2012-08-15
 */
 void get_ppath_blackrad( 
-        Workspace&   ws,
         Matrix&      ppath_blackrad,
-  const Agenda&      blackbody_radiation_agenda,
   const Ppath&       ppath,
   ConstVectorView    ppath_t, 
   ConstMatrixView    ppath_f )
@@ -2419,14 +2417,7 @@ void get_ppath_blackrad(
   ppath_blackrad.resize( nf, np ); 
   //
   for( Index ip=0; ip<np; ip++ )
-    {
-      Vector   bvector;
-      
-      blackbody_radiation_agendaExecute( ws, bvector, ppath_t[ip],
-                                         ppath_f(joker,ip), 
-                                         blackbody_radiation_agenda );
-      ppath_blackrad(joker,ip) = bvector;
-    }
+    { planck( ppath_blackrad(joker,ip), ppath_f(joker,ip), ppath_t[ip] ); }
 }
 
 

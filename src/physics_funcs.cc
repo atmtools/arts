@@ -298,6 +298,43 @@ Numeric planck(
     }
 }
 
+//! planck
+/*! 
+  Calculates the Planck function for a single temperature and a vector of
+  frequencies. 
+
+  Note that this expression gives the intensity for both polarisations.
+  
+  \return     blackbody radiation
+  \param  f   frequency
+  \param  t   temperature
+  
+  \author Patrick Eriksson 
+  \date   2015-12-15 
+*/
+void planck( VectorView  b,
+        ConstVectorView  f, 
+        const Numeric&   t )
+{
+  const Index nf = f.nelem();
+
+  assert( t >= 0 );
+  assert( b.nelem() == nf );
+
+  if( t == 0 )
+    { b = 0; }
+
+  else
+    {
+    static const Numeric a = 2 * PLANCK_CONST / (SPEED_OF_LIGHT*SPEED_OF_LIGHT);
+    static const Numeric c = PLANCK_CONST / BOLTZMAN_CONST;
+           const Numeric d = c / t;
+    for( Index i=0; i<nf; i++ )
+      { b[i] = ( a * f[i]*f[i]*f[i] ) / ( exp( d*f[i] ) - 1.0 ); }
+    }
+}
+
+
 
 //! dplanck_dt
 /*! 

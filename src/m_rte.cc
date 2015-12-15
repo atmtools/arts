@@ -205,7 +205,6 @@ void iyEmissionStandard(
    const ArrayOfRetrievalQuantity&   jacobian_quantities,
    const ArrayOfArrayOfIndex&        jacobian_indices,
    const Agenda&                     ppath_agenda,
-   const Agenda&                     blackbody_radiation_agenda,
    const Agenda&                     propmat_clearsky_agenda,
    const Agenda&                     iy_main_agenda,
    const Agenda&                     iy_space_agenda,
@@ -468,8 +467,7 @@ void iyEmissionStandard(
                                jac_species_i, jac_is_t, jac_wind_i, jac_mag_i, jac_other,
                                rte_alonglos_v, atmosphere_dim, stokes_dim,
                                jacobian_do, iaps );
-      get_ppath_blackrad( ws, ppath_blackrad, blackbody_radiation_agenda, 
-                          ppath, ppath_t, ppath_f );
+      get_ppath_blackrad( ppath_blackrad, ppath, ppath_t, ppath_f );
     }
   else // For cases inside the cloudbox, or totally outside the atmosphere,
     {  // set zero optical thickness and unit transmission
@@ -546,8 +544,7 @@ void iyEmissionStandard(
               if( jac_is_t[iq] ) 
                 { 
                   Vector t2 = ppath_t;   t2 += dt;
-                  get_ppath_blackrad( ws, ppath_blackrad_dt, blackbody_radiation_agenda,
-                                      ppath, t2, ppath_f );
+                  get_ppath_blackrad( ppath_blackrad_dt, ppath, t2, ppath_f );
                 }
             }
         }
@@ -802,17 +799,6 @@ void iyEmissionStandard(
   // Unit conversions
   if( iy_agenda_call1 )
     {
-      // If any conversion, check that standard form of Planck used
-      if( !chk_if_std_blackbody_agenda( ws, blackbody_radiation_agenda ) )
-        {
-          ostringstream os;
-          os << "When any unit conversion is applied, "
-             << "*blackbody_radiation_agenda\nmust use "
-             << "*blackbody_radiationPlanck* or a corresponding WSM.\nA test "
-             << "call of the agenda indicates that this is not the case.";
-          throw runtime_error( os.str() );
-        }
-        
       // Determine refractive index to use for the n2 radiance law
       Numeric n = 1.0; // First guess is that sensor is in space
       //

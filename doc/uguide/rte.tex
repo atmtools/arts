@@ -399,13 +399,8 @@ $(\IdnMtr-e^{-\Delta\aPpathLng{i}\bar{\ExtMat}_i})$ is of interest.
 
 \subsection{Blackbody and cosmic background radiation}
 
-The term \Planck\ is set by \wsaindex{blackbody\_radiation\_agenda}. The
-setting of this agenda basically determines the unit of the final outcome of
-Eq.~\ref{eq:fm_defs:rte_step}, see further Sec.~\ref{sec:fm_defs:unit}. For
-radiance calculations, the standard workspace method to use inside
-\builtindoc{blackbody\_radiation\_agenda} is
-\wsmindex{blackbody\_radiationPlanck}. The Planck function is in this method,
-and in ARTS generally, defined as
+As mentioned, the term \Planck\ is the Planck function.
+In ARTS the following version of the Planck function is used:
 \begin{equation}
   \label{eq:planck}
   \Planck(\Tmp) = \frac{2\planckCns\Frq^3}
@@ -423,11 +418,7 @@ n$^2$-law of radiance, discussed in the section below.
 As long as cosmic background radiation is the only type of non-telluric
 radiation that has to be considered, the standard method for inclusion in
 \wsaindex{iy\_space\_agenda} is \wsmindex{MatrixCBR} (together with some calls
-of \builtindoc{Ignore}). Please, note that
-\builtindoc{blackbody\_radiation\_agenda} and \builtindoc{iy\_space\_agenda},
-as well as \wsaindex{iy\_surface\_agenda}, must be defined in a consistent
-manner (that they use the same unit for \Planck).
-
+of \builtindoc{Ignore}).
 
 
 

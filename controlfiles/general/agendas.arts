@@ -129,20 +129,6 @@ AgendaSet( iy_cloudbox_agenda__CubInterpField1D ){
 
 
 ##################################
-#    blackbody_radiation_agenda
-##################################
-
-###
-# include (Planck) emission in source term (default)
-# 
-AgendaCreate( blackbody_radiation_agenda__Planck )
-AgendaSet( blackbody_radiation_agenda__Planck ){
-  blackbody_radiationPlanck
-}
-
-
-
-##################################
 #    ppath_agenda
 ##################################
 

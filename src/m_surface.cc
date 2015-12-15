@@ -360,7 +360,6 @@ void iySurfaceFastem(
     const Vector&           rte_pos2,
     const String&           iy_unit,  
     const Agenda&           iy_main_agenda,
-    const Agenda&           blackbody_radiation_agenda,
     const Numeric&          surface_skin_t,
     const Numeric&          salinity,
     const Numeric&          wind_speed,
@@ -405,9 +404,9 @@ void iySurfaceFastem(
   Tensor4   surface_rmatrix;
   Matrix    surface_emission;
   //
-  surfaceFastem( ws, surface_los, surface_rmatrix, surface_emission, 
+  surfaceFastem( surface_los, surface_rmatrix, surface_emission, 
                  atmosphere_dim, stokes_dim, f_grid, rtp_pos, rtp_los, 
-                 blackbody_radiation_agenda, specular_los, surface_skin_t, 
+                 specular_los, surface_skin_t, 
                  salinity, wind_speed, wind_direction, transmittance, 
                  fastem_version, verbosity );
 
@@ -760,14 +759,12 @@ void specular_losCalc(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void surfaceBlackbody(
-          Workspace& ws,
           Matrix&    surface_los,
           Tensor4&   surface_rmatrix,
           Matrix&    surface_emission,
     const Vector&    f_grid,
     const Index&     stokes_dim,
     const Numeric&   surface_skin_t,
-    const Agenda&    blackbody_radiation_agenda,
     const Verbosity& verbosity)
 {  
   chk_if_in_range( "stokes_dim", stokes_dim, 1, 4 );
@@ -780,11 +777,11 @@ void surfaceBlackbody(
   surface_los.resize(0,0);
   surface_rmatrix.resize(0,0,0,0);
 
-  Vector b;
-  blackbody_radiation_agendaExecute( ws, b, surface_skin_t, f_grid, 
-                                     blackbody_radiation_agenda ); 
-
   const Index   nf = f_grid.nelem();
+
+  Vector b(nf);
+  planck( b, f_grid, surface_skin_t ); 
+
   surface_emission.resize( nf, stokes_dim );
   surface_emission = 0.0;
 
@@ -800,7 +797,6 @@ void surfaceBlackbody(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void surfaceFastem(
-          Workspace&        ws,
           Matrix&           surface_los,
           Tensor4&          surface_rmatrix,
           Matrix&           surface_emission,
@@ -809,7 +805,6 @@ void surfaceFastem(
     const Vector&           f_grid,
     const Vector&           rtp_pos,
     const Vector&           rtp_los,
-    const Agenda&           blackbody_radiation_agenda,
     const Vector&           specular_los,
     const Numeric&          surface_skin_t,
     const Numeric&          salinity,
@@ -861,9 +856,8 @@ void surfaceFastem(
 
   // Surface emission
   //
-  Vector b;
-  blackbody_radiation_agendaExecute( ws, b, surface_skin_t, f_grid, 
-                                     blackbody_radiation_agenda );  
+  Vector b(nf);
+  planck( b, f_grid, surface_skin_t ); 
   //
   surface_emission.resize( nf, stokes_dim );
   for( Index i=0; i<nf; i++ )
@@ -902,7 +896,6 @@ void surfaceFastem(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void surfaceFlatRefractiveIndex(
-          Workspace&     ws,
           Matrix&        surface_los,
           Tensor4&       surface_rmatrix,
           Matrix&        surface_emission,
@@ -913,7 +906,6 @@ void surfaceFlatRefractiveIndex(
     const Vector&        specular_los,
     const Numeric&       surface_skin_t,
     const GriddedField3& surface_complex_refr_index,
-    const Agenda&        blackbody_radiation_agenda,
     const Verbosity&     verbosity)
 {
   CREATE_OUT2;
@@ -958,10 +950,9 @@ void surfaceFlatRefractiveIndex(
       fresnel( Rv, Rh, Numeric(1.0), n2, incang );
 
       // Fill reflection matrix and emission vector
-      surface_specular_R_and_b( ws, surface_rmatrix(0,iv,joker,joker), 
+      surface_specular_R_and_b( surface_rmatrix(0,iv,joker,joker), 
                                 surface_emission(iv,joker), Rv, Rh, 
-                                f_grid[iv], stokes_dim, surface_skin_t,
-                                blackbody_radiation_agenda );
+                                f_grid[iv], stokes_dim, surface_skin_t );
     }
 }
 
@@ -969,7 +960,6 @@ void surfaceFlatRefractiveIndex(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void surfaceFlatReflectivity(
-          Workspace& ws,
           Matrix&    surface_los,
           Tensor4&   surface_rmatrix,
           Matrix&    surface_emission,
@@ -979,7 +969,6 @@ void surfaceFlatReflectivity(
     const Vector&    specular_los,
     const Numeric&   surface_skin_t,
     const Tensor3&   surface_reflectivity,
-    const Agenda&    blackbody_radiation_agenda,
     const Verbosity& verbosity)
 {
   CREATE_OUT2;
@@ -1028,9 +1017,9 @@ void surfaceFlatReflectivity(
 
   Matrix R, IR(stokes_dim,stokes_dim); 
 
-  Vector b;
-  blackbody_radiation_agendaExecute( ws, b, surface_skin_t, f_grid, 
-                                     blackbody_radiation_agenda ); 
+  Vector b(nf);
+  planck( b, f_grid, surface_skin_t ); 
+
   Vector B(stokes_dim,0);
 
   for( Index iv=0; iv<nf; iv++ )
@@ -1061,7 +1050,6 @@ void surfaceFlatReflectivity(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void surfaceFlatScalarReflectivity(
-          Workspace& ws,
           Matrix&    surface_los,
           Tensor4&   surface_rmatrix,
           Matrix&    surface_emission,
@@ -1071,7 +1059,6 @@ void surfaceFlatScalarReflectivity(
     const Vector&    specular_los,
     const Numeric&   surface_skin_t,
     const Vector&    surface_scalar_reflectivity,
-    const Agenda&    blackbody_radiation_agenda,
     const Verbosity& verbosity)
 {
   CREATE_OUT2;
@@ -1115,9 +1102,8 @@ void surfaceFlatScalarReflectivity(
   surface_emission = 0;
   surface_rmatrix  = 0;
 
-  Vector b;
-  blackbody_radiation_agendaExecute( ws, b, surface_skin_t, f_grid, 
-                                     blackbody_radiation_agenda ); 
+  Vector b(nf);
+  planck( b, f_grid, surface_skin_t ); 
 
   Numeric r = 0.0;
 
@@ -1135,7 +1121,6 @@ void surfaceFlatScalarReflectivity(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void surfaceLambertianSimple(
-          Workspace& ws,
           Matrix&    surface_los,
           Tensor4&   surface_rmatrix,
           Matrix&    surface_emission,
@@ -1146,7 +1131,6 @@ void surfaceLambertianSimple(
     const Numeric&   surface_skin_t,
     const Vector&    surface_scalar_reflectivity,
     const Index&     lambertian_nza,
-    const Agenda&    blackbody_radiation_agenda,
     const Numeric&   za_pos,
     const Verbosity&)
 {
@@ -1196,9 +1180,8 @@ void surfaceLambertianSimple(
   for( Index ip=0; ip<lambertian_nza; ip++ )
     { surface_los(ip,0) = za_lims[ip] + za_pos * dza; }
 
-  Vector b;
-  blackbody_radiation_agendaExecute( ws, b, surface_skin_t, f_grid, 
-                                     blackbody_radiation_agenda ); 
+  Vector b(nf);
+  planck( b, f_grid, surface_skin_t ); 
 
   // Loop frequencies and set remaining values
   //

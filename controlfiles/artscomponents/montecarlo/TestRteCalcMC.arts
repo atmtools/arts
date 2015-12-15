@@ -16,9 +16,6 @@ Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
 # cosmic background radiation
 Copy( iy_space_agenda, iy_space_agenda__CosmicBackground )
 
-# Planck as blackbody radiation
-Copy( blackbody_radiation_agenda, blackbody_radiation_agenda__Planck )
-
 # no refraction
 Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
 

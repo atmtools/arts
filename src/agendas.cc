@@ -105,22 +105,6 @@ void define_agenda_data()
       INPUT(  "abs_species", "jacobian_quantities", "abs_species_active",
               "f_grid", "abs_p", "abs_t", "abs_t_nlte", "abs_vmrs" )));
 
-  agenda_data.push_back
-    (AgRecord
-     ( NAME( "blackbody_radiation_agenda" ),
-       DESCRIPTION
-       (
-        "Returns *blackbody_radiation*.\n"
-        "\n"
-        "The task of this agenda is to return *blackbody_radiation* for the\n"
-        "given temperature (*rtp_temperature*).\n"
-        "\n"
-        "The include file 'agendas.arts' predefines an agenda that can be\n"
-        "used here.\n"
-        ),
-       OUTPUT( "blackbody_radiation" ),
-       INPUT( "rtp_temperature", "f_grid" )));
- 
  agenda_data.push_back
     (AgRecord
      ( NAME( "doit_conv_test_agenda" ),

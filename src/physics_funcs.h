@@ -83,6 +83,10 @@ Numeric planck(
         const Numeric&   f, 
         const Numeric&   t );
 
+void planck( VectorView  b,
+        ConstVectorView  f, 
+        const Numeric&   t );
+
 Numeric dplanck_dt( 
         const Numeric&   f, 
         const Numeric&   t );

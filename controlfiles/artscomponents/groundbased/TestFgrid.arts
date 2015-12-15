@@ -15,9 +15,6 @@ Copy( iy_space_agenda, iy_space_agenda__CosmicBackground )
 # standard surface agenda (i.e., make use of surface_rtprop_agenda)
 Copy( iy_surface_agenda, iy_surface_agenda__UseSurfaceRtprop )
 
-# Planck as blackbody radiation
-Copy( blackbody_radiation_agenda, blackbody_radiation_agenda__Planck )
-
 # sensor-only path
 Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
 

@@ -62,23 +62,6 @@ extern const Numeric COSMIC_BG_TEMP;
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void blackbody_radiationPlanck(
-           Vector&   blackbody_radiation,
-     const Vector&   f,
-     const Numeric&  t,
-     const Verbosity&)
-{
-  const Index   n = f.nelem();
-
-  blackbody_radiation.resize(n);
-
-  for( Index i=0; i<n; i++ )
-    { blackbody_radiation[i] = planck( f[i], t ); }
-}
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
 void MatrixCBR(// WS Output:
                Matrix&   m,
                // WS Input:
@@ -95,8 +78,7 @@ void MatrixCBR(// WS Output:
   m.resize(n,stokes_dim);
   m = 0;
 
-  for( Index i=0; i<n; i++ )
-    { m(i,0) = planck( f[i], COSMIC_BG_TEMP ); }
+  planck( m(joker,0), f, COSMIC_BG_TEMP );
 }
 
 
@@ -123,8 +105,7 @@ void MatrixPlanck(// WS Output:
   m.resize(n,stokes_dim);
   m = 0;
 
-  for( Index i=0; i<n; i++ )
-    { m(i,0) = planck( f[i], t ); }
+  planck( m(joker,0), f, t );
 }
 
 

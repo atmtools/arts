@@ -85,7 +85,6 @@ void fos(
    const ArrayOfString&                 iy_aux_vars,
    const Index&                         jacobian_do,
    const Agenda&                        ppath_agenda,
-   const Agenda&                        blackbody_radiation_agenda,
    const Agenda&                        propmat_clearsky_agenda,
    const Agenda&                        iy_main_agenda,
    const Agenda&                        iy_space_agenda,
@@ -286,8 +285,7 @@ void fos(
           if( lte[i] == 0 )
             throw runtime_error( "FOS can so far only handle LTE conditions." );
         }
-      get_ppath_blackrad( ws, ppath_blackrad, blackbody_radiation_agenda, 
-                          ppath, ppath_t, ppath_f );
+      get_ppath_blackrad( ppath_blackrad, ppath, ppath_t, ppath_f );
       if( !cloudbox_on )
         { 
           get_ppath_trans( trans_partial, extmat_case, trans_cumulat, 
@@ -539,7 +537,6 @@ void fos(
                                  pnd_field, use_mean_scat_data, scat_data, 
                                  particle_masses, iy_unit, iy_aux_vars, 
                                  jacobian_do, ppath_agenda, 
-                                 blackbody_radiation_agenda, 
                                  propmat_clearsky_agenda, iy_main_agenda, 
                                  iy_space_agenda, iy_surface_agenda, 0,
                                  iy_trans_new, pos, los, rte_pos2, 
@@ -715,17 +712,6 @@ void fos(
   // Unit conversions
   if( iy_agenda_call1 )
     {
-      // If any conversion, check that standard form of Planck used
-      if( !chk_if_std_blackbody_agenda( ws, blackbody_radiation_agenda ) )
-        {
-          ostringstream os;
-          os << "When any unit conversion is applied, "
-             << "*blackbody_radiation_agenda\nmust use "
-             << "*blackbody_radiationPlanck* or a corresponding WSM.\nA test "
-             << "call of the agenda indicates that this is not the case.";
-          throw runtime_error( os.str() );
-        }
-        
       // Determine refractive index to use for the n2 radiance law
       Numeric n = 1.0; // First guess is that sensor is in space
       //
@@ -792,7 +778,6 @@ void iyFOS(
    const ArrayOfString&               iy_aux_vars,
    const Index&                       jacobian_do,
    const Agenda&                      ppath_agenda,
-   const Agenda&                      blackbody_radiation_agenda,
    const Agenda&                      propmat_clearsky_agenda,
    const Agenda&                      iy_main_agenda,
    const Agenda&                      iy_space_agenda,
@@ -851,7 +836,7 @@ void iyFOS(
        wind_v_field, wind_w_field, mag_u_field, mag_v_field, mag_w_field,
        cloudbox_on, cloudbox_limits, pnd_field, use_mean_scat_data,
        scat_data, particle_masses, iy_unit, iy_aux_vars, jacobian_do, 
-       ppath_agenda, blackbody_radiation_agenda, propmat_clearsky_agenda,
+       ppath_agenda, propmat_clearsky_agenda,
        iy_main_agenda, iy_space_agenda, iy_surface_agenda, iy_agenda_call1,
        iy_transmission, rte_pos, rte_los, rte_pos2, rte_alonglos_v, 
        ppath_lraytrace, fos_scatint_angles, fos_iyin_za_angles, 
