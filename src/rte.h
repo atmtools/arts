@@ -255,6 +255,13 @@ void get_ppath_blackrad(
   ConstVectorView    ppath_t, 
   ConstMatrixView    ppath_f );
 
+void get_dppath_blackrad_dt( 
+        Matrix&             dppath_blackrad_dt,
+        ConstVectorView     ppath_t, 
+        ConstMatrixView     ppath_f,
+        const ArrayOfIndex& jac_is_t,
+        const bool&         j_analytical_do);
+
 void get_ppath_ext( 
         ArrayOfIndex&                  clear2cloudbox,
         Tensor3&                       pnd_abs_vec, 

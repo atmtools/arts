@@ -443,7 +443,7 @@ void iyEmissionStandard(
   Tensor5   abs_per_species, dppath_ext_dx, dtrans_partial_dx_above, dtrans_partial_dx_below;
   Tensor4   trans_partial, trans_cumulat, dppath_nlte_source_dx;
   Tensor3   ppath_nlte_source;
-  Matrix    ppath_blackrad;
+  Matrix    ppath_blackrad, dppath_blackrad_dt;
   Vector    scalar_tau;
   ArrayOfIndex   lte;
   ArrayOfArrayOfIndex  extmat_case;
@@ -468,6 +468,7 @@ void iyEmissionStandard(
                                rte_alonglos_v, atmosphere_dim, stokes_dim,
                                jacobian_do, iaps );
       get_ppath_blackrad( ppath_blackrad, ppath, ppath_t, ppath_f );
+      get_dppath_blackrad_dt( dppath_blackrad_dt, ppath_t, ppath_f, jac_is_t, j_analytical_do );
     }
   else // For cases inside the cloudbox, or totally outside the atmosphere,
     {  // set zero optical thickness and unit transmission
@@ -531,23 +532,6 @@ void iyEmissionStandard(
       //
       //
       const Numeric   dt = 0.1;     // Temperature disturbance, K
-            Matrix    ppath_blackrad_dt;
-      //
-      if( j_analytical_do )
-        { 
-          // Determine if temperature is among the analytical jac. quantities.
-          // If yes, get emission and absorption for disturbed temperature
-          // Same for wind and mag. field, but disturb only absorption
-          for( Index iq=0; iq<jac_is_t.nelem(); iq++ )
-            { 
-              // Temperatures
-              if( jac_is_t[iq] ) 
-                { 
-                  Vector t2 = ppath_t;   t2 += dt;
-                  get_ppath_blackrad( ppath_blackrad_dt, ppath, t2, ppath_f );
-                }
-            }
-        }
       //#######################################################################
 
       //=== iy_aux part =======================================================
@@ -653,11 +637,19 @@ void iyEmissionStandard(
                 {
                     if( jacobian_quantities[iq].Analytical() )
                     {
-                        const Vector dummy1(0);
-                        ConstVectorView dummy2=dummy1;
                         //- Not temperature -----------------------------------
-                        if( jac_species_i[iq] >= 0 || jac_wind_i[iq] || jac_mag_i[iq] || jac_other[iq] )
+                        if( jac_species_i[iq] >= 0 || jac_wind_i[iq] || jac_mag_i[iq] || jac_other[iq] || jac_is_t[iq] )
                         {
+                            /* 
+                              We need to do blackbody derivation for temperature.
+                              Should we do this for wind (frequency) as well, then 
+                              add or statement here for jac_wind_i[iq] and turn
+                              dppath_blackrad_dt into a Tensor3 of size [nq,nf,np].
+                             */
+                            
+                            const bool this_is_t = jac_is_t[iq],
+                            this_is_hse = this_is_t ? jacobian_quantities[iq].Subtag() == "HSE on" : false;
+                            
                             for( Index iv=0; iv<nf; iv++ )
                             {
                                 get_diydx( diy_dpath[iq](ip  ,iv,joker),
@@ -665,10 +657,10 @@ void iyEmissionStandard(
                                            extmat_case[ip][iv],
                                            iy(iv,joker),
                                            sibi(iv,joker),
-                                           nonlte?ppath_nlte_source(iv,joker,ip  ):dummy2,
-                                           nonlte?ppath_nlte_source(iv,joker,ip+1):dummy2,
-                                           nonlte?dppath_nlte_source_dx(iq,iv,joker,ip  ):dummy2,
-                                           nonlte?dppath_nlte_source_dx(iq,iv,joker,ip+1):dummy2,
+                                           ppath_nlte_source(       iv,joker,ip  ),
+                                           ppath_nlte_source(       iv,joker,ip+1),
+                                           dppath_nlte_source_dx(iq,iv,joker,ip  ),
+                                           dppath_nlte_source_dx(iq,iv,joker,ip+1),
                                            ppath_ext(iv,joker,joker,ip  ),
                                            ppath_ext(iv,joker,joker,ip+1),
                                            dppath_ext_dx(iq,iv,joker,joker,ip  ),
@@ -681,50 +673,15 @@ void iyEmissionStandard(
                                            ppath_t[ip  ],
                                            ppath_t[ip+1],
                                            dt,
-                                           0,
-                                           0,
+                                           dppath_blackrad_dt(iv,ip  ),
+                                           dppath_blackrad_dt(iv,ip+1),
                                            ppath.lstep[ip],
                                            stokes_dim,
-                                           false,
-                                           false,
+                                           this_is_t,
+                                           this_is_hse,
                                            nonlte );
-                            }
-                        }
-                        //- Temperature -----------------------------------------
-                        else if( jac_is_t[iq] )
-                        {
-                            for( Index iv=0; iv<nf; iv++ )
-                            {   
-                                get_diydx( diy_dpath[iq](ip  ,iv,joker),
-                                           diy_dpath[iq](ip+1,iv,joker),
-                                           extmat_case[ip][iv],
-                                           iy(iv,joker),
-                                           sibi(iv,joker),
-                                           nonlte?ppath_nlte_source(iv,joker,ip  ):dummy2,
-                                           nonlte?ppath_nlte_source(iv,joker,ip+1):dummy2,
-                                           nonlte?dppath_nlte_source_dx(iq,iv,joker,ip  ):dummy2,
-                                           nonlte?dppath_nlte_source_dx(iq,iv,joker,ip+1):dummy2,
-                                           ppath_ext(iv,joker,joker,ip  ),
-                                           ppath_ext(iv,joker,joker,ip+1),
-                                           dppath_ext_dx(iq,iv,joker,joker,ip  ),
-                                           dppath_ext_dx(iq,iv,joker,joker,ip+1),
-                                           trans_partial(iv,joker,joker,ip),
-                                           dtrans_partial_dx_below(iq,iv,joker,joker,ip),
-                                           dtrans_partial_dx_above(iq,iv,joker,joker,ip),
-                                           trans_cumulat(iv,joker,joker,ip  ),
-                                           trans_cumulat(iv,joker,joker,ip+1),
-                                           ppath_t[ip  ],
-                                           ppath_t[ip+1],
-                                           dt,
-                                           (ppath_blackrad_dt(iv,ip)-ppath_blackrad(iv,ip))/dt,
-                                           (ppath_blackrad_dt(iv,ip+1)-ppath_blackrad(iv,ip+1))/dt,
-                                           ppath.lstep[ip],
-                                           stokes_dim,
-                                           true,
-                                           jacobian_quantities[iq].Subtag() == "HSE on",
-                                           nonlte );
-                            } // Frequency loop 
-                        } // Temperature
+                            } // for all frequencies
+                        } // if this iq is analytical
                     } // if this analytical
                 } // for iq
             } // if any analytical

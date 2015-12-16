@@ -2012,10 +2012,8 @@ void get_ppath_pmat_and_tmat(
         ppath_nlte_source.resize( nf, stokes_dim, np );   // We start by assuming non-LTE
         lte.resize( np );
         abs_per_species.resize( nisp, nf, stokes_dim, stokes_dim, np ); 
-        nq?dppath_ext_dx.resize(nq, nf, stokes_dim, stokes_dim, np ):
-        dppath_ext_dx.resize( 0,  0,          0,          0,  0 );
-        nq?dppath_nlte_source_dx.resize(nq, nf, stokes_dim, np):
-        dppath_nlte_source_dx.resize( 0,  0,          0,  0);
+        dppath_ext_dx.resize(nq, nf, stokes_dim, stokes_dim, np );
+        dppath_nlte_source_dx.resize(nq, nf, stokes_dim, np);
     } 
     catch (std::bad_alloc x) 
     {
@@ -2393,9 +2391,8 @@ void get_ppath_pmat_and_tmat(
     The output variable is sized inside the function. The dimension order is 
        [ frequency, ppath point ]
 
-    \param   ws                Out: The workspace
     \param   ppath_blackrad    Out: Emission source term at each ppath point 
-    \param   blackbody_radiation_agenda   As the WSV.    
+    \param   ppath             As the WSV
     \param   ppath_t           Temperature for each ppath point.
     \param   ppath_f           See get_ppath_f.
 
@@ -2420,6 +2417,47 @@ void get_ppath_blackrad(
     { planck( ppath_blackrad(joker,ip), ppath_f(joker,ip), ppath_t[ip] ); }
 }
 
+
+//! get_dppath_blackrad_dt
+/*!
+ *   Determines partial derivation of the blackbody radiation along the propagation path
+ *   with regards to temperature.
+ * 
+ *   The output variable is sized inside the function. The dimension order is 
+ *      [ frequency, ppath point ]
+ * 
+ *   \param   ws                 Out: The workspace
+ *   \param   dppath_blackrad_dt Out: Emission source term at each ppath point 
+ *   \param   ppath_t            In:  Temperature for each ppath point.
+ *   \param   ppath_f            In:  See get_ppath_f.
+ * 
+ *   \author Richard Larsson
+ *   \date   2015-12-16
+ */
+void get_dppath_blackrad_dt( 
+        Matrix&             dppath_blackrad_dt,
+        ConstVectorView     ppath_t, 
+        ConstMatrixView     ppath_f,
+        const ArrayOfIndex& jac_is_t,
+        const bool&         j_analytical_do)
+{
+    // do anything?
+    if( j_analytical_do )
+    { 
+        // Sizes
+        const Index   nf = ppath_f.nrows();
+        const Index   np = ppath_f.ncols();
+        assert( ppath_t.nelem() == np );
+        
+        dppath_blackrad_dt.resize(nf, np);
+        
+        for( Index iq=0; iq<jac_is_t.nelem(); iq++ )
+            if( jac_is_t[iq] ) 
+                for( Index ip=0; ip<np; ip++ )
+                    for( Index iv=0; iv<nf; iv++ )
+                        dppath_blackrad_dt(iv,ip) = dplanck_dt( ppath_f(iv,ip), ppath_t[ip] );
+    }
+}
 
 
 //! get_ppath_ext
