@@ -1,5 +1,16 @@
 2015-12-16  Richard Larsson   <ric.larsson@gmail.com>
 
+	* arts-2-3-392
+	
+	make check-all tests mostly fixed?  Memory problem...
+	
+	* src/m_rte.cc:  No longer sets ispecies for Jacobian reasons.
+	Still works for iy_aux reasons.
+	
+	* src/rte.cc:  No longer care for ispecies in Jacobian part.
+
+2015-12-16  Richard Larsson   <ric.larsson@gmail.com>
+
 	* arts-2-3-391
 	
 	* src/m_rte.cc:  Simplified get_diydx call to not have

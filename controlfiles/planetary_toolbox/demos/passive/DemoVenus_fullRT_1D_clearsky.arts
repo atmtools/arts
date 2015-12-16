@@ -297,7 +297,6 @@ ArrayOfStringSet( iy_aux_vars,
 # setting agendas needed for RT calc (there are alternative settings, though)
 #####
 Copy( iy_main_agenda, iy_main_agenda__Emission )
-Copy( blackbody_radiation_agenda, blackbody_radiation_agenda__Planck )
 Copy( iy_space_agenda, iy_space_agenda__CosmicBackground )
 Copy( iy_surface_agenda, iy_surface_agenda__UseSurfaceRtprop )
 

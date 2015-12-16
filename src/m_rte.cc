@@ -335,16 +335,9 @@ void iyEmissionStandard(
     } 
   //###########################################################################
   
-  // Set up variable with index of species where we want abs_per_species.
-  // This variable can below be extended in iy_aux part.
+  // This variable is below used by iy_aux part.
   //
   ArrayOfIndex iaps(0);
-  //
-  for( Index i=0; i<jac_species_i.nelem(); i++ )
-    {
-      if( jac_species_i[i] >= 0 )
-        { iaps.push_back( jac_species_i[i] ); }
-    }
 
   
   //=== iy_aux part ===========================================================

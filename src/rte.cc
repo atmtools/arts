@@ -2167,8 +2167,6 @@ void get_ppath_pmat_and_tmat(
                 }
             
             
-                // Jacobian part
-                Index ia=-1;
                 for(Index iq=0;iq<nq&&jacobian_do;iq++)
                 {
                     
@@ -2267,9 +2265,7 @@ void get_ppath_pmat_and_tmat(
                         }
                     }
                     else if( jac_species_i[iq] > -1 && jacobian_quantities[iq].Analytical() )
-                    {
-                        ia++;//Counter for ispecies
-                        
+                    {   
                         const bool from_propmat = jacobian_quantities[iq].SubSubtag() == PROPMAT_SUBSUBTAG;
                         const Index isp = jac_species_i[iq];
                         
@@ -2289,7 +2285,7 @@ void get_ppath_pmat_and_tmat(
                             for( Index i1=0; i1<nf; i1++ ) for( Index i2=0; i2<stokes_dim; i2++ )
                             {
                                 for( Index i3=0; i3<stokes_dim; i3++ )
-                                    dppath_ext_dx(iq,i1,i2,i3,ip) = propmat_clearsky(ispecies[ia],i1,i2,i3)*unitscf;
+                                    dppath_ext_dx(iq,i1,i2,i3,ip) = propmat_clearsky(jac_species_i[iq],i1,i2,i3)*unitscf;
                             }
                         }
                         else 
