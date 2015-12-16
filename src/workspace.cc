@@ -2780,12 +2780,15 @@ void Workspace::define_wsv_data()
      ( NAME( "mc_source_domain" ),
        DESCRIPTION
        (
-        "Source to emission, domain.\n"
+        "Rough classification of source to emission.\n"
         "\n"
-        "This is an array of length 3, where the elements represent space,\n"
-        "the atmosphere and the surface, respectively. The values of the\n"
-        "array give the number of cases where the emission source was found\n"
-        "to be inside each domain.\n"
+        "This is an array of length 4, where the elements in order represent\n"
+        "space, the surface, atmospheric gas and atmospheric particle.\n"
+        "The distinction between the two last elements is if the emission\n"
+        "is associated with *vmr_field* or *pnd_field*.\n" 
+        "\n"
+        "The values of the array give the number of cases where the emission\n"
+        "source was found to be inside each \"domain\".\n"
         "\n"
         "Usage: Set by MCGeneral and other MC methods.\n"
         ),

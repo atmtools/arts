@@ -226,7 +226,7 @@ void MCGeneral(Workspace&            ws,
   mc_points = 0;
   mc_scat_order.resize( l_mc_scat_order );
   mc_scat_order = 0;
-  mc_source_domain.resize( 3 );
+  mc_source_domain.resize( 4 );
   mc_source_domain = 0;
 
 
@@ -339,7 +339,7 @@ void MCGeneral(Workspace&            ws,
                   mult( I_i, Q, vector1);
                   I_i /= g;
                   keepgoing = false;
-                  mc_source_domain[2] += 1;
+                  mc_source_domain[1] += 1;
                 }
               else
                 //decide between reflection and emission
@@ -352,7 +352,7 @@ void MCGeneral(Workspace&            ws,
                       mult( I_i, Q, vector1 );
                       I_i /= g*(1-R11);
                       keepgoing = false;
-                      mc_source_domain[2] += 1;
+                      mc_source_domain[1] += 1;
                     }
                   else
                     {
@@ -384,7 +384,7 @@ void MCGeneral(Workspace&            ws,
                   emissioncontri /= (g*(1-albedo)); //yuck!
                   mult( I_i, Q, emissioncontri );
                   keepgoing = false;
-                  mc_source_domain[1] += 1;                  
+                  mc_source_domain[3] += 1;                  
                 }
               else
                 {
@@ -416,7 +416,7 @@ void MCGeneral(Workspace&            ws,
               emissioncontri /= g;
               mult( I_i, Q, emissioncontri );
               keepgoing = false;
-              mc_source_domain[1] += 1;                  
+              mc_source_domain[2] += 1;                  
             }
         }  // keepgoing
 

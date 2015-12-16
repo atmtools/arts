@@ -1,3 +1,16 @@
+2015-12-16  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-390
+
+	* src/m_montecarlo.cc (MCGeneral): Adopted to change below.
+
+	* src/workspace.cc: Changed definition of mc_source_domain. The
+	variable now includes an distinction between gas and particle
+	emission, to allow that the impact of particle absorption easily
+	can be determined. This resulted in that a different order felt
+	more natural, withboundaries first. Surface was before last [2],
+	it is now element [1].
+
 2015-12-16  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-389
