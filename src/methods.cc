@@ -3164,6 +3164,33 @@ void define_md_data_raw()
  
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "backend_channel_responseGaussianMultiWidth" ),
+        DESCRIPTION
+        (
+         "Sets up a gaussian backend channel response.\n"
+         "\n"
+         "Same as *backend_channel_responseGaussian* but each channel\n"
+         "can have a different width and spacing.\n"
+         "\n"
+         "If xwidth_si or dx_si only contain one element, they're used\n"
+         "for all channels\n"
+         ),
+        AUTHORS( "Oliver Lemke, Patrick Eriksson" ),
+        OUT( "backend_channel_response" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( ),
+        GIN( "fwhm", "xwidth_si", "dx_si" ),
+        GIN_TYPE( "Vector", "Vector", "Vector" ),
+        GIN_DEFAULT( NODEF, "[3]", "[0.1]" ),
+        GIN_DESC( "Full width at half-maximum", 
+                  "Half-width of response, in terms of std. dev.", 
+                  "Grid spacing, in terms of std. dev." )
+        ));
+ 
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "batch_atm_fields_compactAddConstant" ),
         DESCRIPTION
         (

@@ -367,6 +367,51 @@ void backend_channel_responseGaussian(ArrayOfGriddedField1&   r,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void backend_channel_responseGaussianMultiWidth(ArrayOfGriddedField1&   r,
+                                                const Vector&   fwhm,
+                                                const Vector&   xwidth_si,
+                                                const Vector&   dx_si,
+                                                const Verbosity& verbosity)
+{
+    if ((fwhm.nelem() != xwidth_si.nelem() && xwidth_si.nelem() != 1)
+        || (fwhm.nelem() != dx_si.nelem() && dx_si.nelem() != 1))
+    {
+        std::ostringstream os;
+        os << "xwidth_si and dx_si must have one element or the same number of elements\n";
+        os << "as fwhm";
+        throw std::runtime_error(os.str());
+    }
+
+    Index nchannels = fwhm.nelem();
+    r.resize( nchannels );
+
+    ArrayOfGriddedField1 this_r;
+    this_r.resize(1);
+    for (Index i = 0; i < nchannels; i++)
+    {
+        Vector x, y;
+        Numeric this_xwidth_si;
+        Numeric this_dx_si;
+
+        if (xwidth_si.nelem() == 1)
+            this_xwidth_si = xwidth_si[0];
+        else
+            this_xwidth_si = xwidth_si[i];
+
+        if (dx_si.nelem() == 1)
+            this_dx_si = dx_si[0];
+        else
+            this_dx_si = dx_si[i];
+
+        backend_channel_responseGaussian(this_r, fwhm[i], this_xwidth_si, this_dx_si, verbosity);
+
+        r[i] = this_r[0];
+    }
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void f_gridFromSensorAMSU(// WS Output:
                           Vector& f_grid,
                           // WS Input:
