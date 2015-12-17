@@ -45,8 +45,10 @@
  \param[in] ref_index_imag  Vector with imaginary parts of refractive index
  \param[in] equiv_radius    equivalent volume radius [micrometer]
  \param[in] np              Particle type (-1 for spheroid, -2 for cylinder)
- \param[in] axial_ratio    Axial ratio of particles
+ \param[in] axial_ratio     Axial ratio of particles
  \param[in] precision       Accuracy of the computations
+ \param[in] ndgs            The number of division points in computing
+                            integrals over the particle surface.
 
  \author Oliver Lemke
  */
@@ -56,7 +58,8 @@ void calcSingleScatteringDataProperties(SingleScatteringData& ssd,
                                         const Numeric equiv_radius = 200,
                                         const Index np = -1,
                                         const Numeric axial_ratio = 1.000001,
-                                        const Numeric precision = 0.001);
+                                        const Numeric precision = 0.001,
+                                        const Index   ndgs = 2 );
 
 
 /** T-Matrix validation test.

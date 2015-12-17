@@ -155,6 +155,7 @@ void scat_data_singleTmatrix(
     const Vector&                 data_aa_grid,
     const Numeric&                precision,
     const String&                 cri_source,
+    const Index&                  ngds,
     const Verbosity&              verbosity )
 {
   // Add grids to scat_data_single
@@ -170,7 +171,7 @@ void scat_data_singleTmatrix(
     { 
       np=-1; 
       if( aspect_ratio == 1 )
-        throw runtime_error( "For spheriodal particles, the aspect ratio "
+        throw runtime_error( "For spheroidal particles, the aspect ratio "
                              "is not allowed to be exactly 1 (due to "
                              "numerical problems)." );
     }
@@ -211,7 +212,7 @@ void scat_data_singleTmatrix(
                                       ncomp(joker,joker,0), 
                                       ncomp(joker,joker,1),
                                       0.5e6*diameter_volume_equ, 
-                                      np, aspect_ratio, precision );
+                                      np, aspect_ratio, precision, ngds );
 
   // Meta data
   scat_meta_single.description  = 

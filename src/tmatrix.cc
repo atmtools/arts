@@ -797,6 +797,7 @@ void integrate_phamat_theta0_phi_alpha6(Matrix& phamat,
  \param[in] ref_index_imag  See parameter mri in tmd_()
  \param[in] precision       See parameter ddelt in tmd_()
  \param[in] nza             See parameter npna in tmd_()
+ \param[in] ndgs            See parameter ndgs in tmd_()
  \param[in] quiet           See tmd_()
 */
 void tmatrix_random_orientation(Numeric& cext,
@@ -815,6 +816,7 @@ void tmatrix_random_orientation(Numeric& cext,
                                 const Numeric ref_index_imag,
                                 const Numeric precision,
                                 const Index nza,
+                                const Index ndgs,
                                 const Index quiet = 1)
 {
     Numeric reff;
@@ -849,7 +851,7 @@ void tmatrix_random_orientation(Numeric& cext,
          ref_index_imag,
          precision,
          nza,
-         2,
+         ndgs,
          0.9999999,
          1.0000001,
          quiet,
@@ -930,7 +932,8 @@ void calcSingleScatteringDataProperties(SingleScatteringData& ssd,
                                         const Numeric equiv_radius,
                                         const Index np,
                                         const Numeric aspect_ratio,
-                                        const Numeric precision)
+                                        const Numeric precision,
+                                        const Index   ndgs )
 {
     const Index nf = ssd.f_grid.nelem();
     const Index nT = ssd.T_grid.nelem();
@@ -986,8 +989,7 @@ void calcSingleScatteringDataProperties(SingleScatteringData& ssd,
                          equiv_radius, aspect_ratio, np, lam[f_index],
                          ref_index_real(f_index, T_index),
                          ref_index_imag(f_index, T_index),
-                         precision,
-                         nza);
+                         precision, nza, ndgs );
                     } catch (std::runtime_error e) {
                         ostringstream os;
                         os << "Calculation of SingleScatteringData properties failed for\n"

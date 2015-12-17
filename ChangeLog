@@ -1,3 +1,24 @@
+2015-12-17  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-393
+
+	* Now possible to control ndgs of Tmatrix. Default is 2, to match
+	old hard-coded value. For particles with high axial ratio, it
+	could help to increase ndgs. A value around 5 seems to work quite well.
+
+	* src/m_tmatrix.cc (scat_data_singleTmatrix):
+	* src/tmatrix.cc (tmatrix_random_orientation):
+	(calcSingleScatteringDataProperties): Added ndgs.
+
+	* src/m_tmatrix.cc (scat_data_singleTmatrix): Corrected spelling
+	in an error message.
+
+	* src/m_transmitter.cc (iyTransmissionStandard2): Started on new
+	version. Work in progress ...
+
+	* src/m_rte.cc (iyEmissionStandard): Just some polishing of
+	comments and indentation.
+
 2015-12-16  Richard Larsson   <ric.larsson@gmail.com>
 
 	* arts-2-3-392

@@ -263,8 +263,6 @@ void iyEmissionStandard(
   //   out.
   // iaps
   //   The index of species for which abs_per_species shall be filled. 
-  //   FIXME:  When more methods than VMR is present from propmat clearsky,
-  //   remove lines for jacobian definition to save memory.
   // jac_mag_i: Works as jac_species_i, but uses JAC_IS_MAG... and JAC_IS_NONE
   //    for coding of each element.
   // jac_other
@@ -288,17 +286,20 @@ void iyEmissionStandard(
   // trans_cumulat, trans_partial
   //   The transmission (as Mueller matrices) for each ppath step resp. from
   //   the end to each point. See further *get_ppath_trans*.
+
   
   //###### jacobian part #######################################################
   // Initialise analytical jacobians (diy_dx and help variables)
   //
-  Index j_analytical_do = 0;
+  Index           j_analytical_do = 0;
   ArrayOfTensor3  diy_dpath; 
-  ArrayOfIndex    jac_species_i(0), jac_is_t(0), jac_wind_i(0), jac_mag_i(0), jac_other(0); 
+  ArrayOfIndex    jac_species_i(0), jac_is_t(0), jac_wind_i(0);
+  ArrayOfIndex    jac_mag_i(0), jac_other(0); 
   // Flags for partial derivatives of propmat
   const PropmatPartialsData ppd(jacobian_quantities);
   //
-  if( jacobian_do ) { FOR_ANALYTICAL_JACOBIANS_DO( j_analytical_do = 1; ) }
+  if( jacobian_do ) 
+    { FOR_ANALYTICAL_JACOBIANS_DO( j_analytical_do = 1; ) }
   //
   if( !j_analytical_do )
     { diy_dx.resize( 0 ); }
@@ -309,7 +310,7 @@ void iyEmissionStandard(
       jac_is_t.resize( nq ); 
       jac_wind_i.resize( nq );  
       jac_mag_i.resize( nq ); 
-     //
+      //
       FOR_ANALYTICAL_JACOBIANS_DO( 
         diy_dpath[iq].resize( np, nf, ns ); 
         diy_dpath[iq] = 0.0;
@@ -317,7 +318,6 @@ void iyEmissionStandard(
       get_pointers_for_analytical_jacobians( jac_species_i, jac_is_t, 
                                              jac_wind_i, jac_mag_i,
                                              jacobian_quantities, abs_species );
-      
       jac_other.resize(jac_is_t.nelem());
 
       // Should this be part of get_pointers_for_analytical_jacobians?
@@ -335,10 +335,6 @@ void iyEmissionStandard(
     } 
   //###########################################################################
   
-  // This variable is below used by iy_aux part.
-  //
-  ArrayOfIndex iaps(0);
-
   
   //=== iy_aux part ===========================================================
   Index auxPressure    = -1,
@@ -348,6 +344,7 @@ void iyEmissionStandard(
         auxIy          = -1,
         auxTrans       = -1,
         auxOptDepth    = -1;
+  ArrayOfIndex iaps(0);
   ArrayOfIndex auxAbsSpecies(0), auxAbsIsp(0);
   ArrayOfIndex auxVmrSpecies(0), auxVmrIsp(0);
   //
@@ -433,23 +430,24 @@ void iyEmissionStandard(
   Matrix    ppath_vmr, ppath_wind, ppath_mag, ppath_f, ppath_t_nlte;
   // Attenuation vars
   Tensor4   ppath_ext;
-  Tensor5   abs_per_species, dppath_ext_dx, dtrans_partial_dx_above, dtrans_partial_dx_below;
+  Tensor5   abs_per_species, dppath_ext_dx;
+  Tensor5   dtrans_partial_dx_above, dtrans_partial_dx_below;
   Tensor4   trans_partial, trans_cumulat, dppath_nlte_source_dx;
   Tensor3   ppath_nlte_source;
   Matrix    ppath_blackrad, dppath_blackrad_dt;
   Vector    scalar_tau;
-  ArrayOfIndex   lte;
+  ArrayOfIndex         lte;
   ArrayOfArrayOfIndex  extmat_case;
   //
   if( np > 1 )
     {
-      get_ppath_atmvars(  ppath_p, ppath_t, ppath_t_nlte, ppath_vmr,
-                          ppath_wind, ppath_mag, 
-                          ppath, atmosphere_dim, p_grid, t_field, t_nlte_field, 
-                          vmr_field, wind_u_field, wind_v_field, wind_w_field,
-                          mag_u_field, mag_v_field, mag_w_field );      
-      get_ppath_f(        ppath_f, ppath, f_grid,  atmosphere_dim, 
-                          rte_alonglos_v, ppath_wind );
+      get_ppath_atmvars( ppath_p, ppath_t, ppath_t_nlte, ppath_vmr,
+                         ppath_wind, ppath_mag, 
+                         ppath, atmosphere_dim, p_grid, t_field, t_nlte_field, 
+                         vmr_field, wind_u_field, wind_v_field, wind_w_field,
+                         mag_u_field, mag_v_field, mag_w_field );      
+      get_ppath_f( ppath_f, ppath, f_grid,  atmosphere_dim, 
+                   rte_alonglos_v, ppath_wind );
       get_ppath_pmat_and_tmat( ws, ppath_ext,ppath_nlte_source, lte, abs_per_species,
                                dppath_ext_dx, dppath_nlte_source_dx, trans_partial, 
                                dtrans_partial_dx_above, dtrans_partial_dx_below,
@@ -457,11 +455,12 @@ void iyEmissionStandard(
                                propmat_clearsky_agenda, jacobian_quantities, ppd,
                                ppath, ppath_p, ppath_t, ppath_t_nlte, ppath_vmr, 
                                ppath_f, ppath_mag, ppath_wind, f_grid, 
-                               jac_species_i, jac_is_t, jac_wind_i, jac_mag_i, jac_other,
-                               rte_alonglos_v, atmosphere_dim, stokes_dim,
+                               jac_species_i, jac_is_t, jac_wind_i, jac_mag_i, 
+                               jac_other, rte_alonglos_v, atmosphere_dim, stokes_dim,
                                jacobian_do, iaps );
       get_ppath_blackrad( ppath_blackrad, ppath, ppath_t, ppath_f );
-      get_dppath_blackrad_dt( dppath_blackrad_dt, ppath_t, ppath_f, jac_is_t, j_analytical_do );
+      get_dppath_blackrad_dt( dppath_blackrad_dt, ppath_t, ppath_f, jac_is_t, 
+                              j_analytical_do );
     }
   else // For cases inside the cloudbox, or totally outside the atmosphere,
     {  // set zero optical thickness and unit transmission
@@ -471,6 +470,7 @@ void iyEmissionStandard(
       for( Index iv=0; iv<nf; iv++ )
         { id_mat( trans_cumulat(iv,joker,joker,np-1) ); }
     }
+
   // iy_transmission
   //
   Tensor3 iy_trans_new;
@@ -518,14 +518,10 @@ void iyEmissionStandard(
   //
   if( np > 1 )
     {
-      //### jacobian part #####################################################
-      // Create container for the derivatives with respect to changes
-      // at each ppath point. And find matching abs_species-index and 
-      // "temperature flag" (for analytical jacobians).
+      // Temperature disturbance, K   (why is this needed?)
       //
-      //
-      const Numeric   dt = 0.1;     // Temperature disturbance, K
-      //#######################################################################
+      const Numeric   dt = 0.1;     
+
 
       //=== iy_aux part =======================================================
       // iy_aux for point np-1:
@@ -555,6 +551,7 @@ void iyEmissionStandard(
       //=======================================================================
 
 
+      //=======================================================================
       // Loop ppath steps
       for( Index ip=np-2; ip>=0; ip-- )
         {
@@ -630,8 +627,8 @@ void iyEmissionStandard(
                 {
                     if( jacobian_quantities[iq].Analytical() )
                     {
-                        //- Not temperature -----------------------------------
-                        if( jac_species_i[iq] >= 0 || jac_wind_i[iq] || jac_mag_i[iq] || jac_other[iq] || jac_is_t[iq] )
+                        if( jac_species_i[iq] >= 0 || jac_wind_i[iq] ||
+                            jac_mag_i[iq] || jac_other[iq] || jac_is_t[iq] )
                         {
                             /* 
                               We need to do blackbody derivation for temperature.
@@ -713,8 +710,9 @@ void iyEmissionStandard(
           // Radiance 
           if( auxIy >= 0 ) 
             { iy_aux[auxIy](joker,joker,0,ip) = iy; }
-          //===================================================================
-        } 
+        } // path point loop
+      //=======================================================================
+
 
       //### jacobian part #####################################################
       // Map jacobians from ppath to retrieval grids
@@ -781,7 +779,7 @@ void iyEmissionStandard(
                                  ppath.nreal[ip], i_pol ); }
             }
         }
-    }
+    }  // if( np > 1 )
 }
 
 

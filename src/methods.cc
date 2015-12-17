@@ -11704,6 +11704,16 @@ void define_md_data_raw()
         "For further information on how aspect ratio and the different shapes\n"
         "and orientations are defined, see the documentation of the T-matrix\n"
         "code found http://www.giss.nasa.gov/staff/mmishchenko/t_matrix.html\n"
+        "\n"
+        "Regarding *ngds*, we refer to the this comment from the documentation:\n"
+        "   \"Parameter controlling the number of division points\n"
+        "   in computing integrals over the particle surface.\n"
+        "   For compact particles, the recommended value is 2.\n"
+        "   For highly aspherical particles larger values (3, 4,...)\n"
+        "   may be necessary to obtain convergence.\n"
+        "   The code does not check convergence over this parameter.\n"
+        "   Therefore, control comparisons of results obtained with\n"
+        "   different NDGS-values are recommended.\"\n"
       ),
       AUTHORS( "Johan Strandgren", "Patrick Eriksson" ),
       OUT( "scat_data_single", "scat_meta_single" ),
@@ -11713,13 +11723,13 @@ void define_md_data_raw()
       IN( "complex_refr_index" ),
       GIN( "shape", "diameter_volume_equ", "aspect_ratio", "mass", "ptype", 
            "data_f_grid", "data_t_grid", "data_za_grid", "data_aa_grid",
-           "precision", "cri_source" ),
+           "precision", "cri_source", "ndgs" ),
       GIN_TYPE( "String", "Numeric", "Numeric", "Numeric", "String", 
                 "Vector", "Vector", "Vector", "Vector",
-                "Numeric", "String" ),
+                "Numeric", "String", "Index" ),
       GIN_DEFAULT( NODEF, NODEF, NODEF, "NaN", NODEF, 
                    NODEF, NODEF, NODEF, NODEF, 
-                   "0.001", "Set by user, unknown source." ),
+                   "0.001", "Set by user, unknown source.", "2" ),
       GIN_DESC( "Particle shape. Options listed above.", 
                 "Particle volume equivalent diameter. See defintion above.", 
                 "Particle aspect ratio.",
@@ -11732,7 +11742,8 @@ void define_md_data_raw()
                 "Azimuth angle grid of the scattering data to be calculated.",
                 "Accuracy of the computations.",
                 "String describing the source of *complex_refr_index*, for"
-                " inclusion in meta data." )
+                " inclusion in meta data.",
+                "See above. Only used for random orientation." )
       ));
 
 /*
@@ -12200,7 +12211,7 @@ void define_md_data_raw()
         DESCRIPTION
         (
          "Polynomial frequency interpolation of spectra.\n"
-         "z\n"
+         "\n"
          "The sensor response methods treat the spectra to be piece-wise linear\n"
          "functions. This method is a workaround for making methods handling\n"
          "the spectra in a more elaborate way: it generates spectra on a more\n"
