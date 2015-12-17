@@ -1,3 +1,29 @@
+2015-12-17  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-2-57
+
+	* doc/uguide/common.tex:
+
+	Backport changes from arts-2-3-387:
+
+	Add macro \artsserver with ARTS web url.
+
+	Add macro \artsurl to insert a link to a page on the ARTS web server.
+	Only needs the subpath as input.
+
+	Add macro \docserver. Makes it easy in the future to switch from the
+	trunk to the stable docserver once ARTS is released.
+
+	Change \builtindoc macro to use the \artsserver and \docserver macros.
+	Fixes links still pointing to the old docserver URL at www.sat.ltu.se.
+	Thanks Richard for reporting this issue.
+
+	* doc/uguide/arts_developer.tex, doc/uguide/arts_theory.tex,
+	doc/uguide/arts_user.tex, doc/uguide/clouds.tex, doc/uguide/concept.tex,
+	doc/uguide/development.tex, doc/uguide/scattering.tex:
+
+	Replace all ARTS web URLs with the \artsurl macro.
+
 2015-11-18  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-2-56
