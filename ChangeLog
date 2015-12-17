@@ -1,3 +1,30 @@
+2015-12-17  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-394
+
+	* src/methods.cc, src/m_sensor.cc (backend_channel_responseGaussian):
+
+	Rename backend_channel_responseGaussianMultiWidth to
+	backend_channel_responseGaussian.
+
+	* controlfiles/artscomponents/groundbased/TestGbased.arts:
+
+	Adapt for changed arguments of backend_channel_responseGaussian.
+
+	Added reference comparison for y1, y2, y3.
+
+	* controlfiles/artscomponents/groundbased/TestGbased.y[123]REFERENCE.xml:
+
+	Added reference files.
+
+	* CHANGES-2.3: Note changed arguments of b_c_rGaussian.
+
+	* controlfiles/artscomponents/nlte/TestNLTE.arts:
+	
+	Relax comparison criteria from 1e-15 to 1e-12. Test was otherwise
+	failing with clang compiler due to slightly different numerical
+	results.
+
 2015-12-17  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-393

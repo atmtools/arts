@@ -187,7 +187,9 @@ NumericSet( f_resolution, 500e3 )
 # Size of frequency throw
 NumericSet( f_switch, 10e6 )
 
-backend_channel_responseGaussian( backend_channel_response, f_resolution, 2 )
+VectorCreate( f_resolution_v )
+VectorSetConstant( f_resolution_v, 1, f_resolution)
+backend_channel_responseGaussian( backend_channel_response, f_resolution_v, [2] )
 
 # Calculate where first channel can start (considering f_switch and 
 # channel widths)
@@ -203,6 +205,7 @@ VectorAddScalar( f_backend, f_backend, v0 )
 
 
 
+VectorCreate(yREFERENCE)
 # --- Spectrum for "direct" observation (load switching) ---------------------
 
 AntennaOff
@@ -219,6 +222,8 @@ yCalc
 WriteXML( output_file_format, y, "TestGbased.y1.xml" )
 WriteXML( output_file_format, y_f, "TestGbased.f.xml" )
 
+ReadXML( yREFERENCE, "TestGbased.y1REFERENCE.xml")
+Compare( y, yREFERENCE, 1e-4)
 
 
 # --- Beam switching ---------------------------------------------------------
@@ -240,6 +245,8 @@ yCalc
 #
 WriteXML( output_file_format, y, "TestGbased.y2.xml" )
 
+ReadXML( yREFERENCE, "TestGbased.y2REFERENCE.xml")
+Compare( y, yREFERENCE, 1e-4)
 
 
 # --- Frequency switching -----------------------------------------------------
@@ -260,4 +267,6 @@ yCalc
 #
 WriteXML( output_file_format, y, "TestGbased.y3.xml" )
 
+ReadXML( yREFERENCE, "TestGbased.y3REFERENCE.xml")
+Compare( y, yREFERENCE, 1e-4)
 }

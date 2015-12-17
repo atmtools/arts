@@ -343,69 +343,45 @@ void backend_channel_responseFlat(ArrayOfGriddedField1& r,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void backend_channel_responseGaussian(ArrayOfGriddedField1&   r,
-                                      const Numeric&   fwhm,
-                                      const Numeric&   xwidth_si,
-                                      const Numeric&   dx_si,
+                                      const Vector&   fwhm,
+                                      const Vector&   xwidth_si,
+                                      const Vector&   dx_si,
                                       const Verbosity&)
-{
-  r.resize( 1 );
-  Vector x, y;
-
-  gaussian_response_autogrid( x, y, 0, fwhm, xwidth_si, dx_si );
-
-  r[0].set_name( "Backend channel response function" );
-
-  r[0].set_grid_name( 0, "Frequency" );
-  r[0].set_grid( 0, x );
-
-  const Index n = y.nelem();
-  r[0].data.resize( n );
-  for( Index i=0; i<n; i++ )
-    r[0].data[i] = y[i];
-}
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void backend_channel_responseGaussianMultiWidth(ArrayOfGriddedField1&   r,
-                                                const Vector&   fwhm,
-                                                const Vector&   xwidth_si,
-                                                const Vector&   dx_si,
-                                                const Verbosity& verbosity)
 {
     if ((fwhm.nelem() != xwidth_si.nelem() && xwidth_si.nelem() != 1)
         || (fwhm.nelem() != dx_si.nelem() && dx_si.nelem() != 1))
     {
         std::ostringstream os;
-        os << "xwidth_si and dx_si must have one element or the same number of elements\n";
-        os << "as fwhm";
+        os << "*xwidth_si* and *dx_si* must have one element or the same number of\n";
+        os << "elements as *fwhm*.";
         throw std::runtime_error(os.str());
     }
 
     Index nchannels = fwhm.nelem();
     r.resize( nchannels );
 
-    ArrayOfGriddedField1 this_r;
-    this_r.resize(1);
+    Vector x, y;
+    Numeric this_xwidth_si = xwidth_si[0];
+    Numeric this_dx_si = dx_si[0];
     for (Index i = 0; i < nchannels; i++)
     {
-        Vector x, y;
-        Numeric this_xwidth_si;
-        Numeric this_dx_si;
-
-        if (xwidth_si.nelem() == 1)
-            this_xwidth_si = xwidth_si[0];
-        else
+        if (xwidth_si.nelem() > 1)
             this_xwidth_si = xwidth_si[i];
 
-        if (dx_si.nelem() == 1)
-            this_dx_si = dx_si[0];
-        else
+        if (dx_si.nelem() > 1)
             this_dx_si = dx_si[i];
 
-        backend_channel_responseGaussian(this_r, fwhm[i], this_xwidth_si, this_dx_si, verbosity);
+        gaussian_response_autogrid( x, y, 0, fwhm[i], this_xwidth_si, this_dx_si );
 
-        r[i] = this_r[0];
+        r[i].set_name( "Backend channel response function" );
+
+        r[i].set_grid_name( 0, "Frequency" );
+        r[i].set_grid( 0, x );
+
+        const Index n = y.nelem();
+        r[i].data.resize( n );
+        for( Index j=0; j<n; j++ )
+            r[0].data[j] = y[j];
     }
 }
 

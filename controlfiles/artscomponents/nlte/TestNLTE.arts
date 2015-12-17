@@ -75,7 +75,7 @@ yCalc
 
 VectorCreate(test)
 ReadXML(test,"TestNLTE_NLTE_ref.xml")
-Compare(y,test,1e-15)
+Compare(y,test,1e-12)
 
 nlteOff
 
@@ -88,6 +88,6 @@ sensor_checkedCalc
 yCalc
 
 ReadXML(test,"TestNLTE_LTE_ref.xml")
-Compare(y,test,1e-15)
+Compare(y,test,1e-12)
 
 }

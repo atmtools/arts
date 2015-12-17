@@ -3134,8 +3134,12 @@ void define_md_data_raw()
         (
          "Sets up a gaussian backend channel response.\n"
          "\n"
-         "The method assumes that all channels have the same response, and\n"
-         "that it can be modelled as gaussian.\n"
+         "The method assumes that all channels can be modelled as gaussian.\n"
+         "\n"
+         "If *fwhm* has only one element, all channels are assumed to be equal.\n"
+         "If *fwhm* has multiple elements, *xwidth_si* and *dx_si* must have one\n"
+         "element or the same number of elements as *fwhm*. If one element is given,\n"
+         "this value will be used for all channels.\n"
          "\n"
          "The grid generated can be written as\n"
          "   si * [-xwidth_si:dx_si:xwidth_si]\n"
@@ -3148,34 +3152,7 @@ void define_md_data_raw()
          "if the grid is adjusted in the downward direction (ie. spacing is.\n"
          "is max *dx_si*).\n"
          ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT( "backend_channel_response" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( ),
-        GIN( "fwhm", "xwidth_si", "dx_si" ),
-        GIN_TYPE( "Numeric", "Numeric", "Numeric" ),
-        GIN_DEFAULT( NODEF, "3", "0.1" ),
-        GIN_DESC( "Full width at half-maximum", 
-                  "Half-width of response, in terms of std. dev.", 
-                  "Grid spacing, in terms of std. dev." )
-        ));
- 
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "backend_channel_responseGaussianMultiWidth" ),
-        DESCRIPTION
-        (
-         "Sets up a gaussian backend channel response.\n"
-         "\n"
-         "Same as *backend_channel_responseGaussian* but each channel\n"
-         "can have a different width and spacing.\n"
-         "\n"
-         "If xwidth_si or dx_si only contain one element, they're used\n"
-         "for all channels\n"
-         ),
-        AUTHORS( "Oliver Lemke, Patrick Eriksson" ),
+        AUTHORS( "Patrick Eriksson, Oliver Lemke" ),
         OUT( "backend_channel_response" ),
         GOUT(),
         GOUT_TYPE(),
