@@ -427,17 +427,21 @@ void iyEmissionStandard(
   //
   // "atmvars"
   Vector    ppath_p, ppath_t;
-  Matrix    ppath_vmr, ppath_wind, ppath_mag, ppath_f, ppath_t_nlte;
+  Matrix    ppath_vmr, ppath_wind, ppath_mag, ppath_f, ppath_t_nlte, ppath_pnd_dummy;
   // Attenuation vars
-  Tensor4   ppath_ext;
+  Tensor4   ppath_ext, pnd_ext_mat_dummy;
   Tensor5   abs_per_species, dppath_ext_dx;
   Tensor5   dtrans_partial_dx_above, dtrans_partial_dx_below;
   Tensor4   trans_partial, trans_cumulat, dppath_nlte_source_dx;
   Tensor3   ppath_nlte_source;
   Matrix    ppath_blackrad, dppath_blackrad_dt;
   Vector    scalar_tau;
-  ArrayOfIndex         lte;
+  ArrayOfIndex         lte, clear2cloudbox_dummy;
   ArrayOfArrayOfIndex  extmat_case;
+  const ArrayOfArrayOfSingleScatteringData scat_data_dummy;
+  const Tensor4 pnd_field_dummy;
+  const ArrayOfIndex cloudbox_limits_dummy;
+  const Index use_mean_scat_data_dummy=0;
   //
   if( np > 1 )
     {
@@ -448,16 +452,20 @@ void iyEmissionStandard(
                          mag_u_field, mag_v_field, mag_w_field );      
       get_ppath_f( ppath_f, ppath, f_grid,  atmosphere_dim, 
                    rte_alonglos_v, ppath_wind );
-      get_ppath_pmat_and_tmat( ws, ppath_ext,ppath_nlte_source, lte, abs_per_species,
-                               dppath_ext_dx, dppath_nlte_source_dx, trans_partial, 
+      get_ppath_pmat_and_tmat( ws, ppath_ext, ppath_nlte_source, lte, abs_per_species,
+                               dppath_ext_dx, dppath_nlte_source_dx, trans_partial,
                                dtrans_partial_dx_above, dtrans_partial_dx_below,
-                               extmat_case, trans_cumulat, scalar_tau,
-                               propmat_clearsky_agenda, jacobian_quantities, ppd,
-                               ppath, ppath_p, ppath_t, ppath_t_nlte, ppath_vmr, 
-                               ppath_f, ppath_mag, ppath_wind, f_grid, 
-                               jac_species_i, jac_is_t, jac_wind_i, jac_mag_i, 
-                               jac_other, rte_alonglos_v, atmosphere_dim, stokes_dim,
-                               jacobian_do, iaps );
+                               extmat_case, clear2cloudbox_dummy, trans_cumulat,
+                               scalar_tau, pnd_ext_mat_dummy, ppath_pnd_dummy,
+                               propmat_clearsky_agenda, jacobian_quantities,
+                               ppd, ppath, ppath_p,  ppath_t, ppath_t_nlte, ppath_vmr, 
+                               ppath_mag, ppath_wind, ppath_f, f_grid, 
+                               jac_species_i, jac_is_t, jac_wind_i, jac_mag_i,
+                               jac_other, iaps, scat_data_dummy, pnd_field_dummy,
+                               cloudbox_limits_dummy, use_mean_scat_data_dummy,
+                               rte_alonglos_v, atmosphere_dim, stokes_dim,
+                               jacobian_do, false, verbosity);
+      
       get_ppath_blackrad( ppath_blackrad, ppath, ppath_t, ppath_f );
       get_dppath_blackrad_dt( dppath_blackrad_dt, ppath_t, ppath_f, jac_is_t, 
                               j_analytical_do );
@@ -573,11 +581,7 @@ void iyEmissionStandard(
           Tensor3 extbar(0,0,0);
           //
           if( nonlte )
-            {
-              if( jacobian_do )
-                throw std::runtime_error( "iyEmissionStandard can so far not handle "
-                                          "non-LTE together with Jacobians." );
-              
+            { 
               sourcebar.resize( nf, stokes_dim );
               extbar.resize( nf, stokes_dim, stokes_dim );
               for( Index iv=0; iv<nf; iv++ )  
@@ -611,7 +615,7 @@ void iyEmissionStandard(
               
               for( Index iv=0; iv<nf; iv++ )
                 {
-                  if(nonlte)
+                  if(nonlte) // Then sibi is difference between local Stokes and local Source
                   {
                       inv(nlte_inv,extbar(iv,joker,joker));
                       mult(nlte_sibi,nlte_inv,sourcebar(iv,joker));

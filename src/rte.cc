@@ -1964,8 +1964,11 @@ void get_ppath_pmat_and_tmat(
                             Tensor5&               dtrans_partial_dx_above,
                             Tensor5&               dtrans_partial_dx_below,
                             ArrayOfArrayOfIndex&   extmat_case,
+                            ArrayOfIndex&   clear2cloudbox,
                             Tensor4&               trans_cumulat,
                             Vector&                scalar_tau,
+                            Tensor4&               pnd_ext_mat,
+                            Matrix&                ppath_pnd,
                             const Agenda&         propmat_clearsky_agenda,
                             const ArrayOfRetrievalQuantity& jacobian_quantities,
                             const PropmatPartialsData&      ppd,
@@ -1974,20 +1977,26 @@ void get_ppath_pmat_and_tmat(
                             ConstVectorView       ppath_t, 
                             ConstMatrixView       ppath_t_nlte, 
                             ConstMatrixView       ppath_vmr, 
-                            ConstMatrixView       ppath_f, 
                             ConstMatrixView       ppath_mag,
                             ConstMatrixView       ppath_wind,
+                            ConstMatrixView       ppath_f, 
                             ConstVectorView       f_grid, 
                             const ArrayOfIndex&   jac_species_i,
                             const ArrayOfIndex&   jac_is_t,
                             const ArrayOfIndex&   jac_wind_i,
                             const ArrayOfIndex&   jac_mag_i,
                             const ArrayOfIndex&   jac_other,
+                            const ArrayOfIndex&   ispecies,
+                            const ArrayOfArrayOfSingleScatteringData scat_data,
+                            const Tensor4&        pnd_field,
+                            const ArrayOfIndex&   cloudbox_limits,
+                            const Index&          use_mean_scat_data,
                             const Numeric&        rte_alonglos_v,
                             const Index&          atmosphere_dim,
                             const Index&          stokes_dim,
                             const bool&           jacobian_do,
-                            const ArrayOfIndex&   ispecies )
+                            const bool&           cloudbox_on,
+                            const Verbosity&      verbosity)
 {   
     // Sizes
     const Index   nf   = f_grid.nelem();
@@ -2369,14 +2378,47 @@ void get_ppath_pmat_and_tmat(
                     dppath_ext_dx(iq,joker,is1,is2,joker)*=AO_dWdx[component];
     }
     
-    if(dppath_ext_dx.empty())
-        get_ppath_trans(    trans_partial, extmat_case, trans_cumulat, 
-                            scalar_tau, ppath, ppath_ext, f_grid, stokes_dim );
+    if(!cloudbox_on)
+    {
+        if(dppath_ext_dx.empty())
+            get_ppath_trans(    trans_partial, extmat_case, trans_cumulat, 
+                                scalar_tau, ppath, ppath_ext, f_grid, stokes_dim );
+        else
+            get_ppath_trans_and_dppath_trans_dx(
+                trans_partial, dtrans_partial_dx_above, dtrans_partial_dx_below, 
+                extmat_case, trans_cumulat, scalar_tau, ppath, ppath_ext, 
+                dppath_ext_dx, jacobian_quantities, f_grid, stokes_dim );
+    }
     else
-        get_ppath_trans_and_dppath_trans_dx(
-            trans_partial, dtrans_partial_dx_above, dtrans_partial_dx_below, 
-            extmat_case, trans_cumulat, scalar_tau, ppath, ppath_ext, 
-            dppath_ext_dx, jacobian_quantities, f_grid, stokes_dim );
+    {
+        Array<ArrayOfArrayOfSingleScatteringData> scat_data_single;
+        Tensor3 pnd_abs_vec;
+        //
+        get_ppath_ext( clear2cloudbox, pnd_abs_vec, pnd_ext_mat, scat_data_single,
+                       ppath_pnd, ppath, ppath_t, stokes_dim, ppath_f, 
+                       atmosphere_dim, cloudbox_limits, pnd_field, 
+                       use_mean_scat_data, scat_data, verbosity );
+        if(dppath_ext_dx.empty())
+            get_ppath_trans2( trans_partial, extmat_case, trans_cumulat, 
+                            scalar_tau, ppath, ppath_ext, f_grid, stokes_dim, 
+                            clear2cloudbox, pnd_ext_mat );
+        else
+            get_ppath_trans2_and_dppath_trans_dx(  trans_partial,
+                                                   dtrans_partial_dx_above,
+                                                   dtrans_partial_dx_below,
+                                                   extmat_case,
+                                                   trans_cumulat,
+                                                   scalar_tau,
+                                                   ppath,
+                                                   ppath_ext,
+                                                   dppath_ext_dx,
+                                                   jacobian_quantities,
+                                                   f_grid, 
+                                                   stokes_dim,
+                                                   clear2cloudbox,
+                                                   pnd_ext_mat );
+            
+    }
 }
 
 
@@ -3098,6 +3140,149 @@ void get_ppath_trans2(
     }
 }
 
+
+//! get_ppath_trans2
+/*!
+ *   Determines the transmission in different ways for a cloudy RT integration.
+ * 
+ *   This function works as get_ppath_trans, but considers also particle
+ *   extinction. See get_ppath_trans for format of output data.
+ * 
+ *   \param   trans_partial    Out: Transmission for each path step.
+ *   \param   dtrans_partial_dx_from_above      Out: Partial transmission for upper p-level.
+ *   \param   dtrans_partial_dx_from_below      Out: Partial transmission for lower p-level.
+ *   \param   trans_cumulat    Out: Transmission to each path point.
+ *   \param   scalar_tau       Out: Total (scalar) optical thickness of path
+ *   \param   ppath            As the WSV.    
+ *   \param   ppath_ext        See get_ppath_ext.
+ *   \param   dppath_ext_dx                     In:  See get_ppath_ext_and_dppath_ext_dx.
+ *   \param   jacobian_quantities               In:  As the WSV.    
+ *   \param   f_grid           As the WSV.    
+ *   \param   stokes_dim       As the WSV.
+ *   \param   clear2cloudbox   See get_ppath_ext.
+ *   \param   pnd_ext_mat      See get_ppath_ext.
+ * 
+ *   \author Patrick Eriksson 
+ *   \date   2012-08-23
+ * 
+ *   \author Richard Larsson (adapted for partial derivation)
+ *   \date   2015-12-18
+ */
+void get_ppath_trans2_and_dppath_trans_dx(  Tensor4&               trans_partial,
+                                            Tensor5&               dtrans_partial_dx_from_above,
+                                            Tensor5&               dtrans_partial_dx_from_below,
+                                            ArrayOfArrayOfIndex&   extmat_case,
+                                            Tensor4&               trans_cumulat,
+                                            Vector&                scalar_tau,
+                                            const Ppath&                 ppath,
+                                            ConstTensor4View&            ppath_ext,
+                                            ConstTensor5View&            dppath_ext_dx,
+                                            const ArrayOfRetrievalQuantity& jacobian_quantities,
+                                            ConstVectorView              f_grid, 
+                                            const Index&                 stokes_dim,
+                                            const ArrayOfIndex&          clear2cloudbox,
+                                            ConstTensor4View             pnd_ext_mat )
+{
+    // Sizes
+    const Index   nf = f_grid.nelem();
+    const Index   np = ppath.np;
+    const Index   nq = jacobian_quantities.nelem();
+    
+    // Init variables
+    //
+    trans_partial.resize( nf, stokes_dim, stokes_dim, np-1 );
+    trans_cumulat.resize( nf, stokes_dim, stokes_dim, np );
+    
+    dtrans_partial_dx_from_above.resize( nq, nf, stokes_dim, stokes_dim, np-1 );
+    dtrans_partial_dx_from_below.resize( nq, nf, stokes_dim, stokes_dim, np-1 );
+    //
+    extmat_case.resize(np-1);
+    for( Index i=0; i<np-1; i++ )
+    { extmat_case[i].resize(nf); }
+    //
+    scalar_tau.resize( nf );
+    scalar_tau  = 0;
+    
+    // Loop ppath points (in the anti-direction of photons)  
+    //
+    Tensor3 extsum_old, 
+            extsum_this( nf, stokes_dim, stokes_dim), 
+            dext_mat_dx_from_above(nq,stokes_dim,stokes_dim),
+            dext_mat_dx_from_below(nq,stokes_dim,stokes_dim);
+    //
+    for( Index ip=0; ip<np; ip++ )
+    {
+        // If first point, calculate sum of absorption and set transmission
+        // to identity matrix.
+        if( ip == 0 )
+        { 
+            for( Index iv=0; iv<nf; iv++ ) 
+            {
+                for( Index is1=0; is1<stokes_dim; is1++ ) {
+                    for( Index is2=0; is2<stokes_dim; is2++ ) {
+                        extsum_this(iv,is1,is2) = ppath_ext(iv,is1,is2,ip);
+                    } } 
+                    id_mat( trans_cumulat(iv,joker,joker,ip) );
+            }
+            // First point should not be "cloudy", but just in case:
+            if( clear2cloudbox[ip] >= 0 )
+            {
+                const Index ic = clear2cloudbox[ip];
+                for( Index iv=0; iv<nf; iv++ ) {
+                    for( Index is1=0; is1<stokes_dim; is1++ ) {
+                        for( Index is2=0; is2<stokes_dim; is2++ ) {
+                            extsum_this(iv,is1,is2) += pnd_ext_mat(iv,is1,is2,ic);
+                        } } }
+            }
+        }
+        
+        else
+        {
+            const Index ic = clear2cloudbox[ip];
+            //
+            for( Index iv=0; iv<nf; iv++ ) 
+            {
+                // Transmission due to absorption and scattering
+                Matrix ext_mat(stokes_dim,stokes_dim);  // -1*tau
+                for( Index is1=0; is1<stokes_dim; is1++ )
+                {
+                    for( Index is2=0; is2<stokes_dim; is2++ ) 
+                    {
+                        extsum_this(iv,is1,is2) = ppath_ext(iv,is1,is2,ip);
+                        if( ic >= 0 )
+                            extsum_this(iv,is1,is2) += pnd_ext_mat(iv,is1,is2,ic);
+                        
+                        ext_mat(is1,is2) = 0.5 * ( extsum_old(iv,is1,is2) + 
+                        extsum_this(iv,is1,is2) );
+                        for( Index iq=0; iq<nq; iq++ )
+                        {
+                            // Upper and lower level influence on the dependency at layer
+                            dext_mat_dx_from_above(iq,is1,is2) = 
+                            0.5 * dppath_ext_dx(iq,iv,is1,is2,ip);
+                            dext_mat_dx_from_below(iq,is1,is2) = 
+                            0.5 * dppath_ext_dx(iq,iv,is1,is2,ip-1);
+                        }
+                    } 
+                }
+                    scalar_tau[iv] += ppath.lstep[ip-1] * ext_mat(0,0); 
+                    extmat_case[ip-1][iv] = 0;
+                    ext2trans_and_ext2dtrans_dx( trans_partial(iv,joker,joker,ip-1), 
+                                                 dtrans_partial_dx_from_above(joker, iv,joker,joker,ip-1), 
+                                                 dtrans_partial_dx_from_below(joker, iv,joker,joker,ip-1), 
+                                                 extmat_case[ip-1][iv], ext_mat, 
+                                                 dext_mat_dx_from_above, dext_mat_dx_from_below,
+                                                 ppath.lstep[ip-1] );
+                    
+                    // Note that multiplication below depends on ppath loop order
+                    mult( trans_cumulat(iv,joker,joker,ip), 
+                          trans_cumulat(iv,joker,joker,ip-1), 
+                          trans_partial(iv,joker,joker,ip-1) );
+            }
+        }
+        
+        extsum_old = extsum_this;
+    }
+}
 
 
 //! get_rowindex_for_mblock

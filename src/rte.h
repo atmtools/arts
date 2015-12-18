@@ -331,6 +331,21 @@ void get_ppath_trans2(
   const ArrayOfIndex&          clear2cloudbox,
   ConstTensor4View             pnd_ext_mat );
 
+void get_ppath_trans2_and_dppath_trans_dx(  Tensor4&               trans_partial,
+                                            Tensor5&               dtrans_partial_dx_from_above,
+                                            Tensor5&               dtrans_partial_dx_from_below,
+                                            ArrayOfArrayOfIndex&   extmat_case,
+                                            Tensor4&               trans_cumulat,
+                                            Vector&                scalar_tau,
+                                            const Ppath&                 ppath,
+                                            ConstTensor4View&            ppath_ext,
+                                            ConstTensor5View&            dppath_ext_dx,
+                                            const ArrayOfRetrievalQuantity& jacobian_quantities,
+                                            ConstVectorView              f_grid, 
+                                            const Index&                 stokes_dim,
+                                            const ArrayOfIndex&          clear2cloudbox,
+                                            ConstTensor4View             pnd_ext_mat );
+
 Range get_rowindex_for_mblock( 
   const Sparse&   sensor_response, 
   const Index&    imblock );
@@ -352,8 +367,11 @@ void get_ppath_pmat_and_tmat(
                             Tensor5&               dtrans_partial_dx_above,
                             Tensor5&               dtrans_partial_dx_below,
                             ArrayOfArrayOfIndex&   extmat_case,
+                            ArrayOfIndex&   clear2cloudbox,
                             Tensor4&               trans_cumulat,
                             Vector&                scalar_tau,
+                            Tensor4&               pnd_ext_mat,
+                            Matrix&                ppath_pnd,
                             const Agenda&         propmat_clearsky_agenda,
                             const ArrayOfRetrievalQuantity& jacobian_quantities,
                             const PropmatPartialsData&      ppd,
@@ -362,20 +380,26 @@ void get_ppath_pmat_and_tmat(
                             ConstVectorView       ppath_t, 
                             ConstMatrixView       ppath_t_nlte, 
                             ConstMatrixView       ppath_vmr, 
-                            ConstMatrixView       ppath_f, 
                             ConstMatrixView       ppath_mag,
                             ConstMatrixView       ppath_wind,
+                            ConstMatrixView       ppath_f, 
                             ConstVectorView       f_grid, 
                             const ArrayOfIndex&   jac_species_i,
                             const ArrayOfIndex&   jac_is_t,
                             const ArrayOfIndex&   jac_wind_i,
                             const ArrayOfIndex&   jac_mag_i,
                             const ArrayOfIndex&   jac_other,
+                            const ArrayOfIndex&   ispecies,
+                            const ArrayOfArrayOfSingleScatteringData scat_data,
+                            const Tensor4&        pnd_field,
+                            const ArrayOfIndex&   cloudbox_limits,
+                            const Index&          use_mean_scat_data,
                             const Numeric&        rte_alonglos_v,
                             const Index&          atmosphere_dim,
                             const Index&          stokes_dim,
                             const bool&           jacobian_do,
-                            const ArrayOfIndex&   ispecies );
+                            const bool&           cloudbox_on,
+                            const Verbosity&      verbosity);
 
 void iyb_calc(
         Workspace&                  ws,

@@ -1,3 +1,25 @@
+2015-12-18  Richard Larsson   <ric.larsson@gmail.com>
+
+	* arts-2-3-396
+	
+	* src/m_rte.cc:  Changed to adapt to changes in 
+	(get_ppath_pmat_and_tmat).  Also removed error for
+	non-LTE jacobian.  This should work since a few updates
+	(though testing is still limited).
+	
+	* src/rte.{cc,h}: adapted (get_ppath_pmat_and_tmat) to
+	work with iyTransmissionStandard2.  Created
+	(get_ppath_trans2_and_dppath_trans_dx).  Also needs more
+	testing.
+	
+	* src/m_transmitter.cc:  Uncommented (iyTransmissionStandard2).
+	Added t_nlte_field as input.  Adapted pmat and tmat calculations
+	to work with (get_ppath_pmat_and_tmat).
+	
+	* src/methods.cc:  Added (iyTransmissionStandard2).  This will
+	be removed after some tests confirms it works as 
+	(iyTransmissionStandard).
+
 2015-12-17  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-395

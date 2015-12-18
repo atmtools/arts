@@ -1599,7 +1599,6 @@ void iyTransmissionStandard(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-/*
 void iyTransmissionStandard2(
          Workspace&                   ws,
          Matrix&                      iy,
@@ -1612,6 +1611,7 @@ void iyTransmissionStandard2(
    const Vector&                      p_grid,
    const Tensor3&                     z_field,
    const Tensor3&                     t_field,
+   const Tensor4&                     t_nlte_field,
    const Tensor4&                     vmr_field,
    const ArrayOfArrayOfSpeciesTag&    abs_species,
    const Tensor3&                     wind_u_field,
@@ -1897,51 +1897,37 @@ void iyTransmissionStandard2(
   Matrix              ppath_vmr, ppath_pnd, ppath_wind, ppath_mag;
   Matrix              ppath_f, ppath_t_nlte;
   Tensor5             abs_per_species;
+  Tensor5             dtrans_partial_dx_above, dtrans_partial_dx_below;
   Tensor4             ppath_ext, trans_partial, trans_cumulat, pnd_ext_mat;
   Vector              scalar_tau;
   ArrayOfIndex        clear2cloudbox;
   ArrayOfArrayOfIndex extmat_case;   
-  { // Dummy variables just defined inside the scope of these {}
-  Tensor5             dummy_dppath_ext_dx;
-  Tensor4             dummy_dppath_nlte_dx;
-  Tensor3             dummy_ppath_nlte_source;
-  ArrayOfIndex        dummy_lte;
-  const Tensor4       t_nlte_field_dummy;           
-  //
+  Tensor5             dppath_ext_dx;
+  Tensor4             dppath_nlte_dx, dppath_nlte_source_dx;
+  Tensor3             ppath_nlte_source;
+  ArrayOfIndex        lte;  
   if( np > 1 )
     {
       get_ppath_atmvars( ppath_p, ppath_t, ppath_t_nlte, ppath_vmr,
                          ppath_wind, ppath_mag, 
-                         ppath, atmosphere_dim, p_grid, t_field, t_nlte_field_dummy, 
+                         ppath, atmosphere_dim, p_grid, t_field, t_nlte_field, 
                          vmr_field, wind_u_field, wind_v_field, wind_w_field,
                          mag_u_field, mag_v_field, mag_w_field );      
       get_ppath_f( ppath_f, ppath, f_grid,  atmosphere_dim, 
                    rte_alonglos_v, ppath_wind );
-      get_ppath_pmat( ws, ppath_ext, dummy_ppath_nlte_source, dummy_lte, abs_per_species, 
-                      dummy_dppath_ext_dx, dummy_dppath_nlte_dx,
-                      propmat_clearsky_agenda, ArrayOfRetrievalQuantity(0), ppath, 
-                      ppath_p, ppath_t, ppath_t_nlte, ppath_vmr, ppath_f, 
-                      ppath_mag, f_grid, stokes_dim, iaps );
-      if( !cloudbox_on )
-        { 
-          get_ppath_trans( trans_partial, extmat_case, trans_cumulat, 
-                           scalar_tau, ppath, ppath_ext, f_grid, stokes_dim );
-        }
-      else
-        {
-          Array<ArrayOfArrayOfSingleScatteringData> scat_data_single;
-          Tensor3 pnd_abs_vec;
-          //
-          get_ppath_ext( clear2cloudbox, pnd_abs_vec, pnd_ext_mat, scat_data_single,
-                         ppath_pnd, ppath, ppath_t, stokes_dim, ppath_f, 
-                         atmosphere_dim, cloudbox_limits, pnd_field, 
-                         use_mean_scat_data, scat_data, verbosity );
-          get_ppath_trans2( trans_partial, extmat_case, trans_cumulat, 
-                            scalar_tau, ppath, ppath_ext, f_grid, stokes_dim, 
-                            clear2cloudbox, pnd_ext_mat );
-        }
+      get_ppath_pmat_and_tmat( ws, ppath_ext, ppath_nlte_source, lte,
+                               abs_per_species, dppath_ext_dx, dppath_nlte_source_dx,
+                               trans_partial, dtrans_partial_dx_above, dtrans_partial_dx_below,
+                               extmat_case, clear2cloudbox, trans_cumulat, scalar_tau,
+                               pnd_ext_mat, ppath_pnd, propmat_clearsky_agenda, jacobian_quantities,
+                               ppd,
+                               ppath, ppath_p, ppath_t, ppath_t_nlte, ppath_vmr, ppath_mag, 
+                               ppath_wind, ppath_f, f_grid, 
+                               jac_species_i, jac_is_t, jac_wind_i, jac_mag_i, 
+                               jac_other, iaps, scat_data,
+                               pnd_field, cloudbox_limits, use_mean_scat_data, rte_alonglos_v,
+                               atmosphere_dim, stokes_dim, jacobian_do, cloudbox_on,verbosity);
     }
-  }  // Scope of dummy variables
 
   //=== iy_aux part ===========================================================
   // Fill parts of iy_aux that are defined even for np=1.
@@ -2060,12 +2046,7 @@ void iyTransmissionStandard2(
                     {
                         if( jac_species_i[iq] >= 0 || jac_wind_i[iq] ||
                             jac_mag_i[iq] || jac_other[iq] || jac_is_t[iq] )
-                        {
-                              // We need to do blackbody derivation for temperature.
-                              // Should we do this for wind (frequency) as well, then 
-                              // add or statement here for jac_wind_i[iq] and turn
-                              //dppath_blackrad_dt into a Tensor3 of size [nq,nf,np].
-                            
+                        {   
                             const bool this_is_t = jac_is_t[iq],
                             this_is_hse = this_is_t ? jacobian_quantities[iq].Subtag() == "HSE on" : false;
                             
@@ -2096,9 +2077,9 @@ void iyTransmissionStandard2(
                                            0,
                                            ppath.lstep[ip],
                                            stokes_dim,
-                                           0,
+                                           false,
                                            this_is_hse,
-                                           0 );
+                                           false );
                             } // for all frequencies
                         } // if this iq is analytical
                     } // if this analytical
@@ -2210,7 +2191,7 @@ void iyTransmissionStandard2(
       //#######################################################################
     } // if np>1
 }
-*/
+
 
 
 
