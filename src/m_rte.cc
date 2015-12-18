@@ -251,7 +251,7 @@ void iyEmissionStandard(
   //   iy_aux. Otherwise set to the position inside iy_aux.
   // diy_dpath
   //   The derivate of iy with respect to changes at the ppath points.
-  // dppath_ext_dex
+  // dppath_ext_dx
   //   The derivatives of the extinction matrix at the ppath points.
   // dppath_nlte_source_dx
   //   The derivatives of the NLTE source term at the ppath points.
@@ -518,7 +518,9 @@ void iyEmissionStandard(
   //
   if( np > 1 )
     {
-      // Temperature disturbance, K   (why is this needed?)
+      // Temperature disturbance, K   
+      //
+      // (This variable is used in some parts of the T-jacobian)
       //
       const Numeric   dt = 0.1;     
 
@@ -600,7 +602,7 @@ void iyEmissionStandard(
               // nomenclature used in the "Clear-sky Jacobians" chapter in AUG.
               // For example, si is the Stokes vector for position i.
               
-              // Calculate (si-bi)
+              // Difference between local stokes and Planck (si-bi)
               Matrix sibi(nf,ns);
               
               // nlte terms

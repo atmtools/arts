@@ -1771,7 +1771,7 @@ void get_ppath_pmat(
   catch (std::bad_alloc x) 
     {
       ostringstream os;
-      os << "Run-time error in function: get_ppath_ext" << endl
+      os << "Run-time error in function: get_ppath_pmat" << endl
          << "Memory allocation failed for ppath_ext("
          << nabs << ", " << nf << ", " << stokes_dim << ", "
          << stokes_dim << ", " << np << ")" << endl;
@@ -2018,7 +2018,7 @@ void get_ppath_pmat_and_tmat(
     catch (std::bad_alloc x) 
     {
         ostringstream os;
-        os << "Run-time error in function: get_ppath_ext" << std::endl
+        os << "Run-time error in function: get_ppath_pmat_and_tmat" << std::endl
         << "Memory allocation failed for ppath_ext("
         << nabs << ", " << nf << ", " << stokes_dim << ", "
         << stokes_dim << ", " << np << ")" << std::endl;

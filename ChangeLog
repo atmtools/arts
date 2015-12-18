@@ -1,3 +1,17 @@
+2015-12-17  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-395
+
+	* src/m_rte.cc (iyEmissionStandard): Some more comment fixes.
+
+	* src/m_transmitter.cc (iyTransmissionStandard2): Still work in
+	progress. Presently commented out
+
+	* src/rte.cc (get_ppath_pmat):
+	(get_ppath_pmat_and_tmat): It said get_ppath_ext in an error message.
+
+	* src/m_rte.cc (iyEmissionStandard): Small polishing of comments.
+
 2015-12-17  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-394

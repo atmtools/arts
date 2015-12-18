@@ -373,7 +373,7 @@ void iyRadioLink(
       get_ppath_f(       ppath_f, ppath, f_grid,  atmosphere_dim, 
                          rte_alonglos_v, ppath_wind );
       get_ppath_pmat(    ws, ppath_ext, dummy_ppath_nlte_source, dummy_lte, abs_per_species, 
-                         dummy_dppath_ext_dx,dummy_dppath_nlte_dx,
+                         dummy_dppath_ext_dx, dummy_dppath_nlte_dx,
                          propmat_clearsky_agenda, ArrayOfRetrievalQuantity(0), ppath, 
                          ppath_p, ppath_t, ppath_t_nlte, ppath_vmr, ppath_f, 
                          ppath_mag, f_grid, stokes_dim, iaps );
@@ -386,8 +386,8 @@ void iyRadioLink(
       else
         {
           Array<ArrayOfArrayOfSingleScatteringData> scat_data_single;
-          ArrayOfArrayOfIndex                extmat_case;          
-          Tensor3                            pnd_abs_vec;
+          ArrayOfArrayOfIndex                       extmat_case;          
+          Tensor3                                   pnd_abs_vec;
           //
           get_ppath_ext(    clear2cloudbox, pnd_abs_vec, pnd_ext_mat, 
                             scat_data_single, ppath_pnd, ppath, ppath_t, stokes_dim, 
@@ -1599,6 +1599,7 @@ void iyTransmissionStandard(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+/*
 void iyTransmissionStandard2(
          Workspace&                   ws,
          Matrix&                      iy,
@@ -1895,14 +1896,17 @@ void iyTransmissionStandard2(
   Vector              ppath_p, ppath_t;
   Matrix              ppath_vmr, ppath_pnd, ppath_wind, ppath_mag;
   Matrix              ppath_f, ppath_t_nlte;
-  Tensor5             abs_per_species, dummy_dppath_ext_dx;
+  Tensor5             abs_per_species;
   Tensor4             ppath_ext, trans_partial, trans_cumulat, pnd_ext_mat;
+  Vector              scalar_tau;
+  ArrayOfIndex        clear2cloudbox;
+  ArrayOfArrayOfIndex extmat_case;   
+  { // Dummy variables just defined inside the scope of these {}
+  Tensor5             dummy_dppath_ext_dx;
   Tensor4             dummy_dppath_nlte_dx;
   Tensor3             dummy_ppath_nlte_source;
-  Vector              scalar_tau;
-  ArrayOfIndex        clear2cloudbox, dummy_lte;
-  ArrayOfArrayOfIndex extmat_case;   
-  const Tensor4       t_nlte_field_dummy;       
+  ArrayOfIndex        dummy_lte;
+  const Tensor4       t_nlte_field_dummy;           
   //
   if( np > 1 )
     {
@@ -1937,7 +1941,7 @@ void iyTransmissionStandard2(
                             clear2cloudbox, pnd_ext_mat );
         }
     }
-
+  }  // Scope of dummy variables
 
   //=== iy_aux part ===========================================================
   // Fill parts of iy_aux that are defined even for np=1.
@@ -1970,7 +1974,9 @@ void iyTransmissionStandard2(
   //
   if( np > 1 )
     {
-      // Temperature disturbance, K   (why is this needed?)
+      // Temperature disturbance, K   
+      //
+      // (This variable is used in some parts of the T-jacobian)
       //
       const Numeric   dt = 0.1;     
 
@@ -2038,6 +2044,65 @@ void iyTransmissionStandard2(
           //### jacobian part #################################################
           if( j_analytical_do )
             { 
+              // This part is kept as similar to iyEmissionStandard.
+              // This includes the variable names, even if e.g. "s_i" does not
+              // exists here.
+              // However, non-LTE does not affect any of the variables created
+              // locally, and there is no special code for non-LTE
+
+
+              // Zero Stokes vector (to be used for some non-extsing terms)
+              const Vector zerovec(ns,0);
+
+              for( Index iq=0; iq<nq; iq++ ) 
+                {
+                    if( jacobian_quantities[iq].Analytical() )
+                    {
+                        if( jac_species_i[iq] >= 0 || jac_wind_i[iq] ||
+                            jac_mag_i[iq] || jac_other[iq] || jac_is_t[iq] )
+                        {
+                              // We need to do blackbody derivation for temperature.
+                              // Should we do this for wind (frequency) as well, then 
+                              // add or statement here for jac_wind_i[iq] and turn
+                              //dppath_blackrad_dt into a Tensor3 of size [nq,nf,np].
+                            
+                            const bool this_is_t = jac_is_t[iq],
+                            this_is_hse = this_is_t ? jacobian_quantities[iq].Subtag() == "HSE on" : false;
+                            
+                            for( Index iv=0; iv<nf; iv++ )
+                            {
+                                get_diydx( diy_dpath[iq](ip  ,iv,joker),
+                                           diy_dpath[iq](ip+1,iv,joker),
+                                           extmat_case[ip][iv],
+                                           iy(iv,joker),
+                                           iy(iv,joker),
+                                           zerovec,
+                                           zerovec,
+                                           zerovec,
+                                           zerovec,
+                                           ppath_ext(iv,joker,joker,ip  ),
+                                           ppath_ext(iv,joker,joker,ip+1),
+                                           dppath_ext_dx(iq,iv,joker,joker,ip  ),
+                                           dppath_ext_dx(iq,iv,joker,joker,ip+1),
+                                           trans_partial(iv,joker,joker,ip),
+                                           dtrans_partial_dx_below(iq,iv,joker,joker,ip),
+                                           dtrans_partial_dx_above(iq,iv,joker,joker,ip),
+                                           trans_cumulat(iv,joker,joker,ip  ),
+                                           trans_cumulat(iv,joker,joker,ip+1),
+                                           ppath_t[ip  ],
+                                           ppath_t[ip+1],
+                                           dt,
+                                           0,
+                                           0,
+                                           ppath.lstep[ip],
+                                           stokes_dim,
+                                           0,
+                                           this_is_hse,
+                                           0 );
+                            } // for all frequencies
+                        } // if this iq is analytical
+                    } // if this analytical
+                } // for iq
             } // if any analytical
           //###################################################################
 
@@ -2145,7 +2210,7 @@ void iyTransmissionStandard2(
       //#######################################################################
     } // if np>1
 }
-
+*/
 
 
 
