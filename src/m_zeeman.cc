@@ -158,36 +158,38 @@ void propmat_clearskyAddZeeman( Tensor4& propmat_clearsky,
     // If the species isn't Zeeman, look at the next species
     if(!is_zeeman(abs_species[II])) continue;
     
+    const Index ls_index = (1==abs_lineshape.nelem())?0:II;
+    
     // Since this function does not know if it gives Zeeman information or not
-    for ( Index i=0; i<abs_species[II].nelem(); ++i )
+    if (!lineshape_data[abs_lineshape[ls_index].Ind_ls()].Phase())
     {
-        if (!lineshape_data[abs_lineshape[i].Ind_ls()].Phase())
-        {
-            std::ostringstream os;
-            os <<  "This is an error message. You are using " << lineshape_data[II].Name() <<
-            ".\n"<<"This line shape does not include phase in its calculations and\nis therefore invalid for " <<
-            "Zeeman effect calculations.\n";
-            throw std::runtime_error(os.str());
-        }
+        std::ostringstream os;
+        os <<  "This is an error message. You are using " << lineshape_data[ls_index].Name() <<
+        ".\n"<<"This line shape does not include phase in its calculations and\nis therefore invalid for " <<
+        "Zeeman effect calculations.\n";
+        throw std::runtime_error(os.str());
     }
     
     // Add Pi contribution to final propmat_clearsky
     xsec_species_line_mixing_wrapper_with_zeeman( propmat_clearsky, nlte_source, dpropmat_clearsky_dx, dnlte_dx_source, nlte_dsource_dx, 
-                                                  abs_species, pps, abs_lineshape,
+                                                  abs_species, pps, 
+                                                  abs_lineshape[ls_index].Ind_ls(), abs_lineshape[ls_index].Ind_lsn(), abs_lineshape[ls_index].Cutoff(), 
                                                   aoaol[zeeman_ind+1], Vector(), planck_BT, dplanck_BT,
                                                   isotopologue_ratios, partition_functions, abs_t_nlte, abs_vmrs, abs_p, abs_t, f_grid, 
                                                   rtp_mag, R_path_los,lm_p_lim,theta, eta, H_mag, 0, II, verbosity );
 
     // Add Sigma minus contribution to final propmat_clearsky
     xsec_species_line_mixing_wrapper_with_zeeman( propmat_clearsky, nlte_source, dpropmat_clearsky_dx, dnlte_dx_source, nlte_dsource_dx, 
-                                                  abs_species, pps, abs_lineshape,
+                                                  abs_species, pps, 
+                                                  abs_lineshape[ls_index].Ind_ls(), abs_lineshape[ls_index].Ind_lsn(), abs_lineshape[ls_index].Cutoff(), 
                                                   aoaol[zeeman_ind], Vector(), planck_BT, dplanck_BT,
                                                   isotopologue_ratios, partition_functions, abs_t_nlte, abs_vmrs, abs_p, abs_t, f_grid, 
                                                   rtp_mag, R_path_los,lm_p_lim,theta, eta, H_mag, -1, II, verbosity );
     
     // Add Sigma plus contribution to final propmat_clearsky
     xsec_species_line_mixing_wrapper_with_zeeman( propmat_clearsky, nlte_source, dpropmat_clearsky_dx, dnlte_dx_source, nlte_dsource_dx, 
-                                                  abs_species, pps, abs_lineshape,
+                                                  abs_species, pps, 
+                                                  abs_lineshape[ls_index].Ind_ls(), abs_lineshape[ls_index].Ind_lsn(), abs_lineshape[ls_index].Cutoff(), 
                                                   aoaol[zeeman_ind+2], Vector(), planck_BT, dplanck_BT,
                                                   isotopologue_ratios, partition_functions, abs_t_nlte, abs_vmrs, abs_p, abs_t, f_grid, 
                                                   rtp_mag, R_path_los,lm_p_lim,theta, eta, H_mag, 1, II, verbosity );
@@ -377,31 +379,36 @@ void propmat_clearskyAddZeemanFromPreCalc(Tensor4& propmat_clearsky,
           dplanck_BT(1,iv) = dplanck_df(f_grid[iv],abs_t[0]);
       }
   }
-    
+  
   Index zeeman_ind =0; // This is necessary for more than 1 Zeeman species
   
   for(Index II = 0; II<abs_species.nelem(); II++)
   {
+    const Index ls_index = (1==abs_lineshape.nelem())?0:II;
+    
     // If the species isn't Zeeman, look at the next species
     if(!is_zeeman(abs_species[II])) continue;
     
     // Add Pi contribution to final propmat_clearsky
     xsec_species_line_mixing_wrapper_with_zeeman( propmat_clearsky, nlte_source, dpropmat_clearsky_dx, dnlte_dx_source, nlte_dsource_dx, 
-                                                  abs_species, pps, abs_lineshape,
+                                                  abs_species, pps, 
+                                                  abs_lineshape[ls_index].Ind_ls(), abs_lineshape[ls_index].Ind_lsn(), abs_lineshape[ls_index].Cutoff(), 
                                                   zeeman_linerecord_precalc[zeeman_ind+1], FreqShift[zeeman_ind+1], planck_BT, dplanck_BT,
                                                   isotopologue_ratios, partition_functions, abs_t_nlte, abs_vmrs, abs_p, abs_t, f_grid, 
                                                   rtp_mag, R_path_los,lm_p_lim,theta, eta, H_mag, 0, II, verbosity );
 
     // Add Sigma minus contribution to final propmat_clearsky
     xsec_species_line_mixing_wrapper_with_zeeman( propmat_clearsky, nlte_source, dpropmat_clearsky_dx, dnlte_dx_source, nlte_dsource_dx, 
-                                                  abs_species, pps, abs_lineshape,
+                                                  abs_species, pps, 
+                                                  abs_lineshape[ls_index].Ind_ls(), abs_lineshape[ls_index].Ind_lsn(), abs_lineshape[ls_index].Cutoff(), 
                                                   zeeman_linerecord_precalc[zeeman_ind], FreqShift[zeeman_ind], planck_BT, dplanck_BT,
                                                   isotopologue_ratios, partition_functions, abs_t_nlte, abs_vmrs, abs_p, abs_t, f_grid, 
                                                   rtp_mag, R_path_los,lm_p_lim,theta, eta, H_mag, -1, II, verbosity );
 
     // Add Sigma plus contribution to final propmat_clearsky
     xsec_species_line_mixing_wrapper_with_zeeman( propmat_clearsky, nlte_source, dpropmat_clearsky_dx, dnlte_dx_source, nlte_dsource_dx, 
-                                                  abs_species, pps, abs_lineshape,
+                                                  abs_species, pps, 
+                                                  abs_lineshape[ls_index].Ind_ls(), abs_lineshape[ls_index].Ind_lsn(), abs_lineshape[ls_index].Cutoff(), 
                                                   zeeman_linerecord_precalc[zeeman_ind+2], FreqShift[zeeman_ind+2], planck_BT, dplanck_BT,
                                                   isotopologue_ratios, partition_functions, abs_t_nlte, abs_vmrs, abs_p, abs_t, f_grid, 
                                                   rtp_mag, R_path_los,lm_p_lim,theta, eta, H_mag, 1, II, verbosity );

@@ -494,35 +494,38 @@ Numeric frequency_change_casea(const Rational& omega, const Rational& m, const R
 }
 
 
-void xsec_species_line_mixing_wrapper_with_zeeman(  
-                                                Tensor4View propmat_clearsky, 
-                                                Tensor3View nlte_source,
-                                                ArrayOfTensor3& dpropmat_clearsky_dx,
-                                                ArrayOfMatrix&  dnlte_dx_source,
-                                                ArrayOfMatrix&  nlte_dsource_dx,
-                                                const ArrayOfArrayOfSpeciesTag& abs_species, 
-                                                const PropmatPartialsData& flag_partials,
-                                                const ArrayOfLineshapeSpec& abs_lineshape, 
-                                                const ArrayOfLineRecord& lr, 
-                                                const Vector&  Zeeman_DF,
-                                                const Vector&  planck_BT,
-                                                const Matrix&  dplanck_BT,
-                                                const SpeciesAuxData& isotopologue_ratios, 
-                                                const SpeciesAuxData& partition_functions,
-                                                const Matrix& abs_t_nlte, 
-                                                const Matrix& abs_vmrs, 
-                                                const Vector& abs_p,
-                                                const Vector& abs_t, 
-                                                const Vector& f_grid,
-                                                const Vector& rtp_mag,
-                                                const Vector& r_path_los,
-                                                const Numeric& lm_p_lim,
-                                                const Numeric& theta, 
-                                                const Numeric& eta, 
-                                                const Numeric& H_mag, 
-                                                const Index& DM, 
-                                                const Index& this_species,
-                                                const Verbosity& verbosity )
+void xsec_species_line_mixing_wrapper_with_zeeman(  Tensor4View propmat_clearsky, 
+                                                    Tensor3View nlte_source,
+                                                    ArrayOfTensor3& dpropmat_clearsky_dx,
+                                                    ArrayOfMatrix&  dnlte_dx_source,
+                                                    ArrayOfMatrix&  nlte_dsource_dx,
+                                                    const ArrayOfArrayOfSpeciesTag& abs_species, 
+                                                    const PropmatPartialsData& flag_partials,
+                                                    const Index& abs_lineshape_ls, 
+                                                    const Index& abs_lineshape_lsn, 
+                                                    const Numeric& abs_lineshape_cutoff, 
+                                                    const ArrayOfLineRecord& lr, 
+                                                    const Vector&  Zeeman_DF,
+                                                    const Vector&  planck_BT,
+                                                    const Matrix&  dplanck_BT,
+                                                    const SpeciesAuxData& isotopologue_ratios, 
+                                                    const SpeciesAuxData& partition_functions,
+                                                    const Matrix& abs_t_nlte, 
+                                                    const Matrix& abs_vmrs, 
+                                                    const Vector& abs_p,
+                                                    const Vector& abs_t, 
+                                                    const Vector& f_grid,
+                                                    const Vector& rtp_mag,
+                                                    const Vector& r_path_los,
+                                                    const Numeric& lm_p_lim,
+                                                    const Numeric& theta, 
+                                                    const Numeric& eta, 
+                                                    const Numeric& H_mag, 
+                                                    const Index& DM, 
+                                                    const Index& this_species,
+                                                    const Verbosity& verbosity )
+                                                
+                                                
 {
     
     const bool do_src  =  !nlte_source.empty();
@@ -607,185 +610,182 @@ void xsec_species_line_mixing_wrapper_with_zeeman(
     }
     // JACOBIAN SETUP END
     
-    for ( Index i=0; i<abs_species[this_species].nelem(); ++i )
-    {   
-        for(Index iv=0;iv<nf;iv++)
-        {
-            attenuation(iv,0)=0.;phase(iv,0)=0.;
-            if(flag_partials.do_zeeman_u())
-            {
-                attenuation_du(iv,0)=0.;
-                phase_du(iv,0)=0.;
-            }
-            if(flag_partials.do_zeeman_v())
-            {
-                attenuation_dv(iv,0)=0.;
-                phase_dv(iv,0)=0.;
-            }
-            if(flag_partials.do_zeeman_w())
-            {
-                attenuation_dw(iv,0)=0.;
-                phase_dw(iv,0)=0.;
-            }
-            if(do_src)
-                source(iv,0)=0.;
-            for(Index iq = 0; iq < nq; iq++)
-            {
-                if(flag_partials(iq)!=JQT_NOT_JQT)
-                {
-                    partial_attenuation[iq](iv,0)=0.;
-                    partial_phase[iq](iv,0)=0.;
-                    if(do_src)
-                        partial_source[iq](iv,0)=0.;
-                }
-            }
-        }
-        
-        xsec_species_line_mixing_wrapper(   attenuation,         source,         phase, 
-                                            partial_attenuation, partial_source, partial_phase, flag_partials,
-                                            f_grid, abs_p, abs_t, abs_t_nlte, abs_vmrs, abs_species, 
-                                            this_species, lr, Zeeman_DF, H_mag,
-                                            abs_lineshape[i].Ind_ls(), abs_lineshape[i].Ind_lsn(), lm_p_lim, abs_lineshape[i].Cutoff(),
-                                            isotopologue_ratios, partition_functions, verbosity ); // Now in cross section
+    for(Index iv=0;iv<nf;iv++)
+    {
+        attenuation(iv,0)=0.;phase(iv,0)=0.;
         if(flag_partials.do_zeeman_u())
         {
-            dmag[0]+=dB;
-            Vector Zeeman_DF_dv = Zeeman_DF;
-            Zeeman_DF_dv*=sqrt(dmag*dmag)/H_mag;
-            
-            xsec_species_line_mixing_wrapper(         attenuation_du,         source_du,         phase_du, 
-                                                      partial_attenuation, partial_source, partial_phase, PropmatPartialsData(ArrayOfRetrievalQuantity(0)),
-                                                      f_grid, abs_p, abs_t, abs_t_nlte, abs_vmrs, abs_species, 
-                                                      this_species, lr, Zeeman_DF_dv, H_mag+flag_partials.Magnetic_Field_Perturbation(),
-                                                      abs_lineshape[i].Ind_ls(), abs_lineshape[i].Ind_lsn(), lm_p_lim, abs_lineshape[i].Cutoff(),
-                                                      isotopologue_ratios, partition_functions, verbosity ); // Now in cross section
-            dmag[0]-=dB;
+            attenuation_du(iv,0)=0.;
+            phase_du(iv,0)=0.;
         }
         if(flag_partials.do_zeeman_v())
         {
-            dmag[1]+=dB;
-            Vector Zeeman_DF_dv = Zeeman_DF;
-            Zeeman_DF_dv*=sqrt(dmag*dmag)/H_mag;
-            
-            xsec_species_line_mixing_wrapper(         attenuation_dv,         source_dv,         phase_dv, 
-                                                      partial_attenuation, partial_source, partial_phase, PropmatPartialsData(ArrayOfRetrievalQuantity(0)),
-                                                      f_grid, abs_p, abs_t, abs_t_nlte, abs_vmrs, abs_species, 
-                                                      this_species, lr, Zeeman_DF_dv, H_mag+flag_partials.Magnetic_Field_Perturbation(),
-                                                      abs_lineshape[i].Ind_ls(), abs_lineshape[i].Ind_lsn(), lm_p_lim, abs_lineshape[i].Cutoff(),
-                                                      isotopologue_ratios, partition_functions, verbosity ); // Now in cross section
-            dmag[1]-=dB;
+            attenuation_dv(iv,0)=0.;
+            phase_dv(iv,0)=0.;
         }
         if(flag_partials.do_zeeman_w())
         {
-            dmag[2]+=dB;
-            Vector Zeeman_DF_dv = Zeeman_DF;
-            Zeeman_DF_dv*=sqrt(dmag*dmag)/H_mag;
-            
-            xsec_species_line_mixing_wrapper(         attenuation_dw,         source_dw,         phase_dw, 
-                                                      partial_attenuation, partial_source, partial_phase, PropmatPartialsData(ArrayOfRetrievalQuantity(0)),
-                                                      f_grid, abs_p, abs_t, abs_t_nlte, abs_vmrs, abs_species, 
-                                                      this_species, lr, Zeeman_DF_dv, H_mag+flag_partials.Magnetic_Field_Perturbation(),
-                                                      abs_lineshape[i].Ind_ls(), abs_lineshape[i].Ind_lsn(), lm_p_lim, abs_lineshape[i].Cutoff(),
-                                                      isotopologue_ratios, partition_functions, verbosity ); // Now in cross section
-            dmag[2]-=dB;
+            attenuation_dw(iv,0)=0.;
+            phase_dw(iv,0)=0.;
         }
-        
-        //Add things to the total propagation
-        for(Index iv=0;iv<nf;iv++)
+        if(do_src)
+            source(iv,0)=0.;
+        for(Index iq = 0; iq < nq; iq++)
         {
-            for(Index is1 = 0;is1<4;is1++)
+            if(flag_partials(iq)!=JQT_NOT_JQT)
             {
+                partial_attenuation[iq](iv,0)=0.;
+                partial_phase[iq](iv,0)=0.;
                 if(do_src)
-                    nlte_source(this_species,iv,is1) += source(iv,0)*K_a(is1,0)*planck_BT[iv]*n;
-                for(Index is2 = 0;is2<4;is2++)
+                    partial_source[iq](iv,0)=0.;
+            }
+        }
+    }
+
+    xsec_species_line_mixing_wrapper(   attenuation,         source,         phase, 
+                                        partial_attenuation, partial_source, partial_phase, flag_partials,
+                                        f_grid, abs_p, abs_t, abs_t_nlte, abs_vmrs, abs_species, 
+                                        this_species, lr, Zeeman_DF, H_mag,
+                                        abs_lineshape_ls,abs_lineshape_lsn,lm_p_lim,abs_lineshape_cutoff,
+                                        isotopologue_ratios, partition_functions, verbosity ); // Now in cross section
+    if(flag_partials.do_zeeman_u())
+    {
+        dmag[0]+=dB;
+        Vector Zeeman_DF_dv = Zeeman_DF;
+        Zeeman_DF_dv*=sqrt(dmag*dmag)/H_mag;
+        
+        xsec_species_line_mixing_wrapper(         attenuation_du,         source_du,         phase_du, 
+                                                  partial_attenuation, partial_source, partial_phase, PropmatPartialsData(ArrayOfRetrievalQuantity(0)),
+                                                  f_grid, abs_p, abs_t, abs_t_nlte, abs_vmrs, abs_species, 
+                                                  this_species, lr, Zeeman_DF_dv, H_mag+flag_partials.Magnetic_Field_Perturbation(),
+                                                  abs_lineshape_ls,abs_lineshape_lsn,lm_p_lim,abs_lineshape_cutoff,
+                                                  isotopologue_ratios, partition_functions, verbosity ); // Now in cross section
+        dmag[0]-=dB;
+    }
+    if(flag_partials.do_zeeman_v())
+    {
+        dmag[1]+=dB;
+        Vector Zeeman_DF_dv = Zeeman_DF;
+        Zeeman_DF_dv*=sqrt(dmag*dmag)/H_mag;
+        
+        xsec_species_line_mixing_wrapper(         attenuation_dv,         source_dv,         phase_dv, 
+                                                  partial_attenuation, partial_source, partial_phase, PropmatPartialsData(ArrayOfRetrievalQuantity(0)),
+                                                  f_grid, abs_p, abs_t, abs_t_nlte, abs_vmrs, abs_species, 
+                                                  this_species, lr, Zeeman_DF_dv, H_mag+flag_partials.Magnetic_Field_Perturbation(),
+                                                  abs_lineshape_ls,abs_lineshape_lsn,lm_p_lim,abs_lineshape_cutoff,
+                                                  isotopologue_ratios, partition_functions, verbosity ); // Now in cross section
+        dmag[1]-=dB;
+    }
+    if(flag_partials.do_zeeman_w())
+    {
+        dmag[2]+=dB;
+        Vector Zeeman_DF_dv = Zeeman_DF;
+        Zeeman_DF_dv*=sqrt(dmag*dmag)/H_mag;
+        
+        xsec_species_line_mixing_wrapper(         attenuation_dw,         source_dw,         phase_dw, 
+                                                  partial_attenuation, partial_source, partial_phase, PropmatPartialsData(ArrayOfRetrievalQuantity(0)),
+                                                  f_grid, abs_p, abs_t, abs_t_nlte, abs_vmrs, abs_species, 
+                                                  this_species, lr, Zeeman_DF_dv, H_mag+flag_partials.Magnetic_Field_Perturbation(),
+                                                  abs_lineshape_ls,abs_lineshape_lsn,lm_p_lim,abs_lineshape_cutoff,
+                                                  isotopologue_ratios, partition_functions, verbosity ); // Now in cross section
+        dmag[2]-=dB;
+    }
+
+    //Add things to the total propagation
+    for(Index iv=0;iv<nf;iv++)
+    {
+        for(Index is1 = 0;is1<4;is1++)
+        {
+            if(do_src)
+                nlte_source(this_species,iv,is1) += source(iv,0)*K_a(is1,0)*planck_BT[iv]*n;
+            for(Index is2 = 0;is2<4;is2++)
+            {
+                propmat_clearsky(this_species,iv,is1,is2) += (attenuation(iv,0)*K_a(is1,is2)+2.0*phase(iv,0)*K_b(is1,is2))*n;
+                
+                for(Index iq = 0; iq<nq; iq++)
                 {
-                    propmat_clearsky(this_species,iv,is1,is2) += (attenuation(iv,0)*K_a(is1,is2)+2.0*phase(iv,0)*K_b(is1,is2))*n;
-                    
-                    for(Index iq = 0; iq<nq; iq++)
+                    if(flag_partials(iq)==JQT_magnetic_u)
                     {
-                        if(flag_partials(iq)==JQT_magnetic_u)
+                        dpropmat_clearsky_dx[iq](iv,is1,is2) += 
+                        (
+                            attenuation_du(iv,0)*dK_a_du(is1,is2)+2.0*phase_du(iv,0)*dK_b_du(is1,is2) -
+                            (attenuation(iv,0)*K_a(is1,is2)+2.0*phase(iv,0)*K_b(is1,is2))
+                        )*n/dB;
+                        if(do_src&&is2==0)
+                            dnlte_dx_source[iq](iv,is1) += (source_du(iv,0)*dK_a_du(is1,is2)-source(iv,0)*K_a(is1,is2))*n*planck_BT[iv];
+                    }
+                    else if(flag_partials(iq)==JQT_magnetic_v)
+                    {
+                        dpropmat_clearsky_dx[iq](iv,is1,is2) += 
+                        (
+                            attenuation_dv(iv,0)*dK_a_dv(is1,is2)+2.0*phase_dv(iv,0)*dK_b_dv(is1,is2) -
+                            (attenuation(iv,0)*K_a(is1,is2)+2.0*phase(iv,0)*K_b(is1,is2))
+                        )*n/dB;
+                        if(do_src&&is2==0)
+                            dnlte_dx_source[iq](iv,is1) += (source_dv(iv,0)*dK_a_dv(is1,is2)-source(iv,0)*K_a(is1,is2))*n*planck_BT[iv];
+                    }
+                    else if(flag_partials(iq)==JQT_magnetic_w)
+                    {
+                        dpropmat_clearsky_dx[iq](iv,is1,is2) += 
+                        (
+                            attenuation_dw(iv,0)*dK_a_dw(is1,is2)+2.0*phase_dw(iv,0)*dK_b_dw(is1,is2) -
+                            (attenuation(iv,0)*K_a(is1,is2)+2.0*phase(iv,0)*K_b(is1,is2))
+                        )*n/dB;
+                        if(do_src&&is2==0)
+                            dnlte_dx_source[iq](iv,is1) += (source_dw(iv,0)*dK_a_dw(is1,is2)-source(iv,0)*K_a(is1,is2))*n*planck_BT[iv];
+                    }
+                    else if(flag_partials(iq)==JQT_magnetic_theta)
+                    {
+                        dpropmat_clearsky_dx[iq](iv,is1,is2) += (attenuation(iv,0)*dK_a_dtheta(is1,is2)+2.0*phase(iv,0)*dK_b_dtheta(is1,is2))*n;
+                        if(do_src&&is2==0)
+                            dnlte_dx_source[iq](iv,is1) += source(iv,0)*n*dK_a_dtheta(is1,is2)*planck_BT[iv];
+                    }
+                    else if(flag_partials(iq)==JQT_magnetic_eta)
+                    {
+                        dpropmat_clearsky_dx[iq](iv,is1,is2) += (attenuation(iv,0)*dK_a_deta(is1,is2)+2.0*phase(iv,0)*dK_b_deta(is1,is2))*n;
+                        if(do_src&&is2==0)
+                            dnlte_dx_source[iq](iv,is1) += source(iv,0)*n*dK_a_deta(is1,is2)*planck_BT[iv];
+                    }
+                    else if(flag_partials(iq)==JQT_temperature&&do_src)
+                    {
+                        dpropmat_clearsky_dx[iq](iv,is1,is2) += (partial_attenuation[iq](iv,0)* n + attenuation(iv,0) * dn_dT) * K_a(is1,is2)
+                                                              +   2.0*(partial_phase[iq](iv,0) * n  + phase(iv,0)      * dn_dT) * K_b(is1,is2);
+                        if(is2==0)
                         {
-                            dpropmat_clearsky_dx[iq](iv,is1,is2) += 
-                            (
-                                attenuation_du(iv,0)*dK_a_du(is1,is2)+2.0*phase_du(iv,0)*dK_b_du(is1,is2) -
-                                (attenuation(iv,0)*K_a(is1,is2)+2.0*phase(iv,0)*K_b(is1,is2))
-                            )*n/dB;
-                            if(do_src&&is2==0)
-                                dnlte_dx_source[iq](iv,is1) += (source_du(iv,0)*dK_a_du(is1,is2)-source(iv,0)*K_a(is1,is2))*n*planck_BT[iv];
+                            dnlte_dx_source[iq](iv,is1) += (partial_source[iq](iv,0)*n + source(iv,0)*dn_dT)*K_a(is1,is2)*planck_BT[iv];
+                            nlte_dsource_dx[iq](iv,is1) += source(iv,0)*n*K_a(is1,is2)*dplanck_BT(0,iv);//zeroth index is the temperature derivative
                         }
-                        else if(flag_partials(iq)==JQT_magnetic_v)
+                    }
+                    else if(flag_partials(iq)==JQT_frequency&&do_src)
+                    {
+                        dpropmat_clearsky_dx[iq](iv,is1,is2) += (partial_attenuation[iq](iv,0)*K_a(is1,is2)+2.0*partial_phase[iq](iv,0)*K_b(is1,is2))*n;
+                        if(is2==0)
                         {
-                            dpropmat_clearsky_dx[iq](iv,is1,is2) += 
-                            (
-                                attenuation_dv(iv,0)*dK_a_dv(is1,is2)+2.0*phase_dv(iv,0)*dK_b_dv(is1,is2) -
-                                (attenuation(iv,0)*K_a(is1,is2)+2.0*phase(iv,0)*K_b(is1,is2))
-                            )*n/dB;
-                            if(do_src&&is2==0)
-                                dnlte_dx_source[iq](iv,is1) += (source_dv(iv,0)*dK_a_dv(is1,is2)-source(iv,0)*K_a(is1,is2))*n*planck_BT[iv];
+                            dnlte_dx_source[iq](iv,is1) += partial_source[iq](iv,0)*n*K_a(is1,is2)*planck_BT[iv];
+                            nlte_dsource_dx[iq](iv,is1) += source(iv,0)*n*K_a(is1,is2)*dplanck_BT(1,iv);//first index is the frequency derivative
                         }
-                        else if(flag_partials(iq)==JQT_magnetic_w)
-                        {
-                            dpropmat_clearsky_dx[iq](iv,is1,is2) += 
-                            (
-                                attenuation_dw(iv,0)*dK_a_dw(is1,is2)+2.0*phase_dw(iv,0)*dK_b_dw(is1,is2) -
-                                (attenuation(iv,0)*K_a(is1,is2)+2.0*phase(iv,0)*K_b(is1,is2))
-                            )*n/dB;
-                            if(do_src&&is2==0)
-                                dnlte_dx_source[iq](iv,is1) += (source_dw(iv,0)*dK_a_dw(is1,is2)-source(iv,0)*K_a(is1,is2))*n*planck_BT[iv];
-                        }
-                        else if(flag_partials(iq)==JQT_magnetic_theta)
-                        {
-                            dpropmat_clearsky_dx[iq](iv,is1,is2) += (attenuation(iv,0)*dK_a_dtheta(is1,is2)+2.0*phase(iv,0)*dK_b_dtheta(is1,is2))*n;
-                            if(do_src&&is2==0)
-                                dnlte_dx_source[iq](iv,is1) += source(iv,0)*n*dK_a_dtheta(is1,is2)*planck_BT[iv];
-                        }
-                        else if(flag_partials(iq)==JQT_magnetic_eta)
-                        {
-                            dpropmat_clearsky_dx[iq](iv,is1,is2) += (attenuation(iv,0)*dK_a_deta(is1,is2)+2.0*phase(iv,0)*dK_b_deta(is1,is2))*n;
-                            if(do_src&&is2==0)
-                                dnlte_dx_source[iq](iv,is1) += source(iv,0)*n*dK_a_deta(is1,is2)*planck_BT[iv];
-                        }
-                        else if(flag_partials(iq)==JQT_temperature&&do_src)
-                        {
-                            dpropmat_clearsky_dx[iq](iv,is1,is2) += (partial_attenuation[iq](iv,0)* n + attenuation(iv,0) * dn_dT) * K_a(is1,is2)
-                                                                 +   2.0*(partial_phase[iq](iv,0) * n  + phase(iv,0)      * dn_dT) * K_b(is1,is2);
-                            if(is2==0)
-                            {
-                                dnlte_dx_source[iq](iv,is1) += (partial_source[iq](iv,0)*n + source(iv,0)*dn_dT)*K_a(is1,is2)*planck_BT[iv];
-                                nlte_dsource_dx[iq](iv,is1) += source(iv,0)*n*K_a(is1,is2)*dplanck_BT(0,iv);//zeroth index is the temperature derivative
-                            }
-                        }
-                        else if(flag_partials(iq)==JQT_frequency&&do_src)
-                        {
-                            dpropmat_clearsky_dx[iq](iv,is1,is2) += (partial_attenuation[iq](iv,0)*K_a(is1,is2)+2.0*partial_phase[iq](iv,0)*K_b(is1,is2))*n;
-                            if(is2==0)
-                            {
-                                dnlte_dx_source[iq](iv,is1) += partial_source[iq](iv,0)*n*K_a(is1,is2)*planck_BT[iv];
-                                nlte_dsource_dx[iq](iv,is1) += source(iv,0)*n*K_a(is1,is2)*dplanck_BT(1,iv);//first index is the frequency derivative
-                            }
-                        }
-                        else if(flag_partials(iq)==JQT_temperature)
-                        {   
-                            dpropmat_clearsky_dx[iq](iv,is1,is2) += (partial_attenuation[iq](iv,0)* n + attenuation(iv,0) * dn_dT) * K_a(is1,is2)
-                                                                 +   2.0*(partial_phase[iq](iv,0) * n  + phase(iv,0)      * dn_dT) * K_b(is1,is2);
-                        }
-                        else if(flag_partials(iq)==JQT_VMR)
-                        {   
-                            //WARNING:  if VMR starts being used for p_partial derivatives, then this fails...
-                            dpropmat_clearsky_dx[iq](iv,is1,is2) += 
-                            attenuation(iv,0) * n/abs_vmrs(this_species, 0) * K_a(is1,is2)
-                            + 2.0*phase(iv,0) * n/abs_vmrs(this_species, 0) * K_b(is1,is2);
-                            if(do_src&&is2==0)
-                                dnlte_dx_source[iq](iv,is1) += 
-                                partial_source[iq](iv,0)*n*K_a(is1,is2)*planck_BT[iv]/abs_vmrs(this_species, 0);
-                        }
-                        else if(flag_partials(iq)!=JQT_NOT_JQT)
-                        {
-                            dpropmat_clearsky_dx[iq](iv,is1,is2) += (partial_attenuation[iq](iv,0)*K_a(is1,is2)+2.0*partial_phase[iq](iv,0)*K_b(is1,is2))*n;
-                            if(do_src&&is2==0)
-                                dnlte_dx_source[iq](iv,is1) += 
-                                partial_source[iq](iv,0)*n*K_a(is1,is2)*planck_BT[iv];
-                        }
+                    }
+                    else if(flag_partials(iq)==JQT_temperature)
+                    {   
+                        dpropmat_clearsky_dx[iq](iv,is1,is2) += (partial_attenuation[iq](iv,0)* n + attenuation(iv,0) * dn_dT) * K_a(is1,is2)
+                                                              +   2.0*(partial_phase[iq](iv,0) * n  + phase(iv,0)      * dn_dT) * K_b(is1,is2);
+                    }
+                    else if(flag_partials(iq)==JQT_VMR)
+                    {   
+                        //WARNING:  if VMR starts being used for p_partial derivatives, then this fails...
+                        dpropmat_clearsky_dx[iq](iv,is1,is2) += 
+                        attenuation(iv,0) * n/abs_vmrs(this_species, 0) * K_a(is1,is2)
+                        + 2.0*phase(iv,0) * n/abs_vmrs(this_species, 0) * K_b(is1,is2);
+                        if(do_src&&is2==0)
+                            dnlte_dx_source[iq](iv,is1) += 
+                            partial_source[iq](iv,0)*n*K_a(is1,is2)*planck_BT[iv]/abs_vmrs(this_species, 0);
+                    }
+                    else if(flag_partials(iq)!=JQT_NOT_JQT)
+                    {
+                        dpropmat_clearsky_dx[iq](iv,is1,is2) += (partial_attenuation[iq](iv,0)*K_a(is1,is2)+2.0*partial_phase[iq](iv,0)*K_b(is1,is2))*n;
+                        if(do_src&&is2==0)
+                            dnlte_dx_source[iq](iv,is1) += 
+                            partial_source[iq](iv,0)*n*K_a(is1,is2)*planck_BT[iv];
                     }
                 }
             }

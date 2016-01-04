@@ -1,3 +1,12 @@
+2016-01-04  Richard Larsson   <ric.larsson@gmail.com>
+
+	* arts-2-3-397
+	
+	* src/{{m_,}zeeman.cc,zeeman.h}:  Fix for bug with several speceis tags?
+	This should allow "O2-Z-66,O2-Z-68" in the same tag.  Before, this was
+	asserted away.
+	
+
 2015-12-18  Richard Larsson   <ric.larsson@gmail.com>
 
 	* arts-2-3-396
