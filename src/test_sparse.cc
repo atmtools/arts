@@ -462,6 +462,7 @@ Numeric test_xml_io( Index ntests, bool verbose )
             cout << "Test " << i << ": " << "Max. Rel. Error = " << err << endl;
     }
 
+    return err_max;
 }
 
 //! Test sparse insert_row function.

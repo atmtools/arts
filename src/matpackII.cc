@@ -107,7 +107,7 @@ Numeric& Sparse::rw(Index r, Index c)
   assert( r<nrows() );
   assert( c<ncols() );
 
-  return matrix.coeffRef( r, c );
+  return matrix.coeffRef( (int) r, (int) c );
 
 }
 
@@ -123,7 +123,7 @@ Numeric& Sparse::rw(Index r, Index c)
 */
 Numeric Sparse::operator() (Index r, Index c) const
 {
-    return matrix.coeff( r, c );
+    return matrix.coeff( (int) r, (int) c );
 }
 
 //! Read only index operator.
@@ -149,7 +149,7 @@ Numeric Sparse::ro (Index r, Index c) const
   assert( r<nrows() );
   assert( c<ncols() );
 
-  return matrix.coeff( r, c );
+  return matrix.coeff( (int) r,(int) c );
 }
 
 
@@ -173,7 +173,7 @@ Sparse::Sparse() :
   \param c Column dimension of new sparse matrix.
 */
 Sparse::Sparse(Index r, Index c) :
-    matrix( r, c )
+    matrix( (int) r,(int) c )
 {
   // Nothing to do here.
 }
@@ -195,7 +195,7 @@ Sparse::operator Matrix()
     for (int i=0; i < m; i++)
     {
         Eigen::SparseMatrix<double, Eigen::RowMajor>::InnerIterator it( matrix, i );
-        for (it; it; ++it)
+        for (; it; ++it)
         {
             A( it.row(), it.col() ) = it.value();
         }
@@ -253,10 +253,10 @@ void Sparse::insert_row(Index r, Vector v)
   assert( r<nrows() );
   assert( v.nelem()==ncols() );
 
-  for ( Index i = 0; i < ncols(); i++ )
+  for ( int i = 0; i < ncols(); i++ )
   {
       if (v[i] != 0)
-          matrix.coeffRef(r,i) = v[i];
+          matrix.coeffRef( (int) r,i) = v[i];
   }
 
 }
@@ -288,7 +288,7 @@ void Sparse::resize(Index r, Index c)
     assert( 0<=r );
     assert( 0<=c );
 
-    matrix.resize( r, c );
+    matrix.resize( (int) r, (int) c );
 }
 
 
@@ -353,10 +353,6 @@ void mult( VectorView y,
   // Check dimensions:
   assert( y.nelem() == M.nrows() );
   assert( M.ncols() == x.nelem() );
-
-  Index m,n;
-  n = x.nelem();
-  m = y.nelem();
 
   // Typedefs for Eigen interface
   typedef Eigen::Matrix< Numeric, Eigen::Dynamic, 1, Eigen::ColMajor>

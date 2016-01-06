@@ -2,6 +2,19 @@
 
 	* arts-2-3-398
 
+	* ext/Eigen/*: Removed unneeded files from library.
+
+	* src/matpackII.cc: Changed Eigen includes to Core modules.
+
+	* src/matpackII.cc: Fixed warnings due to implicit conversion of
+	indices.
+
+	* src/test_sparse.cc: Added missing return statement to test_xml_io(...).
+
+2016-01-06  Simon Pfreundschuh   <simonpf@chalmers.se>
+
+	* arts-2-3-398
+
 	* ext/Eigen/*: Added Eigen headers used for sparse arithmetic.
 
 	* src/CMakeLists.txt: Added system include for Eigen and dependencies

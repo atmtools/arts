@@ -43,8 +43,8 @@
 
 #include "array.h"
 #include "matpackI.h"
-#include "Eigen/Dense"
-#include "Eigen/Sparse"
+#include "Eigen/Core"
+#include "Eigen/SparseCore"
 #include <iostream>
 
 //! The Sparse class.
