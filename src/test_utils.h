@@ -1,5 +1,4 @@
 /* Copyright (C) 2001-2012 Stefan Buehler <sbuehler@ltu.se>
-
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
    Free Software Foundation; either version 2, or (at your option) any
@@ -93,6 +92,17 @@ void add_noise( VectorView v,
 
 // Fill matrix with random values.
 void random_fill_matrix( MatrixView A,
+                         Numeric range,
+                         bool positive );
+
+// Fill sparse matrix with random values.
+void random_fill_matrix( Sparse &A,
+                         Numeric range,
+                         bool positive );
+
+// Fill a dense and a sparse matrix with the identical, random values.
+void random_fill_matrix( Matrix& A,
+                         Sparse& B,
                          Numeric range,
                          bool positive );
 

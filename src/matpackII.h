@@ -1,6 +1,7 @@
-/* Copyright (C) 2001-2012
+/* Copyright (C) 2001-2016
    Stefan Buehler <sbuehler@ltu.se>
    Mattias Ekstroem <ekstrom@rss.chalmers.se>
+   Simon Pfreundschuh <simonpf@chalmers.se>
 
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -21,12 +22,12 @@
   \file   matpackII.h
   \author Stefan Buehler <sbuehler@ltu.se>
   \date   Tue Jul 15 15:05:40 2003
-  
+
   \brief  Header file for sparse matrices.
-  
+
   Notes:
 
-  There are two different ways to index: 
+  There are two different ways to index:
   S.rw(3,4) = 1;                // Read and write
   cout << S.ro(3,4);            // Read only
 
@@ -40,71 +41,73 @@
 #ifndef matpackII_h
 #define matpackII_h
 
+#include "array.h"
 #include "matpackI.h"
+#include "Eigen/Dense"
+#include "Eigen/Sparse"
+#include <iostream>
 
-//! The Sparse class. 
-/*! 
-    The chosen storage format is the `compressed column' format. This
-    is the same format used by Matlab. See Matlab User Guide for
-    a description.
-  
-    \author Stefan Buehler <sbuehler@ltu.se>
-    \date   Tue Jul 15 15:05:40 2003
+//! The Sparse class.
+/*!
+
+  Wrapper class for Eigen sparse matrices. The storage format used
+  is compressed row storage. Thus inserting of elements in a single
+  row ordered by column index is performed in constant time, if the
+  rows are themselves inserted in increasing order.
+
 */
 
 class Sparse {
 public:
-  // Constructors:
-  Sparse();
-  Sparse(Index r, Index c);
-  
-  // Insert functions
-  void insert_row(Index r, Vector v);
+    // Constructors:
+    Sparse();
+    Sparse(Index r, Index c);
 
-  // Make identity function:
-  void make_I( Index r, Index c);
+    // Insert functions
+    void insert_row(Index r, Vector v);
 
-  // Resize function:
-  void resize(Index r, Index c);
+    // Make identity function:
+    void identity();
 
-  // Member functions:
-  bool empty() const;
-  Index nrows() const;
-  Index ncols() const;
-  Index nnz()   const;
+    // Resize function:
+    void resize(Index r, Index c);
 
-  const std::vector<Numeric> & data () const {return mdata;}
-  const std::vector<Index> & rowind () const {return mrowind;}
-  const std::vector<Index> & colptr () const {return mcolptr;}
+    // Member functions:
+    bool empty() const;
+    Index nrows() const;
+    Index ncols() const;
+    Index nnz()   const;
 
-  // Index Operators:
-  Numeric& rw(Index r, Index c);
-  Numeric  ro(Index r, Index c) const;
-  Numeric  operator() (Index r, Index c) const;
+    // Index Operators:
+    Numeric& rw(Index r, Index c);
+    Numeric  ro(Index r, Index c) const;
+    Numeric  operator() (Index r, Index c) const;
 
-  // Friends:
-  friend std::ostream& operator<<(std::ostream& os, const Sparse& v);
-  friend void abs (Sparse& A, const Sparse& B );
-  friend void mult (VectorView y, const Sparse& M, ConstVectorView x );
-  friend void mult (MatrixView A, const Sparse& B, ConstMatrixView C );
-  friend void mult (Sparse& A, const Sparse& B, const Sparse& C );
-  friend void add (Sparse& A, const Sparse& B, const Sparse& C );
-  friend void sub (Sparse& A, const Sparse& B, const Sparse& C );
-  friend void transpose (Sparse& A, const Sparse& B );
+    // Conversion to Dense Matrix:
+    operator Matrix();
+
+    // Matrix data access
+    void list_elements( Vector &values,
+                        ArrayOfIndex &row_indices,
+                        ArrayOfIndex &column_indices ) const;
+
+    // Friends:
+    friend std::ostream& operator<<(std::ostream& os, const Sparse& v);
+    friend void abs (Sparse& A, const Sparse& B );
+    friend void mult (VectorView y, const Sparse& M, ConstVectorView x );
+    friend void mult (MatrixView A, const Sparse& B, const ConstMatrixView& C );
+    friend void mult (MatrixView A, const ConstMatrixView& B, const Sparse& C );
+    friend void mult (Sparse& A, const Sparse& B, const Sparse& C );
+    friend void add (Sparse& A, const Sparse& B, const Sparse& C );
+    friend void sub (Sparse& A, const Sparse& B, const Sparse& C );
+    friend void transpose (Sparse& A, const Sparse& B );
 
 private:
-  //! The actual data values.
-  std::vector<Numeric> mdata;
-  //! Row indices.
-  std::vector<Index> mrowind;
-  //! Pointers to first data element for each column.
-  std::vector<Index> mcolptr;
-  //! Number of rows in the sparse matrix.
-  Index mrr;
-  //! Number of rows in the sparse matrix.
-  Index mcr;
-};
 
+    //! The actual matrix.
+    Eigen::SparseMatrix<Numeric, Eigen::RowMajor> matrix;
+
+};
 
 // Functions for general matrix operations
 void abs(       Sparse& A,
@@ -116,7 +119,11 @@ void mult( VectorView y,
 
 void mult( MatrixView A,
            const Sparse& B,
-           ConstMatrixView C );
+           const ConstMatrixView& C );
+
+void mult( MatrixView A,
+           const ConstMatrixView& B,
+           const Sparse& C );
 
 void mult( Sparse& A,
            const Sparse& B,

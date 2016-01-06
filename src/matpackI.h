@@ -342,6 +342,9 @@ public:
   friend void mult ( VectorView,
                      const ConstMatrixView &,
                      const ConstVectorView & );
+  friend void mult ( VectorView,
+                     const Sparse &,
+                     ConstVectorView );
   friend void mult_general( VectorView,
                             const ConstMatrixView &,
                             const ConstVectorView & );
@@ -371,7 +374,7 @@ protected:
 
     This contains the main implementation of a vector. The class
     Vector is just a special case of subvector which also allocates
-    storage. 
+    storage.
 
     Unfortunately, names of element functions of derived classes hide
     the names of the original class, even if the arguments are
@@ -665,6 +668,12 @@ public:
   friend void mult( MatrixView,
                     const ConstMatrixView&,
                     const ConstMatrixView& );
+  friend void mult( MatrixView,
+                    const Sparse&,
+                    const ConstMatrixView& );
+  friend void mult( MatrixView,
+                    const ConstMatrixView&,
+                    const Sparse& );
   friend void mult_general( VectorView,
                             const ConstMatrixView&,
                             const ConstVectorView& );

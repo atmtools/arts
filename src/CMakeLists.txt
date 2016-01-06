@@ -286,7 +286,8 @@ add_library (matpack STATIC
         matpackVII.cc
         )
 
-target_link_libraries( matpack ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES} )
+include_directories ( SYSTEM ${CMAKE_SOURCE_DIR}/ext )
+target_link_libraries( matpack ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES} gfortran )
 
 ########### next target ###############
 
@@ -303,6 +304,7 @@ add_library (methods STATIC
 add_library (test_utils STATIC
         test_utils.cc
         )
+target_link_libraries( test_utils matpack )
 
 ########### testcases ###############
 
@@ -413,7 +415,7 @@ target_link_libraries (test_quantum ${ALL_ARTS_LIBRARIES})
 ########### next testcase ###############
 
 add_executable (test_sparse test_sparse.cc)
-target_link_libraries (test_sparse ${ALL_ARTS_LIBRARIES})
+target_link_libraries (test_sparse ${ALL_ARTS_LIBRARIES} test_utils)
 
 ########### next testcase ###############
 

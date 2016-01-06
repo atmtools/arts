@@ -1793,7 +1793,8 @@ void sensor_responseInit(
   out2 << "  Initialising *sensor_reponse* as a identity matrix.\n";
   out3 << "  Size of *sensor_response*: " << n << "x" << n << "\n";
   //
-  sensor_response.make_I( n, n );
+  sensor_response.resize( n, n );
+  sensor_response.identity();
 }
 
 

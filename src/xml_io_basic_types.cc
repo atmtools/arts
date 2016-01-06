@@ -452,30 +452,41 @@ void xml_write_to_stream(ostream&         os_xml,
 
   row_tag.write_to_stream(os_xml);
   os_xml << '\n';
+
+  ArrayOfIndex rowind( sparse.nnz() ), colind( sparse.nnz() );
+  Vector data( sparse.nnz() );
+  sparse.list_elements( data, rowind, colind );
+
+  // Write row indices.
+
   for (Index i = 0; i < sparse.nnz(); i++)
-    {
+  {
       if (pbofs)
         //FIXME: It should be the longer lines
-        *pbofs << sparse.rowind()[i];
+          *pbofs << rowind[i];
       else
-        os_xml << sparse.rowind()[i] << '\n';
-    }
+          os_xml << rowind[i] << '\n';
+  }
+
   close_tag.set_name("/RowIndex");
   close_tag.write_to_stream(os_xml);
   os_xml << '\n';
 
   col_tag.write_to_stream(os_xml);
   os_xml << '\n';
-  for (size_t i = 0; i < sparse.colptr().size()-1; i++)
-    {
-      for (Index j = 0; j < sparse.colptr()[i+1]-sparse.colptr()[i]; j++)
-        {
-          if (pbofs)
-            *pbofs << (Index)i;
-          else
-            os_xml << (Index)i << '\n';
-        }
-    }
+
+  // Write column indices.
+
+  for (Index i = 0; i < sparse.nnz(); i++)
+  {
+      if (pbofs)
+        //FIXME: It should be the longer lines
+          *pbofs << colind[i];
+      else
+          os_xml << colind[i] << '\n';
+  }
+
+
   close_tag.set_name("/ColIndex");
   close_tag.write_to_stream(os_xml);
   os_xml << '\n';
@@ -483,13 +494,16 @@ void xml_write_to_stream(ostream&         os_xml,
   data_tag.write_to_stream(os_xml);
   os_xml << '\n';
   xml_set_stream_precision(os_xml);
+
+  // Write data.
+
   for (Index i = 0; i < sparse.nnz(); i++)
-    {
+  {
       if (pbofs)
-        *pbofs << sparse.data()[i];
+          *pbofs << data[i];
       else
-        os_xml << sparse.data()[i] << ' ';
-    }
+          os_xml << data[i] << ' ';
+  }
   os_xml << '\n';
   close_tag.set_name("/SparseData");
   close_tag.write_to_stream(os_xml);

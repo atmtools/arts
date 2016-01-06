@@ -389,7 +389,7 @@ VectorView& VectorView::operator=(const ConstVectorView& v)
 
   // Check that sizes are compatible:
   assert(mrange.mextent==v.mrange.mextent);
-  
+
   copy( v.begin(), v.end(), begin() );
 
   return *this;
@@ -406,7 +406,7 @@ VectorView& VectorView::operator=(const VectorView& v)
 
   // Check that sizes are compatible:
   assert(mrange.mextent==v.mrange.mextent);
-  
+
   copy( v.begin(), v.end(), begin() );
 
   return *this;
@@ -537,7 +537,7 @@ VectorView::operator MatrixView()
     //    return ConstMatrixView(mdata,mrange,Range(mrange.mstart,1));
     // Bus this was a bug! The problem is that the matrix index operator adds
     // the mstart from both row and columm range object to mdata
-    
+
     return MatrixView(mdata,mrange,Range(0,1));
 }
 
@@ -1834,7 +1834,7 @@ void mult( MatrixView A,
         m = (int) C.ncols();
         n = (int) B.nrows();
 
-        // Note also the clash in nomenclature: BLAST uses C = A * B while
+        // Note also the clash in nomenclature: BLAS uses C = A * B while
         // arts uses A = B * C. Taking into accout this and the difference in
         // memory layouts, we need to map the MatrixViews A, B and C to the BLAS
         // arguments as follows:
@@ -1868,7 +1868,7 @@ void mult( MatrixView A,
             ldb = (int) B.mrr.get_stride();
         }
 
-        // In the case B (arts) has only one column, column and row stride are 1.
+        // In case B (arts) has only one column, column and row stride are 1.
         // We therefore need to set ldb to k, since dgemm_ requires lda to be at
         // least k / m if A is non-transposed / transposed.
         if ( (B.mcr.get_stride() == 1) && (B.mrr.get_stride() == 1) )
@@ -1880,11 +1880,17 @@ void mult( MatrixView A,
         // The same holds for C (arts).
         if ( (C.mcr.get_stride() == 1) && (C.mrr.get_stride() == 1) )
         {
-            transb = 'N';
+            transa = 'N';
             lda = k;
         }
 
         ldc = (int) A.mrr.get_stride();
+        // The same holds for A (arts).
+        if ( (A.mcr.get_stride() == 1) && (A.mrr.get_stride() == 1) )
+        {
+            ldc = m;
+        }
+
         double alpha = 1.0, beta = 0.0;
 
         dgemm_( & transa,

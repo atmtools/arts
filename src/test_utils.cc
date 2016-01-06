@@ -25,6 +25,7 @@
 #include <cmath>
 #include "lin_alg.h"
 #include "test_utils.h"
+#include "matpackII.h"
 
 using std::abs;
 
@@ -76,6 +77,78 @@ void random_fill_matrix( MatrixView A,
             A( i, j ) = (Numeric) rand();
 
         }
+    }
+}
+
+//! Generate random sparse matrix
+/*!
+
+  Fills a sparse m-times-n matrix A with max{m,n} random values at random
+  positions.
+
+  \param[out] A The matrix to be filled.
+  \param[in] range The range from which values are genereated. If positive = true
+  the values are generated from the range [0,range], otherwise from the range
+  [-range, range]
+  \param[in] positive See above.
+*/
+void random_fill_matrix( Sparse& A,
+                         Numeric range,
+                         bool positive )
+{
+    Index m = A.nrows();
+    Index n = A.ncols();
+
+    Rand<Numeric> random_number( positive ? 0 : - range , range );
+
+    Index nelem = max( m, n );
+
+    for (Index i = 0; i < nelem; i++)
+    {
+        Index m1, n1;
+        m1 = rand() % m;
+        n1 = rand() % n;
+
+        A.rw( m1, n1 ) = random_number();
+    }
+}
+
+//! Generate identical, random sparse and dense matrices.
+/*!
+
+  Fills a dense and a sparse m-times-n matrix A with max{m,n} random values at
+  random positions.
+
+  \param[out] A The dense matrix to be filled.
+  \param[out] B The sparse matrix to be filled.
+  \param[in] range The range from which values are genereated. If positive = true
+  the values are generated from the range [0,range], otherwise from the range
+  [-range, range]
+  \param[in] positive See above.
+*/
+void random_fill_matrix( Matrix& A,
+                         Sparse& B,
+                         Numeric range,
+                         bool positive )
+{
+    Index m = A.nrows();
+    Index n = A.ncols();
+
+    assert( B.nrows() == m );
+    assert( B.ncols() == n );
+
+    Rand<Numeric> random_number( positive ? 0 : - range , range );
+
+    Index nelem = max( m, n );
+
+    for (Index i = 0; i < nelem; i++)
+    {
+        Index m1, n1;
+        m1 = rand() % m;
+        n1 = rand() % n;
+
+        A( m1, n1 ) = random_number();
+        B.rw( m1, n1 ) = A( m1, n1 );
     }
 }
 

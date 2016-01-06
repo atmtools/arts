@@ -1,3 +1,28 @@
+2016-01-06  Simon Pfreundschuh   <simonpf@chalmers.se>
+
+	* arts-2-3-398
+
+	* ext/Eigen/*: Added Eigen headers used for sparse arithmetic.
+
+	* src/CMakeLists.txt: Added system include for Eigen and dependencies
+	 of test_sparse.cc.
+
+	* src/matpackI.h: Added dense-sparse and sparse-dense multiplication
+	to friends.
+
+	* src/matpackI.cc: Fixed corner case bug in matrix multiplication.
+
+	* src/matpackII.*: Rewrote sparse matrix algebra using Eigen.
+
+	* src/test_sparse.cc: Added randomized testing for all functions of the
+	Sparse class.
+
+	* src/test_utils.*: Added utility functions for sparse matrices.
+
+	* src/xml_io_basic_types.cc: Adapted writing of xml files.
+
+	* src/m_sensor.cc: Replaced make_I(...) by identity(...).
+
 2016-01-04  Richard Larsson   <ric.larsson@gmail.com>
 
 	* arts-2-3-397
