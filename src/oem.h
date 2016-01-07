@@ -170,29 +170,35 @@ enum OEMMethod { GAUSS_NEWTON, LEVENBERG_MARQUARDT  };
 //! Non-Linear OEM Class
 /*!
 
-  Class to represent non-linear OEM computations. Given a forward model
-  described by the inverses of the measurement and state covariance matrices
-  SeInv and SxInv, the a priori vector xa and a ForwardModel instance F, the
-  class can computes the Bayesian optimal estimator using either the
-  Gauss-Newton method or Levenber-Marquardt method, as described in Rodgers
-  book. The form used is the n-form given in formula (5.8).
+  Class template to represent non-linear OEM computations. Given a
+  forward model described by the inverses of the measurement and state
+  covariance matrices SeInv and SxInv, the a priori vector xa and a
+  ForwardModel instance F, an instance of the is used to compute the
+  Bayesian optimal estimator using either the Gauss-Newton method or
+  Levenber-Marquardt method, as described in Rodgers book. The form
+  used is the n-form given in formula (5.8).
 
-  The NonLinearOEM object contains references to the matrices, vectors and the
-  forward model defining the problem, internal matrices, that are required
-  during the computation and the computation state.
+  The class template arguments determine the matrix type used for the
+  a priori ( Sx_t ) and the measurement error covariance matrices
+  ( Se_t ).
+
+  The NonLinearOEM object contains references to the matrices, vectors
+  and the forward model defining the problem, internal matrices, that
+  are required during the computation and the computation state.
 
 */
+template<typename Se_t, typename Sx_t>
 class NonLinearOEM
 {
 
 public:
 
     // Constructor
-    NonLinearOEM( ConstMatrixView SeInv,
-                  ConstVectorView xa,
-                  ConstMatrixView SxInv,
-                  ForwardModel &F,
-                  OEMMethod method );
+    NonLinearOEM( const Se_t      &SeInv,
+                  ConstVectorView  xa,
+                  const Sx_t      &SxInv,
+                  ForwardModel    &F,
+                  OEMMethod        method );
 
     // Get and set normalization vector.
     void set_x_norm( ConstVectorView );
@@ -387,7 +393,8 @@ private:
                               bool verbose );
 
     // References to model data.
-    ConstMatrixView SeInv, SxInv;
+    const Se_t &SeInv;
+    const Sx_t &SxInv;
     ConstVectorView xa;
     ForwardModel &F;
 
@@ -441,6 +448,7 @@ Index oem_linear_mform( Vector& x,
                         ConstMatrixView SxInv );
 
 // Optimal estimation for non-linear models using Gauss-Newton method.
+template <typename Se_t, typename Sx_t>
 Index oem_gauss_newton( Vector& x,
                         Matrix& G,
                         Matrix& J,
@@ -452,12 +460,13 @@ Index oem_gauss_newton( Vector& x,
                         ConstVectorView xa,
                         ConstVectorView x_norm,
                         ConstVectorView y,
-                        ConstMatrixView SeInv,
-                        ConstMatrixView SxInv,
+                        const Se_t &SeInv,
+                        const Sx_t &SxInv,
                         const Index max_iter,
                         const Numeric tol,
                         bool verbose );
 
+template <typename Se_t, typename Sx_t>
 Index oem_levenberg_marquardt( Vector &x,
                                Matrix &G,
                                Matrix &J,
@@ -469,8 +478,8 @@ Index oem_levenberg_marquardt( Vector &x,
                                ConstVectorView xa,
                                ConstVectorView x_norm,
                                ConstVectorView y,
-                               ConstMatrixView SeInv,
-                               ConstMatrixView SxInv,
+                               const Se_t &SeInv,
+                               const Sx_t &SxInv,
                                Index max_iter,
                                Numeric tol,
                                Numeric gamma_start,
@@ -480,4 +489,5 @@ Index oem_levenberg_marquardt( Vector &x,
                                Numeric gamma_threshold,
                                bool verbose );
 
+#include "oem.cc"
 #endif // oem_h

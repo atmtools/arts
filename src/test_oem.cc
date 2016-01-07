@@ -20,6 +20,7 @@
 #include "test_utils.h"
 #include <time.h>
 #include "unistd.h"
+#include "matpackII.h"
 
 using std::abs;
 using std::cout;
@@ -124,10 +125,9 @@ public:
             sprintf( fname, "J_t.txt" );
             write_matrix( Jacobian, fname );
 
-            for ( Index i = 0; i < m; i++ )
+            for ( Index i = 0; i < m ; i++ )
             {
                 Hessians[i] = Matrix( n, n, 0 );
-                random_fill_matrix_pos_semi_def(Hessians[i], 1, true);
                 sprintf( fname, "H_%d_t.txt", (int) i);
                 write_matrix( Hessians[i], fname );
             }
@@ -721,6 +721,7 @@ void test_oem_linear( Engine* eng,
   \param n  The dimension of the state space.
   \param ntests The number of tests to perform.
 */
+template <typename Se_t, typename Sx_t>
 void test_oem_gauss_newton( Engine *eng,
                             Index m,
                             Index n,
@@ -747,7 +748,7 @@ void test_oem_gauss_newton( Engine *eng,
         inv( SeInv, Se );
         inv( SxInv, Sa );
 
-        NonLinearOEM oem( SeInv, xa, SxInv, K, GAUSS_NEWTON );
+        NonLinearOEM<Se_t, Sx_t> oem( SeInv, xa, SxInv, K, GAUSS_NEWTON );
 
         for (Index j = 0; j < n; j++ )
         {
@@ -813,7 +814,8 @@ void test_oem_levenberg_marquardt( Engine *eng,
         inv( SeInv, Se );
         inv( SxInv, Sx );
 
-        NonLinearOEM oem( SeInv, xa, SxInv, K, LEVENBERG_MARQUARDT );
+        typedef NonLinearOEM< ConstMatrixView, ConstMatrixView> OEM;
+        OEM oem( SeInv, xa, SxInv, K, LEVENBERG_MARQUARDT );
 
         for (Index j = 0; j < n; j++ )
         {
@@ -840,18 +842,165 @@ void test_oem_levenberg_marquardt( Engine *eng,
     cout << endl;
 }
 
+//! Test sparse non-linear OEM
+/*!
+  Test the non-linear OEM function using Gauss-Newton method with a
+  random quadratic model and sparse matrix arithmetic. In each test,
+  the result is compared to the result obtained using dense
+  arithmetic. Checks both the standard and the normalized case. The
+  maximum relative error of both cases and the Gain matrix is printed
+  to stdout for each test.
+
+  \param m  The dimension of the measurement space space.
+  \param n  The dimension of the state space.
+  \param ntests The number of tests to perform.
+*/
+void test_oem_gauss_newton_sparse( Index m,
+                                   Index n,
+                                   Index ntests )
+{
+    Vector y0(m), y(m), x(n), x_sparse(n), x_n(n), x_n_sparse(n),
+        x0(n), x_norm(n), xa(n);
+    Matrix SeInv(m,m), SxInv(n,n), G(n,m), G_sparse(n,m);
+    Sparse SeInv_sparse(m,m), SxInv_sparse(n,n);
+
+    cout << "Testing Sparse Levenberg-Marquardt OEM: m = " << m << ", n = ";
+    cout << n << ", ntests = " << ntests << endl << endl;
+
+    cout << "Test No. " << setw(15) << "Standard" << setw(15) << "Normalized";
+    cout << setw(15) << "Gain Matrix" << setw(15) << "No. Iterations" << endl;
+
+    // Test loop
+    for ( Index i = 0; i < ntests; i++ )
+    {
+
+        // Generate test data.
+        QuadraticModel K(m,n);
+
+        SeInv_sparse.identity();
+        random_fill_matrix( SeInv_sparse, 1.0, false );
+        SxInv_sparse.identity();
+        random_fill_matrix( SxInv_sparse, 1.0, false );
+        SeInv = SeInv_sparse;
+        SxInv = SxInv_sparse;
+        random_fill_vector( xa, 10, false );
+
+        x0 = xa;
+        add_noise( x0, 10.0 );
+        K.evaluate( y0, x0);
+
+        typedef NonLinearOEM< ConstMatrixView, ConstMatrixView> OEM;
+        typedef NonLinearOEM< Sparse, Sparse> OEM_sparse;
+        OEM oem( SeInv, xa, SxInv, K, GAUSS_NEWTON );
+        OEM_sparse oem_sparse( SeInv_sparse, xa, SxInv_sparse, K, GAUSS_NEWTON );
+
+        for (Index j = 0; j < n; j++ )
+        {
+            x_norm[j] = sqrt(abs(SxInv(j,j)));
+        }
+
+        oem.compute( x, G, y0, false );
+        oem_sparse.compute( x_sparse, G_sparse, y0, false );
+        oem.set_x_norm( x_norm );
+        oem_sparse.set_x_norm( x_norm );
+        oem.compute( x_n, y0, false );
+        oem_sparse.compute( x_n_sparse, y0, false );
+
+        cout << setw(9) << i+1 << setw(15);
+        cout << get_maximum_error( x_sparse, x, true ) << setw(15);
+        cout << get_maximum_error( x_n_sparse, x_n, true ) << setw(15);
+        cout << get_maximum_error( G_sparse, G, true ) << setw(15);
+        cout << oem.iterations() << setw(15);
+        cout << endl;
+    }
+    cout << endl;
+}
+
+//! Test sparse non-linear OEM
+/*!
+  Test the non-linear OEM function using Levenberg-Marquardt method
+  with a random quadratic model and sparse matrix arithmetic. In each
+  test, the result is compared to the result obtained using dense
+  arithmetic. Checks both the standard and the normalized case. The
+  maximum relative error of both cases and the Gain matrix is printed
+  to stdout for each test.
+
+  \param m  The dimension of the measurement space space.
+  \param n  The dimension of the state space.
+  \param ntests The number of tests to perform.
+*/
+void test_oem_levenberg_marquardt_sparse( Index m,
+                                          Index n,
+                                          Index ntests )
+{
+    Vector y0(m), y(m), x(n), x_sparse(n), x_n(n), x_n_sparse(n),
+        x0(n), x_norm(n), xa(n);
+    Matrix SeInv(m,m), SxInv(n,n), G(n,m), G_sparse(n,m);
+    Sparse SeInv_sparse(m,m), SxInv_sparse(n,n);
+
+    cout << "Testing Sparse Levenberg-Marquardt OEM: m = " << m << ", n = ";
+    cout << n << ", ntests = " << ntests << endl << endl;
+
+    cout << "Test No. " << setw(15) << "Standard" << setw(15) << "Normalized";
+    cout << setw(15) << "Gain Matrix" << setw(15) << "No. Iterations" << endl;
+
+    // Test loop
+    for ( Index i = 0; i < ntests; i++ )
+    {
+
+        // Generate test data.
+        QuadraticModel K(m,n);
+
+        SeInv_sparse.identity();
+        random_fill_matrix( SeInv_sparse, 1.0, false );
+        SxInv_sparse.identity();
+        random_fill_matrix( SxInv_sparse, 1.0, false );
+        SeInv = SeInv_sparse;
+        SxInv = SxInv_sparse;
+        random_fill_vector( xa, 10, false );
+
+        x0 = xa;
+        add_noise( x0, 10.0 );
+        K.evaluate( y0, x0);
+
+        typedef NonLinearOEM< ConstMatrixView, ConstMatrixView> OEM;
+        typedef NonLinearOEM< Sparse, Sparse> OEM_sparse;
+        OEM oem( SeInv, xa, SxInv, K, LEVENBERG_MARQUARDT );
+        OEM_sparse oem_sparse( SeInv_sparse, xa, SxInv_sparse, K, LEVENBERG_MARQUARDT );
+
+        for (Index j = 0; j < n; j++ )
+        {
+            x_norm[j] = sqrt(abs(SxInv(j,j)));
+        }
+
+        oem.compute( x, G, y0, false );
+        oem_sparse.compute( x_sparse, G_sparse, y0, false );
+        oem.set_x_norm( x_norm );
+        oem_sparse.set_x_norm( x_norm );
+        oem.compute( x_n, y0, false );
+        oem_sparse.compute( x_n_sparse, y0, false );
+
+        cout << setw(9) << i+1 << setw(15);
+        cout << get_maximum_error( x_sparse, x, true ) << setw(15);
+        cout << get_maximum_error( x_n_sparse, x_n, true ) << setw(15);
+        cout << get_maximum_error( G_sparse, G, true ) << setw(15);
+        cout << oem.iterations() << setw(15);
+        cout << endl;
+    }
+    cout << endl;
+}
 
 int main()
 {
 
     //Set up the test environment.
-    Engine * eng;
-    setup_test_environment( eng );
+    //Engine * eng;
+    //setup_test_environment( eng );
 
     // Run tests and benchmarks.
     //test_oem_linear( eng, 50, 50, 10 );
     //test_oem_gauss_newton( eng, 50, 50, 10 );
-    test_oem_levenberg_marquardt( eng, 50, 50, 10 );
+    //test_oem_levenberg_marquardt( eng, 50, 50, 10 );
 
     //benchmark_inv( eng, 100, 2000, 16);
     //benchmark_mult( eng, 100, 2000, 16);
@@ -859,6 +1008,9 @@ int main()
     //benchmark_oem_linear( eng, 100, 2000, 16);
 
     // Tidy up test environment.
-    tidy_up_test_environment( eng );
+    //tidy_up_test_environment( eng );
+
+    test_oem_gauss_newton_sparse( 100, 100, 10 );
+    test_oem_levenberg_marquardt_sparse( 100, 100, 10 );
 
 }

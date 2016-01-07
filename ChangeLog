@@ -1,3 +1,20 @@
+2016-01-07  Simon Pfreundschuh   <simonpf@chalmers.se>
+
+	* arts-2-3-401
+
+	* src/CMakeLists.txt: Added OpenMP flag for timer class and
+	  removed oem.cc from compilation files.
+
+	* src/matpackII.*: Added const classifier to Matrix()
+
+	* src/oem.*: Added templates to interface functions
+	oem_levenberg_marquardt(...) and oem_gauss_newton(...). Adapted
+	NonLinearOEM class.
+
+	* src/test_oem.cc: Added tests for OEM with sparse matrices.
+
+	* src/timings.h: Added some comments.
+
 2016-01-06  Simon Pfreundschuh   <simonpf@chalmers.se>
 
 	* arts-2-3-400

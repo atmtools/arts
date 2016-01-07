@@ -84,7 +84,7 @@ public:
     Numeric  operator() (Index r, Index c) const;
 
     // Conversion to Dense Matrix:
-    operator Matrix();
+    operator Matrix() const;
 
     // Matrix data access
     void list_elements( Vector &values,

@@ -185,7 +185,7 @@ Sparse::Sparse(Index r, Index c) :
 
   \return The dense representation of the given sparse matrix.
 */
-Sparse::operator Matrix()
+Sparse::operator Matrix() const
 {
     Index m,n;
     m = nrows(); n = ncols();

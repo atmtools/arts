@@ -88,6 +88,10 @@ public:
     {
         if (i < ntimers)
         {
+
+            // Stop timer if it is running and check if overall timer
+            // must be stopped.
+
             if (running[i])
             {
                 Numeric t = get_time();
@@ -99,7 +103,7 @@ public:
                     total_time += get_time() - stamp;
 
             }
-            else
+            else // Continue timer if not running.
             {
 
                 if (nrunning == 0)

@@ -225,7 +225,6 @@ add_library (artscore STATIC
   nc_io_array_types.cc
   nc_io_basic_types.cc
   nc_io_compound_types.cc
-  oem.cc
   optproperties.cc
   parameters.cc
   parser.cc
@@ -366,8 +365,11 @@ find_program( CSHFOUND csh )
 
 if ( MATLABDIR AND ATMLABDIR AND CSHFOUND )
 
+  if (OPENMP_FOUND)
+    add_definitions(-DOMP)
+  endif (OPENMP_FOUND)
+
   add_executable (test_oem
-    oem.cc
     timings.cc
     test_oem.cc)
 

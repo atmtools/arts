@@ -11,7 +11,7 @@
 #include "lin_alg.h"
 #include "logic.h"
 #include "math.h"
-#include "oem.h"
+//#include "oem.h"
 #include "stdlib.h"
 #include "arts_omp.h"
 
@@ -296,8 +296,6 @@ void log_finalize_lm( ostream& stream,
     stream << endl << endl << endl;
 }
 
-
-
 //------------------------------------------------------------------------------------
 //
 //   Calculation of the cost function
@@ -329,8 +327,6 @@ void oem_cost_y( Numeric& cost_y,
   cost_y = dy * tmp;
   cost_y /= normfac;
 }
-
-
 
 //! Calculation of x-part of cost function
 /*!
@@ -867,7 +863,7 @@ Index oem_linear_nform( Vector& x,
 
 //------------------------------------------------------------------------------------
 //
-// Gauss-Newton OEM Class
+// Non-linear OEM Class
 //
 //------------------------------------------------------------------------------------
 
@@ -906,11 +902,12 @@ Index oem_linear_nform( Vector& x,
   \param[in] method_ The computational method to use for the inversion. Either
   GAUSS_NEWTON or LEVENBERG_MARQUARDT.
 */
-NonLinearOEM::NonLinearOEM( ConstMatrixView SeInv_,
-                            ConstVectorView xa_,
-                            ConstMatrixView SxInv_,
-                            ForwardModel &F_,
-                            OEMMethod method_ )
+template<typename Se_t, typename Sx_t>
+NonLinearOEM<Se_t, Sx_t>::NonLinearOEM( const Se_t      &SeInv_,
+                                        ConstVectorView  xa_,
+                                        const Sx_t      &SxInv_,
+                                        ForwardModel    &F_,
+                                        OEMMethod        method_ )
     : SeInv(SeInv_), SxInv(SxInv_), xa(xa_), F(F_), method(method_)
 {
 
@@ -961,7 +958,8 @@ NonLinearOEM::NonLinearOEM( ConstMatrixView SeInv_,
 
   \param x_norm_ The normalizatoin vector.
 */
-void NonLinearOEM::set_x_norm( ConstVectorView x_norm_ )
+template<typename Se_t, typename Sx_t>
+void NonLinearOEM<Se_t, Sx_t>::set_x_norm( ConstVectorView x_norm_ )
 {
     x_norm = x_norm_;
     x_norm_set = true;
@@ -971,7 +969,8 @@ void NonLinearOEM::set_x_norm( ConstVectorView x_norm_ )
 /*!
   \return The current normalization vector
 */
-ConstVectorView NonLinearOEM::get_x_norm()
+template<typename Se_t, typename Sx_t>
+ConstVectorView NonLinearOEM<Se_t, Sx_t>::get_x_norm()
 {
     return x_norm;
 }
@@ -991,9 +990,10 @@ ConstVectorView NonLinearOEM::get_x_norm()
   \param y The measurement vector
   \param verbose If true, print log to standard out.
 */
-Index NonLinearOEM::compute( Vector &x,
-                             ConstVectorView y,
-                             bool verbose )
+template<typename Se_t, typename Sx_t>
+Index NonLinearOEM<Se_t, Sx_t>::compute( Vector &x,
+                                         ConstVectorView y,
+                                         bool verbose )
 {
 
     if (method == GAUSS_NEWTON)
@@ -1004,6 +1004,9 @@ Index NonLinearOEM::compute( Vector &x,
     {
         levenberg_marquardt( x, y, verbose );
     }
+
+    if (verbose)
+        cout << timer << endl;
 
     return err;
 }
@@ -1018,13 +1021,22 @@ Index NonLinearOEM::compute( Vector &x,
   \param y The measurement vector
   \param verbose If true, print log to standard out.
 */
-Index NonLinearOEM::compute( Vector &x,
-                             MatrixView G_,
-                             ConstVectorView y,
-                             bool verbose )
+template<typename Se_t, typename Sx_t>
+Index NonLinearOEM<Se_t, Sx_t>::compute( Vector          &x,
+                                         MatrixView       G_,
+                                         ConstVectorView  y,
+                                         bool             verbose )
 {
 
-    compute( x, y, verbose );
+    if (method == GAUSS_NEWTON)
+    {
+        gauss_newton( x, y, verbose );
+    }
+    else if (method == LEVENBERG_MARQUARDT)
+    {
+        levenberg_marquardt( x, y, verbose );
+    }
+
     compute_gain_matrix( x );
     G_ = G;
 
@@ -1046,9 +1058,10 @@ Index NonLinearOEM::compute( Vector &x,
   \param y The measurement vector.
   \param verbose If true, print log output to standard out.
 */
-void NonLinearOEM::gauss_newton( Vector &x,
-                                 ConstVectorView y,
-                                 bool verbose )
+template<typename Se_t, typename Sx_t>
+void NonLinearOEM<Se_t, Sx_t>::gauss_newton( Vector          &x,
+                                             ConstVectorView  y,
+                                             bool             verbose )
 {
 
     Index t1, t2, t3, t4;
@@ -1194,9 +1207,10 @@ void NonLinearOEM::gauss_newton( Vector &x,
   \param y The measurement vector.
   \param verbose If true, print log output to standard out.
 */
-void NonLinearOEM::levenberg_marquardt( Vector &x,
-                                        ConstVectorView y,
-                                        bool verbose )
+template<typename Se_t, typename Sx_t>
+void NonLinearOEM<Se_t, Sx_t>::levenberg_marquardt( Vector          &x,
+                                                    ConstVectorView  y,
+                                                    bool             verbose )
 {
     // Setup timers.
     Index t1, t2, t3, t4;
@@ -1389,8 +1403,9 @@ void NonLinearOEM::levenberg_marquardt( Vector &x,
   \return Error code indicating success or failure of the computation of
   the fit.
 */
-Index NonLinearOEM::compute_fit( Vector &yf,
-                                 const Vector &x )
+template<typename Se_t, typename Sx_t>
+Index NonLinearOEM<Se_t, Sx_t>::compute_fit( Vector                &yf,
+                                                      const Vector &x )
 {
     try
     {
@@ -1419,11 +1434,12 @@ Index NonLinearOEM::compute_fit( Vector &yf,
   \return Error code indicating success or failure of the computation of
   the fit.
 */
-Index NonLinearOEM::compute_fit( Vector &yf,
-                                 Numeric &cost_x_,
-                                 Numeric &cost_y_,
-                                 const Vector &x,
-                                 ConstVectorView y )
+template<typename Se_t, typename Sx_t>
+Index NonLinearOEM<Se_t, Sx_t>::compute_fit( Vector &yf,
+                                             Numeric &cost_x_,
+                                             Numeric &cost_y_,
+                                             const Vector &x,
+                                             ConstVectorView y )
 {
 
     try
@@ -1449,7 +1465,8 @@ Index NonLinearOEM::compute_fit( Vector &yf,
 
   \param x The state vector
 */
-void NonLinearOEM::compute_gain_matrix( Vector& x )
+template<typename Se_t, typename Sx_t>
+void NonLinearOEM<Se_t, Sx_t>::compute_gain_matrix( Vector& x )
 {
     Index t1, t2, t3, t4;
     t1 = timer.add_timer( "Gain Matrix Computation" );
@@ -1534,6 +1551,7 @@ void NonLinearOEM::compute_gain_matrix( Vector& x )
 
   \return Error code indicating success or failure of the method.
 */
+template <typename Se_t, typename Sx_t>
 Index oem_gauss_newton( Vector& x,
                         Matrix& G,
                         Matrix& J,
@@ -1545,8 +1563,8 @@ Index oem_gauss_newton( Vector& x,
                         ConstVectorView xa,
                         ConstVectorView x_norm,
                         ConstVectorView y,
-                        ConstMatrixView SeInv,
-                        ConstMatrixView SxInv,
+                        const Se_t &SeInv,
+                        const Sx_t &SxInv,
                         const Index max_iter,
                         const Numeric tol,
                         bool verbose )
@@ -1561,7 +1579,8 @@ Index oem_gauss_newton( Vector& x,
     assert( (SeInv.ncols() == m) && (SeInv.nrows() == m) );
     assert( (SxInv.ncols() == n) && (SxInv.nrows() == n) );
 
-    NonLinearOEM oem( SeInv, xa, SxInv, F, GAUSS_NEWTON);
+    NonLinearOEM<Se_t, Sx_t>
+        oem( SeInv, xa, SxInv, F, GAUSS_NEWTON);
     oem.tolerance( tol );
     oem.maximum_iterations( max_iter );
 
@@ -1632,6 +1651,7 @@ Index oem_gauss_newton( Vector& x,
 
   \return Error code indicating success or failure of the method.
 */
+template <typename Se_t, typename Sx_t>
 Index oem_levenberg_marquardt( Vector& x,
                                Matrix& G,
                                Matrix& J,
@@ -1643,8 +1663,8 @@ Index oem_levenberg_marquardt( Vector& x,
                                ConstVectorView xa,
                                ConstVectorView x_norm,
                                ConstVectorView y,
-                               ConstMatrixView SeInv,
-                               ConstMatrixView SxInv,
+                               const Se_t &SeInv,
+                               const Sx_t &SxInv,
                                Index max_iter,
                                Numeric tol,
                                Numeric gamma_start,
@@ -1665,7 +1685,8 @@ Index oem_levenberg_marquardt( Vector& x,
     assert( (SeInv.ncols() == m) && (SeInv.nrows() == m) );
     assert( (SxInv.ncols() == n) && (SxInv.nrows() == n) );
 
-    NonLinearOEM oem( SeInv, xa, SxInv, F, LEVENBERG_MARQUARDT);
+    NonLinearOEM<Se_t, Sx_t>
+        oem( SeInv, xa, SxInv, F, LEVENBERG_MARQUARDT);
     oem.tolerance( tol );
     oem.maximum_iterations( max_iter );
     oem.gamma_start( gamma_start );
@@ -1687,9 +1708,6 @@ Index oem_levenberg_marquardt( Vector& x,
     return oem.get_error();
 
 }
-
-
-
 
 //------------------------------------------------------------------------------------
 //
