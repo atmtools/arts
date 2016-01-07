@@ -1,6 +1,12 @@
 2016-01-06  Simon Pfreundschuh   <simonpf@chalmers.se>
 
-	* arts-2-3-398
+	* arts-2-3-400
+
+	* src/CMakeLists.txt: Removed gfortran library relic.
+
+2016-01-06  Simon Pfreundschuh   <simonpf@chalmers.se>
+
+	* arts-2-3-399
 
 	* ext/Eigen/*: Removed unneeded files from library.
 

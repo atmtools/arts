@@ -287,7 +287,7 @@ add_library (matpack STATIC
         )
 
 include_directories ( SYSTEM ${CMAKE_SOURCE_DIR}/ext )
-target_link_libraries( matpack ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES} gfortran )
+target_link_libraries( matpack ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES} )
 
 ########### next target ###############
 
