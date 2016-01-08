@@ -961,21 +961,18 @@ All examples below assume that \shortcode{a} is a Sparse.
 
 \subsubsection{Identity matrix:}
 \begin{code}
-a.make_I(10,10);
+a.resize(10,10);
+id_mat(a);
 \end{code}
-This sets \shortcode{a} to be the identity matrix of size 10x10 (10 rows 
-and 10 columns). Using this function is much faster than setting the 
-diagonal elements to one by yourself. The number of rows and columns 
-doesn't have to match each other. In the case that they don't, the rule 
-that each row and column only will have only one position occupied by a one
-is applied. That is, in the case there are more rows than columns, the last
-rows will be empty.
+This sets \shortcode{a} to be the identity matrix of size $10 \times 10$ (10 rows
+and 10 columns). Using this function is much faster than setting the
+diagonal elements to one by yourself. Note that a must be a square matrix.
 
 \subsubsection{Resize:}
 \begin{code}
 a.resize(5,10);
 \end{code}
-This makes \shortcode{a} a 5x10 Sparse (5 rows, 10 columns). Note that the
+This makes \shortcode{a} a $5 \times 10$ Sparse (5 rows, 10 columns). Note that the
 previous content will be completely lost. The new Sparse will be empty.
 
 \subsubsection{Get the number of rows, columns or non-zero elements:}
@@ -1013,9 +1010,11 @@ cout << a.rw(0,0);  // Also returns the value of the
 Sparse b;
 b = a;
 \end{code}
-
-As in the case of Vectors, the `=' operator adjusts the size of the
-target automatically.
+%
+The copying of matrices is implemented as deep copy. That means that the complete
+object is duplicated including all elements in the matrix. The resulting matrices
+are completely independent of each other, but depending on a this may require
+considerable amount time and memory.
 
 \subsubsection{Transpose:} The function \shortcode{transpose} works a bit
 differently for Sparse than for Vector and Matrix. This is due to the
@@ -1032,6 +1031,35 @@ Sparse b(a.ncols(),a.nrows());
 transpose(b,a);     // Make b the transpose of a.
                     // Note the argument order!
 \end{code}
+
+\subsubsection{Matrix addition and subtraction:}
+
+The sums and differences of sparse matrices \textbf{with the same
+dimensions} can be computed as follows:
+%
+\begin{code}
+Sparse b(a.nrows(),a.ncols());
+Sparse c(a.nrows(),a.ncols());
+
+add( c, a, b ); // c = a + b
+a += b;       // a = a + b
+
+sub( c, a, b ); // c = a - b
+a -= b;       // a = a - b
+\end{code}
+%
+
+\subsubsection{Scaling of sparse matrices:}
+
+Sparse matrices can be scaled by scalar factors as follows:
+%
+\begin{code}
+a *= 2.0;  // a = 2.0 * a
+a /= 2.0;  // a = 0.5 * a
+\end{code}
+%
+Note that the \shortcode{/=} scales the matrix by the reciprocal of the
+given scalar factor.
 
 \subsubsection{Matrix multiplication:}
 \begin{code}
