@@ -1,3 +1,11 @@
+2016-01-08  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-405
+
+	* src/workspace.cc: ppath_stepRefractionEuler was corrected to
+	ppath_stepRefractionBasic.And moved covmat_sx_inv to correct
+	place, alphabetically.
+
 2016-01-08  Simon Pfreundschuh   <simonpf@chalmers.se>
 
 	* arts-2-3-404

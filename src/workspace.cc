@@ -1210,6 +1210,20 @@ void Workspace::define_wsv_data()
        ),
       GROUP( "Matrix" )));
    
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "covmat_sx_inv" ),
+      DESCRIPTION
+      (
+       "The inverse of the covariance matrix for a priori uncertainty.\n"
+       "\n"
+       "Usage:      Used by inversion methods.\n"
+       "\n"
+       "Dimensions: \n"
+       "     [ x, x ]\n"
+       ),
+      GROUP( "Matrix" )));
+
    wsv_data.push_back
    (WsvRecord
    ( NAME( "dabs_coef_dx" ),
@@ -1291,20 +1305,6 @@ void Workspace::define_wsv_data()
          "     [*abs_species*][n_quantities][*f_grid*, *abs_p* ]\n"
      ),
      GROUP( "ArrayOfArrayOfMatrix" )));
-
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "covmat_sx_inv" ),
-      DESCRIPTION
-      (
-       "The inverse of the covariance matrix for a priori uncertainty.\n"
-       "\n"
-       "Usage:      Used by inversion methods.\n"
-       "\n"
-       "Dimensions: \n"
-       "     [ x, x ]\n"
-       ),
-      GROUP( "Matrix" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -3382,9 +3382,9 @@ void Workspace::define_wsv_data()
        "Maximum length of ray tracing steps when determining propagation\n"
        "paths.\n"
        "\n"
-       "See *ppath_stepRefractionEuler* for a description of this variable.\n"
+       "See *ppath_stepRefractionBasic* for a description of this variable.\n"
        "\n"
-       "Usage: Refraction ppath methods such as *ppath_stepRefractionEuler*.\n"
+       "Usage: Refraction ppath methods such as *ppath_stepRefractionBasic*.\n"
        ),
       GROUP( "Numeric" )));
 
