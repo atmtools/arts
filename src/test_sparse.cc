@@ -379,7 +379,7 @@ void test47()
   Sparse A;
 
   A.resize(5,5);
-  A.identity();
+  id_mat( A );
 
   cout << "A:\n" << A << endl;
 }
@@ -580,7 +580,7 @@ Numeric test_identity( Index ntests, bool verbose )
         }
 
         id_mat(A);
-        A_sparse.identity();
+        id_mat( A_sparse );
 
         Numeric err = get_maximum_error( A_sparse, A, true );
         if (err > err_max)
@@ -1115,8 +1115,9 @@ Numeric test_sparse_arithmetic( Index m, Index n, Index ntests, bool verbose )
         cout << endl;
         cout << "Testing sparse arithmetic:" << endl << endl;
         cout << setw(5) << "Test " << setw(15) << "Addition";
-        cout << setw(15) << "Multiplication" << setw(15) << "Subtraction" << endl;
-        cout << std::string( 55, '-') << endl;
+        cout << setw(15) << "Multiplication" << setw(15) << "Subtraction";
+        cout << setw(15) << "Scaling" << endl;
+        cout << std::string( 70, '-') << endl;
     }
 
     for ( Index i = 0; i < ntests; i++ )
@@ -1153,6 +1154,12 @@ Numeric test_sparse_arithmetic( Index m, Index n, Index ntests, bool verbose )
         if (err > err_max)
             err_max = err;
 
+        C_sparse += D_sparse;
+
+        err = get_maximum_error( C_sparse, C, true );
+        if (err > err_max)
+            err_max = err;
+
         if (verbose)
             cout << setw(15) << err;
 
@@ -1163,6 +1170,31 @@ Numeric test_sparse_arithmetic( Index m, Index n, Index ntests, bool verbose )
         sub( B_sparse, C_sparse, D_sparse );
 
         err = get_maximum_error( B_sparse, C, true );
+        if (err > err_max)
+            err_max = err;
+
+        C_sparse -= D_sparse;
+
+        err = get_maximum_error( C_sparse, C, true );
+        if (err > err_max)
+            err_max = err;
+
+        if (verbose)
+            cout << setw(15) << err;
+
+        // Scaling
+
+        C_sparse *= 1.2;
+        C        *= 1.2;
+
+        err = get_maximum_error( C_sparse, C, true );
+        if (err > err_max)
+            err_max = err;
+
+        C_sparse /= 1.2;
+        C        /= 1.2;
+
+        err = get_maximum_error( C_sparse, C, true );
         if (err > err_max)
             err_max = err;
 
@@ -1188,6 +1220,13 @@ int main()
     // test48();
 
     Numeric err;
+
+    cout << "Testing sparse arithmetic: ";
+    err = test_sparse_arithmetic( 1000, 1000, 100, false );
+    if (err < 1e-11)
+        cout << "PASSED" << endl;
+    else
+        cout << "FAILED (Error: " << err << ")" << endl;
 
     cout << "Testing xml IO: ";
     err = test_xml_io( 100, false );

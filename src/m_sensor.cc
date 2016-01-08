@@ -1794,7 +1794,7 @@ void sensor_responseInit(
   out3 << "  Size of *sensor_response*: " << n << "x" << n << "\n";
   //
   sensor_response.resize( n, n );
-  sensor_response.identity();
+  id_mat( sensor_response );
 }
 
 

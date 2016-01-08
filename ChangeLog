@@ -1,3 +1,28 @@
+2016-01-08  Simon Pfreundschuh   <simonpf@chalmers.se>
+
+	* arts-2-3-403
+
+	* src/CMakeLists.txt: Added OpenMP flag for timer class and
+	  removed oem.cc from compilation files.
+
+	* src/matpackII.*: Renamed identity matrix function to id_mat(...).
+	Implemented operators *=, /=, +=, -= in order to generalize the code
+	written for dense matrices.
+
+	* src/m_oem.cc: Made the oem(...) function a template and called it
+	oem_template(...) to avoid code duplication. Added wrapper oem(...) that
+	instantiates the template.
+
+	* src/m_sensor.cc: Adapted call to sparse identity matrix.
+
+	* src/methods.cc: Added SparseIdentityMatrix function.
+
+	* src/oem.*: Rewrote oem_cost_y as function template.
+
+	* src/test_sparse.*: Added tests for operators *=, /=, +=, -=.
+
+	* src/workspace.cc: Changed types of measurement covariance matrices.
+
 2016-01-08  Lukas Kluft  <lukas.kluft@gmail.com>
 
 	* arts-2-3-402

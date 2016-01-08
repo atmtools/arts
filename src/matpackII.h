@@ -66,9 +66,6 @@ public:
     // Insert functions
     void insert_row(Index r, Vector v);
 
-    // Make identity function:
-    void identity();
-
     // Resize function:
     void resize(Index r, Index c);
 
@@ -82,6 +79,14 @@ public:
     Numeric& rw(Index r, Index c);
     Numeric  ro(Index r, Index c) const;
     Numeric  operator() (Index r, Index c) const;
+
+    // Arithmetic operators:
+    Sparse& operator+=(const Sparse& x);
+    Sparse& operator-=(const Sparse& x);
+
+    // Scaling operators:
+    Sparse& operator*=(Numeric x);
+    Sparse& operator/=(Numeric x);
 
     // Conversion to Dense Matrix:
     operator Matrix() const;
@@ -101,6 +106,7 @@ public:
     friend void add (Sparse& A, const Sparse& B, const Sparse& C );
     friend void sub (Sparse& A, const Sparse& B, const Sparse& C );
     friend void transpose (Sparse& A, const Sparse& B );
+    friend void id_mat( Sparse& A );
 
 private:
 
@@ -139,5 +145,7 @@ void sub( Sparse& A,
 
 void transpose( Sparse& A,
                 const Sparse& B );
+
+void id_mat( Sparse& A );
 
 #endif

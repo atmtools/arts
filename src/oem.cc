@@ -315,10 +315,11 @@ void log_finalize_lm( ostream& stream,
   \author Patrick Eriksson
   \date   2015-10-05
 */
+template <typename Se_t>
 void oem_cost_y( Numeric& cost_y,
                  ConstVectorView y,
                  ConstVectorView yf,
-                 ConstMatrixView SeInv,
+                 Se_t SeInv,
                  const Numeric&  normfac )
 {
   Vector dy = y; dy -= yf;

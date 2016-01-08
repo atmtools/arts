@@ -478,6 +478,18 @@ void SparseSparseMultiply(// WS Generic Output:
   Y = dummy;
 }
 
+/* Workspace method: Doxygen documentation will be auto-generated */
+void SparseMatrixIdentity( Sparse        &X,
+                           const Index   &n,
+                           const Numeric &value,
+                           const Verbosity &)
+{
+  X.resize(n,n);
+  id_mat( X );
+
+  if( value != 1.0 )
+      X *= value;
+}
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void StringSet(String&  s, 

@@ -203,6 +203,71 @@ Sparse::operator Matrix() const
     return A;
 }
 
+//! Add sparse matrix.
+/*!
+
+  Element-wise, in-situ sum of two sparse matrices. Matrix must have the
+  same dimensions.
+
+  \param A The sparse matrix to add to the Sparse object.
+
+  \return Reference to the resulting sum.
+*/
+Sparse& Sparse::operator+=( const Sparse &A )
+{
+    matrix += A.matrix;
+}
+
+//! Subtract sparse matrix.
+/*!
+
+  Element-wise, in-situ difference of two sparse matrices. Matrix must have the
+  same dimensions.
+
+  \param A The sparse matrix to add to the Sparse object.
+
+  \return Reference to the resulting sum.
+*/
+
+Sparse& Sparse::operator-=( const Sparse &A )
+{
+    matrix -= A.matrix;
+}
+
+//! Scale matrix.
+/*!
+
+  \param x Scalar factor to scale the matrix with.
+
+  \return Reference to the scaled sparse matrix object.
+*/
+Sparse& Sparse::operator*=( Numeric x )
+{
+    matrix = matrix * x;
+}
+
+//! Scale matrix by reciprocal.
+/*!
+
+  \param x Reciprocal of the factor to scale the matrix with.
+
+  \return Reference to the scaled sparse matrix object.
+*/
+Sparse& Sparse::operator/=( Numeric x )
+{
+    matrix = matrix / x;
+}
+
+//! List elements in matrix.
+/*!
+
+  Writes the values in the matrix into the given Vector values and the row and
+  column indices into the given ArrayOfIndex objects.
+
+  \param values The values contained in the matrix.
+  \param row_indices The row indices corresponding to the values.
+  \param column_indices The column indices corresponding to the values.
+*/
 void Sparse::list_elements( Vector &values,
                             ArrayOfIndex &row_indices,
                             ArrayOfIndex &column_indices ) const
@@ -230,9 +295,6 @@ void Sparse::list_elements( Vector &values,
     }
 }
 
-
-
-
 //! Insert row function
 /*!
   Inserts a Vector as row of elements at the given position.
@@ -259,18 +321,6 @@ void Sparse::insert_row(Index r, Vector v)
           matrix.coeffRef( (int) r,i) = v[i];
   }
 
-}
-
-//! Make Identity matrix
-/*!
-  This functions sets the given square matrix to the identity matrix.
-*/
-void Sparse::identity()
-{
-
-    assert( ncols() == nrows() );
-
-    matrix.setIdentity();
 }
 
 //! Resize function.
@@ -553,6 +603,19 @@ void add( Sparse& A,
   A.matrix = B.matrix + C.matrix;
 }
 
+//! Sparse identity matrix
+/*!
+
+  Set the given Sparse matrix object to the identity matrix. The matrix must
+  be square.
+
+  \param A The matrix to be set to the identity matrix.
+*/
+void id_mat( Sparse &A )
+{
+    assert( A.ncols() == A.nrows() );
+    A.matrix.setIdentity();
+}
 
 //! Sparse - Sparse subtraction.
 /*!

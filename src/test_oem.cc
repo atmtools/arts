@@ -877,9 +877,9 @@ void test_oem_gauss_newton_sparse( Index m,
         // Generate test data.
         QuadraticModel K(m,n);
 
-        SeInv_sparse.identity();
+        id_mat( SeInv_sparse );
         random_fill_matrix( SeInv_sparse, 1.0, false );
-        SxInv_sparse.identity();
+        id_mat( SxInv_sparse );
         random_fill_matrix( SxInv_sparse, 1.0, false );
         SeInv = SeInv_sparse;
         SxInv = SxInv_sparse;
@@ -951,9 +951,9 @@ void test_oem_levenberg_marquardt_sparse( Index m,
         // Generate test data.
         QuadraticModel K(m,n);
 
-        SeInv_sparse.identity();
+        id_mat( SeInv_sparse );
         random_fill_matrix( SeInv_sparse, 1.0, false );
-        SxInv_sparse.identity();
+        id_mat( SxInv_sparse );
         random_fill_matrix( SxInv_sparse, 1.0, false );
         SeInv = SeInv_sparse;
         SxInv = SxInv_sparse;

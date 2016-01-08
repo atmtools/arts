@@ -415,10 +415,11 @@ private:
 };
 
 
+template <typename Se_t>
 void oem_cost_y( Numeric& cost_y,
                  ConstVectorView y,
                  ConstVectorView yf,
-                 ConstMatrixView SeInv,
+                 Se_t SeInv,
                  const Numeric&  normfac );
 
 // Optimal estimation method for linear models, n-form.

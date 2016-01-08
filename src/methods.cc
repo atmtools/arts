@@ -12809,6 +12809,32 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "SparseMatrixIdentity" ),
+        DESCRIPTION
+        (
+         "Returns a sparse dentity matrix.\n"
+         "\n"
+         "The size of the matrix created is n x n. Default is to return a\n"
+         "true identity matrix (I), but you can also select another value\n"
+         "along the diagonal be setting *value*. That is, the output is\n"
+         "value*I.\n"
+         ),
+        AUTHORS( "Simon Pfreundschuh" ),
+        OUT(),
+        GOUT(      "out"   ),
+        GOUT_TYPE( "Sparse" ),
+        GOUT_DESC( "Sparse output matrix" ),
+        IN(),
+        GIN(         "n"    , "value"   ),
+        GIN_TYPE(    "Index", "Numeric" ),
+        GIN_DEFAULT( NODEF   , "1"     ),
+        GIN_DESC( "Size of the matrix",
+                  "The value along the diagonal." 
+                  )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "specular_losCalc" ),
         DESCRIPTION
         (

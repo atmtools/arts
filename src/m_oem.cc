@@ -535,7 +535,8 @@ void x2arts_std(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void oem(
+template <typename Se_t, typename Sx_t>
+void oem_template(
          Workspace&                  ws,
          Vector&                     x,
          Vector&                     xa,
@@ -545,8 +546,8 @@ void oem(
          Vector&                     oem_diagnostics,
          Vector&                     ml_ga_history,
    const Vector&                     y,
-   const Matrix&                     covmat_sx_inv,
-   const Matrix&                     covmat_so_inv,
+   const Sx_t&                       covmat_sx_inv,
+   const Se_t&                       covmat_so_inv,
    const Index&                      jacobian_do,
    const ArrayOfRetrievalQuantity&   jacobian_quantities,
    const ArrayOfArrayOfIndex&        jacobian_indices,
@@ -731,3 +732,80 @@ void oem(
         }
     }
 }
+
+void oem(
+    Workspace&                  ws,
+    Vector&                     x,
+    Vector&                     xa,
+    Vector&                     yf,
+    Matrix&                     jacobian,
+    Matrix&                     dxdy,
+    Vector&                     oem_diagnostics,
+    Vector&                     ml_ga_history,
+    const Vector&                     y,
+    const Matrix&                       covmat_sx_inv,
+    const Sparse&                       covmat_so_inv,
+    const Index&                      jacobian_do,
+    const ArrayOfRetrievalQuantity&   jacobian_quantities,
+    const ArrayOfArrayOfIndex&        jacobian_indices,
+    const Agenda&                     inversion_iterate_agenda,
+    const Index&                      atmosphere_dim,
+    const Vector&                     p_grid,
+    const Vector&                     lat_grid,
+    const Vector&                     lon_grid,
+    const Tensor3&                    t_field,
+    const Tensor4&                    vmr_field,
+    const ArrayOfArrayOfSpeciesTag&   abs_species,
+    const String&                     method,
+    const Numeric&                    max_start_cost,
+    const Vector&                     x_norm,
+    const Index&                      max_iter,
+    const Numeric&                    stop_dx,
+    const Vector&                     ml_ga_settings,
+    const Index&                      clear_matrices,
+    const Index&                      display_progress,
+    const Verbosity&                  v )
+{
+    oem_template( ws, x, xa, yf,
+                  jacobian, dxdy, oem_diagnostics, ml_ga_history,
+                  y, covmat_sx_inv, covmat_so_inv, jacobian_do,
+                  jacobian_quantities, jacobian_indices,
+                  inversion_iterate_agenda, atmosphere_dim, p_grid,
+                  lat_grid, lon_grid, t_field, vmr_field, abs_species,
+                  method, max_start_cost, x_norm, max_iter, stop_dx,
+                  ml_ga_settings, clear_matrices, display_progress, v );
+}
+
+// template
+// void oem< Sparse, Matrix >(
+//     Workspace&                  ws,
+//     Vector&                     x,
+//     Vector&                     xa,
+//     Vector&                     yf,
+//     Matrix&                     jacobian,
+//     Matrix&                     dxdy,
+//     Vector&                     oem_diagnostics,
+//     Vector&                     ml_ga_history,
+//     const Vector&                     y,
+//     const Matrix&                       covmat_sx_inv,
+//     const Sparse&                       covmat_so_inv,
+//     const Index&                      jacobian_do,
+//     const ArrayOfRetrievalQuantity&   jacobian_quantities,
+//     const ArrayOfArrayOfIndex&        jacobian_indices,
+//     const Agenda&                     inversion_iterate_agenda,
+//     const Index&                      atmosphere_dim,
+//     const Vector&                     p_grid,
+//     const Vector&                     lat_grid,
+//     const Vector&                     lon_grid,
+//     const Tensor3&                    t_field,
+//     const Tensor4&                    vmr_field,
+//     const ArrayOfArrayOfSpeciesTag&   abs_species,
+//     const String&                     method,
+//     const Numeric&                    max_start_cost,
+//     const Vector&                     x_norm,
+//     const Index&                      max_iter,
+//     const Numeric&                    stop_dx,
+//     const Vector&                     ml_ga_settings,
+//     const Index&                      clear_matrices,
+//     const Index&                      display_progress,
+//     const Verbosity& );
