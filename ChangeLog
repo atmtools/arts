@@ -1,3 +1,9 @@
+2016-01-08  Lukas Kluft  <lukas.kluft@gmail.com>
+
+	* arts-2-3-402
+
+	* src/m_sensor.cc (backend_channel_responseGaussian): fixed indexing.
+
 2016-01-07  Simon Pfreundschuh   <simonpf@chalmers.se>
 
 	* arts-2-3-401

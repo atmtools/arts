@@ -381,7 +381,7 @@ void backend_channel_responseGaussian(ArrayOfGriddedField1&   r,
         const Index n = y.nelem();
         r[i].data.resize( n );
         for( Index j=0; j<n; j++ )
-            r[0].data[j] = y[j];
+            r[i].data[j] = y[j];
     }
 }
 
