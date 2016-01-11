@@ -1208,7 +1208,7 @@ void Workspace::define_wsv_data()
        "Dimensions: \n"
        "     [ x, x ]\n"
        ),
-      GROUP( "Matrix" )));
+      GROUP( "Sparse" )));
    
   wsv_data.push_back
    (WsvRecord
@@ -1222,7 +1222,7 @@ void Workspace::define_wsv_data()
        "Dimensions: \n"
        "     [ x, x ]\n"
        ),
-      GROUP( "Matrix" )));
+      GROUP( "Sparse" )));
 
    wsv_data.push_back
    (WsvRecord

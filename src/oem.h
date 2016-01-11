@@ -139,6 +139,7 @@ private:
     LinearOEM();
 
     void compute_gain_matrix();
+    void compute_averaging_kernel( MatrixView A );
 
     // Model parameters.
     Index n,m;
@@ -384,7 +385,9 @@ private:
     NonLinearOEM();
 
     // Internal member functions.
-    void compute_gain_matrix( Vector& x );
+    void compute_gain_matrix( ConstVectorView x );
+    void compute_averaging_kernel( MatrixView A,
+                                   ConstVectorView x );
     void gauss_newton( Vector &x,
                        ConstVectorView y,
                        bool verbose );

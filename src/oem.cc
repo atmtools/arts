@@ -712,6 +712,28 @@ void LinearOEM::compute_gain_matrix()
     timer.mark( t1 );
 }
 
+//! Compute averaging kernel.
+/*!
+
+  \param A The averaging kernel.
+*/
+void LinearOEM::compute_averaging_kernel( MatrixView A )
+{
+
+    assert( n == A.ncols() );
+    assert( n == A.nrows() );
+
+    // If not already computed, compute Gain matrix, which is
+    // required for the computation of the averaging kernel.
+    if (!gain_set)
+        compute_gain_matrix( );
+
+    // If the Gain matrix has already been computed, G
+    // is set and can be reused for the computation of A.
+
+    mult( A, G, J );
+}
+
 //! Compute fit
 /*!
   Compute fitted measurement vector from a given forward model and estimated
@@ -1467,7 +1489,7 @@ Index NonLinearOEM<Se_t, Sx_t>::compute_fit( Vector &yf,
   \param x The state vector
 */
 template<typename Se_t, typename Sx_t>
-void NonLinearOEM<Se_t, Sx_t>::compute_gain_matrix( Vector& x )
+void NonLinearOEM<Se_t, Sx_t>::compute_gain_matrix( ConstVectorView x )
 {
     Index t1, t2, t3, t4;
     t1 = timer.add_timer( "Gain Matrix Computation" );
@@ -1510,6 +1532,31 @@ void NonLinearOEM<Se_t, Sx_t>::compute_gain_matrix( Vector& x )
     timer.mark( t2 );
 
     timer.mark( t1 );
+}
+
+//! Compute averaging kernel.
+/*!
+
+  \param A The averaging kernel.
+  \param x The state vector at which to evaluate the
+  averaging kernel.
+*/
+template <typename Se_t, typename Sx_t>
+void NonLinearOEM<Se_t,Sx_t>::compute_averaging_kernel( MatrixView A,
+                                                        ConstVectorView x )
+{
+    assert( A.ncols() == n );
+    assert( A.nrows() == n );
+
+    // If not already computed, compute Gain matrix, which is
+    // required for the computation of the averaging kernel.
+    if (!gain_set)
+        compute_gain_matrix( x );
+
+    // If the Gain matrix has already been computed both G and J
+    // are set and can be reused for the computation of A.
+
+    mult( A, G, J );
 }
 
 //! Gauss-Newton non-linear OEM using precomputed inverses, n-form.
