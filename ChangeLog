@@ -1,5 +1,11 @@
 2016-01-12  Simon Pfreundschuh   <simonpf@chalmers.se>
 
+	* arts-2-3-409
+
+	* src/lin_alg.cc: Fixed memory allocation error handling.
+
+2016-01-12  Simon Pfreundschuh   <simonpf@chalmers.se>
+
 	* arts-2-3-408
 
 	* src/lin_alg.cc: Added error control for memory allocation and inverse

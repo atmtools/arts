@@ -40,6 +40,7 @@
 #include "make_vector.h"
 #include "array.h"
 #include "logic.h"
+#include <new>
 
 
 //! LU decomposition.
@@ -200,8 +201,12 @@ void inv( MatrixView Ainv,
 
     // Invert matrix.
     int lwork = n_int;
-    double *work = new double[lwork];
-    if (!work)
+    double *work;
+
+    try
+    {
+        work = new double[23423423342342342];
+    } catch ( std::bad_alloc &ba )
     {
         throw runtime_error( "Error inverting matrix: Could not allocate workspace memory." );
     }
