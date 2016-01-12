@@ -216,6 +216,7 @@ Sparse::operator Matrix() const
 Sparse& Sparse::operator+=( const Sparse &A )
 {
     matrix += A.matrix;
+    return *this;
 }
 
 //! Subtract sparse matrix.
@@ -232,6 +233,7 @@ Sparse& Sparse::operator+=( const Sparse &A )
 Sparse& Sparse::operator-=( const Sparse &A )
 {
     matrix -= A.matrix;
+    return *this;
 }
 
 //! Scale matrix.
@@ -244,6 +246,7 @@ Sparse& Sparse::operator-=( const Sparse &A )
 Sparse& Sparse::operator*=( Numeric x )
 {
     matrix = matrix * x;
+    return *this;
 }
 
 //! Scale matrix by reciprocal.
@@ -256,6 +259,7 @@ Sparse& Sparse::operator*=( Numeric x )
 Sparse& Sparse::operator/=( Numeric x )
 {
     matrix = matrix / x;
+    return *this;
 }
 
 //! List elements in matrix.

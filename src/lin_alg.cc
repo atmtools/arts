@@ -198,18 +198,26 @@ void inv( MatrixView Ainv,
     // Compute LU decomposition using LAPACK dgetrf_.
     lapack::dgetrf_( &n_int, &n_int, LU.mdata, &n_int, ipiv, &info );
 
-    int lwork = -1;
-    double lworkd;
-    // Get optimal work space size.
-    lapack::dgetri_( &n_int, LU.mdata, &n_int, ipiv, &lworkd, &lwork , &info );
-
     // Invert matrix.
-    lwork = (int) lworkd;
-    double *work = new double[ lwork ];
+    int lwork = n_int;
+    double *work = new double[lwork];
+    if (!work)
+    {
+        throw runtime_error( "Error inverting matrix: Could not allocate workspace memory." );
+    }
+
     lapack::dgetri_( &n_int, LU.mdata, &n_int, ipiv, work, &lwork, &info );
     delete[] work;
 
-    Ainv = LU;
+    // Check for success.
+    if (info == 0)
+    {
+        Ainv = LU;
+    }
+    else
+    {
+        throw runtime_error( "Error inverting matrix: Matrix not of full rank." );
+    }
 }
 
 //! General exponential of a Matrix

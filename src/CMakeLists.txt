@@ -285,7 +285,7 @@ add_library (matpack STATIC
         matpackVII.cc
         )
 
-include_directories ( SYSTEM ${CMAKE_SOURCE_DIR}/ext )
+include_directories ( SYSTEM ${CMAKE_SOURCE_DIR}/3rdparty )
 target_link_libraries( matpack ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES} )
 
 ########### next target ###############
