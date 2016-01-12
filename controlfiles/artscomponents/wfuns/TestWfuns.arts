@@ -170,19 +170,6 @@ WriteXML( in=jacobian_quantities )
 yCalc
 Copy( Ja, jacobian )
 
-# Same with "from propmat"
-jacobianInit
-jacobianAddAbsSpecies( jacobian_quantities, jacobian_agenda,
-    atmosphere_dim, p_grid, lat_grid, lon_grid, 
-    retrieval_grid, lat_grid, lon_grid, 
-    "O3", "from propmat", "vmr", 0.01 )
-jacobianClose
-yCalc
-Copy( Jp, jacobian )
-
-# Compare
-Compare( Ja, Jp, 1e-6 )
-
 
 
 ##############################################################################
@@ -223,20 +210,6 @@ Copy( Jp, jacobian )
 
 # Compare
 Compare( Ja, Jp, 0.001 )
-
-
-# Same with "from propmat"
-jacobianInit
-jacobianAddTemperature( jacobian_quantities, jacobian_agenda,
-    atmosphere_dim, p_grid, lat_grid, lon_grid, 
-    retrieval_grid, lat_grid, lon_grid, 
-    "off", "from propmat", 0.1 )
-jacobianClose
-yCalc
-Copy( Jp, jacobian )
-
-# Compare
-Compare( Ja, Jp, 1e-6 )
 
 
 ##############################################################################
@@ -299,11 +272,43 @@ jacobianAddWind( jacobian_quantities, jacobian_agenda, atmosphere_dim,
     p_grid, lat_grid, lon_grid, retrieval_grid, lat_grid, lon_grid, "v" )
 
 jacobianAddWind( jacobian_quantities, jacobian_agenda, atmosphere_dim, 
-    p_grid, lat_grid, lon_grid, retrieval_grid, lat_grid, lon_grid, "w", "from propmat", 0.1 )
+    p_grid, lat_grid, lon_grid, retrieval_grid, lat_grid, lon_grid, "w", 0.1 )
     
 jacobianClose
 
 IndexSet( abs_f_interp_order, 1 )
 yCalc
 
+##############################################################################
+#
+# Just check that transmission weighting functions don't cause any error
+#
+##############################################################################
+
+# (standard) transmission calculation
+Copy( iy_main_agenda, iy_main_agenda__Transmission )
+Copy( iy_transmitter_agenda , iy_transmitter_agenda__UnitUnpolIntensity )
+
+# Calculate with analytical 
+jacobianInit
+jacobianAddTemperature( jacobian_quantities, jacobian_agenda,
+    atmosphere_dim, p_grid, lat_grid, lon_grid, 
+    retrieval_grid, lat_grid, lon_grid, 
+    "off", "analytical", 0.1 )
+jacobianClose
+yCalc
+Copy( Ja, jacobian )
+
+# Same with perturbations
+jacobianInit
+jacobianAddTemperature( jacobian_quantities, jacobian_agenda,
+    atmosphere_dim, p_grid, lat_grid, lon_grid, 
+    retrieval_grid, lat_grid, lon_grid, 
+    "off", "perturbation", 0.1 )
+jacobianClose
+yCalc
+Copy( Jp, jacobian )
+
+# Compare
+Compare( Ja, Jp, 0.001 )
 }

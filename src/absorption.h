@@ -67,7 +67,7 @@ typedef void (*lsf_type)(Vector&,//attenuation
      functions internal derivatives.  */
 typedef void (*lsf_type_dT)(Vector&,      // dx/dT
                             Numeric&,     // dy/dT
-                            Numeric&,     // dnorm/dT
+                            Numeric&,     // dFu/dT
                             ConstVectorView,   // frequency
                             const Numeric&,    // line center + line shifts
                             const Numeric&,    // sigma

@@ -206,12 +206,12 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix&  partials_attenuati
             const Numeric dsigma_dT = 0.5*sigma / temperature;
             
             // Setting up for the partials of the inner loop
-            Numeric dP_dT, dnorm_dT;
+            Numeric dP_dT, dFu_dT;
             Vector  dfn_dT(nv), 
                     dF_dT(nv);
             
             // Calculate the line shape derivative:
-            global_data::lineshape_data[ind_ls].dInput_dT()(dF_dT, dP_dT, dnorm_dT,
+            global_data::lineshape_data[ind_ls].dInput_dT()(dF_dT, dP_dT, dFu_dT,
                                                             this_f, f0, sigma, ddf_dT, dDF_LM_dT,
                                                             dsigma_dT, gamma, dgamma_dT);
             global_data::lineshape_norm_data[ind_lsn].dFunction_dT()(dfn_dT, f0,
@@ -223,25 +223,26 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix&  partials_attenuati
                               ls_B= ( (1.0 + G_LM)*CF_B[iv] - Y_LM*CF_A[iv]);
                 
                 this_partial_attenuation[iv] += 
-                (dS_dT + dfn_dT[iv]/C[iv] + dnorm_dT) * ls_A + //Line strength and factors
+                (dS_dT + dfn_dT[iv]/C[iv] + dFu_dT) * ls_A + //Line strength and factors
                 dG_LM_dT  * CF_A[iv]  + dY_LM_dT * CF_B[iv]  + //Line Mixing (absolute)
                 dF_dT[iv] * dFa_dx[iv] +                        //Frequency line shape
                 dP_dT     * dFa_dy[iv];                         //Pressure line shape
                 
                 if(do_partials_phase)// Minus signs should be here due to iFb, though this must be tested!
                     this_partial_phase[iv]   += 
-                    (dS_dT + dfn_dT[iv]/C[iv] + dnorm_dT) * ls_B + //Line strength
+                    (dS_dT + dfn_dT[iv]/C[iv] + dFu_dT) * ls_B + //Line strength
                     dG_LM_dT  * CF_B[iv]  - dY_LM_dT * CF_A[iv]  + //Line Mixing (absolute)
                     dF_dT[iv] * dFb_dx[iv] +                       //Frequency line shape
                     dP_dT     * dFb_dy[iv];                        //Pressure line shape
                 
                 if(do_src)
                     this_partial_src[iv] += nlte * /*partial attenuation*/
-                    ((dS_dT + dfn_dT[iv]/C[iv] + dnorm_dT) * ls_A  + //Line strength
+                    ((dS_dT + dfn_dT[iv]/C[iv] + dFu_dT) * ls_A  + //Line strength
                     dG_LM_dT  * CF_A[iv]   + dY_LM_dT * CF_B[iv]   + //Line Mixing (absolute)
                     dF_dT[iv] * dFa_dx[iv]  +                         //Frequency line shape 
                     dP_dT     * dFa_dy[iv]) +                         //Pressure line shape
                     ls_A/K3*(dK4-K4*dK3);                            //Source term ratio
+                    
             }
             
             // Ready and done!  So complicated that I need plenty of testing!

@@ -6964,97 +6964,9 @@ void define_md_data_raw()
         GIN_DESC()
         ));
 
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "iyTransmissionStandard" ),
-        DESCRIPTION
-        (
-         "Standard method for handling (direct) transmission measurements.\n"
-         "\n"
-         "Designed to be part of *iy_main_agenda*. Treatment of the cloudbox\n"
-         "is incorporated (that is, no need to define *iy_cloudbox_agenda*).\n"
-         "\n"
-         "In short, the propagation path is followed until the surface or\n"
-         "space is reached. At this point *iy_transmitter_agenda* is called\n"
-         "and the radiative transfer calculations start. That is, the result\n"
-         "of the method (*iy*) is the output of *iy_transmitter_agenda*\n"
-         "multiplied with the transmission from the sensor to either the\n"
-         "surface or space.\n"
-         "\n"
-         "The following auxiliary data can be obtained:\n"
-         "  \"Pressure\": The pressure along the propagation path.\n"
-         "     Size: [1,1,1,np].\n"
-         "  \"Temperature\": The temperature along the propagation path.\n"
-         "     Size: [1,1,1,np].\n"
-         "  \"VMR, species X\": VMR of the species with index X (zero based).\n"
-         "     For example, adding the string \"VMR, species 0\" extracts the\n"
-         "     VMR of the first species. Size: [1,1,1,np].\n"
-         "  \"Absorption, summed\": The total absorption matrix along the\n"
-         "     path. Size: [nf,ns,ns,np].\n"
-         "  \"Absorption, species X\": The absorption matrix along the path\n"
-         "     for an individual species (X works as for VMR).\n"
-         "     Size: [nf,ns,ns,np].\n"
-         "  \"Particle extinction, summed\": The total extinction matrix over\n"
-         "       all scattering elements along the path. Size: [nf,ns,ns,np].\n"
-         "  \"PND, type X\": The particle number density for scattering element\n"
-         "       type X (ie. corresponds to book X in pnd_field).\n"
-         "       Size: [1,1,1,np].\n"
-         "  \"Mass content, X\": The mass content for scattering element X.\n"
-         "       This corresponds to column X in *particle_masses* (zero-\n"
-         "       based indexing). Size: [1,1,1,np].\n"
-         "* \"Radiative background\": Index value flagging the radiative\n"
-         "     background. The following coding is used: 0=space, 1=surface\n"
-         "     and 2=cloudbox. Size: [nf,1,1,1].\n"
-         "  \"iy\": The radiance at each point along the path.\n"
-         "     Size: [nf,ns,1,np].\n"
-         "  \"Transmission\": The transmission matrix from each propagation\n"
-         "     path point to the end of the path closest to the sensor. The\n"
-         "     Mueller transmission matrices are valid for the direction of\n"
-         "     the photons. Size: [nf,ns,ns,np].\n"
-         "* \"Optical depth\": The scalar optical depth between the\n"
-         "     observation point and the end of the primary propagation path\n"
-         "     (ie. the optical depth to the surface or space.). Calculated\n"
-         "     in a pure scalar manner, and not dependent on direction.\n"
-         "     Size: [nf,1,1,1].\n"
-         "* \"Faraday rotation\": Total rotation [deg] along the path, for\n"
-         "     each frequency. Size: [nf,1,1,1].\n"
-         "* \"Faraday speed\": The rotation per length unit [deg/m], at each\n"
-         "     path point and each frequency. Size: [nf,1,1,np].\n"
-         "where\n"
-         "  nf: Number of frequencies.\n"
-         "  ns: Number of Stokes elements.\n"
-         "  np: Number of propagation path points.\n"
-         "\n"
-         "The auxiliary data are returned in *iy_aux* with quantities\n"
-         "selected by *iy_aux_vars*. Most variables require that the method\n"
-         "is called directly or by *iyCalc*. For calculations using *yCalc*,\n"
-         "the selection is restricted to the variables marked with *.\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT( "iy", "iy_aux", "ppath", "diy_dx" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "diy_dx", "stokes_dim", "f_grid", "atmosphere_dim", "p_grid",
-            "z_field", "t_field", "vmr_field", "abs_species", 
-            "wind_u_field", "wind_v_field", "wind_w_field", "mag_u_field",
-            "mag_v_field", "mag_w_field", 
-            "cloudbox_on", "cloudbox_limits", "pnd_field", 
-            "use_mean_scat_data", "scat_data", "particle_masses",
-            "iy_aux_vars", "jacobian_do", "jacobian_quantities", 
-            "jacobian_indices", "ppath_agenda", "propmat_clearsky_agenda",
-            "iy_transmitter_agenda", "iy_agenda_call1", "iy_transmission", 
-            "rte_pos", "rte_los", "rte_pos2", "rte_alonglos_v", 
-            "ppath_lraytrace" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
     md_data_raw.push_back
     ( MdRecord
-    ( NAME( "iyTransmissionStandard2" ),
+    ( NAME( "iyTransmissionStandard" ),
       DESCRIPTION
       (
           "Standard method for handling (direct) transmission measurements.\n"
@@ -7660,14 +7572,13 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "jacobian_quantities", "jacobian_agenda", 
             "atmosphere_dim", "p_grid", "lat_grid", "lon_grid" ),
-        GIN( "g1", "g2", "g3", "component", "method", "dB" ),
-        GIN_TYPE( "Vector", "Vector", "Vector", "String", "String", "Numeric" ),
-        GIN_DEFAULT( NODEF, NODEF, NODEF, "v", "analytical", "1.0e-7" ),
+        GIN( "g1", "g2", "g3", "component","dB" ),
+        GIN_TYPE( "Vector", "Vector", "Vector", "String", "Numeric" ),
+        GIN_DEFAULT( NODEF, NODEF, NODEF, "v", "1.0e-7" ),
         GIN_DESC( "Pressure retrieval grid.",
                   "Latitude retrieval grid.",
                   "Longitude retreival grid.",
                   "Magnetic field component to retrieve",
-                  "\"analytical\" or \"from propmat\"",
                   "Magnetic field perturbation"
                   )
         ));
@@ -7742,15 +7653,14 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "jacobian_quantities", "jacobian_agenda", 
             "atmosphere_dim", "p_grid", "lat_grid", "lon_grid" ),
-        GIN( "g1", "g2", "g3", "component", "method", "dfrequency" ),
-        GIN_TYPE( "Vector", "Vector", "Vector", "String", "String", "Numeric" ),
-        GIN_DEFAULT( NODEF, NODEF, NODEF, "v", "analytical", "0.1" ),
+        GIN( "g1", "g2", "g3", "component", "dfrequency" ),
+        GIN_TYPE( "Vector", "Vector", "Vector", "String", "Numeric" ),
+        GIN_DEFAULT( NODEF, NODEF, NODEF, "v", "0.1" ),
         GIN_DESC( "Pressure retrieval grid.",
                   "Latitude retrieval grid.",
-                  "Longitude retreival grid.",
+                  "Longitude retrieval grid.",
                   "Wind component to retrieve",
-                  "Method \"analytical\" or \"from propmat\"",
-                  "When \"from propmat\", this is the frequency perturbation"
+                  "This is the frequency perturbation"
                   )
         ));
 
@@ -8084,31 +7994,6 @@ void define_md_data_raw()
         GIN_DEFAULT(),
         GIN_DESC()
       ));
-    
-    md_data_raw.push_back
-    ( MdRecord
-    ( NAME( "jacobianCalcTemperatureFromPropmat" ),
-      DESCRIPTION
-      (
-          "This function doesn't do anything. It just exists to satisfy\n"
-          "the input and output requirement of the *jacobian_agenda*.\n"
-          "\n"
-          "This function is added to *jacobian_agenda* by\n"
-          "jacobianAddTemperature and should normally not be called\n"
-          "by the user.\n"
-      ),
-      AUTHORS( "Oliver Lemke" ),
-      OUT( "jacobian" ),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN( "jacobian",
-          "mblock_index", "iyb", "yb" ),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()
-    ));
 
   md_data_raw.push_back
     ( MdRecord

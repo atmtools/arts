@@ -1,3 +1,36 @@
+2016-01-12  Richard Larsson   <ric.larsson@gmail.com>
+
+	* arts-2-3-407
+	
+	Consolidation of jacobian work.  Old analytical methods no longer
+	available in clearsky calculations.
+	
+	* controlfiles/artscomponents/wfuns/TestWfuns.arts:  Added
+	unphysical transmission test to this file.  Just so the code
+	gets activated.
+	
+	* doc/uguide/references.bib:  Added a reference to the matrix
+	derivation that is in use by the jacobian calculations.
+	
+	* doc/uguide/wfuns.tex:  Changed text to reflect changes in
+	jacobian.  Comments appreciated here.  Still do not know what
+	level to put discussions in user guide.  For instance, now I
+	refer to the theory guide for several expressions.  Expecially,
+	the temperature subsection and non-LTE should probably be 
+	improved.  It is difficult to just add non-LTE to the text...
+	
+	* src/{absorption.h,lineshapes,cc}:  Name change to fit text 
+	better.  Only one variable.
+	
+	* src/m_jacobian.cc:  Removed "from propmat" as an option.  This
+	is now the new "analytical".  Old analytical no longer possible 
+	to activate.
+	
+	* src/m_transmitter.cc:  Changed to transmission2 as default.
+	Old transmission removed.
+	
+	* src/methods.cc:  Reflects changes above.
+	
 2016-01-11  Simon Pfreundschuh   <simonpf@chalmers.se>
 
 	* arts-2-3-406

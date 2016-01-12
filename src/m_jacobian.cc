@@ -291,8 +291,6 @@ void jacobianAddAbsSpecies(
     { analytical = 0; }
   else if( method == "analytical")
     { analytical = 1; }
-  else if( method == "from propmat" )
-    { analytical = 2; }
   else
     {
       ostringstream os;
@@ -316,7 +314,7 @@ void jacobianAddAbsSpecies(
   rq.Analytical( analytical );
   rq.Perturbation( dx );
   rq.Grids( grids );
-  if(analytical == 2) 
+  if(analytical) 
       rq.SubSubtag(PROPMAT_SUBSUBTAG);
 
   // Add it to the *jacobian_quantities*
@@ -1745,7 +1743,7 @@ void jacobianCalcSinefit(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void jacobianAddTemperature(
-        Workspace&                ws _U_,
+        Workspace&,
         ArrayOfRetrievalQuantity& jq,
         Agenda&                   jacobian_agenda,
   const Index&                    atmosphere_dim,
@@ -1807,13 +1805,11 @@ void jacobianAddTemperature(
     { analytical = 0; }
   else if( method == "analytical" )
   { analytical = 1; }
-  else if( method == "from propmat" )
-  { analytical = 2; }
   else
     {
       ostringstream os;
       os << "The method for atmospheric temperature retrieval can only be "
-      << "\"analytical\"\n or \"perturbation\"\n or \"from propmat\".";
+      << "\"analytical\"\n or \"perturbation\"\n.";
       throw runtime_error(os.str());
     }
 
@@ -1839,22 +1835,17 @@ void jacobianAddTemperature(
   rq.Analytical( analytical );
   rq.Perturbation( dx );
   rq.Grids( grids );
-  if(analytical == 2) 
+  if(analytical) 
       rq.SubSubtag(PROPMAT_SUBSUBTAG);
 
   // Add it to the *jacobian_quantities*
   jq.push_back( rq );
 
-  if( analytical == 1 ) 
+  if( analytical ) 
     {
       out3 << "  Calculations done by semi-analytical expression.\n"; 
       jacobian_agenda.append( "jacobianCalcTemperatureAnalytical", TokVal() );
     }
-  else if( analytical == 2)
-  {
-      out3 << "  Calculations done by propagation matrix expression.\n"; 
-      jacobian_agenda.append( "jacobianCalcTemperatureFromPropmat", TokVal() );
-  }
   else
     { 
       out3 << "  Calculations done by perturbations, of size " << dx << ".\n"; 
@@ -1875,19 +1866,6 @@ void jacobianCalcTemperatureAnalytical(
 {
   /* Nothing to do here for the analytical case, this function just exists
    to satisfy the required inputs and outputs of the jacobian_agenda */
-}
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianCalcTemperatureFromPropmat(
-          Matrix&,
-    const Index&,
-    const Vector&,
-    const Vector&,
-    const Verbosity& )
-{
-    /* Nothing to do here for the analytical case, this function just exists
-     *  to satisfy the required inputs and outputs of the jacobian_agenda */
 }
 
 
@@ -2109,7 +2087,7 @@ void jacobianCalcTemperaturePerturbations(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void jacobianAddWind(
-        Workspace&                  ws _U_,
+        Workspace&,
         ArrayOfRetrievalQuantity&   jq,
         Agenda&                     jacobian_agenda,
   const Index&                      atmosphere_dim,
@@ -2120,7 +2098,6 @@ void jacobianAddWind(
   const Vector&                     rq_lat_grid,
   const Vector&                     rq_lon_grid,
   const String&                     component,
-  const String&                     method,
   const Numeric&                    dfrequency,
   const Verbosity&                  verbosity )
 {
@@ -2139,20 +2116,6 @@ void jacobianAddWind(
           throw runtime_error(os.str());
         }
     }
-
-    // Check that method is either "analytic" or "perturbation"
-    Index analytical;
-    if( method == "analytical" )
-    { analytical = 1; }
-    else if( method == "from propmat" )
-    { analytical = 2; }
-    else
-    {
-        ostringstream os;
-        os << "The method for atmospheric wind retrieval can only be "
-        << "\"analytical\"\n or \"from propmat\".";
-        throw runtime_error(os.str());
-    }
     
   // Check retrieval grids, here we just check the length of the grids
   // vs. the atmosphere dimension
@@ -2168,16 +2131,11 @@ void jacobianAddWind(
     throw runtime_error(os.str());
   }
   
-    // Check that component is either "u", "v" or "w"
-  if( (component != "u"  &&  component != "v"  &&  component != "w") && analytical==1 )
-    {
-      throw runtime_error(   
-          "The selection for *component* can only be \"u\", \"v\" or \"w\" for \"analytical\"." );
-    }
-  else if( (component != "u"  &&  component != "v"  &&  component != "w"  &&  component != "strength") && analytical==2 )
+    // Check that component is either correct
+    if( (component != "u"  &&  component != "v"  &&  component != "w"  &&  component != "strength") )
     {
       throw std::runtime_error(   
-          "The selection for *component* can only be \"u\", \"v\", \"w\" or \"strength\" for \"from propmat\"." );
+          "The selection for *component* can only be \"u\", \"v\", \"w\" or \"strength\"." );
     }
 
   // Create the new retrieval quantity
@@ -2186,26 +2144,15 @@ void jacobianAddWind(
   rq.Subtag( component );
   rq.Analytical( 1 );
   rq.Grids( grids );
-  if(analytical == 2) 
-  {
-      rq.SubSubtag(PROPMAT_SUBSUBTAG);
-      rq.Perturbation( dfrequency );
-  }
+  rq.SubSubtag(PROPMAT_SUBSUBTAG);
+  rq.Perturbation( dfrequency );
 
   // Add it to the *jacobian_quantities*
   jq.push_back( rq );
   
-  if( analytical == 1 ) 
-  {
-      out3 << "  Calculations done by semi-analytical expression.\n"; 
-      // Add gas species method to the jacobian agenda
-      jacobian_agenda.append( "jacobianCalcWindAnalytical", TokVal() );
-  }
-  else if( analytical == 2)
-  {
-      out3 << "  Calculations done by propagation matrix expression.\n"; 
-      jacobian_agenda.append( "jacobianCalcWindAnalytical", TokVal() );
-  }
+  out3 << "  Calculations done by propagation matrix expression.\n"; 
+  jacobian_agenda.append( "jacobianCalcWindAnalytical", TokVal() );
+  
 }                    
 
 
@@ -2241,7 +2188,6 @@ void jacobianAddMagField(
   const Vector&                     rq_lat_grid,
   const Vector&                     rq_lon_grid,
   const String&                     component,
-  const String&                     method,
   const Numeric&                    dB,
   const Verbosity&                  verbosity )
 {
@@ -2275,31 +2221,11 @@ void jacobianAddMagField(
     throw runtime_error(os.str());
   }
   
-  
-  
-  bool from_propmat;
-  if( method == "analytical")
-      from_propmat = false; 
-  else if( method == "from propmat" )
-      from_propmat = true;
-  else
-  {
-      ostringstream os;
-      os << "The method for absorption species retrieval can only be "
-      << "\"analytical\"\n or \"from propmat\".  You selected "<<method<<"\n";
-      throw std::runtime_error(os.str());
-  }
-  
     // Check that component is either "u", "v" or "w"
-  if( (!from_propmat) && component != "u"  &&  component != "v"  &&  component != "w" )
-    {
-      throw runtime_error(   
-          "The selection for *component* can only be \"u\", \"v\" or \"w\"." );
-    }
-    else if( from_propmat && component != "u"  &&  component != "v"  &&  component != "w" && component != "strength"  &&  component != "eta"  &&  component != "theta")
+  if( component != "u"  &&  component != "v"  &&  component != "w" && component != "strength"  &&  component != "eta"  &&  component != "theta")
     {
         throw runtime_error(   
-        "The selection for *component* can only be \"u\", \"v\" or \"w\"." );
+        "The selection for *component* can only be \"u\", \"v\", \"w\", \"strength\", \"eta\", or \"theta\"." );
     }
   // Create the new retrieval quantity
   RetrievalQuantity rq;
@@ -2308,11 +2234,8 @@ void jacobianAddMagField(
   rq.Analytical( 1 );
   rq.Grids( grids );
   
-  if(from_propmat)
-  {
-    rq.SubSubtag(PROPMAT_SUBSUBTAG);
-    rq.Perturbation(dB);//FIXME:  This should be input
-  }
+  rq.SubSubtag(PROPMAT_SUBSUBTAG);
+  rq.Perturbation(dB);
   
   // Add it to the *jacobian_quantities*
   jq.push_back( rq );
@@ -3753,6 +3676,7 @@ void jacobianAddCatalogParameter(
             throw runtime_error(os.str());
     }
     
+    //FIXME: Move reference parameters to another function that only has a single grid point... now not correct unless g1-g3 is singular long
     // Check catalog_parameter here
     if(!(PRESSUREBROADENINGGAMMA_MODE==catalog_parameter ||
         LINESTRENGTH_MODE==catalog_parameter ||

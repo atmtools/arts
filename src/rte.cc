@@ -806,8 +806,8 @@ Numeric dotprod_with_los_dWdw(
     const Index&      atmosphere_dim )
 {
     // Strength of field
-    const Numeric f = sqrt( u*u + v*v + w*w );
-    const Numeric f2 = f*f;
+    const Numeric u2=u*u, v2=v*v, w2=w*w;
+    const Numeric f2 = u2+v2+w2;
     
     // Zenith and azimuth angle for field (in radians) 
     const Numeric aa_f = atan2( u, v );
@@ -820,7 +820,7 @@ Numeric dotprod_with_los_dWdw(
     
     return cos(za_p) - 
     (cos(aa_f - aa_p)*sin(za_p) * 
-    ( 2*w/f2 - (2*w*w*w)/(f2*f2))) / (2*sqrt(1 - w*w/(f2)));
+    ( 2*w/f2 - (2*w*w2)/(f2*f2))) / (2*sqrt(1 - w2/(f2)));
 } 
 
 Numeric dotprod_with_los_dWdu(
@@ -831,8 +831,8 @@ Numeric dotprod_with_los_dWdu(
     const Index&      atmosphere_dim )
 {
     // Strength of field
-    const Numeric f = sqrt( u*u + v*v + w*w );
-    const Numeric f2 = f*f;
+    const Numeric u2=u*u, v2=v*v, w2=w*w;
+    const Numeric f2 = u2+v2+w2;
     const Numeric  term1 = sqrt((u*u + v*v)/f2);
     
     // Zenith and azimuth angle for field (in radians) 
@@ -844,8 +844,8 @@ Numeric dotprod_with_los_dWdu(
     const Numeric za_p = DEG2RAD * los_p[0];
     const Numeric aa_p = DEG2RAD * los_p[1];
     
-    return (u*w*w*cos(aa_f - aa_p)*sin(za_p))/(term1*f2*f2) - 
-    (v*sin(aa_f - aa_p)*sin(za_p)*term1)/(u*u + v*v);
+    return (u*w2*cos(aa_f - aa_p)*sin(za_p))/(term1*f2*f2) - 
+    (v*sin(aa_f - aa_p)*sin(za_p)*term1)/(u2 + v2);
 } 
 
 Numeric dotprod_with_los_dWdv(
@@ -856,9 +856,9 @@ Numeric dotprod_with_los_dWdv(
     const Index&      atmosphere_dim )
 {
     // Strength of field
-    const Numeric f = sqrt( u*u + v*v + w*w );
-    const Numeric f2 = f*f;
-    const Numeric  term1 = sqrt((u*u + v*v)/f2);
+    const Numeric u2=u*u, v2=v*v, w2=w*w;
+    const Numeric f2 = u2+v2+w2;
+    const Numeric  term1 = sqrt((u2 + v2)/f2);
     
     // Zenith and azimuth angle for field (in radians) 
     const Numeric aa_f = atan2( u, v );
@@ -869,8 +869,8 @@ Numeric dotprod_with_los_dWdv(
     const Numeric za_p = DEG2RAD * los_p[0];
     const Numeric aa_p = DEG2RAD * los_p[1];
     
-    return (u*sin(aa_f - aa_p)*sin(za_p)*term1)/(u*u + v*v) + 
-    (v*w*w*cos(aa_f - aa_p)*sin(za_p))/(term1*f2*f2);
+    return (u*sin(aa_f - aa_p)*sin(za_p)*term1)/(u2 + v2) + 
+    (v*w2*cos(aa_f - aa_p)*sin(za_p))/(term1*f2*f2);
 } 
 
 

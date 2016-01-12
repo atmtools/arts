@@ -94,11 +94,8 @@ For most atmospheric variables, such as species abundance, it is possible to
 derive an analytical expression for the Jacobians. This is advantageous because
 they result in faster and more accurate calculations. Such expressions are
 derived below. Some of the terms involved are calculated as a perturbation.
-This is partly a consequence of the flexibility of ARTS. The high-level
-radiative transfer methods (e.g.\ \builtindoc{iyEmissionStandard}) do not know
-how the low-level methods are defining all quantities, and a fixed analytical
-expression can not be used (see e.g.\ Sec.~\ref{sec:wfuns:atmtemp}). So, in
-practise, the calculations are ``semi-analytical''. 
+This is because some underlying functions of ARTS are best-fit methods that
+are internally interpolated to the correct grid anyways. 
 The analytical calculations are introduced in Sec.~\ref{sec:wfuns:atmvars}. 
 
 
@@ -246,42 +243,132 @@ Sec.~\ref{sec:wfuns:atmvars:limit}.
 \subsection{Matrix derivatives}
 \label{sec:wfuns:atmvars:matder}
 %
-Some of the expressions of this section treat derivatives involving vectors
-and matrices. Such derivatives must be handled with some care, the standard
-calculation rules do not always apply. The basic relationships used here
-are\footnote{See e.g.\ \url{en.wikipedia.org/wiki/Matrix_calculus}.}
-\begin{eqnarray}
-  \frac{\PartD\VctStl{a}}{\PartD\VctStl{a}} &=& 
-    \IdnMtr, \\
-  \frac{\PartD(\MtrStl{A}\VctStl{b})}{\PartD\VctStl{a}} &=& 
-    \MtrStl{A}\frac{\PartD\VctStl{b}}{\PartD\VctStl{a}}, \quad\quad
-    \mathrm{when}\ \MtrStl{A}\ \mathrm{independent\ of}\ \VctStl{a},\\
-  \frac{\PartD(\VctStl{b}+\VctStl{c})}{\PartD\VctStl{a}} &=& 
-    \frac{\PartD\VctStl{b}}{\PartD\VctStl{a}}+
-    \frac{\PartD\VctStl{c}}{\PartD\VctStl{a}},
-\end{eqnarray}
-where \VctStl{a}, \VctStl{b}\ and \VctStl{c}\ are vectors, and \MtrStl{A}\ is a
-matrix.
-
-Matrix exponential derivatives can not be expressed analytically in a general
-manner, but some cases can be handled. If two matrices \MtrStl{A}\ and
-\MtrStl{B}\ are commutative, i.e. $\MtrStl{A}\MtrStl{B}=\MtrStl{B}\MtrStl{A}$,
-then the following is valid \citep{Dattorro2011}\footnote{Available at
-  \url{https://ccrma.stanford.edu/~dattorro/mybook.html}.}
+Matrix exponents are calculated using the Pad\'{e} approximation with scaling \& squaring.
+Likewise, matrix exponent derivatives are calculated using the same method.
+The implementation in ARTS follows \citet{brancik:06}.  As a brief reminder, following
+the same notation as \citet{brancik:06}, but with
+altered input/output to match the rest of this text, the transmission
+matrix is
 \begin{equation}
-  \label{eq:expmder}
-  \frac{\PartD}{\PartD t} e^{t\MtrStl{A}+\MtrStl{B}} = 
-       \MtrStl{A}e^{t\MtrStl{A}+\MtrStl{B}},
+  \MtrStl{T}_i(x_i) = \exp\left(-\MtrStl{K}_i(x_i)r\right) \approx \MtrStl{D}_{pq}^{-1}(x_i)\MtrStl{N}_{pq}(x_i),\label{eq: pade}
 \end{equation}
-where $t$ is a scalar variable.
-The cases where \MtrStl{A}\ and \MtrStl{B}\ are commutative includes the
-situation where one of them is a scalar matrix (can be written as $a\IdnMtr$,
-i.e.\ diagonal with all non-zero elements equal).
-For other cases, the ARTS matrix exponent derivatives follows a derivation on the 
-internal workings of the Pad\'{e} approximation terms.
+with
+\begin{equation}
+  \MtrStl{N}_{pq}(x_i)=\sum_{j=0}^p\frac{\left(p+q-j\right)!}{\left(p+q\right)!j!\left(p-j\right)}\left(-\MtrStl{K}_i(x_i)r\right)^j,
+\end{equation}
+and
+\begin{equation}
+  \MtrStl{D}_{pq}(x_i)=\sum_{j=0}^q\frac{\left(p+q-j\right)!}{\left(p+q\right)!j!\left(p-j\right)}\left(\MtrStl{K}_i(x_i)r\right)^j.
+\end{equation}
+This means that the matrix derivation of the transmission of the Pad\'{e} approximation method is
+\begin{equation}
+  \frac{\PartD \MtrStl{T}_i}{\PartD x_i} \approx \frac{\PartD  \MtrStl{D}_{pq}^{-1}}{\PartD x_i}\MtrStl{N}_{pq} + \MtrStl{D}_{pq}^{-1}\frac{\PartD  \MtrStl{N}_{pq}}{\PartD x_i},
+\end{equation}
+where the input arguments have been dropped (and will not appear again in this subsection) to make the equation(s) easier to read.
+To be explicit, the above can be rewritten as
+\begin{equation}
+  \frac{\PartD \MtrStl{T}_i}{\PartD x_i} \approx \MtrStl{D}_{pq}^{-1}\left(\frac{\PartD  \MtrStl{N}_{pq}}{\PartD x_i} - \frac{\PartD \MtrStl{D}_{pq}}{\PartD x_i} \MtrStl{T}_i\right) \label{eq: pade derivative}
+\end{equation}
+in calculations.
+Finally, the internal partial derivatives are just
+\begin{equation}
+  \frac{\PartD \MtrStl{N}_{pq}}{\PartD x_i}=\sum_{j=0}^p\frac{\left(p+q-j\right)!}{\left(p+q\right)!j!\left(p-j\right)}\left(-\frac{\PartD \MtrStl{K}_i}{\PartD x_i}r\right)^j,\label{eq: pade dn/dx}
+\end{equation}
+\begin{equation}
+  \frac{\PartD \MtrStl{D}_{pq}}{\PartD x_i}=\sum_{j=0}^q\frac{\left(p+q-j\right)!}{\left(p+q\right)!j!\left(p-j\right)}\left(\frac{\PartD \MtrStl{K}_i}{\PartD x_i}r\right)^j.\label{eq: pade dd/dx}
+\end{equation}
+
+Important to note in ARTS is that we average layer properties from properties of the surrounding path points simply by
+averaging the property at the two path points.
+That is
+\begin{equation}
+   \MtrStl{K}_i = \frac{ \MtrStl{K}_{i-1/2}+\MtrStl{K}_{i+1/2}}{2},
+\end{equation}
+where the half denotes the propagation matrix at the two levels.  
+So for every layer, we need the partial derivation of the layer for both the influence
+by the level above and the level below. Thus, 
+\begin{equation}
+  \frac{\PartD \MtrStl{K}_i}{\PartD x_i} = \frac{1}{2}\left(\frac{\PartD \MtrStl{K}_{i-1/2}}{\PartD x_i}+\frac{\PartD \MtrStl{K}_{i+1/2}}{\PartD x_i}\right)
+\end{equation}
+These calculations are done in parallel to save memory and/or time.  In fact, only
+Equations~\ref{eq: pade dn/dx}~and~\ref{eq: pade dd/dx} are recalculated for each analytical Jacobian entity that has been requested
+by the user.
+
+\subsection{Analytical expression for partial derivation of the propagation matrix}
+
+All lines and contributions to the propagation matrix are summed for a total
+propagation.  This means that
+\begin{equation}
+  \MtrStl{K}_i = \sum_j \MtrStl{K}_j;\;\;\;\frac{\PartD \MtrStl{K}_i}{\PartD x_i} = \sum_j \frac{\PartD \MtrStl{K}_j}{\PartD x_i},
+  \label{eq: general dk/dx}
+\end{equation}
+for all $j$ lines, continua contributions, collision induced absorption contributions, etc..
+This means that to calculate each individual ${\PartD \MtrStl{K}_j}/{\PartD x_i}$ is enough to get 
+${\PartD \MtrStl{K}}/{\PartD x_i}$.  The method of calculating ${\PartD \MtrStl{K}_j}/{\PartD x_i}$
+depends on how the absorption is calculated.  
 
 
+\subsubsection{Parameterized absorption models}
 
+Several methods in ARTS are best-fit or parameterized models.  If $\MtrStl{K}_j$ is 
+from one of these functions, then a perturbation approach is used in a
+low-level function to get ${\PartD \MtrStl{K}_j}/{\PartD x_i}$.  The user sets a 
+small perturbation that is then used internally.  
+This way is used when continua, collision induced absorption and lookup table 
+is used since these are only available in parameterized form in ARTS.
+
+\subsubsection{Line-by-line absorption}
+
+Expanding $\MtrStl{K}_j$ for line-by-line calculations,
+it can roughly be written
+\begin{equation}
+  \MtrStl{K}_j = S_jF_j\MtrStl{\Phi}_j, \label{eq: simple propagation}
+\end{equation}
+where $S_j$ is the scaled line strength, $F_j$ is the shape of the line, 
+and $\MtrStl{\Phi}_j$ is the polarization matrix.
+This rough expression is useful for defining the partial derivatives since
+we can write
+\begin{equation}
+  \frac{\PartD \MtrStl{K}_j}{\PartD x_i} = 
+  \frac{\PartD S_j}{\PartD x_i}F_j\MtrStl{\Phi}_j+
+  S_j\frac{\PartD F_j}{\PartD x_i}\MtrStl{\Phi}_j+
+  S_jF_j\frac{\PartD \MtrStl{\Phi}_j}{\PartD x_i}.
+  \label{eq: line dk/dx}
+\end{equation}
+An important thing to remember about the equation above is that
+everything in Equation~\ref{eq: simple propagation} is  already 
+known (to the level of certainty in the model).  Thus, 
+Equation~\ref{eq: line dk/dx} can, when it is convenient, be written as
+\begin{equation}
+  \frac{\PartD \MtrStl{K}_j}{\PartD x_i} = \MtrStl{K}_j
+  \left(
+  S_j^{-1}\frac{\PartD S_j}{\PartD x_i}+
+  F_j^{-1}\frac{\PartD F_j}{\PartD x_i}+
+  \MtrStl{\Phi}_j^{-1}\frac{\PartD \MtrStl{\Phi}_j}{\PartD x_i}
+  \right). \label{eq: line dk/dx special}
+\end{equation}
+Both Equation~\ref{eq: line dk/dx} or \ref{eq: line dk/dx special} are
+used internally in the code base.
+
+To extend the rough expression a little bit, the line strength 
+variable can be thought of as
+\begin{equation}
+  S_j = n_j(T,p) S_{j,0} f(T,\cdots),\label{eq: rough line strength}
+\end{equation}
+where $n_j$ is the number density, $S_{j,0}$ is the line strength 
+at a reference temperature in LTE, and
+$f(T,\cdots)$ is a function that mostly depends on the temperature
+(but also other line parameters and non-LTE effects are included here).
+The line shape variable can be thought of as
+\begin{equation}
+  F_j = F_n F_m F_u F_s,\label{eq: rough line shape}
+\end{equation}
+where $F_n$ is a renormalization term far from the line center (e.g., van Vleck and Huber renormalization),
+$F_m$ is the line mixing,
+$F_u$ is a unit conversion term, and
+$F_s$ is the classical definition of line shape (e.g., Lorentz or Voigt distributions).
+The polarization matrix is the unit matrix except for the Zeeman effect and for Faraday rotation.
+In scalar simulations, it is simply the $1\times1$ unit matrix, or a scalar 1.
 
 \subsection{Separation of terms}
 \label{sec:wfuns:atmvars:sepe}
@@ -423,7 +510,7 @@ $\MtrStl{R}_i$ is defined in Eq.~\ref{eq:fm_defs:surfacerefl} and
 
 
 
-\subsection{$\PartD\StoVec/\PartD\aSttElm{i}$, locally unpolarised absorption}
+\subsection{$\PartD\StoVec/\PartD\aSttElm{i}$, locally unpolarized absorption}
 \label{sec:wfuns:atmvars:unpol}
 %
 Eq.~\ref{eq:wfuns:dsdxi1} can be simplified for some conditions. A first case
@@ -431,9 +518,9 @@ is scalar radiative transfer, i.e. only the first element of the Stokes vector
 is considered and all terms of Eq.~\ref{eq:wfuns:dsdxi1} are scalar quantities.
 For all other cases, in principle vector radiative transfer must be performed,
 as $\TrnMat'$ can always have off-diagonal elements. Even if atmospheric
-absorption is totally unpolarised, $\TrnMat'$ can be non-diagonal due to the
+absorption is totally unpolarized, $\TrnMat'$ can be non-diagonal due to the
 surface (Eq.~\ref{eq:wfuns:surface}). However, if the absorption locally lacks
-polarisation, the calculations can be handled by analytical expressions in a
+polarization, the calculations can be handled by analytical expressions in a
 higher degree.
 
 To focus on the analytical expressions dealing with local radiative transfer
@@ -509,7 +596,7 @@ Sec.~\ref{sec:wfuns:atmtemp}.
 %
 To obtain the Jacobian for absorption species, use
 \wsmindex{jacobianAddAbsSpecies}. The method handles one species at the time.
-The calculations can either be done in in ``analytical'' or ``perturbation''
+The calculations can either be done in an ``analytical'' or ``perturbation''
 manner. For gases, weighting functions (WFs) can be provided for several units
 of the gas abundance:
 \begin{description}
@@ -543,148 +630,29 @@ shall given following the unit selected. The same value is applied for all WFs
 (which can cause practical problems \dots).
 
 
-\subsection{Semi-analytical expressions}
+\subsection{Analytical expressions}
 %
 If not made clear above, the only term that differs between the Jacobian
 quantities is $\PartD\StoVec/\PartD\aSttElm{i}$.
 
-\subsubsection{Unpolarised absorption}
-%
-
-The term $\PartD j_i/\PartD\aSttElm{i}$ of Eq.~\ref{eq:wfuns:dsdxi2}
-is zero and the chain rule expression reduces to
+All parameterized models in ARTS are parameterized on basis of cross-section.
+These models' contribution to Equation\ref{eq: general dk/dx} are simply going to be
 \begin{equation}
-  \frac{\PartD\StoI}{\PartD\aSttElm{i}} =
-   e^{-\aOth{i}}\frac{\PartD\aOth{i}}{\PartD\aSttElm{i}}
-      (j_i-\aStoI{i})  
+ \frac{\PartD \MtrStl{K}_j}{\PartD x_i}=\frac{1}{x_i} \MtrStl{K}_j,
 \end{equation}
-The absorption coefficient at point $i$, \aAbsCoef{i}, is here written as
-\begin{equation}
-  \label{eq:wfuns:crossec1}
-  \aAbsCoef{i} = \aSttElm{i}\sigma_i + \aAbsCoef{i}^o,
-\end{equation}
-where $\sigma_i$ is the absorption cross-section for the species (at point $i$
-and in a unit matching the unit of \SttElm), and $\aAbsCoef{i}^o$ covers the
-summed absorption of all other atmospheric constituents. Considering
-Eq.~\ref{eq:taustep}, the derivative of \aOth{i}\ with respect to \aSttElm{i}\
-is then 
-\begin{equation}
-  \frac{\PartD\aOth{i}}{\PartD\aSttElm{i}} = 
-  \frac{\PartD\aOth{i}}{\PartD\aAbsCoef{i}} 
-  \frac{\PartD\aAbsCoef{i}}{\PartD\aSttElm{i}} = 
-    \frac{\Delta\aPpathLng{i}}{2}\sigma_i.
-\end{equation}
+for the parameterized model contributions $\MtrStl{K}_j$ that are functions of $x_i$.
+One thing of importance to note here is that in collision induced absorption, the 
+absorption caused by the secondary species is also considered in the above expression.
+ 
+For line-by-line contributions in Equation~\ref{eq: line dk/dx},
+we only consider $\PartD S_j/\PartD x_i$ as important (when the line is from the absorption species).
+The same expression as for parameterized models still apply for the partial derivative.
 
-%For clarity and efficiency reasons, the following nomenclature is used in the
-%source code:
-%\begin{eqnarray}
-%  X &=& \Trn' \aTrn{i}\frac{\Delta\aPpathLng{i}}{2}, \\
-%  Y &=& \frac{\PartD\StoI}{\PartD\aTrn{i}}
-%        \frac{\PartD\aTrn{i}}{\PartD\aOth{i}}
-%       \frac{\PartD\aOth{i}}{\PartD\aAbsCoef{i}}
-%    \qquad \left( = -X(\aStoI{i}-\bar{\Planck}_i) \right).
-%\end{eqnarray}
-%The expressions above are implemented in \wsmindex{iyEmissionStandard}.
-%
-%For higher Stokes elements, Eq.~\ref{eq:chainrule1q} is followed. Calculation
-%time can be saved by reusing the $X$-term derived for the first Stokes element:
-%\begin{equation}
-%  \frac{\PartD\StoQ}{\PartD\aTrn{i}}
-% \frac{\PartD\aTrn{i}}{\PartD\aOth{i}}
-%  \frac{\PartD\aOth{i}}{\PartD\aAbsCoef{i}}
-%    = -X \aStoI{i}.
-%\end{equation}
-%This expression is used for Stokes element 2 to 4 in
-%\wsmindex{iyEmissionStandard} and for all components in
-%\wsmindex{iyTransmissionStandard}.
-
-
-\subsubsection{General case}
-%
-So far, the term $\PartD\aTrnMat{i}/\PartD\aSttElm{i}$ is only estimated by
-performing a small perturbation, of the absorption associated with the species
-to be retrieved.\\
-
-\noindent
-{\it Note that the text below is just brainstorming for potential future improvements.}
-However, there exists a potential to use an analytical expression, as discussed
-below, but this is left for future consideration. The relationship between
-\aSttElm{i}\ and the propagation matrix of the path step can be written as
-\begin{equation}
-  \bar{\ExtMat}_i = \frac{\aSttElm{i}\MtrStl{C}_i+
-                      \aSttElm{i+1}\MtrStl{C}_{i+1}}{2} + \bar{\ExtMat}_i^o,
-\end{equation}
-where \MtrStl{C}\ can be seen as a matrix absorption cross-section
-(corresponding to $\sigma$ in Eq.~\ref{eq:wfuns:crossec1}) and
-$\bar{\ExtMat}_i^o$ is the propagation matrix summed for all other atmospheric
-constituents. 
-On the condition that Eq.~\ref{eq:expmder} is valid, we have that
-\begin{equation}
-  \frac{\PartD\aTrnMat{i}}{\PartD\aSttElm{i}} = 
-  \frac{\PartD}{\PartD\aSttElm{i}} 
-  e^{-\Delta\aPpathLng{i}\left(\frac{\aSttElm{i}\MtrStl{C}_i+
-            \aSttElm{i+1}\MtrStl{C}_{i+1}}{2} + \bar{\ExtMat}_i^o \right)} =
-  \frac{-\Delta\aPpathLng{i}}{2} \MtrStl{C}_i\aTrnMat{i}.
-  \label{eq:wfuns:vec:dsdxi}
-\end{equation}
-The question is when Eq.~\ref{eq:wfuns:vec:dsdxi} can be applied? We have three
-main cases:
-\begin{itemize}
-\item The equation is valid as long as the species to be retrieved has
-  unpolarised absorption. This as $\MtrStl{C}_i$ and $\MtrStl{C}_{i+1}$ can
-  then both be written as $\sigma_i\IdnMtr$, and
-  $(\aSttElm{i}\MtrStl{C}_i+\aSttElm{i+1}\MtrStl{C}_{i+1})/2$ is commutative
-  with any $\bar{\ExtMat}_i^o$.
-\item Eq.~\ref{eq:wfuns:vec:dsdxi} is not valid when all three matrices
-  involved ($\bar{\ExtMat}_i^o$ and the two \MtrStl{C}-matrices) have
-  off-diagonal elements at the same time. However, this is is unlikely case.
-  The main causes to polarised absorption are free electrons, Zeeman splitting
-  and particles, and these mechanisms are mainly found in the ionosphere,
-  mesosphere and troposphere, respectively.
-\item The remaining case is when $\bar{\ExtMat}_i^o$ is diagonal but the
-  species to be retrieved has polarised absorption. The likely situation is
-  that both $\MtrStl{C}_i$ and $\MtrStl{C}_{i+1}$ are non-diagonal on the same
-  time, and the condition of Eq.~\ref{eq:expmder} is not fulfilled. However, as
-  argued below, Eq.~\ref{eq:wfuns:vec:dsdxi} should still be approximately
-  valid, and this is used as ``working hypothesis'' in ARTS.
-\end{itemize}
-An alternative way to express the propagation matrix is
-\begin{displaymath}
-  \bar{\ExtMat}_i = \frac{\aSttElm{i}+\aSttElm{i+1}}{2}\bar{\MtrStl{C}}_i + 
-   \bar{\ExtMat}_i^o,   
-\end{displaymath}
-with
-\begin{displaymath}
-  \bar{\MtrStl{C}}_i = \frac{\MtrStl{C}_i+\MtrStl{C}_{i+1}}{2}.   
-\end{displaymath}
-With this formulation even the third case above would be handled, as we now
-only have two matrices to consider (and $\bar{\MtrStl{C}}_i$ is commutative
-with a diagonal $\bar{\ExtMat}_i^o$) . We would then have
-\begin{displaymath}
-  \frac{\PartD\aTrnMat{i}}{\PartD\aSttElm{i}} =  
-  \frac{-\Delta\aPpathLng{i}}{2} \bar{\MtrStl{C}}_i \aTrnMat{i}.    
-\end{displaymath}
-As $\MtrStl{C}_i$ and $\MtrStl{C}_{i+1}$ are (very) similar matrices (and then
-also close to $\bar{\MtrStl{C}}_i)$, the practical difference between this
-equation and Eq.~\ref{eq:wfuns:vec:dsdxi} should be small. Or reversely,
-Eq.~\ref{eq:wfuns:vec:dsdxi} should be approximately correct as $\MtrStl{C}_i$
-and $\MtrStl{C}_{i+1}$ are close to identical matrices.
-
-
-\subsection{From the propagation matrix}
-
-Each time the absorption species is encountered, its influence on $\ExtMat$ 
-and $\aSrcVec{n}$ are both
-analytically derived.  Note that unlike the semi-analytical case, influence on
-the radiation by CIA with other species is also considered.  
-
-\subsubsection{Unpolarized case}
-Since everything in Equation~\ref{eq:wfuns:dsdxi2} has been calculated, the equation is directly applied.
-
-\subsubsection{General case}
-The derivatives for the transmission matrix are achieved using derivatives of the Pad\'{e} approximation.
-Since after this, everything in 
-Equation~\ref{eq:wfuns:dsdxi1} has been calculated, the equation is directly applied.
+Note that we ignore that $\PartD F_j/\PartD x_i$ is mathematically non-trivial since pressure broadening 
+and line mixing is changed if the atmosphere is changed.  In fact, $\PartD F_j/\PartD x_i$ is 
+mathematically non-trivial even for lines other than those from the absorption species itself
+since it changes the total pressure.  We justify ignoring this effect because the term is very 
+small in most reasonable atmospheric setups.
 
 \section{Winds}
 %==============================================================================
@@ -694,21 +662,66 @@ Calculation of wind weighting functions are triggered by
 \wsmindex{jacobianAddWind}. Each wind component (see Sec.~\ref{sec:winds:defs})
 is treated as an individual retrieval variable. That is, if you want to
 retrieve all three wind components, \builtindoc{jacobianAddWind} must be called
-three times. Only the analytically inclined calculation approach is at hand
-for winds.
+three times. If you want the total wind Jacobian, this can also be attained.
+Only the analytically inclined calculation approach is at hand for winds.
 
 Theoretically, the Doppler shift induced by winds affects the emission source
-term ($\bar{\Planck}_i$, in the scalar case), but this impact is extremely small
+term, but this impact is extremely small
 and the related terms are ignored. This gives a case basically identical to the
-one above for absorption species. The only difference is that also the term
-$\PartD\aAbsCoef{i}/\PartD\aSttElm{i}$ is obtained in a pure numerical manner,
-by recalculating the absorption coefficient with the wind perturbed slightly.
+one above for absorption species.
 
-When calculating this from the propagation matrix, we just calculate the frequency
-derivative analytically and then apply the wind derivative on the ready matrix.
-Absolute wind speed influence can thus be calculated by applying the absolute wind 
-speed derivate instead of the components' derivatives.
+By design, the absorption calculations of ARTS are unaware of wind velocities.  
+Therefore, only the frequency derivative is calculated at the lowest level.  That is,
+for each component, this equation is evaluated
+\begin{equation}
+   \frac{\PartD \MtrStl{K}_j}{\PartD x_i}=\frac{\PartD \MtrStl{K}_j}{\PartD \nu} \frac{\PartD \nu}{\PartD x_i}.
+\end{equation}
 
+The frequency partial derivative term is
+\begin{equation}
+  \frac{\PartD \nu}{\PartD x_i} = \frac{1}{c}\frac{\PartD v}{\PartD x_i},
+\end{equation}
+where $c$ the speed of light and $v$ is the wind velocity relative to the observational path of the component of interest.
+The last partial derivative is there due to the influence of the angle of observation on the shift in frequency.
+Look along the direction of the wind component and it is the only component that matters so 
+the partial derivative above is unity.  The other two components are therefore perpendicular
+to the observational path and have partial derivatives that are nil.  We will not write the full expression since it
+depends on atmospheric dimensionality and is different for each of the three components so there are a total of 
+ten different expressions depending on user input.
+
+For Equation~\ref{eq: line dk/dx}, only ${\PartD F_j}/{\PartD \nu}$ is non-zero.
+The contribution is
+\begin{equation}
+   \frac{\PartD \MtrStl{K}_j}{\PartD \nu} = \MtrStl{K}_j \left(\frac{1}{F_n}\frac{\PartD F_n}{\PartD \nu}+\frac{1}{F_s}\frac{\PartD F_s}{\PartD \nu}\right).
+   \label{eq: wind propagation derivative}
+\end{equation}
+For efficiency, the second term is calculated slightly differently due to efficiency.
+
+There is a way to parameterize classical line shapes by two terms and write
+\begin{equation}
+  F_s = w(a+ib) = F_A + iF_B,
+\end{equation}
+where $a$ and $b$ are parameters used to determine how much pressure and temperature influence the line shape 
+(see details in the theory guide),
+$F_A$ is the Voigt line shape and $F_B$ is the Faraday-Voigt line shape.
+This is usually called the Faddeeva line shape.
+Using the Faddeeva line shape,
+\begin{equation}
+  \frac{\PartD w}{\PartD x_i} = \frac{\PartD w}{\PartD a}\frac{\PartD a}{\PartD x_i}+i\frac{\PartD w}{\PartD b}\frac{\PartD b}{\PartD x_i},
+  \label{eq: line shape derivative}
+\end{equation}
+and a great convenience is that 
+\begin{equation}
+  \frac{\PartD w}{\PartD b} = - \frac{\PartD w}{\PartD a},
+\end{equation}
+with
+\begin{equation}
+  \frac{\PartD w}{\PartD a} = 2b \cdot F_B-2a \cdot F_A - i \left[ 2b \cdot F_A+2a \cdot F_B-\frac{2}{\Delta\nu_D\cdot\pi} \right],
+\end{equation}
+where the last term is from $F_u$ and $\Delta\nu_D$ is the Doppler half width in frequency units.
+Since the partial derivation within the line shape is often repeated, using just one calculation of $\PartD w/\PartD a$ 
+and then recalculating ${\PartD a}/{\PartD x_i}$ and ${\PartD b}/{\PartD x_i}$ for different request Jacobian quantities
+is efficient.
 
 \section{Atmospheric temperatures}
 %==============================================================================
@@ -716,7 +729,7 @@ speed derivate instead of the components' derivatives.
 
 \subsection{Common practicalities}
 %
-To obtain WFs for absorption species, use \wsmindex{jacobianAddTemperature}.
+To obtain WFs for temperatures, use \wsmindex{jacobianAddTemperature}.
 The calculations can either be done in ``analytical'' or ``perturbation''
 manner. Retrieval grids must be specified.
 
@@ -743,7 +756,7 @@ included automatically.
 
 \subsection{Analytical expressions}
 %
-\subsubsection{Unpolarised absorption}
+\subsubsection{Unpolarized absorption}
 %
 Compared to atmospheric species, the expressions become here more complex as
 temperature also affects the propagation path length ($\Delta \aPpathLng{i}$)
@@ -794,33 +807,25 @@ In summary (assuming \verb|hse| set to ``on''):
   (1-e^{-\aOth{i}})\frac{\PartD j_i}{\PartD\aSttElm{i}}.  
 \end{equation}
 The derivative of the Planck function ($\PartD\Planck/\PartD\aSttElm{i}$) can
-be expressed analytically \citep{eriksson:studi:02}, but as \Planck\ is
-provided by an agenda related terms must anyhow be determined in a pure
-numerical manner. For example, if the Rayleigh-Jeans approximation is for some
-reason applied ($\Planck=\Tmp$) the term is just 1.
+be expressed analytically \citep{eriksson:studi:02}. 
 
 The expression for higher Stokes elements, or if emission is totally ignored,
-is obtained by setting $j_i$
-(and $\PartD j_i/\PartD\aSttElm{i}$) to zero.
+is obtained by setting $j_i$ (and $\PartD j_i/\PartD\aSttElm{i}$) to zero.
 
 
 \subsubsection{General case}
 %
-The term $\PartD\aTrnMat{i}/\PartD\aSttElm{i}$ is calculated in a pure
-numerical manner. This is done in two steps. In the first step, the
-transmission matrix is recalculated for a slightly perturbed temperature. If
-hydrostatic equilibrium is considered, the transmission is also recalculated
-with a disturbed $\Delta \aPpathLng{i}$. To avoid making two identical disturbances of
-the transmission matrix, these calculations are performed as
-\begin{displaymath}
-  \frac{\PartD\aTrnMat{i}}{\PartD\aSttElm{i}} = 
-  \frac{\PartD\aTrnMat{i}}{\PartD\bar{\Tmp}}\frac{\bar{\Tmp}}{2\aTmp{i}},
-\end{displaymath}
-for the semi-analytical solution, 
-a relationship that follows from Eqs.~\ref{eq:wfuns:ddldtbar} and \ref{eq:wfuns:ddldti}.
-
-Again, for the analytical solution, the derivative of the Pad\'{e} approximation
-of the matrix exponent is used to get ${\PartD\aTrnMat{i}}/{\PartD\aSttElm{i}}$.
+Both line strength and line shape change with temperature.
+The rough expression is
+\begin{equation}
+  \frac{\PartD \MtrStl{K}_i}{\PartD x_i} = \MtrStl{K}_i
+  \left(
+  S_j^{-1}\frac{\PartD S_j}{\PartD x_i}+
+  F_j^{-1}\frac{\PartD F_j}{\PartD x_i}
+  \right),
+\end{equation}
+where individual terms of both line shape and line strength are
+treated separately.
 
 \subsubsection{Hydrostatic equilibrium and limitations}
 %
@@ -846,9 +851,81 @@ same applies to measurements from inside the atmosphere, (e.g.\ aircraft ones),
 if the reference pressure for hydrostatic equilibrium (\builtindoc{p\_hse}) is
 matched to the pressure of the observation point.
 
+Non-LTE is presently not supported for HSE.
 
+\section{Magnetic field}
+%==============================================================================
+\label{sec:wfuns:magneticfield}
 
+\subsection{Common practicalities}
+%
+To obtain WFs for magnetic field components, use \wsmindex{jacobianAddMagField}.
+ Retrieval grids must be specified.  There are six input options for component.
+ These are ``u'', ``v'', ``w'', ``theta'', ``eta'', and ``strength''.  The 
+ last of these three are derived analytically, the other three small
+ perturbations.  Note that the Faraday effect is not supporting magnetic field
+ weighting function calculations at the time of writing this.
 
+\subsection{The analytical solutions}
+
+\subsubsection{Strength component}
+Magnetic field strength affects the center of the line.  This means it affects the line 
+strength through changing the state distribution by changing the energy differences 
+between states.  It also means it affects the line shape by moving the line away from its 
+original line center.  The former effect is ignored because it is very small 
+compared to the latter effect for reasonable atmospheric magnetic fields.
+
+In rough estimation, the magnetic field change the energy state of the molecule by
+\begin{equation}
+  \Delta E = -g H,
+\end{equation}
+where $g$ is a constant (see the theory guide) and $H$ is the field strength.  The frequency change
+is then
+\begin{equation}
+  \Delta \nu_0 = \frac{1}{h}\left(g''-g'\right)H,
+\end{equation}
+where $h$ is Planck's constant and the primes stand for upper (single prime)
+and lower (double prime) of the state.
+
+Since we ignore line strength partial derivations,
+both Equations~\ref{eq: wind propagation derivative}~and~\ref{eq: line shape derivative}
+applies for the magnetic field strength. The remaining partial derivative is then just
+\begin{equation}
+  \frac{\PartD a}{\PartD x_i} = \frac{\Delta \nu_0}{\Delta\nu_D};\;\;\;\frac{\PartD b}{\PartD x_i}=0.
+\end{equation}
+
+\subsubsection{Angular components}
+The angle along the path of observation ($\theta$) only changes the polarization state. 
+The angle of linear polarization rotation ($\eta$) also only changes the polarization state.
+So
+\begin{equation}
+   \frac{\PartD \MtrStl{K}_i}{\PartD x_i} = \MtrStl{K}_i \MtrStl{\Phi}^{-1}\frac{\PartD \MtrStl{\Phi}}{\PartD x_i}.
+\end{equation}
+The derivation of a matrix with respect to a variable is just the derivation of individual parameters, so see
+the theory guide for the original shape and content of $\MtrStl{\Phi}$.
+
+\section{Non-LTE effects}
+%==============================================================================
+\label{sec:wfuns:nlte}
+
+This is handled passively whenever it is encountered.  If non-LTE is off, then the source function is
+the Planck function, so $\aSrcVec{n,i}=0$ and $\PartD \aSrcVec{n,i} /\PartD x_i=0$ in Equation~\ref{eq:wfuns:dsdxi1}.
+Otherwise, we must note two things.  First is that the non-LTE effect is included in $f(T,\cdots)$ as described above,
+so we know $\MtrStl{K}_i$ and ${\PartD \MtrStl{K}_i}/{\PartD x_i}$ equally well as before.  The second part is that 
+we have defined $\aSrcVec{n,i}$ from Equation~\ref{eq:nlte_source}.  By this definition, for all effects the NLTE
+contribution is 
+\begin{equation}
+  \frac{\PartD \aSrcVec{n,i}}{\PartD x_i} = \Planck
+   \left[\frac{\PartD \aAbsVec{s}}{\PartD x_i}\oslash\AbsVec - \frac{\PartD \AbsVec}{\PartD x_i}\odot\aAbsVec{s}\oslash\left(\AbsVec\odot\AbsVec\right)\right]
+  +\frac{\PartD\Planck}{\PartD x_i}\left(\aAbsVec{s}\oslash\AbsVec-1\right).
+\end{equation}
+
+In practice, the above is only an overview and the calculations are done at a much lower level.  In fact
+\begin{equation}
+  \aSrcVec{n,i} = \left(\frac{f_s(T,\cdots)}{f(T,\cdots)}-1\right)\Planck\MtrStl{\Phi}\cdot[1,\,0,\,0,\,0],
+\end{equation}
+where the ratio of $f_s/f$ gives the ratio of the source emission to the absorption due to non-LTE effects.
+These $f$s are otherwise as in Equation~\ref{eq: rough line strength} for calculations of $\MtrStl{K}_j$.
 
 \section{Sensor pointing}
 %==============================================================================
@@ -945,7 +1022,7 @@ The Jacobian for such baseline models are obtained by
 consideration is the polynomial order to use. For measurements where several
 spectra are appended to form the measurement vector, the default option is that
 baseline can vary between all spectra. In some cases, it could be assumed that
-the baseline is common between data for different polarisations, viewing
+the baseline is common between data for different polarizations, viewing
 directions or measurement blocks, and flags can be set to mimic such
 assumptions.
 
@@ -980,7 +1057,7 @@ spectrometer.
 The period lengths ($l_i$) are user input. For each given period length, the
 corresponding sine and cosine terms are included in the Jacobian. As for the
 polynomial fit, there exist options to set the baseline to be common between
-different polarisations, viewing directions or measurement blocks.
+different polarizations, viewing directions or measurement blocks.
 Equation~\ref{eq:bline:recreate} is also applicable for sinusoidal baseline
 fits.
 

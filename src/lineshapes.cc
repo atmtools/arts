@@ -2031,7 +2031,7 @@ void faddeeva_algorithm_916(    Vector&         ls_attenuation,
 // Helpers connected to internal partials.
 void w_x_plus_iy_dT(Vector& dx_dT,
                     Numeric& dy_dT,
-                    Numeric& dnorm_dT,
+                    Numeric& dFu_dT,
                     ConstVectorView f,     
                     const Numeric& f0,    // Note that this is NOT the line center, but the shifted center
                     const Numeric& sigma, 
@@ -2067,7 +2067,7 @@ void w_x_plus_iy_dT(Vector& dx_dT,
     dy_dT = ( dgamma_dT  -  gamma / sigma * dsigma_dT )  / sigma;
     
     // This line shape is normalization depends on temperature and is
-    dnorm_dT = - 1.0 / sigma * dsigma_dT; 
+    dFu_dT = - 1.0 / sigma * dsigma_dT; 
     // NOTE: The factor is 1/sqrt(pi)/sigma, its derivative is then - 1 / sqrt(pi) / sigma^2 * dsigma_dT, but
     //       the factor is already in the lineshape that this will be multiplied to, so
     //       derivative divided by the factor and only the above remains!  Which should only be -1/2T for this case.
