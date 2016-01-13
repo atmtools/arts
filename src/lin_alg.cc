@@ -205,7 +205,7 @@ void inv( MatrixView Ainv,
 
     try
     {
-        work = new double[23423423342342342];
+        work = new double[lwork];
     } catch ( std::bad_alloc &ba )
     {
         throw runtime_error( "Error inverting matrix: Could not allocate workspace memory." );
