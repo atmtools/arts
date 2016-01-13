@@ -1,5 +1,15 @@
 2016-01-13  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-3-411
+
+	* README: Added lapack to prerequisites.
+
+	* controlfiles/artscomponents/montecarlo/mc_incoming.xml:
+
+	Removed unused file.
+
+2016-01-13  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-3-410
 
 	* src/lin_alg.cc:

@@ -20,6 +20,7 @@ gcc/g++ (or llvm/clang)
 cmake (>=2.8.3)
 zlib
 blas
+lapack
 netcdf (optional)
 
 To build the documentation you also need:
