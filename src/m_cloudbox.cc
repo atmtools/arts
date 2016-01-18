@@ -1122,8 +1122,17 @@ void ScatSpeciesExtendTemperature( //WS Output:
         const SingleScatteringData ssdo = scat_data[i_ss][i_se];
         const Index nTo = ssdo.T_grid.nelem();
         Index nTn = nTo;
-        const bool do_htl = ( do_tl && (T_low < ssdo.T_grid[0]) );
-        const bool do_hth = ( do_th && (T_high > last(ssdo.T_grid)) );
+        bool do_htl, do_hth;
+        if( nTo > 1 )
+          {
+            do_htl = ( do_tl && (T_low < ssdo.T_grid[0]) );
+            do_hth = ( do_th && (T_high > last(ssdo.T_grid)) );
+          }
+        else
+          {
+            do_htl = false;
+            do_hth = false;
+          }
 
         if( do_htl || do_hth )
         {

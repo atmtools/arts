@@ -11477,7 +11477,37 @@ void define_md_data_raw()
       ( NAME( "ScatSpeciesExtendTemperature" ),
         DESCRIPTION
         (
-         "TBW.\n"
+         "Extends valid temperature range of single scattering data.\n"
+         "\n"
+         "The method allows to extend the temperature range of given single\n"
+         "scattering data by duplicating optical property data at the low\n"
+         "and/or high limits of the associated temperature grid. *T_low* and\n"
+         "*T_high* specify the temperature grid points that are added.\n"
+         "Extension is only performed if *T_low* is lower and *T_high* is\n"
+         "higher than the original lowest and highest temperatures,\n"
+         "respectively, and if the original data contains more than one\n"
+         "temperature grid point (i.e., when not assumed constant anyways).\n"
+         "\n"
+         "The method is thought, e.g., for atmospheric ice falling into\n"
+         "atmospheric layers with temperatures above the melting point of\n"
+         "ice, where ambient and particle temperature deviate (as long as\n"
+         "frozen the ice temperature remains at the melting point\n"
+         "temperature). It is not internally checked, whether the original\n"
+         "data includes the melting point.\n"
+         "The method can be used in a wider sense. However, it remains in the\n"
+         "responsibility of the user to apply the method in a meaningful\n"
+         "sense and on meaningful single scattering data.\n"
+         "\n"
+         "The temperature extension is applied on all scattering elements of\n"
+         "a scattering species. If *scat_species* is defined, *species* can\n"
+         "be used to select the species on which the extension shall be\n"
+         "applied comparing *species* with the scattering species name part\n"
+         "of *scat_species*. If no *species* is specified, the method is\n"
+         "applied on the current last existing scattering species in\n"
+         "*scat_data*. Through the latter the method can be applied for cases\n"
+         "when *scat_species* is not defined (e.g. when *pnd_field* data is\n"
+         "created externally instead of from hydrometeor fields using\n"
+         "*pnd_fieldCalcFromscat_speciesFields*).\n"
          ),
         AUTHORS( "Jana Mendrok" ),
         OUT( "scat_data" ),

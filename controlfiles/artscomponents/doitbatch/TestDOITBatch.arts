@@ -168,6 +168,11 @@ ScatSpeciesScatAndMetaRead ( scat_data_files=scat_data_files )
 #--------------------------------------------------------------
 ScatElementsSelect( species="LWC", sizeparam="diameter_volume_equ", sizemin=0.1e-6, sizemax=2000e-6 )
 ScatElementsSelect( species="IWC", sizeparam="diameter_volume_equ", sizemin=0.1e-6, sizemax=2000e-6 )
+
+# Extend scattering data temperature range (allow ice at positive atm temps)
+#--------------------------------------------------------------
+ScatSpeciesExtendTemperature( species="IWC", T_high=350. )
+
 scat_dataCheck
 
 # 7.AGENDAS--------------------------------------------------------------

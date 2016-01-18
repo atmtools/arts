@@ -1,5 +1,21 @@
 2016-01-18  Jana Mendrok  <jana.mendrok@chalmers.se>
 
+	* arts-2-3-416
+
+	* src/m_cloudbox.cc (ScatSpeciesExtendTemperature):
+	Skip extending when only one T_grid point given.
+
+	* controlfiles/artscomponents/doitbatch/TestDOITBatch.arts:
+	Examplary apply SSD T-extension for cloud ice (actually doesn't have any
+	affect here as extension is actually skipped due to single T_grid point
+	in input SSD; but still okayish for demonstrating usage. in future would
+	be better to have T-dependent data applied here.). 
+
+	* src/methods.cc (ScatSpeciesExtendTemperature):
+	Documentation added.
+
+2016-01-18  Jana Mendrok  <jana.mendrok@chalmers.se>
+
 	* arts-2-3-415
 
 	* src/m_cloudbox.cc, methods.cc:
