@@ -284,9 +284,32 @@ void get_pointers_for_analytical_jacobians(
     //
     if( jacobian_quantities[iq].MainTag() == ABSSPECIES_MAINTAG )
       {
-        ArrayOfSpeciesTag  atag;
-        array_species_tag_from_string( atag, jacobian_quantities[iq].Subtag() );
-        abs_species_i[iq] = chk_contains( "abs_species", abs_species, atag );
+        if( jacobian_quantities[iq].SubSubtag() == PROPMAT_SUBSUBTAG )
+        {
+            bool test_available=false;
+            for(Index ii=0; ii<abs_species.nelem(); ii++)
+            {
+                if( abs_species[ii][0].Species()==SpeciesTag(jacobian_quantities[iq].Subtag()).Species() )
+                {
+                    test_available=true;
+                    abs_species_i[iq]=ii;
+                    break;
+                }
+            }
+            if(!test_available)
+            {
+                ostringstream os;
+                os << "Could not find " << jacobian_quantities[iq].Subtag() <<
+                "in species of abs_species.\n";
+                throw std::runtime_error(os.str());
+            }
+        }
+        else
+        {
+            ArrayOfSpeciesTag  atag;
+            array_species_tag_from_string( atag, jacobian_quantities[iq].Subtag() );
+            abs_species_i[iq] = chk_contains( "abs_species", abs_species, atag );
+        }
       }
     else
       { abs_species_i[iq] = -1; }

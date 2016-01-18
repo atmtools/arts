@@ -252,22 +252,36 @@ void jacobianAddAbsSpecies(
   const String&                     species,
   const String&                     method,
   const String&                     mode,
+  const Index&                      for_species_tag,
   const Numeric&                    dx,
   const Verbosity&                  verbosity )
 {
   CREATE_OUT2;
   CREATE_OUT3;
   
+  if(!for_species_tag)
+      SpeciesTag test(species);
+  
   // Check that this species is not already included in the jacobian.
   for( Index it=0; it<jq.nelem(); it++ )
     {
-      if( jq[it].MainTag() == ABSSPECIES_MAINTAG  && 
+        if( jq[it].MainTag() == ABSSPECIES_MAINTAG  && jq[it].SubSubtag() != PROPMAT_SUBSUBTAG &&
           jq[it].Subtag()  == species )
         {
           ostringstream os;
           os << "The gas species:\n" << species << "\nis already included in "
              << "*jacobian_quantities*.";
           throw runtime_error(os.str());
+        }
+        else if( jq[it].MainTag() == ABSSPECIES_MAINTAG  && jq[it].SubSubtag() == PROPMAT_SUBSUBTAG )
+        {
+            if(SpeciesTag(jq[it].Subtag()).Species()  == SpeciesTag(species).Species())
+            {
+                ostringstream os;
+                os << "The atmospheric species of:\n" << species << "\nis already included in "
+                << "*jacobian_quantities*.";
+                throw runtime_error(os.str());
+            }
         }
     }
 
@@ -314,9 +328,11 @@ void jacobianAddAbsSpecies(
   rq.Analytical( analytical );
   rq.Perturbation( dx );
   rq.Grids( grids );
-  if(analytical) 
+  if(analytical&&(!for_species_tag)) 
       rq.SubSubtag(PROPMAT_SUBSUBTAG);
-
+  else if((!analytical)&&(!for_species_tag))
+      throw std::runtime_error("perturbation only support for_species_tag true/\n ");
+  
   // Add it to the *jacobian_quantities*
   jq.push_back( rq );
   

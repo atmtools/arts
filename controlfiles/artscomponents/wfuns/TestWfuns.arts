@@ -138,7 +138,7 @@ jacobianInit
 jacobianAddAbsSpecies( jacobian_quantities, jacobian_agenda,
     atmosphere_dim, p_grid, lat_grid, lon_grid, 
     retrieval_grid, lat_grid, lon_grid, 
-    "O3", "analytical", "rel", 0.01 )
+    "O3", "analytical", "rel", 1, 0.01 )
 jacobianClose
 WriteXML( in=jacobian_quantities )
 yCalc
@@ -150,7 +150,7 @@ jacobianInit
 jacobianAddAbsSpecies( jacobian_quantities, jacobian_agenda,
     atmosphere_dim, p_grid, lat_grid, lon_grid, 
     retrieval_grid, lat_grid, lon_grid, 
-    "O3", "perturbation", "rel", 0.01 )
+    "O3", "perturbation", "rel", 1, 0.01 )
 jacobianClose
 yCalc
 Copy( Jp, jacobian )
@@ -159,12 +159,12 @@ Copy( Jp, jacobian )
 Compare( Ja, Jp, 0.005 )
 
 
-# Analytical but now using VMR
+# Analytical but now using VMR, though for all "O2" species
 jacobianInit
 jacobianAddAbsSpecies( jacobian_quantities, jacobian_agenda,
     atmosphere_dim, p_grid, lat_grid, lon_grid, 
     retrieval_grid, lat_grid, lon_grid, 
-    "O3", "analytical", "vmr", 0.01 )
+    "O2", "analytical", "vmr", 0, 0.01 )
 jacobianClose
 WriteXML( in=jacobian_quantities )
 yCalc

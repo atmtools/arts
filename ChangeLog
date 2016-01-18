@@ -1,3 +1,22 @@
+2016-01-18  Richard Larsson   <ric.larsson@gmail.com>
+	
+	* arts-2-3-414
+	
+	* src/m_jacobians.cc,methods.cc:  Fix for big bug I introduced
+	unwittingly.  I had mistakenly assumed that (jacobianAddAbsSpecies) 
+	was to calculate atmospheric species and not species tags.
+	Now, the method takes the input parameter for_species_tag to work 
+	on species tags as in the past.  When this evaluates true,
+	the old behavior is returned.  When it evaluates true, then
+	new behavior of looking for atmospheric species takes effect.
+	
+	* src/jacobian.cc:  Fix check and throws error when appropriate in
+	(get_pointers_for_analytical_jacobians).
+	
+	* src/m_abs_lookup.cc:  (abs_speciesAdd2) called jacobianAddAbsSpecies
+	manually.  So it calls it with default behavior as before,
+	for_species_tag=1.
+	
 2016-01-18  Oliver Lemke  <olemke@core-dump.info>
 
 	* src/matpackII.cc (Sparse::list_elements):

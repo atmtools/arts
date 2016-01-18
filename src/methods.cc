@@ -7156,7 +7156,6 @@ void define_md_data_raw()
          "\n"
          "There are two possible calculation methods:\n"
          "   \"analytical\"   : (semi-)analytical expressions are used\n"
-         "   \"from propmat\" : analytical expressions are used when possible\n"
          "   \"perturbation\" : pure numerical perturbations are used\n"
          "\n"
          "The retrieval unit can be:\n"
@@ -7170,7 +7169,9 @@ void define_md_data_raw()
          "by the user. The unit for the perturbation is the same as for the\n"
          "retrieval unit.\n"
          "\n"
-         "Only \"vmr\" works for \"from propmat\".\n"
+         "Note that *for_species_tag* is used to indicate if species tag VMR,\n"
+         "rather than atmospheric gas VMR is calculated. Set it to 0 and we\n"
+         "calculate the atmospheric gas VMR, but this only works for \"analytical\".\n"
          ),
         AUTHORS( "Mattias Ekstrom", "Patrick Eriksson" ),
         OUT( "jacobian_quantities", "jacobian_agenda" ),
@@ -7179,16 +7180,17 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "jacobian_quantities", "jacobian_agenda",
             "atmosphere_dim", "p_grid", "lat_grid", "lon_grid" ),
-        GIN( "g1", "g2", "g3", "species", "method", "unit","dx" ),
-        GIN_TYPE( "Vector", "Vector", "Vector", "String", "String", "String", 
+        GIN( "g1", "g2", "g3", "species", "method", "unit","for_species_tag","dx" ),
+        GIN_TYPE( "Vector", "Vector", "Vector", "String", "String", "String", "Index",
                   "Numeric" ),
-        GIN_DEFAULT( NODEF, NODEF, NODEF, NODEF, "analytical", "rel", "0.001" ),
+        GIN_DEFAULT( NODEF, NODEF, NODEF, NODEF, "analytical", "rel", "1", "0.001" ),
         GIN_DESC( "Pressure retrieval grid.",
                   "Latitude retrieval grid.",
                   "Longitude retreival grid.",
                   "The species tag of the retrieval quantity.",
                   "Calculation method. See above.",
                   "Retrieval unit. See above.",
+                  "Index-bool for acting on species tags or species.",
                   "Size of perturbation." 
                   ),
         SETMETHOD(      false ),
@@ -7639,12 +7641,12 @@ void define_md_data_raw()
          "\n"
          "The method follows the pattern of other Jacobian methods. The\n"
          "calculations can only be performed by analytic expressions.\n"
+         "Some lower level function depends on frequency perturbations,\n"
+         "however, so therefore a frequency perturbation *df* is required.\n"
          "\n"
          "The wind field components are retrieved separately, and,\n"
          "hence, the argument *component* can be \"u\", \"v\" or \"w\" \n"
-         "for \"analytical\" *method*.  In addition to these, *component*\n"
-         "can be \"strength\" for total wind speed partial derivation if the\n"
-         "method is \"from propmat\".\n"
+         "for vector components, or just \"strength\" for total wind speed.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "jacobian_quantities", "jacobian_agenda" ),
