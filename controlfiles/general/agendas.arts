@@ -328,6 +328,7 @@ AgendaSet( refr_index_air_agenda__GasMicrowavesEarth ){
 AgendaCreate( refr_index_air_agenda__GasInfraredEarth )
 AgendaSet( refr_index_air_agenda__GasInfraredEarth ){
   Ignore( f_grid )
+  Ignore( rtp_vmr )
   NumericSet( refr_index_air, 1.0 )
   NumericSet( refr_index_air_group, 1.0 )
   refr_index_airInfraredEarth
@@ -350,6 +351,8 @@ AgendaSet( refr_index_air_agenda__GasMicrowavesGeneral ){
 # 
 AgendaCreate( refr_index_air_agenda__FreeElectrons )
 AgendaSet( refr_index_air_agenda__FreeElectrons ){
+  Ignore( rtp_pressure )
+  Ignore( rtp_temperature )
   NumericSet( refr_index_air, 1.0 )
   NumericSet( refr_index_air_group, 1.0 )
   refr_index_airFreeElectrons
