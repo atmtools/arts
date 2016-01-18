@@ -967,7 +967,7 @@ void ScatElementsSelect (//WS Output:
   ArrayOfScatteringMetaData scat_meta_tmp;
 
   String partfield_name;
-  //find the species to handleL: compare 'species' to 'partfield' part of
+  //find the species to handle: compare 'species' to 'partfield' part of
   //scat_species tags
   Index i_ss=-1;
   for ( Index i=0; i<scat_species.nelem(); i++ )
@@ -1056,6 +1056,167 @@ void ScatElementsSelect (//WS Output:
   // beginning).
   assert ( TotalNumberOfElements(scat_meta) );
 
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void ScatSpeciesExtendTemperature( //WS Output:
+                     ArrayOfArrayOfSingleScatteringData& scat_data,
+                     // Keywords:
+                     const ArrayOfString& scat_species,
+                     const String& species,
+                     const String& scat_species_delim,
+                     const Numeric& T_low,
+                     const Numeric& T_high,
+                     const Verbosity& )
+{
+  const bool do_tl = ( T_low >= 0. );
+  const bool do_th = ( T_high >= 0. );
+
+  if( do_tl || do_th )
+  {
+    Index i_ss=-1;
+    if( species=="" )
+      {
+        i_ss = scat_data.nelem()-1;
+        if (i_ss==-1)
+          {
+            ostringstream os;
+            os << "No scat_data available. Can not extend temperature range on "
+               << "inexistent data.";
+            throw runtime_error ( os.str() );
+          }
+      }
+    else
+      {
+        // first check that sizes of scat_species and scat_data agree
+        Index nspecies = scat_species.nelem();
+        if ( nspecies != scat_data.nelem() )
+          {
+            ostringstream os;
+            os << "Number of scattering species specified by scat_species does\n"
+               << "not agree with number of scattering species in scat_data:\n"
+               << "scat_species has " << nspecies << " entries, while scat_data has "
+               << scat_data.nelem() << ".";
+            throw runtime_error ( os.str() );
+          }
+        String partfield_name;
+        //find the species to handle: compare 'species' to 'partfield' part of
+        //scat_species tags
+        for ( Index i=0; i<scat_species.nelem(); i++ )
+          {
+            parse_partfield_name( partfield_name, scat_species[i], scat_species_delim);
+            if ( partfield_name==species )
+              i_ss=i;
+          }
+        if ( i_ss<0 )
+          {
+            ostringstream os;
+            os << "Scattering species " << species << " not found among scat_species.";
+            throw runtime_error ( os.str() );
+          }
+      }
+
+    for ( Index i_se=0; i_se<scat_data[i_ss].nelem(); i_se++ )
+      {
+        const SingleScatteringData ssdo = scat_data[i_ss][i_se];
+        const Index nTo = ssdo.T_grid.nelem();
+        Index nTn = nTo;
+        const bool do_htl = ( do_tl && (T_low < ssdo.T_grid[0]) );
+        const bool do_hth = ( do_th && (T_high > last(ssdo.T_grid)) );
+
+        if( do_htl || do_hth )
+        {
+          // create new instance of SingleScatteringData
+          SingleScatteringData ssdn;
+          Index iToff;
+
+          // determine new temperature grid
+          if( do_htl )
+            nTn += 1;
+          if( do_hth )
+            nTn += 1;
+          Vector T_grid_new(nTn);
+          if( do_htl )
+            {
+              T_grid_new[0] = T_low;
+              iToff = 1;
+            }
+          else
+            {
+              iToff = 0;
+            }
+          for( Index iT=0; iT<nTo; iT++ )
+              T_grid_new[iT+iToff] = scat_data[i_ss][i_se].T_grid[iT];
+          if( do_hth )
+              T_grid_new[nTo+iToff] = T_high;
+          ssdn.T_grid = T_grid_new;
+
+          // copy grids and other descriptive data that is to remain identical
+          ssdn.ptype = ssdo.ptype;
+          ostringstream description;
+          description << ssdo.description; // here just copy. we append further
+                                           // info below if applicable.
+          ssdn.f_grid = ssdo.f_grid;
+          ssdn.za_grid = ssdo.za_grid;
+          ssdn.aa_grid = ssdo.aa_grid;
+
+          // determine size of current optical property data
+          const Index nf = ssdo.f_grid.nelem();
+          const Index nzas = ssdo.pha_mat_data.nshelves();
+          const Index naas = ssdo.pha_mat_data.nbooks();
+          const Index nzai = ssdo.pha_mat_data.npages();
+          const Index naai = ssdo.pha_mat_data.nrows();
+          const Index nmep = ssdo.pha_mat_data.ncols();
+          const Index nmee = ssdo.ext_mat_data.ncols();
+          const Index nvea = ssdo.abs_vec_data.ncols();
+
+          // create containers for extended optical property data
+          ssdn.pha_mat_data.resize(nf, nTn, nzas, naas, nzai, naai, nmep);
+          ssdn.ext_mat_data.resize(nf, nTn, nzai, naai, nmee);
+          ssdn.abs_vec_data.resize(nf, nTn, nzai, naai, nvea);
+
+          // copy optical property data
+          for( Index iT=0; iT<nTo; iT++ )
+            {
+              ssdn.pha_mat_data(joker,iT+iToff,joker,joker,joker,joker,joker)
+                = ssdo.pha_mat_data(joker,iT,joker,joker,joker,joker,joker);
+              ssdn.ext_mat_data(joker,iT+iToff,joker,joker,joker)
+                = ssdo.ext_mat_data(joker,iT,joker,joker,joker);
+              ssdn.abs_vec_data(joker,iT+iToff,joker,joker,joker)
+                = ssdo.abs_vec_data(joker,iT,joker,joker,joker);
+            }
+
+          // duplicate optical property data on T-edges if applicable
+          if( do_htl )
+            {
+              ssdn.pha_mat_data(joker,0,joker,joker,joker,joker,joker)
+                = ssdn.pha_mat_data(joker,1,joker,joker,joker,joker,joker);
+              ssdn.ext_mat_data(joker,0,joker,joker,joker)
+                = ssdn.ext_mat_data(joker,1,joker,joker,joker);
+              ssdn.abs_vec_data(joker,0,joker,joker,joker)
+                = ssdn.abs_vec_data(joker,1,joker,joker,joker);
+              description << "\n" << "Low temperature limit extended by"
+                          << " duplicating previous low temperature limit"
+                          << " single scattering properties.";
+            }
+          if( do_hth )
+            {
+              ssdn.pha_mat_data(joker,nTn-1,joker,joker,joker,joker,joker)
+                = ssdn.pha_mat_data(joker,nTn-2,joker,joker,joker,joker,joker);
+              ssdn.ext_mat_data(joker,nTn-1,joker,joker,joker)
+                = ssdn.ext_mat_data(joker,nTn-2,joker,joker,joker);
+              ssdn.abs_vec_data(joker,nTn-1,joker,joker,joker)
+                = ssdn.abs_vec_data(joker,nTn-2,joker,joker,joker);
+              description << "\n" << "High temperature limit extended by"
+                          << " duplicating previous high temperature limit"
+                          << " single scattering properties.";
+            }
+          ssdn.description = description.str();
+          scat_data[i_ss][i_se] = ssdn;
+        }
+      }
+  }
 }
 
 

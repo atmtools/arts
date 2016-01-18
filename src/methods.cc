@@ -11468,11 +11468,33 @@ void define_md_data_raw()
         GIN_TYPE(    "ArrayOfString",   "ArrayOfString"   ),
         GIN_DEFAULT( NODEF,             NODEF             ),
         GIN_DESC( "List of names of single scattering data files.",
-                  "List of names of the corresponding pnd_field files." 
-                  )
+                  "List of names of the corresponding pnd_field files." )
         ));
 
  
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "ScatSpeciesExtendTemperature" ),
+        DESCRIPTION
+        (
+         "TBW.\n"
+         ),
+        AUTHORS( "Jana Mendrok" ),
+        OUT( "scat_data" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "scat_data", "scat_species" ),
+        GIN(         "species", "scat_species_delim", "T_low",   "T_high"  ), 
+        GIN_TYPE(    "String",  "String",             "Numeric", "Numeric" ), 
+        GIN_DEFAULT( "",        "-",                  "-1.",     "-1."     ),
+        GIN_DESC( "Scattering species to act on (see WSM description for details).",
+                  "Delimiter string of *scat_species* elements.",
+                  "Temperature grid extension point at low temperature limit.",
+                  "Temperature grid extension point at high temperature limit." )
+        ));
+
+
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "ScatSpeciesInit" ),
@@ -11582,8 +11604,7 @@ void define_md_data_raw()
         GIN_TYPE(    "ArrayOfString",   "String"              ),
         GIN_DEFAULT( NODEF,             NODEF                 ),
         GIN_DESC( "Array of names of files containing the single scattering data.",
-                  "Name of file holding the corresponding array of pnd_field data." 
-                  )
+                  "Name of file holding the corresponding array of pnd_field data." )
         ));
 
 
@@ -11675,7 +11696,7 @@ void define_md_data_raw()
       IN( "complex_refr_index" ),
       GIN( "shape", "diameter_volume_equ", "aspect_ratio", "mass", "ptype", 
            "data_f_grid", "data_t_grid", "data_za_grid", "data_aa_grid",
-           "precision", "cri_source", "ndgs" ),
+           "precision", "cri_source", "ngds" ),
       GIN_TYPE( "String", "Numeric", "Numeric", "Numeric", "String", 
                 "Vector", "Vector", "Vector", "Vector",
                 "Numeric", "String", "Index" ),
@@ -11858,8 +11879,8 @@ void define_md_data_raw()
         GIN( "scat_tags", "delim" ),
         GIN_TYPE(  "ArrayOfString", "String" ),
         GIN_DEFAULT( NODEF, "-" ),
-        GIN_DESC("Array of pnd calculation parameters.",
-                 "Delimiter string of *scat_species* elements." )
+        GIN_DESC( "Array of pnd calculation parameters.",
+                  "Delimiter string of *scat_species* elements." )
         ));
 
 
