@@ -1,3 +1,25 @@
+2016-01-18  Oliver Lemke  <olemke@core-dump.info>
+
+	* src/matpackII.cc (Sparse::list_elements):
+
+	Remove 'it' as first argument in for loop to avoid statement with no
+	effect warning.
+
+	* 3rdparty/Eigen/src/Core/products/TriangularSolverMatrix.h
+	(triangular_solve_matrix):
+
+	Avoid compiler warning by not shadowing a local variable with another.
+
+	* 3rdparty/Eigen/src/SparseCore/AmbiVector.h,
+
+	Add explicit casts to size_t and Index to avoid implicit type
+	conversion warnings.
+
+	* 3rdparty/Eigen/src/SparseCore/SparseView.h (SparseView::SparseView):
+
+	Fix compiler warnings by not shadowing member variables with function
+	parameters in constructor.
+
 2016-01-18  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-412

@@ -289,7 +289,7 @@ void Sparse::list_elements( Vector &values,
     for (int i=0; i < m; i++)
     {
         Eigen::SparseMatrix<double, Eigen::RowMajor>::InnerIterator it( matrix, i );
-        for (it; it; ++it)
+        for (; it; ++it)
         {
             values[j] = it.value();
             row_indices[j] = it.row();

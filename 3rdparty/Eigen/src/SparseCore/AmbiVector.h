@@ -69,13 +69,13 @@ class AmbiVector
       delete[] m_buffer;
       if (size<1000)
       {
-        Index allocSize = (size * sizeof(ListEl) + sizeof(Scalar) - 1)/sizeof(Scalar);
-        m_allocatedElements = (allocSize*sizeof(Scalar))/sizeof(ListEl);
+        Index allocSize = (Index)(((size_t)size * sizeof(ListEl) + sizeof(Scalar) - 1)/sizeof(Scalar));
+        m_allocatedElements = (Index)(((size_t)allocSize*sizeof(Scalar))/sizeof(ListEl));
         m_buffer = new Scalar[allocSize];
       }
       else
       {
-        m_allocatedElements = (size*sizeof(Scalar))/sizeof(ListEl);
+        m_allocatedElements = (Index)(((size_t)size*sizeof(Scalar))/sizeof(ListEl));
         m_buffer = new Scalar[size];
       }
       m_size = size;
@@ -87,8 +87,8 @@ class AmbiVector
     {
       Index copyElements = m_allocatedElements;
       m_allocatedElements = (std::min)(Index(m_allocatedElements*1.5),m_size);
-      Index allocSize = m_allocatedElements * sizeof(ListEl);
-      allocSize = (allocSize + sizeof(Scalar) - 1)/sizeof(Scalar);
+      Index allocSize = (Index)((size_t)m_allocatedElements * sizeof(ListEl));
+      allocSize = (Index)(((size_t)allocSize + sizeof(Scalar) - 1)/sizeof(Scalar));
       Scalar* newBuffer = new Scalar[allocSize];
       memcpy(newBuffer,  m_buffer,  copyElements * sizeof(ListEl));
       delete[] m_buffer;
