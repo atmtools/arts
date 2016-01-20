@@ -11708,7 +11708,7 @@ void define_md_data_raw()
         "and orientations are defined, see the documentation of the T-matrix\n"
         "code found http://www.giss.nasa.gov/staff/mmishchenko/t_matrix.html\n"
         "\n"
-        "Regarding *ngds*, we refer to the this comment from the documentation:\n"
+        "Regarding *ndgs*, we refer to the this comment from the documentation:\n"
         "   \"Parameter controlling the number of division points\n"
         "   in computing integrals over the particle surface.\n"
         "   For compact particles, the recommended value is 2.\n"
@@ -11726,7 +11726,7 @@ void define_md_data_raw()
       IN( "complex_refr_index" ),
       GIN( "shape", "diameter_volume_equ", "aspect_ratio", "mass", "ptype", 
            "data_f_grid", "data_t_grid", "data_za_grid", "data_aa_grid",
-           "precision", "cri_source", "ngds" ),
+           "precision", "cri_source", "ndgs" ),
       GIN_TYPE( "String", "Numeric", "Numeric", "Numeric", "String", 
                 "Vector", "Vector", "Vector", "Vector",
                 "Numeric", "String", "Index" ),
@@ -11734,7 +11734,7 @@ void define_md_data_raw()
                    NODEF, NODEF, NODEF, NODEF, 
                    "0.001", "Set by user, unknown source.", "2" ),
       GIN_DESC( "Particle shape. Options listed above.", 
-                "Particle volume equivalent diameter. See defintion above.", 
+                "Particle volume equivalent diameter [m]. See defintion above.", 
                 "Particle aspect ratio.",
                 "Particle mass. This information is just included in the meta"
                 " data, and does not affect the T-matrix calculations.",

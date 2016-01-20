@@ -155,7 +155,7 @@ void scat_data_singleTmatrix(
     const Vector&                 data_aa_grid,
     const Numeric&                precision,
     const String&                 cri_source,
-    const Index&                  ngds,
+    const Index&                  ndgs,
     const Verbosity&              verbosity )
 {
   // Add grids to scat_data_single
@@ -211,8 +211,8 @@ void scat_data_singleTmatrix(
   calcSingleScatteringDataProperties( scat_data_single,
                                       ncomp(joker,joker,0), 
                                       ncomp(joker,joker,1),
-                                      0.5e6*diameter_volume_equ, 
-                                      np, aspect_ratio, precision, ngds );
+                                      0.5*diameter_volume_equ, 
+                                      np, aspect_ratio, precision, ndgs );
 
   // Meta data
   scat_meta_single.description  = 
@@ -248,7 +248,7 @@ void TMatrixTest(const Verbosity& verbosity)
 
                  
 /* commenting out. in ARTS 2.3 we change the interface-TMatrix approach:
-   Instead of setting the meat data and doing TMatrix based on that, now we
+   Instead of setting the meta data and doing TMatrix based on that, now we
    first do the TMatrix (per scattering element; use scat_data_singleTmatrix),
    then or along with this the meta data is dervied and set.
    Keeping old code, but commented out, for now in case we want to re-use
@@ -364,7 +364,7 @@ void scat_metaAddTmatrix(// WS Output:
 
 
 /* commenting out. in ARTS 2.3 we change the interface-TMatrix approach:
-   Instead of setting the meat data and doing TMatrix based on that, now we
+   Instead of setting the meta data and doing TMatrix based on that, now we
    first do the TMatrix (per scattering element; use scat_data_singleTmatrix),
    then or along with this the meta data is dervied and set.
    Keeping old code, but commented out, for now in case we want to re-use
@@ -443,7 +443,7 @@ void scat_dataFromMeta(// WS Output:
 
 
 /* commenting out. in ARTS 2.3 we change the interface-TMatrix approach:
-   Instead of setting the meat data and doing TMatrix based on that, now we
+   Instead of setting the meta data and doing TMatrix based on that, now we
    first do the TMatrix (per scattering element; use scat_data_singleTmatrix),
    then or along with this the meta data is dervied and set.
    Keeping old code, but commented out, for now in case we want to re-use

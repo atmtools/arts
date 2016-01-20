@@ -1,3 +1,23 @@
+2016-01-20  Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-417
+
+	* src/tmatrix.cc: Removed all wavelength related unit conversions before
+	and after tmatrix fortran code calls as well as all references to microns
+	units. Mishchenko's tmatrix code does NOT require size and/or wavelength
+	in microns, just consistent units of both (i.e., ARTS convention of
+	SI unit m for both is fine).
+	
+	* src/m_tmatrix.cc:
+	Removed m->um conversion when calling calcSingleScatteringDataProperties.
+	Spell fixes: ngds->ndgs, meat->meta.
+
+	* src/methods.cc (scat_data_singleTmatrix):
+	Renamed ngds to ndgs for consistency with original tmatrix. Added
+	explicit unit info for diameter_volume_equ input parameter.
+
+	* 3rdparty/tmatrix/ampld.arts.f: Formatting fixed.
+
 2016-01-18  Jana Mendrok  <jana.mendrok@chalmers.se>
 
 	* arts-2-3-416

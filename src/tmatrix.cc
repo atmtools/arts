@@ -168,7 +168,7 @@ extern "C" {
                        is the degree of the Chebyshev polynomial, while
                        EPS is the deformation parameter.
      \param[in] np     Shape of the particles (see eps above)
-     \param[in] lam    Wavelength of light [microns]
+     \param[in] lam    Wavelength of light
      \param[in] mrr    Vector with real parts of refractive index
      \param[in] mri    Vector with imaginary parts of refractive index
      \param[in] ddelt  Accuracy of the computations
@@ -263,7 +263,7 @@ extern "C" {
                        prolate spheroids.<br>
                        For cylinders NP=-2 and EPS is the ratio of the
                        diameter to the length.<br>
-     \param[in] lam    Wavelength of light [microns]
+     \param[in] lam    Wavelength of light
      \param[in] eps    Shape of the particles (see np above)
      \param[in] mrr    Vector with real parts of refractive index
      \param[in] mri    Vector with imaginary parts of refractive index
@@ -298,7 +298,7 @@ extern "C" {
      T-Matrix codes.
      
      \param[in]  nmax   Iteration count. Calculated by tmatrix_()
-     \param[in]  lam    Wavelength of incident light [microns]
+     \param[in]  lam    Wavelength of incident light
      \param[in]  thet0  Zenith angle of the incident beam [degrees]
      \param[in]  thet   zenith angle of the scattered beam in degrees
      \param[in]  phi0   azimuth angle of the incident beam in degrees
@@ -487,7 +487,6 @@ void ampmat_to_phamat(Matrix& z,
     z(3, 2) = (Complex(0., -1.) * (  s22 * conj(s11) - s12 * conj(s21))).real();
     z(3, 3) =                     (  s22 * conj(s11) - s12 * conj(s21)).real();
 
-    z *= 1e-12;  // micron^2 to meter^2
 }
 
 
@@ -913,9 +912,19 @@ void tmatrix_fixed_orientation(Numeric& cext,
     // called from different threads at the same time. The common
     // blocks are not threadsafe.
 #pragma omp critical(tmatrix_code)
-    tmatrix_(1., equiv_radius, np, lam, aspect_ratio,
-             ref_index_real, ref_index_imag, precision, quiet,
-             nmax, csca, cext, errmsg);
+    tmatrix_(1.,
+             equiv_radius,
+             np, 
+             lam, 
+             aspect_ratio,
+             ref_index_real, 
+             ref_index_imag, 
+             precision,
+             quiet,
+             nmax, 
+             csca, 
+             cext, 
+             errmsg);
 
     if (strlen(errmsg))
     {
@@ -944,16 +953,20 @@ void calcSingleScatteringDataProperties(SingleScatteringData& ssd,
     extern const Numeric SPEED_OF_LIGHT;
 
     if (ref_index_real.nrows() != nf)
-        throw std::runtime_error("Number of rows of refractive index real part must match ssd.f_grid.");
+        throw std::runtime_error(
+          "Number of rows of refractive index real part must match ssd.f_grid.");
     if (ref_index_real.ncols() != nT)
-        throw std::runtime_error("Number of cols of refractive index real part must match ssd.T_grid.");
+        throw std::runtime_error(
+          "Number of cols of refractive index real part must match ssd.T_grid.");
     if (ref_index_imag.nrows() != nf)
-        throw std::runtime_error("Number of rows of refractive index imaginary part must match ssd.f_grid.");
+        throw std::runtime_error(
+          "Number of rows of refractive index imaginary part must match ssd.f_grid.");
     if (ref_index_imag.ncols() != nT)
-        throw std::runtime_error("Number of cols of refractive index imaginary part must match ssd.T_grid.");
+        throw std::runtime_error(
+          "Number of cols of refractive index imaginary part must match ssd.T_grid.");
 
-    // The T-Matrix codes needs wavelength in microns
-    Vector lam(nf, 1e6*SPEED_OF_LIGHT);
+    // The T-Matrix code needs wavelength
+    Vector lam(nf, SPEED_OF_LIGHT);
     lam /= ssd.f_grid;
 
     switch (ssd.ptype) {
@@ -998,9 +1011,6 @@ void calcSingleScatteringDataProperties(SingleScatteringData& ssd,
                         << e.what();
                         throw std::runtime_error(os.str());
                     }
-
-                    cext *= 1e-12; // um^2 -> m^2
-                    csca *= 1e-12;
 
                     mono_pha_mat_data(joker, 0) = f11;
                     mono_pha_mat_data(joker, 1) = f12;
@@ -1163,7 +1173,7 @@ void calcSingleScatteringDataProperties(SingleScatteringData& ssd,
                         K[1] = (Complex(0.,  1.) * (s22-s11)).real();
                         K[2] =                     (s22-s11).real();
 
-                        K *= lam_f * 1e-12;  // micron^2 to meter^2
+                        K *= lam_f;
 
                     }
                 }
@@ -1199,9 +1209,9 @@ void tmatrix_ampld_test(const Verbosity& verbosity)
 
     // Same inputs as in example included in original ampld.lp.f
     Numeric rat = 1.;
-    Numeric axi = 10.;
+    Numeric axi = 10.; //[um]
     Index   np = -1;
-    Numeric lam = acos(-1.)*2.;
+    Numeric lam = acos(-1.)*2.; //[um]
     Numeric eps = 0.5;
     Numeric mrr = 1.5;
     Numeric mri = 0.02;
@@ -1219,8 +1229,8 @@ void tmatrix_ampld_test(const Verbosity& verbosity)
              nmax, csca, cext, errmsg);
 
     out0 << "nmax: " << nmax << "\n";
-    out0 << "csca: " << csca << "\n";
-    out0 << "cext: " << cext << "\n";
+    out0 << "csca: " << csca << " um2\n";
+    out0 << "cext: " << cext << " um2\n";
 
     out0 << "Error message: " << (strlen(errmsg)?errmsg:"None") << "\n";
 
@@ -1240,7 +1250,7 @@ void tmatrix_ampld_test(const Verbosity& verbosity)
     ampl_(nmax, lam, thet0, thet, phi0, phi, alpha, beta,
           s11, s12, s21, s22);
 
-    out0 << "AMPLITUDE MATRIX: \n";
+    out0 << "AMPLITUDE MATRIX (all in [um]): \n";
     out0 << "s11: " << s11 << "\n";
     out0 << "s12: " << s12 << "\n";
     out0 << "s21: " << s21 << "\n";
@@ -1248,9 +1258,9 @@ void tmatrix_ampld_test(const Verbosity& verbosity)
 
     Matrix z;
     ampmat_to_phamat(z, s11, s12, s21, s22);
-    z *= 1e12; // meter^2 to micron^2 for comparison with original results
+    //z *= 1e12; // meter^2 to micron^2 for comparison with original results
 
-    out0 << "PHASE MATRIX: \n" << z << "\n";
+    out0 << "PHASE MATRIX (all un [um2]): \n" << z << "\n";
 }
 
 
@@ -1267,14 +1277,14 @@ void tmatrix_tmd_test(const Verbosity& verbosity)
     // Same inputs as in example included in original tmd.lp.f
     Numeric rat = 0.5;
     Index   ndistr = 3;
-    Numeric axmax = 1.;
+    Numeric axmax = 1.; //[um]
     Index   npnax = 2;
     Numeric b = 0.1;
     Numeric gam = 0.5;
     Index   nkmax = 5;
     Numeric eps = 2;
     Index   np = -1;
-    Numeric lam = 0.5;
+    Numeric lam = 0.5; //[um]
     Numeric mrr = 1.53;
     Numeric mri = 0.008;
     Numeric ddelt = 0.001;
@@ -1332,10 +1342,10 @@ void tmatrix_tmd_test(const Verbosity& verbosity)
          f34.get_c_array(),
          errmsg);
 
-    out0 << "reff: " << reff << "\n";
+    out0 << "reff: " << reff << " um\n";
     out0 << "veff: " << veff << "\n";
-    out0 << "cext: " << cext << "\n";
-    out0 << "csca: " << csca << "\n";
+    out0 << "cext: " << cext << " um2\n";
+    out0 << "csca: " << csca << " um2\n";
     out0 << "walb: " << walb << "\n";
     out0 << "asymm: " << asymm << "\n";
     out0 << "f11: " << f11 << "\n";
@@ -1379,7 +1389,7 @@ void calc_ssp_random_test(const Verbosity& verbosity)
     mri(1, 0) = 0.00287245; mri(1, 1) = 0.00523012;
 
     calcSingleScatteringDataProperties(ssd, mrr, mri,
-                                       200.,
+                                       200.e-6,
                                        -1,
                                        1.5);
 
@@ -1395,7 +1405,7 @@ void calc_ssp_random_test(const Verbosity& verbosity)
     out0 << "======================================================\n";
 
     calcSingleScatteringDataProperties(ssd, mrr, mri,
-                                       200.,
+                                       200.e-6,
                                        -1,
                                        0.7);
 
@@ -1437,7 +1447,7 @@ void calc_ssp_fixed_test(const Verbosity& verbosity)
     mri(1, 0) = 0.00287245; mri(1, 1) = 0.00523012;
 
     calcSingleScatteringDataProperties(ssd, mrr, mri,
-                                       200.,
+                                       200.e-6,
                                        -1,
                                        1.5);
 
@@ -1454,7 +1464,7 @@ void calc_ssp_fixed_test(const Verbosity& verbosity)
     out0 << "for prolate particles with fixed orientation\n";
     out0 << "======================================================\n";
     calcSingleScatteringDataProperties(ssd, mrr, mri,
-                                       200.,
+                                       200.e-6,
                                        -1,
                                        0.7);
     

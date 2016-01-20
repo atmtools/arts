@@ -60,7 +60,7 @@ C      DDELT=0.001D0
 
       P=DACOS(-1D0)
 C      ICHOICE=1 only for use with NAG libraries  
-      ICHOICE=1 	
+      ICHOICE=1
       NCHECK=0
       IF (NP.EQ.-1.OR.NP.EQ.-2) NCHECK=1
       IF (NP.GT.0.AND.(-1)**NP.EQ.1) NCHECK=1
@@ -73,15 +73,15 @@ C      ICHOICE=1 only for use with NAG libraries
 C     PRINT 8000, RAT
 C 8000 FORMAT ('RAT=',F8.6)
       if (quiet /= 1) then
-		IF(NP.EQ.-1.AND.EPS.GE.1D0) PRINT 7000,EPS
-      	IF(NP.EQ.-1.AND.EPS.LT.1D0) PRINT 7001,EPS
-      	IF(NP.GE.0) PRINT 7100,NP,EPS
-      	IF(NP.EQ.-2.AND.EPS.GE.1D0) PRINT 7150,EPS
-      	IF(NP.EQ.-2.AND.EPS.LT.1D0) PRINT 7151,EPS
-      	IF(NP.EQ.-3) PRINT 7160
-      	PRINT 7400, LAM,MRR,MRI
-      	PRINT 7200,DDELT
-	end if
+        IF(NP.EQ.-1.AND.EPS.GE.1D0) PRINT 7000,EPS
+        IF(NP.EQ.-1.AND.EPS.LT.1D0) PRINT 7001,EPS
+        IF(NP.GE.0) PRINT 7100,NP,EPS
+        IF(NP.EQ.-2.AND.EPS.GE.1D0) PRINT 7150,EPS
+        IF(NP.EQ.-2.AND.EPS.LT.1D0) PRINT 7151,EPS
+        IF(NP.EQ.-3) PRINT 7160
+        PRINT 7400, LAM,MRR,MRI
+        PRINT 7200,DDELT
+      end if
  7000 FORMAT('OBLATE SPHEROIDS, A/B=',F11.7)
  7001 FORMAT('PROLATE SPHEROIDS, A/B=',F11.7)
  7100 FORMAT('CHEBYSHEV PARTICLES, T',
@@ -111,7 +111,7 @@ C 8000 FORMAT ('RAT=',F8.6)
       DO 50 NMA=INM1,NPN1
 
          NMAX=NMA
-	   MMAX=1
+         MMAX=1
          NGAUSS=NMAX*NDGS
          IF (NGAUSS.GT.NPNG1) THEN
             WRITE (ERRMSG, 7340) NGAUSS
@@ -263,11 +263,11 @@ c     PRINT 7800,0,DABS(QEXT),QSCA,NMAX
  9111 FORMAT ('WARNING: W IS GREATER THAN 1, W = ',D12.6)
 !Calculate Scattering cross-section and extinction cross-section
 !for randomly oriented particles
-	CSCA=QSCA*LAM**2/2/P
-	CEXT=-QEXT*LAM**2/2/P
+      CSCA=QSCA*LAM**2/2/P
+      CEXT=-QEXT*LAM**2/2/P
 
-	RETURN
-	END	
+      RETURN
+      END
 
 C********************************************************************
                                            
