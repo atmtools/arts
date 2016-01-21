@@ -1072,6 +1072,26 @@ void get_diydx( VectorView diydx_this,
     // Diagonal transmission matrix
     if( extmat_case == 1 )
     {
+        
+        /*
+         * Solves ds/dx = T [ dTi/dx * (si-bi-Ki^(-1)ji) + 
+         *        (1 - Ti) * ( dbi/dx + K^(-2)dKi/dxji + K^(-1)dji/dx ) ]
+         * 
+         * (si-bi-Ki^(-1)ji) is sibi
+         * T                 is PiT_this                   (NB PiT_next is PiT_this*T_this)
+         * dTi/dx            is PiT_next*dKi/dx*r/2        (from T being scalar/diagonal exponent function)
+         * dbi/dx            is dBdx_this/2, dBdx_next/2   (note how outer loop takes care of this)
+         * Ki                is K_this/2, K_next/2         (note how outer loop takes care of this)
+         * dKi/dx            is dKdx_this, dKdx_next       (note how outer loop takes care of this)
+         * ji                is nlte_this/2, nlte_next/2   (note how outer loop takes care of this)
+         * dji/dx            is dnltedx_this, dnltedx_next (note how outer loop takes care of this)
+         * 
+         * Begin solution
+         */
+        
+        /*
+         * T * dTi/dx * (si-bi-Ki^(-1)ji)
+         */
         const Numeric x = -0.5 * r * PiT_next(0,0);
         const Numeric y = x * sibi[0];
         // Stokes 1:
@@ -1080,11 +1100,14 @@ void get_diydx( VectorView diydx_this,
         // Higher Stokes
         for( Index is=1; is<stokes_dim; is++ )
         { 
-            const Numeric z = x * iy[is];
+            const Numeric z = x * sibi[is]; //NB: sibi not iy since ji can be polarized as well?
             diydx_this[is] += z * dKdx_this(is,is);
             diydx_next[is] += z * dKdx_next(is,is);
         }
         
+        /*
+         * T * (1 - Ti) * dbi/dx
+         */
         if(do_Bsource)
         {
             // The terms associated with B-bar:  For extmat_case==1 only works on first term
@@ -1093,17 +1116,12 @@ void get_diydx( VectorView diydx_this,
             diydx_next[0] += 0.5*v * dBdx_next;
         }
         
+        /*
+         * T * (1 - Ti) *(K^(-2)dKi/dxji + K^(-1)dji/dx)
+         */
         if(do_nonlte)
         {
             const Numeric v = 0.5 * PiT_this(0,0) * ( 1.0 - T_this(0,0));
-            
-            // Higher Stokes since NLTE vector can be polarized?
-            for( Index is=1; is<stokes_dim; is++ )
-            { 
-                const Numeric z = x * sibi[is];
-                diydx_this[is] += z * dKdx_this(is,is);
-                diydx_next[is] += z * dKdx_next(is,is);
-            }
             
             Numeric invK = 1.0/K_this(0,0);
             
@@ -1114,6 +1132,10 @@ void get_diydx( VectorView diydx_this,
             diydx_next[0] += -v*invK*
             (dKdx_next(0,0)*invK*nlte_next[0] + invK*dnltedx_next[0]);
         }
+        
+        /*
+         * End of solution
+         */
         
         // Zero for higher Stokes
         //
@@ -1141,9 +1163,30 @@ void get_diydx( VectorView diydx_this,
     // General case
     else
     { 
+        /*
+         * Solves ds/dx = T [ dTi/dx * (si-bi-Ki^(-1)ji) + 
+         *        (1 - Ti) * ( dbi/dx + K^(-1)dKi/dxK^(-1)ji + K^(-1)dji/dx ) ]
+         * 
+         * (si-bi-Ki^(-1)ji) is sibi
+         * T                 is PiT_this
+         * dTi/dx            is dTdx_this, dTdx_next       (note how outer loop takes care of this)
+         * Ti                is T_this
+         * dbi/dx            is dBdx_this/2, dBdx_next/2   (note how outer loop takes care of this)
+         * Ki                is K_this/2, K_next/2         (note how outer loop takes care of this)
+         * dKi/dx            is dKdx_this, dKdx_next       (note how outer loop takes care of this)
+         * ji                is nlte_this/2, nlte_next/2   (note how outer loop takes care of this)
+         * dji/dx            is dnltedx_this, dnltedx_next (note how outer loop takes care of this)
+         * 
+         * Begin solution
+         */
+        
+        
         //Helpers
         Vector x(stokes_dim), y(stokes_dim);
         
+        /*
+         * This is the T * dTi/dx * (si-bi-Ki^(-1)ji) part
+         */
         // Disturb for this
         mult( x, dTdx_this, sibi );
         mult( y, PiT_this, x );
@@ -1157,6 +1200,9 @@ void get_diydx( VectorView diydx_this,
         
         
         // The terms associated with B-bar:
+        /*
+         * This is the T * (1-Ti)*dbi/dx part
+         */
         if(do_Bsource)
         {
             // Do this
@@ -1175,7 +1221,9 @@ void get_diydx( VectorView diydx_this,
             diydx_next += y;
         }
         
-        
+        /*
+         * This is the  T * (1-Ti)* ( K^(-1)dKi/dxK^(-1)ji + K^(-1)dji/dx ) part
+         */
         if(do_nonlte)
         {
             Matrix invK(stokes_dim,stokes_dim),
@@ -1213,6 +1261,14 @@ void get_diydx( VectorView diydx_this,
             
             diydx_next += vec1;
         }
+        
+        /*
+         *  End of solution
+         * 
+         * Below follows hydrostatic equilibrium calculations
+         * FIXME:  Add theoretical description
+         */
+        
         //
         // The terms associated with Delta-s:
         if( do_HSE )

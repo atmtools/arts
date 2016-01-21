@@ -1,3 +1,16 @@
+2016-01-21  Richard Larsson   <ric.larsson@gmail.com>
+	
+	* arts-2-3-419
+	
+	* src/absorption.cc:  Fix for workaround.  When voigt kuntz6 is the
+	line shape, then phase must be zero or we can end up with 0*nan in
+	a later calculations.  Bug found and reported by Lukas.
+	Function affected: (xsec_species_line_mixing_wrapper)
+	
+	* src/jacobian.cc:  Added commentary on jacobian solver.
+	
+	* src/rte.cc:  Updated comments for species tags.
+
 2016-01-20  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-418

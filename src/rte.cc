@@ -2021,8 +2021,11 @@ void get_ppath_pmat_and_tmat(
         ppath_nlte_source.resize( nf, stokes_dim, np );   // We start by assuming non-LTE
         lte.resize( np );
         abs_per_species.resize( nisp, nf, stokes_dim, stokes_dim, np ); 
-        dppath_ext_dx.resize(nq, nf, stokes_dim, stokes_dim, np );
-        dppath_nlte_source_dx.resize(nq, nf, stokes_dim, np);
+        if(jacobian_do)
+        {
+            dppath_ext_dx.resize(nq, nf, stokes_dim, stokes_dim, np );
+            dppath_nlte_source_dx.resize(nq, nf, stokes_dim, np);
+        }
     } 
     catch (std::bad_alloc x) 
     {
@@ -2193,11 +2196,11 @@ void get_ppath_pmat_and_tmat(
                                                         nabs?ppath_vmr(joker,ip):Vector(0),
                                                         l_propmat_clearsky_agenda );
                         //For loops
-                        for( Index i1=0; i1<nf; i1++ ) for( Index i2=0; i2<stokes_dim; i2++ ) for( Index i3=0; i3<stokes_dim; i3++ )
+                        if(!nlte_source.empty())
+                            for( Index i1=0; i1<nf; i1++ ) for( Index i2=0; i2<stokes_dim; i2++ ) for( Index i3=0; i3<stokes_dim; i3++ )
                             {
                                 dppath_ext_dx(iq,i1,i2,i3,ip) = ( propmat_clearsky_dt(joker,i1,i2,i3).sum() - propmat_clearsky(joker,i1,i2,i3).sum() ) / dt;
-                                if(!nlte_source.empty())
-                                    dppath_nlte_source_dx(iq,i1,i2,ip) = (nlte_source_dt(joker,i1,i2).sum() - nlte_source(joker,i1,i2).sum() ) / dt;
+                                dppath_nlte_source_dx(iq,i1,i2,ip) = (nlte_source_dt(joker,i1,i2).sum() - nlte_source(joker,i1,i2).sum() ) / dt;
                             }
                         
                     }
@@ -2288,8 +2291,7 @@ void get_ppath_pmat_and_tmat(
                                         ppath_t[ip] );
                             if(!nlte_source.empty())
                             {
-                                throw std::runtime_error("We do not support \"analytic\" jacobians for NLTE and species.\n"
-                                    "Please use \"from_propmat\".");
+                                throw std::runtime_error("We do not do jacobians for NLTE and species tags.\n");
                             }
                             for( Index i1=0; i1<nf; i1++ ) for( Index i2=0; i2<stokes_dim; i2++ )
                             {

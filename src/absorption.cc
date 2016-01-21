@@ -2045,6 +2045,10 @@ void xsec_species_line_mixing_wrapper(  MatrixView               xsec_attenuatio
     f_local(f_grid.nelem()+1);
     f_local[Range(0,f_grid.nelem())]=f_grid;
     
+    // Set this to zero in the case of VoigtKuntz6 or other lines hapes that work in special circumstances
+    if (!we_need_phase&&we_need_partials)
+        phase = 0.0;
+    
     // Broadening species
     ArrayOfIndex broad_spec_locations;
     find_broad_spec_locations(broad_spec_locations,
@@ -2161,7 +2165,7 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                                     // LINE MIXING
                                     DV, Y,  G, 
                                     // FEATURE FLAGS
-                                    cutoff>0, 1, calc_partials&&!no_ls_partials, calc_src);
+                                    cutoff>0, we_need_phase, calc_partials&&!no_ls_partials, calc_src);
             }
             else
             {//FIXME:  Is all of this really working?  Should I not have a VVH_that is half of VVH?
@@ -2191,7 +2195,7 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                                     // LINE MIXING
                                     DV, Y, G, 
                                     // FEATURE FLAGS
-                                    cutoff>0, 1, calc_partials&&!no_ls_partials, calc_src);
+                                    cutoff>0, we_need_phase, calc_partials&&!no_ls_partials, calc_src);
             }
             
             
