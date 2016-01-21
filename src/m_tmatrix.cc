@@ -31,6 +31,7 @@
 #include "make_array.h"
 #include "refraction.h"
 #include "special_interp.h"
+#include "math_funcs.h"
 
 extern const Numeric PI;  
 
@@ -158,12 +159,62 @@ void scat_data_singleTmatrix(
     const Index&                  ndgs,
     const Verbosity&              verbosity )
 {
+  // Get internal coding for ptype
+  scat_data_single.ptype = PTypeFromString( ptype );
+
+  // Set description
+  {   
+    ostringstream os;
+    os << "T-matrix calculation for a " << shape << " particle, with " 
+       << "diameter_volume_equ = " << 1e6*diameter_volume_equ << "um and "
+       << "aspect ratio = " << aspect_ratio << ".";
+    scat_data_single.description = os.str();
+  }
+
+
   // Add grids to scat_data_single
   //
   scat_data_single.f_grid  = data_f_grid;
   scat_data_single.T_grid  = data_t_grid;
+
+  if( scat_data_single.ptype == PTYPE_MACROS_ISO )
+    {
+      // tmatrix random orient requires equidistant angular grid. checking here
+      // that given data_za_grid fulfills this requirement
+      if( data_za_grid[0]!=0. || last(data_za_grid)!=180. )
+        {
+          ostringstream os;
+          os << "Zenith angle (=scattering angle) grid needs to include\n"
+             << "0deg and 180deg as first and last grid points.\n"
+             << "At least one of them does not fit.";
+          throw runtime_error( os.str() );
+        }
+      Index nza = data_za_grid.nelem();
+      Numeric dza = 180./(nza-1);
+      for( Index iza=1; iza<nza; iza++ )
+        {
+          if( data_za_grid[iza]/iza!=dza )
+            {
+              ostringstream os;
+              os << "Input zenith angle grid *data_za_grid* is required to be\n"
+                 << "equidistant for randomly oriented particles, but it is not.";
+              throw runtime_error( os.str() );
+            }
+        }
+    }
   scat_data_single.za_grid = data_za_grid;
-  scat_data_single.aa_grid = data_aa_grid;
+
+  if( scat_data_single.ptype == PTYPE_MACROS_ISO )
+    {
+      // in case of random orientation, azimuth grid should be empty. We just
+      // set that here, ignoring whatever is in data_aa_grid (but giving a
+      // warning that we do so).
+      Vector empty_grid(0);
+      scat_data_single.aa_grid = empty_grid;
+    }
+  else
+    scat_data_single.aa_grid = data_aa_grid;
+
 
   // Index coding for shape
   Index np;
@@ -185,18 +236,6 @@ void scat_data_singleTmatrix(
       throw runtime_error( os.str() );
     }
 
-  // Get internal coding for ptype
-  scat_data_single.ptype = PTypeFromString( ptype );
-
-  // Set description
-  {   
-    ostringstream os;
-    os << "T-matrix calculation for a " << shape << " particle, with " 
-       << "diameter_volume_equ = " << 1e6*diameter_volume_equ << "um and "
-       << "aspect ratio = " << aspect_ratio << ".";
-    scat_data_single.description = os.str();
-  }
-
   // Interpolate refractive index to relevant grids
   //
   const Index nf = data_f_grid.nelem();
@@ -207,12 +246,13 @@ void scat_data_singleTmatrix(
                     complex_refr_index, "complex_refr_index", 
                     data_f_grid, data_t_grid );
 
-  // Run T-matrix and we are ready (T-matrix takes de as radius in um)
+  // Run T-matrix and we are ready (T-matrix takes size as equiv radius(!) )
   calcSingleScatteringDataProperties( scat_data_single,
                                       ncomp(joker,joker,0), 
                                       ncomp(joker,joker,1),
                                       0.5*diameter_volume_equ, 
                                       np, aspect_ratio, precision, ndgs );
+
 
   // Meta data
   scat_meta_single.description  = 

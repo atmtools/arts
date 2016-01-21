@@ -5,30 +5,30 @@ C   was funded by the NASA Radiation Science Program.
 C   The code can be used without limitations in any not-for-       
 C   profit scientific research.  The only request is that in any      
 C   publication using the code the source of the code be acknowledged  
-C   and relevant references be made. 
+C   and relevant references be made.
 
 C   This version code has been modified by Cory Davis (University 
-C   of Edinburgh) for inclusion in the the PyARTS atmospheric radiative 
-C   transfer package                                  
+C   of Edinburgh) for inclusion in the the ARTS and PyARTS atmospheric
+C   radiative transfer packages
 
 ! OLE 13/06/27: Add RAT as parameter to Tmatrix subroutine. Renamed
 ! subroutines that have names collisions with tmd.arts.f.
 ! Use LaPACK version of TT subroutine from ampld.lp.f.
 
-! CPD 10/09/03: Have realised that the tmarix subroutine includes useful
+! CPD 03/09/10: Have realised that the tmarix subroutine includes useful
 !calculations for randomly oriented particles.  Included Cext and Csca
 !as output variables`
 
-! CPD 18/12/02: Added the input variable 'quiet' to the Tmatrix
+! CPD 02/12/18: Added the input variable 'quiet' to the Tmatrix
 ! subroutine.  quiet = 1 disables any standard output, unless something
 ! unusual happens that you probably need to know about.
 
-! CPD 31/10/02:  This file represents my attempt to carve MIM's code so
+! CPD 02/10/31:  This file represents my attempt to carve MIM's code so
 !that the T-matrix may be calculated once for a given particle.  The
 !large preamble has been deleted - refer to ampld.lp.f
 !Step 1: Chop original ampld subroutine before the AMPL call.  Calling
 !the first half Tmatrix
-!Step 2: Remove irrelevent arguements.  At this point I will keep the
+!Step 2: Remove irrelevent arguments.  At this point I will keep the
 !COMMONS, so any program that calls these subs, will need these
 !declarations
 

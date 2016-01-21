@@ -1,12 +1,14 @@
 Arts2 {
 
 # First run basic tests of implementation
+#####
 TMatrixTest
 
 
 
-# Make a run of the interface, including saving and reading
-#
+# Define particle and ssd grids
+#####
+
 VectorCreate ( data_za_grid )
 VectorNLinSpace( data_za_grid, 19, 0, 180 )
 VectorCreate ( data_aa_grid )
@@ -19,28 +21,79 @@ VectorSet( data_t_grid, [ 220, 250, 270] )
 #    	data_f_grid = data_f_grid,
 #		data_T_grid = data_t_grid )
 ReadXML(complex_refr_index, "../refice/TestRefice.complex_refr_indexREFERENCE.xml")
-#
+StringCreate( part_shape )
+StringSet( part_shape, "cylindrical" )
+NumericCreate( part_dveq )
+NumericSet( part_dveq, 100e-6 ) # [m]
+NumericCreate( part_ar )
+NumericSet( part_ar, 2. )
+NumericCreate( part_mass )
+NumericSet( part_mass, 4.7998300e-10 ) # [kg]; m = Pi/6. * dveq^3 * density_ice
+
+SingleScatteringDataCreate(ref)
+
+
+# TMatrix calculation: AZIMUTHALLY RANDOM ORIENTED (horizontally aligned) PARTICLE
+#####
 scat_data_singleTmatrix( 
-   shape               = "cylindrical",
-   diameter_volume_equ = 100e-6, # [m]
-   aspect_ratio        = 2,
-   mass                = 4.7998300e-10, # [kg]; m = Pi/6. * diameter_volume_equ^3 * density_ice
+   shape               = part_shape,
+   diameter_volume_equ = part_dveq,
+   aspect_ratio        = part_ar,
+   mass                = part_mass,
    ptype               = "horizontally_aligned",
    data_f_grid         = data_f_grid,
    data_t_grid         = data_t_grid,
    data_za_grid        = data_za_grid,
    data_aa_grid        = data_aa_grid,
 )
+
+# Write data to file. And read from file (making sure, format is ok).
 #
-WriteXML( "ascii", scat_data_single, "ssd_test.xml" )
-WriteXML( "ascii", scat_meta_single, "ssd_test.meta.xml" )
-SingleScatteringDataCreate(ref)
-ReadXML( ref, "TestTMatrix.ssdREFERENCE.xml" )
+WriteXML( "ascii", scat_data_single )
+WriteXML( "ascii", scat_meta_single )
+ReadXML( scat_data_single )
+ReadXML( scat_meta_single )
+
+# Compare to reference data to ensure calcs provide expected results.
+#
+ReadXML( ref, "TestTMatrix.aligned.ssdREFERENCE.xml" )
 Compare(scat_data_single, ref, 1e-6)
 
 
-# Check conversion between Dveq and Dmax
+# TMatrix calculation: RANDOMLY ORIENTED PARTICLE
+#####
+scat_data_singleTmatrix( 
+   shape               = part_shape,
+   diameter_volume_equ = part_dveq,
+   aspect_ratio        = part_ar,
+   mass                = part_mass,
+   ptype               = "macroscopically_isotropic",
+   data_f_grid         = data_f_grid,
+   data_t_grid         = data_t_grid,
+   data_za_grid        = data_za_grid,
+   data_aa_grid        = data_aa_grid,
+)
+
+# Write data to file. And read from file (making sure, format is ok).
 #
+WriteXML( "ascii", scat_data_single )
+WriteXML( "ascii", scat_meta_single )
+ReadXML( scat_data_single )
+ReadXML( scat_meta_single )
+
+# Compare to reference data to ensure calcs provide expected results.
+#
+ReadXML( ref, "TestTMatrix.random.ssdREFERENCE.xml" )
+Compare(scat_data_single, ref, 1e-6)
+
+
+
+# Check particle size parameter conversions
+# (volume equivalent sphere diameter and maximum dimension)
+#
+# that's actually not limited to TMatrix calcs, but a non-spherical particles
+# issue. anyway, we keep that test here.
+#####
 NumericCreate( dveq0 )
 NumericCreate( dveq )
 NumericCreate( dmax )

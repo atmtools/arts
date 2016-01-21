@@ -947,8 +947,6 @@ void calcSingleScatteringDataProperties(SingleScatteringData& ssd,
     const Index nf = ssd.f_grid.nelem();
     const Index nT = ssd.T_grid.nelem();
 
-    const Index nza = ssd.za_grid.nelem();
-
     extern const Numeric PI;
     extern const Numeric SPEED_OF_LIGHT;
 
@@ -972,6 +970,8 @@ void calcSingleScatteringDataProperties(SingleScatteringData& ssd,
     switch (ssd.ptype) {
         case PTYPE_MACROS_ISO:
         {
+            const Index nza = ssd.za_grid.nelem();
+
             ssd.pha_mat_data.resize(nf, nT, nza, 1, 1, 1, 6);
             ssd.ext_mat_data.resize(nf, nT, 1, 1, 1);
             ssd.abs_vec_data.resize(nf, nT, 1, 1, 1);
@@ -1030,12 +1030,14 @@ void calcSingleScatteringDataProperties(SingleScatteringData& ssd,
         }
         case PTYPE_HORIZ_AL:
         {
-            Index nza_inc = (nza-1)/2 + 1;
+            const Index nza = ssd.za_grid.nelem();
             const Index naa = ssd.aa_grid.nelem();
 
-            ssd.ext_mat_data.resize(nf, nT, nza_inc, 1, 3);
+            Index nza_inc = (nza-1)/2 + 1;
+
             ssd.pha_mat_data.resize(nf, nT, nza, naa, nza_inc, 1, 16);
-            ssd.abs_vec_data.resize(nf, nza_inc, 1, 2, 1);
+            ssd.ext_mat_data.resize(nf, nT, nza_inc, 1, 3);
+            ssd.abs_vec_data.resize(nf, nT, nza_inc, 1, 2);
 
             ssd.ext_mat_data = NAN;
             ssd.pha_mat_data = NAN;

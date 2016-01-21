@@ -1,3 +1,27 @@
+2016-01-21 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-420
+
+	* src/m_tmatrix.cc (scat_data_singleTmatrix):
+	Slight reorganiosation of code. Added check za_grid to fulfills tmatrix'
+	equidistance requirement for randomly oriented particles. Set aa_grid as
+	empty for randomly oriented particles.
+	
+	* src/tmatrix.cc (calcSingleScatteringDataProperties):
+	Fixed ssd.abs_vec resizing bug.
+	
+	* controlfiles/artscomponents/tmatrix/TestTMatrix.arts:
+	Added randomly oriented particle test case.
+	
+	* controlfiles/artscomponents/tmatrix/TestTMatrix.random.ssdREFERENCE.xml:
+	Added. Reference data of randomly oriented particle.
+	
+	* controlfiles/artscomponents/tmatrix/TestTMatrix.aligned.ssdREFERENCE.xml:
+	Renamed from TestTMatrix.ssdREFERENCE.xml.
+
+  * 3rdparty/tmatrix/ampld.arts.f:
+  Spellfixes. Added ARTS (in addition to PyARTS) to header info.
+
 2016-01-21  Richard Larsson   <ric.larsson@gmail.com>
 	
 	* arts-2-3-419
