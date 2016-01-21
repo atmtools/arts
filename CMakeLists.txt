@@ -33,8 +33,10 @@ if (ENABLE_FORTRAN)
   
   if (FORTRAN_COMPILER MATCHES "gfortran.*")
     set (FORTRAN_EXTRA_FLAGS "-fdefault-double-8 -fdefault-integer-8 -fdefault-real-8")
-  else (FORTRAN_COMPILER MATCHES "gfortran.*")
-    message (FATAL_ERROR "Unsupported Fortran compiler. Must be gfortran.")
+  elseif (FORTRAN_COMPILER MATCHES "ifort.*")
+    set (FORTRAN_EXTRA_FLAGS "-i8 -r8")
+  else ()
+    message (FATAL_ERROR "Unsupported Fortran compiler. Must be gfortran or ifort.")
   endif (FORTRAN_COMPILER MATCHES "gfortran.*")
 
   INCLUDE (CheckTypeSize)
@@ -209,7 +211,7 @@ endif (CMAKE_GENERATOR STREQUAL "Xcode")
 
 if (CMAKE_COMPILER_IS_INTELCXX)
   ARTS_ADD_COMPILER_FLAG (w1)
-  ARTS_ADD_COMPILER_FLAG (diag-disable 383,980,981,1418,1419)
+  ARTS_ADD_COMPILER_FLAG (diag-disable=383,980,981,1418,1419,1682)
 endif (CMAKE_COMPILER_IS_INTELCXX)
 
 if (WERROR)

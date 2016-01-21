@@ -3646,10 +3646,12 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN(),
         GIN( "var1", "var2", "maxabsdiff", "error_message" ),
-        GIN_TYPE( "Numeric, Vector, Matrix, Tensor3, Tensor4, Tensor7,"
-                  "ArrayOfVector, ArrayOfMatrix, GriddedField3, Sparse",
-                  "Numeric, Vector, Matrix, Tensor3, Tensor4, Tensor7,"
-                  "ArrayOfVector, ArrayOfMatrix, GriddedField3, Sparse",
+        GIN_TYPE( "Numeric, Vector, Matrix, Tensor3, Tensor4, Tensor5, Tensor7,"
+                  "ArrayOfVector, ArrayOfMatrix, GriddedField3, Sparse,"
+                  "SingleScatteringData",
+                  "Numeric, Vector, Matrix, Tensor3, Tensor4, Tensor5, Tensor7,"
+                  "ArrayOfVector, ArrayOfMatrix, GriddedField3, Sparse,"
+                  "SingleScatteringData",
                   "Numeric", "String" ),
         GIN_DEFAULT( NODEF, NODEF, "", "" ),
         GIN_DESC( "A first variable", "A second variable", 

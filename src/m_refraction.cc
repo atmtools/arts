@@ -422,9 +422,9 @@ void complex_refr_indexIceWarren84(
     complex_refr_index.set_grid(2, MakeArray<String>("real", "imaginary"));
 
     Complex n;
-#pragma omp parallel for                 \
+/*#pragma omp parallel for                 \
   if (!arts_omp_in_parallel() && nf > 1) \
-  private(n)
+  private(n)*/
     for (Index f = 0; f < nf; ++f)
         for (Index t = 0; t < nt; ++t)
         {

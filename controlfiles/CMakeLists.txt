@@ -101,6 +101,14 @@ if (ENABLE_TMATRIX)
   arts_test_run_ctlfile(fast artscomponents/tmatrix/TestTMatrix.arts)
 endif ()
 
+if (ENABLE_FASTEM)
+  arts_test_run_ctlfile(fast artscomponents/fastem/TestFastem.arts)
+endif ()
+
+if (ENABLE_REFICE)
+  arts_test_run_ctlfile(fast artscomponents/refice/TestRefice.arts)
+endif ()
+
 
 ###################
 ### Instruments ###

@@ -1,3 +1,45 @@
+2016-01-20  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-418
+
+	* CMakeLists.txt:
+
+	Add support for Intel Fortran.
+
+	Ignore warning 1682 with Intel C++ compiler.
+
+	* controlfiles/CMakeLists.txt, controlfiles/artscomponents/fastem,
+	controlfiles/artscomponents/refice:
+
+	Add simple fastem and refice test cases. Main purpose is to ensure the
+	Fortran interface is working as expected.
+
+	Note on refice (Warren84): While fastem and tmatrix results are
+	basically identical between gfortran and Intel compiler, strangely the
+	refice code gives a difference of ~0.04 for the real part (value is
+	around 1.8) in this test case. This needs further investigation because
+	at this point it is not clear which compiler is better or worse.
+
+	* controlfiles/artscomponents/tmatrix/TestTmatrix.arts:
+
+	Read reference refractive index from file for consistency check of
+	tmatrix output.
+
+	Compare SingleScatteringData against reference file.
+
+	* src/m_refraction.cc (complex_refr_indexIceWarren84):
+
+	Disable OpenMP in loop (for now) to resolve segfault with Intel Fortran.
+
+	* src/parameters.cc (get_parameters):
+
+	Don't crash if an empty "" commandline argument is passed to arts. Fixes
+	bug reported by Lukas.
+
+	* src/methods.cc, src/m_basic_types.cc:
+
+	Add Compare functions for SingleScatteringData and Tensor5.
+
 2016-01-20  Jana Mendrok  <jana.mendrok@chalmers.se>
 
 	* arts-2-3-417

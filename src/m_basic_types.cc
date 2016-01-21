@@ -65,6 +65,7 @@
 #include "logic.h"
 #include "sorting.h"
 #include "gridded_fields.h"
+#include "optproperties.h"
 
 
 /*===========================================================================
@@ -1532,6 +1533,86 @@ void Compare(const Tensor4&   var1,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void Compare(const Tensor5&   var1,
+             const Tensor5&   var2,
+             const Numeric&   maxabsdiff,
+             const String&    error_message,
+             const String&    var1name,
+             const String&    var2name,
+             const String&,
+             const String&,
+             const Verbosity& verbosity)
+{
+    const Index ncols = var1.ncols();
+    const Index nrows = var1.nrows();
+    const Index npages = var1.npages();
+    const Index nbooks = var1.nbooks();
+    const Index nshelves = var1.nshelves();
+
+    if(var2.ncols() != ncols   ||
+       var2.nrows() != nrows  ||
+       var2.npages() != npages   ||
+       var2.nbooks() != nbooks   ||
+       var2.nshelves() != nshelves )
+    {
+        ostringstream os;
+        os << var1name << " and " << var2name << " do not have the same size.";
+        throw runtime_error(os.str());
+    }
+
+    Numeric maxdiff = 0.0;
+
+    for( Index c=0; c<ncols; c++ )
+        for( Index r=0; r<nrows; r++ )
+            for( Index p=0; p<npages; p++ )
+                for( Index b=0; b<nbooks; b++ )
+                    for( Index s=0; s<nshelves; s++ )
+                    {
+                        Numeric diff = var1(s,b,p,r,c) - var2(s,b,p,r,c);
+
+                        if( isnan(var1(s,b,p,r,c))  ||  isnan(var2(s,b,p,r,c)) )
+                        {
+                            if( isnan(var1(s,b,p,r,c))  &&  isnan(var2(s,b,p,r,c)) )
+                            { diff = 0; }
+                            else if( isnan(var1(s,b,p,r,c)) )
+                            {
+                                ostringstream os;
+                                os << "Nan found in " << var1name << ", but there is no "
+                                << "NaN at same position in " << var2name << ".\nThis "
+                                << "is not allowed.";
+                                throw runtime_error(os.str());
+                            }
+                            else
+                            {
+                                ostringstream os;
+                                os << "Nan found in " << var2name << ", but there is no "
+                                << "NaN at same position in " << var1name << ".\nThis "
+                                << "is not allowed.";
+                                throw runtime_error(os.str());
+                            }
+                        }
+
+                        if( abs(diff) > abs(maxdiff) )
+                        { maxdiff = diff; }
+                    }
+
+    if( abs(maxdiff) > maxabsdiff )
+    {
+        ostringstream os;
+        os << var1name << "-" << var2name << " FAILED!\n";
+        if (error_message.length()) os << error_message << "\n";
+        os << "Max allowed deviation set to : " << maxabsdiff << endl
+        << "but the tensors deviate with: " << maxdiff << endl;
+        throw runtime_error(os.str());
+    }
+    
+    CREATE_OUT2;
+    out2 << "   " << var1name << "-" << var2name
+    << " OK (maximum difference = " << maxdiff << ").\n";
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void Compare(const Tensor7&   var1,
              const Tensor7&   var2,
              const Numeric&   maxabsdiff,
@@ -1815,3 +1896,33 @@ void Compare(const Sparse&    var1,
   out2 << "   " << var1name << "-" << var2name
        << " OK (maximum difference = " << maxdiff << ").\n";
 }
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void Compare(const SingleScatteringData&    var1,
+             const SingleScatteringData&    var2,
+             const Numeric&   maxabsdiff,
+             const String&    error_message,
+             const String&    var1name,
+             const String&    var2name,
+             const String&,
+             const String&,
+             const Verbosity& verbosity)
+{
+    Compare(var1.f_grid, var2.f_grid, maxabsdiff, error_message,
+            var1name+".f_grid", var2name+".f_grid", "", "", verbosity);
+    Compare(var1.T_grid, var2.T_grid, maxabsdiff, error_message,
+            var1name+".T_grid", var2name+".T_grid", "", "", verbosity);
+    Compare(var1.za_grid, var2.za_grid, maxabsdiff, error_message,
+            var1name+".za_grid", var2name+".za_grid", "", "", verbosity);
+    Compare(var1.aa_grid, var2.aa_grid, maxabsdiff, error_message,
+            var1name+".aa_grid", var2name+".aa_grid", "", "", verbosity);
+    Compare(var1.pha_mat_data, var2.pha_mat_data, maxabsdiff, error_message,
+            var1name+".pha_mat_data", var2name+".pha_mat_data", "", "", verbosity);
+    Compare(var1.ext_mat_data, var2.ext_mat_data, maxabsdiff, error_message,
+            var1name+".ext_mat_data", var2name+".ext_mat_data", "", "", verbosity);
+    Compare(var1.abs_vec_data, var2.abs_vec_data, maxabsdiff, error_message,
+            var1name+".abs_vec_data", var2name+".abs_vec_data", "", "", verbosity);
+}
+
+

@@ -15,9 +15,10 @@ VectorCreate ( data_f_grid )
 VectorSet( data_f_grid, [ 230e9, 240e9 ] )
 VectorCreate( data_t_grid )
 VectorSet( data_t_grid, [ 220, 250, 270] )
-complex_refr_indexIceWarren84(
-    	data_f_grid = data_f_grid,
-		data_T_grid = data_t_grid )
+#complex_refr_indexIceWarren84(
+#    	data_f_grid = data_f_grid,
+#		data_T_grid = data_t_grid )
+ReadXML(complex_refr_index, "../refice/TestRefice.complex_refr_indexREFERENCE.xml")
 #
 scat_data_singleTmatrix( 
    shape               = "cylindrical",
@@ -33,9 +34,9 @@ scat_data_singleTmatrix(
 #
 WriteXML( "ascii", scat_data_single, "ssd_test.xml" )
 WriteXML( "ascii", scat_meta_single, "ssd_test.meta.xml" )
-ReadXML( scat_data_single, "ssd_test.xml" )
-ReadXML( scat_meta_single, "ssd_test.meta.xml" )
-
+SingleScatteringDataCreate(ref)
+ReadXML( ref, "TestTMatrix.ssdREFERENCE.xml" )
+Compare(scat_data_single, ref, 1e-6)
 
 
 # Check conversion between Dveq and Dmax

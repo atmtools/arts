@@ -395,7 +395,8 @@ bool get_parameters(int argc, char **argv)
   while ( optind < argc )
     {
       String dummy=argv[optind];
-      parameters.controlfiles.push_back(dummy);
+      if (dummy.nelem())
+          parameters.controlfiles.push_back(dummy);
       optind++;
     }
 
