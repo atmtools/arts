@@ -23,15 +23,17 @@
   \brief  T-Matrix related workspace methods.
 */
 
-#include <stdexcept>
+#include <cfloat>
 #include <cmath>
-#include "messages.h"
-#include "tmatrix.h"
+#include <stdexcept>
 #include "check_input.h"
+#include "logic.h"
 #include "make_array.h"
+#include "math_funcs.h"
+#include "messages.h"
 #include "refraction.h"
 #include "special_interp.h"
-#include "math_funcs.h"
+#include "tmatrix.h"
 
 extern const Numeric PI;  
 
@@ -181,7 +183,8 @@ void scat_data_singleTmatrix(
     {
       // tmatrix random orient requires equidistant angular grid. checking here
       // that given data_za_grid fulfills this requirement
-      if( data_za_grid[0]!=0. || last(data_za_grid)!=180. )
+      if( !(is_same_within_epsilon(data_za_grid[0],0.,2*DBL_EPSILON) &&
+            is_same_within_epsilon(last(data_za_grid),180.,2*DBL_EPSILON)) )
         {
           ostringstream os;
           os << "Zenith angle (=scattering angle) grid needs to include\n"
@@ -193,7 +196,7 @@ void scat_data_singleTmatrix(
       Numeric dza = 180./(nza-1);
       for( Index iza=1; iza<nza; iza++ )
         {
-          if( data_za_grid[iza]/iza!=dza )
+          if( !(is_same_within_epsilon(data_za_grid[iza],iza*dza,2*DBL_EPSILON)) )
             {
               ostringstream os;
               os << "Input zenith angle grid *data_za_grid* is required to be\n"

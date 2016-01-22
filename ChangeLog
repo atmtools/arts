@@ -1,3 +1,14 @@
+2016-01-22 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-421
+
+	* src/m_tmatrix.cc (scat_data_singleTmatrix):
+	Replace identity comparisons of numerics with same-within-epsilon comparison.
+	
+	* src/check_input.cc, m_atmosphere.cc, m_tmatrix.cc:
+	 Sorted include statements in header for better overview (assuming order
+	 doesn't matter for functionality...).
+	
 2016-01-21 Jana Mendrok  <jana.mendrok@chalmers.se>
 
 	* arts-2-3-420

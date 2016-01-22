@@ -37,14 +37,14 @@
   === External declarations
   ===========================================================================*/
 
+#include <cfloat>
 #include <cmath>
 #include <stdexcept>
+#include "array.h"
 #include "auto_md.h"
 #include "check_input.h"
-#include "array.h"
-#include "logic.h"
 #include "gridded_fields.h"
-#include <cfloat>
+#include "logic.h"
 
 extern const Index GFIELD3_P_GRID;
 extern const Index GFIELD3_LAT_GRID;
