@@ -1,3 +1,12 @@
+2016-01-26  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-422
+
+	* src/test_propmat_partials.cc:
+
+	Replace pow10(p) with pow(10., p). pow10 is a GNU extension and not
+	available on certain operating systems / compilers.
+
 2016-01-22 Jana Mendrok  <jana.mendrok@chalmers.se>
 
 	* arts-2-3-421

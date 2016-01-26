@@ -47,7 +47,7 @@ void test_pressurebroadening()
     
     for(Numeric p =-2;p<6;p++)
     {
-        const Numeric P = pow10(p);
+        const Numeric P = pow(10.,p);
         for(Numeric T = 150; T<350; T+=20)
         {
             line.PressureBroadening().GetPressureBroadeningParams(g_0,tmp1,tmp2,df_0,tmp3,tmp4,
@@ -181,7 +181,7 @@ void test_lineshape()
     
     for(Numeric p =-2;p<6;p++)
     {
-        const Numeric P = pow10(p);
+        const Numeric P = pow(10., p);
         //std::cout<<"\nPressure: "<<P<<" Pa. dT: "<<dT<<" K\n";
         for(Numeric T = 150; T<350; T+=20)
         {
