@@ -1,3 +1,11 @@
+2016-01-27  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-423
+
+	* controlfiles/artscomponents/disort/scat_data_disort.xml:
+
+	Convert to UTF-8.
+
 2016-01-26  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-422
