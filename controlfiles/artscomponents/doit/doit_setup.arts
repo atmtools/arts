@@ -1,3 +1,4 @@
+# limb case using an optimized polar angle grid.
 Arts2 {
 
 INCLUDE "general/general.arts"
@@ -6,7 +7,7 @@ INCLUDE "general/agendas.arts"
 INCLUDE "general/planet_earth.arts"
 
 # Agenda for scalar gas absorption calculation
-Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
+Copy( abs_xsec_agenda, abs_xsec_agenda__noCIA )
 
 # (standard) emission calculation
 Copy( iy_main_agenda, iy_main_agenda__Emission )
@@ -26,15 +27,17 @@ Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
 
 # Frequency grid 
 # --------------
-# This example is only monochromatic. Note: The frequency must be contained
-# in the gas absorption lookup table.  
+# Note: The frequencies must be contained in the gas absorption lookup table.
 VectorSet( f_grid, [229.5e9,230.5e9] )
-#VectorSet( f_grid, [230e9] )
-
 
 # Number of Stokes components to be computed
 #-------------------------------------------
 IndexSet( stokes_dim, 4 )
+
+# Radiance output units
+#----------------------
+StringSet( iy_unit, "RJBT" )
+
 
 # Definition of the atmosphere
 # ----------------------------
@@ -46,28 +49,26 @@ AtmosphereSet1D
 ReadXML( p_grid, "testdata/testdoit_p_grid.xml" )
 
 # Definition of species
-#abs_speciesSet( species=[ "H2O", "N2", "O2"] )
 abs_speciesSet( species=[ "H2O-PWR98",
                           "O2-PWR93",
                           "N2-SelfContStandardType" ] )
-#as we use full abs models, we do not need line data. but we need to initialize
-# the line data variable.
-abs_lines_per_speciesSetEmpty
 
 # Atmospheric profiles
 AtmRawRead( basename="testdata/tropical" )
 AtmFieldsCalc
-atmfields_checkedCalc
 
 
 # Gas absorption from lookup table 
 # ---------------------------------
 
-# in case an abs_lookup table need to be calculated, uncomment the below lines.
+# in case an abs_lookup table need to be calculated, uncomment the block below
+# (and replace filename for abs_lookup table to read in ReadXML call).
+#atmfields_checkedCalc
+#abs_lines_per_speciesSetEmpty
 #abs_xsec_agenda_checkedCalc
 #abs_lookupSetup
 #abs_lookupCalc
-#WriteXML( output_file_format="binary", in=abs_lookup, filename="testdoit_gas_abs_lookup.xml" )
+#WriteXML( output_file_format="binary", in=abs_lookup, filename="my_gas_abs_lookup.xml" )
 
 ReadXML( abs_lookup, "testdata/testdoit_gas_abs_lookup.xml" )
 abs_lookupAdapt
@@ -80,10 +81,8 @@ Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__LookUpTable )
 # ----------------------------
 MatrixSetConstant( z_surface, 1, 1, 500 )
 
-# Properties of surface:
-# - surface reflectivity from Liebe model
-# - surface skin temperature interpolated from atmospheric t_field
-#
+# Emission and reflection properties:
+#   specular reflecting water surface at ambient atmospheric temperature
 VectorCreate( n_t_grid )
 AgendaSet( surface_rtprop_agenda ){
   specular_losCalc
@@ -101,17 +100,16 @@ AgendaSet( surface_rtprop_agenda ){
 
 # Definition of sensor position and LOS
 #--------------------------------------
-# This file holds the viewing angles of the sensor:
-IndexSet( nelem, 1 )
 VectorCreate( vector_1 )
-VectorSetConstant( vector_1, nelem, 99.7841941981 )
+VectorCreate( vector_2 )
 
-#IndexSet( nelem, 19 )
-#VectorNLinSpace( vector_1, 0, 180 )
+# Sensor viewing angles
+VectorSet( vector_1, [99.7841941981] )
+#VectorNLinSpace( vector_2, 4, 120, 180 )
+#Append( vector_1, vector_2 )
+nelemGet( nelem, vector_1 )
 
 # Sensor altitude from earth surface
-nelemGet( nelem, vector_1 )
-VectorCreate( vector_2 )
 VectorSetConstant( vector_2, nelem, 95000.1 )
 
 Matrix1ColFromVector( sensor_pos, vector_2 )
@@ -122,17 +120,18 @@ Matrix1ColFromVector( sensor_los, vector_1 )
 sensorOff
 
 
+# Specification of cloud
+# -----------------------
+
 # Set the cloudbox limits (pressure units)
 # Alternative: cloudboxSetManuallyAltitude (specification in [km])
 # ----------------------------------------------------------------
 cloudboxSetManually( p1=71617.7922264, p2=17111.6808705,
                      lat1=0, lat2=0, lon1=0, lon2=0 )
 
-# Specification of cloud
-# -----------------------
+# Initialization and adding scattering elements.
+# ----------------------------------------------------------------
 ScatSpeciesInit
-
-# Adding scattering elements.
 # Here actually both added elements are indentical. however, for testing and for
 # demonstration purposed, having 2 elements is better.
 ScatElementsPndAndScatAdd(
@@ -145,6 +144,12 @@ pnd_fieldCalcFrompnd_field_raw
 # rescaling back to pnd equivalent to only one scattering element. in a true
 # case, this is NOT needed!
 Tensor4Scale( out=pnd_field, in=pnd_field, value=0.5 )
+
+
+
+# -------------
+# DOIT settings
+# -------------
 
 # Select interpolation method ('linear' or 'polynomial'):
 # ----------------------------------------------------
@@ -163,7 +168,7 @@ doit_za_interpSet( interp_method="linear" )
 # be given by a file. If no filename is specified (za_grid_opt_file = ""), the 
 # equidistant grids are used for both, scattering integral and RT calculation. 
 # This option can only be used for down-looking geometries. 
-DoitAngularGridsSet( N_za_grid=19, N_aa_grid=37,
+DOAngularGridsSet( N_za_grid=19, N_aa_grid=37,
                      za_grid_opt_file="testdata/testdoit_za_grid_opt.xml" )
 
 # Main agenda for DOIT calculation
@@ -249,8 +254,8 @@ AgendaSet( doit_conv_test_agenda ){
   # If you want to investigat several iteration fields, for example 
   # to investigate the convergence behavior, you can use
   # the following method:
-  DoitWriteIterationFields
-  Print( doit_iteration_counter, 0 )
+  #DoitWriteIterationFields
+  #Print( doit_iteration_counter, 0 )
 }
 
 AgendaSet( iy_cloudbox_agenda ){

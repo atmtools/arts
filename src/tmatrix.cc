@@ -942,7 +942,9 @@ void calcSingleScatteringDataProperties(SingleScatteringData& ssd,
                                         const Index np,
                                         const Numeric aspect_ratio,
                                         const Numeric precision,
-                                        const Index   ndgs )
+                                        const Index ndgs,
+                                        const Index robust,
+                                        const Index quiet )
 {
     const Index nf = ssd.f_grid.nelem();
     const Index nT = ssd.T_grid.nelem();
@@ -991,10 +993,14 @@ void calcSingleScatteringDataProperties(SingleScatteringData& ssd,
             Vector f34;
             Matrix mono_pha_mat_data(nza, 6, NAN);
 
+            ostringstream os;
+            os << "Calculation of SingleScatteringData properties failed for\n\n";
+            bool anyfailed = false;
 #pragma omp critical(tmatrix_ssp)
             for (Index f_index = 0; f_index < nf; ++f_index)
                 for (Index T_index = 0; T_index < nT; ++T_index)
                 {
+                    bool thisfailed = false;
                     try {
                         tmatrix_random_orientation
                         (cext, csca,
@@ -1002,16 +1008,22 @@ void calcSingleScatteringDataProperties(SingleScatteringData& ssd,
                          equiv_radius, aspect_ratio, np, lam[f_index],
                          ref_index_real(f_index, T_index),
                          ref_index_imag(f_index, T_index),
-                         precision, nza, ndgs );
+                         precision, nza, ndgs, quiet );
                     } catch (std::runtime_error e) {
-                        ostringstream os;
-                        os << "Calculation of SingleScatteringData properties failed for\n"
-                        << "f_grid[" << f_index << "] = " << ssd.f_grid[f_index] << "\n"
-                        << "T_grid[" << T_index << "] = " << ssd.T_grid[T_index] << "\n"
-                        << e.what();
-                        throw std::runtime_error(os.str());
+                        //ostringstream os;
+                        //os << "Calculation of SingleScatteringData properties failed for\n"
+                        os << "f_grid[" << f_index << "] = " << ssd.f_grid[f_index] << "\n"
+                        << "T_grid[" << T_index << "] = " << ssd.T_grid[T_index] << "\n\n";
+                        //<< e.what();
+                        //throw std::runtime_error(os.str());
+                        thisfailed = true;
+                        anyfailed = true;
+                        cout << "\n\n";
+                        
                     }
 
+                    if( !thisfailed )
+                    {
                     mono_pha_mat_data(joker, 0) = f11;
                     mono_pha_mat_data(joker, 1) = f12;
                     mono_pha_mat_data(joker, 2) = f22;
@@ -1024,7 +1036,17 @@ void calcSingleScatteringDataProperties(SingleScatteringData& ssd,
 
                     ssd.ext_mat_data(f_index, T_index, 0, 0, 0) = cext;
                     ssd.abs_vec_data(f_index, T_index, 0, 0, 0) = cext - csca;
+                    }
                 }
+            if( anyfailed )
+              if( robust )
+                cout << os.str();
+              else
+                throw std::runtime_error(os.str());
+            else
+              {
+                os << "None\n";
+              }
             
             break;
         }

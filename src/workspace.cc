@@ -1598,7 +1598,7 @@ void Workspace::define_wsv_data()
        "Number of equidistant grid points of the zenith angle grid, \n"
        "defined from 0 to 180 deg, for the scattering integral calculation. \n"
        "\n"
-       "Usage: Output of *DoitAngularGridsSet*.\n"
+       "Usage: Output of *DOAngularGridsSet*.\n"
        ),
       GROUP( "Index" )));
  
@@ -4830,20 +4830,6 @@ void Workspace::define_wsv_data()
          ), 
         GROUP( "Matrix" )));
 
-   wsv_data.push_back
-     (WsvRecord
-      ( NAME( "surface_emissivity_DISORT" ),
-        DESCRIPTION
-        ( "The surface emissivity specified on lat_grid and lon_grid.\n"
-          "\n"
-          "Remnant from a first solution for surface emissivity fields.\n"
-          "Should be replaced with more flexible solution allowing emissivity\n"
-          "to vary with incidence angle.\n"
-          "\n"
-          "Dimensions: [ lat_grid, lon_grid ]\n"
-         ), 
-        GROUP( "Matrix" )));
-
   wsv_data.push_back
     (WsvRecord
      ( NAME( "surface_los" ),
@@ -4888,7 +4874,7 @@ void Workspace::define_wsv_data()
         "\n"
         "The rows and columns of this tensor holds the reflection\n"
         "coefficient matrix for one frequency and one LOS. The reflection\n"
-        "coefficients shall take into accound the angular weighting if the\n"
+        "coefficients shall take into accound the angular weighting of the\n"
         "downwelling radiation.\n"
         "\n"
         "See specific methods generating *surface_rmatrix* and the user guide\n"

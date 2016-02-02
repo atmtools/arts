@@ -1,3 +1,127 @@
+2016-02-01 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-424
+	
+	Trying to make ARTS-DISORT work somewhat properly, closing a couple of traps
+	and loopholes, fixing bugs.
+	
+  * src/m_disort.cc (DisortCalc):
+  Replaced surface_emissivity_field with surface_scalar_reflectivity - lat/lon
+  dependence wasn't used anyways, now allowing for frequency dependent surface
+  reflectivity.
+  Bit of restructuring code. Checks for only p20-type particles and identical
+  scattering grids added. Both are implicitly assumed by the code, but weren't
+  checked potentially causing significant errors. Angle grid size check added
+  (see DOAngularGridsSet below), allowing only even numbers (DISORT can not
+  really handle 90deg polar angles, so we should avoid them).
+  Changed from using isotropic incoming rad at TOA to blackbody source cosmic
+  background temp at TOA (both are possible. but setting TOA emisivity to 0
+  seemed dangerous as it potentially causes the TOA boundary to reflect. though
+  that's not considered in the DISORT version we use so far).
+  Bugfix in assigning DISORT output to doit_i_field levels.
+
+  * src/disort.cc
+  (phase_functionCalc): Calc scat coef only once for each atm level (DISORT
+  handling only p20, i.e. scat coef independent of polar angle).
+  Bugfix: loop over number of scatt elements of each species. This fixes the
+  non-normailzation complaints of pmomCalc.
+  Moved pfct normalization with scat coef outside of sum-over-scatelements loops.
+  Bugfix: layer-averaged pfct shouldn't become 0 when only one of the bounding
+  levels' pfct is 0 (there are actually particles in this layer, which shouldn't
+  be ignored!), hence take average in case of both given, take that one that's
+  non-zero if only one is and only set 0 when both are zero. FIXME: this might
+  have a corresponding unsuitable setting of layer single scatt albedo (and
+  layer optical depth?) - dtauc_ssalbCalc check ToBeDone!
+  
+  (pmomCalc): Throw error if pfct normalization deviates more than 50% (than
+  it's very likely a bug). Relax warning-level accuracy check of pfct
+  normalization (with linear interpolation 1e-4 accuracy is only reached for
+  Rayleigh particles), push warning back to out2 and renormalize pfct to 2.
+
+  * 3rdparty/disort1.2/DISORT.f:
+  Increased number of processable (output) polar angles 100->1000.
+  Replaced Claudia's fix of planck emission within wavelength range for
+  monochromatic case by separate monochromatic planck emission subroutine (PLK)
+  using current ARTS constants (unfortunately, we can't use the C++ ARTS
+  settings directly, but have to use a copy here in FORTRAN code), fixing unit
+  consistency issues.
+
+  * 3rdparty/disort1.2/ErrPack.f:
+  More verbose wrong-dimension statements: tell current dimension setting in
+  addition to required one).
+
+  * src/m_doit.cc
+  (DOAngularGridsSet): Renamed from DoitAngularGridsSet since WSM is also used
+  for creating DISORT output grid. Moved grid size checks from here into
+  solver-specific methods since requirements are solver-specific. Allow
+  single-element azimuth grid as this is not used/required for DISORT. Make
+  empty za_opt_file the default.
+  
+  (DoitInit): Moved check of sufficient angular grid resolution for DOIT here.
+  
+  (doit_i_fieldSetFromPrecalc, doit_i_fieldSetClearsky):
+  Added checks for doit_is_initialized.
+  
+	* src/workspace.cc:
+	Removed surface_emissivity_DISORT. Spell fixes.
+	
+  * src/m_tmatrix.cc (scat_data_singleTmatrix),
+  src/tmatrix.cc (calcSingleScatteringDataProperties):
+  Be more user-friendly: Introduced flag 'robust' for continuous calcs in case
+  of individual fails and 'quiet' to switch on/off T-matrix' own screen output
+  (e.g. for debugging). Defaults remains with quiet T-Matrix and failing all if
+  anything fails. In any case, be more verbose on what failed.
+  
+  * 3rdparty/tmatrix/tmd.par.f:
+  Increase NPN1 parameter, allowing more convergence iterations.
+
+  * src/m_atmosphere.cc (MagRawRead, WindRawRead):
+  Adapted convention on expected file names (adding 'mag_' and 'wind_' to allow
+  for common basename for all atm data).
+  
+  * src/cloudbox.cc (chk_pndsum):
+  Push back warning to out2, point out scat species concerned.
+  
+	* src/tmatrix.h, src/math_funcs.cc,
+	Cosmetics.
+
+  * src/methods.cc:
+  Bit of alphabetic re-sorting. Expanded DisortCalc description. Adapt 
+  DOAngularGridsSet description. Adapted interfaces according to changes above
+  (DisortCalc, DOAngularGridsSet, doit_i_fieldSetFromPrecalc,
+  doit_i_fieldSetClearsky, scat_data_singleTmatrix).
+
+  * controlfiles/artscomponents/disort/TestDISORT.arts:
+  More or less complete redo of test case, considering limitations of DISORT and
+  its ARTS implementation (only use type 20 particles, all scat data given on
+  identical angular grids, ...). Similar to
+  doit/TestDOITFromIndividualFields.arts. Work in progress.
+
+  * controlfiles/artscomponents/doit/doit_calc.arts, doit_setup.arts:
+  Move iy_unit setting from doit_calc to doit_setup. Cosmetics.
+
+  * controlfiles/artscomponents/doit/TestDOITFromIndividualFields.arts:'
+  Moved setup into separate controlfile for re-use with other cases (e.g.
+  consistent scatt solver comparisons).
+  
+  * controlfiles/artscomponents/doit/indivfieldsatmo_setup.arts:
+  Added.
+  
+  * controlfiles/artscomponents/doitbatch/TestDOITBatch.arts,
+  controlfiles/artscomponents/wfuns/TestDoitJacobians.arts,
+  controlfiles/planetary_toolbox/demos/passive/DemoScat_DOIT_1D.arts:
+  Adapted to WSM DOAngularGridsSet renaming.
+
+	* controlfiles/artscomponents/absorption/TestAbsParticle.arts,
+  controlfiles/instruments/metmm/TestMetMM.arts,
+	controlfiles/artscomponents/linemixing/TestLineMixing.arts,
+  controlfiles/artscomponents/zeeman/TestZeeman.arts,
+	controlfiles/artscomponents/zeeman/TestZeemanPreCalc.arts,
+	controlfiles/artscomponents/linemixing/TestLineMixingAndZeeman.arts,
+	controlfiles/artscomponents/linemixing/TestLineMixingAndZeemanPreCalc_50_to_70_GHz.arts,
+	controlfiles/artscomponents/linemixing/TestLineMixingAndZeeman_50_to_70_GHz.arts:
+	Cosmetics. Spell fixes.
+
 2016-01-27  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-423

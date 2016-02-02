@@ -70,7 +70,7 @@ extern const Numeric RAD2DEG;
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void DoitAngularGridsSet(// WS Output:
+void DOAngularGridsSet(// WS Output:
                          Index& doit_za_grid_size,
                          Vector& scat_aa_grid,
                          Vector& scat_za_grid,
@@ -80,36 +80,32 @@ void DoitAngularGridsSet(// WS Output:
                          const String& za_grid_opt_file,
                          const Verbosity& verbosity)
 {
-  // Check input
-  //
-  // The recommended values were found by testing the accuracy and the speed of 
-  // 1D DOIT calculations for different grid sizes. For 3D calculations it can 
-  // be necessary to use more grid points. 
-  if (N_za_grid < 16)
-    throw runtime_error("N_za_grid must be greater than 15 for accurate results");
-  else if (N_za_grid > 100)
-  {
-    CREATE_OUT1;
-    out1 << "Warning: N_za_grid is very large which means that the \n"
-         << "calculation will be very slow.\n";
-  }
-  
-  if (N_aa_grid < 6)
-    throw runtime_error("N_aa_grid must be greater than 5 for accurate results");
-  else if (N_aa_grid > 100)
-  {
-    CREATE_OUT1;
-    out1 << "Warning: N_aa_grid is very large which means that the \n"
-         << "calculation will be very slow.\n";
-  }
-  
   // Azimuth angle grid (the same is used for the scattering integral and
   // for the radiative transfer.
-  nlinspace(scat_aa_grid, 0, 360, N_aa_grid);
+  if( N_aa_grid > 1 )
+    nlinspace(scat_aa_grid, 0, 360, N_aa_grid);
+  else if ( N_aa_grid < 1 )
+    {
+      ostringstream os;
+      os << "N_aa_grid must be > 0 (even for 1D / DISORT cases).";
+      throw runtime_error( os.str() );
+    }
+  else
+    {
+      scat_aa_grid.resize(1);
+      scat_aa_grid[0] = 0.;
+    }
   
   // Zenith angle grid: 
   // Number of zenith angle grid points (only for scattering integral): 
-  doit_za_grid_size = N_za_grid; 
+  if( N_za_grid > 0 )
+    doit_za_grid_size = N_za_grid; 
+  else
+    {
+      ostringstream os;
+      os << "N_za_grid must be > 0.";
+      throw runtime_error( os.str() );
+    }
 
   if( za_grid_opt_file == "" ) 
     nlinspace(scat_za_grid, 0, 180, N_za_grid);
@@ -1583,8 +1579,31 @@ void DoitInit(//WS Output
   if (!is_increasing(scat_za_grid))
     throw runtime_error("*scat_za_grid* must be increasing.");
 
+  // The recommended values were found by testing the accuracy and the speed of 
+  // 1D DOIT calculations for different grid sizes. For 3D calculations it can 
+  // be necessary to use more grid points. 
+  if (N_scat_za < 16)
+    throw runtime_error("For accurate results, scat_za_grid must have "
+                        "more than 15 elements.");
+  else if (N_scat_za > 100)
+  {
+    CREATE_OUT1;
+    out1 << "Warning: scat_za_grid is very large, which means that the \n"
+         << "calculation will be very slow.\n";
+  }
+  
   // Number of azimuth angles.
   const Index N_scat_aa = scat_aa_grid.nelem();
+  
+  if (N_scat_aa < 6)
+    throw runtime_error("For accurate results, scat_aa_grid must have "
+                        "more than 5 elements.");
+  else if (N_scat_aa > 100)
+  {
+    CREATE_OUT1;
+    out1 << "Warning: scat_aa_grid is very large which means that the \n"
+         << "calculation will be very slow.\n";
+  }
   
   if (scat_aa_grid[0] != 0. || scat_aa_grid[N_scat_aa-1] != 360.)
     throw runtime_error("The range of *scat_aa_grid* must [0 360].");
@@ -1798,7 +1817,7 @@ doit_scat_fieldCalc(Workspace& ws,
                         "The zenith angle grids for the computation of\n"
                         "the scattering integral and the RT part must \n"
                         "be equal. Check definitions in \n"
-                        "*DoitAngularGridsSet*. The keyword \n"
+                        "*DOAngularGridsSet*. The keyword \n"
                         "'za_grid_opt_file' should be empty. \n"
                         );
 
@@ -2520,10 +2539,12 @@ void DoitCalc(
 
   // Check whether DoitInit was executed
   if (!doit_is_initialized)
-    throw runtime_error(
-                        "Initialization method *DoitInit* has to be "
-                        "put before\n"
-                        "start of *DoitCalc*");
+    {
+      ostringstream os;
+      os << "Initialization method *DoitInit* has to be called before "
+         << "*DoitCalc*";
+      throw runtime_error( os.str() );
+    }
 
   //-------- end of checks ----------------------------------------
 
@@ -2591,15 +2612,17 @@ void DoitGetIncoming(
     throw runtime_error( "The cloudbox must be flagged to have "
                          "passed a consistency check (cloudbox_checked=1)." );
   
-
   // Don't do anything if there's no cloudbox defined.
   if (!cloudbox_on) return;
 
   // Check whether DoitInit was executed
   if (!doit_is_initialized)
-    throw runtime_error(
-                        "Initialization method *DoitInit* has to be "
-                        "put before *DoitGetIncoming*");
+    {
+      ostringstream os;
+      os << "Initialization method *DoitInit* has to be called before "
+         << "*DoitGetIncoming*.";
+      throw runtime_error( os.str() );
+    }
 
   // iy_unit hard.coded to "1" here
   const String iy_unit = "1";
@@ -2872,9 +2895,12 @@ void DoitGetIncoming1DAtm(
 
   // Check whether DoitInit was executed
   if (!doit_is_initialized)
-    throw runtime_error(
-                        "Initialization method *DoitInit* has to be "
-                        "put before *DoitGetIncoming*");
+    {
+      ostringstream os;
+      os << "Initialization method *DoitInit* has to be called before "
+         << "*DoitGetIncoming1DAtm*.";
+      throw runtime_error( os.str() );
+    }
 
   // iy_unit hard.coded to "1" here
   const String iy_unit = "1";
@@ -3124,6 +3150,7 @@ void doit_i_fieldSetFromPrecalc(
                              const Index& atmosphere_dim,
                              const Index& stokes_dim,
                              const ArrayOfIndex& cloudbox_limits,
+                             const Index& doit_is_initialized,
                              const Tensor7& doit_i_field_precalc,
                              const Verbosity& ) //verbosity)
 {
@@ -3135,6 +3162,15 @@ void doit_i_fieldSetFromPrecalc(
       throw runtime_error( os.str() );
     }
   
+  // Check whether DoitInit was executed
+  if (!doit_is_initialized)
+    {
+      ostringstream os;
+      os << "Initialization method *DoitInit* has to be called before "
+         << "*doit_i_fieldSetFromPrecalc*";
+      throw runtime_error( os.str() );
+    }
+
   // check dimensions of doit_i_field_precalc
   Index nf = f_grid.nelem();
   Index nza = scat_za_grid.nelem();
@@ -3228,11 +3264,20 @@ void doit_i_fieldSetClearsky(Tensor7& doit_i_field,
                              const Vector& lon_grid,
                              const ArrayOfIndex& cloudbox_limits,
                              const Index& atmosphere_dim,
-                             //Keyword:
+                             const Index& doit_is_initialized,
                              const Index& all_frequencies,
                              const Verbosity& verbosity)
 {
     CREATE_OUT2;
+
+  // Check whether DoitInit was executed
+  if (!doit_is_initialized)
+    {
+      ostringstream os;
+      os << "Initialization method *DoitInit* has to be called before "
+         << "*doit_i_fieldSetClearsky*.";
+      throw runtime_error( os.str() );
+    }
 
     out2 << "  Interpolate boundary clearsky field to obtain the initial field.\n";
 

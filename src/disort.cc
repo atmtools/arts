@@ -187,8 +187,8 @@ void dtauc_ssalbCalc(Workspace& ws,
   scattering angle grid (FIXME: Include angle interpolation)
 
   \param phase_function normalized phase function
-  \param scat_data_mono use arts -d for docu
-  \param pnd_field use arts -d for docu
+  \param scat_data_mono as the WSV
+  \param pnd_field      as the WSV
   
   \author Claudia Emde
   \date   2006-02-10
@@ -205,40 +205,64 @@ void phase_functionCalc(//Output
   //Loop over pressure levels
   for (Index i_p = 0; i_p < pnd_field.npages(); i_p++)
     {
+      // Calculate ensemble averaged scattering coefficient
+      Numeric sca_coeff=0.;
+      //Numeric intP=0.;
+      //Numeric pfct;
+      //Vector pfct(scat_data_mono[0][0].za_grid.nelem(),0.);
+
+      for (Index i_ss = 0; i_ss < scat_data_mono.nelem(); i_ss++)
+        {
+          for (Index i_se = 0; i_se < scat_data_mono[i_ss].nelem(); i_se++)
+            {
+              sca_coeff +=  pnd_field(i_se, i_p, 0, 0) *
+                (scat_data_mono[i_ss][i_se].ext_mat_data(0, 0, 0, 0, 0)-
+                 scat_data_mono[i_ss][i_se].abs_vec_data(0, 0, 0, 0, 0));
+            }
+        }
+
+//      if( sca_coeff!=0. )
+//          cout << "\nat lev=" << i_p << "\n";
       // Loop over scattering angles
       for (Index i_t = 0; i_t < scat_data_mono[0][0].za_grid.nelem(); i_t++)
         {
-          // Calculate ensemble averaged extinction coefficient
-          Numeric sca_coeff=0.;
-
-          Index i_se_flat = 0;
-          for (Index i_ss = 0; i_ss < scat_data_mono.nelem(); i_ss++)
-          {
-              for (Index i_se = 0; i_se < scat_data_mono[i_ss].nelem(); i_se++)
-              {
-                  sca_coeff +=  pnd_field(i_se, i_p, 0, 0) *
-                  (scat_data_mono[i_ss][i_se].ext_mat_data(0, 0, 0, 0, 0)-
-                   scat_data_mono[i_ss][i_se].abs_vec_data(0, 0, 0, 0, 0));
-                  i_se_flat++;
-              }
-          }
-
+//          if( sca_coeff!=0. )
+//              cout << "  ang=" << i_t << " of "
+//                   << scat_data_mono[0][0].za_grid.nelem() << ": \n";
           // Phase function
-          i_se_flat = 0;
           for (Index i_ss = 0; i_ss < scat_data_mono.nelem(); i_ss++)
-          {
-              for (Index i_se = 0; i_se < scat_data_mono.nelem(); i_se++)
-              {
+            {
+              for (Index i_se = 0; i_se < scat_data_mono[i_ss].nelem(); i_se++)
+                {
                   if (sca_coeff != 0)
-                      phase_function_level(i_p, i_t) +=
-                      pnd_field(i_se, i_p, 0, 0) *
-                      scat_data_mono[i_ss][i_se].pha_mat_data(0, 0, i_t, 0, 0, 0, 0)
-                      *4*PI/sca_coeff;// Normalization
-                  i_se_flat++;
-              }
-          }
-
+                    {
+                      phase_function_level(i_p, i_t) += 
+                        pnd_field(i_se, i_p, 0, 0) *
+                        scat_data_mono[i_ss][i_se].pha_mat_data(0, 0, i_t, 0, 0, 0, 0);
+//                        * 4*PI / sca_coeff;                     // Normalization
+//                      pfct = pnd_field(i_se, i_p, 0, 0) *
+//                        scat_data_mono[i_ss][i_se].pha_mat_data(0, 0, i_t, 0, 0, 0, 0)
+//                        * 4*PI / sca_coeff;                     // Normalization
+//                      phase_function_level(i_p, i_t) += pfct;
+//                      cout << "    particle " << i_ss << "-" << i_se
+//                           << " = " << pnd_field(i_se, i_p, 0, 0) << " [m-3] * "
+//                           << scat_data_mono[i_ss][i_se].pha_mat_data(0, 0, i_t, 0, 0, 0, 0)
+//                           << " m2 = " << pfct << "\n";
+                    }
+                }
+            }
+          if (sca_coeff != 0)
+            phase_function_level(i_p, i_t) *= 4*PI / sca_coeff; // Normalization
+//          if( i_t>0 )
+//              intP += 0.5 *
+//                (phase_function_level(i_p, i_t)+phase_function_level(i_p, i_t-1)) *
+//                abs(cos(scat_data_mono[0][0].za_grid[i_t]*PI/180.)-
+//                    cos(scat_data_mono[0][0].za_grid[i_t-1]*PI/180.));
         }
+
+//      if( sca_coeff!=0. )
+//          cout << "  total scatcoef=" << sca_coeff
+//               << ", integrated PFCT=" << intP << "\n";
     }
 
 
@@ -247,11 +271,14 @@ void phase_functionCalc(//Output
     {
       for (Index i_t=0; i_t < phase_function_level.ncols(); i_t++)
         {
-          if (phase_function_level(i_l, i_t) !=0 &&
-              phase_function_level(i_l+1, i_t) !=0)
-            phase_function(i_l, i_t) = .5* 
-              (phase_function_level(i_l, i_t)+
-               phase_function_level(i_l+1, i_t));
+          if ( phase_function_level(i_l, i_t) !=0 )
+            if( phase_function_level(i_l+1, i_t) !=0 )
+              phase_function(i_l, i_t) = .5* 
+                (phase_function_level(i_l, i_t) + phase_function_level(i_l+1, i_t));
+            else
+              phase_function(i_l, i_t) = phase_function_level(i_l, i_t);
+          else if ( phase_function_level(i_l+1, i_t) !=0 )
+            phase_function(i_l, i_t) = phase_function_level(i_l+1, i_t);
         }
     }
   
@@ -310,12 +337,23 @@ void pmomCalc(//Output
           abs(u[i+1] - u[i]);
       
       if (pint != 0){
-        if (abs(2.-pint) > 1e-4)
+        if (abs(2.-pint) > 0.5)
         {
-          CREATE_OUT1;
-          out1 << "Warning: The phase function is not normalized to 2\n"
+          ostringstream os;
+          os << "Phase function normalization deviates from expected value by\n"
+             << "more than 50%. Something is wrong with your scattering data.\n"
+             << "Check!\n";
+          throw runtime_error( os.str() );
+        }
+        if (abs(2.-pint) > 1e-2)
+        {
+          CREATE_OUT2;
+          out2 << "Warning: The phase function is not normalized to 2\n"
                << "The value is:" << pint << "\n";
         }
+        
+        //anyway, rescale phase_int to norm 2
+        phase_int(i_l, joker) *= 2./pint;
        
         pmom(i_l, joker)= 0.; 
 

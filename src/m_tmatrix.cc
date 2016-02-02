@@ -159,6 +159,8 @@ void scat_data_singleTmatrix(
     const Numeric&                precision,
     const String&                 cri_source,
     const Index&                  ndgs,
+    const Index&                  robust,
+    const Index&                  quiet,
     const Verbosity&              verbosity )
 {
   // Get internal coding for ptype
@@ -188,7 +190,7 @@ void scat_data_singleTmatrix(
         {
           ostringstream os;
           os << "Zenith angle (=scattering angle) grid needs to include\n"
-             << "0deg and 180deg as first and last grid points.\n"
+             << "0 deg and 180 deg as first and last grid points, respectively.\n"
              << "At least one of them does not fit.";
           throw runtime_error( os.str() );
         }
@@ -254,7 +256,9 @@ void scat_data_singleTmatrix(
                                       ncomp(joker,joker,0), 
                                       ncomp(joker,joker,1),
                                       0.5*diameter_volume_equ, 
-                                      np, aspect_ratio, precision, ndgs );
+                                      np, aspect_ratio, precision, ndgs,
+                                      robust, quiet
+                                    );
 
 
   // Meta data

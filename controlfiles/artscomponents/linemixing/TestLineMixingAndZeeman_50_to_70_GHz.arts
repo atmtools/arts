@@ -62,7 +62,7 @@ line_mixing_dataMatch(species_tag="O2-Z-LM-66",line_mixing_tag="L2",line_mixing_
 #Get isotopologue ratioss
 isotopologue_ratiosInitFromBuiltin
 
-# monochromatic, pencibeam sensor
+# monochromatic, pencilbeam sensor
 sensorOff
 
 # No scattering

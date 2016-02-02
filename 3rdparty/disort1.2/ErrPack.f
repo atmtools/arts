@@ -58,21 +58,24 @@ c                         ( CHARACTER, any length )
       RETURN
       END
 
-      LOGICAL FUNCTION  WrtDim ( DimNam, MinVal )
+      LOGICAL FUNCTION  WrtDim ( DimNam, CurVal, MinVal )
 
 c          Write name of too-small symbolic dimension and
 c          the value it should be increased to;  return 'TRUE'
 
 c      INPUT :  DimNam = Name of symbolic dimension which is too small
 c                        ( CHARACTER, any length )
+c               Curval = Current value of symbolic dimension
 c               Minval = Value to which that dimension should be
 c                        increased (at least)
 
       CHARACTER*(*)  DimNam
-      INTEGER        MinVal
+      INTEGER        CurVal, MinVal
 
 
-      WRITE ( *, '(/,3A,I7)' )  ' ****  Symbolic dimension  ', DimNam,
+      WRITE ( *, '(/,3A,I7,2A,I7)' )
+     &                     ' ****  Symbolic dimension  ', DimNam,
+     &                     '(cur.val=', CurVal, ')',
      &                     '  should be increased to at least ', MinVal
       WrtDim = .TRUE.
 

@@ -113,7 +113,7 @@ INCLUDE "general/planet_earth.arts"
     atmgeom_checkedCalc
     cloudbox_checkedCalc
     sensor_checkedCalc
-# This performs monochromatic RT calculation
+# Perform RT calculations
     yCalc
 }
 

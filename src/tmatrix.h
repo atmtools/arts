@@ -59,7 +59,9 @@ void calcSingleScatteringDataProperties(SingleScatteringData& ssd,
                                         const Index np = -1,
                                         const Numeric axial_ratio = 1.000001,
                                         const Numeric precision = 0.001,
-                                        const Index   ndgs = 2 );
+                                        const Index ndgs = 2,
+                                        const Index robust = 0,
+                                        const Index quiet = 1 );
 
 
 /** T-Matrix validation test.

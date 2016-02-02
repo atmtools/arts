@@ -191,7 +191,7 @@ doit_za_interpSet( doit_za_interp, atmosphere_dim, "linear" )
 # Sets the angular grids for DOIT calculation     
 # --------------------------------------------------------------------
 # For down- and up-looking geometries. 
-DoitAngularGridsSet( doit_za_grid_size, scat_aa_grid, scat_za_grid,
+DOAngularGridsSet( doit_za_grid_size, scat_aa_grid, scat_za_grid,
       19, 37, "" )
 
 # For limb calculations it is very important to have a finer zenith angle
@@ -199,7 +199,7 @@ DoitAngularGridsSet( doit_za_grid_size, scat_aa_grid, scat_za_grid,
 # The finer grid will be used for the RT calculations, while the scattering
 # integral is still solved for the original sza grid.
 # Make sure to set the path to "doit_za_grid_opt.xml" 
-#   DoitAngularGridsSet( doit_za_grid_size, scat_aa_grid, scat_za_grid,
+#   DOAngularGridsSet( doit_za_grid_size, scat_aa_grid, scat_za_grid,
 #                     19, 10, "PATH/doit_za_grid_opt.xml" )
 
 AgendaSet( doit_conv_test_agenda ){

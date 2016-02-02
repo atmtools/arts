@@ -56,7 +56,7 @@ ReadXML( isotopologue_quantum, "spectroscopy/QuantumConstants/zeeman_constants.x
 #Get isotopologue ratioss
 isotopologue_ratiosInitFromBuiltin
 
-# monochromatic, pencibeam sensor
+# monochromatic, pencilbeam sensor
 sensorOff
 
 # No scattering

@@ -24,10 +24,6 @@ DoitCalc
 #WriteXML( in=doit_i_field )
 
 # Calculate RT from cloudbox boundary to the sensor
-#
-StringSet( iy_unit, "RJBT" )
-#
 yCalc
 
-}
-
+} # End of Main

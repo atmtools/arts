@@ -1,12 +1,14 @@
 #DEFINITIONS:  -*-sh-*-
+
+#This control file demonstrates setting up cases with atmospheric fields
+# (clearsky and cloud/precip) taken from model data, and particle number density
+# fields calculated from these model atmospheric fields.
+#The case applies data equivalent to the first scenario used in TestDoitBatch
+# (folder doitbatch) as well as the absorption lookup table from doitbatch.
+# Therefore, results should be checked against the TestDoitBatch reference
+# results for that scenario.
 #
-# filename: TestDISORT.arts
-#
-# Demonstration of a DISORT scattering calculation
-#
-# The setup follows the one used by TestDOITFromIndividualFields.arts (in doit/).
-#
-# Author: Claudia Emde, Jana Mendrok
+# Author: Jana Mendrok
 # 
 
 Arts2 {
@@ -50,7 +52,7 @@ StringSet( iy_unit, "PlanckBT" )
 
 # Define f_grid
 #--------------
-VectorSet( f_grid, [9.0e10] ) #, 19.0e10])
+VectorSet( f_grid, [9.0e10, 19.0e10] )
 
 #Set stokes dim
 #--------------
@@ -75,7 +77,6 @@ jacobianOff
 
 # Line of sight
 MatrixSet( sensor_los,  [131; 179] )
-MatrixSet( sensor_los,  [180.] )
 # Sensor position
 nrowsGet( nrows, sensor_los )
 ncolsGet( ncols, sensor_los )
@@ -163,9 +164,9 @@ ScatSpeciesInit
 # Definition of particle species
 #--------------------------------
 scat_speciesSet(scat_species, [
-#                "LWC-H98_STCO",
-                "IWC-MH97"#,
-#                "RR-MP48"
+                "LWC-H98_STCO",
+                "IWC-MH97",
+                "RR-MP48"
 ])
 
 # Preparing the cloud field data
@@ -180,144 +181,61 @@ ArrayOfGriddedField3Create( mass_flux_raw )
 # profiles.
 
 #liquid water content: mass_density. empty mass_flux placeholder.
-#ReadXML( gf3, "testdata/chevallierl91_all_extract_wbackground_scenario0.LWC.mass_density.xml" )
-#Append( mass_density_raw, gf3 )
-#ReadXML( gf3, "testdata/empty_profile.xml" )
-#Append( mass_flux_raw, gf3 )
+ReadXML( gf3, "testdata/chevallierl91_all_extract_wbackground_scenario0.LWC.mass_density.xml" )
+Append( mass_density_raw, gf3 )
+ReadXML( gf3, "testdata/empty_profile.xml" )
+Append( mass_flux_raw, gf3 )
 
 #ice water content: mass_density. empty mass_flux placeholder.
 ReadXML( gf3, "testdata/chevallierl91_all_extract_wbackground_scenario0.IWC.mass_density.xml" )
 Append( mass_density_raw, gf3 )
-#ReadXML( gf3, "testdata/empty_profile.xml" )
-#Append( mass_flux_raw, gf3 )
+ReadXML( gf3, "testdata/empty_profile.xml" )
+Append( mass_flux_raw, gf3 )
 
 #rain rate: mass_flux. empty mass_density placeholder.
-#ReadXML( gf3, "testdata/empty_profile.xml" )
-#Append( mass_density_raw, gf3 )
-#ReadXML( gf3, "testdata/chevallierl91_all_extract_wbackground_scenario0.RR.mass_flux.xml" )
-#Append( mass_flux_raw, gf3 )
+ReadXML( gf3, "testdata/empty_profile.xml" )
+Append( mass_density_raw, gf3 )
+ReadXML( gf3, "testdata/chevallierl91_all_extract_wbackground_scenario0.RR.mass_flux.xml" )
+Append( mass_flux_raw, gf3 )
 
 GriddedFieldPRegrid( out=mass_density_raw, in=mass_density_raw, zeropadding=1 )
 FieldFromGriddedField( out=scat_species_mass_density_field, in=mass_density_raw )
-#GriddedFieldPRegrid( out=mass_flux_raw, in=mass_flux_raw, zeropadding=1 )
-#FieldFromGriddedField( out=scat_species_mass_flux_field, in=mass_flux_raw )
+GriddedFieldPRegrid( out=mass_flux_raw, in=mass_flux_raw, zeropadding=1 )
+FieldFromGriddedField( out=scat_species_mass_flux_field, in=mass_flux_raw )
 
 #and we need to initialize as empty the unused scattering species fields
 # (number_density and mean mass).
-Touch( scat_species_mass_flux_field )
 Touch( scat_species_number_density_field )
+Touch( scat_species_mean_mass_field )
 
 # Unrealistic (small) values in massdensity_field will be set to zero
 scat_species_fieldCleanup (scat_species_mass_density_field,
                            scat_species_mass_density_field,
                            1e-15)
-#scat_species_fieldCleanup (scat_species_mass_flux_field,
-#                           scat_species_mass_flux_field,
-#                           1e-15)
-Touch( scat_species_mean_mass_field )
+scat_species_fieldCleanup (scat_species_mass_flux_field,
+                           scat_species_mass_flux_field,
+                           1e-15)
 
 
 # Read SingleScatteringData and ScatteringMetaData
 #-------------------------------------------------
 ArrayOfStringCreate( scat_data_files )
 #ReadXML( scat_data_files, "testdata/SingleScatteringFile_H2Oliquid.xml" )
-#ScatSpeciesScatAndMetaRead ( scat_data_files=[
-# "testdata/scatData/MieAtmlab_Liquid_0.4um.xml.gz",
-# "testdata/scatData/MieAtmlab_Liquid_0.9um.xml.gz",
-# "testdata/scatData/MieAtmlab_Liquid_32.4um.xml.gz",
-# "testdata/scatData/MieAtmlab_Liquid_72.9um.xml.gz"] )
+ScatSpeciesScatAndMetaRead ( scat_data_files=[
+ "testdata/scatData/MieAtmlab_Liquid_0.4um.xml.gz",
+ "testdata/scatData/MieAtmlab_Liquid_0.9um.xml.gz",
+ "testdata/scatData/MieAtmlab_Liquid_32.4um.xml.gz",
+ "testdata/scatData/MieAtmlab_Liquid_72.9um.xml.gz"] )
 ReadXML( scat_data_files, "testdata/SingleScatteringFile_H2Oice.xml" )
 ScatSpeciesScatAndMetaRead ( scat_data_files=scat_data_files )
-#ScatSpeciesScatAndMetaRead ( scat_data_files=[
-# "testdata/scatData/P20FromHong_ShapePlate_Dmax1000um.xml.gz",
-# "testdata/scatData/P20FromHong_ShapePlate_Dmax0010um.xml.gz"] )
-#ReadXML( scat_data_files, "testdata/SingleScatteringFile_H2Oliquid.xml" )
-#ScatSpeciesScatAndMetaRead ( scat_data_files=scat_data_files )
+ReadXML( scat_data_files, "testdata/SingleScatteringFile_H2Oliquid.xml" )
+ScatSpeciesScatAndMetaRead ( scat_data_files=scat_data_files )
 
 # Selection/filtering of particles according to *scat_species*
 #-------------------------------------------------------------
-#ScatElementsSelect( species="LWC", sizeparam="diameter_volume_equ", sizemin=0.1e-6, sizemax=2000e-6 )
+ScatElementsSelect( species="LWC", sizeparam="diameter_volume_equ", sizemin=0.1e-6, sizemax=2000e-6 )
 ScatElementsSelect( species="IWC", sizeparam="diameter_volume_equ", sizemin=0.1e-6, sizemax=2000e-6 )
 scat_dataCheck
 
 
-# Emission and reflection properties: Blackbody surface
-VectorSet( surface_scalar_reflectivity, [0.] )
-
-
-# Set cloudbox limits 
-# ---------------------------------------------------------------------
-cloudboxSetDisort
-
-# Particle Number Density field calculation
-# -----------------------------------------
-pnd_fieldCalcFromscat_speciesFields
-#Tensor4Scale( pnd_field, pnd_field, 0. )
-
-
-
-# 7. DISORT settings-----------------------------------------------------
-#------------------------------------------------------------------------
-
-# For DISORT we use the same angular grids as output.
-DOAngularGridsSet( N_za_grid=38 )
-
-# Calculate opticle properties of particles and add particle absorption
-# and extiction to the gaseous properties to get total extinction and
-# absorption:
-
-AgendaSet( spt_calc_agenda ){
-  opt_prop_sptFromMonoData
-}
-
-AgendaSet( opt_prop_part_agenda ){
-  ext_matInit
-  abs_vecInit
-  ext_matAddPart
-  abs_vecAddPart
-}
-	
-AgendaSet( iy_cloudbox_agenda ){
-  # use rigorous here when sensor viewing angles close to horizon shall be
-  # calculated. as cloudbox boundary for DISORT will always be at TOA, there is
-  # always an orders-of-magnitude gradient when involving downwelling or
-  # horizontal direction in the radiance interpolation.
-  iyInterpCloudboxField(rigorous=0)
-}
-
-
-# 8. The RT calculation--------------------------------------------------
-#------------------------------------------------------------------------
-
-# Consistency checks
-atmfields_checkedCalc
-atmgeom_checkedCalc
-cloudbox_checkedCalc  
-sensor_checkedCalc
-
-# Perform scattering calculation 
-#timerStart
-DisortCalc
-#timerStop
-#Print(timer)
-#WriteXML( output_file_format, doit_i_field )
-   
-# Calculate RT from cloudbox boundary to the sensor
-yCalc
-
-WriteXML( output_file_format, y )
-
-# Verify results
-#ArrayOfVectorCreate( ybatch_ref )
-#ReadXML( ybatch_ref, "../doitbatch/TestDOITBatch.ybatch.ref.xml" )
-#VectorCreate( y_ref )
-#Extract( y_ref, ybatch_ref, 0 )
-
-#Compare( y, y_ref, 0.01 )
-
-#VectorCreate(yREFERENCE)
-#ReadXML( yREFERENCE, "yREFERENCE_DISORT.y.xml" )
-#Compare( y, yREFERENCE, 1e-2 )
-
 } # End of Main
- 

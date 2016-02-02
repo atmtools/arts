@@ -36,10 +36,8 @@ Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
 
 # Frequency grid 
 # --------------
-# This example is only monochromatic. Note: The frequency must be contained
-# in the gas absorption lookup table.  
+# Note: The frequencies must be contained in the gas absorption lookup table.  
 VectorSet( f_grid, [229.5e9,230.5e9] )
-#VectorSet( f_grid, [230e9] )
 
 
 # Number of Stokes components to be computed
@@ -56,7 +54,6 @@ AtmosphereSet1D
 ReadXML( p_grid, "testdata/testdoit_p_grid.xml" )
 
 # Definition of species
-#abs_speciesSet( species=[ "H2O", "N2", "O2"] )
 abs_speciesSet( species=[ "H2O-PWR98",
                           "O2-PWR93",
                           "N2-SelfContStandardType" ] )
@@ -163,6 +160,8 @@ jacobianOff
 
 
 cloudboxOff
+# now read in previously dumped to file particle optical property again
+# (circumventing the scat_data clean-out by cloudboxOff)
 ReadXML( out=scat_data )
 
 atmfields_checkedCalc
@@ -185,7 +184,7 @@ WriteXML( in=y )
 
 VectorCreate(yREFERENCE)
 ReadXML( yREFERENCE, "yREFERENCE_AbsParticle.xml" )
-Compare( y, yREFERENCE, 1e-2 )
+Compare( y, yREFERENCE, 1e-6 )
 
 } # End of Main
  

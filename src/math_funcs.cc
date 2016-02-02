@@ -265,7 +265,7 @@ void nlinspace(
                const Numeric     stop,        
                const Index       n )
 {
-  assert( 1<n );                // Number of points must be greatere 1.
+  assert( 1<n );                // Number of points must be greater 1.
   x.resize(n);
   Numeric step = (stop-start)/((double)n-1) ;
   for ( Index i=0; i<n-1; i++ )

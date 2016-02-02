@@ -299,7 +299,7 @@ c      PARAMETER ( MXCLY = 6, MXULV = 5, MXCMU = 48, MXUMU = 10,
 c    &          MXPHI = 3, MI = MXCMU / 2, MI9M2 = 9*MI - 2,
 c    &          NNLYRI = MXCMU*MXCLY, MXSQT = 1000 )
       PARAMETER ( MXCLY = 200, MXULV = 2*MXCLY, MXCMU = 100, 
-     &          MXUMU = 100,
+     &          MXUMU = 1000,
      &          MXPHI = 1, MI = MXCMU / 2, MI9M2 = 9*MI - 2,
      &          NNLYRI = MXCMU*MXCLY, MXSQT = 1000 )
 c     ..
@@ -493,12 +493,38 @@ c                                   ** Calculate Planck functions
 
       ELSE
 
-         TPLANK = TEMIS*PLKAVG( WVNMLO, WVNMHI, TTEMP )
-         BPLANK =       PLKAVG( WVNMLO, WVNMHI, BTEMP )
+c        IF (WVNMLO .eq. WVNMHI) THEN
+c          wlo = WVNMLO - 0.5e-2*WVNMLO
+c          whi = WVNMLO + 0.5e-2*WVNMLO
+c          TPLANK = TEMIS*PLKAVG( WLO, WHI, TTEMP ) / (whi-wlo)
+c          BPLANK =       PLKAVG( WLO, WHI, BTEMP ) / (whi-wlo)
+c
+c          DO LEV = 0, NLYR
+c             PKAG( LEV ) = PLKAVG( WLO, WHI, TEMPER( LEV ) ) / (whi-wlo)
+c          END DO
+c        ELSE
+c          TPLANK = TEMIS*PLKAVG( WVNMLO, WVNMHI, TTEMP )
+c          BPLANK =       PLKAVG( WVNMLO, WVNMHI, BTEMP )
+c
+c          DO 30 LEV = 0, NLYR
+c            PKAG( LEV ) = PLKAVG( WVNMLO, WVNMHI, TEMPER( LEV ) )
+c   30     CONTINUE
+c        END IF
+        IF (WVNMLO .eq. WVNMHI) THEN
+          TPLANK = TEMIS*PLK( WVNMLO, TTEMP )
+          BPLANK =       PLK( WVNMLO, BTEMP )
 
-         DO 30 LEV = 0, NLYR
+          DO LEV = 0, NLYR
+             PKAG( LEV ) = PLK( WVNMLO, TEMPER( LEV ) )
+          END DO
+        ELSE
+          TPLANK = TEMIS*PLKAVG( WVNMLO, WVNMHI, TTEMP )
+          BPLANK =       PLKAVG( WVNMLO, WVNMHI, BTEMP )
+
+          DO 30 LEV = 0, NLYR
             PKAG( LEV ) = PLKAVG( WVNMLO, WVNMHI, TEMPER( LEV ) )
-   30    CONTINUE
+   30     CONTINUE
+        END IF
 
       END IF
 
@@ -780,7 +806,7 @@ c                                    ** correct answers and abort if bad
          GO TO  10
 
       END IF
-
+      
       RETURN
       END
 
@@ -4359,37 +4385,38 @@ c                    ** angles does not assume unphysical values
 
       IF( ACCUR.LT.0.0 .OR. ACCUR.GT.1.E-2 ) INPERR = WRTBAD( 'ACCUR' )
 
-      IF( MXCLY.LT.NLYR ) INPERR = WRTDIM( 'MXCLY', NLYR )
+      IF( MXCLY.LT.NLYR ) INPERR = WRTDIM( 'MXCLY', MXCLY, NLYR )
 
       IF( IBCND.NE.1 ) THEN
 
          IF( USRTAU .AND. MXULV.LT.NTAU )
-     &       INPERR = WRTDIM( 'MXULV',NTAU )
+     &       INPERR = WRTDIM( 'MXULV',MXULV,NTAU )
 
          IF( .NOT.USRTAU .AND. MXULV .LT. NLYR + 1 )
-     &       INPERR = WRTDIM( 'MXULV', NLYR + 1 )
+     &       INPERR = WRTDIM( 'MXULV', MXULV, NLYR + 1 )
 
       ELSE
 
-         IF( MXULV.LT.2 ) INPERR = WRTDIM( 'MXULV', 2 )
+         IF( MXULV.LT.2 ) INPERR = WRTDIM( 'MXULV', MXULV, 2 )
 
       END IF
 
-      IF( MXCMU.LT.NSTR ) INPERR = WRTDIM( 'MXCMU', NSTR )
+      IF( MXCMU.LT.NSTR ) INPERR = WRTDIM( 'MXCMU', MXCMU, NSTR )
 
-      IF( USRANG .AND. MXUMU.LT.NUMU ) INPERR = WRTDIM( 'MXUMU', NUMU )
+      IF( USRANG .AND. MXUMU.LT.NUMU )
+     &    INPERR = WRTDIM( 'MXUMU', MXUMU, NUMU )
 
       IF( USRANG .AND. IBCND.EQ.1 .AND. MXUMU.LT.2*NUMU )
-     &    INPERR = WRTDIM( 'MXUMU', 2*NUMU )
+     &    INPERR = WRTDIM( 'MXUMU', MXUMU, 2*NUMU )
 
       IF( .NOT.USRANG .AND. MXUMU.LT.NSTR )
-     &    INPERR = WRTDIM( 'MXUMU', NSTR )
+     &    INPERR = WRTDIM( 'MXUMU', MXUMU, NSTR )
 
       IF( .NOT.ONLYFL .AND. IBCND.NE.1 .AND. MXPHI.LT.NPHI )
-     &    INPERR = WRTDIM( 'MXPHI', NPHI )
+     &    INPERR = WRTDIM( 'MXPHI', MXPHI, NPHI )
 
       NUMSQT = 2*MAX(100,NSTR)
-      IF( MXSQT .LT. NUMSQT )  INPERR = WRTDIM( 'MXSQT', NUMSQT )
+      IF( MXSQT .LT. NUMSQT )  INPERR = WRTDIM( 'MXSQT', MXSQT, NUMSQT )
 
       IF( INPERR )
      &    CALL ERRMSG( 'DISORT--input and/or dimension errors',.True.)
@@ -4641,6 +4668,56 @@ c                                   ** Upward recurrence; D/A EQ.(10)
       RETURN
       END
 
+      REAL FUNCTION PLK( WNUM, T )
+
+c        Computes Planck function at a single wavenumber
+c ----------------------------------------------------------------------
+c     ..
+c     .. Scalar Arguments ..
+
+      REAL      T, WNUM
+c     ..
+c     .. External Subroutines ..
+
+      EXTERNAL  ERRMSG
+c     ..
+c     .. Local constants and variables
+
+      INTEGER       I
+      REAL          k, c, h
+      REAL         c2, wnum3,  nom, denomexp, denom
+c     ..
+
+
+C     all constants from ARTS' constants.cc
+C     boltzmann constant                     J / K
+      k = 1.380662e-23                                             
+C     speed of light                         m / s
+      c = 2.99792458E+8                                             
+C     planck's constant                      J s
+      h = 6.626180E-34                                             
+
+      IF( T.LT.0.0 .OR. WNUM.LT.0. )
+     &    CALL ERRMSG('PLK--temperature or wavenums. wrong',.TRUE.)
+
+
+      IF( T .LT. 1.E-4 ) THEN
+
+         PLK = 0.0
+         RETURN
+
+      END IF
+
+      c2 = c*c
+      wnum3 = WNUM**3
+      nom = 2.e8 * h * c2 * wnum3 
+      denomexp = 1e2 * h * c * WNUM / (k * T)
+      denom = exp(denomexp) - 1.
+      PLK = nom / denom
+c
+      RETURN
+      END
+
       REAL FUNCTION PLKAVG( WNUMLO, WNUMHI, T )
 
 c        Computes Planck function integrated between two wavenumbers
@@ -4793,20 +4870,6 @@ c     ..
 
       V( 1 ) = C2*WNUMLO / T
       V( 2 ) = C2*WNUMHI / T
-
-
-c     (Added by CE) Included the monochromatic Planck function needed for 
-c     monochromatic arts calculations
-      if ( WNUMHI .eq. WNUMLO) then
-         wnumlo2 = wnumlo*100
-         plkconst = 6.6262e-34
-         speedlight = 299792458
-         boltz=1.380662e-23
-         a = 2*plkconst*speedlight
-         b =  plkconst*speedlight/boltz
-         plkavg = a*wnumlo2*wnumlo2*wnumlo2/(exp(b*wnumlo2/T)-1)
-         return
-      end if
 
 
       IF( V( 1 ).GT.EPSIL .AND. V( 2 ).LT.VMAX .AND.

@@ -79,9 +79,9 @@ void DisortCalc(Workspace& ws,
                       Index& f_index,
                       ArrayOfArrayOfSingleScatteringData& scat_data_mono,
                       // WS Input
-                      const Index&     atmfields_checked,
-                      const Index&     atmgeom_checked,
-                      const Index&     cloudbox_checked,
+                      const Index& atmfields_checked,
+                      const Index& atmgeom_checked,
+                      const Index& cloudbox_checked,
                       const ArrayOfIndex& cloudbox_limits, 
                       const Index& stokes_dim,
                       const Agenda& opt_prop_part_agenda,
@@ -95,7 +95,7 @@ void DisortCalc(Workspace& ws,
                       const ArrayOfArrayOfSingleScatteringData& scat_data,
                       const Vector& f_grid,
                       const Vector& scat_za_grid,
-                      const Matrix& surface_emissivity_field,
+                      const Vector& surface_scalar_reflectivity,
                       const Verbosity& verbosity)
 {
   CREATE_OUT1;
@@ -110,6 +110,10 @@ void DisortCalc(Workspace& ws,
 
     out0 << warn.str();
 
+  // NOTE: It is at the moment not possible to combine scattering elements 
+  // being stored on different scattering angle grids. Ask if this is required.
+  // Temperature dependence also not yet implemented. 
+
   if( atmfields_checked != 1 )
     throw runtime_error( "The atmospheric fields must be flagged to have "
                          "passed a consistency check (atmfields_checked=1)." );
@@ -120,9 +124,7 @@ void DisortCalc(Workspace& ws,
     throw runtime_error( "The cloudbox must be flagged to have "
                          "passed a consistency check (cloudbox_checked=1)." );
 
-  out1<< "Start DISORT calculation...\n";
-  
-  if(pnd_field.ncols() != 1) 
+  if( pnd_field.ncols() != 1 ) 
     throw runtime_error(
                         "*pnd_field* is not 1D! \n" 
                         "DISORT can only be used for 1D! \n" );
@@ -131,24 +133,110 @@ void DisortCalc(Workspace& ws,
     throw runtime_error( "DISORT can only be used for unpolarized \n"
                          "calculations (i.e., stokes_dim=1),\n" );
   
-  // NOTE: It is at the moment not possible to combine scattering elements 
-  // being stored on different scattering angle grids.
-  // Ask whether this is required. Temperature dependance also not yet 
-  // implemented. 
+  bool allp20=true;
+  for( Index i_ss = 0; i_ss < scat_data.nelem(); i_ss++ )
+    for( Index i_se = 0; i_se < scat_data[i_ss].nelem(); i_se++ )
+      if( scat_data[i_ss][i_se].ptype != PTYPE_MACROS_ISO )
+        allp20=false;
+  if( !allp20 )
+    {
+      ostringstream os;
+      os << "DISORT can only handle scattering elements of type "
+         << PTYPE_MACROS_ISO << " (" << PTypeToString(PTYPE_MACROS_ISO) << "),\n"
+         << "but at least one element of other type (" << PTYPE_HORIZ_AL
+         << "=" << PTypeToString(PTYPE_HORIZ_AL) << " or " << PTYPE_GENERAL
+         << "=" << PTypeToString(PTYPE_GENERAL) << ") is present.\n";
+      throw runtime_error( os.str() );
+    }
+    
+  const Vector data_za_grid = scat_data[0][0].za_grid;
+  const Index ndza = data_za_grid.nelem();
+  bool ident_anggrid=true;
+  for( Index i_ss = 0; i_ss < scat_data.nelem(); i_ss++ )
+    for( Index i_se = 0; i_se < scat_data[i_ss].nelem(); i_se++ )
+      // not an exhaustive test, but should catch most cases: checking identical
+      // size as well as identical second and second to last elements. no use in
+      // checking first and last elements as they should be 0 and 180 and this
+      // should have been checked elsewhere.
+      if( scat_data[i_ss][i_se].za_grid.nelem() != ndza ||
+          scat_data[i_ss][i_se].za_grid[1] != data_za_grid[1] ||
+          scat_data[i_ss][i_se].za_grid[ndza-2]!=data_za_grid[ndza-2] )
+        ident_anggrid=false;
+   if( !ident_anggrid )
+    {
+      ostringstream os;
+      os << "ARTS-DISORT currently requires identical angular grids of\n"
+         << "scattering data for all scattering elements, but yours differ.\n";
+      throw runtime_error( os.str() );
+    }
+ 
 
   // DISORT calculations are done over the whole atmosphere because it is
   // only possible to give a constant value, i.e. cosmic background, 
   // as input, not a radiation field at the to of the domain
-  Index nlyr=pnd_field.npages()-1;
-
-  // Check whether cloudbox expands over the whole atmosphere
-  
+  // Hence, check whether cloudbox expands over the whole atmosphere
   if(cloudbox_limits.nelem()!=2 ||  cloudbox_limits[0] != 0 ||
      cloudbox_limits[1] != pnd_field.npages()-1)
     throw runtime_error("The cloudbox is not set correctly for DISORT.\n"
                         "Please use *cloudboxSetDisort*. \n");
+  Index nlyr=pnd_field.npages()-1;
 
-  doit_i_field.resize(f_grid.nelem(), pnd_field.npages(), 1, 1, scat_za_grid.nelem(), 1, 1);
+  // scat_za_grid here is only relevant to provide an i_field from which the
+  // sensor los angles can be interpolated by yCalc; it does not the determine
+  // the accuracy of the DISORT output itself at these angles. So we can only
+  // apply a very rough test here, whether the grid is appropriate. However, we
+  // set the threshold fairly high since calculation costs for a higher number
+  // of angles are negligible.
+  Index nza = scat_za_grid.nelem();
+  if ( nza < 37 )
+    {
+      ostringstream os;
+      os << "We require size of scat_za_grid to be > 36\n"
+         << "to ensure accurate radiance field interpolation in yCalc.\n"
+         << "Note that for DISORT additional computation costs for\n"
+         << "larger numbers of angles are negligible.";
+      throw runtime_error( os.str() );
+    }
+  if( nza/2*2 != nza )
+    {
+      // uneven nza detected. uneven nza lead to polar angle grid point at
+      // 90deg, ie at horizontal. this is not safely calculable in a
+      // plane-parallel atmo. therefore we instead replace this gridpoint with
+      // two centered closely around 90deg and derive the 90deg value from
+      // averaging these two.
+      //
+      // Why not just force even number of nza? => because this won't place the
+      // center ones sufficiently close to horizon unless the number of streams
+      // is very high.
+      ostringstream os;
+      os << "uneven nza detected. nza=" << nza << ".\n";
+      throw runtime_error( os.str() );
+    }
+
+  if( surface_scalar_reflectivity.nelem() != f_grid.nelem()  &&  
+      surface_scalar_reflectivity.nelem() != 1 )
+    {
+      ostringstream os;
+      os << "The number of elements in *surface_scalar_reflectivity* should\n"
+         << "match length of *f_grid* or be 1."
+         << "\n length of *f_grid* : " << f_grid.nelem() 
+         << "\n length of *surface_scalar_reflectivity* : " 
+         << surface_scalar_reflectivity.nelem()
+         << "\n";
+      throw runtime_error( os.str() );
+    }
+
+  if( min(surface_scalar_reflectivity) < 0  ||  
+      max(surface_scalar_reflectivity) > 1 )
+    {
+      throw runtime_error( 
+         "All values in *surface_scalar_reflectivity* must be inside [0,1]." );
+    }
+
+  out1<< "Start DISORT calculation...\n";
+  
+  doit_i_field.resize(f_grid.nelem(), pnd_field.npages(), 1, 1,
+                      scat_za_grid.nelem(), 1, 1);
   doit_i_field = 0.;
 
   // Input variables for DISORT
@@ -192,16 +280,33 @@ void DisortCalc(Workspace& ws,
 
   // surface, Lambertian if set to TRUE_ 
   Index lamber = TRUE_;
-  Numeric albedo = 1-surface_emissivity_field(0,0);
   // only needed for bidirectional reflecting surface
   Vector hl(1,0.); 
+  // albedo only set in freq-loop (as it might be freq-dependent
   
-  //temperature of surface and cloudbox top
+  //temperature of surface
   Numeric btemp = t_field(0,0,0);
-  Numeric ttemp = t_field(cloudbox_limits[1], 0, 0); 
-      
-  // Top of the atmosphere, emissivity = 0
-  Numeric temis = 0.;
+
+  //upper boundary conditions:
+  // DISROT offers isotropic incoming radiance or emissivity-scaled planck
+  // emission. Both are applied additively.
+  // We want to have cosmic background radiation, for which ttemp=COSMIC_BG_TEMP
+  // and temis=1 should give identical results to fisot(COSMIC_BG_TEMP). As they
+  // are additive we should use either the one or the other.
+  // Note: previous setup (using fisot) setting temis=0 should be avoided.
+  // Generally, temis!=1 should be avoided since that technically implies a
+  // reflective upper boundary (though it seems that this is not exploited in
+  // DISORT1.2, which we so far use).
+
+  // Cosmic background
+  // we use temis*ttemp as upper boundary specification, hence CBR set to 0.
+  Numeric fisot = 0;
+
+  // Top of the atmosphere temperature and emissivity
+  //Numeric ttemp = t_field(cloudbox_limits[1], 0, 0); 
+  //Numeric temis = 0.;
+  Numeric ttemp = COSMIC_BG_TEMP;
+  Numeric temis = 1.;
   
   // we don't need delta-scaling in microwave region
   Index deltam = FALSE_; 
@@ -261,6 +366,11 @@ void DisortCalc(Workspace& ws,
   // Loop over frequencies
   for (f_index = 0; f_index < f_grid.nelem(); f_index ++) 
     {
+      Numeric albedo;
+      if( surface_scalar_reflectivity.nelem()>1 )
+        albedo = surface_scalar_reflectivity[f_index];
+      else
+        albedo = surface_scalar_reflectivity[0];
       dtauc=0.;
       ssalb=0.;
       phase_function=0.;
@@ -282,17 +392,15 @@ void DisortCalc(Workspace& ws,
       //for (Index i=0; i<nlyr; i++)
       //    cout << "pmom " << pmom(i,joker) << "\n";
       
-      // Wavenumber in [1/cm^2]
+      // Wavenumber in [1/cm]
       Numeric wvnmlo = f_grid[f_index]/(100*SPEED_OF_LIGHT);
       Numeric wvnmhi = wvnmlo;
       
       // calculate radiant quantities at boundary of computational layers. 
       Index usrtau = FALSE_; 
       
-      // Cosmic background
-      Numeric fisot = planck2( f_grid[f_index], COSMIC_BG_TEMP );
-
-        DEBUG_VAR(dtauc)
+      //DEBUG_VAR(dtauc)
+      
       // Call disort
       disort_(&nlyr, dtauc.get_c_array(),
               ssalb.get_c_array(), pmom.get_c_array(), 
@@ -318,24 +426,17 @@ void DisortCalc(Workspace& ws,
               uu.get_c_array(), u0u.get_c_array(), 
               albmed.get_c_array(),
               trnmed.get_c_array());
+      //cout << "intensity " << uu << endl; 
 
-            cout << "intensity " << uu << endl; 
-
-        // FIXME: There seems to be an inconsistency here
-        // pnd_field.npages is 106, but nlyr 105
-        cout << "nlyr " << nlyr << endl;
-        cout << "pnd_field.npages() " << pnd_field.npages() << endl;
       for(Index j = 0; j<numu; j++)
-        {
-          for(Index k = 0; k< nlyr; k++)
-            doit_i_field(f_index, k+1, 0, 0, j, 0, 0) =
-              uu(0,nlyr-k-1,j);
-          
-          doit_i_field(f_index, 0, 0, 0, j, 0, 0) =
-            uu(0, nlyr-1, j );
-          doit_i_field(f_index, pnd_field.npages()-1, 0, 0, j, 0, 0) =
-            uu(0, 0, j);
-        }
+          for(Index k = 0; k<nlyr+1; k++)
+            doit_i_field(f_index, k, 0, 0, j, 0, 0) =
+              uu(0,nlyr-k,j) / (100*SPEED_OF_LIGHT);
+
+      //cout << "  I(180deg,BOA,DI-in-AR) =  "
+      //     << uu(0,nlyr,numu-1) << "\n";
+      //cout << "  I(180deg,BOA,AR) =        "
+      //     << doit_i_field(f_index,0,0,0,numu-1,0,0)*(100*SPEED_OF_LIGHT) << "\n"; 
     }
   delete [] prnt;
 
@@ -366,7 +467,7 @@ void DisortCalc(Workspace&,
                       const ArrayOfArrayOfSingleScatteringData&,
                       const Vector&,
                       const Vector&,
-                      const Matrix&,
+                      const Vector&,
                       const Verbosity&)
 {
   throw runtime_error ("This version of ARTS was compiled without DISORT support.");

@@ -3208,20 +3208,20 @@ void MagRawRead(//WS Output:
     if (basename.length() && basename[basename.length()-1] != '/')
         tmp_basename += ".";
     
-    // Read the temperature field:
-    String file_name = tmp_basename + "u.xml";
+    // Read magfield u component:
+    String file_name = tmp_basename + "mag_u.xml";
     xml_read_from_file( file_name, mag_u_field_raw, verbosity);
     
     out3 << "Bu field read from file: " << file_name << "\n";  
     
-    // Read the temperature field:
-    file_name = tmp_basename + "v.xml";
+    // Read magfield v component:
+    file_name = tmp_basename + "mag_v.xml";
     xml_read_from_file( file_name, mag_v_field_raw, verbosity);
     
     out3 << "Bv field read from file: " << file_name << "\n"; 
     
-    // Read the temperature field:
-    file_name = tmp_basename + "w.xml";
+    // Read magfield w component:
+    file_name = tmp_basename + "mag_w.xml";
     xml_read_from_file( file_name, mag_w_field_raw, verbosity);
     
     out3 << "Bw field read from file: " << file_name << "\n"; 
@@ -3243,20 +3243,20 @@ void WindRawRead(//WS Output:
     if (basename.length() && basename[basename.length()-1] != '/')
         tmp_basename += ".";
     
-    // Read the temperature field:
-    String file_name = tmp_basename + "u.xml";
+    // Read wind field u component:
+    String file_name = tmp_basename + "wind_u.xml";
     xml_read_from_file( file_name, wind_u_field_raw, verbosity);
     
     out3 << "Wind u field read from file: " << file_name << "\n";  
     
-    // Read the temperature field:
-    file_name = tmp_basename + "v.xml";
+    // Read wind field u component:
+    file_name = tmp_basename + "wind_v.xml";
     xml_read_from_file( file_name, wind_v_field_raw, verbosity);
     
     out3 << "Wind v field read from file: " << file_name << "\n"; 
     
-    // Read the temperature field:
-    file_name = tmp_basename + "w.xml";
+    // Read wind field u component:
+    file_name = tmp_basename + "wind_w.xml";
     xml_read_from_file( file_name, wind_w_field_raw, verbosity);
     
     out3 << "Wind w field read from file: " << file_name << "\n"; 

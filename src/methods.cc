@@ -226,6 +226,80 @@ void define_md_data_raw()
         GIN_DESC()
         ));
 
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "abs_cia_dataAddCIARecord" ),
+      DESCRIPTION
+      (
+          "Takes CIARecord as input and appends the results in the appropriate place.\n"
+          "\n"
+          "If CIARecord has same species as species in *abs_cia_data*, then the array\n"
+          "position is used to append all of the CIARecord into the array.  If clobber\n"
+          "evaluates as true, cia_record overwrites the appropriate *abs_cia_data*.  If\n"
+          "species in cia_record are not in *abs_cia_data*, the CIARecord is pushed back.\n"
+      ),
+      AUTHORS( "Richard Larsson" ),
+      OUT( "abs_cia_data" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "abs_cia_data" ),
+      GIN( "cia_record", "clobber" ),
+      GIN_TYPE( "CIARecord", "Index" ),
+      GIN_DEFAULT( NODEF, "0" ),
+      GIN_DESC( "CIA record to append to *abs_cia_data*.",
+                "If true, the new input clobbers the old cia data."   )
+    ));
+    
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "abs_cia_dataReadFromCIA" ),
+        DESCRIPTION
+        (
+         "Read data from a CIA data file for all CIA molecules defined\n"
+         "in *abs_species*.\n"
+         "\n"
+         "The units in the HITRAN file are:\n"
+         "Frequency: cm^(-1)\n"
+         "Binary absorption cross-section: cm^5 molec^(-2)\n"
+         "\n"
+         "Upon reading we convert this to the ARTS internal SI units \n"
+         "of Hz and m^5 molec^(-2).\n"
+         ),
+        AUTHORS( "Oliver Lemke" ),
+        OUT( "abs_cia_data" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "abs_species" ),
+        GIN( "catalogpath" ),
+        GIN_TYPE( "String" ),
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC( "Path to the CIA catalog directory." )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "abs_cia_dataReadFromXML" ),
+        DESCRIPTION
+        (
+         "Read data from a CIA XML file and check that all CIA tags defined\n"
+         "in *abs_species* are present in the file.\n"
+         "\n"
+         "The units of the data are described in *abs_cia_dataReadFromCIA*.\n"
+         ),
+        AUTHORS( "Oliver Lemke" ),
+        OUT( "abs_cia_data" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "abs_species" ),
+        GIN( "filename" ),
+        GIN_TYPE( "String" ),
+        GIN_DEFAULT( "" ),
+        GIN_DESC( "Name of the XML file." )
+        ));
+
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "abs_coefCalcFromXsec" ),
@@ -470,6 +544,40 @@ void define_md_data_raw()
         GIN_DESC(  )
         ));
 
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "abs_linesChangeParameterForMatchingLines" ),
+      DESCRIPTION
+      (
+          "Change parameter of all lines in *abs_lines* that match with *QuantumIdentifier*.\n"
+          "Only works for these parameters:\n"
+          "parameter_name = \"Central Frequency\"\n"
+          "parameter_name = \"Line Strength\"\n"
+          "parameter_name = \"Pressure Broadening Self\"\n"
+          "parameter_name = \"Pressure Broadening Foreign\"\n"
+          "parameter_name = \"Pressure Broadening Self Exponent\"\n"
+          "parameter_name = \"Pressure Broadening Foreign Exponent\"\n"
+          "parameter_name = \"Lower State Energy\"\n"
+          "\n"
+          "Note that loose_matching:=0 means only full matches are allowed\n"
+      ),
+      AUTHORS( "Richard Larsson" ),
+      OUT( "abs_lines" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "abs_lines", "abs_species" ),
+      GIN( "QI", "parameter_name", "change", "relative", "loose_matching"),
+      GIN_TYPE( "QuantumIdentifier", "String", "Numeric", "Index", "Index" ),
+      GIN_DEFAULT( NODEF, NODEF, NODEF, "0", "0" ),
+      GIN_DESC( "Information to match the line.",
+                "Name of parameter to be replaced",
+                "Value with which to change matching line{'s,s'}",
+                "Flag for relative change (0 is absolute change)",
+                "Flag for loose match (0 means only complete matches)"
+      )
+    ));
+    
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "abs_linesReadFromArts" ),
@@ -751,40 +859,6 @@ void define_md_data_raw()
       GIN_DEFAULT( NODEF, NODEF ),
       GIN_DESC( "Line-array that replace lines in *abs_lines*.",
                 "Name of parameter to be replaced"
-      )
-    ));
-    
-    md_data_raw.push_back
-    ( MdRecord
-    ( NAME( "abs_linesChangeParameterForMatchingLines" ),
-      DESCRIPTION
-      (
-          "Change parameter of all lines in *abs_lines* that match with *QuantumIdentifier*.\n"
-          "Only works for these parameters:\n"
-          "parameter_name = \"Central Frequency\"\n"
-          "parameter_name = \"Line Strength\"\n"
-          "parameter_name = \"Pressure Broadening Self\"\n"
-          "parameter_name = \"Pressure Broadening Foreign\"\n"
-          "parameter_name = \"Pressure Broadening Self Exponent\"\n"
-          "parameter_name = \"Pressure Broadening Foreign Exponent\"\n"
-          "parameter_name = \"Lower State Energy\"\n"
-          "\n"
-          "Note that loose_matching:=0 means only full matches are allowed\n"
-      ),
-      AUTHORS( "Richard Larsson" ),
-      OUT( "abs_lines" ),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN( "abs_lines", "abs_species" ),
-      GIN( "QI", "parameter_name", "change", "relative", "loose_matching"),
-      GIN_TYPE( "QuantumIdentifier", "String", "Numeric", "Index", "Index" ),
-      GIN_DEFAULT( NODEF, NODEF, NODEF, "0", "0" ),
-      GIN_DESC( "Information to match the line.",
-                "Name of parameter to be replaced",
-                "Value with which to change matching line{'s,s'}",
-                "Flag for relative change (0 is absolute change)",
-                "Flag for loose match (0 means only complete matches)"
       )
     ));
     
@@ -1410,29 +1484,6 @@ void define_md_data_raw()
     
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "abs_xsec_agenda_checkedCalc" ),
-        DESCRIPTION
-        (
-         "Checks if the *abs_xsec_agenda* contains all necessary\n"
-         "methods to calculate all the species in *abs_species*.\n"
-         "\n"
-         "This method should be called just before the *abs_xsec_agenda*\n"
-         "is used, e.g. *abs_lookupCalc*, *ybatchCalc*, *yCalc*\n"
-         ),
-        AUTHORS( "Oliver Lemke" ),
-        OUT( "abs_xsec_agenda_checked" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "abs_species", "abs_xsec_agenda" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME( "abs_speciesAdd" ),
         DESCRIPTION
         (
@@ -1703,6 +1754,29 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "f_grid", "stokes_dim", "f_index" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "abs_xsec_agenda_checkedCalc" ),
+        DESCRIPTION
+        (
+         "Checks if the *abs_xsec_agenda* contains all necessary\n"
+         "methods to calculate all the species in *abs_species*.\n"
+         "\n"
+         "This method should be called just before the *abs_xsec_agenda*\n"
+         "is used, e.g. *abs_lookupCalc*, *ybatchCalc*, *yCalc*\n"
+         ),
+        AUTHORS( "Oliver Lemke" ),
+        OUT( "abs_xsec_agenda_checked" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "abs_species", "abs_xsec_agenda" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -2338,6 +2412,32 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "AtmFieldPRegrid" ),
+        DESCRIPTION
+        (
+         "Interpolates the input field along the pressure dimension from\n"
+         "*p_grid_old* to to *p_grid_new*.\n"
+         "\n"
+         "Extrapolation is allowed within the common 0.5grid-step margin.\n"
+         "in and out fields can be the same variable.\n"
+         ),
+        AUTHORS( "Jana Mendrok" ),
+        OUT(),
+        GOUT( "out" ),
+        GOUT_TYPE( "Tensor3, Tensor4" ),
+        GOUT_DESC( "Regridded atmospheric field." ),
+        IN(),
+        GIN( "in", "p_grid_new", "p_grid_old", "interp_order" ),
+        GIN_TYPE( "Tensor3, Tensor4",
+                  "Vector", "Vector", "Index" ),
+        GIN_DEFAULT( NODEF, NODEF, NODEF, "1" ),
+        GIN_DESC( "Input atmospheric field.",
+                  "Pressure grid to regrid to", "Pressure grid of input field",
+                  "Interpolation order." )
+        ));
+    
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "AtmFieldsCalc" ),
         DESCRIPTION
         (
@@ -2383,56 +2483,6 @@ void define_md_data_raw()
                 "-1: Skip step. 0: Negative is 0. Else: Negative is t.")
         ));
     
-    md_data_raw.push_back
-    ( MdRecord
-    ( NAME( "MagFieldsCalc" ),
-      DESCRIPTION
-      (
-          "Interpolation of raw magnetic fields to calculation grids.\n"
-          "Heritage from *AtmFieldsCalc*\n"
-          "\n"
-          "Internally, *MagFieldsCalc* applies *GriddedFieldPRegrid* and\n"
-          "*GriddedFieldLatLonRegrid*. Generally, 'half-grid-step' extrapolation\n"
-          "is allowed and applied.\n"
-      ),
-      AUTHORS( "Richard Larsson" ),
-      OUT( "mag_u_field", "mag_v_field", "mag_w_field" ),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN( "p_grid", "lat_grid", "lon_grid", "mag_u_field_raw", "mag_v_field_raw", 
-          "mag_w_field_raw", "atmosphere_dim" ),
-      GIN( "interp_order" ),
-      GIN_TYPE( "Index" ),
-      GIN_DEFAULT( "1" ),
-      GIN_DESC( "Interpolation order (1=linear interpolation).")
-    ));
-    
-    md_data_raw.push_back
-    ( MdRecord
-    ( NAME( "WindFieldsCalc" ),
-      DESCRIPTION
-      (
-          "Interpolation of raw wind fields to calculation grids.\n"
-          "Heritage from *AtmFieldsCalc*\n"
-          "\n"
-          "Internally, *WindFieldsCalc* applies *GriddedFieldPRegrid* and\n"
-          "*GriddedFieldLatLonRegrid*. Generally, 'half-grid-step' extrapolation\n"
-          "is allowed and applied.\n"
-      ),
-      AUTHORS( "Richard Larsson" ),
-      OUT( "wind_u_field", "wind_v_field", "wind_w_field" ),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN( "p_grid", "lat_grid", "lon_grid", "wind_u_field_raw", "wind_v_field_raw", 
-          "wind_w_field_raw", "atmosphere_dim" ),
-      GIN( "interp_order" ),
-      GIN_TYPE( "Index" ),
-      GIN_DEFAULT( "1" ),
-      GIN_DESC( "Interpolation order (1=linear interpolation).")
-    ));
-
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "AtmFieldsCalcExpand1D" ),
@@ -2468,58 +2518,6 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "MagFieldsCalcExpand1D" ),
-        DESCRIPTION
-        (
-         "Interpolation of 1D raw atmospheric fields to create 2D or 3D\n"
-         "homogeneous magnetic fields.  Derived from *AtmFieldsCalcExpand1D*\n"
-         "\n"
-         "The method works as *MagFieldsCalc*, but accepts only raw 1D\n"
-         "magnetic fields. The raw data is interpolated to *p_grid* and\n"
-         "the obtained values are applied for all latitudes, and also\n"
-         "longitudes for 3D, to create a homogeneous atmosphere.\n"
-         ),
-        AUTHORS( "Richard Larsson" ),
-        OUT( "mag_u_field", "mag_v_field", "mag_w_field" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "p_grid", "lat_grid", "lon_grid", "mag_u_field_raw", "mag_v_field_raw", 
-            "mag_w_field_raw", "atmosphere_dim" ),
-        GIN( "interp_order" ),
-        GIN_TYPE( "Index" ),
-        GIN_DEFAULT( "1" ),
-        GIN_DESC( "Interpolation order (1=linear interpolation)." )
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "WindFieldsCalcExpand1D" ),
-        DESCRIPTION
-        (
-         "Interpolation of 1D raw atmospheric fields to create 2D or 3D\n"
-         "homogeneous wind fields.  Derived from *AtmFieldsCalcExpand1D*\n"
-         "\n"
-         "The method works as *WindFieldsCalc*, but accepts only raw 1D\n"
-         "wind fields. The raw data is interpolated to *p_grid* and\n"
-         "the obtained values are applied for all latitudes, and also\n"
-         "longitudes for 3D, to create a homogeneous atmosphere.\n"
-         ),
-        AUTHORS( "Richard Larsson" ),
-        OUT( "wind_u_field", "wind_v_field", "wind_w_field" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "p_grid", "lat_grid", "lon_grid", "wind_u_field_raw", "wind_v_field_raw", 
-            "wind_w_field_raw", "atmosphere_dim" ),
-        GIN( "interp_order" ),
-        GIN_TYPE( "Index" ),
-        GIN_DEFAULT( "1" ),
-        GIN_DESC( "Interpolation order (1=linear interpolation)." )
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME( "AtmFieldsExpand1D" ),
         DESCRIPTION
         (
@@ -2549,32 +2547,6 @@ void define_md_data_raw()
         GIN_DESC( "TBA" )
         ));
 
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "AtmFieldPRegrid" ),
-        DESCRIPTION
-        (
-         "Interpolates the input field along the pressure dimension from\n"
-         "*p_grid_old* to to *p_grid_new*.\n"
-         "\n"
-         "Extrapolation is allowed within the common 0.5grid-step margin.\n"
-         "in and out fields can be the same variable.\n"
-         ),
-        AUTHORS( "Jana Mendrok" ),
-        OUT(),
-        GOUT( "out" ),
-        GOUT_TYPE( "Tensor3, Tensor4" ),
-        GOUT_DESC( "Regridded atmospheric field." ),
-        IN(),
-        GIN( "in", "p_grid_new", "p_grid_old", "interp_order" ),
-        GIN_TYPE( "Tensor3, Tensor4",
-                  "Vector", "Vector", "Index" ),
-        GIN_DEFAULT( NODEF, NODEF, NODEF, "1" ),
-        GIN_DESC( "Input atmospheric field.",
-                  "Pressure grid to regrid to", "Pressure grid of input field",
-                  "Interpolation order." )
-        ));
-    
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "AtmFieldsRefinePgrid" ),
@@ -2621,6 +2593,44 @@ void define_md_data_raw()
                  "Interpolation order." )
         ));
 
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "AtmFieldsFromCompact" ),
+        DESCRIPTION
+        (
+         "Extract pressure grid and atmospheric fields from\n"
+         "*atm_fields_compact*.\n"
+         "\n"
+         "An atmospheric scenario includes the following data for each\n"
+         "position (pressure, latitude, longitude) in the atmosphere:\n"
+         "           1. temperature field\n"
+         "           2. the corresponding altitude field\n"
+         "           3. vmr fields for the gaseous species\n"
+         "           4. scattering species fields\n"
+         "\n"
+         "This method splits up the data found in *atm_fields_compact* to\n"
+         "p_grid, lat_grid, lon_grid, and the various fields. No interpolation\n"
+         "is performed.\n"
+         "See documentation of *atm_fields_compact* for a definition of the data.\n"
+         "\n"
+         "Possible future extensions: Add a keyword parameter to refine the\n"
+         "pressure grid if it is too coarse. Or a version that interpolates onto\n"
+         "given grids, instead of using and returning the original grids.\n"
+         ),
+        AUTHORS( "Jana Mendrok" ),
+        OUT( "p_grid", "lat_grid", "lon_grid", "t_field", "z_field", "vmr_field",
+             "scat_species_mass_density_field", "scat_species_mass_flux_field",
+             "scat_species_number_density_field", "scat_species_mean_mass_field" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "abs_species", "scat_species", "atm_fields_compact", "atmosphere_dim" ),
+        GIN( "delim" ),
+        GIN_TYPE( "String" ),
+        GIN_DEFAULT( "-" ),
+        GIN_DESC( "Delimiter string of *scat_species* elements." )
+        ));
+    
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "atmfields_checkedCalc" ),
@@ -2705,6 +2715,149 @@ void define_md_data_raw()
         GIN_DESC()
         ));
 
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "AtmosphereSet1D" ),
+        DESCRIPTION
+        (
+         "Sets the atmospheric dimension to 1D.\n"
+         "\n"
+         "Sets *atmosphere_dim* to 1, and the latitude and longitude grids\n"
+         "are set to be empty.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "atmosphere_dim", "lat_grid", "lon_grid" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN(),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "AtmosphereSet2D" ),
+        DESCRIPTION
+        (
+         "Sets the atmospheric dimension to be 2D.\n"
+         "\n"
+         "Sets *atmosphere_dim* to 2 and the longitude grid to be empty.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "atmosphere_dim", "lon_grid" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN(),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "AtmosphereSet3D" ),
+        DESCRIPTION
+        (
+         "Sets the atmospheric dimension to 3D.\n"
+         "\n"
+         "Sets *atmosphere_dim* to 3, and *lat_true* and *lon_true* are\n"
+         "set to be empty.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "atmosphere_dim", "lat_true", "lon_true" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN(),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "AtmRawRead" ),
+        DESCRIPTION
+        (
+         "Reads atmospheric data from a scenario.\n"
+         "\n"
+         "An atmospheric scenario includes the following data for each\n"
+         "position (pressure, latitude, longitude) in the atmosphere:\n"
+         "   1. temperature field\n"
+         "   2. the corresponding altitude field\n"
+         "   3. vmr fields for the gaseous species\n"
+         "The data is stored in different files. This methods reads all\n"
+         "files and creates the variables *t_field_raw*, *z_field_raw* and\n"
+         "*vmr_field_raw*.  *t_nlte_field_raw* is set to empty.\n"
+         "\n"
+         "Files in a scenarios should be named matching the pattern of:\n"
+         "tropical.H2O.xml\n"
+         "\n"
+         "The files can be anywhere, but they must be all in the same\n"
+         "directory, selected by 'basename'. The files are chosen by the\n"
+         "species name. If you have more than one tag group for the same\n"
+         "species, the same profile will be used.\n"
+         ),
+        AUTHORS( "Claudia Emde" ),
+        OUT( "t_field_raw", "z_field_raw", "vmr_field_raw", 
+             "t_nlte_field_raw", "nlte_quantum_identifiers" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "abs_species" ),
+        GIN( "basename" ),
+        GIN_TYPE( "String" ),
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC( "Name of scenario, probably including the full path. For "
+                  "example: \"/smiles_local/arts-data/atmosphere/fascod/"
+                  "tropical\"" )
+      ));
+    
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "AtmWithNLTERawRead" ),
+        DESCRIPTION
+        (
+         "Reads atmospheric data from a scenario.\n"
+         "\n"
+         "An atmospheric scenario includes the following data for each\n"
+         "position (pressure, latitude, longitude) in the atmosphere:\n"
+         "   1. temperature field\n"
+         "   2. the corresponding altitude field\n"
+         "   3. vmr fields for the gaseous species\n"
+         "   4. Non-LTE temperature fields and matching identifiers\n"
+         "The data is stored in different files. This method reads all\n"
+         "files and creates the variables *t_field_raw*, *z_field_raw*,\n"
+         "*vmr_field_raw*, *t_nlte_field_raw*, and *nlte_quantum_identifiers*.\n"
+         "\n"
+         "Files in a scenarios should be named matching the pattern of:\n"
+         "tropical.H2O.xml\n"
+         "\n"
+         "The files can be anywhere, but they must be all in the same\n"
+         "directory, selected by 'basename'. The files are chosen by the\n"
+         "species name. If you have more than one tag group for the same\n"
+         "species, the same profile will be used.\n"
+         ),
+        AUTHORS( "Claudia Emde", "Richard Larsson" ),
+        OUT( "t_field_raw", "z_field_raw", "vmr_field_raw", "t_nlte_field_raw", "nlte_quantum_identifiers" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "abs_species" ),
+        GIN( "basename" ),
+        GIN_TYPE( "String" ),
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC( "Name of scenario, probably including the full path. For "
+                  "example: \"/smiles_local/arts-data/atmosphere/fascod/"
+                  "tropical\"" )
+        ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -2870,237 +3023,6 @@ void define_md_data_raw()
                      NODEF ),
         GIN_DESC( "One atmosphere matrix from batch input ArrayOfMatrix.",
                   "Order/names of atmospheric fields." )
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "AtmFieldsFromCompact" ),
-        DESCRIPTION
-        (
-         "Extract pressure grid and atmospheric fields from\n"
-         "*atm_fields_compact*.\n"
-         "\n"
-         "An atmospheric scenario includes the following data for each\n"
-         "position (pressure, latitude, longitude) in the atmosphere:\n"
-         "           1. temperature field\n"
-         "           2. the corresponding altitude field\n"
-         "           3. vmr fields for the gaseous species\n"
-         "           4. scattering species fields\n"
-         "\n"
-         "This method splits up the data found in *atm_fields_compact* to\n"
-         "p_grid, lat_grid, lon_grid, and the various fields. No interpolation\n"
-         "is performed.\n"
-         "See documentation of *atm_fields_compact* for a definition of the data.\n"
-         "\n"
-         "Possible future extensions: Add a keyword parameter to refine the\n"
-         "pressure grid if it is too coarse. Or a version that interpolates onto\n"
-         "given grids, instead of using and returning the original grids.\n"
-         ),
-        AUTHORS( "Jana Mendrok" ),
-        OUT( "p_grid", "lat_grid", "lon_grid", "t_field", "z_field", "vmr_field",
-             "scat_species_mass_density_field", "scat_species_mass_flux_field",
-             "scat_species_number_density_field", "scat_species_mean_mass_field" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "abs_species", "scat_species", "atm_fields_compact", "atmosphere_dim" ),
-        GIN( "delim" ),
-        GIN_TYPE( "String" ),
-        GIN_DEFAULT( "-" ),
-        GIN_DESC( "Delimiter string of *scat_species* elements." )
-        ));
-    
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "AtmosphereSet1D" ),
-        DESCRIPTION
-        (
-         "Sets the atmospheric dimension to 1D.\n"
-         "\n"
-         "Sets *atmosphere_dim* to 1, and the latitude and longitude grids\n"
-         "are set to be empty.\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT( "atmosphere_dim", "lat_grid", "lon_grid" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN(),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "AtmosphereSet2D" ),
-        DESCRIPTION
-        (
-         "Sets the atmospheric dimension to be 2D.\n"
-         "\n"
-         "Sets *atmosphere_dim* to 2 and the longitude grid to be empty.\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT( "atmosphere_dim", "lon_grid" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN(),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "AtmosphereSet3D" ),
-        DESCRIPTION
-        (
-         "Sets the atmospheric dimension to 3D.\n"
-         "\n"
-         "Sets *atmosphere_dim* to 3, and *lat_true* and *lon_true* are\n"
-         "set to be empty.\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT( "atmosphere_dim", "lat_true", "lon_true" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN(),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "AtmRawRead" ),
-        DESCRIPTION
-        (
-         "Reads atmospheric data from a scenario.\n"
-         "\n"
-         "An atmospheric scenario includes the following data for each\n"
-         "position (pressure, latitude, longitude) in the atmosphere:\n"
-         "   1. temperature field\n"
-         "   2. the corresponding altitude field\n"
-         "   3. vmr fields for the gaseous species\n"
-         "The data is stored in different files. This methods reads all\n"
-         "files and creates the variables *t_field_raw*, *z_field_raw* and\n"
-         "*vmr_field_raw*.  *t_nlte_field_raw* is set to empty.\n"
-         "\n"
-         "Files in a scenarios should be named matching the pattern of:\n"
-         "tropical.H2O.xml\n"
-         "\n"
-         "The files can be anywhere, but they must be all in the same\n"
-         "directory, selected by 'basename'. The files are chosen by the\n"
-         "species name. If you have more than one tag group for the same\n"
-         "species, the same profile will be used.\n"
-         ),
-        AUTHORS( "Claudia Emde" ),
-        OUT( "t_field_raw", "z_field_raw", "vmr_field_raw", 
-             "t_nlte_field_raw", "nlte_quantum_identifiers" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "abs_species" ),
-        GIN( "basename" ),
-        GIN_TYPE( "String" ),
-        GIN_DEFAULT( NODEF ),
-        GIN_DESC( "Name of scenario, probably including the full path. For "
-                  "example: \"/smiles_local/arts-data/atmosphere/fascod/"
-                  "tropical\"" )
-      ));
-    
-    md_data_raw.push_back
-    ( MdRecord
-    ( NAME( "MagRawRead" ),
-      DESCRIPTION
-      (
-          "Reads magnetic data from a scenario.\n"
-          "\n"
-          "The files can be anywhere, but they must be all in the same\n"
-          "directory, selected by 'basename'. The files are chosen by the\n"
-          "species name. If you have more than one tag group for the same\n"
-          "species, the same profile will be used.\n"
-      ),
-      AUTHORS( "Richard Larsson" ),
-      OUT( "mag_u_field_raw", "mag_v_field_raw", "mag_w_field_raw"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN( ),
-      GIN( "basename" ),
-      GIN_TYPE( "String" ),
-      GIN_DEFAULT( NODEF ),
-      GIN_DESC( "Name of scenario, probably including the full path. For "
-      "example: \"/data/magnetic_field\"" )
-    ));
-    
-    md_data_raw.push_back
-    ( MdRecord
-    ( NAME( "WindRawRead" ),
-      DESCRIPTION
-      (
-          "Reads wind data from a scenario.\n"
-          "\n"
-          "The files can be anywhere, but they must be all in the same\n"
-          "directory, selected by 'basename'. The files are chosen by the\n"
-          "species name. If you have more than one tag group for the same\n"
-          "species, the same profile will be used.\n"
-      ),
-      AUTHORS( "Richard Larsson" ),
-      OUT( "wind_u_field_raw", "wind_v_field_raw", "wind_w_field_raw"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN( ),
-      GIN( "basename" ),
-      GIN_TYPE( "String" ),
-      GIN_DEFAULT( NODEF ),
-      GIN_DESC( "Name of scenario, probably including the full path. For "
-      "example: \"/data/wind_field\"" )
-    ));
-    
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "AtmWithNLTERawRead" ),
-        DESCRIPTION
-        (
-         "Reads atmospheric data from a scenario.\n"
-         "\n"
-         "An atmospheric scenario includes the following data for each\n"
-         "position (pressure, latitude, longitude) in the atmosphere:\n"
-         "   1. temperature field\n"
-         "   2. the corresponding altitude field\n"
-         "   3. vmr fields for the gaseous species\n"
-         "   4. Non-LTE temperature fields and matching identifiers\n"
-         "The data is stored in different files. This method reads all\n"
-         "files and creates the variables *t_field_raw*, *z_field_raw*,\n"
-         "*vmr_field_raw*, *t_nlte_field_raw*, and *nlte_quantum_identifiers*.\n"
-         "\n"
-         "Files in a scenarios should be named matching the pattern of:\n"
-         "tropical.H2O.xml\n"
-         "\n"
-         "The files can be anywhere, but they must be all in the same\n"
-         "directory, selected by 'basename'. The files are chosen by the\n"
-         "species name. If you have more than one tag group for the same\n"
-         "species, the same profile will be used.\n"
-         ),
-        AUTHORS( "Claudia Emde", "Richard Larsson" ),
-        OUT( "t_field_raw", "z_field_raw", "vmr_field_raw", "t_nlte_field_raw", "nlte_quantum_identifiers" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "abs_species" ),
-        GIN( "basename" ),
-        GIN_TYPE( "String" ),
-        GIN_DEFAULT( NODEF ),
-        GIN_DESC( "Name of scenario, probably including the full path. For "
-                  "example: \"/smiles_local/arts-data/atmosphere/fascod/"
-                  "tropical\"" )
         ));
 
   md_data_raw.push_back
@@ -3289,80 +3211,6 @@ void define_md_data_raw()
                   "Constant values of additional fields.")
         ));
     
-    md_data_raw.push_back
-    ( MdRecord
-    ( NAME( "abs_cia_dataAddCIARecord" ),
-      DESCRIPTION
-      (
-          "Takes CIARecord as input and appends the results in the appropriate place.\n"
-          "\n"
-          "If CIARecord has same species as species in *abs_cia_data*, then the array\n"
-          "position is used to append all of the CIARecord into the array.  If clobber\n"
-          "evaluates as true, cia_record overwrites the appropriate *abs_cia_data*.  If\n"
-          "species in cia_record are not in *abs_cia_data*, the CIARecord is pushed back.\n"
-      ),
-      AUTHORS( "Richard Larsson" ),
-      OUT( "abs_cia_data" ),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN( "abs_cia_data" ),
-      GIN( "cia_record", "clobber" ),
-      GIN_TYPE( "CIARecord", "Index" ),
-      GIN_DEFAULT( NODEF, "0" ),
-      GIN_DESC( "CIA record to append to *abs_cia_data*.",
-                "If true, the new input clobbers the old cia data."   )
-    ));
-    
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "abs_cia_dataReadFromCIA" ),
-        DESCRIPTION
-        (
-         "Read data from a CIA data file for all CIA molecules defined\n"
-         "in *abs_species*.\n"
-         "\n"
-         "The units in the HITRAN file are:\n"
-         "Frequency: cm^(-1)\n"
-         "Binary absorption cross-section: cm^5 molec^(-2)\n"
-         "\n"
-         "Upon reading we convert this to the ARTS internal SI units \n"
-         "of Hz and m^5 molec^(-2).\n"
-         ),
-        AUTHORS( "Oliver Lemke" ),
-        OUT( "abs_cia_data" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "abs_species" ),
-        GIN( "catalogpath" ),
-        GIN_TYPE( "String" ),
-        GIN_DEFAULT( NODEF ),
-        GIN_DESC( "Path to the CIA catalog directory." )
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "abs_cia_dataReadFromXML" ),
-        DESCRIPTION
-        (
-         "Read data from a CIA XML file and check that all CIA tags defined\n"
-         "in *abs_species* are present in the file.\n"
-         "\n"
-         "The units of the data are described in *abs_cia_dataReadFromCIA*.\n"
-         ),
-        AUTHORS( "Oliver Lemke" ),
-        OUT( "abs_cia_data" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "abs_species" ),
-        GIN( "filename" ),
-        GIN_TYPE( "String" ),
-        GIN_DEFAULT( "" ),
-        GIN_DESC( "Name of the XML file." )
-        ));
-
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "CIAInfo" ),
@@ -3848,14 +3696,14 @@ void define_md_data_raw()
          ),
         AUTHORS( "Johan Strandgren", "Patrick Eriksson" ),
         OUT(),
-        GOUT( "diameter_max", "axial_area_max" ),
-        GOUT_TYPE( "Numeric", "Numeric" ),
+        GOUT(      "diameter_max", "axial_area_max" ),
+        GOUT_TYPE( "Numeric",      "Numeric" ),
         GOUT_DESC( "Maximum dimension of the particle.",
                    "Maximum axial area of the particle, see above." ),
         IN(),
-        GIN( "shape", "diameter_volume_equ", "aspect_ratio" ),
-        GIN_TYPE( "String", "Numeric", "Numeric" ),
-        GIN_DEFAULT( NODEF, NODEF, NODEF ),
+        GIN(        "shape",  "diameter_volume_equ", "aspect_ratio" ),
+        GIN_TYPE(   "String", "Numeric",             "Numeric" ),
+        GIN_DEFAULT( NODEF,   NODEF,                 NODEF ),
         GIN_DESC( "Particle shape.", 
                   "Particle equivalent volume diameter.", 
                   "Particle aspect ratio." )
@@ -3878,14 +3726,14 @@ void define_md_data_raw()
          ),
         AUTHORS( "Johan Strandgren", "Patrick Eriksson" ),
         OUT(),
-        GOUT( "diameter_volume_equ", "volume" ),
-        GOUT_TYPE( "Numeric", "Numeric" ),
+        GOUT(      "diameter_volume_equ", "volume" ),
+        GOUT_TYPE( "Numeric",             "Numeric" ),
         GOUT_DESC( "Particle volume equivalent diameter.",
                    "Volume of the particle." ),
         IN(),
-        GIN( "shape", "diameter_max", "aspect_ratio" ),
-        GIN_TYPE( "String", "Numeric", "Numeric" ),
-        GIN_DEFAULT( NODEF, NODEF, NODEF ),
+        GIN(         "shape",  "diameter_max", "aspect_ratio" ),
+        GIN_TYPE(    "String", "Numeric",      "Numeric" ),
+        GIN_DEFAULT( NODEF,    NODEF,          NODEF ),
         GIN_DESC( "Particle shape.", 
                   "Maximum dimension of the particle.", 
                   "Particle aspect ratio." )
@@ -3897,6 +3745,26 @@ void define_md_data_raw()
         DESCRIPTION
         (
          "Calls DISORT RT solver from ARTS.\n"
+         "\n"
+         "DISCLAIMER: DISORT is currently not properly maintained. The\n"
+         "interface exists for development pursed only. Results might be\n"
+         "erronous. We discourage usage.\n"
+         "\n"
+         "DISORT is only availble for scalar 1D calculations and implicitly\n"
+         "assumes a plane-parallel atmosphere (flat Earth). Only\n"
+         "macroscopically isotropic particles can be handled correctly.\n"
+         "\n"
+         "Known issues of ARTS implementation:\n"
+         "- Currently number of streams is hardcoded to 8, which is likely\n"
+         "  sufficient in the microwave region but problematic in the infrared.\n"
+         "- Surface altitude is not an interface parameter. Surface is\n"
+         "  implicitly assumed to be at the lowest atmospheric level.\n"
+         "- Surface temperature not an interface parameter, but implicitly\n"
+         "  assumed to to be of lowest atmospheric level temperature.\n"
+         "- Temperature dependence of single scattering properties is\n"
+         "  currently ignored (scat_data of lowest t_grid point is used).\n"
+         "- Scattering angle grids of all scattering elements have to be\n"
+         "  identical.\n"
          ),
         AUTHORS( "Claudia Emde" ),
         OUT( "doit_i_field",
@@ -3909,7 +3777,7 @@ void define_md_data_raw()
             "opt_prop_part_agenda", "propmat_clearsky_agenda", 
             "spt_calc_agenda", "pnd_field", "t_field",
             "z_field", "p_grid", "vmr_field", "scat_data", "f_grid", 
-            "scat_za_grid", "surface_emissivity_DISORT" ),
+            "scat_za_grid", "surface_scalar_reflectivity" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -3935,14 +3803,14 @@ void define_md_data_raw()
          ),
         AUTHORS( "Jana Mendrok" ),
         OUT(),
-        GOUT( "dNdD", "Ar" ),
+        GOUT(      "dNdD",   "Ar" ),
         GOUT_TYPE( "Vector", "Vector" ),
         GOUT_DESC( "size distribution number density [#/m3/m]",
                    "area ratio distribution" ),
         IN(),
-        GIN( "Dmax", "t" ),
-        GIN_TYPE( "Vector", "Numeric" ),
-        GIN_DEFAULT( NODEF, NODEF ),
+        GIN(         "Dmax",   "t" ),
+        GIN_TYPE(    "Vector", "Numeric" ),
+        GIN_DEFAULT( NODEF,    NODEF ),
         GIN_DESC( "Maximum dimension of the particles [m]",
                   "Ambient atmospheric temperature [K]" )
         ));  
@@ -3968,13 +3836,13 @@ void define_md_data_raw()
          ),
         AUTHORS( "Jana Mendrok" ),
         OUT(),
-        GOUT( "dNdD" ),
+        GOUT(      "dNdD" ),
         GOUT_TYPE( "Vector" ),
         GOUT_DESC( "size distribution number density [#/m3/m]" ),
         IN(),
-        GIN( "Dmax", "t" ),
-        GIN_TYPE( "Vector", "Numeric" ),
-        GIN_DEFAULT( NODEF, NODEF ),
+        GIN(         "Dmax",   "t" ),
+        GIN_TYPE(    "Vector", "Numeric" ),
+        GIN_DEFAULT( NODEF,    NODEF ),
         GIN_DESC( "Maximum dimension of the particles [m]",
                   "Ambient atmospheric temperature [K]" )
         ));  
@@ -3994,13 +3862,13 @@ void define_md_data_raw()
          ),
         AUTHORS( "Jana Mendrok" ),
         OUT(),
-        GOUT( "dNdD" ),
+        GOUT(      "dNdD" ),
         GOUT_TYPE( "Vector" ),
         GOUT_DESC( "size distribution number density [#/m3/m]" ),
         IN(),
-        GIN( "diameter_volume_equivalent", "LWC" ),
-        GIN_TYPE( "Vector", "Numeric" ),
-        GIN_DEFAULT( NODEF, NODEF ),
+        GIN(         "diameter_volume_equivalent", "LWC" ),
+        GIN_TYPE(    "Vector",                     "Numeric" ),
+        GIN_DEFAULT( NODEF,                        NODEF ),
         GIN_DESC( "Volume equivalent sphere diameter of the particles [m]",
                   "Atmospheric liquid water content [kg/m3]" )
         ));  
@@ -4024,13 +3892,13 @@ void define_md_data_raw()
          ),
         AUTHORS( "Jana Mendrok" ),
         OUT(),
-        GOUT( "dNdD" ),
+        GOUT(      "dNdD" ),
         GOUT_TYPE( "Vector" ),
         GOUT_DESC( "size distribution number density [#/m3/m]" ),
         IN(),
-        GIN( "diameter_mass_equivalent", "IWC", "t", "noisy" ),
-        GIN_TYPE( "Vector", "Numeric", "Numeric", "Index" ),
-        GIN_DEFAULT( NODEF, NODEF, NODEF, "0" ),
+        GIN(         "diameter_mass_equivalent", "IWC",     "t",       "noisy" ),
+        GIN_TYPE(    "Vector",                   "Numeric", "Numeric", "Index" ),
+        GIN_DEFAULT( NODEF,                      NODEF,     NODEF,     "0" ),
         GIN_DESC( "Mass equivalent sphere diameter of the particles [m]",
                   "Atmospheric ice water content [kg/m3]",
                   "Ambient atmospheric temperature [K]",
@@ -4053,13 +3921,13 @@ void define_md_data_raw()
        ),
       AUTHORS( "Manfred Brath" ),
       OUT(),
-      GOUT( "dNdD" ),
+      GOUT(      "dNdD" ),
       GOUT_TYPE( "Vector" ),
       GOUT_DESC( "size distribution number density [#/m3/m]" ),
       IN(),
-      GIN( "diameter_max", "SWC", "t", "alpha", "beta" ),
-      GIN_TYPE( "Vector", "Numeric", "Numeric", "Numeric", "Numeric" ),
-      GIN_DEFAULT( NODEF, NODEF, NODEF, "0.0257","2.0" ),
+      GIN(         "diameter_max", "SWC",     "t",       "alpha",   "beta" ),
+      GIN_TYPE(    "Vector",       "Numeric", "Numeric", "Numeric", "Numeric" ),
+      GIN_DEFAULT( NODEF,          NODEF,     NODEF,     "0.0257",  "2.0" ),
       GIN_DESC( "Maximum diameter of the particles [m]",
                 "Atmospheric ice water content [kg/m3]",
                 "Ambient atmospheric temperature [K]",
@@ -4083,13 +3951,13 @@ void define_md_data_raw()
        ),
       AUTHORS( "Manfred Brath" ),
       OUT(),
-      GOUT( "dNdD" ),
+      GOUT(      "dNdD" ),
       GOUT_TYPE( "Vector" ),
       GOUT_DESC( "size distribution number density [#/m3/m]" ),
       IN(),
-      GIN( "diameter_max", "SWC", "t", "alpha", "beta" ),
-      GIN_TYPE( "Vector", "Numeric", "Numeric", "Numeric", "Numeric" ),
-      GIN_DEFAULT( NODEF, NODEF, NODEF, "0.0257","2.0" ),
+      GIN(         "diameter_max", "SWC",     "t",       "alpha",   "beta" ),
+      GIN_TYPE(    "Vector",       "Numeric", "Numeric", "Numeric", "Numeric" ),
+      GIN_DEFAULT( NODEF,          NODEF,     NODEF,     "0.0257",  "2.0" ),
       GIN_DESC( "Maximum diameter of the particles [m]",
                 "Atmospheric ice water content [kg/m3]",
                 "Ambient atmospheric temperature [K]",
@@ -4123,17 +3991,17 @@ void define_md_data_raw()
        ),
       AUTHORS( "Manfred Brath" ),
       OUT(),
-      GOUT( "dNdD" ),
+      GOUT(      "dNdD" ),
       GOUT_TYPE( "Vector" ),
       GOUT_DESC( "size distribution number density [#/m3/m]" ),
       IN(),
-      GIN( "mass", "N_tot", "M", "psd_type" ),
-      GIN_TYPE( "Vector", "Numeric", "Numeric", "String" ),
-      GIN_DEFAULT( NODEF, NODEF, NODEF, "S2M_LWC" ),
+      GIN(         "mass",   "N_tot",   "M",       "psd_type" ),
+      GIN_TYPE(    "Vector", "Numeric", "Numeric", "String" ),
+      GIN_DEFAULT( NODEF,    NODEF,     NODEF,     "S2M_LWC" ),
       GIN_DESC( "Mass of each particle [kg]",
-               "Total number density [1/m3]",
-               "Mass concentration [kg/m^3]",
-               "Type of particle size distribution (hydrometeor type)")
+                "Total number density [1/m3]",
+                "Mass concentration [kg/m^3]",
+                "Type of particle size distribution (hydrometeor type)")
       ));
 
     md_data_raw.push_back
@@ -4163,17 +4031,17 @@ void define_md_data_raw()
        ),
       AUTHORS( "Manfred Brath" ),
       OUT(),
-      GOUT( "dNdD" ),
+      GOUT(      "dNdD" ),
       GOUT_TYPE( "Vector" ),
       GOUT_DESC( "size distribution number density [#/m3/m]" ),
       IN(),
-      GIN( "mass", "mean_mass", "M", "psd_type" ),
-      GIN_TYPE( "Vector", "Numeric", "Numeric", "String" ),
-      GIN_DEFAULT( NODEF, NODEF, NODEF, "S2M_LWC" ),
+      GIN(         "mass",   "mean_mass", "M",       "psd_type" ),
+      GIN_TYPE(    "Vector", "Numeric",   "Numeric", "String" ),
+      GIN_DEFAULT( NODEF,    NODEF,       NODEF,     "S2M_LWC" ),
       GIN_DESC( "Mass of each particle [kg]",
-               "Mean particle mass [kg]",
-               "Mass concentration [kg/m^3]",
-               "Type of particle size distribution (hydrometeor type)")
+                "Mean particle mass [kg]",
+                "Mass concentration [kg/m^3]",
+                "Type of particle size distribution (hydrometeor type)")
       ));
     
   md_data_raw.push_back
@@ -4193,13 +4061,13 @@ void define_md_data_raw()
        ),
       AUTHORS( "Manfred Brath" ),
       OUT(),
-      GOUT( "dNdD" ),
+      GOUT(      "dNdD" ),
       GOUT_TYPE( "Vector" ),
       GOUT_DESC( "size distribution number density [#/m3/m]" ),
       IN(),
-      GIN( "diameter_volume_equ", "rho", "LWC"),
-      GIN_TYPE( "Vector", "Numeric", "Numeric" ),
-      GIN_DEFAULT( NODEF, NODEF, NODEF ),
+      GIN(         "diameter_volume_equ", "rho",     "LWC"),
+      GIN_TYPE(    "Vector",              "Numeric", "Numeric" ),
+      GIN_DEFAULT( NODEF,                 NODEF,     NODEF ),
       GIN_DESC( "Volume equivalent diameter of the particles [m]",
                 "Density of the particles [kg/m^3]",
                 "Atmospheric ice water content [kg/m3]")
@@ -4218,18 +4086,18 @@ void define_md_data_raw()
        "A wrapper to internal particle size distribution calculation.\n"
        "MDG_IWC is a parametrization for cloud ice water. It is a\n"
        "modified gamma distribution with the coefficients of\n"
-       " Geer and Baordo (2014). It assumes spherical particles of constant\n"
+       "Geer and Baordo (2014). It assumes spherical particles of constant\n"
        "density.\n"
        ),
       AUTHORS( "Manfred Brath" ),
       OUT(),
-      GOUT( "dNdD" ),
+      GOUT(      "dNdD" ),
       GOUT_TYPE( "Vector" ),
       GOUT_DESC( "size distribution number density [#/m3/m]" ),
       IN(),
-      GIN( "diameter_volume_equ","rho","IWC"),
-      GIN_TYPE( "Vector","Numeric","Numeric" ),
-      GIN_DEFAULT( NODEF, NODEF, NODEF ),
+      GIN(         "diameter_volume_equ", "rho",     "IWC"),
+      GIN_TYPE(    "Vector",              "Numeric", "Numeric" ),
+      GIN_DEFAULT( NODEF,                 NODEF,     NODEF ),
       GIN_DESC( "Volume equivalent diameter of the particles [m]",
                 "Density of the particles [kg/m^3]",
                 "Atmospheric ice water content [kg/m3]")
@@ -4257,13 +4125,13 @@ void define_md_data_raw()
          ),
         AUTHORS( "Jana Mendrok" ),
         OUT(),
-        GOUT( "dNdD" ),
+        GOUT(      "dNdD" ),
         GOUT_TYPE( "Vector" ),
         GOUT_DESC( "size distribution number density [#/m3/m]" ),
         IN(),
-        GIN( "diameter_melted_equivalent", "PR", "PRunit", "density" ),
-        GIN_TYPE( "Vector", "Numeric", "String", "Numeric" ),
-        GIN_DEFAULT( NODEF, NODEF, "SI", NODEF ),
+        GIN(         "diameter_melted_equivalent", "PR",      "PRunit", "density" ),
+        GIN_TYPE(    "Vector",                     "Numeric", "String", "Numeric" ),
+        GIN_DEFAULT( NODEF,                        NODEF,     "SI",     NODEF ),
         GIN_DESC( "Melted equivalent sphere diameter of the particles [m]",
                   "Precipitation rate [mm/h or kg/m2/s]",
                   "Precipitation rate unit",
@@ -4272,28 +4140,30 @@ void define_md_data_raw()
     
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "DoitAngularGridsSet" ),
+      ( NAME( "DOAngularGridsSet" ),
         DESCRIPTION
         (
-         "Sets the angular grids for DOIT calculation."
+         "Sets the angular grids for Discrete Ordinate type scattering\n"
+         "calculations.\n"
          "\n"
-         "In this method the angular grids for a DOIT calculation are\n"
-         "specified. For down-looking geometries it is sufficient to define\n"
-         "*N_za_grid* and *N_aa_grid*. From these numbers equally spaced\n"
-         "grids are created and stored in the WSVs *scat_za_grid* and\n"
-         "*scat_aa_grid*.\n" 
+         "This method sets the angular grids for the Discrete Ordinate type\n"
+         "scattering calculations (DOIT, DISORT). For down- und up-looking\n"
+         "geometries it suffices to define *N_za_grid* (both solvers) and\n"
+         "*N_aa_grid* (DOIT). From these numbers equally spaced grids are\n"
+         "created and stored in the WSVs *scat_za_grid* and *scat_aa_grid*.\n" 
          "\n"
-         "For limb simulations it is important to use an optimized zenith \n"
-         "angle grid with a very fine resolution about 90 degrees. Such a grid can be\n"
-         "generated using *doit_za_grid_optCalc*. The filename of an optimized\n"
-         "zenith angle grid can be given as a keyword (*za_grid_opt_file*).\n"
+         "For limb simulations it is important to use an optimized zenith\n"
+         "angle grid with a very fine resolution around the horizon\n"
+         "(za=90 degrees). Such a grid can be generated using\n"
+         "*doit_za_grid_optCalc*. To be applied, the name of the file holding\n"
+         "the optimized angle grid has to be given (*za_grid_opt_file*).\n"
          "\n"
-         "If a filename is given, the equidistant grid is used for the\n"
-         "calculation of the scattering integrals and the optimized grid is\n"
-         "applied for integration of the radiative transfer equation. \n"
-         "\n"
-         "For down-looking cases no filename should be specified (za_grid_opt_file = \"\" ) \n"
-         "Using only the equidistant grid makes sense to speed up the calculation.\n"
+         "When an optimized grid is present, the equidistant grid is used for\n"
+         "the calculation of the scattering integrals, while the optimized\n"
+         "grid is applied for the integration of the radiative transfer\n"
+         "equation. Otherwise the equidistant grid is used throughout. For\n"
+         "down-looking cases using the equidistant grid typically suffices\n"
+         "and speeds up the calculations.\n"
          ),
         AUTHORS( "Claudia Emde" ),
         OUT( "doit_za_grid_size", "scat_aa_grid", "scat_za_grid" ),
@@ -4301,9 +4171,9 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN(),
-        GIN( "N_za_grid", "N_aa_grid", "za_grid_opt_file" ),
+        GIN(         "N_za_grid", "N_aa_grid", "za_grid_opt_file" ),
         GIN_TYPE(    "Index",     "Index",     "String" ),
-        GIN_DEFAULT( NODEF,       NODEF,       NODEF ),
+        GIN_DEFAULT( NODEF,       "1",         "" ),
         GIN_DESC( "Number of grid points in zenith angle grid. "
                   "Recommended value is 19.",
                   "Number of grid points in azimuth angle grid. "
@@ -4414,8 +4284,8 @@ void define_md_data_raw()
          "\n"
          "Note that multi-dimensional output variables (Tensors, specifically)\n"
          "are zero-initialized. That is, this methods needs to be called\n"
-         "BEFORE other WSMs that provide input to *ScatteringDOIT*, e.g.\n"
-         "before *DoitGetIncoming*.\n"
+         "BEFORE other WSMs that provide input to *DOITCalc*, e.g. before\n"
+         "*DoitGetIncoming*.\n"
          ),
         AUTHORS( "Claudia Emde" ),
         OUT( "doit_scat_field", "doit_i_field", "doit_is_initialized" ),
@@ -4429,6 +4299,70 @@ void define_md_data_raw()
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "DoitScatteringDataPrepare" ),
+        DESCRIPTION
+        (
+         "Prepares single scattering data for a DOIT scattering calculation.\n"
+         "\n"
+         "First the scattering data is interpolated in frequency using\n"
+         "*scat_data_monoCalc*. Then the phase matrix data is\n"
+         "transformed or interpolated from the raw data to the laboratory frame\n"
+         "for all possible combinations of the angles contained in the angular\n"
+         "grids which are set in *DOAngularGridsSet*. The resulting phase\n"
+         "matrices are stored in *pha_mat_sptDOITOpt*.\n"
+         ),
+        AUTHORS( "Claudia Emde" ),
+        OUT( "pha_mat_sptDOITOpt", "scat_data_mono" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "doit_za_grid_size", "scat_aa_grid", "scat_data", "f_grid", 
+            "f_index", "atmosphere_dim", "stokes_dim" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "DoitWriteIterationFields" ),
+        DESCRIPTION
+        (
+         "Writes DOIT iteration fields.\n"
+         "\n"
+         "This method writes intermediate iteration fields to xml-files. The\n"
+         "method can be used as a part of *doit_conv_test_agenda*.\n"
+         "\n"
+         "The iterations to be stored are specified by *iterations*, e.g.:\n"
+         "    iterations = [3, 6, 9]\n"
+         "In this case the 3rd, 6th and 9th iterations are stored.\n"
+         "If a number is larger than the total number of iterations, this\n" 
+         "number is ignored. If all iterations should be stored set\n"
+         "   iterations = [-1]\n"
+         "\n"
+         "The frequencies to be stored are specified by *frequencies* in the\n"
+         "same way as the iterations. The frequency index corresponds to the\n"
+         "order of frequencies in *f_grid*.\n"
+         "\n"
+         "The output files are named doit_iteration_fX_iY.xml with X being the\n"
+         "frequency index and iY the iteration counter.\n"
+         ),
+        AUTHORS( "Claudia Emde" ),
+        OUT(),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "doit_iteration_counter", "doit_i_field_mono", "f_index" ),
+        GIN(         "iterations",   "frequencies" ),
+        GIN_TYPE(    "ArrayOfIndex", "ArrayOfIndex" ),
+        GIN_DEFAULT( "[-1]",         "[-1]" ),
+        GIN_DESC( "Selection of iterations to store.",
+                  "Selection of frequencies to store." )
         ));
 
   md_data_raw.push_back
@@ -4589,7 +4523,8 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "doit_i_field", "scat_za_grid", "f_grid",
-            "atmosphere_dim", "stokes_dim", "cloudbox_limits" ),
+            "atmosphere_dim", "stokes_dim", "cloudbox_limits",
+            "doit_is_initialized" ),
         GIN( "doit_i_field_precalc" ),
         GIN_TYPE( "Tensor7" ),
         GIN_DEFAULT( NODEF ),
@@ -4621,7 +4556,7 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "doit_i_field",
             "p_grid", "lat_grid", "lon_grid",
-            "cloudbox_limits", "atmosphere_dim" ),
+            "cloudbox_limits", "atmosphere_dim", "doit_is_initialized" ),
         GIN( "all_frequencies" ),
         GIN_TYPE( "Index" ),
         GIN_DEFAULT( "1" ),
@@ -4861,7 +4796,7 @@ void define_md_data_raw()
          "90 degrees. Taking an optimized grid for the RT part and an equidistant\n"
          "grid for the scattering integral part saves very much CPU time.\n"
          "This method uses the equidistant za_grid defined in\n"
-         "*DoitAngularGridsSet* and it should always be used for limb\n"
+         "*DOAngularGridsSet* and it should always be used for limb\n"
          "simulations.\n"
          "\n"
          "For more information please refer to AUG.\n"
@@ -4879,70 +4814,6 @@ void define_md_data_raw()
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "DoitScatteringDataPrepare" ),
-        DESCRIPTION
-        (
-         "Prepares single scattering data for a DOIT scattering calculation.\n"
-         "\n"
-         "First the scattering data is interpolated in frequency using\n"
-         "*scat_data_monoCalc*. Then the phase matrix data is\n"
-         "transformed or interpolated from the raw data to the laboratory frame\n"
-         "for all possible combinations of the angles contained in the angular\n"
-         "grids which are set in *DoitAngularGridsSet*. The resulting phase\n"
-         "matrices are stored in *pha_mat_sptDOITOpt*.\n"
-         ),
-        AUTHORS( "Claudia Emde" ),
-        OUT( "pha_mat_sptDOITOpt", "scat_data_mono" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "doit_za_grid_size", "scat_aa_grid", "scat_data", "f_grid", 
-            "f_index", "atmosphere_dim", "stokes_dim" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "DoitWriteIterationFields" ),
-        DESCRIPTION
-        (
-         "Writes DOIT iteration fields.\n"
-         "\n"
-         "This method writes intermediate iteration fields to xml-files. The\n"
-         "method can be used as a part of *doit_conv_test_agenda*.\n"
-         "\n"
-         "The iterations to be stored are specified by *iterations*, e.g.:\n"
-         "    iterations = [3, 6, 9]\n"
-         "In this case the 3rd, 6th and 9th iterations are stored.\n"
-         "If a number is larger than the total number of iterations, this\n" 
-         "number is ignored. If all iterations should be stored set\n"
-         "   iterations = [-1]\n"
-         "\n"
-         "The frequencies to be stored are specified by *frequencies* in the\n"
-         "same way as the iterations. The frequency index corresponds to the\n"
-         "order of frequencies in *f_grid*.\n"
-         "\n"
-         "The output files are named doit_iteration_fX_iY.xml with X being the\n"
-         "frequency index and iY the iteration counter.\n"
-         ),
-        AUTHORS( "Claudia Emde" ),
-        OUT(),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "doit_iteration_counter", "doit_i_field_mono", "f_index" ),
-        GIN(         "iterations",   "frequencies" ),
-        GIN_TYPE(    "ArrayOfIndex", "ArrayOfIndex" ),
-        GIN_DEFAULT( "[-1]",         "[-1]" ),
-        GIN_DESC( "Selection of iterations to store.",
-                  "Selection of frequencies to store." )
         ));
 
    md_data_raw.push_back
@@ -8383,6 +8254,84 @@ void define_md_data_raw()
         GIN_DESC( "Species tag", "Line mixing tag" , "Unmatched line mixing data")
         ));
 
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "MagFieldsCalc" ),
+      DESCRIPTION
+      (
+          "Interpolation of raw magnetic fields to calculation grids.\n"
+          "Heritage from *AtmFieldsCalc*\n"
+          "\n"
+          "Internally, *MagFieldsCalc* applies *GriddedFieldPRegrid* and\n"
+          "*GriddedFieldLatLonRegrid*. Generally, 'half-grid-step' extrapolation\n"
+          "is allowed and applied.\n"
+      ),
+      AUTHORS( "Richard Larsson" ),
+      OUT( "mag_u_field", "mag_v_field", "mag_w_field" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "p_grid", "lat_grid", "lon_grid", "mag_u_field_raw", "mag_v_field_raw", 
+          "mag_w_field_raw", "atmosphere_dim" ),
+      GIN( "interp_order" ),
+      GIN_TYPE( "Index" ),
+      GIN_DEFAULT( "1" ),
+      GIN_DESC( "Interpolation order (1=linear interpolation).")
+    ));
+    
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "MagFieldsCalcExpand1D" ),
+        DESCRIPTION
+        (
+         "Interpolation of 1D raw atmospheric fields to create 2D or 3D\n"
+         "homogeneous magnetic fields.  Derived from *AtmFieldsCalcExpand1D*\n"
+         "\n"
+         "The method works as *MagFieldsCalc*, but accepts only raw 1D\n"
+         "magnetic fields. The raw data is interpolated to *p_grid* and\n"
+         "the obtained values are applied for all latitudes, and also\n"
+         "longitudes for 3D, to create a homogeneous atmosphere.\n"
+         ),
+        AUTHORS( "Richard Larsson" ),
+        OUT( "mag_u_field", "mag_v_field", "mag_w_field" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "p_grid", "lat_grid", "lon_grid", "mag_u_field_raw", "mag_v_field_raw", 
+            "mag_w_field_raw", "atmosphere_dim" ),
+        GIN( "interp_order" ),
+        GIN_TYPE( "Index" ),
+        GIN_DEFAULT( "1" ),
+        GIN_DESC( "Interpolation order (1=linear interpolation)." )
+        ));
+
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "MagRawRead" ),
+      DESCRIPTION
+      (
+          "Reads magnetic field data from a scenario.\n"
+          "\n"
+          "A full set of field components is read (NOTE: fails if scenario\n"
+          "only contains selected field components). The files can be\n"
+          "anywhere, but must all be in the same directory specified by\n"
+          "'basename'. Naming convention for the field component files is\n"
+          "basename.mag_u.xml for the u-component, v- and w-components\n"
+          "accordingly.\n"
+      ),
+      AUTHORS( "Richard Larsson" ),
+      OUT( "mag_u_field_raw", "mag_v_field_raw", "mag_w_field_raw"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( ),
+      GIN( "basename" ),
+      GIN_TYPE( "String" ),
+      GIN_DEFAULT( NODEF ),
+      GIN_DESC( "Name of scenario, probably including the full path. For "
+      "example: \"/data/magnetic_field\"" )
+    ));
+    
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "MatrixAddScalar" ),
@@ -11728,13 +11677,13 @@ void define_md_data_raw()
       IN( "complex_refr_index" ),
       GIN( "shape", "diameter_volume_equ", "aspect_ratio", "mass", "ptype", 
            "data_f_grid", "data_t_grid", "data_za_grid", "data_aa_grid",
-           "precision", "cri_source", "ndgs" ),
+           "precision", "cri_source", "ndgs", "robust", "quiet" ),
       GIN_TYPE( "String", "Numeric", "Numeric", "Numeric", "String", 
                 "Vector", "Vector", "Vector", "Vector",
-                "Numeric", "String", "Index" ),
+                "Numeric", "String", "Index", "Index", "Index" ),
       GIN_DEFAULT( NODEF, NODEF, NODEF, "NaN", NODEF, 
                    NODEF, NODEF, NODEF, NODEF, 
-                   "0.001", "Set by user, unknown source.", "2" ),
+                   "0.001", "Set by user, unknown source.", "2", "0", "1" ),
       GIN_DESC( "Particle shape. Options listed above.", 
                 "Particle volume equivalent diameter [m]. See defintion above.", 
                 "Particle aspect ratio.",
@@ -11748,7 +11697,10 @@ void define_md_data_raw()
                 "Accuracy of the computations.",
                 "String describing the source of *complex_refr_index*, for"
                 " inclusion in meta data.",
-                "See above. Only used for random orientation." )
+                "See above. So far only applied for random orientation.",
+                "Continue even if individual T-matrix calculations fail. "
+                "Respective scattering element data will be NAN.",
+                "Suppress print output from tmatrix fortran code." )
       ));
 
 /*
@@ -14195,6 +14147,84 @@ void define_md_data_raw()
         GIN_DESC(    "Screen verbosity level")
         ));
 
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "WindFieldsCalc" ),
+      DESCRIPTION
+      (
+          "Interpolation of raw wind fields to calculation grids.\n"
+          "Heritage from *AtmFieldsCalc*\n"
+          "\n"
+          "Internally, *WindFieldsCalc* applies *GriddedFieldPRegrid* and\n"
+          "*GriddedFieldLatLonRegrid*. Generally, 'half-grid-step' extrapolation\n"
+          "is allowed and applied.\n"
+      ),
+      AUTHORS( "Richard Larsson" ),
+      OUT( "wind_u_field", "wind_v_field", "wind_w_field" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "p_grid", "lat_grid", "lon_grid", "wind_u_field_raw", "wind_v_field_raw", 
+          "wind_w_field_raw", "atmosphere_dim" ),
+      GIN( "interp_order" ),
+      GIN_TYPE( "Index" ),
+      GIN_DEFAULT( "1" ),
+      GIN_DESC( "Interpolation order (1=linear interpolation).")
+    ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "WindFieldsCalcExpand1D" ),
+        DESCRIPTION
+        (
+         "Interpolation of 1D raw atmospheric fields to create 2D or 3D\n"
+         "homogeneous wind fields.  Derived from *AtmFieldsCalcExpand1D*\n"
+         "\n"
+         "The method works as *WindFieldsCalc*, but accepts only raw 1D\n"
+         "wind fields. The raw data is interpolated to *p_grid* and\n"
+         "the obtained values are applied for all latitudes, and also\n"
+         "longitudes for 3D, to create a homogeneous atmosphere.\n"
+         ),
+        AUTHORS( "Richard Larsson" ),
+        OUT( "wind_u_field", "wind_v_field", "wind_w_field" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "p_grid", "lat_grid", "lon_grid", "wind_u_field_raw", "wind_v_field_raw", 
+            "wind_w_field_raw", "atmosphere_dim" ),
+        GIN( "interp_order" ),
+        GIN_TYPE( "Index" ),
+        GIN_DEFAULT( "1" ),
+        GIN_DESC( "Interpolation order (1=linear interpolation)." )
+        ));
+
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "WindRawRead" ),
+      DESCRIPTION
+      (
+          "Reads wind field data from a scenario.\n"
+          "\n"
+          "A full set of field components is read (NOTE: fails if scenario\n"
+          "only contains selected field components). The files can be\n"
+          "anywhere, but must all be in the same directory specified by\n"
+          "'basename'. Naming convention for the field component files is\n"
+          "basename.wind_u.xml for the u-component, v- and w-components\n"
+          "accordingly.\n"
+      ),
+      AUTHORS( "Richard Larsson" ),
+      OUT( "wind_u_field_raw", "wind_v_field_raw", "wind_w_field_raw"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( ),
+      GIN( "basename" ),
+      GIN_TYPE( "String" ),
+      GIN_DEFAULT( NODEF ),
+      GIN_DESC( "Name of scenario, probably including the full path. For "
+      "example: \"/data/wind_field\"" )
+    ));
+    
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "wind_u_fieldIncludePlanetRotation" ),

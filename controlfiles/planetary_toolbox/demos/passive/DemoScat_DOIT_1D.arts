@@ -203,7 +203,7 @@ AgendaSet( iy_cloudbox_agenda ){
 }
 #
 doit_za_interpSet( doit_za_interp, atmosphere_dim, "linear" )
-DoitAngularGridsSet( doit_za_grid_size, scat_aa_grid, scat_za_grid,
+DOAngularGridsSet( doit_za_grid_size, scat_aa_grid, scat_za_grid,
                      Nza, Naa, "" )
 
 
