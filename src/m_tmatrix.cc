@@ -195,10 +195,10 @@ void scat_data_singleTmatrix(
           throw runtime_error( os.str() );
         }
       Index nza = data_za_grid.nelem();
-      Numeric dza = 180./(nza-1);
+      Numeric dza = 180./((Numeric)nza-1.);
       for( Index iza=1; iza<nza; iza++ )
         {
-          if( !(is_same_within_epsilon(data_za_grid[iza],iza*dza,2*DBL_EPSILON)) )
+          if( !(is_same_within_epsilon(data_za_grid[iza],(Numeric)iza*dza,2*DBL_EPSILON)) )
             {
               ostringstream os;
               os << "Input zenith angle grid *data_za_grid* is required to be\n"

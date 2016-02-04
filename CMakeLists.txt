@@ -163,14 +163,14 @@ if (NOT LAPACK_FOUND)
 endif (NOT LAPACK_FOUND)
 
 ########## NetCDF support #########
-include (FindNetCDF)
+if (ENABLE_NETCDF)
+   include (FindNetCDF)
+endif (ENABLE_NETCDF)
 
 ########## OpenMP support #########
 if (NOT NO_OPENMP AND NOT CMAKE_GENERATOR STREQUAL "Xcode")
   include (FindOpenMP)
 endif (NOT NO_OPENMP AND NOT CMAKE_GENERATOR STREQUAL "Xcode")
-
-########## NetCDF support #########
 
 ########### Docserver support ##########
 

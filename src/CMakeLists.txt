@@ -4,6 +4,13 @@ include_directories ( ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}
 
 if (NETCDF_FOUND)
   include_directories (${NETCDF_INCLUDE_DIR})
+  set (NETCDF_CC_FILES
+    nc_io.cc
+    nc_io_array_types.cc
+    nc_io_basic_types.cc
+    nc_io_compound_types.cc
+    )
+
 endif (NETCDF_FOUND)
 
 set (ALL_ARTS_LIBRARIES
@@ -221,10 +228,6 @@ add_library (artscore STATIC
   mc_interp.cc
   messages.cc
   montecarlo.cc
-  nc_io.cc
-  nc_io_array_types.cc
-  nc_io_basic_types.cc
-  nc_io_compound_types.cc
   optproperties.cc
   parameters.cc
   parser.cc
@@ -255,7 +258,8 @@ add_library (artscore STATIC
   xml_io_basic_types.cc
   xml_io_compound_types.cc
   zeeman.cc
-        )
+  ${NETCDF_CC_FILES}
+  )
 add_dependencies (artscore auto_version_h)
 
 target_link_libraries (artscore ${ZLIB_LIBRARIES})

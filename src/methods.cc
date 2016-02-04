@@ -5102,7 +5102,7 @@ void define_md_data_raw()
                   "Numeric", "Vector", "Index"),
         GIN_DEFAULT( NODEF, NODEF, NODEF, NODEF, NODEF, "6" ),
         GIN_DESC( "Zenith angle of line-of-sigh, 90 to 180 deg.",
-                  "Salinity, 0-1. That is, 3\% is given as 0.03.",
+                  "Salinity, 0-1. That is, 3% is given as 0.03.",
                   "Wind speed.",
                   "Azimuth angle between wind direction and line-of-sight. "
                   "This angle is measured clockwise from north, i.e. E=90deg.",
@@ -6769,7 +6769,7 @@ void define_md_data_raw()
         GIN( "salinity", "wind_speed", "wind_direction", "fastem_version" ),
         GIN_TYPE( "Numeric", "Numeric", "Numeric", "Index" ),
         GIN_DEFAULT( NODEF, NODEF, "0", "6" ),
-        GIN_DESC( "Salinity, 0-1. That is, 3\% is given as 0.03.",
+        GIN_DESC( "Salinity, 0-1. That is, 3% is given as 0.03.",
                   "Wind speed.",
                   "Wind direction. See further above.",
                   "The version of FASTEM to use." )
@@ -12858,7 +12858,7 @@ void define_md_data_raw()
              "fastem_version" ),
         GIN_TYPE( "Numeric", "Numeric", "Numeric", "Vector", "Index" ),
         GIN_DEFAULT( NODEF, NODEF, "0", NODEF, "6" ),
-        GIN_DESC( "Salinity, 0-1. That is, 3\% is given as 0.03.",
+        GIN_DESC( "Salinity, 0-1. That is, 3% is given as 0.03.",
                   "Wind speed.",
                   "Wind direction. See futher above.",
                   "Transmittance along path of downwelling radiation. A vector "
