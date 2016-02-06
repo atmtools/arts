@@ -849,11 +849,14 @@ void set_magnetic_parameters(Numeric& H_mag,
     
     theta = acos((Bw*cosza + Bu*cosaa*sinza + Bv*sinaa*sinza)/H_mag) * RAD2DEG;
     
-    eta=acos(x)*RAD2DEG;
-    
-    // FINDME:  Why did I do this?
-    if(eta_test>90.0) eta*=-1.0;
-    
+    if ((abs(x)-(Numeric)1.0)>0.0) // Numerical drifts can cause this...
+      eta = 0.0;
+    else 
+    {
+      eta=acos(x)*RAD2DEG;
+      
+      if(eta_test>90.0) eta*=-1.0;
+    }
   }
 }
 

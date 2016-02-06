@@ -1,3 +1,12 @@
+2016-02-06  Richard Larsson   <ric.larsson@gmail.com>
+	
+	* arts-2-3-426
+	
+	* src/zeeman.cc (set_magnetic_parameters):  Found case of |x|>1 in acos(x).
+	The only way create |x|>1 was through numerical drifts. This means
+	nan-output.  Set test to ensure |x|<1, which if broken gives eta=0 degrees.
+	(Having x close to unity means theta is 90 degrees so eta cannot matter.)
+
 2016-02-04  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-425
