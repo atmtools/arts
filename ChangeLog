@@ -1,3 +1,18 @@
+2016-02-07 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-427
+	
+	Some bugfixes in data prep for DISORT calcs. Now nadir-view to BB surface
+	difference to DOIT is below 1K. 50deg off-nadir still off by several K. :-/
+	
+	* src/disort.cc (dtauc_ssalbCalc):
+	For tau don't only add up gas abs and particle ext, not particle abs. For
+	scatt albedo do add gas abs to particle abs in denominator.
+	
+	* src/m_disort.cc, src/methods.cc (DisortCalc):
+	De-hardcoded number of streams; now promoted to interface parameter. Throw
+	error in case of uneven number of streams (else DISORT itself will). 
+	
 2016-02-06  Richard Larsson   <ric.larsson@gmail.com>
 	
 	* arts-2-3-426

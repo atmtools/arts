@@ -189,22 +189,22 @@ void define_agenda_data()
         "Output is the updated radiation field in the cloudbox. \n"
         "This agenda is called repeatedly in each DOIT iteration.\n"
         "\n"
-        "Normally one should use \n"
-        "*doit_i_fieldUpdateSeq{1,3}D*: Seqential update of the"
-        "radiation field.\n"
+        "Normally one should use\n"
+        "*doit_i_fieldUpdateSeq1D* or *doit_i_fieldUpdateSeq3D*:\n"
+        "Seqential update of the radiation field.\n"
         "   This method is the fastest and most accurate method.\n"
         "\n"
-        "A very similar method in plane parallel approximation is \n"
-        "*doit_i_fieldUpdate{1,3}DPlaneParallel*: This method also \n"
-        "   incluldes the sequential update, and it is slightly faster than\n"
-        "   *doit_i_fieldUpdateSeq{1,3}D*. The drawback is, that it is less\n"
-        "   accurate, especially for limb geometries and for larger \n"
-        "   off-nadir viewing angles. \n"
+        "Very similar methods in plane parallel approximation are\n"
+        "*doit_i_fieldUpdate1DPlaneParallel* and *doit_i_fieldUpdate3DPlaneParallel*:\n"
+        "   These methods also include the sequential update and are slightly\n"
+        "   faster than the above ones. The drawback is, that they are less\n"
+        "   accurate, especially for limb geometries and large off-nadir\n"
+        "   viewing angles.\n"
         "\n"
         "The following methods were used before the sequential update\n"
         "was invented. They are very slow and should therefore only \n"
         "be used for test cases.\n"
-        "*doit_i_fieldUpdate{1,3}D*: Old function.\n"
+        "*doit_i_fieldUpdate1D*, *doit_i_fieldUpdate3D*: Old methods.\n"
         ),
         OUTPUT( "doit_i_field_mono" ),
        INPUT(   "doit_i_field_mono", "doit_scat_field" )));
@@ -574,13 +574,11 @@ void define_agenda_data()
         "\n"
         "*AtmFieldsCalc*\n"
         "*abs_lookupAdapt*\n"
-        "*DoitInit	*\n"
+        "*DoitInit*\n"
         "*DoitGetIncoming*\n"
+        "*doit_i_fieldSetClearsky*\n"
         "*DoitCalc*\n"
         "*yCalc*\n"
-        "\n"
-        "For example, if you want the output in brightness temperature unit,\n"
-        "then add the method *VectorToTbByPlanck*.\n"
        ),
        OUTPUT( "y" ),
        INPUT("t_field_raw", "vmr_field_raw", "z_field_raw", "pnd_field_raw",
@@ -761,7 +759,7 @@ void define_agenda_data()
         "absorbtion vector.\n "
         "\n"
         "Normally you  use:\n"
-        " opt_prop_sptFromMonoData{} \n"
+        "*opt_prop_sptFromMonoData*\n"
         ),
        OUTPUT( "ext_mat_spt", "abs_vec_spt"),
        INPUT(  "ext_mat_spt", "abs_vec_spt",

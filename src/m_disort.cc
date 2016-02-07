@@ -96,6 +96,7 @@ void DisortCalc(Workspace& ws,
                       const Vector& f_grid,
                       const Vector& scat_za_grid,
                       const Vector& surface_scalar_reflectivity,
+                      const Index& nstreams,
                       const Verbosity& verbosity)
 {
   CREATE_OUT1;
@@ -253,8 +254,17 @@ void DisortCalc(Workspace& ws,
   scat_angle_grid = scat_data[0][0].za_grid;
   
   // Number of streams, I think in microwave 8 is more that sufficient
-  Index nstr=8 ; 
-  Index n_legendre=nstr+1;
+  //Index nstr=8 ; 
+  // don't hardcode nstream, instead we promote it to be control parameter.
+  // check that it's an even number.
+  if( nstreams/2*2 != nstreams )
+    {
+      ostringstream os;
+      os << "Number of streams for DISORT solution must be an even number.\n";
+      throw runtime_error( os.str() );
+    }
+  Index nstr=nstreams;
+  Index n_legendre=nstreams+1;
   
   // Legendre polynomials of phase function
   Matrix pmom(nlyr, n_legendre, 0.); 
@@ -339,6 +349,9 @@ void DisortCalc(Workspace& ws,
   Index maxulv = nlyr+1; // Maximum number of user defined tau
   Index maxumu = scat_za_grid.nelem(); // maximum number of zenith angles
   Index maxcmu = n_legendre-1; // maximum number of Legendre polynomials 
+  if( nstr<4 )
+    maxcmu = 4; // reset for low nstr since DISORT selftest uses 4 streams,
+                // hence requires at least 4 Legendre polynomials
   Index maxphi = 1;  //no azimuthal dependance
   
   // Declaration of Output variables
@@ -384,6 +397,17 @@ void DisortCalc(Workspace& ws,
                       t_field, z_field, p_grid, vmr_field, f_grid[Range(f_index,1)]);
       //cout << "dtauc " << dtauc << endl
       //     << "ssalb " << ssalb << endl;
+      Numeric total_tau=0.;
+/*
+      for( Index l=0; l<nlyr; l++ )
+      {
+        total_tau += dtauc[l];
+//        cout << "layer #" << l << ": w0=" << ssalb[l] << ", dtau=" << dtauc[l]
+//             << ", tau-from-TOA=" << total_tau << "\n";
+        cout << ssalb[l] << " " << dtauc[l] << " " << total_tau << "\n";
+      }
+      cout << "total optical depth of atmo = " << total_tau << "\n";
+*/
       
       phase_functionCalc(phase_function, scat_data_mono, pnd_field);
       //cout << "phase function" << phase_function(15,joker) << "\n";  

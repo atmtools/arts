@@ -133,18 +133,15 @@ void dtauc_ssalbCalc(Workspace& ws,
  
  const Vector  rtp_temperature_nlte_local_dummy(0);
 
- // Calculate layer averaged single scattering albedo and optical depth
+ // Calculate layer averaged single scattering albedo and layer optical depth
  for (Index i = 0; i < Np_cloud-1; i++)
    {
-     Numeric ext = 0.;
-     Numeric abs = 0.;
+     Numeric ext_part = 0.;
+     Numeric abs_part = 0.;
  
-     ext=.5*(ext_vector[i]+ext_vector[i+1]);
-     abs=.5*(abs_vector[i]+abs_vector[i+1]);
+     ext_part=.5*(ext_vector[i]+ext_vector[i+1]);
+     abs_part=.5*(abs_vector[i]+abs_vector[i+1]);
 
-     if (ext!=0)
-       ssalb[Np_cloud-2-i]=(ext-abs)/ext;
-     
      rtp_pressure_local = 0.5 * (p_grid[i] + p_grid[i+1]);
      rtp_temperature_local = 0.5 * (t_field(i,0,0) + t_field(i+1,0,0));
      
@@ -171,9 +168,12 @@ void dtauc_ssalbCalc(Workspace& ws,
                                   rtp_vmr_local,
                                   propmat_clearsky_agenda);  
 
-     Numeric abs_total = propmat_clearsky_local(joker,0,0,0).sum(); //Assuming non-polarized light and only one frequency
+     Numeric abs_gas = propmat_clearsky_local(joker,0,0,0).sum(); //Assuming non-polarized light and only one frequency
 
-     dtauc[Np_cloud-2-i]=(ext+abs+abs_total)*
+     if (ext_part!=0)
+       ssalb[Np_cloud-2-i]=(ext_part-abs_part) / (ext_part+abs_gas);
+     
+     dtauc[Np_cloud-2-i]=(ext_part+abs_gas)*
        (z_field(i+1, 0, 0)-z_field(i, 0, 0));
    }  
 }

@@ -3754,9 +3754,16 @@ void define_md_data_raw()
          "assumes a plane-parallel atmosphere (flat Earth). Only\n"
          "macroscopically isotropic particles can be handled correctly.\n"
          "\n"
+         "Number of streams *nstreams* taken into account in the scattering\n"
+         "solution determines the angular resolution, hence the accuracy of\n"
+         "the solution. The more anisotropic the bulk scattering matrix, the\n"
+         "more streams are required. Note, however, that the computational\n"
+         "burden increases with the second power of *nstreams*. The default\n"
+         "value (8) is assumed to be sufficient for most microwave scattering\n"
+         "calculations. It is likely insufficient for IR calculations\n"
+         "involving ice clouds, though.\n"
+         "\n"
          "Known issues of ARTS implementation:\n"
-         "- Currently number of streams is hardcoded to 8, which is likely\n"
-         "  sufficient in the microwave region but problematic in the infrared.\n"
          "- Surface altitude is not an interface parameter. Surface is\n"
          "  implicitly assumed to be at the lowest atmospheric level.\n"
          "- Surface temperature not an interface parameter, but implicitly\n"
@@ -3778,10 +3785,10 @@ void define_md_data_raw()
             "spt_calc_agenda", "pnd_field", "t_field",
             "z_field", "p_grid", "vmr_field", "scat_data", "f_grid", 
             "scat_za_grid", "surface_scalar_reflectivity" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
+        GIN(         "nstreams" ),
+        GIN_TYPE(    "Index" ),
+        GIN_DEFAULT( "8" ),
+        GIN_DESC( "Number of streams in DISORT solution.")
         ));
 
   md_data_raw.push_back
@@ -4222,9 +4229,11 @@ void define_md_data_raw()
          "conditions when scattering inside the cloud box is solved by the\n"
          "DOIT method.\n"
          "\n"
-         "Can only handle *iy_unit*=1 (intensity in terms of radiances). Other\n"
-         "output units need to be derived by unit conversion later on (e.g.\n"
-         "after yCalc).\n"
+         "Note that *doit_i_field* will always hold intensity in terms of\n"
+         "radiances, regardless of the setting of *iy_unit* (unit conversion\n"
+         "is done within *yCalc* or *iyCalc*, which will provide their output\n"
+         "in terms of the specified *iy_unit*; no explicit unit conversion by\n"
+         "the user necessary.).\n"
          ),
         AUTHORS( "Sreerekha T.R.", "Claudia Emde" ),
         OUT( "doit_i_field" ),
