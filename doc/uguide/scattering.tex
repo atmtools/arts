@@ -68,11 +68,11 @@ The grid discretization plays a very significant role in discrete
 ordinate methods. In spherical geometry the zenith angular grid is of
 particular importance (cf. \theory, Section \ref{T-sec:doit:grid_opt_interp}). 
 The angular discretization is defined in the workspace method
-\wsmindex{DoitAngularGridsSet}:
+\wsmindex{DOAngularGridsSet}:
 \begin{code} 
-DoitAngularGridsSet( doit_za_grid_size,
-                     scat_aa_grid, scat_za_grid,
-                     19, 10, "doit_za_grid_opt.xml" )
+DOAngularGridsSet( doit_za_grid_size,
+                   scat_aa_grid, scat_za_grid,
+                   19, 10, "doit_za_grid_opt.xml" )
 \end{code}
 For down-looking geometries it is sufficient to define the generic inputs:
 \begin{tabular}{ll}
@@ -199,16 +199,16 @@ Here we have two options. One is \wsmindex{doit\_scat\_fieldCalcLimb},
 which should be used for limb simulations, for which we need a fine
 zenith angle grid resolution to represent the radiation field. This
 method has to be used if a zenith angle grid file is given in
-\wsmindex{DoitAngularGridsSet}. The
+\wsmindex{DOAngularGridsSet}. The
 scattering integral can be calculated on a coarser grid resolution, hence
 in \wsmindex{doit\_scat\_fieldCalcLimb}, the radiation field is
 interpolated on the equidistant angular grids specified in
-\wsmindex{DoitAngularGridsSet} by the generic inputs \shortcode{Nza} and
+\wsmindex{DOAngularGridsSet} by the generic inputs \shortcode{Nza} and
 \shortcode{Naa}. Alternatively, one can use 
 \wsmindex{doit\_scat\_fieldCalc}, where this interpolation is not 
 performed. This function is efficient for simulations in up- or
-down-looking geometry, where the we do not need the fine zenith angle
-grid resolution about 90\degree. 
+down-looking geometry, where a fine zenith angle grid resolution around
+90\degree is not needed.
 
 \subsubsection{Radiative transfer with fixed scattering integral term:}
 

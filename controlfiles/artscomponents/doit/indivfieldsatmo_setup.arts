@@ -68,7 +68,7 @@ jacobianOff
 
 # Modifiy the maximum propagation step, from the default(10.e3)
 # to 250 m:---------------------------------------------------
-#NumericSet( ppath_lmax, 250 )
+NumericSet( ppath_lmax, 250 )
 
 
 

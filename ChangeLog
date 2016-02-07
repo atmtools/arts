@@ -1,5 +1,15 @@
 2016-02-07 Jana Mendrok  <jana.mendrok@chalmers.se>
 
+	* arts-2-3-428
+	
+	* controlfiles/artscomponents/doit/indivfieldsatmo_setup.arts:
+	Undo accidential setup change (fixes check fail).
+	
+	* doc/uguide/scattering.tex:
+	Update for WSM DoitAngularGridsSet renaming in 2-3-424.
+	
+2016-02-07 Jana Mendrok  <jana.mendrok@chalmers.se>
+
 	* arts-2-3-427
 	
 	Some bugfixes in data prep for DISORT calcs. Now nadir-view to BB surface
