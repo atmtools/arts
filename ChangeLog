@@ -1,3 +1,33 @@
+2016-02-08  Richard Larsson   <ric.larsson@gmail.com>
+	
+	* arts-2-3-430
+	
+	Added along-beam-path flux calculations.  This is analytical
+	but only for iyEmissionStandard.
+	
+	* src/constants.cc:  Added FLUX_MAINTAG.
+	
+	* src/jacobian.{h,cc}: (get_pointers_for_analytical_jacobians) now 
+	shows if flux_i is intended target by finding FLUX_MAINTAG in
+	jacobian_quantities.
+	
+	* src/m_rte.cc: Added for_flux array of index.  This sets
+	ppath distance to 1.0 for call to (get_diydx).
+	
+	* src/m_transmitter.cc:  Added fake_for_flux array of index.  If
+	any is true this code throws a runtime_error.
+	
+	* src/rte.{cc,h}: (get_ppath_pmat_and_tmat) now takes for_flux.
+	This sets dppath_ext_dx to negative ppath_ext, and 
+	dppath_nlte_source_dx to zero.
+	
+	Also, (get_ppath_trans_and_dppath_trans_dx) now takes for_flux.
+	This sets the derivative to not multiply by lstep (in the end);
+	no changes were made to (ext2trans_and_ext2dtrans_dx) so here
+	the derivative is divided by ppath.lstep[ip-1].
+	
+	* src/m{_jacobian,ethods}.cc: Added (jacobianAddBeamFlux).
+
 2016-02-08  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-429

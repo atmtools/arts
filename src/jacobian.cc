@@ -36,6 +36,7 @@ extern const String  ABSSPECIES_MAINTAG;
 extern const String  TEMPERATURE_MAINTAG;
 extern const String  WIND_MAINTAG;
 extern const String  MAGFIELD_MAINTAG;
+extern const String  FLUX_MAINTAG;
 extern const String  PROPMAT_SUBSUBTAG;
 
 
@@ -269,6 +270,7 @@ void get_pointers_for_analytical_jacobians(
          ArrayOfIndex&               is_t,
          ArrayOfIndex&               wind_i,
          ArrayOfIndex&               magfield_i,
+         ArrayOfIndex&               flux_i,
    const ArrayOfRetrievalQuantity&   jacobian_quantities,
    const ArrayOfArrayOfSpeciesTag&   abs_species )
 {
@@ -369,6 +371,9 @@ void get_pointers_for_analytical_jacobians(
       }
     else
       { magfield_i[iq] = JAC_IS_NONE; }
+    //
+    if( jacobian_quantities[iq].MainTag() == FLUX_MAINTAG ) { flux_i[iq] = 1; }
+    else  { flux_i[iq] = 0; }
   )
 }
 
@@ -1076,6 +1081,8 @@ void get_diydx( VectorView diydx_this,
         /*
          * Solves ds/dx = T [ dTi/dx * (si-bi-Ki^(-1)ji) + 
          *        (1 - Ti) * ( dbi/dx + K^(-2)dKi/dxji + K^(-1)dji/dx ) ]
+         * 
+         * In extmat_case 1, dTi/dx = T*dKi/dx.
          * 
          * (si-bi-Ki^(-1)ji) is sibi
          * T                 is PiT_this                   (NB PiT_next is PiT_this*T_this)

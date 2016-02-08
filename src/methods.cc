@@ -7445,9 +7445,7 @@ void define_md_data_raw()
          "hence, the argument *component* can be \"u\", \"v\" or \"w\" \n"
          "for \"analytical\" method.  For \"from_propmat\" method,\n"
          "\"u\", \"v\" and \"w\" components are available but so is also\n"
-         "\"strength\", \"eta\" and \"theta\"."
-         "\n"
-         "This Jacobian quantity is so far only supported by *iyEmissionStandard*.\n"
+         "\"strength\", \"eta\" and \"theta\".\n"
          ),
         AUTHORS( "Patrick Eriksson", "Richard Larsson" ),
         OUT( "jacobian_quantities", "jacobian_agenda" ),
@@ -7465,7 +7463,33 @@ void define_md_data_raw()
                   "Magnetic field component to retrieve",
                   "Magnetic field perturbation"
                   )
-        ));
+      ));
+    
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "jacobianAddBeamFlux" ),
+      DESCRIPTION
+      (
+          "Includes beam flux in the Jacobian.\n"
+          "\n"
+          "The method follows the pattern of other Jacobian methods. The\n"
+          "calculations can only be performed by analytic expressions.\n"
+      ),
+      AUTHORS( "Richard Larsson" ),
+      OUT( "jacobian_quantities", "jacobian_agenda" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "jacobian_quantities", "jacobian_agenda", 
+          "atmosphere_dim", "p_grid", "lat_grid", "lon_grid" ),
+      GIN( "g1", "g2", "g3" ),
+      GIN_TYPE( "Vector", "Vector", "Vector" ),
+      GIN_DEFAULT( NODEF, NODEF, NODEF ),
+      GIN_DESC( "Pressure retrieval grid.",
+                "Latitude retrieval grid.",
+                "Longitude retreival grid."
+      )
+    ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -7745,6 +7769,33 @@ void define_md_data_raw()
         
  */
 
+ 
+ 
+ md_data_raw.push_back
+ ( MdRecord
+ ( NAME( "jacobianCalcBeamFlux" ),
+   DESCRIPTION
+   (
+       "This function doesn't do anything. It just exists to satisfy\n"
+       "the input and output requirement of the *jacobian_agenda*.\n"
+       "\n"
+       "This function is added to *jacobian_agenda* by\n"
+       "jacobianAddAbsSpecies and should normally not be called\n"
+       "by the user.\n"
+   ),
+   AUTHORS( "Oliver Lemke" ),
+   OUT( "jacobian" ),
+   GOUT(),
+   GOUT_TYPE(),
+   GOUT_DESC(),
+   IN( "jacobian",
+       "mblock_index", "iyb", "yb" ),
+   GIN(),
+   GIN_TYPE(),
+   GIN_DEFAULT(),
+   GIN_DESC()
+ ));
+ 
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "jacobianCalcPointingZaInterp" ),

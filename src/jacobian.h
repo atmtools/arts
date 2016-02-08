@@ -185,6 +185,7 @@ void get_pointers_for_analytical_jacobians(
          ArrayOfIndex&               is_t,
          ArrayOfIndex&               wind_i,
          ArrayOfIndex&               magfield_i,
+         ArrayOfIndex&               flux_i,
    const ArrayOfRetrievalQuantity&   jacobian_quantities,
    const ArrayOfArrayOfSpeciesTag&   abs_species );
 

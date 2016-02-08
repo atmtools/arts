@@ -317,6 +317,7 @@ void get_ppath_trans_and_dppath_trans_dx(
   ConstTensor5View&            dppath_ext_dx,
   const ArrayOfRetrievalQuantity& jacobian_quantities,
   ConstVectorView              f_grid, 
+  const ArrayOfIndex&          for_flux,
   const Index&                 stokes_dim );
 
 void get_ppath_trans2( 
@@ -388,6 +389,7 @@ void get_ppath_pmat_and_tmat(
                             const ArrayOfIndex&   jac_is_t,
                             const ArrayOfIndex&   jac_wind_i,
                             const ArrayOfIndex&   jac_mag_i,
+                            const ArrayOfIndex&   for_flux,
                             const ArrayOfIndex&   jac_other,
                             const ArrayOfIndex&   ispecies,
                             const ArrayOfArrayOfSingleScatteringData scat_data,

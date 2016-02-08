@@ -380,6 +380,7 @@ extern const String NLTE_MAINTAG        = "NLTE temperatures";
 
 extern const String WIND_MAINTAG        = "Wind";
 extern const String MAGFIELD_MAINTAG    = "Magnetic field";
+extern const String FLUX_MAINTAG        = "Beam flux";
 
 // New tags for only propmat jacobians
 extern const String PROPMAT_SUBSUBTAG              = "From propagation matrix";

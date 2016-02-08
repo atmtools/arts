@@ -70,6 +70,7 @@ extern const String TEMPERATURE_MAINTAG;
 extern const String NLTE_MAINTAG;
 extern const String WIND_MAINTAG;
 extern const String MAGFIELD_MAINTAG;
+extern const String FLUX_MAINTAG;
 extern const String PROPMAT_SUBSUBTAG;
 
 
@@ -3843,3 +3844,69 @@ void jacobianAddNLTETemperature(
     
     jacobian_agenda.append( "jacobianCalcTemperatureFromPropmat", TokVal() );
 } 
+
+//----------------------------------------------------------------------------
+// Beam flux:
+//----------------------------------------------------------------------------
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void jacobianAddBeamFlux(
+    Workspace&,
+    ArrayOfRetrievalQuantity&   jq,
+    Agenda&                     jacobian_agenda,
+    const Index&                atmosphere_dim,
+    const Vector&               p_grid,
+    const Vector&               lat_grid,
+    const Vector&               lon_grid,
+    const Vector&               rq_p_grid,
+    const Vector&               rq_lat_grid,
+    const Vector&               rq_lon_grid,
+    const Verbosity&            verbosity )
+{
+    CREATE_OUT3;
+    
+    // Check that this species is not already included in the jacobian.
+    for( Index it=0; it<jq.nelem(); it++ )
+    {
+        if( jq[it].MainTag() == FLUX_MAINTAG )
+        {
+            ostringstream os;
+            os << "The Flux identifier is already included in "
+            << "*jacobian_quantities*.";
+            throw std::runtime_error(os.str());
+        }
+    }
+    
+    // Check retrieval grids, here we just check the length of the grids
+    // vs. the atmosphere dimension
+    ArrayOfVector grids(atmosphere_dim);
+    {
+        ostringstream os;
+        if( !check_retrieval_grids( grids, os, p_grid, lat_grid, lon_grid,
+            rq_p_grid, rq_lat_grid, rq_lon_grid,
+            "retrieval pressure grid", 
+            "retrieval latitude grid", 
+            "retrievallongitude_grid", 
+            atmosphere_dim ) )
+            throw runtime_error(os.str());
+    }
+    
+    // Create the new retrieval quantity
+    RetrievalQuantity rq;
+    rq.MainTag( FLUX_MAINTAG );
+    rq.Grids( grids );
+    rq.Analytical(1);
+    
+    // Add it to the *jacobian_quantities*
+    jq.push_back( rq );
+    
+    jacobian_agenda.append( "jacobianCalcBeamFlux", TokVal() );
+} 
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void jacobianCalcBeamFlux(
+    Matrix&,const Index&, const Vector&, const Vector&, const Verbosity& )
+{
+    /* Nothing to do here for the analytical case, this function just exists
+     *  to satisfy the required inputs and outputs of the jacobian_agenda */
+}

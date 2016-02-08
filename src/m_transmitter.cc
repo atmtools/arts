@@ -738,7 +738,7 @@ void iyTransmissionStandard(
   Index           j_analytical_do = 0;
   ArrayOfTensor3  diy_dpath; 
   ArrayOfIndex    jac_species_i(0), jac_is_t(0), jac_wind_i(0);
-  ArrayOfIndex    jac_mag_i(0), jac_other(0); 
+  ArrayOfIndex    jac_mag_i(0), jac_other(0), fake_for_flux(0); 
   // Flags for partial derivatives of propmat
   const PropmatPartialsData ppd(jacobian_quantities);
   //
@@ -754,18 +754,24 @@ void iyTransmissionStandard(
       jac_is_t.resize( nq ); 
       jac_wind_i.resize( nq ); 
       jac_mag_i.resize( nq ); 
+      fake_for_flux.resize( nq );
+      jac_other.resize(nq);
       //
       FOR_ANALYTICAL_JACOBIANS_DO( 
         diy_dpath[iq].resize( np, nf, ns ); 
         diy_dpath[iq] = 0.0;
       )
       get_pointers_for_analytical_jacobians( jac_species_i, jac_is_t, 
-                                             jac_wind_i, jac_mag_i, 
+                                             jac_wind_i, jac_mag_i, fake_for_flux, 
                                              jacobian_quantities, abs_species );
-      jac_other.resize(jac_is_t.nelem());
 
       // Should this be part of get_pointers_for_analytical_jacobians?
-      FOR_ANALYTICAL_JACOBIANS_DO( jac_other[iq] = ppd.is_this_propmattype(iq)?JAC_IS_OTHER:JAC_IS_NONE; )
+      FOR_ANALYTICAL_JACOBIANS_DO
+      ( 
+        jac_other[iq] = ppd.is_this_propmattype(iq)?JAC_IS_OTHER:JAC_IS_NONE; 
+        if( fake_for_flux[iq] )
+            throw std::runtime_error("Cannot perform flux calculations in transmission only schemes.\n");
+      )
 
       if( iy_agenda_call1 )
         {
@@ -972,7 +978,7 @@ void iyTransmissionStandard(
                                ppd,
                                ppath, ppath_p, ppath_t, ppath_t_nlte, ppath_vmr, ppath_mag, 
                                ppath_wind, ppath_f, f_grid, 
-                               jac_species_i, jac_is_t, jac_wind_i, jac_mag_i, 
+                               jac_species_i, jac_is_t, jac_wind_i, jac_mag_i,  fake_for_flux,
                                jac_other, iaps, scat_data,
                                pnd_field, cloudbox_limits, use_mean_scat_data, rte_alonglos_v,
                                atmosphere_dim, stokes_dim, jacobian_do, cloudbox_on,verbosity);
@@ -1083,7 +1089,7 @@ void iyTransmissionStandard(
               // This includes the variable names, even if e.g. "s_i" does not
               // exists here.
               // However, non-LTE does not affect any of the variables created
-              // locally, and there is no special code for non-LTE
+              // locally, and there is no special code for non-LTE absorption
 
 
               // Zero Stokes vector (to be used for some non-extsing terms)

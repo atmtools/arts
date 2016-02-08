@@ -1985,6 +1985,7 @@ void get_ppath_pmat_and_tmat(
                             const ArrayOfIndex&   jac_is_t,
                             const ArrayOfIndex&   jac_wind_i,
                             const ArrayOfIndex&   jac_mag_i,
+                            const ArrayOfIndex&   for_flux,
                             const ArrayOfIndex&   jac_other,
                             const ArrayOfIndex&   ispecies,
                             const ArrayOfArrayOfSingleScatteringData scat_data,
@@ -2351,7 +2352,21 @@ void get_ppath_pmat_and_tmat(
                             
                         }
                     }
-                    else { /* This should only happen to things that have to be perturbed, like pointing errors.  So do nothing. */ }
+                    else if(for_flux[iq])
+                    {
+                        for( Index i1=0; i1<nf; i1++ ) for( Index i2=0; i2<stokes_dim; i2++ )
+                        {
+                            if(!nlte_source.empty())
+                            {
+                                dppath_nlte_source_dx(iq,i1,i2,ip) = 0.0;
+                            }
+                            for( Index i3=0; i3<stokes_dim; i3++ )
+                                dppath_ext_dx(iq,i1,i2,i3,ip) = - ppath_ext(i1,i2,i3,ip);
+                        }
+                    }
+                    else { /* This should only happen to things that have to be perturbed,
+                        like pointing errors, or for flux, since distance then matters.  
+                        So do nothing here. */ }
                 }
             }
         }
@@ -2389,7 +2404,7 @@ void get_ppath_pmat_and_tmat(
             get_ppath_trans_and_dppath_trans_dx(
                 trans_partial, dtrans_partial_dx_above, dtrans_partial_dx_below, 
                 extmat_case, trans_cumulat, scalar_tau, ppath, ppath_ext, 
-                dppath_ext_dx, jacobian_quantities, f_grid, stokes_dim );
+                dppath_ext_dx, jacobian_quantities, f_grid, for_flux, stokes_dim );
     }
     else
     {
@@ -2933,6 +2948,7 @@ void get_ppath_trans(
  *   \param   dppath_ext_dx                     In:  See get_ppath_ext_and_dppath_ext_dx.
  *   \param   jacobian_quantities               In:  As the WSV.    
  *   \param   f_grid                            In:  As the WSV.    
+ *   \param   for_flux                          In:  Indicates flux calculations and different derivative.
  *   \param   stokes_dim                        In:  As the WSV.
  * 
  *   \author Patrick Eriksson 
@@ -2954,6 +2970,7 @@ void get_ppath_trans_and_dppath_trans_dx(
   ConstTensor5View&            dppath_ext_dx,
   const ArrayOfRetrievalQuantity& jacobian_quantities,
   ConstVectorView              f_grid, 
+  const ArrayOfIndex&          for_flux,
   const Index&                 stokes_dim )
 {
     
@@ -2997,33 +3014,48 @@ void get_ppath_trans_and_dppath_trans_dx(
                 Matrix ext_mat(stokes_dim,stokes_dim);
                 Tensor3 dext_mat_dx_from_above(nq,stokes_dim,stokes_dim),
                         dext_mat_dx_from_below(nq,stokes_dim,stokes_dim);
-                for( Index is1=0; is1<stokes_dim; is1++ ) {
-                    for( Index is2=0; is2<stokes_dim; is2++ ) {
+                for( Index is1=0; is1<stokes_dim; is1++ ) 
+                {
+                    for( Index is2=0; is2<stokes_dim; is2++ ) 
+                    {
                         ext_mat(is1,is2) = 0.5 * ( ppath_ext(iv,is1,is2,ip-1) + 
                                                    ppath_ext(iv,is1,is2,ip  ) );
                         for( Index iq=0; iq<nq; iq++ )
                         {
-                            // Upper and lower level influence on the dependency at layer
-                            dext_mat_dx_from_above(iq,is1,is2) = 
-                            0.5 * dppath_ext_dx(iq,iv,is1,is2,ip);
-                            dext_mat_dx_from_below(iq,is1,is2) = 
-                            0.5 * dppath_ext_dx(iq,iv,is1,is2,ip-1);
-                    } } }
-                    scalar_tau[iv] += ppath.lstep[ip-1] * ext_mat(0,0); 
-                    extmat_case[ip-1][iv] = 0;
-                    ext2trans_and_ext2dtrans_dx( 
-                                trans_partial(iv,joker,joker,ip-1), 
-                                dtrans_partial_dx_from_above(joker, iv,joker,joker,ip-1), 
-                                dtrans_partial_dx_from_below(joker, iv,joker,joker,ip-1), 
-                                extmat_case[ip-1][iv], ext_mat, 
-                                dext_mat_dx_from_above, dext_mat_dx_from_below,
-                                ppath.lstep[ip-1] );
+                            if(for_flux[iq])
+                            {
+                                dext_mat_dx_from_above(iq,is1,is2) = - 
+                                0.5 / ppath.lstep[ip-1] *  ppath_ext(iv,is1,is2,ip  );
+                                dext_mat_dx_from_below(iq,is1,is2) = - 
+                                0.5 / ppath.lstep[ip-1] *  ppath_ext(iv,is1,is2,ip-1);
+                            }
+                            else 
+                            {
+                                // Upper and lower level influence on the dependency at layer
+                                dext_mat_dx_from_above(iq,is1,is2) = 
+                                0.5 * dppath_ext_dx(iq,iv,is1,is2,ip);
+                                dext_mat_dx_from_below(iq,is1,is2) = 
+                                0.5 * dppath_ext_dx(iq,iv,is1,is2,ip-1);
+                            }
+                        } 
+                    } 
                     
-                    // Cumulative transmission
-                    // (note that multiplication below depends on ppath loop order)
-                    mult( trans_cumulat(iv,joker,joker,ip), 
-                          trans_cumulat(iv,joker,joker,ip-1), 
-                          trans_partial(iv,joker,joker,ip-1) );
+                }
+                scalar_tau[iv] += ppath.lstep[ip-1] * ext_mat(0,0); 
+                extmat_case[ip-1][iv] = 0;
+                ext2trans_and_ext2dtrans_dx( 
+                            trans_partial(iv,joker,joker,ip-1), 
+                            dtrans_partial_dx_from_above(joker, iv,joker,joker,ip-1), 
+                            dtrans_partial_dx_from_below(joker, iv,joker,joker,ip-1), 
+                            extmat_case[ip-1][iv], ext_mat, 
+                            dext_mat_dx_from_above, dext_mat_dx_from_below,
+                            ppath.lstep[ip-1] );
+                
+                // Cumulative transmission
+                // (note that multiplication below depends on ppath loop order)
+                mult( trans_cumulat(iv,joker,joker,ip), 
+                        trans_cumulat(iv,joker,joker,ip-1), 
+                        trans_partial(iv,joker,joker,ip-1) );
             }
         }
     }
