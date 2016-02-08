@@ -1,3 +1,12 @@
+2016-02-08  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-429
+
+	* m_disort.cc (DisortCalc):
+
+	Add new argument to function definition. Fixes build if Fortran is
+	disabled.
+
 2016-02-07 Jana Mendrok  <jana.mendrok@chalmers.se>
 
 	* arts-2-3-428

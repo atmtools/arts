@@ -492,6 +492,7 @@ void DisortCalc(Workspace&,
                       const Vector&,
                       const Vector&,
                       const Vector&,
+                      const Index&,
                       const Verbosity&)
 {
   throw runtime_error ("This version of ARTS was compiled without DISORT support.");
