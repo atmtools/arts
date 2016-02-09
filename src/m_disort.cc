@@ -102,15 +102,6 @@ void DisortCalc(Workspace& ws,
   CREATE_OUT1;
   CREATE_OUT0;
 
-    std::ostringstream warn;
-  warn << "  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
-  warn << "  WARNING: Disort should currently not be used!\n";
-  warn << "           This method exists for development purposes only and will\n";
-  warn << "           give wrong results\n";
-  warn << "  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
-
-    out0 << warn.str();
-
   // NOTE: It is at the moment not possible to combine scattering elements 
   // being stored on different scattering angle grids. Ask if this is required.
   // Temperature dependence also not yet implemented. 
@@ -234,8 +225,6 @@ void DisortCalc(Workspace& ws,
          "All values in *surface_scalar_reflectivity* must be inside [0,1]." );
     }
 
-  out1<< "Start DISORT calculation...\n";
-  
   doit_i_field.resize(f_grid.nelem(), pnd_field.npages(), 1, 1,
                       scat_za_grid.nelem(), 1, 1);
   doit_i_field = 0.;
@@ -298,7 +287,7 @@ void DisortCalc(Workspace& ws,
   Numeric btemp = t_field(0,0,0);
 
   //upper boundary conditions:
-  // DISROT offers isotropic incoming radiance or emissivity-scaled planck
+  // DISORT offers isotropic incoming radiance or emissivity-scaled planck
   // emission. Both are applied additively.
   // We want to have cosmic background radiation, for which ttemp=COSMIC_BG_TEMP
   // and temis=1 should give identical results to fisot(COSMIC_BG_TEMP). As they
@@ -395,26 +384,24 @@ void DisortCalc(Workspace& ws,
                       abs_scalar_gas_agenda, spt_calc_agenda, 
                       pnd_field, 
                       t_field, z_field, p_grid, vmr_field, f_grid[Range(f_index,1)]);
-      //cout << "dtauc " << dtauc << endl
-      //     << "ssalb " << ssalb << endl;
-      Numeric total_tau=0.;
-/*
-      for( Index l=0; l<nlyr; l++ )
-      {
-        total_tau += dtauc[l];
-//        cout << "layer #" << l << ": w0=" << ssalb[l] << ", dtau=" << dtauc[l]
-//             << ", tau-from-TOA=" << total_tau << "\n";
-        cout << ssalb[l] << " " << dtauc[l] << " " << total_tau << "\n";
-      }
-      cout << "total optical depth of atmo = " << total_tau << "\n";
-*/
       
       phase_functionCalc(phase_function, scat_data_mono, pnd_field);
-      //cout << "phase function" << phase_function(15,joker) << "\n";  
+
+      for( Index l=0; l<nlyr; l++ )
+        if( phase_function(l,0)==0. )
+          assert( ssalb[l]==0. );
+/*
+          {
+            ostringstream os;
+            os << "Phase function can not be zero when single scattering "
+               << "albedo is not.\n"
+               << "At atm layer #" << l << " pfct=0 while ssabl="
+               << ssalb[l] << ".\n";
+            throw runtime_error( os.str() );
+          }
+*/
       
       pmomCalc(pmom, phase_function, scat_angle_grid, n_legendre, verbosity);
-      //for (Index i=0; i<nlyr; i++)
-      //    cout << "pmom " << pmom(i,joker) << "\n";
       
       // Wavenumber in [1/cm]
       Numeric wvnmlo = f_grid[f_index]/(100*SPEED_OF_LIGHT);
@@ -450,21 +437,15 @@ void DisortCalc(Workspace& ws,
               uu.get_c_array(), u0u.get_c_array(), 
               albmed.get_c_array(),
               trnmed.get_c_array());
-      //cout << "intensity " << uu << endl; 
 
       for(Index j = 0; j<numu; j++)
           for(Index k = 0; k<nlyr+1; k++)
             doit_i_field(f_index, k, 0, 0, j, 0, 0) =
               uu(0,nlyr-k,j) / (100*SPEED_OF_LIGHT);
 
-      //cout << "  I(180deg,BOA,DI-in-AR) =  "
-      //     << uu(0,nlyr,numu-1) << "\n";
-      //cout << "  I(180deg,BOA,AR) =        "
-      //     << doit_i_field(f_index,0,0,0,numu-1,0,0)*(100*SPEED_OF_LIGHT) << "\n"; 
     }
   delete [] prnt;
 
-  out0 << warn.str();
 }
 
 #else /* ENABLE_DISORT */

@@ -3746,9 +3746,10 @@ void define_md_data_raw()
         (
          "Calls DISORT RT solver from ARTS.\n"
          "\n"
-         "DISCLAIMER: DISORT is currently not properly maintained. The\n"
-         "interface exists for development pursed only. Results might be\n"
-         "erronous. We discourage usage.\n"
+         "DISCLAIMER: There is a couple of known issues with the current\n"
+         "implementation (see below). Use this WSM with care and only if\n"
+         "these limitations/requirements are fulfilled. Results might be\n"
+         "erronous otherwise.\n"
          "\n"
          "DISORT is only availble for scalar 1D calculations and implicitly\n"
          "assumes a plane-parallel atmosphere (flat Earth). Only\n"
@@ -3773,7 +3774,7 @@ void define_md_data_raw()
          "- Scattering angle grids of all scattering elements have to be\n"
          "  identical.\n"
          ),
-        AUTHORS( "Claudia Emde" ),
+        AUTHORS( "Claudia Emde, Jana Mendrok" ),
         OUT( "doit_i_field",
              "f_index", "scat_data_mono" ),
         GOUT(),
@@ -9770,41 +9771,6 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "pnd_fieldExpand1D" ),
-        DESCRIPTION
-        (
-         "Maps a 1D pnd_field to a (homogeneous) 2D or 3D pnd_field.\n"
-         "\n"
-         "This method takes a 1D *pnd_field* and converts it to a 2D or 3D\n"
-         "\"cloud\". It is assumed that a complete 1D case has been created,\n"
-         "and after this *atmosphere_dim*, *lat_grid*, *lon_grid* and\n"
-         "*cloudbox_limits* have been changed to a 2D or 3D case (without\n"
-         "changing the vertical extent of the cloudbox.\n"
-         "\n"
-         "No modification of *pnd_field* is made for the pressure dimension.\n"
-         "At the latitude and longitude cloudbox edge points *pnd_field* is set to\n"
-         "zero. This corresponds to nzero=1. If you want a larger margin between\n"
-         "the lat and lon cloudbox edges and the \"cloud\" you increase\n"
-         "*nzero*, where *nzero* is the number of grid points for which\n"
-         "*pnd_field* shall be set to 0, counted from each lat and lon edge.\n"
-         "\n"
-         "See further *AtmFieldsExpand1D*.\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT( "pnd_field" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "pnd_field", "atmosphere_dim",
-            "cloudbox_on", "cloudbox_limits" ),
-        GIN( "nzero" ),
-        GIN_TYPE( "Index"),
-        GIN_DEFAULT( "1" ),
-        GIN_DESC( "Number of zero values inside lat and lon limits." )
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME( "pnd_fieldCalcFromscat_speciesFields" ),
         DESCRIPTION
         (
@@ -9870,6 +9836,41 @@ void define_md_data_raw()
         GIN_DESC( "Delimiter string of *scat_species* elements" )
         ));  
     
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "pnd_fieldExpand1D" ),
+        DESCRIPTION
+        (
+         "Maps a 1D pnd_field to a (homogeneous) 2D or 3D pnd_field.\n"
+         "\n"
+         "This method takes a 1D *pnd_field* and converts it to a 2D or 3D\n"
+         "\"cloud\". It is assumed that a complete 1D case has been created,\n"
+         "and after this *atmosphere_dim*, *lat_grid*, *lon_grid* and\n"
+         "*cloudbox_limits* have been changed to a 2D or 3D case (without\n"
+         "changing the vertical extent of the cloudbox.\n"
+         "\n"
+         "No modification of *pnd_field* is made for the pressure dimension.\n"
+         "At the latitude and longitude cloudbox edge points *pnd_field* is set to\n"
+         "zero. This corresponds to nzero=1. If you want a larger margin between\n"
+         "the lat and lon cloudbox edges and the \"cloud\" you increase\n"
+         "*nzero*, where *nzero* is the number of grid points for which\n"
+         "*pnd_field* shall be set to 0, counted from each lat and lon edge.\n"
+         "\n"
+         "See further *AtmFieldsExpand1D*.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "pnd_field" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "pnd_field", "atmosphere_dim",
+            "cloudbox_on", "cloudbox_limits" ),
+        GIN( "nzero" ),
+        GIN_TYPE( "Index"),
+        GIN_DEFAULT( "1" ),
+        GIN_DESC( "Number of zero values inside lat and lon limits." )
+        ));
+
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "pnd_fieldZero" ),
@@ -11588,10 +11589,10 @@ void define_md_data_raw()
          "It's purpose is to speed up the scattering calculations.\n"
          "\n"
          "This is an experimental method currently only working for limited\n"
-         "cases. All particles must be of the same ptype, and all particles must\n"
+         "cases. All scattering elements must be of the same ptype and must\n"
          "share the same *f_grid*, *za_grid*, and *aa_grid*. That is, the\n"
-         "scattering matrix, extinction matrix, and absotption vector of all\n"
-         "scattering elements have to have the same dimensions. No interpolation\n"
+         "scattering matrix, extinction matrix, and absorption vector of all\n"
+         "scattering elements must have the same dimensions. No interpolation\n"
          "(apart from temperature) is performed.\n"
          "\n"
          "This method can only be used with a 1D atmosphere.\n"

@@ -1,3 +1,29 @@
+2016-02-09 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-431
+	
+	More bugfixing in DISORT related code. Now DisortCalc seems to work properly.
+	
+	* src/disort.cc
+	(phase_functionCalc): Layer averaged (bulk) phase function from averaging of
+	scat. coeff. weighted phase function (i.e. (bulk) scattering function), not
+	plain averaging of phase function itself. Equivalently to layer optical depth
+	and sing. scat. albedo provided by dtauc_ssalbCalc, output phase_function in
+	DISORT-type layer oder (from TOA to BOA).
+	
+	(pmomCalc): Remove layer re-assignments of pmom as phase_fucntion is coming in
+	in alread correctly assigned order. This fixed an assignment mismatch for
+	scattering-free layers.
+	
+	 * src/m_disort.cc (DisortCalc):
+	 Added assert in case of inconsistent pfct and ssalb (pfct can't be 0 when
+	 ssalb is non-zero). Removed "Don't use this WSM" warning. Some code cleaning.
+	 
+	 * src/methods.cc: Updated DisortCalc disclaimer. Spellfixes.
+	 
+	 * 3rdparty/disort1.2/DISORT.f: Removed unsuppressable header printing (in
+	 future govern this by ARTS verbosity level?).
+	
 2016-02-08  Richard Larsson   <ric.larsson@gmail.com>
 	
 	* arts-2-3-430

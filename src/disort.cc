@@ -62,7 +62,7 @@ extern const Numeric BOLTZMAN_CONST;
   \param vmr_field             use arts -d 
   \param f_index               use arts -d 
   
-  \author Claudia Emde
+  \author Claudia Emde, Jana Mendrok
   \date   2006-02-10
 */
 void dtauc_ssalbCalc(Workspace& ws,
@@ -190,7 +190,7 @@ void dtauc_ssalbCalc(Workspace& ws,
   \param scat_data_mono as the WSV
   \param pnd_field      as the WSV
   
-  \author Claudia Emde
+  \author Claudia Emde, Jana Mendrok
   \date   2006-02-10
 */
 void phase_functionCalc(//Output
@@ -199,17 +199,17 @@ void phase_functionCalc(//Output
                        const ArrayOfArrayOfSingleScatteringData& scat_data_mono,
                        ConstTensor4View pnd_field)
 {
-  Matrix phase_function_level(pnd_field.npages(), 
+  const Index Np_cloud = pnd_field.npages();
+  Matrix phase_function_level(Np_cloud, 
                               scat_data_mono[0][0].za_grid.nelem(), 0.);
   
+  Vector sca_coeff_level(Np_cloud, 0.);
   //Loop over pressure levels
-  for (Index i_p = 0; i_p < pnd_field.npages(); i_p++)
+  for (Index i_p = 0; i_p < Np_cloud; i_p++)
     {
       // Calculate ensemble averaged scattering coefficient
       Numeric sca_coeff=0.;
       //Numeric intP=0.;
-      //Numeric pfct;
-      //Vector pfct(scat_data_mono[0][0].za_grid.nelem(),0.);
 
       for (Index i_ss = 0; i_ss < scat_data_mono.nelem(); i_ss++)
         {
@@ -220,65 +220,58 @@ void phase_functionCalc(//Output
                  scat_data_mono[i_ss][i_se].abs_vec_data(0, 0, 0, 0, 0));
             }
         }
+      sca_coeff_level[i_p] = sca_coeff;
 
-//      if( sca_coeff!=0. )
-//          cout << "\nat lev=" << i_p << "\n";
-      // Loop over scattering angles
-      for (Index i_t = 0; i_t < scat_data_mono[0][0].za_grid.nelem(); i_t++)
+      // Bulk scattering function
+      // (conversion to phase function only done when doing layer averaging.
+      // this because averaging needs to be on scat coeff weighted phase
+      // function aka bulk scattering function)
+      if (sca_coeff != 0)
         {
-//          if( sca_coeff!=0. )
-//              cout << "  ang=" << i_t << " of "
-//                   << scat_data_mono[0][0].za_grid.nelem() << ": \n";
-          // Phase function
-          for (Index i_ss = 0; i_ss < scat_data_mono.nelem(); i_ss++)
+          // Loop over scattering angles
+          for (Index i_t = 0; i_t < scat_data_mono[0][0].za_grid.nelem(); i_t++)
             {
-              for (Index i_se = 0; i_se < scat_data_mono[i_ss].nelem(); i_se++)
+              for (Index i_ss = 0; i_ss < scat_data_mono.nelem(); i_ss++)
                 {
-                  if (sca_coeff != 0)
+                  for (Index i_se = 0; i_se < scat_data_mono[i_ss].nelem(); i_se++)
                     {
                       phase_function_level(i_p, i_t) += 
                         pnd_field(i_se, i_p, 0, 0) *
                         scat_data_mono[i_ss][i_se].pha_mat_data(0, 0, i_t, 0, 0, 0, 0);
-//                        * 4*PI / sca_coeff;                     // Normalization
-//                      pfct = pnd_field(i_se, i_p, 0, 0) *
-//                        scat_data_mono[i_ss][i_se].pha_mat_data(0, 0, i_t, 0, 0, 0, 0)
-//                        * 4*PI / sca_coeff;                     // Normalization
-//                      phase_function_level(i_p, i_t) += pfct;
-//                      cout << "    particle " << i_ss << "-" << i_se
-//                           << " = " << pnd_field(i_se, i_p, 0, 0) << " [m-3] * "
-//                           << scat_data_mono[i_ss][i_se].pha_mat_data(0, 0, i_t, 0, 0, 0, 0)
-//                           << " m2 = " << pfct << "\n";
                     }
                 }
+//              if( i_t>0 )
+//                  intP += 0.5 *
+//                    (phase_function_level(i_p, i_t)+phase_function_level(i_p, i_t-1)) *
+//                    abs(cos(scat_data_mono[0][0].za_grid[i_t]*PI/180.)-
+//                        cos(scat_data_mono[0][0].za_grid[i_t-1]*PI/180.));
             }
-          if (sca_coeff != 0)
-            phase_function_level(i_p, i_t) *= 4*PI / sca_coeff; // Normalization
-//          if( i_t>0 )
-//              intP += 0.5 *
-//                (phase_function_level(i_p, i_t)+phase_function_level(i_p, i_t-1)) *
-//                abs(cos(scat_data_mono[0][0].za_grid[i_t]*PI/180.)-
-//                    cos(scat_data_mono[0][0].za_grid[i_t-1]*PI/180.));
-        }
 
-//      if( sca_coeff!=0. )
-//          cout << "  total scatcoef=" << sca_coeff
+//          cout << "\nat lev #" << i_p << ": "
+//               << "  total scatcoef=" << sca_coeff
 //               << ", integrated PFCT=" << intP << "\n";
+        }
     }
 
 
-  // Calculate average phase function for the layers
-  for (Index i_l = 0; i_l < pnd_field.npages()-1; i_l++)
+  // Calculate average phase function for the layers:
+  // Average bulk scattering function and rescale (normalize) to phase function
+  // with layer averaged scat coeff
+  for (Index i_l = 0; i_l < Np_cloud-1; i_l++)
     {
       for (Index i_t=0; i_t < phase_function_level.ncols(); i_t++)
         {
           if ( phase_function_level(i_l, i_t) !=0 )
             if( phase_function_level(i_l+1, i_t) !=0 )
-              phase_function(i_l, i_t) = .5* 
-                (phase_function_level(i_l, i_t) + phase_function_level(i_l+1, i_t));
+              phase_function(Np_cloud-2-i_l, i_t) = 4*PI *
+                ( phase_function_level(i_l, i_t) + phase_function_level(i_l+1, i_t) ) /
+                ( sca_coeff_level[i_l] + sca_coeff_level[i_l+1] );
             else
-              phase_function(i_l, i_t) = phase_function_level(i_l, i_t);
+              phase_function(Np_cloud-2-i_l, i_t) =
+                phase_function_level(i_l, i_t) * 4*PI / sca_coeff_level[i_l];
           else if ( phase_function_level(i_l+1, i_t) !=0 )
-            phase_function(i_l, i_t) = phase_function_level(i_l+1, i_t);
+            phase_function(Np_cloud-2-i_l, i_t) =
+              phase_function_level(i_l+1, i_t) * 4*PI / sca_coeff_level[i_l+1];
         }
     }
   
@@ -295,7 +288,7 @@ void phase_functionCalc(//Output
   functions
   \param n_legendre Number of Legendre polynomials to be calculated
   
-  \author Claudia Emde
+  \author Claudia Emde, Jana Mendrok
   \date   2006-02-10
 */
 void pmomCalc(//Output
@@ -324,6 +317,7 @@ void pmomCalc(//Output
   Matrix phase_int(phase_function.nrows(),181);
   for  (Index i_l=0; i_l < phase_function.nrows(); i_l++)
     interp(phase_int(i_l, joker), itw, phase_function(i_l, joker), gp);
+    
       
   for (Index i = 0; i<za_grid.nelem(); i++)
     u[i] = cos(za_grid[i] *PI/180.);
@@ -337,11 +331,11 @@ void pmomCalc(//Output
           abs(u[i+1] - u[i]);
       
       if (pint != 0){
-        if (abs(2.-pint) > 0.5)
+        if (abs(2.-pint) > 0.2)
         {
           ostringstream os;
           os << "Phase function normalization deviates from expected value by\n"
-             << "more than 50%. Something is wrong with your scattering data.\n"
+             << "more than 20%. Something is wrong with your scattering data.\n"
              << "Check!\n";
           throw runtime_error( os.str() );
         }
@@ -362,16 +356,15 @@ void pmomCalc(//Output
             p0_1=1.;
             p0_2=1.;
             
-            pmom(phase_function.nrows()-1-i_l,0)=1.;
+            pmom(i_l,0)=1.;
 
-            //pmom(phase_function.nrows()-1-i_l,0)+=0.5*0.5*(phase_int(i_l, i)+ 
-            //                                               phase_int(i_l, i+1))
+            //pmom(i_l,0)+=0.5*0.5*(phase_int(i_l, i)+phase_int(i_l, i+1))
             //*abs(u[i+1]-u[i]); 
             
             p1_1=u[i];
             p1_2=u[i+1];
             
-            pmom(phase_function.nrows()-1-i_l,1)+=0.5*0.5*
+            pmom(i_l,1)+=0.5*0.5*
               (p1_1*phase_int(i_l, i)+
                p1_2*phase_int(i_l, i+1))
               *abs(u[i+1]-u[i]);
@@ -383,7 +376,7 @@ void pmomCalc(//Output
               p2_2=(2*(double)l-1)/(double)l*u[i+1]*p1_2-((double)l-1)/
                 (double)l*p0_2;
               
-              pmom(phase_function.nrows()-1-i_l, l)+=0.5*0.5*
+              pmom(i_l, l)+=0.5*0.5*
                 (p2_1*phase_int(i_l, i)+
                  p2_2*phase_int(i_l, i+1))
                 *abs(u[i+1]-u[i]);
@@ -394,7 +387,7 @@ void pmomCalc(//Output
               p1_2=p2_2;
               }
           }
-        // cout << "pmom : " << pmom(phase_function.nrows()-1-i_l, joker) << endl;
+        // cout << "pmom : " << pmom(i_l, joker) << endl;
         
       }
     }

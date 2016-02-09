@@ -406,9 +406,9 @@ c                            ** Be sure SLFTST sets all print flags off.
 
    10 CONTINUE
 
-      IF( .NOT.PASS1 .AND. LEN(HEADER).NE.0 ) 
-     &    WRITE( *,'(//,1X,100(''*''),/,A,/,1X,100(''*''))' )
-     &    ' DISORT: '//HEADER
+C      IF( .NOT.PASS1 .AND. LEN(HEADER).NE.0 ) 
+C     &    WRITE( *,'(//,1X,100(''*''),/,A,/,1X,100(''*''))' )
+C     &    ' DISORT: '//HEADER
 
 c                                  ** Calculate cumulative optical depth
 c                                  ** and dither single-scatter albedo
