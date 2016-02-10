@@ -94,7 +94,7 @@ arts_test_run_ctlfile(slow artscomponents/wfuns/TestWfuns.arts)
 arts_test_run_ctlfile(fast artscomponents/ycalcappend/TestYCalcAppend.arts)
 
 if (ENABLE_DISORT)
-  arts_test_run_ctlfile(nocheck artscomponents/disort/TestDISORT.arts)
+  arts_test_run_ctlfile(fast artscomponents/disort/TestDISORT.arts)
 endif ()
 
 if (ENABLE_TMATRIX)

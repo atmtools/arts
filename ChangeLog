@@ -1,3 +1,27 @@
+2016-02-10 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-432
+	
+	* controlfiles/artscomponents/disort/TestDISORT.arts:
+	Complete and functional DISORT test case. Using a copy of
+	doit/TestDOITFromIndividualFields.arts adapted to current DisortCalc
+	restrictions as well as DOIT output as reference.
+	
+	* controlfiles/artscomponents/disort/indivfieldsatmo_setup.arts:
+	Added. Separated case setup from calculation itself (when DisortCalc
+	restrictions on	scatt element format is removed, remove this file, too, and
+	use the original one from doit/ folder).
+	
+	* controlfiles/artscomponents/disort/yREFERENCEfromDOIT.y.xml:
+	Added. Reference results (from an equivalent DOIT calc).
+	
+	* controlfiles/artscomponents/disort/scat_data_disort.xml:
+	Removed. Was not used anymore anyways. Use sing scatt data from testdata/,
+	commonly used by several scatt solver tests.
+	
+	* controlfiles/CMakeLists.txt:
+	Switched on DISORT test as regular test case (fast; only if fortran enabled).
+	
 2016-02-09 Jana Mendrok  <jana.mendrok@chalmers.se>
 
 	* arts-2-3-431
