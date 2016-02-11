@@ -2609,13 +2609,20 @@ void define_md_data_raw()
          "           4. scattering species fields\n"
          "\n"
          "This method splits up the data found in *atm_fields_compact* to\n"
-         "p_grid, lat_grid, lon_grid, and the various fields. No interpolation\n"
-         "is performed.\n"
-         "See documentation of *atm_fields_compact* for a definition of the data.\n"
+         "p_grid, lat_grid, lon_grid, and the various fields.\n"
+         "See documentation of *atm_fields_compact* for a definition of the\n"
+         "data.\n"
+         "\n"
+         "Compact states are characterized by having all atmospheric fields\n"
+         "already given on identical grids. That is, no interpolation needs\n"
+         "to be and is performed. Keyword *p_min* allows to remove atmospheric\n"
+         "levels with pressures lower than the given value (default: no\n"
+         "removal). This reduces computational burden and is useful when\n"
+         "upper atmospheric contributions are negligible.\n"
          "\n"
          "Possible future extensions: Add a keyword parameter to refine the\n"
-         "pressure grid if it is too coarse. Or a version that interpolates onto\n"
-         "given grids, instead of using and returning the original grids.\n"
+         "pressure grid if it is too coarse. Or a version that interpolates\n"
+         "onto given grids, instead of using and returning the original grids.\n"
          ),
         AUTHORS( "Jana Mendrok" ),
         OUT( "p_grid", "lat_grid", "lon_grid", "t_field", "z_field", "vmr_field",
@@ -2624,11 +2631,13 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "abs_species", "scat_species", "atm_fields_compact", "atmosphere_dim" ),
-        GIN( "delim" ),
-        GIN_TYPE( "String" ),
-        GIN_DEFAULT( "-" ),
-        GIN_DESC( "Delimiter string of *scat_species* elements." )
+        IN( "abs_species", "scat_species", "atm_fields_compact",
+            "atmosphere_dim" ),
+        GIN(         "delim",  "p_min" ),
+        GIN_TYPE(    "String", "Numeric" ),
+        GIN_DEFAULT( "-",      "0" ),
+        GIN_DESC( "Delimiter string of *scat_species* elements.",
+                  "Minimum-pressure level to consider (for TOA)." )
         ));
     
   md_data_raw.push_back

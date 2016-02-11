@@ -1,3 +1,15 @@
+2016-02-11 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-434
+	
+	* src/m_atmosphere.cc, methods.cc (AtmFieldsFromCompact):
+	Introduce keyword that allows to remove low-pressure atmospheric levels from
+	the atm field data (effectively moving TOA to higher pressure).
+	
+	* controlfiles/artscomponents/doitbatch/TestDOITBatch.arts:
+	Apply the TOA move feature (has sufficiently small effects on radiance that no
+	new reference data is necessary).
+	
 2016-02-11  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-433

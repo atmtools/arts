@@ -221,8 +221,9 @@ AgendaSet( ybatch_calc_agenda ){
   )
 
   # Split up *atm_fields_compact* to
-  # generate p_grid, t_field, z_field, massdensity_field, vmr_field:
-  AtmFieldsFromCompact
+  # generate p_grid, t_field, z_field, massdensity_field, vmr_field
+  # Additionally moving TOA down to 10hPa altitude.
+  AtmFieldsFromCompact( p_min=1e3 )
 
   # Unrealistic (small) values in scat_species_*_*_fields set to zero
   scat_species_fieldCleanup (scat_species_mass_density_field,

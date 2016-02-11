@@ -1841,6 +1841,7 @@ void AtmFieldsFromCompact(// WS Output:
                           const GriddedField4& atm_fields_compact,
                           const Index&  atmosphere_dim,
                           const String& delim,
+                          const Numeric& p_min,
                           const Verbosity&)
 {
   // Make a handle on atm_fields_compact to save typing:
@@ -1866,6 +1867,26 @@ void AtmFieldsFromCompact(// WS Output:
   p_grid = c.get_numeric_grid(GFIELD4_P_GRID);
   lat_grid = c.get_numeric_grid(GFIELD4_LAT_GRID);
   lon_grid = c.get_numeric_grid(GFIELD4_LON_GRID);
+  
+  // Reduce p_grid to region below p_min
+  Index l=np-1;
+  bool search_toa=true;
+  while( search_toa && l>0 )
+    {
+      if( p_grid[l-1] < p_min )
+        l--;
+      else
+        search_toa=false;
+    }
+  if( search_toa )
+    {
+      ostringstream os;
+      os << "At least one atmospheric level with pressure larger p_min (="
+         << p_min << ")\n" << "is needed, but none is found.";
+      throw runtime_error( os.str() );      
+    }
+  const Index npn = l+1;
+  p_grid = p_grid[Range(0,npn)];
 
   const Index nsa = abs_species.nelem();
   const Index nsp = scat_species.nelem();
@@ -1881,8 +1902,8 @@ void AtmFieldsFromCompact(// WS Output:
   // In contrast to older versions, we allow the data entries to be in arbitrary
   // order. that is, we have to look for all fields individually. we require the
   // abs_species related fields as well as the scat_species related fields to
-  // have leading identifiers, namely 'abs_species' and 'scat_species'. it is not
-  // mandatory that all fields available in atm_field_compact are applied
+  // have leading identifiers, namely 'abs_species' and 'scat_species'. it is
+  // not mandatory that all fields available in atm_field_compact are applied
   // through abs_species and scat_species; left over fields are silently
   // ignored.
   // For temperature and altitude, occurence of exactly one field entry is
@@ -1896,7 +1917,7 @@ void AtmFieldsFromCompact(// WS Output:
 
   // Find temperature field:
   found = false;
-  t_field.resize(np,nlat,nlon);
+  t_field.resize(npn,nlat,nlon);
   for (Index i=0; i<nf; ++i)
     {
       if (c.get_string_grid(GFIELD4_FIELD_NAMES)[i] == "T")
@@ -1911,7 +1932,7 @@ void AtmFieldsFromCompact(// WS Output:
           else
             {
               found = true;
-              t_field = c.data(i,Range(joker),Range(joker),Range(joker));
+              t_field = c.data(i,Range(0,npn),Range(joker),Range(joker));
             }
         }
     }
@@ -1924,7 +1945,7 @@ void AtmFieldsFromCompact(// WS Output:
 
   // Find Altitude field:
   found = false;
-  z_field.resize(np,nlat,nlon);
+  z_field.resize(npn,nlat,nlon);
   for (Index i=0; i<nf; ++i)
     {
       if (c.get_string_grid(GFIELD4_FIELD_NAMES)[i] == "z")
@@ -1939,7 +1960,7 @@ void AtmFieldsFromCompact(// WS Output:
           else
             {
               found = true;
-              z_field = c.data(i,Range(joker),Range(joker),Range(joker));
+              z_field = c.data(i,Range(0,npn),Range(joker),Range(joker));
             }
         }
     }
@@ -1951,7 +1972,7 @@ void AtmFieldsFromCompact(// WS Output:
     }
 
   // Extracting the required abs_species fields:
-  vmr_field.resize(nsa,np,nlat,nlon);
+  vmr_field.resize(nsa,npn,nlat,nlon);
   for (Index j=0; j<nsa; ++j)
     {
       using global_data::species_data;  // The species lookup data:
@@ -1962,20 +1983,18 @@ void AtmFieldsFromCompact(// WS Output:
       String species_name;
       while (!found && i<nf)
         {
-          parse_atmcompact_speciestype(species_type,
-                                       c.get_string_grid(GFIELD4_FIELD_NAMES)[i],
-                                       delim);
+          parse_atmcompact_speciestype(
+            species_type, c.get_string_grid(GFIELD4_FIELD_NAMES)[i], delim);
           // do we have an abs_species type field?
           if (species_type==as_type)
             {
-              parse_atmcompact_speciesname(species_name,
-                                           c.get_string_grid(GFIELD4_FIELD_NAMES)[i],
-                                           delim);
+              parse_atmcompact_speciesname(
+                species_name, c.get_string_grid(GFIELD4_FIELD_NAMES)[i], delim);
               if (species_name==as_name)
                 {
                   found=true;
                   vmr_field(j,Range(joker),Range(joker),Range(joker)) =
-                    c.data(i,Range(joker),Range(joker),Range(joker));
+                    c.data(i,Range(0,npn),Range(joker),Range(joker));
                 }
             }
           i++;
@@ -1989,13 +2008,13 @@ void AtmFieldsFromCompact(// WS Output:
     }
  
   // Extracting the required scattering species fields:
-  scat_species_mass_density_field.resize(nsp,np,nlat,nlon);
+  scat_species_mass_density_field.resize(nsp,npn,nlat,nlon);
   scat_species_mass_density_field = NAN;
-  scat_species_mass_flux_field.resize(nsp,np,nlat,nlon);
+  scat_species_mass_flux_field.resize(nsp,npn,nlat,nlon);
   scat_species_mass_flux_field = NAN;
-  scat_species_number_density_field.resize(nsp,np,nlat,nlon);
+  scat_species_number_density_field.resize(nsp,npn,nlat,nlon);
   scat_species_number_density_field = NAN;
-  scat_species_mean_mass_field.resize(nsp,np,nlat,nlon);
+  scat_species_mean_mass_field.resize(nsp,npn,nlat,nlon);
   scat_species_mean_mass_field = NAN;
 
   // to be on safe said (avoiding overwriting of fields), we separately monitor
@@ -2027,43 +2046,44 @@ void AtmFieldsFromCompact(// WS Output:
       String scat_type;
       while (!found && i<nf)
         {
-          parse_atmcompact_speciestype(species_type,
-                                       c.get_string_grid(GFIELD4_FIELD_NAMES)[i],
-                                       delim);
+          parse_atmcompact_speciestype(
+            species_type, c.get_string_grid(GFIELD4_FIELD_NAMES)[i], delim);
           // do we have an scat_species type field?
           if (species_type==ss_type)
             {
-              parse_atmcompact_speciesname(species_name,
-                                           c.get_string_grid(GFIELD4_FIELD_NAMES)[i],
-                                           delim);
+              parse_atmcompact_speciesname(
+                species_name, c.get_string_grid(GFIELD4_FIELD_NAMES)[i], delim);
               if (species_name==ss_name)
                 {
-                  parse_atmcompact_scattype(scat_type,
-                                            c.get_string_grid(GFIELD4_FIELD_NAMES)[i],
-                                            delim);
+                  parse_atmcompact_scattype(
+                    scat_type, c.get_string_grid(GFIELD4_FIELD_NAMES)[i], delim);
                   if (!found_md && scat_type==md)
                     {
                       found_md=true;
-                      scat_species_mass_density_field(j,Range(joker),Range(joker),Range(joker))
-                        = c.data(i,Range(joker),Range(joker),Range(joker));
+                      scat_species_mass_density_field(j,
+                        Range(joker),Range(joker),Range(joker))
+                        = c.data(i,Range(0,npn),Range(joker),Range(joker));
                     }
                   else if (!found_mf && scat_type==mf)
                     {
                       found_mf=true;
-                      scat_species_mass_flux_field(j,Range(joker),Range(joker),Range(joker))
-                        = c.data(i,Range(joker),Range(joker),Range(joker));
+                      scat_species_mass_flux_field(j,
+                        Range(joker),Range(joker),Range(joker))
+                        = c.data(i,Range(0,npn),Range(joker),Range(joker));
                     }
                   else if (!found_nd && scat_type==nd)
                     {
                       found_nd=true;
-                      scat_species_number_density_field(j,Range(joker),Range(joker),Range(joker))
-                        = c.data(i,Range(joker),Range(joker),Range(joker));
+                      scat_species_number_density_field(j,
+                        Range(joker),Range(joker),Range(joker))
+                        = c.data(i,Range(0,npn),Range(joker),Range(joker));
                     }
                   else if (!found_mm && scat_type==mm)
                     {
                       found_mm=true;
-                      scat_species_mean_mass_field(j,Range(joker),Range(joker),Range(joker))
-                        = c.data(i,Range(joker),Range(joker),Range(joker));
+                      scat_species_mean_mass_field(j,
+                        Range(joker),Range(joker),Range(joker))
+                        = c.data(i,Range(0,npn),Range(joker),Range(joker));
                     }
                   else
                     {
@@ -2176,12 +2196,18 @@ void AtmFieldsCalc(//WS Output:
 {
   CREATE_OUT2;
   
-  const ConstVectorView tfr_p_grid   = t_field_raw.get_numeric_grid(GFIELD3_P_GRID);
-  const ConstVectorView tfr_lat_grid = t_field_raw.get_numeric_grid(GFIELD3_LAT_GRID);
-  const ConstVectorView tfr_lon_grid = t_field_raw.get_numeric_grid(GFIELD3_LON_GRID);
-  const ConstVectorView zfr_p_grid   = z_field_raw.get_numeric_grid(GFIELD3_P_GRID);
-  const ConstVectorView zfr_lat_grid = z_field_raw.get_numeric_grid(GFIELD3_LAT_GRID);
-  const ConstVectorView zfr_lon_grid = z_field_raw.get_numeric_grid(GFIELD3_LON_GRID);
+  const ConstVectorView tfr_p_grid =
+    t_field_raw.get_numeric_grid(GFIELD3_P_GRID);
+  const ConstVectorView tfr_lat_grid =
+    t_field_raw.get_numeric_grid(GFIELD3_LAT_GRID);
+  const ConstVectorView tfr_lon_grid =
+    t_field_raw.get_numeric_grid(GFIELD3_LON_GRID);
+  const ConstVectorView zfr_p_grid =
+    z_field_raw.get_numeric_grid(GFIELD3_P_GRID);
+  const ConstVectorView zfr_lat_grid =
+    z_field_raw.get_numeric_grid(GFIELD3_LAT_GRID);
+  const ConstVectorView zfr_lon_grid =
+    z_field_raw.get_numeric_grid(GFIELD3_LON_GRID);
 
   out2 << "  Interpolation order: " << interp_order << "\n";
   
@@ -2211,10 +2237,12 @@ void AtmFieldsCalc(//WS Output:
 
       GriddedField3 temp_gfield3;
 
-      GriddedFieldPRegrid(temp_gfield3, p_grid, t_field_raw, interp_order, 0, verbosity);
+      GriddedFieldPRegrid(temp_gfield3, p_grid, t_field_raw,
+                          interp_order, 0, verbosity);
       t_field = temp_gfield3.data;
 
-      GriddedFieldPRegrid(temp_gfield3, p_grid, z_field_raw, interp_order, 0, verbosity);
+      GriddedFieldPRegrid(temp_gfield3, p_grid, z_field_raw,
+                          interp_order, 0, verbosity);
       z_field = temp_gfield3.data;
 
       ArrayOfGriddedField3 temp_agfield3;
@@ -2224,18 +2252,21 @@ void AtmFieldsCalc(//WS Output:
       } catch (runtime_error e) {
           ostringstream os;
           os << e.what() << "\n"
-             << "Note that you can explicitly set vmr_zeropadding to 1 in the method call.";
+             << "Note that you can explicitly set vmr_zeropadding "
+             << "to 1 in the method call.";
           throw runtime_error(os.str());
 
       }
-      FieldFromGriddedField(vmr_field, p_grid, lat_grid, lon_grid, temp_agfield3, verbosity);
+      FieldFromGriddedField(vmr_field, p_grid, lat_grid, lon_grid, 
+                            temp_agfield3, verbosity);
       
       // Non-LTE interpolation
       if(t_nlte_field_raw.nelem())
       {
-        GriddedFieldPRegrid(temp_agfield3, p_grid, t_nlte_field_raw, interp_order,
-                            0, verbosity);
-        FieldFromGriddedField(t_nlte_field, p_grid, lat_grid, lon_grid, temp_agfield3, verbosity);
+        GriddedFieldPRegrid(temp_agfield3, p_grid, t_nlte_field_raw, 
+                            interp_order, 0, verbosity);
+        FieldFromGriddedField(t_nlte_field, p_grid, lat_grid, lon_grid,
+                              temp_agfield3, verbosity);
       }
       
     }
@@ -2257,7 +2288,8 @@ void AtmFieldsCalc(//WS Output:
       vmr_field.resize(vmr_field_raw.nelem(), p_grid.nelem(), lat_grid.nelem(),
                        1);
       if(t_nlte_field_raw.nelem())
-        t_nlte_field.resize(t_nlte_field_raw.nelem(), p_grid.nelem(), lat_grid.nelem(),1);
+        t_nlte_field.resize(t_nlte_field_raw.nelem(),
+                            p_grid.nelem(), lat_grid.nelem(),1);
       else 
         t_nlte_field.resize(0,0,0,0);
       
@@ -2284,8 +2316,10 @@ void AtmFieldsCalc(//WS Output:
       gridpos_poly( gp_lat, tfr_lat_grid, lat_grid, interp_order );
             
       // Interpolation weights:
-      Tensor3 itw(p_grid.nelem(), lat_grid.nelem(), (interp_order+1)*(interp_order+1));
-      // (4 interpolation weights are required for example for linear 2D interpolation)
+      Tensor3 itw(p_grid.nelem(), lat_grid.nelem(),
+                  (interp_order+1)*(interp_order+1));
+      // (4 interpolation weights are required for example for linear 2D
+      // interpolation)
       interpweights( itw, gp_p, gp_lat);
       
       // Interpolate:
@@ -2324,8 +2358,9 @@ void AtmFieldsCalc(//WS Output:
         {
           ostringstream os; 
 
-          if( !( vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_LAT_GRID).nelem() != 1 &&
-                 vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_LON_GRID).nelem() == 1 ))
+          if( !( 
+            vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_LAT_GRID).nelem() != 1 &&
+            vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_LON_GRID).nelem() == 1 ))
             {
               os << "VMR data of the " << gas_i << " the species has "
                  << "wrong dimension (1D or 3D). \n";
@@ -2336,20 +2371,20 @@ void AtmFieldsCalc(//WS Output:
           // error message if not):
           os << "Raw VMR[" << gas_i << "] to p_grid, 2D case";
           chk_interpolation_pgrids(os.str(),
-                                   vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_P_GRID),
-                                   p_grid,
-                                   interp_order);
+            vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_P_GRID),
+            p_grid, interp_order);
           os.str("");
           os << "Raw VMR[" << gas_i << "] to lat_grid, 2D case";
           chk_interpolation_grids(os.str(),
-                                  vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_LAT_GRID),
-                                  lat_grid,
-                                  interp_order);
+            vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_LAT_GRID),
+            lat_grid, interp_order);
 
           // Calculate grid positions:
-          p2gridpos_poly(gp_p, vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_P_GRID), 
+          p2gridpos_poly(gp_p,
+                         vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_P_GRID), 
                          p_grid, interp_order);
-          gridpos_poly(gp_lat, vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_LAT_GRID), 
+          gridpos_poly(gp_lat,
+                       vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_LAT_GRID), 
                        lat_grid, interp_order);
                   
           // Interpolation weights:
@@ -2366,8 +2401,9 @@ void AtmFieldsCalc(//WS Output:
         {
           ostringstream os; 
 
-          if( !( t_nlte_field_raw[qi_i].get_numeric_grid(GFIELD3_LAT_GRID).nelem() != 1 &&
-                 t_nlte_field_raw[qi_i].get_numeric_grid(GFIELD3_LON_GRID).nelem() == 1 ))
+          if( !( 
+            t_nlte_field_raw[qi_i].get_numeric_grid(GFIELD3_LAT_GRID).nelem() != 1 &&
+            t_nlte_field_raw[qi_i].get_numeric_grid(GFIELD3_LON_GRID).nelem() == 1 ))
             {
               os << "NLTE data of the " << qi_i << " temperature field has "
                  << "wrong dimension (1D or 3D). \n";
@@ -2378,20 +2414,20 @@ void AtmFieldsCalc(//WS Output:
           // error message if not):
           os << "Raw NLTE[" << qi_i << "] to p_grid, 2D case";
           chk_interpolation_pgrids(os.str(),
-                                   t_nlte_field_raw[qi_i].get_numeric_grid(GFIELD3_P_GRID),
-                                   p_grid,
-                                   interp_order);
+            t_nlte_field_raw[qi_i].get_numeric_grid(GFIELD3_P_GRID),
+            p_grid, interp_order);
           os.str("");
           os << "Raw NLTE[" << qi_i << "] to lat_grid, 2D case";
           chk_interpolation_grids(os.str(),
-                                  t_nlte_field_raw[qi_i].get_numeric_grid(GFIELD3_LAT_GRID),
-                                  lat_grid,
-                                  interp_order);
+            t_nlte_field_raw[qi_i].get_numeric_grid(GFIELD3_LAT_GRID),
+            lat_grid, interp_order);
 
           // Calculate grid positions:
-          p2gridpos_poly(gp_p, t_nlte_field_raw[qi_i].get_numeric_grid(GFIELD3_P_GRID), 
+          p2gridpos_poly(gp_p, 
+                         t_nlte_field_raw[qi_i].get_numeric_grid(GFIELD3_P_GRID), 
                          p_grid, interp_order);
-          gridpos_poly(gp_lat, t_nlte_field_raw[qi_i].get_numeric_grid(GFIELD3_LAT_GRID), 
+          gridpos_poly(gp_lat,
+                       t_nlte_field_raw[qi_i].get_numeric_grid(GFIELD3_LAT_GRID), 
                        lat_grid, interp_order);
                   
           // Interpolation weights:
@@ -2417,32 +2453,41 @@ void AtmFieldsCalc(//WS Output:
 
       GriddedField3 temp_gfield3;
 
-      GriddedFieldLatLonRegrid(temp_gfield3, lat_grid, lon_grid, t_field_raw, interp_order, verbosity);
-      GriddedFieldPRegrid(temp_gfield3, p_grid, temp_gfield3, interp_order, 0, verbosity);
+      GriddedFieldLatLonRegrid(temp_gfield3, lat_grid, lon_grid,
+                               t_field_raw, interp_order, verbosity);
+      GriddedFieldPRegrid(temp_gfield3, p_grid, temp_gfield3,
+                          interp_order, 0, verbosity);
       t_field = temp_gfield3.data;
 
-      GriddedFieldLatLonRegrid(temp_gfield3, lat_grid, lon_grid, z_field_raw, interp_order, verbosity);
-      GriddedFieldPRegrid(temp_gfield3, p_grid, temp_gfield3, interp_order, 0, verbosity);
+      GriddedFieldLatLonRegrid(temp_gfield3, lat_grid, lon_grid,
+                               z_field_raw, interp_order, verbosity);
+      GriddedFieldPRegrid(temp_gfield3, p_grid, temp_gfield3,
+                          interp_order, 0, verbosity);
       z_field = temp_gfield3.data;
 
       ArrayOfGriddedField3 temp_agfield3;
-      GriddedFieldLatLonRegrid(temp_agfield3, lat_grid, lon_grid, vmr_field_raw, interp_order, verbosity);
+      GriddedFieldLatLonRegrid(temp_agfield3, lat_grid, lon_grid,
+                               vmr_field_raw, interp_order, verbosity);
       try {
         GriddedFieldPRegrid(temp_agfield3, p_grid, temp_agfield3, interp_order,
                             vmr_zeropadding, verbosity);
       } catch (runtime_error e) {
           ostringstream os;
           os << e.what() << "\n"
-             << "Note that you can explicitly set vmr_zeropadding to 1 in the method call.";
+             << "Note that you can explicitly set vmr_zeropadding "
+             << "to 1 in the method call.";
           throw runtime_error(os.str());
 
       }
-      FieldFromGriddedField(vmr_field, p_grid, lat_grid, lon_grid, temp_agfield3, verbosity);
+      FieldFromGriddedField(vmr_field, p_grid, lat_grid, lon_grid,
+                           temp_agfield3, verbosity);
       
       if(t_nlte_field_raw.nelem())
       {
-        GriddedFieldLatLonRegrid(temp_agfield3, lat_grid, lon_grid, t_nlte_field_raw, interp_order, verbosity);
-        GriddedFieldPRegrid(temp_agfield3, p_grid, temp_agfield3, interp_order, 0, verbosity);
+        GriddedFieldLatLonRegrid(temp_agfield3, lat_grid, lon_grid,
+                                 t_nlte_field_raw, interp_order, verbosity);
+        GriddedFieldPRegrid(temp_agfield3, p_grid, temp_agfield3,
+                            interp_order, 0, verbosity);
       }
     }
   else
@@ -2476,7 +2521,9 @@ void AtmFieldsCalc(//WS Output:
           for( Index ir=0; ir<t_nlte_field.nrows(); ir++ )
             for( Index ic=0; ic<t_nlte_field.ncols(); ic++ )
               if( t_nlte_field(ib,ip,ir,ic) < 0 )
-                t_nlte_field(ib,ip,ir,ic) = nlte_when_negative==1?t_field(ip,ir,ic):0; // Set to atmospheric temperature or to nil.
+                // Set to atmospheric temperature or to nil.
+                t_nlte_field(ib,ip,ir,ic) = 
+                  nlte_when_negative==1?t_field(ip,ir,ic):0; 
 }
 
 
@@ -2499,15 +2546,24 @@ void MagFieldsCalc( //WS Output:
 {
     CREATE_OUT2;
     
-    const ConstVectorView ufr_p_grid   = mag_u_field_raw.get_numeric_grid(GFIELD3_P_GRID);
-    const ConstVectorView ufr_lat_grid = mag_u_field_raw.get_numeric_grid(GFIELD3_LAT_GRID);
-    const ConstVectorView ufr_lon_grid = mag_u_field_raw.get_numeric_grid(GFIELD3_LON_GRID);
-    const ConstVectorView vfr_p_grid   = mag_v_field_raw.get_numeric_grid(GFIELD3_P_GRID);
-    const ConstVectorView vfr_lat_grid = mag_v_field_raw.get_numeric_grid(GFIELD3_LAT_GRID);
-    const ConstVectorView vfr_lon_grid = mag_v_field_raw.get_numeric_grid(GFIELD3_LON_GRID);
-    const ConstVectorView wfr_p_grid   = mag_w_field_raw.get_numeric_grid(GFIELD3_P_GRID);
-    const ConstVectorView wfr_lat_grid = mag_w_field_raw.get_numeric_grid(GFIELD3_LAT_GRID);
-    const ConstVectorView wfr_lon_grid = mag_w_field_raw.get_numeric_grid(GFIELD3_LON_GRID);
+    const ConstVectorView ufr_p_grid =
+      mag_u_field_raw.get_numeric_grid(GFIELD3_P_GRID);
+    const ConstVectorView ufr_lat_grid =
+      mag_u_field_raw.get_numeric_grid(GFIELD3_LAT_GRID);
+    const ConstVectorView ufr_lon_grid =
+      mag_u_field_raw.get_numeric_grid(GFIELD3_LON_GRID);
+    const ConstVectorView vfr_p_grid =
+      mag_v_field_raw.get_numeric_grid(GFIELD3_P_GRID);
+    const ConstVectorView vfr_lat_grid =
+      mag_v_field_raw.get_numeric_grid(GFIELD3_LAT_GRID);
+    const ConstVectorView vfr_lon_grid =
+      mag_v_field_raw.get_numeric_grid(GFIELD3_LON_GRID);
+    const ConstVectorView wfr_p_grid =
+      mag_w_field_raw.get_numeric_grid(GFIELD3_P_GRID);
+    const ConstVectorView wfr_lat_grid =
+      mag_w_field_raw.get_numeric_grid(GFIELD3_LAT_GRID);
+    const ConstVectorView wfr_lon_grid =
+      mag_w_field_raw.get_numeric_grid(GFIELD3_LON_GRID);
     
     out2 << "  Interpolation order: " << interp_order << "\n";
     
@@ -2522,21 +2578,27 @@ void MagFieldsCalc( //WS Output:
     if ( atmosphere_dim == 1)
     {
         if( !( ufr_lat_grid.nelem() == 1 && ufr_lon_grid.nelem() == 1 ))
-            throw std::runtime_error("Magnetic u field data has wrong dimension (2D or 3D).\n");
+            throw std::runtime_error(
+            "Magnetic u field data has wrong dimension (2D or 3D).\n");
         if( !( vfr_lat_grid.nelem() == 1 && vfr_lon_grid.nelem() == 1 ))
-            throw std::runtime_error("Magnetic v field data has wrong dimension (2D or 3D).\n");
+            throw std::runtime_error(
+            "Magnetic v field data has wrong dimension (2D or 3D).\n");
         if( !( wfr_lat_grid.nelem() == 1 && wfr_lon_grid.nelem() == 1 ))
-            throw std::runtime_error("Magnetic w field data has wrong dimension  (2D or 3D).\n");
+            throw std::runtime_error(
+            "Magnetic w field data has wrong dimension  (2D or 3D).\n");
         
         GriddedField3 temp_gfield3;
         
-        GriddedFieldPRegrid(temp_gfield3, p_grid, mag_u_field_raw, interp_order, 0, verbosity);
+        GriddedFieldPRegrid(temp_gfield3, p_grid, mag_u_field_raw,
+                            interp_order, 0, verbosity);
         mag_u_field = temp_gfield3.data;
         
-        GriddedFieldPRegrid(temp_gfield3, p_grid, mag_v_field_raw, interp_order, 0, verbosity);
+        GriddedFieldPRegrid(temp_gfield3, p_grid, mag_v_field_raw,
+                            interp_order, 0, verbosity);
         mag_v_field = temp_gfield3.data;
         
-        GriddedFieldPRegrid(temp_gfield3, p_grid, mag_w_field_raw, interp_order, 0, verbosity);
+        GriddedFieldPRegrid(temp_gfield3, p_grid, mag_w_field_raw,
+                            interp_order, 0, verbosity);
         mag_w_field = temp_gfield3.data;
     }
     
@@ -2544,13 +2606,16 @@ void MagFieldsCalc( //WS Output:
     else if(atmosphere_dim == 2)
     {
         if( ufr_lat_grid.nelem() == 1 && ufr_lon_grid.nelem() == 1 )
-            throw std::runtime_error("Raw data has wrong dimension (1D). You have to use \n"
+            throw std::runtime_error(
+            "Raw data has wrong dimension (1D). You have to use \n"
             "MagFieldsCalcExpand1D instead of MagFieldsCalc.");
         if( vfr_lat_grid.nelem() == 1 && vfr_lon_grid.nelem() == 1 )
-            throw std::runtime_error("Raw data has wrong dimension (1D). You have to use \n"
+            throw std::runtime_error(
+            "Raw data has wrong dimension (1D). You have to use \n"
             "MagFieldsCalcExpand1D instead of MagFieldsCalc.");
         if( wfr_lat_grid.nelem() == 1 && wfr_lon_grid.nelem() == 1 )
-            throw std::runtime_error("Raw data has wrong dimension (1D). You have to use \n"
+            throw std::runtime_error(
+            "Raw data has wrong dimension (1D). You have to use \n"
             "MagFieldsCalcExpand1D instead of MagFieldsCalc.");
         
         //Resize variables
@@ -2566,58 +2631,73 @@ void MagFieldsCalc( //WS Output:
         
         // Check that interpolation grids are ok (and throw a detailed
         // error message if not):
-        chk_interpolation_pgrids("Raw u field to p_grid, 2D case",ufr_p_grid,p_grid,interp_order);
-        chk_interpolation_grids("Raw u field to lat_grid, 2D case",ufr_lat_grid,lat_grid,interp_order);
+        chk_interpolation_pgrids("Raw u field to p_grid, 2D case",
+                                 ufr_p_grid,p_grid,interp_order);
+        chk_interpolation_grids("Raw u field to lat_grid, 2D case",
+                                ufr_lat_grid,lat_grid,interp_order);
         
         // Calculate grid positions:
         p2gridpos_poly( gp_p, ufr_p_grid, p_grid, interp_order );
         gridpos_poly( gp_lat, ufr_lat_grid, lat_grid, interp_order );
         
         // Interpolation weights:
-        Tensor3 itwu(p_grid.nelem(), lat_grid.nelem(), (interp_order+1)*(interp_order+1));
-        // (4 interpolation weights are required for example for linear 2D interpolation)
+        Tensor3 itwu(p_grid.nelem(), lat_grid.nelem(),
+                     (interp_order+1)*(interp_order+1));
+        // (4 interpolation weights are required for example for linear 2D
+        // interpolation)
         interpweights( itwu, gp_p, gp_lat);
         
         // Interpolate:
-        interp( mag_u_field(joker, joker, 0 ), itwu, mag_u_field_raw.data(joker, joker, 0),  gp_p, gp_lat);
+        interp( mag_u_field(joker, joker, 0 ), itwu,
+                mag_u_field_raw.data(joker, joker, 0),  gp_p, gp_lat);
         
         // Interpolate mag_v_field:
         
         // Check that interpolation grids are ok (and throw a detailed
         // error message if not):
-        chk_interpolation_pgrids("Raw v field to p_grid, 2D case",vfr_p_grid,p_grid,interp_order);
-        chk_interpolation_grids("Raw v field to lat_grid, 2D case",vfr_lat_grid,lat_grid,interp_order);
+        chk_interpolation_pgrids("Raw v field to p_grid, 2D case",
+                                 vfr_p_grid,p_grid,interp_order);
+        chk_interpolation_grids("Raw v field to lat_grid, 2D case",
+                                vfr_lat_grid,lat_grid,interp_order);
         
         // Calculate grid positions:
         p2gridpos_poly( gp_p, vfr_p_grid, p_grid, interp_order );
         gridpos_poly( gp_lat, vfr_lat_grid, lat_grid, interp_order );
         
         // Interpolation weights:
-        Tensor3 itwv(p_grid.nelem(), lat_grid.nelem(), (interp_order+1)*(interp_order+1));
-        // (4 interpolation weights are required for example for linear 2D interpolation)
+        Tensor3 itwv(p_grid.nelem(), lat_grid.nelem(),
+                     (interp_order+1)*(interp_order+1));
+        // (4 interpolation weights are required for example for linear 2D
+        // interpolation)
         interpweights( itwv, gp_p, gp_lat);
         
         // Interpolate:
-        interp( mag_v_field(joker, joker, 0 ), itwv, mag_v_field_raw.data(joker, joker, 0),  gp_p, gp_lat);
+        interp( mag_v_field(joker, joker, 0 ), itwv,
+                mag_v_field_raw.data(joker, joker, 0),  gp_p, gp_lat);
         
         // Interpolate mag_w_field:
         
         // Check that interpolation grids are ok (and throw a detailed
         // error message if not):
-        chk_interpolation_pgrids("Raw w field to p_grid, 2D case",wfr_p_grid,p_grid,interp_order);
-        chk_interpolation_grids("Raw w field to lat_grid, 2D case",wfr_lat_grid,lat_grid,interp_order);
+        chk_interpolation_pgrids("Raw w field to p_grid, 2D case",
+                                 wfr_p_grid,p_grid,interp_order);
+        chk_interpolation_grids("Raw w field to lat_grid, 2D case",
+                                wfr_lat_grid,lat_grid,interp_order);
         
         // Calculate grid positions:
         p2gridpos_poly( gp_p, wfr_p_grid, p_grid, interp_order );
         gridpos_poly( gp_lat, wfr_lat_grid, lat_grid, interp_order );
         
         // Interpolation weights:
-        Tensor3 itww(p_grid.nelem(), lat_grid.nelem(), (interp_order+1)*(interp_order+1));
-        // (4 interpolation weights are required for example for linear 2D interpolation)
+        Tensor3 itww(p_grid.nelem(), lat_grid.nelem(),
+                     (interp_order+1)*(interp_order+1));
+        // (4 interpolation weights are required for example for linear 2D
+        // interpolation)
         interpweights( itww, gp_p, gp_lat);
         
         // Interpolate:
-        interp( mag_w_field(joker, joker, 0 ), itww, mag_w_field_raw.data(joker, joker, 0),  gp_p, gp_lat);
+        interp( mag_w_field(joker, joker, 0 ), itww,
+                mag_w_field_raw.data(joker, joker, 0),  gp_p, gp_lat);
     }
     
     //================================================================
@@ -2625,24 +2705,36 @@ void MagFieldsCalc( //WS Output:
     else if(atmosphere_dim == 3)
     {
         if( ufr_lat_grid.nelem() == 1 && ufr_lon_grid.nelem() == 1 )
-            throw std::runtime_error("Raw data has wrong dimension. You have to use \nMagFieldsCalcExpand1D instead of MagFieldsCalc.");
+            throw std::runtime_error(
+            "Raw data has wrong dimension. You have to use \n"
+            "MagFieldsCalcExpand1D instead of MagFieldsCalc.");
         if( vfr_lat_grid.nelem() == 1 && vfr_lon_grid.nelem() == 1 )
-            throw std::runtime_error("Raw data has wrong dimension. You have to use \nMagFieldsCalcExpand1D instead of MagFieldsCalc.");
+            throw std::runtime_error(
+            "Raw data has wrong dimension. You have to use \n"
+            "MagFieldsCalcExpand1D instead of MagFieldsCalc.");
         if( wfr_lat_grid.nelem() == 1 && wfr_lon_grid.nelem() == 1 )
-            throw std::runtime_error("Raw data has wrong dimension. You have to use \nMagFieldsCalcExpand1D instead of MagFieldsCalc.");
+            throw std::runtime_error(
+            "Raw data has wrong dimension. You have to use \n"
+            "MagFieldsCalcExpand1D instead of MagFieldsCalc.");
         
         GriddedField3 temp_gfield3;
         
-        GriddedFieldLatLonRegrid(temp_gfield3, lat_grid, lon_grid, mag_u_field_raw, interp_order, verbosity);
-        GriddedFieldPRegrid(temp_gfield3, p_grid, temp_gfield3, interp_order, 0, verbosity);
+        GriddedFieldLatLonRegrid(temp_gfield3, lat_grid, lon_grid,
+                                 mag_u_field_raw, interp_order, verbosity);
+        GriddedFieldPRegrid(temp_gfield3, p_grid, temp_gfield3,
+                            interp_order, 0, verbosity);
         mag_u_field = temp_gfield3.data;
         
-        GriddedFieldLatLonRegrid(temp_gfield3, lat_grid, lon_grid, mag_v_field_raw, interp_order, verbosity);
-        GriddedFieldPRegrid(temp_gfield3, p_grid, temp_gfield3, interp_order, 0, verbosity);
+        GriddedFieldLatLonRegrid(temp_gfield3, lat_grid, lon_grid,
+                                 mag_v_field_raw, interp_order, verbosity);
+        GriddedFieldPRegrid(temp_gfield3, p_grid, temp_gfield3,
+                            interp_order, 0, verbosity);
         mag_v_field = temp_gfield3.data;
         
-        GriddedFieldLatLonRegrid(temp_gfield3, lat_grid, lon_grid, mag_w_field_raw, interp_order, verbosity);
-        GriddedFieldPRegrid(temp_gfield3, p_grid, temp_gfield3, interp_order, 0, verbosity);
+        GriddedFieldLatLonRegrid(temp_gfield3, lat_grid, lon_grid,
+                                 mag_w_field_raw, interp_order, verbosity);
+        GriddedFieldPRegrid(temp_gfield3, p_grid, temp_gfield3,
+                            interp_order, 0, verbosity);
         mag_w_field = temp_gfield3.data;
         
         
@@ -2676,15 +2768,24 @@ void WindFieldsCalc(//WS Output:
 {
     CREATE_OUT2;
     
-    const ConstVectorView ufr_p_grid   = wind_u_field_raw.get_numeric_grid(GFIELD3_P_GRID);
-    const ConstVectorView ufr_lat_grid = wind_u_field_raw.get_numeric_grid(GFIELD3_LAT_GRID);
-    const ConstVectorView ufr_lon_grid = wind_u_field_raw.get_numeric_grid(GFIELD3_LON_GRID);
-    const ConstVectorView vfr_p_grid   = wind_v_field_raw.get_numeric_grid(GFIELD3_P_GRID);
-    const ConstVectorView vfr_lat_grid = wind_v_field_raw.get_numeric_grid(GFIELD3_LAT_GRID);
-    const ConstVectorView vfr_lon_grid = wind_v_field_raw.get_numeric_grid(GFIELD3_LON_GRID);
-    const ConstVectorView wfr_p_grid   = wind_w_field_raw.get_numeric_grid(GFIELD3_P_GRID);
-    const ConstVectorView wfr_lat_grid = wind_w_field_raw.get_numeric_grid(GFIELD3_LAT_GRID);
-    const ConstVectorView wfr_lon_grid = wind_w_field_raw.get_numeric_grid(GFIELD3_LON_GRID);
+    const ConstVectorView ufr_p_grid =
+      wind_u_field_raw.get_numeric_grid(GFIELD3_P_GRID);
+    const ConstVectorView ufr_lat_grid = 
+      wind_u_field_raw.get_numeric_grid(GFIELD3_LAT_GRID);
+    const ConstVectorView ufr_lon_grid =
+      wind_u_field_raw.get_numeric_grid(GFIELD3_LON_GRID);
+    const ConstVectorView vfr_p_grid =
+      wind_v_field_raw.get_numeric_grid(GFIELD3_P_GRID);
+    const ConstVectorView vfr_lat_grid =
+      wind_v_field_raw.get_numeric_grid(GFIELD3_LAT_GRID);
+    const ConstVectorView vfr_lon_grid =
+      wind_v_field_raw.get_numeric_grid(GFIELD3_LON_GRID);
+    const ConstVectorView wfr_p_grid =
+      wind_w_field_raw.get_numeric_grid(GFIELD3_P_GRID);
+    const ConstVectorView wfr_lat_grid =
+       wind_w_field_raw.get_numeric_grid(GFIELD3_LAT_GRID);
+    const ConstVectorView wfr_lon_grid =
+       wind_w_field_raw.get_numeric_grid(GFIELD3_LON_GRID);
     
     out2 << "  Interpolation order: " << interp_order << "\n";
     
@@ -2699,21 +2800,27 @@ void WindFieldsCalc(//WS Output:
     if ( atmosphere_dim == 1)
     {
         if( !( ufr_lat_grid.nelem() == 1 && ufr_lon_grid.nelem() == 1 ))
-            throw std::runtime_error("Magnetic u field data has wrong dimension (2D or 3D).\n");
+            throw std::runtime_error(
+            "Wind u field data has wrong dimension (2D or 3D).\n");
         if( !( vfr_lat_grid.nelem() == 1 && vfr_lon_grid.nelem() == 1 ))
-            throw std::runtime_error("Magnetic v field data has wrong dimension (2D or 3D).\n");
+            throw std::runtime_error(
+            "Wind v field data has wrong dimension (2D or 3D).\n");
         if( !( wfr_lat_grid.nelem() == 1 && wfr_lon_grid.nelem() == 1 ))
-            throw std::runtime_error("Magnetic w field data has wrong dimension  (2D or 3D).\n");
+            throw std::runtime_error(
+            "Wind w field data has wrong dimension  (2D or 3D).\n");
         
         GriddedField3 temp_gfield3;
         
-        GriddedFieldPRegrid(temp_gfield3, p_grid, wind_u_field_raw, interp_order, 0, verbosity);
+        GriddedFieldPRegrid(temp_gfield3, p_grid, wind_u_field_raw,
+                            interp_order, 0, verbosity);
         wind_u_field = temp_gfield3.data;
         
-        GriddedFieldPRegrid(temp_gfield3, p_grid, wind_v_field_raw, interp_order, 0, verbosity);
+        GriddedFieldPRegrid(temp_gfield3, p_grid, wind_v_field_raw,
+                            interp_order, 0, verbosity);
         wind_v_field = temp_gfield3.data;
         
-        GriddedFieldPRegrid(temp_gfield3, p_grid, wind_w_field_raw, interp_order, 0, verbosity);
+        GriddedFieldPRegrid(temp_gfield3, p_grid, wind_w_field_raw,
+                            interp_order, 0, verbosity);
         wind_w_field = temp_gfield3.data;
     }
     
@@ -2721,13 +2828,16 @@ void WindFieldsCalc(//WS Output:
     else if(atmosphere_dim == 2)
     {
         if( ufr_lat_grid.nelem() == 1 && ufr_lon_grid.nelem() == 1 )
-            throw std::runtime_error("Raw data has wrong dimension (1D). You have to use \n"
+            throw std::runtime_error(
+            "Raw data has wrong dimension (1D). You have to use \n"
             "WindFieldsCalcExpand1D instead of WindFieldsCalc.");
         if( vfr_lat_grid.nelem() == 1 && vfr_lon_grid.nelem() == 1 )
-            throw std::runtime_error("Raw data has wrong dimension (1D). You have to use \n"
+            throw std::runtime_error(
+            "Raw data has wrong dimension (1D). You have to use \n"
             "WindFieldsCalcExpand1D instead of WindFieldsCalc.");
         if( wfr_lat_grid.nelem() == 1 && wfr_lon_grid.nelem() == 1 )
-            throw std::runtime_error("Raw data has wrong dimension (1D). You have to use \n"
+            throw std::runtime_error(
+            "Raw data has wrong dimension (1D). You have to use \n"
             "WindFieldsCalcExpand1D instead of WindFieldsCalc.");
         
         //Resize variables
@@ -2743,58 +2853,73 @@ void WindFieldsCalc(//WS Output:
         
         // Check that interpolation grids are ok (and throw a detailed
         // error message if not):
-        chk_interpolation_pgrids("Raw u field to p_grid, 2D case",ufr_p_grid,p_grid,interp_order);
-        chk_interpolation_grids("Raw u field to lat_grid, 2D case",ufr_lat_grid,lat_grid,interp_order);
+        chk_interpolation_pgrids("Raw u field to p_grid, 2D case",
+                                 ufr_p_grid,p_grid,interp_order);
+        chk_interpolation_grids("Raw u field to lat_grid, 2D case",
+                                ufr_lat_grid,lat_grid,interp_order);
         
         // Calculate grid positions:
         p2gridpos_poly( gp_p, ufr_p_grid, p_grid, interp_order );
         gridpos_poly( gp_lat, ufr_lat_grid, lat_grid, interp_order );
         
         // Interpolation weights:
-        Tensor3 itwu(p_grid.nelem(), lat_grid.nelem(), (interp_order+1)*(interp_order+1));
-        // (4 interpolation weights are required for example for linear 2D interpolation)
+        Tensor3 itwu(p_grid.nelem(), lat_grid.nelem(),
+                     (interp_order+1)*(interp_order+1));
+        // (4 interpolation weights are required for example for linear 2D
+        // interpolation)
         interpweights( itwu, gp_p, gp_lat);
         
         // Interpolate:
-        interp( wind_u_field(joker, joker, 0 ), itwu, wind_u_field_raw.data(joker, joker, 0),  gp_p, gp_lat);
+        interp( wind_u_field(joker, joker, 0 ), itwu,
+                wind_u_field_raw.data(joker, joker, 0),  gp_p, gp_lat);
         
         // Interpolate wind_v_field:
         
         // Check that interpolation grids are ok (and throw a detailed
         // error message if not):
-        chk_interpolation_pgrids("Raw v field to p_grid, 2D case",vfr_p_grid,p_grid,interp_order);
-        chk_interpolation_grids("Raw v field to lat_grid, 2D case",vfr_lat_grid,lat_grid,interp_order);
+        chk_interpolation_pgrids("Raw v field to p_grid, 2D case",
+                                 vfr_p_grid,p_grid,interp_order);
+        chk_interpolation_grids("Raw v field to lat_grid, 2D case",
+                                vfr_lat_grid,lat_grid,interp_order);
         
         // Calculate grid positions:
         p2gridpos_poly( gp_p, vfr_p_grid, p_grid, interp_order );
         gridpos_poly( gp_lat, vfr_lat_grid, lat_grid, interp_order );
         
         // Interpolation weights:
-        Tensor3 itwv(p_grid.nelem(), lat_grid.nelem(), (interp_order+1)*(interp_order+1));
-        // (4 interpolation weights are required for example for linear 2D interpolation)
+        Tensor3 itwv(p_grid.nelem(), lat_grid.nelem(),
+                     (interp_order+1)*(interp_order+1));
+        // (4 interpolation weights are required for example for linear 2D
+        // interpolation)
         interpweights( itwv, gp_p, gp_lat);
         
         // Interpolate:
-        interp( wind_v_field(joker, joker, 0 ), itwv, wind_v_field_raw.data(joker, joker, 0),  gp_p, gp_lat);
+        interp( wind_v_field(joker, joker, 0 ), itwv,
+                wind_v_field_raw.data(joker, joker, 0),  gp_p, gp_lat);
         
         // Interpolate wind_w_field:
         
         // Check that interpolation grids are ok (and throw a detailed
         // error message if not):
-        chk_interpolation_pgrids("Raw w field to p_grid, 2D case",wfr_p_grid,p_grid,interp_order);
-        chk_interpolation_grids("Raw w field to lat_grid, 2D case",wfr_lat_grid,lat_grid,interp_order);
+        chk_interpolation_pgrids("Raw w field to p_grid, 2D case",
+                                 wfr_p_grid,p_grid,interp_order);
+        chk_interpolation_grids("Raw w field to lat_grid, 2D case",
+                                wfr_lat_grid,lat_grid,interp_order);
         
         // Calculate grid positions:
         p2gridpos_poly( gp_p, wfr_p_grid, p_grid, interp_order );
         gridpos_poly( gp_lat, wfr_lat_grid, lat_grid, interp_order );
         
         // Interpolation weights:
-        Tensor3 itww(p_grid.nelem(), lat_grid.nelem(), (interp_order+1)*(interp_order+1));
-        // (4 interpolation weights are required for example for linear 2D interpolation)
+        Tensor3 itww(p_grid.nelem(), lat_grid.nelem(),
+                     (interp_order+1)*(interp_order+1));
+        // (4 interpolation weights are required for example for linear 2D
+        // interpolation)
         interpweights( itww, gp_p, gp_lat);
         
         // Interpolate:
-        interp( wind_w_field(joker, joker, 0 ), itww, wind_w_field_raw.data(joker, joker, 0),  gp_p, gp_lat);
+        interp( wind_w_field(joker, joker, 0 ), itww,
+                wind_w_field_raw.data(joker, joker, 0),  gp_p, gp_lat);
     }
     
     //================================================================
@@ -2802,24 +2927,36 @@ void WindFieldsCalc(//WS Output:
     else if(atmosphere_dim == 3)
     {
         if( ufr_lat_grid.nelem() == 1 && ufr_lon_grid.nelem() == 1 )
-            throw std::runtime_error("Raw data has wrong dimension. You have to use \nWindFieldsCalcExpand1D instead of WindFieldsCalc.");
+            throw std::runtime_error(
+            "Raw data has wrong dimension. You have to use \n"
+            "WindFieldsCalcExpand1D instead of WindFieldsCalc.");
         if( vfr_lat_grid.nelem() == 1 && vfr_lon_grid.nelem() == 1 )
-            throw std::runtime_error("Raw data has wrong dimension. You have to use \nWindFieldsCalcExpand1D instead of WindFieldsCalc.");
+            throw std::runtime_error(
+            "Raw data has wrong dimension. You have to use \n"
+            "WindFieldsCalcExpand1D instead of WindFieldsCalc.");
         if( wfr_lat_grid.nelem() == 1 && wfr_lon_grid.nelem() == 1 )
-            throw std::runtime_error("Raw data has wrong dimension. You have to use \nWindFieldsCalcExpand1D instead of WindFieldsCalc.");
+            throw std::runtime_error(
+            "Raw data has wrong dimension. You have to use \n"
+            "WindFieldsCalcExpand1D instead of WindFieldsCalc.");
         
         GriddedField3 temp_gfield3;
         
-        GriddedFieldLatLonRegrid(temp_gfield3, lat_grid, lon_grid, wind_u_field_raw, interp_order, verbosity);
-        GriddedFieldPRegrid(temp_gfield3, p_grid, temp_gfield3, interp_order, 0, verbosity);
+        GriddedFieldLatLonRegrid(temp_gfield3, lat_grid, lon_grid,
+                                 wind_u_field_raw, interp_order, verbosity);
+        GriddedFieldPRegrid(temp_gfield3, p_grid, temp_gfield3,
+                            interp_order, 0, verbosity);
         wind_u_field = temp_gfield3.data;
         
-        GriddedFieldLatLonRegrid(temp_gfield3, lat_grid, lon_grid, wind_v_field_raw, interp_order, verbosity);
-        GriddedFieldPRegrid(temp_gfield3, p_grid, temp_gfield3, interp_order, 0, verbosity);
+        GriddedFieldLatLonRegrid(temp_gfield3, lat_grid, lon_grid,
+                                 wind_v_field_raw, interp_order, verbosity);
+        GriddedFieldPRegrid(temp_gfield3, p_grid, temp_gfield3, 
+                            interp_order, 0, verbosity);
         wind_v_field = temp_gfield3.data;
         
-        GriddedFieldLatLonRegrid(temp_gfield3, lat_grid, lon_grid, wind_w_field_raw, interp_order, verbosity);
-        GriddedFieldPRegrid(temp_gfield3, p_grid, temp_gfield3, interp_order, 0, verbosity);
+        GriddedFieldLatLonRegrid(temp_gfield3, lat_grid, lon_grid,
+                                 wind_w_field_raw, interp_order, verbosity);
+        GriddedFieldPRegrid(temp_gfield3, p_grid, temp_gfield3,
+                            interp_order, 0, verbosity);
         wind_w_field = temp_gfield3.data;
         
         
