@@ -18,6 +18,15 @@ if (ENABLE_FORTRAN AND NOT NO_TMATRIX)
   add_executable(tmatrix_ampld
     ampld.lp.f
     lpd.f)
+
+  add_executable(tmatrix_tmq
+    tmq.lp.f
+    lpq.f)
+
+  add_executable(tmatrix_amplq
+    amplq.lp.f
+    lpq.f)
+
 else()
   set(ENABLE_TMATRIX false)
 endif()

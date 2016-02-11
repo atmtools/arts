@@ -1,3 +1,22 @@
+2016-02-11  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-433
+
+	* 3rdparty/tmatrix/amplq.lp.f, 3rdparty/tmatrix/amplq.par.f,
+	3rdparty/tmatrix/lpq.f, 3rdparty/tmatrix/tmq.lp.f,
+	3rdparty/tmatrix/tmq.par.f:
+
+	Add tmatrix quadprecision sources.
+
+	* 3rdparty/tmatrix/CMakeLists.txt:
+
+	Add targets matrix_tmq and tmatrix_amplq to build quadprecision
+	reference calculation executables.
+
+	* 3rdparty/tmatrix/tmatrix_amplq.ref, 3rdparty/tmatrix/tmatrix_tmq.ref:
+
+	Reference results.
+
 2016-02-10 Jana Mendrok  <jana.mendrok@chalmers.se>
 
 	* arts-2-3-432
