@@ -6,7 +6,8 @@ c ~~~~~~~~~~~~
       SUBROUTINE DISORT( NLYR, DTAUC, SSALB, PMOM, TEMPER, WVNMLO,
      &                   WVNMHI, USRTAU, NTAU, UTAU, NSTR, USRANG, NUMU,
      &                   UMU, NPHI, PHI, IBCND, FBEAM, UMU0, PHI0,
-     &                   FISOT, LAMBER, ALBEDO, HL, BTEMP, TTEMP, TEMIS,
+     &                   FISOT, INTANG,
+     &                   LAMBER, ALBEDO, HL, BTEMP, TTEMP, TEMIS,
      &                   DELTAM, PLANK, ONLYFL, ACCUR, PRNT, HEADER,
      &                   MAXCLY, MAXULV, MAXUMU, MAXCMU, MAXPHI, RFLDIR,
      &                   RFLDN, FLUP, DFDT, UAVG, UU, U0U, ALBMED,
@@ -321,6 +322,7 @@ c     .. Array Arguments ..
      &          RFLDN( MAXULV ), SSALB( MAXCLY ), TEMPER( 0:MAXCLY ),
      &          TRNMED( MAXUMU ), U0U( MAXUMU, MAXULV ), UAVG( MAXULV ),
      &          UMU( MAXUMU ), UTAU( MAXULV ),
+     &          INTANG( NSTR/2 ),
      &          UU( MAXUMU, MAXULV, MAXPHI )
 c     ..
 c     .. Local Scalars ..
@@ -396,7 +398,8 @@ c                            ** Be sure SLFTST sets all print flags off.
          COMPAR = .FALSE.
 
          CALL SLFTST( ACCUR, ALBEDO, BTEMP, DELTAM, DTAUC( 1 ), FBEAM,
-     &                FISOT, IBCND, LAMBER, NLYR, PLANK, NPHI, NUMU,
+     &                FISOT, INTANG,
+     &                IBCND, LAMBER, NLYR, PLANK, NPHI, NUMU,
      &                NSTR, NTAU, ONLYFL, PHI( 1 ), PHI0, PMOM( 0,1 ),
      &                PRNT, SSALB( 1 ), TEMIS, TEMPER( 0 ), TTEMP,
      &                UMU( 1 ), USRANG, USRTAU, UTAU( 1 ), UMU0, WVNMHI,
@@ -406,9 +409,9 @@ c                            ** Be sure SLFTST sets all print flags off.
 
    10 CONTINUE
 
-C      IF( .NOT.PASS1 .AND. LEN(HEADER).NE.0 ) 
-C     &    WRITE( *,'(//,1X,100(''*''),/,A,/,1X,100(''*''))' )
-C     &    ' DISORT: '//HEADER
+      IF( .NOT.PASS1 .AND. PRNT(1) .AND. LEN(HEADER).NE.0 ) 
+     &    WRITE( *,'(//,1X,100(''*''),/,A,/,1X,100(''*''))' )
+     &    ' DISORT: '//HEADER
 
 c                                  ** Calculate cumulative optical depth
 c                                  ** and dither single-scatter albedo
@@ -663,7 +666,8 @@ c                      ** Solve for constants of integration in homo-
 c                      ** geneous solution (general boundary conditions)
 
          CALL SOLVE0( B, BDR, BEM, BPLANK, CBAND, CMU, CWT, EXPBEA,
-     &                FBEAM, FISOT, IPVT, LAMBER, LL, LYRCUT, MAZIM, MI,
+     &                FBEAM, FISOT, INTANG,
+     &                IPVT, LAMBER, LL, LYRCUT, MAZIM, MI,
      &                MI9M2, MXCMU, NCOL, NCUT, NN, NSTR, NNLYRI, PI,
      &                TPLANK, TAUCPR, UMU0, Z, ZZ, ZPLK0, ZPLK1 )
 
@@ -703,7 +707,8 @@ c                                     ** Compute azimuthal intensity
 c                                     ** components at user angles
 
             CALL USRINT( BPLANK, CMU, CWT, DELM0, DTAUCP, EMU, EXPBEA,
-     &                   FBEAM, FISOT, GC, GU, KK, LAMBER, LAYRU, LL,
+     &                   FBEAM, FISOT, INTANG,
+     &                   GC, GU, KK, LAMBER, LAYRU, LL,
      &                   LYRCUT, MAZIM, MXCMU, MXULV, MXUMU, NCUT, NLYR,
      &                   NN, NSTR, PLANK, NUMU, NTAU, PI, RMU, TAUCPR,
      &                   TPLANK, UMU, UMU0, UTAUPR, WK, ZBEAM, Z0U, Z1U,
@@ -795,7 +800,8 @@ c                                    ** correct answers and abort if bad
          COMPAR = .TRUE.
 
          CALL SLFTST( ACCUR, ALBEDO, BTEMP, DELTAM, DTAUC( 1 ), FBEAM,
-     &                FISOT, IBCND, LAMBER, NLYR, PLANK, NPHI, NUMU,
+     &                FISOT, INTANG,
+     &                IBCND, LAMBER, NLYR, PLANK, NPHI, NUMU,
      &                NSTR, NTAU, ONLYFL, PHI( 1 ), PHI0, PMOM( 0,1 ),
      &                PRNT, SSALB( 1 ), TEMIS, TEMPER( 0 ), TTEMP,
      &                UMU( 1 ), USRANG, USRTAU, UTAU( 1 ), UMU0, WVNMHI,
@@ -2731,7 +2737,8 @@ c                                ** reversing sign of 'k' in SS(10) )
       END
 
       SUBROUTINE SOLVE0( B, BDR, BEM, BPLANK, CBAND, CMU, CWT, EXPBEA,
-     &                   FBEAM, FISOT, IPVT, LAMBER, LL, LYRCUT, MAZIM,
+     &                   FBEAM, FISOT, INTANG,
+     &                   IPVT, LAMBER, LL, LYRCUT, MAZIM,
      &                   MI, MI9M2, MXCMU, NCOL, NCUT, NN, NSTR, NNLYRI,
      &                   PI, TPLANK, TAUCPR, UMU0, Z, ZZ, ZPLK0, ZPLK1 )
 
@@ -2816,7 +2823,8 @@ c     .. Array Arguments ..
      &          CBAND( MI9M2, NNLYRI ), CMU( MXCMU ), CWT( MXCMU ),
      &          EXPBEA( 0:* ), LL( MXCMU, * ), TAUCPR( 0:* ),
      &          Z( NNLYRI ), ZPLK0( MXCMU, * ), ZPLK1( MXCMU, * ),
-     &          ZZ( MXCMU, * )
+     &          ZZ( MXCMU, * ),
+     &          INTANG ( NN )
 c     ..
 c     .. Local Scalars ..
 
@@ -2896,6 +2904,7 @@ c                                   ** Azimuth-independent case
 c                                      ** Top boundary
 
                B( IQ ) = -ZPLK0( NN + 1 - IQ, 1 ) + FISOT + TPLANK
+     &                   + INTANG( NN + 1 - IQ )
 
    60       CONTINUE
 
@@ -2949,7 +2958,8 @@ c                             ** interfaces, STWJ(20b)
 
             DO 120 IQ = 1, NN
                B( IQ ) = - ZZ( NN + 1 - IQ, 1 ) -
-     &                   ZPLK0( NN + 1 - IQ, 1 ) + FISOT + TPLANK
+     &                   ZPLK0( NN + 1 - IQ, 1 ) + FISOT + TPLANK +
+     &                   INTANG( NN + 1 - IQ )
   120       CONTINUE
 
             IF( LYRCUT ) THEN
@@ -3741,7 +3751,8 @@ c                       ** except ZJ replaced by Z0
       END
 
       SUBROUTINE USRINT( BPLANK, CMU, CWT, DELM0, DTAUCP, EMU, EXPBEA,
-     &                   FBEAM, FISOT, GC, GU, KK, LAMBER, LAYRU, LL,
+     &                   FBEAM, FISOT, INTANG,
+     &                   GC, GU, KK, LAMBER, LAYRU, LL,
      &                   LYRCUT, MAZIM, MXCMU, MXULV, MXUMU, NCUT, NLYR,
      &                   NN, NSTR, PLANK, NUMU, NTAU, PI, RMU, TAUCPR,
      &                   TPLANK, UMU, UMU0, UTAUPR, WK, ZBEAM, Z0U, Z1U,
@@ -3855,7 +3866,8 @@ c     .. Array Arguments ..
      &          RMU( MXUMU, 0:* ), TAUCPR( 0:* ), UMU( * ),
      &          UTAUPR( MXULV ), UUM( MXUMU, MXULV ), WK( MXCMU ),
      &          Z0U( MXUMU, * ), Z1U( MXUMU, * ), ZBEAM( MXUMU, * ),
-     &          ZPLK0( MXCMU, * ), ZPLK1( MXCMU, * ), ZZ( MXCMU, * )
+     &          ZPLK0( MXCMU, * ), ZPLK1( MXCMU, * ), ZZ( MXCMU, * ),
+     &          INTANG ( NN )
 c     ..
 c     .. Local Scalars ..
 
@@ -4097,7 +4109,7 @@ c                            ** component for isotropic surface
 
             IF( NEGUMU .AND. MAZIM.EQ.0 ) THEN
 
-               BNDINT = ( FISOT + TPLANK )*
+               BNDINT = ( FISOT + TPLANK + INTANG( IU ) )*
      &                  EXP( UTAUPR( LU ) / UMU( IU ) )
 
 
@@ -5542,7 +5554,8 @@ c                      ** from A*B because A*B may (over/under)flow
       END
 
       SUBROUTINE SLFTST( ACCUR, ALBEDO, BTEMP, DELTAM, DTAUC, FBEAM,
-     &                   FISOT, IBCND, LAMBER, NLYR, PLANK, NPHI, NUMU,
+     &                   FISOT, INTANG,
+     &                   IBCND, LAMBER, NLYR, PLANK, NPHI, NUMU,
      &                   NSTR, NTAU, ONLYFL, PHI, PHI0, PMOM, PRNT,
      &                   SSALB, TEMIS, TEMPER, TTEMP, UMU, USRANG,
      &                   USRTAU, UTAU, UMU0, WVNMHI, WVNMLO, COMPAR,
@@ -5581,7 +5594,7 @@ c     ..
 c     .. Array Arguments ..
 
       LOGICAL   PRNT( * )
-      REAL      PMOM( 0:* ), TEMPER( 0:* )
+      REAL      PMOM( 0:* ), TEMPER( 0:* ), INTANG( * )
 c     ..
 c     .. Local Scalars ..
 
@@ -5594,7 +5607,7 @@ c     ..
 c     .. Local Arrays ..
 
       LOGICAL   PRNTS( 7 )
-      REAL      PMOMS( 0:4 ), TEMPES( 0:1 )
+      REAL      PMOMS( 0:4 ), TEMPES( 0:1 ), INTANS( 2 )
 c     ..
 c     .. External Functions ..
 
@@ -5651,6 +5664,8 @@ c                                     ** Save user input values
          TEMISS = TEMIS
          TEMPES( 0 ) = TEMPER( 0 )
          TEMPES( 1 ) = TEMPER( 1 )
+         INTANS( 1 ) = INTANG( 1 )
+         INTANS( 2 ) = INTANG( 2 )
 
          DO 20 I = 1, 7
             PRNTS( I ) = PRNT( I )
@@ -5693,6 +5708,8 @@ c                          ** Haze L moments
          TEMIS  = 0.8
          TEMPER( 0 ) = 210.0
          TEMPER( 1 ) = 200.0
+         INTANG( 1 ) = 0.
+         INTANG( 2 ) = 0.
 
          DO 30 I = 1, 7
             PRNT( I ) = .FALSE.
@@ -5754,6 +5771,8 @@ c                                      ** Restore user input values
          TEMIS  = TEMISS
          TEMPER( 0 ) = TEMPES( 0 )
          TEMPER( 1 ) = TEMPES( 1 )
+         INTANG( 1 ) = INTANS( 1 )
+         INTANG( 2 ) = INTANS( 2 )
 
          DO 50 I = 1, 7
             PRNT( I ) = PRNTS( I )

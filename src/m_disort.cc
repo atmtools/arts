@@ -306,7 +306,10 @@ void DisortCalc(Workspace& ws,
   //Numeric temis = 0.;
   Numeric ttemp = COSMIC_BG_TEMP;
   Numeric temis = 1.;
-  
+
+  // Top of the atmosphere non-isotropic incoming radiation
+  Vector intang(nstr, 0.);
+
   // we don't need delta-scaling in microwave region
   Index deltam = FALSE_; 
       
@@ -421,7 +424,8 @@ void DisortCalc(Workspace& ws,
               umu.get_c_array(), &nphi,
               phi.get_c_array(), 
               &ibcnd, &fbeam,
-              &umu0, &phi0, &fisot, 
+              &umu0, &phi0, &fisot,
+              intang.get_c_array(),
               &lamber, 
               &albedo, hl.get_c_array(),
               &btemp, &ttemp, &temis, 

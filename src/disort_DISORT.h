@@ -34,19 +34,19 @@ typedef Numeric REAL8;
 //            flup, doublereal *dfdt, doublereal *uavg, doublereal *uu, doublereal *
 //            u0u, doublereal *albmed, doublereal *trnmed, ftnlen header_len);
 
-int disort_(INTEGER *nlyr, REAL *dtauc, REAL *
-            ssalb, REAL *pmom, REAL *temper, REAL *wvnmlo, 
+int disort_(INTEGER *nlyr, REAL *dtauc, REAL *ssalb,
+            REAL *pmom, REAL *temper, REAL *wvnmlo, 
             REAL *wvnmhi, LOGICAL *usrtau, INTEGER *ntau, REAL *utau, 
             INTEGER *nstr, LOGICAL *usrang, INTEGER *numu, REAL *umu, 
             INTEGER *nphi, REAL *phi, INTEGER *ibcnd, REAL *fbeam, 
-            REAL *umu0, REAL *phi0, REAL *fisot, LOGICAL *
-            lamber, REAL *albedo, REAL *hl, REAL *btemp, 
+            REAL *umu0, REAL *phi0, REAL *fisot, REAL *intang,
+            LOGICAL *lamber, REAL *albedo, REAL *hl, REAL *btemp, 
             REAL *ttemp, REAL *temis, LOGICAL *deltam, LOGICAL *plank,
             LOGICAL *onlyfl, REAL *accur, LOGICAL *prnt, char *header, 
             INTEGER *maxcly, INTEGER *maxulv, INTEGER *maxumu, INTEGER *maxcmu, 
-            INTEGER *maxphi, REAL *rfldir, REAL *rfldn, REAL *
-            flup, REAL *dfdt, REAL *uavg, REAL *uu, REAL *
-            u0u, REAL *albmed, REAL *trnmed);
+            INTEGER *maxphi, REAL *rfldir, REAL *rfldn,
+            REAL *flup, REAL *dfdt, REAL *uavg, REAL *uu,
+            REAL *u0u, REAL *albmed, REAL *trnmed);
 #ifdef __cplusplus
 }
 #endif

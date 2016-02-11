@@ -1,5 +1,24 @@
 2016-02-11 Jana Mendrok  <jana.mendrok@chalmers.se>
 
+	* arts-2-3-435
+	
+	Added handling of non-isotropic incoming radiation at TOA in DISORT.
+	Work in progress: ARTS interface and DISORT code done. Data preparation within
+	ARTS pending (regards calculation of angular grid, which needs to	correspond
+	to DISORT's internal double-Gauss grid for the specified nstreams, and the
+	incoming clearky rad at these angles (maybe we can use DoitGetIncoming for the
+	latter?) as well as adaptation of DisortCalc to	flexible cloudbox sizes).
+	
+	* 3rdparty/disort1.2/DISORT.f:
+	Added option of non-isotropic incoming radiation at TOA (code copied from
+	modified DISORT version by Suzuki & Mendrok as used in and tested with
+	SARTre).
+	
+	* src/m_disort.cc (DisortCalc), src/disort_DISORT.h:
+	Modified Fortran DISORT call interface for above feature.
+	
+2016-02-11 Jana Mendrok  <jana.mendrok@chalmers.se>
+
 	* arts-2-3-434
 	
 	* src/m_atmosphere.cc, methods.cc (AtmFieldsFromCompact):
