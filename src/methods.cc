@@ -9885,22 +9885,22 @@ void define_md_data_raw()
       ( NAME( "pnd_fieldZero" ),
         DESCRIPTION
         (
-         "Sets *pnd_field* to hold only zeros.\n"
+         "Sets *pnd_field* to zero and creates a dummy *scat_data* structure.\n"
          "\n"
          "Scattering calculations using the DOIT method include\n"
          "interpolation errors. If one is interested in this effect, one\n"
          "should compare the DOIT result with a clearsky calculation using\n"
          "an empty cloudbox. That means that the iterative method is\n"
          "performed for a cloudbox including no particles. This method sets\n"
-         "the particle number density field to zero and creates a\n"
-         "dummy *scat_data* structure. \n"
+         "the particle number density field to hold only zeros and creates a\n"
+         "dummy *scat_data* structure.\n"
          ),
         AUTHORS( "Claudia Emde" ),
         OUT( "pnd_field", "scat_data" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "p_grid", "lat_grid", "lon_grid" ),
+        IN( "cloudbox_limits" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),

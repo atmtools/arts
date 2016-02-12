@@ -74,19 +74,27 @@ void dtauc_ssalbCalc(Workspace& ws,
                      ConstTensor4View pnd_field,
                      ConstTensor3View t_field,
                      ConstTensor3View z_field, 
-                     ConstVectorView p_grid,
                      ConstTensor4View vmr_field,
+                     ConstVectorView p_grid,
+                     const ArrayOfIndex& cloudbox_limits,
                      ConstVectorView f_mono
                     )
 {
+  // Initialization
+  dtauc=0.;
+  ssalb=0.;
   
   const Index N_se = pnd_field.nbooks();
   // In DISORT the "cloudbox" must cover the whole atmosphere
-  const Index Np_cloud = pnd_field.npages();
-  const Index stokes_dim = 1; 
+  //const Index Np_cloud = pnd_field.npages();
+  const Index Np = t_field.npages();
 
-  assert( dtauc.nelem() == Np_cloud-1);
-  assert( ssalb.nelem() == Np_cloud-1);
+  //assert( dtauc.nelem() == Np_cloud-1);
+  //assert( ssalb.nelem() == Np_cloud-1);
+  assert( dtauc.nelem() == Np-1);
+  assert( ssalb.nelem() == Np-1);
+
+  const Index stokes_dim = 1; 
 
   // Local variables to be used in agendas
   Matrix abs_vec_spt_local(N_se, stokes_dim, 0.);
@@ -96,86 +104,92 @@ void dtauc_ssalbCalc(Workspace& ws,
   Numeric rtp_temperature_local; 
   Numeric rtp_pressure_local;
   Tensor4 propmat_clearsky_local;
-  Vector ext_vector(Np_cloud); 
-  Vector abs_vector(Np_cloud); 
+  //Vector ext_vector(Np_cloud); 
+  //Vector abs_vector(Np_cloud); 
+  Vector ext_vector(Np, 0.); 
+  Vector abs_vector(Np, 0.); 
   Vector rtp_vmr_local(vmr_field.nbooks());
-  // Calculate ext_mat, abs_vec and sca_vec for all pressure points. 
 
+  // Calculate ext_mat, abs_vec and sca_vec for all pressure points in cloudbox 
+  for(Index scat_p_index_local = cloudbox_limits[0];
+            scat_p_index_local < cloudbox_limits[1]+1; 
+            scat_p_index_local ++)
+    {
+      rtp_temperature_local = t_field(scat_p_index_local, 0, 0);
+     
+      //Calculate optical properties for all individual scattering elements:
+      spt_calc_agendaExecute(ws,
+                             ext_mat_spt_local, 
+                             abs_vec_spt_local,
+                             scat_p_index_local, 0, 0, //position
+                             rtp_temperature_local,
+                             0, 0, // angles, only needed for za=0
+                             spt_calc_agenda);
+
+      opt_prop_part_agendaExecute(ws,
+                                  ext_mat_local, abs_vec_local, 
+                                  ext_mat_spt_local, 
+                                  abs_vec_spt_local,
+                                  scat_p_index_local, 0, 0, 
+                                  opt_prop_part_agenda);
+
+      ext_vector[scat_p_index_local] = ext_mat_local(0,0,0);
+      abs_vector[scat_p_index_local] = abs_vec_local(0,0);
+    }
+
+  const Vector  rtp_temperature_nlte_local_dummy(0);
+
+  // Calculate layer averaged single scattering albedo and layer optical depth
   propmat_clearsky_local = 0.;
-  
-
- for(Index scat_p_index_local = 0; scat_p_index_local < Np_cloud; 
-      scat_p_index_local ++)
-   {
-     rtp_temperature_local = 
-       t_field(scat_p_index_local, 0, 0);
-     
-     //Calculate optical properties for all individual scattering elements:
-     spt_calc_agendaExecute(ws,
-                            ext_mat_spt_local, 
-                            abs_vec_spt_local,
-                            scat_p_index_local, 0, 0, //position
-                            rtp_temperature_local,
-                            0, 0, // angles, only needed for za=0
-                            spt_calc_agenda);
-
-     opt_prop_part_agendaExecute(ws,
-                                 ext_mat_local, abs_vec_local, 
-                                 ext_mat_spt_local, 
-                                 abs_vec_spt_local,
-                                 scat_p_index_local, 0, 0, 
-                                 opt_prop_part_agenda);
-
-     ext_vector[scat_p_index_local] = ext_mat_local(0,0,0);
-     abs_vector[scat_p_index_local] = abs_vec_local(0,0);
-   }
-
+  for (Index i = 0; i < Np-1; i++)
+    {
+      Numeric ext_part = 0.;
+      Numeric abs_part = 0.;
  
- const Vector  rtp_temperature_nlte_local_dummy(0);
+      ext_part=.5*(ext_vector[i]+ext_vector[i+1]);
+      abs_part=.5*(abs_vector[i]+abs_vector[i+1]);
 
- // Calculate layer averaged single scattering albedo and layer optical depth
- for (Index i = 0; i < Np_cloud-1; i++)
-   {
-     Numeric ext_part = 0.;
-     Numeric abs_part = 0.;
- 
-     ext_part=.5*(ext_vector[i]+ext_vector[i+1]);
-     abs_part=.5*(abs_vector[i]+abs_vector[i+1]);
-
-     rtp_pressure_local = 0.5 * (p_grid[i] + p_grid[i+1]);
-     rtp_temperature_local = 0.5 * (t_field(i,0,0) + t_field(i+1,0,0));
+      rtp_pressure_local = 0.5 * (p_grid[i] + p_grid[i+1]);
+      rtp_temperature_local = 0.5 * (t_field(i,0,0) + t_field(i+1,0,0));
      
-     // Average vmrs
-     for (Index j = 0; j < vmr_field.nbooks(); j++)
-       rtp_vmr_local[j] = 0.5 * (vmr_field(j, i, 0, 0) +
-                                      vmr_field(j, i+1, 0, 0));
+      // Average vmrs
+      for (Index j = 0; j < vmr_field.nbooks(); j++)
+        rtp_vmr_local[j] = 0.5 * (vmr_field(j, i, 0, 0) +
+                                  vmr_field(j, i+1, 0, 0));
    
-    const Vector rtp_mag_dummy(3,0);
-    const Vector ppath_los_dummy;
+      const Vector rtp_mag_dummy(3,0);
+      const Vector ppath_los_dummy;
 
-    Tensor3 nlte_dummy; //FIXME: do this right?
-    ArrayOfTensor3 partial_dummy; // This is right since there should be only clearsky partials
-    ArrayOfMatrix partial_source_dummy,partial_nlte_dummy; // This is right since there should be only clearsky partials
-    propmat_clearsky_agendaExecute(ws,
-                                   propmat_clearsky_local,
-                                   nlte_dummy,partial_dummy,partial_source_dummy,partial_nlte_dummy,
-                                   ArrayOfRetrievalQuantity(0),
-                                  f_mono,  // monochromatic calculation
-                                  rtp_mag_dummy,ppath_los_dummy,
-                                  rtp_pressure_local, 
-                                  rtp_temperature_local, 
-                                  rtp_temperature_nlte_local_dummy,
-                                  rtp_vmr_local,
-                                  propmat_clearsky_agenda);  
+      //FIXME: do this right?
+      Tensor3 nlte_dummy;
+      // This is right since there should be only clearsky partials
+      ArrayOfTensor3 partial_dummy;
+      // This is right since there should be only clearsky partials
+      ArrayOfMatrix partial_source_dummy,partial_nlte_dummy;
+      propmat_clearsky_agendaExecute(ws,
+                                     propmat_clearsky_local,
+                                     nlte_dummy,
+                                     partial_dummy,
+                                     partial_source_dummy,
+                                     partial_nlte_dummy,
+                                     ArrayOfRetrievalQuantity(0),
+                                     f_mono,  // monochromatic calculation
+                                     rtp_mag_dummy,ppath_los_dummy,
+                                     rtp_pressure_local, 
+                                     rtp_temperature_local, 
+                                     rtp_temperature_nlte_local_dummy,
+                                     rtp_vmr_local,
+                                     propmat_clearsky_agenda);  
 
-     Numeric abs_gas = propmat_clearsky_local(joker,0,0,0).sum(); //Assuming non-polarized light and only one frequency
+      //Assuming non-polarized light and only one frequency
+      Numeric abs_gas = propmat_clearsky_local(joker,0,0,0).sum();
 
-     if (ext_part!=0)
-       ssalb[Np_cloud-2-i]=(ext_part-abs_part) / (ext_part+abs_gas);
+      if (ext_part!=0)
+        ssalb[Np-2-i]=(ext_part-abs_part) / (ext_part+abs_gas);
      
-     dtauc[Np_cloud-2-i]=(ext_part+abs_gas)*
-       (z_field(i+1, 0, 0)-z_field(i, 0, 0));
-   }  
+      dtauc[Np-2-i]=(ext_part+abs_gas)*
+        (z_field(i+1, 0, 0)-z_field(i, 0, 0));
+    }  
 }
 
 //! phase_functionCalc
@@ -194,11 +208,16 @@ void dtauc_ssalbCalc(Workspace& ws,
   \date   2006-02-10
 */
 void phase_functionCalc(//Output
-                       MatrixView phase_function,
-                       //Input
-                       const ArrayOfArrayOfSingleScatteringData& scat_data_mono,
-                       ConstTensor4View pnd_field)
+                        MatrixView phase_function,
+                        //Input
+                        const ArrayOfArrayOfSingleScatteringData& scat_data_mono,
+                        ConstTensor4View pnd_field,
+                        const ArrayOfIndex& cloudbox_limits)
 {
+  // Initialization
+  phase_function=0.;
+  const Index nlyr = phase_function.nrows();
+
   const Index Np_cloud = pnd_field.npages();
   Matrix phase_function_level(Np_cloud, 
                               scat_data_mono[0][0].za_grid.nelem(), 0.);
@@ -237,12 +256,14 @@ void phase_functionCalc(//Output
                     {
                       phase_function_level(i_p, i_t) += 
                         pnd_field(i_se, i_p, 0, 0) *
-                        scat_data_mono[i_ss][i_se].pha_mat_data(0, 0, i_t, 0, 0, 0, 0);
+                        scat_data_mono[i_ss][i_se].pha_mat_data(0, 0, i_t,
+                                                                0, 0, 0, 0);
                     }
                 }
 //              if( i_t>0 )
 //                  intP += 0.5 *
-//                    (phase_function_level(i_p, i_t)+phase_function_level(i_p, i_t-1)) *
+//                    (phase_function_level(i_p, i_t) +
+//                     phase_function_level(i_p, i_t-1)) *
 //                    abs(cos(scat_data_mono[0][0].za_grid[i_t]*PI/180.)-
 //                        cos(scat_data_mono[0][0].za_grid[i_t-1]*PI/180.));
             }
@@ -261,16 +282,18 @@ void phase_functionCalc(//Output
     {
       for (Index i_t=0; i_t < phase_function_level.ncols(); i_t++)
         {
+          Index lyr_id = nlyr-1-i_l-cloudbox_limits[0];
           if ( phase_function_level(i_l, i_t) !=0 )
             if( phase_function_level(i_l+1, i_t) !=0 )
-              phase_function(Np_cloud-2-i_l, i_t) = 4*PI *
-                ( phase_function_level(i_l, i_t) + phase_function_level(i_l+1, i_t) ) /
+              phase_function(lyr_id, i_t) = 4*PI *
+                ( phase_function_level(i_l, i_t) + 
+                  phase_function_level(i_l+1, i_t) ) /
                 ( sca_coeff_level[i_l] + sca_coeff_level[i_l+1] );
             else
-              phase_function(Np_cloud-2-i_l, i_t) =
+              phase_function(lyr_id, i_t) =
                 phase_function_level(i_l, i_t) * 4*PI / sca_coeff_level[i_l];
           else if ( phase_function_level(i_l+1, i_t) !=0 )
-            phase_function(Np_cloud-2-i_l, i_t) =
+            phase_function(lyr_id, i_t) =
               phase_function_level(i_l+1, i_t) * 4*PI / sca_coeff_level[i_l+1];
         }
     }
@@ -299,6 +322,9 @@ void pmomCalc(//Output
               const Index n_legendre,
               const Verbosity& verbosity)
 {
+  // Initialization
+  pmom=0.;
+
   Numeric pint; //integrated phase function
   Numeric p0_1, p0_2, p1_1, p1_2, p2_1, p2_2;
   

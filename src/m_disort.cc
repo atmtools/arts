@@ -162,17 +162,6 @@ void DisortCalc(Workspace& ws,
       throw runtime_error( os.str() );
     }
  
-
-  // DISORT calculations are done over the whole atmosphere because it is
-  // only possible to give a constant value, i.e. cosmic background, 
-  // as input, not a radiation field at the to of the domain
-  // Hence, check whether cloudbox expands over the whole atmosphere
-  if(cloudbox_limits.nelem()!=2 ||  cloudbox_limits[0] != 0 ||
-     cloudbox_limits[1] != pnd_field.npages()-1)
-    throw runtime_error("The cloudbox is not set correctly for DISORT.\n"
-                        "Please use *cloudboxSetDisort*. \n");
-  Index nlyr=pnd_field.npages()-1;
-
   // scat_za_grid here is only relevant to provide an i_field from which the
   // sensor los angles can be interpolated by yCalc; it does not the determine
   // the accuracy of the DISORT output itself at these angles. So we can only
@@ -230,6 +219,7 @@ void DisortCalc(Workspace& ws,
   doit_i_field = 0.;
 
   // Input variables for DISORT
+  Index nlyr=t_field.npages()-1;
   // Optical depth of layers
   Vector dtauc(nlyr, 0.); 
   // Single scattering albedo of layers
@@ -242,10 +232,7 @@ void DisortCalc(Workspace& ws,
   Vector scat_angle_grid(scat_data[0][0].za_grid.nelem(), 0.);
   scat_angle_grid = scat_data[0][0].za_grid;
   
-  // Number of streams, I think in microwave 8 is more that sufficient
-  //Index nstr=8 ; 
-  // don't hardcode nstream, instead we promote it to be control parameter.
-  // check that it's an even number.
+  // Check that nstreams is an even number
   if( nstreams/2*2 != nstreams )
     {
       ostringstream os;
@@ -360,9 +347,7 @@ void DisortCalc(Workspace& ws,
   Vector t(nlyr+1);
  
   for (Index i = 0; i < t.nelem(); i++)
-    {
-      t[i] = t_field(cloudbox_limits[1]-i,0,0);
-    }
+      t[i] = t_field(nlyr-i,0,0);
       
   //dummies
   Index ntau = 0; 
@@ -376,33 +361,21 @@ void DisortCalc(Workspace& ws,
         albedo = surface_scalar_reflectivity[f_index];
       else
         albedo = surface_scalar_reflectivity[0];
-      dtauc=0.;
-      ssalb=0.;
-      phase_function=0.;
-      pmom=0.;
       
       scat_data_monoCalc(scat_data_mono, scat_data, f_grid, f_index, verbosity);
       
       dtauc_ssalbCalc(ws, dtauc, ssalb, opt_prop_part_agenda,
                       abs_scalar_gas_agenda, spt_calc_agenda, 
-                      pnd_field, 
-                      t_field, z_field, p_grid, vmr_field, f_grid[Range(f_index,1)]);
+                      pnd_field, t_field, z_field, vmr_field,
+                      p_grid, cloudbox_limits, f_grid[Range(f_index,1)]);
       
-      phase_functionCalc(phase_function, scat_data_mono, pnd_field);
+      phase_functionCalc(phase_function, scat_data_mono, pnd_field,
+                         cloudbox_limits);
 
       for( Index l=0; l<nlyr; l++ )
         if( phase_function(l,0)==0. )
           assert( ssalb[l]==0. );
-/*
-          {
-            ostringstream os;
-            os << "Phase function can not be zero when single scattering "
-               << "albedo is not.\n"
-               << "At atm layer #" << l << " pfct=0 while ssabl="
-               << ssalb[l] << ".\n";
-            throw runtime_error( os.str() );
-          }
-*/
+
       
       pmomCalc(pmom, phase_function, scat_angle_grid, n_legendre, verbosity);
       
@@ -443,9 +416,9 @@ void DisortCalc(Workspace& ws,
               trnmed.get_c_array());
 
       for(Index j = 0; j<numu; j++)
-          for(Index k = 0; k<nlyr+1; k++)
+          for(Index k = 0; k<(cloudbox_limits[1]-cloudbox_limits[0]+1); k++)
             doit_i_field(f_index, k, 0, 0, j, 0, 0) =
-              uu(0,nlyr-k,j) / (100*SPEED_OF_LIGHT);
+              uu(0,nlyr-k-cloudbox_limits[0],j) / (100*SPEED_OF_LIGHT);
 
     }
   delete [] prnt;

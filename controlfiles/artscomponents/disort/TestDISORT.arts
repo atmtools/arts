@@ -58,7 +58,8 @@ VectorSet( surface_scalar_reflectivity, [0.] )
 
 # Set cloudbox limits 
 # ---------------------------------------------------------------------
-cloudboxSetDisort
+#cloudboxSetDisort
+cloudboxSetAutomatically
 
 # Particle Number Density field calculation
 # -----------------------------------------

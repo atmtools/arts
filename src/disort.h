@@ -43,15 +43,17 @@ void dtauc_ssalbCalc(Workspace &ws,
                      ConstTensor4View pnd_field,
                      ConstTensor3View t_field,
                      ConstTensor3View z_field, 
-                     ConstVectorView p_grid,
                      ConstTensor4View vmr_field,
+                     ConstVectorView p_grid,
+                     const ArrayOfIndex& cloudbox_limits,
                      ConstVectorView f_mono);
 
 void phase_functionCalc(//Output
                         MatrixView phase_function,
                         //Input
                         const ArrayOfArrayOfSingleScatteringData& scat_data_mono,
-                        ConstTensor4View pnd_field);
+                        ConstTensor4View pnd_field,
+                        const ArrayOfIndex& cloudbox_limits);
 
 void pmomCalc(//Output
               MatrixView pmom,

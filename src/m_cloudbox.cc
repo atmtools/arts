@@ -1557,24 +1557,24 @@ void pnd_fieldZero(//WS Output:
                    Tensor4& pnd_field,
                    ArrayOfArrayOfSingleScatteringData& scat_data,
                    //WS Input:
-                   const Vector& p_grid,
-                   const Vector& lat_grid,
-                   const Vector& lon_grid,
+                   const ArrayOfIndex& cloudbox_limits,
                    const Verbosity&)
 {
-  // 3D  atmosphere
-  if (lat_grid.nelem()>1)
+  //Resize pnd_field and set it to 0:
+  Index np = cloudbox_limits[1]-cloudbox_limits[0]+1;
+  Index nlat, nlon;
+  if( cloudbox_limits.nelem() > 2 )
     {
-      //Resize pnd_field and set it to 0:
-      pnd_field.resize(1, p_grid.nelem(), lat_grid.nelem(), lon_grid.nelem());
-      pnd_field = 0.;
+      nlat = cloudbox_limits[3]-cloudbox_limits[2]+1;
+      nlon = cloudbox_limits[5]-cloudbox_limits[4]+1;
     }
-  else // 1D atmosphere
-     {
-      //Resize pnd_field and set it to 0:
-      pnd_field.resize(1, p_grid.nelem(), 1, 1);
-      pnd_field = 0.;
-     }
+  else
+    {
+      nlat = 1;
+      nlon = 1;
+    }
+  pnd_field.resize(1, np, nlat, nlon);
+  pnd_field = 0.;
   
   //Resize scat_data and set it to 0:
   // Number of scattering elements

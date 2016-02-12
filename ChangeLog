@@ -1,3 +1,22 @@
+2016-02-12 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-436
+	
+	* src/m_disort.cc (DisortCalc),
+	src/disort.cc, src/disort.h (dtauc_ssalbCalc, phase_functionCalc):
+	Changed to work with a flexible cloudbox. DISORT calculation itself is done
+	over the whole atmosphere, but output is only provided (and further used by
+	ARTS) from within the cloudbox. That improves sphericity issues for
+	slant-looking cases (it's a little slower, though - ARTS clearsky is slower
+	than DISORT clearsky).
+	
+	* controlfiles/artscomponents/disort/TestDISORT.arts:
+	Set to apply cloudboxSetAutomatically (differences to DOIT solution do indeed
+	improve a little more. no-cloud diffs no below 0.1K).
+	
+	* src/m_cloudbox.cc, src/methods.cc (pnd_fieldZero):
+	Bugfix. Do not create pnd_field covering whole atmo, but only the cloudbox.
+	
 2016-02-11 Jana Mendrok  <jana.mendrok@chalmers.se>
 
 	* arts-2-3-435
