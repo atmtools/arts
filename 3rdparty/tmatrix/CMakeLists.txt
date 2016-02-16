@@ -19,13 +19,15 @@ if (ENABLE_FORTRAN AND NOT NO_TMATRIX)
     ampld.lp.f
     lpd.f)
 
-  add_executable(tmatrix_tmq
-    tmq.lp.f
-    lpq.f)
+  if (FORTRAN_COMPILER MATCHES "ifort.*")
+    add_executable(tmatrix_tmq
+      tmq.lp.f
+      lpq.f)
 
-  add_executable(tmatrix_amplq
-    amplq.lp.f
-    lpq.f)
+    add_executable(tmatrix_amplq
+      amplq.lp.f
+      lpq.f)
+  endif()
 
 else()
   set(ENABLE_TMATRIX false)

@@ -1,3 +1,12 @@
+2016-02-16  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-437
+	
+	* 3rdparty/tmatrix/CMakeLists.txt:
+
+	Only compile quad precision test files with ifort. Fixes broken build
+	with gfortran.
+
 2016-02-12 Jana Mendrok  <jana.mendrok@chalmers.se>
 
 	* arts-2-3-436
