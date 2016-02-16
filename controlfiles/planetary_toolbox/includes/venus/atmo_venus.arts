@@ -26,7 +26,7 @@ ArrayOfStringCreate( EWwindarray )
 
 StringSet( atmobase, "planets/Venus/MPS/" )
 ArrayOfStringSet( atmoarray,
-                  ["Venus.spicav.night","Venus.spiva.night_cold","Venus.vira.night",
+                  ["Venus.spicav.night","Venus.spicav.night_cold","Venus.vira.night",
                    "Venus.vira.day","Venus.vira.day_highlat"] )
 ArrayOfStringSet( basespeciesarray,
                   ["CO", "CO2", "CO2-CIA-CO2-0", 

@@ -1,3 +1,10 @@
+2016-02-16 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-438
+	
+	* controlfiles/planetary_toolbox/includes/venus/atmo_venus.arts:
+	Typo fix (thanks to Elisa Castelli for pointing out!).
+	
 2016-02-16  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-437
