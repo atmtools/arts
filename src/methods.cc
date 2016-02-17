@@ -3763,6 +3763,7 @@ void define_md_data_raw()
          "DISORT is only availble for scalar 1D calculations and implicitly\n"
          "assumes a plane-parallel atmosphere (flat Earth). Only\n"
          "macroscopically isotropic particles can be handled correctly.\n"
+         "Refraction is not taken into account.\n"
          "\n"
          "Number of streams *nstreams* taken into account in the scattering\n"
          "solution determines the angular resolution, hence the accuracy of\n"
@@ -3773,11 +3774,38 @@ void define_md_data_raw()
          "calculations. It is likely insufficient for IR calculations\n"
          "involving ice clouds, though.\n"
          "\n"
+         "ARTS-DISORT can be run with different levels of (pseudo-)sphericity.\n"
+         "The higher the sphericity level is, the more accurate are the\n"
+         "results, but the longer the calculation takes (typically, for\n"
+         "downlooking cases - even 50deg off-nadir ones - the differences\n"
+         "between all three levels are in the order of sub-K only;\n"
+         "differences for limb cases can be significant, though.).\n"
+         "DISORT itself always assumes a plane-parallel atmosphere. Different\n"
+         "sphericity levels are emulated here by embedding DISORT in\n"
+         "different ways and using different output. The available options\n"
+         "(from low to high sphericity level) are:\n"
+         "- Cloudbox extends over whole atmosphere (e.g. by setting cloudbox\n"
+         "  from  *CloudboxSetDisort*)\n"
+         "- Cloudbox extends over a limited part of the atmosphere only (e.g.\n"
+         "  by setting cloudbox from *CloudboxSetAutomatically* or\n"
+         "  *CloudboxSetManually*), but DISORT is run over the whole\n"
+         "  atmosphere.  Only the radiation field within the cloudbox is\n"
+         "  passed on and used further in ARTS (e.g. by *yCalc*)\n"
+         "- Cloudbox extends over a limited part of the atmosphere only and\n"
+         "  *non_iso_inc* is set to 1. In this case, DISORT is run over the\n"
+         "  cloudbox only and initialized by a non-isotropic incoming\n"
+         "  radiation field on the top of the cloudbox. This incoming field\n"
+         "  is calculated by ARTS clearsky methods that take atmospheric\n"
+         "  sphericity and refractivity fully into account.\n"
+         "\n"
          "Known issues of ARTS implementation:\n"
          "- Surface altitude is not an interface parameter. Surface is\n"
          "  implicitly assumed to be at the lowest atmospheric level.\n"
          "- Surface temperature not an interface parameter, but implicitly\n"
          "  assumed to to be of lowest atmospheric level temperature.\n"
+         "- Except for *non_iso_inc*=1, where *iy_space_agenda* is applied,\n"
+         "  TOA incoming radiation is assumed as blackbody cosmic background\n"
+         "  (temp taken from ARTS-internal constant).\n"
          "- Temperature dependence of single scattering properties is\n"
          "  currently ignored (scat_data of lowest t_grid point is used).\n"
          "- Scattering angle grids of all scattering elements have to be\n"
@@ -3789,16 +3817,46 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "atmfields_checked", "atmgeom_checked",
-            "cloudbox_checked", "cloudbox_limits", "stokes_dim", 
-            "opt_prop_part_agenda", "propmat_clearsky_agenda", 
-            "spt_calc_agenda", "pnd_field", "t_field",
-            "z_field", "p_grid", "vmr_field", "scat_data", "f_grid", 
-            "scat_za_grid", "surface_scalar_reflectivity" ),
-        GIN(         "nstreams" ),
-        GIN_TYPE(    "Index" ),
-        GIN_DEFAULT( "8" ),
-        GIN_DESC( "Number of streams in DISORT solution.")
+        IN( "disort_is_initialized",
+            "atmfields_checked", "atmgeom_checked", "cloudbox_checked",
+            "cloudbox_on", "cloudbox_limits",
+            "propmat_clearsky_agenda",
+            "opt_prop_part_agenda", "spt_calc_agenda", "iy_main_agenda",
+            "pnd_field", "t_field", "z_field", "vmr_field", "p_grid",
+            "scat_data", "f_grid", "scat_za_grid",
+            "surface_scalar_reflectivity" ),
+        GIN(         "nstreams", "non_iso_inc" ),
+        GIN_TYPE(    "Index",    "Index" ),
+        GIN_DEFAULT( "8",        "0" ),
+        GIN_DESC( "Number of polar angle directions (streams) in DISORT "
+                  "solution.",
+                  "Flag whether to run DISORT initialized with non-isotropic "
+                  "TOA field. See above for more info." )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "DisortInit" ),
+        DESCRIPTION
+        (
+         "Initialises variables for DISORT scattering calculations.\n"
+         "\n"
+         "Note that multi-dimensional output variables (Tensors, specifically)\n"
+         "are NaN-initialized. That is, this methods needs to be called\n"
+         "BEFORE other WSMs that provide input to *DisortCalc*, e.g. before\n"
+         "*DisortGetIncoming*.\n"
+         ),
+        AUTHORS( "Jana Mendrok" ),
+        OUT( "doit_i_field", "disort_is_initialized" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "stokes_dim", "atmosphere_dim", "f_grid", "scat_za_grid",
+            "cloudbox_on", "cloudbox_limits", "scat_data" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
         ));
 
   md_data_raw.push_back
@@ -4237,7 +4295,7 @@ void define_md_data_raw()
          "given by scattering angle grids (*scat_za/aa_grid*). Found radiances\n"
          "are stored in *doit_i_field* which can be used as boundary\n"
          "conditions when scattering inside the cloud box is solved by the\n"
-         "DOIT method.\n"
+         "*DoitCalc* method.\n"
          "\n"
          "Note that *doit_i_field* will always hold intensity in terms of\n"
          "radiances, regardless of the setting of *iy_unit* (unit conversion\n"
@@ -4254,8 +4312,8 @@ void define_md_data_raw()
             "atmfields_checked", "atmgeom_checked", "cloudbox_checked",
             "doit_is_initialized", "iy_main_agenda",
             "atmosphere_dim", "lat_grid", "lon_grid", "z_field", "t_field", 
-            "vmr_field", "cloudbox_on", "cloudbox_limits", "f_grid", "stokes_dim", 
-            "scat_za_grid", "scat_aa_grid" ),
+            "vmr_field", "cloudbox_on", "cloudbox_limits", "f_grid",
+            "stokes_dim", "scat_za_grid", "scat_aa_grid" ),
         GIN( "rigorous", "maxratio" ),
         GIN_TYPE( "Index", "Numeric" ),
         GIN_DEFAULT( "1", "100" ),
@@ -4302,8 +4360,8 @@ void define_md_data_raw()
          "Initialises variables for DOIT scattering calculations.\n"
          "\n"
          "Note that multi-dimensional output variables (Tensors, specifically)\n"
-         "are zero-initialized. That is, this methods needs to be called\n"
-         "BEFORE other WSMs that provide input to *DOITCalc*, e.g. before\n"
+         "are NaN-initialized. That is, this methods needs to be called\n"
+         "BEFORE other WSMs that provide input to *DoitCalc*, e.g. before\n"
          "*DoitGetIncoming*.\n"
          ),
         AUTHORS( "Claudia Emde" ),

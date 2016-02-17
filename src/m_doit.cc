@@ -40,25 +40,25 @@
 #include <iostream>
 #include <cstdlib>
 #include <cmath>
+#include "agenda_class.h"
 #include "arts.h"
 #include "array.h"
 #include "auto_md.h"
 #include "check_input.h"
-#include "matpackVII.h"
-#include "logic.h"
-#include "ppath.h"
-#include "agenda_class.h"
-#include "physics_funcs.h"
+#include "doit.h"
+#include "geodetic.h"
 #include "lin_alg.h"
+#include "logic.h"
 #include "math_funcs.h"
+#include "matpackVII.h"
 #include "messages.h"
-#include "xml_io.h"
+#include "m_general.h"
+#include "physics_funcs.h"
+#include "ppath.h"
 #include "rte.h"
 #include "special_interp.h"
-#include "doit.h"
-#include "m_general.h"
 #include "wsv_aux.h"
-#include "geodetic.h"
+#include "xml_io.h"
 
 
 extern const Numeric PI;
@@ -1627,10 +1627,9 @@ void DoitInit(//WS Output
 
   if ( scat_data.empty() )
     throw runtime_error(
-                         "No scattering data files have been added.\n"
-                         "Please use the WSM *ParticleTypeAdd* or \n"
-                         "*ParticleTypeAddAll* to define the cloud \n"
-                         "properties for the scattering calculation.\n"
+                         "No single scattering data present.\n"
+                         "See documentation of WSV *scat_data* for options to "
+                         "make single scattering data available.\n"
                          );
 
   //------------- end of checks ---------------------------------------
@@ -2674,21 +2673,29 @@ void DoitGetIncoming(
                 {
                   for (Index fi = 0; fi < Nf; fi ++)
                     {
-                      if( doit_i_field(fi,boundary_index,0,0,scat_za_index-1,0,0)/doit_i_field(fi,boundary_index,0,0,scat_za_index,0,0) > maxratio ||
-                          doit_i_field(fi,boundary_index,0,0,scat_za_index-1,0,0)/doit_i_field(fi,boundary_index,0,0,scat_za_index,0,0) < 1/maxratio )
+                      if( doit_i_field(fi,boundary_index,0,0,scat_za_index-1,0,0) /
+                          doit_i_field(fi,boundary_index,0,0,scat_za_index,0,0) >
+                          maxratio ||
+                          doit_i_field(fi,boundary_index,0,0,scat_za_index-1,0,0) /
+                          doit_i_field(fi,boundary_index,0,0,scat_za_index,0,0) <
+                          1/maxratio )
                         {
                           ostringstream os;
-                          os << "ERROR: Radiance difference between interpolation\n"
-                             << "points is too large (factor " << maxratio << ") to\n"
-                             << "safely interpolate. This might be due to za_grid\n"
-                             << "being too coarse or the radiance field being a\n"
-                             << "step-like function.\n";
-                          os << "Happens at boundary " << boundary_index << " between zenith\n"
-                             << "angels " << scat_za_grid[scat_za_index-1] << " and "
-                             << scat_za_grid[scat_za_index] << "deg for frequency"
-                             << "#" << fi << ", where radiances are "
+                          os << "ERROR: Radiance difference between "
+                             << "interpolation points is too large (factor "
+                             << maxratio << ")\n"
+                             << "to safely interpolate. This might be due to "
+                             << "za_grid being too coarse or the radiance field "
+                             << "being a step-like function.\n"
+                             << "Happens at boundary " << boundary_index
+                             << " between zenith angles "
+                             << scat_za_grid[scat_za_index-1] << " and "
+                             << scat_za_grid[scat_za_index] << "deg\n"
+                             << "for frequency #" << fi
+                             << ", where radiances are "
                              << doit_i_field(fi,boundary_index,0,0,scat_za_index-1,0,0)
-                             << " and " << doit_i_field(fi,boundary_index,0,0,scat_za_index,0,0)
+                             << " and "
+                             << doit_i_field(fi,boundary_index,0,0,scat_za_index,0,0)
                              << " W/(sr m2 Hz).";
                           throw runtime_error(os.str());
                         }
@@ -3218,7 +3225,8 @@ void doit_i_fieldSetFromPrecalc(
   // compared to our first guess initialization, the clearsky field around might
   // have changed.
 
-  // Find which scat_za_grid entries describe upwelling, which downwelling radiation.
+  // Find which scat_za_grid entries describe upwelling, which downwelling
+  // radiation.
   Index first_upwell = 0;
   assert(scat_za_grid[0]<90.);
   assert(scat_za_grid[scat_za_grid.nelem()-1]>90.);
@@ -3313,10 +3321,12 @@ void doit_i_fieldSetClearsky(Tensor7& doit_i_field,
             interpweights ( itw, p_gp );
 
             Tensor6 scat_i_p( 2, 1, 1, N_za, 1, N_i );
-            scat_i_p(0, joker, joker, joker, joker, joker) = doit_i_field(f_index, 0, joker, joker,
-                                                                          joker, joker, joker);
-            scat_i_p(1, joker, joker, joker, joker, joker) = doit_i_field(f_index, doit_i_field.nvitrines()-1,
-                                                                          joker, joker, joker, joker, joker);
+            scat_i_p(0, joker, joker, joker, joker, joker) = 
+              doit_i_field(f_index, 0,
+                           joker, joker, joker, joker, joker);
+            scat_i_p(1, joker, joker, joker, joker, joker) = 
+              doit_i_field(f_index, doit_i_field.nvitrines()-1,
+                           joker, joker, joker, joker, joker);
 
 
             for (Index za_index = 0; za_index < N_za ; ++ za_index)
@@ -3368,28 +3378,28 @@ void doit_i_fieldSetClearsky(Tensor7& doit_i_field,
             Index N_i = doit_i_field.ncols();
 
             Tensor6 scat_i_p( 2, N_lat, N_lon, N_za, N_aa, N_i );
-            scat_i_p(0, joker, joker, joker, joker, joker) = doit_i_field(f_index,
-                                                                          0, joker, joker,
-                                                                          joker, joker, joker);
-            scat_i_p(1, joker, joker, joker, joker, joker) = doit_i_field(f_index,
-                                                                          N_p-1, joker, joker,
-                                                                          joker, joker, joker);
+            scat_i_p(0, joker, joker, joker, joker, joker) =
+              doit_i_field(f_index, 0,
+                           joker, joker, joker, joker, joker);
+            scat_i_p(1, joker, joker, joker, joker, joker) =
+              doit_i_field(f_index, N_p-1,
+                           joker, joker, joker, joker, joker);
 
             Tensor6 scat_i_lat( N_p, 2, N_lon, N_za, N_aa, N_i );
-            scat_i_lat(joker, 0, joker, joker, joker, joker) = doit_i_field(f_index,
-                                                                            joker, 0, joker,
-                                                                            joker, joker, joker);
-            scat_i_lat(joker, 1, joker, joker, joker, joker) = doit_i_field(f_index,
-                                                                            joker, N_lat-1, joker,
-                                                                            joker, joker, joker);
+            scat_i_lat(joker, 0, joker, joker, joker, joker) =
+              doit_i_field(f_index, joker, 0,
+                           joker, joker, joker, joker);
+            scat_i_lat(joker, 1, joker, joker, joker, joker) =
+              doit_i_field(f_index, joker, N_lat-1,
+                           joker, joker, joker, joker);
 
             Tensor6 scat_i_lon( N_p, N_lat, 2, N_za, N_aa, N_i );
-            scat_i_lon(joker, joker, 0, joker, joker, joker) = doit_i_field(f_index,
-                                                                            joker, joker, 0,
-                                                                            joker, joker, joker);
-            scat_i_lon(joker, joker, 1, joker, joker, joker) = doit_i_field(f_index,
-                                                                            joker, joker, N_lon-1,
-                                                                            joker, joker, joker);
+            scat_i_lon(joker, joker, 0, joker, joker, joker) =
+              doit_i_field(f_index, joker, joker, 0,
+                           joker, joker, joker);
+            scat_i_lon(joker, joker, 1, joker, joker, joker) =
+              doit_i_field(f_index, joker, joker, N_lon-1,
+                           joker, joker, joker);
 
             //1. interpolation - pressure grid, latitude grid and longitude grid
 
@@ -3434,7 +3444,8 @@ void doit_i_fieldSetClearsky(Tensor7& doit_i_field,
 
             // interpolation - pressure grid
             for (Index lat_index = 0;
-                 lat_index <= (cloudbox_limits[3]-cloudbox_limits[2]); ++ lat_index)
+                 lat_index <= (cloudbox_limits[3]-cloudbox_limits[2]);
+                 ++ lat_index)
             {
                 for (Index lon_index = 0;
                      lon_index <= (cloudbox_limits[5]-cloudbox_limits[4]);
@@ -3447,20 +3458,22 @@ void doit_i_fieldSetClearsky(Tensor7& doit_i_field,
                             for (Index i = 0 ; i < N_i ; ++ i)
                             {
 
-                                VectorView target_field = doit_i_field(f_index,
-                                                                       Range(joker),
-                                                                       lat_index,
-                                                                       lon_index,
-                                                                       za_index,
-                                                                       aa_index,
-                                                                       i);
+                                VectorView target_field =
+                                  doit_i_field(f_index,
+                                               Range(joker),
+                                               lat_index,
+                                               lon_index,
+                                               za_index,
+                                               aa_index,
+                                               i);
 
-                                ConstVectorView source_field = scat_i_p(Range(joker),
-                                                                        lat_index,
-                                                                        lon_index,
-                                                                        za_index,
-                                                                        aa_index,
-                                                                        i);
+                                ConstVectorView source_field =
+                                  scat_i_p(Range(joker),
+                                           lat_index,
+                                           lon_index,
+                                           za_index,
+                                           aa_index,
+                                           i);
 
                                 interp(target_field,
                                        itw_p,
@@ -3519,20 +3532,22 @@ void doit_i_fieldSetClearsky(Tensor7& doit_i_field,
                             for (Index i = 0 ; i < N_i ; ++ i)
                             {
 
-                                VectorView target_field = doit_i_field(f_index,
-                                                                       p_index,
-                                                                       lat_index,
-                                                                       Range(joker),
-                                                                       za_index,
-                                                                       aa_index,
-                                                                       i);
+                                VectorView target_field =
+                                  doit_i_field(f_index,
+                                               p_index,
+                                               lat_index,
+                                               Range(joker),
+                                               za_index,
+                                               aa_index,
+                                               i);
 
-                                ConstVectorView source_field = scat_i_lon(p_index,
-                                                                          lat_index,
-                                                                          Range(joker),
-                                                                          za_index,
-                                                                          aa_index,
-                                                                          i);
+                                ConstVectorView source_field =
+                                  scat_i_lon(p_index,
+                                             lat_index,
+                                             Range(joker),
+                                             za_index,
+                                             aa_index,
+                                             i);
 
                                 interp(target_field,
                                        itw_lon,
@@ -3573,7 +3588,8 @@ void doit_i_fieldSetConst(//WS Output:
 
     for (Index f_index = 0; f_index < doit_i_field.nlibraries(); f_index++)
     {
-        doit_i_field_mono = doit_i_field(f_index, joker, joker, joker, joker, joker, joker);
+        doit_i_field_mono =
+          doit_i_field(f_index, joker, joker, joker, joker, joker, joker);
         doit_i_field_monoSetConst(doit_i_field_mono,
                                   p_grid,
                                   lat_grid,
@@ -3583,7 +3599,8 @@ void doit_i_fieldSetConst(//WS Output:
                                   stokes_dim,
                                   doit_i_field_values,
                                   verbosity);
-        doit_i_field(f_index, joker, joker, joker, joker, joker, joker) = doit_i_field_mono;
+        doit_i_field(f_index, joker, joker, joker, joker, joker, joker) =
+          doit_i_field_mono;
     }
 }
 

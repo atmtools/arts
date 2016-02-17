@@ -63,8 +63,31 @@ void pmomCalc(//Output
               const Index n_legendre,
               const Verbosity& verbosity);
 
-Numeric planck2(const Numeric&   f, 
-                const Numeric&   t);
+#ifdef ENABLE_DISORT
+void get_cb_inc_field(Workspace&      ws,
+                      Matrix&         cb_inc_field,
+                      const Agenda&   iy_main_agenda,
+                      const Tensor3&  z_field,
+                      const Tensor3&  t_field,
+                      const Tensor4&  vmr_field,
+                      const ArrayOfIndex&   cloudbox_limits,
+                      const Vector&   f_grid,
+                      const Vector&   scat_za_grid,
+                      const Index&    nstreams);
+#else /* ENABLE_DISORT */
+void get_cb_inc_field(Workspace&,
+                       Matrix&,
+                       const Agenda&,
+                       const Tensor3&,
+                       const Tensor3&,
+                       const Tensor4&,
+                       const Index&,
+                       const ArrayOfIndex&,
+                       const Vector&,
+                       const Vector&,
+                       const Index&);
+
+#endif /* ENABLE_DISORT */
 
 #endif /* disort_h */
 

@@ -47,6 +47,8 @@ int disort_(INTEGER *nlyr, REAL *dtauc, REAL *ssalb,
             INTEGER *maxphi, REAL *rfldir, REAL *rfldn,
             REAL *flup, REAL *dfdt, REAL *uavg, REAL *uu,
             REAL *u0u, REAL *albmed, REAL *trnmed);
+            
+int qgausn_(INTEGER *nn, REAL *gmu, REAL *gwt);
 #ifdef __cplusplus
 }
 #endif

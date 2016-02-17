@@ -18,6 +18,29 @@ c       Plane-parallel discrete ordinates radiative transfer program
 c             ( see DISORT.doc for complete documentation )
 c *******************************************************************
 c
+C
+C 2016-02-16  Jana Mendrok
+C The version has been modified to handle non-isotropic incoming
+C radiation at top of atmosphere (TOA).
+C
+C New interface parameter INTANG holds the incoming radiation at TOA,
+C i.e. downwelling radiation at TOA. It has to provide the values for
+C both the internal directions aka streams and the user angle
+C directions (only applied if USRANG=TRUE).
+C
+C INTANG[1:NN] hold the internal stream directions with INTANG[1] being
+C the incoming radiation at the most horizontal downwelling stream
+C (mu~0) and INTANG[NN] at straightest downwelling stream (mu~-1).
+C
+C INTANG[NN+1:NN+NUMU] holds the incoming radiation at TOA for the user
+C angles UMU with INTANG[NN+1] being the TOA radiation at the
+C straightest downwelling user angle and INTANG[NN+NUMU] the radiation
+C at the straightest upwelling user angle. INTANG[NN+i] is non-zero
+C only if UMU[i]<0, i.e. a downwelling direction.
+C
+C Note that the different order of the internal stream and user angle
+C parts results from the different order of CMU and UMU.
+C
 c +------------------------------------------------------------------+
 c  Calling Tree (omitting calls to ERRMSG):
 c  (routines in parentheses are not in this file)
@@ -322,7 +345,7 @@ c     .. Array Arguments ..
      &          RFLDN( MAXULV ), SSALB( MAXCLY ), TEMPER( 0:MAXCLY ),
      &          TRNMED( MAXUMU ), U0U( MAXUMU, MAXULV ), UAVG( MAXULV ),
      &          UMU( MAXUMU ), UTAU( MAXULV ),
-     &          INTANG( NSTR/2 ),
+     &          INTANG( MAXUMU+MAXCMU/2 ),
      &          UU( MAXUMU, MAXULV, MAXPHI )
 c     ..
 c     .. Local Scalars ..
@@ -2824,7 +2847,7 @@ c     .. Array Arguments ..
      &          EXPBEA( 0:* ), LL( MXCMU, * ), TAUCPR( 0:* ),
      &          Z( NNLYRI ), ZPLK0( MXCMU, * ), ZPLK1( MXCMU, * ),
      &          ZZ( MXCMU, * ),
-     &          INTANG ( NN )
+     &          INTANG ( * )
 c     ..
 c     .. Local Scalars ..
 
@@ -2904,7 +2927,7 @@ c                                   ** Azimuth-independent case
 c                                      ** Top boundary
 
                B( IQ ) = -ZPLK0( NN + 1 - IQ, 1 ) + FISOT + TPLANK
-     &                   + INTANG( NN + 1 - IQ )
+     &                   + INTANG( IQ )
 
    60       CONTINUE
 
@@ -2959,7 +2982,7 @@ c                             ** interfaces, STWJ(20b)
             DO 120 IQ = 1, NN
                B( IQ ) = - ZZ( NN + 1 - IQ, 1 ) -
      &                   ZPLK0( NN + 1 - IQ, 1 ) + FISOT + TPLANK +
-     &                   INTANG( NN + 1 - IQ )
+     &                   INTANG( IQ )
   120       CONTINUE
 
             IF( LYRCUT ) THEN
@@ -3867,7 +3890,7 @@ c     .. Array Arguments ..
      &          UTAUPR( MXULV ), UUM( MXUMU, MXULV ), WK( MXCMU ),
      &          Z0U( MXUMU, * ), Z1U( MXUMU, * ), ZBEAM( MXUMU, * ),
      &          ZPLK0( MXCMU, * ), ZPLK1( MXCMU, * ), ZZ( MXCMU, * ),
-     &          INTANG ( NN )
+     &          INTANG ( * )
 c     ..
 c     .. Local Scalars ..
 
@@ -4109,7 +4132,7 @@ c                            ** component for isotropic surface
 
             IF( NEGUMU .AND. MAZIM.EQ.0 ) THEN
 
-               BNDINT = ( FISOT + TPLANK + INTANG( IU ) )*
+               BNDINT = ( FISOT + TPLANK + INTANG( IU + NN ) )*
      &                  EXP( UTAUPR( LU ) / UMU( IU ) )
 
 

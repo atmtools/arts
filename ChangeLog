@@ -1,5 +1,47 @@
 2016-02-17 Jana Mendrok  <jana.mendrok@chalmers.se>
 
+	* arts-2-3-441
+	
+	Non-isotropic incoming radiation at DISORT-TOA functional and available
+	option in *DisortCalc*.
+	
+  * src/m_disort.cc
+  (DisortInit):
+  Added. Disort-eqivalent to DoitInit.
+
+  (DisortCalc):
+  Adapted for possible calc of Disort-TOA non-iso incoming field and passing of
+  cloudbox-only atm layer data to Disort. Removed a bunch of checks now
+  performed by DisortInit as well as variables that were only needed for checks.
+
+  * src/methods.cc:
+  Updated DisortCalc doc. Added DisortInit.
+
+  * src/disort.cc, disort.h
+  (get_cb_inc_field):
+  Added. Method that calculates top-of-cloudbox incoming rad at DISORT stream
+  and scat_za_grid angles, to be used as DISORT non-iso TOA rad.
+
+  (planck2):
+  Removed. When needed, physics_funcs.cc planck is applied (works now that f2c
+  is replaced by direct FORTRAN compilation).
+  
+  * src/disort_DISORT.h:
+  Added qgausn_, DISORT's own gausian quad angle calc method, to make available
+  in ARTS.
+  
+	* 3rdparty/disort1.2/DISORT.f:
+	Corrected selection of direction-corresponding non-iso TOA rad value for
+	internal and user angle solutions. Corrected array size of input TOA rad
+	array.
+	
+	* controlfiles/artscomponents/disort/TestDISORT.arts:
+	Apply DisortInit.
+	
+	* src/m_doit.cc: Cosmetics.
+
+2016-02-17 Jana Mendrok  <jana.mendrok@chalmers.se>
+
 	* arts-2-3-440
 	
 	* src/workspace.cc (pnd_field):

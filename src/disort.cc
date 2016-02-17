@@ -29,14 +29,16 @@
 #include <iostream>
 #include <cstdlib>
 #include <cmath>
-#include "array.h"
 #include "agenda_class.h"
-#include "messages.h"
-#include "xml_io.h"
-#include "logic.h"
-#include "check_input.h"
+#include "array.h"
 #include "auto_md.h"
+#include "check_input.h"
+#include "disort_DISORT.h"
 #include "interpolation.h"
+#include "logic.h"
+#include "messages.h"
+#include "rte.h"
+#include "xml_io.h"
 
 extern const Numeric PI;
 extern const Numeric PLANCK_CONST;
@@ -87,7 +89,7 @@ void dtauc_ssalbCalc(Workspace& ws,
   const Index N_se = pnd_field.nbooks();
   // In DISORT the "cloudbox" must cover the whole atmosphere
   //const Index Np_cloud = pnd_field.npages();
-  const Index Np = t_field.npages();
+  const Index Np = p_grid.nelem();
 
   //assert( dtauc.nelem() == Np_cloud-1);
   //assert( ssalb.nelem() == Np_cloud-1);
@@ -419,35 +421,89 @@ void pmomCalc(//Output
     }
 }
 
-//! planck
-/*! 
-  Calculates the Planck function for a single temperature.
-  
-  Comment by CE: 
-  Copied here from physics_funcs.cc, because I cannot include physics.h 
-  in m_disort.cc. The problem is that the definition of complex is not 
-  compatible with f2c.h
- 
-  Note that this expression gives the intensity for both polarisations.
-  
-  \return     blackbody radiation
-  \param  f   frequency
-  \param  t   temperature
-  
-  \author Patrick Eriksson 
-  \date   2000-04-08 
-*/
-Numeric planck2( 
-        const Numeric&   f, 
-        const Numeric&   t )
+#ifdef ENABLE_DISORT
+ /* Workspace method: Doxygen documentation will be auto-generated */
+void get_cb_inc_field(Workspace&      ws,
+                      Matrix&         cb_inc_field,
+                      const Agenda&   iy_main_agenda,
+                      const Tensor3&  z_field,
+                      const Tensor3&  t_field,
+                      const Tensor4&  vmr_field,
+                      const ArrayOfIndex&   cloudbox_limits,
+                      const Vector&   f_grid,
+                      const Vector&   scat_za_grid,
+                      const Index&    nstreams
+                     )
 {
-  assert( f > 0 );
-  assert( t >= 0 );
-
-  // Double must be used here (if not, a becomes 0 when using float)
-  static const double a = 2 * PLANCK_CONST / (SPEED_OF_LIGHT*SPEED_OF_LIGHT);
-  static const double b = PLANCK_CONST / BOLTZMAN_CONST;
+  // iy_unit hard.coded to "1" here
+  const String iy_unit = "1";
   
-  return   a * f*f*f / ( exp( b*f/t ) - 1 );
+  Matrix iy;
+
+  //Define the variables for position and direction.
+  Vector   los(1), pos(1);
+  
+  //--- Get complete polar angle grid
+  //    1st part: the nstreams/2 Double Gauss quad angles for internal Disort use
+  //    2nd part: the scat_za_grid directions (za_grid as well as
+  //              cloudbox_incoming_field contains all angles of scat_za_grid,
+  //              but cloudbox_incoming_field is only calculated for the
+  //              downwelling ones)
+  Index nn=nstreams/2;
+  Index nsza = scat_za_grid.nelem();
+  Index nza = nn+nsza;
+  Vector za_grid(nza,0.);
+  za_grid[Range(nn,nsza)] = scat_za_grid;
+  cb_inc_field.resize(f_grid.nelem(),nza);
+  cb_inc_field = 0.;
+
+  Vector gmu(nn);
+  Vector gwt(nn);
+  
+  // Call disort's gaussian quad points & weights subroutine
+  qgausn_(&nn,
+          gmu.get_c_array(),
+          gwt.get_c_array()
+         );
+         
+  // Calc polar angles za from their cosines mu
+  for (Index i = 0; i<nn; i++)
+    za_grid[i] = acos(gmu[i]) * 180./PI;
+
+  //--- Get radiance field at boundaries (for Disort only at upper boundary)
+  //    (boundary=0: lower, boundary=1: upper)
+  pos[0] = z_field( cloudbox_limits[1], 0, 0 );
+
+  for (Index za_index = 0; za_index < za_grid.nelem(); za_index ++)
+    {
+      los[0] =  za_grid[za_index];
+      if( los[0] <=90. )
+        {
+          get_iy( ws, iy, t_field, z_field, vmr_field, 0, f_grid, pos, los, 
+                  Vector(0), iy_unit, iy_main_agenda );
+
+          cb_inc_field(joker,za_index) = iy(joker,0);
+        }
+    }
 }
+
+#else /* ENABLE_DISORT */
+
+void get_cb_inc_field(Workspace&,
+                       Matrix&,
+                       const Agenda&,
+                       const Tensor3&,
+                       const Tensor3&,
+                       const Tensor4&,
+                       const Index&,
+                       const ArrayOfIndex&,
+                       const Vector&,
+                       const Vector&,
+                       const Index&
+                      )
+{
+  throw runtime_error ("This version of ARTS was compiled without DISORT support.");
+}
+
+#endif /* ENABLE_DISORT */
 
