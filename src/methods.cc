@@ -5718,12 +5718,12 @@ void define_md_data_raw()
       ( NAME( "GetEnvironmentVariable" ),
         DESCRIPTION
         (
-         "Copy the contents of an environment variable to an ARTS String.\n"
+         "Copy the contents of an environment variable to an ARTS String or Index.\n"
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
         GOUT( "out" ),
-        GOUT_TYPE( "String" ),
+        GOUT_TYPE( "String, Index" ),
         GOUT_DESC( "Contents of environment variable." ),
         IN(),
         GIN( "in" ),

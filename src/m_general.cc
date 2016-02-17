@@ -529,5 +529,36 @@ void GetEnvironmentVariable(// WS Generic Output:
 {
     char *cstr;
     cstr = std::getenv (envvar.c_str());
+    if (cstr == NULL)
+    {
+        std::ostringstream os;
+        os << "Environment variable " << envvar << " does not exist.";
+        throw std::runtime_error(os.str());
+    }
     str = cstr != NULL?String(cstr):"";
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void GetEnvironmentVariable(// WS Generic Output:
+                            Index& i,
+                            // WS Generic Input:
+                            const String& envvar,
+                            const Verbosity& /* verbosity */)
+{
+    char *cstr;
+    cstr = std::getenv (envvar.c_str());
+    if (cstr == NULL || std::strlen(cstr) == 0)
+    {
+        std::ostringstream os;
+        os << "Environment variable " << envvar << " is empty or does not exist.";
+        throw std::runtime_error(os.str());
+    }
+    std::istringstream is(cstr);
+    is >> i;
+    if (!is.eof())
+    {
+        ostringstream os;
+        os << "Cannot convert environment variable " << envvar << " to Index: " << cstr;
+        throw std::runtime_error(os.str());
+    }
 }
