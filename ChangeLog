@@ -1,5 +1,11 @@
 2016-02-17 Jana Mendrok  <jana.mendrok@chalmers.se>
 
+	* arts-2-3-442
+	
+	* src/m_disort.cc: Bugfix non-Fortran interface of DisortCalc.
+	
+2016-02-17 Jana Mendrok  <jana.mendrok@chalmers.se>
+
 	* arts-2-3-441
 	
 	Non-isotropic incoming radiation at DISORT-TOA functional and available
