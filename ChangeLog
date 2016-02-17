@@ -1,3 +1,11 @@
+2016-02-17 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-440
+	
+	* src/workspace.cc (pnd_field):
+	Added note/explanation of scat element correspondence in pnf_field and
+	scat_data. On request of Patrick.
+	
 2016-02-17  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-439

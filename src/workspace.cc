@@ -1067,6 +1067,25 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
+    ( NAME( "cloudbox_incoming_field" ),
+      DESCRIPTION
+      (
+       "Incoming radiation field at cloudbox boundary.\n"
+       "\n"
+       "So far this is only used by DISORT scattering solver methods and is\n"
+       "only implemented as upper cloudbox incoming (i.e. downwelling) field,\n"
+       "i.e. neglecting latitude and longitude dimensions as well as lower\n"
+       "boundary. Extend dimensions if required.\n"
+       "\n"
+       "Note that for DISORT is has hold both the incoming field of the\n"
+       "internal DISORT calculation directions (streams) as well as for the\n"
+       "*doit_i_field* directions as given by *scat_za_grid*. For more see\n"
+       "*DisortGetIncoming*.\n"
+       ),
+      GROUP( "Matrix" )));
+      
+  wsv_data.push_back
+   (WsvRecord
     ( NAME( "cloudbox_limits" ),
       DESCRIPTION
       (
@@ -1224,38 +1243,17 @@ void Workspace::define_wsv_data()
        ),
       GROUP( "Sparse" )));
 
-   wsv_data.push_back
+  wsv_data.push_back
    (WsvRecord
    ( NAME( "dabs_coef_dx" ),
      DESCRIPTION
      (
-         "The partial derivatives of the matrix of total scalar absorption coefficients.\n"
+         "The partial derivatives of the matrix of total scalar absorption\n"
+         "coefficients.\n"
          "\n"
-         "Contains the derivative of the gas absorption summed over all species as a function of\n"
-         "*f_grid* and *abs_p*, i.e., for a single atmospheric profile for some parameter.\n"
-         "\n"
-         "This variable is not used explicitly in a standard calculation, where\n"
-         "absorption comes from the lookup table *abs_lookup*. However, it is\n"
-         "useful for testing the methods that actually calculate line-by-line\n"
-         "absorption, which have this variable as output. These methods are\n"
-         "called internally by the method *abs_lookupCalc*, which generates\n"
-         "the lookup table.\n"
-         "\n"
-         "Dimensions: [n_quantities][f_grid, abs_p]\n"
-         "\n"
-         "Unit: 1/m/quantity\n"
-     ),
-     GROUP( "ArrayOfMatrix" )));
-   
-   wsv_data.push_back
-   (WsvRecord
-   ( NAME( "dsrc_coef_dx" ),
-     DESCRIPTION
-     (
-         "The partial derivatives of the matrix of total scalar NLTE source term.\n"
-         "\n"
-         "Contains the derivative of the NLTE source term summed over all species as a function of\n"
-         "*f_grid* and *abs_p*, i.e., for a single atmospheric profile for some parameter.\n"
+         "Contains the derivative of the gas absorption summed over all\n"
+         "species as a function of *f_grid* and *abs_p*, i.e., for a single\n"
+         "atmospheric profile for some parameter.\n"
          "\n"
          "This variable is not used explicitly in a standard calculation, where\n"
          "absorption comes from the lookup table *abs_lookup*. However, it is\n"
@@ -1270,16 +1268,18 @@ void Workspace::define_wsv_data()
      ),
      GROUP( "ArrayOfMatrix" )));
    
-   wsv_data.push_back
+  wsv_data.push_back
    (WsvRecord
    ( NAME( "dabs_xsec_per_species_dx" ),
      DESCRIPTION
      (
-         "Derivative of *abs_xsec_per_species* with respect to retrieval quantities.\n"
+         "Derivative of *abs_xsec_per_species* with respect to retrieval\n"
+         "quantities.\n"
          "\n"
-         "The variable gives the derivative of *abs_xsec_per_species* with respect to some\n"
-         "variables (but not all jacobian variables). Handled are only variables\n"
-         "that are involved in xsec and cannot be calculated at transmission level\n"
+         "The variable gives the derivative of *abs_xsec_per_species* with\n"
+         "respect to some variables (but not all jacobian variables). Handled\n"
+         "are only variables that are involved in xsec and cannot be\n"
+         "calculated at transmission level\n"
          "\n"
          "Usage:      Output of *abs_xsec_agenda*.\n"
          "\n"
@@ -1288,16 +1288,55 @@ void Workspace::define_wsv_data()
      ),
      GROUP( "ArrayOfArrayOfMatrix" )));
    
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "disort_is_initialized" ),
+      DESCRIPTION
+      (
+       "Flag to determine if *DisortInit* was called.\n"
+       "\n"
+       "This flag is checked by *DisortCalc* to make sure that\n"
+       "*DisortInit* was called before.\n"
+       ),
+      GROUP( "Index" )));
+
+   wsv_data.push_back
+   (WsvRecord
+   ( NAME( "dsrc_coef_dx" ),
+     DESCRIPTION
+     (
+         "The partial derivatives of the matrix of total scalar NLTE source\n"
+         "term.\n"
+         "\n"
+         "Contains the derivative of the NLTE source term summed over all\n"
+         "species as a function of *f_grid* and *abs_p*, i.e., for a single\n"
+         "atmospheric profile for some parameter.\n"
+         "\n"
+         "This variable is not used explicitly in a standard calculation, where\n"
+         "absorption comes from the lookup table *abs_lookup*. However, it is\n"
+         "useful for testing the methods that actually calculate line-by-line\n"
+         "absorption, which have this variable as output. These methods are\n"
+         "called internally by the method *abs_lookupCalc*, which generates\n"
+         "the lookup table.\n"
+         "\n"
+         "Dimensions: [n_quantities][f_grid, abs_p]\n"
+         "\n"
+         "Unit: 1/m/quantity\n"
+     ),
+     GROUP( "ArrayOfMatrix" )));
+   
    wsv_data.push_back
    (WsvRecord
    ( NAME( "dsrc_xsec_per_species_dx" ),
      DESCRIPTION
      (
-         "Derivative of *src_xsec_per_species* with respect to retrieval quantities.\n"
+         "Derivative of *src_xsec_per_species* with respect to retrieval\n"
+         "quantities.\n"
          "\n"
-         "The variable gives the derivative of *src_xsec_per_species* with respect to some\n"
-         "variables (but not all jacobian variables). Handled are only variables\n"
-         "that are involved in xsec and cannot be calculated at transmission level\n"
+         "The variable gives the derivative of *src_xsec_per_species* with\n"
+         "respect to some variables (but not all jacobian variables). Handled\n"
+         "are only variables that are involved in xsec and cannot be\n"
+         "calculated at transmission level\n"
          "\n"
          "Usage:      Output of *abs_xsec_agenda*.\n"
          "\n"
@@ -1429,7 +1468,8 @@ void Workspace::define_wsv_data()
        "       (cloudbox_limits[5] - cloudbox_limits[4]) +1, \n"
        "        N_za, N_aa, N_i ]\n"
        "\n"
-       "Note: For 1D, the size of the azimuth angle dimension (N_aa) is always 1.\n"
+       "Note: For 1D, the size of the azimuth angle dimension (N_aa) is\n"
+       "always 1.\n"
        ),
        GROUP( "Tensor7" )));
 
@@ -1453,7 +1493,8 @@ void Workspace::define_wsv_data()
        "       (cloudbox_limits[5] - cloudbox_limits[4]) +1, \n"
        "        N_za, N_aa, N_i ]\n"
        "\n"
-       "Note: For 1D, the size of the azimuth angle dimension (N_aa) is always 1.\n"
+       "Note: For 1D, the size of the azimuth angle dimension (N_aa) is\n"
+       "always 1.\n"
        ),
        GROUP( "Tensor6" )));
 
@@ -3266,12 +3307,15 @@ void Workspace::define_wsv_data()
       (
        "Particle number density field.\n"
        "\n"
-       "This variable corresponds to the particle number density fields\n"
-       "for all scattering elements being read in the WSMs\n"
+       "This variable holds the particle number density fields for all\n"
+       "scattering elements being read in the WSMs\n"
        "*ScatElementsPndAndScatAdd* or *ScatSpeciesPndAndScatAdd* and\n"
        "interpolated to the calculation grids *p_grid*, *lat_grid*, and\n"
        "*lon_grid* inside the cloudbox. An alternative method to create\n"
        "*pnd_field* is *pnd_fieldCalcFromscat_speciesFields*.\n"
+       "\n"
+       "Total number and order of scattering elements in *pnd_field* and (the\n"
+       "flattened) *scat_data* has to be identical.\n"
        "\n"
        "Note: To ensure that no particles exist outside the cloudbox,\n"
        "*pnd_field* is required to be 0 at its outer limits (corresponding\n"
