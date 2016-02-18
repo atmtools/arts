@@ -349,20 +349,13 @@ void DisortCalc(Workspace& ws,
         {
           // extract monchromatic field from cloudbox_incoming_field
           intang = cb_inc_field(f_index,joker);
-          for( Index i_za=0; i_za<intang.nelem(); i_za++ )
-            assert( !(isnan(intang[i_za]) || intang[i_za]<0.) );
-/*
-            if( isnan(intang[i_za]) || intang[i_za]<0.)
-              {
-                ostringstream os;
-                os << "cloudbox_incoming_field contains invalid values "
-                   << "(negative or NaN)\n"
-                   << "at freq #" << f_index << " (angle #" << i_za << ").\n"
-                   << "Wrong or missing initilization? "
-                   << "Use *DisortGetIncoming*.\n";
-                throw runtime_error( os.str() );
-              }
-*/
+
+          // Moved this assert into DISORT.f. There we can test the actually
+          // applied intang values for validity (and skip upwelling angle values
+          // at the end of intang, which are deliberately set to NaN.).
+          //for( Index i_za=0; i_za<intang.nelem(); i_za++ )
+          //  assert( !(isnan(intang[i_za]) || intang[i_za]<0.) );
+
           // convert ARTS units to DISORT units
           // W/(m2 sr Hz) -> W/(m2 sr cm-1)
           intang *= (100*SPEED_OF_LIGHT);

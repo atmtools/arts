@@ -455,7 +455,7 @@ void get_cb_inc_field(Workspace&      ws,
   Vector za_grid(nza,0.);
   za_grid[Range(nn,nsza)] = scat_za_grid;
   cb_inc_field.resize(f_grid.nelem(),nza);
-  cb_inc_field = 0.;
+  cb_inc_field = NAN;
 
   Vector gmu(nn);
   Vector gwt(nn);

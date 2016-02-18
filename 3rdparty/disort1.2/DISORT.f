@@ -2860,6 +2860,15 @@ c     .. External Subroutines ..
 c     ..
 
 
+C 2016-02-16  Jana Mendrok
+C Assert that TOA incoming non-isotropic rad is valid (not NaN and not <0)
+      DO 5 IQ = 1, NN
+         IF( (INTANG(IQ) .NE. INTANG(IQ)) .OR.
+     &       (INTANG(IQ) .LT. 0.) )
+     &      CALL ERRMSG( 'INTANG--invalid value at CMU angle',.True. )
+    5 CONTINUE
+
+      
       CALL ZEROIT( B, NNLYRI )
 c                              ** Construct B,  STWJ(20a,c) for
 c                              ** parallel beam + bottom reflection +
@@ -3903,6 +3912,17 @@ c     .. Intrinsic Functions ..
 
       INTRINSIC ABS, EXP
 c     ..
+
+C 2016-02-16  Jana Mendrok
+C Assert that TOA incoming non-isotropic rad is valid (not NaN and not <0)
+      DO 5 IU = 1, NUMU
+         IF( UMU( IU ).LT.0.0 ) THEN
+            IF( (INTANG(IU+NN) .NE. INTANG(IU+NN)) .OR.
+     &          (INTANG(IU+NN) .LT. 0.) )
+     &         CALL ERRMSG( 'INTANG--invalid value at UMU angle',
+     &                      .True. )
+        END IF
+    5 CONTINUE
 
 c                          ** Incorporate constants of integration into
 c                          ** interpolated eigenvectors
