@@ -149,6 +149,8 @@ ArrayOfIndexCreate( met_mm_freq_number )
 Extract(met_mm_freq_number, met_mm_available_accuracies, met_mm_accuracy)
 
 VectorCreate( met_mm_freq_spacing )
-VectorSetConstant( met_mm_freq_spacing, 5, 1e9 )
+IndexCreate( met_mm_nchannels )
+nrowsGet( met_mm_nchannels, met_mm_backend )
+VectorSetConstant( met_mm_freq_spacing, met_mm_nchannels, 1e9 )
 
 }

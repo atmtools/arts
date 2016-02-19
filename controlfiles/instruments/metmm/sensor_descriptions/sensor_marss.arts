@@ -76,7 +76,9 @@ ArrayOfIndexSet(
         ])
 
 VectorCreate( met_mm_freq_spacing )
-VectorSetConstant( met_mm_freq_spacing, 5, 10e9 )
+IndexCreate( met_mm_nchannels )
+nrowsGet( met_mm_nchannels, met_mm_backend )
+VectorSetConstant( met_mm_freq_spacing, met_mm_nchannels, 1e9 )
 
 }
 

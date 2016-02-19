@@ -1,5 +1,27 @@
 2016-02-19 Jana Mendrok  <jana.mendrok@chalmers.se>
 
+	* arts-2-3-445
+	
+	* controlfiles/instruments/metmm/sensor_descriptions/sensor_ismar_downward.arts,
+	controlfiles/instruments/metmm/sensor_descriptions/sensor_ismar_upward.arts:
+	Replaced "?" with -1 in ArrayOfIndex variable freq_number setup making these
+	setting functional. Bugfixed met_mm_freq_spacing setting (needs to have
+	nchannels entries).
+	
+	* controlfiles/instruments/metmm/sensor_descriptions/sensor_marss.arts,
+	controlfiles/instruments/metmm/sensor_descriptions/sensor_deimos.arts,
+	controlfiles/instruments/metmm/sensor_descriptions/sensor_amsua.arts,
+	controlfiles/instruments/metmm/sensor_descriptions/sensor_amsub.arts,
+	controlfiles/instruments/metmm/sensor_descriptions/sensor_mhs.arts:
+	Generalized met_mm_freq_spacing setting.
+	
+	* controlfiles/instruments/metmm/TestMetMM.arts:
+	Include files from the common ARTS include paths, not as relative includes
+	(the latter does not work if file/snippets copied to somewhere else or if file
+	included by another file).
+
+2016-02-19 Jana Mendrok  <jana.mendrok@chalmers.se>
+
 	* arts-2-3-444
 	
 	* src/disort.cc (phase_functionCalc):

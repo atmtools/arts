@@ -111,17 +111,17 @@ ArrayOfIndexSet(freq_number_tmp,
          1,    #7 
          1,    #8 
          1,    #9 
-         "?",  #10
-         "?",  #11
-         "?",  #12
-         "?",  #13
+        -1,    #10
+        -1,    #11
+        -1,    #12
+        -1,    #13
          1,    #14
          1,    #15
          1,    #16
          1,    #17
          1,    #18
-         "?",  #19
-         "?"   #20
+        -1,    #19
+        -1     #20
          ])
 Append(met_mm_available_accuracies, freq_number_tmp)
 
@@ -137,17 +137,17 @@ ArrayOfIndexSet(freq_number_tmp,
          4,    #7 
          3,    #8 
          5,    #9 
-         "?",  #10
-         "?",  #11
-         "?",  #12
-         "?",  #13
+        -1,    #10
+        -1,    #11
+        -1,    #12
+        -1,    #13
          2,    #14
          3,    #15
          5,    #16
          10,   #17
          10,   #18
-         "?",  #19
-         "?"   #20
+        -1,    #19
+        -1     #20
          ])
 Append(met_mm_available_accuracies, freq_number_tmp)
 
@@ -163,17 +163,17 @@ ArrayOfIndexSet(freq_number_tmp,
          21,   #7 
          8,    #8 
          8,    #9 
-         "?",  #10
-         "?",  #11
-         "?",  #12
-         "?",  #13
+        -1,    #10
+        -1,    #11
+        -1,    #12
+        -1,    #13
          10,   #14
          17,   #15
          30,   #16
          24,   #17
          24,   #18
-         "?",  #19
-         "?"   #20
+        -1,    #19
+        -1     #20
          ])
 Append(met_mm_available_accuracies, freq_number_tmp)
 
@@ -184,22 +184,22 @@ ArrayOfIndexSet(freq_number_tmp,
          19,   #2 
          14,   #3 
          25,   #4 
-         "?",  #5 
-         "?",  #6 
+        -1,    #5 
+        -1,    #6 
          30,   #7 
          38,   #8 
          84,   #9 
-         "?",  #10
-         "?",  #11
-         "?",  #12
-         "?",  #13
+        -1,    #10
+        -1,    #11
+        -1,    #12
+        -1,    #13
          66,   #14
          95,   #15
-         "?",  #16
+        -1,    #16
          92,   #17
          92,   #18
-         "?",  #19
-         "?"   #20
+        -1,    #19
+        -1     #20
          ])
 Append(met_mm_available_accuracies, freq_number_tmp)
 
@@ -209,7 +209,9 @@ ArrayOfIndexCreate( met_mm_freq_number )
 Extract(met_mm_freq_number, met_mm_available_accuracies, met_mm_accuracy)
 
 VectorCreate( met_mm_freq_spacing )
-VectorSetConstant( met_mm_freq_spacing, 5, 1e9 )
+IndexCreate( met_mm_nchannels )
+nrowsGet( met_mm_nchannels, met_mm_backend )
+VectorSetConstant( met_mm_freq_spacing, met_mm_nchannels, 1e9 )
 
 }
 

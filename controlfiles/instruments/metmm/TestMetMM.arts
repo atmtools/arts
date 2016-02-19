@@ -75,12 +75,12 @@ INCLUDE "general/planet_earth.arts"
 
 # Sensor characteristics
 # Change the filename to switch sensors.
-    INCLUDE "sensor_descriptions/sensor_amsub.arts"
+    INCLUDE "instruments/metmm/sensor_descriptions/sensor_amsub.arts"
 
-    INCLUDE "sensor_descriptions/apply_metmm.arts"
+    INCLUDE "instruments/metmm/sensor_descriptions/apply_metmm.arts"
 
 # Common microwave sensor settings
-    INCLUDE "common_metmm.arts"
+    INCLUDE "instruments/metmm/common_metmm.arts"
 # ====================================================================
 
 # Setting the agenda for batch calculation 
