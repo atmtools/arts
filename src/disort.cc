@@ -70,9 +70,9 @@ extern const Numeric BOLTZMAN_CONST;
 void dtauc_ssalbCalc(Workspace& ws,
                      VectorView dtauc,
                      VectorView ssalb,
-                     const Agenda& opt_prop_part_agenda,
                      const Agenda& propmat_clearsky_agenda,
                      const Agenda& spt_calc_agenda,
+                     const Agenda& opt_prop_part_agenda,
                      ConstTensor4View pnd_field,
                      ConstTensor3View t_field,
                      ConstTensor3View z_field, 
@@ -216,6 +216,14 @@ void phase_functionCalc(//Output
                         ConstTensor4View pnd_field,
                         const ArrayOfIndex& cloudbox_limits)
 {
+/*
+FIXME: dtauc_ssalbCalc applies spt_calc_agenda and opt_prop_part_agenda. Apply
+ same/similar agendas here.
+ It is inconsistent to consider T-dependence in dtauc_ssalbCalc, but neglect it
+ here. It might be okayish, though, since T-dep of pfct might be lower than
+ T-dep of ext/abs/scat coeffs.
+*/
+
   // Initialization
   phase_function=0.;
   const Index nlyr = phase_function.nrows();
@@ -225,20 +233,23 @@ void phase_functionCalc(//Output
                               scat_data_mono[0][0].za_grid.nelem(), 0.);
   
   Vector sca_coeff_level(Np_cloud, 0.);
+
   //Loop over pressure levels
   for (Index i_p = 0; i_p < Np_cloud; i_p++)
     {
       // Calculate ensemble averaged scattering coefficient
       Numeric sca_coeff=0.;
+      Index i_se_flat=0;
       //Numeric intP=0.;
 
       for (Index i_ss = 0; i_ss < scat_data_mono.nelem(); i_ss++)
         {
           for (Index i_se = 0; i_se < scat_data_mono[i_ss].nelem(); i_se++)
             {
-              sca_coeff +=  pnd_field(i_se, i_p, 0, 0) *
+              sca_coeff +=  pnd_field(i_se_flat, i_p, 0, 0) *
                 (scat_data_mono[i_ss][i_se].ext_mat_data(0, 0, 0, 0, 0)-
                  scat_data_mono[i_ss][i_se].abs_vec_data(0, 0, 0, 0, 0));
+              i_se_flat++;
             }
         }
       sca_coeff_level[i_p] = sca_coeff;
@@ -252,27 +263,32 @@ void phase_functionCalc(//Output
           // Loop over scattering angles
           for (Index i_t = 0; i_t < scat_data_mono[0][0].za_grid.nelem(); i_t++)
             {
+              i_se_flat=0;
               for (Index i_ss = 0; i_ss < scat_data_mono.nelem(); i_ss++)
                 {
                   for (Index i_se = 0; i_se < scat_data_mono[i_ss].nelem(); i_se++)
                     {
                       phase_function_level(i_p, i_t) += 
-                        pnd_field(i_se, i_p, 0, 0) *
+                        pnd_field(i_se_flat, i_p, 0, 0) *
                         scat_data_mono[i_ss][i_se].pha_mat_data(0, 0, i_t,
                                                                 0, 0, 0, 0);
+                      i_se_flat++;
                     }
                 }
-//              if( i_t>0 )
-//                  intP += 0.5 *
-//                    (phase_function_level(i_p, i_t) +
-//                     phase_function_level(i_p, i_t-1)) *
-//                    abs(cos(scat_data_mono[0][0].za_grid[i_t]*PI/180.)-
-//                        cos(scat_data_mono[0][0].za_grid[i_t-1]*PI/180.));
+            }
+/*
+              if( i_t>0 )
+                  intP += PI *
+                    (phase_function_level(i_p, i_t) +
+                     phase_function_level(i_p, i_t-1)) *
+                    abs(cos(scat_data_mono[0][0].za_grid[i_t]*PI/180.)-
+                        cos(scat_data_mono[0][0].za_grid[i_t-1]*PI/180.));
             }
 
-//          cout << "\nat lev #" << i_p << ": "
-//               << "  total scatcoef=" << sca_coeff
-//               << ", integrated PFCT=" << intP << "\n";
+          cout << "at lev_cloud #" << i_p << ": "
+               << "  total scatcoef=" << sca_coeff
+               << ", integrated PFCT=" << intP << "\n";
+*/
         }
     }
 
@@ -282,22 +298,28 @@ void phase_functionCalc(//Output
   // with layer averaged scat coeff
   for (Index i_l = 0; i_l < Np_cloud-1; i_l++)
     {
-      for (Index i_t=0; i_t < phase_function_level.ncols(); i_t++)
+      Index lyr_id = nlyr-1-i_l-cloudbox_limits[0];
+      if ( phase_function_level(i_l, 0) !=0 )
+        if( phase_function_level(i_l+1, 0) !=0 )
         {
-          Index lyr_id = nlyr-1-i_l-cloudbox_limits[0];
-          if ( phase_function_level(i_l, i_t) !=0 )
-            if( phase_function_level(i_l+1, i_t) !=0 )
+          for (Index i_t=0; i_t < phase_function_level.ncols(); i_t++)
               phase_function(lyr_id, i_t) = 4*PI *
                 ( phase_function_level(i_l, i_t) + 
                   phase_function_level(i_l+1, i_t) ) /
                 ( sca_coeff_level[i_l] + sca_coeff_level[i_l+1] );
-            else
+        }
+        else
+        {
+          for (Index i_t=0; i_t < phase_function_level.ncols(); i_t++)
               phase_function(lyr_id, i_t) =
                 phase_function_level(i_l, i_t) * 4*PI / sca_coeff_level[i_l];
-          else if ( phase_function_level(i_l+1, i_t) !=0 )
+        }
+      else if ( phase_function_level(i_l+1, 0) !=0 )
+      {
+        for (Index i_t=0; i_t < phase_function_level.ncols(); i_t++)
             phase_function(lyr_id, i_t) =
               phase_function_level(i_l+1, i_t) * 4*PI / sca_coeff_level[i_l+1];
-        }
+      }
     }
   
 }

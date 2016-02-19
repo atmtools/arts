@@ -371,15 +371,16 @@ void DisortCalc(Workspace& ws,
 
       scat_data_monoCalc(scat_data_mono, scat_data, f_grid, f_index, verbosity);
       
-      dtauc_ssalbCalc(ws, dtauc, ssalb, opt_prop_part_agenda,
-                      propmat_clearsky_agenda, spt_calc_agenda, 
+      dtauc_ssalbCalc(ws, dtauc, ssalb,
+                      propmat_clearsky_agenda,
+                      spt_calc_agenda, opt_prop_part_agenda,
                       pnd_field,
                       t_field(Range(0,nlyr+1),joker,joker),
                       z_field(Range(0,nlyr+1),joker,joker),
                       vmr_field(joker,Range(0,nlyr+1),joker,joker),
                       p_grid[Range(0,nlyr+1)],
                       cloudbox_limits, f_grid[Range(f_index,1)]);
-      
+
       phase_functionCalc(phase_function, scat_data_mono, pnd_field,
                          cloudbox_limits);
 
