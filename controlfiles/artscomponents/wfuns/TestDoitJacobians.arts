@@ -158,6 +158,8 @@ ArrayOfIndexSet( cloudlimit_levels, [0,32] )
 #----------------------------------------------------------------- 
 
 ArrayOfArrayOfSingleScatteringDataCreate( scat_data_orig )
+ArrayOfArrayOfScatteringMetaDataCreate( scat_meta_orig )
+ArrayOfStringCreate( scat_species_orig )
 Tensor4Create( pnd_field_orig )
 
 AgendaSet( ybatch_calc_agenda ){
@@ -222,6 +224,8 @@ AgendaSet( ybatch_calc_agenda ){
   # when doing no ScatSpeciesMerge (neither here, nor in
   # jacobianDoit!), comment out this complete block
   Copy( scat_data_orig, scat_data )
+  Copy( scat_meta_orig, scat_meta )
+  Copy( scat_species_orig, scat_species )
   Copy( pnd_field_orig, pnd_field )
   ScatSpeciesMerge
 
@@ -243,6 +247,8 @@ AgendaSet( ybatch_calc_agenda ){
   # Comment that out if ScatSpeciesMerge not used (neither here, nor in
   # jacobianDoit!)
   Copy( scat_data, scat_data_orig )
+  Copy( scat_meta, scat_meta_orig )
+  Copy( scat_species, scat_species_orig )
   Copy( pnd_field, pnd_field_orig )
 
   jacobianDoit( ScatSpeciesMerge_do=1 )

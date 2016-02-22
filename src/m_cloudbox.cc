@@ -1573,27 +1573,41 @@ void pnd_fieldZero(//WS Output:
       nlat = 1;
       nlon = 1;
     }
-  pnd_field.resize(1, np, nlat, nlon);
+    
+  // Do only reset scat_data if it has not been set yet.
+  // There's no need otherwise, and it's rather unpractical for testing when
+  // doing so: we might want to do some actual calcs with the scat_data later
+  // on. So why throw it away?
+  const Index N_se = TotalNumberOfElements(scat_data);
+  if( N_se > 0 )
+    {
+      pnd_field.resize(N_se, np, nlat, nlon);
+    }
+  else
+    {
+      pnd_field.resize(1, np, nlat, nlon);
+     
+      //Resize scat_data and set it to 0:
+      // Number of scattering elements
+      scat_data.resize(1);
+      scat_data[0].resize(1);
+      scat_data[0][0].ptype = PTYPE_MACROS_ISO;
+      scat_data[0][0].description = " ";
+      // Grids which contain full ranges which one wants to calculate
+      nlinspace(scat_data[0][0].f_grid, 1e9, 3.848043e+13 , 5);
+      nlinspace(scat_data[0][0].T_grid, 0, 400, 5);
+      nlinspace(scat_data[0][0].za_grid, 0, 180, 5);
+      nlinspace(scat_data[0][0].aa_grid, 0, 360, 5);
+      // Resize the data arrays
+      scat_data[0][0].pha_mat_data.resize(5,5,5,1,1,1,6);
+      scat_data[0][0].pha_mat_data = 0.;
+      scat_data[0][0].ext_mat_data.resize(5,5,1,1,1);
+      scat_data[0][0].ext_mat_data = 0.;
+      scat_data[0][0].abs_vec_data.resize(5,5,1,1,1);
+      scat_data[0][0].abs_vec_data = 0.;
+    }
+
   pnd_field = 0.;
-  
-  //Resize scat_data and set it to 0:
-  // Number of scattering elements
-  scat_data.resize(1);
-  scat_data[0].resize(1);
-  scat_data[0][0].ptype = PTYPE_MACROS_ISO;
-  scat_data[0][0].description = " ";
-  // Grids which contain full ranges which one wants to calculate
-  nlinspace(scat_data[0][0].f_grid, 1e9, 3.848043e+13 , 5);
-  nlinspace(scat_data[0][0].T_grid, 0, 400, 5);
-  nlinspace(scat_data[0][0].za_grid, 0, 180, 5);
-  nlinspace(scat_data[0][0].aa_grid, 0, 360, 5);
-  // Resize the data arrays
-  scat_data[0][0].pha_mat_data.resize(5,5,5,1,1,1,6);
-  scat_data[0][0].pha_mat_data = 0.;
-  scat_data[0][0].ext_mat_data.resize(5,5,1,1,1);
-  scat_data[0][0].ext_mat_data = 0.;
-  scat_data[0][0].abs_vec_data.resize(5,5,1,1,1);
-  scat_data[0][0].abs_vec_data = 0.;
 }
 
 
@@ -1710,12 +1724,25 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
     parse_psd_param( psd_param, scat_species[i_ss], delim);
     parse_partfield_name( partfield_name, scat_species[i_ss], delim);
 
-  /* +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  /*
+   * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    * NOTE: when adding further distributions here, document them (particularly
    * the tags) in the WSM online documentation in methods.cc. Also, create a
    * wrapper WSM to the dNdD core method.
    * See ARTS Developer Guide for details.
-   * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+   * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   */
+
+    if ( psd_param == "mergedpsd" )
+    {
+      ostringstream os;
+      os << "Scattering species #" << i_ss << "data seems to originate from "
+         << "*ScatSpeciesMerge*,\n"
+         << "This has unrevertibly modified *scat_data*, *scat_meta*, and "
+         << "*scat_species*\n"
+         << "and destroyed their links to the scat_species_*_field data.";
+      throw runtime_error ( os.str() );
+    }
 
     //---- pnd_field calculations for MH97 -------------------------------
     if ( psd_param.substr(0,4) == "MH97" )

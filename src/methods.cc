@@ -5018,7 +5018,8 @@ void define_md_data_raw()
                    "Matrix, Matrix,"
                    "Tensor3, Tensor4, Tensor4,"
                    "GriddedField3, ArrayOfGriddedField3,"
-                   "GriddedField4, String, SingleScatteringData" ),
+                   "GriddedField4, String,"
+                   "SingleScatteringData, ArrayOfSingleScatteringData" ),
         GOUT_DESC( "Extracted element." ),
         IN(),
         GIN( "haystack", "index" ),
@@ -5026,7 +5027,9 @@ void define_md_data_raw()
                   "ArrayOfMatrix, Tensor3,"
                   "Tensor4, ArrayOfTensor4, Tensor5,"
                   "ArrayOfGriddedField3, ArrayOfArrayOfGriddedField3,"
-                  "ArrayOfGriddedField4, ArrayOfString, ArrayOfSingleScatteringData",
+                  "ArrayOfGriddedField4, ArrayOfString,"
+                  "ArrayOfSingleScatteringData,"
+                  "ArrayOfArrayOfSingleScatteringData",
                   "Index" ),
         GIN_DEFAULT( NODEF, NODEF ),
         GIN_DESC( "Variable to extract from.",
@@ -8126,18 +8129,20 @@ void define_md_data_raw()
              "doit_i_field",
              "scat_species_mass_density_field", "scat_species_mass_flux_field",
              "scat_species_number_density_field", "scat_species_mean_mass_field",
-             "pnd_field", "vmr_field", "t_field", "scat_data" ),
+             "pnd_field", "vmr_field", "t_field", "scat_data", "scat_meta",
+             "scat_species" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "doit_i_field",
             "scat_species_mass_density_field", "scat_species_mass_flux_field",
             "scat_species_number_density_field", "scat_species_mean_mass_field",
-            "pnd_field", "vmr_field", "t_field", "scat_data",
+            "pnd_field", "vmr_field", "t_field", "scat_data", "scat_meta",
+            "scat_species",
             "jacobian_quantities", "jacobian_indices",
-            "abs_species", "scat_species",
+            "abs_species",
             "p_grid", "atmosphere_dim", "cloudbox_limits",
-            "scat_meta", "z_surface",
+            "z_surface",
             "atmfields_checked", "atmgeom_checked", "cloudbox_checked",
             "cloudbox_on", "f_grid", "doit_mono_agenda", "doit_is_initialized",
             "z_field", "sensor_checked", "stokes_dim", 
@@ -9943,22 +9948,31 @@ void define_md_data_raw()
       ( NAME( "pnd_fieldZero" ),
         DESCRIPTION
         (
-         "Sets *pnd_field* to zero and creates a dummy *scat_data* structure.\n"
+         "Sets *pnd_field* to zero.\n"
          "\n"
-         "Scattering calculations using the DOIT method include\n"
+         "Creates an empty *pnd_field* of cloudbox size according to\n"
+         "*cloudbox_limits* and with number of scattering elemements\n"
+         "according to *scat_data*. If *scat_data* is not set yet, it will be\n"
+         "filled with one dummy scattering element.\n"
+         "\n"
+         "This method primarily exists for testing purposes.\n"
+         "On the one hand, empty *pnd_field* runs can be used to test the\n"
+         "agreement between true clear-sky (*cloudboxOff*) solutions and the\n"
+         "scattering solver solution in factual clear-sky conditions. It is\n"
+         "important to avoid discontinuities when switching from thin-cloud\n"
+         "to clear-sky conditions.\n"
+         "Moreover, scattering calculations using the DOIT method include\n"
          "interpolation errors. If one is interested in this effect, one\n"
-         "should compare the DOIT result with a clearsky calculation using\n"
-         "an empty cloudbox. That means that the iterative method is\n"
-         "performed for a cloudbox including no particles. This method sets\n"
-         "the particle number density field to hold only zeros and creates a\n"
-         "dummy *scat_data* structure.\n"
+         "should compare the DOIT result with an empty cloudbox to a clearsky\n"
+         "calculation. That means that the iterative method is performed for\n"
+         "a cloudbox with no particles.\n"
          ),
-        AUTHORS( "Claudia Emde" ),
+        AUTHORS( "Claudia Emde, Jana Mendrok" ),
         OUT( "pnd_field", "scat_data" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "cloudbox_limits" ),
+        IN( "scat_data", "cloudbox_limits" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -11643,17 +11657,23 @@ void define_md_data_raw()
          "\n"
          "Before entering the scattering solver, this method prepares the\n"
          "effective bulk single scattering properties of all scattering\n"
-         "elements. Done by calculating the particle number density weighted sum\n"
-         "of the single scattering properties of all scattering elements per\n"
-         "pressure level. Accordingly, *pnd_field* is resized to [np, np, 1, 1],\n"
-         "where np is the number of pressure levels inside the cloudbox. The\n"
-         "diagonal elements of the new *pnd_field* are set to 1, all others to\n"
-         "0. *scat_data* is resized to np. Each new scattering element\n"
-         "represents the weighted sum of all particles at one presssure level.\n"
+         "elements. Done by calculating the particle number density weighted\n"
+         "sum of the single scattering properties of all scattering elements\n"
+         "per pressure level. Accordingly, *pnd_field* is resized to\n"
+         "[np, np, 1, 1], where np is the number of pressure levels inside\n"
+         "the cloudbox. The diagonal elements of the new *pnd_field* are set\n"
+         "to 1, all others to 0. *scat_data* is resized to np. Each new\n"
+         "scattering element represents the weighted sum of all particles at\n"
+         "one presssure level.\n"
+         "\n"
+         "The method also adapts *scat_species* and *scat_meta* such that\n"
+         "they remain consistent with *pnd_field* and can pass\n"
+         "*cloudbox_checkedCalc*.\n"
          "\n"
          "The method is suggested to be called directly after\n"
-         "*pnd_fieldCalcFromscat_speciesFields* (but after *cloudbox_checkedCalc*).\n"
-         "It's purpose is to speed up the scattering calculations.\n"
+         "*pnd_fieldCalcFromscat_speciesFields* (but also after\n"
+         "*cloudbox_checkedCalc*).\n"
+         "Its purpose is to speed up the scattering calculations.\n"
          "\n"
          "This is an experimental method currently only working for limited\n"
          "cases. All scattering elements must be of the same ptype and must\n"
@@ -11665,12 +11685,12 @@ void define_md_data_raw()
          "This method can only be used with a 1D atmosphere.\n"
          ),
         AUTHORS( "Oliver Lemke" ),
-        OUT( "pnd_field", "scat_data"),
+        OUT( "pnd_field", "scat_data", "scat_meta", "scat_species" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "pnd_field", "scat_data", "atmosphere_dim",
-            "cloudbox_on", "cloudbox_limits",
+        IN( "pnd_field", "scat_data", "scat_meta", "scat_species",
+            "atmosphere_dim", "cloudbox_on", "cloudbox_limits",
             "t_field", "z_field", "z_surface", "cloudbox_checked" ),
         GIN(),
         GIN_TYPE(),
@@ -11975,12 +11995,12 @@ void define_md_data_raw()
         (
          "Sets the WSV *scat_species*."
          "\n"
-         "With this function, the user specifies settings for the \n"
-         "particle number density calculations by *pnd_fieldCalcFromscat_speciesFields*.\n"
+         "With this function, the user specifies settings for the particle\n"
+         "number density calculations by *pnd_fieldCalcFromscat_speciesFields*.\n"
          "The input is an ArrayOfString that needs to be in a specific format.\n"
          "For details, see WSV *scat_species*.\n"
          "\n"         
-         "*Example:*  ['IWC-MH97-0.1-200', 'LWC-H98_STCO-0.1-50']\n"
+         "*Example:*  ['IWC-MH97', 'LWC-H98_STCO']\n"
          ),
         AUTHORS( "Daniel Kreyling" ),
         OUT( "scat_species" ),

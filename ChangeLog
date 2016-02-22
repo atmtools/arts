@@ -1,3 +1,34 @@
+2016-02-22 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-446
+	
+	* src/m_optproperties.cc (ScatSpeciesMerge):
+	Reset scat_meta and scat_species such that they are consistent with new,
+	"merged" scat_data and pnd_field (they are only filled with dummy info,
+	though.	might be improved when desired.).
+
+	* src/m_jacobian.cc (jacobianDoit),
+	controlfiles/artscomponents/wfuns/TestDoitJacobians.arts:
+	Adapt to modifications of ScatSpeciesMerge.
+	
+	* src/m_cloudbox.cc
+	(pnd_fieldZero): Do not overwrite scat_data with dummy data if scat_data is
+	present.
+	
+	(pnd_fieldCalcFromscat_speciesFields): Throw error when trying to calc pnd
+	from already "merged" particle data.
+	
+	* src/m_basic_types.h: Added ArrayOfArrayOfSingleScatteringData and
+	ArrayOfArrayOfScatteringMetaData to nelemGet aplicable types.
+
+	* src/methods.cc
+	(Select, Extract): Made available for ArrayOfArrayOfSingleScatteringData
+	(scat_data).
+	
+	(scat_speciesSet): Updated outdated doc (no size selection here anymore).
+	
+	(ScatSpeciesMerge, pnd_fieldZero, jacobianDoit): Adapted to changes above.
+
 2016-02-19 Jana Mendrok  <jana.mendrok@chalmers.se>
 
 	* arts-2-3-445

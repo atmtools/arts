@@ -2296,16 +2296,16 @@ void jacobianDoit(//WS Output:
                   Tensor4& vmr_field,
                   Tensor3& t_field,
                   ArrayOfArrayOfSingleScatteringData& scat_data,
+                  ArrayOfArrayOfScatteringMetaData& scat_meta,
+                  ArrayOfString& scat_species,
                   // WS Input:
                   const ArrayOfRetrievalQuantity& jacobian_quantities,
                   const ArrayOfArrayOfIndex& jacobian_indices,
                   const ArrayOfArrayOfSpeciesTag& abs_species,
-                  const ArrayOfString& scat_species,
                   const Vector& /* p_grid */,
                   const Index& atmosphere_dim,
                   const ArrayOfIndex& cloudbox_limits,
                   // input required for pnd_fieldCalcFromscat_speciesFields
-                  const ArrayOfArrayOfScatteringMetaData& scat_meta,
                   // input required for ScatSpeciesMerge
                   const Matrix& z_surface,
                   // input required for DoitCalc
@@ -2346,7 +2346,7 @@ void jacobianDoit(//WS Output:
    1)- use jacobian_quantities.grids in perturbation level loops (currently
         relies on identiy between cloudbox_limits herein and when
         jacobianDoitAddSpecies was called)
-   2)- check functionality for non-comapct cases (use
+   2)- check functionality for non-compact cases (use
         doit/TestDOITFromIndividualFields.arts as start)
        generally, improve handling of non-compact cases, which is currently done
         by an ugly workaround. not a JacobianDoit issues, though.
@@ -2417,6 +2417,10 @@ void jacobianDoit(//WS Output:
                 "", verbosity );
       WriteXML( "ascii", scat_data, "scat_data_ref", 0, "scat_data", "",
                 "", verbosity );
+      WriteXML( "ascii", scat_meta, "scat_meta_ref", 0, "scat_meta", "",
+                "", verbosity );
+      WriteXML( "ascii", scat_species, "scat_species_ref", 0, "scat_species", "",
+                "", verbosity );
     }
 
 
@@ -2428,11 +2432,16 @@ void jacobianDoit(//WS Output:
   // the original one. also, if we merge in the perturbation calculations, then
   // we merge here as well.
   ArrayOfArrayOfSingleScatteringData scat_data_ref;
+  ArrayOfArrayOfScatteringMetaData scat_meta_ref;
+  ArrayOfString scat_species_ref;
   if( ScatSpeciesMerge_do )
     {
       scat_data_ref=scat_data;
-      ScatSpeciesMerge(	pnd_field, scat_data, atmosphere_dim,
-                        cloudbox_on, cloudbox_limits, t_field, z_field,
+      scat_meta_ref=scat_meta;
+      scat_species_ref=scat_species;
+      ScatSpeciesMerge(	pnd_field, scat_data, scat_meta, scat_species,
+                        atmosphere_dim, cloudbox_on, cloudbox_limits,
+                        t_field, z_field,
                         z_surface, cloudbox_checked, verbosity );
       if( debug )
         {
@@ -2440,9 +2449,12 @@ void jacobianDoit(//WS Output:
                     "", "", verbosity );
           WriteXML( "ascii", scat_data, "scat_data_refmerged", 0, "scat_data",
                     "", "", verbosity );
+          WriteXML( "ascii", scat_meta, "scat_meta_refmerged", 0, "scat_meta",
+                    "", "", verbosity );
+          WriteXML( "ascii", scat_species, "scat_species_refmerged", 0, "scat_species",
+                    "", "", verbosity );
         }
     }
-
   DoitCalc( ws, doit_i_field,
             atmfields_checked, atmgeom_checked, cloudbox_checked,
             cloudbox_on, f_grid, doit_mono_agenda, doit_is_initialized,
@@ -2534,6 +2546,11 @@ void jacobianDoit(//WS Output:
   for( Index iq=0; iq<jacobian_quantities.nelem(); iq++ )
     {
       if (do_abort) continue;
+
+      // before start perturbing we need to put the original scat_* data back in
+      // place. at least scat_species (rest comes later).
+      if( ScatSpeciesMerge_do )
+        scat_species=scat_species_ref;
 
       jq = jacobian_quantities[iq];
       Index si=-1;
@@ -2631,6 +2648,16 @@ void jacobianDoit(//WS Output:
 
           if (do_abort) continue;
           bool do_doit = true;
+
+          // before start perturbing we need to put the original scat_* data
+          // back in place.
+          if( ScatSpeciesMerge_do )
+            {
+              scat_data=scat_data_ref;
+              scat_meta=scat_meta_ref;
+              scat_species=scat_species_ref;
+            }
+
 /*
           //use this if we once allow arbitrary perturbation grids. if so:
           //- correct for last-point outdrag
@@ -2813,15 +2840,25 @@ void jacobianDoit(//WS Output:
                     }
                   if( ScatSpeciesMerge_do )
                     {
-                      scat_data=scat_data_ref;
-                      ScatSpeciesMerge(	pnd_field, scat_data, atmosphere_dim,
-                                        cloudbox_on, cloudbox_limits, t_field,
-                                        z_field, z_surface, cloudbox_checked,
-                                        verbosity );
+                      //scat_data=scat_data_ref;
+                      //scat_meta=scat_meta_ref;
+                      //scat_species=scat_species_ref;
+                      ScatSpeciesMerge( pnd_field,
+                                        scat_data, scat_meta, scat_species,
+                                        atmosphere_dim,
+                                        cloudbox_on, cloudbox_limits,
+                                        t_field, z_field,
+                                        z_surface, cloudbox_checked, verbosity );
                       if( debug )
                         {
                           WriteXMLIndexed( "ascii", iq*np+il, scat_data,
                                            "scat_data_mergeperturbed", "scat_data", "",
+                                           verbosity );
+                          WriteXMLIndexed( "ascii", iq*np+il, scat_meta,
+                                           "scat_meta_mergeperturbed", "scat_meta", "",
+                                           verbosity );
+                          WriteXMLIndexed( "ascii", iq*np+il, scat_species,
+                                           "scat_species_mergeperturbed", "scat_species", "",
                                            verbosity );
                           WriteXMLIndexed( "ascii", iq*np+il, pnd_field,
                                            "pnd_field_mergeperturbed", "pnd_field", "",
@@ -2834,6 +2871,12 @@ void jacobianDoit(//WS Output:
                 {
                   WriteXMLIndexed( "ascii", iq*np+il, scat_data,
                                    "scat_data_final", "scat_data", "",
+                                    verbosity );
+                  WriteXMLIndexed( "ascii", iq*np+il, scat_meta,
+                                   "scat_meta_final", "scat_meta", "",
+                                    verbosity );
+                  WriteXMLIndexed( "ascii", iq*np+il, scat_species,
+                                   "scat_species_final", "scat_species", "",
                                     verbosity );
                   WriteXMLIndexed( "ascii", iq*np+il, pnd_field,
                                    "pnd_field_final", "pnd_field", "",

@@ -1585,14 +1585,17 @@ void pha_mat_sptFromMonoData(// Output:
                           {
                               for (Index j = 0; j< stokes_dim; j++)
                               {
-                                  pha_mat_spt(i_se_flat, za_inc_idx, aa_inc_idx, i, j)=
-                                  interp(itw, pha_mat_spt_tmp(joker, i, j), T_gp);
+                                  pha_mat_spt(i_se_flat,
+                                              za_inc_idx, aa_inc_idx, i, j)=
+                                  interp(itw,
+                                         pha_mat_spt_tmp(joker, i, j), T_gp);
                               }
                           }
                       }
                       else // no temperatue interpolation required
                       {
-                          pha_mat_spt(i_se_flat, za_inc_idx, aa_inc_idx, joker, joker) =
+                          pha_mat_spt(i_se_flat,
+                                      za_inc_idx, aa_inc_idx, joker, joker) =
                           pha_mat_spt_tmp(0, joker, joker);
                       }
                   }
@@ -1609,6 +1612,8 @@ void pha_mat_sptFromMonoData(// Output:
 void ScatSpeciesMerge(//WS Output:
                       Tensor4& pnd_field,
                       ArrayOfArrayOfSingleScatteringData& scat_data,
+                      ArrayOfArrayOfScatteringMetaData& scat_meta,
+                      ArrayOfString& scat_species,
                       //WS Input:
                       const Index& atmosphere_dim,
                       const Index& cloudbox_on,
@@ -1650,6 +1655,12 @@ void ScatSpeciesMerge(//WS Output:
     ArrayOfArrayOfSingleScatteringData scat_data_merged;
     scat_data_merged.resize(1);
     scat_data_merged[0].resize(pnd_field_merged.nbooks());
+    ArrayOfArrayOfScatteringMetaData scat_meta_merged;
+    scat_meta_merged.resize(1);
+    scat_meta_merged[0].resize(pnd_field_merged.nbooks());
+    ArrayOfString scat_species_merged;
+    scat_species_merged.resize(1);
+    scat_species_merged[0] = "mergedfield-mergedpsd";
     for (Index sp = 0; sp < scat_data_merged[0].nelem(); sp++)
     {
         SingleScatteringData &this_part = scat_data_merged[0][sp];
@@ -1680,6 +1691,17 @@ void ScatSpeciesMerge(//WS Output:
         this_part.abs_vec_data = 0.;
         this_part.T_grid.resize(1);
         this_part.T_grid[0] = t_field(sp, 0, 0);
+
+        ScatteringMetaData &this_meta = scat_meta_merged[0][sp];
+        ostringstream os;
+        os << "Merged scattering element of cloudbox-level #" << sp;
+        this_meta.description = os.str();
+        this_meta.source = "ARTS internal";
+        this_meta.refr_index = "Unknown";
+        this_meta.mass = -1.;
+        this_meta.diameter_max = -1.;
+        this_meta.diameter_volume_equ = -1.;
+        this_meta.diameter_area_equ_aerodynamical = -1.;
     }
 
     // Check that all scattering elements have same ptype and data dimensions
@@ -1692,13 +1714,14 @@ void ScatSpeciesMerge(//WS Output:
 
             if (orig_part.ptype != first_part.ptype)
                 throw std::runtime_error(
-                                         "All scattering elements must have the same type");
+                  "All scattering elements must have the same type");
 
             if (orig_part.f_grid.nelem() != first_part.f_grid.nelem())
                 throw std::runtime_error(
-                                         "All scattering elements must have the same f_grid");
+                  "All scattering elements must have the same f_grid");
 
-            if (!is_size(orig_part.pha_mat_data(joker, 0, joker, joker, joker, joker, joker),
+            if (!is_size(orig_part.pha_mat_data(joker, 0, joker, joker,
+                                                joker, joker, joker),
                          first_part.pha_mat_data.nlibraries(),
                          first_part.pha_mat_data.nshelves(),
                          first_part.pha_mat_data.nbooks(),
@@ -1707,8 +1730,8 @@ void ScatSpeciesMerge(//WS Output:
                          first_part.pha_mat_data.ncols()
                          ))
                 throw std::runtime_error(
-                                         "All scattering elements must have the same pha_mat_data size"
-                                         " (except for temperature).");
+                  "All scattering elements must have the same pha_mat_data size"
+                  " (except for temperature).");
 
             if (!is_size(orig_part.ext_mat_data(joker, 0, joker, joker, joker),
                          first_part.ext_mat_data.nshelves(),
@@ -1717,8 +1740,8 @@ void ScatSpeciesMerge(//WS Output:
                          first_part.ext_mat_data.ncols()
                          ))
                 throw std::runtime_error(
-                                         "All scattering elements must have the same ext_mat_data size"
-                                         " (except for temperature).");
+                  "All scattering elements must have the same ext_mat_data size"
+                  " (except for temperature).");
 
             if (!is_size(orig_part.abs_vec_data(joker, 0, joker, joker, joker),
                          first_part.abs_vec_data.nshelves(),
@@ -1727,12 +1750,12 @@ void ScatSpeciesMerge(//WS Output:
                          first_part.abs_vec_data.ncols()
                          ))
                 throw std::runtime_error(
-                                         "All scattering elements must have the same abs_vec_data size"
-                                         " (except for temperature).");
+                  "All scattering elements must have the same abs_vec_data size"
+                  " (except for temperature).");
         }
     }
     
-    //-------- Start pnd_field_merged and scat_data_array_merged calculations--------------------
+    //----- Start pnd_field_merged and scat_data_array_merged calculations -----
     
     GridPos T_gp;
     Vector itw(2);
@@ -1751,21 +1774,25 @@ void ScatSpeciesMerge(//WS Output:
                 SingleScatteringData &orig_part = scat_data[i_ss][i_se];
                 const Index pnd_index = FlattenedIndex(scat_data, i_ss, i_se);
 
-                // If the particle number density at a specific point in the atmosphere
-                // for the i_se scattering element is zero, we don't need to do the
-                // transformation!
+                // If the particle number density at a specific point in the
+                // atmosphere for the i_se scattering element is zero, we don't
+                // need to do the transformation!
                 if (pnd_field(pnd_index, i_lv, 0, 0) > PND_LIMIT) //TRS
                 {
                     Numeric temperature = this_part.T_grid[0];
                     if( orig_part.T_grid.nelem() > 1)
                     {
                         ostringstream os;
-                        os << "The temperature grid of the scattering data does not cover the\n"
-                        "atmospheric temperature at cloud location. The data should\n"
-                        "include the value T = "<< temperature << " K."
-                        "Offending particle is scat_data[" << i_ss << "][" << i_se << "]:\n"
-                        "Description: " << orig_part.description << "\n";
-                        chk_interpolation_grids(os.str(), orig_part.T_grid, temperature);
+                        os << "The temperature grid of the scattering data "
+                           << "does not cover the\n"
+                           << "atmospheric temperature at cloud location. "
+                           << "The data should\n"
+                           << "include the value T = "<< temperature << " K.\n"
+                           << "Offending particle is scat_data[" << i_ss
+                           << "][" << i_se << "]:\n"
+                           << "Description: " << orig_part.description << "\n";
+                        chk_interpolation_grids(os.str(), orig_part.T_grid,
+                                                temperature);
 
                         // Gridpositions:
                         gridpos( T_gp, orig_part.T_grid, temperature );
@@ -1774,7 +1801,8 @@ void ScatSpeciesMerge(//WS Output:
                     }
 
                     // Loop over frequencies
-                    for (Index i_f = 0; i_f < orig_part.pha_mat_data.nlibraries(); i_f++)
+                    for (Index i_f = 0;
+                         i_f < orig_part.pha_mat_data.nlibraries(); i_f++)
                     {
                         // Weighted sum of ext_mat_data and abs_vec_data
                         if( orig_part.T_grid.nelem() == 1)
@@ -1789,48 +1817,59 @@ void ScatSpeciesMerge(//WS Output:
                         }
                         else
                         {
-                            for (Index i = 0; i < orig_part.ext_mat_data.ncols(); i++)
+                            for (Index i = 0;
+                                 i < orig_part.ext_mat_data.ncols(); i++)
                             {
                                 // Temperature interpolation
                                 this_part.ext_mat_data(i_f, 0, 0, 0, i) +=
                                 pnd_field(pnd_index, i_lv, 0, 0)
                                 * interp(itw,
-                                         orig_part.ext_mat_data(i_f, joker, 0, 0, i),
-                                         T_gp);
+                                    orig_part.ext_mat_data(i_f, joker, 0, 0, i),
+                                    T_gp);
                             }
-                            for (Index i = 0; i < orig_part.abs_vec_data.ncols(); i++)
+                            for (Index i = 0;
+                                 i < orig_part.abs_vec_data.ncols(); i++)
                             {
                                 // Temperature interpolation
                                 this_part.abs_vec_data(i_f, 0, 0, 0, i) +=
                                 pnd_field(pnd_index, i_lv, 0, 0)
                                 * interp(itw,
-                                         orig_part.abs_vec_data(i_f, joker, 0, 0, i),
-                                         T_gp);
+                                    orig_part.abs_vec_data(i_f, joker, 0, 0, i),
+                                    T_gp);
                             }
                         }
 
                         // Loop over zenith angles
-                        for (Index i_za = 0; i_za < orig_part.pha_mat_data.nshelves(); i_za++)
+                        for (Index i_za = 0;
+                             i_za < orig_part.pha_mat_data.nshelves(); i_za++)
                         {
                             // Weighted sum of pha_mat_data
                             if( orig_part.T_grid.nelem() == 1)
                             {
-                                const Numeric pnd = pnd_field(pnd_index, i_lv, 0, 0);
-                                for (Index i_s = 0; i_s < orig_part.pha_mat_data.ncols(); i_s++)
+                                const Numeric pnd =
+                                  pnd_field(pnd_index, i_lv, 0, 0);
+                                for (Index i_s = 0;
+                                     i_s < orig_part.pha_mat_data.ncols();
+                                     i_s++)
                                 {
-                                    this_part.pha_mat_data(i_f, 0, i_za, 0, 0, 0, i_s) =
-                                    pnd * orig_part.pha_mat_data(i_f, 0, i_za, 0, 0, 0, i_s);
+                                    this_part.pha_mat_data(i_f, 0, i_za,
+                                                           0, 0, 0, i_s) =
+                                    pnd * orig_part.pha_mat_data(i_f, 0, i_za,
+                                                                 0, 0, 0, i_s);
                                 }
                             }
                             else
                             {
                                 // Temperature interpolation
-                                for (Index i = 0; i < orig_part.pha_mat_data.ncols(); i++)
+                                for (Index i = 0;
+                                     i < orig_part.pha_mat_data.ncols(); i++)
                                 {
-                                    this_part.pha_mat_data(i_f, 0, i_za, 0, 0, 0, i) +=
+                                    this_part.pha_mat_data(i_f, 0, i_za,
+                                                           0, 0, 0, i) +=
                                     pnd_field(pnd_index, i_lv, 0, 0)
                                     * interp(itw,
-                                             orig_part.pha_mat_data(i_f, joker, i_za, 0, 0, 0, i),
+                                             orig_part.pha_mat_data(i_f, joker,
+                                                              i_za, 0, 0, 0, i),
                                              T_gp);
                                 }
                             }
@@ -1841,7 +1880,8 @@ void ScatSpeciesMerge(//WS Output:
         }
     }
 
-    // Set new pnd_field at lowest altitude to 0 if the cloudbox doesn't touch the ground
+    // Set new pnd_field at lowest altitude to 0 if the cloudbox doesn't touch
+    // the ground.
     // The consistency for the original pnd_field has already been ensured by
     // cloudbox_checkedCalc
     if (z_field(cloudbox_limits[0], 0, 0) > z_surface(0, 0))
@@ -1849,6 +1889,8 @@ void ScatSpeciesMerge(//WS Output:
 
     pnd_field = pnd_field_merged;
     scat_data = scat_data_merged;
+    scat_meta = scat_meta_merged;
+    scat_species = scat_species_merged;
 }
 
 
@@ -1887,13 +1929,17 @@ void ExtractFromMetaSingleScatSpecies(
     for ( Index i=0; i<nse; i++ )
       {
         if ( meta_name=="mass" )
-          meta_param[i] = scat_meta[scat_species_index][i].mass;
+          meta_param[i] =
+            scat_meta[scat_species_index][i].mass;
         else if ( meta_name=="diameter_max" )
-          meta_param[i] = scat_meta[scat_species_index][i].diameter_max;
+          meta_param[i] =
+            scat_meta[scat_species_index][i].diameter_max;
         else if ( meta_name=="diameter_volume_equ" )
-          meta_param[i] = scat_meta[scat_species_index][i].diameter_volume_equ;
+          meta_param[i] =
+            scat_meta[scat_species_index][i].diameter_volume_equ;
         else if ( meta_name=="diameter_area_equ_aerodynamical" )
-          meta_param[i] = scat_meta[scat_species_index][i].diameter_area_equ_aerodynamical;
+          meta_param[i] =
+            scat_meta[scat_species_index][i].diameter_area_equ_aerodynamical;
         else
           {
             ostringstream os;
