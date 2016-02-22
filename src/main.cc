@@ -804,7 +804,11 @@ int main (int argc, char **argv)
 #endif
         << "   Tmatrix support:      "
 #ifdef ENABLE_TMATRIX
-        << "enabled" << endl
+#ifdef ENABLE_TMATRIX_QUAD
+        << "enabled (quad-precision)" << endl
+#else
+        << "enabled (double-precision)" << endl
+#endif
 #else
         << "disabled" << endl
 #endif

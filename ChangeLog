@@ -1,3 +1,20 @@
+2016-02-22  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-447
+
+	* 3rdparty/tmatrix/amplq.arts.f, 3rdparty/tmatrix/tmq.arts.f:
+
+	Modified T-matrix version that makes the quad-precision callable as a
+	subroutine.
+
+	* 3rdparty/tmatrix/CMakeLists.txt, CMakeLists.txt, config.h.cmake:
+
+	Add ENABLE_TMATRIX_QUAD option.
+
+	* README: Add doc for T-matrix quad-precision.
+
+	* src/main.cc: Display T-matrix precision with -v option.
+
 2016-02-22 Jana Mendrok  <jana.mendrok@chalmers.se>
 
 	* arts-2-3-446

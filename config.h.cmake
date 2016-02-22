@@ -33,6 +33,7 @@
 
 /* Define to compile with T-Matrix support */
 #cmakedefine ENABLE_TMATRIX
+#cmakedefine ENABLE_TMATRIX_QUAD
 
 /* Define to compile with zlib support */
 #cmakedefine ENABLE_ZLIB

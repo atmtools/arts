@@ -1,12 +1,21 @@
 if (ENABLE_FORTRAN AND NOT NO_TMATRIX)
   set (ENABLE_TMATRIX true)
 
-  add_library (tmatrix STATIC
-    tmd.arts.f
-    ampld.arts.f
-    lpd.f
-    avg_tmatrix.f
-    )
+  if (ENABLE_TMATRIX_QUAD)
+    add_library (tmatrix STATIC
+      tmq.arts.f
+      amplq.arts.f
+      lpq.f
+      avg_tmatrix.f
+      )
+  else()
+    add_library (tmatrix STATIC
+      tmd.arts.f
+      ampld.arts.f
+      lpd.f
+      avg_tmatrix.f
+      )
+  endif()
 
   set_target_properties (tmatrix PROPERTIES
     COMPILE_FLAGS "${FORTRAN_EXTRA_FLAGS}")

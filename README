@@ -173,6 +173,18 @@ Treat warnings as errors:
 cmake -DWERROR=1 ..
 
 
+TMATRIX PRECISION
+=================
+
+By default, ARTS uses double-precision for the T-matrix calculations.
+When using the Intel compiler, quad-precision can be enable with cmake:
+
+cmake -DENABLE_FORTRAN=1 -DENABLE_TMATRIX_QUAD=1 ..
+
+Note that quad-precision is software emulated. T-matrix calculations will
+around 10x slower.
+
+
 INTEL COMPILER
 ==============
 
