@@ -492,28 +492,23 @@ void chk_scattering_meta_data(const ScatteringMetaData& scat_meta_single _U_,
   This function checks, whether a datafile containing the single scattering 
   properties of a scattering element includes the required frequencies and 
   temperatures and whether the angular grids are defined correctly.
-  Furthermore it checks the self consistency of the data by checking the 
-  dimensions of pha_mat, ext_mat and abs_vec depending on the ptype case.
-  
-  \param scat_data Single scattering data
-  \param scat_data_file Filename of the data to be checked.
-  \param f_grid        Frequency grid
+
+  \param scat_data[in]       Single scattering data
+  \param scat_data_file[in]  Filename of the data to be checked.
+  \param f_grid[in]          Frequency grid
+  \param verbosity[in]       Verbosity
   
   \author Claudia Emde
   \date   2005-04-04
 */
-void chk_scat_data(const SingleScatteringData& scat_data,
-                   const String& scat_data_file,
-                   ConstVectorView f_grid,
-                   const Verbosity& verbosity)
+void chk_scat_data_fgrid(const SingleScatteringData& scat_data,
+                         const String& scat_data_file,
+                         ConstVectorView f_grid,
+                         const Verbosity& verbosity)
 {
   CREATE_OUT2;
   out2 << "  Check single scattering properties file "<< scat_data_file 
        << "\n";
-
-  assert(scat_data.ptype == PTYPE_GENERAL ||
-         scat_data.ptype == PTYPE_MACROS_ISO ||
-         scat_data.ptype == PTYPE_HORIZ_AL);
 
   chk_interpolation_grids("scat_data.f_grid to f_grid",
 			    scat_data.f_grid,
@@ -537,6 +532,32 @@ void chk_scat_data(const SingleScatteringData& scat_data,
   // is none zero for the corresponding temperature. This check done in the 
   // functions where the multiplication with the particle number density is 
   // done. 
+}
+
+
+//! Check single scattering data files
+/*!
+  This function checks the self consistency of the data by checking the
+  dimensions of pha_mat, ext_mat and abs_vec depending on the ptype case.
+  
+  \param scat_data[in]       Single scattering data
+  \param scat_data_file[in]  Filename of the data to be checked.
+  \param verbosity[in]       Verbosity
+
+  \author Claudia Emde
+  \date   2005-04-04
+*/
+void chk_scat_data(const SingleScatteringData& scat_data,
+                   const String& scat_data_file,
+                   const Verbosity& verbosity)
+{
+  CREATE_OUT2;
+  out2 << "  Check single scattering properties file "<< scat_data_file 
+       << "\n";
+
+  assert(scat_data.ptype == PTYPE_GENERAL ||
+         scat_data.ptype == PTYPE_MACROS_ISO ||
+         scat_data.ptype == PTYPE_HORIZ_AL);
 
   if (!(0. < scat_data.T_grid[0] && last(scat_data.T_grid) < 1001.))
     {

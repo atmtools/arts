@@ -40,6 +40,7 @@
 #include "gridded_fields.h"
 #include "jacobian.h"
 #include "global_data.h"
+#include "cloudbox.h"
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -1350,6 +1351,8 @@ void xml_read_from_stream(istream& is_xml,
 
   tag.read_from_stream(is_xml);
   tag.check_name("/SingleScatteringData");
+
+  chk_scat_data(ssdata, "", verbosity);
 }
 
 

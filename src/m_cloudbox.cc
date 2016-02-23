@@ -696,13 +696,13 @@ void ScatElementsPndAndScatAdd( //WS Output:
       scat_data[last_species].push_back(scat_data_single);
       pnd_field_raw.push_back(pnd_field_data);
   
-      out2 << "  Read single scattering data\n";
+      out2 << "  Read single scattering data file " << scat_data_files[i] << "\n";
       xml_read_from_file(scat_data_files[i],
                          scat_data[last_species][scat_data[last_species].nelem()-1],
                          verbosity);
 
-      chk_scat_data(scat_data[last_species][scat_data[last_species].nelem()-1],
-                    scat_data_files[i], f_grid, verbosity);       
+      chk_scat_data_fgrid(scat_data[last_species][scat_data[last_species].nelem()-1],
+                          scat_data_files[i], f_grid, verbosity);
   
       out2 << "  Read particle number density field\n";
       if (pnd_field_files[i].nelem() < 1)
@@ -759,12 +759,12 @@ void ScatSpeciesPndAndScatAdd (//WS Output:
   for ( Index i = 0; i<scat_data_files.nelem(); i++ )
   {
 
-    out2 << "  Read single scattering data\n";
+    out2 << "  Read single scattering data file " << scat_data_files[i] << "\n";
     xml_read_from_file ( scat_data_files[i], arr_ssd[i], verbosity );
 
-    chk_scat_data ( arr_ssd[i],
-                                 scat_data_files[i], f_grid,
-                                 verbosity );
+    chk_scat_data_fgrid ( arr_ssd[i],
+                         scat_data_files[i], f_grid,
+                         verbosity );
 
   }
 
@@ -851,13 +851,13 @@ void ScatElementsToabs_speciesAdd( //WS Output:
       scat_data[last_species].push_back(scat_data_single);
       vmr_field_raw.push_back(pnd_field_data);
 
-      out2 << "  Read single scattering data\n";
+      out2 << "  Read single scattering data file " << scat_data_files[i] << "\n";
       xml_read_from_file(scat_data_files[i],
                          scat_data[last_species][scat_data[last_species].nelem()-1],
                          verbosity);
 
-      chk_scat_data(scat_data[last_species][scat_data[last_species].nelem()-1],
-                    scat_data_files[i], f_grid, verbosity);       
+      chk_scat_data_fgrid(scat_data[last_species][scat_data[last_species].nelem()-1],
+                          scat_data_files[i], f_grid, verbosity);
   
       out2 << "  Read particle number density field\n";
       if (pnd_field_files[i].nelem() < 1)
@@ -892,7 +892,7 @@ void ScatSpeciesScatAndMetaRead (//WS Output:
                                  const ArrayOfString& scat_data_files,
                                  const Verbosity& verbosity)
 {
-  CREATE_OUT3;
+  CREATE_OUT2;
 
   //--- Reading the data ---------------------------------------------------
   ArrayOfSingleScatteringData arr_ssd;
@@ -903,19 +903,19 @@ void ScatSpeciesScatAndMetaRead (//WS Output:
 
   for ( Index i = 0; i<scat_data_files.nelem(); i++ )
     {
-      out3 << "  Read single scattering data\n";
+      out2 << "  Read single scattering data file " << scat_data_files[i] << "\n";
       xml_read_from_file ( scat_data_files[i], arr_ssd[i], verbosity );
 
-      chk_scat_data ( arr_ssd[i],
-                      scat_data_files[i], f_grid,
-                      verbosity );
+      chk_scat_data_fgrid ( arr_ssd[i],
+                           scat_data_files[i], f_grid,
+                           verbosity );
 
       // make meta data name from scat data name
       ArrayOfString strarr;
       scat_data_files[i].split ( strarr, ".xml" );
       String scat_meta_file = strarr[0]+".meta.xml";
 
-      out3 << "  Read scattering meta data\n";
+      out2 << "  Read scattering meta data\n";
       xml_read_from_file ( scat_meta_file, arr_smd[i], verbosity );
             
       //FIXME: currently nothing is done in chk_scattering_meta_data!

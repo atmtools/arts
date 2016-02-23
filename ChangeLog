@@ -1,3 +1,26 @@
+2016-02-23  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-448
+
+	* Known issue: TestTMatrix.arts currently fails due to new check in
+	reading routine of SingleScatteringData. aa grid must end at 180 for
+	horizontally aligned particles, but currently goes up to 360.
+	Solution to be discussed.
+
+	* src/cloudbox.{cc,h} (chk_scat_data):
+
+	Split into two functions (c_s_d and chk_scat_data_fgrid).
+
+	* src/m_cloudbox.cc (ScatElementsPndAndScatAdd,
+	ScatSpeciesPndAndScatAdd, ScatElementsToabs_speciesAdd,
+	ScatSpeciesScatAndMetaRead):
+
+	Call c_s_d_fgrid instead of c_s_d.
+
+	* src/xml_io_compound_types.cc:
+
+	Call check_scat_data in reading routine for SingleScatteringData.
+
 2016-02-22  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-447
