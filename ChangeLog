@@ -1,3 +1,20 @@
+2016-02-24  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-449
+
+	* src/m_tmatrix.cc (scat_data_singleTmatrix):
+
+	Add check for horizontally-aligned particles that the azimuth grid
+	starts at 0 and ends at 180.
+
+	* controlfiles/artscomponents/tmatrix/TestTMatrix.arts:
+
+	Change azimuth grid from 0-360 to 0-180 for aligned particles.
+
+	* controlfiles/artscomponents/tmatrix/TestTMatrix.aligned.ssdREFERENCE.xml:
+
+	Updated.
+
 2016-02-23  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-448

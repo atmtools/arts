@@ -12,7 +12,7 @@ TMatrixTest
 VectorCreate ( data_za_grid )
 VectorNLinSpace( data_za_grid, 19, 0, 180 )
 VectorCreate ( data_aa_grid )
-VectorNLinSpace( data_aa_grid, 37, 0, 360 )
+VectorNLinSpace( data_aa_grid, 19, 0, 180 )
 VectorCreate ( data_f_grid )
 VectorSet( data_f_grid, [ 230e9, 240e9 ] )
 VectorCreate( data_t_grid )
@@ -49,9 +49,9 @@ scat_data_singleTmatrix(
 
 # Write data to file. And read from file (making sure, format is ok).
 #
-WriteXML( "ascii", scat_data_single )
+WriteXML( "ascii", scat_data_single, "TestTMatrix.scat_data_single.aligned.xml" )
 WriteXML( "ascii", scat_meta_single )
-ReadXML( scat_data_single )
+ReadXML( scat_data_single, "TestTMatrix.scat_data_single.aligned.xml" )
 ReadXML( scat_meta_single )
 
 # Compare to reference data to ensure calcs provide expected results.
@@ -62,6 +62,8 @@ Compare(scat_data_single, ref, 1e-6)
 
 # TMatrix calculation: RANDOMLY ORIENTED PARTICLE
 #####
+VectorNLinSpace( data_aa_grid, 37, 0, 360 )
+
 scat_data_singleTmatrix( 
    shape               = part_shape,
    diameter_volume_equ = part_dveq,
@@ -76,9 +78,9 @@ scat_data_singleTmatrix(
 
 # Write data to file. And read from file (making sure, format is ok).
 #
-WriteXML( "ascii", scat_data_single )
+WriteXML( "ascii", scat_data_single, "TestTMatrix.scat_data_single.random.xml" )
 WriteXML( "ascii", scat_meta_single )
-ReadXML( scat_data_single )
+ReadXML( scat_data_single, "TestTMatrix.scat_data_single.random.xml" )
 ReadXML( scat_meta_single )
 
 # Compare to reference data to ensure calcs provide expected results.

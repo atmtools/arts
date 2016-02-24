@@ -218,7 +218,28 @@ void scat_data_singleTmatrix(
       scat_data_single.aa_grid = empty_grid;
     }
   else
-    scat_data_single.aa_grid = data_aa_grid;
+    {
+      // For horizontally-aligned particles, the azimuth angle grid must cover
+      // 0-180 degrees.
+      if (scat_data_single.ptype == PTYPE_HORIZ_AL && data_aa_grid[0] != 0.)
+        {
+          ostringstream os;
+          os << "For ptype = \"horizontally_aligned\""
+          << " the first value"
+          << " of the aa grid must be 0.";
+          throw runtime_error( os.str() );
+        }
+
+      if (scat_data_single.ptype == PTYPE_HORIZ_AL && last(data_aa_grid) != 180.)
+        {
+          ostringstream os;
+          os << "For ptype = \"horizontally_aligned\""
+          << " the last value of the aa grid must be 180.";
+          throw runtime_error( os.str() );
+        }
+
+      scat_data_single.aa_grid = data_aa_grid;
+    }
 
 
   // Index coding for shape
