@@ -4365,7 +4365,7 @@ const double  N2N2_N2Ft_ckd_mt_100[N2N2_N2F_ckd_mt_100_npt+addF77fields] = {
 // atmospheric applications: measurements and emprirical modeling, 
 // Appl. Optics, 35, 5911-5917, (1996).
 const Numeric N2N2_N2F_ckd_mt_250_v1  = 2001.766357;
-const Numeric N2N2_N2F_ckd_mt_250_v2  = 2710.466309;
+const Numeric N2N2_N2F_ckd_mt_250_v2  = 2710.45;
 const Numeric N2N2_N2F_ckd_mt_250_dv  = 3.981461525;
 const int     N2N2_N2F_ckd_mt_250_npt =  179;
 const double  N2N2_N2F_ckd_mt_250[N2N2_N2F_ckd_mt_250_npt+addF77fields] = {

@@ -1,3 +1,13 @@
+2016-02-26  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-450
+
+	* src/continua.cc:
+
+	Slightly lower upper boundary N2N2_N2F_ckd_mt_250_v2 from 2710.466309
+	to 2710.45 for CKD_mt_250_CIAfun_n2 continuum to avoid possible
+	out-of-bounds array access in XINT_FUN. Bug reported by Mareike Burba.
+
 2016-02-24  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-449
