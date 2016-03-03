@@ -483,11 +483,14 @@ void get_cb_inc_field(Workspace&      ws,
   Vector gwt(nn);
   
   // Call disort's gaussian quad points & weights subroutine
-  qgausn_(&nn,
-          gmu.get_c_array(),
-          gwt.get_c_array()
-         );
-         
+#pragma omp critical(fortran_disort_qgausn)
+  {
+      qgausn_(&nn,
+              gmu.get_c_array(),
+              gwt.get_c_array()
+              );
+  }
+
   // Calc polar angles za from their cosines mu
   for (Index i = 0; i<nn; i++)
     za_grid[i] = acos(gmu[i]) * 180./PI;
