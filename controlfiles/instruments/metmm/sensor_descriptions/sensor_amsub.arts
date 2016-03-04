@@ -143,14 +143,20 @@ ArrayOfIndexSet(freq_number_tmp,
 
 Append(met_mm_available_accuracies, freq_number_tmp)
 
+VectorCreate( freq_spacing_tmp )
+VectorSet( freq_spacing_tmp, [10e9, 1e9, 1e9, 1e9] )
+
 Delete(freq_number_tmp)
 ArrayOfIndexCreate( met_mm_freq_number )
+NumericCreate( current_spacing )
 
 Extract(met_mm_freq_number, met_mm_available_accuracies, met_mm_accuracy)
+Extract(current_spacing,    freq_spacing_tmp,            met_mm_accuracy)
 
 VectorCreate( met_mm_freq_spacing )
 IndexCreate( met_mm_nchannels )
 nrowsGet( met_mm_nchannels, met_mm_backend )
-VectorSetConstant( met_mm_freq_spacing, met_mm_nchannels, 1e9 )
+VectorSetConstant( met_mm_freq_spacing, met_mm_nchannels, current_spacing )
+Delete(current_spacing)
 
 }

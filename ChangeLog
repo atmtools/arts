@@ -1,3 +1,33 @@
+2016-03-04  Alex Bobryshev <oleksandr.bobryshev@uni-hamburg.de>
+
+        * arts-2-3-452
+
+        * controlfiles/instruments/metmm/sensor_descriptions/sensor_marss.arts,
+        controlfiles/instruments/metmm/sensor_descriptions/sensor_deimos.arts,
+        controlfiles/instruments/metmm/sensor_descriptions/sensor_amsua.arts,
+        controlfiles/instruments/metmm/sensor_descriptions/sensor_amsub.arts,
+        controlfiles/instruments/metmm/sensor_descriptions/sensor_mhs.arts
+        controlfiles/instruments/metmm/sensor_descriptions/
+        sensor_ismar_downward.arts
+        controlfiles/instruments/metmm/sensor_descriptions/
+        sensor_ismar_upward.arts:
+
+        Unwanted feature of freq_spacing: default value of met_mm_freq_spacing
+        overwrote the desired met_mm_freq_num for metmm-fast-setup for
+        channels wider than 1e9 GHz. Thus making more than one grid point
+        per passband for fast setup.
+        Fixed: For all files added vector "freq_spacing_tmp". This vector
+        contains default values for "met_mm_freq_spacing" for 4
+        met_mm_accuracy setups.
+
+	* controlfiles/instruments/metmm/sensor_descriptions/sensor_saphir.arts
+
+	Added new sensor setup. Channel definitions taken from
+	https://megha-tropiques.cnes.fr, The PDF-document-name:
+	2013_01_17_Level-1productdef_ED3rev4
+	The viewing angles are from h5-file L1A2 v1.07 
+	// group attributes:
+
 2016-03-03  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-451
