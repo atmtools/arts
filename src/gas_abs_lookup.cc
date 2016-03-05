@@ -813,6 +813,27 @@ void GasAbsLookup::Extract( Matrix&         sga,
     }
   else
     {
+      const Numeric f_min = f_grid[0] - 0.5*(f_grid[1]-f_grid[0]); 
+      const Numeric f_max = f_grid[n_f_grid-1] + 0.5*(f_grid[n_f_grid-1]-f_grid[n_f_grid-2]);
+      if ( new_f_grid[0] < f_min )
+        {
+          ostringstream os;
+          os << "Problem with gas absorption lookup table.\n"
+             << "At least one frequency is outside the range covered by the lookup table.\n" 
+             << "Your new frequency value is " << new_f_grid[0] << " Hz.\n"
+             << "The allowed range is " << f_min << " to " << f_max << " Hz.";
+          throw runtime_error( os.str() );
+        }
+      if ( new_f_grid[n_new_f_grid-1] > f_max )
+        {
+          ostringstream os;
+          os << "Problem with gas absorption lookup table.\n"
+             << "At least one frequency is outside the range covered by the lookup table.\n" 
+             << "Your new frequency value is " << new_f_grid[n_new_f_grid-1] << " Hz.\n"
+             << "The allowed range is " << f_min << " to " << f_max << " Hz.";
+          throw runtime_error( os.str() );
+        }
+
       // We do have real frequency interpolation (f_interp_order!=0).
       fgp = &fgp_local;
       fgp_local.resize(n_new_f_grid);
@@ -869,8 +890,7 @@ void GasAbsLookup::Extract( Matrix&         sga,
   gridpos_poly( pgp,
                 log_p_grid,
                 log(p),
-                p_interp_order,
-                extpolfac );
+                p_interp_order );
 
   // Pressure interpolation weights:
   Vector pitw;
@@ -1004,8 +1024,8 @@ void GasAbsLookup::Extract( Matrix&         sga,
 
           // Check that temperature offset is inside the allowed range.
           {
-            const Numeric t_min = t_pert[0] - 0.5*(t_pert[1]-t_pert[0]); 
-            const Numeric t_max = t_pert[n_t_pert-1] + 0.5*(t_pert[n_t_pert-1]-t_pert[n_t_pert-2]);
+            const Numeric t_min = t_pert[0] - extpolfac*(t_pert[1]-t_pert[0]); 
+            const Numeric t_max = t_pert[n_t_pert-1] + extpolfac*(t_pert[n_t_pert-1]-t_pert[n_t_pert-2]);
             if ( ( T_offset > t_max ) ||
                  ( T_offset < t_min ) )
             {
@@ -1059,9 +1079,9 @@ void GasAbsLookup::Extract( Matrix&         sga,
           // Check that VMR_frac is inside the allowed range.
           {
             // FIXME: This check depends on how I interpolate VMR.
-            const Numeric x_min = nls_pert[0] - 0.5*(nls_pert[1]-nls_pert[0]); 
+            const Numeric x_min = nls_pert[0] - extpolfac*(nls_pert[1]-nls_pert[0]); 
             const Numeric x_max = nls_pert[n_nls_pert-1]
-              + 0.5*(nls_pert[n_nls_pert-1]-nls_pert[n_nls_pert-2]);
+              + extpolfac*(nls_pert[n_nls_pert-1]-nls_pert[n_nls_pert-2]);
 
             if ( ( VMR_frac > x_max ) ||
                  ( VMR_frac < x_min ) )

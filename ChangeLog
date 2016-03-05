@@ -1,3 +1,25 @@
+2016-03-05  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+        * arts-2-3-453
+
+	* src/m_abs_lookup.cc (propmat_clearskyAddFromLookup): Revision of
+	extpolfac. This did not work at all. First of all, error checks
+	did not consider extpolfac, the value of 0.5 was hard-coded. Doc
+	was also wrong. Now extpolfac is applied for temperature and VMR.
+	But decided to just allow standard extrapolation for pressure and
+	frequency, to keep things a it safer.
+
+	Hopefully I got it right and there are checks now for all
+	interpolations (there was no check for frequency part), but
+	please feel free to double-check.
+
+	* src/m_linerecord.cc (abs_linesReplaceWithLines): Commented out
+	error if replacement_lines is empty. That error check caused me
+	problem as I have a general file with replacement lines, but in
+	some cases I am just interested in lines inside some narrow
+	frequency range having no "replacement". To allow a general script
+	for this, I had to remove the error.
+
 2016-03-04  Alex Bobryshev <oleksandr.bobryshev@uni-hamburg.de>
 
         * arts-2-3-452

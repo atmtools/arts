@@ -10331,9 +10331,12 @@ void define_md_data_raw()
          "For Doppler calculations, you should generate the table with a\n"
          "somewhat larger frequency grid than the calculation itself has, since\n"
          "the Doppler shift will push the frequency grid out of the table range\n"
-         "on one side. Alternatively, you can set the input\n"
-         "parameter *extpolfac* to a larger value, to allow extrapolation at the\n"
-         "edges.\n"
+         "on one side.\n"
+         "\n"
+         "Some extrapolation is allowed. For pressure and frequency interpolation\n"
+         "the standard extrapolation factor of 0.5 is applied. The factor is the\n"
+         "default for temperature and VMR interpolationb, but the extrapolation\n"
+         "limit can here be adjusted by the *extrapolfac* argument.\n"
          "\n"
          "See also: *propmat_clearskyAddOnTheFly*.\n"
          ),
@@ -10349,7 +10352,7 @@ void define_md_data_raw()
         GIN("extpolfac"),
         GIN_TYPE("Numeric"),
         GIN_DEFAULT("0.5"),
-        GIN_DESC("Extrapolation factor (for grid edges).")
+        GIN_DESC("Extrapolation factor (for temperature and VMR grid edges).")
         ));
     
   md_data_raw.push_back

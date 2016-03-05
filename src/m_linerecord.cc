@@ -102,8 +102,8 @@ void abs_linesReplaceWithLines(ArrayOfLineRecord& abs_lines,
                                const Verbosity&)
 {
   
-  if(replacement_lines.nelem()==0)
-    throw std::runtime_error("replacement_lines is empty.\n");
+  //if(replacement_lines.nelem()==0)
+  //  throw std::runtime_error("replacement_lines is empty.\n");
   
   ArrayOfIndex matches;
   ArrayOfQuantumMatchInfo match_info;
