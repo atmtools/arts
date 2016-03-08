@@ -390,7 +390,7 @@ void pha_matTransform(//Output
                              za_datagrid, za_sca, aa_sca,
                              za_inc, aa_inc);
       
-      // Caclulate the phase matrix in the laboratory frame:
+      // Calculate the phase matrix in the laboratory frame:
       pha_mat_labCalc(pha_mat_lab, pha_mat_int, za_sca, aa_sca, za_inc, 
                       aa_inc, theta_rad);
       

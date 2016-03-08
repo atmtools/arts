@@ -3785,10 +3785,10 @@ void define_md_data_raw()
          "different ways and using different output. The available options\n"
          "(from low to high sphericity level) are:\n"
          "- Cloudbox extends over whole atmosphere (e.g. by setting cloudbox\n"
-         "  from  *CloudboxSetDisort*)\n"
+         "  from  *cloudboxSetDisort*)\n"
          "- Cloudbox extends over a limited part of the atmosphere only (e.g.\n"
-         "  by setting cloudbox from *CloudboxSetAutomatically* or\n"
-         "  *CloudboxSetManually*), but DISORT is run over the whole\n"
+         "  by setting cloudbox from *cloudboxSetAutomatically* or\n"
+         "  *cloudboxSetManually*), but DISORT is run over the whole\n"
          "  atmosphere.  Only the radiation field within the cloudbox is\n"
          "  passed on and used further in ARTS (e.g. by *yCalc*)\n"
          "- Cloudbox extends over a limited part of the atmosphere only and\n"
@@ -3806,10 +3806,16 @@ void define_md_data_raw()
          "- Except for *non_iso_inc*=1, where *iy_space_agenda* is applied,\n"
          "  TOA incoming radiation is assumed as blackbody cosmic background\n"
          "  (temp taken from ARTS-internal constant).\n"
-         "- Temperature dependence of single scattering properties is\n"
-         "  currently ignored (scat_data of lowest t_grid point is used).\n"
+         "- Temperature dependence of phase matrix is currently ignored\n"
+         "  (*pha_mat_data* of lowest t_grid point is used).\n"
          "- Scattering angle grids of all scattering elements have to be\n"
          "  identical.\n"
+         "\n"
+         "Keyword *pfct_method* is for testing purposes. It allows to chose\n"
+         "between the 'old' method to derive phase function and Legendre\n"
+         "coefficients neglecting temperature dependence of phase matrix and\n"
+         "a 'new' method considering the temperature dependence and\n"
+         "scattering angle grids to differ between scattering elements.\n"
          ),
         AUTHORS( "Claudia Emde, Jana Mendrok" ),
         OUT( "doit_i_field",
@@ -3817,7 +3823,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "disort_is_initialized",
+        IN( "doit_i_field", "disort_is_initialized",
             "atmfields_checked", "atmgeom_checked", "cloudbox_checked",
             "cloudbox_on", "cloudbox_limits",
             "propmat_clearsky_agenda",
@@ -3825,13 +3831,14 @@ void define_md_data_raw()
             "pnd_field", "t_field", "z_field", "vmr_field", "p_grid",
             "scat_data", "f_grid", "scat_za_grid",
             "surface_scalar_reflectivity" ),
-        GIN(         "nstreams", "non_iso_inc" ),
-        GIN_TYPE(    "Index",    "Index" ),
-        GIN_DEFAULT( "8",        "0" ),
+        GIN(         "nstreams", "non_iso_inc", "pfct_method" ),
+        GIN_TYPE(    "Index",    "Index",       "String" ),
+        GIN_DEFAULT( "8",        "0",           "old" ),
         GIN_DESC( "Number of polar angle directions (streams) in DISORT "
                   "solution.",
                   "Flag whether to run DISORT initialized with non-isotropic "
-                  "TOA field. See above for more info." )
+                  "TOA field. See above for more info.",
+                  "Flag which method to apply to derive phase function." )
         ));
 
   md_data_raw.push_back
@@ -4633,7 +4640,8 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "doit_i_field",
             "p_grid", "lat_grid", "lon_grid",
-            "cloudbox_limits", "atmosphere_dim", "doit_is_initialized" ),
+            "cloudbox_limits", "atmosphere_dim",
+            "cloudbox_on", "doit_is_initialized" ),
         GIN( "all_frequencies" ),
         GIN_TYPE( "Index" ),
         GIN_DEFAULT( "1" ),

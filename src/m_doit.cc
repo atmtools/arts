@@ -1856,7 +1856,7 @@ doit_scat_fieldCalc(Workspace& ws,
               // Dummy index
               Index index_zero = 0;
               
-              // Calculate the phase matric of individual scattering elements
+              // Calculate the phase matrix of individual scattering elements
               out3 << "Calculate the phase matrix \n"; 
               pha_mat_spt_agendaExecute(ws, pha_mat_spt_local,
                                         scat_za_index_local,
@@ -2566,11 +2566,13 @@ if (nf)
       os << "Frequency: " << f_grid[f_index]/1e9 <<" GHz \n" ;
       out2 << os.str();
 
-      Tensor6 doit_i_field_mono_local = doit_i_field(f_index, joker, joker, joker, joker, joker, joker);
+      Tensor6 doit_i_field_mono_local =
+        doit_i_field(f_index, joker, joker, joker, joker, joker, joker);
       doit_mono_agendaExecute(l_ws,
                               doit_i_field_mono_local,
                               f_grid, f_index, l_doit_mono_agenda);
-      doit_i_field(f_index, joker, joker, joker, joker, joker, joker) = doit_i_field_mono_local;
+      doit_i_field(f_index, joker, joker, joker, joker, joker, joker) =
+        doit_i_field_mono_local;
     }
 }
 
@@ -3272,11 +3274,15 @@ void doit_i_fieldSetClearsky(Tensor7& doit_i_field,
                              const Vector& lon_grid,
                              const ArrayOfIndex& cloudbox_limits,
                              const Index& atmosphere_dim,
+                             const Index& cloudbox_on,
                              const Index& doit_is_initialized,
                              const Index& all_frequencies,
                              const Verbosity& verbosity)
 {
     CREATE_OUT2;
+
+  // Don't do anything if there's no cloudbox defined.
+  if (!cloudbox_on) return;
 
   // Check whether DoitInit was executed
   if (!doit_is_initialized)

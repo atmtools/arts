@@ -48,12 +48,33 @@ void dtauc_ssalbCalc(Workspace &ws,
                      const ArrayOfIndex& cloudbox_limits,
                      ConstVectorView f_mono);
 
+void phase_functionCalc2(Workspace& ws,
+                        //Output
+                        MatrixView phase_function,
+                        //Input
+                        const ArrayOfArrayOfSingleScatteringData& scat_data_mono,
+                        const Agenda& spt_calc_agenda,
+                        const Agenda& opt_prop_part_agenda,
+                        ConstTensor4View pnd_field,
+                        ConstTensor3View t_field,
+                        const ArrayOfIndex& cloudbox_limits,
+                        const Index& pfct_za_grid_size,
+                        const Verbosity& verbosity);
+
 void phase_functionCalc(//Output
                         MatrixView phase_function,
                         //Input
                         const ArrayOfArrayOfSingleScatteringData& scat_data_mono,
                         ConstTensor4View pnd_field,
                         const ArrayOfIndex& cloudbox_limits);
+
+void pmomCalc2(//Output
+              MatrixView pmom,
+              //Input
+              ConstMatrixView phase_function, 
+              ConstVectorView scat_angle_grid,
+              const Index n_legendre,
+              const Verbosity& verbosity);
 
 void pmomCalc(//Output
               MatrixView pmom,

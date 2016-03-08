@@ -111,23 +111,27 @@ void pha_mat_sptFromData( // Output:
   // save side.
   assert( pha_mat_spt.nshelves() == N_se_total );
   
-  const Index N_hm = scat_data.nelem();
+  const Index N_ss = scat_data.nelem();
 
   // Phase matrix in laboratory coordinate system. Dimensions:
   // [frequency, za_inc, aa_inc, stokes_dim, stokes_dim]
   Tensor5 pha_mat_data_int;
 
+  Index i_se_flat = 0;
+
   // Loop over scattering species
-  for (Index i_ss = 0; i_ss < N_hm; i_ss++)
+  for (Index i_ss = 0; i_ss < N_ss; i_ss++)
   {
       const Index N_se = scat_data[i_ss].nelem();
 
       // Loop over the included scattering elements
       for (Index i_se = 0; i_se < N_se; i_se++)
       {
-          // If the particle number density at a specific point in the atmosphere for
-          // the i_se scattering element is zero, we don't need to do the transfromation!
-          if (pnd_field(i_se, scat_p_index, scat_lat_index, scat_lon_index) > PND_LIMIT)
+          // If the particle number density at a specific point in the
+          // atmosphere for the i_se scattering element is zero, we don't need
+          // to do the transfromation!
+          if (pnd_field(i_se_flat, scat_p_index, scat_lat_index, scat_lon_index)
+              > PND_LIMIT)
           {
 
               // First we have to transform the data from the coordinate system
@@ -137,8 +141,10 @@ void pha_mat_sptFromData( // Output:
               // Frequency interpolation:
 
               // The data is interpolated on one frequency.
-              pha_mat_data_int.resize(PHA_MAT_DATA_RAW.nshelves(), PHA_MAT_DATA_RAW.nbooks(),
-                                      PHA_MAT_DATA_RAW.npages(), PHA_MAT_DATA_RAW.nrows(),
+              pha_mat_data_int.resize(PHA_MAT_DATA_RAW.nshelves(),
+                                      PHA_MAT_DATA_RAW.nbooks(),
+                                      PHA_MAT_DATA_RAW.npages(),
+                                      PHA_MAT_DATA_RAW.nrows(),
                                       PHA_MAT_DATA_RAW.ncols());
 
 
@@ -153,25 +159,29 @@ void pha_mat_sptFromData( // Output:
               Vector itw(4);
               interpweights(itw, freq_gp, t_gp);
 
-              for (Index i_za_sca = 0; i_za_sca < PHA_MAT_DATA_RAW.nshelves() ; i_za_sca++)
+              for (Index i_za_sca = 0; i_za_sca < PHA_MAT_DATA_RAW.nshelves();
+                   i_za_sca++)
               {
-                  for (Index i_aa_sca = 0; i_aa_sca < PHA_MAT_DATA_RAW.nbooks(); i_aa_sca++)
+                  for (Index i_aa_sca = 0; i_aa_sca < PHA_MAT_DATA_RAW.nbooks();
+                       i_aa_sca++)
                   {
-                      for (Index i_za_inc = 0; i_za_inc < PHA_MAT_DATA_RAW.npages();
+                      for (Index i_za_inc = 0;
+                           i_za_inc < PHA_MAT_DATA_RAW.npages();
                            i_za_inc++)
                       {
-                          for (Index i_aa_inc = 0; i_aa_inc < PHA_MAT_DATA_RAW.nrows();
+                          for (Index i_aa_inc = 0;
+                               i_aa_inc < PHA_MAT_DATA_RAW.nrows();
                                i_aa_inc++)
                           {
-                              for (Index i = 0; i < PHA_MAT_DATA_RAW.ncols(); i++)
+                              for (Index i = 0; i < PHA_MAT_DATA_RAW.ncols();
+                                   i++)
                               {
-                                  pha_mat_data_int(i_za_sca,
-                                                   i_aa_sca, i_za_inc,
-                                                   i_aa_inc, i) =
+                                  pha_mat_data_int(i_za_sca, i_aa_sca,
+                                                   i_za_inc, i_aa_inc, i) =
                                   interp(itw,
-                                         PHA_MAT_DATA_RAW(joker, joker, i_za_sca,
-                                                          i_aa_sca, i_za_inc,
-                                                          i_aa_inc, i),
+                                         PHA_MAT_DATA_RAW(joker, joker,
+                                                          i_za_sca, i_aa_sca,
+                                                          i_za_inc, i_aa_inc, i),
                                          freq_gp, t_gp);
                               }
                           }
@@ -186,8 +196,9 @@ void pha_mat_sptFromData( // Output:
                   for (Index aa_inc_idx = 0; aa_inc_idx < scat_aa_grid.nelem();
                        aa_inc_idx ++)
                   {
-                      pha_matTransform(pha_mat_spt
-                                       (i_se, za_inc_idx, aa_inc_idx, joker, joker),
+                      pha_matTransform(pha_mat_spt(i_se_flat,
+                                                   za_inc_idx, aa_inc_idx,
+                                                   joker, joker),
                                        pha_mat_data_int,
                                        ZA_DATAGRID, AA_DATAGRID,
                                        PART_TYPE, scat_za_index, scat_aa_index,
@@ -197,6 +208,7 @@ void pha_mat_sptFromData( // Output:
                   }
               }
           }
+          i_se_flat++;
       }
   }
 }
@@ -239,7 +251,8 @@ void pha_mat_sptFromDataDOITOpt(// Output:
       assert(pha_mat_sptDOITOpt.nelem() == N_se_total);
       // Assuming that if the size is o.k. for one scattering element, it will
       // also be o.k. for the other scattering elements. 
-      assert(pha_mat_sptDOITOpt[0].nlibraries() == scat_data_mono[0][0].T_grid.nelem());
+      assert(pha_mat_sptDOITOpt[0].nlibraries() ==
+             scat_data_mono[0][0].T_grid.nelem());
       assert(pha_mat_sptDOITOpt[0].nvitrines() == doit_za_grid_size);
       assert(pha_mat_sptDOITOpt[0].nshelves() == scat_aa_grid.nelem() );
       assert(pha_mat_sptDOITOpt[0].nbooks() == doit_za_grid_size);
@@ -294,7 +307,8 @@ void pha_mat_sptFromDataDOITOpt(// Output:
           // If the particle number density at a specific point in the atmosphere
           // for the i_se scattering element is zero, we don't need to do the
           // transfromation!
-          if (pnd_field(i_se_flat, scat_p_index, scat_lat_index, scat_lon_index) > PND_LIMIT) //TRS
+          if (pnd_field(i_se_flat, scat_p_index, scat_lat_index, scat_lon_index)
+              > PND_LIMIT) //TRS
           {
               if( scat_data_mono[i_ss][i_se].T_grid.nelem() > 1)
               {
@@ -375,7 +389,7 @@ void opt_prop_sptFromData(// Output and Input:
                           const Verbosity& verbosity)
 {
   
-  const Index N_hm = scat_data.nelem();
+  const Index N_ss = scat_data.nelem();
   const Index stokes_dim = ext_mat_spt.ncols();
   const Numeric za_sca = scat_za_grid[scat_za_index];
   const Numeric aa_sca = scat_aa_grid[scat_aa_index];
@@ -401,9 +415,9 @@ void opt_prop_sptFromData(// Output and Input:
 
   Index i_se_flat = 0;
   // Loop over the included scattering species
-  for (Index i_ss = 0; i_ss < N_hm; i_ss++)
+  for (Index i_ss = 0; i_ss < N_ss; i_ss++)
   {
-      const Index N_se = scat_data[N_hm].nelem();
+      const Index N_se = scat_data[N_ss].nelem();
 
       // Loop over the included scattering elements
       for (Index i_se = 0; i_se < N_se; i_se++)
@@ -411,7 +425,8 @@ void opt_prop_sptFromData(// Output and Input:
           // If the particle number density at a specific point in the atmosphere for
           // the i_se scattering element is zero, we don't need to do the transfromation
 
-          if (pnd_field(i_se_flat, scat_p_index, scat_lat_index, scat_lon_index) > PND_LIMIT)
+          if (pnd_field(i_se_flat, scat_p_index, scat_lat_index, scat_lon_index)
+              > PND_LIMIT)
           {
               // First we have to transform the data from the coordinate system
               // used in the database (depending on the kind of ptype) to the
@@ -919,14 +934,13 @@ void pha_matCalc(Tensor4& pha_mat,
                     {
                       for (Index stokes_index_2 = 0; stokes_index_2 < stokes_dim;
                            ++ stokes_index_2)
-                         //summation of the product of pnd_field and 
-                          //pha_mat_spt.
+                        //summation of the product of pnd_field and 
+                        //pha_mat_spt.
                         pha_mat(za_index, aa_index,  
                                      stokes_index_1, stokes_index_2) += 
-                          
                           (pha_mat_spt(pt_index, za_index, aa_index,  
                                        stokes_index_1, stokes_index_2) * 
-                           pnd_field(pt_index,scat_p_index, 0, 0));
+                          pnd_field(pt_index,scat_p_index, 0, 0));
                     }
                 }
             }
@@ -982,10 +996,10 @@ void scat_dataCheck(//Input:
 //  xml_write_to_file("SingleScatteringData", scat_data, FILE_TYPE_ASCII,
 //                    verbosity);
 
-    const Index N_hm = scat_data.nelem();
+    const Index N_ss = scat_data.nelem();
 
     // Loop over the included scattering species
-    for (Index i_ss = 0; i_ss < N_hm; i_ss++)
+    for (Index i_ss = 0; i_ss < N_ss; i_ss++)
     {
 
         out2 << " scattering species " << i_ss << "\n";
@@ -1094,12 +1108,12 @@ void DoitScatteringDataPrepare(//Output:
 
   assert( scat_data.nelem() == scat_data_mono.nelem() );
   
-  const Index N_hm = scat_data.nelem();
+  const Index N_ss = scat_data.nelem();
   
   pha_mat_sptDOITOpt.resize(TotalNumberOfElements(scat_data));
 
   Index i_se_flat = 0;
-  for (Index i_ss = 0; i_ss < N_hm; i_ss++)
+  for (Index i_ss = 0; i_ss < N_ss; i_ss++)
   {
       const Index N_se = scat_data[i_ss].nelem();
 
@@ -1372,7 +1386,8 @@ void opt_prop_sptFromMonoData(// Output and Input:
       {
           // If the particle number density at a specific point in the atmosphere for
           // the i_se scattering element is zero, we don't need to do the transfromation!
-          if (pnd_field(i_se_flat, scat_p_index, scat_lat_index, scat_lon_index) > PND_LIMIT)
+          if (pnd_field(i_se_flat, scat_p_index, scat_lat_index, scat_lon_index)
+              > PND_LIMIT)
           {
 
               // First we have to transform the data from the coordinate system
@@ -1502,7 +1517,7 @@ void pha_mat_sptFromMonoData(// Output:
          << "inconsistent with size of pnd_field.";
       throw runtime_error(os.str());
     }
-  // as pha_mat_spt is typically initiallized from pnd_field, this theoretically
+  // as pha_mat_spt is typically initialized from pnd_field, this theoretically
   // checks the same as the runtime_error above. Still, we keep it to be on the
   // save side.
   assert( pha_mat_spt.nshelves() == N_se_total );
@@ -1524,19 +1539,19 @@ void pha_mat_sptFromMonoData(// Output:
   {
       for (Index i_se = 0; i_se < scat_data_mono[i_ss].nelem(); i_se ++)
       {
-          // If the particle number density at a specific point in the atmosphere
-          // for the i_se scattering element is zero, we don't need to do the
-          // transfromation!
-          if (pnd_field(i_se, scat_p_index, scat_lat_index, scat_lon_index) >
-              PND_LIMIT)
+          // If the particle number density at a specific point in the
+          // atmosphere for scattering element i_se is zero, we don't need to
+          // do the transformation!
+          if (pnd_field(i_se_flat, scat_p_index, scat_lat_index, scat_lon_index)
+              > PND_LIMIT)
           {
-              // Temporary phase matrix wich icludes the all temperatures.
+              // Temporary phase matrix which includes all temperatures.
               Tensor3 pha_mat_spt_tmp(scat_data_mono[i_ss][i_se].T_grid.nelem(),
                                       pha_mat_spt.nrows(), pha_mat_spt.ncols());
 
               pha_mat_spt_tmp = 0.;
 
-              if( scat_data_mono[i_ss][i_se].T_grid.nelem() > 1)
+              if( scat_data_mono[i_ss][i_se].T_grid.nelem() > 1 )
               {
                   ostringstream os;
                   os << "The temperature grid of the scattering data does not\n"
@@ -1550,10 +1565,33 @@ void pha_mat_sptFromMonoData(// Output:
                   // Gridpositions:
                   gridpos( T_gp, scat_data_mono[i_ss][i_se].T_grid, 
                            rtp_temperature );
-                  // Interpolationweights:
+                  // Interpolation weights:
                   interpweights(itw, T_gp);
               }
 
+/*
+              if( i_se_flat==65 && rtp_temperature==292.61 )
+                {
+                  Tensor7 p=scat_data_mono[i_ss][i_se].pha_mat_data;
+                  cout << "#original pfct:\n";
+                  for( Index i_za=0; i_za<p.nshelves(); i_za++ )
+                  {
+                    cout << "  "
+                         << scat_data_mono[i_ss][i_se].za_grid[i_za];
+                    for( Index i_t=0; i_t<p.nvitrines(); i_t++ )
+                      cout << "  " << p(0,i_t,i_za,0,0,0,0);
+                    cout << "\n";
+                  }
+                }
+
+              Tensor3 pha_mat_lab;
+              if( i_se_flat==65 )
+              {
+                pha_mat_lab.resize( scat_data_mono[i_ss][i_se].T_grid.nelem(),
+                                    doit_za_grid_size,scat_aa_grid.nelem() );
+                pha_mat_lab=0.;
+              }
+*/
               // Do the transformation into the laboratory coordinate system.
               for (Index za_inc_idx = 0; za_inc_idx < doit_za_grid_size;
                    za_inc_idx ++)
@@ -1568,7 +1606,7 @@ void pha_mat_sptFromMonoData(// Output:
                           pha_matTransform( pha_mat_spt_tmp(t_idx, joker, joker),
                                            scat_data_mono[i_ss][i_se].
                                            pha_mat_data
-                                           (0,0,joker,joker,joker,
+                                           (0,t_idx,joker,joker,joker,
                                             joker,joker),
                                            scat_data_mono[i_ss][i_se].za_grid,
                                            scat_data_mono[i_ss][i_se].aa_grid,
@@ -1578,6 +1616,11 @@ void pha_mat_sptFromMonoData(// Output:
                                            aa_inc_idx, za_grid, scat_aa_grid,
                                            verbosity );
                       }
+/*
+                      if( i_se_flat==65 )
+                        pha_mat_lab(joker, za_inc_idx, aa_inc_idx) = 
+                          pha_mat_spt_tmp(joker, 0, 0);
+*/
                       // Temperature interpolation
                       if( scat_data_mono[i_ss][i_se].T_grid.nelem() > 1)
                       {
@@ -1592,7 +1635,7 @@ void pha_mat_sptFromMonoData(// Output:
                               }
                           }
                       }
-                      else // no temperatue interpolation required
+                      else // no temperature interpolation required
                       {
                           pha_mat_spt(i_se_flat,
                                       za_inc_idx, aa_inc_idx, joker, joker) =
@@ -1600,7 +1643,29 @@ void pha_mat_sptFromMonoData(// Output:
                       }
                   }
               }
-          }
+/*
+              if( i_se_flat==65 && rtp_temperature==292.61 )
+                {
+                  cout << "\n#angle-converted pfct:\n";
+                  for( Index i_za=0; i_za<pha_mat_lab.nrows(); i_za++ )
+                  {
+                    cout << "  "
+                         << za_grid[i_za];
+                    for( Index i_t=0; i_t<pha_mat_lab.npages(); i_t++ )
+                      cout << "  " << pha_mat_lab(i_t,i_za,0);
+                    cout << "\n";
+                  }
+                  cout << "\n#temperature-interpolated pfct:\n";
+                  for( Index i_za=0; i_za<pha_mat_lab.nrows(); i_za++ )
+                  {
+                    cout << "  "
+                         << za_grid[i_za];
+                    cout << "  " << pha_mat_spt(i_se_flat,i_za,0,0,0);
+                    cout << "\n";
+                  }
+                }
+*/
+         }
 
           i_se_flat++;
       }

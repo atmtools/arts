@@ -36,6 +36,7 @@
 #include "disort_DISORT.h"
 #include "interpolation.h"
 #include "logic.h"
+#include "math_funcs.h"
 #include "messages.h"
 #include "rte.h"
 #include "xml_io.h"
@@ -54,15 +55,15 @@ extern const Numeric BOLTZMAN_CONST;
   \param ws                    Current workspace
   \param dtauc                 optical depths for all layers
   \param ssalb                 single scattering albedos for all layers
-  \param opt_prop_part_agenda  use arts -d for docu
-  \param propmat_clearsky_agenda use arts -d
-  \param spt_calc_agenda       use arts -d 
-  \param pnd_field             use arts -d 
-  \param t_field               use arts -d 
-  \param z_field               use arts -d 
-  \param p_grid                use arts -d 
-  \param vmr_field             use arts -d 
-  \param f_index               use arts -d 
+  \param propmat_clearsky_agenda as the WSA
+  \param spt_calc_agenda       as the WSA 
+  \param opt_prop_part_agenda  as the WSA
+  \param pnd_field             as the WSV 
+  \param t_field               as the WSV 
+  \param z_field               as the WSV 
+  \param p_grid                as the WSV 
+  \param vmr_field             as the WSV 
+  \param f_index               as the WSV 
   
   \author Claudia Emde, Jana Mendrok
   \date   2006-02-10
@@ -87,12 +88,10 @@ void dtauc_ssalbCalc(Workspace& ws,
   ssalb=0.;
   
   const Index N_se = pnd_field.nbooks();
-  // In DISORT the "cloudbox" must cover the whole atmosphere
-  //const Index Np_cloud = pnd_field.npages();
+
+  const Index Np_cloud = pnd_field.npages();
   const Index Np = p_grid.nelem();
 
-  //assert( dtauc.nelem() == Np_cloud-1);
-  //assert( ssalb.nelem() == Np_cloud-1);
   assert( dtauc.nelem() == Np-1);
   assert( ssalb.nelem() == Np-1);
 
@@ -106,18 +105,17 @@ void dtauc_ssalbCalc(Workspace& ws,
   Numeric rtp_temperature_local; 
   Numeric rtp_pressure_local;
   Tensor4 propmat_clearsky_local;
-  //Vector ext_vector(Np_cloud); 
-  //Vector abs_vector(Np_cloud); 
   Vector ext_vector(Np, 0.); 
   Vector abs_vector(Np, 0.); 
   Vector rtp_vmr_local(vmr_field.nbooks());
 
-  // Calculate ext_mat, abs_vec and sca_vec for all pressure points in cloudbox 
-  for(Index scat_p_index_local = cloudbox_limits[0];
-            scat_p_index_local < cloudbox_limits[1]+1; 
+  // Calculate ext_mat and abs_vec for all pressure points in cloudbox 
+  for(Index scat_p_index_local = 0;
+            scat_p_index_local < Np_cloud; 
             scat_p_index_local ++)
     {
-      rtp_temperature_local = t_field(scat_p_index_local, 0, 0);
+      rtp_temperature_local =
+        t_field(scat_p_index_local+cloudbox_limits[0], 0, 0);
      
       //Calculate optical properties for all individual scattering elements:
       spt_calc_agendaExecute(ws,
@@ -135,8 +133,8 @@ void dtauc_ssalbCalc(Workspace& ws,
                                   scat_p_index_local, 0, 0, 
                                   opt_prop_part_agenda);
 
-      ext_vector[scat_p_index_local] = ext_mat_local(0,0,0);
-      abs_vector[scat_p_index_local] = abs_vec_local(0,0);
+      ext_vector[scat_p_index_local+cloudbox_limits[0]] = ext_mat_local(0,0,0);
+      abs_vector[scat_p_index_local+cloudbox_limits[0]] = abs_vec_local(0,0);
     }
 
   const Vector  rtp_temperature_nlte_local_dummy(0);
@@ -194,6 +192,282 @@ void dtauc_ssalbCalc(Workspace& ws,
     }  
 }
 
+//! phase_functionCalc2
+/*!
+  Calculates layer averaged normalized phase functions from 
+  the phase matrix in SingleScatteringData.
+  Temperature and angle grid interpolations are applied.
+
+  \param phase_function  normalized layer-averaged bulk phase function
+  \param scat_data_mono    as the WSV
+  \param spt_calc_agenda   as the WSA 
+  \param opt_prop_part_agenda  as the WSA
+  \param pnd_field         as the WSV
+  \param t_field           as the WSV 
+  \param cloudbox_limits   as the WSV
+  \param pfct_za_grid_size number of equidistant scatt. angles in 0-180deg
+
+  \author Claudia Emde, Jana Mendrok
+  \date   2006-02-10
+*/
+void phase_functionCalc2(Workspace& ws,
+                        //Output
+                        MatrixView phase_function,
+                        //Input
+                        const ArrayOfArrayOfSingleScatteringData& scat_data_mono,
+                        const Agenda& spt_calc_agenda,
+                        const Agenda& opt_prop_part_agenda,
+                        ConstTensor4View pnd_field,
+                        ConstTensor3View t_field,
+                        const ArrayOfIndex& cloudbox_limits,
+                        const Index& pfct_za_grid_size,
+                        const Verbosity& verbosity)
+{
+  // Initialization
+  phase_function=0.;
+
+  const Index nlyr = phase_function.nrows();
+  const Index Np_cloud = pnd_field.npages();
+  const Index N_se = pnd_field.nbooks();
+  const Index stokes_dim = 1; 
+
+  Matrix phase_function_level(Np_cloud, 
+                              pfct_za_grid_size, 0.);
+  Vector sca_coeff_level(Np_cloud, 0.);
+
+  // Local variables to be used in agendas
+  Numeric rtp_temperature_local; 
+  Matrix abs_vec_spt_local(N_se, stokes_dim, 0.);
+  Matrix abs_vec_local;
+  Tensor3 ext_mat_spt_local(N_se, stokes_dim, stokes_dim, 0.);
+  Tensor3 ext_mat_local;
+  Tensor5 pha_mat_spt_local(N_se, pfct_za_grid_size, 1,
+                            stokes_dim, stokes_dim, 0.);
+  Tensor4 pha_mat_local;
+
+  Vector za_grid;
+  nlinspace(za_grid, 0, 180, pfct_za_grid_size);
+  Vector aa_grid(1, 0.);
+
+  for(Index scat_p_index_local = 0;
+            scat_p_index_local < Np_cloud; 
+            scat_p_index_local ++)
+    {
+/*
+      if( scat_p_index_local < 1 )
+      {
+      cout << "at cloud-lev #" << scat_p_index_local << "\n";
+      Index i_se_flat=0;
+      Numeric sca_coeff;
+      for( Index i_ss=0; i_ss<scat_data_mono.nelem(); i_ss++ )
+      {
+        cout << " scat species #" << i_ss << "\n";
+        for( Index i_se=0; i_se<scat_data_mono[i_ss].nelem(); i_se++ )
+        {
+          if( i_se_flat==65 )
+          {
+          cout << "  scat element #" << i_se << " (flat element #" << i_se_flat
+               << ")\n";
+          for( Index i_t=0; i_t<scat_data_mono[i_ss][i_se].T_grid.nelem(); i_t++ )
+          {
+            sca_coeff = scat_data_mono[i_ss][i_se].ext_mat_data(0,i_t,0,0,0) -
+                        scat_data_mono[i_ss][i_se].abs_vec_data(0,i_t,0,0,0);
+            cout << "   T[" << i_t << "]=" << scat_data_mono[i_ss][i_se].T_grid[i_t]
+                 << "K with sca_coeff=" << sca_coeff << "\n";
+            if( sca_coeff!=0. )
+            {
+              Numeric intP=0.;
+              for (Index i_a = 0; i_a <
+                   scat_data_mono[i_ss][i_se].za_grid.nelem(); i_a++)
+              {
+                //cout << "    processing ang grid point #" << i_a << "\n";
+                if( i_a>0 )
+                {
+                  intP += PI *
+                        (scat_data_mono[i_ss][i_se].pha_mat_data(0,i_t,i_a,0,0,0,0)+
+                         scat_data_mono[i_ss][i_se].pha_mat_data(0,i_t,i_a,0,0,0,0)) *
+                        (abs(cos(scat_data_mono[i_ss][i_se].za_grid[i_a]*PI/180.)-
+                             cos(scat_data_mono[i_ss][i_se].za_grid[i_a-1]*PI/180.)));
+                }
+              }
+              cout << "  at T[" << i_t << "]=" << scat_data_mono[i_ss][i_se].T_grid[i_t]
+                   << "K: int PFCT / scatcoef="
+                     << intP / sca_coeff << "\n";
+            }
+          }
+          }
+          i_se_flat++;
+        }
+      }
+      }
+*/
+
+      // Calculate scat_coef from ext_mat and abs_vec for all pressure points in
+      // cloudbox 
+      // FIXME: This is a copy of what is done in dtauc_ssalbCalc. Might be more
+      // clever to merge these two methods (or to output scat_coef profile from
+      // dtauc_ssalbCalc & input here) to avoid redundant calculations.
+      rtp_temperature_local =
+        t_field(scat_p_index_local+cloudbox_limits[0], 0, 0);
+      //cout << "at cloud lev #" << scat_p_index_local << " (T="
+      //     << rtp_temperature_local << "K):\n";
+     
+      //Calculate optical properties for all individual scattering elements:
+      spt_calc_agendaExecute(ws,
+                             ext_mat_spt_local, 
+                             abs_vec_spt_local,
+                             scat_p_index_local, 0, 0, //position
+                             rtp_temperature_local,
+                             0, 0, // angles, only needed for za=0
+                             spt_calc_agenda);
+
+      opt_prop_part_agendaExecute(ws,
+                                  ext_mat_local, abs_vec_local, 
+                                  ext_mat_spt_local, 
+                                  abs_vec_spt_local,
+                                  scat_p_index_local, 0, 0, 
+                                  opt_prop_part_agenda);
+
+      //cout << "  extmat_total=" << ext_mat_local(0,0,0) << "\n";
+      //cout << "  absvec_total=" << abs_vec_local(0,0) << "\n";
+      sca_coeff_level[scat_p_index_local] =
+        ext_mat_local(0,0,0) - abs_vec_local(0,0);
+      //cout << "  => scatcoef_total=" << sca_coeff_level[scat_p_index_local] << "\n";
+
+      // FIXME: replace loop over scat_data_mono with something appropriate.
+      // we don't have access to scat_data_mono here (we could arrange it.
+      // but is it a good solution?). we could use the desired angle grid
+      // from which pmom will be derived directly here (the agenda takes
+      // care of interpolation!). check whether there are requirements on
+      // the pmom grid (equidistant?)!
+      if (sca_coeff_level[scat_p_index_local] != 0)
+        {
+          // Calculate the phase matrix of individual scattering elements
+          pha_mat_sptFromMonoData( pha_mat_spt_local,
+                                   scat_data_mono,
+                                   pfct_za_grid_size, aa_grid,
+                                   0, 0, // angles, only needed for za=0
+                                   rtp_temperature_local,
+                                   pnd_field,
+                                   scat_p_index_local, 0, 0,
+                                   verbosity );
+              
+          // Sum over all scattering elements
+          pha_matCalc( pha_mat_local,
+                       pha_mat_spt_local, pnd_field, 1,
+                       scat_p_index_local, 0, 0,
+                       verbosity );
+
+          // Bulk scattering function
+          // (conversion to phase function only done when doing layer averaging.
+          // this because averaging needs to be on scat coeff weighted phase
+          // function aka bulk scattering function)
+          phase_function_level(scat_p_index_local, joker) =
+            pha_mat_local(joker, 0, 0, 0);
+
+/*
+          Numeric intP=0.;
+          Vector intP_se(N_se,0.);
+
+          for (Index i_t = 0; i_t < phase_function_level.ncols(); i_t++)
+            {
+              if( i_t>0 )
+              {
+                  intP += PI *
+                    (phase_function_level(scat_p_index_local, i_t) +
+                     phase_function_level(scat_p_index_local, i_t-1)) *
+                    abs(cos(za_grid[i_t]*PI/180.)-
+                        cos(za_grid[i_t-1]*PI/180.));
+                  for( Index i_se=0; i_se<N_se; i_se++ )
+                    intP_se[i_se] += PI *
+                      (pha_mat_spt_local(i_se,i_t,0,0,0) +
+                       pha_mat_spt_local(i_se,i_t-1,0,0,0) ) *
+                      abs(cos(za_grid[i_t]*PI/180.)-
+                         cos(za_grid[i_t-1]*PI/180.));
+              }
+            }
+
+          if( scat_p_index_local < 1 )
+          {
+            cout << "at lev_cloud #" << scat_p_index_local << " (T="
+                 << rtp_temperature_local << "K): "
+                 << "  integ PFCT=" << intP << ", total scatcoef="
+                 << sca_coeff_level[scat_p_index_local]
+                 << " => integ PFCT/total scatcoef="
+                 << intP/sca_coeff_level[scat_p_index_local] << "\n";
+            Index i_se=65;
+            cout << "  at scatelem #" << i_se << ": int PFCT="
+                 << intP_se[i_se] << ", scatcoeff="
+                 << ext_mat_spt_local(i_se,0,0)-abs_vec_spt_local(i_se,0)
+                 << " => int PFCT/scatcoef="
+                 << intP_se[i_se] / (ext_mat_spt_local(i_se,0,0)-abs_vec_spt_local(i_se,0))
+                 << "\n";
+*/
+/*
+              for( Index i_se=0; i_se<N_se; i_se++ )
+              if( ext_mat_spt_local(i_se,0,0)-abs_vec_spt_local(i_se,0)!=0. &&
+                intP_se[i_se]!=0. )
+                {
+                  cout << "  at scatelem #" << i_se << ": int PFCT / scatcoef="
+                       << intP_se[i_se] /
+                          (ext_mat_spt_local(i_se,0,0)-abs_vec_spt_local(i_se,0))
+                       << "\n";
+                }
+              else
+                {
+                  cout << "  at scatelem #" << i_se << ": int PFCT="
+                       << intP_se[i_se] << ", scatcoeff="
+                       << ext_mat_spt_local(i_se,0,0)-abs_vec_spt_local(i_se,0)
+                       << "\n";
+                }
+
+            }
+*/
+        }
+    }
+
+
+  // Calculate average phase function for the layers:
+  // Average bulk scattering function and rescale (normalize) to phase function
+  // with layer averaged scat coeff
+  for (Index i_l = 0; i_l < Np_cloud-1; i_l++)
+    {
+      Index lyr_id = nlyr-1-i_l-cloudbox_limits[0];
+      if ( phase_function_level(i_l, 0) !=0 )
+        if( phase_function_level(i_l+1, 0) !=0 )
+        {
+          //Numeric intP=0.;
+          for (Index i_t=0; i_t < phase_function_level.ncols(); i_t++)
+          {
+              phase_function(lyr_id, i_t) = 4*PI *
+                ( phase_function_level(i_l, i_t) + 
+                  phase_function_level(i_l+1, i_t) ) /
+                ( sca_coeff_level[i_l] + sca_coeff_level[i_l+1] );
+              //if( i_t>0 )
+              //    intP += 0.5 *
+              //      (phase_function(lyr_id, i_t) + phase_function(lyr_id, i_t-1)) *
+              //      abs(cos(za_grid[i_t]*PI/180.)-cos(za_grid[i_t-1]*PI/180.));
+          }
+          //cout << "at lyr #" << lyr_id << " (from cloud levs #" << i_l
+          //     << " and " << i_l+1 << "): intP=" << intP << "\n";
+        }
+        else
+        {
+          for (Index i_t=0; i_t < phase_function_level.ncols(); i_t++)
+              phase_function(lyr_id, i_t) =
+                phase_function_level(i_l, i_t) * 4*PI / sca_coeff_level[i_l];
+        }
+      else if ( phase_function_level(i_l+1, 0) !=0 )
+      {
+        for (Index i_t=0; i_t < phase_function_level.ncols(); i_t++)
+            phase_function(lyr_id, i_t) =
+              phase_function_level(i_l+1, i_t) * 4*PI / sca_coeff_level[i_l+1];
+      }
+    }
+  
+}
+
+
 //! phase_functionCalc
 /*!
   Calculates layer averaged normalized phase functions from 
@@ -203,8 +477,9 @@ void dtauc_ssalbCalc(Workspace& ws,
   scattering angle grid (FIXME: Include angle interpolation)
 
   \param phase_function normalized phase function
-  \param scat_data_mono as the WSV
-  \param pnd_field      as the WSV
+  \param scat_data_mono  as the WSV
+  \param pnd_field       as the WSV
+  \param cloudbox_limits as the WSV
   
   \author Claudia Emde, Jana Mendrok
   \date   2006-02-10
@@ -324,7 +599,7 @@ FIXME: dtauc_ssalbCalc applies spt_calc_agenda and opt_prop_part_agenda. Apply
   
 }
 
-//! pmomCalc
+//! pmomCalc2
 /*!
   Calculates Legendre polynomials of phase functions for each layer. 
   The Legendre polynomial are required as input for DISORT. 
@@ -338,7 +613,7 @@ FIXME: dtauc_ssalbCalc applies spt_calc_agenda and opt_prop_part_agenda. Apply
   \author Claudia Emde, Jana Mendrok
   \date   2006-02-10
 */
-void pmomCalc(//Output
+void pmomCalc2(//Output
               MatrixView pmom,
               //Input
               ConstMatrixView phase_function, 
@@ -346,6 +621,8 @@ void pmomCalc(//Output
               const Index n_legendre,
               const Verbosity& verbosity)
 {
+  assert( phase_function.ncols() == scat_angle_grid.nelem() );
+
   // Initialization
   pmom=0.;
 
@@ -442,6 +719,129 @@ void pmomCalc(//Output
       }
     }
 }
+
+//! pmomCalc
+/*!
+  Calculates Legendre polynomials of phase functions for each layer. 
+  The Legendre polynomial are required as input for DISORT. 
+
+  \param pmom Legendre polynomial of phase functions
+  \param phase_function Normalized phase function
+  \param scat_angle_grid Scattering angle grid corresponding to phase 
+  functions
+  \param n_legendre Number of Legendre polynomials to be calculated
+  
+  \author Claudia Emde, Jana Mendrok
+  \date   2006-02-10
+*/
+void pmomCalc(//Output
+              MatrixView pmom,
+              //Input
+              ConstMatrixView phase_function, 
+              ConstVectorView scat_angle_grid,
+              const Index n_legendre,
+              const Verbosity& verbosity)
+{
+  assert( phase_function.ncols() == scat_angle_grid.nelem() );
+
+  // Initialization
+  pmom=0.;
+
+  Numeric pint; //integrated phase function
+  Numeric p0_1, p0_2, p1_1, p1_2, p2_1, p2_2;
+  
+  Vector za_grid(181);
+  Vector u(181);
+
+  for (Index i = 0; i< 181; i++)
+    za_grid[i] = double(i);
+  
+  ArrayOfGridPos gp(181);
+  gridpos(gp, scat_angle_grid, za_grid); 
+  
+  Matrix itw(gp.nelem(),2);    
+  interpweights(itw,gp);
+  
+  Matrix phase_int(phase_function.nrows(),181);
+  for  (Index i_l=0; i_l < phase_function.nrows(); i_l++)
+    interp(phase_int(i_l, joker), itw, phase_function(i_l, joker), gp);
+    
+      
+  for (Index i = 0; i<za_grid.nelem(); i++)
+    u[i] = cos(za_grid[i] *PI/180.);
+  
+  for (Index i_l=0; i_l < phase_function.nrows(); i_l++)
+    {
+      pint = 0.;
+      // Check if phase function is normalized
+      for (Index i = 0; i<za_grid.nelem()-1; i++)            
+        pint+=0.5*(phase_int(i_l, i)+phase_int(i_l, i+1))*
+          abs(u[i+1] - u[i]);
+      //cout << "at layer #" << i_l << " P_int=" << pint << "\n";
+      
+      if (pint != 0){
+        if (abs(2.-pint) > 0.2)
+        {
+          ostringstream os;
+          os << "Phase function normalization deviates from expected value by\n"
+             << "more than 20%. Something is wrong with your scattering data.\n"
+             << "Check!\n";
+          throw runtime_error( os.str() );
+        }
+        if (abs(2.-pint) > 1e-2)
+        {
+          CREATE_OUT2;
+          out2 << "Warning: The phase function is not normalized to 2\n"
+               << "The value is:" << pint << "\n";
+        }
+        
+        //anyway, rescale phase_int to norm 2
+        phase_int(i_l, joker) *= 2./pint;
+       
+        pmom(i_l, joker)= 0.; 
+
+        for (Index i = 0; i<za_grid.nelem()-1; i++) 
+          {
+            p0_1=1.;
+            p0_2=1.;
+            
+            pmom(i_l,0)=1.;
+
+            //pmom(i_l,0)+=0.5*0.5*(phase_int(i_l, i)+phase_int(i_l, i+1))
+            //*abs(u[i+1]-u[i]); 
+            
+            p1_1=u[i];
+            p1_2=u[i+1];
+            
+            pmom(i_l,1)+=0.5*0.5*
+              (p1_1*phase_int(i_l, i)+
+               p1_2*phase_int(i_l, i+1))
+              *abs(u[i+1]-u[i]);
+            
+            for (Index l=2; l<n_legendre; l++)
+              {
+              p2_1=(2*(double)l-1)/(double)l*u[i]*p1_1-((double)l-1)/
+                (double)l*p0_1; 
+              p2_2=(2*(double)l-1)/(double)l*u[i+1]*p1_2-((double)l-1)/
+                (double)l*p0_2;
+              
+              pmom(i_l, l)+=0.5*0.5*
+                (p2_1*phase_int(i_l, i)+
+                 p2_2*phase_int(i_l, i+1))
+                *abs(u[i+1]-u[i]);
+              
+              p0_1=p1_1;
+              p0_2=p1_2;
+              p1_1=p2_1;
+              p1_2=p2_2;
+              }
+          }
+        // cout << "pmom : " << pmom(i_l, joker) << endl;
+        
+      }
+    }
+}
+
 
 #ifdef ENABLE_DISORT
  /* Workspace method: Doxygen documentation will be auto-generated */

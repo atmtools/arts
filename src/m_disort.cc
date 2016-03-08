@@ -43,6 +43,7 @@
 #include "auto_md.h"
 #include "disort.h"
 #include "disort_DISORT.h"
+#include "math_funcs.h"
 #include "messages.h"
 #include "m_general.h"
 #include "rte.h"
@@ -100,6 +101,7 @@ void DisortCalc(Workspace& ws,
                 const Vector& surface_scalar_reflectivity,
                 const Index& nstreams,
                 const Index& non_iso_inc,
+                const String& pfct_method,
                 const Verbosity& verbosity)
 {
   CREATE_OUT1;
@@ -132,9 +134,13 @@ void DisortCalc(Workspace& ws,
                          "passed a consistency check (cloudbox_checked=1)." );
 
   if( pnd_field.ncols() != 1 ) 
-    throw runtime_error(
-                        "*pnd_field* is not 1D! \n" 
-                        "DISORT can only be used for 1D! \n" );
+    throw runtime_error("*pnd_field* is not 1D! \n" 
+                        "DISORT can only be used for 1D!\n" );
+
+  if( doit_i_field.npages() != scat_za_grid.nelem() ) 
+    throw runtime_error("Sizes of *scat_za_grid* and *doit_i_field* are "
+                        " inconsistent.\n"
+                        "Do not modify them after the call of *DisortInit*\n" );
   
   // DISORT requires even number of streams:
   // nstreams is total number of directions, up- and downwelling, and the up-
@@ -148,6 +154,32 @@ void DisortCalc(Workspace& ws,
          << nstreams << ".\n";
       throw runtime_error( os.str() );
     }
+
+  if( pfct_method!="new" )
+  {
+    // The old interface can only handle particles with single scattering data
+    // given on identical angular grids.
+    const Vector data_za_grid = scat_data[0][0].za_grid;
+    const Index ndza = data_za_grid.nelem();
+    bool ident_anggrid=true;
+    for( Index i_ss = 0; i_ss < scat_data.nelem(); i_ss++ )
+      for( Index i_se = 0; i_se < scat_data[i_ss].nelem(); i_se++ )
+        // not an exhaustive test, but should catch most cases: checking
+        // identical size as well as identical second and second to last
+        // elements. no use in checking first and last elements as they should
+        // be 0 and 180 and this should have been checked elsewhere.
+        if( scat_data[i_ss][i_se].za_grid.nelem() != ndza ||
+            scat_data[i_ss][i_se].za_grid[1] != data_za_grid[1] ||
+            scat_data[i_ss][i_se].za_grid[ndza-2]!=data_za_grid[ndza-2] )
+          ident_anggrid=false;
+     if( !ident_anggrid )
+      {
+        ostringstream os;
+        os << "ARTS-DISORT currently requires identical angular grids of\n"
+           << "scattering data for all scattering elements, but yours differ.\n";
+        throw runtime_error( os.str() );
+      }
+  }
 
   if( surface_scalar_reflectivity.nelem() != f_grid.nelem()  &&  
       surface_scalar_reflectivity.nelem() != 1 )
@@ -168,10 +200,6 @@ void DisortCalc(Workspace& ws,
       throw runtime_error( 
          "All values in *surface_scalar_reflectivity* must be inside [0,1]." );
     }
-
-  doit_i_field.resize(f_grid.nelem(), pnd_field.npages(), 1, 1,
-                      scat_za_grid.nelem(), 1, 1);
-  doit_i_field = 0.;
 
   // Input variables for DISORT
   Index nlyr;
@@ -208,11 +236,15 @@ void DisortCalc(Workspace& ws,
   Vector ssalb(nlyr, 0.);
   
   // Phase function
-  Matrix phase_function(nlyr,scat_data[0][0].za_grid.nelem(), 0.);
-  // Scattering angle grid, assumed here that it is the same for
-  // all scattering elements
-  Vector scat_angle_grid(scat_data[0][0].za_grid.nelem(), 0.);
-  scat_angle_grid = scat_data[0][0].za_grid;
+  const Index pfct_za_grid_size=181;
+  Matrix phase_function(nlyr,pfct_za_grid_size, 0.);
+  Vector scat_angle_grid;
+  if( pfct_method=="new" )
+    nlinspace(scat_angle_grid, 0, 180, pfct_za_grid_size);
+  else
+    // Scattering angle grid, assumed here that it is the same for
+    // all scattering elements
+    scat_angle_grid = scat_data[0][0].za_grid;
   
   Index nstr=nstreams;
   Index n_legendre=nstreams+1;
@@ -369,6 +401,8 @@ void DisortCalc(Workspace& ws,
           ttemp = COSMIC_BG_TEMP;
         }
 
+#pragma omp critical(fortran_disort)
+      {
       scat_data_monoCalc(scat_data_mono, scat_data, f_grid, f_index, verbosity);
       
       dtauc_ssalbCalc(ws, dtauc, ssalb,
@@ -381,15 +415,34 @@ void DisortCalc(Workspace& ws,
                       p_grid[Range(0,nlyr+1)],
                       cloudbox_limits, f_grid[Range(f_index,1)]);
 
-      phase_functionCalc(phase_function, scat_data_mono, pnd_field,
-                         cloudbox_limits);
+      if( pfct_method=="new" )
+      {
+        phase_functionCalc2(ws, phase_function,
+                            scat_data_mono,
+                            spt_calc_agenda, opt_prop_part_agenda,
+                            pnd_field, t_field, cloudbox_limits,
+                            pfct_za_grid_size, verbosity);
+        for( Index l=0; l<nlyr; l++ )
+          if( phase_function(l,0)==0. )
+            assert( ssalb[l]==0. );
 
-      for( Index l=0; l<nlyr; l++ )
-        if( phase_function(l,0)==0. )
-          assert( ssalb[l]==0. );
+        //cout << "entering pmomCalc for f_index=" << f_index << " (f="
+        //     << f_grid[f_index]*1e-9 << "GHz).\n";
+        pmomCalc2(pmom, phase_function, scat_angle_grid, n_legendre, verbosity);
+      }
+      else
+      {
+        phase_functionCalc(phase_function, scat_data_mono, pnd_field,
+                           cloudbox_limits);
+        for( Index l=0; l<nlyr; l++ )
+          if( phase_function(l,0)==0. )
+            assert( ssalb[l]==0. );
 
-      pmomCalc(pmom, phase_function, scat_angle_grid, n_legendre, verbosity);
-      
+        //cout << "entering pmomCalc for f_index=" << f_index << " (f="
+        //     << f_grid[f_index]*1e-9 << "GHz).\n";
+        pmomCalc(pmom, phase_function, scat_angle_grid, n_legendre, verbosity);
+      }
+
       // Wavenumber in [1/cm]
       Numeric wvnmlo = f_grid[f_index]/(100*SPEED_OF_LIGHT);
       Numeric wvnmhi = wvnmlo;
@@ -400,8 +453,6 @@ void DisortCalc(Workspace& ws,
       //DEBUG_VAR(dtauc)
       
       // Call disort
-#pragma omp critical(fortran_disort)
-      {
           disort_(&nlyr, dtauc.get_c_array(),
                   ssalb.get_c_array(), pmom.get_c_array(),
                   t.get_c_array(), &wvnmlo, &wvnmhi,
@@ -467,6 +518,7 @@ void DisortCalc(Workspace&,
                 const Vector&,
                 const Index&,
                 const Index&,
+                const String&,
                 const Verbosity&)
 {
   throw runtime_error ("This version of ARTS was compiled without DISORT support.");
@@ -592,29 +644,6 @@ void DisortInit(//WS Output
       throw runtime_error( os.str() );
     }
     
-  // So far our interface can only handle particles with single scattering data
-  // given on identical angular grids.
-  const Vector data_za_grid = scat_data[0][0].za_grid;
-  const Index ndza = data_za_grid.nelem();
-  bool ident_anggrid=true;
-  for( Index i_ss = 0; i_ss < scat_data.nelem(); i_ss++ )
-    for( Index i_se = 0; i_se < scat_data[i_ss].nelem(); i_se++ )
-      // not an exhaustive test, but should catch most cases: checking identical
-      // size as well as identical second and second to last elements. no use in
-      // checking first and last elements as they should be 0 and 180 and this
-      // should have been checked elsewhere.
-      if( scat_data[i_ss][i_se].za_grid.nelem() != ndza ||
-          scat_data[i_ss][i_se].za_grid[1] != data_za_grid[1] ||
-          scat_data[i_ss][i_se].za_grid[ndza-2]!=data_za_grid[ndza-2] )
-        ident_anggrid=false;
-   if( !ident_anggrid )
-    {
-      ostringstream os;
-      os << "ARTS-DISORT currently requires identical angular grids of\n"
-         << "scattering data for all scattering elements, but yours differ.\n";
-      throw runtime_error( os.str() );
-    }
-
   //------------- end of checks ---------------------------------------
   
   const Index Nf = f_grid.nelem();

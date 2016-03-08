@@ -1736,10 +1736,10 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
     if ( psd_param == "mergedpsd" )
     {
       ostringstream os;
-      os << "Scattering species #" << i_ss << "data seems to originate from "
+      os << "Scattering species #" << i_ss << " data seems to originate from "
          << "*ScatSpeciesMerge*,\n"
          << "This has unrevertibly modified *scat_data*, *scat_meta*, and "
-         << "*scat_species*\n"
+         << "*scat_species*,\n"
          << "and destroyed their links to the scat_species_*_field data.";
       throw runtime_error ( os.str() );
     }

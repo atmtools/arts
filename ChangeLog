@@ -1,3 +1,58 @@
+2016-03-08 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-454
+	
+	Added temperature and scat angle grid interpolation of phase matrix for
+	Disort data prep. So far this is experimental, hence implemented as additional
+	option. So far previous state remains the default.
+	
+	* src/disort.cc, disort.h
+	
+	(phase_functionCalc2, pmomCalc2):
+	These methods hold the altyernative phase matrix / phase function handling. 
+	phase_functionCalc2 applies scat data interpolation methods developed for DOIT
+	and consistent with extinction/absorption derivation methods applied by
+	dtauc_ssalbCalc, namely spt_calc_agenda, opt_prop_part_agenda, and
+	pha_mat_sptFromMonoData.
+	
+	(dtauc_ssalbCalc):
+	Remove implicit assumption of cloudbox_limits[0]==0 (not a critical issue for
+	now, where we disallow lower cloudbox limit anywhere else but at lowest atm
+	level. but beter to avoid future confusions...).
+	
+	* src/m_disort.cc (DisortCalc):
+	Added T- & data_za_grid-interpolation option for phase matrix as alternative.
+	Removed doit_i_field initialization, instead have it as input initialized by
+	DisortInit. Extend thread-safe region (new phase matrix methods make changes
+	to variables passed into disort, hence not only disort itself but also these
+	modification parts need to be encapsulated.); later on try to reduce this
+	region as far as possible. Moved data_za_grid identity check from DoitInit to
+	here as this requirement depends on which phase matrix handling method is
+	applied.
+	
+	* src/m_optproperties.cc
+	
+	(pha_mat_sptFromData):
+	Bugfix. pha_mat_spt need to be flat scat elem indexed!
+	
+	(pha_mat_sptFromMonoData):
+	Bugfix. Actually use pha_mat_data of different temperature grid points in
+	transformation to lab coord system before temperature interpolation.
+
+	* src/m_doit.cc (doit_i_fieldSetClearsky):
+	Check that cloudbox_on, else this does not need to be performed at all.
+	Additional cosmetics.
+	
+	* src/methods.cc (DisortCalc, doit_i_fieldSetClearsky):
+	Adapted to canges above.
+	
+	* src/m_cloudbox.cc (pnd_fieldCalcFromscat_speciesFields),
+	src/optproperties.cc (pha_matTransform): Cosmetics.
+	
+	* 3rdparty/disort1.2/DISORT.f:
+	Increased max number of computational levels, giving more room for refined
+	vertical grids.
+	
 2016-03-05  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
         * arts-2-3-453
@@ -147,7 +202,7 @@
 	from already "merged" particle data.
 	
 	* src/m_basic_types.h: Added ArrayOfArrayOfSingleScatteringData and
-	ArrayOfArrayOfScatteringMetaData to nelemGet aplicable types.
+	ArrayOfArrayOfScatteringMetaData to nelemGet applicable types.
 
 	* src/methods.cc
 	(Select, Extract): Made available for ArrayOfArrayOfSingleScatteringData
@@ -198,7 +253,7 @@
 	3rdparty/disort1.2/DISORT.f:
 	A bit of polishing of non-iso TOA inc version: Initialize TOA inc field with
 	NaN. Move check for invalid inc field values into DISORT and reduce check to
-	actually applied angles (skip upwelling ange dummy values).
+	actually applied angles (skip upwelling angle dummy values).
 
 2016-02-17 Jana Mendrok  <jana.mendrok@chalmers.se>
 
@@ -235,7 +290,7 @@
   is replaced by direct FORTRAN compilation).
   
   * src/disort_DISORT.h:
-  Added qgausn_, DISORT's own gausian quad angle calc method, to make available
+  Added qgausn_, DISORT's own gaussian quad angle calc method, to make available
   in ARTS.
   
 	* 3rdparty/disort1.2/DISORT.f:
@@ -253,7 +308,7 @@
 	* arts-2-3-440
 	
 	* src/workspace.cc (pnd_field):
-	Added note/explanation of scat element correspondence in pnf_field and
+	Added note/explanation of scat element correspondence in pnd_field and
 	scat_data. On request of Patrick.
 	
 2016-02-17  Oliver Lemke  <olemke@core-dump.info>
@@ -389,7 +444,7 @@
 	DISORT-type layer oder (from TOA to BOA).
 	
 	(pmomCalc): Remove layer re-assignments of pmom as phase_fucntion is coming in
-	in alread correctly assigned order. This fixed an assignment mismatch for
+	in already correctly assigned order. This fixed an assignment mismatch for
 	scattering-free layers.
 	
 	 * src/m_disort.cc (DisortCalc):

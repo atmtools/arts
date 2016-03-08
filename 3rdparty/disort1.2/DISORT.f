@@ -322,7 +322,7 @@ c     .. Parameters ..
 c      PARAMETER ( MXCLY = 6, MXULV = 5, MXCMU = 48, MXUMU = 10,
 c    &          MXPHI = 3, MI = MXCMU / 2, MI9M2 = 9*MI - 2,
 c    &          NNLYRI = MXCMU*MXCLY, MXSQT = 1000 )
-      PARAMETER ( MXCLY = 200, MXULV = 2*MXCLY, MXCMU = 100, 
+      PARAMETER ( MXCLY = 300, MXULV = 2*MXCLY, MXCMU = 100, 
      &          MXUMU = 1000,
      &          MXPHI = 1, MI = MXCMU / 2, MI9M2 = 9*MI - 2,
      &          NNLYRI = MXCMU*MXCLY, MXSQT = 1000 )
