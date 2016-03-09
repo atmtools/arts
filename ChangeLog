@@ -1,4 +1,16 @@
-2016-03-08 Jana Mendrok  <jana.mendrok@chalmers.se>
+2016-03-09 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-457
+	
+	* src/m_optproperties.cc
+	(pha_mat_sptFromData): Fixed T-handling to be consistent with all other
+	pha_mat_spt* and opt_prop_spt* methods, ie skip T-interpolation	when only
+	single T given.
+	
+	(opt_prop_sptFromData): Bugfix in derermining number of scatt elems per each
+	species.
+
+2016-03-09 Jana Mendrok  <jana.mendrok@chalmers.se>
 
 	* arts-2-3-456
 	

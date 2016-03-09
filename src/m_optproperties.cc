@@ -118,7 +118,6 @@ void pha_mat_sptFromData( // Output:
   Tensor5 pha_mat_data_int;
 
   Index i_se_flat = 0;
-
   // Loop over scattering species
   for (Index i_ss = 0; i_ss < N_ss; i_ss++)
   {
@@ -138,9 +137,9 @@ void pha_mat_sptFromData( // Output:
               // used in the database (depending on the kind of ptype) to the
               // laboratory coordinate system.
 
-              // Frequency interpolation:
+              // Frequency and temperature interpolation:
 
-              // The data is interpolated on one frequency.
+              // Container for data at one frequency and one temperature.
               pha_mat_data_int.resize(PHA_MAT_DATA_RAW.nshelves(),
                                       PHA_MAT_DATA_RAW.nbooks(),
                                       PHA_MAT_DATA_RAW.npages(),
@@ -151,42 +150,63 @@ void pha_mat_sptFromData( // Output:
               // Gridpositions:
               GridPos freq_gp;
               gridpos(freq_gp, F_DATAGRID, f_grid[f_index]);
-
               GridPos t_gp;
-              gridpos(t_gp, T_DATAGRID, rtp_temperature);
+              Vector itw;
 
-              // Interpolationweights:
-              Vector itw(4);
-              interpweights(itw, freq_gp, t_gp);
-
-              for (Index i_za_sca = 0; i_za_sca < PHA_MAT_DATA_RAW.nshelves();
-                   i_za_sca++)
+              if( T_DATAGRID.nelem() > 1 )
               {
-                  for (Index i_aa_sca = 0; i_aa_sca < PHA_MAT_DATA_RAW.nbooks();
-                       i_aa_sca++)
-                  {
+                  ostringstream os;
+                  os << "The temperature grid of the scattering data does not\n"
+                     << "cover the atmospheric temperature at cloud location.\n"
+                     << "The data should include the value T = "
+                     << rtp_temperature << " K.";
+                  chk_interpolation_grids( os.str(), T_DATAGRID, 
+                                           rtp_temperature );
+
+                  gridpos(t_gp, T_DATAGRID, rtp_temperature);
+
+                  // Interpolation weights:
+                  itw.resize(4);
+                  interpweights(itw, freq_gp, t_gp);
+
+                  for (Index i_za_sca = 0;
+                       i_za_sca < PHA_MAT_DATA_RAW.nshelves(); i_za_sca++)
+                    for (Index i_aa_sca = 0;
+                         i_aa_sca < PHA_MAT_DATA_RAW.nbooks(); i_aa_sca++)
                       for (Index i_za_inc = 0;
-                           i_za_inc < PHA_MAT_DATA_RAW.npages();
-                           i_za_inc++)
-                      {
-                          for (Index i_aa_inc = 0;
-                               i_aa_inc < PHA_MAT_DATA_RAW.nrows();
-                               i_aa_inc++)
-                          {
-                              for (Index i = 0; i < PHA_MAT_DATA_RAW.ncols();
-                                   i++)
-                              {
-                                  pha_mat_data_int(i_za_sca, i_aa_sca,
-                                                   i_za_inc, i_aa_inc, i) =
-                                  interp(itw,
-                                         PHA_MAT_DATA_RAW(joker, joker,
-                                                          i_za_sca, i_aa_sca,
-                                                          i_za_inc, i_aa_inc, i),
-                                         freq_gp, t_gp);
-                              }
-                          }
-                      }
-                  }
+                           i_za_inc < PHA_MAT_DATA_RAW.npages(); i_za_inc++)
+                        for (Index i_aa_inc = 0;
+                             i_aa_inc < PHA_MAT_DATA_RAW.nrows(); i_aa_inc++)
+                          for (Index i = 0; i < PHA_MAT_DATA_RAW.ncols(); i++)
+                            // Interpolation of phase matrix:
+                            pha_mat_data_int(i_za_sca, i_aa_sca,
+                                             i_za_inc, i_aa_inc, i) =
+                              interp(itw,
+                                     PHA_MAT_DATA_RAW(joker, joker,
+                                     i_za_sca, i_aa_sca, i_za_inc, i_aa_inc, i),
+                                     freq_gp, t_gp);
+              }
+              else
+              {
+                  // Interpolation weights:
+                  itw.resize(2);
+                  interpweights(itw, freq_gp);
+                  for (Index i_za_sca = 0;
+                       i_za_sca < PHA_MAT_DATA_RAW.nshelves(); i_za_sca++)
+                    for (Index i_aa_sca = 0;
+                         i_aa_sca < PHA_MAT_DATA_RAW.nbooks(); i_aa_sca++)
+                      for (Index i_za_inc = 0;
+                           i_za_inc < PHA_MAT_DATA_RAW.npages(); i_za_inc++)
+                        for (Index i_aa_inc = 0;
+                             i_aa_inc < PHA_MAT_DATA_RAW.nrows(); i_aa_inc++)
+                          for (Index i = 0; i < PHA_MAT_DATA_RAW.ncols(); i++)
+                            // Interpolation of phase matrix:
+                            pha_mat_data_int(i_za_sca, i_aa_sca,
+                                             i_za_inc, i_aa_inc, i) =
+                              interp(itw,
+                                     PHA_MAT_DATA_RAW(joker, 0,
+                                     i_za_sca, i_aa_sca, i_za_inc, i_aa_inc, i),
+                                     freq_gp);
               }
 
               // Do the transformation into the laboratory coordinate system.
@@ -324,7 +344,7 @@ void pha_mat_sptFromDataDOITOpt(// Output:
                   // Gridpositions:
                   gridpos( T_gp, scat_data_mono[i_ss][i_se].T_grid, 
                            rtp_temperature);
-                  // Interpolationweights:
+                  // Interpolation weights:
                   interpweights(itw, T_gp);
               }
 
@@ -338,7 +358,8 @@ void pha_mat_sptFromDataDOITOpt(// Output:
                   {
                       if( scat_data_mono[i_ss][i_se].T_grid.nelem() == 1)
                       {
-                          pha_mat_spt(i_se_flat, za_inc_idx, aa_inc_idx, joker, joker) =
+                          pha_mat_spt(i_se_flat, za_inc_idx, aa_inc_idx,
+                                      joker, joker) =
                           pha_mat_sptDOITOpt[i_se_flat](0, scat_za_index,
                                                         scat_aa_index, za_inc_idx,
                                                         aa_inc_idx, joker, joker);
@@ -351,7 +372,8 @@ void pha_mat_sptFromDataDOITOpt(// Output:
                           {
                               for (Index j = 0; j< stokes_dim; j++)
                               {
-                                  pha_mat_spt(i_se_flat, za_inc_idx, aa_inc_idx, i, j)=
+                                  pha_mat_spt(i_se_flat, za_inc_idx, aa_inc_idx,
+                                              i, j)=
                                   interp(itw,pha_mat_sptDOITOpt[i_se_flat]
                                          (joker, scat_za_index,
                                           scat_aa_index, za_inc_idx,
@@ -417,7 +439,7 @@ void opt_prop_sptFromData(// Output and Input:
   // Loop over the included scattering species
   for (Index i_ss = 0; i_ss < N_ss; i_ss++)
   {
-      const Index N_se = scat_data[N_ss].nelem();
+      const Index N_se = scat_data[i_ss].nelem();
 
       // Loop over the included scattering elements
       for (Index i_se = 0; i_se < N_se; i_se++)
@@ -465,7 +487,7 @@ void opt_prop_sptFromData(// Output and Input:
 
                   gridpos(t_gp, T_DATAGRID, rtp_temperature);
 
-                  // Interpolationweights:
+                  // Interpolation weights:
                   itw.resize(4);
                   interpweights(itw, freq_gp, t_gp);
 
@@ -509,7 +531,7 @@ void opt_prop_sptFromData(// Output and Input:
               }
               else
               {
-                  // Interpolationweights:
+                  // Interpolation weights:
                   itw.resize(2);
                   interpweights(itw, freq_gp);
 
@@ -1230,7 +1252,7 @@ void scat_data_monoCalc(ArrayOfArrayOfSingleScatteringData& scat_data_mono,
           GridPos freq_gp;
           gridpos(freq_gp, F_DATAGRID, f_grid[f_index]);
 
-          // Interpolationweights:
+          // Interpolation weights:
           Vector itw(2);
           interpweights(itw, freq_gp);
 
@@ -1861,7 +1883,7 @@ void ScatSpeciesMerge(//WS Output:
 
                         // Gridpositions:
                         gridpos( T_gp, orig_part.T_grid, temperature );
-                        // Interpolationweights:
+                        // Interpolation weights:
                         interpweights(itw, T_gp);
                     }
 
