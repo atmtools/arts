@@ -141,7 +141,11 @@ void Append(// WS Generic Output:
     // Get backup of out:
     Matrix dummy = out;
 
-    if (direction == "leading")
+    if (!out.nrows() || !out.ncols())
+    {
+        out = in_ref;
+    }
+    else if (direction == "leading")
     {
         if (out.ncols() != in_ref.ncols())
             throw runtime_error("Input and output matrix must have the same number of columns.");
@@ -159,6 +163,7 @@ void Append(// WS Generic Output:
             throw runtime_error("Input and output matrix must have the same number of rows.");
 
         out.resize(dummy.nrows(), dummy.ncols() + in_ref.ncols());
+
         if (dummy.nrows() && dummy.ncols())
             out(Range(0, dummy.nrows()), Range(0, dummy.ncols())) = dummy;
         if (dummy.ncols() && in_ref.nrows() && in_ref.ncols())
@@ -181,19 +186,30 @@ void Append(// WS Generic Output:
 
     if (direction == "leading")
     {
-        if (out.ncols() != in.nelem())
-            throw runtime_error("Number of elements in the input Vector has to match "
-                                "the number of columns in the output Matrix.");
+        if (!out.nrows() || !out.ncols())
+        {
+            out = in;
+        }
+        else
+        {
+            if (out.ncols() != in.nelem())
+                throw runtime_error("Number of elements in the input Vector has to match "
+                                    "the number of columns in the output Matrix.");
 
-        out.resize(dummy.nrows() + 1, dummy.ncols());
-        out(Range(0, dummy.nrows()), Range(0, dummy.ncols())) = dummy;
-        out(Range(dummy.nrows(), 1), Range(0, in.nelem())) = transpose(in);
+            out.resize(dummy.nrows() + 1, dummy.ncols());
+            out(Range(0, dummy.nrows()), Range(0, dummy.ncols())) = dummy;
+            out(Range(dummy.nrows(), 1), Range(0, in.nelem())) = transpose(in);
+        }
     }
     else if (direction == "trailing")
     {
-        if (in.nelem())
+        if (!out.nrows() || !out.ncols())
         {
-            if (out.nrows() != in.nelem())
+            out = transpose(in);
+        }
+        else if (in.nelem())
+        {
+            if (out.nrows() != in.nelem() && out.nrows() && out.ncols())
                 throw runtime_error("Number of elements in the input Vector has to match "
                                     "the number of rows in the output Matrix.");
 

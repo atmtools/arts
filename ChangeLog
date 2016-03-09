@@ -1,3 +1,12 @@
+2016-03-09  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-455
+	
+	* src/m_append.h:
+
+	Allow appending a Matrix or a Vector to an empty Matrix. Feature
+	requested by Jana.
+
 2016-03-08 Jana Mendrok  <jana.mendrok@chalmers.se>
 
 	* arts-2-3-454
