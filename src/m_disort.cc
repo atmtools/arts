@@ -236,15 +236,18 @@ void DisortCalc(Workspace& ws,
   Vector ssalb(nlyr, 0.);
   
   // Phase function
-  const Index pfct_za_grid_size=181;
-  Matrix phase_function(nlyr,pfct_za_grid_size, 0.);
   Vector scat_angle_grid;
+  Index pfct_za_grid_size;
   if( pfct_method=="new" )
+  {
+    pfct_za_grid_size=181;
     nlinspace(scat_angle_grid, 0, 180, pfct_za_grid_size);
+  }
   else
     // Scattering angle grid, assumed here that it is the same for
     // all scattering elements
     scat_angle_grid = scat_data[0][0].za_grid;
+  Matrix phase_function(nlyr,scat_angle_grid.nelem(), 0.);
   
   Index nstr=nstreams;
   Index n_legendre=nstreams+1;
