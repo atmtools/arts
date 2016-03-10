@@ -1,3 +1,12 @@
+2016-03-10 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-458
+	
+	* src/m_optproperties.cc (opt_prop_sptFromMonoData):
+	Like the other methods, check T interpolation grid before trying to determine
+	gridpos and interpweights, and give proper error message when fails. Found by
+	Patrick.
+
 2016-03-09 Jana Mendrok  <jana.mendrok@chalmers.se>
 
 	* arts-2-3-457

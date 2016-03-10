@@ -1435,13 +1435,15 @@ void opt_prop_sptFromMonoData(// Output and Input:
 
               if (t_grid.nelem() > 1)
               {
-                  //   if ((rtp_temperature<t_grid[0])||(rtp_temperature>t_grid[t_grid.nelem()-1]))
-                  //             {
-                  //               throw runtime_error("rtp_temperature outside scattering data temperature range");
-                  //             }
+                  ostringstream os;
+                  os << "The temperature grid of the scattering data does not\n"
+                     << "cover the atmospheric temperature at cloud location.\n"
+                     << "The data should include the value T = "
+                     << rtp_temperature << " K.";
+                  chk_interpolation_grids( os.str(), t_grid, rtp_temperature );
 
                   //interpolate over temperature
-                  gridpos(t_gp, scat_data_mono[i_ss][i_se].T_grid, rtp_temperature);
+                  gridpos(t_gp, t_grid, rtp_temperature);
                   interpweights(itw, t_gp);
                   for (Index i_p = 0; i_p < ext_npages ; i_p++)
                   {
@@ -1449,8 +1451,11 @@ void opt_prop_sptFromMonoData(// Output and Input:
                       {
                           for (Index i_c = 0; i_c < ext_ncols ; i_c++)
                           {
-                              ext_mat_data1temp(i_p,i_r,i_c)=interp(itw,
-                                                                    scat_data_mono[i_ss][i_se].ext_mat_data(0,joker,i_p,i_r,i_c),t_gp);
+                              ext_mat_data1temp(i_p,i_r,i_c) = 
+                                interp(itw,
+                                       scat_data_mono[i_ss][i_se].ext_mat_data( 
+                                       0,joker,i_p,i_r,i_c),
+                                       t_gp);
                           }
                       }
                   }
@@ -1481,8 +1486,11 @@ void opt_prop_sptFromMonoData(// Output and Input:
                       {
                           for (Index i_c = 0; i_c < abs_ncols ; i_c++)
                           {
-                              abs_vec_data1temp(i_p,i_r,i_c)=interp(itw,
-                                                                    scat_data_mono[i_ss][i_se].abs_vec_data(0,joker,i_p,i_r,i_c),t_gp);
+                              abs_vec_data1temp(i_p,i_r,i_c) =
+                              interp(itw,
+                                     scat_data_mono[i_ss][i_se].abs_vec_data( 
+                                     0,joker,i_p,i_r,i_c),
+                                     t_gp);
                           }
                       }
                   }
