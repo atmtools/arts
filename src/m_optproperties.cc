@@ -102,7 +102,7 @@ void pha_mat_sptFromData( // Output:
   if( N_se_total != pnd_field.nbooks() )
     {
       ostringstream os;
-      os << "Total number of scattering elements in scat_data(_mono) "
+      os << "Total number of scattering elements in scat_data "
          << "inconsistent with size of pnd_field.";
       throw runtime_error(os.str());
     }
@@ -111,11 +111,28 @@ void pha_mat_sptFromData( // Output:
   // save side.
   assert( pha_mat_spt.nshelves() == N_se_total );
   
+  // Check that we don't have scat_data_mono here. Only checking the first
+  // scat element, assuming the other elements have been processed in the same
+  // manner. That's save against having mono data, but not against having
+  // individual elements produced with only a single frequency. This, however,
+  // has been checked by scat_data reading routines (ScatSpecies/Element*Add/Read).
+  // Unsafe, however, remain when ReadXML is used directly or if scat_data is
+  // (partly) produced from scat_data_singleTmatrix.
+  if( scat_data[0][0].f_grid.nelem() < 2 )
+  {
+      ostringstream os;
+      os << "Scattering data seems to be scat_data_mono (1 freq point only),\n"
+         << "but frequency interpolable data (scat_data with >=2 freq points) "
+         << "is expected here.";
+      throw runtime_error( os.str() );
+  }
+          
   const Index N_ss = scat_data.nelem();
 
   // Phase matrix in laboratory coordinate system. Dimensions:
   // [frequency, za_inc, aa_inc, stokes_dim, stokes_dim]
   Tensor5 pha_mat_data_int;
+
 
   Index i_se_flat = 0;
   // Loop over scattering species
@@ -297,6 +314,23 @@ void pha_mat_sptFromDataDOITOpt(// Output:
   
   assert(doit_za_grid_size > 0);
   
+  // Check that we do indeed have scat_data_mono here. Only checking the first
+  // scat element, assuming the other elements have been processed in the same
+  // manner. That's save against having scat_data here if that originated from
+  // scat_data reading routines (ScatSpecies/Element*Add/Read), it's not safe
+  // against data read by ReadXML directly or if scat_data has been (partly)
+  // produced from scat_data_singleTmatrix. That would be too costly here,
+  // though.
+  // Also, we can't check here whether data is at the correct frequency since we
+  // don't know f_grid and f_index here (we could pass it in, though).
+  if( scat_data_mono[0][0].f_grid.nelem() > 1 )
+  {
+      ostringstream os;
+      os << "Scattering data seems to be scat_data (several freq points),\n"
+         << "but scat_data_mono (1 freq point only) is expected here.";
+      throw runtime_error( os.str() );
+  }
+  
   // Create equidistant zenith angle grid
   Vector za_grid;
   nlinspace(za_grid, 0, 180, doit_za_grid_size);  
@@ -324,9 +358,9 @@ void pha_mat_sptFromDataDOITOpt(// Output:
 
       for (Index i_se = 0; i_se < N_se; i_se++)
       {
-          // If the particle number density at a specific point in the atmosphere
-          // for the i_se scattering element is zero, we don't need to do the
-          // transfromation!
+          // If the particle number density at a specific point in the
+          // atmosphere for the i_se scattering element is zero, we don't need
+          // to do the transformation!
           if (pnd_field(i_se_flat, scat_p_index, scat_lat_index, scat_lon_index)
               > PND_LIMIT) //TRS
           {
@@ -425,6 +459,22 @@ void opt_prop_sptFromData(// Output and Input:
   assert( ext_mat_spt.npages() == N_se_total );
   assert( abs_vec_spt.nrows() == N_se_total );
 
+  // Check that we don't have scat_data_mono here. Only checking the first
+  // scat element, assuming the other elements have been processed in the same
+  // manner. That's save against having mono data, but not against having
+  // individual elements produced with only a single frequency. This, however,
+  // has been checked by scat_data reading routines (ScatSpecies/Element*Add/Read).
+  // Unsafe, however, remain when ReadXML is used directly or if scat_data is
+  // (partly) produced from scat_data_singleTmatrix.
+  if( scat_data[0][0].f_grid.nelem() < 2 )
+  {
+      ostringstream os;
+      os << "Scattering data seems to be scat_data_mono (1 freq point only),\n"
+         << "but frequency interpolable data (scat_data with >=2 freq points) "
+         << "is expected here.";
+      throw runtime_error( os.str() );
+  }
+          
   // Phase matrix in laboratory coordinate system. Dimensions:
   // [frequency, za_inc, aa_inc, stokes_dim, stokes_dim]
   Tensor3 ext_mat_data_int;
@@ -444,8 +494,9 @@ void opt_prop_sptFromData(// Output and Input:
       // Loop over the included scattering elements
       for (Index i_se = 0; i_se < N_se; i_se++)
       {
-          // If the particle number density at a specific point in the atmosphere for
-          // the i_se scattering element is zero, we don't need to do the transfromation
+          // If the particle number density at a specific point in the
+          // atmosphere for the i_se scattering element is zero, we don't need
+          // to do the transformation
 
           if (pnd_field(i_se_flat, scat_p_index, scat_lat_index, scat_lon_index)
               > PND_LIMIT)
@@ -1217,20 +1268,6 @@ void scat_data_monoCalc(ArrayOfArrayOfSingleScatteringData& scat_data_mono,
       chk_interpolation_grids("scat_data.f_grid to f_grid",
                               scat_data[h][i].f_grid,
                               f_grid[f_index]);
-
-      // old check without extrapolation
-      /*if (scat_data[i].f_grid[0] > f_grid[f_index] ||
-       scat_data[i].f_grid[scat_data[i].f_grid.nelem()-1] < f_grid[f_index])
-       {
-       ostringstream os;
-       os << "Frequency of the scattering calculation " << f_grid[f_index]
-       << " GHz is not contained \nin the frequency grid of the " << i+1
-       << "the single scattering data file \n(*ParticleTypeAdd*). "
-       << "Range:"  << scat_data[i].f_grid[0]/1e9 <<" - "
-       << scat_data[i].f_grid[scat_data[i].f_grid.nelem()-1]/1e9
-       <<" GHz \n";
-       throw runtime_error( os.str() );
-       }*/
     }
   }
 
@@ -1391,6 +1428,23 @@ void opt_prop_sptFromMonoData(// Output and Input:
   assert( ext_mat_spt.npages() == N_se_total );
   assert( abs_vec_spt.nrows() == N_se_total );
 
+  // Check that we do indeed have scat_data_mono here. Only checking the first
+  // scat element, assuming the other elements have been processed in the same
+  // manner. That's save against having scat_data here if that originated from
+  // scat_data reading routines (ScatSpecies/Element*Add/Read), it's not safe
+  // against data read by ReadXML directly or if scat_data has been (partly)
+  // produced from scat_data_singleTmatrix. That would be too costly here,
+  // though.
+  // Also, we can't check here whether data is at the correct frequency since we
+  // don't know f_grid and f_index here (we could pass it in, though).
+  if( scat_data_mono[0][0].f_grid.nelem() > 1 )
+  {
+      ostringstream os;
+      os << "Scattering data seems to be scat_data (several freq points),\n"
+         << "but scat_data_mono (1 freq point only) is expected here.";
+      throw runtime_error( os.str() );
+  }
+
   // Initialisation
   ext_mat_spt = 0.;
   abs_vec_spt = 0.;
@@ -1406,8 +1460,9 @@ void opt_prop_sptFromMonoData(// Output and Input:
       // Loop over the included scattering elements
       for (Index i_se = 0; i_se < scat_data_mono[i_ss].nelem(); i_se++)
       {
-          // If the particle number density at a specific point in the atmosphere for
-          // the i_se scattering element is zero, we don't need to do the transfromation!
+          // If the particle number density at a specific point in the
+          // atmosphere for the i_se scattering element is zero, we don't need
+          // to do the transformation!
           if (pnd_field(i_se_flat, scat_p_index, scat_lat_index, scat_lon_index)
               > PND_LIMIT)
           {
@@ -1558,6 +1613,23 @@ void pha_mat_sptFromMonoData(// Output:
                         "must be 1,2,3 or 4");
   }
   
+  // Check that we do indeed have scat_data_mono here. Only checking the first
+  // scat element, assuming the other elements have been processed in the same
+  // manner. That's save against having scat_data here if that originated from
+  // scat_data reading routines (ScatSpecies/Element*Add/Read), it's not safe
+  // against data read by ReadXML directly or if scat_data has been (partly)
+  // produced from scat_data_singleTmatrix. That would be too costly here,
+  // though.
+  // Also, we can't check here whether data is at the correct frequency since we
+  // don't know f_grid and f_index here (we could pass it in, though).
+  if( scat_data_mono[0][0].f_grid.nelem() > 1 )
+  {
+      ostringstream os;
+      os << "Scattering data seems to be scat_data (several freq points),\n"
+         << "but scat_data_mono (1 freq point only) is expected here.";
+      throw runtime_error( os.str() );
+  }
+
   GridPos T_gp;
   Vector itw(2);
 

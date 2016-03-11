@@ -490,8 +490,7 @@ void chk_scattering_meta_data(const ScatteringMetaData& scat_meta_single _U_,
 //! Check single scattering data files
 /*!
   This function checks, whether a datafile containing the single scattering 
-  properties of a scattering element includes the required frequencies and 
-  temperatures and whether the angular grids are defined correctly.
+  properties of a scattering element includes the required frequencies.
 
   \param scat_data[in]       Single scattering data
   \param scat_data_file[in]  Filename of the data to be checked.
@@ -525,13 +524,6 @@ void chk_scat_data_fgrid(const SingleScatteringData& scat_data,
          << "*f_grid*.";
       throw runtime_error( os.str() );
     }*/
-
-  // Here we only check whether the temperature grid is of the unit K, not 
-  // whether it corresponds to the required values it T_field. The second 
-  // option is not trivial since here one has to look whether the pnd_field 
-  // is none zero for the corresponding temperature. This check done in the 
-  // functions where the multiplication with the particle number density is 
-  // done. 
 }
 
 
@@ -539,6 +531,8 @@ void chk_scat_data_fgrid(const SingleScatteringData& scat_data,
 /*!
   This function checks the self consistency of the data by checking the
   dimensions of pha_mat, ext_mat and abs_vec depending on the ptype case.
+  It furthermore checks whether the angular grids are defined correctly
+  depending on ptype and the sanity of the temperature grid.
   
   \param scat_data[in]       Single scattering data
   \param scat_data_file[in]  Filename of the data to be checked.
@@ -559,15 +553,6 @@ void chk_scat_data(const SingleScatteringData& scat_data,
          scat_data.ptype == PTYPE_MACROS_ISO ||
          scat_data.ptype == PTYPE_HORIZ_AL);
 
-  if (!(0. < scat_data.T_grid[0] && last(scat_data.T_grid) < 1001.))
-    {
-      ostringstream os;
-      os << "The temperature values in " <<  scat_data_file 
-         << " are negative or very large. Check whether you have used the "
-         << "right unit [Kelvin].";
-      throw runtime_error( os.str() );
-    }
-  
   if (scat_data.za_grid[0] != 0.)
     {
       ostringstream os;
@@ -689,6 +674,21 @@ void chk_scat_data(const SingleScatteringData& scat_data,
 
   }
 
+  // Here we only check whether the temperature grid is of the unit K, not 
+  // whether it corresponds to the required values it T_field. The second 
+  // option is not trivial since here one has to look whether the pnd_field 
+  // is none zero for the corresponding temperature. This check done in the 
+  // functions where the multiplication with the particle number density is 
+  // done. 
+  if (!(0. < scat_data.T_grid[0] && last(scat_data.T_grid) < 1001.))
+    {
+      ostringstream os;
+      os << "The temperature values in " <<  scat_data_file 
+         << " are negative or very large. Check whether you have used the "
+         << "right unit [Kelvin].";
+      throw runtime_error( os.str() );
+    }
+  
 }
 
 

@@ -499,6 +499,23 @@ FIXME: dtauc_ssalbCalc applies spt_calc_agenda and opt_prop_part_agenda. Apply
  T-dep of ext/abs/scat coeffs.
 */
 
+  // Check that we do indeed have scat_data_mono here. Only checking the first
+  // scat element, assuming the other elements have been processed in the same
+  // manner. That's save against having scat_data here if that originated from
+  // scat_data reading routines (ScatSpecies/Element*Add/Read), it's not safe
+  // against data read by ReadXML directly or if scat_data has been (partly)
+  // produced from scat_data_singleTmatrix. That would be too costly here,
+  // though.
+  // Also, we can't check here whether data is at the correct frequency since we
+  // don't know f_grid and f_index here (we could pass it in, though).
+  if( scat_data_mono[0][0].f_grid.nelem() > 1 )
+  {
+      ostringstream os;
+      os << "Scattering data seems to be scat_data (several freq points),\n"
+         << "but scat_data_mono (1 freq point only) is expected here.";
+      throw runtime_error( os.str() );
+  }
+
   // Initialization
   phase_function=0.;
   const Index nlyr = phase_function.nrows();

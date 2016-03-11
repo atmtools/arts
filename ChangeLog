@@ -1,3 +1,18 @@
+2016-03-11 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-461
+	
+	* src/m_optproperties.cc (pha_mat_sptFromDataDOITOpt, pha_mat_sptFromMonoData,
+	opt_prop_sptFromMonoData), src/disort.cc (phase_functionCalc):
+	Added check that scat_data_mono is indeed mono (reduced to one freq point).
+	
+	* src/m_optproperties.cc (pha_mat_sptFromData, opt_prop_sptFromData):
+	Added check that scat_data is indeed freq-dependent data, not scat_data_mono.
+	
+	
+	* src/cloudbox.cc (chk_scat_data_fgrid, chk_scat_data):
+	Sorted out the header info (csd checks for T and ang grids, not csd_fgrid).
+
 2016-03-11 Alex Bobryshev <oleksandr.bobryshev@uni-hamburg.de>
 
         * arts-2-3-460
