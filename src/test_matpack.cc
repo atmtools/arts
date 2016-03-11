@@ -1115,10 +1115,13 @@ Numeric test_matrix_vector_multiplication( bool verbose )
     if (err > max_err)
         max_err = err;
 
-    if (max_err < 1e-9)
-        cout << endl << "Matrix-Vector Multiplication: PASSED" << endl;
-    else
-        cout << endl << "Matrix-Vector Multiplication: FAILED" << endl;
+    if (verbose)
+    {
+        if (max_err < 1e-9)
+            cout << endl << "Matrix Vector Multiplication: PASSED" << endl;
+        else
+            cout << endl << "Matrix Vector Multiplication: FAILED" << endl;
+    }
 
     return max_err;
 }
@@ -1267,7 +1270,6 @@ Numeric matrix_mult( Index k,
     }
 
     return max_err;
-
 }
 
 //! Perform matrix multiplication tests.
@@ -1282,43 +1284,54 @@ Numeric matrix_mult( Index k,
       k = m = n = 100
 
  */
-void test_matrix_multiplication()
+Numeric test_matrix_multiplication(bool verbose)
 {
     Numeric max_err, err;
 
     // Trivial case k = m = n = 0.
-    max_err = matrix_mult( 0, 0, 0, 10, 0, true);
+    max_err = matrix_mult( 0, 0, 0, 10, 0, verbose);
 
     // k = 1, m = 1, n = 1.
-    err = matrix_mult( 1, 1, 1, 10, 0, true);
+    err = matrix_mult( 1, 1, 1, 10, 0, verbose);
     if (err > max_err)
-        err = max_err;
+        max_err = err;
+
+    // k = 10, m = 1, n = 10.
+    err = matrix_mult( 10, 1, 10, 20, 20, verbose);
+    if (err > max_err)
+        max_err = err;
+
+    // k = 10, m = 1, n = 10.
+    err = matrix_mult( 10, 1, 10, 20, 20, verbose);
+    if (err > max_err)
+        max_err = err;
 
     // k = 10, m = 1, n = 1.
-    err = matrix_mult( 10, 1, 1, 20, 20, true);
+    err = matrix_mult( 10, 1, 1, 20, 20, verbose);
     if (err > max_err)
-        err = max_err;
+        max_err = err;
 
     // k = 100, m = 100, n = 100.
-    err = matrix_mult( 200, 200, 200, 20, 20, true);
+    err = matrix_mult( 200, 200, 200, 20, 20, verbose);
     if (err > max_err)
-        err = max_err;
+        max_err = err;
 
     // k = 10, m = 100, n = 10.
-    err = matrix_mult( 10, 100, 10, 20, 20, true);
+    err = matrix_mult( 10, 100, 10, 20, 20, verbose);
     if (err > max_err)
-        err = max_err;
+        max_err = err;
 
     // k = 10, m = 100, n = 100.
-    err = matrix_mult( 10, 100, 100, 20, 20, true);
+    err = matrix_mult( 10, 100, 100, 20, 20, verbose);
     if (err > max_err)
-        err = max_err;
+        max_err = err;
 
     // k = 100, m = 100, n = 100, 100 submatrix multiplications.
-    err = matrix_mult( 100, 100, 100, 0, 100, true);
+    err = matrix_mult( 100, 100, 100, 0, 100, verbose);
     if (err > max_err)
-        err = max_err;
+        max_err = err;
 
+    return max_err;
 }
 
 //! Check if the empty function is working correctly
@@ -1444,9 +1457,26 @@ int main()
 //    test44();
 //    test45();
 
-    //srand( time(NULL) );
-    test_matrix_vector_multiplication( false );
-    test_matrix_multiplication();
+    const double tolerance = 1e-9;
+    double error;
+
+    // Matrix Vector Multiplication.
+    error = test_matrix_vector_multiplication(false);
+    cout << "Matrix Vector Multiplication: ";
+    if (error > tolerance)
+        cout << "FAILED, maximum error: " << error << endl;
+    else
+        cout << "PASSED." << endl;
+
+    // Matrix Matrix Multiplication.
+    error = test_matrix_multiplication(false);
+
+    cout << "Matrix Matrix Multiplication: ";
+    if (error > tolerance)
+        cout << "FAILED, maximum error: " << error << endl;
+    else
+        cout << "PASSED." << endl;
+
     //test_diagonal( 100 );
     //test_empty();
 

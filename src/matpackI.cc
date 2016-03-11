@@ -1695,7 +1695,6 @@ void mult( VectorView y,
 
     if ((M.mcr.get_stride() == 1) || (M.mrr.get_stride() == 1))
     {
-
         char trans;
         int m,n;
         double zero = 0.0;
@@ -1881,7 +1880,7 @@ void mult( MatrixView A,
         if ( (C.mcr.get_stride() == 1) && (C.mrr.get_stride() == 1) )
         {
             transa = 'N';
-            lda = k;
+            lda = m;
         }
 
         ldc = (int) A.mrr.get_stride();
@@ -1890,7 +1889,6 @@ void mult( MatrixView A,
         {
             ldc = m;
         }
-
         double alpha = 1.0, beta = 0.0;
 
         dgemm_( & transa,
