@@ -27,6 +27,8 @@
 #ifndef M_BASIC_TYPES_H
 #define M_BASIC_TYPES_H
 
+#include <sstream>
+
 #include "array.h"
 #include "arts.h"
 #include "exceptions.h"
@@ -37,12 +39,6 @@
 #include "messages.h"
 #include "workspace_ng.h"
 #include "agenda_class.h"
-
-#ifdef HAVE_SSTREAM
-#include <sstream>
-#else
-#include "sstream.h"
-#endif
 
 /* To avoid redundant code preprocessor macros are used for code generation.
  *

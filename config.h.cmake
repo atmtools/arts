@@ -89,7 +89,6 @@
 /* check existence of c++ header files */
 #cmakedefine HAVE_CSTDLIB 1
 #cmakedefine HAVE_CSTRING 1
-#cmakedefine HAVE_SSTREAM 1
 #cmakedefine HAVE_CTIME 1
 
 /* check existence of functions */

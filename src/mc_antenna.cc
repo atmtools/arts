@@ -34,14 +34,9 @@
   === External declarations
   ===========================================================================*/
 
-#include "mc_antenna.h"
-
-#ifdef HAVE_SSTREAM
 #include <sstream>
-#else
-#include "sstream.h"
-#endif
 
+#include "mc_antenna.h"
 
 
 //! ran_gaussian

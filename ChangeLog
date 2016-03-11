@@ -18,8 +18,44 @@
 
 2016-03-11 Simon Pfreundschuh  <simonpf@chalmers.se>
 
-	* arts-2-3-459
+	* arts-2-3-460
+
+	Removed sstream.h file and dependencies. The file was included  as a
+	guard for VERY old compilers not supporting the standard headers. However,
+	since streambuf.h is not included in ARTS this cannot have worked, as far
+	as I can see.
+
+	* config.h.cmake:
+	  Removed HAVE_SSTREAM macro.
+
+	* src/iotraits.h:
+	  Removed file.
+
+	* src/sstream.h:
+	  Removed file included from sstream.hh
+
+	* src/legendre.cc:
+	  Removed sstream.h include macro.
+	  
+	* src/m_basic_types.h:
+	  Removed sstream.h include macro.
 	
+	* src/mc_antenna.cc:
+	  Removed sstream.h include macro.
+
+	* src/mystring.h:
+	  Removed sstream.h include macro.
+
+	* src/montecarlo.cc:
+	  Removed sstream.h include macro.
+	  
+	* doc/doxygen/Doxyfile.in:
+	  Removed sstream.h from REMOVE declaration.
+
+2016-03-11 Simon Pfreundschuh  <simonpf@chalmers.se>
+
+	* arts-2-3-459
+
 	* src/matpackI.cc (mult):
 	Eliminated corner case when multiplying a transposed matrix with another
 	matrix that has only one column.

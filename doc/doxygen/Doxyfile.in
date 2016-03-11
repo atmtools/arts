@@ -609,8 +609,7 @@ RECURSIVE              = NO
 # excluded from the INPUT source files. This way you can easily exclude a
 # subdirectory from a directory tree whose root is specified with the INPUT tag.
 
-EXCLUDE                = @top_srcdir@/src/sstream.h \
-                         @top_srcdir@/src/getopt1.c \
+EXCLUDE                = @top_srcdir@/src/getopt1.c \
                          @top_srcdir@/src/getopt.h \
                          @top_srcdir@/src/getopt.c \
                          @top_srcdir@/src/m_abs_o2_models.cc

@@ -30,16 +30,11 @@
   \date 2003-08-14
   */
 
-#include "legendre.h"
-
-#ifdef HAVE_SSTREAM
-#include <sstream>
-#else
-#include "sstream.h"
-#endif
-#include "exceptions.h"
 #include <cmath>
+#include <sstream>
 
+#include "legendre.h"
+#include "exceptions.h"
 #include "math_funcs.h"
 
 

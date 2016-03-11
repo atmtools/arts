@@ -34,16 +34,12 @@
   === External declarations
   ===========================================================================*/
 
+#include <sstream>
+
 #include "auto_md.h"
 #include "geodetic.h"
 #include "montecarlo.h"
 #include "mc_interp.h"
-
-#ifdef HAVE_SSTREAM
-#include <sstream>
-#else
-#include "sstream.h"
-#endif
 
 //! clear_rt_vars_at_gp
 /*! 
