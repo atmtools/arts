@@ -1,3 +1,21 @@
+2016-03-11 Alex Bobryshev <oleksandr.bobryshev@uni-hamburg.de>
+
+        * arts-2-3-460
+
+        * controlfiles/instruments/metmm/README:
+
+	Readme file contains changes for the line parameters of 183-GHz line,
+        as described in Payne et al, 2008, compared to HITRAN-2012.
+         
+        * controlfiles/instruments/metmm/abs_lines_metmm.xml.gz,
+        * controlfiles/instruments/metmm/TestMetMM.arts,
+        * controlfiles/instruments/metmm/ybatchREFERENCE.xml:
+
+	abs_lines_metmm.xml.gz is a crop from HITRAN-2012 catalogue with
+	modified line parameters of 183-GHz line. I also change the range of
+	line stored in abs_lines_metmm.xml.gz to [0-1000e9 GHz]. Changed the
+	reference file to correspond to the new changes.
+
 2016-03-11 Simon Pfreundschuh  <simonpf@chalmers.se>
 
 	* arts-2-3-459

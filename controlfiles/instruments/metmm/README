@@ -1,0 +1,15 @@
+Created by Oleks Bobryshev on 11-03-2016
+
+
+Description of file:   "abs_lines_metmm.xml.gz"
+
+Contains abs-lines from HITRAN-2012 catalogue. I have changed only parameters for 183 GHz line based on:
+Payne, Vivienne H., et al. "Air-broadened half-widths of the 22-and 183-GHz water-vapor lines." (2008)
+List of changed parameters: 1) self-broadened width(SGAM); 2) SGAM temperature exponent; 3) air broadened width(AGAM);
+4) AGAM exponent; 5) pressure shift of F;
+
+HITRAN-2012
+@ H2O-161 183310107053.569 2.34016294270528e-16 296 2.70486699225234e-21 nan nan nan PB N2 153557.646880829 0.68 29350.5174770294 0.68 -798.854810362694 0.05  -1 0.05 0.05 0.00163657097157404 QN UP J 3/1 Ka 1/1 Kc 3/1 v1 0/1 v2 0/1 v3 0/1 LO J 2/1 Ka 2/1 Kc 0/1 v1 0/1 v2 0/1 v3 0/1
+
+CHANGED-H2O-183GHZ-Line_parameters
+@ H2O-161 183310107053.569 2.34016294270528e-16 296 2.70486699225234e-21 nan nan nan PB N2 161486.992180000 0.77 29498.4480000000 0.77 -795.895900000000 0.05  -1 0.05 0.05 0.00163657097157404 QN UP J 3/1 Ka 1/1 Kc 3/1 v1 0/1 v2 0/1 v3 0/1 LO J 2/1 Ka 2/1 Kc 0/1 v1 0/1 v2 0/1 v3 0/1

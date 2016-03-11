@@ -51,12 +51,12 @@ INCLUDE "general/planet_earth.arts"
 # Read HITRAN catalog:
 #    abs_linesReadFromHitran( abs_lines,
 #                             "/scratch/uni/u237/data/catalogue/hitran/hitran2012_140407/HITRAN2012.par",
-#                             5e9,
-#                             1630e9 )
+#                             0,
+#                             1000e9 )
 #    abs_linesArtscat5FromArtscat34( abs_lines )
-    ReadXML( abs_lines, "abs_lines_metmm.xml.gz" )
+    ReadXML( abs_lines, "instruments/metmm/abs_lines_metmm.xml.gz" )
     abs_lines_per_speciesCreateFromLines
-#    WriteXML( "zascii", abs_lines, "abs_lines_metmm.xml.gz" )
+#    WriteXML( "zascii", abs_lines, "instruments/metmm/abs_lines_metmm.xml.gz" )
 
 
 # ====================================================================
