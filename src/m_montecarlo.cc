@@ -143,7 +143,7 @@ void MCGeneral(Workspace&            ws,
                const Index&          l_mc_scat_order,
                const Verbosity&      verbosity)
 {
-  // Basics
+  // Checks of input
   //
   chk_if_in_range( "stokes_dim", stokes_dim, 1, 4 );
   if( atmfields_checked != 1 )
@@ -192,6 +192,38 @@ void MCGeneral(Workspace&            ws,
       os << "Found: " << sensor_los.ncols();
       throw runtime_error(os.str());
     }
+
+  for( Index i_ss = 0; i_ss < scat_data_mono.nelem(); i_ss ++ )
+    {
+      for( Index i_se = 0; i_se < scat_data_mono[i_ss].nelem(); i_se ++ )
+        {
+          if( scat_data_mono[i_ss][i_ss].f_grid.nelem() > 1 )
+            {
+              ostringstream os;
+              os << "Input scattering data shall be monochromatic, but at least\n"
+                 << "one element of scat_data_mono contains data for several\n"
+                 << "frequencies.\n"
+                 << "Found incorrect element is [" << i_ss << "][" << i_se 
+                 << "] (zero based indexing).";
+              throw runtime_error( os.str() );
+            }   
+          if( abs( ( scat_data_mono[i_ss][i_ss].f_grid[0] - f_grid[f_index] ) /
+                   f_grid[f_index] ) > 1e-4 )
+            {
+              ostringstream os;
+              os << "Incorrect frequency in at least one element of scat_data_mono.\n" 
+                 << "Scattering data have frequency : " << 
+                           scat_data_mono[i_ss][i_ss].f_grid[0]/1e9 << " GHz\n"
+                 << "Radiative transfer frequency is: " << 
+                           f_grid[f_index]/1e9 << " GHz\n"
+                 << "Found incorrect element is [" << i_ss << "][" << i_se 
+                 << "] (zero based indexing).\n"
+                 << "Maximum allowed relative frequency is 1e-4.";
+              throw runtime_error( os.str() );
+            }   
+        }   
+    }
+
 
   Ppath  ppath_step;
   Rng    rng;                      //Random Number generator

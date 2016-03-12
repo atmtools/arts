@@ -116,8 +116,8 @@ void clear_rt_vars_at_gp(Workspace&          ws,
 
   opt_prop_sum_propmat_clearsky(local_ext_mat, local_abs_vec, local_propmat_clearsky);
   
-  ext_mat_mono=local_ext_mat(0, Range(joker), Range(joker));
-  abs_vec_mono=local_abs_vec(0,Range(joker));
+  ext_mat_mono=local_ext_mat(0, joker, joker);
+  abs_vec_mono=local_abs_vec(0,joker);
 }
 
 
@@ -203,8 +203,8 @@ void cloudy_rt_vars_at_gp(Workspace&           ws,
   opt_prop_sum_propmat_clearsky(local_ext_mat, local_abs_vec, local_propmat_clearsky);
 
   
-  ext_mat_mono=local_ext_mat(0, Range(joker), Range(joker));
-  abs_vec_mono=local_abs_vec(0,Range(joker));
+  ext_mat_mono=local_ext_mat(0, joker, joker);
+  abs_vec_mono=local_abs_vec(0,joker);
   ext_mat_part=0.0;
   abs_vec_part=0.0;
   scat_za=180-rte_los[0];
@@ -847,7 +847,7 @@ void opt_propExtract(
       break;
     }
 
-  case PTYPE_HORIZ_AL://Added by Cory Davis 9/12/03
+  case PTYPE_HORIZ_AL:
     {
       assert (scat_data_single.ext_mat_data.ncols() == 3);
       
@@ -859,19 +859,10 @@ void opt_propExtract(
 
       // 1st interpolate data by za_sca
       GridPos za_gp;
-      Vector itw(4);
       Numeric Kjj;
       Numeric K12;
       Numeric K34;
       
-      if( scat_data_single.T_grid.nelem() == 1)
-        {
-          ostringstream os;
-          os << "Given optical property data are for constant temperature\n"
-             << "only.\nMC with \"horizontally_aligned\" particles requires\n"
-             << "temperature-dependent optical property data\n";
-          throw runtime_error( os.str() );
-        }
 
       // This fix for za=90 copied from  ext_matTransform in optproperties.cc
       // (121113, PE).
@@ -882,24 +873,50 @@ void opt_propExtract(
       else
         { gridpos( za_gp, this_za_datagrid, za ); }
 
-      interpweights( itw, t_gp, za_gp );
 
       ext_mat_mono_spt = 0.0;
       abs_vec_mono_spt = 0.0;
-      Kjj = interp(itw,scat_data_single.ext_mat_data(0,joker,joker,0,0),t_gp,za_gp);
-      ext_mat_mono_spt(0,0) = Kjj;
-      abs_vec_mono_spt[0]   = interp( itw, 
+
+      Vector itw;  
+
+      if( scat_data_single.T_grid.nelem() == 1 )
+        {
+          itw.resize(2);
+          interpweights( itw, za_gp );
+          Kjj = interp(itw,scat_data_single.ext_mat_data(0,0,joker,0,0),za_gp);
+          abs_vec_mono_spt[0]   = interp( itw, 
+                          scat_data_single.abs_vec_data(0,0,joker,0,0),za_gp);
+        }
+      else
+        {
+          itw.resize(4);
+          interpweights( itw, t_gp, za_gp );
+          Kjj = interp(itw,scat_data_single.ext_mat_data(0,joker,joker,0,0),t_gp,za_gp);
+          abs_vec_mono_spt[0]   = interp( itw, 
                        scat_data_single.abs_vec_data(0,joker,joker,0,0), t_gp,za_gp );
+        }
+      ext_mat_mono_spt(0,0) = Kjj;
+
+
 
       if( stokes_dim == 1 )
         { break; }
       
-      K12=interp(itw,scat_data_single.ext_mat_data(0,joker,joker,0,1),t_gp,za_gp);
+      if( scat_data_single.T_grid.nelem() == 1 )
+        {
+          K12=interp(itw,scat_data_single.ext_mat_data(0,0,joker,0,1),za_gp);
+          abs_vec_mono_spt[1] = interp(itw,
+                         scat_data_single.abs_vec_data(0,0,joker,0,1),za_gp);
+        }
+      else
+        {
+          K12=interp(itw,scat_data_single.ext_mat_data(0,joker,joker,0,1),t_gp,za_gp);
+          abs_vec_mono_spt[1] = interp(itw,
+                         scat_data_single.abs_vec_data(0,joker,joker,0,1),t_gp,za_gp);
+        }
       ext_mat_mono_spt(1,1)=Kjj;
       ext_mat_mono_spt(0,1)=K12;
       ext_mat_mono_spt(1,0)=K12;
-      abs_vec_mono_spt[1] = interp(itw,scat_data_single.abs_vec_data(0,joker,joker,0,1),
-                            t_gp,za_gp);
 
       if( stokes_dim == 2 ){
         break;
@@ -911,7 +928,10 @@ void opt_propExtract(
         break;
       }
       
-      K34=interp(itw,scat_data_single.ext_mat_data(0,joker,joker,0,2),t_gp,za_gp);
+      if( scat_data_single.T_grid.nelem() == 1 )
+        K34=interp(itw,scat_data_single.ext_mat_data(0,0,joker,0,2),za_gp);
+      else
+        K34=interp(itw,scat_data_single.ext_mat_data(0,joker,joker,0,2),t_gp,za_gp);
       ext_mat_mono_spt(2,3)=K34;
       ext_mat_mono_spt(3,2)=-K34;
       ext_mat_mono_spt(3,3)=Kjj;
@@ -1046,7 +1066,7 @@ void pha_mat_singleExtract(
       break;
     }
 
-  case PTYPE_HORIZ_AL://Added by Cory Davis
+  case PTYPE_HORIZ_AL:
     //Data is already stored in the laboratory frame, but it is compressed
     //a little.  Details elsewhere
     {
@@ -1058,18 +1078,8 @@ void pha_mat_singleExtract(
       GridPos za_sca_gp;
       GridPos delta_aa_gp;
       GridPos za_inc_gp;
-      Vector itw(16);
+      Vector itw;
       
-      if( scat_data_single.T_grid.nelem() == 1)
-        {
-          ostringstream os;
-          os << "Given optical property data is for constant temperature only.\n"
-                "MC with \"horizontally_aligned\" requires temperature-dependent\n"
-                "optical property data\n";
-                throw runtime_error( os.str() );
-        }
-      
-      gridpos(t_gp, scat_data_single.T_grid, rtp_temperature);
       gridpos(delta_aa_gp,scat_data_single.aa_grid,abs(delta_aa));
       if (za_inc>90)
         {
@@ -1082,101 +1092,227 @@ void pha_mat_singleExtract(
           gridpos(za_sca_gp,scat_data_single.za_grid,za_sca);
         }
 
-      interpweights(itw,t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
-
-      Z_spt(0,0)=interp(itw,scat_data_single.pha_mat_data(0,joker,Range(joker),Range(joker),
-                                               Range(joker),0,0),
-                              t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
+      if( scat_data_single.T_grid.nelem() == 1 )
+        {
+          itw.resize(8);
+          interpweights(itw,za_sca_gp,delta_aa_gp,za_inc_gp);
+          Z_spt(0,0)=interp(itw,scat_data_single.pha_mat_data
+                            (0,0,joker,joker,joker,0,0),
+                            za_sca_gp,delta_aa_gp,za_inc_gp);
+        }
+      else
+        {
+          itw.resize(16);
+          gridpos(t_gp,scat_data_single.T_grid,rtp_temperature);
+          interpweights(itw,t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
+          Z_spt(0,0)=interp(itw,scat_data_single.pha_mat_data
+                            (0,joker,joker,joker,joker,0,0),
+                            t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
+        }
+      
       if( stokes_dim == 1 ){
         break;
       }
-      Z_spt(0,1)=interp(itw,scat_data_single.pha_mat_data(0,joker,Range(joker),Range(joker),
-                                               Range(joker),0,1),
-                              t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
-      Z_spt(1,0)=interp(itw,scat_data_single.pha_mat_data(0,joker,Range(joker),Range(joker),
-                                               Range(joker),0,4),
-                              t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
-      Z_spt(1,1)=interp(itw,scat_data_single.pha_mat_data(0,joker,Range(joker),Range(joker),
-                                               Range(joker),0,5),
-                              t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
+
+      if( scat_data_single.T_grid.nelem() == 1 )
+        {
+          Z_spt(0,1)=interp(itw,scat_data_single.pha_mat_data
+                            (0,0,joker,joker,joker,0,1),
+                            za_sca_gp,delta_aa_gp,za_inc_gp);
+          Z_spt(1,0)=interp(itw,scat_data_single.pha_mat_data
+                            (0,0,joker,joker,joker,0,4),
+                            za_sca_gp,delta_aa_gp,za_inc_gp);
+          Z_spt(1,1)=interp(itw,scat_data_single.pha_mat_data
+                            (0,0,joker,joker,joker,0,5),
+                            za_sca_gp,delta_aa_gp,za_inc_gp);
+        }
+      else
+        {
+          Z_spt(0,1)=interp(itw,scat_data_single.pha_mat_data
+                            (0,joker,joker,joker,joker,0,1),
+                            t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
+          Z_spt(1,0)=interp(itw,scat_data_single.pha_mat_data
+                            (0,joker,joker,joker,joker,0,4),
+                            t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
+          Z_spt(1,1)=interp(itw,scat_data_single.pha_mat_data
+                            (0,joker,joker,joker,joker,0,5),
+                            t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
+        }
+
       if( stokes_dim == 2 ){
         break;
       }
+
       if ((za_inc<=90 && delta_aa>=0)||(za_inc>90 && delta_aa<0))
         {
-          Z_spt(0,2)=interp(itw,scat_data_single.pha_mat_data(0,joker,Range(joker),Range(joker),
-                                                   Range(joker),0,2),
-                                  t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
-          Z_spt(1,2)=interp(itw,scat_data_single.pha_mat_data(0,joker,Range(joker),Range(joker),
-                                                   Range(joker),0,6),
-                                  t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
-          Z_spt(2,0)=interp(itw,scat_data_single.pha_mat_data(0,joker,Range(joker),Range(joker),
-                                                   Range(joker),0,8),
-                                  t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
-          Z_spt(2,1)=interp(itw,scat_data_single.pha_mat_data(0,joker,Range(joker),Range(joker),
-                                                   Range(joker),0,9),
-                                  t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
+          if( scat_data_single.T_grid.nelem() == 1 )
+            {
+              Z_spt(0,2)=interp(itw,scat_data_single.pha_mat_data
+                                (0,0,joker,joker,joker,0,2),
+                                za_sca_gp,delta_aa_gp,za_inc_gp);
+              Z_spt(1,2)=interp(itw,scat_data_single.pha_mat_data
+                                (0,0,joker,joker,joker,0,6),
+                                za_sca_gp,delta_aa_gp,za_inc_gp);
+              Z_spt(2,0)=interp(itw,scat_data_single.pha_mat_data
+                                (0,0,joker,joker,joker,0,8),
+                                za_sca_gp,delta_aa_gp,za_inc_gp);
+              Z_spt(2,1)=interp(itw,scat_data_single.pha_mat_data
+                                (0,0,joker,joker,joker,0,9),
+                                za_sca_gp,delta_aa_gp,za_inc_gp);
+            }
+          else
+            {
+              Z_spt(0,2)=interp(itw,scat_data_single.pha_mat_data
+                                (0,joker,joker,joker,joker,0,2),
+                                t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
+              Z_spt(1,2)=interp(itw,scat_data_single.pha_mat_data
+                                (0,joker,joker,joker,joker,0,6),
+                                t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
+              Z_spt(2,0)=interp(itw,scat_data_single.pha_mat_data
+                                (0,joker,joker,joker,joker,0,8),
+                                t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
+              Z_spt(2,1)=interp(itw,scat_data_single.pha_mat_data
+                                (0,joker,joker,joker,joker,0,9),
+                                t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
+            }
         }
       else
         {
-          Z_spt(0,2)=-interp(itw,scat_data_single.pha_mat_data(0,joker,Range(joker),Range(joker),
-                                                   Range(joker),0,2),
-                                  t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
-          Z_spt(1,2)=-interp(itw,scat_data_single.pha_mat_data(0,joker,Range(joker),Range(joker),
-                                                   Range(joker),0,6),
-                                  t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
-          Z_spt(2,0)=-interp(itw,scat_data_single.pha_mat_data(0,joker,Range(joker),Range(joker),
-                                                   Range(joker),0,8),
-                                  t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
-          Z_spt(2,1)=-interp(itw,scat_data_single.pha_mat_data(0,joker,Range(joker),Range(joker),
-                                                   Range(joker),0,9),
-                                  t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
+          if( scat_data_single.T_grid.nelem() == 1 )
+            {
+              Z_spt(0,2)=-interp(itw,scat_data_single.pha_mat_data
+                                 (0,0,joker,joker,joker,0,2),
+                                 za_sca_gp,delta_aa_gp,za_inc_gp);
+              Z_spt(1,2)=-interp(itw,scat_data_single.pha_mat_data
+                                 (0,0,joker,joker,joker,0,6),
+                                 za_sca_gp,delta_aa_gp,za_inc_gp);
+              Z_spt(2,0)=-interp(itw,scat_data_single.pha_mat_data
+                                 (0,0,joker,joker,joker,0,8),
+                                 za_sca_gp,delta_aa_gp,za_inc_gp);
+              Z_spt(2,1)=-interp(itw,scat_data_single.pha_mat_data
+                                 (0,0,joker,joker,joker,0,9),
+                                 za_sca_gp,delta_aa_gp,za_inc_gp);
+            }
+          else
+            {
+              Z_spt(0,2)=-interp(itw,scat_data_single.pha_mat_data
+                                 (0,joker,joker,joker,joker,0,2),
+                                 t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
+              Z_spt(1,2)=-interp(itw,scat_data_single.pha_mat_data
+                                 (0,joker,joker,joker,joker,0,6),
+                                 t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
+              Z_spt(2,0)=-interp(itw,scat_data_single.pha_mat_data
+                                 (0,joker,joker,joker,joker,0,8),
+                                 t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
+              Z_spt(2,1)=-interp(itw,scat_data_single.pha_mat_data
+                                 (0,joker,joker,joker,joker,0,9),
+                                 t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
+            }
         }                             
-      Z_spt(2,2)=interp(itw,scat_data_single.pha_mat_data(0,joker,Range(joker),Range(joker),
-                                               Range(joker),0,10),
-                                  t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
+      if( scat_data_single.T_grid.nelem() == 1 )
+        Z_spt(2,2)=interp(itw,scat_data_single.pha_mat_data
+                          (0,0,joker,joker,joker,0,10),
+                          za_sca_gp,delta_aa_gp,za_inc_gp);
+      else
+        Z_spt(2,2)=interp(itw,scat_data_single.pha_mat_data
+                          (0,joker,joker,joker,joker,0,10),
+                          t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
+
       if( stokes_dim == 3 ){
         break;
       }
+
       if ((za_inc<=90 && delta_aa>=0)||(za_inc>90 && delta_aa<0))
         {
-          Z_spt(0,3)=interp(itw,scat_data_single.pha_mat_data(0,joker,Range(joker),Range(joker),
-                                                   Range(joker),0,3),
-                                  t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
-          Z_spt(1,3)=interp(itw,scat_data_single.pha_mat_data(0,joker,Range(joker),Range(joker),
-                                                   Range(joker),0,7),
-                                  t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
-          Z_spt(3,0)=interp(itw,scat_data_single.pha_mat_data(0,joker,Range(joker),Range(joker),
-                                                   Range(joker),0,12),
-                                  t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
-          Z_spt(3,1)=interp(itw,scat_data_single.pha_mat_data(0,joker,Range(joker),Range(joker),
-                                                   Range(joker),0,13),
-                                  t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
+          if( scat_data_single.T_grid.nelem() == 1 )
+            {
+              Z_spt(0,3)=interp(itw,scat_data_single.pha_mat_data
+                                (0,0,joker,joker,joker,0,3),
+                                za_sca_gp,delta_aa_gp,za_inc_gp);
+              Z_spt(1,3)=interp(itw,scat_data_single.pha_mat_data
+                                (0,0,joker,joker,joker,0,7),
+                                za_sca_gp,delta_aa_gp,za_inc_gp);
+              Z_spt(3,0)=interp(itw,scat_data_single.pha_mat_data
+                                (0,0,joker,joker,joker,0,12),
+                                za_sca_gp,delta_aa_gp,za_inc_gp);
+              Z_spt(3,1)=interp(itw,scat_data_single.pha_mat_data
+                                (0,0,joker,joker,joker,0,13),
+                                za_sca_gp,delta_aa_gp,za_inc_gp);
+            }
+          else
+            {
+              Z_spt(0,3)=interp(itw,scat_data_single.pha_mat_data
+                                (0,joker,joker,joker,joker,0,3),
+                                t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
+              Z_spt(1,3)=interp(itw,scat_data_single.pha_mat_data
+                                (0,joker,joker,joker,joker,0,7),
+                                t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
+              Z_spt(3,0)=interp(itw,scat_data_single.pha_mat_data
+                                (0,joker,joker,joker,joker,0,12),
+                                t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
+              Z_spt(3,1)=interp(itw,scat_data_single.pha_mat_data
+                                (0,joker,joker,joker,joker,0,13),
+                                t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
+            }
         }
       else
         {
-          Z_spt(0,3)=-interp(itw,scat_data_single.pha_mat_data(0,joker,Range(joker),Range(joker),
-                                                   Range(joker),0,3),
-                                  t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
-          Z_spt(1,3)=-interp(itw,scat_data_single.pha_mat_data(0,joker,Range(joker),Range(joker),
-                                                   Range(joker),0,7),
-                                  t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
-          Z_spt(3,0)=-interp(itw,scat_data_single.pha_mat_data(0,joker,Range(joker),Range(joker),
-                                                   Range(joker),0,12),
-                                  t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
-          Z_spt(3,1)=-interp(itw,scat_data_single.pha_mat_data(0,joker,Range(joker),Range(joker),
-                                                   Range(joker),0,13),
-                                  t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
+          if( scat_data_single.T_grid.nelem() == 1 )
+            {
+              Z_spt(0,3)=-interp(itw,scat_data_single.pha_mat_data
+                                 (0,0,joker,joker,joker,0,3),
+                                 za_sca_gp,delta_aa_gp,za_inc_gp);
+              Z_spt(1,3)=-interp(itw,scat_data_single.pha_mat_data
+                                 (0,0,joker,joker,joker,0,7),
+                                 za_sca_gp,delta_aa_gp,za_inc_gp);
+              Z_spt(3,0)=-interp(itw,scat_data_single.pha_mat_data
+                                 (0,0,joker,joker,joker,0,12),
+                                 za_sca_gp,delta_aa_gp,za_inc_gp);
+              Z_spt(3,1)=-interp(itw,scat_data_single.pha_mat_data
+                                 (0,0,joker,joker,joker,0,13),
+                                 za_sca_gp,delta_aa_gp,za_inc_gp);
+            }
+          else
+            {
+              Z_spt(0,3)=-interp(itw,scat_data_single.pha_mat_data
+                                 (0,joker,joker,joker,joker,0,3),
+                                 t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
+              Z_spt(1,3)=-interp(itw,scat_data_single.pha_mat_data
+                                 (0,joker,joker,joker,joker,0,7),
+                                 t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
+              Z_spt(3,0)=-interp(itw,scat_data_single.pha_mat_data
+                                 (0,joker,joker,joker,joker,0,12),
+                                 t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
+              Z_spt(3,1)=-interp(itw,scat_data_single.pha_mat_data
+                                 (0,joker,joker,joker,joker,0,13),
+                                 t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
+            }
         }
-      Z_spt(2,3)=interp(itw,scat_data_single.pha_mat_data(0,joker,Range(joker),Range(joker),
-                                               Range(joker),0,11),
-                              t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
-      Z_spt(3,2)=interp(itw,scat_data_single.pha_mat_data(0,joker,Range(joker),Range(joker),
-                                               Range(joker),0,14),
-                              t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
-      Z_spt(3,3)=interp(itw,scat_data_single.pha_mat_data(0,joker,Range(joker),Range(joker),
-                                               Range(joker),0,15),
-                              t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
+
+      if( scat_data_single.T_grid.nelem() == 1 )
+        {
+          Z_spt(2,3)=interp(itw,scat_data_single.pha_mat_data
+                            (0,0,joker,joker,joker,0,11),
+                            za_sca_gp,delta_aa_gp,za_inc_gp);
+          Z_spt(3,2)=interp(itw,scat_data_single.pha_mat_data
+                            (0,0,joker,joker,joker,0,14),
+                            za_sca_gp,delta_aa_gp,za_inc_gp);
+          Z_spt(3,3)=interp(itw,scat_data_single.pha_mat_data
+                            (0,0,joker,joker,joker,0,15),
+                            za_sca_gp,delta_aa_gp,za_inc_gp);
+        }
+      else
+        {
+          Z_spt(2,3)=interp(itw,scat_data_single.pha_mat_data
+                            (0,joker,joker,joker,joker,0,11),
+                            t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
+          Z_spt(3,2)=interp(itw,scat_data_single.pha_mat_data
+                            (0,joker,joker,joker,joker,0,14),
+                            t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
+          Z_spt(3,3)=interp(itw,scat_data_single.pha_mat_data
+                            (0,joker,joker,joker,joker,0,15),
+                            t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
+        }
       break;
       
     }  

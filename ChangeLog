@@ -1,15 +1,31 @@
+2016-03-12  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-462
+
+	* MC now works with scat data having a single temperature.
+
+	* src/montecarlo.cc (opt_propExtract,pha_mat_singleExtract):
+	Part for PTYPE_HORIZ_AL now handles also single scat data with a
+	single temperature.
+
+	* src/m_tmatrix.cc (scat_data_singleTmatrix): Give error if azimuth
+	grid is empty for horisontally aligned, instead of an informative assert.
+
+	* src/m_montecarlo.cc (MCGeneral): Added checks of
+	scat_data_mono, that data indeed are mono and frequency fits
+	f_grid[f_index].
+
 2016-03-11 Jana Mendrok  <jana.mendrok@chalmers.se>
 
 	* arts-2-3-461
-	
+
 	* src/m_optproperties.cc (pha_mat_sptFromDataDOITOpt, pha_mat_sptFromMonoData,
 	opt_prop_sptFromMonoData), src/disort.cc (phase_functionCalc):
 	Added check that scat_data_mono is indeed mono (reduced to one freq point).
-	
+
 	* src/m_optproperties.cc (pha_mat_sptFromData, opt_prop_sptFromData):
 	Added check that scat_data is indeed freq-dependent data, not scat_data_mono.
-	
-	
+
 	* src/cloudbox.cc (chk_scat_data_fgrid, chk_scat_data):
 	Sorted out the header info (csd checks for T and ang grids, not csd_fgrid).
 
@@ -21,7 +37,7 @@
 
 	Readme file contains changes for the line parameters of 183-GHz line,
         as described in Payne et al, 2008, compared to HITRAN-2012.
-         
+
         * controlfiles/instruments/metmm/abs_lines_metmm.xml.gz,
         * controlfiles/instruments/metmm/TestMetMM.arts,
         * controlfiles/instruments/metmm/ybatchREFERENCE.xml:

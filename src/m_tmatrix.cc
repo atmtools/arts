@@ -221,12 +221,18 @@ void scat_data_singleTmatrix(
     {
       // For horizontally-aligned particles, the azimuth angle grid must cover
       // 0-180 degrees.
+      if (scat_data_single.ptype == PTYPE_HORIZ_AL && data_aa_grid.nelem() == 0.)
+        {
+          ostringstream os;
+          os << "For ptype = \"horizontally_aligned\""
+          << " the azimuth angle grid can not be empty.";
+          throw runtime_error( os.str() );
+        }
       if (scat_data_single.ptype == PTYPE_HORIZ_AL && data_aa_grid[0] != 0.)
         {
           ostringstream os;
           os << "For ptype = \"horizontally_aligned\""
-          << " the first value"
-          << " of the aa grid must be 0.";
+          << " the first value of the aa grid must be 0.";
           throw runtime_error( os.str() );
         }
 
