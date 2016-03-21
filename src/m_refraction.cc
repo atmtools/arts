@@ -388,6 +388,44 @@ void complex_refr_indexWaterLiebe93(
 }
 
 
+/* Workspace method: Doxygen documentation will be auto-generated */
+void complex_refr_indexIceMatzler06(
+         GriddedField3& complex_refr_index,
+   const Vector&        f_grid,
+   const Vector&        t_grid,
+   const Verbosity& )
+{
+  const Index nf = f_grid.nelem();
+  const Index nt = t_grid.nelem();
+
+  // Frequency must be between 10MHz and 3THz
+  const Numeric f_min = 10e6;
+  const Numeric f_max = 3e12;
+  chk_if_in_range("min of complex_refr_index f_grid", min(f_grid), f_min, f_max);
+  chk_if_in_range("max of complex_refr_index f_grid", max(f_grid), f_min, f_max);
+
+  // Temperature must be between 213.16 to 272.16 K
+  const Numeric t_min = 20.;
+  const Numeric t_max = 280.;
+  chk_if_in_range("min of complex_refr_index t_grid", min(t_grid), t_min, t_max);
+  chk_if_in_range("max of complex_refr_index t_grid", max(t_grid), t_min, t_max);
+
+  complex_refr_index.resize( nf, nt, 2 );
+  complex_refr_index.set_grid_name( 0, "Frequency" );
+  complex_refr_index.set_grid( 0, f_grid );
+  complex_refr_index.set_grid_name( 1, "Temperature" );
+  complex_refr_index.set_grid( 1, t_grid );
+  complex_refr_index.set_grid_name( 2, "Complex" );
+  complex_refr_index.set_grid( 2, MakeArray<String>("real", "imaginary") );
+
+  Matrix complex_n;
+  for (Index i_t = 0; i_t < nt; ++i_t)
+    {
+      complex_n_ice_matzler06( complex_n, f_grid, t_grid[i_t] );
+      complex_refr_index.data(joker, i_t, joker) = complex_n;
+    }
+}
+
 
 #ifdef ENABLE_REFICE
 /* Workspace method: Doxygen documentation will be auto-generated */

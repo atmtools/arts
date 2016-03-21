@@ -45,6 +45,11 @@ void complex_n_water_liebe93(
    const Vector&   f_grid,
    const Numeric&  t );
 
+void complex_n_ice_matzler06(
+         Matrix&   complex_n,
+   const Vector&   f_grid,
+   const Numeric&  t );
+
 void get_refr_index_1d(
           Workspace&  ws,
           Numeric&    refr_index,

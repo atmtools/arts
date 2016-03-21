@@ -3546,10 +3546,44 @@ void define_md_data_raw()
     
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "complex_refr_indexIceMatzler06" ),
+        DESCRIPTION
+        (
+         "Refractive index of ice following Matzler06 parameterization.\n"
+         "\n"
+         "Calculates temperature dependent complex refractive index of\n"
+         "hexagonal ice at microwave and sub-mm frequencies (10MHz-3Tz).\n"
+         "\n"
+         "This parametrization is also applied by the microwave and\n"
+         "submm-wave part of the Warren08 model.\n"
+         "\n"
+         "References:\n"
+         "Matzler, C., 2006: Thermal Microwave Radiation: Application for\n"
+         "Remote Sensing, Microwave dielectric properties of ice, pp. 455-462,\n"
+         "Inst. Eng. Technol., Stevenage, U. K.\n"
+         "Warren, S. G., and R. E. Brandt, 2008: Optical constants of ice\n"
+         "from the ultraviolet to the microwave: A revised compilation,\n"
+         "J. Geophys. Res., 113, D14220, doi:10.1029/2007JD009744.\n"
+         ),
+        AUTHORS( "Jana Mendrok" ),
+        OUT( "complex_refr_index" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN(),
+        GIN( "data_f_grid", "data_T_grid" ),
+        GIN_TYPE( "Vector", "Vector" ),
+        GIN_DEFAULT( NODEF, NODEF ),
+        GIN_DESC( "Frequency grid for refractive index calculation",
+                  "Temperature grid for refractive index calculation" )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "complex_refr_indexIceWarren84" ),
         DESCRIPTION
         (
-         "Refractive index of ice follwoing Warren84 parameterization.\n"
+         "Refractive index of ice following Warren84 parameterization.\n"
          "\n"
          "Calculates complex refractive index of Ice 1H for wavelengths\n"
          "between 45 nm and 8.6 m.\n"

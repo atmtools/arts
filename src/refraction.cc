@@ -110,6 +110,65 @@ void complex_n_water_liebe93(
 }
 
 
+//! complex_n_ice_matzler06
+/*! 
+  Complex refractive index of water ice according to Matzler 2006 (equivalent to
+  Warren 2008).
+
+  The method treats pure water ice (no impurities like salt). Valid from 10 MHz
+  up to 3 THz. Thus, not valid below 10 GHz. Follows the atmlab implementation,
+  including some relaxation of upper temperature limit to 280K.
+
+  The output matrix has two columns, where column 0 is real part and column 1
+  is imaginary part; rows match f_grid.
+   
+   \param   complex_n   Out: Complex refractive index.        
+   \param   f_grid      As the WSV with the same name.
+   \param   t           Temperature
+
+   \author Jana Mendrok
+   \date   2016-03-21
+*/
+void complex_n_ice_matzler06(
+         Matrix&   complex_n,
+   const Vector&   f_grid,
+   const Numeric&  t )
+{
+  chk_if_in_range( "t", t, 20., 280. );
+  chk_if_in_range( "min of f_grid", min(f_grid), 10e6, 3000e9 );
+  chk_if_in_range( "max of f_grid", max(f_grid), 10e6, 3000e9 );
+
+  const Index   nf = f_grid.nelem();
+
+  complex_n.resize( nf, 2 );
+
+  // some parametrization constants
+  const Numeric B1 = 0.0207;
+  const Numeric B2 = 1.16e-11;
+	const Numeric b = 335.;
+
+  const Numeric deltabeta = exp(-9.963 + 0.0372*(t-273));
+  const Numeric ebdt = exp(b/t);
+  const Numeric betam = (B1/t) * ebdt / ( (ebdt-1.)*(ebdt-1.) );
+
+  const Numeric theta = 300./t - 1;
+  const Numeric alfa = (0.00504 + 0.0062*theta) * exp(-22.1*theta);
+  const Numeric reps = 3.1884 + 9.1e-4*(t-273);
+
+  for( Index iv=0; iv<nf; iv++ )
+    { 
+      Numeric f = f_grid[iv]/1e9;
+      Numeric beta = betam  + B2*f*f + deltabeta;
+      Numeric ieps = alfa/f + beta*f;
+
+      Complex eps(reps,ieps);
+      Complex n = sqrt( eps );    
+      complex_n(iv,0) = n.real();
+      complex_n(iv,1) = n.imag();
+    }
+}
+
+
 
 //! get_refr_index_1d
 /*! 

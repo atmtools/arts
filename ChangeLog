@@ -1,3 +1,29 @@
+2016-03-21 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-463
+
+	* src/m_refraction.cc, methods.cc (complex_refr_indexIceMatzler06):
+	WSM to calculate Matzler06 ice ref index data (eq. to Warren08 microwave
+	data).
+
+	* src/refraction.[cc,h] (complex_n_ice_matzler06):
+	The actual function to calculate Matzler ref indices.
+
+	* controlfiles/artscomponents/refice/TestRefice.arts,
+	TestRefice.complex_refr_indexREFERENCE.xml:
+	For microwave use Matzler refindex data, not outdated Warren84. Set
+	harder comparison threshold (old threshold was larger than imag refindex
+	values as such; Warren84 passed as ok for Matzler reference data).
+
+	* controlfiles/artscomponents/tmatrix/TestTMatrix.arts:
+	Replaced refindex model Warren84 by Matzler06 (in comment). Harden
+	comparison threshold to the order magnitude of the actual ssd data (we
+	don't want to test the t- and f-grid settings, but the data itself).
+
+	* controlfiles/artscomponents/tmatrix/TestTMatrix.aligned.ssdREFERENCE.xml,
+	TestTMatrix.random.ssdREFERENCE.xml:
+	Updated reference data according to changed refindex data.
+
 2016-03-12  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-462
@@ -31,16 +57,16 @@
 
 2016-03-11 Alex Bobryshev <oleksandr.bobryshev@uni-hamburg.de>
 
-        * arts-2-3-460
+	* arts-2-3-460
 
-        * controlfiles/instruments/metmm/README:
+	* controlfiles/instruments/metmm/README:
 
 	Readme file contains changes for the line parameters of 183-GHz line,
-        as described in Payne et al, 2008, compared to HITRAN-2012.
+	as described in Payne et al, 2008, compared to HITRAN-2012.
 
-        * controlfiles/instruments/metmm/abs_lines_metmm.xml.gz,
-        * controlfiles/instruments/metmm/TestMetMM.arts,
-        * controlfiles/instruments/metmm/ybatchREFERENCE.xml:
+	* controlfiles/instruments/metmm/abs_lines_metmm.xml.gz,
+	* controlfiles/instruments/metmm/TestMetMM.arts,
+	* controlfiles/instruments/metmm/ybatchREFERENCE.xml:
 
 	abs_lines_metmm.xml.gz is a crop from HITRAN-2012 catalogue with
 	modified line parameters of 183-GHz line. I also change the range of
@@ -189,7 +215,7 @@
 	
 2016-03-05  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
-        * arts-2-3-453
+	* arts-2-3-453
 
 	* src/m_abs_lookup.cc (propmat_clearskyAddFromLookup): Revision of
 	extpolfac. This did not work at all. First of all, error checks
@@ -211,25 +237,25 @@
 
 2016-03-04  Alex Bobryshev <oleksandr.bobryshev@uni-hamburg.de>
 
-        * arts-2-3-452
+	* arts-2-3-452
 
-        * controlfiles/instruments/metmm/sensor_descriptions/sensor_marss.arts,
-        controlfiles/instruments/metmm/sensor_descriptions/sensor_deimos.arts,
-        controlfiles/instruments/metmm/sensor_descriptions/sensor_amsua.arts,
-        controlfiles/instruments/metmm/sensor_descriptions/sensor_amsub.arts,
-        controlfiles/instruments/metmm/sensor_descriptions/sensor_mhs.arts
-        controlfiles/instruments/metmm/sensor_descriptions/
-        sensor_ismar_downward.arts
-        controlfiles/instruments/metmm/sensor_descriptions/
-        sensor_ismar_upward.arts:
+	* controlfiles/instruments/metmm/sensor_descriptions/sensor_marss.arts,
+	controlfiles/instruments/metmm/sensor_descriptions/sensor_deimos.arts,
+	controlfiles/instruments/metmm/sensor_descriptions/sensor_amsua.arts,
+	controlfiles/instruments/metmm/sensor_descriptions/sensor_amsub.arts,
+	controlfiles/instruments/metmm/sensor_descriptions/sensor_mhs.arts
+	controlfiles/instruments/metmm/sensor_descriptions/
+	sensor_ismar_downward.arts
+	controlfiles/instruments/metmm/sensor_descriptions/
+	sensor_ismar_upward.arts:
 
-        Unwanted feature of freq_spacing: default value of met_mm_freq_spacing
-        overwrote the desired met_mm_freq_num for metmm-fast-setup for
-        channels wider than 1e9 GHz. Thus making more than one grid point
-        per passband for fast setup.
-        Fixed: For all files added vector "freq_spacing_tmp". This vector
-        contains default values for "met_mm_freq_spacing" for 4
-        met_mm_accuracy setups.
+	Unwanted feature of freq_spacing: default value of met_mm_freq_spacing
+	overwrote the desired met_mm_freq_num for metmm-fast-setup for
+	channels wider than 1e9 GHz. Thus making more than one grid point
+	per passband for fast setup.
+	Fixed: For all files added vector "freq_spacing_tmp". This vector
+	contains default values for "met_mm_freq_spacing" for 4
+	met_mm_accuracy setups.
 
 	* controlfiles/instruments/metmm/sensor_descriptions/sensor_saphir.arts
 
@@ -402,31 +428,32 @@
 	Non-isotropic incoming radiation at DISORT-TOA functional and available
 	option in *DisortCalc*.
 	
-  * src/m_disort.cc
-  (DisortInit):
-  Added. Disort-eqivalent to DoitInit.
+	* src/m_disort.cc
+	(DisortInit):
+	Added. Disort-eqivalent to DoitInit.
 
-  (DisortCalc):
-  Adapted for possible calc of Disort-TOA non-iso incoming field and passing of
-  cloudbox-only atm layer data to Disort. Removed a bunch of checks now
-  performed by DisortInit as well as variables that were only needed for checks.
+	(DisortCalc):
+	Adapted for possible calc of Disort-TOA non-iso incoming field and
+	passing of cloudbox-only atm layer data to Disort. Removed a bunch of
+	checks now performed by DisortInit as well as variables that were only
+	needed for checks.
 
-  * src/methods.cc:
-  Updated DisortCalc doc. Added DisortInit.
+	* src/methods.cc:
+	Updated DisortCalc doc. Added DisortInit.
 
-  * src/disort.cc, disort.h
-  (get_cb_inc_field):
-  Added. Method that calculates top-of-cloudbox incoming rad at DISORT stream
-  and scat_za_grid angles, to be used as DISORT non-iso TOA rad.
+	* src/disort.cc, disort.h
+	(get_cb_inc_field):
+	Added. Method that calculates top-of-cloudbox incoming rad at DISORT stream
+	and scat_za_grid angles, to be used as DISORT non-iso TOA rad.
 
-  (planck2):
-  Removed. When needed, physics_funcs.cc planck is applied (works now that f2c
-  is replaced by direct FORTRAN compilation).
-  
-  * src/disort_DISORT.h:
-  Added qgausn_, DISORT's own gaussian quad angle calc method, to make available
-  in ARTS.
-  
+	(planck2):
+	Removed. When needed, physics_funcs.cc planck is applied (works now that f2c
+	is replaced by direct FORTRAN compilation).
+
+	* src/disort_DISORT.h:
+	Added qgausn_, DISORT's own gaussian quad angle calc method, to make available
+	in ARTS.
+
 	* 3rdparty/disort1.2/DISORT.f:
 	Corrected selection of direction-corresponding non-iso TOA rad value for
 	internal and user angle solutions. Corrected array size of input TOA rad
@@ -689,117 +716,124 @@
 	Trying to make ARTS-DISORT work somewhat properly, closing a couple of traps
 	and loopholes, fixing bugs.
 	
-  * src/m_disort.cc (DisortCalc):
-  Replaced surface_emissivity_field with surface_scalar_reflectivity - lat/lon
-  dependence wasn't used anyways, now allowing for frequency dependent surface
-  reflectivity.
-  Bit of restructuring code. Checks for only p20-type particles and identical
-  scattering grids added. Both are implicitly assumed by the code, but weren't
-  checked potentially causing significant errors. Angle grid size check added
-  (see DOAngularGridsSet below), allowing only even numbers (DISORT can not
-  really handle 90deg polar angles, so we should avoid them).
-  Changed from using isotropic incoming rad at TOA to blackbody source cosmic
-  background temp at TOA (both are possible. but setting TOA emisivity to 0
-  seemed dangerous as it potentially causes the TOA boundary to reflect. though
-  that's not considered in the DISORT version we use so far).
-  Bugfix in assigning DISORT output to doit_i_field levels.
+	* src/m_disort.cc (DisortCalc):
+	Replaced surface_emissivity_field with surface_scalar_reflectivity;
+	lat/lon dependence wasn't used anyways, now allowing for frequency
+	dependent surface reflectivity.
+	Bit of restructuring code. Checks for only p20-type particles and
+	identical scattering grids added. Both are implicitly assumed by the
+	code, but weren't checked potentially causing significant errors. Angle
+	grid size check added (see DOAngularGridsSet below), allowing only even
+	numbers (DISORT can not really handle 90deg polar angles, so we should
+	avoid them).
+	Changed from using isotropic incoming rad at TOA to blackbody source
+	cosmic background temp at TOA (both are possible. but setting TOA
+	emisivity to 0 seemed dangerous as it potentially causes the TOA
+	boundary to reflect. though that's not considered in the DISORT version
+	we use so far).
+	Bugfix in assigning DISORT output to doit_i_field levels.
 
-  * src/disort.cc
-  (phase_functionCalc): Calc scat coef only once for each atm level (DISORT
-  handling only p20, i.e. scat coef independent of polar angle).
-  Bugfix: loop over number of scatt elements of each species. This fixes the
-  non-normailzation complaints of pmomCalc.
-  Moved pfct normalization with scat coef outside of sum-over-scatelements loops.
-  Bugfix: layer-averaged pfct shouldn't become 0 when only one of the bounding
-  levels' pfct is 0 (there are actually particles in this layer, which shouldn't
-  be ignored!), hence take average in case of both given, take that one that's
-  non-zero if only one is and only set 0 when both are zero. FIXME: this might
-  have a corresponding unsuitable setting of layer single scatt albedo (and
-  layer optical depth?) - dtauc_ssalbCalc check ToBeDone!
-  
-  (pmomCalc): Throw error if pfct normalization deviates more than 50% (than
-  it's very likely a bug). Relax warning-level accuracy check of pfct
-  normalization (with linear interpolation 1e-4 accuracy is only reached for
-  Rayleigh particles), push warning back to out2 and renormalize pfct to 2.
+	* src/disort.cc
+	(phase_functionCalc): Calc scat coef only once for each atm level
+	(DISORT handling only p20, i.e. scat coef independent of polar angle).
+	Bugfix: loop over number of scatt elements of each species. This fixes
+	the non-normalization complaints of pmomCalc.
+	Moved pfct normalization with scat coef outside of sum-over-scatelements
+	loops.
+	Bugfix: layer-averaged pfct shouldn't become 0 when only one of the
+	bounding levels' pfct is 0 (there are actually particles in this layer,
+	which shouldn't be ignored!), hence take average in case of both given,
+	take that one that's non-zero if only one is and only set 0 when both
+	are zero. FIXME: this might have a corresponding unsuitable setting of
+	layer single scatt albedo (and layer optical depth?) - dtauc_ssalbCalc
+	check ToBeDone!
 
-  * 3rdparty/disort1.2/DISORT.f:
-  Increased number of processable (output) polar angles 100->1000.
-  Replaced Claudia's fix of planck emission within wavelength range for
-  monochromatic case by separate monochromatic planck emission subroutine (PLK)
-  using current ARTS constants (unfortunately, we can't use the C++ ARTS
-  settings directly, but have to use a copy here in FORTRAN code), fixing unit
-  consistency issues.
+	(pmomCalc): Throw error if pfct normalization deviates more than 50%
+	(than it's very likely a bug). Relax warning-level accuracy check of
+	pfct normalization (with linear interpolation 1e-4 accuracy is only
+	reached for Rayleigh particles), push warning back to out2 and
+	renormalize pfct to 2.
 
-  * 3rdparty/disort1.2/ErrPack.f:
-  More verbose wrong-dimension statements: tell current dimension setting in
-  addition to required one).
+	* 3rdparty/disort1.2/DISORT.f:
+	Increased number of processable (output) polar angles 100->1000.
+	Replaced Claudia's fix of planck emission within wavelength range for
+	monochromatic case by separate monochromatic planck emission subroutine
+	(PLK) using current ARTS constants (unfortunately, we can't use the C++
+	ARTS settings directly, but have to use a copy here in FORTRAN code),
+	fixing unit consistency issues.
 
-  * src/m_doit.cc
-  (DOAngularGridsSet): Renamed from DoitAngularGridsSet since WSM is also used
-  for creating DISORT output grid. Moved grid size checks from here into
-  solver-specific methods since requirements are solver-specific. Allow
-  single-element azimuth grid as this is not used/required for DISORT. Make
-  empty za_opt_file the default.
-  
-  (DoitInit): Moved check of sufficient angular grid resolution for DOIT here.
-  
-  (doit_i_fieldSetFromPrecalc, doit_i_fieldSetClearsky):
-  Added checks for doit_is_initialized.
-  
+	* 3rdparty/disort1.2/ErrPack.f:
+	More verbose wrong-dimension statements: tell current dimension setting
+	in addition to required one).
+
+	* src/m_doit.cc
+	(DOAngularGridsSet): Renamed from DoitAngularGridsSet since WSM is also
+	used for creating DISORT output grid. Moved grid size checks from here
+	into solver-specific methods since requirements are solver-specific.
+	Allow single-element azimuth grid as this is not used/required for
+	DISORT. Make empty za_opt_file the default.
+
+	(DoitInit): Moved check of sufficient angular grid resolution for DOIT
+	here.
+
+	(doit_i_fieldSetFromPrecalc, doit_i_fieldSetClearsky):
+	Added checks for doit_is_initialized.
+
 	* src/workspace.cc:
 	Removed surface_emissivity_DISORT. Spell fixes.
 	
-  * src/m_tmatrix.cc (scat_data_singleTmatrix),
-  src/tmatrix.cc (calcSingleScatteringDataProperties):
-  Be more user-friendly: Introduced flag 'robust' for continuous calcs in case
-  of individual fails and 'quiet' to switch on/off T-matrix' own screen output
-  (e.g. for debugging). Defaults remains with quiet T-Matrix and failing all if
-  anything fails. In any case, be more verbose on what failed.
-  
-  * 3rdparty/tmatrix/tmd.par.f:
-  Increase NPN1 parameter, allowing more convergence iterations.
+	* src/m_tmatrix.cc (scat_data_singleTmatrix),
+	src/tmatrix.cc (calcSingleScatteringDataProperties):
+	Be more user-friendly: Introduced flag 'robust' for continuous calcs in
+	case of individual fails and 'quiet' to switch on/off T-matrix' own
+	screen output (e.g. for debugging). Defaults remains with quiet T-Matrix
+	and failing all if anything fails. In any case, be more verbose on what
+	failed.
 
-  * src/m_atmosphere.cc (MagRawRead, WindRawRead):
-  Adapted convention on expected file names (adding 'mag_' and 'wind_' to allow
-  for common basename for all atm data).
-  
-  * src/cloudbox.cc (chk_pndsum):
-  Push back warning to out2, point out scat species concerned.
-  
+	* 3rdparty/tmatrix/tmd.par.f:
+	Increase NPN1 parameter, allowing more convergence iterations.
+
+	* src/m_atmosphere.cc (MagRawRead, WindRawRead):
+	Adapted convention on expected file names (adding 'mag_' and 'wind_' to
+	allow for common basename for all atm data).
+
+	* src/cloudbox.cc (chk_pndsum):
+	Push back warning to out2, point out scat species concerned.
+
 	* src/tmatrix.h, src/math_funcs.cc,
 	Cosmetics.
 
-  * src/methods.cc:
-  Bit of alphabetic re-sorting. Expanded DisortCalc description. Adapt 
-  DOAngularGridsSet description. Adapted interfaces according to changes above
-  (DisortCalc, DOAngularGridsSet, doit_i_fieldSetFromPrecalc,
-  doit_i_fieldSetClearsky, scat_data_singleTmatrix).
+	* src/methods.cc:
+	Bit of alphabetic re-sorting. Expanded DisortCalc description. Adapt 
+	DOAngularGridsSet description. Adapted interfaces according to changes
+	above (DisortCalc, DOAngularGridsSet, doit_i_fieldSetFromPrecalc,
+	doit_i_fieldSetClearsky, scat_data_singleTmatrix).
 
-  * controlfiles/artscomponents/disort/TestDISORT.arts:
-  More or less complete redo of test case, considering limitations of DISORT and
-  its ARTS implementation (only use type 20 particles, all scat data given on
-  identical angular grids, ...). Similar to
-  doit/TestDOITFromIndividualFields.arts. Work in progress.
+	* controlfiles/artscomponents/disort/TestDISORT.arts:
+	More or less complete redo of test case, considering limitations of
+	DISORT and its ARTS implementation (only use type 20 particles, all scat
+	data given on identical angular grids, ...). Similar to
+	doit/TestDOITFromIndividualFields.arts. Work in progress.
 
-  * controlfiles/artscomponents/doit/doit_calc.arts, doit_setup.arts:
-  Move iy_unit setting from doit_calc to doit_setup. Cosmetics.
+	* controlfiles/artscomponents/doit/doit_calc.arts, doit_setup.arts:
+	Move iy_unit setting from doit_calc to doit_setup. Cosmetics.
 
-  * controlfiles/artscomponents/doit/TestDOITFromIndividualFields.arts:'
-  Moved setup into separate controlfile for re-use with other cases (e.g.
-  consistent scatt solver comparisons).
-  
-  * controlfiles/artscomponents/doit/indivfieldsatmo_setup.arts:
-  Added.
-  
-  * controlfiles/artscomponents/doitbatch/TestDOITBatch.arts,
-  controlfiles/artscomponents/wfuns/TestDoitJacobians.arts,
-  controlfiles/planetary_toolbox/demos/passive/DemoScat_DOIT_1D.arts:
-  Adapted to WSM DOAngularGridsSet renaming.
+	* controlfiles/artscomponents/doit/TestDOITFromIndividualFields.arts:'
+	Moved setup into separate controlfile for re-use with other cases (e.g.
+	consistent scatt solver comparisons).
+
+	* controlfiles/artscomponents/doit/indivfieldsatmo_setup.arts:
+	Added.
+
+	* controlfiles/artscomponents/doitbatch/TestDOITBatch.arts,
+	controlfiles/artscomponents/wfuns/TestDoitJacobians.arts,
+	controlfiles/planetary_toolbox/demos/passive/DemoScat_DOIT_1D.arts:
+	Adapted to WSM DOAngularGridsSet renaming.
 
 	* controlfiles/artscomponents/absorption/TestAbsParticle.arts,
-  controlfiles/instruments/metmm/TestMetMM.arts,
+	controlfiles/instruments/metmm/TestMetMM.arts,
 	controlfiles/artscomponents/linemixing/TestLineMixing.arts,
-  controlfiles/artscomponents/zeeman/TestZeeman.arts,
+	controlfiles/artscomponents/zeeman/TestZeeman.arts,
 	controlfiles/artscomponents/zeeman/TestZeemanPreCalc.arts,
 	controlfiles/artscomponents/linemixing/TestLineMixingAndZeeman.arts,
 	controlfiles/artscomponents/linemixing/TestLineMixingAndZeemanPreCalc_50_to_70_GHz.arts,
@@ -855,8 +889,8 @@
 	* controlfiles/artscomponents/tmatrix/TestTMatrix.aligned.ssdREFERENCE.xml:
 	Renamed from TestTMatrix.ssdREFERENCE.xml.
 
-  * 3rdparty/tmatrix/ampld.arts.f:
-  Spellfixes. Added ARTS (in addition to PyARTS) to header info.
+	* 3rdparty/tmatrix/ampld.arts.f:
+	Spellfixes. Added ARTS (in addition to PyARTS) to header info.
 
 2016-01-21  Richard Larsson   <ric.larsson@gmail.com>
 	
