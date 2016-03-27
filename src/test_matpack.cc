@@ -1016,7 +1016,7 @@ Numeric matrix_vector_mult( Index m,
 
     Numeric max_err = 0;
     Matrix A(m,n);
-    Vector x(n), x_ref(n), y(m), y_ref(m);
+    Vector x(n), xt, x_ref(n), y(m), y_ref(m);
 
     Rand<Index> random_row_stride( 1, n/4 );
     Rand<Index> random_column_stride( 1, m/4 );
@@ -1093,7 +1093,6 @@ Numeric test_matrix_vector_multiplication( bool verbose )
         cout << "Matrix-Vector Multiplication: n = m = 100, ntests = 100" << endl;
 
     max_err = matrix_vector_mult( 100, 100, 100, verbose );
-
     if (verbose)
     {
         cout << endl;
@@ -1103,7 +1102,6 @@ Numeric test_matrix_vector_multiplication( bool verbose )
     err = matrix_vector_mult( 100, 20, 100, verbose );
     if (err > max_err)
         max_err = err;
-
     if (verbose)
     {
         cout << endl;
@@ -1111,10 +1109,8 @@ Numeric test_matrix_vector_multiplication( bool verbose )
     }
 
     err = matrix_vector_mult( 20, 100, 100, verbose );
-    Matrix A(20,100);
     if (err > max_err)
         max_err = err;
-
     if (verbose)
     {
         if (max_err < 1e-9)
@@ -1123,6 +1119,31 @@ Numeric test_matrix_vector_multiplication( bool verbose )
             cout << endl << "Matrix Vector Multiplication: FAILED" << endl;
     }
 
+    err = matrix_vector_mult( 100, 1, 100, verbose );
+    if (err > max_err)
+        max_err = err;
+    if (verbose)
+    {
+        cout << endl;
+        cout << "Matrix-Vector Multiplication: n = 20, m = 100, ntests = 100" << endl;
+    }
+
+    err = matrix_vector_mult( 1, 100, 100, verbose );
+    if (err > max_err)
+        max_err = err;
+    if (verbose)
+    {
+        cout << endl;
+        cout << "Matrix-Vector Multiplication: n = 20, m = 100, ntests = 100" << endl;
+    }
+
+    if (verbose)
+    {
+        if (max_err < 1e-9)
+            cout << endl << "Matrix Vector Multiplication: PASSED" << endl;
+        else
+            cout << endl << "Matrix Vector Multiplication: FAILED" << endl;
+    }
     return max_err;
 }
 

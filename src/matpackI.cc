@@ -1714,6 +1714,8 @@ void mult( VectorView y,
             m = (int) M.mcr.get_extent();
             n = (int) M.mrr.get_extent();
             LDA = (int) M.mrr.get_stride();
+            if (M.mrr.get_stride() == 1)
+                LDA = m;
         }
 
         incx = (int) x.mrange.get_stride();

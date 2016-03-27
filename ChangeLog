@@ -1,3 +1,23 @@
+2016-03-27  Simon Pfreundschuh  <simonpf@chalmers.se>
+
+	* arts-2-3-463
+
+	* src/matpackII.* (transpose_multiply):
+	Added a function to multiply the transpose of a matrix with a vector
+	without the need to explicitly compute the tranpose.
+
+	* src/test_sparse.cc (test_sparse_multiplication) Added test for new
+	multiplication function.
+
+	* src/matpackI.h (Vector): Added transpose_multiply to friends
+	declaration.
+
+	* src/matpackI.cc (mult): Fixed input parameter to dgemv when multiplying
+	a transposed matrix consisting only of one row/column.
+
+	* src/test_matpack.cc (test_matrix_vector_multiplication) Refined test
+	to catch above corner case.
+
 2016-03-21 Jana Mendrok  <jana.mendrok@chalmers.se>
 
 	* arts-2-3-463

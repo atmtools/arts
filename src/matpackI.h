@@ -345,6 +345,9 @@ public:
   friend void mult ( VectorView,
                      const Sparse &,
                      ConstVectorView );
+  friend void transpose_mult (VectorView,
+                              const Sparse &,
+                              ConstVectorView );
   friend void mult_general( VectorView,
                             const ConstMatrixView &,
                             const ConstVectorView & );

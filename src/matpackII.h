@@ -100,6 +100,7 @@ public:
     friend std::ostream& operator<<(std::ostream& os, const Sparse& v);
     friend void abs (Sparse& A, const Sparse& B );
     friend void mult (VectorView y, const Sparse& M, ConstVectorView x );
+    friend void transpose_mult (VectorView y, const Sparse& M, ConstVectorView x );
     friend void mult (MatrixView A, const Sparse& B, const ConstMatrixView& C );
     friend void mult (MatrixView A, const ConstMatrixView& B, const Sparse& C );
     friend void mult (Sparse& A, const Sparse& B, const Sparse& C );
@@ -122,6 +123,10 @@ void abs(       Sparse& A,
 void mult( VectorView y,
            const Sparse& M,
            ConstVectorView x );
+
+void transpose_mult(VectorView y,
+                    const Sparse& M,
+                    ConstVectorView x);
 
 void mult( MatrixView A,
            const Sparse& B,

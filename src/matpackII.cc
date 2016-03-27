@@ -424,6 +424,44 @@ void mult( VectorView y,
 
 }
 
+//! Sparse matrix - Vector multiplication.
+/*!
+  This calculates the product
+
+  y = M*x, where M is sparse.
+
+  Output comes first!
+
+  Dimensions of y, M, and x must match. No memory reallocation takes
+  place, only the data is copied.
+
+  \param y Output: The multiplication result.
+  \param M Matrix for multiplication (sparse).
+  \param x Vector for multiplication.
+*/
+void transpose_mult(VectorView y,
+                    const Sparse& M,
+                    ConstVectorView x)
+{
+  // Check dimensions:
+  assert(y.nelem() == M.ncols());
+  assert(M.nrows() == x.nelem());
+
+  // Typedefs for Eigen interface
+  typedef Eigen::Matrix< Numeric, 1, Eigen::Dynamic, Eigen::RowMajor>
+      EigenColumnVector;
+  typedef Eigen::Stride<1, Eigen::Dynamic> Stride;
+  typedef Eigen::Map<EigenColumnVector, 0, Stride> ColumnMap;
+
+  Numeric *data;
+  data = x.mdata + x.mrange.get_start();
+  ColumnMap x_map( data, x.nelem(), Stride( 1, x.mrange.get_stride() ) );
+  data = y.mdata + y.mrange.get_start();
+  ColumnMap y_map( data, y.nelem(), Stride( 1, y.mrange.get_stride() ) );
+
+  y_map = x_map * M.matrix;
+}
+
 //! SparseMatrix - Matrix multiplication.
 /*!
   Calculates the matrix product:

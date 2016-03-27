@@ -1024,6 +1024,7 @@ Numeric test_sparse_multiplication( Index m,
         cout << "Testing sparse multiplication:" << endl << endl;
         cout << setw(5) << "Test " << setw(15) << "sparse-sparse";
         cout << setw(15) << "sparse-dense" << setw(15) << "matrix-vector";
+        cout << "transposed matrix-vector";
         cout << endl << std::string( 80, '-') << endl;
     }
 
@@ -1035,12 +1036,13 @@ Numeric test_sparse_multiplication( Index m,
         k = (rand() % 1000) + 1;
 
         Matrix A( m, n ), A2( m, n ), B, C;
-        Vector y(m), y2(m), x(k);
+        Vector y(m), y2(m), yt(k), yt2(k), x(k), xt(m);
         Sparse A_sparse( m, n ), B_sparse( m, k ), C_sparse( k, n );
 
         random_fill_matrix( B_sparse, 10, false );
         random_fill_matrix( C_sparse, 10, false );
         random_fill_vector( x, 10, false );
+        random_fill_vector( xt, 10, false );
         B = B_sparse;
         C = C_sparse;
 
@@ -1075,6 +1077,19 @@ Numeric test_sparse_multiplication( Index m,
         mult( y2, B_sparse, x);
 
         err = get_maximum_error( y2, y, true );
+        if (err > err_max)
+            err_max = err;
+
+        if (verbose)
+        {
+            cout << setw(15) << err;
+        }
+
+        // transposed Matrix-vector
+        mult(yt, transpose(B), xt);
+        transpose_mult(yt2, B_sparse, xt);
+
+        err = get_maximum_error( yt2, yt, true );
         if (err > err_max)
             err_max = err;
 
