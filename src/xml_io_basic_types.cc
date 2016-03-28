@@ -411,8 +411,7 @@ void xml_read_from_stream(istream&         is_xml,
   tag.read_from_stream(is_xml);
   tag.check_name("/Sparse");
 
-  for (Index i = 0; i < nnz; i++)
-    sparse.rw(rowind[i], colind[i]) = data[i];
+  sparse.insert_elements(nnz, rowind, colind, data);
 }
 
 //! Writes Sparse to XML output stream

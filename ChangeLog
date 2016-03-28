@@ -1,3 +1,14 @@
+2016-03-28  Simon Pfreundschuh  <simonpf@chalmers.se>
+
+	* arts-2-3-464
+
+	* src/matpackII.* (insert_vector):
+	Added function to efficiently insert vector of unsorted elements into
+	sparse matrices.
+
+	* src/xml_io_basic_types.cc (xml_read_from_stream(..., Sparse& , ...))
+	Changed read function for Sparse to use insert_vector function.
+
 2016-03-27  Simon Pfreundschuh  <simonpf@chalmers.se>
 
 	* arts-2-3-463

@@ -327,6 +327,35 @@ void Sparse::insert_row(Index r, Vector v)
 
 }
 
+//! Insert vector of elements with given row and column indices.
+/*!
+  Efficient inserting of a vector of elements into the sparse matrix.
+  Overwrites elements currently in the matrix. The complexity is linear
+  in the number of elements and should therfore be the preferred way
+  of inserting elements into the sparse matrix.
+
+  \param nnz The number of elements to insert.
+  \param rowind A vector containing the row indices.
+  \param colind A vector containing the column indices.
+  \param data The vector containing the elements.
+*/
+void Sparse::insert_elements(Index nnz,
+                             const ArrayOfIndex &rowind,
+                             const ArrayOfIndex &colind,
+                             const Vector       &data)
+{
+    typedef Eigen::Triplet<Numeric> T;
+    std::vector<T> tripletList(nnz);
+
+    for (Index i = 0; i < nnz; i++)
+    {
+        tripletList.push_back(T((int) rowind[i], (int) colind[i], data[i]));
+
+    }
+
+    matrix.setFromTriplets(tripletList.begin(), tripletList.end());
+}
+
 //! Resize function.
 /*!
   If the size is already correct this function does nothing.

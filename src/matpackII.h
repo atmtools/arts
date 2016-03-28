@@ -65,6 +65,10 @@ public:
 
     // Insert functions
     void insert_row(Index r, Vector v);
+    void insert_elements(Index nnz,
+                         const ArrayOfIndex &rowind,
+                         const ArrayOfIndex &colind,
+                         const Vector       &data);
 
     // Resize function:
     void resize(Index r, Index c);
@@ -100,7 +104,7 @@ public:
     friend std::ostream& operator<<(std::ostream& os, const Sparse& v);
     friend void abs (Sparse& A, const Sparse& B );
     friend void mult (VectorView y, const Sparse& M, ConstVectorView x );
-    friend void transpose_mult (VectorView y, const Sparse& M, ConstVectorView x );
+    friend void transpose_mult (VectorView y, const Sparse &M, ConstVectorView x );
     friend void mult (MatrixView A, const Sparse& B, const ConstMatrixView& C );
     friend void mult (MatrixView A, const ConstMatrixView& B, const Sparse& C );
     friend void mult (Sparse& A, const Sparse& B, const Sparse& C );
@@ -125,7 +129,7 @@ void mult( VectorView y,
            ConstVectorView x );
 
 void transpose_mult(VectorView y,
-                    const Sparse& M,
+                    const Sparse &M,
                     ConstVectorView x);
 
 void mult( MatrixView A,
