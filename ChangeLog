@@ -1,3 +1,30 @@
+2016-03-30 Simon Pfreundschuh  <simonpf@chalmers.se>
+
+	Exchanged old OEM implementation against invlib
+	(github.com/simonpf/invlib) library. Successfully built
+	with g++-5.2 and clang++-3.7.
+
+	* arts-2-3-465
+
+	* 3rdparty/invlib/* Generic implementation of MAP estimators.
+
+	* CMakeLists.txt: Added check for C++11 support that disables oem
+	functions if C++11 is not supported.
+
+	* src/CMakeLists.txt: Conditional compilation of m_oem. Added compile
+	flags for m_oem.cc and test_oem.cc.
+
+	* src/methods.cc: Conditional compilation of m_oem and m_x2arts.
+
+	* src/oem.h: Completely rewritten. Now only contains type aliases for
+	for invlib generic types.
+
+	* src/oem.cc: Removed.
+
+	* src/test_oem.cc: Adapted tests to new OEM implementation.
+
+	* src/test_oem/test_oem_levenberg_marquardt.m: Fixed atmlab call.
+
 2016-03-28  Simon Pfreundschuh  <simonpf@chalmers.se>
 
 	* arts-2-3-464

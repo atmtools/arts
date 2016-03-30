@@ -88,6 +88,16 @@ endif (NO_ASSERT)
 
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden -fvisibility-inlines-hidden")
 
+########### Check C++11 Support ##########
+INCLUDE(CheckCXXCompilerFlag)
+CHECK_CXX_COMPILER_FLAG("-std=c++11" CXX11_SUPPORT)
+
+if    (CXX11_SUPPORT)
+    MESSAGE("-- C++11 support detected.")
+else  (CXX11_SUPPORT)
+    MESSAGE("-- No C++11 support detected.")
+endif (CXX11_SUPPORT)
+
 ########### Check C header files ##########
 check_include_file (stdlib.h    HAVE_STDLIB_H)
 check_include_file (string.h    HAVE_STRING_H)

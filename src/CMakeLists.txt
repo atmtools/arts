@@ -1,6 +1,7 @@
-
-include_directories ( ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}
-                      ${ZLIB_INCLUDE_DIR} )
+include_directories ( ${CMAKE_CURRENT_BINARY_DIR}
+                      ${CMAKE_CURRENT_SOURCE_DIR}
+                      ${ZLIB_INCLUDE_DIR}
+                      ${CMAKE_SOURCE_DIR}/3rdparty/invlib/src )
 
 if (NETCDF_FOUND)
   include_directories (${NETCDF_INCLUDE_DIR})
@@ -149,6 +150,15 @@ if (NOT HAVE_GETOPT_H)
     arts_getopt.c arts_getopt1.c)
 endif (NOT HAVE_GETOPT_H)
 
+
+if (CXX11_SUPPORT)
+  set(M_OEM m_oem.cc)
+  set(OEM_FLAGS "-std=c++11 -ftemplate-depth=1024")
+  set_source_files_properties(m_oem.cc PROPERTIES COMPILE_FLAGS ${OEM_FLAGS})
+  set_source_files_properties(test_oem.cc PROPERTIES COMPILE_FLAGS ${OEM_FLAGS})
+endif (CXX11_SUPPORT)
+
+
 add_library (artscore STATIC
         auto_md.h
         auto_md.cc
@@ -209,7 +219,7 @@ add_library (artscore STATIC
   m_linemixing.cc
   m_linerecord.cc
   m_montecarlo.cc
-  m_oem.cc
+  ${M_OEM}
   m_optproperties.cc
   m_physics.cc
   m_planets.cc
@@ -367,7 +377,7 @@ set ( ATMLABDIR OFF CACHE PATH
 
 find_program( CSHFOUND csh )
 
-if ( MATLABDIR AND ATMLABDIR AND CSHFOUND )
+if (MATLABDIR AND ATMLABDIR AND CSHFOUND AND CXX11_SUPPORT)
 
   if (OPENMP_FOUND)
     add_definitions(-DOMP)
@@ -377,19 +387,25 @@ if ( MATLABDIR AND ATMLABDIR AND CSHFOUND )
     timings.cc
     test_oem.cc)
 
-  include_directories( ${MATLABDIR}/R2015a/extern/include )
+  include_directories(${MATLABDIR}/extern/include)
+
+  # Macros for Matlab interface.
   add_definitions(-DSOURCEDIR="${CMAKE_BINARY_DIR}/src")
   add_definitions(-DATMLABDIR="${ATMLABDIR}")
-  FIND_LIBRARY(ENGVAR libeng.so ${MATLABDIR}/R2015a/bin/glnxa64)
-  FIND_LIBRARY(MXVAR libmx.so ${MATLABDIR}/R2015a/bin/glnxa64)
+
+  FIND_LIBRARY(ENGVAR libeng.so ${MATLABDIR}/bin/glnxa64)
+  FIND_LIBRARY(MXVAR libmx.so ${MATLABDIR}/bin/glnxa64)
+
   target_link_libraries (test_oem matpack test_utils ${MXVAR} ${ENGVAR})
+
+  # Copy test scripts.
   FILE(MAKE_DIRECTORY test_oem_files)
   FILE(COPY test_oem/test_oem.m test_oem/linear_forward_model.m test_oem/make_plot.m
   test_oem/test_mult.m test_oem/forward_model.m test_oem/test_oem_gauss_newton.m
   test_oem/test_oem_levenberg_marquardt.m test_oem/test_inv.m
   DESTINATION test_oem_files)
 
-endif ( MATLABDIR AND ATMLABDIR AND CSHFOUND )
+endif ( MATLABDIR AND ATMLABDIR AND CSHFOUND AND CXX11_SUPPORT)
 ########### next testcase ###############
 
 add_executable (test_omp

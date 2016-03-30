@@ -2,7 +2,7 @@ clear;
 
 xa = textread('xa_t.txt');
 y = textread('y_t.txt');
-Sx = textread('Sx_t.txt');
+Sa = textread('Sa_t.txt');
 Se = textread('Se_t.txt');
 
 m = size(y,1);
@@ -22,7 +22,7 @@ O.G = true;
 O.itermethod = 'ML';
 
 t1 = cputime;
-[X,r] = oem(O, struct, [], f, Sx, Se, [], [], xa, y);
+[X,r] = oem(O, struct, [], f, Sa, Se, [], [], xa, y);
 t2 = cputime;
 
 x = X.x;

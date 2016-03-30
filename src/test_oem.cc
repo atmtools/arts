@@ -6,7 +6,6 @@
   \brief  Test for the OEM functions.
 */
 
-
 #include <cmath>
 #include "engine.h"
 #include <fstream>
@@ -49,13 +48,14 @@ void write_matrix( ConstMatrixView A, const char* fname );
   as Matrix and Vector, respectively.
 
 */
-class LinearModel : public ForwardModel
+class LinearModel
 {
 
 public:
 
     /** Default Constructor */
-    LinearModel() {}
+    LinearModel(Index m_, Index n_)
+        : m(m_), n(n_) {}
 
     /** Construct a linear model from a given Jacobian J and offset vector
         y0.
@@ -63,31 +63,32 @@ public:
         \param[in] J_ The Jacobian of the forward model.
         \param[in] y0_ The constant offset of the forward model.
     */
-    LinearModel( ConstMatrixView J_,
-                 ConstVectorView y0_ ) : J( J_ ), y0( y0_ ) {}
+    LinearModel(ConstMatrixView J_,
+                ConstVectorView y0_)
+        : m(J_.nrows()),n(J_.ncols()), J(J_), y0(y0_) {}
+
 
     /** See ForwardModel class. */
-    void evaluate_jacobian( VectorView &yi,
-                            MatrixView &Ki,
-                            const ConstVectorView &xi )
-        {
-            Ki = J;
-            mult( yi, Ki, xi );
-            yi += y0;
-        }
+    const OEMMatrix & Jacobian(const ConstVectorView &xi)
+    {
+        return J;
+    }
 
     /** See ForwardModel class. */
-    void evaluate( VectorView &yi,
-                   const ConstVectorView &xi )
-        {
-            mult( yi, J, xi );
-            yi += y0;
-        }
+    OEMVector evaluate(const ConstVectorView &xi )
+    {
+        OEMVector y; y.resize(m);
+        mult(y, J, xi);
+        y += y0;
+        return y;
+    }
+
+    const Index m, n;
 
 private:
 
-    Matrix J;
-    Vector y0;
+    OEMMatrix J;
+    OEMVector y0;
 
 };
 
@@ -98,7 +99,7 @@ private:
   is represented by a set of m-hessians and a Jacobian. On construction those
   are set to random matrices to test the non-linear OEM methods.
  */
-class QuadraticModel : public ForwardModel
+class QuadraticModel
 {
 public:
 
@@ -112,74 +113,73 @@ public:
       \param[in] m_ The dimension of the measurement space.
       \param[in] n_ The dimension of the state space.
     */
-    QuadraticModel( Index m_, Index n_ )
+    QuadraticModel(Index m_, Index n_)
+        : m(m_), n(n_)
+    {
+        char fname[40];
+
+        J = Matrix(m, n, 0);
+        Hessians = new OEMMatrix[m];
+        random_fill_matrix(J, 1.0, false );
+        sprintf( fname, "J_t.txt" );
+        write_matrix(J, fname);
+
+        for ( Index i = 0; i < m ; i++ )
         {
-
-            m = m_;
-            n = n_;
-            char fname[40];
-
-            Jacobian = Matrix(m, n, 0);
-            Hessians = new Matrix[m];
-            random_fill_matrix( Jacobian, 1.0, false );
-            sprintf( fname, "J_t.txt" );
-            write_matrix( Jacobian, fname );
-
-            for ( Index i = 0; i < m ; i++ )
-            {
-                Hessians[i] = Matrix( n, n, 0 );
-                sprintf( fname, "H_%d_t.txt", (int) i);
-                write_matrix( Hessians[i], fname );
-            }
-
+            Hessians[i] = OEMMatrix{};
+            Hessians[i].resize(n, n);
+            random_fill_matrix_symmetric(Hessians[i], 0.0001, false);
+            sprintf( fname, "H_%d_t.txt", (int) i);
+            write_matrix( Hessians[i], fname );
         }
+
+    }
 
     //! Destructor.
     ~QuadraticModel()
-        {
-            delete [] Hessians;
-        }
+    {
+        delete [] Hessians;
+    }
 
     //! Virtual function of the FowardModel class.
-    void evaluate_jacobian( VectorView &yi,
-                            MatrixView &Ki,
-                            const ConstVectorView &xi )
+    OEMMatrix Jacobian(const ConstVectorView &xi)
+    {
+        OEMMatrix Ki{}; Ki.resize(m,n);
+
+        for ( Index i = 0; i < m; i++ )
         {
-
-            for ( Index i = 0; i < m; i++ )
-            {
-                mult( Ki( i, Joker()), Hessians[i], xi );
-            }
-
-            Ki *= 0.5;
-            Ki += Jacobian;
-            mult( yi, Ki, xi );
-
+            mult(static_cast<MatrixView>(Ki)(i, Joker()), Hessians[i], xi );
         }
+
+        Ki *= 0.5;
+        Ki += J;
+        return Ki;
+    }
+
 
     //! Virtual function of the FowardModel class.
-    void evaluate( VectorView& yi,
-                   const ConstVectorView& xi )
+    OEMVector evaluate(const OEMVector& xi)
+    {
+        OEMVector yi{}; yi.resize(m);
+        OEMMatrix Ki{}; Ki.resize(m,n);
+
+        for ( Index i = 0; i < n; i++ )
         {
-
-            Matrix Ki( m,n );
-
-            for ( Index i = 0; i < n; i++ )
-            {
-                mult( Ki( i, Joker()), Hessians[i], xi );
-            }
-
-            Ki *= 0.5;
-            Ki += Jacobian;
-            mult( yi, Ki, xi );
-
+            mult(static_cast<MatrixView>(Ki)(i, Joker()), Hessians[i], xi);
         }
+
+        Ki *= 0.5;
+        Ki += J;
+        mult(yi, Ki, xi);
+        return yi;
+    }
+
+    const unsigned int m, n;
 
 private:
 
-    Index m,n;
-    Matrix Jacobian;
-    Matrix* Hessians;
+    OEMMatrix  J;
+    OEMMatrix* Hessians;
 
 };
 
@@ -276,9 +276,9 @@ void generate_test_data( VectorView y,
 
   \param[in,out] K The matrix representing the forward model.
 */
-void generate_linear_model( MatrixView K )
+void generate_linear_model(MatrixView K)
 {
-    random_fill_matrix( K, 10, false );
+    random_fill_matrix(K, 10, false);
 }
 
 //! Run test script in matlab.
@@ -563,10 +563,10 @@ void benchmark_mult( Engine* eng,
   \param n1 Final size for the K matrix.
   \param ntests Number of tests to be performed.
 */
-void benchmark_oem_linear( Engine* eng,
-                           Index n0,
-                           Index n1,
-                           Index ntests )
+void benchmark_oem_linear(Engine* eng,
+                          Index n0,
+                          Index n1,
+                          Index ntests)
 {
     Index step = (n1 - n0) / (ntests - 1);
     Index n = n0;
@@ -646,34 +646,44 @@ void benchmark_oem_linear( Engine* eng,
   \param[in] n Size of the state space.
   \param[in] ntests Number of tests to be performed.
 */
-void test_oem_linear( Engine* eng,
-                      Index m,
-                      Index n,
-                      Index ntests )
+void test_oem_linear(Engine* eng,
+                     Index m,
+                     Index n,
+                     Index ntests )
 {
-    Vector x(n), x_n(n), x_g(n), x_m(n), y(n), yf(n), xa(n), zero(n), x_norm(n);
-    Matrix J(n,n), Se(n,n), Sa(n,n), SeInv(n,n), SxInv(n,n), G(n,m), G_mform(n,m),
-        G_m(n,m);
-    LinearModel K;
-
-    zero = 0.0;
-
     cout << "Testing linear OEM: m = " << m << ", n = ";
     cout << n << ", ntests = " << ntests << endl << endl;
 
-    cout << "Test No. " << setw(15) << "Standard";
-    cout << setw(15) << "Normalized" << setw(15) << "Gain Matrix" << endl;
+    cout << "Test No. " << setw(15) << "Gauss-Newton";
+    cout << setw(20) << "Levenberg-Marquardt" << setw(15) << "Gain Matrix" << endl;
 
     // Run tests.
     for ( Index i = 0; i < ntests; i++ )
     {
-        generate_linear_model( J );
-        generate_test_data( y, xa, Se, Sa );
 
-        inv( SeInv, Se );
-        inv( SxInv, Sa );
-        LinearOEM oem( J, SeInv, xa, SxInv );
+        // Create linear forward model and test data.
+        Matrix J(m,n); generate_linear_model(J);
+        OEMVector y, xa; y.resize(m); xa.resize(n);
+        OEMMatrix Se, Sa; Se.resize(m, m); Sa.resize(n, n);
+        generate_test_data(y, xa, Se, Sa);
 
+        Vector zero(m); zero = 0.0;
+        LinearModel K(J, zero);
+
+        Pre      pre(Sa);
+        Std      std{};
+        LM_D     lm(Sa);
+        GN       gn(1e-12, 100);
+        LM_Pre_D lm_pre(Sa, Std_Pre(std, pre));
+        GN_Pre   gn_pre(1e-12, 100, Std_Pre(std, pre));
+
+        OEM_D_D<LinearModel> oem_std(K, xa, Sa, Se);
+        OEM_NFORM_D_D<LinearModel> oem_nform(K, xa, Sa, Se);
+        OEM_MFORM_D_D<LinearModel> oem_mform(K, xa, Sa, Se);
+
+        // Write data for Matlab.
+
+        Vector x_norm(n);
         for (Index j = 0; j < n; j++ )
         {
             x_norm[j] = sqrt(Sa(j,j));
@@ -685,25 +695,47 @@ void test_oem_linear( Engine* eng,
         write_matrix( Se, "Se_t.txt" );
         write_matrix( Sa, "Sa_t.txt" );
 
-        // m-form
-        mult( yf, J, xa );
+        OEMVector x_std, x_nform, x_mform;
+        x_std.resize(n); x_nform.resize(n); x_mform.resize(n);
 
-        oem.set_x_norm( x_norm );
-        oem.compute( x, y, yf );
-        oem.compute( x_g, G, y, yf );
-        oem.compute( x_n, y, yf );
+        oem_std.compute(x_std, y, gn);
+        oem_nform.compute(x_nform, y, gn);
+        oem_mform.compute(x_mform, y, gn);
 
+        OEMVector x_std_lm;
+        x_std_lm.resize(n);
+        oem_std.compute(x_std_lm, y, lm);
+
+        OEMVector x_std_norm_gn, x_std_norm_lm;
+        x_std_norm_gn.resize(n); x_std_norm_lm.resize(n);
+        oem_std.compute(x_std_norm_gn, y, gn_pre);
+        oem_std.compute(x_std_norm_lm, y, lm_pre);
+
+        OEMMatrix G_std, G_nform, G_mform, G_norm;
+        G_std   = oem_std.gain_matrix(x_std);
+        G_nform = oem_nform.gain_matrix(x_std);
+        G_mform = oem_mform.gain_matrix(x_std);
+
+        Vector x_m(n); Matrix G_m(m, n);
         run_oem_matlab( x_m, G_m, eng, "test_oem" );
 
-        Numeric err, err_norm, err_g;
-        err = get_maximum_error( x, x_m, true );
-        err_norm = get_maximum_error( x_n, x_m, true );
-        err_g = get_maximum_error( G, G_m, true );
+        Numeric err, err_G, err_lm, err_norm;
+        err = get_maximum_error( x_std, x_m, true );
+        err = std::max(err, get_maximum_error( x_nform, x_m, true ));
+        err = std::max(err, get_maximum_error( x_mform, x_m, true ));
+
+        err_lm = get_maximum_error( x_std_lm, x_m, true );
+
+        err_norm = get_maximum_error(x_std_norm_lm, x_m, true );
+        err_norm = std::max(err_norm, get_maximum_error(x_std_norm_lm, x_m, true ));
+
+        err_G = get_maximum_error( G_std, G_m, true );
+        err_G = std::max(err, get_maximum_error( G_nform, G_m, true ));
+        err_G = std::max(err, get_maximum_error( G_nform, G_m, true ));
 
         cout << setw(8) << i+1;
-        cout << setw(15) << err << setw(15) << err_norm << setw(15) << err_g;
-        cout << endl;
-
+        cout << setw(15) << err << setw(20) << err_lm << setw(15) << err_G;
+        cout << setw(15) << err_norm << endl;
     }
     cout << endl;
 }
@@ -721,35 +753,53 @@ void test_oem_linear( Engine* eng,
   \param n  The dimension of the state space.
   \param ntests The number of tests to perform.
 */
-template <typename Se_t, typename Sx_t>
 void test_oem_gauss_newton( Engine *eng,
                             Index m,
                             Index n,
                             Index ntests )
 {
-    Vector y0(m), y(m), y_m(m), x(n), x0(n), x_n(x), x_m(n), x_norm(n), xa(n);
-    Matrix Se(m,m), Sa(n,n), SeInv(m,m), SxInv(n,n), G(n,m), G_m(n,m), J(n,m);
 
     cout << "Testing Gauss-Newton OEM: m = " << m << ", n = ";
     cout << n << ", ntests = " << ntests << endl << endl;
 
     cout << "Test No. " << setw(15) << "Standard" << setw(15) << "Normalized";
-    cout << setw(15) << "No. Iterations" << endl;
+    cout << setw(15) << "CG Solver" << setw(15) << "CG Normalized" << endl;
 
-    // Run tests.
     for ( Index i = 0; i < ntests; i++ )
     {
+        // Generate random quadratic model.
+
+        OEMMatrix Se, Sa, SeInv, SaInv;
+        Se.resize(m, m); Sa.resize(n, n); SeInv.resize(m, m); SaInv.resize(n, n);
+        OEMVector xa; xa.resize(n);
+        Vector y0(m), x0(n);
+
         QuadraticModel K(m,n);
         generate_test_data( y0, xa, Se, Sa );
         x0 = xa;
-        add_noise( x0, 0.01 );
-        K.evaluate( y0, x0);
+        add_noise(x0, 0.1);
+        y0 = K.evaluate(x0);
 
+        inv( SaInv, Sa );
         inv( SeInv, Se );
-        inv( SxInv, Sa );
 
-        NonLinearOEM<Se_t, Sx_t> oem( SeInv, xa, SxInv, K, GAUSS_NEWTON );
+        // Solvers.
+        Pre pre(Sa);
+        Std std{};
+        CG  cg(1e-12);
 
+        // Optimization Methods.
+        GN gn(std);
+        GN_Pre gn_pre(Std_Pre(std, pre));
+        GN_CG gn_cg(cg);
+        GN_CG_Pre gn_cg_pre(CG_Pre(cg, pre));
+
+        PrecisionMatrix Pe(SeInv), Pa(SaInv);
+        OEM_D_D<QuadraticModel> map(K, xa, Sa, Se);
+        OEM_D_D<QuadraticModel> map_prec(K, xa, Pa, Pe);
+
+        // Write data to disk.
+        Vector x_norm(n);
         for (Index j = 0; j < n; j++ )
         {
             x_norm[j] = sqrt(abs(Sa(j,j)));
@@ -760,17 +810,38 @@ void test_oem_gauss_newton( Engine *eng,
         write_matrix( Se, "Se_t.txt" );
         write_matrix( Sa, "Sa_t.txt" );
 
-        oem.compute( x, G, y0, false );
-        oem.set_x_norm( x_norm );
-        oem.compute( x_n, y0, false );
+        OEMVector x, x_pre, x_cg, x_cg_pre;
+        map.compute( x, y0, gn);
+        map.compute( x_pre, y0, gn_pre);
+        map.compute( x_cg,  y0, gn_cg);
+        map.compute( x_cg_pre, y0, gn_cg_pre);
+
+        Vector x_m(n); Matrix G_m(m, n);
         run_oem_matlab( x_m, G_m, eng, "test_oem_gauss_newton" );
 
-        cout << setw(9) << i+1 << setw(15);
-        cout << get_maximum_error( x, x_m, true ) << setw(15);
-        cout << get_maximum_error( x_n, x_m, true ) << setw(15);
-        cout << oem.iterations() << setw(15);
-        cout << endl;
+        Numeric e1, e2, e3, e4;
+        e1 = get_maximum_error(x,        x_m, true);
+        e2 = get_maximum_error(x_pre,    x_m, true);
+        e3 = get_maximum_error(x_cg,     x_m, true);
+        e4 = get_maximum_error(x_cg_pre, x_m, true);
 
+        cout << setw(9) << i+1;
+        cout << setw(15) << e1 << setw(15) << e2 << setw(15)<< e3;
+        cout << setw(15) << e4 << std::endl;
+
+        map_prec.compute( x, y0, gn);
+        map_prec.compute( x_pre, y0, gn_pre);
+        map_prec.compute( x_cg,  y0, gn_cg);
+        map_prec.compute( x_cg_pre, y0, gn_cg_pre);
+
+        e1 = get_maximum_error(x,        x_m, true);
+        e2 = get_maximum_error(x_pre,    x_m, true);
+        e3 = get_maximum_error(x_cg,     x_m, true);
+        e4 = get_maximum_error(x_cg_pre, x_m, true);
+
+        cout << setw(9) << i+1;
+        cout << setw(15) << e1 << setw(15) << e2 << setw(15)<< e3;
+        cout << setw(15) << e4 << std::endl;
     }
     cout << endl;
 }
@@ -793,51 +864,92 @@ void test_oem_levenberg_marquardt( Engine *eng,
                                    Index n,
                                    Index ntests )
 {
-    Vector y0(m), y(m), y_m(m), x(n), x0(n), x_n(x), x_m(n), x_norm(n), xa(n);
-    Matrix Se(m,m), Sx(n,n), SeInv(m,m), SxInv(n,n), G(n,m), G_m(n,m), J(n,m);
 
     cout << "Testing Levenberg-Marquardt OEM: m = " << m << ", n = ";
     cout << n << ", ntests = " << ntests << endl << endl;
 
     cout << "Test No. " << setw(15) << "Standard" << setw(15) << "Normalized";
-    cout << setw(15) << "No. Iterations" << endl;
+    cout << setw(15) << "CG Solver" << setw(15) << "CG Normalized" << endl;
 
-    // Run tests.
     for ( Index i = 0; i < ntests; i++ )
     {
+        // Generate random quadratic model.
+
+        OEMMatrix Se, Sa, SeInv, SaInv;
+        Se.resize(m, m); Sa.resize(n, n); SeInv.resize(m, m); SaInv.resize(n, n);
+        OEMVector xa; xa.resize(n);
+        Vector y0(m), x0(n);
+
         QuadraticModel K(m,n);
-        generate_test_data( y0, xa, Se, Sx );
+        generate_test_data( y0, xa, Se, Sa );
         x0 = xa;
-        add_noise( x0, 0.01 );
-        K.evaluate( y0, x0);
+        add_noise(x0, 0.1);
+        y0 = K.evaluate(x0);
 
+        inv( SaInv, Sa );
         inv( SeInv, Se );
-        inv( SxInv, Sx );
 
-        typedef NonLinearOEM< ConstMatrixView, ConstMatrixView> OEM;
-        OEM oem( SeInv, xa, SxInv, K, LEVENBERG_MARQUARDT );
+        // Solvers.
+        Pre pre(Sa);
+        Std std{};
+        CG  cg(1e-12);
 
+        // Optimization Methods.
+        LM_D        lm(SaInv, std);
+        LM_Pre_D    lm_pre(SaInv, Std_Pre(std, pre));
+        LM_CG_D     lm_cg(SaInv, cg);
+        LM_CG_Pre_D lm_cg_pre(SaInv, CG_Pre(cg, pre));
+
+        PrecisionMatrix Pe(SeInv), Pa(SaInv);
+        OEM_D_D<QuadraticModel>   map(K, xa, Sa, Se);
+        OEM_PD_PD<QuadraticModel> map_prec(K, xa, Pa, Pe);
+
+        // Write data to disk.
+        Vector x_norm(n);
         for (Index j = 0; j < n; j++ )
         {
-            x_norm[j] = sqrt(abs(Sx(j,j)));
+            x_norm[j] = sqrt(abs(Sa(j,j)));
         }
 
         write_vector( xa, "xa_t.txt" );
         write_vector( y0, "y_t.txt" );
         write_matrix( Se, "Se_t.txt" );
-        write_matrix( Sx, "Sx_t.txt" );
+        write_matrix( Sa, "Sa_t.txt" );
 
-        oem.compute( x, y0, false );
-        oem.set_x_norm( x_norm );
-        oem.compute( x_n, y0, false );
-        run_oem_matlab( x_m, G_m, eng, "test_oem_levenberg_marquardt" );
+        OEMVector x, x_pre, x_cg, x_cg_pre;
+        map.compute( x, y0, lm);
+        map.compute( x_pre, y0, lm_pre);
+        map.compute( x_cg,  y0, lm_cg);
+        map.compute( x_cg_pre, y0, lm_cg_pre);
 
-        cout << setw(9) << i+1 << setw(15);
-        cout << get_maximum_error( x, x_m, true ) << setw(15);
-        cout << get_maximum_error( x_n, x_m, true ) << setw(15);
-        cout << oem.iterations() << setw(15);
-        cout << endl;
+        Vector x_m(n); Matrix G_m(m, n);
+        run_oem_matlab( x_m, G_m, eng, "test_oem_gauss_newton" );
+        Vector x_m2(n); Matrix G_m2(m, n);
+        run_oem_matlab( x_m2, G_m2, eng, "test_oem_levenberg_marquardt" );
 
+        Numeric e1, e2, e3, e4;
+        e1 = get_maximum_error(x,        x_m, true);
+        e2 = get_maximum_error(x_pre,    x_m, true);
+        e3 = get_maximum_error(x_cg,     x_m2, true);
+        e4 = get_maximum_error(x_cg_pre, x_m2, true);
+
+        cout << setw(9) << i+1;
+        cout << setw(15) << e1 << setw(15) << e2 << setw(15)<< e3;
+        cout << setw(15) << e4 << std::endl;
+
+        map_prec.compute( x, y0, lm);
+        map_prec.compute( x_pre, y0, lm_pre);
+        map_prec.compute( x_cg,  y0, lm_cg);
+        map_prec.compute( x_cg_pre, y0, lm_cg_pre);
+
+        e1 = get_maximum_error(x,        x_m, true);
+        e2 = get_maximum_error(x_pre,    x_m, true);
+        e3 = get_maximum_error(x_cg,     x_m2, true);
+        e4 = get_maximum_error(x_cg_pre, x_m2, true);
+
+        cout << setw(9) << i+1;
+        cout << setw(15) << e1 << setw(15) << e2 << setw(15)<< e3;
+        cout << setw(15) << e4 << std::endl;
     }
     cout << endl;
 }
@@ -859,59 +971,78 @@ void test_oem_gauss_newton_sparse( Index m,
                                    Index n,
                                    Index ntests )
 {
-    Vector y0(m), y(m), x(n), x_sparse(n), x_n(n), x_n_sparse(n),
-        x0(n), x_norm(n), xa(n);
-    Matrix SeInv(m,m), SxInv(n,n), G(n,m), G_sparse(n,m);
-    Sparse SeInv_sparse(m,m), SxInv_sparse(n,n);
 
-    cout << "Testing Sparse Levenberg-Marquardt OEM: m = " << m << ", n = ";
+    cout << "Testing Gauss-Newton OEM: m = " << m << ", n = ";
     cout << n << ", ntests = " << ntests << endl << endl;
 
     cout << "Test No. " << setw(15) << "Standard" << setw(15) << "Normalized";
-    cout << setw(15) << "Gain Matrix" << setw(15) << "No. Iterations" << endl;
+    cout << setw(15) << "CG Solver" << setw(15) << "CG Normalized" << endl;
 
-    // Test loop
     for ( Index i = 0; i < ntests; i++ )
     {
+        // Generate random quadratic model.
+        OEMVector xa; xa.resize(n);
+        Vector y0(m), x0(n);
 
-        // Generate test data.
         QuadraticModel K(m,n);
-
-        id_mat( SeInv_sparse );
-        random_fill_matrix( SeInv_sparse, 1.0, false );
-        id_mat( SxInv_sparse );
-        random_fill_matrix( SxInv_sparse, 1.0, false );
-        SeInv = SeInv_sparse;
-        SxInv = SxInv_sparse;
-        random_fill_vector( xa, 10, false );
-
+        random_fill_vector(y0, 10, false);
+        random_fill_vector(xa, 10, false);
         x0 = xa;
-        add_noise( x0, 10.0 );
-        K.evaluate( y0, x0);
+        add_noise(x0, 0.1);
+        y0 = K.evaluate(x0);
 
-        typedef NonLinearOEM< ConstMatrixView, ConstMatrixView> OEM;
-        typedef NonLinearOEM< Sparse, Sparse> OEM_sparse;
-        OEM oem( SeInv, xa, SxInv, K, GAUSS_NEWTON );
-        OEM_sparse oem_sparse( SeInv_sparse, xa, SxInv_sparse, K, GAUSS_NEWTON );
+        // Create sparse covariance matrices.
+        Sparse Se_sparse(m,m), Sa_sparse(n,n);
+        id_mat( Se_sparse );
+        //random_fill_matrix( Se_sparse, 1.0, false );
+        id_mat( Sa_sparse );
+        //random_fill_matrix( Sa_sparse, 1.0, false );
+        OEMMatrix Se = (Matrix) Se_sparse;
+        OEMMatrix Sa = (Matrix) Sa_sparse;
+        ArtsSparse Se_arts(Se_sparse);
+        ArtsSparse Sa_arts(Sa_sparse);
+        OEMSparse Se_map(Se_arts), Sa_map(Sa_arts);
 
-        for (Index j = 0; j < n; j++ )
-        {
-            x_norm[j] = sqrt(abs(SxInv(j,j)));
-        }
+        // Solvers.
+        Pre pre(Sa);
+        Std std{};
+        CG  cg(1e-12);
 
-        oem.compute( x, G, y0, false );
-        oem_sparse.compute( x_sparse, G_sparse, y0, false );
-        oem.set_x_norm( x_norm );
-        oem_sparse.set_x_norm( x_norm );
-        oem.compute( x_n, y0, false );
-        oem_sparse.compute( x_n_sparse, y0, false );
+        // Optimization Methods.
+        GN gn(std);
+        GN_Pre gn_pre(Std_Pre(std, pre));
+        GN_CG gn_cg(cg);
+        GN_CG_Pre gn_cg_pre(CG_Pre(cg, pre));
 
-        cout << setw(9) << i+1 << setw(15);
-        cout << get_maximum_error( x_sparse, x, true ) << setw(15);
-        cout << get_maximum_error( x_n_sparse, x_n, true ) << setw(15);
-        cout << get_maximum_error( G_sparse, G, true ) << setw(15);
-        cout << oem.iterations() << setw(15);
-        cout << endl;
+        PrecisionMatrix Pe(Se);
+        PrecisionMatrix Pa(Sa);
+        PrecisionSparse Pe_sparse(Se_map);
+        PrecisionSparse Pa_sparse(Sa_map);
+        OEM_PD_PD<QuadraticModel>   map(K, xa, Pa, Pe);
+        OEM_PS_PS<QuadraticModel> map_sparse(K, xa, Pa_sparse, Pe_sparse);
+
+        OEMVector x, x_pre, x_cg, x_cg_pre;
+        map.compute(x, y0,    gn);
+        map.compute(x_pre,    y0, gn_pre);
+        map.compute(x_cg,     y0, gn_cg);
+        map.compute(x_cg_pre, y0, gn_cg_pre);
+
+        OEMVector x_sparse, x_pre_sparse, x_cg_sparse, x_cg_pre_sparse;
+        map_sparse.compute(x_sparse,        y0, gn);
+        map_sparse.compute(x_pre_sparse,    y0, gn_pre);
+        map_sparse.compute(x_cg_sparse,     y0, gn_cg);
+        map_sparse.compute(x_cg_pre_sparse, y0, gn_cg_pre);
+
+        Numeric e1, e2, e3, e4;
+        e1 = get_maximum_error(x,        x_sparse,        true);
+        e2 = get_maximum_error(x_pre,    x_pre_sparse,    true);
+        e3 = get_maximum_error(x_cg,     x_cg_sparse,     true);
+        e4 = get_maximum_error(x_cg_pre, x_cg_pre_sparse, true);
+
+        cout << setw(9) << i+1;
+        cout << setw(15) << e1 << setw(15) << e2 << setw(15)<< e3;
+        cout << setw(15) << e4 << std::endl;
+
     }
     cout << endl;
 }
@@ -933,69 +1064,19 @@ void test_oem_levenberg_marquardt_sparse( Index m,
                                           Index n,
                                           Index ntests )
 {
-    Vector y0(m), y(m), x(n), x_sparse(n), x_n(n), x_n_sparse(n),
-        x0(n), x_norm(n), xa(n);
-    Matrix SeInv(m,m), SxInv(n,n), G(n,m), G_sparse(n,m);
-    Sparse SeInv_sparse(m,m), SxInv_sparse(n,n);
-
-    cout << "Testing Sparse Levenberg-Marquardt OEM: m = " << m << ", n = ";
-    cout << n << ", ntests = " << ntests << endl << endl;
-
-    cout << "Test No. " << setw(15) << "Standard" << setw(15) << "Normalized";
-    cout << setw(15) << "Gain Matrix" << setw(15) << "No. Iterations" << endl;
-
-    // Test loop
-    for ( Index i = 0; i < ntests; i++ )
-    {
-
-        // Generate test data.
-        QuadraticModel K(m,n);
-
-        id_mat( SeInv_sparse );
-        random_fill_matrix( SeInv_sparse, 1.0, false );
-        id_mat( SxInv_sparse );
-        random_fill_matrix( SxInv_sparse, 1.0, false );
-        SeInv = SeInv_sparse;
-        SxInv = SxInv_sparse;
-        random_fill_vector( xa, 10, false );
-
-        x0 = xa;
-        add_noise( x0, 10.0 );
-        K.evaluate( y0, x0);
-
-        typedef NonLinearOEM< ConstMatrixView, ConstMatrixView> OEM;
-        typedef NonLinearOEM< Sparse, Sparse> OEM_sparse;
-        OEM oem( SeInv, xa, SxInv, K, LEVENBERG_MARQUARDT );
-        OEM_sparse oem_sparse( SeInv_sparse, xa, SxInv_sparse, K, LEVENBERG_MARQUARDT );
-
-        for (Index j = 0; j < n; j++ )
-        {
-            x_norm[j] = sqrt(abs(SxInv(j,j)));
-        }
-
-        oem.compute( x, G, y0, false );
-        oem_sparse.compute( x_sparse, G_sparse, y0, false );
-        oem.set_x_norm( x_norm );
-        oem_sparse.set_x_norm( x_norm );
-        oem.compute( x_n, y0, false );
-        oem_sparse.compute( x_n_sparse, y0, false );
-
-        cout << setw(9) << i+1 << setw(15);
-        cout << get_maximum_error( x_sparse, x, true ) << setw(15);
-        cout << get_maximum_error( x_n_sparse, x_n, true ) << setw(15);
-        cout << get_maximum_error( G_sparse, G, true ) << setw(15);
-        cout << oem.iterations() << setw(15);
-        cout << endl;
-    }
-    cout << endl;
 }
 
 int main()
 {
 
-    //Set up the test environment.
+    // Set up the test environment.
     //Engine * eng;
     //setup_test_environment( eng );
+
+    //test_oem_linear(eng, 5, 5, 10);
+    //test_oem_gauss_newton(eng, 100, 100, 10);
+    //test_oem_levenberg_marquardt(eng, 100, 100, 10);
+    test_oem_gauss_newton_sparse(100, 50, 10);
 
     // Run tests and benchmarks.
     //test_oem_linear( eng, 50, 50, 10 );
@@ -1008,9 +1089,11 @@ int main()
     //benchmark_oem_linear( eng, 100, 2000, 16);
 
     // Tidy up test environment.
-    //tidy_up_test_environment( eng );
+    //tidy_up_test_environment(eng);
 
-    test_oem_gauss_newton_sparse( 100, 100, 10 );
-    test_oem_levenberg_marquardt_sparse( 100, 100, 10 );
+
+
+    // test_oem_gauss_newton_sparse( 100, 100, 10 );
+    // test_oem_levenberg_marquardt_sparse( 100, 100, 10 );
 
 }

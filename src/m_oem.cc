@@ -1,7 +1,7 @@
 /* Copyright (C) 2015
    Patrick Eriksson <patrick.eriksson@chalmers.se>
    Stefan Buehler   <sbuehler@ltu.se>
-                            
+
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
    Free Software Foundation; either version 2, or (at your option) any
@@ -67,12 +67,14 @@ extern const String TEMPERATURE_MAINTAG;
   inversion_iterate_agendaExecute.
 
  */
-class AgendaWrapper : public ForwardModel
+class AgendaWrapper
 {
     Workspace *ws;
     MatrixView *jacobian;
     const Agenda *inversion_iterate_agenda;
 public:
+
+    const unsigned int m,n;
 
 //! Create inversion_iterate_agendaExecute wrapper.
 /*!
@@ -92,7 +94,9 @@ public:
                    const Agenda *inversion_iterate_agenda_ ) :
         ws( ws_ ),
         jacobian( jacobian_ ),
-        inversion_iterate_agenda( inversion_iterate_agenda_ )
+        inversion_iterate_agenda( inversion_iterate_agenda_ ),
+        m( (unsigned int) jacobian_->nrows()),
+        n( (unsigned int) jacobian_->ncols())
         {}
 
 //! Evaluate forward model and compute Jacobian.
@@ -107,17 +111,14 @@ public:
   \param[out] J The Jacobian Ki=d/dx(K(x)) of the forward model.
   \param[in] x The current state vector x.
 */
-    void evaluate_jacobian( VectorView &yi,
-                            MatrixView &Ki,
-                            const ConstVectorView &xi )
-        {
-            inversion_iterate_agendaExecute( *ws,
-                                             dynamic_cast<Vector&>(yi),
-                                             dynamic_cast<Matrix&>(Ki),
-                                             xi,
-                                             1,
-                                             *inversion_iterate_agenda );
-        }
+    OEMMatrix Jacobian(const OEMVector &xi)
+    {
+        OEMMatrix Ki;
+        OEMVector yi;
+        inversion_iterate_agendaExecute( *ws, yi, Ki, xi, 1,
+                                         *inversion_iterate_agenda );
+        return Ki;
+    }
 
 //! Evaluate forward model.
 /*!
@@ -128,17 +129,15 @@ public:
   \param[out] y The measurement vector y = K(x) for the current state vector x.
   \param[in] x The current state vector x.
 */
-    void evaluate( VectorView &yi,
-                   const ConstVectorView &xi )
-        {
-            Matrix dummy;
-            inversion_iterate_agendaExecute( *ws,
-                                             dynamic_cast<Vector&>( yi ),
-                                             dummy,
-                                             xi,
-                                             0,
-                                             *inversion_iterate_agenda );
-        }
+    OEMVector evaluate(const OEMVector &xi)
+    {
+        OEMMatrix Ki;
+        OEMVector yi;
+        inversion_iterate_agendaExecute( *ws, yi, Ki, xi, 1,
+                                         *inversion_iterate_agenda );
+        return yi;
+    }
+
 };
 
 //! Determines grid positions for regridding of atmospheric fields to retrieval
@@ -648,11 +647,13 @@ void oem_template(
   if( method == "ml" || method == "lm" || display_progress ||  
       max_start_cost > 0 )
     {
-      oem_cost_y( cost_start, y, yf, covmat_so_inv, (Numeric) m ); 
+        Vector dy  = y; dy-= yf;
+        Vector sdy = y; mult(sdy, covmat_so_inv, dy);
+        cost_start = dy * sdy;
     }
   oem_diagnostics[1] = cost_start;
 
-  
+
   // Handle cases with too large start cost
   if( max_start_cost > 0  &&  cost_start > max_start_cost )  
     {
@@ -675,55 +676,41 @@ void oem_template(
       x.resize( n );
       dxdy.resize( n, m );
 
+      OEMSparse SeInv(covmat_so_inv), SaInv(covmat_sx_inv);
+      PrecisionSparse Pe(SeInv), Pa(SaInv);
+      OEMVector xa_oem(xa), y_oem(y), x_oem;
+      AgendaWrapper aw(&ws, &jacobian, &inversion_iterate_agenda);
+      OEM_PS_PS<AgendaWrapper> oem(aw, xa_oem, Pa, Pe);
       // Call selected method
       //
-      AgendaWrapper aw( &ws, &jacobian, &inversion_iterate_agenda );
       //
       if (method == "li")
-        {
-          Numeric cost_y, cost_x;
-          //
-          oem_diagnostics[0] = (Numeric)
-            oem_linear_nform( x, dxdy, jacobian, yf, cost_y, cost_x, 
-                              aw, xa, x_norm, y, covmat_so_inv, covmat_sx_inv, 
-                              cost_start, display_progress );
-          //
-          oem_diagnostics[2] = cost_y + cost_x;
-          oem_diagnostics[3] = cost_y;
+      {
+          GN gn(1e-5, 1); // Linear case, only one step.
+          oem_diagnostics[0] = oem.compute(x_oem, y_oem, gn, 1);
+          oem_diagnostics[2] = oem.cost;
+          oem_diagnostics[3] = oem.cost_y;
           oem_diagnostics[4] = 1.0;
-        }
-
+      }
       else if (method == "gn")
-        {
-          Index used_iter;
-          Numeric cost_y, cost_x;
-          //
-          oem_diagnostics[0] = (Numeric)
-            oem_gauss_newton( x, dxdy, jacobian, yf, cost_y, cost_x, used_iter,
-                              aw, xa, x_norm, y, covmat_so_inv, covmat_sx_inv,
-                              max_iter, stop_dx, display_progress ); //display_progress );
-          //
-          oem_diagnostics[2] = cost_y + cost_x;
-          oem_diagnostics[3] = cost_y;
-          oem_diagnostics[4] = (Numeric) used_iter;
-        }
+      {
+          GN gn(1e-5, (unsigned int) max_iter); // Linear case, only one step.
+          oem_diagnostics[0] = oem.compute(x_oem, y_oem, gn, 1);
+          oem_diagnostics[2] = oem.cost;
+          oem_diagnostics[3] = oem.cost_y;
+          oem_diagnostics[4] = oem.iterations;
+      }
       else if ( (method == "lm") || (method == "ml") )
-        {
-          Index used_iter;
-          Numeric cost_y, cost_x;
-          //Numeric gamma_start = ml_ga_settings[0];
-          Numeric gamma_start = 4.0;
-          Numeric gamma_max = 100.0;
-          Numeric gamma_decrease = 2.0;
-          Numeric gamma_increase = 3.0;
-          Numeric gamma_threshold = 1.0;
-          oem_levenberg_marquardt( x, dxdy, jacobian, yf, cost_y, cost_x,
-                                   used_iter, aw, xa, x_norm, y, covmat_so_inv,
-                                   covmat_sx_inv, max_iter, stop_dx,
-                                   gamma_start, gamma_decrease, gamma_increase,
-                                   gamma_max, gamma_threshold, display_progress );
-        }
-
+      {
+          LM_S lm(SaInv);
+          lm.set_tolerance(1e-5);
+          lm.set_maximum_iterations((unsigned int) max_iter);
+          oem_diagnostics[0] = oem.compute(x_oem, y_oem, lm, 1);
+          oem_diagnostics[2] = oem.cost;
+          oem_diagnostics[3] = oem.cost_y;
+          oem_diagnostics[4] = oem.iterations;
+      }
+      x = x_oem;
       // Shall empty jacobian and dxdy be returned?
       if( clear_matrices )
         {

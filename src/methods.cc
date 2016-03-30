@@ -9425,6 +9425,9 @@ void define_md_data_raw()
         GIN_DESC("Vector of vibrational energies.  If empty, assume known vibrational energies.")
         ));
 
+// Include only if compiling with C++11.
+#if __cplusplus >= 201103L
+
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "oem" ),
@@ -9518,6 +9521,8 @@ void define_md_data_raw()
                   "Flag to control if inversion diagnostics shall be printed "
                   "on the screen.")
         ));
+
+#endif
 
   md_data_raw.push_back
     ( MdRecord
@@ -14649,6 +14654,8 @@ void define_md_data_raw()
         PASSWSVNAMES(   true  )
         ));
 
+#if __cplusplus >= 201103L
+
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "x2arts_std" ),
@@ -14671,6 +14678,8 @@ void define_md_data_raw()
         GIN_DEFAULT(),
         GIN_DESC()
         ));
+
+#endif
 
   md_data_raw.push_back
     ( MdRecord
