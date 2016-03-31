@@ -12,6 +12,8 @@ atmospheric radiative transfer code [ARTS](http://www.radiativetransfer.org/).
 
 ## Current Features:
 
+- **Generic Formulation**: Supports arbitrary matrix and vector types, as well
+  as separate types for Jacobian and covariance matrices.
 - **Standard**, **n-form** and **m-form** formulation of the MAP estimators.
 - **Optimization Methods**: Gauss-Newton, Levenberg-Marquardt
 - **Indirect solver**: Provides a conjugate gradient solver for the subproblem

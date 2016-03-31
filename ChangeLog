@@ -1,3 +1,11 @@
+2016-03-31 Simon Pfreundschuh  <simonpf@chalmers.se>
+
+	* arts-2-3-466
+
+	* 3rdparty/invlib/src/invlib/optimization/levenberg_marquardt.cpp:
+	Added missing implementation file.
+
+
 2016-03-30 Simon Pfreundschuh  <simonpf@chalmers.se>
 
 	Exchanged old OEM implementation against invlib
