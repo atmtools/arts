@@ -52,6 +52,11 @@
 extern const String ABSSPECIES_MAINTAG;
 extern const String TEMPERATURE_MAINTAG;
 
+extern const String POINTING_MAINTAG;
+extern const String POINTING_SUBTAG_A;
+extern const String POLYFIT_MAINTAG;
+extern const String SINEFIT_MAINTAG;
+
 
 /*===========================================================================
   === Help functions 
@@ -410,8 +415,11 @@ void setup_xa(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void x2arts_std(
+         Vector&                     y_baseline,
          Tensor4&                    vmr_field,
          Tensor3&                    t_field,
+         Matrix&                     sensor_los,
+   const Matrix&                     jacobian,
    const ArrayOfRetrievalQuantity&   jq,
    const ArrayOfArrayOfIndex&        ji,
    const Vector&                     x,
@@ -433,14 +441,17 @@ void x2arts_std(
   // Note that when this method is called, vmr_field and other output variables
   // have original values, i.e. matching the a priori state.
 
+  // Flag indicating that y_baseline is not set
+  bool yb_set = false;
+
   // Loop retrieval quantities and fill *xa*
-  for( Index q=0; q<jq.nelem(); q++ )
+  for( Index q=0; q<nq; q++ )
     {
       // Index range of this retrieval quantity
       const Index np = ji[q][1] - ji[q][0] + 1;
       Range ind( ji[q][0], np );
 
-      // Abs species
+      // Atmospheric temperatures
       if( jq[q].MainTag() == TEMPERATURE_MAINTAG )
         {
           // Determine grid positions for interpolation from retrieval grids back
@@ -521,6 +532,41 @@ void x2arts_std(
           else
             { assert(0); }
         }
+
+      // Pointing off-set
+      else if( jq[q].MainTag() == POINTING_MAINTAG )
+        {
+          if( jq[q].Subtag() != POINTING_SUBTAG_A )
+            {
+              ostringstream os;
+              os << "Only pointing off-sets treated by *jacobianAddPointingZa* "
+                 << "are so far handled.";
+              throw runtime_error(os.str());
+            }
+          // Simply add retrieved off-set to za column of *sensor_los*
+          for( Index i=0; i<np; i++ )
+            { sensor_los(i,0) += x[ji[q][0]+i]; }
+        }
+
+      // Baseline fit: polynomial or sinusoidal
+      else if( jq[q].MainTag() == POLYFIT_MAINTAG  ||  
+               jq[q].MainTag() == SINEFIT_MAINTAG )
+        {
+          if( yb_set )
+            {
+              Vector bl( y_baseline.nelem() );
+              mult( bl, jacobian(joker,ind), x[ind] );
+              y_baseline += bl;
+            }
+          else
+            {
+              y_baseline.resize( jacobian.nrows() );
+              yb_set = true;
+              mult( y_baseline, jacobian(joker,ind), x[ind] );              
+            }
+        }
+
+      // Or we have to throw an error
       else
         {
           ostringstream os;
@@ -529,6 +575,13 @@ void x2arts_std(
           throw runtime_error(os.str());
         }
     }
+
+  // *y_baseline* not yet set?
+  if( !yb_set )
+    { 
+      y_baseline.resize(1);
+      y_baseline[0] = 0;
+    }   
 }
 
 

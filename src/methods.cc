@@ -13852,6 +13852,33 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "VectorAddVector" ),
+        DESCRIPTION
+        (
+         "Element-wise addition of two vectors.\n"
+         "\n"
+         "The method calculates c = a + b.\n"
+         "\n"
+         "The variable *b* is allowed to have length 1, for any length of\n"
+         "*a*. This single value in *b* is then added to every element of *a*.\n"
+         "\n"
+         "The vectors *a* and *c* can be the same WSV, while *b* can not be\n"
+         "the same WSV as any of the the other vector.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT(),
+        GOUT(      "c"     ),
+        GOUT_TYPE( "Vector" ),
+        GOUT_DESC( "Output vector" ),
+        IN(),
+        GIN(         "a"    , "b"   ),
+        GIN_TYPE(    "Vector", "Vector" ),
+        GIN_DEFAULT( NODEF   , NODEF     ),
+        GIN_DESC( "Input vector.", "Vector to be added." )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "VectorCrop" ),
         DESCRIPTION
         (
@@ -14160,6 +14187,33 @@ void define_md_data_raw()
         GIN_DEFAULT( NODEF ),
         GIN_DESC( "The vector elements." ),
         SETMETHOD( true )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "VectorSubtractVector" ),
+        DESCRIPTION
+        (
+         "Element-wise subtraction of two vectors.\n"
+         "\n"
+         "The method calculates c = a - b.\n"
+         "\n"
+         "The variable *b* is allowed to have length 1, for any length of\n"
+         "*a*. This single value in *b* is then added to every element of *a*.\n"
+         "\n"
+         "The vectors *a* and *c* can be the same WSV, while *b* can not be\n"
+         "the same WSV as any of the the other vector.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT(),
+        GOUT(      "c"     ),
+        GOUT_TYPE( "Vector" ),
+        GOUT_DESC( "Output vector" ),
+        IN(),
+        GIN(         "a"    , "b"   ),
+        GIN_TYPE(    "Vector", "Vector" ),
+        GIN_DEFAULT( NODEF   , NODEF     ),
+        GIN_DESC( "Input vector.", "Vector to be subtracted." )
         ));
 
   md_data_raw.push_back
@@ -14664,14 +14718,16 @@ void define_md_data_raw()
          "Standard mapping from retrieval state vector to ARTS variables\n"
          "\n"
          "Work in progress ...\n"
+         "\n"
+         "Should only be used inside *inversion_iterate_agenda*.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
-        OUT( "vmr_field", "t_field" ),
+        OUT( "y_baseline", "vmr_field", "t_field", "sensor_los" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "vmr_field", "t_field", 
-            "jacobian_quantities", "jacobian_indices", "x", 
+        IN( "vmr_field", "t_field", "sensor_los",
+            "jacobian", "jacobian_quantities", "jacobian_indices", "x", 
             "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "abs_species" ),
         GIN(),
         GIN_TYPE(),

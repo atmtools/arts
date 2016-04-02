@@ -793,6 +793,107 @@ void VectorAddScalar(Vector&   out,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void VectorAddVector(Vector&   c,
+                     const Vector&   a,
+                     const Vector&   b,
+                     const Verbosity&)
+{
+  // If anything is changed in the method, implement the same change in
+  // VectorSubtractVector
+
+  // b has length 1. Here we easily can avoid just adding 0.
+  if( b.nelem() == 1 )
+    {
+      // a and c are the same WSV
+      if( &c==&a )
+        {
+          if( b[0] !=0 )
+            { 
+              c += b[0]; 
+            }
+        }
+      else
+        {
+          c = a;
+          if( b[0] !=0 )
+            { 
+              c += b[0];
+            }
+        }
+    }
+
+  // b is a vector
+  else if( b.nelem() == a.nelem() )
+    {
+      // a and c are the same WSV
+      if( &c==&a )
+        { 
+          c += b; 
+        }
+      else
+        {
+          c = a;
+          c += b;
+        }
+    }
+
+  else
+    throw runtime_error( "The vector *b* must have length 1 or match *a* in length." );
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void VectorSubtractVector(Vector&   c,
+                     const Vector&   a,
+                     const Vector&   b,
+                     const Verbosity&)
+{
+  // If anything is changed in the method, implement the same change in
+  // VectorAddVector
+
+  // b has length 1. Here we easily can avoid just adding 0.
+  if( b.nelem() == 1 )
+    {
+      // a and c are the same WSV
+      if( &c==&a )
+        {
+          if( b[0] !=0 )
+            { 
+              c -= b[0]; 
+            }
+        }
+      else
+        {
+          c = a;
+          if( b[0] !=0 )
+            { 
+              c -= b[0];
+            }
+        }
+    }
+
+  // b is a vector
+  else if( b.nelem() == a.nelem() )
+    {
+      // a and c are the same WSV
+      if( &c==&a )
+        { 
+          c -= b; 
+        }
+      else
+        {
+          c = a;
+          c -= b;
+        }
+    }
+
+  else
+    throw runtime_error( "The vector *b* must have length 1 or match *a* in length." );
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void VectorCrop(       Vector&   out,
                  const Vector&   in,
                  const Numeric&  min_value,

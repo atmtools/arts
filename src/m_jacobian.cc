@@ -1424,7 +1424,7 @@ void jacobianAddPolyfit(
       if( jq[it].MainTag() == POLYFIT_MAINTAG )
         {
           ostringstream os;
-          os << "Sinusoidal baseline fit is already included in\n"
+          os << "Polynomial baseline fit is already included in\n"
              << "*jacobian_quantities*.";
           throw runtime_error(os.str());
         }

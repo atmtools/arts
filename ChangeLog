@@ -1,10 +1,26 @@
+2016-04-02  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-467
+
+	* Some additions around oem, but nothing really tested.
+
+	* src/m_basic_types.cc (VectorAddVector, VectorSubtractVector):
+	New WSMs.
+
+	* src/m_oem.cc (x2arts_std): Extended to handle baseline fits and
+	pointing off-sets.
+
+	* src/m_jacobian.cc (jacobianAddPolyfit): Initial error message
+	was wrong.
+
+	* src/workspace.cc: Added y_baseline.
+
 2016-03-31 Simon Pfreundschuh  <simonpf@chalmers.se>
 
 	* arts-2-3-466
 
 	* 3rdparty/invlib/src/invlib/optimization/levenberg_marquardt.cpp:
 	Added missing implementation file.
-
 
 2016-03-30 Simon Pfreundschuh  <simonpf@chalmers.se>
 

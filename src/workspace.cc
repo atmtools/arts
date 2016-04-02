@@ -5616,6 +5616,32 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
+    ( NAME( "y_baseline" ),
+      DESCRIPTION
+      (
+       "The baseline of *y*.\n"
+       "\n"
+       "In retrieval \"lingo\", the baseline is an addiative disturbance of\n"
+       "the measured spectrum. That is, it can be seen as a shift (from zero)\n"
+       "of measurement. Reflections inside microwave receivers is one source to\n"
+       "a baseline off-set.\n"
+       "\n"
+       "So far there is no module in ARTS that actually tries to physically model\n"
+       "any baseline effect. *y_baseline* is just used as a pure fitting parameter\n"
+       "in retrievals. One example on method to include a baseline fit is \n"
+       "*jacobianAddPolyfit*.\n"
+       "\n"
+       "If the baseline is totally constant, it is allowed to set *y_baseline*\n"
+       "to have length one, with this element set to the baseline value.\n"
+       "\n"
+       "Usage: Output of retrievals.\n"
+       "\n"
+       "Unit:  Same as applied for *y*.\n"
+       ),
+      GROUP( "Vector" )));
+
+  wsv_data.push_back
+   (WsvRecord
     ( NAME( "y_f" ),
       DESCRIPTION
       (
