@@ -14122,6 +14122,31 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "VectorReshapeMatrix" ),
+        DESCRIPTION
+        (
+         "Converts a Matrix to a Vector.\n"
+         "\n"
+         "The matrix is reshaped into a vector. That is, all elements of the matrix\n"
+         "are kept. The elements can be extracted both in column (default) and row\n"
+         "order. The ouput vector has the same length for both options.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT(),
+        GOUT(      "out"      ),
+        GOUT_TYPE( "Vector" ),
+        GOUT_DESC( "Created vector." ),
+        IN(),
+        GIN(          "in"    , "direction" ),
+        GIN_TYPE(     "Matrix", "String"    ),
+        GIN_DEFAULT(  NODEF   , "column"    ),
+        GIN_DESC( "Input matrix.",
+                  "Direction. \"row\" or \"column\"." 
+                  )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "VectorScale" ),
         DESCRIPTION
         (
@@ -14727,8 +14752,9 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "vmr_field", "t_field", "sensor_los",
-            "jacobian", "jacobian_quantities", "jacobian_indices", "x", 
-            "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "abs_species" ),
+            "jacobian", "jacobian_quantities", "jacobian_indices", "x", "xa",
+            "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "abs_species",
+            "sensor_time" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),

@@ -1,3 +1,32 @@
+2016-04-03  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-468
+
+	* src/m_oem.cc (oem_template): Added jacobian.resize(0,0); +
+	comments before first call of inversion_iterate_agenda.
+
+	* src/agendas.cc: Added jacobian as input to inversion_iterate_agenda.
+
+	* src/m_jacobian.cc (jacobianCalcPointingZaRecalc): Fixed typo in
+	a comment
+
+	* src/special_interp.cc (regrid_atmfield_by_gp): itw was given
+	wrong side for 2D and 3D.
+
+	* src/m_oem.cc (setup_xa): Added handling of logrel for VMR.
+
+	* src/m_oem.cc (x2arts_std): Added handling of logrel for VMR.
+	Baseline fit and pointing off-set parts were wrong. Thinsg
+	improved, but these parts are not yet tested practically.
+
+	* src/m_basic_types.cc (VectorExtractFromMatrix)
+	(MatrixExtractFromTensor3): These WSMs are now placed in this file.
+
+	(VectorReshapeMatrix): New WSM.
+
+	* src/m_batch.cc (VectorExtractFromMatrix)
+	(MatrixExtractFromTensor3): Moved to other file.
+
 2016-04-02  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-467

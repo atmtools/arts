@@ -332,15 +332,15 @@ void setup_xa(
       const Index np = ji[q][1] - ji[q][0] + 1;
       Range ind( ji[q][0], np );
 
-      // Abs species
+      // Atmospheric temperatures
       if( jq[q].MainTag() == TEMPERATURE_MAINTAG )
         {
-          // Here we need to interpolate *vmr_field*
+          // Here we need to interpolate *t_field*
           ArrayOfGridPos gp_p, gp_lat, gp_lon;
           get_gp_atmgrids_to_rq( gp_p, gp_lat, gp_lon, jq[q], atmosphere_dim,
                                  p_grid, lat_grid, lon_grid );
           Tensor3 t_x(gp_p.nelem(),gp_lat.nelem(),gp_lon.nelem());
-          regrid_atmfield_by_gp( t_x, atmosphere_dim, t_field(joker,joker,joker), 
+          regrid_atmfield_by_gp( t_x, atmosphere_dim, t_field, 
                                  gp_p, gp_lat, gp_lon );
           flat( xa[ind], t_x );
         }
@@ -357,6 +357,11 @@ void setup_xa(
             {
               // This one is simple, just a vector of ones
               xa[ind] = 1; 
+            }
+          else if( jq[q].Mode() == "logrel" )
+            {
+              // Also simple, just a vector of zeros
+              xa[ind] = 0; 
             }
           else if( jq[q].Mode() == "vmr" )
             {
@@ -423,11 +428,13 @@ void x2arts_std(
    const ArrayOfRetrievalQuantity&   jq,
    const ArrayOfArrayOfIndex&        ji,
    const Vector&                     x,
+   const Vector&                     xa,
    const Index&                      atmosphere_dim,
    const Vector&                     p_grid,
    const Vector&                     lat_grid,
    const Vector&                     lon_grid,
    const ArrayOfArrayOfSpeciesTag&   abs_species,
+   const Vector&                     sensor_time,
    const Verbosity&)
 {
   // Main sizes
@@ -452,6 +459,7 @@ void x2arts_std(
       Range ind( ji[q][0], np );
 
       // Atmospheric temperatures
+      // ----------------------------------------------------------------------------
       if( jq[q].MainTag() == TEMPERATURE_MAINTAG )
         {
           // Determine grid positions for interpolation from retrieval grids back
@@ -464,13 +472,12 @@ void x2arts_std(
           // Map values in x back to t_field
           Tensor3 t_x( n_p, n_lat, n_lon );
           reshape( t_x, x[ind] );
-          Tensor3 t( t_field.npages(), t_field.nrows(), t_field.ncols() );
-          regrid_atmfield_by_gp( t, atmosphere_dim, t_x,
+          regrid_atmfield_by_gp( t_field, atmosphere_dim, t_x,
                                  gp_p, gp_lat, gp_lon );
-          t_field = t;
         }
 
       // Abs species
+      // ----------------------------------------------------------------------------
       else if( jq[q].MainTag() == ABSSPECIES_MAINTAG )
         {
           // Index position of species
@@ -485,18 +492,21 @@ void x2arts_std(
           get_gp_rq_to_atmgrids( gp_p, gp_lat, gp_lon, n_p, n_lat, n_lon,
                                  jq[q], atmosphere_dim, p_grid, lat_grid, lon_grid );
           //
-          if( jq[q].Mode() == "rel" )
+          if( jq[q].Mode() == "rel"  ||  jq[q].Mode() == "logrel" )
             {
               // Find multiplicate factor for elements in vmr_field
               Tensor3 fac_x( n_p, n_lat, n_lon );
               reshape( fac_x, x[ind] ); 
+              // Take exp(x) if logrel
+              if( jq[q].Mode() == "logrel" )
+                { transform( fac_x, exp, fac_x ); }
               Tensor3 factor( vmr_field.npages(), vmr_field.nrows(),
                                                   vmr_field.ncols() );
               regrid_atmfield_by_gp( factor, atmosphere_dim, fac_x,
                                      gp_p, gp_lat, gp_lon );
-              for( Index i3=0; i3<=vmr_field.ncols(); i3++ )
-                { for( Index i2=0; i2<=vmr_field.nrows(); i2++ )
-                    { for( Index i1=0; i1<=vmr_field.npages(); i1++ )
+              for( Index i3=0; i3<vmr_field.ncols(); i3++ )
+                { for( Index i2=0; i2<vmr_field.nrows(); i2++ )
+                    { for( Index i1=0; i1<vmr_field.npages(); i1++ )
                         { 
                           vmr_field(isp,i1,i2,i3) *= factor(i1,i2,i3); 
                 }   }   }
@@ -521,9 +531,9 @@ void x2arts_std(
               regrid_atmfield_by_gp( nd, atmosphere_dim, nd_x,
                                      gp_p, gp_lat, gp_lon );
               // Calculate vmr for species (=nd/nd_tot)
-              for( Index i3=0; i3<=vmr_field.ncols(); i3++ )
-                { for( Index i2=0; i2<=vmr_field.nrows(); i2++ )
-                    { for( Index i1=0; i1<=vmr_field.npages(); i1++ )
+              for( Index i3=0; i3<vmr_field.ncols(); i3++ )
+                { for( Index i2=0; i2<vmr_field.nrows(); i2++ )
+                    { for( Index i1=0; i1<vmr_field.npages(); i1++ )
                         { 
                           vmr_field(isp,i1,i2,i3) = nd(i1,i2,i3) /
                             number_density( p_grid[i1], t_field(i1,i2,i3) );
@@ -534,6 +544,7 @@ void x2arts_std(
         }
 
       // Pointing off-set
+      // ----------------------------------------------------------------------------
       else if( jq[q].MainTag() == POINTING_MAINTAG )
         {
           if( jq[q].Subtag() != POINTING_SUBTAG_A )
@@ -543,30 +554,62 @@ void x2arts_std(
                  << "are so far handled.";
               throw runtime_error(os.str());
             }
-          // Simply add retrieved off-set to za column of *sensor_los*
-          for( Index i=0; i<np; i++ )
-            { sensor_los(i,0) += x[ji[q][0]+i]; }
+          // Handle pointing "jitter" seperately
+          if( jq[q].Grids()[0][0] == -1 ) 
+            {                          
+              if( sensor_los.nrows() != np )
+                throw runtime_error( 
+                     "Mismatch between pointing jacobian and *sensor_los* found." );
+              // Simply add retrieved off-set(s) to za column of *sensor_los*
+              for( Index i=0; i<np; i++ )
+                { sensor_los(i,0) += x[ji[q][0]+i]; }
+            }                                
+          // Polynomial representation
+          else
+            {
+              if( sensor_los.nrows() != sensor_time.nelem() )
+                throw runtime_error( 
+                     "Sizes of *sensor_los* and *sensor_time* do not match." );
+              Vector w;
+              for( Index c=0; c<np; c++ )
+                {
+                  polynomial_basis_func( w, sensor_time, c );
+                  for( Index i=0; i<w.nelem(); i++ )
+                    {  sensor_los(i,0) += w[i] * x[ji[q][0]+c]; }
+                }
+            }
         }
 
       // Baseline fit: polynomial or sinusoidal
+      // ----------------------------------------------------------------------------
       else if( jq[q].MainTag() == POLYFIT_MAINTAG  ||  
                jq[q].MainTag() == SINEFIT_MAINTAG )
         {
-          if( yb_set )
-            {
-              Vector bl( y_baseline.nelem() );
-              mult( bl, jacobian(joker,ind), x[ind] );
-              y_baseline += bl;
-            }
+          // As the baseline is set using *jacobian*, there must exist a
+          // calculated Jacobian, but this is not these case for the first
+          // iteration. This should be no problem as the a priori for baseline
+          // variables should throughout be zero, but to be safe we check this. 
+          if( jacobian.empty() )
+            { assert( min(xa[ind]) == 0 ); assert( max(xa[ind]) == 0 ); }
           else
             {
-              y_baseline.resize( jacobian.nrows() );
-              yb_set = true;
-              mult( y_baseline, jacobian(joker,ind), x[ind] );              
+              if( yb_set )
+                {
+                  Vector bl( y_baseline.nelem() );
+                  mult( bl, jacobian(joker,ind), x[ind] );
+                  y_baseline += bl;
+                }
+              else
+                {
+                  y_baseline.resize( jacobian.nrows() );
+                  yb_set = true;
+                  mult( y_baseline, jacobian(joker,ind), x[ind] );              
+                }
             }
         }
 
       // Or we have to throw an error
+      // ----------------------------------------------------------------------------
       else
         {
           ostringstream os;
@@ -677,6 +720,9 @@ void oem_template(
             p_grid, lat_grid, lon_grid, t_field, vmr_field, abs_species );
 
   // Calculate spectrum and Jacobian for a priori state
+  // Jacobian is also input to the agenda, and to flag this is this first
+  // call, this WSV must be set to be empty. 
+  jacobian.resize(0,0);
   inversion_iterate_agendaExecute( ws, yf, jacobian, xa, 1,
                                    inversion_iterate_agenda );
 

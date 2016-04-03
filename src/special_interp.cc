@@ -576,7 +576,7 @@ void regrid_atmfield_by_gp(
     {
       const Index n2 = gp_lat.nelem();
       field_new.resize( n1, n2, 1 );
-      Tensor3 itw( n1, n2, 2 );
+      Tensor3 itw( n1, n2, 4 );
       interpweights( itw, gp_p, gp_lat );
       interp( field_new(joker,joker,0), itw, field_old(joker,joker,0), gp_p, gp_lat ); 
     }
@@ -585,7 +585,7 @@ void regrid_atmfield_by_gp(
       const Index n2 = gp_lat.nelem();
       const Index n3 = gp_lon.nelem();
       field_new.resize( n1, n2, n3 );
-      Tensor4 itw( n1, n2, n3, 2 );
+      Tensor4 itw( n1, n2, n3, 8 );
       interpweights( itw, gp_p, gp_lat, gp_lon );
       interp( field_new, itw, field_old, gp_p, gp_lat, gp_lon ); 
     }

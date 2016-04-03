@@ -216,6 +216,70 @@ void MatrixCopySparse(Matrix&   out,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void MatrixExtractFromTensor3(
+      // WS Generic Output:
+      Matrix&          m,
+      // WS Input:
+      // WS Generic Input:
+      const Tensor3&    t3,
+      const Index&     index,
+      // Control Parameters:
+      const String& direction,
+      const Verbosity&)
+{
+  if (direction=="page")
+    {
+      if( index >= t3.npages() )
+        {
+          ostringstream os;
+          os << "The index " << index 
+             << " is outside the page range of the Matrix.";
+          throw runtime_error( os.str() );
+
+        }
+
+      m.resize( t3.nrows(), t3.ncols() );
+      m = t3( index, joker, joker );
+    }
+  else if (direction=="row")
+    {
+      if( index >= t3.nrows() )
+        {
+          ostringstream os;
+          os << "The index " << index 
+             << " is outside the row range of the Matrix.";
+          throw runtime_error( os.str() );
+
+        }
+
+      m.resize( t3.npages(), t3.ncols() );
+      m = t3( joker, index, joker );
+    }
+  else if (direction=="column")
+    {
+      if( index >= t3.ncols() )
+        {
+          ostringstream os;
+          os << "The index " << index 
+             << " is outside the column range of the Matrix.";
+          throw runtime_error( os.str() );
+
+        }
+
+      m.resize( t3.npages(), t3.nrows() );
+      m = t3( joker, joker, index );
+    }
+  else
+    {
+      ostringstream os;
+      os << "Keyword *direction* must be either *page* or *row* or *column*,"
+         << "but you gave: " << direction << ".";
+      throw runtime_error( os.str() );
+    }
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void MatrixMatrixMultiply(// WS Generic Output:
                           Matrix& Y,
                           // WS Generic Input:
@@ -928,6 +992,62 @@ void VectorCrop(       Vector&   out,
 }
 
 
+/* Workspace method: Doxygen documentation will be auto-generated 
+
+   2004-09-15 Patrick Eriksson
+
+   Added keyword to control if row or column is extracted.
+
+   2007-07-24 Stefan Buehler */
+void VectorExtractFromMatrix(
+      // WS Generic Output:
+      Vector&          v,
+      // WS Input:
+      // WS Generic Input:
+      const Matrix&    m,
+      const Index&     index,
+      // Control Parameters:
+      const String& direction,
+      const Verbosity&)
+{
+  if (direction=="row")
+    {
+      if( index >= m.nrows() )
+        {
+          ostringstream os;
+          os << "The index " << index 
+             << " is outside the row range of the Matrix.";
+          throw runtime_error( os.str() );
+
+        }
+
+      v.resize( m.ncols() );
+      v = m( index, joker );
+    }
+  else if (direction=="column")
+    {
+      if( index >= m.ncols() )
+        {
+          ostringstream os;
+          os << "The index " << index 
+             << " is outside the column range of the Matrix.";
+          throw runtime_error( os.str() );
+
+        }
+
+      v.resize( m.nrows() );
+      v = m( joker, index );
+    }
+  else
+    {
+      ostringstream os;
+      os << "Keyword *direction* must be either *row* or *column*,"
+         << "but you gave: " << direction << ".";
+      throw runtime_error( os.str() );
+    }
+}
+
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void VectorFlip(Vector&   out,
                 const Vector&   in,
@@ -1208,6 +1328,52 @@ void VectorNLogSpace(Vector&    x,
   
   if ( x.nelem() > 1 )
     out3 << "        last value : " << x[x.nelem()-1] << "\n";
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void VectorReshapeMatrix(
+      Vector&          v,
+      const Matrix&    m,
+      const String& direction,
+      const Verbosity&)
+{
+  const Index nrows = m.nrows();
+  const Index ncols = m.ncols();
+
+  v.resize( nrows*ncols );
+
+  Index iv = 0;
+
+  if (direction=="column")
+    {
+      for( Index col=0; col<ncols; col++ )
+        {
+          for( Index row=0; row<nrows; row++ )
+            { 
+              v[iv] = m(row,col);
+              iv++;
+            }
+        }
+    }
+  else if (direction=="row")
+    {
+      for( Index row=0; row<nrows; row++ )
+        {
+          for( Index col=0; col<ncols; col++ )
+            { 
+              v[iv] = m(row,col);
+              iv++;
+            }
+        }
+    }
+  else
+    {
+      ostringstream os;
+      os << "Keyword *direction* must be either *row* or *column*,"
+         << "but you gave: " << direction << ".";
+      throw runtime_error( os.str() );
+    }
 }
 
 

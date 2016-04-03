@@ -301,12 +301,14 @@ void define_agenda_data()
      ( NAME( "inversion_iterate_agenda" ),
        DESCRIPTION
        (
-        "So far just testing ...\n"
+        "Work in progress ...\n"
         "\n"
-        "Discuss *y* vs *yf*. \n"
-        ),
-       OUTPUT( "y", "jacobian" ),
-       INPUT( "x", "jacobian_do" )));
+        "The WSV *jacobian* is both in- and output. As input variable, *jacobian*\n"
+        "is assumed to be valid for the previous iteration. For the first iteration\n"
+        "the input *jacobian* shall be set to have size zero, to flag that there\n" 
+        "is not yet any calculated Jacobian.\n" ),
+       OUTPUT( "yf", "jacobian" ),
+       INPUT( "jacobian", "x", "jacobian_do" )));
 
   agenda_data.push_back
     (AgRecord

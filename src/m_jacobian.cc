@@ -1256,7 +1256,7 @@ void jacobianCalcPointingZaInterp(
   const Range rowind = get_rowindex_for_mblock( sensor_response, mblock_index );
   const Index row0 = rowind.get_start();
 
-  // Handle gitter seperately
+  // Handle pointing "jitter" seperately
   if( rq.Grids()[0][0] == -1 )                  // Not all values are set here,
     {                                           // but should already have been 
       assert( lg == sensor_los.nrows() );       // set to 0
@@ -1368,7 +1368,7 @@ void jacobianCalcPointingZaRecalc(
   const Range rowind = get_rowindex_for_mblock( sensor_response, mblock_index );
   const Index row0 = rowind.get_start();
 
-  // Handle gitter seperately
+  // Handle "jitter" seperately
   if( rq.Grids()[0][0] == -1 )                  // Not all values are set here,
     {                                           // but should already have been 
       assert( lg == sensor_los.nrows() );       // set to 0
