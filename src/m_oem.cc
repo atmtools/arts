@@ -402,6 +402,16 @@ void setup_xa(
           else
             { assert(0); }
         }
+
+      // All variables having zero as a priori
+      // ----------------------------------------------------------------------------
+      else if( jq[q].MainTag() == POINTING_MAINTAG ||
+               jq[q].MainTag() == POLYFIT_MAINTAG  ||  
+               jq[q].MainTag() == SINEFIT_MAINTAG )
+        {
+          xa[ind] = 0;
+        }
+
       else
         {
           ostringstream os;

@@ -1,3 +1,10 @@
+2016-04-04  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-469
+
+	* src/m_oem.cc (setup_xa): Had missed to add handling of
+	pointing and baseline fits.
+
 2016-04-03  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-468
