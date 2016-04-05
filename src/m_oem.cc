@@ -34,8 +34,6 @@
   file auto_md.h.
 */
 
-
-
 /*===========================================================================
   === External declarations
   ===========================================================================*/
@@ -47,6 +45,10 @@
 #include "auto_md.h"
 #include "math_funcs.h"
 #include "physics_funcs.h"
+
+// Include only if compiling with C++11.
+#if __cplusplus >= 201103L
+
 #include "oem.h"
 
 extern const String ABSSPECIES_MAINTAG;
@@ -871,3 +873,43 @@ void oem(
                   method, max_start_cost, x_norm, max_iter, stop_dx,
                   ml_ga_settings, clear_matrices, display_progress, v );
 }
+
+#else
+
+void oem(
+         Workspace&,
+         Vector&,
+         Vector&,
+         Vector&,
+         Matrix&,
+         Matrix&,
+         Vector&,
+         Vector&,
+         const Vector&,
+         const Sparse&,
+         const Sparse&,
+         const Index&,
+         const ArrayOfRetrievalQuantity&,
+         const ArrayOfArrayOfIndex&,
+         const Agenda&,
+         const Index&,
+         const Vector&,
+         const Vector&,
+         const Vector&,
+         const Tensor3&,
+         const Tensor4&,
+         const ArrayOfArrayOfSpeciesTag&,
+         const String&,
+         const Numeric&,
+         const Vector&,
+         const Index&,
+         const Numeric&,
+         const Vector&,
+         const Index&,
+         const Index&,
+         const Verbosity&)
+{
+    std::runtime_error("You have to compile ARTS with C++11 support to enable OEM.");
+}
+
+#endif // C++11

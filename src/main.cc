@@ -796,6 +796,12 @@ int main (int argc, char **argv)
 #else
         << "disabled" << endl
 #endif
+        << "   OEM support:          "
+#if __cplusplus >= 201103L
+        << "enabled" << endl
+#else
+        << "disabled (no C++11 support)" << endl
+#endif
         << "   Refice support:       "
 #ifdef ENABLE_REFICE
         << "enabled" << endl

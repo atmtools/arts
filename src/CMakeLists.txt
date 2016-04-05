@@ -151,12 +151,12 @@ if (NOT HAVE_GETOPT_H)
 endif (NOT HAVE_GETOPT_H)
 
 
-if (CXX11_SUPPORT)
-  set(M_OEM m_oem.cc)
+if (NOT NO_CXX11 AND CXX11_SUPPORT)
   set(OEM_FLAGS "-std=c++11 -ftemplate-depth=1024")
   set_source_files_properties(m_oem.cc PROPERTIES COMPILE_FLAGS ${OEM_FLAGS})
+  set_source_files_properties(main.cc PROPERTIES COMPILE_FLAGS ${OEM_FLAGS})
   set_source_files_properties(test_oem.cc PROPERTIES COMPILE_FLAGS ${OEM_FLAGS})
-endif (CXX11_SUPPORT)
+endif()
 
 
 add_library (artscore STATIC
@@ -219,7 +219,7 @@ add_library (artscore STATIC
   m_linemixing.cc
   m_linerecord.cc
   m_montecarlo.cc
-  ${M_OEM}
+  m_oem.cc
   m_optproperties.cc
   m_physics.cc
   m_planets.cc

@@ -1,3 +1,17 @@
+2016-04-05  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-470
+
+	* src/main.cc: Display OEM/C++11 status in arts -v output.
+
+	* src/methods.cc, src/m_oem.cc, src/CMakeLists.txt:
+
+	Instead of removing the oem WSM completely if C++11 support is not
+	available, replace it with a dummy function that output a runtime error
+	to give the user information what he has to do to enable OEM. This
+	makes OEM consistent with the behaviour of other optional features in
+	ARTS.
+
 2016-04-04  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-469
