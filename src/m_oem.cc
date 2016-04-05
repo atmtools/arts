@@ -20,13 +20,13 @@
 
 
 /*===========================================================================
-  === File description 
+  === File description
   ===========================================================================*/
 
 /*!
   \file   m_oem.cc
   \author Patrick Eriksson <patrick.eriksson@chalmers.se>
-  \date   2015-09-08 
+  \date   2015-09-08
 
   \brief  Workspace functions related to making OEM inversions.
 
@@ -798,7 +798,8 @@ void oem_template(
       if (method == "li")
       {
           GN gn(1e-5, 1); // Linear case, only one step.
-          oem_diagnostics[0] = oem.compute(x_oem, y_oem, gn, 1);
+          oem_diagnostics[0] = oem.compute(x_oem, y_oem, gn,
+                                           (int) 2 * display_progress);
           oem_diagnostics[2] = oem.cost;
           oem_diagnostics[3] = oem.cost_y;
           oem_diagnostics[4] = 1.0;
@@ -806,7 +807,8 @@ void oem_template(
       else if (method == "gn")
       {
           GN gn(1e-5, (unsigned int) max_iter); // Linear case, only one step.
-          oem_diagnostics[0] = oem.compute(x_oem, y_oem, gn, 1);
+          oem_diagnostics[0] = oem.compute(x_oem, y_oem, gn,
+                                           (int) 2 * display_progress);
           oem_diagnostics[2] = oem.cost;
           oem_diagnostics[3] = oem.cost_y;
           oem_diagnostics[4] = oem.iterations;
@@ -816,7 +818,8 @@ void oem_template(
           LM_S lm(SaInv);
           lm.set_tolerance(1e-5);
           lm.set_maximum_iterations((unsigned int) max_iter);
-          oem_diagnostics[0] = oem.compute(x_oem, y_oem, lm, 1);
+          oem_diagnostics[0] = oem.compute(x_oem, y_oem, lm,
+                                           (int) 2 * display_progress);
           oem_diagnostics[2] = oem.cost;
           oem_diagnostics[3] = oem.cost_y;
           oem_diagnostics[4] = oem.iterations;

@@ -14728,8 +14728,6 @@ void define_md_data_raw()
         PASSWSVNAMES(   true  )
         ));
 
-#if __cplusplus >= 201103L
-
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "x2arts_std" ),
@@ -14755,8 +14753,6 @@ void define_md_data_raw()
         GIN_DEFAULT(),
         GIN_DESC()
         ));
-
-#endif
 
   md_data_raw.push_back
     ( MdRecord

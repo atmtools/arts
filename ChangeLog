@@ -1,3 +1,14 @@
+2016-04-05  Simon Pfreundschuh  <simonpf@chalmers.se>
+
+	* arts-2-3-471
+
+	Small fix to Oliver's changes to make C++11 autodetection work.
+
+	* src/m_oem.cc: Removed conditional compilation macros around x2arts method.
+
+	* src/m_oem.cc: Forwarded display_progress argument to invlib call.
+
+
 2016-04-05  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-470
@@ -66,7 +77,6 @@
 	* src/workspace.cc: Added y_baseline.
 
 2016-03-31 Simon Pfreundschuh  <simonpf@chalmers.se>
-
 	* arts-2-3-466
 
 	* 3rdparty/invlib/src/invlib/optimization/levenberg_marquardt.cpp:
