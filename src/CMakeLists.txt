@@ -152,7 +152,7 @@ endif (NOT HAVE_GETOPT_H)
 
 
 if (NOT NO_CXX11 AND CXX11_SUPPORT)
-  set(OEM_FLAGS "-std=c++11 -ftemplate-depth=1024")
+  set(OEM_FLAGS "-std=c++11 -ftemplate-depth=1024 -DCXX11=1")
   set_source_files_properties(m_oem.cc PROPERTIES COMPILE_FLAGS ${OEM_FLAGS})
   set_source_files_properties(main.cc PROPERTIES COMPILE_FLAGS ${OEM_FLAGS})
   set_source_files_properties(test_oem.cc PROPERTIES COMPILE_FLAGS ${OEM_FLAGS})
