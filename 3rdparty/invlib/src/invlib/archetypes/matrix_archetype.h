@@ -57,9 +57,7 @@ public:
      * passed as argument, but that is completely independent of the argument
      */
     MatrixArchetype(const MatrixArchetype &);
-
-    // Moves are not supported.
-    MatrixArchetype(MatrixArchetype &&) = default;
+    MatrixArchetype(MatrixArchetype &&);
 
     /*! Assignment operator.
      *
@@ -68,9 +66,7 @@ public:
      * the provided argument but independent.
      */
     MatrixArchetype& operator=(const MatrixArchetype &);
-
-    // Moves are not supports.
-    MatrixArchetype& operator=(MatrixArchetype &&) = default;
+    MatrixArchetype& operator=(MatrixArchetype &&);
 
     /*!
      * Frees all resources occupied by the matrix object.
@@ -215,7 +211,8 @@ public:
 
 private:
 
-    unsigned int n,m;
+    unsigned int m = 0;
+    unsigned int n = 0;
     std::unique_ptr<Real[]> data;
 
 };

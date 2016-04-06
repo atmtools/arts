@@ -99,50 +99,18 @@ public:
 
     Matrix() = default;
 
-    /*! Default copy constructor.
-     *
-     * Call the Base copy constructor, which should perform a deep copy of
-     * the provided matrix B.
-     *
-     * /param B The matrix B to be copied from.
-     */
-    Matrix(const Matrix& B) = default;
+    Matrix(const Matrix &A);
+    Matrix(Matrix &&A);
 
-    /*! Default move constructor.
-     *
-     * Call the Base move constructor, which should move the data references
-     * holding the matrix elements of B into this matrix object.
-     *
-     * /param B The matrxi B to be moved from.
-     */
-    Matrix(Matrix&& B)      = default;
+    Matrix & operator=(const Matrix &A);
+    Matrix & operator=(Matrix &&A);
 
-    /*! Default assignment operator.
+    /*! Perfect forwarding copy constructor. If the provided argument can
+     * is a base class of Matrix or a Base object can be constructed from it,
+     * the call is forwarded to the copy constructor of Base using perfect
+     * forwarding.
      *
-     * Call the Base assignment operator, which should copy the values of
-     * the provided matrix B into this object.
-     *
-     * \param B The vector B to be assigned from.
-     */
-    Matrix& operator=(const Matrix&) = default;
-
-    /*! Default move assignment operator.
-     *
-     * Call the Base move assignment operator, which should move the data
-     * references holding the matrix elements of B into this matrix object.
-     *
-     * \param B The vector B to be move assigned from.
-     */
-    Matrix& operator=(Matrix&& B)   = default;
-
-    /*! Move matrix of Base type into this matrix.
-     *
-     * Moves the provided base class matrix into this matrix. In this way results
-     * from arithmetic operations on the base matrix type can be moved directly
-     * into a Vector object in order to avoid creating expensive temporary
-     * matrices.
-     *
-     * \param v The temporary matrix of base type to be moved from.
+     * \param t The object to be copied from.
      */
     template
     <
@@ -150,18 +118,22 @@ public:
     typename = enable_if_either<is_base<decay<T>, Matrix>,
                                 is_constructible<Base, T>>
     >
-    Matrix(T &&t) : Base(std::forward<T>(t)) {}
+    Matrix(T &&t);
 
-    /* template */
-    /* < */
-    /* typename T, */
-    /* typename = enable_if<is_base<decay<T>, Matrix>> */
-    /* > */
-    /* Matrix(T &&t) : Base(std::forward<T>(t)) {} */
-
-    // -------------------------- //
-    //   Special Matrix Symbols   //
-    // -------------------------- //
+    /*! Perfect forwarding assignment operator. If the provided argument can
+     * is a base class of Matrix or a Base object can be constructed from it,
+     * the call is forwarded to the copy constructor of Base using perfect
+     * forwarding.
+     *
+     * \param t The object to be copied from.
+     */
+    template
+    <
+    typename T,
+    typename = enable_if_either<is_base<decay<T>, Matrix>,
+                                is_assignable<Base, T>>
+    >
+    Matrix & operator=(T &&);
 
     template <typename T>
     void accumulate(const T& B);

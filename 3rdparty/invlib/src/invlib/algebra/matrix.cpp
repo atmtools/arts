@@ -3,6 +3,52 @@
 // -------------- //
 
 template<typename Base>
+Matrix<Base>::Matrix(const Matrix &t)
+    : Base(t)
+{
+    // Nothing to do here.
+}
+
+template<typename Base>
+Matrix<Base>::Matrix(Matrix &&t)
+    : Base(t)
+{
+    // Nothing to do here.
+}
+
+template<typename Base>
+auto Matrix<Base>::operator=(const Matrix &t)
+    -> Matrix &
+{
+    Base::operator=(t);
+    return (*this);
+}
+
+template<typename Base>
+auto Matrix<Base>::operator=(Matrix &&t)
+    -> Matrix &
+{
+    Base::operator=(t);
+    return (*this);
+}
+
+template<typename Base>
+    template<typename T, typename>
+Matrix<Base>::Matrix(T &&t)
+    : Base(std::forward<T>(t))
+{
+    // Nothing to do here.
+}
+
+template<typename Base>
+    template<typename T, typename>
+auto Matrix<Base>::operator=(T &&t)
+    -> Matrix &
+{
+    Base::operator=(std::forward<T>(t));
+}
+
+template<typename Base>
 auto Matrix<Base>::begin()
     -> ElementIterator
 {

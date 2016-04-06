@@ -205,6 +205,14 @@ public:
      */
     GradientType evaluate(const VectorType &x);
 
+    /*! Cached evaluation of the forward model. Exploits the fact that some
+     * optimization methods require evaluation of the cost function and thus
+     * computation of the vector \f$\vec{y}_{i+1}\f$. Returns the cached value
+     * if the cache_valid flag set by the cost_function method is true. This
+     * flag should be disabled before the next iteration step.
+     */
+    GradientType evaluate_cached(const VectorType &x);
+
     /*! Exception safe wrapper for the Jaobian computation function of the
      * forward model.
      */
@@ -227,9 +235,12 @@ protected:
 
     ForwardModel &F;
     const VectorType   &xa;
+    decay<GradientType> yi_cached;
     const VectorType   *y_ptr;
     const SaType &Sa;
     const SeType &Se;
+
+    bool cache_valid = false;
 };
 
 // -------------- //
@@ -285,7 +296,8 @@ public:
     using Base::y_ptr; using Base::xa;
     using Base::F; using Base::Sa; using Base::Se;
     using Base::cost_function;
-    using Base::evaluate; using Base::Jacobian;
+    using Base::evaluate; using Base::evaluate_cached; using Base::Jacobian;
+    using Base::cache_valid;
 
     MAP( ForwardModel &F_,
          const VectorType   &xa_,
@@ -366,7 +378,8 @@ public:
     using Base::y_ptr; using Base::xa;
     using Base::F; using Base::Sa; using Base::Se;
     using Base::cost_function;
-    using Base::evaluate; using Base::Jacobian;
+    using Base::evaluate; using Base::evaluate_cached; using Base::Jacobian;
+    using Base::cache_valid;
 
     MAP( ForwardModel &F_,
          const VectorType   &xa_,
@@ -446,7 +459,8 @@ public:
     using Base::y_ptr; using Base::xa;
     using Base::F; using Base::Sa; using Base::Se;
     using Base::cost_function;
-    using Base::evaluate; using Base::Jacobian;
+    using Base::evaluate; using Base::evaluate_cached; using Base::Jacobian;
+    using Base::cache_valid;
 
     MAP( ForwardModel &F_,
          const VectorType   &xa_,

@@ -32,6 +32,9 @@ using is_base = typename std::is_base_of<T1, T2>;
 template<typename T1, typename T2>
 using is_constructible = typename std::is_constructible<T1, T2>;
 
+template<typename T1, typename T2>
+using is_assignable = typename std::is_assignable<T1, T2>;
+
 template<typename T1>
 using return_type = typename std::result_of<T1>::type;
 

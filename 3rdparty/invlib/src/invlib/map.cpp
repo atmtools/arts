@@ -14,7 +14,7 @@ MAPBase<ForwardModel, MatrixType, SaType, SeType>
           const VectorType &xa_,
           const SaType     &Sa_,
           const SeType     &Se_)
-    : m(F_.n), n(F_.m), F(F_), xa(xa_), y_ptr(nullptr), Sa(Sa_), Se(Se_)
+    : m(F_.n), n(F_.m), F(F_), xa(xa_), yi_cached(), y_ptr(nullptr), Sa(Sa_), Se(Se_)
 {
     // Nothing to do here.
 }
@@ -48,8 +48,10 @@ auto MAPBase<ForwardModel, MatrixType, SaType, SeType>
 ::cost_function(const VectorType &x)
     -> RealType
 {
-    auto &&y = evaluate(x);
-    VectorType dy = y - *y_ptr;
+    yi_cached = evaluate(x);
+    cache_valid = true;
+
+    VectorType dy = yi_cached - *y_ptr;
     VectorType dx = xa - x;
     return dot(dy, inv(Se) * dy) + dot(dx, inv(Sa) * dx);
 }
@@ -103,6 +105,35 @@ auto MAPBase<ForwardModel, MatrixType, SaType, SeType>
     catch(...)
     {
         throw ForwardModelEvaluationException{};
+    }
+}
+
+template
+<
+typename ForwardModel,
+typename MatrixType,
+typename SaType,
+typename SeType
+>
+auto MAPBase<ForwardModel, MatrixType, SaType, SeType>
+::evaluate_cached(const VectorType& x)
+    -> GradientType
+{
+    if (cache_valid)
+    {
+        std::cout << "Using cached yi." << std::endl;
+        return yi_cached;
+    }
+    else
+    {
+        try
+        {
+            return F.evaluate(x);
+        }
+        catch(...)
+        {
+            throw ForwardModelEvaluationException{};
+        }
     }
 }
 
@@ -213,9 +244,11 @@ auto MAP<ForwardModel, MatrixType, SaType, SeType, Formulation::STANDARD>
             break;
         }
 
+        cache_valid = false;
         dx = M.step(x, g, H, (*this));
+
         x += dx;
-        yi = evaluate(x);
+        yi = evaluate_cached(x);
         iterations++;
 
         cost_x = this->Base::cost_x(x);
@@ -301,10 +334,11 @@ auto MAP<ForwardModel, MatrixType, SaType, SeType, Formulation::NFORM>
         // Compute gradient and transform.
         g = tmp * (y - yi + (K * (x - xa)));
 
+        cache_valid = false;
         dx = M.step(xa, g, H, (*this));
 
         x = xa - dx;
-        yi = evaluate(x);
+        yi = evaluate_cached(x);
         iterations++;
 
         cost_x = this->Base::cost_x(x);
@@ -393,11 +427,13 @@ auto MAP<ForwardModel, MatrixType, SaType, SeType, Formulation::MFORM>
         // Compute gradient.
         VectorType g  = y - yi + K * (x - xa);
 
+        cache_valid = false;
         dx = M.step(xa, g, H, (*this));
+
         x = xa - tmp * dx;
 
         yold = yi;
-        yi = evaluate(x);
+        yi = evaluate_cached(x);
         VectorType dy = yi - yold;
         VectorType r = Se * H * Se * dy;
 

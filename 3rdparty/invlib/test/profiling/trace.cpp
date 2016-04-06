@@ -14,16 +14,25 @@
 #include "invlib/archetypes/matrix_archetype.h"
 #include "invlib/archetypes/vector_archetype.h"
 
+#include <utility>
+
+constexpr char vector_suffix[] = "vector";
+constexpr char matrix_suffix[] = "matrix";
+
 int main()
 {
-    using MatrixTracer = invlib::Tracer<MatrixArchetype<double>>;
-    using VectorTracer = invlib::Tracer<VectorArchetype<double>>;
+    using VectorTracer = invlib::Tracer<VectorArchetype<double>, vector_suffix>;
+    using MatrixTracer = invlib::Tracer<MatrixArchetype<double>, matrix_suffix>;
     using MatrixType = invlib::Matrix<MatrixTracer>;
     using VectorType = invlib::Vector<VectorTracer>;
 
     MatrixTracer::start_tracing();
-    MatrixTracer::start_tracing();
-    MatrixType M; M.resize(10,10);
+    VectorTracer::start_tracing();
+
+    MatrixType A, B, C, D; A.resize(100,100);
+
+    B = A * A; B.resize(0,0);
+
     MatrixTracer::stop_tracing("test");
-    MatrixTracer::stop_tracing("test");
+    VectorTracer::stop_tracing("test");
 }

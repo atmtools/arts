@@ -33,47 +33,44 @@ typename Solver
 >
 class LevenbergMarquardt;
 
-// ----------------------- //
-//  TypeName Helper Class  //
-// ----------------------  //
-
-template <typename T>
-struct TypeName
-{
-    static constexpr auto name = "void";
-};
-
-template <typename T>
-struct TypeName<Vector<T>>
-{
-    static constexpr auto name = "Vector";
-};
-
-template <typename T>
-struct TypeName<Matrix<T>>
-{
-    static constexpr auto name = "Matrix";
-};
-
 // --------------- //
 //   Tracer Class  //
 // --------------  //
 
 template
 <
-typename Base
+typename Base,
+const char *file_suffix
 >
 class Tracer : public Base
 {
 public:
 
-    Tracer() = default;
+    /*! The basic scalar type. */
+    using RealType   = typename Base::RealType;
+    /*! The basic vector type  */
+    using VectorType = Tracer<typename Base::VectorType, file_suffix>;
+    /*! The basic matrix type. */
+    using MatrixType = Tracer<typename Base::MatrixType, file_suffix>;
+    /*!
+     * Result type of an algebraic expression with Matrix as right hand
+     * operator
+     */
+    using ResultType = Tracer<typename Base::ResultType, file_suffix>;
 
-    template<typename T>
-    Tracer(T &&);
+    Tracer();
 
-    template<typename T>
-    Tracer & operator=(T &&);
+    Tracer(const Tracer &);
+    Tracer(const Base &);
+
+    Tracer(Tracer &&);
+    Tracer(Base &&);
+
+    Tracer & operator=(const Tracer &);
+    Tracer & operator=(const Base &);
+
+    Tracer & operator=(Tracer &&);
+    Tracer & operator=(Base &&);
 
     ~Tracer();
 

@@ -570,7 +570,7 @@ void x2arts_std(
 class AgendaWrapper
 {
     Workspace *ws;
-    MatrixView *jacobian;
+    OEMMatrix jacobian;
     const Agenda *inversion_iterate_agenda;
 public:
 
@@ -590,13 +590,13 @@ public:
 
 */
     AgendaWrapper( Workspace *ws_,
-                   MatrixView *jacobian_,
+                   Matrix &jacobian_,
                    const Agenda *inversion_iterate_agenda_ ) :
-        ws( ws_ ),
-        jacobian( jacobian_ ),
+        ws(ws_),
+        jacobian(jacobian_),
         inversion_iterate_agenda( inversion_iterate_agenda_ ),
-        m( (unsigned int) jacobian_->nrows()),
-        n( (unsigned int) jacobian_->ncols())
+        m( (unsigned int) jacobian.nrows()),
+        n( (unsigned int) jacobian.ncols())
         {}
 
 //! Evaluate forward model and compute Jacobian.
@@ -611,13 +611,9 @@ public:
   \param[out] J The Jacobian Ki=d/dx(K(x)) of the forward model.
   \param[in] x The current state vector x.
 */
-    OEMMatrix Jacobian(const OEMVector &xi)
+    OEMMatrix & Jacobian(const OEMVector &)
     {
-        OEMMatrix Ki;
-        OEMVector yi;
-        inversion_iterate_agendaExecute( *ws, yi, Ki, xi, 1,
-                                         *inversion_iterate_agenda );
-        return Ki;
+        return jacobian;
     }
 
 //! Evaluate forward model.
@@ -631,9 +627,8 @@ public:
 */
     OEMVector evaluate(const OEMVector &xi)
     {
-        OEMMatrix Ki;
-        OEMVector yi;
-        inversion_iterate_agendaExecute( *ws, yi, Ki, xi, 1,
+        OEMVector yi; yi.resize(m);
+        inversion_iterate_agendaExecute( *ws, yi, jacobian, xi, 1,
                                          *inversion_iterate_agenda );
         return yi;
     }
@@ -789,7 +784,7 @@ void oem_template(
       OEMSparse SeInv(covmat_so_inv), SaInv(covmat_sx_inv);
       PrecisionSparse Pe(SeInv), Pa(SaInv);
       OEMVector xa_oem(xa), y_oem(y), x_oem;
-      AgendaWrapper aw(&ws, &jacobian, &inversion_iterate_agenda);
+      AgendaWrapper aw(&ws, jacobian, &inversion_iterate_agenda);
       OEM_PS_PS<AgendaWrapper> oem(aw, xa_oem, Pa, Pe);
       // Call selected method
       //
