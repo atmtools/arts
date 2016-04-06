@@ -1,5 +1,3 @@
-/* config.h.in.  Generated from configure.in by autoheader.  */
-
 #define _GNU_SOURCE 1
 
 /* Compile Flags */
@@ -52,6 +50,9 @@
 
 /* define if the compiler supports ISO C++ standard library */
 #cmakedefine HAVE_STD 
+
+/* define if the compiler supports C++11 */
+#cmakedefine CXX11_SUPPORT
 
 /* check existence of c header files */
 #cmakedefine HAVE_STDLIB_H 1

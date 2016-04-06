@@ -273,7 +273,12 @@ using std::ptrdiff_t;
 
 #include "src/Core/arch/Default/Settings.h"
 
+// FIXME OLE: Disable warnings in C++11 about binder1st and binder2nd
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #include "src/Core/Functors.h"
+#pragma GCC diagnostic pop
+
 #include "src/Core/DenseCoeffsBase.h"
 #include "src/Core/DenseBase.h"
 #include "src/Core/MatrixBase.h"

@@ -1,3 +1,26 @@
+2016-04-06  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-473
+
+	* CMakeLists.txt, src/CMakeLists.txt:
+
+	Move all CXX11 detection into one place in toplevel CMakeLists.txt. Set
+	C++11 compiler flags globally (if enabled). Set maximum template depth globally
+	to 1024.
+
+	Add Intel compiler <16.1(unreleased) to C++11 blacklist.
+	In version 16.0, it does not yet support all necessary C++11 features.
+
+	* config.h.cmake: Add CXX11_SUPPORT preprocessor definition.
+
+	* src/main.cc, src/m_oem.cc: Use CXX11_SUPPORT preproc constant.
+
+	* 3rdparty/Eigen/Core:
+
+	Temporarily disable deprecated warnings in Functors.h file for
+	binder1st and binder2nd when compiling with C++11 support until Eigen
+	library is fixed.
+	
 2016-04-05  Simon Pfreundschuh  <simonpf@chalmers.se>
 
 	* arts-2-3-472

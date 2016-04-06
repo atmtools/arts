@@ -797,7 +797,7 @@ int main (int argc, char **argv)
         << "disabled" << endl
 #endif
         << "   OEM support:          "
-#if __cplusplus >= 201103L
+#ifdef CXX11_SUPPORT
         << "enabled" << endl
 #else
         << "disabled (no C++11 support)" << endl

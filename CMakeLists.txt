@@ -67,6 +67,9 @@ include (ArtsTestcases)
 
 if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Intel")
   set (CMAKE_COMPILER_IS_INTELCXX 1)
+  if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS "16.1")
+    set (NO_CXX11 1)
+  endif()
 endif ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Intel")
 
 set (DATA_INSTALL_DIR ${CMAKE_INSTALL_PREFIX}/share/arts)
@@ -89,14 +92,19 @@ endif (NO_ASSERT)
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden -fvisibility-inlines-hidden")
 
 ########### Check C++11 Support ##########
-INCLUDE(CheckCXXCompilerFlag)
-CHECK_CXX_COMPILER_FLAG("-std=c++11" CXX11_SUPPORT)
+if (NOT NO_CXX11)
+  INCLUDE(CheckCXXCompilerFlag)
+  CHECK_CXX_COMPILER_FLAG("-std=c++11" CXX11_SUPPORT)
 
-if    (CXX11_SUPPORT)
+  if (CXX11_SUPPORT)
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
     MESSAGE("-- C++11 support detected.")
-else  (CXX11_SUPPORT)
+  else()
     MESSAGE("-- No C++11 support detected.")
-endif (CXX11_SUPPORT)
+  endif()
+else()
+  set (CXX11_SUPPORT false)
+endif()
 
 ########### Check C header files ##########
 check_include_file (stdlib.h    HAVE_STDLIB_H)
@@ -201,7 +209,7 @@ endif (CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
 
 ########### Special flags for certain compilers ##########
 if (CMAKE_COMPILER_IS_GNUCXX)
-  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ftemplate-depth-60")
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ftemplate-depth-1024")
 endif (CMAKE_COMPILER_IS_GNUCXX)
 
 ########### Warning flags ##########

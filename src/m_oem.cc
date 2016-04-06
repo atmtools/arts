@@ -552,7 +552,7 @@ void x2arts_std(
     }   
 }
 
-#ifdef CXX11
+#ifdef CXX11_SUPPORT
 
 // Include only if compiling with C++11.
 #include "oem.h"
@@ -915,4 +915,4 @@ void oem(
     std::runtime_error("You have to compile ARTS with C++11 support to enable OEM.");
 }
 
-#endif // CXX11
+#endif // CXX11_SUPPORT
