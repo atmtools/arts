@@ -65,12 +65,12 @@ set (CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules")
 
 include (ArtsTestcases)
 
-if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Intel")
+if (CMAKE_CXX_COMPILER_ID MATCHES "Intel")
   set (CMAKE_COMPILER_IS_INTELCXX 1)
   if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS "16.1")
     set (NO_CXX11 1)
   endif()
-endif ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Intel")
+endif (CMAKE_CXX_COMPILER_ID MATCHES "Intel")
 
 set (DATA_INSTALL_DIR ${CMAKE_INSTALL_PREFIX}/share/arts)
 
@@ -92,6 +92,14 @@ endif (NO_ASSERT)
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden -fvisibility-inlines-hidden")
 
 ########### Check C++11 Support ##########
+
+# Disable C++11 support if compiling with clang on OSX
+# Xcode's clang as well as vanillay clang currently fails
+# compiling invlib
+if (APPLE AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  set (NO_CXX11 1)
+endif()
+
 if (NOT NO_CXX11)
   INCLUDE(CheckCXXCompilerFlag)
   CHECK_CXX_COMPILER_FLAG("-std=c++11" CXX11_SUPPORT)

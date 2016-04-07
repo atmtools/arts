@@ -1,3 +1,13 @@
+2016-04-07  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-475
+
+	* CMakeLists.txt:
+
+	Put OS X clang on C++11 blacklist for now. Apple Clang as well as
+	vanilla clang (tested 3.6-3.8) currently fail compiling invlib on OS X
+	10.11.4.
+
 2016-04-06  Simon Pfreundschuh  <simonpf@chalmers.se>
 
 	* arts-2-3-474
