@@ -9427,7 +9427,7 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "oem" ),
+      ( NAME( "OEM" ),
         DESCRIPTION
         (
          "Inversion by the so called optimal estimation method (OEM).\n"

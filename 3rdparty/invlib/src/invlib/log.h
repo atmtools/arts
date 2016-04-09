@@ -32,7 +32,7 @@ class LevenbergMarquardt;
 //    Standard Log    //
 // ------------------ //
 
-enum class LogType {MAP, OPT_GN, OPT_LM, SUB};
+enum class LogType {MAP, OPT_GN, OPT_LM, SUB, SOL_CG};
 
 template
 <
@@ -135,7 +135,7 @@ struct OptimizerLog<GaussNewton<RealType, Solver>>
 };
 
 // ---------------------- //
-//     Log Functions      //
+//     MAP Class          //
 // ---------------------- //
 
 template<>
@@ -229,6 +229,50 @@ void StandardLog<LogType::MAP>::finalize(Params... params)
         }
 
 
+    }
+}
+
+// -------------------- //
+//     MAP Class        //
+// -------------------- //
+
+template<>
+template<typename... Params>
+void StandardLog<LogType::SOL_CG>::init(Params... params)
+{
+    auto tuple = std::make_tuple(params...);
+    if (verbosity >= 1)
+    {
+        std::cout << std::endl;
+        std::cout << "CG Solver:" << std::endl;
+        std::cout << "\tTolerance:             " << std::get<0>(tuple) << std::endl;
+        std::cout << "\tInitial Residual Norm: " << std::get<1>(tuple) << std::endl;
+        std::cout << "\tRight-hand side Norm:  " << std::get<2>(tuple) << std::endl;
+    }
+}
+
+template<>
+template<typename... Params>
+void StandardLog<LogType::SOL_CG>::step(Params... params)
+{
+
+    if (verbosity >= 1)
+    {
+        auto tuple = std::make_tuple(params...);
+        std::cout<< "Step " << std::setw(5) << std::get<0>(tuple) << ", ";
+        std::cout<< "Normalized Residual: " << std::get<1>(tuple) << std::endl;
+    }
+}
+
+template<>
+template<typename... Params>
+void StandardLog<LogType::SOL_CG>::finalize(Params... params)
+{
+    if (verbosity >= 1)
+    {
+        auto tuple = std::make_tuple(params...);
+        std::cout << "Conjugate Gradient method converged after ";
+        std::cout << std::get<0>(tuple) << " steps." << std::endl << std::endl;
     }
 }
 

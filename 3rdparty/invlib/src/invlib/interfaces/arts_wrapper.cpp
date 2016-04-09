@@ -55,7 +55,7 @@ auto ArtsVector::scale(Numeric c)
     this->operator*=(c);
 }
 
-auto ArtsVector::norm()
+auto ArtsVector::norm() const
     -> Numeric
 {
     return sqrt(operator*(*this, *this));

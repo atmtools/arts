@@ -3,6 +3,7 @@
 
 #include "invlib/algebra.h"
 #include <iostream>
+#include "invlib/log.h"
 
 namespace invlib
 {
@@ -38,7 +39,8 @@ public:
     *  type.
     */
     template < typename VectorType, typename MatrixType>
-    VectorType solve(const MatrixType&A, const VectorType& v);
+    VectorType solve(const MatrixType&A,
+                     const VectorType& v);
 
 };
 
@@ -66,7 +68,7 @@ public:
      * \param trans The coordinate transformation. Defaults to the identity
      * transformation.
      */
-    ConjugateGradient(double tol);
+    ConjugateGradient(double tol, int verbosity = 0);
 
     /*! Solve linear system using the conjugate gradient method.
      *
@@ -82,11 +84,17 @@ public:
      * \param A The algebraic expression representing the linear system.
      * \param v The RHS vector \f$v\f$ of the linear system.
      */
-    template <typename VectorType, typename MatrixType>
+    template
+    <
+    typename VectorType,
+    typename MatrixType,
+    template <LogType> class Log = StandardLog
+    >
     VectorType solve(const MatrixType&A, const VectorType& v);
 
 private:
 
+    int    verbosity;
     double tolerance;
 
 };

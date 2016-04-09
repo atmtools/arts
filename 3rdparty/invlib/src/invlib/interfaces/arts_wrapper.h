@@ -61,7 +61,7 @@ public:
 
     void scale(Numeric c);
 
-    Numeric norm();
+    Numeric norm() const;
 
 };
 

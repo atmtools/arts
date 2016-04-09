@@ -693,7 +693,7 @@ void oem_template(
     throw runtime_error( "Size of *covmat_sx_inv* do not agree with Jacobian " 
                          "information (*jacobian_indices*)." );
   // Check GINs
-  if( !( method == "li"  ||  method == "gn"  ||  method == "ml" || method == "lm" ) )  
+  if( !( method == "li"  ||  method == "gn"  ||  method == "ml" || method == "lm" || method == "li_cg" || method == "gn_cg" || method == "lm_cg" || method == "ml_cg" ) )  
     throw runtime_error( "Valid options for *method* are \"nl\", \"gn\" and " 
                          "\"ml\" or \"lm\"." );
   if( !( x_norm.nelem() == 0  ||  x_norm.nelem() == n ) )
@@ -792,8 +792,18 @@ void oem_template(
       if (method == "li")
       {
           GN gn(1e-5, 1); // Linear case, only one step.
-          oem_diagnostics[0] = oem.compute(x_oem, y_oem, gn,
-                                           (int) 2 * display_progress);
+          oem_diagnostics[0] = (Index) oem.compute(x_oem, y_oem, gn,
+                                                   2 * (int) display_progress);
+          oem_diagnostics[2] = oem.cost;
+          oem_diagnostics[3] = oem.cost_y;
+          oem_diagnostics[4] = 1.0;
+      }
+      else if (method == "li_cg")
+      {
+          CG cg(1e-5, (int) display_progress);
+          GN_CG gn(1e-5, 1, cg); // Linear case, only one step.
+          oem_diagnostics[0] = (Index) oem.compute(x_oem, y_oem, gn,
+                                                   2 * (int) display_progress);
           oem_diagnostics[2] = oem.cost;
           oem_diagnostics[3] = oem.cost_y;
           oem_diagnostics[4] = 1.0;
@@ -801,19 +811,42 @@ void oem_template(
       else if (method == "gn")
       {
           GN gn(1e-5, (unsigned int) max_iter); // Linear case, only one step.
-          oem_diagnostics[0] = oem.compute(x_oem, y_oem, gn,
-                                           (int) 2 * display_progress);
+          oem_diagnostics[0] = (Index) oem.compute(x_oem, y_oem, gn,
+                                                   2 * (int) display_progress);
           oem_diagnostics[2] = oem.cost;
           oem_diagnostics[3] = oem.cost_y;
           oem_diagnostics[4] = oem.iterations;
+      }
+      else if (method == "gn_cg")
+      {
+          CG cg(1e-5, (int) display_progress);
+          GN_CG gn(1e-5, (unsigned int) max_iter, cg);
+          oem_diagnostics[0] = (Index) oem.compute(x_oem, y_oem, gn,
+                                                   2 * (int) display_progress);
+          oem_diagnostics[2] = oem.cost;
+          oem_diagnostics[3] = oem.cost_y;
+          oem_diagnostics[4] = 1.0;
       }
       else if ( (method == "lm") || (method == "ml") )
       {
           LM_S lm(SaInv);
           lm.set_tolerance(1e-5);
           lm.set_maximum_iterations((unsigned int) max_iter);
+          oem_diagnostics[0] = (Index) oem.compute(x_oem, y_oem, lm,
+                                                   2 * (int) display_progress);
+          oem_diagnostics[2] = oem.cost;
+          oem_diagnostics[3] = oem.cost_y;
+          oem_diagnostics[4] = oem.iterations;
+      }
+      else if ( (method == "lm_cg") || (method == "ml_cg") )
+      {
+          CG cg(1e-5, (int) display_progress);
+          GN_CG gn(1e-5, (unsigned int) max_iter, cg);
+          LM_CG_S lm(SaInv, cg);
+          lm.set_tolerance(1e-5);
+          lm.set_maximum_iterations((unsigned int) max_iter);
           oem_diagnostics[0] = oem.compute(x_oem, y_oem, lm,
-                                           (int) 2 * display_progress);
+                                           2 * (int) display_progress);
           oem_diagnostics[2] = oem.cost;
           oem_diagnostics[3] = oem.cost_y;
           oem_diagnostics[4] = oem.iterations;
@@ -828,7 +861,7 @@ void oem_template(
     }
 }
 
-void oem(
+void OEM(
     Workspace&                  ws,
     Vector&                     x,
     Vector&                     xa,
@@ -874,7 +907,7 @@ void oem(
 
 #else
 
-void oem(
+void OEM(
          Workspace&,
          Vector&,
          Vector&,

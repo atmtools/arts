@@ -73,7 +73,7 @@ void VectorArchetype<Real>::scale(Real c)
 }
 
 template <typename Real>
-Real VectorArchetype<Real>::norm()
+Real VectorArchetype<Real>::norm() const
 {
     return sqrt(dot(*this, *this));
 }

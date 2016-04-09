@@ -226,26 +226,29 @@ auto LevenbergMarquardt<RealType, DampingMatrix, Solver>
 
     VectorType dx;
 
-    bool found_step = false;
-    while (!found_step)
+    RealType new_cost = 0.0;
+    RealType c = -1.0;
+    while (c < 0.0)
     {
+        // Compute step.
         auto C = B + lambda * D;
         dx = -1.0 * s.solve(C, g);
         VectorType xnew = x + dx;
-        RealType new_cost = J.cost_function(xnew);
 
-        if (new_cost < current_cost)
+        // Compute model accuracy.
+        new_cost = J.cost_function(xnew);
+        c = (new_cost - current_cost) / (dot(g,dx) + 0.5 * dot(dx, B * dx));
+
+        if (c > 0.75)
         {
             if (lambda >= (lambda_threshold * lambda_decrease))
                 lambda /= lambda_decrease;
             else
-                lambda = 0;
+                lambda = 0.0;
 
             current_cost = new_cost;
-            found_step = true;
         }
-
-        else
+        if (c < 0.2)
         {
             if (lambda < lambda_threshold)
                 lambda = lambda_threshold;
@@ -260,13 +263,13 @@ auto LevenbergMarquardt<RealType, DampingMatrix, Solver>
                 else
                 {
                     lambda = lambda_maximum + 1.0;
-                    current_cost = new_cost;
                     break;
 
                 }
             }
         }
     }
+    current_cost = new_cost;
     step_count++;
 
     return dx;

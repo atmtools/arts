@@ -13,40 +13,55 @@ auto Standard::solve(const MatrixType &A,const VectorType &v)
 //  Conjugate Gradient Solver //
 // -------------------------  //
 
-ConjugateGradient::ConjugateGradient(double tol)
-    : tolerance(tol)
+ConjugateGradient::ConjugateGradient(double tol, int verbosity_)
+    : verbosity(verbosity_), tolerance(tol)
 {
     // Nothing to do here.
 }
 
-template<typename VectorType, typename MatrixType>
+template
+<
+typename VectorType,
+typename MatrixType,
+template <LogType> class Log
+>
 auto ConjugateGradient::solve(const MatrixType &A,
-                               const VectorType &v)
+                              const VectorType &v)
     -> VectorType
 {
     using RealType = typename VectorType::RealType;
 
-    unsigned int n = v.rows();
-    RealType tol, alpha, beta, rnorm;
+    Log<LogType::SOL_CG> log(verbosity);
+
+    RealType tol, alpha, beta, rnorm, vnorm;
     VectorType x, r, p, xnew, rnew, pnew;
 
     x = v;
     r = A * x - v;
     p = -1.0 * r;
+    vnorm = v.norm();
+    rnorm = r.norm();
+
+    log.init(tolerance, rnorm, vnorm);
 
     int i = 0;
-    while (r.norm() > tolerance)
+    while (rnorm / vnorm > tolerance)
     {
         alpha = dot(r, r) / dot(p, A * p);
         xnew  = x + alpha *     p;
-        rnew  = r + alpha * A * p;
+        rnew  = A * xnew - v;
         beta  = dot(rnew, rnew) / dot(r, r);
         pnew  = beta * p - rnew;
 
         x = xnew;
-        r = rnew;
+        r = rnew; rnorm = r.norm();
         p = pnew;
+
+        i++;
+        if (i % 10 == 0)
+            log.step(i, rnorm);
     }
+    log.finalize(i);
 
     return x;
 }

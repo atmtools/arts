@@ -175,7 +175,7 @@ public:
     *
     * \return The Euclidean norm of this vector.
     */
-    Real norm();
+    Real norm() const;
 
 private:
 
