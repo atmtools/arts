@@ -11,6 +11,8 @@ message(STATUS "CMAKE_COMPILER_IS_GNUCXX   = ${CMAKE_COMPILER_IS_GNUCXX}"  )
 set (CMAKE_CXX_STANDARD 11)
 
 # Check for BOOST library.
+include(FindBLAS)
+include(FindLAPACK)
 find_package(Boost 1.60.0)
 
 include_directories ("${PROJECT_SOURCE_DIR}/src/"

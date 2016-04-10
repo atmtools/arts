@@ -15,20 +15,23 @@ public:
     Sphere(unsigned int n_)
         : n(n_), m(1) {}
 
-    template<typename Vector>
-    Vector evaluate(const Vector& x)
+    template<typename VectorType>
+    VectorType evaluate(const VectorType& x)
     {
-        Vector w; w.resize(m);
+        VectorType w; w.resize(m);
         w(0) = dot(x,x);
         return w;
     }
 
-    template<typename Vector>
-    Matrix Jacobian(const Vector& v)
+    template<typename VectorType>
+    Matrix Jacobian(const VectorType& x, VectorType &y)
     {
+        y.resize(0);
+        y(0) = dot(x,x);
+
         Matrix J; J.resize(m,n);
         for (unsigned int i = 0; i < n; i++)
-            J(0,i) = 2.0 * v(i);
+            J(0,i) = 2.0 * x(i);
         return J;
     }
 

@@ -46,6 +46,7 @@ auto Matrix<Base>::operator=(T &&t)
     -> Matrix &
 {
     Base::operator=(std::forward<T>(t));
+    return *this;
 }
 
 template<typename Base>

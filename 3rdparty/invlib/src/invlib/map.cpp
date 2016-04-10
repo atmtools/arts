@@ -14,7 +14,7 @@ MAPBase<ForwardModel, MatrixType, SaType, SeType>
           const VectorType &xa_,
           const SaType     &Sa_,
           const SeType     &Se_)
-    : m(F_.n), n(F_.m), F(F_), xa(xa_), yi_cached(), y_ptr(nullptr), Sa(Sa_), Se(Se_)
+    : m(F_.n), n(F_.m), F(F_), xa(xa_), y_ptr(nullptr), Sa(Sa_), Se(Se_)
 {
     // Nothing to do here.
 }
@@ -48,10 +48,8 @@ auto MAPBase<ForwardModel, MatrixType, SaType, SeType>
 ::cost_function(const VectorType &x)
     -> RealType
 {
-    yi_cached = evaluate(x);
-    cache_valid = true;
-
-    VectorType dy = yi_cached - *y_ptr;
+    VectorType y = evaluate(x);
+    VectorType dy = y - *y_ptr;
     VectorType dx = xa - x;
     return dot(dy, inv(Se) * dy) + dot(dx, inv(Sa) * dx);
 }
@@ -96,7 +94,7 @@ typename SeType
 >
 auto MAPBase<ForwardModel, MatrixType, SaType, SeType>
 ::evaluate(const VectorType& x)
-    -> GradientType
+    -> FMVectorType
 {
     try
     {
@@ -116,40 +114,12 @@ typename SaType,
 typename SeType
 >
 auto MAPBase<ForwardModel, MatrixType, SaType, SeType>
-::evaluate_cached(const VectorType& x)
-    -> GradientType
-{
-    if (cache_valid)
-    {
-        return yi_cached;
-    }
-    else
-    {
-        try
-        {
-            return F.evaluate(x);
-        }
-        catch(...)
-        {
-            throw ForwardModelEvaluationException{};
-        }
-    }
-}
-
-template
-<
-typename ForwardModel,
-typename MatrixType,
-typename SaType,
-typename SeType
->
-auto MAPBase<ForwardModel, MatrixType, SaType, SeType>
-::Jacobian(const VectorType& x)
+::Jacobian(const VectorType& x, VectorType &y)
     -> JacobianType
 {
     try
     {
-        return F.Jacobian(x);
+        return F.Jacobian(x, y);
     }
     catch(...)
     {
@@ -168,7 +138,8 @@ auto MAPBase<ForwardModel, MatrixType, SaType, SeType>
 ::gain_matrix(const VectorType &x)
     -> MatrixType
 {
-    auto &&K = Jacobian(x);
+    VectorType y; y.resize(m);
+    auto &&K = Jacobian(x, y);
     MatrixType tmp = transp(K) * inv(Se);
     MatrixType G = inv(tmp * K + inv(Sa)) * tmp;
     return G;
@@ -216,7 +187,8 @@ auto MAP<ForwardModel, MatrixType, SaType, SeType, Formulation::STANDARD>
 
     y_ptr = &y;
     x = xa;
-    VectorType yi = evaluate(x);
+    FMVectorType yi; yi.resize(m);
+    JacobianType K = Jacobian(x, yi);
     VectorType dx;
 
     cost_x = this->Base::cost_x(x);
@@ -228,33 +200,30 @@ auto MAP<ForwardModel, MatrixType, SaType, SeType, Formulation::STANDARD>
 
     while (iterations < M.get_maximum_iterations())
     {
-        auto &&K = Jacobian(x);
+        // (Approximate) Hessian.
         auto tmp = transp(K) * inv(Se);
-
-        // Compute Hessian and transform.
         auto H  = tmp * K + inv(Sa);
-
-        // Compute gradient and transform.
+        // Gradient.
         VectorType g  = tmp * (yi - y) + inv(Sa) * (x - xa);
 
-        if ((g.norm() / n) < M.get_tolerance())
+        RealType conv = g.norm() / n;
+        if (conv < M.get_tolerance())
         {
             converged = true;
             break;
         }
 
-        cache_valid = false;
         dx = M.step(x, g, H, (*this));
 
         x += dx;
-        yi = evaluate_cached(x);
+        K = Jacobian(x, yi);
         iterations++;
 
         cost_x = this->Base::cost_x(x);
         cost_y = this->Base::cost_y(y, yi);
         cost   = cost_x + cost_y;
 
-        log.step(iterations, cost, cost_x, cost_y, M);
+        log.step(iterations, cost, cost_x, cost_y, conv, M);
     }
 
     log.finalize(converged, iterations, cost, cost_x, cost_y);
@@ -303,7 +272,9 @@ auto MAP<ForwardModel, MatrixType, SaType, SeType, Formulation::NFORM>
 
     y_ptr = &y;
     x = xa;
-    auto &&yi = evaluate(x);
+    FMVectorType yi; yi.resize(m);
+    JacobianType K = Jacobian(x, yi);
+
     VectorType dx;
 
     cost_x = this->Base::cost_x(x);
@@ -315,36 +286,34 @@ auto MAP<ForwardModel, MatrixType, SaType, SeType, Formulation::NFORM>
 
     while (iterations < M.get_maximum_iterations())
     {
-        auto &&K  = Jacobian(x);
         auto tmp = transp(K) * inv(Se);
 
         // Compute true gradient for convergence test.
         VectorType g  = tmp * (yi - y) + inv(Sa) * (x - xa);
 
-        if ((g.norm() / n) < M.get_tolerance())
+        RealType conv = g.norm() / n;
+        if (conv < M.get_tolerance())
         {
             converged = true;
             break;
         }
 
-        // Compute Hessian and transform.
+        // Hessian.
         auto H  = tmp * K + inv(Sa);
-
-        // Compute gradient and transform.
+        // N-form pseudo gradient.
         g = tmp * (y - yi + (K * (x - xa)));
 
-        cache_valid = false;
         dx = M.step(xa, g, H, (*this));
 
         x = xa - dx;
-        yi = evaluate_cached(x);
+        K = Jacobian(x, yi);
         iterations++;
 
         cost_x = this->Base::cost_x(x);
         cost_y = this->Base::cost_y(y, yi);
         cost   = cost_x + cost_y;
 
-        log.step(iterations, cost, cost_x, cost_y, M);
+        log.step(iterations, cost, cost_x, cost_y, conv, M);
     }
 
     log.finalize(converged, iterations, cost, cost_x, cost_y);
@@ -384,7 +353,8 @@ auto MAP<ForwardModel, MatrixType, SaType, SeType, Formulation::MFORM>
 ::gain_matrix(const VectorType &x)
     -> MatrixType
 {
-    auto &&K = Jacobian(x);
+    VectorType y; y.resize(m);
+    auto &&K = Jacobian(x, y);
     MatrixType SaKT = Sa * transp(K);
     MatrixType G = SaKT * inv(K * SaKT + Se);
     return G;
@@ -409,7 +379,8 @@ auto MAP<ForwardModel, MatrixType, SaType, SeType, Formulation::MFORM>
 
     y_ptr = &y;
     x = xa;
-    auto &&yi = evaluate(x);
+    FMVectorType yi; yi.resize(m);
+    JacobianType K = Jacobian(x, yi);
     VectorType dx, yold;
 
     bool converged = false;
@@ -417,7 +388,6 @@ auto MAP<ForwardModel, MatrixType, SaType, SeType, Formulation::MFORM>
 
     while (iterations < M.get_maximum_iterations())
     {
-        auto &&K = Jacobian(x);
         auto tmp = Sa * transp(K);
 
         // Compute Hessian.
@@ -426,17 +396,17 @@ auto MAP<ForwardModel, MatrixType, SaType, SeType, Formulation::MFORM>
         // Compute gradient.
         VectorType g  = y - yi + K * (x - xa);
 
-        cache_valid = false;
         dx = M.step(xa, g, H, (*this));
 
         x = xa - tmp * dx;
 
         yold = yi;
-        yi = evaluate_cached(x);
+        K = Jacobian(x , yi);
+
         VectorType dy = yi - yold;
         VectorType r = Se * H * Se * dy;
-
-        if ((dot(dy, r) / m) < M.get_tolerance())
+        RealType conv = dot(dy, r) / m;
+        if (conv < M.get_tolerance())
         {
             converged = true;
             break;

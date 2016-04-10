@@ -73,8 +73,8 @@ struct ForwardModelEvaluationException
  *
  * - VectorType evaluate(const VectorType& x): Evaluate the forward model at the given
  * state space vector.
- * - MatrixType Jacobian(const VectorType& x): Compute the Jacobian of the forward model
- * at the given state space vector.
+ * - MatrixType Jacobian(const VectorType& x, VectorType&y): Compute the Jacobian
+ * of the forward model and set the forward model prediciton y.
  *
  * \tparam ForwardModel The forward model type to be used.
  * \tparam RealType   The floating point type used for scalars.
@@ -107,22 +107,23 @@ private:
     // as returned by the forward model.
     auto evaluate_helper(ForwardModel &f, const VectorType& x)
         -> decltype(f.evaluate(x));
-    auto Jacobian_helper(ForwardModel &f, const VectorType& x)
-        -> decltype(f.Jacobian(x));
+    auto Jacobian_helper(ForwardModel &f, const VectorType& x, VectorType &y)
+        -> decltype(f.Jacobian(x,y));
 
 public:
 
     /*! The type of the gradient vector as returned by the forward model. */
-    using GradientType =
+    using FMVectorType =
         return_type<decltype(&MAPBase::evaluate_helper)(MAPBase,
                                                         ForwardModel&,
-                                                        const VectorType&)>;
+                                                        const VectorType &)>;
 
     /*! The type of the Jacobian matrix as returned by the forward model. */
     using JacobianType =
         return_type<decltype(&MAPBase::Jacobian_helper)(MAPBase,
-                                                        ForwardModel&,
-                                                        const VectorType&)>;
+                                                        ForwardModel &,
+                                                        const VectorType &,
+                                                        VectorType &)>;
 
     // ------------------------------- //
     //  Constructors and Destructors   //
@@ -203,20 +204,12 @@ public:
     /*! Exception safe wrapper for the evaluate function of the forward
      * model.
      */
-    GradientType evaluate(const VectorType &x);
-
-    /*! Cached evaluation of the forward model. Exploits the fact that some
-     * optimization methods require evaluation of the cost function and thus
-     * computation of the vector \f$\vec{y}_{i+1}\f$. Returns the cached value
-     * if the cache_valid flag set by the cost_function method is true. This
-     * flag should be disabled before the next iteration step.
-     */
-    GradientType evaluate_cached(const VectorType &x);
+    FMVectorType evaluate(const VectorType &x);
 
     /*! Exception safe wrapper for the Jaobian computation function of the
      * forward model.
      */
-    JacobianType Jacobian(const VectorType &x);
+    JacobianType Jacobian(const VectorType &x, VectorType &y);
 
     /*! Compute the gain matrix at the given state vector x.
      *
@@ -235,12 +228,10 @@ protected:
 
     ForwardModel &F;
     const VectorType   &xa;
-    decay<GradientType> yi_cached;
     const VectorType   *y_ptr;
     const SaType &Sa;
     const SeType &Se;
 
-    bool cache_valid = false;
 };
 
 // -------------- //
@@ -290,14 +281,17 @@ public:
     using VectorType = typename MatrixType::VectorType;
     /*! The base class. */
     using Base = MAPBase<ForwardModel, MatrixType, SaType, SeType>;
+    /*! The Jacobian Type */
+    using typename Base::JacobianType;
+    /*! The vector type as returned by the forward model. */
+    using typename Base::FMVectorType;
 
     /*! Make Base memeber directly available. */
     using Base::m; using Base::n;
     using Base::y_ptr; using Base::xa;
     using Base::F; using Base::Sa; using Base::Se;
     using Base::cost_function;
-    using Base::evaluate; using Base::evaluate_cached; using Base::Jacobian;
-    using Base::cache_valid;
+    using Base::evaluate; using Base::Jacobian;
 
     MAP( ForwardModel &F_,
          const VectorType   &xa_,
@@ -372,14 +366,17 @@ public:
     using VectorType = typename MatrixType::VectorType;
     /*! The base class. */
     using Base = MAPBase<ForwardModel, MatrixType, SaType, SeType>;
+    /*! The Jacobian Type */
+    using typename Base::JacobianType;
+    /*! The vector type as returned by the forward model. */
+    using typename Base::FMVectorType;
 
     /*! Make Base memeber directly available. */
     using Base::m; using Base::n;
     using Base::y_ptr; using Base::xa;
     using Base::F; using Base::Sa; using Base::Se;
     using Base::cost_function;
-    using Base::evaluate; using Base::evaluate_cached; using Base::Jacobian;
-    using Base::cache_valid;
+    using Base::evaluate; using Base::Jacobian;
 
     MAP( ForwardModel &F_,
          const VectorType   &xa_,
@@ -453,14 +450,17 @@ public:
     using VectorType = typename MatrixType::VectorType;
     /*! The base class. */
     using Base = MAPBase<ForwardModel, MatrixType, SaType, SeType>;
+    /*! The Jacobian Type */
+    using typename Base::JacobianType;
+    /*! The vector type as returned by the forward model. */
+    using typename Base::FMVectorType;
 
     /*! Make Base memeber directly available. */
     using Base::m; using Base::n;
     using Base::y_ptr; using Base::xa;
     using Base::F; using Base::Sa; using Base::Se;
     using Base::cost_function;
-    using Base::evaluate; using Base::evaluate_cached; using Base::Jacobian;
-    using Base::cache_valid;
+    using Base::evaluate; using Base::Jacobian;
 
     MAP( ForwardModel &F_,
          const VectorType   &xa_,

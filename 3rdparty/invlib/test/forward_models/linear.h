@@ -13,11 +13,11 @@ namespace invlib
  * K, that is used as the linear forward model. Implementes all necesary
  * for the computation of the MAP estimator using the MAP class.
  *
- * \tparam Matrix The matrix type to be used for the linear model.
+ * \tparam MatrixType The matrix type to be used for the linear model.
  */
 template
 <
-typename Matrix
+typename MatrixType
 >
 class Linear
 {
@@ -26,20 +26,21 @@ public:
     Linear(unsigned int n_, unsigned int m_)
         : n(n_), m(m_)
     {
-        K = random<Matrix>(m,n);
+        K = random<MatrixType>(m,n);
     }
 
-    template<typename Vector>
-    Vector evaluate(const Vector &x)
+    template<typename VectorType>
+    VectorType evaluate(const VectorType &x)
     {
-        Vector w = K * x;
+        VectorType w = K * x;
         return w;
     }
 
-    template<typename Vector>
-    Matrix Jacobian(const Vector &x)
+    template<typename VectorType>
+    MatrixType Jacobian(const VectorType &x, VectorType &y)
     {
-        Matrix J = K;
+        MatrixType J = K;
+        y = K * x;
         return J;
     }
 
@@ -47,7 +48,7 @@ public:
 
 private:
 
-    Matrix K;
+    MatrixType K;
 
 };
 

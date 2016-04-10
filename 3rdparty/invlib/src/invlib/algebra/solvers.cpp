@@ -2,19 +2,20 @@
 //  Standard Solver   //
 // ------------------ //
 
-template<typename VectorType, typename MatrixType>
+    template<typename VectorType, typename MatrixType>
 auto Standard::solve(const MatrixType &A,const VectorType &v)
     -> VectorType
 {
-    return A.solve(v);
+    VectorType x = A.solve(v);
+    return x;
 }
 
 // -------------------------  //
 //  Conjugate Gradient Solver //
 // -------------------------  //
 
-ConjugateGradient::ConjugateGradient(double tol, int verbosity_)
-    : verbosity(verbosity_), tolerance(tol)
+    ConjugateGradient::ConjugateGradient(double tol, int verbosity_)
+: verbosity(verbosity_), tolerance(tol)
 {
     // Nothing to do here.
 }
@@ -22,11 +23,11 @@ ConjugateGradient::ConjugateGradient(double tol, int verbosity_)
 template
 <
 typename VectorType,
-typename MatrixType,
-template <LogType> class Log
->
+         typename MatrixType,
+         template <LogType> class Log
+    >
 auto ConjugateGradient::solve(const MatrixType &A,
-                              const VectorType &v)
+        const VectorType &v)
     -> VectorType
 {
     using RealType = typename VectorType::RealType;
@@ -36,7 +37,7 @@ auto ConjugateGradient::solve(const MatrixType &A,
     RealType tol, alpha, beta, rnorm, vnorm;
     VectorType x, r, p, xnew, rnew, pnew;
 
-    x = v;
+    x = 0.0 * v;
     r = A * x - v;
     p = -1.0 * r;
     vnorm = v.norm();

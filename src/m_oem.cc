@@ -611,8 +611,10 @@ public:
   \param[out] J The Jacobian Ki=d/dx(K(x)) of the forward model.
   \param[in] x The current state vector x.
 */
-    OEMMatrix & Jacobian(const OEMVector &)
+    OEMMatrix & Jacobian(const OEMVector &xi, OEMVector &yi)
     {
+        inversion_iterate_agendaExecute( *ws, yi, jacobian, xi, 1,
+                                         *inversion_iterate_agenda );
         return jacobian;
     }
 
@@ -628,6 +630,7 @@ public:
     OEMVector evaluate(const OEMVector &xi)
     {
         OEMVector yi; yi.resize(m);
+        Matrix dummy;
         inversion_iterate_agendaExecute( *ws, yi, jacobian, xi, 1,
                                          *inversion_iterate_agenda );
         return yi;
@@ -810,7 +813,7 @@ void oem_template(
       }
       else if (method == "gn")
       {
-          GN gn(1e-5, (unsigned int) max_iter); // Linear case, only one step.
+          GN gn(1e-3, (unsigned int) max_iter); // Linear case, only one step.
           oem_diagnostics[0] = (Index) oem.compute(x_oem, y_oem, gn,
                                                    2 * (int) display_progress);
           oem_diagnostics[2] = oem.cost;
@@ -820,7 +823,7 @@ void oem_template(
       else if (method == "gn_cg")
       {
           CG cg(1e-5, (int) display_progress);
-          GN_CG gn(1e-5, (unsigned int) max_iter, cg);
+          GN_CG gn(1e-3, (unsigned int) max_iter, cg);
           oem_diagnostics[0] = (Index) oem.compute(x_oem, y_oem, gn,
                                                    2 * (int) display_progress);
           oem_diagnostics[2] = oem.cost;
@@ -830,7 +833,7 @@ void oem_template(
       else if ( (method == "lm") || (method == "ml") )
       {
           LM_S lm(SaInv);
-          lm.set_tolerance(1e-5);
+          lm.set_tolerance(1e-3);
           lm.set_maximum_iterations((unsigned int) max_iter);
           oem_diagnostics[0] = (Index) oem.compute(x_oem, y_oem, lm,
                                                    2 * (int) display_progress);
@@ -841,7 +844,7 @@ void oem_template(
       else if ( (method == "lm_cg") || (method == "ml_cg") )
       {
           CG cg(1e-5, (int) display_progress);
-          GN_CG gn(1e-5, (unsigned int) max_iter, cg);
+          GN_CG gn(1e-3, (unsigned int) max_iter, cg);
           LM_CG_S lm(SaInv, cg);
           lm.set_tolerance(1e-5);
           lm.set_maximum_iterations((unsigned int) max_iter);
@@ -907,8 +910,7 @@ void OEM(
 
 #else
 
-void OEM(
-         Workspace&,
+void OEM(Workspace&,
          Vector&,
          Vector&,
          Vector&,

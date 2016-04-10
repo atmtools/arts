@@ -1,3 +1,12 @@
+2016-04-10  Simon Pfreundschuh  <simonpf@chalmers.se>
+
+	* arts-2-3-475
+
+	* 3rdparte/invlib/* Changed FM interface so that Jacobian
+	computation also computes y prediction.
+
+	* m_oem: Avoid computation of Jacobian when only y is needed.
+
 2016-04-09  Simon Pfreundschuh  <simonpf@chalmers.se>
 
 	* arts-2-3-474
