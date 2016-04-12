@@ -160,7 +160,7 @@ operates with two types of basis functions.
 To treat an one-dimensional quantity to be piece-wise linear, or to say that a
 linear interpolation shall be applied, are identical definitions. The basis
 functions matching this definition have triangular shape, sometimes denoted as
-``tenth functions''. Such functions are exemplified in
+``tent functions''. Such functions are exemplified in
 Fig.~\ref{fig:wfuns:zbasis}, see also \citet{buehler:artst:05}.
 
 \begin{figure}[t]
@@ -174,17 +174,17 @@ Fig.~\ref{fig:wfuns:zbasis}, see also \citet{buehler:artst:05}.
 
 In most cases, the quantity is considered to be undefined outside the end
 points of the grid. Hence, the basis function for a grid end point is then just
-``half a tenth''. The exception to this rule is retrieval grids of piece-wise
+``half a tent''. The exception to this rule is retrieval grids of piece-wise
 linear variables. To avoid that retrieval grids must cover the complete
 atmosphere, end point values are assumed to be valid to the end of the
 atmosphere (or data range of concern). That is, the basis functions for end
-points of retrieval grids follow the tenth shape inside the grid range, and
+points of retrieval grids follow the tent shape inside the grid range, and
 have a constant value of 1 outside. In terms of interpolation, this matches to
 allow extrapolation, the applying a ``nearest'' interpolation for positions
 outside the covered range (the end values are valid all the way to
 $\pm$infinity).
 The basis functions are defined likewise for higher dimensions, but the
-tenth functions are then 2D or 3D ``tenths''.
+tent functions are then 2D or 3D ``tents''.
 
 
 
