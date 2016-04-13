@@ -14,7 +14,7 @@ MAPBase<ForwardModel, MatrixType, SaType, SeType>
           const VectorType &xa_,
           const SaType     &Sa_,
           const SeType     &Se_)
-    : m(F_.n), n(F_.m), F(F_), xa(xa_), y_ptr(nullptr), Sa(Sa_), Se(Se_)
+    : m(F_.m), n(F_.n), F(F_), xa(xa_), y_ptr(nullptr), Sa(Sa_), Se(Se_)
 {
     // Nothing to do here.
 }
@@ -98,7 +98,12 @@ auto MAPBase<ForwardModel, MatrixType, SaType, SeType>
 {
     try
     {
-        return F.evaluate(x);
+        auto t1 = steady_clock::now();
+        auto y = F.evaluate(x);
+        auto t2 = steady_clock::now();
+        evaluate_time += duration_cast<duration<double>>(t2 - t1);
+
+        return y;
     }
     catch(...)
     {
@@ -119,7 +124,12 @@ auto MAPBase<ForwardModel, MatrixType, SaType, SeType>
 {
     try
     {
-        return F.Jacobian(x, y);
+        auto t1 = steady_clock::now();
+        JacobianType J  = F.Jacobian(x, y);
+        auto t2 = steady_clock::now();
+        Jacobian_time += duration_cast<duration<double>>(t2 - t1);
+
+        return J;
     }
     catch(...)
     {
@@ -185,6 +195,8 @@ auto MAP<ForwardModel, MatrixType, SaType, SeType, Formulation::STANDARD>
     Log<LogType::MAP> log(verbosity);
     log.init(Formulation::STANDARD, M);
 
+    auto t1 = steady_clock::now();
+
     y_ptr = &y;
     x = xa;
     FMVectorType yi; yi.resize(m);
@@ -198,35 +210,42 @@ auto MAP<ForwardModel, MatrixType, SaType, SeType, Formulation::STANDARD>
     bool converged = false;
     iterations     = 0;
 
-    while (iterations < M.get_maximum_iterations())
+    while ((iterations < M.get_maximum_iterations()) && !converged)
     {
-        // (Approximate) Hessian.
+
+        // Compute next step.
         auto tmp = transp(K) * inv(Se);
         auto H  = tmp * K + inv(Sa);
-        // Gradient.
         VectorType g  = tmp * (yi - y) + inv(Sa) * (x - xa);
+        dx = M.step(x, g, H, (*this));
+        x += dx;
 
-        RealType conv = g.norm() / n;
+        // Check for convergence.
+        RealType conv = - dot(dx, g) / n;
         if (conv < M.get_tolerance())
         {
             converged = true;
-            break;
+            yi = evaluate(x);
+        }
+        else
+        {
+            K = Jacobian(x, yi);
         }
 
-        dx = M.step(x, g, H, (*this));
-
-        x += dx;
-        K = Jacobian(x, yi);
+        // Log output.
         iterations++;
-
         cost_x = this->Base::cost_x(x);
         cost_y = this->Base::cost_y(y, yi);
         cost   = cost_x + cost_y;
-
         log.step(iterations, cost, cost_x, cost_y, conv, M);
     }
 
     log.finalize(converged, iterations, cost, cost_x, cost_y);
+
+    // Timing output.
+    auto t2 = steady_clock::now();
+    auto compute_time = duration_cast<duration<double>>(t2 - t1);
+    log.time(compute_time.count(), evaluate_time.count(), Jacobian_time.count());
 
     return 0;
 }
@@ -269,6 +288,7 @@ auto MAP<ForwardModel, MatrixType, SaType, SeType, Formulation::NFORM>
 {
 
     Log<LogType::MAP> log(verbosity);
+    auto t1 = steady_clock::now();
 
     y_ptr = &y;
     x = xa;
@@ -284,39 +304,43 @@ auto MAP<ForwardModel, MatrixType, SaType, SeType, Formulation::NFORM>
     bool converged = false;
     iterations = 0;
 
-    while (iterations < M.get_maximum_iterations())
+    while (iterations < M.get_maximum_iterations() && !converged)
     {
         auto tmp = transp(K) * inv(Se);
 
-        // Compute true gradient for convergence test.
-        VectorType g  = tmp * (yi - y) + inv(Sa) * (x - xa);
+        // Compute step.
+        VectorType g = tmp * (y - yi + (K * (x - xa)));
+        auto H  = tmp * K + inv(Sa);
+        dx = M.step(xa, g, H, (*this));
+        x = xa - dx;
 
-        RealType conv = g.norm() / n;
+        // Test for convergence.
+        g  = tmp * (yi - y) + inv(Sa) * (x - xa);
+        RealType conv = - dot(dx, g) / n;
         if (conv < M.get_tolerance())
         {
             converged = true;
-            break;
+            yi = evaluate(x);
+        }
+        else
+        {
+            K = Jacobian(x, yi);
         }
 
-        // Hessian.
-        auto H  = tmp * K + inv(Sa);
-        // N-form pseudo gradient.
-        g = tmp * (y - yi + (K * (x - xa)));
-
-        dx = M.step(xa, g, H, (*this));
-
-        x = xa - dx;
-        K = Jacobian(x, yi);
+        // Log output.
         iterations++;
-
         cost_x = this->Base::cost_x(x);
         cost_y = this->Base::cost_y(y, yi);
         cost   = cost_x + cost_y;
-
         log.step(iterations, cost, cost_x, cost_y, conv, M);
     }
 
     log.finalize(converged, iterations, cost, cost_x, cost_y);
+
+    // Timing output.
+    auto t2 = steady_clock::now();
+    auto compute_time = duration_cast<duration<double>>(t2 - t1);
+    log.time(compute_time.count(), evaluate_time.count(), Jacobian_time.count());
 
     return 0;
 }
@@ -376,6 +400,7 @@ auto MAP<ForwardModel, MatrixType, SaType, SeType, Formulation::MFORM>
     -> int
 {
     Log<LogType::MAP> log(verbosity);
+    auto t1 = steady_clock::now();
 
     y_ptr = &y;
     x = xa;
@@ -386,32 +411,37 @@ auto MAP<ForwardModel, MatrixType, SaType, SeType, Formulation::MFORM>
     bool converged = false;
     iterations = 0;
 
-    while (iterations < M.get_maximum_iterations())
+    while (iterations < M.get_maximum_iterations() && !converged)
     {
+        // Compute step.
         auto tmp = Sa * transp(K);
-
-        // Compute Hessian.
         auto H   = Se + K * tmp;
-
-        // Compute gradient.
         VectorType g  = y - yi + K * (x - xa);
-
         dx = M.step(xa, g, H, (*this));
-
         x = xa - tmp * dx;
 
+        // Check convergence.
         yold = yi;
-        K = Jacobian(x , yi);
-
+        yi = evaluate(x);
         VectorType dy = yi - yold;
-        VectorType r = Se * H * Se * dy;
+        VectorType r = inv(Se) * H * inv(Se) * dy;
         RealType conv = dot(dy, r) / m;
         if (conv < M.get_tolerance())
         {
             converged = true;
             break;
         }
+
+        // Book keeping.
         iterations++;
+
+        if (!converged)
+            K = Jacobian(x , yi);
     }
     return 0;
+
+    // Timing output.
+    auto t2 = steady_clock::now();
+    auto compute_time = duration_cast<duration<double>>(t2 - t1);
+    log.time(compute_time.count(), evaluate_time.count(), Jacobian_time.count());
 }

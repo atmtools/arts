@@ -11,6 +11,6 @@ constexpr unsigned int ntests = 100;
 
 using Archetype = invlib::Matrix<MatrixArchetype<double>>;
 using Arts = invlib::Matrix<ArtsMatrix>;
-using matrix_types = boost::mpl::list<Arts>;
+using matrix_types = boost::mpl::list<Archetype>;
 
 #endif // TEST_TEST_TYPES_H

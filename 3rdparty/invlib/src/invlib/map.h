@@ -2,6 +2,11 @@
 #define MAP_H
 
 #include <iostream>
+#include <chrono>
+
+using std::chrono::steady_clock;
+using std::chrono::duration;
+using std::chrono::duration_cast;
 
 #include "invlib/algebra.h"
 #include "invlib/algebra/solvers.h"
@@ -232,6 +237,9 @@ protected:
     const SaType &Sa;
     const SeType &Se;
 
+    duration<double> evaluate_time;
+    duration<double> Jacobian_time;
+
 };
 
 // -------------- //
@@ -292,6 +300,7 @@ public:
     using Base::F; using Base::Sa; using Base::Se;
     using Base::cost_function;
     using Base::evaluate; using Base::Jacobian;
+    using Base::evaluate_time; using Base::Jacobian_time;
 
     MAP( ForwardModel &F_,
          const VectorType   &xa_,
@@ -377,6 +386,7 @@ public:
     using Base::F; using Base::Sa; using Base::Se;
     using Base::cost_function;
     using Base::evaluate; using Base::Jacobian;
+    using Base::evaluate_time; using Base::Jacobian_time;
 
     MAP( ForwardModel &F_,
          const VectorType   &xa_,
@@ -461,6 +471,7 @@ public:
     using Base::F; using Base::Sa; using Base::Se;
     using Base::cost_function;
     using Base::evaluate; using Base::Jacobian;
+    using Base::evaluate_time; using Base::Jacobian_time;
 
     MAP( ForwardModel &F_,
          const VectorType   &xa_,

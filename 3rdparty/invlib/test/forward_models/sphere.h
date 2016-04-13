@@ -26,7 +26,7 @@ public:
     template<typename VectorType>
     Matrix Jacobian(const VectorType& x, VectorType &y)
     {
-        y.resize(0);
+        y.resize(m);
         y(0) = dot(x,x);
 
         Matrix J; J.resize(m,n);

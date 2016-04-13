@@ -15,10 +15,16 @@
 #include "invlib/algebra/solvers.h"
 #include "invlib/algebra/precision_matrix.h"
 #include "invlib/interfaces/arts_wrapper.h"
+#include "invlib/profiling/timer.h"
 
-using OEMVector       = invlib::Vector<ArtsVector>;
-using OEMMatrix       = invlib::Matrix<ArtsMatrix>;
-using OEMSparse       = invlib::Matrix<ArtsSparse>;
+using OEMVector       = invlib::Vector<invlib::Timer<ArtsVector>>;
+using OEMMatrix       = invlib::Matrix<invlib::Timer<ArtsMatrix>>;
+using OEMSparse       = invlib::Matrix<invlib::Timer<ArtsSparse>>;
+
+/* using OEMVector       = invlib::Vector<ArtsVector>; */
+/* using OEMMatrix       = invlib::Matrix<ArtsMatrix>; */
+/* using OEMSparse       = invlib::Matrix<ArtsSparse>; */
+
 using Identity        = invlib::MatrixIdentity<OEMMatrix>;
 using Transform       = invlib::NormalizeDiagonal<OEMMatrix>;
 using PrecisionMatrix = invlib::PrecisionMatrix<OEMMatrix>;
@@ -102,6 +108,9 @@ using LM_Sparse_D = invlib::LevenbergMarquardt<Numeric, OEMMatrix>;
 using LM_S        = invlib::LevenbergMarquardt<Numeric, OEMSparse>;
 using LM_CG_S     = invlib::LevenbergMarquardt<Numeric, OEMSparse, CG>;
 using LM_Pre_S    = invlib::LevenbergMarquardt<Numeric, OEMSparse, Std_Pre>;
+using LM_I        = invlib::LevenbergMarquardt<Numeric, Identity>;
+using LM_CG_I     = invlib::LevenbergMarquardt<Numeric, Identity, CG>;
+using LM_Pre_I    = invlib::LevenbergMarquardt<Numeric, Identity, Std_Pre>;
 using LM_CG_Pre_S = invlib::LevenbergMarquardt<Numeric, OEMSparse, CG_Pre>;
 using LM_Sparse_S = invlib::LevenbergMarquardt<Numeric, OEMSparse>;
 

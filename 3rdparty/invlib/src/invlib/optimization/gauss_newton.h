@@ -111,9 +111,9 @@ public:
      */
     template
     <
-        typename VectorType,
-        typename MatrixType,
-        typename CostFunction
+    typename VectorType,
+    typename MatrixType,
+    typename CostFunction
     >
     VectorType step(const VectorType &,
                     const VectorType &g,

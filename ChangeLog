@@ -1,3 +1,12 @@
+2016-04-13  Simon Pfreundschuh  <simonpf@chalmers.se>
+
+	* arts-2-3-478
+
+	* 3rdparty/invlib/*: invlib update to include new timing
+	functionality.
+
+	* src/oem.h: Added timing for arithmetic operations.
+
 2016-04-12  Simon Pfreundschuh  <simonpf@chalmers.se>
 
 	* arts-2-3-477

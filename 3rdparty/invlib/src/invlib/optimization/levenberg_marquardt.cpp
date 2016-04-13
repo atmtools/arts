@@ -264,7 +264,6 @@ auto LevenbergMarquardt<RealType, DampingMatrix, Solver>
                 {
                     lambda = lambda_maximum + 1.0;
                     break;
-
                 }
             }
         }
