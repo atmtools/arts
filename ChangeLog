@@ -1,3 +1,13 @@
+2016-04-25  Simon Pfreundschuh  <simonpf@chalmers.se>
+
+	* arts-2-3-478
+
+	* src/matpackI.cc: Fixed bug in matrix-vector
+	  multiplication.
+
+	* src/test_matpack.cc: Added test to cover the
+	  fixed bug.
+
 2016-04-13  Simon Pfreundschuh  <simonpf@chalmers.se>
 
 	* arts-2-3-478

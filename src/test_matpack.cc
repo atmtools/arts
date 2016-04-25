@@ -1080,6 +1080,34 @@ Numeric matrix_vector_mult( Index m,
         {
             cout << "\t Random stride: max. rel. error = " << err_mul << endl << endl;
         }
+
+        // Random offset
+        if ((m > 1) && (n > 1))
+        {
+            Index y_offset = rand() % (m - 1);
+            Index x_offset = rand() % (n - 1);
+
+            m_sub = m - y_offset - 1;
+            n_sub = n - x_offset - 1;
+
+            mult( y[ Range(y_offset, m_sub) ],
+                A( Range(y_offset, m_sub), Range(x_offset, n_sub) ),
+                x[ Range(x_offset, n_sub) ] );
+            mult_general( y_ref[ Range(y_offset, m_sub) ],
+                        A( Range(y_offset, m_sub), Range(x_offset, n_sub) ),
+                        x[ Range(x_offset, n_sub) ] );
+
+            err_mul = get_maximum_error( y[ Range(y_offset, m_sub) ],
+                                        y_ref[ Range(y_offset, m_sub) ],
+                                        true );
+            if (err_mul > max_err)
+                max_err = err_mul;
+
+            if (verbose)
+            {
+                cout << "\t Random offset: max. rel. error = " << err_mul << endl << endl;
+            }
+        }
     }
 
     return max_err;

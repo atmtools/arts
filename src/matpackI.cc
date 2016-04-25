@@ -1721,8 +1721,12 @@ void mult( VectorView y,
         incx = (int) x.mrange.get_stride();
         incy = (int) y.mrange.get_stride();
 
-        dgemv_( &trans, &m, &n, &one, M.mdata, &LDA,
-                x.mdata, &incx, &zero, y.mdata, &incy );
+        double *mstart = M.mdata + M.mcr.get_start() + M.mrr.get_start();
+        double *ystart = y.mdata + y.mrange.get_start();
+        double *xstart = x.mdata + x.mrange.get_start();
+
+        dgemv_( &trans, &m, &n, &one, mstart, &LDA,
+                xstart, &incx, &zero, ystart, &incy );
 
     }
     else
