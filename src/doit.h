@@ -225,6 +225,14 @@ void cloud_RT_surface(Workspace& ws,
                       const Index& scat_za_index
                       );
 
+void doit_i_field_ngAcceleration(//Output
+                                 Tensor6& doit_i_field_mono,
+                                 //Input
+                                 const ArrayOfTensor6& acceleration_input,
+                                 const Index& accelerated,
+                                 const Verbosity& verbosity);
+
+
 void interp_cloud_coeff1D(//Output
                           Tensor3View ext_mat_int,
                           MatrixView abs_vec_int,

@@ -1247,6 +1247,79 @@ void cloud_RT_surface(Workspace& ws,
     }  
 }
 
+void doit_i_field_ngAcceleration(Tensor6& doit_i_field_mono,
+                                 const ArrayOfTensor6& acceleration_input,
+                                 const Index& accelerated,
+                                 const Verbosity& )
+{
+    const Index N_p = doit_i_field_mono.nvitrines();
+    const Index N_za = doit_i_field_mono.npages();
+    
+    // Loop over 4 components of Stokes Vector
+    for (Index i = 0; i < accelerated; ++i)
+    {
+        ConstMatrixView S1 = acceleration_input[0](joker,0,0,joker,0,i);
+        ConstMatrixView S2 = acceleration_input[1](joker,0,0,joker,0,i);
+        ConstMatrixView S3 = acceleration_input[2](joker,0,0,joker,0,i);
+        ConstMatrixView S4 = acceleration_input[3](joker,0,0,joker,0,i);
+       
+        ConstMatrixView J = S4;
+        Matrix Q1;
+        Matrix Q2;
+        Matrix Q3;
+        Numeric A1 = 0;
+        Numeric A2B1 = 0;
+        Numeric B2 = 0;
+        Numeric C1 = 0;
+        Numeric C2 = 0;
+        Numeric NGA = 0;
+        Numeric NGB = 0;
+        
+        // Q1 = -2*S3 + S4 + S2
+        
+        Q1 = S3;
+        Q1 *= -2;
+        Q1 += S4;
+        Q1 += S2;
+        
+        // Q2 = S4 - S3 - S2 + S1
+        Q2 = S4;
+        Q2 -= S3;
+        Q2 -= S2;
+        Q2 += S1;
+        
+        //Q3 = S4 - S3
+        Q3 = S4;
+        Q3 -= S3;
+        
+        for ( Index p_index = 0; p_index < N_p; ++p_index)
+        {
+            for ( Index za_index = 0; za_index < N_za; ++za_index)
+            {
+                A1 += Q1(p_index,za_index) * Q1(p_index,za_index) * J(p_index,za_index);
+                A2B1 += Q2(p_index,za_index) * Q1(p_index,za_index) * J(p_index,za_index);
+                B2 += Q2(p_index,za_index) * Q2(p_index,za_index) * J(p_index,za_index);
+                C1 += Q1(p_index,za_index) * Q3(p_index,za_index) * J(p_index,za_index);
+                C2 += Q2(p_index,za_index) * Q3(p_index,za_index) * J(p_index,za_index);
+            }
+        }
+        
+        NGA = (C1*B2 - C2*A2B1) / (A1*B2 - A2B1*A2B1);
+        NGB = (C2*A1 - C1*A2B1) / (A1*B2 - A2B1*A2B1);
+        
+
+        // Calculating the accelerated field
+        for ( Index p_index = 0; p_index < N_p; ++p_index)
+        {
+            for ( Index za_index = 0; za_index < N_za; ++za_index)
+            {
+                Q1(p_index,za_index) = (1-NGA-NGB)*S4(p_index,za_index)
+                                      + NGA*S3(p_index,za_index) + NGB*S2(p_index,za_index);
+            }
+        }
+        doit_i_field_mono(joker,0,0,joker,0,i) = Q1;
+    }
+}
 
 
 //! interp_cloud_coeff1D 

@@ -4585,7 +4585,7 @@ void define_md_data_raw()
                   "max_iterations"
                   )
         ));
-  
+
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "doit_i_field_monoIterate" ),
@@ -4604,18 +4604,18 @@ void define_md_data_raw()
          "      either 1 or 3. To these dimensions the method adapts\n"
          "      automatically. 2D scattering calculations are not\n"
          "      supported.\n"
-         ),
-        AUTHORS( "Claudia Emde" ),
+        ),
+        AUTHORS( "Claudia Emde, Jakob Doerr" ),
         OUT( "doit_i_field_mono" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "doit_i_field_mono", "doit_scat_field_agenda", "doit_rte_agenda",
             "doit_conv_test_agenda" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
+        GIN( "accelerated" ),
+        GIN_TYPE( "Index" ),
+        GIN_DEFAULT( "0" ),
+        GIN_DESC( "Index wether to accelerate only the intensity (1) or the whole Stokes Vector (4)" )
         ));
 
   md_data_raw.push_back

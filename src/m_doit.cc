@@ -546,75 +546,94 @@ void doit_conv_flagLsq(//WS Output:
 void doit_i_field_monoIterate(Workspace& ws,
                               // WS Input and Output:
                               Tensor6& doit_i_field_mono,
+                              
                               // WS Input:
                               const Agenda& doit_scat_field_agenda,
                               const Agenda& doit_rte_agenda,
                               const Agenda& doit_conv_test_agenda,
+                              const Index& accelerated,
                               const Verbosity& verbosity)
+
 {
-  CREATE_OUT2;
-  
-  //---------------Check input---------------------------------
-  chk_not_empty( "doit_scat_field_agenda", doit_scat_field_agenda);
-  chk_not_empty( "doit_rte_agenda", doit_rte_agenda);
-  chk_not_empty( "doit_conv_test_agenda", doit_conv_test_agenda);
-
-  for (Index v = 0; v < doit_i_field_mono.nvitrines(); v++)
-    for (Index s = 0; s < doit_i_field_mono.nshelves(); s++)
-      for (Index b = 0; b < doit_i_field_mono.nbooks(); b++)
-        for (Index p = 0; p < doit_i_field_mono.npages(); p++)
-          for (Index r = 0; r < doit_i_field_mono.nrows(); r++)
-            for (Index c = 0; c < doit_i_field_mono.ncols(); c++)
-              if (isnan(doit_i_field_mono(v, s, b, p, r, c)))
-                throw std::runtime_error(
-                  "*doit_i_field_mono* contains at least one NaN value.\n"
-                  "This indicates an improper initialization of *doit_i_field*.");
-
-  //doit_i_field_mono can not be further checked here, because there is no way
-  //to find out the size without including a lot more interface 
-  //variables
-  //-----------End of checks-------------------------------------- 
-
-  Tensor6 doit_i_field_mono_old_local;
-  Index doit_conv_flag_local;
-  Index doit_iteration_counter_local;
-
-  // Resize and initialize doit_scat_field,
-  // which  has the same dimensions as doit_i_field
-  Tensor6 doit_scat_field_local
+    CREATE_OUT2;
+    
+    
+    //---------------Check input---------------------------------
+    chk_not_empty( "doit_scat_field_agenda", doit_scat_field_agenda);
+    chk_not_empty( "doit_rte_agenda", doit_rte_agenda);
+    chk_not_empty( "doit_conv_test_agenda", doit_conv_test_agenda);
+    
+    for (Index v = 0; v < doit_i_field_mono.nvitrines(); v++)
+        for (Index s = 0; s < doit_i_field_mono.nshelves(); s++)
+            for (Index b = 0; b < doit_i_field_mono.nbooks(); b++)
+                for (Index p = 0; p < doit_i_field_mono.npages(); p++)
+                    for (Index r = 0; r < doit_i_field_mono.nrows(); r++)
+                        for (Index c = 0; c < doit_i_field_mono.ncols(); c++)
+                            if (isnan(doit_i_field_mono(v, s, b, p, r, c)))
+                                throw std::runtime_error(
+                                                         "*doit_i_field_mono* contains at least one NaN value.\n"
+                                                         "This indicates an improper initialization of *doit_i_field*.");
+    
+    //doit_i_field_mono can not be further checked here, because there is no way
+    //to find out the size without including a lot more interface
+    //variables
+    //-----------End of checks--------------------------------------
+    
+    Tensor6 doit_i_field_mono_old_local;
+    Index doit_conv_flag_local;
+    Index doit_iteration_counter_local;
+    
+    // Resize and initialize doit_scat_field,
+    // which  has the same dimensions as doit_i_field
+    Tensor6 doit_scat_field_local
     (doit_i_field_mono.nvitrines(), doit_i_field_mono.nshelves(),
      doit_i_field_mono.nbooks(), doit_i_field_mono.npages(),
      doit_i_field_mono.nrows(), doit_i_field_mono.ncols(), 0.);
-
-  doit_conv_flag_local = 0;
-  doit_iteration_counter_local = 0;
-
-  while(doit_conv_flag_local == 0) {
     
-    // 1. Copy doit_i_field to doit_i_field_old.
-    doit_i_field_mono_old_local = doit_i_field_mono;
-    
-    // 2.Calculate scattered field vector for all points in the cloudbox.
-
-    // Calculate the scattered field.
-    out2 << "  Execute doit_scat_field_agenda. \n";
-    doit_scat_field_agendaExecute(ws, doit_scat_field_local,
-                                  doit_i_field_mono,
-                                  doit_scat_field_agenda);
-
-    // Update doit_i_field.
-    out2 << "  Execute doit_rte_agenda. \n";
-    doit_rte_agendaExecute(ws, doit_i_field_mono, doit_scat_field_local,
-                           doit_rte_agenda);
-
-    //Convergence test.
-    doit_conv_test_agendaExecute(ws, doit_conv_flag_local,
-                                 doit_iteration_counter_local,
-                                 doit_i_field_mono,
-                                 doit_i_field_mono_old_local,
-                                 doit_conv_test_agenda);
-
-  }//end of while loop, convergence is reached.
+    doit_conv_flag_local = 0;
+    doit_iteration_counter_local = 0;
+    // Array to save the last iteration steps
+    ArrayOfTensor6 acceleration_input;
+    if (accelerated)
+    {
+        acceleration_input.resize(4);
+    }
+    while(doit_conv_flag_local == 0) {
+        
+        // 1. Copy doit_i_field to doit_i_field_old.
+        doit_i_field_mono_old_local = doit_i_field_mono;
+        
+        // 2.Calculate scattered field vector for all points in the cloudbox.
+        
+        // Calculate the scattered field.
+        out2 << "  Execute doit_scat_field_agenda. \n";
+        doit_scat_field_agendaExecute(ws, doit_scat_field_local,
+                                      doit_i_field_mono,
+                                      doit_scat_field_agenda);
+        
+        // Update doit_i_field.
+        out2 << "  Execute doit_rte_agenda. \n";
+        doit_rte_agendaExecute(ws, doit_i_field_mono, doit_scat_field_local,
+                               doit_rte_agenda);
+        
+        //Convergence test.
+        doit_conv_test_agendaExecute(ws, doit_conv_flag_local,
+                                     doit_iteration_counter_local,
+                                     doit_i_field_mono,
+                                     doit_i_field_mono_old_local,
+                                     doit_conv_test_agenda);
+        
+        // Convergence Acceleration, if wished.
+        if (accelerated)
+        {
+            acceleration_input[(doit_iteration_counter_local-1)%4] = doit_i_field_mono;
+            // NG - Acceleration
+            if ( doit_iteration_counter_local%4 == 0)
+            {
+                doit_i_field_ngAcceleration(doit_i_field_mono, acceleration_input, accelerated, verbosity);
+            }
+        }
+    }//end of while loop, convergence is reached.
 }
 
 

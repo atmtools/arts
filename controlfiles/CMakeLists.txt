@@ -71,6 +71,7 @@ arts_test_run_ctlfile(fast artscomponents/radiolink/TestRadioLink2.arts)
 arts_test_run_ctlfile(slow artscomponents/radiolink/TestRadioOccultation.arts)
 
 arts_test_run_ctlfile(fast artscomponents/doit/TestDOIT.arts)
+arts_test_run_ctlfile(slow artscomponents/doit/TestDOITaccelerated.arts)
 arts_test_run_ctlfile(fast artscomponents/doit/TestDOITprecalcInit.arts)
 arts_test_ctlfile_depends(fast.artscomponents.doit.TestDOITprecalcInit
                           fast.artscomponents.doit.TestDOIT)

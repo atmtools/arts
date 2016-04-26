@@ -1,0 +1,25 @@
+#DEFINITIONS:  -*-sh-*-
+#
+# filename: TestDOITaccelerated.arts
+#
+# Demonstration of an accelerated DOIT scattering calculation
+#
+# Authors: Jakob Doerr
+# 
+
+Arts2 {
+
+INCLUDE "doit_setup_accelerated.arts"
+
+INCLUDE "doit_calc.arts"
+
+WriteXML( in=y )
+
+#==================check==========================
+
+VectorCreate(yREFERENCE)
+ReadXML( yREFERENCE, "yREFERENCE_DOITaccelerated.xml" )
+Compare( y, yREFERENCE, 1e-6 )
+
+} # End of Main
+ 

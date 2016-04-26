@@ -1,3 +1,30 @@
+2016-04-26  Jakob Dörr  <jakobdoerr@googlemail.com>
+
+	* arts-2-3-479
+
+	* controlfiles/artscomponents/doit/TestDOITaccelerated.arts,
+	controlfiles/artscomponents/doit/doit_setup_accelerated.arts,
+	controlfiles/artscomponents/doit/yREFERENCE_DOITaccelerated.xml:
+
+	Added controlfiles to test the DOIT with convergence acceleration.
+
+	* src/doit.cc,
+	src/doit.h:
+
+	Added an internal method for the convergence acceleration. It computes
+	an accelerated field out of four iteration fields.
+
+	* src/m_doit.cc:
+	
+	Added the option to enable or disable convergence acceleration in 
+	doit_i_field_monoIterate (default is disable)
+
+	* src/methods.cc:
+	Added an Index "accelerated" to the generic input of 
+	doit_i_field_monoIterate to control the convergence acceleration.
+
+	* controlfiles/CMakeLists.txt: Added accelerated test.
+
 2016-04-25  Simon Pfreundschuh  <simonpf@chalmers.se>
 
 	* arts-2-3-478
