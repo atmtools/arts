@@ -35,6 +35,7 @@
 #include <stdexcept>
 #include <cmath>
 #include "arts.h"
+#include "arts_omp.h"
 #include "lapack.h"
 #include "matpackIII.h"
 #include "make_vector.h"
@@ -363,27 +364,31 @@ void special_matrix_exp_and_dmatrix_exp_dx_for_rt(
         assert( is_size(dF_low(ii,joker,joker),n,n) );
     }
 
-    // This sets up some cnstants
+    // This sets up some constants
     Numeric A_norm_inf, e;
     A_norm_inf = norm_inf(A);
     e = 1. +  floor(1./log(2.)*log(A_norm_inf));
     Numeric r = (e+1.)>0.?(e+1.):0., pow2rm1=1./pow(2,r);
     Numeric c = 0.5;
 
-    // For non-derivatives
+    // For non-partials
     Matrix M=A, X(n,n), cX(n,n), D(n,n);
     M  *= pow2rm1;
     X   = M;
     cX  = X;
     cX*=c;
-    id_mat(F); F+=cX;
-    id_mat(D); D-=cX;
+    id_mat(F); 
+    F+=cX;
+    id_mat(D); 
+    D-=cX;
 
-    // For derivatives
+    // For partials in parallel
     Tensor3 dM_upp(n_partials,n,n),dM_low(n_partials,n,n),
     dD_upp(n_partials,n,n),dD_low(n_partials,n,n),
     Y_upp(n_partials,n,n),Y_low(n_partials,n,n),
     cY_upp(n_partials,n,n),cY_low(n_partials,n,n);
+    #pragma omp parallel for      \
+    if ( !arts_omp_in_parallel() )
     for(Index ii=0;ii<n_partials;ii++)
     {
         for(Index jj=0;jj<n;jj++)
@@ -409,17 +414,21 @@ void special_matrix_exp_and_dmatrix_exp_dx_for_rt(
     }
 
     // NOTE: MATLAB paper sets q = 6 but we allow other numbers
-    Matrix tmp1(n,n), tmp2(n,n),
-    tmp_low1(n,n), tmp_upp1(n,n),
-    tmp_low2(n,n), tmp_upp2(n,n);
+    Matrix tmp1(n,n), tmp2(n,n);
 
     for(Index k=2; k<=q; k++)
     {
         c *= (Numeric)(q-k+1)/(Numeric)((k)*(2*q-k+1));
 
-        // For partials
+        // For partials in parallel
+        #pragma omp parallel for      \
+        if ( !arts_omp_in_parallel() )
         for(Index ii=0;ii<n_partials;ii++)
         {
+            Matrix 
+            tmp_low1(n,n), tmp_upp1(n,n),
+            tmp_low2(n,n), tmp_upp2(n,n);
+            
             // Y = dM*X + M*Y
             mult(tmp_upp1, dM_upp(ii,joker,joker), X);
             mult(tmp_upp2,  M, Y_upp(ii,joker,joker));
@@ -483,31 +492,35 @@ void special_matrix_exp_and_dmatrix_exp_dx_for_rt(
     mult(tmp2,tmp1,F);
     F = tmp2;
 
-    // For partials
+    // For partials in parallel
+    #pragma omp parallel for      \
+    if ( !arts_omp_in_parallel() )
     for(Index ii=0;ii<n_partials;ii++)
     {
+        Matrix 
+        tmp_low(n,n), tmp_upp(n,n);
         //dF = D \ (dF - dF*F), or D^-1 * (dF - dF*F)
-        mult(tmp_upp1, dD_upp(ii,joker,joker), F);
-        mult(tmp_low1, dD_low(ii,joker,joker), F);
+        mult(tmp_upp, dD_upp(ii,joker,joker), F);
+        mult(tmp_low, dD_low(ii,joker,joker), F);
 
         for(Index jj=0;jj<n;jj++)
         {
             for(Index kk=0;kk<n;kk++)
             {
-                dF_upp(ii,jj,kk)-=tmp_upp1(jj,kk);// dF - dF * F
-                dF_low(ii,jj,kk)-=tmp_low1(jj,kk);// dF - dF * F
+                dF_upp(ii,jj,kk)-=tmp_upp(jj,kk);// dF - dF * F
+                dF_low(ii,jj,kk)-=tmp_low(jj,kk);// dF - dF * F
             }
         }
 
-        mult(tmp_upp2,tmp1,dF_upp(ii,joker,joker));
-        mult(tmp_low2,tmp1,dF_low(ii,joker,joker));
+        mult(tmp_upp,tmp1,dF_upp(ii,joker,joker));
+        mult(tmp_low,tmp1,dF_low(ii,joker,joker));
 
         for(Index jj=0;jj<n;jj++)
         {
             for(Index kk=0;kk<n;kk++)
             {
-                dF_upp(ii,jj,kk)=tmp_upp2(jj,kk);
-                dF_low(ii,jj,kk)=tmp_low2(jj,kk);
+                dF_upp(ii,jj,kk)=tmp_upp(jj,kk);
+                dF_low(ii,jj,kk)=tmp_low(jj,kk);
             }
         }
 
@@ -515,8 +528,15 @@ void special_matrix_exp_and_dmatrix_exp_dx_for_rt(
 
     for(Index k=1; k<=r; k++)
     {
+        // For partials in parallel
+        #pragma omp parallel for      \
+        if ( !arts_omp_in_parallel() )
         for(Index ii=0;ii<n_partials;ii++)
         {
+            Matrix 
+            tmp_low1(n,n), tmp_upp1(n,n),
+            tmp_low2(n,n), tmp_upp2(n,n);
+            
             // dF=F*dF+dF*F
             mult(tmp_upp1,F,dF_upp(ii,joker,joker));//F*dF
             mult(tmp_upp2,dF_upp(ii,joker,joker),F);//dF*F

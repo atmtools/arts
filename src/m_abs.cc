@@ -1954,7 +1954,7 @@ void abs_xsec_per_speciesAddLines(// WS Output:
                     }
                 }
             }
-            if (tgs[i][0].LineMixing() == SpeciesTag::LINE_MIXING_OFF && !do_jac )//Also add partials here so that the wrapper is more specialized still
+            if (tgs[i][0].LineMixing() == SpeciesTag::LINE_MIXING_OFF && !do_jac )
             {
                 Matrix dummy_phase;
                 xsec_species(abs_xsec_per_species[i],

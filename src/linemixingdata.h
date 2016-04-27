@@ -43,7 +43,8 @@ public:
       LM_LBLRTM,                        // Reserved for LBLRTM line mixing
       LM_LBLRTM_O2NonResonant,          // Reserved for the non-resonant O2 line in LBLRTM
       LM_1STORDER,                      // Reserved for Tretyakov et al. 2005 1st order of line mixing
-      LM_2NDORDER                       // Reserved for Makarov et al. 2011 second order of line mixing
+      LM_2NDORDER,                      // Reserved for Makarov et al. 2011 second order of line mixing
+      LM_BYBAND                         // Reserved for Paris data of relaxation matrix line mixing for band
     };
   
     // Defining an object
@@ -90,6 +91,8 @@ public:
       mdata[1] = gamma1;
       mdata[2] = gamma2;
     }
+    
+    void SetByBand() { mtype = LM_BYBAND; }
     
     // Use these to read data from XML-formats
     void StorageTag2SetType(const String& input);

@@ -245,7 +245,29 @@ void lineshape_doppler(Vector&         ls_attenuation,
 }
 
 
-
+/*! The O2 non-resonant line shape.  Should be VVW/2 so do not use this call...
+ * 
+ *   \retval ls_attenuation              The shape function.
+ *   \retval ls_phase                    The shape function.
+ *   \retval X                           Auxillary parameter, only used in Voigt fct.
+ *   \param  f0                          Line center frequency.
+ *   \param  gamma                       The pressure broadening parameter.
+ *   \param  sigma                       The Doppler broadening parameter. (Not used.)
+ *   \param  f_grid                      The frequency grid.
+ * 
+ *   \author Richard Larsson
+ *   \date 2014-10-02 */
+void deprecated( Vector&, Vector&, Vector&, Vector&, Vector&, Vector&, Vector&,
+                 const Numeric, const Numeric, const Numeric, const Numeric,
+                 const Numeric, const Numeric, const Numeric, const Numeric,
+                 ConstVectorView, const bool, const bool)
+{
+    throw std::runtime_error("You are running a deprecated lineshape.\n"
+        "The deprecated line shapes are:\n"
+        "\t Voigt_Kuntz3 --- please replace with Voigt_Kuntz6\n"
+        "\t Voigt_Kuntz4 --- please replace with Voigt_Kuntz6\n"
+    );
+}
 //------------------------------------------------------------------------
 
 // help function for lineshape_voigt_kuntz1
@@ -797,801 +819,6 @@ long int bfun3_(Numeric y, Numeric x)
     }
     return ret_val;
 } /* bfun3_ */
-
-
-
-/*! The Voigt line shape. Kuntz approximation of the Voigt line
-  shape. 
-
-    \retval ls_attenuation            The shape function.
-    \retval x             Auxillary parameter to store frequency grid.
-    \param  f0            Line center frequency.
-    \param  gamma         The pressure broadening parameter.
-    \param  sigma         The Doppler broadening parameter.
-    \param  f_grid        The frequency grid.
-
-    Original c function call and documention:
-
-    int voigt3
-    (
-    long nx,
-    float *x,
-    float y,
-    float *prb,
-    float fak
-    )
-    
-    Calculates the Voigt-Function times the user-definied value 
-    fac with a relative accuracy better than 2*10-3.
-    
-    If this subroutine is called several times with the same 
-    parameter y the numerically expensive coefficents a1..t8 
-    are only calculated once thus further accelerating the 
-    algorithm
-
-    \verbatim
-    --------------------------------------------------------------------
-    x(nx)   (in)    :Distance from line center in units of Doppler
-                    :halfwidths
-    y       (in)    :Ratio of the Doppler halfwidth to the Lorentz
-                    :halfwidth  
-    prb     (out)   :voigt-function times fak
-    fak     (in)    :factor to be specified by the user
-    --------------------------------------------------------------------
-
-    author: M. Kuntz, 
-            Institut fuer Meteorologie und Klimaforschung, 
-            Forschungszentrum Karlsruhe, 
-            Postfach 3640, 
-            76021 Karlsruhe, Germany. 
-            email: kuntz@imk.fzk.de 
-
-    \endverbatim
-
-
-    About 'voigt3' : The program was originally written by M. Kuntz in
-    Fortran77 but has been translated into C by Dietrich Feist (f2c)
-    and into C++ by Oliver Lemke and Axel von Engeln. fak is removed
-    from program code. Replaced nx by nf. Replaced prb by
-    ls. Multiplied ls with the factor fac.
-    
-
-    \author Oliver Lemke and Axel von Engeln
-    \date 2000-12-07 */ 
-void lineshape_voigt_kuntz3(Vector&         ls_attenuation,
-                            Vector&,        //ls_phase
-                            Vector&,        //ls_dattenuation_dfrequency_term
-                            Vector&,        //ls_dphase_dfrequency_term
-                            Vector&,        //ls_dattenuation_dpressure_term
-                            Vector&,        //ls_dphase_dpressure_term
-                            Vector&         x,
-                            const Numeric   f0,
-                            const Numeric   gamma,
-                            const Numeric,
-                            const Numeric,
-                            const Numeric,
-                            const Numeric,
-                            const Numeric   sigma,
-                            const Numeric,
-                            ConstVectorView f_grid,
-                            const bool,
-                            const bool)
-
-{
-  const Index nf = f_grid.nelem();
-
-  // seems not necessary for Doppler correction
-  //    extern const Numeric SQRT_NAT_LOG_2;
-
-  // PI
-  extern const Numeric PI;
-
-  // constant sqrt(1/pi)
-  const Numeric sqrt_invPI =  sqrt(1/PI);
-
-  // constant normalization factor for voigt
-  Numeric fac = 1.0 / sigma * sqrt_invPI;
-
-  /* Initialized data */
-
-  Numeric yps0 = -1.0;
-  Numeric yps1 = -1.0;
-  Numeric yps2 = -1.0;
-  Numeric yps3 = -1.0;
-  Numeric yps4 = -1.0;
-
-  /* System generated locals */
-  long i__1, i__2;
-  Numeric r__1;
-
-  /* Local variables */
-  long bmin = 0, lauf[20] = {0}    /* was [5][4] */, bmax, imin, imax;
-  long stack[80] = {0} /* was [20][4] */;
-  Numeric a0, a1, a2, a3, a4, a5, a6, a7, a8, b8, c8, d8, e8, f8, g8, 
-    h8, b7, c7, d7, e7, f7, g7, o8, p8, q8, r8, s8, t8, h7, o7, p7, 
-    q7, r7, s7, t7, b6, c6, d6, e6, b5, c5, d5, e5, b4, c4, d4, b3, 
-    c3, d3, b1, y2;
-  a0 = a1 = a2 = a3 = a4 = a5 = a6 = a7 = a8 = b8 = c8 = d8 = e8 = f8 = g8
-    = h8 = b7 = c7 = d7 = e7 = f7 = g7 = o8 = p8 = q8 = r8 = s8 = t8 = h7 = o7
-    = p7 = q7 = r7 = s7 = t7 = b6 = c6 = d6 = e6 = b5 = c5 = d5 = e5 = b4 = c4
-    = d4 = b3 = c3 = d3 = b1 = y2 = 0;
-  long i2 = 0, i1 = 0;
-  Numeric x2 = 0, b2 = 0, b0 = 0, c1 = 0;
-  long stackp = 0, imitte = 0;
-  Numeric ym2 = 0;
-
-  // variables needed in original c routine:
-
-  // Ratio of the Lorentz halfwidth to the Doppler halfwidth
-  Numeric y = gamma / sigma;
-
-  // frequency in units of Doppler 
-  for (i1=0; i1< (int) nf; i1++)
-    {
-      x[i1] = (f_grid[i1] - f0) / sigma;
-    }
-
-
-  /* Parameter adjustments */
-  // this does not work for variables type Vector, corrected by
-  // adjusting the index to array ls and x
-  //--ls;
-  //--x;
-
-  /* Function Body */
-  y2 = y * y;
-  if (y >= 23.0 || x[0] >= 39.0 || x[nf-1] <= -39.0) {
-    lauf[0] = 1;
-    lauf[5] = nf;
-    lauf[10] = nf;
-    lauf[15] = 0;
-    goto L8;
-  }
-  for (i2 = 1; i2 <= 4; ++i2) {
-    for (i1 = 0; i1 <= 4; ++i1) {
-      lauf[i1 + i2 * 5 - 5] = i2 % 2 * (nf + 1);
-      /* L1: */
-    }
-  }
-  stackp = 1;
-  stack[stackp - 1] = 1;
-  stack[stackp + 19] = nf;
-  stack[stackp + 39] = bfun3_(y, x[0]);
-  stack[stackp + 59] = bfun3_(y, x[nf-1]);
- L2:
-  imin = stack[stackp - 1];
-  imax = stack[stackp + 19];
-  bmin = stack[stackp + 39];
-  bmax = stack[stackp + 59];
-  if (bmin == bmax) {
-    if (x[imax-1] < 0.f) {
-      /* Computing MIN */
-      i__1 = imin, i__2 = lauf[bmin];
-      lauf[bmin] = min(i__1,i__2);
-      /* Computing MAX */
-      i__1 = imax, i__2 = lauf[bmax + 5];
-      lauf[bmax + 5] = max(i__1,i__2);
-      --stackp;
-      goto L3;
-    } else if (x[imin-1] >= 0.f) {
-      /* Computing MIN */
-      i__1 = imin, i__2 = lauf[bmin + 10];
-      lauf[bmin + 10] = min(i__1,i__2);
-      /* Computing MAX */
-      i__1 = imax, i__2 = lauf[bmax + 15];
-      lauf[bmax + 15] = max(i__1,i__2);
-      --stackp;
-      goto L3;
-    }
-  }
-  imitte = (imax + imin) / 2;
-  stack[stackp - 1] = imitte + 1;
-  stack[stackp + 19] = imax;
-  stack[stackp + 39] = bfun3_(y, x[imitte]);
-  stack[stackp + 59] = bmax;
-  ++stackp;
-  stack[stackp - 1] = imin;
-  stack[stackp + 19] = imitte;
-  stack[stackp + 39] = bmin;
-  stack[stackp + 59] = bfun3_(y, x[imitte-1]);
- L3:
-  if (stackp > 0) {
-    goto L2;
-  }
-  /* ---- Region 4 */
-  /* -------------------------------------------------------------------- */
-  if (lauf[9] >= lauf[4] || lauf[19] >= lauf[14]) {
-    if ((r__1 = y - yps4, fabs(r__1)) > 1e-8f) {
-      //yps4 = y;
-      a7 = y * (y2 * (y2 * 4.56662e8f - 9.86604e8f) + 1.16028e9f);
-      b7 = y * (y2 * (y2 * 8.06985e8f - 9.85386e8f) - 5.60505e8f);
-      c7 = y * (y2 * (y2 * 2.94262e8f + 2.47157e8f) - 6.51523e8f);
-      d7 = y * (y2 * (2.70167e8f - y2 * 99622400.f) - 2.63894e8f);
-      e7 = y * (y2 * (y2 * 5569650.f + 1.40677e8f) - 63177100.f);
-      f7 = y * (y2 * (4073820.f - y2 * 33289600.f) - 16984600.f);
-      g7 = y * (y2 * (7528830.f - y2 * 900010) - 1231650.f);
-      h7 = y * (y2 * (y2 * 153468 + 86407.6f) - 610622.f);
-      o7 = y * (y2 * (y2 * 26538.5f + 49883.8f) - 23586.5f);
-      p7 = y * (y2 * (y2 * 953.655f + 2198.86f) - 8009.1f);
-      q7 = y * (y2 * (-271.202f - y2 * 134.792f) - 622.056f);
-      r7 = y * (y2 * (-29.7896f - y2 * 44.0068f) - 77.0535f);
-      s7 = y * (-2.92264f - y2 * 7.33447f);
-      t7 = y * -.56419f;
-      a8 = y2 * (y2 * 1.17022e9f - 1.5599e9f) + 1.02827e9f;
-      b8 = y2 * (y2 * 1.66421e9f - 2.28855e9f) + 1.5599e9f;
-      c8 = y2 * (y2 * 1.06002e9f - 1.66421e9f) + 1.17022e9f;
-      d8 = y2 * (y2 * 6.60078e8f - 7.53828e8f) + 5.79099e8f;
-      e8 = y2 * (y2 * 63349600.f - 2.89676e8f) + 2.11107e8f;
-      f8 = y2 * (y2 * 46039600.f - 70135800.f) + 61114800.f;
-      g8 = y2 * (y2 * 1.4841e7f - 13946500.f) + 14464700.f;
-      h8 = y2 * (y2 * 1063520.f - 2849540.f) + 2857210.f;
-      o8 = y2 * (-498334.f - y2 * 217801.f) + 483737.f;
-      p8 = y2 * (-55600.f - y2 * 48153.3f) + 70946.1f;
-      q8 = y2 * (-3058.26f - y2 * 1500.17f) + 9504.65f;
-      r8 = y2 * (y2 * 198.876f + 533.254f) + 955.194f;
-      s8 = y2 * (y2 * 91.f + 40.5117f) + 126.532f;
-      t8 = y2 * 14.f + 3.68288f;
-    }
-    ym2 = y * 2;
-    for (i2 = 1; i2 <= 3; i2 += 2) {
-      i__1 = lauf[(i2 + 1) * 5 - 1];
-      for (i1 = lauf[i2 * 5 - 1]; i1 <= i__1; ++i1) {
-        x2 = x[i1-1] * x[i1-1];
-        ls_attenuation[i1-1] = fac * (exp(y2 - x2) * cos(x[i1-1] * ym2) - (a7 + x2 *
-                         (b7 + x2 * (c7 + x2 * (d7 + x2 * (e7 + x2 * (f7 + x2 
-                        * (g7 + x2 * (h7 + x2 * (o7 + x2 * (p7 + x2 * (q7 + 
-                        x2 * (r7 + x2 * (s7 + x2 * t7))))))))))))) / (a8 + x2 
-                        * (b8 + x2 * (c8 + x2 * (d8 + x2 * (e8 + x2 * (f8 + 
-                        x2 * (g8 + x2 * (h8 + x2 * (o8 + x2 * (p8 + x2 * (q8 
-                        + x2 * (r8 + x2 * (s8 + x2 * (t8 + x2)))))))))))))));
-        /* L4: */
-      }
-    }
-  }
-  /* ---- Region 3 */
-  /* -------------------------------------------------------------------- */
-  if (lauf[8] >= lauf[3] || lauf[18] >= lauf[13]) {
-    if ((r__1 = y - yps3, fabs(r__1)) > 1e-8f) {
-      //yps3 = y;
-      a5 = y * (y * (y * (y * (y * (y * (y * (y * (y * 
-                    .564224f + 7.55895f) + 49.5213f) + 204.501f) + 581.746f) 
-                    + 1174.8f) + 1678.33f) + 1629.76f) + 973.778f) + 272.102f;
-      b5 = y * (y * (y * (y * (y * (y * (y * 2.25689f + 22.6778f)
-                     + 100.705f) + 247.198f) + 336.364f) + 220.843f) - 
-                    2.34403f) - 60.5644f;
-      c5 = y * (y * (y * (y * (y * 3.38534f + 22.6798f) + 52.8454f)
-                     + 42.5683f) + 18.546f) + 4.58029f;
-      d5 = y * (y * (y * 2.25689f + 7.56186f) + 1.66203f) - .128922f;
-      e5 = y * .564224f + 9.71457e-4f;
-      a6 = y * (y * (y * (y * (y * (y * (y * (y * (y * (y + 
-                    13.3988f) + 88.2674f) + 369.199f) + 1074.41f) + 2256.98f) 
-                    + 3447.63f) + 3764.97f) + 2802.87f) + 1280.83f) + 
-                    272.102f;
-      b6 = y * (y * (y * (y * (y * (y * (y * (y * 5.f + 
-                    53.5952f) + 266.299f) + 793.427f) + 1549.68f) + 2037.31f) 
-                    + 1758.34f) + 902.306f) + 211.678f;
-      c6 = y * (y * (y * (y * (y * (y * 10.f + 80.3928f) + 
-                    269.292f) + 479.258f) + 497.302f) + 308.186f) + 78.866f;
-      d6 = y * (y * (y * (y * 10.f + 53.5952f) + 92.7568f) + 
-                    55.0293f) + 22.0353f;
-      e6 = y * (y * 5.f + 13.3988f) + 1.49645f;
-    }
-    for (i2 = 1; i2 <= 3; i2 += 2) {
-      i__1 = lauf[(i2 + 1) * 5 - 2];
-      for (i1 = lauf[i2 * 5 - 2]; i1 <= i__1; ++i1) {
-        x2 = x[i1-1] * x[i1-1];
-        ls_attenuation[i1-1] = fac * (a5 + x2 * (b5 + x2 * (c5 + x2 * (d5 + x2 * 
-                        e5)))) / (a6 + x2 * (b6 + x2 * (c6 + x2 * (d6 + x2 * (
-                        e6 + x2)))));
-        /* L5: */
-      }
-    }
-  }
-  /* ---- Region 2 */
-  /* -------------------------------------------------------------------- */
-  if (lauf[7] >= lauf[2] || lauf[17] >= lauf[12]) {
-    if ((r__1 = y - yps2, fabs(r__1)) > 1e-8f) {
-      //yps2 = y;
-      a3 = y * (y2 * (y2 * (y2 * .56419f + 3.10304f) + 4.65456f) + 
-                1.05786f);
-      b3 = y * (y2 * (y2 * 1.69257f + .56419f) + 2.962f);
-      c3 = y * (y2 * 1.69257f - 2.53885f);
-      d3 = y * .56419f;
-      a4 = y2 * (y2 * (y2 * (y2 + 6.f) + 10.5f) + 4.5f) + .5625f;
-      b4 = y2 * (y2 * (y2 * 4.f + 6.f) + 9.f) - 4.5f;
-      c4 = y2 * (y2 * 6.f - 6.f) + 10.5f;
-      d4 = y2 * 4.f - 6.f;
-    }
-    for (i2 = 1; i2 <= 3; i2 += 2) {
-      i__1 = lauf[(i2 + 1) * 5 - 3];
-      for (i1 = lauf[i2 * 5 - 3]; i1 <= i__1; ++i1) {
-        x2 = x[i1-1] * x[i1-1];
-        ls_attenuation[i1-1] = fac * (a3 + x2 * (b3 + x2 * (c3 + x2 * d3))) / (a4 
-                        + x2 * (b4 + x2 * (c4 + x2 * (d4 + x2))));
-        /* L6: */
-      }
-    }
-  }
-  /* ---- Region 1 */
-  /* -------------------------------------------------------------------- */
-  if (lauf[6] >= lauf[1] || lauf[16] >= lauf[11]) {
-    if ((r__1 = y - yps1, fabs(r__1)) > 1e-8f) {
-      //yps1 = y;
-      a1 = y * .5641896f;
-      b1 = y2 + .5f;
-      a2 = y2 * 4;
-    }
-
-    c1 = a1 * fac;
-    for (i2 = 1; i2 <= 3; i2 += 2) {
-      i__1 = lauf[(i2 + 1) * 5 - 4];
-      for (i1 = lauf[i2 * 5 - 4]; i1 <= i__1; ++i1) {
-        x2 = x[i1-1] * x[i1-1];
-        b2 = b1 - x2;
-        ls_attenuation[i1-1] = c1 * (b1 + x2) / (b2 * b2 + a2 * x2);
-        /* L7: */
-      }
-    }
-  }
-  /* ---- Region 0 (Lorentz) */
-  /* -------------------------------------------------------------------- */
-L8:
-  if (lauf[5] >= lauf[0] || lauf[15] >= lauf[10]) {
-    if ((r__1 = y - yps0, fabs(r__1)) > 1e-8f) {
-      //yps0 = y;
-      a0 = y * .5641896f;
-    }
-
-    b0 = a0 * fac;
-    for (i2 = 1; i2 <= 3; i2 += 2) {
-      i__1 = lauf[(i2 + 1) * 5 - 5];
-      for (i1 = lauf[i2 * 5 - 5]; i1 <= i__1; ++i1) {
-        ls_attenuation[i1-1] = b0 / (x[i1-1] * x[i1-1] + y2);
-        /* L9: */
-      }
-    }
-  }
-}
-
-
-//------------------------------------------------------------------
-// help function for lineshape_voigt_kuntz4
-
-long bfun4_(Numeric y, Numeric x)
-{
-    /* System generated locals */
-    long ret_val;
-
-    /* Local variables */
-    Numeric x2 = 0, y2 = 0;
-
-    x2 = x * x;
-    y2 = y * y;
-    if (x2 * .0062f + y2 * .01417f > 1.f) {
-        if (x2 * 6.2e-5f + y2 * 1.98373e-4f > 1.f) {
-            ret_val = 0;
-        } else {
-            ret_val = 1;
-        }
-    } else {
-        if (x2 * .041649f + y2 * .111111111f > 1.f) {
-            ret_val = 2;
-        } else if (y >= fabs(x) * .19487f - .1753846f) {
-            ret_val = 3;
-        } else {
-            ret_val = 4;
-        }
-    }
-    return ret_val;
-}
-
-/*! The Voigt line shape. Kuntz approximation of the Voigt line
-  shape. 
-
-    \retval ls_attenuation            The shape function.
-    \retval x             Auxillary parameter to store frequency grid.
-    \param  f0            Line center frequency.
-    \param  gamma         The pressure broadening parameter.
-    \param  sigma         The Doppler broadening parameter. (Not used.)
-    \param  f_grid        The frequency grid.
-
-    Original c function call and documention:
-
-    int voigt4
-    (
-    long nx,
-    float *x,
-    float y,
-    float *prb,
-    float fak
-    )
-    
-    Calculates the Voigt-Function times the user-definied value 
-    fac with a relative accuracy better than 2*10-4.
-    
-    If this subroutine is called several times with the same 
-    parameter y the numerically expensive coefficents a1..t8 
-    are only calculated once thus further accelerating the 
-    algorithm
-
-    \verbatim
-    --------------------------------------------------------------------
-    x(nx)   (in)    :Distance from line center in units of Doppler
-                    :halfwidths
-    y       (in)    :Ratio of the Doppler halfwidth to the Lorentz
-                    :halfwidth  
-    prb     (out)   :voigt-function times fak
-    fak     (in)    :factor to be specified by the user
-    --------------------------------------------------------------------
-
-    author: M. Kuntz, 
-            Institut fuer Meteorologie und Klimaforschung, 
-            Forschungszentrum Karlsruhe, 
-            Postfach 3640, 
-            76021 Karlsruhe, Germany. 
-            email: kuntz@imk.fzk.de 
-
-    \endverbatim
-
-
-    About 'voigt4' : The program was originally written by M. Kuntz in
-    Fortran77 but has been translated into C by Dietrich Feist (f2c)
-    and into C++ by Oliver Lemke and Axel von Engeln. fak is removed
-    from program code. Replaced nx by nf. Replaced prb by
-    ls. Multiplied ls with the factor fac.
-    
-
-    \author Oliver Lemke and Axel von Engeln
-    \date 2000-12-07 */ 
-void lineshape_voigt_kuntz4(Vector&         ls_attenuation,
-                            Vector&,        //ls_phase
-                            Vector&,        //ls_dattenuation_dfrequency_term
-                            Vector&,        //ls_dphase_dfrequency_term
-                            Vector&,        //ls_dattenuation_dpressure_term
-                            Vector&,        //ls_dphase_dpressure_term
-                            Vector&         x,
-                            const Numeric   f0,
-                            const Numeric   gamma,
-                            const Numeric,
-                            const Numeric,
-                            const Numeric,
-                            const Numeric,
-                            const Numeric   sigma,
-                            const Numeric,
-                            ConstVectorView f_grid,
-                            const bool,
-                            const bool)
-{
-  const Index nf = f_grid.nelem();
-
-  // seems not necessary for Doppler correction
-  //    extern const Numeric SQRT_NAT_LOG_2;
-
-  // PI
-  extern const Numeric PI;
-
-  // constant sqrt(1/pi)
-  const Numeric sqrt_invPI =  sqrt(1/PI);
-
-  // constant normalization factor for voigt
-  Numeric fac = 1.0 / sigma * sqrt_invPI;
-
-
-    /* Initialized data */
-
-    float yps0 = -1.f;
-    float yps1 = -1.f;
-    float yps2 = -1.f;
-    float yps3 = -1.f;
-    float yps4 = -1.f;
-
-    /* System generated locals */
-    long i__1, i__2;
-    float r__1;
-
-    /* Local variables */
-    long bmin = 0, lauf[20] = {0}  /* was [5][4] */, bmax, imin, imax;
-    long stack[80] = {0}       /* was [20][4] */;
-    Numeric a0, a1, a2, a3, a4, a5, a6, a7, a8, b8, c8, d8, e8, f8, g8, 
-            h8, b7, c7, d7, e7, f7, g7, o8, p8, q8, r8, s8, t8, h7, o7, p7, 
-            q7, r7, s7, t7, b6, c6, d6, e6, b5, c5, d5, e5, b4, c4, d4, b3, 
-            c3, d3, b1, y2;
-    a0 = a1 = a2 = a3 = a4 = a5 = a6 = a7 = a8 = b8 = c8 = d8 = e8 = f8 = g8
-      = h8 = b7 = c7 = d7 = e7 = f7 = g7 = o8 = p8 = q8 = r8 = s8 = t8 = h7
-      = o7 = p7 = q7 = r7 = s7 = t7 = b6 = c6 = d6 = e6 = b5 = c5 = d5 = e5
-      = b4 = c4 = d4 = b3 = c3 = d3 = b1 = y2 = 0;
-    long i2 = 0, i1 = 0;
-    Numeric x2 = 0, b2 = 0, b0 = 0, c1 = 0;
-    long stackp = 0, imitte = 0;
-    Numeric ym2 = 0;
-
-  // variables needed in original c routine:
-
-  // Ratio of the Lorentz halfwidth to the Doppler halfwidth
-  Numeric y = gamma / sigma;
-
-  // frequency in units of Doppler 
-  for (i1=0; i1< (int) nf; i1++)
-    {
-      x[i1] = (f_grid[i1] - f0) / sigma;
-    }
-
-
-  /* Parameter adjustments */
-  // this does not work for variables type Vector, corrected by
-  // adjusting the index to array ls and x
-  //--ls;
-  //--x;
-
-  /* Function Body */
-  y2 = y * y;
-  if (y >= 71.f || x[0] >= 123.f || x[nf-1] <= -123.f) {
-    lauf[0] = 1;
-    lauf[5] = nf;
-    lauf[10] = nf;
-    lauf[15] = 0;
-    goto L8;
-  }
-  for (i2 = 1; i2 <= 4; ++i2) {
-    for (i1 = 0; i1 <= 4; ++i1) {
-      lauf[i1 + i2 * 5 - 5] = i2 % 2 * (nf + 1);
-      /* L1: */
-    }
-  }
-  stackp = 1;
-  stack[stackp - 1] = 1;
-  stack[stackp + 19] = nf;
-  stack[stackp + 39] = bfun4_(y, x[0]);
-  stack[stackp + 59] = bfun4_(y, x[nf-1]);
- L2:
-  imin = stack[stackp - 1];
-  imax = stack[stackp + 19];
-  bmin = stack[stackp + 39];
-  bmax = stack[stackp + 59];
-  if (bmin == bmax) {
-    if (x[imax-1] < 0.f) {
-      /* Computing MIN */
-      i__1 = imin, i__2 = lauf[bmin];
-      lauf[bmin] = min(i__1,i__2);
-      /* Computing MAX */
-      i__1 = imax, i__2 = lauf[bmax + 5];
-      lauf[bmax + 5] = max(i__1,i__2);
-      --stackp;
-      goto L3;
-    } else if (x[imin-1] >= 0.f) {
-      /* Computing MIN */
-      i__1 = imin, i__2 = lauf[bmin + 10];
-      lauf[bmin + 10] = min(i__1,i__2);
-      /* Computing MAX */
-      i__1 = imax, i__2 = lauf[bmax + 15];
-      lauf[bmax + 15] = max(i__1,i__2);
-      --stackp;
-      goto L3;
-    }
-  }
-  imitte = (imax + imin) / 2;
-  stack[stackp - 1] = imitte + 1;
-  stack[stackp + 19] = imax;
-  stack[stackp + 39] = bfun4_(y, x[imitte]);
-  stack[stackp + 59] = bmax;
-  ++stackp;
-  stack[stackp - 1] = imin;
-  stack[stackp + 19] = imitte;
-  stack[stackp + 39] = bmin;
-  stack[stackp + 59] = bfun4_(y, x[imitte-1]);
- L3:
-  if (stackp > 0) {
-    goto L2;
-  }
-  /* ---- Region 4 */
-  /* -------------------------------------------------------------------- */
-  if (lauf[9] >= lauf[4] || lauf[19] >= lauf[14]) {
-    if ((r__1 = (float)(y - yps4), fabs(r__1)) > 1e-8f) {
-      //yps4 = (float)y;
-      a7 = y * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (
-                    y2 * (y2 * (y2 * (2.35944f - y2 * .56419f) - 72.9359f) + 
-                    571.687f) - 5860.68f) + 40649.2f) - 320772.f) + 1684100.f)
-                     - 9694630.f) + 40816800.f) - 1.53575e8f) + 4.56662e8f) - 
-                    9.86604e8f) + 1.16028e9f);
-      b7 = y * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (
-                    y2 * (y2 * (23.0312f - y2 * 7.33447f) - 234.143f) - 
-                    2269.19f) + 45251.3f) - 234417.f) + 3599150.f) - 
-                    7723590.f) + 86482900.f) - 2.91876e8f) + 8.06985e8f) - 
-                    9.85386e8f) - 5.60505e8f);
-      c7 = y * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (
-                    y2 * (97.6203f - y2 * 44.0068f) + 1097.77f) - 25338.3f) + 
-                    98079.1f) + 576054.f) - 2.3818e7f) + 22930200.f) - 
-                    2.04467e8f) + 2.94262e8f) + 2.47157e8f) - 6.51523e8f);
-      d7 = y * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (
-                    228.563f - y2 * 161.358f) + 8381.97f) - 66431.2f) - 
-                    303569.f) + 2240400.f) + 38311200.f) - 41501300.f) - 
-                    99622400.f) + 2.70167e8f) - 2.63894e8f);
-      e7 = y * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (
-                    296.38f - y2 * 403.396f) + 23507.6f) - 66212.1f) - 
-                    1.003e6f) + 468142.f) + 24620100.f) + 5569650.f) + 
-                    1.40677e8f) - 63177100.f);
-      f7 = y * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (125.591f - 
-                    y2 * 726.113f) + 37544.8f) + 8820.94f) - 934717.f) - 
-                    1931140.f) - 33289600.f) + 4073820.f) - 16984600.f);
-      g7 = y * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (-260.198f - y2 * 
-                    968.15f) + 37371.9f) + 79902.5f) - 186682.f) - 900010.f) 
-                    + 7528830.f) - 1231650.f);
-      h7 = y * (y2 * (y2 * (y2 * (y2 * (y2 * (-571.645f - y2 * 968.15f)
-                     + 23137.1f) + 72520.9f) + 153468.f) + 86407.6f) - 
-                    610622.f);
-      o7 = y * (y2 * (y2 * (y2 * (y2 * (-575.164f - y2 * 726.113f) + 
-                    8073.15f) + 26538.5f) + 49883.8f) - 23586.5f);
-      p7 = y * (y2 * (y2 * (y2 * (-352.467f - y2 * 403.396f) + 
-                    953.655f) + 2198.86f) - 8009.1f);
-      q7 = y * (y2 * (y2 * (-134.792f - y2 * 161.358f) - 271.202f) - 
-                    622.056f);
-      r7 = y * (y2 * (-29.7896f - y2 * 44.0068f) - 77.0535f);
-      s7 = y * (-2.92264f - y2 * 7.33447f);
-      t7 = y * -.56419f;
-      a8 = y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (
-                    y2 * (y2 * (y2 * (y2 - 3.68288f) + 126.532f) - 955.194f) 
-                    + 9504.65f) - 70946.1f) + 483737.f) - 2857210.f) + 
-                    14464700.f) - 61114800.f) + 2.11107e8f) - 5.79099e8f) + 
-                    1.17022e9f) - 1.5599e9f) + 1.02827e9f;
-      b8 = y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (
-                    y2 * (y2 * (y2 * 14.f - 40.5117f) + 533.254f) + 3058.26f) 
-                    - 55600.f) + 498334.f) - 2849540.f) + 13946500.f) - 
-                    70135800.f) + 2.89676e8f) - 7.53828e8f) + 1.66421e9f) - 
-                    2.28855e9f) + 1.5599e9f;
-      c8 = y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (
-                    y2 * (y2 * 91 - 198.876f) - 1500.17f) + 48153.3f) - 
-                    217801.f) - 1063520.f) + 1.4841e7f) - 46039600.f) + 
-                    63349600.f) - 6.60078e8f) + 1.06002e9f) - 1.66421e9f) + 
-                    1.17022e9f;
-      d8 = y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (
-                    y2 * 364 - 567.164f) - 16493.7f) + 161461.f) + 280428.f) 
-                    - 6890020.f) - 6876560.f) + 1.99846e8f) + 54036700.f) + 
-                    6.60078e8f) - 7.53828e8f) + 5.79099e8f;
-      e8 = y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * 
-                    1001 - 1012.79f) - 55582.f) + 240373.f) + 1954700.f) - 
-                    5257220.f) - 50101700.f) - 1.99846e8f) + 63349600.f) - 
-                    2.89676e8f) + 2.11107e8f;
-      f8 = y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * 2002 - 
-                    1093.82f) - 106663.f) + 123052.f) + 3043160.f) + 
-                    5257220.f) - 6876560.f) + 46039600.f) - 70135800.f) + 
-                    61114800.f;
-      g8 = y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * 3003 - 
-                    486.14f) - 131337.f) - 123052.f) + 1954700.f) + 6890020.f)
-                     + 1.4841e7f) - 13946500.f) + 14464700.f;
-      h8 = y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * 3432 + 486.14f) - 
-                    106663.f) - 240373.f) + 280428.f) + 1063520.f) - 
-                    2849540.f) + 2857210.f;
-      o8 = y2 * (y2 * (y2 * (y2 * (y2 * (y2 * 3003 + 1093.82f) - 
-                    55582.f) - 161461.f) - 217801.f) - 498334.f) + 483737.f;
-      p8 = y2 * (y2 * (y2 * (y2 * (y2 * 2002 + 1012.79f) - 16493.7f) - 
-                    48153.3f) - 55600.f) + 70946.1f;
-      q8 = y2 * (y2 * (y2 * (y2 * 1001.f + 567.164f) - 1500.17f) - 
-                    3058.26f) + 9504.65f;
-      r8 = y2 * (y2 * (y2 * 364 + 198.876f) + 533.254f) + 955.194f;
-      s8 = y2 * (y2 * 91.f + 40.5117f) + 126.532f;
-      t8 = y2 * 14.f + 3.68288f;
-    }
-    ym2 = y * 2;
-    for (i2 = 1; i2 <= 3; i2 += 2) {
-      i__1 = lauf[(i2 + 1) * 5 - 1];
-      for (i1 = lauf[i2 * 5 - 1]; i1 <= i__1; ++i1) {
-        x2 = x[i1-1] * x[i1-1];
-        ls_attenuation[i1-1] = fac * (exp(y2 - x2) * cos(x[i1-1] * ym2) - (a7 + x2 *
-                         (b7 + x2 * (c7 + x2 * (d7 + x2 * (e7 + x2 * (f7 + x2 
-                        * (g7 + x2 * (h7 + x2 * (o7 + x2 * (p7 + x2 * (q7 + 
-                        x2 * (r7 + x2 * (s7 + x2 * t7))))))))))))) / (a8 + x2 
-                        * (b8 + x2 * (c8 + x2 * (d8 + x2 * (e8 + x2 * (f8 + 
-                        x2 * (g8 + x2 * (h8 + x2 * (o8 + x2 * (p8 + x2 * (q8 
-                        + x2 * (r8 + x2 * (s8 + x2 * (t8 + x2)))))))))))))));
-        /* L4: */
-      }
-    }
-  }
-  /* ---- Region 3 */
-  /* -------------------------------------------------------------------- */
-  if (lauf[8] >= lauf[3] || lauf[18] >= lauf[13]) {
-    if ((r__1 = (float)(y - yps3), fabs(r__1)) > 1e-8f) {
-      //yps3 = (float)y;
-      a5 = y * (y * (y * (y * (y * (y * (y * (y * (y * 
-                    .564224f + 7.55895f) + 49.5213f) + 204.501f) + 581.746f) 
-                    + 1174.8f) + 1678.33f) + 1629.76f) + 973.778f) + 272.102f;
-      b5 = y * (y * (y * (y * (y * (y * (y * 2.25689f + 22.6778f)
-                     + 100.705f) + 247.198f) + 336.364f) + 220.843f) - 
-                    2.34403f) - 60.5644f;
-      c5 = y * (y * (y * (y * (y * 3.38534f + 22.6798f) + 52.8454f)
-                     + 42.5683f) + 18.546f) + 4.58029f;
-      d5 = y * (y * (y * 2.25689f + 7.56186f) + 1.66203f) - .128922f;
-      e5 = y * .564224f + 9.71457e-4f;
-      a6 = y * (y * (y * (y * (y * (y * (y * (y * (y * (y + 
-                    13.3988f) + 88.2674f) + 369.199f) + 1074.41f) + 2256.98f) 
-                    + 3447.63f) + 3764.97f) + 2802.87f) + 1280.83f) + 
-                    272.102f;
-      b6 = y * (y * (y * (y * (y * (y * (y * (y * 5.f + 
-                    53.5952f) + 266.299f) + 793.427f) + 1549.68f) + 2037.31f) 
-                    + 1758.34f) + 902.306f) + 211.678f;
-      c6 = y * (y * (y * (y * (y * (y * 10.f + 80.3928f) + 
-                    269.292f) + 479.258f) + 497.302f) + 308.186f) + 78.866f;
-      d6 = y * (y * (y * (y * 10.f + 53.5952f) + 92.7568f) + 
-                    55.0293f) + 22.0353f;
-      e6 = y * (y * 5.f + 13.3988f) + 1.49645f;
-    }
-    for (i2 = 1; i2 <= 3; i2 += 2) {
-      i__1 = lauf[(i2 + 1) * 5 - 2];
-      for (i1 = lauf[i2 * 5 - 2]; i1 <= i__1; ++i1) {
-        x2 = x[i1-1] * x[i1-1];
-        ls_attenuation[i1-1] = fac * (a5 + x2 * (b5 + x2 * (c5 + x2 * (d5 + x2 * 
-                        e5)))) / (a6 + x2 * (b6 + x2 * (c6 + x2 * (d6 + x2 * (
-                        e6 + x2)))));
-        /* L5: */
-      }
-    }
-  }
-  /* ---- Region 2 */
-  /* -------------------------------------------------------------------- */
-  if (lauf[7] >= lauf[2] || lauf[17] >= lauf[12]) {
-    if ((r__1 = (float)(y - yps2), fabs(r__1)) > 1e-8f) {
-      //yps2 = (float)y;
-      a3 = y * (y2 * (y2 * (y2 * .56419f + 3.10304f) + 4.65456f) + 
-                    1.05786f);
-      b3 = y * (y2 * (y2 * 1.69257f + .56419f) + 2.962f);
-      c3 = y * (y2 * 1.69257f - 2.53885f);
-      d3 = y * .56419f;
-      a4 = y2 * (y2 * (y2 * (y2 + 6.f) + 10.5f) + 4.5f) + .5625f;
-      b4 = y2 * (y2 * (y2 * 4.f + 6.f) + 9.f) - 4.5f;
-      c4 = y2 * (y2 * 6.f - 6.f) + 10.5f;
-      d4 = y2 * 4.f - 6.f;
-    }
-    for (i2 = 1; i2 <= 3; i2 += 2) {
-      i__1 = lauf[(i2 + 1) * 5 - 3];
-      for (i1 = lauf[i2 * 5 - 3]; i1 <= i__1; ++i1) {
-        x2 = x[i1-1] * x[i1-1];
-        ls_attenuation[i1-1] = fac * (a3 + x2 * (b3 + x2 * (c3 + x2 * d3))) / (a4 
-                        + x2 * (b4 + x2 * (c4 + x2 * (d4 + x2))));
-        /* L6: */
-      }
-    }
-  }
-  /* ---- Region 1 */
-  /* -------------------------------------------------------------------- */
-  if (lauf[6] >= lauf[1] || lauf[16] >= lauf[11]) {
-    if ((r__1 = (float)(y - yps1), fabs(r__1)) > 1e-8f) {
-      //yps1 = (float)y;
-      a1 = y * .5641896f;
-      b1 = y2 + .5f;
-      a2 = y2 * 4;
-    }
-
-    c1 = a1 * fac;
-    for (i2 = 1; i2 <= 3; i2 += 2) {
-      i__1 = lauf[(i2 + 1) * 5 - 4];
-      for (i1 = lauf[i2 * 5 - 4]; i1 <= i__1; ++i1) {
-        x2 = x[i1-1] * x[i1-1];
-        b2 = b1 - x2;
-        ls_attenuation[i1-1] = c1 * (b1 + x2) / (b2 * b2 + a2 * x2);
-        /* L7: */
-      }
-    }
-  }
-  /* ---- Region 0 (Lorentz) */
-  /* -------------------------------------------------------------------- */
- L8:
-  if (lauf[5] >= lauf[0] || lauf[15] >= lauf[10]) {
-    if ((r__1 = (float)(y - yps0), fabs(r__1)) > 1e-8f) {
-      //yps0 = (float)y;
-      a0 = y * .5641896f;
-    }
-
-    b0 = a0 * fac;
-    for (i2 = 1; i2 <= 3; i2 += 2) {
-      i__1 = lauf[(i2 + 1) * 5 - 5];
-      for (i1 = lauf[i2 * 5 - 5]; i1 <= i__1; ++i1) {
-        ls_attenuation[i1-1] = b0 / (x[i1-1] * x[i1-1] + y2);
-        /* L9: */
-      }
-    }
-  }
-}
-
 
 
 /*! The Voigt line shape. Drayson approximation of the Voigt line
@@ -2237,9 +1464,9 @@ void hui_etal_1978_lineshape( Vector&         ls_attenuation,
 /*! Hartmann-Tran line shape. Based on
     [1] Ngo NH, Lisak D, Tran H, Hartmann J-M. An isolated line-shape model
     to go beyond the Voigt profile in spectroscopic databases and radiative 
-    transfer codes. J Quant Radiat Transfer 2013;129:89-100.                
+    transfer codes. J Quant Spec & Radiat Transfer 2013;129:89-100.                
     [2] Tran H, Ngo NH, Hartmann J-M. Efficient computation of some speed-dependent 
-    isolated line profiles. J Quant Radiat Transfer 2013;129:199-203.
+    isolated line profiles. J Quant Spec & Radiat Transfer 2013;129:199-203.
       
     N.B.  Input is not handled properly yet but assumed standard where nothing is known.
     This is indicated by all numerics set to constants at the start of the code.
@@ -2261,118 +1488,213 @@ void hui_etal_1978_lineshape( Vector&         ls_attenuation,
  */ 
 void hartmann_tran_lineshape(   Vector&         ls_attenuation,
                                 Vector&         ls_phase,
-                                Vector&,        //ls_dattenuation_dfrequency_term
-                                Vector&,        //ls_dphase_dfrequency_term
-                                Vector&,        //ls_dattenuation_dpressure_term
-                                Vector&,        //ls_dphase_dpressure_term
-                                Vector&,
-                                const Numeric   f0,
-                                const Numeric   gamma_0,
-                                const Numeric   gamma_2,//untested
-                                const Numeric   eta,//untested
-                                const Numeric   df_0,//untested
-                                const Numeric   df_2,//untested
-                                const Numeric   gamma_D,
-                                const Numeric   f_VC,//untested
-                                ConstVectorView f_grid,
+                                Vector&         ls_dattenuation_dfrequency_term,
+                                Vector&         ls_dphase_dfrequency_term,
+                                Vector&         ls_dattenuation_dpressure_term,
+                                Vector&         ls_dphase_dpressure_term,
+                                Vector&         xvector, 
+                                const Numeric   f0,      
+                                const Numeric   gamma_0, 
+                                const Numeric   gamma_2, //untested
+                                const Numeric   eta,     //untested
+                                const Numeric   df_0,    //untested
+                                const Numeric   df_2,    //untested
+                                const Numeric   gamma_D, 
+                                const Numeric   f_VC,    //untested
+                                ConstVectorView f_grid,  
                                 const bool      do_phase,
-                                const bool)
+                                const bool      do_partials)
 
 {
-  // N.B. f_VC is the only non-scaled variable in the reference document.  
-  // If given as something other than cm-1 it might behave strange.  Still not tested,
-  // just a future "fixme".  The others are probably OK, but I am very unsure on this 
-  // as well.
-  
-  // Constants
-  extern const Numeric PI;
-  extern const Numeric SPEED_OF_LIGHT;
-  
-  // Direct pressure term
-  const std::complex<Numeric> c_0(gamma_0, df_0);
-  // Indirect pressure term
-  const std::complex<Numeric> c_2(gamma_2, df_2);
-  
-  // Constant c_0 helper
-  const std::complex<Numeric> c_0_tilde = (1.-eta)*(c_0-1.5*c_2)+f_VC;
-  
-  // Constant c_2 helper
-  const std::complex<Numeric> c_2_tilde = (1.-eta)*c_2;
-  
-  // Average speed of molecule
-  const Numeric v_a0 = SPEED_OF_LIGHT * gamma_D / f0;
-  
-  // Speed of molecules * Line frequency / speed of light
-  const Numeric speed_freq_div_c = v_a0 * f0 / SPEED_OF_LIGHT;
-  
-  // Speed of molecules * speed of light / line frequency
-  const Numeric speed_c_div_freq = v_a0 * SPEED_OF_LIGHT / f0;
-  
-  // Constant sqrt(pi)
-  const Numeric sqrtPI =  sqrt(PI);
-  
-  for(Index nf = 0; nf<f_grid.nelem(); nf++)
-  {
-    // This means the other formalism is wrong
-    if( c_2 == 0. || eta == 1. )
+    // NOTE: f_VC is the only non-scaled variable in the reference document.  
+    // If given as something other than cm-1 it might behave strange.  Still not tested,
+    // just a future "fixme".  The others are probably OK, but I am very unsure on this 
+    // as well.
+    
+    // NOTE: need more outputs for the partial derivatives?  This requires redesign so that
+    // there is no longer such abstract derivatives.  That would slow the other methods down.
+    // So a better solution is to just allow complex vector outputs, and then save:
+    // w(iZ-) and w(iZ+).  Their partials can be found from knowing these two --- Y and X has to
+    // be re-derived in code.  The Forthomme etal 2015 method of finding the outputs with 
+    // regards to the other parameters of the equations can be done.  See their supplementary 
+    // material for how to calculate the many partial derivatives (or redo the work yourself).
+    // This does mean that, internally, this function will output derivatives that have 
+    // a very different meaning from all the others.
+    // This might not work out, since Line mixing makes mixing of these parameters excruciating.
+    
+    const bool test1 = gamma_2==df_2&&gamma_2==f_VC&&gamma_2==eta&&gamma_2==0;
+    
+    if( gamma_0==df_0 && gamma_0==gamma_2 && test1 )
     {
-      // Z_minus is now defined as
-      const std::complex<Numeric> Z_minus = (std::complex<Numeric>(0.,1.)*(f0-f_grid[nf]) + c_0_tilde)/speed_freq_div_c;
-      
-      // w(i*Z_minus)
-      const std::complex<Numeric> w =  Faddeeva::w(std::complex<Numeric>(0.,1.)*Z_minus);
-      
-      // A(f)
-      const std::complex<Numeric> A =  w * sqrtPI/speed_freq_div_c;
-      
-      // B(f) [N.B. test on c_2 to save some calculation time]
-      const std::complex<Numeric> B =  c_2==0.?0.:sqrtPI * speed_c_div_freq * ((std::complex<Numeric>(1.,0.)-Z_minus*Z_minus)*w+Z_minus/sqrtPI);
-      
-      // Hartmann-Tran line shape
-      const std::complex<Numeric> HTP = 1./PI * A / ( std::complex<Numeric>(1.,0.) - (f_VC -eta * (c_0-1.5*c_2))*A + (eta*c_2/v_a0/v_a0)*B);
-      
-      // Output
-      ls_attenuation[nf] = HTP.real();
-      if(do_phase)
-        ls_phase[nf] = HTP.imag();
+        throw std::runtime_error("Doppler line shape not supported in ARTS using HTP.\n");
     }
-    else // This cannot happen before we fix our input!
+    else if( test1 )  // Standard Voigt function so use standard Voigt function call.  NOTE:  Partial derivations must know this.
     {
-      // X variable
-      const std::complex<Numeric> X = (std::complex<Numeric>(0.,1.)*(f0-f_grid[nf])+c_0_tilde )/c_2_tilde;
-      
-      // Y variable
-      const std::complex<Numeric> sqrtY = speed_freq_div_c/2./c_2_tilde;
-      
-      // plus
-      const std::complex<Numeric> Z_plus  = sqrt(X+sqrtY*sqrtY)+sqrtY;
-      
-      // Z_minus
-      const std::complex<Numeric> Z_minus = sqrt(X+sqrtY*sqrtY)-sqrtY;
-      
-      // w(i*Z_minus)
-      const std::complex<Numeric> w_plus  =  Faddeeva::w(Z_plus);
-      
-      // w(i*Z_minus)
-      const std::complex<Numeric> w_minus =  Faddeeva::w(Z_minus);
-      
-      // A
-      const std::complex<Numeric> A = sqrtPI/speed_freq_div_c * (w_minus-w_plus);
-      
-      // B
-      const std::complex<Numeric> B = v_a0*v_a0/c_2_tilde/c_2_tilde *(-1.+
-                                      sqrtPI/2./sqrtY*(1.-Z_minus*Z_minus)*w_minus -
-                                      sqrtPI/2./sqrtY*(1.-Z_plus*Z_plus)*w_plus);
-      
-      // Hartmann-Tran line shape
-      const std::complex<Numeric> HTP = 1./PI * A / ( std::complex<Numeric>(1.,0.) - (f_VC -eta * (c_0-1.5*c_2))*A + (eta*c_2/v_a0/v_a0)*B);
-      
-      // Output
-      ls_attenuation[nf] = HTP.real();
-      if(do_phase)
-          ls_phase[nf] = HTP.imag();
+        faddeeva_algorithm_916(   ls_attenuation, ls_phase, ls_dattenuation_dfrequency_term,
+                                  ls_dphase_dfrequency_term, ls_dattenuation_dpressure_term,
+                                  ls_dphase_dpressure_term, xvector, f0, gamma_0,
+                                  gamma_2, eta, df_0, df_2, gamma_D, f_VC, f_grid,
+                                  do_phase, do_partials);
+        return;
     }
-  }
+    else //This is mostly untested and there are likely errors.  Like for c_2 == 0 and for eta == 1
+    {
+        if(do_partials)
+            throw std::runtime_error("It is not yet supported to do partial derivation with\n"
+            "HTP line shape parameters.");
+        
+        // Constants
+        extern const Numeric PI;
+        extern const Numeric SPEED_OF_LIGHT;
+        const std::complex<Numeric> i(0.,1.);
+        
+        // Direct pressure term
+        const std::complex<Numeric> c_0(gamma_0, df_0);
+        
+        // Indirect pressure term
+        const std::complex<Numeric> c_2(gamma_2, df_2);
+        
+        // Constant c_0 helper
+        const std::complex<Numeric> c_0_tilde = (1.-eta)*(c_0-1.5*c_2)+f_VC;
+        
+        // Constant c_2 helper
+        const std::complex<Numeric> c_2_tilde = (1.-eta)*c_2;
+        
+        // Average speed of molecule
+        const Numeric v_a0 = SPEED_OF_LIGHT * gamma_D / f0;
+        
+        // Constant sqrt(pi)
+        const Numeric sqrtPI =  sqrt(PI);
+        
+        // Some calculation constants
+        const std::complex<Numeric> c1 = sqrtPI/gamma_D;
+        const std::complex<Numeric> v_a02 = v_a0*v_a0;
+        const std::complex<Numeric> c4 = f_VC-eta*(c_0-1.5*c_2);
+        const std::complex<Numeric> c5 = eta*c_2/v_a02;
+        
+        // Special case when no speed dependency or no correlation
+        if(c_2_tilde == std::complex<Numeric>(0., 0.))
+        {
+            for(Index nf = 0; nf<f_grid.nelem(); nf++)
+            {
+                const std::complex<Numeric> Z1 = 
+                std::complex<Numeric>(0.,(f0-f_grid[nf])/gamma_D) + c_0_tilde;
+                
+                // NB.  Z1 → infinity is treated specially in Tran etal.  This I think already happens in
+                // the Faddeeeva function as well.  So I will do nothing special
+                
+                const std::complex<Numeric> w1 = Faddeeva::w(i*Z1);
+                
+                const std::complex<Numeric> A = c1*w1;
+                
+                const std::complex<Numeric> B = c1*v_a02* ( (1.-Z1*Z1)*w1 + Z1/sqrtPI );
+                
+                // Hartmann-Tran line shape
+                const std::complex<Numeric> HTP = 1./PI * A / ( 1. - c4*A + c5*B );
+                
+                // Output
+                ls_attenuation[nf] = HTP.real();
+                if(do_phase||do_partials)
+                    ls_phase[nf] = HTP.imag();
+            }
+            return;
+        }
+        
+        // Y variable otherwise
+        const std::complex<Numeric> sqrtY = gamma_D/(2. * c_2_tilde);
+        const std::complex<Numeric> Y = sqrtY*sqrtY;
+        const Numeric absY = abs(Y);
+        const std::complex<Numeric> sqrtY_t2 = 2.*sqrtY;
+        const std::complex<Numeric> c2 = v_a02/c_2_tilde/c_2_tilde;
+        const std::complex<Numeric> c3 = sqrtPI/sqrtY_t2;
+        
+        for(Index nf = 0; nf<f_grid.nelem(); nf++)
+        {
+            const Numeric df = f0-f_grid[nf];
+            
+            // X variable
+            const std::complex<Numeric> X = ( std::complex<Numeric>(0.,df) + c_0_tilde )/c_2_tilde;
+            
+            // Tran etal says this must be between 3e-8 and 10e15 for numerical stability in their routine.
+            // This is not the case for us since we have a different code, but is arbitrarily used anyways.
+            const Numeric numerical_test = abs(X)/absY;
+            
+            // Same variables in all cases
+            std::complex<Numeric> A, B;
+            if(numerical_test < 3e-8)
+            {
+                // Z_plus 
+                // Note that sqrt(X+Y)+sqrt(Y) → 2*sqrt(Y) in this case
+                // This simplification is ignored below but is faster. Should it be used?
+                const std::complex<Numeric> Z_plus  = sqrt(X+Y)+sqrtY;
+                
+                // Z_minus
+                const std::complex<Numeric> Z_minus = 
+                std::complex<Numeric>(0.,df/gamma_D)+c_0_tilde;
+                
+                // w(Z_minus)
+                const std::complex<Numeric> w_plus  =  Faddeeva::w(i*Z_plus);
+                
+                // w(Z_minus)
+                const std::complex<Numeric> w_minus =  Faddeeva::w(i*Z_minus);
+                
+                // A
+                A = c1 * (w_minus - w_plus);
+                
+                // B
+                B = c2 *(-1.+ c3*((1.-Z_minus*Z_minus)*w_minus - (1.-Z_plus*Z_plus)*w_plus));
+            }
+            else if(numerical_test > 1e15)
+            {
+                // Note that the Z:s are very similar but 
+                // Tran etal still makes a difference between them
+                const std::complex<Numeric> sqrtX = sqrt(X);
+                const std::complex<Numeric>  Z2   = sqrt(X+Y);
+                
+                const std::complex<Numeric> w1 = Faddeeva::w(i*sqrtX);
+                const std::complex<Numeric> w2 = Faddeeva::w(i*Z2);
+                
+                // Note that there is a warning for these equations as X → infinity that is ignored for now.
+                
+                std::complex<Numeric> Aconst = (1./sqrtPI - sqrtX*w1);
+                
+                // A
+                A = 2.*c1 * Aconst;
+                
+                // B
+                B = c2 * (-1. + 2.*sqrtPI*(1.-X-2.*Y)*Aconst + 2.*sqrtPI*Z2*w2);
+                
+            }
+            else
+            {
+                // Z_plus
+                const std::complex<Numeric> Z_plus  = sqrt(X+Y)+sqrtY;
+                
+                // Z_minus
+                const std::complex<Numeric> Z_minus = Z_plus-sqrtY_t2;
+                
+                // w(Z_minus)
+                const std::complex<Numeric> w_plus  =  Faddeeva::w(i*Z_plus);
+                
+                // w(Z_minus)
+                const std::complex<Numeric> w_minus =  Faddeeva::w(i*Z_minus);
+                
+                // A
+                A = c1 * (w_minus - w_plus);
+                
+                // B
+                B = c2 *(-1.+ c3*((1.-Z_minus*Z_minus)*w_minus - (1.-Z_plus*Z_plus)*w_plus));
+            }
+            
+            // Hartmann-Tran line shape
+            const std::complex<Numeric> HTP = 1./PI * A / ( 1. - c4*A + c5*B);
+            
+            // Output
+            ls_attenuation[nf] = HTP.real();
+            if(do_phase||do_partials)
+                ls_phase[nf] = HTP.imag();
+        }
+    }
 }
 
 
@@ -2861,13 +2183,13 @@ void define_lineshape_data()
     (LineshapeRecord
      ("Voigt_Kuntz3",
       "The Voigt line shape. Approximation by Kuntz: Accuracy 2*10-3",
-      lineshape_voigt_kuntz3, NO_PHASE, NO_PARTIALS));
+      deprecated, NO_PHASE, NO_PARTIALS));
 
   lineshape_data.push_back
     (LineshapeRecord
      ("Voigt_Kuntz4",
       "The Voigt line shape. Approximation by Kuntz: Accuracy 2*10-4",
-      lineshape_voigt_kuntz4, NO_PHASE, NO_PARTIALS ));
+      deprecated, NO_PHASE, NO_PARTIALS ));
 
   lineshape_data.push_back
     (LineshapeRecord

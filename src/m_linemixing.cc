@@ -201,3 +201,249 @@ void ArrayOfLineMixingRecordReadAscii(// Generic Output:
     CREATE_OUT2;
     out2 << "  Read " << line_mixing_records.nelem() << " lines from " << filename << ".\n";
 }
+
+void abs_lines_per_bandInit(ArrayOfArrayOfLineRecord& abs_lines_per_band,
+                            ArrayOfArrayOfMatrix&     relmat_per_band,
+                            const Verbosity&)
+{
+    // These are now initialized and zero-sized.  All additional functions operating on these variables should work in unison
+    abs_lines_per_band.resize(0);
+    relmat_per_band.resize(0);
+}
+
+void abs_lines_per_bandLineMixingAppendCO2( ArrayOfArrayOfLineRecord& abs_lines_per_band,
+                                            ArrayOfArrayOfMatrix&     relmat_per_band,
+                                            const String&             bandinfo_file,
+                                            const Numeric&            rel_str,
+                                            const Numeric&            fmin,
+                                            const Numeric&            fmax,
+                                            const Verbosity&          verbosity)
+{
+    
+    extern const Numeric HZ2CM;
+    
+    CREATE_OUT2;
+    out2<< "Appending line mixing band following:\n\t"<<bandinfo_file<<"\n";
+    
+    // This will contain all the read file
+    std::ifstream band_stream;
+    
+    // Store relative pathing for all the other files
+    open_input_file(band_stream, bandinfo_file);
+    ArrayOfString bandpath;
+    bandinfo_file.split(bandpath, "/");
+    String bandfolder="";
+    for(Index i=0;i<bandpath.nelem()-1;i++)
+    {
+        bandfolder.append(bandpath[i]);
+        bandfolder.append("/");
+    }
+    
+    // This will contain the information of one line
+    String line;
+    
+    // Since fortran uses "D" for long floats and C uses "E" for all floats...
+    const String c ="E", f = "D";
+    
+    // Setup test of relative strength
+    Numeric first_str=0;
+    bool    first_loop=true;
+    
+    while(true)
+    {
+        // Get line and check if we are done with the file yet
+        std::getline(band_stream, line);
+        if(line.nelem()==0)
+            break;
+        else if(line.nelem()!=72)
+            throw std::runtime_error("The band info is bad. Check the file.\n");
+        
+        // The filename should be connected to the first X characters
+        String filename;
+        filename = line.erase(0,13);
+        filename = "S" + filename + ".dat";
+        
+        // The maximum cross-section is in the next X numbers [HITRAN unit line strength?]
+        Numeric max_xsec;
+        extract(max_xsec, line, 12);
+        
+        // Test relative xsec strength --- see documentation in the end
+        if(first_loop)
+        {
+            first_loop=false;
+            first_str=max_xsec;
+        }
+        else
+        {
+            if(max_xsec/first_str<rel_str)
+                continue;
+        }
+        
+        // The minimum frequency is in the next X numbers [Frequency]
+        Numeric min_freq;
+        extract(min_freq, line, 13);
+        min_freq /= HZ2CM;
+        
+        // The maximum frequency is in the next X numbers [Frequency]
+        Numeric max_freq;
+        extract(max_freq, line, 13);
+        max_freq /= HZ2CM;
+        
+        // Test the frequency range before continuing
+        if(min_freq>fmax||max_freq<fmin)
+            continue;
+        
+        // The wfit file
+        String wfilename="WTfitXY.dat"; 
+        const Index  ch1_int = (Index)filename[3]-48, ch2_int = (Index)filename[8]-48;
+        
+        // If XY is not 1 or 0 apart then skip
+        if( abs( ch1_int - ch2_int ) > 1 )
+        {
+            continue;
+        }
+        else if(ch1_int<=ch2_int&&ch1_int<=5)
+        {
+            wfilename[5] = filename[3];
+            wfilename[6] = filename[8];
+        }
+        else
+        {
+            continue;
+        }
+        
+        // The number of lines per band (-1 is no lines of type)
+        Index PJ_max, QJ_max, RJ_max;
+        extract(PJ_max, line, 12);
+        extract(QJ_max, line, 4);
+        extract(RJ_max, line, 4);
+        
+        // The file paths for hitran-like and for relmat
+        String path_hitran = bandfolder, path_relmat = bandfolder;
+        path_hitran.append(filename);
+        path_relmat.append(wfilename);
+        
+        // HITRAN reading for all lines in the file
+        ArrayOfLineRecord this_band;
+        std::ifstream hitran_stream;
+        open_input_file(hitran_stream, path_hitran);
+        while(! hitran_stream.eof())
+        {
+            LineRecord          one_line;
+            if(one_line.ReadFromHitranModifiedStream(hitran_stream, verbosity)) // NOTE: still add extra line information?
+                break;
+            else
+                one_line.ARTSCAT5FromARTSCAT3();
+            this_band.push_back(one_line);
+        }
+        hitran_stream.close();
+        
+        // Create and set relmats.
+        const Index nlines = this_band.nelem();
+        ArrayOfMatrix relmats(4);
+        for(Index i=0;i<4;i++)
+        {
+                relmats[i].resize(nlines,nlines);
+                relmats[i] = 0.0;
+        }
+        
+        // Find the interesting quantum numbers in simple manner
+        ArrayOfIndex JUPPER_list(nlines),JLOWER_list(nlines);
+        for(Index i=0;i<nlines;i++)
+        {
+            LineRecord& lr = this_band[i];
+            JUPPER_list[i] = lr.Upper_J().toIndex();
+            JLOWER_list[i] = lr.Lower_J().toIndex();
+        }
+        
+        // Relmat routine --- ignore data that is none-existent (strange folder structures)
+        std::ifstream relmat_stream;
+        try
+        {
+            open_input_file(relmat_stream, path_relmat);
+        }
+        catch (const runtime_error& error)
+        {
+            continue;
+        }
+        
+        while(true)
+        {
+            
+            // old line is used so use line anew
+            String orig_line, this_line="";
+            std::getline(relmat_stream, orig_line);
+            if(relmat_stream.eof())
+                break;
+            
+            // c and fortran long float conversion
+            ArrayOfString tmp;
+            orig_line.split(tmp,f);
+            for(Index i=0;i<tmp.nelem()-1;i++)
+            {
+                this_line.append(tmp[i]);
+                this_line.append(c);
+            }
+            this_line.append(tmp[tmp.nelem()-1]);
+            
+            
+            // Format of relmat data
+            Numeric W0, W0_T, some_value, rel_err;
+            Index   Jupper,Jlower,Jupper_p,Jlower_p;
+            std::istringstream icecream(this_line);
+            icecream >> W0 >> W0_T >> some_value >> rel_err >> Jupper >> Jlower >> Jupper_p >> Jlower_p;
+            
+            Numeric scale;
+            if(Jupper&&Jupper_p)
+                scale = ((Numeric)(Jupper*(Jupper+1))/((Numeric)(Jupper_p*(Jupper_p+1))));
+            else if( Jupper )
+                scale = (Numeric)(Jupper*(Jupper+1));
+            else if (Jupper_p)
+                scale = 1.0;
+            else 
+                scale = 0.0; // no scale?
+            
+            // Position of relmat data in remats
+            for(Index i=0;i<nlines;i++)
+            {
+                // Add numerics for diagonal here
+                if(Jupper==JUPPER_list[i])
+                {
+                    if(Jlower==JLOWER_list[i])
+                    {
+                        for(Index j=0;j<nlines;j++)
+                        {
+                            if(j==i)
+                                continue; // This case is artificial and handled elsewhere
+                            
+                            if(Jupper_p==JUPPER_list[j])
+                            {
+                                if(Jlower_p==JLOWER_list[j])
+                                {
+                                    relmats[0](i,j)=W0;
+                                    relmats[0](j,i)=W0*scale; //if 
+                                    
+                                    relmats[1](i,j)=W0_T;
+                                    relmats[1](j,i)=W0_T; // scale? 1/W0_T?
+                                    
+                                    relmats[2](i,j)=some_value;
+                                    relmats[2](j,i)=some_value; // scale?
+                                    
+                                    relmats[3](i,j)=rel_err;
+                                    relmats[3](j,i)=rel_err; // scale?
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+        }
+        relmat_stream.close();
+        
+        // End of one line
+        abs_lines_per_band.push_back(this_band);
+        relmat_per_band.push_back(relmats);
+    }
+    band_stream.close();
+}

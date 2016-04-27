@@ -471,6 +471,16 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix&  partials_attenuati
         }
         else if(flag_partials(ii)==JQT_nlte_temperature)
         {
+            
+            /* 
+             * WARNING:  This part will be in accordance with simplified formalism used in the transfer code
+             * so that d/dTnlte[exp(f(Tnlte))/Q(T)], where Q(T) is independent of Tnlte.  In practice, Q(T)
+             * will be Q(T)-exp(f(T))+exp(f(Tnlte)), and so there should be an additional term involved 
+             * in the calculation of this partial derivative.  However, as this is not required in the simplified
+             * formalism we presently include in ARTS, this is also not accounted for below.  I am not sure what
+             * this implies for usability of these partial derivatives.
+             */
+            
             bool lower, upper;
             line_match_level(lower, upper, flag_partials.jac()[ii].QuantumIdentity(), qnr.Lower(), qnr.Upper());
             if(!(lower||upper))

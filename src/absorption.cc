@@ -2063,7 +2063,7 @@ if (!arts_omp_in_parallel())    \
 firstprivate(attenuation, phase, fac, f_local, aux)
     for(Index jj=0; jj<abs_p.nelem();jj++)
     {
-      Vector empty_vector;
+        Vector empty_vector;
         const Numeric& t=abs_t[jj];
         const Numeric& p=abs_p[jj];
         ConstVectorView t_nlte = calc_src?abs_t_nlte(joker, jj):empty_vector;
@@ -2089,6 +2089,13 @@ firstprivate(attenuation, phase, fac, f_local, aux)
         
         for(Index ii=0; ii<abs_lines.nelem();ii++)
         {
+            
+            // These lines should be ignored by user request
+            if( LineMixingData::LM_BYBAND == abs_lines[ii].LineMixing().Type() )
+            {
+                continue;
+            }
+            
             // Pressure broadening parameters
             // Prepare pressure broadening parameters
             Numeric gamma_0,gamma_2,eta,df_0,df_2,f_VC;

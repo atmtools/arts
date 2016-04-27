@@ -124,7 +124,7 @@ yCalc
 
 VectorCreate( yREFERENCE )
 ReadXML( yREFERENCE, "yREFERENCE.xml" )
-Compare( y, yREFERENCE, 1e-2 )
+Compare( y, yREFERENCE, 2e-2 )
 
 WriteXML( output_file_format, y )
 

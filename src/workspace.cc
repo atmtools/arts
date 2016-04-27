@@ -392,7 +392,7 @@ void Workspace::define_wsv_data()
         "Lineshape specification: function, norm, cutoff. There is one entry for\n"
         "each abs_tag, not for each species. This means if you have several\n"
         "abs_tags for different isotopologues or transitions of a species, you\n"
-        "may use different lineshapes.\n"
+        "may use different lineshapes.  See *abs_lineshapeDefine* for more details.\n"
        ),
        GROUP( "ArrayOfLineshapeSpec" )));
 
@@ -405,6 +405,16 @@ void Workspace::define_wsv_data()
         "Dimensions: (tag_groups.nelem()) (# of lines for this tag)\n"
        ), 
        GROUP( "ArrayOfArrayOfLineRecord" )));
+    
+    wsv_data.push_back
+    (WsvRecord
+    ( NAME( "abs_lines_per_band" ),
+      DESCRIPTION
+      (
+          "A list of spectral line data for each band.\n"
+          "Dimensions: (# of bands)\n"
+      ), 
+      GROUP( "ArrayOfArrayOfLineRecord" )));
 
   wsv_data.push_back
     (WsvRecord
@@ -3660,6 +3670,15 @@ void Workspace::define_wsv_data()
        "Size:   [ 2 ]\n"
        ),
       GROUP( "Vector" )));
+   
+   wsv_data.push_back
+   (WsvRecord
+   ( NAME( "relmat_per_band" ),
+     DESCRIPTION
+     (
+         "Relaxation matrix.\n"
+     ),
+     GROUP( "ArrayOfArrayOfMatrix" )));
 
   wsv_data.push_back
    (WsvRecord

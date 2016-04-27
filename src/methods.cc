@@ -420,16 +420,12 @@ void define_md_data_raw()
          "   no_shape:                 no specified shape\n"
          "   Doppler:                  Doppler lineshape\n"
          "   Lorentz:                  Lorentz lineshape\n"
-         "   Voigt_Kuntz3:             Kuntz approximation to the Voigt lineshape,\n"
-         "                             accuracy > 2x10^(-3)\n"
-         "   Voigt_Kuntz4:             Kuntz approximation to the Voigt lineshape,\n"
-         "                             accuracy > 2x10^(-4)\n"
          "   Voigt_Kuntz6:             Kuntz approximation to the Voigt lineshape,\n"
          "                             accuracy > 2x10^(-6)\n"
          "   Voigt_Drayson:            Drayson approximation to the Voigt lineshape\n"
          "   Rosenkranz_Voigt_Drayson: Rosenkrantz oxygen absortion with overlap correction\n"
          "                             on the basis of Drayson routine\n"
-         "   Rosenkranz_Voigt_Kuntz6 : Rosenkrantz oxygen absortion with overlap correction\n"
+         "   Rosenkranz_Voigt_Kuntz6:  Rosenkrantz oxygen absortion with overlap correction\n"
          "                             on the basis of Kuntz routine, accuracy > 2x10^(-6)\n"
          "   CO2_Lorentz:              Lorentz multiplied with Cousin's chi factors\n"
          "   CO2_Drayson:              Drayson multiplied with Cousin's chi factors\n"
@@ -437,6 +433,8 @@ void define_md_data_raw()
          "                             A.N. Ali (2011).  Implementation by Steven G. Johnson\n"
          "                             under the MIT License (attainable through\n"
          "                             http://ab-initio.mit.edu/Faddeeva)\n"
+         "   Hartmann-Tran:            Line shape is considered as described by the\n"
+         "                             Hartmann-Tran profile.\n"
          "\n"
          "forefactor:\n"
          "   no_norm:                  1\n"
@@ -906,6 +904,47 @@ void define_md_data_raw()
       GIN_TYPE( "Numeric" ),
       GIN_DEFAULT( "0" ),
       GIN_DESC( "Frequency to shift line centers [Hz]." )
+    ));
+    
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "abs_lines_per_bandInit" ),
+      DESCRIPTION
+      (
+          "Initializes abs_lines_per_band and related variables.\n"
+      ),
+      AUTHORS( "Richard Larsson" ),
+      OUT( "abs_lines_per_band", "relmat_per_band" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN(),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()
+    ));
+    
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "abs_lines_per_bandLineMixingAppendCO2" ),
+      DESCRIPTION
+      (
+          "Reads lines for a band from special structure.\n"
+      ),
+      AUTHORS( "Richard Larsson" ),
+      OUT( "abs_lines_per_band", "relmat_per_band" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "abs_lines_per_band", "relmat_per_band" ),
+      GIN("bandinfo_file", "rel_str", "fmin", "fmax"),
+      GIN_TYPE("String", "Numeric", "Numeric", "Numeric"),
+      GIN_DEFAULT(NODEF, "0.0", NODEF, NODEF),
+      GIN_DESC("Name (and path) of the band information file.",
+               "Relative band xsec allowed cf. first xsec.",
+               "Minimum frequency for lines to read [Hz].",
+               "Maximum frequency for lines to read [Hz].")
     ));
   
   md_data_raw.push_back

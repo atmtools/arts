@@ -560,16 +560,16 @@ public:
   const String& Lower_LQuanta() const { return mlower_lquanta; }
 
   /** Upper state local quanta N */
-  Rational Upper_N() const { return mupper_n; }
+  Rational Upper_N() const { return mquantum_numbers.Upper(QN_N); }
 
   /** Upper state local quanta J */
-  Rational Upper_J() const { return mupper_j; }
+  Rational Upper_J() const { return mquantum_numbers.Upper(QN_J); }
 
   /** Lower state local quanta N */
-  Rational Lower_N() const { return mlower_n; }
+  Rational Lower_N() const { return mquantum_numbers.Lower(QN_N); }
 
   /** Lower state local quanta J */
-  Rational Lower_J() const { return mlower_j; }
+  Rational Lower_J() const { return mquantum_numbers.Lower(QN_J); }
 
   /** String with quantum numbers */
   const String& QuantumNumbersString() const { return mquantum_numbers_str; }
@@ -831,7 +831,9 @@ public:
 
     \author Stefan Buehler, Hermann Berg */
   bool ReadFromHitran2004Stream(istream& is, const Verbosity& verbosity, const Numeric fmin=0);
-
+  
+  // Special reading for modified data stream to be used in line mixing calculations
+  bool ReadFromHitranModifiedStream(istream& is, const Verbosity& verbosity);
 
 
 

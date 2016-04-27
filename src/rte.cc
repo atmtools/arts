@@ -1006,18 +1006,19 @@ void emission_rtstep(
                   Vector tt(stokes_dim);
                   mult( tt, t(iv,joker,joker), iy(iv,joker) );
                   
-                  // External source term  (full matrix multiplications since it can be polarized)
+                  // Source term  (full matrix multiplications since it can be polarized)
                   Matrix tmp(stokes_dim,stokes_dim);
                   Vector J_n(stokes_dim), J_bar(stokes_dim);
                   inv ( tmp, extbar(iv,joker,joker) );          // tmp   =  1/K
                   mult( J_n, tmp, sourcebar(iv, joker) );       // J_n   =  1/K * j_other
+                  J_n[0]+=bbar[iv];                             // J_n   =  1/K * j_other + B... Source function!
                   id_mat(tmp);                                  // tmp   =  I
-                  tmp-=t( iv, joker, joker);                    // tmp   =  I-T /*Remember this later!*/
-                  mult(J_bar, tmp, J_n);                        // J_bar = (I-T)*(1/K)*j_other
+                  tmp-=t( iv, joker, joker);                    // tmp   =  I-T
+                  mult(J_bar, tmp, J_n);                        // J_bar = (I-T) * (1/K * j_other + B)
                   
                   // Create final iy
                   for( Index i=0; i<stokes_dim; i++ )
-                    { iy(iv,i) = tt[i] + tmp(i,0) * bbar[iv] + J_bar[i]; }
+                    { iy(iv,i) = tt[i] + J_bar[i]; }
                 }
             }
         }

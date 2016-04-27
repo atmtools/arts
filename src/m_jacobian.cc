@@ -261,7 +261,14 @@ void jacobianAddAbsSpecies(
   CREATE_OUT3;
   
   if(!for_species_tag)
-      SpeciesTag test(species);
+  {
+      ArrayOfSpeciesTag test;
+      array_species_tag_from_string(test,species);
+      if( test.nelem()!=1 )
+          throw std::runtime_error("Trying to add a species as a species tag of multiple species.\n"
+          "This is not supported.  Please give just a single species instead.\n"
+          "Otherwise consider if you intended for_species_tag to be evaluated true.\n");
+  }
   
   // Check that this species is not already included in the jacobian.
   for( Index it=0; it<jq.nelem(); it++ )

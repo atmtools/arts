@@ -54,7 +54,7 @@ void PressureBroadeningData::GetPressureBroadeningParams(Numeric& gamma_0,
         case PB_AIR_BROADENING:
             GetAirBroadening(gamma_0, df_0, theta, pressure, self_pressure);
             gamma_2 = 0.;
-            eta     = 1.;
+            eta     = 0.;
             df_2    = 0.;
             f_VC    = 0.;
             break;
@@ -62,7 +62,7 @@ void PressureBroadeningData::GetPressureBroadeningParams(Numeric& gamma_0,
             GetAirAndWaterBroadening(gamma_0, df_0, theta, pressure, self_pressure, 
                                      this_species, h2o_species, vmrs, verbosity);
             gamma_2 = 0.;
-            eta     = 1.;
+            eta     = 0.;
             df_2    = 0.;
             f_VC    = 0.;
             break;
@@ -70,7 +70,7 @@ void PressureBroadeningData::GetPressureBroadeningParams(Numeric& gamma_0,
             GetPerrinBroadening(gamma_0, df_0, theta, pressure, self_pressure,
                                 this_species, broad_spec_locations, vmrs, verbosity);
             gamma_2 = 0.;
-            eta     = 1.;
+            eta     = 0.;
             df_2    = 0.;
             f_VC    = 0.;
             break;

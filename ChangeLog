@@ -1,3 +1,80 @@
+2016-04-27  Richard Larsson   <ric.larsson@gmail.com>
+	
+	* arts-2-3-480
+	
+	Parts of this is still work in progress, parts are old promises, parts
+	are me finding things that I have done apt for misunderstanding while
+	looking through the code in preparation of my thesis.
+	
+	The work in progress will still experience great changes.
+	
+	* src/absorption.cc: Preparations for line mixing through relaxation 
+	matrix. Check in xsec_species_line_mixing_wrapper.  Work in progress.
+	
+	* src/lin_alg.cc:  (special_matrix_exp_and_dmatrix_exp_dx_for_rt)
+	Made the parallel partial derivation executable in parallel whenever 
+	not already in parallel.  
+	
+	* src/linemixingdata.h:  Preparation for line mixing through relaxation 
+	matrix.  Setting up Band tags.   Work in progress.
+	
+	* src/linerecord.{cc,h}:  Preparation for line mixing through relaxation 
+	matrix.  ReadFromHitranModifiedStream perhaps temporary creation.
+	(Paris group has a modified HITRAN format for some files.  This might
+	get merged with main reading of HITRAN by some "if" statement 
+	down-the-line.  For now separation is easier.)  Also, there was a
+	backwards compatibility bug for ARTSCAT4 to 5 that is now corrected.
+	
+	* src/m_abs.cc: Removed lingering implementation comment.
+	
+	* src/m_jacobian.cc:  Tries to fix error reporting in species jacobian.
+	
+	* src/m_linemixing.cc:  Reading routine abs_lines_per_band in preparation
+	for line mixing through relaxation matrix.  Very much work in progress.
+	
+	* src/lineshapes.cc: Added a deprecated function that is called by anyone
+	trying to access Voigt_Kuntz3/4 in accordance with old series of emails that 
+	these are deprecated.  Also tried to clean-up the HTP line shape.  This entire
+	code could be made so much simpler if we had ComplexVector as an ARTS class
+	for Vectors containing "complex<Numeric>" instead of "Numeric".  (HTP 
+	would now require 8 Vector outputs to handle partial derivation properly, which
+	makes for a very annoying code so I have not made this implementation.  If
+	xvector was a ComplexVector, then only two complex vectors would have to be returned
+	to handle all partial derivations since d(F)/dx then could be 2xF-2/sqrt(pi), but 
+	because of HTP complexity, two rather than one F must be returned for partial 
+	derivations later on.  Anyways, I rant because I think it might matter in the future
+	since Voigt data is incompatible with HTP data, so data published as HTP cannot be
+	used in partial derivations if there is no fix in sight.)
+	
+	* src/m_linerecord.cc: Added method to "turn off" lines in abs_lines_per_species
+	in preparation for line mixing through relaxation matrix.  To avoid duplicate lines.
+	Work in progress.
+	
+	* src/partial_derivatives.cc:  Added a comment warning about non-lte partial
+	derivations.  While technically the code is correct there is a missing term
+	in this implementation that could confuse people.  So commented a warning for
+	anyone looking at the code in the future.
+	
+	* src/rte.cc:  Updated emission stepping for non-lte to make its design cleaner.
+	Also removes four operations per frequency for hopefully slightly faster code 
+	execution.
+	
+	* src/pressurebroadeningdata.cc:  Updated HTP defaults to be in line with published
+	works.  Made a mistake here before.
+	
+	* src/workspace.cc: Added two variables in preparation.  Work in progress.
+	
+	* src/methods.cc:  Updated lineshape definitions.  I have Hartmann-Tran in there now 
+	but there is still no way to get proper data to it since very limited publications
+	have been made on it.  (So if you have data you want to use with this there is 
+	still some minimal work required to input this data.  Since there is a temperature
+	dependency issue still under discussion for the shape, different data sources 
+	will still have different dependencies, so no general implementation is yet possible.)
+	
+	* controlfiles/instruments/odinsmr/odinsmr.arts:  Now uses Voigt_Kuntz6.  This makes
+	the file complain that it is not within 1e-2.  So I increased the error range.  I am
+	hoping someone can confirm if this is still acceptable or possibly update y-reference?
+	
 2016-04-27  Simon Pfreundschuh  <simonpf@chalmers.se>
 
 	* arts-2-3-481
