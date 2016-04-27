@@ -1,3 +1,12 @@
+2016-04-27  Simon Pfreundschuh  <simonpf@chalmers.se>
+
+	* arts-2-3-479
+
+	* src/m_oem.cc: Corrected forwarding of OEM parameters
+	to invlib routine.
+
+	* src/m_oem.h: Fixed type of preconditioner.
+
 2016-04-26  Jakob Dörr  <jakobdoerr@googlemail.com>
 
 	* arts-2-3-479
@@ -25,6 +34,7 @@
 
 	* controlfiles/CMakeLists.txt: Added accelerated test.
 
+>>>>>>> .r9805
 2016-04-25  Simon Pfreundschuh  <simonpf@chalmers.se>
 
 	* arts-2-3-478

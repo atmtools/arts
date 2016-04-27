@@ -89,7 +89,7 @@ using OEM_MFORM_PD_PD = invlib::MAP<ForwardModel, OEMMatrix, PrecisionMatrix,
     PrecisionMatrix, Formulation::MFORM>;
 
 // Solvers.
-using Pre     = invlib::NormalizeDiagonal<OEMMatrix>;
+using Pre     = invlib::NormalizeDiagonal<OEMSparse>;
 using Std     = invlib::Standard;
 using Std_Pre = invlib::PreconditionedSolver<Std, Pre>;
 using CG      = invlib::ConjugateGradient;

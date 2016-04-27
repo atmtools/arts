@@ -794,7 +794,7 @@ void oem_template(
       //
       if (method == "li")
       {
-          GN gn(1e-5, 1); // Linear case, only one step.
+          GN gn(stop_dx, 1); // Linear case, only one step.
           oem_diagnostics[0] = (Index) oem.compute(x_oem, y_oem, gn,
                                                    2 * (int) display_progress);
           oem_diagnostics[2] = oem.cost;
@@ -803,8 +803,8 @@ void oem_template(
       }
       else if (method == "li_cg")
       {
-          CG cg(1e-5, (int) display_progress);
-          GN_CG gn(1e-5, 1, cg); // Linear case, only one step.
+          CG cg(stop_dx, (int) display_progress);
+          GN_CG gn(stop_dx, 1, cg); // Linear case, only one step.
           oem_diagnostics[0] = (Index) oem.compute(x_oem, y_oem, gn,
                                                    2 * (int) display_progress);
           oem_diagnostics[2] = oem.cost;
@@ -813,7 +813,7 @@ void oem_template(
       }
       else if (method == "gn")
       {
-          GN gn(1e-3, (unsigned int) max_iter); // Linear case, only one step.
+          GN gn(stop_dx, (unsigned int) max_iter); // Linear case, only one step.
           oem_diagnostics[0] = (Index) oem.compute(x_oem, y_oem, gn,
                                                    2 * (int) display_progress);
           oem_diagnostics[2] = oem.cost;
@@ -822,8 +822,8 @@ void oem_template(
       }
       else if (method == "gn_cg")
       {
-          CG cg(1e-5, (int) display_progress);
-          GN_CG gn(1e-3, (unsigned int) max_iter, cg);
+          CG cg(stop_dx, (int) display_progress);
+          GN_CG gn(stop_dx, (unsigned int) max_iter, cg);
           oem_diagnostics[0] = (Index) oem.compute(x_oem, y_oem, gn,
                                                    2 * (int) display_progress);
           oem_diagnostics[2] = oem.cost;
@@ -832,9 +832,19 @@ void oem_template(
       }
       else if ( (method == "lm") || (method == "ml") )
       {
+          Std std{};
+          Pre norm(SaInv);
+          Std_Pre preconditioned_solver(std, norm);
           LM_S lm(SaInv);
-          lm.set_tolerance(1e-3);
+
+          lm.set_tolerance(stop_dx);
           lm.set_maximum_iterations((unsigned int) max_iter);
+          lm.set_lambda(ml_ga_settings[0]);
+          lm.set_lambda_decrease(ml_ga_settings[1]);
+          lm.set_lambda_increase(ml_ga_settings[2]);
+          lm.set_lambda_threshold(ml_ga_settings[3]);
+          lm.set_lambda_maximum(ml_ga_settings[4]);
+
           oem_diagnostics[0] = (Index) oem.compute(x_oem, y_oem, lm,
                                                    2 * (int) display_progress);
           oem_diagnostics[2] = oem.cost;
@@ -844,16 +854,22 @@ void oem_template(
       else if ( (method == "lm_cg") || (method == "ml_cg") )
       {
           CG cg(1e-5, (int) display_progress);
-          GN_CG gn(1e-3, (unsigned int) max_iter, cg);
           LM_CG_S lm(SaInv, cg);
-          lm.set_tolerance(1e-5);
+
           lm.set_maximum_iterations((unsigned int) max_iter);
+          lm.set_lambda(ml_ga_settings[0]);
+          lm.set_lambda_decrease(ml_ga_settings[1]);
+          lm.set_lambda_increase(ml_ga_settings[2]);
+          lm.set_lambda_threshold(ml_ga_settings[3]);
+          lm.set_lambda_maximum(ml_ga_settings[4]);
+
           oem_diagnostics[0] = oem.compute(x_oem, y_oem, lm,
                                            2 * (int) display_progress);
           oem_diagnostics[2] = oem.cost;
           oem_diagnostics[3] = oem.cost_y;
           oem_diagnostics[4] = oem.iterations;
       }
+
       x = x_oem;
       // Shall empty jacobian and dxdy be returned?
       if( clear_matrices )
