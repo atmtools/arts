@@ -9,16 +9,14 @@ template<typename T1>
 auto MatrixTranspose<T1>::multiply(const VectorType &v) const
     -> VectorType
 {
-    MatrixType C = A;
-    return C.transpose_multiply(v);
+    return remove_reference_wrapper(A).transpose_multiply(v);
 }
 
 template<typename T1>
 auto MatrixTranspose<T1>::multiply(const MatrixType &B) const
     -> MatrixType
 {
-    MatrixType C = A;
-    return C.transpose_multiply(B);
+    return remove_reference_wrapper(A).transpose_multiply(B);
 }
 
 template<typename T1>

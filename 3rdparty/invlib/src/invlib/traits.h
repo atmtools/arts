@@ -7,12 +7,107 @@
  */
 
 #include <type_traits>
+#include <functional>
+
+#ifndef TRAITS_H
+#define TRAITS_H
 
 namespace invlib
 {
 
+// ----------------------------- //
+// Remove std::reference_wrapper //
+// ----------------------------- //
+
 template<typename T1>
-using decay = typename std::decay<T1>::type;
+    T1 & remove_reference_wrapper(T1 &t)
+{
+    return t;
+}
+
+template<typename T1>
+T1 & remove_reference_wrapper(std::reference_wrapper<T1> t)
+{
+    return t.get();
+}
+
+// ------------------- //
+//  Custom Decay Type  //
+// ------------------- //
+
+/*
+ *  Extension of std::decay that also removes std::reference_wrapper
+ *  around a type.
+ */
+template<typename T1>
+class DecayType
+{
+public:
+    using type = typename std::decay<T1>::type;
+};
+
+template<typename T1>
+class DecayType<std::reference_wrapper<T1>>
+{
+public:
+    using type = typename std::decay<T1>::type;
+};
+
+template<typename T1>
+struct DecayType<std::reference_wrapper<T1> &>
+{
+public:
+    using type = typename std::decay<T1>::type;
+};
+
+template<typename T1>
+struct DecayType<const std::reference_wrapper<T1> &>
+{
+public:
+    using type = typename std::decay<T1>::type;
+};
+
+template<typename T1>
+using decay = typename DecayType<T1>::type;
+
+// ------------------------------ //
+//  Remove std::reference_wrapper //
+// ------------------------------ //
+
+template<typename T1>
+struct RemoveReferenceWrapperType
+{
+public:
+    using type = T1;
+};
+
+template<typename T1>
+struct RemoveReferenceWrapperType<std::reference_wrapper<T1>>
+{
+public:
+    using type = T1;
+};
+
+template<typename T1>
+struct RemoveReferenceWrapperType<const std::reference_wrapper<T1>&>
+{
+public:
+    using type = T1;
+};
+
+template<typename T1>
+struct RemoveReferenceWrapperType<std::reference_wrapper<T1>&>
+{
+public:
+    using type = T1;
+};
+
+template<typename T1>
+using RemoveReferenceWrapper = typename RemoveReferenceWrapperType<T1>::type;
+
+// --------------- //
+//  Custom Traits  //
+// --------------- //
 
 template<typename B1>
 using enable_if = typename std::enable_if<B1::value>::type;
@@ -26,16 +121,42 @@ using disable_if = typename std::enable_if<!B1::value>::type;
 template<typename T1, typename T2>
 using is_same = typename std::is_same<T1, T2>;
 
+template<typename T1>
+struct Not
+{
+    static constexpr bool value = !T1::value;
+};
+
 template<typename T1, typename T2>
 using is_base = typename std::is_base_of<T1, T2>;
 
 template<typename T1, typename T2>
 using is_constructible = typename std::is_constructible<T1, T2>;
 
+template<typename T1>
+using is_default_constructible = typename std::is_default_constructible<T1>;
+
+template<typename T1, typename T2>
+using is_copy_constructible = typename std::is_copy_constructible<T1>;
+
 template<typename T1, typename T2>
 using is_assignable = typename std::is_assignable<T1, T2>;
 
 template<typename T1>
+using is_copy_assignable = typename std::is_copy_assignable<T1>;
+
+template<typename T1>
+using is_move_assignable = typename std::is_move_assignable<T1>;
+
+template<typename T1>
 using return_type = typename std::result_of<T1>::type;
 
-}
+template<typename T1>
+using CopyWrapper = typename std::conditional<std::is_lvalue_reference<T1>::value,
+                                              std::reference_wrapper<decay<T1>>,
+                                              decay<T1>>::type;
+
+
+}      // namespace::invlib
+
+#endif // TRAITS_H

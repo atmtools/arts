@@ -37,6 +37,18 @@ auto ArtsVector::operator()(Index i)
     return this->get(i);
 }
 
+auto ArtsVector::raw_pointer()
+    -> Numeric *
+{
+    return this->mdata;
+}
+
+auto ArtsVector::raw_pointer() const
+    -> const Numeric *
+{
+    return this->mdata;
+}
+
 auto ArtsVector::accumulate(const ArtsVector& w)
     -> void
 {
@@ -120,6 +132,12 @@ auto ArtsMatrix::operator()(Index i, Index j) const
     return this->get(i,j);
 }
 
+auto ArtsMatrix::raw_pointer()
+    -> Numeric *
+{
+    return this->mdata;
+}
+
 void ArtsMatrix::accumulate(const ArtsMatrix& B)
 {
     this->operator+=(B);
@@ -168,6 +186,17 @@ auto ArtsMatrix::transpose_multiply(const ArtsVector &v) const
     return w;
 }
 
+auto ArtsMatrix::transpose_multiply_block(const ArtsVector &v,
+                                          unsigned int start,
+                                          unsigned int extent) const
+    -> ArtsVector
+{
+    ArtsVector w; w.resize(this->ncols());
+    ConstVectorView v_view = v[Range(start, extent)];
+    ::mult(w, ::transpose(*this), v_view);
+    return w;
+}
+
 auto ArtsMatrix::solve(const VectorType& v) const
     -> ArtsVector
 {
@@ -210,6 +239,12 @@ auto ArtsSparse::cols() const
     -> Index
 {
     return A.ncols();
+}
+
+auto ArtsSparse::operator()(unsigned int i, unsigned int j) const
+    -> RealType
+{
+    return A.ro(i, j);
 }
 
 auto ArtsSparse::multiply(const ArtsMatrix &B) const

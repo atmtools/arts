@@ -1,6 +1,12 @@
 2016-04-27  Simon Pfreundschuh  <simonpf@chalmers.se>
 
-	* arts-2-3-479
+	* arts-2-3-481
+
+	* src/invlib/*: invlib update.
+
+2016-04-27  Simon Pfreundschuh  <simonpf@chalmers.se>
+
+	* arts-2-3-480
 
 	* src/m_oem.cc: Corrected forwarding of OEM parameters
 	to invlib routine.
@@ -24,7 +30,7 @@
 	an accelerated field out of four iteration fields.
 
 	* src/m_doit.cc:
-	
+
 	Added the option to enable or disable convergence acceleration in 
 	doit_i_field_monoIterate (default is disable)
 
@@ -34,7 +40,6 @@
 
 	* controlfiles/CMakeLists.txt: Added accelerated test.
 
->>>>>>> .r9805
 2016-04-25  Simon Pfreundschuh  <simonpf@chalmers.se>
 
 	* arts-2-3-478

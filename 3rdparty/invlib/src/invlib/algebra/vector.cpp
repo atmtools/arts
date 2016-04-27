@@ -85,14 +85,14 @@ Vector<Base>::ElementIterator::ElementIterator(VectorType* v_, unsigned int k_)
 
 template<typename Base>
 auto Vector<Base>::ElementIterator::operator*()
-    -> RealType
+    -> RealType &
 {
     return v->operator()(k);
 }
 
 template<typename Base>
 auto Vector<Base>::ElementIterator::operator++()
-    -> RealType&
+    -> RealType &
 {
     k++;
 }

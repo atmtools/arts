@@ -124,11 +124,13 @@ public:
                                                         const VectorType &)>;
 
     /*! The type of the Jacobian matrix as returned by the forward model. */
-    using JacobianType =
+    using FMJacobianType =
         return_type<decltype(&MAPBase::Jacobian_helper)(MAPBase,
                                                         ForwardModel &,
                                                         const VectorType &,
                                                         VectorType &)>;
+    /*! Jacobian type that can be assigned to. */
+    using JacobianType = CopyWrapper<FMJacobianType>;
 
     // ------------------------------- //
     //  Constructors and Destructors   //
@@ -460,7 +462,7 @@ public:
     using VectorType = typename MatrixType::VectorType;
     /*! The base class. */
     using Base = MAPBase<ForwardModel, MatrixType, SaType, SeType>;
-    /*! The Jacobian Type */
+    /*! The assignable Jacobian type. */
     using typename Base::JacobianType;
     /*! The vector type as returned by the forward model. */
     using typename Base::FMVectorType;

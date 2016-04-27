@@ -81,6 +81,8 @@ public:
     //  Type Aliases  //
     // -------------- //
 
+    /*! The base type */
+    using BaseType   = Base;
     /*! The basic scalar type. */
     using RealType   = typename Base::RealType;
     /*! The basic vector type  */

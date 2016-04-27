@@ -19,21 +19,21 @@
 
 template
 <
-typename Real
+typename RealType
 >
 class MatrixArchetype;
 
 template
 <
-typename Real
+typename RealType
 >
 class VectorArchetype;
 
 template
 <
-typename Real
+typename RealType
 >
-Real dot(const VectorArchetype<Real>&, const VectorArchetype<Real>&);
+RealType dot(const VectorArchetype<RealType>&, const VectorArchetype<RealType>&);
 
 // ------------------------  //
 //   Vector Archetype Class  //
@@ -58,13 +58,13 @@ public:
     /*! The floating point type used to represent scalars. */
     using RealType   = Real;
     /*! The fundamental vector type used for the matrix algebra.*/
-    using VectorType = VectorArchetype<Real>;
+    using VectorType = VectorArchetype<RealType>;
     /*! The fundamental matrix type used for the matrix algebra.*/
-    using MatrixType = MatrixArchetype<Real>;
+    using MatrixType = MatrixArchetype<RealType>;
     /*! The result type of multiplying an algebraic expression with this
      * matrix from the right.
      */
-    using ResultType = VectorArchetype<Real>;
+    using ResultType = VectorArchetype<RealType>;
 
     // ------------------------------- //
     //  Constructors and Destructors   //
@@ -122,19 +122,22 @@ public:
      *
      * \param i Index of the element to access.
      */
-    Real & operator()(unsigned int i);
+    RealType & operator()(unsigned int i);
 
     /*! Read-only element access.
      *
      * \param i Index of the element to access.
      */
-    Real   operator()(unsigned int i) const;
+    RealType operator()(unsigned int i) const;
 
     /*! Number of rows of the vector
      *
      * \return The number of rows (dimension) of the vector.
      */
     unsigned int rows() const;
+
+    RealType * raw_pointer(int i = 0);
+    const RealType * raw_pointer(int i = 0) const;
 
     // ------------ //
     //  Arithmetic  //
@@ -162,31 +165,31 @@ public:
      *
      * \param c The factor c to scale the vector with.
      */
-    void scale(Real c);
+    void scale(RealType c);
 
     /*! Dot product of two vectors
      *
      * \return The dot product \f$ \sum_{i=1}^n v_i w_i \f$ of the
      * two given vectors.
      */
-    friend Real dot<>(const VectorArchetype&, const VectorArchetype&);
+    friend RealType dot<>(const VectorArchetype&, const VectorArchetype&);
 
     /*! Euclidean norm of a vector.
     *
     * \return The Euclidean norm of this vector.
     */
-    Real norm() const;
+    RealType norm() const;
 
 private:
 
     unsigned int n;
-    std::unique_ptr<Real[]> data;
+    std::unique_ptr<RealType[]> data;
 
 };
 
 /*! Stream vector to string */
-template <typename Real>
-std::ostream & operator<<(std::ostream &, const VectorArchetype<Real>&);
+template <typename RealType>
+std::ostream & operator<<(std::ostream &, const VectorArchetype<RealType>&);
 
 #include "vector_archetype.cpp"
 

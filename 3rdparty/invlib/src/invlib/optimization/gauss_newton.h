@@ -54,24 +54,25 @@ public:
     //  Constructors and Destructors   //
     // ------------------------------- //
 
-    /*! Construct GaussNewton solver with default tolerance of
+    /*! Construct GaussNewton optimizer with default tolerance of
      * 1e-5 and iteration maximum 1000. If no solver argument is given,
      * the Solver type must provide a default constructor that takes no
      * arguments to create the solver object used for the minimization
      * step.
      *
-     * \param solver_ The solver to be used to solver the subproblem. If not
+     * \param solver_ The solver to be used to solve the linear subproblem. If not
      * provided the default constructed solver Solver() is used.
      */
     GaussNewton(Solver solver_ = Solver());
 
-    /*! Construct GaussNewton solver with given tolerance, maximum iterations and
-     * solver used to solve the subproblem. If no solver arguments is provided,
-     * the default constructed solver Solver() is used as default.
+    /*! Construct GaussNewton optimizer with given tolerance, maximum
+    iterations and * solver used to solve the linear subproblem
+    subproblem. If no solver arguments is provided, * the default
+    constructed solver Solver() is used as default.
      *
-     * \param tolerance The tolerance used to determine the convergence of the
-     * optimization method.
-     * \param maximum_iterations_ The maximum of iterations to perform before
+     * \param tolerance The tolerance used to determine the
+     * convergence of the optimization method.  \param
+     * maximum_iterations_ The maximum of iterations to perform before
      * the minimization process should be aborted.
      * \param solver A solver object used to solve the subproblem of the
      * minimization.

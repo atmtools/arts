@@ -36,6 +36,29 @@ MatrixArchetype<Real>& MatrixArchetype<Real>::operator=(MatrixArchetype &&A)
 }
 
 template <typename Real>
+auto MatrixArchetype<Real>::get_block(unsigned int i,
+                                      unsigned int j,
+                                      unsigned int di,
+                                      unsigned int dj) const
+    -> MatrixArchetype
+{
+    assert((di > 0) && (dj > 0));
+    assert((i + di <= m) && (j + dj <= n));
+
+    MatrixArchetype block; block.resize(di, dj);
+    int data_start = i * n + j;
+    int data_end = data_start + (di - 1) * n + dj;
+
+    int block_ptr = 0;
+    for (int row_ptr = data_start; row_ptr < data_end; row_ptr += n)
+    {
+        std::copy(&data[row_ptr], &data[row_ptr + dj], &block.data[block_ptr]);
+        block_ptr += dj;
+    }
+    return block;
+}
+
+template <typename Real>
 void MatrixArchetype<Real>::resize(unsigned int i, unsigned int j)
 {
     m = i;
@@ -71,6 +94,20 @@ template <typename Real>
 unsigned int MatrixArchetype<Real>::rows() const
 {
     return m;
+}
+
+template <typename Real>
+auto MatrixArchetype<Real>::raw_pointer()
+    -> Real *
+{
+    return data.get();
+}
+
+template <typename Real>
+auto MatrixArchetype<Real>::raw_pointer() const
+    -> const Real *
+{
+    return data.get();
 }
 
 template <typename Real>
@@ -326,6 +363,31 @@ auto MatrixArchetype<Real>::transpose_multiply(const VectorType &v) const
 	for (unsigned int j = 0; j < m; j++)
 	{
 	    sum += (*this)(j, i) * v(j);
+	}
+	w(i) = sum;
+    }
+    return w;
+}
+
+template <typename Real>
+auto MatrixArchetype<Real>::transpose_multiply_block(const VectorType &v,
+                                                     int block_start,
+                                                     int block_length) const
+    -> VectorType
+{
+    assert(block_length > 0);
+    assert(block_start + block_length <= v.rows());
+    assert(m == block_length);
+
+    VectorType w;
+    w.resize(n);
+
+    for (unsigned int i = 0; i < n; i++)
+    {
+	Real sum = 0.0;
+	for (unsigned int j = 0; j < m; j++)
+	{
+	    sum += (*this)(j, i) * v(block_start + j);
 	}
 	w(i) = sum;
     }

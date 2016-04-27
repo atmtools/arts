@@ -10,8 +10,8 @@ typename T2
 auto MatrixProduct<T1, T2>::multiply(const VectorType &u) const
     -> VectorType
 {
-    VectorType v = B.multiply(u);
-    VectorType w = A.multiply(v);
+    VectorType v = static_cast<const decay<T2>&>(B).multiply(u);
+    VectorType w = static_cast<const decay<T1>&>(A).multiply(v);
     return w;
 }
 

@@ -187,6 +187,27 @@ typename T::RealType maximum_error( T &A,
     return max_err;
 }
 
+/**
+ * \brief Fill matrix or vector.
+ *
+ * Given an objects @A a type that provides an element iterator, the
+ * function fills the object with the given object of the associated RealType.
+ *
+ * \tparam T The iterable type.
+ * \tparam c The value to fill the object with.
+ */
+template
+<
+typename T
+>
+void fill(T &A, typename T::RealType c)
+{
+    for(auto a = A.begin(); a != A.end(); ++a)
+    {
+        *a = c;
+    }
+}
+
 }
 
 #endif // TEST_UTILITY_H

@@ -232,7 +232,7 @@ public:
     ElementIterator(VectorType* v_);
     ElementIterator(VectorType* v_, unsigned int k);
 
-    RealType operator*();
+    RealType& operator*();
     RealType& operator++();
     bool operator!=(ElementIterator it);
 

@@ -17,6 +17,12 @@ namespace invlib
 
 template
 <
+typename RealType
+>
+class GradientDescent;
+
+template
+<
 typename RealType,
 typename Solver
 >
@@ -92,6 +98,29 @@ struct OptimizerLog;
 
 template
 <
+typename RealType
+>
+struct OptimizerLog<GradientDescent<RealType>>
+{
+    static constexpr auto name = "Gradient Descent";
+
+    static std::string header()
+    {
+        return "Step Length";
+    }
+
+    static std::string log(const GradientDescent<RealType> &gd)
+    {
+        std::string step_length = std::to_string(gd.get_initial_step());
+        std::string out(20 - step_length.size(), ' ');
+        out += step_length;
+        return out;
+    }
+
+};
+
+template
+<
 typename RealType,
 typename DampingMatrix,
 typename Solver
@@ -111,7 +140,7 @@ struct OptimizerLog<LevenbergMarquardt<RealType, DampingMatrix, Solver>>
     static std::string log(const LevenbergMarquardt<RealType, DampingMatrix, Solver> &g)
     {
         std::string lambda = std::to_string(g.get_lambda());
-        std::string out(15 - lambda.size(), ' ');
+        std::string out(20 - lambda.size(), ' ');
         out += lambda;
         return out;
     }
@@ -138,7 +167,6 @@ struct OptimizerLog<GaussNewton<RealType, Solver>>
     }
 
 };
-
 // ---------------------- //
 //     MAP Class          //
 // ---------------------- //

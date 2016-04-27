@@ -77,7 +77,7 @@ public:
      * and solves the corresponding linear system \f$Ax = v\f$. The
      * iteration is stopped when the norm of the residual
      * \f$r = Ax - v \f$ falls below the given convergence tolerance.
-     *
+    *
      * \tparam MatrixType The algebraic expression type of representing the
      * linear system.
      * \tparam The fundamental vector type. Note: must be the fundamental type.

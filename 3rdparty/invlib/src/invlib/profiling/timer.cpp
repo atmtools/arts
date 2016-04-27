@@ -18,6 +18,15 @@ auto Timer<Base>::operator=(T &&t)
     return *this;
 }
 
+template <typename Base>
+    template <typename T, typename>
+auto Timer<Base>::operator=(const T &t)
+    -> Timer &
+{
+    Base::operator=(t);
+    return *this;
+}
+
 // ------------------------ //
 //   Arithmetic Operations  //
 // ------------------------ //
@@ -34,11 +43,33 @@ auto Timer<Base>::multiply(const VectorType &v) const
 }
 
 template <typename Base>
+auto Timer<Base>::transpose_multiply(const VectorType &v) const
+    -> VectorType
+{
+    auto t1 = steady_clock::now();
+    auto w  = Base::transpose_multiply(v);
+    auto t2 = steady_clock::now();
+    multiply_mv_time += duration_cast<duration<double>>(t2 - t1);
+    return w;
+}
+
+template <typename Base>
 auto Timer<Base>::multiply(const MatrixType &B) const
     -> MatrixType
 {
     auto t1 = steady_clock::now();
     auto C  = Base::multiply(B);
+    auto t2 = steady_clock::now();
+    multiply_mm_time += duration_cast<duration<double>>(t2 - t1);
+    return C;
+}
+
+template <typename Base>
+auto Timer<Base>::transpose_multiply(const MatrixType &B) const
+    -> MatrixType
+{
+    auto t1 = steady_clock::now();
+    auto C  = Base::transpose_multiply(B);
     auto t2 = steady_clock::now();
     multiply_mm_time += duration_cast<duration<double>>(t2 - t1);
     return C;

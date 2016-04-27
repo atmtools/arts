@@ -73,6 +73,10 @@ public:
      */
     ~MatrixArchetype() = default;
 
+    MatrixArchetype get_block(unsigned int i,
+                              unsigned int j,
+                              unsigned int di,
+                              unsigned int dj) const;
     // ----------------- //
     //   Manipulations   //
     // ----------------- //
@@ -110,6 +114,10 @@ public:
      * \return The number of rows of the matrix.
      */
     unsigned int rows() const;
+
+    /*! Raw pointer to the matrix data. Needed for MPI testing. */
+    RealType * raw_pointer();
+    const RealType * raw_pointer() const;
 
     // ------------ //
     //  Arithmetic  //
@@ -198,6 +206,20 @@ public:
      * vector \f$v\f$.
      */
     VectorType transpose_multiply(const VectorType&) const;
+
+    /*! Combined transpose and multiply by part of vector.
+     *
+     * Needed only when matrices are to be distributed over MPI processes. Computed
+     * the contribution of the local matrix to the total product of the distributed
+     * matrix.
+     *
+     * \param block_start The start of the block in the vector v corresponding
+     * to the local matrix.
+     * \param block_length The size of the block. Must be m.
+     */
+    VectorType transpose_multiply_block(const VectorType&,
+                                        int block_start,
+                                        int block_length) const;
 
     /*! Helper function to compute the QR decomposition of a matrix. Not
      * required by the matrix algebra interface.

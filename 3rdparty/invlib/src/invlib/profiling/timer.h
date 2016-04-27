@@ -78,12 +78,23 @@ public:
     >
     Timer & operator=(T &&);
 
+    template
+    <
+    typename T,
+    typename = is_copy_assignable<T>
+    >
+    Timer & operator=(const T &);
+
     // ------------------------ //
     //   Arithmetic Operations  //
     // ------------------------ //
 
     VectorType multiply(const VectorType &) const;
+    VectorType transpose_multiply(const VectorType &) const;
+
     MatrixType multiply(const MatrixType &) const;
+    MatrixType transpose_multiply(const MatrixType &) const;
+
     VectorType solve(const VectorType &) const;
     MatrixType invert() const;
 };
