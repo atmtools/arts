@@ -605,7 +605,6 @@ Numeric mod_gamma_dist(Numeric x,
     }
 }
 
-
 //! unitl
 /*!
     Normalises a vector to have unit length.
@@ -625,8 +624,6 @@ void unitl( Vector& x )
   for(Index i=0; i<x.nelem(); i++ )
     x[i] /= l;
 }
-
-
 
 //! flat
 /*!
@@ -657,8 +654,6 @@ void flat( VectorView x, ConstMatrixView X )
     }
 }
 
-
-
 //! flat
 /*!
     Converts Tensor3 to a vector
@@ -674,24 +669,22 @@ void flat( VectorView x, ConstMatrixView X )
 */
 void flat( VectorView x, ConstTensor3View X )
 {
-  assert( x.nelem() == X.nrows()*X.ncols()*X.npages() );
+    assert( x.nelem() == X.nrows()*X.ncols()*X.npages() );
 
-  Index i = 0; 
+    Index i = 0;
 
-  for( Index p=0; p<X.npages(); p++ )
+    for( Index c=0; c<X.ncols(); c++ )
     {
-      for( Index c=0; c<X.ncols(); c++ )
+        for( Index r=0; r<X.nrows(); r++ )
         {
-          for( Index r=0; r<X.nrows(); r++ )
-            { 
-              x[i] = X(p,r,c);
-              i += 1;
+            for( Index p=0; p<X.npages(); p++ )
+            {
+                x[i] = X(p,r,c);
+                i += 1;
             }
         }
     }
 }
-
-
 
 //! reshape
 /*!
@@ -708,24 +701,22 @@ void flat( VectorView x, ConstTensor3View X )
 */
 void reshape( Tensor3View X, ConstVectorView x )
 {
-  assert( x.nelem() == X.nrows()*X.ncols()*X.npages() );
+    assert( x.nelem() == X.nrows()*X.ncols()*X.npages() );
 
-  Index i = 0; 
+    Index i = 0;
 
-  for( Index p=0; p<X.npages(); p++ )
+    for( Index c=0; c<X.ncols(); c++ )
     {
-      for( Index c=0; c<X.ncols(); c++ )
+        for( Index r=0; r<X.nrows(); r++ )
         {
-          for( Index r=0; r<X.nrows(); r++ )
-            { 
-              X(p,r,c) = x[i];
-              i += 1;
+            for( Index p=0; p<X.npages(); p++ )
+            {
+                X(p,r,c) = x[i];
+                i += 1;
             }
         }
     }
 }
-
-
 
 //! reshape
 /*!
@@ -742,17 +733,16 @@ void reshape( Tensor3View X, ConstVectorView x )
 */
 void reshape( MatrixView X, ConstVectorView x )
 {
-  assert( x.nelem() == X.nrows()*X.ncols() );
+    assert( x.nelem() == X.nrows()*X.ncols() );
 
-  Index i = 0; 
+    Index i = 0;
 
-  for( Index c=0; c<X.ncols(); c++ )
+    for( Index c=0; c<X.ncols(); c++ )
     {
-      for( Index r=0; r<X.nrows(); r++ )
-        { 
-          X(r,c) = x[i];
-          i += 1;
+        for( Index r=0; r<X.nrows(); r++ )
+        {
+            X(r,c) = x[i];
+            i += 1;
         }
     }
 }
-        
