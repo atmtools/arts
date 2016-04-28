@@ -1,3 +1,11 @@
+2016-04-28  Richard Larsson   <ric.larsson@gmail.com>
+	
+	* arts-2-3-481
+	
+	* controlfiles/instruments/odinsmr/{odinsmr.arts,yREFERENCE.xml}:
+	Updated the reference vector and returned to 1e-2 test for future
+	updates to pass.
+
 2016-04-27  Richard Larsson   <ric.larsson@gmail.com>
 	
 	* arts-2-3-480
