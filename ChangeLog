@@ -1,3 +1,10 @@
+2016-05-01  Simon Pfreundschuh  <simonpf@chalmers.se>
+
+	* arts-2-3-483
+
+	* src/m_jacobian.cc: Check for empty Jacobian in
+	JacobianAdjustAfterIteration.
+
 2016-04-28  Simon Pfreundschuh  <simonpf@chalmers.se>
 
 	* arts-2-3-482

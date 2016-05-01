@@ -122,17 +122,20 @@ void jacobianAdjustAfterIteration(
   const Vector&                    x,
   const Verbosity& )
 {
-  // So far only one adjustemtn to be done. Resscale for abs species+"rel" 
+  // So far only one adjustemtn to be done. Resscale for abs species+"rel"
 
-  for( Index q=0; q<jacobian_quantities.nelem(); q++ )
+    if ((jacobian.ncols() > 0) && (jacobian.nrows() > 0))
     {
-      if( jacobian_quantities[q].MainTag() == ABSSPECIES_MAINTAG  &&  
-          jacobian_quantities[q].Mode()    == "rel")
+    for( Index q=0; q<jacobian_quantities.nelem(); q++ )
         {
-          for( Index r=jacobian_indices[q][0]; r<=jacobian_indices[q][1]; r++ )
+            if( jacobian_quantities[q].MainTag() == ABSSPECIES_MAINTAG  &&
+                jacobian_quantities[q].Mode()    == "rel")
             {
-              if( x[r] != 1 )
-                { jacobian(r,joker) /= x[r]; }
+                for( Index r=jacobian_indices[q][0]; r<=jacobian_indices[q][1]; r++ )
+                {
+                    if( x[r] != 1 )
+                    { jacobian(r,joker) /= x[r]; }
+                }
             }
         }
     }
