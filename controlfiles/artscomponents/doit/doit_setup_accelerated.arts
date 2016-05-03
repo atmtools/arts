@@ -36,6 +36,8 @@ VectorSet( f_grid, [229.5e9,230.5e9] )
 #-------------------------------------------
 IndexSet( stokes_dim, 4 )
 
+StringSet( iy_unit, "RJBT" )
+
 # Definition of the atmosphere
 # ----------------------------
 
@@ -163,7 +165,7 @@ doit_za_interpSet( interp_method="linear" )
 # be given by a file. If no filename is specified (za_grid_opt_file = ""), the 
 # equidistant grids are used for both, scattering integral and RT calculation. 
 # This option can only be used for down-looking geometries. 
-DoitAngularGridsSet( N_za_grid=19, N_aa_grid=37,
+DOAngularGridsSet( N_za_grid=19, N_aa_grid=37,
                      za_grid_opt_file="testdata/testdoit_za_grid_opt.xml" )
 
 # Main agenda for DOIT calculation

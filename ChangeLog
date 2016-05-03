@@ -1,3 +1,10 @@
+2016-05-03 Jakob Dörr  <jakobdoerr@googlemail.com>
+
+	* arts-2-3-484
+
+	* controlfiles/artscomponents/doit/doit_setup_accelerated.arts:
+	Fixed errors in the test case for the convergence acceleration.
+	
 2016-05-01  Simon Pfreundschuh  <simonpf@chalmers.se>
 
 	* arts-2-3-483
