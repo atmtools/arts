@@ -210,6 +210,102 @@ void chk_if_in_range(
 }
 
 
+//! chk_if_in_range_exclude_low
+/*! 
+    Checks that a variable of type Numeric has a value inside the specified
+    range. The low value is excluded from the valid range.
+
+    The function gives an error message if this is not the case.
+
+    \param    x_name   The name of the variable.
+    \param    x        A variable of type Numeric.
+    \param    x_low    Lowest allowed value for x.
+    \param    x_high   Highest allowed value for x.
+
+    \author Oliver Lemke
+    \date   2016-05-10
+*/
+void chk_if_in_range_exclude_low(
+        const String&    x_name,
+        const Numeric&   x, 
+        const Numeric&   x_low, 
+        const Numeric&   x_high )
+{
+  if ( (x<=x_low) || (x>x_high) )
+    {
+      ostringstream os;
+      os << "The variable *" << x_name <<  "* must fulfill:\n"
+         << "   " << x_low << " < " << x_name << " <= " << x_high << "\n"
+         << "The present value of *"<< x_name <<  "* is " << x << ".";
+      throw runtime_error( os.str() );
+    }
+}
+
+
+//! chk_if_in_range_exclude_high
+/*! 
+    Checks that a variable of type Numeric has a value inside the specified
+    range. The high value is excluded from the valid range.
+
+    The function gives an error message if this is not the case.
+
+    \param    x_name   The name of the variable.
+    \param    x        A variable of type Numeric.
+    \param    x_low    Lowest allowed value for x.
+    \param    x_high   Highest allowed value for x.
+
+    \author Oliver Lemke
+    \date   2016-05-10
+*/
+void chk_if_in_range_exclude_high(
+        const String&    x_name,
+        const Numeric&   x, 
+        const Numeric&   x_low, 
+        const Numeric&   x_high )
+{
+  if ( (x<x_low) || (x>=x_high) )
+    {
+      ostringstream os;
+      os << "The variable *" << x_name <<  "* must fulfill:\n"
+         << "   " << x_low << " <= " << x_name << " < " << x_high << "\n"
+         << "The present value of *"<< x_name <<  "* is " << x << ".";
+      throw runtime_error( os.str() );
+    }
+}
+
+
+//! chk_if_in_range_exclude
+/*! 
+    Checks that a variable of type Numeric has a value inside the specified
+    range. The low and high values are excluded from the valid range.
+
+    The function gives an error message if this is not the case.
+
+    \param    x_name   The name of the variable.
+    \param    x        A variable of type Numeric.
+    \param    x_low    Lowest allowed value for x.
+    \param    x_high   Highest allowed value for x.
+
+    \author Oliver Lemke
+    \date   2016-05-10
+*/
+void chk_if_in_range_exclude(
+        const String&    x_name,
+        const Numeric&   x, 
+        const Numeric&   x_low, 
+        const Numeric&   x_high )
+{
+  if ( (x<=x_low) || (x>=x_high) )
+    {
+      ostringstream os;
+      os << "The variable *" << x_name <<  "* must fulfill:\n"
+         << "   " << x_low << " < " << x_name << " < " << x_high << "\n"
+         << "The present value of *"<< x_name <<  "* is " << x << ".";
+      throw runtime_error( os.str() );
+    }
+}
+
+
 
 
 

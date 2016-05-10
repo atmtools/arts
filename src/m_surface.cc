@@ -82,13 +82,14 @@ void FastemStandAlone(
 {
   const Index nf = f_grid.nelem();
 
-  assert( za >= 90  &&  za <= 180 );
-  assert( surface_skin_t > 200  &&  surface_skin_t  < 373 );
-  assert( salinity >= 0  &&  salinity < 1 );
-  assert( wind_speed >= 0  &&  wind_speed < 100 );
-  assert( rel_aa >= -180  &&  rel_aa <= 180 );
-  assert( fastem_version >= 3  &&  fastem_version <= 6 );
-  assert( transmittance.nelem() == nf );
+  chk_if_in_range("zenith angle", za, 90, 180);
+  chk_if_in_range_exclude("surface skin temperature", surface_skin_t, 200, 373);
+  chk_if_in_range_exclude_high("salinity", salinity, 0, 1);
+  chk_if_in_range_exclude_high("wind speed", wind_speed, 0, 100);
+  chk_if_in_range("azimuth angle", rel_aa, -180, 180);
+  chk_vector_length("transmittance", "f_grid", transmittance, f_grid);
+  if (fastem_version < 3 || fastem_version > 6)
+    throw std::runtime_error("Invalid fastem version: 3 <= fastem_version <= 6");
 
   emissivity.resize( nf, 4 );
   reflectivity.resize( nf, 4 );
@@ -97,8 +98,9 @@ void FastemStandAlone(
 
   for( Index i=0; i<nf; i++ )
     {
-      assert( f_grid[i] < 1000e9 );
-      assert( transmittance[i] >= 0  &&  transmittance[i] <= 1 );
+      if (f_grid[i] >= 1000e9)
+        throw std::runtime_error("Only frequency < 1000 GHz are allowed");
+      chk_if_in_range("transmittance", transmittance[i], 0, 1);
 
       Vector e, r;
       fastem( e, r, f_grid[i], za, t, salinity, 
@@ -818,8 +820,6 @@ void surfaceFastem(
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
   chk_rte_pos( atmosphere_dim, rtp_pos );
   chk_rte_los( atmosphere_dim, rtp_los );
-  chk_if_in_range( "salinity", salinity, 0, 1 );
-  chk_if_in_range( "wind_speed", wind_speed, 0, 100 );
   chk_if_in_range( "wind_direction", wind_direction, -180, 180 );
 
   const Index nf = f_grid.nelem();

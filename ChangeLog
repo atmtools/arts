@@ -1,3 +1,21 @@
+2016-05-10  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-485
+
+	* src/m_surface.cc:
+
+	(FastemStandAlone): Changed all assertions for user input to runtime
+	errors.
+
+	(surfaceFastem): Remove inconsistent checks for salinity and wind_speed.
+	These are passed on directly to FastemStandAlone and are checked there.
+
+	* src/check_input.{cc,h}:
+
+	Added three new variations of ckh_if_in_range (_exclude, _exclude_low,
+	exclude_high) to be able to exclude the low, high or both values from
+	the valid range if needed.
+
 2016-05-03 Jakob Dörr  <jakobdoerr@googlemail.com>
 
 	* arts-2-3-484

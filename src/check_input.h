@@ -79,7 +79,25 @@ void chk_if_in_range(
         const Numeric&   x_low, 
         const Numeric&   x_high );
 
-void chk_vector_length( 
+void chk_if_in_range_exclude_low(
+        const String&    x_name,
+        const Numeric&   x, 
+        const Numeric&   x_low, 
+        const Numeric&   x_high );
+
+void chk_if_in_range_exclude_high(
+        const String&    x_name,
+        const Numeric&   x, 
+        const Numeric&   x_low, 
+        const Numeric&   x_high );
+
+void chk_if_in_range_exclude(
+        const String&    x_name,
+        const Numeric&   x, 
+        const Numeric&   x_low, 
+        const Numeric&   x_high );
+
+void chk_vector_length(
         const String&      x_name,
         ConstVectorView    x,
         const Index&       l );
