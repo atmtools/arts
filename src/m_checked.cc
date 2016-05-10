@@ -633,7 +633,8 @@ void cloudbox_checkedCalc(
       //
       if( min(pnd_field) < 0 )
         throw runtime_error( "Negative values in *pnd_field* not allowed." );
-      //
+      // No non-zero pnd at lower boundary unless lower boundary is at or below
+      // surface
       for( Index a=0; a<g2.nelem(); a++ ) { 
         for( Index o=0; o<g3.nelem(); o++ ) { 
           if( max(pnd_field(joker,0,a,o)) > 0  && 
@@ -642,9 +643,12 @@ void cloudbox_checkedCalc(
                          " lower altitude limit of the cloudbox (but the "
                          "position is not at or below the surface altitude)." );
           } }
-      if( max(pnd_field(joker,g1.nelem()-1,joker,joker)) > 0 )
-        throw runtime_error( "A non-zero value found in *pnd_field* at "
-                             "upper altitude limit of the cloudbox." );
+      // No non-zero pnd at upper boundary unless upper boundary is top of
+      // atmosphere
+      if ( cloudbox_limits[1] != p_grid.nelem()-1 )
+        if( max(pnd_field(joker,g1.nelem()-1,joker,joker)) > 0 )
+          throw runtime_error( "A non-zero value found in *pnd_field* at "
+                               "upper altitude limit of the cloudbox." );
       if( atmosphere_dim >= 2 )
         {
           if( max(pnd_field(joker,joker,0,joker)) > 0 )

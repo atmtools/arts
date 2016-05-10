@@ -62,8 +62,6 @@ Compare(scat_data_single, ref, 1e-12)
 
 # TMatrix calculation: RANDOMLY ORIENTED PARTICLE
 #####
-VectorNLinSpace( data_aa_grid, 37, 0, 360 )
-
 scat_data_singleTmatrix( 
    shape               = part_shape,
    diameter_volume_equ = part_dveq,
@@ -73,7 +71,6 @@ scat_data_singleTmatrix(
    data_f_grid         = data_f_grid,
    data_t_grid         = data_t_grid,
    data_za_grid        = data_za_grid,
-   data_aa_grid        = data_aa_grid,
 )
 
 # Write data to file. And read from file (making sure, format is ok).
@@ -100,7 +97,7 @@ NumericCreate( dveq0 )
 NumericCreate( dveq )
 NumericCreate( dmax )
 NumericCreate( volume )
-NumericCreate( amax )
+NumericCreate( darea )
 StringCreate( shape )
 NumericCreate( aratio )
 #
@@ -110,14 +107,14 @@ NumericSet( dveq0, 100e-6 )
 StringSet( shape, "cylindrical" )
 #
 NumericSet( aratio, 3.45 )
-diameter_maxFromDiameter_volume_equ( dmax, amax, 
+diameter_maxFromDiameter_volume_equ( dmax, darea, 
                                      shape, dveq0, aratio ) 
 diameter_volume_equFromDiameter_max( dveq, volume, 
                                      shape, dmax, aratio )
 Compare( dveq, dveq0, 1e-12 )
 #
 NumericSet( aratio, 0.22 )
-diameter_maxFromDiameter_volume_equ( dmax, amax, 
+diameter_maxFromDiameter_volume_equ( dmax, darea, 
                                      shape, dveq0, aratio ) 
 diameter_volume_equFromDiameter_max( dveq, volume, 
                                      shape, dmax, aratio )
@@ -127,14 +124,14 @@ Compare( dveq, dveq0, 1e-12 )
 StringSet( shape, "spheroidal" )
 #
 NumericSet( aratio, 3.45 )
-diameter_maxFromDiameter_volume_equ( dmax, amax, 
+diameter_maxFromDiameter_volume_equ( dmax, darea, 
                                      shape, dveq0, aratio ) 
 diameter_volume_equFromDiameter_max( dveq, volume, 
                                      shape, dmax, aratio )
 Compare( dveq, dveq0, 1e-12 )
 #
 NumericSet( aratio, 0.22 )
-diameter_maxFromDiameter_volume_equ( dmax, amax, 
+diameter_maxFromDiameter_volume_equ( dmax, darea, 
                                      shape, dveq0, aratio ) 
 diameter_volume_equFromDiameter_max( dveq, volume, 
                                      shape, dmax, aratio )

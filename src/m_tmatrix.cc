@@ -42,7 +42,7 @@ extern const Numeric PI;
 /* Workspace method: Doxygen documentation will be auto-generated */
 void diameter_maxFromDiameter_volume_equ(
           Numeric&   diameter_max,
-          Numeric&   aspect_area_max,
+          Numeric&   diameter_aspect_area_max,
     const String&    shape,
     const Numeric&   diameter_volume_equ,
     const Numeric&   aspect_ratio,
@@ -52,25 +52,19 @@ void diameter_maxFromDiameter_volume_equ(
 
   if( shape == "spheroidal" )
     {
-      if( aspect_ratio > 1 ) // oblate spheriod
-        {   
-          //rotational axis
-          const Numeric a = pow( (3.*volume*aspect_ratio)/(4*PI), 1./3. );
-          diameter_max   = 2.*a;
-          aspect_area_max = PI * a * a;
-        }
-      else if( aspect_ratio < 1) // prolate spheroid
+      if( aspect_ratio < 1) // prolate spheroid
         {  
           //non-rotational axis (perpendicular to a)
           const Numeric b = pow( (3.*volume)/(4.*PI*pow(aspect_ratio,2)), 1./3.);
           diameter_max   = 2.*b;
-          aspect_area_max = PI * b * b;
+          diameter_aspect_area_max = 2.*b;
         }
-      else
-        {
-          throw runtime_error( "For spheriodal particles, the aspect ratio "
-                               "is not allowed to be exactly 1 (due to "
-                               "potential numerical problems)." );
+      else                  // oblate spheriod
+        {   
+          //rotational axis
+          const Numeric a = pow( (3.*volume*aspect_ratio)/(4*PI), 1./3. );
+          diameter_max   = 2.*a;
+          diameter_aspect_area_max = 2.*a;
         }
     }
   
@@ -80,7 +74,7 @@ void diameter_maxFromDiameter_volume_equ(
       const Numeric D = pow( (volume*4*aspect_ratio)/PI, 1./3. );
       const Numeric L = D / aspect_ratio;
       diameter_max   = pow( pow(D,2) + pow(L,2), 1./2. );
-      aspect_area_max = max( PI*D*D/4., D*L );
+      diameter_aspect_area_max = max( D, pow(4/PI*D*L,1./2.) );
     }
   
   else
@@ -105,21 +99,15 @@ void diameter_volume_equFromDiameter_max(
 {
   if( shape == "spheroidal" )
     {
-      if( aspect_ratio > 1 ) // oblate spheriod
-        {   
-          const Numeric a = diameter_max/2.;
-          volume = (pow(a,3.)*4.*PI)/(3.*aspect_ratio);
-        }
-      else if( aspect_ratio < 1 ) // prolate spheroid
+      if( aspect_ratio < 1 ) // prolate spheroid
         {  
           const Numeric b = diameter_max/2.;
           volume = (pow(b,3.)*4.*PI*pow(aspect_ratio,2.))/3.;
         }
-      else
-        {
-          throw runtime_error( "For spheriodal particles, the aspect ratio "
-                               "is not allowed to be exactly 1 (due to "
-                               "numerical problems)." );
+      else                   // oblate spheriod
+        {   
+          const Numeric a = diameter_max/2.;
+          volume = (pow(a,3.)*4.*PI)/(3.*aspect_ratio);
         }
     }
   
@@ -212,8 +200,7 @@ void scat_data_singleTmatrix(
   if( scat_data_single.ptype == PTYPE_MACROS_ISO )
     {
       // in case of random orientation, azimuth grid should be empty. We just
-      // set that here, ignoring whatever is in data_aa_grid (but giving a
-      // warning that we do so).
+      // set that here, ignoring whatever is in data_aa_grid.
       Vector empty_grid(0);
       scat_data_single.aa_grid = empty_grid;
     }
@@ -250,13 +237,19 @@ void scat_data_singleTmatrix(
 
   // Index coding for shape
   Index np;
+  Numeric ar=aspect_ratio;
   if( shape == "spheroidal" )
     { 
       np=-1; 
       if( aspect_ratio == 1 )
+/*      do not throw error, but slightly increase aspect ratio to value
+ *      recommended by original tmatrix code such that numerical issues are
+ *      avoided.
         throw runtime_error( "For spheroidal particles, the aspect ratio "
                              "is not allowed to be exactly 1 (due to "
                              "numerical problems)." );
+*/
+        ar += 1e-6;
     }
   else if( shape == "cylindrical" )
     { np=-2; }
@@ -278,12 +271,12 @@ void scat_data_singleTmatrix(
                     complex_refr_index, "complex_refr_index", 
                     data_f_grid, data_t_grid );
 
-  // Run T-matrix and we are ready (T-matrix takes size as equiv radius(!) )
+  // Run T-matrix and we are ready (T-matrix takes size as volume equiv radius(!) )
   calcSingleScatteringDataProperties( scat_data_single,
                                       ncomp(joker,joker,0), 
                                       ncomp(joker,joker,1),
                                       0.5*diameter_volume_equ, 
-                                      np, aspect_ratio, precision, ndgs,
+                                      np, ar, precision, ndgs,
                                       robust, quiet
                                     );
 

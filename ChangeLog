@@ -1,3 +1,49 @@
+2016-03-21 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-486
+
+	* src/m_disort.cc (DisortCalc):
+	Revert critical region extension from 2-3-454. Can't reproduce the
+	issues that led to the extension while the extension makes proper error
+	catching more complicated.
+
+	* src/m_checked.cc (cloudbox_checkedCalc): Allow non-zero pnd at upper
+	cloudbox limit if this coincides with top of atmosphere.
+
+	* src/m_cloudbox.cc (ScatSpeciesScatAndMetaRead):
+	Added *.scat_data.xml/*.scat_meta.xml to allowed scat (meta) data naming
+	patterns. This particularly since this is the default naming pattern
+	when these data are created by ARTS WSMs.
+
+	* src/m_tmatrix.cc (diameter_maxFromDiameter_volume_equ):
+	Adapted to output consistent with current meta data format (different
+	diameters). Removed tmatrix-specific error check (this method is not
+	limited to tmatrix!).
+
+	* src/methods.cc (diameter_maxFromDiameter_volume_equ): Doc adapted
+	according to changes above.
+
+	(scat_data_singleTmatrix): More comfortable default setup of
+	data_aa_grid, which is irrelevant for randomly oriented particles.
+
+	* controlfiles/artscomponents/tmatrix/TestTMatrix.arts,
+	controlfiles/artscomponents/tmatrix/TestTMatrix.ssd.metaREFERENCE.xml:
+	Adapted to changes above. 
+
+	* controlfiles/instruments/metmm/sensor_descriptions/prepare_metmm.arts:
+	Added. Containing creation of container variable commonly used by the
+	metmm-type sensor setups. Allows to process several sensors in one ARTS run.
+
+	* controlfiles/instruments/metmm/sensor_descriptions/sensor_amsua.arts,
+	controlfiles/instruments/metmm/sensor_descriptions/sensor_amsub.arts,
+	controlfiles/instruments/metmm/sensor_descriptions/sensor_deimos.arts,
+	controlfiles/instruments/metmm/sensor_descriptions/sensor_ismar_downward.arts,
+	controlfiles/instruments/metmm/sensor_descriptions/sensor_ismar_upward.arts,
+	controlfiles/instruments/metmm/sensor_descriptions/sensor_marss.arts,
+	controlfiles/instruments/metmm/sensor_descriptions/sensor_mhs.arts,
+	controlfiles/instruments/metmm/sensor_descriptions/sensor_saphir.arts:
+	Removed container variable creations. Updated header info.
+
 2016-05-10  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-485
@@ -615,7 +661,7 @@
 	Additional cosmetics.
 	
 	* src/methods.cc (DisortCalc, doit_i_fieldSetClearsky):
-	Adapted to canges above.
+	Adapted to changes above.
 	
 	* src/m_cloudbox.cc (pnd_fieldCalcFromscat_speciesFields),
 	src/optproperties.cc (pha_matTransform): Cosmetics.

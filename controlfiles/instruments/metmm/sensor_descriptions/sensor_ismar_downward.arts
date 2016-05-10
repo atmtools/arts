@@ -2,12 +2,17 @@
 
 # ARTS sensor description for ISMAR simulations
 #
-# The following variables are set:
+# This requires to run prepare_metmm.arts beforehand.
 #
+# This expects the following workspace variables to exist and to be set:
+#    met_mm_accuracy (Index)    Selection of accuracy level.
+#
+# The following variables are set:
 #    antenna_dlos
 #    met_mm_backend
 #    met_mm_polarisation
 #    met_mm_freq_number
+#    met_mm_freq_spacing
 #    met_mm_antenna
 
 Arts2 {
@@ -89,18 +94,18 @@ ArrayOfStringSet(
         "ISMAR-V", #18
         "?",       #19
         "?"        #20
-        ])
+        ] )
 
 # Antenna is not supported for now
 VectorSet( met_mm_antenna, [] )
 
-# How many monochromatic frequencies to simulate the channel
-ArrayOfArrayOfIndexCreate( met_mm_available_accuracies )
 
-ArrayOfIndexCreate( freq_number_tmp )
+# How many monochromatic frequencies to simulate the channel
+Touch( met_mm_available_accuracies )
+Delete( met_mm_available_accuracies )
 
 # Number of frequencies for first accuracy (fast)
-ArrayOfIndexSet(freq_number_tmp,
+ArrayOfIndexSet( freq_number_tmp,
         [1,    #0 
          1,    #1 
          1,    #2 
@@ -122,11 +127,11 @@ ArrayOfIndexSet(freq_number_tmp,
          1,    #18
         -1,    #19
         -1     #20
-         ])
-Append(met_mm_available_accuracies, freq_number_tmp)
+         ] )
+Append( met_mm_available_accuracies, freq_number_tmp )
 
 # Number of frequencies for second accuracy (normal)
-ArrayOfIndexSet(freq_number_tmp,
+ArrayOfIndexSet( freq_number_tmp,
         [2,    #0 
          2,    #1 
          2,    #2 
@@ -148,11 +153,11 @@ ArrayOfIndexSet(freq_number_tmp,
          10,   #18
         -1,    #19
         -1     #20
-         ])
-Append(met_mm_available_accuracies, freq_number_tmp)
+         ] )
+Append( met_mm_available_accuracies, freq_number_tmp )
 
 # Number of frequencies for third accuracy (high)
-ArrayOfIndexSet(freq_number_tmp,
+ArrayOfIndexSet( freq_number_tmp,
         [5,    #0 
          4,    #1 
          6,    #2 
@@ -174,11 +179,11 @@ ArrayOfIndexSet(freq_number_tmp,
          24,   #18
         -1,    #19
         -1     #20
-         ])
-Append(met_mm_available_accuracies, freq_number_tmp)
+         ] )
+Append( met_mm_available_accuracies, freq_number_tmp )
 
 # Number of frequencies for fourth accuracy (reference)
-ArrayOfIndexSet(freq_number_tmp,
+ArrayOfIndexSet( freq_number_tmp,
         [14,   #0 
          13,   #1 
          19,   #2 
@@ -200,24 +205,19 @@ ArrayOfIndexSet(freq_number_tmp,
          92,   #18
         -1,    #19
         -1     #20
-         ])
-Append(met_mm_available_accuracies, freq_number_tmp)
+         ] )
+Append( met_mm_available_accuracies, freq_number_tmp )
 
-VectorCreate( freq_spacing_tmp )
+Delete( freq_number_tmp )
+
 VectorSet( freq_spacing_tmp, [10e9, 1e9, 1e9, 1e9] )
 
-Delete(freq_number_tmp)
-ArrayOfIndexCreate( met_mm_freq_number )
-NumericCreate( current_spacing )
+Extract( met_mm_freq_number, met_mm_available_accuracies, met_mm_accuracy )
+Extract( current_spacing,    freq_spacing_tmp,            met_mm_accuracy )
 
-Extract(met_mm_freq_number, met_mm_available_accuracies, met_mm_accuracy)
-Extract(current_spacing,    freq_spacing_tmp,            met_mm_accuracy)
-
-VectorCreate( met_mm_freq_spacing )
-IndexCreate( met_mm_nchannels )
 nrowsGet( met_mm_nchannels, met_mm_backend )
 VectorSetConstant( met_mm_freq_spacing, met_mm_nchannels, current_spacing )
-Delete(current_spacing)
+Delete( current_spacing )
 
 }
 

@@ -901,6 +901,8 @@ void ScatSpeciesScatAndMetaRead (//WS Output:
   arr_ssd.resize ( scat_data_files.nelem() );
   arr_smd.resize ( scat_data_files.nelem() );
 
+  Index meta_naming_conv=0;
+
   for ( Index i = 0; i<scat_data_files.nelem(); i++ )
     {
       out2 << "  Read single scattering data file " << scat_data_files[i] << "\n";
@@ -912,12 +914,64 @@ void ScatSpeciesScatAndMetaRead (//WS Output:
 
       // make meta data name from scat data name
       ArrayOfString strarr;
-      scat_data_files[i].split ( strarr, ".xml" );
-      String scat_meta_file = strarr[0]+".meta.xml";
+      String scat_meta_file;
 
-      out2 << "  Read scattering meta data\n";
-      xml_read_from_file ( scat_meta_file, arr_smd[i], verbosity );
-            
+      if( i==0 )
+        {
+          try
+            {
+              scat_data_files[i].split ( strarr, ".xml" );
+              scat_meta_file = strarr[0]+".meta.xml";
+
+              out2 << "  Read scattering meta data\n";
+              xml_read_from_file ( scat_meta_file, arr_smd[i], verbosity );
+
+              meta_naming_conv = 1;
+            }
+          catch (runtime_error e1)
+            {
+              try
+                {
+                  scat_data_files[i].split ( strarr, "scat_data" );
+                  scat_meta_file = strarr[0]+"scat_meta"+strarr[1];
+
+                  out2 << "  Read scattering meta data\n";
+                  xml_read_from_file ( scat_meta_file, arr_smd[i], verbosity );
+
+                  meta_naming_conv = 2;
+                 }
+              catch (runtime_error e2)
+                {
+                  ostringstream os;
+                  os << "No meta data file following one of the allowed naming "
+                     << "conventions was found.\n"
+                     << "Allowed are "
+                     << "*.meta.xml from *.xml and "
+                     << "*scat_meta* from *scat_data*";
+                  throw runtime_error(os.str());
+                }
+            }
+        }
+      else
+        {
+          if( meta_naming_conv==1 )
+            {
+              scat_data_files[i].split ( strarr, ".xml" );
+              scat_meta_file = strarr[0]+".meta.xml";
+
+              out2 << "  Read scattering meta data\n";
+              xml_read_from_file ( scat_meta_file, arr_smd[i], verbosity );
+            }
+          else
+            {
+              scat_data_files[i].split ( strarr, "scat_data" );
+              scat_meta_file = strarr[0]+"scat_meta"+strarr[1];
+
+              out2 << "  Read scattering meta data\n";
+              xml_read_from_file ( scat_meta_file, arr_smd[i], verbosity );
+            }
+        }
+
       //FIXME: currently nothing is done in chk_scattering_meta_data!
       chk_scattering_meta_data ( arr_smd[i],
                                  scat_meta_file, verbosity );

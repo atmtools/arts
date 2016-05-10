@@ -3762,7 +3762,8 @@ void define_md_data_raw()
       ( NAME( "diameter_maxFromDiameter_volume_equ" ),
         DESCRIPTION
         (
-         "Converts from volume equivalent to maximum diameter.\n"
+         "Calculates maximum and area equivalent diameters from volume\n"
+         "equivalent diameter.\n"
          "\n"
          "This is primarily a help function for using the T-matrix method\n"
          "and only a few particle shapes are handled. "
@@ -3770,18 +3771,19 @@ void define_md_data_raw()
          "For shapes handled and further comments on the input arguments, see\n"
          "*scat_data_singleTmatrix*.\n"
          "\n"
-         "Also \"maximum axial area\" is returned. This is the largest area\n"
-         "of the particle, observed either along the particles' main axis,\n"
-         "or in the perpendicular direction. That is, for a cylinder having\n"
-         "a diameter of d and a thickness h, this area is either (pi*d^2)/4\n"
-         "or (h*d).\n"
+         "Area equivalent diameter is the equivalent sphere diameter\n"
+         "corresponding to the \"maximum axial area\". This is the largest\n"
+         "cross-sectional area of the particle, observed either along the\n"
+         "particle's main axis or in the perpendicular direction. That is,\n"
+         "for a cylinder having diameter d and thickness h, this area is\n"
+         "either (pi*d^2)/4 or (h*d).\n"
          ),
         AUTHORS( "Johan Strandgren", "Patrick Eriksson" ),
         OUT(),
-        GOUT(      "diameter_max", "axial_area_max" ),
+        GOUT(      "diameter_max", "diameter_area_equ" ),
         GOUT_TYPE( "Numeric",      "Numeric" ),
         GOUT_DESC( "Maximum dimension of the particle.",
-                   "Maximum axial area of the particle, see above." ),
+                   "Maximum axial area equivalent diameter of the particle, see above." ),
         IN(),
         GIN(        "shape",  "diameter_volume_equ", "aspect_ratio" ),
         GIN_TYPE(   "String", "Numeric",             "Numeric" ),
@@ -11886,6 +11888,8 @@ void define_md_data_raw()
         "\n"
         "Particle type (*ptype*) has two options:\n"
         "   \"macroscopically_isotropic\" and \"horizontally_aligned\"\n"
+        "For macroscopically isotropic particles, *data_aa_grid* is not taken\n"
+        "into account (but a Vector type container needs to be passed).\n"
         "\n"
         "For further information on how aspect ratio and the different shapes\n"
         "and orientations are defined, see the documentation of the T-matrix\n"
@@ -11914,7 +11918,7 @@ void define_md_data_raw()
                 "Vector", "Vector", "Vector", "Vector",
                 "Numeric", "String", "Index", "Index", "Index" ),
       GIN_DEFAULT( NODEF, NODEF, NODEF, "NaN", NODEF, 
-                   NODEF, NODEF, NODEF, NODEF, 
+                   NODEF, NODEF, NODEF, "[]", 
                    "0.001", "Set by user, unknown source.", "2", "0", "1" ),
       GIN_DESC( "Particle shape. Options listed above.", 
                 "Particle volume equivalent diameter [m]. See defintion above.", 

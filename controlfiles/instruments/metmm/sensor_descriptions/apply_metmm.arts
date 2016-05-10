@@ -3,8 +3,9 @@
 # Creates sensor response following the met-mm system
 #
 # This file expects that one met-mm definition file has been called, e.g.
-# sensor_mhs.arts. In addition, the following workspace variables must exist
-# and be set:
+# sensor_mhs.arts (which in turn requires prepare_metmm.arts been called
+# before).
+# In addition, the following workspace variables must exist and be set:
 # 
 # channels    (ArrayOfIndex) Which channels you want.
 #                            Note that this array uses zero-based ARTS

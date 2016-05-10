@@ -404,8 +404,8 @@ void DisortCalc(Workspace& ws,
           ttemp = COSMIC_BG_TEMP;
         }
 
-#pragma omp critical(fortran_disort)
-      {
+//#pragma omp critical(fortran_disort)
+//      {
       scat_data_monoCalc(scat_data_mono, scat_data, f_grid, f_index, verbosity);
       
       dtauc_ssalbCalc(ws, dtauc, ssalb,
@@ -455,7 +455,16 @@ void DisortCalc(Workspace& ws,
       
       //DEBUG_VAR(dtauc)
       
-      // Call disort
+// JM: once (2-3-454), I extended the critical region due to
+// modified-variable-issues inside disort. However, later on I couldn't
+// reproduce the problems anymore. Since the extension created problems in catching
+// errors thrown inside methods called within the critical region, the region is
+// reduced to its original extend (2-3-486), covering only the disort call
+// itself. If any kind of fishy behaviour is observed, we have to reconsider
+// extending (and proper error handling) again.
+#pragma omp critical(fortran_disort)
+      {
+          // Call disort
           disort_(&nlyr, dtauc.get_c_array(),
                   ssalb.get_c_array(), pmom.get_c_array(),
                   t.get_c_array(), &wvnmlo, &wvnmhi,

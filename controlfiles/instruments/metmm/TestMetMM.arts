@@ -74,6 +74,9 @@ INCLUDE "general/planet_earth.arts"
 # ====================================================================
 
 # Sensor characteristics
+
+    INCLUDE "instruments/metmm/sensor_descriptions/prepare_metmm.arts"
+
 # Change the filename to switch sensors.
     INCLUDE "instruments/metmm/sensor_descriptions/sensor_amsub.arts"
 

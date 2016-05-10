@@ -2,12 +2,17 @@
 
 # ARTS sensor description for MARSS simulations
 #
-# The following variables are set:
+# This requires to run prepare_metmm.arts beforehand.
 #
+# This expects the following workspace variables to exist and to be set:
+#    met_mm_accuracy (Index)    Selection of accuracy level.
+#
+# The following variables are set:
 #    antenna_dlos
 #    met_mm_backend
 #    met_mm_polarisation
 #    met_mm_freq_number
+#    met_mm_freq_spacing
 #    met_mm_antenna
 
 Arts2 {
@@ -64,7 +69,6 @@ ArrayOfStringSet( met_mm_polarisation, [ "MARSS-V", #0 (1)
 
 VectorSet( met_mm_antenna, [] )
 
-ArrayOfIndexCreate( met_mm_freq_number )
 ArrayOfIndexSet(
         met_mm_freq_number,
         [
@@ -75,14 +79,10 @@ ArrayOfIndexSet(
         12  #4 (5)
         ])
 
-VectorCreate( freq_spacing_tmp )
 VectorSet( freq_spacing_tmp, [10e9, 1e9, 1e9, 1e9] )
-NumericCreate( current_spacing )
 
 Extract(current_spacing,    freq_spacing_tmp,            met_mm_accuracy)
 
-VectorCreate( met_mm_freq_spacing )
-IndexCreate( met_mm_nchannels )
 nrowsGet( met_mm_nchannels, met_mm_backend )
 VectorSetConstant( met_mm_freq_spacing, met_mm_nchannels, current_spacing )
 Delete(current_spacing)

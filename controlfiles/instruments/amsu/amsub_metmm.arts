@@ -86,6 +86,7 @@ ArrayOfIndexSet( viewing_angles, [ 44 ] )
 IndexCreate(met_mm_accuracy)
 IndexSet(met_mm_accuracy, 2)
 
+INCLUDE "instruments/metmm/sensor_descriptions/prepare_metmm.arts"
 INCLUDE "instruments/metmm/sensor_descriptions/sensor_amsub.arts"
 INCLUDE "instruments/metmm/sensor_descriptions/apply_metmm.arts"
 
