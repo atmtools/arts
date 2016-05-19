@@ -14462,6 +14462,27 @@ void define_md_data_raw()
         GIN_DESC(    "Screen verbosity level")
         ));
 
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "vmr_fieldSetConstant" ),
+        DESCRIPTION
+        (
+         "Sets the VMR of a species to a constant value.\n"
+         "\n"
+         "The *vmr_field* WSM must have a correct size before calling this method.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "vmr_field" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "vmr_field", "abs_species" ),
+        GIN(         "species", "vmr_value" ),
+        GIN_TYPE(    "String", "Numeric" ),
+        GIN_DEFAULT( NODEF, NODEF),
+        GIN_DESC(    "Species to set.", "VMR value to apply for the selected species.")
+        ));
+
     md_data_raw.push_back
     ( MdRecord
     ( NAME( "WindFieldsCalc" ),

@@ -3990,3 +3990,28 @@ void z_fieldFromHSE(
 
 
 
+/* Workspace method: Doxygen documentation will be auto-generated */
+void vmr_fieldSetConstant(
+   Tensor4&         vmr_field,
+   const ArrayOfArrayOfSpeciesTag&   abs_species,
+   const String&    species,
+   const Numeric&   vmr_value, 
+   const Verbosity&  )
+{
+  // Check input
+  chk_if_in_range( "vmr_value", vmr_value, 0, 1 ); 
+  //
+  if( abs_species.nelem() != vmr_field.nbooks() )
+    throw runtime_error( 
+          "Size of *vmr_field* and length of *abs_species* do not agree." );
+
+  // Find position for this species. 
+  ArrayOfSpeciesTag tag;
+  array_species_tag_from_string( tag, species );
+  Index si = chk_contains( "species", abs_species, tag );
+
+  // Apply value
+  vmr_field(si,joker,joker,joker) = vmr_value;
+}
+
+
