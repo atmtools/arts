@@ -440,7 +440,7 @@ Numeric frequency_change(const LineRecord& lr,
     assert(abs(lr.QuantumNumbers().Lower()[QN_M])<=lr.QuantumNumbers().Lower()[QN_J]);
     switch(lr.QuantumNumbers().Lower()[QN_Hund].toIndex())
     {
-        case Hund::Case_A:
+        case Hund_Case_A:
             // This follows Berdyugina and Solnaki
             Lower_E_part = lr.QuantumNumbers().Lower()[QN_M].toNumeric() * 
             gs_casea(lr.QuantumNumbers().Lower()[QN_Omega],
@@ -449,7 +449,7 @@ Numeric frequency_change(const LineRecord& lr,
                      lr.QuantumNumbers().Lower()[QN_Lambda],
                      GS);
             break;
-        case Hund::Case_B:
+        case Hund_Case_B:
             // This follows Lenoir
             if( lr.QuantumNumbers().Lower()[QN_J] == 0 )
             {
@@ -473,7 +473,7 @@ Numeric frequency_change(const LineRecord& lr,
     assert(abs(lr.QuantumNumbers().Upper()[QN_M])<=lr.QuantumNumbers().Upper()[QN_J]);
     switch(lr.QuantumNumbers().Upper()[QN_Hund].toIndex())
     {
-        case Hund::Case_A:
+        case Hund_Case_A:
             // This follows Berdyugina and Solnaki
             Upper_E_part = lr.QuantumNumbers().Upper()[QN_M].toNumeric() * 
             gs_casea(lr.QuantumNumbers().Upper()[QN_Omega],
@@ -482,7 +482,7 @@ Numeric frequency_change(const LineRecord& lr,
                      lr.QuantumNumbers().Upper()[QN_Lambda],
                      GS);
             break;
-        case Hund::Case_B:
+        case Hund_Case_B:
             // This follows Lenoir
             Upper_E_part = lr.QuantumNumbers().Upper()[QN_M].toNumeric() * 
             gs_caseb(lr.QuantumNumbers().Upper()[QN_N],

@@ -1,5 +1,13 @@
 2016-05-20  Richard Larsson   <ric.larsson@gmail.com>
 	
+	* arts-2-3-490
+	
+	* src/{quantum.h,zeeman.cc}:  Previous commits contained C++11 
+	features.  Thanks Oliver for pointing this out and showing me
+	how to fix it.
+
+2016-05-20  Richard Larsson   <ric.larsson@gmail.com>
+	
 	* arts-2-3-489
 	
 	* src/quantum.h:  Changed from "Hund" to "Hund : Index".  Relying

@@ -83,9 +83,9 @@ typedef enum {
     QMI_PARTIAL = 2,
 } QuantumMatchInfoEnum;
 
-enum Hund : Index {
-    Case_A=0,
-    Case_B=1
+enum Hund {
+    Hund_Case_A=0,
+    Hund_Case_B=1
 };
 
 //! Class that holds details for matching info on upper and lower quantum numbers.
