@@ -83,7 +83,7 @@ typedef enum {
     QMI_PARTIAL = 2,
 } QuantumMatchInfoEnum;
 
-enum Hund {
+enum Hund : Index {
     Case_A=0,
     Case_B=1
 };

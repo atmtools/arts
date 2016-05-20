@@ -1,5 +1,14 @@
 2016-05-20  Richard Larsson   <ric.larsson@gmail.com>
 	
+	* arts-2-3-489
+	
+	* src/quantum.h:  Changed from "Hund" to "Hund : Index".  Relying
+	on Hudson to test if this works because it compiles locally, just
+	as the last commit did?  If this fix does not work, then I will
+	declare specific integers in quantum.h instead.
+
+2016-05-20  Richard Larsson   <ric.larsson@gmail.com>
+	
 	* arts-2-3-488
 	
 	This update requires updating zeeman_constants.xml in arts-xml-data.
