@@ -363,7 +363,7 @@ Agenda: \wsaindex{propmat\_clearsky\_agenda}. \newline
 Variable: \wsvindex{propmat\_clearsky}, which is nitialized in \wsmindex{propmat\_clearskyInit}.\newline
 Methods: \wsmindex{propmat\_clearskyAddOnTheFly} (the core method for on-the-fly
 absoprtion calculation inlcuding line-by-line and continuum absorption), \newline
-\wsmindex{propmat\_clearskyAddZeeman} (see Sec.~\ref{sec:absorption:zeeman}), \newline
+\wsmindex{propmat\_clearskyAddZeemanFromPreCalc} (see Sec.~\ref{sec:absorption:zeeman}), \newline
 \wsmindex{propmat\_clearskyAddFaraday} (see Sec.~\ref{sec:absorption:faraday}), \newline
 \wsmindex{propmat\_clearskyAddParticles} (see Sec.~\ref{sec:absorption:particles}). \newline
 Alternative:
@@ -665,13 +665,14 @@ specifically:
 \subsection{Zeeman calculations}
 \label{sec:absorption:zeeman}
 
-The Zeeman effect is calculated in the method \wsmindex{propmat\_clearskyAddZeeman}.
+The Zeeman effect is calculated in the method \wsmindex{propmat\_clearskyAddZeemanFromPreCalc}.
 If this method is included in the \builtindoc{propmat\_clearsky\_agenda}, then species with the
-tag "\verb|-Z|" will be calculated as Zeeman species. If the method is not included,
-then these species will simply be ignored. Note that the order within the tag
+tag "\verb|-Z|" will be calculated as Zeeman species.
+This requires preparing a \wsvindex{zeeman\_linerecord\_precalc} first to speed up the calculations.
+Note that the order within the tag
 string is important: the Zeeman tag must directly follow the molecular species
 tag. That is, \verb|O2-Z-66| will be counted as Zeeman splitting on the
-O$^{16}$O$^{16}$ molecule, whereas \verb|O2-66-Z| will not work the same way, or even at all.
+O$^{16}$O$^{16}$ molecule.
 
 The physics and internal workings of the Zeeman calculations follow the scheme
 presented in \citet{larsson:xx} %FIXME: update bibtex reference when accepted.
@@ -680,15 +681,16 @@ presented in \citet{larsson:xx} %FIXME: update bibtex reference when accepted.
 %Radiative Transfer Simulator ARTS}.
 
 In order to calculate Zeeman splitting, additional line parameters that are not
-readily available in, e.g., HITRAN are necessary. These include $g_s$ [-], the
-relative Land\'{e} factor, and $S$ [-], the molecular total spin. These
+readily available in, e.g., HITRAN are necessary. These include $g_s$, the
+relative Land\'{e} factor, the Lambda-state ($\Sigma:=0$, $\Pi:=1$, ...), the molecular total spin $S$,
+and the Hund case (case a is 0 and case b is 1). These
 variables must therefore be read to the WSV \wsvindex{isotopologue\_quantum}.
 This variable is of type \builtindoc{SpeciesAuxData}, and a file providing
 that kind of data would, e.g., look like:
 \begin{code}
 <arts format="ascii" version="1">
-  <SpeciesAuxData version="1" nelem="1" nparam="3">
-    @ O2-66 2.002064 1 1
+  <SpeciesAuxData version="1" nelem="1" nparam="4">
+    @ O2-66 2.002064 0 1 1
   </SpeciesAuxData>
 </arts>
 \end{code}

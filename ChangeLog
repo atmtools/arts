@@ -1,3 +1,60 @@
+2016-05-20  Richard Larsson   <ric.larsson@gmail.com>
+	
+	* arts-2-3-488
+	
+	This update requires updating zeeman_constants.xml in arts-xml-data.
+	Found bug in implementation for NO.  Should be fixed now following
+	Berdyugina and Solanki's 2002 paper.
+	
+	Note:  This only works from a catalog that defines quantum numbers 
+	that we can understand.  Reading HITRAN presently does not work for
+	NO because the quantum numbers are not well-represented.  The 
+	rules in the 2004 paper seems to not be work outside some limited
+	frequnecy regions.  So this is disabled and you have to set
+	the quantum numbers by hand if you use HITRAN.  (Or reenable it in 
+	quantum_parser_hitran for testing if your freqeuncy region works as
+	expected.  Just remember to disable this before committing any code
+	updates...)
+	
+	* src/m_zeeman.cc: Updated propmat_clearskyAddZeeman to just copy
+	behavior of the preferable propmat_clearskyAddZeemanFromPreCalc,
+	but slower by repetition.  Should probably deprecate this instead...
+	
+	Updated the other functions to remove a multitude of if-statements 
+	and writing of quantum numbers directly to the Zeeman linerecords.
+	
+	* src/quantum.{cc,h}: Added a flag for hund case and a Lambda as 
+	a quantum number.
+	
+	* src/rational.{cc,h}:  Updated handling of toIndex() for 
+	half-integers.  2/2 failed before but is clearly an integer.
+	
+	* src/zeeman.{cc,h}:  Added the error handling of 
+	isotopologue_quantum.  The change in zeeman_constants.xml
+	showed me there was no error handling whatsoever other than
+	"is it defined?".  Removed old frequnecy_change function
+	handler for different Hund cases and moved this functionality
+	in under one function that cares for the Hund-flag in the 
+	linerecord.  
+	
+	Added an enum for the Auxilliary indexing so 
+	that if this has to change again, it is easier.
+	(I am thinking that visible lines having transitions away from
+	the ground-state to the ground-state has to be treated differently,
+	though I do not know how important this actually is...)
+	
+	Changed the quantum number handling so that the case a calculations
+	can be made.  Also simplified the loop of J giving M.  Turns out that
+	there was a bug in the stored data in zeeman_linerecord_precalc before,
+	so that upper Ms where stored as lower Ms and vice versa, though there
+	was another bug that also handled upper Ms as lower Ms and vice versa
+	compensating for the first bug 1-to-1... it was a mess caused by the 
+	J loop being too complicated for me.
+	
+	* doc/uguid/absorption.cc:  Changed to point at the precalc methods 
+	rather than the old slower method for Zeeman.  Also updated its version
+	of isotopologue_quantum.
+
 2016-05-19  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-487

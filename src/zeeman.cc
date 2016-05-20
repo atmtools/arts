@@ -19,7 +19,7 @@
    
 
 #include "zeeman.h"
-
+#include "global_data.h"
 
 /*!
  *  Defines the phase of the propagation matrix.
@@ -331,8 +331,8 @@ void dattenuation_matrix_deta(MatrixView dK, const Numeric& theta, const Numeric
 };
 
 
-Numeric gs_caseb(const Numeric& N, const Numeric& J, const Numeric& S, const Numeric& GS) { return (GS*(J*(J+1.)+S*(S+1.)-N*(N+1.))/(J*(J+1.))/2.0); }
-Numeric gs_casea(const Numeric& Omega, const Numeric& J, const Numeric& Sigma, const Numeric& GS) { return GS/2.0/J/(J+1)*Omega*(Omega+Sigma); }
+Numeric gs_caseb(const Rational& N, const Rational& J, const Rational& S, const Numeric& GS) { return (GS*((J*(J+1)+S*(S+1)-N*(N+1))/(J*(J+1))/2).toNumeric()); }
+Numeric gs_casea(const Rational& Omega, const Rational& J, const Rational& Lambda, const Rational& Sigma, const Numeric& GS) { return GS*(Omega/2/J/(J+1)*(Lambda+2*Sigma)).toNumeric(); }
 
 
 /*!
@@ -349,13 +349,13 @@ Numeric gs_casea(const Numeric& Omega, const Numeric& J, const Numeric& Sigma, c
  * \author Richard Larsson
  * \date   2012-10-26
  */
-Numeric relative_strength(const Rational& m, const Rational& j, const Index& dj, const Index& dm)
+Numeric relative_strength(const Rational& M, const Rational& J, const Index& dj, const Index& dm)
 {
-    // Numeric conversions are necessary.
-    const Numeric J = (j-dj).toNumeric(), M = (m).toNumeric();
     
     // Variable to be returned.
-    Numeric ret_val;
+    Rational ret_val;
+    
+    static const Rational three_fourths(3,4),one_and_a_half(3,2);
     
     switch ( dj )
     {
@@ -363,13 +363,13 @@ Numeric relative_strength(const Rational& m, const Rational& j, const Index& dj,
             switch ( dm )
             {
                 case -1: // Transitions anti-parallel to the magnetic field
-                    ret_val = (0.75)*(J+M)*(J-1+M)/(2.*J*(2.*J-1)*(2.*J+1));
+                    ret_val = three_fourths*(J+M)*(J-1+M)/(2*J*(2*J-1)*(2*J+1));
                     break;
                 case  0: // Transitions perpendicular to the magnetic field
-                    ret_val = (1.50)*(J*J-M*M)/(J*(2.*J-1.)*(2.*J+1.));
+                    ret_val = one_and_a_half*(J*J-M*M)/(J*(2*J-1)*(2*J+1));
                     break;
                 case +1: // Transitions parallel to the magnetic field
-                    ret_val = (0.75)*(J-M)*(J-1.-M)/(2.*J*(2.*J-1.)*(2.*J+1.));
+                    ret_val = three_fourths*(J-M)*(J-1-M)/(2*J*(2*J-1)*(2*J+1));
                     break;
                 default:
                     throw std::runtime_error("Something is extremely wrong.");
@@ -380,13 +380,13 @@ Numeric relative_strength(const Rational& m, const Rational& j, const Index& dj,
             switch ( dm )
             {
                 case -1: // Transitions anti-parallel to the magnetic field
-                    ret_val = (0.75)*(J+M)*(J+1.-M)/(2.*J*(J+1.)*(2.*J+1.));
+                    ret_val = three_fourths*(J+M)*(J+1-M)/(2*J*(J+1)*(2*J+1));
                     break;
                 case  0: // Transitions perpendicular to the magnetic field
-                    ret_val = (1.50)*M*M/(J*(J+1.)*(2.*J+1.));
+                    ret_val = one_and_a_half*M*M/(J*(J+1)*(2*J+1));
                     break;
                 case +1: // Transitions parallel to the magnetic field
-                    ret_val = (0.75)*(J-M)*(J+1.+M)/(2.*J*(J+1.)*(2.*J+1.));
+                    ret_val = three_fourths*(J-M)*(J+1+M)/(2*J*(J+1)*(2*J+1));
                     break;
                 default:
                     throw std::runtime_error("Something is extremely wrong.");
@@ -397,13 +397,13 @@ Numeric relative_strength(const Rational& m, const Rational& j, const Index& dj,
             switch ( dm )
             {
                 case -1: // Transitions anti-parallel to the magnetic field
-                    ret_val = (0.75)*(J+1.-M)*(J+2.-M)/(2.*(J+1.)*(2.*J+1.)*(2.*J+3.));
+                    ret_val = three_fourths*(J+1-M)*(J+2-M)/(2*(J+1)*(2*J+1)*(2*J+3));
                     break;
                 case  0: // Transitions perpendicular to the magnetic field
-                    ret_val = (1.5)*((J+1.)*(J+1.)-M*M)/((J+1.)*(2.*J+1.)*(2.*J+3.));
+                    ret_val = one_and_a_half*((J+1)*(J+1)-M*M)/((J+1)*(2*J+1)*(2*J+3));
                     break;
                 case +1: // Transitions parallel to the magnetic field
-                    ret_val = (0.75)*(J+1.+M)*(J+2.+M)/(2.*(J+1.)*(2.*J+1.)*(2.*J+3.));
+                    ret_val = three_fourths*(J+1+M)*(J+2+M)/(2*(J+1)*(2*J+1)*(2*J+3));
                     break;
                 default:
                     throw std::runtime_error("Something is extremely wrong.");
@@ -415,82 +415,89 @@ Numeric relative_strength(const Rational& m, const Rational& j, const Index& dj,
             break;
     }
 
-    return ret_val;
+    return ret_val.toNumeric();
 }
 
 
 /*!
- * Return the frequency change of the split Zeeman line parts as found from
- * g_s x M - g_s' x M'
+ * Return the frequency change of the split Zeeman lines following
+ * Berdyugina and Solnaki (2002) and Lenoir (1967).
  * 
- * Takes into account non-free electron GS constant by GS/2 * g_s
- * 
- * \param  n       In:     Main quantum number.
- * \param  m       In:     Secondary rotational quantum number.
- * \param  j       In:     Coupled rotational quantum number.
- * \param  s       In:     Electron total spin quantum number.
- * \param  DJ      In:     Change in the coupled rotational quantum number.
- * \param  DM      In:     Change in the secondary rotational quantum number.
- * \param  DN      In:     Change in the main rotational quantum number.
- * \param  H_mag   In:     Magnitude of the magnetic field in Tesla.
- * \param  GS      In:     G-constant from data for the molecule.
+ * \param  lr      In:     The line record with quantum numbers.
+ * \param  H_mag   In:     The magnitude of the magnetic field.
+ * \param  GS      In:     The Lande factor.
  * 
  * \author Richard Larsson
- * \date   2012-11-13
+ * \date   2016-05-19 (combination of two precious versions from 2012)
  */
-Numeric frequency_change_caseb(const Rational& n, const Rational& m, const Rational& j, 
-                               const Numeric& S, const Index& DJ, const Index& DM, 
-                               const Index& DN, const Numeric& H_mag, const Numeric& GS)
+Numeric frequency_change(const LineRecord& lr,
+                         const Numeric& H_mag, 
+                         const Numeric& GS)
 {
-    const Numeric       N_up = n.toNumeric();
-    const Numeric       N_lo = N_up - (Numeric)DN;
-    const Numeric       M_lo = m.toNumeric();
-    const Numeric       M_up = M_lo + (Numeric)DM; // This will probably confuse people even though it is correct. Should fix so outer loop is over M_up?
-    const Numeric       J_up = j.toNumeric();
-    const Numeric       J_lo = J_up - (Numeric)DJ;
+    Numeric Upper_E_part, Lower_E_part;
     
-    // The special case is because g_s is undefined for J=0.
-    return (!(j == 0 && DJ == -1)) ? 
-    - H_mag * (M_lo) * gs_caseb(N_lo,J_lo,S,GS) / PLANCK_CONST * BOHR_MAGNETON   // Should change this to use more general expressions...
-    + H_mag * (M_up) * gs_caseb(N_up,J_up,S,GS) / PLANCK_CONST * BOHR_MAGNETON : 
-      H_mag * (M_lo) * gs_caseb(N_lo,J_lo,S,GS) / PLANCK_CONST * BOHR_MAGNETON ; // Simple  mu·H gives factor sqrt(2)/2 larger splitting... why does this work?  Does it?  14 v. 19 kHz/µT should have been noticed by MLS by now...
-}
-
-
-/*!
- * Return the frequency change of the split Zeeman line parts as found from
- * g_s x M - g_s' x M'
- * 
- * Takes into account non-free electron GS constant by GS/2 * g_s
- * 
- * \param  omega   In:     Main quantum number.
- * \param  m       In:     Secondary rotational quantum number.
- * \param  j       In:     Coupled rotational quantum number.
- * \param  s       In:     Electron total spin quantum number.
- * \param  DJ      In:     Change in the coupled rotational quantum number.
- * \param  DM      In:     Change in the secondary rotational quantum number.
- * \param  DN      In:     Change in the main rotational quantum number.
- * \param  H_mag   In:     Magnitude of the magnetic field in Tesla.
- * \param  GS      In:     G-constant from data for the molecule.
- * 
- * \author Richard Larsson
- * \date   2013-08-09
- */
-Numeric frequency_change_casea(const Rational& omega, const Rational& m, const Rational& j, 
-                               const Numeric& Sigma, const Index& DJ, const Index& DM, 
-                               const Index& Domega, const Numeric& H_mag, const Numeric& GS)
-{
-    const Numeric       Omega_up = omega.toNumeric();
-    const Numeric       Omega_lo = Omega_up - (Numeric)Domega;
-    const Numeric       M_lo = m.toNumeric();
-    const Numeric       M_up = M_lo + (Numeric)DM; // This will probably confuse people even though it is correct. Should fix so outer loop is over M_up.
-    const Numeric       J_up = j.toNumeric();
-    const Numeric       J_lo = J_up - (Numeric)DJ;
+    // Lower:
+    assert(abs(lr.QuantumNumbers().Lower()[QN_M])<=lr.QuantumNumbers().Lower()[QN_J]);
+    switch(lr.QuantumNumbers().Lower()[QN_Hund].toIndex())
+    {
+        case Hund::Case_A:
+            // This follows Berdyugina and Solnaki
+            Lower_E_part = lr.QuantumNumbers().Lower()[QN_M].toNumeric() * 
+            gs_casea(lr.QuantumNumbers().Lower()[QN_Omega],
+                     lr.QuantumNumbers().Lower()[QN_J],
+                     lr.QuantumNumbers().Lower()[QN_S],
+                     lr.QuantumNumbers().Lower()[QN_Lambda],
+                     GS);
+            break;
+        case Hund::Case_B:
+            // This follows Lenoir
+            if( lr.QuantumNumbers().Lower()[QN_J] == 0 )
+            {
+                Lower_E_part = 0;
+            }
+            else
+            {
+                Lower_E_part = lr.QuantumNumbers().Lower()[QN_M].toNumeric() * 
+                gs_caseb(lr.QuantumNumbers().Lower()[QN_N],
+                         lr.QuantumNumbers().Lower()[QN_J],
+                         lr.QuantumNumbers().Lower()[QN_S],
+                         GS);
+            }
+            break;
+        default:
+            throw std::runtime_error("Does not recognize Hund case.\n");
+            break;
+    }
     
-    // This follows Berdyugina and Solnaki
-    return
-        H_mag * (M_up) * gs_casea(Omega_up,J_up,Sigma,GS) / PLANCK_CONST * BOHR_MAGNETON -
-        H_mag * (M_lo) * gs_casea(Omega_lo,J_lo,Sigma,GS) / PLANCK_CONST * BOHR_MAGNETON ; // This is likely wrong and only accounts for the gl·L·H part.  Adding gs·S·H (as in caseb), is likely necessary
+    // Upper:
+    assert(abs(lr.QuantumNumbers().Upper()[QN_M])<=lr.QuantumNumbers().Upper()[QN_J]);
+    switch(lr.QuantumNumbers().Upper()[QN_Hund].toIndex())
+    {
+        case Hund::Case_A:
+            // This follows Berdyugina and Solnaki
+            Upper_E_part = lr.QuantumNumbers().Upper()[QN_M].toNumeric() * 
+            gs_casea(lr.QuantumNumbers().Upper()[QN_Omega],
+                     lr.QuantumNumbers().Upper()[QN_J],
+                     lr.QuantumNumbers().Upper()[QN_S],
+                     lr.QuantumNumbers().Upper()[QN_Lambda],
+                     GS);
+            break;
+        case Hund::Case_B:
+            // This follows Lenoir
+            Upper_E_part = lr.QuantumNumbers().Upper()[QN_M].toNumeric() * 
+            gs_caseb(lr.QuantumNumbers().Upper()[QN_N],
+                     lr.QuantumNumbers().Upper()[QN_J],
+                     lr.QuantumNumbers().Upper()[QN_S],
+                     GS);
+            break;
+        default:
+            throw std::runtime_error("Does not recognize Hund case.\n");
+            break;
+    }
+    
+    // convert from energy state to frequency and be done with it
+    return H_mag * (Lower_E_part-Upper_E_part) / PLANCK_CONST * BOHR_MAGNETON;
+    
 }
 
 
@@ -926,85 +933,48 @@ void set_magnetic_parameters_derivative(
 
 
 
-void set_quantum_numbers(Rational& Main,
-                         Index& DMain,
-                         Rational& J,
-                         Index& DJ,
-                         Rational& M,
-                         Index& DM,
-                         Numeric& S,
-                         const LineRecord& temp_LR,
-                         const Index hund,
-                         const SpeciesAuxData& isotopologue_quantum,
-                         const Index DO_Main,
-                         const Index DO_J,
-                         const Index DO_M)
+void set_quantumnumbers( LineRecord& this_LR,
+                         const Rational& hund,
+                         const SpeciesAuxData& isotopologue_quantum)
 {
-  if(DO_J!=0)
-  {
-    J   = temp_LR.QuantumNumbers().Lower(QN_J);
-    DJ     = (J - temp_LR.QuantumNumbers().Upper(QN_J)).toIndex();
-  }
+  Rational Lambda, S;
   
-  // Note that Main is required to set S and will do so
-  if( hund ==0 && DO_Main!=0 )//Case a
-  {
-      Main  = temp_LR.QuantumNumbers().Lower(QN_Omega);
-      DMain = (Main - temp_LR.QuantumNumbers().Upper(QN_Omega)).toIndex();
-      S = 1-Main.toNumeric();
-  }
-  else if( hund == 1 && DO_Main!=0 )// Case b
-  {
-      Main  = temp_LR.QuantumNumbers().Lower(QN_N);
-      DMain = (Main - temp_LR.QuantumNumbers().Upper(QN_N)).toIndex();
-      S = isotopologue_quantum.getParam(temp_LR.Species(), temp_LR.Isotopologue())[0].data[1];
-  }
+  S = Rational((Index) (2*isotopologue_quantum.getParam(this_LR.Species(), 
+                                                        this_LR.Isotopologue())[0].data[AuxIndex_S]),2);
+  S.Simplify();
   
-  if(DO_M!=0)
-  {
-    M  = temp_LR.QuantumNumbers().Lower(QN_M);
-    DM = (temp_LR.QuantumNumbers().Upper(QN_M) - M).toIndex(); //Note that this is a strange definition
-  }
+  Lambda = (Index) isotopologue_quantum.getParam(this_LR.Species(), 
+                                         this_LR.Isotopologue())[0].data[AuxIndex_Lambda];
+  
+  this_LR.SetQuantumNumberLower(QN_S, S);
+  this_LR.SetQuantumNumberUpper(QN_S, S);
+  
+  this_LR.SetQuantumNumberLower(QN_Lambda, Lambda);
+  this_LR.SetQuantumNumberUpper(QN_Lambda, Lambda);
+  
+  // Flag quantum number
+  this_LR.SetQuantumNumberLower(QN_Hund, hund);
+  this_LR.SetQuantumNumberUpper(QN_Hund, hund);
 }
 
-
-void alter_linerecord(LineRecord& new_LR,
-                      Numeric& Test_RS,
-                      const LineRecord& old_LR,
-                      const Rational& Main,
-                      const Rational& M,
-                      const Rational& J,
-                      const Numeric&  S,
-                      const Index&    DJ,
-                      const Index&    DM,
-                      const Index&    DMain,
-                      const Numeric&  H_mag,
-                      const Numeric&  GS,
-                      Numeric (*frequency_change)(const Rational&, const  Rational&, const Rational&, 
-                                    const Numeric&, const Index&, const Index&, 
-                                    const Index&, const Numeric&, const Numeric&),
-                      const Index& DO_RS,
-                      const Index& DO_DF,
-                      const Index& DO_QR)
+void alter_linerecord( LineRecord& new_LR,
+                       Numeric& Test_RS,
+                       const Numeric& old_LS,
+                       const Rational& J_up,
+                       const Rational& J_lo,
+                       const Rational& M_up,
+                       const Rational& M_lo)
 {
-  if(DO_RS!=0)
-  { 
-    const Numeric RS = relative_strength(M, J, DJ, DM);
+    // Find the relative strength
+    const Numeric RS = relative_strength(M_lo, J_lo, (J_up-J_lo).toIndex(), (M_up-M_lo).toIndex());
+    
+    // Setup a test that the relative strength is reasonable
     Test_RS += RS;
-    new_LR.setI0( old_LR.I0() * RS );
-  }
-  
-  if(DO_DF!=0)
-  { 
-    const Numeric DF =  frequency_change(Main, M, J, S, DJ, DM, DMain, H_mag, GS);
-    new_LR.setF(  old_LR.F()  + DF );
-  }
-  
-  if(DO_QR!=0)
-  { 
-    new_LR.SetQuantumNumberLower(QN_M, M);
-    new_LR.SetQuantumNumberUpper(QN_M, M+DM);
-  }
+    new_LR.setI0( old_LS * RS );
+    
+    // Set quantum numbers
+    new_LR.SetQuantumNumberLower(QN_M, M_lo);
+    new_LR.SetQuantumNumberUpper(QN_M, M_up);
 }
 
 
@@ -1014,34 +984,55 @@ void create_Zeeman_linerecordarrays(
         const ArrayOfArrayOfSpeciesTag& abs_species,
         const ArrayOfArrayOfLineRecord& abs_lines_per_species,
         const SpeciesAuxData& isotopologue_quantum,
-        const Numeric& H_mag,
-        const Index&DO_RS,
-        const Index&DO_DF,
-        const Index&DO_QR,
-        const Index&DO_Main,
-        const Index&DO_J,
-        const Index&DO_M,
         const Verbosity& verbosity)
 {
     CREATE_OUT3;
-    
     // Note that this function assumes that all tests that are not line specifice are done elsewhere
     
-    const Numeric margin    = 1e-4; // This margin is for relative strength and can perhaps be lowered by returning RS as Rational?
+    using global_data::species_data;
     
-    Numeric (*frequency_change)(const Rational&, const  Rational&, const Rational&, 
-                                  const Numeric&, const Index&, const Index&, 
-                                  const Index&, const Numeric&, const Numeric&);
-    // holder names
-    Numeric GS;
-    Index hund;
+    // This margin is for relative strength and can perhaps be lowered by returning RS as Rational?
+    const Numeric margin    = 1e-4; 
 
       // For all species
       for(Index II = 0; II<abs_species.nelem(); II++)
       {
           // If the species isn't Zeeman, look at the next species
           if(!is_zeeman(abs_species[II])) continue;
-
+          
+          // If there are no lines give up on this species
+          if(!abs_lines_per_species[II].nelem()) continue;
+          
+          const Index nis = isotopologue_quantum.nisotopologues(abs_lines_per_species[II][0].Species());
+          
+          SpeciesRecord sr = species_data[abs_lines_per_species[II][0].Species()];
+          
+          for(Index is=0;is<nis;is++)
+          {
+              IsotopologueRecord ir = sr.Isotopologue()[is];
+              
+              if(ir.isContinuum())
+                  continue;
+              
+              const ArrayOfGriddedField1 aogf1 = 
+              isotopologue_quantum.getParam(abs_lines_per_species[II][0].Species(),is);
+              if(!aogf1.nelem())
+              {
+                  std::ostringstream os;
+                  os<<"No data in isotopologue_quantum for species "<< sr.Name();
+              }
+              
+              const GriddedField1 gf1 = aogf1[0];
+              if(gf1.data.nelem()!=AuxIndex_TotalCount)
+              {
+                  std::ostringstream os;
+                  os << "There are undefined isotopologues in *isotopologue_quantum* for species " <<sr.Name() <<"\n";
+                  os << "All isotopologues must be defined for a species.\n";
+                  throw std::runtime_error(os.str());
+              }
+          }
+                  
+          // One line record array per type of polarizer is created
           aoaol.push_back(ArrayOfLineRecord()); // First is negative
           aoaol.push_back(ArrayOfLineRecord()); // Second is 0
           aoaol.push_back(ArrayOfLineRecord()); // Third is positive
@@ -1061,171 +1052,119 @@ void create_Zeeman_linerecordarrays(
           // Else loop over all the lines in the species.
           for (Index ii = 0; ii< abs_lines_per_species[II].nelem(); ii++)
           {
-                  
-                  set_part_isotopologue_constants(hund,GS,isotopologue_quantum,abs_lines_per_species[II][ii]);
-                  // local LineRecord
-                  LineRecord temp_LR = abs_lines_per_species[II][ii];
-                  Numeric RS_sum     = 0; //Sum relative strength (which ought be close to one by the end)
-                  // Only look at lines which have no change in the main rotational number
-                  
-                  // Separate setting of the frequency_change function...
-                  if( hund ==0 )//Case a
-                      frequency_change=frequency_change_casea;
-                  else if( hund == 1 )// Case b
-                      frequency_change=frequency_change_caseb;
-                  else
+              // local LineRecord
+              LineRecord temp_LR = abs_lines_per_species[II][ii];
+              const Numeric this_linestrength = temp_LR.I0();
+              Rational hund;
+                
+              set_hund_case(hund, isotopologue_quantum, temp_LR);
+              Numeric RS_sum     = 0; //Sum relative strength (which ought be close to one by the end)
+              // Only look at lines which have no change in the main rotational number
+              
+              bool test=true;
+              
+              // Test that hund cases are properly defined
+              if(hund==0)
+              {
+                  if(    temp_LR.QuantumNumbers().Upper()[QN_Omega].isUndefined() 
+                      || temp_LR.QuantumNumbers().Lower()[QN_Omega].isUndefined())
+                      test=false;
+              }
+              else if(hund==1)
+              {
+                  if(    temp_LR.QuantumNumbers().Upper()[QN_N].isUndefined() 
+                      || temp_LR.QuantumNumbers().Lower()[QN_N].isUndefined())
+                      test=false;
+              }
+              else //Case a is 0, case b is 1
+              {
+                  std::ostringstream os;
+                  os << "There are undefined Hund cases for\n" << temp_LR;
+                  throw std::runtime_error(os.str());
+              }
+              
+              if(!test)
+              {
+                  std::ostringstream os;
+                  os<<"Need to define the main quantum numbers for\n"<<
+                  temp_LR;
+                  throw std::runtime_error(os.str());
+              }
+              
+              // Quantum numbers
+              set_quantumnumbers(temp_LR, hund, isotopologue_quantum);
+              const Rational J_up = temp_LR.QuantumNumbers().Upper()[QN_J], 
+              J_lo = temp_LR.QuantumNumbers().Lower()[QN_J];
+            
+              test = J_up.isUndefined()||J_lo.isUndefined();
+              if(test)
+              {
+                  std::ostringstream os;
+                  os<<"Need to define J for\n"<<
+                  temp_LR;
+                  throw std::runtime_error(os.str());
+              }
+              
+              test = J_lo>J_up;
+              const Rational  J    = (test?J_up:J_lo);
+              
+              for ( Rational M = -J; M<=J; M++ )
+              {
+                  /*
+                   *                              Note that:
+                   *                              sp := sigma plus,  which means DM =  1
+                   *                              sm := sigma minus, which means DM = -1
+                   *                              pi := planar,      which means DM =  0
+                   */
+                  if(test)
                   {
-                      std::ostringstream os;
-                      os << "There are undefined Hund cases: " << temp_LR << 
-                      "\nThe case is: "<<hund<<", allowed are (a): "<<0<<" and (b): " << 1<<"\n";
-                      throw std::runtime_error(os.str());
+                      alter_linerecord( temp_LR, RS_sum, this_linestrength, J_up, J_lo, M, M-1  );
+                      temp_abs_lines_sm.push_back(temp_LR);
+                      
+                      alter_linerecord( temp_LR, RS_sum, this_linestrength, J_up, J_lo, M, M  );
+                      temp_abs_lines_pi.push_back(temp_LR);
+                      
+                      alter_linerecord( temp_LR, RS_sum, this_linestrength, J_up, J_lo, M, M+1  );
+                      temp_abs_lines_sp.push_back(temp_LR);
                   }
-                  
-                  // Quantum numbers
-                  Rational Main,J,NA;
-                  Index DMain,DJ,DNA;
-                  Numeric S;
-                  
-                  set_quantum_numbers( Main, DMain, J, DJ, NA, DNA, S,
-                                        temp_LR, hund, isotopologue_quantum,
-                                        DO_Main, DO_J, DO_M);
-                  
-                  if (!J.isUndefined() != 0 && !Main.isUndefined() != 0 ) // This means the lines are considered erroneous if they fail.
+                  else 
                   {
-
-                      for ( Rational M = -J+DJ; M<=J-DJ; M++ )
-                      {
-                          /*
-                              Note that:
-                              sp := sigma plus,  which means DM =  1
-                              sm := sigma minus, which means DM = -1
-                              pi := planar,      which means DM =  0
-                            */
-                          if ( DJ ==  1 )
-                          { // Then all DM transitions possible for all M
-                              alter_linerecord( temp_LR, RS_sum, abs_lines_per_species[II][ii], Main, M, J, S, DJ, -1,//DM
-                                                DMain, H_mag, GS, frequency_change, DO_RS,DO_DF,DO_QR);
-                              temp_abs_lines_sm.push_back(temp_LR);
-
-                              alter_linerecord( temp_LR, RS_sum, abs_lines_per_species[II][ii], Main, M, J, S, DJ, 0,//DM
-                                                DMain, H_mag, GS, frequency_change, DO_RS,DO_DF,DO_QR);
-                              temp_abs_lines_pi.push_back(temp_LR);
-
-                              alter_linerecord( temp_LR, RS_sum, abs_lines_per_species[II][ii], Main, M, J, S, DJ, +1,//DM
-                                                DMain, H_mag, GS, frequency_change, DO_RS,DO_DF,DO_QR);
-                              temp_abs_lines_sp.push_back(temp_LR);
-                          }
-                          else if ( DJ ==  0 )
-                          { // Then all DM transitions possible for all M
-                              alter_linerecord( temp_LR, RS_sum, abs_lines_per_species[II][ii], Main, M, J, S, DJ, -1,//DM
-                                                DMain, H_mag, GS, frequency_change, DO_RS,DO_DF,DO_QR);
-                              temp_abs_lines_sm.push_back(temp_LR);
-                              if( ! (M == 0) )
-                              {
-                                  alter_linerecord( temp_LR, RS_sum, abs_lines_per_species[II][ii], Main, M, J, S, DJ, 0,//DM
-                                                    DMain, H_mag, GS, frequency_change, DO_RS,DO_DF,DO_QR);
-                                  temp_abs_lines_pi.push_back(temp_LR);
-                              }
-
-                              alter_linerecord( temp_LR, RS_sum, abs_lines_per_species[II][ii], Main, M, J, S, DJ, +1,//DM
-                                                DMain, H_mag, GS, frequency_change, DO_RS,DO_DF,DO_QR);
-                              temp_abs_lines_sp.push_back(temp_LR);
-                          }
-                          else if ( DJ == -1 )
-                          { // Then certain M results in blocked DM transitions
-                              if ( M == -J + DJ && M!=0 )
-                              { // Lower limit M only allows DM = 1
-                                  alter_linerecord( temp_LR, RS_sum, abs_lines_per_species[II][ii], Main, M, J, S, DJ, +1,//DM
-                                                    DMain, H_mag, GS, frequency_change, DO_RS,DO_DF,DO_QR);
-                                  temp_abs_lines_sp.push_back(temp_LR);
-
-                              }
-                              else if ( M == -J + DJ + 1 && M!=0 )
-                              { // Next to lower limit M can only allow DM = 1, 0
-                                  alter_linerecord( temp_LR, RS_sum, abs_lines_per_species[II][ii], Main, M, J, S, DJ, +1,//DM
-                                                    DMain, H_mag, GS, frequency_change, DO_RS,DO_DF,DO_QR);
-                                  temp_abs_lines_sp.push_back(temp_LR);
-
-                                  alter_linerecord( temp_LR, RS_sum, abs_lines_per_species[II][ii], Main, M, J, S, DJ, 0,//DM
-                                                DMain, H_mag, GS, frequency_change, DO_RS,DO_DF,DO_QR);
-                                  temp_abs_lines_pi.push_back(temp_LR);
-                              }
-                              else if ( M ==  J - DJ - 1 && M!=0 )
-                              { // Next to upper limit M can only allow DM = 0, -1
-                                  alter_linerecord( temp_LR, RS_sum, abs_lines_per_species[II][ii], Main, M, J, S, DJ, 0,//DM
-                                                DMain, H_mag, GS, frequency_change, DO_RS,DO_DF,DO_QR);
-                                  temp_abs_lines_pi.push_back(temp_LR);
-
-                                  alter_linerecord( temp_LR, RS_sum, abs_lines_per_species[II][ii], Main, M, J, S, DJ, -1,//DM
-                                                    DMain, H_mag, GS, frequency_change, DO_RS,DO_DF,DO_QR);
-                                  temp_abs_lines_sm.push_back(temp_LR);
-                              }
-                              else if ( M == J - DJ && M!=0 )
-                              { // Upper limit M only allow DM = -1
-                                  alter_linerecord( temp_LR, RS_sum, abs_lines_per_species[II][ii], Main, M, J, S, DJ, -1,//DM
-                                                    DMain, H_mag, GS, frequency_change, DO_RS,DO_DF,DO_QR);
-                                  temp_abs_lines_sm.push_back(temp_LR);
-                              }
-                              else if( (-J + DJ + 1) ==  (J - DJ - 1) && M == 0)
-                              { // Special case for N=1, J=0, M=0. Only allows DM = 0
-                                  alter_linerecord( temp_LR, RS_sum, abs_lines_per_species[II][ii], Main, M, J, S, DJ, 0,//DM
-                                                    DMain, H_mag, GS, frequency_change, DO_RS,DO_DF,DO_QR);
-                                  temp_abs_lines_pi.push_back(temp_LR);
-                              }
-                              else
-                              { // All DM transitions are possible for these M(s)
-                                  alter_linerecord( temp_LR, RS_sum, abs_lines_per_species[II][ii], Main, M, J, S, DJ, +1,//DM
-                                                    DMain, H_mag, GS, frequency_change, DO_RS,DO_DF,DO_QR);
-                                  temp_abs_lines_sp.push_back(temp_LR);
-
-                                  alter_linerecord( temp_LR, RS_sum, abs_lines_per_species[II][ii], Main, M, J, S, DJ, 0,//DM
-                                                DMain, H_mag, GS, frequency_change, DO_RS,DO_DF,DO_QR);
-                                  temp_abs_lines_pi.push_back(temp_LR);
-
-                                  alter_linerecord( temp_LR, RS_sum, abs_lines_per_species[II][ii], Main, M, J, S, DJ, -1,//DM
-                                                DMain, H_mag, GS, frequency_change, DO_RS,DO_DF,DO_QR);
-                                  temp_abs_lines_sm.push_back(temp_LR);
-                              }
-                          }
-                          else
-                          { // The tests above failed and catastrophe follows
-                              std::ostringstream os;
-                              os << "There seems to be something wrong with the quantum numbers of at least one line in your *abs_lines*. " <<
-                                  "Make sure this is a Zeeman line.\nThe upper quantum numbers are: " << 
-                                  temp_LR.QuantumNumbers().Upper() <<
-                                  "\nThe lower quantum numbers are: " <<
-                                  temp_LR.QuantumNumbers().Lower() <<
-                                  "\nThe entire line information: " << temp_LR;
-                              throw std::runtime_error(os.str());
-                          }
-                      }
-
-                      if (abs(RS_sum-1.)>margin) //Reasonable confidence?
-                      {
-                          std::ostringstream os;
-                          os << "The sum of relative strengths is not close to one. This is severly problematic and "
-                              "you should look into why this happens.\nIt is currently " << RS_sum 
-                              << " with DJ: "<<DJ<<", DMain: "<<DMain<<" for line: "<<
-                              temp_LR <<"\n";
-                          throw std::runtime_error(os.str());
-                      }
+                      alter_linerecord( temp_LR, RS_sum, this_linestrength, J_up, J_lo, M+1, M  );
+                      temp_abs_lines_sm.push_back(temp_LR);
+                      
+                      alter_linerecord( temp_LR, RS_sum, this_linestrength, J_up, J_lo, M  , M  );
+                      temp_abs_lines_pi.push_back(temp_LR);
+                      
+                      alter_linerecord( temp_LR, RS_sum, this_linestrength, J_up, J_lo, M-1, M  );
+                      temp_abs_lines_sp.push_back(temp_LR);
                   }
-                  else
-                  {
-                      std::ostringstream os;
-                      os << "There are undefined quantum numbers in the line: " << temp_LR 
-                      << "\nJ is "<<J<<" and Main is "<<Main<<std::endl;
-                      throw std::runtime_error(os.str());
-                  }
+              }
+              
+              if (abs(RS_sum-1.)>margin) //Reasonable confidence?
+              {
+                  std::ostringstream os;
+                  os << "The sum of relative strengths is not close to one. This is severly problematic and "
+                  "you should look into why this happens.\nIt is currently " << RS_sum 
+                  << " with J_lo: "<<J_lo<<", J_up: "<<J_up<<" for line: "<<
+                  temp_LR <<"\n";
+                  throw std::runtime_error(os.str());
+              }
           }
       }
 }
 
 
-void set_part_isotopologue_constants(Index& hund,Numeric& GS,const SpeciesAuxData& isotopologue_quantum,const LineRecord& temp_LR)
+
+void set_hund_case(Rational& hund, const SpeciesAuxData& isotopologue_quantum,const LineRecord& temp_LR)
 {
-  hund = (Index) isotopologue_quantum.getParam(temp_LR.Species(), temp_LR.Isotopologue())[0].data[2];
-  GS   = isotopologue_quantum.getParam(temp_LR.Species(), temp_LR.Isotopologue())[0].data[0];
+  hund = (Index) isotopologue_quantum.getParam(temp_LR.Species(), 
+                                               temp_LR.Isotopologue())[0].data[AuxIndex_Hund];
+}
+
+void set_GS(Numeric& GS, const SpeciesAuxData& isotopologue_quantum,const LineRecord& temp_LR)
+{
+    GS = isotopologue_quantum.getParam(temp_LR.Species(), 
+                                       temp_LR.Isotopologue())[0].data[AuxIndex_GS];
 }
 
 

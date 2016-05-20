@@ -109,6 +109,7 @@ if (name == #ID) valid = true
         else INPUT_QUANTUM(Kc);
         else INPUT_QUANTUM(Omega);
         else INPUT_QUANTUM(i);
+        else INPUT_QUANTUM(Lambda);
         else INPUT_QUANTUM(alpha);
         else INPUT_QUANTUM(Sym);
         else INPUT_QUANTUM(v1);
@@ -125,6 +126,7 @@ if (name == #ID) valid = true
         else INPUT_QUANTUM(X);
         else INPUT_QUANTUM(n_global);
         else INPUT_QUANTUM(C);
+        else INPUT_QUANTUM(Hund);
 #undef INPUT_QUANTUM
     return valid;
 }
@@ -162,6 +164,7 @@ std::istream& operator>>(std::istream& is, QuantumNumbers& qn)
         else INPUT_QUANTUM(Kc);
         else INPUT_QUANTUM(Omega);
         else INPUT_QUANTUM(i);
+        else INPUT_QUANTUM(Lambda);
         else INPUT_QUANTUM(alpha);
         else INPUT_QUANTUM(Sym);
         else INPUT_QUANTUM(v1);
@@ -178,6 +181,7 @@ std::istream& operator>>(std::istream& is, QuantumNumbers& qn)
         else INPUT_QUANTUM(X);
         else INPUT_QUANTUM(n_global);
         else INPUT_QUANTUM(C);
+        else INPUT_QUANTUM(Hund);
     else
     {
         std::ostringstream os;
@@ -211,6 +215,7 @@ std::ostream& operator<<(std::ostream& os, const QuantumNumbers& qn)
         OUTPUT_QUANTUM(Kc);
         OUTPUT_QUANTUM(Omega);
         OUTPUT_QUANTUM(i);
+        OUTPUT_QUANTUM(Lambda);
         OUTPUT_QUANTUM(alpha);
         OUTPUT_QUANTUM(Sym);
         OUTPUT_QUANTUM(v1);
@@ -227,6 +232,7 @@ std::ostream& operator<<(std::ostream& os, const QuantumNumbers& qn)
         OUTPUT_QUANTUM(X);
         OUTPUT_QUANTUM(n_global);
         OUTPUT_QUANTUM(C);
+        OUTPUT_QUANTUM(Hund);
 
 #undef OUTPUT_QUANTUM
 

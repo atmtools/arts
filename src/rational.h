@@ -56,9 +56,13 @@ public:
     
     // Assignment operators
     Rational& operator+=(const Rational& a) {mnom = mnom*a.Denom() + a.Nom()*mdenom;mdenom *= a.Denom(); return *this;}
+    Rational& operator+=(const Index& a)    {mnom+= mdenom*a; return *this;}
     Rational& operator-=(const Rational& a) {mnom = mnom*a.Denom() - a.Nom()*mdenom;mdenom *= a.Denom(); return *this;}
+    Rational& operator-=(const Index& a)    {mnom-= mdenom*a; return *this;}
     Rational& operator/=(const Rational& a) {mnom*=a.Denom();mdenom*=a.Nom(); return *this;}
+    Rational& operator/=(const Index& a)    {mdenom*=a; return *this;}
     Rational& operator*=(const Rational& a) {mnom*=a.Nom();mdenom*=a.Denom(); return *this;}
+    Rational& operator*=(const Index& a)    {mnom*=a; return *this;}
 
     // Iterative operators
     Rational  operator++(int) {mnom += mdenom; return *this;}
@@ -78,9 +82,17 @@ private:
 inline Rational operator-(const Rational& a) {return Rational(-a.Nom(), a.Denom());}
 inline Rational operator+(const Rational& a) {return a;}
 inline Rational operator+(const Rational& a, const Rational& b) {return Rational(a.Nom()*b.Denom() + b.Nom()*a.Denom(),a.Denom() * b.Denom());}
+inline Rational operator+(const Rational& a, const Index& b) {return Rational(a.Nom()+b*a.Denom(),a.Denom());}
+inline Rational operator+(const Index& b, const Rational& a) {return Rational(a.Nom()+b*a.Denom(),a.Denom());}
 inline Rational operator-(const Rational& a, const Rational& b) {return Rational(a.Nom()*b.Denom() - b.Nom()*a.Denom(),a.Denom() * b.Denom());}
+inline Rational operator-(const Rational& a, const Index& b) {return Rational(a.Nom()-b*a.Denom(),a.Denom());}
+inline Rational operator-(const Index& b, const Rational& a) {return Rational(-a.Nom()+b*a.Denom(),a.Denom());}
 inline Rational operator/(const Rational& a, const Rational& b) {return Rational(a.Nom()*b.Denom(),a.Denom() * b.Nom());}
+inline Rational operator/(const Rational& a, const Index& b) {return Rational(a.Nom(),a.Denom()*b);}
+inline Rational operator/(const Index& b, const Rational& a) {return Rational(a.Denom()*b,a.Nom());}
 inline Rational operator*(const Rational& a, const Rational& b) {return Rational(a.Nom()*b.Nom(),a.Denom() * b.Denom());}
+inline Rational operator*(const Rational& a, const Index& b) {return Rational(a.Nom()*b,a.Denom());}
+inline Rational operator*(const Index& b, const Rational& a) {return Rational(a.Nom()*b,a.Denom());}
 inline Rational operator%(const Rational& a, const Rational& b) {return Rational((a.Nom()*b.Denom())%(a.Denom()*b.Nom()),a.Denom()*b.Denom());}
 
 // Boolean operations

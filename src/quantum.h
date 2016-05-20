@@ -54,6 +54,7 @@ typedef enum {
     QN_Kc,          //(This is a projection of J along another axis)
     QN_Omega,       // This is an absolute projection of J and S
     QN_i,           //(Is related to Omega)
+    QN_Lambda,      // This is Sigma or Pi or Lambda states (as seen in literature)
     QN_alpha,       // Alpha from HITRAN // FIXME richard
     QN_Sym,         // Symmetry expression
     QN_v1,          // Vibrational mode 1
@@ -70,6 +71,7 @@ typedef enum {
     QN_X,           // Electronic state
     QN_n_global,    // Torosional quanta
     QN_C,           // Another symmetry expression
+    QN_Hund,        // Flag for Hund case type.  This flag lets Zeeman know what to expect
     QN_FINAL_ENTRY  // We need this to determine the number of elements in this enum
 } QuantumIds;
 
@@ -81,6 +83,10 @@ typedef enum {
     QMI_PARTIAL = 2,
 } QuantumMatchInfoEnum;
 
+enum Hund {
+    Case_A=0,
+    Case_B=1
+};
 
 //! Class that holds details for matching info on upper and lower quantum numbers.
 class QuantumMatchInfo
@@ -149,6 +155,7 @@ if (name == #ID) this->Set(QN_ ## ID, r)
         else INPUT_QUANTUM(Kc);
         else INPUT_QUANTUM(Omega);
         else INPUT_QUANTUM(i);
+        else INPUT_QUANTUM(Lambda);
         else INPUT_QUANTUM(alpha);
         else INPUT_QUANTUM(Sym);
         else INPUT_QUANTUM(v1);
@@ -165,6 +172,7 @@ if (name == #ID) this->Set(QN_ ## ID, r)
         else INPUT_QUANTUM(X);
         else INPUT_QUANTUM(n_global);
         else INPUT_QUANTUM(C);
+        else INPUT_QUANTUM(Hund);
         else
         {
             std::ostringstream os;

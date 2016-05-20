@@ -31,6 +31,7 @@
 #include "rte.h"
 #include "rational.h"
 #include "partial_derivatives.h"
+#include "quantum.h"
 
 extern const Numeric PI;
 extern const Numeric DEG2RAD;
@@ -38,6 +39,14 @@ extern const Numeric RAD2DEG;
 extern const Numeric PLANCK_CONST;
 extern const Numeric BOHR_MAGNETON;
 extern const Numeric LANDE_GS;
+
+enum {
+    AuxIndex_GS = 0,
+    AuxIndex_Lambda,
+    AuxIndex_S,
+    AuxIndex_Hund,
+    AuxIndex_TotalCount // Must always be at the end
+};
 
 void phase_matrix(MatrixView K, const Numeric& theta, const Numeric& eta, const Index& DM);
 
@@ -49,13 +58,12 @@ void dphase_matrix_deta(  MatrixView dK, const Numeric& theta, const Numeric& et
 void dattenuation_matrix_dtheta(MatrixView dK, const Numeric& theta, const Numeric& eta, const Index& DM);
 void dattenuation_matrix_deta(  MatrixView dK, const Numeric& theta, const Numeric& eta, const Index& DM);
 
-Numeric gs_caseb(const Numeric& N, const Numeric& J, const Numeric& S, const Numeric& GS);
-Numeric gs_casea(const Numeric& Omega, const Numeric& J, const Numeric& Sigma, const Numeric& GS);
+Numeric gs_caseb(const Rational& N, const Rational& J, const Rational& S, const Numeric& GS);
+Numeric gs_casea(const Rational& Omega, const Rational& J, const Rational& Lambda, const Rational& Sigma, const Numeric& GS);
 
 Numeric relative_strength(const Rational& m, const Rational& j, const Index& dj, const Index& dm);
 
-Numeric frequency_change_caseb(const Rational& n, const Rational& m, const Rational& j, const Numeric& S, const Index& DJ, const Index& DM, const Index& DN, const Numeric& H_mag, const Numeric& GS);
-Numeric frequency_change_casea(const Rational& omega, const Rational& m, const Rational& j, const Numeric& Sigma, const Index& DJ, const Index& DM, const Index& Domega, const Numeric& H_mag, const Numeric& GS);
+Numeric frequency_change(const LineRecord& lr, const Numeric& H_mag, const Numeric& GS);
 
 void xsec_species_line_mixing_wrapper_with_zeeman(  Tensor4View propmat_clearsky, 
                                                     Tensor3View nlte_source,
@@ -110,54 +118,27 @@ void set_magnetic_parameters_derivative(Numeric& dH_du,
                                         ConstVectorView rtp_mag,
                                         ConstVectorView r_path_los);
 
-void set_quantum_numbers(Rational& Main,
-                         Index& DMain,
-                         Rational& J,
-                         Index& DJ,
-                         Rational& M,
-                         Index& DM,
-                         Numeric& S,
-                         const LineRecord& temp_LR,
-                         const Index hund,
-                         const SpeciesAuxData& isotopologue_quantum,
-                         const Index DO_Main,
-                         const Index DO_J,
-                         const Index DO_M);
+void set_quantumnumbers( LineRecord& this_LR,
+                         const Rational& hund,
+                         const SpeciesAuxData& isotopologue_quantum);
 
-void alter_linerecord(LineRecord& new_LR,
-                      Numeric& Test_RS,
-                      const LineRecord& old_LR,
-                      const Rational& Main,
-                      const Rational& M,
-                      const Rational& J,
-                      const Numeric&  S,
-                      const Index&    DJ,
-                      const Index&    DM,
-                      const Index&    DMain,
-                      const Numeric&  H_mag,
-                      const Numeric&  GS,
-                      Numeric (*frequency_change)(const Rational&, const  Rational&, const Rational&, 
-                                    const Numeric&, const Index&, const Index&, 
-                                    const Index&, const Numeric&, const Numeric&),
-                      const Index& DO_RS,
-                      const Index& DO_DF,
-                      const Index& DO_QR);
+void alter_linerecord( LineRecord& new_LR,
+                       Numeric& Test_RS,
+                       const Numeric& old_LS,
+                       const Rational& J_up,
+                       const Rational& J_lo,
+                       const Rational& M_up,
+                       const Rational& M_lo);
 
 
 void create_Zeeman_linerecordarrays(ArrayOfArrayOfLineRecord& aoaol,
                                     const ArrayOfArrayOfSpeciesTag& abs_species,
                                     const ArrayOfArrayOfLineRecord& abs_lines_per_species,
                                     const SpeciesAuxData& isotopologue_quantum,
-                                    const Numeric& H_mag,
-                                    const Index&DO_RS,
-                                    const Index&DO_DF,
-                                    const Index&DO_QR,
-                                    const Index&DO_Main,
-                                    const Index&DO_J,
-                                    const Index&DO_M,
                                     const Verbosity& verbosity);
 
-void set_part_isotopologue_constants(Index& hund,Numeric& GS,const SpeciesAuxData& isotopologue_quantum,const LineRecord& temp_LR);
+void set_hund_case(Rational& hund, const SpeciesAuxData& isotopologue_quantum, const LineRecord& temp_LR);
+void set_GS(Numeric& GS, const SpeciesAuxData& isotopologue_quantum, const LineRecord& temp_LR);
 
 void set_strength_partial_derivative_matrix(ArrayOfMatrix& A, ArrayOfMatrix& B, const ArrayOfRetrievalQuantity jq, const Vector& f_grid);
 
