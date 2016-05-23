@@ -1,3 +1,12 @@
+2016-05-23  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-491
+	
+	* src/zeeman.cc (create_Zeeman_linerecordarrays):
+
+	Turned a couple of variables into const references to avoid unnecessary
+	copying. 
+
 2016-05-20  Richard Larsson   <ric.larsson@gmail.com>
 	
 	* arts-2-3-490

@@ -1005,16 +1005,16 @@ void create_Zeeman_linerecordarrays(
           
           const Index nis = isotopologue_quantum.nisotopologues(abs_lines_per_species[II][0].Species());
           
-          SpeciesRecord sr = species_data[abs_lines_per_species[II][0].Species()];
+          const SpeciesRecord& sr = species_data[abs_lines_per_species[II][0].Species()];
           
           for(Index is=0;is<nis;is++)
           {
-              IsotopologueRecord ir = sr.Isotopologue()[is];
+              const IsotopologueRecord& ir = sr.Isotopologue()[is];
               
               if(ir.isContinuum())
                   continue;
               
-              const ArrayOfGriddedField1 aogf1 = 
+              const ArrayOfGriddedField1& aogf1 =
               isotopologue_quantum.getParam(abs_lines_per_species[II][0].Species(),is);
               if(!aogf1.nelem())
               {
@@ -1022,7 +1022,7 @@ void create_Zeeman_linerecordarrays(
                   os<<"No data in isotopologue_quantum for species "<< sr.Name();
               }
               
-              const GriddedField1 gf1 = aogf1[0];
+              const GriddedField1& gf1 = aogf1[0];
               if(gf1.data.nelem()!=AuxIndex_TotalCount)
               {
                   std::ostringstream os;
