@@ -66,7 +66,8 @@ void phase_functionCalc(//Output
                         //Input
                         const ArrayOfArrayOfSingleScatteringData& scat_data_mono,
                         ConstTensor4View pnd_field,
-                        const ArrayOfIndex& cloudbox_limits);
+                        const ArrayOfIndex& cloudbox_limits,
+                        const String pfct_method);
 
 void pmomCalc2(//Output
               MatrixView pmom,

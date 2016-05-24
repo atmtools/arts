@@ -489,7 +489,8 @@ void phase_functionCalc(//Output
                         //Input
                         const ArrayOfArrayOfSingleScatteringData& scat_data_mono,
                         ConstTensor4View pnd_field,
-                        const ArrayOfIndex& cloudbox_limits)
+                        const ArrayOfIndex& cloudbox_limits,
+                        const String pfct_method)
 {
 /*
 FIXME: dtauc_ssalbCalc applies spt_calc_agenda and opt_prop_part_agenda. Apply
@@ -538,9 +539,16 @@ FIXME: dtauc_ssalbCalc applies spt_calc_agenda and opt_prop_part_agenda. Apply
         {
           for (Index i_se = 0; i_se < scat_data_mono[i_ss].nelem(); i_se++)
             {
+              Index i_pfct;
+              if( pfct_method=="low" )
+                i_pfct = 0;
+              else if( pfct_method=="high" )
+                i_pfct = scat_data_mono[i_ss][i_se].T_grid.nelem()-1;
+              else //if( pfct_method=="median" )
+                i_pfct = scat_data_mono[i_ss][i_se].T_grid.nelem()/2;
               sca_coeff +=  pnd_field(i_se_flat, i_p, 0, 0) *
-                (scat_data_mono[i_ss][i_se].ext_mat_data(0, 0, 0, 0, 0)-
-                 scat_data_mono[i_ss][i_se].abs_vec_data(0, 0, 0, 0, 0));
+                (scat_data_mono[i_ss][i_se].ext_mat_data(0, i_pfct, 0, 0, 0)-
+                 scat_data_mono[i_ss][i_se].abs_vec_data(0, i_pfct, 0, 0, 0));
               i_se_flat++;
             }
         }
@@ -560,9 +568,16 @@ FIXME: dtauc_ssalbCalc applies spt_calc_agenda and opt_prop_part_agenda. Apply
                 {
                   for (Index i_se = 0; i_se < scat_data_mono[i_ss].nelem(); i_se++)
                     {
+                      Index i_pfct;
+                      if( pfct_method=="low" )
+                        i_pfct = 0;
+                      else if( pfct_method=="high" )
+                        i_pfct = scat_data_mono[i_ss][i_se].T_grid.nelem()-1;
+                      else //if( pfct_method=="median" )
+                        i_pfct = scat_data_mono[i_ss][i_se].T_grid.nelem()/2;
                       phase_function_level(i_p, i_t) += 
                         pnd_field(i_se_flat, i_p, 0, 0) *
-                        scat_data_mono[i_ss][i_se].pha_mat_data(0, 0, i_t,
+                        scat_data_mono[i_ss][i_se].pha_mat_data(0, i_pfct, i_t,
                                                                 0, 0, 0, 0);
                       i_se_flat++;
                     }

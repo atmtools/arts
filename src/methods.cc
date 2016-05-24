@@ -3886,11 +3886,18 @@ void define_md_data_raw()
          "- Scattering angle grids of all scattering elements have to be\n"
          "  identical.\n"
          "\n"
-         "Keyword *pfct_method* is for testing purposes. It allows to chose\n"
-         "between the 'old' method to derive phase function and Legendre\n"
-         "coefficients neglecting temperature dependence of phase matrix and\n"
-         "a 'new' method considering the temperature dependence and\n"
-         "scattering angle grids to differ between scattering elements.\n"
+         "Keyword *pfct_method* allows to chose the method to extract phase\n"
+         "function. 'interpolate' considers temperature dependence. Others\n"
+         "neglect it by chosing one specific temperature grid point from the\n"
+         "single scattering data: 'low' choses the lowest T-point, 'high' the\n"
+         "highest T-point, and 'median' the median T-point. As different\n"
+         "scattering elements can have different temperature grids, the actual\n"
+         "temperature value used can differ between the scattering element.\n"
+         "Currently, other methods than 'interpolate' require all scattering\n"
+         "elements to be given on identical scattering angle grids.\n"
+         "Note that this keyword solely affects the phase function;\n"
+         "extinction/absorption/scattering cross sections are always\n"
+         "interpolated to the actual temperature.\n"
          ),
         AUTHORS( "Claudia Emde, Jana Mendrok" ),
         OUT( "doit_i_field",
@@ -3908,7 +3915,7 @@ void define_md_data_raw()
             "surface_scalar_reflectivity" ),
         GIN(         "nstreams", "non_iso_inc", "pfct_method" ),
         GIN_TYPE(    "Index",    "Index",       "String" ),
-        GIN_DEFAULT( "8",        "0",           "old" ),
+        GIN_DEFAULT( "8",        "0",           "median" ),
         GIN_DESC( "Number of polar angle directions (streams) in DISORT "
                   "solution.",
                   "Flag whether to run DISORT initialized with non-isotropic "

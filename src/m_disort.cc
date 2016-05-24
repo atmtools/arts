@@ -155,7 +155,7 @@ void DisortCalc(Workspace& ws,
       throw runtime_error( os.str() );
     }
 
-  if( pfct_method!="new" )
+  if( pfct_method!="interpolate" )
   {
     // The old interface can only handle particles with single scattering data
     // given on identical angular grids.
@@ -238,7 +238,7 @@ void DisortCalc(Workspace& ws,
   // Phase function
   Vector scat_angle_grid;
   Index pfct_za_grid_size;
-  if( pfct_method=="new" )
+  if( pfct_method=="interpolate" )
   {
     pfct_za_grid_size=181;
     nlinspace(scat_angle_grid, 0, 180, pfct_za_grid_size);
@@ -418,7 +418,7 @@ void DisortCalc(Workspace& ws,
                       p_grid[Range(0,nlyr+1)],
                       cloudbox_limits, f_grid[Range(f_index,1)]);
 
-      if( pfct_method=="new" )
+      if( pfct_method=="interpolate" )
       {
         phase_functionCalc2(ws, phase_function,
                             scat_data_mono,
@@ -436,7 +436,7 @@ void DisortCalc(Workspace& ws,
       else
       {
         phase_functionCalc(phase_function, scat_data_mono, pnd_field,
-                           cloudbox_limits);
+                           cloudbox_limits, pfct_method );
         for( Index l=0; l<nlyr; l++ )
           if( phase_function(l,0)==0. )
             assert( ssalb[l]==0. );

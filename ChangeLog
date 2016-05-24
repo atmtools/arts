@@ -1,3 +1,22 @@
+2016-05-24 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-492
+
+	* src/disort.cc, disort.h, m_disort.cc, methods.cc:
+	Renamed pfct_method options. Added options for using highest or median
+	T_grid points. Made median the default option.
+
+	NOTE 1: Renaming breaks backward compatibility.
+
+	NOTE 2: The default change might (slightly) modify your results if you
+	had run with default option before (equiv. to 'low').
+
+	* 3rdparty/disort1.2/DISORT.f.orig, ErrPack.f.orig:
+	(Re)Added original code files.
+
+	* 3rdparty/polradtran, 3rdparty/polradtran/rt4/*:
+	Added place for polradtran (RT3/4) code and original RT4 code.
+
 2016-05-24 Jakob Dörr  <jakobdoerr@googlemail.com>
 
 	* arts-2-3-492
@@ -95,7 +114,7 @@
 
 	* src/m_atmosphere.cc (vmr_fieldSetConstant): A new small WSM.
 
-2016-03-21 Jana Mendrok  <jana.mendrok@chalmers.se>
+2016-05-10 Jana Mendrok  <jana.mendrok@chalmers.se>
 
 	* arts-2-3-486
 

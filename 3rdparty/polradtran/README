@@ -1,0 +1,6 @@
+This folder contains code and data from Evans' PolRadTrans RTM.
+
+It has been extracted from the original PolRadTran tar and restructured.
+If original code is modified, save (and svn!) a copy of the original (as *.orig).
+
+Folder rt4/ contains solely contains code necessary for running RT4 (i.e. excludes RT3, RT3-to-RT4 scat data conversion code, and test data and test run files).

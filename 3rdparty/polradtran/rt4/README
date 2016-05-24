@@ -1,0 +1,62 @@
+
+This tar file contains two polarized plane-parallel radiative transfer
+models written by Frank Evans at Colorado State University and the 
+University of Colorado.  The first is rt3 which is for randomly oriented
+particles (isotropic media) and includes solar and thermal sources of
+radiation.  The second is rt4 which is for horizontally oriented
+particles (azimuthally symmetric media), but does only thermal sources. 
+The rt3 model is described in K. F. Evans and G. L. Stephens, 1991: 
+"A New Polarized Atmospheric Radiative Transfer Model", J. Quant. 
+Spectrosc. Radiat. Transfer, v. 46, no. 5, pp. 413-423, 1991.
+The rt4 model is briefly described in Evans, K. F., and G. L. Stephens, 
+1995: "Microwave radiative transfer through clouds composed of 
+realistically shaped ice crystals. Part II: Remote Sensing of Ice Clouds",
+J. Atmos. Sci., v. 52, 2058-2072.   
+
+This latest version of rt3 and rt4 allows the radiances at any level in
+the input medium to be output. The output format has been changed to
+that the actual radiance is output for a specified number of azimuth
+angles, instead of outputting the Fourier series.  The radiances may now
+be output as V and H polarization and/or brightness temperatures (the
+Planck function is always used internally now).    Delta-M scaling
+may be specified for rt3.
+
+The models are written in a variant of Fortran 77 which allows long
+subroutine and variable names and the use of ENDDO in DO loops.  The
+arrays are currently setup for a radiance vector length of 64 (e.g. 16
+angles, 4 Stokes parameters).  See the beginning  of rt3.f and
+radtran3.f or rt4.f and radtran4.f for documentation on using the
+programs.
+
+
+The following is a list of the files:
+
+  rt3.f         main program, contains documentation at beginning
+  radtran3.f    RADTRAN subroutine with documentation at beginning
+  radscat3.f    subroutines
+  radintg3.f        "
+  radutil3.f        "
+  radmat.f          "
+
+  rt4.f         main program, contains documentation at beginning
+  radtran4.f    RADTRANO subroutine with documentation at beginning
+  radscat4.f    subroutines
+  radintg4.f        "
+  radutil4.f        "
+
+  scatcnv.f     program to convert scattering files from rt3 format 
+                  (Legendre series in scattering angle) to rt4 format.
+
+  runmietest    Unix script to test rt3 with the Mie example from the paper.
+  runtesta      Unix script for a more general test of rt3.
+  runtestr      Unix script that does a test of rt4 with spherical raindrops.
+  runtestc      Unix script for a test of rt4 using oriented ice columns.
+
+
+If you use these models I would appreciate you sending me e-mail telling
+me about it.  Comments and suggestions are welcome.
+
+    Frank Evans           July 3, 1996
+    Program in Atmospheric an Oceanic Sciences
+    University of Colorado, Boulder
+    evans@nit.colorado.edu     (303) 492-4994
