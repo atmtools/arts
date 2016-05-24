@@ -624,7 +624,7 @@ void doit_i_field_monoIterate(Workspace& ws,
                                      doit_conv_test_agenda);
         
         // Convergence Acceleration, if wished.
-        if (accelerated)
+        if (accelerated > 0 && doit_conv_flag_local == 0)
         {
             acceleration_input[(doit_iteration_counter_local-1)%4] = doit_i_field_mono;
             // NG - Acceleration
