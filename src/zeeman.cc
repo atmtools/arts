@@ -658,13 +658,11 @@ void xsec_species_line_mixing_wrapper_with_zeeman(  Tensor4View propmat_clearsky
     if(flag_partials.do_zeeman_u())
     {
         dmag[0]+=dB;
-        Vector Zeeman_DF_dv = Zeeman_DF;
-        Zeeman_DF_dv*=sqrt(dmag*dmag)/H_mag;
         
         xsec_species_line_mixing_wrapper(         attenuation_du,         source_du,         phase_du, 
                                                   partial_attenuation, partial_source, partial_phase, PropmatPartialsData(ArrayOfRetrievalQuantity(0)),
                                                   f_grid, abs_p, abs_t, abs_t_nlte, abs_vmrs, abs_species, 
-                                                  this_species, lr, Zeeman_DF_dv, H_mag+flag_partials.Magnetic_Field_Perturbation(),
+                                                  this_species, lr, Zeeman_DF, sqrt(dmag*dmag),
                                                   abs_lineshape_ls,abs_lineshape_lsn,lm_p_lim,abs_lineshape_cutoff,
                                                   isotopologue_ratios, partition_functions, verbosity ); // Now in cross section
         dmag[0]-=dB;
@@ -672,13 +670,11 @@ void xsec_species_line_mixing_wrapper_with_zeeman(  Tensor4View propmat_clearsky
     if(flag_partials.do_zeeman_v())
     {
         dmag[1]+=dB;
-        Vector Zeeman_DF_dv = Zeeman_DF;
-        Zeeman_DF_dv*=sqrt(dmag*dmag)/H_mag;
         
         xsec_species_line_mixing_wrapper(         attenuation_dv,         source_dv,         phase_dv, 
                                                   partial_attenuation, partial_source, partial_phase, PropmatPartialsData(ArrayOfRetrievalQuantity(0)),
                                                   f_grid, abs_p, abs_t, abs_t_nlte, abs_vmrs, abs_species, 
-                                                  this_species, lr, Zeeman_DF_dv, H_mag+flag_partials.Magnetic_Field_Perturbation(),
+                                                  this_species, lr, Zeeman_DF, sqrt(dmag*dmag),
                                                   abs_lineshape_ls,abs_lineshape_lsn,lm_p_lim,abs_lineshape_cutoff,
                                                   isotopologue_ratios, partition_functions, verbosity ); // Now in cross section
         dmag[1]-=dB;
@@ -686,13 +682,11 @@ void xsec_species_line_mixing_wrapper_with_zeeman(  Tensor4View propmat_clearsky
     if(flag_partials.do_zeeman_w())
     {
         dmag[2]+=dB;
-        Vector Zeeman_DF_dv = Zeeman_DF;
-        Zeeman_DF_dv*=sqrt(dmag*dmag)/H_mag;
         
         xsec_species_line_mixing_wrapper(         attenuation_dw,         source_dw,         phase_dw, 
                                                   partial_attenuation, partial_source, partial_phase, PropmatPartialsData(ArrayOfRetrievalQuantity(0)),
                                                   f_grid, abs_p, abs_t, abs_t_nlte, abs_vmrs, abs_species, 
-                                                  this_species, lr, Zeeman_DF_dv, H_mag+flag_partials.Magnetic_Field_Perturbation(),
+                                                  this_species, lr, Zeeman_DF, sqrt(dmag*dmag),
                                                   abs_lineshape_ls,abs_lineshape_lsn,lm_p_lim,abs_lineshape_cutoff,
                                                   isotopologue_ratios, partition_functions, verbosity ); // Now in cross section
         dmag[2]-=dB;
@@ -981,6 +975,7 @@ void alter_linerecord( LineRecord& new_LR,
 
 void create_Zeeman_linerecordarrays(
         ArrayOfArrayOfLineRecord& aoaol,
+        ArrayOfVector& z1_frequencyshift,
         const ArrayOfArrayOfSpeciesTag& abs_species,
         const ArrayOfArrayOfLineRecord& abs_lines_per_species,
         const SpeciesAuxData& isotopologue_quantum,
@@ -1121,7 +1116,7 @@ void create_Zeeman_linerecordarrays(
                       alter_linerecord( temp_LR, RS_sum, this_linestrength, J_up, J_lo, M, M-1  );
                       temp_abs_lines_sm.push_back(temp_LR);
                       
-                      alter_linerecord( temp_LR, RS_sum, this_linestrength, J_up, J_lo, M, M  );
+                      alter_linerecord( temp_LR, RS_sum, this_linestrength, J_up, J_lo, M, M    );
                       temp_abs_lines_pi.push_back(temp_LR);
                       
                       alter_linerecord( temp_LR, RS_sum, this_linestrength, J_up, J_lo, M, M+1  );
@@ -1143,7 +1138,7 @@ void create_Zeeman_linerecordarrays(
               if (abs(RS_sum-1.)>margin) //Reasonable confidence?
               {
                   std::ostringstream os;
-                  os << "The sum of relative strengths is not close to one. This is severly problematic and "
+                  os << "The sum of relative strengths is not close to one. This is problematic and "
                   "you should look into why this happens.\nIt is currently " << RS_sum 
                   << " with J_lo: "<<J_lo<<", J_up: "<<J_up<<" for line: "<<
                   temp_LR <<"\n";
@@ -1151,6 +1146,26 @@ void create_Zeeman_linerecordarrays(
               }
           }
       }
+      
+      const Index nzeeman = aoaol.nelem();
+      z1_frequencyshift.resize(nzeeman);
+      for(Index I=0;I<nzeeman;I++)
+      {
+          const Index nlines = aoaol[I].nelem();
+          z1_frequencyshift[I].resize(nlines);
+          for(Index J=0;J<nlines;J++)
+          {
+              Numeric GS;
+              
+              // Set necessary parameters from isotopologue_quantum
+              set_GS(GS, isotopologue_quantum, aoaol[I][J]);
+              
+              // Store the frequency shift
+              z1_frequencyshift[I][J] = frequency_change(aoaol[I][J], 1, GS);
+          }
+              
+      }
+      
 }
 
 

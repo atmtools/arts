@@ -107,7 +107,7 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix&  partials_attenuati
     ConstVectorView this_f = f_grid[this_f_grid];
     const Index nv = this_f.nelem();
     const Numeric nlte = do_src? K4/K3-1.0 : 0.0;
-    const Numeric f0 = line_frequency + df_0 + DF_LM + DF_Zeeman;
+    const Numeric f0 = line_frequency + df_0 + DF_LM + DF_Zeeman*H_mag_Zeeman;
     
     // Loop over all jacobian_quantities, if a matching quantity is found, then apply the necessary steps to make the jacobian matrix
     for(Index ii=0; ii<flag_partials.nelem(); ii++)
@@ -116,15 +116,12 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix&  partials_attenuati
         {
             if(!do_zeeman)
                 continue;
-            else if( H_mag_Zeeman==0.0 )
-                throw std::runtime_error("Sorry, but it is not supported to get Zeeman derivative"
-                "when magnetic field is 0 T.\nIf required, let the devs know.\n");
             
             VectorView this_partial_attenuation = partials_attenuation[ii](this_f_grid, pressure_level_index);
             VectorView this_partial_phase       = partials_phase[ii](this_f_grid, pressure_level_index);
             VectorView this_partial_src         = do_src?partials_src[ii](this_f_grid, pressure_level_index):empty_vector;
             
-            const Numeric dF_dH = DF_Zeeman/H_mag_Zeeman;
+            const Numeric& dF_dH = DF_Zeeman;
             
             Numeric dx_dH;
             Vector  dfn_dH_div_dF_dH(nv);

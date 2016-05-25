@@ -2158,7 +2158,7 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                                     attenuation, phase, dFa_dx, dFb_dx, dFa_dy, dFb_dy, this_f_range, fac, aux, 
                                     // FREQUENCY
                                     f_local,  f_grid,  f_grid.nelem(),  cutoff,
-                                    abs_lines[ii].F()+(precalc_zeeman?Z_DF[ii]:0), // Since vector is 0-length if no Zeeman pre-calculations
+                                    abs_lines[ii].F()+(precalc_zeeman?(Z_DF[ii]*H_magntitude_Zeeman):0), // Since vector is 0-length if no Zeeman pre-calculations
                                     // LINE STRENGTH
                                     abs_lines[ii].I0(), partition_ratio, K1*K2, abs_nlte_ratio, src_nlte_ratio,
                                     isotopologue_ratios.getParam(abs_lines[ii].Species(),
@@ -2188,7 +2188,7 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                                     dFa_dx, dFb_dx, dFa_dy, dFb_dy, 
                                     this_f_range, fac, aux, 
                                     // FREQUENCY
-                                    f_local, f_grid, f_grid.nelem(), cutoff, abs_lines[ii].F()+(precalc_zeeman?Z_DF[ii]:0), // Since vector is 0-length if no Zeeman pre-calculations
+                                    f_local, f_grid, f_grid.nelem(), cutoff, abs_lines[ii].F()+(precalc_zeeman?(Z_DF[ii]*H_magntitude_Zeeman):0), // Since vector is 0-length if no Zeeman pre-calculations
                                     // LINE STRENGTH
                                     abs_lines[ii].I0(), partition_ratio, K1*K2, abs_nlte_ratio, src_nlte_ratio,
                                     isotopologue_ratios.getParam(abs_lines[ii].Species(),

@@ -49,7 +49,9 @@ void propmat_clearskyAddZeeman( Tensor4& propmat_clearsky,
                                 const Verbosity& verbosity)
 {
     ArrayOfArrayOfLineRecord zeeman_linerecord_precalc;
+    ArrayOfVector zeeman_frequencyshiftconstant_precalc;
     zeeman_linerecord_precalcCreateFromLines( zeeman_linerecord_precalc,
+                                              zeeman_frequencyshiftconstant_precalc,
                                               abs_species,
                                               abs_lines_per_species,
                                               isotopologue_quantum,
@@ -61,12 +63,12 @@ void propmat_clearskyAddZeeman( Tensor4& propmat_clearsky,
                                          dnlte_dx_source,
                                          nlte_dsource_dx,
                                          zeeman_linerecord_precalc,
+                                         zeeman_frequencyshiftconstant_precalc,
                                          f_grid,
                                          abs_species,
                                          jacobian_quantities,
                                          abs_lineshape,
                                          isotopologue_ratios,
-                                         isotopologue_quantum,
                                          partition_functions,
                                          rtp_pressure,
                                          rtp_temperature,
@@ -86,6 +88,7 @@ void propmat_clearskyAddZeeman( Tensor4& propmat_clearsky,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void zeeman_linerecord_precalcCreateFromLines( ArrayOfArrayOfLineRecord& zeeman_linerecord_precalc,
+                                               ArrayOfVector& zeeman_frequencyshiftconstant_precalc,
                                                const ArrayOfArrayOfSpeciesTag& abs_species,
                                                const ArrayOfArrayOfLineRecord& abs_lines_per_species,
                                                const SpeciesAuxData& isotopologue_quantum,
@@ -95,6 +98,8 @@ void zeeman_linerecord_precalcCreateFromLines( ArrayOfArrayOfLineRecord& zeeman_
   
   zeeman_linerecord_precalc.resize(0);
   zeeman_linerecord_precalc.reserve(24);//will always be multiple of three, default is high
+  zeeman_frequencyshiftconstant_precalc.resize(0);
+  zeeman_frequencyshiftconstant_precalc.reserve(24);//will always be multiple of three, default is high
 
   {// Begin TEST(s)
   if (abs_species.nelem() != abs_lines_per_species.nelem())
@@ -103,6 +108,7 @@ void zeeman_linerecord_precalcCreateFromLines( ArrayOfArrayOfLineRecord& zeeman_
   
   // creating the ArrayOfArrayOfLineRecord
   create_Zeeman_linerecordarrays(zeeman_linerecord_precalc,
+                                 zeeman_frequencyshiftconstant_precalc,
                                  abs_species,
                                  abs_lines_per_species,
                                  isotopologue_quantum,
@@ -117,12 +123,12 @@ void propmat_clearskyAddZeemanFromPreCalc(Tensor4& propmat_clearsky,
                                           ArrayOfMatrix& dnlte_dx_source,
                                           ArrayOfMatrix& nlte_dsource_dx,
                                           const ArrayOfArrayOfLineRecord& zeeman_linerecord_precalc,
+                                          const ArrayOfVector& zeeman_frequencyshiftconstant_precalc,
                                           const Vector& f_grid,
                                           const ArrayOfArrayOfSpeciesTag& abs_species,
                                           const ArrayOfRetrievalQuantity& jacobian_quantities,
                                           const ArrayOfLineshapeSpec& abs_lineshape,
                                           const SpeciesAuxData& isotopologue_ratios,
-                                          const SpeciesAuxData& isotopologue_quantum,
                                           const SpeciesAuxData& partition_functions,
                                           const Numeric& rtp_pressure,
                                           const Numeric& rtp_temperature,
@@ -143,7 +149,9 @@ void propmat_clearskyAddZeemanFromPreCalc(Tensor4& propmat_clearsky,
   // Check that correct isotopologue ratios are defined for the species
   // we want to calculate
   checkIsotopologueRatios(abs_species, isotopologue_ratios);
-
+  
+  const Index nzeeman = zeeman_linerecord_precalc.nelem();
+  
   bool do_src = !nlte_source.empty();
   {// Begin TEST(s)
     if (abs_species.nelem() == 0)
@@ -173,6 +181,8 @@ void propmat_clearskyAddZeemanFromPreCalc(Tensor4& propmat_clearsky,
         if(nlte_source.npages()!=propmat_clearsky.nrows())
         throw std::runtime_error("Zeeman Effect is only implemented for Stokes dimension 4.");
     }
+    if(nzeeman!=zeeman_frequencyshiftconstant_precalc.nelem())
+        throw std::runtime_error("The pre-calculated Zeeman frequency shift and line records are not from the same source\n.");
   }// End   TEST(s)
 
   Vector R_path_los;
@@ -191,25 +201,15 @@ void propmat_clearskyAddZeemanFromPreCalc(Tensor4& propmat_clearsky,
                           manual_zeeman_theta,manual_zeeman_magnetic_field_strength,
                           rtp_mag,R_path_los);
   
-  Numeric GS;
-  
-  // Store central frequency here
-  ArrayOfVector FreqShift(zeeman_linerecord_precalc.nelem());
-  
-  // Section to fix central line frequency
-  for(Index II=0;II<zeeman_linerecord_precalc.nelem();II++)
-  {
-    FreqShift[II].resize(zeeman_linerecord_precalc[II].nelem());
-    for(Index JJ=0;JJ<zeeman_linerecord_precalc[II].nelem();JJ++)
-    {
-      
-      // Set necessary parameters from isotopologue_quantum
-      set_GS(GS, isotopologue_quantum, zeeman_linerecord_precalc[II][JJ]);
-      
-      // Store the frequency shift
-      FreqShift[II][JJ] = frequency_change(zeeman_linerecord_precalc[II][JJ], H_mag, GS);
-    }
-  }
+//   // Store central frequency here
+//   ArrayOfVector FreqShift(nzeeman);
+//   
+//   // Section to fix central line frequency
+//   for(Index II=0;II<zeeman_linerecord_precalc.nelem();II++)
+//   {
+//     FreqShift[II]=zeeman_frequencyshiftconstant_precalc[II];
+//     FreqShift[II]*=H_mag;
+//   }
   
   const PropmatPartialsData pps(jacobian_quantities);
   pps.supportsZeemanPrecalc();
@@ -248,7 +248,7 @@ void propmat_clearskyAddZeemanFromPreCalc(Tensor4& propmat_clearsky,
     xsec_species_line_mixing_wrapper_with_zeeman( propmat_clearsky, nlte_source, dpropmat_clearsky_dx, dnlte_dx_source, nlte_dsource_dx, 
                                                   abs_species, pps, 
                                                   abs_lineshape[ls_index].Ind_ls(), abs_lineshape[ls_index].Ind_lsn(), abs_lineshape[ls_index].Cutoff(), 
-                                                  zeeman_linerecord_precalc[zeeman_ind+1], FreqShift[zeeman_ind+1], planck_BT, dplanck_BT,
+                                                  zeeman_linerecord_precalc[zeeman_ind+1], zeeman_frequencyshiftconstant_precalc[zeeman_ind+1], planck_BT, dplanck_BT,
                                                   isotopologue_ratios, partition_functions, abs_t_nlte, abs_vmrs, abs_p, abs_t, f_grid, 
                                                   rtp_mag, R_path_los,lm_p_lim,theta, eta, H_mag, 0, II, verbosity );
 
@@ -256,7 +256,7 @@ void propmat_clearskyAddZeemanFromPreCalc(Tensor4& propmat_clearsky,
     xsec_species_line_mixing_wrapper_with_zeeman( propmat_clearsky, nlte_source, dpropmat_clearsky_dx, dnlte_dx_source, nlte_dsource_dx, 
                                                   abs_species, pps, 
                                                   abs_lineshape[ls_index].Ind_ls(), abs_lineshape[ls_index].Ind_lsn(), abs_lineshape[ls_index].Cutoff(), 
-                                                  zeeman_linerecord_precalc[zeeman_ind], FreqShift[zeeman_ind], planck_BT, dplanck_BT,
+                                                  zeeman_linerecord_precalc[zeeman_ind], zeeman_frequencyshiftconstant_precalc[zeeman_ind], planck_BT, dplanck_BT,
                                                   isotopologue_ratios, partition_functions, abs_t_nlte, abs_vmrs, abs_p, abs_t, f_grid, 
                                                   rtp_mag, R_path_los,lm_p_lim,theta, eta, H_mag, -1, II, verbosity );
 
@@ -264,7 +264,7 @@ void propmat_clearskyAddZeemanFromPreCalc(Tensor4& propmat_clearsky,
     xsec_species_line_mixing_wrapper_with_zeeman( propmat_clearsky, nlte_source, dpropmat_clearsky_dx, dnlte_dx_source, nlte_dsource_dx, 
                                                   abs_species, pps, 
                                                   abs_lineshape[ls_index].Ind_ls(), abs_lineshape[ls_index].Ind_lsn(), abs_lineshape[ls_index].Cutoff(), 
-                                                  zeeman_linerecord_precalc[zeeman_ind+2], FreqShift[zeeman_ind+2], planck_BT, dplanck_BT,
+                                                  zeeman_linerecord_precalc[zeeman_ind+2], zeeman_frequencyshiftconstant_precalc[zeeman_ind+2], planck_BT, dplanck_BT,
                                                   isotopologue_ratios, partition_functions, abs_t_nlte, abs_vmrs, abs_p, abs_t, f_grid, 
                                                   rtp_mag, R_path_los,lm_p_lim,theta, eta, H_mag, 1, II, verbosity );
     

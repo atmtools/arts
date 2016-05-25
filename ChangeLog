@@ -1,3 +1,11 @@
+2016-05-25  Richard Larsson   <ric.larsson@gmail.com>
+	
+	* arts-2-3-493
+	
+	* src/{m_,}zeeman.cc:  Added a zeeman_frequencyshiftconstant_precalc varible 
+	and precalc a value per Zeeman split line for the splitting.  
+	This reduce redundant calculations that previously repeated at every level.
+
 2016-05-24 Jana Mendrok  <jana.mendrok@chalmers.se>
 
 	* arts-2-3-492

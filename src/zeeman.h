@@ -132,6 +132,7 @@ void alter_linerecord( LineRecord& new_LR,
 
 
 void create_Zeeman_linerecordarrays(ArrayOfArrayOfLineRecord& aoaol,
+                                    ArrayOfVector& z1_frequencyshift,
                                     const ArrayOfArrayOfSpeciesTag& abs_species,
                                     const ArrayOfArrayOfLineRecord& abs_lines_per_species,
                                     const SpeciesAuxData& isotopologue_quantum,

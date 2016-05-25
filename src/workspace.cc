@@ -5994,17 +5994,29 @@ void Workspace::define_wsv_data()
        ),
       GROUP( "Matrix" )));
    
-  wsv_data.push_back
+   wsv_data.push_back
    (WsvRecord
-    ( NAME( "zeeman_linerecord_precalc" ),
-      DESCRIPTION
-      (
-       "LineRecord holder for speedy Zeeman effect calculaions.\n"
-       "\n"
-       "Dimensions: none or three times the Zeeman species in *abs_species*\n"
-       ),
-      GROUP( "ArrayOfArrayOfLineRecord" )));
+   ( NAME( "zeeman_frequencyshiftconstant_precalc" ),
+     DESCRIPTION
+     (
+         "Frequency shift holder for speedy Zeeman effect calculaions.\n"
+         "\n"
+         "Dimensions: none or three times the Zeeman species in *abs_species*\n"
+     ),
+     GROUP( "ArrayOfVector" )));
+   
+   wsv_data.push_back
+   (WsvRecord
+   ( NAME( "zeeman_linerecord_precalc" ),
+     DESCRIPTION
+     (
+         "LineRecord holder for speedy Zeeman effect calculaions.\n"
+         "\n"
+         "Dimensions: none or three times the Zeeman species in *abs_species*\n"
+     ),
+     GROUP( "ArrayOfArrayOfLineRecord" )));
 }
+
 
 
 //! Get index of WSV
