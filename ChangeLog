@@ -1,3 +1,11 @@
+2016-05-30 Jakob Dörr  <jakobdoerr@googlemail.com>
+
+	* arts-2-3-494
+
+	* src/doit.cc (doit_i_field_ngAcceleration):
+
+	 Fixed another bug in the convergence acceleration concerning NaN values.
+
 2016-05-25  Richard Larsson   <ric.larsson@gmail.com>
 	
 	* arts-2-3-493

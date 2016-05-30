@@ -1307,17 +1307,19 @@ void doit_i_field_ngAcceleration(Tensor6& doit_i_field_mono,
         NGA = (C1*B2 - C2*A2B1) / (A1*B2 - A2B1*A2B1);
         NGB = (C2*A1 - C1*A2B1) / (A1*B2 - A2B1*A2B1);
         
-
-        // Calculating the accelerated field
-        for ( Index p_index = 0; p_index < N_p; ++p_index)
+        if(!isnan(NGB) && !isnan(NGA))
         {
-            for ( Index za_index = 0; za_index < N_za; ++za_index)
+            // Calculating the accelerated field
+            for ( Index p_index = 0; p_index < N_p; ++p_index)
             {
-                Q1(p_index,za_index) = (1-NGA-NGB)*S4(p_index,za_index)
-                                      + NGA*S3(p_index,za_index) + NGB*S2(p_index,za_index);
+                for ( Index za_index = 0; za_index < N_za; ++za_index)
+                {
+                    Q1(p_index,za_index) = (1-NGA-NGB)*S4(p_index,za_index)
+                    + NGA*S3(p_index,za_index) + NGB*S2(p_index,za_index);
+                }
             }
+            doit_i_field_mono(joker,0,0,joker,0,i) = Q1;
         }
-        doit_i_field_mono(joker,0,0,joker,0,i) = Q1;
     }
 }
 
