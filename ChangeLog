@@ -1,3 +1,10 @@
+2016-05-30  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-495
+
+	* doc/uguide/rte_theory.tex: Fixed error in Eq 6.50, pointed out
+	by Simon.
+
 2016-05-30 Jakob Dörr  <jakobdoerr@googlemail.com>
 
 	* arts-2-3-494
