@@ -4,7 +4,8 @@
 
 	* src/lin_alg.cc (inv):
 
-	Fix memory leak. ipiv was allocated but never freed.
+	Fix memory leak. ipiv was allocated but never freed. Reported by
+	Richard.
 
 2016-05-30  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
