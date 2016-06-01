@@ -214,6 +214,7 @@ void inv( MatrixView Ainv,
 
     lapack::dgetri_( &n_int, LU.mdata, &n_int, ipiv, work, &lwork, &info );
     delete[] work;
+    delete[] ipiv;
 
     // Check for success.
     if (info == 0)
