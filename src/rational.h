@@ -30,6 +30,7 @@ USA. */
 #include <ostream>
 #include "matpack.h"
 #include "array.h"
+#include "math_funcs.h"
 
 class Rational
 {

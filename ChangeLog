@@ -1,3 +1,17 @@
+2016-06-02  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-497
+
+	* src/lin_alg.cc (lubacksub):
+
+	Fix warning in Release build about unused variables. Variables only
+	used in assertions should be enclosed in the DEBUG_ONLY() macro.
+
+	* src/rational.h:
+
+	Include math_funcs.h to make fac(Numeric) function known at compile
+	time. Avoids warning about Rational::fac calling itself.
+
 2016-06-01  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-496

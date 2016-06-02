@@ -103,8 +103,8 @@ void lubacksub( VectorView x,
 
   /* Check if the dimensions of the input matrix and vectors agree and if LU
      is a quadratic matrix.*/
-  Index column_stride = LU.mcr.get_stride();
-  Index vec_stride = b.mrange.get_stride();
+  DEBUG_ONLY(Index column_stride = LU.mcr.get_stride());
+  DEBUG_ONLY(Index vec_stride = b.mrange.get_stride());
 
   assert(is_size(LU, n, n));
   assert(is_size(b, n));
