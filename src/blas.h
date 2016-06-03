@@ -9,6 +9,8 @@
 
 */
 
+#include <complex>
+
 //! BLAS matrix multiplication.
 /*!
   Performs the operation
@@ -54,6 +56,20 @@ extern "C" void dgemm_( char *transa,
                         double *C,
                         int *ldc );
 
+extern "C" void zgemm_( char *transa,
+                        char *transb,
+                        int *m,
+                        int *n,
+                        int *k,
+                        std::complex<double> *alpha,
+                        std::complex<double> *A,
+                        int *lda,
+                        std::complex<double> *B,
+                        int *ldb,
+                        std::complex<double> *beta,
+                        std::complex<double> *C,
+                        int *ldc );
+
 //! Matrix-Vector Multiplication
 /*!
   Perform one of the matrix-vector operations
@@ -88,4 +104,16 @@ extern "C" void dgemv_( char *trans,
                         int *incx,
                         double *beta,
                         double *y,
+                        int *incy );
+
+extern "C" void zgemv_( char *trans,
+                        int *m,
+                        int *n,
+                        std::complex<double> *alpha,
+                        std::complex<double> *A,
+                        int *LDA,
+                        std::complex<double> *x,
+                        int *incx,
+                        std::complex<double> *beta,
+                        std::complex<double> *y,
                         int *incy );

@@ -79,6 +79,25 @@ void random_fill_matrix( MatrixView A,
         }
     }
 }
+void random_fill_matrix( ComplexMatrixView A,
+                         Numeric range,
+                         bool positive )
+{
+    Index m = A.nrows();
+    Index n = A.ncols();
+    
+    Rand<Numeric> rand( positive ? 0 : - range , range );
+    
+    for (Index i = 0; i<m; i++)
+    {
+        for (Index j = 0; j<n; j++)
+        {
+            
+            A( i, j ) = Complex( (Numeric) rand(), (Numeric) rand() );
+            
+        }
+    }
+}
 
 //! Generate random sparse matrix
 /*!
@@ -167,6 +186,14 @@ void random_fill_matrix_symmetric( MatrixView A,
 {
     random_fill_matrix( A, range, positive);
     Matrix M( A );
+    A += transpose( M );
+}
+void random_fill_matrix_symmetric( ComplexMatrixView A,
+                                   Numeric range,
+                                   bool positive )
+{
+    random_fill_matrix( A, range, positive);
+    ComplexMatrix M( A );
     A += transpose( M );
 }
 
@@ -398,5 +425,44 @@ Numeric get_maximum_error( ConstMatrixView A1,
         }
     }
 
+    return max;
+}
+Numeric get_maximum_error( ConstComplexMatrixView A1,
+                           ConstComplexMatrixView A2,
+                           bool relative )
+{
+    
+    Index m = min( A1.nrows(), A2.nrows() );
+    Index n = min( A1.ncols(), A2.ncols() );
+    
+    Numeric max = 0.0, err = 0.0;
+    
+    for ( Index i = 0; i < m; i++ )
+    {
+        
+        for ( Index j = 0; j < n; j++ )
+        {
+            
+            err = 0.0;
+            
+            if ( relative )
+            {
+                
+                if ( A2(i,j).real() != 0.0 && A2(i,j).imag() != 0.0 )
+                {
+                    err = abs( ( A2(i,j) - A1(i,j) ) / A2(i,j) );
+                }
+                
+            } else {
+                err = abs(A2(i, j) - A1(i, j));
+            }
+            
+            if (err > max)
+            {
+                max = err;
+            }
+        }
+    }
+    
     return max;
 }

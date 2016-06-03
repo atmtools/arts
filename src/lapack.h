@@ -9,6 +9,8 @@
 
 */
 
+#include <complex>
+
 namespace lapack {
 
 //! LU decomposition.
@@ -27,6 +29,13 @@ namespace lapack {
 extern "C" void dgetrf_( int *m,
                          int *n,
                          double *A,
+                         int *lda,
+                         int *ipiv,
+                         int *info );
+
+extern "C" void zgetrf_( int *m,
+                         int *n,
+                         std::complex<double> *A,
                          int *lda,
                          int *ipiv,
                          int *info );
@@ -84,6 +93,14 @@ extern "C" void dgetri_( int* n,
                          int* lda,
                          int* ipiv,
                          double* work,
+                         int* lwork,
+                         int* info );
+
+extern "C" void zgetri_( int* n,
+                         std::complex<double>* A,
+                         int* lda,
+                         int* ipiv,
+                         std::complex<double>* work,
                          int* lwork,
                          int* info );
 
@@ -170,4 +187,53 @@ extern "C" void dgesvx_( char *fact,
                          int *IWORK,
                          int *info );
 
+/* Computes eigenvalues and eigenvectors for the Complex n-by-n Matrix A
+ * Use-case example diag(VR*A*inv(VR)) = W.
+
+    \param[in] jobvl calculate left eigenvectors if 'V', otherwise 'N'
+    \param[in] jobvl calculate right eigen vectors if 'V', otherwise 'N'
+    \param[in] n Dimensionality of the system.
+    \param[in,out] A matrix to find eigenvalues and eigenvectors.  Changed in execution.
+    \param[in] lda The leading dimension of A.
+    \param[out] W/WR/WI The eigenvalues in a vector (double matrix can have complex eigenvalues)
+    \param[out] VL The left eigenvectors of A.
+    \param[in] ldvl The leading dimension of VL.
+    \param[out] VR The right eigenvectors of A.
+    \param[in] ldvr The leading dimension of VR.
+    \param[out] WORK
+    \param[out] IWORK
+    \param[out] RWORK
+    \param[out] info
+ */
+
+extern "C" void dgeev_(  char *jobvl,
+                         char *jobvr,
+                         int  *n,
+                         double *A,
+                         int *lda,
+                         double *WR,
+                         double *WI,
+                         double *VL,
+                         int *ldvl,
+                         double *VR,
+                         int *ldvr,
+                         double *work,
+                         int *lwork,
+                         double *rwork,
+                         int *info );
+
+extern "C" void zgeev_(  char *jobvl,
+                         char *jobvr,
+                         int  *n,
+                         std::complex<double> *A,
+                         int *lda,
+                         std::complex<double> *W,
+                         std::complex<double> *VL,
+                         int *ldvl,
+                         std::complex<double> *VR,
+                         int *ldvr,
+                         std::complex<double> *work,
+                         int *lwork,
+                         double *rwork,
+                         int *info );
 }

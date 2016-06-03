@@ -355,6 +355,10 @@ public:
                          ConstMatrixView,
                          ConstVectorView,
                          const ArrayOfIndex& );
+  friend void diagonalize( MatrixView,
+                           VectorView,
+                           VectorView,
+                           ConstMatrixView);
 
   // A special constructor, that allows to make a ConstVectorView of a scalar.
   ConstVectorView(const Numeric& a);
@@ -692,6 +696,10 @@ public:
                          const ArrayOfIndex& );
   friend void inv( MatrixView,
                    ConstMatrixView );
+  friend void diagonalize( MatrixView,
+                           VectorView,
+                           VectorView,
+                           ConstMatrixView);
 
 protected:
   // Constructors:

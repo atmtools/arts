@@ -29,8 +29,8 @@
 #ifndef linalg_h
 #define linalg_h
 
-
 #include "matpackIII.h"
+#include "complex.h"
 
 // LU decomposition
 void
@@ -55,11 +55,30 @@ void
 inv( MatrixView Ainv,
      ConstMatrixView A );
 
+// Matrix inverse
+void 
+inv( ComplexMatrixView Ainv,
+     ConstComplexMatrixView A);
+
+// Matrix diagonalization
+void diagonalize( MatrixView P,
+                  VectorView WR,
+                  VectorView WI,
+                  ConstMatrixView A);
+
+// Matrix diagonalization
+void diagonalize( ComplexMatrixView P,
+                  ComplexVectorView W,
+                  ConstComplexMatrixView A);
+
 // Exponential of a Matrix
 void
 matrix_exp( MatrixView F,
             ConstMatrixView A,
             const Index& q=10);
+void
+matrix_exp2( MatrixView F,
+            ConstMatrixView A);
 
 // Exponential of a Matrix and its partial derivatives.
 // Includes a specialized function for speedier calculations

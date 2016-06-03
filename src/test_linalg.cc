@@ -484,11 +484,108 @@ void test_matrix_exp3D(void)
    cout << "\n";
 }
 
+void test_real_diagonalize(Index ntests, Index dim)
+{
+    Matrix A(dim,dim),F1(dim,dim),F2(dim,dim),tmp1(dim,dim),tmp2(dim,dim),P(dim,dim);
+    Vector Wr(dim),Wi(dim);
+    
+    const Matrix ZEROES(dim,dim,0);
+    
+    // initialize random seed
+    srand((unsigned int) time(0));
+    
+    cout << endl << endl << "Testing diagonalize: n = " << dim;
+    cout << ", ntests = " << ntests << endl;
+    cout << setw(10) << "Test no." << setw(25) << "Max. rel. expm error";
+    cout << setw(25) << "Max. abs. P^-1*A*P-W" << endl<< endl;
+    
+    for (Index i = 0; i < ntests; i++)
+    {
+        
+        // Generate a matrix that does not have complex answers...
+        random_fill_matrix_symmetric( A, 10, false );
+        
+        // Use the two expm methods to test that diagonalize works
+        matrix_exp(F1,A,10);
+        matrix_exp2(F2,A);
+        
+        Numeric err1 = 0.0,err2 = 0.0;
+        err1 = get_maximum_error( F1, F2, true );
+        
+        
+        // diagonalize directly to test that P^-1*A*P gives a diagonal matrix
+        diagonalize(P,Wr,Wi,A);
+        
+        // P^-1*A*P
+        inv(tmp1,P);
+        mult(tmp2,tmp1,A);
+        mult(tmp1,tmp2,P);
+        
+        // Minus W as diagonal matrix
+        for(Index j=0;j<dim;j++)
+        {
+            tmp1(j,j)-=Wr[j];
+        }
+        
+        err2 = get_maximum_error( ZEROES, tmp1, false );
+        
+        cout  << setw(10) << i << setw(25) << err1<< setw(25) << err2 << endl;
+        
+    }
+    
+}
+
+void test_complex_diagonalize(Index ntests, Index dim)
+{
+    ComplexMatrix A(dim,dim),tmp1(dim,dim),tmp2(dim,dim),P(dim,dim);
+    ComplexVector W(dim);
+    
+    const ComplexMatrix ZEROES(dim,dim,0);
+    
+    // initialize random seed
+    srand((unsigned int) time(0));
+    
+    cout << endl << endl << "Testing diagonalize: n = " << dim;
+    cout << ", ntests = " << ntests << endl;
+    cout << setw(10) << "Test no.";
+    cout << setw(25) << "Max. abs. P^-1*A*P-W" << endl<< endl;
+    
+    for (Index i = 0; i < ntests; i++)
+    {
+        
+        // Generate a matrix that does not have complex answers...
+        random_fill_matrix_symmetric( A, 10, false );
+        
+        Numeric err = 0.0;
+        
+        // diagonalize directly to test that P^-1*A*P gives a diagonal matrix
+        diagonalize(P,W,A);
+        
+        // P^-1*A*P
+        inv(tmp1,P);
+        mult(tmp2,tmp1,A);
+        mult(tmp1,tmp2,P);
+        
+        // Minus W as diagonal matrix
+        for(Index j=0;j<dim;j++)
+        {
+            tmp1(j,j)-=W[j];
+        }
+        
+        err = get_maximum_error( ZEROES, tmp1, false );
+        
+        cout  << setw(10) << i << setw(25) << err << endl;
+        
+    }
+}
+
 int main(void)
 {
   //test_lusolve4D();
   test_inv( 20, 1000 );
   test_solve_linear_system( 20, 1000, false );
   // test_matrix_exp1D();
+    test_real_diagonalize(20,100);
+    test_complex_diagonalize(20,100);
   return(0);
 }

@@ -1,3 +1,63 @@
+2016-06-03  Richard Larsson   <ric.larsson@gmail.com>
+
+	* arts-2-3-499
+	
+	ComplexVector and ComplexMatrix are implemented with similar 
+	internal structures as Matrix and Vector.  The goal: to simplify
+	calculations of relaxation matrix inversion.  Will also help
+	with keeping function calls shorter by not having to copy
+	complx numbers to separate vectors.
+	
+	Also, none of this code has been optimized and is probably slow.
+	
+	* src/blash.h:  Added references to zgemm and zgemv
+	
+	* src/lapack.h: Added references to zgeteri and zgetrf.
+	Also added references to dgeev and zgeev.
+	
+	* src/complex.{cc,h}:  Implementation of ComplexVector and 
+	ComplexMatrix copying Matrix and Vector.  This was done just
+	by copy-pasting matpackI code and adding the word "Complex"
+	where approapriate and changing most double/Numeric references
+	to Complex.
+	
+	There is probably a lot of redundant code in here, and also 
+	a lot missing.  Especially missing is ways to combine Vectors 
+	and ComplexVectors in the same mult statements.  Should be 
+	possible, could be useful, but when it is useful it should be
+	possible to add and check these at the time of need.
+	
+	* src/lin_alg.{cc,h}:  inv function for ComplexMatrix is working
+	by relying on Simon's implementation for Matrix.
+	
+	Also added diagonalize functions that return P and W from A in
+	the statement diag(P^-1*A*P)-W == 0.  For both Complex and Numeric
+	Also added secondary method to calculate the matrix exponent 
+	using the diagonalizations for testing purposes.  (This 
+	should be faster than the other method for smaller matrices
+	but I think it is less numerically stable?  Not sure.  So for now only 
+	available to ensure that the diagonalizations actually work for simple
+	test cases.)
+	
+	Problem 1:  An eigenvalue/vector can be complex even if the original matrix
+	is real.  I have not bothered taking this into account, but should 
+	probably do so rather than work as presently returning the strange
+	format used by lapack for these cases.  If this becomes used that is.
+	By my tests, eigenvalues for the propagation matrix will be complex,
+	so these cannot presently by calculated with this method.
+	(I found somewhere that this is because propmat is the addition of an 
+	hermitian and a skew-hermitian matrix, though somehow I cannot find that
+	source again to confirm that my memory is not playing tricks on me...)
+	
+	Problem 2:  I am not using any test on the condition of the matrix, so
+	nan and inf outputs are possible and probable if care is not taken.
+	I could switch to the "x" versions of dgeev and zgeev, but I am unsure 
+	on what else this will do.
+	
+	* src/matpackI.h: added diagonalize reference.
+	
+	* src/test*:  Added some tests of the functions above.
+
 2016-06-03 Jana Mendrok  <jana.mendrok@chalmers.se>
 
 	* arts-2-3-498

@@ -26,6 +26,7 @@
 #define test_utils_h
 
 #include "matpackI.h"
+#include "complex.h"
 #include <stdlib.h>
 #include <time.h>
 
@@ -94,6 +95,9 @@ void add_noise( VectorView v,
 void random_fill_matrix( MatrixView A,
                          Numeric range,
                          bool positive );
+void random_fill_matrix( ComplexMatrixView A,
+                         Numeric range,
+                         bool positive );
 
 // Fill sparse matrix with random values.
 void random_fill_matrix( Sparse &A,
@@ -108,6 +112,9 @@ void random_fill_matrix( Matrix& A,
 
 // Fill matrix with random values symmetrically.
 void random_fill_matrix_symmetric( MatrixView A,
+                                   Numeric range,
+                                   bool positive );
+void random_fill_matrix_symmetric( ComplexMatrixView A,
                                    Numeric range,
                                    bool positive );
 
@@ -138,6 +145,10 @@ Range random_range( Index n );
 // Maximum element-wise error of two matrices.
 Numeric get_maximum_error( ConstMatrixView A1,
                            ConstMatrixView A2,
+                           bool relative );
+
+Numeric get_maximum_error( ConstComplexMatrixView A1,
+                           ConstComplexMatrixView A2,
                            bool relative );
 
 // Maximum element-wise error of two matrices.

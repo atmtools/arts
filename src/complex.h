@@ -27,9 +27,11 @@
 #define complex_h
 
 #include <complex>
-#include "matpack.h"
+#include "matpackI.h"
+#include "array.h"
 
 typedef std::complex<Numeric> Complex;
+
 
 std::complex<float> operator+ (const double& d, const std::complex<float>& c);
 std::complex<float> operator* (const double& d, const std::complex<float>& c);
@@ -42,6 +44,822 @@ std::complex<double> operator* (const float& f, const std::complex<double>& c);
 
 std::complex<double> operator+ (const std::complex<double>& c, const float& d);
 std::complex<double> operator* (const std::complex<double>& c, const float& d);
+
+// Declare existence of the global joker object:
+extern const Joker joker;
+
+// Declare the existence of class ConstComplexMatrixView:
+class ConstComplexIterator1D;
+
+// Declare the existence of class ComplexVectorView:
+class ComplexVectorView;
+
+// Declare the existence of class ConstComplexVectorView:
+class ConstComplexVectorView;
+
+// Declare the existence of class ConstMatrixView:
+class ConstComplexMatrixView;
+
+/** The complex range class.
+ * 
+ *  This is used to specifiy a range of a vector. In general, a range is
+ *  given by a start index, an extent, and a stride. The entire vector
+ *  would be:
+ *  start = 0, range = # elements, stride = 1
+ * 
+ *  Stride specifies the stepsize of the vector. A stride of 2 means
+ *  only every second element. This is particularly important in
+ *  connection with matrices.
+ * 
+ *  There are a number of special constructors for this class, of
+ *  particular interest should be those using jokers, which provide a
+ *  Matlab-like functionality.
+ */
+class ComplexRange{
+public:
+    // Constructors:
+    ComplexRange(Index start, Index extent, Index stride=1);
+    ComplexRange(Index start, Joker      j, Index stride=1);
+    ComplexRange(Joker     j, Index stride=1);
+    ComplexRange(Index max_size, const ComplexRange& r);
+    ComplexRange(const ComplexRange& p, const ComplexRange& n);
+    
+    // Friends:
+    friend class ConstComplexVectorView;
+    friend class ComplexVectorView;
+    friend class ComplexVector;
+    friend class ConstComplexMatrixView;
+    friend class ComplexMatrixView;
+    friend class ComplexMatrix;
+    friend class ComplexIterator2D;
+    friend class ConstComplexIterator2D;
+    friend void mult_general( ComplexVectorView,
+                              const ConstComplexMatrixView&,
+                              const ConstComplexVectorView& );
+//     friend void mult_general( ComplexVectorView,
+//                               const ConstMatrixView&,
+//                               const ConstComplexVectorView& );
+//     friend void mult_general( ComplexVectorView,
+//                               const ConstComplexMatrixView&,
+//                               const ConstVectorView& );
+    
+    /** Returns the start index of the range. */
+    Index get_start () const { return mstart; }
+    /** Returns the extent of the range. */
+    Index get_extent () const { return mextent; }
+    /** Returns the stride of the range. */
+    Index get_stride () const { return mstride; }
+    
+private:
+    /** The start index. */
+    Index mstart;
+    /** The number of elements. -1 means extent to the end of the
+     *    vector. */
+    Index mextent;
+    /** The stride. Can be positive or negative. */
+    Index mstride;
+};
+
+/** The iterator class for sub vectors. This takes into account the
+ *  defined stride. */
+class ComplexIterator1D {
+public:
+    /** Default constructor. */
+    ComplexIterator1D() : mx(NULL), mstride(0) { /* Nothing to do here. */ }
+    
+    /** Explicit constructor. */
+    ComplexIterator1D(Complex *x, Index stride) : mx(x), mstride(stride)
+    { /* Nothing to do here. */ }
+    
+    // Operators:
+    
+    /** Prefix increment operator. */
+    ComplexIterator1D& operator++()
+    { mx += mstride; return *this; }
+    
+    /** Dereferencing. */
+    Complex& operator*() const { return *mx; }
+    
+    /** Not equal operator, needed for algorithms like copy. */
+    bool operator!=(const ComplexIterator1D& other) const
+    { if (mx != other.mx) return true; else return false; }
+    
+    friend void copy(ConstComplexIterator1D origin,
+                     const ConstComplexIterator1D& end,
+                     ComplexIterator1D target);
+    
+private:
+    /** Current position. */
+    Complex *mx;
+    /** Stride. */
+    Index mstride;
+};
+
+/** The constant iterator class for sub vectors. This takes into
+ *  account the defined stride. */
+class ConstComplexIterator1D {
+public:
+    /** Default constructor. */
+    ConstComplexIterator1D() : mx(NULL), mstride(0)
+    { /* Nothing to do here. */ }
+    
+    /** Explicit constructor. */
+    ConstComplexIterator1D(Complex *x, Index stride) : mx(x), mstride(stride)
+    { /* Nothing to do here. */ }
+    
+    // Operators:
+    /** Prefix increment operator. */
+    ConstComplexIterator1D& operator++()
+    { mx += mstride; return *this; }
+    
+    /** Dereferencing. */
+    const Complex& operator*() const { return *mx; }
+    
+    /** Not equal operator, needed for algorithms like copy. */
+    bool operator!=(const ConstComplexIterator1D& other) const
+    { if (mx != other.mx) return true; else return false; }
+    
+    friend void copy(ConstComplexIterator1D origin,
+                     const ConstComplexIterator1D& end,
+                     ComplexIterator1D target);
+private:
+    /** Current position. */
+    const Complex *mx;
+    /** Stride. */
+    Index mstride;
+};
+
+// Declare the vector class:
+class ComplexVector;
+
+// Declare the ComplexMatrixView class
+class ComplexMatrixView;
+
+/** A constant view of a ComplexVector.
+ * 
+ Together with the derived class ComplexVectorView this contains the main
+ implementation of a ComplexVector. The class ComplexVector is just a special
+ case of a ComplexVectorView which also allocates storage. */
+class ConstComplexVectorView {
+public:
+    // Typedef for compatibility with STL
+    typedef ConstComplexIterator1D const_iterator;
+    
+    // Member functions:
+    bool empty() const;
+    Index nelem() const;
+    Complex sum() const;
+    
+    // Const index operators:
+    /** Plain const index operator. */
+    Complex operator[](Index n) const
+    { // Check if index is valid:
+        assert( 0<=n );
+        assert( n<mrange.mextent );
+        return get(n);
+    }
+    
+    /** Get element implementation without assertions. */
+    Complex get(Index n) const
+    {
+        return *( mdata +
+        mrange.mstart +
+        n*mrange.mstride );
+    }
+    
+    ConstComplexVectorView operator[](const ComplexRange& r) const;
+    friend Complex operator*(const ConstComplexVectorView& a, const ConstComplexVectorView& b);
+    
+    // Functions returning iterators:
+    ConstComplexIterator1D begin() const;
+    ConstComplexIterator1D end() const;
+    
+    // Conversion to 1 column matrix:
+    operator ConstComplexMatrixView() const;
+    
+    //! Destructor
+    virtual ~ConstComplexVectorView() {}
+    
+    // Friends:
+    friend class ComplexVectorView;
+    friend class ConstComplexIterator2D;
+    friend class ConstComplexMatrixView;
+    friend void mult (ComplexVectorView,
+                      const ConstComplexMatrixView &,
+                      const ConstComplexVectorView &);
+    friend void mult_general (ComplexVectorView,
+                              const ConstComplexMatrixView &,
+                              const ConstComplexVectorView &);
+//     friend void mult (ComplexVectorView,
+//                       const ConstMatrixView &,
+//                       const ConstComplexVectorView &);
+//     friend void mult_general (ComplexVectorView,
+//                               const ConstMatrixView &,
+//                               const ConstComplexVectorView &);
+//     friend void mult (ComplexVectorView,
+//                       const ConstComplexMatrixView &,
+//                       const ConstVectorView &);
+//     friend void mult_general (ComplexVectorView,
+//                               const ConstComplexMatrixView &,
+    //                               const ConstVectorView &);
+    friend void diagonalize( ComplexMatrixView,
+                             ComplexVectorView,
+                             ConstComplexMatrixView);
+    
+    // A special constructor, that allows to make a ConstVectorView of a scalar.
+    ConstComplexVectorView(const Complex& a);
+    
+protected:
+    // Constructors:
+    ConstComplexVectorView();
+    ConstComplexVectorView(Complex *data, const ComplexRange& range);
+    ConstComplexVectorView(Complex *data, const ComplexRange& p, const ComplexRange& n);
+    
+    // Data members:
+    // -------------
+    /** The range of mdata that is actually used. */
+    ComplexRange mrange;
+    /** Pointer to the plain C array that holds the data */
+    Complex *mdata;
+};
+
+/** The ComplexVectorView class.
+ * 
+ This contains the main implementation of a complex vector. The class     
+ ComplexVector is just a special case of subvector which also allocates
+ storage.
+ 
+ Unfortunately, names of element functions of derived classes hide
+ the names of the original class, even if the arguments are
+ different. This means that we have to redefine those element
+ functions that can have different arguments, for example the
+ constant index operators and iterators. */
+class ComplexVectorView : public ConstComplexVectorView {
+public:
+    ComplexVectorView (const ComplexVector&);
+    ComplexVectorView (ComplexVector& v);
+    
+    // Typedef for compatibility with STL
+    typedef ComplexIterator1D iterator;
+    
+    // Const index operators:
+    /** Plain const index operator. Has to be redifined here, because the
+     one from ConstVectorView is hidden. */                           
+     Complex operator[](Index n) const
+     { return ConstComplexVectorView::operator[](n); }
+     
+     /** Get element implementation without assertions. */
+     Complex get(Index n) const
+     { return ConstComplexVectorView::get(n); }
+     
+     ConstComplexVectorView operator[](const ComplexRange& r) const;
+     
+     /** Plain Index operator. */
+     Complex& operator[](Index n)
+     { // Check if index is valid:
+         assert( 0<=n );
+         assert( n<mrange.mextent );
+         return get(n);
+     }
+     
+     /** Get element implementation without assertions. */
+     Complex& get(Index n)
+     {
+         return *( mdata +
+         mrange.mstart +
+         n*mrange.mstride );
+     }
+     
+     ComplexVectorView operator[](const ComplexRange& r);
+     
+     // Constant iterators:
+     ConstComplexIterator1D begin() const;
+     ConstComplexIterator1D end() const;
+     // ComplexIterators:
+     ComplexIterator1D begin();
+     ComplexIterator1D end();
+     
+     // Assignment operators:
+     ComplexVectorView& operator=(const ConstComplexVectorView& v);
+     ComplexVectorView& operator=(const ComplexVectorView& v);
+     ComplexVectorView& operator=(const ComplexVector& v);
+     ComplexVectorView& operator=(const Array<Complex>& v); 
+     ComplexVectorView& operator=(Complex x);
+     ComplexVectorView& operator=(const ConstVectorView& v);
+     ComplexVectorView& operator=(const VectorView& v);
+     ComplexVectorView& operator=(const Vector& v);
+     ComplexVectorView& operator=(const Array<Numeric>& v); 
+     ComplexVectorView& operator=(Numeric x);
+     
+     // Other operators:
+     ComplexVectorView operator*=(Complex x);
+     ComplexVectorView operator/=(Complex x);
+     ComplexVectorView operator+=(Complex x);
+     ComplexVectorView operator-=(Complex x);
+     ComplexVectorView operator*=(Numeric x);
+     ComplexVectorView operator/=(Numeric x);
+     ComplexVectorView operator+=(Numeric x);
+     ComplexVectorView operator-=(Numeric x);
+     
+     ComplexVectorView operator*=(const ConstComplexVectorView& x);
+     ComplexVectorView operator/=(const ConstComplexVectorView& x);
+     ComplexVectorView operator+=(const ConstComplexVectorView& x);
+     ComplexVectorView operator-=(const ConstComplexVectorView& x);
+     ComplexVectorView operator*=(const ConstVectorView& x);
+     ComplexVectorView operator/=(const ConstVectorView& x);
+     ComplexVectorView operator+=(const ConstVectorView& x);
+     ComplexVectorView operator-=(const ConstVectorView& x);
+     
+     // Conversion to 1 column matrix:
+     operator ComplexMatrixView();
+     // Conversion to a plain C-array
+     const Complex *get_c_array() const;
+     Complex *get_c_array();
+     
+     // Vector
+     Vector real()
+     {
+         Vector A(nelem());
+         for(Index i=0;i<nelem();i++)
+             A[i]=get(i).real();
+         return A;
+     };
+     Vector imag()
+     {
+         Vector A(nelem());
+         for(Index i=0;i<nelem();i++)
+                 A[i]=get(i).imag();
+             return A;
+     };
+     
+     //! Destructor
+     virtual ~ComplexVectorView() {}
+     
+     // Friends:
+     friend class ConstComplexIterator2D;
+     friend class ComplexIterator2D;
+     friend class ComplexMatrixView;
+     
+     // A special constructor, that allows to make a VectorView of a scalar.
+     ComplexVectorView(Complex& a);
+     
+     
+protected:
+    // Constructors:
+    ComplexVectorView();
+    ComplexVectorView(Complex *data, const ComplexRange& range);
+    ComplexVectorView(Complex *data, const ComplexRange& p, const ComplexRange& n);
+};
+
+/** The row iterator class for sub matrices. This takes into account the
+ defined row stride. The iterator points to a row of the matrix,  *
+ which acts just like a ComplexVectorView. */
+class ComplexIterator2D {
+public:
+    // Constructors:
+    /** Default constructor. */
+    ComplexIterator2D() : msv(), mstride(0)  { /* Nothing to do here. */ }
+    
+    /** Explicit constructor. */
+    ComplexIterator2D(const ComplexVectorView& x, Index stride) : msv(x), mstride(stride)
+    { /* Nothing to do here. */ }
+    
+    // Operators:
+    /** Prefix increment operator. */
+    ComplexIterator2D& operator++() { msv.mdata += mstride; return *this; }
+    
+    /** Not equal operator, needed for algorithms like copy. */
+    bool operator!=(const ComplexIterator2D& other) const
+    { if ( msv.mdata + msv.mrange.mstart !=
+        other.msv.mdata + other.msv.mrange.mstart )
+    return true;
+    else
+        return false;
+    }
+    
+    /** The -> operator is needed, so that we can write i->begin() to get
+     the 1D iterators. */                                             
+     ComplexVectorView * operator->() { return &msv; }
+     
+     /** Dereferencing. */
+     ComplexVectorView& operator*() { return msv; }
+     
+private:
+    /** Current position. */
+    ComplexVectorView msv;
+    /** Row stride. */
+    Index mstride;
+};
+
+/** The const row iterator class for sub matrices. This takes into account the
+ defined row stride. The iterator points to a row of the matrix,  *
+ which acts just like a ComplexVectorView. */
+class ConstComplexIterator2D {
+public:
+    // Constructors:
+    /** Default constructor. */
+    ConstComplexIterator2D() : msv(), mstride(0) { /* Nothing to do here. */ }
+    
+    /** Explicit constructor. */
+    ConstComplexIterator2D(const ConstComplexVectorView& x, Index stride)
+    : msv(x), mstride(stride)
+    { /* Nothing to do here. */ }
+    
+    // Operators:
+    /** Prefix increment operator. */
+    ConstComplexIterator2D& operator++() { msv.mdata += mstride; return *this; }
+    
+    /** Not equal operator, needed for algorithms like copy. */
+    bool operator!=(const ConstComplexIterator2D& other) const
+    { if ( msv.mdata + msv.mrange.mstart !=
+        other.msv.mdata + other.msv.mrange.mstart )
+    return true;
+    else
+        return false;
+    }
+    
+    /** The -> operator is needed, so that we can write i->begin() to get
+     t he 1D iterators. */                                             
+     const ConstComplexVectorView* operator->() const { return &msv; }
+     
+     /** Dereferencing. */
+     const ConstComplexVectorView& operator*() const { return msv; }
+     
+private:
+    /** Current position. */
+    ConstComplexVectorView msv;
+    /** Row stride. */
+    Index mstride;
+};
+
+/** The ComplexVector class. This is a subvector that also allocates storage
+ automatically, and deallocates it when it is destroyed. We take  *
+ all the functionality from ComplexVectorView. Additionally defined in
+ this class are:
+ 
+ 1. Constructors and destructors (allocating memory).
+ 2. Assignment operator
+ 3. Assignment operator from scalar.
+ 4. Resize function.
+ */
+class ComplexVector : public ComplexVectorView {
+public:
+    // Constructors:
+    ComplexVector();
+    explicit ComplexVector(Index n);
+    ComplexVector(Index n, Complex fill);
+    ComplexVector(Index n, Numeric fill);
+    ComplexVector(Complex start, Index extent, Complex stride);
+    ComplexVector(Complex start, Index extent, Numeric stride);
+    ComplexVector(Numeric start, Index extent, Complex stride);
+    ComplexVector(Numeric start, Index extent, Numeric stride);
+    ComplexVector(const ConstComplexVectorView& v);
+    ComplexVector(const ComplexVector& v);
+    ComplexVector(const Vector& v);
+    ComplexVector(const std::vector<Complex>&);
+    ComplexVector(const std::vector<Numeric>&);
+    
+    // Assignment operators:
+    ComplexVector& operator=(ComplexVector v);
+    ComplexVector& operator=(const Array<Complex>& v);
+    ComplexVector& operator=(Complex x);
+    
+    // Resize function:
+    void resize(Index n);
+    
+    // Swap function:
+    friend void swap(ComplexVector& v1, ComplexVector& v2);
+    
+    // Destructor:
+    virtual ~ComplexVector();
+};
+
+// Declare class ComplexMatrix:
+class ComplexMatrix;
+
+
+/** A constant view of a ComplexMatrix.
+ * 
+ This, together with the derived class Complex*MatrixView, contains the   *
+ main implementation of a ComplexMatrix. It defines the concepts of
+ ComplexMatrixView. Plus additionally the recursive subrange operator,
+ which makes it possible to create a ComplexMatrixView from a subrange of
+ a ComplexMatrixView.
+ 
+ The class ComplexMatrix is just a special case of a ComplexMatrixView
+ which also allocates storage. */
+class ConstComplexMatrixView {
+public:
+    // Typedef for compatibility with STL
+    typedef ConstComplexIterator2D const_iterator;
+    
+    // Member functions:
+    bool empty() const;
+    Index nrows() const;
+    Index ncols() const;
+    
+    // Const index operators:
+    /** Plain const index operator. */
+    Complex operator()(Index r, Index c) const
+    { // Check if indices are valid:
+        assert( 0<=r );
+        assert( 0<=c );
+        assert( r<mrr.mextent );
+        assert( c<mcr.mextent );
+        
+        return get(r, c);
+    }
+    
+    /** Get element implementation without assertions. */
+    Complex get(Index r, Index c) const
+    {
+        return *( mdata +
+        mrr.mstart +
+        r*mrr.mstride +
+        mcr.mstart +
+        c*mcr.mstride );
+    }
+    
+    ConstComplexMatrixView operator()(const ComplexRange& r, const ComplexRange& c) const;
+    ConstComplexVectorView operator()(const ComplexRange& r, Index c) const;
+    ConstComplexVectorView operator()(Index r, const ComplexRange& c) const;
+    
+    // Functions returning iterators:
+    ConstComplexIterator2D begin() const;
+    ConstComplexIterator2D end() const;
+    
+    // View on diagonal vector
+    ConstComplexVectorView diagonal() const;
+    
+    //! Destructor
+    virtual ~ConstComplexMatrixView() {}
+    
+    // Friends:
+    friend class ComplexMatrixView;
+    friend class ConstComplexVectorView;
+    friend ConstComplexMatrixView transpose(ConstComplexMatrixView m);
+    friend void mult (ComplexVectorView,
+                      const ConstComplexMatrixView &,
+                      const ConstComplexVectorView &);
+    friend void mult_general (ComplexVectorView,
+                              const ConstComplexMatrixView &,
+                              const ConstComplexVectorView &);
+//     friend void mult (ComplexVectorView,
+//                       const ConstMatrixView &,
+//                       const ConstComplexVectorView &);
+//     friend void mult_general (ComplexVectorView,
+//                               const ConstMatrixView &,
+//                               const ConstComplexVectorView &);
+//     friend void mult (ComplexVectorView,
+//                       const ConstComplexMatrixView &,
+//                       const ConstComplexVectorView &);
+//     friend void mult_general (ComplexVectorView,
+//                               const ConstComplexMatrixView &,
+    //                               const ConstVectorView &);
+    friend void mult (ComplexMatrixView,
+                      const ConstComplexMatrixView &,
+                      const ConstComplexMatrixView &);
+    friend void mult_general (ComplexMatrixView,
+                              const ConstComplexMatrixView &,
+                              const ConstComplexMatrixView &);
+    
+    friend void inv( ComplexMatrixView,
+                     ConstComplexMatrixView );
+    friend void diagonalize( ComplexMatrixView,
+                             ComplexVectorView,
+                             ConstComplexMatrixView);
+    
+protected:
+    // Constructors:
+    ConstComplexMatrixView();
+    ConstComplexMatrixView(Complex *data, const ComplexRange& r, const ComplexRange& c);
+    ConstComplexMatrixView(Complex *data,
+                    const ComplexRange& pr, const ComplexRange& pc,
+                    const ComplexRange& nr, const ComplexRange& nc);
+    
+    // Data members:
+    // -------------
+    /** The row range of mdata that is actually used. */
+    ComplexRange mrr;
+    /** The column range of mdata that is actually used. */
+    ComplexRange mcr;
+    /** Pointer to the plain C array that holds the data */
+    Complex *mdata;
+};
+
+/** The ComplexMatrixView class
+ * 
+ This contains the main implementation of a ComplexMatrix. It defines    
+ the concepts of ComplexMatrixView. Plus additionally the recursive
+ subrange operator, which makes it possible to create a ComplexMatrixView
+ from a subrange of a ComplexMatrixView. 
+ 
+ The class ComplexMatrix is just a special case of a ComplexMatrixView
+ which also allocates storage. */
+class ComplexMatrixView : public ConstComplexMatrixView {
+public:
+    // Typedef for compatibility with STL
+    typedef ComplexIterator2D iterator;
+    
+    // Const index operators:
+    /** Plain const index operator. Has to be redefined here, since it is
+     h iden by the non-const operator of the derived class. */         
+     Complex operator()(Index r, Index c) const
+     { return ConstComplexMatrixView::operator()(r,c); }
+     
+     /** Get element implementation without assertions. */
+     Complex get(Index r, Index c) const
+     { return ConstComplexMatrixView::get(r,c); }
+     
+     ConstComplexMatrixView operator()(const ComplexRange& r, const ComplexRange& c) const;
+     ConstComplexVectorView operator()(const ComplexRange& r, Index c) const;
+     ConstComplexVectorView operator()(Index r, const ComplexRange& c) const;
+     // Index Operators:
+     /** Plain index operator. */
+     Complex& operator()(Index r, Index c)
+     { // Check if indices are valid:
+         assert( 0<=r );
+         assert( 0<=c );
+         assert( r<mrr.mextent );
+         assert( c<mcr.mextent );
+         
+         return get(r, c);
+     }
+     
+     /** Get element implementation without assertions. */
+     Complex& get(Index r, Index c)
+     {
+         return *( mdata +
+         mrr.mstart +
+         r*mrr.mstride +
+         mcr.mstart +
+         c*mcr.mstride );
+     }
+     
+     ComplexMatrixView operator()(const ComplexRange& r, const ComplexRange& c);
+     ComplexVectorView operator()(const ComplexRange& r, Index c);
+     ComplexVectorView operator()(Index r, const ComplexRange& c);
+     
+     // Functions returning const iterators:
+     ConstComplexIterator2D begin() const;
+     ConstComplexIterator2D end() const;
+     // Functions returning iterators:
+     ComplexIterator2D begin();
+     ComplexIterator2D end();
+     
+     // Assignment operators:
+     ComplexMatrixView& operator=(const ConstComplexMatrixView& v);
+     ComplexMatrixView& operator=(const ComplexMatrixView& v);
+     ComplexMatrixView& operator=(const ComplexMatrix& v);
+     ComplexMatrixView& operator=(const ConstComplexVectorView& v);
+     ComplexMatrixView& operator=(Complex x);
+     
+     // Other operators:
+     ComplexMatrixView& operator*=(Complex x);
+     ComplexMatrixView& operator/=(Complex x);
+     ComplexMatrixView& operator+=(Complex x);
+     ComplexMatrixView& operator-=(Complex x);
+     ComplexMatrixView& operator*=(Numeric x);
+     ComplexMatrixView& operator/=(Numeric x);
+     ComplexMatrixView& operator+=(Numeric x);
+     ComplexMatrixView& operator-=(Numeric x);
+     
+     ComplexMatrixView& operator*=(const ConstComplexMatrixView& x);
+     ComplexMatrixView& operator/=(const ConstComplexMatrixView& x);
+     ComplexMatrixView& operator+=(const ConstComplexMatrixView& x);
+     ComplexMatrixView& operator-=(const ConstComplexMatrixView& x);
+     
+     ComplexMatrixView& operator*=(const ConstMatrixView& x);
+     ComplexMatrixView& operator/=(const ConstMatrixView& x);
+     ComplexMatrixView& operator+=(const ConstMatrixView& x);
+     ComplexMatrixView& operator-=(const ConstMatrixView& x);
+     
+     ComplexMatrixView& operator*=(const ConstComplexVectorView& x);
+     ComplexMatrixView& operator/=(const ConstComplexVectorView& x);
+     ComplexMatrixView& operator+=(const ConstComplexVectorView& x);
+     ComplexMatrixView& operator-=(const ConstComplexVectorView& x);
+     
+     // Conversion to a plain C-array
+     const Complex *get_c_array() const;
+     Complex *get_c_array();
+     
+     // Matrix
+     Matrix real()
+     {
+         Matrix A(nrows(),ncols());
+         for(Index i=0;i<nrows();i++)
+             for(Index j=0;j<ncols();j++)
+                 A(i,j)=get(i,j).real();
+             return A;
+     };
+     Matrix imag()
+     {
+         Matrix A(nrows(),ncols());
+         for(Index i=0;i<nrows();i++)
+             for(Index j=0;j<ncols();j++)
+                 A(i,j)=get(i,j).imag();
+             return A;
+     };
+     
+     //! Destructor
+     virtual ~ComplexMatrixView() {}
+     
+     // Friends:
+     friend class ComplexVectorView;
+     friend ConstComplexMatrixView transpose(ConstComplexMatrixView m);
+     friend ComplexMatrixView transpose(ComplexMatrixView m);
+     
+protected:
+    // Constructors:
+    ComplexMatrixView();
+    ComplexMatrixView(Complex *data, const ComplexRange& r, const ComplexRange& c);
+    ComplexMatrixView(Complex *data,
+               const ComplexRange& pr, const ComplexRange& pc,
+               const ComplexRange& nr, const ComplexRange& nc);
+};
+
+/** The ComplexMatrix class. This is a ComplexMatrixView that also allocates storage
+ automatically, and deallocates it when it is destroyed. We take  *
+ all the functionality from ComplexMatrixView. Additionally defined here
+ are: 
+ 
+ 1. Constructors and destructor.
+ 2. Assignment operator from scalar.
+ 3. Resize function. */
+class ComplexMatrix : public ComplexMatrixView {
+public:
+    // Constructors:
+    ComplexMatrix();
+    ComplexMatrix(Index r, Index c);
+    ComplexMatrix(Index r, Index c, Complex fill);
+    ComplexMatrix(Index r, Index c, Numeric fill);
+    ComplexMatrix(const ConstComplexMatrixView& v);
+    ComplexMatrix(const ComplexMatrix& v);
+    
+    // Assignment operators:
+    ComplexMatrix& operator=(ComplexMatrix x);
+    ComplexMatrix& operator=(Complex x);
+    ComplexMatrix& operator=(const ConstComplexVectorView& v);
+    
+    // Resize function:
+    void resize(Index r, Index c);
+    
+    // Swap function:
+    friend void swap(ComplexMatrix& m1, ComplexMatrix& m2);
+    
+    // Destructor:
+    virtual ~ComplexMatrix();
+    
+    Complex *get_raw_data() { return mdata; }
+};
+
+// Function declarations:
+// ----------------------
+
+ConstComplexMatrixView transpose(ConstComplexMatrixView m);
+
+ComplexMatrixView transpose(ComplexMatrixView m);
+
+void copy(ConstComplexIterator1D origin,
+          const ConstComplexIterator1D& end,
+          ComplexIterator1D target);
+
+void copy(Complex x,
+          ComplexIterator1D target,
+          const ComplexIterator1D& end);
+
+void copy(ConstComplexIterator2D origin,
+          const ConstComplexIterator2D& end,
+          ComplexIterator2D target);
+
+void copy(Complex x,
+          ComplexIterator2D target,
+          const ComplexIterator2D& end);
+
+void mult( ComplexVectorView y,
+           const ConstComplexMatrixView& M,
+           const ConstComplexVectorView& x );
+
+void mult_general( ComplexVectorView y,
+            const ConstComplexMatrixView& M,
+            const ConstComplexVectorView& x );
+
+
+void mult( ComplexMatrixView A,
+                   const ConstComplexMatrixView& B,
+                   const ConstComplexMatrixView& C );
+
+void mult_general( ComplexMatrixView A,
+                   const ConstComplexMatrixView& B,
+                   const ConstComplexMatrixView& C );
+
+Complex operator*(const ConstComplexVectorView& a, const ConstComplexVectorView& b);
+
+std::ostream& operator<<(std::ostream& os, const ConstComplexVectorView& v);
+
+std::ostream& operator<<(std::ostream& os, const ConstComplexMatrixView& v);
+
+
 
 #endif
 
