@@ -213,7 +213,8 @@ void pnd_fieldH98 (Tensor4View pnd_field,
 Numeric IWCtopnd_MH97 (const Numeric iwc,
                        Numeric diameter_volume_equivalent,
                        const Numeric t,
-                       const bool noisy);
+                       const bool noisy,
+                       const bool robust);
 
 Numeric IWCtopnd_H11 (const Numeric diameter_mass_equivalent,
                       const Numeric t);
@@ -297,6 +298,10 @@ void parse_partfield_name (String& partfield_name,
 void parse_psd_param (String& psd_param,
                       const String& part_string,
                       const String& delim);
+
+void parse_psd_options (ArrayOfString& psd_options,
+                        const String& part_string,
+                        const String& delim);
 
 #endif //cloudbox_h
 

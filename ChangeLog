@@ -1,3 +1,13 @@
+2016-06-03 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-498
+
+	* src/m_cloudbox.cc (dNdD_MH97), src/cloudbox.[cc,h] (pnd_fieldMH97,
+	IWCtopnd_MH97), src/methods.cc:
+	Allow additional options passed as part of scat_species tags. Add option
+	'robust' for MH97, which ignores (upper) T-limits (any ambient T>0C
+	gives psd for T=0C). Non-robust remains the default.
+
 2016-06-02  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-497

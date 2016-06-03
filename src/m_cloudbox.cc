@@ -2313,6 +2313,7 @@ void dNdD_MH97 (//WS Output:
               const Numeric& IWC,
               const Numeric& t,
               const Index& noisy,
+              const Index& robust,
               const Verbosity&)
 {
   Index n_se = diameter_mass_equivalent.nelem();
@@ -2322,7 +2323,8 @@ void dNdD_MH97 (//WS Output:
     {
       // calculate particle size distribution with MH97
       // [# m^-3 m^-1]
-      dNdD[i] = IWCtopnd_MH97 ( IWC, diameter_mass_equivalent[i], t, noisy );
+      dNdD[i] = IWCtopnd_MH97 ( IWC, diameter_mass_equivalent[i], t, noisy,
+                                robust );
     }
 }
 

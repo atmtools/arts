@@ -413,12 +413,12 @@ void chk_scat_species (
   for ( Index k=0; k<scat_species.nelem(); k++ )
     {
       scat_species[k].split ( strarr, delim );
-      if ( strarr.nelem() > nelem )
+      if ( strarr.nelem() < nelem )
         {     
           ostringstream os;
-          os << "Individual strings in scat_species can only contain up to "
+          os << "Individual strings in scat_species must contain at least "
              << nelem << " elements,\n"
-             << "but entry #" << k << " contains the following "
+             << "but entry #" << k << " contains only the following "
              << strarr.nelem() << ":\n" << strarr << "\n";
           throw runtime_error ( os.str() );
         }
@@ -847,12 +847,17 @@ void pnd_fieldMH97 (Tensor4View pnd_field,
 
   String psd_param;
   String partfield_name;
+  ArrayOfString psd_options;
 
   //split String and copy to ArrayOfString
   parse_psd_param( psd_param, part_string, delim);
   parse_partfield_name( partfield_name, part_string, delim);
 
   bool noisy = (psd_param == "MH97n");
+  bool robust = false;
+  parse_psd_options( psd_options, part_string, delim);
+  for ( Index i=0; i<psd_options.nelem(); i++ )
+    robust = (robust || (psd_options[i]=="robust") );
 
   for ( Index i=0; i < N_se; i++ )
     {
@@ -899,7 +904,7 @@ void pnd_fieldMH97 (Tensor4View pnd_field,
                     dNdD[i] = IWCtopnd_MH97 ( IWC_field ( p, lat, lon ),
                                               diameter_mass_equivalent[i],
                                               t_field ( p, lat, lon ),
-                                              noisy );
+                                              noisy, robust );
                   }
                   // scale pnds by bin width
                   if (diameter_mass_equivalent.nelem() > 1)
@@ -2789,7 +2794,8 @@ void pnd_fieldH98 (Tensor4View pnd_field,
 Numeric IWCtopnd_MH97 ( const Numeric iwc,
                         const Numeric diameter_mass_equivalent,
                         const Numeric t,
-                        const bool noisy )
+                        const bool noisy,
+                        const bool robust )
 {
   // skip calculation if IWC is 0.0
   if ( iwc == 0.0 )
@@ -2803,15 +2809,16 @@ Numeric IWCtopnd_MH97 ( const Numeric iwc,
   Numeric T = t-273.15;
 
   // abort if T is too high
-  if ( t>280. )
+  if ( !robust && t>280. )
     {
       ostringstream os;
-      os << "Temperatures above 280K not allowed by MH97.\n"
+      os << "Temperatures above 280K not allowed by MH97"
+         << " (to allow: run with robust option).\n"
          << "Yours is " << t << "K.";
       throw runtime_error ( os.str() );
     }
   // allow some margin on T>0C (but use T=0C for PSD calc)
-  else if ( T>0. )
+  if ( T>0. )
     T = 0.;
 
   //[kg/m3] -> [g/m3] as used by parameterisation
@@ -4151,5 +4158,35 @@ void parse_psd_param (//WS Output:
       psd_param = strarr[1];
   else
       psd_param = "";
+}
+
+/*! Splitting scat_species string and parse additional options
+	\param  psd_options contents of part_string positions >2
+	\param  part_string scattering species tag from *scat_species*
+  \param  delim       delimiter string of *scat_species* elements
+  
+  \author Jana Mendrok
+  \date 2016-06-03
+
+*/
+void parse_psd_options (//WS Output:
+                        ArrayOfString& psd_options,
+                        // WS Input:
+                        const String& part_string,
+                        const String& delim)
+{
+  ArrayOfString strarr;
+
+  // split scat_species string at delim and write to ArrayOfString
+  part_string.split ( strarr, delim );
+
+  // everything beyond second entry can hold psd-specific options
+  if (strarr.size()>2)
+    {
+        psd_options.resize(strarr.nelem()-2);
+        std::copy(strarr.begin()+2, strarr.end(), psd_options.begin());
+    }
+    else
+        psd_options.resize(0);
 }
 

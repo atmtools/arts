@@ -4060,13 +4060,17 @@ void define_md_data_raw()
         GOUT_TYPE( "Vector" ),
         GOUT_DESC( "size distribution number density [#/m3/m]" ),
         IN(),
-        GIN(         "diameter_mass_equivalent", "IWC",     "t",       "noisy" ),
-        GIN_TYPE(    "Vector",                   "Numeric", "Numeric", "Index" ),
-        GIN_DEFAULT( NODEF,                      NODEF,     NODEF,     "0" ),
+        GIN(         "diameter_mass_equivalent", "IWC",     "t",
+                     "noisy", "robust" ),
+        GIN_TYPE(    "Vector",                   "Numeric", "Numeric",
+                     "Index", "Index" ),
+        GIN_DEFAULT( NODEF,                      NODEF,     NODEF,
+                     "0",     "0" ),
         GIN_DESC( "Mass equivalent sphere diameter of the particles [m]",
                   "Atmospheric ice water content [kg/m3]",
                   "Ambient atmospheric temperature [K]",
-                  "Distribution parameter perturbance flag" )
+                  "Distribution parameter perturbance flag",
+                  "Flag whether to ignore internal temperature range check" )
         ));
     
   md_data_raw.push_back
@@ -11465,7 +11469,35 @@ void define_md_data_raw()
         GIN_DESC()
         ));
 
-    md_data_raw.push_back
+/*
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "RT4Test" ),
+        DESCRIPTION
+        (
+         "RT4 validation test.\n"
+         "\n"
+         "Executes the test case shipped with PolRadTran/RT4 code (but uses\n"
+         "data files converted to arts-xml). Output written to (xml-)file.\n"
+         ),
+        AUTHORS( "Jana Mendrok" ),
+        OUT(),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN(),
+        GIN( "z_file", "T_file", "abs_gas_file",
+             "ext_par_file", "abs_par_file", "sca_par_file" ),
+        GIN_TYPE( "String", "String", "String",
+                  "String", "String", "String" ),
+        GIN_DEFAULT( "z.xml", "T.xml", "abs_gas.xml",
+                     "ext_par.xml", "abs_par.xml", "sca_par.xml" ),
+        GIN_DESC( "height data file", "temperature data file", "gas_extinct file",
+                  "ext_par file", "abs_par file", "sca_par file" )
+        ));
+*/
+
+  md_data_raw.push_back
     ( MdRecord
       ( NAME( "rte_losGeometricFromRtePosToRtePos2" ),
         DESCRIPTION
