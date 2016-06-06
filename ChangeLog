@@ -1,3 +1,14 @@
+2016-06-06  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-500
+
+	* src/xml_io_compound_types.cc (xml_read_from_stream):
+
+	Better error message if the user tries to read a broken GriddedField
+	file with a wrong tag for *ArrayOfString*. Only occurs if user decides
+	to manually create XML files instead of using proper tools such as
+	atmlab or typhon. :-)
+	
 2016-06-03  Richard Larsson   <ric.larsson@gmail.com>
 
 	* arts-2-3-499

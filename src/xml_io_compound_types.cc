@@ -247,14 +247,18 @@ void xml_read_from_stream(istream& is_xml,
             }
           else
             {
-              xml_parse_error("Grids must be of type <Vector> or <ArrayOfString> but <ArrayOf"
-                              + s + "> found.");
+              xml_parse_error("Grids must be of type *Vector* or *ArrayOfString*\n"
+                              "but *ArrayOf" + s + "* found.");
             }
         }
       else
         {
-          xml_parse_error("Grids must be of type <Vector> or <ArrayOfString> but <"
-                          + tag.get_name() + "> found.");
+          ostringstream os;
+          os <<"Grids must be of type *Vector* or *ArrayOfString*\n"
+            << "but tag <"+ tag.get_name() + "> found.";
+          if (tag.get_name() == "ArrayOfString")
+            os << "\nCorrect XML tag for *ArrayOfString* is <Array type=\"String\" ...>.";
+          xml_parse_error(os.str());
         }
     }
 }
