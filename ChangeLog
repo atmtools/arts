@@ -1,3 +1,15 @@
+2016-06-16 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-501
+
+	* src/continua.cc (xsec_continuum_tag):
+	Added frequency and temperature limit checks for liquidcloud ELL07 &
+	MPM93 and rain MPM93 absorption models.
+
+	* methods.cc (AtmRawRead):
+	Tried to improve documentation, giving some hints for handling of
+	cloud/precip as absorption species.
+
 2016-06-06  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-500

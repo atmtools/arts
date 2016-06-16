@@ -20173,6 +20173,33 @@ void xsec_continuum_tag (MatrixView             xsec,
       // temperature      : 233 to 323 K
       // relative humidity:   1 to 100 %
       //
+      for ( Index s=0; s<f_grid.nelem(); ++s )
+        {
+          if( f_grid[s] > 1e12 )
+            {
+               ostringstream os;
+               os << "Liquid cloud absorption model MPM93 only valid at"
+                     "frequencies up to 1THz. Yours is above.\n";
+               throw runtime_error(os.str());
+            }
+        }
+      for ( Index s=0; s<abs_t.nelem(); ++s )
+        {
+          if( vmr[s]!=0. && abs_t[s] < 233. )
+            {
+               ostringstream os;
+               os << "Liquid cloud absorption model MPM93 only valid at"
+                     "temperatures above 233K. Yours is below.\n";
+               throw runtime_error(os.str());
+            }
+          else if ( vmr[s]!=0. && abs_t[s] > 323. )
+            {
+               ostringstream os;
+               os << "Liquid cloud absorption model MPM93 only valid at"
+                     "temperatures below 323K. Yours is above.\n";
+               throw runtime_error(os.str());
+            }
+        }
       const int Nparam = 3;
       if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
         {
@@ -20251,6 +20278,34 @@ void xsec_continuum_tag (MatrixView             xsec,
       // temperature      : 233 to 323 K
       // relative humidity:   1 to 100 %
       //
+      for ( Index s=0; s<f_grid.nelem(); ++s )
+        {
+          if( f_grid[s] > 25e12 )
+            {
+               ostringstream os;
+               os << "Liquid cloud absorption model ELL07 only valid at"
+                     "frequencies up to 25THz. Yours is above.\n";
+               throw runtime_error(os.str());
+            }
+        }
+      for ( Index s=0; s<abs_t.nelem(); ++s )
+        {
+          if( vmr[s]!=0. && abs_t[s] < 233. )
+            {
+               ostringstream os;
+               os << "Liquid cloud absorption model ELL07 only valid at"
+                     "temperatures above 233K. Yours is below.\n";
+               throw runtime_error(os.str());
+            }
+          else if ( vmr[s]!=0. && abs_t[s] > 373. )
+            {
+               ostringstream os;
+               os << "Liquid cloud absorption model ELL07 only valid at"
+                     "temperatures below 373K. Yours is above.\n";
+               throw runtime_error(os.str());
+            }
+        }
+
       if ( (model == "ELL07") && (parameters.nelem() == 0) ) // --------------------
         {
           out3 << "ELL07 liquid water cloud absorption model " << name << " running with \n"
@@ -20312,6 +20367,16 @@ void xsec_continuum_tag (MatrixView             xsec,
       // temperature      : 233 to 323 K
       // relative humidity:   1 to 100 %
       //
+      for ( Index s=0; s<f_grid.nelem(); ++s )
+        {
+          if( f_grid[s] > 1e12 )
+            {
+               ostringstream os;
+               os << "Ice cloud absorption model MPM93 only valid at"
+                     "frequencies up to 1THz. Yours is above.\n";
+               throw runtime_error(os.str());
+            }
+        }
       const int Nparam = 3;
       if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
         {
@@ -20394,6 +20459,16 @@ void xsec_continuum_tag (MatrixView             xsec,
       // valid atmospheric condition:
       // temperature      : (preferably above 273 K...)
       //
+      for ( Index s=0; s<f_grid.nelem(); ++s )
+        {
+          if( f_grid[s] > 1e12 )
+            {
+               ostringstream os;
+               os << "Rain absorption model MPM93 only valid at"
+                     "frequencies up to 1THz. Yours is above.\n";
+               throw runtime_error(os.str());
+            }
+        }
       const int Nparam = 3;
       if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
         {
