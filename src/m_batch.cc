@@ -121,6 +121,12 @@ void ybatchCalc(Workspace&      ws,
     ybatch.resize(ybatch_n);
     ybatch_aux.resize(ybatch_n);
     ybatch_jacobians.resize(ybatch_n);
+    for (Index i = 0; i < ybatch_n; i++)
+    {
+        ybatch[i].resize(0);
+        ybatch_aux[i].resize(0);
+        ybatch_jacobians[i].resize(0, 0);
+    }
 
     // We have to make a local copy of the Workspace and the agendas because
     // only non-reference types can be declared firstprivate in OpenMP

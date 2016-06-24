@@ -1,3 +1,13 @@
+2016-06-24  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-502
+
+	* src/m_batch.cc (ybatchCalc):
+
+	Resize all elements of the ybatch* WSVs to 0. Before it could happen
+	that old values are still present if ybatchCalc is called more than
+	once with an ARTS release build. Fixes bug reported by Freddy.
+
 2016-06-16 Jana Mendrok  <jana.mendrok@chalmers.se>
 
 	* arts-2-3-501
