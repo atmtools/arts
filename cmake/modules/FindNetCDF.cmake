@@ -10,7 +10,6 @@ if (NOT NO_NETCDF)
   find_path (NETCDF_INCLUDE_DIR netcdf.h PATH_SUFFIXES netcdf)
 
   find_library (NETCDF_LIBRARY NAMES netcdf4 netcdf)
-  find_library (NETCDFXX_LIBRARY NAMES netcdf_c++4 netcdf_c++)
 
   set (NETCDF_LIBRARIES ${NETCDF_LIBRARY} ${NETCDFXX_LIBRARY})
 
