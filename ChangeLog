@@ -1,3 +1,11 @@
+2016-07-01  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-503
+
+	* cmake/modules/FindNetCDF.cmake:
+
+	Remove unused library dependency on netcdf_c++.
+
 2016-06-24  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-502
