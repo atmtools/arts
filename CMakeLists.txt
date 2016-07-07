@@ -186,9 +186,13 @@ endif (NOT BLAS_FOUND)
 
 ########## LAPACK support #########
 
-include (FindLAPACK )
+include (FindLAPACK)
 if (NOT LAPACK_FOUND)
+  unset(LAPACK_FOUND)
+  include (FindCblasLapack)
+  if (NOT LAPACK_FOUND)
     message (FATAL_ERROR "No LAPACK library found. Please install it.")
+  endif (NOT LAPACK_FOUND)
 endif (NOT LAPACK_FOUND)
 
 ########## NetCDF support #########
