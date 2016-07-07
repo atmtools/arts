@@ -6095,7 +6095,33 @@ void define_md_data_raw()
         GIN_DESC()
         ));
 
-  md_data_raw.push_back     
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "IndexAdd" ),
+        DESCRIPTION
+        (
+         "Adds a index and a value (out = in+value).\n"
+         "\n"
+         "The result can either be stored in the same or another index.\n"
+         "(in and out can be the same variable, but not out and value)\n"
+         ),
+        AUTHORS( "Patrick Eriksson, Oliver Lemke" ),
+        OUT(),
+        GOUT(      "out"       ),
+        GOUT_TYPE( "Index" ),
+        GOUT_DESC( "Output numeric." ),
+        IN(),
+        GIN(      "in",
+                  "value" ),
+        GIN_TYPE(    "Index",
+                     "Index" ),
+        GIN_DEFAULT( NODEF   ,
+                     NODEF ),
+        GIN_DESC( "Input Index.",
+                  "Value to add." )
+        ));
+
+  md_data_raw.push_back
     ( MdRecord
       ( NAME( "IndexSet" ),
         DESCRIPTION

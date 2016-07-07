@@ -1,5 +1,11 @@
 2016-07-07  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-3-506
+
+	* src/methods.cc, src/m_basic_types.cc: Add IndexAdd.
+
+2016-07-07  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-3-505
 
 	* controlfiles/instruments/mviri, controlfiles/instruments/seviri:

@@ -149,6 +149,16 @@ void FlagOn(Index& x, const Verbosity&)
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void IndexAdd(Index&   out,
+              const Index&   in,
+              const Index&   value,
+              const Verbosity&)
+{
+    out = value + in;
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void IndexSet(Index& x,
               const Index& value,
               const Verbosity&)
