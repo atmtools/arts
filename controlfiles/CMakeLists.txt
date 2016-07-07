@@ -133,6 +133,9 @@ arts_test_run_ctlfile(slow instruments/metmm/TestMetMM.arts)
 
 #arts_test_run_ctlfile(slow instruments/avhrr/TestAVHRR.arts)
 
+arts_test_run_ctlfile(nocheck instruments/seviri/TestSEVIRI.arts)
+arts_test_run_ctlfile(nocheck instruments/mviri/TestMVIRI.arts)
+
 if (ARTS_XML_DATA_DIR)
 
   ###############################

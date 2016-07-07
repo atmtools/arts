@@ -1,0 +1,42 @@
+# Included by mviri_reference.arts
+Arts2{
+# Channel response functions:
+StringCreate( backend_channel_response_file)
+StringSet(    backend_channel_response_file, "")
+Append(	      backend_channel_response_file, satellite)
+# FIXME: Remove this when using constant in Append works:
+StringSet(    dummy,          "_MVIRI.backend_channel_response.xml")
+#
+Append(	      backend_channel_response_file, dummy)
+
+
+
+# Spectrometer:
+#
+ReadXML( f_backend, f_backend_file )
+ReadXML( backend_channel_response,
+         backend_channel_response_file )
+
+# Select the desired channels:
+#
+Select(f_backend, f_backend, channels)
+Select(backend_channel_response, backend_channel_response, channels)
+
+
+# Frequency grid:
+#
+f_gridFromSensorHIRS( f_grid,
+                      f_backend, backend_channel_response,
+		      f_grid_spacing )
+
+
+# Construct sensor response from all these inputs:
+#
+sensor_responseInit
+sensor_responseBackend
+
+
+# End of sensor response setup
+
+
+}

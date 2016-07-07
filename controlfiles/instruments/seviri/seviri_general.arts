@@ -1,0 +1,10 @@
+# Included by seviri_fast.arts and seviri_reference.arts
+Arts2{
+output_file_formatSetZippedAscii
+
+# ???????? FIXME ???????
+
+# SEVIRI spectral response functions assume radiance.
+# ---
+StringSet( iy_unit, "1" )
+}
