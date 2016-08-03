@@ -2844,8 +2844,8 @@ void define_md_data_raw()
          "The vmr fields read are governed by the species given in\n"
          "*abs_species*. Beside gaseous species, these can also contain\n"
          "purely absorbing particulate matter. In the latter case the\n"
-         "profiles are supposed to provide the mass content (units kg/m3) for\n"
-         "clouds and precipitation rates (units kg/m2/s) for precipitation\n"
+         "profiles are supposed to provide the mass content (unit kg/m3) for\n"
+         "clouds and precipitation rate (unit kg/m2/s) for precipitation\n"
          "instead of the vmr.\n"
          "\n"
          "The data is stored in different files. This methods reads all\n"
@@ -3841,7 +3841,7 @@ void define_md_data_raw()
          "DISCLAIMER: There is a couple of known issues with the current\n"
          "implementation (see below). Use this WSM with care and only if\n"
          "these limitations/requirements are fulfilled. Results might be\n"
-         "erronous otherwise.\n"
+         "erroneous otherwise.\n"
          "\n"
          "DISORT is only availble for scalar 1D calculations and implicitly\n"
          "assumes a plane-parallel atmosphere (flat Earth). Only\n"
@@ -3851,13 +3851,14 @@ void define_md_data_raw()
          "Number of streams *nstreams* taken into account in the scattering\n"
          "solution determines the angular resolution, hence the accuracy of\n"
          "the solution. The more anisotropic the bulk scattering matrix, the\n"
-         "more streams are required. Note, however, that the computational\n"
-         "burden increases with the second power of *nstreams*. The default\n"
-         "value (8) is assumed to be sufficient for most microwave scattering\n"
+         "more streams are required. The computational burden increases\n"
+         "approximately linearly with *nstreams*. The default value (8) is\n"
+         "assumed to be sufficient for most microwave scattering\n"
          "calculations. It is likely insufficient for IR calculations\n"
          "involving ice clouds, though.\n"
          "\n"
-         "ARTS-DISORT can be run with different levels of (pseudo-)sphericity.\n"
+         "ARTS-DISORT can be run with different levels of (pseudo-)sphericity,\n"
+         "determined by the cloudbox settings and the *non_is_inc* keyword.\n"
          "The higher the sphericity level is, the more accurate are the\n"
          "results, but the longer the calculation takes (typically, for\n"
          "downlooking cases - even 50deg off-nadir ones - the differences\n"
@@ -3868,18 +3869,18 @@ void define_md_data_raw()
          "different ways and using different output. The available options\n"
          "(from low to high sphericity level) are:\n"
          "- Cloudbox extends over whole atmosphere (e.g. by setting cloudbox\n"
-         "  from  *cloudboxSetDisort*)\n"
+         "  from  *cloudboxSetDisort*).\n"
          "- Cloudbox extends over a limited part of the atmosphere only (e.g.\n"
          "  by setting cloudbox from *cloudboxSetAutomatically* or\n"
-         "  *cloudboxSetManually*), but DISORT is run over the whole\n"
-         "  atmosphere.  Only the radiation field within the cloudbox is\n"
-         "  passed on and used further in ARTS (e.g. by *yCalc*)\n"
+         "  *cloudboxSetManually*). Internally, DISORT is run over the whole\n"
+         "  atmosphere, but only the radiation field within the cloudbox is\n"
+         "  passed on and used further in ARTS (e.g. by *yCalc*).\n"
          "- Cloudbox extends over a limited part of the atmosphere only and\n"
          "  *non_iso_inc* is set to 1. In this case, DISORT is run over the\n"
          "  cloudbox only and initialized by a non-isotropic incoming\n"
          "  radiation field on the top of the cloudbox. This incoming field\n"
-         "  is calculated by ARTS clearsky methods that take atmospheric\n"
-         "  sphericity and refractivity fully into account.\n"
+         "  is internally calculated by ARTS clearsky methods that take\n"
+         "  atmospheric sphericity and refractivity fully into account.\n"
          "\n"
          "Known issues of ARTS implementation:\n"
          "- Surface altitude is not an interface parameter. Surface is\n"
@@ -3889,10 +3890,8 @@ void define_md_data_raw()
          "- Except for *non_iso_inc*=1, where *iy_space_agenda* is applied,\n"
          "  TOA incoming radiation is assumed as blackbody cosmic background\n"
          "  (temp taken from ARTS-internal constant).\n"
-         "- Temperature dependence of phase matrix is currently ignored\n"
-         "  (*pha_mat_data* of lowest t_grid point is used).\n"
          "- Scattering angle grids of all scattering elements have to be\n"
-         "  identical.\n"
+         "  identical (except if *pfct_method* is 'interpolate').\n"
          "\n"
          "Keyword *pfct_method* allows to chose the method to extract phase\n"
          "function. 'interpolate' considers temperature dependence. Others\n"
@@ -3900,7 +3899,7 @@ void define_md_data_raw()
          "single scattering data: 'low' choses the lowest T-point, 'high' the\n"
          "highest T-point, and 'median' the median T-point. As different\n"
          "scattering elements can have different temperature grids, the actual\n"
-         "temperature value used can differ between the scattering element.\n"
+         "temperature value used can differ between the scattering elements.\n"
          "Currently, other methods than 'interpolate' require all scattering\n"
          "elements to be given on identical scattering angle grids.\n"
          "Note that this keyword solely affects the phase function;\n"
@@ -11503,7 +11502,6 @@ void define_md_data_raw()
         GIN_DESC()
         ));
 
-/*
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "RT4Test" ),
@@ -11511,25 +11509,20 @@ void define_md_data_raw()
         (
          "RT4 validation test.\n"
          "\n"
-         "Executes the test case shipped with PolRadTran/RT4 code (but uses\n"
+         "Executes test case testc shipped with PolRadTran/RT4 code (but uses\n"
          "data files converted to arts-xml). Output written to (xml-)file.\n"
          ),
         AUTHORS( "Jana Mendrok" ),
         OUT(),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
+        GOUT( "out_rad" ),
+        GOUT_TYPE( "Tensor4" ),
+        GOUT_DESC( "RT4 testc calculation results." ),
         IN(),
-        GIN( "z_file", "T_file", "abs_gas_file",
-             "ext_par_file", "abs_par_file", "sca_par_file" ),
-        GIN_TYPE( "String", "String", "String",
-                  "String", "String", "String" ),
-        GIN_DEFAULT( "z.xml", "T.xml", "abs_gas.xml",
-                     "ext_par.xml", "abs_par.xml", "sca_par.xml" ),
-        GIN_DESC( "height data file", "temperature data file", "gas_extinct file",
-                  "ext_par file", "abs_par file", "sca_par file" )
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
         ));
-*/
 
   md_data_raw.push_back
     ( MdRecord

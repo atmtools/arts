@@ -124,33 +124,23 @@ C  integration over azimuth and zenith angles.
      .               GROUND_ALBEDO, GROUND_INDEX,
      .               SKY_TEMP, WAVELENGTH,
      .               NUM_LAYERS, HEIGHT, TEMPERATURES,
-c     .               GAS_EXTINCT, SCAT_FILES,
-     .               GAS_EXTINCT,
-     .               NSL, SCATLAYERS,
-     .               EXTINCT_MATRIX, EMIS_VECTOR, SCATTER_MATRIX,
-c     .               NOUTLEVELS, OUTLEVELS,
-c     .               MU_VALUES, UP_FLUX, DOWN_FLUX,
-     .               MU_VALUES,
+     .               GAS_EXTINCT, SCAT_FILES,
+     .               NOUTLEVELS, OUTLEVELS,
+     .               MU_VALUES, UP_FLUX, DOWN_FLUX,
      .               UP_RAD, DOWN_RAD)
-      INTEGER   NSTOKES, NUMMU, NUM_LAYERS, NSL
-c      INTEGER   NOUTLEVELS, OUTLEVELS(NOUTLEVELS)
+      INTEGER   NSTOKES, NUMMU, NUM_LAYERS
+      INTEGER   NOUTLEVELS, OUTLEVELS(*)
       REAL*8    GROUND_TEMP, GROUND_ALBEDO
       COMPLEX*16  GROUND_INDEX
       REAL*8    SKY_TEMP
       REAL*8    WAVELENGTH, MAX_DELTA_TAU
-      REAL*8    HEIGHT(NUM_LAYERS+1), TEMPERATURES(NUM_LAYERS+1)
-      REAL*8    GAS_EXTINCT(NUM_LAYERS)
-      REAL*8    MU_VALUES(NUMMU)
-c      REAL*8    UP_FLUX(NSTOKES*NUM_LAYERS+1)
-c      REAL*8    DOWN_FLUX(NSTOKES*NUM_LAYERS+1)
-      REAL*8    UP_RAD(NSTOKES*NUMMU*NUM_LAYERS+1)
-      REAL*8    DOWN_RAD(NSTOKES*NUMMU*NUM_LAYERS+1)
+      REAL*8    HEIGHT(*), TEMPERATURES(*)
+      REAL*8    GAS_EXTINCT(*)
+      REAL*8    MU_VALUES(*)
+      REAL*8    UP_FLUX(*), DOWN_FLUX(*)
+      REAL*8    UP_RAD(*), DOWN_RAD(*)
       CHARACTER*1  QUAD_TYPE, GROUND_TYPE
-c      CHARACTER*64 SCAT_FILES(*)
-      REAL*8    SCATLAYERS(NUM_LAYERS)
-      REAL*8    EXTINCT_MATRIX(NSTOKES,NSTOKES,NUMMU,2,NSL)
-      REAL*8    EMIS_VECTOR(NSTOKES,NUMMU,2,NSL)
-      REAL*8    SCATTER_MATRIX(NSTOKES,NUMMU,NSTOKES,NUMMU,4,NSL)
+      CHARACTER*64 SCAT_FILES(*)
 
       INTEGER   MAXV, MAXM, MAXLAY, MAXLM
       PARAMETER (MAXV=64, MAXM=4096, MAXLAY=200, MAXLM=201*256)
@@ -160,15 +150,15 @@ c      CHARACTER*64 SCAT_FILES(*)
       PARAMETER (ZERO=0.0D0)
 
       INTEGER   LAYER, NUM_DOUBLES
-      INTEGER   I, J, K, L, N, KRT, KS, TSL
+      INTEGER   I, J, K, L, N, KRT, KS
       LOGICAL   SYMMETRIC
       REAL*8    LINFACTOR
       REAL*8    PLANCK0, PLANCK1
       REAL*8    ZDIFF, DELTA_Z, F, NUM_SUB_LAYERS, EXTINCT
       REAL*8    QUAD_WEIGHTS(MAXV)
-c      REAL*8    SCATTER_MATRIX(4*MAXM)
+      REAL*8    SCATTER_MATRIX(4*MAXM)
       REAL*8    LIN_SOURCE(2*MAXV)
-c      REAL*8    EXTINCT_MATRIX(16*2*MAXV), EMIS_VECTOR(4*2*MAXV)
+      REAL*8    EXTINCT_MATRIX(16*2*MAXV), EMIS_VECTOR(4*2*MAXV)
       REAL*8    REFLECT1(2*MAXM),UPREFLECT(2*MAXM),DOWNREFLECT(2*MAXM)
       REAL*8    TRANS1(2*MAXM),  UPTRANS(2*MAXM),  DOWNTRANS(2*MAXM)
       REAL*8    SOURCE1(2*MAXV), UPSOURCE(2*MAXV), DOWNSOURCE(2*MAXV)
@@ -176,20 +166,10 @@ c      REAL*8    EXTINCT_MATRIX(16*2*MAXV), EMIS_VECTOR(4*2*MAXV)
       REAL*8    TRANS(2*MAXLM)
       REAL*8    SOURCE(2*MAXV*(MAXLAY+1))
       REAL*8    GND_RADIANCE(MAXV), SKY_RADIANCE(2*MAXV)
-c      CHARACTER*64 SCAT_FILE
+      CHARACTER*64 SCAT_FILE
 
 
-c     this is dangerous to do, as we use nstokes also as array-size
-c     determining parameter. resetting it will cause problems later on
-c     shaping the arrays and correct value extraction. so, don't do
-c     this. just check (and fail) in condition is not fulfilled.
-c      NSTOKES = MIN(NSTOKES,2)
-      IF (NSTOKES .GT. 2) THEN
-          WRITE (*,'(1X,A,I3)')
-     .     'Number of Stokes parameters exceeded.  Maximum size :', 2
-          STOP
-      ENDIF
-
+      NSTOKES = MIN(NSTOKES,2)
       SYMMETRIC = .TRUE.
       N = NSTOKES*NUMMU
       IF (N .GT. MAXV) THEN
@@ -239,22 +219,29 @@ C           Make the desired quadrature abscissas and weights
 
 
 
+      SCAT_FILE = '&&&'
 C     ------------------------------------------------------
 C           Loop through the layers
 C              Do doubling to make the reflection and transmission matrices
 C              and soure vectors for each layer, which are stored.
 
-      IF (NSL .GT. 0) THEN
-          CALL CHECK_NORM (NSTOKES, NUMMU, NSL,
-     .                     QUAD_WEIGHTS,
-     .                     SCATTER_MATRIX,
-     .                     EXTINCT_MATRIX, EMIS_VECTOR)
-      END IF
-
       DO LAYER = 1, NUM_LAYERS
 C                   Calculate the layer thickness
           ZDIFF = ABS(HEIGHT(LAYER) - HEIGHT(LAYER+1))
           GAS_EXTINCT(LAYER) = MAX(GAS_EXTINCT(LAYER),0.0D0)
+
+          IF (SCAT_FILES(LAYER) .NE. SCAT_FILE .AND.
+     .        SCAT_FILES(LAYER) .NE. ' ')  THEN
+              SCAT_FILE = SCAT_FILES(LAYER)
+C                   Read the scattering matrix from the file
+              CALL GET_SCAT_FILE (NSTOKES, NUMMU, QUAD_TYPE, SCAT_FILE,
+     .                            SCATTER_MATRIX,
+     .                            EXTINCT_MATRIX, EMIS_VECTOR)
+              CALL CHECK_NORM (NSTOKES, NUMMU, QUAD_WEIGHTS,
+     .                         SCATTER_MATRIX,
+     .                         EXTINCT_MATRIX, EMIS_VECTOR)
+          ENDIF
+
 
 C                   Do the stuff for thermal source in layer
 C                   Calculate the thermal source for end of layer
@@ -267,8 +254,7 @@ C                   Calculate the thermal source for beginning of layer
           KRT = 1 + 2*N*N*(LAYER-1)
           KS = 1 + 2*N*(LAYER-1)
 
-          TSL = NINT(SCATLAYERS(LAYER))
-          IF (TSL .LT. 1) THEN
+          IF (SCAT_FILES(LAYER) .EQ. ' ') THEN
 C                   If the layer is purely absorbing then quickly
 C                     make the reflection and transmission matrices
 C                     and source vector instead of doubling.
@@ -280,7 +266,7 @@ C                     and source vector instead of doubling.
 
 C                   Find initial thickness of sublayer and
 C                     the number of times to double
-              EXTINCT = EXTINCT_MATRIX(1,1,1,1,TSL)+GAS_EXTINCT(LAYER)
+              EXTINCT = EXTINCT_MATRIX(1)+GAS_EXTINCT(LAYER)
               F =DLOG(MAX(EXTINCT*ZDIFF,1.0D-7)/MAX_DELTA_TAU)/LOG(2.)
               NUM_DOUBLES = 0
               IF (F .GT. 0.0)  NUM_DOUBLES = INT(F) + 1
@@ -288,10 +274,8 @@ C                     the number of times to double
               DELTA_Z = ZDIFF / NUM_SUB_LAYERS
 
 C                   Initialize the source vector
-              CALL INITIAL_SOURCE (NSTOKES, NUMMU,
-     .                    DELTA_Z, MU_VALUES,
-     .                    PLANCK0, EMIS_VECTOR(1,1,1,TSL),
-     .                    GAS_EXTINCT(LAYER),
+              CALL INITIAL_SOURCE (NSTOKES, NUMMU, DELTA_Z, MU_VALUES,
+     .                    PLANCK0, EMIS_VECTOR, GAS_EXTINCT(LAYER),
      .                    LIN_SOURCE)
               IF (PLANCK0 .EQ. 0.0) THEN
                   LINFACTOR = 0.0
@@ -300,12 +284,10 @@ C                   Initialize the source vector
               ENDIF
 
 C                Generate the local reflection and transmission matrices
-              CALL INITIALIZE (NSTOKES, NUMMU,
+              CALL INITIALIZE (NSTOKES, NUMMU, 
      .                         DELTA_Z, MU_VALUES, QUAD_WEIGHTS,
-     .                         GAS_EXTINCT(LAYER),
-     .                         EXTINCT_MATRIX(1,1,1,1,TSL),
-     .                         SCATTER_MATRIX(1,1,1,1,1,TSL),
-     .                         REFLECT1, TRANS1)
+     .                         GAS_EXTINCT(LAYER), EXTINCT_MATRIX,
+     .                         SCATTER_MATRIX,  REFLECT1, TRANS1)
 
 C                   Double up to the thickness of the layer
               CALL DOUBLING_INTEGRATION (N, NUM_DOUBLES, SYMMETRIC,
@@ -348,8 +330,8 @@ C           Assume the radiation coming from above is blackbody radiation
 C         For each desired output level (1 thru NL+2) add layers 
 C           above and below level and compute internal radiance.
 C           OUTLEVELS gives the desired output levels.
-      DO I = 1, NUM_LAYERS+1
-        LAYER = MIN( MAX( I, 1), NUM_LAYERS+2)
+      DO I = 1, NOUTLEVELS
+        LAYER = MIN( MAX( OUTLEVELS(I), 1), NUM_LAYERS+2)
         CALL MZERO (2*N, N, UPREFLECT)
         CALL MZERO (2*N, N, DOWNREFLECT)
         CALL MIDENTITY (N, UPTRANS(1))
@@ -399,22 +381,21 @@ C           OUTLEVELS gives the desired output levels.
 
 
 C           Integrate the mu times the radiance to find the fluxes
-c jm: we don't care about the fluxes so far. so, just skip this.
-c      DO L = 1, NUM_LAYERS+1
-c        DO I = 1, NSTOKES
-c          K = I+NSTOKES*(L-1)
-c          UP_FLUX(K) = 0.0
-c          DOWN_FLUX(K) = 0.0
-c          DO J = 1, NUMMU
-c            UP_FLUX(K) = UP_FLUX(K)
-c     .               + TWOPI*QUAD_WEIGHTS(J) * MU_VALUES(J)
-c     .               * UP_RAD(I+NSTOKES*(J-1)+N*(L-1))
-c            DOWN_FLUX(K) = DOWN_FLUX(K)
-c     .               + TWOPI*QUAD_WEIGHTS(J) * MU_VALUES(J)
-c     .               * DOWN_RAD(I+NSTOKES*(J-1)+N*(L-1))
-c          ENDDO
-c        ENDDO
-c      ENDDO
+      DO L = 1, NOUTLEVELS
+        DO I = 1, NSTOKES
+          K = I+NSTOKES*(L-1)
+          UP_FLUX(K) = 0.0
+          DOWN_FLUX(K) = 0.0
+          DO J = 1, NUMMU
+            UP_FLUX(K) = UP_FLUX(K)
+     .               + TWOPI*QUAD_WEIGHTS(J) * MU_VALUES(J)
+     .               * UP_RAD(I+NSTOKES*(J-1)+N*(L-1))
+            DOWN_FLUX(K) = DOWN_FLUX(K)
+     .               + TWOPI*QUAD_WEIGHTS(J) * MU_VALUES(J)
+     .               * DOWN_RAD(I+NSTOKES*(J-1)+N*(L-1))
+          ENDDO
+        ENDDO
+      ENDDO
 
       RETURN
       END

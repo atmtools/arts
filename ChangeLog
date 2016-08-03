@@ -1,3 +1,40 @@
+2016-08-03 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-507
+
+	* 3rdparty/polradtran/rt4/radtran4.f,radscat4.f,radintg4.f:
+	Adapted RT4 code for use with ARTS. Particularly, don't use files for
+	SSP data input, but pass this down from the calling routine. Changed all
+	internal full-stokes size SSP containers to only have nstokes entries.
+
+	* 3rdparty/polradtran/rt4/*.f.orig:
+	Keep original RT4 code in addition to ARTS-adapted one.
+
+	* config.h.cmake, CMakeLists.txt, 3rdparty/CMakeLists.txt,
+	3rdparty/polradtran/CMakeLists.txt, 3rdparty/polradtran/rt4/CMakeLists.txt,
+	src/CMakeLists.txt,src/main.cc:
+	Modified/added to include RT4 module.
+
+	* src/m_rt4.cc, rt4.h:
+	Added. So far contains only an interface to the proprietary RT4 testc
+	test case.
+
+	* src/methods.cc:
+	Added RT4Test. Improvements/corrections of DisortCalc doc.
+
+	* controlfiles/artscomponents/polradtran/, TestRT4Test.arts, refRT4.xml,
+	testdata/*.xml:
+	Added RT4 test case including (atm & SSP) data needed and reference
+	results (created from original RT4 calc). NOTE: the testdata is not
+	formatted for general use with ARTS, but specific to this test case
+	(ie not supposed to run as is with other ARTS modules like yCalc,
+	DoitCalc etc.)
+
+	* src/m_jacobian.cc:
+	Minor formulation changes.
+
+	* src/: Some further ignore patterns (*.mine*, .*sw*) added.
+
 2016-07-07  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-506

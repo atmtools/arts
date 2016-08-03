@@ -790,6 +790,12 @@ int main (int argc, char **argv)
 #else
         << "disabled" << endl
 #endif
+        << "   RT4 support:          "
+#ifdef ENABLE_RT4
+        << "enabled" << endl
+#else
+        << "disabled" << endl
+#endif
         << "   FASTEM support:       "
 #ifdef ENABLE_FASTEM
         << "enabled" << endl

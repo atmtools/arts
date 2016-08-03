@@ -86,36 +86,32 @@ C       Only reads in the m=0 Fourier azimuthal angle mode.
 
 
 
-      SUBROUTINE CHECK_NORM (NSTOKES, NUMMU, NSL,
-     .                       QUAD_WEIGHTS,
+      SUBROUTINE CHECK_NORM (NSTOKES, NUMMU, QUAD_WEIGHTS,
      .                       SCATTER_MATRIX,
      .                       EXTINCT_MATRIX, EMIS_VECTOR)
-      INTEGER  NSTOKES, NUMMU, NSL
+      INTEGER  NSTOKES, NUMMU
       REAL*8   QUAD_WEIGHTS(NUMMU)
-      REAL*8   SCATTER_MATRIX(NSTOKES,NUMMU,NSTOKES,NUMMU,4,NSL)
-      REAL*8   EXTINCT_MATRIX(NSTOKES,NSTOKES,NUMMU,2,NSL)
-      REAL*8   EMIS_VECTOR(NSTOKES,NUMMU,2,NSL)
-      INTEGER  J1, J2, L, TSL
+      REAL*8   SCATTER_MATRIX(NSTOKES,NUMMU,NSTOKES,NUMMU,4)
+      REAL*8   EXTINCT_MATRIX(4,4,NUMMU,2)
+      REAL*8   EMIS_VECTOR(4,NUMMU,2)
+      INTEGER  J1, J2, L
       REAL*8   SUM, MAXSUM, PI
       PARAMETER (PI = 3.1415926535897932384D0)
 
-      DO TSL = 1, NSL
-        MAXSUM = 0.0D0
-        DO J1 = 1, NUMMU
-          DO L = 1, 2
-            SUM = EMIS_VECTOR(1,J1,L,TSL) - EXTINCT_MATRIX(1,1,J1,L,TSL)
-            DO J2 = 1, NUMMU
-                SUM = SUM + 2.0D0*PI*QUAD_WEIGHTS(J2)*
-     .                 ( SCATTER_MATRIX(1,J2,1,J1, L,TSL)
-     .                 + SCATTER_MATRIX(1,J2,1,J1, L+2,TSL) )
-            ENDDO
-            MAXSUM = DMAX1 (MAXSUM, DABS(SUM))
+      MAXSUM = 0.0D0
+      DO J1 = 1, NUMMU
+        DO L = 1, 2
+          SUM = EMIS_VECTOR(1,J1,L) - EXTINCT_MATRIX(1,1,J1,L)
+          DO J2 = 1, NUMMU
+              SUM = SUM + 2.0D0*PI*QUAD_WEIGHTS(J2)*
+     .               ( SCATTER_MATRIX(1,J2,1,J1, L)
+     .               + SCATTER_MATRIX(1,J2,1,J1, L+2) )
           ENDDO
+          MAXSUM = DMAX1 (MAXSUM, DABS(SUM))
         ENDDO
-        IF (MAXSUM .GT. 1.0D-6) THEN
-            WRITE (*,*) 'Scattering function in scatlayer ', TSL,
-     .                  ' not normalized:', MAXSUM
-        ENDIF
       ENDDO
+      IF (MAXSUM .GT. 1.0D-6) THEN
+          WRITE (*,*) 'Scattering function not normalized:', MAXSUM
+      ENDIF
       RETURN
       END

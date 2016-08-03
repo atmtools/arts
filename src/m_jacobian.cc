@@ -2497,12 +2497,11 @@ void jacobianDoit(//WS Output:
 
   // We need to safe the reference fields. This because we use DoitCalc, which
   // accesses the atmospheric state through the workspace. I.e., we
-  // have to overwrite the workspace fields with the perturbed fields, then for
-  // the next perurbation level and/or species reset them to original state.
+  // have to overwrite the workspace fields with the perturbed fields, then
+  // restore them to the original state for the next perturbation level and/or
+  // species.
   // This sounds like a lot of back-and-forth copying. Can we do this in a
-  // better way?
-  //
-  // OLIVER???
+  // better way? (Oliver says: not really)
   Tensor4 vmr_field_ref = vmr_field;
   Tensor3 t_field_ref = t_field;
   Tensor4 scat_species_mass_density_field_ref = scat_species_mass_density_field;

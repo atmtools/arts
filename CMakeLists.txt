@@ -381,6 +381,11 @@ get_directory_property(ENABLE_DISORT DIRECTORY
                        3rdparty/disort1.2
                        DEFINITION ENABLE_DISORT)
 
+get_directory_property(ENABLE_RT4 DIRECTORY
+                       3rdparty/polradtran/rt4
+#                       3rdparty/rt4
+                       DEFINITION ENABLE_RT4)
+
 get_directory_property(ENABLE_FASTEM DIRECTORY
                        3rdparty/fastem
                        DEFINITION ENABLE_FASTEM)

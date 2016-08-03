@@ -35,6 +35,10 @@ if (ENABLE_DISORT)
   list (APPEND ALL_ARTS_LIBRARIES disort)
 endif (ENABLE_DISORT)
 
+if (ENABLE_RT4)
+  list (APPEND ALL_ARTS_LIBRARIES rt4)
+endif (ENABLE_RT4)
+
 if (ENABLE_FASTEM)
   list (APPEND ALL_ARTS_LIBRARIES fastem)
 endif (ENABLE_FASTEM)
@@ -218,6 +222,7 @@ add_library (artscore STATIC
   m_ppath.cc
   m_radiation_field.cc
   m_refraction.cc
+  m_rt4.cc
   m_rte.cc
   m_sensor.cc
   m_surface.cc
