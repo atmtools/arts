@@ -98,6 +98,10 @@ if (ENABLE_DISORT)
   arts_test_run_ctlfile(fast artscomponents/disort/TestDISORT.arts)
 endif ()
 
+if (ENABLE_RT4)
+  arts_test_run_ctlfile(fast artscomponents/polradtran/TestRT4Test.arts)
+endif ()
+
 if (ENABLE_TMATRIX)
   arts_test_run_ctlfile(fast artscomponents/tmatrix/TestTMatrix.arts)
 endif ()

@@ -1,5 +1,12 @@
 2016-08-03 Jana Mendrok  <jana.mendrok@chalmers.se>
 
+	* arts-2-3-508
+
+	* controlfiles/CMakeLists.txt:
+	Added RT4 test to (fast) checks.
+
+2016-08-03 Jana Mendrok  <jana.mendrok@chalmers.se>
+
 	* arts-2-3-507
 
 	* 3rdparty/polradtran/rt4/radtran4.f,radscat4.f,radintg4.f:
