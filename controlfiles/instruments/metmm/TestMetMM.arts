@@ -29,12 +29,26 @@ INCLUDE "general/planet_earth.arts"
 # from the available accuracies. This is set by the user in the main controlfile
 # Must be documented here:
 # N  Accuracy   Speed
-# 0: fast 	    very-very fast
-# 1: normal	    fast
-# 2: high	    slow
-# 3: reference	extremely slow
+# 0: fast       very-very fast
+# 1: normal     fast
+# 2: high       slow
+# 3: reference  extremely slow
     IndexCreate(met_mm_accuracy)
     IndexSet(met_mm_accuracy, 1)
+# ====================================================================
+
+# Sensor characteristics
+
+    INCLUDE "instruments/metmm/sensor_descriptions/prepare_metmm.arts"
+
+# Change the filename to switch sensors.
+    INCLUDE "instruments/metmm/sensor_descriptions/sensor_amsub.arts"
+
+    INCLUDE "instruments/metmm/sensor_descriptions/apply_metmm.arts"
+
+# Common microwave sensor settings
+    INCLUDE "instruments/metmm/common_metmm.arts"
+
 # ====================================================================
 
 # Spectroscopy
@@ -43,9 +57,9 @@ INCLUDE "general/planet_earth.arts"
                               "N2,  N2-CIAfunCKDMT252, N2-CIArotCKDMT252",
                               "O3" ] )      
     abs_lineshape_per_tgDefine( abs_lineshape, abs_species,
-	["Voigt_Kuntz6", "Faddeeva_Algorithm_916", "Voigt_Kuntz6", "Voigt_Kuntz6"],
-	["VVH", "VVH", "VVH", "VVH"],
-	[ 750e9, 750e9, 750e9, 5e9 ] )
+    ["Voigt_Kuntz6", "Faddeeva_Algorithm_916", "Voigt_Kuntz6", "Voigt_Kuntz6"],
+    ["VVH", "VVH", "VVH", "VVH"],
+    [ 750e9, 750e9, 750e9, 5e9 ] )
 
 
 # Read HITRAN catalog:
@@ -73,18 +87,10 @@ INCLUDE "general/planet_earth.arts"
     batch_atm_fields_compactAddConstant( name="abs_species-N2", value=0.7808 )
 # ====================================================================
 
-# Sensor characteristics
-
-    INCLUDE "instruments/metmm/sensor_descriptions/prepare_metmm.arts"
-
-# Change the filename to switch sensors.
-    INCLUDE "instruments/metmm/sensor_descriptions/sensor_amsub.arts"
-
-    INCLUDE "instruments/metmm/sensor_descriptions/apply_metmm.arts"
-
-# Common microwave sensor settings
-    INCLUDE "instruments/metmm/common_metmm.arts"
-# ====================================================================
+# Absorption lookup table
+    abs_lookupSetupBatch
+    abs_xsec_agenda_checkedCalc
+    abs_lookupCalc
 
 # Setting the agenda for batch calculation 
 # Garand profiles have 42 different. We will make RT calculations for all of them.
