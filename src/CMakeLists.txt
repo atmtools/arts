@@ -249,6 +249,7 @@ add_library (artscore STATIC
   rational.cc
   refraction.cc
   rng.cc
+  rt4.cc
   rte.cc
   sensor.cc
   sourcetext.cc

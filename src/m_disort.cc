@@ -107,9 +107,8 @@ void DisortCalc(Workspace& ws,
   CREATE_OUT1;
   CREATE_OUT0;
 
-  // NOTE: It is at the moment not possible to combine scattering elements 
-  // being stored on different scattering angle grids. Ask if this is required.
-  // Temperature dependence also not yet implemented. 
+  // NOTE: At the moment, combining scattering elements stored on different
+  //  scattering angle grids is only possible for pfct_method 'interpolate'.
 
   // Don't do anything if there's no cloudbox defined.
   if (!cloudbox_on) return;
@@ -281,7 +280,7 @@ void DisortCalc(Workspace& ws,
   Vector hl(1,0.); 
   // albedo only set in freq-loop (as it might be freq-dependent
   
-  //temperature of surface
+  // temperature of surface
   Numeric btemp = t_field(0,0,0);
 
   //upper boundary conditions:
@@ -640,12 +639,12 @@ void DisortInit(//WS Output
                          );
 
   // DISORT can only handle randomly oriented particles.
-  bool allp20=true;
+  bool all_p20=true;
   for( Index i_ss = 0; i_ss < scat_data.nelem(); i_ss++ )
     for( Index i_se = 0; i_se < scat_data[i_ss].nelem(); i_se++ )
       if( scat_data[i_ss][i_se].ptype != PTYPE_MACROS_ISO )
-        allp20=false;
-  if( !allp20 )
+        all_p20=false;
+  if( !all_p20 )
     {
       ostringstream os;
       os << "DISORT can only handle scattering elements of type "

@@ -61,9 +61,10 @@ extern const Numeric BOLTZMAN_CONST;
   \param pnd_field             as the WSV 
   \param t_field               as the WSV 
   \param z_field               as the WSV 
-  \param p_grid                as the WSV 
   \param vmr_field             as the WSV 
-  \param f_index               as the WSV 
+  \param p_grid                as the WSV 
+  \param cloudbox_limits       as the WSV 
+  \param f_mono                frequency (single entry vector)
   
   \author Claudia Emde, Jana Mendrok
   \date   2006-02-10

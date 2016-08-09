@@ -3683,6 +3683,18 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
+    ( NAME( "rt4_is_initialized" ),
+      DESCRIPTION
+      (
+       "Flag to determine if *RT4Init* was called.\n"
+       "\n"
+       "This flag is checked by *RT4Calc* to make sure that *RT4Init* was\n"
+       "called before.\n"
+       ),
+      GROUP( "Index" )));
+
+  wsv_data.push_back
+   (WsvRecord
     ( NAME( "rte_alonglos_v" ),
       DESCRIPTION
       (

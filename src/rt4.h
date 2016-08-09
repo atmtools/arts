@@ -28,6 +28,31 @@
 #ifndef rt4_h
 #define rt4_h
 
+#include "messages.h"
+
+void gas_optpropCalc( Workspace& ws,
+                      VectorView gas_extinct,
+                      const Agenda& propmat_clearsky_agenda,
+                      ConstTensor3View t_field, 
+                      ConstTensor4View vmr_field,
+                      ConstVectorView p_grid,
+                      ConstVectorView f_mono );
+
+void par_optpropCalc( Workspace& ws,
+                      Tensor4View emis_vector,
+                      Tensor5View extinct_matrix,
+                      //VectorView scatlayers,
+                      const Agenda& spt_calc_agenda,
+                      const Agenda& opt_prop_part_agenda,
+                      ConstTensor4View pnd_field,
+                      ConstTensor3View t_field,
+                      const ArrayOfIndex& cloudbox_limits,
+                      const Index& stokes_dim,
+                      const Index& nummu );
+
+void rt4_test( Tensor4& out_rad,
+               const Verbosity& verbosity );
+
 #ifdef ENABLE_RT4
 extern "C" {
 #endif
@@ -57,6 +82,21 @@ extern "C" {
                     Numeric* up_rad,
                     Numeric* down_rad
                     );
+
+    void double_gauss_quadrature_( const Index& nummu,
+                                   Numeric* mu_values,
+                                   Numeric* quad_weights
+                                   );
+
+    void lobatto_quadrature_( const Index& nummu,
+                              Numeric* mu_values,
+                              Numeric* quad_weights
+                              );
+
+    void gauss_legendre_quadrature_( const Index& nummu,
+                                     Numeric* mu_values,
+                                     Numeric* quad_weights
+                                     );
 
 #ifdef ENABLE_RT4
 }
@@ -95,20 +135,22 @@ void radtrano_( const Index&,
     throw std::runtime_error("This version of ARTS was compiled without RT4 support.");
 }
 
+void double_gauss_quadrature_( const Index&,
+                               Numeric*,
+                               Numeric*
+                               );
+
+void lobatto_quadrature_( const Index&,
+                          Numeric*,
+                          Numeric*
+                          );
+
+void gauss_legendre_quadrature_( const Index&,
+                                 Numeric*,
+                                 Numeric*
+                                 );
 #endif
 
-/*
-void rt4_test(// Output:
-              // Input:
-              const String& z_file,
-              const String& T_file,
-              const String& abs_gas_file,
-              const String& ext_par_file,
-              const String& abs_par_file,
-              const String& sca_par_file,
-              const Verbosity& verbosity
-              );
-*/
 
 #endif /* rt4_h */
 

@@ -3936,11 +3936,6 @@ void define_md_data_raw()
         DESCRIPTION
         (
          "Initialises variables for DISORT scattering calculations.\n"
-         "\n"
-         "Note that multi-dimensional output variables (Tensors, specifically)\n"
-         "are NaN-initialized. That is, this methods needs to be called\n"
-         "BEFORE other WSMs that provide input to *DisortCalc*, e.g. before\n"
-         "*DisortGetIncoming*.\n"
          ),
         AUTHORS( "Jana Mendrok" ),
         OUT( "doit_i_field", "disort_is_initialized" ),
@@ -11500,6 +11495,73 @@ void define_md_data_raw()
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "RT4Calc" ),
+        DESCRIPTION
+        (
+         "Calls RT4 scattering solver from ARTS.\n"
+         "\n"
+         "DISCLAIMER: This is work in progress. Not to be used yet.\n"
+         "\n"
+         "RT4 is only availble for 1D calculations and implicitly assumes a\n"
+         "plane-parallel atmosphere (flat Earth). It calculates up to two\n"
+         "Stokes parameters, i.e., all azimuthally randomly oriented\n"
+         "particles are allowed (this also includes macroscopically isotropic\n"
+         "particles). Refraction is not taken into account.\n"
+         ),
+        AUTHORS( "Jana Mendrok" ),
+        OUT( "doit_i_field", "scat_za_grid", "scat_aa_grid",
+             "f_index", "scat_data_mono" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "doit_i_field", "rt4_is_initialized",
+            "atmfields_checked", "atmgeom_checked", "cloudbox_checked",
+            "cloudbox_on", "cloudbox_limits",
+            "propmat_clearsky_agenda",
+            "opt_prop_part_agenda", "spt_calc_agenda", //"iy_main_agenda",
+            "pnd_field", "t_field", "z_field", "vmr_field", "p_grid",
+            "scat_data", "f_grid", "stokes_dim", //"scat_za_grid",
+            "surface_scalar_reflectivity" ),
+        GIN(         "nstreams", "non_iso_inc", "pfct_method", "quad_type",
+                     "max_delta_tau" ),
+        GIN_TYPE(    "Index",    "Index",       "String",      "String",
+                     "Numeric" ),
+        GIN_DEFAULT( "8",        "0",           "median",      "L",
+                     "1e-6" ),
+        GIN_DESC( "Number of polar angle directions (streams) in DISORT "
+                  "solution.",
+                  "Flag whether to run DISORT initialized with non-isotropic "
+                  "TOA field. See above for more info.",
+                  "Flag which method to apply to derive phase function (for"
+                  "available options see above).",
+                  "Flag which quadrature to apply in RT4 solution (for"
+                  "available options see above).",
+                  "Maximum optical depth of infinitesimal layer (where single"
+                  "scattering approximation is assumed to apply)." )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "RT4Init" ),
+        DESCRIPTION
+        (
+         "Initialises variables for RT4 scattering calculations.\n"
+         ),
+        AUTHORS( "Jana Mendrok" ),
+        OUT( "doit_i_field", "rt4_is_initialized" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "stokes_dim", "atmosphere_dim", "f_grid", //"scat_za_grid",
+            "cloudbox_on", "cloudbox_limits", "scat_data" ),
+        GIN(         "nstreams" ),
+        GIN_TYPE(    "Index" ),
+        GIN_DEFAULT( "8" ),
+        GIN_DESC( "Number of polar angle directions (streams) in RT4 solution." )
         ));
 
   md_data_raw.push_back
