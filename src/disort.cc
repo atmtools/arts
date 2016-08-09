@@ -695,7 +695,7 @@ void pmomCalc2(//Output
         {
           ostringstream os;
           os << "Phase function normalization deviates from expected value by\n"
-             << "more than 20%. Something is wrong with your scattering data.\n"
+             << "more than 10%. Something is wrong with your scattering data.\n"
              << "Check!\n";
           throw runtime_error( os.str() );
         }
