@@ -83,21 +83,6 @@ extern "C" {
                     Numeric* down_rad
                     );
 
-    void double_gauss_quadrature_( const Index& nummu,
-                                   Numeric* mu_values,
-                                   Numeric* quad_weights
-                                   );
-
-    void lobatto_quadrature_( const Index& nummu,
-                              Numeric* mu_values,
-                              Numeric* quad_weights
-                              );
-
-    void gauss_legendre_quadrature_( const Index& nummu,
-                                     Numeric* mu_values,
-                                     Numeric* quad_weights
-                                     );
-
 #ifdef ENABLE_RT4
 }
 #endif
@@ -135,20 +120,62 @@ void radtrano_( const Index&,
     throw std::runtime_error("This version of ARTS was compiled without RT4 support.");
 }
 
+#endif
+
+
+#ifdef ENABLE_RT4
+extern "C" {
+#endif
+
+    void double_gauss_quadrature_( const Index& nummu,
+                                   Numeric* mu_values,
+                                   Numeric* quad_weights
+                                   );
+
+    void lobatto_quadrature_( const Index& nummu,
+                              Numeric* mu_values,
+                              Numeric* quad_weights
+                              );
+
+    void gauss_legendre_quadrature_( const Index& nummu,
+                                     Numeric* mu_values,
+                                     Numeric* quad_weights
+                                     );
+
+
+#ifdef ENABLE_RT4
+}
+#endif
+
+
+// Define dummy function that throws a runtime error if ARTS is compiled without
+// RT4 support.
+#ifndef ENABLE_RT4
+
 void double_gauss_quadrature_( const Index&,
                                Numeric*,
                                Numeric*
                                );
+{
+    throw std::runtime_error("This version of ARTS was compiled without RT4 support.");
+}
 
 void lobatto_quadrature_( const Index&,
                           Numeric*,
                           Numeric*
                           );
+{
+    throw std::runtime_error("This version of ARTS was compiled without RT4 support.");
+}
 
 void gauss_legendre_quadrature_( const Index&,
                                  Numeric*,
                                  Numeric*
                                  );
+{
+    throw std::runtime_error("This version of ARTS was compiled without RT4 support.");
+}
+
 #endif
 
 
