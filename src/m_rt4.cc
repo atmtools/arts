@@ -418,9 +418,11 @@ void RT4Calc( Workspace& ws,
 
 #else /* ENABLE_RT4 */
 
-void RT4Calc( Workspace& ws,
+void RT4Calc( Workspace&,
                 // WS Output:
                 Tensor7&,
+                Vector&,
+                Vector&,
                 Index&,
                 ArrayOfArrayOfSingleScatteringData&,
                 // WS Input
@@ -430,7 +432,6 @@ void RT4Calc( Workspace& ws,
                 const Index&,
                 const Index&,
                 const ArrayOfIndex&,
-                const Agenda&,
                 const Agenda&,
                 const Agenda&,
                 const Agenda&,
@@ -451,6 +452,7 @@ void RT4Calc( Workspace& ws,
                 const Numeric&,
                 const Verbosity& )
 {
+    throw runtime_error ("This version of ARTS was compiled without RT4 support.");
 }
 
 #endif /* ENABLE_RT4 */
@@ -588,9 +590,17 @@ void RT4Init(//WS Output
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+#ifdef ENABLE_RT4
 void RT4Test( Tensor4& out_rad,
               const Verbosity& verbosity )
 {
     rt4_test( out_rad, verbosity );
 }
+#else
+void RT4Test( Tensor4&,
+             const Verbosity& )
+{
+    throw runtime_error ("This version of ARTS was compiled without RT4 support.");
+}
+#endif
 

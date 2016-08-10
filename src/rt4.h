@@ -28,6 +28,8 @@
 #ifndef rt4_h
 #define rt4_h
 
+#ifdef ENABLE_RT4
+
 #include "messages.h"
 
 void gas_optpropCalc( Workspace& ws,
@@ -54,9 +56,7 @@ void rt4_test( Tensor4& out_rad,
                const Verbosity& verbosity );
 
 
-#ifdef ENABLE_RT4
 extern "C" {
-#endif
 
     void radtrano_( const Index&   nstokes,
                     const Index&   nummu,
@@ -99,68 +99,9 @@ extern "C" {
                                      Numeric* quad_weights
                                      );
 
-#ifdef ENABLE_RT4
-}
-#endif
-
-
-// Define dummy function that throws a runtime error if ARTS is compiled without
-// RT4 support.
-#ifndef ENABLE_RT4
-
-void radtrano_( const Index&,
-                const Index&,
-                const Numeric&,
-                const char*,
-                const Numeric&,
-                const char*,
-                const Numeric&,
-                const Complex&,
-                const Numeric&,
-                const Numeric&,
-                const Index&,
-                const Numeric*,
-                const Numeric*,
-                const Numeric*,
-                const Index&,
-                const Numeric*,
-                const Numeric*,
-                const Numeric*,
-                const Numeric*,
-                //const Index&,
-                //const Index*,
-                Numeric*,
-                Numeric*,
-                Numeric*)
-{
-    throw std::runtime_error("This version of ARTS was compiled without RT4 support.");
 }
 
-void double_gauss_quadrature_( const Index&,
-                               Numeric*,
-                               Numeric*
-                               )
-{
-    throw std::runtime_error("This version of ARTS was compiled without RT4 support.");
-}
-
-void lobatto_quadrature_( const Index&,
-                          Numeric*,
-                          Numeric*
-                          )
-{
-    throw std::runtime_error("This version of ARTS was compiled without RT4 support.");
-}
-
-void gauss_legendre_quadrature_( const Index&,
-                                 Numeric*,
-                                 Numeric*
-                                 )
-{
-    throw std::runtime_error("This version of ARTS was compiled without RT4 support.");
-}
-#endif
-
+#endif /* ENABLE_RT4 */
 
 #endif /* rt4_h */
 

@@ -1,3 +1,27 @@
+2016-08-10  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-513
+
+	* src/m_rt4.cc:
+
+	(RT4Calc, RT4Test):
+
+	Throw a runtime error in non-rt4 builds.
+
+	(RT4Calc):
+
+	Fix arguments in function declaration for non-rt4 build to match rt4
+	build.
+
+	* src/rt4.h:
+
+	Ignore everything in here for non-rt4 build.
+	Note: Functions should never be _implemented_ in the header file.
+	Could otherwise lead to duplicate symbols error from linker (function
+	ends up in more than one object file).
+
+	* src/rt4.cc: Ignore everything in here in non-rt4 build.
+
 2016-08-09 Jana Mendrok  <jana.mendrok@chalmers.se>
 
 	* arts-2-3-512

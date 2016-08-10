@@ -30,6 +30,10 @@
   === External declarations
   ===========================================================================*/
 
+#include "config_global.h"
+
+#ifdef ENABLE_RT4
+
 #include <stdexcept>
 #include <complex.h>
 #include "m_xml.h"
@@ -371,3 +375,4 @@ void rt4_test( Tensor4& out_rad,
     //WriteXML( "ascii", out_rad, "out_rad.xml", 0, "out_rad", "", "", verbosity );
 }
 
+#endif /* ENABLE_RT4 */
