@@ -37,6 +37,7 @@
 #include <stdexcept>
 #include <complex.h>
 #include "m_xml.h"
+#include "optproperties.h"
 #include "rt4.h"
 #include "rte.h"
 
@@ -196,6 +197,7 @@ void par_optpropCalc( Workspace& ws,
                                  iza, 0, // angles, only needed for aa=0
                                  spt_calc_agenda);
 
+          //Calculate bulk optical properties:
           opt_prop_part_agendaExecute(ws,
                                       ext_mat_local, abs_vec_local, 
                                       ext_mat_spt_local, 
@@ -209,7 +211,7 @@ void par_optpropCalc( Workspace& ws,
         }
     }
 
-  // Calculate layer averaged single scattering albedo and layer optical depth
+  // Calculate layer averaged extnction and absorption
   for (Index scat_p_index_local = 0;
              scat_p_index_local < Np_cloud-1; 
              scat_p_index_local ++)
@@ -226,10 +228,10 @@ void par_optpropCalc( Workspace& ws,
               {
                 for (Index ist2=0; ist2<stokes_dim; ist2++)
                   {
-                    extinct_matrix(scat_p_index_local,0,imu,ist1,ist2) = .5 *
+                    extinct_matrix(scat_p_index_local,0,imu,ist2,ist1) = .5 *
                       ( ext_vector(scat_p_index_local,imu,ist1,ist2) +
                         ext_vector(scat_p_index_local+1,imu,ist1,ist2) );
-                    extinct_matrix(scat_p_index_local,1,imu,ist1,ist2) = .5 *
+                    extinct_matrix(scat_p_index_local,1,imu,ist2,ist1) = .5 *
                       ( ext_vector(scat_p_index_local,nummu+imu,ist1,ist2) +
                         ext_vector(scat_p_index_local+1,nummu+imu,ist1,ist2) );
                   }
@@ -242,6 +244,220 @@ void par_optpropCalc( Workspace& ws,
               }
 //        }
     }  
+}
+
+
+//! sca_optpropCalc
+/*!
+  Calculates layer averaged gaseous extinction (gas_extinct). This variable is
+  required as input for the RT4 subroutine.
+
+  \param ws                    Current workspace
+  \param emis_vector           Layer averaged particle absorption for all particle layers
+  \param extinct_matrix        Layer averaged particle extinction for all particle layers
+  \param scatter_matrix        Layer averaged scattering matrix (azimuth mode 0) for all particle layers
+  \param scatlayers            Cloud-to-fullAtm layer association
+  \param spt_calc_agenda       as the WSA
+  \param opt_prop_part_agenda  as the WSA
+  \param pnd_field             as the WSV
+  \param t_field               as the WSV
+  \param cloudbox_limits       as the WSV 
+  
+  \author Jana Mendrok
+  \date   2016-08-08
+*/
+void sca_optpropCalc( //Output
+                      Tensor6View scatter_matrix,
+                      //Input
+                      const ArrayOfArrayOfSingleScatteringData& scat_data_mono,
+                      ConstTensor4View pnd_field,
+                      const Index& stokes_dim,
+                      const Vector& scat_za_grid,
+                      const String& pfct_method,
+                      const Index& pfct_aa_grid_size,
+                      const Verbosity& verbosity )
+{
+  // Check that we do indeed have scat_data_mono here.
+  if( scat_data_mono[0][0].f_grid.nelem() > 1 )
+  {
+      ostringstream os;
+      os << "Scattering data seems to be scat_data (several freq points),\n"
+         << "but scat_data_mono (1 freq point only) is expected here.";
+      throw runtime_error( os.str() );
+  }
+
+  // Initialization
+  scatter_matrix=0.;
+  
+  const Index N_se = pnd_field.nbooks();
+  const Index Np_cloud = pnd_field.npages();
+  const Index nza_rt = scat_za_grid.nelem();
+
+  assert( scatter_matrix.nvitrines() == Np_cloud-1 );
+
+  // Check that total number of scattering elements in scat_data and pnd_field
+  // agree.
+  if( TotalNumberOfElements(scat_data_mono) != N_se )
+  {
+      ostringstream os;
+      os << "Total number of scattering elements in scat_data ("
+         << TotalNumberOfElements(scat_data_mono)
+         << ") and pnd_field (" << N_se << ") disagree.";
+      throw runtime_error( os.str() );
+  }
+
+  Vector aa_grid;
+  nlinspace(aa_grid, 0, 180, pfct_aa_grid_size);
+
+  Index i_se_flat=0;
+  Tensor5 sca_mat(N_se,nza_rt,nza_rt,stokes_dim,stokes_dim, 0.);
+
+  // first we extract Z at one T, integrate the azimuth data at each
+  // za_inc/za_sca combi (to get the Fourier series 0.th mode), then interpolate
+  // to the mu/mu' combis we need in RT.
+  for (Index i_ss = 0; i_ss < scat_data_mono.nelem(); i_ss++)
+    {
+      for (Index i_se = 0; i_se < scat_data_mono[i_ss].nelem(); i_se++)
+        {
+          SingleScatteringData ssd=scat_data_mono[i_ss][i_se];
+          Index i_pfct;
+          if( pfct_method=="low" )
+            i_pfct = 0;
+          else if( pfct_method=="high" )
+            i_pfct = ssd.T_grid.nelem()-1;
+          else //if( pfct_method=="median" )
+            i_pfct = ssd.T_grid.nelem()/2;
+
+          if (ssd.ptype == PTYPE_MACROS_ISO)
+            {
+              Matrix pha_mat(stokes_dim,stokes_dim, 0.);
+              for (Index iza=0; iza<nza_rt; iza++)
+                for (Index sza=0; sza<nza_rt; sza++)
+                  {
+                    Matrix pha_mat_int(stokes_dim,stokes_dim, 0.);
+                    for (Index saa=0; saa<pfct_aa_grid_size; saa++)
+                      {
+                        pha_matTransform( pha_mat(joker,joker),
+                                          ssd.pha_mat_data(0,i_pfct,joker,
+                                            joker,joker,joker,joker),
+                                          ssd.za_grid, ssd.aa_grid, ssd.ptype,
+                                          sza, saa, iza, 0,
+                                          scat_za_grid, aa_grid,
+                                          verbosity );
+                        Numeric daa;
+                        if (saa==0)
+                          daa = (aa_grid[saa+1]-aa_grid[saa])/180.;
+                        else if (saa==pfct_aa_grid_size-1)
+                          daa = (aa_grid[saa]-aa_grid[saa-1])/180.;
+                        else
+                          daa = (aa_grid[saa+1]-aa_grid[saa-1])/180.;
+                        for (Index ist1=0; ist1<stokes_dim; ist1++)
+                          for (Index ist2=0; ist2<stokes_dim; ist2++)
+                            pha_mat_int(ist1,ist2) += pha_mat(ist1,ist2) * daa;
+                      }
+                    sca_mat(i_se_flat,iza,sza,joker,joker) = pha_mat_int;
+                  }
+            }
+          else if (ssd.ptype == PTYPE_HORIZ_AL)
+            {
+              Index nza_se = ssd.za_grid.nelem();
+              Index naa_se = ssd.aa_grid.nelem();
+              Tensor4 pha_mat_int(nza_se,nza_se/2+1,stokes_dim,stokes_dim, 0.);
+              ConstVectorView za_datagrid = ssd.za_grid;
+              ConstVectorView this_za_datagrid =
+                za_datagrid[Range(0,ssd.pha_mat_data.npages())];
+
+              // first, extracting the phase matrix at the scatt elements own
+              // polar angle grid, deriving their respective azimuthal (Fourier
+              // series) 0-mode
+              for (Index iza=0; iza<nza_se/2+1; iza++)
+                for (Index sza=0; sza<nza_se; sza++)
+                  {
+                    for (Index saa=0; saa<naa_se; saa++)
+                      {
+                        Numeric daa;
+                        if (saa==0 || saa==naa_se-2)
+                          daa = (aa_grid[saa+1]-aa_grid[saa])/180.;
+                        else
+                          daa = (aa_grid[saa+2]-aa_grid[saa])/180.;
+                        for (Index ist1=0; ist1<stokes_dim; ist1++)
+                          for (Index ist2=0; ist2<stokes_dim; ist2++)
+                            pha_mat_int(sza,iza,ist1,ist2) +=
+                              ssd.pha_mat_data(0,i_pfct,sza,saa,iza,0,ist1*4+ist2) * daa;
+                      }
+                  }
+
+              // second, interpolating the extracted azimuthal mode to the RT4
+              // solver polar angles
+              for (Index iza=0; iza<nza_rt; iza++)
+                for (Index sza=0; sza<nza_rt; sza++)
+                  {
+                    GridPos za_sca_gp;
+                    GridPos za_inc_gp;
+                    Vector itw(4);
+                    Matrix pha_mat_lab(stokes_dim,stokes_dim, 0.);
+                    Numeric za_sca = scat_za_grid[sza]; 
+                    Numeric za_inc = scat_za_grid[iza]; 
+       
+                    if (za_inc>90)
+                    {
+                      gridpos(za_inc_gp,this_za_datagrid,180-za_inc);
+                      gridpos(za_sca_gp,za_datagrid,180-za_sca);
+                    }
+                    else
+                    {
+                      gridpos(za_inc_gp,this_za_datagrid,za_inc);
+                      gridpos(za_sca_gp,za_datagrid,za_sca);
+                    }
+      
+                    interpweights(itw,za_sca_gp,za_inc_gp);
+      
+                    for (Index ist1=0; ist1<stokes_dim; ist1++)
+                      for (Index ist2=0; ist2<stokes_dim; ist2++)
+                        pha_mat_lab(ist1,ist2) = interp(itw,
+                          pha_mat_int(Range(joker),Range(joker),ist1,ist2),
+                          za_sca_gp,za_inc_gp);
+
+                    sca_mat(i_se_flat,iza,sza,joker,joker) = pha_mat_lab;
+                  }
+            }
+          else
+            {
+              ostringstream os;
+              os << "Unsuitable particle type encountered.";
+              throw runtime_error( os.str() );
+            }
+          i_se_flat++;
+        }
+    }
+
+  assert( i_se_flat == N_se );
+  // now we sum up the Z(mu,mu') over the scattering elements weighted by the
+  // pnd_field data, deriving Z(z,mu,mu') and sorting this into
+  // scatter_matrix
+  Index nummu = nza_rt/2;
+  for (Index scat_p_index_local = 0;
+             scat_p_index_local < Np_cloud-1; 
+             scat_p_index_local ++)
+    for (Index i_se = 0; i_se < N_se; i_se++)
+      {
+        Numeric pnd_mean = 0.5 * ( pnd_field(i_se,scat_p_index_local+1,0,0)+
+                                   pnd_field(i_se,scat_p_index_local,0,0) );
+        for (Index iza=0; iza<nummu; iza++)
+          for (Index sza=0; sza<nummu; sza++)
+            for (Index ist1=0; ist1<stokes_dim; ist1++)
+              for (Index ist2=0; ist2<stokes_dim; ist2++)
+                {
+                  scatter_matrix(scat_p_index_local,0,iza,ist2,sza,ist1) +=
+                    pnd_mean * sca_mat(i_se,iza,sza,ist1,ist2);
+                  scatter_matrix(scat_p_index_local,1,iza,ist2,sza,ist1) +=
+                    pnd_mean * sca_mat(i_se,nummu+iza,sza,ist1,ist2);
+                  scatter_matrix(scat_p_index_local,2,iza,ist2,sza,ist1) +=
+                    pnd_mean * sca_mat(i_se,iza,nummu+sza,ist1,ist2);
+                  scatter_matrix(scat_p_index_local,3,iza,ist2,sza,ist1) +=
+                    pnd_mean * sca_mat(i_se,nummu+iza,nummu+sza,ist1,ist2);
+                }
+      }
 }
 
 

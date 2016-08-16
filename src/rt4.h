@@ -33,7 +33,9 @@
 #include "messages.h"
 
 void gas_optpropCalc( Workspace& ws,
+                      //Output
                       VectorView gas_extinct,
+                      //Input
                       const Agenda& propmat_clearsky_agenda,
                       ConstTensor3View t_field, 
                       ConstTensor4View vmr_field,
@@ -41,9 +43,11 @@ void gas_optpropCalc( Workspace& ws,
                       ConstVectorView f_mono );
 
 void par_optpropCalc( Workspace& ws,
+                      //Output
                       Tensor4View emis_vector,
                       Tensor5View extinct_matrix,
                       //VectorView scatlayers,
+                      //Input
                       const Agenda& spt_calc_agenda,
                       const Agenda& opt_prop_part_agenda,
                       ConstTensor4View pnd_field,
@@ -51,6 +55,17 @@ void par_optpropCalc( Workspace& ws,
                       const ArrayOfIndex& cloudbox_limits,
                       const Index& stokes_dim,
                       const Index& nummu );
+
+void sca_optpropCalc( //Output
+                      Tensor6View scatter_matrix,
+                      //Input
+                      const ArrayOfArrayOfSingleScatteringData& scat_data_mono,
+                      ConstTensor4View pnd_field,
+                      const Index& stokes_dim,
+                      const Vector& scat_za_grid,
+                      const String& pfct_method,
+                      const Index& pfct_aa_grid_size,
+                      const Verbosity& verbosity );
 
 void rt4_test( Tensor4& out_rad,
                const Verbosity& verbosity );

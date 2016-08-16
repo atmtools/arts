@@ -240,7 +240,7 @@ c
 c     internal variables
 c
       double precision t
-      integer idamax,j,k,kp1,l,nm1
+      integer rt4_idamax,j,k,kp1,l,nm1
 c
 c
 c     gaussian elimination with partial pivoting
@@ -253,7 +253,7 @@ c
 c
 c        find l = pivot index
 c
-         l = idamax(n-k+1,a(k,k),1) + k - 1
+         l = rt4_idamax(n-k+1,a(k,k),1) + k - 1
          ipvt(k) = l
 c
 c        zero pivot implies this column already triangularized
@@ -271,7 +271,7 @@ c
 c           compute multipliers
 c
             t = -1.0d0/a(k,k)
-            call dscal(n-k,t,a(k+1,k),1)
+            call rt4_dscal(n-k,t,a(k+1,k),1)
 c
 c           row elimination with column indexing
 c
@@ -390,7 +390,7 @@ c
          do 100 k = 1, n
             a(k,k) = 1.0d0/a(k,k)
             t = -a(k,k)
-            call dscal(k-1,t,a(1,k),1)
+            call rt4_dscal(k-1,t,a(1,k),1)
             kp1 = k + 1
             if (n .lt. kp1) go to 90
             do 80 j = kp1, n
@@ -474,7 +474,7 @@ c
       end
 
 
-      subroutine  dscal(n,da,dx,incx)
+      subroutine  rt4_dscal(n,da,dx,incx)
 c
 c     scales a vector by a constant.
 c     uses unrolled loops for increment equal to one.
@@ -518,7 +518,7 @@ c
       end
 
 
-      integer function idamax(n,dx,incx)
+      integer function rt4_idamax(n,dx,incx)
 c
 c     finds the index of element having max. absolute value.
 c     jack dongarra, linpack, 3/11/78.
@@ -527,9 +527,9 @@ c
       double precision dx(1),dmax
       integer i,incx,ix,n
 c
-      idamax = 0
+      rt4_idamax = 0
       if( n.lt.1 .or. incx.le.0 ) return
-      idamax = 1
+      rt4_idamax = 1
       if(n.eq.1)return
       if(incx.eq.1)go to 20
 c
@@ -540,7 +540,7 @@ c
       ix = ix + incx
       do 10 i = 2,n
          if(dabs(dx(ix)).le.dmax) go to 5
-         idamax = i
+         rt4_idamax = i
          dmax = dabs(dx(ix))
     5    ix = ix + incx
    10 continue
@@ -551,7 +551,7 @@ c
    20 dmax = dabs(dx(1))
       do 30 i = 2,n
          if(dabs(dx(i)).le.dmax) go to 30
-         idamax = i
+         rt4_idamax = i
          dmax = dabs(dx(i))
    30 continue
       return

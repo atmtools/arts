@@ -78,6 +78,7 @@ void RT4Calc( Workspace& ws,
                 const Index& non_iso_inc,
                 const String& pfct_method,
                 const String& quad_type,
+                const Index& pfct_aa_grid_size,
                 const Numeric& max_delta_tau,
                 const Verbosity& verbosity )
 {
@@ -344,12 +345,12 @@ void RT4Calc( Workspace& ws,
                        pnd_field,
                        t_field(Range(0,num_layers+1),joker,joker),
                        cloudbox_limits, stokes_dim, nummu );
-/*
       sca_optpropCalc( scatter_matrix,
-                       scat_data_mono, pnd_field,
-                       t_field(Range(0,num_layers+1),joker,joker),
-                       cloudbox_limits, stokes_dim, nummu );
+                       scat_data_mono, pnd_field, stokes_dim,
+                       scat_za_grid, pfct_method, pfct_aa_grid_size,
+                       verbosity );
 
+/*
       for (Index j=0; j<num_layers; j++)
       {
         cout << "layer #" << j << ": z=" << height[j] << "-" << height[j+1]

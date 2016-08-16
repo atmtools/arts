@@ -11527,11 +11527,11 @@ void define_md_data_raw()
             "scat_data", "f_grid", "stokes_dim", //"scat_za_grid",
             "surface_scalar_reflectivity" ),
         GIN(         "nstreams", "non_iso_inc", "pfct_method", "quad_type",
-                     "max_delta_tau" ),
+                     "pfct_aa_grid_size", "max_delta_tau" ),
         GIN_TYPE(    "Index",    "Index",       "String",      "String",
-                     "Numeric" ),
+                     "Index",             "Numeric" ),
         GIN_DEFAULT( "8",        "0",           "median",      "L",
-                     "1e-6" ),
+                     "19",                "1e-6" ),
         GIN_DESC( "Number of polar angle directions (streams) in DISORT "
                   "solution.",
                   "Flag whether to run DISORT initialized with non-isotropic "
@@ -11540,6 +11540,9 @@ void define_md_data_raw()
                   "available options see above).",
                   "Flag which quadrature to apply in RT4 solution (for"
                   "available options see above).",
+                  "Number of azimuthal angle grid points to consider in "
+                  "Fourier series decomposition of scattering matrix (only "
+                  "applied for randomly oriented scattering elements)",
                   "Maximum optical depth of infinitesimal layer (where single"
                   "scattering approximation is assumed to apply)." )
         ));

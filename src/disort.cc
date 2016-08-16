@@ -211,18 +211,18 @@ void dtauc_ssalbCalc(Workspace& ws,
   \author Claudia Emde, Jana Mendrok
   \date   2006-02-10
 */
-void phase_functionCalc2(Workspace& ws,
-                        //Output
-                        MatrixView phase_function,
-                        //Input
-                        const ArrayOfArrayOfSingleScatteringData& scat_data_mono,
-                        const Agenda& spt_calc_agenda,
-                        const Agenda& opt_prop_part_agenda,
-                        ConstTensor4View pnd_field,
-                        ConstTensor3View t_field,
-                        const ArrayOfIndex& cloudbox_limits,
-                        const Index& pfct_za_grid_size,
-                        const Verbosity& verbosity)
+void phase_functionCalc2( Workspace& ws,
+                          //Output
+                          MatrixView phase_function,
+                          //Input
+                          const ArrayOfArrayOfSingleScatteringData& scat_data_mono,
+                          const Agenda& spt_calc_agenda,
+                          const Agenda& opt_prop_part_agenda,
+                          ConstTensor4View pnd_field,
+                          ConstTensor3View t_field,
+                          const ArrayOfIndex& cloudbox_limits,
+                          const Index& pfct_za_grid_size,
+                          const Verbosity& verbosity )
 {
   // Initialization
   phase_function=0.;
@@ -475,7 +475,7 @@ void phase_functionCalc2(Workspace& ws,
   the phase matrix in SingleScatteringData. The scattering angle 
   grid is taken from the data. 
   It is required that all scattering elements are given on the same 
-  scattering angle grid (FIXME: Include angle interpolation)
+  scattering angle grid. No temperature interpolation done.
 
   \param phase_function normalized phase function
   \param scat_data_mono  as the WSV
@@ -493,14 +493,6 @@ void phase_functionCalc(//Output
                         const ArrayOfIndex& cloudbox_limits,
                         const String pfct_method)
 {
-/*
-FIXME: dtauc_ssalbCalc applies spt_calc_agenda and opt_prop_part_agenda. Apply
- same/similar agendas here.
- It is inconsistent to consider T-dependence in dtauc_ssalbCalc, but neglect it
- here. It might be okayish, though, since T-dep of pfct might be lower than
- T-dep of ext/abs/scat coeffs.
-*/
-
   // Check that we do indeed have scat_data_mono here. Only checking the first
   // scat element, assuming the other elements have been processed in the same
   // manner. That's save against having scat_data here if that originated from

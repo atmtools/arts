@@ -1,3 +1,16 @@
+2016-08-15 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-514
+
+	* src/m_rt4.cc, methods.cc (RT4Calc), rt4.cc, rt4.h (sca_optpropCalc):
+	Continue on RT4 interface implementation: preparation of scattering
+	matrix data for RT4.
+
+	* src/disort.cc, disort.h: Cosmetics.
+
+	* 3rdparty/polradtran/rt4/radmat.f:
+	Avoid redefining blas/lapack functions idamax and dscal.
+
 2016-08-10  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-513
