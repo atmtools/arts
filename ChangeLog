@@ -1,5 +1,11 @@
 2016-08-15 Jana Mendrok  <jana.mendrok@chalmers.se>
 
+	* arts-2-3-515
+
+	* src/m_rt4.cc (RT4Calc): non-RT4 build fix.
+
+2016-08-15 Jana Mendrok  <jana.mendrok@chalmers.se>
+
 	* arts-2-3-514
 
 	* src/m_rt4.cc, methods.cc (RT4Calc), rt4.cc, rt4.h (sca_optpropCalc):

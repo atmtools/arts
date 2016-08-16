@@ -450,6 +450,7 @@ void RT4Calc( Workspace&,
                 const Index&,
                 const String&,
                 const String&,
+                const Index&,
                 const Numeric&,
                 const Verbosity& )
 {
