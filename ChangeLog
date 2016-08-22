@@ -1,3 +1,12 @@
+2016-08-22  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-516
+
+	* src/m_doit.cc (DoitCalc):
+
+	Properly catch exceptions in OMP frequency loop. If an exception
+	occurs, it is rethrown after the loop. Fixes bug reported by Jana.
+
 2016-08-15 Jana Mendrok  <jana.mendrok@chalmers.se>
 
 	* arts-2-3-515

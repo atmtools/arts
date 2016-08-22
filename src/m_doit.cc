@@ -2575,24 +2575,49 @@ void DoitCalc(
   // OMP likes simple loop end conditions, so we make a local copy here: 
   const Index nf = f_grid.nelem();
 
-if (nf)
-  #pragma omp parallel for                                    \
-  if(!arts_omp_in_parallel() && nf>1)                       \
-  firstprivate(l_ws, l_doit_mono_agenda)
-  for (Index f_index = 0; f_index < nf; f_index ++)
-    {
-      ostringstream os;
-      os << "Frequency: " << f_grid[f_index]/1e9 <<" GHz \n" ;
-      out2 << os.str();
+  if (nf)
+  {
+      String fail_msg;
+      bool failed = false;
 
-      Tensor6 doit_i_field_mono_local =
-        doit_i_field(f_index, joker, joker, joker, joker, joker, joker);
-      doit_mono_agendaExecute(l_ws,
-                              doit_i_field_mono_local,
-                              f_grid, f_index, l_doit_mono_agenda);
-      doit_i_field(f_index, joker, joker, joker, joker, joker, joker) =
-        doit_i_field_mono_local;
-    }
+#pragma omp parallel for                                    \
+if(!arts_omp_in_parallel() && nf>1)                       \
+firstprivate(l_ws, l_doit_mono_agenda)
+      for (Index f_index = 0; f_index < nf; f_index ++)
+      {
+          if (failed)
+          {
+              doit_i_field(f_index, joker, joker, joker, joker, joker, joker) = NAN;
+              continue;
+          }
+
+          try {
+              ostringstream os;
+              os << "Frequency: " << f_grid[f_index]/1e9 <<" GHz \n" ;
+              out2 << os.str();
+
+              Tensor6 doit_i_field_mono_local =
+              doit_i_field(f_index, joker, joker, joker, joker, joker, joker);
+              doit_mono_agendaExecute(l_ws,
+                                      doit_i_field_mono_local,
+                                      f_grid, f_index, l_doit_mono_agenda);
+              doit_i_field(f_index, joker, joker, joker, joker, joker, joker) =
+              doit_i_field_mono_local;
+          } catch (runtime_error e) {
+              doit_i_field(f_index, joker, joker, joker, joker, joker, joker) = NAN;
+              ostringstream os;
+              os << "Error for f_index = " << f_index
+              << " (" << f_grid[f_index] << " Hz)" << endl
+              << e.what();
+#pragma omp critical (DoitCalc_fail)
+              { failed = true; fail_msg = os.str(); }
+              continue;
+          }
+      }
+
+      if (failed)
+          throw runtime_error(fail_msg);
+  }
 }
 
 
