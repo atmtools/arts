@@ -1,5 +1,14 @@
 2016-08-24 Jana Mendrok  <jana.mendrok@chalmers.se>
 
+	* arts-2-3-518
+
+	* src/montecarlo.cc (Sample_los):
+	Bug fix p30 branch: adapt pnd_field/scat_data_mono consistency check to scatt
+	species&elements system (seems nobody used MC with non-random particles for a
+	long time...).
+
+2016-08-24 Jana Mendrok  <jana.mendrok@chalmers.se>
+
 	* arts-2-3-517
 
 	* src/rt4.cc,h (sca_optpropCalc):

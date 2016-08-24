@@ -1373,7 +1373,7 @@ void Sample_los (
   if(anyptype30)
     {
       Index np=pnd_vec.nelem();
-      assert(scat_data_mono.nelem()==np);
+      assert(TotalNumberOfElements(scat_data_mono)==np);
       for(Index i=0;i<np;i++)
         {
           Z11max+=Z11maxvector[i]*pnd_vec[i];
