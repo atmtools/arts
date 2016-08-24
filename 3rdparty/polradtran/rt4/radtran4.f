@@ -153,7 +153,7 @@ c      CHARACTER*64 SCAT_FILES(*)
       REAL*8    SCATTER_MATRIX(NSTOKES,NUMMU,NSTOKES,NUMMU,4,NSL)
 
       INTEGER   MAXV, MAXM, MAXLAY, MAXLM
-      PARAMETER (MAXV=64, MAXM=4096, MAXLAY=200, MAXLM=201*256)
+      PARAMETER (MAXV=64, MAXM=4096, MAXLAY=200, MAXLM=201*4096)
 
       REAL*8    PI, TWOPI, ZERO
       PARAMETER (PI = 3.1415926535897932384D0, TWOPI=2.0D0*PI)
@@ -193,23 +193,29 @@ c      NSTOKES = MIN(NSTOKES,2)
       SYMMETRIC = .TRUE.
       N = NSTOKES*NUMMU
       IF (N .GT. MAXV) THEN
-          WRITE (*,'(1X,A,I3)')
-     .     'Vector size exceeded.  Maximum size :', MAXV
+          WRITE (*,'(1X,2(A,I4))')
+     .     'Vector size exceeded.  Maximum size :', MAXV,
+     .     '.  Yours is ', N
           STOP
       ENDIF
       IF (N*N .GT. MAXM) THEN
-          WRITE (*,'(1X,A,I3)')
-     .     'Matrix size exceeded.  Maximum size :', MAXM
+          WRITE (*,'(1X,A,I5,2(A,I4),A,I5)')
+     .     'Matrix size exceeded.  Maximum size :', MAXM,
+     .     '.  Yours is ', N, '*', N, ' = ', N*N
           STOP
       ENDIF
       IF (NUM_LAYERS .GT. MAXLAY) THEN
-          WRITE (*,'(1X,A,A,I3)') 'Number of layers exceeded.',
-     .     '  Maximum number :', MAXLAY
+          WRITE (*,'(1X,A,3(A,I4))') 'Number of layers exceeded.',
+     .     '  Maximum number :', MAXLAY,
+     .     '.  Yours is ', NUM_LAYERS
           STOP
       ENDIF
       IF ((NUM_LAYERS+1)*N*N .GT. MAXLM) THEN
-          WRITE (*,'(1X,A,A,I3)') 'Matrix layer size exceeded.',
-     .     '  Maximum number :', MAXLM
+          WRITE (*,'(1X,A,A,I5,3(A,I3),A,I5)')
+     .     'Matrix layer size exceeded.',
+     .     '  Maximum number (num_layers+1)*(nstokes*nummu)^2:', MAXLM,
+     .     '.  Yours is (', NUM_LAYERS, '+1)*(', NSTOKES, '*', NUMMU,
+     .     ')^2 = ', (NUM_LAYERS+1)*N*N
           STOP
       ENDIF
 

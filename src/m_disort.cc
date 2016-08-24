@@ -662,7 +662,7 @@ void DisortInit(//WS Output
   const Index Nza = scat_za_grid.nelem();
 
   // Resize and initialize radiation field in the cloudbox
-  doit_i_field.resize( Nf, Np_cloud, 1, 1, Nza, 1, 1 );
+  doit_i_field.resize( Nf, Np_cloud, 1, 1, Nza, 1, stokes_dim );
   doit_i_field = NAN;
   
   disort_is_initialized = 1;

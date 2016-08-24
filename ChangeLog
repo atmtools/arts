@@ -1,3 +1,30 @@
+2016-08-24 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-517
+
+	* src/rt4.cc,h (sca_optpropCalc):
+	Bug fix Fourier component integration. Check and correct Fourier
+	component normalization.
+
+	* src/m_rt4.cc (RT4Calc): 
+	doit_i_field size check. Bug fix filling doit_i_field from RT4 output.
+
+	* src/m_disort.cc (DisortInit), src/m_rt4.cc (RT4Init):
+	Bug fix. Initialize doit_i_field size with stokes_dim.
+
+	* src/disort.cc (pmomCalc, pmomCalc2):
+	Made PFCT normalization check messages and thresholds consistent.
+
+	* 3rdparty/polradtran/rt4/radtran4.f (RADTRANO):
+	Increased max size of RT problem. More informative error output when
+	allowed problem size is exceeded.
+
+	* 3rdparty/polradtran/rt4/radscat4.f (CHECK_NORM):
+	Outcomment PFCT normalization warning message. We leave that to ARTS.
+
+	* controlfiles/general/agendas_surface.arts:
+	Added another predefined agenda for lambertian surface.
+
 2016-08-22  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-516

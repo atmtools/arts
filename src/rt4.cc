@@ -44,6 +44,7 @@
 using std::ostringstream;
 using std::runtime_error;
 
+extern const Numeric PI;
 
 //! gas_optpropCalc
 /*!
@@ -135,13 +136,13 @@ void gas_optpropCalc( Workspace& ws,
   \param ws                    Current workspace
   \param emis_vector           Layer averaged particle absorption for all particle layers
   \param extinct_matrix        Layer averaged particle extinction for all particle layers
-  \param scatter_matrix        Layer averaged scattering matrix (azimuth mode 0) for all particle layers
-  \param scatlayers            Cloud-to-fullAtm layer association
   \param spt_calc_agenda       as the WSA
   \param opt_prop_part_agenda  as the WSA
   \param pnd_field             as the WSV
   \param t_field               as the WSV
   \param cloudbox_limits       as the WSV 
+  \param stokes_dim            as the WSV
+  \param nummu                 Number of single hemisphere polar angles
   
   \author Jana Mendrok
   \date   2016-08-08
@@ -252,16 +253,16 @@ void par_optpropCalc( Workspace& ws,
   Calculates layer averaged gaseous extinction (gas_extinct). This variable is
   required as input for the RT4 subroutine.
 
-  \param ws                    Current workspace
+  \param scatter_matrix        Layer averaged scattering matrix (azimuth mode 0) for all particle layers
   \param emis_vector           Layer averaged particle absorption for all particle layers
   \param extinct_matrix        Layer averaged particle extinction for all particle layers
-  \param scatter_matrix        Layer averaged scattering matrix (azimuth mode 0) for all particle layers
-  \param scatlayers            Cloud-to-fullAtm layer association
-  \param spt_calc_agenda       as the WSA
-  \param opt_prop_part_agenda  as the WSA
+  \param scat_data_mono        as the WSV
   \param pnd_field             as the WSV
-  \param t_field               as the WSV
-  \param cloudbox_limits       as the WSV 
+  \param stokes_dim            as the WSV
+  \param scat_za_grid          as the WSV
+  \param quad_weights          Quadrature weights associated with scat_za_grid 
+  \param pfct_method           Method for scattering matrix temperature dependance handling
+  \param pfct_aa_grid_size     Number of azimuthal grid points in Fourier series decomposition of randomly oriented particles
   
   \author Jana Mendrok
   \date   2016-08-08
@@ -269,10 +270,13 @@ void par_optpropCalc( Workspace& ws,
 void sca_optpropCalc( //Output
                       Tensor6View scatter_matrix,
                       //Input
+                      ConstTensor4View emis_vector,
+                      ConstTensor5View extinct_matrix,
                       const ArrayOfArrayOfSingleScatteringData& scat_data_mono,
                       ConstTensor4View pnd_field,
                       const Index& stokes_dim,
                       const Vector& scat_za_grid,
+                      ConstVectorView quad_weights,
                       const String& pfct_method,
                       const Index& pfct_aa_grid_size,
                       const Verbosity& verbosity )
@@ -346,11 +350,11 @@ void sca_optpropCalc( //Output
                                           verbosity );
                         Numeric daa;
                         if (saa==0)
-                          daa = (aa_grid[saa+1]-aa_grid[saa])/180.;
+                          daa = (aa_grid[saa+1]-aa_grid[saa])/360.;
                         else if (saa==pfct_aa_grid_size-1)
-                          daa = (aa_grid[saa]-aa_grid[saa-1])/180.;
+                          daa = (aa_grid[saa]-aa_grid[saa-1])/360.;
                         else
-                          daa = (aa_grid[saa+1]-aa_grid[saa-1])/180.;
+                          daa = (aa_grid[saa+1]-aa_grid[saa-1])/360.;
                         for (Index ist1=0; ist1<stokes_dim; ist1++)
                           for (Index ist2=0; ist2<stokes_dim; ist2++)
                             pha_mat_int(ist1,ist2) += pha_mat(ist1,ist2) * daa;
@@ -376,10 +380,12 @@ void sca_optpropCalc( //Output
                     for (Index saa=0; saa<naa_se; saa++)
                       {
                         Numeric daa;
-                        if (saa==0 || saa==naa_se-2)
-                          daa = (aa_grid[saa+1]-aa_grid[saa])/180.;
+                        if (saa==0)
+                          daa = (aa_grid[saa+1]-aa_grid[saa])/360.;
+                        else if (saa==pfct_aa_grid_size-1)
+                          daa = (aa_grid[saa]-aa_grid[saa-1])/360.;
                         else
-                          daa = (aa_grid[saa+2]-aa_grid[saa])/180.;
+                          daa = (aa_grid[saa+1]-aa_grid[saa-1])/360.;
                         for (Index ist1=0; ist1<stokes_dim; ist1++)
                           for (Index ist2=0; ist2<stokes_dim; ist2++)
                             pha_mat_int(sza,iza,ist1,ist2) +=
@@ -435,29 +441,88 @@ void sca_optpropCalc( //Output
   // now we sum up the Z(mu,mu') over the scattering elements weighted by the
   // pnd_field data, deriving Z(z,mu,mu') and sorting this into
   // scatter_matrix
+  // FIXME: it seems that at least for p20, corresponding upward and downward
+  // directions have exactly the same (0,0) elements. Can we use this to reduce
+  // calc efforts (for sca and its normalization as well as for ext and abs?)
   Index nummu = nza_rt/2;
   for (Index scat_p_index_local = 0;
              scat_p_index_local < Np_cloud-1; 
              scat_p_index_local ++)
-    for (Index i_se = 0; i_se < N_se; i_se++)
-      {
-        Numeric pnd_mean = 0.5 * ( pnd_field(i_se,scat_p_index_local+1,0,0)+
-                                   pnd_field(i_se,scat_p_index_local,0,0) );
-        for (Index iza=0; iza<nummu; iza++)
-          for (Index sza=0; sza<nummu; sza++)
-            for (Index ist1=0; ist1<stokes_dim; ist1++)
-              for (Index ist2=0; ist2<stokes_dim; ist2++)
-                {
-                  scatter_matrix(scat_p_index_local,0,iza,ist2,sza,ist1) +=
-                    pnd_mean * sca_mat(i_se,iza,sza,ist1,ist2);
-                  scatter_matrix(scat_p_index_local,1,iza,ist2,sza,ist1) +=
-                    pnd_mean * sca_mat(i_se,nummu+iza,sza,ist1,ist2);
-                  scatter_matrix(scat_p_index_local,2,iza,ist2,sza,ist1) +=
-                    pnd_mean * sca_mat(i_se,iza,nummu+sza,ist1,ist2);
-                  scatter_matrix(scat_p_index_local,3,iza,ist2,sza,ist1) +=
-                    pnd_mean * sca_mat(i_se,nummu+iza,nummu+sza,ist1,ist2);
-                }
-      }
+    {
+      for (Index i_se = 0; i_se < N_se; i_se++)
+        {
+          Numeric pnd_mean = 0.5 * ( pnd_field(i_se,scat_p_index_local+1,0,0)+
+                                     pnd_field(i_se,scat_p_index_local,0,0) );
+          if ( pnd_mean > 0. )
+            for (Index iza=0; iza<nummu; iza++)
+              if ( (extinct_matrix(scat_p_index_local,0,iza,0,0)+
+                    extinct_matrix(scat_p_index_local,1,iza,0,0)) > 0. )
+                for (Index sza=0; sza<nummu; sza++)
+                  for (Index ist1=0; ist1<stokes_dim; ist1++)
+                    for (Index ist2=0; ist2<stokes_dim; ist2++)
+                    {
+                      scatter_matrix(scat_p_index_local,0,iza,ist2,sza,ist1) +=
+                        pnd_mean * sca_mat(i_se,iza,sza,ist1,ist2);
+                      scatter_matrix(scat_p_index_local,1,iza,ist2,sza,ist1) +=
+                        pnd_mean * sca_mat(i_se,nummu+iza,sza,ist1,ist2);
+                      scatter_matrix(scat_p_index_local,2,iza,ist2,sza,ist1) +=
+                        pnd_mean * sca_mat(i_se,iza,nummu+sza,ist1,ist2);
+                      scatter_matrix(scat_p_index_local,3,iza,ist2,sza,ist1) +=
+                        pnd_mean * sca_mat(i_se,nummu+iza,nummu+sza,ist1,ist2);
+                    }
+        }
+//      cout << "cloudbox layer #" << scat_p_index_local << "\n";
+      for (Index iza=0; iza<nummu; iza++)
+        for (Index ih=0; ih<2; ih++)
+          if ( extinct_matrix(scat_p_index_local,ih,iza,0,0) > 0. )
+            {
+              Numeric sca_mat_integ = 0.;
+
+              Numeric sca_nom = extinct_matrix(scat_p_index_local,ih,iza,0,0)-
+                                emis_vector(scat_p_index_local,ih,iza,0);
+
+              for (Index sza=0; sza<nummu; sza++)
+              {
+//                SUM2 = SUM2 + 2.0D0*PI*QUAD_WEIGHTS(J2)*
+//     .                 ( SCATTER_MATRIX(1,J2,1,J1, L,TSL)
+//     .                 + SCATTER_MATRIX(1,J2,1,J1, L+2,TSL) )
+                sca_mat_integ += quad_weights[sza] *
+                  ( scatter_matrix(scat_p_index_local,ih,iza,0,sza,0)+
+                    scatter_matrix(scat_p_index_local,ih+2,iza,0,sza,0) );
+              }
+
+              // compare integrated scatt matrix with ext-abs for respective
+              // incident polar angle
+//            SUM1 = EMIS_VECTOR(1,J1,L,TSL)-EXTINCT_MATRIX(1,1,J1,L,TSL)
+              Numeric norm = 2.*PI*sca_mat_integ / sca_nom;
+              if (abs(1.-norm) > 0.1)
+              {
+                ostringstream os;
+                os << "Scattering matrix normalization deviates from expected value\n"
+                   << "by more than 10%. Something is wrong with your scattering data.\n"
+                   << "Check!\n";
+                throw runtime_error( os.str() );
+              }
+              if (abs(1.-norm) > 1e-2)
+              {
+                CREATE_OUT2;
+                out2 << "Warning: The scattering matrix is not well normalized\n"
+                     << "Deviating from expected value by " << 1e2*abs(1.-norm)
+                     << "%.\n";
+//                cout << "polar angle #" << iza << "." << ih << "\n";
+//                cout << "Scattering matrix deviating from expected value by "
+//                     << 1e2*abs(1.-norm) << "%.\n";
+              }
+
+              // rescale scattering matrix to expected (0,0) value (and scale all
+              // other elements accordingly)
+              // FIXME: not fully clear whether applying the same rescaling
+              // factor is the correct way to do. check out, e.g., Vasilieva
+              // (JQSRT 2006) for better approaches.
+              scatter_matrix(scat_p_index_local,ih,iza,joker,joker,joker) /= norm;
+              scatter_matrix(scat_p_index_local,ih+2,iza,joker,joker,joker) /= norm;
+            }
+    }
 }
 
 

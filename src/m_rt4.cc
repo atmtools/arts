@@ -118,6 +118,10 @@ void RT4Calc( Workspace& ws,
   //  throw runtime_error("Sizes of *scat_za_grid* and *doit_i_field* are "
   //                      " inconsistent.\n"
   //                      "Do not modify them after the call of *DisortInit*\n" );
+  if( doit_i_field.npages() != nstreams ) 
+    throw runtime_error("Sizes of *doit_i_field* is inconsistent with nstreams.\n"
+                        "Make sure to use the same nstreams with *RT4Init* and "
+                        "*RT4Calc!\n" );
   
   // RT4 actually uses number of angles in single hemisphere. However, we don't
   // want a bunch of different approaches used in the interface, so we apply the
@@ -329,6 +333,8 @@ void RT4Calc( Workspace& ws,
       // Wavelength [um]
       Numeric wavelength;
       wavelength = 1e6*SPEED_OF_LIGHT/f_grid[f_index];
+//      cout << "# processing freq #" << f_index << " at " << f_grid[f_index]*1e-9
+//           << "GHz\n";
 
       scat_data_monoCalc(scat_data_mono, scat_data, f_grid, f_index, verbosity);
       
@@ -346,22 +352,11 @@ void RT4Calc( Workspace& ws,
                        t_field(Range(0,num_layers+1),joker,joker),
                        cloudbox_limits, stokes_dim, nummu );
       sca_optpropCalc( scatter_matrix,
+                       emis_vector, extinct_matrix,
                        scat_data_mono, pnd_field, stokes_dim,
-                       scat_za_grid, pfct_method, pfct_aa_grid_size,
+                       scat_za_grid, quad_weights,
+                       pfct_method, pfct_aa_grid_size,
                        verbosity );
-
-/*
-      for (Index j=0; j<num_layers; j++)
-      {
-        cout << "layer #" << j << ": z=" << height[j] << "-" << height[j+1]
-             << "m, gas_ext=" << gas_extinct[j] << "m-1";
-        if (scatlayers[j]!=0.)
-          cout << ", par_ext(sza=" << scat_za_grid[nummu-1] << "deg)="
-               << extinct_matrix(int(scatlayers[j])-1,0,nummu-1,0,0)
-               << ", par_abs=" << emis_vector(int(scatlayers[j])-1,0,nummu-1,0);
-        cout << "\n";
-      }
-*/
 
 //#pragma omp critical(fortran_rt4)
 //      {
@@ -401,13 +396,13 @@ void RT4Calc( Workspace& ws,
       Numeric rad_l2f = wavelength/f_grid[f_index];
       for(Index j = 0; j<nummu; j++)
         for(Index k = 0; k<(cloudbox_limits[1]-cloudbox_limits[0]+1); k++)
-          {
-//              up(0,num_layers-k-cloudbox_limits[0],j) / (100*SPEED_OF_LIGHT);
-            doit_i_field(f_index, k, 0, 0, nummu+j, 0, joker) =
-              up_rad(num_layers-k,j,joker)*rad_l2f;
-            doit_i_field(f_index, k, 0, 0, nummu-1-j, 0, joker) =
-              down_rad(num_layers-k,j,joker)*rad_l2f;
-          }
+          for (Index ist = 0; ist<stokes_dim; ist++ )
+              {
+                doit_i_field(f_index, k, 0, 0, nummu+j, 0, ist) =
+                  up_rad(num_layers-k,j,ist)*rad_l2f;
+                doit_i_field(f_index, k, 0, 0, nummu-1-j, 0, ist) =
+                  down_rad(num_layers-k,j,ist)*rad_l2f;
+              }
     }
   scat_za_grid.resize(nstreams);
   for (Index j=0; j<nummu; j++)
@@ -583,7 +578,7 @@ void RT4Init(//WS Output
 
   // Resize and initialize radiation field in the cloudbox
   //doit_i_field.resize( Nf, Np_cloud, 1, 1, Nza, 1, 1 );
-  doit_i_field.resize( Nf, Np_cloud, 1, 1, nstreams, 1, 1 );
+  doit_i_field.resize( Nf, Np_cloud, 1, 1, nstreams, 1, stokes_dim );
   doit_i_field = NAN;
   
   rt4_is_initialized = 1;

@@ -112,10 +112,10 @@ C       Only reads in the m=0 Fourier azimuthal angle mode.
             MAXSUM = DMAX1 (MAXSUM, DABS(SUM))
           ENDDO
         ENDDO
-        IF (MAXSUM .GT. 1.0D-6) THEN
-            WRITE (*,*) 'Scattering function in scatlayer ', TSL,
-     .                  ' not normalized:', MAXSUM
-        ENDIF
+c        IF (MAXSUM .GT. 1.0D-6) THEN
+c            WRITE (*,*) 'Scattering function in scatlayer ', TSL,
+c     .                  ' not normalized:', MAXSUM
+c        ENDIF
       ENDDO
       RETURN
       END
