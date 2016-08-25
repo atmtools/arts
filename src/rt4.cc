@@ -310,6 +310,14 @@ void sca_optpropCalc( //Output
       throw runtime_error( os.str() );
   }
 
+  if( pfct_aa_grid_size < 2 )
+  {
+      ostringstream os;
+      os << "Azimuth grid size for scatt matrix extraction "
+         << "(*pfct_aa_grid_size*) must be >1.\n"
+         << "Yours is " << pfct_aa_grid_size << ".\n";
+      throw runtime_error( os.str() );
+  }
   Vector aa_grid;
   nlinspace(aa_grid, 0, 180, pfct_aa_grid_size);
 
@@ -370,6 +378,9 @@ void sca_optpropCalc( //Output
               ConstVectorView za_datagrid = ssd.za_grid;
               ConstVectorView this_za_datagrid =
                 za_datagrid[Range(0,ssd.pha_mat_data.npages())];
+              ConstVectorView aa_datagrid = ssd.aa_grid;
+              assert(aa_datagrid[0]==0.);
+              assert(aa_datagrid[naa_se-1]==180.);
 
               // first, extracting the phase matrix at the scatt elements own
               // polar angle grid, deriving their respective azimuthal (Fourier
@@ -381,11 +392,11 @@ void sca_optpropCalc( //Output
                       {
                         Numeric daa;
                         if (saa==0)
-                          daa = (aa_grid[saa+1]-aa_grid[saa])/360.;
-                        else if (saa==pfct_aa_grid_size-1)
-                          daa = (aa_grid[saa]-aa_grid[saa-1])/360.;
+                          daa = (aa_datagrid[saa+1]-aa_datagrid[saa])/360.;
+                        else if (saa==naa_se-1)
+                          daa = (aa_datagrid[saa]-aa_datagrid[saa-1])/360.;
                         else
-                          daa = (aa_grid[saa+1]-aa_grid[saa-1])/360.;
+                          daa = (aa_datagrid[saa+1]-aa_datagrid[saa-1])/360.;
                         for (Index ist1=0; ist1<stokes_dim; ist1++)
                           for (Index ist2=0; ist2<stokes_dim; ist2++)
                             pha_mat_int(sza,iza,ist1,ist2) +=
