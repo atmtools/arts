@@ -1,3 +1,12 @@
+2016-08-25  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-519
+
+	* src/doit.cc (doit_scat_fieldNormalize):
+
+	If norm_debug=1, add additional output for each pressure level instead
+	of just changing from out2 to out0.
+
 2016-08-24 Jana Mendrok  <jana.mendrok@chalmers.se>
 
 	* arts-2-3-518

@@ -2691,6 +2691,9 @@ doit_scat_fieldNormalize(Workspace& ws,
     Numeric corr_max = .0;
     Index corr_max_p_index = -1;
 
+    ArtsOut& norm_out = out2;
+    if (norm_debug) norm_out = out0;
+
     for (Index p_index = 0; p_index < Np; p_index++)
     {
         // Calculate scattering integrals
@@ -2715,6 +2718,12 @@ doit_scat_fieldNormalize(Workspace& ws,
                 corr_max = corr_factor;
                 corr_max_p_index = p_index;
             }
+            if (norm_debug)
+            {
+                norm_out << "  DOIT corr_factor: " << 1.-corr_factor
+                << " ( scat_ext_int: " << scat_ext_int << ", scat_int: " << scat_int << ")"
+                << " at p_index " << p_index << "\n";
+            }
             if (abs(1.-corr_factor) > norm_error_threshold)
             {
                 ostringstream os;
@@ -2731,11 +2740,15 @@ doit_scat_fieldNormalize(Workspace& ws,
             // Scale scattered field with correction factor
             doit_scat_field(p_index, 0, 0, joker, 0, joker) *= corr_factor;
         }
+        else if (norm_debug)
+        {
+            norm_out << "  DOIT corr_factor ignored: " << 1.-corr_factor
+            << " ( scat_ext_int: " << scat_ext_int << ", scat_int: " << scat_int << ")"
+            << " at p_index " << p_index << "\n";
+        }
+
     }
 
-
-    ArtsOut& norm_out = out2;
-    if (norm_debug) norm_out = out0;
 
     if (corr_max_p_index != -1)
     {
