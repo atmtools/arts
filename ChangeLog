@@ -1,3 +1,15 @@
+2016-08-26  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-521
+
+	* src/m_optproperties.cc (ScatSpeciesMerge):
+
+	Extended merging to work not only for randomly oriented particles but
+	all particle types. Weighted sum is now calculated for all dimensions
+	of particle's ext_mat_dat, abs_vec_data and pha_mat_data.
+	Horizontally-aligned case provided by Jana now shows numerically identical results with
+	and without ScatSpeciesMerge.
+
 2016-08-25 Jana Mendrok  <jana.mendrok@chalmers.se>
 
 	* arts-2-3-520

@@ -1967,77 +1967,105 @@ void ScatSpeciesMerge(//WS Output:
                         interpweights(itw, T_gp);
                     }
 
+                    ////////// Extinction matrix and absorption vector
+
                     // Loop over frequencies
                     for (Index i_f = 0;
                          i_f < orig_part.pha_mat_data.nlibraries(); i_f++)
                     {
-                        // Weighted sum of ext_mat_data and abs_vec_data
-                        if( orig_part.T_grid.nelem() == 1)
-                        {
-                            this_part.ext_mat_data(i_f, 0, 0, 0, joker) +=
-                            pnd_field(pnd_index, i_lv, 0, 0)
-                            * orig_part.ext_mat_data(i_f, 0, 0, 0, joker);
-
-                            this_part.abs_vec_data(i_f, 0, 0, 0, joker) +=
-                            pnd_field(pnd_index, i_lv, 0, 0)
-                            * orig_part.abs_vec_data(i_f, 0, 0, 0, joker);
-                        }
-                        else
-                        {
-                            for (Index i = 0;
-                                 i < orig_part.ext_mat_data.ncols(); i++)
-                            {
-                                // Temperature interpolation
-                                this_part.ext_mat_data(i_f, 0, 0, 0, i) +=
-                                pnd_field(pnd_index, i_lv, 0, 0)
-                                * interp(itw,
-                                    orig_part.ext_mat_data(i_f, joker, 0, 0, i),
-                                    T_gp);
-                            }
-                            for (Index i = 0;
-                                 i < orig_part.abs_vec_data.ncols(); i++)
-                            {
-                                // Temperature interpolation
-                                this_part.abs_vec_data(i_f, 0, 0, 0, i) +=
-                                pnd_field(pnd_index, i_lv, 0, 0)
-                                * interp(itw,
-                                    orig_part.abs_vec_data(i_f, joker, 0, 0, i),
-                                    T_gp);
-                            }
-                        }
 
                         // Loop over zenith angles
                         for (Index i_za = 0;
-                             i_za < orig_part.pha_mat_data.nshelves(); i_za++)
+                             i_za < orig_part.ext_mat_data.npages(); i_za++)
                         {
-                            // Weighted sum of pha_mat_data
-                            if( orig_part.T_grid.nelem() == 1)
+                            // Loop over azimuth angles
+                            for (Index i_aa = 0;
+                                 i_aa < orig_part.ext_mat_data.nrows(); i_aa++)
                             {
-                                const Numeric pnd =
-                                  pnd_field(pnd_index, i_lv, 0, 0);
-                                for (Index i_s = 0;
-                                     i_s < orig_part.pha_mat_data.ncols();
-                                     i_s++)
+                                // Weighted sum of ext_mat_data and abs_vec_data
+                                if( orig_part.T_grid.nelem() == 1)
                                 {
-                                    this_part.pha_mat_data(i_f, 0, i_za,
-                                                           0, 0, 0, i_s) =
-                                    pnd * orig_part.pha_mat_data(i_f, 0, i_za,
-                                                                 0, 0, 0, i_s);
+                                    Vector v = orig_part.ext_mat_data(i_f, 0, i_za, i_aa, joker);
+                                    v *= pnd_field(pnd_index, i_lv, 0, 0);
+                                    this_part.ext_mat_data(i_f, 0, i_za, 0, joker) += v;
+
+                                    v = orig_part.abs_vec_data(i_f, 0, i_za, i_aa, joker);
+                                    v *= pnd_field(pnd_index, i_lv, 0, 0);
+                                    this_part.abs_vec_data(i_f, 0, i_za, i_aa, joker) += v;
+                                }
+                                else
+                                {
+                                    for (Index i = 0;
+                                         i < orig_part.ext_mat_data.ncols(); i++)
+                                    {
+                                        // Temperature interpolation
+                                        this_part.ext_mat_data(i_f, 0, i_za, i_aa, i) +=
+                                        pnd_field(pnd_index, i_lv, 0, 0)
+                                        * interp(itw,
+                                                 orig_part.ext_mat_data(i_f, joker, i_za, i_aa, i),
+                                                 T_gp);
+                                    }
+                                    for (Index i = 0;
+                                         i < orig_part.abs_vec_data.ncols(); i++)
+                                    {
+                                        // Temperature interpolation
+                                        this_part.abs_vec_data(i_f, 0, i_za, i_aa, i) +=
+                                        pnd_field(pnd_index, i_lv, 0, 0)
+                                        * interp(itw,
+                                                 orig_part.abs_vec_data(i_f, joker, i_za, i_aa, i),
+                                                 T_gp);
+                                    }
                                 }
                             }
-                            else
+                        }
+
+                        ////////// Phase matrix
+
+                        // Loop over outgoing zenith angles
+                        for (Index i_za_out = 0;
+                             i_za_out < orig_part.pha_mat_data.nshelves(); i_za_out++)
+                        {
+                            // Loop over outgoing azimuth angles
+                            for (Index i_aa_out = 0;
+                                 i_aa_out < orig_part.pha_mat_data.nbooks(); i_aa_out++)
                             {
-                                // Temperature interpolation
-                                for (Index i = 0;
-                                     i < orig_part.pha_mat_data.ncols(); i++)
+                                // Loop over incoming zenith angles
+                                for (Index i_za_inc = 0;
+                                     i_za_inc < orig_part.pha_mat_data.npages(); i_za_inc++)
                                 {
-                                    this_part.pha_mat_data(i_f, 0, i_za,
-                                                           0, 0, 0, i) +=
-                                    pnd_field(pnd_index, i_lv, 0, 0)
-                                    * interp(itw,
-                                             orig_part.pha_mat_data(i_f, joker,
-                                                              i_za, 0, 0, 0, i),
-                                             T_gp);
+                                    // Loop over incoming azimuth angles
+                                    for (Index i_aa_inc = 0;
+                                         i_aa_inc < orig_part.pha_mat_data.nrows(); i_aa_inc++)
+                                    {
+                                        // Weighted sum of pha_mat_data
+                                        if( orig_part.T_grid.nelem() == 1)
+                                        {
+                                            Vector v = orig_part.pha_mat_data(i_f, 0,
+                                                                              i_za_out, i_aa_out,
+                                                                              i_za_inc, i_aa_inc,
+                                                                              joker);
+                                            v *= pnd_field(pnd_index, i_lv, 0, 0);
+                                            this_part.pha_mat_data(i_f, 0,
+                                                                   i_za_out, i_aa_out,
+                                                                   i_za_inc, i_aa_inc, joker) = v;
+                                        }
+                                        else
+                                        {
+                                            // Temperature interpolation
+                                            for (Index i = 0;
+                                                 i < orig_part.pha_mat_data.ncols(); i++)
+                                            {
+                                                this_part.pha_mat_data(i_f, 0, i_za_out,
+                                                                       i_aa_out, i_za_inc, i_aa_inc, i) +=
+                                                pnd_field(pnd_index, i_lv, 0, 0)
+                                                * interp(itw,
+                                                         orig_part.pha_mat_data(i_f, joker,
+                                                                                i_za_out, i_aa_out,
+                                                                                i_za_inc, i_aa_inc, i),
+                                                         T_gp);
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
