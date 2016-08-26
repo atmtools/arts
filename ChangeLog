@@ -1,5 +1,14 @@
 2016-08-26  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-3-522
+
+	* doc/uguide/clouds.tex:
+
+	Small fix for aa-grid size of horizontally-aligned particles.
+	N_za_inc/2+1 -> N_za_sca/2+1.
+
+2016-08-26  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-3-521
 
 	* src/m_optproperties.cc (ScatSpeciesMerge):
