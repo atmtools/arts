@@ -1356,7 +1356,7 @@ void xml_read_from_stream(istream& is_xml,
   tag.read_from_stream(is_xml);
   tag.check_name("/SingleScatteringData");
 
-  chk_scat_data(ssdata, "", verbosity);
+  chk_scat_data(ssdata, verbosity);
 }
 
 

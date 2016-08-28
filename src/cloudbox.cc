@@ -445,15 +445,15 @@ void chk_scattering_data(const ArrayOfSingleScatteringData& scat_data,
   if (scat_data.nelem() != scat_meta.nelem())
   {
     ostringstream os;
-    os << "The number of elements in *scat_data* and *scat_meta* do not match.\n"
-       << "Each SingleScattering file must correspond to one ScatteringMeta"
-       << " data file.";
+    os << "The number of elements in in current scat_species'  *scat_data* and "
+       << "*scat_meta* do not match.\n"
+       << "Each scat_data entry must correspond to one entry in scat_meta.";
     throw runtime_error( os.str());
   }
 
 }
 
-//! Check scattering data meta files
+//! Check scattering data meta
 /*!
   FIXME
   
@@ -487,188 +487,168 @@ void chk_scattering_meta_data(const ScatteringMetaData& scat_meta_single _U_,
 
 
 
-//! Check single scattering data files
+//! Check single scattering data
 /*!
-  This function checks, whether a datafile containing the single scattering 
+  This function checks, whether the single scattering 
   properties of a scattering element includes the required frequencies.
 
-  \param scat_data[in]       Single scattering data
-  \param scat_data_file[in]  Filename of the data to be checked.
-  \param f_grid[in]          Frequency grid
-  \param verbosity[in]       Verbosity
+  \param scat_data_single[in]  Single scattering data of a single scattering element
+  \param f_grid[in]            Frequency grid
   
   \author Claudia Emde
   \date   2005-04-04
 */
-void chk_scat_data_fgrid(const SingleScatteringData& scat_data,
-                         const String& scat_data_file,
+void chk_scat_data_fgrid(const SingleScatteringData& scat_data_single,
                          ConstVectorView f_grid,
-                         const Verbosity& verbosity)
+                         const String& infostring)
 {
-  CREATE_OUT2;
-  out2 << "  Check single scattering properties file "<< scat_data_file 
-       << "\n";
-
-  chk_interpolation_grids("scat_data.f_grid to f_grid",
-			    scat_data.f_grid,
-			    f_grid);
+  chk_interpolation_grids( infostring, scat_data_single.f_grid, f_grid);
   
-/*  if (!(scat_data.f_grid[0] <= f_grid[0] &&
+/*  if (!(scat_data_single.f_grid[0] <= f_grid[0] &&
         last(f_grid) <= 
-        last(scat_data.f_grid) ))
+        last(scat_data_single.f_grid) ))
     {
       ostringstream os;
       os << "The range of frequency grid in the single scattering"
-         << " properties datafile " 
-         << scat_data_file << " does not contain all values of"
+         << " properties data does not contain all values of"
          << "*f_grid*.";
       throw runtime_error( os.str() );
     }*/
 }
 
 
-//! Check single scattering data files
+//! Check single scattering data
 /*!
   This function checks the self consistency of the data by checking the
   dimensions of pha_mat, ext_mat and abs_vec depending on the ptype case.
   It furthermore checks whether the angular grids are defined correctly
   depending on ptype and the sanity of the temperature grid.
   
-  \param scat_data[in]       Single scattering data
-  \param scat_data_file[in]  Filename of the data to be checked.
-  \param verbosity[in]       Verbosity
+  \param scat_data_single[in]  Single scattering data of a single scattering element
 
   \author Claudia Emde
   \date   2005-04-04
 */
-void chk_scat_data(const SingleScatteringData& scat_data,
-                   const String& scat_data_file,
+void chk_scat_data(const SingleScatteringData& scat_data_single,
                    const Verbosity& verbosity)
 {
   CREATE_OUT2;
-  out2 << "  Check single scattering properties file "<< scat_data_file 
-       << "\n";
 
-  assert(scat_data.ptype == PTYPE_GENERAL ||
-         scat_data.ptype == PTYPE_MACROS_ISO ||
-         scat_data.ptype == PTYPE_HORIZ_AL);
+  assert(scat_data_single.ptype == PTYPE_GENERAL ||
+         scat_data_single.ptype == PTYPE_MACROS_ISO ||
+         scat_data_single.ptype == PTYPE_HORIZ_AL);
 
-  if (scat_data.za_grid[0] != 0.)
+  if (scat_data_single.za_grid[0] != 0.)
     {
       ostringstream os;
       os << "The first value of the za grid in the single" 
-         << " scattering properties datafile " 
-         << scat_data_file << " must be 0.";
+         << " scattering properties data must be 0.";
         throw runtime_error( os.str() );
     } 
 
-  if (last(scat_data.za_grid) != 180.)
+  if (last(scat_data_single.za_grid) != 180.)
     {
       ostringstream os;
       os << "The last value of the za grid in the single"
-         << " scattering properties datafile " 
-         << scat_data_file << " must be 180.";
+         << " scattering properties data must be 180.";
       throw runtime_error( os.str() );
     } 
   
-  if (scat_data.ptype == PTYPE_GENERAL && scat_data.aa_grid[0] != -180.)
+  if (scat_data_single.ptype == PTYPE_GENERAL && scat_data_single.aa_grid[0] != -180.)
      {
        ostringstream os;
        os << "For ptype = \"general\" the first value"
           << " of the aa grid in the single scattering"
-          << " properties datafile " 
-          << scat_data_file << "must be -180.";
+          << " properties data must be -180.";
          throw runtime_error( os.str() );
      } 
   
-  if (scat_data.ptype == PTYPE_HORIZ_AL && scat_data.aa_grid[0] != 0.)
+  if (scat_data_single.ptype == PTYPE_HORIZ_AL && scat_data_single.aa_grid[0] != 0.)
     {
       ostringstream os;
       os << "For ptype = \"horizontally_aligned\""
          << " the first value"
          << " of the aa grid in the single scattering"
-         << " properties datafile " 
-         << scat_data_file << "must be 0.";
+         << " properties data must be 0.";
         throw runtime_error( os.str() );
     }   
   
-  if (scat_data.ptype == PTYPE_HORIZ_AL && last(scat_data.aa_grid) != 180.)
+  if (scat_data_single.ptype == PTYPE_HORIZ_AL && last(scat_data_single.aa_grid) != 180.)
     {
       ostringstream os;
       os << "For ptype = \"horizontally_aligned\""
          << " the last value of the aa grid in the single"
-         << " scattering properties datafile " 
-         << scat_data_file << " must be 180.";
+         << " scattering properties data must be 180.";
         throw runtime_error( os.str() );
     }   
 
   ostringstream os_pha_mat;
-  os_pha_mat << "pha_mat* in the file *" << scat_data_file;
+  os_pha_mat << "pha_mat ";
   ostringstream os_ext_mat;
-  os_ext_mat << "ext_mat* in the file * " << scat_data_file;
+  os_ext_mat << "ext_mat ";
   ostringstream os_abs_vec;
-  os_abs_vec << "abs_vec* in the file * " << scat_data_file;
+  os_abs_vec << "abs_vec ";
   
-  switch (scat_data.ptype){
+  switch (scat_data_single.ptype){
     
   case PTYPE_GENERAL:
     
-    out2 << "  Datafile is for arbitrarily orientated particles. \n";
+    out2 << "  Data is for arbitrarily orientated particles. \n";
     
-    chk_size(os_pha_mat.str(), scat_data.pha_mat_data,
-             scat_data.f_grid.nelem(), scat_data.T_grid.nelem(),
-             scat_data.za_grid.nelem(), scat_data.aa_grid.nelem(),
-             scat_data.za_grid.nelem(), scat_data.aa_grid.nelem(), 
+    chk_size(os_pha_mat.str(), scat_data_single.pha_mat_data,
+             scat_data_single.f_grid.nelem(), scat_data_single.T_grid.nelem(),
+             scat_data_single.za_grid.nelem(), scat_data_single.aa_grid.nelem(),
+             scat_data_single.za_grid.nelem(), scat_data_single.aa_grid.nelem(), 
               16); 
     
-    chk_size(os_ext_mat.str(), scat_data.ext_mat_data,
-             scat_data.f_grid.nelem(), scat_data.T_grid.nelem(),
-             scat_data.za_grid.nelem(), scat_data.aa_grid.nelem(),
+    chk_size(os_ext_mat.str(), scat_data_single.ext_mat_data,
+             scat_data_single.f_grid.nelem(), scat_data_single.T_grid.nelem(),
+             scat_data_single.za_grid.nelem(), scat_data_single.aa_grid.nelem(),
              7);
     
-    chk_size(os_abs_vec.str(), scat_data.abs_vec_data,
-             scat_data.f_grid.nelem(), scat_data.T_grid.nelem(),
-             scat_data.za_grid.nelem(), scat_data.aa_grid.nelem(),
+    chk_size(os_abs_vec.str(), scat_data_single.abs_vec_data,
+             scat_data_single.f_grid.nelem(), scat_data_single.T_grid.nelem(),
+             scat_data_single.za_grid.nelem(), scat_data_single.aa_grid.nelem(),
              4);
     break;
     
   case PTYPE_MACROS_ISO: 
     
-    out2 << "  Datafile is for randomly oriented particles, i.e., "
+    out2 << "  Data is for randomly oriented particles, i.e., "
          << "macroscopically isotropic and mirror-symmetric scattering "
          << "media. \n";
     
-    chk_size(os_pha_mat.str(), scat_data.pha_mat_data,
-             scat_data.f_grid.nelem(), scat_data.T_grid.nelem(),
-             scat_data.za_grid.nelem(), 1, 1, 1, 6);
+    chk_size(os_pha_mat.str(), scat_data_single.pha_mat_data,
+             scat_data_single.f_grid.nelem(), scat_data_single.T_grid.nelem(),
+             scat_data_single.za_grid.nelem(), 1, 1, 1, 6);
     
-    chk_size(os_ext_mat.str(), scat_data.ext_mat_data,
-             scat_data.f_grid.nelem(), scat_data.T_grid.nelem(),
+    chk_size(os_ext_mat.str(), scat_data_single.ext_mat_data,
+             scat_data_single.f_grid.nelem(), scat_data_single.T_grid.nelem(),
              1, 1, 1);
     
-    chk_size(os_abs_vec.str(), scat_data.abs_vec_data,
-             scat_data.f_grid.nelem(), scat_data.T_grid.nelem(),
+    chk_size(os_abs_vec.str(), scat_data_single.abs_vec_data,
+             scat_data_single.f_grid.nelem(), scat_data_single.T_grid.nelem(),
              1, 1, 1);
     break; 
     
   case PTYPE_HORIZ_AL:
     
-    out2 << "  Datafile is for horizontally aligned particles. \n"; 
+    out2 << "  Data is for horizontally aligned particles. \n"; 
     
-    chk_size(os_pha_mat.str(), scat_data.pha_mat_data,
-             scat_data.f_grid.nelem(), scat_data.T_grid.nelem(),
-             scat_data.za_grid.nelem(), scat_data.aa_grid.nelem(),
-             scat_data.za_grid.nelem()/2+1, 1, 
+    chk_size(os_pha_mat.str(), scat_data_single.pha_mat_data,
+             scat_data_single.f_grid.nelem(), scat_data_single.T_grid.nelem(),
+             scat_data_single.za_grid.nelem(), scat_data_single.aa_grid.nelem(),
+             scat_data_single.za_grid.nelem()/2+1, 1, 
              16); 
 
-    chk_size(os_ext_mat.str(), scat_data.ext_mat_data,
-             scat_data.f_grid.nelem(), scat_data.T_grid.nelem(),
-             scat_data.za_grid.nelem()/2+1, 1, 
+    chk_size(os_ext_mat.str(), scat_data_single.ext_mat_data,
+             scat_data_single.f_grid.nelem(), scat_data_single.T_grid.nelem(),
+             scat_data_single.za_grid.nelem()/2+1, 1, 
              3);
     
-    chk_size(os_abs_vec.str(), scat_data.abs_vec_data,
-             scat_data.f_grid.nelem(), scat_data.T_grid.nelem(),
-             scat_data.za_grid.nelem()/2+1, 1, 
+    chk_size(os_abs_vec.str(), scat_data_single.abs_vec_data,
+             scat_data_single.f_grid.nelem(), scat_data_single.T_grid.nelem(),
+             scat_data_single.za_grid.nelem()/2+1, 1, 
              2);
     break;
 
@@ -680,10 +660,10 @@ void chk_scat_data(const SingleScatteringData& scat_data,
   // is none zero for the corresponding temperature. This check done in the 
   // functions where the multiplication with the particle number density is 
   // done. 
-  if (!(0. < scat_data.T_grid[0] && last(scat_data.T_grid) < 1001.))
+  if (!(0. < scat_data_single.T_grid[0] && last(scat_data_single.T_grid) < 1001.))
     {
       ostringstream os;
-      os << "The temperature values in " <<  scat_data_file 
+      os << "The temperature values in the single scattering data" 
          << " are negative or very large. Check whether you have used the "
          << "right unit [Kelvin].";
       throw runtime_error( os.str() );

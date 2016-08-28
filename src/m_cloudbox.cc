@@ -646,10 +646,6 @@ void ScatElementsPndAndScatAdd( //WS Output:
                      ArrayOfGriddedField3&  pnd_field_raw,
                      // WS Input (needed for checking the datafiles):
                      const Index& atmosphere_dim,
-                     const Vector& f_grid,
-//                     const Vector& p_grid,
-//                     const Vector& lat_grid,
-//                     const Vector& lon_grid,
                      // Keywords:
                      const ArrayOfString& scat_data_files,
                      const ArrayOfString& pnd_field_files,
@@ -663,11 +659,6 @@ void ScatElementsPndAndScatAdd( //WS Output:
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
   //chk_atm_grids( atmosphere_dim, p_grid, lat_grid, lon_grid );
 
-  // Frequency grid
-  if( f_grid.empty() )
-    throw runtime_error( "The frequency grid is empty." );
-  chk_if_increasing( "f_grid", f_grid );
-  
 
   //--- Reading the data ---------------------------------------------------
 
@@ -700,9 +691,6 @@ void ScatElementsPndAndScatAdd( //WS Output:
       xml_read_from_file(scat_data_files[i],
                          scat_data[last_species][scat_data[last_species].nelem()-1],
                          verbosity);
-
-      chk_scat_data_fgrid(scat_data[last_species][scat_data[last_species].nelem()-1],
-                          scat_data_files[i], f_grid, verbosity);
   
       out2 << "  Read particle number density field\n";
       if (pnd_field_files[i].nelem() < 1)
@@ -729,10 +717,6 @@ void ScatSpeciesPndAndScatAdd (//WS Output:
                          ArrayOfGriddedField3&  pnd_field_raw,
                          // WS Input(needed for checking the datafiles):
                          const Index& atmosphere_dim,
-                         const Vector& f_grid,
-//                         const Vector& p_grid,
-//                         const Vector& lat_grid,
-//                         const Vector& lon_grid,
                          // Keywords:
                          const ArrayOfString& scat_data_files,
                          const String& pnd_fieldarray_file,
@@ -746,11 +730,6 @@ void ScatSpeciesPndAndScatAdd (//WS Output:
   chk_if_in_range ( "atmosphere_dim", atmosphere_dim, 1, 3 );
   //chk_atm_grids ( atmosphere_dim, p_grid, lat_grid, lon_grid );
 
-  // Frequency grid
-  if ( f_grid.empty() )
-    throw runtime_error ( "The frequency grid is empty." );
-  chk_if_increasing ( "f_grid", f_grid );
-
 
   //--- Reading the data ---------------------------------------------------
   ArrayOfSingleScatteringData arr_ssd;
@@ -761,10 +740,6 @@ void ScatSpeciesPndAndScatAdd (//WS Output:
 
     out2 << "  Read single scattering data file " << scat_data_files[i] << "\n";
     xml_read_from_file ( scat_data_files[i], arr_ssd[i], verbosity );
-
-    chk_scat_data_fgrid ( arr_ssd[i],
-                         scat_data_files[i], f_grid,
-                         verbosity );
 
   }
 
@@ -800,9 +775,6 @@ void ScatElementsToabs_speciesAdd( //WS Output:
                      // WS Input (needed for checking the datafiles):
                      const Index& atmosphere_dim,
                      const Vector& f_grid,
-//                     const Vector& p_grid,
-//                     const Vector& lat_grid,
-//                     const Vector& lon_grid,
                      // Keywords:
                      const ArrayOfString& scat_data_files,
                      const ArrayOfString& pnd_field_files,
@@ -856,8 +828,10 @@ void ScatElementsToabs_speciesAdd( //WS Output:
                          scat_data[last_species][scat_data[last_species].nelem()-1],
                          verbosity);
 
+      out2 << "  Check single scattering properties\n";
       chk_scat_data_fgrid(scat_data[last_species][scat_data[last_species].nelem()-1],
-                          scat_data_files[i], f_grid, verbosity);
+                          f_grid, "scat_data_single.f_grid to f_grid");
+
   
       out2 << "  Read particle number density field\n";
       if (pnd_field_files[i].nelem() < 1)
@@ -880,6 +854,7 @@ void ScatElementsToabs_speciesAdd( //WS Output:
                       propmat_clearsky_agenda_checked, abs_xsec_agenda_checked,
                       species, verbosity );
     }
+  scat_dataCheck( scat_data, "value-validity", 1e-2, verbosity );
 }
 
 
@@ -887,7 +862,6 @@ void ScatElementsToabs_speciesAdd( //WS Output:
 void ScatSpeciesScatAndMetaRead (//WS Output:
                                  ArrayOfArrayOfSingleScatteringData& scat_data,
                                  ArrayOfArrayOfScatteringMetaData& scat_meta,
-                                 const Vector& f_grid,
                                  // Keywords:
                                  const ArrayOfString& scat_data_files,
                                  const Verbosity& verbosity)
@@ -907,10 +881,6 @@ void ScatSpeciesScatAndMetaRead (//WS Output:
     {
       out2 << "  Read single scattering data file " << scat_data_files[i] << "\n";
       xml_read_from_file ( scat_data_files[i], arr_ssd[i], verbosity );
-
-      chk_scat_data_fgrid ( arr_ssd[i],
-                           scat_data_files[i], f_grid,
-                           verbosity );
 
       // make meta data name from scat data name
       ArrayOfString strarr;

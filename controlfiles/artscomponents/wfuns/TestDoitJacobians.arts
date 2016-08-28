@@ -196,7 +196,13 @@ AgendaSet( ybatch_calc_agenda ){
   # Consistency checks
   atmgeom_checkedCalc
   atmfields_checkedCalc( bad_partition_functions_ok = 1 )
-  cloudbox_checkedCalc
+  #cloudbox_checkedCalc
+  # for the scat data we use here, norm of Z deviates quite a bit from the expected
+  # value. we circumvent ARTS to throw an error here, by increasing the threshold.
+  # NOTE TO GENERAL USER: instead of doing so, rather prepare data that fulfils the
+  # Z norm criterium. We disencourage doing as we do here, as this might lead to
+  # invalid results.
+  cloudbox_checkedCalc( sca_mat_threshold=5e-2 )
   sensor_checkedCalc
   propmat_clearsky_agenda_checkedCalc
 

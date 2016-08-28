@@ -3476,8 +3476,8 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "atmosphere_dim", "z_field", "lat_grid", "lon_grid" ),
-        GIN( "z1",      "z2",      "lat1",    "lat2",    "lon1",
-             "lon2" ),
+        GIN(         "z1",      "z2",      "lat1",    "lat2",    "lon1",
+                     "lon2" ),
         GIN_TYPE(    "Numeric", "Numeric", "Numeric", "Numeric", "Numeric", 
                      "Numeric" ),
         GIN_DEFAULT( NODEF,     NODEF,     NODEF,     NODEF,     NODEF,
@@ -3521,12 +3521,13 @@ void define_md_data_raw()
             "lon_grid", "z_field", "z_surface",
             "wind_u_field", "wind_v_field", "wind_w_field", 
             "cloudbox_on", "cloudbox_limits", "pnd_field",
-            "scat_data", "scat_species",
+            "f_grid", "scat_data", "scat_species",
             "abs_species", "particle_masses" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
+        GIN(         "scat_data_check", "sca_mat_threshold" ),
+        GIN_TYPE(    "String",          "Numeric" ),
+        GIN_DEFAULT( "all",             "1e-2" ),
+        GIN_DESC( "The level of checks to apply on scat_data (see above).",
+                  "Threshold for allowed albedo deviation." )
         ));
 
   md_data_raw.push_back
@@ -11704,7 +11705,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "scat_data", "pnd_field_raw", "atmosphere_dim", "f_grid" ),
+        IN( "scat_data", "pnd_field_raw", "atmosphere_dim" ),
         GIN(         "scat_data_files", "pnd_field_files" ),
         GIN_TYPE(    "ArrayOfString",   "ArrayOfString"   ),
         GIN_DEFAULT( NODEF,             NODEF             ),
@@ -11945,7 +11946,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "scat_data", "pnd_field_raw", "atmosphere_dim", "f_grid" ),
+        IN( "scat_data", "pnd_field_raw", "atmosphere_dim" ),
         GIN(         "scat_data_files", "pnd_fieldarray_file" ),
         GIN_TYPE(    "ArrayOfString",   "String"              ),
         GIN_DEFAULT( NODEF,             NODEF                 ),
@@ -11987,7 +11988,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "scat_data", "scat_meta", "f_grid" ),
+        IN( "scat_data", "scat_meta" ),
         GIN(         "scat_data_files" ),
         GIN_TYPE(    "ArrayOfString" ),
         GIN_DEFAULT( NODEF ),
@@ -12171,11 +12172,11 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "scat_data" ),
-        GIN( "threshold" ),
-        GIN_TYPE( "Numeric" ),
-        GIN_DEFAULT( "1e-3" ),
-        GIN_DESC( "Threshold for allowed deviation in albedo when using integrated "
-                  "phase matrix vs. using extinction-absorption difference." )
+        GIN(         "scat_data_check", "sca_mat_threshold" ),
+        GIN_TYPE(    "String",          "Numeric" ),
+        GIN_DEFAULT( "all",             "1e-2" ),
+        GIN_DESC( "The level of checks to apply on scat_data (see above).",
+                  "Threshold for allowed albedo deviation." )
         ));
 
 /*

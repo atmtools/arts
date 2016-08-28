@@ -37,6 +37,7 @@
 
 #include "arts.h"
 #include "auto_md.h"
+#include "cloudbox.h"
 #include "matpackI.h"
 
 extern const Numeric DEG2RAD;
@@ -439,11 +440,14 @@ void cloudbox_checkedCalc(
    const Index&          cloudbox_on,    
    const ArrayOfIndex&   cloudbox_limits,
    const Tensor4&        pnd_field,
+   const Vector&         f_grid,
    const ArrayOfArrayOfSingleScatteringData& scat_data,
    const ArrayOfString&  scat_species,
    const ArrayOfArrayOfSpeciesTag& abs_species,
    const Matrix&         particle_masses,
-   const Verbosity&)
+   const String&         scat_data_check,
+   const Numeric&        sca_mat_threshold,
+   const Verbosity&      verbosity )
 {
   // Demanded space between cloudbox and lat and lon edges [degrees]
   const Numeric llmin = 20;
@@ -513,7 +517,7 @@ void cloudbox_checkedCalc(
        
       Index nlat=1, nlon=1;
 
-      if( atmosphere_dim >= 2 )
+      if( atmosphere_dim > 1 )
         {
           nlat = lat_grid.nelem();
           if( cloudbox_limits[3]<=cloudbox_limits[2] || 
@@ -553,7 +557,7 @@ void cloudbox_checkedCalc(
             }
         }
        
-      if( atmosphere_dim >= 3 )
+      if( atmosphere_dim > 2 )
         {
           nlon = lon_grid.nelem();
           if( cloudbox_limits[5]<=cloudbox_limits[4] || cloudbox_limits[4]<1 ||
@@ -624,9 +628,9 @@ void cloudbox_checkedCalc(
       const Index np = TotalNumberOfElements(scat_data);
       // Dummy variables to mimic grids of correct size
       Vector g1( cloudbox_limits[1]-cloudbox_limits[0]+1 ), g2(0), g3(0);
-      if( atmosphere_dim >= 2 ) 
+      if( atmosphere_dim > 1 ) 
         { g2.resize( cloudbox_limits[3]-cloudbox_limits[2]+1 ); }
-      if( atmosphere_dim == 3 ) 
+      if( atmosphere_dim > 2 ) 
         { g3.resize( cloudbox_limits[5]-cloudbox_limits[4]+1 ); }
       //
       chk_atm_field( "pnd_field", pnd_field, atmosphere_dim, np, g1, g2, g3 );
@@ -679,6 +683,35 @@ void cloudbox_checkedCalc(
           if( min(particle_masses) < 0 )
             throw runtime_error( 
                            "All values in *particles_masses* must be >= 0." );
+        }
+
+      // Check scat_data
+      // freq range of calc covered?
+      if( f_grid.empty() )
+        throw runtime_error ( "The frequency grid is empty." );
+      chk_if_increasing ( "f_grid", f_grid );
+      Index N_ss = scat_species.nelem();
+      for( Index i_ss=0; i_ss<N_ss; i_ss++ )
+        {
+          Index N_se = scat_data[i_ss].nelem();
+          for( Index i_se=0; i_se<N_se; i_se++ )
+            {
+              ostringstream os;
+              os << "scat_data[" << i_ss << "][" << i_se << "].f_grid to f_grid";
+              chk_scat_data_fgrid ( scat_data[i_ss][i_se], f_grid, os.str() );
+            }
+        }
+      if( scat_data_check != "none" || scat_data_check != "None" ||
+          scat_data_check != "NONE" )
+        {
+          // handing over to scat_dataCheck which checks whether
+          // 1) scat_data containing any NaN?
+          // 2) any negative values in Z11, K11, or a1?
+          // 3) sca_mat norm sufficiently good (int(Z11)~=K11-a1?)
+          // 1) & 2) always done
+          // 3) only done if scat_data_check is "all"
+          scat_dataCheck( scat_data, scat_data_check, sca_mat_threshold,
+                          verbosity );
         }
     }
 

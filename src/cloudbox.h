@@ -81,12 +81,10 @@ void chk_scattering_meta_data (const ScatteringMetaData& scat_meta_single,
                                const Verbosity& verbosity);
 
 void chk_scat_data_fgrid (const SingleScatteringData& scat_data,
-                          const String& scat_data_file,
                           ConstVectorView f_grid,
-                          const Verbosity& verbosity);
+                          const String& infostring);
 
 void chk_scat_data (const SingleScatteringData& scat_data,
-                    const String& scat_data_file,
                     const Verbosity& verbosity);
 
 bool is_gp_inside_cloudbox(

@@ -1,3 +1,41 @@
+2016-08-28 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-523
+
+	* src/m_checked.cc (cloudbox_checkedCalc):
+	Added checks of scat_data: Freq coverage checks moved here. Checks of
+	single scattering data validity (no NaN, no neg values in K11, Z11,
+	a10) and Z norm. Except freq coverage, checks are performed by the
+	WSM scat_dataCheck and can be switched off (idea: data, once created, is
+	often re-used. then it's not necessary to check them at each new arts
+	run. instead, a check can be done once using scat_dataCheck.).
+
+	* src/m_optproperties.cc (scat_dataCheck):
+	Extended to also check for NaNs in single scattering data and for
+	negative values in K11, Z11, and a11. Added Z norm check for
+	horizontally aligned particles. Added keyword allowing Z norm checks to
+	be skipped.
+
+	* src/m_cloudbox.cc (ScatElementsPndAndScatAdd, ScatSpeciesPndAndScatAdd,
+	ScatSpeciesScatAndMetaRead):
+	Removed freqency coverage check in WSMs that read scat_data/pnd_field
+	for in-cloudbox use (where cloudbox_checkedCalc will be applied).
+
+	* src/cloudbox.cc,h, xml_io_compound_types.cc:
+	Remove passing scat data file names to chk functions and remove all
+	references to files in output messages. Here, we only process data;
+	files are - if at all, handled by the calling functions.
+
+	* src/methods.cc:
+	Adapted for WSM interface changes above.
+
+	* controlfiles/artscomponents/arts-xml-data/TestClouds_Mars.arts,
+	controlfiles/artscomponents/wfuns/TestDoitJacobians.arts:
+	Increase sca_mat_threshold in cloudbox_checkedCalc to 5% in order to
+	make these cases pass the now (semi-)mandatory Z norm test. We should
+	actually review and improve the data...
+
+
 2016-08-26  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-522

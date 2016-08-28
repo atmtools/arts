@@ -1056,96 +1056,266 @@ void pha_matCalc(Tensor4& pha_mat,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void scat_dataCheck(//Input:
-                    const ArrayOfArrayOfSingleScatteringData& scat_data,
-                    const Numeric& threshold,
-                    const Verbosity& verbosity)
+void scat_dataCheck( //Input:
+                     const ArrayOfArrayOfSingleScatteringData& scat_data,
+                     const String& scat_data_check,
+                     const Numeric& threshold,
+                     const Verbosity& verbosity )
 {
+    CREATE_OUT0;
     CREATE_OUT2;
-
-/* JM121024: we do not really need to write the scat_data to file again. we
-             usually have just read them in a couple of commands before!?
-             if wanted/needed for debug cases, just uncomment the 2 lines below */
-//  xml_write_to_file("SingleScatteringData", scat_data, FILE_TYPE_ASCII,
-//                    verbosity);
 
     const Index N_ss = scat_data.nelem();
 
+    // 1) any negative values in Z11, K11, or a1? K11>=a1?
+    // 2) scat_data containing any NaN?
+    // 3) sca_mat norm sufficiently good (int(Z11)~=K11-a1?)
+
     // Loop over the included scattering species
+    out2 << " checking for negative values in Z11, K11, and a1, and for K11<a1\n";
     for (Index i_ss = 0; i_ss < N_ss; i_ss++)
     {
+      out2 << " scattering species " << i_ss << "\n";
+      const Index N_se = scat_data[i_ss].nelem();
 
+      // Loop over the included scattering elements
+      for (Index i_se = 0; i_se < N_se; i_se++)
+      {
+        out2 << "  scattering element " << i_se << "\n";
+        for (Index f = 0; f < F_DATAGRID.nelem(); f++)
+        {
+          out2 << "frequency " << F_DATAGRID[f] << "Hz\n";
+          for (Index t = 0; t < T_DATAGRID.nelem(); t++)
+          {
+            out2 << "Temperature " << T_DATAGRID[t] << "K\n";
+            for (Index zai=0; zai<ABS_VEC_DATA_RAW.npages(); zai++)
+              for (Index aai=0; aai<ABS_VEC_DATA_RAW.nrows(); aai++)
+              {
+                if( EXT_MAT_DATA_RAW(f,t,zai,aai,0)<0 ||
+                    ABS_VEC_DATA_RAW(f,t,zai,aai,0)<0 )
+                  {
+                    ostringstream os;
+                    os << "Scatt. species #" << i_ss << " element #" << i_se
+                       << " contains negative K11 or a1 at f#"
+                       << f << ", T#" << t << ", za#" << zai << ", aa#" << aai
+                       << "\n";
+                    throw runtime_error( os.str() );
+                  }
+                if( EXT_MAT_DATA_RAW(f,t,zai,aai,0) <
+                    ABS_VEC_DATA_RAW(f,t,zai,aai,0) )
+                  {
+                    ostringstream os;
+                    os << "Scatt. species #" << i_ss << " element #" << i_se
+                       << " has K11<a1 at f#"
+                       << f << ", T#" << t << ", za#" << zai << ", aa#" << aai
+                       << "\n";
+                    throw runtime_error( os.str() );
+                  }
+                for (Index zas=0; zas<PHA_MAT_DATA_RAW.nshelves(); zas++)
+                  for (Index aas=0; aas<PHA_MAT_DATA_RAW.nbooks(); aas++)
+                    if( PHA_MAT_DATA_RAW(f,t,zas,aas,zai,aai,0)<0 )
+                    {
+                      ostringstream os;
+                      os << "Scatt. species #" << i_ss << " element #" << i_se
+                         << " contains negative Z11 at f#" << f
+                         << ", T#" << t << ", za_sca#" << zas << ", aa_sca#"
+                         << aas << ", za_inc#" << zai << ", aa_inc#" << aai
+                         << "\n";
+                      throw runtime_error( os.str() );
+                    }
+              }
+          }
+        }
+      }
+    }
+
+    // Loop over the included scattering species
+    out2 << " checking for NaN anywhere in Z, K, and a\n";
+    for (Index i_ss = 0; i_ss < N_ss; i_ss++)
+    {
+      out2 << " scattering species " << i_ss << "\n";
+      const Index N_se = scat_data[i_ss].nelem();
+
+      // Loop over the included scattering elements
+      for (Index i_se = 0; i_se < N_se; i_se++)
+      {
+        out2 << "  scattering element " << i_se << "\n";
+        for (Index f = 0; f < F_DATAGRID.nelem(); f++)
+        {
+          out2 << "frequency " << F_DATAGRID[f] << "Hz\n";
+          for (Index t = 0; t < T_DATAGRID.nelem(); t++)
+          {
+            out2 << "Temperature " << T_DATAGRID[t] << "K\n";
+            for (Index zai=0; zai<ABS_VEC_DATA_RAW.npages(); zai++)
+              for (Index aai=0; aai<ABS_VEC_DATA_RAW.nrows(); aai++)
+              {
+                for (Index st=0; st<ABS_VEC_DATA_RAW.ncols(); st++)
+                  if( isnan(ABS_VEC_DATA_RAW(f,t,zai,aai,st)) )
+                  {
+                    ostringstream os;
+                    os << "Scatt. species #" << i_ss << " element #" << i_se
+                       << " contains NaN in abs_vec at f#" << f << ", T#"
+                       << t << ", za#" << zai << ", aa#" << aai << ", stokes #"
+                       << st << "\n";
+                    throw runtime_error( os.str() );
+                  }
+                for (Index st=0; st<EXT_MAT_DATA_RAW.ncols(); st++)
+                  if( isnan(EXT_MAT_DATA_RAW(f,t,zai,aai,st)) )
+                  {
+                    ostringstream os;
+                    os << "Scatt. species #" << i_ss << " element #" << i_se
+                       << " contains NaN in ext_mat at f#" << f << ", T#"
+                       << t << ", za#" << zai << ", aa#" << aai << ", stokes #"
+                       << st << "\n";
+                    throw runtime_error( os.str() );
+                  }
+                for (Index zas=0; zas<PHA_MAT_DATA_RAW.nshelves(); zas++)
+                  for (Index aas=0; aas<PHA_MAT_DATA_RAW.nbooks(); aas++)
+                    for (Index st=0; st<PHA_MAT_DATA_RAW.ncols(); st++)
+                      if( isnan(PHA_MAT_DATA_RAW(f,t,zas,aas,zai,aai,st)) )
+                      {
+                        ostringstream os;
+                        os << "Scatt. species #" << i_ss << " element #" << i_se
+                           << " contains NaN in pha_mat at f#" << f << ", T#"
+                           << t << ", za_sca#" << zas << ", aa_sca#" << aas
+                           << ", za_inc#" << zai << ", aa_inc#" << aai
+                           << ", stokes #" << "\n";
+                        throw runtime_error( os.str() );
+                      }
+              }
+          }
+        }
+      }
+    }
+
+
+    if( scat_data_check=="all" || scat_data_check=="All" ||
+        scat_data_check=="ALL" )
+    {
+      // Loop over the included scattering species
+      out2 << " checking normalization of scattering matrix\n";
+      for (Index i_ss = 0; i_ss < N_ss; i_ss++)
+      {
         out2 << " scattering species " << i_ss << "\n";
         const Index N_se = scat_data[i_ss].nelem();
 
         // Loop over the included scattering elements
         for (Index i_se = 0; i_se < N_se; i_se++)
         {
-            out2 << "  scattering element " << i_se << "\n";
-
-            switch (PART_TYPE){
-
-                case PTYPE_MACROS_ISO:
+          out2 << "  scattering element " << i_se << "\n";
+          switch (PART_TYPE)
+          {
+            case PTYPE_MACROS_ISO:
+            {
+              for (Index f = 0; f < F_DATAGRID.nelem(); f++)
+              {
+                out2 << "frequency " << F_DATAGRID[f] << "Hz\n";
+                for (Index t = 0; t < T_DATAGRID.nelem(); t++)
                 {
-                    for (Index f = 0; f < F_DATAGRID.nelem(); f++)
-                    {
-                        out2 << "frequency " << F_DATAGRID[f] << "Hz\n";
-                        for (Index t = 0; t < T_DATAGRID.nelem(); t++)
-                        {
-                            out2 << "Temperature " << T_DATAGRID[t] << "K\n";
+                  out2 << "Temperature " << T_DATAGRID[t] << "K\n";
+                  Numeric Csca = AngIntegrate_trapezoid(
+                                  PHA_MAT_DATA_RAW(f, t, joker, 0, 0, 0, 0),
+                                  ZA_DATAGRID);
+                  Numeric Cext_data = EXT_MAT_DATA_RAW(f,t,0,0,0);
+                  Numeric Cabs = Cext_data - Csca;
+                  Numeric Cabs_data = ABS_VEC_DATA_RAW(f,t,0,0,0);
+                  Numeric Csca_data = Cext_data - Cabs_data;
 
-                            Numeric Csca = AngIntegrate_trapezoid
-                            (PHA_MAT_DATA_RAW(f, t, joker, 0, 0, 0, 0), ZA_DATAGRID);
+                  out2 << "  Coefficients in database: "
+                       << "Cext: " << Cext_data << " Cabs: " << Cabs_data
+                       << " Csca: " << Csca_data << "\n"
+                       << "  Calculated coefficients: "
+                       << "Cabs calc: " << Cabs
+                       << " Csca calc: " << Csca << "\n"
+                       << "  Deviations "
+                       << "Cabs: " << 1e2*Cabs/Cabs_data-1e2
+                       << "% Csca: " << 1e2*Csca/Csca_data-1e2
+                       << "% Alb: " << (Csca-Csca_data)/Cext_data << "\n";
 
-                            Numeric Cext_data = EXT_MAT_DATA_RAW(f,t,0,0,0);
-
-                            Numeric Cabs = Cext_data - Csca;
-
-                            Numeric Cabs_data = ABS_VEC_DATA_RAW(f,t,0,0,0);
-
-                            Numeric Csca_data = Cext_data - Cabs_data;
-
-
-                            out2 << "  Coefficients in database: "
-                            << "Cext: " << Cext_data << " Cabs: " << Cabs_data
-                            << " Csca: " << Csca_data << "\n"
-                            << "  Calculated coefficients: "
-                            << "Cabs calc: " << Cabs
-                            << " Csca calc: " << Csca << "\n"
-                            << "  Deviations "
-                            << "Cabs: " << 1e2*Cabs/Cabs_data-1e2
-                            << "% Csca: " << 1e2*Csca/Csca_data-1e2
-                            << "% Alb: " << (Csca-Csca_data)/Cext_data << "\n";
-
-
-                            //                    if (abs(Csca/Csca_data-1.)*Csca_data/Cext_data > threshold)
-                            //                  equivalent to the above (it's actually the (absolute) albedo
-                            //                  deviation!)
-                            if (abs(Csca-Csca_data)/Cext_data > threshold)
-                            {
-                                ostringstream os;
-                                os << "  Deviations in scat_data too large:\n"
-                                << "  scat dev [%] " << 1e2*Csca/Csca_data-1e2
-                                << " at albedo of " << Csca_data/Cext_data << "\n"
-                                << "  Check entry for scattering element " << i_se
-                                << " of scattering species " << i_ss << " at "
-                                << f << ".frequency and " << t << ".temperature!\n";
-                                throw runtime_error( os.str() );
-                            }
-                        }
-                    }
-                    break;
+                  //if (abs(Csca/Csca_data-1.)*Csca_data/Cext_data > threshold)
+                  // below equivalent to the above
+                  // (it's actually the (absolute) albedo deviation!)
+                  if (abs(Csca-Csca_data)/Cext_data > threshold)
+                  {
+                    ostringstream os;
+                    os << "  Deviations in scat_data too large:\n"
+                       << "  scat dev [%] " << 1e2*Csca/Csca_data-1e2
+                       << " at albedo of " << Csca_data/Cext_data << "\n"
+                       << "  Check entry for scattering element " << i_se
+                       << " of scattering species " << i_ss << " at "
+                       << f << ".frequency and " << t << ".temperature!\n";
+                    throw runtime_error( os.str() );
+                  }
                 }
-                    
-                default:
-                {
-                    CREATE_OUT0;
-                    out0 << "  WARNING:\n"
-                    << "  scat_data consistency check not implemented (yet?!) for\n"
-                    << "  ptype " << PART_TYPE << "!\n";
-                }
+              }
+              break;
             }
+                    
+            case PTYPE_HORIZ_AL:
+            {
+              for (Index f = 0; f < F_DATAGRID.nelem(); f++)
+              {
+                out2 << "frequency " << F_DATAGRID[f] << "Hz\n";
+                for (Index t = 0; t < T_DATAGRID.nelem(); t++)
+                {
+                  out2 << "Temperature " << T_DATAGRID[t] << "K\n";
+                  for (Index iza = 0; iza < ABS_VEC_DATA_RAW.npages(); iza++)
+                  {
+                    Numeric Csca = 2 * AngIntegrate_trapezoid(
+                                    PHA_MAT_DATA_RAW(f, t, joker, joker, iza, 0, 0),
+                                    ZA_DATAGRID, AA_DATAGRID );
+                    Numeric Cext_data = EXT_MAT_DATA_RAW(f,t,iza,0,0);
+                    Numeric Cabs = Cext_data - Csca;
+                    Numeric Cabs_data = ABS_VEC_DATA_RAW(f,t,iza,0,0);
+                    Numeric Csca_data = Cext_data - Cabs_data;
+
+                    out2 << "  Coefficients in database: "
+                         << "Cext: " << Cext_data << " Cabs: " << Cabs_data
+                         << " Csca: " << Csca_data << "\n"
+                         << "  Calculated coefficients: "
+                         << "Cabs calc: " << Cabs
+                         << " Csca calc: " << Csca << "\n"
+                         << "  Deviations "
+                         << "Cabs: " << 1e2*Cabs/Cabs_data-1e2
+                         << "% Csca: " << 1e2*Csca/Csca_data-1e2
+                         << "% Alb: " << (Csca-Csca_data)/Cext_data << "\n";
+
+                    //if (abs(Csca/Csca_data-1.)*Csca_data/Cext_data > threshold)
+                    // below equivalent to the above
+                    // (it's actually the (absolute) albedo deviation!)
+                    if (abs(Csca-Csca_data)/Cext_data > threshold)
+                    {
+                      ostringstream os;
+                      os << "  Deviations in scat_data too large:\n"
+                         << "  scat dev [%] " << 1e2*Csca/Csca_data-1e2
+                         << " at albedo of " << Csca_data/Cext_data << "\n"
+                         << "  Check entry for scattering element " << i_se
+                         << " of scattering species " << i_ss << " at "
+                         << f << ". frequency, " << t << ". temperature, and "
+                         << iza << ". incident polar angle!\n";
+                      throw runtime_error( os.str() );
+                    }
+                  }
+                }
+              }
+              break;
+            }
+
+            default:
+            {
+              out0 << "  WARNING:\n"
+                   << "  scat_data consistency check not implemented (yet?!) for\n"
+                   << "  ptype " << PART_TYPE << "!\n";
+            }
+          }
         }
+      }
+    }
+    else
+    {
+      out0 << "  WARNING:\n"
+           << "  Normalization check on pha_mat switched off.\n"
+           << "  Scattering solution might be wrong.\n";
     }
 }
 
