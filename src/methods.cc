@@ -3495,7 +3495,7 @@ void define_md_data_raw()
       ( NAME( "cloudbox_checkedCalc" ),
         DESCRIPTION
         (
-         "Checks consistency between cloudbox and scattering element variables.\n"
+         "Checks consistency and validity of the cloudbox governing variables.\n"
          "\n"
          "The following WSVs are treated: *cloudbox_on*, *cloudbox_limits*,\n"
          "*pnd_field*, *scat_data*, *scat_species*, *abs_species*,\n"
@@ -3509,10 +3509,22 @@ void define_md_data_raw()
          "and that the scattering element variables *pnd_field* and\n"
          "*scat_data* match in size.\n"
          "\n"
+         "Furthermore, by default it is checked that *scat_data* does not\n"
+         "contain any invalid values and that the scattering matrix is\n"
+         "properly normalized. Proper normalization is defined by the maximum\n"
+         "allowed albedo deviation *sca_mat_threshold* (for details see\n"
+         "*scat_dataCheck*).\n"
+         "The *scat_data* tests can be skipped entirely (setting\n"
+         "*scat_data_check* to 'none') or the normalization check alone\n"
+         "(setting *scat_data_check* to anything but 'none' and 'all').\n"
+         "NOTE: These test shall only be skipped when one is confident that\n"
+         "the data is correct, e.g. by having run *scat_dataCheck* on the set\n"
+         "of data before in a separate ARTS run.\n"
+         "\n"
          "If any test fails, there is an error. Otherwise, *cloudbox_checked*\n"
          "is set to 1.\n"
          ),
-        AUTHORS( "Patrick Eriksson" ),
+        AUTHORS( "Patrick Eriksson, Jana Mendrok" ),
         OUT( "cloudbox_checked" ),
         GOUT(),
         GOUT_TYPE(),
@@ -12145,26 +12157,24 @@ void define_md_data_raw()
       ( NAME( "scat_dataCheck" ),
         DESCRIPTION
         (
-         "Method for checking the consistency of the optical properties\n"
-         "in the database.\n"
+         "Method for checking the validity and consistency of the single\n"
+         "scattering properties in *scat_data*.\n"
          "\n"
-         "This function can be used to check datafiles containing data for\n"
-         "randomly oriented scattering media. For scattering elements of other\n"
-         "ptype, the check is skipped and a warning is printed to screen.\n"
-         "It is checked whether that the integral over\n"
-         "the phase matrix element Z11 is equal (or: close to) the scattering\n"
-         "cross section as derived from the difference of (scalar) extinction\n"
-         "and absorption cross sections: <int_Z11> == <C_sca> = <K11> - <a1>.\n"
+         "This function checks that *scat_data* does not contain any NaN and\n"
+         "that the 'scalar' properties K11, Z11, and a1 are non-negative.\n"
          "\n"
-         "An error is thrown, if the product of the single scattering\n"
-         "albedo and the fractional deviation of <int_Z11> from <C_sca>\n"
-         "(which is actually equal the absolute albedo deviation) exceeds\n"
-         "the given threshold:\n"
+         "This function can furthermore check (when *scat_data_check* set to\n"
+         "'all') that the scattering angle integrated scattering matrix\n"
+         "(int_Z11), which is supposed to be normalized to the scattering\n"
+         "cross section, is sufficiently consistent with the scattering\n"
+         "cross section (C_sca) derived from the difference of extinction\n"
+         "(K11) and absorption (a1): int_z11 ~ C_sca = K11-a1.\n"
          "\n"
-         "( <int_Z11>/<C_sca>-1. ) * ( <C_sca>/<K11> ) > threshold\n"
-         "\n"
-         "The results for all calculated quantities are printed on the screen,\n"
-         "if verbosity>1.\n"
+         "'Sufficient' consistency is determined by *sca_mat_threshold*\n"
+         "testing the following condition:\n"
+         "  ( <int_Z11>/<C_sca>-1. ) * ( <C_sca>/<K11> ) > sca_mat_threshold\n"
+         "Note that in this case, *sca_mat_threshold is equivalent to the\n"
+         "absolute scattering albedo deviation.\n"
          ),
         AUTHORS( "Claudia Emde", "Jana Mendrok" ),
         OUT(),

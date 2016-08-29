@@ -1,5 +1,12 @@
 2016-08-28 Jana Mendrok  <jana.mendrok@chalmers.se>
 
+	* arts-2-3-524
+
+	* src/methods.cc:
+	Updated doc of *cloudbox_checkedCalc* and *scat_dataCheck*.
+
+2016-08-28 Jana Mendrok  <jana.mendrok@chalmers.se>
+
 	* arts-2-3-523
 
 	* src/m_checked.cc (cloudbox_checkedCalc):
