@@ -816,6 +816,7 @@ void pnd_fieldMH97 (Tensor4View pnd_field,
                     const String& delim,
                     const Verbosity& verbosity)
 {
+  const String psdname="MH97";
   const Index N_se = scat_meta[scat_species].nelem();
   const Index scat_data_start = FlattenedIndex(scat_meta, scat_species);
   ArrayOfIndex intarr;
@@ -844,7 +845,7 @@ void pnd_fieldMH97 (Tensor4View pnd_field,
       if ( isnan(scat_meta[scat_species][i].mass) )
         {
           ostringstream os;
-          os << "Use of size distribution MH97 (as requested for\n"
+          os << "Use of size distribution " << psdname << " (as requested for\n"
              << "scattering species #" << scat_species << ")\n"
              << "requires knowledge of scattering element mass.\n"
              << "But mass is not given for scattering elements #"
@@ -879,6 +880,7 @@ void pnd_fieldMH97 (Tensor4View pnd_field,
                 // iteration over all given size bins
                 for ( Index i=0; i<diameter_mass_equivalent.nelem(); i++ )
                   {
+
                     // calculate particle size distribution with MH97
                     // [# m^-3 m^-1]
                     dNdD[i] = IWCtopnd_MH97 ( IWC_field ( p, lat, lon ),
@@ -886,29 +888,48 @@ void pnd_fieldMH97 (Tensor4View pnd_field,
                                               t_field ( p, lat, lon ),
                                               noisy, robust );
                   }
-                  // scale pnds by bin width
-                  if (diameter_mass_equivalent.nelem() > 1)
-                    scale_pnd( pnd, diameter_mass_equivalent, dNdD );
-                  else
-                    pnd = dNdD;
+
+                // ensure that any particles where produced
+                if ( dNdD.sum() == 0.0 )
+                  { // no particles at all were produced. means, there's some
+                    // issue with the setup (none of the included particles
+                    // produces numerically considerable amount of particles
+                    // with this PSD, likely due to all the particles being
+                    // either too large or too small)
+                    ostringstream os;
+                    os <<  psdname << " PSD did not produce any non-zero pnd values "
+                       << "(likely results\n"
+                       << "from considered particles being too large or too "
+                       << "small)\n"
+                       << "The problem occured for profile '"<< partfield_name
+                       << "' at: " << "p = " << p << ", lat = " << lat
+                       << ", lon = " << lon << ".\n";
+                    throw runtime_error ( os.str() );
+                  }
+
+                // scale pnds by bin width
+                if (diameter_mass_equivalent.nelem() > 1)
+                  scale_pnd( pnd, diameter_mass_equivalent, dNdD );
+                else
+                  pnd = dNdD;
 	    
-                  // calculate error of pnd sum and real XWC
-                  chk_pndsum ( pnd, IWC_field ( p,lat,lon ), mass,
-                               p, lat, lon, partfield_name, verbosity );
+                // calculate error of pnd sum and real XWC
+                chk_pndsum ( pnd, IWC_field ( p,lat,lon ), mass,
+                             p, lat, lon, partfield_name, verbosity );
 	    
-                  // writing pnd vector to wsv pnd_field
-                  for ( Index i = 0; i< N_se; i++ )
-                    {
-                      pnd_field ( intarr[i]+scat_data_start, p-limits[0],
-                                  lat-limits[2], lon-limits[4] ) = pnd[i];
-                    }
+                // writing pnd vector to wsv pnd_field
+                for ( Index i = 0; i< N_se; i++ )
+                  {
+                    pnd_field ( intarr[i]+scat_data_start, p-limits[0],
+                                lat-limits[2], lon-limits[4] ) = pnd[i];
+                  }
               }
 
             // MH97 requires mass density. If not set, abort calculation.
             else if ( isnan(IWC_field ( p, lat, lon )) )
               {
                 ostringstream os;
-                os << "Size distribution MH97 requires knowledge of mass "
+                os << "Size distribution " << psdname << " requires knowledge of mass "
                    << "density of atmospheric ice.\n"
                    << "At grid point (" << p << ", " << lat << ", " << lon
                    << ") in (p,lat,lon) a NaN value is encountered, "
@@ -921,7 +942,7 @@ void pnd_fieldMH97 (Tensor4View pnd_field,
             else if (IWC_field ( p, lat, lon ) < 0.)
               {
                 ostringstream os;
-                os << "Size distribution MH97 is parametrized in ice mass"
+                os << "Size distribution " << psdname << " is parametrized in ice mass"
                    << "content.\n"
                    << "It can not handle negative values like IWC="
                    << IWC_field (p,lat,lon) << " kg/m3\n"
@@ -971,6 +992,7 @@ void pnd_fieldH11 (Tensor4View pnd_field,
                    const String& delim,
                    const Verbosity& verbosity)
 {
+  const String psdname="H11";
   const Index N_se = scat_meta[scat_species].nelem();
   const Index scat_data_start = FlattenedIndex(scat_meta, scat_species);
   ArrayOfIndex intarr;
@@ -989,7 +1011,7 @@ void pnd_fieldH11 (Tensor4View pnd_field,
       if ( isnan(scat_meta[scat_species][i].diameter_max) )
         {
           ostringstream os;
-          os << "Use of size distribution H11 (as requested for\n"
+          os << "Use of size distribution " << psdname << " (as requested for\n"
              << "scattering species #" << scat_species << ")\n"
              << "requires knowledge of scattering element maximum diameter.\n"
              << "But maximum diameter is not given for scattering elements #"
@@ -1008,7 +1030,7 @@ void pnd_fieldH11 (Tensor4View pnd_field,
       if ( isnan(scat_meta[scat_species][intarr[i]].mass) )
         {
           ostringstream os;
-          os << "Use of size distribution H11 (as requested for\n"
+          os << "Use of size distribution " << psdname << " (as requested for\n"
              << "scattering species #" << scat_species << ")\n"
              << "requires knowledge of scattering element mass.\n"
              << "But mass is not given for scattering elements #"
@@ -1033,7 +1055,7 @@ void pnd_fieldH11 (Tensor4View pnd_field,
             if ( isnan(IWC_field ( p, lat, lon )) )
               {
                 ostringstream os;
-                os << "Size distribution H11 requires knowledge of mass "
+                os << "Size distribution " << psdname << " requires knowledge of mass "
                    << "density of atmospheric ice.\n"
                    << "At grid point (" << p << ", " << lat << ", " << lon
                    << ") in (p,lat,lon) a NaN value is encountered, "
@@ -1052,6 +1074,25 @@ void pnd_fieldH11 (Tensor4View pnd_field,
                     // [# m^-3 m^-1]
                     dNdD[i] = IWCtopnd_H11 ( diameter_max[i], t_field ( p, lat, lon ) );
                 }
+
+                // ensure that any particles where produced
+                if ( dNdD.sum() == 0.0 )
+                  { // no particles at all were produced. means, there's some
+                    // issue with the setup (none of the included particles
+                    // produces numerically considerable amount of particles
+                    // with this PSD, likely due to all the particles being
+                    // either too large or too small)
+                    ostringstream os;
+                    os <<  psdname << " PSD did not produce any non-zero pnd values "
+                       << "(likely results\n"
+                       << "from considered particles being too large or too "
+                       << "small)\n"
+                       << "The problem occured for profile '"<< partfield_name
+                       << "' at: " << "p = " << p << ", lat = " << lat
+                       << ", lon = " << lon << ".\n";
+                    throw runtime_error ( os.str() );
+                  }
+
                 // scale pnds by scale width
                 if (diameter_max.nelem() > 1)
                     scale_pnd( pnd, diameter_max, dNdD ); //[# m^-3]
@@ -1113,6 +1154,7 @@ void pnd_fieldH13 (Tensor4View pnd_field,
                    const String& delim,
                    const Verbosity& verbosity)
 {
+  const String psdname="H13";
   const Index N_se = scat_meta[scat_species].nelem();
   const Index scat_data_start = FlattenedIndex(scat_meta, scat_species);
   ArrayOfIndex intarr;
@@ -1131,7 +1173,7 @@ void pnd_fieldH13 (Tensor4View pnd_field,
       if ( isnan(scat_meta[scat_species][i].diameter_max) )
         {
           ostringstream os;
-          os << "Use of size distribution H13 (as requested for\n"
+          os << "Use of size distribution " << psdname << " (as requested for\n"
              << "scattering species #" << scat_species << ")\n"
              << "requires knowledge of scattering element maximum diameter.\n"
              << "But maximum diameter is not given for scattering elements #"
@@ -1150,7 +1192,7 @@ void pnd_fieldH13 (Tensor4View pnd_field,
       if ( isnan(scat_meta[scat_species][intarr[i]].mass) )
         {
           ostringstream os;
-          os << "Use of size distribution H13 (as requested for\n"
+          os << "Use of size distribution " << psdname << " (as requested for\n"
              << "scattering species #" << scat_species << ")\n"
              << "requires knowledge of scattering element mass.\n"
              << "But mass is not given for scattering elements #"
@@ -1175,7 +1217,7 @@ void pnd_fieldH13 (Tensor4View pnd_field,
             if ( isnan(IWC_field ( p, lat, lon )) )
               {
                 ostringstream os;
-                os << "Size distribution H13 requires knowledge of mass "
+                os << "Size distribution " << psdname << " requires knowledge of mass "
                    << "density of atmospheric ice.\n"
                    << "At grid point (" << p << ", " << lat << ", " << lon
                    << ") in (p,lat,lon) a NaN value is encountered, "
@@ -1194,6 +1236,25 @@ void pnd_fieldH13 (Tensor4View pnd_field,
                     // [# m^-3 m^-1]
                     dNdD[i] = IWCtopnd_H13 ( diameter_max[i], t_field ( p, lat, lon ) );
                 }
+
+                // ensure that any particles where produced
+                if ( dNdD.sum() == 0.0 )
+                  { // no particles at all were produced. means, there's some
+                    // issue with the setup (none of the included particles
+                    // produces numerically considerable amount of particles
+                    // with this PSD, likely due to all the particles being
+                    // either too large or too small)
+                    ostringstream os;
+                    os <<  psdname << " PSD did not produce any non-zero pnd values "
+                       << "(likely results\n"
+                       << "from considered particles being too large or too "
+                       << "small)\n"
+                       << "The problem occured for profile '"<< partfield_name
+                       << "' at: " << "p = " << p << ", lat = " << lat
+                       << ", lon = " << lon << ".\n";
+                    throw runtime_error ( os.str() );
+                  }
+
                 // scale pnds by scale width
                 if (diameter_max.nelem() > 1)
                     scale_pnd( pnd, diameter_max, dNdD ); //[# m^-3]
@@ -1256,6 +1317,7 @@ void pnd_fieldH13Shape (Tensor4View pnd_field,
 { 
   CREATE_OUT1;  
     
+  const String psdname="H13shape";
   const Index N_se = scat_meta[scat_species].nelem();
   const Index scat_data_start = FlattenedIndex(scat_meta, scat_species);
   ArrayOfIndex intarr;
@@ -1275,7 +1337,7 @@ void pnd_fieldH13Shape (Tensor4View pnd_field,
       if ( isnan(scat_meta[scat_species][i].diameter_max) )
         {
           ostringstream os;
-          os << "Use of size distribution H13Shape (as requested for\n"
+          os << "Use of size distribution " << psdname << " (as requested for\n"
              << "scattering species #" << scat_species << ")\n"
              << "requires knowledge of scattering element maximum diameter.\n"
              << "But maximum diameter is not given for scattering elements #"
@@ -1294,7 +1356,7 @@ void pnd_fieldH13Shape (Tensor4View pnd_field,
       if ( isnan(scat_meta[scat_species][intarr[i]].diameter_area_equ_aerodynamical) )
         {
           ostringstream os;
-          os << "Use of size distribution H13Shape (as requested for\n"
+          os << "Use of size distribution " << psdname << " (as requested for\n"
              << "scattering species #" << scat_species << ")\n"
              << "requires knowledge of scattering element area equivalent diameter.\n"
              << "But area equivalent diameter is not given for scattering elements #"
@@ -1306,7 +1368,7 @@ void pnd_fieldH13Shape (Tensor4View pnd_field,
       if ( isnan(scat_meta[scat_species][intarr[i]].mass) )
         {
           ostringstream os;
-          os << "Use of size distribution H13Shape (as requested for\n"
+          os << "Use of size distribution " << psdname << " (as requested for\n"
              << "scattering species #" << scat_species << ")\n"
              << "requires knowledge of scattering element mass.\n"
              << "But mass is not given for scattering elements #"
@@ -1339,7 +1401,7 @@ void pnd_fieldH13Shape (Tensor4View pnd_field,
     if (diameter_max[0]<7.7*1e-5)
     {
         ostringstream os;
-        os << "The *H13Shape* parametrization is only valid for particles with\n"
+        os << "The " << psdname << " parametrization is only valid for particles with\n"
            << "a maximum diameter >= to 77 um, but the smallest value of\n"
            << "*diameter_max* in this simulation is " << diameter_max[0] << " um.\n"
            << "Set a new *diameter_max_grid*!\n";
@@ -1349,8 +1411,8 @@ void pnd_fieldH13Shape (Tensor4View pnd_field,
     if (Rarea_input.nelem()==1)
     { 
         out1 << "WARNING! Only one unique area ratio is used.\n"
-             << "Using parametrization *H13* will generate the same results "
-             << "as *H13shape*\n"
+             << "Using parametrization H13 will generate the same results "
+             << "as " << psdname << "\n"
              << "but with less computational effort, hence in a shorter time.\n";
     }
     
@@ -1377,7 +1439,7 @@ void pnd_fieldH13Shape (Tensor4View pnd_field,
             if ( isnan(IWC_field ( p, lat, lon )) )
               {
                 ostringstream os;
-                os << "Size distribution H13 requires knowledge of mass "
+                os << "Size distribution " << psdname << " requires knowledge of mass "
                    << "density of atmospheric ice.\n"
                    << "At grid point (" << p << ", " << lat << ", " << lon
                    << ") in (p,lat,lon) a NaN value is encountered, "
@@ -1399,6 +1461,24 @@ void pnd_fieldH13Shape (Tensor4View pnd_field,
                     // calculate Area ratio distribution for H13Shape
                     Ar[i] = area_ratioH13 (diameter_max_input[i], t_field (p, lat, lon ) );
                 }
+
+                // ensure that any particles where produced
+                if ( dNdD.sum() == 0.0 )
+                  { // no particles at all were produced. means, there's some
+                    // issue with the setup (none of the included particles
+                    // produces numerically considerable amount of particles
+                    // with this PSD, likely due to all the particles being
+                    // either too large or too small)
+                    ostringstream os;
+                    os <<  psdname << " PSD did not produce any non-zero pnd values "
+                       << "(likely results\n"
+                       << "from considered particles being too large or too "
+                       << "small)\n"
+                       << "The problem occured for profile '"<< partfield_name
+                       << "' at: " << "p = " << p << ", lat = " << lat
+                       << ", lon = " << lon << ".\n";
+                    throw runtime_error ( os.str() );
+                  }
 
                 // scale pnds by scale width
                 if (diameter_max_input.nelem() > 1)
@@ -1493,7 +1573,8 @@ void pnd_fieldF07TR (Tensor4View pnd_field,
                    const String& delim,
                    const Verbosity& verbosity)
 {
-    const Index N_se = scat_meta[scat_species].nelem();
+   const String psdname="F07TR";
+   const Index N_se = scat_meta[scat_species].nelem();
     const Index scat_data_start = FlattenedIndex(scat_meta, scat_species);
     ArrayOfIndex intarr;
     Vector diameter_max_unsorted ( N_se, 0.0 );
@@ -1519,7 +1600,7 @@ void pnd_fieldF07TR (Tensor4View pnd_field,
         if ( isnan(scat_meta[scat_species][i].diameter_max) )
         {
             ostringstream os;
-            os << "Use of size distribution F07 (as requested for\n"
+            os << "Use of size distribution " << psdname << " (as requested for\n"
             << "scattering species #" << scat_species << ")\n"
             << "requires knowledge of scattering element maximum diameter.\n"
             << "But maximum diameter is not given for scattering elements #"
@@ -1538,7 +1619,7 @@ void pnd_fieldF07TR (Tensor4View pnd_field,
         if ( isnan(scat_meta[scat_species][intarr[i]].mass) )
         {
             ostringstream os;
-            os << "Use of size distribution F07 (as requested for\n"
+            os << "Use of size distribution " << psdname << " (as requested for\n"
             << "scattering species #" << scat_species << ")\n"
             << "requires knowledge of scattering element mass.\n"
             << "But mass is not given for scattering elements #"
@@ -1589,7 +1670,7 @@ void pnd_fieldF07TR (Tensor4View pnd_field,
                     if ( isnan(SWC_field ( p, lat, lon )) )
                     {
                         ostringstream os;
-                        os << "Size distribution F07 requires knowledge of mass "
+                        os << "Size distribution " << psdname << " requires knowledge of mass "
                         << "density of atmospheric ice.\n"
                         << "At grid point (" << p << ", " << lat << ", " << lon
                         << ") in (p,lat,lon) a NaN value is encountered, "
@@ -1609,6 +1690,25 @@ void pnd_fieldF07TR (Tensor4View pnd_field,
                             dNdD[i] = IWCtopnd_F07TR( diameter_max[i], t_field ( p, lat, lon ),
                                                    SWC_field ( p, lat, lon ), alpha, beta);
                         }
+
+                        // ensure that any particles where produced
+                        if ( dNdD.sum() == 0.0 )
+                        { // no particles at all were produced. means, there's some
+                          // issue with the setup (none of the included particles
+                          // produces numerically considerable amount of particles
+                          // with this PSD, likely due to all the particles being
+                          // either too large or too small)
+                          ostringstream os;
+                          os <<  psdname << " PSD did not produce any non-zero pnd values "
+                             << "(likely results\n"
+                             << "from considered particles being too large or too "
+                             << "small)\n"
+                             << "The problem occured for profile '"<< partfield_name
+                             << "' at: " << "p = " << p << ", lat = " << lat
+                             << ", lon = " << lon << ".\n";
+                          throw runtime_error ( os.str() );
+                        }
+
                         // scale pnds by scale width
                         if (diameter_max.nelem() > 1)
                             scale_pnd( pnd, diameter_max, dNdD ); //[# m^-3]
@@ -1672,6 +1772,7 @@ void pnd_fieldF07ML (Tensor4View pnd_field,
                      const String& delim,
                      const Verbosity& verbosity)
 {
+    const String psdname="F07ML";
     const Index N_se = scat_meta[scat_species].nelem();
     const Index scat_data_start = FlattenedIndex(scat_meta, scat_species);
     ArrayOfIndex intarr;
@@ -1698,7 +1799,7 @@ void pnd_fieldF07ML (Tensor4View pnd_field,
         if ( isnan(scat_meta[scat_species][i].diameter_max) )
         {
             ostringstream os;
-            os << "Use of size distribution F07 (as requested for\n"
+            os << "Use of size distribution " << psdname << " (as requested for\n"
             << "scattering species #" << scat_species << ")\n"
             << "requires knowledge of scattering element maximum diameter.\n"
             << "But maximum diameter is not given for scattering elements #"
@@ -1717,7 +1818,7 @@ void pnd_fieldF07ML (Tensor4View pnd_field,
         if ( isnan(scat_meta[scat_species][intarr[i]].mass) )
         {
             ostringstream os;
-            os << "Use of size distribution F07 (as requested for\n"
+            os << "Use of size distribution " << psdname << " (as requested for\n"
             << "scattering species #" << scat_species << ")\n"
             << "requires knowledge of scattering element mass.\n"
             << "But mass is not given for scattering elements #"
@@ -1768,7 +1869,7 @@ void pnd_fieldF07ML (Tensor4View pnd_field,
                     if ( isnan(SWC_field ( p, lat, lon )) )
                     {
                         ostringstream os;
-                        os << "Size distribution F07 requires knowledge of mass "
+                        os << "Size distribution " << psdname << " requires knowledge of mass "
                         << "density of atmospheric ice.\n"
                         << "At grid point (" << p << ", " << lat << ", " << lon
                         << ") in (p,lat,lon) a NaN value is encountered, "
@@ -1788,6 +1889,25 @@ void pnd_fieldF07ML (Tensor4View pnd_field,
                             dNdD[i] = IWCtopnd_F07ML( diameter_max[i], t_field ( p, lat, lon ),
                                                      SWC_field ( p, lat, lon ), alpha, beta);
                         }
+
+                        // ensure that any particles where produced
+                        if ( dNdD.sum() == 0.0 )
+                        { // no particles at all were produced. means, there's some
+                          // issue with the setup (none of the included particles
+                          // produces numerically considerable amount of particles
+                          // with this PSD, likely due to all the particles being
+                          // either too large or too small)
+                          ostringstream os;
+                          os <<  psdname << " PSD did not produce any non-zero pnd values "
+                             << "(likely results\n"
+                             << "from considered particles being too large or too "
+                             << "small)\n"
+                             << "The problem occured for profile '"<< partfield_name
+                             << "' at: " << "p = " << p << ", lat = " << lat
+                             << ", lon = " << lon << ".\n";
+                          throw runtime_error ( os.str() );
+                        }
+
                         // scale pnds by scale width
                         if (diameter_max.nelem() > 1)
                             scale_pnd( pnd, diameter_max, dNdD ); //[# m^-3]
@@ -1853,6 +1973,7 @@ void pnd_fieldS2M (Tensor4View pnd_field,
                      const String& delim,
                      const Verbosity& verbosity)
 {
+    const String psdname="S2M";
     const Index N_se = scat_meta[scat_species].nelem();
     const Index scat_data_start = FlattenedIndex(scat_meta, scat_species);
     ArrayOfIndex intarr;
@@ -1893,7 +2014,7 @@ void pnd_fieldS2M (Tensor4View pnd_field,
             throw runtime_error( os.str() );
         }
     }
-    // case: N_fied is total number density
+    // case: N_field is total number density
     else
     {
         logic_M=false;
@@ -1910,7 +2031,7 @@ void pnd_fieldS2M (Tensor4View pnd_field,
         if ( isnan(scat_meta[scat_species][i].mass) )
         {
             ostringstream os;
-            os << "Use of size distribution S2M (as requested for\n"
+            os << "Use of size distribution " << psdname << " (as requested for\n"
             << "scattering species #" << scat_species << ")\n"
             << "requires knowledge of scattering element mass.\n"
             << "But mass is not given for scattering elements #"
@@ -1946,7 +2067,7 @@ void pnd_fieldS2M (Tensor4View pnd_field,
                         if (logic_M)
                         {
                             ostringstream os;
-                            os << "Size distribution S2M requires knowledge of mass "
+                            os << "Size distribution " << psdname << " requires knowledge of mass "
                             << "concentration of hydrometeors and mean particle mass.\n"
                             << "At grid point (" << p << ", " << lat << ", " << lon
                             << ") in (p,lat,lon) a NaN value is encountered, "
@@ -1956,7 +2077,7 @@ void pnd_fieldS2M (Tensor4View pnd_field,
                         else
                         {
                             ostringstream os;
-                            os << "Size distribution S2M requires knowledge of mass "
+                            os << "Size distribution " << psdname << " requires knowledge of mass "
                             << "concentration of hydrometeors and number density.\n"
                             << "At grid point (" << p << ", " << lat << ", " << lon
                             << ") in (p,lat,lon) a NaN value is encountered, "
@@ -2073,6 +2194,7 @@ void pnd_fieldMGD_LWC (Tensor4View pnd_field,
                      const String& delim,
                      const Verbosity& verbosity)
 {
+    const String psdname="MGD_LWC";
     const Index N_se = scat_meta[scat_species].nelem();
     const Index scat_data_start = FlattenedIndex(scat_meta, scat_species);
     ArrayOfIndex intarr;
@@ -2097,7 +2219,7 @@ void pnd_fieldMGD_LWC (Tensor4View pnd_field,
         if ( isnan(scat_meta[scat_species][i].diameter_volume_equ) )
         {
             ostringstream os;
-            os << "Use of size distribution MGD_LWC (as requested for\n"
+            os << "Use of size distribution " << psdname << " (as requested for\n"
             << "scattering species #" << scat_species << ")\n"
             << "requires knowledge of scattering element volume equivalent diameter.\n"
             << "But volume equvalent diameter is not given for scattering elements #"
@@ -2116,7 +2238,7 @@ void pnd_fieldMGD_LWC (Tensor4View pnd_field,
         if ( isnan(scat_meta[scat_species][intarr[i]].mass) )
         {
             ostringstream os;
-            os << "Use of size distribution MGD_LWC (as requested for\n"
+            os << "Use of size distribution " << psdname << " (as requested for\n"
             << "scattering species #" << scat_species << ")\n"
             << "requires knowledge of scattering element mass.\n"
             << "But mass is not given for scattering elements #"
@@ -2161,7 +2283,7 @@ void pnd_fieldMGD_LWC (Tensor4View pnd_field,
                     if ( isnan(LWC_field ( p, lat, lon )) )
                     {
                         ostringstream os;
-                        os << "Size distribution MGD_LWC requires knowledge of mass "
+                        os << "Size distribution " << psdname << " requires knowledge of mass "
                         << "density of cloud liquid water.\n"
                         << "At grid point (" << p << ", " << lat << ", " << lon
                         << ") in (p,lat,lon) a NaN value is encountered, "
@@ -2178,10 +2300,29 @@ void pnd_fieldMGD_LWC (Tensor4View pnd_field,
                         {
                             // calculate particle size distribution for H11
                             // [# m^-3 m^-1]
-//                            dNdD[i] = IWCtopnd_F07TR( diameter_max[i], t_field ( p, lat, lon ),
-//                                                     SWC_field ( p, lat, lon ), alpha, beta);
-                            dNdD[i] = LWCtopnd_MGD_LWC( diameter_volume_equ[i],mean_rho,LWC_field ( p, lat, lon ));
+                            dNdD[i] = LWCtopnd_MGD_LWC( diameter_volume_equ[i],
+                                                        mean_rho,
+                                                        LWC_field(p, lat, lon) );
                         }
+
+                        // ensure that any particles where produced
+                        if ( dNdD.sum() == 0.0 )
+                        { // no particles at all were produced. means, there's some
+                          // issue with the setup (none of the included particles
+                          // produces numerically considerable amount of particles
+                          // with this PSD, likely due to all the particles being
+                          // either too large or too small)
+                          ostringstream os;
+                          os <<  psdname << " PSD did not produce any non-zero pnd values "
+                             << "(likely results\n"
+                             << "from considered particles being too large or too "
+                             << "small)\n"
+                             << "The problem occured for profile '"<< partfield_name
+                             << "' at: " << "p = " << p << ", lat = " << lat
+                             << ", lon = " << lon << ".\n";
+                          throw runtime_error ( os.str() );
+                        }
+
                         // scale pnds by scale width
                         if (diameter_volume_equ.nelem() > 1)
                             scale_pnd( pnd, diameter_volume_equ, dNdD ); //[# m^-3]
@@ -2242,6 +2383,7 @@ void pnd_fieldMGD_IWC (Tensor4View pnd_field,
                        const String& delim,
                        const Verbosity& verbosity)
 {
+    const String psdname="MGD_IWC";
     const Index N_se = scat_meta[scat_species].nelem();
     const Index scat_data_start = FlattenedIndex(scat_meta, scat_species);
     ArrayOfIndex intarr;
@@ -2266,7 +2408,7 @@ void pnd_fieldMGD_IWC (Tensor4View pnd_field,
         if ( isnan(scat_meta[scat_species][i].diameter_max) )
         {
             ostringstream os;
-            os << "Use of size distribution MGD_IWC (as requested for\n"
+            os << "Use of size distribution " << psdname << " (as requested for\n"
             << "scattering species #" << scat_species << ")\n"
             << "requires knowledge of scattering element volume equivalent diameter.\n"
             << "But volume equivalent diameter is not given for scattering elements #"
@@ -2285,7 +2427,7 @@ void pnd_fieldMGD_IWC (Tensor4View pnd_field,
         if ( isnan(scat_meta[scat_species][intarr[i]].mass) )
         {
             ostringstream os;
-            os << "Use of size distribution MGD_IWC (as requested for\n"
+            os << "Use of size distribution " << psdname << " (as requested for\n"
             << "scattering species #" << scat_species << ")\n"
             << "requires knowledge of scattering element mass.\n"
             << "But mass is not given for scattering elements #"
@@ -2329,7 +2471,7 @@ void pnd_fieldMGD_IWC (Tensor4View pnd_field,
                     if ( isnan(IWC_field ( p, lat, lon )) )
                     {
                         ostringstream os;
-                        os << "Size distribution MGD_IWC requires knowledge of mass "
+                        os << "Size distribution " << psdname << " requires knowledge of mass "
                         << "density of cloud liquid water.\n"
                         << "At grid point (" << p << ", " << lat << ", " << lon
                         << ") in (p,lat,lon) a NaN value is encountered, "
@@ -2346,10 +2488,29 @@ void pnd_fieldMGD_IWC (Tensor4View pnd_field,
                         {
                             // calculate particle size distribution for H11
                             // [# m^-3 m^-1]
-                            //                            dNdD[i] = IWCtopnd_F07TR( diameter_max[i], t_field ( p, lat, lon ),
-                            //                                                     SWC_field ( p, lat, lon ), alpha, beta);
-                            dNdD[i] = IWCtopnd_MGD_IWC( diameter_volume_equ[i],mean_rho,IWC_field ( p, lat, lon ));
+                            dNdD[i] = IWCtopnd_MGD_IWC( diameter_volume_equ[i],
+                                                        mean_rho,
+                                                        IWC_field(p, lat, lon) );
                         }
+
+                        // ensure that any particles where produced
+                        if ( dNdD.sum() == 0.0 )
+                        { // no particles at all were produced. means, there's some
+                          // issue with the setup (none of the included particles
+                          // produces numerically considerable amount of particles
+                          // with this PSD, likely due to all the particles being
+                          // either too large or too small)
+                          ostringstream os;
+                          os <<  psdname << " PSD did not produce any non-zero pnd values "
+                             << "(likely results\n"
+                             << "from considered particles being too large or too "
+                             << "small)\n"
+                             << "The problem occured for profile '"<< partfield_name
+                             << "' at: " << "p = " << p << ", lat = " << lat
+                             << ", lon = " << lon << ".\n";
+                          throw runtime_error ( os.str() );
+                        }
+
                         // scale pnds by scale width
                         if (diameter_volume_equ.nelem() > 1)
                             scale_pnd( pnd, diameter_volume_equ, dNdD ); //[# m^-3]
@@ -2408,6 +2569,7 @@ void pnd_fieldMP48 (Tensor4View pnd_field,
                     const String& delim,
                     const Verbosity& verbosity)
 {
+  const String psdname="MP48";
   const Index N_se = scat_meta[scat_species].nelem();
   const Index scat_data_start = FlattenedIndex(scat_meta, scat_species);
   ArrayOfIndex intarr;
@@ -2428,7 +2590,7 @@ void pnd_fieldMP48 (Tensor4View pnd_field,
       if ( isnan(scat_meta[scat_species][i].mass) )
         {
           ostringstream os;
-          os << "Use of size distribution MP48 (as requested for\n"
+          os << "Use of size distribution " << psdname << " (as requested for\n"
              << "scattering species #" << scat_species << ")\n"
              << "requires knowledge of scattering element mass.\n"
              << "But mass is not given for scattering elements #"
@@ -2448,7 +2610,7 @@ void pnd_fieldMP48 (Tensor4View pnd_field,
       if ( isnan(scat_meta[scat_species][intarr[i]].mass) )
         {
           ostringstream os;
-          os << "Use of size distribution MP48 (as requested for\n"
+          os << "Use of size distribution " << psdname << " (as requested for\n"
              << "scattering species #" << scat_species << ")\n"
              << "requires knowledge of scattering element volume.\n"
              << "But volume is not given for scattering elements #"
@@ -2509,7 +2671,7 @@ void pnd_fieldMP48 (Tensor4View pnd_field,
                 if (n_it>10)
                 {
                     ostringstream os;
-                    os<< "ERROR: Bulk mean density for MP48 distribution is"
+                    os<< "ERROR: Bulk mean density for " << psdname << " distribution is"
                       << " not converging.\n"
                       << "fractional change: "
                       << abs( rho_mean/(mass_total/vol_total)-1.) << "\n"
@@ -2532,6 +2694,24 @@ void pnd_fieldMP48 (Tensor4View pnd_field,
                     // output: [# m^-3 m^-1]
                     dNdD[i] = PRtopnd_MP48 ( tPR, diameter_melted_equivalent[i]);
                 }
+
+                // ensure that any particles where produced
+                if ( dNdD.sum() == 0.0 )
+                  { // no particles at all were produced. means, there's some
+                    // issue with the setup (none of the included particles
+                    // produces numerically considerable amount of particles
+                    // with this PSD, likely due to all the particles being
+                    // either too large or too small)
+                    ostringstream os;
+                    os <<  psdname << " PSD did not produce any non-zero pnd values "
+                       << "(likely results\n"
+                       << "from considered particles being too large or too "
+                       << "small)\n"
+                       << "The problem occured for profile '"<< partfield_name
+                       << "' at: " << "p = " << p << ", lat = " << lat
+                       << ", lon = " << lon << ".\n";
+                    throw runtime_error ( os.str() );
+                  }
 
                 // scale pnds by bin width
                 if (diameter_melted_equivalent.nelem() > 1)
@@ -2571,7 +2751,7 @@ void pnd_fieldMP48 (Tensor4View pnd_field,
             else if ( isnan(PR_field ( p, lat, lon )) )
               {
                 ostringstream os;
-                os << "Size distribution MP48 requires knowledge of mass "
+                os << "Size distribution " << psdname << " requires knowledge of mass "
                    << "flux of atmospheric (liquid/solid) water.\n"
                    << "At grid point (" << p << ", " << lat << ", " << lon
                    << ") in (p,lat,lon) a NaN value is encountered, "
@@ -2584,7 +2764,7 @@ void pnd_fieldMP48 (Tensor4View pnd_field,
             else if (PR_field ( p, lat, lon ) < 0.)
               {
                 ostringstream os;
-                os << "Size distribution MP48 is parametrized in "
+                os << "Size distribution " << psdname << " is parametrized in "
                    << "precipitation rate (mass flux).\n"
                    << "It can not handle negative values like PR="
                    << PR_field (p,lat,lon) << " kg/m2/s\n"
@@ -2633,6 +2813,7 @@ void pnd_fieldH98 (Tensor4View pnd_field,
                    const String& delim,
                    const Verbosity& verbosity)
 {
+  const String psdname="H98";
   const Index N_se = scat_meta[scat_species].nelem();
   const Index scat_data_start = FlattenedIndex(scat_meta, scat_species);
   ArrayOfIndex intarr;
@@ -2653,7 +2834,7 @@ void pnd_fieldH98 (Tensor4View pnd_field,
       if ( isnan(scat_meta[scat_species][i].diameter_volume_equ) )
         {
           ostringstream os;
-          os << "Use of size distribution H98 (as requested for\n"
+          os << "Use of size distribution " << psdname << " (as requested for\n"
              << "scattering species #" << scat_species << ")\n"
              << "requires knowledge of scattering element volume equivalent diameter.\n"
              << "But volume equivalent diameter is not given for scattering elements #"
@@ -2673,7 +2854,7 @@ void pnd_fieldH98 (Tensor4View pnd_field,
       if ( isnan(scat_meta[scat_species][intarr[i]].mass) )
         {
           ostringstream os;
-          os << "Use of size distribution H98 (as requested for\n"
+          os << "Use of size distribution " << psdname << " (as requested for\n"
              << "scattering species #" << scat_species << ")\n"
              << "requires knowledge of scattering element mass.\n"
              << "But mass is not given for scattering elements #"
@@ -2698,7 +2879,7 @@ void pnd_fieldH98 (Tensor4View pnd_field,
             if ( isnan(LWC_field ( p, lat, lon )) )
               {
                 ostringstream os;
-                os << "Size distribution H98 requires knowledge of mass "
+                os << "Size distribution " << psdname << " requires knowledge of mass "
                    << "density of atmospheric liquid water.\n"
                    << "At grid point (" << p << ", " << lat << ", " << lon
                    << ") in (p,lat,lon) a NaN value is encountered, "
@@ -3692,9 +3873,11 @@ void chk_pndsum (Vector& pnd,
   {
     // convert from particles/m^3 to kg/m^3
     x[i] = pnd[i]*mass[i];
-    /*cout<< "p = " << p << ", i: " << i << "\n"
-        << "pnd[i]: " << pnd[i] << ", density[i]: " << density[i] << ", vol[i]: " << vol[i] << "\n"
-        << "x[i]: " << x[i] << "\n";*/
+    /*
+    cout<< "p = " << p << ", i: " << i
+        << " - pnd[i]: " << pnd[i] << ", mass[i]: " << mass[i]
+        << " => x[i]: " << x[i] << "\n";
+    */
   }
 
   if ( x.sum() == 0.0 )
