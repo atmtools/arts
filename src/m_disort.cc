@@ -58,7 +58,7 @@ extern const Numeric COSMIC_BG_TEMP;
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void cloudboxSetDisort(//WS Output
+void cloudboxSetFullAtm(//WS Output
                        Index& cloudbox_on,
                        ArrayOfIndex& cloudbox_limits,
                        // WS Input

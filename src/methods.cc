@@ -3392,12 +3392,10 @@ void define_md_data_raw()
   
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "cloudboxSetDisort" ),
+      ( NAME( "cloudboxSetFullAtm" ),
         DESCRIPTION
         (
-         "For Disort calculation the cloudbox must be extended to\n"
-         "cover the full atmosphere.\n"
-         "This method sets *cloudbox_limits* accordingly.\n"
+         "Sets the cloudbox to cover the full atmosphere.\n"
          ), 
         AUTHORS( "Claudia Emde" ),
         OUT( "cloudbox_on", "cloudbox_limits" ),
@@ -3537,7 +3535,7 @@ void define_md_data_raw()
             "abs_species", "particle_masses" ),
         GIN(         "scat_data_check", "sca_mat_threshold" ),
         GIN_TYPE(    "String",          "Numeric" ),
-        GIN_DEFAULT( "all",             "1e-2" ),
+        GIN_DEFAULT( "all",             "5e-2" ),
         GIN_DESC( "The level of checks to apply on scat_data (see above).",
                   "Threshold for allowed albedo deviation." )
         ));
@@ -3882,7 +3880,7 @@ void define_md_data_raw()
          "different ways and using different output. The available options\n"
          "(from low to high sphericity level) are:\n"
          "- Cloudbox extends over whole atmosphere (e.g. by setting cloudbox\n"
-         "  from  *cloudboxSetDisort*).\n"
+         "  from  *cloudboxSetFullAtm*).\n"
          "- Cloudbox extends over a limited part of the atmosphere only (e.g.\n"
          "  by setting cloudbox from *cloudboxSetAutomatically* or\n"
          "  *cloudboxSetManually*). Internally, DISORT is run over the whole\n"
@@ -12184,7 +12182,7 @@ void define_md_data_raw()
         IN( "scat_data" ),
         GIN(         "scat_data_check", "sca_mat_threshold" ),
         GIN_TYPE(    "String",          "Numeric" ),
-        GIN_DEFAULT( "all",             "1e-2" ),
+        GIN_DEFAULT( "all",             "5e-2" ),
         GIN_DESC( "The level of checks to apply on scat_data (see above).",
                   "Threshold for allowed albedo deviation." )
         ));

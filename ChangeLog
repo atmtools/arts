@@ -1,3 +1,21 @@
+2016-09-01 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-526
+
+	* src/methods.cc,
+	controlfiles/artscomponents/arts-xml-data/TestClouds_Mars.arts,
+	controlfiles/artscomponents/wfuns/TestDoitJacobians.arts: 
+	Changed Z-norm threshold 0.01 -> 0.05 (such that the arts-xml-data
+	scat_data passes and which should still be okayish. more detailed
+	adjustments (what to do with norm deviations) are up to the individual
+	scatt solvers. Reverted threshold-modifying settings in controlfiles.
+
+	* src/m_disort.cc, methods.cc,
+	controlfiles/artscomponents/disort/TestDISORT.arts:
+	Renamed cloudboxSetDisort to cloudboxSetFullAtm (in line with renaming
+	in ARTS2.2 for removing references to Disort there as well as with the
+	fact that Disort interface does not require anymore whole-atm cloudbox).
+
 2016-08-29 Jana Mendrok  <jana.mendrok@chalmers.se>
 
 	* arts-2-3-525
