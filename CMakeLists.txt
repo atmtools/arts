@@ -323,10 +323,6 @@ add_dependencies(check-all
 
 add_subdirectory (3rdparty)
 
-get_directory_property(ENABLE_DISORT DIRECTORY
-                       3rdparty/disort1.2
-                       DEFINITION ENABLE_DISORT)
-
 get_directory_property(ENABLE_REFICE DIRECTORY
                        3rdparty/refice
                        DEFINITION ENABLE_REFICE)

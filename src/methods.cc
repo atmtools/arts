@@ -2966,12 +2966,10 @@ void define_md_data_raw()
   
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "cloudboxSetDisort" ),
+      ( NAME( "cloudboxSetFullAtm" ),
         DESCRIPTION
         (
-         "For Disort calculation the cloudbox must be extended to\n"
-         "cover the full atmosphere.\n"
-         "This method sets *cloudbox_limits* accordingly.\n"
+         "Sets the cloudbox to cover the full atmosphere.\n"
          ), 
         AUTHORS( "Claudia Emde" ),
         OUT( "cloudbox_on", "cloudbox_limits" ),
@@ -9517,7 +9515,11 @@ void define_md_data_raw()
       ( NAME( "ScatteringDisort" ),
         DESCRIPTION
         (
-         "Calls DISORT RT solver from ARTS.\n"
+         "Disfunctional.\n"
+         "\n"
+         "No DISORT support in ARTS2.2 anymore.\n"
+         "For using the DISORT RT solver interface, switch to ARTS2.3 or\n"
+         "higher.\n"
          ),
         AUTHORS( "Claudia Emde" ),
         OUT( "scat_i_p", "scat_i_lat", "scat_i_lon", 

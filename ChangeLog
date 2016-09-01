@@ -1,3 +1,15 @@
+2016-09-01 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-2-60
+	
+	* CMakeLists.txt, config.h.cmake,
+	  src/CMakeLists.txt
+	  src/m_disort.cc, main.cc, methods.cc,
+	  3rdparty/CMakeLists.txt,
+	  controlfiles/CMakeLists.txt,
+	  controlfiles/artscomponents/disort/, TestDISORT.arts, scat_data_disort.xml:
+	Removed (buggy) Disort interface and testcase. Refering to ARTS2.3 instead.
+
 2016-07-01  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-2-59

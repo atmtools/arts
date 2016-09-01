@@ -45,9 +45,9 @@
 #include "xml_io.h"
 #include "m_general.h"
 #include "wsv_aux.h"
-#include "disort.h"
+//#include "disort.h"
 //#include "physics_funcs.h"
-#include "disort_DISORT.h"
+//#include "disort_DISORT.h"
 
 extern const Numeric PI;
 extern const Numeric RAD2DEG;
@@ -57,7 +57,7 @@ extern const Numeric COSMIC_BG_TEMP;
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void cloudboxSetDisort(//WS Output
+void cloudboxSetFullAtm(//WS Output
                        Index& cloudbox_on,
                        ArrayOfIndex& cloudbox_limits,
                        // WS Input
@@ -71,7 +71,8 @@ void cloudboxSetDisort(//WS Output
 }
   
 
-/* Workspace method: Doxygen documentation will be auto-generated */
+/*
+// * Workspace method: Doxygen documentation will be auto-generated * //
 #ifdef ENABLE_DISORT
 void ScatteringDisort(Workspace& ws,
                       // WS Output:
@@ -139,7 +140,7 @@ void ScatteringDisort(Workspace& ws,
   if(cloudbox_limits.nelem()!=2 ||  cloudbox_limits[0] != 0 ||
      cloudbox_limits[1] != pnd_field.npages()-1)
     throw runtime_error("The cloudbox is not set correctly for DISORT.\n"
-                        "Please use *cloudboxSetDisort*. \n");
+                        "Please use *cloudboxSetFullAtm*. \n");
 
   scat_i_p.resize(f_grid.nelem(), 2, 1, 1, 
                   scat_za_grid.nelem(), 1, 1);
@@ -371,8 +372,42 @@ void ScatteringDisort(Workspace&,
                       const Verbosity&)
 {
   throw runtime_error ("This version of ARTS was compiled without DISORT support.");
-#endif /* ENABLE_DISORT */
-  
+#endif // *ENABLE_DISORT*
+}
+*/ 
+
+// No Disort support in ARTS2.2. Use ARTS2.3 or higher.
+/* Workspace method: Doxygen documentation will be auto-generated */
+ void ScatteringDisort(Workspace&,
+                      // WS Output:
+                      Tensor7&,
+                      Tensor7&,
+                      Tensor7&,
+                      Index&,
+                      ArrayOfSingleScatteringData&,
+                      Tensor4&,
+                      // WS Input
+                      const Index&,
+                      const Index&,
+                      const Index&,
+                      const ArrayOfIndex&,
+                      const Index&,
+                      const Agenda&,
+                      const Agenda&,
+                      const Agenda&,
+                      const Tensor4&,
+                      const Tensor3&,
+                      const Tensor3&,
+                      const Vector&,
+                      const Tensor4&,
+                      const ArrayOfSingleScatteringData&,
+                      const Vector&,
+                      const Vector&,
+                      const Matrix&,
+                      const Verbosity&) 
+{
+  throw runtime_error ("No DISORT support in ARTS2.2.\n"
+                       "For using DISORT, switch to ARTS2.3 or higher.");
 }
 
 

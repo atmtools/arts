@@ -23,10 +23,6 @@ if (ENABLE_GUI)
   include_directories ("gui")
 endif (ENABLE_GUI)
 
-if (ENABLE_DISORT)
-  list (APPEND ALL_ARTS_LIBRARIES disort)
-endif (ENABLE_DISORT)
-
 if (ENABLE_TMATRIX)
   list (APPEND ALL_ARTS_LIBRARIES tmatrix)
 endif (ENABLE_TMATRIX)
@@ -156,7 +152,6 @@ add_library (artscore STATIC
   cloudbox.cc
   constants.cc
   continua.cc
-  disort.cc
   docserver.cc
   doit.cc
   Faddeeva.cc

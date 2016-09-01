@@ -22,9 +22,6 @@
 /* Threadprivate support */
 #cmakedefine THREADPRIVATE_SUPPORTED
 
-/* Define to compile with disort support */
-#cmakedefine ENABLE_DISORT
-
 /* Define to compile with REFICE support */
 #cmakedefine ENABLE_REFICE
 
