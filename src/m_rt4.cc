@@ -488,6 +488,16 @@ void RT4Init(//WS Output
     throw runtime_error( "For running RT4, the dimension of stokes vector "
                          "must be 1 or 2.\n");
 
+  if( cloudbox_limits[0] != 0   )
+    {
+      ostringstream os;
+      os << "RT4 calculations currently only possible with "
+         << "lower cloudbox limit\n"
+         << "at 0th atmospheric level "
+         << "(assumes surface there, ignoring z_surface).\n";
+      throw runtime_error(os.str());
+    }
+
   // Zenith angle grid.
   //Index nza = scat_za_grid.nelem();
 

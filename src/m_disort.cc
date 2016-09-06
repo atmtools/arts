@@ -573,8 +573,10 @@ void DisortInit(//WS Output
   if( cloudbox_limits[0] != 0   )
     {
       ostringstream os;
-      os << "DISORT calculations currently only possible with\n"
-         << "lower cloudbox at 0th atmospheric level.\n";
+      os << "DISORT calculations currently only possible with "
+         << "lower cloudbox limit\n"
+         << "at 0th atmospheric level "
+         << "(assumes surface there, ignoring z_surface).\n";
       throw runtime_error(os.str());
     }
 
