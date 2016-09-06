@@ -74,34 +74,14 @@ void GetLineScalingData(Numeric& q_t,
     extern const Numeric PLANCK_CONST;
     extern const Numeric BOLTZMAN_CONST;
     
+    // This is for a future update possibility
     const bool do_rotational = false;
     
     if(q_t<0 || q_ref<0)
     {
-      switch(partition_type)
-      {
-        case SpeciesAuxData::AT_PARTITIONFUNCTION_COEFF:
-          CalculatePartitionFctFromCoeff(q_ref, q_t, line_t, atm_t,
-                                         partition_data[0].data);
-          break;
-        case SpeciesAuxData::AT_PARTITIONFUNCTION_COEFF_VIBROT:
-            if(!do_rotational)
-                CalculatePartitionFctFromVibrotCoeff(q_ref, q_t, line_t, atm_t, atm_t,
-                                               partition_data[0].data,partition_data[1].data);
-            else
-                CalculatePartitionFctFromVibrotCoeff(q_ref, q_t, line_t, atm_t, /*t_rot*/ atm_t, //This must be implemented!
-                                                     partition_data[0].data,partition_data[1].data);
-          break;
-        case SpeciesAuxData::AT_PARTITIONFUNCTION_TFIELD:
-          CalculatePartitionFctFromData(q_ref, q_t, line_t, atm_t,
-                                        partition_data[0].get_numeric_grid(0),
-                                        partition_data[0].data, 
-                                        1);
-          break;
-        default:
-          throw std::runtime_error("Unknown partition type requested.\n");
-          break;
-      }
+      partition_function( q_ref, q_t,
+                          line_t, atm_t,
+                          partition_type, partition_data, do_rotational);
       
       partition_ratio = q_ref/q_t;
     }
@@ -301,6 +281,42 @@ void GetLineScalingData_dF0(
         dabs_nlte_ratio_dF0 = -PLANCK_CONST*gamma*(r_low-r_upp)/(atm_t*BOLTZMAN_CONST*(gamma-1.0)*(gamma-1.0));
     }
 }
+
+
+void partition_function( Numeric& q_ref,
+                         Numeric& q_t,
+                         const Numeric& line_t,
+                         const Numeric& atm_t,
+                         const SpeciesAuxData::AuxType& partition_type,
+                         const ArrayOfGriddedField1& partition_data,
+                         const bool& do_rotational)
+{
+  switch(partition_type)
+  {
+    case SpeciesAuxData::AT_PARTITIONFUNCTION_COEFF:
+      CalculatePartitionFctFromCoeff(q_ref, q_t, line_t, atm_t,
+                                    partition_data[0].data);
+      break;
+    case SpeciesAuxData::AT_PARTITIONFUNCTION_COEFF_VIBROT:
+      if(!do_rotational)
+        CalculatePartitionFctFromVibrotCoeff(q_ref, q_t, line_t, atm_t, atm_t,
+                                            partition_data[0].data,partition_data[1].data);
+        else
+          CalculatePartitionFctFromVibrotCoeff(q_ref, q_t, line_t, atm_t, /*t_rot*/ atm_t, //This must be implemented!
+                                              partition_data[0].data,partition_data[1].data);
+          break;
+    case SpeciesAuxData::AT_PARTITIONFUNCTION_TFIELD:
+      CalculatePartitionFctFromData(q_ref, q_t, line_t, atm_t,
+                                    partition_data[0].get_numeric_grid(0),
+                                    partition_data[0].data, 
+                                    1);
+      break;
+    default:
+      throw std::runtime_error("Unknown partition type requested.\n");
+      break;
+  }
+}
+
 
 void CalculatePartitionFctFromData( Numeric& q_ref, 
                                     Numeric& q_t, 

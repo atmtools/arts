@@ -943,13 +943,27 @@ void vmrunitscf(
   const Numeric&   vmr,
   const Numeric&   p,
   const Numeric&   t )
-{
+{  
   if( unit == "rel"  ||  unit == "logrel" )
     { x = 1; }
   else if( unit == "vmr" )
-    { x = 1 / vmr; }
+    {
+        if(vmr==0)
+        { 
+            x = 0; 
+            return;
+        }
+        x = 1 / vmr;
+    }
   else if( unit == "nd" )
-    { x = 1 / ( vmr * number_density( p, t ) ); }
+    {
+        if(vmr==0)
+        { 
+            x = 0; 
+            return;
+        }
+        x = 1 / ( vmr * number_density( p, t ) ); 
+    }
   else
     {
         ostringstream os;

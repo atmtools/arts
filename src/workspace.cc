@@ -573,7 +573,7 @@ void Workspace::define_wsv_data()
      ( NAME( "abs_species" ),
        DESCRIPTION
        (
-        "Tag groups for scalar gas absorption.\n"
+        "Tag groups for gas absorption.\n"
         "\n"
         "This is an array of arrays of SpeciesTag tag definitions. It defines the\n"
         "available tag groups for the calculation of scalar gas absorption\n"
@@ -581,6 +581,19 @@ void Workspace::define_wsv_data()
         "more detailed information how tag groups work and some examples.\n"
         ), 
        GROUP( "ArrayOfArrayOfSpeciesTag" )));
+    
+    wsv_data.push_back
+    (WsvRecord
+    ( NAME( "abs_species_per_band" ),
+      DESCRIPTION
+      (
+          "Tag groups for gas absorption.\n"
+          "\n"
+          "This is an array of arrays of SpeciesTag tag definitions that matches\n"
+          "*abs_species*.  This variable is the same towards *abs_lines_per_band\n"
+          "as *abs_species* is towards *abs_lines_per_species*.\n"
+      ), 
+      GROUP( "ArrayOfArrayOfSpeciesTag" )));
 
   wsv_data.push_back
     (WsvRecord

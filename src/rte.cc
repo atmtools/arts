@@ -2779,7 +2779,7 @@ ConstMatrixView  ppath_wind )
         // initialize
         Numeric dv_doppler_dx=0.0;
         
-        // Include wind
+        // Include wind FIXME:  No analytical solution possible when wind field is zero.  Adding a small perturbation could fix this?
         if( ppath_wind(1,ip) != 0  ||  ppath_wind(0,ip) != 0  ||  
             ppath_wind(2,ip) != 0  )
         {

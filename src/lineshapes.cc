@@ -33,6 +33,7 @@
 
 #include <cmath>
 #include "arts.h"
+#include "complex.h"
 #include "matpackI.h"
 #include "array.h"
 #include "absorption.h"
@@ -1225,8 +1226,8 @@ void faddeeva_algorithm_916(    Vector&         ls_attenuation,
     for (Index ii=0; ii<nf; ii++)
     {
         const Numeric x = (f_grid[ii] - f0) / sigma;
-        const std::complex<Numeric> w =
-        Faddeeva::w(std::complex<Numeric>(x, y));
+        const Complex w =
+        Faddeeva::w(Complex(x, y));
         
         ls_attenuation[ii] = fac * w.real();
         if(do_phase||do_partials)
@@ -1446,13 +1447,13 @@ void hui_etal_1978_lineshape( Vector&         ls_attenuation,
         
         // Note that this works but I don't know why there is a difference
         // between the theory described above and this practical implementation.
-        const std::complex<Numeric> z(y , - xvector[ii]);
+        const Complex z(y , - xvector[ii]);
         
-        const std::complex<Numeric> A = (((((.5641896*z+5.912626)*z+30.18014)*z+
+        const Complex A = (((((.5641896*z+5.912626)*z+30.18014)*z+
               93.15558)*z+181.9285)*z+214.3824)*z+122.6079;
-        const std::complex<Numeric> B = ((((((z+10.47986)*z+53.99291)*z+170.3540)*z+
+        const Complex B = ((((((z+10.47986)*z+53.99291)*z+170.3540)*z+
               348.7039)*z+457.3345)*z+352.7306)*z+122.6079;
-        const std::complex<Numeric> C = A / B;
+        const Complex C = A / B;
         
         ls_attenuation[ii] = fac * C.real();
         if(do_phase)
@@ -1546,19 +1547,19 @@ void hartmann_tran_lineshape(   Vector&         ls_attenuation,
         // Constants
         extern const Numeric PI;
         extern const Numeric SPEED_OF_LIGHT;
-        const std::complex<Numeric> i(0.,1.);
+        const Complex i(0.,1.);
         
         // Direct pressure term
-        const std::complex<Numeric> c_0(gamma_0, df_0);
+        const Complex c_0(gamma_0, df_0);
         
         // Indirect pressure term
-        const std::complex<Numeric> c_2(gamma_2, df_2);
+        const Complex c_2(gamma_2, df_2);
         
         // Constant c_0 helper
-        const std::complex<Numeric> c_0_tilde = (1.-eta)*(c_0-1.5*c_2)+f_VC;
+        const Complex c_0_tilde = (1.-eta)*(c_0-1.5*c_2)+f_VC;
         
         // Constant c_2 helper
-        const std::complex<Numeric> c_2_tilde = (1.-eta)*c_2;
+        const Complex c_2_tilde = (1.-eta)*c_2;
         
         // Average speed of molecule
         const Numeric v_a0 = SPEED_OF_LIGHT * gamma_D / f0;
@@ -1567,30 +1568,30 @@ void hartmann_tran_lineshape(   Vector&         ls_attenuation,
         const Numeric sqrtPI =  sqrt(PI);
         
         // Some calculation constants
-        const std::complex<Numeric> c1 = sqrtPI/gamma_D;
-        const std::complex<Numeric> v_a02 = v_a0*v_a0;
-        const std::complex<Numeric> c4 = f_VC-eta*(c_0-1.5*c_2);
-        const std::complex<Numeric> c5 = eta*c_2/v_a02;
+        const Complex c1 = sqrtPI/gamma_D;
+        const Complex v_a02 = v_a0*v_a0;
+        const Complex c4 = f_VC-eta*(c_0-1.5*c_2);
+        const Complex c5 = eta*c_2/v_a02;
         
         // Special case when no speed dependency or no correlation
-        if(c_2_tilde == std::complex<Numeric>(0., 0.))
+        if(c_2_tilde == Complex(0., 0.))
         {
             for(Index nf = 0; nf<f_grid.nelem(); nf++)
             {
-                const std::complex<Numeric> Z1 = 
-                std::complex<Numeric>(0.,(f0-f_grid[nf])/gamma_D) + c_0_tilde;
+                const Complex Z1 = 
+                Complex(0.,(f0-f_grid[nf])/gamma_D) + c_0_tilde;
                 
                 // NB.  Z1 → infinity is treated specially in Tran etal.  This I think already happens in
                 // the Faddeeeva function as well.  So I will do nothing special
                 
-                const std::complex<Numeric> w1 = Faddeeva::w(i*Z1);
+                const Complex w1 = Faddeeva::w(i*Z1);
                 
-                const std::complex<Numeric> A = c1*w1;
+                const Complex A = c1*w1;
                 
-                const std::complex<Numeric> B = c1*v_a02* ( (1.-Z1*Z1)*w1 + Z1/sqrtPI );
+                const Complex B = c1*v_a02* ( (1.-Z1*Z1)*w1 + Z1/sqrtPI );
                 
                 // Hartmann-Tran line shape
-                const std::complex<Numeric> HTP = 1./PI * A / ( 1. - c4*A + c5*B );
+                const Complex HTP = 1./PI * A / ( 1. - c4*A + c5*B );
                 
                 // Output
                 ls_attenuation[nf] = HTP.real();
@@ -1601,42 +1602,42 @@ void hartmann_tran_lineshape(   Vector&         ls_attenuation,
         }
         
         // Y variable otherwise
-        const std::complex<Numeric> sqrtY = gamma_D/(2. * c_2_tilde);
-        const std::complex<Numeric> Y = sqrtY*sqrtY;
+        const Complex sqrtY = gamma_D/(2. * c_2_tilde);
+        const Complex Y = sqrtY*sqrtY;
         const Numeric absY = abs(Y);
-        const std::complex<Numeric> sqrtY_t2 = 2.*sqrtY;
-        const std::complex<Numeric> c2 = v_a02/c_2_tilde/c_2_tilde;
-        const std::complex<Numeric> c3 = sqrtPI/sqrtY_t2;
+        const Complex sqrtY_t2 = 2.*sqrtY;
+        const Complex c2 = v_a02/c_2_tilde/c_2_tilde;
+        const Complex c3 = sqrtPI/sqrtY_t2;
         
         for(Index nf = 0; nf<f_grid.nelem(); nf++)
         {
             const Numeric df = f0-f_grid[nf];
             
             // X variable
-            const std::complex<Numeric> X = ( std::complex<Numeric>(0.,df) + c_0_tilde )/c_2_tilde;
+            const Complex X = ( Complex(0.,df) + c_0_tilde )/c_2_tilde;
             
             // Tran etal says this must be between 3e-8 and 10e15 for numerical stability in their routine.
             // This is not the case for us since we have a different code, but is arbitrarily used anyways.
             const Numeric numerical_test = abs(X)/absY;
             
             // Same variables in all cases
-            std::complex<Numeric> A, B;
+            Complex A, B;
             if(numerical_test < 3e-8)
             {
                 // Z_plus 
                 // Note that sqrt(X+Y)+sqrt(Y) → 2*sqrt(Y) in this case
                 // This simplification is ignored below but is faster. Should it be used?
-                const std::complex<Numeric> Z_plus  = sqrt(X+Y)+sqrtY;
+                const Complex Z_plus  = sqrt(X+Y)+sqrtY;
                 
                 // Z_minus
-                const std::complex<Numeric> Z_minus = 
-                std::complex<Numeric>(0.,df/gamma_D)+c_0_tilde;
+                const Complex Z_minus = 
+                Complex(0.,df/gamma_D)+c_0_tilde;
                 
                 // w(Z_minus)
-                const std::complex<Numeric> w_plus  =  Faddeeva::w(i*Z_plus);
+                const Complex w_plus  =  Faddeeva::w(i*Z_plus);
                 
                 // w(Z_minus)
-                const std::complex<Numeric> w_minus =  Faddeeva::w(i*Z_minus);
+                const Complex w_minus =  Faddeeva::w(i*Z_minus);
                 
                 // A
                 A = c1 * (w_minus - w_plus);
@@ -1648,15 +1649,15 @@ void hartmann_tran_lineshape(   Vector&         ls_attenuation,
             {
                 // Note that the Z:s are very similar but 
                 // Tran etal still makes a difference between them
-                const std::complex<Numeric> sqrtX = sqrt(X);
-                const std::complex<Numeric>  Z2   = sqrt(X+Y);
+                const Complex sqrtX = sqrt(X);
+                const Complex  Z2   = sqrt(X+Y);
                 
-                const std::complex<Numeric> w1 = Faddeeva::w(i*sqrtX);
-                const std::complex<Numeric> w2 = Faddeeva::w(i*Z2);
+                const Complex w1 = Faddeeva::w(i*sqrtX);
+                const Complex w2 = Faddeeva::w(i*Z2);
                 
                 // Note that there is a warning for these equations as X → infinity that is ignored for now.
                 
-                std::complex<Numeric> Aconst = (1./sqrtPI - sqrtX*w1);
+                Complex Aconst = (1./sqrtPI - sqrtX*w1);
                 
                 // A
                 A = 2.*c1 * Aconst;
@@ -1668,16 +1669,16 @@ void hartmann_tran_lineshape(   Vector&         ls_attenuation,
             else
             {
                 // Z_plus
-                const std::complex<Numeric> Z_plus  = sqrt(X+Y)+sqrtY;
+                const Complex Z_plus  = sqrt(X+Y)+sqrtY;
                 
                 // Z_minus
-                const std::complex<Numeric> Z_minus = Z_plus-sqrtY_t2;
+                const Complex Z_minus = Z_plus-sqrtY_t2;
                 
                 // w(Z_minus)
-                const std::complex<Numeric> w_plus  =  Faddeeva::w(i*Z_plus);
+                const Complex w_plus  =  Faddeeva::w(i*Z_plus);
                 
                 // w(Z_minus)
-                const std::complex<Numeric> w_minus =  Faddeeva::w(i*Z_minus);
+                const Complex w_minus =  Faddeeva::w(i*Z_minus);
                 
                 // A
                 A = c1 * (w_minus - w_plus);
@@ -1687,7 +1688,7 @@ void hartmann_tran_lineshape(   Vector&         ls_attenuation,
             }
             
             // Hartmann-Tran line shape
-            const std::complex<Numeric> HTP = 1./PI * A / ( 1. - c4*A + c5*B);
+            const Complex HTP = 1./PI * A / ( 1. - c4*A + c5*B);
             
             // Output
             ls_attenuation[nf] = HTP.real();

@@ -51,6 +51,10 @@ if (ENABLE_REFICE)
   list (APPEND ALL_ARTS_LIBRARIES refice)
 endif (ENABLE_REFICE)
 
+if (ENABLE_RELMAT)
+  list (APPEND ALL_ARTS_LIBRARIES relmat)
+endif (ENABLE_RELMAT)
+
 
 ########### target to extract version number from ChangeLog ###############
 

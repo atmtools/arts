@@ -832,11 +832,6 @@ public:
     \author Stefan Buehler, Hermann Berg */
   bool ReadFromHitran2004Stream(istream& is, const Verbosity& verbosity, const Numeric fmin=0);
   
-  // Special reading for modified data stream to be used in line mixing calculations
-  bool ReadFromHitranModifiedStream(istream& is, const Verbosity& verbosity);
-
-
-
   /** Read one line from a stream associated with a MYTRAN2 file. The MYTRAN2
     format is as follows (directly taken from the abs_my.c documentation):
 
@@ -1170,7 +1165,7 @@ private:
   /** String with quantum numbers for ARTSCAT-4 */
   String mquantum_numbers_str;
 
-  /** Quantum numbers from HITRAN */
+  /** Quantum numbers */
   QuantumNumberRecord mquantum_numbers;
   
   /** Line Mixing Data */

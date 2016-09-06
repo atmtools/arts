@@ -398,6 +398,10 @@ get_directory_property(ENABLE_TMATRIX DIRECTORY
                        3rdparty/tmatrix
                        DEFINITION ENABLE_TMATRIX)
 
+get_directory_property(ENABLE_RELMAT DIRECTORY
+                       3rdparty/relmat
+                       DEFINITION ENABLE_RELMAT)
+
 add_subdirectory (src)
 add_subdirectory (doc)
 add_subdirectory (controlfiles)

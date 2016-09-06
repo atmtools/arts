@@ -32,6 +32,9 @@
 /* Define to compile with REFICE support */
 #cmakedefine ENABLE_REFICE
 
+/* Define to compile with relmat support */
+#cmakedefine ENABLE_RELMAT
+
 /* Define to compile with T-Matrix support */
 #cmakedefine ENABLE_TMATRIX
 #cmakedefine ENABLE_TMATRIX_QUAD

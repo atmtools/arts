@@ -908,43 +908,21 @@ void define_md_data_raw()
     
     md_data_raw.push_back
     ( MdRecord
-    ( NAME( "abs_lines_per_bandInit" ),
+    ( NAME( "abs_lines_per_bandFromband_identifiers" ),
       DESCRIPTION
       (
           "Initializes abs_lines_per_band and related variables.\n"
       ),
       AUTHORS( "Richard Larsson" ),
-      OUT( "abs_lines_per_band", "relmat_per_band" ),
+      OUT( "abs_lines_per_band", "abs_species_per_band", "abs_lines_per_species" ),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN(),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()
-    ));
-    
-    md_data_raw.push_back
-    ( MdRecord
-    ( NAME( "abs_lines_per_bandLineMixingAppendCO2" ),
-      DESCRIPTION
-      (
-          "Reads lines for a band from special structure.\n"
-      ),
-      AUTHORS( "Richard Larsson" ),
-      OUT( "abs_lines_per_band", "relmat_per_band" ),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN( "abs_lines_per_band", "relmat_per_band" ),
-      GIN("bandinfo_file", "rel_str", "fmin", "fmax"),
-      GIN_TYPE("String", "Numeric", "Numeric", "Numeric"),
-      GIN_DEFAULT(NODEF, "0.0", NODEF, NODEF),
-      GIN_DESC("Name (and path) of the band information file.",
-               "Relative band xsec allowed cf. first xsec.",
-               "Minimum frequency for lines to read [Hz].",
-               "Maximum frequency for lines to read [Hz].")
+      IN("abs_lines_per_species", "abs_species"),
+      GIN("band_identifiers"),
+      GIN_TYPE("ArrayOfQuantumIdentifier"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("Band identifiers for line mixing")
     ));
   
   md_data_raw.push_back
@@ -1820,7 +1798,33 @@ void define_md_data_raw()
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-        ));
+      ));
+    
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "abs_xsec_per_speciesAddLineMixedBands" ),
+      DESCRIPTION
+      (
+          "Calculate absorption cross sections per band for RELMAT line mixing.\n"
+          "\n"
+          "This requires setting *abs_lines_per_band* and *abs_species_per_band*.\n"
+          "\n"
+          "Will call the RELMAT fortran library for the bulk of the calculations.\n"
+      ),
+      AUTHORS( "Teresa Mendaza", "Richard Larsson" ),
+      OUT( "abs_xsec_per_species", "dabs_xsec_per_species_dx" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "abs_xsec_per_species", "dabs_xsec_per_species_dx",
+          "abs_lines_per_band", "abs_species_per_band", "abs_species",
+          "partition_functions", "jacobian_quantities", 
+          "f_grid", "abs_p", "abs_t" ),
+      GIN( ),
+      GIN_TYPE( ),
+      GIN_DEFAULT( ),
+      GIN_DESC( )
+    ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -7258,6 +7262,8 @@ void define_md_data_raw()
          "Note that *for_species_tag* is used to indicate if species tag VMR,\n"
          "rather than atmospheric gas VMR is calculated. Set it to 0 and we\n"
          "calculate the atmospheric gas VMR, but this only works for \"analytical\".\n"
+         "\n"
+         "Note that the Jacobian is set to zero where path VMR is equal to zero.\n"
          ),
         AUTHORS( "Mattias Ekstrom", "Patrick Eriksson" ),
         OUT( "jacobian_quantities", "jacobian_agenda" ),

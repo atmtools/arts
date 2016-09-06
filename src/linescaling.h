@@ -70,6 +70,14 @@ void GetLineScalingData_dF0(Numeric& dK2_dF0,
                             const Numeric& line_evupp,
                             const Numeric& line_f);
 
+void partition_function( Numeric& q_ref,
+                         Numeric& q_t,
+                         const Numeric& line_t,
+                         const Numeric& atm_t,
+                         const SpeciesAuxData::AuxType& partition_type,
+                         const ArrayOfGriddedField1& partition_data,
+                         const bool& do_rotational);
+
 void GetChangeInPartitionRatio(Numeric& dQ_dT, 
                                const Numeric& q_t,
                                const SpeciesAuxData::AuxType& partition_type,

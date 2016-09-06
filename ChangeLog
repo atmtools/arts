@@ -1,3 +1,38 @@
+2016-09-05  Richard Larsson <ric.larsson@gmail.com>
+
+	* arts-2-3-528
+	
+	Non-working commit of relmat-arts interfacing.  Will work on
+	this through to relmat and arts interface is clean.  
+	Committing code to ease collaboration.
+
+	* 3rdparty/relmat/*:  relmat and files to interfacce with it.
+	See later commits for more details.
+	
+	* 3rdparty/CMakeLists.txt,CMakeLists.txt,config.h.cmake:
+	*  src/CMakeLists.txt: ENABLE_RELMAT
+	
+	* src/linemixingdata.cc: Added LM_BYBAND as ignore tag for 
+	band calculations.
+	
+	* src/linerecord.{cc,h}: Removed (ReadFromHitranModifiedStream)
+	but added reading for hupper and glower to HITRAN reading.
+	
+	* src/linescaling.{cc,h}: Added (partition_function) as separate
+	function to easier get partition function when other scale factors
+	are not needed.
+	
+	* src/m_linemixing.cc:  Changed completely adding 
+	(abs_xsec_per_speciesAddLineMixedBands) to interface with relmat.
+	This is still very much work in progress where there will be more
+	updates in the somewhat near-future  Currently, trying to use this 
+	without changing the code will just result in throwing runtime_error.
+	
+	* src/jacobian.cc: Fix bug when vmr=0 gives jacobian as nan.
+	
+	* other files:  Only minor comments updae for problematic cases.
+
+
 2016-09-02  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-527

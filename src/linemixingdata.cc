@@ -43,6 +43,9 @@ void LineMixingData::GetLineMixingParams(Numeric& Y, Numeric& G, Numeric& DV, co
         Get2ndOrder(Y,G,DV,Temperature,Pressure,Pressure_Limit);
     else if(mtype == LM_1STORDER) // The 1st order case
         Get1stOrder(Y,Temperature,Pressure,Pressure_Limit);
+    else if(mtype == LM_BYBAND) // The band class
+        throw std::runtime_error("You are trying to return line mixing data for a line despite having\n"
+        "declared the line absorption can only be understood by full band calculations..\n");
     else
         throw std::runtime_error("You are trying to return a line mixing type that is unknown to ARTS.\n");
 }
@@ -59,6 +62,9 @@ void LineMixingData::GetLineMixingParams_dT(Numeric& dY_dT, Numeric& dG_dT, Nume
         Get2ndOrder_dT(dY_dT,dG_dT,dDV_dT,Temperature,Pressure,Pressure_Limit);
     else if(mtype == LM_1STORDER) // The 1st order case
         Get1stOrder_dT(dY_dT,Temperature,Pressure,Pressure_Limit);
+    else if(mtype == LM_BYBAND) // The band class
+        throw std::runtime_error("You are trying to return line mixing data for a line despite having\n"
+        "declared the line absorption can only be understood by full band calculations..\n");
     else
         throw std::runtime_error("You are trying to return a line mixing type that is unknown to ARTS.\n");
 }
@@ -81,6 +87,9 @@ void LineMixingData::GetLineMixingParams_dZerothOrder(Numeric& dY0, Numeric& dG0
         dG0=0.;
         dDV0=0.;
     }
+    else if(mtype == LM_BYBAND) // The band class
+        throw std::runtime_error("You are trying to return line mixing data for a line despite having\n"
+        "declared the line absorption can only be understood by full band calculations..\n");
     else
         throw std::runtime_error("You are trying to return a line mixing type that is unknown to ARTS.\n");
 }
@@ -99,6 +108,9 @@ void LineMixingData::GetLineMixingParams_dFirstOrder(Numeric& dY1, Numeric& dG1,
         Get2ndOrder_dFirstOrder(dY1,dG1,dDV1,Temperature,Pressure,Pressure_Limit);
     else if(mtype == LM_1STORDER) // The 1st order case
         throw std::runtime_error("1st Order mode of line mixing only have zeroth order coefficients.\n");
+    else if(mtype == LM_BYBAND) // The band class
+        throw std::runtime_error("You are trying to return line mixing data for a line despite having\n"
+        "declared the line absorption can only be understood by full band calculations..\n");
     else
         throw std::runtime_error("You are trying to return a line mixing type that is unknown to ARTS.\n");
 }
@@ -121,6 +133,9 @@ void LineMixingData::GetLineMixingParams_dExponent(Numeric& dYexp, Numeric& dGex
         dGexp=0.;
         dDVexp=0.;
     }
+    else if(mtype == LM_BYBAND) // The band class
+        throw std::runtime_error("You are trying to return line mixing data for a line despite having\n"
+        "declared the line absorption can only be understood by full band calculations..\n");
     else
         throw std::runtime_error("You are trying to return a line mixing type that is unknown to ARTS.\n");
 }
@@ -464,6 +479,9 @@ void LineMixingData::SetDataFromVectorWithKnownType(const Vector& input)
     Vector2SecondOrderData(input);
   else if(mtype == LM_1STORDER) // The 1st order case
       Vector2FirstOrderData(input);
+  else if(mtype == LM_BYBAND) // The band class
+      throw std::runtime_error("You are trying to set line mixing data for a line despite having\n"
+      "declared the line absorption can only be understood by full band calculations..\n");
   else
     throw std::runtime_error("You are trying to store a line mixing type that is unknown to ARTS.\n");
 }
@@ -482,9 +500,10 @@ Index LineMixingData::ExpectedVectorLengthFromType()
     return 10;
   else if(mtype == LM_1STORDER) // The 2nd order case
       return 3;
+  else if(mtype == LM_BYBAND) // The band class
+      return 1;
   else
     throw std::runtime_error("You are trying to store a line mixing type that is unknown to ARTS.\n");
-  return 0;
 }
 
 
@@ -620,6 +639,8 @@ void LineMixingData::StorageTag2SetType(const String& input)
     mtype = LM_2NDORDER;
   else if(input == "L1") // The 2nd order case
       mtype = LM_1STORDER;
+  else if(input == "BB") // The band class
+      mtype = LM_BYBAND;
   else
     throw std::runtime_error("You are trying to read a line mixing type that is unknown to ARTS.\n");
 }
@@ -711,6 +732,11 @@ void LineMixingData::GetVectorFromData(Vector& output) const
         SecondOrderData2Vector(output);
     else if(mtype == LM_1STORDER) // The 1st order case
         FirstOrderData2Vector(output);
+    else if(mtype == LM_BYBAND) // The band class
+    {
+        output.resize(1);
+        output[0] = -1;
+    }
     else
         throw std::runtime_error("You are trying to store a line mixing type that is unknown to ARTS.\n");
 }
@@ -730,8 +756,10 @@ String LineMixingData::Type2StorageTag() const
     output = "NR";
   else if(mtype == LM_2NDORDER) // The 2nd order case
     output = "L2"; 
-  else if(mtype == LM_1STORDER) // The 2nd order case
+  else if(mtype == LM_1STORDER) // The 1st order case
       output = "L1"; 
+  else if(mtype == LM_BYBAND) // The band class
+      output = "BB";
   else
     throw std::runtime_error("You are trying to store a line mixing type that is unknown to ARTS.\n");
 

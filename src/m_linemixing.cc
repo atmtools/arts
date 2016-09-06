@@ -19,7 +19,12 @@
 #include "absorption.h"
 #include "file.h"
 #include "linemixingrecord.h"
-
+#include "complex.h"
+#include "lin_alg.h"
+#include "global_data.h"
+#include "Faddeeva.hh"
+#include "linescaling.h"
+#include "jacobian.h"
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void line_mixing_dataInit(// WS Output:
@@ -57,7 +62,7 @@ void line_mixing_dataMatch(// WS Output:
     if (abs_species.nelem() != line_mixing_data_lut.nelem())
         throw std::runtime_error( "*line_mixing_data_lut* doesn't match *abs_species*.\n"
                             "Make sure to call line_mixing_dataInit first." );*/
-    //std::cout<<"help\n";
+    
     LineMixingData line_mixing_data_holder;
     line_mixing_data_holder.StorageTag2SetType(line_mixing_tag);
 
@@ -202,248 +207,559 @@ void ArrayOfLineMixingRecordReadAscii(// Generic Output:
     out2 << "  Read " << line_mixing_records.nelem() << " lines from " << filename << ".\n";
 }
 
-void abs_lines_per_bandInit(ArrayOfArrayOfLineRecord& abs_lines_per_band,
-                            ArrayOfArrayOfMatrix&     relmat_per_band,
-                            const Verbosity&)
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_lines_per_bandFromband_identifiers( ArrayOfArrayOfLineRecord&       abs_lines_per_band,
+                                             ArrayOfArrayOfSpeciesTag&       abs_species_per_band,
+                                             ArrayOfArrayOfLineRecord&       abs_lines_per_species,
+                                             const ArrayOfArrayOfSpeciesTag& abs_species,
+                                             const ArrayOfQuantumIdentifier& band_identifiers,
+                                             const Verbosity&                verbosity)
 {
-    // These are now initialized and zero-sized.  All additional functions operating on these variables should work in unison
-    abs_lines_per_band.resize(0);
-    relmat_per_band.resize(0);
+  CREATE_OUT3;
+  out3<<"Sets line mixing tag for provided bands.\n" <<
+  "\tNB. Requires \"*-LM-*\" tag in abs_species.";
+  
+  abs_lines_per_band.resize(band_identifiers.nelem());
+  abs_species_per_band.resize(band_identifiers.nelem());
+  
+  // This is a preallocated finding of a band
+  LineMixingData lmd_byband;
+  lmd_byband.SetByBand(); 
+  
+  #pragma omp parallel for        \
+  if (!arts_omp_in_parallel())    
+    for (Index qi = 0; qi < band_identifiers.nelem(); qi++)
+    {
+      const QuantumIdentifier& band_id = band_identifiers[qi];
+      
+      // Two variables that are used inside the loop
+      ArrayOfIndex matches;
+      ArrayOfQuantumMatchInfo match_info;
+      
+      for (Index s = 0; s < abs_lines_per_species.nelem(); s++)
+      {
+        
+        // Skip this species if qi is not part of the species represented by this abs_lines
+        if(abs_species[s][0].Species() != band_id.Species() || abs_species[s][0].LineMixing() == SpeciesTag::LINE_MIXING_OFF)
+          continue;
+        
+        ArrayOfLineRecord& species_lines = abs_lines_per_species[s];
+        
+        // Copy this
+        abs_species_per_band[qi] = abs_species[s];
+        
+        // Run internal mathcing routine
+        match_lines_by_quantum_identifier(matches, match_info, band_id, species_lines);
+        
+        // Use info about mathced lines to tag the relevant parameter
+        for (Index i = 0; i < matches.nelem(); i++)
+        {
+          QuantumMatchInfo& qm = match_info[i];
+          
+          LineRecord& lr = species_lines[matches[i]];
+          
+          // If any of the levels match partially or fully set the right quantum number
+          if(qm.Upper()==QMI_NONE||qm.Lower()==QMI_NONE)
+          {
+            continue;
+          }
+          else // we will accept this match if both levels are at least partially matched
+          {
+            abs_lines_per_band[qi].push_back(lr);
+            lr.SetLineMixingData(lmd_byband);
+          }
+        }
+      }
+    }
 }
 
-void abs_lines_per_bandLineMixingAppendCO2( ArrayOfArrayOfLineRecord& abs_lines_per_band,
-                                            ArrayOfArrayOfMatrix&     relmat_per_band,
-                                            const String&             bandinfo_file,
-                                            const Numeric&            rel_str,
-                                            const Numeric&            fmin,
-                                            const Numeric&            fmax,
-                                            const Verbosity&          verbosity)
+
+void calculate_xsec_from_W( VectorView  xsec,
+                            ConstMatrixView Wmat,
+                            ConstVectorView f_grid,
+                            ConstVectorView f0,
+                            ConstVectorView d0,
+                            ConstVectorView rhoT,
+                            const Numeric&  T,
+                            const Numeric&  P,
+                            const Numeric&  isotopologue_mass,
+                            const Index&    n//lines
+)
 {
+    // Physical constants
+    extern const Numeric BOLTZMAN_CONST;
+    extern const Numeric AVOGADROS_NUMB;
+    extern const Numeric SPEED_OF_LIGHT;;
     
-    extern const Numeric HZ2CM;
+    // internal constant
+    const Index nf  = f_grid.nelem();
+    const Index nf0 = f0.nelem();
+    //const Numeric f_mean = mean(f0);
+    const Numeric doppler_const = sqrt( 2.0 * BOLTZMAN_CONST * AVOGADROS_NUMB * T / isotopologue_mass ) / SPEED_OF_LIGHT;
     
-    CREATE_OUT2;
-    out2<< "Appending line mixing band following:\n\t"<<bandinfo_file<<"\n";
-    
-    // This will contain all the read file
-    std::ifstream band_stream;
-    
-    // Store relative pathing for all the other files
-    open_input_file(band_stream, bandinfo_file);
-    ArrayOfString bandpath;
-    bandinfo_file.split(bandpath, "/");
-    String bandfolder="";
-    for(Index i=0;i<bandpath.nelem()-1;i++)
+    // Setuo for the matrix
+    ComplexMatrix W(n,n);
+    for(Index i=0;i<n;i++)
     {
-        bandfolder.append(bandpath[i]);
-        bandfolder.append("/");
+        for(Index j=0;j<n;j++)
+        {
+            if(j==i)
+                W(i,j)=Complex(0,-P*Wmat(i,j)-f0[i]);
+            else
+                W(i,j)=Complex(0,-P*Wmat(i,j));
+        }
     }
     
-    // This will contain the information of one line
-    String line;
+    // Setup so that W above is equivalent to D*diag(z_eigs)*invD, where diag
+    // is a diagonal matrix with values of eigs in the diagonal
+    ComplexVector z_eigs(nf0);
+    ComplexMatrix D(nf0,nf0),invD(nf0,nf0);
+    diagonalize(D,z_eigs,W);
+    inv(invD,D);
+    // Question:  If this fails and produce baloney, is this caught later on?  Switch to zgeevx_?
     
-    // Since fortran uses "D" for long floats and C uses "E" for all floats...
-    const String c ="E", f = "D";
+    // Equivalent line strength
+    ComplexVector equivS0(nf0,0);
     
-    // Setup test of relative strength
-    Numeric first_str=0;
-    bool    first_loop=true;
+    // Doppler broadening
+    Vector sigma(nf0);
     
-    while(true)
+    // Set starts and equivs
+    for(Index if1=0;if1<nf0;if1++)
     {
-        // Get line and check if we are done with the file yet
-        std::getline(band_stream, line);
-        if(line.nelem()==0)
+        sigma[if1]= f0[if1] * doppler_const ;
+        z_eigs[if1]/=sigma[if1];
+        
+        for(Index if2=0;if2<nf0;if2++)
+        {
+            equivS0[if2] += rhoT[if1]*d0[if1]*d0[if2]*D(if2,if1)*invD(if1,if2);
+        }
+    }
+    
+    // Set xsec (need to normalize?)
+    for(Index if0=0;if0<nf0;if0++)
+        for(Index iv=0;iv<nf;iv++)
+            xsec+=((equivS0[if0]/sigma[if0])*Faddeeva::w(z_eigs[if0]+f_grid[iv]/sigma[if0])).real();
+}
+
+#ifdef ENABLE_RELMAT
+extern "C"
+{
+    // This is the interface between the Fortran code that calculates W and ARTS
+    extern void arts_relmat_interface(
+        long   *nlines,
+        double *fmin,
+        double *fmax,
+        long   *M,
+        long   *I,
+        double *v,
+        double *S,
+        double *gamma_air,
+        double *E_double_prime,
+        double *n_air,
+        long   *upper,
+        long   *lower,
+        long   *g_prime,
+        long   *g_double_prime,
+        double *temperature,
+        double *pressure,
+        double *partition_function_t,
+        double *partition_function_t0,
+        double *isotopologue_mass,
+        long   *number_of_perturbers,
+        long   *molecule_code_perturber,
+        long   *iso_code_perturber,
+        double *vmr,
+        //outputs
+        double *W,
+        double *d0,
+        double *rhoT
+    );
+}
+
+
+void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
+                                            ArrayOfMatrix&                   abs_xsec_per_species,
+                                            ArrayOfArrayOfMatrix&            /*dabs_xsec_per_species_dx*/,
+                                            // WS Input:                     
+                                            const ArrayOfArrayOfLineRecord&  abs_lines_per_band,
+                                            const ArrayOfArrayOfSpeciesTag&  abs_species_per_band,
+                                            const ArrayOfArrayOfSpeciesTag&  abs_species,
+                                            const SpeciesAuxData&            partition_functions,
+                                            const ArrayOfRetrievalQuantity&  jacobian_quantities,
+                                            const Vector&                    f_grid,
+                                            const Vector&                    abs_p,
+                                            const Vector&                    abs_t,
+                                            const Verbosity&)
+{
+    /*throw std::runtime_error("\nabs_xsec_per_speciesAddLineMixedBands of src/m_linemixing.cc\n"
+    "is still a work in progress and does not work as of yet.\n"
+    "Please remove this runtime_error to proceed with debugging the reasons.\n");*/
+    
+    using global_data::species_data;
+    
+    // Physical constants
+    extern const Numeric PLANCK_CONST;
+    extern const Numeric SPEED_OF_LIGHT;
+    extern const Numeric ATM2PA;
+    
+    // HITRAN to ARTS constants
+    const Numeric w2Hz               = SPEED_OF_LIGHT *1E2;
+    const Numeric lower_energy_const = PLANCK_CONST * w2Hz;
+    const Numeric I0_hi2arts         = 1E-2 * SPEED_OF_LIGHT;
+    const Numeric gamma_hi2arts      = w2Hz / ATM2PA;
+    
+    // size of atmosphere and input/output
+    const Index nps         = abs_p.nelem();
+    const Index nts         = abs_t.nelem();
+    const Index nf          = f_grid.nelem();
+    const Index nspecies    = abs_species.nelem();
+    
+    // These should be identical
+    if(nps!=nts)
+        throw std::runtime_error("Different lengths of atmospheric input than expected.");
+    
+    if(nspecies==0 || nspecies!=abs_xsec_per_species.nelem())
+        throw std::runtime_error("Absorption species and abs_xsec_per_species are not from same source.");
+    else
+        for(Index i=0; i<nspecies; i++)
+            if(abs_xsec_per_species[i].ncols()!=nts)
+                throw std::runtime_error("Unexpected size of xsec matrix not matching abs_t and abs_p length.");
+            else if(abs_xsec_per_species[i].nrows()!=nf)
+                throw std::runtime_error("Unexpected size of xsec matrix not matching f_grid length.");
+    
+    // FIXME: the partial derivations are necessary...
+    if( 0!=jacobian_quantities.nelem() )
+      throw std::runtime_error("Presently no support for partial derivation.");
+    
+    const Index nbands = abs_lines_per_band.nelem();
+    
+    if(nbands!=abs_species_per_band.nelem())
+        throw std::runtime_error("Error in definition of the bands.  Mismatching length of *_per_band arrays.");
+    
+    // Make constant input not constant and convert to wavenumber
+    Vector v(nf); 
+    v=f_grid; 
+    v/=w2Hz;
+    
+    // Setting up thermal bath:  only in simplistic air for now
+    // This means: 21% O2 and 79% N2
+    //
+    long    number_of_perturbers = 2;
+    long   *molecule_code_perturber = new long[number_of_perturbers];
+    long   *iso_code_perturber = new long[number_of_perturbers];
+    Vector  vmr(number_of_perturbers);
+    bool    done_o2=false, done_n2=false;
+    for(Index ispecies=0;ispecies<species_data.nelem();ispecies++)
+    {
+        const SpeciesRecord& sr = species_data[ispecies];
+        const IsotopologueRecord& ir = sr.Isotopologue()[0];
+        const String& name = sr.Name();
+        
+        if(name=="O2"&&!done_o2)
+        {
+            vmr[0] = 0.21;
+            const Index hitran_tag = ir.HitranTag();
+            iso_code_perturber[0] = (long) (hitran_tag%10);
+            molecule_code_perturber[0] = (((long)hitran_tag)-iso_code_perturber[0])/10;
+            done_o2=true;
+        }
+        else if(name=="N2"&&!done_n2)
+        {
+            vmr[1] = 0.79;
+            const Index hitran_tag = ir.HitranTag();
+            iso_code_perturber[1] = (long) (hitran_tag%10);
+            molecule_code_perturber[1] = (((long)hitran_tag)-iso_code_perturber[1])/10;
+            done_n2=true;
+        }
+        
+        if(done_n2&&done_o2)
             break;
-        else if(line.nelem()!=72)
-            throw std::runtime_error("The band info is bad. Check the file.\n");
+    }
+    
+    // FIXME:  Can this loop be parallelized?
+    for(Index iband=0;iband<nbands;iband++)
+    {
+        // band pointer
+        const ArrayOfLineRecord& this_band = abs_lines_per_band[iband];
         
-        // The filename should be connected to the first X characters
-        String filename;
-        filename = line.erase(0,13);
-        filename = "S" + filename + ".dat";
+        long nlines = (long) this_band.nelem();
         
-        // The maximum cross-section is in the next X numbers [HITRAN unit line strength?]
-        Numeric max_xsec;
-        extract(max_xsec, line, 12);
+        // Worth doing anything?
+        if(nlines==0) { continue; }
         
-        // Test relative xsec strength --- see documentation in the end
-        if(first_loop)
+        // Send in frequency range
+        Numeric fmin, fmax;
+        
+        // To store the xsec matrix we need to know where
+        Index this_species=-1;
+        
+        // Allocation of band specific inputs (types: to be used as fortran input)
+        long   *M              = new long[nlines];
+        long   *I              = new long[nlines];
+        long   *upper          = new long[4*nlines];
+        long   *lower          = new long[4*nlines];
+        long   *g_prime        = new long[nlines];
+        long   *g_double_prime = new long[nlines];
+        Vector v0(nlines);
+        Vector S(nlines);
+        Vector gamma_air(nlines);
+        Vector E_double_prime(nlines);
+        Vector n_air(nlines);
+        Numeric mass, abundance;
+        
+        for( long iline=0; iline<nlines; iline++ )
         {
-            first_loop=false;
-            first_str=max_xsec;
-        }
-        else
-        {
-            if(max_xsec/first_str<rel_str)
-                continue;
-        }
-        
-        // The minimum frequency is in the next X numbers [Frequency]
-        Numeric min_freq;
-        extract(min_freq, line, 13);
-        min_freq /= HZ2CM;
-        
-        // The maximum frequency is in the next X numbers [Frequency]
-        Numeric max_freq;
-        extract(max_freq, line, 13);
-        max_freq /= HZ2CM;
-        
-        // Test the frequency range before continuing
-        if(min_freq>fmax||max_freq<fmin)
-            continue;
-        
-        // The wfit file
-        String wfilename="WTfitXY.dat"; 
-        const Index  ch1_int = (Index)filename[3]-48, ch2_int = (Index)filename[8]-48;
-        
-        // If XY is not 1 or 0 apart then skip
-        if( abs( ch1_int - ch2_int ) > 1 )
-        {
-            continue;
-        }
-        else if(ch1_int<=ch2_int&&ch1_int<=5)
-        {
-            wfilename[5] = filename[3];
-            wfilename[6] = filename[8];
-        }
-        else
-        {
-            continue;
-        }
-        
-        // The number of lines per band (-1 is no lines of type)
-        Index PJ_max, QJ_max, RJ_max;
-        extract(PJ_max, line, 12);
-        extract(QJ_max, line, 4);
-        extract(RJ_max, line, 4);
-        
-        // The file paths for hitran-like and for relmat
-        String path_hitran = bandfolder, path_relmat = bandfolder;
-        path_hitran.append(filename);
-        path_relmat.append(wfilename);
-        
-        // HITRAN reading for all lines in the file
-        ArrayOfLineRecord this_band;
-        std::ifstream hitran_stream;
-        open_input_file(hitran_stream, path_hitran);
-        while(! hitran_stream.eof())
-        {
-            LineRecord          one_line;
-            if(one_line.ReadFromHitranModifiedStream(hitran_stream, verbosity)) // NOTE: still add extra line information?
-                break;
-            else
-                one_line.ARTSCAT5FromARTSCAT3();
-            this_band.push_back(one_line);
-        }
-        hitran_stream.close();
-        
-        // Create and set relmats.
-        const Index nlines = this_band.nelem();
-        ArrayOfMatrix relmats(4);
-        for(Index i=0;i<4;i++)
-        {
-                relmats[i].resize(nlines,nlines);
-                relmats[i] = 0.0;
-        }
-        
-        // Find the interesting quantum numbers in simple manner
-        ArrayOfIndex JUPPER_list(nlines),JLOWER_list(nlines);
-        for(Index i=0;i<nlines;i++)
-        {
-            LineRecord& lr = this_band[i];
-            JUPPER_list[i] = lr.Upper_J().toIndex();
-            JLOWER_list[i] = lr.Lower_J().toIndex();
-        }
-        
-        // Relmat routine --- ignore data that is none-existent (strange folder structures)
-        std::ifstream relmat_stream;
-        try
-        {
-            open_input_file(relmat_stream, path_relmat);
-        }
-        catch (const runtime_error& error)
-        {
-            continue;
-        }
-        
-        while(true)
-        {
+            // Line data
+            const LineRecord& this_line = this_band[iline];
+            const IsotopologueRecord& this_iso = this_line.IsotopologueData();
             
-            // old line is used so use line anew
-            String orig_line, this_line="";
-            std::getline(relmat_stream, orig_line);
-            if(relmat_stream.eof())
-                break;
-            
-            // c and fortran long float conversion
-            ArrayOfString tmp;
-            orig_line.split(tmp,f);
-            for(Index i=0;i<tmp.nelem()-1;i++)
+            // For first line do something special
+            if( iline==0 )
             {
-                this_line.append(tmp[i]);
-                this_line.append(c);
-            }
-            this_line.append(tmp[tmp.nelem()-1]);
-            
-            
-            // Format of relmat data
-            Numeric W0, W0_T, some_value, rel_err;
-            Index   Jupper,Jlower,Jupper_p,Jlower_p;
-            std::istringstream icecream(this_line);
-            icecream >> W0 >> W0_T >> some_value >> rel_err >> Jupper >> Jlower >> Jupper_p >> Jlower_p;
-            
-            Numeric scale;
-            if(Jupper&&Jupper_p)
-                scale = ((Numeric)(Jupper*(Jupper+1))/((Numeric)(Jupper_p*(Jupper_p+1))));
-            else if( Jupper )
-                scale = (Numeric)(Jupper*(Jupper+1));
-            else if (Jupper_p)
-                scale = 1.0;
-            else 
-                scale = 0.0; // no scale?
-            
-            // Position of relmat data in remats
-            for(Index i=0;i<nlines;i++)
-            {
-                // Add numerics for diagonal here
-                if(Jupper==JUPPER_list[i])
+                // Isotopologue values
+                mass  = this_iso.Mass();
+                abundance = this_iso.Abundance();
+                String iso_name = this_iso.Name();
+                int isona;
+                //isona << iso_name;
+                extract(isona,iso_name,iso_name.nelem());
+                
+                const ArrayOfSpeciesTag& band_tags=abs_species_per_band[iband];
+                
+                // Finds the first species in abs_species_per_band that matches abs_species
+                bool this_one=false;
+                for(Index ispecies=0; ispecies<nspecies; ispecies++)
                 {
-                    if(Jlower==JLOWER_list[i])
+                    const ArrayOfSpeciesTag& species_tags=abs_species[ispecies];
+                    const Index nbandtags = band_tags.nelem();
+                    const Index nspeciestags = species_tags.nelem();
+                    
+                    // Test if there is
+                    if(nbandtags!=nspeciestags) { break; }
+                    for(Index itags=0; itags<nspeciestags; itags++)
                     {
-                        for(Index j=0;j<nlines;j++)
+                        if(band_tags[itags]==species_tags[itags])
                         {
-                            if(j==i)
-                                continue; // This case is artificial and handled elsewhere
-                            
-                            if(Jupper_p==JUPPER_list[j])
-                            {
-                                if(Jlower_p==JLOWER_list[j])
-                                {
-                                    relmats[0](i,j)=W0;
-                                    relmats[0](j,i)=W0*scale; //if 
-                                    
-                                    relmats[1](i,j)=W0_T;
-                                    relmats[1](j,i)=W0_T; // scale? 1/W0_T?
-                                    
-                                    relmats[2](i,j)=some_value;
-                                    relmats[2](j,i)=some_value; // scale?
-                                    
-                                    relmats[3](i,j)=rel_err;
-                                    relmats[3](j,i)=rel_err; // scale?
-                                }
-                            }
+                            this_one = true;
+                            break;
                         }
                     }
+                    
+                    if(this_one)
+                    {
+                        this_species = ispecies;
+                        break;
+                    }
+                    
+                }
+                
+                if(!this_one)
+                    throw std::runtime_error("abs_species and abs_species_per_band disagrees"
+                    " on absorption species");
+                
+            }
+            else 
+            {
+                if( mass!=this_iso.Mass() )
+                {
+                    throw std::runtime_error("There are lines of different Isotopologues"
+                    " in abs_lines_per_band,");
                 }
             }
             
+            // Hitran tags
+            long hitran_tag       = (long) this_iso.HitranTag();
+            
+            // Line information converted to relmat format --- i.e. to HITRAN format
+            I[iline]              = hitran_tag%10;
+            M[iline]              = (hitran_tag-I[iline])/10;
+            v0[iline]             = this_line.F()/w2Hz*abundance; // WARNING:  Necessity of abundance means vmr should also be scaled?
+            S[iline]              = this_line.I0()/I0_hi2arts;
+            gamma_air[iline]      = this_line.Agam()/gamma_hi2arts;
+            n_air[iline]          = this_line.Nair();
+            E_double_prime[iline] = this_line.Elow()/lower_energy_const;
+            g_prime[iline]        = (long) this_line.G_upper(); // NB:  Numeric to long... why?
+            g_double_prime[iline] = (long) this_line.G_lower(); // NB:  Numeric to long... why?
+            
+            // Quantum numbers converted to relmat format, again Numeric/Rational to long... why?
+            Rational a;
+            
+            // l2 is for molecules like CO2
+            a = this_line.QuantumNumbers().Lower()[QN_l2];
+            a.Simplify();
+            if(a.isUndefined())
+                lower[0+4*iline] = -1;
+            else  if(a.Denom()==1)
+                lower[0+4*iline] = (long) a.toIndex();
+            else 
+                throw std::runtime_error("Half quantum numbers not supported in l2.");
+            a = this_line.QuantumNumbers().Upper()[QN_l2];
+            a.Simplify();
+            if(a.isUndefined())
+                upper[0+4*iline] = -1;
+            else  if(a.Denom()==1)
+                upper[0+4*iline] = (long) a.toIndex();
+            else 
+                throw std::runtime_error("Half quantum numbers not supported in l2.");
+            
+            // J is universally important for linear molecules
+            a = this_line.QuantumNumbers().Lower()[QN_J];
+            a.Simplify();
+            if(a.isUndefined())
+                lower[1+4*iline] = -1;
+            else  if(a.Denom()==1)
+                lower[1+4*iline] = (long) a.toIndex();
+            else 
+                throw std::runtime_error("Half quantum numbers not supported in J.");
+            a = this_line.QuantumNumbers().Upper()[QN_J];
+            a.Simplify();
+            if(a.isUndefined())
+                upper[1+4*iline] = -1;
+            else  if(a.Denom()==1)
+                upper[1+4*iline] = (long) a.toIndex();
+            else 
+                throw std::runtime_error("Half quantum numbers not supported in J.");
+            
+            // N is important for molecules with magnetic dipoles
+            a = this_line.QuantumNumbers().Lower()[QN_N];
+            a.Simplify();
+            if(a.isUndefined())
+                lower[2+4*iline] = -1;
+            else  if(a.Denom()==1)
+                lower[2+4*iline] = (long) a.toIndex();
+            else 
+                throw std::runtime_error("Half quantum numbers not supported in N.");
+            a = this_line.QuantumNumbers().Upper()[QN_N];
+            a.Simplify();
+            if(a.isUndefined())
+                upper[2+4*iline] = -1;
+            else  if(a.Denom()==1)
+                upper[2+4*iline] = (long) a.toIndex();
+            else 
+                throw std::runtime_error("Half quantum numbers not supported in N.");
+            
+            // S is important for molecules with magnetic dipoles
+            a = this_line.QuantumNumbers().Lower()[QN_S];
+            a.Simplify();
+            if(a.isUndefined())
+                lower[3+4*iline] = -1;
+            else  if(a.Denom()==1)
+                lower[3+4*iline] = (long) a.toIndex();
+            else 
+                throw std::runtime_error("Half quantum numbers not supported in S.");
+            a = this_line.QuantumNumbers().Upper()[QN_S];
+            a.Simplify();
+            if(a.isUndefined())
+                upper[3+4*iline] = -1;
+            else  if(a.Denom()==1)
+                upper[3+4*iline] = (long) a.toIndex();
+            else 
+                throw std::runtime_error("Half quantum numbers not supported in S.");
+            
+            // Set fmax and fmin.  Why do I need this again?
+            if(iline==0)
+            {
+                fmin=v0[0];
+                fmax=v0[0];
+            }
+            else 
+            {
+                if(fmin>v0[iline])
+                    fmin=v0[iline];
+                if(fmax<v0[iline])
+                    fmax=v0[iline];
+            }
+            
         }
-        relmat_stream.close();
         
-        // End of one line
-        abs_lines_per_band.push_back(this_band);
-        relmat_per_band.push_back(relmats);
+        // FIXME:  Or can this loop be parallelized?
+        for(Index ip=0;ip<nps;ip++)
+        {
+            // Information on the lines will be here after relmat is done
+            Matrix W(nlines,nlines);
+            Vector d0(nlines);
+            Vector rhoT(nlines);
+            
+            // Find the partition function
+            Numeric QT0;
+            Numeric QT;
+            
+            // Get partition function information
+            partition_function( QT0,
+                                QT,
+                                abs_lines_per_band[iband][0].Ti0(),
+                                abs_t[ip],
+                                partition_functions.getParamType(abs_lines_per_band[iband][0].Species(), abs_lines_per_band[iband][0].Isotopologue()),
+                                partition_functions.getParam(abs_lines_per_band[iband][0].Species(), abs_lines_per_band[iband][0].Isotopologue()),
+                                false);
+            
+            // Cannot be constants for Fortran's sake
+            Numeric t;
+            t = abs_t[ip];
+            Numeric p;
+            p = abs_p[ip];
+            
+            std::cout<<"Starting the arts_relmat_interface!\n";
+            
+            // Calling Teresa's code
+            arts_relmat_interface(
+                &nlines, &fmin, &fmax,
+                M, I, v0.get_c_array(), S.get_c_array(),
+                gamma_air.get_c_array(),E_double_prime.get_c_array(),n_air.get_c_array(),
+                upper, lower,
+                g_prime, g_double_prime,
+                &t, &p, &QT, &QT0, &mass,
+                &number_of_perturbers, molecule_code_perturber, 
+                iso_code_perturber, vmr.get_c_array(),
+                W.get_c_array(), d0.get_c_array(), rhoT.get_c_array() );
+            
+            std::cout<<"Succesful run of arts_relmat_interface!\n";
+            
+            // Using Rodrigues method
+            calculate_xsec_from_W( abs_xsec_per_species[this_species](joker, ip),
+                                   W,
+                                   v0,
+                                   v,
+                                   d0,
+                                   rhoT,
+                                   t,
+                                   p,
+                                   mass,
+                                   nlines);
+            
+        }
+        
+        delete[] M;
+        delete[] I;
+        delete[] g_prime;
+        delete[] g_double_prime;
+        delete[] upper;
+        delete[] lower;
     }
-    band_stream.close();
+    
+    delete[] iso_code_perturber;
+    delete[] molecule_code_perturber;
+    
+}  
+
+#else
+void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
+                                            ArrayOfMatrix&                   abs_xsec_per_species,
+                                            ArrayOfArrayOfMatrix&            /*dabs_xsec_per_species_dx*/,
+                                            // WS Input:                     
+                                            const ArrayOfArrayOfLineRecord&  abs_lines_per_band,
+                                            const ArrayOfArrayOfSpeciesTag&  abs_species_per_band,
+                                            const ArrayOfArrayOfSpeciesTag&  abs_species,
+                                            const SpeciesAuxData&            partition_functions,
+                                            const ArrayOfRetrievalQuantity&  jacobian_quantities,
+                                            const Vector&                    f_grid,
+                                            const Vector&                    abs_p,
+                                            const Vector&                    abs_t,
+                                            const Verbosity&)
+{
+    throw std::runtime_error("This version of ARTS was compiled without external line mixing support.");
 }
+
+#endif //ENABLE_RELMAT

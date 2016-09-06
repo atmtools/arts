@@ -22,6 +22,7 @@
 
 #include "auto_md.h"
 #include "absorption.h"
+#include "sorting.h"
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_linesShiftFrequency(ArrayOfLineRecord& abs_lines, const Numeric& freqeuncy_shift, const Verbosity&)
@@ -678,64 +679,6 @@ void nlteSetByQuantumIdentifiers(Index& nlte_do,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void line_mixingTurnOffLinesInMatchedBands( ArrayOfArrayOfLineRecord&       abs_lines_per_species,
-                                            const ArrayOfArrayOfSpeciesTag& abs_species,
-                                            const ArrayOfQuantumIdentifier& band_identifiers,
-                                            const Verbosity&                verbosity)
-{
-    CREATE_OUT3;
-    out3<<"Sets line mixing tag for provided bands.\n" <<
-          "\tNB. Requires \"*-LM-*\" tag in abs_species.";
-    
-    // This is a preallocated finding of a band
-    LineMixingData lmd_byband;
-    lmd_byband.SetByBand(); 
-    
-    #pragma omp parallel for        \
-    if (!arts_omp_in_parallel())    
-    for (Index qi = 0; qi < band_identifiers.nelem(); qi++)
-    {
-        const QuantumIdentifier& band_id = band_identifiers[qi];
-        
-        // Two variables that are used inside the loop
-        ArrayOfIndex matches;
-        ArrayOfQuantumMatchInfo match_info;
-        
-        for (Index s = 0; s < abs_lines_per_species.nelem(); s++)
-        {
-            
-            // Skip this species if qi is not part of the species represented by this abs_lines
-            if(abs_species[s][0].Species() != band_id.Species() || abs_species[s][0].LineMixing() == SpeciesTag::LINE_MIXING_OFF)
-                continue;
-            
-            ArrayOfLineRecord& species_lines = abs_lines_per_species[s];
-            
-            // Run internal mathcing routine
-            match_lines_by_quantum_identifier(matches, match_info, band_id, species_lines);
-            
-            // Use info about mathced lines to tag the relevant parameter
-            for (Index i = 0; i < matches.nelem(); i++)
-            {
-                QuantumMatchInfo& qm = match_info[i];
-                
-                LineRecord& lr = species_lines[matches[i]];
-                
-                // If any of the levels match partially or fully set the right quantum number
-                if(qm.Upper()==QMI_NONE||qm.Lower()==QMI_NONE)
-                {
-                    continue;
-                }
-                else // we will accept this match if both levels are at least partially matched
-                {
-                    lr.SetLineMixingData(lmd_byband);
-                }
-            }
-        }
-    }
-}
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
 void f_gridFromabs_linesSet(Vector& f_grid,
                             const ArrayOfLineRecord& abs_lines,
                             const Numeric&           half_width,
@@ -798,7 +741,7 @@ void f_gridFromabs_lines_per_speciesSetFromSpeciesTag(Vector& f_grid,
     CREATE_OUT2;
     
     if(species_tag == "")
-        throw std::runtime_error("You need at least tag in this code.\n");
+        throw std::runtime_error("You need at least one tag in this code.\n");
     
     ArrayOfSpeciesTag st;
     array_species_tag_from_string(st,species_tag);
