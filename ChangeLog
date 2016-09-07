@@ -1,3 +1,9 @@
+2016-09-07  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-530
+
+	* src/main.cc: Display relmat info with '-v'.
+
 2016-09-01 Jana Mendrok  <jana.mendrok@chalmers.se>
 
 	* arts-2-3-529

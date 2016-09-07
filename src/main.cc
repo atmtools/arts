@@ -814,6 +814,12 @@ int main (int argc, char **argv)
 #else
         << "disabled" << endl
 #endif
+        << "   Relmat support:       "
+#ifdef ENABLE_RELMAT
+        << "enabled (under development)" << endl
+#else
+        << "disabled" << endl
+#endif
         << "   Tmatrix support:      "
 #ifdef ENABLE_TMATRIX
 #ifdef ENABLE_TMATRIX_QUAD
