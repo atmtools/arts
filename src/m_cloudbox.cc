@@ -68,6 +68,8 @@ extern const Index GFIELD3_P_GRID;
 extern const Index GFIELD3_LAT_GRID;
 extern const Index GFIELD3_LON_GRID;
 extern const Numeric PI;
+extern const Numeric DEG2RAD;
+extern const Numeric LAT_LON_MIN;
 
 
 /*===========================================================================
@@ -359,6 +361,96 @@ void cloudboxSetAutomatically (// WS Output:
   }
   */
 }
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void cloudboxSetFullAtm(//WS Output
+                       Index& cloudbox_on,
+                       ArrayOfIndex& cloudbox_limits,
+                       // WS Input
+                       const Index& atmosphere_dim,
+                       const Vector& p_grid,
+                       const Vector& lat_grid,
+                       const Vector& lon_grid,
+                       const Verbosity&)
+{
+  cloudbox_on = 1;
+  cloudbox_limits.resize(2*atmosphere_dim); 
+
+  cloudbox_limits[0] = 0;
+  cloudbox_limits[1] = p_grid.nelem()-1;
+
+  if( atmosphere_dim > 1 )
+    {
+      // find minimum lat_grid point i with lat_grid[i]-lat_grid[0]>=LAT_LON_MIN
+      Index last_lat = lat_grid.nelem()-1;
+      Index i=1;
+      while( (i<last_lat-1) && (lat_grid[i]-lat_grid[0] < LAT_LON_MIN) )
+        i++;
+      if( i==last_lat-1 )
+        {
+          ostringstream os;
+          os << "Can not define lower latitude edge of cloudbox:\n"
+             << "Extend of atmosphere too small. Distance to minimum latitude\n"
+             << "has to be at least " << LAT_LON_MIN << "deg, but only "
+             << lat_grid[i-1]-lat_grid[0] << " available here.";
+          throw runtime_error( os.str() );
+        }
+      cloudbox_limits[2] = i;
+      // find maximum lat_grid point j with lat_grid[-1]-lat_grid[j]>=LAT_LON_MIN
+      // and j>i
+      Index j=last_lat-1;
+      while( (j>i) && (lat_grid[last_lat]-lat_grid[j] < LAT_LON_MIN) )
+        i--;
+      if( j==i )
+        {
+          ostringstream os;
+          os << "Can not define upper latitude edge of cloudbox:\n"
+             << "Extend of atmosphere too small. Distance to maximum latitude\n"
+             << "has to be at least " << LAT_LON_MIN << "deg, but only "
+             << lat_grid[last_lat]-lat_grid[j+1] << " available here.";
+          throw runtime_error( os.str() );
+        }
+      cloudbox_limits[3] = i;
+    }
+
+  if( atmosphere_dim > 2 )
+    {
+      const Numeric latmax = max( abs(lat_grid[cloudbox_limits[2]]),
+                                  abs(lat_grid[cloudbox_limits[3]]) );
+      const Numeric lfac = 1 / cos( DEG2RAD*latmax );
+      // find minimum lon_grid point i with lon_grid[i]-lon_grid[0]>=LAT_LON_MIN/lfac
+      Index last_lon = lon_grid.nelem()-1;
+      Index i=1;
+      while( (i<last_lon-1) && (lon_grid[i]-lon_grid[0] < LAT_LON_MIN/lfac) )
+        i++;
+      if( i==last_lon-1 )
+        {
+          ostringstream os;
+          os << "Can not define lower longitude edge of cloudbox:\n"
+             << "Extend of atmosphere too small. Distance to minimum longitude\n"
+             << "has to be at least " << LAT_LON_MIN/lfac << "deg, but only "
+             << lon_grid[i-1]-lon_grid[0] << " available here.";
+          throw runtime_error( os.str() );
+        }
+      cloudbox_limits[4] = i;
+      // find maximum lon_grid point j with lon_grid[-1]-lon_grid[j]>=LAT_LON_MIN/lfac
+      // and j>i
+      Index j=last_lon-1;
+      while( (j>i) && (lon_grid[last_lon]-lon_grid[j] < LAT_LON_MIN/lfac) )
+        i--;
+      if( j==i )
+        {
+          ostringstream os;
+          os << "Can not define upper longitude edge of cloudbox:\n"
+             << "Extend of atmosphere too small. Distance to maximum longitude\n"
+             << "has to be at least " << LAT_LON_MIN/lfac << "deg, but only "
+             << lon_grid[last_lon]-lon_grid[j+1] << " available here.";
+          throw runtime_error( os.str() );
+        }
+      cloudbox_limits[5] = i;
+    }
+}
+  
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void cloudboxSetManually(// WS Output:
@@ -1540,7 +1632,7 @@ void pnd_fieldExpand1D(Tensor4&        pnd_field,
                 "No use in calling this method with cloudbox off." ); }
 
   if( nzero < 1 )
-    { throw runtime_error( "The argument *nzero must be > 0." ); }
+    { throw runtime_error( "The argument *nzero* must be > 0." ); }
 
   // Sizes
   const Index   npart = pnd_field.nbooks();

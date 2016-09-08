@@ -1,3 +1,21 @@
+2016-09-08 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-531
+
+	* src/m_disort.cc, m_cloudbox.cc, methods.cc (cloudboxSetFullAtm):
+	Moved the WSM definition (former cloudboxSetDisort) from m_disort to
+	m_cloudbox. Extended applicability to any atm_dim.
+
+	* src/constants.cc, m_checked.cc (cloudbox_checkedCalc):
+	Defined minimum distance between cloudbox and alt/lon edges as global
+	constant (to hae them consistent in cloudboxSetFullAtm and
+	cloudbox_checkedCalc. Adapted cloudbox_checkedCalc accordingly.
+
+	* src/m_rt4.cc (RT4Calc):
+	FIXME note on up/down_rad to doit_i_field assignment using
+	cloudbox_limits[0] (not an issues now, but needs revision when we allow
+	cloudbox_limits[0]!=0).
+
 2016-09-07  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-530

@@ -393,6 +393,15 @@ void RT4Calc( Workspace& ws,
       // FIXME: When using wavelength input in m, output should be in W/(m2 sr
       // m). However, check this. So, at first we use wavelength in um. Then
       // change and compare.
+      //    
+      // FIXME: if ever we allow the cloudbox to be not directly at the surface
+      // (at atm level #0, respectively), the assigning from up/down_rad to
+      // doit_i_field needs to checked. there seems some offsetting going on
+      // (test example: TestDOIT.arts. if kept like below, doit_i_field at
+      // top-of-cloudbox seems to actually be from somewhere within the
+      // cloud(box) indicated by downwelling being to high and downwelling
+      // exhibiting a non-zero polarisation signature (which it wouldn't with
+      // only scalar gas abs above).
       Numeric rad_l2f = wavelength/f_grid[f_index];
       for(Index j = 0; j<nummu; j++)
         for(Index k = 0; k<(cloudbox_limits[1]-cloudbox_limits[0]+1); k++)

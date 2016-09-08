@@ -3401,12 +3401,12 @@ void define_md_data_raw()
         (
          "Sets the cloudbox to cover the full atmosphere.\n"
          ), 
-        AUTHORS( "Claudia Emde" ),
+        AUTHORS( "Claudia Emde, Jana Mendrok" ),
         OUT( "cloudbox_on", "cloudbox_limits" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "p_grid" ),
+        IN( "atmosphere_dim", "p_grid", "lat_grid", "lon_grid" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),

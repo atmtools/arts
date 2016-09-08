@@ -356,6 +356,14 @@ extern const Index GFIELD4_LON_GRID = 3;
 extern const Index GFIELD4_AA_GRID = 3;
 
 
+/** Global constant, minimum distance of cloudbox to lat/lon_grid edges.
+
+    \author Patrick Eriksson, Jana Mendrok
+    \date   2016-09-08
+*/
+extern const Numeric LAT_LON_MIN = 20;
+
+
 /*===========================================================================
   === Definition of retrieval quantity tag strings 
   ===========================================================================*/

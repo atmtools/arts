@@ -41,6 +41,7 @@
 #include "matpackI.h"
 
 extern const Numeric DEG2RAD;
+extern const Numeric LAT_LON_MIN;
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -449,9 +450,6 @@ void cloudbox_checkedCalc(
    const Numeric&        sca_mat_threshold,
    const Verbosity&      verbosity )
 {
-  // Demanded space between cloudbox and lat and lon edges [degrees]
-  const Numeric llmin = 20;
-
   if( atmfields_checked != 1 )
     throw runtime_error( "The atmospheric fields must be flagged to have "
                          "passed a consistency check (atmfields_checked=1)." );
@@ -532,25 +530,25 @@ void cloudbox_checkedCalc(
                  << cloudbox_limits[2] << " - " << cloudbox_limits[3] << ".";
               throw runtime_error( os.str() );
             }
-          if( ( lat_grid[cloudbox_limits[2]] - lat_grid[0] < llmin )  &&
+          if( ( lat_grid[cloudbox_limits[2]] - lat_grid[0] < LAT_LON_MIN )  &&
               ( atmosphere_dim==2  || (atmosphere_dim==3 && lat_grid[0]>-90)) )
             {
               ostringstream os;
               os << "Too small distance between cloudbox and lower end of "
                  << "latitude grid.\n"
-                 << "This distance must be " << llmin << " degrees.\n"
+                 << "This distance must be " << LAT_LON_MIN << " degrees.\n"
                  << "Cloudbox ends at " << lat_grid[cloudbox_limits[2]]
                  << " and latitude grid starts at " << lat_grid[0] << ".";
               throw runtime_error( os.str() );
             }
-          if( ( lat_grid[nlat-1] - lat_grid[cloudbox_limits[3]] < llmin )  &&
+          if( ( lat_grid[nlat-1] - lat_grid[cloudbox_limits[3]] < LAT_LON_MIN )  &&
               ( atmosphere_dim==2  || 
                 (atmosphere_dim==3 && lat_grid[nlat-1]<90) ) )
             {
               ostringstream os;
               os << "Too small distance between cloudbox and upper end of "
                  << "latitude grid.\n"
-                 << "This distance must be " << llmin << " degrees.\n"
+                 << "This distance must be " << LAT_LON_MIN << " degrees.\n"
                  << "Cloudbox ends at " << lat_grid[cloudbox_limits[3]]
                  << " and latitude grid ends at " << lat_grid[nlat-1] << ".";
               throw runtime_error( os.str() );
@@ -577,20 +575,20 @@ void cloudbox_checkedCalc(
               const Numeric latmax = max( abs(lat_grid[cloudbox_limits[2]]),
                                           abs(lat_grid[cloudbox_limits[3]]) );
               const Numeric lfac = 1 / cos( DEG2RAD*latmax );
-              if( lon_grid[cloudbox_limits[4]]-lon_grid[0] < llmin/lfac )
+              if( lon_grid[cloudbox_limits[4]]-lon_grid[0] < LAT_LON_MIN/lfac )
                 {
                   ostringstream os;
                   os << "Too small distance between cloudbox and lower end of"
                      << "the longitude\ngrid. This distance must here be " 
-                     << llmin/lfac << " degrees.";
+                     << LAT_LON_MIN/lfac << " degrees.";
                   throw runtime_error( os.str() );
                 }
-              if( lon_grid[nlon-1]-lon_grid[cloudbox_limits[5]] < llmin/lfac )
+              if( lon_grid[nlon-1]-lon_grid[cloudbox_limits[5]] < LAT_LON_MIN/lfac )
                 {
                   ostringstream os;
                   os << "Too small distance between cloudbox and upper end of"
                      << "the longitude\ngrid. This distance must here be " 
-                     << llmin/lfac << " degrees.";
+                     << LAT_LON_MIN/lfac << " degrees.";
                   throw runtime_error( os.str() );
                 }
             }
