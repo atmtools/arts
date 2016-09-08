@@ -381,8 +381,9 @@ void cloudboxSetFullAtm(//WS Output
 
   if( atmosphere_dim > 1 )
     {
-      // find minimum lat_grid point i with lat_grid[i]-lat_grid[0]>=LAT_LON_MIN
       Index last_lat = lat_grid.nelem()-1;
+
+      // find minimum lat_grid point i with lat_grid[i]-lat_grid[0]>=LAT_LON_MIN
       Index i=1;
       while( (i<last_lat-1) && (lat_grid[i]-lat_grid[0] < LAT_LON_MIN) )
         i++;
@@ -396,11 +397,12 @@ void cloudboxSetFullAtm(//WS Output
           throw runtime_error( os.str() );
         }
       cloudbox_limits[2] = i;
+
       // find maximum lat_grid point j with lat_grid[-1]-lat_grid[j]>=LAT_LON_MIN
       // and j>i
       Index j=last_lat-1;
       while( (j>i) && (lat_grid[last_lat]-lat_grid[j] < LAT_LON_MIN) )
-        i--;
+        j--;
       if( j==i )
         {
           ostringstream os;
@@ -410,7 +412,7 @@ void cloudboxSetFullAtm(//WS Output
              << lat_grid[last_lat]-lat_grid[j+1] << " available here.";
           throw runtime_error( os.str() );
         }
-      cloudbox_limits[3] = i;
+      cloudbox_limits[3] = j;
     }
 
   if( atmosphere_dim > 2 )
@@ -418,8 +420,9 @@ void cloudboxSetFullAtm(//WS Output
       const Numeric latmax = max( abs(lat_grid[cloudbox_limits[2]]),
                                   abs(lat_grid[cloudbox_limits[3]]) );
       const Numeric lfac = 1 / cos( DEG2RAD*latmax );
-      // find minimum lon_grid point i with lon_grid[i]-lon_grid[0]>=LAT_LON_MIN/lfac
       Index last_lon = lon_grid.nelem()-1;
+
+      // find minimum lon_grid point i with lon_grid[i]-lon_grid[0]>=LAT_LON_MIN/lfac
       Index i=1;
       while( (i<last_lon-1) && (lon_grid[i]-lon_grid[0] < LAT_LON_MIN/lfac) )
         i++;
@@ -433,11 +436,12 @@ void cloudboxSetFullAtm(//WS Output
           throw runtime_error( os.str() );
         }
       cloudbox_limits[4] = i;
+
       // find maximum lon_grid point j with lon_grid[-1]-lon_grid[j]>=LAT_LON_MIN/lfac
       // and j>i
       Index j=last_lon-1;
       while( (j>i) && (lon_grid[last_lon]-lon_grid[j] < LAT_LON_MIN/lfac) )
-        i--;
+        j--;
       if( j==i )
         {
           ostringstream os;
@@ -447,7 +451,7 @@ void cloudboxSetFullAtm(//WS Output
              << lon_grid[last_lon]-lon_grid[j+1] << " available here.";
           throw runtime_error( os.str() );
         }
-      cloudbox_limits[5] = i;
+      cloudbox_limits[5] = j;
     }
 }
   
