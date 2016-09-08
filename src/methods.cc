@@ -2970,13 +2970,15 @@ void define_md_data_raw()
         DESCRIPTION
         (
          "Sets the cloudbox to cover the full atmosphere.\n"
+         "\n"
+         "Can only handle *atmosphere_dim*=1 cases.\n"
          ), 
         AUTHORS( "Claudia Emde" ),
         OUT( "cloudbox_on", "cloudbox_limits" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "p_grid" ),
+        IN( "atmosphere_dim", "p_grid" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),

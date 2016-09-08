@@ -340,6 +340,28 @@ void cloudboxSetAutomatically (// WS Output:
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void cloudboxSetFullAtm(//WS Output
+                       Index& cloudbox_on,
+                       ArrayOfIndex& cloudbox_limits,
+                       // WS Input
+                       const Index& atmosphere_dim,
+                       const Vector& p_grid,
+                       const Verbosity&)
+{
+  if( atmosphere_dim > 1 )
+    {
+      ostringstream os;
+      os << "WSM *cloudboxSetFullAtm* only available for atmosphere_dim=1.";
+      throw runtime_error( os.str() );
+    }
+  cloudbox_on = 1;
+  cloudbox_limits.resize(2); 
+  cloudbox_limits[0] = 0;
+  cloudbox_limits[1] = p_grid.nelem()-1;
+}
+  
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void cloudboxSetManually(// WS Output:
                          Index&         cloudbox_on,
                          ArrayOfIndex&  cloudbox_limits,

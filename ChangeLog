@@ -1,3 +1,11 @@
+2016-09-08 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-2-61
+	
+	* src/m_disort.cc, m_cloudbox.cc, methods.cc (cloudboxSetFullAtm):
+	Bugfix: ensure atm_dim==1 (reported by Patrick). Moved the WSM deinition
+	(former	cloudboxSetDisort) from m_disort to m_cloudbox.
+
 2016-09-01 Jana Mendrok  <jana.mendrok@chalmers.se>
 
 	* arts-2-2-60
