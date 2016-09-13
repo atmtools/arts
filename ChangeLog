@@ -1,8 +1,17 @@
+2016-09-13 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-533
+
+	* src/disort.cc (phase_functionCalc):
+	Apply a pnd threshold (<1part/galaxy) when deriving phase function from
+	bulk scttering matrix. Obviously too tiny numbers cause numerical
+	issues. Fixes issue reported by Patrick.
+
 2016-09-08 Jana Mendrok  <jana.mendrok@chalmers.se>
 
 	* arts-2-3-532
 
-	*  m_cloudbox.cc (cloudboxSetFullAtm):
+	* m_cloudbox.cc (cloudboxSetFullAtm):
 	Bugfix: loop parameter for upper lat/lon edges corrected.
 
 2016-09-08 Jana Mendrok  <jana.mendrok@chalmers.se>

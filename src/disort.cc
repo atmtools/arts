@@ -165,7 +165,6 @@ void dtauc_ssalbCalc(Workspace& ws,
       Tensor3 nlte_dummy;
       // This is right since there should be only clearsky partials
       ArrayOfTensor3 partial_dummy;
-      // This is right since there should be only clearsky partials
       ArrayOfMatrix partial_source_dummy,partial_nlte_dummy;
       propmat_clearsky_agendaExecute(ws,
                                      propmat_clearsky_local,
@@ -493,6 +492,12 @@ void phase_functionCalc(//Output
                         const ArrayOfIndex& cloudbox_limits,
                         const String pfct_method)
 {
+  // Turned out we get some numerical issues in converting scattering matrix to
+  // phase function (sca.coef vs. 4Pi normalized) if pnd's are too low. Hence,
+  // set a threshold below which pnd is assumed as zero.
+  // 1e-99 means less than one particle in our galaxy.
+  Numeric pnd_threshold = 1e-99;
+
   // Check that we do indeed have scat_data_mono here. Only checking the first
   // scat element, assuming the other elements have been processed in the same
   // manner. That's save against having scat_data here if that originated from
@@ -532,16 +537,19 @@ void phase_functionCalc(//Output
         {
           for (Index i_se = 0; i_se < scat_data_mono[i_ss].nelem(); i_se++)
             {
-              Index i_pfct;
-              if( pfct_method=="low" )
-                i_pfct = 0;
-              else if( pfct_method=="high" )
-                i_pfct = scat_data_mono[i_ss][i_se].T_grid.nelem()-1;
-              else //if( pfct_method=="median" )
-                i_pfct = scat_data_mono[i_ss][i_se].T_grid.nelem()/2;
-              sca_coeff +=  pnd_field(i_se_flat, i_p, 0, 0) *
-                (scat_data_mono[i_ss][i_se].ext_mat_data(0, i_pfct, 0, 0, 0)-
-                 scat_data_mono[i_ss][i_se].abs_vec_data(0, i_pfct, 0, 0, 0));
+              if( pnd_field(i_se_flat, i_p, 0, 0) > pnd_threshold )
+                {
+                  Index i_pfct;
+                  if( pfct_method=="low" )
+                    i_pfct = 0;
+                  else if( pfct_method=="high" )
+                    i_pfct = scat_data_mono[i_ss][i_se].T_grid.nelem()-1;
+                  else //if( pfct_method=="median" )
+                    i_pfct = scat_data_mono[i_ss][i_se].T_grid.nelem()/2;
+                  sca_coeff +=  pnd_field(i_se_flat, i_p, 0, 0) *
+                    (scat_data_mono[i_ss][i_se].ext_mat_data(0, i_pfct, 0, 0, 0)-
+                     scat_data_mono[i_ss][i_se].abs_vec_data(0, i_pfct, 0, 0, 0));
+                }
               i_se_flat++;
             }
         }
@@ -687,8 +695,8 @@ void pmomCalc2(//Output
         {
           ostringstream os;
           os << "Phase function normalization deviates from expected value by\n"
-             << "more than 10%. Something is wrong with your scattering data.\n"
-             << "Check!\n";
+             << "more than 10%. Happens for cloudbox layer #" << i_l << ".\n"
+             << "Something is wrong with your scattering data. Check!\n";
           throw runtime_error( os.str() );
         }
         if (abs(2.-pint) > 2e-2)
@@ -808,9 +816,10 @@ void pmomCalc(//Output
         if (abs(2.-pint) > 0.2)
         {
           ostringstream os;
-          os << "Phase function normalization deviates from expected value by\n"
-             << "more than 10%. Something is wrong with your scattering data.\n"
-             << "Check!\n";
+          os << "Phase function norm in layer " << i_l << " is " << pint
+             << ", i.e. deviates\n"
+             << "from expected value (2.0) by " << abs(2.-pint)*50. << "%.\n"
+             << "Something is wrong with your scattering data. Check!\n";
           throw runtime_error( os.str() );
         }
         if (abs(2.-pint) > 2e-2)
