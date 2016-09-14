@@ -91,6 +91,7 @@ batch_atm_fields_compactAddConstant( name="abs_species-N2", value=0.7808 )
 # Setup lookup table
 # ---
 abs_lookupSetupBatch
+abs_xsec_agenda_checkedCalc
 abs_lookupCalc
 
 # Set propmat_clearsky_agenda to use lookup table
@@ -146,6 +147,7 @@ IndexSet(ybatch_n, 2)
 
 # Execute the batch calculations:
 # ---
+propmat_clearsky_agenda_checkedCalc
 ybatchCalc
 
 # Store result matrix:

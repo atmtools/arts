@@ -1,3 +1,26 @@
+2016-09-14 Alex Bobryshev <oleksandr.bobryshev@uni-hamburg.de>
+
+	* arts-2-3-534
+
+	* controlfiles/instruments/avhrr/
+          METOPA_AVHRR.backend_channel_response.xml,
+	* NOAA15_AVHRR.backend_channel_response.xml,
+	* NOAA16_AVHRR.backend_channel_response.xml,
+	* NOAA17_AVHRR.backend_channel_response.xml,
+	* NOAA18_AVHRR.backend_channel_response.xml,
+	* NOAA19_AVHRR.backend_channel_response.xml,
+
+        Changed the first and the last weights to zero. Before the first and
+        the last weights were negative values. With negative values arts gave
+        an error-message: backend_channel_response.data = [0, >0, >0, 0].
+	
+        * controlfiles/instruments/avhrr/TestAVHRR.arts:
+        Add two agendas to controlfile:
+        abs_xsec_agenda_checkedCalc
+        propmat_clearsky_agenda_checkedCalc
+        Without these two agendas controlfile didnot work. Now the controlfile
+	works without error-messages.
+
 2016-09-13 Jana Mendrok  <jana.mendrok@chalmers.se>
 
 	* arts-2-3-533
