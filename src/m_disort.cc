@@ -568,12 +568,6 @@ void DisortInit(//WS Output
   // Zenith angle grid.
   Index nza = scat_za_grid.nelem();
 
-  if (scat_za_grid[0] != 0. || scat_za_grid[nza-1] != 180.)
-    throw runtime_error( "The range of *scat_za_grid* must [0 180]." );
-  
-  if (!is_increasing(scat_za_grid))
-    throw runtime_error("*scat_za_grid* must be increasing.");
-
   // scat_za_grid here is only relevant to provide an i_field from which the
   // sensor los angles can be interpolated by yCalc; it does not the determine
   // the accuracy of the DISORT output itself at these angles. So we can only
@@ -589,6 +583,12 @@ void DisortInit(//WS Output
          << "larger numbers of angles are negligible.";
       throw runtime_error( os.str() );
     }
+
+  if (scat_za_grid[0] != 0. || scat_za_grid[nza-1] != 180.)
+    throw runtime_error( "The range of *scat_za_grid* must [0 180]." );
+  
+  if (!is_increasing(scat_za_grid))
+    throw runtime_error("*scat_za_grid* must be increasing.");
 
   if( nza/2*2 != nza )
     {

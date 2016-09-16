@@ -1,24 +1,51 @@
+2016-09-15 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-535
+
+	* src/m_rt4.cc, methods.cc (RT4Calc, RT4Init):
+	Introduced usage of 'extra-angles' (ie. angles that are not
+	computational streams). Work in progress.
+
+	* 3rdparty/polradtran/rt4/radtran4.f:
+	Allow 'extra-angles' for all quadrature methods, not only Gauss-Legendre.
+	Govern 'extra-angle'-use via specified number of extra angles instead of
+	quad-type and zeroed mu_values.
+
+	* src/m_doit.cc (DOAngularGridsSet):
+	Allow N_za_grid=0. This for having a proper way to set scat_za_grid for
+	RT4 with proprietary streams only.
+
+	* src/m_doit.cc (DoitInit), src/m_disort.cc (DisortInit):
+	Move check of scat_za_grid size further up for proper error in case of
+	size=0 as introduced above.
+
+	* src/m_rt4.cc, methods.cc (RT4Test), src/rt4.cc,h (rt4_test):
+	De-hardcode location of test data.
+
+	* controlfiles/artscomponents/polradtran/TestRT4Test.arts:
+	Better way to specify ref-output location.
+
 2016-09-14 Alex Bobryshev <oleksandr.bobryshev@uni-hamburg.de>
 
 	* arts-2-3-534
 
 	* controlfiles/instruments/avhrr/
-          METOPA_AVHRR.backend_channel_response.xml,
-	* NOAA15_AVHRR.backend_channel_response.xml,
-	* NOAA16_AVHRR.backend_channel_response.xml,
-	* NOAA17_AVHRR.backend_channel_response.xml,
-	* NOAA18_AVHRR.backend_channel_response.xml,
-	* NOAA19_AVHRR.backend_channel_response.xml,
+	METOPA_AVHRR.backend_channel_response.xml,
+	NOAA15_AVHRR.backend_channel_response.xml,
+	NOAA16_AVHRR.backend_channel_response.xml,
+	NOAA17_AVHRR.backend_channel_response.xml,
+	NOAA18_AVHRR.backend_channel_response.xml,
+	NOAA19_AVHRR.backend_channel_response.xml,
 
-        Changed the first and the last weights to zero. Before the first and
-        the last weights were negative values. With negative values arts gave
-        an error-message: backend_channel_response.data = [0, >0, >0, 0].
+	Changed the first and the last weights to zero. Before the first and
+	the last weights were negative values. With negative values arts gave
+	an error-message: backend_channel_response.data = [0, >0, >0, 0].
 	
-        * controlfiles/instruments/avhrr/TestAVHRR.arts:
-        Add two agendas to controlfile:
-        abs_xsec_agenda_checkedCalc
-        propmat_clearsky_agenda_checkedCalc
-        Without these two agendas controlfile didnot work. Now the controlfile
+	* controlfiles/instruments/avhrr/TestAVHRR.arts:
+	Add two agendas to controlfile:
+	abs_xsec_agenda_checkedCalc
+	propmat_clearsky_agenda_checkedCalc
+	Without these two agendas controlfile didnot work. Now the controlfile
 	works without error-messages.
 
 2016-09-13 Jana Mendrok  <jana.mendrok@chalmers.se>

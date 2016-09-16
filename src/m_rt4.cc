@@ -41,6 +41,7 @@
 
 extern const Numeric PI;
 extern const Numeric RAD2DEG;
+extern const Numeric DEG2RAD;
 extern const Numeric SPEED_OF_LIGHT;
 extern const Numeric COSMIC_BG_TEMP;
 
@@ -49,10 +50,9 @@ extern const Numeric COSMIC_BG_TEMP;
 void RT4Calc( Workspace& ws,
                 // WS Output:
                 Tensor7& doit_i_field,
-                Vector& scat_za_grid,
-                Vector& scat_aa_grid,
                 Index& f_index,
                 ArrayOfArrayOfSingleScatteringData& scat_data_mono,
+                Vector& scat_za_grid,
                 // WS Input
                 const Index& rt4_is_initialized,
                 const Index& atmfields_checked,
@@ -118,7 +118,7 @@ void RT4Calc( Workspace& ws,
   //  throw runtime_error("Sizes of *scat_za_grid* and *doit_i_field* are "
   //                      " inconsistent.\n"
   //                      "Do not modify them after the call of *DisortInit*\n" );
-  if( doit_i_field.npages() != nstreams ) 
+  if( doit_i_field.npages() != nstreams+scat_za_grid.nelem() ) 
     throw runtime_error("Sizes of *doit_i_field* is inconsistent with nstreams.\n"
                         "Make sure to use the same nstreams with *RT4Init* and "
                         "*RT4Calc!\n" );
@@ -135,8 +135,14 @@ void RT4Calc( Workspace& ws,
          << nstreams << ".\n";
       throw runtime_error( os.str() );
     }
-  else
-    nummu = nstreams/2;
+  Index nhstreams=nstreams/2;
+  Index nhza=scat_za_grid.nelem()/2;
+  // nummu is the total number of angles in one hemisphere, including the
+  // quadrature angles as well as the "extra" angles (the scat_za_grid ones).
+  // FIXME: ensure symmetric scat_za_grid from RT4Init.
+  nummu = nhstreams+nhza;
+  //cout << "nstreams=" << nstreams << ", nextraang=" << scat_za_grid.nelem()
+  //     << " => nummu=" << nummu << "\n";
 
   if( pfct_method!="interpolate" )
   {
@@ -164,7 +170,7 @@ void RT4Calc( Workspace& ws,
       }
   }
 
-  // FIXME: remove/replace the following two tests, once more than
+  // FIXME: remove/replace the following two tests when other than
   // ground_type=="L" is implemented.
   if( surface_scalar_reflectivity.nelem() != f_grid.nelem()  &&  
       surface_scalar_reflectivity.nelem() != 1 )
@@ -269,43 +275,65 @@ void RT4Calc( Workspace& ws,
   // single scattering data.
   Vector mu_values(nummu, 0.);
   Vector quad_weights(nummu, 0.);
-  if (quad_type=="D")
+
+  if( quad_type.length()>1 )
     {
-      double_gauss_quadrature_(nummu,
+      ostringstream os;
+      os << "Input parameter *quad_type* not allowed to contain more than a "
+         << "single character.\n"
+         << "Yours has " << quad_type.length() << ".\n";
+      throw runtime_error(os.str());
+    }
+
+  if( quad_type=="D" )
+    {
+      double_gauss_quadrature_(nhstreams,
                                mu_values.get_c_array(),
                                quad_weights.get_c_array()
                               );
     }
-  else if (quad_type=="L")
+  else if( quad_type=="L" )
     {
-      lobatto_quadrature_(nummu,
+      lobatto_quadrature_(nhstreams,
                           mu_values.get_c_array(),
                           quad_weights.get_c_array()
                          );
     }
-  else
+  else if( quad_type=="G" )
     {
-      gauss_legendre_quadrature_(nummu,
+      gauss_legendre_quadrature_(nhstreams,
                                  mu_values.get_c_array(),
                                  quad_weights.get_c_array()
                                 );
     }
+  else
+    {
+      ostringstream os;
+      os << "Unknown quadrature type.\n";
+      throw runtime_error(os.str());
+    }
+
+  // Move the "extra" angles (of one hemisphere) into mu_values (behind the quad
+  // angles)
+  for (Index iea=0; iea<nhza; iea++)
+      mu_values[iea+nhstreams] = cos(scat_za_grid[iea]*DEG2RAD);
 
   // spt_calc_agenda accesses scat_za_grid through the workspace. hence, we need
   // to store the angles we want in this container. just in case, we keep what
   // is so far in scat_za_grid storing it in a different variable.
-  // FIXME: restore scat_za_grid later after the freq loop. of clean this here
+  // FIXME: restore scat_za_grid later after the freq loop. or clean this here
   // up as we need it.
   Vector scat_za_grid_ref = scat_za_grid;
-  scat_za_grid.resize(nstreams);
+  scat_za_grid.resize(2*nummu);
+  //cout << "Setting scat_za_grid for RT4 data prep.\n";
   for (Index imu=0; imu<nummu; imu++)
     {
       scat_za_grid[imu] = acos(mu_values[imu]) * RAD2DEG;
       scat_za_grid[nummu+imu] = 180.-scat_za_grid[imu];
+      //cout << "Setting za[" << imu << "]=" << scat_za_grid[imu]
+      //     << " and  za[" << nummu+imu << "]=" << scat_za_grid[nummu+imu]
+      //     << " from mu[" << imu << "]=" << mu_values[imu] << "\n";
     }
-  Vector scat_aa_grid_ref = scat_aa_grid;
-  scat_aa_grid.resize(1);
-  scat_aa_grid[0] = 0.;
 
   // Output variables
   Tensor3 up_rad(num_layers+1,nummu,nstokes, 0.);
@@ -333,8 +361,8 @@ void RT4Calc( Workspace& ws,
       // Wavelength [um]
       Numeric wavelength;
       wavelength = 1e6*SPEED_OF_LIGHT/f_grid[f_index];
-//      cout << "# processing freq #" << f_index << " at " << f_grid[f_index]*1e-9
-//           << "GHz\n";
+      //cout << "# processing freq #" << f_index << " at " << f_grid[f_index]*1e-9
+      //     << "GHz\n";
 
       scat_data_monoCalc(scat_data_mono, scat_data, f_grid, f_index, verbosity);
       
@@ -363,6 +391,7 @@ void RT4Calc( Workspace& ws,
           // Call RT4
           radtrano_(nstokes,
                nummu,
+               nhza,
                max_delta_tau,
                quad_type.c_str(),
                ground_temp,
@@ -413,11 +442,16 @@ void RT4Calc( Workspace& ws,
                   down_rad(num_layers-k,j,ist)*rad_l2f;
               }
     }
-  scat_za_grid.resize(nstreams);
+
+  //scat_za_grid.resize(nstreams);
+  //cout << "Setting scat_za_grid for ARTS consistent with doit_i_field.\n";
   for (Index j=0; j<nummu; j++)
     {
-      scat_za_grid[j] = acos(mu_values[nummu-1-j])*RAD2DEG;
-      scat_za_grid[nstreams-1-j] = 180.-acos(mu_values[nummu-1-j])*RAD2DEG;
+      scat_za_grid[nummu-1-j] = acos(mu_values[j])*RAD2DEG;
+      scat_za_grid[nummu+j] = 180.-acos(mu_values[j])*RAD2DEG;
+      //cout << "setting scat_za[" << nummu-1-j << "]=" << scat_za_grid[nummu-1-j]
+      //     << " and [" << nummu+j << "]=" << scat_za_grid[nummu+j]
+      //     << " from mu[" << j << "]=" << mu_values[j] << "\n";
     }
 }
 
@@ -426,10 +460,9 @@ void RT4Calc( Workspace& ws,
 void RT4Calc( Workspace&,
                 // WS Output:
                 Tensor7&,
-                Vector&,
-                Vector&,
                 Index&,
                 ArrayOfArrayOfSingleScatteringData&,
+                Vector&,
                 // WS Input
                 const Index&,
                 const Index&,
@@ -472,7 +505,7 @@ void RT4Init(//WS Output
               const Index& stokes_dim,
               const Index& atmosphere_dim,
               const Vector& f_grid,
-              //const Vector& scat_za_grid,
+              const Vector& scat_za_grid,
               const Index& cloudbox_on,
               const ArrayOfIndex& cloudbox_limits,
               const ArrayOfArrayOfSingleScatteringData& scat_data,
@@ -508,7 +541,7 @@ void RT4Init(//WS Output
     }
 
   // Zenith angle grid.
-  //Index nza = scat_za_grid.nelem();
+  Index nza = scat_za_grid.nelem();
 
   //if (scat_za_grid[0] != 0. || scat_za_grid[nza-1] != 180.)
   //  throw runtime_error( "The range of *scat_za_grid* must [0 180]." );
@@ -534,28 +567,18 @@ void RT4Init(//WS Output
     }
   */
 
-  /*
   if( nza/2*2 != nza )
     {
-      // uneven nza detected. uneven nza (when set as equidistant grid as
-      // commonly done by ARTS) lead to polar angle grid point at 90deg, ie at
-      // the horizontal. this is not safely calculable in a plane-parallel atmo.
-      // for now we just force the user to use an even nza.
+      // uneven nza detected. RT4 requires symmetric zenith angle grid in upper
+      // and lower hemisphere and does not allow a gridpoint at 90deg (horizon).
+      // That is, nza has to be even.
       //
-      // an even nza does not place the center angles close to horizon, though,
-      // unless the number of streams is very high. therefore, one could instead
-      // replace this gridpoint with two points centered closely around 90deg
-      // and derive the 90deg value from averaging these two.
-      // however, this is left to the future (and needs testing).
-      //
-      // FIXME: more correct (and stable in case of non-equidistant grids) is to
-      // check whether scat_za_grid actually contains the 90deg angle and to
-      // reject (or circumvent) this specifically.
+      // FIXME: needs to be extended to check that scat_za_grid is indeed
+      // hemispherically symmetric.
       ostringstream os;
       os << "Uneven nza detected. nza=" << nza << ".\n";
       throw runtime_error( os.str() );
     }
-  */
 
   if ( cloudbox_limits.nelem()!= 2*atmosphere_dim )
     throw runtime_error(
@@ -597,7 +620,7 @@ void RT4Init(//WS Output
 
   // Resize and initialize radiation field in the cloudbox
   //doit_i_field.resize( Nf, Np_cloud, 1, 1, Nza, 1, 1 );
-  doit_i_field.resize( Nf, Np_cloud, 1, 1, nstreams, 1, stokes_dim );
+  doit_i_field.resize( Nf, Np_cloud, 1, 1, nstreams+nza, 1, stokes_dim );
   doit_i_field = NAN;
   
   rt4_is_initialized = 1;
@@ -608,13 +631,15 @@ void RT4Init(//WS Output
 /* Workspace method: Doxygen documentation will be auto-generated */
 #ifdef ENABLE_RT4
 void RT4Test( Tensor4& out_rad,
+              const String& datapath,
               const Verbosity& verbosity )
 {
-    rt4_test( out_rad, verbosity );
+    rt4_test( out_rad, datapath, verbosity );
 }
 #else
 void RT4Test( Tensor4&,
-             const Verbosity& )
+              const String&,
+              const Verbosity& )
 {
     throw runtime_error ("This version of ARTS was compiled without RT4 support.");
 }

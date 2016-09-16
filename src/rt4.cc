@@ -281,6 +281,9 @@ void sca_optpropCalc( //Output
                       const Index& pfct_aa_grid_size,
                       const Verbosity& verbosity )
 {
+  // FIXME: do we have numerical issues, too, here in case of tiny pnd? check
+  // with Patrick's Disort-issue case.
+
   // Check that we do indeed have scat_data_mono here.
   if( scat_data_mono[0][0].f_grid.nelem() > 1 )
   {
@@ -553,6 +556,7 @@ void sca_optpropCalc( //Output
   \date 2016-05-24
 */
 void rt4_test( Tensor4& out_rad,
+               const String& datapath,
                const Verbosity& verbosity )
 {
     //emissivity.resize(4);
@@ -560,6 +564,7 @@ void rt4_test( Tensor4& out_rad,
 
     Index nstokes=2;
     Index nummu=8;
+    Index nuummu=0;
     Numeric max_delta_tau=1.0E-6;
     String quad_type="L";
     Numeric ground_temp=300.;
@@ -576,12 +581,12 @@ void rt4_test( Tensor4& out_rad,
     Tensor5 sca_data;
     Tensor4 ext_data;
     Tensor3 abs_data;
-    ReadXML( height, "height", "testdata/z.xml", "", verbosity );
-    ReadXML( temperatures, "temperatures", "testdata/T.xml", "", verbosity );
-    ReadXML( gas_extinct, "gas_extinct", "testdata/abs_gas.xml", "", verbosity );
-    ReadXML( abs_data, "abs_data", "testdata/abs_par.xml", "", verbosity );
-    ReadXML( ext_data, "ext_data", "testdata/ext_par.xml", "", verbosity );
-    ReadXML( sca_data, "sca_data", "testdata/sca_par.xml", "", verbosity );
+    ReadXML( height, "height", datapath+"z.xml", "", verbosity );
+    ReadXML( temperatures, "temperatures", datapath+"T.xml", "", verbosity );
+    ReadXML( gas_extinct, "gas_extinct", datapath+"abs_gas.xml", "", verbosity );
+    ReadXML( abs_data, "abs_data", datapath+"abs_par.xml", "", verbosity );
+    ReadXML( ext_data, "ext_data", datapath+"ext_par.xml", "", verbosity );
+    ReadXML( sca_data, "sca_data", datapath+"sca_par.xml", "", verbosity );
     Index num_layers=height.nelem()-1;
     Index num_scatlayers=3;
     Vector scatlayers(num_layers,0.);
@@ -623,6 +628,7 @@ void rt4_test( Tensor4& out_rad,
 
     radtrano_( nstokes,
                nummu,
+               nuummu,
                max_delta_tau,
                quad_type.c_str(),
                ground_temp,

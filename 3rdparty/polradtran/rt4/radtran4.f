@@ -119,7 +119,7 @@ C  integration over azimuth and zenith angles.
 
 
 
-      SUBROUTINE RADTRANO (NSTOKES, NUMMU, MAX_DELTA_TAU,
+      SUBROUTINE RADTRANO (NSTOKES, NUMMU, NUUMMU, MAX_DELTA_TAU,
      .               QUAD_TYPE, GROUND_TEMP, GROUND_TYPE,
      .               GROUND_ALBEDO, GROUND_INDEX,
      .               SKY_TEMP, WAVELENGTH,
@@ -182,7 +182,7 @@ c      CHARACTER*64 SCAT_FILE
 c     this is dangerous to do, as we use nstokes also as array-size
 c     determining parameter. resetting it will cause problems later on
 c     shaping the arrays and correct value extraction. so, don't do
-c     this. just check (and fail) in condition is not fulfilled.
+c     this. just check whether (and fail if) condition is not fulfilled.
 c      NSTOKES = MIN(NSTOKES,2)
       IF (NSTOKES .GT. 2) THEN
           WRITE (*,'(1X,A,I3)')
@@ -221,25 +221,23 @@ c      NSTOKES = MIN(NSTOKES,2)
 
 
 C           Make the desired quadrature abscissas and weights
-      IF (QUAD_TYPE(1:1) .EQ. 'D') THEN
-        CALL DOUBLE_GAUSS_QUADRATURE
-     .                       (NUMMU, MU_VALUES, QUAD_WEIGHTS)
-      ELSE IF (QUAD_TYPE(1:1) .EQ. 'L') THEN
-        CALL LOBATTO_QUADRATURE
-     .                       (NUMMU, MU_VALUES, QUAD_WEIGHTS)
-      ELSE IF (QUAD_TYPE(1:1) .EQ. 'E') THEN
-        J = NUMMU
-        DO I = NUMMU, 1, -1
-          IF (MU_VALUES(I) .NE. 0.0) THEN
-            QUAD_WEIGHTS(I) = 0.0
-            J = I - 1
-          ENDIF
+c      WRITE(*,'(3A)') '>',QUAD_TYPE,'<'
+      IF ( NUUMMU .GT. 0 ) THEN
+        DO I = NUMMU, NUUMMU, -1
+          QUAD_WEIGHTS(I) = 0.0
         ENDDO
-        CALL GAUSS_LEGENDRE_QUADRATURE
-     .                       (J, MU_VALUES, QUAD_WEIGHTS)
+      ENDIF
+
+      J = NUMMU-NUUMMU
+      IF ( QUAD_TYPE(1:1) .EQ. 'D' ) THEN
+c        WRITE(*,'(A)') 'double gauss'
+        CALL DOUBLE_GAUSS_QUADRATURE(J, MU_VALUES, QUAD_WEIGHTS)
+      ELSE IF ( QUAD_TYPE(1:1) .EQ. 'L' ) THEN
+c        WRITE(*,'(A)') 'lobatto'
+        CALL LOBATTO_QUADRATURE(J, MU_VALUES, QUAD_WEIGHTS)
       ELSE
-        CALL GAUSS_LEGENDRE_QUADRATURE
-     .                       (NUMMU, MU_VALUES, QUAD_WEIGHTS)
+c        WRITE(*,'(A)') 'simple gauss'
+        CALL GAUSS_LEGENDRE_QUADRATURE(J, MU_VALUES, QUAD_WEIGHTS)
       ENDIF
 
 
@@ -256,8 +254,10 @@ C              and soure vectors for each layer, which are stored.
      .                     SCATTER_MATRIX,
      .                     EXTINCT_MATRIX, EMIS_VECTOR)
       END IF
+c      WRITE(*,'(A)') 'norm check done'
 
       DO LAYER = 1, NUM_LAYERS
+c          WRITE(*,'(A,I4)') 'processing layer', LAYER
 C                   Calculate the layer thickness
           ZDIFF = ABS(HEIGHT(LAYER) - HEIGHT(LAYER+1))
           GAS_EXTINCT(LAYER) = MAX(GAS_EXTINCT(LAYER),0.0D0)
@@ -275,6 +275,7 @@ C                   Calculate the thermal source for beginning of layer
 
           TSL = NINT(SCATLAYERS(LAYER))
           IF (TSL .LT. 1) THEN
+c              WRITE(*,'(A)') 'non-scatt layer'
 C                   If the layer is purely absorbing then quickly
 C                     make the reflection and transmission matrices
 C                     and source vector instead of doubling.
@@ -286,6 +287,7 @@ C                     and source vector instead of doubling.
 
 C                   Find initial thickness of sublayer and
 C                     the number of times to double
+c              WRITE(*,'(A)') 'scatt layer'
               EXTINCT = EXTINCT_MATRIX(1,1,1,1,TSL)+GAS_EXTINCT(LAYER)
               F =DLOG(MAX(EXTINCT*ZDIFF,1.0D-7)/MAX_DELTA_TAU)/LOG(2.)
               NUM_DOUBLES = 0
@@ -322,6 +324,7 @@ C                   Double up to the thickness of the layer
       ENDDO
 C            End of layer loop
 
+c      WRITE(*,'(A)') 'layer looping finished'
 
 C           Get the surface reflection and transmission matrices
 C             and the surface radiance

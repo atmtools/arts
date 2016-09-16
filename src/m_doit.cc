@@ -98,17 +98,26 @@ void DOAngularGridsSet(// WS Output:
   
   // Zenith angle grid: 
   // Number of zenith angle grid points (only for scattering integral): 
-  if( N_za_grid > 0 )
-    doit_za_grid_size = N_za_grid; 
-  else
+  if( N_za_grid < 0 )
     {
       ostringstream os;
-      os << "N_za_grid must be > 0.";
+      os << "N_za_grid must be >= 0.";
       throw runtime_error( os.str() );
     }
+  else
+    doit_za_grid_size = N_za_grid; 
 
-  if( za_grid_opt_file == "" ) 
-    nlinspace(scat_za_grid, 0, 180, N_za_grid);
+  if( za_grid_opt_file == "" )
+    if( N_za_grid == 0 )
+      scat_za_grid.resize(0);
+    else if  ( N_za_grid == 1 )
+      {
+        ostringstream os;
+        os << "N_za_grid must be >1 or =0 (the latter only allowed for RT4).";
+        throw runtime_error( os.str() );
+      }
+    else
+      nlinspace(scat_za_grid, 0, 180, N_za_grid);
   else
     xml_read_from_file(za_grid_opt_file, scat_za_grid, verbosity);
 
@@ -1592,12 +1601,6 @@ void DoitInit(//WS Output
   // Number of zenith angles.
   const Index N_scat_za = scat_za_grid.nelem();
   
-  if (scat_za_grid[0] != 0. || scat_za_grid[N_scat_za-1] != 180.)
-    throw runtime_error("The range of *scat_za_grid* must [0 180].");
-  
-  if (!is_increasing(scat_za_grid))
-    throw runtime_error("*scat_za_grid* must be increasing.");
-
   // The recommended values were found by testing the accuracy and the speed of 
   // 1D DOIT calculations for different grid sizes. For 3D calculations it can 
   // be necessary to use more grid points. 
@@ -1611,6 +1614,12 @@ void DoitInit(//WS Output
          << "calculation will be very slow.\n";
   }
   
+  if (scat_za_grid[0] != 0. || scat_za_grid[N_scat_za-1] != 180.)
+    throw runtime_error("The range of *scat_za_grid* must [0 180].");
+  
+  if (!is_increasing(scat_za_grid))
+    throw runtime_error("*scat_za_grid* must be increasing.");
+
   // Number of azimuth angles.
   const Index N_scat_aa = scat_aa_grid.nelem();
   

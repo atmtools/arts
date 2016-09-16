@@ -71,6 +71,7 @@ void sca_optpropCalc( //Output
                       const Verbosity& verbosity );
 
 void rt4_test( Tensor4& out_rad,
+               const String& datapath,
                const Verbosity& verbosity );
 
 
@@ -78,6 +79,7 @@ extern "C" {
 
     void radtrano_( const Index&   nstokes,
                     const Index&   nummu,
+                    const Index&   nuummu,
                     const Numeric& max_delta_tau,
                     const char*    quad_type,
                     const Numeric& ground_temp,

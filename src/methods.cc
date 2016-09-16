@@ -11523,19 +11523,19 @@ void define_md_data_raw()
          "\n"
          "DISCLAIMER: This is work in progress. Not to be used yet.\n"
          "\n"
-         "RT4 is only availble for 1D calculations and implicitly assumes a\n"
+         "RT4 is only available for 1D calculations and implicitly assumes a\n"
          "plane-parallel atmosphere (flat Earth). It calculates up to two\n"
          "Stokes parameters, i.e., all azimuthally randomly oriented\n"
          "particles are allowed (this also includes macroscopically isotropic\n"
          "particles). Refraction is not taken into account.\n"
          ),
         AUTHORS( "Jana Mendrok" ),
-        OUT( "doit_i_field", "scat_za_grid", "scat_aa_grid",
-             "f_index", "scat_data_mono" ),
+        OUT( "doit_i_field", "f_index", "scat_data_mono",
+             "scat_za_grid" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "doit_i_field", "rt4_is_initialized",
+        IN( "doit_i_field", "scat_za_grid", "rt4_is_initialized",
             "atmfields_checked", "atmgeom_checked", "cloudbox_checked",
             "cloudbox_on", "cloudbox_limits",
             "propmat_clearsky_agenda",
@@ -11576,7 +11576,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "stokes_dim", "atmosphere_dim", "f_grid", //"scat_za_grid",
+        IN( "stokes_dim", "atmosphere_dim", "f_grid", "scat_za_grid",
             "cloudbox_on", "cloudbox_limits", "scat_data" ),
         GIN(         "nstreams" ),
         GIN_TYPE(    "Index" ),
@@ -11600,10 +11600,10 @@ void define_md_data_raw()
         GOUT_TYPE( "Tensor4" ),
         GOUT_DESC( "RT4 testc calculation results." ),
         IN(),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
+        GIN( "datapath" ),
+        GIN_TYPE( "String" ),
+        GIN_DEFAULT( "artscomponents/polradtran/testdata/" ),
+        GIN_DESC( "Folder containing arts-xml converted test case input data." )
         ));
 
   md_data_raw.push_back
