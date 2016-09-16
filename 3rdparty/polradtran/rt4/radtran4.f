@@ -179,6 +179,7 @@ c      REAL*8    EXTINCT_MATRIX(16*2*MAXV), EMIS_VECTOR(4*2*MAXV)
 c      CHARACTER*64 SCAT_FILE
 
 
+c      WRITE(*,'(2(A,I3))') 'NUMMU=',NUMMU,' NUUMMU=',NUUMMU
 c     this is dangerous to do, as we use nstokes also as array-size
 c     determining parameter. resetting it will cause problems later on
 c     shaping the arrays and correct value extraction. so, don't do
@@ -222,12 +223,6 @@ c      NSTOKES = MIN(NSTOKES,2)
 
 C           Make the desired quadrature abscissas and weights
 c      WRITE(*,'(3A)') '>',QUAD_TYPE,'<'
-      IF ( NUUMMU .GT. 0 ) THEN
-        DO I = NUMMU, NUUMMU, -1
-          QUAD_WEIGHTS(I) = 0.0
-        ENDDO
-      ENDIF
-
       J = NUMMU-NUUMMU
       IF ( QUAD_TYPE(1:1) .EQ. 'D' ) THEN
 c        WRITE(*,'(A)') 'double gauss'
@@ -240,6 +235,13 @@ c        WRITE(*,'(A)') 'simple gauss'
         CALL GAUSS_LEGENDRE_QUADRATURE(J, MU_VALUES, QUAD_WEIGHTS)
       ENDIF
 
+      DO I = NUMMU, J+1, -1
+        QUAD_WEIGHTS(I) = 0.0
+      ENDDO
+
+c      DO I = 1,NUMMU
+c          WRITE(*,'(2E10.3)') MU_VALUES(I),QUAD_WEIGHTS(I)
+c      ENDDO
 
 
 

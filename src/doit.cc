@@ -2727,8 +2727,10 @@ doit_scat_fieldNormalize(Workspace& ws,
             if (abs(1.-corr_factor) > norm_error_threshold)
             {
                 ostringstream os;
-                os <<   "ERROR: DOIT correction factor exceeds threshold: "
-                << setprecision(4) <<  1.-corr_factor << " at p_index " << p_index << "\n";
+                os <<   "ERROR: DOIT correction factor exceeds threshold (="
+                   << norm_error_threshold << "): "
+                   << setprecision(4) <<  1.-corr_factor << " at p_index "
+                   << p_index << "\n";
                 throw runtime_error(os.str());
             }
             else if (abs(1.-corr_factor) > norm_error_threshold/2.)

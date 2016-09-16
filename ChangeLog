@@ -1,3 +1,14 @@
+2016-09-16 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-536
+
+	* 3rdparty/polradtran/rt4/radtran4.f:
+	Bugfix in quadrature weights setting for extra-angles. Fixes
+	i_field offset issue in calcs with (many) extra-angles.
+
+	* src/doit.cc (doit_scat_fieldNormalize):
+	Be slighty more verbose about actual applied norm_error_threshold.
+
 2016-09-15 Jana Mendrok  <jana.mendrok@chalmers.se>
 
 	* arts-2-3-535
