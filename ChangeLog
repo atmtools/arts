@@ -1,4 +1,11 @@
-2016-09-16 Jana Mendrok  <jana.mendrok@chalmers.se>
+2016-09-17 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-537
+
+	* src/m_rt4.cc (RT4Calc):
+	Non-fortran build bugfix. Debug comments outcommented.
+
+2016-09-17 Jana Mendrok  <jana.mendrok@chalmers.se>
 
 	* arts-2-3-537
 

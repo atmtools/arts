@@ -131,9 +131,9 @@ void RT4Calc( Workspace& ws,
       throw runtime_error(os.str());
     }
 
-  cout << "doit_i_field has " << doit_i_field.npages() << "angles.\n";
-  cout << "considering " << nstreams << " streams and " << 2*nhza
-       << " extra angles.\n";
+  //cout << "doit_i_field has " << doit_i_field.npages() << "angles.\n";
+  //cout << "considering " << nstreams << " streams and " << 2*nhza
+  //     << " extra angles.\n";
   if( doit_i_field.npages() != nstreams+2*nhza ) 
     throw runtime_error("Sizes of *doit_i_field* is inconsistent with *nstreams*.\n"
                         "Make sure to use the same *nstreams* (and *quad_type*)"
@@ -322,9 +322,9 @@ void RT4Calc( Workspace& ws,
     {
       scat_za_grid[imu] = acos(mu_values[imu]) * RAD2DEG;
       scat_za_grid[nummu+imu] = 180.-scat_za_grid[imu];
-      cout << "Setting za[" << imu << "]=" << scat_za_grid[imu]
-           << " and  za[" << nummu+imu << "]=" << scat_za_grid[nummu+imu]
-           << " from mu[" << imu << "]=" << mu_values[imu] << "\n";
+      //cout << "Setting za[" << imu << "]=" << scat_za_grid[imu]
+      //     << " and  za[" << nummu+imu << "]=" << scat_za_grid[nummu+imu]
+      //     << " from mu[" << imu << "]=" << mu_values[imu] << "\n";
     }
   scat_aa_grid.resize(1);
   scat_aa_grid[0] = 0.;
@@ -452,9 +452,9 @@ void RT4Calc( Workspace& ws,
     {
       scat_za_grid[nummu-1-j] = acos(mu_values[j])*RAD2DEG;
       scat_za_grid[nummu+j] = 180.-acos(mu_values[j])*RAD2DEG;
-      cout << "setting scat_za[" << nummu-1-j << "]=" << scat_za_grid[nummu-1-j]
-           << " and [" << nummu+j << "]=" << scat_za_grid[nummu+j]
-           << " from mu[" << j << "]=" << mu_values[j] << "\n";
+      //cout << "setting scat_za[" << nummu-1-j << "]=" << scat_za_grid[nummu-1-j]
+      //     << " and [" << nummu+j << "]=" << scat_za_grid[nummu+j]
+      //     << " from mu[" << j << "]=" << mu_values[j] << "\n";
     }
 }
 
@@ -463,9 +463,10 @@ void RT4Calc( Workspace& ws,
 void RT4Calc( Workspace&,
                 // WS Output:
                 Tensor7&,
+                Vector&,
+                Vector&,
                 Index&,
                 ArrayOfArrayOfSingleScatteringData&,
-                Vector&,
                 // WS Input
                 const Index&,
                 const Index&,
