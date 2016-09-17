@@ -50,9 +50,10 @@ extern const Numeric COSMIC_BG_TEMP;
 void RT4Calc( Workspace& ws,
                 // WS Output:
                 Tensor7& doit_i_field,
+                Vector& scat_za_grid,
+                Vector& scat_aa_grid,
                 Index& f_index,
                 ArrayOfArrayOfSingleScatteringData& scat_data_mono,
-                Vector& scat_za_grid,
                 // WS Input
                 const Index& rt4_is_initialized,
                 const Index& atmfields_checked,
@@ -114,20 +115,34 @@ void RT4Calc( Workspace& ws,
     throw runtime_error("*pnd_field* is not 1D! \n" 
                         "RT4 can only be used for 1D!\n" );
 
-  //if( doit_i_field.npages() != scat_za_grid.nelem() ) 
-  //  throw runtime_error("Sizes of *scat_za_grid* and *doit_i_field* are "
-  //                      " inconsistent.\n"
-  //                      "Do not modify them after the call of *DisortInit*\n" );
-  if( doit_i_field.npages() != nstreams+scat_za_grid.nelem() ) 
-    throw runtime_error("Sizes of *doit_i_field* is inconsistent with nstreams.\n"
-                        "Make sure to use the same nstreams with *RT4Init* and "
-                        "*RT4Calc!\n" );
+  Index nhza;
+  if( quad_type=="D" || quad_type=="G" )
+    {
+      nhza=1;
+    }
+  else if( quad_type=="L" )
+    {
+      nhza=0;
+    }
+  else
+    {
+      ostringstream os;
+      os << "Unknown quadrature type.\n";
+      throw runtime_error(os.str());
+    }
+
+  cout << "doit_i_field has " << doit_i_field.npages() << "angles.\n";
+  cout << "considering " << nstreams << " streams and " << 2*nhza
+       << " extra angles.\n";
+  if( doit_i_field.npages() != nstreams+2*nhza ) 
+    throw runtime_error("Sizes of *doit_i_field* is inconsistent with *nstreams*.\n"
+                        "Make sure to use the same *nstreams* (and *quad_type*)"
+                        " with *RT4Init* and *RT4Calc!\n" );
   
   // RT4 actually uses number of angles in single hemisphere. However, we don't
   // want a bunch of different approaches used in the interface, so we apply the
   // DISORT (and ARTS) way of total number of angles here. Hence, we have to
   // ensure here that total number is even.
-  Index nummu;
   if( nstreams/2*2 != nstreams )
     {
       ostringstream os;
@@ -136,13 +151,9 @@ void RT4Calc( Workspace& ws,
       throw runtime_error( os.str() );
     }
   Index nhstreams=nstreams/2;
-  Index nhza=scat_za_grid.nelem()/2;
   // nummu is the total number of angles in one hemisphere, including the
-  // quadrature angles as well as the "extra" angles (the scat_za_grid ones).
-  // FIXME: ensure symmetric scat_za_grid from RT4Init.
-  nummu = nhstreams+nhza;
-  //cout << "nstreams=" << nstreams << ", nextraang=" << scat_za_grid.nelem()
-  //     << " => nummu=" << nummu << "\n";
+  // quadrature angles as well as the "extra" angles.
+  Index nummu=nhstreams+nhza;
 
   if( pfct_method!="interpolate" )
   {
@@ -276,28 +287,12 @@ void RT4Calc( Workspace& ws,
   Vector mu_values(nummu, 0.);
   Vector quad_weights(nummu, 0.);
 
-  if( quad_type.length()>1 )
-    {
-      ostringstream os;
-      os << "Input parameter *quad_type* not allowed to contain more than a "
-         << "single character.\n"
-         << "Yours has " << quad_type.length() << ".\n";
-      throw runtime_error(os.str());
-    }
-
   if( quad_type=="D" )
     {
       double_gauss_quadrature_(nhstreams,
                                mu_values.get_c_array(),
                                quad_weights.get_c_array()
                               );
-    }
-  else if( quad_type=="L" )
-    {
-      lobatto_quadrature_(nhstreams,
-                          mu_values.get_c_array(),
-                          quad_weights.get_c_array()
-                         );
     }
   else if( quad_type=="G" )
     {
@@ -306,34 +301,33 @@ void RT4Calc( Workspace& ws,
                                  quad_weights.get_c_array()
                                 );
     }
-  else
+  else //if( quad_type=="L" )
     {
-      ostringstream os;
-      os << "Unknown quadrature type.\n";
-      throw runtime_error(os.str());
+      lobatto_quadrature_(nhstreams,
+                          mu_values.get_c_array(),
+                          quad_weights.get_c_array()
+                         );
     }
 
-  // Move the "extra" angles (of one hemisphere) into mu_values (behind the quad
-  // angles)
-  for (Index iea=0; iea<nhza; iea++)
-      mu_values[iea+nhstreams] = cos(scat_za_grid[iea]*DEG2RAD);
+  // Set "extra" angle (at 0deg) if quad_type!="L"
+  if( nhza>0 )
+      mu_values[nhstreams] = 1.;
 
-  // spt_calc_agenda accesses scat_za_grid through the workspace. hence, we need
-  // to store the angles we want in this container. just in case, we keep what
-  // is so far in scat_za_grid storing it in a different variable.
-  // FIXME: restore scat_za_grid later after the freq loop. or clean this here
-  // up as we need it.
-  Vector scat_za_grid_ref = scat_za_grid;
+  // FIXME: we should be able to avoid setting scat_za_grid here in one way,
+  // and resetting in another before leaving the WSM. This, however, requires
+  // rearranging the angle order and angle assignment in the RT4-SSP prep
+  // routines.
   scat_za_grid.resize(2*nummu);
-  //cout << "Setting scat_za_grid for RT4 data prep.\n";
   for (Index imu=0; imu<nummu; imu++)
     {
       scat_za_grid[imu] = acos(mu_values[imu]) * RAD2DEG;
       scat_za_grid[nummu+imu] = 180.-scat_za_grid[imu];
-      //cout << "Setting za[" << imu << "]=" << scat_za_grid[imu]
-      //     << " and  za[" << nummu+imu << "]=" << scat_za_grid[nummu+imu]
-      //     << " from mu[" << imu << "]=" << mu_values[imu] << "\n";
+      cout << "Setting za[" << imu << "]=" << scat_za_grid[imu]
+           << " and  za[" << nummu+imu << "]=" << scat_za_grid[nummu+imu]
+           << " from mu[" << imu << "]=" << mu_values[imu] << "\n";
     }
+  scat_aa_grid.resize(1);
+  scat_aa_grid[0] = 0.;
 
   // Output variables
   Tensor3 up_rad(num_layers+1,nummu,nstokes, 0.);
@@ -431,11 +425,20 @@ void RT4Calc( Workspace& ws,
       // cloud(box) indicated by downwelling being to high and downwelling
       // exhibiting a non-zero polarisation signature (which it wouldn't with
       // only scalar gas abs above).
+      //
       Numeric rad_l2f = wavelength/f_grid[f_index];
+      // down/up_rad contain the radiances in order from slant (90deg) to steep
+      // (0 and 180deg, respectively) streams,then the possible extra angle(s).
+      // We need to resort them properly into doit_i_field, such that order is
+      // from 0 to 180deg.
       for(Index j = 0; j<nummu; j++)
         for(Index k = 0; k<(cloudbox_limits[1]-cloudbox_limits[0]+1); k++)
           for (Index ist = 0; ist<stokes_dim; ist++ )
               {
+                //doit_i_field(f_index, k, 0, 0, nummu+j, 0, ist) =
+                //  up_rad(num_layers-k,j,ist)*rad_l2f;
+                //doit_i_field(f_index, k, 0, 0, nummu-1-j, 0, ist) =
+                //  down_rad(num_layers-k,j,ist)*rad_l2f;
                 doit_i_field(f_index, k, 0, 0, nummu+j, 0, ist) =
                   up_rad(num_layers-k,j,ist)*rad_l2f;
                 doit_i_field(f_index, k, 0, 0, nummu-1-j, 0, ist) =
@@ -449,9 +452,9 @@ void RT4Calc( Workspace& ws,
     {
       scat_za_grid[nummu-1-j] = acos(mu_values[j])*RAD2DEG;
       scat_za_grid[nummu+j] = 180.-acos(mu_values[j])*RAD2DEG;
-      //cout << "setting scat_za[" << nummu-1-j << "]=" << scat_za_grid[nummu-1-j]
-      //     << " and [" << nummu+j << "]=" << scat_za_grid[nummu+j]
-      //     << " from mu[" << j << "]=" << mu_values[j] << "\n";
+      cout << "setting scat_za[" << nummu-1-j << "]=" << scat_za_grid[nummu-1-j]
+           << " and [" << nummu+j << "]=" << scat_za_grid[nummu+j]
+           << " from mu[" << j << "]=" << mu_values[j] << "\n";
     }
 }
 
@@ -505,11 +508,11 @@ void RT4Init(//WS Output
               const Index& stokes_dim,
               const Index& atmosphere_dim,
               const Vector& f_grid,
-              const Vector& scat_za_grid,
               const Index& cloudbox_on,
               const ArrayOfIndex& cloudbox_limits,
               const ArrayOfArrayOfSingleScatteringData& scat_data,
               const Index& nstreams,
+              const String& quad_type,
               const Verbosity& verbosity)
 {
   if (!cloudbox_on)
@@ -540,46 +543,6 @@ void RT4Init(//WS Output
       throw runtime_error(os.str());
     }
 
-  // Zenith angle grid.
-  Index nza = scat_za_grid.nelem();
-
-  //if (scat_za_grid[0] != 0. || scat_za_grid[nza-1] != 180.)
-  //  throw runtime_error( "The range of *scat_za_grid* must [0 180]." );
-  
-  //if (!is_increasing(scat_za_grid))
-  //  throw runtime_error("*scat_za_grid* must be increasing.");
-
-  // scat_za_grid here is only relevant to provide an i_field from which the
-  // sensor los angles can be interpolated by yCalc; it does not the determine
-  // the accuracy of the DISORT output itself at these angles. So we can only
-  // apply a very rough test here, whether the grid is appropriate. However, we
-  // set the threshold fairly high since calculation costs for a higher number
-  // of angles are negligible.
-  /*
-  if ( nza < 37 )
-    {
-      ostringstream os;
-      os << "We require size of scat_za_grid to be > 36\n"
-         << "to ensure accurate radiance field interpolation in yCalc.\n"
-         << "Note that for DISORT additional computation costs for\n"
-         << "larger numbers of angles are negligible.";
-      throw runtime_error( os.str() );
-    }
-  */
-
-  if( nza/2*2 != nza )
-    {
-      // uneven nza detected. RT4 requires symmetric zenith angle grid in upper
-      // and lower hemisphere and does not allow a gridpoint at 90deg (horizon).
-      // That is, nza has to be even.
-      //
-      // FIXME: needs to be extended to check that scat_za_grid is indeed
-      // hemispherically symmetric.
-      ostringstream os;
-      os << "Uneven nza detected. nza=" << nza << ".\n";
-      throw runtime_error( os.str() );
-    }
-
   if ( cloudbox_limits.nelem()!= 2*atmosphere_dim )
     throw runtime_error(
                         "*cloudbox_limits* is a vector which contains the"
@@ -593,6 +556,32 @@ void RT4Init(//WS Output
                          "See documentation of WSV *scat_data* for options to "
                          "make single scattering data available.\n"
                          );
+
+  if( quad_type.length()>1 )
+    {
+      ostringstream os;
+      os << "Input parameter *quad_type* not allowed to contain more than a "
+         << "single character.\n"
+         << "Yours has " << quad_type.length() << ".\n";
+      throw runtime_error(os.str());
+    }
+
+  // If quad!='L' we need to add extra angle 0 & 180deg for final scat_za_grid
+  Index neza;
+  if( quad_type=="D" || quad_type=="G" )
+    {
+      neza=2;
+    }
+  else if( quad_type=="L" )
+    {
+      neza=0;
+    }
+  else
+    {
+      ostringstream os;
+      os << "Unknown quadrature type.\n";
+      throw runtime_error(os.str());
+    }
 
   // RT4 can only completely or azimuthally randomly oriented particles.
   bool no_p10=true;
@@ -620,7 +609,7 @@ void RT4Init(//WS Output
 
   // Resize and initialize radiation field in the cloudbox
   //doit_i_field.resize( Nf, Np_cloud, 1, 1, Nza, 1, 1 );
-  doit_i_field.resize( Nf, Np_cloud, 1, 1, nstreams+nza, 1, stokes_dim );
+  doit_i_field.resize( Nf, Np_cloud, 1, 1, nstreams+neza, 1, stokes_dim );
   doit_i_field = NAN;
   
   rt4_is_initialized = 1;

@@ -11530,18 +11530,18 @@ void define_md_data_raw()
          "particles). Refraction is not taken into account.\n"
          ),
         AUTHORS( "Jana Mendrok" ),
-        OUT( "doit_i_field", "f_index", "scat_data_mono",
-             "scat_za_grid" ),
+        OUT( "doit_i_field", "scat_za_grid", "scat_aa_grid",
+             "f_index", "scat_data_mono" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "doit_i_field", "scat_za_grid", "rt4_is_initialized",
+        IN( "doit_i_field", "rt4_is_initialized",
             "atmfields_checked", "atmgeom_checked", "cloudbox_checked",
             "cloudbox_on", "cloudbox_limits",
             "propmat_clearsky_agenda",
             "opt_prop_part_agenda", "spt_calc_agenda", //"iy_main_agenda",
             "pnd_field", "t_field", "z_field", "vmr_field", "p_grid",
-            "scat_data", "f_grid", "stokes_dim", //"scat_za_grid",
+            "scat_data", "f_grid", "stokes_dim",
             "surface_scalar_reflectivity" ),
         GIN(         "nstreams", "non_iso_inc", "pfct_method", "quad_type",
                      "pfct_aa_grid_size", "max_delta_tau" ),
@@ -11576,12 +11576,14 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "stokes_dim", "atmosphere_dim", "f_grid", "scat_za_grid",
+        IN( "stokes_dim", "atmosphere_dim", "f_grid",
             "cloudbox_on", "cloudbox_limits", "scat_data" ),
-        GIN(         "nstreams" ),
-        GIN_TYPE(    "Index" ),
-        GIN_DEFAULT( "8" ),
-        GIN_DESC( "Number of polar angle directions (streams) in RT4 solution." )
+        GIN(         "nstreams", "quad_type" ),
+        GIN_TYPE(    "Index",    "String" ),
+        GIN_DEFAULT( "8",        "L" ),
+        GIN_DESC( "Number of polar angle directions (streams) in RT4 solution.",
+                  "Flag which quadrature to apply in RT4 solution (for"
+                  "available options see *RT4Calc*)." )
         ));
 
   md_data_raw.push_back

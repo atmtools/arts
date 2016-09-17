@@ -1,5 +1,20 @@
 2016-09-16 Jana Mendrok  <jana.mendrok@chalmers.se>
 
+	* arts-2-3-537
+
+	* src/m_rt4.cc, methods.cc (RT4Calc,RT4Init):
+	Tests showed that RT4 runtime is proportional to 3rd power of number of
+	angles. That means, number of angles, including the quadrature streams
+	plus any extra/user angles, should be kept as low as possible.
+	Therefore, I disallow user-specified angles, ie no scat_za_grid usage.
+	Instead, RT4Calc returns doit_i_field on the quadrature angles (number
+	to be specified by the user) plus 0/180deg if not in quadrature angles
+	already to satisfy ARTS' scat_za_grid requirements. Corresponding
+	scat_za_grid is output of RT4. RT4Init (e.g. sizing of doit_i_field)
+	adapted accordingly.
+
+2016-09-16 Jana Mendrok  <jana.mendrok@chalmers.se>
+
 	* arts-2-3-536
 
 	* 3rdparty/polradtran/rt4/radtran4.f:
