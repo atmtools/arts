@@ -6,7 +6,7 @@ if (ENABLE_FORTRAN AND NOT NO_TMATRIX)
       tmq.arts.f
       amplq.arts.f
       lpq.f
-      avg_tmatrix.f
+      avg_tmatrixq.f
       )
   else()
     add_library (tmatrix STATIC

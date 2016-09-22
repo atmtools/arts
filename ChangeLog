@@ -1,3 +1,18 @@
+2016-09-22  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-538
+
+	* Fix bug in tmatrix quad-precision calculations. avg_tmatrix was using
+	the parameter file from double precision.
+
+	* 3rdparty/tmatrix/avg_tmatrixq.f:
+
+	Added. Import parameters from amplq.par.f instead of ampld.par.f.
+
+	* 3rdparty/tmatrix/CMakeLists.txt:
+
+	For quad-precision use avg_tmatrixq.f.
+
 2016-09-17 Jana Mendrok  <jana.mendrok@chalmers.se>
 
 	* arts-2-3-537
