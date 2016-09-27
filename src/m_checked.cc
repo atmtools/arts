@@ -446,7 +446,7 @@ void cloudbox_checkedCalc(
    const ArrayOfString&  scat_species,
    const ArrayOfArrayOfSpeciesTag& abs_species,
    const Matrix&         particle_masses,
-   const String&         scat_data_check,
+   const String&         scat_data_check_type,
    const Numeric&        sca_mat_threshold,
    const Verbosity&      verbosity )
 {
@@ -699,16 +699,16 @@ void cloudbox_checkedCalc(
               chk_scat_data_fgrid ( scat_data[i_ss][i_se], f_grid, os.str() );
             }
         }
-      if( scat_data_check != "none" || scat_data_check != "None" ||
-          scat_data_check != "NONE" )
+      if( scat_data_check_type != "none" || scat_data_check_type != "None" ||
+          scat_data_check_type != "NONE" )
         {
           // handing over to scat_dataCheck which checks whether
           // 1) scat_data containing any NaN?
           // 2) any negative values in Z11, K11, or a1?
           // 3) sca_mat norm sufficiently good (int(Z11)~=K11-a1?)
           // 1) & 2) always done
-          // 3) only done if scat_data_check is "all"
-          scat_dataCheck( scat_data, scat_data_check, sca_mat_threshold,
+          // 3) only done if scat_data_check_type is "all"
+          scat_dataCheck( scat_data, scat_data_check_type, sca_mat_threshold,
                           verbosity );
         }
     }

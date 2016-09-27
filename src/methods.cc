@@ -3517,8 +3517,8 @@ void define_md_data_raw()
          "allowed albedo deviation *sca_mat_threshold* (for details see\n"
          "*scat_dataCheck*).\n"
          "The *scat_data* tests can be skipped entirely (setting\n"
-         "*scat_data_check* to 'none') or the normalization check alone\n"
-         "(setting *scat_data_check* to anything but 'none' and 'all').\n"
+         "*scat_data_check_type* to 'none') or the normalization check alone\n"
+         "(setting *scat_data_check_type* to anything but 'none' and 'all').\n"
          "NOTE: These test shall only be skipped when one is confident that\n"
          "the data is correct, e.g. by having run *scat_dataCheck* on the set\n"
          "of data before in a separate ARTS run.\n"
@@ -3537,9 +3537,9 @@ void define_md_data_raw()
             "cloudbox_on", "cloudbox_limits", "pnd_field",
             "f_grid", "scat_data", "scat_species",
             "abs_species", "particle_masses" ),
-        GIN(         "scat_data_check", "sca_mat_threshold" ),
-        GIN_TYPE(    "String",          "Numeric" ),
-        GIN_DEFAULT( "all",             "5e-2" ),
+        GIN(         "scat_data_check_type", "sca_mat_threshold" ),
+        GIN_TYPE(    "String",               "Numeric" ),
+        GIN_DEFAULT( "all",                  "5e-2" ),
         GIN_DESC( "The level of checks to apply on scat_data (see above).",
                   "Threshold for allowed albedo deviation." )
         ));
@@ -12169,7 +12169,7 @@ void define_md_data_raw()
          "This function checks that *scat_data* does not contain any NaN and\n"
          "that the 'scalar' properties K11, Z11, and a1 are non-negative.\n"
          "\n"
-         "This function can furthermore check (when *scat_data_check* set to\n"
+         "This function can furthermore check (when *check_type* set to\n"
          "'all') that the scattering angle integrated scattering matrix\n"
          "(int_Z11), which is supposed to be normalized to the scattering\n"
          "cross section, is sufficiently consistent with the scattering\n"
@@ -12188,9 +12188,9 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "scat_data" ),
-        GIN(         "scat_data_check", "sca_mat_threshold" ),
-        GIN_TYPE(    "String",          "Numeric" ),
-        GIN_DEFAULT( "all",             "5e-2" ),
+        GIN(         "check_type", "sca_mat_threshold" ),
+        GIN_TYPE(    "String",     "Numeric" ),
+        GIN_DEFAULT( "all",        "5e-2" ),
         GIN_DESC( "The level of checks to apply on scat_data (see above).",
                   "Threshold for allowed albedo deviation." )
         ));

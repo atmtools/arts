@@ -1,3 +1,15 @@
+2016-09-27 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-539
+
+	* src/cloudbox.cc (pnd_fieldF07ML, pnd_fieldF07TR):
+	Don't try m-D regression in case of monodispersions.
+
+	* src/m_checked.cc (cloudbox_checkedCalc),
+	src/m_optproperties.cc (scat_dataCheck), src/methods.cc:
+	Renamed keyword parameter determining what to check to
+	scat_data_check_type and check_type, respectively.
+
 2016-09-22  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-538

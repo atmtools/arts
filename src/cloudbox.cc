@@ -1573,8 +1573,8 @@ void pnd_fieldF07TR (Tensor4View pnd_field,
                    const String& delim,
                    const Verbosity& verbosity)
 {
-   const String psdname="F07TR";
-   const Index N_se = scat_meta[scat_species].nelem();
+    const String psdname="F07TR";
+    const Index N_se = scat_meta[scat_species].nelem();
     const Index scat_data_start = FlattenedIndex(scat_meta, scat_species);
     ArrayOfIndex intarr;
     Vector diameter_max_unsorted ( N_se, 0.0 );
@@ -1589,14 +1589,18 @@ void pnd_fieldF07TR (Tensor4View pnd_field,
     Vector log_D( N_se, 0.0 );
     Vector q;
     
-    //unit conversion
-    const Numeric D0=1; //[m]
-    
-    //split String and copy to ArrayOfString
-    parse_partfield_name( partfield_name, part_string, delim);
-    
-    for ( Index i=0; i < N_se; i++ )
+    if ( diameter_max.nelem() > 0 )
+    // diameter_max.nelem()=0 implies no selected scattering element for the respective
+    // scattering species field. should not occur anymore.
     {
+      //unit conversion
+      const Numeric D0=1; //[m]
+    
+      //split String and copy to ArrayOfString
+      parse_partfield_name( partfield_name, part_string, delim);
+    
+      for ( Index i=0; i < N_se; i++ )
+      {
         if ( isnan(scat_meta[scat_species][i].diameter_max) )
         {
             ostringstream os;
@@ -1608,12 +1612,12 @@ void pnd_fieldF07TR (Tensor4View pnd_field,
             throw runtime_error( os.str() );
         }
         diameter_max_unsorted[i] = ( scat_meta[scat_species][i].diameter_max );
-    }
-    get_sorted_indexes(intarr, diameter_max_unsorted);
+      }
+      get_sorted_indexes(intarr, diameter_max_unsorted);
     
-    // extract scattering meta data
-    for ( Index i=0; i< N_se; i++ )
-    {
+      // extract scattering meta data
+      for ( Index i=0; i< N_se; i++ )
+      {
         diameter_max[i] = scat_meta[scat_species][intarr[i]].diameter_max; // [m]
         
         if ( isnan(scat_meta[scat_species][intarr[i]].mass) )
@@ -1634,33 +1638,36 @@ void pnd_fieldF07TR (Tensor4View pnd_field,
         // logarithm of the mass, even though it is  little weird to have
         // a logarithm of something with a unit...
         log_m[i]=log(mass[i]);
-        
-        
-        
-    }
+      }
     
+      if ( N_se>1 )
+      {
+        //estimate mass-dimension relationship from meta data by linear regression
+        // Assumption of a power law for the mass dimension relationship
+        // Approach: log(m) = log(alpha)+beta*log(dmax/D0)
+        linreg(q,log_D, log_m);
     
-    //estimate mass-dimension relationship from meta data by liear regression
-    // Assumption of a power law for the mass dimension rlationship
-    // Ansatz: log(m) = log(alpha)+beta*log(dmax/D0)
-    linreg(q,log_D, log_m);
+        alpha=exp(q[0]);
+        beta=q[1];
+      }
+      else
+      {
+        // for a monodispersion we can't estimate the m-D relation (1 relation, 2
+        // unknowns), hence we fix one of the parameters and calculate the other
+        // such that we have them consistent. but shouldn't make any difference on
+        // the end result whatever we choose here (all ice has to end up with this
+        // scattering anyways)
+        beta=2;
+        alpha=mass[0]/(diameter_max[0]*diameter_max[0]);
+      }
     
-    alpha=exp(q[0]);
-    beta=q[1];
-    
-    CREATE_OUT2;
-    out2<<"Mass-dimension relationship m=alpha*(dmax/D0)^beta:\n"
-    <<"alpha = "<<alpha<<" kg \n"
-    <<"beta = "<<beta<<"\n";
-    
-    
-    
-    if (diameter_max.nelem() > 0)
-        // diameter_max.nelem()=0 implies no selected scattering element for the respective
-        // scattering species field. should not occur anymore.
-    {
-        // itertation over all atm. levels
-        for ( Index p=limits[0]; p<limits[1]; p++ )
+      CREATE_OUT2;
+      out2 << "Mass-dimension relationship m=alpha*(dmax/D0)^beta:\n"
+           << "alpha = " << alpha << " kg \n"
+           << "beta = " << beta << "\n";
+
+      // itertation over all atm. levels
+      for ( Index p=limits[0]; p<limits[1]; p++ )
         {
             for ( Index lat=limits[2]; lat<limits[3]; lat++ )
             {
@@ -1788,16 +1795,20 @@ void pnd_fieldF07ML (Tensor4View pnd_field,
     Vector log_D( N_se, 0.0 );
     Vector q;
     
-    //unit conversion
-    const Numeric D0=1; //[m]
-    
-    //split String and copy to ArrayOfString
-    parse_partfield_name( partfield_name, part_string, delim);
-    
-    for ( Index i=0; i < N_se; i++ )
+    if ( diameter_max.nelem() > 0 )
+    // diameter_max.nelem()=0 implies no selected scattering element for the respective
+    // scattering species field. should not occur anymore.
     {
-        if ( isnan(scat_meta[scat_species][i].diameter_max) )
-        {
+      //unit conversion
+      const Numeric D0=1; //[m]
+    
+      //split String and copy to ArrayOfString
+      parse_partfield_name( partfield_name, part_string, delim);
+  
+      for ( Index i=0; i < N_se; i++ )
+      {
+          if ( isnan(scat_meta[scat_species][i].diameter_max) )
+          {
             ostringstream os;
             os << "Use of size distribution " << psdname << " (as requested for\n"
             << "scattering species #" << scat_species << ")\n"
@@ -1805,14 +1816,14 @@ void pnd_fieldF07ML (Tensor4View pnd_field,
             << "But maximum diameter is not given for scattering elements #"
             << i << "!";
             throw runtime_error( os.str() );
-        }
-        diameter_max_unsorted[i] = ( scat_meta[scat_species][i].diameter_max );
-    }
-    get_sorted_indexes(intarr, diameter_max_unsorted);
+          }
+          diameter_max_unsorted[i] = ( scat_meta[scat_species][i].diameter_max );
+      }
+      get_sorted_indexes(intarr, diameter_max_unsorted);
     
-    // extract scattering meta data
-    for ( Index i=0; i< N_se; i++ )
-    {
+      // extract scattering meta data
+      for ( Index i=0; i< N_se; i++ )
+      {
         diameter_max[i] = scat_meta[scat_species][intarr[i]].diameter_max; // [m]
         
         if ( isnan(scat_meta[scat_species][intarr[i]].mass) )
@@ -1832,34 +1843,37 @@ void pnd_fieldF07ML (Tensor4View pnd_field,
         
         // logarithm of the mass, even though it is  little weird to have
         // a logarithm of something with a unit...
-        log_m[i]=log(mass[i]);
-        
-        
-        
-    }
+        log_m[i]=log(mass[i]);      
+      }
     
+      if ( N_se>1 )
+      {
+        //estimate mass-dimension relationship from meta data by linear regression
+        // Assumption of a power law for the mass dimension relationship
+        // Approach: log(m) = log(alpha)+beta*log(dmax/D0)
+        linreg(q,log_D, log_m);
     
-    //estimate mass-dimension relationship from meta data by liear regression
-    // Assumption of a power law for the mass dimension rlationship
-    // Ansatz: log(m) = log(alpha)+beta*log(dmax/D0)
-    linreg(q,log_D, log_m);
+        alpha=exp(q[0]);
+        beta=q[1];
+      }
+      else
+      {
+        // for a monodispersion we can't estimate the m-D relation (1 relation, 2
+        // unknowns), hence we fix one of the parameters and calculate the other
+        // such that we have them consistent. but shouldn't make any difference on
+        // the end result whatever we choose here (all ice has to end up with this
+        // scattering anyways)
+        beta=2;
+        alpha=mass[0]/(diameter_max[0]*diameter_max[0]);
+      }
     
-    alpha=exp(q[0]);
-    beta=q[1];
+      CREATE_OUT2;
+      out2 << "Mass-dimension relationship m=alpha*(dmax/D0)^beta:\n"
+           << "alpha = " << alpha << " kg \n"
+           << "beta = " << beta << "\n";
     
-    CREATE_OUT2;
-    out2<<"Mass-dimension relationship m=alpha*(dmax/D0)^beta:\n"
-    <<"alpha = "<<alpha<<" kg \n"
-    <<"beta = "<<beta<<"\n";
-    
-    
-    
-    if (diameter_max.nelem() > 0)
-        // diameter_max.nelem()=0 implies no selected scattering element for the respective
-        // scattering species field. should not occur anymore.
-    {
-        // itertation over all atm. levels
-        for ( Index p=limits[0]; p<limits[1]; p++ )
+      // itertation over all atm. levels
+      for ( Index p=limits[0]; p<limits[1]; p++ )
         {
             for ( Index lat=limits[2]; lat<limits[3]; lat++ )
             {
@@ -3370,9 +3384,6 @@ Numeric IWCtopnd_F07TR ( const Numeric d, const Numeric t,
         M2=swc/alpha;
     else
     {
-        
-        
-        
         Mbeta=swc/alpha;
         
         // calculate factors of the moment estimation parametrization
@@ -3462,8 +3473,6 @@ Numeric IWCtopnd_F07ML ( const Numeric d, const Numeric t,
         M2=swc/alpha;
     else
     {
-        
-        
         Mbeta=swc/alpha;
         
         // calculate factors of the moment estimation parametrization

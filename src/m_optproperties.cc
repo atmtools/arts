@@ -1058,7 +1058,7 @@ void pha_matCalc(Tensor4& pha_mat,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void scat_dataCheck( //Input:
                      const ArrayOfArrayOfSingleScatteringData& scat_data,
-                     const String& scat_data_check,
+                     const String& check_type,
                      const Numeric& threshold,
                      const Verbosity& verbosity )
 {
@@ -1189,8 +1189,8 @@ void scat_dataCheck( //Input:
     }
 
 
-    if( scat_data_check=="all" || scat_data_check=="All" ||
-        scat_data_check=="ALL" )
+    if( check_type=="all" || check_type=="All" ||
+        check_type=="ALL" )
     {
       // Loop over the included scattering species
       out2 << " checking normalization of scattering matrix\n";
