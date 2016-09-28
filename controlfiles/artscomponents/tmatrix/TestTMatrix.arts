@@ -57,7 +57,7 @@ ReadXML( scat_meta_single )
 # Compare to reference data to ensure calcs provide expected results.
 #
 ReadXML( ref, "TestTMatrix.aligned.ssdREFERENCE.xml" )
-Compare(scat_data_single, ref, 1e-12)
+Compare(scat_data_single, ref, 2e-10)
 
 
 # TMatrix calculation: RANDOMLY ORIENTED PARTICLE
