@@ -147,7 +147,7 @@ if freq_ind < 0
     figname = 'bt_op_part1.eps';
     saveas (gcf, fullfile(pathname, figname), 'epsc');
 else
-    figname = strcat('jac_',num2str(round((freq(freq_ind)/10^9),0)),'GHz.eps');
+    figname = strcat('jac_',num2str(round((freq(freq_ind)/10^9))),'GHz.eps');
     saveas (gcf, fullfile(pathname, figname), 'epsc');
 end
 

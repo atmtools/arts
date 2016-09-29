@@ -1,3 +1,10 @@
+2016-09-29  Lukas Kluft  <lukas.kluft@gmail.com>
+
+	* controlfiles/classroom_exercises/exe3_jacobian/plot_jacobian.m:
+
+	Removed second positional argument from round() call. It breaks backward
+	compatibility with older MATLAB versions and 0 is the default anyway.
+
 2016-09-28  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-540
