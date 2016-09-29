@@ -102,7 +102,7 @@ inline Array<base>& Array<base>::operator=(const Array<base>& A)
 {
   //  cout << "size this / A = " << size() << " / " << A.size() << "\n";
   if ( 0==this->size() )
-    resize(A.size()); // Adjust if previously empty.
+    this->resize(A.size()); // Adjust if previously empty.
   else
     assert( this->size()==A.size() );    // Otherwise check that sizes are compatible.
 
