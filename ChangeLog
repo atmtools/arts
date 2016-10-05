@@ -1,4 +1,27 @@
+2016-10-05  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-542
+
+	* src/methods.cc, src/m_atmosphere.cc:
+
+	(atm_fields_compactAddConstant): Add argument condensibles. When given,
+	the added species' vmr is scaled by the vmr of the condensibles:
+	VMR * (1 - VMR_sum_of_condensibles). Useful when the given VMR assumes
+	dry air.
+
+	(batch_atm_fields_compactAddConstant): Add argument condesibles and
+	pass it on to atm_fields_compactAddConstant.
+
+	(batch_atm_fields_compactFromArrayOfMatrix): Remove extra fields from
+	interface. They can be added with batch_atm_fields_compactAddConstant.
+
+	* CHANGES-2.3: Add info about b_a_f_cFromArrayOfMatrix changes.
+
+	* ChangeLog: Add version number to previous commit.
+
 2016-09-29  Lukas Kluft  <lukas.kluft@gmail.com>
+
+	* arts-2-3-541
 
 	* controlfiles/classroom_exercises/exe3_jacobian/plot_jacobian.m:
 

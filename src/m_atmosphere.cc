@@ -1522,18 +1522,53 @@ void atm_fields_compactAddConstant(// WS Output:
                                    const String& name,
                                    const Numeric& value,
                                    const Index& prepend,
+                                   const ArrayOfString& condensibles,
                                    const Verbosity& verbosity)
 {
-  Index nf; // Will hold new size
+    Index nf; // Will hold new size
 
-  // Add book
-  atm_fields_compactExpand(af, nf, name, prepend, verbosity);
-  
-  // Add the constant value:
-  if (prepend)
-    af.data( 0, Range(joker), Range(joker), Range(joker) ) = value;
-  else
-    af.data( nf-1, Range(joker), Range(joker), Range(joker) ) = value;
+    // Add book
+    atm_fields_compactExpand(af, nf, name, prepend, verbosity);
+
+    if (condensibles.nelem())
+    {
+        const Tensor4& vmrs = af.data;
+        const ArrayOfString& species = af.get_string_grid(GFIELD4_FIELD_NAMES);
+        Tensor3 condensible_sum(vmrs.npages(), vmrs.nrows(), vmrs.ncols(), 1.);
+        for (Index c = 0; c < condensibles.nelem(); c++)
+        {
+            bool species_found = false;
+            for (Index i = 0; !species_found && i < species.nelem(); i++)
+            {
+                if (species[i] == condensibles[c])
+                {
+                    condensible_sum -= vmrs(i, joker, joker, joker);
+                    species_found = true;
+                }
+            }
+            if (!species_found)
+            {
+                std::ostringstream os;
+                os << "Condensible species \"" << condensibles[c] << "\" not found ";
+                os << "in input data.";
+                throw runtime_error(os.str());
+            }
+        }
+        condensible_sum *= value;
+        // Add the constant value:
+        if (prepend)
+            af.data(0, joker, joker, joker) = condensible_sum;
+        else
+            af.data(nf-1, joker, joker, joker) = condensible_sum;
+    }
+    else
+    {
+        // Add the constant value:
+        if (prepend)
+            af.data(0, joker, joker, joker) = value;
+        else
+            af.data(nf-1, joker, joker, joker) = value;
+    }
 }
 
 // Workspace method, doxygen header is auto-generated
@@ -1680,11 +1715,13 @@ void batch_atm_fields_compactAddConstant(// WS Output:
                                          const String& name,
                                          const Numeric& value,
                                          const Index& prepend,
+                                         const ArrayOfString& condensibles,
                                          const Verbosity& verbosity)
 {
     for (Index i=0; i<batch_atm_fields_compact.nelem(); i++)
     {
-        atm_fields_compactAddConstant(batch_atm_fields_compact[i], name, value, prepend, verbosity);
+        atm_fields_compactAddConstant(batch_atm_fields_compact[i],
+                                      name, value, prepend, condensibles, verbosity);
     }
 
 }
@@ -1749,8 +1786,6 @@ void batch_atm_fields_compactFromArrayOfMatrix(// WS Output:
                                                const ArrayOfMatrix& am,
                                                // Control Parameters:
                                                const ArrayOfString& field_names,
-                                               const ArrayOfString& extra_field_names,
-                                               const Vector& extra_field_values,
                                                const Verbosity& verbosity)
 {
   const Index amnelem = am.nelem();
@@ -1765,16 +1800,6 @@ void batch_atm_fields_compactFromArrayOfMatrix(// WS Output:
 
   // We use the existing WSMs atm_fields_compactFromMatrix and
   // atm_fields_compactAddConstant to do most of the work.
-
-  // Check that extra_field_names and extra_field_values have matching
-  // dimensions:
-  if (extra_field_names.nelem() != extra_field_values.nelem())
-    {
-      ostringstream os; 
-      os << "The keyword arguments extra_field_names and\n"
-         << "extra_field_values must have matching dimensions.";
-      throw runtime_error( os.str() );
-    }
 
   // Make output variable the proper size:
   batch_atm_fields_compact.resize(amnelem);
@@ -1805,13 +1830,6 @@ void batch_atm_fields_compactFromArrayOfMatrix(// WS Output:
                                        am[i],
                                        field_names,
                                        verbosity);
-
-          for (Index j=0; j<extra_field_names.nelem(); ++j)
-            atm_fields_compactAddConstant(batch_atm_fields_compact[i],
-                                          extra_field_names[j],
-                                          extra_field_values[j],
-                                          0,
-                                          verbosity);
         }
       catch (runtime_error e)
         {

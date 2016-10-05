@@ -2934,19 +2934,26 @@ void define_md_data_raw()
          "\n"
          "The passed *name* of the field has to be in accordance with the\n"
          "tagging structure described for *atm_fields_compact*.\n"
+         "\n"
+         "A list of condensibles can be optionally specified if the VMR of\n"
+         "the added species is assuming dry air. The VMR of the added species\n"
+         "is then scaled down by the sum of the condensibles' VMR:\n"
+         "VMR * (1 - VMR_sum_of_condensibles).\n"
+         "For Earth this should be set to [\"abs_species-H2O\"]\n"
          ),
-        AUTHORS( "Stefan Buehler" ),
+        AUTHORS( "Stefan Buehler, Oliver Lemke" ),
         OUT( "atm_fields_compact" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "atm_fields_compact" ),
-        GIN(         "name",   "value",   "prepend" ),
-        GIN_TYPE(    "String", "Numeric", "Index" ),
-        GIN_DEFAULT( NODEF,    NODEF,     "0" ),
+        GIN(         "name",   "value",   "prepend", "condensibles" ),
+        GIN_TYPE(    "String", "Numeric", "Index", "ArrayOfString" ),
+        GIN_DEFAULT( NODEF,    NODEF,     "0",     "[]" ),
         GIN_DESC( "Name of additional atmospheric field, with constant value.",
                   "Constant value of additional field.",
-                  "0 = Append to the end, 1 = insert at the beginning.")
+                  "0 = Append to the end, 1 = insert at the beginning.",
+                  "List of condensibles used to scale down the VMR of the added species.")
         ));
 
   md_data_raw.push_back
@@ -3164,12 +3171,13 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "batch_atm_fields_compact" ),
-        GIN(         "name",   "value",   "prepend" ),
-        GIN_TYPE(    "String", "Numeric", "Index" ),
-        GIN_DEFAULT( NODEF,    NODEF,     "0" ),
+        GIN(         "name",   "value",   "prepend", "condensibles" ),
+        GIN_TYPE(    "String", "Numeric", "Index",   "ArrayOfString" ),
+        GIN_DEFAULT( NODEF,    NODEF,     "0",       "[]" ),
         GIN_DESC( "Name of additional atmospheric field, with constant value.",
                   "Constant value of additional field.",
-                  "0 = Append to the end, 1 = insert at the beginning.")
+                  "0 = Append to the end, 1 = insert at the beginning.",
+                  "List of condensibles used to scale down the VMR of the added species.")
         ));
 
    md_data_raw.push_back
@@ -3258,17 +3266,11 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "atmosphere_dim" ),
-        GIN( "atmospheres_fields"             ,
-             "field_names", "extra_field_names", "extra_field_values" ),
-        GIN_TYPE( "ArrayOfMatrix",
-                  "ArrayOfString", "ArrayOfString", "Vector" ),
-        GIN_DEFAULT( NODEF          ,
-                     NODEF,         "[]",                "[]" ),
-        //KW_DEFAULT( NODEF,         NODEF,                NODEF ),
+        GIN( "atmospheres_fields", "field_names" ),
+        GIN_TYPE( "ArrayOfMatrix", "ArrayOfString" ),
+        GIN_DEFAULT( NODEF, NODEF ),
         GIN_DESC( "Batch of atmospheres stored in one array of matrix",
-                  "Order/names of atmospheric fields.",
-                  "Names of additional atmospheric fields, with constant values.",
-                  "Constant values of additional fields.")
+                  "Order/names of atmospheric fields.")
         ));
     
   md_data_raw.push_back
