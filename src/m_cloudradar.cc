@@ -93,6 +93,7 @@ void iyCloudRadar(
    const Vector&                      rte_pos,      
    const Vector&                      rte_los,      
    const Numeric&                     rte_alonglos_v,      
+   const Numeric&                     ppath_lmax,
    const Numeric&                     ppath_lraytrace,
    const Numeric&                     ze_tref,
    const Verbosity&                   verbosity )
@@ -112,8 +113,8 @@ void iyCloudRadar(
 
   // Determine propagation path
   //
-  ppath_agendaExecute( ws, ppath, ppath_lraytrace, rte_pos, rte_los, Vector(0),
-                       0, 0, t_field, z_field, vmr_field, 
+  ppath_agendaExecute( ws, ppath, ppath_lmax, ppath_lraytrace, rte_pos, rte_los,
+                       Vector(0), 0, 0, t_field, z_field, vmr_field, 
                        f_grid, ppath_agenda );
 
   // Some basic sizes

@@ -5335,6 +5335,7 @@ void ppath_start_stepping(
    \param cloudbox_limits    Index limits of the cloud box.
    \param rte_pos            The position of the sensor.
    \param rte_los            The line-of-sight of the sensor.
+   \param ppath_lmax         As the WSM with the same name.
    \param ppath_lraytrace    As the WSM with the same name.
    \param ppath_inside_cloudbox_do  As the WSM with the same name.
 
@@ -5359,6 +5360,7 @@ void ppath_calc(
     const ArrayOfIndex&   cloudbox_limits,
     const Vector&         rte_pos,
     const Vector&         rte_los,
+    const Numeric&        ppath_lmax,
     const Numeric&        ppath_lraytrace,
     const bool&           ppath_inside_cloudbox_do,
     const Verbosity&      verbosity)
@@ -5424,8 +5426,8 @@ void ppath_calc(
       //
       istep++;
       //
-      ppath_step_agendaExecute( ws, ppath_step, ppath_lraytrace, t_field, 
-                                z_field, vmr_field, f_grid, 
+      ppath_step_agendaExecute( ws, ppath_step, ppath_lmax, ppath_lraytrace,
+                                t_field, z_field, vmr_field, f_grid, 
                                 ppath_step_agenda );
       // For debugging:
       //Print( ppath_step, 0, verbosity );
@@ -5664,8 +5666,8 @@ void ppath_calc(
       if( ppath_what_background(ppath_step) > 1 )
         {
           //Print( ppath_step, 0, verbosity );
-          ppath_step_agendaExecute( ws, ppath_step, ppath_lraytrace, t_field, 
-                                    z_field, vmr_field, f_grid, 
+          ppath_step_agendaExecute( ws, ppath_step, ppath_lmax, ppath_lraytrace,
+                                    t_field, z_field, vmr_field, f_grid, 
                                     ppath_step_agenda );
           ppath.nreal[0]  = ppath_step.nreal[0];
           ppath.ngroup[0] = ppath_step.ngroup[0];

@@ -155,6 +155,7 @@ void ppathCalc(
           Workspace&      ws,
           Ppath&          ppath,
     const Agenda&         ppath_agenda,
+    const Numeric&        ppath_lmax,
     const Numeric&        ppath_lraytrace,
     const Index&          atmgeom_checked,
     const Tensor3&        t_field,
@@ -178,7 +179,8 @@ void ppathCalc(
     throw runtime_error( "The cloudbox must be flagged to have "
                          "passed a consistency check (cloudbox_checked=1)." );
 
-  ppath_agendaExecute( ws, ppath, ppath_lraytrace, rte_pos, rte_los, rte_pos2,
+  ppath_agendaExecute( ws, ppath, ppath_lmax, ppath_lraytrace,
+                       rte_pos, rte_los, rte_pos2,
                        cloudbox_on, ppath_inside_cloudbox_do, t_field, z_field,
                        vmr_field, f_grid, ppath_agenda );
 }
@@ -204,6 +206,7 @@ void ppathFromRtePos2(
     const Matrix&         z_surface,
     const Vector&         rte_pos,
     const Vector&         rte_pos2,
+    const Numeric&        ppath_lmax,
     const Numeric&        za_accuracy,
     const Numeric&        pplrt_factor,
     const Numeric&        pplrt_lowest, 
@@ -278,7 +281,7 @@ void ppathFromRtePos2(
       ppath_calc( ws, ppt, ppath_step_agenda, atmosphere_dim, p_grid, lat_grid,
                   lon_grid, t_field, z_field, vmr_field, 
                   f_grid, refellipsoid, z_surface, 0, ArrayOfIndex(0), 
-                  rte_pos, rte_los, ppath_lraytrace, 0, verbosity );
+                  rte_pos, rte_los, ppath_lmax, ppath_lraytrace, 0, verbosity );
 
       // Find the point closest to rte_pos2, on the side towards rte_pos. 
       // We do this by looking at the distance to rte_pos, that should be 
@@ -454,8 +457,8 @@ void ppathFromRtePos2(
                             ppath_step_agenda, atmosphere_dim,
                             p_grid, lat_grid, lon_grid, t_field, z_field, 
                             vmr_field, f_grid, refellipsoid, 
-                            z_surface, rte_pos, rte_pos2, za_accuracy,
-                            pplrt_factor, pplrt_lowest, verbosity );
+                            z_surface, rte_pos, rte_pos2, ppath_lmax,
+                            za_accuracy, pplrt_factor, pplrt_lowest, verbosity );
         }
       else
         {
@@ -579,13 +582,15 @@ void ppathStepByStep(
     const ArrayOfIndex&   cloudbox_limits,
     const Vector&         rte_pos,
     const Vector&         rte_los,
+    const Numeric&        ppath_lmax,
     const Numeric&        ppath_lraytrace,
     const Verbosity&      verbosity)
 {
   ppath_calc( ws, ppath, ppath_step_agenda, atmosphere_dim, p_grid, lat_grid, 
               lon_grid, t_field, z_field, vmr_field, f_grid, 
               refellipsoid, z_surface, cloudbox_on, cloudbox_limits, rte_pos, 
-              rte_los, ppath_lraytrace, ppath_inside_cloudbox_do, verbosity );
+              rte_los, ppath_lmax, ppath_lraytrace, ppath_inside_cloudbox_do,
+              verbosity );
 }
 
 

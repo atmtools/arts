@@ -105,6 +105,7 @@ void iyRadioLink(
    const Vector&                      rte_los,      
    const Vector&                      rte_pos2,      
    const Numeric&                     rte_alonglos_v,      
+   const Numeric&                     ppath_lmax,
    const Numeric&                     ppath_lraytrace,
    const Index&                       defocus_method,
    const Numeric&                     defocus_shift,
@@ -125,7 +126,7 @@ void iyRadioLink(
 
 
   //- Determine propagation path
-  ppath_agendaExecute( ws, ppath, ppath_lraytrace, rte_pos, rte_los, 
+  ppath_agendaExecute( ws, ppath, ppath_lmax, ppath_lraytrace, rte_pos, rte_los, 
                        rte_pos2, cloudbox_on, 0, t_field, z_field, vmr_field, 
                        f_grid, ppath_agenda );
 
@@ -593,14 +594,14 @@ void iyRadioLink(
           defocusing_general( ws, dfl, ppath_step_agenda, atmosphere_dim, 
                               p_grid, lat_grid, lon_grid, t_field, z_field, 
                               vmr_field, f_grid, refellipsoid, 
-                              z_surface, ppath, ppath_lraytrace,
+                              z_surface, ppath, ppath_lmax, ppath_lraytrace,
                               defocus_shift, verbosity );
         }
       else if( defocus_method == 2 )
         { defocusing_sat2sat( ws, dfl, ppath_step_agenda, atmosphere_dim, 
                               p_grid, lat_grid, lon_grid, t_field, z_field, 
                               vmr_field, f_grid, refellipsoid, 
-                              z_surface, ppath, ppath_lraytrace, 
+                              z_surface, ppath, ppath_lmax, ppath_lraytrace, 
                               defocus_shift, verbosity ); 
         }
       if( auxDefocusingLoss >= 0 )
@@ -688,6 +689,7 @@ void iyTransmissionStandard(
    const Vector&                      rte_los,      
    const Vector&                      rte_pos2,
    const Numeric&                     rte_alonglos_v,      
+   const Numeric&                     ppath_lmax,      
    const Numeric&                     ppath_lraytrace,      
    const Verbosity&                   verbosity )
 {
@@ -701,7 +703,8 @@ void iyTransmissionStandard(
 
   // Determine propagation path
   //
-  ppath_agendaExecute( ws, ppath, ppath_lraytrace, rte_pos, rte_los, rte_pos2, 
+  ppath_agendaExecute( ws, ppath, ppath_lmax, ppath_lraytrace,
+                       rte_pos, rte_los, rte_pos2, 
                        0, 0, t_field, z_field, vmr_field, f_grid, 
                        ppath_agenda );
 

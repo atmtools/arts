@@ -439,6 +439,7 @@ void mcPathTraceGeneral(
          Index&          termination_flag,
          bool&           inside_cloud,
    const Agenda&         ppath_step_agenda,
+   const Numeric&        ppath_lmax,
    const Numeric&        ppath_lraytrace,
    const Agenda&         propmat_clearsky_agenda,
    const Index           stokes_dim,
@@ -551,8 +552,8 @@ void mcPathTraceGeneral(
       // Shall new ppath_step be calculated?
       if( ip == ppath_step.np-1 ) 
         {
-          ppath_step_agendaExecute( ws, ppath_step, ppath_lraytrace, t_field, 
-                                    z_field, vmr_field, f_grid, 
+          ppath_step_agendaExecute( ws, ppath_step, ppath_lmax, ppath_lraytrace,
+                                    t_field, z_field, vmr_field, f_grid, 
                                     ppath_step_agenda );
           //Print( ppath_step, 0, verbosity );
           ip = 1;

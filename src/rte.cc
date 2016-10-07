@@ -409,6 +409,7 @@ void defocusing_general_sub(
   ConstVectorView    rte_pos,
   const Numeric&     lo0,
   const Agenda&      ppath_step_agenda,
+  const Numeric&     ppath_lmax,
   const Numeric&     ppath_lraytrace,
   const Index&       atmosphere_dim,
   ConstVectorView    p_grid,
@@ -437,7 +438,7 @@ void defocusing_general_sub(
   ppath_calc( ws, ppx, ppath_step_agenda, atmosphere_dim, p_grid, lat_grid,
               lon_grid, t_field, z_field, vmr_field, 
               f_grid, refellipsoid, z_surface, 0, ArrayOfIndex(0), 
-              rte_pos, rte_los, ppath_lraytrace, 0, verbosity );
+              rte_pos, rte_los, ppath_lmax, ppath_lraytrace, 0, verbosity );
   //
   background = ppath_what_background( ppx );
 
@@ -520,6 +521,7 @@ void defocusing_general_sub(
     \param    refellipsoid        As the WSV with the same name.
     \param    z_surface           As the WSV with the same name.
     \param    ppath               As the WSV with the same name.
+    \param    ppath_lmax          As the WSV with the same name.
     \param    ppath_lraytrace     As the WSV with the same name.
     \param    dza                 Size of angular shift to apply.
     \param    verbosity           As the WSV with the same name.
@@ -542,6 +544,7 @@ void defocusing_general(
   ConstVectorView    refellipsoid,
   ConstMatrixView    z_surface,
   const Ppath&       ppath,
+  const Numeric&     ppath_lmax,
   const Numeric&     ppath_lraytrace,
   const Numeric&     dza,
   const Verbosity&   verbosity )
@@ -569,8 +572,8 @@ void defocusing_general(
   rte_los[0] += dza;
   //
   defocusing_general_sub( ws, pos1, rte_los, backg1, rte_pos, lo, 
-                          ppath_step_agenda, ppath_lraytrace, atmosphere_dim, 
-                          p_grid, lat_grid, lon_grid, t_field, z_field, 
+                          ppath_step_agenda, ppath_lmax, ppath_lraytrace,
+                          atmosphere_dim, p_grid, lat_grid, lon_grid, t_field, z_field, 
                           vmr_field, f_grid, refellipsoid, 
                           z_surface, verbosity );
 
@@ -582,8 +585,8 @@ void defocusing_general(
   rte_los[0] -= dza;
   //
   defocusing_general_sub( ws, pos2, rte_los, backg2, rte_pos, lo, 
-                          ppath_step_agenda, ppath_lraytrace, atmosphere_dim, 
-                          p_grid, lat_grid, lon_grid, t_field, z_field, 
+                          ppath_step_agenda, ppath_lmax, ppath_lraytrace,
+                          atmosphere_dim, p_grid, lat_grid, lon_grid, t_field, z_field, 
                           vmr_field, f_grid, refellipsoid, 
                           z_surface, verbosity );
 
@@ -653,6 +656,7 @@ void defocusing_general(
     \param    refellipsoid        As the WSV with the same name.
     \param    z_surface           As the WSV with the same name.
     \param    ppath               As the WSV with the same name.
+    \param    ppath_lmax          As the WSV with the same name.
     \param    ppath_lraytrace     As the WSV with the same name.
     \param    dza                 Size of angular shift to apply.
     \param    verbosity           As the WSV with the same name.
@@ -675,6 +679,7 @@ void defocusing_sat2sat(
   ConstVectorView    refellipsoid,
   ConstMatrixView    z_surface,
   const Ppath&       ppath,
+  const Numeric&     ppath_lmax,
   const Numeric&     ppath_lraytrace,
   const Numeric&     dza,
   const Verbosity&   verbosity )
@@ -716,7 +721,7 @@ void defocusing_sat2sat(
   ppath_calc( ws, ppt, ppath_step_agenda, atmosphere_dim, p_grid, lat_grid,
               lon_grid, t_field, z_field, vmr_field, 
               f_grid, refellipsoid, z_surface, 0, ArrayOfIndex(0), 
-              rte_pos, rte_los, ppath_lraytrace, 0, verbosity );
+              rte_pos, rte_los, ppath_lmax, ppath_lraytrace, 0, verbosity );
   bending_angle1d( alpha2, ppt );
   alpha2 *= DEG2RAD;
   a2      = ppt.constant; 
@@ -726,7 +731,7 @@ void defocusing_sat2sat(
   ppath_calc( ws, ppt, ppath_step_agenda, atmosphere_dim, p_grid, lat_grid,
               lon_grid, t_field, z_field, vmr_field, 
               f_grid, refellipsoid, z_surface, 0, ArrayOfIndex(0), 
-              rte_pos, rte_los, ppath_lraytrace, 0, verbosity );
+              rte_pos, rte_los, ppath_lmax, ppath_lraytrace, 0, verbosity );
   // This path can hit the surface. And we need to check if ppt is OK.
   // (remember this function only deals with sat-to-sat links and OK 
   // background here is be space) 

@@ -664,7 +664,7 @@ void define_agenda_data()
         "either be used directly, or serve as inspiration.\n"
         ),
        OUTPUT( "ppath" ),
-       INPUT( "ppath_lraytrace", "rte_pos", "rte_los", "rte_pos2",
+       INPUT( "ppath_lmax", "ppath_lraytrace", "rte_pos", "rte_los", "rte_pos2",
               "cloudbox_on", "ppath_inside_cloudbox_do", "t_field", "z_field", 
               "vmr_field", "f_grid" )));
 
@@ -714,8 +714,8 @@ void define_agenda_data()
         "used here."
         ),
        OUTPUT( "ppath_step" ),
-       INPUT( "ppath_step", "ppath_lraytrace", "t_field", "z_field", 
-              "vmr_field", "f_grid" )));
+       INPUT( "ppath_step", "ppath_lmax", "ppath_lraytrace",
+              "t_field", "z_field", "vmr_field", "f_grid" )));
 
   agenda_data.push_back
     (AgRecord

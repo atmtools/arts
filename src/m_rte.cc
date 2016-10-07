@@ -216,12 +216,14 @@ void iyEmissionStandard(
    const Vector&                     rte_los,      
    const Vector&                     rte_pos2, 
    const Numeric&                    rte_alonglos_v,      
+   const Numeric&                    ppath_lmax,
    const Numeric&                    ppath_lraytrace,
    const Verbosity&                  verbosity )
 {
   // Determine propagation path
   //
-  ppath_agendaExecute( ws, ppath, ppath_lraytrace, rte_pos, rte_los, rte_pos2, 
+  ppath_agendaExecute( ws, ppath, ppath_lmax, ppath_lraytrace,
+                       rte_pos, rte_los, rte_pos2, 
                        cloudbox_on, 0, t_field, z_field, vmr_field, f_grid, 
                        ppath_agenda );
   //
@@ -902,6 +904,7 @@ void iyMC(
    const Agenda&                     surface_rtprop_agenda,
    const Agenda&                     propmat_clearsky_agenda, 
    const Agenda&                     ppath_step_agenda, 
+   const Numeric&                    ppath_lmax, 
    const Numeric&                    ppath_lraytrace, 
    const Tensor4&                    pnd_field,
    const String&                     iy_unit,
@@ -1004,7 +1007,7 @@ void iyMC(
         MCGeneral( l_ws, y, mc_iteration_count, mc_error, mc_points, 
                    mc_scat_order, mc_source_domain, mc_antenna,
                    f_grid, f_index, pos, los, stokes_dim, atmosphere_dim,
-                   l_ppath_step_agenda, ppath_lraytrace, l_iy_space_agenda, 
+                   l_ppath_step_agenda, ppath_lmax, ppath_lraytrace, l_iy_space_agenda, 
                    l_surface_rtprop_agenda, l_propmat_clearsky_agenda, 
                    p_grid, lat_grid, lon_grid, z_field, 
                    refellipsoid, z_surface, t_field, vmr_field,

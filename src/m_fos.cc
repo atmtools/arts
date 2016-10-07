@@ -95,6 +95,7 @@ void fos(
    const Vector&                        rte_los,      
    const Vector&                        rte_pos2, 
    const Numeric&                       rte_alonglos_v,      
+   const Numeric&                       ppath_lmax,
    const Numeric&                       ppath_lraytrace,
    const Matrix&                        fos_scatint_angles,
    const Vector&                        fos_iyin_za_angles,
@@ -112,7 +113,8 @@ void fos(
 
   // Determine propagation path
   //
-  ppath_agendaExecute( ws, ppath, ppath_lraytrace, rte_pos, rte_los, rte_pos2, 
+  ppath_agendaExecute( ws, ppath, ppath_lmax, ppath_lraytrace,
+                       rte_pos, rte_los, rte_pos2, 
                        0, 0, t_field, z_field, vmr_field, f_grid, 
                        ppath_agenda );
 
@@ -540,7 +542,7 @@ void fos(
                                  propmat_clearsky_agenda, iy_main_agenda, 
                                  iy_space_agenda, iy_surface_agenda, 0,
                                  iy_trans_new, pos, los, rte_pos2, 
-                                 rte_alonglos_v, ppath_lraytrace, 
+                                 rte_alonglos_v, ppath_lmax, ppath_lraytrace, 
                                  fos_scatint_angles, fos_iyin_za_angles, 
                                  fos_za_interporder, fos_n, fos_i+1,
                                  verbosity );
@@ -788,6 +790,7 @@ void iyFOS(
    const Vector&                      rte_los,      
    const Vector&                      rte_pos2, 
    const Numeric&                     rte_alonglos_v,      
+   const Numeric&                     ppath_lmax,
    const Numeric&                     ppath_lraytrace,
    const Matrix&                      fos_scatint_angles,
    const Vector&                      fos_iyin_za_angles,
@@ -839,6 +842,6 @@ void iyFOS(
        ppath_agenda, propmat_clearsky_agenda,
        iy_main_agenda, iy_space_agenda, iy_surface_agenda, iy_agenda_call1,
        iy_transmission, rte_pos, rte_los, rte_pos2, rte_alonglos_v, 
-       ppath_lraytrace, fos_scatint_angles, fos_iyin_za_angles, 
+       ppath_lmax, ppath_lraytrace, fos_scatint_angles, fos_iyin_za_angles, 
        fos_za_interporder, n, 0, verbosity );
 }

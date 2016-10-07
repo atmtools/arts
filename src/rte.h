@@ -95,6 +95,7 @@ void defocusing_general(
   ConstVectorView    refellipsoid,
   ConstMatrixView    z_surface,
   const Ppath&       ppath,
+  const Numeric&     ppath_lmax,
   const Numeric&     ppath_lraytrace,
   const Numeric&     dza,
   const Verbosity&   verbosity );
@@ -114,6 +115,7 @@ void defocusing_sat2sat(
   ConstVectorView    refellipsoid,
   ConstMatrixView    z_surface,
   const Ppath&       ppath,
+  const Numeric&     ppath_lmax,
   const Numeric&     ppath_lraytrace,
   const Numeric&     dza,
   const Verbosity&   verbosity );

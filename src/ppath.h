@@ -303,6 +303,7 @@ void ppath_calc(
     const ArrayOfIndex&   cloudbox_limits,
     const Vector&         rte_pos,
     const Vector&         rte_los,
+    const Numeric&        ppath_lmax,
     const Numeric&        ppath_lraytrace,
     const bool&           ppath_inside_cloudbox_do,
     const Verbosity&      verbosity);
