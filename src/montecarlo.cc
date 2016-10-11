@@ -458,7 +458,7 @@ void mcPathTraceGeneral(
    const Verbosity&      verbosity )
 { 
   ArrayOfMatrix evol_opArray(2); 
- ArrayOfMatrix ext_matArray(2);
+  ArrayOfMatrix ext_matArray(2);
   ArrayOfVector abs_vecArray(2);
   ArrayOfVector pnd_vecArray(2);
   Matrix        ext_mat(stokes_dim,stokes_dim);
@@ -571,7 +571,7 @@ void mcPathTraceGeneral(
           if( ip == ppath_step.np-1 ) 
             {
               const Numeric lmax = min( ppath_lmax,
-                                        taustep_lim/ext_mat_mono(1,1) );
+                                        taustep_lim/ext_mat_mono(0,0) );
               //cout << ppath_try << ", lmax = " << lmax << endl;              
               ppath_step_agendaExecute( ws, ppath_step, lmax, ppath_lraytrace,
                                         t_field, z_field, vmr_field, f_grid, 
