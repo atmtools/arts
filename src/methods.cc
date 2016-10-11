@@ -13375,11 +13375,12 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "f_grid", "stokes_dim", "atmosphere_dim", "rtp_los", 
-            "surface_skin_t", "surface_scalar_reflectivity", "lambertian_nza" ),
-        GIN(         "za_pos"  ),
-        GIN_TYPE(    "Numeric" ),
-        GIN_DEFAULT( "0.5"     ),
-        GIN_DESC( "Position of angle in *surface_los* inside ranges of zenith "
+            "surface_skin_t", "surface_scalar_reflectivity" ),
+        GIN(         "lambertian_nza", "za_pos"  ),
+        GIN_TYPE(    "Index", "Numeric" ),
+        GIN_DEFAULT( "9", "0.5" ),
+        GIN_DESC( "Number of downwelling streams.",
+                  "Position of angle in *surface_los* inside ranges of zenith "
                   "angle grid. See above."
                   )
         ));

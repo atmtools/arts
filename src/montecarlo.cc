@@ -457,8 +457,8 @@ void mcPathTraceGeneral(
    const ArrayOfArrayOfSingleScatteringData& scat_data_mono,
    const Verbosity&      verbosity )
 { 
-  ArrayOfMatrix evol_opArray(2);
-  ArrayOfMatrix ext_matArray(2);
+  ArrayOfMatrix evol_opArray(2); 
+ ArrayOfMatrix ext_matArray(2);
   ArrayOfVector abs_vecArray(2);
   ArrayOfVector pnd_vecArray(2);
   Matrix        ext_mat(stokes_dim,stokes_dim);
@@ -549,47 +549,87 @@ void mcPathTraceGeneral(
       tArray[0]       = tArray[1];
       pnd_vecArray[0] = pnd_vecArray[1];
 
-      // Shall new ppath_step be calculated?
-      if( ip == ppath_step.np-1 ) 
+      const Numeric taustep_lim = 100;
+
+      // The algorith to meet taustep_lim:
+      // When first calculating a new ppath_step, it assumed that the present
+      // ppath position holds the highest extinction. If the extinction at the
+      // next position is higher, the criterion is checked and a new ppath_step
+      // calculation is triggered if found necessary.
+      // This should work in most cases, but is not 100% safe. Consider a case
+      // with ppath_lmax = -1 and the extinction is zero at all grid box
+      // corners except one. The two "test points" can then both get an
+      // extinction of zero, while in fact is non-zero through the grid box and
+      // the optical depth is underestimated. But this was handled equally bad
+      // before taustep_lim was introduced (2016-10-10, PE) 
+      bool  oktaustep = false;
+      Index ppath_try = 1;
+      
+      while( !oktaustep )
         {
-          ppath_step_agendaExecute( ws, ppath_step, ppath_lmax, ppath_lraytrace,
-                                    t_field, z_field, vmr_field, f_grid, 
-                                    ppath_step_agenda );
-          //Print( ppath_step, 0, verbosity );
-          ip = 1;
+          // Shall new ppath_step be calculated?
+          if( ip == ppath_step.np-1 ) 
+            {
+              const Numeric lmax = min( ppath_lmax,
+                                        taustep_lim/ext_mat_mono(1,1) );
+              //cout << ppath_try << ", lmax = " << lmax << endl;              
+              ppath_step_agendaExecute( ws, ppath_step, lmax, ppath_lraytrace,
+                                        t_field, z_field, vmr_field, f_grid, 
+                                        ppath_step_agenda );
+              //Print( ppath_step, 0, verbosity );
+              ip = 1;
 
-          inside_cloud = is_gp_inside_cloudbox( ppath_step.gp_p[ip], 
-                                                ppath_step.gp_lat[ip], 
-                                                ppath_step.gp_lon[ip], 
-                                                cloudbox_limits, 0, 3 );
-        }
-      else
-        { ip++; }
+              inside_cloud = is_gp_inside_cloudbox( ppath_step.gp_p[ip], 
+                                                    ppath_step.gp_lat[ip], 
+                                                    ppath_step.gp_lon[ip], 
+                                                    cloudbox_limits, 0, 3 );
+            }
+          else
+            { ip++; }
 
-      dl = ppath_step.lstep[ip-1];
+          if( inside_cloud )
+            {
+              cloudy_rt_vars_at_gp( ws, ext_mat_mono, abs_vec_mono, pnd_vec,
+                                    temperature, propmat_clearsky_agenda, 
+                                    stokes_dim, f_mono, ppath_step.gp_p[ip],
+                                    ppath_step.gp_lat[ip], ppath_step.gp_lon[ip],
+                                    p_grid[p_range], 
+                                    t_field(p_range,lat_range,lon_range), 
+                                    vmr_field(joker,p_range,lat_range,lon_range),
+                                    pnd_field, scat_data_mono, cloudbox_limits,
+                                    ppath_step.los(ip,joker), verbosity );
+            }
+          else
+            {
+              clear_rt_vars_at_gp( ws, ext_mat_mono, abs_vec_mono, temperature, 
+                                   propmat_clearsky_agenda, f_mono,
+                                   ppath_step.gp_p[ip], ppath_step.gp_lat[ip],
+                                   ppath_step.gp_lon[ip], p_grid, t_field, 
+                                   vmr_field );
+              pnd_vec = 0.0;
+            }
 
-      if( inside_cloud )
-        {
-          cloudy_rt_vars_at_gp( ws, ext_mat_mono, abs_vec_mono, pnd_vec,
-                                temperature, propmat_clearsky_agenda, 
-                                stokes_dim, f_mono, ppath_step.gp_p[ip],
-                                ppath_step.gp_lat[ip], ppath_step.gp_lon[ip],
-                                p_grid[p_range], 
-                                t_field(p_range,lat_range,lon_range), 
-                                vmr_field(joker,p_range,lat_range,lon_range),
-                                pnd_field, scat_data_mono, cloudbox_limits,
-                                ppath_step.los(ip,joker), verbosity );
-        }
-      else
-        {
-          clear_rt_vars_at_gp( ws, ext_mat_mono, abs_vec_mono, temperature, 
-                               propmat_clearsky_agenda, f_mono,
-                               ppath_step.gp_p[ip], ppath_step.gp_lat[ip],
-                               ppath_step.gp_lon[ip], p_grid, t_field, 
-                               vmr_field );
-          pnd_vec = 0.0;
-        }
-
+          dl = ppath_step.lstep[ip-1];
+          
+          // Check if taustep_lim criterion is met. OK if:
+          // 1. Ppath step already recalculated
+          // 2. New ext_mat <= old one
+          // 3. New ext_mat bigger, but tau of step still below limit
+          if( ppath_try > 1  ||  ext_mat_mono(0,0) <= ext_matArray[0](0,0)  ||  
+              (ext_mat_mono(0,0)+ext_matArray[0](0,0))*dl/2 <= taustep_lim )
+            {
+              oktaustep = true;
+            }
+          else
+            {
+              // We trigger a recalculation of ppath_step, from the previous
+              // point
+              ppath_step.np = ip; 
+              ip--;
+              ppath_try     = 2;
+            }
+        } // while !oktuastep
+      
       ext_matArray[1] = ext_mat_mono;
       abs_vecArray[1] = abs_vec_mono;
       tArray[1]       = temperature;
@@ -605,7 +645,7 @@ void mcPathTraceGeneral(
       mult( evol_op, evol_opArray[0], incT );
       evol_opArray[1] = evol_op;
      
-      if( evol_op(0,0)>r )
+      if( evol_op(0,0) > r )
         {
           // Check whether hit ground or space.
           // path_step_agenda just detects surface intersections, and

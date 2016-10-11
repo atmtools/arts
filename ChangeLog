@@ -1,3 +1,25 @@
+2016-10-11  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-544
+
+	* src/montecarlo.cc (mcPathTraceGeneral): Code added that allows
+	setting a limit on each path step in terms of optical thickness.
+	Thsi feature is being tested. In this commit tau limit is
+	hard-coded to 100, which maintains the old behaviour except for
+	extreme situations.
+
+	* controlfiles/general/agendas_surface.arts: Removed za_pos=0.5
+	from definitions including surfaceLambertianSimple. This is anyhow
+	default for the method. In addition, standard agenda definitions
+	should use method default values, otherwise we have basically two
+	different default settings.
+
+	* src/methods.cc: For surfaceLambertianSimple, moved
+	lambertian_nza from IN to GIN. The value 9 was selected as default.
+
+	* src/workspace.cc: Removed lambertian_nza as WSV. Semmed
+	unnecessary to have such a specific variable as WSV.
+
 2016-10-06  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-543
