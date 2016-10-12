@@ -532,6 +532,8 @@ void mcPathTraceGeneral(
   Numeric r = rng.draw();
 
   termination_flag=0;
+
+
   
   while( (evol_op(0,0)>r) && (!termination_flag) )
     {
@@ -573,10 +575,11 @@ void mcPathTraceGeneral(
               const Numeric lmax = min( ppath_lmax,
                                         taustep_lim/ext_mat_mono(0,0) );
               //cout << ppath_try << ", lmax = " << lmax << endl;              
+              //Print( ppath_step, 0, verbosity );
+                            
               ppath_step_agendaExecute( ws, ppath_step, lmax, ppath_lraytrace,
                                         t_field, z_field, vmr_field, f_grid, 
                                         ppath_step_agenda );
-              //Print( ppath_step, 0, verbosity );
               ip = 1;
 
               inside_cloud = is_gp_inside_cloudbox( ppath_step.gp_p[ip], 
@@ -627,6 +630,8 @@ void mcPathTraceGeneral(
               ppath_step.np = ip; 
               ip--;
               ppath_try     = 2;
+              // If a background found in first try this has to be reset:
+              ppath_set_background( ppath_step, 0 );
             }
         } // while !oktuastep
       

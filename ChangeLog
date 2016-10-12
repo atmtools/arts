@@ -1,3 +1,11 @@
+2016-10-12  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-546
+
+	* src/montecarlo.cc (mcPathTraceGeneral): Made sure that
+	background is set to undefined when recalculating ppath step.
+	Needed when ppath step ends at the surface.
+
 2016-10-11  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-545
