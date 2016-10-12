@@ -2868,6 +2868,18 @@ void Workspace::define_wsv_data()
        GROUP( "Numeric" )));
 
   wsv_data.push_back
+    (WsvRecord
+     ( NAME( "mc_taustep_limit" ),
+       DESCRIPTION
+       (
+        "Defines an upper step length in terms of optical thickness for Monte "
+        "Carlo calculations.\n"
+        "\n"
+        "Usage: Set by the user.\n"
+        ),
+       GROUP( "Numeric" )));
+
+  wsv_data.push_back
    (WsvRecord
     ( NAME( "met_amsu_data" ),
       DESCRIPTION

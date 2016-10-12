@@ -166,6 +166,7 @@ AgendaSet( geo_pos_agenda ){
 # MC
 #
 IndexSet( mc_min_iter, 100 )
+NumericSet( mc_taustep_limit, 0.1 )
 
 
 #

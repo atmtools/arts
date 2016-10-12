@@ -1,5 +1,29 @@
 2016-10-12  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-3-547
+
+	* This commit introdcues a new MC feature!!! There is now an upper
+	limit on the optical path for each step. Default value, in
+	general.arts, is set to 0.1. All tests done so far indicated same
+	or better results. We will do more tests and later send out an
+	email. Please keep an eye on your MC results until then.
+
+	* controlfiles/artscomponents/arts-xml-data/TestSurf_Earth.arts:
+	Removed a setting of lambertian_nza as this old WSV is removed.
+
+	* controlfiles/general/general.arts: Added default for
+	mc_taustep_limit. Set it to 0.1.
+
+	* src/m_montecarlo.cc (MCGeneral):
+	* src/m_rte.cc (iyMC): mc_taustep_limit is now input and passed on.
+
+	* src/workspace.cc (define_wsv_data): Added mc_taustep_limit.
+
+	* src/montecarlo.cc (mcPathTraceGeneral): taustep_limit is now an
+	input argument.
+
+2016-10-12  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-3-546
 
 	* src/montecarlo.cc (mcPathTraceGeneral): Made sure that

@@ -50,7 +50,6 @@ NumericCreate( refl_land )
 NumericCreate( refl_sea )
 NumericSet( refl_land, 0.05 ) #emiss=0.95
 NumericSet( refl_sea, 0.4 )   #emiss=0.60
-IndexSet( lambertian_nza, 4 )
 
 # the 3D geo grid to test
 VectorCreate( lat_grid3D )

@@ -6744,10 +6744,10 @@ void define_md_data_raw()
          "weighting the errors with the sensor repsonse matrix. The seed is\n"
          "reset for each call of *MCGeneral* to obtain uncorrelated errors.\n"
          "\n"
-         "MC control arguments (mc_std_err, mc_max_time, mc_min_iter and\n"
-         "mc_mas_iter) as for *MCGeneral*. The arguments are applied\n"
+         "MC control arguments (mc_std_err, mc_max_time, mc_min_iter, mc_max_iter\n"
+         "mc_taustep_limit) as for *MCGeneral*. The arguments are applied\n"
          "for each monochromatic pencil beam calculation individually.\n"
-         "As or *MCGeneral*, the value of *mc_error* shall be adopted to\n"
+         "As for *MCGeneral*, the value of *mc_error* shall be adopted to\n"
          "*iy_unit*.\n"
          "\n"
          "The following auxiliary data can be obtained:\n"
@@ -6766,12 +6766,11 @@ void define_md_data_raw()
         IN( "iy_agenda_call1", "iy_transmission", "rte_pos", "rte_los", 
             "iy_aux_vars", "jacobian_do", "atmosphere_dim", "p_grid", 
             "lat_grid", "lon_grid", "z_field", "t_field", "vmr_field", 
-            "refellipsoid", 
-            "z_surface", "cloudbox_on", "cloudbox_limits",
+            "refellipsoid", "z_surface", "cloudbox_on", "cloudbox_limits",
             "stokes_dim", "f_grid", "scat_data", "iy_space_agenda", 
             "surface_rtprop_agenda", "propmat_clearsky_agenda",
             "ppath_step_agenda", "ppath_lmax", "ppath_lraytrace", "pnd_field", "iy_unit",
-            "mc_std_err", "mc_max_time", "mc_max_iter", "mc_min_iter" ),
+            "mc_std_err", "mc_max_time", "mc_max_iter", "mc_min_iter", "mc_taustep_limit" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -9130,8 +9129,10 @@ void define_md_data_raw()
             "t_field", "vmr_field", "cloudbox_on", "cloudbox_limits", 
             "pnd_field", "scat_data_mono",
             "atmfields_checked", "atmgeom_checked",
-            "cloudbox_checked", "iy_unit", "mc_seed", 
-            "mc_std_err", "mc_max_time", "mc_max_iter", "mc_min_iter" ),
+            "cloudbox_checked", "iy_unit",
+            "mc_seed", "mc_std_err", "mc_max_time",
+            "mc_max_iter", "mc_min_iter", "mc_taustep_limit"
+            ),
         GIN( "l_mc_scat_order" ),
         GIN_TYPE( "Index" ),
         GIN_DEFAULT( "11" ),

@@ -421,6 +421,9 @@ bool is_anyptype30(const ArrayOfArrayOfSingleScatteringData& scat_data_mono)
     Revised.  Added handling of ppath_step_agenda. Correct handling of ppath
     steps having more than two points.
 
+    2016-10-12  Patrick Eriksson
+    Added taustep_limit feature.
+
     \author Cory Davis
     \date 2005-2-21
 */
@@ -441,6 +444,7 @@ void mcPathTraceGeneral(
    const Agenda&         ppath_step_agenda,
    const Numeric&        ppath_lmax,
    const Numeric&        ppath_lraytrace,
+   const Numeric&        taustep_limit,
    const Agenda&         propmat_clearsky_agenda,
    const Index           stokes_dim,
    const Numeric&        f_mono,
@@ -533,8 +537,6 @@ void mcPathTraceGeneral(
 
   termination_flag=0;
 
-
-  
   while( (evol_op(0,0)>r) && (!termination_flag) )
     {
       istep++;
@@ -551,8 +553,6 @@ void mcPathTraceGeneral(
       tArray[0]       = tArray[1];
       pnd_vecArray[0] = pnd_vecArray[1];
 
-      const Numeric taustep_lim = 100;
-
       // The algorith to meet taustep_lim:
       // When first calculating a new ppath_step, it assumed that the present
       // ppath position holds the highest extinction. If the extinction at the
@@ -563,7 +563,7 @@ void mcPathTraceGeneral(
       // corners except one. The two "test points" can then both get an
       // extinction of zero, while in fact is non-zero through the grid box and
       // the optical depth is underestimated. But this was handled equally bad
-      // before taustep_lim was introduced (2016-10-10, PE) 
+      // before taustep_limit was introduced (2016-10-10, PE) 
       bool  oktaustep = false;
       Index ppath_try = 1;
       
@@ -573,7 +573,7 @@ void mcPathTraceGeneral(
           if( ip == ppath_step.np-1 ) 
             {
               const Numeric lmax = min( ppath_lmax,
-                                        taustep_lim/ext_mat_mono(0,0) );
+                                        taustep_limit/ext_mat_mono(0,0) );
               //cout << ppath_try << ", lmax = " << lmax << endl;              
               //Print( ppath_step, 0, verbosity );
                             
@@ -614,12 +614,12 @@ void mcPathTraceGeneral(
 
           dl = ppath_step.lstep[ip-1];
           
-          // Check if taustep_lim criterion is met. OK if:
+          // Check if taustep_limit criterion is met. OK if:
           // 1. Ppath step already recalculated
           // 2. New ext_mat <= old one
           // 3. New ext_mat bigger, but tau of step still below limit
           if( ppath_try > 1  ||  ext_mat_mono(0,0) <= ext_matArray[0](0,0)  ||  
-              (ext_mat_mono(0,0)+ext_matArray[0](0,0))*dl/2 <= taustep_lim )
+              (ext_mat_mono(0,0)+ext_matArray[0](0,0))*dl/2 <= taustep_limit )
             {
               oktaustep = true;
             }
