@@ -1,3 +1,22 @@
+2016-10-14 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-549
+
+	* src/m_optproperties.cc (ScatSpeciesMerge):
+	As we change scat_data here, reset cloudbox_checked to 0 (unchecked).
+
+	* src/m_jacobian.cc (jacobianDoit):
+	Adapting to change above, run cloudbox_checkedCalc after the Merge
+	calls. Requires the WSM to carry a few more interface parameters.
+
+	* src/methods.cc: Adapt to above changes.
+
+	* src/make_array.h: Change to allow longer WSM parameter lists.
+
+	* controlfiles/artscomponents/wfuns/TestDoitJacobians.arts,
+	controlfiles/artscomponents/disort/TestDISORT.arts:
+	Add calls of cloudbox_checkedCalc after ScatSpeciesMerge.
+
 2016-10-14  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-548

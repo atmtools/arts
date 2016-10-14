@@ -2312,12 +2312,12 @@ void jacobianDoit(//WS Output:
                   const ArrayOfRetrievalQuantity& jacobian_quantities,
                   const ArrayOfArrayOfIndex& jacobian_indices,
                   const ArrayOfArrayOfSpeciesTag& abs_species,
-                  const Vector& /* p_grid */,
                   const Index& atmosphere_dim,
                   const ArrayOfIndex& cloudbox_limits,
                   // input required for pnd_fieldCalcFromscat_speciesFields
-                  // input required for ScatSpeciesMerge
+                  // input required for ScatSpeciesMerge and cloudbox_checkedCalc
                   const Matrix& z_surface,
+                  const Vector& p_grid,
                   // input required for DoitCalc
                   const Index& atmfields_checked,
                   const Index& atmgeom_checked,
@@ -2349,6 +2349,8 @@ void jacobianDoit(//WS Output:
                   const Index& ScatSpeciesMerge_do,
                   const Index& debug,
                   const String& delim,
+                  const String& scat_data_check_type,
+                  const Numeric& sca_mat_threshold,
                   const Verbosity& verbosity)
 {
 /*
@@ -2446,13 +2448,26 @@ void jacobianDoit(//WS Output:
   ArrayOfString scat_species_ref;
   if( ScatSpeciesMerge_do )
     {
+      Index cb_chk_internal=cloudbox_checked;
       scat_data_ref=scat_data;
       scat_meta_ref=scat_meta;
       scat_species_ref=scat_species;
+      Vector latlon_dummy(0);
+      Matrix part_mass_dummy(0,0);
+      Tensor3 wind_dummy(0,0,0);
       ScatSpeciesMerge(	pnd_field, scat_data, scat_meta, scat_species,
+                        cb_chk_internal,
                         atmosphere_dim, cloudbox_on, cloudbox_limits,
                         t_field, z_field,
-                        z_surface, cloudbox_checked, verbosity );
+                        z_surface, verbosity );
+    // check that the merged scat_data still fulfills the requirements
+      cloudbox_checkedCalc( cb_chk_internal, atmfields_checked, atmosphere_dim,
+                            p_grid, latlon_dummy, latlon_dummy, z_field,
+                            z_surface, wind_dummy, wind_dummy, wind_dummy,
+                            cloudbox_on, cloudbox_limits, pnd_field, f_grid,
+                            scat_data, scat_species, abs_species,
+                            part_mass_dummy, scat_data_check_type,
+                            sca_mat_threshold, verbosity );
       if( debug )
         {
           WriteXML( "ascii", pnd_field, "pnd_field_refmerged", 0, "pnd_field",
@@ -2852,12 +2867,28 @@ void jacobianDoit(//WS Output:
                       //scat_data=scat_data_ref;
                       //scat_meta=scat_meta_ref;
                       //scat_species=scat_species_ref;
+                      Index cb_chk_internal=cloudbox_checked;
+                      Vector latlon_dummy(0);
+                      Matrix part_mass_dummy(0,0);
+                      Tensor3 wind_dummy(0,0,0);
                       ScatSpeciesMerge( pnd_field,
                                         scat_data, scat_meta, scat_species,
+                                        cb_chk_internal,
                                         atmosphere_dim,
                                         cloudbox_on, cloudbox_limits,
                                         t_field, z_field,
-                                        z_surface, cloudbox_checked, verbosity );
+                                        z_surface, verbosity );
+                      cloudbox_checkedCalc( cb_chk_internal,
+                                            atmfields_checked, atmosphere_dim,
+                                            p_grid, latlon_dummy, latlon_dummy,
+                                            z_field, z_surface,
+                                            wind_dummy, wind_dummy, wind_dummy,
+                                            cloudbox_on, cloudbox_limits,
+                                            pnd_field, f_grid, scat_data,
+                                            scat_species, abs_species,
+                                            part_mass_dummy,
+                                            scat_data_check_type,
+                                            sca_mat_threshold, verbosity );
                       if( debug )
                         {
                           WriteXMLIndexed( "ascii", iq*np+il, scat_data,

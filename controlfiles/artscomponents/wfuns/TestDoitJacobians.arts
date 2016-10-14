@@ -228,6 +228,7 @@ AgendaSet( ybatch_calc_agenda ){
   Copy( scat_species_orig, scat_species )
   Copy( pnd_field_orig, pnd_field )
   ScatSpeciesMerge
+  cloudbox_checkedCalc
 
   # Initialize Doit variables
   DoitInit

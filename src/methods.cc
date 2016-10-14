@@ -8281,9 +8281,8 @@ void define_md_data_raw()
             "pnd_field", "vmr_field", "t_field", "scat_data", "scat_meta",
             "scat_species",
             "jacobian_quantities", "jacobian_indices",
-            "abs_species",
-            "p_grid", "atmosphere_dim", "cloudbox_limits",
-            "z_surface",
+            "abs_species", "atmosphere_dim", "cloudbox_limits",
+            "z_surface", "p_grid",
             "atmfields_checked", "atmgeom_checked", "cloudbox_checked",
             "cloudbox_on", "f_grid", "doit_mono_agenda", "doit_is_initialized",
             "z_field", "sensor_checked", "stokes_dim", 
@@ -8292,16 +8291,26 @@ void define_md_data_raw()
             "sensor_response_pol", "sensor_response_dlos",
             "iy_unit", "iy_main_agenda", "geo_pos_agenda",
             "jacobian_agenda", "jacobianDoit_do", "iy_aux_vars" ),
-        GIN( "robust", "ScatSpeciesMerge_do", "debug", "scat_species_delim" ),
-        GIN_TYPE( "Index",        "Index",           "Index", "String" ),
-        GIN_DEFAULT(  "1",            "0",               "0", "-" ),
-        GIN_DESC( "Flag (0=no,1=yes) whether to continue perturbation "
-                  "calculations, even if individual calculations fail. When set"
-                  "robust, respective entries in *jacobian* are set to NaN.",
-                  "Flag (0=no,1=yes) whether to execute *ScatSpeciesMerge* on "
-                  "perturbed *pnd_field*",
+        GIN(         "robust", "ScatSpeciesMerge_do", "debug",
+                     "scat_species_delim", "scat_data_check_type",
+                     "sca_mat_threshold" ),
+        GIN_TYPE(    "Index",  "Index",               "Index",
+                     "String",             "String",
+                     "Numeric" ),
+        GIN_DEFAULT( "1",      "0",                   "0",
+                     "-",                  "sanity",
+                     "5e-2" ),
+        GIN_DESC( "Flag (0=no,1=yes) whether to continue perturbation"
+                  " calculations, even if individual calculations fail. When"
+                  " set robust, respective entries in *jacobian* are set to"
+                  " NaN.",
+                  "Flag (0=no,1=yes) whether to execute *ScatSpeciesMerge* on"
+                  " perturbed *pnd_field*",
                   "Debug flag (dumps some additional output to files)",
-                  "*scat_species* delimiter string"
+                  "*scat_species* delimiter string",
+                  "Only used in case of *ScatSpeciesMerge_do*=1. See"
+                  " cloudbox_checkedCalc for meaning.",
+                  "As *scat_data_check_type*."
                   )
         ));
          
@@ -11925,13 +11934,15 @@ void define_md_data_raw()
          "This method can only be used with a 1D atmosphere.\n"
          ),
         AUTHORS( "Oliver Lemke" ),
-        OUT( "pnd_field", "scat_data", "scat_meta", "scat_species" ),
+        OUT( "pnd_field", "scat_data", "scat_meta", "scat_species",
+             "cloudbox_checked" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "pnd_field", "scat_data", "scat_meta", "scat_species",
+            "cloudbox_checked",
             "atmosphere_dim", "cloudbox_on", "cloudbox_limits",
-            "t_field", "z_field", "z_surface", "cloudbox_checked" ),
+            "t_field", "z_field", "z_surface" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),

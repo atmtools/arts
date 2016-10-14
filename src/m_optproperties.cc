@@ -1951,6 +1951,7 @@ void ScatSpeciesMerge(//WS Output:
                       ArrayOfArrayOfSingleScatteringData& scat_data,
                       ArrayOfArrayOfScatteringMetaData& scat_meta,
                       ArrayOfString& scat_species,
+                      Index& cloudbox_checked,
                       //WS Input:
                       const Index& atmosphere_dim,
                       const Index& cloudbox_on,
@@ -1958,12 +1959,15 @@ void ScatSpeciesMerge(//WS Output:
                       const Tensor3& t_field,
                       const Tensor3& z_field,
                       const Matrix& z_surface,
-                      const Index& cloudbox_checked,
                       const Verbosity& /*verbosity*/)
 {
+    // cloudbox variable state should be ok before entering here
     if (!cloudbox_checked)
         throw std::runtime_error(
               "You must call *cloudbox_checkedCalc* before this method.");
+    //however, we modify cloudbox variables. hence force re-checking the new
+    //variables by resetting cloudbox_checked to False.
+    cloudbox_checked = 0;
     
     if (atmosphere_dim != 1)
         throw std::runtime_error(
