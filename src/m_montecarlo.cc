@@ -316,7 +316,7 @@ void MCGeneral(Workspace&            ws,
         {
           mcPathTraceGeneral( ws, evol_op, abs_vec_mono, temperature, 
                               ext_mat_mono, rng, local_rte_pos, local_rte_los, 
-                              pnd_vec, g,ppath_step, termination_flag, 
+                              pnd_vec, g, ppath_step, termination_flag, 
                               inside_cloud, ppath_step_agenda,
                               ppath_lmax, ppath_lraytrace, taustep_limit,
                               propmat_clearsky_agenda, stokes_dim, f_mono, 
@@ -363,9 +363,9 @@ void MCGeneral(Workspace&            ws,
                                             local_rte_pos, local_rte_los, 
                                             surface_rtprop_agenda );
               
-              if( local_surface_los.nrows() > 1 )
-                throw runtime_error( 
-                              "The method handles only specular reflections." );
+              //if( local_surface_los.nrows() > 1 )
+              // throw runtime_error( 
+              //                "The method handles only specular reflections." );
 
               //deal with blackbody case
               if( local_surface_los.empty() )
@@ -379,8 +379,13 @@ void MCGeneral(Workspace&            ws,
               else
                 //decide between reflection and emission
                 {
-                  Numeric R11 = local_surface_rmatrix(0,0,0,0);
-                  if( rng.draw() > R11 )
+                  const Numeric rnd = rng.draw();
+
+                  Numeric R11 = 0;
+                  for( Index i=0; i<local_surface_rmatrix.nbooks(); i++ )
+                    { R11 += local_surface_rmatrix(i,0,0,0); }
+                  
+                  if( rnd > R11 )
                     {
                       //then we have emission
                       mult( vector1, evol_op, local_surface_emission(0,joker) );
@@ -392,12 +397,21 @@ void MCGeneral(Workspace&            ws,
                   else
                     {
                       //we have reflection
-                      local_rte_los = local_surface_los( 0, joker );
+                      // determine which reflection los to use
+                      Index i=0;
+                      Numeric rsum = local_surface_rmatrix(i,0,0,0);
+                      while( rsum < rnd )
+                        {
+                          i++;
+                          rsum += local_surface_rmatrix(i,0,0,0);
+                        }
                       
-                      mult( q, evol_op, local_surface_rmatrix(0,0,joker,joker));
+                      local_rte_los = local_surface_los( i, joker );
+                      
+                      mult( q, evol_op, local_surface_rmatrix(i,0,joker,joker) );
                       mult( newQ, Q, q );
                       Q  = newQ;
-                      Q /= g*R11;
+                      Q /= g * local_surface_rmatrix(i,0,0,0);
                     }
                 }
             }

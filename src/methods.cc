@@ -13388,6 +13388,27 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "surfaceSplitSpecular" ),
+        DESCRIPTION
+        (
+         "...\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "surface_los", "surface_rmatrix" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "surface_los", "surface_rmatrix", "atmosphere_dim", "rtp_los" ),
+        GIN(         "specular_factor", "dza"  ),
+        GIN_TYPE(    "Numeric", "Numeric" ),
+        GIN_DEFAULT( NODEF, NODEF ),
+        GIN_DESC( "...",
+                  "..."
+                  )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "surface_complex_refr_indexFromGriddedField5" ),
         DESCRIPTION
         (

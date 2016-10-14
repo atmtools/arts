@@ -1,3 +1,13 @@
+2016-10-14  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-548
+
+	* src/m_montecarlo.cc (MCGeneral): MC can now also handle cases
+	where the surface_los have more than 1 angle.
+
+	* src/m_surface.cc (surfaceSplitSpecular): So far just an
+	undocumented method used to test the new feature above.
+
 2016-10-12  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-547

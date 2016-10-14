@@ -1214,6 +1214,116 @@ void surfaceLambertianSimple(
 }
 
 
+/* Workspace method: Doxygen documentation will be auto-generated */
+void surfaceSplitSpecular(
+          Matrix&    surface_los,
+          Tensor4&   surface_rmatrix,
+    const Index&     atmosphere_dim,
+    const Vector&    rtp_los,
+    const Numeric&   specular_factor,
+    const Numeric&   dza,
+    const Verbosity&)
+{
+  // Check that input surface data are of specular type
+  if( surface_los.nrows() != 1 )
+    throw runtime_error( "Input surface data must be of specular type. That is, "
+                         "*surface_los* must contain a single direction." );
+  if( surface_rmatrix.nbooks() != 1 )
+    throw runtime_error( "*surface_rmatrix* describes a different number of "
+                         "directions than *surface_los*." );
+
+  // Checks of GIN variables
+  if( specular_factor > 1  || specular_factor < 1.0/3.0 )
+    throw runtime_error( "The valid range for *specular_factor* is [1/3,1]." );
+  if( dza > 45  || dza < 0 )
+    throw runtime_error( "The valid range for *dza* is [0,45]." );
+  
+  
+  // Make copies of input data
+  const Matrix  los1     = surface_los;
+  const Tensor4 rmatrix1 = surface_rmatrix;
+
+  // Use abs(za) in all expressions below, to also handle 2D
+  
+  // Calculate highest possible za for downwelling radiation, with 1 degree
+  // margin to the surface. This can be derived from za in rtp_los and surface_los.
+  // (The directions in surface_los are not allowed to point into the surface)
+  const Numeric za_max = 89 + (180-abs(los1(0,0))-abs(rtp_los[0])) / 2.0;
+
+  // Number of downwelling beams
+  Index nbeams = 3;
+  if( abs(los1(0,0)) > za_max )
+    { nbeams = 2; }
+  
+  // New los-s
+  //
+  surface_los.resize( nbeams, los1.ncols() );
+  //
+  for( Index r=0; r<nbeams; r++ )
+    {
+      surface_los(r,0) = ( (Numeric)r-1.0 ) * dza + abs(los1(0,0));
+      if( r==2  &&  surface_los(r,0) > za_max )
+        { surface_los(r,0) = za_max; }
+      for( Index c=1; c<los1.ncols(); c++ )
+        { surface_los(r,c) = los1(0,c); }
+    } 
+
+  // New rmatrix
+  //
+  surface_rmatrix.resize( nbeams, rmatrix1.npages(), rmatrix1.nrows(), rmatrix1.ncols() );
+  //
+  for( Index b=0; b<nbeams; b++ )
+    {
+      Numeric w;
+      if( b==1 && nbeams == 3 )    // Specular direction with nbeams==3
+        { w = specular_factor; }
+      else if( b==1 )              // Specular direction with nbeams==2
+        { w = specular_factor + ( 1.0 - specular_factor ) / 2.0; }
+      else                         // Side directions
+        { w = ( 1.0 - specular_factor ) / 2.0; }
+
+      for( Index p=0; p<rmatrix1.npages(); p++ )
+        {
+          for( Index r=0; r<rmatrix1.nrows(); r++ )
+            {
+              for( Index c=0; c<rmatrix1.ncols(); c++ )
+                {
+                  surface_rmatrix(b,p,r,c) = w * rmatrix1(0,p,r,c);
+                }
+            }
+        }
+    }
+
+  // Handle sign of za
+  if( atmosphere_dim == 1 )
+    {
+      // We only need to make sure that first direction has positive za
+      surface_los(0,0) = abs( surface_los(0,0) );
+    }
+  else if( atmosphere_dim == 2 )
+    {
+      // Change sign if specular direction has za < 0
+      if( los1(0,0) < 0 )
+        {
+          for( Index r=0; r<rmatrix1.nrows(); r++ )
+            { surface_los(r,0) = -surface_los(r,0); }
+        }
+    }
+  else if( atmosphere_dim == 1 )
+    {
+      // We only need to make sure that first direction has positive za
+      if( surface_los(0,0) < 0 )
+        {
+          surface_los(0,0) = -surface_los(0,0);
+          surface_los(0,1) += 180;
+          if( surface_los(0,1) > 180 )
+            { surface_los(0,1) -= 360; }
+          
+        }
+    }
+}
+
+
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void surface_complex_refr_indexFromGriddedField5(
