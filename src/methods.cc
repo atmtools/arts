@@ -2587,7 +2587,34 @@ void define_md_data_raw()
         GIN( "chk_vmr_nan" ),
         GIN_TYPE( "Index" ),
         GIN_DEFAULT( "1" ),
-        GIN_DESC( "TBA" )
+        GIN_DESC( "Flag to determine if a search for NaN shall be performed or not." )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "AtmFieldsExtract1D" ),
+        DESCRIPTION
+        (
+         "Converts 2D or 3D homogeneous atmospheric fields to a 1D case.\n"
+         "\n"
+         "The method extracts data for given latitude and longitude index\n"
+         "to create a 1D atmosphere. *AtmosphereSet1D* is called to set\n"
+         "output values of *atmosphere_dim*, *lat_grid* and *lon_grid*.\n"
+         "Nothing is done if *atmosphere_dim* alöready is 1.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "atmosphere_dim", "lat_grid", "lon_grid", "t_field", "z_field",
+             "vmr_field" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "atmosphere_dim", "lat_grid", "lon_grid", "t_field", "z_field",
+            "vmr_field" ),
+        GIN( "ilat", "ilon" ),
+        GIN_TYPE( "Index", "Index" ),
+        GIN_DEFAULT( "0", "0" ),
+        GIN_DESC( "Pick data having this latitude index (0-based).",
+                  "Pick data having this longitude index (0-based)." )
         ));
 
   md_data_raw.push_back

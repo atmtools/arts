@@ -3230,6 +3230,66 @@ void AtmFieldsExpand1D(Tensor3&         t_field,
 }
 
 
+/* Workspace method: Doxygen documentation will be auto-generated */
+void AtmFieldsExtract1D(
+                     Index&    atmosphere_dim,
+                     Vector&   lat_grid,
+                     Vector&   lon_grid,
+                     Tensor3&  t_field,
+                     Tensor3&  z_field,
+                     Tensor4&  vmr_field,
+              const Index&     ilat,
+              const Index&     ilon,
+              const Verbosity& verbosity )
+{
+  if( atmosphere_dim == 1 )
+    { return; }
+
+  if( ilat < 0  ||  ilat >= lat_grid.nelem() )
+    throw runtime_error( "Invalid of *ilat*. It must be >= 0 and less than "
+                         "length of *lat_grid*." );
+  
+  if( atmosphere_dim == 2 )
+    {
+      Vector vtmp;
+      vtmp = t_field(joker,ilat,0);
+      t_field.resize( t_field.npages(), 1, 1 );
+      t_field(joker,0,0) = vtmp; 
+      vtmp = z_field(joker,ilat,0);
+      z_field.resize( z_field.npages(), 1, 1 );
+      z_field(joker,0,0) = vtmp; 
+      Matrix mtmp;
+      mtmp = vmr_field(joker,joker,ilat,0);
+      vmr_field.resize( vmr_field.nbooks(), vmr_field.npages(), 1, 1 );      
+      vmr_field(joker,joker,0,0) = mtmp; 
+    }
+  else if( atmosphere_dim == 3 )
+    {
+      if( ilat < 0  ||  ilon >= lon_grid.nelem() )
+        throw runtime_error( "Invalid of *ilon*. It must be >= 0 and less than "
+                             "length of *lon_grid*." );
+      Vector vtmp;
+      vtmp = t_field(joker,ilat,ilon);
+      t_field.resize( t_field.npages(), 1, 1 );
+      t_field(joker,0,0) = vtmp; 
+      vtmp = z_field(joker,ilat,ilon);
+      z_field.resize( z_field.npages(), 1, 1 );
+      z_field(joker,0,0) = vtmp; 
+      Matrix mtmp;
+      mtmp = vmr_field(joker,joker,ilat,ilon);
+      vmr_field.resize( vmr_field.nbooks(), vmr_field.npages(), 1, 1 );      
+      vmr_field(joker,joker,0,0) = mtmp; 
+    }
+  
+  else 
+    {
+      throw runtime_error( "Invalid of *atmosphere_dim*. It must be 1-3." );
+    }
+  
+  AtmosphereSet1D( atmosphere_dim, lat_grid, lon_grid, verbosity );
+}
+
+
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void AtmFieldsRefinePgrid(// WS Output:
