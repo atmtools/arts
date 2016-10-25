@@ -46,6 +46,7 @@
 #include "interpolation.h"
 #include "messages.h"
 #include "xml_io.h"
+#include "montecarlo.h"
 #include "optproperties.h"
 #include "math_funcs.h"
 #include "sorting.h"
@@ -2263,6 +2264,7 @@ void ScatSpeciesMerge(//WS Output:
 }
 
 
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void ExtractFromMetaSingleScatSpecies(
                      //WS Output:
@@ -2316,4 +2318,83 @@ void ExtractFromMetaSingleScatSpecies(
             throw runtime_error( os.str() );
           }
       }
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void TestScatDataInterp(
+   const ArrayOfArrayOfSingleScatteringData&   scat_data,
+   const Index&       stokes_dim,
+   const Vector&      f_grid,
+   const Vector&      rtp_los,
+   const Numeric&     rtp_temperature,
+   const Index&       scat_elem_index,
+   const Verbosity&   verbosity )
+{
+  // Hard-coded grids
+  const Vector pha_mat_za( 0.0, 37, 5.0 );
+  const Vector pha_mat_aa( -180.0, 37, 10.0 );
+
+  // Some sizes
+  Index n_scat_elem = 0;
+  for( Index i=0; i<scat_data.nelem(); i++ )
+    { n_scat_elem += scat_data[i].nelem(); }
+  const Index n_za        = pha_mat_za.nelem();
+  const Index n_aa        = pha_mat_aa.nelem();
+
+  // Input checks
+  if( f_grid.nelem() != 1 )
+    throw runtime_error( "Only length 1 *f_grid* allowed." );
+  if( rtp_los.nelem() != 2 )
+    throw runtime_error( "Only length 2 *rtp_los* allowed." );
+  if( scat_elem_index < 0  ||  scat_elem_index >= n_scat_elem )
+    throw runtime_error( "Invalid choice for *scat_element_index*" );
+
+  // Common variables
+  const Index f_index = 0;
+  //
+  Vector pnd_vec(n_scat_elem,0); pnd_vec[scat_elem_index] = 1;
+
+  
+  // Monte Carlo
+  //
+  Matrix ext_mat_mc( stokes_dim, stokes_dim, 0.0 );
+  Vector abs_vec_mc( stokes_dim, 0.0 );
+  Tensor4 pha_mat_mc( n_za, n_aa, stokes_dim, stokes_dim, 0.0 );
+  //
+  ArrayOfArrayOfSingleScatteringData   scat_data_mono;
+  //
+  scat_data_monoCalc( scat_data_mono, scat_data,
+                      f_grid, f_index, verbosity );
+  //
+  Vector out;
+  mirror_los( out, rtp_los, 3 );  
+  //  
+  opt_propCalc( ext_mat_mc, abs_vec_mc, out[0], out[1], scat_data_mono,
+                stokes_dim, pnd_vec, rtp_temperature, verbosity );
+  //
+  for( Index iz=0; iz<n_za; iz++ )
+    {
+      Vector in_los(2);
+      in_los[0] = pha_mat_za[iz];
+      
+      for( Index ia=0; ia<n_aa; ia++ )
+        {
+          Vector inc;
+          in_los[1] = pha_mat_aa[ia];
+          mirror_los( inc, in_los, 3 );
+          pha_mat_singleCalc( pha_mat_mc(iz,ia,joker,joker),
+                              out[0], out[1], inc[0], inc[1],
+                              scat_data_mono, stokes_dim, pnd_vec,
+                              rtp_temperature, verbosity );
+        }
+    }
+
+  const Index itest = 5;
+  
+  cout << "MC absorption vector:\n" << abs_vec_mc << endl;
+  cout << "MC extinction matrix:\n" << ext_mat_mc << endl;
+  cout << "MC phase matrix (" << itest << "," << itest << "):\n"
+       << pha_mat_mc(itest,itest,joker,joker) << endl;
 }

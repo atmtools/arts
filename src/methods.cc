@@ -15504,5 +15504,23 @@ void define_md_data_raw()
         GIN_DEFAULT(),
         GIN_DESC()
         ));
-    
+
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "TestScatDataInterp" ),
+        DESCRIPTION
+        (
+         "So far just for some testing.\n"
+         ),
+        AUTHORS( "Patrick" ),
+        OUT(),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "scat_data", "stokes_dim", "f_grid", "rtp_los", "rtp_temperature"  ),
+        GIN( "scat_elem_index" ),
+        GIN_TYPE( "Index" ),
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC( "!!!" )
+        ));    
 }
