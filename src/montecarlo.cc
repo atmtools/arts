@@ -80,7 +80,6 @@ void clear_rt_vars_at_gp(Workspace&          ws,
   ao_gp_lon[0]=gp_lon;
   
   // Determine the pressure 
-
   interpweights( itw_p, ao_gp_p );
   itw2p( p_vec, p_grid, ao_gp_p, itw_p );
   
@@ -165,7 +164,6 @@ void cloudy_rt_vars_at_gp(Workspace&           ws,
   Matrix   vmr_ppath(ns,1), itw_field;
   Matrix ext_mat_part(stokes_dim, stokes_dim, 0.0);
   Vector abs_vec_part(stokes_dim, 0.0);
-  Numeric scat_za,scat_aa;
 
   //local versions of workspace variables
   ArrayOfTensor3 local_partial_dummy; // This is right since there should be only clearsky partials
@@ -192,7 +190,8 @@ void cloudy_rt_vars_at_gp(Workspace&           ws,
   
   //rtp_vmr    = vmr_ppath(joker,0);
   propmat_clearsky_agendaExecute(ws, local_propmat_clearsky,
-                                 local_nlte_source_dummy,local_partial_dummy,local_dnlte_dx_source_dummy,local_nlte_dsource_dx_dummy,
+                                 local_nlte_source_dummy,local_partial_dummy,
+                                 local_dnlte_dx_source_dummy,local_nlte_dsource_dx_dummy,
                                  ArrayOfRetrievalQuantity(0),
                                  Vector(1, f_mono), rtp_mag_dummy,
                                  ppath_los_dummy,p_ppath[0],
@@ -207,15 +206,12 @@ void cloudy_rt_vars_at_gp(Workspace&           ws,
   abs_vec_mono=local_abs_vec(0,joker);
   ext_mat_part=0.0;
   abs_vec_part=0.0;
-  scat_za=180-rte_los[0];
-  scat_aa=rte_los[1]+180;
-  //Make sure scat_aa is between -180 and 180
-  if (scat_aa>180){scat_aa-=360;}
+
+  Vector sca_dir;
+  mirror_los( sca_dir, rte_los, 3 );
   //
-  //opt_prop_part_agenda.execute( true );
-  //use pnd_ppath and ext_mat_spt to get extmat (and similar for abs_vec
-  pnd_vec=pnd_ppath(joker, 0);
-  opt_propCalc(ext_mat_part,abs_vec_part,scat_za,scat_aa,scat_data_mono,
+  pnd_vec = pnd_ppath(joker, 0);
+  opt_propCalc(ext_mat_part,abs_vec_part,sca_dir[0],sca_dir[1],scat_data_mono,
                stokes_dim, pnd_vec, temperature,verbosity);
   
   ext_mat_mono += ext_mat_part;
@@ -495,6 +491,14 @@ void mcPathTraceGeneral(
                         0, cloudbox_limits, false, 
                         rte_pos, rte_los, verbosity );
 
+  // Check if we have already has radiative background
+  if( ppath_what_background(ppath_step) )
+    { 
+      termination_flag = ppath_what_background(ppath_step);
+      g = 1;
+      return;
+    }
+  
   // Index in ppath_step of end point considered presently
   Index ip = 0;
 
@@ -1413,7 +1417,9 @@ void Sample_los (
 {
   Numeric Z11max=0;
   bool tryagain=true;
-  Numeric aa_scat = (rte_los[1]>=0) ?-180+rte_los[1]:180+rte_los[1];
+
+  Vector sca_dir;
+  mirror_los( sca_dir, rte_los, 3 );
       
   // Rejection method http://en.wikipedia.org/wiki/Rejection_sampling
   if(anyptype30)
@@ -1430,23 +1436,24 @@ void Sample_los (
       Matrix dummyZ(stokes_dim,stokes_dim);
       //The following is based on the assumption that the maximum value of the 
       //phase matrix for a given scattered direction is for forward scattering
-      pha_mat_singleCalc(dummyZ,180-rte_los[0],aa_scat,180-rte_los[0],
-                         aa_scat,scat_data_mono,stokes_dim,pnd_vec,rtp_temperature,
-                         verbosity);
+      pha_mat_singleCalc( dummyZ, sca_dir[0], sca_dir[1], sca_dir[0], sca_dir[1],
+                          scat_data_mono, stokes_dim, pnd_vec, rtp_temperature,
+                          verbosity);
       Z11max=dummyZ(0,0);
     }  
   ///////////////////////////////////////////////////////////////////////  
   while(tryagain)
     {
-      new_rte_los[1] = rng.draw()*360-180;
       new_rte_los[0] = acos(1-2*rng.draw())*RAD2DEG;
+      new_rte_los[1] = rng.draw()*360-180;
+
       //Calculate Phase matrix////////////////////////////////
-      Numeric aa_inc= (new_rte_los[1]>=0) ?
-        -180+new_rte_los[1]:180+new_rte_los[1];
+      Vector inc_dir;
+      mirror_los( inc_dir, new_rte_los, 3 );
       
-      pha_mat_singleCalc(Z,180-rte_los[0],aa_scat,180-new_rte_los[0],
-                         aa_inc,scat_data_mono,stokes_dim,pnd_vec,rtp_temperature,
-                         verbosity);
+      pha_mat_singleCalc( Z, sca_dir[0], sca_dir[1], inc_dir[0], inc_dir[1],
+                          scat_data_mono, stokes_dim, pnd_vec, rtp_temperature,
+                          verbosity );
       
       if (rng.draw()<=Z(0,0)/Z11max)//then new los is accepted
         {
@@ -1455,3 +1462,4 @@ void Sample_los (
     }
   g_los_csc_theta =Z(0,0)/Csca;
 }
+
