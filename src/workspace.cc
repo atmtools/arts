@@ -4985,6 +4985,15 @@ void Workspace::define_wsv_data()
   
  wsv_data.push_back
     (WsvRecord
+     ( NAME( "surface_rtprop_sub_agenda" ),
+      DESCRIPTION
+      (
+       "Sub-agenda to *surface_rtprop_agenda.\n"
+       ),
+      GROUP( "Agenda" )));
+    
+ wsv_data.push_back
+    (WsvRecord
      ( NAME( "surface_rtprop_sub_agenda0" ),
        DESCRIPTION
        (

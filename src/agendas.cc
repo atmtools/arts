@@ -789,6 +789,25 @@ void define_agenda_data()
 
   agenda_data.push_back
     (AgRecord
+     ( NAME( "surface_rtprop_sub_agenda" ),
+       DESCRIPTION
+       (
+        "Has exact same functionality as *surface_rtprop_sub_agenda*.\n"
+        "\n"
+        "This agenda complements *surface_rtprop_sub_agenda*, to allow\n"
+        "specifying the surface properties using two levels of agendas.\n"
+        "For example, this agenda can describe the properties for pure specular\n"
+        "reflections, and *surface_rtprop_agenda* can call this agenda for several\n"
+        "angles to build up a more complex surface model.\n"
+        "\n"
+        "Note that this agenda is not part of the series of agendas named as\n"
+        "surface_rtprop_sub_agendaX.\n"
+        ),
+       OUTPUT( "surface_emission", "surface_los", "surface_rmatrix" ),
+       INPUT( "f_grid", "rtp_pos", "rtp_los" )));
+
+  agenda_data.push_back
+    (AgRecord
      ( NAME( "surface_rtprop_sub_agenda0" ),
        DESCRIPTION
        (
@@ -803,6 +822,9 @@ void define_agenda_data()
         "\n"
         "See *surface_type_mask* for comments on the surface type coding\n"
         "scheme. Note the parallel agenda series: iy_surface_sub_agendaX.\n"
+        "\n"
+        "Note that *surface_rtprop_sub_agenda* is not part of this series of\n"
+        "agendas, it has a different functionality.\n"
         ),
        OUTPUT( "surface_emission", "surface_los", "surface_rmatrix" ),
        INPUT( "f_grid", "rtp_pos", "rtp_los", "surface_type_aux" )));

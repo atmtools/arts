@@ -13426,10 +13426,72 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "surfaceSplitSpecular" ),
+      ( NAME( "surfaceSemiSpecularBy3beams" ),
         DESCRIPTION
         (
-         "...\n"
+         "A simplistic treatment of semi-specular surfaces.\n"
+         "\n"
+         "This method has no strong physical basis but could be used for simpler\n"
+         "testing or as starting point for more advanced methods.\n"
+         "\n"
+         "This method assumes that the surface can be treated to have three facets,\n"
+         "all lacking surface roughness. One facete is assumed to give standard\n"
+         "specular reflection, while the two other facets are tilted with +dza\n"
+         "and -dza, respectively. The tilt is assumed to only affect the zenith\n"
+         "angle of the reflected direction (azimuth same as for specular direction).\n"
+         "The area ratio of the non-tilted facete is set by *specular_factor*.\n"
+         "That is, the specular beam is given weight w, while the other two beams\n"
+         "each get weight (1-w)/2.\n"
+         "\n"         
+         "If the facete tilting away from the viewing direction in such way that\n"
+         "the surface is observed from below, the tilt of the facete is decreased\n" 
+         "in steps of 1 degree until a succesful calculation is obtained. If this\n"
+         "turns out to require a tilt of zero, this facete is merged with\n"
+         "the specular direction.\n"
+         "\n"
+         "The pure specular properties of the surface shall be described by\n"
+         "*surface_rtprop_sub_agenda*. That is, if you have specular surface\n" 
+         "described and you want to make it semi-specular by this method, you\n"
+         "move the content of the existing *surface_rtprop_agenda* to\n"
+         "*surface_rtprop_sub_agenda* and instead fill *surface_rtprop_agenda*\n"
+         "with this method.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "surface_los", "surface_rmatrix", "surface_emission" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "atmosphere_dim", "f_grid", "rtp_pos", "rtp_los",
+            "surface_rtprop_sub_agenda" ),
+        GIN(         "specular_factor", "dza"  ),
+        GIN_TYPE(    "Numeric", "Numeric" ),
+        GIN_DEFAULT( NODEF, NODEF ),
+        GIN_DESC( "The weight given to the specular direction. Denoted as w above."
+                  " A value between 1/3 and 1.",
+                  "Zenith angle seperation to each secondary direction. A "
+                  "between 0 and 45 degrees."
+                  )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "surfaceSplitSpecularTo3beams" ),
+        DESCRIPTION
+        (
+         "A very simple approximation of a semi-specular surface.\n"
+         "\n"
+         "This method has no direct physical basis but could be used for simpler\n"
+         "testing or as starting point for more advanced methods.\n"
+         "\n"
+         "The method requires that the surface RT properties (e.g. *surface_los*)\n"
+         "have been set up to mimic a specular surface. This method splits the down-\n"
+         "welling radiation into three directions. The specular direction is given\n"
+         "weight w, while the other two beams each get weight (1-w)/2. The basic\n"
+         "polarised reflectivity from the specular calculations is maintained\n"
+         "for each beam. The beams are just separated in zenith angle, with a\n"
+         "separation of *dza*. The lowermost beam is not allowed to be closer to\n"
+         "the surface than 1 degree. If there is no room for the lowermost beam,\n"
+         "it is merged with the main beam.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "surface_los", "surface_rmatrix" ),
@@ -13440,8 +13502,10 @@ void define_md_data_raw()
         GIN(         "specular_factor", "dza"  ),
         GIN_TYPE(    "Numeric", "Numeric" ),
         GIN_DEFAULT( NODEF, NODEF ),
-        GIN_DESC( "...",
-                  "..."
+        GIN_DESC( "The weight given to the specular direction. Denoted as w above."
+                  " A value between 1/3 and 1.",
+                  "Zenith angle seperation to each secondary direction. A "
+                  "between 0 and 45 degrees."
                   )
         ));
 

@@ -1,3 +1,17 @@
+2016-10-27  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-553
+
+	* src/m_surface.cc (specular_losCalc): Now throws a runtime error
+	if the incoming direction corresponds to hit the surface from below.
+
+	(surfaceSemiSpecularBy3beams): New WSM.
+
+	(surfaceSplitSpecularTo3beams): Renamed from surfaceSplitSpecular
+	and built-in doc written.
+
+	* src/agendas.cc: Defined surface_rtprop_sub_agenda.
+
 2016-10-26  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-552

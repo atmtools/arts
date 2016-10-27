@@ -697,6 +697,9 @@ void specular_losCalc(
   if( atmosphere_dim == 1 )
     { 
       surface_normal[0] = 0;
+      if( rtp_los[0] < 90 )
+        { throw runtime_error( "Invalid zenith angle. The zenith angle corresponds "
+                               "to observe the surface from below." ); }      
       specular_los[0]   = 180 - rtp_los[0]; 
     }
 
@@ -712,7 +715,10 @@ void specular_losCalc(
       const Numeric rv_surface = refell2d( refellipsoid, lat_grid, gp_lat )
                                 + interp( itw, z_surface(joker,0), gp_lat );
       surface_normal[0] = -plevel_angletilt( rv_surface, c1 );
-      specular_los[0]   = sign( rtp_los[0] ) * 180 - rtp_los[0] + 
+      if( abs(rtp_los[0]-surface_normal[0]) < 90 )
+        { throw runtime_error( "Invalid zenith angle. The zenith angle corresponds "
+                               "to observe the surface from below." ); }
+      specular_los[0] = sign( rtp_los[0] ) * 180 - rtp_los[0] + 
                                                            2*surface_normal[0];
     }
 
@@ -747,6 +753,9 @@ void specular_losCalc(
       // Set LOS normal vector 
       cart2zaaa( surface_normal[0], surface_normal[1], normal[0], normal[1], 
                                                                   normal[2] );
+      if( abs(rtp_los[0]-surface_normal[0]) < 90 )
+        { throw runtime_error( "Invalid zenith angle. The zenith angle corresponds "
+                               "to observe the surface from below." ); }
       // Specular direction is 2(dn*di)dn-di, where dn is the normal vector
       Vector speccart(3);      
       const Numeric fac = 2 * (normal * di);
@@ -1214,8 +1223,143 @@ void surfaceLambertianSimple(
 }
 
 
+
 /* Workspace method: Doxygen documentation will be auto-generated */
-void surfaceSplitSpecular(
+void surfaceSemiSpecularBy3beams(
+          Workspace& ws,
+          Matrix&    surface_los,
+          Tensor4&   surface_rmatrix,
+          Matrix&    surface_emission,
+    const Index&     atmosphere_dim,
+    const Vector&    f_grid,
+    const Vector&    rtp_pos,
+    const Vector&    rtp_los,
+    const Agenda&    surface_rtprop_sub_agenda,          
+    const Numeric&   specular_factor,
+    const Numeric&   dza,
+    const Verbosity& )
+{
+  // Checks of GIN variables
+  if( specular_factor > 1  || specular_factor < 1.0/3.0 )
+    throw runtime_error( "The valid range for *specular_factor* is [1/3,1]." );
+  if( dza > 45  || dza <= 0 )
+    throw runtime_error( "The valid range for *dza* is ]0,45]." );
+
+  // Obtain data for specular direction
+  //
+  Matrix  los1, emission1;
+  Tensor4 rmatrix1;
+  //
+  surface_rtprop_sub_agendaExecute( ws, emission1, los1, rmatrix1,
+                                    f_grid, rtp_pos, rtp_los,
+                                    surface_rtprop_sub_agenda );
+  if( los1.nrows() != 1 )
+    throw runtime_error( "*surface_rtprop_sub_agenda* must return data "
+                         "describing a specular surface." );
+  
+  // Standard number of beams. Set to 2 if try/catch below fails
+  Index nbeams = 3;
+  
+  // Test if some lower zenith angle works.
+  // It will fail if a higher za results in looking at the surface from below.
+  //
+  Matrix  los2, emission2;
+  Tensor4 rmatrix2;
+  //
+  Numeric dza_try = dza;
+  bool failed = true;
+  while( failed && dza_try > 0 )
+    {
+      try
+        {
+          Vector los_new = rtp_los;
+          los_new[0] -= sign(rtp_los[0]) * dza_try;  // Sign to also handle 2D negative za
+          adjust_los( los_new, atmosphere_dim );
+          surface_rtprop_sub_agendaExecute( ws, emission2, los2, rmatrix2,
+                                            f_grid, rtp_pos, los_new,
+                                            surface_rtprop_sub_agenda );
+          failed = false;
+        }
+      catch( runtime_error e ) 
+        { dza_try -= 1.0; }
+    }
+  if( failed ) { nbeams = 2; }
+  
+  // Allocate output WSVs
+  //
+  surface_emission.resize( emission1.nrows(), emission1.ncols() );
+  surface_emission = 0;
+  surface_los.resize( nbeams, los1.ncols() );
+  surface_rmatrix.resize( nbeams, rmatrix1.npages(), rmatrix1.nrows(), rmatrix1.ncols() );
+
+  // Put in specular direction at index 1
+  //
+  Numeric w;
+  if( nbeams == 3 ) 
+    { w = specular_factor; }
+  else 
+    { w = specular_factor + ( 1.0 - specular_factor ) / 2.0; }
+  //
+  surface_los(1,joker) = los1(0,joker);
+  for( Index p=0; p<rmatrix1.npages(); p++ )
+    {
+      for( Index r=0; r<rmatrix1.nrows(); r++ )
+        {
+          surface_emission(p,r) += w * emission1(p,r);
+          for( Index c=0; c<rmatrix1.ncols(); c++ )
+            {
+              surface_rmatrix(1,p,r,c) = w * rmatrix1(0,p,r,c);
+            }
+        }
+    }
+
+  // Put in lower za as index 2, if worked
+  //
+  w = ( 1.0 - specular_factor ) / 2.0;
+  //
+  if( nbeams == 3 )
+    {
+      surface_los(2,joker) = los2(0,joker);
+      for( Index p=0; p<rmatrix2.npages(); p++ )
+        {
+          for( Index r=0; r<rmatrix2.nrows(); r++ )
+            {
+              surface_emission(p,r) += w * emission2(p,r);
+              for( Index c=0; c<rmatrix1.ncols(); c++ )
+                {
+                  surface_rmatrix(2,p,r,c) = w * rmatrix2(0,p,r,c);
+                }
+            }
+        }
+    }
+
+  // Do higher za and put in as index 0 (reusing variables for beam 2)
+  //
+  Vector los_new = rtp_los;
+  los_new[0] += sign(rtp_los[0]) * dza;  // Sign to also handle 2D negative za
+  adjust_los( los_new, atmosphere_dim );
+  surface_rtprop_sub_agendaExecute( ws, emission2, los2, rmatrix2,
+                                    f_grid, rtp_pos, los_new,
+                                    surface_rtprop_sub_agenda );
+  //
+  surface_los(0,joker) = los2(0,joker);
+  for( Index p=0; p<rmatrix2.npages(); p++ )
+    {
+      for( Index r=0; r<rmatrix2.nrows(); r++ )
+        {
+          surface_emission(p,r) += w * emission2(p,r);
+          for( Index c=0; c<rmatrix1.ncols(); c++ )
+            {
+              surface_rmatrix(0,p,r,c) = w * rmatrix2(0,p,r,c);
+            }
+        }
+    }  
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void surfaceSplitSpecularTo3beams(
           Matrix&    surface_los,
           Tensor4&   surface_rmatrix,
     const Index&     atmosphere_dim,
@@ -1235,8 +1379,8 @@ void surfaceSplitSpecular(
   // Checks of GIN variables
   if( specular_factor > 1  || specular_factor < 1.0/3.0 )
     throw runtime_error( "The valid range for *specular_factor* is [1/3,1]." );
-  if( dza > 45  || dza < 0 )
-    throw runtime_error( "The valid range for *dza* is [0,45]." );
+  if( dza > 45  || dza <= 0 )
+    throw runtime_error( "The valid range for *dza* is ]0,45]." );
   
   
   // Make copies of input data
