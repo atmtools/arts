@@ -1,3 +1,33 @@
+2016-10-30  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-554
+
+	* src/m_montecarlo.cc (MCGeneral): Path sampling now put inside a
+	try block, to be somewhat more resistent against failures in the
+	path sampling. Warning and error message are displayed at
+	failures. The calculations are halted if there are 5 failures for
+	one radiance calculation.
+
+	* src/montecarlo.cc (mcPathTraceGeneral): Now waiting until 100000
+	path points before issuing an error. The old value (25000) can be
+	passed with tau limit and thick clouds.
+
+	However, introduced a (hard-coded) limit of the step length.
+	Presently set to 10 m. This to avoid pushing the ppath calculations
+	too far, and avoid getting stuck if there is some extremly high
+	extension values.
+
+	* src/geodetic.cc (cart2poslos): If za is >90 or <90 is now
+	resolved by start za and comparing step length to distance to
+	tangent point. Internal check to dr now gives a runtime error,
+	instead of assert. This required some new input arguments.
+
+	* src/ppath.h: Added declaration of geompath_l_at_r.
+
+	* src/ppath.cc (do_gridcell_3d_byltest): Added an assert around
+	ppc. Also, assert for icall is now icall < 10. Was already like
+	this for 2D versions.
+
 2016-10-27  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-553

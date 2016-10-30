@@ -256,6 +256,7 @@ void ppathFromRtePos2(
   // closest to the transmitter
   Ppath   ppt;                // "Test ppath"
   Index   ip  = -999;         // Index of closest ppath point
+  Numeric xip, yip=0, zip;    // Cartesian coords. of the closest ppath point
   Numeric dxip, dyip=0, dzip; // Cartesian LOS of the closest ppath point
   //
   // Data for the intersection of the l12-sphere
@@ -322,7 +323,6 @@ void ppathFromRtePos2(
           if( atmosphere_dim <= 2 )
             { 
               // Convert pos and los for point ip to cartesian coordinates
-              Numeric xip, zip;
               poslos2cart( xip, zip, dxip, dzip, ppt.r[ip], ppt.pos(ip,1), 
                                                               ppt.los(ip,0) );
               // Find where the extension from point ip crosses the l12 
@@ -337,7 +337,6 @@ void ppathFromRtePos2(
           else
             { 
               // Convert pos and los for point ip to cartesian coordinates
-              Numeric xip, yip, zip;
               poslos2cart( xip, yip, zip, dxip, dyip, dzip, ppt.r[ip], 
                            ppt.pos(ip,1), ppt.pos(ip,2), 
                            ppt.los(ip,0), ppt.los(ip,1) );
@@ -508,6 +507,7 @@ void ppathFromRtePos2(
             { cart2poslos( d1, d2, d3, ppath.start_los[0], ppath.start_los[1],
                            xc, yc, zc, dxip, dyip, dzip, 
                            ppt.r[ip]*sin(DEG2RAD*ppt.los(ip,0)),
+                           xip, yip, zip,  // Added 161027,PE
                            ppt.pos(ip,1), ppt.pos(ip,2), 
                            ppt.los(ip,0), ppt.los(ip,1) ); }
             }
@@ -528,6 +528,7 @@ void ppathFromRtePos2(
                            ppath.los(i,0), ppath.los(i,1), xc, yc, zc, 
                            dxip, dyip, dzip, 
                            ppt.r[ip]*sin(DEG2RAD*ppt.los(ip,0)),
+                           xip, yip, zip,  // Added 161027,PE
                            ppt.pos(ip,1), ppt.pos(ip,2), 
                            ppt.los(ip,0), ppt.los(ip,1) ); }
           //

@@ -469,12 +469,16 @@ void cart2poslos(
        const Numeric&   dy,
        const Numeric&   dz,
        const Numeric&   ppc,
+       const Numeric&   x0,
+       const Numeric&   y0,
+       const Numeric&   z0,
        const Numeric&   lat0,
        const Numeric&   lon0,
        const Numeric&   za0,
        const Numeric&   aa0 )
 {
-  r   = sqrt( x*x + y*y + z*z );
+  // Radius of new point
+  r = sqrt( x*x + y*y + z*z );
 
   // Zenith and nadir cases
   if( za0 < ANGTOL  ||  za0 > 180-ANGTOL  )
@@ -518,18 +522,46 @@ void cart2poslos(
       const Numeric   sinlat = sin( latrad );
       const Numeric   coslon = cos( lonrad );
       const Numeric   sinlon = sin( lonrad );
+      // dr only used to validate za
       const Numeric   dr     = coslat*coslon*dx + coslat*sinlon*dy + sinlat*dz;
 
-      // Use ppc for max accuracy, but dr required to resolve if up- 
-      // and downward cases
+      // Set za by ppc for max accuracy, but this does not resolve
+      // za and 180-za. This was first resolved by dr, but using l and lmax was
+      // foudn to be more stable.
       za = RAD2DEG * asin( ppc / r );
+
+      // Correct and check za
       if( isnan( za ) )
         { za = 90; }
-      if( dr < 0 )
-        { za = 180.0 - za; }
+      // If za0 > 90, then correct za could be 180-za. Resolved by checking if
+      // the tangent point is passed or not
+      if( za0 > 90 )
+        {
+          const Numeric l = sqrt( pow(x-x0,2.0) + pow(y-y0,2.0) + pow(z-z0,2.0) );
+          const Numeric r0 = sqrt( x0*x0 + y0*y0 + z0*z0 );
+          const Numeric ltan = geompath_l_at_r( ppc, r0 );
+          if( l < ltan )
+            { za = 180.0 - za; }
+        }
+      // The difference below can at least be 1e-5 for tangent points
+      if( abs( za - RAD2DEG*acos(dr) ) >= 1e-4 )
+        {
+          throw runtime_error(
+            "Internal consistency check in *cart2poslos failed. If this "
+            "happens to you and you critically need the ongoing calculations, "
+            "try to change the observation LOS slightly. If you can reproduce "
+            "this error, please contact Patrick in order to help tracking down "
+            "the reason to this problem. If you see this message occasionally "
+            "when doing MC calculations, it should not be critical. This path "
+            "sampling will be rejected and replaced with a new one." );
+        }
 
-      // The difference below can at least be 3e-6 for tangent points 
-      assert( abs( za - RAD2DEG*acos(dr) ) < 1e-4 );
+      // As last check of za, make sure that it has decreased
+      //if( za >= za0 )
+      //  {
+      //    za = za0 - 1e-4;
+      //    cout << "Increasing za! Reset to = " << za << " / ";          
+      //  }
 
       // For lat = +- 90 the azimuth angle gives the longitude along which 
       // the LOS goes

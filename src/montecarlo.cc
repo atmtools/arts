@@ -545,9 +545,9 @@ void mcPathTraceGeneral(
     {
       istep++;
 
-      if( istep > 25000 )
+      if( istep > 100000 )
         {
-          throw runtime_error( "25000 path points have been reached. "
+          throw runtime_error( "100000 path points have been reached. "
                                "Is this an infinite loop?" );
         }
 
@@ -570,17 +570,20 @@ void mcPathTraceGeneral(
       // before taustep_limit was introduced (2016-10-10, PE) 
       bool  oktaustep = false;
       Index ppath_try = 1;
+      const Index lmax_limit = 10;
       
       while( !oktaustep )
         {
           // Shall new ppath_step be calculated?
           if( ip == ppath_step.np-1 ) 
             {
-              const Numeric lmax = min( ppath_lmax,
-                                        taustep_limit/ext_mat_mono(0,0) );
+              Numeric lmax = taustep_limit/ext_mat_mono(0,0);
+              if( ppath_lmax > 0 )
+                { lmax = min( ppath_lmax, lmax ); }
+              if( lmax < lmax_limit ) { lmax = lmax_limit; }
               //cout << ppath_try << ", lmax = " << lmax << endl;              
               //Print( ppath_step, 0, verbosity );
-                            
+
               ppath_step_agendaExecute( ws, ppath_step, lmax, ppath_lraytrace,
                                         t_field, z_field, vmr_field, f_grid, 
                                         ppath_step_agenda );

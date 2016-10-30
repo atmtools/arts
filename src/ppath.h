@@ -111,6 +111,10 @@ const Numeric   ANGTOL = 1e-6;
 
 Numeric geometrical_ppc( const Numeric& r, const Numeric& za );
 
+Numeric geompath_l_at_r(
+       const Numeric&  ppc,
+       const Numeric&  r );
+
 Numeric geompath_za_at_r(
         const Numeric&   ppc,
         const Numeric&   a_za,

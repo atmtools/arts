@@ -2859,7 +2859,7 @@ void do_gridcell_2d_byltest(
   Numeric   r_start   = r_start0;
   Numeric   lat_start = lat_start0;
 
-  assert( icall < 4 );
+  assert( icall < 10 );
 
   // Assert latitude and longitude
   assert( lat_start >= lat1 - LATLONTOL );
@@ -3226,7 +3226,7 @@ void do_gridcell_3d_byltest(
   Numeric   lat_start = lat_start0;
   Numeric   lon_start = lon_start0;
 
-  assert( icall < 4 );
+  assert( icall < 10 );
 
   // Assert latitude and longitude
   assert( lat_start >= lat1 - LATLONTOL );
@@ -3234,6 +3234,9 @@ void do_gridcell_3d_byltest(
   assert( !( abs( lat_start) < POLELAT  &&  lon_start < lon5 - LATLONTOL ) );
   assert( !( abs( lat_start) < POLELAT  &&  lon_start > lon6 + LATLONTOL ) );
 
+  // Assertthat ppc and path data are consustent
+  assert( abs( ppc - r_start0*sin(DEG2RAD*za_start) ) < 0.1 );
+  
   // Shift latitude and longitude if outside
   if( lat_start < lat1 )
     { lat_start = lat1; }
@@ -3451,7 +3454,7 @@ void do_gridcell_3d_byltest(
     {
       l = lstep * (Numeric)j;
       cart2poslos( r_v[j], lat_v[j], lon_v[j], za_v[j], aa_v[j], x+dx*l, 
-                   y+dy*l, z+dz*l, dx, dy, dz, ppc, lat_start, lon_start,
+                   y+dy*l, z+dz*l, dx, dy, dz, ppc, x, y, z, lat_start, lon_start,
                    za_start, aa_start );
 
       // Shall lon values be shifted (value 0 is already OK)?
@@ -4356,7 +4359,7 @@ void raytrace_3d_linear_basic(
           lstep = lraytrace;
           cart2poslos( r, lat_new, lon_new, za_new, aa_new, x+dx*lstep, 
                        y+dy*lstep, z+dz*lstep, dx, dy, dz, ppc_step,
-                       lat, lon, za, aa );
+                       x, y, z, lat, lon, za, aa );
           lcum += lstep;
 
           // Shall lon values be shifted?
@@ -5272,8 +5275,8 @@ void ppath_start_stepping(
                        geompath_l_at_r( ppath.constant, rt );
                   cart2poslos( ppath.r[0], ppath.pos(0,1), ppath.pos(0,2),
                                ppath.los(0,0), ppath.los(0,1),x+dx*lt, y+dy*lt,
-                               z+dz*lt, dx, dy, dz, ppath.constant, rte_pos[1],
-                               lon2use, rte_los[0], rte_los[1] );
+                               z+dz*lt, dx, dy, dz, ppath.constant, x, y, z,
+                               rte_pos[1], lon2use, rte_los[0], rte_los[1] );
                   assert( abs( ppath.r[0] -rt ) < RTOL );
                   resolve_lon( ppath.pos(0,2), lon_grid[0], lon_grid[llon] ); 
                   //
