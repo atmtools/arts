@@ -1,3 +1,21 @@
+2016-11-01  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-555
+
+	* montecarlo.cc (pha_mat_singleCalc):
+
+	Fix indexing bug in inner loop over scattering elements. Caused a crash
+	for cases that did not use ScatSpeciesMerge.
+
+	* m_optproperties.cc (scat_dataCheck):
+
+	Remove output of loop variables to out2. They create a huge amount of
+	clutter in the output without giving any useful information.  They are
+	still included in the error output if something goes wrong.
+
+	Demote coefficients output from out2 to out3. This output was too
+	detailed for out2.
+
 2016-10-30  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-554

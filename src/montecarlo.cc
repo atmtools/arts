@@ -1034,8 +1034,6 @@ void pha_mat_singleCalc(
                         const Verbosity& verbosity
                         )
 {
-  Index N_se=pnd_vec.nelem();
-
   assert(aa_inc>=-180 && aa_inc<=180);
   assert(aa_sca>=-180 && aa_sca<=180);
 
@@ -1045,6 +1043,8 @@ void pha_mat_singleCalc(
   // this is a loop over the different scattering elements
   for (Index i_ss = 0; i_ss<scat_data_mono.nelem(); i_ss++)
   {
+      const Index N_se = scat_data_mono[i_ss].nelem();
+
       for (Index i_se = 0; i_se < N_se; i_se++)
       {
           i_se_pnd++;

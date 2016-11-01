@@ -1065,6 +1065,7 @@ void scat_dataCheck( //Input:
 {
     CREATE_OUT0;
     CREATE_OUT2;
+    CREATE_OUT3;
 
     const Index N_ss = scat_data.nelem();
 
@@ -1076,19 +1077,15 @@ void scat_dataCheck( //Input:
     out2 << " checking for negative values in Z11, K11, and a1, and for K11<a1\n";
     for (Index i_ss = 0; i_ss < N_ss; i_ss++)
     {
-      out2 << " scattering species " << i_ss << "\n";
       const Index N_se = scat_data[i_ss].nelem();
 
       // Loop over the included scattering elements
       for (Index i_se = 0; i_se < N_se; i_se++)
       {
-        out2 << "  scattering element " << i_se << "\n";
         for (Index f = 0; f < F_DATAGRID.nelem(); f++)
         {
-          out2 << "frequency " << F_DATAGRID[f] << "Hz\n";
           for (Index t = 0; t < T_DATAGRID.nelem(); t++)
           {
-            out2 << "Temperature " << T_DATAGRID[t] << "K\n";
             for (Index zai=0; zai<ABS_VEC_DATA_RAW.npages(); zai++)
               for (Index aai=0; aai<ABS_VEC_DATA_RAW.nrows(); aai++)
               {
@@ -1134,19 +1131,15 @@ void scat_dataCheck( //Input:
     out2 << " checking for NaN anywhere in Z, K, and a\n";
     for (Index i_ss = 0; i_ss < N_ss; i_ss++)
     {
-      out2 << " scattering species " << i_ss << "\n";
       const Index N_se = scat_data[i_ss].nelem();
 
       // Loop over the included scattering elements
       for (Index i_se = 0; i_se < N_se; i_se++)
       {
-        out2 << "  scattering element " << i_se << "\n";
         for (Index f = 0; f < F_DATAGRID.nelem(); f++)
         {
-          out2 << "frequency " << F_DATAGRID[f] << "Hz\n";
           for (Index t = 0; t < T_DATAGRID.nelem(); t++)
           {
-            out2 << "Temperature " << T_DATAGRID[t] << "K\n";
             for (Index zai=0; zai<ABS_VEC_DATA_RAW.npages(); zai++)
               for (Index aai=0; aai<ABS_VEC_DATA_RAW.nrows(); aai++)
               {
@@ -1197,23 +1190,19 @@ void scat_dataCheck( //Input:
       out2 << " checking normalization of scattering matrix\n";
       for (Index i_ss = 0; i_ss < N_ss; i_ss++)
       {
-        out2 << " scattering species " << i_ss << "\n";
         const Index N_se = scat_data[i_ss].nelem();
 
         // Loop over the included scattering elements
         for (Index i_se = 0; i_se < N_se; i_se++)
         {
-          out2 << "  scattering element " << i_se << "\n";
           switch (PART_TYPE)
           {
             case PTYPE_MACROS_ISO:
             {
               for (Index f = 0; f < F_DATAGRID.nelem(); f++)
               {
-                out2 << "frequency " << F_DATAGRID[f] << "Hz\n";
                 for (Index t = 0; t < T_DATAGRID.nelem(); t++)
                 {
-                  out2 << "Temperature " << T_DATAGRID[t] << "K\n";
                   Numeric Csca = AngIntegrate_trapezoid(
                                   PHA_MAT_DATA_RAW(f, t, joker, 0, 0, 0, 0),
                                   ZA_DATAGRID);
@@ -1222,7 +1211,7 @@ void scat_dataCheck( //Input:
                   Numeric Cabs_data = ABS_VEC_DATA_RAW(f,t,0,0,0);
                   Numeric Csca_data = Cext_data - Cabs_data;
 
-                  out2 << "  Coefficients in database: "
+                  out3 << "  Coefficients in database: "
                        << "Cext: " << Cext_data << " Cabs: " << Cabs_data
                        << " Csca: " << Csca_data << "\n"
                        << "  Calculated coefficients: "
@@ -1256,10 +1245,8 @@ void scat_dataCheck( //Input:
             {
               for (Index f = 0; f < F_DATAGRID.nelem(); f++)
               {
-                out2 << "frequency " << F_DATAGRID[f] << "Hz\n";
                 for (Index t = 0; t < T_DATAGRID.nelem(); t++)
                 {
-                  out2 << "Temperature " << T_DATAGRID[t] << "K\n";
                   for (Index iza = 0; iza < ABS_VEC_DATA_RAW.npages(); iza++)
                   {
                     Numeric Csca = 2 * AngIntegrate_trapezoid(
@@ -1270,7 +1257,7 @@ void scat_dataCheck( //Input:
                     Numeric Cabs_data = ABS_VEC_DATA_RAW(f,t,iza,0,0);
                     Numeric Csca_data = Cext_data - Cabs_data;
 
-                    out2 << "  Coefficients in database: "
+                    out3 << "  Coefficients in database: "
                          << "Cext: " << Cext_data << " Cabs: " << Cabs_data
                          << " Csca: " << Csca_data << "\n"
                          << "  Calculated coefficients: "
