@@ -1,3 +1,12 @@
+2016-11-04  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-556
+
+	* doc/uguide/arts_developer.tex, doc/uguide/arts_theory.tex,
+	doc/uguide/arts_user.tex:
+
+	Add UHH address for contributor list.
+
 2016-11-01  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-555
