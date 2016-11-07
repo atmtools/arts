@@ -1,3 +1,15 @@
+2016-11-07  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-558
+
+	* src/optproperties.cc (pha_mat_labCalc): Replaced some asserts
+	with a run_time error. Added also check of element (0,0).
+
+	The idea to replace a few asserts with runtime error is to allow
+	MC calculations to continue if these errors appear, and to give
+	out an error message with information about what to do if an user
+	stumbles upon these errors.
+
 2016-11-06 Jana Mendrok  <jana.mendrok@chalmers.se>
 
 	* arts-2-3-557

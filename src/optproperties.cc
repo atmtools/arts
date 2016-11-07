@@ -780,6 +780,19 @@ void pha_mat_labCalc(//Output:
   
   // For stokes_dim = 1, we only need Z11=F11:
   pha_mat_lab(0,0) = F11;
+
+  if( isnan(pha_mat_lab(0,0)) )
+    {
+      throw runtime_error(
+        "NaN value(s) detected in *pha_mat_labCalc* (0,0). Could the "
+        "input data contain NaNs? Please check with *scat_dataCheck*. If "
+        "input data are OK and you critically need the ongoing calculations, "
+        "try to change the observation LOS slightly. If you can reproduce "
+        "this error, please contact Patrick in order to help tracking down "
+        "the reason to this problem. If you see this message occasionally "
+        "when doing MC calculations, it should not be critical. This path "
+        "sampling will be rejected and replaced with a new one." );
+    }
   
   if( stokes_dim > 1 ){
     //
@@ -891,10 +904,23 @@ void pha_mat_labCalc(//Output:
         pha_mat_lab(0,1) = C1 * F12;
         pha_mat_lab(1,0) = C2 * F12;
         pha_mat_lab(1,1) = C1 * C2 * F22 - S1 * S2 * F33;
-        
-        assert(!isnan(pha_mat_lab(0,1)));        
-        assert(!isnan(pha_mat_lab(1,0)));
-        assert(!isnan(pha_mat_lab(1,1)));
+
+        //assert(!isnan(pha_mat_lab(0,1)));        
+        //assert(!isnan(pha_mat_lab(1,0)));
+        //assert(!isnan(pha_mat_lab(1,1)));
+        if( isnan(pha_mat_lab(0,1))  ||  isnan(pha_mat_lab(1,0)) ||
+            isnan(pha_mat_lab(1,1)) )
+          {
+            throw runtime_error(
+            "NaN value(s) detected in *pha_mat_labCalc* (0/1,1). Could the "
+            "input data contain NaNs? Please check with *scat_dataChack*. If "
+            "input data are OK  and you critically need the ongoing calculations, "
+            "try to change the observation LOS slightly. If you can reproduce "
+            "this error, please contact Patrick in order to help tracking down "
+            "the reason to this problem. If you see this message occasionally "
+            "when doing MC calculations, it should not be critical. This path "
+            "sampling will be rejected and replaced with a new one." );
+          }
 
         if( stokes_dim > 2 ){
           /*CPD: For skokes_dim > 2 some of the transformation formula 
