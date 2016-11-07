@@ -104,6 +104,15 @@ void abs_vecTransform(//Output and Input
       
     case PTYPE_GENERAL:
     {
+      /*
+         TO ANY DEVELOPER:
+         current usage of coordinate systems in scattering solvers (RT and SSD
+         extraction) and general radiative transfer is not consistent. Not an
+         as long as only PTYPE_MACROS_ISO and PTYPE_HORIZ_AL, but will be a
+         problem for PTYPE_GENERAL, ie needs to be fixed BEFORE adding
+         PTYPE_GENERAL support (see AUG appendix for more info).
+      */
+
       CREATE_OUT0;
       out0 << "Case PTYPE_GENERAL not yet implemented. \n"; 
       break;
@@ -209,6 +218,15 @@ void ext_matTransform(//Output and Input
       
     case PTYPE_GENERAL:
     {
+      /*
+         TO ANY DEVELOPER:
+         current usage of coordinate systems in scattering solvers (RT and SSD
+         extraction) and general radiative transfer is not consistent. Not an
+         as long as only PTYPE_MACROS_ISO and PTYPE_HORIZ_AL, but will be a
+         problem for PTYPE_GENERAL, ie needs to be fixed BEFORE adding
+         PTYPE_GENERAL support (see AUG appendix for more info).
+      */
+
       CREATE_OUT0;
       out0 << "Case PTYPE_GENERAL not yet implemented. \n"; 
       break;
@@ -373,6 +391,15 @@ void pha_matTransform(//Output
       
     case PTYPE_GENERAL:
     {
+      /*
+         TO ANY DEVELOPER:
+         current usage of coordinate systems in scattering solvers (RT and SSD
+         extraction) and general radiative transfer is not consistent. Not an
+         as long as only PTYPE_MACROS_ISO and PTYPE_HORIZ_AL, but will be a
+         problem for PTYPE_GENERAL, ie needs to be fixed BEFORE adding
+         PTYPE_GENERAL support (see AUG appendix for more info).
+      */
+
       CREATE_OUT0;
       out0 << "Case PTYPE_GENERAL not yet implemented. \n"; 
       break;

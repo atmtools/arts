@@ -1,5 +1,13 @@
 2016-11-07 Jana Mendrok  <jana.mendrok@chalmers.se>
 
+	* arts-2-3-561
+
+	* src/optproperties.cc, src/montecarlo.cc:
+	Added coordinate system inconsistency warning at all places
+	preparing/extracting single scattering data of PTYPE_GENERAL particles.
+
+2016-11-07 Jana Mendrok  <jana.mendrok@chalmers.se>
+
 	* arts-2-3-560
 
 	* Revision of scatterig media descriptions.
