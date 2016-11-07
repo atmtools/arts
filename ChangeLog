@@ -1,3 +1,19 @@
+2016-11-06 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-557
+
+	* src/m_optproperties.cc, methods.cc (TestScatDataInterp):
+	Extented to emulate RT4 ssd extraction (not exactly te same though, as
+	RT4 does not need individial inc/sca direction extraction and allow for
+	in-place comparison of results. Allow user to control WSM behaviour a
+	little more.
+
+	* src/optproperties.cc (pha_mat_labCalc):
+	Bug fix (delta azimtuh of 180 or 360 deg is forms great circle, not
+	their sum). Effects random oriented particles only. Brings the MC/RT4
+	like ssd extraction in TestScatDataInterp into agreement. Negligible
+	effect on full RT solution, though.
+
 2016-11-04  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-556

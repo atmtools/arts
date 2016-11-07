@@ -14046,6 +14046,34 @@ void define_md_data_raw()
         GIN_DESC("")
         ));
 
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "TestScatDataInterp" ),
+        DESCRIPTION
+        (
+         "Tests single scattering data extractionSo far just for some testing.\n"
+         ),
+        AUTHORS( "Patrick Eriksson, Jana Mendrok" ),
+        OUT(),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "scat_data", "stokes_dim", "atmosphere_dim", "f_grid",
+            "rtp_los", "rtp_temperature" ),
+        GIN( "scat_elem_index", "compare", "za_printout_index",
+             "aa_printout_index" ),
+        GIN_TYPE( "Index", "Index", "Index", "Index" ),
+        GIN_DEFAULT( NODEF, "1", "-1", "-1" ),
+        GIN_DESC( "(Flat) Index of scattering element to test.",
+                  "Flag whether to perform a *Compare* on the extracted single"
+                  " scattering data.",
+                  "Index of (incidence) zenith angle for which to print out"
+                  " specific info (no printout if <0). Grid is internally"
+                  " hardcoded (0-180deg in 5deg steps).",
+                  "Index of (incidence) azimuth angle for which to print out"
+                  " specific info (no printout if <0). Grid is internally"
+                  " hardcoded (-180-180deg in 10deg steps)." )
+        ));    
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "timerStart" ),
@@ -15569,22 +15597,4 @@ void define_md_data_raw()
         GIN_DESC()
         ));
 
-    md_data_raw.push_back
-    ( MdRecord
-    ( NAME( "TestScatDataInterp" ),
-        DESCRIPTION
-        (
-         "So far just for some testing.\n"
-         ),
-        AUTHORS( "Patrick" ),
-        OUT(),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "scat_data", "stokes_dim", "f_grid", "rtp_los", "rtp_temperature"  ),
-        GIN( "scat_elem_index" ),
-        GIN_TYPE( "Index" ),
-        GIN_DEFAULT( NODEF ),
-        GIN_DESC( "!!!" )
-        ));    
 }

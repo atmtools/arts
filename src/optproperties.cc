@@ -795,8 +795,14 @@ void pha_mat_labCalc(//Output:
         // Backward scattering
         ((theta > 179.99) && (theta < 180.01)) ||
         // "Grosskreis" through poles: no rotation required
-        ((aa_sca == aa_inc) || (aa_sca == 360-aa_inc) || (aa_inc == 360-aa_sca) ||
-         (aa_sca == 180-aa_inc) || (aa_inc == 180-aa_sca) )  
+
+// JM161104: that seems wrong (eg aa_sca=80 and aa_inc=100 fulfill
+// aa_sca == 180-aa_inc, but do NOT form a meridian. instead form a delta_aa of
+// 20deg.
+//        ((aa_sca == aa_inc) || (aa_sca == 360-aa_inc) || (aa_inc == 360-aa_sca) ||
+//         (aa_sca == 180-aa_inc) || (aa_inc == 180-aa_sca) )  
+        ( (aa_sca == aa_inc) || ( abs(aa_sca-aa_inc)==360 ) ||
+          ( abs(aa_sca-aa_inc)==180 ) )
         )
       {
         pha_mat_lab(0,1) = F12;
