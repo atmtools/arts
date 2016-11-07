@@ -959,6 +959,11 @@ void alter_linerecord( LineRecord& new_LR,
                        const Rational& M_up,
                        const Rational& M_lo)
 {
+    
+    // Test that we did not mess up somewhere
+    assert(abs(M_lo)<=J_lo);
+    assert(abs(M_up)<=J_up);
+    
     // Find the relative strength
     const Numeric RS = relative_strength(M_lo, J_lo, (J_up-J_lo).toIndex(), (M_up-M_lo).toIndex());
     
@@ -1100,7 +1105,8 @@ void create_Zeeman_linerecordarrays(
                   throw std::runtime_error(os.str());
               }
               
-              test = J_lo>J_up;
+              test      = J_lo>J_up;
+              const bool same = J_lo==J_up;
               const Rational  J    = (test?J_up:J_lo);
               
               for ( Rational M = -J; M<=J; M++ )
@@ -1111,7 +1117,7 @@ void create_Zeeman_linerecordarrays(
                    *                              sm := sigma minus, which means DM = -1
                    *                              pi := planar,      which means DM =  0
                    */
-                  if(test)
+                  if(test&&!same)
                   {
                       alter_linerecord( temp_LR, RS_sum, this_linestrength, J_up, J_lo, M, M-1  );
                       temp_abs_lines_sm.push_back(temp_LR);
@@ -1122,7 +1128,31 @@ void create_Zeeman_linerecordarrays(
                       alter_linerecord( temp_LR, RS_sum, this_linestrength, J_up, J_lo, M, M+1  );
                       temp_abs_lines_sp.push_back(temp_LR);
                   }
-                  else 
+                  else if(same)
+                  {
+                      alter_linerecord( temp_LR, RS_sum, this_linestrength, J_up, J_lo, M, M    );
+                      temp_abs_lines_pi.push_back(temp_LR);
+                      
+                      if(M==-J)
+                      {
+                          alter_linerecord( temp_LR, RS_sum, this_linestrength, J_up, J_lo, M, M+1  );
+                          temp_abs_lines_sp.push_back(temp_LR);
+                      }
+                      else if(M==J)
+                      {
+                          alter_linerecord( temp_LR, RS_sum, this_linestrength, J_up, J_lo, M, M-1  );
+                          temp_abs_lines_sm.push_back(temp_LR);
+                      }
+                      else
+                      {
+                          alter_linerecord( temp_LR, RS_sum, this_linestrength, J_up, J_lo, M, M-1  );
+                          temp_abs_lines_sm.push_back(temp_LR);                          
+                          
+                          alter_linerecord( temp_LR, RS_sum, this_linestrength, J_up, J_lo, M, M+1  );
+                          temp_abs_lines_sp.push_back(temp_LR);
+                      }
+                  }
+                  else
                   {
                       alter_linerecord( temp_LR, RS_sum, this_linestrength, J_up, J_lo, M+1, M  );
                       temp_abs_lines_sm.push_back(temp_LR);
@@ -1211,5 +1241,5 @@ Index part_mag_theta(const ArrayOfRetrievalQuantity& flag_partials)
     for(Index ii=0; ii<flag_partials.nelem(); ii++)
         if(flag_partials[ii].MainTag() == "Zeeman" &&  flag_partials[ii].Subtag() == "Magnetic Theta" && flag_partials[ii].SubSubtag() == "From Propagation")
             return ii;
-        return -1;
+    return -1;
 }

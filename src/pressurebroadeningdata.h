@@ -49,7 +49,8 @@ public:
         PB_NONE,                          // No pressure broadening
         PB_AIR_BROADENING,                // Air broadening and self broadening only
         PB_AIR_AND_WATER_BROADENING,      // Air, water, and self broadening
-        PB_PERRIN_BROADENING              // Gas broadening as done by A. Perrin
+        PB_PERRIN_BROADENING,             // Gas broadening as done by A. Perrin
+        PB_SD_AIR_VOLUME                  // HTP in air for SD limit
     };
     
     // Defining an object with no data and no broadening
@@ -126,6 +127,20 @@ public:
                                         const Vector&  n_foreign,
                                         const Vector&  foreign_pressure_DF);
     
+    /**
+     TESTING
+     
+     The quantities are:
+     TESTING
+     */ 
+    void SetSDAIRFromCatalog(const Numeric& gamma0,
+                             const Numeric& gamma0_exp,
+                             const Numeric& gamma2,
+                             const Numeric& gamma2_exp,
+                             const Numeric& delta0,
+                             const Numeric& delta0_exp,
+                             const Numeric& delta2,
+                             const Numeric& delta2_exp);
     
     // The return functions below are self-explanatory and are all around for backwards compatibility
     ConstVectorView PerrinGammaForeign() const { assert(PB_PERRIN_BROADENING==mtype); return mdata[2]; }
@@ -400,7 +415,18 @@ public:
                                                     ConstVectorView vmrs,
                                                     const Verbosity& verbosity) const;
 
-    
+    /**
+     TESTING
+     
+     The quantities are:
+     TESTING
+    */
+    void GetSDAIRBroadening(Numeric& gamma0,
+                            Numeric& gamma2,
+                            Numeric& delta0,
+                            Numeric& delta2,
+                            const Numeric& theta,
+                            const Numeric& pressure) const;
     
    // Use these to read data from XML-formats and to return vectors for writing
    void StorageTag2SetType(const String& input);

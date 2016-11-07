@@ -1,3 +1,18 @@
+2016-11-07  Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-3-559
+	
+	* src/{m_,}zeeman.cc:  Fix bugs introduced to speed things up
+	
+	* src/pressurebroadeningdata.{cc,h}:  Initial support for speed-dependent
+	limit pressurebroadening in ARTSCAT5.  Still very much in testing.  Seems to
+	work but it is not easy to find data/input.  Ask me if you have a use case.
+	
+	* src/rte.{h,cc}:  Fix for zero wind-fields.  Note that there is an abs()-
+	call that might not be necessary.  There should be a normalization to -1/c,
+	so the three components inside the switch needs to normalize to 1 and be
+	positive
+	
 2016-11-07  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-558

@@ -184,7 +184,10 @@ void propmat_clearskyAddZeemanFromPreCalc(Tensor4& propmat_clearsky,
     if(nzeeman!=zeeman_frequencyshiftconstant_precalc.nelem())
         throw std::runtime_error("The pre-calculated Zeeman frequency shift and line records are not from the same source\n.");
   }// End   TEST(s)
-
+  
+  if(nzeeman==0)
+      return;
+  
   Vector R_path_los;
   mirror_los(R_path_los, ppath_los, atmosphere_dim);
 
@@ -200,16 +203,6 @@ void propmat_clearskyAddZeemanFromPreCalc(Tensor4& propmat_clearsky,
   set_magnetic_parameters(H_mag,eta,theta,manual_zeeman_tag,manual_zeeman_eta,
                           manual_zeeman_theta,manual_zeeman_magnetic_field_strength,
                           rtp_mag,R_path_los);
-  
-//   // Store central frequency here
-//   ArrayOfVector FreqShift(nzeeman);
-//   
-//   // Section to fix central line frequency
-//   for(Index II=0;II<zeeman_linerecord_precalc.nelem();II++)
-//   {
-//     FreqShift[II]=zeeman_frequencyshiftconstant_precalc[II];
-//     FreqShift[II]*=H_mag;
-//   }
   
   const PropmatPartialsData pps(jacobian_quantities);
   pps.supportsZeemanPrecalc();
@@ -235,10 +228,11 @@ void propmat_clearskyAddZeemanFromPreCalc(Tensor4& propmat_clearsky,
       }
   }
   
-  Index zeeman_ind =0; // This is necessary for more than 1 Zeeman species
+  Index zeeman_ind = 0; // This is necessary for more than 1 Zeeman species
   
   for(Index II = 0; II<abs_species.nelem(); II++)
   {
+    
     const Index ls_index = (1==abs_lineshape.nelem())?0:II;
     
     // If the species isn't Zeeman, look at the next species
@@ -269,8 +263,7 @@ void propmat_clearskyAddZeemanFromPreCalc(Tensor4& propmat_clearsky,
                                                   rtp_mag, R_path_los,lm_p_lim,theta, eta, H_mag, 1, II, verbosity );
     
     // The flat structure reminder for 3-component ArrayOfArrayOfLineRecord
-    
-    zeeman_ind +=3;
+    zeeman_ind += 3;
   }
     
 }

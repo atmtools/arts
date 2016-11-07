@@ -757,7 +757,7 @@ void defocusing_sat2sat(
 
 
 
-//! dotprod_with_los{,_dWdw,_dWdv,_dWdu}
+//! dotprod_with_los
 /*!
     Calculates the dot product between a field and a LOS
     The latter three gives the derivatives with respect to the LOS
@@ -802,82 +802,6 @@ Numeric dotprod_with_los(
   return f * ( cos(za_f) * cos(za_p) +
                sin(za_f) * sin(za_p) * cos(aa_f-aa_p) );
 }   
-
-Numeric dotprod_with_los_dWdw(
-    ConstVectorView   los, 
-    const Numeric&    u,
-    const Numeric&    v,
-    const Numeric&    w,
-    const Index&      atmosphere_dim )
-{
-    // Strength of field
-    const Numeric u2=u*u, v2=v*v, w2=w*w;
-    const Numeric f2 = u2+v2+w2;
-    
-    // Zenith and azimuth angle for field (in radians) 
-    const Numeric aa_f = atan2( u, v );
-    
-    // Zenith and azimuth angle for photon direction (in radians)
-    Vector los_p;
-    mirror_los( los_p, los, atmosphere_dim );
-    const Numeric za_p = DEG2RAD * los_p[0];
-    const Numeric aa_p = DEG2RAD * los_p[1];
-    
-    return cos(za_p) - 
-    (cos(aa_f - aa_p)*sin(za_p) * 
-    ( 2*w/f2 - (2*w*w2)/(f2*f2))) / (2*sqrt(1 - w2/(f2)));
-} 
-
-Numeric dotprod_with_los_dWdu(
-    ConstVectorView   los, 
-    const Numeric&    u,
-    const Numeric&    v,
-    const Numeric&    w,
-    const Index&      atmosphere_dim )
-{
-    // Strength of field
-    const Numeric u2=u*u, v2=v*v, w2=w*w;
-    const Numeric f2 = u2+v2+w2;
-    const Numeric  term1 = sqrt((u*u + v*v)/f2);
-    
-    // Zenith and azimuth angle for field (in radians) 
-    const Numeric aa_f = atan2( u, v );
-    
-    // Zenith and azimuth angle for photon direction (in radians)
-    Vector los_p;
-    mirror_los( los_p, los, atmosphere_dim );
-    const Numeric za_p = DEG2RAD * los_p[0];
-    const Numeric aa_p = DEG2RAD * los_p[1];
-    
-    return (u*w2*cos(aa_f - aa_p)*sin(za_p))/(term1*f2*f2) - 
-    (v*sin(aa_f - aa_p)*sin(za_p)*term1)/(u2 + v2);
-} 
-
-Numeric dotprod_with_los_dWdv(
-    ConstVectorView   los, 
-    const Numeric&    u,
-    const Numeric&    v,
-    const Numeric&    w,
-    const Index&      atmosphere_dim )
-{
-    // Strength of field
-    const Numeric u2=u*u, v2=v*v, w2=w*w;
-    const Numeric f2 = u2+v2+w2;
-    const Numeric  term1 = sqrt((u2 + v2)/f2);
-    
-    // Zenith and azimuth angle for field (in radians) 
-    const Numeric aa_f = atan2( u, v );
-    
-    // Zenith and azimuth angle for photon direction (in radians)
-    Vector los_p;
-    mirror_los( los_p, los, atmosphere_dim );
-    const Numeric za_p = DEG2RAD * los_p[0];
-    const Numeric aa_p = DEG2RAD * los_p[1];
-    
-    return (u*sin(aa_f - aa_p)*sin(za_p)*term1)/(u2 + v2) + 
-    (v*w2*cos(aa_f - aa_p)*sin(za_p))/(term1*f2*f2);
-} 
-
 
 
 //! emission_rtstep
@@ -2082,7 +2006,7 @@ void get_ppath_pmat_and_tmat(
                     throw std::runtime_error("To developer:  You have changed wind jacobians" 
                     " in\nan incompatible manners with some other code.");
                 
-                get_ppath_f_partials(AO_dWdx[component], component, ppath, f_grid,  atmosphere_dim, ppath_wind );
+                get_ppath_f_partials(AO_dWdx[component], component, ppath, f_grid,  atmosphere_dim);
             }
             if(jac_wind_i[iq] == JAC_IS_WIND_U_SEMI_ANALYTIC ||
                jac_wind_i[iq] == JAC_IS_WIND_V_SEMI_ANALYTIC ||
@@ -2763,8 +2687,7 @@ Matrix&    ppath_f_partials,
 const Index& component,
 const Ppath&     ppath,
 ConstVectorView  f_grid, 
-const Index&     atmosphere_dim,
-ConstMatrixView  ppath_wind )
+const Index&     atmosphere_dim)
 {
     // component 0 means total speed
     // component 1 means u speed
@@ -2784,31 +2707,23 @@ ConstMatrixView  ppath_wind )
         // initialize
         Numeric dv_doppler_dx=0.0;
         
-        // Include wind FIXME:  No analytical solution possible when wind field is zero.  Adding a small perturbation could fix this?
-        if( ppath_wind(1,ip) != 0  ||  ppath_wind(0,ip) != 0  ||  
-            ppath_wind(2,ip) != 0  )
+        switch( component )
         {
-            switch( component )
-            {
-                case 0:// this is total an d is already initialized to avoid compiler warnings
-                    dv_doppler_dx = 1.0;
-                    break;
-                case 1:// this is the u-component
-                    dv_doppler_dx = dotprod_with_los_dWdu( ppath.los(ip,joker), ppath_wind(0,ip),
-                                                           ppath_wind(1,ip), ppath_wind(2,ip), atmosphere_dim );
-                    break;
-                case 2:// this is v-component
-                    dv_doppler_dx = dotprod_with_los_dWdv( ppath.los(ip,joker), ppath_wind(0,ip),
-                                                           ppath_wind(1,ip), ppath_wind(2,ip), atmosphere_dim );
-                    break;
-                case 3:// this is w-component
-                    dv_doppler_dx = dotprod_with_los_dWdw( ppath.los(ip,joker), ppath_wind(0,ip),
-                                                           ppath_wind(1,ip), ppath_wind(2,ip), atmosphere_dim );
-                    break;
-                default:
-                    throw std::runtime_error("This being seen means that there is a development bug in interactions with get_ppath_df_dW.\n");
-                    break;
-            }
+            case 0:// this is total and is already initialized to avoid compiler warnings
+                dv_doppler_dx = 1.0;
+                break;
+            case 1:// this is the u-component
+                dv_doppler_dx = abs(dotprod_with_los(ppath.los(ip,joker), 1, 0, 0, atmosphere_dim));
+                break;
+            case 2:// this is v-component
+                dv_doppler_dx = abs(dotprod_with_los(ppath.los(ip,joker), 0, 1, 0, atmosphere_dim));
+                break;
+            case 3:// this is w-component
+                dv_doppler_dx = abs(dotprod_with_los(ppath.los(ip,joker), 0, 0, 1, atmosphere_dim));
+                break;
+            default:
+                throw std::runtime_error("This being seen means that there is a development bug in interactions with get_ppath_df_dW.\n");
+                break;
         }
         
         // Determine frequency grid

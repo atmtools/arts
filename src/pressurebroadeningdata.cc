@@ -74,8 +74,13 @@ void PressureBroadeningData::GetPressureBroadeningParams(Numeric& gamma_0,
             df_2    = 0.;
             f_VC    = 0.;
             break;
+        case PB_SD_AIR_VOLUME:
+            GetSDAIRBroadening(gamma_0,gamma_2,df_0,df_2,theta,pressure);
+            f_VC=0;
+            eta=0;
+            break;
         default:
-            throw std::runtime_error("You have defined an unknown broadening mechanism.\n");
+            throw std::runtime_error("You have defined an unknown broadening mechanism in normal calculations.\n");
     }
 }
 
@@ -801,6 +806,28 @@ void PressureBroadeningData::GetPerrinBroadening_dSelfExponent(Numeric& gamma_dS
     gamma_dSelfExponent = mdata[0][0] * pow(theta, mdata[1][0]) * self_pressure * log(theta);
 }
 
+
+///////////////////////////////////////////////////////////////////////////////////////
+// Get SD broadening for air
+///////////////////////////////////////////////////////////////////////////////////////
+
+// This is the broadening used by the "SD-AIR"-tag in ARTSCAT-5
+void PressureBroadeningData::GetSDAIRBroadening(Numeric& gamma0,
+                                                Numeric& gamma2,
+                                                Numeric& delta0,
+                                                Numeric& delta2,
+                                                const Numeric& theta,
+                                                const Numeric& pressure) const
+{
+    gamma0 = mdata[0][0] * pow(theta,mdata[1][0]) * pressure;
+    
+    gamma2 = mdata[0][1] * pow(theta,mdata[1][1]) * pressure;
+    
+    delta0 = mdata[0][2] * pow(theta,mdata[1][2]) * pressure;
+    
+    delta2 = mdata[0][3] * pow(theta,mdata[1][3]) * pressure;
+}
+
 ///////////////////////////////////////////
 //  Catalog interactions here
 ///////////////////////////////////////////
@@ -894,6 +921,37 @@ void PressureBroadeningData::SetPerrinBroadeningFromCatalog(const Numeric& sgam,
     mdata[2] = foreign_gamma;   // Gas broadening gamma parameter per species
     mdata[3] = n_foreign;       // Gas broadening n parameter per species
     mdata[4] = foreign_pressure_DF;      // Pressure shift parameter per species
+}
+
+// Use these to insert the data in the required format from catalog readings
+void PressureBroadeningData::SetSDAIRFromCatalog(const Numeric& gamma0,
+                                                 const Numeric& gamma0_exp,
+                                                 const Numeric& gamma2,
+                                                 const Numeric& gamma2_exp,
+                                                 const Numeric& delta0,
+                                                 const Numeric& delta0_exp,
+                                                 const Numeric& delta2,
+                                                 const Numeric& delta2_exp)
+{
+    mtype = PB_SD_AIR_VOLUME;
+    mdata.resize(2);
+    mdataerror.resize(0);
+    for(Index ii=0;ii<2;ii++)
+    {
+        mdata[ii].resize(4);
+    }
+    
+    mdata[0][0] = gamma0;
+    mdata[1][0] = gamma0_exp;
+    
+    mdata[0][1] = gamma2;
+    mdata[1][1] = gamma2_exp;
+    
+    mdata[0][2] = delta0;
+    mdata[1][2] = delta0_exp;
+    
+    mdata[0][3] = delta2;
+    mdata[1][3] = delta2_exp;
 }
 
 ///////////////////////////////////////////
@@ -1222,6 +1280,8 @@ Index PressureBroadeningData::ExpectedVectorLengthFromType() const
         return 9;
     else if(mtype == PB_PERRIN_BROADENING) // 2 Numerics and 3 Vectors of 6-length
         return 20;
+    else if(mtype==PB_SD_AIR_VOLUME)
+        return 8;
     else
         throw std::runtime_error("You are trying to store to a pressure broadening type that is unknown to ARTS.\n");
     return 0;
@@ -1269,6 +1329,15 @@ void PressureBroadeningData::SetDataFromVectorWithKnownType(const Vector & input
                                        input[Range(1,6)],
                                        input[Range(8,6)],
                                        input[Range(14,6)]);
+    else if(mtype == PB_SD_AIR_VOLUME) // 8 Numerics
+        SetSDAIRFromCatalog(input[0],
+                            input[1],
+                            input[2],
+                            input[3],
+                            input[4],
+                            input[5],
+                            input[6],
+                            input[7]);
 }
 
 void PressureBroadeningData::StorageTag2SetType(const String & input)
@@ -1281,6 +1350,8 @@ void PressureBroadeningData::StorageTag2SetType(const String & input)
         mtype=PB_AIR_AND_WATER_BROADENING;
     else if(input == "AP") // Perrin broadening
         mtype=PB_PERRIN_BROADENING;
+    else if(input == "SD-AIR") // Perrin broadening
+        mtype=PB_SD_AIR_VOLUME;
     else
         throw std::runtime_error("You are trying to set pressure broadening type that is unknown to ARTS.\n");
 }
