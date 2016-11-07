@@ -1,0 +1,162 @@
+%\graphicspath{{Figs/scattering/}}
+
+\chapter[Scattering: Particle ensembles]{Scattering: Representation of particle ensembles}
+ \label{sec:cloudtheory}
+
+\starthistory
+ 161107 & Created by Jana Mendrok. Moved parts from AUG clouds chapter here.\\
+\stophistory
+
+Effects of single small particles interacting with radiation as well as the
+optical properties used to describe these effects have been discussed in
+Section~\ref{sec:rtetheory:theory_single_part}. Realistic media typically
+contain ensembles of particles of different material, sizes, shapes, etc.
+The particle size has an important impact on the scattering and
+absorption properties of particle ensembles, e.g. clouds, as shown for instance
+in \citep{emde04:_doit_jgr}.  Particle ensembles typically contain a whole range
+of different particle sizes, which can be described by a size
+distribution giving the number of particles per unit volume per unit
+radius interval as a function of radius.  It is most convenient to
+parameterize the size distribution by analytical functions, because in
+this case optical properties can be calculated much faster than for
+arbitrary size distributions. The T-matrix code for randomly oriented
+particles includes several types of analytical size distributions,
+e.g., the gamma distribution or the log-normal distribution.  This
+section presents some examples of size distribution parameterizations that can
+be used to describe particle ensembles. Some of them are applicable to general
+particle ensembles, others have been developed for specific ensembles types
+(e.g., cirrus clouds) and atmospheric conditions.
+
+\subsection{Mono-disperse particle distribution}
+
+The most simple assumption is, that all particles in an ensemble have
+the same size.  In order to study scattering effects like polarization
+or the influence of particle shape, it makes sense to use this most
+simple assumption, because one can exclude effects resulting from the
+particle size distribution itself.  
+
+Along with the single scattering properties we need the particle
+number density field, which specifies the number of particles per
+unit volume at each grid point, for ARTS scattering simulations.  For
+a given mass content (\mc) and mono-disperse particles the particle number density
+$n^p$ is simply
+\begin{equation}
+\label{eq:pnd_mono}
+  n^p (\mc, r) =\frac{\mc}{m} = \frac{\mc}{V\rho}
+    =\frac{3}{4\pi}\frac{\mc}{\rho r^3},  
+\end{equation}
+where $m$ is the mass of a particle, $r$ is its equal volume sphere
+radius, $\rho$ is its density, and $V$ is its volume.
+     
+\subsection{Gamma size distribution}
+\label{sec:clouds:gamma_distr}
+
+A commonly used distribution for radiative transfer modeling in a range of
+media, e.g. cirrus clouds, is the \emph{gamma distribution}
+\begin{equation}
+  n(r) = a  r^\alpha \exp(-br).
+\label{eq:gamma_distr}
+\end{equation}
+The dimensionless parameter $\alpha$ describes the width of the
+distribution. The other two parameters can be linked to the effective
+radius \Reff\ and the mass content \mc\ as follows:
+\begin{eqnarray}
+  b &= \frac{\alpha+3}{\Reff},\\
+  a &= \frac{\mc}{4/3\pi\rho b^{-(\alpha+4)}\Gamma[\alpha+4]},
+\label{eq:gamma_coeff}
+\end{eqnarray}
+where $\rho$ is the density of the scattering medium and $\Gamma$ is
+the gamma function. For cirrus clouds $\rho$ corresponds to the bulk
+density of ice, which is approximately 917 kg/m$^3$.
+
+Generally, the effective radius \Reff\ is defined as the average
+radius weighted by the particles' cross-sectional area
+\begin{equation}
+  \label{eq:Reff}
+  \Reff= \frac{1}{\EnsAvr{A}} \int_{r_{min}}^{r_{max}} {A(r) r n(r) \DiffD r},
+\end{equation}
+where $A$ is the area of the geometric projection of a particle. The
+minimal and maximal particle sizes in the distribution are given by
+$r_{min}$ and $r_{max}$ respectively. In the case of spherical
+particles $A = \pi r^2$. The average area of the geometric projection
+per particle \EnsAvr{A} is given by
+\begin{equation}
+  \EnsAvr{A} = \frac{\int_{r_{min}}^{r_{max}} {A(r) n(r) \DiffD r}}{\int_{r_{min}}^{r_{max}} {n(r) \DiffD r}}.
+\end{equation}
+
+The particle number density for size distributions is obtained by
+integration of the distribution function over all sizes:
+\begin{eqnarray}
+  n^p(\mc, \Reff) &= \int_0^\infty {n(r)\DiffD r} \\
+ &= \int_0^\infty {a  r^\alpha \exp(-br)
+    \DiffD r} = a \frac{\Gamma(\alpha+1)}{b^{\alpha+1}}.
+\end{eqnarray}
+
+After setting $\alpha$ = 1, inserting Equation \ref{eq:gamma_coeff} and
+some simple algebra we obtain
+\begin{equation}
+  \label{eq:pnd_gamma}
+  n^p(\mc, \Reff) = \frac{2}{\pi} \frac{\mc}{\rho \Reff^3}.
+\end{equation}
+Comparing Equation \ref{eq:pnd_mono} and \ref{eq:pnd_gamma}, we see
+that the particle number density for mono-disperse particles with a
+particle size of $R$ is smaller than the particle number density for
+gamma distributed particles with $\Reff=R$. The reason is that in the
+gamma distribution most particles are smaller than~\Reff.
+
+The question is how well a gamma distribution can represent the true
+particle size distribution in radiative transfer calculations. For cirrus
+clouds, this question has been investigated by \citet{evans:98}. The authors
+come to the
+conclusion that a gamma distribution represents the distribution of
+realistic clouds quite well, provided that the parameters \Reff, \imc\ 
+and $\alpha$ are chosen correctly. They show that setting $\alpha = 1$
+and calculating only \Reff\ gave an agreement within 15\% in 90\% of
+the considered measurements obtained during the First ISCCP Regional
+Experiment (FIRE).  Therefore, for all calculations including gamma
+size distributions for ice particles, $\alpha = 1$ was assumed.  
+
+\subsection[McFarquhar and Heymsfield parametrization]
+{Ice particle size parameterization by McFarquhar and Heymsfield}
+\label{sec:McFHey_distr}
+
+A more realistic parameterization of tropical cirrus ice crystal size
+distributions was derived by
+\citet{mcfarquar97:_param_tropic_cirrus_ice_cryst}, who derived the
+size distribution as a function of temperature and \imc. The
+parameterization was made based on observations during the Central
+Equatorial Pacific Experiment (CEPEX). Smaller ice crystals with an
+equal volume sphere radius of less than 50\,\mum\ are parametrized
+as a sum of first-order gamma functions:
+\begin{equation}
+  \label{eq:MH_gamma}
+  n(r) = \frac{12\cdot \imc_{<50}\alpha^5_{<50} r}{\pi \rho
+    \Gamma(5)} \exp(-2 \alpha_{<50} r), 
+\end{equation}
+where $\alpha_{<50}$ is a parameter of the distribution, and
+$\imc_{<50}$ is the mass of all crystals smaller than 50\,\mum\ in
+the observed size distribution.  Large ice crystals are represented
+better by a log-normal function
+\begin{eqnarray}
+  \label{eq:MH_lognorm}
+  n(r) = \frac{3\cdot\imc_{>50}}{\pi^{3/2}\rho \sqrt{2}
+    \exp(3\mu_{>50}+(9/2)\sigma^2_{>50}) r \sigma_{>50} r_0^3}
+  \nonumber \\
+  \cdot \exp\left[-\frac{1}{2}\left(\frac{\log\frac{2r}{r_0} -
+          \mu_{>50}}{\sigma_{>50}}\right)^2\right], 
+\end{eqnarray}
+where $\imc_{>50}$ is the mass of all ice crystals greater than
+50\,\mum\ in the observed size distribution, $r_0$ = 1\,\mum\ is a
+parameter used to ensure that the equation does not depend on the
+choice of unit for r, $\sigma_{>50}$ is the geometric standard
+deviation of the distribution, and $\mu_{>50}$ is the location of the
+mode of the log-normal distribution.  The fitted parameters of the
+distribution can be looked up in the article by
+\citet{mcfarquar97:_param_tropic_cirrus_ice_cryst}.  The particle
+number density field is obtained by numerical integration over a
+discrete set of size bins. Implementations of this particle size distribution
+parameterization exist in the ATMLAB and PyARTS packages (NOTE: PyARTS is
+currently not maintained and functionality is not guaranteed!).
+
+
+

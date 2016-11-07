@@ -276,11 +276,11 @@ Equation~\ref{eq:VRTE1} is
   \label{eq:VRTE2}
   \frac {\DiffD\StoVec(\Frq,\PPos,\PDir)}{\DiffD \PpathLng} &=&
     -\ExtMat(\Frq,\PPos,\PDir) \StoVec(\Frq,\PPos,\PDir) +
-     \Planck\aAbsVec{a}(\Frq,\PPos,\PDir) + \\ \nonumber
+     \Planck\AbsVec(\Frq,\PPos,\PDir) + \\ \nonumber
     &&+ \int_{4\pi} \PhaMat(\Frq,\PPos,\PDir,\PDir')
     \StoVec(\Frq,\PPos,\PDir')\,\DiffD\PDir' ,
 \end{eqnarray}
-where $\PhaMat$ is the scattering (or phase) matrix.  ARTS includes several
+where \PhaMat{} is the scattering (or phase) matrix.  ARTS includes several
 modules to handle scattering, introduced in the last part of this document.\\
 
 

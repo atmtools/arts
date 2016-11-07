@@ -418,6 +418,60 @@ The phase function is dimensionless and normalized:
 \end{equation}
 
 
+\subsection[Coordinate systems]{\textindex{Coordinate systems}: The
+  \textindex{laboratory frame} and the \textindex{scattering frame} }
+\label{sec:rtetheory:particle_coordinate_sytems}
+
+For radiative transfer calculations we need a coordinate system to
+describe the direction of propagation. For this purpose we use the
+laboratory frame, which is shown in
+Figure \ref{fig:RT_theory_coordinates_and_frames}, right panel. The z-axis
+corresponds to the local zenith direction and the x-axis points towards the
+north-pole. The propagation direction is described by the local zenith
+angle $\theta$ and the local azimuth angle $\phi$. This coordinate
+system is the most appropriate frame to describe the propagation
+direction and the polarization state of the radiation. However, in
+order to describe scattering of radiation by a particle or a particle
+ensemble, it makes sense to define another coordinate system taking
+into consideration the symmetries of the particle or the scattering
+medium, as one gets much simpler expressions for the single scattering
+properties. For macroscopically isotropic and mirror-symmetric
+scattering media it is convenient to use the scattering frame, in
+which the incidence direction is parallel to the z-axis and the x-axis
+coincides with the scattering plane, that is, the plane through the
+unit vectors \VctStl{\hat{n}^{\inc}}\ and \VctStl{\hat{n}^{\sca}}. The
+scattering frame is illustrated in
+Figure \ref{fig:RT_theory_coordinates_and_frames}, left panel. For symmetry
+reasons the single scattering properties defined with respect to the scattering
+frame can only depend on the scattering angle $\Theta$,
+\begin{equation}
+  \label{eq:scat_angle}
+  \Theta=\arccos(\hat{\PDir}^{\inc} \cdot {\hat{\PDir}^{\sca}}),
+\end{equation}
+between the incident and the scattering direction.
+
+
+\begin{figure}[t]
+ \centering
+ \begin{minipage}{.5\textwidth}
+  \centering
+   \includegraphics*[width=\textwidth]{coordinate_system}
+ \end{minipage}%
+ \hfill
+ \begin{minipage}{.4\textwidth}
+  \centering
+   \includegraphics*[width=\textwidth]{part_frame}
+ \end{minipage}%
+   \caption{
+Right: Coordinate system to describe the direction of propagation and the
+polarization state of a plane electromagnetic wave (adapted from Mishchenko).
+Left: Illustration of the scattering frame. The z-axis coincides with the
+incident direction $\hat{\PDir}^{\inc}$. The scattering angle $\Theta$ is the
+angle between  $\hat{\PDir}^{\inc}$ and $\hat{\PDir}^{\sca}$.
+           }
+  \label{fig:RT_theory_coordinates_and_frames}  
+\end{figure}
+
 
 \section[Particle Ensembles]
 {Scattering, absorption and emission by ensembles of independent particles}
@@ -433,14 +487,6 @@ situation. A particle collection can be treated at each given moment
 as a fixed cluster, but as a measurement takes a finite amount of
 time, one measures a statistical average over a large number of
 different cluster realizations.
-
-\begin{figure}[t]
- \begin{center}
-   \includegraphics*[width=0.6\hsize]{coordinate_system}
-   \caption{Coordinate system to describe the direction of propagation and the polarization state of a plane electromagnetic wave (adapted from Mishchenko).}
-  \label{fig:RT_theory_coordinates}  
- \end{center}
-\end{figure}
 
 Solving the Maxwell equations for a whole cluster, like a collection
 of particles in a cloud, is computationally too expensive.

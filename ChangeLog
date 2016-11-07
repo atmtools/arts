@@ -1,3 +1,23 @@
+2016-11-07 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-560
+
+	* Revision of scatterig media descriptions.
+
+	* doc/uguide/clouds.tex, atmosphere.tex:
+	Revision of scat_data and pnd_field documentation, extention towards
+	internal calculation of both (not yet complete,	though).
+
+	* doc/uguide/rte_theory.tex, doc/uguide/Figs/rte_theory/part_frame.pdf:
+	Moved coordinate system description and figure from AUG to here.
+
+	* doc/uguide/clouds_theory.tex, arts_theory.tex:
+	Moved general size distribution descriptions here.
+
+	* doc/uguide/absorption.tex: Updated zeeman paper reference.
+
+	* doc/uguide/rte_basics.tex, symbol_defs.tex: Minor changes.
+
 2016-11-07  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-3-559

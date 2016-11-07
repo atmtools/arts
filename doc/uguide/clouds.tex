@@ -1,10 +1,11 @@
 \graphicspath{{Figs/clouds/}}
 
-\chapter{Description of clouds}
+\chapter{Description of scattering media}
  \label{sec:clouds}
 
 \starthistory
  050913 & Created and written by Claudia Emde\\ 
+ 161107 & Extended regarding internal calculations of scat\_data and pnd\_fields by Jana Mendrok\\ 
 \stophistory
 
 \section{Introduction}
@@ -20,9 +21,9 @@ A scattering element is either a specific single particle or a particle
 ensemble, e.g., an ensemble following a certain size or shape distribution. The
 scattering element can represent particles that are completely randomly
 oriented, azimuthally randomly oriented or arbitrarily oriented. Each scattering
-element is characterized by its single scattering properties and a field of
+element is characterized by its single scattering properties (SSP) and a field of
 particle number densities.
-For each grid point in the cloud box, the atmospheric volume that enclosed all
+For each grid point in the cloud box, the atmospheric volume that encloses all
 scattering particles, the single scattering properties of all scattering
 elements weighted by their respective particle number density at this location
 are summed up to derive the cloud ensemble optical properties.
@@ -30,66 +31,29 @@ are summed up to derive the cloud ensemble optical properties.
 The \wsvindex{scat\_data} structure contains the single scattering properties
 ($\langle\ExtMat_i\rangle$, $\langle\AbsVec_i\rangle$, and
 $\langle\PhaMat_i\rangle$) for each of the scattering elements. 
-In \wsvindex{scat\_data}, the single scattering properties are stored in
-different coordinate systems, depending on the kind of particle. For instance, for
-randomly oriented particles it makes sense to store the single scattering
-properties in the so-called scattering frame in order to reduce memory
-requirements. The following section describes in detail the
-\typeindex{SingleScatteringData} class.
+In \wsvindex{scat\_data}, the SSP are stored in different coordinate systems,
+depending on the kind of particle. For instance, SSP of totally randomly
+oriented particles are stored in the so-called scattering frame in order to
+reduce memory requirements, while others use the particle frame.
+Section~\ref{sec:clouds:ssp} describes in detail the \typeindex{SingleScatteringData}
+class and section~\ref{sec:clouds:ssdgen} presents options for preparing SSP.
+For details on the coordinate systems used also see \theory~Section~%
+\ref{T-sec:rtetheory:particle_coordinate_sytems} (Note: Coordinate systems used
+by the SSP as well as the line-of-sight and radiation propagation directions in
+the scattering solvers and the general radiative transfer part are not fully
+consistent. However, as long as only totally or azimuthally randomly oriented
+particles are considered this is of no practical concern.
+\FIXME{add appendix on known ARTS issues with a section on this particular one}).
 
 The number density field, \wsvindex{pnd\_field}, contains the number densities
-of all scattering elements at all grid points within the cloudbox. Section
-\ref{sec:clouds:size_distr} describes how to realize different kinds of size
-distributions in the ARTS frame by defining appropriate particle number density
-fields. \wsvindex{pnd\_field} can be read in from externally prepared data
-files or be derived from mass density of flux fields provided to the model.
-Section \ref{sec:clouds:implement} below describes the first. The latter can be
-done using \wsmindex{pnd\_fieldCalcFromscat\_speciesFields} (\FIXME: document
-here in AUG!).
+of all scattering elements at all grid points within the cloudbox. \wsvindex{pnd\_field} can be read in from externally prepared data files or be derived from mass density of flux fields provided to the model. Section \ref{sec:clouds:pndgen} describes the available options.
+
+The WSVs \wsvindex{scat\_data} and \wsvindex{pnd\_field} together exhaustively
+describe particle ensembles in ARTS. All ARTS scattering solvers consistently require and use these two WSVs to derive the bulk extinction, absorption, and phase matrices (\aExtMat{p}, \aAbsMat{p}, and \PhaMat).
 
 
 \section{\textindex{Single scattering properties}}
 \label{sec:clouds:ssp}
-
-\subsection[Coordinate systems]{\textindex{Coordinate systems}: The
-  \textindex{laboratory frame} and the \textindex{scattering frame} }
-\label{sec:clouds:coordinate_sytems}
-
-For radiative transfer calculations we need a coordinate system to
-describe the direction of propagation. For this purpose we use the
-laboratory frame, which is shown in
-\theory, Figure \ref{T-fig:RT_theory_coordinates}.  The z-axis corresponds to the
-local zenith direction and the x-axis points towards the
-north-pole. The propagation direction is described by the local zenith
-angle $\theta$ and the local azimuth angle $\phi$.  This coordinate
-system is the most appropriate frame to describe the propagation
-direction and the polarization state of the radiation.  However, in
-order to describe scattering of radiation by a particle or a particle
-ensemble, it makes sense to define another coordinate system taking
-into consideration the symmetries of the particle or the scattering
-medium, as one gets much simpler expressions for the single scattering
-properties.  For macroscopically isotropic and mirror-symmetric
-scattering media it is convenient to use the scattering frame, in
-which the incidence direction is parallel to the z-axis and the x-axis
-coincides with the scattering plane, that is, the plane through the
-unit vectors \VctStl{\hat{n}^{\inc}}\ and \VctStl{\hat{n}^{\sca}}. The
-scattering frame is illustrated in
-Figure \ref{fig:scattering:part_frame}. For symmetry reasons the single
-scattering properties defined with respect to the scattering frame can
-only depend on the scattering angle $\Theta$,
-\begin{equation}
-  \label{eq:scat_angle}
-  \Theta=\arccos(\hat{\PDir}^{\inc} \cdot {\hat{\PDir}^{\sca}}),
-\end{equation}
-between the incident and the scattering direction.
-
-\begin{figure}[htbp]
- \begin{center}
-   \includegraphics*[width=0.4\hsize]{part_frame}
-   \caption{Illustration of the scattering frame. The z-axis coincides with the incident direction $\hat{\PDir}^{\inc}$. The scattering angle $\Theta$ is the angle between  $\hat{\PDir}^{\inc}$ and $\hat{\PDir}^{\sca}$.}
-   \label{fig:scattering:part_frame}  
- \end{center}
-\end{figure}
 
 \subsection{Scattering data structure}
 \label{sec:clouds:ARTS_SSP_structure}
@@ -97,34 +61,31 @@ between the incident and the scattering direction.
 The single scattering data is stored in a specific structure format, the
 the \typeindex{SingleScatteringData} class\footnote{Definition resides in
 \fileindex{optproperties.h}.}. The format allows space reduction due to
-symmetry for certain special cases, e.g. random orientation or
-horizontal alignment. The class consists of the following fields (compare also
+symmetry for certain special cases, e.g. totally random or azimuthally random  orientation. The class consists of the following fields (compare also
 Table \ref{tab:scattering:datastructure}):
 
 \begin{itemize}
-\item  {\sl String} \shortcode{ptype}: An attribute which contains
-  information about the 
-  data type, which is a classification of the scattering
-  particle, specifically regarding its symmetry properties (randomly oriented,
-  horizontally aligned, general case, \dots). This attribute is
-  needed in the radiative transfer function to be able to extract
-  the physical phase matrix, the physical extinction matrix and the
-  physical absorption vector from the data. 
+\item  {\sl String} \shortcode{ptype}: An attribute, which flags type and format
+  of the data stored. It essentially describes the type of particle regarding
+  its symmetry properties (totally randomly oriented, azimuthally randomly oriented, general
+  case, \dots). This attribute is needed in the radiative transfer function to
+  be able to extract the physical phase matrix, the physical extinction matrix,
+  and the physical absorption vector from the data.
   
   Possible values of ptype are:
   
-  \shortcode{"general"} \\
   \shortcode{"macroscopically\_isotropic"} \\
-  \shortcode{"horizontally\_aligned"}
+  \shortcode{"horizontally\_aligned"} \\
+  \shortcode{"general"}
   
-  A more detailed description of the different cases is given below.
+  A detailed description of the different types including their different data formats and corrdinate systems used is given in Section~\ref{sec:clouds:particle_types}.
 
-\item {\sl String} \shortcode{description}: Here the scattering element
-  can be characterized explicitly. For example, information on the size and
-  shape of the particle or the respective distributions of a particle ensemble
-  might be given. This can be a longer text describing how the scattering
-  properties were generated. It should be formatted for direct printout to screen
-  or file.
+\item {\sl String} \shortcode{description}: Here, the scattering element
+  is characterized explicitly in free text form. For example, information on
+  the size and shape of the particle or the respective distributions of a
+  particle ensemble might be given. This can be a longer text describing how the
+  scattering properties were generated. It should be formatted for direct
+  printout to screen or file.
   
 \item {\sl Vector} \shortcode{f\_grid}: Frequency grid [Unit: Hz].
   
@@ -132,61 +93,66 @@ Table \ref{tab:scattering:datastructure}):
   
 \item {\sl Vector} \shortcode{za\_grid}:
   \begin{enumerate}
-  \item \shortcode{"general", }: Zenith angle grid (Range: 0.0\degree $\le$ za $\le$ 180.0\degree).
-  \item \shortcode{"horizontally\_aligned"}: Scattering angle grid (Range: 0.0\degree $\le$ za $\le$ 180.0\degree).
+  \item \shortcode{"macroscopically\_isotropic"}:
+    Scattering angle grid. Range: 0.0\degree{} $\le$ za $\le$ 180.0\degree{}.
+  \item \shortcode{"horizontally\_aligned"}:
+    Zenith angle grid. Range: 0.0\degree{} $\le$ za $\le$ 180.0\degree{}. Symmetric with respect to 90.0\degree{} and explicitly including the 90.0\degree{} point.
+  \item \shortcode{"general"}:
+    Zenith angle grid. Range: 0.0\degree{} $\le$ za $\le$ 180.0\degree{}.
   \end{enumerate}
   
 \item {\sl Vector} \shortcode{aa\_grid}: Azimuth angle grid.
   \begin{enumerate}
-  \item \shortcode{"general"}: Range: -180.0\degree $\le$ aa $\le$ 180.0\degree
-  \item \shortcode{"macroscopically\_isotropic"}: Not needed, since optical properties depend only on
-    scattering angle (dummy grid).
-  \item \shortcode{"horizontally\_aligned"}: Only half of the grid is required (Range: 0.0\degree $\le$ aa $\le$ 180.0\degree)
+  \item \shortcode{"macroscopically\_isotropic"}:
+    Empty (not needed, since optical properties depend solely on scattering
+    angle).
+  \item \shortcode{"horizontally\_aligned"}:
+    Range: 0.0\degree{} $\le$ aa $\le$ 180.0\degree{} (due to symmetry only half of
+    the general grid is required).
+  \item \shortcode{"general"}: Range: -180.0\degree{} $\le$ aa $\le$ 180.0\degree{}
   \end{enumerate}
   
   The angular grids have to satisfy the following conditions:
   \begin{itemize}
-  \item They have to be equidistant. \FIXME{is this actually (still) true?}
-  \item The value of the data must be the same for the first and the
-    last grid-point \FIXME{of the azimuthal grid? doesn't make sense for zenith
-    angle grid.}. This condition is required for the integration routine.
-  \item If we only have to store a part of the grid, for example
-    \shortcode{za\_grid} only from 0\degree to 90\degree, these two values
-    (0\degree, 90\degree) must be grid-points.
+  \item Range limits (0\degree{}, 180\degree{}, \dots) must be grid points.
+  \item Data at azimuth angle values of -180.0\degree{} and 180.0\degree{} must be equal.
   \end{itemize}
   
-\item {\sl Tensor7} \shortcode{pha\_mat\_data}: Phase matrix data
-  \EnsAvr\PhaMat\ [Unit: m$^2$]. The dimensions of the data array are:  
+\item {\sl Tensor7} \shortcode{pha\_mat\_data}:
+  Phase matrix data \EnsAvr\PhaMat\ [Unit: m$^2$].
+
+  The dimensions of the data array are:  
   
   \shortcode{[frequency temperature za\_sca aa\_sca za\_inc aa\_inc matrix\_element]}
   
-  The order of matrix elements depends on the chosen case. For most
-  cases we do not need all matrix elements (see description of cases
-  below).
+  The order of matrix elements depends on the ptype of the data. For most types
+  not all matrix elements need to be stored (see description of ptypes in
+  Section~\ref{sec:clouds:particle_types}.
 
-\item {\sl Tensor5} \shortcode{ext\_mat\_data}: Extinction matrix data
-  \EnsAvr\ExtMat\ [Unit: m$^2$]. The dimensions are: 
+\item {\sl Tensor5} \shortcode{ext\_mat\_data}:
+  Extinction matrix data \EnsAvr\ExtMat\ [Unit: m$^2$].
+
+  The dimensions are: 
 
   \shortcode{[frequency temperature za\_inc aa\_inc matrix\_element]}
   
-  Again, the order of matrix elements depends on the chosen case.
+  Again, the order of matrix elements depends on the ptype of the data.
 
-\item {\sl Tensor5} \shortcode{abs\_vec\_data}: Absorption vector data
-  \EnsAvr\AbsVec\ [Unit: m$^2$]. 
+\item {\sl Tensor5} \shortcode{abs\_vec\_data}:
+  Absorption vector data \EnsAvr\AbsVec\ [Unit: m$^2$]. 
   
-  The absorption vector is also precalculated. It could be calculated
-  from extinction matrix and phase matrix. But this calculation takes
-  long computation time, as it requires an angular integration over
-  the phase matrix. For the cases with symmetries (e.g., random
-  orientation) the data files will not become too large even if we
-  store additionally the absorption vector. The dimensions are: 
+  The dimensions are: 
   
- \shortcode{[frequency temperature za\_inc aa\_inc vector\_element]}
+  \shortcode{[frequency temperature za\_inc aa\_inc vector\_element]}
+
+  The absorption vector is explicitly given. It could be calculated
+  from extinction matrix and phase matrix. However, this would take
+  significant computation time, as it requires an angular integration over
+  the phase matrix and poses integration accuracy and grid representation
+  issues, whereas the additional storage burden is comparably low.
 \end{itemize}
 
 \begin{table}
-\label{tab:scattering:datastructure}
-\caption{Structure of single scattering data files}
 \begin{flushleft}
 \begin{tabular}{llll}
 \hline
@@ -205,293 +171,198 @@ $\ZntAng'$, $\AzmAng'$, $i$ )  & phase matrix \\
 \hline
 \end{tabular}
 \end{flushleft}
+\caption{Structure of single scattering data files}
+\label{tab:scattering:datastructure}
 \end{table}
 
 \subsection{Definition of \textindex{ptypes}}
 \label{sec:clouds:particle_types}
 
-Ptype essentially classifies the scattering elements regarding their
-orientation. As described above, this effects the optimal choice of the
-coordinate system to represent the scattering element in. Below we give a more
-detailed description of each possible ptype classification in the model.
+Ptype essentially classifies the scattering elements regarding their symmetry
+properties, which are largely governed by particle orientation. As indicated
+above, this affects the optimal choice of the coordinate system to represent the
+scattering element in. Possible ptypes in the model are:
+
 
 \subsubsection{``macroscopically\_isotropic''}
 The ptype value ``macroscopically\_isotropic'' refers to macroscopically
 isotropic and mirror-symmetric scattering media. It covers totally randomly
 oriented particles as well as spherical particles.
-For this type of scattering media the optical properties are
-calculated in the so-called scattering frame as shown in
-Figure \ref{fig:scattering:part_frame}. In this coordinate 
-system the z-axis corresponds to the incident direction and the
-xz-plane coincides with the scattering plane. Using this frame only
-the scattering angle, which is the angle between incident and
-scattered direction is needed. Furthermore the number of matrix
-elements of both matrices, phase matrix and extinction matrix, can be
-reduced (see \citet{Mishchenko:02}, p.90). To calculate the
-particle optical properties it is convenient to use Mishchenko's
-T-matrix code for randomly oriented particles \citep{Mishchenko:98}
-which returns the averaged phase matrix and extinction matrix. 
-The only drawback is that the single scattering data has
-to be transformed from the particle frame representation to the
-laboratory frame representation. These transformations are described
-in the appendix of \citet{emde05:_phdthesis}.
 
-Only six elements of the transformed phase matrix, which is commonly
-called scattering matrix \ScaMat, are different. Therefore the size of
-\shortcode{pha\_mat\_data} is: 
+For this type of scattering media, the optical properties are
+stored in the scattering frame (see \theory~%
+Section~\ref{T-sec:rtetheory:particle_coordinate_sytems}, where the z-axis
+corresponds to the incident direction and the x-z-plane with the scattering
+plane. Using this frame, only the scattering angle is needed, the angle between
+incident and scattered direction. Furthermore, the number of matrix elements of
+both the phase matrix and the extinction matrix can be reduced (see
+\citet{Mishchenko:02}, p.90). This representation, however, requires an
+ARTS-internal transformation of the phase matrix data from the particle frame
+representation (in the scattering frame) to the laboratory frame representation. These transformations are described in the Appendix of \citet{emde05:_phdthesis}.
+
+Only six elements of the phase matrix in the scattering frame, which is commonly
+called scattering matrix \ScaMat, are independent. The order of the stored matrix
+elements is: {\sl F11, F12, F22, F33, F34, F44}. The size of
+\shortcode{pha\_mat\_data} is
 
 \shortcode{[N\_f N\_T N\_za\_sca 1 1 1 6]}\\
-The order of the matrix elements is as follows: {\sl F11, F12, F22,
-  F33, F34, F44}\\
+%
 The extinction matrix is in this case diagonal and independent of
-direction and polarization. That means that we need to store only one
-element for each frequency. Hence the size of
-\shortcode{ext\_mat\_data} is
- 
+direction and polarization. That means only one element per frequency and temperature needs to be stored. Hence the size of \shortcode{ext\_mat\_data} is
+
 \shortcode{[N\_f N\_T 1 1 1]}\\
+%
 The absorption vector is also direction and polarization
-independent. Therefore the size of \shortcode{abs\_vec\_data} for this
-case is the same as \shortcode{ext\_mat\_data}: 
+independent. Therefore the size of \shortcode{abs\_vec\_data} is
 
 \shortcode{[N\_f N\_T 1 1 1]}
 
+
 \subsubsection{``horizontally\_aligned''}
-
 The ptype value ``horizontally\_aligned'' refers to particles that are
-aligned with respect to polar angle, specifically in horizontal direction, but
-oriented randomly regarding the azimuthal angle. For these particles,
-the angular dimension can be
-reduced by one, if we rotate the coordinate system appropriately. For
-this case we use the T-matrix code for single particles in fixed
-orientation and average phase matrix and extinction matrix manually
-like in the general case.
+aligned with respect to polar angle, but oriented randomly regarding the
+azimuthal angle. Horizontally oriented particles are one prominent example, but
+this class is not limited to them. For these particles, one angular dimension is
+redundant and can be omitted in the data, if the coordinate system is oriented
+appropriately.
 
-The phase matrix (and also extinction matrix and absorption vector)
-become independent of the incident azimuth angle in this
-frame. Furthermore, regarding the symmetry of this case, it can be
-shown that for the scattered directions we need only half of the
-angular grids, as the two halves must contain the same
-data. \shortcode{pha\_mat\_data} therefore has the following size:
+SSP here are stored in the laboratory frame. In this frame, the phase matrix,
+extinction matrix, and absorption vector become independent of the incident
+azimuth angle. Furthermore only half of the ``general'' angle ranges are required for the azimuth and the incident polar angle due to symmetry reasons. That is, \shortcode{aa\_grid} from 0\degree{} to 180\degree{}, and \shortcode{za\_inc} from 0\degree{} to 90\degree{}. The latter requires that the data's zenith angle grid includes a grid point at 90\degree{} and that \shortcode{za\_grid} is symmetric with respect to 90\degree{} (i.e., N\_za\_inc=N\_za/2+1).
+
+All 16 elements of the phase matrix are required. Their order is the same as in the general case. The size of \shortcode{pha\_mat\_data} is
 
 \shortcode{[N\_f N\_T N\_za\_sca N\_aa\_sca N\_za\_sca/2+1 1 16]}\\
-We store \shortcode{za\_sca} for all grid points from 0\degree to 180\degree,
-\shortcode{aa\_sca} from 0\degree to 
-180\degree, and \shortcode{za\_inc} from 0\degree to 90\degree. This means that the
-zenith angle grid 
-has to include 90\degree as grid-point. The order of the matrix elements is
-the same as in the general case. For this case it can be shown that the extinction matrix has only
-three elements {\sl Kjj}, {\sl K12(=K21)}, and {\sl K34(=-K43)}. 
-Because of azimuthal symmetry, it can not depend on the azimuth
-angle. Hence the size of \shortcode{ext\_mat\_data} is 
+For this ptype, the extinction matrix has only three independent elements, {\sl Kjj}, {\sl K12(=K21)}, and {\sl K34(=-K43)}. The size of \shortcode{ext\_mat\_data} is 
 
 \shortcode{[N\_f N\_T N\_za/2+1 1 3]}\\
-The absorption coefficient vector has only two elements {\sl a1} and
+The absorption coefficient vector has only two independent elements, {\sl a1} and
 {\sl a2}. This means that the size of \shortcode{abs\_vec\_data} is 
 
 \shortcode{[N\_f N\_T N\_za/2+1 1 2]}
 
 \subsubsection{``general''}
 
+NOTE: While basic definitions and infrastructure to handle particles of general
+type exist, not all methods are fully implemented for this type. Hence,
+calculations with arbitrary particles are currently possible.
+
 The ptype value ``general'' refers to arbitrarily shaped and oriented particles.
-For those, generally no symmetries ecist, hence all 16 elements of
-the phase matrix have to be stored. The average phase matrix has to be generated from
-all individual phase matrices of the particles in the distribution
-outside ARTS. The individual phase matrices are calculated using
-Mishchenko's T-matrix code for single particles in fixed orientation
-\citep{Mishchenko:00}. 
-We have to store all elements for all angles in the grids. The size of
-\shortcode{pha\_mat\_data} is therefore: 
+For those, generally no symmetries exist, hence all 16 elements of
+the phase matrix have to be stored for the complete set of incident and
+scattered directions. The matrix elements are stored in the order {\sl Z11,
+Z12, Z13, Z14, Z21, Z22, \dots}. The size of \shortcode{pha\_mat\_data} is
 
 \shortcode{[N\_f N\_T N\_za\_sca N\_aa\_sca N\_za\_inc N\_aa\_inc 16]}\\
-The matrix elements have to be stored in the following order: {\sl Z11,
-  Z12, Z13, Z14, Z21, Z22,~...} Seven extinction matrix elements are
-independent (cp. \citet{Mishchenko:02}, p.55). The elements being equal for
-single particles should still be the equal for a distribution as we
-get the total extinction just by adding. Here we need only the
-incoming grids, so the size of ext\_mat\_data is: 
+Seven extinction matrix elements are independent (cp. \citet{Mishchenko:02},
+p.55). The elements being equal for single particles are equal for a
+distribution, too, as total extinction is derived by summing up individual
+contribution. Extinction matrix generally only depends on the incident
+direction, hence the size of ext\_mat\_data is
 
 \shortcode{[N\_f N\_T N\_za\_inc N\_aa\_inc 7]}\\
 The absorption vector in general has four components (cp. Equation
 (2.186) in \citet{Mishchenko:02}). The size of abs\_vec\_data is
-accordingly: 
+accordingly
 
 \shortcode{[N\_f N\_T N\_za\_inc N\_aa\_inc 4]}
 
-\subsection{Generating single scattering properties}
-The single scattering properties have to be pre-calculated before entering the
-scattering solver. This can be done for example by Mie, T-Matrix or
-Discrete dipole approximation methods. Different methods for the calculation of
-single scattering properties are reviewed in \citet{emde05:_phdthesis}.
 
-Calculations of the single scattering properties can be done by external tools
-or by internally interfaced methods:
+\section{Generating single scattering properties}
+\label{sec:clouds:ssdgen}
+
+The single scattering properties in the above described format have to be
+available to ARTS when entering the scattering solver. The data can be
+prepared by external tools or from internally interfaced methods.
+
+Generally, single scattering properties can be calculated for example by Mie
+\citep[e.g.][]{wiscombe80:_improved_ao, maetzler02:_matlab}, T-Matrix
+\citep{Mishchenko:98} or Discrete dipole approximation, DDA,
+\citep[e.g][]{yurkin11:_adda_jqsrt} methods. While Mie methods can only provide
+data for macroscopically isotropic particles, T-matrix methods are applicable
+for certain anisotropic particles, too, and DDA is capable of handling
+completely general particles.
+
+The user is free to use any tools to derive the single scattering
+properties, but has to ensure to store the data in the appropriate format. That
+is, macroscopically\_isotropic particle data has to be provided in the
+scattering frame, while the other two types are given in the laboratory frame.
+Depending on the method used, averaging the single scattering properties of
+particles in fixed orientation over a range of orientations might required.
+
+Within ARTS and its supporting software packages some methods to prepare single
+scattering data are available:
 \begin{itemize}
 \item
-The ATMLAB package includes functions to generate single scattering
-properties for spherical particles (Mie-Theory). 
-\item
-It is also convenient to use the Python module PyARTS, which has been
-developed especially for ARTS and which is freely available at
-\artsurl{tools/}. This
-module can be used to generate single scattering properties for
-horizontally aligned as well as for randomly oriented particles in the
-ARTS data-file-format. PyARTS has been developed by C. Davis, who has
-implemented the Monte Carlo scattering algorithm in ARTS (see
-\theory, Section \ref{T-sec:montecarlo}).
-\item
 The WSM \wsmindex{scat\_data\_singleTmatrix} provides an ARTS internal interface
-to the the T-matrix code by \citet{Mishchenko:02}.
+to the the T-matrix code by \citet{Mishchenko:02}. It allows to calculate single
+scattering properties of individual scattering elements including orientation
+averaging and reference frame adjustion. It is currently only available for a
+limited number of particle shapes (see online documentation) and orientations (namely for totally randomly oriented and for perfectly horizontally aligned particles).
+\item
+The ATMLAB package, available at \artsurl{tools/}, includes functions to
+generate single scattering properties for spherical particles (Mie-Theory) as
+well as an interface to ARTS' own \wsmindex{scat\_data\_singleTmatrix} WSM.
+\item
+The Python module PyARTS used to provide methods to generate single scattering
+properties for horizontally aligned as well as for randomly oriented particles
+in the ARTS data-file-format. NOTE: PyARTS is currently not maintained and
+updated along with ARTS development. Hence, functionality of specific methods is
+not guaranteed.
 \end{itemize}
 
-\section[Particle size distributions]
-{Representation of the \textindex{particle size distribution}}
-\label{sec:clouds:size_distr}
+Since WSVs \wsvindex{scat\_data} and \wsvindex{pnd\_field} form a paired
+input to ARTS' scattering solvers, dedicated methods exist for loading
+externally prepared data consistently into these WSVs. WSMs
+\wsmindex{ScatElementsPndAndScatAdd} and \wsmindex{ScatSpeciesPndAndScatAdd} can
+be applied for loading externally prepared single scattering data and particle
+number density field raw data (into \wsvindex{pnd\_field\_raw}) simultaneously.
+In case, particle scattering should be neglected and particles considered as
+absorbing species only (see Section~\ref{sec:absorption:particles}), WSM
+\wsmindex{ScatElementsToabs\_speciesAdd} should be used to load the data into
+\builtindoc{scat\_data} and \builtindoc{vmr\_field\_raw}. If particle number
+density fields are calculated internally from atmospheric cloud fields (see
+Section~\ref{sec:clouds:pndgen:internal}, WSM \wsmindex{ScatSpeciesScatAndMetaRead} can be applied.
 
-The particle size has an important impact on the scattering and
-absorption properties of particle ensembles, e.g. clouds, as shown for instance
-in \citep{emde04:_doit_jgr}.  Particle ensembles typically contain a whole range
-of different particle sizes, which can be described by a size
-distribution giving the number of particles per unit volume per unit
-radius interval as a function of radius.  It is most convenient to
-parameterize the size distribution by analytical functions, because in
-this case optical properties can be calculated much faster than for
-arbitrary size distributions. The T-matrix code for randomly oriented
-particles includes several types of analytical size distributions,
-e.g., the gamma distribution or the log-normal distribution.  This
-section presents the size distribution parameterizations, which were
-used for the ARTS simulations included in this thesis.
 
-\subsection{Mono-disperse particle distribution}
+\section{Generating particle number density fields}
+\label{sec:clouds:pndgen}
 
-The most simple assumption is, that all particles in an ensemble have
-the same size.  In order to study scattering effects like polarization
-or the influence of particle shape, it makes sense to use this most
-simple assumption, because one can exclude effects resulting from the
-particle size distribution itself.  
+\subsection{Externally created particle number density fields}
+\label{sec:clouds:pndgen:external}
+Externally created particle number density fields have to be provided to ARTS in
+the form of GriddedField3 data. Using the WSMs
+\wsmindex{ScatElementsPndAndScatAdd} or \wsmindex{ScatSpeciesPndAndScatAdd},
+they are loaded into the WSV \wsvindex{pnd\_field\_raw} simultaneously as the
+corresponding single scattering properties are loaded into
+\wsvindex{scat\_data}. WSM \builtindoc{ScatElementsPndAndScatAdd} reads number
+density fields for individual scattering elements, i.e., GriddedField3 format
+data, and appends the data as one array element to \wsvindex{pnd\_field\_raw},
+whereas \builtindoc{ScatSpeciesPndAndScatAdd} expects a set of number density
+fields in the form of ArrayOfGriddedField3, which is appended to
+\builtindoc{pnd\_field\_raw}.
 
-Along with the single scattering properties we need the particle
-number density field, which specifies the number of particles per
-unit volume at each grid point, for ARTS scattering simulations.  For
-a given \imc\ and mono-disperse particles the particle number density
-$n^p$ is simply
-\begin{equation}
-\label{eq:pnd_mono}
-  n^p (\imc, r) =\frac{\imc}{m} = \frac{\imc}{V\rho}
-    =\frac{3}{4\pi}\frac{\imc}{\rho r^3},  
-\end{equation}
-where $m$ is the mass of a particle, $r$ is its equal volume sphere
-radius, $\rho$ is its density, and $V$ is its volume.
-     
-\subsection{Gamma size distribution}
-\label{sec:clouds:gamma_distr}
+Before entering a scattering solver, \wsvindex{pnd\_field} has to be calculated
+from the raw number density fields using
+\wsmindex{pnd\_fieldCalcFrompnd\_field\_raw}. The data for all scattering
+elements is regridded to the common RT calculation grids of pressure, latitude, and
+longitude and stored together in Tensor4 format. Particle number density fields
+are restricted to the cloudbox, i.e., \builtindoc{pnd\_field} is only derived
+for the RT grid points within the cloudbox region. That is, the cloudbox region
+has to be defined before applying
+\builtindoc{pnd\_fieldCalcFrompnd\_field\_raw}. For WSMs to set the cloudbox see
+Section~\ref{sec:fm_defs:cloudbox}.
 
-A commonly used distribution for radiative transfer modeling in cirrus
-clouds is the \emph{gamma distribution}
-\begin{equation}
-  n(r) = a  r^\alpha \exp(-br).
-\label{eq:gamma_distr}
-\end{equation}
-The dimensionless parameter $\alpha$ describes the width of the
-distribution. The other two parameters can be linked to the effective
-radius \Reff\ and the ice mass content \imc\ as follows:
-\begin{eqnarray}
-  b &= \frac{\alpha+3}{\Reff},\\
-  a &= \frac{\imc}{4/3\pi\rho b^{-(\alpha+4)}\Gamma[\alpha+4]},
-\label{eq:gamma_coeff}
-\end{eqnarray}
-where $\rho$ is the density of the scattering medium and $\Gamma$ is
-the gamma function. For cirrus clouds $\rho$ corresponds to the bulk
-density of ice, which is approximately 917 kg/m$^3$.
+\subsection{Internal calculation of particle number density fields}
+\label{sec:clouds:pndgen:internal}
 
-Generally, the effective radius \Reff\ is defined as the average
-radius weighted by the particles' cross-sectional area
-\begin{equation}
-  \label{eq:Reff}
-  \Reff= \frac{1}{\EnsAvr{A}} \int_{r_{min}}^{r_{max}} {A(r) r n(r) \DiffD r},
-\end{equation}
-where $A$ is the area of the geometric projection of a particle. The
-minimal and maximal particle sizes in the distribution are given by
-$r_{min}$ and $r_{max}$ respectively. In the case of spherical
-particles $A = \pi r^2$. The average area of the geometric projection
-per particle \EnsAvr{A} is given by
-\begin{equation}
-  \EnsAvr{A} = \frac{\int_{r_{min}}^{r_{max}} {A(r) n(r) \DiffD r}}{\int_{r_{min}}^{r_{max}} {n(r) \DiffD r}}.
-\end{equation}
+\FIXME{write. consider/discuss:}
+\begin{itemize}
+\item related atm fields
+\item scat\_species, PSDs
+\item scat\_meta
+\end{itemize}
 
-The question is how well a gamma distribution can represent the true
-particle size distribution in radiative transfer calculations. This
-question is investigated by \citet{evans:98}. The authors come to the
-conclusion that a gamma distribution represents the distribution of
-realistic clouds quite well, provided that the parameters \Reff, \imc\ 
-and $\alpha$ are chosen correctly. They show that setting $\alpha = 1$
-and calculating only \Reff\ gave an agreement within 15\% in 90\% of
-the considered measurements obtained during the First ISCCP Regional
-Experiment (FIRE).  Therefore, for all calculations including gamma
-size distributions for ice particles, $\alpha = 1$ was assumed.  
-
-The particle number density for size distributions is obtained by
-integration of the distribution function over all sizes:
-\begin{eqnarray}
-  n^p(\imc, \Reff) &= \int_0^\infty {n(r)\DiffD r} \\
- &= \int_0^\infty {a  r^\alpha \exp(-br)
-    \DiffD r} = a \frac{\Gamma(\alpha+1)}{b^{\alpha+1}}.
-\end{eqnarray}
-
-After setting $\alpha$ = 1, inserting Equation \ref{eq:gamma_coeff} and
-some simple algebra we obtain
-\begin{equation}
-  \label{eq:pnd_gamma}
-  n^p(\imc, \Reff) = \frac{2}{\pi} \frac{\imc}{\rho \Reff^3}.
-\end{equation}
-Comparing Equation \ref{eq:pnd_mono} and \ref{eq:pnd_gamma}, we see
-that the particle number density for mono-disperse particles with a
-particle size of $R$ is smaller than the particle number density for
-gamma distributed particles with $\Reff=R$. The reason is that in the
-gamma distribution most particles are smaller than~\Reff.
-
-\subsection[McFarquhar and Heymsfield parametrization]
-{Ice particle size parameterization by McFarquhar and Heymsfield}
-\label{sec:McFHey_distr}
-
-A more realistic parameterization of tropical cirrus ice crystal size
-distributions was derived by
-\citet{mcfarquar97:_param_tropic_cirrus_ice_cryst}, who derived the
-size distribution as a function of temperature and \imc. The
-parameterization was made based on observations during the Central
-Equatorial Pacific Experiment (CEPEX). Smaller ice crystals with an
-equal volume sphere radius of less than 50\,\mum\ are parametrized
-as a sum of first-order gamma functions:
-\begin{equation}
-  \label{eq:MH_gamma}
-  n(r) = \frac{12\cdot \imc_{<50}\alpha^5_{<50} r}{\pi \rho
-    \Gamma(5)} \exp(-2 \alpha_{<50} r), 
-\end{equation}
-where $\alpha_{<50}$ is a parameter of the distribution, and
-$\imc_{<50}$ is the mass of all crystals smaller than 50\,\mum\ in
-the observed size distribution.  Large ice crystals are represented
-better by a log-normal function
-\begin{eqnarray}
-  \label{eq:MH_lognorm}
-  n(r) = \frac{3\cdot\imc_{>50}}{\pi^{3/2}\rho \sqrt{2}
-    \exp(3\mu_{>50}+(9/2)\sigma^2_{>50}) r \sigma_{>50} r_0^3}
-  \nonumber \\
-  \cdot \exp\left[-\frac{1}{2}\left(\frac{\log\frac{2r}{r_0} -
-          \mu_{>50}}{\sigma_{>50}}\right)^2\right], 
-\end{eqnarray}
-where $\imc_{>50}$ is the mass of all ice crystals greater than
-50\,\mum\ in the observed size distribution, $r_0$ = 1\,\mum\ is a
-parameter used to ensure that the equation does not depend on the
-choice of unit for r, $\sigma_{>50}$ is the geometric standard
-deviation of the distribution, and $\mu_{>50}$ is the location of the
-mode of the log-normal distribution.  The fitted parameters of the
-distribution can be looked up in the article by
-\citet{mcfarquar97:_param_tropic_cirrus_ice_cryst}.  The particle
-number density field is obtained by numerical integration over a
-discrete set of size bins. This parameterization of particle size has
-been implemented in the PyARTS package, which was introduced in
-Section \ref{sec:clouds:ARTS_SSP_structure}. Using PyARTS one can calculate the size
-distributions, the corresponding single scattering properties and the
-particle number density fields for given \imc\ and temperature.
 
 
 \section{Implementation}
