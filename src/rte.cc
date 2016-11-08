@@ -2713,13 +2713,13 @@ const Index&     atmosphere_dim)
                 dv_doppler_dx = 1.0;
                 break;
             case 1:// this is the u-component
-                dv_doppler_dx = abs(dotprod_with_los(ppath.los(ip,joker), 1, 0, 0, atmosphere_dim));
+                dv_doppler_dx = (dotprod_with_los(ppath.los(ip,joker), 1, 0, 0, atmosphere_dim));
                 break;
             case 2:// this is v-component
-                dv_doppler_dx = abs(dotprod_with_los(ppath.los(ip,joker), 0, 1, 0, atmosphere_dim));
+                dv_doppler_dx = (dotprod_with_los(ppath.los(ip,joker), 0, 1, 0, atmosphere_dim));
                 break;
             case 3:// this is w-component
-                dv_doppler_dx = abs(dotprod_with_los(ppath.los(ip,joker), 0, 0, 1, atmosphere_dim));
+                dv_doppler_dx = (dotprod_with_los(ppath.los(ip,joker), 0, 0, 1, atmosphere_dim));
                 break;
             default:
                 throw std::runtime_error("This being seen means that there is a development bug in interactions with get_ppath_df_dW.\n");
