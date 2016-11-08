@@ -304,7 +304,7 @@ void partition_function( Numeric& q_ref,
         else
           CalculatePartitionFctFromVibrotCoeff(q_ref, q_t, line_t, atm_t, /*t_rot*/ atm_t, //This must be implemented!
                                               partition_data[0].data,partition_data[1].data);
-          break;
+      break;
     case SpeciesAuxData::AT_PARTITIONFUNCTION_TFIELD:
       CalculatePartitionFctFromData(q_ref, q_t, line_t, atm_t,
                                     partition_data[0].get_numeric_grid(0),

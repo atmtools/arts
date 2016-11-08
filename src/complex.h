@@ -750,7 +750,7 @@ public:
          for(Index i=0;i<nrows();i++)
              for(Index j=0;j<ncols();j++)
                  A(i,j)=get(i,j).real();
-             return A;
+         return A;
      };
      Matrix imag()
      {
@@ -758,7 +758,7 @@ public:
          for(Index i=0;i<nrows();i++)
              for(Index j=0;j<ncols();j++)
                  A(i,j)=get(i,j).imag();
-             return A;
+         return A;
      };
      
      //! Destructor

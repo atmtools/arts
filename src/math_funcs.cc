@@ -497,31 +497,27 @@ Numeric sign( const Numeric& x )
 
 Numeric gamma_func(Numeric xx)
 {
-  //double lgamma(double xx);
-  
-  Numeric gam;
-  Index i;
-  
-  
-  if (xx > 0.0) {
-    if (xx == (int)xx) {
-      gam = 1.0;               // use factorial
-      for (i=2;i<xx;i++) {
-        gam *= (Numeric)i;
-      }
-    }    
-    else {       
-	    return exp(lgamma_func(xx));
+    //double lgamma(double xx);
+
+    Numeric gam;
+
+    if (xx > 0.0) {
+        if (xx == (int)xx)
+        {
+            gam = fac(Index(xx)-1);
+        }
+        else
+        {
+            gam = exp(lgamma_func(xx));
+        }
+    } else {
+        ostringstream os;
+        os << "Argument is zero or negative."
+        << "Gamma function can not be calculated.\n";
+        throw runtime_error(os.str());
     }
-  } else {
-    ostringstream os;
-    os << "Argument is zero or negative."
-    << "Gamma function can not be calculated.\n";
-    throw runtime_error(os.str());
-  }
-  
-  
-  return gam;
+    
+    return gam;
 }
 
 

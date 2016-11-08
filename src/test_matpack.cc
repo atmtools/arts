@@ -380,7 +380,7 @@ void test21()
   Numeric s=0;
   // Test speed of call by reference:
   cout << "By reference:\n";
-  for ( Index i=0; i<1e8; ++i )
+  for ( Index i=0; i<(Index)1e8; ++i )
     {
       s += by_reference(s);
       s -= by_reference(s);
@@ -393,7 +393,7 @@ void test22()
   Numeric s=0;
   // Test speed of call by value:
   cout << "By value:\n";
-  for ( Index i=0; i<1e8; ++i )
+  for ( Index i=0; i<(Index)1e8; ++i )
     {
       s += by_value(s);
       s -= by_value(s);

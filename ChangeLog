@@ -1,3 +1,51 @@
+2016-11-08  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-563
+
+	* This commit should fix all warnings in GCC 6.2 (except unused
+	parameters in abs_xsec_per_speciesAddLineMixedBands and warnings in
+	3rd party code).
+
+	* src/complex.h: Fix indentation of return statements after for loops.
+
+	* src/lin_alg.cc (special_matrix_exp_and_dmatrix_exp_dx_for_rt,
+	matrix_exp_dmatrix_exp, matrix_exp_dmatrix_exp):
+
+	Change type of r from Numeric to Index. floor() is used in the
+	calculatoin of r and in all further uses, r is always compared to
+	Index variables anyway.
+
+	* src/linescaling.cc (partition_function):
+
+	Fix indentation of break statement.
+
+	* src/m_abs_lookup.cc (propmat_clearsky_fieldCalc):
+
+	Fix indentation of checks.
+
+	* src/m_radiation_field.cc (radiation_fieldCalcFromiyCalc):
+
+	Reindent whole function because indentation was completely messed up.
+
+	* src/m_sensor.cc (sensor_responseGenericAMSU):
+
+	Change type of numPBpseudo and numPB from Vector to more appropriate
+	ArrayOfIndex. Inserted explicit conversions to Numeric where needed.
+
+	* src/m_tmatrix.cc (scat_data_singleTmatrix):
+
+	Change 0. to 0 in integer comparison.
+
+	* src/m_xml.h (WriteXML): Reindent one line for better readability.
+
+	* src/math_funcs.cc (gamma_func):
+
+	Clean up implementation.
+
+	* src/ppath.cc (ppath_start_stepping, ppath_calc):
+
+	Insert explicit type conversions to Numeric or Index where needed.
+
 2016-11-08  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-3-562

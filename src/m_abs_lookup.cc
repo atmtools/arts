@@ -2234,10 +2234,10 @@ void propmat_clearsky_fieldCalc( Workspace& ws,
     CREATE_OUT2;
     CREATE_OUT3;
 
-  chk_if_in_range( "stokes_dim", stokes_dim, 1, 4 );
-  if( atmfields_checked != 1 )
-    throw runtime_error( "The atmospheric fields must be flagged to have "
-                         "passed a consistency check (atmfields_checked=1)." );
+    chk_if_in_range( "stokes_dim", stokes_dim, 1, 4 );
+    if( atmfields_checked != 1 )
+        throw runtime_error( "The atmospheric fields must be flagged to have "
+                            "passed a consistency check (atmfields_checked=1)." );
     
     ArrayOfTensor3 partial_abs;
     ArrayOfMatrix partial_nlte_source,nlte_partial_source;// FIXME: This is not stored!

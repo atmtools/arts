@@ -579,7 +579,8 @@ void special_matrix_exp_and_dmatrix_exp_dx_for_rt(
     Numeric A_norm_inf, e;
     A_norm_inf = norm_inf(A);
     e = 1. +  floor(1./log(2.)*log(A_norm_inf));
-    Numeric r = (e+1.)>0.?(e+1.):0., pow2rm1=1./pow(2,r);
+    Index r = (e+1.)>0.?(Index)(e+1.):0;
+    Numeric pow2rm1=1./pow(2,r);
     Numeric c = 0.5;
 
     // For non-partials
@@ -818,7 +819,8 @@ void matrix_exp_dmatrix_exp(
     Numeric A_norm_inf, e;
     A_norm_inf = norm_inf(A);
     e = 1. +  floor(1./log(2.)*log(A_norm_inf));
-    Numeric r = (e+1.)>0.?(e+1.):0., pow2rm1=1./pow(2,r);
+    Index r = (e+1.)>0.?(Index)(e+1.):0;
+    Numeric pow2rm1=1./pow(2,r);
     Numeric c = 0.5;
 
     // For non-derivatives
@@ -983,7 +985,8 @@ void matrix_exp_dmatrix_exp(
     Numeric A_norm_inf, e;
     A_norm_inf = norm_inf(A);
     e = 1. +  floor(1./log(2.)*log(A_norm_inf));
-    Numeric r = (e+1.)>0.?(e+1.):0., pow2rm1=1./pow(2,r);
+    Index r = (e+1.)>0.?(Index)(e+1.):0;
+    Numeric pow2rm1=1./pow(2,r);
 
     // A and dA are scaled
     Matrix M=A, dM=dA;

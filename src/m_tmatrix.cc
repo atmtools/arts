@@ -208,7 +208,7 @@ void scat_data_singleTmatrix(
     {
       // For horizontally-aligned particles, the azimuth angle grid must cover
       // 0-180 degrees.
-      if (scat_data_single.ptype == PTYPE_HORIZ_AL && data_aa_grid.nelem() == 0.)
+      if (scat_data_single.ptype == PTYPE_HORIZ_AL && data_aa_grid.nelem() == 0)
         {
           ostringstream os;
           os << "For ptype = \"horizontally_aligned\""

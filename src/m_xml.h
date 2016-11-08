@@ -138,7 +138,7 @@ WriteXML (//WS Input:
                          "  zascii: Zipped XML output\n"
                          "  binary: XML + binary output");
 
-    String errmsg;
+  String errmsg;
 
 #pragma omp critical(WriteXML_critical_region)
     {

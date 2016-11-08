@@ -2830,8 +2830,8 @@ void sensor_responseGenericAMSU(// WS Output:
       }
 
       // Create a vector to store the number of passbands (PB) for each channel 
-      Vector numPBpseudo(n); // store values used for calc
-      Vector numPB(n); // Store the true values 
+      ArrayOfIndex numPBpseudo(n); // store values used for calc
+      ArrayOfIndex numPB(n); // Store the true values
       // Find the number of IFs for each channel and calculate the number of passbands 
       for (Index i=0;i<n;++i)
       {
@@ -2883,8 +2883,8 @@ void sensor_responseGenericAMSU(// WS Output:
         backend_channel_response_multi[i].resize(1);
         GriddedField1& b_resp = backend_channel_response_multi[i][0];
         b_resp.set_name("Backend channel response function");
-        b_resp.resize(numVal*(Index)numPBpseudo[i]);
-        Vector f_range(numVal*(Index)numPBpseudo[i]);
+        b_resp.resize(numVal*numPBpseudo[i]);
+        Vector f_range(numVal*numPBpseudo[i]);
         Numeric pbOffset = 0;
         b_resp.set_grid_name(0,"Frequency");
 
@@ -2898,10 +2898,10 @@ void sensor_responseGenericAMSU(// WS Output:
           f_range[pbOffsetIdx*numVal+2] = +0.5*width[i]-1*slope;
           f_range[pbOffsetIdx*numVal+3] = +0.5*width[i]+0*slope;
 
-          b_resp.data[pbOffsetIdx*numVal+0] = 0.0/numPB[i];;
-          b_resp.data[pbOffsetIdx*numVal+1] = 1.0/numPB[i];
-          b_resp.data[pbOffsetIdx*numVal+2] = 1.0/numPB[i];
-          b_resp.data[pbOffsetIdx*numVal+3] = 0.0/numPB[i];
+          b_resp.data[pbOffsetIdx*numVal+0] = 0.0/(Numeric)numPB[i];;
+          b_resp.data[pbOffsetIdx*numVal+1] = 1.0/(Numeric)numPB[i];
+          b_resp.data[pbOffsetIdx*numVal+2] = 1.0/(Numeric)numPB[i];
+          b_resp.data[pbOffsetIdx*numVal+3] = 0.0/(Numeric)numPB[i];
 
           if(numPB[i] ==1)
           {
@@ -2998,8 +2998,8 @@ void sensor_responseGenericAMSU(// WS Output:
       {
         GriddedField1& r = sideband_response_multi[i];
         r.set_name("Sideband response function");
-        r.resize((Index)numPBpseudo[i]);
-        Vector f((Index)numPBpseudo[i]);
+        r.resize(numPBpseudo[i]);
+        Vector f(numPBpseudo[i]);
         if(numPB[i]==1)
         {
           r.data[0]=0.5;
@@ -3009,17 +3009,17 @@ void sensor_responseGenericAMSU(// WS Output:
         }
         else if(numPB[i]==2)
         {
-          r.data[0]=1/numPB[i];
-          r.data[1]=1/numPB[i];
+          r.data[0]=1./(Numeric)numPB[i];
+          r.data[1]=1./(Numeric)numPB[i];
           f[0] = -1*offset(i,0)-0.5*width[i];
           f[1] = +1*offset(i,0)+0.5*width[i];
         }
         else if(numPB[i]==4)
         {
-          r.data[0]=1/numPB[i];
-          r.data[1]=1/numPB[i];
-          r.data[2]=1/numPB[i];
-          r.data[3]=1/numPB[i];
+          r.data[0]=1./(Numeric)numPB[i];
+          r.data[1]=1./(Numeric)numPB[i];
+          r.data[2]=1./(Numeric)numPB[i];
+          r.data[3]=1./(Numeric)numPB[i];
           f[0] = -offset(i,0)-offset(i,1)-0.5*width[i];;
           f[1] = -offset(i,0)+offset(i,1)-0.5*width[i];;
           f[2] = +offset(i,0)-offset(i,1)+0.5*width[i];;

@@ -4674,7 +4674,7 @@ void ppath_start_stepping(
           if( cloudbox_on  &&  !ppath_inside_cloudbox_do )
             {
               const Numeric fgp = fractional_gp( ppath.gp_p[0] );
-              if( fgp >= cloudbox_limits[0]  &&  fgp <= cloudbox_limits[1] )
+              if( fgp >= (Numeric)cloudbox_limits[0]  &&  fgp <= (Numeric)cloudbox_limits[1] )
                 { ppath_set_background( ppath, 4 ); }
             }
 
@@ -4682,7 +4682,7 @@ void ppath_start_stepping(
           DEBUG_ONLY( if( ppath_inside_cloudbox_do )
             {
               const Numeric fgp = fractional_gp( ppath.gp_p[0] );
-              assert( fgp >= cloudbox_limits[0] && fgp <= cloudbox_limits[1] );
+              assert( fgp >= (Numeric)cloudbox_limits[0] && fgp <= (Numeric)cloudbox_limits[1] );
             } )
         }
 
@@ -4816,8 +4816,8 @@ void ppath_start_stepping(
             {
               const Numeric fgp = fractional_gp( ppath.gp_p[0] );
               const Numeric fgl = fractional_gp( ppath.gp_lat[0] );
-              if( fgp >= cloudbox_limits[0]  &&  fgp <= cloudbox_limits[1]  &&
-                  fgl >= cloudbox_limits[2]  &&  fgl <= cloudbox_limits[3]  )
+              if( fgp >= (Numeric)cloudbox_limits[0]  &&  fgp <= (Numeric)cloudbox_limits[1]  &&
+                  fgl >= (Numeric)cloudbox_limits[2]  &&  fgl <= (Numeric)cloudbox_limits[3]  )
                 { ppath_set_background( ppath, 4 ); }
             }
 
@@ -4826,8 +4826,8 @@ void ppath_start_stepping(
             {
               const Numeric fgp = fractional_gp( ppath.gp_p[0] );
               const Numeric fgl = fractional_gp( ppath.gp_lat[0] );
-              assert( fgp >= cloudbox_limits[0] && fgp <= cloudbox_limits[1] &&
-                      fgl >= cloudbox_limits[2] && fgl <= cloudbox_limits[3]  );
+              assert( fgp >= (Numeric)cloudbox_limits[0] && fgp <= (Numeric)cloudbox_limits[1] &&
+                      fgl >= (Numeric)cloudbox_limits[2] && fgl <= (Numeric)cloudbox_limits[3]  );
             } )
         }      
 
@@ -5089,9 +5089,9 @@ void ppath_start_stepping(
               const Numeric fgp = fractional_gp( ppath.gp_p[0] );
               const Numeric fgl = fractional_gp( ppath.gp_lat[0] );
               const Numeric fgo = fractional_gp( ppath.gp_lon[0] );
-              if( fgp >= cloudbox_limits[0]  &&  fgp <= cloudbox_limits[1]  &&
-                  fgl >= cloudbox_limits[2]  &&  fgl <= cloudbox_limits[3]  &&
-                  fgo >= cloudbox_limits[4]  &&  fgo <= cloudbox_limits[5]  )
+              if( fgp >= (Numeric)cloudbox_limits[0]  &&  fgp <= (Numeric)cloudbox_limits[1]  &&
+                  fgl >= (Numeric)cloudbox_limits[2]  &&  fgl <= (Numeric)cloudbox_limits[3]  &&
+                  fgo >= (Numeric)cloudbox_limits[4]  &&  fgo <= (Numeric)cloudbox_limits[5]  )
                 { ppath_set_background( ppath, 4 ); }
             }
 
@@ -5101,9 +5101,9 @@ void ppath_start_stepping(
               const Numeric fgp = fractional_gp( ppath.gp_p[0] );
               const Numeric fgl = fractional_gp( ppath.gp_lat[0] );
               const Numeric fgo = fractional_gp( ppath.gp_lon[0] );
-              assert( fgp >= cloudbox_limits[0] && fgp <= cloudbox_limits[1] &&
-                      fgl >= cloudbox_limits[2] && fgl <= cloudbox_limits[3] &&
-                      fgo >= cloudbox_limits[4] && fgo <= cloudbox_limits[5] );
+              assert( fgp >= (Numeric)cloudbox_limits[0] && fgp <= (Numeric)cloudbox_limits[1] &&
+                      fgl >= (Numeric)cloudbox_limits[2] && fgl <= (Numeric)cloudbox_limits[3] &&
+                      fgo >= (Numeric)cloudbox_limits[4] && fgo <= (Numeric)cloudbox_limits[5] );
             } )
         }      
 
@@ -5441,7 +5441,7 @@ void ppath_calc(
       // Increase the total number
       np += n - 1;
 
-      if( istep > 1e4 )
+      if( istep > (Index)1e4 )
         throw runtime_error(
           "10 000 path points have been reached. Is this an infinite loop?" );
       
@@ -5600,9 +5600,9 @@ void ppath_calc(
           // Pressure dimension
           Numeric ipos1 = fractional_gp( ppath_step.gp_p[n-1] );
           Numeric ipos2 = fractional_gp( ppath_step.gp_p[n-2] );
-          assert( ipos1 >= cloudbox_limits[0] );
-          assert( ipos1 <= cloudbox_limits[1] );
-          if( ipos1 <= cloudbox_limits[0]  &&  ipos1 < ipos2 )
+          assert( ipos1 >= (Numeric)cloudbox_limits[0] );
+          assert( ipos1 <= (Numeric)cloudbox_limits[1] );
+          if( ipos1 <= (Numeric)cloudbox_limits[0]  &&  ipos1 < ipos2 )
             { ppath_set_background( ppath_step, 3 ); }
               
           else if( ipos1 >= Numeric( cloudbox_limits[1] )  &&  ipos1 > ipos2 )
@@ -5613,8 +5613,8 @@ void ppath_calc(
               // Latitude dimension
               ipos1 = fractional_gp( ppath_step.gp_lat[n-1] );
               ipos2 = fractional_gp( ppath_step.gp_lat[n-2] );
-              assert( ipos1 >= cloudbox_limits[2] );
-              assert( ipos1 <= cloudbox_limits[3] );
+              assert( ipos1 >= (Numeric)cloudbox_limits[2] );
+              assert( ipos1 <= (Numeric)cloudbox_limits[3] );
               if( ipos1 <= Numeric( cloudbox_limits[2] )  &&  ipos1 < ipos2 )  
                 { ppath_set_background( ppath_step, 3 ); }
 
@@ -5626,8 +5626,8 @@ void ppath_calc(
                   // Longitude dimension
                   ipos1 = fractional_gp( ppath_step.gp_lon[n-1] );
                   ipos2 = fractional_gp( ppath_step.gp_lon[n-2] );
-                  assert( ipos1 >= cloudbox_limits[4] );
-                  assert( ipos1 <= cloudbox_limits[5] );
+                  assert( ipos1 >= (Numeric)cloudbox_limits[4] );
+                  assert( ipos1 <= (Numeric)cloudbox_limits[5] );
                   if( ipos1 <= Numeric( cloudbox_limits[4] )  &&  ipos1<ipos2 )
                     { ppath_set_background( ppath_step, 3 ); }
 
