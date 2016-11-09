@@ -350,12 +350,16 @@ void ext_matTransform(//Output and Input
   \param[in]     za_datagrid   Zenith angle grid in the database.
   \param[in]     aa_datagrid   Zenith angle grid in the database.
   \param[in]     ptype Type of scattering element.
-  \param[in]     za_sca_idx    Index of zenith angle of scattered direction.
-  \param[in]     aa_sca_idx    Index of azimuth angle of scattered direction.
-  \param[in]     za_inc_idx    Index of zenith angle of incoming direction.
-  \param[in]     aa_inc_idx    Index of azimuth angle of incoming direction.
-  \param[in]     scat_za_grid  FIXME: DOC
-  \param[in]     scat_aa_grid  FIXME: DOC
+  \param[in]     za_sca_idx    Index of zenith angle of scattered direction
+                                 within scat_za_grid.
+  \param[in]     aa_sca_idx    Index of azimuth angle of scattered direction
+                                 within scat_aa_grid.
+  \param[in]     za_inc_idx    Index of zenith angle of incoming direction
+                                 within scat_za_grid.
+  \param[in]     aa_inc_idx    Index of azimuth angle of incoming direction
+                                 within scat_aa_grid.
+  \param[in]     scat_za_grid  Grid of zenith angles to extract pha_mat for.
+  \param[in]     scat_aa_grid  Grid of azimuth angles to extract pha_mat for.
   
   \author Claudia Emde
   \date   2003-08-19
@@ -831,18 +835,20 @@ void pha_mat_labCalc(//Output:
 
    if(
         // Forward scattering
-        ((theta > -.01) && (theta < .01) ) ||
-        // Backward scattering
-        ((theta > 179.99) && (theta < 180.01)) ||
-        // "Grosskreis" through poles: no rotation required
-
-// JM161104: that seems wrong (eg aa_sca=80 and aa_inc=100 fulfill
-// aa_sca == 180-aa_inc, but do NOT form a meridian. instead form a delta_aa of
-// 20deg.
-//        ((aa_sca == aa_inc) || (aa_sca == 360-aa_inc) || (aa_inc == 360-aa_sca) ||
-//         (aa_sca == 180-aa_inc) || (aa_inc == 180-aa_sca) )  
-        ( (aa_sca == aa_inc) || ( abs(aa_sca-aa_inc)==360 ) ||
-          ( abs(aa_sca-aa_inc)==180 ) )
+        ( abs(theta) < ANGTOL_RAD ) || //JM: original was abs(theta)<.01).
+                                       //revert if this causes problems
+       // Backward scattering
+        ( abs(180.-theta) < ANGTOL_RAD ) || //JM: original was abs(180.-theta)<.01).
+                                            //revert if this causes problems
+       // "Grosskreis" through poles: no rotation required
+       // JM161104: that seems wrong (eg aa_sca=80 and aa_inc=100 fulfill
+       // aa_sca == 180-aa_inc, but do NOT form a meridian. instead form a
+       // delta_aa of 20deg.
+       // ((aa_sca == aa_inc) || (aa_sca == 360-aa_inc) || (aa_inc == 360-aa_sca) ||
+       //  (aa_sca == 180-aa_inc) || (aa_inc == 180-aa_sca) )  
+        ( ( abs(aa_sca-aa_inc) < ANGTOL_RAD ) ||
+          ( abs(aa_sca-aa_inc)-360 < ANGTOL_RAD ) ||
+          ( abs(aa_sca-aa_inc)-180 ) < ANGTOL_RAD )
         )
       {
         pha_mat_lab(0,1) = F12;

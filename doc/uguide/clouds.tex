@@ -35,14 +35,16 @@ In \wsvindex{scat\_data}, the SSP are stored in different coordinate systems,
 depending on the kind of particle. For instance, SSP of totally randomly
 oriented particles are stored in the so-called scattering frame in order to
 reduce memory requirements, while others use the particle frame.
-Section~\ref{sec:clouds:ssp} describes in detail the \typeindex{SingleScatteringData}
-class and section~\ref{sec:clouds:ssdgen} presents options for preparing SSP.
+Section~\ref{sec:clouds:ssp} describes in detail the
+\typeindex{SingleScatteringData} class and section~\ref{sec:clouds:ssdgen}
+presents options for preparing SSP.
 For details on the coordinate systems used also see \theory~Section~%
 \ref{T-sec:rtetheory:particle_coordinate_sytems} (Note: Coordinate systems used
 by the SSP as well as the line-of-sight and radiation propagation directions in
 the scattering solvers and the general radiative transfer part are not fully
 consistent. However, as long as only totally or azimuthally randomly oriented
-particles are considered this is of no practical concern.
+particles and only up to two Stokes components are considered this is of no
+practical concern.
 \FIXME{add appendix on known ARTS issues with a section on this particular one}).
 
 The number density field, \wsvindex{pnd\_field}, contains the number densities
@@ -61,16 +63,17 @@ describe particle ensembles in ARTS. All ARTS scattering solvers consistently re
 The single scattering data is stored in a specific structure format, the
 the \typeindex{SingleScatteringData} class\footnote{Definition resides in
 \fileindex{optproperties.h}.}. The format allows space reduction due to
-symmetry for certain special cases, e.g. totally random or azimuthally random  orientation. The class consists of the following fields (compare also
-Table \ref{tab:scattering:datastructure}):
+symmetry for certain special cases, e.g. totally random or azimuthally random
+orientation. The class consists of the following fields (compare also Table
+\ref{tab:scattering:datastructure}):
 
 \begin{itemize}
 \item  {\sl String} \shortcode{ptype}: An attribute, which flags type and format
   of the data stored. It essentially describes the type of particle regarding
-  its symmetry properties (totally randomly oriented, azimuthally randomly oriented, general
-  case, \dots). This attribute is needed in the radiative transfer function to
-  be able to extract the physical phase matrix, the physical extinction matrix,
-  and the physical absorption vector from the data.
+  its symmetry properties (totally randomly oriented, azimuthally randomly
+  oriented, general case, \dots). This attribute is needed in the radiative
+  transfer function to be able to extract the physical phase matrix, the
+  physical extinction matrix,  and the physical absorption vector from the data.
   
   Possible values of ptype are:
   
@@ -78,7 +81,9 @@ Table \ref{tab:scattering:datastructure}):
   \shortcode{"horizontally\_aligned"} \\
   \shortcode{"general"}
   
-  A detailed description of the different types including their different data formats and corrdinate systems used is given in Section~\ref{sec:clouds:particle_types}.
+  A detailed description of the different types including their different data
+  formats and corrdinate systems used is given in
+  Section~\ref{sec:clouds:particle_types}.
 
 \item {\sl String} \shortcode{description}: Here, the scattering element
   is characterized explicitly in free text form. For example, information on
@@ -96,7 +101,9 @@ Table \ref{tab:scattering:datastructure}):
   \item \shortcode{"macroscopically\_isotropic"}:
     Scattering angle grid. Range: 0.0\degree{} $\le$ za $\le$ 180.0\degree{}.
   \item \shortcode{"horizontally\_aligned"}:
-    Zenith angle grid. Range: 0.0\degree{} $\le$ za $\le$ 180.0\degree{}. Symmetric with respect to 90.0\degree{} and explicitly including the 90.0\degree{} point.
+    Zenith angle grid. Range: 0.0\degree{} $\le$ za $\le$ 180.0\degree{}.
+    Symmetric with respect to 90.0\degree{} and explicitly including the
+    90.0\degree{} point.
   \item \shortcode{"general"}:
     Zenith angle grid. Range: 0.0\degree{} $\le$ za $\le$ 180.0\degree{}.
   \end{enumerate}
@@ -198,7 +205,9 @@ incident and scattered direction. Furthermore, the number of matrix elements of
 both the phase matrix and the extinction matrix can be reduced (see
 \citet{Mishchenko:02}, p.90). This representation, however, requires an
 ARTS-internal transformation of the phase matrix data from the particle frame
-representation (in the scattering frame) to the laboratory frame representation. These transformations are described in the Appendix of \citet{emde05:_phdthesis}.
+representation (in the scattering frame) to the laboratory frame representation.
+These transformations are described in the Appendix of
+\citet{emde05:_phdthesis}.
 
 Only six elements of the phase matrix in the scattering frame, which is commonly
 called scattering matrix \ScaMat, are independent. The order of the stored matrix
@@ -207,13 +216,14 @@ elements is: {\sl F11, F12, F22, F33, F34, F44}. The size of
 
 \shortcode{[N\_f N\_T N\_za\_sca 1 1 1 6]}\\
 %
-The extinction matrix is in this case diagonal and independent of
-direction and polarization. That means only one element per frequency and temperature needs to be stored. Hence the size of \shortcode{ext\_mat\_data} is
+The extinction matrix is in this case diagonal and independent of direction and
+polarization. That means only one element per frequency and temperature needs to
+be stored. Hence the size of \shortcode{ext\_mat\_data} is
 
 \shortcode{[N\_f N\_T 1 1 1]}\\
 %
-The absorption vector is also direction and polarization
-independent. Therefore the size of \shortcode{abs\_vec\_data} is
+The absorption vector is also direction and polarization independent. Therefore
+the size of \shortcode{abs\_vec\_data} is
 
 \shortcode{[N\_f N\_T 1 1 1]}
 
@@ -228,12 +238,21 @@ appropriately.
 
 SSP here are stored in the laboratory frame. In this frame, the phase matrix,
 extinction matrix, and absorption vector become independent of the incident
-azimuth angle. Furthermore only half of the ``general'' angle ranges are required for the azimuth and the incident polar angle due to symmetry reasons. That is, \shortcode{aa\_grid} from 0\degree{} to 180\degree{}, and \shortcode{za\_inc} from 0\degree{} to 90\degree{}. The latter requires that the data's zenith angle grid includes a grid point at 90\degree{} and that \shortcode{za\_grid} is symmetric with respect to 90\degree{} (i.e., N\_za\_inc=N\_za/2+1).
+azimuth angle. Furthermore only half of the ``general'' angle ranges are
+required for the azimuth and the incident polar angle due to symmetry reasons.
+That is, \shortcode{aa\_grid} from 0\degree{} to 180\degree{}, and
+\shortcode{za\_inc} from 0\degree{} to 90\degree{}. The latter requires that the
+data's zenith angle grid includes a grid point at 90\degree{} and that
+\shortcode{za\_grid} is symmetric with respect to 90\degree{} (i.e.,
+N\_za\_inc=N\_za/2+1).
 
-All 16 elements of the phase matrix are required. Their order is the same as in the general case. The size of \shortcode{pha\_mat\_data} is
+All 16 elements of the phase matrix are required. Their order is the same as in
+the general case. The size of \shortcode{pha\_mat\_data} is
 
 \shortcode{[N\_f N\_T N\_za\_sca N\_aa\_sca N\_za\_sca/2+1 1 16]}\\
-For this ptype, the extinction matrix has only three independent elements, {\sl Kjj}, {\sl K12(=K21)}, and {\sl K34(=-K43)}. The size of \shortcode{ext\_mat\_data} is 
+For this ptype, the extinction matrix has only three independent elements, {\sl
+Kjj}, {\sl K12(=K21)}, and {\sl K34(=-K43)}. The size of
+\shortcode{ext\_mat\_data} is
 
 \shortcode{[N\_f N\_T N\_za/2+1 1 3]}\\
 The absorption coefficient vector has only two independent elements, {\sl a1} and
@@ -298,7 +317,9 @@ The WSM \wsmindex{scat\_data\_singleTmatrix} provides an ARTS internal interface
 to the the T-matrix code by \citet{Mishchenko:02}. It allows to calculate single
 scattering properties of individual scattering elements including orientation
 averaging and reference frame adjustion. It is currently only available for a
-limited number of particle shapes (see online documentation) and orientations (namely for totally randomly oriented and for perfectly horizontally aligned particles).
+limited number of particle shapes (see online documentation) and orientations
+(namely for totally randomly oriented and for perfectly horizontally aligned
+particles).
 \item
 The ATMLAB package, available at \artsurl{tools/}, includes functions to
 generate single scattering properties for spherical particles (Mie-Theory) as
@@ -322,7 +343,8 @@ absorbing species only (see Section~\ref{sec:absorption:particles}), WSM
 \wsmindex{ScatElementsToabs\_speciesAdd} should be used to load the data into
 \builtindoc{scat\_data} and \builtindoc{vmr\_field\_raw}. If particle number
 density fields are calculated internally from atmospheric cloud fields (see
-Section~\ref{sec:clouds:pndgen:internal}, WSM \wsmindex{ScatSpeciesScatAndMetaRead} can be applied.
+Section~\ref{sec:clouds:pndgen:internal}, WSM
+\wsmindex{ScatSpeciesScatAndMetaRead} can be applied.
 
 
 \section{Generating particle number density fields}
@@ -356,6 +378,10 @@ Section~\ref{sec:fm_defs:cloudbox}.
 \subsection{Internal calculation of particle number density fields}
 \label{sec:clouds:pndgen:internal}
 
+ARTS offers the possibility to internally derive the \wsvindex{pnd\_field}
+making use of atmospheric hydrometeor fields as provided by numerical weather or
+general circulation models.
+
 \FIXME{write. consider/discuss:}
 \begin{itemize}
 \item related atm fields
@@ -363,6 +389,83 @@ Section~\ref{sec:fm_defs:cloudbox}.
 \item scat\_meta
 \end{itemize}
 
+This mechanism requires additional information about the scattering elements
+compared to \wsvindex{scat\_data}, particularly measures used in the
+characterization of the hydrometeor ensembles, like mass and other size
+parameters. This information, also called the scattering meta data, is stored in
+the WSV \wsvindex{scat\_meta}, where the external structure, that is the
+scattering species and scattering element hierarchy as well as the number of
+these instances) has to be identical to \builtindoc{scat\_data}.
+
+\subsection{Scattering meta data structure}
+\label{sec:clouds:ARTS_SMD_structure}
+The scattering meta data is stored in a specific structure format, the
+the \typeindex{ScatteringMetaData} class\footnote{Definition resides in
+\fileindex{optproperties.h}.}. The class consists of the following fields
+(compare also %Table \ref{tab:scatmeta:datastructure} and
+ the built-in doumentation of \wsvindex{scat\_meta\_single}):
+
+\begin{itemize}
+\item  {\sl String} \shortcode{description}:
+  Similar to the \shortcode{description} field in \builtindoc{scat\_data}, this
+  gives a free-form description of the scattering element, e.g. information
+  deemed of interest by the user but not covered by other structure members. It
+  is only for informative purpose, i.e., not used within ARTS for any
+  classifications or calculations.
+
+\item  {\sl String} \shortcode{source}:
+  Free-form description of the source of the data, e.g., Mie, T-Matrix, or DDA
+  calculation or a database or literature source. As \shortcode{description}
+  only for informative purpose.
+
+\item  {\sl String} \shortcode{refr\_index}:
+  Free-form description of the underlying complex refractive index data, e.g., a
+literature source. As \shortcode{description} only for informative purpose.
+
+\item  {\sl Numeric} \shortcode{mass}:
+  Mass $m$ of the scattering element [Unit: kg].
+
+\item  {\sl Numeric} \shortcode{diameter\_max}:
+  Maximum diameter $D_\mathrm{max}$ of the scattering element [Unit: m].
+
+  The maximum diameter (or dimension) is defined by the circumferential sphere
+  diameter of the element. Note that this parameter is only used by some size
+  distributions; it does not have a proper meaning if the scattering element
+  represents an ensemble of differently sized particles.
+
+\item  {\sl Numeric} \shortcode{diameter\_volume\_equ}:
+  Volume equivalent sphere diameter $D_\mathrm{veq}$ of the scattering element
+  [Unit: m].
+
+  The volume equivalent sphere diameter is the diameter of a sphere with the
+same volume. For nonspherical particles, volume refers to the volume of the
+particle-forming substance, not that of the circumferential sphere (which can be
+derived from diameter\_max).
+
+If the particle consists of a mixture of materials,
+the substance encompasses the complete mixture, but excluding inclusions and
+pockets of the the material, the particle is embedded in, typically air. Note: 
+the air-material mixture of 'soft' particles forms a new substance, though; i.e.
+the soft particle volume should include both the basic material and air of the
+homogeneous mixture. However, this interpretation might be inconsistent with
+certain microphysical models. In this case, the user should rather ensure
+consistency of the $D_\mathrm{veq}$ setting with microphysics.
+
+\FIXME{emntion/discuss relation to mass equivalent diameter? melted diameter?}
+
+\item  {\sl Numeric} \shortcode{diameter\_area\_equ\_aerodynamical}:
+  Aerodynamical area equivalent sphere diameter of the scattering element [Unit: m].
+
+  The area equivalent sphere diameter is the diameter of a sphere with the same
+  cross-sectional area. Here, area refers to the aerodynamically active area,
+  i.e., the cross-sectional area perpendicular to the falling direction.
+  Similarly to volume in the definition of \shortcode{diameter\_volume\_equ}, for
+  non-spherical and mixed-material particles, area refers to the area covered by
+  the substance mixture of the particle.
+  The parameter might be relevant for characterizing the particle shape
+  (preferred orientation) and fall velocity. However, it is so far unused within
+  ARTS.
+\end{itemize}
 
 
 \section{Implementation}

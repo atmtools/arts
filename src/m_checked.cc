@@ -855,9 +855,15 @@ void sensor_checkedCalc(
           throw runtime_error( "For atmosphere_dim != 2, first column of "
                        "*sensor_los* is not allowed to have values below 0." );
     }    
-  if( atmosphere_dim == 3  &&  max( sensor_los(joker,1) ) > 180 )
-    throw runtime_error( 
-    "Second column of *sensor_los* is not allowed to have values above 180." );
+  if( atmosphere_dim == 3 )
+    {
+      if( max( sensor_los(joker,1) ) > 180 )
+        throw runtime_error( 
+          "Second column of *sensor_los* is not allowed to have values above 180." );
+      else if ( min( sensor_los(joker,1) ) < -180 )
+        throw runtime_error( 
+          "Second column of *sensor_los* is not allowed to have values below -180." );
+    }
 
   // Transmission position.
   if( transmitter_pos.ncols() > 0  &&  transmitter_pos.nrows() > 0 )

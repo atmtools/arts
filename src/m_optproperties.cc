@@ -2313,7 +2313,6 @@ void ExtractFromMetaSingleScatSpecies(
 void TestScatDataInterp(
    const ArrayOfArrayOfSingleScatteringData&   scat_data,
    const Index&       stokes_dim,
-   const Index&       atmosphere_dim,
    const Vector&      f_grid,
    const Vector&      rtp_los,
    const Numeric&     rtp_temperature,
@@ -2321,6 +2320,7 @@ void TestScatDataInterp(
    const Index&       compare,
    const Index&       za_printinfo_index,
    const Index&       aa_printinfo_index,
+   const Index&       mirror,
    const Verbosity&   verbosity )
 {
 
@@ -2369,7 +2369,7 @@ void TestScatDataInterp(
   Vector pnd_vec(N_se,0); pnd_vec[scat_elem_index] = 1;
 
   
-  ArrayOfArrayOfSingleScatteringData   scat_data_mono;
+  ArrayOfArrayOfSingleScatteringData scat_data_mono;
   //
   scat_data_monoCalc( scat_data_mono, scat_data,
                       f_grid, f_index, verbosity );
@@ -2382,7 +2382,10 @@ void TestScatDataInterp(
   Tensor4 pha_mat_mc( n_za, n_aa, stokes_dim, stokes_dim, 0.0 );
   //
   Vector out;
-  mirror_los( out, rtp_los, 3 );
+  if (mirror)
+    mirror_los( out, rtp_los, 3 );
+  else
+    out=rtp_los;
 
   //  
   opt_propCalc( ext_mat_mc, abs_vec_mc, out[0], out[1], scat_data_mono,
@@ -2397,7 +2400,10 @@ void TestScatDataInterp(
         {
           Vector inc;
           in_los[1] = pha_mat_aa[ia];
-          mirror_los( inc, in_los, 3 );
+          if (mirror)
+            mirror_los( inc, in_los, 3 );
+          else
+            inc=in_los;
           pha_mat_singleCalc( pha_mat_mc(iz,ia,joker,joker),
                               out[0], out[1], inc[0], inc[1],
                               scat_data_mono, stokes_dim, pnd_vec,
@@ -2414,7 +2420,10 @@ void TestScatDataInterp(
       cout << endl;
 
       Vector inc;
-      mirror_los( inc, in_los, 3 );
+      if (mirror)
+        mirror_los( inc, in_los, 3 );
+      else
+        inc=in_los;
       cout << "----- MC -----" << endl;
       cout << "photon propagation direction: " << out << endl;
       cout << "incident scattered photon propagation direction: " << inc << endl;
@@ -2431,20 +2440,106 @@ void TestScatDataInterp(
 
 
 
-  ////// RT4 //////
+  ////// DOIT //////
   //
 
-  // RT4 (acc. to full RT results seems to be consistent with DOIT. and is
-  // easier to handle (aka follow code flow) for me (JM) than DOIT
-  // implementation.
+  // for abs_vec and ext_mat, the same implementation is used in RT4 and DOIT.
   Matrix abs_vec_spt(N_se, stokes_dim, 0.);
   Tensor3 ext_mat_spt(N_se, stokes_dim, stokes_dim, 0.);
-  Matrix abs_vec(n_f, stokes_dim, 0.);
-  Tensor3 ext_mat(n_f, stokes_dim, stokes_dim, 0.);
-  Tensor4 pha_mat_rt4( n_za, n_aa, stokes_dim, stokes_dim, 0.0 );
+  Tensor5 pha_mat_spt( N_se, n_za, n_aa, stokes_dim, stokes_dim, 0.0 );
+  Matrix abs_vec_doit(n_f, stokes_dim, 0.);
+  Tensor3 ext_mat_doit(n_f, stokes_dim, stokes_dim, 0.);
+  Tensor4 pha_mat_doit( n_za, n_aa, stokes_dim, stokes_dim, 0.0 );
 
   Tensor4 pnd(N_se, 1, 1, 1, 0.);
   pnd(scat_elem_index,0,0,0) = 1.;
+  Tensor4 pnd3D(N_se, 1, 2, 2, 0.);
+  pnd3D(scat_elem_index,0,joker,joker) = 1.;
+  
+
+  //doit_mono_agenda
+  ArrayOfArrayOfSingleScatteringData scat_data_mono_optdoit;
+  ArrayOfTensor7 pha_mat_sptDOITOpt;
+  DoitScatteringDataPrepare( pha_mat_sptDOITOpt, scat_data_mono_optdoit,
+                             n_za, pha_mat_aa,
+                             scat_data, f_grid, f_index, 3, stokes_dim,
+                             verbosity);
+
+  //pha_mat_spt_agenda
+  Numeric ANG_TOL=1e-3;
+  Index scat_za_index=0;
+  Index not_found=1;
+  while( not_found && scat_za_index<n_za )
+    {
+      if( abs(pha_mat_za[scat_za_index]-rtp_los[0]) < ANG_TOL )
+        not_found=0;
+      else
+        ++scat_za_index;
+     }
+  if( not_found )
+    {
+      ostringstream os;
+      os << "For DOIT-like SSP extraction (using pha_mat_sptDOITOpt),\n"
+         << "rtp_los[0] needs to be included in pha_mat_za\n"
+         << "(within " << ANG_TOL << "deg tolerance), but is not.";
+    throw runtime_error( os.str() );
+    }
+  Index scat_aa_index=0;
+  not_found=1;
+  while( not_found && scat_aa_index<n_aa )
+    {
+      if( abs(pha_mat_aa[scat_aa_index]-rtp_los[1]) < ANG_TOL )
+        not_found=0;
+      else
+        ++scat_aa_index;
+     }
+  if( not_found )
+    {
+      ostringstream os;
+      os << "For DOIT-like SSP extraction (using pha_mat_sptDOITOpt),\n"
+         << "rtp_los[1] needs to be included in pha_mat_aa\n"
+         << "(within " << ANG_TOL << "deg tolerance), but is not.";
+    throw runtime_error( os.str() );
+    }
+
+  pha_mat_sptFromDataDOITOpt(pha_mat_spt,
+                             pha_mat_sptDOITOpt, scat_data_mono_optdoit,
+                             n_za, pha_mat_aa, scat_za_index, scat_aa_index,
+                             rtp_temperature, pnd3D, 0, 0, 0, verbosity);
+
+  //doit_scat_fieldCalc
+  pha_matCalc(pha_mat_doit, pha_mat_spt, pnd, 3, 0, 0, 0, verbosity );
+
+  //spt_calc_agenda
+  opt_prop_sptFromMonoData( ext_mat_spt, abs_vec_spt,
+                            scat_data_mono_optdoit, pha_mat_za, pha_mat_aa,
+                            scat_za_index, scat_aa_index, rtp_temperature,
+                            pnd, 0, 0, 0, verbosity );
+
+  //opt_prop_part_agenda
+  ext_matInit( ext_mat_doit, f_grid, stokes_dim, f_index, verbosity );
+  abs_vecInit( abs_vec_doit, f_grid, stokes_dim, f_index, verbosity );
+  ext_matAddPart( ext_mat_doit, ext_mat_spt, pnd, 3, 0, 0, 0, verbosity );
+  abs_vecAddPart( abs_vec_doit, abs_vec_spt, pnd, 3, 0, 0, 0, verbosity );
+
+  if (printinfo)
+    {
+      cout << "----- DOIT -----" << endl;
+      cout << "absorption vector:\n" << abs_vec_doit(0,joker) << endl;
+      cout << "extinction matrix:\n" << ext_mat_doit(0,joker,joker) << endl;
+      cout << "phase matrix (" << za_printinfo_index
+           << "," << aa_printinfo_index << "):\n"
+           << pha_mat_doit(za_printinfo_index,aa_printinfo_index,joker,joker)
+           << endl;
+      cout << endl;
+    }
+
+    
+  ////// RT4 //////
+  //
+  Matrix abs_vec_rt4(n_f, stokes_dim, 0.);
+  Tensor3 ext_mat_rt4(n_f, stokes_dim, stokes_dim, 0.);
+  Tensor4 pha_mat_rt4( n_za, n_aa, stokes_dim, stokes_dim, 0.0 );
   Vector sza_grid(1);
   sza_grid[0] = rtp_los[0];
   Vector saa_grid(1);
@@ -2457,16 +2552,23 @@ void TestScatDataInterp(
   siaa_grid[Range(1,n_aa)] = pha_mat_aa;
 
 
+  //spt_calc_agenda
   opt_prop_sptFromMonoData( ext_mat_spt, abs_vec_spt,
                             scat_data_mono, sza_grid, saa_grid,
                             0, 0, rtp_temperature,
                             pnd, 0, 0, 0, verbosity );
 
-  ext_matInit( ext_mat, f_grid, stokes_dim, f_index, verbosity );
-  abs_vecInit( abs_vec, f_grid, stokes_dim, f_index, verbosity );
-  ext_matAddPart( ext_mat, ext_mat_spt, pnd, atmosphere_dim, 0, 0, 0, verbosity );
-  abs_vecAddPart( abs_vec, abs_vec_spt, pnd, atmosphere_dim, 0, 0, 0, verbosity );
+  //opt_prop_part_agenda
+  ext_matInit( ext_mat_rt4, f_grid, stokes_dim, f_index, verbosity );
+  abs_vecInit( abs_vec_rt4, f_grid, stokes_dim, f_index, verbosity );
+  ext_matAddPart( ext_mat_rt4, ext_mat_spt, pnd, 3, 0, 0, 0, verbosity );
+  abs_vecAddPart( abs_vec_rt4, abs_vec_spt, pnd, 3, 0, 0, 0, verbosity );
 
+  // RT4-like Z-extraction (note: not exactly the same, as RT4 does not
+  // require the explicit aa_grid value of Z(za_sca,aa_sca=delta_aa,za_inc), but
+  // just the azimuthally averaged value of z(za_sca,za_inc), aka the 0th
+  // component of the Fourier series of the azimuthal dependence of
+  // Z(za_sca,za_inc).
   Index i_se_flat=0;
   for (Index i_ss = 0; i_ss < scat_data_mono.nelem(); i_ss++)
     for (Index i_se = 0; i_se < scat_data_mono[i_ss].nelem(); i_se++)
@@ -2572,8 +2674,8 @@ void TestScatDataInterp(
   if (printinfo)
     {
       cout << "----- RT4 -----" << endl;
-      cout << "absorption vector:\n" << abs_vec(0,joker) << endl;
-      cout << "extinction matrix:\n" << ext_mat(0,joker,joker) << endl;
+      cout << "absorption vector:\n" << abs_vec_rt4(0,joker) << endl;
+      cout << "extinction matrix:\n" << ext_mat_rt4(0,joker,joker) << endl;
       cout << "phase matrix (" << za_printinfo_index
            << "," << aa_printinfo_index << "):\n"
            << pha_mat_rt4(za_printinfo_index,aa_printinfo_index,joker,joker)
@@ -2584,13 +2686,33 @@ void TestScatDataInterp(
   if (printinfo)
     {
       Vector dabs_vec(stokes_dim, -999.);
-      for (Index ist=0; ist<stokes_dim; ist++)
-        dabs_vec[ist] = abs_vec(0,ist)-abs_vec_mc[ist];
       Matrix dext_mat(stokes_dim,stokes_dim, -999.);
+      Matrix dpha_mat(stokes_dim,stokes_dim, -999.);
+
+      for (Index ist=0; ist<stokes_dim; ist++)
+        dabs_vec[ist] = abs_vec_doit(0,ist)-abs_vec_mc[ist];
       for (Index ist1=0; ist1<stokes_dim; ist1++)
         for (Index ist2=0; ist2<stokes_dim; ist2++)
-          dext_mat(ist1,ist2) = ext_mat(0,ist1,ist2)-ext_mat_mc(ist1,ist2);
-      Matrix dpha_mat(stokes_dim,stokes_dim, -999.);
+          dext_mat(ist1,ist2) = ext_mat_doit(0,ist1,ist2)-ext_mat_mc(ist1,ist2);
+      for (Index ist1=0; ist1<stokes_dim; ist1++)
+        for (Index ist2=0; ist2<stokes_dim; ist2++)
+          dpha_mat(ist1,ist2) = 
+              pha_mat_doit(za_printinfo_index,aa_printinfo_index,ist1,ist2)
+            - pha_mat_mc(za_printinfo_index,aa_printinfo_index,ist1,ist2);
+
+      cout << "----- differences (DOIT-MC) -----" << endl;
+      cout << "absorption vector:\n" << dabs_vec << endl;
+      cout << "extinction matrix:\n" << dext_mat << endl;
+      cout << "phase matrix (" << za_printinfo_index
+           << "," << aa_printinfo_index << "):\n"
+           << dpha_mat << endl;
+      cout << endl;
+
+      for (Index ist=0; ist<stokes_dim; ist++)
+        dabs_vec[ist] = abs_vec_rt4(0,ist)-abs_vec_mc[ist];
+      for (Index ist1=0; ist1<stokes_dim; ist1++)
+        for (Index ist2=0; ist2<stokes_dim; ist2++)
+          dext_mat(ist1,ist2) = ext_mat_rt4(0,ist1,ist2)-ext_mat_mc(ist1,ist2);
       for (Index ist1=0; ist1<stokes_dim; ist1++)
         for (Index ist2=0; ist2<stokes_dim; ist2++)
           dpha_mat(ist1,ist2) = 
@@ -2611,14 +2733,34 @@ void TestScatDataInterp(
 
   ////// Compare //////
   //
-  if (compare)
+  if (compare==1 || compare>2)
     {
       Numeric dmax;
-      dmax = 0.5e-6*(abs_vec(0,0)+abs_vec_mc[0]);
-      Compare(abs_vec(0,joker), abs_vec_mc, dmax, "Deviation in abs_vec",
+      dmax = 0.5e-6*(abs_vec_doit(0,0)+abs_vec_mc[0]);
+      Compare(abs_vec_doit(0,joker), abs_vec_mc, dmax, "Deviation in abs_vec",
+              "DOIT", "MC", "", "", verbosity);
+      dmax = 0.5e-6*(ext_mat_doit(0,0,0)+ext_mat_mc(0,0));
+      Compare(ext_mat_doit(0,joker,joker), ext_mat_mc, dmax, "Deviation in ext_mat",
+              "DOIT", "MC", "", "", verbosity);
+      for (Index iza=0; iza<n_za; iza++)
+        for (Index iaa=0; iaa<n_aa; iaa++)
+        {
+          ostringstream os;
+          os << "Deviation in pha_mat at za[" << iza << "]=" << pha_mat_za[iza]
+             << "deg and aa[" << iaa << "]=" << pha_mat_aa[iaa] << "deg.";
+          dmax = 0.5e-6*(pha_mat_doit(iza,iaa,0,0)+pha_mat_mc(iza,iaa,0,0));
+          Compare(pha_mat_doit(iza,iaa,joker,joker), pha_mat_mc(iza,iaa,joker,joker),
+                  dmax, os.str(), "DOIT", "MC", "", "", verbosity);
+        }
+    }
+  if (compare>1)
+    {
+      Numeric dmax;
+      dmax = 0.5e-6*(abs_vec_rt4(0,0)+abs_vec_mc[0]);
+      Compare(abs_vec_rt4(0,joker), abs_vec_mc, dmax, "Deviation in abs_vec",
               "RT4", "MC", "", "", verbosity);
-      dmax = 0.5e-6*(ext_mat(0,0,0)+ext_mat_mc(0,0));
-      Compare(ext_mat(0,joker,joker), ext_mat_mc, dmax, "Deviation in ext_mat",
+      dmax = 0.5e-6*(ext_mat_rt4(0,0,0)+ext_mat_mc(0,0));
+      Compare(ext_mat_rt4(0,joker,joker), ext_mat_mc, dmax, "Deviation in ext_mat",
               "RT4", "MC", "", "", verbosity);
       for (Index iza=0; iza<n_za; iza++)
         for (Index iaa=0; iaa<n_aa; iaa++)

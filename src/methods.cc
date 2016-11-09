@@ -12060,7 +12060,7 @@ void define_md_data_raw()
     ( NAME( "scat_data_singleTmatrix" ),
       DESCRIPTION
       (
-        "A basic interface to the T-matrix code linked to ARTS.\n"
+        "A basic interface to Mishchenko's T-matrix code linked to ARTS.\n"
         "\n"
         "The method performs a T-matrix calculation for a single scattering\n"
         "element, i.e. a combination of particle shape, size, aspect ratio\n"
@@ -12073,10 +12073,13 @@ void define_md_data_raw()
         "volume sphere diameter. That is, the diameter obtained if all the\n"
         "particle's material is rearranged into a (solid) sphere.\n"
         "\n"
-        "Particle aspect ratio (*aspect_ratio*) is a numeric value. For\n"
-        "spheroidal particles it is not allowed to set the aspectratio to\n"
-        "exactly 1, as this can trigger numerical problems. For spheres use\n"
-        "a value such as 1.0001.\n"
+        "Particle aspect ratio ar (*aspect_ratio*) is a numeric value, defined\n"
+        "according to Mishchenko's definition as ratio of horizontal axis a to\n"
+        "vertical (rotational) axis b: ar=a/b. That is, oblates have ar>1,\n"
+        "prolates ar<1.\n"
+        "Perfect spheres (spheroidals with ar=1) can trigger numerical issues.\n"
+        "To avoid these, we internally increase their aspect ratio by 1e-6,\n"
+        "i.e. turning perfect spheres into very light oblates.\n"
         "\n"
         "Particle type (*ptype*) has two options:\n"
         "   \"macroscopically_isotropic\" and \"horizontally_aligned\"\n"
@@ -14058,21 +14061,23 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "scat_data", "stokes_dim", "atmosphere_dim", "f_grid",
-            "rtp_los", "rtp_temperature" ),
+        IN( "scat_data", "stokes_dim", "f_grid", "rtp_los", "rtp_temperature" ),
         GIN( "scat_elem_index", "compare", "za_printout_index",
-             "aa_printout_index" ),
-        GIN_TYPE( "Index", "Index", "Index", "Index" ),
-        GIN_DEFAULT( NODEF, "1", "-1", "-1" ),
+             "aa_printout_index", "mirror" ),
+        GIN_TYPE( "Index", "Index", "Index", "Index", "Index" ),
+        GIN_DEFAULT( NODEF, "1", "-1", "-1", "1" ),
         GIN_DESC( "(Flat) Index of scattering element to test.",
-                  "Flag whether to perform a *Compare* on the extracted single"
-                  " scattering data.",
+                  "Flag whether to perform *Compare* on the extracted single"
+                  " scattering data. Compare is run on DOIT data if =1, on RT4"
+                  " if =2 and on both if =3.",
                   "Index of (incidence) zenith angle for which to print out"
-                  " specific info (no printout if <0). Grid is internally"
-                  " hardcoded (0-180deg in 5deg steps).",
-                  "Index of (incidence) azimuth angle for which to print out"
-                  " specific info (no printout if <0). Grid is internally"
-                  " hardcoded (-180-180deg in 10deg steps)." )
+                  " specific info (none if index<0). Grid is internally"
+                  " hardcoded (0 to 180deg in 5deg steps).",
+                  "As *za_printout_index*, but for (incidence) azimuth"
+                  " (hardcoded grid (-180 to +180deg in 10deg steps).",
+                  "Flag whether to apply direction mirroring in MC part. This"
+                  " should generally be 1, but might be set to 0 for assumption"
+                  " testing purposes." )
         ));    
   md_data_raw.push_back
     ( MdRecord
