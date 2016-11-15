@@ -1,3 +1,28 @@
+2016-11-15 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* controlfiles/artscomponents/polradtran/TestRT4.arts:
+	RT4 test case added.
+
+	* controlfiles/CMakeLists.txt:
+	Replace implementation test case TestRT4Test.arts by interface test case
+	TestRT4.arts.
+
+	* src/methods.cc (RT4Calc, RT4Init, DisortCalc):
+	Added RT4 built-in doc. Default setup updated (Double Gauss with
+	16 streams). Some polishing of DisortCalc doc.
+
+	* src/rt4.cc (par_optpropCalc,sca_optpropCalc):
+	Method summary corrected.
+
+	* src/m_optproperties.cc (pha_matCalc):
+	Removed error-prone duplicate code for 1D and 3D (set up atm indices
+	depending on atm_dim instead, then run the same calc loop regardless of
+	atm_dim).
+
+	* 3rdparty/tmatrix/ampld.arts.f:
+	Check input validity separately for each parameter and provide specific
+	error message.
+
 2016-11-09 Jana Mendrok  <jana.mendrok@chalmers.se>
 
 	* arts-2-3-564

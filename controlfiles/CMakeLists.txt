@@ -99,7 +99,7 @@ if (ENABLE_DISORT)
 endif ()
 
 if (ENABLE_RT4)
-  arts_test_run_ctlfile(fast artscomponents/polradtran/TestRT4Test.arts)
+  arts_test_run_ctlfile(fast artscomponents/polradtran/TestRT4.arts)
 endif ()
 
 if (ENABLE_TMATRIX)

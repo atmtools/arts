@@ -3880,29 +3880,37 @@ void define_md_data_raw()
       ( NAME( "DisortCalc" ),
         DESCRIPTION
         (
-         "Calls DISORT RT solver from ARTS.\n"
+         "Interface to the DISORT scattering solver (Stamnes et al.).\n"
          "\n"
          "DISCLAIMER: There is a couple of known issues with the current\n"
          "implementation (see below). Use this WSM with care and only if\n"
          "these limitations/requirements are fulfilled. Results might be\n"
          "erroneous otherwise.\n"
          "\n"
-         "DISORT is only availble for scalar 1D calculations and implicitly\n"
-         "assumes a plane-parallel atmosphere (flat Earth). Only\n"
-         "macroscopically isotropic particles can be handled correctly.\n"
+         "DISORT provides the radiation field (*doit_i_field*) from a scalar\n"
+         "1D scattering solution assuming a plane-parallel atmosphere (flat\n"
+         "Earth). Only macroscopically isotropic particles are allowed.\n"
          "Refraction is not taken into account.\n"
          "\n"
-         "Number of streams *nstreams* taken into account in the scattering\n"
-         "solution determines the angular resolution, hence the accuracy of\n"
-         "the solution. The more anisotropic the bulk scattering matrix, the\n"
-         "more streams are required. The computational burden increases\n"
-         "approximately linearly with *nstreams*. The default value (8) is\n"
-         "assumed to be sufficient for most microwave scattering\n"
-         "calculations. It is likely insufficient for IR calculations\n"
-         "involving ice clouds, though.\n"
+         "*nstreams* is the number of polar angles taken into account\n"
+         "internally in the scattering solution, *scat_za_grid* is the\n"
+         "polar angle grid on which *doit_i_field* is provided.\n"
+         "*nstreams* determines the angular resolution, hence the accuracy,\n"
+         "of the scattering solution. The more anisotropic the bulk scattering\n"
+         "matrix, the more streams are required. The computational burden\n"
+         "increases approximately linearly with *nstreams*. The default value\n"
+         "(8) is sufficient for most microwave scattering calculations. It is\n"
+         "likely insufficient for IR calculations involving ice clouds,\n"
+         "though.\n"
+         "*scat_za_grid* determines the resolution of the output radiation\n"
+         "field. The size of *scat_za_grid* has no practical impact on\n"
+         "computation time in the case of Disort and higher resolution\n"
+         "generally improves the interpolation results, hence larger\n"
+         "*scat_za_grid* are recommended. To ensure sufficient interpolation\n"
+         "accuracy, we require a (hardcoded) minimum size of 38.\n"
          "\n"
          "ARTS-DISORT can be run with different levels of (pseudo-)sphericity,\n"
-         "determined by the cloudbox settings and the *non_is_inc* keyword.\n"
+         "determined by the cloudbox settings and the *non_iso_inc* keyword.\n"
          "The higher the sphericity level is, the more accurate are the\n"
          "results, but the longer the calculation takes (typically, for\n"
          "downlooking cases - even 50deg off-nadir ones - the differences\n"
@@ -3913,7 +3921,7 @@ void define_md_data_raw()
          "different ways and using different output. The available options\n"
          "(from low to high sphericity level) are:\n"
          "- Cloudbox extends over whole atmosphere (e.g. by setting cloudbox\n"
-         "  from  *cloudboxSetFullAtm*).\n"
+         "  from *cloudboxSetFullAtm*).\n"
          "- Cloudbox extends over a limited part of the atmosphere only (e.g.\n"
          "  by setting cloudbox from *cloudboxSetAutomatically* or\n"
          "  *cloudboxSetManually*). Internally, DISORT is run over the whole\n"
@@ -3931,9 +3939,10 @@ void define_md_data_raw()
          "  implicitly assumed to be at the lowest atmospheric level.\n"
          "- Surface temperature not an interface parameter, but implicitly\n"
          "  assumed to to be of lowest atmospheric level temperature.\n"
+         "- Only Lambertian surface reflection is implemented so far.\n"
          "- Except for *non_iso_inc*=1, where *iy_space_agenda* is applied,\n"
-         "  TOA incoming radiation is assumed as blackbody cosmic background\n"
-         "  (temp taken from ARTS-internal constant).\n"
+         "  TOA incoming radiation is so far assumed as blackbody cosmic\n"
+         "  background (temperature taken from the ARTS-internal constant).\n"
          "- Scattering angle grids of all scattering elements have to be\n"
          "  identical (except if *pfct_method* is 'interpolate').\n"
          "\n"
@@ -3968,7 +3977,7 @@ void define_md_data_raw()
         GIN_TYPE(    "Index",    "Index",       "String" ),
         GIN_DEFAULT( "8",        "0",           "median" ),
         GIN_DESC( "Number of polar angle directions (streams) in DISORT "
-                  "solution.",
+                  "solution (must be an even number).",
                   "Flag whether to run DISORT initialized with non-isotropic "
                   "TOA field. See above for more info.",
                   "Flag which method to apply to derive phase function." )
@@ -11559,15 +11568,71 @@ void define_md_data_raw()
       ( NAME( "RT4Calc" ),
         DESCRIPTION
         (
-         "Calls RT4 scattering solver from ARTS.\n"
+         "Interface to the PolRadTran RT4 scattering solver (Evans).\n"
          "\n"
-         "DISCLAIMER: This is work in progress. Not to be used yet.\n"
+         "DISCLAIMER: There is a number of known issues with the current\n"
+         "implementation (see below). Use this WSM with care and only if\n"
+         "these limitations/requirements are fulfilled. Results might be\n"
+         "erroneous otherwise.\n"
          "\n"
-         "RT4 is only available for 1D calculations and implicitly assumes a\n"
-         "plane-parallel atmosphere (flat Earth). It calculates up to two\n"
-         "Stokes parameters, i.e., all azimuthally randomly oriented\n"
-         "particles are allowed (this also includes macroscopically isotropic\n"
-         "particles). Refraction is not taken into account.\n"
+         "RT4 provides the radiation field (*doit_i_field*) from a vector\n"
+         "1D scattering solution assuming a plane-parallel atmosphere (flat\n"
+         "Earth). It calculates up to two Stokes parameters (*stokes_dim<=2),\n"
+         "i.e., all azimuthally randomly oriented particles are allowed (this\n"
+         "also includes macroscopically isotropic particles). Refraction is\n"
+         "not taken into account.\n"
+         "\n"
+         "The scattering solution is internally obtained over the full\n"
+         "(plane-parallel) atmosphere, i.e. not confined to the cloudbox.\n"
+         "However, the radiation field output is limited to the cloudbox.\n"
+         "This allows to consider clearsky RT through a non-spherical\n"
+         "atmsophere outside the cloudbox improving the RT solution for\n"
+         "non-plane-parallel media compared to the plain RT4 output.\n"
+         "The possibility to consider a non-isotropic incoming radiation\n"
+         "field on top of the atmosphere as exist with *DisortCalc* is not\n"
+         "yet implemented here (keyword *non_iso_inc* so far has no effect).\n"
+         "\n"
+         "*nstreams* is the number of polar angles taken into account\n"
+         "internally in the scattering solution, *scat_za_grid* is the\n"
+         "polar angle grid on which *doit_i_field* is provided.\n"
+         "*nstreams* determines the angular resolution, hence the accuracy,\n"
+         "of the scattering solution. The more anisotropic the bulk scattering\n"
+         "matrix, the more streams are required. The computational burden\n"
+         "increases approximately with the third power of *nstreams*.\n"
+         "*scat_za_grid* here is NOT an input parameter, but output, and its\n"
+         "size equals *nstreams* (Lobatto quadrature) or *nstreams*+2 (Gauss-\n"
+         "Legendre and Double Gauss quadratures) (the reason is that the\n"
+         "computational burden her is high for additional angles, regardless\n"
+         "whether quadrature angles or not; hence the quadrature angles\n"
+         "supplemented with 0 and 180deg are considered to provide the best\n"
+         "radiation field for a given effort).\n"
+         "The default value (16) was found to be sufficient for most\n"
+         "microwave scattering calculations. It is likely insufficient for\n"
+         "IR calculations involving ice clouds, though.\n"
+         "\n"
+         "Known issues of ARTS implementation:\n"
+         "- Surface altitude is not an interface parameter. Surface is\n"
+         "  implicitly assumed to be at the lowest atmospheric level.\n"
+         "- Surface temperature not an interface parameter, but implicitly\n"
+         "  assumed to to be of lowest atmospheric level temperature.\n"
+         "- Only Lambertian surface reflection is implemented so far.\n"
+         "- TOA incoming radiation is so far assumed as blackbody cosmic\n"
+         "  background (temperature taken from the ARTS-internal constant).\n"
+         "- Scattering angle grids of all scattering elements have to be\n"
+         "  identical (except if *pfct_method* is 'interpolate').\n"
+         "\n"
+         "The keyword *pfct_method* allows to chose the method to extract the\n"
+         "scattering matrix. 'interpolate' considers temperature dependence,\n"
+         "others neglect it by chosing one specific temperature grid point\n"
+         "from the single scattering data: 'low' choses the lowest T-point,\n"
+         "'high' the highest T-point, and 'median' the median T-point. As\n"
+         "different scattering elements can have different temperature grids,\n"
+         "the actual temperature value used can differ between the scattering\n"
+         "elements. Currently, other methods than 'interpolate' require all\n"
+         "scattering elements to be given on identical scattering angle grids.\n"
+         "Note that this keyword solely affects the scattering matrix;\n"
+         "extinction matrix and absorption vector are always interpolated to\n"
+         "the actual temperature.\n"
          ),
         AUTHORS( "Jana Mendrok" ),
         OUT( "doit_i_field", "scat_za_grid", "scat_aa_grid",
@@ -11587,10 +11652,10 @@ void define_md_data_raw()
                      "pfct_aa_grid_size", "max_delta_tau" ),
         GIN_TYPE(    "Index",    "Index",       "String",      "String",
                      "Index",             "Numeric" ),
-        GIN_DEFAULT( "8",        "0",           "median",      "L",
+        GIN_DEFAULT( "16",        "0",           "median",      "D",
                      "19",                "1e-6" ),
         GIN_DESC( "Number of polar angle directions (streams) in DISORT "
-                  "solution.",
+                  "solution (must be an even number).",
                   "Flag whether to run DISORT initialized with non-isotropic "
                   "TOA field. See above for more info.",
                   "Flag which method to apply to derive phase function (for"
@@ -11610,6 +11675,9 @@ void define_md_data_raw()
         DESCRIPTION
         (
          "Initialises variables for RT4 scattering calculations.\n"
+         "\n"
+         "*nstreams* and *quad_type* need to be identical to the ones used by\n"
+         "*RT4Calc*.\n"
          ),
         AUTHORS( "Jana Mendrok" ),
         OUT( "doit_i_field", "rt4_is_initialized" ),
@@ -11620,7 +11688,7 @@ void define_md_data_raw()
             "cloudbox_on", "cloudbox_limits", "scat_data" ),
         GIN(         "nstreams", "quad_type" ),
         GIN_TYPE(    "Index",    "String" ),
-        GIN_DEFAULT( "8",        "L" ),
+        GIN_DEFAULT( "16",        "D" ),
         GIN_DESC( "Number of polar angle directions (streams) in RT4 solution.",
                   "Flag which quadrature to apply in RT4 solution (for"
                   "available options see *RT4Calc*)." )

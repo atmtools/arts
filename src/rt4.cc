@@ -130,8 +130,8 @@ void gas_optpropCalc( Workspace& ws,
 
 //! par_optpropCalc
 /*!
-  Calculates layer averaged gaseous extinction (gas_extinct). This variable is
-  required as input for the RT4 subroutine.
+  Calculates layer averaged particle extinction and absorption (extinct_matrix
+  and emis_vector)). These variables are required as input for the RT4 subroutine.
 
   \param ws                    Current workspace
   \param emis_vector           Layer averaged particle absorption for all particle layers
@@ -250,8 +250,8 @@ void par_optpropCalc( Workspace& ws,
 
 //! sca_optpropCalc
 /*!
-  Calculates layer averaged gaseous extinction (gas_extinct). This variable is
-  required as input for the RT4 subroutine.
+  Calculates layer (and azimuthal) averaged phase matrix (scatter_matrix). This
+  variable is required as input for the RT4 subroutine.
 
   \param scatter_matrix        Layer averaged scattering matrix (azimuth mode 0) for all particle layers
   \param emis_vector           Layer averaged particle absorption for all particle layers
@@ -434,9 +434,13 @@ void sca_optpropCalc( //Output
       
                     for (Index ist1=0; ist1<stokes_dim; ist1++)
                       for (Index ist2=0; ist2<stokes_dim; ist2++)
+                      {
                         pha_mat_lab(ist1,ist2) = interp(itw,
                           pha_mat_int(Range(joker),Range(joker),ist1,ist2),
                           za_sca_gp,za_inc_gp);
+                        //if (ist1+ist2==1)
+                        //  pha_mat_lab(ist1,ist2) *= -1.;
+                      }
 
                     sca_mat(i_se_flat,iza,sza,joker,joker) = pha_mat_lab;
                   }

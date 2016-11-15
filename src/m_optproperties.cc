@@ -990,68 +990,30 @@ void pha_matCalc(Tensor4& pha_mat,
 
   // Initialisation
   pha_mat = 0.0;
-          
-  if (atmosphere_dim == 1)
-    {
-      // this is a loop over the different scattering elements
-      for (Index pt_index = 0; pt_index < N_se; ++ pt_index)
-        {
-          // these are loops over zenith angle and azimuth angle
-          for (Index za_index = 0; za_index < Nza; ++ za_index)
-            {
-              for (Index aa_index = 0; aa_index < Naa; ++ aa_index)
-                {
-                  
-                  // now the last two loops over the stokes dimension.
-                  for (Index stokes_index_1 = 0; stokes_index_1 < stokes_dim; 
-                       ++  stokes_index_1)
-                    {
-                      for (Index stokes_index_2 = 0; stokes_index_2 < stokes_dim;
-                           ++ stokes_index_2)
-                        //summation of the product of pnd_field and 
-                        //pha_mat_spt.
-                        pha_mat(za_index, aa_index,  
-                                     stokes_index_1, stokes_index_2) += 
-                          (pha_mat_spt(pt_index, za_index, aa_index,  
-                                       stokes_index_1, stokes_index_2) * 
-                          pnd_field(pt_index,scat_p_index, 0, 0));
-                    }
-                }
-            }
-        }
-    }
-          
-  if (atmosphere_dim == 3)
-    {
-      // this is a loop over the different scattering elements
-      for (Index pt_index = 0; pt_index < N_se; ++ pt_index)
-        {
-          
-          // these are loops over zenith angle and azimuth angle
-          for (Index za_index = 0; za_index < Nza; ++ za_index)
-            {
-              for (Index aa_index = 0; aa_index < Naa; ++ aa_index)
-                {
-                  
-                  // now the last two loops over the stokes dimension.
-                  for (Index i = 0;  i < stokes_dim; ++  i)
-                    {
-                      for (Index j = 0; j < stokes_dim; ++ j)
-                        {
-                          //summation of the product of pnd_field and 
-                          //pha_mat_spt.
-                          pha_mat(za_index, aa_index, i,j ) += 
-                            (pha_mat_spt(pt_index, za_index, aa_index, i, j) * 
-                             pnd_field(pt_index, scat_p_index,  
-                                       scat_lat_index, scat_lon_index));
-                          
-                          
-                        } 
-                    }	
-                }
-            }		
-        }	
-    }		
+
+  Index ilat=0;
+  Index ilon=0;
+  if (atmosphere_dim > 1)
+    ilat = scat_lat_index;
+  if (atmosphere_dim > 2)
+    ilon = scat_lon_index;
+
+  // this is a loop over the different scattering elements
+  for (Index pt_index = 0; pt_index < N_se; ++ pt_index)
+    // these are loops over zenith angle and azimuth angle
+    for (Index za_index = 0; za_index < Nza; ++ za_index)
+      for (Index aa_index = 0; aa_index < Naa; ++ aa_index)
+        // now the last two loops over the stokes dimension.
+        for (Index stokes_index_1 = 0; stokes_index_1 < stokes_dim; 
+             ++  stokes_index_1)
+          for (Index stokes_index_2 = 0; stokes_index_2 < stokes_dim;
+               ++ stokes_index_2)
+            //summation of the product of pnd_field and 
+            //pha_mat_spt.
+            pha_mat(za_index, aa_index, stokes_index_1, stokes_index_2) += 
+              ( pha_mat_spt(pt_index, za_index, aa_index,  
+                            stokes_index_1, stokes_index_2) * 
+                pnd_field(pt_index,scat_p_index, ilat, ilon) );
 }
 
 

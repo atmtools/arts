@@ -1,0 +1,94 @@
+#DEFINITIONS:  -*-sh-*-
+#
+# filename: TestRT4.arts
+#
+# Demonstration of a RT4 scattering calculation
+#
+# The setup follows the one used by TestDisort (in disort/ folder) and
+# TestDOITFromIndividualFields.arts (in doit/ folder).
+#
+# Author: Jana Mendrok
+# 
+
+Arts2 {
+
+# for test case, first, run the proprietary RT4 test.
+# REMOVE (or outcomment) when you use this as template for your RT4-based
+# calculations.
+INCLUDE "TestRT4Test.arts"
+
+
+# here starts the the actual ARTS RT4 interface test/example
+INCLUDE "artscomponents/disort/indivfieldsatmo_setup.arts"
+
+# Emission and reflection properties: Blackbody surface
+VectorSet( surface_scalar_reflectivity, [0.] )
+
+
+# Set cloudbox limits 
+# ---------------------------------------------------------------------
+#cloudboxSetFullAtm
+cloudboxSetAutomatically
+
+# Particle Number Density field calculation
+# -----------------------------------------
+pnd_fieldCalcFromscat_speciesFields
+
+
+
+# 7. RT4 settings-----------------------------------------------------
+#------------------------------------------------------------------------
+
+# For RT4 we use the same angular grids as output.
+#DOAngularGridsSet( N_za_grid=38 )
+
+# Calculate opticle properties of particles and add particle absorption
+# and extiction to the gaseous properties to get total extinction and
+# absorption:
+
+AgendaSet( spt_calc_agenda ){
+  opt_prop_sptFromMonoData
+}
+
+AgendaSet( opt_prop_part_agenda ){
+  ext_matInit
+  abs_vecInit
+  ext_matAddPart
+  abs_vecAddPart
+}
+	
+AgendaSet( iy_cloudbox_agenda ){
+  # use rigorous here when sensor viewing angles close to horizon shall be
+  # calculated. as cloudbox boundary for RT4 will always be at TOA, there is
+  # always an orders-of-magnitude gradient when involving downwelling or
+  # horizontal direction in the radiance interpolation.
+  iyInterpCloudboxField(rigorous=0)
+}
+
+
+# 8. The RT calculation--------------------------------------------------
+#------------------------------------------------------------------------
+
+# Consistency checks
+atmfields_checkedCalc
+atmgeom_checkedCalc
+cloudbox_checkedCalc  
+sensor_checkedCalc
+
+# Perform scattering calculation
+RT4Init #( nstreams=32 )
+RT4Calc #( nstreams=32 )
+#WriteXML( output_file_format, doit_i_field )
+   
+# Calculate RT from cloudbox boundary to the sensor
+yCalc
+
+#WriteXML( output_file_format, y )
+
+# Verify results
+VectorCreate(yREFERENCE)
+ReadXML( yREFERENCE, "artscomponents/disort/yREFERENCEfromDOIT.y.xml" )
+Compare( y, yREFERENCE, 1. )
+
+} # End of Main
+ 
