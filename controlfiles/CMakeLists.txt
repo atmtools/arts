@@ -168,6 +168,8 @@ if (ARTS_XML_DATA_DIR)
 
   arts_test_run_ctlfile(xmldata artscomponents/cia/TestRTwithCIA.arts)
 
+  arts_test_run_ctlfile(xmldata artscomponents/doit/TestDOITpressureoptimization.arts)
+
   ###########################################
   ### cases USING data from arts-xml-data ###
   arts_test_run_ctlfile(fast artscomponents/helpers/TestRegridding.arts)

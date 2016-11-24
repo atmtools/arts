@@ -1,4 +1,38 @@
+2016-11-24 Jakob Doerr <jakobdoerr@googlemail.com>
+	
+	* arts-2-3-566
+
+	* ChangeLog: Added version number to previous commit
+ 
+	* src/m_doit.cc (OptimizeDoitPressureGrid): New method added to DOIT 
+	that optimizes the pressure grid for every frequency seperately,
+	based on the single scattering albedo and the scattering optical
+	thickness and interpolates the fields to the new grid. The two
+	corresponding thresholds, sgl_alb_max and tau_scat_max, can be
+	set, but defaults are set. The maximum cloudbox size can be set by
+	cloudbox_size_max. This method should be called inside
+	doit_mono_agenda, right before doit_i_field_monoIterate. It can
+	only be used if ScatSpeciesMerge has been called and if it is
+	called, another method, doit_i_field_monoOptimizeReverse has to be 
+	called right after doit_i_field_monoIterate to interpolate 
+	doit_i_field mono back to the original size.
+
+	* src/m_doit.cc	(doit_i_field_monoOptimizeReverse): New method that 
+	interpolates the doit_i_field from the optimized calculation back
+	to the original size. Should be called if OptimizeDoitPressureGrid has
+	been called. Call should be inside doit_mono_agenda, right after 
+	doit_i_field_monoIterate.
+
+	* src/methods.cc: Defined OptimizeDoitPressureGrid and 
+	doit_i_field_monoOptimizeReverse
+
+	* src/workspace.cc (p_grid_opt): Defined p_grid_orig. It is used  
+	in doit_i_field_monoOptimizeReverse and it stores the original 
+	pressure grid.
+
 2016-11-15 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-565
 
 	* controlfiles/artscomponents/polradtran/TestRT4.arts:
 	RT4 test case added.

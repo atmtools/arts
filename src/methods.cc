@@ -4979,6 +4979,63 @@ void define_md_data_raw()
         GIN_DESC()
         ));
   
+    md_data_raw.push_back
+    ( MdRecord
+     ( NAME( "doit_i_field_monoOptimizeReverse" ),
+      DESCRIPTION
+      (
+       "Interpolate *doit_i_field_mono* back to the original p_grid.\n"
+       "For detailed description, see *OptimizeDoitPressureGrid*. \n"
+       ),
+      AUTHORS( "Jakob Doerr" ),
+      OUT("doit_i_field_mono"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "doit_i_field_mono", "p_grid_orig", "p_grid","cloudbox_limits"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()
+      ));
+
+    md_data_raw.push_back
+    ( MdRecord
+     ( NAME( "OptimizeDoitPressureGrid" ),
+      DESCRIPTION
+      (
+       "Optimization of the pressure grid for RT calculation.\n"
+       "The methods consists of three parts:\n"
+       "1) Calculate the single scattering albedo and the scattering optical"
+       "thickness from the scattering and absorption species. \n"
+       "2) Enhance z_field according to the two thresholds sgl_alb_max and tau_scat_max."
+       "If the resulting cloudbox size is bigger than cloudbox_size_max, this step is \n"
+       "repeated with a higher threshold of tau_scat_max. \n"
+       "3) Interpolate all variables used in doit_mono_agenda to the new z_field \n"
+       "This method should be called inside\n"
+       "*doit_mono_agenda*, right before *doit_i_field_monoIterate*. It can \n"
+       "only be used if *ScatSpeciesMerge* has been called and if it is\n"
+       "called, *doit_i_field_monoOptimizeReverse* has to be\n"
+       "called right after *doit_i_field_monoIterate* to interpolate\n"
+       "*doit_i_field_mono* back to the original size.\n"
+       "Optimization currently only works with *stokes_dim* = 1 .\n"
+       ),
+      AUTHORS( "Jakob Doerr" ),
+      OUT("p_grid", "pnd_field", "t_field", "scat_data_mono", "z_field", "cloudbox_limits",
+          "doit_i_field_mono", "pha_mat_sptDOITOpt", "vmr_field", "p_grid_orig"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "p_grid", "pnd_field", "t_field", "scat_data_mono", "z_field", "cloudbox_limits",
+         "doit_i_field_mono", "pha_mat_sptDOITOpt", "vmr_field", "f_grid", "f_index",
+         "propmat_clearsky_agenda"),
+      GIN("tau_scat_max", "sgl_alb_max", "cloudbox_size_max"),
+      GIN_TYPE("Numeric", "Numeric","Index"),
+      GIN_DEFAULT("0.1", "0.9","200"),
+      GIN_DESC("Maximum scattering optical thickness", "Maximum single scattering albedo",
+               "Maximum cloudbox size")
+      ));
+  
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "doit_scat_fieldCalc" ),

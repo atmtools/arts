@@ -1699,6 +1699,309 @@ void DoitInit(//WS Output
   doit_is_initialized = 1;
 }
 
+/* Workspace method: Doxygen documentation will be auto-generated */
+void doit_i_field_monoOptimizeReverse(//WS input
+                                  Tensor6& doit_i_field_mono,
+                                  const Vector& p_grid_orig,
+                                  const Vector& p_grid,
+                                  const ArrayOfIndex& cloudbox_limits,
+                                  const Verbosity& /* verbosity */)
+{
+    Tensor6 doit_i_field_mono_opt(p_grid_orig.nelem(),1,1,doit_i_field_mono.npages(),1,1);
+    ArrayOfGridPos Z_gp(p_grid_orig.nelem());
+    Matrix itw_z(Z_gp.nelem(),2);
+    // We only need the p_grid inside the cloudbox as doit_i_field_mono is only defined in the
+    // cloudbox
+    Vector p_grid_cloudbox =
+    p_grid[Range(cloudbox_limits[0],cloudbox_limits[1]-cloudbox_limits[0]+1)];
+    ostringstream os;
+    os << "There is a problem with the pressure grid interpolation";
+    chk_interpolation_grids(os.str(), p_grid,
+                            p_grid_orig);
+    
+    // Gridpositions:
+    gridpos( Z_gp, p_grid_cloudbox, p_grid_orig );
+    // Interpolation weights:
+    interpweights(itw_z, Z_gp);
+    // Interpolate doit_i_field_mono
+    for (Index i = 0; i < doit_i_field_mono.npages(); i++)
+    {
+        interp(doit_i_field_mono_opt(joker,0,0,i,0,0),itw_z,doit_i_field_mono(joker,0,0,i,0,0),Z_gp);
+    }
+    doit_i_field_mono = doit_i_field_mono_opt;
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void OptimizeDoitPressureGrid(Workspace& ws,
+                         //WS input
+                         Vector& p_grid,
+                         Tensor4& pnd_field,
+                         Tensor3& t_field,
+                         ArrayOfArrayOfSingleScatteringData& scat_data_mono,
+                         Tensor3& z_field,
+                         ArrayOfIndex& cloudbox_limits,
+                         Tensor6& doit_i_field_mono,
+                         ArrayOfTensor7& pha_mat_sptDOITOpt,
+                         Tensor4& vmr_field,
+                         Vector& p_grid_orig,
+                         const Vector& f_grid,
+                         const Index& f_index,
+                         const Agenda& propmat_clearsky_agenda,
+                         const Numeric& tau_scat_max,
+                         const Numeric& sgl_alb_max,
+                         const Index& cloudbox_size_max,
+                         const Verbosity& verbosity)
+{
+    CREATE_OUT2;
+    CREATE_OUT3;
+    // Make sure that stokes_dim = 1 and that ScatSpeciesMerge has been applied:
+    if ( doit_i_field_mono.ncols() != 1)
+        throw runtime_error(
+                            " This method currently only works for unpolarized radiation "
+                            "( stokes_dim = 1)");
+    // If ScatSpeciesMerged has been applied, then scat_data_mono should have only one element, and
+    // pnd_field should have the number of pressure grid points in the cloudbox as first dimension
+    if ( scat_data_mono.nelem() > 1
+        || pnd_field.nbooks() != cloudbox_limits[1] - cloudbox_limits[0] + 1 )
+        throw runtime_error(
+                            " ScatSpeciesMerge has to be applied in order to use this method");
+    
+    bool was_too_much = false;
+    Numeric tau_scat_max_internal = tau_scat_max;
+    ArrayOfSingleScatteringData& scat_data_local = scat_data_mono[0];
+    p_grid_orig = p_grid;
+    vector<Numeric> z_grid_new;
+    Vector ext_mat(cloudbox_limits[1]-cloudbox_limits[0]+1);
+    Vector abs_vec(cloudbox_limits[1]-cloudbox_limits[0]+1);
+    Vector scat_vec(cloudbox_limits[1]-cloudbox_limits[0]+1);
+    ArrayOfIndex cloudbox_limits_opt(2);
+    z_grid_new.reserve(1000);
+    for (Index i=0; i < cloudbox_limits[0]; i++)
+        z_grid_new.push_back(z_field(i, 0, 0));
+    //-----------------------------------------------
+    // Calculate optical thicknesses of the layers
+    //------------------------------------------------
+    
+    // Fields for scalar gas absorption
+    const Vector rtp_mag_dummy(3,0);
+    const Vector ppath_los_dummy;
+    Tensor3 nlte_dummy;
+    ArrayOfTensor3 partial_dummy;
+    ArrayOfMatrix partial_source_dummy,partial_nlte_dummy;
+    Vector rtp_temperature_nlte_dummy(0);
+    Tensor4 cur_propmat_clearsky;
+    
+    Index scat_data_insert_offset = 0;
+    Vector single_scattering_albedo(cloudbox_limits[1]-cloudbox_limits[0] + 1,0.);
+    for (Index k = cloudbox_limits[0]; k < cloudbox_limits[1] + 1; ++k)
+    {
+        Index cloudbox_index = k - cloudbox_limits[0];
+        Numeric abs_coeff = 0;
+        // Scattering particles
+        ext_mat[cloudbox_index] = scat_data_local[cloudbox_index].ext_mat_data(0,0,0,0,0);
+        abs_vec[cloudbox_index] = scat_data_local[cloudbox_index].abs_vec_data(0,0,0,0,0);
+        scat_vec[cloudbox_index] = ext_mat[cloudbox_index] - abs_vec[cloudbox_index];
+        // Calculate scalar gas absorption
+        propmat_clearsky_agendaExecute( ws, cur_propmat_clearsky,
+                                       nlte_dummy,partial_dummy,partial_source_dummy,partial_nlte_dummy,
+                                       ArrayOfRetrievalQuantity(0),
+                                       f_grid[Range(f_index, 1)],
+                                       rtp_mag_dummy, ppath_los_dummy,
+                                       p_grid[k],
+                                       t_field(k,0,0),
+                                       rtp_temperature_nlte_dummy,
+                                       vmr_field(joker,k,0,0),
+                                       propmat_clearsky_agenda );
+        for( Index j = 0; j < cur_propmat_clearsky.nbooks(); j++)
+        {
+            abs_coeff += cur_propmat_clearsky(j,0,0,0);
+        }
+        abs_coeff /= (Numeric) cur_propmat_clearsky.nbooks();
+        single_scattering_albedo[cloudbox_index] = scat_vec[cloudbox_index] / (ext_mat[cloudbox_index] + abs_coeff);
+    }
+    //
+    // Try out the current settings of tau_scat_max and sgl_alb_max
+    //
+    do {
+        scat_data_insert_offset = 0;
+        for (Index k = cloudbox_limits[0]; k < cloudbox_limits[1]; ++k)
+        {
+            Index cloudbox_index = k - cloudbox_limits[0];
+            const Numeric sgl_alb = (single_scattering_albedo[cloudbox_index]+single_scattering_albedo[cloudbox_index+1])/2;
+            const Numeric scat_opt_thk = (z_field(k+1,0,0)-z_field(k,0,0))*((scat_vec[cloudbox_index]+scat_vec[cloudbox_index+1])/2);
+            if (scat_opt_thk > tau_scat_max_internal && sgl_alb > sgl_alb_max)
+            {
+                Index factor = (Index)ceil(scat_opt_thk / tau_scat_max_internal);
+                for (Index j=1; j < factor; j++)
+                {
+                    scat_data_insert_offset++;
+                }
+            }
+        }
+        // If enhancement is too large, change tau_scat_max to a higher value:
+        if (scat_data_insert_offset + cloudbox_limits[1] - cloudbox_limits[0] + 1 > cloudbox_size_max)
+        {
+            tau_scat_max_internal += 0.01;
+            was_too_much = true;
+        }
+    } while (scat_data_insert_offset + cloudbox_limits[1] - cloudbox_limits[0] + 1 > cloudbox_size_max);
+    scat_data_insert_offset=0;
+    // Give warning if enhancement was too much and threshold had to be changed:
+    if (was_too_much)
+    {
+    out2 << "Warning: Pressure grid optimization with the thresholds tau_scat_max = " << tau_scat_max
+        << " and sgl_slb_max = " << sgl_alb_max << " has lead to an enhancement larger than the value of" <<
+        " cloudbox_size_max = " << cloudbox_size_max << ". This is why I changed tau_scat_max to " <<
+        tau_scat_max_internal << ". This may lead to errors of a too coarse grid! \n";
+    }
+
+    //--------------------------------------
+    //Optimize the altitude grid z_grid
+    //---------------------------------------
+    for (Index k = cloudbox_limits[0]; k < cloudbox_limits[1]; ++k)
+    {
+        Index cloudbox_index = k-cloudbox_limits[0];
+        const Numeric sgl_alb = (single_scattering_albedo[cloudbox_index]+single_scattering_albedo[cloudbox_index+1])/2;
+        const Numeric scat_opt_thk = (z_field(k+1,0,0)-z_field(k,0,0))*((scat_vec[cloudbox_index]+scat_vec[cloudbox_index+1])/2);
+        z_grid_new.push_back(z_field(k,0,0));
+        
+        if (scat_opt_thk > tau_scat_max_internal && sgl_alb > sgl_alb_max)
+        {
+            Index factor = (Index)ceil(scat_opt_thk / tau_scat_max_internal);
+            Numeric step = (z_field(k+1,0,0) - z_field(k,0,0))/ (Numeric) factor;
+            const SingleScatteringData nextLayer = scat_data_local[cloudbox_index+ scat_data_insert_offset + 1];
+            const SingleScatteringData currentLayer = scat_data_local[cloudbox_index+ scat_data_insert_offset];
+            const Tensor7 currentLayerPhamatDOITOpt = pha_mat_sptDOITOpt[cloudbox_index+ scat_data_insert_offset];
+            const Tensor7 nextLayerPhamatDOITOpt = pha_mat_sptDOITOpt[cloudbox_index+ scat_data_insert_offset + 1];
+            
+            for (Index j=1; j < factor; j++)
+            {
+                z_grid_new.push_back(z_field(k,0,0)+ (Numeric) j*step);
+                // Perform manual interpolation of scat_data and pha_mat_opt
+                const Numeric weight = (Numeric) j/ (Numeric) factor;
+                SingleScatteringData newLayer = currentLayer;
+                Tensor7 newLayerPhamatDOITOpt = currentLayerPhamatDOITOpt;
+                Tensor7 weightednextLayerPhamat = nextLayer.pha_mat_data;
+                Tensor5 weightednextLayerExtmat = nextLayer.ext_mat_data;
+                Tensor5 weightednextLayerAbsvec = nextLayer.abs_vec_data;
+                Tensor7 weightednextLayerPhamatDOITOpt = nextLayerPhamatDOITOpt;
+                
+                
+                weightednextLayerPhamat *= weight;
+                weightednextLayerExtmat *= weight;
+                weightednextLayerAbsvec *= weight;
+                weightednextLayerPhamatDOITOpt *= weight;
+                
+                newLayer.pha_mat_data *= 1. - weight;
+                newLayer.ext_mat_data *= 1. - weight;
+                newLayer.abs_vec_data *= 1. - weight;
+                newLayerPhamatDOITOpt *= 1. - weight;
+                
+                newLayer.pha_mat_data += weightednextLayerPhamat;
+                newLayer.ext_mat_data += weightednextLayerExtmat;
+                newLayer.abs_vec_data += weightednextLayerAbsvec;
+                newLayerPhamatDOITOpt += weightednextLayerPhamatDOITOpt;
+                
+                // Optimize scat_data and pha_mat_Opt
+                scat_data_local.insert(scat_data_local.begin()+cloudbox_index+scat_data_insert_offset+ 1,
+                                       newLayer);
+                pha_mat_sptDOITOpt.insert(pha_mat_sptDOITOpt.begin()+cloudbox_index+scat_data_insert_offset+ 1,
+                                          newLayerPhamatDOITOpt);
+                
+                scat_data_insert_offset++;
+            }
+        }
+    }
+    // New cloudbox limits
+    cloudbox_limits_opt[0] = cloudbox_limits[0];
+    cloudbox_limits_opt[1] = scat_data_insert_offset+ cloudbox_limits[1];
+    const Index cloudbox_opt_size = cloudbox_limits_opt[1]-cloudbox_limits_opt[0]+1;
+    out3 << "Frequency: " << f_grid[f_index] << " old: " << cloudbox_limits[1] - cloudbox_limits[0] + 1
+    << " new: " << cloudbox_opt_size << " Factor: "
+    << (Numeric) cloudbox_opt_size/ (Numeric) (cloudbox_limits[1] - cloudbox_limits[0] + 1) << "\n";
+    
+    for (Index i=cloudbox_limits[1]; i < z_field.npages(); i++)
+        z_grid_new.push_back(z_field(i, 0, 0));
+    
+    Vector z_grid(z_grid_new.size());
+    for (Index i=0; i < z_grid.nelem(); i++)
+        z_grid[i] = z_grid_new[i];
+    p_grid_orig = p_grid[Range(cloudbox_limits[0],cloudbox_limits[1]-cloudbox_limits[0]+1)];
+    // ---------------------------------------
+    // Interpolate fields to new z_grid
+    // ----------------------------------------
+    ArrayOfArrayOfSingleScatteringData scat_data_new;
+    Tensor3 t_field_new(z_grid.nelem(),1,1);
+    Vector p_grid_opt(z_grid.nelem());
+    Tensor6 doit_i_field_mono_opt(cloudbox_opt_size,
+                                  1,1,doit_i_field_mono.npages(),1,1);
+    ArrayOfGridPos Z_gp(z_grid.nelem());
+    Matrix itw_z(Z_gp.nelem(),2);
+    ostringstream os;
+    os << "At the current frequency " << f_grid[f_index]
+    << " there was an error while interpolating the fields to the new z_field";
+    chk_interpolation_grids(os.str(), z_field(joker,0,0),
+                            z_grid);
+    
+    // Gridpositions of interpolation:
+    gridpos( Z_gp, z_field(joker,0,0), z_grid );
+    // Interpolation weights:
+    interpweights(itw_z, Z_gp);
+    
+    // Interpolate Temperature
+    interp(t_field_new(joker,0,0), itw_z, t_field(joker,0,0), Z_gp);
+    // Write new Temperature to scat_data
+    for ( Index k=cloudbox_limits_opt[0]; k < cloudbox_limits_opt[1]; k++)
+    {
+        Index i = k - cloudbox_limits[0];
+        scat_data_local[i].T_grid = t_field_new(i,0,0);
+    }
+    
+    // Interpolate p_grid
+    interp(p_grid_opt,itw_z,p_grid,Z_gp);
+    
+    // Interpolate vmr_field
+    Tensor4 vmr_field_opt(vmr_field.nbooks(),p_grid_opt.nelem(),1,1);
+    for (Index i = 0; i < vmr_field.nbooks(); i++)
+        interp(vmr_field_opt(i,joker,0,0),itw_z,vmr_field(i,joker,0,0),Z_gp);
+    
+    // Interpolate doit_i_field_mono
+    ArrayOfGridPos Z_gp_2(cloudbox_opt_size);
+    Matrix itw_z_2(Z_gp_2.nelem(),2);
+    Range r1 = Range(cloudbox_limits[0], cloudbox_limits[1]-cloudbox_limits[0]+1);
+    Range r2 = Range(cloudbox_limits_opt[0], cloudbox_opt_size);
+    chk_interpolation_grids(os.str(),
+                            z_field(r1,0,0),
+                            z_grid[r2]);
+    gridpos(Z_gp_2,
+            z_field(Range(cloudbox_limits[0]
+                          ,cloudbox_limits[1]-cloudbox_limits[0]+1),0,0),
+            z_grid[Range(cloudbox_limits_opt[0],
+                         cloudbox_opt_size)]);
+    interpweights(itw_z_2,Z_gp_2);
+    
+    for (Index i = 0; i < doit_i_field_mono.npages(); i++)
+    {
+        interp(doit_i_field_mono_opt(joker,0,0,i,0,0),itw_z_2,doit_i_field_mono(joker,0,0,i,0,0),Z_gp_2);
+    }
+    
+
+    // Interpolate pnd-field
+    pnd_field.resize(cloudbox_opt_size, cloudbox_opt_size, 1, 1);
+    pnd_field = 0.;
+    for (Index i=0; i < cloudbox_opt_size; i++)
+        pnd_field(i, i, 0, 0) = 1.;
+    
+    //Write new fields
+    p_grid = p_grid_opt;
+    t_field = t_field_new;
+    cloudbox_limits = cloudbox_limits_opt;
+    doit_i_field_mono = doit_i_field_mono_opt;
+    z_field.resize(z_grid.nelem(), 1, 1);
+    z_field(joker,0,0) = z_grid;
+    vmr_field = vmr_field_opt;
+}
+
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void DoitWriteIterationFields(//WS input 

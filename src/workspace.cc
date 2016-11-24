@@ -3567,6 +3567,24 @@ void Workspace::define_wsv_data()
        ),
       GROUP( "Vector" )));
 
+    wsv_data.push_back
+    (WsvRecord
+     ( NAME( "p_grid_orig" ),
+      DESCRIPTION
+      (
+       "The original pressure grid before optimization.\n"
+       "\n"
+       "This variable is used to interpolate *doit_i_field* back to its original\n"
+       "size after the calculation with *OptimizeDoitPressureGrid*.\n"
+       " The variable is listed as a subentry to\n"
+       "\"workspace variables\".\n"
+       "\n"
+       "Usage: Set by the user.\n"
+       "\n"
+       "Unit:  Pa\n"
+       ),
+      GROUP( "Vector" )));
+    
    wsv_data.push_back
    (WsvRecord
     ( NAME( "p_hse" ),
