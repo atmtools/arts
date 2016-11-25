@@ -279,6 +279,8 @@ void iyEmissionStandard(
   // jac_wind_i 
   //    Works as jac_species_i, but uses JAC_IS_WIND... and JAC_IS_NONE
   //    for coding of each element.
+  // jac_to_integrate 
+  //    Track keeping of integration variable
   // ppath_p, ppath_vmr, ppath_ext ...
   //    Holds the pressure, vmr, extinction matrix etc. at each point of ppath.
   // ppd
@@ -296,7 +298,7 @@ void iyEmissionStandard(
   Index           j_analytical_do = 0;
   ArrayOfTensor3  diy_dpath; 
   ArrayOfIndex    jac_species_i(0), jac_is_t(0), jac_wind_i(0);
-  ArrayOfIndex    jac_mag_i(0), jac_other(0), for_flux(0); 
+  ArrayOfIndex    jac_mag_i(0), jac_other(0), for_flux(0), jac_to_integrate(0); 
   // Flags for partial derivatives of propmat
   const PropmatPartialsData ppd(jacobian_quantities);
   //
@@ -314,10 +316,21 @@ void iyEmissionStandard(
       jac_mag_i.resize( nq ); 
       for_flux.resize( nq );
       jac_other.resize(nq);
+      jac_to_integrate.resize(nq);
       //
       FOR_ANALYTICAL_JACOBIANS_DO( 
-        diy_dpath[iq].resize( np, nf, ns ); 
-        diy_dpath[iq] = 0.0;
+        if( jacobian_quantities[iq].Integration() )
+        {
+            diy_dpath[iq].resize( 1, nf, ns ); 
+            diy_dpath[iq] = 0.0;
+            jac_to_integrate[iq] = 1;
+        }
+        else
+        {
+            diy_dpath[iq].resize( np, nf, ns ); 
+            diy_dpath[iq] = 0.0;
+            jac_to_integrate[iq] = 0;
+        }
       )
       get_pointers_for_analytical_jacobians( jac_species_i, jac_is_t, 
                                              jac_wind_i, jac_mag_i, for_flux, 
@@ -637,7 +650,8 @@ void iyEmissionStandard(
                     if( jacobian_quantities[iq].Analytical() )
                     {
                         if( jac_species_i[iq] >= 0 || jac_wind_i[iq] ||
-                            jac_mag_i[iq] || jac_other[iq] || jac_is_t[iq] || for_flux[iq] )
+                            jac_mag_i[iq] || jac_other[iq] || jac_is_t[iq] || for_flux[iq] ||
+                            jac_to_integrate[iq])
                         {
                             /* 
                               We need to do blackbody derivation for temperature.
@@ -652,34 +666,69 @@ void iyEmissionStandard(
                             
                             for( Index iv=0; iv<nf; iv++ )
                             {
-                                get_diydx( diy_dpath[iq](ip  ,iv,joker),
-                                           diy_dpath[iq](ip+1,iv,joker),
-                                           extmat_case[ip][iv],
-                                           iy(iv,joker),
-                                           sibi(iv,joker),
-                                           ppath_nlte_source(       iv,joker,ip  ),
-                                           ppath_nlte_source(       iv,joker,ip+1),
-                                           dppath_nlte_source_dx(iq,iv,joker,ip  ),
-                                           dppath_nlte_source_dx(iq,iv,joker,ip+1),
-                                           ppath_ext(iv,joker,joker,ip  ),
-                                           ppath_ext(iv,joker,joker,ip+1),
-                                           dppath_ext_dx(iq,iv,joker,joker,ip  ),
-                                           dppath_ext_dx(iq,iv,joker,joker,ip+1),
-                                           trans_partial(iv,joker,joker,ip),
-                                           dtrans_partial_dx_below(iq,iv,joker,joker,ip),
-                                           dtrans_partial_dx_above(iq,iv,joker,joker,ip),
-                                           trans_cumulat(iv,joker,joker,ip  ),
-                                           trans_cumulat(iv,joker,joker,ip+1),
-                                           ppath_t[ip  ],
-                                           ppath_t[ip+1],
-                                           dt,
-                                           dppath_blackrad_dt(iv,ip  ),
-                                           dppath_blackrad_dt(iv,ip+1),
-                                           distance,
-                                           stokes_dim,
-                                           this_is_t,
-                                           this_is_hse,
-                                           nonlte );
+                                if(jac_to_integrate[iq])
+                                {
+                                    Vector tmp1(stokes_dim, 0.), tmp2(stokes_dim, 0.);
+                                    get_diydx( diy_dpath[iq](0, iv, joker),
+                                               diy_dpath[iq](0, iv, joker),
+                                               extmat_case[ip][iv],
+                                               iy(iv,joker),
+                                               sibi(iv,joker),
+                                               ppath_nlte_source(       iv,joker,ip  ),
+                                               ppath_nlte_source(       iv,joker,ip+1),
+                                               dppath_nlte_source_dx(iq,iv,joker,ip  ),
+                                               dppath_nlte_source_dx(iq,iv,joker,ip+1),
+                                               ppath_ext(iv,joker,joker,ip  ),
+                                               ppath_ext(iv,joker,joker,ip+1),
+                                               dppath_ext_dx(iq,iv,joker,joker,ip  ),
+                                               dppath_ext_dx(iq,iv,joker,joker,ip+1),
+                                               trans_partial(iv,joker,joker,ip),
+                                               dtrans_partial_dx_below(iq,iv,joker,joker,ip),
+                                               dtrans_partial_dx_above(iq,iv,joker,joker,ip),
+                                               trans_cumulat(iv,joker,joker,ip  ),
+                                               trans_cumulat(iv,joker,joker,ip+1),
+                                               ppath_t[ip  ],
+                                               ppath_t[ip+1],
+                                               dt,
+                                               dppath_blackrad_dt(iv,ip  ),
+                                               dppath_blackrad_dt(iv,ip+1),
+                                               distance,
+                                               stokes_dim,
+                                               this_is_t,
+                                               this_is_hse,
+                                               nonlte);
+                                }
+                                else
+                                {
+                                    get_diydx( diy_dpath[iq](ip  ,iv,joker),
+                                               diy_dpath[iq](ip+1,iv,joker),
+                                               extmat_case[ip][iv],
+                                               iy(iv,joker),
+                                               sibi(iv,joker),
+                                               ppath_nlte_source(       iv,joker,ip  ),
+                                               ppath_nlte_source(       iv,joker,ip+1),
+                                               dppath_nlte_source_dx(iq,iv,joker,ip  ),
+                                               dppath_nlte_source_dx(iq,iv,joker,ip+1),
+                                               ppath_ext(iv,joker,joker,ip  ),
+                                               ppath_ext(iv,joker,joker,ip+1),
+                                               dppath_ext_dx(iq,iv,joker,joker,ip  ),
+                                               dppath_ext_dx(iq,iv,joker,joker,ip+1),
+                                               trans_partial(iv,joker,joker,ip),
+                                               dtrans_partial_dx_below(iq,iv,joker,joker,ip),
+                                               dtrans_partial_dx_above(iq,iv,joker,joker,ip),
+                                               trans_cumulat(iv,joker,joker,ip  ),
+                                               trans_cumulat(iv,joker,joker,ip+1),
+                                               ppath_t[ip  ],
+                                               ppath_t[ip+1],
+                                               dt,
+                                               dppath_blackrad_dt(iv,ip  ),
+                                               dppath_blackrad_dt(iv,ip+1),
+                                               distance,
+                                               stokes_dim,
+                                               this_is_t,
+                                               this_is_hse,
+                                               nonlte);
+                                }
                             } // for all frequencies
                         } // if this iq is analytical
                     } // if this analytical
@@ -732,14 +781,23 @@ void iyEmissionStandard(
           // Weight with iy_transmission
           if( !iy_agenda_call1 )
             {
-              Matrix X, Y(ns,diy_dpath[0].npages()); 
+              Matrix X, Y(ns,diy_dpath[0].npages()), Y_int(ns, 1); 
               //
               FOR_ANALYTICAL_JACOBIANS_DO( 
                 for( Index iv=0; iv<nf; iv++ )
                   { 
-                    X = transpose( diy_dpath[iq](joker,iv,joker) );
-                    mult( Y, iy_transmission(iv,joker,joker), X );
-                    diy_dpath[iq](joker,iv,joker) = transpose( Y );
+                      if( jac_to_integrate[iq] )
+                      {
+                        X = transpose( diy_dpath[iq](joker,iv,joker) );
+                        mult( Y_int, iy_transmission(iv,joker,joker), X );
+                        diy_dpath[iq](joker,iv,joker) = transpose( Y );
+                      }
+                      else
+                      {
+                        X = transpose( diy_dpath[iq](joker,iv,joker) );
+                        mult( Y, iy_transmission(iv,joker,joker), X );
+                        diy_dpath[iq](joker,iv,joker) = transpose( Y );
+                      }
                   }
                )
             }

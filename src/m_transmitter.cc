@@ -741,7 +741,7 @@ void iyTransmissionStandard(
   Index           j_analytical_do = 0;
   ArrayOfTensor3  diy_dpath; 
   ArrayOfIndex    jac_species_i(0), jac_is_t(0), jac_wind_i(0);
-  ArrayOfIndex    jac_mag_i(0), jac_other(0), fake_for_flux(0); 
+  ArrayOfIndex    jac_mag_i(0), jac_other(0), fake_for_flux(0), jac_to_integrate(0); 
   // Flags for partial derivatives of propmat
   const PropmatPartialsData ppd(jacobian_quantities);
   //
@@ -759,10 +759,21 @@ void iyTransmissionStandard(
       jac_mag_i.resize( nq ); 
       fake_for_flux.resize( nq );
       jac_other.resize(nq);
+      jac_to_integrate.resize(nq);
       //
       FOR_ANALYTICAL_JACOBIANS_DO( 
-        diy_dpath[iq].resize( np, nf, ns ); 
-        diy_dpath[iq] = 0.0;
+        if( jacobian_quantities[iq].Integration() )
+        {
+            diy_dpath[iq].resize( 1, nf, ns ); 
+            diy_dpath[iq] = 0.0;
+            jac_to_integrate[iq] = 1;
+        }
+        else
+        {
+            diy_dpath[iq].resize( np, nf, ns ); 
+            diy_dpath[iq] = 0.0;
+            jac_to_integrate[iq] = 0;
+        }
       )
       get_pointers_for_analytical_jacobians( jac_species_i, jac_is_t, 
                                              jac_wind_i, jac_mag_i, fake_for_flux, 
@@ -1110,34 +1121,69 @@ void iyTransmissionStandard(
                             
                             for( Index iv=0; iv<nf; iv++ )
                             {
-                                get_diydx( diy_dpath[iq](ip  ,iv,joker),
-                                           diy_dpath[iq](ip+1,iv,joker),
-                                           extmat_case[ip][iv],
-                                           iy(iv,joker),
-                                           iy(iv,joker),
-                                           zerovec,
-                                           zerovec,
-                                           zerovec,
-                                           zerovec,
-                                           ppath_ext(iv,joker,joker,ip  ),
-                                           ppath_ext(iv,joker,joker,ip+1),
-                                           dppath_ext_dx(iq,iv,joker,joker,ip  ),
-                                           dppath_ext_dx(iq,iv,joker,joker,ip+1),
-                                           trans_partial(iv,joker,joker,ip),
-                                           dtrans_partial_dx_below(iq,iv,joker,joker,ip),
-                                           dtrans_partial_dx_above(iq,iv,joker,joker,ip),
-                                           trans_cumulat(iv,joker,joker,ip  ),
-                                           trans_cumulat(iv,joker,joker,ip+1),
-                                           ppath_t[ip  ],
-                                           ppath_t[ip+1],
-                                           dt,
-                                           0,
-                                           0,
-                                           ppath.lstep[ip],
-                                           stokes_dim,
-                                           false,
-                                           this_is_hse,
-                                           false );
+                                if(jac_to_integrate[iq])
+                                {
+                                    Vector tmp1(stokes_dim, 0.), tmp2(stokes_dim, 0.);
+                                    get_diydx( diy_dpath[iq](0, iv, joker),
+                                               diy_dpath[iq](0, iv, joker),
+                                               extmat_case[ip][iv],
+                                               iy(iv,joker),
+                                               iy(iv,joker),
+                                               zerovec,
+                                               zerovec,
+                                               zerovec,
+                                               zerovec,
+                                               ppath_ext(iv,joker,joker,ip  ),
+                                               ppath_ext(iv,joker,joker,ip+1),
+                                               dppath_ext_dx(iq,iv,joker,joker,ip  ),
+                                               dppath_ext_dx(iq,iv,joker,joker,ip+1),
+                                               trans_partial(iv,joker,joker,ip),
+                                               dtrans_partial_dx_below(iq,iv,joker,joker,ip),
+                                               dtrans_partial_dx_above(iq,iv,joker,joker,ip),
+                                               trans_cumulat(iv,joker,joker,ip  ),
+                                               trans_cumulat(iv,joker,joker,ip+1),
+                                               ppath_t[ip  ],
+                                               ppath_t[ip+1],
+                                               dt,
+                                               0,
+                                               0,
+                                               ppath.lstep[ip],
+                                               stokes_dim,
+                                               false,
+                                               this_is_hse,
+                                               false );
+                                }
+                                else
+                                {
+                                    get_diydx( diy_dpath[iq](ip  ,iv,joker),
+                                               diy_dpath[iq](ip+1,iv,joker),
+                                               extmat_case[ip][iv],
+                                               iy(iv,joker),
+                                               iy(iv,joker),
+                                               zerovec,
+                                               zerovec,
+                                               zerovec,
+                                               zerovec,
+                                               ppath_ext(iv,joker,joker,ip  ),
+                                               ppath_ext(iv,joker,joker,ip+1),
+                                               dppath_ext_dx(iq,iv,joker,joker,ip  ),
+                                               dppath_ext_dx(iq,iv,joker,joker,ip+1),
+                                               trans_partial(iv,joker,joker,ip),
+                                               dtrans_partial_dx_below(iq,iv,joker,joker,ip),
+                                               dtrans_partial_dx_above(iq,iv,joker,joker,ip),
+                                               trans_cumulat(iv,joker,joker,ip  ),
+                                               trans_cumulat(iv,joker,joker,ip+1),
+                                               ppath_t[ip  ],
+                                               ppath_t[ip+1],
+                                               dt,
+                                               0,
+                                               0,
+                                               ppath.lstep[ip],
+                                               stokes_dim,
+                                               false,
+                                               this_is_hse,
+                                               false );
+                                }
                             } // for all frequencies
                         } // if this iq is analytical
                     } // if this analytical

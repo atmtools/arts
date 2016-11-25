@@ -91,6 +91,12 @@ void diy_from_path_to_rgrids(
    const Ppath&               ppath,
    ConstVectorView            ppath_p )
 {
+   if( jacobian_quantity.Integration() )
+   {
+       diy_dx = diy_dpath;
+       return;
+   }
+    
   // We want here an extrapolation to infinity -> 
   //                                        extremly high extrapolation factor
   const Numeric   extpolfac = 1.0e99;
@@ -1179,7 +1185,6 @@ void get_diydx( VectorView diydx_this,
                 diydx_next[is] += z * kbar / temperature_next;
             }
         } //hse
-        
     }
     // General case
     else

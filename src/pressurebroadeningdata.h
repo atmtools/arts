@@ -221,17 +221,23 @@ public:
                              const Numeric& T0,
                              const Numeric& pressure,
                              const Numeric& self_pressure) const;
-    void GetAirBroadening_dSelf(Numeric& gamma_dSelf,
-                                const Numeric& theta,
-                                const Numeric& self_pressure) const;
-    void GetAirBroadening_dForeign(Numeric& gamma_dForeign,
-                                   const Numeric& theta,
-                                   const Numeric& pressure,
-                                   const Numeric& self_pressure) const;
+    void GetAirBroadening_dSelfGamma(Numeric& gamma_dSelf,
+                                     const Numeric& theta,
+                                     const Numeric& self_pressure) const;
+    void GetAirBroadening_dForeignGamma(Numeric& gamma_dForeign,
+                                        const Numeric& theta,
+                                        const Numeric& pressure,
+                                        const Numeric& self_pressure) const;
+    void GetAirBroadening_dForeignPsf(Numeric& psf_dForeign,
+                                      const Numeric& theta,
+                                      const Numeric& pressure,
+                                      const Numeric& self_pressure) const;
     void GetAirBroadening_dSelfExponent(Numeric& gamma_dSelfExponent,
+                                        Numeric& psf_dSelfExponent,
                                         const Numeric& theta,
                                         const Numeric& self_pressure) const;
     void GetAirBroadening_dForeignExponent(Numeric& gamma_dForeignExponent,
+                                           Numeric& psf_dForeignExponent,
                                            const Numeric& theta,
                                            const Numeric& pressure,
                                            const Numeric& self_pressure) const;
@@ -266,27 +272,46 @@ public:
                                      const Index    h2o_species,
                                      ConstVectorView vmrs,
                                      const Verbosity& verbosity) const;
-    void GetAirAndWaterBroadening_dSelf(Numeric& dgamma_dSelf,
-                                        const Numeric& theta,
-                                        const Numeric& self_pressure) const;
-    void GetAirAndWaterBroadening_dForeign(Numeric& dgamma_dForeign,
+    void GetAirAndWaterBroadening_dSelfGamma(Numeric& dgamma_dSelf,
+                                             const Numeric& theta,
+                                             const Numeric& self_pressure) const;
+    void GetAirAndWaterBroadening_dForeignGamma(Numeric& dgamma_dForeign,
+                                                const Numeric& theta,
+                                                const Numeric& pressure,
+                                                const Numeric& self_pressure,
+                                                const Index    this_species,
+                                                const Index    h2o_species,
+                                                ConstVectorView vmrs) const;
+    void GetAirAndWaterBroadening_dWaterGamma(Numeric& gamma_dWater,
+                                              const Numeric& theta,
+                                              const Numeric& pressure,
+                                              const Index    this_species,
+                                              const Index    h2o_species,
+                                              ConstVectorView vmrs,
+                                              const Verbosity& verbosity) const;
+    void GetAirAndWaterBroadening_dSelfPsf(Numeric& dpsf_dSelf,
                                            const Numeric& theta,
-                                           const Numeric& pressure,
-                                           const Numeric& self_pressure,
-                                           const Index    this_species,
-                                           const Index    h2o_species,
-                                           ConstVectorView vmrs) const;
-    void GetAirAndWaterBroadening_dWater(Numeric& gamma_dWater,
-                                         const Numeric& theta,
-                                         const Numeric& pressure,
-                                         const Index    this_species,
-                                         const Index    h2o_species,
-                                         ConstVectorView vmrs,
-                                         const Verbosity& verbosity) const;
+                                           const Numeric& self_pressure) const;
+    void GetAirAndWaterBroadening_dForeignPsf(Numeric& dpsf_dForeign,
+                                              const Numeric& theta,
+                                              const Numeric& pressure,
+                                              const Numeric& self_pressure,
+                                              const Index    this_species,
+                                              const Index    h2o_species,
+                                              ConstVectorView vmrs) const;
+    void GetAirAndWaterBroadening_dWaterPsf(Numeric& psf_dWater,
+                                            const Numeric& theta,
+                                            const Numeric& pressure,
+                                            const Index    this_species,
+                                            const Index    h2o_species,
+                                            ConstVectorView vmrs,
+                                            const Verbosity& verbosity) const;
     void GetAirAndWaterBroadening_dSelfExponent(Numeric& dgamma_dSelfExponent,
+                                                Numeric& dpsf_dSelfExponent,
                                                 const Numeric& theta,
                                                 const Numeric& self_pressure) const;
     void GetAirAndWaterBroadening_dForeignExponent(Numeric& dgamma_dForeignExponent,
+                                                   Numeric& dpsf_dForeignExponent,
                                                    const Numeric& theta,
                                                    const Numeric& pressure,
                                                    const Numeric& self_pressure,
@@ -294,6 +319,7 @@ public:
                                                    const Index    h2o_species,
                                                    ConstVectorView vmrs) const;
     void GetAirAndWaterBroadening_dWaterExponent(Numeric& gamma_dWaterExponent,
+                                                 Numeric& psf_dWaterExponent,
                                                  const Numeric& theta,
                                                  const Numeric& pressure,
                                                  const Index    this_species,
@@ -334,12 +360,6 @@ public:
                                 const ArrayOfIndex& broad_spec_locations,
                                 ConstVectorView vmrs,
                                 const Verbosity& verbosity) const;
-    void GetPerrinBroadening_dSelf(Numeric& dgamma_dSelf,
-                                   const Numeric& theta,
-                                   const Numeric& self_pressure) const;
-    void GetPerrinBroadening_dSelfExponent(Numeric& dgamma_dSelfExponent,
-                                           const Numeric& theta,
-                                           const Numeric& self_pressure) const;
     
      /**
        All broadening calculations
@@ -380,27 +400,46 @@ public:
                                         const ArrayOfIndex& broad_spec_locations,
                                         ConstVectorView vmrs,
                                         const Verbosity& verbosity) const;
-    void GetPressureBroadeningParams_dSelf(Numeric& gamma_dSelf,
-                                           const Numeric& theta,
-                                           const Numeric& self_pressure) const;
-    void GetPressureBroadeningParams_dForeign(Numeric& gamma_dForeign,
+    void GetPressureBroadeningParams_dSelfGamma(Numeric& gamma_dSelf,
+                                                const Numeric& theta,
+                                                const Numeric& self_pressure) const;
+    void GetPressureBroadeningParams_dForeignGamma(Numeric& gamma_dForeign,
+                                                   const Numeric& theta,
+                                                   const Numeric& pressure,
+                                                   const Numeric& self_pressure,
+                                                   const Index    this_species,
+                                                   const Index    h2o_species,
+                                                   ConstVectorView vmrs) const;
+    void GetPressureBroadeningParams_dWaterGamma(Numeric& gamma_dWater,
+                                                 const Numeric& theta,
+                                                 const Numeric& pressure,
+                                                 const Index    this_species,
+                                                 const Index    h2o_species,
+                                                 ConstVectorView vmrs,
+                                                 const Verbosity& verbosity) const;
+    void GetPressureBroadeningParams_dSelfPsf(Numeric& psf_dSelf,
                                               const Numeric& theta,
-                                              const Numeric& pressure,
-                                              const Numeric& self_pressure,
-                                              const Index    this_species,
-                                              const Index    h2o_species,
-                                              ConstVectorView vmrs) const;
-    void GetPressureBroadeningParams_dWater(Numeric& gamma_dWater,
-                                            const Numeric& theta,
-                                            const Numeric& pressure,
-                                            const Index    this_species,
-                                            const Index    h2o_species,
-                                            ConstVectorView vmrs,
-                                            const Verbosity& verbosity) const;
+                                              const Numeric& self_pressure) const;
+    void GetPressureBroadeningParams_dForeignPsf(Numeric& psf_dForeign,
+                                                 const Numeric& theta,
+                                                 const Numeric& pressure,
+                                                 const Numeric& self_pressure,
+                                                 const Index    this_species,
+                                                 const Index    h2o_species,
+                                                 ConstVectorView vmrs) const;
+    void GetPressureBroadeningParams_dWaterPsf(Numeric& psf_dWater,
+                                               const Numeric& theta,
+                                               const Numeric& pressure,
+                                               const Index    this_species,
+                                               const Index    h2o_species,
+                                               ConstVectorView vmrs,
+                                               const Verbosity& verbosity) const;
     void GetPressureBroadeningParams_dSelfExponent(Numeric& gamma_dSelfExponent,
+                                                   Numeric& psf_dSelfExponent,
                                                    const Numeric& theta,
                                                    const Numeric& self_pressure) const;
     void GetPressureBroadeningParams_dForeignExponent(Numeric& gamma_dForeignExponent,
+                                                      Numeric& psf_dForeignExponent,
                                                       const Numeric& theta,
                                                       const Numeric& pressure,
                                                       const Numeric& self_pressure,
@@ -408,6 +447,7 @@ public:
                                                       const Index    h2o_species,
                                                       ConstVectorView vmrs) const;
     void GetPressureBroadeningParams_dWaterExponent(Numeric& gamma_dWaterExponent,
+                                                    Numeric& psf_dWaterExponent,
                                                     const Numeric& theta,
                                                     const Numeric& pressure,
                                                     const Index    this_species,

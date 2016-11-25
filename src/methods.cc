@@ -7391,71 +7391,56 @@ void define_md_data_raw()
     ( NAME( "jacobianAddCatalogParameter" ),
       DESCRIPTION
       (
-          "Includes a catalog parameter in the Jacobian.\n"
+          "Includes a catalog parameter in the Jacobian. These are constant\n"
+          "over all layers and so only a single vector output is returned.\n"
           "\n"
-          "Details are given in the user guide.\n"
+          "These are the presently supported catalog parameters:\n"
+          "Generic:\n"
+          "   \"Line Strength\"\n"
+          "   \"Line Center\"\n"
           "\n"
-          "These are the supported catalog parameters:\n"
-          "   \"Reference Line Strength\"\n"
-          "   \"Reference Line Center\"\n"
+          "Pressure Broadening:\n"
+          "   \"PB Self Gamma\"\n"
+          "   \"PB Foreign Gamma\"\n"
+          "   \"PB Water Gamma\"\n"
+          "   \"PB Self Exponent\"\n"
+          "   \"PB Foreign Exponent\"\n"
+          "   \"PB Water Exponent\"\n"
+          "   \"PB Self Pressure Shift\"\n"
+          "   \"PB Foreign Pressure Shift\"\n"
+          "   \"PB Water Pressure Shift\"\n"
           "\n"
-          "   \"Pressure Broadening Gamma\"\n"
-          "   \"Pressure Broadening Reference Self Gamma\"\n"
-          "   \"Pressure Broadening Reference Foreign Gamma\"\n"
-          "   \"Pressure Broadening Reference Water Gamma\"\n"
-          "   \"Pressure Broadening Reference Self Gamma Exponent\"\n"
-          "   \"Pressure Broadening Reference Foreign Gamma Exponent\"\n"
-          "   \"Pressure Broadening Reference Water Gamma Exponent\"\n"
-          "\n"
-          "   \"Line Mixing Y\"\n"
-          "   \"Line Mixing G\"\n"
-          "   \"Line Mixing DF\"\n"
-          "   \"Line Mixing Reference Zeroth Term Y\"\n"
-          "   \"Line Mixing Reference Zeroth Term G\"\n"
-          "   \"Line Mixing Reference Zeroth Term DF\"\n"
-          "   \"Line Mixing Reference First Term Y\"\n"
-          "   \"Line Mixing Reference First Term G\"\n"
-          "   \"Line Mixing Reference First Term DF\"\n"
-          "   \"Line Mixing Reference Y Exponent\"\n"
-          "   \"Line Mixing Reference G Exponent\"\n"
-          "   \"Line Mixing Reference DF Exponent\"\n"
+          "Line Mixing:\n"
+          "   \"LM Y Zeroth\"\n"
+          "   \"LM G Zeroth\"\n"
+          "   \"LM DF Zeroth\"\n"
+          "   \"LM Y First\"\n"
+          "   \"LM G First\"\n"
+          "   \"LM DF First\"\n"
+          "   \"LM Y Exponent\"\n"
+          "   \"LM G Exponent\"\n"
+          "   \"LM DF Exponent\"\n"
           "\n"
           "The *catalog_identity* should be able to identify one or many\n"
           "lines in the catalog used for calculating the spectral absorption.\n"
-          "Note that partial matching for energy levels are allowed.\n"
+          "Note that partial matching for energy levels are allowed but not\n"
+          "recommended.\n"
           "\n"
-          "The catalog parameters are conceptually divided into two parts.\n"
-          "The parameters with the word \"Reference\" in them are for true\n"
-          "line catalog terms.  These do not always work.  For instance,\n"
-          "foreign broadening is not a thing for Artscat-4 pressure broadening.\n"
-          "Trying to call for foreign broadening partial derivation for such a line\n"
-          "format therefore returns an error.  The error thrown tries to \n"
-          "be generous.  Parameters without \"Reference\" should work for all\n"
-          "lines, but will require various levels of post-processing to understand.\n"
-          "\n"
-          "Note that matching these lines might be prone to errors since\n"
-          "not all form of catalogs can return quantum identifications, and\n"
-          "there might be misidentified lines in the present reading routines.\n"
-          "By default, a zero value is returned when the line presented cannot be\n"
-          "found in the catalog.  Also, if lines change internally, like for Zeeman\n"
-          "effect, then this does not work...\n"
+          "Note that the user must select a catalog that takes the desired catalog\n"
+          "parameter into account.  Trying to use, e.g., \"Water Gamma\" from HITRAN\n"
+          "input is nonsensical and an error will be thrown.\n"
       ),
       AUTHORS( "Richard Larsson" ),
       OUT( "jacobian_quantities", "jacobian_agenda" ),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN( "jacobian_quantities", "jacobian_agenda",
-          "atmosphere_dim", "p_grid", "lat_grid", "lon_grid" ),
-      GIN( "g1", "g2", "g3","catalog_identity","catalog_parameter" ),
-      GIN_TYPE( "Vector", "Vector", "Vector", "QuantumIdentifier", "String" ),
-      GIN_DEFAULT( NODEF, NODEF, NODEF, NODEF, "Nothing" ),
-      GIN_DESC( "Pressure retrieval grid.",
-                "Latitude retrieval grid.",
-                "Longitude retreival grid.",
-                "The catalog line matching information.",
-                "The catalog parameter of the retrieval quantity."
-                )
+      IN( "jacobian_quantities", "jacobian_agenda" ),
+      GIN( "catalog_identity", "catalog_parameter" ),
+      GIN_TYPE( "QuantumIdentifier", "String" ),
+      GIN_DEFAULT( NODEF, NODEF ),
+      GIN_DESC( "The catalog line matching information.",
+                "The catalog parameter of the retrieval quantity." )
     ));
     
     md_data_raw.push_back
@@ -7467,41 +7452,36 @@ void define_md_data_raw()
           "and parameters.\n"
           "\n"
           "The parameters are added per line so the order of the resulting\n"
-          "*jacobian* for Ni identifiers and Np parameters will be:\n"
+          "*jacobian* for n identifiers and N parameters will be:\n"
           "  Identifier 1\n"
           "    Parameter 1\n"
           "    Parameter 2\n"
           "    ...\n"
-          "    Parameter Np\n"
+          "    Parameter N\n"
           "  Identifier 2\n"
           "    Parameter 1\n"
           "    Parameter 2\n"
           "    ...\n"
-          "    Parameter Np\n"
+          "    Parameter N\n"
           "  ...\n"
           
-          "  Identifier Ni\n"
+          "  Identifier n\n"
           "    Parameter 1\n"
           "    Parameter 2\n"
           "    ...\n"
-          "    Parameter Np\n"
+          "    Parameter N\n"
       ),
       AUTHORS( "Richard Larsson" ),
       OUT( "jacobian_quantities", "jacobian_agenda" ),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN( "jacobian_quantities", "jacobian_agenda",
-          "atmosphere_dim", "p_grid", "lat_grid", "lon_grid" ),
-      GIN( "g1", "g2", "g3","catalog_identities","catalog_parameters" ),
-      GIN_TYPE( "Vector", "Vector", "Vector", "ArrayOfQuantumIdentifier", "ArrayOfString" ),
-      GIN_DEFAULT( NODEF, NODEF, NODEF, NODEF, NODEF ),
-      GIN_DESC( "Pressure retrieval grid.",
-                "Latitude retrieval grid.",
-                "Longitude retreival grid.",
-                "The catalog line matching informations.",
-                "The catalog parameters of the retrieval quantity."
-                )
+      IN( "jacobian_quantities", "jacobian_agenda" ),
+      GIN( "catalog_identities", "catalog_parameters" ),
+      GIN_TYPE( "ArrayOfQuantumIdentifier", "ArrayOfString" ),
+      GIN_DEFAULT( NODEF, NODEF ),
+      GIN_DESC( "The catalog line matching informations.",
+                "The catalog parameters of the retrieval quantity.")
     ));
          
   md_data_raw.push_back

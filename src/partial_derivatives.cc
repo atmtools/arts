@@ -82,9 +82,15 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix&  partials_attenuati
                                               const Numeric& dgamma_dSelf,
                                               const Numeric& dgamma_dForeign,
                                               const Numeric& dgamma_dWater,
+                                              const Numeric& dpsf_dSelf,
+                                              const Numeric& dpsf_dForeign,
+                                              const Numeric& dpsf_dWater,
                                               const Numeric& dgamma_dSelfExponent,
                                               const Numeric& dgamma_dForeignExponent,
                                               const Numeric& dgamma_dWaterExponent,
+                                              const Numeric& dpsf_dSelfExponent,
+                                              const Numeric& dpsf_dForeignExponent,
+                                              const Numeric& dpsf_dWaterExponent,
                                               // Partition data parameters
                                               const Numeric&  dQ_dT,
                                               // Magnetic variables
@@ -249,7 +255,7 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix&  partials_attenuati
         {
             // Line shape cross section does not depend on VMR.  NOTE:  Ignoring self-pressure broadening.
         }
-        else if(flag_partials(ii)==JQT_line_center)
+        else if(flag_partials(ii) == JQT_line_center)
         {
             if(!line_match_line(flag_partials.jac()[ii].QuantumIdentity(),qnr.Lower(),qnr.Upper()))
                 continue;
@@ -314,24 +320,18 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix&  partials_attenuati
         else if(flag_partials(ii) == JQT_line_gamma                 ||
                 flag_partials(ii) == JQT_line_gamma_self            ||
                 flag_partials(ii) == JQT_line_gamma_foreign         ||
-                flag_partials(ii) == JQT_line_gamma_water           ||
-                flag_partials(ii) == JQT_line_gamma_selfexponent    ||
-                flag_partials(ii) == JQT_line_gamma_foreignexponent ||
-                flag_partials(ii) == JQT_line_gamma_waterexponent)
+                flag_partials(ii) == JQT_line_gamma_water)
         {
             if(!line_match_line(flag_partials.jac()[ii].QuantumIdentity(),qnr.Lower(),qnr.Upper()))
                 continue;
             
-            Numeric constant = 1.0;
+            Numeric y_constant = 1.0;
             switch(flag_partials(ii))
             {
                 case JQT_line_gamma: break;
-                case JQT_line_gamma_self: constant = dgamma_dSelf; break;
-                case JQT_line_gamma_foreign: constant = dgamma_dForeign; break;
-                case JQT_line_gamma_water: constant = dgamma_dWater; break;
-                case JQT_line_gamma_selfexponent: constant = dgamma_dSelfExponent; break;
-                case JQT_line_gamma_foreignexponent: constant = dgamma_dForeignExponent; break;
-                case JQT_line_gamma_waterexponent: constant = dgamma_dWaterExponent; break;
+                case JQT_line_gamma_self: y_constant = dgamma_dSelf; break;
+                case JQT_line_gamma_foreign: y_constant = dgamma_dForeign; break;
+                case JQT_line_gamma_water: y_constant = dgamma_dWater; break;
                 default: throw std::runtime_error("This cannot happen.  A developer has made a mistake.\n");
             }
             
@@ -346,15 +346,106 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix&  partials_attenuati
             for(Index iv=0;iv<nv;iv++)
             {
                 
-                this_partial_attenuation[iv] += dFa_dy[iv]*dP_dgamma * constant;
+                this_partial_attenuation[iv] += dFa_dy[iv]*dP_dgamma * y_constant;
                 if(do_partials_phase)
-                    this_partial_phase[iv]   += dFb_dy[iv]*dP_dgamma * constant;
+                    this_partial_phase[iv]   += dFb_dy[iv]*dP_dgamma * y_constant;
                 if(do_src)
-                    this_partial_src[iv]     += dFa_dy[iv]*dP_dgamma*nlte * constant;
+                    this_partial_src[iv]     += dFa_dy[iv]*dP_dgamma*nlte * y_constant;
                     
+            }   
+            // That's it!
+        }
+        else if(flag_partials(ii) == JQT_line_gamma_selfexponent    ||
+                flag_partials(ii) == JQT_line_gamma_foreignexponent ||
+                flag_partials(ii) == JQT_line_gamma_waterexponent)
+        {
+            Numeric x_constant = 0.0, y_constant = 0.0;
+            switch(flag_partials(ii))
+            {
+                case JQT_line_gamma_selfexponent: 
+                    x_constant = dpsf_dSelfExponent;
+                    y_constant = dgamma_dSelfExponent; 
+                    break;
+                case JQT_line_gamma_foreignexponent:
+                    x_constant = dpsf_dForeignExponent;
+                    y_constant = dgamma_dForeignExponent; 
+                    break;
+                case JQT_line_gamma_waterexponent: 
+                    x_constant = dpsf_dWaterExponent;
+                    y_constant = dgamma_dWaterExponent; 
+                    break;
+                default: throw std::runtime_error("This cannot happen.  A developer has made a mistake.\n");
             }
             
+            
+            
+            VectorView this_partial_attenuation = partials_attenuation[ii](this_f_grid, pressure_level_index);
+            VectorView this_partial_phase       = do_partials_phase?partials_phase[ii](this_f_grid, pressure_level_index):empty_vector;
+            VectorView this_partial_src         = do_src?partials_src[ii](this_f_grid, pressure_level_index):empty_vector;
+            
+            Numeric dP_dgamma, dF_dpsf;
+            Vector dfn_dpsf(nv);
+            // Calculate the line shape derivative:
+            global_data::lineshape_data[ind_ls].dInput_dgamma()(dP_dgamma,sigma);
+            global_data::lineshape_data[ind_ls].dInput_dF0()(dF_dpsf,sigma);
+            global_data::lineshape_norm_data[ind_lsn].dFunction_dF0()(dfn_dpsf, f0,
+                                                                      this_f, temperature);
+            
+            for(Index iv=0;iv<nv;iv++)
+            {
+                const Numeric ls_A= ( (1.0 + G_LM)*CF_A[iv] + Y_LM*CF_B[iv]), 
+                              ls_B= ( (1.0 + G_LM)*CF_B[iv] - Y_LM*CF_A[iv]);
+                
+                this_partial_attenuation[iv] += dFa_dy[iv] * dP_dgamma * y_constant + 
+                                                (dFa_dx[iv] * dF_dpsf +  dfn_dpsf[iv] * ls_A) * x_constant;
+                if(do_partials_phase)
+                    this_partial_phase[iv]   += dFb_dy[iv]*dP_dgamma * y_constant + 
+                                                (dFb_dx[iv] * dF_dpsf +  dfn_dpsf[iv] * ls_B) * x_constant;
+                if(do_src)
+                    this_partial_src[iv]     += nlte * (dFa_dy[iv]*dP_dgamma * y_constant + 
+                                                (dFa_dx[iv] * dF_dpsf +  dfn_dpsf[iv] * ls_A)) * x_constant;
+                
+            }   
             // That's it!
+        }
+        else if(flag_partials(ii) == JQT_line_pressureshift_self    ||
+                flag_partials(ii) == JQT_line_pressureshift_foreign ||
+                flag_partials(ii) == JQT_line_pressureshift_water)
+        {
+            Numeric x_constant = 1.0;
+            switch(flag_partials(ii))
+            {
+                case JQT_line_pressureshift_self: x_constant = dpsf_dSelf; break;
+                case JQT_line_pressureshift_foreign: x_constant = dpsf_dForeign; break;
+                case JQT_line_pressureshift_water: x_constant = dpsf_dWater; break;
+                default: throw std::runtime_error("This cannot happen.  A developer has made a mistake.\n");
+            }
+            
+            VectorView this_partial_attenuation = partials_attenuation[ii](this_f_grid, pressure_level_index);
+            VectorView this_partial_phase       = do_partials_phase?partials_phase[ii](this_f_grid, pressure_level_index):empty_vector;
+            VectorView this_partial_src         = do_src?partials_src[ii](this_f_grid, pressure_level_index):empty_vector;
+            
+            Numeric dF_dpsf;
+            Vector dfn_dpsf(nv);
+            // Calculate the line shape derivative:
+            global_data::lineshape_data[ind_ls].dInput_dF0()(dF_dpsf,sigma);
+            global_data::lineshape_norm_data[ind_lsn].dFunction_dF0()(dfn_dpsf, f0,
+                                                                      this_f, temperature);
+            
+            for(Index iv=0;iv<nv;iv++)
+            {
+                const Numeric ls_A= ( (1.0 + G_LM)*CF_A[iv] + Y_LM*CF_B[iv]), 
+                              ls_B= ( (1.0 + G_LM)*CF_B[iv] - Y_LM*CF_A[iv]);
+                
+                this_partial_attenuation[iv] += (dFa_dx[iv] * dF_dpsf +  dfn_dpsf[iv] * ls_A) * x_constant;
+                if(do_partials_phase)
+                    this_partial_phase[iv]   += (dFb_dx[iv] * dF_dpsf +  dfn_dpsf[iv] * ls_B) * x_constant;
+                if(do_src)
+                    this_partial_src[iv]     += nlte * x_constant * (dFa_dx[iv] * dF_dpsf +  
+                                                                     dfn_dpsf[iv] * ls_A);
+                
+            }   
+            //That's it
         }
         else if(flag_partials(ii)==JQT_line_mixing_Y  ||
                 flag_partials(ii)==JQT_line_mixing_Y0 ||

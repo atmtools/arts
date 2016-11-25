@@ -37,12 +37,12 @@ extern const String PROPMAT_SUBSUBTAG;
 extern const String CATALOGPARAMETER_MAINTAG;
 
 // Generic modes
-extern const String PRESSUREBROADENINGGAMMA_MODE;
 extern const String LINESTRENGTH_MODE;
 extern const String LINECENTER_MODE;
-extern const String LINEMIXINGY_MODE;
-extern const String LINEMIXINGG_MODE;
-extern const String LINEMIXINGDF_MODE;
+//extern const String PRESSUREBROADENINGGAMMA_MODE;
+//extern const String LINEMIXINGY_MODE;
+//extern const String LINEMIXINGG_MODE;
+//extern const String LINEMIXINGDF_MODE;
 
 //  Pressure Broadening
 extern const String SELFBROADENING_MODE;
@@ -51,6 +51,9 @@ extern const String WATERBROADENING_MODE;
 extern const String SELFBROADENINGEXPONENT_MODE;
 extern const String FOREIGNBROADENINGEXPONENT_MODE;
 extern const String WATERBROADENINGEXPONENT_MODE;
+extern const String SELFPRESSURESHIFT_MODE;
+extern const String FOREIGNPRESSURESHIFT_MODE;
+extern const String WATERPRESSURESHIFT_MODE;
 
 //  Line Mixing
 extern const String LINEMIXINGY0_MODE;
@@ -88,6 +91,9 @@ typedef enum
     JQT_line_gamma_selfexponent,
     JQT_line_gamma_foreignexponent,
     JQT_line_gamma_waterexponent,
+    JQT_line_pressureshift_self,
+    JQT_line_pressureshift_foreign,
+    JQT_line_pressureshift_water,
     JQT_line_mixing_Y,
     JQT_line_mixing_G,
     JQT_line_mixing_DF,
@@ -147,8 +153,8 @@ public:
         mjacobian_pos.resize(mreal_nelem);
         mspecies.resize(mreal_nelem);
         
-        mcontains_pressure_term.resize(6);
-        for(Index ii=0;ii<6;ii++)
+        mcontains_pressure_term.resize(9);
+        for(Index ii=0;ii<9;ii++)
             mcontains_pressure_term[ii]=0;
         
         Index ippdq = 0;
@@ -295,13 +301,13 @@ public:
                         mspecies[ippdq] = -9999;//Flag for not a species...
                         ippdq++;
                     }
-                    else if(jacobian_quantities[iq].Mode() == PRESSUREBROADENINGGAMMA_MODE)
+                    /* else if(jacobian_quantities[iq].Mode() == PRESSUREBROADENINGGAMMA_MODE)
                     {
                         mqtype[ippdq] = JQT_line_gamma;
                         mjacobian_pos[ippdq] = iq;
                         mspecies[ippdq] = -9999;//Flag for not a species...
                         ippdq++;
-                    }
+                    } */
                     else if(jacobian_quantities[iq].Mode() == SELFBROADENING_MODE)
                     {
                         mqtype[ippdq] = JQT_line_gamma_self;
@@ -350,7 +356,31 @@ public:
                         mcontains_pressure_term[5]=1;
                         ippdq++;
                     }
-                    else if(jacobian_quantities[iq].Mode() == LINEMIXINGY_MODE)
+                    else if(jacobian_quantities[iq].Mode() == SELFPRESSURESHIFT_MODE)
+                    {
+                        mqtype[ippdq] = JQT_line_pressureshift_self;
+                        mjacobian_pos[ippdq] = iq;
+                        mspecies[ippdq] = -9999;//Flag for not a species...
+                        mcontains_pressure_term[6]=1;
+                        ippdq++;
+                    }
+                    else if(jacobian_quantities[iq].Mode() == FOREIGNPRESSURESHIFT_MODE)
+                    {
+                        mqtype[ippdq] = JQT_line_pressureshift_foreign;
+                        mjacobian_pos[ippdq] = iq;
+                        mspecies[ippdq] = -9999;//Flag for not a species...
+                        mcontains_pressure_term[7]=1;
+                        ippdq++;
+                    }
+                    else if(jacobian_quantities[iq].Mode() == WATERPRESSURESHIFT_MODE)
+                    {
+                        mqtype[ippdq] = JQT_line_pressureshift_water;
+                        mjacobian_pos[ippdq] = iq;
+                        mspecies[ippdq] = -9999;//Flag for not a species...
+                        mcontains_pressure_term[8]=1;
+                        ippdq++;
+                    }
+                    /*else if(jacobian_quantities[iq].Mode() == LINEMIXINGY_MODE)
                     {
                         mqtype[ippdq] = JQT_line_mixing_Y;
                         mjacobian_pos[ippdq] = iq;
@@ -370,7 +400,7 @@ public:
                         mjacobian_pos[ippdq] = iq;
                         mspecies[ippdq] = -9999;//Flag for not a species...
                         ippdq++;
-                    }
+                    }*/
                     else if(jacobian_quantities[iq].Mode() == LINEMIXINGY0_MODE)
                     {
                         mqtype[ippdq] = JQT_line_mixing_Y0;
@@ -766,9 +796,15 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix& partials_attenuatio
                                               const Numeric& dgamma_dSelf,
                                               const Numeric& dgamma_dForeign,
                                               const Numeric& dgamma_dWater,
+                                              const Numeric& dpsf_dSelf,
+                                              const Numeric& dpsf_dForeign,
+                                              const Numeric& dpsf_dWater,
                                               const Numeric& dgamma_dSelfExponent,
                                               const Numeric& dgamma_dForeignExponent,
                                               const Numeric& dgamma_dWaterExponent,
+                                              const Numeric& dpsf_dSelfExponent,
+                                              const Numeric& dpsf_dForeignExponent,
+                                              const Numeric& dpsf_dWaterExponent,
                                               // Partition data parameters
                                               const Numeric& dQ_dT,
                                               // Magnetic variables

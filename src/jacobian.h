@@ -54,7 +54,8 @@ public:
                         manalytical(-1),
                         mperturbation(0.),
                         mgrids(),
-                        mquantumidentifier()
+                        mquantumidentifier(),
+                        mintegration_flag(false)
   { /* Nothing to do here. */ }
 
 
@@ -73,7 +74,8 @@ public:
     manalytical(analytical),
     mperturbation(perturbation),
     mgrids(grids),
-    mquantumidentifier()
+    mquantumidentifier(),
+    mintegration_flag(false)
   {
     // With Matpack, initialization of mgrids from grids should work correctly.
   }
@@ -104,6 +106,11 @@ public:
   /** QuantumIdentifier as necessary for matching line specific parameters to jacobian grid */
   const QuantumIdentifier& QuantumIdentity() const { return mquantumidentifier; }
   void QuantumIdentity( const QuantumIdentifier& qi ) { mquantumidentifier = qi; }
+  
+  /** Do integrations? */
+  void IntegrationOn() { mintegration_flag = true; }
+  void IntegrationOff() { mintegration_flag = false; }
+  const bool& Integration() const { return mintegration_flag; }
 
 private:
 
@@ -115,6 +122,7 @@ private:
   Numeric mperturbation;
   ArrayOfVector mgrids;
   QuantumIdentifier mquantumidentifier;
+  bool mintegration_flag;
 };
 
 /** Output operator for RetrievalQuantity.

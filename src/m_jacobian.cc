@@ -3714,18 +3714,6 @@ void jacobianDoitAddSpecies(//WS Output:
 // }
 
 
-                     
-
-
-
-
-
-
-
-
-
-
-
 //----------------------------------------------------------------------------
 // Catalog parameters:
 //----------------------------------------------------------------------------
@@ -3735,20 +3723,13 @@ void jacobianAddCatalogParameter(
     Workspace&,
     ArrayOfRetrievalQuantity&   jq,
     Agenda&                     jacobian_agenda,
-    const Index&                atmosphere_dim,
-    const Vector&               p_grid,
-    const Vector&               lat_grid,
-    const Vector&               lon_grid,
-    const Vector&               rq_p_grid,
-    const Vector&               rq_lat_grid,
-    const Vector&               rq_lon_grid,
     const QuantumIdentifier&    catalog_identity,
     const String&               catalog_parameter,
     const Verbosity&            verbosity )
 {
     CREATE_OUT3;
     
-    // Check that this species is not already included in the jacobian.
+    // Check that this is not already included in the jacobian.
     for( Index it=0; it<jq.nelem(); it++ )
     {
         if( jq[it].MainTag() == CATALOGPARAMETER_MAINTAG  && 
@@ -3762,43 +3743,32 @@ void jacobianAddCatalogParameter(
         }
     }
     
-    // Check retrieval grids, here we just check the length of the grids
-    // vs. the atmosphere dimension
-    ArrayOfVector grids(atmosphere_dim);
-    {
-        ostringstream os;
-        if( !check_retrieval_grids( grids, os, p_grid, lat_grid, lon_grid,
-            rq_p_grid, rq_lat_grid, rq_lon_grid,
-            "retrieval pressure grid", 
-            "retrieval latitude grid", 
-            "retrievallongitude_grid", 
-            atmosphere_dim ) )
-            throw runtime_error(os.str());
-    }
-    
-    //FIXME: Move reference parameters to another function that only has a single grid point... now not correct unless g1-g3 is singular long
     // Check catalog_parameter here
-    if(!(PRESSUREBROADENINGGAMMA_MODE==catalog_parameter ||
-        LINESTRENGTH_MODE==catalog_parameter ||
-        LINECENTER_MODE==catalog_parameter ||
-        SELFBROADENING_MODE==catalog_parameter ||
-        FOREIGNBROADENING_MODE==catalog_parameter ||
-        WATERBROADENING_MODE==catalog_parameter ||
-        SELFBROADENINGEXPONENT_MODE==catalog_parameter ||
-        FOREIGNBROADENINGEXPONENT_MODE==catalog_parameter ||
-        LINEMIXINGY_MODE==catalog_parameter ||
-        LINEMIXINGG_MODE==catalog_parameter ||
-        LINEMIXINGDF_MODE==catalog_parameter ||
-        LINEMIXINGY0_MODE==catalog_parameter ||
-        LINEMIXINGG0_MODE==catalog_parameter ||
-        LINEMIXINGDF0_MODE==catalog_parameter ||
-        LINEMIXINGY1_MODE==catalog_parameter ||
-        LINEMIXINGG1_MODE==catalog_parameter ||
-        LINEMIXINGDF1_MODE==catalog_parameter ||
-        LINEMIXINGYEXPONENT_MODE==catalog_parameter ||
-        LINEMIXINGGEXPONENT_MODE==catalog_parameter ||
-        LINEMIXINGDFEXPONENT_MODE==catalog_parameter ||
-        WATERBROADENINGEXPONENT_MODE==catalog_parameter))
+    if(!(//PRESSUREBROADENINGGAMMA_MODE==catalog_parameter ||  Pseudo-mode, not tested
+         LINESTRENGTH_MODE==catalog_parameter ||
+         LINECENTER_MODE==catalog_parameter ||
+         SELFBROADENING_MODE==catalog_parameter ||
+         FOREIGNBROADENING_MODE==catalog_parameter ||
+         WATERBROADENING_MODE==catalog_parameter ||
+         SELFPRESSURESHIFT_MODE==catalog_parameter ||
+         FOREIGNPRESSURESHIFT_MODE==catalog_parameter ||
+         WATERPRESSURESHIFT_MODE==catalog_parameter ||
+         SELFBROADENINGEXPONENT_MODE==catalog_parameter ||
+         FOREIGNBROADENINGEXPONENT_MODE==catalog_parameter ||
+         WATERBROADENINGEXPONENT_MODE==catalog_parameter ||
+         // LINEMIXINGY_MODE==catalog_parameter || Pseudo-mode, not tested
+         // LINEMIXINGG_MODE==catalog_parameter || Pseudo-mode, not tested
+         //LINEMIXINGDF_MODE==catalog_parameter || Pseudo-mode, not tested
+         LINEMIXINGY0_MODE==catalog_parameter ||
+         LINEMIXINGG0_MODE==catalog_parameter ||
+         LINEMIXINGDF0_MODE==catalog_parameter ||
+         LINEMIXINGY1_MODE==catalog_parameter ||
+         LINEMIXINGG1_MODE==catalog_parameter ||
+         LINEMIXINGDF1_MODE==catalog_parameter ||
+         LINEMIXINGYEXPONENT_MODE==catalog_parameter ||
+         LINEMIXINGGEXPONENT_MODE==catalog_parameter ||
+         LINEMIXINGDFEXPONENT_MODE==catalog_parameter ||
+         WATERBROADENINGEXPONENT_MODE==catalog_parameter))
     {
         ostringstream os;
         os << "You have selected:\n" << catalog_parameter << "\nas your catalog parameter. This is not supported.\n" 
@@ -3812,9 +3782,9 @@ void jacobianAddCatalogParameter(
     rq.MainTag( CATALOGPARAMETER_MAINTAG );
     rq.Mode( catalog_parameter );
     rq.QuantumIdentity(catalog_identity);
-    rq.Grids( grids );
     rq.Analytical(1);
     rq.SubSubtag(PROPMAT_SUBSUBTAG);
+    rq.IntegrationOn();
     
     // Add it to the *jacobian_quantities*
     jq.push_back( rq );
@@ -3829,13 +3799,6 @@ void jacobianAddCatalogParameters(
     Workspace&                  ws,
     ArrayOfRetrievalQuantity&   jq,
     Agenda&                     jacobian_agenda,
-    const Index&                atmosphere_dim,
-    const Vector&               p_grid,
-    const Vector&               lat_grid,
-    const Vector&               lon_grid,
-    const Vector&               rq_p_grid,
-    const Vector&               rq_lat_grid,
-    const Vector&               rq_lon_grid,
     const ArrayOfQuantumIdentifier&    catalog_identities,
     const ArrayOfString&               catalog_parameters,
     const Verbosity&            verbosity )
@@ -3850,11 +3813,8 @@ void jacobianAddCatalogParameters(
         for(Index icp = 0; icp<catalog_parameters.nelem(); icp++)
         {
             out2<<"    type: "<<catalog_parameters[icp]<<"; identifier: "<<catalog_identities[ici]<<"\n";
-            jacobianAddCatalogParameter(ws,
-                jq,jacobian_agenda,
-                atmosphere_dim,p_grid,lat_grid,lon_grid,
-                rq_p_grid,rq_lat_grid,rq_lon_grid,
-                catalog_identities[ici],catalog_parameters[icp],
+            jacobianAddCatalogParameter(ws, jq, jacobian_agenda,
+                catalog_identities[ici], catalog_parameters[icp],
                 verbosity );
         }
     }

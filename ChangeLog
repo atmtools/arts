@@ -1,3 +1,49 @@
+2016-11-25  Richard Larsson  <ric.larsson@gmail.com>
+	
+	* arts-2-3-567
+	
+	Update support for LBL catalog parameter derivations.  Now 
+	with integrations over all levels
+	
+	* src/absorption.cc: Interface for pressure broadening partial 
+	derivation updated
+	
+	* src/constants.cc: Updated naming scheme for derivatives seen
+	by the user via methods
+	
+	* src/jacobian.{cc,h}:  Added support for full integration via 
+	a flag in RetrievalQuantity.  (diy_from_path_to_rgrids) returns
+	only a vector if this flag is found.
+	
+	* src/m_jacobian.cc: (jacobianAddCatalogParameter{,s}) now no 
+	longer accepts grids as arguements and instead activates the 
+	integration flag.  Catalog parameters are constant at all points
+	
+	* src/m_rte.cc:  (iyEmissionStandard) Updated to integrate when 
+	RetrievalQuantity says so
+	
+	* src/m_transmitter.cc: (iyTransmissionStandard) Mimics behavior 
+	of iyEmissionStandard when asked to integrate (as far as possible)
+	
+	* src/methods.cc:  Updated comments for 
+	jacobianAddCatalogParameter{,s}.
+	
+	* src/partial_derivatives.{cc,h}:  Updated to calculate pressure 
+	shift partial derivatives when available and also to return
+	the exponent derivative for pressure shift.  There still
+	remains an error in the central frequency calculations that I have 
+	not managed to fix.  This affects both "Line Center" and all
+	the "* Pressure Shift" partial derivatives and forms an error 
+	that increases the further from the line center you are in 
+	a symmetric manner, almost in an identical way for both these
+	cases.  I am still looking at this...
+	
+	* src/pressurebroadeningdata.{cc,h}:  Added methods to calculate 
+	the internal derivatives for pressure shift.  Also removed the 
+	calculations for Planetary broadening as these were not working
+	due to the rescaling.  Will have to think how do do that properly 
+	at a later date
+	
 2016-11-24 Jakob Doerr <jakobdoerr@googlemail.com>
 	
 	* arts-2-3-566

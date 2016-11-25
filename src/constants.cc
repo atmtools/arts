@@ -395,28 +395,28 @@ extern const String PROPMAT_SUBSUBTAG              = "From propagation matrix";
 extern const String CATALOGPARAMETER_MAINTAG       = "Catalog parameter";
 
 // Generic modes
-extern const String PRESSUREBROADENINGGAMMA_MODE   = "Pressure Broadening Gamma";
-extern const String LINESTRENGTH_MODE              = "Reference Line Strength";
-extern const String LINECENTER_MODE                = "Reference Line Center";
-extern const String LINEMIXINGY_MODE               = "Line Mixing Y";
-extern const String LINEMIXINGG_MODE               = "Line Mixing G";
-extern const String LINEMIXINGDF_MODE              = "Line Mixing DF";
+extern const String LINESTRENGTH_MODE              = "Line Strength";
+extern const String LINECENTER_MODE                = "Line Center";
 
 // Modes for "some" catalogs
 //  Pressure Broadening
-extern const String SELFBROADENING_MODE            = "Pressure Broadening Reference Self Gamma";
-extern const String FOREIGNBROADENING_MODE         = "Pressure Broadening Reference Foreign Gamma";
-extern const String WATERBROADENING_MODE           = "Pressure Broadening Reference Water Gamma";
-extern const String SELFBROADENINGEXPONENT_MODE    = "Pressure Broadening Reference Self Gamma Exponent";
-extern const String FOREIGNBROADENINGEXPONENT_MODE = "Pressure Broadening Reference Foreign Gamma Exponent";
-extern const String WATERBROADENINGEXPONENT_MODE   = "Pressure Broadening Reference Water Gamma Exponent";
+extern const String SELFBROADENING_MODE            = "PB Self Gamma";
+extern const String FOREIGNBROADENING_MODE         = "PB Foreign Gamma";
+extern const String WATERBROADENING_MODE           = "PB Water Gamma";
+extern const String SELFBROADENINGEXPONENT_MODE    = "PB Self Exponent";
+extern const String FOREIGNBROADENINGEXPONENT_MODE = "PB Foreign Exponent";
+extern const String WATERBROADENINGEXPONENT_MODE   = "PB Water Exponent";
+extern const String SELFPRESSURESHIFT_MODE         = "PB Self Pressure Shift";
+extern const String FOREIGNPRESSURESHIFT_MODE      = "PB Foreign Pressure Shift";
+extern const String WATERPRESSURESHIFT_MODE        = "PB Water Pressure Shift";
+
 //  Line Mixing
-extern const String LINEMIXINGY0_MODE              = "Line Mixing Reference Zeroth Term Y";
-extern const String LINEMIXINGG0_MODE              = "Line Mixing Reference Zeroth Term G";
-extern const String LINEMIXINGDF0_MODE             = "Line Mixing Reference Zeroth Term DF";
-extern const String LINEMIXINGY1_MODE              = "Line Mixing Reference First Term Y";
-extern const String LINEMIXINGG1_MODE              = "Line Mixing Reference First Term G";
-extern const String LINEMIXINGDF1_MODE             = "Line Mixing Reference First Term DF";
-extern const String LINEMIXINGYEXPONENT_MODE       = "Line Mixing Reference Y Exponent";
-extern const String LINEMIXINGGEXPONENT_MODE       = "Line Mixing Reference G Exponent";
-extern const String LINEMIXINGDFEXPONENT_MODE      = "Line Mixing Reference DF Exponent";
+extern const String LINEMIXINGY0_MODE              = "LM Y Zeroth";
+extern const String LINEMIXINGG0_MODE              = "LM G Zeroth";
+extern const String LINEMIXINGDF0_MODE             = "LM DF Zeroth";
+extern const String LINEMIXINGY1_MODE              = "LM Y First";
+extern const String LINEMIXINGG1_MODE              = "LM G First";
+extern const String LINEMIXINGDF1_MODE             = "LM DF First";
+extern const String LINEMIXINGYEXPONENT_MODE       = "LM Y Exponent";
+extern const String LINEMIXINGGEXPONENT_MODE       = "LM G Exponent";
+extern const String LINEMIXINGDFEXPONENT_MODE      = "LM DF Exponent";

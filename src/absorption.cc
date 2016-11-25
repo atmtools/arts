@@ -2247,26 +2247,37 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                 // These needs to be calculated when pressure broadening partial derivatives are needed
                 // Note that this gives plenty of wasted calculations for all lines that are not specifically
                 // requesting their individual partial derivatives...
-                Numeric gamma_dSelf=0.0, gamma_dForeign=0.0, gamma_dWater=0.0, 
-                gamma_dSelfExponent=0.0, gamma_dForeignExponent=0.0, gamma_dWaterExponent=0.0;
-                if(flag_partials.PressureBroadeningTerm(0)) // Self broadening
-                    abs_lines[ii].PressureBroadening().GetPressureBroadeningParams_dSelf(
+                Numeric gamma_dSelf=0.0, gamma_dForeign=0.0, gamma_dWater=0.0,
+                        psf_dSelf=0.0, psf_dForeign=0.0, psf_dWater=0.0, 
+                        gamma_dSelfExponent=0.0, gamma_dForeignExponent=0.0, gamma_dWaterExponent=0.0,
+                        psf_dSelfExponent=0.0, psf_dForeignExponent=0.0, psf_dWaterExponent=0.0;
+                if(flag_partials.PressureBroadeningTerm(0)) // Self broadening gamma
+                    abs_lines[ii].PressureBroadening().GetPressureBroadeningParams_dSelfGamma(
                         gamma_dSelf,abs_lines[ii].Ti0()/t,p_partial);
-                if(flag_partials.PressureBroadeningTerm(1)) // Foreign broadening
-                    abs_lines[ii].PressureBroadening().GetPressureBroadeningParams_dForeign(
+                if(flag_partials.PressureBroadeningTerm(1)) // Foreign broadening gamma
+                    abs_lines[ii].PressureBroadening().GetPressureBroadeningParams_dForeignGamma(
                         gamma_dForeign,abs_lines[ii].Ti0()/t,p,p_partial,this_species,h2o_index,vmrs);
-                if(flag_partials.PressureBroadeningTerm(2)) // Water broadening
-                    abs_lines[ii].PressureBroadening().GetPressureBroadeningParams_dWater(
+                if(flag_partials.PressureBroadeningTerm(2)) // Water broadening gamma
+                    abs_lines[ii].PressureBroadening().GetPressureBroadeningParams_dWaterGamma(
                         gamma_dWater,abs_lines[ii].Ti0()/t,p,this_species,h2o_index,vmrs,verbosity);
                 if(flag_partials.PressureBroadeningTerm(3)) // Self broadening exponent
                     abs_lines[ii].PressureBroadening().GetPressureBroadeningParams_dSelfExponent(
-                        gamma_dSelfExponent,abs_lines[ii].Ti0()/t,p_partial);
+                        gamma_dSelfExponent, psf_dSelfExponent, abs_lines[ii].Ti0()/t,p_partial);
                 if(flag_partials.PressureBroadeningTerm(4)) // Foreign broadening exponent
                     abs_lines[ii].PressureBroadening().GetPressureBroadeningParams_dForeignExponent(
-                        gamma_dForeignExponent,abs_lines[ii].Ti0()/t,p,p_partial,this_species,h2o_index,vmrs);
+                        gamma_dForeignExponent,psf_dForeignExponent,abs_lines[ii].Ti0()/t,p,p_partial,this_species,h2o_index,vmrs);
                 if(flag_partials.PressureBroadeningTerm(5)) // Water broadening exponent
                     abs_lines[ii].PressureBroadening().GetPressureBroadeningParams_dWaterExponent(
-                        gamma_dWaterExponent,abs_lines[ii].Ti0()/t,p,this_species,h2o_index,vmrs,verbosity);
+                        gamma_dWaterExponent,psf_dWaterExponent,abs_lines[ii].Ti0()/t,p,this_species,h2o_index,vmrs,verbosity);
+                if(flag_partials.PressureBroadeningTerm(6)) // Self broadening psf
+                    abs_lines[ii].PressureBroadening().GetPressureBroadeningParams_dSelfPsf(
+                        psf_dSelf,abs_lines[ii].Ti0()/t,p_partial);
+                if(flag_partials.PressureBroadeningTerm(7)) // Foreign broadening psf
+                    abs_lines[ii].PressureBroadening().GetPressureBroadeningParams_dForeignPsf(
+                        psf_dForeign,abs_lines[ii].Ti0()/t,p,p_partial,this_species,h2o_index,vmrs);
+                if(flag_partials.PressureBroadeningTerm(8)) // Water broadening psf
+                    abs_lines[ii].PressureBroadening().GetPressureBroadeningParams_dWaterPsf(
+                        psf_dWater,abs_lines[ii].Ti0()/t,p,this_species,h2o_index,vmrs,verbosity);
                 
                 Numeric dY0=0., dY1=0., dYexp=0., dG0=0., dG1=0., dGexp=0., dDV0=0., dDV1=0., dDVexp=0.;
                 if(do_lm)
@@ -2338,9 +2349,15 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                                                          gamma_dSelf,
                                                          gamma_dForeign,
                                                          gamma_dWater,
+                                                         psf_dSelf,
+                                                         psf_dForeign,
+                                                         psf_dWater,
                                                          gamma_dSelfExponent,
                                                          gamma_dForeignExponent,
                                                          gamma_dWaterExponent,
+                                                         psf_dSelfExponent,
+                                                         psf_dForeignExponent,
+                                                         psf_dWaterExponent,
                                                          // Partition data parameters
                                                          dQ_dT,
                                                          // Magnetic variables
