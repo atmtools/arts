@@ -366,22 +366,26 @@ void filename_xml(String&       filename,
   \param[out] filename   filename
   \param[in]  file_index Index appended to the filename
   \param[in]  varname    variable name
+  \param[in]  digits     Width for padding with zeros
 */
 void filename_xml_with_index(String&       filename,
                              const Index&  file_index,
-                             const String& varname)
+                             const String& varname,
+                             const Index&  digits)
 {
   if ("" == filename)
     {
       extern const String out_basename;
       ostringstream os;
-      os << out_basename << "." << varname << "." << file_index << ".xml";
+      os << out_basename << "." << varname << "."
+        << std::setw((int)digits) << std::setfill('0') << file_index << ".xml";
       filename = os.str();
     }
   else
     {
       ostringstream os;
-      os << filename << "." << file_index << ".xml";
+      os << filename << "."
+         << std::setw((int)digits) << std::setfill('0') << file_index << ".xml";
       filename = os.str();
     }
 }

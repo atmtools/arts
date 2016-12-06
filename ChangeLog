@@ -1,3 +1,32 @@
+2016-12-06  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-568
+
+	* src/m_optproperties.cc (scat_dataCheck):
+
+	Cleaner check for check_type argument. Must now be 'ALL' or 'NONE'.
+
+	* src/mystring.h: New functions toupper and tolower for my_basic_string.
+
+	* src/m_xml.{h,cc} (WriteXMLIndexed, ReadXMLIndexed),
+	src/xml_io.cc (filename_xml_with_index):
+
+	New argument digits that gives the desired width of the index. String
+	of numbers with less digits will be padded with zeros.
+
+	* src/m_jacobian.cc (jacobianDoit): Adapt calls to WriteXMLIndexed.
+
+	* src/methods.cc:
+
+	Add 'digits' argument to WriteXMLIndexed and ReadXMLIndexed.
+
+	Update docs for scat_dataCheck.
+
+	* src/m_linemixing.cc (abs_xsec_per_speciesAddLineMixedBands):
+
+	Comment out parameter names in dummy function to avoid compiler
+	warnings.
+
 2016-11-25  Richard Larsson  <ric.larsson@gmail.com>
 	
 	* arts-2-3-567

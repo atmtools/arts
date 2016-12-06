@@ -1026,6 +1026,7 @@ void scat_dataCheck( //Input:
                      const Verbosity& verbosity )
 {
     CREATE_OUT0;
+    CREATE_OUT1;
     CREATE_OUT2;
     CREATE_OUT3;
 
@@ -1144,9 +1145,7 @@ void scat_dataCheck( //Input:
       }
     }
 
-
-    if( check_type=="all" || check_type=="All" ||
-        check_type=="ALL" )
+    if( check_type.toupper() == "ALL" )
     {
       // Loop over the included scattering species
       out2 << " checking normalization of scattering matrix\n";
@@ -1261,11 +1260,18 @@ void scat_dataCheck( //Input:
         }
       }
     }
+    else if (check_type.toupper() == "NONE")
+    {
+        out1 << "  WARNING:\n"
+        << "  Normalization check on pha_mat switched off.\n"
+        << "  Scattering solution might be wrong.\n";
+    }
     else
     {
-      out0 << "  WARNING:\n"
-           << "  Normalization check on pha_mat switched off.\n"
-           << "  Scattering solution might be wrong.\n";
+        ostringstream os;
+        os << "Invalid value for argument *check_type*: '" << check_type << "'.\n";
+        os << "Valid values are 'all' or 'none'.";
+        throw std::runtime_error(os.str());
     }
 }
 

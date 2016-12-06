@@ -77,14 +77,16 @@ ReadXMLIndexed (// WS Generic Output:
                 const Index& file_index,
                 // WS Generic Input:
                 const String& f,
+                const Index&  digits,
                 // WS Generic Input Names:
                 const String& f_name _U_,
+                const String& digits_name _U_,
                 const Verbosity& verbosity)
 {
   String filename = f;
 
   // Create default filename if empty
-  filename_xml_with_index( filename, file_index, v_name );
+  filename_xml_with_index( filename, file_index, v_name, digits );
 
   xml_read_from_file (filename, v, verbosity);
 }
@@ -99,8 +101,10 @@ ReadXMLIndexed (Workspace&    ws _U_,
                 const String& v_name,
                 // WS Generic Input:
                 const String& f,
+                const Index& digits,
                 // WS Generic Input Names:
                 const String& f_name,
+                const String& digits_name,
                 const Verbosity& verbosity);
 
 
@@ -182,15 +186,17 @@ WriteXMLIndexed (//WS Input:
                  // WS Generic Input:
                  const T&      v,
                  const String& f,
+                 const Index&  digits,
                  // WS Generic Input Names:
                  const String& v_name,
                  const String& f_name,
+                 const String& digits_name _U_,
                  const Verbosity& verbosity)
 {
   String filename = f;
 
   // Create default filename if empty
-  filename_xml_with_index( filename, file_index, v_name );
+  filename_xml_with_index( filename, file_index, v_name, digits );
 
   WriteXML( file_format, v, filename, 0,
            v_name, f_name, "", verbosity );
@@ -206,9 +212,11 @@ WriteXMLIndexed (Workspace& ws _U_,
                  // WS Generic Input:
                  const Agenda& v,
                  const String& f,
+                 const Index&  digits,
                  // WS Generic Input Names:
                  const String& v_name,
                  const String& f_name,
+                 const String& digits_name,
                  const Verbosity& verbosity);
 
 #endif // m_xml_h

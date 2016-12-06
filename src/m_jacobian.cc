@@ -2859,7 +2859,7 @@ void jacobianDoit(//WS Output:
                   if( debug )
                     {
                       WriteXMLIndexed( "ascii", iq*np+il, pnd_field,
-                                       "pnd_field_perturbed", "pnd_field", "",
+                                       "pnd_field_perturbed", 0, "pnd_field", "", "",
                                        verbosity );
                     }
                   if( ScatSpeciesMerge_do )
@@ -2892,16 +2892,16 @@ void jacobianDoit(//WS Output:
                       if( debug )
                         {
                           WriteXMLIndexed( "ascii", iq*np+il, scat_data,
-                                           "scat_data_mergeperturbed", "scat_data", "",
+                                           "scat_data_mergeperturbed", 0, "scat_data", "", "",
                                            verbosity );
                           WriteXMLIndexed( "ascii", iq*np+il, scat_meta,
-                                           "scat_meta_mergeperturbed", "scat_meta", "",
+                                           "scat_meta_mergeperturbed", 0, "scat_meta", "", "",
                                            verbosity );
                           WriteXMLIndexed( "ascii", iq*np+il, scat_species,
-                                           "scat_species_mergeperturbed", "scat_species", "",
+                                           "scat_species_mergeperturbed", 0, "scat_species", "", "",
                                            verbosity );
                           WriteXMLIndexed( "ascii", iq*np+il, pnd_field,
-                                           "pnd_field_mergeperturbed", "pnd_field", "",
+                                           "pnd_field_mergeperturbed", 0, "pnd_field", "", "",
                                            verbosity );
                         }
                     }
@@ -2910,16 +2910,16 @@ void jacobianDoit(//WS Output:
               if( debug )
                 {
                   WriteXMLIndexed( "ascii", iq*np+il, scat_data,
-                                   "scat_data_final", "scat_data", "",
+                                   "scat_data_final", 0, "scat_data", "", "",
                                     verbosity );
                   WriteXMLIndexed( "ascii", iq*np+il, scat_meta,
-                                   "scat_meta_final", "scat_meta", "",
+                                   "scat_meta_final", 0, "scat_meta", "", "",
                                     verbosity );
                   WriteXMLIndexed( "ascii", iq*np+il, scat_species,
-                                   "scat_species_final", "scat_species", "",
+                                   "scat_species_final", 0, "scat_species", "", "",
                                     verbosity );
                   WriteXMLIndexed( "ascii", iq*np+il, pnd_field,
-                                   "pnd_field_final", "pnd_field", "",
+                                   "pnd_field_final", 0, "pnd_field", "", "",
                                    verbosity );
                 }
               doit_i_field = doit_i_field_ref;
@@ -2930,7 +2930,7 @@ void jacobianDoit(//WS Output:
               if( debug )
                 {
                   WriteXMLIndexed( "ascii", iq*np+il, doit_i_field,
-                                   "ifield_perturbed", "doit_i_field", "",
+                                   "ifield_perturbed", 0, "doit_i_field", "", "",
                                     verbosity );
                 }
 
@@ -2949,7 +2949,7 @@ void jacobianDoit(//WS Output:
 
               if( debug )
                 {
-                  WriteXMLIndexed( "ascii", iq*np+il, y, "y", "y", "", verbosity );
+                  WriteXMLIndexed( "ascii", iq*np+il, y, "y", 0, "y", "", "", verbosity );
                 }
 
               Vector dydx(y0.nelem());

@@ -11147,10 +11147,12 @@ void define_md_data_raw()
         GOUT_TYPE( "Any" ),
         GOUT_DESC( "Workspace variable to be read." ),
         IN( "file_index" ),
-        GIN(          "filename" ),
-        GIN_TYPE(     "String"   ),
-        GIN_DEFAULT(  ""         ),
-        GIN_DESC( "File name. See above." ),
+        GIN(          "filename", "digits" ),
+        GIN_TYPE(     "String",   "Index" ),
+        GIN_DEFAULT(  "",         "0" ),
+        GIN_DESC( "File name. See above.",
+                  "Equalize the widths of all numbers by padding with zeros as necessary.\n"
+                  "0 means no padding (default)." ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         USES_TEMPLATES( true  ),
@@ -12325,6 +12327,7 @@ void define_md_data_raw()
          "cross section, is sufficiently consistent with the scattering\n"
          "cross section (C_sca) derived from the difference of extinction\n"
          "(K11) and absorption (a1): int_z11 ~ C_sca = K11-a1.\n"
+         "To skip this check, *check_type* should be set to 'none'.\n"
          "\n"
          "'Sufficient' consistency is determined by *sca_mat_threshold*\n"
          "testing the following condition:\n"
@@ -15187,17 +15190,19 @@ void define_md_data_raw()
          "This means that *filename* shall here not include the .xml\n"
          "extension. Omitting filename works as for *WriteXML*.\n"
          ),
-        AUTHORS( "Patrick Eriksson" ),
+        AUTHORS( "Patrick Eriksson, Oliver Lemke" ),
         OUT(),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "output_file_format", "file_index" ),
-        GIN(          "in", "filename" ),
-        GIN_TYPE(     "Any", "String"   ),
-        GIN_DEFAULT(  NODEF, ""         ),
+        GIN(          "in", "filename", "digits" ),
+        GIN_TYPE(     "Any", "String",  "Index" ),
+        GIN_DEFAULT(  NODEF, "",        "0" ),
         GIN_DESC( "Workspace variable to be saved.",
-                  "File name. See above." 
+                  "File name. See above.",
+                  "Equalize the widths of all numbers by padding with zeros as necessary.\n"
+                  "0 means no padding (default)."
                   ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),

@@ -53,7 +53,8 @@ void filename_xml(String& filename, const String& varname);
 
 void filename_xml_with_index(String&       filename,
                              const Index&  file_index,
-                             const String& varname);
+                             const String& varname,
+                             const Index&  digits = 0);
 
 
 ////////////////////////////////////////////////////////////////////////////

@@ -54,11 +54,13 @@ ReadXMLIndexed (Workspace&    ws _U_,
                 const Index& file_index,
                 // WS Generic Input:
                 const String& f,
+                const Index& digits,
                 // WS Generic Input Names:
                 const String& f_name,
+                const String& digits_name,
                 const Verbosity& verbosity)
 {
-  ReadXMLIndexed (v, v_name, file_index, f, f_name, verbosity);
+  ReadXMLIndexed (v, v_name, file_index, f, digits, f_name, digits_name, verbosity);
 }
 
 
@@ -91,12 +93,14 @@ WriteXMLIndexed (Workspace& ws _U_,
                  // WS Generic Input:
                  const Agenda& v,
                  const String& f,
+                 const Index& digits,
                  // WS Generic Input Names:
                  const String& v_name,
                  const String& f_name,
+                 const String& digits_name,
                  const Verbosity& verbosity)
 {
-  WriteXMLIndexed (file_format, file_index, v, f, v_name, f_name, verbosity);
+  WriteXMLIndexed (file_format, file_index, v, f, digits, v_name, f_name, digits_name, verbosity);
 }
 
 

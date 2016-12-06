@@ -80,10 +80,14 @@ public:
   void toupper() { std::transform ( this->begin(),  this->end(),
                                     this->begin(), ::toupper); }
 
+  my_basic_string toupper() const { my_basic_string s = *this; s.toupper(); return s; }
+
   /** Convert to lower case */
   void tolower() { std::transform ( this->begin(),  this->end(),
                                     this->begin(), ::tolower); }
   
+  my_basic_string tolower() const { my_basic_string s = *this; s.tolower(); return s; }
+
   /** Trim leading and trailing whitespace */
   void trim();
 
