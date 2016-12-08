@@ -833,7 +833,7 @@ void pha_mat_labCalc(//Output:
                                //close to 0 and PI.  This is also used to avoid
                                //float == float statements.  
 
-   if(
+    /* Version found in 2-3-568
         // Forward scattering
         ( abs(theta) < ANGTOL_RAD ) || //JM: original was abs(theta)<.01).
                                        //revert if this causes problems
@@ -850,6 +850,9 @@ void pha_mat_labCalc(//Output:
           ( abs(aa_sca-aa_inc)-360 < ANGTOL_RAD ) ||
           ( abs(aa_sca-aa_inc)-180 ) < ANGTOL_RAD )
         )
+    */
+    
+    if( abs(theta) < 0.01  || abs(theta-180) < 0.01 )
       {
         pha_mat_lab(0,1) = F12;
         pha_mat_lab(1,0) = F12;
