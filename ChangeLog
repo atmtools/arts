@@ -1,3 +1,18 @@
+2016-12-13 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-570
+
+	* src/m_optproperties.cc (scat_dataCheck):
+	Replaced check_type alternative 'none' by 'sane' (since it does not
+	mean nothing is checked, but "only" sanity of K11,a1,Z11 is checked).
+
+	* src/methods.cc (scat_dataCheck, cloudbox_checkedCalc, jacobianDoit):
+	Adapted built-in doc according to above changes. Adapted jacobianDoit
+	default setting of *check_type*.
+
+	* src/m_cloudbox.cc (ScatElementsToabs_speciesAdd):
+	Update *check_type* setting in internal call of scat_dataCheck.
+
 2016-12-08  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-569

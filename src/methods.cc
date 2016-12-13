@@ -3547,7 +3547,7 @@ void define_md_data_raw()
          "*scat_dataCheck*).\n"
          "The *scat_data* tests can be skipped entirely (setting\n"
          "*scat_data_check_type* to 'none') or the normalization check alone\n"
-         "(setting *scat_data_check_type* to anything but 'none' and 'all').\n"
+         "(setting *scat_data_check_type* to 'sane').\n"
          "NOTE: These test shall only be skipped when one is confident that\n"
          "the data is correct, e.g. by having run *scat_dataCheck* on the set\n"
          "of data before in a separate ARTS run.\n"
@@ -8371,7 +8371,7 @@ void define_md_data_raw()
                      "String",             "String",
                      "Numeric" ),
         GIN_DEFAULT( "1",      "0",                   "0",
-                     "-",                  "sanity",
+                     "-",                  "sane",
                      "5e-2" ),
         GIN_DESC( "Flag (0=no,1=yes) whether to continue perturbation"
                   " calculations, even if individual calculations fail. When"
@@ -12327,7 +12327,7 @@ void define_md_data_raw()
          "cross section, is sufficiently consistent with the scattering\n"
          "cross section (C_sca) derived from the difference of extinction\n"
          "(K11) and absorption (a1): int_z11 ~ C_sca = K11-a1.\n"
-         "To skip this check, *check_type* should be set to 'none'.\n"
+         "To skip this check, *check_type* should be set to 'sane'.\n"
          "\n"
          "'Sufficient' consistency is determined by *sca_mat_threshold*\n"
          "testing the following condition:\n"

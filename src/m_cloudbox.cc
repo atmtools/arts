@@ -950,7 +950,7 @@ void ScatElementsToabs_speciesAdd( //WS Output:
                       propmat_clearsky_agenda_checked, abs_xsec_agenda_checked,
                       species, verbosity );
     }
-  scat_dataCheck( scat_data, "value-validity", 1e-2, verbosity );
+  scat_dataCheck( scat_data, "sane", 1e-2, verbosity );
 }
 
 

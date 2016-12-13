@@ -1260,7 +1260,7 @@ void scat_dataCheck( //Input:
         }
       }
     }
-    else if (check_type.toupper() == "NONE")
+    else if (check_type.toupper() == "SANE")
     {
         out1 << "  WARNING:\n"
         << "  Normalization check on pha_mat switched off.\n"
