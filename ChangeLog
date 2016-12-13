@@ -1,5 +1,14 @@
 2016-12-13 Jana Mendrok  <jana.mendrok@chalmers.se>
 
+	* arts-2-3-571
+
+	* src/optproperties.cc (pha_mat_labCalc):
+	Bugfixed non-transformation check on azimuths (reported to yield odd
+	consequences by PE in arts-2-3-569). Properly use ANGTOL_RAD (on angle
+	in radians).
+
+2016-12-13 Jana Mendrok  <jana.mendrok@chalmers.se>
+
 	* arts-2-3-570
 
 	* src/m_optproperties.cc (scat_dataCheck):
@@ -107,7 +116,7 @@
 	* arts-2-3-566
 
 	* ChangeLog: Added version number to previous commit
- 
+
 	* src/m_doit.cc (OptimizeDoitPressureGrid): New method added to DOIT 
 	that optimizes the pressure grid for every frequency seperately,
 	based on the single scattering albedo and the scattering optical

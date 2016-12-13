@@ -802,13 +802,8 @@ void pha_mat_labCalc(//Output:
   Numeric aa_sca_rad = aa_sca * DEG2RAD;
   Numeric aa_inc_rad = aa_inc * DEG2RAD;
 
-  const Numeric theta = RAD2DEG * theta_rad;
   const Index stokes_dim = pha_mat_lab.ncols();
 
-  // cout << "Transformation of phase matrix:" <<endl; 
-  
- 
-  
   // For stokes_dim = 1, we only need Z11=F11:
   pha_mat_lab(0,0) = F11;
 
@@ -826,33 +821,21 @@ void pha_mat_labCalc(//Output:
     }
   
   if( stokes_dim > 1 ){
+
+    const Numeric ANGTOL_RAD = 1e-6; //CPD: this constant is used to adjust
+                                     //zenith angles close to 0 and PI.  This is
+                                     //also used to avoid float == float statements.
+
     //
     // Several cases have to be considered:
     //
-    const Numeric ANGTOL_RAD = 1e-6; //CPD: this constant is used to adjust zenith angles 
-                               //close to 0 and PI.  This is also used to avoid
-                               //float == float statements.  
 
-    /* Version found in 2-3-568
-        // Forward scattering
-        ( abs(theta) < ANGTOL_RAD ) || //JM: original was abs(theta)<.01).
-                                       //revert if this causes problems
-       // Backward scattering
-        ( abs(180.-theta) < ANGTOL_RAD ) || //JM: original was abs(180.-theta)<.01).
-                                            //revert if this causes problems
-       // "Grosskreis" through poles: no rotation required
-       // JM161104: that seems wrong (eg aa_sca=80 and aa_inc=100 fulfill
-       // aa_sca == 180-aa_inc, but do NOT form a meridian. instead form a
-       // delta_aa of 20deg.
-       // ((aa_sca == aa_inc) || (aa_sca == 360-aa_inc) || (aa_inc == 360-aa_sca) ||
-       //  (aa_sca == 180-aa_inc) || (aa_inc == 180-aa_sca) )  
-        ( ( abs(aa_sca-aa_inc) < ANGTOL_RAD ) ||
-          ( abs(aa_sca-aa_inc)-360 < ANGTOL_RAD ) ||
-          ( abs(aa_sca-aa_inc)-180 ) < ANGTOL_RAD )
-        )
-    */
-    
-    if( abs(theta) < 0.01  || abs(theta-180) < 0.01 )
+    if(    ( abs(theta_rad) < ANGTOL_RAD )            // forward scattering
+        || ( abs(theta_rad-PI) < ANGTOL_RAD )         // backward scattering
+        || ( abs(aa_inc_rad-aa_sca_rad) < ANGTOL_RAD ) // inc and sca on meridian
+        || ( abs(abs(aa_inc_rad-aa_sca_rad)-360.) < ANGTOL_RAD ) //   "
+        || ( abs(abs(aa_inc_rad-aa_sca_rad)-180.) < ANGTOL_RAD ) //   "
+      )
       {
         pha_mat_lab(0,1) = F12;
         pha_mat_lab(1,0) = F12;
@@ -917,7 +900,8 @@ void pha_mat_labCalc(//Output:
            sigma2 =  acos(s2);
            
            // Arccos is only defined in the range from -1 ... 1
-           // Numerical problems can appear for values close to 1 or -1      
+           // Numerical problems can appear for values close to 1 or -1
+           // this (also) catches the case when inc and sca are on one meridian
            if ( isnan(sigma1) || isnan(sigma2) )
              {
                if ( abs(s1 - 1) < ANGTOL_RAD)
