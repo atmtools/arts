@@ -1,3 +1,17 @@
+2016-12-15 Jakob Doerr  <jakobdoerr@googlemail.com>
+
+	* arts-2-3-572
+
+	* controlfiles/artscomponents/doit/TestDOITpressureoptimization.arts,
+	controlfiles/artscomponents/doit/doit_setup_pressureoptimization.arts,
+	controlfiles/artscomponents/doit/yREFERENCE_DOITpressureoptimization.xml:
+	
+	Added files to test the pressure optimization in DOIT
+	
+	* ChangeLog:
+
+	Added CMakeLists.txt to my previous commit
+
 2016-12-13 Jana Mendrok  <jana.mendrok@chalmers.se>
 
 	* arts-2-3-571
@@ -142,6 +156,11 @@
 	* src/workspace.cc (p_grid_opt): Defined p_grid_orig. It is used  
 	in doit_i_field_monoOptimizeReverse and it stores the original 
 	pressure grid.
+
+	* controlfiles/CMakeLists.txt: Added pressure optimization test.
+	
+	Added pressure optimization test to the list (xml-data)	
+
 
 2016-11-15 Jana Mendrok  <jana.mendrok@chalmers.se>
 
