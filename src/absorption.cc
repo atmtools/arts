@@ -2280,14 +2280,14 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                         psf_dWater,abs_lines[ii].Ti0()/t,p,this_species,h2o_index,vmrs,verbosity);
                 
                 Numeric dY0=0., dY1=0., dYexp=0., dG0=0., dG1=0., dGexp=0., dDV0=0., dDV1=0., dDVexp=0.;
-                if(do_lm)
+                if(do_lm and p>=lm_p_lim)
                 {
                     if(flag_partials.ZerothTermLM())
                         abs_lines[ii].LineMixing().GetLineMixingParams_dZerothOrder(dY0, dG0, dDV0, t, p, lm_p_lim);
                     if(flag_partials.FirstTermLM())
                         abs_lines[ii].LineMixing().GetLineMixingParams_dFirstOrder(dY1, dG1, dDV1, t, p, lm_p_lim);
                     if(flag_partials.ExponentLM())
-                        abs_lines[ii].LineMixing().GetLineMixingParams_dFirstOrder(dYexp, dGexp, dDVexp, t, p, lm_p_lim);
+                        abs_lines[ii].LineMixing().GetLineMixingParams_dExponent(dYexp, dGexp, dDVexp, t, p, lm_p_lim);
                 }
                     
                 // Gather all new partial derivative calculations in this function

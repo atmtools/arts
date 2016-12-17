@@ -245,7 +245,7 @@ void PressureBroadeningData::GetPressureBroadeningParams_dForeignPsf(Numeric& ps
             // Note that this is oftentimes not wanted, but a valid case at low pressures
             break;
         case PB_AIR_BROADENING:
-            GetAirBroadening_dForeignPsf(psf_dForeign, theta, pressure, self_pressure);
+            GetAirBroadening_dForeignPsf(psf_dForeign, theta, pressure);
             break;
         case PB_AIR_AND_WATER_BROADENING:
             GetAirAndWaterBroadening_dForeignPsf(psf_dForeign, theta, pressure, self_pressure, 
@@ -443,8 +443,7 @@ void PressureBroadeningData::GetAirBroadening_dForeignGamma(Numeric& gamma_dFore
 // This is the foreign broadening derivative of the broadening used by ARTSCAT-3; the "N2"-tag in ARTSCAT-5
 void PressureBroadeningData::GetAirBroadening_dForeignPsf(Numeric& psf_dForeign,
                                                           const Numeric& theta,
-                                                          const Numeric& pressure,
-                                                          const Numeric& self_pressure) const
+                                                          const Numeric& pressure) const
 {
     psf_dForeign  = pressure * pow (theta,(Numeric)0.25+(Numeric)1.5*mdata[3][0]);
 }

@@ -230,8 +230,7 @@ public:
                                         const Numeric& self_pressure) const;
     void GetAirBroadening_dForeignPsf(Numeric& psf_dForeign,
                                       const Numeric& theta,
-                                      const Numeric& pressure,
-                                      const Numeric& self_pressure) const;
+                                      const Numeric& pressure) const;
     void GetAirBroadening_dSelfExponent(Numeric& gamma_dSelfExponent,
                                         Numeric& psf_dSelfExponent,
                                         const Numeric& theta,

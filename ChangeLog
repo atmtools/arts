@@ -1,3 +1,20 @@
+2016-12-17  Richard Larsson  <ric.larsson@gmail.com>
+	
+	* arts-2-3-573
+	
+	* src/partial_derivatives.cc:  Fixed handling of some of the 
+	line parameters.  Beginning work to abstract this more easily.
+	
+	* src/absorption.cc:  Fix copy-paste mistake
+	
+	* src/lineshapes.cc:  Fix copy-paste mistake
+	
+	* src/pressurebroadeningdata.{h,cc}:  Fix compilation warning for 
+	needless input.
+	
+	* controlfiles/artscomponents/wfuns:  Added test for jacobian for 
+	line paramters.  This also serves to show how it is activated.
+
 2016-12-15 Jakob Doerr  <jakobdoerr@googlemail.com>
 
 	* arts-2-3-572

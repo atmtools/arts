@@ -26,6 +26,78 @@
 extern const String PROPMAT_SUBSUBTAG;
 
 
+/* Helper function.
+ * 
+ * Function to calculate the partial deivative in a standardized manner.
+ * We allow the partial derivative to propagate in three ways:
+ * 
+ *      1) The derivation of the line shape and the chain rule.
+ *         This is the most theoretical method and is from direct derivations.
+ *         A perfect example of this is the frequency derivations for wind calculations,
+ *         where it is straightforward to calculate the derivative from the lineshape.
+ * 
+ * Input parameters:
+ * 
+ *      2) As a ratio on the output cross-section of the line.
+ *         Some derivations are not necessary to perform because they only result in
+ *         very simple ratios.  For instance, the derivation of Doppler broadening w.r.t.
+ *         temperature is simple one over the temperature.  It is therefore convenient to
+ *         use this property rather than to perform the long derivation of the line shape.
+ * 
+ *      3) As a ratio on the phase or attenuation of unmixed lines.
+ *         This is necessary for line mixing.
+ */
+inline void calc_derivative(Numeric& dxsec_dtarget,
+                            Numeric& dphase_dtarget,
+                            Numeric& dsrc_dtarget,
+                            const Numeric& dFA_dx,
+                            const Numeric& dFB_dx,
+                            const Numeric& dFA_dy,
+                            const Numeric& dFB_dy,
+                            const Numeric& dx_dtarget,
+                            const Numeric& dy_dtarget,
+                            const Numeric& FA, 
+                            const Numeric& FB,
+                            const Numeric& FA_ratio_to_dtarget,
+                            const Numeric& FB_ratio_to_dtarget,
+                            const Numeric& lma,
+                            const Numeric& lmb,
+                            const Numeric& lma_real_ratio_to_dtarget,
+                            const Numeric& lma_imag_ratio_to_dtarget,
+                            const Numeric& lmb_real_ratio_to_dtarget,
+                            const Numeric& lmb_imag_ratio_to_dtarget,
+                            const Numeric& nlte,
+                            const Numeric& dnlte_dtarget,
+                            const bool do_phase,
+                            const bool do_src) 
+{
+    if(do_src)
+    {
+        const Numeric dtarget = dFA_dx * dx_dtarget +  // Lineshape attenuation derivative with frequency term
+                                dFA_dy * dy_dtarget +   // Lineshape attenuation derivative with pressure term
+                                FA * FA_ratio_to_dtarget +  // When derivation is just a ratio away
+                                lma * lma_real_ratio_to_dtarget +  // line mixing attenuation contribution
+                                lmb * lmb_real_ratio_to_dtarget;  // line mixing phase contribution
+        dxsec_dtarget += dtarget;
+        dsrc_dtarget += dtarget * nlte + FA * dnlte_dtarget;
+    }
+    else 
+        dxsec_dtarget +=  dFA_dx * dx_dtarget +  // Lineshape attenuation derivative with frequency term
+                          dFA_dy * dy_dtarget +   // Lineshape attenuation derivative with pressure term
+                          FA * FA_ratio_to_dtarget +  // When derivation is just a ratio away
+                          lma * lma_real_ratio_to_dtarget +  // line mixing attenuation contribution
+                          lmb * lmb_real_ratio_to_dtarget;  // line mixing phase contribution
+    
+    if(do_phase)
+        dphase_dtarget += dFB_dx * dx_dtarget +  // Lineshape phase derivative with frequency term
+                          dFB_dy * dy_dtarget +   // Lineshape phase derivative with pressure term
+                          FB * FB_ratio_to_dtarget +  // When derivation is just a ratio away
+                          lma * lma_imag_ratio_to_dtarget +  // line mixing attenuation contribution
+                          lmb * lmb_imag_ratio_to_dtarget;  // line mixing phase contribution
+    
+}
+
+
 //This function will require much more inputs in the future
 void partial_derivatives_lineshape_dependency(ArrayOfMatrix&  partials_attenuation,
                                               ArrayOfMatrix&  partials_phase, 
@@ -105,8 +177,6 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix&  partials_attenuati
     extern const Numeric PLANCK_CONST;
     extern const Numeric BOLTZMAN_CONST;
     
-    Vector empty_vector;
-    
     if(this_f_grid.get_extent()==0)
         return;
     
@@ -114,6 +184,14 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix&  partials_attenuati
     const Index nv = this_f.nelem();
     const Numeric nlte = do_src? K4/K3-1.0 : 0.0;
     const Numeric f0 = line_frequency + df_0 + DF_LM + DF_Zeeman*H_mag_Zeeman;
+    
+    Vector LM_Fa(nv), LM_Fb(nv), empty_vector(nv);
+    for(Index iv=0;iv<nv;iv++)
+    {
+        LM_Fa[iv] = ( (1.0 + G_LM)*CF_A[iv] + Y_LM*CF_B[iv]);
+        if(do_partials_phase)
+            LM_Fb[iv] = ( (1.0 + G_LM)*CF_B[iv] - Y_LM*CF_A[iv]);
+    }
     
     // Loop over all jacobian_quantities, if a matching quantity is found, then apply the necessary steps to make the jacobian matrix
     for(Index ii=0; ii<flag_partials.nelem(); ii++)
@@ -272,22 +350,27 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix&  partials_attenuati
             const Numeric dS_dF0 = dK2_dF0+dK3_dF0;
             
             Numeric dF_dF0;
-            global_data::lineshape_data[ind_ls].dInput_dF0()(dF_dF0,sigma);
+            global_data::lineshape_data[ind_ls].dInput_dF0()(dF_dF0, sigma);
             
             Vector dfn_dF0(nv);
             global_data::lineshape_norm_data[ind_lsn].dFunction_dF0()(dfn_dF0, f0,
                                                                       this_f, temperature);
             
+            const Numeric dx_dF0_part = dF_dF0 / f0, dy_dF0 = gamma * dF_dF0 / f0;
+            
             for(Index iv=0;iv<nv;iv++)
             {
-                const Numeric ls_A= ( (1.0 + G_LM)*CF_A[iv] + Y_LM*CF_B[iv]), 
-                              ls_B= ( (1.0 + G_LM)*CF_B[iv] - Y_LM*CF_A[iv]);
-                
-                this_partial_attenuation[iv] += (dS_dF0+dfn_dF0[iv])*ls_A + dFa_dx[iv] * dF_dF0;
-                if(do_partials_phase)
-                    this_partial_phase[iv]   += (dS_dF0+dfn_dF0[iv])*ls_B + dFb_dx[iv] * dF_dF0;
-                if(do_src)
-                    this_partial_src[iv]     += ((dS_dF0+dfn_dF0[iv])*ls_A + dFa_dx[iv] * dF_dF0) * nlte - ls_A*K4/K3/K3*dK3_dF0;
+                const Numeric ratio = (dS_dF0 + dfn_dF0[iv]/C[iv] - 1.0 / f0);
+                calc_derivative(this_partial_attenuation[iv],
+                                this_partial_phase[iv],
+                                this_partial_src[iv],
+                                dFa_dx[iv], dFb_dx[iv], dFa_dy[iv], dFb_dy[iv],
+                                dx_dF0_part * this_f[iv], dy_dF0, // dx_dtarget, dy_target
+                                LM_Fa[iv], LM_Fb[iv], // Full calculations
+                                ratio, ratio, // ratios
+                                CF_A[iv], CF_B[iv], 0.0, 0.0, 0.0, 0.0, //  When attenuation and phase matters
+                                nlte, 0.0,
+                                do_partials_phase, do_src);
             }
             
             // That's it!  Note that the output should be strongly correlated to Temperature and Pressure.
@@ -302,17 +385,20 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix&  partials_attenuati
             VectorView this_partial_phase       = do_partials_phase?partials_phase[ii](this_f_grid, pressure_level_index):empty_vector;
             VectorView this_partial_src         = do_src?partials_src[ii](this_f_grid, pressure_level_index):empty_vector;
             
+            const Numeric ratio = 1.0/line_strength;
+            
             for(Index iv=0;iv<nv;iv++)
             {
-                const Numeric ls_A= ( (1.0 + G_LM)*CF_A[iv] + Y_LM*CF_B[iv]), 
-                              ls_B= ( (1.0 + G_LM)*CF_B[iv] - Y_LM*CF_A[iv]);
-                            
-                this_partial_attenuation[iv] += ls_A/line_strength;
-                if(do_partials_phase)
-                    this_partial_phase[iv]   -= ls_B/line_strength;
-                if(do_src)
-                    this_partial_src[iv]     += ls_A/line_strength*nlte;
-                    
+                calc_derivative(this_partial_attenuation[iv],
+                                this_partial_phase[iv],
+                                this_partial_src[iv],
+                                dFa_dx[iv], dFb_dx[iv], dFa_dy[iv], dFb_dy[iv],
+                                0.0, 0.0, // dx_dtarget, dy_target
+                                LM_Fa[iv], LM_Fb[iv], // Full calculations
+                                ratio, ratio, // ratios
+                                CF_A[iv], CF_B[iv], 0.0, 0.0, 0.0, 0.0, //  When attenuation and phase matters
+                                nlte, 0.0,
+                                do_partials_phase, do_src);
             }
             
             // That's it!  Now to wonder if this will grow extremely large, creating an unrealistic jacobian...
@@ -343,21 +429,29 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix&  partials_attenuati
             // Calculate the line shape derivative:
             global_data::lineshape_data[ind_ls].dInput_dgamma()(dP_dgamma,sigma);
             
+            dP_dgamma *= y_constant;
+            
             for(Index iv=0;iv<nv;iv++)
             {
-                
-                this_partial_attenuation[iv] += dFa_dy[iv]*dP_dgamma * y_constant;
-                if(do_partials_phase)
-                    this_partial_phase[iv]   += dFb_dy[iv]*dP_dgamma * y_constant;
-                if(do_src)
-                    this_partial_src[iv]     += dFa_dy[iv]*dP_dgamma*nlte * y_constant;
-                    
+                calc_derivative(this_partial_attenuation[iv],
+                                this_partial_phase[iv],
+                                this_partial_src[iv],
+                                dFa_dx[iv], dFb_dx[iv], dFa_dy[iv], dFb_dy[iv],
+                                0.0, dP_dgamma, // dx_dtarget, dy_target
+                                LM_Fa[iv], LM_Fb[iv], // Full calculations
+                                0.0, 0.0, // ratios
+                                CF_A[iv], CF_B[iv], 0.0, 0.0, 0.0, 0.0, //  When attenuation and phase matters
+                                nlte, 0.0,
+                                do_partials_phase, do_src);
             }   
             // That's it!
         }
         else if(flag_partials(ii) == JQT_line_gamma_selfexponent    ||
                 flag_partials(ii) == JQT_line_gamma_foreignexponent ||
-                flag_partials(ii) == JQT_line_gamma_waterexponent)
+                flag_partials(ii) == JQT_line_gamma_waterexponent   ||
+                flag_partials(ii) == JQT_line_pressureshift_self    ||
+                flag_partials(ii) == JQT_line_pressureshift_foreign ||
+                flag_partials(ii) == JQT_line_pressureshift_water)
         {
             Numeric x_constant = 0.0, y_constant = 0.0;
             switch(flag_partials(ii))
@@ -374,6 +468,15 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix&  partials_attenuati
                     x_constant = dpsf_dWaterExponent;
                     y_constant = dgamma_dWaterExponent; 
                     break;
+                case JQT_line_pressureshift_self:
+                    x_constant = dpsf_dSelf;
+                    break;
+                case JQT_line_pressureshift_foreign:
+                    x_constant = dpsf_dForeign;
+                    break;
+                case JQT_line_pressureshift_water:
+                    x_constant = dpsf_dWater;
+                    break;
                 default: throw std::runtime_error("This cannot happen.  A developer has made a mistake.\n");
             }
             
@@ -388,115 +491,73 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix&  partials_attenuati
             // Calculate the line shape derivative:
             global_data::lineshape_data[ind_ls].dInput_dgamma()(dP_dgamma,sigma);
             global_data::lineshape_data[ind_ls].dInput_dF0()(dF_dpsf,sigma);
-            global_data::lineshape_norm_data[ind_lsn].dFunction_dF0()(dfn_dpsf, f0,
-                                                                      this_f, temperature);
+            global_data::lineshape_norm_data[ind_lsn].dFunction_dF0()(dfn_dpsf, f0, this_f, temperature);
+            
+            dP_dgamma *= y_constant;
+            dF_dpsf *= x_constant;
             
             for(Index iv=0;iv<nv;iv++)
-            {
-                const Numeric ls_A= ( (1.0 + G_LM)*CF_A[iv] + Y_LM*CF_B[iv]), 
-                              ls_B= ( (1.0 + G_LM)*CF_B[iv] - Y_LM*CF_A[iv]);
-                
-                this_partial_attenuation[iv] += dFa_dy[iv] * dP_dgamma * y_constant + 
-                                                (dFa_dx[iv] * dF_dpsf +  dfn_dpsf[iv] * ls_A) * x_constant;
-                if(do_partials_phase)
-                    this_partial_phase[iv]   += dFb_dy[iv]*dP_dgamma * y_constant + 
-                                                (dFb_dx[iv] * dF_dpsf +  dfn_dpsf[iv] * ls_B) * x_constant;
-                if(do_src)
-                    this_partial_src[iv]     += nlte * (dFa_dy[iv]*dP_dgamma * y_constant + 
-                                                (dFa_dx[iv] * dF_dpsf +  dfn_dpsf[iv] * ls_A)) * x_constant;
-                
+            {   
+                calc_derivative(this_partial_attenuation[iv],
+                                this_partial_phase[iv],
+                                this_partial_src[iv],
+                                dFa_dx[iv], dFb_dx[iv], dFa_dy[iv], dFb_dy[iv],
+                                dF_dpsf, dP_dgamma, // dx_dtarget, dy_target
+                                LM_Fa[iv], LM_Fb[iv], // Full calculations
+                                dfn_dpsf[iv]/C[iv]*x_constant, 0.0, // ratios
+                                CF_A[iv], CF_B[iv], 0.0, 0.0, 0.0, 0.0, //  When attenuation and phase matters
+                                nlte, 0.0,
+                                do_partials_phase, do_src);
             }   
             // That's it!
         }
-        else if(flag_partials(ii) == JQT_line_pressureshift_self    ||
-                flag_partials(ii) == JQT_line_pressureshift_foreign ||
-                flag_partials(ii) == JQT_line_pressureshift_water)
-        {
-            Numeric x_constant = 1.0;
-            switch(flag_partials(ii))
-            {
-                case JQT_line_pressureshift_self: x_constant = dpsf_dSelf; break;
-                case JQT_line_pressureshift_foreign: x_constant = dpsf_dForeign; break;
-                case JQT_line_pressureshift_water: x_constant = dpsf_dWater; break;
-                default: throw std::runtime_error("This cannot happen.  A developer has made a mistake.\n");
-            }
-            
-            VectorView this_partial_attenuation = partials_attenuation[ii](this_f_grid, pressure_level_index);
-            VectorView this_partial_phase       = do_partials_phase?partials_phase[ii](this_f_grid, pressure_level_index):empty_vector;
-            VectorView this_partial_src         = do_src?partials_src[ii](this_f_grid, pressure_level_index):empty_vector;
-            
-            Numeric dF_dpsf;
-            Vector dfn_dpsf(nv);
-            // Calculate the line shape derivative:
-            global_data::lineshape_data[ind_ls].dInput_dF0()(dF_dpsf,sigma);
-            global_data::lineshape_norm_data[ind_lsn].dFunction_dF0()(dfn_dpsf, f0,
-                                                                      this_f, temperature);
-            
-            for(Index iv=0;iv<nv;iv++)
-            {
-                const Numeric ls_A= ( (1.0 + G_LM)*CF_A[iv] + Y_LM*CF_B[iv]), 
-                              ls_B= ( (1.0 + G_LM)*CF_B[iv] - Y_LM*CF_A[iv]);
-                
-                this_partial_attenuation[iv] += (dFa_dx[iv] * dF_dpsf +  dfn_dpsf[iv] * ls_A) * x_constant;
-                if(do_partials_phase)
-                    this_partial_phase[iv]   += (dFb_dx[iv] * dF_dpsf +  dfn_dpsf[iv] * ls_B) * x_constant;
-                if(do_src)
-                    this_partial_src[iv]     += nlte * x_constant * (dFa_dx[iv] * dF_dpsf +  
-                                                                     dfn_dpsf[iv] * ls_A);
-                
-            }   
-            //That's it
-        }
-        else if(flag_partials(ii)==JQT_line_mixing_Y  ||
-                flag_partials(ii)==JQT_line_mixing_Y0 ||
-                flag_partials(ii)==JQT_line_mixing_Y1 ||
-                flag_partials(ii)==JQT_line_mixing_Yexp)
-        {
-            if(!line_match_line(flag_partials.jac()[ii].QuantumIdentity(),qnr.Lower(),qnr.Upper()))
-                continue;
-            
-            Numeric constant = 1.0;
-            switch(flag_partials(ii))
-            {
-                case JQT_line_mixing_Y: break;
-                case JQT_line_mixing_Y0: constant = dY_LM0; break;
-                case JQT_line_mixing_Y1: constant = dY_LM1; break;
-                case JQT_line_mixing_Yexp: constant = dY_LMexp; break;
-                default: throw std::runtime_error("This cannot happen.  A developer has made a mistake.\n");
-            }
-            
-            VectorView this_partial_attenuation = partials_attenuation[ii](this_f_grid, pressure_level_index);
-            VectorView this_partial_phase       = do_partials_phase?partials_phase[ii](this_f_grid, pressure_level_index):empty_vector;
-            VectorView this_partial_src         = do_src?partials_src[ii](this_f_grid, pressure_level_index):empty_vector;
-            
-            for(Index iv=0;iv<nv;iv++)
-            {
-                
-                this_partial_attenuation[iv] += CF_B[iv] * constant;
-                if(do_partials_phase)
-                    this_partial_phase[iv]   -= CF_A[iv] * constant;
-                if(do_src)
-                    this_partial_src[iv]     += CF_B[iv]*nlte * constant;
-            }
-            
-            // That's it!  Note that this should be strongly correlated to Temperature and Pressure.
-            // Also note that to do the fit for the catalog gamma is somewhat different than this
-        }
-        else if(flag_partials(ii)==JQT_line_mixing_G  ||
-                flag_partials(ii)==JQT_line_mixing_G0 ||
-                flag_partials(ii)==JQT_line_mixing_G1 ||
+        else if(flag_partials(ii)==JQT_line_mixing_Y   ||
+                flag_partials(ii)==JQT_line_mixing_Y0  ||
+                flag_partials(ii)==JQT_line_mixing_Y1  ||
+                flag_partials(ii)==JQT_line_mixing_Yexp||
+                flag_partials(ii)==JQT_line_mixing_G   ||
+                flag_partials(ii)==JQT_line_mixing_G0  ||
+                flag_partials(ii)==JQT_line_mixing_G1  ||
                 flag_partials(ii)==JQT_line_mixing_Gexp)
         {
             if(!line_match_line(flag_partials.jac()[ii].QuantumIdentity(),qnr.Lower(),qnr.Upper()))
                 continue;
             
-            Numeric constant = 1.0;
+            Numeric lma_real = 0.0, lmb_real = 0.0, lma_imag = 0.0, lmb_imag = 0.0;
             switch(flag_partials(ii))
             {
-                case JQT_line_mixing_G: break;
-                case JQT_line_mixing_G0: constant = dG_LM0; break;
-                case JQT_line_mixing_G1: constant = dG_LM1; break;
-                case JQT_line_mixing_Gexp: constant = dG_LMexp; break;
+                case JQT_line_mixing_Y: 
+                    lmb_real = 1.0;
+                    lma_imag = 1.0;
+                    break;
+                case JQT_line_mixing_G: 
+                    lmb_imag = 1.0;
+                    lma_real = 1.0;
+                    break;
+                case JQT_line_mixing_Y0: 
+                    lmb_real = dY_LM0;
+                    lma_imag = dY_LM0; 
+                    break;
+                case JQT_line_mixing_G0: 
+                    lmb_imag = dG_LM0;
+                    lma_real = dG_LM0; 
+                    break;
+                case JQT_line_mixing_Y1: 
+                    lmb_real = dY_LM1;
+                    lma_imag = dY_LM1;
+                    break;
+                case JQT_line_mixing_G1: 
+                    lmb_real = dG_LM1;
+                    lma_imag = dG_LM1;
+                    break;
+                case JQT_line_mixing_Yexp: 
+                    lmb_real = dY_LMexp;
+                    lma_imag = dY_LMexp;
+                    break;
+                case JQT_line_mixing_Gexp: 
+                    lmb_real = dG_LMexp;
+                    lma_imag = dG_LMexp;
+                    break;
                 default: throw std::runtime_error("This cannot happen.  A developer has made a mistake.\n");
             }
             
@@ -506,16 +567,20 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix&  partials_attenuati
             
             for(Index iv=0;iv<nv;iv++)
             {
-                
-                this_partial_attenuation[iv] += CF_A[iv] * constant;
-                if(do_partials_phase)
-                    this_partial_phase[iv]   += CF_B[iv] * constant;
-                if(do_src)
-                    this_partial_src[iv]     += CF_A[iv]*nlte * constant;
+                calc_derivative(this_partial_attenuation[iv],
+                                this_partial_phase[iv],
+                                this_partial_src[iv],
+                                dFa_dx[iv], dFb_dx[iv], dFa_dy[iv], dFb_dy[iv],
+                                0.0, 0.0, // dx_dtarget, dy_target
+                                LM_Fa[iv], LM_Fb[iv], // Full calculations
+                                0.0, 0.0, // ratios
+                                CF_A[iv], CF_B[iv], 
+                                lma_real, lma_imag, lmb_real, lmb_imag, //  When attenuation and phase matters
+                                nlte, 0.0,
+                                do_partials_phase, do_src);
             }
             
-            // That's it!  Note that the output should be strongly correlated to Temperature and Pressure.
-            // Also note that to do the fit for the catalog gamma is somewhat different than this
+            // That's it!
         }
         else if(flag_partials(ii)==JQT_line_mixing_DF  ||
                 flag_partials(ii)==JQT_line_mixing_DF0 ||

@@ -2071,7 +2071,7 @@ void lineshape_norm_VVW(Vector&         fac,
     const Index nf = f_grid.nelem();
     
     // denominator is constant for the loop
-    const Numeric denom = abs(f0) * abs(f0);
+    const Numeric denom = f0 * f0;
     
     for ( Index i=0; i<nf; ++i )
     {
@@ -2095,7 +2095,7 @@ void lineshape_norm_VVW_dF(Vector&         fac,
     const Index nf = f_grid.nelem();
     
     // denominator is constant for the loop
-    const Numeric denom = abs(f0) * abs(f0);
+    const Numeric denom = f0 * f0;
     
     for ( Index i=0; i<nf; ++i )
     {
@@ -2112,11 +2112,11 @@ void lineshape_norm_VVW_dF0(Vector&         fac,
     const Index nf = f_grid.nelem();
     
     // denominator is constant for the loop
-    const Numeric ddenom = -2 * f0 / abs(f0) / abs(f0) / abs(f0) / abs(f0);
+    const Numeric ddenom = - 0.5 * f0 * f0 * f0;
     
     for ( Index i=0; i<nf; ++i )
     {
-        fac[i] = f_grid[i] * f_grid[i] * ddenom;
+        fac[i] = f_grid[i] * f_grid[i] / ddenom;
     }
 }
 
