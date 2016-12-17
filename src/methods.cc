@@ -6368,6 +6368,25 @@ void define_md_data_raw()
         GIN_DEFAULT( NODEF ),
         GIN_DESC( "Field to interpolate." )
         ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "inversion_iterate_agendaCall" ),
+        DESCRIPTION
+        (
+         "???.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "yf", "jacobian" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "jacobian", "jacobian_do", "x", "inversion_iterate_agenda" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
   
   md_data_raw.push_back
     ( MdRecord
@@ -7388,6 +7407,32 @@ void define_md_data_raw()
     
     md_data_raw.push_back
     ( MdRecord
+    ( NAME( "jacobianAddBeamFlux" ),
+      DESCRIPTION
+      (
+          "Includes beam flux in the Jacobian.\n"
+          "\n"
+          "The method follows the pattern of other Jacobian methods. The\n"
+          "calculations can only be performed by analytic expressions.\n"
+      ),
+      AUTHORS( "Richard Larsson" ),
+      OUT( "jacobian_quantities", "jacobian_agenda" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "jacobian_quantities", "jacobian_agenda", 
+          "atmosphere_dim", "p_grid", "lat_grid", "lon_grid" ),
+      GIN( "g1", "g2", "g3" ),
+      GIN_TYPE( "Vector", "Vector", "Vector" ),
+      GIN_DEFAULT( NODEF, NODEF, NODEF ),
+      GIN_DESC( "Pressure retrieval grid.",
+                "Latitude retrieval grid.",
+                "Longitude retreival grid."
+      )
+    ));
+
+    md_data_raw.push_back
+    ( MdRecord
     ( NAME( "jacobianAddCatalogParameter" ),
       DESCRIPTION
       (
@@ -7552,6 +7597,40 @@ void define_md_data_raw()
                   )
         ));
 
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "jacobianAddMagField" ),
+        DESCRIPTION
+        (
+         "Includes one magnetic field component in the Jacobian.\n"
+         "\n"
+         "The method follows the pattern of other Jacobian methods. The\n"
+         "calculations can only be performed by analytic expressions.\n"
+         "\n"
+         "The magnetic field components are retrieved separately, and,\n"
+         "hence, the argument *component* can be \"u\", \"v\" or \"w\" \n"
+         "for \"analytical\" method.  For \"from_propmat\" method,\n"
+         "\"u\", \"v\" and \"w\" components are available but so is also\n"
+         "\"strength\", \"eta\" and \"theta\".\n"
+         ),
+        AUTHORS( "Patrick Eriksson", "Richard Larsson" ),
+        OUT( "jacobian_quantities", "jacobian_agenda" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "jacobian_quantities", "jacobian_agenda", 
+            "atmosphere_dim", "p_grid", "lat_grid", "lon_grid" ),
+        GIN( "g1", "g2", "g3", "component","dB" ),
+        GIN_TYPE( "Vector", "Vector", "Vector", "String", "Numeric" ),
+        GIN_DEFAULT( NODEF, NODEF, NODEF, "v", "1.0e-7" ),
+        GIN_DESC( "Pressure retrieval grid.",
+                  "Latitude retrieval grid.",
+                  "Longitude retreival grid.",
+                  "Magnetic field component to retrieve",
+                  "Magnetic field perturbation"
+                  )
+      ));
+    
 
 
   /*
@@ -7662,7 +7741,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "jacobian_quantities", "jacobian_agenda", 
+        IN( "jacobian_quantities", "jacobian_agenda",
             "sensor_response_pol_grid", "sensor_response_dlos_grid", 
             "sensor_pos" ),
         GIN( "poly_order", "no_pol_variation", "no_los_variation", 
@@ -7715,66 +7794,6 @@ void define_md_data_raw()
                   "measurement blocks." 
                   )
         ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "jacobianAddMagField" ),
-        DESCRIPTION
-        (
-         "Includes one magnetic field component in the Jacobian.\n"
-         "\n"
-         "The method follows the pattern of other Jacobian methods. The\n"
-         "calculations can only be performed by analytic expressions.\n"
-         "\n"
-         "The magnetic field components are retrieved separately, and,\n"
-         "hence, the argument *component* can be \"u\", \"v\" or \"w\" \n"
-         "for \"analytical\" method.  For \"from_propmat\" method,\n"
-         "\"u\", \"v\" and \"w\" components are available but so is also\n"
-         "\"strength\", \"eta\" and \"theta\".\n"
-         ),
-        AUTHORS( "Patrick Eriksson", "Richard Larsson" ),
-        OUT( "jacobian_quantities", "jacobian_agenda" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "jacobian_quantities", "jacobian_agenda", 
-            "atmosphere_dim", "p_grid", "lat_grid", "lon_grid" ),
-        GIN( "g1", "g2", "g3", "component","dB" ),
-        GIN_TYPE( "Vector", "Vector", "Vector", "String", "Numeric" ),
-        GIN_DEFAULT( NODEF, NODEF, NODEF, "v", "1.0e-7" ),
-        GIN_DESC( "Pressure retrieval grid.",
-                  "Latitude retrieval grid.",
-                  "Longitude retreival grid.",
-                  "Magnetic field component to retrieve",
-                  "Magnetic field perturbation"
-                  )
-      ));
-    
-    md_data_raw.push_back
-    ( MdRecord
-    ( NAME( "jacobianAddBeamFlux" ),
-      DESCRIPTION
-      (
-          "Includes beam flux in the Jacobian.\n"
-          "\n"
-          "The method follows the pattern of other Jacobian methods. The\n"
-          "calculations can only be performed by analytic expressions.\n"
-      ),
-      AUTHORS( "Richard Larsson" ),
-      OUT( "jacobian_quantities", "jacobian_agenda" ),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN( "jacobian_quantities", "jacobian_agenda", 
-          "atmosphere_dim", "p_grid", "lat_grid", "lon_grid" ),
-      GIN( "g1", "g2", "g3" ),
-      GIN_TYPE( "Vector", "Vector", "Vector" ),
-      GIN_DEFAULT( NODEF, NODEF, NODEF ),
-      GIN_DESC( "Pressure retrieval grid.",
-                "Latitude retrieval grid.",
-                "Longitude retreival grid."
-      )
-    ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -8153,9 +8172,9 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "jacobian", "mblock_index", "iyb", "yb", "sensor_response",
-            "sensor_response_pol_grid", "sensor_response_f_grid", 
-            "sensor_response_dlos_grid", 
+        IN( "jacobian", "mblock_index", "iyb", "yb",
+            "sensor_response", "sensor_response_pol_grid",
+            "sensor_response_f_grid", "sensor_response_dlos_grid", 
             "jacobian_quantities", "jacobian_indices" ),
         GIN( "poly_coeff" ),
         GIN_TYPE( "Index" ),
@@ -8279,8 +8298,8 @@ void define_md_data_raw()
          "Closes the array of retrieval quantities and prepares for\n" 
          "calculation of the Jacobian matrix.\n"
          "\n"
-         "This function closes the *jacobian_quantities* array, sets the\n"
-         "correct size of *jacobian* and sets *jacobian_do* to 1.\n"
+         "This function closes the *jacobian_quantities* array and sets\n"
+         "*jacobian_do* to 1.\n"
          "\n"
          "Retrieval quantities should not be added after a call to this WSM.\n"
          "No calculations are performed here.\n"
@@ -9671,19 +9690,18 @@ void define_md_data_raw()
          "   With this flag set to 1, *jacobian* and *dxdy* are returned as empty\n"
          "   matrices.\n"
          "*display_progress*\n"
-         "   Controls if there is any screen output. The overall reporrt level\n"
+         "   Controls if there is any screen output. The overall report level\n"
          "   is ignored by this WSM. If output is selected, this triggers that\n"
          "   the cost function is calculated (independent of other choices).\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
-        OUT( "x", "xa", "yf", "jacobian", "dxdy", "oem_diagnostics", "ml_ga_history" ),
+        OUT( "x", "yf", "jacobian", "dxdy", "oem_diagnostics", "ml_ga_history" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "y", "covmat_sx_inv", "covmat_so_inv",
+        IN( "xa", "x", "covmat_sx_inv", "yf", "y", "covmat_so_inv", "jacobian",
             "jacobian_do", "jacobian_quantities", "jacobian_indices",
-            "inversion_iterate_agenda", "atmosphere_dim", "p_grid",
-            "lat_grid", "lon_grid", "t_field", "vmr_field", "abs_species" ),
+            "inversion_iterate_agenda" ),
         GIN( "method", "max_start_cost", "x_norm", "max_iter", "stop_dx", 
              "ml_ga_settings", "clear_matrices", "display_progress" ),
         GIN_TYPE( "String", "Numeric", "Vector", "Index", "Numeric", 
@@ -15213,7 +15231,30 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "x2arts_std" ),
+      ( NAME( "xaStandard" ),
+        DESCRIPTION
+        (
+         "Standard function for creating *xa*\n"
+         "\n"
+         "Work in progress ...\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "xa" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "jacobian_quantities", "jacobian_indices", 
+            "atmosphere_dim", "p_grid", "lat_grid", "lon_grid",
+            "t_field", "vmr_field", "abs_species" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "x2artsStandard" ),
         DESCRIPTION
         (
          "Standard mapping from retrieval state vector to ARTS variables\n"

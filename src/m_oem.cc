@@ -55,8 +55,9 @@ extern const String POLYFIT_MAINTAG;
 extern const String SINEFIT_MAINTAG;
 
 
+
 /*===========================================================================
-  === Help functions 
+  === Help functions for grid handling
   ===========================================================================*/
 
 
@@ -205,25 +206,13 @@ void get_gp_rq_to_atmgrids(
 
 
 
-//! Creates xa for inversion methods.
-/*!
-  The function analyses jacobian_quantities and jacobian_indices to creat xa.
 
-  \param[out] xa                   As the WSV with same name.
-  \param[in]  jq                   Matches the WSV *jacobian_quantities*.
-  \param[in]  ji                   Matches the WSV *jacobian_indices*.
-  \param[in]  atmosphere_dim       As the WSV with same name.
-  \param[in]  p_grid               As the WSV with same name.
-  \param[in]  lat_grid             As the WSV with same name.
-  \param[in]  lon_grid             As the WSV with same name.
-  \param[in]  t_field              As the WSV with same name.
-  \param[in]  vmr_field            As the WSV with same name.
-  \param[in]  abs_species          As the WSV with same name.
+/*===========================================================================
+  === Workspace methods associated with OEM
+  ===========================================================================*/
 
-  \author Patrick Eriksson 
-  \date   2015-09-09
-*/
-void setup_xa( 
+/* Workspace method: Doxygen documentation will be auto-generated */
+void xaStandard( 
          Vector&                     xa,
    const ArrayOfRetrievalQuantity&   jq,
    const ArrayOfArrayOfIndex&        ji,
@@ -233,7 +222,8 @@ void setup_xa(
    const Vector&                     lon_grid,
    const Tensor3&                    t_field,
    const Tensor4&                    vmr_field,
-   const ArrayOfArrayOfSpeciesTag&   abs_species )
+   const ArrayOfArrayOfSpeciesTag&   abs_species,
+   const Verbosity&)
 {
   // Sizes
   const Index nq = jq.nelem();
@@ -339,12 +329,8 @@ void setup_xa(
 
 
 
-/*===========================================================================
-  === Workspace methods 
-  ===========================================================================*/
-
 /* Workspace method: Doxygen documentation will be auto-generated */
-void x2arts_std(
+void x2artsStandard(
          Vector&                     y_baseline,
          Tensor4&                    vmr_field,
          Tensor3&                    t_field,
@@ -512,12 +498,21 @@ void x2arts_std(
         {
           // As the baseline is set using *jacobian*, there must exist a
           // calculated Jacobian, but this is not these case for the first
-          // iteration. This should be no problem as the a priori for baseline
-          // variables should throughout be zero, but to be safe we check this. 
+          // iteration. This should in general be no problem as the a priori
+          // for baseline variables should throughout be zero. But this must
+          // anyhow be checked:
           if( jacobian.empty() )
-            { assert( min(xa[ind]) == 0 ); assert( max(xa[ind]) == 0 ); }
+            {
+              if( min(xa[ind]) != 0  ||  max(xa[ind]) != 0 )
+                throw runtime_error(
+                   "If any value in *x* that matches a baseline variable "
+                   "deviates from zero, *jacobian* must be set." );
+            }
           else
             {
+              if( jacobian.ncols() != ji[nq-1][1]+1 ) 
+                throw runtime_error( "Number of columns in *jacobian* is "
+                                     "inconsistent with *jacobian_indices*.");
               if( yb_set )
                 {
                   Vector bl( y_baseline.nelem() );
@@ -551,6 +546,27 @@ void x2arts_std(
       y_baseline[0] = 0;
     }   
 }
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void inversion_iterate_agendaCall(
+         Workspace&                  ws,
+         Vector&                     yf,
+         Matrix&                     jacobian,
+   const Index&                      jacobian_do,
+   const Vector&                     x,
+   const Agenda&                     inversion_iterate_agenda,
+   const Verbosity& )
+{
+  inversion_iterate_agendaExecute( ws, yf, jacobian, x, jacobian_do,
+                                   inversion_iterate_agenda );
+}
+
+
+/*===========================================================================
+  === OEM itself (with wrappers and tempate definitions)
+  ===========================================================================*/
 
 #ifdef CXX11_SUPPORT
 
@@ -643,26 +659,19 @@ template <typename Se_t, typename Sx_t>
 void oem_template(
          Workspace&                  ws,
          Vector&                     x,
-         Vector&                     xa,
          Vector&                     yf,
          Matrix&                     jacobian,
          Matrix&                     dxdy,
          Vector&                     oem_diagnostics,
          Vector&                     ml_ga_history,
-   const Vector&                     y,
+   const Vector&                     xa,
    const Sx_t&                       covmat_sx_inv,
+   const Vector&                     y,
    const Se_t&                       covmat_so_inv,
    const Index&                      jacobian_do,
    const ArrayOfRetrievalQuantity&   jacobian_quantities,
    const ArrayOfArrayOfIndex&        jacobian_indices,
    const Agenda&                     inversion_iterate_agenda,
-   const Index&                      atmosphere_dim,
-   const Vector&                     p_grid,
-   const Vector&                     lat_grid,
-   const Vector&                     lon_grid,
-   const Tensor3&                    t_field,
-   const Tensor4&                    vmr_field,
-   const ArrayOfArrayOfSpeciesTag&   abs_species,
    const String&                     method,
    const Numeric&                    max_start_cost,
    const Vector&                     x_norm,
@@ -674,21 +683,31 @@ void oem_template(
    const Verbosity& )
 {
   // Main sizes
-  const Index n = covmat_sx_inv.nrows();
+  const Index n = xa.nelem();
   const Index m = y.nelem();
   const Index nq = jacobian_quantities.nelem();
 
   // Check WSVs
-  if( !jacobian_do )
-    throw runtime_error( "Jacobian calculations must be turned on (but jacobian_do=0)." );
-  if( !nq )
-    throw runtime_error( "Jacobian quantities are empty, no inversion to do!." );
-  if( covmat_sx_inv.ncols() != n )
+  if( x.nelem() != n )
+    throw runtime_error( "Lengths of *xa* and *x* differ." );
+  if( covmat_sx_inv.ncols() != covmat_sx_inv.nrows() )
     throw runtime_error( "*covmat_sx_inv* must be a square matrix." );
+  if( covmat_sx_inv.ncols() != n )
+    throw runtime_error( "Inconsistency in size between *x* and *covmat_sx_inv*." );
+  if( yf.nelem() != m )
+    throw runtime_error( "Lengths of *yf* and *y* differ." );
   if( covmat_so_inv.ncols() != covmat_so_inv.nrows() )
     throw runtime_error( "*covmat_so_inv* must be a square matrix." );
   if( covmat_so_inv.ncols() != m )
     throw runtime_error( "Inconsistency in size between *y* and *covmat_so_inv*." );
+  if( !jacobian_do )
+    throw runtime_error( "Jacobian calculations must be turned on (but jacobian_do=0)." );
+  if( !nq )
+    throw runtime_error( "Jacobian quantities are empty, no inversion to do!." );
+  if( jacobian.nrows() != m )
+    throw runtime_error( "Inconsistency in size between *y* and *jacobian*." );
+  if( jacobian.ncols() != n )
+    throw runtime_error( "Inconsistency in size between *xa* and *jacobian*." );
   if( jacobian_indices.nelem() != nq )
     throw runtime_error( "Different number of elements in *jacobian_quantities* "
                          "and *jacobian_indices*." );
@@ -723,17 +742,6 @@ void oem_template(
     throw runtime_error( "Valid options for *display_progress* are 0 and 1." );  
   //--- End of checks ---------------------------------------------------------------
 
-
-  // Create xa and init x
-  setup_xa( xa, jacobian_quantities, jacobian_indices, atmosphere_dim,
-            p_grid, lat_grid, lon_grid, t_field, vmr_field, abs_species );
-
-  // Calculate spectrum and Jacobian for a priori state
-  // Jacobian is also input to the agenda, and to flag this is this first
-  // call, this WSV must be set to be empty. 
-  jacobian.resize(0,0);
-  inversion_iterate_agendaExecute( ws, yf, jacobian, xa, 1,
-                                   inversion_iterate_agenda );
 
   // Size diagnostic output and init with NaNs
   //
@@ -871,6 +879,7 @@ void oem_template(
       }
 
       x = x_oem;
+      
       // Shall empty jacobian and dxdy be returned?
       if( clear_matrices )
         {
@@ -883,26 +892,19 @@ void oem_template(
 void OEM(
     Workspace&                  ws,
     Vector&                     x,
-    Vector&                     xa,
     Vector&                     yf,
     Matrix&                     jacobian,
     Matrix&                     dxdy,
     Vector&                     oem_diagnostics,
     Vector&                     ml_ga_history,
+    const Vector&                     xa,
+    const Sparse&                     covmat_sx_inv,
     const Vector&                     y,
-    const Sparse&                       covmat_sx_inv,
-    const Sparse&                       covmat_so_inv,
+    const Sparse&                     covmat_so_inv,
     const Index&                      jacobian_do,
     const ArrayOfRetrievalQuantity&   jacobian_quantities,
     const ArrayOfArrayOfIndex&        jacobian_indices,
     const Agenda&                     inversion_iterate_agenda,
-    const Index&                      atmosphere_dim,
-    const Vector&                     p_grid,
-    const Vector&                     lat_grid,
-    const Vector&                     lon_grid,
-    const Tensor3&                    t_field,
-    const Tensor4&                    vmr_field,
-    const ArrayOfArrayOfSpeciesTag&   abs_species,
     const String&                     method,
     const Numeric&                    max_start_cost,
     const Vector&                     x_norm,
@@ -913,12 +915,10 @@ void OEM(
     const Index&                      display_progress,
     const Verbosity&                  v )
 {
-    oem_template( ws, x, xa, yf,
-                  jacobian, dxdy, oem_diagnostics, ml_ga_history,
-                  y, covmat_sx_inv, covmat_so_inv, jacobian_do,
-                  jacobian_quantities, jacobian_indices,
-                  inversion_iterate_agenda, atmosphere_dim, p_grid,
-                  lat_grid, lon_grid, t_field, vmr_field, abs_species,
+    oem_template( ws, x, yf, jacobian, dxdy, oem_diagnostics, ml_ga_history,
+                  xa, covmat_sx_inv, y, covmat_so_inv,
+                  jacobian_do, jacobian_quantities, jacobian_indices,
+                  inversion_iterate_agenda, 
                   method, max_start_cost, x_norm, max_iter, stop_dx,
                   ml_ga_settings, clear_matrices, display_progress, v );
 }

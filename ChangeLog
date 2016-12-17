@@ -1,18 +1,36 @@
+2016-12-17  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-574
+
+	* Some restructuring of OEM. Not ready, mainly a "backup" commit.
+	This commit brakes old cfiles including OEM. Either don't update
+	or email me for info. Otherwise more later ...
+
+	* src/workspace.cc (define_wsv_data): Introduced baseline_basis_funcs.
+
+	* src/m_oem.cc (x2artsStandard): x2arts_std renamed.
+
+	(xaStandard): Internal function setup_xa now renamed and converted to WSM.
+
+	(OEM): xa and initial x, jacobian and yf are now input, instead of
+	being calculated internally. That is, these variables shall be
+	prepared before calling OEM.
+
 2016-12-17  Richard Larsson  <ric.larsson@gmail.com>
-	
+
 	* arts-2-3-573
-	
-	* src/partial_derivatives.cc:  Fixed handling of some of the 
+
+	* src/partial_derivatives.cc:  Fixed handling of some of the
 	line parameters.  Beginning work to abstract this more easily.
-	
+
 	* src/absorption.cc:  Fix copy-paste mistake
-	
+
 	* src/lineshapes.cc:  Fix copy-paste mistake
-	
-	* src/pressurebroadeningdata.{h,cc}:  Fix compilation warning for 
+
+	* src/pressurebroadeningdata.{h,cc}:  Fix compilation warning for
 	needless input.
-	
-	* controlfiles/artscomponents/wfuns:  Added test for jacobian for 
+
+	* controlfiles/artscomponents/wfuns:  Added test for jacobian for
 	line paramters.  This also serves to show how it is activated.
 
 2016-12-15 Jakob Doerr  <jakobdoerr@googlemail.com>
