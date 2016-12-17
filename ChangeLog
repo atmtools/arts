@@ -1,12 +1,18 @@
 2016-12-17  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-3-575
+
+	* ChangeLOg: Correction of last commit. (basline_basis_funcs not introduced)
+
+	* src/m_oem.cc (OEM): Corrected definition used without CXX11.
+
+2016-12-17  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-3-574
 
 	* Some restructuring of OEM. Not ready, mainly a "backup" commit.
 	This commit brakes old cfiles including OEM. Either don't update
 	or email me for info. Otherwise more later ...
-
-	* src/workspace.cc (define_wsv_data): Introduced baseline_basis_funcs.
 
 	* src/m_oem.cc (x2artsStandard): x2arts_std renamed.
 
