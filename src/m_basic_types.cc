@@ -320,6 +320,34 @@ void MatrixMatrixMultiply(// WS Generic Output:
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void MatrixVectorMultiply(// WS Generic Output:
+                          Vector& Y,
+                          // WS Generic Input:
+                          const Matrix& M,
+                          const Vector& X,
+                          const Verbosity&)
+{
+  // Check that dimensions are right, M.ncols() must match X.nrows():
+  if (M.ncols()!=X.nelem())
+    {
+      ostringstream os;
+      os << "Matrix and vector dimensions must be consistent!\n"
+         << "Matrix.ncols() = " << M.ncols() << "\n"
+         << "Vector.nelem() = " << X.nelem();
+      throw runtime_error( os.str() );
+    }
+
+  // Temporary for the result:
+  Vector dummy( M.nrows() );
+
+  mult( dummy, M, X );
+
+  // Copy result to Y:
+  Y = dummy;
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void Matrix1ColFromVector(// WS Generic Output:
                           Matrix&   m,
                           // WS Generic Input:

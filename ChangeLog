@@ -1,8 +1,16 @@
+2016-12-18  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-576
+
+	* src/m_oem.cc (oem_template): Removed demand nq > 0.
+
+	* src/m_basic_types.cc (MatrixVectorMultiply): New WSM.
+
 2016-12-17  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-575
 
-	* ChangeLOg: Correction of last commit. (basline_basis_funcs not introduced)
+	* ChangeLog: Correction of last commit. (basline_basis_funcs not introduced)
 
 	* src/m_oem.cc (OEM): Corrected definition used without CXX11.
 

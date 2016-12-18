@@ -8841,8 +8841,7 @@ void define_md_data_raw()
          "Matrix.\n"
          "\n"
          "This just computes the normal Matrix-Matrix product, Y=M*X. It is ok\n"
-         "if Y and X are the same Matrix. This function is handy for\n"
-         "multiplying the H Matrix to batch spectra.\n"
+         "if Y and X are the same Matrix.\n"
          ),
         AUTHORS( "Stefan Buehler" ),
         OUT(),
@@ -8974,6 +8973,29 @@ void define_md_data_raw()
         GIN_TYPE(    "Vector" ),
         GIN_DEFAULT( NODEF    ),
         GIN_DESC( "Frequency vector." )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "MatrixVectorMultiply" ),
+        DESCRIPTION
+        (
+         "Multiply a Matrix with a Vector\n"
+         "\n"
+         "Computes the normal Matrix-Vector product, out=m*v. It is ok if out and v\n"
+         "are the same Vector.\n"
+         ),
+        AUTHORS( "Stefan Buehler and Patrick Eriksson" ),
+        OUT(),
+        GOUT(      "out"       ),
+        GOUT_TYPE( "Vector" ),
+        GOUT_DESC( "The result of the multiplication (length m)." ),
+        IN(),
+        GIN(      "m"      , "v"       ),
+        GIN_TYPE(    "Matrix", "Vector" ),
+        GIN_DEFAULT( NODEF   , NODEF    ),
+        GIN_DESC( "The Matrix to multiply (dimension mxn).",
+                  "The original Vector (length n)." )
         ));
 
   md_data_raw.push_back

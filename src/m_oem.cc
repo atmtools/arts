@@ -702,8 +702,6 @@ void oem_template(
     throw runtime_error( "Inconsistency in size between *y* and *covmat_so_inv*." );
   if( !jacobian_do )
     throw runtime_error( "Jacobian calculations must be turned on (but jacobian_do=0)." );
-  if( !nq )
-    throw runtime_error( "Jacobian quantities are empty, no inversion to do!." );
   if( jacobian.nrows() != m )
     throw runtime_error( "Inconsistency in size between *y* and *jacobian*." );
   if( jacobian.ncols() != n )
@@ -711,7 +709,7 @@ void oem_template(
   if( jacobian_indices.nelem() != nq )
     throw runtime_error( "Different number of elements in *jacobian_quantities* "
                          "and *jacobian_indices*." );
-  if( jacobian_indices[nq-1][1]+1 != n )
+  if( nq  &&  jacobian_indices[nq-1][1]+1 != n )
     throw runtime_error( "Size of *covmat_sx_inv* do not agree with Jacobian " 
                          "information (*jacobian_indices*)." );
   // Check GINs
