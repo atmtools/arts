@@ -864,10 +864,21 @@ void iyLoopFrequencies(
    const ArrayOfString&    iy_aux_vars,
    const Index&            stokes_dim,
    const Vector&           f_grid,
+   const Index&            atmosphere_dim,
+   const Vector&           p_grid,         
+   const Vector&           lat_grid,
+   const Vector&           lon_grid,
+   const Vector&           lat_true,
+   const Vector&           lon_true,
    const Tensor3&          t_field,
    const Tensor3&          z_field,
    const Tensor4&          vmr_field,
+   const Matrix&           z_surface,
+   const Numeric&          ppath_lmax,
+   const Numeric&          ppath_lraytrace,
    const Index&            cloudbox_on,
+   const ArrayOfIndex&     cloudbox_limits, 
+   const Tensor4&          pnd_field,
    const Index&            iy_agenda_call1,
    const String&           iy_unit,  
    const Tensor3&          iy_transmission,
@@ -880,10 +891,9 @@ void iyLoopFrequencies(
 {
   // Throw error if unsupported features are requested
   if( !iy_agenda_call1 )
-    throw runtime_error( 
-                  "Recursive usage not possible (iy_agenda_call1 must be 1)" );
+    throw runtime_error( "Recursive usage not possible (iy_agenda_call1 must be 1)." );
   if( iy_transmission.ncols() )
-    throw runtime_error( "*iy_transmission* must be empty" );
+    throw runtime_error( "*iy_transmission* must be empty." );
 
   const Index nf = f_grid.nelem();
 
@@ -894,11 +904,14 @@ void iyLoopFrequencies(
       ArrayOfTensor4 iy_aux1; 
       ArrayOfTensor3 diy_dx1;
       
-      iy_sub_agendaExecute( ws, iy1, iy_aux1, ppath, diy_dx1, 
-                            1, iy_unit, iy_transmission, iy_aux_vars, 
-                            cloudbox_on, jacobian_do, t_field, z_field, 
-                            vmr_field, Vector(1,f_grid[i]),
-                            rte_pos, rte_los, rte_pos2, iy_sub_agenda );
+      iy_sub_agendaExecute( ws, iy1, iy_aux1, ppath, diy_dx1, iy_agenda_call1,
+                            iy_unit, iy_transmission, iy_aux_vars,
+                            Vector(1,f_grid[i]), atmosphere_dim, p_grid,
+                            lat_grid, lon_grid, lat_true, lon_true,
+                            t_field, z_field, vmr_field, z_surface,
+                            ppath_lmax, ppath_lraytrace,
+                            cloudbox_on, cloudbox_limits, pnd_field,
+                            jacobian_do, rte_pos, rte_los, rte_pos2, iy_sub_agenda );
 
       // After first frequency, give output its size
       if( i == 0 )
@@ -2087,4 +2100,239 @@ void yApplyUnit(
           y[i] = yv(0,0);
         }
     }
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void iyIndependentColumnApproximation(
+         Workspace&        ws,
+         Matrix&           iy,
+         ArrayOfTensor4&   iy_aux,
+         Ppath&            ppath,
+         ArrayOfTensor3&   diy_dx,
+   const Vector&           f_grid,
+   const Index&            atmosphere_dim,
+   const Vector&           p_grid,
+   const Vector&           lat_grid,
+   const Vector&           lon_grid,
+   const Vector&           lat_true,
+   const Vector&           lon_true,
+   const Tensor3&          t_field,
+   const Tensor3&          z_field,
+   const Tensor4&          vmr_field,
+   const Tensor4&          t_nlte_field,
+   const Tensor3&          wind_u_field,
+   const Tensor3&          wind_v_field,
+   const Tensor3&          wind_w_field,
+   const Tensor3&          mag_u_field,
+   const Tensor3&          mag_v_field,
+   const Tensor3&          mag_w_field,
+   const Matrix&           z_surface,
+   const Index&            cloudbox_on,
+   const ArrayOfIndex&     cloudbox_limits, 
+   const Tensor4&          pnd_field,
+   const Agenda&           ppath_agenda,
+   const Numeric&          ppath_lmax,
+   const Numeric&          ppath_lraytrace,
+   const Index&            iy_agenda_call1,
+   const String&           iy_unit,  
+   const Tensor3&          iy_transmission,
+   const Vector&           rte_pos,
+   const Vector&           rte_los,
+   const Vector&           rte_pos2,
+   const Index&            jacobian_do,
+   const ArrayOfString&    iy_aux_vars,
+   const Agenda&           iy_sub_agenda,
+   const Verbosity& )
+{
+  // Throw error if unsupported features are requested
+  if( jacobian_do )
+    throw runtime_error( "Jacobians not provided by the method, *jacobian_do* "
+                         "must be 0." );
+  if( !t_nlte_field.empty() )
+    throw runtime_error( "This method does not yet support non-empty *t_nlte_field*." );
+  if( !wind_u_field.empty() )
+    throw runtime_error( "This method does not yet support non-empty *wind_u_field*." );
+  if( !wind_v_field.empty() )
+    throw runtime_error( "This method does not yet support non-empty *wind_v_field*." );
+  if( !wind_w_field.empty() )
+    throw runtime_error( "This method does not yet support non-empty *wind_w_field*." );
+  if( !mag_u_field.empty() )
+    throw runtime_error( "This method does not yet support non-empty *mag_u_field*." );
+  if( !mag_v_field.empty() )
+    throw runtime_error( "This method does not yet support non-empty *mag_v_field*." );
+  if( !mag_w_field.empty() )
+    throw runtime_error( "This method does not yet support non-empty *mag_w_field*." );
+
+  
+  // 1D must be supported, to handle iterative calls of iy_main_agenda
+  if( atmosphere_dim == 1 )
+    {
+      iy_sub_agendaExecute( ws, iy, iy_aux, ppath, diy_dx, iy_agenda_call1,
+                            iy_unit, iy_transmission, iy_aux_vars,
+                            f_grid, atmosphere_dim, p_grid,
+                            lat_grid, lon_grid, lat_true, lon_true,
+                            t_field, z_field, vmr_field, z_surface,
+                            ppath_lmax, ppath_lraytrace,
+                            cloudbox_on, cloudbox_limits, pnd_field,
+                            jacobian_do, rte_pos, rte_los, rte_pos2, iy_sub_agenda );
+      return;
+    }
+  //-------------------------------------------------------------------------------
+
+    
+  // Determine 2D or 3D propagation path (with cloudbox deactivated) and check
+  // that is OK for ICA
+  //
+  ppath_agendaExecute( ws, ppath, ppath_lmax, ppath_lraytrace,
+                       rte_pos, rte_los, rte_pos2, 0, 0, t_field,
+                       z_field, vmr_field, f_grid, ppath_agenda );
+  // This check could be improved: 
+  bool ppath_is_down = is_decreasing( ppath.r );
+  if( !ppath_is_down  &&  !is_increasing( ppath.r ) )
+    throw runtime_error( "A propagation path of limb character found. Such "
+                         "viewing geometries are not supported by ICA. Propagation "
+                         "paths must be strictly increasing or decreasing" );
+
+
+  // Grid positions, sorted correctly
+  ArrayOfGridPos  gp_p(0), gp_lat(0), gp_lon(0);
+  if( ppath_is_down )
+    {
+      gp_p.resize( ppath.np ); gp_lat.resize( ppath.np );
+      if( atmosphere_dim == 3 ) { gp_lon.resize( ppath.np ); }
+      for( Index i=0; i<ppath.np; i++ )
+        {
+          const Index inew = ppath.np-i-1;
+          gp_p[inew]   = ppath.gp_p[i];
+          gp_lat[inew] = ppath.gp_lat[i];
+          if( atmosphere_dim == 3 ) { gp_lon[inew] = ppath.gp_lon[i]; }
+        }
+    }
+  else  // Here we can just copy:
+    { gp_p = ppath.gp_p; gp_lat = ppath.gp_lat; gp_lon = ppath.gp_lon; }
+  
+
+  // 1D version of p_grid 
+  Matrix         itw;
+  Vector         p1( ppath.np );
+  ArrayOfGridPos gp0(0), gp1(1);
+  interp_atmfield_gp2itw( itw, 1, gp_p, gp0, gp0 );
+  itw2p( p1, p_grid, gp_p, itw );
+
+  // 1D version of lat and lon variables
+  Vector lat1(0), lon1(0);
+  Vector lat_true1(1), lon_true1(1);
+  if( atmosphere_dim == 2 )
+    {
+      gp1[0] = gp_lat[0];
+      interp_atmfield_gp2itw( itw, 1, gp1, gp0, gp0 );
+      interp( lat_true1, itw, lat_true, gp1 ); 
+      interp( lon_true1, itw, lon_true, gp1 );
+    }
+  else
+    {
+      gp1[0] = gp_lat[0];
+      interp_atmfield_gp2itw( itw, 1, gp1, gp0, gp0 );
+      interp( lat_true1, itw, lat_grid, gp1 ); 
+      gp1[0] = gp_lon[0];
+      interp_atmfield_gp2itw( itw, 1, gp1, gp0, gp0 );
+      interp( lon_true1, itw, lon_grid, gp1 );
+    }
+  
+  // 2D/3D interpolation weights
+  interp_atmfield_gp2itw( itw, atmosphere_dim, gp_p, gp_lat, gp_lon );  
+  
+  // 1D temperature field
+  Tensor3 t1( ppath.np, 1, 1 );  
+  interp_atmfield_by_itw( t1(joker,0,0), atmosphere_dim, t_field,
+                          gp_p, gp_lat, gp_lon, itw )  ;
+
+  // 1D altitude field
+  Tensor3 z1( ppath.np, 1, 1 );  
+  interp_atmfield_by_itw( z1(joker,0,0), atmosphere_dim, z_field,
+                          gp_p, gp_lat, gp_lon, itw )  ;
+  
+  // 1D VMR field
+  Tensor4 vmr1( vmr_field.nbooks(), ppath.np, 1, 1 );  
+  for( Index is=0; is<vmr_field.nbooks(); is++ )
+    { interp_atmfield_by_itw( vmr1(is,joker,0,0), atmosphere_dim,
+                              vmr_field( is, joker, joker, joker ), 
+                              gp_p, gp_lat, gp_lon, itw ); }
+
+  // 1D surface altitude
+  Matrix zsurf1(1,1);
+  zsurf1(0,0) = z1(0,0,0);
+  
+  // 1D version of rte_pos/los
+  Vector pos1(1); pos1[0] = rte_pos[0]; 
+  Vector los1(1); los1[0] = abs( rte_los[0] );
+  Vector pos2(0); if( rte_pos2.nelem() ) { pos2 = rte_pos2[Range(0,rte_pos2.nelem())]; } 
+
+  // Cloudbox variables
+  ArrayOfIndex clims1(0);
+  Tensor4 pnd1(0,0,0,0);  
+  if( cloudbox_on )
+    {
+      // A simple algorithm to find new values for cloudbox_limits
+      Index ia=0, ib=0;            // Best guess for index in p1
+      Numeric pa=p1[0], pb=p1[0];  // Corresponding pressures
+      Numeric ta=p_grid[cloudbox_limits[0]];  // Target pressure for ia
+      Numeric tb=p_grid[cloudbox_limits[1]];  // Target pressure for ib
+      for( Index i=1; i<p1.nelem(); i++ )
+        {
+          if( abs(p1[i]-ta) < abs(pa-ta) )
+            { ia=i; pa=p1[i]; }
+          if( abs(p1[i]-tb) < abs(pb-tb) )
+            { ib=i; pb=p1[i]; }
+        }
+      clims1.resize(2);
+      clims1[0] = ia;
+      clims1[1] = ib;
+
+      // Create 1D version of pnd_field
+      //
+      pnd1.resize( pnd_field.nbooks(), ib-ia+1, 1, 1 );
+      //
+      itw.resize( 1, Index(pow(2.0,Numeric(atmosphere_dim))) );;
+      for( Index i=0; i<pnd1.npages(); i++ )
+        {
+          const Index i0 = ia + i;
+          ArrayOfGridPos gpc_p(1), gpc_lat(1), gpc_lon(1);
+          if( atmosphere_dim == 2 )
+            {
+              GridPos gpdummy;              
+              interp_cloudfield_gp2itw( itw(0,joker), 
+                                        gpc_p[0], gpc_lat[0], gpc_lon[0], 
+                                        gp_p[i0], gp_lat[i0], gpdummy,
+                                        atmosphere_dim, cloudbox_limits );
+            }
+          else
+            {
+              interp_cloudfield_gp2itw( itw(0,joker), 
+                                        gpc_p[0], gpc_lat[0], gpc_lon[0], 
+                                        gp_p[i0], gp_lat[i0], gp_lon[i0],
+                                        atmosphere_dim, cloudbox_limits );
+            }
+          for( Index p=0; p<pnd_field.nbooks(); p++ )
+            {
+              interp_atmfield_by_itw( pnd1(p,i,0,0), atmosphere_dim,
+                                      pnd_field(p,joker,joker,joker), 
+                                      gpc_p, gpc_lat, gpc_lon, itw );
+            }
+        }      
+    }
+  
+  // Call sub agenda
+  //
+  const Index adim1 = 1;
+  const Numeric lmax1 = -1;
+  //
+  iy_sub_agendaExecute( ws, iy, iy_aux, ppath, diy_dx, iy_agenda_call1,
+                        iy_unit, iy_transmission, iy_aux_vars,
+                        f_grid, adim1, p1, lat1, lon1, lat_true1, lon_true1,
+                        t1, z1, vmr1, zsurf1, lmax1, ppath_lraytrace,
+                        cloudbox_on, clims1, pnd1,
+                        jacobian_do, pos1, los1, pos2, iy_sub_agenda );
 }

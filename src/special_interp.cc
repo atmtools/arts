@@ -291,13 +291,13 @@ Numeric interp_atmfield_by_gp(
     \param   itw                Output: Interpolation weights. Vector must be 
                                 given correct size before call of function.
     \param   gp_p_out           Output: Pressure cloudbox grid position.
-    \param   gp_lat_out         Output: Latitude cloudbox grid positionn.
+    \param   gp_lat_out         Output: Latitude cloudbox grid position.
     \param   gp_lon_out         Output: Longitude cloudbox grid position.
     \param   gp_p_in            Pressure grid position.
     \param   gp_lat_in          Latitude grid position.
     \param   gp_lon_in          Longitude grid position.
     \param   atmosphere_dim     As the WSV with the same name.
-    \param   cloudbiox_limits   As the WSV with the same name.
+    \param   cloudbox_limits    As the WSV with the same name.
 
     \author Patrick Eriksson 
     \date   2010-02-12

@@ -6738,6 +6738,33 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "iyIndependentColumnApproximation" ),
+        DESCRIPTION
+        (
+         "In development ....\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "iy", "iy_aux", "ppath", "diy_dx" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "diy_dx", "f_grid", "atmosphere_dim", "p_grid", "lat_grid",
+            "lon_grid", "lat_true", "lon_true", "t_field", "z_field",
+            "vmr_field", "t_nlte_field", "wind_u_field", "wind_v_field",
+            "wind_w_field", "mag_u_field", "mag_v_field", "mag_w_field",
+            "z_surface", "cloudbox_on", "cloudbox_limits", "pnd_field",
+            "ppath_agenda", "ppath_lmax", "ppath_lraytrace",
+            "iy_agenda_call1", "iy_unit", "iy_transmission", "rte_pos", "rte_los",
+            "rte_pos2", "jacobian_do", "iy_aux_vars", "iy_sub_agenda"
+            ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "iyInterpCloudboxField" ),
         DESCRIPTION
         (
@@ -6821,9 +6848,12 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "iy_aux_vars", "stokes_dim", "f_grid", "t_field", "z_field", 
-            "vmr_field", "cloudbox_on", "iy_agenda_call1", "iy_unit", 
-            "iy_transmission",
+        IN( "iy_aux_vars", "stokes_dim", "f_grid", "atmosphere_dim",
+            "p_grid", "lat_grid", "lon_grid", "lat_true", "lon_true",
+            "t_field", "z_field", "vmr_field", "z_surface",
+            "ppath_lmax", "ppath_lraytrace",
+            "cloudbox_on", "cloudbox_limits", "pnd_field",
+            "iy_agenda_call1", "iy_unit", "iy_transmission",
             "rte_pos", "rte_los", "rte_pos2", "jacobian_do", "iy_sub_agenda" ),
         GIN(),
         GIN_TYPE(),

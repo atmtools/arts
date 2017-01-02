@@ -394,8 +394,12 @@ void define_agenda_data()
         ),
        OUTPUT( "iy", "iy_aux", "ppath", "diy_dx" ),
        INPUT( "diy_dx", "iy_agenda_call1", "iy_unit", "iy_transmission", "iy_aux_vars",
-              "cloudbox_on", "jacobian_do", "t_field", "z_field", "vmr_field", 
-              "f_grid", "rte_pos", "rte_los", "rte_pos2" )));  
+              "f_grid", "atmosphere_dim", "p_grid",
+              "lat_grid", "lon_grid", "lat_true", "lon_true",
+              "t_field", "z_field", "vmr_field", "z_surface", 
+              "ppath_lmax", "ppath_lraytrace",
+              "cloudbox_on", "cloudbox_limits", "pnd_field",
+              "jacobian_do", "rte_pos", "rte_los", "rte_pos2" )));  
 
   agenda_data.push_back
     (AgRecord
@@ -657,11 +661,8 @@ void define_agenda_data()
         "*ppathStepByStep*.\n" 
         "\n"
         "The WSV *rte_los* is both input and output as in some cases it is\n"
-        "determined as part of the propagation path calculations (such as for"
-        "for radio link calculations).\n"
-        "\n"
-        "The include file 'agendas.arts' predefines some agendas that can\n"
-        "either be used directly, or serve as inspiration.\n"
+        "determined as part of the propagation path calculations (such as\n"
+        "radio link calculations).\n"
         ),
        OUTPUT( "ppath" ),
        INPUT( "ppath_lmax", "ppath_lraytrace", "rte_pos", "rte_los", "rte_pos2",

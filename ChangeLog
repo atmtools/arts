@@ -1,3 +1,20 @@
+2017-01-02  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-577
+
+	* controlfiles/artscomponents/transmission/TestTransmission.arts:
+	Adopted setting of iy_sub_agenda.
+
+	* src/m_rte.cc (iyIndependentColumnApproximation): Just started.
+
+	(iyLoopFrequencies): Adopted to new required input of iy_sub_agenda.
+
+	* src/agendas.cc: Fixed typo in description. Added several input
+	WSVs to iy_sub_agenda.
+
+	* src/special_interp.cc (interp_cloudfield_gp2itw): Some spell
+	fixes in header.
+
 2016-12-18  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-576

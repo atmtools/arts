@@ -164,7 +164,17 @@ AgendaSet( iy_main_agenda ){
   iyLoopFrequencies
 }
 
-Copy( iy_sub_agenda, iy_main_agenda__Transmission )
+
+AgendaSet( iy_sub_agenda ){
+  Ignore( lat_grid )
+  Ignore( lon_grid )
+  Ignore( lat_true )
+  Ignore( lon_true )
+  Ignore( z_surface )
+  Ignore( iy_unit )
+  Ignore( t_nlte_field )
+  iyTransmissionStandard
+}
 
 
 # No along-the-path-variables can here be included
